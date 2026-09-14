@@ -1283,33 +1283,7 @@ export function getDbInstance(): SqliteDatabase {
   db.pragma("synchronous = NORMAL");
   db.pragma(`cache_size = -${DEFAULT_DATABASE_SETTINGS.optimization.cacheSize}`);
   db.pragma("temp_store = MEMORY");
-  // Tables first, then the legacy-column healers, and only then the indexes: an upgraded
-  // database can already own call_logs/usage_history/provider_connections with an older
-  // column set, where the CREATE TABLE is a no-op but the indexes still reference columns
-  // the healers below are the ones adding.
-  db.exec(SCHEMA_TABLES_SQL);
-  ensureProviderConnectionsColumns(db);
-  ensureUsageHistoryColumns(db);
-  ensureCallLogsColumns(db);
-  db.exec(SCHEMA_INDEXES_SQL);
-
-  // ── Versioned Migrations ──
-  // Auto-seed 001 as applied (the inline SCHEMA_SQL already created these tables)
-  // then run any new migrations (002+)
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS _omniroute_migrations (
-      version TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-    INSERT OR IGNORE INTO _omniroute_migrations (version, name)
-    VALUES ('001', 'initial_schema');
-  `);
-
-  runMigrations(db, { isNewDb, databaseExistedBeforeInitialization });
-  // Fresh installs need the same post-migration index guarantee as upgraded
-  // databases, including recovery from an interrupted migration 127 attempt.
-  ensureUsageHistoryAccountIndex(db);
+  applySchemaAndMigrations(db, { isNewDb, databaseExistedBeforeInitialization });
 
   applyStoredDatabaseOptimizationSettings(db);
 
@@ -1357,22 +1331,67 @@ export function getDbInstance(): SqliteDatabase {
     }
   }
 
-  // Store schema version
-  const versionStmt = db.prepare(
-    "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')"
+  const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
+  if (skipIntegrityCheck && shouldRunStartupDbHealthCheck()) {
+    console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
+  }
+  activateDatabase(db, {
+    skipIntegrityCheck,
+    createBackupBeforeRepair: () => createHealthCheckBackup(db),
+  });
+  startWalMaintenance(db, SQLITE_FILE);
+  // Log the resolved absolute DATA_DIR + SQLITE_FILE once at init so a
+  // multi-replica / Docker volume-topology mismatch (each replica opening a
+  // different on-disk DB → "phantom"/missing combos & connections) is
+  // diagnosable straight from the logs. (#3147)
+  console.log(
+    `[DB] SQLite database ready: ${sqliteFile} ` +
+      `(DATA_DIR=${path.resolve(DATA_DIR)}, SQLITE_FILE=${path.resolve(sqliteFile)})`
   );
-  versionStmt.run();
+  return db;
+}
+
+function applySchemaAndMigrations(
+  db: SqliteDatabase,
+  flags: { isNewDb: boolean; databaseExistedBeforeInitialization: boolean }
+) {
+  // Tables first, then the legacy-column healers, and only then the indexes: an upgraded
+  // database can already own call_logs/usage_history/provider_connections with an older
+  // column set, where the CREATE TABLE is a no-op but the indexes still reference columns
+  // the healers below are the ones adding.
+  db.exec(SCHEMA_TABLES_SQL);
+  ensureProviderConnectionsColumns(db);
+  ensureUsageHistoryColumns(db);
+  ensureCallLogsColumns(db);
+  db.exec(SCHEMA_INDEXES_SQL);
+
+  // ── Versioned Migrations ──
+  // Auto-seed 001 as applied (the inline SCHEMA_SQL already created these tables)
+  // then run any new migrations (002+)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS _omniroute_migrations (
+      version TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    INSERT OR IGNORE INTO _omniroute_migrations (version, name)
+    VALUES ('001', 'initial_schema');
+  `);
+
+  runMigrations(db, flags);
+  // Fresh installs need the same post-migration index guarantee as upgraded
+  // databases, including recovery from an interrupted migration 127 attempt.
+  ensureUsageHistoryAccountIndex(db);
+}
+
+function activateDatabase(
+  db: SqliteDatabase,
+  healthCheck: { skipIntegrityCheck: boolean; createBackupBeforeRepair: () => boolean }
+) {
+  // Store schema version
+  db.prepare("INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')").run();
   if (shouldRunStartupDbHealthCheck()) {
-    const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
-    if (skipIntegrityCheck) {
-      console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
-    }
-    runDbHealthCheck(db, {
-      autoRepair: true,
-      expectedSchemaVersion: "1",
-      skipIntegrityCheck,
-      createBackupBeforeRepair: () => createHealthCheckBackup(db),
-    });
+    runDbHealthCheck(db, { autoRepair: true, expectedSchemaVersion: "1", ...healthCheck });
   }
 
   setDb(db);
@@ -1386,16 +1405,6 @@ export function getDbInstance(): SqliteDatabase {
   }
 
   startDbHealthCheckScheduler(db);
-  startWalMaintenance(db, SQLITE_FILE);
-  // Log the resolved absolute DATA_DIR + SQLITE_FILE once at init so a
-  // multi-replica / Docker volume-topology mismatch (each replica opening a
-  // different on-disk DB → "phantom"/missing combos & connections) is
-  // diagnosable straight from the logs. (#3147)
-  console.log(
-    `[DB] SQLite database ready: ${sqliteFile} ` +
-      `(DATA_DIR=${path.resolve(DATA_DIR)}, SQLITE_FILE=${path.resolve(sqliteFile)})`
-  );
-  return db;
 }
 
 const POSTGRES_INIT_LOCK_KEY = 7211003;
@@ -1418,45 +1427,15 @@ function initPostgresDatabase(config: PostgresConfig): SqliteDatabase {
   db.exec(`SELECT pg_advisory_lock(${POSTGRES_INIT_LOCK_KEY}, hashtext(current_schema()))`);
   try {
     const databaseExistedBeforeInitialization = hasTable(db, "_omniroute_migrations");
-    db.exec(SCHEMA_SQL);
-    ensureProviderConnectionsColumns(db);
-    ensureUsageHistoryColumns(db);
-    ensureCallLogsColumns(db);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS _omniroute_migrations (
-        version TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-      );
-      INSERT OR IGNORE INTO _omniroute_migrations (version, name)
-      VALUES ('001', 'initial_schema');
-    `);
-    runMigrations(db, {
+    applySchemaAndMigrations(db, {
       isNewDb: !databaseExistedBeforeInitialization,
       databaseExistedBeforeInitialization,
     });
-    ensureUsageHistoryAccountIndex(db);
     offloadLegacyCallLogDetails(db);
-    db.prepare("INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')").run();
   } finally {
     db.exec(`SELECT pg_advisory_unlock(${POSTGRES_INIT_LOCK_KEY}, hashtext(current_schema()))`);
   }
-  if (shouldRunStartupDbHealthCheck()) {
-    runDbHealthCheck(db, {
-      autoRepair: true,
-      expectedSchemaVersion: "1",
-      skipIntegrityCheck: true,
-      createBackupBeforeRepair: () => false,
-    });
-  }
-  setDb(db);
-  try {
-    autoMigrateLegacyEncryptedConnections(db);
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`[DB] Legacy encryption migration failed: ${message}`);
-  }
-  startDbHealthCheckScheduler(db);
+  activateDatabase(db, { skipIntegrityCheck: true, createBackupBeforeRepair: () => false });
   if (config.importSqliteOnSetup && SQLITE_FILE) {
     importSqliteIntoPostgresOnSetup(db, SQLITE_FILE);
   }
