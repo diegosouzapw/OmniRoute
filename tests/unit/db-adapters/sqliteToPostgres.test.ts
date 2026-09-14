@@ -241,6 +241,43 @@ describe("sqlite to postgres translator", () => {
     );
   });
 
+  test("Rowid_OnTextPrimaryKeyTable_BecomesPrimaryKey", () => {
+    const ctx = contextWith({
+      agentic_conversations: {
+        columns: ["id", "last_seen_at"],
+        columnTypes: { id: "TEXT", last_seen_at: "TEXT" },
+        primaryKey: ["id"],
+        uniqueIndexes: [],
+        identityColumn: null,
+      },
+    });
+    assert.equal(
+      normalize(
+        sql(
+          "DELETE FROM agentic_conversations WHERE rowid IN (SELECT rowid FROM agentic_conversations WHERE last_seen_at < ? LIMIT 10000)",
+          ctx
+        )
+      ),
+      'DELETE FROM "agentic_conversations" WHERE id IN (SELECT id FROM agentic_conversations WHERE last_seen_at < $1 LIMIT 10000)'
+    );
+  });
+
+  test("Rowid_OnCompositePrimaryKeyTable_IsLeftAlone", () => {
+    const ctx = contextWith({
+      pairs: {
+        columns: ["a", "b"],
+        columnTypes: { a: "TEXT", b: "TEXT" },
+        primaryKey: ["a", "b"],
+        uniqueIndexes: [],
+        identityColumn: null,
+      },
+    });
+    assert.equal(
+      normalize(sql("SELECT rowid FROM pairs WHERE a = ?", ctx)),
+      "SELECT rowid FROM pairs WHERE a = $1"
+    );
+  });
+
   test("AlterTable_AddColumn_IsIdempotent", () => {
     assert.equal(
       normalize(sql("ALTER TABLE t ADD COLUMN extra INTEGER NOT NULL DEFAULT 0 REFERENCES x(id)")),

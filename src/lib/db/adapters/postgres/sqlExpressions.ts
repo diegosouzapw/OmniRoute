@@ -14,7 +14,12 @@ import {
   ws,
   type Token,
 } from "./sqlTokenizer";
-import { ROWID_COLUMN, type TranslationContext, type ParamState } from "./translationCore";
+import {
+  ROWID_COLUMN,
+  type TableSchema,
+  type TranslationContext,
+  type ParamState,
+} from "./translationCore";
 import { call, upper } from "./sqlBuilders";
 import { functionHandler } from "./sqlFunctionHandlers";
 
@@ -756,6 +761,12 @@ export function collectTableRefs(tokens: Token[]): TableRefs {
   return refs;
 }
 
+function rowidTarget(schema: TableSchema | null): string | null {
+  if (!schema) return null;
+  if (schema.identityColumn) return schema.identityColumn;
+  return schema.primaryKey.length === 1 ? schema.primaryKey[0] : null;
+}
+
 function rewriteRowid(tokens: Token[], ctx: TranslationContext, refs: TableRefs): Token[] {
   return tokens.map((token, index) => {
     if (token.type !== "word" || token.value.toLowerCase() !== "rowid") return token;
@@ -768,10 +779,8 @@ function rewriteRowid(tokens: Token[], ctx: TranslationContext, refs: TableRefs)
       if (qualifierName) table = refs.aliases.get(qualifierName.toLowerCase()) ?? qualifierName;
     }
     if (!table) return token;
-    const schema = ctx.lookupTable(table);
-    if (schema?.identityColumn && schema.identityColumn !== ROWID_COLUMN)
-      return word(schema.identityColumn);
-    return token;
+    const target = rowidTarget(ctx.lookupTable(table));
+    return target && target !== ROWID_COLUMN ? word(target) : token;
   });
 }
 
