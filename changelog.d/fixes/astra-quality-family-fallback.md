@@ -1,0 +1,1 @@
+- **fix(combo):** GPT-6 Astra quality-empty 200 hops a sibling effort alias on the same connection instead of failing the combo step. Gemini 3.8 Flash empty-content hops medium then low. Family lookup prefers the combo alias (`agy/`) over the canonical `antigravity` provider so hop candidates stay in the live catalog.
