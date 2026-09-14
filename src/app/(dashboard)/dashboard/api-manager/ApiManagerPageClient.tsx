@@ -123,6 +123,7 @@ interface ApiKey {
   blockedModels?: string[] | null;
   allowedCombos: string[] | null;
   allowedConnections: string[] | null;
+  preferredConnections?: string[] | null;
   noLog?: boolean;
   autoResolve?: boolean;
   isActive?: boolean;
@@ -799,6 +800,7 @@ export default function ApiManagerPageClient() {
     allowedCombos: string[],
     noLog: boolean,
     allowedConnections: string[],
+    preferredConnections: string[],
     autoResolve: boolean,
     isActive: boolean,
     throttleDelayMs: number,
@@ -851,6 +853,13 @@ export default function ApiManagerPageClient() {
     const validConnections = allowedConnections.filter(
       (id) => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id)
     );
+    const allowedConnectionSet = validConnections.length > 0 ? new Set(validConnections) : null;
+    const validPreferredConnections = preferredConnections.filter(
+      (id) =>
+        typeof id === "string" &&
+        /^[0-9a-f-]{36}$/i.test(id) &&
+        (!allowedConnectionSet || allowedConnectionSet.has(id))
+    );
     const normalizedMaxSessions =
       typeof maxSessions === "number" && Number.isFinite(maxSessions)
         ? Math.max(0, Math.floor(maxSessions))
@@ -875,6 +884,7 @@ export default function ApiManagerPageClient() {
           blockedModels: validBlockedModels,
           allowedCombos: validCombos,
           allowedConnections: validConnections,
+          preferredConnections: validPreferredConnections,
           noLog,
           autoResolve,
           isActive,
@@ -1724,6 +1734,7 @@ const PermissionsModal = memo(function PermissionsModal({
     combos: string[],
     noLog: boolean,
     connections: string[],
+    preferredConnections: string[],
     autoResolve: boolean,
     isActive: boolean,
     throttleDelayMs: number,
@@ -1764,6 +1775,9 @@ const PermissionsModal = memo(function PermissionsModal({
     : [];
   const initialConnections = Array.isArray(apiKey?.allowedConnections)
     ? apiKey.allowedConnections
+    : [];
+  const initialPreferredConnections = Array.isArray(apiKey?.preferredConnections)
+    ? apiKey.preferredConnections
     : [];
   const hasExclusiveLeaseScope =
     Array.isArray(apiKey?.scopes) && apiKey.scopes.includes("lease:exclusive");
@@ -1828,6 +1842,9 @@ const PermissionsModal = memo(function PermissionsModal({
   const [nameError, setNameError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [selectedConnections, setSelectedConnections] = useState<string[]>(initialConnections);
+  const [selectedPreferredConnections, setSelectedPreferredConnections] = useState<string[]>(
+    initialPreferredConnections
+  );
   const [allowAllConnections, setAllowAllConnections] = useState(initialConnections.length === 0);
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(() => {
     // Expand all providers by default when in restrict mode with existing selections
@@ -1946,14 +1963,41 @@ const PermissionsModal = memo(function PermissionsModal({
   const handleToggleConnection = useCallback(
     (connectionId: string) => {
       if (allowAllConnections) return;
+      if (selectedConnections.includes(connectionId)) {
+        setSelectedPreferredConnections((prev) => prev.filter((id) => id !== connectionId));
+      }
       setSelectedConnections((prev) =>
         prev.includes(connectionId)
           ? prev.filter((c) => c !== connectionId)
           : [...prev, connectionId]
       );
     },
-    [allowAllConnections]
+    [allowAllConnections, selectedConnections]
   );
+
+  const handleTogglePreferredConnection = useCallback(
+    (connectionId: string) => {
+      const isAllowed = allowAllConnections || selectedConnections.includes(connectionId);
+      if (!isAllowed) return;
+      setSelectedPreferredConnections((prev) =>
+        prev.includes(connectionId)
+          ? prev.filter((id) => id !== connectionId)
+          : [...prev, connectionId]
+      );
+    },
+    [allowAllConnections, selectedConnections]
+  );
+
+  const handleMovePreferredConnection = useCallback((connectionId: string, direction: -1 | 1) => {
+    setSelectedPreferredConnections((prev) => {
+      const index = prev.indexOf(connectionId);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+  }, []);
 
   const handleToggleEndpoint = useCallback(
     (categoryId: string) => {
@@ -2025,6 +2069,9 @@ const PermissionsModal = memo(function PermissionsModal({
       allowAllCombos ? [ALL_COMBOS_ACCESS_RULE] : selectedCombos,
       noLogEnabled,
       allowAllConnections ? [] : selectedConnections,
+      selectedPreferredConnections.filter(
+        (id) => allowAllConnections || selectedConnections.includes(id)
+      ),
       autoResolveEnabled,
       keyIsActive,
       throttleDelayMs,
@@ -2062,6 +2109,7 @@ const PermissionsModal = memo(function PermissionsModal({
     noLogEnabled,
     allowAllConnections,
     selectedConnections,
+    selectedPreferredConnections,
     autoResolveEnabled,
     keyIsActive,
     throttleDelayMs,
@@ -2946,7 +2994,12 @@ const PermissionsModal = memo(function PermissionsModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAllowAllConnections(false)}
+                  onClick={() => {
+                    setAllowAllConnections(false);
+                    setSelectedPreferredConnections((prev) =>
+                      prev.filter((id) => selectedConnections.includes(id))
+                    );
+                  }}
                   className={`px-2 py-1 rounded text-xs font-medium transition-all ${
                     !allowAllConnections
                       ? "bg-primary text-white"
@@ -3018,6 +3071,119 @@ const PermissionsModal = memo(function PermissionsModal({
                   ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Preferred Connections Section */}
+        {allConnections.length > 0 && (
+          <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-text-main">Preferred Connections</p>
+                <p className="text-[11px] text-text-muted">
+                  Ordered per-key priority. Unavailable accounts automatically fall back to the next
+                  eligible connection.
+                </p>
+              </div>
+              {selectedPreferredConnections.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedPreferredConnections([])}
+                  className="px-2 py-1 rounded text-xs font-medium text-text-muted hover:bg-black/5 dark:hover:bg-white/5 shrink-0"
+                >
+                  Use default
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-text-muted">
+              {selectedPreferredConnections.length === 0
+                ? "Default routing strategy is used."
+                : `Priority: ${selectedPreferredConnections.length} preferred connection${selectedPreferredConnections.length !== 1 ? "s" : ""}.`}
+            </p>
+            <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+              {Object.entries(
+                allConnections
+                  .filter((conn) => allowAllConnections || selectedConnections.includes(conn.id))
+                  .reduce<Record<string, ProviderConnection[]>>((acc, conn) => {
+                    const provider = conn.provider || "Other";
+                    if (!acc[provider]) acc[provider] = [];
+                    acc[provider].push(conn);
+                    return acc;
+                  }, {})
+              )
+                .sort(([a], [b]) => compareTr(a, b))
+                .map(([provider, conns]) => (
+                  <div key={provider}>
+                    <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1 py-0.5">
+                      {provider}
+                    </p>
+                    {conns.map((conn) => {
+                      const rank = selectedPreferredConnections.indexOf(conn.id);
+                      const isPreferred = rank >= 0;
+                      return (
+                        <div
+                          key={conn.id}
+                          className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-all ${
+                            isPreferred
+                              ? "bg-primary/10 text-primary"
+                              : "text-text-muted hover:bg-surface/50 hover:text-text-main"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePreferredConnection(conn.id)}
+                            className="flex items-center gap-2 min-w-0 flex-1 text-left"
+                          >
+                            <div
+                              className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 text-[10px] font-semibold ${
+                                isPreferred
+                                  ? "bg-primary border-primary text-white"
+                                  : "border-border"
+                              }`}
+                            >
+                              {isPreferred ? rank + 1 : "+"}
+                            </div>
+                            <span className="truncate flex-1">
+                              {conn.name || conn.id.slice(0, 8)}
+                            </span>
+                            {!conn.isActive && (
+                              <span className="text-[9px] text-red-400 shrink-0">
+                                {tc("inactive")}
+                              </span>
+                            )}
+                          </button>
+                          {isPreferred && (
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <button
+                                type="button"
+                                aria-label="Move preferred connection up"
+                                disabled={rank === 0}
+                                onClick={() => handleMovePreferredConnection(conn.id, -1)}
+                                className="w-6 h-6 rounded flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  arrow_upward
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Move preferred connection down"
+                                disabled={rank === selectedPreferredConnections.length - 1}
+                                onClick={() => handleMovePreferredConnection(conn.id, 1)}
+                                className="w-6 h-6 rounded flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  arrow_downward
+                                </span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+            </div>
           </div>
         )}
 

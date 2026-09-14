@@ -77,6 +77,7 @@ export async function POST(request) {
       noLog,
       scopes,
       allowedConnections,
+      preferredConnections,
       allowUsageCommand,
       usageLimitEnabled,
       dailyUsageLimitUsd,
@@ -92,6 +93,7 @@ export async function POST(request) {
       allowedModels,
       allowedCombos,
       allowedConnections,
+      preferredConnections,
     });
     if (
       noLog === true ||
@@ -131,6 +133,7 @@ export async function POST(request) {
         allowedModels: apiKey.allowedModels,
         allowedCombos: apiKey.allowedCombos,
         allowedConnections: apiKey.allowedConnections,
+        preferredConnections: apiKey.preferredConnections,
         noLog: noLog === true,
         allowUsageCommand: allowUsageCommand === true,
         usageLimitEnabled: usageLimitEnabled === true,

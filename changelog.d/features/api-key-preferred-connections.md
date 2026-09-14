@@ -1,0 +1,1 @@
+- **feat(routing):** add per-API-key ordered `preferredConnections`, allowing each project to pin a primary provider account with quota/cooldown-aware automatic fallback to the next eligible account without changing global connection priority.
