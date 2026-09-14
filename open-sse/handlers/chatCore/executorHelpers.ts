@@ -38,10 +38,25 @@ export function resolveAccountSemaphoreAccountKey(
   return null;
 }
 
+export const DEFAULT_ACCOUNT_CONCURRENCY = 8;
+
+function resolveDefaultAccountConcurrency(): number {
+  const raw = process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed > 0) return Math.floor(parsed);
+  }
+  return DEFAULT_ACCOUNT_CONCURRENCY;
+}
+
 export function resolveAccountSemaphoreMaxConcurrency(
   credentials: Record<string, unknown> | null | undefined
 ): number | null {
-  return toFiniteNumberOrNull(credentials?.maxConcurrent);
+  // Fair-use default: an unset/unusable connection cap must NOT mean "uncapped"
+  // (a single fan-out could otherwise open unbounded upstream sockets against
+  // one account). Explicit values — including 0, which opts out of the gate —
+  // always win; only missing/invalid falls back to OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY.
+  return toFiniteNumberOrNull(credentials?.maxConcurrent) ?? resolveDefaultAccountConcurrency();
 }
 
 export function resolveAccountSemaphoreKey({

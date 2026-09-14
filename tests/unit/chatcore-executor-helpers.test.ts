@@ -31,7 +31,13 @@ test("resolveAccountSemaphoreAccountKey returns null when nothing usable is pres
   assert.equal(resolveAccountSemaphoreAccountKey(undefined, undefined), null);
   assert.equal(resolveAccountSemaphoreAccountKey("", {}), null);
   // non-string / blank candidates are all rejected
-  assert.equal(resolveAccountSemaphoreAccountKey("", { id: 123, email: "   " } as unknown as Record<string, unknown>), null);
+  assert.equal(
+    resolveAccountSemaphoreAccountKey("", { id: 123, email: "   " } as unknown as Record<
+      string,
+      unknown
+    >),
+    null
+  );
 });
 
 test("resolveAccountSemaphoreMaxConcurrency parses finite numbers and numeric strings", () => {
@@ -44,16 +50,53 @@ test("resolveAccountSemaphoreMaxConcurrency parses finite numbers and numeric st
   assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: " 3.5 " }), 3.5);
 });
 
-test("resolveAccountSemaphoreMaxConcurrency rejects non-finite / non-numeric / missing values", () => {
-  // exercises the private toFiniteNumberOrNull null branches indirectly
-  assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: Infinity }), null);
-  assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: NaN }), null);
-  assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: "abc" }), null);
-  assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: "" }), null);
-  assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: "   " }), null);
-  assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: true } as unknown as Record<string, unknown>), null);
-  assert.equal(resolveAccountSemaphoreMaxConcurrency({}), null);
-  assert.equal(resolveAccountSemaphoreMaxConcurrency(null), null);
+test("resolveAccountSemaphoreMaxConcurrency falls back to the fair-use default when unset/invalid", () => {
+  // Unset or unusable connection values must NOT mean "uncapped" (that let a
+  // single fan-out open unbounded upstream sockets). Default is 8; explicit
+  // 0/negative still opts out (isBypassed treats <=0 as no gate).
+  const prev = process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY;
+  delete process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY;
+  try {
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({}), 8);
+    assert.equal(resolveAccountSemaphoreMaxConcurrency(null), 8);
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: Infinity }), 8);
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: NaN }), 8);
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: "abc" }), 8);
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: "" }), 8);
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: "   " }), 8);
+    assert.equal(
+      resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: true } as unknown as Record<
+        string,
+        unknown
+      >),
+      8
+    );
+    // explicit values (including the 0 opt-out) still win over the default
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: 4 }), 4);
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: 0 }), 0);
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY;
+    else process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY = prev;
+  }
+});
+
+test("resolveAccountSemaphoreMaxConcurrency honors OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY", () => {
+  const prev = process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY;
+  try {
+    process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY = "16";
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({}), 16);
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({ maxConcurrent: 4 }), 4);
+    // unusable env values fall back to the built-in default, never uncapped
+    process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY = "abc";
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({}), 8);
+    process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY = "0";
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({}), 8);
+    process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY = "-3";
+    assert.equal(resolveAccountSemaphoreMaxConcurrency({}), 8);
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY;
+    else process.env.OMNIROUTE_DEFAULT_ACCOUNT_CONCURRENCY = prev;
+  }
 });
 
 test("resolveAccountSemaphoreKey builds provider:accountKey when both resolve", () => {
@@ -81,16 +124,31 @@ test("resolveAccountSemaphoreKey builds provider:accountKey when both resolve", 
 test("resolveAccountSemaphoreKey returns null without a provider or account key", () => {
   // no account key resolvable
   assert.equal(
-    resolveAccountSemaphoreKey({ provider: "openai", model: "m", connectionId: null, credentials: null }),
+    resolveAccountSemaphoreKey({
+      provider: "openai",
+      model: "m",
+      connectionId: null,
+      credentials: null,
+    }),
     null
   );
   // account key resolves but provider missing
   assert.equal(
-    resolveAccountSemaphoreKey({ provider: null, model: "m", connectionId: "conn", credentials: null }),
+    resolveAccountSemaphoreKey({
+      provider: null,
+      model: "m",
+      connectionId: "conn",
+      credentials: null,
+    }),
     null
   );
   assert.equal(
-    resolveAccountSemaphoreKey({ provider: "", model: "m", connectionId: "conn", credentials: null }),
+    resolveAccountSemaphoreKey({
+      provider: "",
+      model: "m",
+      connectionId: "conn",
+      credentials: null,
+    }),
     null
   );
 });
