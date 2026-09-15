@@ -65,14 +65,15 @@ test("T28: agy free-model metadata labels upstream Gemini 3.7 tier IDs", () => {
   });
 });
 
-test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias compatibility", async () => {
+test("T28: github registry exposes Gemini 3.8 Flash and keeps legacy alias parsing", async () => {
   const githubIds = REGISTRY.github.models.map((m) => m.id);
 
-  assert.ok(githubIds.includes("gemini-3.1-pro-preview"));
+  assert.ok(githubIds.includes("gemini-3.8-flash"));
+  assert.equal(githubIds.includes("gemini-3.1-pro-preview"), false);
 
-  const canonical = await getModelInfoCore("gh/gemini-3.1-pro-preview", {});
+  const canonical = await getModelInfoCore("gh/gemini-3.8-flash", {});
   assert.equal(canonical.provider, "github");
-  assert.equal(canonical.model, "gemini-3.1-pro-preview");
+  assert.equal(canonical.model, "gemini-3.8-flash");
 
   const legacy = await getModelInfoCore("gh/gemini-3-pro", {});
   assert.equal(legacy.provider, "github");

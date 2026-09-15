@@ -148,8 +148,8 @@ test("v1 model catalog projects a synced Codex context to both public aliases", 
 });
 
 test("v1 model catalog projects an exact raw-alias context override", async () => {
-  const target = "github/claude-opus-4.5";
-  assert.equal(contextOverrides.setModelContextOverride("github", "claude-opus-4.5", 333333), true);
+  const target = "github/claude-opus-4.8";
+  assert.equal(contextOverrides.setModelContextOverride("github", "claude-opus-4.8", 333333), true);
   await providers.createProviderConnection({
     provider: "github",
     authType: "api_key",

@@ -26,7 +26,7 @@ const { GithubExecutor } = await import("../../open-sse/executors/github.ts");
 const { getModelTargetFormat } = await import("../../open-sse/config/providerModels.ts");
 
 test("registry: claude-* github models resolve targetFormat 'claude'", () => {
-  for (const model of ["claude-opus-4.8", "claude-sonnet-4.6", "claude-haiku-4.5"]) {
+  for (const model of ["claude-opus-4.8", "claude-sonnet-5", "claude-haiku-4.5"]) {
     assert.equal(
       getModelTargetFormat("gh", model),
       "claude",
@@ -36,7 +36,7 @@ test("registry: claude-* github models resolve targetFormat 'claude'", () => {
 });
 
 test("registry: non-claude github models keep their existing targetFormat", () => {
-  assert.equal(getModelTargetFormat("gh", "gpt-5.4"), "openai-responses");
+  assert.equal(getModelTargetFormat("gh", "gpt-6-astra"), "openai-responses");
   assert.equal(getModelTargetFormat("gh", "gpt-4o-mini"), null);
 });
 
@@ -48,7 +48,7 @@ test("buildUrl: claude models route to the native /v1/messages endpoint", () => 
 
 test("buildUrl: gpt codex/responses models still route to /responses", () => {
   const executor = new GithubExecutor();
-  const url = executor.buildUrl("gpt-5.4", true);
+  const url = executor.buildUrl("gpt-6-astra", true);
   assert.match(url, /\/responses$/);
 });
 

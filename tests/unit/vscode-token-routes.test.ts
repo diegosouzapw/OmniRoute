@@ -319,11 +319,11 @@ test("vscode tokenized models route exposes reasoning effort metadata for import
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/models`)
   );
   const body = (await response.json()) as any;
-  const model = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_gh");
+  const model = (body.data || []).find((entry: any) => entry.id === "gpt-5.6-sol__provider_gh");
 
   assert.equal(response.status, 200);
-  assert.ok(model, "missing gpt-5.4__provider_gh in tokenized VS Code models route");
-  assert.equal(model.family, "gpt-5.4");
+  assert.ok(model, "missing gpt-5.6-sol__provider_gh in tokenized VS Code models route");
+  assert.equal(model.family, "gpt-5.6-sol");
   assert.deepEqual(model.supportsReasoningEffort, ["none", "low", "medium", "high", "max"]);
   assert.deepEqual(model.supportedReasoningEfforts, [
     "none",
