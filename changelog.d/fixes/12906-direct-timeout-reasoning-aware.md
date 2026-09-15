@@ -1,0 +1,1 @@
+- **fix(sse):** make the direct response-start timeout reasoning-aware — detect reasoning_effort high/max in the body and raise the ceiling to 180s to stop 504 on high-effort TTFB ([#12906](https://github.com/diegosouzapw/OmniRoute/pull/12906))

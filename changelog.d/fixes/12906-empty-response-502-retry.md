@@ -1,0 +1,1 @@
+- **fix(sse):** retry 0-byte empty_response 502 like STREAM_EARLY_EOF to stop autocompact 502 — RETRYABLE_STREAM_EMPTY_CODES + shouldRetryStreamEarlyEof wiring ([#12906](https://github.com/diegosouzapw/OmniRoute/pull/12906))

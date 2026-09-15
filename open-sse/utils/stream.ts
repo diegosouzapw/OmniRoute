@@ -1043,7 +1043,15 @@ export function createSSEStream(options: StreamOptions = {}) {
     if (decrementPendingRequest && !failureHandled) {
       clearPendingRequestFromStream();
     }
-    controller.error(markPendingRequestCleared(new Error(msg)));
+    // Preserve the `empty_response` code on the propagated Error so the
+    // single-model retry classifier (chatHelpers::shouldRetryStreamEarlyEof via
+    // chat.ts) can identify this as a retryable transient upstream glitch and
+    // attempt one bounded re-attempt — a plain `new Error(msg)` drops the code,
+    // getUpstreamErrorIdentifier (streamErrorResult.ts) reads only `error.code`,
+    // and the 502 surfaces with no retry (call logs 96ef4a / 062cf6).
+    const emptyStreamError = new Error(msg) as Error & { code?: string };
+    emptyStreamError.code = "empty_response";
+    controller.error(markPendingRequestCleared(emptyStreamError));
   };
 
   const emitTranslatedClientItem = (
