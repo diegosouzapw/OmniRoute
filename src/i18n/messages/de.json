@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-Service-Modus für diesen API-Key",
+    "description": "Gilt für Codex-Aufrufe, auch innerhalb von Combos. Erzwungene Modi überschreiben Client-, globale und Verbindungs-Vorgaben. Andere Provider bleiben unverändert.",
+    "label": "Service-Modus",
+    "inherit": "Bisheriges Verhalten übernehmen",
+    "default": "Standard erzwingen (default)",
+    "priority": "Fast / Priority erzwingen",
+    "flex": "Flex erzwingen",
+    "warning": "Dies gewährt keine zusätzlichen Provider-Berechtigungen. Verfügbarkeit, Kosten und Kontingentverbrauch hängen vom Codex-Konto und Modell ab. Erzwingen benötigt HTTP oder Responses-WebSocket; App-Server-Anfragen werden abgelehnt.",
+    "confirm": "„{mode}“ für diesen API-Key übernehmen? Die Einstellung gilt für nachfolgende Anfragen.",
+    "save": "Modus speichern",
+    "retry": "Erneut versuchen",
+    "loadError": "Der gespeicherte Service-Modus konnte nicht geladen werden.",
+    "saveError": "Der Service-Modus konnte nicht gespeichert werden. Bitte erneut versuchen."
+  },
   "common": {
     "save": "Speichern",
     "cancel": "Abbrechen",

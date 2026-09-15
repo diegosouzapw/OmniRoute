@@ -1,4 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { getApiKeyCodexServiceTier } from "../../src/lib/providers/codexApiKeyServiceMode";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import { resolveFetchStartTimeout } from "../utils/fetchStartTimeoutPolicy.ts";
 import {
@@ -30,7 +31,11 @@ import {
   addParamToBlocklist,
   isAutoLearnGloballyEnabled,
 } from "@/lib/db/paramFilters";
-import { applyFingerprint, isCliCompatEnabled, stripInternalBodyFields } from "../config/cliFingerprints.ts";
+import {
+  applyFingerprint,
+  isCliCompatEnabled,
+  stripInternalBodyFields,
+} from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import {
@@ -828,6 +833,8 @@ export class BaseExecutor {
     // field-downgrade below, so each known field is stripped at most once across
     // all fallback URLs (bounded retry loop).
     const strippedFields = new Set<string>();
+    // Explicit per-key tiers are policy, not optional compatibility hints.
+    const forcedCodexTier = this.provider === "codex" && getApiKeyCodexServiceTier(credentials);
     // Set by the thinking_budget 400 clamp-and-retry below: the upstream's
     // advertised max (parsed from the error) is applied to every later
     // retry/fallback URL so they don't re-hit the same 400. The clamp itself
@@ -1622,6 +1629,7 @@ export class BaseExecutor {
           const offending = findOffendingField(errText);
           if (
             offending &&
+            !(forcedCodexTier && offending === "service_tier") &&
             !strippedFields.has(offending) &&
             (transformedBody as Record<string, unknown>)[offending] !== undefined
           ) {
@@ -1642,6 +1650,7 @@ export class BaseExecutor {
             const autoLearned = detectUnsupportedParam(errText);
             if (
               autoLearned &&
+              !(forcedCodexTier && autoLearned === "service_tier") &&
               !strippedFields.has(autoLearned) &&
               (transformedBody as Record<string, unknown>)[autoLearned] !== undefined
             ) {

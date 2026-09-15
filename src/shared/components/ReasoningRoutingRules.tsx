@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import CodexServiceModeSettings from "./CodexServiceModeSettings";
 import { Button, Card, Input, Select, Toggle } from "@/shared/components";
 
 type RuleScope = "global" | "apiKey" | "combo" | "model" | "connection";
@@ -304,6 +305,7 @@ export default function ReasoningRoutingRules({ apiKeyId }: { apiKeyId?: string 
 
   return (
     <Card title={apiKeyId ? t("apiKeyTitle") : t("title")} subtitle={t("subtitle")} icon="route">
+      {apiKeyId && <CodexServiceModeSettings key={apiKeyId} apiKeyId={apiKeyId} />}
       <div className="space-y-5">
         <div className="grid gap-3 md:grid-cols-3">
           <Input

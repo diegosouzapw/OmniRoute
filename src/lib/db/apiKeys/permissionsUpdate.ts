@@ -1,3 +1,4 @@
+import type { ApiKeyCodexServiceMode } from "../../../shared/constants/codexServiceMode";
 import type { AccessSchedule, RateLimitRule } from "./types";
 import { normalizeModelAccessUpdate, type ModelAccessMode } from "./modelAccessMode";
 
@@ -24,6 +25,7 @@ export interface ApiKeyPermissionsUpdate {
   proxyId?: string | null;
   allowedEndpoints?: string[] | null;
   streamDefaultMode?: "legacy" | "json" | null;
+  codexServiceMode?: ApiKeyCodexServiceMode;
   cacheDefaultMode?: "legacy" | "bypass" | null;
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
@@ -66,6 +68,7 @@ export function normalizeApiKeyPermissionsUpdate(
     allowedEndpoints: update.allowedEndpoints,
     streamDefaultMode: update.streamDefaultMode,
     cacheDefaultMode: update.cacheDefaultMode,
+    codexServiceMode: update.codexServiceMode,
     disableNonPublicModels: update.disableNonPublicModels,
     allowUsageCommand: update.allowUsageCommand,
     usageLimitEnabled: update.usageLimitEnabled,

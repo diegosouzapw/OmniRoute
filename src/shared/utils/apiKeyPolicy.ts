@@ -68,6 +68,7 @@ interface AccessSchedule {
 
 /** Metadata stored for an API key in the local database. */
 export interface ApiKeyMetadata {
+  codexServiceMode?: import("../constants/codexServiceMode").ApiKeyCodexServiceMode;
   id: string;
   name?: string;
   modelAccessMode?: "all" | "restricted";

@@ -1,3 +1,5 @@
+import { getApiKeyCodexServiceTier } from "../../src/lib/providers/codexApiKeyServiceMode";
+import { buildErrorBody } from "../utils/error.ts";
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   getCodexModelScope,
@@ -820,6 +822,22 @@ export class CodexExecutor extends BaseExecutor {
     const nextInput = { ...requestInput, credentials };
 
     if (isCodexAppServerRequired(nextInput.credentials)) {
+      // The app-server adapter does not forward service tiers. Never silently
+      // ignore an API-key override (especially a cost-controlling Standard mode).
+      if (getApiKeyCodexServiceTier(nextInput.credentials)) {
+        return {
+          response: Response.json(
+            buildErrorBody(
+              400,
+              "Forced API-key Codex service mode requires the HTTP or Responses WebSocket transport; the app-server transport cannot enforce it"
+            ),
+            { status: 400 }
+          ),
+          url: "",
+          headers: {},
+          transformedBody: nextInput.body,
+        };
+      }
       if (!this.appServer) {
         this.appServer = new CodexAppServerExecutor({
           websocketFn: getCodexAppServerWebsocketTransport(),
@@ -1221,7 +1239,8 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body._nativeCodexPassthrough;
 
-    const requestServiceTier = normalizeServiceTierValue(body.service_tier);
+    const requestServiceTier =
+      getApiKeyCodexServiceTier(credentials) ?? normalizeServiceTierValue(body.service_tier);
     if (requestServiceTier) {
       body.service_tier = requestServiceTier;
     } else if (requestDefaults.serviceTier) {

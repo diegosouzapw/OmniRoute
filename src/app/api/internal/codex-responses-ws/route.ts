@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  applyApiKeyCodexServiceMode,
+  withApiKeyCodexServiceMode,
+} from "@/lib/providers/codexApiKeyServiceMode";
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { CodexExecutor } from "@omniroute/open-sse/executors/codex.ts";
@@ -560,8 +564,13 @@ async function prepare(body: JsonRecord) {
     model,
     requestId: randomUUID(),
   });
+  responseBodyWithMemory = applyApiKeyCodexServiceMode(
+    provider,
+    responseBodyWithMemory,
+    metadata?.codexServiceMode
+  );
   const credentialsWithFingerprint = withCodexFingerprintCredentials(
-    refreshedCredentials,
+    withApiKeyCodexServiceMode(provider, refreshedCredentials, metadata?.codexServiceMode),
     context.clientHeaders,
     responseBodyWithMemory
   );

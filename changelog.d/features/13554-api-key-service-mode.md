@@ -1,0 +1,1 @@
+- **feat(api-keys):** Allow per-key service-tier overrides for OpenAI OAuth requests, preserving inherited defaults and enforcing explicit tiers across combos, retries and Responses transports. ([#13554](https://github.com/diegosouzapw/OmniRoute/pull/13554)) — thanks @JxnLexn
