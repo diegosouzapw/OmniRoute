@@ -1,0 +1,1 @@
+- **fix(opencode):** send the CLI identity headers and `x-opencode-session` on background calls (model-catalog discovery, quota fetcher) that previously bypassed `buildHeaders()` and went out with a bare `Bun fetch` user agent ([#13005](https://github.com/diegosouzapw/OmniRoute/pull/13005)) — thanks @alvinveroy

@@ -141,6 +141,43 @@ function applyCliDefaults(
   headers["x-opencode-client"] ||= cliDefaults.client;
   headers["x-opencode-project"] ||= cliDefaults.project;
   headers["x-opencode-request"] ||= randomUUID();
-  headers["x-opencode-session"] ||=
-    generateSessionId(sessionBody ?? null) || randomUUID();
+  headers["x-opencode-session"] ||= generateSessionId(sessionBody ?? null) || randomUUID();
+}
+
+/**
+ * Build outbound headers for OmniRoute's BACKGROUND calls to opencode.ai —
+ * model-catalog discovery (autoSync/autoFetchModels), quota checks, and any
+ * other non-chat fetch. These calls previously went out on the bare runtime
+ * fetch (User-Agent "Bun fetch") with no `x-opencode-session`, which is exactly
+ * the shape OpenCode's operator warning names ("requests missing an
+ * x-opencode-session header", UA "Bun fetch"; hard errors announced from
+ * 2026-09-06).
+ *
+ * Background traffic has no conversation, so the session id is a stable,
+ * deterministic fingerprint seeded by the calling connection/workspace — the
+ * same hash family the chat path derives via generateSessionId() (#10571) —
+ * so each connection's background traffic groups under one identity across
+ * daemon restarts instead of looking like a new anonymous client per call.
+ * The User-Agent is synthesized to the OpenCode CLI identity for the same
+ * reason applyCliDefaults() does it on the chat path (#5997): generic runtime
+ * UAs from non-CLI callers get flagged upstream.
+ */
+export function buildOpencodeBackgroundHeaders(options?: {
+  /** Stable seed for the per-caller session id (connection id / workspace id). */
+  seed?: string | null;
+  /** Explicit UA override (defaults to the OpenCode CLI identity). */
+  userAgent?: string;
+}): Record<string, string> {
+  const headers: Record<string, string> = {};
+  applyCliDefaults(headers, {
+    userAgent: options?.userAgent?.trim() || process.env.OPENCODE_USER_AGENT?.trim() || "opencode",
+    client: process.env.OPENCODE_CLIENT?.trim() || "desktop",
+    project: process.env.OPENCODE_PROJECT?.trim() || "global",
+  });
+  if (options?.seed && options.seed.trim().length > 0) {
+    headers["x-opencode-session"] =
+      generateSessionId({ model: "background" }, { connectionId: options.seed.trim() }) ||
+      headers["x-opencode-session"];
+  }
+  return headers;
 }

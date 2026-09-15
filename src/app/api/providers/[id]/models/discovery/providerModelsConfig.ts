@@ -26,6 +26,7 @@ import { filterAlibabaFreeEligibleModels } from "@omniroute/open-sse/services/al
 import { shouldUseLiveAlibabaFreeModelDiscovery } from "@omniroute/open-sse/services/alibabaFreeTier.ts";
 import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTextModels.ts";
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
+import { buildOpencodeBackgroundHeaders } from "@omniroute/open-sse/utils/opencodeHeaders.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
@@ -130,11 +131,9 @@ export type ProviderModelsConfigEntry = {
 export function assembleProviderModelsHeaders(
   config: ProviderModelsConfigEntry,
   token: string,
-  context?: ProviderModelsHeaderContext,
+  context?: ProviderModelsHeaderContext
 ): Record<string, string> {
-  const headers = config.buildHeaders
-    ? config.buildHeaders(token, context)
-    : { ...config.headers };
+  const headers = config.buildHeaders ? config.buildHeaders(token, context) : { ...config.headers };
   if (!config.buildHeaders && config.authHeader && !config.authQuery) {
     headers[config.authHeader] = (config.authPrefix || "") + token;
   }
@@ -396,6 +395,40 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
   parseResponse: parseKimiCodingModels,
 };
 
+const OPENCODE_DISCOVERY_PARSE = (data: any) => data.data || data.models || [];
+
+function readOpencodeBackgroundSeed(providerSpecificData: unknown): string | null {
+  if (providerSpecificData && typeof providerSpecificData === "object") {
+    const ws = (providerSpecificData as Record<string, unknown>)["opencodeGoWorkspaceId"];
+    if (typeof ws === "string" && ws.trim().length > 0) return ws.trim();
+  }
+  return null;
+}
+
+/**
+ * Discovery entry for the opencode-family providers with the OpenCode CLI
+ * identity headers attached (User-Agent + x-opencode-session/request/client/
+ * project). Bare runtime fetches (UA "Bun fetch", no session header) are
+ * exactly the shape OpenCode's operator warning names — enforcement of the
+ * header is announced from 2026-09-06. The session id is a stable
+ * per-workspace/connection fingerprint so background discovery groups under
+ * one identity upstream instead of a fresh anonymous client per call.
+ */
+function buildOpencodeModelsDiscoveryEntry(url: string): ProviderModelsConfigEntry {
+  return {
+    url,
+    method: "GET",
+    headers: { Accept: "application/json" },
+    buildHeaders: (token, connection) => ({
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      ...buildOpencodeBackgroundHeaders({
+        seed: readOpencodeBackgroundSeed(connection?.providerSpecificData),
+      }),
+    }),
+    parseResponse: OPENCODE_DISCOVERY_PARSE,
+  };
+}
 // Provider models endpoints configuration
 export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
   alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
@@ -776,22 +809,12 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  "opencode-zen": {
-    url: "https://opencode.ai/zen/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "opencode-go": {
-    url: "https://opencode.ai/zen/go/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+  // OpenCode CLI identity headers on all three opencode-family entries (see
+  // buildOpencodeModelsDiscoveryEntry above for why — bare "Bun fetch" calls
+  // without x-opencode-session are what OpenCode's operator warning names).
+  opencode: buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/v1/models"),
+  "opencode-zen": buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/v1/models"),
+  "opencode-go": buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/go/v1/models"),
   "glm-cn": {
     url: "https://open.bigmodel.cn/api/coding/paas/v4/models",
     method: "GET",
