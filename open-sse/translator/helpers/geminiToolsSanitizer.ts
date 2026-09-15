@@ -60,10 +60,18 @@ function normalizeGeminiToolName(
         return namespaceIndex >= 0 ? trimmed.slice(namespaceIndex + 1) : trimmed;
       })();
 
-  return namespaceStripped
+  const normalized = namespaceStripped
     .replace(/[^a-zA-Z0-9_]/g, "_")
     .replace(/_+/g, "_")
     .replace(/^_+|_+$/g, "");
+
+  // Gemini requires the first character to be a letter or an underscore — a name that
+  // starts with a digit makes it reject the ENTIRE request with
+  // "Invalid function name. Must start with a letter or an underscore" (400), not just
+  // that one tool (#13715). MCP servers routinely expose digit-led names such as
+  // `1c_ssl_mcp_plugin_reload`. Prefix with "_" instead of dropping the digit so the
+  // name stays recognizable and the round-trip mapping stays one-to-one.
+  return /^[0-9]/.test(normalized) ? `_${normalized}` : normalized;
 }
 
 function buildHashedGeminiToolName(
