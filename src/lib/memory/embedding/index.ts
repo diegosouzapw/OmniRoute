@@ -304,6 +304,33 @@ export async function embed(
 }
 
 /**
+ * Embed with a single retry (#13601).
+ *
+ * A failed embedding write used to skip vectorization immediately — one
+ * transient failure (slow potion load, brief remote 5xx) left the memory
+ * stored but never vectorized until the next reindex sweep. The retry covers
+ * error results only; a thrown error still propagates to the caller's catch
+ * (scheduleVectorUpsert marks needs_reindex there, as before).
+ */
+export async function embedWithRetry(
+  text: string,
+  settings: MemorySettingsExtended,
+  embedFn: (
+    text: string,
+    settings: MemorySettingsExtended
+  ) => Promise<EmbeddingResult | EmbeddingError> = embed,
+  maxAttempts = 2
+): Promise<EmbeddingResult | EmbeddingError> {
+  let last: EmbeddingResult | EmbeddingError | null = null;
+  for (let attempt = 1; attempt <= Math.max(1, maxAttempts); attempt++) {
+    const result = await embedFn(text, settings);
+    if ("vector" in result) return result;
+    last = result;
+  }
+  return last as EmbeddingResult | EmbeddingError;
+}
+
+/**
  * List providers that have embedding models, marking which ones have a configured API key.
  * Aggregates from EMBEDDING_PROVIDERS + local provider_nodes.
  */
@@ -381,7 +408,10 @@ export async function listEmbeddingProviders(): Promise<EmbeddingProviderListing
     // Cheap sync pass first: which providers CAN derive an endpoint at all.
     const derivable: string[] = [];
     for (const id of Object.keys(chatRegistry)) {
-      if (!getEmbeddingProvider(id) && deriveEmbeddingProviderForChatProvider(id, chatRegistry[id])) {
+      if (
+        !getEmbeddingProvider(id) &&
+        deriveEmbeddingProviderForChatProvider(id, chatRegistry[id])
+      ) {
         derivable.push(id);
       }
     }

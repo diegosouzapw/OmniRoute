@@ -303,25 +303,32 @@ export function getCanonicalModelMetadata(input: {
 // a rebuild instead of rebuilt per lookup.
 const lowercaseIndexCache = new WeakMap<object, Map<string, unknown>>();
 
-function findInsensitive<T>(obj: Record<string, T> | null | undefined, key: string): T | undefined {
+/** Test hook (#13601): exercised directly by the collision-naming unit test. */
+export function findInsensitive<T>(
+  obj: Record<string, T> | null | undefined,
+  key: string
+): T | undefined {
   if (!obj || !key) return undefined;
   if (key in obj) return obj[key];
   let index = lowercaseIndexCache.get(obj);
   if (!index) {
     index = new Map();
+    const firstKeyByLower = new Map<string, string>();
     for (const [k, v] of Object.entries(obj)) {
       const lowerKey = k.toLowerCase();
       // Warn once at index-build time (not per-lookup) if two keys collide
       // case-insensitively — a real data-quality signal from an upstream sync (e.g.
       // models.dev returning both "OpenAI" and "openai" as distinct provider keys).
-      // Matches the pre-fix scan's silent first-match-wins behavior, just surfaced
-      // instead of swallowed.
-      if (index.has(lowerKey)) {
+      // Names both keys so the operator can tell which entries clash; resolution
+      // stays deterministic first-seen-wins (#13601).
+      const firstKey = firstKeyByLower.get(lowerKey);
+      if (firstKey !== undefined) {
         console.warn(
-          `[modelMetadataRegistry] findInsensitive: case-insensitive key collision on "${lowerKey}" — keeping first-seen value, later one discarded`
+          `[modelMetadataRegistry] findInsensitive: case-insensitive key collision on "${lowerKey}" ("${firstKey}" vs "${k}") — keeping first-seen value, later one discarded`
         );
         continue;
       }
+      firstKeyByLower.set(lowerKey, k);
       index.set(lowerKey, v);
     }
     lowercaseIndexCache.set(obj, index);
