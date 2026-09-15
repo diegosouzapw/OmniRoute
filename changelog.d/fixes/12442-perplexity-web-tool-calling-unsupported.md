@@ -1,0 +1,1 @@
+- **fix(providers):** Perplexity Web now declares `tools`/`tool_choice`/`parallel_tool_calls` as unsupported, so a direct request asking it for tool calling gets a clear 400 instead of silently failing ([#12104](https://github.com/diegosouzapw/OmniRoute/issues/12104), [#12442](https://github.com/diegosouzapw/OmniRoute/pull/12442)) — thanks @tanveer-arch
