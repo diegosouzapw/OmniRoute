@@ -122,6 +122,7 @@ import {
   getProviderPrefixes as getProviderPrefixesFromMaps,
   getComboTargetModelId as getComboTargetModelIdFromMaps,
 } from "./catalogProviderMaps";
+import { indexNodeApiTypes, nodeModelEndpoints, overlayEndpoints } from "./catalogNodeModality";
 import {
   getModelCatalogAuthRejection,
   isCodexModelCatalogClient,
@@ -393,6 +394,7 @@ async function buildUnifiedModelsResponseCore(
     const providerIdToPrefix: Record<string, string> = {};
     const providerNodeIdByPrefix: Record<string, string> = {};
     const nodeIdToProviderType: Record<string, string> = {};
+    const nodeApiTypes = indexNodeApiTypes(providerNodes);
     for (const node of providerNodes) {
       const resolvedPrefix =
         node.prefix?.trim() ||
@@ -1244,7 +1246,7 @@ async function buildUnifiedModelsResponseCore(
               : sm.id;
 
           const aliasId = `${alias}/${displayModelId}`;
-          const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
+          const endpoints = nodeModelEndpoints(sm.supportedEndpoints, nodeApiTypes[providerId]);
           const apiFormat = typeof sm.apiFormat === "string" ? sm.apiFormat : "chat-completions";
           const classification = classifyModelSupportedEndpoints(endpoints);
           const modelType = classification.type;
@@ -1713,7 +1715,7 @@ async function buildUnifiedModelsResponseCore(
               id: aliasId,
               ...(typeof model.name === "string" ? { name: model.name } : {}),
               ...(apiFormat ? { api_format: apiFormat } : {}),
-              ...(endpoints ? { supported_endpoints: endpoints } : {}),
+              ...overlayEndpoints(endpoints),
               ...(typeof model.inputTokenLimit === "number"
                 ? { context_length: model.inputTokenLimit }
                 : {}),
@@ -1726,10 +1728,7 @@ async function buildUnifiedModelsResponseCore(
             continue;
           }
 
-          // Determine type from supportedEndpoints
-          const endpoints = Array.isArray(model.supportedEndpoints)
-            ? model.supportedEndpoints
-            : ["chat"];
+          const endpoints = nodeModelEndpoints(model.supportedEndpoints, nodeApiTypes[providerId]);
           const apiFormat =
             typeof model.apiFormat === "string" ? model.apiFormat : "chat-completions";
           const classification = classifyModelSupportedEndpoints(endpoints);
