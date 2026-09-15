@@ -1,0 +1,35 @@
+# Traefik is bundled with k3s and is the default IngressClass.
+#
+# SSE note: Traefik streams responses without buffering, so /v1/chat/completions
+# works out of the box. What it does NOT get right by default is the idle
+# timeout — long provider turns are cut off after the entrypoint's
+# respondingTimeouts. Raise it on the k3s server (not per-Ingress):
+#
+#   --entrypoints.web.transport.respondingTimeouts.readTimeout=0
+#   --entrypoints.web.transport.respondingTimeouts.idleTimeout=600s
+#
+# On k3s this goes in the HelmChartConfig for traefik — see
+# docs/ops/KUBERNETES_DEPLOYMENT_GUIDE.md → "k3s: Traefik timeouts".
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omniroute
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/part-of: omniroute
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+    # Replace with your real host before applying.
+    - host: omniroute.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: omniroute
+                port:
+                  name: http

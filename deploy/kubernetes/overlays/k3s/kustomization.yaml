@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: omniroute
+
+resources:
+  - ../../base
+  - ingress.yaml
+
+patches:
+  - path: pvc-storageclass.yaml
+    target:
+      kind: PersistentVolumeClaim
+      name: omniroute-data
+
+  # k3s single-node boxes are usually smaller than a managed cluster; trim the
+  # request so the pod schedules on a 2-core node.
+  - path: resources.yaml
+    target:
+      kind: Deployment
+      name: omniroute

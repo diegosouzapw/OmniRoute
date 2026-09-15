@@ -1,0 +1,20 @@
+apiVersion: v2
+name: omniroute
+description: OmniRoute — unified AI proxy/router. One endpoint, many LLM providers, auto-fallback.
+type: application
+# Chart version — bump on every chart change.
+version: 0.1.0
+# Default image tag. Overridable with image.tag.
+appVersion: "latest"
+home: https://github.com/diegosouzapw/OmniRoute
+sources:
+  - https://github.com/diegosouzapw/OmniRoute
+keywords:
+  - llm
+  - proxy
+  - router
+  - openai
+  - ai-gateway
+maintainers:
+  - name: OmniRoute contributors
+    url: https://github.com/diegosouzapw/OmniRoute

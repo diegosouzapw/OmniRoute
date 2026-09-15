@@ -1,0 +1,29 @@
+# OPTIONAL patch — not wired into kustomization.yaml by default.
+#
+# The base manifest uses a tcpSocket liveness probe on purpose: a synchronous
+# SQLite checkpoint or VACUUM stalls the event loop for minutes, and an HTTP
+# liveness probe reads that as a dead process and restarts the pod mid-write.
+#
+# Apply this patch to go back to HTTP liveness. It is defensible when the
+# database is small and lives on fast local storage, so no single SQLite
+# operation can stall the loop past the failure threshold — then HTTP liveness
+# buys you restarts on a wedged HTTP server that TCP cannot detect. Verify with
+# `PRAGMA wal_checkpoint(TRUNCATE)` timings on your own volume before enabling.
+# Add to the overlay's `patches:` list to use it.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omniroute
+spec:
+  template:
+    spec:
+      containers:
+        - name: omniroute
+          livenessProbe:
+            tcpSocket: null
+            httpGet:
+              path: /livez
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
