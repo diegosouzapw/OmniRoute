@@ -1,0 +1,1 @@
+- **fix(models):** preserve free-model metadata (`isFree`) discovered live from a provider through synced-model normalization, so free models no longer lose that flag before reaching the UI/consumers ([#12763](https://github.com/diegosouzapw/OmniRoute/pull/12763)) — thanks @keeltrace
