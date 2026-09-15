@@ -1,1 +1,0 @@
-- **fix(dashboard):** expose the Volcano Ark console cookie on quota scraping and unwrap connect-error objects so the dashboard shows the upstream message
