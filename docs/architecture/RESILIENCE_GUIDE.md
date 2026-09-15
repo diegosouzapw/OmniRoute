@@ -100,7 +100,7 @@ Regression guard: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Terminal states (NOT cooldowns):**
 
-- `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md))
+- `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md)), and by three consecutive upstream per-request refusals (`request_rejected`, e.g. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); a single refusal only cools the connection down
 - `expired` (transitions to terminal after bounded retries — `EXPIRED_RETRY_MAX = 3` with exponential backoff — so transient OAuth errors can self-heal before the account is permanently deactivated)
 - `credits_exhausted`
 

@@ -262,6 +262,8 @@ import { stageTrace } from "./chatCore/stageTrace.ts";
 import { attachCompressionUsageReceiptAfterAnalytics as attachCompressionUsageReceiptAfterAnalyticsFor } from "./chatCore/compressionUsageReceipt.ts";
 import { prepareUpstreamBody } from "./chatCore/upstreamBody.ts";
 import { getQuotaScopeLabelForProvider } from "../services/antigravityQuotaFamily.ts";
+import { excludeConnectionForCooldown } from "./chatCore/connectionCooldown.ts";
+import { handleRequestRejectedFailure } from "./chatCore/requestRejectedFailure.ts";
 import { getKimiTemporaryRateLimitResetAt } from "./chatCore/kimiQuotaRecovery.ts";
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -3966,35 +3968,37 @@ export async function handleChatCore({
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) -- not banning`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
-          const geoCooldownMs = COOLDOWN_MS.geoBlocked ?? 24 * 60 * 60 * 1000;
-          await updateProviderConnection(errorConnectionId, {
-            lastErrorType: errorType,
-            lastError: persistentMessage,
-            errorCode: statusCode,
+          // Google regional refusal: account-independent, non-terminal; park the connection
+          // until egress uses a supported region; probes skip the day-long cooldown (#9817).
+          await excludeConnectionForCooldown({
+            connectionId: errorConnectionId,
+            errorType,
+            message: persistentMessage,
+            statusCode,
+            cooldownMs: COOLDOWN_MS.geoBlocked ?? 24 * 60 * 60 * 1000,
+            skipCooldownForProbe: true,
+            label: "geo-blocked",
+            suffix: "trying other accounts",
           });
-          if (!(await shouldIsolateProbeFailures())) {
-            try {
-              const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
-              setConnectionRateLimitUntil(errorConnectionId, Date.now() + geoCooldownMs);
-            } catch {}
-          }
-          console.warn(
-            `[provider] Node ${errorConnectionId} geo-blocked (${statusCode}) -- excluded for ${Math.ceil(geoCooldownMs / 1000)}s, trying other accounts`
-          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.REQUEST_REJECTED) {
+          // Per-request refusal (#12859): growing cooldown, streak → banned.
+          await handleRequestRejectedFailure({
+            connectionId: errorConnectionId,
+            statusCode,
+            message: persistentMessage,
+          });
         } else if (errorType === PROVIDER_ERROR_TYPES.GCP_PROJECT_REQUIRED) {
-          const byopCooldownMs = COOLDOWN_MS.gcpProjectRequired ?? 24 * 60 * 60 * 1000;
-          await updateProviderConnection(errorConnectionId, {
-            lastErrorType: errorType,
-            lastError: persistentMessage,
-            errorCode: statusCode,
+          // Antigravity BYOP: fixable via a Project ID; never a lockout/ban. Park the connection.
+          await excludeConnectionForCooldown({
+            connectionId: errorConnectionId,
+            errorType,
+            message: persistentMessage,
+            statusCode,
+            cooldownMs: COOLDOWN_MS.gcpProjectRequired ?? 24 * 60 * 60 * 1000,
+            skipCooldownForProbe: false,
+            label: "GCP project required",
+            suffix: "routing to other accounts (enter a Project ID to restore)",
           });
-          try {
-            const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
-            setConnectionRateLimitUntil(errorConnectionId, Date.now() + byopCooldownMs);
-          } catch {}
-          console.warn(
-            `[provider] Node ${errorConnectionId} GCP project required (${statusCode}) -- excluded for ${Math.ceil(byopCooldownMs / 1000)}s, routing to other accounts (enter a Project ID to restore)`
-          );
         } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
           if (!(await shouldIsolateProbeFailures())) {

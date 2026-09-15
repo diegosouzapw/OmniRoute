@@ -74,6 +74,12 @@ export const COOLDOWN_MS = {
   transientMax: 60 * 1000,
   transient: TRANSIENT_COOLDOWN_MS,
   requestNotAllowed: 5 * 1000,
+  // Anthropic OAuth 403 "Request not allowed" (#12859): a per-request refusal
+  // on a healthy token. chatCore excludes the connection for requestRejected
+  // after the first refusal, requestRejectedRepeat after the second, and bans
+  // it on the third consecutive one (services/requestRejectedStreak.ts).
+  requestRejected: 5 * 60 * 1000,
+  requestRejectedRepeat: 15 * 60 * 1000,
   rateLimit: 2 * 60 * 1000,
   serviceUnavailable: 2 * 1000,
   authExpired: 2 * 60 * 1000,
@@ -99,6 +105,10 @@ export const ERROR_RULES: ErrorRule[] = [
     reason: "auth_error",
   },
   {
+    // For provider `claude` this text is classified REQUEST_REJECTED and the
+    // connection-level cooldown is written by chatCore before the fallback
+    // layer runs (#12859); markAccountUnavailable then keeps the longer
+    // cooldown. This 5 s rule still serves every other provider.
     id: "request_not_allowed",
     text: "request not allowed",
     cooldownMs: COOLDOWN_MS.requestNotAllowed,
