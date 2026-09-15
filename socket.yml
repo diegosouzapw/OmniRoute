@@ -1,6 +1,12 @@
 # Socket.dev / Socket GitHub app configuration.
 # Documentation: https://docs.socket.dev/docs/socket-yml
 #
+# NOTE: This file does NOT enforce a CI/PR gate. No workflow in
+# .github/workflows, no package.json script, and no Makefile target invokes
+# Socket.dev. It only shapes `projectIgnorePaths` for Socket's registry-side
+# post-publish scan of the published npm artifact (see
+# docs/security/SOCKET_DEV_FINDINGS.md).
+#
 # OmniRoute bundles privileged opt-in features (MITM proxy, Zed credential
 # import, embedded service supervisor, Cloud Sync) inside the Next.js
 # standalone build output. The v3.8.6 release applies in-tree mitigations for
