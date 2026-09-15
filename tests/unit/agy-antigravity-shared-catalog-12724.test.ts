@@ -31,10 +31,10 @@ test("#12724 — agy and antigravity catalogs are byte-identical", serial, () =>
 
 test("#12724 — buildSurfaceCatalog remove delta works", serial, () => {
   const subset = buildSurfaceCatalog(ANTIGRAVITY_SHARED_MODELS, {
-    remove: ["gemini-3.7-flash-high"],
+    remove: ["gemini-3.8-flash-high"],
   });
   assert.equal(subset.length, 9);
-  assert.ok(!subset.some((m) => m.id === "gemini-3.7-flash-high"));
+  assert.ok(!subset.some((m) => m.id === "gemini-3.8-flash-high"));
 });
 
 test("#12724 — buildSurfaceCatalog add delta works", serial, () => {
@@ -48,10 +48,10 @@ test("#12724 — buildSurfaceCatalog add delta works", serial, () => {
 test("#12724 — buildSurfaceCatalog with both add and remove", serial, () => {
   const mixed = buildSurfaceCatalog(ANTIGRAVITY_SHARED_MODELS, {
     add: [{ id: "custom-model-v1", name: "Custom Model" }],
-    remove: ["gemini-3.7-flash-high", "gemini-3.7-flash-medium"],
+    remove: ["gemini-3.8-flash-high", "gemini-3.8-flash-medium"],
   });
   assert.equal(mixed.length, 9); // 10 - 2 + 1
-  assert.ok(!mixed.some((m) => m.id === "gemini-3.7-flash-high"));
+  assert.ok(!mixed.some((m) => m.id === "gemini-3.8-flash-high"));
   assert.ok(mixed.some((m) => m.id === "custom-model-v1"));
 });
 

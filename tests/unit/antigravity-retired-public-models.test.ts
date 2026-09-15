@@ -32,10 +32,10 @@ const RETIRED_PUBLIC_MODELS = [
 ] as const;
 
 const EXPECTED_LEADING_MODEL_ORDER = [
-  "gemini-3.7-flash-high",
-  "gemini-3.7-flash-medium",
-  "gemini-3.7-flash-low",
-  "gemini-3.7-flash-tiered",
+  "gemini-3.8-flash-high",
+  "gemini-3.8-flash-medium",
+  "gemini-3.8-flash-low",
+  "gemini-3.8-flash-tiered",
   "gemini-pro-agent",
   "gemini-3.1-pro-low",
   "gemini-3.1-flash-lite",
@@ -45,9 +45,9 @@ const EXPECTED_LEADING_MODEL_ORDER = [
 ] as const;
 
 const ACTIVE_FLASH_MODEL_IDS = [
-  "gemini-3.7-flash-high",
-  "gemini-3.7-flash-medium",
-  "gemini-3.7-flash-low",
+  "gemini-3.8-flash-high",
+  "gemini-3.8-flash-medium",
+  "gemini-3.8-flash-low",
 ] as const;
 
 test("Antigravity and AGY place their live Gemini Flash tiers first", () => {
@@ -112,7 +112,7 @@ test("Antigravity and AGY expose gemini-pro-agent and gemini-3.1-pro-high as cal
   );
 });
 
-test("Antigravity support catalogs expose every live Gemini 3.7 Flash tier", () => {
+test("Antigravity support catalogs expose every live Gemini 3.8 Flash tier", () => {
   const antigravityModelIds = new Set(ANTIGRAVITY_PUBLIC_MODELS.map((model) => model.id));
   const agyModelIds = new Set(AGY_PUBLIC_MODELS.map((model) => model.id));
   const cliAliases = new Set(CLI_TOOLS.antigravity.modelAliases);

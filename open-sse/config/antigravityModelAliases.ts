@@ -1,7 +1,4 @@
-import {
-  ANTIGRAVITY_SHARED_MODELS,
-  buildSurfaceCatalog,
-} from "./antigravitySharedModels.ts";
+import { ANTIGRAVITY_SHARED_MODELS, buildSurfaceCatalog } from "./antigravitySharedModels.ts";
 
 export const ANTIGRAVITY_PUBLIC_MODELS = buildSurfaceCatalog(ANTIGRAVITY_SHARED_MODELS, {
   add: [], // IDE-only models (currently none)
@@ -9,12 +6,12 @@ export const ANTIGRAVITY_PUBLIC_MODELS = buildSurfaceCatalog(ANTIGRAVITY_SHARED_
 });
 
 export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
-  // Gemini 3.7 Flash tiers map to the upstream tiered endpoint model; the thinking
+  // Gemini 3.8 Flash tiers map to the upstream tiered endpoint model; the thinking
   // budget is steered via generationConfig.thinkingConfig.thinkingBudget.
-  "gemini-3.7-flash": "gemini-3.7-flash-tiered",
-  "gemini-3.7-flash-high": "gemini-3.7-flash-tiered",
-  "gemini-3.7-flash-medium": "gemini-3.7-flash-tiered",
-  "gemini-3.7-flash-low": "gemini-3.7-flash-tiered",
+  "gemini-3.8-flash": "gemini-3.8-flash-tiered",
+  "gemini-3.8-flash-high": "gemini-3.8-flash-tiered",
+  "gemini-3.8-flash-medium": "gemini-3.8-flash-tiered",
+  "gemini-3.8-flash-low": "gemini-3.8-flash-tiered",
   "gpt-oss-120b": "gpt-oss-120b-medium",
   // gemini-3.1-pro-low is not aliased: the upstream accepts it verbatim.
   // gemini-3.1-pro-high: the discovery slot returns HTTP 400 on v1internal;
@@ -84,6 +81,14 @@ const ANTIGRAVITY_NON_CHAT_MODEL_IDS = new Set([
 const ANTIGRAVITY_RETIRED_MODEL_IDS = new Set([
   "gemini-3-pro-preview",
   "gemini-3.1-pro",
+  "gemini-3.6-flash-tiered",
+  "gemini-3-flash",
+  // 3.7-era tiers replaced by the 3.8 catalog; stale live entries stay hidden.
+  "gemini-3.7-flash",
+  "gemini-3.7-flash-high",
+  "gemini-3.7-flash-medium",
+  "gemini-3.7-flash-low",
+  "gemini-3.7-flash-tiered",
   "gemini-3.6-flash-high",
   "gemini-3.6-flash-medium",
   "gemini-3.6-flash-low",

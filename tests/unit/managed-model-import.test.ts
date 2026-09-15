@@ -280,7 +280,7 @@ test("antigravity sync dynamically builds and saves mitmAlias mappings", async (
     mode: "sync",
     fetchedModels: [
       { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
-      { id: "gemini-3.7-flash-high", name: "Gemini 3.7 Flash High" },
+      { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash High" },
       { id: "custom-antigravity-model", name: "Custom Antigravity Model" },
     ],
   });
@@ -297,12 +297,12 @@ test("antigravity sync dynamically builds and saves mitmAlias mappings", async (
     models.some((model) => model.id === "gemini-3.5-flash"),
     false
   );
-  // #11824: gemini-3.7-flash-high is a known cross-account-unsafe display id (the
+  // #11824: gemini-3.8-flash-high is a known cross-account-unsafe display id (the
   // tier-suffixed upstream id is only callable on Google projects specifically
   // provisioned for it); it must always resolve through the static alias to the
   // safe shared "-tiered" endpoint id, never as an identity mapping to the literal
   // tier id — even when it appears directly in this connection's own discovery.
-  assert.equal(mitmMappings["gemini-3.7-flash-high"], "antigravity/gemini-3.7-flash-tiered");
+  assert.equal(mitmMappings["gemini-3.8-flash-high"], "antigravity/gemini-3.8-flash-tiered");
   assert.equal(mitmMappings["custom-antigravity-model"], "antigravity/custom-antigravity-model");
 
   // Removed Antigravity 2.0 preview/agent aliases must not be reintroduced.
@@ -310,7 +310,7 @@ test("antigravity sync dynamically builds and saves mitmAlias mappings", async (
   assert.equal(mitmMappings["gemini-3-flash-agent"], undefined);
 });
 
-test("#11824: syncing account A's model catalog must not route account B's gemini-3.7-flash-high to an id B's own discovery never advertised", async () => {
+test("#11824: syncing account A's model catalog must not route account B's gemini-3.8-flash-high to an id B's own discovery never advertised", async () => {
   const db = core.getDbInstance();
   const now = "2026-08-27";
   db.prepare(
@@ -321,12 +321,12 @@ test("#11824: syncing account A's model catalog must not route account B's gemin
   ).run("acct-b", "antigravity", "oauth", "Antigravity B", 1, now, now);
 
   // Account A: Google has provisioned direct tier-suffixed callability for this
-  // project -- its own :fetchAvailableModels lists "gemini-3.7-flash-high" verbatim.
+  // project -- its own :fetchAvailableModels lists "gemini-3.8-flash-high" verbatim.
   await importManagedModels({
     providerId: "antigravity",
     connectionId: "acct-a",
     mode: "sync",
-    fetchedModels: [{ id: "gemini-3.7-flash-high", name: "Gemini 3.7 Flash High" }],
+    fetchedModels: [{ id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash High" }],
   });
 
   // Account B: Google has NOT provisioned the direct tier id for this project --
@@ -335,7 +335,7 @@ test("#11824: syncing account A's model catalog must not route account B's gemin
     providerId: "antigravity",
     connectionId: "acct-b",
     mode: "sync",
-    fetchedModels: [{ id: "gemini-3.7-flash-tiered", name: "Gemini 3.7 Flash (Tiered)" }],
+    fetchedModels: [{ id: "gemini-3.8-flash-tiered", name: "Gemini 3.8 Flash (Tiered)" }],
   });
 
   // Account B's OWN synced catalog never included the direct tier id.
@@ -345,22 +345,22 @@ test("#11824: syncing account A's model catalog must not route account B's gemin
   );
   const acctBOwnIds = acctBOwnCatalog.map((m) => m.id);
   assert.ok(
-    !acctBOwnIds.includes("gemini-3.7-flash-high"),
+    !acctBOwnIds.includes("gemini-3.8-flash-high"),
     "precondition: account B's own discovery must not include the direct tier id"
   );
 
   // But the GLOBAL mitmAlias table used by cleanModelName() for EVERY connection
   // (including B's requests) was rebuilt from the union of A + B, so it must not
-  // still route "gemini-3.7-flash-high" to the id only A supports.
+  // still route "gemini-3.8-flash-high" to the id only A supports.
   const mitmMappings = await modelsDb.getMitmAlias("antigravity");
 
   assert.notEqual(
-    mitmMappings["gemini-3.7-flash-high"],
-    "antigravity/gemini-3.7-flash-high",
-    "BUG: the shared mitmAlias table routes gemini-3.7-flash-high to the literal " +
+    mitmMappings["gemini-3.8-flash-high"],
+    "antigravity/gemini-3.8-flash-high",
+    "BUG: the shared mitmAlias table routes gemini-3.8-flash-high to the literal " +
       "upstream id (only account A's project supports it) even for account B, " +
       "whose own discovery never advertised that id -- this is what produces the " +
       "per-account 404 reported in #11824/#11651."
   );
-  assert.equal(mitmMappings["gemini-3.7-flash-high"], "antigravity/gemini-3.7-flash-tiered");
+  assert.equal(mitmMappings["gemini-3.8-flash-high"], "antigravity/gemini-3.8-flash-tiered");
 });

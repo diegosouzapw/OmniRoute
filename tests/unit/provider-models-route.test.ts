@@ -943,8 +943,8 @@ test("provider models route retries Antigravity discovery endpoints before retur
       models: [
         { id: "gemini-3.1-pro-high", displayName: "Gemini 3.1 Pro (High)" },
         { id: "gemini-pro-agent", displayName: "Gemini 3.1 Pro (High)" },
-        { id: "gemini-3.7-flash-high", displayName: "Gemini 3.7 Flash High" },
-        { id: "gemini-3.7-flash-medium", displayName: "Gemini 3.7 Flash Medium" },
+        { id: "gemini-3.8-flash-high", displayName: "Gemini 3.8 Flash High" },
+        { id: "gemini-3.8-flash-medium", displayName: "Gemini 3.8 Flash Medium" },
         { id: "gemini-3.8-flash-high", displayName: "Gemini 3.8 Flash High" },
         { id: "gemini-3.6-flash-high", displayName: "upstream-3.6-high" },
         { id: "gemini-3.6-flash-medium", displayName: "upstream-3.6-medium" },
@@ -979,9 +979,11 @@ test("provider models route retries Antigravity discovery endpoints before retur
     // #9106: both alias ids are user-callable now, so the upstream echo survives the filter.
     { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
     { id: "gemini-pro-agent", name: "Gemini 3.1 Pro (High)" },
-    { id: "gemini-3.7-flash-high", name: "Gemini 3.7 Flash (High)" },
-    { id: "gemini-3.7-flash-medium", name: "Gemini 3.7 Flash (Medium)" },
-    { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash High" },
+    { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash (High)" },
+    { id: "gemini-3.8-flash-medium", name: "Gemini 3.8 Flash (Medium)" },
+    // Catalog ids resolve to the shared catalog display name even when a second upstream
+    // echo for the same id appears in one connection's discovery.
+    { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash (High)" },
   ]);
 });
 
