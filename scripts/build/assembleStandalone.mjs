@@ -230,6 +230,15 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["responses-ws-proxy.mjs"],
   },
   {
+    // server-ws.mjs imports ./httpClientAbortGuard.mjs. In the repo that path is
+    // the scripts/dev shim re-exporting the shared implementation, but the
+    // assembled bundle has no src/ tree, so ship the real self-contained
+    // implementation (no relative imports of its own) under the same file name.
+    label: "http client abort guard (server-ws.mjs dependency)",
+    src: ["src", "shared", "utils", "httpClientAbortGuard.mjs"],
+    dest: ["httpClientAbortGuard.mjs"],
+  },
+  {
     label: "ChatGPT Web Codex MCP tunnel entrypoint",
     src: ["bin", "chatgpt-web-codex-mcp.mjs"],
     dest: ["bin", "chatgpt-web-codex-mcp.mjs"],
