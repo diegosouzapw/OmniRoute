@@ -1,0 +1,1 @@
+- fix(gemini): preserve response-schema nullability across union flattening so a model with nothing to say returns a valid null instead of the string `"null"` or a fabricated value (#12308)
