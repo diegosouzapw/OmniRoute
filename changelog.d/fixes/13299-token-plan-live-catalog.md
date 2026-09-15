@@ -1,0 +1,1 @@
+- **fix(providers):** Fetch Qwen and Alibaba Token Plan model catalogs through their authenticated console gateways, with public-only URL validation and local-catalog fallback when discovery is unavailable. ([#13299](https://github.com/diegosouzapw/OmniRoute/pull/13299)) — thanks @JxnLexn
