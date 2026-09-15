@@ -284,6 +284,7 @@ export class ChatAdmissionController {
    * shed was invisible. Same in-memory lifetime as the rest of the snapshot state. */
   #shedTotal = 0;
   #shedsByReason = new Map<string, number>();
+  #queueTimestamps = new Map<string, number>();
   readonly #onShed: ChatAdmissionShedSink;
 
   readonly #ingestBudget: IngestByteAdmissionController;
@@ -319,6 +320,18 @@ export class ChatAdmissionController {
       ...budgetOptions,
       onShed: (reason, lane) => this.recordShed(reason, lane),
     });
+    setInterval(() => this.#cleanup(), 60000).unref();
+  }
+
+  #cleanup() {
+    const now = Date.now();
+    for (const [key, timestamp] of this.#queueTimestamps) {
+      if (now - timestamp > 300000) { // 5 minutes TTL
+        this.#queues.delete(key);
+        this.#queueTimestamps.delete(key);
+        this.#fairKeys = this.#fairKeys.filter(k => k !== key);
+      }
+    }
   }
 
   get activeHeavy(): number {
@@ -508,6 +521,7 @@ export class ChatAdmissionController {
         queue = [];
         this.#queues.set(sessionKey, queue);
         this.#fairKeys.push(sessionKey);
+        this.#queueTimestamps.set(sessionKey, Date.now());
       }
       const lane = queue;
       let resolveParked: (() => void) | null = null;
