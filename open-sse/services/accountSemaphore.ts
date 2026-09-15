@@ -64,6 +64,23 @@ export function buildAccountSemaphoreKey({
   return `${String(provider)}:${String(accountKey)}`;
 }
 
+export interface ModelSemaphoreKeyParts extends AccountSemaphoreKeyParts {
+  model: string;
+}
+
+/**
+ * Collision-safe key for the per-connection, per-model concurrency gate.
+ * The `model:` infix keeps model gates disjoint from account gates even
+ * when a model id itself contains `:` characters.
+ */
+export function buildModelSemaphoreKey({
+  provider,
+  accountKey,
+  model,
+}: ModelSemaphoreKeyParts): string {
+  return `${String(provider)}:${String(accountKey)}:model:${String(model)}`;
+}
+
 function isBypassed(maxConcurrency?: number | null): boolean {
   return maxConcurrency == null || !Number.isFinite(maxConcurrency) || maxConcurrency <= 0;
 }

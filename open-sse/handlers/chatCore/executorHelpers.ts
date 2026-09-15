@@ -1,5 +1,8 @@
 import { FORMATS } from "../../translator/formats.ts";
-import { buildAccountSemaphoreKey } from "../../services/accountSemaphore.ts";
+import {
+  buildAccountSemaphoreKey,
+  buildModelSemaphoreKey,
+} from "../../services/accountSemaphore.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
 
 function toFiniteNumberOrNull(value: unknown): number | null {
@@ -44,6 +47,27 @@ export function resolveAccountSemaphoreMaxConcurrency(
   return toFiniteNumberOrNull(credentials?.maxConcurrent);
 }
 
+/**
+ * Resolve the per-model concurrency cap for one execution attempt.
+ *
+ * Exact-match on the model string passed to the executor after routing
+ * resolution (normally the bare upstream model id, e.g. "glm-5" — not a
+ * client-side `provider/model` alias). Missing credentials, a missing or
+ * malformed map, or a non-positive cap all resolve to null ("no model
+ * gate") so an unconfigured or corrupt map never blocks a request.
+ */
+export function resolveModelSemaphoreMaxConcurrency(
+  credentials: Record<string, unknown> | null | undefined,
+  model: string | null | undefined
+): number | null {
+  if (!model || typeof model !== "string" || model.trim().length === 0) return null;
+  const map = credentials?.modelConcurrency;
+  if (!map || typeof map !== "object" || Array.isArray(map)) return null;
+  const cap = toFiniteNumberOrNull((map as Record<string, unknown>)[model]);
+  if (cap == null || !Number.isInteger(cap) || cap < 1) return null;
+  return cap;
+}
+
 export function resolveAccountSemaphoreKey({
   provider,
   model,
@@ -58,6 +82,29 @@ export function resolveAccountSemaphoreKey({
   const accountKey = resolveAccountSemaphoreAccountKey(connectionId, credentials);
   if (!accountKey || !provider) return null;
   return buildAccountSemaphoreKey({ provider, accountKey });
+}
+
+/**
+ * Build the per-connection, per-model semaphore key for one execution
+ * attempt. Returns null when no positive cap is configured for
+ * `provider + connection + model`, in which case the caller must not add a
+ * model requirement to the composite gate (behavior unchanged).
+ */
+export function resolveModelSemaphoreKey({
+  provider,
+  model,
+  connectionId,
+  credentials,
+}: {
+  provider: string | null | undefined;
+  model: string;
+  connectionId: string | null | undefined;
+  credentials: Record<string, unknown> | null | undefined;
+}): string | null {
+  const accountKey = resolveAccountSemaphoreAccountKey(connectionId, credentials);
+  if (!accountKey || !provider) return null;
+  if (resolveModelSemaphoreMaxConcurrency(credentials, model) == null) return null;
+  return buildModelSemaphoreKey({ provider, accountKey, model });
 }
 
 export function buildClaudePromptCacheLogMeta(

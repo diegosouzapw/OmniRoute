@@ -73,6 +73,8 @@ export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comb
 import {
   resolveAccountSemaphoreKey,
   resolveAccountSemaphoreMaxConcurrency,
+  resolveModelSemaphoreKey,
+  resolveModelSemaphoreMaxConcurrency,
   buildClaudePromptCacheLogMeta,
 } from "./chatCore/executorHelpers.ts";
 import {
@@ -3085,6 +3087,20 @@ export async function handleChatCore({
               connectionId: attemptConnectionId,
               credentials: execCreds,
             });
+            // Opt-in per-model ceiling for this connection+model. Joins the
+            // same atomic composite gate below (never a separate queue), so
+            // a saturated model gate shares the queue/timeout semantics and
+            // the typed SEMAPHORE_* admission errors of the other gates.
+            const modelSemaphoreMaxConcurrency = resolveModelSemaphoreMaxConcurrency(
+              execCreds,
+              modelToCall
+            );
+            const modelSemaphoreKey = resolveModelSemaphoreKey({
+              provider,
+              model: modelToCall,
+              connectionId: attemptConnectionId,
+              credentials: execCreds,
+            });
             const canonicalProviderKey = resolveProviderId(String(provider).trim().toLowerCase());
             const providerConcurrency =
               resilienceSettings.providerQuotaOverrides[canonicalProviderKey]
@@ -3093,6 +3109,8 @@ export async function handleChatCore({
             trace("pre_semaphore", {
               semaphoreKey: accountSemaphoreKey,
               max: accountSemaphoreMaxConcurrency,
+              modelSemaphoreKey,
+              modelMax: modelSemaphoreMaxConcurrency,
             });
             if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
               updatePendingScope(pendingScope, {
@@ -3118,6 +3136,10 @@ export async function handleChatCore({
                 {
                   key: accountSemaphoreKey || "",
                   maxConcurrency: accountSemaphoreKey ? accountSemaphoreMaxConcurrency : null,
+                },
+                {
+                  key: modelSemaphoreKey || "",
+                  maxConcurrency: modelSemaphoreKey ? modelSemaphoreMaxConcurrency : null,
                 },
               ],
               {

@@ -244,6 +244,51 @@ Each provider connection can declare a `max_concurrent` ceiling
 Leave it empty for no limit. This is the single knob that drives the serialization
 layer below — set it to the account's real concurrency (e.g. GLM ~1, MiniMax ~2).
 
+### Per-model concurrency caps (`modelConcurrency`)
+
+A connection can additionally declare exact per-model concurrency ceilings
+inside its `rateLimitOverrides` map:
+
+```json
+{
+  "rateLimitOverrides": {
+    "maxConcurrent": 4,
+    "modelConcurrency": { "glm-5": 1, "glm-4.7": 3 }
+  }
+}
+```
+
+Set it in the connection modal (**Rate limit overrides → Per-model
+concurrency caps**, one `model=cap` per line) or via
+`PATCH /api/providers/[id]` with the same JSON shape. Key semantics:
+
+- **Connection-wide vs model-specific:** `maxConcurrent` remains the shared
+  connection-wide ceiling. When both apply, both gates are acquired
+  atomically in the same composite gate (`global → provider → account →
+model`); the effective behavior is the stricter applicable limit.
+- **Exact model-key match:** the key is the model string passed to the
+  executor after routing resolution — normally the bare upstream model id
+  (`glm-5`), not a client-side `provider/model` alias (`zai/glm-5` does not
+  match `glm-5`). Values are positive-integer concurrent-request ceilings.
+- **Local queueing, no discovery:** excess requests queue locally with the
+  existing queue/timeout semantics (typed `SEMAPHORE_TIMEOUT` /
+  `SEMAPHORE_QUEUE_FULL` admission errors). OmniRoute does not discover or
+  infer upstream policy — it enforces the exact ceilings the operator
+  configured. A saturated model gate never disables the provider and never
+  creates a permanent model lockout; upstream 429/cooldown/fallback behavior
+  remains the error backstop.
+- **Per-connection, per-process scope:** caps are per database connection
+  and held in-memory, so two connections reusing the same upstream API key
+  do not coordinate with each other.
+- **Unconfigured means unchanged:** omitting the map (or leaving the
+  dashboard field blank) adds no model gate. Example configuration without
+  asserting any universal provider limit:
+
+```text
+glm-5=1
+glm-4.7=3
+```
+
 ### Quota-share request serialization
 
 When a quota-share dispatch targets a connection that declares a positive

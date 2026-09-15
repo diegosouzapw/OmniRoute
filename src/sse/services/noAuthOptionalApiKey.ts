@@ -12,6 +12,7 @@ import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { isAccountUnavailable } from "@omniroute/open-sse/services/accountFallback.ts";
 import { createLazyConnectionView } from "@/lib/db/providers/lazyConnectionView";
 import type { ProviderConnectionView } from "@/lib/db/providers/lazyConnectionView";
+import { normalizeModelConcurrencyMap } from "@/lib/db/providers/columns";
 import { getCachedRawProviderConnections } from "@/lib/db/readCache";
 import { supportsApiKeyOnFreeProvider } from "@/shared/constants/providers";
 
@@ -69,6 +70,8 @@ export async function loadOptionalNoAuthApiKeyCredentials(
   errorCode: null;
   rateLimitedUntil: null;
   maxConcurrent: null;
+  /** Normalized per-model caps from the stored connection (fail-open → null). */
+  modelConcurrency: Record<string, number> | null;
 } | null> {
   if (!noAuthProviderAcceptsOptionalApiKey(providerId)) return null;
 
@@ -123,5 +126,8 @@ export async function loadOptionalNoAuthApiKeyCredentials(
     errorCode: null,
     rateLimitedUntil: null,
     maxConcurrent: null,
+    // Same fail-open propagation as auth.ts materialization: caps configured
+    // on this stored connection apply; anything else acquires no model gate.
+    modelConcurrency: normalizeModelConcurrencyMap(connection.rateLimitOverrides?.modelConcurrency),
   };
 }

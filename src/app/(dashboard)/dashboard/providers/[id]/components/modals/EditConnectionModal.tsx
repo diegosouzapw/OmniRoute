@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Badge, Input, Modal, Toggle, Select } from "@/shared/components";
+import { Button, Badge, Input, Modal, Toggle, Select, Textarea } from "@/shared/components";
 import { CHATGPT_WEB_CODEX_CONNECTOR_NAME } from "@/shared/constants/chatgptWebCodex";
 import {
   isOpenAICompatibleProvider,
@@ -20,6 +20,11 @@ import { maskEmail } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { type CodexServiceTier } from "@/lib/providers/requestDefaults";
+import {
+  formatModelConcurrencyInput,
+  parseModelConcurrencyInput,
+} from "@/lib/providers/modelConcurrency";
+import type { ConnectionRateLimitOverrides } from "@/lib/db/providers/columns";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { resolveDashboardProviderInfo } from "../../../providerPageUtils";
 import {
@@ -72,7 +77,7 @@ export interface EditConnectionModalConnection {
   email?: string;
   priority?: number;
   maxConcurrent?: number | null;
-  rateLimitOverrides?: Record<string, number> | null;
+  rateLimitOverrides?: ConnectionRateLimitOverrides | null;
   authType?: string;
   provider?: string;
   apiKey?: string;
@@ -118,6 +123,7 @@ export default function EditConnectionModal({
     minTime: "",
     maxWaitMs: "",
     rateLimitMaxConcurrent: "",
+    modelConcurrency: "",
     apiKey: "",
     healthCheckInterval: "" as number | "",
     baseUrl: "",
@@ -343,6 +349,12 @@ export default function EditConnectionModal({
           connection.rateLimitOverrides?.maxConcurrent != null
             ? String(connection.rateLimitOverrides.maxConcurrent)
             : "",
+        // Per-model caps survive dashboard saves: the field loads the stored
+        // map and the save path below writes it back, so an API-configured
+        // map is never erased by editing unrelated connection settings.
+        modelConcurrency: formatModelConcurrencyInput(
+          connection.rateLimitOverrides?.modelConcurrency
+        ),
         apiKey: "",
         // Unset per-connection override means "follow the global default" —
         // surface that as an empty field (0 renders as an explicit opt-out).
@@ -564,7 +576,7 @@ export default function EditConnectionModal({
         healthCheckInterval:
           formData.healthCheckInterval === "" ? undefined : formData.healthCheckInterval,
       };
-      const overrides: Record<string, number> = {};
+      const overrides: ConnectionRateLimitOverrides = {};
       if (formData.rpm.trim()) overrides.rpm = Number(formData.rpm);
       if (formData.rpd.trim()) overrides.rpd = Number(formData.rpd);
       if (formData.tpm.trim()) overrides.tpm = Number(formData.tpm);
@@ -573,6 +585,15 @@ export default function EditConnectionModal({
       if (formData.maxWaitMs.trim()) overrides.maxWaitMs = Number(formData.maxWaitMs);
       if (formData.rateLimitMaxConcurrent.trim())
         overrides.maxConcurrent = Number(formData.rateLimitMaxConcurrent);
+      // Per-model concurrency ceilings (`model=cap`, one per line). A blank
+      // field means "no model caps"; malformed entries refuse the save so
+      // operator intent is never silently dropped.
+      const parsedModelConcurrency = parseModelConcurrencyInput(formData.modelConcurrency);
+      if (parsedModelConcurrency.error) {
+        setSaveError(parsedModelConcurrency.error);
+        return;
+      }
+      if (parsedModelConcurrency.map) overrides.modelConcurrency = parsedModelConcurrency.map;
       updates.rateLimitOverrides = Object.keys(overrides).length > 0 ? overrides : null;
       if (isAntigravityFamily) {
         updates.projectId = trimmedCloudCodeProjectId || null;
@@ -1309,6 +1330,23 @@ export default function EditConnectionModal({
                       placeholder={t("inherit")}
                       hint={t("rateLimitOverridesMaxConcurrentHint")}
                     />
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium text-text-main mb-1">
+                        {t("rateLimitOverridesModelConcurrencyLabel")}
+                      </label>
+                      <Textarea
+                        value={formData.modelConcurrency}
+                        onChange={(e) =>
+                          setFormData({ ...formData, modelConcurrency: e.target.value })
+                        }
+                        placeholder={t("rateLimitOverridesModelConcurrencyPlaceholder")}
+                        rows={3}
+                        data-testid="model-concurrency-input"
+                      />
+                      <p className="text-xs text-text-muted mt-1">
+                        {t("rateLimitOverridesModelConcurrencyHint")}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

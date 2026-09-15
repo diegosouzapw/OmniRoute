@@ -10,6 +10,7 @@
  */
 
 import { decryptQuiet } from "../encryption";
+import type { ConnectionRateLimitOverrides } from "./columns";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -62,6 +63,12 @@ export interface ProviderConnectionView {
   backoffLevel: number;
   maxConcurrent: number | null;
   quotaWindowThresholds: Record<string, number> | null;
+  /**
+   * Per-connection rate limit overrides as parsed from the JSON column.
+   * Carries the optional nested `modelConcurrency` map; the chat core
+   * normalizes that map (fail-open) onto credentials at selection time.
+   */
+  rateLimitOverrides: ConnectionRateLimitOverrides | null;
 }
 
 /**
@@ -74,6 +81,11 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
   const quotaWindowThresholds: Record<string, number> | null =
     rawThresholds && typeof rawThresholds === "object" && !Array.isArray(rawThresholds)
       ? (rawThresholds as Record<string, number>)
+      : null;
+  const rawOverrides = row.rateLimitOverrides;
+  const rateLimitOverrides: ConnectionRateLimitOverrides | null =
+    rawOverrides && typeof rawOverrides === "object" && !Array.isArray(rawOverrides)
+      ? (rawOverrides as ConnectionRateLimitOverrides)
       : null;
   return {
     id: toStringOrNull(row.id) || "",
@@ -102,6 +114,7 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
     backoffLevel: toNumber(row.backoffLevel, 0),
     maxConcurrent: toNullableNumber(row.maxConcurrent),
     quotaWindowThresholds,
+    rateLimitOverrides,
   };
 }
 
@@ -167,7 +180,11 @@ export function createLazyRowProxy(row: Record<string, unknown>): Record<string,
       decrypted = {
         apiKey: lazyDecrypt(row.apiKey, { connectionId, provider, field: "apiKey" }),
         accessToken: lazyDecrypt(row.accessToken, { connectionId, provider, field: "accessToken" }),
-        refreshToken: lazyDecrypt(row.refreshToken, { connectionId, provider, field: "refreshToken" }),
+        refreshToken: lazyDecrypt(row.refreshToken, {
+          connectionId,
+          provider,
+          field: "refreshToken",
+        }),
         idToken: lazyDecrypt(row.idToken, { connectionId, provider, field: "idToken" }),
       };
     }

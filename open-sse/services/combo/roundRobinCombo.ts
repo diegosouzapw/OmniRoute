@@ -27,6 +27,7 @@ import {
   resolveComboQueueDepth,
 } from "../comboConfig.ts";
 import { getHiddenModelsByProvider } from "@/models";
+import type { ConnectionRateLimitOverrides } from "@/lib/db/providers/columns";
 import * as semaphore from "../rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
 import { parseModel } from "../model.ts";
@@ -121,8 +122,9 @@ async function resolveTargetTokenLimit(target: {
   if (!connectionId) return undefined;
   try {
     const connection = await getCachedProviderConnectionById(connectionId);
-    const overrides = (connection as { rateLimitOverrides?: Record<string, number> | null } | null)
-      ?.rateLimitOverrides;
+    const overrides = (
+      connection as { rateLimitOverrides?: ConnectionRateLimitOverrides | null } | null
+    )?.rateLimitOverrides;
     const tpm = overrides?.tpm;
     return typeof tpm === "number" && tpm > 0 ? tpm : undefined;
   } catch {

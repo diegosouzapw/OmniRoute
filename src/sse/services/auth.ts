@@ -41,6 +41,7 @@ import {
   toProviderConnection,
   type ProviderConnectionView,
 } from "@/lib/db/providers/lazyConnectionView";
+import { normalizeModelConcurrencyMap } from "@/lib/db/providers/columns";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
@@ -647,6 +648,9 @@ function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}):
   errorCode: null;
   rateLimitedUntil: null;
   maxConcurrent: null;
+  // Pure-synthetic credentials carry no DB row, so they never carry a
+  // per-model cap either — the chat core must not acquire a model gate.
+  modelConcurrency: null;
   allRateLimited?: never;
   allExpired?: never;
   retryAfter?: never;
@@ -670,6 +674,7 @@ function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}):
     errorCode: null,
     rateLimitedUntil: null,
     maxConcurrent: null,
+    modelConcurrency: null,
   };
 }
 
@@ -1105,6 +1110,10 @@ async function materializeConnection(
     errorCode: connection.errorCode,
     rateLimitedUntil: connection.rateLimitedUntil,
     maxConcurrent: connection.maxConcurrent,
+    // Carry only the normalized per-model cap map onto the runtime
+    // credential — never unrelated rate-limit config or secrets. Missing or
+    // malformed maps fail open to "no model cap" (null).
+    modelConcurrency: normalizeModelConcurrencyMap(connection.rateLimitOverrides?.modelConcurrency),
     quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
     ...(releaseOAuthSession ? { releaseOAuthSession } : {}),
     ...extra,

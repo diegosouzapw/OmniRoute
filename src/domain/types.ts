@@ -35,6 +35,7 @@
  * @property {number} [rateLimitOverrides.tpd] - Tokens per day limit
  * @property {number} [rateLimitOverrides.minTime] - Minimum ms between requests
  * @property {number} [rateLimitOverrides.maxConcurrent] - Max concurrent requests
+ * @property {object} [rateLimitOverrides.modelConcurrency] - Opt-in per-model concurrency ceilings, keyed by the exact upstream model id (e.g. "glm-5"); values are positive-integer concurrent-request ceilings that compose with maxConcurrent
  * @property {string} createdAt - ISO timestamp
  * @property {string} updatedAt - ISO timestamp
  */

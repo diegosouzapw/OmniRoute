@@ -32,6 +32,10 @@ import {
   customHeadersSchema,
 } from "./misc.ts";
 import { isValidProviderIconUrl } from "@/shared/validation/iconUrl";
+import {
+  MODEL_CONCURRENCY_MAX_CAP,
+  MODEL_CONCURRENCY_MAX_KEY_LENGTH,
+} from "@/lib/db/providers/columns";
 
 export { validateProviderSpecificData };
 
@@ -507,6 +511,35 @@ function rateLimitOverrideNumber(max: number) {
   }, z.coerce.number().int().min(0).max(max));
 }
 
+// Per-model concurrency ceilings inside `rateLimitOverrides.modelConcurrency`.
+// Unlike the scalar fields above, a cap of 0 is meaningless (it would bypass
+// the gate), so values are positive integers (1..MODEL_CONCURRENCY_MAX_CAP).
+// Keys are exact upstream model ids, bounded to MODEL_CONCURRENCY_MAX_KEY_LENGTH
+// chars. `null` normalizes to absent so a dashboard save can clear just the
+// map; `{}` is accepted and normalized away at the DB sanitizer.
+function modelConcurrencyMap() {
+  return z.preprocess(
+    (raw) => (raw === null ? undefined : raw),
+    z
+      .record(
+        z.string().min(1).max(MODEL_CONCURRENCY_MAX_KEY_LENGTH),
+        rateLimitOverridePositiveInt(MODEL_CONCURRENCY_MAX_CAP)
+      )
+      .optional()
+  );
+}
+
+function rateLimitOverridePositiveInt(max: number) {
+  return z.preprocess((raw) => {
+    if (typeof raw === "string") {
+      if (raw.trim() === "") return NaN;
+      const parsed = Number(raw);
+      return Number.isNaN(parsed) ? raw : parsed;
+    }
+    return raw;
+  }, z.coerce.number().int().min(1).max(max));
+}
+
 export const updateProviderConnectionSchema = z
   .object({
     name: z.string().max(200).optional(),
@@ -572,6 +605,7 @@ export const updateProviderConnectionSchema = z
         maxConcurrent: rateLimitOverrideNumber(10_000).optional(),
         maxWaitMs: rateLimitOverrideNumber(120_000).optional(),
         executionMaxWaitMs: rateLimitOverrideNumber(600_000).optional(),
+        modelConcurrency: modelConcurrencyMap(),
       })
       .partial()
       .strict()
