@@ -1,6 +1,25 @@
 export type NamespaceIdentity = { namespace: string; name: string };
 
 /**
+ * Capture both ledgers before the legacy extractor deletes their side channels.
+ * Responses pivots carry object-valued namespace identities AND string-valued
+ * provider aliases; recovering aliases from identities alone loses the latter.
+ */
+export function extractRequestToolMetadata(translatedBody: Record<string, unknown>): {
+  requestToolIdentityMap: Map<string, NamespaceIdentity> | null;
+  toolNameAliasMap: Map<string, string> | null;
+} {
+  const toolNameAliasMap = toToolNameAliasMap(
+    translatedBody._toolNameMap instanceof Map ? translatedBody._toolNameMap : null
+  );
+  const requestToolIdentityMap = extractRequestToolIdentityMap(translatedBody);
+  return {
+    requestToolIdentityMap,
+    toolNameAliasMap: toolNameAliasMap ?? toToolNameAliasMap(requestToolIdentityMap),
+  };
+}
+
+/**
  * Return a string-valued copy only when the complete map is an alias ledger.
  *
  * The legacy `_toolNameMap` side channel can carry either response aliases or

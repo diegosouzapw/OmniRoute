@@ -1,0 +1,1 @@
+- **fix(responses):** Preserve Gemini/Antigravity tool-name sanitizer aliases alongside namespace identities when extracting Responses API tool metadata, instead of dropping alias-only entries during collision recovery ([#12839](https://github.com/diegosouzapw/OmniRoute/pull/12839)) — thanks @Pllutonyy
