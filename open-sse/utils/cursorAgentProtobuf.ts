@@ -19,6 +19,7 @@
 import zlib from "node:zlib";
 import crypto from "node:crypto";
 import { decodeNativeTodoWriteCompletion } from "./cursorAgentProtobuf/nativeTodoWrite.ts";
+import { scrubKimiNarrationText } from "./kimiToolCallNarration.ts";
 import {
   cursorImageAttachmentPath,
   encodeSelectedImageBody,
@@ -1469,7 +1470,13 @@ function messageContentToText(content: ChatMessage["content"]): string {
 }
 
 function assistantMessageLines(message: ChatMessage, text: string): string[] {
-  const lines = text ? [`Assistant: ${text}`] : [];
+  // History hygiene (PR #12723 follow-up): scrub gateway-dialect constructs
+  // from prior assistant visible text. A previously leaked narration /
+  // "User: <tool_result>" block re-sent in history re-anchors model mimicry
+  // of the gateway's own serialization on every subsequent turn — this
+  // breaks the compounding loop at the carrier. Only ASSISTANT text is
+  // scrubbed: a user legitimately quoting a dialect line must reach the model.
+  const lines = text ? [`Assistant: ${scrubKimiNarrationText(text).content || text}`] : [];
   for (const toolCall of message.tool_calls ?? []) {
     const name = toolCall.function?.name ?? "(unknown)";
     const args = toolCall.function?.arguments ?? "";

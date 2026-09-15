@@ -91,7 +91,11 @@ import {
   type ClassifiedCursorError,
 } from "./cursor/cursorErrors.ts";
 import { getActiveSyncedCatalog } from "../../src/lib/db/models/activeSyncedCatalog.ts";
-import { applyKimiToolCallRecovery } from "../utils/kimiToolCallNarration.ts";
+import {
+  applyKimiToolCallRecovery,
+  createNarrationStreamScrubber,
+  type NarrationStreamScrubber,
+} from "../utils/kimiToolCallNarration.ts";
 // Composer helpers re-exported for external importers (tests).
 export {
   isComposerModel,
@@ -340,10 +344,16 @@ export type StreamCtx = {
   // True once we've emitted structured tool_calls from the inline Composer parser
   // (to avoid double-emitting if the block appears in multiple accumulated frames).
   composerInlineToolCallsEmitted: boolean;
+  // History-dialect narration scrubber (PR #12723 follow-up): incrementally
+  // holds back text that could start a flattenMessages dialect construct
+  // ("Assistant called tool …", "Tool result (…):", "User: <tool_result>…")
+  // so mimicry of the gateway's own serialization never streams to the client.
+  // A finalize-time scrub alone cannot retract already-emitted deltas.
+  narrationScrubber: NarrationStreamScrubber;
 };
 
 export function newStreamCtx(model: string, emit: (chunk: string) => void): StreamCtx {
-  return {
+  const ctx: StreamCtx = {
     responseId: `chatcmpl-cursor-${Date.now()}`,
     created: Math.floor(Date.now() / 1000),
     model,
@@ -363,7 +373,28 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     composerVisibleEmittedLength: 0,
     composerToolParserState: isComposerModel(model) ? createStreamingState() : null,
     composerInlineToolCallsEmitted: false,
+    // Assigned below (the scrubber's onToolCall callback closes over `ctx`).
+    narrationScrubber: undefined as unknown as NarrationStreamScrubber,
   };
+  ctx.narrationScrubber = createNarrationStreamScrubber((tc) => {
+    // A narrated call surfaced by the scrubber mid-stream is emitted as a
+    // structured tool_calls chunk right away; the finalize path
+    // (applyKimiToolCallRecovery) will not re-add it because ctx.toolCalls
+    // is non-empty by then.
+    const index = ctx.emittedToolCallIndex++;
+    ctx.toolCalls.push({ id: tc.id, name: tc.function.name, argumentsJson: tc.function.arguments });
+    emitChunk(ctx, {
+      tool_calls: [
+        {
+          index,
+          id: tc.id,
+          type: "function",
+          function: { name: tc.function.name, arguments: tc.function.arguments },
+        },
+      ],
+    });
+  });
+  return ctx;
 }
 
 function emitChunk(ctx: StreamCtx, delta: object, finishReason: string | null = null) {
@@ -641,9 +672,18 @@ export function processFrame(
         emitChunk(ctx, { role: "assistant", content: "" });
         ctx.emittedRoleChunk = true;
       }
-      ctx.totalText += d.text;
+      // History-dialect scrub (PR #12723 follow-up): hold back text that may
+      // start a flattenMessages dialect construct so mimicry of the gateway's
+      // own serialization ("Assistant called tool …", "Tool result (…):",
+      // "User: <tool_result>…") never streams to the client. Only the
+      // scrubber-cleared delta is emitted and accumulated into totalText —
+      // totalText must equal what the client actually received.
+      const safeDelta = ctx.narrationScrubber.feed(d.text);
       ctx.receivedText = true;
-      emitChunk(ctx, { content: d.text });
+      if (safeDelta) {
+        ctx.totalText += safeDelta;
+        emitChunk(ctx, { content: safeDelta });
+      }
     } else if (d.kind === "thinking" && d.text) {
       if (!ctx.emittedRoleChunk) {
         emitChunk(ctx, { role: "assistant", content: "" });
@@ -1614,6 +1654,15 @@ export class CursorExecutor extends BaseExecutor {
       }
     }
 
+    // Flush any text the narration scrubber is still holding back (e.g. a
+    // trailing partial trigger that never completed — that is plain prose,
+    // not dialect). totalText must mirror what the client received.
+    const scrubberFlush = ctx.narrationScrubber.finish();
+    if (scrubberFlush) {
+      ctx.totalText += scrubberFlush;
+      emitChunk(ctx, { content: scrubberFlush });
+    }
+
     applyKimiToolCallRecovery(ctx, (chunk) => emitChunk(ctx, chunk));
 
     // OpenAI finish_reason: "tool_calls" if the model invoked any declared
@@ -1685,6 +1734,10 @@ export class CursorExecutor extends BaseExecutor {
         }
       }
     }
+
+    // Flush scrubber holdback (partial trigger at end of turn = prose).
+    const scrubberFlush = ctx.narrationScrubber.finish();
+    if (scrubberFlush) ctx.totalText += scrubberFlush;
 
     applyKimiToolCallRecovery(ctx);
 
