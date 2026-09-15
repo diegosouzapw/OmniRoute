@@ -1,0 +1,1 @@
+- **fix(db):** `getDbInstance()` now closes the probe and primary SQLite connections on every failed initialization path, not just the happy path, fixing a handle leak that caused `EPERM` on Windows teardown. ([#13303](https://github.com/diegosouzapw/OmniRoute/issues/13303))
