@@ -11,18 +11,58 @@ import { getFreeWindowStatus, resolveAccountKey } from "../openrouterFreeWindow.
 import { type UsageQuota } from "./quota.ts";
 
 function buildCreditsQuota(quota: OpenrouterQuota): UsageQuota | null {
+  // OpenRouter #12256 + #12468: per-key USD cap and account-level credit pool
+  // both flow through this builder. Per-key limit wins; PAYG accounts without
+  // a key cap report `limit: null` plus a credit pool derived from
+  // `totalCredits - totalUsage`. We use `totalCredits` as the bar denominator
+  // when no key limit exists and the pool is positive; a non-positive pool
+  // must never fabricate a 100% bar.
   if (quota.limit === null && quota.creditBalance === null) return null;
+  const hasKeyLimit = quota.limit !== null;
+  const hasPositivePool =
+    quota.creditBalance !== null &&
+    quota.creditBalance !== undefined &&
+    Number.isFinite(quota.creditBalance) &&
+    quota.creditBalance > 0;
+  const totalCredits =
+    quota.totalCredits !== null &&
+    quota.totalCredits !== undefined &&
+    Number.isFinite(quota.totalCredits) &&
+    quota.totalCredits > 0
+      ? quota.totalCredits
+      : 0;
+  const total = hasKeyLimit
+    ? (quota.limit ?? 0)
+    : totalCredits > 0
+      ? totalCredits
+      : hasPositivePool
+        ? quota.creditBalance!
+        : 0;
+  const used = hasKeyLimit
+    ? quota.limit! - (quota.limitRemaining ?? quota.limit!)
+    : total > 0 && hasPositivePool
+      ? Math.max(0, total - (quota.creditBalance ?? 0))
+      : 0;
+  const remaining = hasKeyLimit
+    ? (quota.limitRemaining ?? 0)
+    : hasPositivePool
+      ? (quota.creditBalance ?? 0)
+      : 0;
+  const remainingPercentage = hasKeyLimit
+    ? Math.max(0, Math.min(100, Math.round((1 - quota.percentUsed) * 100)))
+    : total > 0 && totalCredits > 0 && hasPositivePool
+      ? Math.max(0, Math.min(100, Math.round(((quota.creditBalance ?? 0) / totalCredits) * 100)))
+      : undefined;
   return {
-    used: quota.limit !== null ? quota.limit - (quota.limitRemaining ?? quota.limit) : 0,
-    total: quota.limit ?? 0,
-    remaining: quota.creditBalance ?? undefined,
-    remainingPercentage: quota.limit !== null ? Math.round((1 - quota.percentUsed) * 100) : 100,
+    used,
+    total,
+    remaining,
+    remainingPercentage,
     resetAt: quota.resetAt ?? null,
-    unlimited: quota.limit === null,
+    unlimited: !hasKeyLimit && !hasPositivePool,
     currency: "USD",
   };
 }
-
 function buildFreeWindowQuota(connectionId: string, connection?: Record<string, unknown>) {
   const accountKey = resolveAccountKey(connectionId, connection);
   const status = getFreeWindowStatus(accountKey);
