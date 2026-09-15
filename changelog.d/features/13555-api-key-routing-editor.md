@@ -1,0 +1,1 @@
+- **feat(dashboard):** Add a dedicated, full-width API-key routing editor with explicit model/combo choices, searchable selectors and protection for unsaved rule drafts. ([#13555](https://github.com/diegosouzapw/OmniRoute/pull/13555)) — thanks @JxnLexn
