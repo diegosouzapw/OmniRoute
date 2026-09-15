@@ -1,0 +1,1 @@
+- **fix(ci):** Register `tests/unit/reset-aware-request-scope-12600.test.ts` in `stryker.conf.json` `tap.testFiles` so its mutant kills count for `open-sse/services/combo/quotaScoring.ts`, fixing the `mutation-test-coverage` gate that fails on the release line with no PR diff.

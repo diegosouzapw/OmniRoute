@@ -368,6 +368,7 @@
       "tests/unit/repro-glm-iso-reset-24h-cap.test.ts",
       "tests/unit/reset-aware-request-scope-12600.test.ts",
       "tests/unit/resilience-connections.test.ts",
+      "tests/unit/reset-aware-request-scope-12600.test.ts",
       "tests/unit/responses-handler.test.ts",
       "tests/unit/responses-passthrough-openai-compatible.test.ts",
       "tests/unit/rotation-config-omniroute.test.ts",
