@@ -1,0 +1,1 @@
+- **fix(sse):** stop re-sending a request to an already-refused route after a 429 — each refused route is tried once per request ([#13795](https://github.com/diegosouzapw/OmniRoute/pull/13795)) — thanks @maxmad64bis

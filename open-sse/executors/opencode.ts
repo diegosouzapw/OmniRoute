@@ -609,8 +609,9 @@ export class OpencodeExecutor extends BaseExecutor {
       // persistently malformed upstream.
       const emptyRejectionBudget = this.accounts.length === 1 ? 1 : 0;
       // Tried set: proxy keys already proven unusable for this request's
-      // model (geo-blocked, or transient 5xx). Request-local only — nothing
-      // persists past execute().
+      // model (geo-blocked, transient 5xx, or already-429 this request).
+      // Request-local only — nothing persists past execute(). Cross-request
+      // set-aside (noteProxyRefusal) applies on top when enabled.
       const geoTriedProxyKeys = new Set<string>();
       // Opt-in (PROXY_SKIP_RECENTLY_FAILED, default off): members the provider just refused
       // (received refusal or refused TCP probe) are skipped. Off = plain rotation.
@@ -756,6 +757,8 @@ export class OpencodeExecutor extends BaseExecutor {
         const status = result.response.status;
         if (status === 429) {
           this.markCooldown(account);
+          const key = proxyKeyOf(account.proxy);
+          if (key !== null) geoTriedProxyKeys.add(key);
           // The provider refused through this member: set it aside beyond the account
           // cooldown. A direct account has a null key and is never set aside.
           const setAsideMs = skipRecentlyFailed
@@ -763,7 +766,7 @@ export class OpencodeExecutor extends BaseExecutor {
             : null;
           log?.warn?.(
             "OPENCODE",
-            `${cid}Rate limited (429) on account ${masked}` +
+            `${cid}Rate limited (429) on account ${masked} (proxy ${key ?? "direct"})` +
               (setAsideMs ? `, member set aside for ${Math.round(setAsideMs / 1000)}s` : "") +
               ", rotating to next…"
           );
