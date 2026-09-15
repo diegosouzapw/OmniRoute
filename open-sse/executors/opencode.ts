@@ -6,7 +6,7 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   injectReasoningContentForThinkingModel,
   isThinkingMessageModel,
@@ -63,6 +63,16 @@ interface OpencodeAccountState extends RotatableAccount {
 }
 
 const EFFORT_LEVELS = ["none", "low", "high", "max"] as const;
+
+const OPENCODE_MODEL_PREFIXES = ["opencode/", "oc/", "opencode-zen/", "opencode-go/"] as const;
+
+function stripOpencodeModelPrefix(model: unknown): unknown {
+  if (typeof model !== "string") return model;
+  for (const prefix of OPENCODE_MODEL_PREFIXES) {
+    if (model.startsWith(prefix)) return model.slice(prefix.length);
+  }
+  return model;
+}
 
 /**
  * Models that work WITHOUT any API key on the free/noauth opencode tier.
@@ -170,11 +180,12 @@ export function isPremiumOpencodeModel(model: string, provider: string): boolean
  * translation (correctly aliased) still switched to the Responses API shape for
  * `targetFormat:"openai-responses"` models — sending a Responses-shaped body to
  * the `/chat/completions` URL this executor's own `buildUrl()` kept selecting.
+ * The shared lookup also applies provider-scoped family rules, so passthrough
+ * models added upstream do not need an executor change for each new version.
  * Exported for testability.
  */
 export function resolveOpencodeTargetFormat(provider: string, model: string): string {
-  const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
-  return getModelTargetFormat(alias, model) || "openai";
+  return getModelTargetFormat(provider, model) || "openai";
 }
 
 /**
@@ -1040,6 +1051,10 @@ export class OpencodeExecutor extends BaseExecutor {
     }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
+      // OpenCode Zen's Responses endpoint accepts the upstream model id only.
+      // Keep this executor-level guard because `/v1/responses` callers can reach
+      // the executor without the Chat Completions model-normalization path.
+      mb.model = stripOpencodeModelPrefix(mb.model);
       const parsed = parseEffortLevel(model);
       if (parsed) {
         const deepseekFamily =
