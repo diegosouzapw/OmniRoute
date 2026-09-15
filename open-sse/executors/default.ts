@@ -579,6 +579,15 @@ export class DefaultExecutor extends BaseExecutor {
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       case "clinepass": // dual-auth (OAuth or BYOK) — see applyClineAuthHeaders()
+        // buildClinepassHeaders() (called below via isClinepass=true) is the single
+        // source of truth for the OAuth-vs-BYOK decision, keyed off
+        // credentials.accessToken — do not re-decide it here off credentials.authType,
+        // which can diverge from the real credential shape (#11828 review).
+        if (credentials?.accessToken) {
+          console.debug("[Auth] Using OAuth token for Cline/Kilo Code request.");
+        } else {
+          console.debug("[Auth] Using direct API key for Cline/Kilo Code request.");
+        }
         applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
         break;
       case "cline":
