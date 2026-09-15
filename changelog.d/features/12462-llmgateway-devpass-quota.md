@@ -1,0 +1,1 @@
+- **feat(sse):** track LLM Gateway DevPass quota — the `llmgateway` provider now reads its monthly plan-credit and weekly premium-model allowance from `GET /v1/key` and surfaces both windows in Dashboard › Limits and quota-aware preflight ([#12462](https://github.com/diegosouzapw/OmniRoute/pull/12462)).
