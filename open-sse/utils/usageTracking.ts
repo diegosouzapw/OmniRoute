@@ -479,6 +479,8 @@ function clearCachedTokenDetail<T extends UsageTokenDetail | null | undefined>(v
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const result = { ...value };
   if (result.cached_tokens !== undefined) result.cached_tokens = 0;
+  if (result.cache_creation_tokens !== undefined) result.cache_creation_tokens = 0;
+  if (result.cache_write_tokens !== undefined) result.cache_write_tokens = 0;
   return result;
 }
 
@@ -513,6 +515,8 @@ export function sanitizeProviderUsageForRequest(
 
   if (format === FORMATS.CLAUDE) {
     result.input_tokens = estimatedInput;
+    result.prompt_tokens_details = clearCachedTokenDetail(result.prompt_tokens_details);
+    result.input_tokens_details = clearCachedTokenDetail(result.input_tokens_details);
     result.cache_read_input_tokens = 0;
     result.cache_creation_input_tokens = 0;
     return result;
@@ -531,6 +535,7 @@ export function sanitizeProviderUsageForRequest(
 
   if (format === FORMATS.OPENAI_RESPONSES) {
     result.input_tokens = estimatedInput;
+    result.prompt_tokens_details = clearCachedTokenDetail(result.prompt_tokens_details);
     result.input_tokens_details = clearCachedTokenDetail(result.input_tokens_details);
     result.cache_read_input_tokens = 0;
     result.cache_creation_input_tokens = 0;
@@ -624,7 +629,12 @@ export function normalizeUsage(usage: UsageLike | null | undefined) {
   assignNumber("output_tokens", usage?.output_tokens);
   assignNumber("cache_read_input_tokens", usage?.cache_read_input_tokens);
   assignNumber("cache_creation_input_tokens", pickCacheCreationTokens(usage));
-  assignNumber("cached_tokens", usage?.cached_tokens);
+  assignNumber(
+    "cached_tokens",
+    usage?.cached_tokens ??
+      usage?.prompt_tokens_details?.cached_tokens ??
+      usage?.input_tokens_details?.cached_tokens
+  );
   assignNumber("no_cache_tokens", usage?.no_cache_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
   // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —

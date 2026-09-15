@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
 const { extractUsage, normalizeUsage } = await import("../../open-sse/utils/usageTracking.ts");
 
-test("normalizeUsage keeps only finite numeric fields for stream cost calculation", () => {
+test("normalizeUsage keeps finite nested cache-read fields for stream cost calculation", () => {
   assert.deepEqual(
     normalizeUsage({
       input_tokens: "12",
@@ -12,7 +12,7 @@ test("normalizeUsage keeps only finite numeric fields for stream cost calculatio
       total_tokens: Number.POSITIVE_INFINITY,
       input_tokens_details: { cached_tokens: 2 },
     }),
-    { input_tokens: 12, output_tokens: 3 }
+    { input_tokens: 12, output_tokens: 3, cached_tokens: 2 }
   );
 });
 
