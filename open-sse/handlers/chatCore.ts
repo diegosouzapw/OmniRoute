@@ -24,6 +24,7 @@ export {
   relocateDirectiveOnlyMessages,
 } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
+import { acquireTurnExecution, createTurnInProgressResult } from "./chatCore/turnExecutionGuard.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { checkLifecycle, resolveLifecycle } from "./chatCore/modelLifecyclePolicy.ts";
 import {
@@ -708,7 +709,23 @@ export async function handleChatCore({
   if (idempotencyHit) {
     return idempotencyHit;
   }
-  // T07: Inject connectionId into credentials so executors can rotate API keys
+
+  const turnExecution = acquireTurnExecution(idempotencyKey);
+  if (!turnExecution.acquired) {
+    const duplicate = createTurnInProgressResult(turnExecution.retryCount);
+    log?.warn?.(
+      "TURN_GUARD",
+      `duplicate blocked cid=${traceId} retry=${turnExecution.retryCount} ageMs=${turnExecution.ageMs}`
+    );
+    return duplicate.result;
+  }
+  const releaseTurnExecution = turnExecution.release;
+  let turnExecutionHandedOffToStream = false;
+
+  // Preserve chatCore's canonical formatting while the guarded body remains byte-stable.
+  // prettier-ignore
+  try {
+    // T07: Inject connectionId into credentials so executors can rotate API keys
   // using providerSpecificData.extraApiKeys (API Key Round-Robin feature)
   if (connectionId && credentials && !credentials.connectionId) {
     credentials.connectionId = connectionId;
@@ -6098,23 +6115,27 @@ export async function handleChatCore({
     );
   }
 
-  const finalStream = assembleStreamingPipeline({
-    providerResponse,
-    transformStream,
-    streamController,
-    createPiiTransform,
-    clientRawRequestHeaders: clientRawRequest?.headers,
-    clientResponseFormat,
-    echoModel,
-    responseHeaders,
-    // Same adaptive budget the pre-handoff readiness gate above just used —
-    // reasoning models that legitimately take a while to say anything keep
-    // that same patience for their first REAL content, not just their first
-    // lifecycle frame. See pipeWithDisconnect's own doc comment.
-    contentStallTimeoutMs: streamReadinessPolicy.timeoutMs,
-  });
+    const finalStream = assembleStreamingPipeline({
+      providerResponse,
+      transformStream,
+      streamController,
+      createPiiTransform,
+      clientRawRequestHeaders: clientRawRequest?.headers,
+      clientResponseFormat,
+      echoModel,
+      responseHeaders,
+      // Same adaptive budget the pre-handoff readiness gate above just used —
+      // reasoning models that legitimately take a while to say anything keep
+      // that same patience for their first REAL content, not just their first
+      // lifecycle frame. See pipeWithDisconnect's own doc comment.
+      contentStallTimeoutMs: streamReadinessPolicy.timeoutMs,
+    });
+    const clientFacingStream = wrapReadableStreamWithFinalize(
+      finalStream,
+      releaseTurnExecution
+    );
 
-  // ── Gamification event (fire-and-forget) ──
+    // ── Gamification event (fire-and-forget) ──
   await emitRequestGamificationEvent({ apiKeyId: apiKeyInfo?.id, model, provider });
 
   // ── Plugin onResponse hook (fire-and-forget) ──
@@ -6128,12 +6149,19 @@ export async function handleChatCore({
     response: { status: 200, streamed: true },
   });
 
-  return {
-    success: true,
-    response: new Response(finalStream, {
+    const response = new Response(clientFacingStream, {
       headers: responseHeaders,
-    }),
-  };
+    });
+    turnExecutionHandedOffToStream = true;
+    return {
+      success: true,
+      response,
+    };
+  } finally {
+    if (!turnExecutionHandedOffToStream) {
+      releaseTurnExecution();
+    }
+  }
 }
 export function isTokenExpiringSoon(expiresAt, bufferMs = 5 * 60 * 1000) {
   if (!expiresAt) return false;

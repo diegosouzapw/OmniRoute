@@ -276,6 +276,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "token_required",
   "tool_calling_not_supported",
   "tools",
+  "turn_in_progress",
   "uc_auth_error",
   "uc_generation_failed",
   "uc_message_limit_exceeded",
