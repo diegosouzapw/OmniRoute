@@ -39,6 +39,7 @@ export type ResourcePressureRuntimeOptions = {
   staleAfterMs?: number;
   maxStaleMs?: number;
   retryAfterMs?: number;
+  admissionRefreshTimeoutMs?: number;
   samplerDeps?: SampleResourceSignalsDeps;
   selfRestart?: {
     enabled?: boolean;
@@ -56,6 +57,7 @@ type ResolvedSelfRestart = {
 };
 
 const SELF_RESTART_DEFAULT_AFTER_MS = 120_000;
+const ADMISSION_REFRESH_TIMEOUT_MS = 10_000;
 
 function envFlagEnabled(raw: string | undefined): boolean {
   return raw != null && /^(1|true|yes|on)$/i.test(raw.trim());
@@ -119,6 +121,7 @@ function logCriticalTransitionDiagnostics(
 export type ResourcePressureRuntime = {
   check: () => ResourcePressureGuardResult | null;
   getObservation: () => ResourcePressureObservation;
+  getAdmissionSeverity: () => Promise<PressureSeverity>;
   whenRefreshSettled: () => Promise<void>;
   dispose: () => void;
 };
@@ -233,6 +236,10 @@ export function createResourcePressureRuntime(
   const staleAfterMs = requireDuration("staleAfterMs", options.staleAfterMs ?? 1_000);
   const maxStaleMs = requireDuration("maxStaleMs", options.maxStaleMs ?? 30_000);
   const retryAfterMs = requireDuration("retryAfterMs", options.retryAfterMs ?? 1_000);
+  const admissionRefreshTimeoutMs = requireDuration(
+    "admissionRefreshTimeoutMs",
+    options.admissionRefreshTimeoutMs ?? ADMISSION_REFRESH_TIMEOUT_MS
+  );
   if (maxStaleMs < staleAfterMs) {
     throw new RangeError("maxStaleMs must be greater than or equal to staleAfterMs");
   }
@@ -256,7 +263,18 @@ export function createResourcePressureRuntime(
   let nextRefreshAtMs = Number.NEGATIVE_INFINITY;
   let scheduled = false;
   let inFlight: Promise<void> | null = null;
+  type RefreshCycle = {
+    started: boolean;
+    refreshSettled: Promise<void>;
+    resolveRefreshSettled: () => void;
+    admissionReady: Promise<void>;
+    resolveAdmissionReady: () => void;
+    admissionTimer: ReturnType<typeof setTimeout> | null;
+    admissionWaiters: number;
+  };
+  let refreshCycle: RefreshCycle | null = null;
   let disposed = false;
+  let failOpenLoggedObservation: string | null = null;
   let criticalSinceMs: number | null = null;
   let selfRestartFired = false;
 
@@ -300,9 +318,25 @@ export function createResourcePressureRuntime(
     }
   };
 
-  const refresh = (): void => {
-    if (disposed || inFlight) return;
+  const settleAdmissionCycle = (cycle: RefreshCycle): void => {
+    if (cycle.admissionTimer) clearTimeout(cycle.admissionTimer);
+    cycle.admissionTimer = null;
+    cycle.resolveAdmissionReady();
+  };
+
+  const settleRefreshCycle = (cycle: RefreshCycle): void => {
+    settleAdmissionCycle(cycle);
+    cycle.resolveRefreshSettled();
+    if (refreshCycle === cycle) refreshCycle = null;
+  };
+
+  const refresh = (cycle: RefreshCycle): void => {
+    if (disposed || inFlight || refreshCycle !== cycle) {
+      settleRefreshCycle(cycle);
+      return;
+    }
     scheduled = false;
+    cycle.started = true;
     inFlight = Promise.resolve()
       .then(sample)
       .then((signals) => {
@@ -310,6 +344,7 @@ export function createResourcePressureRuntime(
         const settledAtMs = nowMs();
         lastSignals = signals;
         state = tracker.observe(signals);
+        failOpenLoggedObservation = null;
         observeSelfRestart(settledAtMs);
         lastRefreshAtMs = settledAtMs;
         nextRefreshAtMs = settledAtMs + staleAfterMs;
@@ -319,13 +354,111 @@ export function createResourcePressureRuntime(
       })
       .finally(() => {
         inFlight = null;
+        settleRefreshCycle(cycle);
       });
   };
 
   const scheduleRefresh = (): void => {
     if (disposed || scheduled || inFlight) return;
     scheduled = true;
-    schedule(refresh);
+    let resolveRefreshSettled!: () => void;
+    let resolveAdmissionReady!: () => void;
+    const cycle: RefreshCycle = {
+      started: false,
+      refreshSettled: new Promise<void>((resolve) => {
+        resolveRefreshSettled = resolve;
+      }),
+      resolveRefreshSettled: () => resolveRefreshSettled(),
+      admissionReady: new Promise<void>((resolve) => {
+        resolveAdmissionReady = resolve;
+      }),
+      resolveAdmissionReady: () => resolveAdmissionReady(),
+      admissionTimer: null,
+      admissionWaiters: 0,
+    };
+    refreshCycle = cycle;
+    cycle.admissionTimer = setTimeout(() => {
+      cycle.admissionTimer = null;
+      cycle.resolveAdmissionReady();
+      if (!cycle.started) {
+        scheduled = false;
+        nextRefreshAtMs = nowMs() + retryAfterMs;
+        cycle.resolveRefreshSettled();
+        if (refreshCycle === cycle) refreshCycle = null;
+      }
+    }, admissionRefreshTimeoutMs);
+    cycle.admissionTimer.unref?.();
+    try {
+      schedule(() => refresh(cycle));
+    } catch {
+      scheduled = false;
+      nextRefreshAtMs = nowMs() + retryAfterMs;
+      settleRefreshCycle(cycle);
+    }
+  };
+
+  const whenRefreshSettled = async (): Promise<void> => {
+    if (disposed) return;
+    // The production scheduler intentionally unrefs its Immediate. A caller
+    // explicitly awaiting freshness must keep this turn alive long enough for
+    // that scheduled refresh to start.
+    if (scheduled) await new Promise<void>((resolve) => setImmediate(resolve));
+    const pending = refreshCycle?.refreshSettled;
+    if (pending) await pending;
+  };
+
+  const whenAdmissionRefreshReady = async (): Promise<void> => {
+    const cycle = refreshCycle;
+    if (!cycle) return;
+    cycle.admissionWaiters += 1;
+    cycle.admissionTimer?.ref?.();
+    try {
+      await cycle.admissionReady;
+    } finally {
+      cycle.admissionWaiters = Math.max(0, cycle.admissionWaiters - 1);
+      if (cycle.admissionWaiters === 0) cycle.admissionTimer?.unref?.();
+    }
+  };
+
+  const cachedSeverity = (): PressureSeverity => {
+    const cacheAge = lastSignals
+      ? Math.max(0, nowMs() - lastRefreshAtMs)
+      : Number.POSITIVE_INFINITY;
+    if (cacheAge <= maxStaleMs) return state.severity;
+    if (state.severity === "critical") {
+      const observationKey = `${state.observedAtMs}|${state.reason}`;
+      if (failOpenLoggedObservation !== observationKey) {
+        failOpenLoggedObservation = observationKey;
+        console.warn(
+          `[resourcePressure] cached critical observation expired ` +
+            `(reason=${state.reason} sampleAgeMs=${cacheAge} maxStaleMs=${maxStaleMs}); ` +
+            "failing open until a fresh sample is available"
+        );
+      }
+    }
+    return "normal";
+  };
+
+  const checkImmediateHeap = (): ResourcePressureGuardResult | null => {
+    let heapUsedMb = 0;
+    try {
+      heapUsedMb = immediateHeapUsedMb();
+    } catch {
+      heapUsedMb = 0;
+    }
+    const immediate = immediateHeapGuard(heapUsedMb, heapThresholdMb);
+    if (immediate) {
+      const now = nowMs();
+      state = {
+        severity: "critical",
+        reason: "v8_heap_absolute",
+        elevatedStreak: 0,
+        recoveryStreak: 0,
+        lastTransitionAtMs: now,
+        observedAtMs: now,
+      };
+    }
+    return immediate;
   };
 
   // The self-restart circuit measures *sustained* critical time, so it must not
@@ -347,26 +480,10 @@ export function createResourcePressureRuntime(
 
   return {
     check() {
-      let heapUsedMb = 0;
-      try {
-        heapUsedMb = immediateHeapUsedMb();
-      } catch {
-        heapUsedMb = 0;
-      }
-      const immediate = immediateHeapGuard(heapUsedMb, heapThresholdMb);
+      const immediate = checkImmediateHeap();
       const now = nowMs();
       if (now >= nextRefreshAtMs) scheduleRefresh();
-      if (immediate) {
-        state = {
-          severity: "critical",
-          reason: "v8_heap_absolute",
-          elevatedStreak: 0,
-          recoveryStreak: 0,
-          lastTransitionAtMs: now,
-          observedAtMs: now,
-        };
-        return immediate;
-      }
+      if (immediate) return immediate;
       const cacheAge = lastSignals ? Math.max(0, now - lastRefreshAtMs) : Number.POSITIVE_INFINITY;
       if (cacheAge > maxStaleMs || state.severity !== "critical") {
         return null;
@@ -381,13 +498,28 @@ export function createResourcePressureRuntime(
       );
     },
     getObservation: () => ({ signals: lastSignals, state }),
-    whenRefreshSettled: async () => {
-      if (scheduled) await new Promise<void>((resolve) => setImmediate(resolve));
-      if (inFlight) await inFlight;
+    async getAdmissionSeverity() {
+      const staleCritical = state.severity === "critical" && nowMs() >= nextRefreshAtMs;
+      if (!staleCritical) return this.check() ? "critical" : cachedSeverity();
+
+      const immediate = checkImmediateHeap();
+      if (nowMs() >= nextRefreshAtMs) scheduleRefresh();
+      if (immediate) return "critical";
+
+      // A structural front-door rejection used to return the cached critical
+      // state before any downstream check could refresh it. Wait only for an
+      // already-coalesced stale-critical refresh; normal/high traffic stays on
+      // the non-blocking stale-while-revalidate path.
+      await whenAdmissionRefreshReady();
+      return this.check() ? "critical" : cachedSeverity();
     },
+    whenRefreshSettled,
     dispose() {
       disposed = true;
       scheduled = false;
+      const cycle = refreshCycle;
+      refreshCycle = null;
+      if (cycle) settleRefreshCycle(cycle);
       if (selfRestartDriver) {
         clearInterval(selfRestartDriver);
         selfRestartDriver = null;
@@ -396,23 +528,47 @@ export function createResourcePressureRuntime(
   };
 }
 
-let defaultRuntime = createResourcePressureRuntime();
+const RUNTIME_STORE_KEY = Symbol.for("omniroute.resourcePressure.runtime");
+
+type ResourcePressureRuntimeStore = { runtime?: ResourcePressureRuntime };
+type GlobalWithResourcePressureRuntime = typeof globalThis & {
+  [RUNTIME_STORE_KEY]?: ResourcePressureRuntimeStore;
+};
+
+function getRuntimeStore(): ResourcePressureRuntimeStore {
+  const globalWithStore = globalThis as GlobalWithResourcePressureRuntime;
+  return (globalWithStore[RUNTIME_STORE_KEY] ??= {});
+}
+
+function getDefaultRuntime(): ResourcePressureRuntime {
+  const store = getRuntimeStore();
+  if (!store.runtime) store.runtime = createResourcePressureRuntime();
+  return store.runtime;
+}
 
 export function checkResourcePressureGuard(): ResourcePressureGuardResult | null {
-  return defaultRuntime.check();
+  return getDefaultRuntime().check();
 }
 
 export function getResourcePressureObservation(): ResourcePressureObservation {
-  return defaultRuntime.getObservation();
+  return getDefaultRuntime().getObservation();
+}
+
+/** Freshness-aware pressure decision for structural request admission. */
+export function getAdmissionResourcePressureSeverity(): Promise<PressureSeverity> {
+  return getDefaultRuntime().getAdmissionSeverity();
 }
 
 /** Replaces and disposes the process singleton when configuration is reloaded. */
 export function reloadResourcePressureRuntime(
   options: ResourcePressureRuntimeOptions = {}
 ): ResourcePressureRuntime {
-  defaultRuntime.dispose();
-  defaultRuntime = createResourcePressureRuntime(options);
-  return defaultRuntime;
+  const store = getRuntimeStore();
+  const replacement = createResourcePressureRuntime(options);
+  const previous = store.runtime;
+  store.runtime = replacement;
+  previous?.dispose();
+  return replacement;
 }
 
 export type {
