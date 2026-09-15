@@ -1,0 +1,1 @@
+- fix(sse): bound streams that keep sending raw upstream bytes forever without ever emitting a terminal event — a new `STREAM_ACTIVE_TIMEOUT_MS` watchdog (default 900000ms/15min, `0` disables) tracks the stream's total lifetime independently of the existing byte-stall watchdog, so a continuously-active non-terminal stream can no longer occupy a connection indefinitely (#12913)
