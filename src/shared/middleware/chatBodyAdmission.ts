@@ -16,6 +16,7 @@
  */
 
 import { createLogger } from "../utils/logger";
+import { DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS } from "../../lib/resilience/settings";
 import v8 from "node:v8";
 import { trackRequest } from "../../lib/gracefulShutdown";
 import { resolveIngestByteBudget, type IngestBudgetSource } from "./admissionBudget";
@@ -73,10 +74,20 @@ export const CHAT_MAX_HEAVY_IN_FLIGHT = parsePositiveInt(
  * that routinely land on the admission gate together; an immediate 503 makes the
  * client burn its retry budget in seconds and the agent dies mid-task. A short
  * bounded wait serializes the burst instead. `0` (legacy) rejects immediately.
+ *
+ * The default tracks `requestQueue.maxWaitMs` rather than carrying a number of its
+ * own, because a wait shorter than the occupancy it must bridge cannot serialize
+ * anything. The single default heavyweight slot is held for the whole upstream
+ * turn, which the resilience layer already budgets at that value (15s), so the old
+ * fixed 2s expired inside every one of them: a single large-context session shed
+ * itself with `reason:"queue_timeout", activeHeavy:1, waiting:0` — one holder, no
+ * contention, nothing for the 503 to protect against (#13648). Tying the two
+ * together also means an operator who raises `RATE_LIMIT_MAX_WAIT_MS` for slow
+ * upstreams does not have to discover this second knob to keep the gate coherent.
  */
 export const CHAT_ADMISSION_QUEUE_MAX_MS = parseNonNegativeInt(
   process.env.OMNIROUTE_CHAT_ADMISSION_QUEUE_MS,
-  2000
+  DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS
 );
 
 /**

@@ -53,7 +53,7 @@ Common problems and solutions for OmniRoute.
 ```bash
 export OMNIROUTE_ROTATE_ON_400=true           # hop to another model/provider on 400/401 (skips broken passthrough models)
 export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # explicit heavyweight admission ceiling (unset by default: no request-count cap, see note below)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # longer bounded wait for heavyweight capacity instead of an immediate retryable 503
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # raise the bounded wait past the RATE_LIMIT_MAX_WAIT_MS default for slow upstreams
 ```
 
 Set these in the OmniRoute process environment (the daemon, e.g. via the LaunchAgent plist or `systemctl edit`), then restart OmniRoute. The rotation flag is the single highest-leverage lever: it converts a hard failure into a transparent retry against a healthy provider in the pool.
@@ -584,7 +584,7 @@ heavy request arrived at once. The old count cap (`OMNIROUTE_CHAT_MAX_HEAVY_IN_F
 still honored, but only if you explicitly set it.
 
 When capacity is busy, a heavyweight request first waits up to
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default `2000`, `0` disables the wait) for a slot to free up
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (defaults to `RATE_LIMIT_MAX_WAIT_MS`; `0` disables the wait) for a slot to free up
 before answering the retryable `503`. The bounded wait exists so agent-style clients
 (OpenCode, Claude Code, Cursor) that fan out heavy sub-requests concurrently serialize the burst
 instead of burning their whole retry budget on immediate rejections and dying mid-task.
