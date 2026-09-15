@@ -32,9 +32,9 @@ export async function verifyDashboardSessionToken(
   token: string | null | undefined,
   secret: Uint8Array | null = getDashboardJwtSecret()
 ): Promise<JWTPayload | null> {
-  if (!token || typeof token !== "string" || !secret) return null;
+  if (!token || typeof token !== "string" || !secret || secret.length === 0) return null;
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
     return payload[DASHBOARD_SESSION_CLAIM] === true ? payload : null;
   } catch {
     return null;

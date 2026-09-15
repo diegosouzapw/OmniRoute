@@ -4,6 +4,7 @@ import { updateSettings } from "@/lib/db/settings";
 import { SignJWT, jwtVerify, createRemoteJWKSet } from "jose";
 import { cookies } from "next/headers";
 import { timingSafeCompare } from "@/shared/utils/timingSafeCompare";
+import { getDashboardJwtSecret } from "@/shared/utils/dashboardSessionToken";
 // Test seam (static) — allows tests to inject a cookie store and capture the minted auth_token.
 // Mirrors the pattern in src/app/api/auth/login/route.ts
 export const oidcCallbackInternals = {
@@ -196,7 +197,8 @@ export async function GET(request: Request) {
     // non-fatal — login can still proceed
   }
   // Mint the exact same dashboard session JWT as password login
-  if (!process.env.JWT_SECRET) {
+  const secret = getDashboardJwtSecret();
+  if (!secret) {
     return NextResponse.redirect(new URL("/login?oidc_error=server_misconfigured", originEarly));
   }
 
@@ -209,7 +211,7 @@ export async function GET(request: Request) {
   const jwt = await new SignJWT({ authenticated: true })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("30d")
-    .sign(new TextEncoder().encode(process.env.JWT_SECRET || ""));
+    .sign(secret);
 
   const store = await oidcCallbackInternals.getCookieStore();
   store.set("auth_token", jwt, {

@@ -10,6 +10,7 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
   getDashboardJwtSecret,
   verifyDashboardSessionToken,
+  DASHBOARD_SESSION_COOKIE,
 } from "@/shared/utils/dashboardSessionToken";
 import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
@@ -18,7 +19,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 async function checkSessionAuthenticated(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
+    const token = cookieStore.get(DASHBOARD_SESSION_COOKIE)?.value;
     return (await verifyDashboardSessionToken(token, getDashboardJwtSecret())) !== null;
   } catch {
     return false;
