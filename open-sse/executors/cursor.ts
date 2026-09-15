@@ -249,12 +249,6 @@ const CURSOR_STREAM_TIMEOUT_MS = (() => {
 // turns the failure into a clean stream error instead of memory exhaustion.
 const CURSOR_MAX_FRAME_BYTES = 16 * 1024 * 1024;
 
-type CursorHttpResponse = {
-  status: number;
-  headers: Record<string, unknown>;
-  body: Buffer;
-};
-
 function tryParseJsonError(payload: Buffer): { message: string; status: number } | null {
   if (payload.length < 2 || payload[0] !== 0x7b) return null;
   try {
@@ -1290,7 +1284,7 @@ export class CursorExecutor extends BaseExecutor {
     });
   }
 
-  async execute({ model, body, stream, credentials, signal, log, upstreamExtraHeaders }) {
+  async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }) {
     const fallbackUrl = this.buildUrl();
     const executionCredentials = await this.resolveExecutionCredentials(credentials);
     if (executionCredentials instanceof Response) {

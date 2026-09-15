@@ -63,7 +63,6 @@ const ARR_UNKNOWN_12 = 12; // observed varint=0 in cursor-agent traffic
 const ARR_REQUEST_ID = 16; // observed UUID, same value as conversation_id
 
 const CSS_ROOT_PROMPT = 1; // ConversationStateStructure.root_prompt_messages_json
-const CSS_TURNS = 8; // ConversationStateStructure.turns
 
 const CA_USER_MESSAGE_ACTION = 1; // ConversationAction.user_message_action
 
@@ -216,7 +215,6 @@ const MTD_TOOL_NAME = 5;
 const MCA_NAME = 1;
 const MCA_ARGS = 2; // map<string, bytes>
 const MCA_TOOL_CALL_ID = 3;
-const MCA_PROVIDER_IDENTIFIER = 4;
 const MCA_TOOL_NAME = 5;
 
 // McpResult variants
