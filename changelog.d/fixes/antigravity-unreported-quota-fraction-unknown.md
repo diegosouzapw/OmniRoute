@@ -1,0 +1,1 @@
+- Fix Antigravity quota parsing treating an unreported `remainingFraction` as 0% remaining instead of unknown, which made a genuinely exhausted quota indistinguishable from one the upstream simply didn't report.
