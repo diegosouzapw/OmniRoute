@@ -7,6 +7,8 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-xp-audit-cleanup-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
+// This fixture deletes DATA_DIR between cases; no logger worker may recreate it.
+process.env.APP_LOG_TO_FILE = "false";
 
 const core = await import("../../src/lib/db/core.ts");
 const databaseSettings = await import("../../src/lib/db/databaseSettings.ts");

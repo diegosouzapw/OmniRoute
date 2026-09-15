@@ -1,0 +1,1 @@
+- fix(db): bound health scans and isolate native diagnostics so large quota histories no longer exhaust memory or block request handling; diagnostics now run in a cancellable child and are awaited at HTTP and MCP callers (#13717)

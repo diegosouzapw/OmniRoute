@@ -204,7 +204,7 @@ test("runDbHealthCheck repairs broken combo payloads, combo refs and stale conne
 
   const result = healthCheckDb.runDbHealthCheck(db, {
     autoRepair: true,
-    createBackupBeforeRepair: () => false,
+    createBackupBeforeRepair: () => true,
   });
   const invalidCombo = JSON.parse(
     (db.prepare("SELECT data FROM combos WHERE id = ?").get("combo-invalid") as any).data
@@ -280,6 +280,16 @@ test("getDbInstance can auto-repair persisted broken rows when startup repair is
   process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK = "1";
   try {
     db = core.getDbInstance();
+    // Startup repair is deferred; observe its writes instead of launching another scan.
+    const deadline = Date.now() + 10_000;
+    while (
+      (db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as { count: number })
+        .count > 0
+    ) {
+      assert.ok(Date.now() < deadline, "startup repair did not finish");
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    await core.runManagedDbHealthCheck({ autoRepair: true });
   } finally {
     if (previousForce === undefined) {
       delete process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK;
@@ -341,7 +351,7 @@ test("runDbHealthCheck repairs a drifted db_meta schema version", async () => {
 
   const result = healthCheckDb.runDbHealthCheck(db, {
     autoRepair: true,
-    createBackupBeforeRepair: () => false,
+    createBackupBeforeRepair: () => true,
   });
 
   assert.equal(

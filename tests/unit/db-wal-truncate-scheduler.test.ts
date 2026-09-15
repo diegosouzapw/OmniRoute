@@ -41,7 +41,9 @@ test("the WAL truncate scheduler is cleared on close, like the health-check sche
   const source = readSource(CORE_PATH);
   const fnStart = source.indexOf("export function closeDbInstance");
   assert.notEqual(fnStart, -1, "closeDbInstance must exist");
-  const fnBody = source.slice(fnStart, fnStart + 300);
+  const fnEnd = source.indexOf("\nexport function ", fnStart + 1);
+  assert.notEqual(fnEnd, -1, "the next exported function must delimit closeDbInstance");
+  const fnBody = source.slice(fnStart, fnEnd);
   assert.match(fnBody, /clearDbHealthCheckScheduler\(\)/);
   assert.match(
     fnBody,

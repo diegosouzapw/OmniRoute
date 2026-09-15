@@ -16,16 +16,11 @@ import path from "path";
 import { retryProbeIfTransient } from "./probeUtils";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
-import {
-  MAX_DB_BACKUPS,
-  DEFAULT_DB_BACKUP_RETENTION_DAYS,
-  parsePositiveInt,
-  parseNonNegativeInt,
-  pruneBackupDirectory,
-} from "./backupRetention";
 import { isNextBuildPhase } from "../buildPhase";
 import { runMigrations } from "./migrationRunner";
-import { runDbHealthCheck } from "./healthCheck";
+import { runDbHealthCheck, getPagerCorruption } from "./healthCheck";
+import { createManagedDbBackup as writeManagedDbBackup } from "./managedBackup";
+import { createDbHealthCoordinator, runDbHealthInChild } from "./healthCheckRunner";
 import { resetAllDbModuleState } from "./stateReset";
 import { parseStoredPayload } from "../logPayloads";
 import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
@@ -880,47 +875,8 @@ function shouldRunStartupDbHealthCheck(): boolean {
 }
 
 function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
-  const isTest = isAutomatedTestProcess();
-  if (isTest) return false;
-
-  try {
-    const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-    }
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const backupPath = path.join(backupDir, `db_${timestamp}_${reason}.sqlite`);
-    const escapedBackupPath = backupPath.replace(/'/g, "''");
-
-    db.exec(`VACUUM INTO '${escapedBackupPath}'`);
-    console.log(`[DB] Backup created (${reason}): ${backupPath}`);
-
-    // Prune old backups to prevent the directory from growing without bound.
-    // This mirrors the post-backup pruning in backup.ts but avoids a circular
-    // dependency by importing directly from backupRetention.ts.
-    try {
-      const maxFiles = process.env.DB_BACKUP_MAX_FILES
-        ? parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS)
-        : MAX_DB_BACKUPS;
-      const retentionDays = process.env.DB_BACKUP_RETENTION_DAYS
-        ? parseNonNegativeInt(process.env.DB_BACKUP_RETENTION_DAYS, DEFAULT_DB_BACKUP_RETENTION_DAYS)
-        : DEFAULT_DB_BACKUP_RETENTION_DAYS;
-      pruneBackupDirectory({ backupDir, maxFiles, retentionDays });
-    } catch {
-      // Retention is best-effort; never let a pruning failure obscure the backup result.
-    }
-
-    return true;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(`[DB] Failed to create ${reason} backup:`, message);
-    return false;
-  }
-}
-
-function createHealthCheckBackup(db: SqliteDatabase): boolean {
-  return createManagedDbBackup(db, "health-check-repair");
+  if (isAutomatedTestProcess()) return false;
+  return writeManagedDbBackup(db, reason, DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups"));
 }
 
 function autoMigrateLegacyEncryptedConnections(db: SqliteDatabase): number {
@@ -1000,18 +956,10 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
   if (intervalMs <= 0) return;
 
   dbHealthCheckTimer = setInterval(() => {
-    try {
-      if (!db.open) return;
-      runDbHealthCheck(db, {
-        autoRepair: true,
-        skipIntegrityCheck: process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
-        expectedSchemaVersion: "1",
-        createBackupBeforeRepair: () => createHealthCheckBackup(db),
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn("[DB] Periodic health-check failed:", message);
-    }
+    if (!db.open) return;
+    void runManagedDbHealthCheck({ autoRepair: true }).catch(() => {
+      console.warn("[DB] Periodic health-check failed");
+    });
   }, intervalMs);
   dbHealthCheckTimer.unref?.();
 }
@@ -1020,13 +968,37 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
 // file itself; only wal_checkpoint(TRUNCATE) does, and a long-running server never closes its DB.
 // The scheduler lives in ./walMaintenance (periodic TRUNCATE + busy warn + PASSIVE retry).
 
-export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
+const healthShutdown = new AbortController();
+const managedHealth = createDbHealthCoordinator(async (autoRepair) => {
   const db = getDbInstance();
-  return runDbHealthCheck(db, {
-    autoRepair: options?.autoRepair === true,
-    expectedSchemaVersion: "1",
-    createBackupBeforeRepair: () => createHealthCheckBackup(db),
-  });
+  const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
+  const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
+  const result =
+    db.driver === "sql.js" || db.name === ":memory:" || !db.name
+      ? runDbHealthCheck(db, {
+          autoRepair,
+          skipIntegrityCheck,
+          expectedSchemaVersion: "1",
+          createBackupBeforeRepair: () =>
+            writeManagedDbBackup(db, "health-check-repair", backupDir),
+        })
+      : await runDbHealthInChild(
+          {
+            filePath: db.name,
+            autoRepair,
+            skipIntegrityCheck,
+            backupDir,
+            pagerCorruption: getPagerCorruption(),
+          },
+          { signal: healthShutdown.signal }
+        );
+  if (result.repairedCount > 0) invalidateDbCache();
+  return result;
+});
+
+export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
+  if (getPagerCorruption()) managedHealth.invalidate();
+  return managedHealth.run(options?.autoRepair === true);
 }
 
 export function getDbInstance(): SqliteDatabase {
@@ -1385,15 +1357,11 @@ export function getDbInstance(): SqliteDatabase {
   );
   versionStmt.run();
   if (shouldRunStartupDbHealthCheck()) {
-    const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
-    if (skipIntegrityCheck) {
-      console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
-    }
-    runDbHealthCheck(db, {
-      autoRepair: true,
-      expectedSchemaVersion: "1",
-      skipIntegrityCheck,
-      createBackupBeforeRepair: () => createHealthCheckBackup(db),
+    setImmediate(() => {
+      if (!db.open || getDb() !== db) return;
+      void runManagedDbHealthCheck({ autoRepair: true }).catch(() => {
+        console.warn("[DB] Startup health-check failed");
+      });
     });
   }
 
@@ -1434,7 +1402,15 @@ export function pingDb(): boolean {
   }
 }
 
+export async function shutdownDbInstance(): Promise<boolean> {
+  clearDbHealthCheckScheduler();
+  await managedHealth.stop(() => healthShutdown.abort());
+  return closeDbInstance();
+}
+
 export function closeDbInstance(options?: { checkpointMode?: WalCheckpointMode | null }): boolean {
+  if (managedHealth.busy) throw new Error("Database health check already in progress");
+  managedHealth.invalidate();
   clearDbHealthCheckScheduler();
   const streakBefore = getWalMaintenanceState().busyStreak;
   stopWalMaintenance();

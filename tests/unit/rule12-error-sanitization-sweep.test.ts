@@ -80,11 +80,15 @@ function patchPrepareToThrow(sqlMatch: string): () => void {
 function patchPragmaToThrow(): () => void {
   const db = core.getDbInstance();
   const orig = db.pragma.bind(db);
+  // Select the owning-connection path; child processes do not inherit JS stubs.
+  const nameDescriptor = Object.getOwnPropertyDescriptor(db, "name");
+  Object.defineProperty(db, "name", { configurable: true, value: ":memory:" });
   (db as unknown as { pragma: unknown }).pragma = () => {
     throw makeLeakyError();
   };
   return () => {
     (db as unknown as { pragma: unknown }).pragma = orig;
+    if (nameDescriptor) Object.defineProperty(db, "name", nameDescriptor);
   };
 }
 
