@@ -1,0 +1,1 @@
+- **fix(streaming):** allow a per-provider override of the fetch-start (headers-wait) timeout cap so providers that buffer the full generation before the first byte (e.g. `command-code`, `opencode-go`) are not cut off at the global 110s cap ([#13002](https://github.com/diegosouzapw/OmniRoute/pull/13002)) — thanks @alvinveroy

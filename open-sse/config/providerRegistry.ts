@@ -54,6 +54,14 @@ export function generateLegacyProviders(): Record<string, LegacyProvider> {
     if (typeof entry.timeoutMs === "number") {
       p.timeoutMs = entry.timeoutMs;
     }
+    // #11526 follow-up: the headers-wait cap override must reach the executor's
+    // LegacyProvider config — dropping it here silently fell back to the 110s
+    // global cap even for providers whose registry entry overrides it (observed:
+    // opencode-go deepseek thinking generations 504ing at exactly 110s despite
+    // fetchStartTimeoutCapMs on the registry entry).
+    if (typeof entry.fetchStartTimeoutCapMs === "number") {
+      p.fetchStartTimeoutCapMs = entry.fetchStartTimeoutCapMs;
+    }
 
     // Headers
     const mergedHeaders = {
