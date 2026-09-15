@@ -49,6 +49,7 @@ import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./us
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 import { getAdobeFireflyUsage } from "./usage/adobeFirefly.ts";
 import { getOpenrouterUsage } from "./usage/openrouter.ts";
+import { getOpenAiCompatibleUsage } from "./usage/openaiCompatible.ts";
 import { getOllamaCloudUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import { getPromptQlUsage } from "./usage/promptql.ts";
@@ -115,6 +116,15 @@ export async function getUsageForProvider(
 
   if (isMoonshotOpenPlatformConnection(connection)) {
     return await getMoonshotOpenPlatformUsage(connection);
+  }
+
+  // openai-compatible-* ids are generated per connection, so they can never
+  // appear in the switch below or in USAGE_FETCHER_PROVIDERS. The connection
+  // itself declares where its quota lives (#13616); without that declaration
+  // this returns a message and the sync treats it as "nothing to show", exactly
+  // as it did before.
+  if (typeof provider === "string" && provider.startsWith("openai-compatible-")) {
+    return await getOpenAiCompatibleUsage(apiKey, providerSpecificData);
   }
 
   switch (provider) {
