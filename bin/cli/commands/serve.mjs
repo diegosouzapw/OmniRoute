@@ -4,7 +4,12 @@ import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
-import { writePidFile, cleanupPidFile, waitForServer, resolveReadyTimeoutMs } from "../utils/pid.mjs";
+import {
+  writePidFile,
+  cleanupPidFile,
+  waitForServer,
+  resolveReadyTimeoutMs,
+} from "../utils/pid.mjs";
 import {
   ServerSupervisor,
   detectMitmCrash,
@@ -304,7 +309,11 @@ export async function runServe(opts = {}) {
     opts.maxRestarts ?? 2,
     startedAt,
     useTray,
-    { trayReadyPort: opts.trayReadyPort, trayReadyToken: opts.trayReadyToken }
+    {
+      trayReadyPort: opts.trayReadyPort,
+      trayReadyToken: opts.trayReadyToken,
+      readyTimeoutMs: resolveReadyTimeoutMs({ timeoutMs: opts.readyTimeout }),
+    }
   );
 }
 
@@ -418,7 +427,7 @@ async function runWithSupervisor(
   maxRestarts,
   startedAt,
   useTray = false,
-  { trayReadyPort, trayReadyToken } = {}
+  { trayReadyPort, trayReadyToken, readyTimeoutMs = resolveReadyTimeoutMs() } = {}
 ) {
   if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
   writePidFile("supervisor", process.pid);
@@ -457,8 +466,12 @@ async function runWithSupervisor(
   });
 
   if (!showLog) {
-    const readyTimeoutMs = resolveReadyTimeoutMs({ timeoutMs: opts.readyTimeout });
-    waitForServer(dashboardPort, readyTimeoutMs).then(async (up) => {
+    let lastProbeOutcome = null;
+    waitForServer(dashboardPort, readyTimeoutMs, {
+      onOutcome: (outcome) => {
+        lastProbeOutcome = outcome;
+      },
+    }).then(async (up) => {
       if (up) {
         if (useTray) {
           const trayReady = await maybeStartTray(dashboardPort, apiPort, supervisor);
@@ -482,7 +495,7 @@ async function runWithSupervisor(
         }
         onReady(dashboardPort, apiPort, noOpen, startedAt);
       } else {
-        reportReadinessTimeout(dashboardPort, supervisor);
+        reportReadinessTimeout(dashboardPort, supervisor, lastProbeOutcome);
       }
     });
   }
@@ -494,13 +507,28 @@ async function runWithSupervisor(
 // stuck (issue reports show the server sometimes actually comes up later, or is
 // reachable directly while the CLI still looks hung). Surface a clear diagnostic
 // plus whatever stdout/stderr the child buffered instead of going silent.
-export function reportReadinessTimeout(dashboardPort, supervisor) {
+export function reportReadinessTimeout(dashboardPort, supervisor, lastProbeOutcome = null) {
   const readyTimeoutMs = resolveReadyTimeoutMs();
   const seconds = Math.round(readyTimeoutMs / 1000);
   console.error(
     `\n\x1b[33m⚠ Server did not respond within ${seconds}s.\x1b[0m It may still be starting, or may` +
       ` have failed silently.`
   );
+  // The last probe classification separates a real boot failure (nothing ever
+  // bound the port, so the buffered output below is the reason) from a server
+  // that IS listening and merely did not answer the health route in time:
+  // very likely usable already, with only the readiness signal timed out.
+  if (lastProbeOutcome === "hanging" || lastProbeOutcome === "fast-reject") {
+    console.error(
+      `  Port ${dashboardPort} IS accepting connections, so the server is probably up and` +
+        ` still warming up. Check the dashboard before restarting it.`
+    );
+  } else if (lastProbeOutcome === "not-listening") {
+    console.error(
+      `  Nothing is listening on port ${dashboardPort}, so the server never bound it and the` +
+        ` output below is the reason.`
+    );
+  }
   console.error(
     `  Tip:  set OMNIROUTE_READY_TIMEOUT_MS=${readyTimeoutMs * 2} or --ready-timeout ${readyTimeoutMs * 2} for slower cold starts.`
   );
