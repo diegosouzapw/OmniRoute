@@ -99,10 +99,18 @@ export function forwardOpencodeClientHeaders(
       findHeader(clientHeaders, "x-session-affinity") || findHeader(clientHeaders, "x-session-id");
     if (sessionAffinity) {
       headers["x-opencode-session"] = sessionAffinity;
-
-      if (!headers["x-opencode-request"]) {
-        headers["x-opencode-request"] = randomUUID();
-      }
+    } else {
+      // 2026-09-06 upstream enforcement: opencode.ai errors on requests missing
+      // x-opencode-session. A client that sends no session-ish header at all
+      // gets a conversation-stable fingerprint (model, system, first user
+      // message, tools) so consecutive agent turns share one session and
+      // upstream prompt caching hits; a body-less request falls back to a
+      // random UUID (same behavior as the #5997 CLI-identity synth).
+      headers["x-opencode-session"] =
+        generateSessionId(options.sessionBody ?? null) || randomUUID();
+    }
+    if (!headers["x-opencode-request"]) {
+      headers["x-opencode-request"] = randomUUID();
     }
   }
 
@@ -141,6 +149,5 @@ function applyCliDefaults(
   headers["x-opencode-client"] ||= cliDefaults.client;
   headers["x-opencode-project"] ||= cliDefaults.project;
   headers["x-opencode-request"] ||= randomUUID();
-  headers["x-opencode-session"] ||=
-    generateSessionId(sessionBody ?? null) || randomUUID();
+  headers["x-opencode-session"] ||= generateSessionId(sessionBody ?? null) || randomUUID();
 }

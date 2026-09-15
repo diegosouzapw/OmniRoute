@@ -400,20 +400,24 @@ describe("OpencodeExecutor", () => {
       assert.equal(headers["x-opencode-client"], undefined);
     });
 
-    it("does not add x-opencode-* when clientHeaders has no matching keys", () => {
-      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+    it("synthesizes session+request when clientHeaders has no matching keys (09/06)", () => {
+      // 2026-09-06 opencode.ai enforcement: requests missing x-opencode-session
+      // may error — an empty header set now gets a synthesized session.
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key-0001" }, true, {
         "some-other-header": "val",
       });
-      assert.equal(headers["x-opencode-session"], undefined);
-      assert.equal(headers["x-opencode-request"], undefined);
+      assert.ok(headers["x-opencode-session"], "session must be synthesized");
+      assert.match(headers["x-opencode-session"], /^[0-9a-f-]{36}$/i);
+      assert.ok(headers["x-opencode-request"], "request id must be synthesized");
     });
 
-    it("skips empty string x-opencode-* values", () => {
-      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+    it("skips empty string x-opencode-* values but synthesizes the session (09/06)", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key-0001" }, true, {
         "x-opencode-session": "",
         "x-opencode-request": "req-xyz",
       });
-      assert.equal(headers["x-opencode-session"], undefined);
+      assert.ok(headers["x-opencode-session"], "empty session must be replaced by a synth");
+      assert.match(headers["x-opencode-session"], /^[0-9a-f-]{36}$/i);
       assert.equal(headers["x-opencode-request"], "req-xyz");
     });
 
@@ -488,11 +492,14 @@ describe("OpencodeExecutor", () => {
       assert.equal(headers["x-opencode-session"], "direct");
     });
 
-    it("does not set x-opencode-session when neither direct nor affinity is present", () => {
-      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+    it("synthesizes x-opencode-session when neither direct nor affinity is present (09/06)", () => {
+      // 2026-09-06 opencode.ai enforcement: missing x-opencode-session may error.
+      // Without a client session or affinity header, a random UUID is synthesized.
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key-0001" }, true, {
         "some-other-header": "val",
       });
-      assert.equal(headers["x-opencode-session"], undefined);
+      assert.ok(headers["x-opencode-session"], "session must be synthesized");
+      assert.match(headers["x-opencode-session"], /^[0-9a-f-]{36}$/i);
     });
 
     it("matches session-affinity headers case-insensitively", () => {
