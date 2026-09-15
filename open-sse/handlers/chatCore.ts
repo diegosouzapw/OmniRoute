@@ -170,6 +170,7 @@ import {
 import { shouldUseMidConversationSystem } from "../executors/claudeIdentity.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
+import { wireAdaptiveEffort } from "./chatCore/adaptiveEffortWiring.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
 import {
   stripGpt5SamplingWhenReasoning,
@@ -1132,6 +1133,13 @@ export async function handleChatCore({
   const thinkingMarkerHeader = getHeaderValueCaseInsensitive(
     clientRawRequest?.headers ?? null,
     THINKING_MARKER_HEADER
+  );
+  // Adaptive-effort per-request opt-in (#6057-style request control): the
+  // client explicitly asks the gateway to size the thinking budget. Header
+  // wins over the model's static defaultReasoningEffort when both are "auto".
+  const adaptiveEffortHeader = getHeaderValueCaseInsensitive(
+    clientRawRequest?.headers ?? null,
+    "x-omniroute-effort"
   );
 
   const explicitStreamAlias = resolveExplicitStreamAlias(body);
@@ -2717,6 +2725,10 @@ export async function handleChatCore({
         (modelInfo as { defaultThinkingEffort?: string })?.defaultThinkingEffort
       );
     }
+    translatedBody = wireAdaptiveEffort(translatedBody, {
+      rawBody: body,
+      headerEffort: adaptiveEffortHeader,
+    });
   }
 
   // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and
