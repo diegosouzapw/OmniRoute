@@ -2,6 +2,7 @@ import {
   generateSignature,
   getCachedResponse,
   isCacheableForRead,
+  outputContractOf,
 } from "@/lib/semanticCache";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { trackPendingRequest } from "@/lib/usageDb";
@@ -29,13 +30,7 @@ export async function checkSemanticCache({
   semanticCacheEnabled: boolean;
   // Only the fields this read path actually touches are named; everything else
   // on the request body stays `unknown` via the index signature.
-  body: Record<string, unknown> & {
-    temperature?: number;
-    top_p?: number;
-    tool_choice?: unknown;
-    tools?: unknown;
-    response_format?: unknown;
-  };
+  body: Record<string, unknown> & { temperature?: number; top_p?: number };
   clientRawRequest: { headers?: unknown } | null;
   model: string;
   provider: string;
@@ -58,7 +53,7 @@ export async function checkSemanticCache({
       body.temperature,
       body.top_p,
       apiKeyId ?? undefined,
-      { toolChoice: body.tool_choice, tools: body.tools, responseFormat: body.response_format }
+      outputContractOf(body)
     );
     const cached = getCachedResponse(signature);
     if (cached) {

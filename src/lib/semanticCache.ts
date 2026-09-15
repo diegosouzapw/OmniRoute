@@ -6,7 +6,8 @@
  * are cached after assembly; cache hits always return JSON.
  * Two-tier: in-memory LRU (fast) + SQLite (persistent across restarts).
  *
- * Cache key = SHA-256(model + normalized messages + temperature + top_p)
+ * Cache key = SHA-256(model + normalized messages + temperature + top_p
+ *             + output contract, when present — see outputContractOf, #12307)
  * Bypass: X-OmniRoute-No-Cache: true
  *
  * @module lib/semanticCache
@@ -142,11 +143,48 @@ export function clearMemoryCache(): void {
  * (#12734). Without these, a cached response produced under one `tool_choice`/`tools`/
  * `response_format` could be replayed for a later request that forbids or changes that
  * behavior (e.g. a cached `tool_calls` response served to a `tool_choice: "none"` request).
+ *
+ * The snake_case fields mirror the raw request body shape and are what `outputContractOf`
+ * (#12307) fills in; the camelCase fields are the pre-existing (#12734) call-site shape.
+ * `generateSignature` folds both spellings in so neither call style silently drops a field.
  */
 export interface SignatureConstraints {
   toolChoice?: unknown;
   tools?: unknown;
   responseFormat?: unknown;
+  tool_choice?: unknown;
+  response_format?: unknown;
+  text_format?: unknown;
+}
+
+/**
+ * The parts of a request that decide what a *valid response* looks like.
+ * Two calls that agree on the conversation but disagree here are not
+ * interchangeable and must not share a cache entry (#12307): a request for
+ * {color, wheels} must not be served a stored {value: "..."} body, and a
+ * tool-calling request must not be served the body of one without tools.
+ *
+ * Returns null when the request carries none of these, so plain-chat
+ * signatures — and every cache entry already written for them — are unchanged.
+ */
+export function outputContractOf(body: unknown): SignatureConstraints | null {
+  const record = asRecord(body);
+  const text = asRecord(record.text);
+  const contract: SignatureConstraints = {};
+  // Both spellings are set for each field so callers built against either the
+  // pre-existing (#12734) camelCase constraints shape or this snake_case one
+  // (matching the raw request body) can read the field they expect.
+  if (record.response_format != null) {
+    contract.response_format = record.response_format;
+    contract.responseFormat = record.response_format;
+  }
+  if (text.format != null) contract.text_format = text.format;
+  if (record.tools != null) contract.tools = record.tools;
+  if (record.tool_choice != null) {
+    contract.tool_choice = record.tool_choice;
+    contract.toolChoice = record.tool_choice;
+  }
+  return Object.keys(contract).length > 0 ? contract : null;
 }
 
 /** Normalize a single tool definition, keeping only the fields that define its policy. */
@@ -181,8 +219,9 @@ function normalizeTools(tools: unknown): unknown {
  * @param {number} temperature
  * @param {number} topP
  * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
- * @param {SignatureConstraints} [constraints] - tool_choice/tools/response_format (#12734):
- *   these change model behavior and must not collide with a signature computed without them.
+ * @param {SignatureConstraints} [constraints] - tool_choice/tools/response_format (#12734)
+ *   plus the Responses-API `text.format` spelling (#12307): these change model behavior
+ *   and must not collide with a signature computed without them.
  * @returns {string} hex signature
  */
 export function generateSignature(
@@ -191,16 +230,17 @@ export function generateSignature(
   temperature = 0,
   topP = 1,
   apiKeyId?: string,
-  constraints?: SignatureConstraints
+  constraints?: SignatureConstraints | null
 ) {
   const payload = JSON.stringify({
     model,
     messages: normalizeConversation(conversation),
     temperature,
     top_p: topP,
-    tool_choice: constraints?.toolChoice,
+    tool_choice: constraints?.toolChoice ?? constraints?.tool_choice,
     tools: normalizeTools(constraints?.tools),
-    response_format: constraints?.responseFormat,
+    response_format: constraints?.responseFormat ?? constraints?.response_format,
+    text_format: constraints?.text_format,
   });
   const digest = crypto.createHash("sha256").update(payload).digest("hex");
   // Per-key cache isolation (#3740) namespaces the signature with the apiKeyId as a
