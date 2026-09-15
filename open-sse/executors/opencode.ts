@@ -54,6 +54,16 @@ interface OpencodeAccountState extends RotatableAccount {
 
 const EFFORT_LEVELS = ["none", "low", "high", "max"] as const;
 
+const OPENCODE_MODEL_PREFIXES = ["opencode/", "oc/", "opencode-zen/", "opencode-go/"] as const;
+
+function stripOpencodeModelPrefix(model: unknown): unknown {
+  if (typeof model !== "string") return model;
+  for (const prefix of OPENCODE_MODEL_PREFIXES) {
+    if (model.startsWith(prefix)) return model.slice(prefix.length);
+  }
+  return model;
+}
+
 /**
  * Models that work WITHOUT any API key on the free/noauth opencode tier.
  *
@@ -1014,6 +1024,10 @@ export class OpencodeExecutor extends BaseExecutor {
     }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
+      // OpenCode Zen's Responses endpoint accepts the upstream model id only.
+      // Keep this executor-level guard because `/v1/responses` callers can reach
+      // the executor without the Chat Completions model-normalization path.
+      mb.model = stripOpencodeModelPrefix(mb.model);
       const parsed = parseEffortLevel(model);
       if (parsed) {
         const deepseekFamily =

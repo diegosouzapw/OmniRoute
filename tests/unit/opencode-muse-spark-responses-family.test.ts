@@ -35,6 +35,25 @@ test("every OpenCode Muse Spark model targets the Responses API by family", () =
   }
 });
 
+test("executor strips OpenCode provider prefixes from upstream model ids", () => {
+  const executor = new OpencodeExecutor("opencode");
+  const prefixes = ["opencode/", "oc/", "opencode-zen/", "opencode-go/"];
+
+  for (const prefix of prefixes) {
+    const result = executor.transformRequest(
+      "muse-spark-9.9",
+      { model: `${prefix}muse-spark-9.9` },
+      true,
+      {}
+    );
+    assert.equal(
+      result.model,
+      "muse-spark-9.9",
+      `${prefix} should be removed before upstream dispatch`
+    );
+  }
+});
+
 test("the family rule is scoped to OpenCode and does not catch similar ids", () => {
   assert.equal(getModelTargetFormat("openai", "muse-spark-2.0"), null);
   assert.equal(getModelTargetFormat("opencode", "muse-sparkish-2.0"), null);

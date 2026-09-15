@@ -227,7 +227,11 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   const bareModelId = prefix ? modelId.slice(prefix.length) : modelId;
   const found = PROVIDER_MODELS[alias]?.find((m) => m.id === bareModelId);
   if (found?.targetFormat) return found.targetFormat;
-  if (OPENCODE_MUSE_SPARK_ALIASES.has(alias) && MUSE_SPARK_MODEL_PATTERN.test(bareModelId)) {
+  // Resolved models can still carry the raw provider id (for example
+  // "opencode/muse-spark-1.3-contributor-free") even when the public alias is
+  // "oc". Match the family against the final model segment so both forms work.
+  const modelFamilyId = bareModelId.split("/").pop() || bareModelId;
+  if (OPENCODE_MUSE_SPARK_ALIASES.has(alias) && MUSE_SPARK_MODEL_PATTERN.test(modelFamilyId)) {
     return "openai-responses";
   }
   // #5842: OpenAI "*-pro" reasoning models (o1-pro, gpt-5.x-pro) are only served by
