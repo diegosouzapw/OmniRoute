@@ -1,0 +1,56 @@
+{
+  "language": "hu",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "repeated_context",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:ahogy korábban megbeszéltük|ahogy fentebb megbeszéltük|mint korábban említettem|ahogy már említettem)(?![\\p{L}\\p{N}_])[,.]?\\s*",
+      "flags": "giu",
+      "replacement": "Lásd fent. ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Replace repeated conversational context with a compact reference."
+    },
+    {
+      "name": "repeated_question",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:ugyanaz a kérdés, mint korábban|ezt már korábban is megkérdeztem|ez ugyanaz a kérdés)(?![\\p{L}\\p{N}_])[,.]?\\s*",
+      "flags": "giu",
+      "replacement": "[ugyanaz a kérdés] ",
+      "context": "user",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Collapse repeated-question framing."
+    },
+    {
+      "name": "reestablished_context",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:visszatérve a fenti kódhoz|visszatérve a korábbi kódhoz|a fentiekhez visszatérve|visszatérve erre)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "Re: ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Compactly reference previously established context."
+    },
+    {
+      "name": "summary_replacement",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:összefoglalva, amit megbeszéltünk|a beszélgetésünk összefoglalásaként|röviden összefoglalva|összefoglalva)(?![\\p{L}\\p{N}_])[,.:]?\\s*",
+      "flags": "giu",
+      "replacement": "Összegzés: ",
+      "context": "assistant",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Replace verbose recap lead-ins with a compact summary label."
+    },
+    {
+      "name": "repetition_acknowledgement",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:ahogy az előbb is mondtam|ahogy már korábban is írtam|ezt már fentebb leírtam)(?![\\p{L}\\p{N}_])[,.]?\\s*",
+      "flags": "giu",
+      "replacement": "Lásd fent. ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Remove explicit repetition acknowledgements."
+    }
+  ]
+}
