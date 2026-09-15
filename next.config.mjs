@@ -349,6 +349,10 @@ const nextConfig = {
     "keytar",
     "wreq-js",
     "zod",
+    // jsdom relies on Node class relationships that Turbopack's server-chunk transform can break
+    // (observed as "Class extends value undefined" during Vertex metadata sync). Keep the native
+    // package boundary; standalone file tracing still copies the runtime dependency.
+    "jsdom",
     "@ngrok/ngrok",
     "@huggingface/transformers",
     // The ESM entry imports tiktoken_bg.wasm as a module. Turbopack can compile
