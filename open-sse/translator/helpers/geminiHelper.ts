@@ -69,6 +69,13 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   // "Unknown name \"prefixItems\" ... Cannot find field". ensureArrayItems
   // below still guarantees an `items` schema for the tuple-typed array.
   "prefixItems",
+  // #12871: `additionalItems` is the draft-07 spelling of the same tuple-typed
+  // array concept as `prefixItems` above — it describes positional array entries,
+  // which the Gemini schema parser has no field for, rejecting the request with
+  // "Unknown name \"additionalItems\" ... Cannot find field". Stripping it leaves
+  // a bare `type: "array"`, which `ensureArrayItems()` below (#10578) fills with a
+  // safe `items` schema instead of failing the call.
+  "additionalItems",
   // Complex schema keywords (handled by flattenAnyOfOneOf/mergeAllOf)
   "anyOf",
   "oneOf",
