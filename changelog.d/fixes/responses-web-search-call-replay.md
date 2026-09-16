@@ -1,0 +1,1 @@
+Responses-to-Chat fallback now skips replayed `web_search_call` metadata while preserving the paired function result, preventing deterministic HTTP 400 failures on follow-up turns routed to Chat Completions providers.

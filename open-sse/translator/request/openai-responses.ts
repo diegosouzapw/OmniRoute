@@ -468,14 +468,16 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
-    // Skip tool_search_call items. These are Responses-API-only metadata items
-    // emitted by Codex's dynamic tool-search optimization: they record that the
-    // model queried a subset of available tools, but carry no content that Chat
-    // Completions can represent. Throwing here would break every multi-turn
-    // conversation where Codex previously used tool_search (the whole session
-    // would carry tool_search_call items forward in `input`). Skipping matches
-    // the reasoning-item policy: display-only metadata, no chat side-effect.
-    if (itemType === "tool_search_call" || itemType === "tool_search_result") {
+    // Skip Responses-only search metadata. tool_search_call/tool_search_result
+    // are Codex's dynamic tool-discovery items; web_search_call is emitted by
+    // OmniRoute's web-search fallback alongside function_call_output, which
+    // already carries the result for Chat Completions. Replayed metadata has no
+    // lossless Chat representation and must not fail a follow-up turn.
+    if (
+      itemType === "tool_search_call" ||
+      itemType === "tool_search_result" ||
+      itemType === "web_search_call"
+    ) {
       continue;
     }
 
