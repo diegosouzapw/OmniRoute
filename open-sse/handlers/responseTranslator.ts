@@ -15,6 +15,10 @@ import { restoreClaudeToolName } from "../services/claudeCodeToolRemapper.ts";
 import { extractReplayableResponsesReasoningText } from "../services/reasoningInputPolicy.ts";
 import { sanitizeToolId } from "../translator/helpers/schemaCoercion.ts";
 import { stripEmptyOptionalToolArgs } from "../translator/response/openai-responses/pureHelpers.ts";
+import {
+  extractThinkingFromContent,
+  shouldParseTextualReasoningTags,
+} from "./responseSanitizer/reasoning.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -568,6 +572,22 @@ export function translateNonStreamingResponse(
               arguments: JSON.stringify(blockObj.input || {}),
             },
           });
+        }
+      }
+
+      // #13558: MiniMax-M3's Anthropic-compatible endpoint puts its reasoning
+      // inline as <think>...</think> inside an ordinary "text" content block
+      // instead of a structured "thinking" block, so it never hit the
+      // thinkingContent accumulation above. Strip any such markup out of the
+      // accumulated text and merge it into thinkingContent, gated the same
+      // way the streaming/passthrough paths already are.
+      if (textContent && shouldParseTextualReasoningTags(undefined, root.model)) {
+        const extracted = extractThinkingFromContent(textContent);
+        textContent = extracted.content;
+        if (extracted.thinking) {
+          thinkingContent = thinkingContent
+            ? `${thinkingContent}\n\n${extracted.thinking}`
+            : extracted.thinking;
         }
       }
 
