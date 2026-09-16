@@ -303,26 +303,39 @@ export function getCanonicalModelMetadata(input: {
 // a rebuild instead of rebuilt per lookup.
 const lowercaseIndexCache = new WeakMap<object, Map<string, unknown>>();
 
+/** Colliding keys named in the aggregated collision warning before it truncates. */
+const COLLISION_SAMPLE_SIZE = 5;
+
 function findInsensitive<T>(obj: Record<string, T> | null | undefined, key: string): T | undefined {
   if (!obj || !key) return undefined;
   if (key in obj) return obj[key];
   let index = lowercaseIndexCache.get(obj);
   if (!index) {
     index = new Map();
+    const collisions: string[] = [];
     for (const [k, v] of Object.entries(obj)) {
       const lowerKey = k.toLowerCase();
-      // Warn once at index-build time (not per-lookup) if two keys collide
-      // case-insensitively — a real data-quality signal from an upstream sync (e.g.
-      // models.dev returning both "OpenAI" and "openai" as distinct provider keys).
-      // Matches the pre-fix scan's silent first-match-wins behavior, just surfaced
-      // instead of swallowed.
+      // Collisions are a real data-quality signal from an upstream sync (e.g.
+      // models.dev returning both "OpenAI" and "openai" as distinct provider
+      // keys), so they are surfaced rather than swallowed — first-match-wins,
+      // matching the pre-#8697 scan's behavior.
       if (index.has(lowerKey)) {
-        console.warn(
-          `[modelMetadataRegistry] findInsensitive: case-insensitive key collision on "${lowerKey}" — keeping first-seen value, later one discarded`
-        );
+        collisions.push(lowerKey);
         continue;
       }
       index.set(lowerKey, v);
+    }
+    // Aggregate into ONE line per index build. Warning per colliding key made
+    // the signal unreadable and expensive: a real catalog collides on hundreds
+    // of keys, and a production log carried 27,296 of these lines (40% of the
+    // file, ~500/sec bursts) driving 52 MB rotations. The count plus a bounded
+    // sample keeps the diagnostic without the flood.
+    if (collisions.length > 0) {
+      const sample = collisions.slice(0, COLLISION_SAMPLE_SIZE).join(", ");
+      const more = collisions.length > COLLISION_SAMPLE_SIZE ? ", …" : "";
+      console.warn(
+        `[modelMetadataRegistry] findInsensitive: ${collisions.length} case-insensitive key collision(s) — keeping first-seen value, later ones discarded. Keys: ${sample}${more}`
+      );
     }
     lowercaseIndexCache.set(obj, index);
   }
