@@ -1,0 +1,1 @@
+- **fix(providers):** GitLab Duo Retest and chat requests now fall back to the public Code Suggestions endpoint for ANY `direct_access` 403 (not only the "direct connections are disabled" tenant-config message), and surface the real upstream error body instead of a generic "Access denied" when both endpoints reject the token (#12958) — thanks @Rahulsharma0810
