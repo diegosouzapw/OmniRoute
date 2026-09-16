@@ -13,6 +13,11 @@ import {
 } from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import {
+  GITHUB_COPILOT_CLI_INTEGRATION_ID,
+  GITHUB_COPILOT_CHAT_INTEGRATION_ID,
+  resolveCopilotIntegrationIdOverride,
+} from "../config/providerHeaderProfiles.ts";
+import {
   findOffendingField,
   detectUnsupportedParam,
   stripGroqUnsupportedFields,
@@ -30,7 +35,11 @@ import {
   addParamToBlocklist,
   isAutoLearnGloballyEnabled,
 } from "@/lib/db/paramFilters";
-import { applyFingerprint, isCliCompatEnabled, stripInternalBodyFields } from "../config/cliFingerprints.ts";
+import {
+  applyFingerprint,
+  isCliCompatEnabled,
+  stripInternalBodyFields,
+} from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import {
@@ -316,6 +325,21 @@ export type ExecutorExecuteResult =
       transformedBody?: unknown;
       transport?: string;
     };
+function readHeaderCaseInsensitive(
+  headers: Record<string, string> | null | undefined,
+  name: string
+): string | null {
+  if (!headers) return null;
+  const target = name.toLowerCase();
+  const direct = headers[name] ?? headers[target];
+  if (typeof direct === "string") return direct;
+  for (const key in headers) {
+    if (key.toLowerCase() === target && typeof headers[key] === "string") {
+      return headers[key];
+    }
+  }
+  return null;
+}
 
 export class BaseExecutor {
   provider: string;
@@ -838,6 +862,10 @@ export class BaseExecutor {
     // Set by the reasoning_effort 4xx clamp-and-retry below — guards the same
     // "fires at most once per URL" invariant as thinkingBudgetClampedMax above.
     let reasoningEffortClamped = false;
+    // Set by the Copilot identity 403 fallback below: business/org accounts may
+    // reject copilot-developer-cli while allowing copilot-chat. Bounded to at most
+    // one identity retry for the whole execute call.
+    let copilotIdentityRetried = false;
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const requestCredentials = withForcedResponsesUpstream(
@@ -1487,6 +1515,63 @@ export class BaseExecutor {
 
         if (openrouterFreeWindowAccountKey) {
           correctFromRateLimitHeaders(openrouterFreeWindowAccountKey, response.headers);
+        }
+
+        // GitHub Copilot 403 identity fallback: business/org accounts may reject
+        // the CLI identity (copilot-developer-cli) while allowing copilot-chat.
+        // Bounded to at most one retry per execute call, gated strictly to standard
+        // github (not ghe-copilot), and only when identity was not explicitly pinned.
+        if (
+          !copilotIdentityRetried &&
+          this.provider === "github" &&
+          response.status === HTTP_STATUS.FORBIDDEN &&
+          !resolveCopilotIntegrationIdOverride() &&
+          !process.env.COPILOT_INTEGRATION_ID?.trim() &&
+          !readHeaderCaseInsensitive(clientHeaders, "copilot-integration-id")?.trim()
+        ) {
+          const currentIntegrationId = readHeaderCaseInsensitive(
+            finalHeaders,
+            "copilot-integration-id"
+          );
+          if (currentIntegrationId === GITHUB_COPILOT_CLI_INTEGRATION_ID) {
+            const errText = await response
+              .clone()
+              .text()
+              .catch(() => "");
+            const isQuotaError = /quota|rate[_-]?limit|exceeded|insufficient_quota/i.test(errText);
+            const hasIdentityEvidence =
+              !isQuotaError &&
+              (/access denied/i.test(errText) ||
+                (/copilot/i.test(errText) && /403/.test(errText)) ||
+                /integration[_-]?id/i.test(errText) ||
+                /not (?:permitted|allowed|authorized)/i.test(errText));
+
+            if (hasIdentityEvidence) {
+              copilotIdentityRetried = true;
+              await response.text().catch(() => "");
+              log?.warn?.(
+                "COPILOT_IDENTITY",
+                `Standard GitHub Copilot identity ${GITHUB_COPILOT_CLI_INTEGRATION_ID} denied (403) — retrying once with ${GITHUB_COPILOT_CHAT_INTEGRATION_ID}`
+              );
+              const retryHeaders: Record<string, string> = {
+                ...finalHeaders,
+                "copilot-integration-id": GITHUB_COPILOT_CHAT_INTEGRATION_ID,
+              };
+              for (const key of Object.keys(retryHeaders)) {
+                if (
+                  key.toLowerCase() === "copilot-integration-id" &&
+                  key !== "copilot-integration-id"
+                ) {
+                  delete retryHeaders[key];
+                }
+              }
+              finalHeaders = retryHeaders;
+              response = await fetchWithStartTimeout(url, {
+                ...fetchOptions,
+                headers: retryHeaders,
+              });
+            }
+          }
         }
 
         // Context Editing 400-fallback for Claude-compatible relays.

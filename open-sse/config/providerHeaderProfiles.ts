@@ -41,11 +41,25 @@ export const GITHUB_COPILOT_REFRESH_USER_AGENT = "GithubCopilot/1.0";
 export function getGitHubCopilotChatUserAgent(): string {
   return `GitHubCopilotChat/${getGitHubCopilotCliVersion()}`;
 }
-export const GITHUB_COPILOT_INTEGRATION_ID = "copilot-developer-cli";
+export const GITHUB_COPILOT_CLI_INTEGRATION_ID = "copilot-developer-cli";
+export const GITHUB_COPILOT_CHAT_INTEGRATION_ID = "copilot-chat";
+export const GITHUB_COPILOT_INTEGRATION_ID = GITHUB_COPILOT_CLI_INTEGRATION_ID;
 export const GITHUB_COPILOT_OPENAI_INTENT = "conversation-agent";
 export const GITHUB_COPILOT_INTERACTION_TYPE = "conversation-user";
 export const GITHUB_COPILOT_HARNESS_ID = "copilot-sdk";
 export const GITHUB_COPILOT_DEFAULT_INITIATOR = "user";
+
+export function normalizeCopilotIntegrationId(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed || /[\r\n]/.test(trimmed)) return null;
+  return trimmed;
+}
+
+export function resolveCopilotIntegrationIdOverride(): string | null {
+  const raw = typeof process === "undefined" ? undefined : process.env?.COPILOT_INTEGRATION_ID;
+  return normalizeCopilotIntegrationId(raw);
+}
 
 // Stable per-install device fingerprint (the CLI's X-Client-Machine-Id). The
 // real @github/copilot CLI sends ONE stable UUID on every inference + /models
@@ -86,7 +100,7 @@ export const CURSOR_REGISTRY_VERSION = "3.9";
 export function getGitHubCopilotChatHeaders(
   accept = "application/json",
   initiator = GITHUB_COPILOT_DEFAULT_INITIATOR,
-  options: { vision?: boolean; intent?: string } = {}
+  options: { vision?: boolean; intent?: string; integrationId?: string } = {}
 ): Record<string, string> {
   // Matches the live @github/copilot CLI 1.0.81-6 inference request 1:1 (MITM-
   // captured). NOTE the CLI does NOT send `editor-plugin-version` nor
@@ -97,8 +111,12 @@ export function getGitHubCopilotChatHeaders(
   // is the catalog-unlock lever; the stable X-Client-Machine-Id is the CLI's
   // per-install device fingerprint.
   const version = getGitHubCopilotCliVersion();
+  const integrationId =
+    normalizeCopilotIntegrationId(options.integrationId) ||
+    resolveCopilotIntegrationIdOverride() ||
+    GITHUB_COPILOT_CLI_INTEGRATION_ID;
   const headers: Record<string, string> = {
-    "copilot-integration-id": GITHUB_COPILOT_INTEGRATION_ID,
+    "copilot-integration-id": integrationId,
     "editor-version": `copilot/${version}`,
     "user-agent": `copilot/${version}`,
     "openai-intent": options.intent || GITHUB_COPILOT_OPENAI_INTENT,
