@@ -144,6 +144,16 @@ export interface RegistryEntry {
   responsesBaseUrl?: string;
   /** Provider-bound replay format; omitted providers accept portable plaintext reasoning. */
   reasoningTransport?: ReasoningTransport;
+  /**
+   * Thinking-mode upstreams proxied by this provider require the assistant's
+   * prior-turn `reasoning_content` to be echoed back on every follow-up request
+   * (e.g. DeepSeek-reselling gateways such as `bai`). Standard OpenAI-shaped
+   * clients do not preserve that field when replaying history, so when this is
+   * `true`, DefaultExecutor injects a placeholder via
+   * `open-sse/utils/reasoningContentInjector.ts` for model ids matching
+   * `isThinkingMessageModel()`. See issue #13599.
+   */
+  requiresReasoningContentEcho?: boolean;
   /** Anthropic-native /v1/messages endpoint (e.g. GitHub Copilot's shim) used
    *  for models tagged `targetFormat: "claude"` on an otherwise openai-format
    *  provider — see registry/github/index.ts. */
