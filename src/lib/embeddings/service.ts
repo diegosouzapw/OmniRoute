@@ -344,6 +344,31 @@ export async function createEmbeddingResponse(
     ) {
       credentials = localCredentials;
     }
+  } else if (!credentials && providerConfig.authType === "none") {
+    // #13234: private-host nodes are classified no-auth so a keyless
+    // LAN Ollama still works (#6925). A stored API key on that same
+    // node must still ride outbound, matching dashboard Check.
+    const keyedCredentials = await getProviderCredentials(credentialsProviderId);
+    if (
+      keyedCredentials &&
+      !("allRateLimited" in keyedCredentials) &&
+      !("allExpired" in keyedCredentials)
+    ) {
+      const token =
+        (typeof (keyedCredentials as { apiKey?: unknown }).apiKey === "string" &&
+          (keyedCredentials as { apiKey?: string }).apiKey) ||
+        (typeof (keyedCredentials as { accessToken?: unknown }).accessToken === "string" &&
+          (keyedCredentials as { accessToken?: string }).accessToken) ||
+        "";
+      if (token) {
+        credentials = keyedCredentials;
+        providerConfig = {
+          ...providerConfig,
+          authType: "apikey",
+          authHeader: "bearer",
+        };
+      }
+    }
   }
 
   // #474: when the request used a bare model name (no "/" — e.g. an alias that
