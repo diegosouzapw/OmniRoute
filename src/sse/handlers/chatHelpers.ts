@@ -960,7 +960,8 @@ export function decideProxyResolutionFailure(
 export async function safeResolveProxy(
   connectionId: string,
   apiKeyId?: string,
-  providerId?: string
+  providerId?: string,
+  comboName?: string | null
 ) {
   try {
     const resolved = await resolveProxyForConnection(connectionId, apiKeyId, providerId);
@@ -970,7 +971,7 @@ export async function safeResolveProxy(
     // opts back into direct). Explicit "proxy off" is not a leak (see the guard).
     if (
       !(resolved as { proxy?: unknown } | null)?.proxy &&
-      hasBlockingProxyAssignment(connectionId, providerId)
+      hasBlockingProxyAssignment(connectionId, providerId, comboName)
     ) {
       return decideProxyResolutionFailure(
         Object.assign(
