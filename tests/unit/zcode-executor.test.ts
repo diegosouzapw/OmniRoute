@@ -1,16 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
+import {
+  createIsolatedTestEnvSync,
+  cleanupIsolatedTestEnv,
+} from "../_setup/withIsolatedDataDir.ts";
+
+const { testDataDir, originalDataDir } = createIsolatedTestEnvSync("omniroute-zcode-");
 
 const fixture = join(process.cwd(), "tests/fixtures/fake-zcode-app-server.mjs");
-const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-zcode-"));
-process.env.DATA_DIR = TEST_DATA_DIR;
 
-test.after(() =>
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
-);
+test.after(() => cleanupIsolatedTestEnv(testDataDir, originalDataDir));
 
 async function loadZcodeExecutor() {
   return import("../../open-sse/executors/zcode.ts");
