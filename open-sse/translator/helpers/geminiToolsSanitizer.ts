@@ -97,7 +97,15 @@ function isSanitizedNameTaken(
 ): boolean {
   if (!(toolNameMap instanceof Map)) return false;
   const mappedOriginalName = toolNameMap.get(sanitizedName);
-  return typeof mappedOriginalName === "string" && mappedOriginalName !== originalName;
+  if (typeof mappedOriginalName !== "string" || mappedOriginalName === originalName) {
+    return false;
+  }
+  // If both original names normalize to the same name (e.g. functions__exec and functions_exec),
+  // they refer to the same underlying tool across turns — not an actual collision.
+  if (normalizeGeminiToolName(mappedOriginalName) === normalizeGeminiToolName(originalName)) {
+    return false;
+  }
+  return true;
 }
 
 export function sanitizeGeminiToolName(
@@ -126,7 +134,7 @@ export function sanitizeGeminiToolName(
     }
 
     if (isSanitizedNameTaken(toolNameMap, sanitizedName, name)) {
-      sanitizedName = buildHashedGeminiToolName("tool", `${name}:${Date.now()}`, 12);
+      sanitizedName = buildHashedGeminiToolName("tool", `${name}:collision:${conflictingOriginalName || ""}`, 12);
     }
 
     console.warn(

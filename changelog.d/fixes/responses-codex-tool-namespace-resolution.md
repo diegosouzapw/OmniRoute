@@ -1,0 +1,1 @@
+- **fix(responses):** resolve bidirectional tool namespace identity and custom tool payload for Codex\n

@@ -213,3 +213,132 @@ test("Chat -> Responses keeps same wire names isolated between per-request strea
     { namespace: "mcp__two", name: "read" }
   );
 });
+
+test("Chat -> Responses restores namespace when provider collapses delimiter to single underscore (Gemini/Antigravity)", () => {
+  const wireName = "functions_exec";
+  const events = collectToolEvents(
+    wireName,
+    "call_exec_single",
+    identityMapFor("functions", "exec")
+  );
+  for (const item of Object.values(functionItems(events))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "functions", name: "exec" }
+    );
+  }
+});
+
+test("Chat -> Responses restores namespace when provider uses dot notation", () => {
+  const wireName = "functions.exec";
+  const events = collectToolEvents(
+    wireName,
+    "call_exec_dot",
+    identityMapFor("functions", "exec")
+  );
+  for (const item of Object.values(functionItems(events))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "functions", name: "exec" }
+    );
+  }
+});
+
+test("Chat -> Responses restores correct namespaces when two different namespaces share a tool named the same across delimiter variations", () => {
+  const request = openaiResponsesToOpenAIRequest(
+    "any-model",
+    {
+      input: [
+        {
+          type: "additional_tools",
+          tools: [
+            { type: "namespace", name: "functions", tools: [{ name: "exec" }] },
+            { type: "namespace", name: "sandbox", tools: [{ name: "exec" }] },
+          ],
+        },
+        { type: "message", role: "user", content: [{ type: "input_text", text: "go" }] },
+      ],
+    },
+    false,
+    { provider: "any-provider" }
+  ) as { _toolNameMap?: Map<string, NamespaceIdentity> };
+  assert.ok(request._toolNameMap instanceof Map);
+
+  // Single underscore delimiter collapse (Gemini / Antigravity / Vertex AI normalization)
+  const fnSingleEvents = collectToolEvents("functions_exec", "call_fn_single", request._toolNameMap);
+  for (const item of Object.values(functionItems(fnSingleEvents))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "functions", name: "exec" }
+    );
+  }
+
+  const sandboxSingleEvents = collectToolEvents("sandbox_exec", "call_sb_single", request._toolNameMap);
+  for (const item of Object.values(functionItems(sandboxSingleEvents))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "sandbox", name: "exec" }
+    );
+  }
+
+  // Dot notation delimiter variation
+  const fnDotEvents = collectToolEvents("functions.exec", "call_fn_dot", request._toolNameMap);
+  for (const item of Object.values(functionItems(fnDotEvents))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "functions", name: "exec" }
+    );
+  }
+
+  const sandboxDotEvents = collectToolEvents("sandbox.exec", "call_sb_dot", request._toolNameMap);
+  for (const item of Object.values(functionItems(sandboxDotEvents))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "sandbox", name: "exec" }
+    );
+  }
+
+  // Standard double-underscore notation
+  const fnDoubleEvents = collectToolEvents("functions__exec", "call_fn_double", request._toolNameMap);
+  for (const item of Object.values(functionItems(fnDoubleEvents))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "functions", name: "exec" }
+    );
+  }
+
+  const sandboxDoubleEvents = collectToolEvents("sandbox__exec", "call_sb_double", request._toolNameMap);
+  for (const item of Object.values(functionItems(sandboxDoubleEvents))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "sandbox", name: "exec" }
+    );
+  }
+});
+
+test("Chat -> Responses does not resolve ambiguous bare leaf name when two namespaces collide on the same tool name", () => {
+  const request = openaiResponsesToOpenAIRequest(
+    "any-model",
+    {
+      input: [
+        {
+          type: "additional_tools",
+          tools: [
+            { type: "namespace", name: "functions", tools: [{ name: "exec" }] },
+            { type: "namespace", name: "sandbox", tools: [{ name: "exec" }] },
+          ],
+        },
+        { type: "message", role: "user", content: [{ type: "input_text", text: "go" }] },
+      ],
+    },
+    false,
+    { provider: "any-provider" }
+  ) as { _toolNameMap?: Map<string, NamespaceIdentity> };
+  assert.ok(request._toolNameMap instanceof Map);
+
+  const events = collectToolEvents("exec", "call_ambiguous", request._toolNameMap);
+  const done = events.find((event) => event.event === "response.output_item.done");
+  assert.ok(done?.data.item);
+  assert.equal("namespace" in done.data.item, false);
+});
+

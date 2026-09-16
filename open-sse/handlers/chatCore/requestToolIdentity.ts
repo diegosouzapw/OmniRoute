@@ -73,3 +73,5 @@ export function extractRequestToolIdentityMap(
   delete translatedBody._toolNameMap;
   return requestToolIdentityMap as Map<string, NamespaceIdentity> | null;
 }
+
+export { resolveRequestToolIdentity } from "../../translator/response/openai-responses/requestToolIdentity.ts";

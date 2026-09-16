@@ -247,7 +247,7 @@ function restoreResponsesPassthroughFunctionCallIdentity(
     if (functionCall.type !== "function_call" || typeof functionCall.name !== "string")
       return false;
 
-    const identity = requestToolIdentityMap.get(functionCall.name);
+    const identity = resolveRequestToolIdentity(requestToolIdentityMap, functionCall.name);
     if (!identity) return false;
 
     const changed =

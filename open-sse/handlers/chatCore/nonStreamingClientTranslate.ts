@@ -20,6 +20,7 @@ import { translateNonStreamingResponse } from "../responseTranslator.ts";
 import { extractToolSchemaMap } from "../../translator/response/openai-responses/toolSchemas.ts";
 import { stripMarkdownCodeFence } from "../../utils/aiSdkCompat.ts";
 import { normalizeOpenAIToolFinishReasons } from "./passthroughToolNames.ts";
+import { resolveRequestToolIdentity } from "./requestToolIdentity.ts";
 import {
   cacheReasoningFromAssistantMessage,
   requiresReasoningReplay,
@@ -129,7 +130,7 @@ export function translateNonStreamingClientResponse(
     if (requestToolIdentityMap && Array.isArray(responseOutput)) {
       for (const item of responseOutput) {
         if (item?.type !== "function_call") continue;
-        const identity = requestToolIdentityMap.get(item.name);
+        const identity = resolveRequestToolIdentity(requestToolIdentityMap, item.name);
         if (identity) {
           item.namespace = identity.namespace;
           item.name = identity.name;

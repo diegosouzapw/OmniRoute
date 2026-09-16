@@ -30,6 +30,7 @@ import {
   computeFinishReason,
   withAssistantRoleOnFirstDelta,
 } from "./openai-responses/synthesizeCompletedToolCalls.ts";
+
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
 
@@ -543,10 +544,14 @@ function emitToolCall(state, emit, tc) {
   // unconditional `toolName === "apply_patch"` OR never actually implemented the carve-out.
   const toolName = state.funcNames[tcIdx] || funcName || "";
   const lowerName = toolName.toLowerCase();
+  const identity = resolveRequestToolIdentity(state.requestToolIdentityMap, toolName);
+  const resolvedLeaf = identity ? identity.name.toLowerCase() : lowerName;
   const isCustomTool =
-    ((lowerName === "apply_patch" || lowerName === "applypatch") &&
+    ((lowerName === "apply_patch" || lowerName === "applypatch" || resolvedLeaf === "apply_patch" || resolvedLeaf === "applypatch" || resolvedLeaf === "exec") &&
       !state.toolSchemas?.has?.(toolName)) ||
-    state.customToolNames?.has?.(toolName) === true;
+    state.customToolNames?.has?.(toolName) === true ||
+    (identity && state.customToolNames?.has?.(identity.name) === true) ||
+    state.customToolNames?.has?.(resolvedLeaf) === true;
 
   if (!state.funcCallIds[tcIdx] && newCallId) state.funcCallIds[tcIdx] = newCallId;
   const callId = state.funcCallIds[tcIdx];
@@ -616,10 +621,14 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
     // See emitToolCall()'s isCustomTool comment — must stay in sync (both compute the
     // same classification independently for their respective add/close call sites).
     const lowerName = toolName.toLowerCase();
+    const identity = resolveRequestToolIdentity(state.requestToolIdentityMap, toolName);
+    const resolvedLeaf = identity ? identity.name.toLowerCase() : lowerName;
     const isCustomTool =
-      ((lowerName === "apply_patch" || lowerName === "applypatch") &&
+      ((lowerName === "apply_patch" || lowerName === "applypatch" || resolvedLeaf === "apply_patch" || resolvedLeaf === "applypatch" || resolvedLeaf === "exec") &&
         !state.toolSchemas?.has?.(toolName)) ||
-      state.customToolNames?.has?.(toolName) === true;
+      state.customToolNames?.has?.(toolName) === true ||
+      (identity && state.customToolNames?.has?.(identity.name) === true) ||
+      state.customToolNames?.has?.(resolvedLeaf) === true;
 
     let funcItem;
     if (isCustomTool) {
