@@ -1,0 +1,1 @@
+- **fix(adobe-firefly):** never spawn a real Chrome for CDP session warm under a unit-test runner, so tests stop leaking a browser process that holds an OS handle on its DATA_DIR profile directory
