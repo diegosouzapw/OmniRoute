@@ -1,0 +1,1 @@
+- **fix(providers):** clamp SenseNova DeepSeek V4 Flash `reasoning_effort` `xhigh`/`max` to `high` (upstream lists `xhigh` then 400s it)

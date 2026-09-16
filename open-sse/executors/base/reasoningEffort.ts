@@ -70,19 +70,11 @@ export const GLM_53_FAMILY_PATTERN = /(?:^|\/|\b)glm-5\.3(?:$|-)/i;
 export const GLM_52_FAMILY_PATTERN = /(?:^|\/|\b)glm-5\.2(?:$|-)/i;
 
 export function isCommandCodeProvider(provider: string): boolean {
-  return (
-    provider === "command-code" ||
-    provider === "cmd" ||
-    provider === "command_code"
-  );
+  return provider === "command-code" || provider === "cmd" || provider === "command_code";
 }
 
 export function isOllamaCloudProvider(provider: string): boolean {
-  return (
-    provider === "ollama-cloud" ||
-    provider === "ollamacloud" ||
-    provider === "ollama_cloud"
-  );
+  return provider === "ollama-cloud" || provider === "ollamacloud" || provider === "ollama_cloud";
 }
 
 export function isOpencodeGoProvider(provider: string): boolean {
@@ -92,6 +84,15 @@ export function isOpencodeGoProvider(provider: string): boolean {
     provider === "opencode" ||
     provider === "opencode_go"
   );
+}
+
+export function isSenseNovaDeepSeekV4Flash(provider: string, model: string | undefined): boolean {
+  const modelStr = (model || "").toLowerCase();
+  const isDeepSeekV4Flash =
+    /(?:^|\/)deepseek-v4-flash(?:$|-)/.test(modelStr) && !modelStr.includes("vision");
+  if (!isDeepSeekV4Flash) return false;
+  if (provider === "sensenova" || provider === "snova") return true;
+  return /(?:^|\/)snova(?:\/|$)/.test(modelStr);
 }
 
 type ReasoningSanitizeLog = {
@@ -206,12 +207,7 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
     MAX_TIER_REASONING_MODEL_PATTERN.test(resolvedModelId) ||
     MAX_TIER_REASONING_MODEL_PATTERN.test(model);
   return (
-    isClaude ||
-    isOpencodeGo ||
-    isOllamaCloud ||
-    isMoonshotK3 ||
-    isCommandCode ||
-    isMaxTierModel
+    isClaude || isOpencodeGo || isOllamaCloud || isMoonshotK3 || isCommandCode || isMaxTierModel
   );
 }
 
@@ -485,6 +481,17 @@ export function sanitizeReasoningEffortForProvider(
   //   - DeepSeek V4+ (Flash, Pro, Vision, ...)
   //   - Kimi K3+ (Moonshot AI K3, K4, ...)
   // OpenRouter (pi#4055) is excluded because OpenRouter's normalized API expects xhigh.
+  if (
+    isSenseNovaDeepSeekV4Flash(provider, modelStr) &&
+    (effortStr === "xhigh" || effortStr === "max")
+  ) {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `${provider}/${modelStr}: clamped reasoning_effort ${effortStr} to high (SenseNova DeepSeek V4 Flash ceiling)`
+    );
+    return writeEffortValue(b, "high", c);
+  }
+
   const isMaxTierTarget =
     provider !== "openrouter" &&
     (isCommandCodeProvider(provider) ||
@@ -549,11 +556,10 @@ export function sanitizeReasoningEffortForProvider(
     ? modelStr.slice(provider.length + 1)
     : modelStr;
   const declaredEfforts = getProviderModels(provider).find(
-    (entry) => entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
+    (entry) =>
+      entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
   )?.supportedThinkingEfforts;
-  const declaredRanked = (
-    Array.isArray(declaredEfforts) ? declaredEfforts : []
-  )
+  const declaredRanked = (Array.isArray(declaredEfforts) ? declaredEfforts : [])
     .map((tier) => ({ tier, rank: REASONING_EFFORT_ORDER.indexOf(tier) }))
     .filter((x) => x.rank >= 0)
     .sort((a, b) => a.rank - b.rank);
