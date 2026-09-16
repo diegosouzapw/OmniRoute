@@ -2370,8 +2370,8 @@ export async function handleChatCore({
         }
       }
 
-      // Legacy models reject role:"system" messages. Opus accepts them behind
-      // its beta, and hoisting them breaks the prompt cache prefix.
+      // Legacy models reject role:"system" messages. Supported models accept
+      // them behind a beta, and hoisting them breaks the prompt cache prefix.
       if (isClaudeCodeSemanticPassthrough) {
         if (
           provider !== "claude" ||

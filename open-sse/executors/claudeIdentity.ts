@@ -309,6 +309,7 @@ const HEAVY_AGENT_BETA_MODEL_PREFIXES = ["claude-opus", "claude-sonnet"];
  */
 const CONTEXT_1M_BETA_MODEL_PREFIXES = ["claude-opus"];
 const CONTEXT_1M_NATIVE_MODEL_PREFIXES = ["claude-opus-5"];
+const MID_CONVERSATION_SYSTEM_MODEL_PREFIXES = ["claude-opus", "claude-fable"];
 
 function matchesModelPrefix(model: unknown, prefixes: string[]): boolean {
   if (typeof model !== "string") return false;
@@ -340,7 +341,9 @@ export function shouldUseMidConversationSystem(
   const effectiveModel = model ?? (typeof payload.model === "string" ? payload.model : "");
 
   return (
-    hasSystem && hasTools && matchesModelPrefix(effectiveModel, CONTEXT_1M_BETA_MODEL_PREFIXES)
+    hasSystem &&
+    hasTools &&
+    matchesModelPrefix(effectiveModel, MID_CONVERSATION_SYSTEM_MODEL_PREFIXES)
   );
 }
 

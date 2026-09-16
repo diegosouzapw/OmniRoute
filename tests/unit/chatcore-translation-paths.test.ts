@@ -1371,65 +1371,67 @@ test("chatCore normalizes native Claude Code messages for native Claude OAuth pa
   // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
   assert.equal(call.body.messages[2].content[0].type, "tool_result");
 });
-test("chatCore preserves Opus 5 mid-conversation system cache breakpoints", async () => {
-  await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
-  invalidateCacheControlSettingsCache();
+for (const model of ["claude-opus-5", "claude-fable-5", "claude-fable-5-1"]) {
+  test(`chatCore preserves ${model} mid-conversation system cache breakpoints`, async () => {
+    await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
+    invalidateCacheControlSettingsCache();
 
-  const { call, result } = await invokeChatCore({
-    provider: "claude",
-    model: "claude-opus-5",
-    endpoint: "/v1/messages",
-    credentials: { apiKey: "claude-key", providerSpecificData: {} },
-    body: {
-      model: "claude-opus-5",
-      max_tokens: 64,
-      system: [
-        {
-          type: "text",
-          text: "stable system prompt",
-          cache_control: { type: "ephemeral", ttl: "5m" },
-        },
-      ],
-      messages: [
-        { role: "user", content: [{ type: "text", text: "first turn" }] },
-        { role: "assistant", content: [{ type: "text", text: "first response" }] },
-        {
-          role: "system",
-          content: [
-            {
-              type: "text",
-              text: "compact continuation",
-              cache_control: { type: "ephemeral" },
-            },
-          ],
-        },
-        { role: "user", content: [{ type: "text", text: "latest turn" }] },
-      ],
-      tools: [{ name: "Bash", input_schema: { type: "object", properties: {} } }],
-    },
-    userAgent: "Claude-Code/2.1.220",
-    requestHeaders: { "x-app": "cli", "x-claude-code-session-id": "session-123" },
-    responseFormat: "claude",
-  });
+    const { call, result } = await invokeChatCore({
+      provider: "claude",
+      model,
+      endpoint: "/v1/messages",
+      credentials: { apiKey: "claude-key", providerSpecificData: {} },
+      body: {
+        model,
+        max_tokens: 64,
+        system: [
+          {
+            type: "text",
+            text: "stable system prompt",
+            cache_control: { type: "ephemeral", ttl: "5m" },
+          },
+        ],
+        messages: [
+          { role: "user", content: [{ type: "text", text: "first turn" }] },
+          { role: "assistant", content: [{ type: "text", text: "first response" }] },
+          {
+            role: "system",
+            content: [
+              {
+                type: "text",
+                text: "compact continuation",
+                cache_control: { type: "ephemeral" },
+              },
+            ],
+          },
+          { role: "user", content: [{ type: "text", text: "latest turn" }] },
+        ],
+        tools: [{ name: "Bash", input_schema: { type: "object", properties: {} } }],
+      },
+      userAgent: "Claude-Code/2.1.220",
+      requestHeaders: { "x-app": "cli", "x-claude-code-session-id": "session-123" },
+      responseFormat: "claude",
+    });
 
-  assert.equal(result.success, true);
-  assert.deepEqual(
-    call.body.messages.map((message: { role: string }) => message.role),
-    ["user", "assistant", "system", "user"]
-  );
-  assert.deepEqual(call.body.messages[2].content[0].cache_control, {
-    type: "ephemeral",
-    ttl: "5m",
+    assert.equal(result.success, true);
+    assert.deepEqual(
+      call.body.messages.map((message: { role: string }) => message.role),
+      ["user", "assistant", "system", "user"]
+    );
+    assert.deepEqual(call.body.messages[2].content[0].cache_control, {
+      type: "ephemeral",
+      ttl: "5m",
+    });
+    assert.equal(
+      call.body.system.some((block: { text?: string }) => block.text === "compact continuation"),
+      false
+    );
+    assert.deepEqual(call.body.messages[3].content[0].cache_control, {
+      type: "ephemeral",
+      ttl: "5m",
+    });
   });
-  assert.equal(
-    call.body.system.some((block: { text?: string }) => block.text === "compact continuation"),
-    false
-  );
-  assert.deepEqual(call.body.messages[3].content[0].cache_control, {
-    type: "ephemeral",
-    ttl: "5m",
-  });
-});
+}
 test("chatCore keeps Claude normalization for non-Claude-Code Claude passthrough", async () => {
   const { call, result } = await invokeChatCore({
     provider: "claude",
