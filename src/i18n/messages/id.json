@@ -1902,6 +1902,9 @@
   "analytics": {
     "title": "Analisis",
     "usageAnalyticsTitle": "Analisis Penggunaan",
+    "tokenDisplayCompact": "Ringkas",
+    "tokenDisplayExact": "Persis",
+    "tokenDisplayMode": "Mode Tampilan Token",
     "diversityScoreTitle": "Keanekaragaman Penyedia",
     "diversityScoreDesc": "Cuplikan konsentrasi penyedia untuk jendela lalu lintas terbaru.",
     "diversityShannonEntropy": "Entropi Shannon",

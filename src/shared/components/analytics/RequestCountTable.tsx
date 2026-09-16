@@ -30,6 +30,7 @@ interface RequestCountTableProps {
   providerLabel: string;
   requestsLabel: string;
   totalLabel: string;
+  displayMode?: "compact" | "exact";
 }
 
 export default function RequestCountTable({
@@ -41,6 +42,7 @@ export default function RequestCountTable({
   providerLabel,
   requestsLabel,
   totalLabel,
+  displayMode = "compact",
 }: RequestCountTableProps) {
   return (
     <div className="overflow-x-auto">
@@ -92,8 +94,13 @@ export default function RequestCountTable({
               <td className="px-4 py-2.5 text-right font-mono font-semibold">
                 {fmtFull(row.requests)}
               </td>
-              <td className="px-4 py-2.5 text-right font-mono text-text-muted">
-                {fmt(row.totalTokens)}
+              <td
+                className="px-4 py-2.5 text-right font-mono text-text-muted"
+                title={
+                  displayMode === "exact" ? `~${fmt(row.totalTokens)}` : fmtFull(row.totalTokens)
+                }
+              >
+                {displayMode === "exact" ? fmtFull(row.totalTokens) : fmt(row.totalTokens)}
               </td>
             </tr>
           ))}
