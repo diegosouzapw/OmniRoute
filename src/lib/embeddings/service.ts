@@ -297,6 +297,18 @@ export async function createEmbeddingResponse(
   }
 
   if (!providerConfig) {
+    // Root cause is otherwise invisible: this 400 is returned before any
+    // call_logs row is written, so a real embedding-provider misconfiguration
+    // (e.g. a customModels override whose id prefix doesn't match its own
+    // connection's provider id, or a stale synced-model cache -- both silent
+    // for months in production) previously left no trace anywhere in
+    // OmniRoute's own logs or dashboard, only in the calling client's log.
+    log.warn(
+      "EMBED",
+      `Unknown embedding provider ${provider} for model "${body.model}" -- checked static ` +
+        "registry, provider_nodes, chat-provider fallback, and the self-hosted synced-endpoint " +
+        "route (customModels override + synced model cache) with no match"
+    );
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
       formatUnknownEmbeddingProviderError(provider, resolvedModel)
