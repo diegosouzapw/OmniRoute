@@ -23,6 +23,7 @@ import { getComboByName, getCombos } from "@/lib/db/combos";
 import { getDatabaseSettings } from "@/lib/db/databaseSettings";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { log } from "@omniroute/open-sse/utils/logger.ts";
+import { saveCallLog } from "@/lib/usageDb";
 
 /**
  * Copy a multipart body, swapping only the `model` field. Combo fan-out needs one
@@ -58,7 +59,9 @@ export async function OPTIONS() {
 async function translateWithModel(
   formData: FormData,
   modelStr: string,
-  startTime: number
+  startTime: number,
+  apiKeyId?: string | null,
+  apiKeyName?: string | null
 ): Promise<Response> {
   // Translation is served by the transcription-capable nodes (Whisper-style
   // endpoints expose both), plus general chat/responses gateways. Remote hosts are
@@ -101,6 +104,10 @@ async function translateWithModel(
     resolvedProvider: providerConfig,
     resolvedModel,
   });
+
+  const connectionId = (credentials as { connectionId?: string } | null)?.connectionId || undefined;
+  const logModel = `${provider}/${resolvedModel}`;
+
   if (response?.ok) {
     await clearRecoveredProviderState(credentials);
     // No text body / playback duration available from the multipart upload, so
@@ -112,6 +119,34 @@ async function translateWithModel(
       latencyMs: Date.now() - startTime,
       requestId: generateRequestId(),
     });
+    saveCallLog({
+      method: "POST",
+      path: "/v1/audio/translations",
+      status: 200,
+      model: logModel,
+      provider,
+      connectionId,
+      duration: Date.now() - startTime,
+      apiKeyId: apiKeyId || undefined,
+      apiKeyName: apiKeyName || undefined,
+    }).catch(() => {});
+  } else if (response) {
+    const errorText = await response
+      .clone()
+      .text()
+      .catch(() => "");
+    saveCallLog({
+      method: "POST",
+      path: "/v1/audio/translations",
+      status: response.status,
+      model: logModel,
+      provider,
+      connectionId,
+      duration: Date.now() - startTime,
+      error: errorText.slice(0, 500),
+      apiKeyId: apiKeyId || undefined,
+      apiKeyName: apiKeyName || undefined,
+    }).catch(() => {});
   }
   return response;
 }
@@ -142,6 +177,12 @@ export async function POST(request) {
   const policy = await enforceApiKeyPolicy(request, modelStr);
   if (policy.rejection) return policy.rejection;
 
+  // Forwarded into translateWithModel() (and combo fan-out below) so the
+  // resulting call_logs row is attributable to the API key that made the
+  // request, matching the pattern every other proxied route follows (#13544).
+  const apiKeyId = policy.apiKeyInfo?.id || null;
+  const apiKeyName = policy.apiKeyInfo?.name || null;
+
   // A bare name (no "/") may be a combo. /v1/models advertises combos, and chat,
   // embeddings and the sibling /v1/audio/transcriptions all resolve them —
   // resolving here too keeps the catalog honest and frees callers from hardcoding
@@ -163,7 +204,13 @@ export async function POST(request) {
           body: { model: modelStr } as any,
           combo: combo as any,
           handleSingleModel: async (_reqBody: any, targetModelStr: string) =>
-            translateWithModel(withModel(formData, targetModelStr), targetModelStr, startTime),
+            translateWithModel(
+              withModel(formData, targetModelStr),
+              targetModelStr,
+              startTime,
+              apiKeyId,
+              apiKeyName
+            ),
           isModelAvailable: undefined,
           log,
           settings,
@@ -177,5 +224,5 @@ export async function POST(request) {
     }
   }
 
-  return translateWithModel(formData, modelStr, startTime);
+  return translateWithModel(formData, modelStr, startTime, apiKeyId, apiKeyName);
 }
