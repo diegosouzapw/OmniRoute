@@ -93,6 +93,7 @@ async function callDelete(headers: Record<string, string>, url: string = ROUTE_U
     deleted?: boolean;
     deletedBatches?: number;
     deletedFiles?: number;
+    hasMore?: boolean;
     error?: { message: string; type?: string; code?: string };
   };
   return { res, body };
@@ -115,6 +116,11 @@ describe("DELETE /api/v1/batches/delete-completed — caller scope (GHSA-wvxc-jp
     assert.strictEqual(body.deleted, true);
     assert.strictEqual(body.deletedBatches, 0, "key A owns no completed batch — nothing to sweep");
     assert.strictEqual(body.deletedFiles, 0);
+    assert.strictEqual(
+      body.hasMore,
+      false,
+      "the response must surface deleteCompletedBatches' hasMore continuation flag (#13680)"
+    );
     assert.ok(getBatch(victim.batch.id), "key B's completed batch must survive key A's sweep");
     assert.strictEqual(
       getFileContent(victim.file.id)?.toString(),
