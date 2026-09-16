@@ -96,9 +96,13 @@ function formatStreamChunk(content: string, model: string, finishReason: string 
  * flatten the full history into one prompt so the web UI still sees the
  * conversation.
  *
- * Single-turn requests are preserved byte-for-byte (only the final user message
- * is returned) — the regression guard for the pre-existing no-tools path.
- * Multi-turn requests emit a labeled transcript:
+ * Single-turn requests with NO system message are preserved byte-for-byte
+ * (only the final user message is returned) — the regression guard for the
+ * pre-existing no-tools path. A single-turn request that DOES carry a system
+ * message prepends it the same way the multi-turn branch does (#13380 — the
+ * old fast path silently dropped the system instruction whenever there was
+ * no prior user/assistant turn, e.g. title generation or a one-shot chat
+ * completion). Multi-turn requests emit a labeled transcript:
  *
  *   System:
  *   <system text>
@@ -125,15 +129,18 @@ export function buildGeminiPrompt(messages: Array<{ role: string; content: unkno
     (m, i) => i < lastUserIdx && (m.role === "user" || m.role === "assistant")
   );
 
-  // Single-turn (no earlier user/assistant turns): byte-for-byte the original
-  // single-message derivation. Do NOT prepend system text here — the old
-  // no-tools path ignored a system-only prefix on the first turn.
-  if (priorTurns.length === 0) return lastUserContent;
-
   const systemText = textMessages
     .filter((m) => m.role === "system")
     .map((m) => m.content)
     .join("\n\n");
+
+  // Single-turn (no earlier user/assistant turns) with no system message:
+  // byte-for-byte the original single-message derivation.
+  if (priorTurns.length === 0 && !systemText) return lastUserContent;
+
+  // Single-turn with a system message (#13380): prepend it instead of
+  // silently dropping it.
+  if (priorTurns.length === 0) return `System:\n${systemText}\n\n${lastUserContent}`;
 
   const historyLines = priorTurns.map(
     (m) => `${m.role === "assistant" ? "Assistant" : "User"}: ${m.content}`
@@ -148,18 +155,29 @@ export function buildGeminiPrompt(messages: Array<{ role: string; content: unkno
 
 /**
  * Build the plain-text prompt typed into the Gemini web UI when a tool
- * contract is active — the synthetic system message injected by
- * `prepareToolMessages()` prepended to the last user message. gemini-web
- * only ever sends a single flat string (no native message array), so the
- * tool contract and the user's ask are concatenated (#7286).
+ * contract is active — every system message (the client's own instruction(s)
+ * plus the synthetic tool contract that `prepareToolMessages()` appends last)
+ * prepended, in order, to the last user message. gemini-web only ever sends
+ * a single flat string (no native message array), so the tool contract and
+ * the user's ask are concatenated (#7286).
+ *
+ * `prepareToolMessages()` (open-sse/translator/webTools.ts) pushes the
+ * synthetic tool contract as the LAST system message so it never buries a
+ * long client system prompt. Picking only the FIRST system message
+ * (`.find()`) therefore dropped the tool contract whenever the client
+ * already sent its own system message — #13380. Joining ALL system messages
+ * in order keeps the client instruction(s) first and the tool contract last,
+ * matching that dual-placement design intent.
  */
 export function buildGeminiToolPrompt(
   effectiveMessages: Array<{ role: string; content: unknown }>
 ): string {
-  const toolSystemMsg = effectiveMessages.find((m) => m.role === "system");
+  const toolPrompt = effectiveMessages
+    .filter((m) => m.role === "system" && typeof m.content === "string")
+    .map((m) => m.content as string)
+    .join("\n\n");
   const lastUserMsg = [...effectiveMessages].reverse().find((m) => m.role === "user");
   const userText = typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
-  const toolPrompt = typeof toolSystemMsg?.content === "string" ? toolSystemMsg.content : "";
   return toolPrompt ? `${toolPrompt}\n\n${userText}` : userText;
 }
 
@@ -456,13 +474,23 @@ export class GeminiWebExecutor extends BaseExecutor {
     // hasTools === false: flatten the full multi-turn history into the single
     // prompt so gemini-web (a stateless web-cookie provider that captures only
     // the first StreamGenerate response) preserves prior context across turns
-    // (#8371). Single-turn requests stay byte-for-byte identical to the original
-    // derivation, keeping the #7286 no-tools regression guard intact.
+    // (#8371). Single-turn requests with no system message stay byte-for-byte
+    // identical to the original derivation; a single-turn system message is
+    // now prepended instead of silently dropped (#13380).
     const prompt = hasTools
       ? buildGeminiToolPrompt(effectiveMessages)
       : buildGeminiPrompt(messages);
 
-    if (!prompt) {
+    // A system-only request (no user message at all) must still 400 — since
+    // #13380 prepends the system text, `prompt` alone is no longer a
+    // reliable "no user message" signal for the no-tools path (it used to be
+    // empty for a system-only request; now it carries the system text).
+    const hasUserMessage = messages.some(
+      (m: { role: string; content: unknown }) =>
+        m.role === "user" && typeof m.content === "string" && m.content.trim().length > 0
+    );
+
+    if (!prompt || (!hasTools && !hasUserMessage)) {
       return {
         response: new Response(JSON.stringify({ error: "No user message found" }), {
           status: 400,
@@ -535,7 +563,14 @@ export class GeminiWebExecutor extends BaseExecutor {
         timeout: 10000,
       });
       await inputEl.click();
-      await page.keyboard.type(prompt, { delay: 10 });
+      // insertText() dispatches a DOM `input` event atomically instead of a
+      // per-character keydown/keypress/keyup sequence (#13380) — an embedded
+      // `\n` in `prompt` (produced by the multi-turn transcript format above,
+      // or by any multiline system/user text) no longer fires the
+      // composer's Enter-submits-the-message handler before this function's
+      // own explicit Enter below. It also removes the fixed 10ms/char typing
+      // cost that made long prompts race the 30s response-wait timeout.
+      await page.keyboard.insertText(prompt);
       await page.waitForTimeout(300);
       await page.keyboard.press("Enter");
 

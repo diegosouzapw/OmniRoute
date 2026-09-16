@@ -11,9 +11,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { GeminiWebExecutor, buildGeminiToolResponse, buildGeminiToolPrompt } = await import(
-  "../../open-sse/executors/gemini-web.ts"
-);
+const { GeminiWebExecutor, buildGeminiToolResponse, buildGeminiToolPrompt } =
+  await import("../../open-sse/executors/gemini-web.ts");
 
 interface ToolCallLike {
   function: { name: string; arguments: string };
@@ -192,11 +191,12 @@ type FakeResponseHandler = (resp: FakePlaywrightResponse) => Promise<void>;
 
 async function withMockedGeminiBrowser<T>(
   responseText: string,
-  fn: (typedPrompt: { value: string }) => Promise<T>
+  fn: (typedPrompt: { value: string }, calls: string[]) => Promise<T>
 ): Promise<T> {
   const playwright = await import("playwright");
   const originalLaunch = playwright.chromium.launch;
   const typedPrompt = { value: "" };
+  const calls: string[] = [];
 
   playwright.chromium.launch = (async () => ({
     newContext: async () => ({
@@ -212,9 +212,15 @@ async function withMockedGeminiBrowser<T>(
           waitForSelector: async () => ({ click: async () => {} }),
           keyboard: {
             type: async (text: string) => {
+              calls.push("type");
+              typedPrompt.value = text;
+            },
+            insertText: async (text: string) => {
+              calls.push("insertText");
               typedPrompt.value = text;
             },
             press: async () => {
+              calls.push("press");
               if (respHandler) {
                 await respHandler({
                   url: () => "https://gemini.google.com/_/BardChatUi/data/.../StreamGenerate?x",
@@ -231,15 +237,14 @@ async function withMockedGeminiBrowser<T>(
   })) as unknown as typeof playwright.chromium.launch;
 
   try {
-    return await fn(typedPrompt);
+    return await fn(typedPrompt, calls);
   } finally {
     playwright.chromium.launch = originalLaunch;
   }
 }
 
 test("#7286: executor integration — tools[] present reaches tool_calls end to end", async () => {
-  const responseText =
-    '<tool>{"name":"get_weather","arguments":{"city":"Berlin"}}</tool>';
+  const responseText = '<tool>{"name":"get_weather","arguments":{"city":"Berlin"}}</tool>';
 
   await withMockedGeminiBrowser(responseText, async () => {
     const executor = new GeminiWebExecutor();
@@ -289,5 +294,30 @@ test("#7286: no-tool passthrough regression — unchanged prompt derivation + re
     assert.equal(choice.message.content, "Just chatting, no tools here.");
     assert.equal(choice.message.tool_calls, undefined);
     assert.equal(choice.finish_reason, "stop");
+  });
+});
+
+test("#13380: the Playwright input uses an atomic insertText, not the per-keystroke type()", async () => {
+  await withMockedGeminiBrowser("ok", async (typedPrompt, calls) => {
+    const executor = new GeminiWebExecutor();
+    const result = await executor.execute({
+      model: "gemini-3.1-pro",
+      body: {
+        messages: [{ role: "user", content: "multi\nline\nprompt" }],
+        stream: false,
+      },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 200);
+    assert.equal(typedPrompt.value, "multi\nline\nprompt");
+    // insertText dispatches one atomic `input` event instead of per-character
+    // keydown/keypress/keyup, so an embedded "\n" cannot fire the composer's
+    // Enter-submits handler ahead of the executor's own explicit Enter below.
+    assert.ok(!calls.includes("type"), "must not use the per-keystroke type() input path");
+    assert.deepEqual(calls, ["insertText", "press"], "insertText once, then Enter exactly once");
   });
 });

@@ -1,0 +1,1 @@
+- **fix(providers):** gemini-web no longer drops the system instruction on single-turn requests or the tool contract when a client system message is present, and switches to an atomic composer insert so embedded newlines can't submit the message early (#13380) — thanks @formilw
