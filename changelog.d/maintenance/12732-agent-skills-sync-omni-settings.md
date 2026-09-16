@@ -1,0 +1,1 @@
+- **chore(skills):** regenerate the `omni-settings` agent skill after the pool egress-observation route landed (#13581), clearing the `check:agent-skills-sync` base-red (#12732)
