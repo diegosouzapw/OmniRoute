@@ -346,6 +346,16 @@
     "running": "MCP 服务器正在运行（{transport}）",
     "stopped": "MCP 服务器已停止。",
     "restarted": "MCP 服务器已重启。",
+    "stoppedHint": "运行 `omniroute mcp enable` 以启用它。",
+    "enabled": "MCP 服务器已启用。",
+    "disabled": "MCP 服务器已禁用。",
+    "enable": {
+      "description": "启用 MCP 服务器",
+      "transport": "要使用的传输方式：stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "禁用 MCP 服务器"
+    },
     "call": {
       "description": "直接调用 MCP 工具",
       "args": "JSON 参数对象（内联）",
