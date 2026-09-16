@@ -72,6 +72,14 @@ Set these in the OmniRoute process environment (the daemon, e.g. via the LaunchA
 
 When you run `npm install -g omniroute`, you may see a wall of warnings like `npm warn ERESOLVE`, peer-dependency notices, and `deprecated` messages. **These are expected and harmless.** Your install succeeded if you see `added <N> packages` in the output.
 
+To suppress the peer-dependency resolution warnings, use OmniRoute's supported install form:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` suppresses `ERESOLVE` and peer-dependency notices only. Deprecation notices remain visible because they come from transitive third-party packages; they do not indicate that the install failed.
+
 The warnings come from stale peer-dependency ranges in third-party packages OmniRoute doesn't control:
 
 1. **`marked-terminal` wants `marked >=1 <16`, found `marked@18`** — works fine in practice; the upstream peer range is just stale.
