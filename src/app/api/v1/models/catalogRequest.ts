@@ -18,6 +18,21 @@ export async function getModelCatalogAuthRejection(
   if (!authRequired) return null;
   if (settings.requireAuthForModels === false) return null;
 
+  // Keyless local-first guard (#13354): when no management auth is configured
+  // (no password, no OIDC, no INITIAL_PASSWORD, and no API keys in the DB),
+  // skip auth for /v1/models. This preserves the pre-#9320 posture for
+  // installs that deliberately chose not to set up any auth, while still
+  // requiring auth when management credentials exist.
+  const hasPassword =
+    typeof settings.password === "string" && settings.password.length > 0;
+  const hasOidc = settings.oidcEnabled === true;
+  const hasInitialPassword = !!process.env.INITIAL_PASSWORD;
+  if (!hasPassword && !hasOidc && !hasInitialPassword) {
+    const { getApiKeys } = await import("@/lib/db/apiKeys");
+    const keys = await getApiKeys(1);
+    if (keys.length === 0) return null;
+  }
+
   const apiKey = extractApiKey(request);
   if (apiKey) {
     if (await validateCatalogApiKey(apiKey)) return null;
