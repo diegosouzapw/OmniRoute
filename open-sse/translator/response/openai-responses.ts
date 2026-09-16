@@ -9,6 +9,7 @@ import { projectCompletedStreamError } from "../../utils/streamErrorFormat.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
 import { getReadableReasoningValue } from "../../utils/reasoningFields.ts";
+import { resolveResponsesCacheUsageDetails } from "../../utils/resolveResponsesCacheUsageDetails.ts";
 import {
   isInternalReasoningPlaceholder,
   stripInternalReasoningPlaceholder,
@@ -132,10 +133,9 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
       output_tokens,
       total_tokens: u.total_tokens ?? input_tokens + output_tokens,
     };
-    const cachedTokens =
-      u.input_tokens_details?.cached_tokens ?? u.prompt_tokens_details?.cached_tokens;
-    if (cachedTokens) {
-      state.usage.input_tokens_details = { cached_tokens: cachedTokens };
+    const cacheDetails = resolveResponsesCacheUsageDetails(u);
+    if (cacheDetails) {
+      state.usage.input_tokens_details = cacheDetails;
     }
     const reasoningTokens =
       u.output_tokens_details?.reasoning_tokens ?? u.completion_tokens_details?.reasoning_tokens;
