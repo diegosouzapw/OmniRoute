@@ -1177,6 +1177,7 @@ changing them requires a code edit, not an env var:
 | `CURSOR_STREAM_DEBUG`            | _(unset)_           | `open-sse/executors/cursor.ts`             | Backward-compatible alias of `CURSOR_DEBUG`.                                                 |
 | `CURSOR_DUMP_FILE`               | _(unset)_           | `open-sse/executors/cursor.ts`             | Optional file path that receives raw decoded Cursor chunks when `CURSOR_DEBUG=1`.            |
 | `CURSOR_STREAM_TIMEOUT_MS`       | `300000`            | `open-sse/executors/cursor.ts`             | Stream idle timeout (ms) for the Cursor executor.                                            |
+| `CURSOR_KV_GRACE_MS`             | `2000`              | `open-sse/executors/cursor.ts`             | Grace window (ms) after a composer kv_after_text soft terminator when bytes remain buffered — gives a trailing exec_mcp tool call time to complete its frame. |
 | `CURSOR_TOOL_DIRECTIVE`          | enabled (`!== "0"`) | `open-sse/executors/cursor.ts`             | Tool-commit directive that makes composer-2.5 reliably issue tool calls. Set `0` to disable. |
 | `CURSOR_IMAGE_FETCH_TIMEOUT_MS`  | `15000`             | `open-sse/utils/cursorImages.ts`           | Per-image fetch timeout (ms) for remote `image_url` vision input.                            |
 | `CURSOR_STATE_DB_PATH`           | _(probed)_          | `open-sse/utils/cursorVersionDetector.ts`  | Override the Cursor IDE state DB lookup used for IDE version detection.                      |
