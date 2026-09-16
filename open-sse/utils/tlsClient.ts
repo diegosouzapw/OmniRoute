@@ -5,7 +5,13 @@ import { getTlsClientTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 // import the first-byte watchdog alongside TlsClient without adding a line.
 export { guardTlsFirstByte } from "./tlsFirstByteWatchdog.ts";
 
-const runtimeRequire = nodeModule.createRequire(import.meta.url);
+// #12491 — anchor on process.argv[1]||cwd() rather than import.meta.url: the
+// standalone Docker runtime re-lays-out files at a different relative depth
+// than the build, so an import.meta.url-relative resolution can miss even
+// though this loader already keeps the specifier itself dynamic (see
+// loadRuntimeModule() below). Matches src/lib/machineToken.ts and
+// src/lib/db/adapters/runtimeRequire.ts's established anchor pattern.
+const runtimeRequire = nodeModule.createRequire(process.argv[1] || process.cwd());
 
 function loadRuntimeModule(moduleName: string): unknown {
   // Keep the specifier dynamic. Turbopack rewrites a literal createRequire call
