@@ -6,6 +6,7 @@ import {
   resolveProxyForRequest,
   runWithProxyContext,
   runWithTlsTracking,
+  isTlsFingerprintActive,
   setTlsClientForTest,
 } from "../../open-sse/utils/proxyFetch.ts";
 import tlsClient, {
@@ -317,6 +318,109 @@ test("new proxied TLS transport requires an explicit provider allowlist", async 
       assert.equal(tlsCalls, 0);
       assert.equal(dispatcherCalls, 1);
       assert.equal(await tracked.result.text(), "dispatcher");
+    },
+  );
+});
+
+test("direct TLS fingerprint skips Groq even when the provider allowlist is unset", async () => {
+  await withEnv(
+    {
+      ENABLE_TLS_FINGERPRINT: "true",
+      TLS_FINGERPRINT_PROVIDERS: undefined,
+    },
+    async () => {
+      let tlsCalls = 0;
+      let dispatcherCalls = 0;
+      setTlsClientForTest(
+        fakeTlsClient(async () => {
+          tlsCalls++;
+          return new Response("tls");
+        }),
+      );
+
+      const tracked = await runWithTlsTracking("groq", () =>
+        proxyFetch("https://api.groq.com/openai/v1/models", {}, {
+          undiciFetch: async () => {
+            dispatcherCalls++;
+            return new Response("dispatcher");
+          },
+        }),
+      );
+
+      assert.equal(tlsCalls, 0);
+      assert.equal(dispatcherCalls, 1);
+      assert.equal(await tracked.result.text(), "dispatcher");
+      assert.equal(tracked.tlsFingerprintUsed, false);
+      assert.equal(isTlsFingerprintActive("groq"), false);
+    },
+  );
+});
+
+test("direct TLS fingerprint skips api.groq.com when the tracking store has no provider", async () => {
+  await withEnv(
+    {
+      ENABLE_TLS_FINGERPRINT: "true",
+      TLS_FINGERPRINT_PROVIDERS: undefined,
+    },
+    async () => {
+      let tlsCalls = 0;
+      let dispatcherCalls = 0;
+      setTlsClientForTest(
+        fakeTlsClient(async () => {
+          tlsCalls++;
+          return new Response("tls");
+        }),
+      );
+
+      const tracked = await runWithTlsTracking(async () =>
+        proxyFetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          body: "{}",
+        }, {
+          undiciFetch: async () => {
+            dispatcherCalls++;
+            return new Response("dispatcher");
+          },
+        }),
+      );
+
+      assert.equal(tlsCalls, 0);
+      assert.equal(dispatcherCalls, 1);
+      assert.equal(await tracked.result.text(), "dispatcher");
+      assert.equal(tracked.tlsFingerprintUsed, false);
+    },
+  );
+});
+
+test("direct TLS fingerprint still spoofs non-Groq hosts when the allowlist is unset", async () => {
+  await withEnv(
+    {
+      ENABLE_TLS_FINGERPRINT: "true",
+      TLS_FINGERPRINT_PROVIDERS: undefined,
+    },
+    async () => {
+      let tlsCalls = 0;
+      let dispatcherCalls = 0;
+      setTlsClientForTest(
+        fakeTlsClient(async () => {
+          tlsCalls++;
+          return new Response("tls");
+        }),
+      );
+
+      const tracked = await runWithTlsTracking("openai", () =>
+        proxyFetch("https://api.openai.com/v1/models", {}, {
+          undiciFetch: async () => {
+            dispatcherCalls++;
+            return new Response("dispatcher");
+          },
+        }),
+      );
+
+      assert.equal(tlsCalls, 1);
+      assert.equal(dispatcherCalls, 0);
+      assert.equal(await tracked.result.text(), "tls");
+      assert.equal(tracked.tlsFingerprintUsed, true);
     },
   );
 });
