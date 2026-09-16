@@ -1,0 +1,1 @@
+- **fix(api):** accept `blockedModels` in the key permissions update schema so the deny-list half of per-key model policy is no longer silently stripped before it reaches the route
