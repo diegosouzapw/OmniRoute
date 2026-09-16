@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useSyncExternalStore,
-  type CSSProperties,
-} from "react";
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore, useId } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
@@ -38,7 +31,6 @@ import {
   normalizeHiddenSidebarItems,
   applySectionOrder,
   applyItemOrder,
-  getSidebarIconAccent,
   isSidebarItemVisibleForFlags,
   resolveRuntimeSidebarSections,
   type SidebarSectionId,
@@ -51,11 +43,6 @@ const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 const DEFAULT_EXPANDED: SidebarSectionId = "omni-proxy";
 const EXPANDED_SECTIONS_KEY = "sidebar-expanded-sections";
 const PINNED_SECTIONS_KEY = "sidebar-pinned-sections";
-
-type SidebarGlyphStyle = CSSProperties & {
-  "--sidebar-icon-accent": string;
-  color: string;
-};
 
 type SidebarProps = {
   onClose?: () => void;
@@ -111,14 +98,14 @@ export default function Sidebar({
   onToggleCollapse,
   isMacElectron = false,
 }: SidebarProps) {
-  const getIconStyle = (itemId: string): SidebarGlyphStyle => {
-    const accent = getSidebarIconAccent(itemId);
-    return {
-      "--sidebar-icon-accent": accent,
-      color: accent,
-    };
-  };
+  const navigationId = useId();
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const pathname = usePathname();
+  const [groupPathname, setGroupPathname] = useState(pathname);
+  if (groupPathname !== pathname) {
+    setGroupPathname(pathname);
+    setExpandedGroups({});
+  }
   const t = useTranslations("sidebar");
   const tc = useTranslations("common");
   const sidebarRef = useRef<HTMLElement>(null);
@@ -447,11 +434,11 @@ export default function Sidebar({
   const renderNavLink = (item) => {
     const active = !item.external && activeHref === item.href;
     const className = cn(
-      "flex items-center gap-3 rounded-lg transition-all group",
-      collapsed ? "justify-center px-2 py-2.5" : "px-3 py-1.5",
+      "relative flex min-h-10 items-center gap-3 rounded-lg transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-main",
+      collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2",
       active
-        ? "bg-primary/10 text-primary"
-        : "text-text-muted hover:bg-surface/50 hover:text-text-main"
+        ? "bg-surface text-text-main shadow-sm ring-1 ring-border before:absolute before:start-0 before:inset-y-2.5 before:w-0.5 before:rounded-full before:bg-primary"
+        : "text-text-main/75 hover:bg-surface/70 hover:text-text-main"
     );
     const iconClassName = cn(
       "material-symbols-outlined text-[18px] shrink-0",
@@ -459,20 +446,21 @@ export default function Sidebar({
     );
     const content = (
       <>
-        <span className={iconClassName} style={getIconStyle(item.id)}>
+        <span aria-hidden="true" className={iconClassName}>
           {item.icon}
         </span>
         {!collapsed && (
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate text-sm font-medium">{item.label}</span>
-            {item.subtitle && (
-              <span className="truncate text-[10px] text-text-muted/60">{item.subtitle}</span>
-            )}
-          </div>
+          <span
+            className={cn("min-w-0 text-sm leading-5", active ? "font-semibold" : "font-medium")}
+          >
+            {item.label}
+          </span>
         )}
       </>
     );
     const sharedProps = {
+      "aria-label": item.label,
+      title: item.subtitle ? `${item.label} — ${item.subtitle}` : item.label,
       onMouseEnter: (e: React.MouseEvent<HTMLElement>) => handleMouseEnter(e, item.id, item.label),
       onMouseLeave: handleMouseLeave,
     };
@@ -498,6 +486,7 @@ export default function Sidebar({
         key={item.href}
         href={item.href}
         prefetch={false}
+        aria-current={active ? "page" : undefined}
         onClick={onClose}
         className={className}
         {...sharedProps}
@@ -513,7 +502,7 @@ export default function Sidebar({
         ref={sidebarRef}
         className={cn(
           "flex h-full min-h-0 flex-col border-r border-black/5 bg-sidebar transition-all duration-300 ease-in-out dark:border-white/5",
-          collapsed ? "w-16" : "w-[220px]"
+          collapsed ? "w-16" : "w-[264px] max-w-[calc(100vw-48px)]"
         )}
         style={{ paddingTop: isMacElectron ? "var(--desktop-safe-top)" : undefined }}
       >
@@ -524,73 +513,67 @@ export default function Sidebar({
           {t("skipToContent")}
         </a>
 
-        {(onToggleCollapse || !isMacElectron) && (
-          <div
-            className={cn(
-              "flex items-center gap-2 pb-2",
-              isMacElectron ? "pt-3" : "pt-5",
-              collapsed ? "px-3 justify-center" : "px-4"
-            )}
-            aria-hidden="true"
-          >
-            {!isMacElectron && (
-              <>
-                <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-                <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-                <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
-              </>
-            )}
-            {!collapsed && <div className="flex-1" />}
-            {onToggleCollapse && (
-              <button
-                onClick={onToggleCollapse}
-                title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
-                aria-expanded={!collapsed}
-                aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
-                className={cn(
-                  "rounded-md p-1 text-text-muted/50 transition-colors hover:bg-black/5 hover:text-text-muted dark:hover:bg-white/5",
-                  collapsed && !isMacElectron && "mt-2",
-                  isMacElectron && "ms-auto"
-                )}
-              >
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                  {collapsed ? "chevron_right" : "chevron_left"}
-                </span>
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className={cn("py-3", collapsed ? "px-2" : "px-4")}>
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-2 py-5",
+            collapsed ? "flex-col px-2" : "px-5"
+          )}
+        >
           <Link
             href="/home"
             prefetch={false}
-            className={cn("flex items-center", collapsed ? "justify-center" : "gap-2.5")}
+            aria-label={customAppName || APP_CONFIG.name}
+            className={cn(
+              "flex min-w-0 items-center rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4",
+              collapsed ? "justify-center" : "flex-1 gap-3"
+            )}
           >
-            <div className="flex items-center justify-center size-8 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
               {customLogo ? (
-                <img
-                  src={customLogo}
-                  alt={customAppName || APP_CONFIG.name}
-                  className="size-5 object-contain"
-                />
+                <img src={customLogo} alt="" className="size-6 object-contain" />
               ) : (
-                <OmniRouteLogo size={18} className="text-white" />
+                <OmniRouteLogo size={22} />
               )}
             </div>
             {!collapsed && (
-              <div className="flex flex-col min-w-0">
-                <h1 className="text-sm font-semibold tracking-tight text-text-main truncate">
+              <div className="min-w-0">
+                <h1 className="truncate text-base font-semibold tracking-tight text-text-main">
                   {customAppName || APP_CONFIG.name}
                 </h1>
-                <span className="text-[10px] text-text-muted">v{APP_CONFIG.version}</span>
+                <span className="text-xs text-text-main/70">v{APP_CONFIG.version}</span>
               </div>
             )}
           </Link>
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              aria-expanded={!collapsed}
+              aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
+              title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
+              className="flex size-8 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-text-main focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                {collapsed ? "left_panel_open" : "left_panel_close"}
+              </span>
+            </button>
+          )}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={tc("close")}
+              className="flex size-11 shrink-0 items-center justify-center rounded-lg text-text-main hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+                close
+              </span>
+            </button>
+          )}
         </div>
 
         {!collapsed && (
-          <div className="px-4 pb-2">
+          <div className="px-4 pb-4">
             <Input
               type="search"
               value={searchQuery}
@@ -599,7 +582,7 @@ export default function Sidebar({
               aria-label={tc("search")}
               icon="search"
               className="gap-0"
-              inputClassName="py-1.5 text-xs"
+              inputClassName="min-h-10 py-2 text-sm bg-surface/70"
             />
           </div>
         )}
@@ -607,12 +590,12 @@ export default function Sidebar({
         <nav
           aria-label={t("mainNavigation")}
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto py-1 custom-scrollbar",
+            "min-h-0 flex-1 overflow-y-auto pb-4 custom-scrollbar",
             collapsed ? "px-2 space-y-0.5" : "px-3"
           )}
         >
           {isSearching && displaySections.length === 0 && (
-            <p className="px-2 py-3 text-xs text-text-muted/60">{tc("noResults")}</p>
+            <p className="px-2 py-3 text-xs text-text-main/70">{tc("noResults")}</p>
           )}
           {displaySections.map((section, idx) => {
             const sectionId = section.id as SidebarSectionId;
@@ -646,69 +629,101 @@ export default function Sidebar({
 
             // Expanded mode: collapsible section with pin
             return (
-              <div key={section.id} className={isFirst ? "space-y-0.5" : "mt-2"}>
-                <div
-                  className="flex items-center gap-0.5 px-2 py-1 rounded-md hover:bg-surface/30 transition-colors cursor-pointer group/header"
-                  onClick={() => toggleSection(sectionId)}
-                  role="button"
-                  aria-expanded={isExpanded}
-                >
-                  <span className="flex-1 text-[10px] font-semibold text-text-muted/60 uppercase tracking-wider group-hover/header:text-text-muted/90 transition-colors">
-                    {section.title}
-                  </span>
-
-                  {/* Pin button — right side near chevron */}
+              <div
+                key={section.id}
+                className={isFirst ? "space-y-1" : "mt-4 border-t border-border pt-3"}
+              >
+                <div className="group/header flex items-center gap-1">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      togglePin(sectionId);
-                    }}
+                    type="button"
+                    onClick={() => toggleSection(sectionId)}
+                    aria-expanded={isExpanded}
+                    aria-controls={`${navigationId}-${section.id}`}
+                    className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-2 rounded-lg px-3 text-start text-xs font-semibold tracking-wide text-text-main/80 hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    {section.title}
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "material-symbols-outlined text-[16px] transition-transform",
+                        isExpanded && "rotate-180"
+                      )}
+                    >
+                      expand_more
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => togglePin(sectionId)}
+                    aria-label={`${isPinned ? t("unpinSection") : t("pinSectionOpen")}: ${section.title}`}
+                    aria-pressed={isPinned}
                     title={isPinned ? t("unpinSection") : t("pinSectionOpen")}
                     className={cn(
-                      "p-0.5 rounded transition-all shrink-0",
+                      "flex size-8 shrink-0 items-center justify-center rounded-lg transition-opacity hover:bg-surface focus-visible:opacity-100 focus-visible:outline-2",
                       isPinned
-                        ? "text-primary opacity-100"
-                        : "text-text-muted/30 opacity-0 group-hover/header:opacity-100 hover:text-text-muted/70"
+                        ? "text-text-main"
+                        : "text-text-muted opacity-0 group-hover/header:opacity-100 group-focus-within/header:opacity-100"
                     )}
                   >
                     <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontSize: "10px",
-                        ...(isPinned ? { fontVariationSettings: "'FILL' 1" } : {}),
-                      }}
+                      aria-hidden="true"
+                      className="material-symbols-outlined text-[14px]"
+                      style={isPinned ? { fontVariationSettings: "'FILL' 1" } : undefined}
                     >
                       push_pin
                     </span>
                   </button>
-
-                  <span
-                    className={cn(
-                      "material-symbols-outlined text-[14px] text-text-muted/40 transition-all duration-200 group-hover/header:text-text-muted/70 shrink-0",
-                      isExpanded && "rotate-180"
-                    )}
-                  >
-                    expand_more
-                  </span>
                 </div>
 
                 {isExpanded && (
-                  <div className="mt-0.5 space-y-0.5">
+                  <div id={`${navigationId}-${section.id}`} className="mt-1 space-y-1">
                     {section.children.map((child: any) => {
                       if (child.type === "group") {
                         if (child.items.length === 0) return null;
                         const separatorHidden = child.separatorHidden === true;
+                        const groupExpanded =
+                          separatorHidden ||
+                          isSearching ||
+                          (expandedGroups[child.id] ??
+                            child.items.some((item) => item.href === activeHref));
                         return (
-                          <div key={child.id} className={separatorHidden ? "mt-0.5" : "mt-2"}>
+                          <div key={child.id} className="mt-2">
                             {!separatorHidden && (
-                              <div className="flex items-center gap-1.5 px-2 py-0.5 mb-0.5">
-                                <div className="h-px flex-1 bg-black/8 dark:bg-white/8" />
-                                <span className="text-[8px] font-semibold text-text-muted/40 uppercase tracking-widest">
-                                  {child.title}
+                              <button
+                                type="button"
+                                aria-expanded={groupExpanded}
+                                aria-controls={`${navigationId}-${child.id}`}
+                                onClick={() =>
+                                  setExpandedGroups((previous) => ({
+                                    ...previous,
+                                    [child.id]: !groupExpanded,
+                                  }))
+                                }
+                                className="flex min-h-10 w-full items-center justify-between gap-2 rounded-lg px-3 text-start text-xs font-semibold text-text-main/80 hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2"
+                              >
+                                {child.title}
+                                <span
+                                  aria-hidden="true"
+                                  className={cn(
+                                    "material-symbols-outlined text-[16px] transition-transform",
+                                    groupExpanded && "rotate-90"
+                                  )}
+                                >
+                                  chevron_right
                                 </span>
+                              </button>
+                            )}
+                            {groupExpanded && (
+                              <div
+                                id={`${navigationId}-${child.id}`}
+                                className={cn(
+                                  "space-y-1",
+                                  !separatorHidden && "ms-3 border-s border-border ps-2"
+                                )}
+                              >
+                                {child.items.map(renderNavLink)}
                               </div>
                             )}
-                            {child.items.map(renderNavLink)}
                           </div>
                         );
                       }
@@ -735,25 +750,31 @@ export default function Sidebar({
           <button
             onClick={() => setShowRestartModal(true)}
             title={t("restart")}
+            aria-label={t("restart")}
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
-              "text-amber-500 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40",
-              collapsed ? "p-2" : "flex-1 min-w-0 px-2 py-1.5 text-xs"
+              "text-text-main/70 hover:bg-surface hover:text-text-main",
+              collapsed ? "min-h-10 p-2" : "flex-1 min-h-11 min-w-0 px-2 py-2 text-xs"
             )}
           >
-            <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+            <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+              restart_alt
+            </span>
             {!collapsed && <span className="truncate">{t("restart")}</span>}
           </button>
           <button
             onClick={() => setShowShutdownModal(true)}
             title={t("shutdown")}
+            aria-label={t("shutdown")}
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
-              "text-red-500 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/40",
-              collapsed ? "p-2" : "flex-1 min-w-0 px-2 py-1.5 text-xs"
+              "text-text-main/70 hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300",
+              collapsed ? "min-h-10 p-2" : "flex-1 min-h-11 min-w-0 px-2 py-2 text-xs"
             )}
           >
-            <span className="material-symbols-outlined text-[16px]">power_settings_new</span>
+            <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+              power_settings_new
+            </span>
             {!collapsed && <span className="truncate">{t("shutdown")}</span>}
           </button>
         </div>
