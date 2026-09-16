@@ -15,6 +15,8 @@
  * See docs/reference/API_REFERENCE.md → "Responses over WebSocket (Codex)".
  */
 
+import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
+
 export interface ResolvedModelInfo {
   provider?: string;
   model?: string;
@@ -35,6 +37,17 @@ export async function resolveCodexWsModelInfo(
   requestedModel: string,
   resolve: ModelResolver
 ): Promise<ResolvedModelInfo> {
+  // Quota-shared model name (qtSd/<group>/<provider>/<model>) → unwrap underlying provider & model
+  if (isQuotaModelName(requestedModel)) {
+    const parsed = parseQuotaModelName(requestedModel);
+    if (parsed) {
+      return {
+        provider: parsed.provider,
+        model: parsed.model,
+      };
+    }
+  }
+
   const info = await resolve(requestedModel);
 
   // Already codex, or explicitly provider-prefixed → respect it.

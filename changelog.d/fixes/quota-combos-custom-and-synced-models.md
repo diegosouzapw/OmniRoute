@@ -1,0 +1,1 @@
+- **fix(shared):** quota-combo sync now unions custom and synced-upstream models with the static provider registry, and quota-share (`qtSd/`) models resolve through the existing WS→HTTP `426` fallback instead of failing to resolve
