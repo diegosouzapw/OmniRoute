@@ -1153,6 +1153,11 @@ export class OpencodeExecutor extends BaseExecutor {
     }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
+      // OpenCode accepts stream_options only on streaming Chat Completions (#13699).
+      const format = this._requestFormat ?? resolveOpencodeTargetFormat(this.provider, model);
+      if (format !== "openai" || mb.stream !== true) {
+        delete mb.stream_options;
+      }
       const parsed = parseEffortLevel(model);
       if (parsed) {
         const deepseekFamily =
