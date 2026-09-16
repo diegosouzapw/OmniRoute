@@ -107,7 +107,7 @@ test("Gemini -> Claude stream: functionCall becomes tool_use and MAX_TOKENS maps
   assert.equal(result[2].delta.partial_json, JSON.stringify({ path: "/tmp/a" }));
   assert.equal(result[3].type, "content_block_stop");
   assert.equal(result[4].delta.stop_reason, "tool_use");
-  assert.equal(result[4].usage.input_tokens, 5);
+  assert.equal(result[4].usage.input_tokens, 4);
   assert.equal(result[4].usage.output_tokens, 5);
   assert.equal(result[4].usage.cache_read_input_tokens, 1);
   assert.equal(result[5].type, "message_stop");
@@ -189,4 +189,53 @@ test("Gemini -> Claude stream: response wrapper is supported and promptFeedback-
   assert.equal(wrapped[0].type, "message_start");
   assert.equal(wrapped[2].delta.text, "wrapped");
   assert.equal(geminiToClaudeResponse({ promptFeedback: { blockReason: "SAFETY" } }, {}), null);
+});
+
+test("Gemini -> Claude stream: input_tokens excludes cached tokens", () => {
+  const result = geminiToClaudeResponse(
+    {
+      responseId: "resp-6",
+      modelVersion: "gemini-2.5-pro",
+      candidates: [
+        {
+          content: { parts: [{ text: "done" }] },
+          finishReason: "STOP",
+        },
+      ],
+      usageMetadata: {
+        promptTokenCount: 100,
+        candidatesTokenCount: 7,
+        cachedContentTokenCount: 90,
+      },
+    },
+    {}
+  );
+
+  const delta = result.find((event) => event.type === "message_delta");
+  assert.equal(delta.usage.input_tokens, 10);
+  assert.equal(delta.usage.cache_read_input_tokens, 90);
+});
+
+test("Gemini -> Claude stream: input_tokens equals promptTokenCount when nothing is cached", () => {
+  const result = geminiToClaudeResponse(
+    {
+      responseId: "resp-7",
+      modelVersion: "gemini-2.5-pro",
+      candidates: [
+        {
+          content: { parts: [{ text: "done" }] },
+          finishReason: "STOP",
+        },
+      ],
+      usageMetadata: {
+        promptTokenCount: 100,
+        candidatesTokenCount: 7,
+      },
+    },
+    {}
+  );
+
+  const delta = result.find((event) => event.type === "message_delta");
+  assert.equal(delta.usage.input_tokens, 100);
+  assert.equal(delta.usage.cache_read_input_tokens, undefined);
 });
