@@ -38,6 +38,7 @@ import {
   type IngestBudgetAcquireResult,
 } from "./ingestByteAdmission";
 import {
+  getAdmissionResourcePressureSeverity,
   getResourcePressureObservation,
   type PressureSeverity,
 } from "@omniroute/open-sse/utils/resourcePressure.ts";
@@ -217,8 +218,8 @@ export type ChatAdmissionShedReason =
   | "inflight_bytes_budget"
   | "resource_pressure";
 
-/** Read cached pressure severity; sampling failures must not cause false sheds. */
-export function defaultPressureSeverity(): PressureSeverity {
+/** Cached pressure for diagnostics only; request decisions use the freshness-aware async seam. */
+function cachedPressureSeverityForDiagnostics(): PressureSeverity {
   try {
     return getResourcePressureObservation().state.severity;
   } catch {
@@ -773,7 +774,7 @@ export const perConnectionAdmissionController = new PerConnectionAdmissionContro
     budget: {
       maxInflightBytes: productionIngestBudget.bytes,
       budgetSource: productionIngestBudget.source,
-      checkPressureSeverity: defaultPressureSeverity,
+      checkPressureSeverity: cachedPressureSeverityForDiagnostics,
     },
   }
 );
@@ -1005,7 +1006,15 @@ export async function admitChatRequest(
   // #503-fanout: shed before spending any bytes on ingestion when the process
   // is under genuine critical resource pressure. No-op for every controller a
   // test constructs directly (default severity is always "normal").
-  if (controller.pressureSeverity() === "critical") {
+  let pressureSeverity: PressureSeverity;
+  try {
+    pressureSeverity = options.controller
+      ? controller.pressureSeverity()
+      : await getAdmissionResourcePressureSeverity();
+  } catch {
+    pressureSeverity = "normal";
+  }
+  if (pressureSeverity === "critical") {
     controller.recordShed("resource_pressure", sessionId);
     return { admit: false, response: resourcePressureRejectionResponse() };
   }
@@ -1039,9 +1048,8 @@ export async function admitChatRequest(
     // every controller a test constructs directly, so this resolves
     // synchronously true there — only the production singleton (built with a
     // real host-derived budget) is ever actually gated by it.
-    const severity = controller.pressureSeverity();
     const budgetWaitMs =
-      severity === "high" ? queueMs : Math.min(queueMs, INGEST_NORMAL_MAX_WAIT_MS);
+      pressureSeverity === "high" ? queueMs : Math.min(queueMs, INGEST_NORMAL_MAX_WAIT_MS);
     const budgetResult = await controller.acquireBudgetWithin(
       bytes,
       budgetWaitMs,
