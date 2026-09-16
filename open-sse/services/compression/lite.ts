@@ -157,6 +157,7 @@ export function removeRedundantContent(
     const contentStr = typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content);
     if (
       i > 0 &&
+      msg.role !== "tool" &&
       body.messages[i - 1].role === msg.role &&
       typeof body.messages[i - 1].content === "string" &&
       body.messages[i - 1].content === contentStr
