@@ -1,0 +1,1 @@
+- **fix(api):** Setting `DISABLE_SQLITE_AUTO_BACKUP=true` no longer makes the API-key rate limiter and auth cache skip Redis, which let every replica enforce the full per-key limit on its own ([#13329](https://github.com/diegosouzapw/OmniRoute/pull/13329))
