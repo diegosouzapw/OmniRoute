@@ -17,6 +17,7 @@ import { DEFAULT_MODEL_TEST_TIMEOUT_MS, runSingleModelTest } from "@/lib/api/mod
 import { setModelIsHidden } from "@/lib/db/models";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getSettings } from "@/lib/db/settings";
+import { getProviderConnections } from "@/lib/db/providers";
 import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 import * as log from "@/sse/utils/logger";
 
@@ -93,6 +94,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validation.error.format() }, { status: 400 });
   }
   const { providerId, modelIds, connectionId, respectRateLimit, autoHideFailed } = validation.data;
+  const providerConnections = await getProviderConnections({ provider: providerId });
+  if (providerConnections.length > 0 && providerConnections.every((connection) => connection.isActive === false)) {
+    return NextResponse.json({ error: { message: `Provider ${providerId} has no active connections` } }, { status: 409 });
+  }
 
   // #6328 (follow-up to #6495): REMOVE — not just hide — paid Test-all dispatches
   // when hidePaidModels is on. Paid ids are skipped inside the loop with a
