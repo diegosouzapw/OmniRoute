@@ -52,7 +52,9 @@ export function looksLikeServiceAccountJson(apiKey: string): boolean {
 
 /** True for a Vertex AI Express-mode API key (a non-empty, non-JSON, non-OAuth credential). */
 export function isExpressApiKey(apiKey?: string | null): boolean {
-  return typeof apiKey === "string" && apiKey.trim().length > 0 && !looksLikeServiceAccountJson(apiKey);
+  return (
+    typeof apiKey === "string" && apiKey.trim().length > 0 && !looksLikeServiceAccountJson(apiKey)
+  );
 }
 
 export async function getAccessToken(sa: ServiceAccount): Promise<string> {
@@ -146,6 +148,45 @@ function isClaudeModel(model: string) {
   return model.toLowerCase().startsWith("claude-");
 }
 
+// Vertex does not support Anthropic's optional one-hour prompt-cache TTL on these
+// legacy Claude models. Keep the breakpoint, but omit ttl so Vertex uses its
+// documented five-minute ephemeral cache instead of rejecting the request.
+const VERTEX_ONE_HOUR_TTL_UNSUPPORTED = new Set([
+  "claude-3-7-sonnet",
+  "claude-3-5-sonnet-v2",
+  "claude-3-5-sonnet",
+  "claude-3-opus",
+]);
+
+function downgradeUnsupportedVertexClaudeTtl(body: Record<string, unknown>, model: string): void {
+  const normalizedModel = model.toLowerCase().split("@", 1)[0];
+  if (!VERTEX_ONE_HOUR_TTL_UNSUPPORTED.has(normalizedModel)) return;
+
+  const normalizeBlock = (block: unknown) => {
+    if (!block || typeof block !== "object" || Array.isArray(block)) return;
+    const record = block as Record<string, unknown>;
+    const cacheControl = record.cache_control;
+    if (!cacheControl || typeof cacheControl !== "object" || Array.isArray(cacheControl)) return;
+    const control = cacheControl as Record<string, unknown>;
+    if (control.type === "ephemeral" && control.ttl === "1h") delete control.ttl;
+  };
+
+  const system = body.system;
+  if (Array.isArray(system)) system.forEach(normalizeBlock);
+
+  const messages = body.messages;
+  if (Array.isArray(messages)) {
+    for (const message of messages) {
+      if (!message || typeof message !== "object" || Array.isArray(message)) continue;
+      const content = (message as Record<string, unknown>).content;
+      if (Array.isArray(content)) content.forEach(normalizeBlock);
+    }
+  }
+
+  const tools = body.tools;
+  if (Array.isArray(tools)) tools.forEach(normalizeBlock);
+}
+
 // Defensive normalizer: target-format resolution for manually-added custom Claude models under
 // "vertex"/"vertex-partner" was observed sending a Gemini-shaped body (contents/parts) to the
 // Anthropic rawPredict endpoint instead of the configured "claude" format, causing a hard
@@ -153,7 +194,8 @@ function isClaudeModel(model: string) {
 // converts a Gemini-shaped body to Anthropic Messages shape so the executor works either way,
 // independent of that unresolved upstream resolution gap.
 function toAnthropicBody(body: Record<string, unknown>): Record<string, unknown> {
-  const contents = body.contents as Array<{ role?: string; parts?: Array<{ text?: string }> }> | undefined;
+  const contents = body.contents as
+    Array<{ role?: string; parts?: Array<{ text?: string }> }> | undefined;
   if (!Array.isArray(contents)) return body;
 
   const messages = contents.map((c) => ({
@@ -161,7 +203,8 @@ function toAnthropicBody(body: Record<string, unknown>): Record<string, unknown>
     content: (c.parts || []).map((p) => p.text || "").join(""),
   }));
   const generationConfig = body.generationConfig as { maxOutputTokens?: number } | undefined;
-  const systemInstruction = body.systemInstruction as { parts?: Array<{ text?: string }> } | undefined;
+  const systemInstruction = body.systemInstruction as
+    { parts?: Array<{ text?: string }> } | undefined;
 
   const converted: Record<string, unknown> = {
     messages,
@@ -186,6 +229,16 @@ function synthesizeClaudeSse(response: Record<string, unknown>): string {
   const stopReason = typeof response.stop_reason === "string" ? response.stop_reason : "end_turn";
   const stopSequence = (response.stop_sequence as string | null | undefined) ?? null;
   const content = Array.isArray(response.content) ? response.content : [];
+  const inputUsage: Record<string, unknown> = {
+    input_tokens: usage.input_tokens || 0,
+    output_tokens: 0,
+  };
+  if (typeof usage.cache_creation_input_tokens === "number") {
+    inputUsage.cache_creation_input_tokens = usage.cache_creation_input_tokens;
+  }
+  if (typeof usage.cache_read_input_tokens === "number") {
+    inputUsage.cache_read_input_tokens = usage.cache_read_input_tokens;
+  }
 
   const events: Array<{ event: string; data: Record<string, unknown> }> = [];
 
@@ -201,7 +254,7 @@ function synthesizeClaudeSse(response: Record<string, unknown>): string {
         model,
         stop_reason: null,
         stop_sequence: null,
-        usage: { input_tokens: usage.input_tokens || 0, output_tokens: 0 },
+        usage: inputUsage,
       },
     },
   });
@@ -244,7 +297,11 @@ function synthesizeClaudeSse(response: Record<string, unknown>): string {
     } else if (block.type === "thinking") {
       events.push({
         event: "content_block_start",
-        data: { type: "content_block_start", index, content_block: { type: "thinking", thinking: "" } },
+        data: {
+          type: "content_block_start",
+          index,
+          content_block: { type: "thinking", thinking: "" },
+        },
       });
       if (block.thinking) {
         events.push({
@@ -287,7 +344,11 @@ export class VertexExecutor extends BaseExecutor {
     }
     // Service Account JSON → mint a short-lived OAuth token (Bearer). An Express-mode API key is
     // sent as-is via x-goog-api-key (see buildHeaders), so no token exchange is needed for it.
-    if (credentials.apiKey && !credentials.accessToken && looksLikeServiceAccountJson(credentials.apiKey)) {
+    if (
+      credentials.apiKey &&
+      !credentials.accessToken &&
+      looksLikeServiceAccountJson(credentials.apiKey)
+    ) {
       try {
         const sa = parseSAFromApiKey(credentials.apiKey);
         credentials.accessToken = await getAccessToken(sa);
@@ -310,6 +371,7 @@ export class VertexExecutor extends BaseExecutor {
       // "model: Extra inputs are not permitted" if the translated request body still carries
       // one (the openai→claude request translator copies the client's model field over).
       delete body.model;
+      downgradeUnsupportedVertexClaudeTtl(body, model);
     }
 
     const result = await super.execute(input);
@@ -318,7 +380,10 @@ export class VertexExecutor extends BaseExecutor {
       const response = result instanceof Response ? result : result?.response;
       if (response?.ok) {
         const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json") && !contentType.includes("text/event-stream")) {
+        if (
+          contentType.includes("application/json") &&
+          !contentType.includes("text/event-stream")
+        ) {
           const jsonText = await response.text();
           let newBody = jsonText;
           let newContentType = contentType;
