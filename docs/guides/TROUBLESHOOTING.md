@@ -584,7 +584,7 @@ heavy request arrived at once. The old count cap (`OMNIROUTE_CHAT_MAX_HEAVY_IN_F
 still honored, but only if you explicitly set it.
 
 When capacity is busy, a heavyweight request first waits up to
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default `2000`, `0` disables the wait) for a slot to free up
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default `15000`, `0` disables the wait) for a slot to free up
 before answering the retryable `503`. The bounded wait exists so agent-style clients
 (OpenCode, Claude Code, Cursor) that fan out heavy sub-requests concurrently serialize the burst
 instead of burning their whole retry budget on immediate rejections and dying mid-task.

@@ -418,9 +418,9 @@ test("structural admission enforces the queued-bytes cap end-to-end", async () =
   assert.equal(controller.activeHeavy, 0);
 });
 
-test("queue-wait defaults are bounded (2s wait, 4MB queued-bytes budget)", () => {
+test("queue-wait defaults are bounded (15s wait, 4MB queued-bytes budget)", () => {
   if (process.env.OMNIROUTE_CHAT_ADMISSION_QUEUE_MS === undefined) {
-    assert.equal(CHAT_ADMISSION_QUEUE_MAX_MS, 2_000);
+    assert.equal(CHAT_ADMISSION_QUEUE_MAX_MS, 15_000);
   }
   if (process.env.OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES === undefined) {
     assert.equal(CHAT_ADMISSION_MAX_QUEUED_BYTES, 4 * 1024 * 1024);
@@ -544,5 +544,49 @@ test("aborting the signal cancels a structural queue-wait", async () => {
   }
   assert.equal(controller.activeHeavy, 1, "holder keeps its lease");
   held.release();
+  assert.equal(controller.activeHeavy, 0);
+});
+
+test("#13648: a 15s-scale occupancy bridges the default queue instead of self-shedding", async () => {
+  // The reported failure: a single large-context agent holds the one heavyweight
+  // slot 15s+ while its own aux call arrives — with the old 2s default the aux
+  // call always shed `queue_timeout` and the session died. The default queue must
+  // bridge a full resilience-scale (15s) occupancy.
+  const controller = new ChatAdmissionController(1);
+  const held = controller.tryAcquireHeavy();
+  assert.ok(held);
+
+  const queueMs = 15_000;
+  const pending = admitChatStructure(
+    {
+      messages: [
+        { role: "user", content: "one" },
+        { role: "user", content: "two" },
+      ],
+    },
+    null,
+    {
+      controller,
+      maxMessages: 10,
+      heavyMessages: 2,
+      heavyTools: 10,
+      heavyTokens: 10_000,
+      queueMs,
+      heapPressureCheck: () => true,
+    }
+  );
+
+  let settled = false;
+  void pending.then(() => {
+    settled = true;
+  });
+  // Old default (2s) would have shed by now; the bridged wait must still park.
+  await new Promise((resolve) => setTimeout(resolve, 2_500));
+  assert.equal(settled, false, "aux call must still wait past the old 2s shed point");
+
+  held.release();
+  const result = await pending;
+  assert.equal(result.admit, true, "aux call acquires the freed slot instead of self-shedding");
+  if (result.admit) result.lease?.release();
   assert.equal(controller.activeHeavy, 0);
 });

@@ -73,10 +73,15 @@ export const CHAT_MAX_HEAVY_IN_FLIGHT = parsePositiveInt(
  * that routinely land on the admission gate together; an immediate 503 makes the
  * client burn its retry budget in seconds and the agent dies mid-task. A short
  * bounded wait serializes the burst instead. `0` (legacy) rejects immediately.
+ *
+ * Default 15s (#13648): a heavyweight lease is held for the whole SSE lifetime
+ * (15s+ on large-context turns), so the old 2s default could never bridge occupancy
+ * and a single agent self-shed `chat_admission_busy`. Matches the resilience
+ * `requestQueue.maxWaitMs` default (15s).
  */
 export const CHAT_ADMISSION_QUEUE_MAX_MS = parseNonNegativeInt(
   process.env.OMNIROUTE_CHAT_ADMISSION_QUEUE_MS,
-  2000
+  15_000
 );
 
 /**

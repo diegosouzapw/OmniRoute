@@ -1,0 +1,1 @@
+- **fix(chat-admission):** raise the default `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` from 2s to 15s so the bounded wait bridges a full large-context turn holding the single heavyweight slot — the old default could never bridge 15s+ SSE occupancy and a single agent self-shed `chat_admission_busy` ([#13648](https://github.com/diegosouzapw/OmniRoute/issues/13648))

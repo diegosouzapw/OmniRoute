@@ -1631,7 +1631,7 @@ These settings were introduced after the previous environment-contract snapshot.
 
 | Variable | Default | Source File | Description |
 | --- | --- | --- | --- |
-| `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` | `2000` | `src/shared/middleware/chatBodyAdmission.ts` | Maximum wait for a heavyweight chat admission slot before a retryable `503`; a short bounded wait serializes agent bursts instead of an instant `503`. `0` restores immediate rejection. |
+| `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` | `15000` | `src/shared/middleware/chatBodyAdmission.ts` | Maximum wait for a heavyweight chat admission slot before a retryable `503`; a bounded wait serializes agent bursts instead of an instant `503` and bridges a full large-context turn holding the slot (#13648). `0` restores immediate rejection. |
 | `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` | `4194304` (4 MB) | `src/shared/middleware/chatBodyAdmission.ts` | Queued-bytes budget for the admission wait: bounds total buffered body bytes parked process-wide so the wait cannot amplify the heap (#4380). Over-budget waits receive a retryable `503` immediately. |
 | `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` | `60000` (60 s) | `src/shared/middleware/chatBodyAdmission.ts` | Deprecated no-op since #10110: per-session admission lanes were removed in favor of one process-wide budget. Accepted for configuration compatibility; ignored. |
 | `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` | `64` | `src/shared/middleware/chatBodyAdmission.ts` | Deprecated no-op since #10110: per-session admission lanes were removed in favor of one process-wide budget. Accepted for configuration compatibility; ignored. |
