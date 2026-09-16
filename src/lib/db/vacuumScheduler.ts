@@ -1,7 +1,13 @@
 import { DEFAULT_DATABASE_SETTINGS } from "@/types/databaseSettings";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
+import type { SqliteAdapter } from "./adapters/types";
 import { getDbInstance } from "./core";
+import {
+  getAutoVacuumModeForDb,
+  setAutoVacuumForDb,
+  type AutoVacuumDrift,
+} from "./optimizationSettings";
 // Direct `key_value` access — the existing `keyValueStore` helpers only exist
 // in test fixtures; the 3 production call sites (pricingSync, jsonMigration,
 // serviceModels) all use `getDbInstance().prepare(...).run()` directly. We
@@ -46,6 +52,10 @@ export interface VacuumSchedulerState {
   lastDurationMs: number | null;
   isRunning: boolean;
   nextRunAt: number | null;
+  /** #13432 — configured vs live auto_vacuum mismatch pending reconcile, or null once reconciled. */
+  autoVacuumDrift: AutoVacuumDrift | null;
+  /** Pages freed by the most recent bounded `PRAGMA incremental_vacuum` batch, or null if the last run was a full VACUUM / drift reconcile. */
+  lastReclaimedPages: number | null;
 }
 
 export type ScheduledVacuum = (typeof DEFAULT_DATABASE_SETTINGS)["optimization"]["scheduledVacuum"];
@@ -73,7 +83,18 @@ const STATE_DEFAULTS: VacuumSchedulerState = {
   lastDurationMs: null,
   isRunning: false,
   nextRunAt: null,
+  autoVacuumDrift: null,
+  lastReclaimedPages: null,
 };
+
+// Shared key_value coordinate with optimizationSettings.ts, which writes the
+// initial drift record at boot (see AUTO_VACUUM_DRIFT_NAMESPACE/KEY there).
+const AUTO_VACUUM_DRIFT_NAMESPACE = "scheduler";
+const AUTO_VACUUM_DRIFT_KEY = "vacuumDrift";
+
+// Bounded per-run reclaim so a scheduled vacuum on a multi-GB INCREMENTAL
+// database never blocks for as long as a full VACUUM would (#13432 fix #2).
+const INCREMENTAL_VACUUM_BATCH_PAGES = 2000;
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 let currentState: VacuumSchedulerState = { ...STATE_DEFAULTS };
@@ -230,6 +251,35 @@ function persistState(): void {
   setKeyValue(KEY_VALUE_NAMESPACE, KEY_VALUE_KEY, JSON.stringify(currentState));
 }
 
+function isAutoVacuumDrift(value: unknown): value is AutoVacuumDrift {
+  return isRecord(value) && typeof value.configured === "string" && typeof value.live === "string";
+}
+
+function loadAutoVacuumDrift(): AutoVacuumDrift | null {
+  const raw = getKeyValue(AUTO_VACUUM_DRIFT_NAMESPACE, AUTO_VACUUM_DRIFT_KEY);
+  if (!raw) return null;
+  const parsed = parseJsonSafe(raw);
+  return isAutoVacuumDrift(parsed) ? parsed : null;
+}
+
+function clearAutoVacuumDrift(): void {
+  setKeyValue(AUTO_VACUUM_DRIFT_NAMESPACE, AUTO_VACUUM_DRIFT_KEY, JSON.stringify(null));
+}
+
+/**
+ * Bounded reclaim step for a database already running `auto_vacuum=INCREMENTAL`:
+ * frees at most `INCREMENTAL_VACUUM_BATCH_PAGES` pages per scheduled run
+ * instead of the unconditional full `VACUUM` this scheduler used to always
+ * issue (#13432 fix #2 / reporter's suggested fix #2). Returns the number of
+ * freelist pages actually reclaimed by this batch.
+ */
+function runBoundedIncrementalVacuum(db: SqliteAdapter): number {
+  const before = Number(db.pragma("freelist_count", { simple: true }) ?? 0);
+  db.pragma(`incremental_vacuum(${INCREMENTAL_VACUUM_BATCH_PAGES})`);
+  const after = Number(db.pragma("freelist_count", { simple: true }) ?? 0);
+  return Math.max(0, before - after);
+}
+
 function loadPersistedState(): Partial<VacuumSchedulerState> {
   const raw = getKeyValue(KEY_VALUE_NAMESPACE, KEY_VALUE_KEY);
   if (!raw) return {};
@@ -252,7 +302,12 @@ export function refresh(): VacuumSchedulerState {
   return getState();
 }
 
-export async function runNow(): Promise<{ success: boolean; durationMs: number; error?: string }> {
+export async function runNow(): Promise<{
+  success: boolean;
+  durationMs: number;
+  error?: string;
+  reclaimedPages?: number;
+}> {
   if (currentState.isRunning) {
     return { success: false, durationMs: 0, error: "already_running" };
   }
@@ -262,14 +317,34 @@ export async function runNow(): Promise<{ success: boolean; durationMs: number; 
   const start = Date.now();
   try {
     const db = getDbInstance();
-    db.exec("VACUUM");
+    let reclaimedPages: number | null = null;
+
+    // #13432: reconcile a configured-vs-live auto_vacuum drift first, out of
+    // request handling, on this bounded/observable scheduled path — never
+    // synchronously at startup (see optimizationSettings.ts::applyStoredDatabaseOptimizationSettings).
+    const drift = loadAutoVacuumDrift();
+    if (drift) {
+      console.log(
+        `[DB] Reconciling auto_vacuum drift (configured=${drift.configured}, live=${drift.live}): ` +
+          `running one-time conversion VACUUM to apply the configured mode to the database file.`
+      );
+      setAutoVacuumForDb(db, drift.configured);
+      clearAutoVacuumDrift();
+    } else if (getAutoVacuumModeForDb(db) === "INCREMENTAL") {
+      reclaimedPages = runBoundedIncrementalVacuum(db);
+    } else {
+      db.exec("VACUUM");
+    }
+
     const duration = Date.now() - start;
     currentState.lastRunAt = start;
     currentState.lastError = null;
     currentState.lastDurationMs = duration;
+    currentState.lastReclaimedPages = reclaimedPages;
+    currentState.autoVacuumDrift = loadAutoVacuumDrift();
     currentState.isRunning = false;
     refresh(); // reset the next-run clock from this successful run
-    return { success: true, durationMs: duration };
+    return { success: true, durationMs: duration, reclaimedPages: reclaimedPages ?? undefined };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     currentState.lastError = message;
@@ -296,6 +371,10 @@ export function init(): VacuumSchedulerState {
     ...persisted,
     isRunning: false, // never resume a "running" state across restarts
     nextRunAt: null, // recompute below
+    // Always reload from the drift record's own key_value entry rather than
+    // trusting a stale copy embedded in the scheduler state blob — it is the
+    // source of truth optimizationSettings.ts writes at every boot.
+    autoVacuumDrift: loadAutoVacuumDrift(),
   };
   return refresh();
 }

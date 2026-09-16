@@ -81,6 +81,14 @@ export interface DatabaseSettings {
     lastVacuumAt: string | null;
     lastOptimizationAt: string | null;
     integrityCheck: "ok" | "error" | null;
+    /**
+     * #13432 — non-null while the configured `optimization.autoVacuumMode`
+     * has not yet been applied to the live SQLite file. Cleared once the
+     * vacuum scheduler's next scheduled run reconciles it.
+     */
+    autoVacuumDrift: { configured: string; live: string } | null;
+    /** Pages freed by the most recent bounded `PRAGMA incremental_vacuum` batch, or null. */
+    lastReclaimedPages: number | null;
   };
 }
 

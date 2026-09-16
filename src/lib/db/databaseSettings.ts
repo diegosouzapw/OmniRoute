@@ -260,6 +260,8 @@ export function getDatabaseSettings(): DatabaseSettings {
         vacuumState.lastRunAt !== null ? new Date(vacuumState.lastRunAt).toISOString() : null,
       lastOptimizationAt: null,
       integrityCheck: getIntegrityCheck(),
+      autoVacuumDrift: vacuumState.autoVacuumDrift,
+      lastReclaimedPages: vacuumState.lastReclaimedPages,
     },
   };
 }
