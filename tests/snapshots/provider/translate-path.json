@@ -111,6 +111,29 @@
       "stream": "https://apihub.agnes-ai.com/v1/chat/completions"
     }
   },
+  "agnes-cn": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.agnes-ai.cn/v1/chat/completions",
+      "stream": "https://api.agnes-ai.cn/v1/chat/completions"
+    }
+  },
   "agy": {
     "format": "antigravity",
     "headers": {

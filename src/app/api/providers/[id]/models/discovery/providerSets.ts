@@ -105,6 +105,8 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // Without this, sync-models serves the static registry seed and CN
   // connections never discover 2.5/3.0 Flash.
   "agnes",
+  // Agnes CN /v1/models is not the intl catalog; this discovers that host only.
+  "agnes-cn",
 ]);
 
 export function isNamedOpenAIStyleProvider(provider: string): boolean {
