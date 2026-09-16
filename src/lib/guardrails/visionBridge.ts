@@ -56,8 +56,14 @@ export async function getComboVisionBridgeDecision(
     const { getComboByName } = await import("@/lib/db/combos");
     const { resolveComboForModel } = await import("@/lib/db/modelComboMappings");
 
-    // 1. Try to find combo by exact name match
+    // 1. Try to find combo by exact name match. The normal Combo resolver also
+    // accepts `combo/<name>` for combos stored under their bare name; keep the
+    // Vision Bridge capability check on the same lookup path.
     let combo = await getComboByName(model);
+
+    if (!combo && model.startsWith("combo/")) {
+      combo = await getComboByName(model.slice("combo/".length));
+    }
 
     // 2. If no exact match, try model-combo mapping
     if (!combo) {
