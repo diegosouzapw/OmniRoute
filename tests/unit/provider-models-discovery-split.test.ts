@@ -142,12 +142,61 @@ test("providerModelsConfig keeps the aimlapi live catalog entry", () => {
   assert.equal(PROVIDER_MODELS_CONFIG.aimlapi.url, "https://api.aimlapi.com/models");
 });
 
-test("providerModelsConfig aimlapi.parseResponse keeps only chat-completion models when present", () => {
+// RED before the fix: the live endpoint answers with the OpenAI-style envelope
+// `{ object: "list", data: [...] }`, so `Array.isArray(data)` was false and the
+// parser returned [] for every real response — the whole provider degraded to its
+// static seed. The old test only ever fed it a bare array, which is why a green
+// suite coexisted with a provider that discovered nothing.
+test("providerModelsConfig aimlapi.parseResponse unwraps the { object, data } catalog envelope", () => {
+  const parsed = PROVIDER_MODELS_CONFIG.aimlapi.parseResponse({
+    object: "list",
+    data: [
+      { id: "openai/gpt-5", type: "openai/chat-completions", info: { name: "GPT-5" } },
+      { id: "flux/flux-pro", type: "openai/image-generations", info: { name: "FLUX Pro" } },
+    ],
+  });
+  assert.deepEqual(parsed, [{ id: "openai/gpt-5", name: "GPT-5" }]);
+});
+
+// RED before the fix: `chat-completion` matched 0 of the 936 live catalog rows —
+// the vocabulary is `openai/chat-completions`. Both spellings stay accepted so a
+// rename in either direction degrades to "some models missing" rather than "the
+// provider has no models".
+test("providerModelsConfig aimlapi.parseResponse accepts both chat type spellings", () => {
+  const parsed = PROVIDER_MODELS_CONFIG.aimlapi.parseResponse({
+    object: "list",
+    data: [
+      { id: "current", type: "openai/chat-completions", info: { name: "Current" } },
+      { id: "legacy", type: "chat-completion", info: { name: "Legacy" } },
+    ],
+  });
+  assert.deepEqual(parsed, [
+    { id: "current", name: "Current" },
+    { id: "legacy", name: "Legacy" },
+  ]);
+});
+
+test("providerModelsConfig aimlapi.parseResponse still accepts a bare array", () => {
   const parsed = PROVIDER_MODELS_CONFIG.aimlapi.parseResponse([
     { id: "chat-1", type: "chat-completion", info: { name: "Chat 1" } },
     { id: "img-1", type: "image" },
   ]);
   assert.deepEqual(parsed, [{ id: "chat-1", name: "Chat 1" }]);
+});
+
+// The old parser fell through to `all` when the chat filter matched nothing, which
+// would have published 583 video/image/TTS/batch ids into a chat model picker and
+// masked the broken type filter. An unrecognised catalog must yield nothing.
+test("providerModelsConfig aimlapi.parseResponse never falls back to non-chat rows", () => {
+  const parsed = PROVIDER_MODELS_CONFIG.aimlapi.parseResponse({
+    object: "list",
+    data: [
+      { id: "veo/veo-3", type: "internal/video-generations/submit" },
+      { id: "eleven/tts", type: "internal/text-to-speech" },
+      { id: "anthropic/claude-opus-5", type: "anthropic/messages" },
+    ],
+  });
+  assert.deepEqual(parsed, []);
 });
 
 test("providerModelsConfig grok-cli.parseResponse preserves exact supported reasoning efforts", () => {

@@ -6,6 +6,10 @@
 //   - `provider` (optional) limits the rule to a single provider id.
 //   - `match` is a RegExp tested against the model id OR a predicate (model -> boolean).
 //   - `drop` is the list of param keys to remove when the rule fires.
+//   - `dropIfNull` removes a key only when its value is literally `null`, leaving
+//     real values untouched. For upstreams that reject `null` on an optional
+//     param instead of treating it as "unset" — the OpenAI SDKs serialise an
+//     unset optional as `null`, so such a param arrives on ordinary requests.
 //   - `clampToModelMaxOutput` clamps max_tokens/max_completion_tokens/max_output_tokens
 //     down to the model's catalog `maxOutputTokens` ceiling, when one is set.
 //   - `maxOutputCap` clamps the same keys down to a fixed endpoint-imposed ceiling
@@ -23,6 +27,7 @@ type StripRule = {
   provider?: string;
   match: RegExp | ((model: string) => boolean);
   drop?: string[];
+  dropIfNull?: string[];
   clampToModelMaxOutput?: boolean;
   maxOutputCap?: number;
 };
@@ -93,6 +98,49 @@ const STRIP_RULES: StripRule[] = [
   // to read), hence the fixed cap.
   { provider: "azure-openai", match: /^gpt-4o-mini/i, maxOutputCap: 16384 },
   { provider: "azure-ai", match: /^gpt-4o-mini/i, maxOutputCap: 16384 },
+  // AI/ML API validates optional fields with a strict schema that rejects a
+  // literal `null` ("Expected number, received null") instead of reading null as
+  // "unset". The OpenAI SDKs serialise an unset optional as `null`, so an SDK
+  // client that never touches temperature still puts `temperature: null` on the
+  // wire — and OmniRoute relays the caller's body verbatim, so the request 400s.
+  //
+  // Field-by-field sweep against POST /v1/chat/completions, 2026-09-03:
+  //   400 on null, every model:  seed, tools, tool_choice, response_format,
+  //                              stream, stream_options, parallel_tool_calls,
+  //                              max_tokens, max_completion_tokens,
+  //                              reasoning_effort
+  //   400 on null, model-dependent: temperature, top_p (400 on
+  //                              claude-sonnet-4.6 and deepseek-chat, 200 on
+  //                              gpt-5 — so an integration smoke-tested only
+  //                              against gpt-5 looks healthy)
+  //   200 on null (left alone):  stop, presence_penalty, frequency_penalty, n,
+  //                              user, logprobs, logit_bias, top_logprobs,
+  //                              metadata
+  //
+  // Provider-wide, and only for the null value: an explicit `temperature: 0` or
+  // `stream: false` is forwarded untouched. Dropping is the correct reading —
+  // every field here means "unset" when the caller sends null.
+  //
+  // The 400 body's top-level `message` is generic; `details[].path` / `.reason`
+  // name the offending field, which is what this list was built from.
+  {
+    provider: "aimlapi",
+    match: /.*/,
+    dropIfNull: [
+      "temperature",
+      "top_p",
+      "seed",
+      "tools",
+      "tool_choice",
+      "response_format",
+      "stream",
+      "stream_options",
+      "parallel_tool_calls",
+      "max_tokens",
+      "max_completion_tokens",
+      "reasoning_effort",
+    ],
+  },
 ];
 
 function matches(rule: StripRule, model: string): boolean {
@@ -155,6 +203,9 @@ export function stripUnsupportedParams<T>(
     if (!matches(rule, model)) continue;
     for (const key of rule.drop ?? []) {
       if (rec[key] !== undefined) delete rec[key];
+    }
+    for (const key of rule.dropIfNull ?? []) {
+      if (rec[key] === null) delete rec[key];
     }
     applyMaxOutputClamp(rule, provider, model, rec);
   }

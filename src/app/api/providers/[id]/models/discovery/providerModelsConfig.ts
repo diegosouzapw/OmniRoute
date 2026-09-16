@@ -28,6 +28,18 @@ import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTe
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
+/**
+ * `type` values AI/ML API uses for models routable through /v1/chat/completions.
+ *
+ * `openai/chat-completions` is the current vocabulary (353 of 936 catalog rows on
+ * 2026-09-03); `chat-completion` is the pre-rename spelling, kept so a future
+ * rename in either direction cannot silently empty the provider's model list
+ * again. Everything else the catalog publishes — video, image, TTS, STT,
+ * `openai/responses/submit`, `anthropic/messages`, batches — is a different
+ * upstream surface and must not reach a chat model picker.
+ */
+export const AIMLAPI_CHAT_MODEL_TYPES = new Set(["openai/chat-completions", "chat-completion"]);
+
 const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
 const ALIBABA_MODEL_STUDIO_MODEL_IDS = new Set(
   ALIBABA_MODEL_STUDIO_MODELS.map((model) => model.id)
@@ -493,17 +505,32 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     parseResponse: (data) => data.data || [],
   },
   aimlapi: {
-    // #5570: AI/ML API's live catalog (400+ models) lives at the public,
-    // auth-free /models database endpoint (NOT /v1/models). The registry has no
-    // modelsUrl, so without this entry the route fell back to a stale 6-model
-    // seed. Response is a bare array of { id, type, info: { name } }.
+    // #5570: AI/ML API's live catalog lives at the public, auth-free /models
+    // database endpoint (NOT /v1/models). The registry has no modelsUrl, so
+    // without this entry the route falls back to the static seed.
+    //
+    // The two premises in the original #5570 comment went stale and silently
+    // zeroed this provider out (936 catalog rows -> 0 discovered models -> the
+    // 6-entry static seed):
+    //   1. the response is NOT a bare array — it is the OpenAI-style envelope
+    //      `{ "object": "list", "data": [...] }`, so `Array.isArray(data)` was
+    //      false and every row was discarded before the filter even ran;
+    //   2. the chat `type` vocabulary is now `openai/chat-completions`; the old
+    //      `chat-completion` spelling matches 0 of 936 rows (verified against the
+    //      live catalog 2026-09-03).
+    // Both spellings are accepted below so a future vocabulary change degrades to
+    // "older models missing" rather than "provider has no models", and the bare
+    // array is still unwrapped for the same reason. Non-chat rows (video, image,
+    // TTS, batches) are dropped outright — the previous `chat.length ? chat : all`
+    // fallback would have surfaced 583 non-chat ids in a chat model picker, which
+    // is what hid defect 2 from the tests.
     url: "https://api.aimlapi.com/models",
     method: "GET",
     headers: { "Content-Type": "application/json" },
     parseResponse: (data) => {
-      const all = Array.isArray(data) ? data : [];
-      const chat = all.filter((m) => m?.type === "chat-completion");
-      return (chat.length > 0 ? chat : all)
+      const rows = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
+      return rows
+        .filter((m) => AIMLAPI_CHAT_MODEL_TYPES.has(m?.type))
         .map((m) => ({ id: m?.id, name: m?.info?.name || m?.id }))
         .filter((m) => typeof m.id === "string" && m.id);
     },

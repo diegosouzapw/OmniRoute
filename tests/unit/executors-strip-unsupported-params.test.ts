@@ -162,8 +162,12 @@ test("STRIP_RULES is non-empty and every rule has a drop list or a clamp mechani
   assert.ok(__STRIP_RULES_FOR_TEST.length > 0);
   for (const rule of __STRIP_RULES_FOR_TEST) {
     const hasDrop = Array.isArray(rule.drop) && rule.drop.length > 0;
+    const hasDropIfNull = Array.isArray(rule.dropIfNull) && rule.dropIfNull.length > 0;
     const hasClamp = rule.clampToModelMaxOutput === true || Number.isFinite(rule.maxOutputCap);
-    assert.ok(hasDrop || hasClamp, "rule must either drop params or clamp max output");
+    assert.ok(
+      hasDrop || hasDropIfNull || hasClamp,
+      "rule must either drop params (always or only when null) or clamp max output"
+    );
     assert.ok(typeof rule.match === "function" || rule.match instanceof RegExp);
   }
 });
@@ -193,11 +197,19 @@ test("stripUnsupportedParams: volcengine kimi-k2-5-260127 also clamps max_comple
 test("stripUnsupportedParams: volcengine non-kimi model (glm-4-7-251222) is NOT clamped by the kimi rule", () => {
   const body: Record<string, unknown> = { max_tokens: 65536 };
   stripUnsupportedParams("volcengine", "glm-4-7-251222", body);
-  assert.equal(body.max_tokens, 65536, "kimi-specific cap must not apply to other volcengine models");
+  assert.equal(
+    body.max_tokens,
+    65536,
+    "kimi-specific cap must not apply to other volcengine models"
+  );
 });
 
 test("stripUnsupportedParams: kimi rule is provider-scoped (no-op for non-volcengine providers)", () => {
   const body: Record<string, unknown> = { max_tokens: 65536 };
   stripUnsupportedParams("kimi", "kimi-k2-5-260127", body);
-  assert.equal(body.max_tokens, 65536, "the Ark-specific cap must not leak to other kimi-hosting providers");
+  assert.equal(
+    body.max_tokens,
+    65536,
+    "the Ark-specific cap must not leak to other kimi-hosting providers"
+  );
 });
