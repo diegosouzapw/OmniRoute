@@ -38,6 +38,17 @@ export function applyClaudeEffortVariant(opts: {
   sourceFormat: string;
 }): { effectiveModel: string; log: string | null } {
   const { provider, body, sourceFormat } = opts;
+  // Cursor advertises native effort-suffixed ids. Its executor resolves exact
+  // live-catalog ids before applying its own suffix fallback; stripping here
+  // destroys that information before the executor can see it.
+  if (
+    provider === "cursor" ||
+    provider === "cu" ||
+    provider === "cursor-api" ||
+    provider === "cua"
+  ) {
+    return { effectiveModel: opts.effectiveModel, log: null };
+  }
   let effectiveModel = opts.effectiveModel;
   let log: string | null = null;
 
