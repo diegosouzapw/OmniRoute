@@ -77,17 +77,6 @@ function patchPrepareToThrow(sqlMatch: string): () => void {
   };
 }
 
-function patchPragmaToThrow(): () => void {
-  const db = core.getDbInstance();
-  const orig = db.pragma.bind(db);
-  (db as unknown as { pragma: unknown }).pragma = () => {
-    throw makeLeakyError();
-  };
-  return () => {
-    (db as unknown as { pragma: unknown }).pragma = orig;
-  };
-}
-
 // A leak assertion applied to any string field of an error body.
 function assertSanitized(raw: string, context: string): void {
   assert.ok(!raw.includes("/home/omni/secret"), `${context}: posix path leaked → ${raw}`);
@@ -136,7 +125,7 @@ test("GET /api/cache/entries → 500 body is sanitized (shape { error })", async
 });
 
 test("GET /api/db/health → 500 body is sanitized (shape { error: { message } })", async () => {
-  const restore = patchPragmaToThrow();
+  const restore = patchPrepareToThrow("SELECT value FROM db_meta WHERE key = 'schema_version'");
   try {
     const res = await dbHealthRoute.GET(makeRequest("http://localhost/api/db/health"));
     assert.equal(res.status, 500);

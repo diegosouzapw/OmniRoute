@@ -9,7 +9,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    return NextResponse.json(runManagedDbHealthCheck({ autoRepair: false }));
+    return NextResponse.json(
+      runManagedDbHealthCheck({ autoRepair: false, skipIntegrityCheck: true })
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[API] DB health diagnosis failed:", message);
