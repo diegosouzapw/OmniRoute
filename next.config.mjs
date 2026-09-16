@@ -351,9 +351,11 @@ const nextConfig = {
     "zod",
     "@ngrok/ngrok",
     "@huggingface/transformers",
-    // The ESM entry imports tiktoken_bg.wasm as a module. Turbopack can compile
-    // that graph but omits the runtime asset, making provider routes fail during
-    // module evaluation. Keep Node's CommonJS loader and colocated WASM intact.
+    // tiktoken resolves tiktoken_bg.wasm at module-eval relative to the bundler's
+    // virtual paths — when bundled, cold builds fail page-data collection with
+    // "Missing tiktoken_bg.wasm". Externalizing keeps require("tiktoken") on
+    // node_modules at runtime where the wasm exists. The ESM graph is therefore
+    // left for Node's CommonJS loader and colocated WASM to resolve.
     "tiktoken",
     // copilot-m365-web.ts imports 'ws' as a client-side WebSocket. When bundled,
     // ws cannot resolve its 'bufferutil' native addon (frame masking) and throws
