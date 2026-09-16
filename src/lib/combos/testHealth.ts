@@ -111,6 +111,10 @@ export function buildComboTestPrompt() {
   return COMBO_TEST_PROMPT;
 }
 
+function isGeminiComboProbe(modelStr: string) {
+  return /(?:^|\/)gemini(?:-|$)/i.test(modelStr);
+}
+
 export function buildComboTestRequestBody(
   modelStr: string,
   isEmbedding: boolean = false,
@@ -123,7 +127,13 @@ export function buildComboTestRequestBody(
     };
   }
 
-  return {
+  const body: {
+    model: string;
+    messages: { role: string; content: string }[];
+    max_tokens: number;
+    stream: boolean;
+    reasoning_effort?: "none";
+  } = {
     model: modelStr,
     messages: [{ role: "user", content: buildComboTestPrompt() }],
     // Keep the smoke probe short so reasoning-heavy models do not burn the
@@ -133,6 +143,13 @@ export function buildComboTestRequestBody(
       (options.stream ? STREAMING_MODEL_TEST_MAX_TOKENS : COMBO_TEST_MAX_TOKENS),
     stream: options.stream ?? false,
   };
+  // Gemini 3.8 flash-high injects thinkingLevel=high unless the documented
+  // off-switch is set. Other providers must not see this field: some
+  // OpenAI-compatible endpoints 400 unknown parameters.
+  if (isGeminiComboProbe(modelStr)) {
+    body.reasoning_effort = "none";
+  }
+  return body;
 }
 
 export type ComboTestStreamResult = {

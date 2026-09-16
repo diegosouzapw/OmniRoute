@@ -8,7 +8,7 @@ const {
   extractComboTestStreamText,
 } = await import("../../src/lib/combos/testHealth.ts");
 
-test("combo test helper builds a short smoke payload", () => {
+test("combo test helper builds short smoke payload", () => {
   const body = buildComboTestRequestBody("openrouter/openai/gpt-5.4");
 
   assert.equal(body.model, "openrouter/openai/gpt-5.4");
@@ -16,6 +16,15 @@ test("combo test helper builds a short smoke payload", () => {
   assert.equal(body.max_tokens, 64);
   assert.equal("temperature" in body, false);
   assert.equal(body.stream, false);
+  assert.equal("reasoning_effort" in body, false);
+});
+
+test("combo test helper turns off thinking for Gemini 3.8 flash-high probes", () => {
+  const body = buildComboTestRequestBody("agy/gemini-3.8-flash-high");
+
+  assert.equal(body.messages[0].content, "Reply with exactly: pong");
+  assert.equal(body.max_tokens, 64);
+  assert.equal(body.reasoning_effort, "none");
 });
 
 test("combo test helper builds a small streaming model probe", () => {

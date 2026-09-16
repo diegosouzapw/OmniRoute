@@ -1,0 +1,1 @@
+- **fix(combos):** Gemini combo probes send `reasoning_effort: none` so thinking does not eat the health-check budget; truncated `finish_reason: length` responses are no longer rewritten as empty-content 502s
