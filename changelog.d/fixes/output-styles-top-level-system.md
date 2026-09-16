@@ -1,0 +1,1 @@
+- **fix(compression):** output styles and the caveman output mode now place their injected instruction in the top-level `system` field instead of a synthetic `messages[0]` entry for Anthropic-shaped requests, fixing the upstream 400 ("use the top-level 'system' parameter for the initial system prompt") ([#12584](https://github.com/diegosouzapw/OmniRoute/issues/12584))

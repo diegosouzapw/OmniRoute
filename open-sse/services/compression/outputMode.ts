@@ -165,12 +165,14 @@ export function applyCavemanOutputMode(
 
   // Check idempotency before bypass so the marker in an already-injected system
   // message doesn't trigger a false-positive bypass (e.g. SHARED_BOUNDARIES keywords).
-  const alreadyApplied = messages.some(
-    (message) =>
-      message.role === "system" &&
-      typeof message.content === "string" &&
-      message.content.includes(CAVEMAN_OUTPUT_MARKER)
-  );
+  const alreadyApplied =
+    systemFieldIncludesMarker(body.system, CAVEMAN_OUTPUT_MARKER) ||
+    messages.some(
+      (message) =>
+        message.role === "system" &&
+        typeof message.content === "string" &&
+        message.content.includes(CAVEMAN_OUTPUT_MARKER)
+    );
   if (alreadyApplied) return { body, applied: false, skippedReason: "already_applied" };
 
   if (config.autoClarity !== false) {
@@ -179,17 +181,92 @@ export function applyCavemanOutputMode(
   }
 
   const instruction = buildCavemanOutputInstruction(config, language);
-  const nextMessages = [...messages];
-  const first = nextMessages[0];
+  return {
+    body: { ...body, ...placeSystemInstruction(messages, body.system, instruction) },
+    applied: true,
+  };
+}
 
+/**
+ * Minimal message shape accepted by {@link placeSystemInstruction}. Both the
+ * legacy caveman injector and the unified output-styles injector funnel their
+ * instruction placement through it.
+ */
+interface InjectableMessage {
+  role?: unknown;
+  content?: unknown;
+  [key: string]: unknown;
+}
+
+/**
+ * Decide where an injected system instruction lands on a chat body without
+ * ever creating a new `system` message at messages[0].
+ *
+ * Anthropic-shaped bodies carry the initial system prompt in the top-level
+ * `system` field (string or content-block array) and the claude passthrough
+ * forwards `messages[]` upstream unchanged, so a synthetic system entry at
+ * index 0 is rejected with "messages.0: use the top-level 'system' parameter
+ * for the initial system prompt" (#12584). Placement preference:
+ *
+ * 1. Leading string-content system message: merge in place (legacy behavior).
+ * 2. Top-level `system` string/array: merge there (Anthropic contract).
+ * 3. Any later string-content system message: merge in place.
+ * 4. Append a trailing system message (valid at any position for
+ *    OpenAI-shaped bodies; hoisted by the claude system-role extraction).
+ *
+ * Returns a partial body patch (`messages` and/or `system`) to spread over
+ * the original body.
+ */
+export function placeSystemInstruction<M extends InjectableMessage>(
+  messages: M[],
+  system: unknown,
+  instruction: string
+): { messages?: Array<M | { role: string; content: string }>; system?: unknown } {
+  const first = messages[0];
   if (first?.role === "system" && typeof first.content === "string") {
-    nextMessages[0] = {
-      ...first,
-      content: `${first.content.trim()}\n\n${instruction}`,
-    };
-  } else {
-    nextMessages.unshift({ role: "system", content: instruction });
+    const nextMessages: Array<M | { role: string; content: string }> = [...messages];
+    nextMessages[0] = { ...first, content: `${first.content.trim()}\n\n${instruction}` };
+    return { messages: nextMessages };
   }
+  if (typeof system === "string") {
+    const trimmed = system.trim();
+    return { system: trimmed ? `${trimmed}\n\n${instruction}` : instruction };
+  }
+  if (Array.isArray(system)) {
+    return { system: [...system, { type: "text", text: instruction }] };
+  }
+  const mergeIdx = messages.findIndex(
+    (message) => message?.role === "system" && typeof message.content === "string"
+  );
+  if (mergeIdx >= 0) {
+    const nextMessages: Array<M | { role: string; content: string }> = [...messages];
+    const target = messages[mergeIdx];
+    nextMessages[mergeIdx] = {
+      ...target,
+      content: `${(target.content as string).trim()}\n\n${instruction}`,
+    };
+    return { messages: nextMessages };
+  }
+  if (messages.length === 0) {
+    // #12584: an empty array has no non-zero index to append at; route through
+    // `system` instead of creating messages[0].
+    return { system: instruction };
+  }
+  return { messages: [...messages, { role: "system", content: instruction }] };
+}
 
-  return { body: { ...body, messages: nextMessages }, applied: true };
+/**
+ * True when an idempotency marker is already present in a top-level `system`
+ * field (string or Anthropic content-block array), so instruction injection
+ * that targets that field is not re-applied on retries or follow-up turns.
+ */
+export function systemFieldIncludesMarker(system: unknown, marker: string): boolean {
+  if (typeof system === "string") return system.includes(marker);
+  if (Array.isArray(system)) {
+    return system.some((block) => {
+      const text = (block as { text?: unknown } | null | undefined)?.text;
+      return typeof text === "string" && text.includes(marker);
+    });
+  }
+  return false;
 }

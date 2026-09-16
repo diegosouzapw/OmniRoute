@@ -182,3 +182,31 @@ test("injectSystemPrompt: developer role treated as system", () => {
 
 // Reset
 test.after(() => setSystemPromptConfig({ enabled: false, prefixPrompt: "", suffixPrompt: "" }));
+
+test("injectSystemPrompt: claude-shaped body keeps prompt out of messages[0] (#12584)", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = {
+    system: "You are Claude Code.",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = injectSystemPrompt(body);
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
+  assert.ok(String(result.system).includes("You are Claude Code."));
+  assert.ok(String(result.system).includes("PRE"));
+  assert.ok(String(result.system).includes("SUF"));
+});
+
+test("injectSystemPrompt: malformed null system still receives the prompt (#12584)", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = {
+    system: null,
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = injectSystemPrompt(body);
+  assert.equal(typeof result.system, "string", "null system is normalized, not skipped");
+  assert.ok(String(result.system).includes("PRE"), "prefix is not silently dropped");
+  assert.ok(String(result.system).includes("SUF"), "suffix is not silently dropped");
+  assert.equal(result.messages.length, 1, "prompt does not leak into messages");
+  assert.equal(result.messages[0].role, "user");
+});
