@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-reasoning-routing-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -55,7 +56,7 @@ test.beforeEach(resetStorage);
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 test("reasoning intent distinguishes missing, discrete effort, toggle, and budget-only signals", () => {

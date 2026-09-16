@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../../_setup/tempDataDir.ts";
 import { createRequire } from "node:module";
 import type * as NodePath from "node:path";
 import { runtimeRequire } from "../../../src/lib/db/adapters/runtimeRequire.ts";
@@ -32,7 +33,7 @@ function forceNodeSqlite() {
 function createTempDatabasePath(t: TestContext) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-node-sqlite-"));
   const databasePath = path.join(dir, "database.sqlite");
-  t.after(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
+  t.after(async () => await cleanupTempDataDir(dir));
   return databasePath;
 }
 
