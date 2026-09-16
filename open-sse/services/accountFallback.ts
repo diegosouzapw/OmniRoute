@@ -89,7 +89,6 @@ export function retryHintBypassesMaxCooldownMs(
 ): boolean {
   return provenance === "header" || provenance === "google_rpc_retry_info";
 }
-
 import {
   isSubscriptionQuotaText,
   buildSubscriptionQuotaFallback,
@@ -100,6 +99,7 @@ import {
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
 import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
+export { hasPerModelFailureScope } from "./accountFallback/perModelFailureScope.ts";
 import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
 import { resolveApiKeyForbiddenFallback } from "./accountFallback/nonRetryableUpstream.ts";
 import * as exactModelLock from "./accountFallback/exactModelLock.ts";
