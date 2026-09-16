@@ -30,6 +30,7 @@ import {
   type ProviderCredentials,
   type ExecutorLog,
 } from "./base.ts";
+import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getProviderPluginManifestHeader } from "../config/providerPluginManifestUrl.ts";
 
@@ -234,6 +235,7 @@ export class DarioExecutor extends BaseExecutor {
       input.credentials
     );
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
+    stripInternalBodyFields(transformedBody);
 
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
     const combinedSignal = input.signal
