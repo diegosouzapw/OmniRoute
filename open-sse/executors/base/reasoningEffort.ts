@@ -49,6 +49,14 @@ export const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 export const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN = /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
 export const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
 const NVIDIA_GLM_52_PATTERN = /z-ai\/glm-5\.2\b/i;
+const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
+// Self-hosted GLM-5.3-Flash served through an OpenAI-Compatible surrogate
+// (e.g. an internal vLLM). GLM-5.3-Flash accepts reasoning_effort as
+// {low, high, max} literally — the same vocabulary Z.AI documents for the
+// GLM-5.3 Coding Plan surface — so pass those through unchanged and only map
+// the internal tiers GLM does not expose. Scoped to the 5.3 family so it does
+// not swallow GLM-5.2, which has its own (broader) vocabulary handling.
+const GLM_53_FLASH_MODEL_PATTERN = /glm[-_ ]?5\.3(?:[-_ ]?flash)?/i;
 
 /**
  * Model families whose top reasoning tier in their native API or upstream gateways
@@ -523,6 +531,32 @@ export function sanitizeReasoningEffortForProvider(
     return body;
   }
 
+  // OpenAI-Compatible endpoints serving a self-hosted GLM-5.3-Flash model
+  // (e.g. internal vLLM, provider id "openai-compatible-..."). GLM-5.3-Flash
+  // accepts reasoning_effort as {low, high, max} literally, so pass those
+  // through unchanged. Only map the internal tiers GLM does not expose: Claude
+  // Code may still send none/minimal/medium/xhigh (it cannot be constrained via
+  // model-catalogs), so none/minimal → low, medium → high, and xhigh → max
+  // before the request reaches the endpoint.
+  if (provider.startsWith(OPENAI_COMPATIBLE_PREFIX) && GLM_53_FLASH_MODEL_PATTERN.test(modelStr)) {
+    const mapped =
+      effortStr === "xhigh"
+        ? "max"
+        : effortStr === "medium"
+          ? "high"
+          : effortStr === "none" || effortStr === "minimal"
+            ? "low"
+            : null;
+    if (mapped && mapped !== effortStr) {
+      log?.info?.(
+        "REASONING_SANITIZE",
+        `${provider}/${modelStr}: normalized reasoning_effort ${effortStr} → ${mapped}`
+      );
+      return writeEffortValue(b, mapped, c);
+    }
+    return body;
+  }
+
   // Generic learned clamp (downgrade-only: greatest accepted <= demand).
   // Sits AFTER the per-provider early returns by design: deepseek/command-code/
   // ollama-cloud have deliberate static translations that take precedence; the
@@ -549,11 +583,10 @@ export function sanitizeReasoningEffortForProvider(
     ? modelStr.slice(provider.length + 1)
     : modelStr;
   const declaredEfforts = getProviderModels(provider).find(
-    (entry) => entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
+    (entry) =>
+      entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
   )?.supportedThinkingEfforts;
-  const declaredRanked = (
-    Array.isArray(declaredEfforts) ? declaredEfforts : []
-  )
+  const declaredRanked = (Array.isArray(declaredEfforts) ? declaredEfforts : [])
     .map((tier) => ({ tier, rank: REASONING_EFFORT_ORDER.indexOf(tier) }))
     .filter((x) => x.rank >= 0)
     .sort((a, b) => a.rank - b.rank);
