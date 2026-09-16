@@ -1,0 +1,2 @@
+- fix(providers): restore grok-4.6/4.5 default reasoning effort so requests without an explicit effort keep reasoning enabled (#13628)
+- fix(registry): declare supportedThinkingEfforts on claude-opus-5 and claude-fable-5 across the anthropic/claude/claude-web/ghe-copilot/github registries (#13628)

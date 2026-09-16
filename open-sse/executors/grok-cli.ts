@@ -124,17 +124,18 @@ function ensureReasoningInclude(value: unknown): unknown[] {
 
 function normalizeGrokBuildReasoning(
   value: unknown,
-  model: string
+  model: string,
 ): Record<string, unknown> | null {
   const reasoning = asRequestRecord(value);
-  const hasExplicitEffort = Object.prototype.hasOwnProperty.call(reasoning, "effort");
   if (!GROK_BUILD_REASONING_EFFORT_SET.has(String(reasoning.effort))) {
     delete reasoning.effort;
   }
   if (model === "grok-composer-2.5-fast") {
     delete reasoning.effort;
-  } else if (model === "grok-4.5" && !hasExplicitEffort) {
-    reasoning.effort = GROK_BUILD_DEFAULT_REASONING_EFFORT;
+  } else if (model === "grok-4.5" || model === "grok-4.6") {
+    if (!GROK_BUILD_REASONING_EFFORT_SET.has(String(reasoning.effort))) {
+      reasoning.effort = GROK_BUILD_DEFAULT_REASONING_EFFORT;
+    }
   }
   return Object.keys(reasoning).length > 0 ? reasoning : null;
 }

@@ -37,12 +37,18 @@ export const gheCopilotProvider: RegistryEntry = {
       name: "Claude Fable 5",
       contextLength: 1000000,
       maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
     },
     {
       id: "claude-opus-5",
       name: "Claude Opus 5",
       contextLength: 1000000,
       maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {

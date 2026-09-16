@@ -43,6 +43,9 @@ export const claudeProvider: RegistryEntry = {
       name: "Claude Fable 5",
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
       // Opus 4.7+/Fable 5 reject non-default temperature/top_p/top_k with a 400 (sampling
       // is fixed; reasoning is steered by output_config.effort). Strip them before dispatch.
       unsupportedParams: ["temperature", "top_p", "top_k"],
@@ -52,6 +55,8 @@ export const claudeProvider: RegistryEntry = {
       name: "Claude Opus 5",
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
       supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },

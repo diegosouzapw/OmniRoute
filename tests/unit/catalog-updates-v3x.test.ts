@@ -86,6 +86,51 @@ test("Opus 5 catalog is limited to verified first-party, web, and Copilot provid
     assert.equal(price.input, 5.0, `${providerId} Opus 5 input price`);
     assert.equal(price.output, 25.0, `${providerId} Opus 5 output price`);
   }
+
+  const efforts = ["low", "medium", "high", "xhigh", "max"];
+  for (const providerId of ["claude", "github", "claude-web", "anthropic"]) {
+    const model = getModelsByProviderId(providerId).find((entry) => entry.id === "claude-opus-5");
+    assert.ok(model, `${providerId} must expose claude-opus-5`);
+    assert.deepEqual(
+      model.supportedThinkingEfforts,
+      efforts,
+      `${providerId} opus-5 effort list`,
+    );
+  }
+});
+
+test("Fable 5 catalog declares thinking effort lists on first-party providers", () => {
+  const efforts = ["low", "medium", "high", "xhigh", "max"];
+
+  for (const providerId of ["claude", "github", "claude-web", "anthropic", "ghe-copilot"]) {
+    const model = getModelsByProviderId(providerId).find((entry) => entry.id === "claude-fable-5");
+    assert.ok(model, `${providerId} must expose claude-fable-5`);
+    assert.deepEqual(
+      model.supportedThinkingEfforts,
+      efforts,
+      `${providerId} fable-5 effort list`,
+    );
+  }
+
+  for (const providerId of ["claude", "anthropic", "claude-web"]) {
+    const model = getModelsByProviderId(providerId).find((entry) => entry.id === "claude-fable-5-1");
+    assert.ok(model, `${providerId} must expose claude-fable-5-1`);
+    assert.deepEqual(
+      model.supportedThinkingEfforts,
+      efforts,
+      `${providerId} fable-5-1 effort list`,
+    );
+  }
+
+  const bedrock = getModelsByProviderId("bedrock").find(
+    (entry) => entry.id === "anthropic.claude-fable-5-1",
+  );
+  assert.ok(bedrock, "bedrock must expose anthropic.claude-fable-5-1");
+  assert.deepEqual(
+    bedrock.supportedThinkingEfforts,
+    efforts,
+    "bedrock fable-5-1 effort list",
+  );
 });
 
 test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox with Sonnet-tier pricing", () => {
