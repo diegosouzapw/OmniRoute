@@ -87,6 +87,8 @@ import { markAccountExhaustedFromCredits } from "../../../src/domain/quotaCache.
 import { classifyComboOutcome, redactConnectionLabel } from "./comboErrorAggregation.ts";
 import { readConnectionForCooldownGate } from "./executeTargetGates.ts";
 import {
+  handlePreContentStreamRetry,
+  qualityValidationFailure,
   remainderIsHomogeneous,
   shouldAbortOnInputBoundFailure,
   shouldSurfaceBodySpecific400,
@@ -454,12 +456,8 @@ export async function executeTargetAttempt(opts: {
           latencyMs: Date.now() - deps.startTime,
         });
         state.observeFailure(false, target.executionKey);
-        return protectedPriorityTarget
-          ? {
-              ok: false,
-              response: errorResponse(502, "Upstream response failed quality validation"),
-            }
-          : null;
+        if (handlePreContentStreamRetry(quality, retry, deps, modelStr)) continue;
+        return protectedPriorityTarget ? qualityValidationFailure() : null;
       }
 
       if (Boolean(deps.clientManagedResponsesContext) && effectiveConnectionId) {
