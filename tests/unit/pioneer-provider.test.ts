@@ -70,8 +70,16 @@ test("pioneer legacy PROVIDERS entry resolves from generated map", () => {
 
 test("pioneer has hasFree flag and free signup notice", () => {
   const pioneer = APIKEY_PROVIDERS.pioneer;
-  assert.equal(pioneer.hasFree, true, "pioneer should advertise free tier");
-  assert.ok(pioneer.freeNote?.includes("$75"), "freeNote should mention $75 credits");
+  assert.equal(pioneer.hasFree, false, "pioneer should not advertise a free catalog tier");
+  assert.equal(
+    pioneer.freeNote,
+    undefined,
+    "freeNote must not claim free credits once hasFree is false"
+  );
+  assert.ok(
+    !pioneer.notice?.text?.includes("$75"),
+    "notice text must not contradict hasFree:false by still claiming $75 free credits"
+  );
   assert.ok(
     pioneer.notice?.signupUrl?.includes("pioneer.ai"),
     "signupUrl should point to pioneer.ai"
