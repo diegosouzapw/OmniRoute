@@ -38,7 +38,7 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "glm-4v",
   "glm-4.5v",
   "glm-4.6v",
-  "glm-5.3-flash",
+  "glm-5.3",
   "gpt-4o",
   "gpt-4.1",
   "gpt-4-turbo",

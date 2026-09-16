@@ -251,6 +251,24 @@ function validateRequestedModalities(runtime: EmbeddingRuntime): EmbeddingFailur
     : null;
 }
 
+/**
+ * Conservative per-item character budget for embedding string inputs. 20k
+ * chars stays under the smallest common embedding context (8192 tokens,
+ * text-embedding-3-small) even for code/CJK-heavy text. Array items are
+ * clamped individually; non-string items (structured/native modalities) are
+ * passed through untouched.
+ */
+const MAX_EMBEDDING_INPUT_CHARS = 20_000;
+
+export function clampEmbeddingStringInput(input: unknown): unknown {
+  const clampString = (s: string): string =>
+    s.length > MAX_EMBEDDING_INPUT_CHARS ? s.slice(0, MAX_EMBEDDING_INPUT_CHARS) : s;
+  if (typeof input === "string") return clampString(input);
+  if (Array.isArray(input))
+    return input.map((item) => (typeof item === "string" ? clampString(item) : item));
+  return input;
+}
+
 function buildUpstreamBody(runtime: EmbeddingRuntime): Record<string, unknown> {
   const upstreamBody: Record<string, unknown> = {
     model: runtime.model,
