@@ -212,6 +212,7 @@ export const OAUTH_TEST_CONFIG: Record<string, OAuthTestConfigEntry> = {
     checkExpiry: true,
   },
   cline: CLINE_OAUTH_TEST_CONFIG,
+  // cline API key connections (dual-auth path) use the default live-probe.
   // ClinePass reuses the same WorkOS OAuth flow and token lifecycle as Cline.
   clinepass: CLINE_OAUTH_TEST_CONFIG,
   kiro: {
