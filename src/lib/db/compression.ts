@@ -656,9 +656,27 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     const record = toRecord(row);
     const key = typeof record.key === "string" ? record.key : null;
     const rawValue = typeof record.value === "string" ? record.value : null;
-    if (!key || rawValue === null) continue;
+    if (!key || rawValue === null) {
+      // #13456: non-string values (BLOB from backup/restore/migration tooling) are
+      // silently ignored — log so operators can diagnose config drift.
+      if (key && typeof record.value !== "string" && record.value !== null) {
+        console.warn(
+          `[COMPRESSION] Settings row '${key}' has non-string value type ` +
+            `(${typeof record.value}); skipping. This may indicate a backup/restore ` +
+            `issue — re-save the setting from the Storage panel to fix.`
+        );
+      }
+      continue;
+    }
     const parsed = parseJsonSafe(rawValue);
-    if (parsed === undefined) continue;
+    if (parsed === undefined) {
+      // #13456: invalid JSON is also silently ignored — log it.
+      console.warn(
+        `[COMPRESSION] Settings row '${key}' has unparseable JSON value; skipping. ` +
+          `Re-save the setting from the Storage panel to fix.`
+      );
+      continue;
+    }
 
     switch (key) {
       case "enabled":
@@ -768,6 +786,16 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "engines":
         storedEngines = parseStoredEnginesMap(parsed);
+        // #13456: only warn when the row itself isn't a usable object — a valid object
+        // that simply yields zero toggles (e.g. `{}`, an operator deliberately disabling
+        // every engine) is legitimate config, not a parse failure, and must not warn.
+        if (storedEngines === null && (!parsed || typeof parsed !== "object")) {
+          console.warn(
+            `[COMPRESSION] 'engines' settings row is present but unreadable; ` +
+              `falling back to legacy settings. Re-save the engines map from the ` +
+              `Storage panel to fix.`
+          );
+        }
         break;
       case "activeComboId":
         config.activeComboId = typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
@@ -917,7 +945,10 @@ let proactiveRatioCache: { value: number; readAt: number } | null = null;
 
 export function getProactiveCompressionRatio(): number {
   const now = Date.now();
-  if (proactiveRatioCache && now - proactiveRatioCache.readAt < PROACTIVE_COMPRESSION_CACHE_TTL_MS) {
+  if (
+    proactiveRatioCache &&
+    now - proactiveRatioCache.readAt < PROACTIVE_COMPRESSION_CACHE_TTL_MS
+  ) {
     return proactiveRatioCache.value;
   }
   let ratio = PROACTIVE_COMPRESSION_DEFAULT_RATIO;
