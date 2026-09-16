@@ -719,11 +719,10 @@ function convertOpenAINonStreamingToClaude(
 
   const reasoningText = resolveReasoningText(messageObj);
   if (reasoningText) {
-    hasTextOrReasoning = true;
-    content.push({
-      type: "thinking",
-      thinking: reasoningText,
-    });
+    // Non-Anthropic reasoning has no Anthropic signature, so it cannot be
+    // replayed as a Claude `thinking` block. Do not launder it into text either:
+    // it may contain private chain-of-thought and would pollute future history.
+    void reasoningText;
   }
 
   // Always include text if it exists (even empty string), or if there are no tool calls and no reasoning
