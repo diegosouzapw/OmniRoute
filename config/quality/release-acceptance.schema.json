@@ -1,0 +1,183 @@
+{
+  "$id": "https://omniroute.local/quality/release-acceptance.schema.json",
+  "title": "Release acceptance report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "identity",
+    "required_gates",
+    "gates",
+    "evidence_errors",
+    "verdict",
+    "artifact"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "identity": { "$ref": "#/$defs/identity" },
+    "required_gates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/gateInstanceKey" }
+    },
+    "gates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gateResult" }
+    },
+    "evidence_errors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidenceError" }
+    },
+    "verdict": { "enum": ["VERIFIED", "FAILED", "UNVERIFIED"] },
+    "artifact": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/artifact" }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "verdict": { "const": "VERIFIED" } }, "required": ["verdict"] },
+      "then": { "properties": { "required_gates": { "minItems": 1 } } }
+    }
+  ],
+  "$defs": {
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "gateInstanceKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate_id", "suite_id", "shard_index", "shard_total"],
+      "properties": {
+        "gate_id": { "type": "string", "minLength": 1 },
+        "suite_id": { "type": ["string", "null"] },
+        "shard_index": { "type": ["integer", "null"], "minimum": 0 },
+        "shard_total": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "run_id",
+        "run_attempt",
+        "workflow",
+        "trigger",
+        "scope",
+        "requested_ref",
+        "base_sha",
+        "candidate_sha",
+        "tested_sha"
+      ],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "run_attempt": { "type": "integer", "minimum": 1 },
+        "workflow": { "type": "string", "minLength": 1 },
+        "trigger": { "type": "string", "minLength": 1 },
+        "scope": { "enum": ["pr", "release", "scheduled"] },
+        "requested_ref": { "type": "string", "minLength": 1 },
+        "base_sha": { "$ref": "#/$defs/sha" },
+        "candidate_sha": { "$ref": "#/$defs/sha" },
+        "tested_sha": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "member", "algorithm", "digest"],
+      "properties": {
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "member": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))[^\\s]+$"
+        },
+        "algorithm": { "const": "sha256" },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "digest", "identity"],
+      "properties": {
+        "algorithm": { "const": "sha256" },
+        "digest": { "$ref": "#/$defs/digest" },
+        "identity": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidenceError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "gate", "detail"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "gate": { "$ref": "#/$defs/gateInstanceKey" },
+        "detail": { "type": "string" }
+      }
+    },
+    "gateResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "suite_id",
+        "shard_index",
+        "shard_total",
+        "tested_sha",
+        "run_id",
+        "run_attempt",
+        "command_id",
+        "gate_type",
+        "status",
+        "cause",
+        "exit_code",
+        "duration_ms",
+        "evidence"
+      ],
+      "properties": {
+        "gate_id": { "type": "string", "minLength": 1 },
+        "suite_id": { "type": ["string", "null"] },
+        "shard_index": { "type": ["integer", "null"], "minimum": 0 },
+        "shard_total": { "type": ["integer", "null"], "minimum": 1 },
+        "tested_sha": { "$ref": "#/$defs/sha" },
+        "run_id": { "type": "string", "minLength": 1 },
+        "run_attempt": { "type": "integer", "minimum": 1 },
+        "command_id": { "type": "string", "minLength": 1 },
+        "gate_type": { "enum": ["static", "test", "artifact"] },
+        "status": { "enum": ["PASS", "FAIL", "INFRA_ERROR", "SKIPPED"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "cause": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/gateInstanceKey" }
+          ]
+        },
+        "exit_code": { "type": ["integer", "null"] },
+        "duration_ms": { "type": "integer", "minimum": 0 },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidenceRef" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "SKIPPED" } },
+            "required": ["status"]
+          },
+          "then": { "required": ["reason"] }
+        }
+      ]
+    }
+  }
+}
