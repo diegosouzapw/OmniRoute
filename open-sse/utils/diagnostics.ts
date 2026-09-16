@@ -255,7 +255,9 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     //  1) A block IS present but invalid (e.g. text:"", a lone "(empty response)"
     //     sentinel, or only null entries) — the model genuinely produced no
     //     usable output. That is a MALFORMED-200 empty_choices regardless of
-    //     stop_reason (parity with the OpenAI content:"" path).
+    //     stop_reason (parity with the OpenAI content:"" path) — UNLESS the
+    //     terminal stop_reason is one of the legitimate truncated-completion
+    //     exemptions below (#12968).
     //  2) `content: []` — no block at all. #9971: a truncated / non-terminal
     //     body (no stop_reason) must not become empty_choices. A terminal
     //     stop_reason with no output usually is empty_choices — except the
@@ -265,12 +267,16 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     //     return content:[] + stop_reason max_tokens. Treating that as
     //     empty_choices turns a valid 200 into MALFORMED-200 → 502 even
     //     though errorClassifier would have let it through.
-    if (content.length === 0) {
-      const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
-      if (stopReason.length === 0) return null;
-      if (stopReason === "max_tokens" || stopReason === "tool_use") return null;
-      return "empty_choices";
-    }
+    const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
+    // #12968: the #9971 exemption above only fired when `content` was a
+    // completely empty array. A tiny `max_tokens` probe against an
+    // Anthropic-compatible shim can instead return content:[{type:"text",
+    // text:""}] — one block, just with no visible text — which is the exact
+    // same legitimate truncated-completion shape, so the exemption must apply
+    // whenever there is no visible output, not only when content is [].
+    if (stopReason === "max_tokens" || stopReason === "tool_use") return null;
+    // content:[] with no stop_reason at all is non-terminal, not empty (#9971).
+    if (content.length === 0 && stopReason.length === 0) return null;
     return "empty_choices";
   }
 
@@ -323,7 +329,8 @@ export function describeMalformedNonStream(
 ): { message: string; code: string; type: string } {
   const body = resp && typeof resp === "object" ? (resp as Record<string, unknown>) : null;
   if (body?.object === "response" && body.status === "failed") {
-    const err = body.error && typeof body.error === "object" ? (body.error as Record<string, unknown>) : null;
+    const err =
+      body.error && typeof body.error === "object" ? (body.error as Record<string, unknown>) : null;
     const rawMessage =
       typeof err?.message === "string" && err.message.trim().length > 0 ? err.message.trim() : null;
     return {

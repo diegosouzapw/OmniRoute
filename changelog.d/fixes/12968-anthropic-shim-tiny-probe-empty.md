@@ -1,0 +1,1 @@
+- **fix(sse):** stop misclassifying a truncated Anthropic-compatible `max_tokens` probe response (`content:[{type:"text",text:""}]`) as an empty upstream response (#12968) — thanks @pranay-gpt
