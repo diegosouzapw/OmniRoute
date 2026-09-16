@@ -6,6 +6,8 @@ import path from "node:path";
 import {
   buildProfileSettings,
   fallbackClaudeProfile,
+  formatManualLaunchHint,
+  inheritedAnthropicKeyWarning,
   syncClaudeProfilesFromModels,
 } from "../../../bin/cli/commands/setup-claude.mjs";
 import { buildClaudeEnv, resolveLaunchTarget } from "../../../bin/cli/commands/launch.mjs";
@@ -204,4 +206,46 @@ test("resolveLaunchTarget: explicit --remote wins, strips /v1", () => {
 test("resolveLaunchTarget: explicit token wins over everything", () => {
   const { authToken } = resolveLaunchTarget({ remote: "http://x:20128", token: "tok-explicit" });
   assert.equal(authToken, "tok-explicit");
+});
+
+// ── #11525 — manual-launch hint must not depend on shell tilde expansion ─────
+//
+// Claude Code's config root is `process.env.CLAUDE_CONFIG_DIR ?? join(homedir(),
+// ".claude")` — verbatim, no tilde expansion. A `CLAUDE_CONFIG_DIR=~/.claude/...`
+// hint therefore silently resolves to a non-existent literal `~` directory on any
+// shell that does not expand it (PowerShell, cmd.exe). Claude Code then starts
+// with no ANTHROPIC_BASE_URL and its `firstParty` provider falls back to
+// api.anthropic.com, which answers a genuine Anthropic 401.
+
+test("formatManualLaunchHint emits an absolute path, never a tilde (#11525)", () => {
+  const hint = formatManualLaunchHint("/home/u/.claude/profiles/glm52", "linux");
+  assert.equal(hint.includes("~"), false);
+  assert.ok(hint.includes('CLAUDE_CONFIG_DIR="/home/u/.claude/profiles/glm52"'));
+  assert.ok(hint.includes("ANTHROPIC_AUTH_TOKEN"));
+  assert.ok(hint.trimEnd().endsWith("claude"));
+});
+
+test("formatManualLaunchHint uses PowerShell syntax on win32 (#11525)", () => {
+  const dir = "C:\\Users\\u\\.claude\\profiles\\glm52";
+  const hint = formatManualLaunchHint(dir, "win32");
+  assert.equal(hint.includes("~"), false);
+  assert.ok(hint.startsWith(`$env:CLAUDE_CONFIG_DIR="${dir}";`));
+  assert.ok(hint.includes('$env:ANTHROPIC_AUTH_TOKEN="<your OmniRoute key>";'));
+  // The bash `VAR=value cmd` prefix form is a parse error in PowerShell.
+  assert.equal(hint.includes("CLAUDE_CONFIG_DIR=C:"), false);
+});
+
+test("formatManualLaunchHint never bakes a real key into the hint", () => {
+  const hint = formatManualLaunchHint("/home/u/.claude/profiles/glm52", "linux");
+  assert.ok(hint.includes("<your OmniRoute key>"));
+});
+
+test("inheritedAnthropicKeyWarning fires only when ANTHROPIC_API_KEY is set (#11525)", () => {
+  assert.equal(inheritedAnthropicKeyWarning({}), null);
+  assert.equal(inheritedAnthropicKeyWarning({ ANTHROPIC_API_KEY: "   " }), null);
+  const warning = inheritedAnthropicKeyWarning({ ANTHROPIC_API_KEY: "oma_live_xxx" });
+  assert.ok(warning);
+  assert.ok(warning.includes("api.anthropic.com"));
+  // Never echo the key itself back to the terminal.
+  assert.equal(warning.includes("oma_live_xxx"), false);
 });
