@@ -1,0 +1,1 @@
+- **fix(sse):** Kiro translator no longer re-prepends the full relocated tool-documentation block onto every subsequent turn of a multi-turn conversation; it now stays anchored to the turn that originally carried it. (#13652) — thanks @KelvinKSPS
