@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "MCP ఆడిట్ (రోజులు)",
     "retentionA2aEvents": "A2A ఈవెంట్‌లు (రోజులు)",
     "retentionCallLogs": "కాల్ లాగ్‌లు (రోజులు)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "వినియోగ చరిత్ర (రోజులు)",
     "retentionMemoryEntries": "మెమరీ ఎంట్రీలు (రోజులు)",
     "retentionXpAuditLog": "XP ఆడిట్ లాగ్ (రోజులు)",

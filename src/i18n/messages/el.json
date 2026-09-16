@@ -7764,6 +7764,7 @@
     "retentionMcpAudit": "Έλεγχος MCP (ημέρες)",
     "retentionA2aEvents": "Συμβάντα A2A (ημέρες)",
     "retentionCallLogs": "Αρχεία Καταγραφής Κλήσεων (ημέρες)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Ιστορικό Χρήσης (ημέρες)",
     "retentionMemoryEntries": "Καταχωρίσεις Μνήμης (ημέρες)",
     "retentionXpAuditLog": "Αρχείο Ελέγχου XP (ημέρες)",

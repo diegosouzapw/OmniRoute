@@ -7765,6 +7765,7 @@
     "retentionMcpAudit": "Kiểm toán MCP (ngày)",
     "retentionA2aEvents": "Sự kiện A2A (ngày)",
     "retentionCallLogs": "Nhật ký cuộc gọi (ngày)",
+    "retentionConversationTurnNodes": "Nút lượt hội thoại (ngày)",
     "retentionUsageHistory": "Lịch sử sử dụng (ngày)",
     "retentionMemoryEntries": "Mục nhập bộ nhớ (ngày)",
     "retentionXpAuditLog": "Nhật ký kiểm toán XP (ngày)",

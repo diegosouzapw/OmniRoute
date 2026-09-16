@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "Одит на MCP (дни)",
     "retentionA2aEvents": "Събития A2A (дни)",
     "retentionCallLogs": "Регистри на обажданията (дни)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "История на използването (дни)",
     "retentionMemoryEntries": "Записи в паметта (дни)",
     "retentionXpAuditLog": "Одитен дневник на XP (дни)",

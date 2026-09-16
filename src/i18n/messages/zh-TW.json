@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "MCP 稽核（天）",
     "retentionA2aEvents": "A2A 活動（天）",
     "retentionCallLogs": "通話記錄（天）",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "使用歷史（天）",
     "retentionMemoryEntries": "記憶體條目（天）",
     "retentionXpAuditLog": "XP 稽核記錄（天數）",

@@ -7764,6 +7764,7 @@
     "retentionMcpAudit": "Awditjar tal-MCP (jiem)",
     "retentionA2aEvents": "Avvenimenti A2A (jiem)",
     "retentionCallLogs": "Reġistri tas-Sejħiet (jiem)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Storja tal-Użu (jiem)",
     "retentionMemoryEntries": "Entrati tal-Memorja (jiem)",
     "retentionXpAuditLog": "Reġistru tal-Awditjar tal-XP (jiem)",

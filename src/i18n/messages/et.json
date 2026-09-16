@@ -7764,6 +7764,7 @@
     "retentionMcpAudit": "MCP audit (päevades)",
     "retentionA2aEvents": "A2A sündmused (päevades)",
     "retentionCallLogs": "Kõnelogid (päevades)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Kasutusajalugu (päevades)",
     "retentionMemoryEntries": "Mälukirjed (päevades)",
     "retentionXpAuditLog": "XP auditilogi (päevades)",

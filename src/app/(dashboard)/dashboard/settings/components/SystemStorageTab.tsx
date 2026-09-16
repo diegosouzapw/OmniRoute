@@ -934,6 +934,7 @@ export default function SystemStorageTab() {
       ["mcpAudit", t("retentionMcpAudit"), 30],
       ["a2aEvents", t("retentionA2aEvents"), 30],
       ["callLogs", t("retentionCallLogs"), 30],
+      ["conversationTurnNodes", t("retentionConversationTurnNodes"), 1],
       ["usageHistory", t("retentionUsageHistory"), 30],
       ["memoryEntries", t("retentionMemoryEntries"), 30],
       ["xpAuditLog", t("retentionXpAuditLog"), 30],

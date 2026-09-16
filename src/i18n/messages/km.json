@@ -7764,6 +7764,7 @@
     "retentionMcpAudit": "កំណត់ហេតុសវនកម្ម MCP (ថ្ងៃ)",
     "retentionA2aEvents": "ព្រឹត្តិការណ៍ A2A (ថ្ងៃ)",
     "retentionCallLogs": "កំណត់ហេតុការហៅ (ថ្ងៃ)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "ប្រវត្តិការប្រើប្រាស់ (ថ្ងៃ)",
     "retentionMemoryEntries": "ធាតុអង្គចងចាំ (ថ្ងៃ)",
     "retentionXpAuditLog": "កំណត់ហេតុសវនកម្ម XP (ថ្ងៃ)",

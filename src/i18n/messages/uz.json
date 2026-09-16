@@ -7760,6 +7760,7 @@
     "retentionMcpAudit": "MCP auditi (kun)",
     "retentionA2aEvents": "A2A hodisalari (kun)",
     "retentionCallLogs": "Qo‘ng‘iroqlar jurnallari (kun)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Foydalanish tarixi (kun)",
     "retentionMemoryEntries": "Xotira yozuvlari (kun)",
     "retentionXpAuditLog": "XP audit jurnali (kun)",

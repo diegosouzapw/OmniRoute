@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "MCP Auditi (günlər)",
     "retentionA2aEvents": "A2A Hadisələri (günlər)",
     "retentionCallLogs": "Zəng qeydləri (günlər)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "İstifadə Tarixçəsi (günlər)",
     "retentionMemoryEntries": "Yaddaş Girişləri (günlər)",
     "retentionXpAuditLog": "XP Audit Log (days)",

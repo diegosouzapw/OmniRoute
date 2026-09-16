@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "ممیزی MCP (روزها)",
     "retentionA2aEvents": "رویدادهای A2A (روزها)",
     "retentionCallLogs": "گزارش تماس (روزها)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "تاریخچه استفاده (روزها)",
     "retentionMemoryEntries": "ورودی های حافظه (روز)",
     "retentionXpAuditLog": "گزارش حسابرسی XP (روز)",

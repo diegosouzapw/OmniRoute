@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "Audit MCP (hari)",
     "retentionA2aEvents": "Acara A2A (hari)",
     "retentionCallLogs": "Log Panggilan (hari)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Sejarah Penggunaan (hari)",
     "retentionMemoryEntries": "Entri Memori (hari)",
     "retentionXpAuditLog": "Log Audit XP (hari)",

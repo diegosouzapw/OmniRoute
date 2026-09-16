@@ -7760,6 +7760,7 @@
     "retentionMcpAudit": "MCP აუდიტი (დღე)",
     "retentionA2aEvents": "A2A მოვლენები (დღე)",
     "retentionCallLogs": "ზარების ჟურნალები (დღე)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "გამოყენების ისტორია (დღე)",
     "retentionMemoryEntries": "მეხსიერების ჩანაწერები (დღე)",
     "retentionXpAuditLog": "XP აუდიტის ჟურნალი (დღე)",

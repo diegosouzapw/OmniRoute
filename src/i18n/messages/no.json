@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "MCP-revisjon (dager)",
     "retentionA2aEvents": "A2A-hendelser (dager)",
     "retentionCallLogs": "Samtalelogger (dager)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Brukshistorikk (dager)",
     "retentionMemoryEntries": "Minneoppføringer (dager)",
     "retentionXpAuditLog": "XP-revisjonslogg (dager)",

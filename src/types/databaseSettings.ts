@@ -47,6 +47,7 @@ export interface DatabaseSettings {
     configAudit: number;
     a2aEvents: number;
     callLogs: number;
+    conversationTurnNodes: number;
     usageHistory: number;
     memoryEntries: number;
     domainCostHistory: number;
@@ -118,6 +119,7 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     configAudit: 30,
     a2aEvents: 30,
     callLogs: 30,
+    conversationTurnNodes: 1,
     usageHistory: 30,
     memoryEntries: 30,
     domainCostHistory: 30,

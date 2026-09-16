@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "Audit MCP (zile)",
     "retentionA2aEvents": "Evenimente A2A (zile)",
     "retentionCallLogs": "Jurnalele de apeluri (zile)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Istoricul utilizării (zile)",
     "retentionMemoryEntries": "Intrări de memorie (zile)",
     "retentionXpAuditLog": "Jurnal de audit XP (zile)",

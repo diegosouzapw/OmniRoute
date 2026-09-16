@@ -7764,6 +7764,7 @@
     "retentionMcpAudit": "MCP auditas (dienomis)",
     "retentionA2aEvents": "A2A įvykiai (dienomis)",
     "retentionCallLogs": "Skambučių žurnalai (dienomis)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Naudojimo istorija (dienomis)",
     "retentionMemoryEntries": "Atminties įrašai (dienomis)",
     "retentionXpAuditLog": "XP audito žurnalas (dienomis)",

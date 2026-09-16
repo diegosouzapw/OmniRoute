@@ -7760,6 +7760,7 @@
     "retentionMcpAudit": "Àyẹ̀wò MCP (ọjọ́)",
     "retentionA2aEvents": "Àwọn Ìṣẹ̀lẹ̀ A2A (ọjọ́)",
     "retentionCallLogs": "Àwọn Àkọsílẹ̀ Ìpè (ọjọ́)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Ìtàn Ìlò (ọjọ́)",
     "retentionMemoryEntries": "Àwọn Àkọsílẹ̀ Ìrántí (ọjọ́)",
     "retentionXpAuditLog": "Àkọsílẹ̀ Àyẹ̀wò XP (ọjọ́)",

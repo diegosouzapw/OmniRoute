@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "एमसीपी ऑडिट (दिन)",
     "retentionA2aEvents": "A2A इवेंट (दिन)",
     "retentionCallLogs": "कॉल लॉग्स (दिन)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "उपयोग इतिहास (दिन)",
     "retentionMemoryEntries": "मेमोरी प्रविष्टियाँ (दिन)",
     "retentionXpAuditLog": "XP ऑडिट लॉग (दिन)",

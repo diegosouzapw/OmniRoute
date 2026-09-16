@@ -7764,6 +7764,7 @@
     "retentionMcpAudit": "MCP စစ်ဆေးမှတ်တမ်း (ရက်)",
     "retentionA2aEvents": "A2A ဖြစ်ရပ်များ (ရက်)",
     "retentionCallLogs": "ခေါ်ဆိုမှုမှတ်တမ်းများ (ရက်)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "အသုံးပြုမှုမှတ်တမ်း (ရက်)",
     "retentionMemoryEntries": "မှတ်ဉာဏ်ထည့်သွင်းချက်များ (ရက်)",
     "retentionXpAuditLog": "XP စစ်ဆေးမှတ်တမ်း (ရက်)",

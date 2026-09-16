@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "Audit MCP (dni)",
     "retentionA2aEvents": "Udalosti A2A (dni)",
     "retentionCallLogs": "Denníky hovorov (dni)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "História používania (dni)",
     "retentionMemoryEntries": "Záznamy pamäte (dni)",
     "retentionXpAuditLog": "Auditný log XP (dni)",

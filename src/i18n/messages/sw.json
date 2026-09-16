@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "Ukaguzi wa MCP (siku)",
     "retentionA2aEvents": "Matukio ya A2A (siku)",
     "retentionCallLogs": "Rekodi za simu (siku)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Historia ya Matumizi (siku)",
     "retentionMemoryEntries": "Maingizo ya Kumbukumbu (siku)",
     "retentionXpAuditLog": "Kumbukumbu ya Ukaguzi wa XP (siku)",

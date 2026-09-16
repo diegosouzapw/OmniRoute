@@ -7760,6 +7760,7 @@
     "retentionMcpAudit": "Binciken MCP (kwanaki)",
     "retentionA2aEvents": "Abubuwan da Suka Faru na A2A (kwanaki)",
     "retentionCallLogs": "Rajistan Kira (kwanaki)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Tarihin Amfani (kwanaki)",
     "retentionMemoryEntries": "Bayanan Ƙwaƙwalwa (kwanaki)",
     "retentionXpAuditLog": "Rajistan Binciken XP (kwanaki)",

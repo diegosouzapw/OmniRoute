@@ -7760,6 +7760,7 @@
     "retentionMcpAudit": "MCP աուդիտ (օրեր)",
     "retentionA2aEvents": "A2A իրադարձություններ (օրեր)",
     "retentionCallLogs": "Զանգերի մատյաններ (օրեր)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Օգտագործման պատմություն (օրեր)",
     "retentionMemoryEntries": "Հիշողության գրառումներ (օրեր)",
     "retentionXpAuditLog": "XP աուդիտի մատյան (օրեր)",

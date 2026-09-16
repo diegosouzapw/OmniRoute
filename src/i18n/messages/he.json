@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "ביקורת MCP (ימים)",
     "retentionA2aEvents": "אירועי A2A (ימים)",
     "retentionCallLogs": "יומני שיחות (ימים)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "היסטוריית שימוש (ימים)",
     "retentionMemoryEntries": "ערכי זיכרון (ימים)",
     "retentionXpAuditLog": "יומן ביקורת XP (ימים)",

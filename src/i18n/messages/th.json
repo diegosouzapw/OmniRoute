@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "การตรวจสอบ MCP (วัน)",
     "retentionA2aEvents": "เหตุการณ์ A2A (วัน)",
     "retentionCallLogs": "บันทึกการโทร (วัน)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "ประวัติการใช้งาน (วัน)",
     "retentionMemoryEntries": "รายการหน่วยความจำ (วัน)",
     "retentionXpAuditLog": "บันทึกการตรวจสอบ XP (วัน)",

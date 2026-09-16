@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "Audit MCP (dni)",
     "retentionA2aEvents": "Zdarzenia A2A (dni)",
     "retentionCallLogs": "Logi wywołań (dni)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Historia użycia (dni)",
     "retentionMemoryEntries": "Wpisy pamięci (dni)",
     "retentionXpAuditLog": "Log audytu XP (dni)",

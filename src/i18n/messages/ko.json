@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "MCP 감사(일)",
     "retentionA2aEvents": "A2A 이벤트(일)",
     "retentionCallLogs": "호출 로그(일)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "이용내역(일)",
     "retentionMemoryEntries": "메모리 항목(일)",
     "retentionXpAuditLog": "XP Audit Log (days)",

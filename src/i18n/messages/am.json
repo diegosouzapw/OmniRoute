@@ -7760,6 +7760,7 @@
     "retentionMcpAudit": "የMCP ኦዲት (ቀናት)",
     "retentionA2aEvents": "የA2A ክስተቶች (ቀናት)",
     "retentionCallLogs": "የጥሪ ምዝግቦች (ቀናት)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "የአጠቃቀም ታሪክ (ቀናት)",
     "retentionMemoryEntries": "የማህደረ ትውስታ ግቤቶች (ቀናት)",
     "retentionXpAuditLog": "የXP ኦዲት ምዝግብ (ቀናት)",

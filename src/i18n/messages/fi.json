@@ -7757,6 +7757,7 @@
     "retentionMcpAudit": "MCP-tarkastus (päiviä)",
     "retentionA2aEvents": "A2A-tapahtumat (päiviä)",
     "retentionCallLogs": "Puhelulokit (päiviä)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Käyttöhistoria (päiviä)",
     "retentionMemoryEntries": "Muistimerkinnät (päiviä)",
     "retentionXpAuditLog": "XP-tarkastusloki (päivää)",

@@ -7760,6 +7760,7 @@
     "retentionMcpAudit": "Nyocha MCP (ụbọchị)",
     "retentionA2aEvents": "Ihe Omume A2A (ụbọchị)",
     "retentionCallLogs": "Ndekọ Oku (ụbọchị)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Akụkọ Ojiji (ụbọchị)",
     "retentionMemoryEntries": "Ndenye Ncheta (ụbọchị)",
     "retentionXpAuditLog": "Ndekọ Nyocha XP (ụbọchị)",

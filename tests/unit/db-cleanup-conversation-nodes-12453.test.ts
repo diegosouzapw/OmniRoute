@@ -5,8 +5,7 @@
  *
  * The identity nodes only make sense while the call_logs row their
  * last_correlation_id points at still exists, so both tables follow the
- * existing `retention.callLogs` window instead of getting a knob of their own.
- *
+ * their own `retention.conversationTurnNodes` window (default 1 day), not `callLogs`. *
  * These tests call the REAL cleanup functions against a real SQLite adapter
  * seeded with test rows, exactly like telemetry-auto-cleanup-6848.test.ts.
  *
@@ -37,8 +36,7 @@ test.after(() => {
 });
 
 const DAY_MS = 86_400_000;
-const RETENTION_DAYS = getUserDatabaseSettings().retention.callLogs;
-const OLD = new Date(Date.now() - (RETENTION_DAYS + 1) * DAY_MS).toISOString();
+const RETENTION_DAYS = getUserDatabaseSettings().retention.conversationTurnNodes;const OLD = new Date(Date.now() - (RETENTION_DAYS + 1) * DAY_MS).toISOString();
 const RECENT = new Date().toISOString();
 
 function insertConversation(id: string, lastSeenAt: string): void {
@@ -187,4 +185,23 @@ test("#12453 cleanupAgenticConversations: missing node table is a safe no-op", a
   } finally {
     db.exec("ALTER TABLE conversation_turn_nodes_unavailable RENAME TO conversation_turn_nodes");
   }
+});
+
+test("#12453 conversationTurnNodes window is independent of callLogs", async () => {
+  const { updateDatabaseSettings } = await import("../../src/lib/db/databaseSettings.ts");
+  updateDatabaseSettings({
+    retention: { callLogs: 90, conversationTurnNodes: 1 },
+  } as never);
+
+  const dayMs = 86_400_000;
+  const twoDaysAgo = new Date(Date.now() - 2 * dayMs).toISOString();
+  const recent = new Date().toISOString();
+  insertConversation("conv_ind", recent);
+  insertNode("old-ind", "conv_ind", twoDaysAgo);
+  insertNode("new-ind", "conv_ind", recent);
+
+  const result = await cleanupConversationTurnNodes();
+  assert.strictEqual(result.deleted, 1);
+  assert.deepStrictEqual(ids("conversation_turn_nodes"), ["new-ind"]);
+  assert.equal(getUserDatabaseSettings().retention.callLogs, 90);
 });
