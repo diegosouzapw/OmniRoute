@@ -277,16 +277,41 @@ rate limit. Bounded by `comboCooldownWait` (`enabled`, `maxWaitMs`, `maxAttempts
 **Scope**: the local per-provider+connection rate-limit queue (`open-sse/services/rateLimitManager.ts`,
 backed by Bottleneck), one layer below the three mechanisms above.
 
-**`maxWaitMs` is a legacy persisted name for execution expiration.**
-`resilienceSettings.requestQueue.maxWaitMs` is passed to Bottleneck as a job
-`expiration`, whose timer starts only after dispatch. It therefore bounds
-limiter-managed execution, not time spent in the local queue. Expiration is
-surfaced as trusted local `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-the former queue-timeout code name is accepted only for trusted internal
-backward compatibility. The default is 15000ms; override via
-`RATE_LIMIT_MAX_WAIT_MS` (env) or the dashboard (**Settings → Resilience**,
-1–30000ms UI ceiling). Queue residence has no time deadline; use
-`maxQueueDepth` below to bound queued callers.
+**`maxWaitMs` bounds queue wait; `executionMaxWaitMs` bounds execution.**
+The two are deliberately separate, and neither feeds the other.
+
+`resilienceSettings.requestQueue.maxWaitMs` is the **queue-wait budget**: it
+covers waiting for a provider slot and then sitting QUEUED, and its timer is
+cleared the moment the job leaves QUEUED and starts executing
+(`rateLimitManager.ts`, `wrappedFn`). A request that exceeds it never reaches
+the upstream. Default 30000ms, supplied by `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+in `src/lib/resilience/settings.ts` and pinned by
+`tests/unit/ratelimit-admission-control-6593.test.ts`, so a change to it turns
+that test red rather than leaving this paragraph quietly stale.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` is what Bottleneck
+receives as the job `expiration`, whose timer starts only after dispatch. It is
+a backstop for executors without an upstream timeout of their own, and it is
+raised to the executor's own fetch-start timeout when that is longer, so it
+cannot cut off a healthy in-flight response. Default 600000ms (10 min).
+
+Feeding the queue budget into `expiration` is what used to kill non-incremental
+gateways mid-flight — they legitimately run for minutes before first bytes —
+and it is why an expiration is surfaced as `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) while the queue budget carries the
+queue-timeout code. Override either via `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) or the dashboard
+(**Settings → Resilience**). Both are clamped to 1ms–24h when normalised.
+
+**Precedence, for both:** the env var only supplies the _default_. A value
+persisted in `resilienceSettings.requestQueue` (dashboard / API patch, stored
+in `key_value`) wins over it, and a per-connection
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` wins over that. Setting
+the env var on a deployment that already has a persisted value therefore
+changes nothing — clear or update the persisted setting instead.
+
+Queue residence is bounded by `maxWaitMs`; `maxQueueDepth` below bounds how
+many callers may be queued at once.
 
 **`maxQueueDepth` — opt-in admission cap (new).** `resilienceSettings.requestQueue.maxQueueDepth`
 bounds how many requests may sit queued (not yet dispatched) for one
