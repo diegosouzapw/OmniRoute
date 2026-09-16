@@ -1,0 +1,1 @@
+- **fix(sse):** 429 bodies phrased as `N API calls / month` (Cohere trial keys) now classify as `quota_exhausted` instead of a short transient `rate_limit`, so a spent monthly allowance is no longer retried every few seconds for the rest of the billing cycle ([#12252](https://github.com/diegosouzapw/OmniRoute/pull/12252)) — thanks @brick30llc-ctrl
