@@ -1,0 +1,1 @@
+- **fix(sse):** stop the streaming PII sanitizer from splicing OpenRouter metadata (`provider`, `native_finish_reason`, `reasoning_details[].format`) into the answer text buffer (#13488) — thanks @Xore
