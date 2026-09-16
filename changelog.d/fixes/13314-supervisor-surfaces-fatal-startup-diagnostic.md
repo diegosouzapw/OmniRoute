@@ -1,0 +1,1 @@
+- **fix(cli):** `omniroute serve` now surfaces a fatal `[STARTUP] Fatal: ...` boot diagnostic (e.g. a DB driver init failure) to the console immediately, even without `--log`, instead of only when the process later crashes or restarts (#13314) — thanks @Orion1943

@@ -14,6 +14,7 @@ import { stopProcessGracefully } from "../../../src/shared/platform/windowsProce
 import {
   isFatalInstrumentationHookFailure,
   formatAndroidInstrumentationFailureHint,
+  isFatalStartupDiagnostic,
 } from "../utils/ensureAndroidCacheDir.mjs";
 
 const CRASH_LOG_LINES = 50;
@@ -55,12 +56,14 @@ export class ServerSupervisor {
     this.child = null;
     this.isShuttingDown = false;
     this.instrumentationFailureHintPrinted = false;
+    this.fatalStartupDiagnosticPrinted = false;
   }
 
   start() {
     this.startedAt = Date.now();
     this.crashLog = [];
     this.instrumentationFailureHintPrinted = false;
+    this.fatalStartupDiagnosticPrinted = false;
 
     const showLog = process.env.OMNIROUTE_SHOW_LOG === "1";
     // #6321: stdout used to be discarded (`"ignore"`) whenever `--log`/OMNIROUTE_SHOW_LOG
@@ -98,6 +101,15 @@ export class ServerSupervisor {
             this.env?.XDG_CACHE_HOME || process.env.XDG_CACHE_HOME
           )
         );
+      }
+      // #13314: surface any `[STARTUP] Fatal:`-guarded boot diagnostic
+      // immediately, even without --log — otherwise it is only buffered and
+      // reaches the operator on exit/crash, which never happens when the
+      // HTTP listener still comes up after the fatal failure (every route
+      // then 500s with zero visible diagnostic anywhere).
+      if (!this.fatalStartupDiagnosticPrinted && isFatalStartupDiagnostic(text)) {
+        this.fatalStartupDiagnosticPrinted = true;
+        process.stderr.write(text.endsWith("\n") ? text : `${text}\n`);
       }
     };
 
