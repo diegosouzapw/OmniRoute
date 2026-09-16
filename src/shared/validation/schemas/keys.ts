@@ -73,6 +73,15 @@ export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
 });
 
+export const setKeyQuotaSchema = z.object({
+  apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+  // 0/null means unlimited for the dimension (KISS: NULL stores unlimited).
+  // Negative values are rejected.
+  tpmLimit: z.coerce.number().min(0).optional().nullable(),
+  rpmLimit: z.coerce.number().min(0).optional().nullable(),
+  monthlyAmountUsd: z.coerce.number().min(0).optional().nullable(),
+});
+
 export const setBudgetSchema = z.object({
   apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
   // #3537: a limit of 0 means "no limit for this period" (checkBudget only enforces when

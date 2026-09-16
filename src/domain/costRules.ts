@@ -26,6 +26,7 @@ import {
   resetSpendBatchWriterForTests,
   spendBatchWriter,
 } from "@/lib/spend/batchWriter";
+import { recordLedgerFromCost } from "@/lib/usage/costLedgerRecorder";
 
 export type BudgetResetInterval = "daily" | "weekly" | "monthly";
 
@@ -393,15 +394,51 @@ export function deleteBudget(apiKeyId: string) {
 /**
  * Record a cost for an API key.
  *
+ * When `details` is provided, the same call is appended to the per-request cost
+ * ledger (`request_cost_ledger`) with the full breakdown so the amount is
+ * traceable to provider/model/tokens — used by the chat paths. Bare calls
+ * (web-search cost, etc.) write an amount-only ledger row with unknown
+ * provider/model.
+ *
  * @param {string} apiKeyId
  * @param {number} cost - Cost in USD
+ * @param {RecordCostDetails} [details] - Optional per-request breakdown.
  */
-export function recordCost(apiKeyId: string, cost: number): void {
+export function recordCost(apiKeyId: string, cost: number, details?: RecordCostDetails): void {
   try {
     spendBatchWriter.increment(apiKeyId, cost, Date.now());
+    if (details) {
+      // Fire-and-forget — never block the response on ledger I/O.
+      void recordLedgerFromCost({
+        apiKeyId,
+        provider: details.provider,
+        model: details.model,
+        tokens: details.tokens,
+        amountUsd: cost,
+        serviceTier: details.serviceTier,
+        success: details.success,
+        timestamp: details.timestamp,
+        requestId: details.requestId,
+      });
+    }
   } catch {
     // Non-critical.
   }
+}
+
+/**
+ * Optional per-request breakdown passed to {@link recordCost} for ledger
+ * traceability. `tokens` is the raw provider/normalized usage object — the
+ * same shape `saveRequestUsage` accepts.
+ */
+export interface RecordCostDetails {
+  provider?: string | null;
+  model?: string | null;
+  tokens?: unknown;
+  serviceTier?: string | null;
+  success?: boolean;
+  timestamp?: string;
+  requestId?: string | null;
 }
 
 /**

@@ -14,6 +14,7 @@ import { getComboByName } from "@/lib/db/combos";
 import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
+import { checkKeyQuota } from "@/domain/keyQuota";
 import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
 import {
   errorResponse,
@@ -611,6 +612,19 @@ function validateTokenLimit(context: PolicyContext): Response | null {
   }
 }
 
+function validateKeyQuota(context: PolicyContext): Response | null {
+  const { apiKeyInfo } = context;
+  if (!apiKeyInfo.id) return null;
+  try {
+    const verdict = checkKeyQuota(apiKeyInfo.id);
+    if (verdict.allowed) return null;
+    return errorResponse(HTTP_STATUS.RATE_LIMITED, verdict.reason || "API key quota exceeded");
+  } catch (error) {
+    log.error("API_POLICY", "API key quota check failed. Request blocked.", { error });
+    return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key quota policy unavailable");
+  }
+}
+
 function buildRateLimitRules(apiKeyInfo: ApiKeyMetadata): RateLimitRule[] {
   const custom = apiKeyInfo.rateLimits?.length;
   const rules = custom
@@ -716,6 +730,8 @@ export async function enforceApiKeyPolicy(
 
   const budgetRejection = validateBudget(context);
   if (budgetRejection) return { apiKey, apiKeyInfo, rejection: budgetRejection };
+  const keyQuotaRejection = validateKeyQuota(context);
+  if (keyQuotaRejection) return { apiKey, apiKeyInfo, rejection: keyQuotaRejection };
   const tokenRejection = validateTokenLimit(context);
   if (tokenRejection) return { apiKey, apiKeyInfo, rejection: tokenRejection };
   const rateRejection = await validateRateLimitAndThrottle(context);

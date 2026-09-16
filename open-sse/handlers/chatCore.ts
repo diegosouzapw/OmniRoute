@@ -5372,7 +5372,14 @@ export async function handleChatCore({
           cacheSource: "upstream",
         });
         if (apiKeyInfo?.id && estimatedCost > 0) {
-          recordCost(apiKeyInfo.id, estimatedCost);
+          recordCost(apiKeyInfo.id, estimatedCost, {
+            provider,
+            model,
+            tokens: usage,
+            serviceTier: effectiveServiceTier,
+            success: false,
+            requestId: traceId,
+          });
         }
         log?.warn?.(
           "GUARDRAIL",
@@ -5507,7 +5514,14 @@ export async function handleChatCore({
         cacheSource: "upstream",
       });
       if (apiKeyInfo?.id && estimatedCost > 0) {
-        recordCost(apiKeyInfo.id, estimatedCost);
+        recordCost(apiKeyInfo.id, estimatedCost, {
+          provider,
+          model,
+          tokens: usage,
+          serviceTier: effectiveServiceTier,
+          success: true,
+          requestId: traceId,
+        });
       }
 
       // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
@@ -5932,6 +5946,12 @@ export async function handleChatCore({
       serviceTier: effectiveServiceTier,
       calculateCost,
       recordCost,
+      ledger: {
+        serviceTier: effectiveServiceTier,
+        success: normalizedStreamStatus < 400,
+        timestamp: new Date().toISOString(),
+        requestId: traceId,
+      },
     });
 
     // === Quota Share POST-hook streaming (B/F7) — fire-and-forget, fail-open ===
