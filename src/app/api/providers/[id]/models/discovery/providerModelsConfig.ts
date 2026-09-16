@@ -396,6 +396,15 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
   parseResponse: parseKimiCodingModels,
 };
 
+const XAI_MODELS_CONFIG: ProviderModelsConfigEntry = {
+  url: "https://api.x.ai/v1/models",
+  method: "GET",
+  headers: { "Content-Type": "application/json" },
+  authHeader: "Authorization",
+  authPrefix: "Bearer ",
+  parseResponse: (data) => data.data || data.models || [],
+};
+
 // Provider models endpoints configuration
 export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
   alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
@@ -592,14 +601,8 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  xai: {
-    url: "https://api.x.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+  xai: XAI_MODELS_CONFIG,
+  "xai-oauth": XAI_MODELS_CONFIG,
   mistral: {
     url: "https://api.mistral.ai/v1/models",
     method: "GET",
