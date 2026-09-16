@@ -1354,8 +1354,9 @@ export class BaseExecutor {
             // drop any tool_result orphaned by that strip (discussion #2410).
             const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
             const stripped = stripTrailingAssistantOrphanToolUse(adjacent);
-            // Some providers (e.g. Mistral) require the last message to be user
-            // or tool and reject trailing assistant text messages with 400 (#3396).
+            // Some providers (Mistral #3396, official Claude OAuth) reject a
+        // trailing text-only assistant turn with 400. Strip here so combo
+        // failover does not burn the next account on the same body.
             tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }

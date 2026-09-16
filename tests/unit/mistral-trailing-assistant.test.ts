@@ -1,16 +1,13 @@
 /**
- * Regression test for #3396: Mistral returns 400 when the last message is
- * `role: "assistant"` with plain text content.
+ * Regression test for stripTrailingAssistantForProvider.
  *
- * `stripTrailingAssistantOrphanToolUse` only removed tool_use blocks — it left
- * trailing text-only assistant messages intact.  Mistral (and providers sharing
- * the same constraint) reject such requests with:
- *   "400: Expected last role User or Tool (or Assistant with prefix True)
- *    for serving but got assistant"
+ * Mistral (#3396) returns 400 when the last message is role assistant with
+ * plain text. Official Claude OAuth (claude-opus-5 live 2026-09-13) returns
+ * 400 "This model does not support assistant message prefill" for the same
+ * shape. stripTrailingAssistantOrphanToolUse only removes tool_use blocks.
  *
- * The fix adds `stripTrailingAssistantForProvider(messages, provider)` which
- * also drops a trailing text-only assistant message for providers that require
- * user-last format (e.g. "mistral").
+ * stripTrailingAssistantForProvider drops a trailing text-only assistant
+ * message for providers in PROVIDERS_REQUIRING_USER_LAST_MESSAGE.
  */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -56,10 +53,21 @@ describe("stripTrailingAssistantForProvider (#3396)", () => {
     assert.strictEqual(result.length, 2);
   });
 
-  it("does NOT strip trailing text assistant for anthropic/claude", () => {
+  it("strips trailing text-only assistant message for claude", () => {
     const msgs = [user("hi"), assistant("continue from here")];
     const result = stripTrailingAssistantForProvider(msgs, "claude");
-    assert.strictEqual(result.length, 2);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0].role, "user");
+  });
+
+  it("strips trailing assistant with array-string content for claude", () => {
+    const msgs = [
+      user("hi"),
+      { role: "assistant", content: [{ type: "text", text: "continue from here" }] },
+    ];
+    const result = stripTrailingAssistantForProvider(msgs, "claude");
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0].role, "user");
   });
 
   it("returns messages unchanged when last message is user", () => {
