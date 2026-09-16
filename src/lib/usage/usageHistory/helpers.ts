@@ -6,6 +6,8 @@
 // #7879: re-export the canonical helper so existing consumers of this module
 // keep importing `toNumber` from here unchanged.
 export { toNumber } from "@/shared/utils/numeric";
+// #13130: shared TPS math (generation-time denominator, reasoning-aware numerator).
+import { resolveGenerationMs, resolveTpsOutputTokens } from "@/shared/utils/logTps";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -64,22 +66,37 @@ export interface LatencySampleBuckets {
  * sample when both latencyMs and tokensOutput are positive; rows with
  * latencyMs <= 0 are skipped entirely, mirroring the pre-existing
  * allLatencies/successfulLatencies guard.
+ *
+ * #13130: the TPS sample measures GENERATION throughput, per the rule in
+ * open-sse/utils/generationThroughput.ts ("tok/s MUST exclude TTFT"):
+ *   - denominator: latencyMs - ttftMs when TTFT is known and sane, else the
+ *     full latency (a degraded denominator is better than no sample);
+ *   - numerator: max(tokensOutput, tokensReasoning) — providers are expected
+ *     to fold reasoning into output tokens, but a provider that excludes them
+ *     while still reporting tokens_reasoning would otherwise undercount.
  */
 export function accumulateLatencySample(
   buckets: LatencySampleBuckets,
   latencyMs: number,
   ttftMs: number,
   tokensOutput: number,
-  isSuccess: boolean
+  isSuccess: boolean,
+  tokensReasoning = 0
 ): void {
   if (latencyMs <= 0) return;
   buckets.allLatencies.push(latencyMs);
   if (ttftMs > 0) buckets.allTtfts.push(ttftMs);
-  if (tokensOutput > 0) buckets.allTps.push(tokensOutput / (latencyMs / 1000));
+  const tpsTokens = resolveTpsOutputTokens(tokensOutput, tokensReasoning);
+  const generationMs = resolveGenerationMs(latencyMs, ttftMs);
+  const tps =
+    tpsTokens > 0 && generationMs !== null && generationMs > 0
+      ? tpsTokens / (generationMs / 1000)
+      : null;
+  if (tps !== null) buckets.allTps.push(tps);
   if (!isSuccess) return;
   buckets.successfulLatencies.push(latencyMs);
   if (ttftMs > 0) buckets.successfulTtfts.push(ttftMs);
-  if (tokensOutput > 0) buckets.successfulTps.push(tokensOutput / (latencyMs / 1000));
+  if (tps !== null) buckets.successfulTps.push(tps);
 }
 
 /** Per-provider/model accumulator for getModelLatencyStats() (#6875). */

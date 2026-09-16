@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import CompareColumn, { type CompareColumnData, type ColumnStatus } from "../CompareColumn";
 import type { ConfigState } from "../StudioConfigPane";
 import type { StreamMetrics } from "@/shared/schemas/playground";
+import { resolveGenerationMs } from "@/shared/utils/logTps";
 
 interface CompareTabProps {
   configState: ConfigState;
@@ -83,8 +84,13 @@ class ColumnMetricsTracker {
     const { startedAt, firstChunkAt, finishedAt, tokensOut, tokensIn } = this;
     const ttftMs = startedAt != null && firstChunkAt != null ? firstChunkAt - startedAt : null;
     const totalMs = startedAt != null && finishedAt != null ? finishedAt - startedAt : null;
+    // #13130: generation throughput — exclude the wait for the first chunk
+    // (TTFT) when it is known; fall back to the full window otherwise.
+    const generationMs = resolveGenerationMs(totalMs, ttftMs);
     const tps =
-      totalMs != null && totalMs > 0 && tokensOut > 0 ? (tokensOut / totalMs) * 1000 : null;
+      generationMs != null && generationMs > 0 && tokensOut > 0
+        ? (tokensOut / generationMs) * 1000
+        : null;
     return { ttftMs, totalMs, tokensIn, tokensOut, tps, costUsd: null };
   }
 }
