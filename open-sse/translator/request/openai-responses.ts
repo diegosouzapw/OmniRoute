@@ -716,6 +716,12 @@ export function openaiResponsesToOpenAIRequest(
       result.tool_choice = { type: "function", function: { name: tc.name } };
     } else if (tcType === "local_shell") {
       result.tool_choice = { type: "function", function: { name: "shell" } };
+    } else if (tcType === "custom" && tc.name !== undefined) {
+      // #13122: forced custom/freeform tool_choice (Codex CLI's wire_api="responses"
+      // sends this to force functions__exec-style tools). Custom tools are already
+      // normalized into a Chat { input: string } function schema above, so forcing that
+      // same declared name via Chat's tool_choice selects it correctly.
+      result.tool_choice = { type: "function", function: { name: tc.name } };
     } else if (tcType === "allowed_tools") {
       const mode = toString(tc.mode);
       if (mode !== "auto" && mode !== "required") {
