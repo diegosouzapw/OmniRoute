@@ -30,6 +30,10 @@ import {
   checkWebCookieConnectionIfNeeded,
   isWebCookieHealthProbeCandidate,
 } from "@/lib/tokenHealthCheckWebCookie";
+import {
+  isInRefreshBackoff,
+  preservesRefreshTokenOnUnrecoverable,
+} from "@/lib/tokenRefreshCircuit";
 
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
@@ -173,12 +177,10 @@ export function getRefreshBackoffUntil(streak: number, now: string): string {
   return new Date(new Date(now).getTime() + backoffMin * 60 * 1000).toISOString();
 }
 
-export function isInRefreshBackoff(conn: any, nowMs: number): boolean {
-  const until = conn?.providerSpecificData?.refreshCircuit?.until;
-  if (typeof until !== "string") return false;
-  const untilMs = new Date(until).getTime();
-  return Number.isFinite(untilMs) && untilMs > nowMs;
-}
+// Both live in `@/lib/tokenRefreshCircuit` so CredentialHealth can import them
+// without pulling this module's auto-starting scheduler. Re-exported for
+// existing callers and tests.
+export { isInRefreshBackoff, preservesRefreshTokenOnUnrecoverable };
 
 export function buildRefreshFailureUpdate(
   conn: any,
@@ -1126,7 +1128,11 @@ export async function checkConnection(conn) {
       // gemini) the stored refresh_token is the user's only recovery
       // artifact — nulling it caused #3679 (the connection reports "No valid refresh
       // token available" and can never recover even after re-activation). Preserve it.
-      ...(isRotatingProvider ? { refreshToken: null } : {}),
+      // PRESERVE_REFRESH_TOKEN_PROVIDERS (Claude) opt out too: nulling on the first
+      // failure makes the #11414 retry budget above unreachable (#13183).
+      ...(isRotatingProvider && !preservesRefreshTokenOnUnrecoverable(conn.provider)
+        ? { refreshToken: null }
+        : {}),
     });
     logError(
       `${LOG_PREFIX} ✗ ${conn.provider}/${getConnectionLogLabel(conn)} — ` +
