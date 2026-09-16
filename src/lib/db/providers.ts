@@ -1126,6 +1126,8 @@ export async function touchConnectionSyncedModelsAt(id: string): Promise<void> {
  * since the caller already verified the connection is eligible for reset.
  * Resets all backoff/error columns so the connection re-enters the selection pool.
  * Does invalidateDbCache + bumpProxyConfigGeneration since backoff affects priority.
+ * #13389: `skipModelCatalog` — the catalog builder never reads backoff/error
+ * state, so this must not bust the expensive-to-rebuild `/v1/models` cache.
  */
 export async function resetConnectionBackoff(id: string): Promise<void> {
   if (!id) return;
@@ -1146,7 +1148,7 @@ export async function resetConnectionBackoff(id: string): Promise<void> {
     updatedAt: now,
     id,
   });
-  invalidateDbCache("connections");
+  invalidateDbCache("connections", id, { skipModelCatalog: true });
   bumpProxyConfigGeneration();
 }
 
