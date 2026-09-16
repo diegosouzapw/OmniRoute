@@ -1,0 +1,1 @@
+- **fix(cli):** redraw the CLI/Electron system tray icon with a dark outline and ship a native multi-res `icon.ico` so it is no longer a pure-white, nearly invisible glyph on the Windows light-theme taskbar and hidden-icons flyout (#13535) — thanks @ProphetOfDoom-PoD
