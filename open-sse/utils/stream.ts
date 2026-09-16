@@ -1883,6 +1883,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed?.id != null && typeof parsed.id !== "string";
                   const rawDelta = parsed.choices?.[0]?.delta;
                   const hadReasoningAlias = hasUnsupportedReasoningSignal(rawDelta);
+                  const hadUpstreamReasoningContent =
+                    typeof rawDelta?.reasoning_content === "string" &&
+                    rawDelta.reasoning_content.length > 0;
 
                   if (!projectedFailure) {
                     parsed = sanitizeStreamingChunk(parsed);
@@ -1944,12 +1947,22 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   // Track whether we need to re-serialize (separate from injectedUsage
-                  // to avoid blocking subsequent finish_reason / usage mutations)
+                  // to avoid blocking subsequent finish_reason / usage mutations).
+                  // sanitizeStreamingChunk above can MIRROR reasoning_details[].text
+                  // into reasoning_content when the upstream only sent `reasoning`
+                  // (OpenRouter thinking models, #12665). hadReasoningAlias covers
+                  // reasoning_text/thinking/thought aliases, but a populated `reasoning`
+                  // string makes hasUnsupportedReasoningSignal return false — so we also
+                  // force a re-serialize when sanitize added a reasoning_content that the
+                  // upstream delta did not already carry.
                   const needsReserialization =
                     splitMixedReasoningContent ||
                     thinkParsed ||
                     hadReasoningAlias ||
-                    (delta?.content === "" && delta?.reasoning_content);
+                    (delta?.content === "" && delta?.reasoning_content) ||
+                    (!hadUpstreamReasoningContent &&
+                      typeof delta?.reasoning_content === "string" &&
+                      delta.reasoning_content.length > 0);
 
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
@@ -2221,7 +2234,17 @@ export function createSSEStream(options: StreamOptions = {}) {
               );
           }
           // Mirror only client-unsupported reasoning aliases into `reasoning_content`.
-          if (!openAiReasoning) {
+          // Gate on reasoning_content being ABSENT (not on getReadableReasoningValue
+          // which also includes the `reasoning` string): OpenRouter thinking models
+          // return BOTH `reasoning` and `reasoning_details[].text`, and `reasoning`
+          // alone previously skipped the mirror, dropping thinking traces for clients
+          // that only read `reasoning_content` (#12665).
+          const openAiReasoningContent =
+            typeof openAiDelta?.reasoning_content === "string" &&
+            openAiDelta.reasoning_content.length > 0
+              ? openAiDelta.reasoning_content
+              : "";
+          if (!openAiReasoningContent) {
             const delta = openAiDelta;
             const r = getUnsupportedReasoningValue(delta);
             if (typeof r === "string" && r.length > 0) {
