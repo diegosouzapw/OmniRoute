@@ -54,60 +54,53 @@ export function getLiveWsPath(): string {
   return deriveLiveWsPath(resolveLiveWsPublicUrl() ?? undefined);
 }
 
-/** A port the handshake may report, or null when it is not usable. */
-export function sanitizeLiveWsPort(port: unknown): number | null {
-  const value = typeof port === "string" ? Number(port) : port;
-  if (typeof value !== "number" || !Number.isInteger(value)) return null;
-  return value > 0 && value < 65536 ? value : null;
+export function sanitizeLiveWsPort(value: unknown): number | null {
+  const port = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return null;
+  return port;
 }
 
-export interface LiveWsUrlParts {
-  /** Explicit `wsUrl` passed by the caller - always wins. */
-  explicit?: string | null;
-  /** `live.publicUrl` from the handshake - a complete URL, used as-is. */
-  handshakeUrl?: string | null;
-  /** `live.port` from the handshake, i.e. the running LIVE_WS_PORT. */
-  handshakePort?: number | null;
-  /** `live.path` from the handshake. */
-  handshakePath?: string | null;
-  /** The compiled-in default, used for everything the handshake does not say. */
-  defaultUrl: string;
-}
-
-/**
- * Resolve the live dashboard WebSocket URL.
- *
- * The handshake reports the port the live server is actually listening on, but
- * the client read only `publicUrl` and `path` from it. An operator who moved
- * the server with `LIVE_WS_PORT` still got the compiled-in 20132, and the
- * dashboard sat on "Live disabled - WebSocket disconnected" with no way to
- * correct it short of rebuilding the image (#11331).
- *
- * Precedence: an explicit `wsUrl` wins, then a complete `publicUrl` from the
- * handshake, then the default URL with whatever port and path the handshake
- * reported applied to it.
- */
 export function resolveLiveWsUrl({
   explicit,
   handshakeUrl,
   handshakePort,
   handshakePath,
   defaultUrl,
-}: LiveWsUrlParts): string {
-  if (explicit) return explicit;
-  if (handshakeUrl) return handshakeUrl;
-
-  const port = sanitizeLiveWsPort(handshakePort);
-  const path =
-    typeof handshakePath === "string" && handshakePath.startsWith("/") ? handshakePath : null;
-  if (port === null && path === null) return defaultUrl;
-
-  try {
-    const url = new URL(defaultUrl);
-    if (port !== null) url.port = String(port);
-    if (path !== null) url.pathname = path;
-    return url.toString();
-  } catch {
-    return defaultUrl;
+}: {
+  explicit?: string;
+  handshakeUrl?: string | null;
+  handshakePort?: number | null;
+  handshakePath?: string | null;
+  defaultUrl: string;
+}): string {
+  if (explicit && (explicit.startsWith("ws://") || explicit.startsWith("wss://"))) {
+    return explicit;
   }
+
+  if (handshakeUrl && (handshakeUrl.startsWith("ws://") || handshakeUrl.startsWith("wss://"))) {
+    return handshakeUrl;
+  }
+
+  if (handshakePort !== null && handshakePort !== undefined) {
+    try {
+      const parsed = new URL(defaultUrl);
+      parsed.port = String(handshakePort);
+      if (handshakePath) parsed.pathname = handshakePath;
+      return parsed.toString();
+    } catch {
+      // Fall through to the default URL.
+    }
+  }
+
+  if (handshakePath) {
+    try {
+      const parsed = new URL(defaultUrl);
+      parsed.pathname = handshakePath;
+      return parsed.toString();
+    } catch {
+      // Fall through to the default URL.
+    }
+  }
+
+  return defaultUrl;
 }
