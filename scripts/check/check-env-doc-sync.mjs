@@ -203,6 +203,10 @@ const IGNORE_FROM_CODE = new Set([
   // Listener-owned self-fetch transport signal. The HTTP/HTTPS launchers set
   // this before application imports; it is not user-configurable product env.
   "OMNIROUTE_INTERNAL_SCHEME",
+  // Runner-owned bind-host signal. scripts/dev/run-next.mjs publishes the
+  // interface it actually binds so the in-process startup guard can name it
+  // (#13695); operators configure HOST / HOSTNAME, never this.
+  "OMNIROUTE_BOUND_HOST",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).
