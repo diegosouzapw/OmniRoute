@@ -1,0 +1,1 @@
+- **fix(combo):** Keep Antigravity Gemini usable when the same connection's Claude weekly quota is empty; the generic quota cache stays per-connection for every other provider ([#12637](https://github.com/diegosouzapw/OmniRoute/pull/12637)) — thanks @HouMinXi
