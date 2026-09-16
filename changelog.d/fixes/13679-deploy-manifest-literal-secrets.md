@@ -1,0 +1,1 @@
+- **fix(security):** removed the copy-pasteable placeholder `JWT_SECRET`/`API_KEY_SECRET`/`INITIAL_PASSWORD` values from the Podman Quadlet deploy manifest, and blocked remote dashboard logins with the well-known default `INITIAL_PASSWORD=CHANGEME` (#13679)

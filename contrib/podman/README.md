@@ -40,7 +40,28 @@ cp contrib/podman/*.network ~/.config/containers/systemd/omniroute/
 cp contrib/podman/*.volume ~/.config/containers/systemd/omniroute/
 ```
 
-### 3. Mount the project .env for secrets
+### 3. Generate secrets before first start
+
+`omniroute.container` no longer ships `JWT_SECRET` / `API_KEY_SECRET` /
+`INITIAL_PASSWORD` values — earlier versions shipped copy-pasteable
+placeholders (`change-me-to-a-random-base64-string`,
+`change-me-to-a-random-hex-string`) that an operator could forget to
+rotate, leaving the deployment with a public, guessable secret/password
+(#13679). Generate real ones and put them in your project `.env`:
+
+```bash
+echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
+echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
+echo "INITIAL_PASSWORD=$(openssl rand -hex 24)" >> .env
+```
+
+If you skip this: `JWT_SECRET`/`API_KEY_SECRET` are auto-generated and
+persisted on first boot, and the dashboard requires setup from `localhost`
+before it accepts any password — safer than a literal default, but a real
+`INITIAL_PASSWORD` is still recommended so a non-interactive first boot has
+a known credential to log in with.
+
+### 4. Mount the project .env for secrets
 
 Edit `~/.config/containers/systemd/omniroute/omniroute.container` and
 uncomment/replace the `EnvironmentFile` line with the absolute path to
@@ -54,7 +75,7 @@ Make sure `CONTAINER_HOST=podman` is set in that `.env`.
 
 Alternatively, edit the env vars directly in the `.container` file.
 
-### 4. Reload systemd and start
+### 5. Reload systemd and start
 
 ```bash
 systemctl --user daemon-reload
@@ -62,7 +83,7 @@ systemctl --user start omniroute-redis
 systemctl --user start omniroute
 ```
 
-### 5. Verify
+### 6. Verify
 
 ```bash
 systemctl --user status omniroute
