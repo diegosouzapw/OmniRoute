@@ -1702,8 +1702,18 @@
       "count": 1
     }
   },
-  "src/lib/providers/validation/webProvidersB.ts": {
+  "src/lib/providers/validation/webProvidersA.ts": {
     "@typescript-eslint/no-unused-vars": {
+      "count": 2
+    }
+  },
+  "src/lib/proxyHealth/scheduler.ts": {
+    "no-restricted-imports": {
+      "count": 1
+    }
+  },
+  "src/lib/quota/planResolver.ts": {
+    "no-restricted-imports": {
       "count": 1
     }
   },
