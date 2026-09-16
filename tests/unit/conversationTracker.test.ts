@@ -100,6 +100,30 @@ test("extractCanonicalTurns: Chat Completions tool-result message (role: tool) c
   assert.equal(turns[1].text, '{"tempC":21}');
 });
 
+test("extractCanonicalTurns: Chat Completions assistant tool_calls (content null/empty) extracts tool_use turn", () => {
+  const turns = extractCanonicalTurns({
+    messages: [
+      { role: "user", content: "read file" },
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [
+          {
+            id: "call_123",
+            type: "function",
+            function: { name: "read_file", arguments: '{"path":"/tmp/a.txt"}' },
+          },
+        ],
+      },
+    ],
+  });
+  assert.equal(turns.length, 2);
+  assert.equal(turns[1].role, "assistant");
+  assert.equal(turns[1].blockKind, "tool_use");
+  assert.equal(turns[1].toolName, "read_file");
+  assert.equal(turns[1].text, '{"path":"/tmp/a.txt"}');
+});
+
 test("extractCanonicalTurns: content-block arrays (Anthropic/Responses-API shape) extract text, not raw JSON", () => {
   const turns = extractCanonicalTurns({
     messages: [

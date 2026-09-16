@@ -85,9 +85,15 @@ function extractChatCompletionsToolUseTurns(messages: unknown): CanonicalTurnLik
 function turnsFromClientResponse(clientResponse: unknown): CanonicalTurnLike[] {
   const rec = asRecord(clientResponse);
   if (!rec) return [];
+  if (Array.isArray(rec.choices)) {
+    return extractCanonicalTurns(rec);
+  }
   const summary = asRecord(rec.summary);
   const output = Array.isArray(rec.output) ? rec.output : summary?.output;
-  return Array.isArray(output) ? extractCanonicalTurns({ input: output }) : [];
+  if (Array.isArray(output)) {
+    return extractCanonicalTurns({ input: output });
+  }
+  return extractCanonicalTurns(rec);
 }
 
 function turnsFromProviderRequest(body: unknown): CanonicalTurnLike[] {
