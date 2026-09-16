@@ -50,6 +50,8 @@ const STRIP_RULES: StripRule[] = [
   // (format:"openai") does not accept the Claude-style `thinking` body field
   // and returns 400 "Unsupported parameter(s): thinking". Upstream #2268.
   { provider: "nvidia", match: /minimax-m2\.7/i, drop: ["thinking"] },
+  // Mistral GLM 5.2 rejects Claude-style thinking payloads.
+  { provider: "mistral", match: /(?:^|\/)zai-glm-5(?:[.-])2\b/i, drop: ["thinking", "reasoning"] },
   // NVIDIA NIM: OpenAI-compatible wrapper 400s on `prompt_cache_key` (Codex CLI
   // injects it natively for its own prompt caching). NIM has no documented
   // support for this field (providerSupportsCaching already treats nvidia as
