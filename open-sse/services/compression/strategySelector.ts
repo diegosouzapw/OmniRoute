@@ -66,6 +66,14 @@ import {
 import { makeMemoKey, memoLookup, memoStore, isDeterministicMode } from "./resultMemo.ts";
 export { resolveCacheAwareConfig } from "./cacheAwareConfig.ts";
 
+// The rate-limited fail-open notifier lives in its own module so the worker pool
+// and the llmlingua worker can import it without an import cycle (strategySelector
+// statically pulls the engines; the pool must stay importable from underneath it).
+export {
+  notifyCompressionFailOpen,
+  __resetCompressionFailOpenNotifierForTests,
+} from "./failOpenNotifier.ts";
+
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export {
   planFromHeader,
@@ -478,27 +486,6 @@ function runCompression(
  * already run in an async context (e.g. chatCore) await this so a future
  * worker-thread engine can await without changing the surrounding code.
  */
-/**
- * #13145: report a compression-worker fault. The logger is imported lazily and
- * defensively — `compressionWorker.ts` imports this module, so a static import would pull
- * the logger into the worker bundle, and a logging failure must never be able to break
- * compression itself.
- */
-function logCompressionWorkerFault(error: unknown, retryInProcess: boolean): void {
-  void (async () => {
-    try {
-      const { log } = await import("../../utils/logger.ts");
-      log.warn(
-        "COMPRESSION",
-        `Compression worker failed (${
-          retryInProcess ? "falling back to in-process compression" : "sending uncompressed"
-        }): ${error instanceof Error ? error.message : String(error)}`
-      );
-    } catch {
-      /* logging is best-effort — never let it affect the compression path */
-    }
-  })();
-}
 export async function applyCompressionAsync(
   body: Record<string, unknown>,
   mode: CompressionMode,
@@ -576,10 +563,10 @@ async function runCompressionAsync(
       // same CPU-bound pipeline on the main event loop would stall every other in-flight
       // request. Those keep the old degrade-to-uncompressed behaviour — but are now
       // reported instead of swallowed, which was the actual defect.
-      const retryInProcess =
-        (workerError as { retryInProcess?: boolean } | null)?.retryInProcess !== false;
-      logCompressionWorkerFault(workerError, retryInProcess);
-      if (!retryInProcess) return { body, compressed: false, stats: null };
+      const { shouldRetryCompressionInProcess } = await import("./workerFailureRecovery.ts");
+      if (!shouldRetryCompressionInProcess(workerError)) {
+        return { body, compressed: false, stats: null };
+      }
     }
   }
   if (

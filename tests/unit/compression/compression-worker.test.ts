@@ -160,7 +160,7 @@ describe("compression worker execution", () => {
           err instanceof Error &&
           err.name === "CompressionWorkerError" &&
           (err as { retryInProcess?: boolean }).retryInProcess === false &&
-          /timed out/.test(err.message)
+          /timeout/.test(err.message)
       );
     } finally {
       await pool.close();
