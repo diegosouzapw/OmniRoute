@@ -158,25 +158,9 @@ import {
   getStripTypesForProviderModel,
   stripIncompatibleMessageContent,
 } from "../services/modelStrip.ts";
-import { normalizeMimoThinking } from "../services/mimoThinking.ts";
-import {
-  isOpencodeGoProvider,
-  stripBooleanReasoning,
-} from "../services/opencodeReasoningSanitizer.ts";
-import {
-  normalizeClaudeAdaptiveThinking,
-  normalizeClaudeDisabledThinkingEffort,
-} from "../services/claudeAdaptiveThinking.ts";
 import { shouldUseMidConversationSystem } from "../executors/claudeIdentity.ts";
-import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
-import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
-import {
-  stripGpt5SamplingWhenReasoning,
-  stripGpt5ReasoningWhenTools,
-} from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
-import { stripUnsupportedParams } from "./chatCore/unsupportedParamsStrip.ts";
 import { checkToolCallingRequiredButUnsupported } from "./chatCore/toolCallingRequiredCheck.ts";
 import {
   supportsMaxTokens,
@@ -202,7 +186,6 @@ import {
   isTinyBudgetReasoningProbe,
   toPositiveInteger,
 } from "../services/reasoningTokenBuffer.ts";
-import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -497,6 +480,19 @@ export async function handleChatCore({
   videoBridgeLog = undefined,
   fallbackAttempts = undefined,
 }) {
+  const {
+    model: originModel,
+    resolvedThinkingEffort,
+    defaultThinkingEffort,
+  } = modelInfo as typeof modelInfo & {
+    resolvedThinkingEffort?: string | null;
+    defaultThinkingEffort?: string | null;
+  };
+  const trustedEffortContext = Object.freeze({
+    originModel,
+    resolvedThinkingEffort,
+    defaultThinkingEffort,
+  });
   let { provider, model, extendedContext } = modelInfo;
   // #12150 P1b: true iff the video-bridge guardrail rendered >=1 transcript
   // cue into a replaced part of this request. Gates both request- and
@@ -2672,72 +2668,6 @@ export async function handleChatCore({
   }
   translatedBody.model = finalModelToUpstream;
 
-  // #3554: a combo/route may substitute the upstream model AFTER the client chose its
-  // `thinking` value. Claude Code sends `thinking:{type:"disabled"}` for internal calls,
-  // which claude-fable-5 (adaptive-only) rejects with a 400. Drop the now-invalid value
-  // when the resolved target model rejects it; models that accept `disabled` are untouched.
-  if (typeof finalModelToUpstream === "string") {
-    translatedBody = normalizeThinkingForModel(translatedBody, finalModelToUpstream);
-    // Claude Opus 4.7+/Fable 5 removed manual extended thinking: `thinking.type:"enabled"`
-    // or any `thinking.budget_tokens` is a hard 400. Collapse any manual thinking that
-    // reached this point (passthrough legacy shape, reasoning_effort buckets, per-model
-    // defaults) to `{type:"adaptive"}` — effort stays on `output_config.effort`. Keyed on
-    // the resolved upstream model, so it covers every routing mode. See claudeAdaptiveThinking.ts.
-    translatedBody = normalizeClaudeAdaptiveThinking(translatedBody, finalModelToUpstream);
-    // Opus 5 allows disabled thinking only through high effort on Anthropic's direct
-    // Messages API. The helper scopes this constraint to `anthropic` and `claude`;
-    // GitHub Copilot and Claude Web use separate upstream contracts.
-    translatedBody = normalizeClaudeDisabledThinkingEffort(
-      translatedBody,
-      finalModelToUpstream,
-      provider
-    );
-    // Claude Haiku rejects `thinking.type:"adaptive"` and `output_config.effort`
-    // (both Sonnet 4.6 / Opus 4.5+ only). Several paths can still emit those
-    // shapes on a Haiku target — native passthrough, reasoning_effort buckets,
-    // per-model defaults — so collapse them to a Haiku-valid shape here, after
-    // model substitution. Mirrors upstream 9router 401d93bd5. See
-    // services/claudeHaikuConstraints.ts.
-    translatedBody = normalizeClaudeHaikuConstraints(translatedBody, finalModelToUpstream);
-    // #6879: per-model default reasoning_effort, injected only when the request
-    // carries no reasoning field of any shape — an explicit client/combo-leg value
-    // always wins. Scoped to the OpenAI Chat Completions dispatch shape (the shape
-    // `reasoning_effort` is native to); unset ModelSpec.defaultReasoningEffort is a
-    // no-op. #7694: `modelInfo.resolvedThinkingEffort` — set when the request's model
-    // id carried a `<prefix>/<model>-{effort}` synced-model alias suffix
-    // (`src/sse/services/model.ts`) — takes priority over the static per-model default.
-    // The synced catalog's vendor-declared `defaultThinkingEffort` (OpenRouter
-    // `reasoning.default_effort`, captured by `detectDefaultThinkingEffort`) is the
-    // lowest-priority default: it only fires when neither the suffix alias nor a
-    // static operator default exists. See open-sse/services/defaultReasoningEffort.ts.
-    if (targetFormat === FORMATS.OPENAI) {
-      translatedBody = applyDefaultReasoningEffort(
-        translatedBody,
-        finalModelToUpstream,
-        (modelInfo as { resolvedThinkingEffort?: string })?.resolvedThinkingEffort,
-        (modelInfo as { defaultThinkingEffort?: string })?.defaultThinkingEffort
-      );
-    }
-  }
-
-  // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and
-  // rejects unknown/extra params with a strict "400 Param Incorrect". Map OmniRoute's
-  // OpenAI reasoning signals onto that native shape: reduce any thinking object to
-  // `{type}` and drop `reasoning_effort`/`reasoning`. See services/mimoThinking.ts.
-  if (provider === "xiaomi-mimo") {
-    translatedBody = normalizeMimoThinking(translatedBody);
-  }
-
-  // opencode-go backed providers (ollama-cloud, opencode-go, opencode,
-  // opencode-zen) use a Go ChatCompletionRequest struct where `reasoning`
-  // is typed as openai.Reasoning (a structured type). A boolean
-  // `reasoning: true/false` — valid per the OpenAI API — causes a 400
-  // "json: cannot unmarshal bool into Go struct field" on the Go side.
-  // Strip the boolean before forwarding. See opencodeReasoningSanitizer.ts.
-  if (isOpencodeGoProvider(provider)) {
-    translatedBody = stripBooleanReasoning(translatedBody);
-  }
-
   const previousResponseIdPolicy = applyResponsesPreviousResponseIdPolicy(translatedBody, {
     mode: settings.responsesPreviousResponseIdMode,
     provider,
@@ -2794,43 +2724,6 @@ export async function handleChatCore({
     trackPendingRequest(model, provider, connectionId, false);
     return createErrorResult(400, toolCallingCheck.message!, null, "tool_calling_not_supported");
   }
-
-  if (unsupported.length > 0) {
-    const { strippedParams } = stripUnsupportedParams(translatedBody, unsupported);
-    if (strippedParams.length > 0) {
-      log?.warn?.(
-        "PARAMS",
-        `Stripped unsupported params for ${model}: ${strippedParams.join(", ")}`
-      );
-    }
-  }
-
-  // GPT-5 reasoning models (openai Chat Completions) reject temperature/top_p with a 400
-  // whenever a reasoning effort is active, yet accept them under reasoning_effort=none (the
-  // GPT-5.1+ default). A static unsupportedParams list can't express that, so strip sampling
-  // conditionally here. The codex Responses path is already covered by the executor allowlist.
-  translatedBody = stripGpt5SamplingWhenReasoning(
-    translatedBody,
-    provider,
-    finalModelToUpstream,
-    log
-  );
-
-  // GPT-5.x reasoning models on the raw openai Chat Completions surface reject function
-  // `tools` combined with an active `reasoning_effort`: HTTP 400 "Function tools with
-  // reasoning_effort are not supported ... Please use /v1/responses instead." This used to
-  // be true for every GPT-5.x model on the plain `openai` provider, but #7242 (targetFormat
-  // "openai-responses" on GPT_5_6_API_CAPABILITIES) now routes the GPT-5.6 family to
-  // /v1/responses instead, which accepts tools + reasoning natively — so the strip must not
-  // fire there. Pass the already-resolved `targetFormat` so the guard gates on the actual
-  // upstream surface for this request instead of a model-name list. Port of 9router#2540.
-  translatedBody = stripGpt5ReasoningWhenTools(
-    translatedBody,
-    provider,
-    finalModelToUpstream,
-    targetFormat,
-    log
-  );
 
   // Rename max_tokens to max_completion_tokens if not supported (#1961)
   if (!supportsMaxTokens({ provider, model })) {
@@ -3041,7 +2934,9 @@ export async function handleChatCore({
   // Namespaced by the calling API key: dedup hands the SAME response object to
   // every joiner, so a shared hash across keys is a cross-principal response
   // leak (GHSA-6c7w-56xp-wpc6).
-  const dedupHash = dedupEnabled ? computeRequestHash(dedupRequestBody, apiKeyInfo?.id) : null;
+  const dedupHash = dedupEnabled
+    ? computeRequestHash(dedupRequestBody, apiKeyInfo?.id, trustedEffortContext)
+    : null;
 
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
@@ -3051,9 +2946,10 @@ export async function handleChatCore({
       let bodyToSend = await prepareUpstreamBody({
         translatedBody,
         modelToCall,
+        ...trustedEffortContext,
         provider,
         targetFormat,
-        credentials,
+        credentials: getExecutionCredentials(),
         log,
         bypassDefaultToolLimit: isOpencodeClient,
         isOpencodeClient,
@@ -4409,12 +4305,23 @@ export async function handleChatCore({
         // stay aligned if this block ever runs after a path that mutates body.model (e.g. fallback).
         try {
           const retryModelId = String(translatedBody.model || effectiveModel);
+          const retryBody = await prepareUpstreamBody({
+            translatedBody,
+            modelToCall: retryModelId,
+            ...trustedEffortContext,
+            provider,
+            targetFormat,
+            credentials: getExecutionCredentials(),
+            log,
+            bypassDefaultToolLimit: isOpencodeClient,
+            isOpencodeClient,
+          });
           assertManagedLeaseFence(getExecutionConnectionId(getExecutionCredentials()));
           const retryResult = normalizeExecutorResult(
             await runWithCapture(providerRequestCapture, () =>
               executor.execute({
                 model: retryModelId,
-                body: translatedBody,
+                body: retryBody,
                 stream: upstreamStream,
                 credentials: getExecutionCredentials(),
                 signal: streamController.signal,
