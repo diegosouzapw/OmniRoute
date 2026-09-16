@@ -1,0 +1,1 @@
+- **fix(dashboard):** the Modal provider connection form now shows a Base URL field (placeholder `https://<workspace>--<app>.modal.run/v1`), so bring-your-own-deploy Modal connections can be validated and saved instead of failing outright — the server-side validator already required `providerSpecificData.baseUrl` ([#12704](https://github.com/diegosouzapw/OmniRoute/issues/12704))
