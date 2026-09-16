@@ -163,6 +163,43 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["node_modules", "pino-pretty"],
   },
   { label: "split2", src: ["node_modules", "split2"], dest: ["node_modules", "split2"] },
+  {
+    // ioredis is a deliberately LAZY dependency (Redis is optional — see the
+    // #6559 comment in src/shared/utils/rateLimiter.ts) — reached only via a
+    // runtime `await import("ioredis")` in rateLimiter.ts,
+    // warmupScheduler/circuitBreakerFactory.ts and quota/redisQuotaStore.ts,
+    // never through a static top-level import. The standalone tracer only
+    // follows statically-analyzable imports, so it never sees these call
+    // sites and drops ioredis from node_modules/ entirely. Any self-hosted
+    // deployment that actually sets REDIS_URL crashes the first time it
+    // reaches one of those call sites with "Cannot find module 'ioredis'" —
+    // reproduced on a production Docker deployment (REDIS_URL configured,
+    // v3.8.49) where the standalone image shipped ioredis/package.json but
+    // none of its own dependencies or built/ output.
+    label: "ioredis (dynamic import — #6559)",
+    src: ["node_modules", "ioredis"],
+    dest: ["node_modules", "ioredis"],
+  },
+  {
+    // bcryptjs IS statically imported by src/lib/auth/managementPassword.ts,
+    // so the main server bundle is fine — Next's server compiler inlines the
+    // small pure-JS package directly into the compiled route chunk instead of
+    // leaving it as an external node_modules dependency. bin/cli/settings-
+    // store.mjs (the `omniroute reset-password` / bin/reset-password.mjs
+    // CLI, used to recover a lost dashboard password) is a separate,
+    // unbundled entrypoint that does a plain runtime `import bcrypt from
+    // "bcryptjs"` and needs the real package physically present in
+    // node_modules/ — which nothing else requires as a loose runtime
+    // dependency, so it is never copied. Reproduced on a production
+    // deployment: `node bin/reset-password.mjs --password-stdin` failed with
+    // "Cannot find package 'bcryptjs' imported from
+    // /app/bin/cli/settings-store.mjs" (ERR_MODULE_NOT_FOUND) even though the
+    // same container's dashboard login (which also depends on bcryptjs) was
+    // working normally.
+    label: "bcryptjs (bin/cli/settings-store.mjs — reset-password CLI)",
+    src: ["node_modules", "bcryptjs"],
+    dest: ["node_modules", "bcryptjs"],
+  },
   { label: "migrations", src: ["src", "lib", "db", "migrations"], dest: ["migrations"] },
   { label: "MITM server", src: ["src", "mitm", "server.cjs"], dest: ["src", "mitm", "server.cjs"] },
   {
