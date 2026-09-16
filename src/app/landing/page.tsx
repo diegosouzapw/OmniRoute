@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { WeavingRug } from "@/shared/components/rug";
 import Navigation from "./components/Navigation";
 import HeroSection from "./components/HeroSection";
 import FlowAnimation from "./components/FlowAnimation";
@@ -12,8 +13,11 @@ import Footer from "./components/Footer";
 export default function LandingPage() {
   const t = useTranslations("landing");
   const router = useRouter();
+  // overflow-x-clip, not -hidden: `hidden` makes this a scroll container, which
+  // breaks `position: sticky` for descendants (the rug's weaving stage). `clip`
+  // suppresses the same horizontal overflow without creating one.
   return (
-    <div className="relative text-white font-sans overflow-x-hidden antialiased selection:bg-[#E54D5E] selection:text-white">
+    <div className="relative text-white font-sans overflow-x-clip antialiased selection:bg-[#E54D5E] selection:text-white">
       {/* Animated Background */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#0B0E14]">
         {/* Grid pattern */}
@@ -53,6 +57,13 @@ export default function LandingPage() {
           {/* Hero with Flow Animation */}
           <div className="relative">
             <HeroSection />
+
+            {/* The MiLADEiA rug, knotted onto the loom as the page scrolls. The
+                weave needs a dark ground to read against, so the section carries
+                its own rather than sitting on the animated page background. */}
+            <div className="relative bg-[#0a0908]">
+              <WeavingRug />
+            </div>
             <div className="flex justify-center pb-20">
               <FlowAnimation />
             </div>
