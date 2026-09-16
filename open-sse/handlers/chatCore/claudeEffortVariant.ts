@@ -16,6 +16,7 @@ import { splitClaudeEffortSuffix } from "../../config/providerModels.ts";
 import { isClaudeCodeCompatibleProvider } from "../../services/claudeCodeCompatible.ts";
 import { FORMATS } from "../../translator/formats.ts";
 import { isKnownClaudeEffortBaseModel } from "../../utils/claudeEffortVariants.ts";
+import { isDevinLiteralModelIdProvider } from "../../utils/devinLiteralModelIds.ts";
 
 /**
  * True when the client already supplied an explicit reasoning effort (top-level reasoning_effort,
@@ -40,6 +41,14 @@ export function applyClaudeEffortVariant(opts: {
   const { provider, body, sourceFormat } = opts;
   let effectiveModel = opts.effectiveModel;
   let log: string | null = null;
+
+  // Devin CLI catalogs embed the effort tier in the model id itself
+  // (`claude-opus-5-low` is a distinct upstream model). Stripping the suffix
+  // would dispatch a base id that does not exist upstream, so keep the id
+  // literal for these providers regardless of the Claude-family name.
+  if (isDevinLiteralModelIdProvider(provider)) {
+    return { effectiveModel, log: null };
+  }
 
   if (typeof effectiveModel === "string") {
     const { baseModel, effort } = splitClaudeEffortSuffix(effectiveModel);

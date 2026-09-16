@@ -27,6 +27,7 @@
  * model that legitimately ends in an effort-like token (e.g. a model named "...-high").
  */
 import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization.ts";
+import { isDevinLiteralModelIdProvider } from "./devinLiteralModelIds.ts";
 
 /** Provider ids with dedicated `-{effort}` aliases — never synthesize another suffix layer. */
 export const SYNCED_EFFORT_SKIP_PROVIDERS = new Set(["codex", "glm", "glm-cn", "glmt"]);
@@ -37,7 +38,10 @@ const SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES = ["kimi"];
 export function isSkippedEffortProvider(ownedBy: string): boolean {
   return (
     SYNCED_EFFORT_SKIP_PROVIDERS.has(ownedBy) ||
-    SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES.some((prefix) => ownedBy.startsWith(prefix))
+    SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES.some((prefix) => ownedBy.startsWith(prefix)) ||
+    // Devin CLI catalogs (devin-cli / devin-cli-agentic / devin-desktop, aliases
+    // dv / dva) embed the tier in the id itself — no variant layer on top.
+    isDevinLiteralModelIdProvider(ownedBy)
   );
 }
 
