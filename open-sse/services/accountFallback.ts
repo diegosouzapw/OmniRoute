@@ -1005,15 +1005,21 @@ export function shouldMarkAccountExhaustedFrom429(
   provider: string | null | undefined,
   model: string | null | undefined = null,
   connectionPassthroughModels?: boolean,
-  failureKind?: FailureKind
+  failureKind?: FailureKind,
+  errorText?: string | null
 ): boolean {
   // A plain 429 means transient rate limiting / high traffic for many OAuth providers.
   // Only connection-poison the quota cache when the upstream body explicitly says
   // the long-window quota is exhausted; otherwise fallback should try another account
   // without making this one look quota-depleted for 5 minutes.
   if (failureKind === "rate_limit" || failureKind === "transient") return false;
+  // `errorText` is what lets an apikey-category provider opt back in: without the
+  // upstream body, `shouldPreserveQuotaSignals` has nothing to match against
+  // `looksLikeQuotaExhausted`, so every apikey 429 reads as plain rate limiting —
+  // including one whose body explicitly says a daily/weekly/monthly cap was hit.
+  // Mirrors the two-argument call in `checkFallbackError` below.
   return (
-    shouldPreserveQuotaSignals(provider) &&
+    shouldPreserveQuotaSignals(provider, errorText) &&
     !hasPerModelQuota(provider, model, connectionPassthroughModels)
   );
 }
