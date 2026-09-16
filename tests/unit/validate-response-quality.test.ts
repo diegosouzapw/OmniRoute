@@ -45,7 +45,10 @@ test("returns valid=false for non-JSON non-SSE text", async () => {
 
 test("returns valid=false for Responses API bodies with no output items", async () => {
   const res = await validateResponseQuality(
-    makeResponse(JSON.stringify({ object: "response", status: "completed", output: [] }), "application/json"),
+    makeResponse(
+      JSON.stringify({ object: "response", status: "completed", output: [] }),
+      "application/json"
+    ),
     false,
     {}
   );
@@ -165,4 +168,62 @@ test("streaming OpenAI finish_reason-only chunk (no content delta) → invalid (
   const verdict = await validateResponseQuality(res, true, {});
   assert.strictEqual(verdict.valid, false);
   assert.match(verdict.reason ?? "", /streaming openai terminated with empty completion/);
+});
+
+// ── Streaming degeneracy detection (#13126) ──────────────────────────────────
+// detectDegeneration() is module-private; it is exercised through
+// validateResponseQuality()'s bounded peek with SSE mocks, one case per
+// detection signal plus a deliberate false-positive guard.
+
+function openAiSseChunk(text: string): string {
+  return `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: text } }] })}\n\n`;
+}
+
+test("degenerate stream (repeating prefix unit) → invalid + failover", async () => {
+  // Signal 1: prefix-unit repetition. 43x "哈" + 5 normal chars = 48 —
+  // under the 80-char healthy escape, so the degenerate stream is failed
+  // over to a sibling combo target instead of being relayed.
+  const res = makeSseResponse(openAiSseChunk("哈".repeat(43) + "好的我们继续"));
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, false);
+  assert.match(verdict.reason ?? "", /streaming degenerate: repetitive output "哈哈"/);
+});
+
+test("token loop past the healthy-text escape is still rejected", async () => {
+  // Signal 2: whitespace token looped 5+ consecutive times. The chunk is 133
+  // chars (> the 80-char escape) but the degeneracy scan runs BEFORE the
+  // escape, so the "data" x6 tail wins and the stream is failed over.
+  const text =
+    "the quick brown fox jumps over lazy dogs while nobody reads this text here now really quite famously ok data data data data data data";
+  const res = makeSseResponse(openAiSseChunk(text));
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, false);
+  assert.match(verdict.reason ?? "", /streaming degenerate: looped token "data" \(6 consecutive\)/);
+});
+
+test("very-low-diversity gibberish → invalid + failover", async () => {
+  // Signal 3: <=6 distinct chars over a >=48-char window. "abcdef"x4 +
+  // "fedcba"x4 is 48 chars / 6 distinct; the prefix only repeats 3x per unit
+  // (under the run threshold) and there is no 5-run token, so it trips the
+  // low-diversity branch and nothing else.
+  const res = makeSseResponse(openAiSseChunk("abcdef".repeat(4) + "fedcba".repeat(4)));
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, false);
+  assert.match(
+    verdict.reason ?? "",
+    /streaming degenerate: low-diversity garbled output \(6 distinct chars over 48\)/
+  );
+});
+
+test("healthy verbose prose with repeated function words → valid (false-positive guard)", async () => {
+  // Guard: legitimate text that leans on "and"/"the" heavily, has no 5+
+  // consecutive identical token, no high-coverage prefix-unit run, and high
+  // char diversity. It passes the 80-char escape and must be replayed to the
+  // client untouched.
+  const prose =
+    "Yes, and, but, nor, so, and, or, yet — the committee and the board and the staff and the public debate went on at length and nobody agreed and nothing changed but everyone smiled.";
+  const res = makeSseResponse(openAiSseChunk(prose) + "data: [DONE]\n\n");
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, true);
+  assert.ok(verdict.clonedResponse, "healthy stream must be replayed via clonedResponse");
 });

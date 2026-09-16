@@ -1,0 +1,1 @@
+- **feat(combo):** detect degenerate streaming responses (prefix-unit repetition, looped tokens, low-diversity gibberish) during the bounded quality-gate peek and fail them over to a sibling combo target instead of relaying the loop to the client (#13126 — thanks @ftevxk)
