@@ -15,6 +15,8 @@
  * `open-sse/translator/request/gemini-to-openai.ts`.
  */
 
+import { createGeminiToolCallIdPairing } from "@omniroute/open-sse/translator/helpers/geminiToolCallIds.ts";
+
 interface GeminiFunctionCall {
   name?: string;
   args?: Record<string, unknown>;
@@ -98,23 +100,29 @@ function newToolCallId(): string {
  * an assistant message carrying `tool_calls`; otherwise a plain text message.
  * Returns `null` when the content has nothing to contribute.
  */
-function convertContent(content: GeminiContent): InternalMessage | null {
+function convertContent(
+  content: GeminiContent,
+  toolCallIds: ReturnType<typeof createGeminiToolCallIdPairing>
+): InternalMessage | InternalMessage[] | null {
   const parts = content.parts;
   if (!parts || !Array.isArray(parts)) return null;
 
-  // A functionResponse turn maps to a `tool` role message.
+  // A functionResponse turn maps to `tool` role messages, one per response: Gemini answers
+  // parallel calls with several functionResponse parts in a single content.
+  const toolMessages: InternalMessage[] = [];
   for (const part of parts) {
     if (part.functionResponse) {
       const fr = part.functionResponse;
       const payload =
         fr.response && "result" in fr.response ? fr.response.result : fr.response ?? {};
-      return {
+      toolMessages.push({
         role: "tool",
-        tool_call_id: fr.id || fr.name || "",
+        tool_call_id: toolCallIds.responseId(fr),
         content: JSON.stringify(payload ?? {}),
-      };
+      });
     }
   }
+  if (toolMessages.length > 0) return toolMessages;
 
   const textSegments: string[] = [];
   const toolCalls: InternalMessage["tool_calls"] = [];
@@ -125,7 +133,7 @@ function convertContent(content: GeminiContent): InternalMessage | null {
     }
     if (part.functionCall) {
       toolCalls.push({
-        id: part.functionCall.id || newToolCallId(),
+        id: toolCallIds.callId(part.functionCall),
         type: "function",
         function: {
           name: part.functionCall.name || "",
@@ -173,9 +181,12 @@ export function convertGeminiToInternal(
 
   // Convert contents to messages (text + tool calls + tool responses)
   if (geminiBody.contents) {
+    const toolCallIds = createGeminiToolCallIdPairing(newToolCallId);
     for (const content of geminiBody.contents) {
-      const converted = convertContent(content);
-      if (converted) messages.push(converted);
+      toolCallIds.beginContent(content);
+      const converted = convertContent(content, toolCallIds);
+      if (Array.isArray(converted)) messages.push(...converted);
+      else if (converted) messages.push(converted);
     }
   }
 
