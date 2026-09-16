@@ -1,9 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import {
-  DEFAULT_SAFETY_SETTINGS,
-  cleanJSONSchemaForAntigravity,
-} from "../helpers/geminiHelper.ts";
+import { DEFAULT_SAFETY_SETTINGS, cleanJSONSchemaForAntigravity } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 import {
   buildGeminiThoughtSignatureKey,
@@ -81,6 +78,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     if (maxOutputTokens !== null) {
       result.generationConfig.maxOutputTokens = maxOutputTokens;
     }
+  }
+  if (body.stop_sequences !== undefined || body.stop !== undefined) {
+    const rawStop = body.stop_sequences ?? body.stop;
+    result.generationConfig.stopSequences = Array.isArray(rawStop) ? rawStop : [rawStop];
   }
 
   // ── System instruction ─────────────────────────────────────────

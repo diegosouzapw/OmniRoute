@@ -478,3 +478,34 @@ test("Claude -> Gemini non-numeric budget_tokens falls through to effort path", 
     includeThoughts: true,
   });
 });
+
+test("Claude -> Gemini maps stop_sequences and stop to generationConfig.stopSequences", () => {
+  const result1 = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      stop_sequences: ["STOP", "\nHuman:"],
+    },
+    false
+  );
+  assert.deepEqual(result1.generationConfig.stopSequences, ["STOP", "\nHuman:"]);
+
+  const result2 = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      stop: "SINGLE_STOP",
+    },
+    false
+  );
+  assert.deepEqual(result2.generationConfig.stopSequences, ["SINGLE_STOP"]);
+
+  const result3 = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+    },
+    false
+  );
+  assert.strictEqual(result3.generationConfig.stopSequences, undefined);
+});
