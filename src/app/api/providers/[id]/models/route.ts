@@ -1795,10 +1795,12 @@ export async function GET(
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      // Vertex AI lists models from the Generative Language `v1beta/models` endpoint, which both
-      // Express-mode API keys (via ?key=) and Service Account JSON (via a minted OAuth Bearer
-      // token) can reach. This surfaces the live catalog, including gemini-*-image models
-      // absent from the static registry list.
+      // Vertex AI lists models from the Generative Language `v1beta/models` endpoint, which
+      // Service Account JSON (via a minted OAuth Bearer token) can reach. Express-mode API
+      // keys are still sent via ?key= as a best effort, but the Generative Language API
+      // rejects Vertex-scoped keys (400 API_KEY_INVALID — #12328); that failure path serves
+      // the local catalog as an intentional source with a warning naming the real cause.
+      // Live listing surfaces models absent from the static registry, e.g. gemini-*-image.
       const credential = (apiKey || "").trim();
       let queryKey: string | null = null;
       let bearerToken: string | null = null;
@@ -1873,6 +1875,29 @@ export async function GET(
               provider,
               status: response.status,
             });
+            // #12328 — a Vertex-scoped Express key cannot list models on the Generative
+            // Language API (400 API_KEY_INVALID). That is a credential/endpoint mismatch,
+            // not a transient upstream failure, so serving the local catalog here is the
+            // intended behavior, not a degraded state: inference still routes any model id
+            // through the aiplatform executor. Surface the real cause instead of the
+            // generic "API unavailable" so the UI/modal can distinguish the two.
+            if (queryKey && (response.status === 400 || response.status === 403)) {
+              const fallback = buildDiscoveryFallbackResponse({
+                cacheWarning:
+                  "Vertex Express API key cannot list models on the Generative Language API (API_KEY_INVALID) — using cached catalog",
+                localWarning:
+                  "Vertex Express API key cannot list models on the Generative Language API (API_KEY_INVALID) — using local catalog",
+                localIntentional: true,
+              });
+              if (fallback) return fallback;
+              return NextResponse.json(
+                {
+                  error:
+                    "Vertex Express API keys are not accepted by the Generative Language models endpoint. Use a Service Account JSON for live discovery, or add models as custom models.",
+                },
+                { status: 400 }
+              );
+            }
             const fallback = buildDiscoveryFallbackResponse();
             if (fallback) return fallback;
             return NextResponse.json(
