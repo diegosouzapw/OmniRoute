@@ -74,6 +74,7 @@ yarn-error.log*
 # Local gitleaks artifacts (do not commit)
 gitleaks-local.json
 !.env.example
+!.env.selfhost.example
 !.env.homolog.example
 !.env.devin-bridge.example
 # Provider API keys (never commit)
