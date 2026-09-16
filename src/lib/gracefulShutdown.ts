@@ -200,7 +200,16 @@ export function initGracefulShutdown(): void {
   }
 
   const shutdown = (signal: string) => {
-    void globalThis.__omnirouteRequestShutdown?.(signal).then(() => process.exit(0));
+    void globalThis.__omnirouteRequestShutdown?.(signal).then(() => {
+      // #13306: on Windows, sql.js's Emscripten WASM build leaves pending libuv
+      // async-handle teardown work in flight after a statement has run. Calling
+      // process.exit() in the same tick as cleanup() resolving tears the event loop
+      // down before that teardown settles, and libuv's Windows async-handle close path
+      // asserts `!(handle->flags & UV_HANDLE_CLOSING)` -> hard abort. Deferring by one
+      // macrotask (mirrors 9router's own shutdown call sites, e.g.
+      // appUpdater.js:199, cli/cli.js:675) gives that teardown work a chance to run.
+      setTimeout(() => process.exit(0), 0);
+    });
   };
 
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
