@@ -1,0 +1,1 @@
+- **feat(dashboard):** add sidebar pinned items shortcut section with individual item pin toggle and localStorage persistence ([#12891](https://github.com/diegosouzapw/OmniRoute/pull/12891))
