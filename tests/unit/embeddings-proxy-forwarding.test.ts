@@ -4,6 +4,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import http from "node:http";
+import { buildDynamicEmbeddingProvider } from "../../open-sse/config/embeddingRegistry.ts";
+import type { EmbeddingProviderNodeRow } from "../../open-sse/config/embeddingRegistry.ts";
 
 // Isolate the DB to a temp dir BEFORE importing any module that opens it.
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-embed-proxy-"));
@@ -41,10 +43,6 @@ async function withHttpServer(
 }
 
 test("embeddings forward the connection-level (key) pinned proxy to the upstream fetch", async () => {
-  // T14 Proxy Fast-Fail performs a real TCP reachability check before running
-  // the request inside the proxy context, so the "proxy" must be a real,
-  // reachable local listener (its actual response body is irrelevant here —
-  // the assertion is about which proxy context the upstream fetch observes).
   await withHttpServer(
     (_req, res) => {
       res.writeHead(200);
@@ -60,8 +58,6 @@ test("embeddings forward the connection-level (key) pinned proxy to the upstream
         apiKey: "mistral-test-key",
       });
 
-      // Pin a proxy at the connection ("key") level — the most specific level,
-      // exactly like a user would configure per-connection in the dashboard.
       await settingsDb.setProxyForLevel("key", (connection as any).id, {
         type: "http",
         host: proxyUrl.hostname,
@@ -96,9 +92,6 @@ test("embeddings forward the connection-level (key) pinned proxy to the upstream
         globalThis.fetch = originalFetch;
       }
 
-      // The upstream fetch must have run inside the AsyncLocalStorage proxy
-      // context carrying the connection's pinned proxy — not "direct" (no
-      // context) and not the env-var proxy fallback.
       assert.equal(
         capturedProxySource,
         "context",
@@ -110,4 +103,108 @@ test("embeddings forward the connection-level (key) pinned proxy to the upstream
       );
     }
   );
+});
+
+// ---------------------------------------------------------------------------
+// #13234 — buildDynamicEmbeddingProvider must default to apikey/bearer auth
+// so that custom OpenAI-compatible providers forward their configured API key
+// on outbound embedding requests. Previously it hardcoded authType: "none",
+// which caused buildAuth() to skip the Authorization header entirely.
+// ---------------------------------------------------------------------------
+
+test("buildDynamicEmbeddingProvider defaults to apikey/bearer auth (#13234)", () => {
+  const node: EmbeddingProviderNodeRow = {
+    prefix: "my-custom",
+    name: "My Custom Provider",
+    baseUrl: "https://api.example.com/v1",
+    apiType: "embeddings",
+  };
+  const provider = buildDynamicEmbeddingProvider(node);
+  assert.equal(provider.authType, "apikey", "authType must be apikey, not none");
+  assert.equal(provider.authHeader, "bearer", "authHeader must be bearer, not none");
+  assert.equal(provider.baseUrl, "https://api.example.com/v1/embeddings");
+  assert.equal(provider.id, "my-custom");
+});
+
+test("buildDynamicEmbeddingProvider strips trailing slashes before appending /embeddings", () => {
+  const node: EmbeddingProviderNodeRow = {
+    prefix: "trailing",
+    name: "Trailing Slashes",
+    baseUrl: "https://api.example.com/v1///",
+  };
+  const provider = buildDynamicEmbeddingProvider(node);
+  assert.equal(provider.baseUrl, "https://api.example.com/v1/embeddings");
+  assert.equal(provider.authType, "apikey");
+});
+
+test("buildDynamicEmbeddingProvider rejects invalid prefixes", () => {
+  assert.throws(
+    () =>
+      buildDynamicEmbeddingProvider({
+        prefix: "bad/slash",
+        name: "Bad",
+        baseUrl: "https://x.com",
+      }),
+    /must not contain \//,
+  );
+  assert.throws(
+    () =>
+      buildDynamicEmbeddingProvider({
+        prefix: "",
+        name: "Empty",
+        baseUrl: "https://x.com",
+      }),
+    /missing prefix/,
+  );
+});
+
+// Integration-level: verify the Authorization header reaches the upstream
+// when createEmbeddingResponse is called with a provider that has credentials.
+
+test("createEmbeddingResponse attaches Authorization header for provider with credentials (#13234)", async () => {
+  // NOTE: The DB is already initialized from the first test in this file.
+  // We create a new mistral connection here and verify the auth header is set.
+  // The first test's connection (mistral-test-key) is also present, but
+  // getProviderCredentials selects based on availability, so we just verify
+  // that SOME Bearer token is attached — proving buildAuth() no longer skips it.
+  await providersDb.createProviderConnection({
+    provider: "mistral",
+    authType: "apikey",
+    name: "Auth Test Mistral",
+    apiKey: "sk-test-auth-header-12345",
+  });
+
+  let capturedAuthHeader: string | null = null;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    capturedAuthHeader = (init?.headers as Record<string, string>)?.["Authorization"] ?? null;
+    return new Response(
+      JSON.stringify({
+        data: [{ object: "embedding", embedding: [0.1, 0.2], index: 0 }],
+        usage: { prompt_tokens: 1, total_tokens: 1 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const res = await createEmbeddingResponse({
+      model: "mistral/mistral-embed",
+      input: "test auth header",
+    });
+    assert.equal(res.status, 200, "embedding request should succeed");
+    // The key assertion: Authorization header must be set (not null/undefined).
+    // Before the fix, buildDynamicEmbeddingProvider set authType: "none" which
+    // caused buildAuth() to skip the header entirely.
+    assert.ok(
+      capturedAuthHeader,
+      "Authorization header must be attached (#13234) — was null/undefined before the fix"
+    );
+    assert.ok(
+      capturedAuthHeader!.startsWith("Bearer "),
+      `Authorization must use Bearer scheme, got: ${capturedAuthHeader}`
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
