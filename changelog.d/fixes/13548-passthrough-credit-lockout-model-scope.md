@@ -1,0 +1,1 @@
+- **fix(auth):** scope credit-exhaustion lockout to the single failing model on passthrough providers (e.g. `bai`, `*-compatible-*` aggregators) instead of terminating the whole connection, so other models on the same key (including free ones) stay usable
