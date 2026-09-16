@@ -1,0 +1,1 @@
+- **fix(providers):** vLLM connections now advertise the real context window: model discovery reads `max_model_len` instead of falling back to the 128K default ([#12897](https://github.com/diegosouzapw/OmniRoute/pull/12897), closes [#12858](https://github.com/diegosouzapw/OmniRoute/issues/12858))

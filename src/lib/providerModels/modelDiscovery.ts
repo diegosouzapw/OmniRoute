@@ -310,10 +310,16 @@ export function normalizeDiscoveredModels(
     // `context_length` / `top_provider.context_length`, not `inputTokenLimit`.
     // Fall back across those names so synced models carry a real window instead
     // of the provider default (128K). Explicit `inputTokenLimit` still wins. #3202
+    // vLLM — and every server that copies its /v1/models shape — reports the
+    // window as `max_model_len`, the value the engine was actually started with.
+    // Without it a vLLM model syncs with no window at all and the resolver hands
+    // out the 128K default, understating a 250K deployment by half. #12858
     const inputTokenLimit = firstPositiveNumber(
       record.inputTokenLimit,
       record.context_length,
       record.contextLength,
+      record.max_model_len,
+      record.maxModelLen,
       topProvider.context_length
     );
     const outputTokenLimit = firstPositiveNumber(
