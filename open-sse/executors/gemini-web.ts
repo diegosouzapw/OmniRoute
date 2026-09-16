@@ -15,6 +15,7 @@
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
+import { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
 import { normalizeGeminiCookieInput } from "../utils/geminiCookies.ts";
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
@@ -27,22 +28,12 @@ import {
 
 const GEMINI_URL = "https://gemini.google.com/app";
 
-/**
- * Whether an error came from Playwright failing to launch because the browser binary is not
- * installed (`chromium.launch: Executable doesn't exist at ...`). This is a host/config
- * problem, not a transient upstream fault, so the executor must NOT surface it as a retryable
- * 500 (which marks the account unavailable and loops / trips the provider breaker). See #3516.
- */
-export function isMissingBrowserExecutable(message: string): boolean {
-  if (!message) return false;
-  const lower = message.toLowerCase();
-  return (
-    lower.includes("executable doesn't exist") ||
-    lower.includes("executablenotfound") ||
-    lower.includes("playwright install") ||
-    (lower.includes("chromium") && lower.includes("download"))
-  );
-}
+// Re-exported for backward compatibility: some tests/callers import this classification helper
+// from gemini-web.ts, its original home (#3516). The implementation now lives in
+// browserExecutableCheck.ts so other browser-backed executors (e.g. zai-web.ts, #13232) can
+// share it without importing this whole executor module.
+export { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
+
 const GEMINI_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
