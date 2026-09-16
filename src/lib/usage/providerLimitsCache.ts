@@ -22,6 +22,7 @@ export function toProviderLimitsCacheEntry(
   const bankedResetCredits = Number(usage.bankedResetCredits);
   return {
     quotas: isRecord(usage.quotas) ? usage.quotas : null,
+    ...(isRecord(usage.modelQuotas) ? { modelQuotas: usage.modelQuotas } : {}),
     plan: usage.plan ?? null,
     message: typeof usage.message === "string" ? usage.message : null,
     fetchedAt,

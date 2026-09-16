@@ -902,6 +902,7 @@ export async function fetchAndPersistProviderLimits(
     const staleUsage: JsonRecord = {
       ...usage,
       quotas: previous.quotas,
+      modelQuotas: previous.modelQuotas,
       plan: previous.plan ?? usage.plan ?? null,
       bankedResetCredits: previous.bankedResetCredits,
       billing: previous.billing,

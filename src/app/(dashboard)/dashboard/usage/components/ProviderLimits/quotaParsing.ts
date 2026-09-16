@@ -267,8 +267,8 @@ function parseClaude(data: any) {
   if (data?.message)
     return [{ name: "error", used: 0, total: 0, resetAt: null, message: data.message }];
 
-  const quotas = quotaEntries(data).map(([name, quota]) =>
-    normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
+  const quotas = quotaEntries({ quotas: { ...data.quotas, ...data.modelQuotas } }).map(
+    ([name, quota]) => normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
   );
 
   if (data?.extraUsage?.is_enabled) {
