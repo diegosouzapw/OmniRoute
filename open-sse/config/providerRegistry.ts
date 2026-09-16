@@ -319,3 +319,24 @@ export function getClaudeCodeDefaultModels(): {
     haiku: find(/haiku/i),
   };
 }
+
+/**
+ * #13452: shared guard for `*-compatible-*` executors' `buildUrl()`.
+ * `BaseExecutor`/`DefaultExecutor` used to default an `openai-compatible-*`
+ * / `anthropic-compatible-*` connection to the real OpenAI/Anthropic API
+ * when `credentials.providerSpecificData.baseUrl` was absent — silently
+ * shipping the connection's own stored "API key" as a Bearer/x-api-key
+ * token to a public third party instead of the operator's intended
+ * local/self-hosted endpoint. `provider` is embedded in the thrown error
+ * only for operator debuggability — it is never sent upstream.
+ */
+export function requireCompatibleBaseUrl(
+  provider: string | null | undefined,
+  providerSpecificData: { baseUrl?: unknown } | null | undefined
+): string {
+  const baseUrl = providerSpecificData?.baseUrl;
+  if (typeof baseUrl === "string" && baseUrl) return baseUrl;
+  throw new Error(
+    `provider node "${provider}" has no baseUrl — node missing or connection not hydrated`
+  );
+}

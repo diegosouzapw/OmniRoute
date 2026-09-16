@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { nodeTypeFromId } from "@/lib/db/providerNodeSelect";
+import { hydrateConnectionProviderSpecificData } from "./compatibleNodeBaseUrl.ts"; // #13452
 import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import { describeUpstreamFailure } from "@/shared/utils/upstreamError";
 import { buildAllExpiredCredentials } from "./authExpiredCredentials.ts";
@@ -1039,33 +1040,6 @@ function planLastUsedCommit(
   };
 }
 
-/**
- * Resolve Proxy Pool references on a real connection row at the same boundary
- * where credentials become request-ready. The synthetic no-auth fallback above
- * already performs this hydration, but a persisted connection (for example the
- * OpenCode card's `opencode` row selected through the `opencode-zen` alias)
- * bypasses that fallback. Keep inline/legacy entries untouched and only incur a
- * registry lookup when at least one by-id reference is present.
- */
-async function hydrateAccountProxyReferences(
-  providerSpecificData: JsonRecord
-): Promise<JsonRecord> {
-  const entries = providerSpecificData.accountProxies;
-  if (!Array.isArray(entries)) return providerSpecificData;
-
-  const containsProxyReference = entries.some((entry) => {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return false;
-    const proxyId = (entry as Record<string, unknown>).proxyId;
-    return typeof proxyId === "string" && proxyId.trim().length > 0;
-  });
-  if (!containsProxyReference) return providerSpecificData;
-
-  return {
-    ...providerSpecificData,
-    accountProxies: await resolveAccountProxiesFromRegistry(entries),
-  };
-}
-
 async function materializeConnection(
   connection: ProviderConnectionView,
   options: CredentialSelectionOptions,
@@ -1074,7 +1048,7 @@ async function materializeConnection(
     reactivatedFromInactive?: boolean;
   } = {}
 ) {
-  const providerSpecificData = await hydrateAccountProxyReferences(connection.providerSpecificData);
+  const providerSpecificData = await hydrateConnectionProviderSpecificData(connection);
   const apiKeyHealth = providerSpecificData.apiKeyHealth as Record<string, KeyHealth> | undefined;
   if (apiKeyHealth) syncHealthFromDB(connection.id, apiKeyHealth);
   const releaseOAuthSession =

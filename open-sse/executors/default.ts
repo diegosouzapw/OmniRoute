@@ -11,7 +11,7 @@ import {
   joinClaudeCodeCompatibleUrl,
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
-import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   mergeClientAnthropicBeta,
@@ -231,7 +231,7 @@ export class DefaultExecutor extends BaseExecutor {
     void urlIndex;
     if (this.provider?.startsWith?.("openai-compatible-")) {
       const psd = credentials?.providerSpecificData;
-      const baseUrl = psd?.baseUrl || "https://api.openai.com/v1";
+      const baseUrl = requireCompatibleBaseUrl(this.provider, psd); // #13452
       const normalized = baseUrl.replace(/\/$/, "");
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (customPath) return `${normalized}${customPath}`;
@@ -244,7 +244,7 @@ export class DefaultExecutor extends BaseExecutor {
     }
     if (this.provider?.startsWith?.("anthropic-compatible-")) {
       const psd = credentials?.providerSpecificData;
-      const baseUrl = psd?.baseUrl || "https://api.anthropic.com/v1";
+      const baseUrl = requireCompatibleBaseUrl(this.provider, psd); // #13452
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (isClaudeCodeCompatible(this.provider)) {
         return joinClaudeCodeCompatibleUrl(
