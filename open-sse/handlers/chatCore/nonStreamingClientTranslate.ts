@@ -130,7 +130,17 @@ export function translateNonStreamingClientResponse(
       for (const item of responseOutput) {
         if (item?.type !== "function_call") continue;
         const identity = requestToolIdentityMap.get(item.name);
-        if (identity) {
+        // `requestToolIdentityMap` is typed as Map<string, NamespaceIdentity>, but
+        // extractRequestToolIdentityMap() (chatCore/requestToolIdentity.ts) falls
+        // back to `_toolNameMap` when no namespace tools were present — and that
+        // side channel is a plain Map<string, string> alias table published by the
+        // openai->gemini/claude pivot (#9780), not {namespace, name} identities.
+        // Applying that fallback here unconditionally overwrote a perfectly valid
+        // `item.name` (e.g. "shell") with `("shell").name === undefined`, which
+        // JSON.stringify then drops the key entirely (#12370) — Codex receives a
+        // function_call with no name and cannot dispatch it. Only apply the
+        // restore when `identity` actually has the {namespace, name} shape.
+        if (identity && typeof identity === "object" && typeof identity.name === "string") {
           item.namespace = identity.namespace;
           item.name = identity.name;
         }
