@@ -8,7 +8,10 @@ import {
 } from "@/lib/db/reasoningRoutingRules";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { normalizeRoutingTags } from "@/domain/tagRouter";
-import { splitClaudeEffortSuffix } from "@omniroute/open-sse/config/providerModels.ts";
+import {
+  splitClaudeEffortSuffix,
+  getProviderModels,
+} from "@omniroute/open-sse/config/providerModels.ts";
 
 type JsonRecord = Record<string, unknown>;
 const EFFORTS = new Set<ReasoningEffort>([
@@ -264,6 +267,51 @@ function capabilityFor(
   const capabilities = getResolvedModelCapabilities(model);
   if (capabilities.supportsThinking === false) return "unsupported" as const;
   if (targetEffort === "max" || targetEffort === "ultra") {
+    // The gate must agree with what the dispatch-time sanitizer
+    // (`open-sse/executors/base/reasoningEffort.ts`) can actually enforce.
+    // That sanitizer clamps against the STATIC registry vocabulary for a
+    // registered model; it forwards verbatim only for providers/models the
+    // registry does not declare. So:
+    //   1. A static registry vocabulary excluding the tier stays unsupported —
+    //      a DB override must not let a request pass the gate only to be
+    //      silently downgraded at dispatch.
+    //   2. For unregistered providers/models, a declared (synced or
+    //      operator-overridden) vocabulary listing the tier is authoritative —
+    //      the sanitizer forwards verbatim there (#8057 trust-the-upstream).
+    //   3. The gpt-5.6 regex remains the fallback for undeclared models.
+    // This keeps custom OpenAI-compatible providers whose models accept `max`
+    // natively (e.g. Merge Gateway `zai/glm-5.3-flash`, accepting
+    // `low|high|max`) usable with forced-max rules instead of 400ing.
+    // The registry lookup mirrors the sanitizer exactly: alias-resolved
+    // provider namespace (`getProviderModels`, #2798/#3870) and the entry's
+    // `aliases` list, so the gate can never approve what dispatch clamps.
+    const declaredEfforts = capabilities.supportedThinkingEfforts;
+    const provider = model.includes("/") ? model.slice(0, model.indexOf("/")) : "";
+    const modelIdForRegistry = model.startsWith(`${provider}/`)
+      ? model.slice(provider.length + 1)
+      : model;
+    // Mirror the sanitizer's empty-vocabulary semantics: a registry row that
+    // exists but declares nothing (`[]`) must fall through — there the
+    // sanitizer skips its declared clamp entirely instead of rejecting.
+    const registryDeclared = provider
+      ? getProviderModels(provider).find(
+          (entry) => entry.id === modelIdForRegistry || entry.aliases?.includes(modelIdForRegistry)
+        )?.supportedThinkingEfforts
+      : undefined;
+    if (Array.isArray(registryDeclared) && registryDeclared.length > 0) {
+      return registryDeclared.includes(targetEffort)
+        ? ("supported" as const)
+        : ("unsupported" as const);
+    }
+    if (Array.isArray(declaredEfforts) && declaredEfforts.includes(targetEffort)) {
+      return "supported" as const;
+    }
+    // An operator-declared vocabulary that excludes the tier is terminal —
+    // the same lookup the override resolves from must not be overruled by the
+    // legacy regex below.
+    if (capabilities.reasoningEffortsOverride && Array.isArray(declaredEfforts)) {
+      return "unsupported" as const;
+    }
     const normalized = model.toLowerCase().replace(/^(?:codex|cx)\//, "");
     const supported =
       targetEffort === "ultra"
