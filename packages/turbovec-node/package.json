@@ -1,0 +1,17 @@
+{
+  "name": "@omniroute/turbovec",
+  "version": "1.0.0",
+  "description": "Turbovec bindings for OmniRoute",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.4"
+  },
+  "dependencies": {
+    "@node-rs/helper": "^1.3.3"
+  }
+}

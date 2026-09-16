@@ -1,0 +1,1 @@
+cargo:warning=building for no_std disables httparse SIMD

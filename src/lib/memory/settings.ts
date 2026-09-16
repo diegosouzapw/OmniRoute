@@ -16,7 +16,7 @@ export interface MemorySettings {
   staticEnabled: boolean;
   rerankEnabled: boolean;
   rerankProviderModel: string | null;
-  vectorStore: "sqlite-vec" | "qdrant" | "auto";
+  vectorStore: "sqlite-vec" | "qdrant" | "turbovec" | "auto";
   // Phase 1-2: MemoryBackend provider pattern
   primaryBackend: string;
   fallbackBackends: string[];
@@ -75,7 +75,7 @@ function normalizeEmbeddingSource(value: unknown): MemorySettings["embeddingSour
 }
 
 function normalizeVectorStore(value: unknown): MemorySettings["vectorStore"] {
-  return value === "sqlite-vec" || value === "qdrant" || value === "auto"
+  return value === "sqlite-vec" || value === "qdrant" || value === "turbovec" || value === "auto"
     ? value
     : DEFAULT_MEMORY_SETTINGS.vectorStore;
 }

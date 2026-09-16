@@ -1,0 +1,4 @@
+cargo:rustc-check-cfg=cfg(stable_arm_crc32_intrinsics)
+cargo:rustc-check-cfg=cfg(stable_vpclmulqdq)
+cargo:rustc-cfg=stable_arm_crc32_intrinsics
+cargo:rustc-cfg=stable_vpclmulqdq
