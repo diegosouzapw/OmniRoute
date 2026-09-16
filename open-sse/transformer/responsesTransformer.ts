@@ -795,7 +795,7 @@ export function createResponsesApiTransformStream(
           }
 
           // Handle tool_calls
-          if (delta.tool_calls) {
+          if (delta.tool_calls?.length) {
             // Close reasoning first so tool calls do not collide with an
             // open reasoning item, then close the message at its real index.
             if (state.reasoningId && !state.reasoningDone) {

@@ -49,6 +49,30 @@ function stripVerbosityForTarget(body: JsonRecord, model: string): string[] {
 }
 
 /**
+ * Strip a `tool_choice` control that lacks a usable `tools` array.
+ *
+ * Some upstreams (vLLM self-hosted) reject the combination "tool_choice set
+ * without tools" with a schema 400 — "When using tool_choice, tools must be
+ * set." Auxiliary/internal calls (e.g. WebSearch) legitimately send
+ * `tool_choice:"auto"` with no tools array, and routing/fallback may have
+ * dropped the tools array after the client sent it. This guard removes the
+ * dangling `tool_choice` so the request stays schema-valid for any upstream
+ * that enforces the OpenAI spec. It is OpenAI-spec compliance, not
+ * provider-specific, so it fires regardless of provider.
+ */
+function stripToolChoiceWithoutTools(body: JsonRecord): boolean {
+  if (!Object.hasOwn(body, "tool_choice")) return false;
+  const tc = body.tool_choice;
+  // A falsy/null tool_choice carries no "use tools" intent — leave as-is.
+  if (!tc) return false;
+  const tools = body.tools;
+  const hasUsableTools = Array.isArray(tools) && tools.length > 0;
+  if (hasUsableTools) return false;
+  delete body.tool_choice;
+  return true;
+}
+
+/**
  * Sanitize a translated request using the concrete provider/model selected by
  * routing. Returns a fresh top-level object and never mutates the caller body.
  */
@@ -79,10 +103,17 @@ export function sanitizeRequestForResolvedTarget<T extends JsonRecord>(
   // boundary so custom executors cannot accidentally bypass them.
   stripUnsupportedParams(options.provider, options.model, next);
 
-  if (stripped.length > 0) {
+  // Strip a dangling tool_choice that lacks a usable tools array — upstreams
+  // that enforce the OpenAI spec (vLLM) reject "tool_choice without tools"
+  // with a schema 400.
+  const strippedToolChoice = stripToolChoiceWithoutTools(next);
+
+  if (stripped.length > 0 || strippedToolChoice) {
+    const parts = [...stripped];
+    if (strippedToolChoice) parts.push("tool_choice (no tools)");
     options.log?.debug?.(
       "TARGET_PARAMS",
-      `Stripped ${stripped.join(", ")} for resolved target ${options.provider || "unknown"}/${options.model}`
+      `Stripped ${parts.join(", ")} for resolved target ${options.provider || "unknown"}/${options.model}`
     );
   }
 
