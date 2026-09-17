@@ -18,12 +18,17 @@ import { type UsageQuota, parseResetTime } from "./quota.ts";
 
 type JsonRecord = Record<string, unknown>;
 
-const FABLE_WEEKLY_LIMIT_SCHEMA = z.object({
+const WEEKLY_SCOPED_LIMIT_SCHEMA = z.object({
   kind: z.literal("weekly_scoped"),
   percent: z.number().min(0).max(100),
   resets_at: z.string().nullable().optional(),
-  scope: z.object({ model: z.object({ display_name: z.literal("Fable") }) }),
+  scope: z.object({
+    model: z.object({ display_name: z.string().nullish(), id: z.string().nullish() }).nullish(),
+    surface: z.string().nullish(),
+  }),
 });
+
+type WeeklyScopedLimit = z.infer<typeof WEEKLY_SCOPED_LIMIT_SCHEMA>;
 
 // Claude API config
 const CLAUDE_CONFIG = {
@@ -45,6 +50,13 @@ export function getClaudePlanLabel(...candidates: Array<string | null | undefine
       continue;
     }
     return trimmed;
+  }
+  return null;
+}
+
+function scopedLimitName({ model, surface }: WeeklyScopedLimit["scope"]): string | null {
+  for (const candidate of [model?.display_name, model?.id, surface]) {
+    if (candidate?.trim()) return candidate.trim().toLowerCase();
   }
   return null;
 }
@@ -136,9 +148,13 @@ export async function getClaudeUsage(accessToken?: string) {
       // Display-only model limits must not enter account-wide routing quotas.
       const modelQuotas: Record<string, UsageQuota> = {};
       for (const limit of Array.isArray(data.limits) ? data.limits : []) {
-        const parsed = FABLE_WEEKLY_LIMIT_SCHEMA.safeParse(limit);
+        const parsed = WEEKLY_SCOPED_LIMIT_SCHEMA.safeParse(limit);
         if (!parsed.success) continue;
-        modelQuotas["weekly fable (7d)"] = createQuotaObject({
+        const name = scopedLimitName(parsed.data.scope);
+        if (!name) continue;
+        const key = `weekly ${name} (7d)`;
+        if (quotas[key] || modelQuotas[key]) continue;
+        modelQuotas[key] = createQuotaObject({
           utilization: parsed.data.percent,
           resets_at: parsed.data.resets_at,
         });
