@@ -1,10 +1,12 @@
-# OmniRoute — `fork/parallel-execution` (fork readme)
+# OmniRoute — `fork/parallel-execution`
 
-This branch is a deployment-and-integration fork of the upstream OmniRoute
-(see `Base-readme.md` for the upstream readme). It is tuned for running
-**parallel AI coding agents** (main agent + concurrent subagents, MoA panels,
-swarms) against local providers, and it is wired into the **Hermes agent** as
-its model federation layer.
+> **Original upstream readme:** [`Base-readme.md`](Base-readme.md)
+> **Design constitution:** [`CORE.md`](CORE.md) · **Upgrade playbook:** [`UPGRADE.md`](UPGRADE.md) · **Hermes wiring:** [`HERMES_CHANGES.md`](HERMES_CHANGES.md)
+
+This branch is a deployment-and-integration fork of the upstream OmniRoute.
+It is tuned for running **parallel AI coding agents** (main agent + concurrent
+subagents, MoA panels, swarms) against local providers, and it is wired into
+the **Hermes agent** as its model federation layer.
 
 Constitution and long-form design live outside this repo (operator docs):
 `CORE.md` (design constitution) and `OmniRoute_Hermes_CORE.md` (architecture
@@ -86,6 +88,25 @@ Hermes config lives in `~/.hermes/`; nothing here patches Hermes core.
    `POST /v1/router/outcomes`, and returns structured results for Hermes
    to synthesize. A `omni-swarm` skill with the same procedure exists as
    documentation fallback.
+
+   **Provider-diversity rule (swarm assignment):** diversity is enforced at
+   the _provider token_ level, not the raw model-ID level. The token is
+   derived from the model ID as follows:
+
+   - **Hub prefixes** (`nvidia`, `hf`, `huggingface`, `together`, `fireworks`,
+     `azure`, `bedrock`) use **two** path segments as the token, because these
+     are gateway aggregators that host multiple independent third-party labs.
+     Example: `nvidia/moonshotai/kimi-k3` → token `nvidia/moonshotai`;
+     `nvidia/deepseek-ai/deepseek-v4-pro-0813` → token `nvidia/deepseek-ai`.
+     Picking one blocks the other within the same swarm wave.
+   - **All other prefixes** use only the **first** segment. Example: `kiro`,
+     `lma`, `kr`, `zc`. So `kiro/claude-haiku-4.5` and `kr/claude-haiku-4.5`
+     get tokens `kiro` and `kr` respectively — they are **different providers**
+     to the swarm even though both proxy Anthropic upstream, and are allowed to
+     coexist in the same wave.
+
+   In short: "provider" in this context means the OmniRoute
+   account/gateway, not the upstream model vendor.
 
 ## Bug fixes and troubleshooting (all observed live)
 
