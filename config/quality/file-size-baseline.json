@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_09_17_13191_tokenmarket_gateway": "PR #13191 (FitBBC) own growth: src/shared/constants/providers/apikey/gateways.ts 1502->1517 (+15 = the tokenmarket APIKEY_PROVIDERS_GATEWAYS catalog entry — declarative data only: id/alias/name/icon/color/website plus authHint, no logic and no new branching). Same god-file no-split rationale as every prior gateways.ts rebaseline (#13024/#13025 greenpt+eurouter, #11786 seekai, #10987 logfare, #10668 tabitoken, #10531 freebuff, #11631 1min.ai): the file header declares it pure data merged by apikey/index.ts via spread and it is already split into 6 family files under apikey/, so splitting a catalog for one entry would violate the semantic-families rule. Covered by tests/unit/tokenmarket-provider.test.ts (3/3).",
   "_rebaseline_2026_09_17_13185_claude_oauth_sticky_refresh": "PR #13185 (@RaviTharuma): soft-fail do refresh do Claude para CredentialHealth nao ficar sticky-dead. src/lib/tokenHealthCheck.ts 1214 (tip) -> 1220 na branch e 1221 na arvore combinada com #13426; teto fixado em 1221. O teto anterior (1218) tinha apenas 4 linhas de folga. O crescimento e o proprio fix: preservar o refresh_token e distinguir falha transitoria de credencial morta exige estado extra no caminho de sweep, que nao pode sair do modulo sem quebrar a API interna. Coberto por tests/unit/tokenHealthCheck-claude-refresh-token-preserved.test.ts; os 14 arquivos irmaos de tokenHealthCheck/credentialHealth foram rodados juntos (72/72).",
   "_rebaseline_2026_09_16_jxnlexn_wave_growth": "Combined growth of the 2026-09-15 maxmad64bis uplift batch (each PR rebaselined its own growth; the merged sum is larger): src/sse/handlers/chat.ts->2498; open-sse/handlers/chatCore.ts->6181. Every hunk is flag-gated or a verified fix covered by that PR's tests; see the batch report.",
   "_rebaseline_2026_09_16_wave22_growth": "Combined growth of the 2026-09-15 maxmad64bis uplift batch (each PR rebaselined its own growth; the merged sum is larger): src/sse/handlers/chatHelpers.ts->1231; open-sse/executors/cursor.ts->1808. Every hunk is flag-gated or a verified fix covered by that PR's tests; see the batch report.",
@@ -502,7 +503,7 @@
     "src/lib/tailscaleTunnel.ts": 1208,
     "src/lib/tokenHealthCheck.ts": 1221,
     "src/shared/components/RequestLoggerV2.tsx": 1718,
-    "src/shared/constants/providers/apikey/gateways.ts": 1502,
+    "src/shared/constants/providers/apikey/gateways.ts": 1517,
     "src/shared/services/cliRuntime.ts": 1296,
     "src/sse/handlers/chat.ts": 2500,
     "src/sse/services/auth.ts": 3557,

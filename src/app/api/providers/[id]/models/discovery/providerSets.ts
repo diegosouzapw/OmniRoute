@@ -100,6 +100,9 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // (11 chat-capable). Live fetch keeps it fresh; the registry seed stays as the
   // offline fallback.
   "logfare",
+  // Token Market is an OpenAI-compatible multi-model gateway. Its catalog is
+  // discovered from the authenticated https://api.tokensmarket.ai/v1/models endpoint.
+  "tokenmarket",
   // Agnes hosts a live OpenAI-style /v1/models catalog on both the
   // international (apihub.agnes-ai.com) and CN (api.agnes-ai.cn) hosts.
   // Without this, sync-models serves the static registry seed and CN
