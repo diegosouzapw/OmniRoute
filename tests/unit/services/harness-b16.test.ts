@@ -37,6 +37,11 @@ import {
   workflowMemorySize,
 } from "../../../open-sse/services/harness/workflowMemory.ts";
 import { classifyFailure } from "../../../open-sse/services/harness/failureTaxonomy.ts";
+import {
+  buildSpawnPlan,
+  NATIVE_ROOM_CAPS,
+  NATIVE_HANDOFF_FORMAT,
+} from "../../../open-sse/services/harness/spawnPlanner.ts";
 
 // ── Tool registry ───────────────────────────────────────────────────────────
 
@@ -322,5 +327,204 @@ test("coerceWorkflowOutcome → recordWorkflowOutcome → getWorkflowHistory rou
   }
   // a different workflow reads empty — memory is per-workflow
   assert.strictEqual(getWorkflowHistory("other").length, 0);
+  clearWorkflowMemory();
+});
+
+// ── B16.2: the spawn plan (embodiment blueprint on native Bot Mode) ────────
+
+const PLAN_MODELS = {
+  primary: "openrouter/openai/gpt-5.4",
+  secondary: ["kiro/claude-sonnet-4-6", "openrouter/qwen/qwen3-max"],
+  fallback: ["gemini/gemini-3-pro"],
+};
+
+test("spawn plan: null unless the ladder escalated to agent", () => {
+  const toolProfile = executionProfileFrom({ type: "search", modality: null, complexity: "fast" });
+  const toolDecision = executionDecision(toolProfile);
+  assert.equal(toolDecision.path, "tool");
+  assert.equal(
+    buildSpawnPlan({
+      profile: toolProfile,
+      decision: toolDecision,
+      agent: toolDecision.agent,
+      models: PLAN_MODELS,
+      workflow: "web_research",
+      workflowHistory: [],
+    }),
+    null,
+    "Level-0 tool path never gets bodies"
+  );
+
+  const modelProfile = executionProfileFrom({ type: "chat", modality: null, complexity: "fast" });
+  const modelDecision = executionDecision(modelProfile);
+  assert.equal(modelDecision.path, "model");
+  assert.equal(
+    buildSpawnPlan({
+      profile: modelProfile,
+      decision: modelDecision,
+      agent: null,
+      models: PLAN_MODELS,
+      workflow: "web_research",
+      workflowHistory: [],
+    }),
+    null,
+    "model path never gets bodies"
+  );
+});
+
+test("spawn plan: parallelizable deep research — fan-out wave + judge, group room", () => {
+  const profile = executionProfileFrom({
+    type: "research",
+    modality: null,
+    complexity: "deep",
+    parallelizable: true,
+    requiresFreshInformation: true,
+  });
+  const decision = executionDecision(profile);
+  assert.equal(decision.path, "agent");
+  const plan = buildSpawnPlan({
+    profile,
+    decision,
+    agent: decision.agent,
+    models: PLAN_MODELS,
+    workflow: "web_research",
+    workflowHistory: [],
+    task: "Survey 15 competing agent harnesses and verify their routing claims against primary sources",
+  });
+  assert.ok(plan);
+  if (!plan) return;
+
+  // Structure: 3 workers + 1 judge (deep+parallelizable), capped by native room.
+  assert.equal(plan.body_count, 4);
+  assert.equal(plan.blueprint, "hermes-bot-mode");
+  assert.equal(plan.advisory, true);
+  const workers = plan.bodies.filter((body) => body.role === "worker");
+  const judge = plan.bodies.find((body) => body.role === "judge");
+  assert.equal(workers.length, 3);
+  assert.ok(judge);
+
+  // Waves: fan-out parallel, then synthesis.
+  assert.deepEqual(plan.waves, [
+    { name: "fan-out", parallel: true, bodies: workers.map((body) => body.name) },
+    { name: "synthesis", parallel: false, bodies: [judge?.name] },
+  ]);
+
+  // Brains: judge = primary; workers spread across the tiered pool.
+  assert.equal(judge?.model, PLAN_MODELS.primary);
+  const workerModels = new Set(workers.map((body) => body.model));
+  assert.equal(workerModels.size, 3, "workers spread across distinct models");
+  assert.ok(!workerModels.has(PLAN_MODELS.primary), "primary reserved for the judge");
+
+  // Bodies: agents' tools on workers, none on the judge; shared memory bank;
+  // names are valid profile directory names.
+  for (const body of workers) {
+    assert.deepEqual(body.tools, decision.agent?.tools ?? []);
+    assert.equal(body.memory_bank, "shared:web_research");
+    assert.match(body.name, /^[a-z0-9_-]+$/);
+    assert.ok(body.mission.includes("shard"));
+  }
+  assert.deepEqual(judge?.tools ?? null, []);
+
+  // Coordination: native group room + the documented caps and handoff format.
+  assert.equal(plan.coordination.mode, "group_room");
+  assert.deepEqual(plan.coordination.native_caps, NATIVE_ROOM_CAPS);
+  assert.equal(plan.coordination.native_caps.max_bots, 6);
+  assert.equal(plan.coordination.native_caps.max_rounds, 3);
+  assert.equal(plan.coordination.handoff_format, NATIVE_HANDOFF_FORMAT);
+
+  // Report: the B16.1 outcome callback.
+  assert.equal(plan.report.outcome_callback, "POST /v1/router/outcomes");
+  assert.equal(plan.evidence.workflow, "web_research");
+});
+
+test("spawn plan: sequential workload — inbox handoffs in dependency order", () => {
+  const profile = executionProfileFrom({
+    type: "research",
+    modality: null,
+    complexity: "deep",
+    parallelizable: false,
+    requiresFreshInformation: true,
+  });
+  const decision = executionDecision(profile);
+  assert.equal(decision.path, "agent");
+  const plan = buildSpawnPlan({
+    profile,
+    decision,
+    agent: decision.agent,
+    models: PLAN_MODELS,
+    workflow: "web_research",
+    workflowHistory: [],
+    task: "Verify each claim in order",
+  });
+  assert.ok(plan);
+  if (!plan) return;
+
+  assert.equal(plan.coordination.mode, "inbox_handoffs");
+  const workers = plan.bodies.filter((body) => body.role === "worker");
+  assert.equal(workers.length, 1, "sequential: one worker hands off to the judge");
+  // Every wave is sequential — dependency order, never parallel for its own sake.
+  assert.ok(plan.waves.every((wave) => wave.parallel === false));
+  assert.equal(plan.waves.length, 2);
+  assert.ok(plan.embodiment.mission.includes('hermes -p <bot> chat'));
+  assert.ok(plan.embodiment.create.includes("hermes profile create"));
+});
+
+test("spawn plan: empty model pool — bodies inherit the launch profile (native)", () => {
+  const profile = executionProfileFrom({
+    type: "research",
+    modality: null,
+    complexity: "deep",
+    parallelizable: true,
+    requiresFreshInformation: true,
+  });
+  const decision = executionDecision(profile);
+  const plan = buildSpawnPlan({
+    profile,
+    decision,
+    agent: decision.agent,
+    models: { primary: null, secondary: [], fallback: [] },
+    workflow: "web_research",
+    workflowHistory: [],
+  });
+  assert.ok(plan);
+  if (!plan) return;
+  assert.ok(plan.bodies.every((body) => body.model === null), "null = inherit the launch profile");
+  assert.ok(plan.embodiment.model_pin.includes("Model & provider pin"));
+});
+
+test("spawn plan: workflow evidence attaches (never model benchmarks)", () => {
+  clearWorkflowMemory();
+  const outcome = coerceWorkflowOutcome({
+    workflow: "web_research",
+    model: "openrouter/openai/gpt-5.4",
+    tools: ["camofox"],
+    sources_found: 12,
+    sources_verified: 11,
+    quality_score: 0.9,
+    latency_ms: 40000,
+    success: true,
+  });
+  assert.ok(!("error" in outcome));
+  if (!("error" in outcome)) recordWorkflowOutcome(outcome);
+
+  const profile = executionProfileFrom({
+    type: "research",
+    modality: null,
+    complexity: "deep",
+    parallelizable: true,
+    requiresFreshInformation: true,
+  });
+  const decision = executionDecision(profile);
+  const plan = buildSpawnPlan({
+    profile,
+    decision,
+    agent: decision.agent,
+    models: PLAN_MODELS,
+    workflow: "web_research",
+    workflowHistory: getWorkflowHistory("web_research"),
+  });
+  assert.ok(plan?.evidence.best, "best-evidence-first workflow stat attached");
+  assert.equal(plan?.evidence.best?.avgSourcesVerified, 11);
+  assert.ok(plan?.evidence.note.includes("never model benchmarks"));
   clearWorkflowMemory();
 });

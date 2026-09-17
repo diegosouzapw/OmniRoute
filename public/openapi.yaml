@@ -5714,50 +5714,6 @@ paths:
         "503":
           description: Generator module not available
 
-  /api/v1/router/outcomes:
-    post:
-      summary: Record a workflow outcome (Hermes guide §22.4 structured outcome callback)
-      description: |
-        B16.1. Hermes Bots execute in the CLIENT runtime (guide §26 — OmniRoute
-        selects the Bot's underlying model but does not orchestrate the
-        research), so their executions never pass through the fork's closed
-        loop. They report structured workflow outcomes here (§17) and read
-        history back via GET. Workflow outcomes are workflow memory, never
-        model benchmarks — they surface on /v1/router/execution.
-      tags: [Harness Router]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [workflow]
-              properties:
-                workflow: { type: string, description: "workflow name, e.g. web_research" }
-                model: { type: string, nullable: true }
-                tools: { type: array, items: { type: string } }
-                sources_found: { type: number, nullable: true }
-                sources_verified: { type: number, nullable: true }
-                quality_score: { type: number, nullable: true, description: "0..1, clamped" }
-                latency_ms: { type: number, nullable: true }
-                success: { type: boolean, nullable: true }
-      responses:
-        "202": { description: "Outcome recorded into workflow memory" }
-        "400": { description: "Invalid JSON or malformed payload" }
-        "401": { description: "API key policy rejection" }
-    get:
-      summary: Workflow history (per model/tools combination, best-evidence first)
-      tags: [Harness Router]
-      parameters:
-        - in: query
-          name: workflow
-          required: true
-          schema: { type: string }
-      responses:
-        "200": { description: "Aggregated WorkflowStat history for the workflow" }
-        "400": { description: "Missing ?workflow=" }
-        "401": { description: "API key policy rejection" }
-
 components:
   securitySchemes:
     BearerAuth:

@@ -605,3 +605,34 @@ coerce rejects 8 malformed shapes, record→history round-trip);
 full services sweep 553/553 (superset of the usual batch — /work was
 wiped again this turn, so the recovered tree got the full directory run);
 tsc 0 @ 41 files; openapi 714/719 (99.3%).
+
+## B16.2 — The spawn plan: bodies for brains
+
+**Trigger**: the user's first live-parallel report — "models are just
+being called; they have the brains but no dynamically spawned bodies."
+Instruction: consider native Hermes agent source first, then build upon
+it. Research pass: NousResearch/hermes-agent (MIT) + Bot Mode docs +
+archived plugin README + profile-commands reference. Confirmed native
+surface: `hermes profile create` (--description/--no-skills/--clone-from),
+profiles.* gateway RPCs, Advanced Model & provider pin, per-skill/toolset
+enablement, group rooms 2–6 bots ≤3 rounds ≤10 msgs, Bot Chat CLI
+handoffs, `[bot:]` cron namespace, Hindsight bank_id.
+
+**Build**: `spawnPlanner.ts` — pure, plan only when the ladder escalates
+to agent. Parallelizable → fan-out + judge waves (group_room);
+sequential → ordered single-body waves (inbox_handoffs). Judge gets
+primary; workers round-robin the tiered pool. `examples/hermes-embodiment/`
+recipe script (dry-run default; --apply = the human decision; --report
+closes the loop via B16.1).
+
+**Scar**: executionProfileFrom — `type: "research"` does NOT set
+requiresFreshInformation (only "search" or explicit). Four spawn tests
+failed with path "model" before the explicit flag. The ladder keys on
+FRESH INFORMATION, not the task noun. Also: dirSafe keeps underscores
+(web_research stays web_research — the first memory_bank assertion
+expected a hyphen). And: heredoc-inside-a-single-quoted-string in bash
+is a quote-matching trap — build payloads with jq -n instead.
+
+**Verification**: b16 suite 18/18 (5 new: null-unless-agent, deep-parallel
+structure, sequential waves, empty-pool inherit, workflow evidence);
+tsc 0 @ 42 files.

@@ -379,6 +379,31 @@ curl -s -X POST "http://localhost:20128/v1/route" \
 # → {primary, secondary: […], fallback: […], confidence, task}   (?evidence=true adds the matrix)
 ```
 
+**B16.2 — the spawn plan (bodies for brains).** When the ladder escalates
+to AGENT, the same call returns a `spawn_plan`: an embodiment blueprint
+mapped 1:1 to native Bot Mode (a body IS a Hermes profile — create with
+`hermes profile create`, brain pinned via New Agent → Advanced → Model &
+provider pin, missions via Bot Chat handoffs, group rooms 2–6 bots /
+≤3 rounds, sustained work via `[bot:<name>]` cron routines):
+
+```bash
+curl -s -X POST "http://localhost:20128/v1/router/execution" \
+  -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
+  -d '{"prompt": "survey 15 competing agent harnesses and verify routing claims", "parallelizable": true}' \
+  | jq .spawn_plan
+```
+
+→ `{advisory, blueprint: "hermes-bot-mode", body_count, bodies: [{name,
+role, wave, model, tools, memory_bank, mission}], waves: [fan-out
+parallel → synthesis], coordination: {mode: group_room|inbox_handoffs,
+native_caps}, embodiment: {native commands}, report: {outcome_callback}}`.
+Parallelizable → one fan-out wave + a judge wave; sequential → ordered
+single-body waves with inbox handoffs. Judge gets the primary model;
+workers spread across the tiered pool so one provider can't sink the
+room. A runnable recipe lives at `examples/hermes-embodiment/` (create →
+dispatch → report; dry-run by default). No spawn_plan on tool/model
+paths — a body is justified by task shape, never by default.
+
 **B16.1 — the Hermes outcome callback.** Your Bots execute client-side, so
 their runs never cross the fork's closed loop. They close it themselves —
 the Hermes integration guide §17/§22.4 structured outcome callback:

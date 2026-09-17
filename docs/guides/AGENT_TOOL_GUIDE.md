@@ -40,7 +40,7 @@ hidden, never forced onto a worse model.
 | `POST /v1/harness/classify` | Ask what the gateway would route a prompt as (debugging). |
 | `GET/POST /v1/router/candidates` | **Self-assessment.** Who can serve this task — including YOU, ranked by the identical score — plus the advisory task `profile` (specialist advantage, best available, self estimate), `registry` version, and staleness `guidance`. |
 | `POST /v1/router/refresh` | Force a registry refresh now (new models in, deprecated models deleted, version re-stamped). Cron/worker friendly. |
-| `GET/POST /v1/router/execution` | **Who/what can accomplish this?** The three-registry surface: task depth analysis, the tool-vs-agent-vs-model ladder, workflow evidence. |
+| `GET/POST /v1/router/execution` | **Who/what can accomplish this?** The three-registry surface: task depth analysis, the tool-vs-agent-vs-model ladder, workflow evidence.  On agent escalation also returns `spawn_plan` — the embodiment blueprint on native Bot Mode (bodies = Hermes profiles with pinned brains, waves, group-room/inbox coordination, outcome callback). Recipe: `examples/hermes-embodiment/`. |
 | `POST /v1/router/outcomes` | **Hermes guide §22.4 structured outcome callback.** Bots execute client-side — their runs never cross the fork's closed loop — so they POST `{workflow, model?, tools?, sources_found?, sources_verified?, quality_score?, latency_ms?, success}` here and `GET ?workflow=` reads the history back. Workflow memory, never model benchmarks. |
 | `POST /v1/route` | The compact fast API: `{task}` → `{primary, secondary, fallback, confidence}` (`?evidence=true` adds the matrix). |
 | `GET /v1/models/best?task=code&limit=6` | See the ranked candidates for a category (never required). |

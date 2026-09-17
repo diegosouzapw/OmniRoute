@@ -14030,14 +14030,20 @@ paths:
         decision ladder (fresh info + short/direct -> Level-0 tool;
         long/parallelizable -> agent escalation; otherwise model routing),
         capability-matched tools (never ranked against models) and agents
-        (with workflow memory evidence), plus the top-3 models. Params:
+        (with workflow memory evidence), plus the top-3 models. On agent
+        escalation also returns spawn_plan — the embodiment blueprint on
+        native Hermes Bot Mode (B16.2): bodies = Hermes profiles with
+        pinned brains (Model & provider pin), toolsets, missions, waves
+        (parallel fan-out + judge, or sequential inbox handoffs), native
+        group-room caps (2-6 bots, <=3 rounds), and the outcome callback.
+        Params:
         prompt/task, task_type, modality, complexity, parallelizable,
         requires_fresh_information, use_embeddings, embedding_model.
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: "advisory, rule, analysis, decision, tools, agents, models, workflow_memory."
+          description: "advisory, rule, analysis, decision, tools, agents, models, workflow_memory, spawn_plan (agent path only)."
           content:
             application/json:
               schema:

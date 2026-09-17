@@ -22,6 +22,7 @@ import { toolsForCapabilities } from "@omniroute/open-sse/services/harness/toolR
 import { selfExecutableTools } from "@omniroute/open-sse/services/harness/toolRegistry.ts";
 import { agentsWithEvidence } from "@omniroute/open-sse/services/harness/executionRouter.ts";
 import { getWorkflowHistory } from "@omniroute/open-sse/services/harness/workflowMemory.ts";
+import { buildSpawnPlan } from "@omniroute/open-sse/services/harness/spawnPlanner.ts";
 
 /**
  * GET/POST /api/v1/router/execution — B16, the THREE-REGISTRY surface.
@@ -103,6 +104,28 @@ async function handle(request: NextRequest, body: Record<string, unknown> | null
   const ranked = rankCandidates(candidates, { category }, 3);
   const matrix = candidateMatrixLines(ranked, { category });
 
+  // B16.2: the embodiment blueprint — bodies only when the ladder escalated
+  // to AGENT (a body is justified by task shape, never by default). Every
+  // field maps to native Bot Mode surface; spawning stays Hermes's call.
+  const models = {
+    primary: ranked.find((candidate) => candidate.tier === "primary")?.descriptor.id ?? null,
+    secondary: ranked.filter((candidate) => candidate.tier === "secondary").map((candidate) => candidate.descriptor.id),
+    fallback: ranked.filter((candidate) => candidate.tier === "fallback").map((candidate) => candidate.descriptor.id),
+    matrix,
+  };
+  const spawnPlan =
+    decision.path === "agent"
+      ? buildSpawnPlan({
+          profile,
+          decision,
+          agent: decision.agent,
+          models,
+          workflow: "web_research",
+          workflowHistory: getWorkflowHistory("web_research"),
+          task: prompt,
+        })
+      : null;
+
   return NextResponse.json(
     {
       ok: true,
@@ -112,12 +135,8 @@ async function handle(request: NextRequest, body: Record<string, unknown> | null
       decision,
       tools: matchedTools,
       agents,
-      models: {
-        primary: ranked.find((candidate) => candidate.tier === "primary")?.descriptor.id ?? null,
-        secondary: ranked.filter((candidate) => candidate.tier === "secondary").map((candidate) => candidate.descriptor.id),
-        fallback: ranked.filter((candidate) => candidate.tier === "fallback").map((candidate) => candidate.descriptor.id),
-        matrix,
-      },
+      models,
+      ...(spawnPlan ? { spawn_plan: spawnPlan } : {}),
       workflow_memory: profile.requiresFreshInformation ? getWorkflowHistory("web_research").slice(0, 5) : [],
       note: "tools marked execution:client run in YOUR runtime (bot mode) — OmniRoute advises, never executes them",
     },

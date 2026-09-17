@@ -9,6 +9,11 @@ don't throttle the concurrency back down.
 Branch: `fork/parallel-execution`. Everything else is upstream — rebase often,
 diverge deliberately.
 
+**`CORE.md`** (repo root) is the design constitution — the boundaries,
+prime directives, and extension playbook. Read it before any upgrade,
+rebase, or agent-driven modification; this file is the changelog, CORE.md
+is the intent.
+
 ## Why
 
 - Adding more providers only maximizes usage if requests actually run **in
@@ -809,6 +814,31 @@ with pinned provider/model; Agent-Inbox bot-to-bot messaging; group rooms
 2–6 bots; routines via Hermes cron; Camofox local mode = client-side
 anti-detection browser backend, no CDP — exactly the fork's
 `execution: "client"` Level-0 tool).
+
+### 5t. B16.2 — The spawn plan: embodiment on native Bot Mode (`feat(harness)`)
+
+First live report: parallel model calls work (brains), but bodies don't
+exist yet. Bodies are Hermes-side by design — a body IS a native Bot Mode
+bot (a Hermes profile), so this build translates agent escalation into a
+plan FOR that surface, verified against NousResearch/hermes-agent source
+& docs (Desktop ≥ v0.20.3, bundled plugin `apps/desktop/src/plugins/hermes-bots/`):
+
+- `spawnPlanner.ts` (pure) — every field maps to a native capability:
+  `hermes profile create <name> --description` (+`--no-skills`/`--clone-from`),
+  Advanced **Model & provider pin**, per-toolset/skill enablement, Hindsight
+  `bank_id`, group rooms **2–6 bots / ≤3 rounds / ≤10 msgs** with @name/@user,
+  Bot Chat CLI handoffs (`hermes -p <bot> chat --in ~ -c "Bot Chat" -Q -q`),
+  `[bot:<name>]` cron routines, B16.1 outcome callback.
+- Structure: parallelizable → fan-out wave (workers) + synthesis wave
+  (judge); sequential → ordered single-body waves, inbox handoffs. Judge =
+  primary model; workers spread across the tiered pool (one provider can't
+  sink the room — B9 keys on provider). Null unless `path === "agent"` —
+  a body is justified by task shape, never default (CORE.md §6).
+- `examples/hermes-embodiment/` — the Hermes-side recipe: spawn-from-plan.sh
+  (create → dispatch → report; dry-run default, `--apply` is the human
+  decision, `--report` closes the loop).
+- Surface: execution route gains `spawn_plan` (agent path only); openapi
+  description updated; 5 new tests (18/18).
 
 directory, ~30 lines in `dispatchPrelude.ts`, one schema block, one route
 file, two registry type annotations) to keep rebases mechanical. Changelog
