@@ -1,0 +1,1 @@
+- **fix(opencode):** requests the upstream refuses because of the tools attached to them, such as the short title-generation call, are now replayed once in the other shape and the shape that worked is remembered for that prompt ([#14148](https://github.com/diegosouzapw/OmniRoute/pull/14148)) — thanks @maxmad64bis
