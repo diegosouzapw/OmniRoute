@@ -87,6 +87,7 @@ import {
   validateEmbeddingApiProvider,
   validateJinaFoundationProvider,
   validateRerankApiProvider,
+  validateTypesafeProvider,
 } from "./validation/embeddingProviders";
 import {
   validateBedrockProvider,
@@ -345,6 +346,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     },
     "jina-ai": ({ apiKey, providerSpecificData }: any) =>
       validateJinaFoundationProvider({ apiKey, providerSpecificData }),
+    typesafe: ({ apiKey, providerSpecificData }: any) =>
+      validateTypesafeProvider({ apiKey, providerSpecificData }),
     gitlab: ({ apiKey, providerSpecificData }: any) =>
       validateGitlabProvider({ apiKey, providerSpecificData, isLocal }),
     vertex: validateVertexProvider,

@@ -224,6 +224,14 @@ export function getIntentConfig(
     ...(typeof resolvedSettings.intentDetectionEnabled === "boolean"
       ? { enabled: resolvedSettings.intentDetectionEnabled }
       : {}),
+    ...(resolvedSettings.intentEngine === "typesafe" || resolvedSettings.intentEngine === "keywords"
+      ? { engine: resolvedSettings.intentEngine }
+      : {}),
+    ...(Number.isFinite(Number(resolvedSettings.intentTypesafeConfidenceThreshold))
+      ? {
+          typesafeConfidenceThreshold: Number(resolvedSettings.intentTypesafeConfidenceThreshold),
+        }
+      : {}),
     ...(Number.isFinite(Number(resolvedSettings.intentSimpleMaxWords))
       ? { simpleMaxWords: Number(resolvedSettings.intentSimpleMaxWords) }
       : {}),
@@ -505,14 +513,16 @@ export async function expandAutoComboCandidatePool(
         getCustomModels(providerId),
       ]);
       const syncedModels = filterChatSelectableModels(providerId, syncedModelsRaw);
+      const customChatModels = filterChatSelectableModels(providerId, customModels);
       const hiddenModels = hiddenModelsMap.get(providerId);
       const userVisibleIds = new Set<string>();
       for (const m of syncedModels) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
-      for (const m of customModels) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
+      for (const m of customChatModels)
+        if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
       const hasUserModels = userVisibleIds.size > 0;
       const expandIds = hasUserModels
         ? Array.from(userVisibleIds)
-        : getProviderModels(providerId).map((m) => m.id);
+        : filterChatSelectableModels(providerId, getProviderModels(providerId)).map((m) => m.id);
       for (const modelId of expandIds) {
         const modelStr = `${providerId}/${modelId}`;
         if (!seenModelStrs.has(modelStr)) {

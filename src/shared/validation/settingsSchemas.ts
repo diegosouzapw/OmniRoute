@@ -363,6 +363,8 @@ export const updateSettingsSchema = z.object({
     .optional(),
   // Auto intent classifier settings (multilingual routing)
   intentDetectionEnabled: z.boolean().optional(),
+  intentEngine: z.enum(["keywords", "typesafe"]).optional(),
+  intentTypesafeConfidenceThreshold: z.number().min(0).max(1).optional(),
   intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
   intentExtraCodeKeywords: z.array(z.string().max(100)).optional(),
   intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),

@@ -15,7 +15,11 @@ import { buildComplexityRoutingHint } from "../autoCombo/complexityRouter";
 import { getModePack } from "../autoCombo/modePacks.ts";
 import { recordComboIntent } from "../comboMetrics.ts";
 import { estimateTokens } from "../contextManager.ts";
-import { classifyWithConfig } from "../intentClassifier.ts";
+import {
+  classifyWithConfigAsync,
+  getLastIntentClassificationMeta,
+  recordIntentClassificationMeta,
+} from "../intentClassifier.ts";
 import type { RoutingHint } from "../manifestAdapter";
 import { parseModel } from "../model.ts";
 import { supportsToolCalling } from "../modelCapabilities.ts";
@@ -240,7 +244,9 @@ export async function resolveAutoStrategyOrder(
   const prompt = extractPromptForIntent(body);
   const systemPrompt = typeof combo?.system_message === "string" ? combo.system_message : undefined;
   const intentConfig = getIntentConfig(settings, combo);
-  const intent = classifyWithConfig(prompt, intentConfig, systemPrompt);
+  const intent = await classifyWithConfigAsync(prompt, intentConfig, systemPrompt);
+  const intentMeta = getLastIntentClassificationMeta();
+  if (intentMeta) recordIntentClassificationMeta(intentMeta, combo.name);
   recordComboIntent(combo.name, intent);
   const taskType = mapIntentToTaskType(intent);
 

@@ -56,6 +56,10 @@ function normalizeOpenAiModelId(modelId: string): string {
   return modelId.startsWith("openai/") ? modelId.slice("openai/".length) : modelId;
 }
 
+function classifyTypesafeModel(_modelId: string): ModelEndpointDecision {
+  return { kind: "non-chat", chatSelectable: false, reason: "provider-policy" };
+}
+
 function classifyOpenAiModel(modelId: string): ModelEndpointDecision | null {
   const normalized = normalizeOpenAiModelId(modelId).toLowerCase();
   if (
@@ -77,6 +81,9 @@ export function getModelEndpointDecision(
   supportedEndpoints?: readonly string[]
 ): ModelEndpointDecision {
   const explicit = classifyExplicitEndpoints(supportedEndpoints);
+  if (provider?.trim().toLowerCase() === "typesafe") {
+    return classifyTypesafeModel(modelId);
+  }
   if (provider?.trim().toLowerCase() === "openai") {
     const openAiDecision = classifyOpenAiModel(modelId);
     if (openAiDecision) {

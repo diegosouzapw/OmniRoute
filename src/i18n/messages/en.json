@@ -6287,6 +6287,7 @@
       "tokenrouter": "TokenRouter exposes an OpenAI-compatible chat completions endpoint at https://api.tokenrouter.com/v1/chat/completions, plus a working /v1/models catalog. OmniRoute uses the OpenAI protocol.",
       "topaz": "Connect Topaz with an API key.",
       "typhoon": "Typhoon is OpenAI-compatible on /v1. Built by SCB 10X (Thailand); typhoon-v2.5-30b-a3b-instruct is a thai-first, multilingual model.",
+      "typesafe": "Bearer API key for api.typesafe.ai — System One / Jev evaluation. POST /v1/systemone; not a chat-completions provider.",
       "udio": "Paste session cookie from udio.com (Supabase auth)",
       "uncloseai": "No auth required. API accepts any non-empty string as key for identification.",
       "upstage": "Connect Upstage with an API key.",

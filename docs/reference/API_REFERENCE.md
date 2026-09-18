@@ -461,6 +461,7 @@ Use this endpoint when a sidecar runs out-of-process and cannot import
 | POST   | `/v1/audio/speech`                        | OpenAI TTS (returns audio body)    |
 | POST   | `/v1/rerank`                              | Cohere/Voyage-style rerank         |
 | POST   | `/v1/classify`                            | Jina classify (`api.jina.ai`)      |
+| POST   | `/v1/systemone`                           | TypeSafe System One / Jev          |
 | POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
 | POST   | `/v1/moderations`                         | OpenAI Moderations                 |
 | GET    | `/v1/models`                              | OpenAI                             |
@@ -485,6 +486,9 @@ POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "d
 
 # Jina classify (Foundation API credentials)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
+
+# TypeSafe System One / Jev (passthrough; stored `typesafe` API key)
+POST /v1/systemone   { "state": "...", "model": "jev-latest", "questions": { "intent": { "type": "choice", "instructions": "...", "criteria": { "code": null } } } }
 
 # Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }

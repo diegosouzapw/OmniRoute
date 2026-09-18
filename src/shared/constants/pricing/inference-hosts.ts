@@ -3,6 +3,11 @@
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 export const DEFAULT_PRICING_INFERENCE = {
+  typesafe: {
+    "jev-latest": { input: 0.042, output: 0 },
+    "jev-preview": { input: 0.042, output: 0 },
+    "jev-1.13.0": { input: 0.042, output: 0 },
+  },
   agentrouter: {
     auto: { input: 2.0, output: 8.0 },
   },

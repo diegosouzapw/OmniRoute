@@ -615,6 +615,8 @@ export function classifyPromptIntent(prompt: string, systemPrompt?: string): Int
   return "medium";
 }
 
+export type IntentEngine = "keywords" | "typesafe";
+
 export interface IntentClassifierConfig {
   enabled: boolean;
   extraCodeKeywords?: string[];
@@ -623,12 +625,67 @@ export interface IntentClassifierConfig {
   extraCreativeKeywords?: string[];
   extraSimpleKeywords?: string[];
   simpleMaxWords?: number;
+  /** Default remains keywords (synchronous, no I/O). */
+  engine?: IntentEngine;
+  /** Fall back to keywords when TypeSafe confidence is below this (0–1). */
+  typesafeConfidenceThreshold?: number;
+  typesafeTimeoutMs?: number;
+  typesafeModel?: string;
 }
 
 export const DEFAULT_INTENT_CONFIG: IntentClassifierConfig = {
   enabled: true,
   simpleMaxWords: 60,
+  engine: "keywords",
+  typesafeConfidenceThreshold: 0.5,
 };
+
+export const INTENT_TYPES: readonly IntentType[] = [
+  "code",
+  "math",
+  "reasoning",
+  "creative",
+  "simple",
+  "medium",
+];
+
+export interface IntentClassificationMeta {
+  engine: IntentEngine;
+  intent: IntentType;
+  confidence: number | null;
+  fallbackReason?: string;
+}
+
+const lastIntentMetaByCombo = new Map<string, IntentClassificationMeta>();
+let lastIntentMeta: IntentClassificationMeta | null = null;
+
+export function recordIntentClassificationMeta(
+  meta: IntentClassificationMeta,
+  comboName?: string | null
+): void {
+  lastIntentMeta = meta;
+  if (typeof comboName === "string" && comboName.length > 0) {
+    if (lastIntentMetaByCombo.size >= 500) {
+      const oldest = lastIntentMetaByCombo.keys().next().value;
+      if (oldest) lastIntentMetaByCombo.delete(oldest);
+    }
+    lastIntentMetaByCombo.set(comboName, meta);
+  }
+}
+
+export function getLastIntentClassificationMeta(
+  comboName?: string | null
+): IntentClassificationMeta | null {
+  if (typeof comboName === "string" && comboName.length > 0) {
+    return lastIntentMetaByCombo.get(comboName) ?? lastIntentMeta;
+  }
+  return lastIntentMeta;
+}
+
+export function clearIntentClassificationMeta(): void {
+  lastIntentMeta = null;
+  lastIntentMetaByCombo.clear();
+}
 
 export function classifyWithConfig(
   prompt: string,
@@ -662,4 +719,176 @@ export function classifyWithConfig(
     }
   }
   return "medium";
+}
+
+function isIntentType(value: unknown): value is IntentType {
+  return typeof value === "string" && (INTENT_TYPES as readonly string[]).includes(value);
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+export const TYPESAFE_INTENT_QUESTION_ID = "intent";
+
+export function buildTypesafeIntentRequest(prompt: string, systemPrompt?: string) {
+  const state = [systemPrompt, prompt]
+    .filter((part) => typeof part === "string" && part.length > 0)
+    .join("\n\n");
+  return {
+    state,
+    model: "jev-latest",
+    questions: {
+      [TYPESAFE_INTENT_QUESTION_ID]: {
+        type: "choice",
+        instructions: "Classify the user request into exactly one OmniRoute auto-routing intent.",
+        criteria: {
+          code: "Code, programming, APIs, debugging, or implementation",
+          math: "Math, calculation, equations, or quantitative work",
+          reasoning: "Analysis, proof, planning, or multi-step reasoning",
+          creative: "Creative writing, stories, poems, or brainstorming",
+          simple: "Short factual lookup, greeting, or translation",
+          medium: "General conversation that does not fit the other intents",
+        },
+      },
+    },
+  };
+}
+
+export interface TypesafeClassifyDeps {
+  fetchImpl?: typeof fetch;
+  getCredentials?: () => Promise<{
+    apiKey?: string | null;
+    accessToken?: string | null;
+    connectionId?: string | null;
+  } | null>;
+  timeoutMs?: number;
+}
+
+function keywordResult(
+  prompt: string,
+  config: IntentClassifierConfig,
+  systemPrompt: string | undefined,
+  fallbackReason?: string
+): { intent: IntentType; meta: IntentClassificationMeta } {
+  const intent = classifyWithConfig(prompt, { ...config, engine: "keywords" }, systemPrompt);
+  return {
+    intent,
+    meta: {
+      engine: "keywords",
+      intent,
+      confidence: null,
+      ...(fallbackReason ? { fallbackReason } : {}),
+    },
+  };
+}
+
+export async function classifyWithConfigAsync(
+  prompt: string,
+  config: IntentClassifierConfig,
+  systemPrompt?: string,
+  deps: TypesafeClassifyDeps = {}
+): Promise<IntentType> {
+  if (!config.enabled) {
+    const meta: IntentClassificationMeta = {
+      engine: "keywords",
+      intent: "medium",
+      confidence: null,
+    };
+    recordIntentClassificationMeta(meta);
+    return "medium";
+  }
+
+  if (config.engine !== "typesafe") {
+    const result = keywordResult(prompt, config, systemPrompt);
+    recordIntentClassificationMeta(result.meta);
+    return result.intent;
+  }
+
+  const timeoutMs = deps.timeoutMs ?? config.typesafeTimeoutMs ?? 2000;
+  const threshold =
+    typeof config.typesafeConfidenceThreshold === "number"
+      ? config.typesafeConfidenceThreshold
+      : 0.5;
+
+  try {
+    const getCredentials =
+      deps.getCredentials ??
+      (async () => {
+        const { getProviderCredentialsWithQuotaPreflight } =
+          await import("../../src/sse/services/auth.ts");
+        return getProviderCredentialsWithQuotaPreflight("typesafe");
+      });
+    const credentials = await getCredentials();
+    const credRecord =
+      credentials && typeof credentials === "object"
+        ? (credentials as Record<string, unknown>)
+        : null;
+    const token =
+      (typeof credRecord?.apiKey === "string" && credRecord.apiKey) ||
+      (typeof credRecord?.accessToken === "string" && credRecord.accessToken) ||
+      "";
+    if (!token) {
+      const result = keywordResult(prompt, config, systemPrompt, "missing_key");
+      recordIntentClassificationMeta(result.meta);
+      return result.intent;
+    }
+
+    const fetchImpl = deps.fetchImpl ?? globalThis.fetch;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetchImpl("https://api.typesafe.ai/v1/systemone", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...buildTypesafeIntentRequest(prompt, systemPrompt),
+          model: config.typesafeModel || "jev-latest",
+        }),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        const result = keywordResult(prompt, config, systemPrompt, "upstream_error");
+        recordIntentClassificationMeta(result.meta);
+        return result.intent;
+      }
+      const parsed = asRecord(await response.json());
+      const answers = asRecord(parsed?.answers);
+      const answer = asRecord(answers?.[TYPESAFE_INTENT_QUESTION_ID]);
+      const choice = answer?.choice;
+      const confidence =
+        typeof answer?.confidence === "number" && Number.isFinite(answer.confidence)
+          ? answer.confidence
+          : null;
+      if (answer?.type !== "choice" || !isIntentType(choice) || confidence === null) {
+        const result = keywordResult(prompt, config, systemPrompt, "invalid_answer");
+        recordIntentClassificationMeta(result.meta);
+        return result.intent;
+      }
+      if (confidence < threshold) {
+        const result = keywordResult(prompt, config, systemPrompt, "low_confidence");
+        recordIntentClassificationMeta(result.meta);
+        return result.intent;
+      }
+      const meta: IntentClassificationMeta = {
+        engine: "typesafe",
+        intent: choice,
+        confidence,
+      };
+      recordIntentClassificationMeta(meta);
+      return choice;
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch {
+    const result = keywordResult(prompt, config, systemPrompt, "error");
+    recordIntentClassificationMeta(result.meta);
+    return result.intent;
+  }
 }

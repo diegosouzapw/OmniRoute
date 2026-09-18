@@ -163,6 +163,20 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     hasFree: true,
     freeNote: "200M free tokens for embeddings and reranking",
   },
+  typesafe: {
+    id: "typesafe",
+    serviceKinds: [],
+    alias: "typesafe",
+    name: "TypeSafe AI (Jev)",
+    icon: "fact_check",
+    color: "#0F766E",
+    textIcon: "TS",
+    website: "https://typesafe.ai",
+    authHint:
+      "Bearer API key for api.typesafe.ai — System One / Jev evaluation. POST /v1/systemone; not a chat-completions provider.",
+    apiHint:
+      "TypeSafe Jev is not chat-shaped. OmniRoute proxies POST /v1/systemone as-is and logs input-token cost ($0.042 / Mtok; output free).",
+  },
   "jina-ai": {
     id: "jina-ai",
     serviceKinds: [],

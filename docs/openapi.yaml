@@ -12540,6 +12540,14 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/systemone:
+    post:
+      tags:
+        - V1 Systemone
+      summary: "POST systemone"
+      responses:
+        "200":
+          description: OK
   /api/v1/combos:
     get:
       tags:
