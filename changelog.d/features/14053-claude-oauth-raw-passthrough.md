@@ -1,0 +1,1 @@
+- **feat(oauth):** per-connection Claude OAuth raw passthrough: skip CLI emulation, fingerprint rewrite, and CCH body signing when `providerSpecificData.rawPassthrough` is true. Dashboard toggle for Claude OAuth connections; nested aliases are stripped on save. ([#14053](https://github.com/diegosouzapw/OmniRoute/pull/14053))

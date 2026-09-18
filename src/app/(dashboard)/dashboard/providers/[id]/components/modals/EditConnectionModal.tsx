@@ -21,6 +21,10 @@ import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { type CodexServiceTier } from "@/lib/providers/requestDefaults";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
+import {
+  applyClaudeRawPassthroughSave,
+  isConnectionRawPassthrough,
+} from "@omniroute/open-sse/utils/cacheControlPolicy.ts";
 import { resolveDashboardProviderInfo } from "../../../providerPageUtils";
 import {
   isBaseUrlConfigurableProvider,
@@ -156,6 +160,7 @@ export default function EditConnectionModal({
       provider === "claude"
         ? isClaudeExtraUsageBlockEnabled(provider, connectionProviderSpecificData)
         : false,
+    rawPassthrough: isConnectionRawPassthrough(connectionProviderSpecificData),
     passthroughModels: connectionProviderSpecificData?.passthroughModels === true,
     disableCooling: connectionProviderSpecificData?.disableCooling === true,
     importFreeModelsOnly: connectionProviderSpecificData?.importFreeModelsOnly === true,
@@ -397,6 +402,7 @@ export default function EditConnectionModal({
           effectiveProvider,
           connection.providerSpecificData
         ),
+        rawPassthrough: isConnectionRawPassthrough(connection.providerSpecificData),
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
         importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
@@ -695,6 +701,10 @@ export default function EditConnectionModal({
         };
         if (isClaude) {
           updates.providerSpecificData.blockExtraUsage = formData.blockExtraUsage;
+          applyClaudeRawPassthroughSave(
+            updates.providerSpecificData,
+            formData.rawPassthrough === true
+          );
         }
         if (isCodex) {
           updates.providerSpecificData.requestDefaults = {
@@ -846,6 +856,21 @@ export default function EditConnectionModal({
               label={t("blockClaudeExtraUsageLabel")}
               description={t("blockClaudeExtraUsageDescription")}
             />
+            {isOAuth && (
+              <div className="flex flex-col gap-2">
+                <Toggle
+                  checked={formData.rawPassthrough}
+                  onChange={(checked) => setFormData({ ...formData, rawPassthrough: checked })}
+                  label={t("rawClaudePassthroughLabel")}
+                  description={t("rawClaudePassthroughDescription")}
+                />
+                {formData.rawPassthrough && (
+                  <p className="text-xs text-amber-500/90 dark:text-amber-400/90">
+                    {t("rawClaudePassthroughWarning")}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
         {(isCcCompatible || openRouterPreset.input) && (

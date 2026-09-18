@@ -6490,7 +6490,10 @@
     "savedModelEndpointSettings": "Kaydedilmiş model uç noktası ayarları",
     "searchByModelAria": "Model ile ara",
     "selectSupportedEndpoint": "En az bir desteklenen uç noktayı seçin",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rawClaudePassthroughLabel": "Raw Request Passthrough",
+    "rawClaudePassthroughDescription": "Forward client requests directly without CLI emulation or cache header modification.",
+    "rawClaudePassthroughWarning": "Notice: This mode disables request rewriting. It does not alter credential permissions, terms of service, or billing policies. Requests may be rejected by the provider, and any additional usage fees depend on your account plan. Third-party integrations should use authorized API credentials."
   },
   "settings": {
     "title": "Ayarlar",

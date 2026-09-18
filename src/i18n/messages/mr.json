@@ -6490,7 +6490,10 @@
     "savedModelEndpointSettings": "सुरक्षित केलेल्या मॉडेल एंडपॉइंट सेटिंग्ज",
     "searchByModelAria": "मॉडेलद्वारे शोधा",
     "selectSupportedEndpoint": "किमान एक समर्थित एंडपॉइंट निवडा",
-    "antigravityClientProfileHarness": "हार्नेस / CLI"
+    "antigravityClientProfileHarness": "हार्नेस / CLI",
+    "rawClaudePassthroughLabel": "Raw Request Passthrough",
+    "rawClaudePassthroughDescription": "Forward client requests directly without CLI emulation or cache header modification.",
+    "rawClaudePassthroughWarning": "Notice: This mode disables request rewriting. It does not alter credential permissions, terms of service, or billing policies. Requests may be rejected by the provider, and any additional usage fees depend on your account plan. Third-party integrations should use authorized API credentials."
   },
   "settings": {
     "title": "सेटिंग्ज",

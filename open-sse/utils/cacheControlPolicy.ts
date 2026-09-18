@@ -171,6 +171,25 @@ export function resolveConnectionCacheOverride(
 }
 
 /**
+ * Per-connection Claude OAuth raw-passthrough hatch (#13893).
+ *
+ * Same bag as `resolveConnectionCacheOverride`: `providerSpecificData`.
+ * Default off. Only an own-property top-level boolean counts; nested
+ * `passthrough.raw` aliases never arm the hatch.
+ */
+export function isConnectionRawPassthrough(providerSpecificData: unknown): boolean {
+  if (
+    !providerSpecificData ||
+    typeof providerSpecificData !== "object" ||
+    Array.isArray(providerSpecificData)
+  ) {
+    return false;
+  }
+  const record = providerSpecificData as Record<string, unknown>;
+  return Object.hasOwn(record, "rawPassthrough") && record.rawPassthrough === true;
+}
+
+/**
  * Whether `cache_control` markers should be PASSED THROUGH the OpenAI-format
  * translation for this provider (vs. stripped). Used to gate the request-side
  * passthrough so generic / implicit-cache OpenAI providers keep getting cleaned.
@@ -433,4 +452,30 @@ export function updateCacheTokenMetrics({
 
   metrics.lastUpdated = new Date().toISOString();
   return metrics;
+}
+
+/**
+ * Persist the dashboard toggle as a top-level boolean (#13893).
+ * Nested `passthrough.raw` aliases are stripped on save so an import cannot
+ * re-arm the hatch after the operator turns it off.
+ */
+export function applyClaudeRawPassthroughSave(
+  providerSpecificData: Record<string, unknown>,
+  rawPassthrough: boolean
+): void {
+  providerSpecificData.rawPassthrough = rawPassthrough;
+  if (
+    providerSpecificData.passthrough &&
+    typeof providerSpecificData.passthrough === "object" &&
+    !Array.isArray(providerSpecificData.passthrough)
+  ) {
+    const pt = { ...(providerSpecificData.passthrough as Record<string, unknown>) };
+    delete pt.raw;
+    delete pt.rawPassthrough;
+    if (Object.keys(pt).length === 0) {
+      delete providerSpecificData.passthrough;
+    } else {
+      providerSpecificData.passthrough = pt;
+    }
+  }
 }
