@@ -4,9 +4,7 @@ import { translateRequest } from "../../open-sse/translator/index.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 
 function buildRepro(messageCount: number) {
-  const messages: Array<{ role: string; content: string }> = [
-    { role: "user", content: "hello" },
-  ];
+  const messages: Array<{ role: string; content: string }> = [{ role: "user", content: "hello" }];
   for (let i = 1; i < messageCount - 1; i++) {
     messages.push({ role: i % 2 === 1 ? "assistant" : "user", content: `turn ${i}` });
   }
@@ -174,7 +172,20 @@ test("#7293: Claude-source request keeps a single leading system message after c
     .filter((i) => i >= 0);
 
   assert.deepEqual(systemIndices, [0]);
-  // Merge, never drop: both the top-level system and the offender survive.
   assert.match(outMessages[0].content, /You are a coding assistant\./);
-  assert.match(outMessages[0].content, /deferred tools list/);
+
+  // #12908 landed after #7293 and resolves the same constraint differently on this
+  // path: instead of folding a mid-array system into index 0, it demotes it to
+  // "user" in place, byte-identical. So the offender no longer merges — but it must
+  // still SURVIVE, which is the half of "merge, never drop" that actually protects
+  // the caller. The two strategies conflict, and the hoist additionally reorders the
+  // demoted turn ahead of the conversation; both are reported in #13948.
+  const offender = outMessages.find((m) => m.content === "deferred tools list");
+  assert.ok(offender, "the mid-array system instruction must not be dropped");
+  assert.equal(offender.role, "user", "it is demoted, not merged (#12908)");
+  assert.deepEqual(
+    outMessages.filter((m) => m.role === "user").map((m) => m.content),
+    ["deferred tools list", "hi", "go"],
+    "current ordering — the demoted turn is hoisted ahead of the conversation (#13948)"
+  );
 });

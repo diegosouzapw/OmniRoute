@@ -115,6 +115,22 @@ describe("accountSemaphore acquireMany", () => {
     releaseGlobal();
     (await queued)();
   });
+
+  it("fails immediately when maxQueueSize is zero", async () => {
+    const release = await acquire("codex:account-a", { maxConcurrency: 1 });
+
+    await assert.rejects(
+      acquire("codex:account-a", {
+        maxConcurrency: 1,
+        maxQueueSize: 0,
+        timeoutMs: 200,
+      }),
+      (error: Error & { code?: string }) => error.code === "SEMAPHORE_QUEUE_FULL"
+    );
+    assert.equal(getStats()["codex:account-a"]?.queued ?? 0, 0);
+
+    release();
+  });
 });
 
 describe("accountSemaphore", async () => {

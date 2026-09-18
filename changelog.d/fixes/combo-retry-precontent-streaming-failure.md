@@ -1,0 +1,1 @@
+- **fix(combo):** retry the same target once when a streaming response fails before any content reaches the client (`streaming upstream error`), including native-pinned Codex turns whose set retries stay disabled — previously the caller returned a 502 immediately instead of using the existing transient-retry loop ([#13630](https://github.com/diegosouzapw/OmniRoute/pull/13630))

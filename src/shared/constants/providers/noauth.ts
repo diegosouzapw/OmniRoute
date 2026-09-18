@@ -74,22 +74,6 @@ export const NOAUTH_PROVIDERS = {
       text: "Cloudflare AI Playground uses a reverse-engineered anonymous WebSocket protocol (no official API). Requires Playwright with a Chromium browser on first request. Rate limits apply per IP (error 3021).",
     },
   },
-  chipotle: {
-    id: "chipotle",
-    alias: "pepper",
-    name: "Chipotle Pepper AI (Free)",
-    icon: "restaurant",
-    color: "#C41230",
-    textIcon: "🌯",
-    website: "https://amelia.chipotle.com",
-    noAuth: true,
-    hasFree: true,
-    serviceKinds: ["llm"],
-    freeNote:
-      "Free — Chipotle's Pepper AI (IPsoft Amelia). Anonymous sessions, no API key. Rate-limited.",
-    authHint:
-      "No credentials required. Uses Chipotle's public support chatbot via reverse-engineered SockJS/STOMP protocol.",
-  },
   "veoaifree-web": {
     id: "veoaifree-web",
     alias: "veo-free",

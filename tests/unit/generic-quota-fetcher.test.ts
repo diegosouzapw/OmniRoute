@@ -142,6 +142,15 @@ test("registerGenericQuotaFetchers registers Claude, GLM, and OpenCode Go via th
   // semantics are exercised by the source code review.
 });
 
+test("convertUsageToQuotaInfo skips Antigravity quota entries with an unknown fraction", () => {
+  const result = convertUsageToQuotaInfo({
+    quotas: {
+      gemini: { fractionReported: false, resetAt: "2026-05-14T20:00:00Z" },
+    },
+  });
+  assert.equal(result, null);
+});
+
 test.afterEach(() => {
   __setGenericUsageFetcherForTests(null);
   __resetGenericQuotaFetcherForTests();
@@ -329,7 +338,11 @@ test("in-flight fetch must not drop a concurrent 429 force-refresh", async () =>
   assert.equal(first?.percentUsed, 0.2);
 
   const second = await fetchGenericQuota(connectionId, connection);
-  assert.equal(calls.length, 2, "concurrent 429 must not let the in-flight recache wipe force-refresh");
+  assert.equal(
+    calls.length,
+    2,
+    "concurrent 429 must not let the in-flight recache wipe force-refresh"
+  );
   assert.equal(calls[1]?.forceRefresh, true);
   assert.equal(second?.percentUsed, 0.9);
   invalidateGenericQuotaCache("agy", connectionId);

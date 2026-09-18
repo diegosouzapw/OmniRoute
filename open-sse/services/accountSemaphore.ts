@@ -240,24 +240,29 @@ export function acquireMany(
   for (const key of keys) {
     const gate = ensureGate(key, enabled.get(key)!);
     clearCleanupTimer(gate);
-    if (maxQueueSize > 0 && gate.queue.length >= maxQueueSize) {
-      return Promise.reject(
-        createSemaphoreError(
-          "SEMAPHORE_QUEUE_FULL",
-          `Semaphore queue full (${maxQueueSize}) for ${key}`
-        )
-      );
-    }
   }
 
-  if (
-    keys.every((key) => {
-      const gate = gates.get(key)!;
-      return gate.queue.length === 0 && gate.running < gate.maxConcurrency && !isBlocked(gate);
-    })
-  ) {
+  const canAcquireImmediately = keys.every((key) => {
+    const gate = gates.get(key)!;
+    return gate.queue.length === 0 && gate.running < gate.maxConcurrency && !isBlocked(gate);
+  });
+  if (canAcquireImmediately) {
     for (const key of keys) gates.get(key)!.running++;
     return Promise.resolve(createCompositeReleaseFn(keys));
+  }
+
+  if (maxQueueSize >= 0) {
+    for (const key of keys) {
+      const gate = gates.get(key)!;
+      if (gate.queue.length >= maxQueueSize) {
+        return Promise.reject(
+          createSemaphoreError(
+            "SEMAPHORE_QUEUE_FULL",
+            `Semaphore queue full (${maxQueueSize}) for ${key}`
+          )
+        );
+      }
+    }
   }
 
   return new Promise((resolve, reject) => {

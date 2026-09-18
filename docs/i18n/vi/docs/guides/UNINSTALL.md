@@ -4,53 +4,55 @@
 
 ---
 
-This guide covers how to cleanly remove OmniRoute from your system.
+🌐 **Ngôn ngữ:** 🇺🇸 [English](./UNINSTALL.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/UNINSTALL.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/UNINSTALL.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/UNINSTALL.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/UNINSTALL.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/UNINSTALL.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/UNINSTALL.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/UNINSTALL.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/UNINSTALL.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/UNINSTALL.md) | 🇪🇸 [Español](../i18n/es/docs/guides/UNINSTALL.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/UNINSTALL.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/UNINSTALL.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/UNINSTALL.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/UNINSTALL.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/UNINSTALL.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/UNINSTALL.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/UNINSTALL.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/UNINSTALL.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/UNINSTALL.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/UNINSTALL.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/UNINSTALL.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/UNINSTALL.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/UNINSTALL.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/UNINSTALL.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/UNINSTALL.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/UNINSTALL.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/UNINSTALL.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/UNINSTALL.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/UNINSTALL.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/UNINSTALL.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/UNINSTALL.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/UNINSTALL.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/UNINSTALL.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/UNINSTALL.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/UNINSTALL.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/UNINSTALL.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/UNINSTALL.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/UNINSTALL.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/UNINSTALL.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/UNINSTALL.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/UNINSTALL.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/UNINSTALL.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/UNINSTALL.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/UNINSTALL.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/UNINSTALL.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/UNINSTALL.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/UNINSTALL.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/UNINSTALL.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/UNINSTALL.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/UNINSTALL.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/UNINSTALL.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/UNINSTALL.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/UNINSTALL.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/UNINSTALL.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/UNINSTALL.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/UNINSTALL.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/UNINSTALL.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/UNINSTALL.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/UNINSTALL.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/UNINSTALL.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/UNINSTALL.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/UNINSTALL.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/UNINSTALL.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/UNINSTALL.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/UNINSTALL.md)
+
+Hướng dẫn này trình bày cách gỡ bỏ hoàn toàn OmniRoute khỏi hệ thống của bạn.
 
 ---
 
-## Quick Uninstall (v3.6.2+)
+## Gỡ cài đặt nhanh (v3.6.2+)
 
-OmniRoute provides two built-in scripts for clean removal:
+OmniRoute cung cấp hai tập lệnh tích hợp để gỡ cài đặt sạch:
 
-### Keep Your Data
+### Giữ lại dữ liệu của bạn
 
 ```bash
 npm run uninstall
 ```
 
-This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
+Lệnh này gỡ bỏ ứng dụng OmniRoute nhưng **giữ lại** cơ sở dữ liệu, cấu hình, khóa API và cài đặt nhà cung cấp trong `~/.omniroute/`. Sử dụng tùy chọn này nếu bạn dự định cài đặt lại sau này và muốn giữ nguyên thiết lập hiện tại.
 
-### Full Removal
+### Gỡ bỏ hoàn toàn
 
 ```bash
 npm run uninstall:full
 ```
 
-This removes the application **and permanently erases** all data:
+Lệnh này gỡ bỏ ứng dụng **và xóa vĩnh viễn** toàn bộ dữ liệu:
 
-- Database (`storage.sqlite`)
-- Provider configurations and API keys
-- Backup files
-- Log files
-- All files in the `~/.omniroute/` directory
+- Cơ sở dữ liệu (`storage.sqlite`)
+- Cấu hình nhà cung cấp và khóa API
+- Tệp sao lưu
+- Tệp nhật ký
+- Tất cả tệp trong thư mục `~/.omniroute/`
 
-> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+> ⚠️ **Cảnh báo:** Không thể hoàn tác `npm run uninstall:full`. Tất cả kết nối nhà cung cấp, tổ hợp, khóa API và lịch sử sử dụng của bạn sẽ bị xóa vĩnh viễn.
 
 ---
 
-## Manual Uninstall
+## Gỡ cài đặt thủ công
 
-### NPM Global Install
+### Cài đặt NPM toàn cục
 
 ```bash
-# Remove the global package
+# Gỡ bỏ gói toàn cục
 npm uninstall -g omniroute
 
-# (Optional) Remove data directory
+# (Tùy chọn) Xóa thư mục dữ liệu
 rm -rf ~/.omniroute
 ```
 
-### pnpm Global Install
+### Cài đặt pnpm toàn cục
 
 ```bash
 pnpm uninstall -g omniroute
@@ -60,97 +62,97 @@ rm -rf ~/.omniroute
 ### Docker
 
 ```bash
-# Stop and remove the container
+# Dừng và xóa vùng chứa
 docker stop omniroute
 docker rm omniroute
 
-# Remove the volume (deletes all data)
+# Xóa ổ đĩa lưu trữ (xóa toàn bộ dữ liệu)
 docker volume rm omniroute-data
 
-# (Optional) Remove the image
+# (Tùy chọn) Xóa ảnh
 docker rmi diegosouzapw/omniroute:latest
 ```
 
 ### Docker Compose
 
 ```bash
-# Stop and remove containers
+# Dừng và xóa các vùng chứa
 docker compose down
 
-# Also remove volumes (deletes all data)
+# Đồng thời xóa các ổ đĩa lưu trữ (xóa toàn bộ dữ liệu)
 docker compose down -v
 ```
 
-### Electron Desktop App
+### Ứng dụng máy tính Electron
 
 **Windows:**
 
-- Open `Settings → Apps → OmniRoute → Uninstall`
-- Or run the NSIS uninstaller from the install directory
+- Mở `Settings → Apps → OmniRoute → Uninstall`
+- Hoặc chạy trình gỡ cài đặt NSIS từ thư mục cài đặt
 
 **macOS:**
 
-- Drag `OmniRoute.app` from `/Applications` to Trash
-- Remove data: `rm -rf ~/Library/Application Support/omniroute`
+- Kéo `OmniRoute.app` từ `/Applications` vào Thùng rác
+- Xóa dữ liệu: `rm -rf ~/Library/Application Support/omniroute`
 
 **Linux:**
 
-- Remove the AppImage file
-- Remove data: `rm -rf ~/.omniroute`
+- Xóa tệp AppImage
+- Xóa dữ liệu: `rm -rf ~/.omniroute`
 
-### Source Install (git clone)
+### Cài đặt từ mã nguồn (git clone)
 
 ```bash
-# Remove the cloned directory
+# Xóa thư mục đã sao chép
 rm -rf /path/to/omniroute
 
-# (Optional) Remove data directory
+# (Tùy chọn) Xóa thư mục dữ liệu
 rm -rf ~/.omniroute
 ```
 
 ---
 
-## Data Directories
+## Thư mục dữ liệu
 
-OmniRoute stores data in the following locations by default:
+Theo mặc định, OmniRoute lưu trữ dữ liệu tại các vị trí sau:
 
-| Platform      | Default Path                  | Override                  |
-| ------------- | ----------------------------- | ------------------------- |
-| Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` env var        |
-| Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
-| XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
+| Nền tảng     | Đường dẫn mặc định            | Ghi đè                            |
+| ------------ | ----------------------------- | --------------------------------- |
+| Linux        | `~/.omniroute/`               | Biến môi trường `DATA_DIR`        |
+| macOS        | `~/.omniroute/`               | Biến môi trường `DATA_DIR`        |
+| Windows      | `%APPDATA%/omniroute/`        | Biến môi trường `DATA_DIR`        |
+| Docker       | `/app/data/` (ổ đĩa được gắn) | Biến môi trường `DATA_DIR`        |
+| Tuân thủ XDG | `$XDG_CONFIG_HOME/omniroute/` | Biến môi trường `XDG_CONFIG_HOME` |
 
-### Files in the data directory
+### Các tệp trong thư mục dữ liệu
 
-| File/Directory       | Description                                       |
-| -------------------- | ------------------------------------------------- |
-| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
-| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
-| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
-| `call_logs/`         | Request payload archives                          |
-| `backups/`           | Automatic database backups                        |
-| `log.txt`            | Legacy request log (optional)                     |
+| Tệp/Thư mục          | Mô tả                                                     |
+| -------------------- | --------------------------------------------------------- |
+| `storage.sqlite`     | Cơ sở dữ liệu chính (nhà cung cấp, tổ hợp, cài đặt, khóa) |
+| `storage.sqlite-wal` | Nhật ký ghi trước SQLite (tạm thời)                       |
+| `storage.sqlite-shm` | Bộ nhớ dùng chung SQLite (tạm thời)                       |
+| `call_logs/`         | Kho lưu trữ tải trọng yêu cầu                             |
+| `backups/`           | Bản sao lưu cơ sở dữ liệu tự động                         |
+| `log.txt`            | Nhật ký yêu cầu cũ (tùy chọn)                             |
 
 ---
 
-## Verify Complete Removal
+## Xác minh đã xóa hoàn toàn
 
-After uninstalling, verify there are no remaining files:
+Sau khi gỡ cài đặt, hãy xác minh rằng không còn tệp nào:
 
 ```bash
-# Check for global npm package
+# Kiểm tra gói npm toàn cục
 npm list -g omniroute 2>/dev/null
 
-# Check for data directory
+# Kiểm tra thư mục dữ liệu
 ls -la ~/.omniroute/ 2>/dev/null
 
-# Check for running processes
+# Kiểm tra các tiến trình đang chạy
 pgrep -f omniroute
 ```
 
-If any process is still running, stop it:
+Nếu vẫn còn tiến trình đang chạy, hãy dừng tiến trình đó:
 
 ```bash
 pkill -f omniroute

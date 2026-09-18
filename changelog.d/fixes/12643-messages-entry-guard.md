@@ -1,0 +1,1 @@
+- **fix(chat):** requests with null/non-object entries in `messages[]` are now rejected with a clear 400 instead of crashing translators with an HTTP 500 ([#12643](https://github.com/diegosouzapw/OmniRoute/issues/12643)) — thanks @soroush5

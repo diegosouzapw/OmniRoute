@@ -72,6 +72,8 @@
       "tests/unit/agentrouter-lock-scope-10334.test.ts",
       "tests/unit/alibaba-free-tier-exhaustion.test.ts",
       "tests/unit/anthropic-thinking-signature-recovery.test.ts",
+      "tests/unit/anthropic-request-not-allowed-cooldown-escalation.test.ts",
+      "tests/unit/anthropic-request-not-allowed-not-a-ban.test.ts",
       "tests/unit/agy-family-not-connection-cooldown.test.ts",
       "tests/unit/agy-quota-exhaustion-threshold.test.ts",
       "tests/unit/antigravity-429-quota-cooldown.test.ts",
@@ -230,6 +232,7 @@
       "tests/unit/combo-system-prompt-templates-5501.test.ts",
       "tests/unit/combo-target-defensive-modelstr.test.ts",
       "tests/unit/combo-vision-aware-routing.test.ts",
+      "tests/unit/combo-weighted-all-targets-cooling-down.test.ts",
       "tests/unit/combo/auto-quota-cutoff.test.ts",
       "tests/unit/combo/auto-status-penalty-4540.test.ts",
       "tests/unit/combo/combo-exhausted-skip.test.ts",
@@ -310,6 +313,7 @@
       "tests/unit/model-cooldowns-route.test.ts",
       "tests/unit/model-lockout-decay.test.ts",
       "tests/unit/model-lockout-exact-cooldown-cap.test.ts",
+      "tests/unit/model-lockout-5xx-exact-scope.test.ts",
       "tests/unit/model-lockout-max-cooldown.test.ts",
       "tests/unit/native-codex-turn-pin-10379.test.ts",
       "tests/unit/native-codex-turn-pin-model-scoped-fallback.test.ts",
@@ -469,7 +473,10 @@
       "tests/unit/issue-11912-opencode-roundrobin-collapse.test.ts",
       "tests/unit/opencode-400-model-unavailable.test.ts",
       "tests/unit/strong-credential-token-linear-scan.test.ts",
-      "tests/unit/provider-401-ambiguous-runtime.test.ts"
+      "tests/unit/provider-401-ambiguous-runtime.test.ts",
+      "tests/unit/13601-header-drop-count-surfaced.test.ts",
+      "tests/unit/combo-identical-error-streak.test.ts",
+      "tests/unit/semantic-cache-no-truncated-writes.test.ts"
     ],
     "nodeArgs": [
       "--import",

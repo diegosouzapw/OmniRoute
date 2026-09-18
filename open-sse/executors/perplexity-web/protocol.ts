@@ -439,9 +439,8 @@ export interface ContentChunk {
   /** Structured error code for quota / rate-limit surfaces (e.g. quota_exhausted). */
   errorCode?: string;
   /**
-   * Suggested client/account cooldown in seconds when the stream failed due to
-   * advanced-model weekly quota (or similar). Downstream marks the connection
-   * rate_limited_until and VibeProxy limit badges parse this + "reset after Xs".
+   * Suggested cooldown when quota is classified before the HTTP stream is committed.
+   * Once SSE 200 starts, a late error cannot retroactively add status or Retry-After metadata.
    */
   resetSeconds?: number;
   done?: boolean;
@@ -797,6 +796,7 @@ export async function* extractContent(
     if (event.error_code || event.error_message) {
       yield {
         error: event.error_message || `Perplexity error: ${event.error_code}`,
+        errorCode: event.error_code,
         done: true,
       };
       return;

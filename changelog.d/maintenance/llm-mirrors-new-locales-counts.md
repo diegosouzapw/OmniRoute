@@ -1,1 +1,0 @@
-- **docs(i18n):** bring the eight new `llm.txt` mirrors (km, kn, ml, my, ne, or, pa, si) up to the current provider and migration counts, so `check-docs-sync` stops rejecting every commit

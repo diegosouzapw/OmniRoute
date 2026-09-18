@@ -244,7 +244,7 @@ function isTokenExpired(connection: any) {
 // token — but is capped and stripped of control characters defensively before it reaches
 // the stored/surfaced error message, per docs/security/ERROR_SANITIZATION.md.
 function sanitizeUpstreamBodyText(bodyText: string): string {
-  const collapsed = bodyText.replace(/[\r\n\t -]+/g, " ").trim();
+  const collapsed = bodyText.replace(/[\r\n\t\u0000-\u001f]+/g, " ").trim();
   const MAX_LENGTH = 300;
   return collapsed.length > MAX_LENGTH ? `${collapsed.slice(0, MAX_LENGTH)}…` : collapsed;
 }

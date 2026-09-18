@@ -4,146 +4,182 @@
 
 ---
 
-_Last updated: 2026-04-15_
+🌐 **Kielet:** 🇺🇸 [English](./ARCHITECTURE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/architecture/ARCHITECTURE.md) | 🇸🇦 [العربية](../i18n/ar/docs/architecture/ARCHITECTURE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/architecture/ARCHITECTURE.md) | 🇧🇬 [Български](../i18n/bg/docs/architecture/ARCHITECTURE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/architecture/ARCHITECTURE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/architecture/ARCHITECTURE.md) | 🇩🇰 [Dansk](../i18n/da/docs/architecture/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/architecture/ARCHITECTURE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/architecture/ARCHITECTURE.md) | 🇪🇸 [Español](../i18n/es/docs/architecture/ARCHITECTURE.md) | 🇪🇪 [Eesti](../i18n/et/docs/architecture/ARCHITECTURE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/architecture/ARCHITECTURE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/architecture/ARCHITECTURE.md) | 🇫🇷 [Français](../i18n/fr/docs/architecture/ARCHITECTURE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/architecture/ARCHITECTURE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/architecture/ARCHITECTURE.md) | 🇮🇱 [עברית](../i18n/he/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/architecture/ARCHITECTURE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/architecture/ARCHITECTURE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/architecture/ARCHITECTURE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/architecture/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/architecture/ARCHITECTURE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/architecture/ARCHITECTURE.md) | 🇮🇹 [Italiano](../i18n/it/docs/architecture/ARCHITECTURE.md) | 🇯🇵 [日本語](../i18n/ja/docs/architecture/ARCHITECTURE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/architecture/ARCHITECTURE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/architecture/ARCHITECTURE.md) | 🇰🇷 [한국어](../i18n/ko/docs/architecture/ARCHITECTURE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/architecture/ARCHITECTURE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/architecture/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/architecture/ARCHITECTURE.md) | 🇲🇹 [Malti](../i18n/mt/docs/architecture/ARCHITECTURE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/architecture/ARCHITECTURE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/architecture/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/architecture/ARCHITECTURE.md) | 🇳🇴 [Norsk](../i18n/no/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/architecture/ARCHITECTURE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/architecture/ARCHITECTURE.md) | 🇵🇱 [Polski](../i18n/pl/docs/architecture/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/architecture/ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/architecture/ARCHITECTURE.md) | 🇷🇴 [Română](../i18n/ro/docs/architecture/ARCHITECTURE.md) | 🇷🇺 [Русский](../i18n/ru/docs/architecture/ARCHITECTURE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/architecture/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/architecture/ARCHITECTURE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/architecture/ARCHITECTURE.md) | 🇷🇸 [Српски](../i18n/sr/docs/architecture/ARCHITECTURE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/architecture/ARCHITECTURE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/architecture/ARCHITECTURE.md) | 🇹🇭 [ไทย](../i18n/th/docs/architecture/ARCHITECTURE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/architecture/ARCHITECTURE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/architecture/ARCHITECTURE.md) | 🇵🇰 [اردو](../i18n/ur/docs/architecture/ARCHITECTURE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/architecture/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/architecture/ARCHITECTURE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/architecture/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/architecture/ARCHITECTURE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/architecture/ARCHITECTURE.md)
 
-## Executive Summary
+_Päivitetty viimeksi: 2026-06-28_
 
-OmniRoute is a local AI routing gateway and dashboard built on Next.js.
-It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic across multiple upstream providers with translation, fallback, token refresh, and usage tracking.
+## Yhteenveto
 
-Core capabilities:
+OmniRoute on Next.js:n päälle rakennettu paikallinen tekoälyliikenteen reititysyhdyskäytävä ja hallintapaneeli.
+Se tarjoaa yhden OpenAI-yhteensopivan päätepisteen (`/v1/*`) ja reitittää liikenteen useille taustapalveluntarjoajille hyödyntäen muunnoksia, varareititystä, tunnisteiden päivitystä ja käytön seurantaa.
 
-- OpenAI-compatible API surface for CLI/tools (329 provider catalog entries, 89 executor implementation modules)
-- Request/response translation across provider formats
-- Model combo fallback (multi-model sequence)
-- Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
-- Account-level fallback (multi-account per provider)
-- Quota preflight and quota-aware P2C account selection in the main chat path
-- OAuth + API-key provider connection management (23 OAuth catalog entries backed by 21 provider modules)
-- Embedding generation via `/v1/embeddings` (6 providers, 9 models)
-- Image generation via `/v1/images/generations` (10+ providers, 20+ models)
-- Audio transcription via `/v1/audio/transcriptions` (7 providers)
-- Text-to-speech via `/v1/audio/speech` (10 providers)
-- Video generation via `/v1/videos/generations` (ComfyUI + SD WebUI)
-- Music generation via `/v1/music/generations` (ComfyUI)
-- Web search via `/v1/search` (12 providers)
-- Moderations via `/v1/moderations`
-- Reranking via `/v1/rerank`
-- Think tag parsing (`<think>...</think>`) for reasoning models
-- Response sanitization for strict OpenAI SDK compatibility
-- Role normalization (developer→system, system→user) for cross-provider compatibility
-- Structured output conversion (json_schema → Gemini responseSchema)
-- Local persistence for providers, keys, aliases, combos, settings, pricing (110 top-level DB modules)
-- Usage/cost tracking and request logging
-- Optional cloud sync for multi-device/state sync
-- IP allowlist/blocklist for API access control
-- Thinking budget management (passthrough/auto/custom/adaptive)
-- Global system prompt injection
-- Session tracking and fingerprinting
-- Per-account enhanced rate limiting with provider-specific profiles
-- Circuit breaker pattern for provider resilience
-- Anti-thundering herd protection with mutex locking
-- Signature-based request deduplication cache
-- Domain layer: cost rules, fallback policy, lockout policy
-- Context Relay: session handoff summaries for account rotation continuity
-- Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
-- Policy engine for centralized request evaluation (lockout → budget → fallback)
-- Request telemetry with p50/p95/p99 latency aggregation
-- Combo target telemetry and historical combo target health via `combo_execution_key` / `combo_step_id`
-- Correlation ID (X-Request-Id) for end-to-end tracing
-- Compliance audit logging with opt-out per API key
-- Eval framework for LLM quality assurance
-- Health dashboard with real-time provider circuit breaker status
-- MCP Server (107 unique tools, 32 scopes) with 3 transports (stdio/SSE/Streamable HTTP)
-- A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
-- Memory system (extraction, injection, retrieval, summarization)
-- Skills system (registry, executor, sandbox, built-in skills)
-- MITM proxy with certificate management and DNS handling
-- Prompt injection guard middleware
-- ACP (Agent Communication Protocol) registry
-- Modular OAuth providers (21 implementation modules under `src/lib/oauth/providers/`)
-- Uninstall/full-uninstall scripts
-- OAuth environment repair action
-- WebSocket bridge for OpenAI-compatible WS clients (`/v1/ws`)
-- Sync token management (issue/revoke, ETag-versioned config bundle download)
-- GLM Thinking (`glmt`) first-class provider preset
-- Hybrid token counting (provider-side `/messages/count_tokens` with estimation fallback)
-- Model alias auto-seeding (30+ cross-proxy dialect normalizations at startup)
-- Safe outbound fetch with SSRF guard, private URL blocking, and configurable retry
-- Cooldown-aware chat retries with configurable `requestRetry` and `maxRetryIntervalSec`
-- Runtime environment validation with Zod at startup
-- Compliance audit v2 with pagination, provider CRUD events, and SSRF-blocked validation logging
+Keskeiset ominaisuudet:
 
-Primary runtime model:
+- OpenAI-yhteensopiva API-pinta komentorivityökaluille ja muille työkaluille (355 palveluntarjoajaa, 108 suorittajaa)
+- Pyyntöjen ja vastausten muuntaminen palveluntarjoajien eri muotojen välillä
+- Malliyhdistelmien varareititys (usean mallin sarja)
+- Rakenteiset yhdistelmävaiheet (`provider + model + connection`) ja niiden ajonaikainen järjestäminen `compositeTiers`-arvon perusteella
+- Tilitason varareititys (useita tilejä palveluntarjoajaa kohden)
+- Kiintiön ennakkotarkistus ja kiintiöt huomioiva P2C-tilinvalinta pääasiallisessa keskustelupolussa
+- OAuth- ja API-avaimiin perustuva palveluntarjoajayhteyksien hallinta (22 OAuth-palveluntarjoajamoduulia)
+- Upotusten luonti `/v1/embeddings`-päätepisteen kautta (18 palveluntarjoajaa)
+- Kuvien luonti `/v1/images/generations`-päätepisteen kautta (yli 10 palveluntarjoajaa, yli 20 mallia)
+- Äänen litterointi `/v1/audio/transcriptions`-päätepisteen kautta (18 palveluntarjoajaa)
+- Tekstistä puheeksi -muunnos `/v1/audio/speech`-päätepisteen kautta (24 sisäänrakennettua palveluntarjoajaa)
+- Videoiden luonti `/v1/videos/generations`-päätepisteen kautta (ComfyUI + SD WebUI)
+- Musiikin luonti `/v1/music/generations`-päätepisteen kautta (ComfyUI)
+- Verkkohaku `/v1/search`-päätepisteen kautta (20 palveluntarjoajaa)
+- Sisällön moderointi `/v1/moderations`-päätepisteen kautta
+- Uudelleenjärjestäminen `/v1/rerank`-päätepisteen kautta
+- Ajattelutunnisteiden jäsennys (`<think>...</think>`) päättelymalleille
+- Vastausten puhdistus tiukkaa OpenAI SDK -yhteensopivuutta varten
+- Roolien normalisointi (developer→system, system→user) palveluntarjoajien välisen yhteensopivuuden varmistamiseksi
+- Rakenteisen tulosteen muuntaminen (json_schema → Gemini responseSchema)
+- Palveluntarjoajien, avainten, aliasten, yhdistelmien, asetusten ja hinnoittelun paikallinen pysyväistallennus (122 tietokantamoduulia)
+- Käytön ja kustannusten seuranta sekä pyyntöjen lokitus
+- Valinnainen pilvisynkronointi useiden laitteiden ja tilan synkronointia varten
+- IP-osoitteiden sallittujen ja estettyjen luettelot API-käytön hallintaan
+- Ajattelubudjetin hallinta (läpivienti/automaattinen/mukautettu/mukautuva)
+- Globaalin järjestelmäkehotteen lisääminen
+- Istuntojen seuranta ja sormenjälkien luonti
+- Tilikohtainen tehostettu nopeusrajoitus palveluntarjoajakohtaisilla profiileilla
+- Katkaisijamalli palveluntarjoajien häiriönsietokyvyn parantamiseksi
+- Samanaikaisten pyyntöryöppyjen esto mutex-lukituksella
+- Allekirjoitukseen perustuva pyyntöjen duplikaattien poistovälimuisti
+- Toimialuekerros: kustannussäännöt, varareitityskäytäntö ja lukituskäytäntö
+- Context Relay: istuntojen siirtoyhteenvedot jatkuvuuden säilyttämiseksi tiliä vaihdettaessa
+- Toimialueen tilan pysyväistallennus (SQLite-läpikirjoitusvälimuisti varareitityksille, budjeteille, lukituksille ja katkaisijoille)
+- Käytäntömoottori pyyntöjen keskitettyyn arviointiin (lukitus → budjetti → varareititys)
+- Pyyntötelemetria p50/p95/p99-viiveiden aggregoinnilla
+- Yhdistelmäkohteiden telemetria ja historiallinen terveystila tunnisteiden `combo_execution_key` / `combo_step_id` avulla
+- Korrelaatiotunnus (X-Request-Id) päästä päähän -jäljitystä varten
+- Vaatimustenmukaisuuden auditointilokitus API-avainkohtaisella käytöstäpoistolla
+- Arviointikehys LLM-laadunvarmistusta varten
+- Terveystilan hallintapaneeli palveluntarjoajien katkaisijoiden reaaliaikaisella tilalla
+- MCP Server (110 työkalua), jossa on 3 siirtotapaa (stdio/SSE/Streamable HTTP)
+- A2A Server (JSON-RPC 2.0 + SSE), joka sisältää taidot ja tehtävien elinkaaren
+- Muistijärjestelmä (poiminta, lisääminen, haku, yhteenvetojen luonti)
+- Taitojärjestelmä (rekisteri, suorittaja, hiekkalaatikko, sisäänrakennetut taidot)
+- MITM-välityspalvelin varmenteiden hallinnalla ja DNS-käsittelyllä
+- Kehotesyötteiden manipuloinnilta suojaava väliohjelmisto
+- Kehotteiden pakkausputki, joka sisältää Cavemanin, RTK:n, pinotut putket, pakkausyhdistelmät, kielipaketit ja analytiikan
+- ACP (Agent Communication Protocol) -rekisteri
+- Modulaariset OAuth-palveluntarjoajat (22 erillistä moduulia hakemistossa `src/lib/oauth/providers/`)
+- Asennuksen poisto- ja täydellisen asennuksen poiston komentosarjat
+- OAuth-ympäristön korjaustoiminto
+- WebSocket-silta OpenAI-yhteensopiville WS-asiakkaille (`/v1/ws`)
+- Synkronointitunnisteiden hallinta (myöntäminen/peruminen, ETag-versioidun määrityspaketin lataus)
+- GLM Thinking (`glmt`) ensiluokkaisena palveluntarjoajan esiasetuksena
+- Hybriditunnisteiden laskenta (palveluntarjoajan `/messages/count_tokens` ja varamenetelmänä estimointi)
+- Mallialiasten automaattinen alustus (yli 30 välityspalvelinmurteiden välistä normalisointia käynnistyksen yhteydessä)
+- Turvallinen lähtevä nouto SSRF-suojauksella, yksityisten URL-osoitteiden estolla ja määritettävillä uudelleenyrityksillä
+- Jäähtymisajan huomioivat keskustelun uudelleenyritykset määritettävillä `requestRetry`- ja `maxRetryIntervalSec`-arvoilla
+- Ajoympäristön validointi Zodilla käynnistyksen yhteydessä
+- Vaatimustenmukaisuuden auditointi v2 sivutuksella, palveluntarjoajien CRUD-tapahtumilla ja SSRF-estojen validointilokituksella
 
-- Next.js app routes under `src/app/api/*` implement both dashboard APIs and compatibility APIs
-- A shared SSE/routing core in `src/sse/*` + `open-sse/*` handles provider execution, translation, streaming, fallback, and usage
+Ensisijainen ajonaikainen malli:
 
-## Scope and Boundaries
+- Hakemiston `src/app/api/*` Next.js-sovellusreitit toteuttavat sekä hallintapaneelin API:t että yhteensopivuus-API:t
+- Hakemistojen `src/sse/*` ja `open-sse/*` jaettu SSE- ja reititysydin käsittelee palveluntarjoajien suorituksen, muunnokset, suoratoiston, varareitityksen ja käytön seurannan
 
-### In Scope
+## Viitekaaviot
 
-- Local gateway runtime
-- Dashboard management APIs
-- Provider authentication and token refresh
-- Request translation and SSE streaming
-- Local state + usage persistence
-- Optional cloud sync orchestration
+v3.8.0-alustan kanoniset, versionhallinnassa olevat Mermaid-lähteet sijaitsevat hakemistossa
+[`docs/diagrams/`](../diagrams/README.md). Niistä kaksi on esitetty alla yleiskuvan saamiseksi;
+muihin on linkit niiden aihekohtaisissa oppaissa.
 
-### Out of Scope
+![Pyyntöputki (/v1/chat/completions)](../diagrams/exported/request-pipeline.svg)
 
-- Cloud service implementation behind `NEXT_PUBLIC_CLOUD_URL`
-- Provider SLA/control plane outside local process
-- External CLI binaries themselves (Claude CLI, Codex CLI, etc.)
+> Lähde: [diagrams/request-pipeline.mmd](../diagrams/request-pipeline.mmd)
 
-## Dashboard Surface (Current)
+![Kolmikerroksinen vikasietoisuusmalli](../diagrams/exported/resilience-3layers.svg)
 
-Main pages under `src/app/(dashboard)/dashboard/`:
+> Lähde: [diagrams/resilience-3layers.mmd](../diagrams/resilience-3layers.mmd) — linkitetty myös
+> oppaasta [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) ja `CLAUDE.md`-tiedoston vikasietoisuutta käsittelevästä viitteestä.
 
-- `/dashboard` — quick start + provider overview
-- `/dashboard/endpoint` — endpoint proxy + MCP + A2A + API endpoint tabs
-- `/dashboard/providers` — provider connections and credentials
-- `/dashboard/combos` — combo strategies, templates, step-based builder, model routing rules, manual persisted ordering
-- `/dashboard/costs` — cost aggregation and pricing visibility
-- `/dashboard/analytics` — usage analytics, evaluations, combo target health
-- `/dashboard/limits` — quota/rate controls
-- `/dashboard/cli-tools` — CLI onboarding, runtime detection, config generation
-- `/dashboard/agents` — detected ACP agents + custom agent registration
-- `/dashboard/media` — image/video/music playground
-- `/dashboard/search-tools` — search provider testing and history
-- `/dashboard/health` — uptime, circuit breakers, rate limits, quota-monitored sessions
-- `/dashboard/logs` — request/proxy/audit/console logs
-- `/dashboard/settings` — system settings tabs (general, routing, combo defaults, etc.)
-- `/dashboard/api-manager` — API key lifecycle and model permissions
+## Laajuus ja rajaukset
 
-## High-Level System Context
+### Sisältyy laajuuteen
+
+- Paikallisen yhdyskäytävän suoritusympäristö
+- Hallintapaneelin hallintasovellusliittymät
+- Palveluntarjoajien todennus ja tunnisteiden päivitys
+- Pyyntöjen muuntaminen ja SSE-suoratoisto
+- Paikallinen tila ja käyttötietojen pysyvä tallennus
+- Valinnainen pilvisynkronoinnin orkestrointi
+
+### Ei sisälly laajuuteen
+
+- Muuttujan `NEXT_PUBLIC_CLOUD_URL` takana olevan pilvipalvelun toteutus
+- Paikallisen prosessin ulkopuolinen palveluntarjoajan SLA-/hallintataso
+- Itse ulkoiset CLI-binäärit (Claude CLI, Codex CLI jne.)
+
+## Hallintapaneelin näkymät (nykyiset)
+
+Pääsivut hakemistossa `src/app/(dashboard)/dashboard/`:
+
+- `/dashboard` — pika-aloitus ja palveluntarjoajien yleiskatsaus
+- `/dashboard/endpoint` — päätepistevälityspalvelin sekä MCP-, A2A- ja API-päätepistevälilehdet
+- `/dashboard/providers` — palveluntarjoajien yhteydet ja tunnistetiedot
+- `/dashboard/combos` — yhdistelmästrategiat, mallit, vaihekohtainen rakennustyökalu, mallien reitityssäännöt ja manuaalisesti tallennettu järjestys
+- `/dashboard/auto-combo` — Auto Combo Engine: pisteytyspainot, tilapaketit, virtuaalisten tehtaiden esiasetukset ja telemetria
+- `/dashboard/costs` — kustannusten koonti ja hinnoittelun näkyvyys
+- `/dashboard/analytics` — käyttöanalytiikka, arvioinnit ja yhdistelmäkohteiden kunto
+- `/dashboard/limits` — kiintiö- ja nopeusrajoitukset
+- `/dashboard/cli-tools` — CLI-käyttöönotto, suoritusympäristön tunnistus ja määritysten luonti
+- `/dashboard/agents` — tunnistetut ACP-agentit ja mukautettujen agenttien rekisteröinti
+- `/dashboard/cloud-agents` — pilvipalvelussa isännöidyt agenttitehtävät (Codex Cloud, Devin, Jules) ja tehtävien elinkaari
+- `/dashboard/skills` — A2A-taitorekisteri, hiekkalaatikkosuoritus ja sisäänrakennettujen taitojen luettelo
+- `/dashboard/memory` — pysyvän keskustelumuistin tarkastelu ja haku
+- `/dashboard/webhooks` — lähtevien webhook-kutsujen tilaukset, salaisuuksien kierrätys ja uudelleenyritystilastot
+- `/dashboard/batch` — eräajojen lähetys ja edistyminen
+- `/dashboard/cache` — läpilukevan välimuistin ja päättelyvälimuistin tilastot sekä poistamistoiminnot
+- `/dashboard/playground` — vuorovaikutteinen keskustelukokeiluympäristö mille tahansa määritetylle yhdistelmälle tai mallille
+- `/dashboard/changelog` — sovelluksen sisäinen muutoslokin katseluohjelma (hahmontaa tiedoston `CHANGELOG.md`)
+- `/dashboard/system` — suoritusympäristön diagnostiikka, versiotiedot ja ympäristön validointinäkymä
+- `/dashboard/onboarding` — ensimmäisen käyttökerran ohjattu määritys uusille asennuksille
+- `/dashboard/media` — kuvien, videoiden ja musiikin kokeiluympäristö
+- `/dashboard/search-tools` — hakupalveluntarjoajien testaus ja historia
+- `/dashboard/health` — käytettävyysaika, virtapiirin katkaisijat, nopeusrajoitukset ja kiintiövalvotut istunnot
+- `/dashboard/logs` — pyyntö-, välityspalvelin-, tarkastus- ja konsolilokit
+- `/dashboard/settings` — järjestelmäasetusten välilehdet (yleiset, reititys, yhdistelmien oletukset jne.)
+- `/dashboard/context/caveman` — Caveman-pakkaussäännöt, kielipaketit, esikatselu ja tulostila
+- `/dashboard/context/rtk` — RTK-komentotulosteiden suodattimet, esikatselu ja suoritusympäristön turvallisuusasetukset
+- `/dashboard/context/combos` — reititysyhdistelmille määritetyt nimetyt pakkausputket
+- `/dashboard/translator` — muuntimen tarkastelu ja pyyntömuodon muunnoksen esikatselu
+- `/dashboard/audit` — vaatimustenmukaisuuden tarkastuslokin selain, jossa on sivutus ja jäsennellyt metatiedot
+- `/dashboard/usage` — `usage_history`-tietoihin yhdistetty pyyntökohtainen käyttötietoselain
+- `/dashboard/compression` — pakkauksen analytiikka, tilastot ja putkien määritys
+- `/dashboard/api-manager` — API-avainten elinkaaren ja mallien käyttöoikeuksien hallinta
+
+## Järjestelmän yleiskuva
 
 ```mermaid
 flowchart LR
-    subgraph Clients[Developer Clients]
+    subgraph Clients[Kehittäjäasiakkaat]
         C1[Claude Code]
         C2[Codex CLI]
         C3[OpenClaw / Droid / Cline / Continue / Roo]
-        C4[Custom OpenAI-compatible clients]
-        BROWSER[Browser Dashboard]
+        C4[Mukautetut OpenAI-yhteensopivat asiakkaat]
+        BROWSER[Selaimen hallintapaneeli]
     end
 
-    subgraph Router[OmniRoute Local Process]
-        API[V1 Compatibility API\n/v1/*]
-        DASH[Dashboard + Management API\n/api/*]
-        CORE[SSE + Translation Core\nopen-sse + src/sse]
+    subgraph Router[Paikallinen OmniRoute-prosessi]
+        API[V1-yhteensopivuusrajapinta\n/v1/*]
+        DASH[Hallintapaneeli + hallintarajapinta\n/api/*]
+        CORE[SSE + muunnosydin\nopen-sse + src/sse]
         DB[(storage.sqlite)]
-        UDB[(usage tables + log artifacts)]
+        UDB[(käyttötaulut + lokiartefaktit)]
     end
 
-    subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qwen/Qoder/GitHub/Kiro/Cursor/Antigravity]
-        P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
-        P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
+    subgraph Upstreams[Ulkoiset palveluntarjoajat]
+        P1[OAuth-palveluntarjoajat\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P2[API-avainpalveluntarjoajat\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
+        P3[Yhteensopivat solmut\nOpenAI-yhteensopiva / Anthropic-yhteensopiva]
     end
 
-    subgraph Cloud[Optional Cloud Sync]
-        CLOUD[Cloud Sync Endpoint\nNEXT_PUBLIC_CLOUD_URL]
+    subgraph Cloud[Valinnainen pilvisynkronointi]
+        CLOUD[Pilvisynkronoinnin päätepiste\nNEXT_PUBLIC_CLOUD_URL]
     end
 
     C1 --> API
@@ -164,168 +200,361 @@ flowchart LR
     DASH --> CLOUD
 ```
 
-## Core Runtime Components
+## Ajonaikaisen ydinjärjestelmän osat
 
-## 1) API and Routing Layer (Next.js App Routes)
+## 1) API- ja reitityskerros (Next.js-sovellusreitit)
 
-Main directories:
+Päähakemistot:
 
-- `src/app/api/v1/*` and `src/app/api/v1beta/*` for compatibility APIs
-- `src/app/api/*` for management/configuration APIs
-- Next rewrites in `next.config.mjs` map `/v1/*` to `/api/v1/*`
+- `src/app/api/v1/*` ja `src/app/api/v1beta/*` yhteensopivuusrajapinnoille
+- `src/app/api/*` hallinta- ja määritysrajapinnoille
+- Tiedoston `next.config.mjs` Next-uudelleenkirjoitukset yhdistävät polun `/v1/*` polkuun `/api/v1/*`
 
-Important compatibility routes:
+Tärkeät yhteensopivuusreitit:
 
 - `src/app/api/v1/chat/completions/route.ts`
 - `src/app/api/v1/messages/route.ts`
 - `src/app/api/v1/responses/route.ts`
-- `src/app/api/v1/models/route.ts` — includes custom models with `custom: true`
-- `src/app/api/v1/embeddings/route.ts` — embedding generation (6 providers)
-- `src/app/api/v1/images/generations/route.ts` — image generation (4+ providers incl. Antigravity/Nebius)
+- `src/app/api/v1/models/route.ts` — sisältää mukautetut mallit, joilla on `custom: true`
+- `src/app/api/v1/embeddings/route.ts` — upotusten luonti (6 palveluntarjoajaa)
+- `src/app/api/v1/images/generations/route.ts` — kuvien luonti (vähintään 4 palveluntarjoajaa, mukaan lukien Antigravity/Nebius)
 - `src/app/api/v1/messages/count_tokens/route.ts`
-- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — dedicated per-provider chat
-- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — dedicated per-provider embeddings
-- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — dedicated per-provider images
+- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — palveluntarjoajakohtainen keskustelu
+- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — palveluntarjoajakohtaiset upotukset
+- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — palveluntarjoajakohtaiset kuvat
 - `src/app/api/v1beta/models/route.ts`
 - `src/app/api/v1beta/models/[...path]/route.ts`
 
-Management domains:
+Hallinta-alueet:
 
-- Auth/settings: `src/app/api/auth/*`, `src/app/api/settings/*`
-- Providers/connections: `src/app/api/providers*`
-- Provider nodes: `src/app/api/provider-nodes*`
-- Custom models: `src/app/api/provider-models` (GET/POST/DELETE)
-- Model catalog: `src/app/api/models/route.ts` (GET)
-- Proxy config: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
+- Todennus/asetukset: `src/app/api/auth/*`, `src/app/api/settings/*`
+- Palveluntarjoajat/yhteydet: `src/app/api/providers*`
+- Palveluntarjoajasolmut: `src/app/api/provider-nodes*`
+- Mukautetut mallit: `src/app/api/provider-models` (GET/POST/DELETE)
+- Malliluettelo: `src/app/api/models/route.ts` (GET)
+- Välityspalvelimen määritys: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
 - OAuth: `src/app/api/oauth/*`
-- Keys/aliases/combos/pricing: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
-- Usage: `src/app/api/usage/*`
-- Sync/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
-- CLI tooling helpers: `src/app/api/cli-tools/*`
-- IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
-- Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
-- System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
-- Sessions: `src/app/api/sessions` (GET)
-- Rate limits: `src/app/api/rate-limits` (GET)
-- Resilience: `src/app/api/resilience` (GET/PATCH) — request queue, connection cooldown, provider breaker, wait-for-cooldown config
-- Resilience reset: `src/app/api/resilience/reset` (POST) — reset provider breakers
-- Cache stats: `src/app/api/cache/stats` (GET/DELETE)
-- Telemetry: `src/app/api/telemetry/summary` (GET)
-- Budget: `src/app/api/usage/budget` (GET/POST)
-- Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
-- Compliance audit: `src/app/api/compliance/audit-log` (GET, with pagination + structured metadata)
-- Evals: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
-- Policies: `src/app/api/policies` (GET/POST)
-- Sync tokens: `src/app/api/sync/tokens` (GET/POST), `src/app/api/sync/tokens/[id]` (GET/DELETE)
-- Config bundle: `src/app/api/sync/bundle` (GET, ETag-versioned snapshot of settings/providers/combos/keys)
-- WebSocket: `src/app/api/v1/ws/route.ts` — Upgrade handler for OpenAI-compatible WS clients
+- Avaimet/aliakset/yhdistelmät/hinnoittelu: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
+- Käyttö: `src/app/api/usage/*`
+- Synkronointi/pilvi: `src/app/api/sync/*`, `src/app/api/cloud/*`
+- CLI-työkalujen apuohjelmat: `src/app/api/cli-tools/*`
+- IP-suodatin: `src/app/api/settings/ip-filter` (GET/PUT)
+- Päättelybudjetti: `src/app/api/settings/thinking-budget` (GET/PUT)
+- Järjestelmäkehote: `src/app/api/settings/system-prompt` (GET/PUT)
+- Pakkaus: `src/app/api/settings/compression`, `src/app/api/compression/*` ja
+  `src/app/api/context/*`
+- Istunnot: `src/app/api/sessions` (GET)
+- Nopeusrajoitukset: `src/app/api/rate-limits` (GET)
+- Häiriönsietokyky: `src/app/api/resilience` (GET/PATCH) — pyyntöjono, yhteyden jäähdytysaika, palveluntarjoajan katkaisija ja jäähdytysajan odotuksen määritys
+- Häiriönsietokyvyn nollaus: `src/app/api/resilience/reset` (POST) — nollaa palveluntarjoajien katkaisijat
+- Välimuistitilastot: `src/app/api/cache/stats` (GET/DELETE)
+- Telemetria: `src/app/api/telemetry/summary` (GET)
+- Budjetti: `src/app/api/usage/budget` (GET/POST)
+- Varaketjut: `src/app/api/fallback/chains` (GET/POST/DELETE)
+- Vaatimustenmukaisuuden tarkastus: `src/app/api/compliance/audit-log` (GET, sivutuksella + rakenteisilla metatiedoilla)
+- Arvioinnit: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
+- Käytännöt: `src/app/api/policies` (GET/POST)
+- Synkronointitunnukset: `src/app/api/sync/tokens` (GET/POST), `src/app/api/sync/tokens/[id]` (GET/DELETE)
+- Määrityspaketti: `src/app/api/sync/bundle` (GET, ETag-versioitu tilannevedos asetuksista, palveluntarjoajista, yhdistelmistä ja avaimista)
+- WebSocket: `src/app/api/v1/ws/route.ts` — Upgrade-käsittelijä OpenAI-yhteensopiville WS-asiakkaille
 
-## 2) SSE + Translation Core
+## 2) SSE + käännösydin
 
-Main flow modules:
+Pääprosessin moduulit:
 
-- Entry: `src/sse/handlers/chat.ts`
-- Core orchestration: `open-sse/handlers/chatCore.ts`
-- Provider execution adapters: `open-sse/executors/*`
-- Format detection/provider config: `open-sse/services/provider.ts`
-- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- Account fallback logic: `open-sse/services/accountFallback.ts`
-- Translation registry: `open-sse/translator/index.ts`
-- Stream transformations: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- Usage extraction/normalization: `open-sse/utils/usageTracking.ts`
-- Think tag parser: `open-sse/utils/thinkTagParser.ts`
-- Embedding handler: `open-sse/handlers/embeddings.ts`
-- Embedding provider registry: `open-sse/config/embeddingRegistry.ts`
-- Image generation handler: `open-sse/handlers/imageGeneration.ts`
-- Image provider registry: `open-sse/config/imageRegistry.ts`
-- Response sanitization: `open-sse/handlers/responseSanitizer.ts`
-- Role normalization: `open-sse/services/roleNormalizer.ts`
+- Aloituspiste: `src/sse/handlers/chat.ts`
+- Ydinkoordinointi: `open-sse/handlers/chatCore.ts`
+- Palveluntarjoajien suoritusadapterit: `open-sse/executors/*`
+- Muodon tunnistus / palveluntarjoajan määritykset: `open-sse/services/provider.ts`
+- Mallin jäsennys/ratkaisu: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- Tilin varajärjestelylogiikka: `open-sse/services/accountFallback.ts`
+- Käännösrekisteri: `open-sse/translator/index.ts`
+- Virtamuunnokset: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- Käyttötietojen poiminta/normalisointi: `open-sse/utils/usageTracking.ts`
+- Ajattelutunnisteen jäsennin: `open-sse/utils/thinkTagParser.ts`
+- Upotusten käsittelijä: `open-sse/handlers/embeddings.ts`
+- Upotuspalveluntarjoajien rekisteri: `open-sse/config/embeddingRegistry.ts`
+- Kuvien generoinnin käsittelijä: `open-sse/handlers/imageGeneration.ts`
+- Kuvapalveluntarjoajien rekisteri: `open-sse/config/imageRegistry.ts`
+- Vastausten puhdistus: `open-sse/handlers/responseSanitizer.ts`
+- Roolien normalisointi: `open-sse/services/roleNormalizer.ts`
 
-Services (business logic):
+Palvelut (liiketoimintalogiikka):
 
-- Account selection/scoring: `open-sse/services/accountSelector.ts`
-- Context lifecycle management: `open-sse/services/contextManager.ts`
-- IP filter enforcement: `open-sse/services/ipFilter.ts`
-- Session tracking: `open-sse/services/sessionManager.ts`
-- Request deduplication: `open-sse/services/signatureCache.ts`
-- System prompt injection: `open-sse/services/systemPrompt.ts`
-- Thinking budget management: `open-sse/services/thinkingBudget.ts`
-- Wildcard model routing: `open-sse/services/wildcardRouter.ts`
-- Rate limit management: `open-sse/services/rateLimitManager.ts`
-- Circuit breaker: `open-sse/services/circuitBreaker.ts`
-- Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
-- Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
-- Cooldown-aware retry: `src/sse/services/cooldownAwareRetry.ts` — per-model cooldown retries with configurable `requestRetry` / `maxRetryIntervalSec`
-- Safe outbound fetch: `src/shared/network/safeOutboundFetch.ts` — guarded provider/model fetch with SSRF guard, private-URL blocking, retry, and timeout
-- Outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — validates provider URLs against private/localhost CIDR ranges
-- Provider request defaults: `open-sse/services/providerRequestDefaults.ts` — provider-level `maxTokens`, `temperature`, `thinkingBudgetTokens` defaults
-- GLM provider constants: `open-sse/config/glmProvider.ts` — shared GLM models, quota URLs, GLMT timeout/defaults
-- Antigravity upstream: `open-sse/config/antigravityUpstream.ts` — base URL and discovery path constants
-- Codex client constants: `open-sse/config/codexClient.ts` — versioned user-agent and client-version values
-- Model alias seed: `src/lib/modelAliasSeed.ts` — seeds 30+ cross-proxy dialect aliases at startup
+- Tilien valinta/pisteytys: `open-sse/services/accountSelector.ts`
+- Kontekstin elinkaaren hallinta: `open-sse/services/contextManager.ts`
+- IP-suodattimen käytäntöönpano: `open-sse/services/ipFilter.ts`
+- Istuntojen seuranta: `open-sse/services/sessionManager.ts`
+- Pyyntöjen duplikaattien poisto: `open-sse/services/signatureCache.ts`
+- Järjestelmäkehotteen lisääminen: `open-sse/services/systemPrompt.ts`
+- Ajattelubudjetin hallinta: `open-sse/services/thinkingBudget.ts`
+- Jokerimerkkimallien reititys: `open-sse/services/wildcardRouter.ts`
+- Kutsurajoitusten hallinta: `open-sse/services/rateLimitManager.ts`
+- Katkaisija: `src/shared/utils/circuitBreaker.ts`
+- Kontekstin siirto: `open-sse/services/contextHandoff.ts` — siirtoyhteenvetojen generointi ja lisääminen context-relay-strategiaa varten
+- Pakkaus: `open-sse/services/compression/*` — ennakoiva pakkaus ennen palveluntarjoajalle tehtävää käännöstä;
+  sisältää Caveman-säännöt, RTK-suodattimet, pinotut käsittelyketjut, pakkausyhdistelmät, tilastot ja validoinnin
+- Codex-kiintiön noutaja: `open-sse/services/codexQuotaFetcher.ts` — noutaa Codex-kiintiön context-relay-siirtopäätöksiä varten
+- Jäähtymisajan huomioiva uudelleenyritys: `src/sse/services/cooldownAwareRetry.ts` — mallikohtaiset jäähtymisajan uudelleenyritykset määritettävillä `requestRetry`- / `maxRetryIntervalSec`-asetuksilla
+- Turvallinen lähtevä nouto: `src/shared/network/safeOutboundFetch.ts` — suojattu palveluntarjoaja-/mallinouto SSRF-suojauksella, yksityisten URL-osoitteiden estolla, uudelleenyrityksillä ja aikakatkaisulla
+- Lähtevien URL-osoitteiden suojaus: `src/shared/network/outboundUrlGuard.ts` — validoi palveluntarjoajien URL-osoitteet yksityisten ja localhost-CIDR-alueiden perusteella
+- Palveluntarjoajapyyntöjen oletusarvot: `open-sse/services/providerRequestDefaults.ts` — palveluntarjoajakohtaiset `maxTokens`-, `temperature`- ja `thinkingBudgetTokens`-oletusarvot
+- GLM-palveluntarjoajan vakiot: `open-sse/config/glmProvider.ts` — jaetut GLM-mallit, kiintiöiden URL-osoitteet sekä GLMT-aikakatkaisu/oletusarvot
+- Antigravity-ylävirta: `open-sse/config/antigravityUpstream.ts` — perus-URL-osoitteen ja löytämispolun vakiot
+- Codex-asiakasohjelman vakiot: `open-sse/config/codexClient.ts` — versioidut user-agent- ja asiakasohjelmaversion arvot
+- Mallialiasten alustustiedot: `src/lib/modelAliasSeed.ts` — alustaa käynnistyksen yhteydessä yli 30 välityspalvelindialektien välistä aliasta
 
-Domain layer modules:
+Toimialakerroksen moduulit:
 
-- Cost rules/budgets: `src/lib/domain/costRules.ts`
-- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
-- Combo resolver: `src/lib/domain/comboResolver.ts`
-- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
-- Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
-- Error codes catalog: `src/lib/domain/errorCodes.ts`
-- Request ID: `src/lib/domain/requestId.ts`
-- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
-- Request telemetry: `src/lib/domain/requestTelemetry.ts`
-- Compliance/audit: `src/lib/domain/compliance/index.ts`
-- Eval runner: `src/lib/domain/evalRunner.ts`
-- Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
+- Kustannussäännöt/budjetit: `src/domain/costRules.ts`
+- Varajärjestelykäytäntö: `src/domain/fallbackPolicy.ts`
+- Yhdistelmien ratkaisija: `src/domain/comboResolver.ts`
+- Lukituskäytäntö: `src/domain/lockoutPolicy.ts`
+- Käytäntömoottori: `src/domain/policyEngine.ts` — keskitetty lukituksen → budjetin → varajärjestelyn arviointi
+- Virhekoodiluettelo: `src/shared/constants/errorCodes.ts`
+- Pyynnön tunniste: `src/shared/utils/requestId.ts`
+- Noudon aikakatkaisu: `src/shared/utils/fetchTimeout.ts`
+- Pyyntötelemetria: `src/shared/utils/requestTelemetry.ts`
+- Vaatimustenmukaisuus/auditointi: `src/lib/compliance/index.ts`
+- Arviointien suorittaja: `src/lib/evals/evalRunner.ts`
+- Toimialan tilan pysyvä tallennus: `src/lib/db/domainState.ts` — SQLite CRUD varajärjestelyketjuille, budjeteille, kustannushistorialle, lukitustilalle ja katkaisijoille
 
-OAuth provider modules (21 implementation modules under `src/lib/oauth/providers/`):
+OAuth-palveluntarjoajamoduulit (22 erillistä tiedostoa hakemistossa `src/lib/oauth/providers/`):
 
-- Registry index: `src/lib/oauth/providers/index.ts`
-- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
-- Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
+- Rekisterin indeksi: `src/lib/oauth/providers/index.ts`
+- Yksittäiset palveluntarjoajat: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Ohut kääre: `src/lib/oauth/providers.ts` — vie yksittäisten moduulien viennit uudelleen
 
-## 3) Persistence Layer
+## 5) Upotetut palvelut (v3.8.4)
 
-Primary state DB (SQLite):
+OmniRoute voi asentaa ja valvoa paikallisesti suoritettavia tekoälytyökaluprosesseja sekä reitittää niihin.
+Näitä prosesseja kutsutaan **upotetuiksi palveluiksi**. Mukana toimitetaan viisi palvelua: 9Router, CLIProxyAPI, Bifrost, Mux ja Dario.
 
-- Core infra: `src/lib/db/core.ts` (better-sqlite3, migrations, WAL)
-- Re-export facade: `src/lib/localDb.ts` (thin compatibility layer for callers)
-- file: `${DATA_DIR}/storage.sqlite` (or `$XDG_CONFIG_HOME/omniroute/storage.sqlite` when set, else `~/.omniroute/storage.sqlite`)
-- entities (tables + KV namespaces): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
+Arkkitehtuurikerrokset:
 
-Usage persistence:
+- **Käyttöliittymä** (`/dashboard/providers/services`) — kaksivälilehtinen sivu, jossa on elinkaaren hallintatoiminnot,
+  reaaliaikainen lokien suoratoisto, API-avainten hallinta ja (9Routerin tapauksessa) upotettu natiivi käyttöliittymä
+  sisäisen käänteisen välityspalvelimen kautta.
+- **API** (`/api/services/{name}/*`) — 11 päätepistettä 9Routerille, 10 CLIProxyAPI:lle ja 8 kullekin palveluista Bifrost / Mux / Dario;
+  kaikki on luokiteltu **LOCAL_ONLY**-luokkaan (ehdoton sääntö #17). Jaettu `GET /api/services/[name]/logs`
+  SSE-päätepiste palvelee molempia palveluita.
+- **Valvoja** (`src/lib/services/`) — yleiskäyttöinen `ServiceSupervisor`-luokka käärii
+  `child_process.spawn`-toiminnon, ylläpitää 5 Mt:n rengaspuskuria SSE-lokien suoratoistoa varten sekä sisältää
+  kuntotarkistussilmukan, atomisen toimintolukon ja hallitun SIGTERM→SIGKILL-sammutuksen.
+  `bootstrap.ts` kytkee kaikki määritetyt palvelut prosessin käynnistyessä.
+- **Palveluntarjoaja/suorittaja** (`open-sse/executors/ninerouter.ts`) — 9Router tarjotaan
+  varsinaisena palveluntarjoajana. Mallien etuliite on `9router/{sub}/{model}`, ja ne synkronoidaan 5 minuutin välein
+  9Routerin `/v1/models`-päätepisteestä.
 
-- facade: `src/lib/usageDb.ts` (decomposed modules in `src/lib/usage/*`)
-- SQLite tables in `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
-- optional file artifacts remain for compatibility/debug (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
-- legacy JSON files are migrated to SQLite by startup migrations when present
+Syvällisempi kuvaus: `docs/frameworks/EMBEDDED-SERVICES.md`
 
-Domain State DB (SQLite):
+## Tärkeimmät alijärjestelmät (v3.8.0)
 
-- `src/lib/db/domainState.ts` — CRUD operations for domain state
-- Tables (created in `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
-- Write-through cache pattern: in-memory Maps are authoritative at runtime; mutations are written synchronously to SQLite; state is restored from DB on cold start
+### A. Auto Combo -moottori
 
-## 4) Auth + Security Surfaces
+Auto Combo pisteyttää ja valitsee reitityskohteet dynaamisesti pyyntöhetkellä sen sijaan,
+että se tukeutuisi staattiseen yhdistelmämäärittelyyn. Se toteuttaa `auto/*`-mallietuliiteperheen.
 
-- Dashboard cookie auth: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
-- API key generation/verification: `src/shared/utils/apiKey.ts`
-- Provider secrets persisted in `providerConnections` entries
-- Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
-- SSRF / outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — blocks private/loopback/link-local ranges for all provider calls
-- Runtime env validation: `src/lib/env/runtimeEnv.ts` — Zod schema for all environment variables, surfaced as startup errors/warnings
-- Sync tokens: `src/lib/db/syncTokens.ts` — scoped tokens for config bundle download endpoints; backed by `sync_tokens` SQLite table (migration `024_create_sync_tokens.sql`)
-- WebSocket handshake auth: `src/lib/ws/handshake.ts` — validates WS upgrade requests via API key or session cookie
+- Moottorin aloituspiste: `open-sse/services/autoCombo/` (`autoComboEngine.ts`,
+  `scoringEngine.ts`, `virtualFactory.ts`, `modePacks.ts`)
+- Ratkaisija: `src/domain/comboResolver.ts` (`auto/`-etuliitteen automaattinen tunnistus)
+- Hallintapaneeli: `/dashboard/auto-combo`
+- Telemetria: SQLite-taulu `auto_combo_decisions`
 
-## 5) Cloud Sync
+Keskeiset ominaisuudet:
 
-- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
-- Periodic task: `src/shared/services/cloudSyncScheduler.ts`
-- Periodic task: `src/shared/services/modelSyncScheduler.ts`
-- Control route: `src/app/api/sync/cloud/route.ts`
+- **19 reititysstrategiaa** (prioriteetti, painotettu, täytä ensin, vuorottelu, P2C, satunnainen,
+  vähiten käytetty, kustannusoptimoitu, nollauksen huomioiva, nollausikkuna, liikkumavara, tiukasti satunnainen,
+  **auto**, lkgp, kontekstioptimoitu, kontekstinvälitys, **fusion** sekä varapolku) —
+  auto on version v3.8.0 merkittävin lisäys; `fusion` (rinnakkainen paneelikäsittely + arvioijan tekemä synteesi,
+  `open-sse/services/fusion.ts`) on uusi versiossa v3.8.36.
+- **16 tekijän pisteytys**: kiintiö, kunto, käänteinen kustannus, käänteinen viive, tehtävään sopivuus ja
+  kymmenen muuta. Tekijöiden ja niiden oletuspainojen ensisijainen taulukko sijaitsee tiedostossa
+  [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) — sen toistaminen tässä loisi toisen paikan,
+  jossa tiedot voisivat vanhentua.
+- **Virtuaalitehdas** muodostaa lyhytikäisiä yhdistelmiä, kun vastaavaa nimettyä yhdistelmää
+  ei ole, ja hakee ehdokkaat kunnossa olevista aktiivisista palveluntarjoajayhteyksistä.
+- **Automaattiset etuliitteet**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
+  `auto/smart`, `auto/lkgp` — jokaisen taustalla on viritetty painoprofiili.
+- **6 tilapakettia**: `ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`,
+  `reliability-first` ja `chaos-mode` — hallintapaneelista käytettävissä olevia painoasetusten esimäärityksiä.
+  (Näitä ei pidä sekoittaa yllä oleviin `auto/*`-etuliitteisiin, jotka ovat pyyntöhetkellä valittavia variantteja.)
 
-## Request Lifecycle (`/v1/chat/completions`)
+Täydelliset algoritmiset tiedot (tekijöiden kaavat ja painojen viritys) ovat tiedostossa
+[`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
+
+### B. Pilviagentit
+
+Pilviagentit käärivät kolmansien osapuolten ylläpitämät koodiagenttialustat (Codex Cloud, Devin,
+Jules) yhtenäisen, tietokantaan perustuvan tehtävien elinkaaren taakse. Kaikki tehtävien luonti- ja tarkastuspäätepisteet
+edellyttävät hallintatason todennusta.
+
+- Moduulin juuri: `src/lib/cloudAgent/` (`baseAgent.ts`, `registry.ts`, `api.ts`,
+  `types.ts`, `db.ts` sekä agenttikohtaiset alihakemistot hakemistossa `agents/`)
+- Agenttikohtaiset toteutukset: `agents/codex/`, `agents/devin/`, `agents/jules/`
+- Julkiset päätepisteet: `/api/v1/agents/tasks/*` (luettelointi/luonti/haku/peruutus)
+- Hallintapäätepisteet: `/api/cloud/*` (käyttöönotto, tila, eräkäsittely)
+- Hallintapaneeli: `/dashboard/cloud-agents`
+- Tallennus: `cloud_agent_tasks`-taulu
+
+Agenttikohtaiset käyttöönotto- ja OAuth-tiedot ovat tiedostossa
+[`docs/frameworks/CLOUD_AGENT.md`](../frameworks/CLOUD_AGENT.md).
+
+### C. Suojaukset
+
+Suojausmoduuli on ilman uudelleenkäynnistystä ladattava väliohjelmistokerros, joka tarkastaa pyynnöt
+ja vastaukset henkilötietojen, kehotesyötteiden manipuloinnin ja vaarallisen kuvasisällön varalta. Rikkomukset
+keskeyttävät pyynnön HTTP **503** -vastauksella ja rakenteisella virhekoodilla, jolloin
+alavirran kutsujat voivat yrittää uudelleen tai valita vaihtoehtoisen haaran.
+
+- Moduulin juuri: `src/lib/guardrails/` (`base.ts`, `registry.ts`, `piiMasker.ts`,
+  `promptInjection.ts`, `visionBridge.ts`, `visionBridgeHelpers.ts`)
+- Lataaminen ilman uudelleenkäynnistystä: rekisteri tarkkailee määritysten muutoksia ja rakentaa ketjun uudelleen paikallaan
+- Kytkentäpisteet: keskustelukäsittelijän aloitus, kuvien luontikäsittelijä, vastausten puhdistaja
+- HTTP-sopimus: rikkomukset näkyvät `503`-vastauksena, jossa `error.code = "GUARDRAIL_VIOLATION"`
+
+Sääntöjoukkojen laatimista ja kynnysarvojen viritystä koskevat tiedot ovat tiedostossa
+[`docs/security/GUARDRAILS.md`](../security/GUARDRAILS.md).
+
+### D. Toimialuekerros
+
+`src/domain/`-nimiavaruus keskittää käytäntöpäätökset, jotta reittikäsittelijöiden ei
+tarvitse koostaa lukitus-, budjetti- ja varalogiikkaa itse.
+
+- Käytäntömoottori: `src/domain/policyEngine.ts` — yksi aloituspiste
+  suoritusta edeltävälle arvioinnille (lukitus → budjetti → varapolkujärjestys)
+- Kustannussäännöt: `src/domain/costRules.ts`
+- Varakäytäntö: `src/domain/fallbackPolicy.ts`
+- Lukituskäytäntö: `src/domain/lockoutPolicy.ts`
+- Tunnistepohjainen reititys: `src/domain/tagRouter.ts`
+- Yhdistelmäratkaisija: `src/domain/comboResolver.ts` — ratkaisee yhdistelmien nimet, auto/\*
+  -etuliitteet ja yleismerkilliset mallikohteet konkreettisiksi suoritussuunnitelmiksi
+- Yhteys- ja mallisääntöjen yhdistäjä: `src/domain/connectionModelRules.ts`
+- Mallien saatavuuden tilannevedokset: `src/domain/modelAvailability.ts`
+- Palveluntarjoajien vanhenemisen seuranta: `src/domain/providerExpiration.ts`
+- Kiintiövälimuisti: `src/domain/quotaCache.ts`
+- Heikentymistila: `src/domain/degradation.ts`
+- Määritysten auditointi: `src/domain/configAudit.ts`
+- OmniRoute-vastauksen metatietojen muodostin: `src/domain/omnirouteResponseMeta.ts`
+- Arviointialijärjestelmä: `src/domain/assessment/` — säännölliset arviointityöt
+
+### E. Valtuutusputki
+
+Valtuutusputki luokittelee jokaisen saapuvan pyynnön ja soveltaa siihen
+asianmukaista käytäntöketjua ennen välitystä.
+
+- Putken aloituspiste: `src/server/authz/pipeline.ts`
+- Pyyntöluokittelija: `src/server/authz/classify.ts` — erottaa julkiset
+  yhteensopivuusreitit hallintareiteistä
+- Julkisten reittien luettelo: `src/shared/constants/publicApiRoutes.ts`
+- Käytännöt: `src/server/authz/policies/` — yhdisteltävät predikaatit
+  (`requireApiKey`, `requireManagement`, `requireFreshAuth` jne.)
+- Otsakeapuohjelmat: `src/server/authz/headers.ts`
+- Varmistusapuohjelma: `src/server/authz/assertAuth.ts`
+- Pyyntökonteksti: `src/server/authz/context.ts`
+
+Julkisten reittien ja hallintareittien välinen raja on ehdoton: agentti- ja
+jäähdytysrajapinnat sekä palveluntarjoajien muutokset edellyttävät hallintatason
+todennusta (HTTP 401, jos se puuttuu).
+
+Täydelliset reittien luokittelusäännöt ovat tiedostossa
+[`docs/architecture/AUTHZ_GUIDE.md`](./AUTHZ_GUIDE.md).
+
+### F. Työnkulun FSM ja tehtävät huomioiva reititin
+
+Yhdistelmävalinnan yläpuolella toimiva äärelliseen tilakoneeseen perustuva
+reititin, joka ohjaa liikennettä havaitun työnkulun vaiheen (suunnittelu,
+suoritus, tarkistus) ja taustatehtäväsidonnaisuuden perusteella.
+
+- Työnkulun FSM: `open-sse/services/workflowFSM.ts`
+- Tehtävät huomioiva reititin: `open-sse/services/taskAwareRouter.ts`
+- Taustatehtävien tunnistin: `open-sse/services/backgroundTaskDetector.ts`
+- Aikomusluokittelija: `open-sse/services/intentClassifier.ts`
+
+FSM:n tilasiirtymät vaikuttavat Auto Combon pisteytykseen painottaen edullisempia
+malleja tausta- ja automaatiotehtävissä sekä tehokkaampia malleja
+vuorovaikutteisissa suunnittelu- ja tarkistusvaiheissa.
+
+### G. Palveluntarjoajakohtainen häiriönsietokyky
+
+Useilla palveluntarjoajilla on omat häiriönsieto- ja häivekomponenttinsa, jotka
+hyödyntävät yleisiä katkaisija-, yhteyden jäähdytys- ja mallin lukituskerroksia:
+
+- Antigravity 429 -moottori: `open-sse/services/antigravity429Engine.ts` (kierrättää
+  identiteettiä, puhdistaa vastausotsakkeet sekä hallinnoi krediittien ja version
+  seurantaa moduulien `antigravityCredits.ts`, `antigravityHeaderScrub.ts`,
+  `antigravityHeaders.ts`, `antigravityIdentity.ts` ja `antigravityVersion.ts`
+  avulla)
+- ModelScopen kiintiökäytäntö: `open-sse/services/modelscopePolicy.ts`
+- Claude Code CCH (yhteensopivuuskanavan kättely): `open-sse/services/claudeCodeCCH.ts`,
+  sekä `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
+  `claudeCodeToolRemapper.ts`
+- Claude Code -sormenjäljen muotoilu: `open-sse/services/claudeCodeFingerprint.ts`
+- Claude Code -obfuskointi: `open-sse/services/claudeCodeObfuscation.ts`
+
+Täydellinen häivetoimintojen ohjekirja ja käyttöohjeet ovat tiedostossa
+`docs/security/STEALTH_GUIDE.md` (gitissä; sitä ei käännetä osaksi `/docs`-hakemistoa).
+
+### H. Webhookit, päättelyvälimuisti ja lukuvälimuisti
+
+- **Webhookit** — lähtevä välitys palveluntarjoaja-, tili- ja tehtävätapahtumille.
+  - Välittäjä: `src/lib/webhookDispatcher.ts`
+  - Tallennus: SQLiten `webhooks`-taulu (`src/lib/db/webhooks.ts`-tiedoston kautta)
+  - Hallintapaneeli: `/dashboard/webhooks` (tilaukset, salaisuudet, uudelleenyrityshistoria)
+  - Tapahtumien luokittelu ja uudelleenyritysten semantiikka on kuvattu tiedostossa [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md).
+- **Päättelyvälimuisti** — uudelleentoistettavat päättelylohkot ajattelutunnisteita
+  tuottaville palveluntarjoajille (Claude, GLMT jne.), jotta peräkkäisillä
+  vuoroilla ei tarvitse tehdä päättelyä uudelleen.
+  - Tietokantakerros: `src/lib/db/reasoningCache.ts`
+  - Palvelukerros: `open-sse/services/reasoningCache.ts`
+  - Uudelleentoiston semantiikka on kuvattu tiedostossa [`docs/routing/REASONING_REPLAY.md`](../routing/REASONING_REPLAY.md).
+- **Lukuvälimuisti** — allekirjoitukseen perustuva lyhytikäinen vastausvälimuisti,
+  jota käytetään viallisilta ylävirran SDK:ilta tulevien identtisten
+  uudelleenyritysten yhdistämiseen.
+  - Tietokantakerros: `src/lib/db/readCache.ts`
+  - Tilastopäätepiste: `GET /api/cache/stats`, hallintapaneeli osoitteessa `/dashboard/cache`
+
+## 3) Persistenssikerros
+
+Ensisijainen tilatietokanta (SQLite):
+
+- Ydininfrastruktuuri: `src/lib/db/core.ts` (better-sqlite3, migraatiot, WAL)
+- Tietokannan käyttö: tuo yksittäiset `src/lib/db/*`-moduulit suoraan (vanha `localDb.ts`-koontimoduuli poistettiin)
+- Tiedosto: `${DATA_DIR}/storage.sqlite` (tai `$XDG_CONFIG_HOME/omniroute/storage.sqlite`, kun se on määritetty; muussa tapauksessa `~/.omniroute/storage.sqlite`)
+- Entiteetit (taulut + KV-nimiavaruudet): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
+
+Käyttötietojen persistenssi:
+
+- Julkisivu: `src/lib/usageDb.ts` (osiin jaetut moduulit hakemistossa `src/lib/usage/*`)
+- SQLite-taulut tiedostossa `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
+- Valinnaiset tiedostoartefaktit säilyvät yhteensopivuutta ja virheenkorjausta varten (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
+- Vanhat JSON-tiedostot siirretään SQLiteen käynnistyksen yhteydessä suoritettavilla migraatioilla, jos niitä löytyy
+
+Toimialueen tilatietokanta (SQLite):
+
+- `src/lib/db/domainState.ts` — CRUD-toiminnot toimialueen tilalle
+- Taulut (luodaan tiedostossa `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
+- Läpikirjoittava välimuistimalli: muistissa olevat Maps-rakenteet ovat ajonaikaisesti määrääviä; muutokset kirjoitetaan synkronisesti SQLiteen; tila palautetaan tietokannasta kylmäkäynnistyksen yhteydessä
+
+## 4) Todennus- ja tietoturvarajapinnat
+
+- Hallintapaneelin evästetodennus: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
+- API-avainten luonti ja varmennus: `src/shared/utils/apiKey.ts`
+- Palveluntarjoajien salaisuudet tallennetaan `providerConnections`-merkintöihin
+- Lähtevän liikenteen välityspalvelintuki tiedostojen `open-sse/utils/proxyFetch.ts` (ympäristömuuttujat) ja `open-sse/utils/networkProxy.ts` (määritettävissä palveluntarjoajakohtaisesti tai globaalisti) kautta
+- SSRF- ja lähtevien URL-osoitteiden suojaus: `src/shared/network/outboundUrlGuard.ts` — estää yksityiset, loopback- ja link-local-osoitealueet kaikissa palveluntarjoajakutsuissa
+- Ajonaikainen ympäristön validointi: `src/lib/env/runtimeEnv.ts` — kaikkien ympäristömuuttujien Zod-skeema, jonka virheet ja varoitukset näytetään käynnistyksen yhteydessä
+- Synkronointitunnukset: `src/lib/db/syncTokens.ts` — rajatut tunnukset määrityspakettien latauspäätepisteille; taustalla on SQLiten `sync_tokens`-taulu (migraatio `024_create_sync_tokens.sql`)
+- WebSocket-kättelyn todennus: `src/lib/ws/handshake.ts` — validoi WS-päivityspyynnöt API-avaimen tai istuntoevästeen avulla
+
+## 5) Pilvisynkronointi
+
+- Ajastimen alustus: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
+- Säännöllinen tehtävä: `src/shared/services/cloudSyncScheduler.ts`
+- Säännöllinen tehtävä: `src/shared/services/modelSyncScheduler.ts`
+- Hallintareitti: `src/app/api/sync/cloud/route.ts`
+
+## Pyynnön elinkaari (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
@@ -372,105 +601,105 @@ sequenceDiagram
     Stream->>Usage: extract usage + persist history/log
 ```
 
-## Combo + Account Fallback Flow
+## Yhdistelmä- ja tilivarauspolku
 
 ```mermaid
 flowchart TD
-    A[Incoming model string] --> B{Is combo name?}
-    B -- Yes --> C[Load combo models sequence]
-    B -- No --> D[Single model path]
+    A[Saapuva mallimerkkijono] --> B{Onko yhdistelmän nimi?}
+    B -- Kyllä --> C[Lataa yhdistelmän mallijärjestys]
+    B -- Ei --> D[Yksittäisen mallin polku]
 
-    C --> E[Try model N]
-    E --> F[Resolve provider/model]
+    C --> E[Kokeile mallia N]
+    E --> F[Selvitä palveluntarjoaja/malli]
     D --> F
 
-    F --> G[Select account credentials]
-    G --> H{Credentials available?}
-    H -- No --> I[Return provider unavailable]
-    H -- Yes --> J[Execute request]
+    F --> G[Valitse tilin tunnistetiedot]
+    G --> H{Onko tunnistetietoja saatavilla?}
+    H -- Ei --> I[Palauta, ettei palveluntarjoaja ole käytettävissä]
+    H -- Kyllä --> J[Suorita pyyntö]
 
-    J --> K{Success?}
-    K -- Yes --> L[Return response]
-    K -- No --> M{Fallback-eligible error?}
+    J --> K{Onnistuiko?}
+    K -- Kyllä --> L[Palauta vastaus]
+    K -- Ei --> M{Salliiko virhe varajärjestelyn?}
 
-    M -- No --> N[Return error]
-    M -- Yes --> O[Mark account unavailable cooldown]
-    O --> P{Another account for provider?}
-    P -- Yes --> G
-    P -- No --> Q{In combo with next model?}
-    Q -- Yes --> E
-    Q -- No --> R[Return all unavailable]
+    M -- Ei --> N[Palauta virhe]
+    M -- Kyllä --> O[Merkitse tili tilapäisesti poissa käytöstä]
+    O --> P{Onko palveluntarjoajalla toinen tili?}
+    P -- Kyllä --> G
+    P -- Ei --> Q{Onko yhdistelmässä seuraava malli?}
+    Q -- Kyllä --> E
+    Q -- Ei --> R[Palauta, etteivät mitkään ole käytettävissä]
 ```
 
-Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics. Combo routing adds one extra guard: provider-scoped 400s such as upstream content-block and role-validation failures are treated as model-local failures so later combo targets can still run.
+Varajärjestelypäätökset tehdään tiedostossa `open-sse/services/accountFallback.ts` tilakoodien ja virheviestiheuristiikan perusteella. Yhdistelmäreititys lisää yhden ylimääräisen tarkistuksen: palveluntarjoajakohtaiset 400-virheet, kuten ylävirran sisällön estämisestä ja roolien validoinnista aiheutuvat virheet, käsitellään mallikohtaisina virheinä, jotta yhdistelmän myöhemmät kohteet voidaan edelleen suorittaa.
 
-## OAuth Onboarding and Token Refresh Lifecycle
+## OAuth-käyttöönoton ja tunnuksen päivityksen elinkaari
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant UI as Dashboard UI
+    participant UI as Hallintapaneelin käyttöliittymä
     participant OAuth as /api/oauth/[provider]/[action]
-    participant ProvAuth as Provider Auth Server
+    participant ProvAuth as Palveluntarjoajan todennuspalvelin
     participant DB as localDb
     participant Test as /api/providers/[id]/test
-    participant Exec as Provider Executor
+    participant Exec as Palveluntarjoajan suorittaja
 
-    UI->>OAuth: GET authorize or device-code
-    OAuth->>ProvAuth: create auth/device flow
-    ProvAuth-->>OAuth: auth URL or device code payload
-    OAuth-->>UI: flow data
+    UI->>OAuth: GET authorize tai device-code
+    OAuth->>ProvAuth: luo todennus-/laitepolku
+    ProvAuth-->>OAuth: todennus-URL tai laitekoodin hyötykuorma
+    OAuth-->>UI: polun tiedot
 
-    UI->>OAuth: POST exchange or poll
-    OAuth->>ProvAuth: token exchange/poll
-    ProvAuth-->>OAuth: access/refresh tokens
-    OAuth->>DB: createProviderConnection(oauth data)
-    OAuth-->>UI: success + connection id
+    UI->>OAuth: POST exchange tai poll
+    OAuth->>ProvAuth: tunnuksen vaihto/kysely
+    ProvAuth-->>OAuth: käyttö-/päivitystunnukset
+    OAuth->>DB: createProviderConnection(oauth-tiedot)
+    OAuth-->>UI: onnistuminen + yhteyden tunnus
 
     UI->>Test: POST /api/providers/[id]/test
-    Test->>Exec: validate credentials / optional refresh
-    Exec-->>Test: valid or refreshed token info
-    Test->>DB: update status/tokens/errors
-    Test-->>UI: validation result
+    Test->>Exec: validoi tunnistetiedot / valinnainen päivitys
+    Exec-->>Test: voimassa olevat tai päivitetyt tunnustiedot
+    Test->>DB: päivitä tila/tunnukset/virheet
+    Test-->>UI: validoinnin tulos
 ```
 
-Refresh during live traffic is executed inside `open-sse/handlers/chatCore.ts` via executor `refreshCredentials()`.
+Päivitys suoritetaan reaaliaikaisen liikenteen aikana tiedostossa `open-sse/handlers/chatCore.ts` suorittajan `refreshCredentials()`-toiminnolla.
 
-## Cloud Sync Lifecycle (Enable / Sync / Disable)
+## Pilvisynkronoinnin elinkaari (käyttöönotto / synkronointi / käytöstäpoisto)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant UI as Endpoint Page UI
+    participant UI as Päätepistesivun käyttöliittymä
     participant Sync as /api/sync/cloud
     participant DB as localDb
-    participant Cloud as External Cloud Sync
+    participant Cloud as Ulkoinen pilvisynkronointi
     participant Claude as ~/.claude/settings.json
 
     UI->>Sync: POST action=enable
-    Sync->>DB: set cloudEnabled=true
-    Sync->>DB: ensure API key exists
-    Sync->>Cloud: POST /sync/{machineId} (providers/aliases/combos/keys)
-    Cloud-->>Sync: sync result
+    Sync->>DB: aseta cloudEnabled=true
+    Sync->>DB: varmista, että API-avain on olemassa
+    Sync->>Cloud: POST /sync/{machineId} (palveluntarjoajat/aliakset/yhdistelmät/avaimet)
+    Cloud-->>Sync: synkronoinnin tulos
     Sync->>Cloud: GET /{machineId}/v1/verify
-    Sync-->>UI: enabled + verification status
+    Sync-->>UI: käytössä + vahvistuksen tila
 
     UI->>Sync: POST action=sync
     Sync->>Cloud: POST /sync/{machineId}
-    Cloud-->>Sync: remote data
-    Sync->>DB: update newer local tokens/status
-    Sync-->>UI: synced
+    Cloud-->>Sync: etätiedot
+    Sync->>DB: päivitä uudemmat paikalliset tunnukset/tila
+    Sync-->>UI: synkronoitu
 
     UI->>Sync: POST action=disable
-    Sync->>DB: set cloudEnabled=false
+    Sync->>DB: aseta cloudEnabled=false
     Sync->>Cloud: DELETE /sync/{machineId}
-    Sync->>Claude: switch ANTHROPIC_BASE_URL back to local (if needed)
-    Sync-->>UI: disabled
+    Sync->>Claude: vaihda ANTHROPIC_BASE_URL takaisin paikalliseksi (tarvittaessa)
+    Sync-->>UI: poistettu käytöstä
 ```
 
-Periodic sync is triggered by `CloudSyncScheduler` when cloud is enabled.
+`CloudSyncScheduler` käynnistää säännöllisen synkronoinnin, kun pilvi on käytössä.
 
-## Data Model and Storage Map
+## Tietomalli ja tallennuskartta
 
 ```mermaid
 erDiagram
@@ -571,14 +800,14 @@ erDiagram
     }
 ```
 
-Physical storage files:
+Fyysiset tallennustiedostot:
 
-- primary runtime DB: `${DATA_DIR}/storage.sqlite`
-- request log lines: `${DATA_DIR}/log.txt` (compat/debug artifact)
-- structured call payload archives: `${DATA_DIR}/call_logs/`
-- optional translator/request debug sessions: `<repo>/logs/...`
+- ensisijainen ajonaikainen tietokanta: `${DATA_DIR}/storage.sqlite`
+- pyyntölokin rivit: `${DATA_DIR}/log.txt` (yhteensopivuus-/virheenkorjausartefakti)
+- rakenteisten kutsuhyötykuormien arkistot: `${DATA_DIR}/call_logs/`
+- valinnaiset muuntimen/pyyntöjen virheenkorjausistunnot: `<repo>/logs/...`
 
-## Deployment Topology
+## Käyttöönoton topologia
 
 ```mermaid
 flowchart LR
@@ -609,279 +838,328 @@ flowchart LR
     Next --> SyncCloud
 ```
 
-## Module Mapping (Decision-Critical)
+## Moduulikartoitus (päätöksenteon kannalta olennainen)
 
-### Route and API Modules
+### Reitti- ja API-moduulit
 
-- `src/app/api/v1/*`, `src/app/api/v1beta/*`: compatibility APIs
-- `src/app/api/v1/providers/[provider]/*`: dedicated per-provider routes (chat, embeddings, images)
-- `src/app/api/providers*`: provider CRUD, validation, testing
-- `src/app/api/provider-nodes*`: custom compatible node management
-- `src/app/api/provider-models`: custom model management (CRUD)
-- `src/app/api/models/route.ts`: model catalog API (aliases + custom models)
-- `src/app/api/oauth/*`: OAuth/device-code flows
-- `src/app/api/keys*`: local API key lifecycle
-- `src/app/api/models/alias`: alias management
-- `src/app/api/combos*`: fallback combo management
-- `src/app/api/pricing`: pricing overrides for cost calculation
-- `src/app/api/settings/proxy`: proxy configuration (GET/PUT/DELETE)
-- `src/app/api/settings/proxy/test`: outbound proxy connectivity test (POST)
-- `src/app/api/usage/*`: usage and logs APIs
-- `src/app/api/sync/*` + `src/app/api/cloud/*`: cloud sync and cloud-facing helpers
-- `src/app/api/cli-tools/*`: local CLI config writers/checkers
-- `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
-- `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
-- `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
-- `src/app/api/sessions`: active session listing (GET)
-- `src/app/api/rate-limits`: per-account rate limit status (GET)
-- `src/app/api/sync/tokens`: sync token CRUD (GET/POST)
-- `src/app/api/sync/tokens/[id]`: sync token get/delete (GET/DELETE)
-- `src/app/api/sync/bundle`: config bundle download (GET, ETag versioning)
-- `src/app/api/v1/ws`: WebSocket upgrade handler for OpenAI-compatible WS clients
+- `src/app/api/v1/*`, `src/app/api/v1beta/*`: yhteensopivuus-API:t
+- `src/app/api/v1/providers/[provider]/*`: erilliset palveluntarjoajakohtaiset reitit (keskustelu, upotukset, kuvat)
+- `src/app/api/providers*`: palveluntarjoajien CRUD-toiminnot, validointi ja testaus
+- `src/app/api/provider-nodes*`: mukautettujen yhteensopivien solmujen hallinta
+- `src/app/api/provider-models`: mukautettujen mallien hallinta (CRUD)
+- `src/app/api/models/route.ts`: malliluettelon API (aliakset + mukautetut mallit)
+- `src/app/api/oauth/*`: OAuth-/laitekoodityönkulut
+- `src/app/api/keys*`: paikallisten API-avainten elinkaari
+- `src/app/api/models/alias`: aliasten hallinta
+- `src/app/api/combos*`: varayhdistelmien hallinta
+- `src/app/api/pricing`: kustannuslaskennan hinnoitteluohitukset
+- `src/app/api/settings/proxy`: välityspalvelimen määritys (GET/PUT/DELETE)
+- `src/app/api/settings/proxy/test`: lähtevän välityspalvelinyhteyden testi (POST)
+- `src/app/api/usage/*`: käyttö- ja loki-API:t
+- `src/app/api/sync/*` + `src/app/api/cloud/*`: pilvisynkronointi ja pilveen liittyvät aputoiminnot
+- `src/app/api/cli-tools/*`: paikalliset CLI-määritysten kirjoittimet/tarkistimet
+- `src/app/api/settings/ip-filter`: IP-osoitteiden sallittujen/estettyjen luettelo (GET/PUT)
+- `src/app/api/settings/thinking-budget`: päättelytokenien budjettimääritys (GET/PUT)
+- `src/app/api/settings/system-prompt`: yleinen järjestelmäkehote (GET/PUT)
+- `src/app/api/settings/compression`: yleiset pakkausasetukset (GET/PUT)
+- `src/app/api/compression/*`: pakkauksen esikatselu, sääntöjen metatiedot ja kielipaketit
+- `src/app/api/context/caveman/config`: Caveman-asetusten alias (GET/PUT)
+- `src/app/api/context/rtk/*`: RTK-määritys, suodatinluettelo, testipäätepiste ja raakatuotoksen palautus
+- `src/app/api/context/combos*`: pakkausyhdistelmien CRUD-toiminnot ja reititysyhdistelmien määritykset
+- `src/app/api/context/analytics`: pakkausanalytiikan alias
+- `src/app/api/sessions`: aktiivisten istuntojen luettelo (GET)
+- `src/app/api/rate-limits`: tilikohtainen nopeusrajoituksen tila (GET)
+- `src/app/api/sync/tokens`: synkronointitokenien CRUD-toiminnot (GET/POST)
+- `src/app/api/sync/tokens/[id]`: synkronointitokenin noutaminen/poistaminen (GET/DELETE)
+- `src/app/api/sync/bundle`: määrityspaketin lataus (GET, ETag-versiointi)
+- `src/app/api/v1/ws`: WebSocket-päivityksen käsittelijä OpenAI-yhteensopiville WS-asiakkaille
 
-### Routing and Execution Core
+### Reititys- ja suoritusydin
 
-- `src/sse/handlers/chat.ts`: request parse, combo handling, account selection loop
-- `open-sse/handlers/chatCore.ts`: translation, executor dispatch, retry/refresh handling, stream setup
-- `open-sse/executors/*`: provider-specific network and format behavior
+- `src/sse/handlers/chat.ts`: pyynnön jäsennys, yhdistelmien käsittely ja tilinvalintasilmukka
+- `open-sse/handlers/chatCore.ts`: muunnos, suorittimen välitys, uudelleenyritysten/päivitysten käsittely ja virran alustus
+- `open-sse/executors/*`: palveluntarjoajakohtainen verkko- ja muotokäyttäytyminen
 
-### Translation Registry and Format Converters
+### Muunnosrekisteri ja muotomuuntimet
 
-- `open-sse/translator/index.ts`: translator registry and orchestration
-- Request translators: `open-sse/translator/request/*`
-- Response translators: `open-sse/translator/response/*`
-- Format constants: `open-sse/translator/formats.ts`
+- `open-sse/translator/index.ts`: kääntäjärekisteri ja orkestrointi
+- Pyyntökääntäjät: `open-sse/translator/request/*` (9 moduulia — `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`, `gemini-to-openai`, `openai-responses`, `openai-to-claude`, `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`)
+- Vastauskääntäjät: `open-sse/translator/response/*` (11 moduulia — `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`, `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`, `openai-to-claude`, `openai-to-gemini`, `openai-to-gemini-sse`, `responsesToolItem`)
+- Apumoduulit: `open-sse/translator/helpers/*` (12 moduulia — `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `jsonUtil`, `markdownBoundary`, `maxTokensHelper`, `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `strictSystemHoist`, `toolCallHelper`, `toolCallShim`)
+- Muotovakiot: `open-sse/translator/formats.ts`
+- Alustus ja rekisteri: `open-sse/translator/bootstrap.ts`, `open-sse/translator/registry.ts`
+- Kuvamuotojen apumoduulit: `open-sse/translator/image/`
 
-### Persistence
+### Pysyväistallennus
 
-- `src/lib/db/*`: persistent config/state and domain persistence on SQLite
-- `src/lib/localDb.ts`: compatibility re-export for DB modules
-- `src/lib/usageDb.ts`: usage history/call logs facade on top of SQLite tables
+- `src/lib/db/*`: pysyvät määritykset/tila ja toimialueen tietojen tallennus SQLiteen
+- `src/lib/db/*`: tuo yksittäiset moduulit suoraan — ei barrel-vientiä (vanha `localDb.ts`-uudelleenvientikerros poistettiin)
+- `src/lib/usageDb.ts`: käyttöhistorian ja kutsulokien rajapinta SQLite-taulujen päällä
 
-## Provider Executor Coverage (Strategy Pattern)
+## Palvelun tarjoajan suorittimen kattavuus (strategiamalli)
 
-Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
+Jokaisella palvelun tarjoajalla on `BaseExecutor`-luokkaa laajentava erikoistunut suoritin (`open-sse/executors/base.ts`-tiedostossa). Se tarjoaa URL-osoitteiden muodostamisen, otsakkeiden rakentamisen, eksponentiaalista viivettä käyttävät uudelleenyritykset, tunnistetietojen päivityskoukut ja `execute()`-orkestrointimenetelmän.
 
-| Executor               | Provider(s)                                                                                                                                                 | Special Handling                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `DefaultExecutor`      | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Dynamic URL/header config per provider                               |
-| `AntigravityExecutor`  | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing                      |
-| `CliProxyApiExecutor`  | CLIProxyAPI-compatible providers                                                                                                                            | Custom auth and protocol handling                                    |
-| `CloudflareAiExecutor` | Cloudflare Workers AI                                                                                                                                       | Account ID injection, Neurons-based usage tracking                   |
-| `CodexExecutor`        | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
-| `CursorExecutor`       | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
-| `GithubExecutor`       | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
-| `KiroExecutor`         | AWS CodeWhisperer/Kiro                                                                                                                                      | AWS EventStream binary format → SSE conversion                       |
-| `OpenCodeExecutor`     | OpenCode                                                                                                                                                    | AI SDK compatible provider setup                                     |
-| `PollinationsExecutor` | Pollinations AI                                                                                                                                             | No API key required, rate-limited requests                           |
-| `QoderExecutor`        | Qoder AI                                                                                                                                                    | PAT and OAuth support, multi-model free tier                         |
-| `VertexExecutor`       | Google Vertex AI                                                                                                                                            | Service account auth, region-based endpoints                         |
+| Suorittaja                | Palveluntarjoaja(t)                                                                                                                                        | Erityiskäsittely                                                                   |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `DefaultExecutor`         | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA jne. | Dynaaminen URL-/otsakemääritys palveluntarjoajakohtaisesti                         |
+| `AntigravityExecutor`     | Google Antigravity                                                                                                                                         | Mukautetut projekti-/istuntotunnukset, Retry-After-jäsennys, 429-häivytys          |
+| `AzureOpenAIExecutor`     | Azure OpenAI                                                                                                                                               | Käyttöönottoon perustuva reititys, api-version-kyselyparametrin pakotus            |
+| `BlackboxWebExecutor`     | Blackbox AI (verkkotila)                                                                                                                                   | Verkkoistunnon käänteismallinnus TLS-sormenjäljen emuloinnilla                     |
+| `ClaudeIdentityExecutor`  | Claude.ai (CCH-polku)                                                                                                                                      | Rajoite- ja työkalujen uudelleenkartoitusputket, sormenjäljen muokkaus             |
+| `CliProxyApiExecutor`     | CLIProxyAPI-yhteensopivat palveluntarjoajat                                                                                                                | Mukautettu todennus ja protokollankäsittely                                        |
+| `CloudflareAiExecutor`    | Cloudflare Workers AI                                                                                                                                      | Tilitunnuksen lisäys, Neurons-pohjainen käytön seuranta                            |
+| `CodexExecutor`           | OpenAI Codex                                                                                                                                               | Lisää järjestelmäohjeet ja pakottaa päättelypanoksen                               |
+| `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                        | Selainistunnon Responses API -silta säikeen ja vuoron kiinnityksellä               |
+| `CommandCodeExecutor`     | Command Code                                                                                                                                               | OAuth ja istuntokohtainen otsakkeiden kierrätys                                    |
+| `CursorExecutor`          | Cursor IDE                                                                                                                                                 | ConnectRPC-protokolla, Protobuf-koodaus, pyyntöjen allekirjoitus tarkistussummalla |
+| `DevinCliExecutor`        | Devin CLI                                                                                                                                                  | Devin-tehtävien elinkaaren välitys pilviagenttimoduulin kautta                     |
+| `GithubExecutor`          | GitHub Copilot                                                                                                                                             | Copilot-tunnisteen päivitys, VSCodea jäljittelevät otsakkeet                       |
+| `GitlabExecutor`          | GitLab Duo                                                                                                                                                 | GitLab OAuth ja projektikohtainen reititys                                         |
+| `GlmExecutor`             | Z.AI GLM (mukaan lukien `glmt`-esiasetus)                                                                                                                  | Päättelybudjetin huomioiva, GLMT-esiasetuksen vakiot                               |
+| `GrokWebExecutor`         | xAI Grok -verkkoversio                                                                                                                                     | Verkkoistunnon käänteismallinnus, tilan valinta (päättely/vakio)                   |
+| `KieExecutor`             | KIE                                                                                                                                                        | Mukautettu tunnisteiden myöntäminen vaihtuvilla istuntoankkureilla                 |
+| `KiroExecutor`            | AWS CodeWhisperer/Kiro                                                                                                                                     | AWS EventStream -binäärimuoto → SSE-muunnos                                        |
+| `MuseSparkWebExecutor`    | Muse Spark (verkko)                                                                                                                                        | Verkkoistunnon käänteismallinnus kuvaviestien välityksellä                         |
+| `NlpCloudExecutor`        | NLP Cloud                                                                                                                                                  | Palveluntarjoajakohtainen pyyntörungon rakenne                                     |
+| `OpenCodeExecutor`        | OpenCode                                                                                                                                                   | AI SDK -yhteensopiva palveluntarjoajan määritys                                    |
+| `PerplexityWebExecutor`   | Perplexity-verkkoversio                                                                                                                                    | Verkkoistunnon käänteismallinnus keskustelun jatkamista varten                     |
+| `PetalsExecutor`          | Petalsin hajautettu päättely                                                                                                                               | Hajautetun parven reititys                                                         |
+| `PollinationsExecutor`    | Pollinations AI                                                                                                                                            | API-avainta ei vaadita, nopeusrajoitetut pyynnöt                                   |
+| `QoderExecutor`           | Qoder AI                                                                                                                                                   | PAT- ja OAuth-tuki, usean mallin maksuton taso                                     |
+| `VertexExecutor`          | Google Vertex AI                                                                                                                                           | Palvelutilitodennus, aluekohtaiset päätepisteet                                    |
+| `DevinDesktopExecutor`    | Devin Desktop                                                                                                                                              | Tuotu API-avain ja Connect-protobuf-keskustelun suoratoisto                        |
 
-All other providers (including custom compatible nodes) use the `DefaultExecutor`.
+Kaikki muut palveluntarjoajat (mukaan lukien mukautetut yhteensopivat solmut) käyttävät `DefaultExecutor`-suorittajaa.
 
-## Provider Compatibility Matrix
+## Palveluntarjoajien yhteensopivuusmatriisi
 
-| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
-| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
-| Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
-| Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
-| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
-| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
-| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
-| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
-| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Qoder            | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Kilo Code        | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Cline            | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Kimi Coding      | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cloudflare AI    | openai           | API Token + Acct ID   | ✅               | ✅         | ❌            | ❌                 |
-| Pollinations     | openai           | None (no key)         | ✅               | ✅         | ❌            | ❌                 |
-| Scaleway AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| LongCat          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Ollama Cloud     | openai           | API Key (optional)    | ✅               | ✅         | ❌            | ❌                 |
-| HuggingFace      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Nebius           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| SiliconFlow      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Hyperbolic       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Vertex AI        | gemini           | Service Account       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+> **Huomautus:** Alla oleva matriisi on edustava otos OmniRoute v3.8.0:n 351 rekisteröidystä palveluntarjoajasta.
+> Kanoninen ja jatkuvasti päivitettävä luettelo on saatavilla
+> [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md)-tiedostossa (luodaan automaattisesti) tai ensisijaisesta
+> lähteestä `src/shared/constants/providers.ts` (Zod-validoidaan ladattaessa).
 
-## Format Translation Coverage
+| Palveluntarjoaja    | Muoto            | Todennus                      | Suoratoisto      | Ei-suoratoisto | Tunnuksen päivitys | Käyttörajapinta                |
+| ------------------- | ---------------- | ----------------------------- | ---------------- | -------------- | ------------------ | ------------------------------ |
+| Claude              | claude           | API-avain / OAuth             | ✅               | ✅             | ✅                 | ⚠️ Vain järjestelmänvalvojille |
+| Gemini              | gemini           | API-avain / OAuth             | ✅               | ✅             | ✅                 | ⚠️ Cloud Console               |
+| Antigravity         | antigravity      | OAuth                         | ✅               | ✅             | ✅                 | ✅ Täysi kiintiörajapinta      |
+| OpenAI              | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Codex               | openai-responses | OAuth                         | ✅ pakotettu     | ❌             | ✅                 | ✅ Nopeusrajoitukset           |
+| ChatGPT Web (Codex) | openai-responses | Selainistunto                 | ✅ pakotettu     | ❌             | ❌                 | ❌                             |
+| GitHub Copilot      | openai           | OAuth + Copilot-tunnus        | ✅               | ✅             | ✅                 | ✅ Kiintiön tilannekuvat       |
+| Cursor              | cursor           | Mukautettu tarkistussumma     | ✅               | ✅             | ❌                 | ❌                             |
+| Kiro                | kiro             | AWS SSO OIDC                  | ✅ (EventStream) | ❌             | ✅                 | ✅ Käyttörajat                 |
+| Qoder               | openai           | OAuth / PAT                   | ✅               | ✅             | ✅                 | ⚠️ Pyyntökohtainen             |
+| Kilo Code           | openai           | OAuth                         | ✅               | ✅             | ✅                 | ❌                             |
+| Cline               | openai           | OAuth                         | ✅               | ✅             | ✅                 | ❌                             |
+| Kimi Coding         | openai           | OAuth                         | ✅               | ✅             | ✅                 | ❌                             |
+| OpenRouter          | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| GLM/Kimi/MiniMax    | claude           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| DeepSeek            | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Groq                | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| xAI (Grok)          | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Mistral             | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Perplexity          | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Together AI         | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Fireworks AI        | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Cerebras            | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Cohere              | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| NVIDIA NIM          | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Cloudflare AI       | openai           | API-tunnus + tilin tunnus     | ✅               | ✅             | ❌                 | ❌                             |
+| Pollinations        | openai           | Ei mitään (ei avainta)        | ✅               | ✅             | ❌                 | ❌                             |
+| Scaleway AI         | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| LongCat             | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Ollama Cloud        | openai           | API-avain (valinnainen)       | ✅               | ✅             | ❌                 | ❌                             |
+| HuggingFace         | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Nebius              | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| SiliconFlow         | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Hyperbolic          | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Vertex AI           | gemini           | Palvelutili                   | ✅               | ✅             | ✅                 | ⚠️ Cloud Console               |
+| Command Code        | openai           | OAuth                         | ✅               | ✅             | ✅                 | ⚠️ Pyyntökohtainen             |
+| Z.AI / GLM          | openai           | API-avain / OAuth             | ✅               | ✅             | ❌                 | ❌                             |
+| GLMT (esiasetus)    | claude           | API-avain                     | ✅               | ✅             | ❌                 | ⚠️ Pyyntökohtainen             |
+| Kimi Coding         | openai           | OAuth / API-avain             | ✅               | ✅             | ✅                 | ❌                             |
+| KIE                 | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Devin Desktop       | openai           | Tuotu API-avain               | ✅ (Connect→SSE) | ✅             | ❌                 | ⚠️ Pyyntökohtainen             |
+| GitLab Duo          | openai           | OAuth (GitLab)                | ✅               | ✅             | ✅                 | ❌                             |
+| Devin CLI           | openai           | Paikallinen CLI-kirjautuminen | ✅               | ✅             | ❌                 | ✅ Tehtävärajapinta            |
+| Codex Cloud         | openai-responses | OAuth                         | ✅               | ❌             | ✅                 | ✅ Nopeusrajoitukset           |
+| Jules               | openai           | OAuth                         | ✅               | ✅             | ✅                 | ✅ Tehtävärajapinta            |
+| AgentRouter         | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Grok-Web            | openai           | Istuntoeväste                 | ✅               | ✅             | ❌                 | ❌                             |
+| Perplexity-Web      | openai           | Istuntoeväste                 | ✅               | ✅             | ❌                 | ❌                             |
+| BlackBox-Web        | openai           | Istuntoeväste + TLS           | ✅               | ✅             | ❌                 | ❌                             |
+| Muse-Spark-Web      | openai           | Istuntoeväste                 | ✅               | ✅             | ❌                 | ❌                             |
+| ModelScope          | openai           | API-avain                     | ✅               | ✅             | ❌                 | ⚠️ Kiintiökäytäntö             |
+| BazaarLink          | openai           | API-avain                     | ✅               | ✅             | ❌                 | ❌                             |
+| Petals              | openai           | Ei mitään                     | ✅               | ✅             | ❌                 | ❌                             |
+| Qoder               | openai           | OAuth / PAT                   | ✅               | ✅             | ✅                 | ⚠️ Pyyntökohtainen             |
+| OpenCode (Go/Zen)   | openai           | OAuth                         | ✅               | ✅             | ✅                 | ❌                             |
+| CLIProxyAPI         | openai           | Mukautettu                    | ✅               | ✅             | ❌                 | ❌                             |
 
-Detected source formats include:
+## Muunnosmuotojen kattavuus
+
+Tunnistettuihin lähdemuotoihin kuuluvat:
 
 - `openai`
 - `openai-responses`
 - `claude`
 - `gemini`
 
-Target formats include:
+Kohdemuotoihin kuuluvat:
 
-- OpenAI chat/Responses
+- OpenAI-keskustelu/Responses
 - Claude
-- Gemini/Antigravity envelope
+- Gemini/Antigravity-kuori
 - Kiro
 - Cursor
 
-Translations use **OpenAI as the hub format** — all conversions go through OpenAI as intermediate:
+Muunnokset käyttävät **OpenAI:ta keskusmuotona** — kaikki muunnokset kulkevat OpenAI:n kautta välivaiheena:
 
 ```
-Source Format → OpenAI (hub) → Target Format
+Lähdemuoto → OpenAI (keskusmuoto) → Kohdemuoto
 ```
 
-Translations are selected dynamically based on source payload shape and provider target format.
+Muunnokset valitaan dynaamisesti lähdehyötykuorman rakenteen ja palveluntarjoajan kohdemuodon perusteella.
 
-Additional processing layers in the translation pipeline:
+Muunnosputken lisäkäsittelykerrokset:
 
-- **Response sanitization** — Strips non-standard fields from OpenAI-format responses (both streaming and non-streaming) to ensure strict SDK compliance
-- **Role normalization** — Converts `developer` → `system` for non-OpenAI targets; merges `system` → `user` for models that reject the system role (GLM, ERNIE)
-- **Think tag extraction** — Parses `<think>...</think>` blocks from content into `reasoning_content` field
-- **Structured output** — Converts OpenAI `response_format.json_schema` to Gemini's `responseMimeType` + `responseSchema`
+- **Vastauksen puhdistus** — Poistaa OpenAI-muotoisista vastauksista epästandardit kentät (sekä suoratoistettavista että muista vastauksista) varmistaakseen tiukan SDK-yhteensopivuuden
+- **Roolien normalisointi** — Muuntaa roolin `developer` → `system` muille kuin OpenAI-kohteille; yhdistää roolin `system` → `user` malleissa, jotka eivät hyväksy järjestelmäroolia (GLM, ERNIE)
+- **Ajattelutunnisteiden poiminta** — Jäsentää sisällön `<think>...</think>`-lohkot `reasoning_content`-kenttään
+- **Rakenteinen tuloste** — Muuntaa OpenAI:n `response_format.json_schema`-määrityksen Geminin `responseMimeType`- ja `responseSchema`-määrityksiksi
 
-## Supported API Endpoints
+## Tuetut API-päätepisteet
 
-| Endpoint                                           | Format             | Handler                                                             |
-| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
-| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                                          |
-| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                                        |
-| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`                             |
-| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                                   |
-| `GET /v1/embeddings`                               | Model listing      | API route                                                           |
-| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`                              |
-| `GET /v1/images/generations`                       | Model listing      | API route                                                           |
-| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation                        |
-| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation                        |
-| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Dedicated per-provider with model validation                        |
-| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                                           |
-| `GET /v1/models`                                   | OpenAI Models list | API route (chat + embedding + image + custom models)                |
-| `GET /api/models/catalog`                          | Catalog            | All models grouped by provider + type                               |
-| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                                           |
-| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Network proxy configuration                                         |
-| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Proxy health/connectivity test endpoint                             |
-| `GET/POST/DELETE /api/provider-models`             | Provider Models    | Provider model metadata backing custom and managed available models |
+| Päätepiste                                         | Muoto                    | Käsittelijä                                                                                                   |
+| -------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `POST /v1/chat/completions`                        | OpenAI-keskustelu        | `src/sse/handlers/chat.ts`                                                                                    |
+| `POST /v1/messages`                                | Claude-viestit           | Sama käsittelijä (tunnistetaan automaattisesti)                                                               |
+| `POST /v1/responses`                               | OpenAI Responses         | `open-sse/handlers/responsesHandler.ts`                                                                       |
+| `POST /v1/embeddings`                              | OpenAI-upotukset         | `open-sse/handlers/embeddings.ts`                                                                             |
+| `GET /v1/embeddings`                               | Mallien luettelo         | API-reitti                                                                                                    |
+| `POST /v1/images/generations`                      | OpenAI-kuvat             | `open-sse/handlers/imageGeneration.ts`                                                                        |
+| `GET /v1/images/generations`                       | Mallien luettelo         | API-reitti                                                                                                    |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI-keskustelu        | Palveluntarjoajakohtainen päätepiste mallin validoinnilla                                                     |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI-upotukset         | Palveluntarjoajakohtainen päätepiste mallin validoinnilla                                                     |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI-kuvat             | Palveluntarjoajakohtainen päätepiste mallin validoinnilla                                                     |
+| `POST /v1/messages/count_tokens`                   | Claude-tokenien määrä    | API-reitti                                                                                                    |
+| `GET /v1/models`                                   | OpenAI-mallien luettelo  | API-reitti (keskustelu-, upotus-, kuva- ja mukautetut mallit)                                                 |
+| `GET /api/models/catalog`                          | Luettelo                 | Kaikki mallit ryhmiteltyinä palveluntarjoajan ja tyypin mukaan                                                |
+| `POST /v1beta/models/*:streamGenerateContent`      | Natiivi Gemini           | API-reitti                                                                                                    |
+| `GET/PUT/DELETE /api/settings/proxy`               | Välityspalvelinasetukset | Verkon välityspalvelimen määritykset                                                                          |
+| `POST /api/settings/proxy/test`                    | Välityspalvelinyhteys    | Välityspalvelimen kunnon ja yhteyden testauspäätepiste                                                        |
+| `GET/POST/DELETE /api/provider-models`             | Palveluntarjoajan mallit | Mukautettujen ja hallittujen saatavilla olevien mallien taustalla olevat palveluntarjoajan mallien metatiedot |
 
-## Bypass Handler
+## Ohituskäsittelijä
 
-The bypass handler (`open-sse/utils/bypassHandler.ts`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
+Ohituskäsittelijä (`open-sse/utils/bypassHandler.ts`) sieppaa Claude CLI:n tunnetut ”kertakäyttöiset” pyynnöt — lämmittelypingit, otsikoiden poiminnat ja tokenien laskennat — ja palauttaa **väärennetyn vastauksen** kuluttamatta ylemmän tason palveluntarjoajan tokeneita. Tämä aktivoituu vain, kun `User-Agent` sisältää arvon `claude-cli`.
 
-## Request Logging and Artifacts
+## Pyyntölokitus ja artefaktit
 
-The older file-based request logger (`open-sse/utils/requestLogger.ts`) is retained only for
-legacy compatibility. The current runtime contract uses:
+Vanhempi tiedostopohjainen pyyntölokittaja (`open-sse/utils/requestLogger.ts`) säilytetään vain
+taaksepäin yhteensopivuutta varten. Nykyinen ajonaikainen sopimus käyttää seuraavia:
 
-- `APP_LOG_TO_FILE=true` for application and audit logs written under `<repo>/logs/`
-- SQLite-backed call log records in `call_logs`
-- `${DATA_DIR}/call_logs/YYYY-MM-DD/...` artifacts when the call log pipeline is enabled
+- `APP_LOG_TO_FILE=true` sovellus- ja auditointilokeille, jotka kirjoitetaan hakemistoon `<repo>/logs/`
+- SQLite-pohjaiset kutsulokitietueet taulussa `call_logs`
+- `${DATA_DIR}/call_logs/YYYY-MM-DD/...`-artefaktit, kun kutsulokiputki on käytössä
 
-## Failure Modes and Resilience
+## Vikatilat ja vikasietoisuus
 
-## 1) Account/Provider Availability
+## 1) Tilin/palveluntarjoajan saatavuus
 
-- connection cooldown on retryable upstream failures
-- account fallback before failing request
-- combo model fallback when current model/provider path is exhausted
+- yhteyden jäähdytys uudelleen yritettävien ylemmän tason virheiden yhteydessä
+- varatilin käyttö ennen pyynnön hylkäämistä
+- yhdistelmämallin varavaihtoehto, kun nykyisen mallin/palveluntarjoajan polun vaihtoehdot on käytetty loppuun
 
-## 2) Token Expiry
+## 2) Tokenin vanheneminen
 
-- pre-check and refresh with retry for refreshable providers
-- 401/403 retry after refresh attempt in core path
+- ennakkotarkistus ja päivitys uudelleenyrityksellä päivitettävissä oleville palveluntarjoajille
+- uusi yritys 401/403-virheen jälkeen päivitysyrityksen jälkeen ydinkäsittelypolussa
 
-## 3) Stream Safety
+## 3) Suoratoiston turvallisuus
 
-- disconnect-aware stream controller
-- translation stream with end-of-stream flush and `[DONE]` handling
-- usage estimation fallback when provider usage metadata is missing
+- yhteyden katkeamisen huomioiva suoratoisto-ohjain
+- käännössuoratoisto, jossa käsitellään suoratoiston päättymisen tyhjennys ja `[DONE]`
+- käytön arviointi varamenetelmänä, kun palveluntarjoajan käytön metatiedot puuttuvat
 
-## 4) Cloud Sync Degradation
+## 4) Pilvisynkronoinnin heikentyminen
 
-- sync errors are surfaced but local runtime continues
-- scheduler has retry-capable logic, but periodic execution currently calls single-attempt sync by default
+- synkronointivirheet tuodaan näkyviin, mutta paikallinen suoritus jatkuu
+- ajastimessa on uudelleenyrityksiä tukeva logiikka, mutta ajoittainen suoritus kutsuu tällä hetkellä oletusarvoisesti vain yhden yrityksen synkronointia
 
-## 5) Data Integrity
+## 5) Tietojen eheys
 
-- SQLite schema migrations and auto-upgrade hooks at startup
-- legacy JSON → SQLite migration compatibility path
+- SQLite-skeeman migraatiot ja automaattisen päivityksen kytkennät käynnistyksen yhteydessä
+- vanhan JSON → SQLite -migraation yhteensopivuuspolku
 
-## 6) SSRF / Outbound URL Guard
+## 6) SSRF / lähtevien URL-osoitteiden suojaus
 
-- `src/shared/network/outboundUrlGuard.ts` blocks all private/loopback/link-local target URLs before they reach provider executors
-- Provider model discovery and validation routes use `src/shared/network/safeOutboundFetch.ts` which applies the guard before every outbound request
-- Guard errors surface as `URL_GUARD_BLOCKED` with HTTP 422 and are logged to the compliance audit trail via `providerAudit.ts`
+- `src/shared/network/outboundUrlGuard.ts` estää kaikki yksityiset, loopback- ja link-local-kohde-URL-osoitteet ennen kuin ne saavuttavat palveluntarjoajien suorittimet
+- palveluntarjoajien mallien etsintä- ja validointireitit käyttävät tiedostoa `src/shared/network/safeOutboundFetch.ts`, joka suorittaa suojauksen ennen jokaista lähtevää pyyntöä
+- suojausvirheet näytetään virheenä `URL_GUARD_BLOCKED` ja HTTP-tilakoodilla 422 sekä kirjataan vaatimustenmukaisuuden auditointijälkeen `providerAudit.ts`-tiedoston kautta
 
-## Observability and Operational Signals
+## Havainnoitavuus ja operatiiviset signaalit
 
-Runtime visibility sources:
+Ajonaikaisen näkyvyyden lähteet:
 
-- console logs from `src/sse/utils/logger.ts`
-- per-request usage aggregates in SQLite (`usage_history`, `call_logs`, `proxy_logs`)
-- four-stage detailed payload captures in SQLite (`request_detail_logs`) when `settings.detailed_logs_enabled=true`
-- textual request status log in `log.txt` (optional/compat)
-- optional application log files under `logs/` when `APP_LOG_TO_FILE=true`
-- optional request artifacts under `${DATA_DIR}/call_logs/` when the call log pipeline is enabled
-- dashboard usage endpoints (`/api/usage/*`) for UI consumption
+- konsolilokit tiedostosta `src/sse/utils/logger.ts`
+- pyyntökohtaiset käytön koosteet SQLitessä (`usage_history`, `call_logs`, `proxy_logs`)
+- nelivaiheiset yksityiskohtaiset hyötykuvatallenteet SQLitessä (`request_detail_logs`), kun `settings.detailed_logs_enabled=true`
+- tekstimuotoinen pyynnön tilaloki tiedostossa `log.txt` (valinnainen/yhteensopivuus)
+- valinnaiset sovelluslokitiedostot hakemistossa `logs/`, kun `APP_LOG_TO_FILE=true`
+- valinnaiset pyyntöartefaktit hakemistossa `${DATA_DIR}/call_logs/`, kun kutsulokiputki on käytössä
+- koontinäytön käyttörajapinnat (`/api/usage/*`) käyttöliittymän käyttöön
 
-Detailed request payload capture stores up to four JSON payload stages per routed call:
+Yksityiskohtainen pyyntöjen hyötykuvien tallennus säilyttää enintään neljä JSON-hyötykuvavaihetta reititettyä kutsua kohden:
 
-- raw request received from the client
-- translated request actually sent upstream
-- provider response reconstructed as JSON; streamed responses are compacted to the final summary plus stream metadata
-- final client response returned by OmniRoute; streamed responses are stored in the same compact summary form
+- asiakkaalta vastaanotettu raakamuotoinen pyyntö
+- käännetty pyyntö, joka tosiasiallisesti lähetettiin ylemmälle tasolle
+- JSON-muotoon rekonstruoitu palveluntarjoajan vastaus; suoratoistetut vastaukset tiivistetään lopulliseksi yhteenvedoksi ja suoratoiston metatiedoiksi
+- OmniRouten palauttama lopullinen asiakasvastaus; suoratoistetut vastaukset tallennetaan samassa tiivistetyssä yhteenvetomuodossa
 
-## Security-Sensitive Boundaries
+## Tietoturvakriittiset rajapinnat
 
-- JWT secret (`JWT_SECRET`) secures dashboard session cookie verification/signing
-- Initial password bootstrap (`INITIAL_PASSWORD`) should be explicitly configured for first-run provisioning
-- API key HMAC secret (`API_KEY_SECRET`) secures generated local API key format
-- Provider secrets (API keys/tokens) are persisted in local DB and should be protected at filesystem level
-- Cloud sync endpoints rely on API key auth + machine id semantics
+- JWT-salaisuus (`JWT_SECRET`) suojaa hallintapaneelin istuntoevästeiden tarkistuksen ja allekirjoituksen
+- Alkuperäinen salasana (`INITIAL_PASSWORD`) tulee määrittää eksplisiittisesti ensimmäisen käynnistyksen alustusta varten
+- API-avaimen HMAC-salaisuus (`API_KEY_SECRET`) suojaa luotujen paikallisten API-avainten muodon
+- Palveluntarjoajien salaisuudet (API-avaimet/tunnukset) tallennetaan paikalliseen tietokantaan, ja ne tulee suojata tiedostojärjestelmätasolla
+- Pilvisynkronoinnin päätepisteet perustuvat API-avainautentikointiin ja konetunnuksen semantiikkaan
 
-## Environment and Runtime Matrix
+## Ympäristö- ja ajonaikamatriisi
 
-Environment variables actively used by code:
+Koodin aktiivisesti käyttämät ympäristömuuttujat:
 
-- App/auth: `JWT_SECRET`, `INITIAL_PASSWORD`
-- Storage: `DATA_DIR`
-- Compatible node behavior: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
-- Optional storage base override (Linux/macOS when `DATA_DIR` unset): `XDG_CONFIG_HOME`
-- Security hashing: `API_KEY_SECRET`, `MACHINE_ID_SALT`
-- Logging: `APP_LOG_TO_FILE`, `APP_LOG_RETENTION_DAYS`, `CALL_LOG_RETENTION_DAYS`
-- Sync/cloud URLing: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
-- Outbound proxy: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` and lowercase variants
-- SOCKS5 feature flags: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
-- Platform/runtime helpers (not app-specific config): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`
+- Sovellus/autentikointi: `JWT_SECRET`, `INITIAL_PASSWORD`
+- Tallennus: `DATA_DIR`
+- Valinnainen tallennuksen perussijainnin ohitus (Linux/macOS, kun `DATA_DIR` ei ole asetettu): `XDG_CONFIG_HOME`
+- Tietoturvahajautus: `API_KEY_SECRET`, `MACHINE_ID_SALT`
+- Lokitus: `APP_LOG_TO_FILE`, `APP_LOG_RETENTION_DAYS`, `CALL_LOG_RETENTION_DAYS`
+- Synkronoinnin/pilven URL-osoitteet: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
+- Lähtevän liikenteen välityspalvelin: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` ja pienillä kirjaimilla kirjoitetut variantit
+- SOCKS5-ominaisuusliput: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
+- Alusta-/ajonaikaiset apumuuttujat (eivät sovelluskohtaisia asetuksia): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`
 
-## Known Architectural Notes
+## Tunnetut arkkitehtuuria koskevat huomiot
 
-1. `usageDb` and `localDb` share the same base directory policy (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) with legacy file migration.
-2. `/api/v1/route.ts` delegates to the same unified catalog builder used by `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) to avoid semantic drift.
-3. Request logger writes full headers/body when enabled; treat log directory as sensitive.
-4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
-5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
-6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
-7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
-8. Settings page is organized into 7 tabs: General, Appearance, AI, Security, Routing, Resilience, Advanced. The Resilience page only configures request queue, connection cooldown, provider breaker, and wait-for-cooldown behavior; live breaker runtime state is shown on the Health page.
-9. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated, `chat.ts` injects the handoff after account resolution. Handoff data lives in `context_handoffs` SQLite table. This split is intentional because only `chat.ts` knows whether the actual account changed.
-10. **Proxy enforcement** is now comprehensive: `tokenHealthCheck.ts` resolves proxy per connection, `/api/providers/validate` uses `runWithProxyContext`, and `proxyFetch.ts` uses `undici.fetch()` to maintain dispatcher compatibility on Node 22.
-11. **Node.js runtime policy detection**: `/api/settings/require-login` returns `nodeVersion` and `nodeCompatible` fields. The login page renders a warning banner when the runtime falls outside the supported secure Node.js lines.
+1. `usageDb` ja `localDb` käyttävät samaa perushakemistokäytäntöä (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) sekä vanhojen tiedostojen siirtoa.
+2. `/api/v1/route.ts` delegoi samalle yhtenäiselle luettelon muodostimelle, jota `/api/v1/models` käyttää (`src/app/api/v1/models/catalog.ts`), semanttisten erojen välttämiseksi.
+3. Pyyntölokittaja kirjoittaa kaikki otsakkeet ja koko rungon, kun se on käytössä; käsittele lokihakemistoa arkaluonteisena.
+4. Pilvitoiminta riippuu `NEXT_PUBLIC_BASE_URL`-muuttujan oikeasta arvosta ja pilvipäätepisteen saavutettavuudesta.
+5. `open-sse/`-hakemisto julkaistaan `@omniroute/open-sse`-**npm-työtilapakettina**. Lähdekoodi tuo sen polulla `@omniroute/open-sse/...` (Next.jsin `transpilePackages` ratkaisee sen). Tämän asiakirjan tiedostopoluissa käytetään edelleen johdonmukaisuuden vuoksi hakemiston nimeä `open-sse/`.
+6. Hallintapaneelin kaaviot käyttävät **Recharts**-kirjastoa (SVG-pohjainen) saavutettaviin ja vuorovaikutteisiin analytiikan visualisointeihin (mallien käytön pylväskaaviot, palveluntarjoajakohtaiset taulukot onnistumisasteineen).
+7. E2E-testit käyttävät **Playwright**-työkalua (`tests/e2e/`), ja ne suoritetaan komennolla `npm run test:e2e`. Yksikkötestit käyttävät **Node.jsin testiajuria** (`tests/unit/`), ja ne suoritetaan komennolla `npm run test:unit`. Hakemiston `src/` lähdekoodi on **TypeScriptiä** (`.ts`/`.tsx`); `open-sse/`-työtila säilyy JavaScriptinä (`.js`).
+8. Asetussivu on jaettu seitsemään välilehteen: Yleiset, Ulkoasu, Tekoäly, Tietoturva, Reititys, Vikasietoisuus ja Lisäasetukset. Vikasietoisuus-sivulla määritetään vain pyyntöjono, yhteyden jäähdytysaika, palveluntarjoajan katkaisija ja jäähdytysajan odotuskäyttäytyminen; katkaisijan reaaliaikainen ajonaikainen tila näkyy Terveys-sivulla.
+9. **Context Relay** -strategia (`context-relay`) on jaettu kahteen tasoon: `combo.ts` päättää, tuleeko siirto luoda, ja `chat.ts` lisää siirron tilin ratkaisemisen jälkeen. Siirtotiedot sijaitsevat SQLiten `context_handoffs`-taulussa. Jako on tarkoituksellinen, koska vain `chat.ts` tietää, vaihtuiko tosiasiallisesti käytetty tili.
+10. **Välityspalvelimen pakotus** on nyt kattava: `tokenHealthCheck.ts` ratkaisee välityspalvelimen yhteyskohtaisesti, `/api/providers/validate` käyttää `runWithProxyContext`-toimintoa, ja `proxyFetch.ts` käyttää `undici.fetch()`-toimintoa säilyttääkseen lähettäjän yhteensopivuuden Node 22:ssa.
+11. **Node.js-ajonaikakäytännön tunnistus**: `/api/settings/require-login` palauttaa `nodeVersion`- ja `nodeCompatible`-kentät. Kirjautumissivu näyttää varoituspalkin, kun ajonaikaympäristö ei kuulu tuettuihin turvallisiin Node.js-versiosarjoihin.
 
-## Operational Verification Checklist
+## Toiminnan tarkistuksen tarkistuslista
 
-- Build from source: `npm run build`
-- Build Docker image: `docker build -t omniroute .`
-- Start service and verify:
+- Koosta lähdekoodista: `npm run build`
+- Koosta Docker-kuva: `docker build -t omniroute .`
+- Käynnistä palvelu ja tarkista:
 - `GET /api/settings`
 - `GET /api/v1/models`
-- CLI target base URL should be `http://<host>:20128/v1` when `PORT=20128`
+- CLI-kohteen perus-URL-osoitteen tulee olla `http://<host>:20128/v1`, kun `PORT=20128`

@@ -106,7 +106,8 @@ RUN test -f package-lock.json \
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm ci --include=optional --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
   && (cd node_modules/better-sqlite3 \
-      && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild) \
+      && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
+  && test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node \
   && node -e "require('better-sqlite3')(':memory:').close()" \
   && node -e "const wreq=require('wreq-js'); if(typeof wreq.createTransport!=='function') process.exit(1)"
 
@@ -227,6 +228,18 @@ ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_MEMORY_MB}"
 ENV DATA_DIR=/app/data
 RUN mkdir -p /app/data
 
+# #13679: default the PUBLISHED image to requiring an API key. A bare
+# `docker run -p 20128:20128 … diegosouzapw/omniroute` (README/QUICK-START
+# one-liners) does not pass `--env-file .env`, so without this default the
+# anonymous /v1 LLM proxy would be both keyless AND world-reachable on the
+# published container. This does NOT change the npm/CLI local-dev default
+# (`REQUIRE_API_KEY` stays `"false"` in featureFlagDefinitions.ts) — only the
+# shipped deployment artifact's posture. docker-compose.yml is unaffected: it
+# loads the operator's own `.env` (env_file:) which overrides this ENV, and
+# already binds loopback-only by default (#12568). Override with
+# `-e REQUIRE_API_KEY=false` for an intentionally keyless deployment.
+ENV REQUIRE_API_KEY=true
+
 # `npm run build` (build-next-isolated → assembleStandalone) bundles ALL runtime
 # files into .build/next/standalone/ — .next, node_modules, migrations, scripts,
 # docs, and the previously hand-COPY'd modules below (@swc/helpers, pino-*, split2,
@@ -241,6 +254,7 @@ COPY --from=builder /app/.build/next/standalone ./
 # Next.js tracing. bootstrap-env requires SQLite BEFORE the standalone server
 # starts, so guarantee the complete package independent of trace behaviour.
 COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+RUN test -f /app/node_modules/better-sqlite3/build/Release/better_sqlite3.node
 # migrations land at <standalone>/migrations via assembleStandalone; point the runtime at them.
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
 

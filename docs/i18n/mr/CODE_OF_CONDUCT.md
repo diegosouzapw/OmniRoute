@@ -4,61 +4,40 @@
 
 ---
 
-## Our Pledge
+## आमची प्रतिज्ञा
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+आम्ही सदस्य, योगदानकर्ते आणि नेतृत्वकर्ते म्हणून, वय, शरीरयष्टी, दृश्य किंवा अदृश्य अपंगत्व, वांशिकता, लैंगिक वैशिष्ट्ये, लिंगभाव ओळख आणि अभिव्यक्ती, अनुभवाची पातळी, शिक्षण, सामाजिक-आर्थिक स्थिती, राष्ट्रीयत्व, वैयक्तिक रूप, वंश, धर्म किंवा लैंगिक ओळख आणि अभिमुखता यांचा विचार न करता, आमच्या समुदायातील सहभागाचा अनुभव प्रत्येकासाठी छळमुक्त करण्याची प्रतिज्ञा करतो.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+मुक्त, स्वागतशील, वैविध्यपूर्ण, सर्वसमावेशक आणि सुदृढ समुदायास हातभार लागेल अशा प्रकारे वागण्याची आणि परस्परांशी संवाद साधण्याची आम्ही प्रतिज्ञा करतो.
 
-## Our Standards
+## आमची मानके
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+आमच्या समुदायासाठी सकारात्मक वातावरण निर्माण करण्यास हातभार लावणाऱ्या वर्तनाच्या उदाहरणांमध्ये पुढील गोष्टींचा समावेश होतो:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- इतर लोकांप्रती सहानुभूती आणि दयाळूपणा दाखवणे
+- भिन्न मते, दृष्टिकोन आणि अनुभवांचा आदर करणे
+- विधायक अभिप्राय देणे आणि तो नम्रपणे स्वीकारणे
+- आमच्या चुकांची जबाबदारी स्वीकारणे, त्यांमुळे प्रभावित झालेल्यांची माफी मागणे आणि त्या अनुभवातून शिकणे
+- केवळ व्यक्ती म्हणून आमच्यासाठीच नव्हे, तर संपूर्ण समुदायासाठी काय सर्वोत्तम आहे यावर लक्ष केंद्रित करणे
 
-Examples of unacceptable behavior include:
+अस्वीकार्य वर्तनाच्या उदाहरणांमध्ये पुढील गोष्टींचा समावेश होतो:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- लैंगिक स्वरूपाची भाषा किंवा प्रतिमा वापरणे आणि कोणत्याही प्रकारचे अवांछित लैंगिक लक्ष वेधणे किंवा प्रस्ताव देणे
+- मुद्दाम चिथावणी देणे, अपमानास्पद किंवा अवमानकारक टिप्पण्या करणे आणि वैयक्तिक किंवा राजकीय हल्ले करणे
+- सार्वजनिक किंवा खाजगी स्वरूपाचा छळ करणे
+- इतरांची स्पष्ट परवानगी न घेता त्यांची खाजगी माहिती, जसे की प्रत्यक्ष पत्ता किंवा ईमेल पत्ता, प्रकाशित करणे
+- व्यावसायिक वातावरणात अयोग्य मानले जाऊ शकेल असे इतर वर्तन
 
-## Enforcement Responsibilities
+## अंमलबजावणीच्या जबाबदाऱ्या
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+स्वीकार्य वर्तनाची आमची मानके स्पष्ट करण्याची आणि त्यांची अंमलबजावणी करण्याची जबाबदारी समुदायाच्या नेत्यांवर आहे. त्यांना अनुचित, धमकीकारक, आक्षेपार्ह किंवा हानिकारक वाटणाऱ्या कोणत्याही वर्तनास प्रतिसाद म्हणून ते योग्य आणि न्याय्य सुधारात्मक कारवाई करतील.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+या आचारसंहितेशी सुसंगत नसलेल्या टिप्पण्या, कमिट्स, कोड, विकी संपादने, समस्यांच्या नोंदी आणि इतर योगदान काढून टाकण्याचा, संपादित करण्याचा किंवा नाकारण्याचा अधिकार आणि जबाबदारी समुदायाच्या नेत्यांकडे आहे. तसेच, योग्य असेल तेव्हा ते नियंत्रणविषयक निर्णयांची कारणे कळवतील.
 
-## Scope
+## व्याप्ती
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+ही आचारसंहिता समुदायाच्या सर्व जागांमध्ये लागू होते आणि एखादी व्यक्ती सार्वजनिक जागांमध्ये अधिकृतरीत्या समुदायाचे प्रतिनिधित्व करत असतानाही लागू होते.
+आमच्या समुदायाचे प्रतिनिधित्व करण्याच्या उदाहरणांमध्ये अधिकृत ई-मेल पत्ता वापरणे, अधिकृत सोशल मीडिया खात्याद्वारे पोस्ट करणे किंवा ऑनलाइन अथवा ऑफलाइन कार्यक्रमात नियुक्त प्रतिनिधी म्हणून कार्य करणे यांचा समावेश होतो.
 
 ## Enforcement
 
@@ -70,51 +49,33 @@ All complaints will be reviewed and investigated promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-## Enforcement Guidelines
+## अंमलबजावणी मार्गदर्शक तत्त्वे
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+या आचारसंहितेचे उल्लंघन मानल्या जाणाऱ्या कोणत्याही कृतीचे परिणाम ठरवताना समुदायाचे नेते पुढील समुदाय प्रभाव मार्गदर्शक तत्त्वांचे पालन करतील:
 
-### 1. Correction
+### 1. सुधारणा
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**समुदायावरील प्रभाव**: अनुचित भाषेचा वापर किंवा समुदायामध्ये अव्यावसायिक अथवा अनिष्ट मानले जाणारे इतर वर्तन.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**परिणाम**: समुदायाच्या नेत्यांकडून खासगी स्वरूपात लेखी ताकीद दिली जाईल, ज्यामध्ये उल्लंघनाचे स्वरूप स्पष्ट केले जाईल आणि संबंधित वर्तन अनुचित का होते याचे स्पष्टीकरण दिले जाईल. सार्वजनिक माफी मागण्यास सांगितले जाऊ शकते.
 
-### 2. Warning
+### 2. इशारा
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**समुदायावरील प्रभाव**: एखाद्या एकाच घटनेद्वारे किंवा कृतींच्या मालिकेद्वारे झालेले उल्लंघन.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**परिणाम**: असे वर्तन सुरू ठेवल्यास होणाऱ्या परिणामांसह इशारा दिला जाईल. एका निश्चित कालावधीसाठी, संबंधित व्यक्तींशी कोणताही संवाद साधता येणार नाही; यामध्ये आचारसंहितेची अंमलबजावणी करणाऱ्यांशी त्यांच्या संमतीशिवाय संवाद साधण्याचाही समावेश आहे. यात समुदायाच्या मंचांवरील तसेच समाजमाध्यमांसारख्या बाह्य माध्यमांवरील संवाद टाळणे समाविष्ट आहे. या अटींचे उल्लंघन केल्यास तात्पुरती किंवा कायमस्वरूपी बंदी घातली जाऊ शकते.
 
-### 3. Temporary Ban
+### 3. तात्पुरती बंदी
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**समुदायावरील प्रभाव**: सातत्यपूर्ण अनुचित वर्तनासह समुदायाच्या मानकांचे गंभीर उल्लंघन.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**परिणाम**: एका निश्चित कालावधीसाठी समुदायाशी कोणत्याही प्रकारचा संवाद साधण्यास किंवा सार्वजनिकरीत्या संपर्क साधण्यास तात्पुरती बंदी घातली जाईल. या कालावधीत संबंधित व्यक्तींशी सार्वजनिक किंवा खासगी स्वरूपात कोणताही संवाद साधण्याची परवानगी नसेल; यामध्ये आचारसंहितेची अंमलबजावणी करणाऱ्यांशी त्यांच्या संमतीशिवाय संवाद साधण्याचाही समावेश आहे. या अटींचे उल्लंघन केल्यास कायमस्वरूपी बंदी घातली जाऊ शकते.
 
-### 4. Permanent Ban
+### 4. कायमस्वरूपी बंदी
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**समुदायावरील प्रभाव**: सातत्यपूर्ण अनुचित वर्तन, एखाद्या व्यक्तीचा छळ किंवा विशिष्ट व्यक्तिसमूहांप्रती आक्रमकता अथवा त्यांची अवहेलना यांसह समुदायाच्या मानकांचे वारंवार उल्लंघन करण्याचा पद्धतशीर कल दर्शवणे.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**परिणाम**: समुदायामध्ये कोणत्याही प्रकारच्या सार्वजनिक संवादावर कायमस्वरूपी बंदी घातली जाईल.
 
 ## Attribution
 

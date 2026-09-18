@@ -42,6 +42,7 @@ import {
   normalizePreserveSystemPromptMode,
 } from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
 import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
+import { isUsableLiteMaxToolLength } from "@omniroute/open-sse/services/compression/lite.ts";
 import { applyDetailConfigUpdate, buildDetailConfigDefaults } from "./compressionDetailNormalizers";
 
 const NAMESPACE = "compression";
@@ -374,6 +375,10 @@ function boundedInt(value: unknown, fallback: number, min: number, max: number):
   return Math.min(max, Math.max(min, Math.floor(value)));
 }
 
+function usableLiteMaxToolLength(value: unknown): number | undefined {
+  return isUsableLiteMaxToolLength(value) ? Math.floor(value) : undefined;
+}
+
 function boundedNumber(value: unknown, fallback: number, min: number, max: number): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(min, value));
@@ -526,6 +531,41 @@ function sanitizeEnginesForWrite(value: unknown): Record<string, EngineToggle> {
   return out;
 }
 
+// Partial lite writes replace the whole JSON row. Keep a stored cap unless the
+// caller sends maxToolLength: null (clear) or a new in-range integer.
+function mergeLiteSettingsForWrite(
+  db: ReturnType<typeof getDbInstance>,
+  value: unknown
+): { compressToolResults: boolean; maxToolLength?: number } {
+  const incoming = toRecord(value);
+  const existingRow = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(NAMESPACE, "lite") as { value: string } | undefined;
+  const existing = toRecord(parseJsonSafe(existingRow?.value ?? null));
+  const existingCap = usableLiteMaxToolLength(existing.maxToolLength);
+  const compressToolResults =
+    typeof incoming.compressToolResults === "boolean"
+      ? incoming.compressToolResults
+      : existing.compressToolResults !== false;
+  if (!Object.prototype.hasOwnProperty.call(incoming, "maxToolLength")) {
+    return {
+      compressToolResults,
+      ...(existingCap !== undefined ? { maxToolLength: existingCap } : {}),
+    };
+  }
+  if (incoming.maxToolLength === null) {
+    return { compressToolResults };
+  }
+  const nextCap = usableLiteMaxToolLength(incoming.maxToolLength);
+  if (nextCap !== undefined) {
+    return { compressToolResults, maxToolLength: nextCap };
+  }
+  return {
+    compressToolResults,
+    ...(existingCap !== undefined ? { maxToolLength: existingCap } : {}),
+  };
+}
+
 // Read the stored `engines` JSON row, keeping only well-formed `{enabled, level?}` entries for
 // known engine ids. Returns null when no usable row exists so the caller falls back to deriving
 // the map from the legacy fields (B-backfill, migration 102).
@@ -656,9 +696,27 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     const record = toRecord(row);
     const key = typeof record.key === "string" ? record.key : null;
     const rawValue = typeof record.value === "string" ? record.value : null;
-    if (!key || rawValue === null) continue;
+    if (!key || rawValue === null) {
+      // #13456: non-string values (BLOB from backup/restore/migration tooling) are
+      // silently ignored — log so operators can diagnose config drift.
+      if (key && typeof record.value !== "string" && record.value !== null) {
+        console.warn(
+          `[COMPRESSION] Settings row '${key}' has non-string value type ` +
+            `(${typeof record.value}); skipping. This may indicate a backup/restore ` +
+            `issue — re-save the setting from the Storage panel to fix.`
+        );
+      }
+      continue;
+    }
     const parsed = parseJsonSafe(rawValue);
-    if (parsed === undefined) continue;
+    if (parsed === undefined) {
+      // #13456: invalid JSON is also silently ignored — log it.
+      console.warn(
+        `[COMPRESSION] Settings row '${key}' has unparseable JSON value; skipping. ` +
+          `Re-save the setting from the Storage panel to fix.`
+      );
+      continue;
+    }
 
     switch (key) {
       case "enabled":
@@ -743,9 +801,15 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
         break;
-      case "lite":
-        config.lite = { compressToolResults: toRecord(parsed).compressToolResults !== false };
+      case "lite": {
+        const liteRecord = toRecord(parsed);
+        const storedCap = usableLiteMaxToolLength(liteRecord.maxToolLength);
+        config.lite = {
+          compressToolResults: liteRecord.compressToolResults !== false,
+          ...(storedCap !== undefined ? { maxToolLength: storedCap } : {}),
+        };
         break;
+      }
       case "headroom":
       case "headroomConfig":
         config.headroom = normalizeHeadroomConfig(parsed);
@@ -768,6 +832,16 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "engines":
         storedEngines = parseStoredEnginesMap(parsed);
+        // #13456: only warn when the row itself isn't a usable object — a valid object
+        // that simply yields zero toggles (e.g. `{}`, an operator deliberately disabling
+        // every engine) is legitimate config, not a parse failure, and must not warn.
+        if (storedEngines === null && (!parsed || typeof parsed !== "object")) {
+          console.warn(
+            `[COMPRESSION] 'engines' settings row is present but unreadable; ` +
+              `falling back to legacy settings. Re-save the engines map from the ` +
+              `Storage panel to fix.`
+          );
+        }
         break;
       case "activeComboId":
         config.activeComboId = typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
@@ -850,6 +924,10 @@ export async function updateCompressionSettings(
         insert.run(NAMESPACE, key, JSON.stringify(sanitizeEnginesForWrite(value)));
         continue;
       }
+      if (key === "lite") {
+        insert.run(NAMESPACE, key, JSON.stringify(mergeLiteSettingsForWrite(db, value)));
+        continue;
+      }
       insert.run(NAMESPACE, key, JSON.stringify(value));
     }
   });
@@ -917,7 +995,10 @@ let proactiveRatioCache: { value: number; readAt: number } | null = null;
 
 export function getProactiveCompressionRatio(): number {
   const now = Date.now();
-  if (proactiveRatioCache && now - proactiveRatioCache.readAt < PROACTIVE_COMPRESSION_CACHE_TTL_MS) {
+  if (
+    proactiveRatioCache &&
+    now - proactiveRatioCache.readAt < PROACTIVE_COMPRESSION_CACHE_TTL_MS
+  ) {
     return proactiveRatioCache.value;
   }
   let ratio = PROACTIVE_COMPRESSION_DEFAULT_RATIO;

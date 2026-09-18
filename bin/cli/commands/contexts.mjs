@@ -248,7 +248,9 @@ export function registerContexts(program) {
     .option("--no-secrets", "Omit API keys from export")
     .action(async (opts, cmd) => {
       const cfg = loadContexts();
-      const out = opts.noSecrets ? redactContextSecrets(cfg) : JSON.parse(JSON.stringify(cfg));
+      // Commander stores `--no-secrets` as `secrets === false`, never as `noSecrets`.
+      const redact = opts.secrets === false || opts.noSecrets === true;
+      const out = redact ? redactContextSecrets(cfg) : JSON.parse(JSON.stringify(cfg));
       const json = JSON.stringify(out, null, 2);
       if (opts.out) {
         const { writeFileSync } = await import("node:fs");

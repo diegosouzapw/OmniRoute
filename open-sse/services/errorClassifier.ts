@@ -1,4 +1,6 @@
 import {
+  ACCOUNT_DEACTIVATED_SIGNALS,
+  CREDITS_EXHAUSTED_SIGNALS,
   isAccountDeactivated,
   isCreditsExhausted,
   isDailyQuotaExhausted,
@@ -88,6 +90,13 @@ export const PROVIDER_ERROR_TYPES = {
   // Google account must Bring Its Own GCP Project. Account-specific and
   // fixable by entering a Project ID — never a model lockout and never a ban.
   GCP_PROJECT_REQUIRED: "gcp_project_required",
+  // The upstream refused THIS request (policy / request shape), not the
+  // credential: the same connection serves the next request. Not terminal on
+  // its own — chatCore excludes the connection for a growing cooldown and only
+  // a streak of refusals escalates to `banned` (services/requestRejectedStreak).
+  // First case: Anthropic's OAuth 403 "Request not allowed" (#12859), which
+  // lands on a handful of requests between thousands of 200s on the same token.
+  REQUEST_REJECTED: "request_rejected",
 } as const;
 
 export type ProviderErrorType = (typeof PROVIDER_ERROR_TYPES)[keyof typeof PROVIDER_ERROR_TYPES];
@@ -214,6 +223,25 @@ export function isCloudflareFingerprintRejection(errorText: string): boolean {
     text.includes("browser_signature_banned") ||
     text.includes("fingerprint_rejection")
   );
+}
+
+/**
+ * Anthropic's OAuth (Claude subscription) surface answers a small fraction of
+ * otherwise-valid requests with `403 {"type":"permission_error","message":
+ * "Request not allowed"}`. Observed on one install: 200 on the same token 40 s
+ * earlier, 200 on the next request after the connection was re-enabled — it is
+ * a per-request refusal, not an account ban or a revoked token (a revoked token
+ * is a 401 `authentication_error`). Classifying it FORBIDDEN flipped the only
+ * Claude connection to the terminal `banned` state on a single response, and
+ * every later request was short-circuited with "All 1 connection(s) banned by
+ * upstream" until an operator reconnected in the dashboard.
+ */
+export function isAnthropicOAuthProvider(provider?: string | null): boolean {
+  return String(provider || "").toLowerCase() === "claude";
+}
+
+export function isAnthropicRequestNotAllowed(errorText: string): boolean {
+  return /\brequest not allowed\b/i.test(String(errorText || ""));
 }
 
 function responseBodyToString(responseBody: unknown): string {
@@ -353,6 +381,16 @@ export function classifyProviderError(
   if (statusCode === 403 && accountDeactivated) {
     return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
   }
+  if (
+    statusCode === 403 &&
+    isAnthropicOAuthProvider(provider) &&
+    isAnthropicRequestNotAllowed(bodyStr)
+  ) {
+    // Per-request refusal on an otherwise healthy Claude OAuth token — see
+    // isAnthropicRequestNotAllowed. Must be checked BEFORE the generic 403 →
+    // FORBIDDEN fall-through, which bans the connection permanently.
+    return PROVIDER_ERROR_TYPES.REQUEST_REJECTED;
+  }
   if (statusCode === 403) {
     // Cloud Code / Antigravity (Gemini Code Assist) 403s are almost always a
     // RECOVERABLE project-config issue — the Cloud AI Companion API not enabled
@@ -443,5 +481,85 @@ export function classifyProviderError(
     }
   }
 
+  return null;
+}
+
+// ── "Fake success" 2xx body classifier (#13461) ─────────────────────────────
+//
+// Some free/web-session providers (reported: Pollinations, Perplexity web via
+// cookie session) answer a genuine failure — expired session, exhausted
+// free-tier credits — with HTTP 200 and a structurally normal completion
+// whose assistant message is just the provider's own error prose. Neither
+// classifyProviderError above (gated on 400/401/402/403/429 before it ever
+// looks at the body — deliberately NOT changed by this fix, see below) nor
+// detectMalformedNonStream (open-sse/utils/diagnostics.ts, structural
+// emptiness only) catch this, so the error text is translated and forwarded
+// to the client as if the model had genuinely answered with that sentence.
+//
+// Deliberately narrow, by owner decision (2026-09-15):
+//   - allowlist-only, starting with the two providers actually reported —
+//     never applied globally. classifyProviderError()'s status-code gate is
+//     intentionally left untouched; this lives in a separate sibling
+//     function instead of loosening that gate.
+//   - reuses the EXISTING, already-curated CREDITS_EXHAUSTED_SIGNALS /
+//     ACCOUNT_DEACTIVATED_SIGNALS phrase lists (open-sse/services/
+//     accountFallback.ts) rather than inventing new fuzzy matching.
+//   - only trips on SHORT content whose matched signal covers a large
+//     fraction of it — a multi-paragraph answer that merely *mentions* the
+//     topic is long and/or the phrase is a small fraction of it, so it is
+//     never misclassified.
+const FAKE_SUCCESS_BODY_ALLOWLIST = new Set(["pollinations", "perplexity-web"]);
+
+/** Exported for tests; not meant as a general-purpose provider predicate. */
+export function isFakeSuccessBodyAllowlistedProvider(provider?: string | null): boolean {
+  if (!provider) return false;
+  return FAKE_SUCCESS_BODY_ALLOWLIST.has(provider.toLowerCase());
+}
+
+// A real prose answer runs to paragraphs; a disguised upstream error is one
+// short sentence. Generous headroom above every known signal phrase while
+// still excluding genuine longer completions that merely mention the topic.
+const FAKE_SUCCESS_MAX_CONTENT_LENGTH = 400;
+
+// The matched signal alone must make up a meaningful share of the message —
+// keeps a legitimate answer that references the phrase in passing (as part
+// of a much larger sentence/paragraph) from tripping this classifier.
+const FAKE_SUCCESS_MIN_SIGNAL_COVERAGE = 0.12;
+
+function matchedSignalCoverage(lowerText: string, signals: readonly string[]): number {
+  let best = 0;
+  for (const signal of signals) {
+    if (lowerText.includes(signal) && signal.length > best) best = signal.length;
+  }
+  return lowerText.length > 0 ? best / lowerText.length : 0;
+}
+
+/**
+ * Classify a *successful* (2xx) response's assistant-message text as a
+ * disguised upstream failure. Returns the matching ProviderErrorType, or
+ * null when the provider is not on the allowlist, the content is too long
+ * to be a bare error sentence, or no known signal phrase dominates it.
+ *
+ * Only ever meaningful for the narrow provider allowlist above — see
+ * isFakeSuccessBodyAllowlistedProvider and #13461.
+ */
+export function classifyFakeSuccessBody(
+  content: string,
+  provider?: string | null
+): ProviderErrorType | null {
+  if (!isFakeSuccessBodyAllowlistedProvider(provider)) return null;
+
+  const text = String(content || "").trim();
+  if (!text || text.length > FAKE_SUCCESS_MAX_CONTENT_LENGTH) return null;
+
+  const lower = text.toLowerCase();
+  if (matchedSignalCoverage(lower, CREDITS_EXHAUSTED_SIGNALS) >= FAKE_SUCCESS_MIN_SIGNAL_COVERAGE) {
+    return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+  }
+  if (
+    matchedSignalCoverage(lower, ACCOUNT_DEACTIVATED_SIGNALS) >= FAKE_SUCCESS_MIN_SIGNAL_COVERAGE
+  ) {
+    return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
+  }
   return null;
 }

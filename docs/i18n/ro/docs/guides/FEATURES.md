@@ -4,265 +4,335 @@
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+🌐 **Limbi:** 🇺🇸 [English](./FEATURES.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/FEATURES.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/FEATURES.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/FEATURES.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/FEATURES.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/FEATURES.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/FEATURES.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/FEATURES.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/FEATURES.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/FEATURES.md) | 🇪🇸 [Español](../i18n/es/docs/guides/FEATURES.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/FEATURES.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/FEATURES.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/FEATURES.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/FEATURES.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/FEATURES.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/FEATURES.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/FEATURES.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/FEATURES.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/FEATURES.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/FEATURES.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/FEATURES.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/FEATURES.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/FEATURES.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/FEATURES.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/FEATURES.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/FEATURES.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/FEATURES.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/FEATURES.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/FEATURES.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/FEATURES.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/FEATURES.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/FEATURES.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/FEATURES.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/FEATURES.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/FEATURES.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/FEATURES.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/FEATURES.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/FEATURES.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/FEATURES.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/FEATURES.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/FEATURES.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/FEATURES.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/FEATURES.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/FEATURES.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/FEATURES.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/FEATURES.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/FEATURES.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/FEATURES.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/FEATURES.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/FEATURES.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/FEATURES.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/FEATURES.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/FEATURES.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/FEATURES.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/FEATURES.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/FEATURES.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/FEATURES.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/FEATURES.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/FEATURES.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/FEATURES.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/FEATURES.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/FEATURES.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/FEATURES.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/FEATURES.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/FEATURES.md)
+
+Ghid vizual pentru fiecare secțiune a tabloului de bord OmniRoute.
+
+> 📅 **Ultima actualizare:** 2026-06-28 — **v3.8.40**
 
 ---
 
-## 🔌 Providers
+## ✨ Noutăți importante în v3.8.0
 
-![Providers Dashboard](screenshots/01-providers.png)
+Ciclul v3.7.x → v3.8.0 a adăugat rutare automată fără configurare, furnizori noi, fluxuri OAuth, reziliență îmbunătățită și o experiență CLI mult mai bogată. Mai jos sunt funcționalitățile principale — detalii complete sunt disponibile mai departe în document și în specificațiile asociate.
 
----
+- 🤖 **Combinație automată / Rutare automată fără configurare** — utilizați prefixele `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Susținută de un motor de evaluare cu 16 factori și 6 **pachete de moduri** atent selectate (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- 🆕 **Furnizorul Command Code** (#2199) — înregistrare nativă, cu un catalog de modele și monitorizarea cotelor
+- 🆕 **Furnizorul Z.AI** — furnizor nou cu nivel gratuit și etichete pentru cote
+- 🎬 **Extinderea funcțiilor media KIE** — catalog extins, inclusiv modele de generare video
+- 🔐 **Autentificare Devin** — aplicația Desktop importă o cheie API Devin existentă; CLI-ul utilizează acreditările locale `devin auth login`
+- 🆓 **8 furnizori gratuiți noi** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Rutare pe niveluri W1–W4 bazată pe manifeste** — manifestele furnizorilor determină selectarea ponderată a nivelurilor
+- 🎨 **Compatibilitate completă Cursor cu OpenAI** — apeluri de instrumente, streaming și gestionarea sesiunilor de la un capăt la altul
+- 📊 **Utilizarea planului Cursor Pro** — datele privind cotele și ciclurile sunt afișate în tabloul de bord pentru limitele furnizorilor
+- ⚡ **Defalcare pe niveluri de servicii / Analize pentru nivelul rapid Codex** — vizibilitate asupra consumului pentru fiecare nivel
+- 📌 **Rutare persistentă pentru fiecare sesiune** — sesiunile Codex rămân asociate aceluiași cont între interacțiuni
+- 🔊 **Îmbunătățiri Inworld TTS** — cataloage de voci, streaming și îmbunătățiri ale latenței
+- 🔑 **Autentificare Kiro fără interfață grafică** — conectare prin baza SQLite locală a `kiro-cli`, fără a necesita un browser
+- 📉 **Monitorizarea cotelor și limitelor DeepSeek** — utilizarea zilnică/lunară este afișată în tabloul de bord
+- 🔄 **Strategie de rutare care ține cont de resetare** — combinațiile preferă acum conturile a căror fereastră de cotă se resetează cel mai curând
+- ⏱️ **`fallbackDelayMs`** și **detectarea dinamică a limitei de instrumente** — temporizare mai precisă pentru mecanismul de rezervă + limite ale numărului de instrumente pentru fiecare furnizor
+- 🔧 **Degradarea modului de fundal (Responses API)** — revine la modul sincron și emite un avertisment structurat atunci când un serviciu din amonte nu acceptă interogarea periodică în fundal
+- 🚦 **Clasificarea răspunsurilor 429 pentru fiecare furnizor** + opțiunea `useUpstream429BreakerHints` — comportament mai precis al întrerupătorului, utilizând indiciile din amonte privind limitele de rată
+- 🩺 **Tablou de bord pentru perioadele de suspendare ale modelelor** — observați blocările fiecărui model și reactivați-l manual din interfața utilizator
+- 🔒 **Detectarea dinamică MITM a certificatelor Linux** — funcționează pe Debian/Ubuntu, Fedora/RHEL, Arch și alte distribuții
+- 💻 **Suită de îmbunătățiri pentru CLI** — peste 20 de comenzi, inclusiv `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Descoperirea modelelor de încorporare Qdrant** — sondare automată a modelului depozitului de vectori
+- 🔑 **Chei API / Chei Bearer cu domeniul de acces `manage`** — efectuați programatic operațiuni administrative prin API
+- 🏥 **Analize privind starea țintelor combinațiilor** + **constructor structurat de combinații** — starea fiecărei ținte și un constructor în interfața utilizator pentru asamblarea pașilor `(provider, model, connection)`
+- 🤝 **Furnizor OAuth GitLab Duo** — autentificare cu acreditările GitLab
+- 🧠 **Cache pentru redarea raționamentului** — persistență hibridă, în memorie + SQLite, a urmelor de raționament
 
-## 🎨 Combos
-
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-Recent combo improvements:
-
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
-
-![Combos Dashboard](screenshots/02-combos.png)
-
----
-
-## 📊 Analytics
-
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
-
----
-
-## 🏥 System Health
-
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
-
-![Health Dashboard](screenshots/04-health.png)
+📚 **Documentație asociată:** [Cadrul pentru abilități](../frameworks/SKILLS.md) · [Sistemul de memorie](../frameworks/MEMORY.md) · [Agenți cloud](../frameworks/CLOUD_AGENT.md) · [Webhook-uri](../frameworks/WEBHOOKS.md) · [Cache pentru redarea raționamentului](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔧 Translator Playground
+## 🔌 Furnizori
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+Gestionați conexiunile cu furnizorii AI: furnizori OAuth (Claude Code, Codex), furnizori cu cheie API (Groq, DeepSeek, OpenRouter) și furnizori gratuiți (Qoder, Kiro). Conturile Kiro includ monitorizarea soldului de credite — creditele rămase, limita totală și data reînnoirii sunt vizibile în Panou de control → Utilizare.
 
-![Translator Playground](screenshots/05-translator.png)
+Conexiunile OpenRouter pot stoca un `preset` pentru fiecare conexiune în Setări avansate. Când este configurat, OmniRoute îl trimite drept câmp de nivel superior al cererii OpenRouter, de exemplu `"preset": "email-copywriter"`, cu excepția cazului în care cererea clientului a furnizat deja propriul `preset`.
 
----
-
-## 🎮 Model Playground _(v2.0.9+)_
-
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+![Panoul de control Furnizori](../screenshots/01-providers.png)
 
 ---
 
-## 🎨 Themes _(v2.0.5+)_
+## 🎨 Combinații
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+Creați combinații de rutare a modelelor folosind 19 strategii publice: prioritate, ponderată, round-robin, retransmiterea contextului, completarea primului, p2c (alegerea puterii lui doi), aleatorie, cel mai puțin utilizat, optimizată pentru cost, adaptată la resetare, fereastră de resetare, capacitate disponibilă, strict aleatorie, automată, lkgp (ultimul furnizor cunoscut ca funcțional), optimizată pentru context, optimizată pentru cache, **fuziune** (trimite în paralel către un grup de modele, apoi sintetizează un singur răspuns prin intermediul unui arbitru) și **pipeline**. Fiecare combinație înlănțuie mai multe modele cu mecanism automat de rezervă și include șabloane rapide și verificări ale stării de pregătire.
 
----
+Îmbunătățiri recente ale combinațiilor:
 
-## ⚙️ Settings
+- **Constructor structurat de combinații** — creați fiecare pas selectând furnizorul, modelul și contul/conexiunea exactă
+- **Suport pentru furnizori repetați** — reutilizați același furnizor de mai multe ori într-o combinație, atât timp cât tuplul `(provider, model, connection)` este unic
+- **Starea țintelor combinației** — suprafețele de analiză și monitorizare a stării disting acum țintele/pașii individuali ai combinației, în loc să restrângă totul la șiruri de caractere corespunzătoare modelelor
+- **Ordonarea nivelurilor compozite** — `defaultTier -> fallbackTier` influențează acum ordinea de execuție/revenire în timpul rulării pentru pașii de nivel superior ai combinației
+- **Șabloane pentru promptul de sistem** — `system_message` al combinației acceptă pe server substituenții
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` și `{{FINGERPRINT}}`,
+  care sunt completați pe baza țintei rutate efectiv, chiar înainte de trimitere.
+  Aceștia sunt incluși într-o listă de permisiuni și nu sunt recursivi; substituenții necunoscuți rămân literali; valorile goale
+  se extind la un șir gol; prompturile de sistem ale clientului nu sunt rescrise niciodată. `{{FINGERPRINT}}`
+  este rezolvat numai pentru furnizorii gratuiți bazați pe amprentă, care au o amprentă fixată sau
+  rotită automat — în celelalte cazuri se extinde la un șir gol (de exemplu,
+  conexiuni cu o singură amprentă, furnizori fără amprentă). Extinderea acoperă
+  bucla standard de trimitere, round-robin și sesiunile fixate de cache pentru context;
+  strategiile de fuziune, haos, pipeline și execuție imbricată nu extind
+  încă substituenții.
 
-Comprehensive settings panel with tabs:
-
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
-
----
-
-## 🔧 CLI Tools
-
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![Panoul de control Combinații](../screenshots/02-combos.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## 📊 Analize
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Analize complete privind utilizarea, cu consumul de tokenuri, estimări ale costurilor, hărți termice ale activității, grafice ale distribuției săptămânale și defalcări pentru fiecare furnizor.
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+![Panoul de control Analize](../screenshots/03-analytics.png)
 
 ---
 
-## 🔗 Context Relay _(v3.5.5+)_
+## 🏥 Starea sistemului
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+Monitorizare în timp real: durata de funcționare, memoria, versiunea, percentilele latenței (p50/p95/p99), statisticile cache-ului, stările întrerupătoarelor de circuit ale furnizorilor, sesiunile active monitorizate pentru cote și starea țintelor combinațiilor.
 
-Configurable via combo-level or global settings:
-
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
-
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+![Panoul de control Starea sistemului](../screenshots/04-health.png)
 
 ---
 
-## 🛡️ Proxy Hardening _(v3.5.5+)_
+## 🔧 Spațiu de testare pentru traducător
 
-Comprehensive proxy configuration enforcement across the entire request pipeline:
+Patru moduri pentru depanarea traducerilor API: **Spațiu de testare** (convertor de formate), **Tester de chat** (solicitări live), **Banc de testare** (teste în lot) și **Monitorizare live** (flux în timp real).
 
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+![Spațiu de testare pentru traducător](../screenshots/05-translator.png)
 
 ---
 
-## 📧 Email Privacy Masking _(v3.5.6+)_
+## 🎮 Spațiu de testare pentru modele _(v2.0.9+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
-
----
-
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
-
-The provider page model list now includes:
-
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+Testați orice model direct din panoul de control. Selectați furnizorul, modelul și endpoint-ul, scrieți prompturi cu Monaco Editor, transmiteți răspunsurile în timp real, întrerupeți-le în timpul fluxului și vizualizați metricile temporale.
 
 ---
 
-## 🔧 OAuth Env Repair _(v3.6.1+)_
+## 🎨 Teme _(v2.0.5+)_
 
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
-
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+Teme de culori personalizabile pentru întregul panou de control. Alegeți dintre 7 culori prestabilite (Coral, Albastru, Roșu, Verde, Violet, Portocaliu, Cyan) sau creați o temă personalizată alegând orice culoare hexazecimală. Acceptă modurile luminos, întunecat și sistem.
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## ⚙️ Setări
 
-Clean removal scripts for all installation methods:
+Panou complet de setări cu **7 file**:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+- **General** — Stocarea sistemului, gestionarea copiilor de rezervă (exportarea/importarea bazei de date)
+- **Aspect** — Selector de temă (întunecată/luminoasă/sistem), teme de culori prestabilite și culori personalizate, vizibilitatea jurnalului de stare, controale pentru vizibilitatea elementelor din bara laterală și a separatoarelor de grupuri, controale pentru vizibilitatea tunelurilor endpoint-urilor
+- **IA** — Funcții ale asistentului IA, presetări implicite de rutare (Combinație automată `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), cache pentru reluarea raționamentului și comutatoare pentru abilități/memorie
+- **Securitate** — Protecția endpoint-urilor API, blocarea furnizorilor personalizați, filtrarea adreselor IP, informații despre sesiune
+- **Rutare** — Aliasuri de modele, degradarea sarcinilor de fundal, rutare pe niveluri bazată pe manifest (W1–W4), `fallbackDelayMs`, rutare persistentă per sesiune
+- **Reziliență** — Persistența limitelor de rată, ajustarea disjunctorului, dezactivarea automată a conturilor interzise, monitorizarea expirării furnizorilor, pragul de transfer **Context Relay** și configurarea modelului de rezumare, clasificarea 429 per furnizor și comutatorul `useUpstream429BreakerHints`, perioade de așteptare pentru modele
+- **Avansat** — Suprascrieri ale configurației, pista de audit a configurației, modul de degradare pentru fallback, degradarea modului de fundal pentru Responses API
 
----
-
-## 🖼️ Media _(v2.0.3+)_
-
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
-
-## 📝 Request Logs
-
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+![Panoul de control pentru setări](../screenshots/06-settings.png)
 
 ---
 
-## 🌐 API Endpoint
+## 🔧 Instrumente CLI
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+Configurare cu un singur clic pentru instrumentele IA de programare: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor și Factory Droid. Include aplicarea/resetarea automată a configurației, profiluri de conexiune și maparea modelelor.
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
-
----
-
-## 🔑 API Key Management
-
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+![Panoul de control pentru instrumentele CLI](../screenshots/07-cli-tools.png)
 
 ---
 
-## 📋 Audit Log
+## 🤖 Agenți CLI _(v2.0.11+)_
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+Panou de control pentru descoperirea și gestionarea agenților CLI. Afișează o grilă cu 16 agenți integrați (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**), cu:
 
----
-
-## 🖥️ Desktop Application
-
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
-
-Key features:
-
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
-
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+- **Starea instalării** — Instalat / Negăsit, cu detectarea versiunii
+- **Insigne de protocol** — stdio, HTTP etc.
+- **Agenți personalizați** — Înregistrați orice instrument CLI prin intermediul formularului (nume, fișier binar, comandă pentru versiune, argumente de lansare)
+- **Potrivirea amprentei CLI** — Comutator per furnizor pentru potrivirea semnăturilor solicitărilor CLI native, reducând riscul de interdicție și păstrând în același timp adresa IP a proxy-ului
+- **Autentificare Devin locală** — Devin CLI utilizează `devin auth login`; nu este necesar niciun flux OAuth în browser
 
 ---
 
-## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
+## 🔗 Releu de context _(v3.5.5+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+O strategie combinată care păstrează continuitatea sesiunii atunci când rotația conturilor are loc în mijlocul unei conversații. Înainte ca limita contului activ să fie epuizată, OmniRoute generează în fundal un rezumat structurat pentru transfer. După ce următoarea solicitare este direcționată către un alt cont, rezumatul este injectat ca mesaj de sistem, astfel încât noul cont să continue cu întregul context.
 
-Key behaviours:
+Configurabil prin setări la nivel de combinație sau globale:
 
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+- **Prag de transfer** — Procentul de utilizare a cotei care declanșează generarea rezumatului (implicit 85%)
+- **Număr maxim de mesaje pentru rezumat** — Volumul istoricului recent care trebuie condensat
+- **Model pentru rezumat** — Model opțional alternativ pentru generarea rezumatului de transfer
 
----
-
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
-
-Multi-device and external operator access is now possible via **scoped sync tokens**:
-
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
-
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+În prezent, acceptă rotația conturilor Codex. Consultați [documentația despre releul de context](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 🧠 GLM Thinking Preset _(v3.6.6+)_
+## 🗜️ Comprimarea prompturilor _(v3.7.9+)_
 
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+Context și cache oferă acum pagini dedicate pentru Caveman, RTK și combinațiile de comprimare:
 
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+- **Caveman** — seturi de reguli adaptate limbajului, previzualizare, controale pentru modul de ieșire și analize
+- **RTK** — comprimare adaptată comenzilor pentru rezultate din shell, git, teste, compilare, pachete, Docker, infrastructură, JSON și urmăriri ale stivei
+- **Combinații de comprimare** — fluxuri denumite, precum `rtk -> caveman`, atribuite combinațiilor de rutare; calculul implicit pentru stivuire atinge o medie de `~89%` și economii de `78-95%` pentru contextul eligibil atunci când se aplică ambele motoare
+- **Recuperarea rezultatului brut** — referințe opționale, cu datele sensibile eliminate, către rezultatul brut RTK, pentru depanarea eșecurilor comprimate
 
----
-
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
-
-All provider validation and model discovery calls now go through a two-layer outbound guard:
-
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
-
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+Consultați [Ghidul de comprimare](../compression/COMPRESSION_GUIDE.md), [Comprimarea RTK](../compression/RTK_COMPRESSION.md) și
+[Motoarele de comprimare](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## 🛡️ Consolidarea proxy-ului _(v3.5.5+)_
 
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+Aplicarea cuprinzătoare a configurației proxy în întregul flux de procesare a solicitărilor:
+
+- **Verificarea stării tokenului** — Reîmprospătarea OAuth în fundal determină acum configurația proxy pentru fiecare conexiune, prevenind erorile în mediile care necesită un proxy
+- **Validarea cheii API** — Validarea cheii furnizorului (`POST /api/providers/validate`) este direcționată prin `runWithProxyContext`, respectând setările proxy la nivel de furnizor și setările proxy globale
+- **Remedierea dispecerului undici** — Dispecerii proxy utilizează propria implementare fetch a undici în locul celei încorporate în Node, rezolvând erorile `invalid onRequestStart method` în Node.js 22
+- **Detectarea versiunii Node.js** — Pagina de autentificare detectează în mod proactiv versiunile incompatibile de Node.js (24+) și afișează un banner de avertizare cu instrucțiuni pentru utilizarea Node 22 LTS
 
 ---
 
-## 📋 Compliance Audit v2 _(v3.6.6+)_
+## 📧 Mascarea adreselor de e-mail pentru confidențialitate _(v3.5.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+Adresele de e-mail ale conturilor OAuth sunt mascate în mod implicit (de exemplu, `di*****@g****.com`) pentru a preveni expunerea accidentală atunci când partajați capturi de ecran sau înregistrați demonstrații. Utilizați Setări → Aspect → Vizibilitatea adresei de e-mail a contului pentru a afișa sau masca global adresele complete de e-mail ale conturilor în ecranele furnizorilor, combinațiilor, jurnalelor, cotelor și spațiului de testare.
+
+---
+
+## 👁️ Comutator pentru vizibilitatea modelelor _(v3.5.6+)_
+
+Lista de modele de pe pagina furnizorului include acum:
+
+- **Bară de căutare/filtrare în timp real** — Găsiți rapid anumite modele
+- **Comutator de vizibilitate pentru fiecare model** (pictograma 👁) — Modelele ascunse sunt afișate estompat și excluse din catalogul `/v1/models`
+- **Indicator pentru numărul de modele active** (`N/M active`) — Arată dintr-o privire câte modele sunt activate în raport cu numărul total
+
+---
+
+## 🔧 Repararea variabilelor de mediu OAuth _(v3.6.1+)_
+
+Acțiune „Repair env” cu un singur clic pentru furnizorii OAuth, care restaurează variabilele de mediu lipsă și remediază starea de autentificare defectă. Accesibilă din `Dashboard → Providers → [OAuth Provider] → Repair env`. Detectează și remediază automat:
+
+- Credențiale client OAuth lipsă
+- Intrări corupte în fișierul de mediu
+- Igienizarea căii de backup
+
+---
+
+## 🗑️ Dezinstalare / Dezinstalare completă _(v3.6.2+)_
+
+Scripturi de eliminare curată pentru toate metodele de instalare:
+
+| Comandă                  | Acțiune                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Elimină aplicația din sistem, dar **păstrează baza de date și configurațiile** în `~/.omniroute`. |
+| `npm run uninstall:full` | Elimină aplicația ȘI **șterge definitiv toate configurațiile, cheile și bazele de date**.         |
+
+---
+
+## 🖼️ Conținut media _(v2.0.3+)_
+
+Generați imagini, videoclipuri și muzică din panoul de control. Acceptă OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open și MusicGen.
+
+---
+
+## 📝 Jurnalele solicitărilor
+
+Înregistrarea în timp real a solicitărilor, cu filtrare după furnizor, model, cont și cheie API. Afișează codurile de stare, utilizarea tokenurilor, latența și detaliile răspunsurilor.
+
+![Jurnale de utilizare](../screenshots/08-usage.png)
+
+---
+
+## 🌐 Endpoint API
+
+Endpointul API unificat, cu detalierea capabilităților: completări de chat, Responses API, încorporări, generare de imagini, reclasificare, transcriere audio, transformarea textului în vorbire, moderare și chei API înregistrate. Pentru acces de la distanță sunt disponibile Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel și suportul pentru proxy cloud.
+
+![Panoul endpointului](../screenshots/09-endpoint.png)
+
+---
+
+## 🔑 Gestionarea cheilor API
+
+Creați, limitați domeniul de aplicare și revocați chei API. Fiecare cheie poate fi restricționată la anumite modele/furnizori, cu acces complet sau permisiuni doar în citire. Gestionare vizuală a cheilor, cu urmărirea utilizării.
+
+---
+
+## 📋 Jurnal de audit
+
+Urmărirea acțiunilor administrative, cu filtrare după tipul acțiunii, autor, țintă, adresă IP și marcaj temporal. Istoric complet al evenimentelor de securitate.
+
+---
+
+## 🖥️ Aplicație desktop
+
+Aplicație desktop Electron nativă pentru Windows, macOS și Linux. Rulați OmniRoute ca aplicație autonomă, cu integrare în zona de notificare a sistemului, suport offline, actualizare automată și instalare cu un singur clic.
+
+Caracteristici principale:
+
+- Verificarea periodică a disponibilității serverului (fără ecran gol la pornirea la rece)
+- Integrare în zona de notificare a sistemului, cu gestionarea porturilor
+- Politică de securitate a conținutului
+- Blocare la o singură instanță
+- Actualizare automată la repornire
+- Interfață condiționată de platformă (butoanele tip semafor din macOS, bara de titlu implicită în Windows/Linux)
+- Împachetare consolidată a buildului Electron — directoarele `node_modules` legate simbolic din pachetul autonom sunt detectate și respinse înainte de împachetare, prevenind dependența la rulare de mașina de build (v2.5.5+)
+- **Închidere controlată** — evenimentul Electron `before-quit` închide corect Next.js, prevenind blocarea bazelor de date SQLite WAL (v3.6.2+)
+
+📖 Consultați [`electron/README.md`](../../electron/README.md) pentru documentația completă.
+
+---
+
+## 🌐 Punte WebSocket V1 _(v3.6.6+)_
+
+OmniRoute acceptă acum **clienți WebSocket compatibili cu OpenAI** prin endpointul de upgrade `/v1/ws`. Serverul personalizat `scripts/dev/v1-ws-bridge.mjs` încapsulează Next.js și actualizează conexiunile WS la sesiuni complete de streaming bidirecțional. Autentificarea utilizează aceeași cheie API sau același cookie de sesiune ca solicitările HTTP.
+
+Comportamente principale:
+
+- Upgrade-ul WS este validat de `src/lib/ws/handshake.ts` înainte de stabilirea conexiunii
+- Fluxurile sunt încheiate în mod controlat la închiderea sesiunii sau la apariția unei erori în serviciul din amonte
+- Funcționează simultan împreună cu mecanismul existent de streaming HTTP+SSE
+
+---
+
+## 🔑 Tokenuri de sincronizare și pachet de configurare _(v3.6.6+)_
+
+Accesul de pe mai multe dispozitive și accesul operatorilor externi sunt acum posibile prin **tokenuri de sincronizare cu domeniu limitat**:
+
+- **`POST /api/sync/tokens`** — Emite un nou token de sincronizare (cu domeniu limitat și expirare opțională)
+- **`DELETE /api/sync/tokens/:id`** — Revocă un token
+- **`GET /api/sync/bundle`** — Descarcă un instantaneu JSON versionat, identificat prin ETag, al tuturor setărilor nesensibile (parolele sunt ocultate)
+
+Pachetul de configurare este generat de `src/lib/sync/bundle.ts`. Consumatorii compară antetul de răspuns `ETag` pentru a detecta modificările fără a descărca din nou întregul conținut.
+
+---
+
+## 🧠 Presetare GLM Thinking _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** este acum un furnizor nativ înregistrat: maximum 65 536 de tokenuri de ieșire, buget de gândire de 24 576, timp de expirare implicit de 900 s, format API compatibil cu Claude și sincronizare comună a utilizării cu familia GLM.
+
+**Numărarea hibridă a tokenurilor** este de asemenea introdusă în v3.6.6: atunci când un furnizor compatibil cu Claude expune `/messages/count_tokens`, OmniRoute îl apelează înaintea solicitărilor mari, cu revenire elegantă la estimare.
+
+---
+
+## 🛡️ Preluare externă sigură și protecție SSRF _(v3.6.6+)_
+
+Toate apelurile pentru validarea furnizorilor și descoperirea modelelor trec acum printr-un mecanism de protecție externă pe două niveluri:
+
+1. **Protecție URL** (`src/shared/network/outboundUrlGuard.ts`) — Blochează intervalele de adrese IP private, de loopback și link-local înainte de deschiderea socketului.
+2. **Wrapper pentru preluare sigură** (`src/shared/network/safeOutboundFetch.ts`) — Aplică protecția URL, normalizează timpii de expirare și reîncearcă erorile tranzitorii folosind o temporizare exponențială.
+
+Încălcările mecanismului de protecție sunt raportate ca HTTP 422 (`URL_GUARD_BLOCKED`) și sunt înregistrate în jurnalul de audit pentru conformitate prin `providerAudit.ts`.
+
+---
+
+## 🔄 Reîncercări care țin cont de perioada de așteptare _(v3.6.6+)_
+
+Solicitările de chat sunt acum **reîncercate automat** atunci când un furnizor din amonte returnează o perioadă de așteptare specifică modelului. Configurabil prin `REQUEST_RETRY` (implicit: 2) și `MAX_RETRY_INTERVAL_SEC` (implicit: 30 s). Interpretarea antetelor pentru limitarea ratei a fost îmbunătățită pentru `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens` și `Retry-After` — starea perioadei de așteptare pentru fiecare model este vizibilă în tabloul de bord Resilience.
+
+---
+
+## 📋 Audit de conformitate v2 _(v3.6.6+)_
+
+Jurnalul de audit a fost extins cu paginare bazată pe cursor, îmbogățirea contextului solicitării (ID-ul solicitării, agentul utilizatorului, adresa IP), evenimente structurate de autentificare, evenimente CRUD ale furnizorilor cu contextul diferențelor și înregistrarea validărilor blocate de protecția SSRF. Evenimente noi emise de `src/lib/compliance/providerAudit.ts`.

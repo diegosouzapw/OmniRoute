@@ -216,20 +216,40 @@ Tá na rialacha seo forfheidhmithe ag uirlisí agus athbhreithneoirí:
 10. **Luachanna runtime `exec()` / `spawn()` trí rogha `env`** — ná hionchuir cosáin sheachtracha nó luachanna neamhiontaofa i scripteanna a chuirtear trí shlaod riamh. Tagairt: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Bí i bhfabhar leabharlanna slán-de-réir-chineáil** — féach [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Sroich dóibh sula ndéanann tú do chuid féin.
 
-## Torthaí scanta slabhra soláthair (Socket.dev / Snyk / cosúil leis sin)
+## Torthaí scanóra slabhra soláthair (Socket.dev / Snyk / a leithéid)
 
-Baineann an tsoithse npm `omniroute` foilsithe le tógáil Next.js `output: "standalone"`, a chiallaíonn go dtéann gach láimhseálaí bealaigh — lena n-áirítear gnéithe pribhléid a bhfuil doicimhéadú déanta orthu (MITM, iompórtáil Zed, Cloud Sync, forimeallaigh seirbhíse insínte) — i bpíosaí móideim `next/server/*.js`. Déanann scanóirí slabhra soláthair heuristics cumascú ar na píosaí sin i gcoinne comharthaímharcanna malware go minic.
+Cuimsíonn déantán foilsithe npm `omniroute` leagan tógála Next.js
+`output: "standalone"`, rud a chiallaíonn go gcuirtear gach láimhseálaí róid —
+lena n-áirítear gnéithe pribhléideacha doiciméadaithe (MITM, iompórtáil Zed,
+Cloud Sync, maoirseoir seirbhíse leabaithe) — i smutáin íoslaghdaithe
+`.next/server/*.js`. Is minic a mheaitseálann scanóirí heorastúla slabhra
+soláthair patrúin sna smutáin sin le sínithe bogearraí mailísigh.
 
-Maidir le gach catagóir torthaí, coinnimid dearbhú cothabhála do gach tortha:
+Tá cumraíocht an scanóra a úsáidimid le fáil ag
+[`socket.yml`](socket.yml) i bhfréamh na stórtha (formáid v2 d'Aip GitHub
+Socket.dev — féach <https://docs.socket.dev/docs/socket-yml>). Eisiatar inti
+go sainráite comhadlanna nach seoltar (`tests/`, `_tasks/`, `_references/`,
+`_ideia/`, `_mono_repo/`, `docs/`, etc.) ionas nach dtuairiscíonn an scanóir
+ach ar chonairí cóid a shroicheann úsáideoirí foilsithe i ndáiríre — is í Aip
+GitHub Socket a léann an comhad sin a ritheann an scanadh féin, agus ní sreabhadh
+oibre sa stór seo.
+
+I gcás gach catagóire toraidh, coinnímid fianú cothabhálaí ar leith do gach
+toradh:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  léarscáil in aghaidh an tortha: comhad foinse ↔ crochadh san áireamh ↔ iompar ← cur i bhfeidhm i v3.8.6.
-- Bloic `SECURITY-AUDITOR-NOTE:` i bhfochód ag gach feidhmmharc san áireamh ag dul ar ais go dtí an doiciméad céanna.
+  léarscáil de réir toraidh: comhad foinseach ↔ smután marcáilte ↔ iompar ↔
+  maolú a cuireadh i bhfeidhm in v3.8.6.
+- Díríonn bloic `SECURITY-AUDITOR-NOTE:` laistigh den fhoinse ag gach pointe
+  feidhme marcáilte siar chuig an doiciméad céanna.
 
-Maidir le húsáideoirí nach féidir leo an foláireamh a mhaolú ina n-iarratas: tóg le
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Athraíonn sin ceithre mhódúl íogair le stubs a sheolann HTTP 503 `feature-disabled` ag am rith, ionas go bhfuil na cosáin pribhléide fhisiciúil as láthair ón bhfardal.
-Féach [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-don oideas foilseacháin.
+D'úsáideoirí nach féidir lena bpíblíne an foláireamh a mhaolú: tóg le
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Cuirtear bonnleaganacha in
+ionad na gceithre mhodúl íogaire leis sin, a sheolann HTTP 503
+`feature-disabled` ar ais ag am rite, ionas go mbeidh na conairí cóid
+pribhléideacha in easnamh go fisiciúil ón mbeart. Féach
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+chun an t-oideas foilsithe a fháil.
 
 ## Téacsanna tagartha
 

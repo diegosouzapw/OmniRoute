@@ -123,7 +123,11 @@ import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
 import { resolveOmniGlyphTransport } from "../services/compression/imageTransportPolicy.ts";
 import { stripStore, usesClaudeBridge } from "./chatCore/agentRouterProtocol.ts";
 import { normalizeClaudeToolsForDispatch } from "./chatCore/claudeToolDefaults.ts";
-import { injectSystemPrompt, injectCustomSystemPrompt } from "../services/systemPrompt.ts";
+import {
+  injectCustomSystemPrompt,
+  injectSystemPromptPostTranslation,
+  injectSystemPromptPreTranslation,
+} from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { applyReasoningRuleDirective } from "@/lib/reasoningRouting/policy";
 import { withReasoningRuleContext } from "../utils/reasoningRuleContext.ts";
@@ -141,6 +145,7 @@ import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
 import { resolveAgentGoalPolicy } from "../utils/agentGoalPolicy.ts";
+import { hasActiveClaudeThinking } from "../utils/thinkingBudget.ts";
 import { createStreamController } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
 import { normalizeUsage } from "../utils/usageTracking.ts";
@@ -160,26 +165,9 @@ import {
   getStripTypesForProviderModel,
   stripIncompatibleMessageContent,
 } from "../services/modelStrip.ts";
-import { normalizeMimoThinking } from "../services/mimoThinking.ts";
-import {
-  isOpencodeGoProvider,
-  stripBooleanReasoning,
-} from "../services/opencodeReasoningSanitizer.ts";
-import {
-  normalizeClaudeAdaptiveThinking,
-  normalizeClaudeDisabledThinkingEffort,
-} from "../services/claudeAdaptiveThinking.ts";
 import { shouldUseMidConversationSystem } from "../executors/claudeIdentity.ts";
-import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
-import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
-import { wireAdaptiveEffort } from "./chatCore/adaptiveEffortWiring.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
-import {
-  stripGpt5SamplingWhenReasoning,
-  stripGpt5ReasoningWhenTools,
-} from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
-import { stripUnsupportedParams } from "./chatCore/unsupportedParamsStrip.ts";
 import { checkToolCallingRequiredButUnsupported } from "./chatCore/toolCallingRequiredCheck.ts";
 import {
   supportsMaxTokens,
@@ -205,13 +193,14 @@ import {
   isTinyBudgetReasoningProbe,
   toPositiveInteger,
 } from "../services/reasoningTokenBuffer.ts";
-import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
   buildErrorBody,
   createErrorResult,
   parseUpstreamError,
   formatProviderError,
+  projectPublicErrorIdentifier,
   sanitizeErrorMessage,
+  sanitizeUpstreamDetails,
 } from "../utils/error.ts";
 import {
   reportMalformed200,
@@ -245,8 +234,11 @@ import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/ke
 import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
 import { readNonStreamingResponseBody } from "./chatCore/nonStreamingResponseBody.ts";
 import {
-  isSemaphoreCapacityError,
+  createSafeAbortError,
   createStreamingErrorResult,
+  isSemaphoreCapacityError,
+  formatStreamRecoveryRetryWarning,
+  getSafeErrorMetadata,
   getUpstreamErrorIdentifier,
 } from "./chatCore/streamErrorResult.ts";
 import { wrapReadableStreamWithFinalize } from "./chatCore/streamFinalize.ts";
@@ -265,6 +257,8 @@ import { stageTrace } from "./chatCore/stageTrace.ts";
 import { attachCompressionUsageReceiptAfterAnalytics as attachCompressionUsageReceiptAfterAnalyticsFor } from "./chatCore/compressionUsageReceipt.ts";
 import { prepareUpstreamBody } from "./chatCore/upstreamBody.ts";
 import { getQuotaScopeLabelForProvider } from "../services/antigravityQuotaFamily.ts";
+import { excludeConnectionForCooldown } from "./chatCore/connectionCooldown.ts";
+import { handleRequestRejectedFailure } from "./chatCore/requestRejectedFailure.ts";
 import { getKimiTemporaryRateLimitResetAt } from "./chatCore/kimiQuotaRecovery.ts";
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -500,6 +494,19 @@ export async function handleChatCore({
   videoBridgeLog = undefined,
   fallbackAttempts = undefined,
 }) {
+  const {
+    model: originModel,
+    resolvedThinkingEffort,
+    defaultThinkingEffort,
+  } = modelInfo as typeof modelInfo & {
+    resolvedThinkingEffort?: string | null;
+    defaultThinkingEffort?: string | null;
+  };
+  const trustedEffortContext = Object.freeze({
+    originModel,
+    resolvedThinkingEffort,
+    defaultThinkingEffort,
+  });
   let { provider, model, extendedContext } = modelInfo;
   // Keep the selected rule across format conversion, retries and refreshed credentials.
   // Each combo leg gets its own execution context; nothing is written to shared accounts.
@@ -582,12 +589,11 @@ export async function handleChatCore({
       status: 409,
     });
   };
-  const isManagedLeaseFenceError = (error: unknown): boolean =>
-    managedLease !== null &&
-    typeof (error as { code?: unknown })?.code === "string" &&
-    String((error as { code: string }).code).startsWith("LEASE_");
-  const managedLeaseFenceErrorResult = (error: unknown) => {
-    const code = (error as { code: string }).code;
+  const getManagedLeaseFenceErrorCode = (code: string | undefined): string | undefined => {
+    if (managedLease === null) return undefined;
+    return code?.startsWith("LEASE_") ? code : undefined;
+  };
+  const managedLeaseFenceErrorResult = (code: string) => {
     return {
       ...createErrorResult(409, "Managed lease request fence rejected the dispatch", null, code),
       errorType: "lease_error",
@@ -595,7 +601,6 @@ export async function handleChatCore({
     };
   };
   let tokensCompressed: number | null = null;
-  body = injectSystemPrompt(body);
   // ── Per-endpoint custom system prompt (port of upstream #2063) ──
   // Reads from cachedSettings if available (passed in from combo/chat layer)
   // to avoid an extra DB read on the hot path. Falls through to getCachedSettings()
@@ -1252,7 +1257,7 @@ export async function handleChatCore({
     stream: !!stream,
     reqLogger,
     effectiveServiceTier,
-    connectionId,
+    pendingScope,
     startTime,
     log,
     persistAttemptLogs,
@@ -2400,8 +2405,8 @@ export async function handleChatCore({
         }
       }
 
-      // Legacy models reject role:"system" messages. Opus accepts them behind
-      // its beta, and hoisting them breaks the prompt cache prefix.
+      // Legacy models reject role:"system" messages. Supported models accept
+      // them behind a beta, and hoisting them breaks the prompt cache prefix.
       if (isClaudeCodeSemanticPassthrough) {
         if (
           provider !== "claude" ||
@@ -2505,6 +2510,12 @@ export async function handleChatCore({
         model || "",
         sourceFormat
       );
+      // Carrier-less targets (kiro / antigravity) have no post-translation
+      // system carrier for the single pass at ~3068 to write into — inject
+      // into the client body BEFORE translation so their user-merge /
+      // relocation paths carry the global prompt (baseline coverage of the
+      // removed pre-translation pass). The gate writes ONE carrier only.
+      translatedBody = injectSystemPromptPreTranslation(translatedBody, { targetFormat });
       translatedBody = translateRequest(
         sourceFormat,
         targetFormat,
@@ -2534,19 +2545,35 @@ export async function handleChatCore({
         error instanceof Error ? error : new Error(String(error))
       );
     } catch (pluginErr) {
-      log?.debug?.(
-        "PLUGIN",
-        `onError hook error (non-fatal): ${pluginErr instanceof Error ? pluginErr.message : String(pluginErr)}`
-      );
+      const pluginErrorMessage = sanitizeErrorMessage(pluginErr) || "Plugin onError hook failed";
+      log?.debug?.("PLUGIN", `onError hook error (non-fatal): ${pluginErrorMessage}`);
     }
 
-    const parsedStatus = Number(error?.statusCode);
+    let parsedStatus = Number.NaN;
+    try {
+      parsedStatus = Number(error?.statusCode);
+    } catch {
+      // Hostile thrown values may expose Symbols or throwing status accessors.
+    }
     const statusCode =
       Number.isInteger(parsedStatus) && parsedStatus >= 400 && parsedStatus <= 599
         ? parsedStatus
         : HTTP_STATUS.SERVER_ERROR;
-    const message = error?.message || "Invalid request";
-    const errorType = typeof error?.errorType === "string" ? error.errorType : null;
+    let message = "Invalid request";
+    try {
+      const candidate = error?.message;
+      message =
+        (typeof candidate === "string" ? candidate : sanitizeErrorMessage(candidate)) || message;
+    } catch {
+      // Hostile thrown values may expose throwing property accessors.
+    }
+    let errorType: string | null = null;
+    try {
+      const candidate = error?.errorType;
+      errorType = typeof candidate === "string" ? candidate : null;
+    } catch {
+      // Hostile thrown values may expose throwing classification accessors.
+    }
     const result = createTranslationFailureResult(statusCode, message, errorType);
     log?.warn?.("TRANSLATE", `Request translation failed: ${result.error}`);
 
@@ -2702,77 +2729,6 @@ export async function handleChatCore({
   }
   translatedBody.model = finalModelToUpstream;
 
-  // #3554: a combo/route may substitute the upstream model AFTER the client chose its
-  // `thinking` value. Claude Code sends `thinking:{type:"disabled"}` for internal calls,
-  // which claude-fable-5 (adaptive-only) rejects with a 400. Drop the now-invalid value
-  // when the resolved target model rejects it; models that accept `disabled` are untouched.
-  if (typeof finalModelToUpstream === "string") {
-    translatedBody = normalizeThinkingForModel(translatedBody, finalModelToUpstream);
-    // Claude Opus 4.7+/Fable 5 removed manual extended thinking: `thinking.type:"enabled"`
-    // or any `thinking.budget_tokens` is a hard 400. Collapse any manual thinking that
-    // reached this point (passthrough legacy shape, reasoning_effort buckets, per-model
-    // defaults) to `{type:"adaptive"}` — effort stays on `output_config.effort`. Keyed on
-    // the resolved upstream model, so it covers every routing mode. See claudeAdaptiveThinking.ts.
-    translatedBody = normalizeClaudeAdaptiveThinking(translatedBody, finalModelToUpstream);
-    // Opus 5 allows disabled thinking only through high effort on Anthropic's direct
-    // Messages API. The helper scopes this constraint to `anthropic` and `claude`;
-    // GitHub Copilot and Claude Web use separate upstream contracts.
-    translatedBody = normalizeClaudeDisabledThinkingEffort(
-      translatedBody,
-      finalModelToUpstream,
-      provider
-    );
-    // Claude Haiku rejects `thinking.type:"adaptive"` and `output_config.effort`
-    // (both Sonnet 4.6 / Opus 4.5+ only). Several paths can still emit those
-    // shapes on a Haiku target — native passthrough, reasoning_effort buckets,
-    // per-model defaults — so collapse them to a Haiku-valid shape here, after
-    // model substitution. Mirrors upstream 9router 401d93bd5. See
-    // services/claudeHaikuConstraints.ts.
-    translatedBody = normalizeClaudeHaikuConstraints(translatedBody, finalModelToUpstream);
-    // #6879: per-model default reasoning_effort, injected only when the request
-    // carries no reasoning field of any shape — an explicit client/combo-leg value
-    // always wins. Scoped to the OpenAI Chat Completions dispatch shape (the shape
-    // `reasoning_effort` is native to); unset ModelSpec.defaultReasoningEffort is a
-    // no-op. #7694: `modelInfo.resolvedThinkingEffort` — set when the request's model
-    // id carried a `<prefix>/<model>-{effort}` synced-model alias suffix
-    // (`src/sse/services/model.ts`) — takes priority over the static per-model default.
-    // The synced catalog's vendor-declared `defaultThinkingEffort` (OpenRouter
-    // `reasoning.default_effort`, captured by `detectDefaultThinkingEffort`) is the
-    // lowest-priority default: it only fires when neither the suffix alias nor a
-    // static operator default exists. See open-sse/services/defaultReasoningEffort.ts.
-    if (targetFormat === FORMATS.OPENAI) {
-      translatedBody = applyDefaultReasoningEffort(
-        translatedBody,
-        finalModelToUpstream,
-        (modelInfo as { resolvedThinkingEffort?: string })?.resolvedThinkingEffort,
-        (modelInfo as { defaultThinkingEffort?: string })?.defaultThinkingEffort
-      );
-    }
-    translatedBody = wireAdaptiveEffort(translatedBody, {
-      rawBody: body,
-      clientRawRequest,
-      targetFormat,
-    });
-  }
-
-  // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and
-  // rejects unknown/extra params with a strict "400 Param Incorrect". Map OmniRoute's
-  // OpenAI reasoning signals onto that native shape: reduce any thinking object to
-  // `{type}` and drop `reasoning_effort`/`reasoning`. See services/mimoThinking.ts.
-  if (provider === "xiaomi-mimo") {
-    translatedBody = normalizeMimoThinking(translatedBody);
-  }
-
-  // opencode-go backed providers (ollama-cloud, opencode-go, opencode,
-  // opencode-zen) use a Go ChatCompletionRequest struct where `reasoning`
-  // is typed as openai.Reasoning (a structured type). A boolean
-  // `reasoning: true/false` — valid per the OpenAI API — causes a 400
-  // "json: cannot unmarshal bool into Go struct field" on the Go side.
-  // Strip the boolean before forwarding. See opencodeReasoningSanitizer.ts.
-  if (isOpencodeGoProvider(provider)) {
-    translatedBody = stripBooleanReasoning(translatedBody);
-  }
-
   const previousResponseIdPolicy = applyResponsesPreviousResponseIdPolicy(translatedBody, {
     mode: settings.responsesPreviousResponseIdMode,
     provider,
@@ -2829,43 +2785,6 @@ export async function handleChatCore({
     trackPendingRequest(model, provider, connectionId, false);
     return createErrorResult(400, toolCallingCheck.message!, null, "tool_calling_not_supported");
   }
-
-  if (unsupported.length > 0) {
-    const { strippedParams } = stripUnsupportedParams(translatedBody, unsupported);
-    if (strippedParams.length > 0) {
-      log?.warn?.(
-        "PARAMS",
-        `Stripped unsupported params for ${model}: ${strippedParams.join(", ")}`
-      );
-    }
-  }
-
-  // GPT-5 reasoning models (openai Chat Completions) reject temperature/top_p with a 400
-  // whenever a reasoning effort is active, yet accept them under reasoning_effort=none (the
-  // GPT-5.1+ default). A static unsupportedParams list can't express that, so strip sampling
-  // conditionally here. The codex Responses path is already covered by the executor allowlist.
-  translatedBody = stripGpt5SamplingWhenReasoning(
-    translatedBody,
-    provider,
-    finalModelToUpstream,
-    log
-  );
-
-  // GPT-5.x reasoning models on the raw openai Chat Completions surface reject function
-  // `tools` combined with an active `reasoning_effort`: HTTP 400 "Function tools with
-  // reasoning_effort are not supported ... Please use /v1/responses instead." This used to
-  // be true for every GPT-5.x model on the plain `openai` provider, but #7242 (targetFormat
-  // "openai-responses" on GPT_5_6_API_CAPABILITIES) now routes the GPT-5.6 family to
-  // /v1/responses instead, which accepts tools + reasoning natively — so the strip must not
-  // fire there. Pass the already-resolved `targetFormat` so the guard gates on the actual
-  // upstream surface for this request instead of a model-name list. Port of 9router#2540.
-  translatedBody = stripGpt5ReasoningWhenTools(
-    translatedBody,
-    provider,
-    finalModelToUpstream,
-    targetFormat,
-    log
-  );
 
   // Rename max_tokens to max_completion_tokens if not supported (#1961)
   if (!supportsMaxTokens({ provider, model })) {
@@ -3079,7 +2998,9 @@ export async function handleChatCore({
   // Namespaced by the calling API key: dedup hands the SAME response object to
   // every joiner, so a shared hash across keys is a cross-principal response
   // leak (GHSA-6c7w-56xp-wpc6).
-  const dedupHash = dedupEnabled ? computeRequestHash(dedupRequestBody, apiKeyInfo?.id) : null;
+  const dedupHash = dedupEnabled
+    ? computeRequestHash(dedupRequestBody, apiKeyInfo?.id, trustedEffortContext)
+    : null;
 
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
@@ -3089,13 +3010,29 @@ export async function handleChatCore({
       let bodyToSend = await prepareUpstreamBody({
         translatedBody,
         modelToCall,
+        ...trustedEffortContext,
         provider,
         targetFormat,
-        credentials,
+        credentials: getExecutionCredentials(),
         log,
         bypassDefaultToolLimit: isOpencodeClient,
         isOpencodeClient,
+        rawBody: body,
+        clientRawRequest,
       });
+
+      // Global System Prompt — SINGLE injection point (post-translation) for
+      // carrier-ful targets. The old unconditional pre-translation pass
+      // (former chatCore injectSystemPrompt call) was removed: it chained
+      // with this pass to inject prefix/suffix 2-3x and dual-wrote
+      // body.system + messages[] on the claude path, which strict upstreams
+      // (HCP-Vision vLLM: "System message must be at the beginning") reject
+      // with 400. Format-aware via targetFormat: messages[] (openai/codex —
+      // prefix FIRST system, suffix LAST), claude `system` field, gemini
+      // `systemInstruction`, responses `instructions`. Carrier-less targets
+      // (kiro user-fold, antigravity Cloud Code envelope) are covered by the
+      // gated PRE-translation pass before translateRequest instead.
+      bodyToSend = injectSystemPromptPostTranslation(bodyToSend, { targetFormat });
 
       updatePendingScope(pendingScope, {
         providerRequest: bodyToSend,
@@ -3438,9 +3375,11 @@ export async function handleChatCore({
                       onRetry: (attempt, err) =>
                         log?.warn?.(
                           "STREAM_RECOVERY",
-                          `transparent early-retry ${attempt}/${STREAM_RECOVERY.EARLY_RETRY_MAX} after ${
-                            (err as { name?: string })?.name || "truncation"
-                          }`
+                          formatStreamRecoveryRetryWarning(
+                            attempt,
+                            STREAM_RECOVERY.EARLY_RETRY_MAX,
+                            err
+                          )
                         ),
                       continueStream,
                       ...buildContinuationLogHooks(log),
@@ -4004,35 +3943,37 @@ export async function handleChatCore({
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) -- not banning`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
-          const geoCooldownMs = COOLDOWN_MS.geoBlocked ?? 24 * 60 * 60 * 1000;
-          await updateProviderConnection(errorConnectionId, {
-            lastErrorType: errorType,
-            lastError: persistentMessage,
-            errorCode: statusCode,
+          // Google regional refusal: account-independent, non-terminal; park the connection
+          // until egress uses a supported region; probes skip the day-long cooldown (#9817).
+          await excludeConnectionForCooldown({
+            connectionId: errorConnectionId,
+            errorType,
+            message: persistentMessage,
+            statusCode,
+            cooldownMs: COOLDOWN_MS.geoBlocked ?? 24 * 60 * 60 * 1000,
+            skipCooldownForProbe: true,
+            label: "geo-blocked",
+            suffix: "trying other accounts",
           });
-          if (!(await shouldIsolateProbeFailures())) {
-            try {
-              const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
-              setConnectionRateLimitUntil(errorConnectionId, Date.now() + geoCooldownMs);
-            } catch {}
-          }
-          console.warn(
-            `[provider] Node ${errorConnectionId} geo-blocked (${statusCode}) -- excluded for ${Math.ceil(geoCooldownMs / 1000)}s, trying other accounts`
-          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.REQUEST_REJECTED) {
+          // Per-request refusal (#12859): growing cooldown, streak → banned.
+          await handleRequestRejectedFailure({
+            connectionId: errorConnectionId,
+            statusCode,
+            message: persistentMessage,
+          });
         } else if (errorType === PROVIDER_ERROR_TYPES.GCP_PROJECT_REQUIRED) {
-          const byopCooldownMs = COOLDOWN_MS.gcpProjectRequired ?? 24 * 60 * 60 * 1000;
-          await updateProviderConnection(errorConnectionId, {
-            lastErrorType: errorType,
-            lastError: persistentMessage,
-            errorCode: statusCode,
+          // Antigravity BYOP: fixable via a Project ID; never a lockout/ban. Park the connection.
+          await excludeConnectionForCooldown({
+            connectionId: errorConnectionId,
+            errorType,
+            message: persistentMessage,
+            statusCode,
+            cooldownMs: COOLDOWN_MS.gcpProjectRequired ?? 24 * 60 * 60 * 1000,
+            skipCooldownForProbe: false,
+            label: "GCP project required",
+            suffix: "routing to other accounts (enter a Project ID to restore)",
           });
-          try {
-            const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
-            setConnectionRateLimitUntil(errorConnectionId, Date.now() + byopCooldownMs);
-          } catch {}
-          console.warn(
-            `[provider] Node ${errorConnectionId} GCP project required (${statusCode}) -- excluded for ${Math.ceil(byopCooldownMs / 1000)}s, routing to other accounts (enter a Project ID to restore)`
-          );
         } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
           if (!(await shouldIsolateProbeFailures())) {
@@ -4224,15 +4165,20 @@ export async function handleChatCore({
       }
     } catch (error) {
       trackPendingRequest(model, provider, connectionId, false);
-      if (isManagedLeaseFenceError(error)) return managedLeaseFenceErrorResult(error);
+      const errorMetadata = getSafeErrorMetadata(error);
+      const managedLeaseFenceCode = getManagedLeaseFenceErrorCode(errorMetadata.code);
+      if (managedLeaseFenceCode) return managedLeaseFenceErrorResult(managedLeaseFenceCode);
+      // isSemaphoreCapacityError already reads the code through getSafeErrorMetadata,
+      // so a hostile rejection cannot escape this classification.
       if (isSemaphoreCapacityError(error)) {
+        const semaphoreCode = errorMetadata.code as string;
         appendRequestLog({
           model,
           provider,
           connectionId,
-          status: `FAILED ${error.code}`,
+          status: `FAILED ${semaphoreCode}`,
         }).catch(() => {});
-        const failureMessage = error.message || "Semaphore timeout";
+        const failureMessage = sanitizeErrorMessage(errorMetadata.message) || "Semaphore timeout";
         persistAttemptLogs({
           status: HTTP_STATUS.RATE_LIMITED,
           error: failureMessage,
@@ -4241,25 +4187,32 @@ export async function handleChatCore({
           claudeCacheMeta: claudePromptCacheLogMeta,
           cacheSource: "upstream",
         });
-        persistFailureUsage(HTTP_STATUS.RATE_LIMITED, error.code);
+        persistFailureUsage(HTTP_STATUS.RATE_LIMITED, semaphoreCode);
         const result = stream
-          ? createStreamingErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage, error.code)
+          ? createStreamingErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage, semaphoreCode)
           : createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
         return {
           ...result,
           errorType: "account_semaphore_capacity",
-          errorCode: error.code,
+          errorCode: semaphoreCode,
         };
       }
       // abort(reason) can reject with a raw string lacking `name`/`status`; classify
       // it through isLocalStreamLifecycleError so it maps to 499 rather than the
       // 502 provider-failure default.
-      const isRequestAborted = isLocalStreamLifecycleError(error);
+      let isRequestAborted = errorMetadata.name === "AbortError";
+      if (!isRequestAborted) {
+        try {
+          isRequestAborted = isLocalStreamLifecycleError(error);
+        } catch {
+          // A hostile Proxy must not escape the provider-error boundary during classification.
+        }
+      }
       // #8376: proxyFetch tags unreachable transport failures so they remain
       // distinguishable from ordinary provider 5xx responses.
       const isProxyUnreachableFailure =
-        !isRequestAborted && (error as { errorCode?: unknown })?.errorCode === "proxy_unreachable";
-      const errorCode = getUpstreamErrorIdentifier(error);
+        !isRequestAborted && errorMetadata.errorCode === "proxy_unreachable";
+      const errorCode = errorMetadata.code;
       const localRateLimitFailure = localLimiterErrors.getClientSafeLocalRateLimitError(error);
       const failureStatus = isRequestAborted
         ? 499
@@ -4267,14 +4220,27 @@ export async function handleChatCore({
           ? HTTP_STATUS.BAD_GATEWAY
           : localRateLimitFailure
             ? localRateLimitFailure.status
-            : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
+            : errorMetadata.name === "TimeoutError" || errorMetadata.name === "BodyTimeoutError"
               ? HTTP_STATUS.GATEWAY_TIMEOUT
-              : error.status && typeof error.status === "number"
-                ? error.status
+              : errorMetadata.status
+                ? errorMetadata.status
                 : HTTP_STATUS.BAD_GATEWAY;
       const failureMessage = isRequestAborted
         ? "Request aborted"
-        : formatProviderError(localRateLimitFailure ?? error, provider, model, failureStatus);
+        : (() => {
+            try {
+              return formatProviderError(
+                localRateLimitFailure ?? error,
+                provider,
+                model,
+                failureStatus
+              );
+            } catch {
+              // Formatting is diagnostic only; hostile rejection metadata falls back safely.
+              return errorMetadata.message || "Upstream provider error";
+            }
+          })();
+      const safeFailureMessage = sanitizeErrorMessage(failureMessage) || "Upstream provider error";
       const upstreamErrorCode =
         localRateLimitFailure?.code ??
         (isProxyUnreachableFailure ? "proxy_unreachable" : errorCode);
@@ -4284,7 +4250,7 @@ export async function handleChatCore({
       // tags its pre-response timeout via the code below.)
       const isOwnDeadlineTimeout =
         failureStatus === HTTP_STATUS.GATEWAY_TIMEOUT &&
-        (error.name === "TimeoutError" || error.name === "BodyTimeoutError");
+        (errorMetadata.name === "TimeoutError" || errorMetadata.name === "BodyTimeoutError");
       const upstreamErrorType =
         upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE || isOwnDeadlineTimeout
           ? "upstream_timeout"
@@ -4299,7 +4265,7 @@ export async function handleChatCore({
       }).catch(() => {});
       persistAttemptLogs({
         status: failureStatus,
-        error: failureMessage,
+        error: safeFailureMessage,
         providerRequest: finalBody || translatedBody,
         // On a client-abort (AbortError), the client already disconnected before
         // we ever got here — this body is what we WOULD have sent, not what was
@@ -4307,24 +4273,27 @@ export async function handleChatCore({
         // dashboard reads that field as "what the client received"), so omit it
         // for this case; `error` above already records the failure reason.
         clientResponse:
-          error.name === "AbortError" ? undefined : buildErrorBody(failureStatus, failureMessage),
+          errorMetadata.name === "AbortError"
+            ? undefined
+            : buildErrorBody(failureStatus, failureMessage),
         claudeCacheMeta: claudePromptCacheLogMeta,
         cacheSource: "upstream",
       });
       if (isRequestAborted) {
-        streamController.handleError(error);
+        streamController.handleError(createSafeAbortError());
         return createErrorResult(499, "Request aborted");
       }
       const persistentErrorCode = projectFailureUsageErrorCode({
         statusCode: failureStatus,
         message: failureMessage,
-        errorCode:
-          upstreamErrorCode ||
-          (error instanceof Error && error.name ? error.name : "upstream_error"),
+        errorCode: projectPublicErrorIdentifier(
+          upstreamErrorCode || errorMetadata.name,
+          "upstream_error"
+        ),
         errorType: upstreamErrorType,
       });
       persistFailureUsage(failureStatus, persistentErrorCode);
-      console.log(`${COLORS.red}[ERROR] ${failureMessage}${COLORS.reset}`);
+      console.log(`${COLORS.red}[ERROR] ${safeFailureMessage}${COLORS.reset}`);
       if (stream && upstreamErrorCode) {
         const result = createStreamingErrorResult(
           failureStatus,
@@ -4447,12 +4416,25 @@ export async function handleChatCore({
         // stay aligned if this block ever runs after a path that mutates body.model (e.g. fallback).
         try {
           const retryModelId = String(translatedBody.model || effectiveModel);
+          const retryBody = await prepareUpstreamBody({
+            translatedBody,
+            modelToCall: retryModelId,
+            ...trustedEffortContext,
+            provider,
+            targetFormat,
+            credentials: getExecutionCredentials(),
+            log,
+            bypassDefaultToolLimit: isOpencodeClient,
+            isOpencodeClient,
+            rawBody: body,
+            clientRawRequest,
+          });
           assertManagedLeaseFence(getExecutionConnectionId(getExecutionCredentials()));
           const retryResult = normalizeExecutorResult(
             await runWithCapture(providerRequestCapture, () =>
               executor.execute({
                 model: retryModelId,
-                body: translatedBody,
+                body: retryBody,
                 stream: upstreamStream,
                 credentials: getExecutionCredentials(),
                 signal: streamController.signal,
@@ -4486,7 +4468,10 @@ export async function handleChatCore({
             upstreamErrorParsed = false; // Let it be parsed downstream
           }
         } catch (retryErr) {
-          if (isManagedLeaseFenceError(retryErr)) return managedLeaseFenceErrorResult(retryErr);
+          const retryLeaseFenceCode = getManagedLeaseFenceErrorCode(
+            getUpstreamErrorIdentifier(retryErr)
+          );
+          if (retryLeaseFenceCode) return managedLeaseFenceErrorResult(retryLeaseFenceCode);
           // Refresh succeeded but the retry leg failed (network blip, AbortError,
           // executor throw). Don't swallow — the operator-visible signal "the user
           // saw 401 even though auth was actually fixed" is much more confusing
@@ -4546,8 +4531,8 @@ export async function handleChatCore({
         message = details.message;
         retryAfterMs = details.retryAfterMs;
         upstreamErrorBody = details.responseBody;
-        upstreamErrorCode = details.errorCode as string | undefined;
-        upstreamErrorType = details.errorType as string | undefined;
+        upstreamErrorCode = typeof details.errorCode === "string" ? details.errorCode : undefined;
+        upstreamErrorType = typeof details.errorType === "string" ? details.errorType : undefined;
       }
 
       // Gateways like agentrouter misstate temporary quota exhaustion as 403/400,
@@ -4605,8 +4590,14 @@ export async function handleChatCore({
           message = signatureRecovery.error.message;
           retryAfterMs = signatureRecovery.error.retryAfterMs;
           upstreamErrorBody = signatureRecovery.error.responseBody;
-          upstreamErrorCode = signatureRecovery.error.errorCode as string | undefined;
-          upstreamErrorType = signatureRecovery.error.errorType as string | undefined;
+          upstreamErrorCode =
+            typeof signatureRecovery.error.errorCode === "string"
+              ? signatureRecovery.error.errorCode
+              : undefined;
+          upstreamErrorType =
+            typeof signatureRecovery.error.errorType === "string"
+              ? signatureRecovery.error.errorType
+              : undefined;
         }
       }
 
@@ -4657,7 +4648,9 @@ export async function handleChatCore({
       }).catch(() => {});
 
       const errMsg = formatProviderError(new Error(message), provider, model, statusCode);
-      console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
+      const safeErrMsg = sanitizeErrorMessage(errMsg) || "Upstream provider error";
+      const safeUpstreamErrorBody = sanitizeUpstreamDetails(upstreamErrorBody);
+      console.log(`${COLORS.red}[ERROR] ${safeErrMsg}${COLORS.reset}`);
 
       // Log Antigravity retry time if available
       if (retryAfterMs && provider === "antigravity") {
@@ -4671,7 +4664,7 @@ export async function handleChatCore({
         providerResponse.status,
         providerResponse.statusText,
         providerResponse.headers,
-        upstreamErrorBody
+        safeUpstreamErrorBody
       );
 
       // Rate limiter updated in applyProviderFailureClassification
@@ -4712,9 +4705,9 @@ export async function handleChatCore({
               // Fallback also failed — return original error
               persistAttemptLogs({
                 status: statusCode,
-                error: errMsg,
+                error: safeErrMsg,
                 providerRequest: finalBody || translatedBody,
-                providerResponse: upstreamErrorBody,
+                providerResponse: safeUpstreamErrorBody,
                 clientResponse: buildErrorBody(statusCode, errMsg),
                 cacheSource: "upstream",
               });
@@ -4732,9 +4725,9 @@ export async function handleChatCore({
           } catch {
             persistAttemptLogs({
               status: statusCode,
-              error: errMsg,
+              error: safeErrMsg,
               providerRequest: finalBody || translatedBody,
-              providerResponse: upstreamErrorBody,
+              providerResponse: safeUpstreamErrorBody,
               clientResponse: buildErrorBody(statusCode, errMsg),
               cacheSource: "upstream",
             });
@@ -4752,9 +4745,9 @@ export async function handleChatCore({
         } else {
           persistAttemptLogs({
             status: statusCode,
-            error: errMsg,
+            error: safeErrMsg,
             providerRequest: finalBody || translatedBody,
-            providerResponse: upstreamErrorBody,
+            providerResponse: safeUpstreamErrorBody,
             clientResponse: buildErrorBody(statusCode, errMsg),
             cacheSource: "upstream",
           });
@@ -4804,9 +4797,9 @@ export async function handleChatCore({
             } else {
               persistAttemptLogs({
                 status: statusCode,
-                error: errMsg,
+                error: safeErrMsg,
                 providerRequest: finalBody || translatedBody,
-                providerResponse: upstreamErrorBody,
+                providerResponse: safeUpstreamErrorBody,
                 clientResponse: buildErrorBody(statusCode, errMsg),
                 cacheSource: "upstream",
               });
@@ -4824,9 +4817,9 @@ export async function handleChatCore({
           } catch {
             persistAttemptLogs({
               status: statusCode,
-              error: errMsg,
+              error: safeErrMsg,
               providerRequest: finalBody || translatedBody,
-              providerResponse: upstreamErrorBody,
+              providerResponse: safeUpstreamErrorBody,
               clientResponse: buildErrorBody(statusCode, errMsg),
               cacheSource: "upstream",
             });
@@ -4844,9 +4837,9 @@ export async function handleChatCore({
         } else {
           persistAttemptLogs({
             status: statusCode,
-            error: errMsg,
+            error: safeErrMsg,
             providerRequest: finalBody || translatedBody,
-            providerResponse: upstreamErrorBody,
+            providerResponse: safeUpstreamErrorBody,
             clientResponse: buildErrorBody(statusCode, errMsg),
             cacheSource: "upstream",
           });
@@ -4864,9 +4857,9 @@ export async function handleChatCore({
       } else {
         persistAttemptLogs({
           status: statusCode,
-          error: errMsg,
+          error: safeErrMsg,
           providerRequest: finalBody || translatedBody,
-          providerResponse: upstreamErrorBody,
+          providerResponse: safeUpstreamErrorBody,
           clientResponse: buildErrorBody(statusCode, errMsg),
           cacheSource: "upstream",
         });
@@ -5428,7 +5421,7 @@ export async function handleChatCore({
       // this check runs after translation + sanitization + tool-call execution to catch
       // cases where a provider returns a structurally valid raw body that translates into
       // choices:[] or output:[] with no usable content (Responses API shape included).
-      const malformedTranslatedReason = detectMalformedNonStream(translatedResponse);
+      const malformedTranslatedReason = detectMalformedNonStream(translatedResponse, provider);
       if (malformedTranslatedReason) {
         const totalLatency = Date.now() - startTime;
         const rawBytes = (() => {
@@ -5465,14 +5458,16 @@ export async function handleChatCore({
           undefined,
           { code: malformed.code, type: malformed.type }
         );
+        const sanitizedMalformedResponse = sanitizeUpstreamDetails(responseBody);
+        const sanitizedMalformedProviderResponse = looksLikeSSE
+          ? { _streamed: true, _format: "sse-json", summary: sanitizedMalformedResponse }
+          : sanitizedMalformedResponse;
         persistAttemptLogs({
           status: HTTP_STATUS.BAD_GATEWAY,
           tokens: usage,
-          responseBody,
+          responseBody: sanitizedMalformedResponse,
           providerRequest: finalBody || translatedBody,
-          providerResponse: looksLikeSSE
-            ? { _streamed: true, _format: "sse-json", summary: responseBody }
-            : responseBody,
+          providerResponse: sanitizedMalformedProviderResponse,
           clientResponse: malformedClientBody,
           claudeCacheMeta: claudePromptCacheLogMeta,
           claudeCacheUsageMeta: cacheUsageLogMeta,
@@ -5649,15 +5644,20 @@ export async function handleChatCore({
       };
     } catch (error) {
       trackPendingRequest(model, provider, connectionId, false);
-      if (isManagedLeaseFenceError(error)) return managedLeaseFenceErrorResult(error);
+      const errorMetadata = getSafeErrorMetadata(error);
+      const managedLeaseFenceCode = getManagedLeaseFenceErrorCode(errorMetadata.code);
+      if (managedLeaseFenceCode) return managedLeaseFenceErrorResult(managedLeaseFenceCode);
+      // isSemaphoreCapacityError already reads the code through getSafeErrorMetadata,
+      // so a hostile rejection cannot escape this classification.
       if (isSemaphoreCapacityError(error)) {
+        const semaphoreCode = errorMetadata.code as string;
         appendRequestLog({
           model,
           provider,
           connectionId,
-          status: `FAILED ${error.code}`,
+          status: `FAILED ${semaphoreCode}`,
         }).catch(() => {});
-        const failureMessage = error.message || "Semaphore timeout";
+        const failureMessage = sanitizeErrorMessage(errorMetadata.message) || "Semaphore timeout";
         persistAttemptLogs({
           status: HTTP_STATUS.RATE_LIMITED,
           error: failureMessage,
@@ -5666,12 +5666,12 @@ export async function handleChatCore({
           claudeCacheMeta: claudePromptCacheLogMeta,
           cacheSource: "upstream",
         });
-        persistFailureUsage(HTTP_STATUS.RATE_LIMITED, error.code);
+        persistFailureUsage(HTTP_STATUS.RATE_LIMITED, semaphoreCode);
         const result = createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
         return {
           ...result,
           errorType: "account_semaphore_capacity",
-          errorCode: error.code,
+          errorCode: semaphoreCode,
         };
       }
       throw error;
@@ -6066,6 +6066,19 @@ export async function handleChatCore({
     !isDroidCLI;
   const streamStateBody = finalBody || body;
 
+  // Client's explicit thinking intent (Anthropic Messages shape). Claude Code
+  // sends `{type:"enabled"}` or `{type:"adaptive"}` to opt into relaying
+  // upstream reasoning_content as Claude thinking blocks; `{type:"disabled"}`
+  // or an omitted `thinking` field opts out. Kept false for every other
+  // client schema (OpenAI / Responses), which never express intent through
+  // `body.thinking`. Mirrors hasActiveClaudeThinking() so the request and
+  // response sides agree on what counts as "thinking requested" — a prior
+  // inline `=== "enabled"` check silently suppressed `adaptive` (the intent
+  // Claude Code actually sends), leaking the mismatch as a broken tool-call
+  // turn (call log 1787566395384-bab9ab: reasoning dropped → model emitted
+  // DSML tool-call markers as plain text → incomplete `stop` finish).
+  const requestedThinking = hasActiveClaudeThinking((body ?? {}) as Record<string, unknown>);
+
   if (needsResponsesTranslation) {
     // Provider returns openai-responses, translate to openai (Chat Completions) that clients expect
     log?.debug?.("STREAM", `Responses translation mode: openai-responses → openai`);
@@ -6083,6 +6096,7 @@ export async function handleChatCore({
       handleStreamFailure,
       copilotCompatibleReasoning,
       false,
+      requestedThinking,
       customToolNames,
       // openai-responses → openai translation still wants the namespace identity
       // map for #7936-style round-trip closure when the client also speaks
@@ -6116,6 +6130,7 @@ export async function handleChatCore({
         thinkingMarkerHeader,
         clientResponseFormat,
       }),
+      requestedThinking,
       customToolNames,
       requestToolIdentityMap
     );

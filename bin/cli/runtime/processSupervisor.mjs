@@ -1,7 +1,9 @@
 import { spawn } from "node:child_process";
+import { mkdirSync, appendFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { writePidFile, cleanupPidFile, killAllSubprocesses, isPidRunning } from "../utils/pid.mjs";
+import { resolveDataDir } from "../data-dir.mjs";
 import {
   RESTART_RESET_MS,
   DEFAULT_MAX_RESTARTS,
@@ -18,6 +20,13 @@ import {
 } from "../utils/ensureAndroidCacheDir.mjs";
 
 const CRASH_LOG_LINES = 50;
+
+// #13538: shared path resolver so `omniroute doctor` (bin/cli/commands/doctor.mjs)
+// can surface the same file persistCrashLog() writes, without duplicating the
+// `<DATA_DIR>/server/...` convention from bin/cli/utils/pid.mjs.
+export function getCrashLogPath() {
+  return join(resolveDataDir(), "server", "crash.log");
+}
 
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 // Bun needs the Node-compat polyfill preloaded (#9761). The file ships at the
@@ -164,7 +173,8 @@ export class ServerSupervisor {
     if (aliveMs >= RESTART_RESET_MS) this.restartCount = 0;
 
     if (this.restartCount >= this.maxRestarts) {
-      console.error(`\n⚠ Server crashed ${this.maxRestarts} times in <30s.`);
+      const summary = `Server crashed ${this.maxRestarts} times in <30s.`;
+      console.error(`\n⚠ ${summary}`);
       if (this.onCrashCallback) {
         const action = this.onCrashCallback(this.crashLog);
         if (action === "disable-mitm-and-retry") {
@@ -175,6 +185,14 @@ export class ServerSupervisor {
         }
       }
       this.dumpCrashLog();
+      // #13538: the give-up path used to only console.error() this diagnostic.
+      // In `--tray`/`--tray-worker` mode this process is launched detached with
+      // stdio:"ignore" (bin/cli/tray/detachedTray.mjs buildTrayLaunch()), so
+      // that console output is discarded by the OS and nothing ever explains
+      // why the tray + gateway disappeared together. Best-effort persist a
+      // durable record next to the existing per-service PID file convention
+      // (bin/cli/utils/pid.mjs) so it survives the process exit below.
+      this.persistCrashLog(summary);
       process.exit(exitCode ?? 1);
       return;
     }
@@ -204,6 +222,23 @@ export class ServerSupervisor {
     console.error("\n--- Server crash log ---");
     this.crashLog.forEach((l) => console.error(l));
     console.error("--- End crash log ---\n");
+  }
+
+  // #13538: best-effort append a durable crash record to
+  // `<DATA_DIR>/server/crash.log`, mirroring the `<DATA_DIR>/<service>/.pid`
+  // layout from bin/cli/utils/pid.mjs. Wrapped in try/catch — this diagnostic
+  // write must NEVER block or fail shutdown (the give-up branch always calls
+  // process.exit() right after this).
+  persistCrashLog(summary) {
+    try {
+      const crashLogPath = getCrashLogPath();
+      mkdirSync(dirname(crashLogPath), { recursive: true });
+      const timestamp = new Date().toISOString();
+      const body = [`[${timestamp}] ${summary}`, ...this.crashLog, ""].join("\n");
+      appendFileSync(crashLogPath, body, "utf8");
+    } catch {
+      // Best-effort only — a diagnostic write failure must not prevent shutdown.
+    }
   }
 
   stop() {

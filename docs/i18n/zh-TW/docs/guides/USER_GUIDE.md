@@ -1,12 +1,10 @@
----
-title: "使用者指南"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# 使用者指南
+# User Guide (中文 (繁體))
 
 🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md)
+
+---
+
+🌐 **語言：** 🇺🇸 [English](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
 
 設定提供者、建立組合、整合 CLI 工具及部署 OmniRoute 的完整指南。
 
@@ -122,14 +120,16 @@ Combo：「openclaw-free」
 
 ## 📖 提供者設定
 
-### 🔐 訂閱制提供者
+若要從 CSV 或 JSON 檔案大量新增 API 金鑰連線，請使用 **控制台 → 提供者 → 從檔案匯入**。欄位採固定順序（`provider,name,apiKey,baseUrl,priority`）；`provider` 必須已作為受管理的提供者或相容節點存在。請參閱[從 CSV 或 JSON 檔案匯入提供者](../providers/CSV-IMPORT.md)。
 
-#### Claude Code（Pro/Max）
+### 🔐 訂閱型提供者
+
+#### Claude Code (Pro/Max)
 
 ```bash
-控制台 → 提供者 → 連接 Claude Code
-→ OAuth 登入 → 自動權杖重新整理
-→ 5 小時 + 每週額度追蹤
+控制台 → 提供者 → 連線 Claude Code
+→ OAuth 登入 → 自動重新整理權杖
+→ 5 小時與每週配額追蹤
 
 模型：
   cc/claude-opus-4-7
@@ -137,18 +137,16 @@ Combo：「openclaw-free」
   cc/claude-haiku-4-5-20251001
 ```
 
-**小撇步：** 複雜任務使用 Opus，追求速度使用 Sonnet。OmniRoute 會追蹤每個模型的額度！
+**專業提示：** 複雜任務使用 Opus，追求速度則使用 Sonnet。OmniRoute 會分別追蹤每個模型的配額！
 
-Claude 及與 Claude Code 相容的路由會保留 Opus 和 Sonnet 模型的 `max` 思考強度設定。
-Haiku 模型不接受 `max` 思考強度層級，因此 OmniRoute 會在將請求發送給上游之前，
-將該設定降級為較高的思考預算。
+Claude 與 Claude Code 相容路由會保留 Opus 和 Sonnet 模型的 `max` 思考強度。Haiku 模型不接受 `max` 強度層級，因此 OmniRoute 會先將該請求降級為較高的思考預算，再將其傳送至上游。
 
-#### OpenAI Codex（Plus/Pro）
+#### OpenAI Codex (Plus/Pro)
 
 ```bash
-控制台 → 提供者 → 連接 Codex
+控制台 → 提供者 → 連線 Codex
 → OAuth 登入（連接埠 1455）
-→ 5 小時 + 每週重置
+→ 5 小時與每週重設
 
 模型：
   cx/gpt-5.5
@@ -160,9 +158,9 @@ Haiku 模型不接受 `max` 思考強度層級，因此 OmniRoute 會在將請�
 #### GitHub Copilot
 
 ```bash
-控制台 → 提供者 → 連接 GitHub
-→ 透過 GitHub OAuth
-→ 每月重置（每月 1 日）
+控制台 → 提供者 → 連線 GitHub
+→ 透過 GitHub 進行 OAuth
+→ 每月重設（每月 1 日）
 
 模型：
   gh/gpt-5.5
@@ -172,55 +170,53 @@ Haiku 模型不接受 `max` 思考強度層級，因此 OmniRoute 會在將請�
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 便宜提供者
+### 💰 低價提供者
 
-#### GLM-4.7（每日重置，$0.6/百萬）
+#### GLM-4.7（每日重設，$0.6/1M）
 
-1. 註冊：[智譜 AI](https://open.bigmodel.cn)
+1. 註冊：[Zhipu AI](https://open.bigmodel.cn)
 2. 從 Coding Plan 取得 API 金鑰
 3. 控制台 → 新增 API 金鑰：提供者：`glm`，API 金鑰：`your-key`
 
-**使用：** `glm/glm-4.7` — **小撇步：** Coding Plan 提供 3 倍額度，僅需 1/7 費用！每日上午 10:00 重置。
+**使用：** `glm/glm-4.7` — **專業提示：** Coding Plan 以 1/7 的成本提供 3 倍配額！每日上午 10:00 重設。
 
-#### MiniMax M2.1（5 小時重置，$0.20/百萬）
+#### MiniMax M2.1（5 小時重設，$0.20/1M）
 
 1. 註冊：[MiniMax](https://www.minimax.io)
 2. 取得 API 金鑰 → 控制台 → 新增 API 金鑰
 
-**使用：** `minimax/MiniMax-M2.1` — **小撇步：** 長上下文（100 萬權杖）的最便宜選擇！
+**使用：** `minimax/MiniMax-M2.1` — **專業提示：** 長上下文最便宜的選擇（1M 個權杖）！
 
-#### Kimi K2（每月 $9 固定）
+#### Kimi K2（固定每月 $9）
 
-1. 訂閱：[Moonshot AI](https://platform.moonshot.ai)
+1. 訂閱：[Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. 取得 API 金鑰 → 控制台 → 新增 API 金鑰
 
-**使用：** `kimi/kimi-k2.5` — **小撇步：** 每月 $9 固定費用，1,000 萬權杖 = 每百萬權杖 $0.90 有效成本！
+**使用：** `kimi/kimi-k2.5` — **專業提示：** 10M 個權杖固定每月 $9，實際成本為 $0.90/1M！
 
-#### 百度千帆 / ERNIE
+#### Baidu Qianfan / ERNIE
 
-1. 註冊：[百度 AI 雲千帆](https://cloud.baidu.com/product/wenxinworkshop)
-2. 建立千帆 API 金鑰 → 控制台 → 新增 API 金鑰：提供者：`qianfan`
+1. 註冊：[Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. 建立 Qianfan API 金鑰 → 控制台 → 新增 API 金鑰：提供者：`qianfan`
 
-**使用：** `qianfan/ernie-5.1`、`qianfan/ernie-x1.1`，或其他千帆 OpenAI 相容模型 ID。
+**使用：** `qianfan/ernie-5.1`、`qianfan/ernie-x1.1`，或其他與 OpenAI 相容的 Qianfan 模型 ID。
 
 ### 🆓 免費提供者
 
-無需驗證的免費提供者在其提供者頁面上有一個**無需身份驗證**的開關。
-關閉該開關會停用該提供者，將其從「提供者配置」/「精簡檢視」中移除，
-並從 `/v1/models` 中移除其模型。
+無須驗證的免費提供者，其提供者頁面上的 **不需要驗證** 旁設有切換開關。將其關閉會停用該提供者、從「提供者」的已設定／精簡檢視中移除，並從 `/v1/models` 移除其模型。
 
 #### Qoder（9 個免費模型）
 
 ```bash
-控制台 → 連接 Qoder → OAuth 登入 → 依提供者目前條件使用
+控制台 → 連線 Qoder → OAuth 登入 → 存取權受提供者目前的限制約束
 
 模型：if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro（Claude 免費使用）
+#### Kiro（免費 Claude）
 
 ```bash
-控制台 → 連接 Kiro → AWS Builder ID 或 Google/GitHub → 約 50 點/月
+控制台 → 連線 Kiro → AWS Builder ID 或 Google/GitHub → 每月約 50 點額度
 
 模型：kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

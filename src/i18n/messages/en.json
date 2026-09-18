@@ -3288,6 +3288,10 @@
     "models": "Models",
     "autoBalance": "Auto-balance",
     "advancedSettings": "Advanced Settings",
+    "targetTimeout": "Target timeout (seconds)",
+    "comboTimeout": "Combo timeout (seconds)",
+    "inheritRequestTimeout": "inherit",
+    "inheritComboSafetyTimeout": "inherit (10 min)",
     "retryDelay": "Retry Delay (ms)",
     "concurrencyPerModel": "Concurrency / Model",
     "queueTimeout": "Queue Timeout (ms)",
@@ -3434,6 +3438,8 @@
       "failoverBeforeRetry": "When enabled, any upstream error triggers immediate failover to the next combo target, skipping all retries and fallback URLs.",
       "maxSetRetries": "Number of times to retry the full target set when every target fails. 0 = no set-level retry.",
       "setRetryDelayMs": "Delay between set-level retry attempts, giving transient issues time to resolve.",
+      "targetTimeoutMs": "Optional per-target timeout. Empty inherits the current request timeout; larger values are capped to that timeout.",
+      "comboTimeoutMs": "Optional whole-combo wall-clock budget across all failover targets. Empty keeps the 10-minute hang-stop; a positive value replaces it. Keep this longer than Target timeout so failover still has time.",
       "disableSessionStickiness": "Rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Overrides the global default. Leave on Inherit to preserve prompt-cache hits for multi-turn chats."
     },
     "templatesTitle": "Quick templates",
@@ -7202,6 +7208,12 @@
     "maxRetriesLabel": "Max Retries",
     "retryDelayLabel": "Retry Delay (ms)",
     "timeoutLabel": "Timeout (ms)",
+    "targetTimeout": "Target timeout (seconds)",
+    "comboTimeout": "Combo timeout (seconds)",
+    "inheritRequestTimeout": "Inherit request timeout",
+    "inheritComboSafetyTimeout": "Inherit 10-minute hang-stop",
+    "targetTimeoutHint": "Combo targets inherit the current request timeout by default. Set a lower value here only when you want faster fallback.",
+    "comboTimeoutHint": "Whole-combo wall-clock budget across failover targets. Empty keeps the 10-minute hang-stop. Keep this longer than Target timeout so failover still has time.",
     "healthCheck": "Health Check",
     "healthCheckDesc": "Pre-check provider availability",
     "trackMetrics": "Track Metrics",
@@ -7479,6 +7491,8 @@
     "clearSyncedPricing": "Clear Synced Pricing",
     "compressionTitle": "Prompt Compression",
     "compressionDesc": "Reduce token usage by compressing prompts before sending to providers",
+    "autoCombosTitle": "Auto Combos",
+    "autoCombosDesc": "Allow this key to use the built-in auto/* combos, which pick a model automatically from every configured provider",
     "compressionGuidanceFullGuideLink": "Full compression guide",
     "compressionGuidanceShow": "Details",
     "compressionGuidanceHide": "Hide details",
@@ -8386,7 +8400,12 @@
     "cliproxyapiHealth": "Health",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
-    "qdrantCollection": "Collection"
+    "qdrantCollection": "Collection",
+    "catalogScopeTitle": "Models API listing",
+    "catalogScopeDesc": "What GET /v1/models advertises for this key. Narrowing the list never changes what the key can call.",
+    "catalogScopeAll": "Both",
+    "catalogScopeCombos": "Combos only",
+    "catalogScopeModels": "Models only"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8596,7 +8615,11 @@
       },
       "compressToolResults": {
         "label": "Proactively truncate long tool results",
-        "description": "Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+        "description": "Truncates long tool results during Lite compression. The Maximum tool-result length field (or OMNIROUTE_LITE_MAX_TOOL_LENGTH when that field is unset) sets the cap. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
+      "maxToolLength": {
+        "label": "Maximum tool-result length",
+        "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
       }
     },
     "engineFields": {
@@ -9503,7 +9526,7 @@
     "redeemResetCredit": "Redeem reset",
     "manageResetCredits": "View credits",
     "viewResetCredits": "View reset credits",
-    "resetCreditsModalTitle": "Codex reset credits",
+    "resetCreditsModalTitle": "Reset credits",
     "resetCreditsModalExplainer": "Credits are ordered by expiration. Automatic redemption always uses the credit that expires first.",
     "resetCreditsLoadFailed": "Failed to load reset credits",
     "resetCreditsDetailsUnavailable": "Credit details are currently unavailable. Refresh and try again.",
@@ -9514,10 +9537,17 @@
     "resetCreditNoExpiry": "No expiration date",
     "redeemThisResetCredit": "Redeem",
     "confirmRedeemResetCreditTitle": "Redeem this reset credit?",
-    "confirmRedeemResetCredit": "Redeeming immediately resets the eligible Codex usage windows and permanently consumes this credit.",
+    "confirmRedeemResetCredit": "Redeeming immediately resets the eligible usage windows and permanently consumes this credit.",
     "confirmRedeemResetCreditButton": "Redeem credit",
     "resetCreditRedeemed": "Reset redeemed",
     "resetCreditRedeemFailed": "Failed to redeem reset credit",
+    "glmResetCreditsModalTitle": "GLM Coding Plan reset cards",
+    "glmResetCreditsModalExplainer": "Reset cards are ordered by expiration. Choose the 5-hour or weekly window you want to reset.",
+    "glmResetCreditFiveHourTitle": "5-hour window reset",
+    "glmResetCreditWeekTitle": "Weekly window reset",
+    "glmConfirmRedeemResetCredit": "Redeeming immediately resets the selected usage window and permanently consumes this card.",
+    "glmConfirmRedeemFiveHourResetCredit": "Redeeming immediately resets the 5-hour usage window and permanently consumes this card.",
+    "glmConfirmRedeemWeekResetCredit": "Redeeming immediately resets the weekly usage window and permanently consumes this card.",
     "suiteBuilderSaveFailed": "Failed to save suite",
     "clone": "Clone",
     "exportSuite": "Export",

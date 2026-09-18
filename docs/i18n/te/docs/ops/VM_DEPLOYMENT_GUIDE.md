@@ -4,127 +4,133 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+🌐 **భాషలు:** 🇺🇸 [English](./VM_DEPLOYMENT_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+Cloudflare ద్వారా నిర్వహించబడే డొమైన్తో VM (VPS)లో OmniRouteను ఇన్స్టాల్ చేసి కాన్ఫిగర్ చేయడానికి సంపూర్ణ మార్గదర్శిని.
 
 ---
 
-## Prerequisites
+## ముందస్తు అవసరాలు
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| అంశం       | కనిష్ఠం                      | సిఫార్సు చేయబడినది |
+| ---------- | ---------------------------- | ------------------ |
+| **CPU**    | 1 vCPU                       | 2 vCPU             |
+| **RAM**    | 1 GB                         | 2 GB               |
+| **డిస్క్** | 10 GB SSD                    | 25 GB SSD          |
+| **OS**     | Ubuntu 22.04 LTS             | Ubuntu 24.04 LTS   |
+| **డొమైన్** | Cloudflareలో నమోదు చేయబడినది | —                  |
+| **Docker** | Docker Engine 24+            | Docker 27+         |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**పరీక్షించిన ప్రొవైడర్లు**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configure the VM
+## 1. VMను కాన్ఫిగర్ చేయండి
 
-### 1.1 Create the instance
+### 1.1 ఇన్స్టాన్స్ను సృష్టించండి
 
-On your preferred VPS provider:
+మీరు ఇష్టపడే VPS ప్రొవైడర్లో:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
+- Ubuntu 24.04 LTSను ఎంచుకోండి
+- కనిష్ఠ ప్లాన్ను ఎంచుకోండి (1 vCPU / 1 GB RAM)
+- బలమైన root పాస్వర్డ్ను సెట్ చేయండి లేదా SSH కీని కాన్ఫిగర్ చేయండి
+- **పబ్లిక్ IP**ని నమోదు చేసుకోండి (ఉదా., `203.0.113.10`)
 
-### 1.2 Connect via SSH
+### 1.2 SSH ద్వారా కనెక్ట్ అవ్వండి
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 సిస్టమ్ను అప్డేట్ చేయండి
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 Dockerను ఇన్స్టాల్ చేయండి
 
 ```bash
-# Install dependencies
+# డిపెండెన్సీలను ఇన్స్టాల్ చేయండి
 apt install -y ca-certificates curl gnupg
 
-# Add official Docker repository
+# అధికారిక Docker రిపోజిటరీని జోడించండి
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 nginxను ఇన్స్టాల్ చేయండి
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 ఫైర్వాల్ను కాన్ఫిగర్ చేయండి (UFW)
 
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (redirect)
+ufw allow 80/tcp    # HTTP (దారి మళ్లింపు)
 ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **చిట్కా**: గరిష్ఠ భద్రత కోసం, 80 మరియు 443 పోర్టులను Cloudflare IPలకు మాత్రమే పరిమితం చేయండి. [అధునాతన భద్రత](#advanced-security) విభాగాన్ని చూడండి.
 
 ---
 
-## 2. Install OmniRoute
+## 2. OmniRouteను ఇన్స్టాల్ చేయండి
 
-### 2.1 Create configuration directory
+### 2.1 కాన్ఫిగరేషన్ డైరెక్టరీని సృష్టించండి
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 ఎన్విరాన్మెంట్ వేరియబుల్స్ ఫైల్ను సృష్టించండి
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
-# === Security ===
+cat > /opt/omniroute/.env << 'EOF'
+# === భద్రత ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
 API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # ప్రొడక్షన్లో అవసరం: Codex Responses WS bridge ద్వారా ఉపయోగించబడుతుంది
 
-# === App ===
+# === యాప్ ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URLలు (మీ డొమైన్కు మార్చండి) ===
+# షెడ్యూల్ చేసిన జాబ్లు / స్వీయ-ఫెచ్ల కోసం అంతర్గత సర్వర్-టు-సర్వర్ బేస్ URL.
+BASE_URL=http://127.0.0.1:20128
+# OAuth కాల్బ్యాక్లు, డ్యాష్బోర్డ్ లింక్లు మరియు రూపొందించిన పబ్లిక్ URLల కోసం ఉపయోగించే బ్రౌజర్-ఫేసింగ్ URL.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# రూపొందించిన పబ్లిక్ అసెట్ URLల కోసం ఐచ్ఛిక స్పష్టమైన పబ్లిక్ ఆరిజిన్ ఓవర్రైడ్.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (optional) ===
+# === క్లౌడ్ సింక్ (ఐచ్ఛికం) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **ముఖ్యమైనది**: ప్రత్యేకమైన రహస్య కీలను రూపొందించండి! ప్రతి కీ కోసం `openssl rand -hex 32`ను ఉపయోగించండి.
 
-### 2.3 Start the container
+### 2.3 కంటైనర్ను ప్రారంభించండి
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +144,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 ఇది రన్ అవుతోందని ధృవీకరించండి
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+ఇది `[DB] SQLite database ready` మరియు `listening on port 20128`ను ప్రదర్శించాలి.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. nginxను కాన్ఫిగర్ చేయండి (రివర్స్ ప్రాక్సీ)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 SSL సర్టిఫికేట్ను రూపొందించండి (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+Cloudflare డాష్బోర్డ్లో:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. **SSL/TLS → Origin Server**కు వెళ్లండి
+2. **Create Certificate**పై క్లిక్ చేయండి
+3. డిఫాల్ట్లను అలాగే ఉంచండి (15 సంవత్సరాలు, \*.yourdomain.com)
+4. **Origin Certificate** మరియు **Private Key**ను కాపీ చేయండి
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Paste the certificate
+# సర్టిఫికేట్ను పేస్ట్ చేయండి
 nano /etc/nginx/ssl/origin.crt
 
-# Paste the private key
+# ప్రైవేట్ కీని పేస్ట్ చేయండి
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 Nginx కాన్ఫిగరేషన్
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
-# Default server — blocks direct access via IP
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+# డిఫాల్ట్ సర్వర్ — IP ద్వారా నేరుగా యాక్సెస్ చేయడాన్ని నిరోధిస్తుంది
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # Change to your domain
+    server_name llms.yourdomain.com;  # దీన్ని మీ డొమైన్కు మార్చండి
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -203,16 +209,17 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # WebSocket support
+        # WebSocket మద్దతు
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
-        # SSE (Server-Sent Events) — streaming AI responses
+        # SSE (సర్వర్ పంపే ఈవెంట్లు) — స్ట్రీమింగ్ AI ప్రతిస్పందనలు
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -220,7 +227,7 @@ server {
     }
 }
 
-# HTTP → HTTPS redirect
+# HTTP → HTTPS రీడైరెక్ట్
 server {
     listen 80;
     listen [::]:80;
@@ -230,59 +237,61 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+రివర్స్-ప్రాక్సీ స్ట్రీమ్ టైమ్అవుట్లను మీ OmniRoute టైమ్అవుట్ ఎన్విరాన్మెంట్ వేరియబుల్స్తో సమలేఖనంలో ఉంచండి. మీరు
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`లను పెంచితే, `proxy_read_timeout` / `proxy_send_timeout`లను
+అదే పరిమితి కంటే ఎక్కువగా పెంచండి.
 
-### 3.3 Enable and Test
+OAuth కాల్బ్యాక్లు మరియు రూపొందించిన పబ్లిక్ లింక్ల కోసం, బ్రౌజర్కు కనిపించే ప్రామాణిక మూలంగా OmniRoute `NEXT_PUBLIC_BASE_URL`ను ఉపయోగిస్తుంది. ప్రామాణీకరించబడిన డాష్బోర్డ్ రైట్లు అదే-మూల అభ్యర్థనలతో పాటు సెషన్కు అనుసంధానమైన CSRF రక్షణను ఉపయోగిస్తాయి, కాబట్టి వాటికి స్థిరమైన పబ్లిక్ బేస్ URL అవసరం లేదు. పైన ఉన్న `X-Forwarded-*` హెడర్లు ఇప్పటికీ ఉపయోగకరమైన రూటింగ్ మెటాడేటా, కానీ OAuth లేదా రూపొందించిన బ్రౌజర్ లింక్లకు అవసరమైనప్పుడు స్పష్టమైన పబ్లిక్ URLను సెట్ చేయడానికి అవి ప్రత్యామ్నాయం కావు. క్లయింట్లు OmniRouteను నేరుగా చేరుకోలేని సందర్భంలో మరియు మీ ప్రాక్సీ ఇన్కమింగ్ ఫార్వార్డెడ్ హెడర్లను తొలగించి/పునర్నిర్మించే సందర్భంలో మాత్రమే `OMNIROUTE_TRUST_PROXY`ను ప్రారంభించండి.
+
+### 3.3 ప్రారంభించి పరీక్షించండి
 
 ```bash
-# Remove default configuration
+# డిఫాల్ట్ కాన్ఫిగరేషన్ను తొలగించండి
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
+# OmniRouteను ప్రారంభించండి
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Test and reload
+# పరీక్షించి రీలోడ్ చేయండి
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. Cloudflare DNSను కాన్ఫిగర్ చేయండి
 
-### 4.1 Add DNS record
+### 4.1 DNS రికార్డును జోడించండి
 
-In the Cloudflare dashboard → DNS:
+Cloudflare డ్యాష్బోర్డ్ → DNSలో:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| రకం | పేరు   | కంటెంట్                | ప్రాక్సీ              |
+| --- | ------ | ---------------------- | --------------------- |
+| A   | `llms` | `203.0.113.10` (VM IP) | ✅ ప్రాక్సీ చేయబడింది |
 
-### 4.2 Configure SSL
+### 4.2 SSLను కాన్ఫిగర్ చేయండి
 
-Under **SSL/TLS → Overview**:
+**SSL/TLS → Overview** కింద:
 
-- Mode: **Full (Strict)**
+- మోడ్: **Full (Strict)**
 
-Under **SSL/TLS → Edge Certificates**:
+**SSL/TLS → Edge Certificates** కింద:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- ఎల్లప్పుడూ HTTPSను ఉపయోగించండి: ✅ ఆన్
+- కనిష్ఠ TLS వెర్షన్: TLS 1.2
+- స్వయంచాలక HTTPS రీరైట్లు: ✅ ఆన్
 
-### 4.3 Testing
+### 4.3 పరీక్షించడం
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Should return HTTP/2 200
+# HTTP/2 200ను తిరిగి ఇవ్వాలి
 ```
 
 ---
 
-## 5. Operations and Maintenance
+## 5. కార్యకలాపాలు మరియు నిర్వహణ
 
-### Upgrade to a new version
+### కొత్త వెర్షన్కు అప్గ్రేడ్ చేయండి
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,42 +303,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### లాగ్లను వీక్షించండి
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f omniroute          # రియల్-టైమ్ స్ట్రీమ్
+docker logs omniroute --tail 50   # చివరి 50 పంక్తులు
 ```
 
-### Manual database backup
+### మాన్యువల్ డేటాబేస్ బ్యాకప్
 
 ```bash
-# Copy data from the volume to the host
+# వాల్యూమ్ నుండి హోస్ట్కు డేటాను కాపీ చేయండి
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Or compress the entire volume
+# లేదా మొత్తం వాల్యూమ్ను కంప్రెస్ చేయండి
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### బ్యాకప్ నుండి పునరుద్ధరించండి
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. అధునాతన భద్రత
 
-### Restrict nginx to Cloudflare IPs
+### nginxను Cloudflare IPలకు పరిమితం చేయండి
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
-# Cloudflare IPv4 ranges — update periodically
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
+# Cloudflare IPv4 పరిధులు — క్రమానుగతంగా నవీకరించండి
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -350,58 +359,69 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+`http {}` బ్లాక్ లోపల `nginx.conf`కు కింది దాన్ని జోడించండి:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### fail2banను ఇన్స్టాల్ చేయండి
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Check status
+# స్థితిని తనిఖీ చేయండి
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### Docker పోర్ట్కు ప్రత్యక్ష యాక్సెస్ను బ్లాక్ చేయండి
 
 ```bash
-# Prevent direct external access to port 20128
+# పోర్ట్ 20128కు ప్రత్యక్ష బాహ్య యాక్సెస్ను నిరోధించండి
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persist the rules
+# నియమాలను శాశ్వతంగా భద్రపరచండి
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. Cloudflare Workersకు డిప్లాయ్ చేయండి (ఐచ్ఛికం)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+VMను నేరుగా బహిర్గతం చేయకుండా Cloudflare Workers ద్వారా రిమోట్ యాక్సెస్ కోసం:
 
 ```bash
-# In the local repository
+# స్థానిక రిపోజిటరీలో
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+రిపోజిటరీలోని Cloudflare Tunnel దశలవారీ మార్గదర్శిని కోసం [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md)ను కూడా చూడండి. స్వతంత్ర `omnirouteCloud/` వర్కర్ ప్రత్యేక సహచర రిపోజిటరీలో ఉంటుంది.
 
 ---
 
-## Port Summary
+## పోర్ట్ సారాంశం
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| పోర్ట్ | సేవ         | యాక్సెస్                         |
+| ------ | ----------- | -------------------------------- |
+| 22     | SSH         | పబ్లిక్ (`fail2ban`తో)           |
+| 80     | nginx HTTP  | దారి మళ్లింపు → HTTPS            |
+| 443    | nginx HTTPS | Cloudflare Proxy ద్వారా          |
+| 20128  | OmniRoute   | Localhost మాత్రమే (nginx ద్వారా) |
+
+## తక్కువ-మెమరీ / చిన్న VPS ఆప్టిమైజేషన్
+
+చిన్న VPS ఇన్స్టాన్స్లపై (1 GB RAM లేదా అంతకంటే తక్కువ) డిప్లాయ్మెంట్ల కోసం:
+
+- **బ్యాక్గ్రౌండ్ సేవలను నిలిపివేయండి** — షెడ్యూలర్, MCP సర్వర్ మరియు కాలానుగుణ నిర్వహణ టాస్క్లను దాటవేయడానికి `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1`గా సెట్ చేయండి. `docs/reference/ENVIRONMENT.md` చూడండి.
+- **SQLite WAL మోడ్ను ఉపయోగించండి** — ఇది డిఫాల్ట్గా ప్రారంభించబడి ఉంటుంది మరియు ఏకకాల రీడ్ల సమయంలో గరిష్ఠ మెమరీ వినియోగాన్ని తగ్గిస్తుంది.
+- **V8 హీప్కు పరిమితి విధించండి** — రన్టైమ్ VM కంటే పెద్ద పరిమితిని కాలిబ్రేట్ చేయకుండా ఉండేందుకు `OMNIROUTE_MEMORY_MB`ని (ఉదా. `512`) సెట్ చేయండి. `docs/reference/ENVIRONMENT.md` చూడండి.
+- **హెవీవెయిట్ అడ్మిషన్ హీప్ పరిమితికి అనుగుణంగా ఆటోమేటిక్గా స్కేల్ అవుతుంది** -- పైన `OMNIROUTE_MEMORY_MB`ని సెట్ చేసిన తర్వాత, ఇన్జెస్ట్ బైట్ బడ్జెట్ (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) అదే పరిమితి నుండి స్వయంగా ఉత్పన్నమవుతుంది. అందువల్ల మెమరీ పరిమితి ఉన్న VMకి అదనపు ట్యూనింగ్ లేకుండానే చిన్న ఏకకాల అభ్యర్థన బడ్జెట్ లభిస్తుంది; అదనపు అభ్యర్థనలు మెమరీ కోసం పోటీ పడటానికి బదులుగా `Retry-After`తో మళ్లీ ప్రయత్నించగల `503` ప్రతిస్పందనను పొందుతాయి. దీనికి అదనంగా కఠినమైన గరిష్ఠ పరిమితి అవసరమైతే మాత్రమే పాత `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` అభ్యర్థన-సంఖ్య పరిమితిని సెట్ చేయండి.
+- **VPSపై `next build`ను నివారించండి** — లోకల్గా బిల్డ్ చేసి, స్టాండ్అలోన్ అవుట్పుట్ను (`.next/standalone/`) డిప్లాయ్ చేయండి.
+- **`top` / `free -m`తో పర్యవేక్షించండి** — 1 GB VMపై నిష్క్రియ స్థితిలో OmniRoute సాధారణంగా 200-400 MB RSSను ఉపయోగిస్తుంది.

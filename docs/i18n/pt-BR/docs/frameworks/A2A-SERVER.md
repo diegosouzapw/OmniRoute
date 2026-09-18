@@ -4,35 +4,50 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+> Protocolo Agent-to-Agent v0.3 — OmniRoute como um agente de roteamento inteligente
 
-## Agent Discovery
+A superfície A2A tem duas interfaces:
+
+- **JSON-RPC 2.0** em `POST /a2a` (ponto de entrada canônico, definido em `src/app/a2a/route.ts`).
+- **REST** em `/api/a2a/*` para painéis e ferramentas (status, lista de tarefas, cancelamento).
+
+As tarefas são rastreadas pelo `A2ATaskManager` (`src/lib/a2a/taskManager.ts`, TTL padrão de 5 minutos). As habilidades são despachadas por meio de `A2A_SKILL_HANDLERS` em `src/lib/a2a/taskExecution.ts`.
+
+## Descoberta do agente
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+Retorna o Agent Card que descreve os recursos, as habilidades e os requisitos de autenticação do OmniRoute.
+
+O campo `version` do Agent Card é obtido de `process.env.npm_package_version` (consulte `src/app/.well-known/agent.json/route.ts:13`), portanto, ele permanece sincronizado automaticamente com o `package.json` a cada versão lançada.
 
 ---
 
-## Authentication
+## Autenticação
 
-All `/a2a` requests require an API key via the `Authorization` header:
+Todas as solicitações para `/a2a` exigem uma chave de API por meio do cabeçalho `Authorization`:
 
 ```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
 ```
 
-If no API key is configured on the server, authentication is bypassed.
+Se nenhuma chave de API estiver configurada no servidor, a autenticação será ignorada.
+
+## Habilitação
+
+O A2A é controlado pela opção **Endpoints → A2A** e fica desabilitado por padrão. Quando desabilitado,
+`GET /api/a2a/status` informa `status: "disabled"` e `online: false`; as chamadas JSON-RPC para
+`POST /a2a` retornam HTTP 503 com o código de erro JSON-RPC `-32000`.
 
 ---
 
-## JSON-RPC 2.0 Methods
+## Métodos JSON-RPC 2.0
 
-### `message/send` — Synchronous Execution
+### `message/send` — Execução síncrona
 
-Sends a message to a skill and waits for the complete response.
+Envia uma mensagem para uma habilidade e aguarda a resposta completa.
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -50,7 +65,7 @@ curl -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**Response:**
+**Resposta:**
 
 ```json
 {
@@ -61,19 +76,30 @@ curl -X POST http://localhost:20128/a2a \
     "artifacts": [{ "type": "text", "content": "..." }],
     "metadata": {
       "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+      "cost_envelope": {
+        "estimated": 0.005,
+        "actual": 0.003,
+        "currency": "USD"
+      },
       "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+        {
+          "event": "primary_selected",
+          "provider": "anthropic",
+          "timestamp": "..."
+        }
       ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+      "policy_verdict": {
+        "allowed": true,
+        "reason": "within budget and quota limits"
+      }
     }
   }
 }
 ```
 
-### `message/stream` — SSE Streaming
+### `message/stream` — Streaming via SSE
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
+Funciona da mesma forma que `message/send`, mas retorna Server-Sent Events para streaming em tempo real.
 
 ```bash
 curl -N -X POST http://localhost:20128/a2a \
@@ -90,7 +116,7 @@ curl -N -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**SSE Events:**
+**Eventos SSE:**
 
 ```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
@@ -100,7 +126,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
 ```
 
-### `tasks/get` — Query Task Status
+### `tasks/get` — Consultar o status da tarefa
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -109,7 +135,7 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
 ```
 
-### `tasks/cancel` — Cancel a Task
+### `tasks/cancel` — Cancelar uma tarefa
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -120,16 +146,96 @@ curl -X POST http://localhost:20128/a2a \
 
 ---
 
-## Available Skills
+## Habilidades disponíveis
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+O OmniRoute expõe 6 habilidades A2A conectadas em `src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`. Cada módulo de habilidade está localizado em `src/lib/a2a/skills/`.
+
+| Habilidade               | ID                   | Descrição                                                                                                                                                                                     | Tags                              | Exemplos                                        |
+| :----------------------- | :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------- | :---------------------------------------------- |
+| Roteamento inteligente   | `smart-routing`      | Encaminha um prompt pelo provedor/combo ideal usando o mecanismo de combos e a pontuação do OmniRoute                                                                                         | roteamento, provedores            | "Encaminhe este prompt pelo melhor modelo"      |
+| Gerenciamento de cotas   | `quota-management`   | Informa o estado da cota por provedor e ajuda os clientes a decidir quando limitar ou trocar                                                                                                  | cota, provedores                  | "Verifique a cota da anthropic"                 |
+| Descoberta de provedores | `provider-discovery` | Lista os provedores instalados com funcionalidades, indicadores de camada gratuita e status do OAuth                                                                                          | provedores, descoberta            | "Quais provedores estão disponíveis?"           |
+| Análise de custos        | `cost-analysis`      | Estima o custo de uma solicitação/conversa com base no catálogo e no uso recente                                                                                                              | custo, uso                        | "Estime o custo desta conversa"                 |
+| Relatório de integridade | `health-report`      | Agrega o estado do disjuntor, do período de espera e do bloqueio por provedor                                                                                                                 | integridade, resiliência          | "Mostre o status de integridade dos provedores" |
+| Listar funcionalidades   | `list-capabilities`  | Retorna o catálogo completo de 45 entradas de Habilidades do Agente (23 de API + 21 de CLI + 1 de configuração) como uma tabela markdown com URLs brutas de SKILL.md para injeção de contexto | catálogo, descoberta, habilidades | "Liste todas as funcionalidades do OmniRoute"   |
+
+> O Cartão do Agente deve ser mantido alinhado ao catálogo ativo de 352 provedores; as contagens de provedores e os metadados de gratuidade/ausência de autenticação são obtidos do registro em tempo de execução.
+
+### Detalhes da habilidade `list-capabilities`
+
+A habilidade `list-capabilities` é particularmente útil para agentes externos que precisam descobrir o que o OmniRoute expõe antes de enviar chamadas de API. Ela retorna um artefato de tabela markdown estruturada:
+
+```
+| ID | Nome | Categoria | Área | Endpoints/Comandos | URL bruta |
+| --- | --- | --- | --- | --- | --- |
+| omni-auth | Autenticação e sessões | api | autenticação | POST /api/auth/login, ... | https://raw.githubusercontent.com/... |
+...
+```
+
+Cada linha inclui a coluna `rawUrl` para que os agentes possam buscar imediatamente o SKILL.md completo. O campo `metadata.totalSkills` reflete o tamanho do catálogo (45 atualmente). Implementação: `src/lib/a2a/skills/listCapabilities.ts`. Consulte também [AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
 ---
 
-## Task Lifecycle
+## API REST (auxiliar)
+
+O endpoint JSON-RPC `/a2a` é o ponto de entrada A2A canônico. Os endpoints REST abaixo fornecem acesso auxiliar para painéis e ferramentas externas:
+
+| Endpoint                     | Método | Descrição                                                           | Autenticação                                           |
+| :--------------------------- | :----- | :------------------------------------------------------------------ | :----------------------------------------------------- |
+| `/api/a2a/status`            | GET    | Status do servidor, skills registradas                              | (público)                                              |
+| `/api/a2a/tasks`             | GET    | Lista tarefas com filtros                                           | gerenciamento                                          |
+| `/api/a2a/tasks/[id]`        | GET    | Obtém uma tarefa por ID                                             | gerenciamento                                          |
+| `/api/a2a/tasks/[id]/cancel` | POST   | Cancela uma tarefa em execução                                      | gerenciamento                                          |
+| `/.well-known/agent.json`    | GET    | Agent Card (descoberta A2A)                                         | (público, armazenado em cache por 3600s)               |
+| `/api/a2a/tasks`             | POST   | Delegação de entrada para a frota OmniConductor (Conductor PRD RF5) | Bearer em relação a `OMNIROUTE_API_KEY` + `a2aEnabled` |
+
+**Delegação de entrada do Conductor (`POST /api/a2a/tasks`):** agentes A2A externos delegam trabalhos de programação à frota OmniConductor por meio do OmniRoute. Corpo: `{ skill: "conductor" | "conductor-cli-<profile>", messages: [{role, content}], metadata: { conductor: { repo: { url, base_ref? }, mode?, cli?, model? } } }` — somente as skills da frota Conductor (aquelas anunciadas no Agent Card) podem receber delegações; `metadata.conductor.repo.url` é obrigatório (a frota trabalha em repositórios git). A rota é convertida em `POST /v1/tasks` do hub usando o `CONDUCTOR_ORCHESTRATOR_TOKEN` do servidor (com fallback para `CONDUCTOR_HUB_TOKEN`) e retorna `201 { conductor_task_id, state: "submitted" }`; os estados das tarefas retornam pelo espelho SSE→A2A (RF1) e ficam visíveis por meio de `GET /api/a2a/tasks?skill=conductor`.
+
+---
+
+## Adicionando uma nova skill
+
+1. **Crie o arquivo da skill:** `src/lib/a2a/skills/<your-skill>.ts`
+
+   Exporte uma função assíncrona `(task: A2ATask) => Promise<{ artifacts, metadata }>`. Siga a estrutura das skills existentes, como `smartRouting.ts`.
+
+2. **Registre o handler:** em `src/lib/a2a/taskExecution.ts`, adicione uma entrada a `A2A_SKILL_HANDLERS`:
+
+   ```typescript
+   export const A2A_SKILL_HANDLERS = {
+     // ...skills existentes
+     "your-skill": async (task) => {
+       const skillModule = await import("./skills/yourSkill");
+       return skillModule.executeYourSkill(task);
+     },
+   };
+   ```
+
+3. **Exponha no Agent Card:** em `src/app/.well-known/agent.json/route.ts`, acrescente ao array `skills`:
+
+   ```json
+   {
+     "id": "your-skill",
+     "name": "Your Skill",
+     "description": "Brief, intent-focused description",
+     "tags": ["routing", "quota"],
+     "examples": ["Sample natural-language invocation"]
+   }
+   ```
+
+4. **Escreva testes:** `tests/unit/a2a-<your-skill>.test.ts`. Cubra o caminho de sucesso e o caminho de erro.
+
+5. **Documente** a nova skill na tabela `Available Skills` deste arquivo.
+
+---
+
+## TTL da tarefa
+
+As tarefas expiram após `ttlMinutes` (5 min por padrão) — configurado no construtor `A2ATaskManager` em `src/lib/a2a/taskManager.ts:82`. Para personalizar, faça um fork da instanciação de `A2ATaskManager` e passe um valor diferente (por exemplo, `new A2ATaskManager(15)` para um TTL de 15 minutos). Um intervalo em segundo plano remove as tarefas expiradas a cada 60 segundos.
+
+---
+
+## Ciclo de vida da tarefa
 
 ```
 submitted → working → completed
@@ -137,25 +243,26 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
+- As tarefas expiram após 5 minutos por padrão (consulte [TTL da tarefa](#task-ttl))
+- Estados terminais: `completed`, `failed`, `cancelled`
+- O log de eventos registra cada transição de estado
 
 ---
 
-## Error Codes
+## Códigos de erro
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
+| Código | Significado                           |
+| :----- | :------------------------------------ |
+| -32700 | Erro de análise (JSON inválido)       |
+| -32600 | Solicitação inválida / Não autorizado |
+| -32601 | Método ou skill não encontrado        |
+| -32602 | Parâmetros inválidos                  |
+| -32603 | Erro interno                          |
+| -32000 | O endpoint A2A está desabilitado      |
 
 ---
 
-## Integration Examples
+## Exemplos de integração
 
 ### Python (requests)
 

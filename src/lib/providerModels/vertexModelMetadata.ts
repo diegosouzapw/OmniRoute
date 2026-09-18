@@ -147,7 +147,11 @@ function decodeHtmlEntities(value: string): string {
 function htmlFragmentToText(fragment: string): string {
   return decodeHtmlEntities(
     fragment
-      .replace(/<(?:script|style)\b[^>]*>[\s\S]*?<\/(?:script|style)\s*>/gi, " ")
+      // The end tag accepts junk before the `>` — `</script\t\n bar>` closes the element per the
+      // HTML spec. Matching only `\s*>` left such a block unremoved here; the generic `<[^>]+>`
+      // pass below then stripped both tags and kept the script BODY, so whatever it contained
+      // landed in the cell text the number parser reads (CodeQL js/bad-tag-filter, alert #1007).
+      .replace(/<(?:script|style)\b[^>]*>[\s\S]*?<\/(?:script|style)\b[^>]*>/gi, " ")
       .replace(/<(?:br|hr)\b[^>]*\/?\s*>/gi, " ")
       .replace(/<[^>]+>/g, " ")
   )

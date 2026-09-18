@@ -222,27 +222,33 @@ Neid reegleid jõustavad tööriistad ja ülevaatajad:
 
 ## Tarneahela skanneri leiud (Socket.dev / Snyk / sarnased)
 
-Avaldatud `omniroute` npm-artefakt sisaldab Next.js `output: "standalone"`
-paketti, mis tähendab, et kõik marsruudikäsitlejad — kaasa arvatud dokumenteeritud
-privilegeeritud funktsioonid (MITM, Zed import, Cloud Sync, sisseehitatud
-teenuste haldur) — jõuavad `.next/server/*.js` minifitseeritud pakkidesse.
-Heuristilised tarneahela skannerid võrdlevad nende pakkide sisu tihti
-pahavara signatuuridega, kasutades mustrisobitust.
+Avaldatud `omniroute` npm-i artefakt sisaldab Next.js-i `output: "standalone"`
+järku, mis tähendab, et iga marsruudikäitleja — sealhulgas dokumenteeritud privilegeeritud
+funktsioonid (MITM, Zedi import, Cloud Sync, manustatud teenuste järelevaataja) — jõuab
+minimeeritud fragmentidena kataloogi `.next/server/*.js`. Heuristilised tarneahela skannerid
+võrdlevad neid fragmente sageli pahavara signatuuride mustritega.
 
-Iga leiukategooria kohta säilitame leiupõhise hooldaja kinnituse:
+Meie kasutatav skanneri konfiguratsioon asub repositooriumi juurkataloogis failis
+[`socket.yml`](socket.yml) (Socket.dev GitHub Appi vorming v2 — vt
+<https://docs.socket.dev/docs/socket-yml>). See välistab sõnaselgelt
+mittelisatavad kataloogid (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` jne), et skanner raporteeriks ainult kooditeedest, mis
+tegelikult avaldatud versiooni kasutajateni jõuavad — skannimist ennast käitab seda faili lugev Socketi
+GitHub App, mitte selle repositooriumi töövoog.
+
+Iga leiukategooria kohta haldame iga leiu jaoks hooldaja kinnitust:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  leiupõhine kaardistus: lähtefail ↔ märgistatud pakk ↔ käitumine ↔ v3.8.6-s
+  leiupõhine vastendus: lähtefail ↔ märgistatud fragment ↔ käitumine ↔ versioonis v3.8.6
   rakendatud leevendus.
-- Lähtekoodisisesed `SECURITY-AUDITOR-NOTE:` plokid igas märgistatud funktsiooni
-  kohas viitavad tagasi samale dokumendile.
+- Lähtekoodis olevad `SECURITY-AUDITOR-NOTE:` plokid iga märgistatud funktsiooni juures
+  viitavad samale dokumendile.
 
-Kasutajatele, kelle pipeline ei võimalda hoiatust leevendada: ehitage projekt
-käsuga `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. See asendab neli
-tundlikku moodulit jämestega, mis tagastavad käitusajal HTTP 503 vastuse
-koodiga `feature-disabled`, mistõttu privilegeeritud kooditeed on paketist
-füüsiliselt eemaldatud. Vaadake avaldamisretsepti dokumendist
-[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+Kasutajad, kelle konveier ei saa hoiatust leevendada, peaksid järgu looma käsuga
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. See asendab neli
+tundlikku moodulit stubidega, mis tagastavad käitusajal HTTP 503 `feature-disabled`,
+nii et privilegeeritud kooditeed puuduvad paketist füüsiliselt.
+Avaldamisjuhised leiate failist [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Viited
 

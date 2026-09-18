@@ -1,38 +1,29 @@
-# CLI-INTEGRATIONS (ქართული)
+# CLI Integrations (ქართული)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
----
+OmniRoute გთავაზობთ `setup-*` ბრძანებების ოჯახს, რომლებიც კოდირების
+CLI-ს (Codex, Claude Code, OpenCode, Cline, …) აკონფიგურირებს ისე, რომ მან OmniRoute ბეკენდად გამოიყენოს — შედეგად,
+ინსტრუმენტი უკავშირდება **ერთ** საბოლოო წერტილს, ხოლო OmniRoute მოთხოვნას შესაბამის პროვაიდერთან
+ავტომატური სარეზერვო გადართვით მიმართავს. თითოეული ბრძანება გაშვებული
+OmniRoute-იდან (ლოკალური ან დისტანციური) მოდელების **აქტუალურ** კატალოგს კითხულობს და ინსტრუმენტის საკუთარ კონფიგურაციის ფაილს **თქვენს**
+კომპიუტერში წერს. იქ, სადაც ინსტრუმენტი ამის მხარდაჭერას უზრუნველყოფს, API გასაღები გარემოს ცვლადის მეშვეობით მიეთითება. ბრძანებები, რომლებიც ინსტრუმენტის ლოკალურ გარემოს ფაილს ინახავენ, ქვემოთაა აღნიშნული.
 
-title: "CLI ინტეგრაციები — მიუთითეთ ნებისმიერი პროგრამირების CLI OmniRoute-ზე"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
-
-# CLI ინტეგრაციები
-
-OmniRoute მოიცავს `setup-*` ბრძანებების ოჯახს, რომლებიც პროგრამირების
-CLI-ს (Codex, Claude Code, OpenCode, Cline, …) აკონფიგურირებს ისე, რომ მან OmniRoute გამოიყენოს თავის ბექენდად — შედეგად,
-ინსტრუმენტი უკავშირდება **ერთ** საბოლოო წერტილს, ხოლო OmniRoute მოთხოვნას სწორ პროვაიდერთან მარშრუტიზებს
-ავტომატური სარეზერვო გადართვით. თითოეული ბრძანება გაშვებული
-OmniRoute-დან (ლოკალური ან დისტანციური) მოდელების **აქტუალურ** კატალოგს კითხულობს და ინსტრუმენტის საკუთარ კონფიგურაციის ფაილს **თქვენს**
-კომპიუტერზე წერს. ყველგან, სადაც ინსტრუმენტს ამის მხარდაჭერა აქვს, API გასაღები გარემოს ცვლადის მეშვეობით მიეთითება. ბრძანებები, რომლებიც ინსტრუმენტის ლოკალურ გარემოს ფაილს ინახავენ, ქვემოთ არის აღნიშნული.
-
-ასევე ხელმისაწვდომია უნივერსალური გამშვები — `omniroute run <target>` — რომელიც
-`claude`-ს, `codex`-ს, `aider`-ს, `goose`-ს, `opencode`-ს, `qwen`-ს ან `gemini`-ს
-სწორად ჩასმული გარემოს ცვლადებით უშვებს, ყოველგვარი კონფიგურაციის ჩაწერის გარეშე. სამიზნეები და მათი
+ასევე ხელმისაწვდომია ზოგადი გამშვები — `omniroute run <target>` — რომელიც
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ან `gemini`-ს
+საჭირო გარემოს ჩასმით უშვებს, ყოველგვარი კონფიგურაციის ჩაწერის გარეშე. სამიზნეები და მათი
 ფსევდონიმები აღებულია კანონიკური მანიფესტიდან `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), ხოლო `omniroute completion` ამავე
-მანიფესტიდან მიღებულ სამიზნე სიტყვებს გვთავაზობს. ძველი, ცალკეული ინსტრუმენტებისთვის განკუთვნილი გამშვებები —
+`open-code`, `qwen-code`, `gemini-cli`), ხოლო `omniroute completion` იმავე
+მანიფესტიდან მიღებულ სამიზნე სიტყვებს გთავაზობთ. ძველი, თითოეული ინსტრუმენტისთვის განკუთვნილი გამშვებები —
 `omniroute launch` (Claude Code) და `omniroute launch-codex` (Codex) — კვლავ
 ხელმისაწვდომია.
 
-პროვაიდერის საწყისი გამართვაც იმავე ლოკალური/დისტანციური კონტექსტიდან არის შესაძლებელი. ქვემოთ მოცემული
+პროვაიდერის საწყისი გამართვა იმავე ლოკალური/დისტანციური კონტექსტიდანაა შესაძლებელი. ქვემოთ მოცემული,
 API-ზე ორიენტირებული ბრძანებები მართვის ავთენტიფიკაციას პროვაიდერის
-ავტორიზაციის მონაცემებისგან განცალკევებით ინახავენ და სტრუქტურირებულ გამომავალში ავტორიზაციის მონაცემებს არასოდეს ბეჭდავენ:
+ავტორიზაციის მონაცემებისგან განცალკევებით ინახავს და სტრუქტურირებულ გამომავალში ავტორიზაციის მონაცემებს არასოდეს ბეჭდავს:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -43,18 +34,18 @@ omniroute providers remove <connection-id> --yes
 ```
 
 სკრიპტებისთვის უპირატესობა მიანიჭეთ `--credential-stdin`-ს ან `--credential-env`-ს; `--credential`
-შენარჩუნებულია კონტროლირებად ლოკალურ გარემოში გამოსაყენებლად. `providers remove` არაინტერაქტიულ
-ტერმინალში `--yes`-ს მოითხოვს, ხოლო ხუთივე ბრძანება ითვალისწინებს აქტიურ კონტექსტს ან
+შენარჩუნებულია კონტროლირებად ლოკალურ გარემოში გამოსაყენებლად. არაინტერაქციულ
+ტერმინალში `providers remove` მოითხოვს `--yes`-ს, ხოლო ხუთივე ბრძანება ითვალისწინებს აქტიურ კონტექსტს ან
 გლობალურ `--base-url`/`--api-key` პარამეტრებს.
 
-ორი ყველაზე ფუნქციურად მდიდარი ინტეგრაციის ერთჯერადი, ხელით შესასრულებელი საბაზისო გამართვის შესახებ იხილეთ
+ორი ყველაზე ფუნქციურად მდიდარი ინტეგრაციის ერთჯერადი, ხელით შესასრულებელი საბაზისო გამართვისთვის იხილეთ
 თითოეული ინსტრუმენტის დეტალური სახელმძღვანელო:
 
 - [Claude Code-ის კონფიგურაცია](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI-ის კონფიგურაცია](./CODEX-CLI-CONFIGURATION.md)
 - [დისტანციური რეჟიმი](./REMOTE-MODE.md) — მართეთ დისტანციური OmniRoute (VPS / Tailnet) თქვენი ლეპტოპიდან
 - [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot გაფართოება; მას ასევე შეუძლია ეს
-  `setup-*` ბრძანებები თქვენთვის უშუალოდ რედაქტორის შიგნიდან გაუშვას
+  `setup-*` ბრძანებები თქვენთვის პირდაპირ რედაქტორიდან გაუშვას
 
 ---
 

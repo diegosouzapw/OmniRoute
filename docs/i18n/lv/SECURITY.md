@@ -224,24 +224,33 @@ docker run -d \
 
 Publicētais `omniroute` npm artefakts ietver Next.js `output: "standalone"`
 būvējumu, kas nozīmē, ka katrs maršruta apstrādātājs — tostarp dokumentētās
-priviliģētās funkcijas (MITM, Zed importēšana, Cloud Sync, iegultais pakalpojumu
-uzraugs) — nonāk `.next/server/*.js` minimizētajos gabalos. Heiristiskie
-piegādes ķēdes skeneri bieži salīdzina šos gabalus ar ļaunprogrammatūras
-parakstiem.
+priviliģētās funkcijas (MITM, Zed importēšana, Cloud Sync, iegultā pakalpojuma
+pārraugs) — nonāk `.next/server/*.js` minificētajos fragmentos. Heiristiskie
+piegādes ķēdes skeneri bieži salīdzina šo fragmentu paraugus ar ļaunprogrammatūras
+signatūrām.
 
-Katrai atraduma kategorijai mēs uzturam atsevišķu uzturētāja apliecinājumu:
+Mūsu izmantotā skenera konfigurācija atrodas repozitorija saknes failā
+[`socket.yml`](socket.yml) (Socket.dev GitHub App formāts v2 — skatiet
+<https://docs.socket.dev/docs/socket-yml>). Tā nepārprotami izslēdz nepiegādātās
+direktorijas (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`,
+`docs/` utt.), lai skeneris ziņotu tikai par koda ceļiem, kas faktiski sasniedz
+publicētās versijas lietotājus — pašu skenēšanu veic Socket GitHub App, nolasot
+šo failu, nevis darbplūsma šajā repozitorijā.
+
+Katrai atradumu kategorijai mēs uzturam atsevišķu uzturētāja apliecinājumu:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  katra atraduma kartējums: avota fails ↔ atzīmētais gabals ↔ darbība ↔
-  mazināšanas pasākums, kas piemērots v3.8.6.
-- Avota kodā `SECURITY-AUDITOR-NOTE:` bloki pie katra atzīmētās funkcijas punkta
-  norāda uz to pašu dokumentu.
+  katra atraduma kartējums: avota fails ↔ atzīmētais fragments ↔ darbība ↔
+  versijā v3.8.6 ieviestais riska mazināšanas pasākums.
+- Avota kodā esošie `SECURITY-AUDITOR-NOTE:` bloki pie katras atzīmētās
+  funkcijas norāda uz to pašu dokumentu.
 
-Lietotājiem, kuru konveijers nevar atslābināt brīdinājumu, jābūvē ar
+Lietotājiem, kuru konveijerā brīdinājumu nevar mīkstināt: veidojiet būvējumu ar
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tādējādi četri sensitīvie
-moduļi tiek aizstāti ar stublājiem, kas izpildes laikā atgriež HTTP 503
-`feature-disabled`, tādēļ priviliģētie koda ceļi fiziski nepastāv komplektā.
-Publicēšanas recepti skatiet [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+moduļi tiek aizstāti ar aizstājējiem, kas izpildlaikā atgriež HTTP 503
+`feature-disabled`, tāpēc priviliģētie koda ceļi fiziski nav iekļauti komplektā.
+Publicēšanas norādījumus skatiet
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Atsauces
 

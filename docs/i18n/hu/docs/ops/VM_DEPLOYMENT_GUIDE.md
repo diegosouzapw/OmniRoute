@@ -4,127 +4,133 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+🌐 **Nyelvek:** 🇺🇸 [English](./VM_DEPLOYMENT_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+Teljes körű útmutató az OmniRoute telepítéséhez és konfigurálásához egy virtuális gépen (VPS-en), Cloudflare-en keresztül kezelt domainnel.
 
 ---
 
-## Prerequisites
+## Előfeltételek
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| Elem       | Minimum                    | Ajánlott         |
+| ---------- | -------------------------- | ---------------- |
+| **CPU**    | 1 vCPU                     | 2 vCPU           |
+| **RAM**    | 1 GB                       | 2 GB             |
+| **Lemez**  | 10 GB SSD                  | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS           | Ubuntu 24.04 LTS |
+| **Domain** | Cloudflare-en regisztrálva | —                |
+| **Docker** | Docker Engine 24+          | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**Tesztelt szolgáltatók**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configure the VM
+## 1. A virtuális gép konfigurálása
 
-### 1.1 Create the instance
+### 1.1 A példány létrehozása
 
-On your preferred VPS provider:
+A választott VPS-szolgáltatónál:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
+- Válassza az Ubuntu 24.04 LTS rendszert
+- Válassza a minimális csomagot (1 vCPU / 1 GB RAM)
+- Állítson be erős root jelszót, vagy konfiguráljon SSH-kulcsot
+- Jegyezze fel a **nyilvános IP-címet** (pl. `203.0.113.10`)
 
-### 1.2 Connect via SSH
+### 1.2 Csatlakozás SSH-n keresztül
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 A rendszer frissítése
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 A Docker telepítése
 
 ```bash
-# Install dependencies
+# Függőségek telepítése
 apt install -y ca-certificates curl gnupg
 
-# Add official Docker repository
+# A hivatalos Docker-tároló hozzáadása
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 Az nginx telepítése
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 A tűzfal (UFW) konfigurálása
 
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (redirect)
+ufw allow 80/tcp    # HTTP (átirányítás)
 ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **Tipp**: A maximális biztonság érdekében korlátozza a 80-as és a 443-as port elérését kizárólag a Cloudflare IP-címeire. Lásd a [Speciális biztonság](#advanced-security) című részt.
 
 ---
 
-## 2. Install OmniRoute
+## 2. Az OmniRoute telepítése
 
-### 2.1 Create configuration directory
+### 2.1 A konfigurációs könyvtár létrehozása
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 A környezeti változókat tartalmazó fájl létrehozása
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
-# === Security ===
+cat > /opt/omniroute/.env << 'EOF'
+# === Biztonság ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
 API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # ÉLES KÖRNYEZETBEN KÖTELEZŐ: a Codex Responses WS-híd használja
 
-# === App ===
+# === Alkalmazás ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URL-ek (módosítsa a saját domainjére) ===
+# Belső, kiszolgálók közötti alap-URL az ütemezett feladatokhoz és az önmagára irányuló lekérésekhez.
+BASE_URL=http://127.0.0.1:20128
+# A böngészőből elérhető URL az OAuth-visszahívásokhoz, a vezérlőpult hivatkozásaihoz és a generált nyilvános URL-ekhez.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# Opcionális, explicit nyilvános eredetfelülbírálás a generált nyilvános erőforrás-URL-ekhez.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (optional) ===
+# === Felhőalapú szinkronizálás (opcionális) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **FONTOS**: Generáljon egyedi titkos kulcsokat! Minden kulcshoz használja az `openssl rand -hex 32` parancsot.
 
-### 2.3 Start the container
+### 2.3 A konténer elindítása
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +144,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 A működés ellenőrzése
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+A következőket kell megjelenítenie: `[DB] SQLite database ready` és `listening on port 20128`.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. Az nginx konfigurálása (fordított proxy)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 SSL-tanúsítvány létrehozása (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+A Cloudflare irányítópultján:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. Lépjen az **SSL/TLS → Origin Server** menüpontra
+2. Kattintson a **Create Certificate** gombra
+3. Hagyja meg az alapértelmezett beállításokat (15 év, \*.yourdomain.com)
+4. Másolja ki az **Origin Certificate** tanúsítványt és a **Private Key** titkos kulcsot
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Paste the certificate
+# Illessze be a tanúsítványt
 nano /etc/nginx/ssl/origin.crt
 
-# Paste the private key
+# Illessze be a titkos kulcsot
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 Az nginx konfigurálása
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
-# Default server — blocks direct access via IP
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+# Alapértelmezett kiszolgáló — blokkolja az IP-címen keresztüli közvetlen hozzáférést
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # Change to your domain
+    server_name llms.yourdomain.com;  # Módosítsa a saját tartományára
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -203,16 +209,17 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # WebSocket support
+        # WebSocket-támogatás
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
-        # SSE (Server-Sent Events) — streaming AI responses
+        # SSE (kiszolgáló által küldött események) — MI-válaszok streamelése
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -220,7 +227,7 @@ server {
     }
 }
 
-# HTTP → HTTPS redirect
+# HTTP → HTTPS átirányítás
 server {
     listen 80;
     listen [::]:80;
@@ -230,59 +237,61 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+Tartsa összhangban a fordított proxy streamekre vonatkozó időkorlátait az OmniRoute időkorlátozási környezeti változóival. Ha növeli a
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS` értékét, növelje a `proxy_read_timeout` / `proxy_send_timeout`
+értékét is ugyanazon küszöbérték fölé.
 
-### 3.3 Enable and Test
+Az OmniRoute a `NEXT_PUBLIC_BASE_URL` értékét használja az OAuth-visszahívások és a létrehozott nyilvános hivatkozások böngésző felőli kanonikus forrásaként. A hitelesített irányítópult írási műveletei azonos forrásból származó kéréseket és munkamenethez kötött CSRF-védelmet használnak, ezért nincs szükségük statikus nyilvános alap-URL-re. A fenti `X-Forwarded-*` fejlécek továbbra is hasznos útválasztási metaadatokat biztosítanak, de nem helyettesítik az explicit nyilvános URL beállítását, amikor az OAuth vagy a létrehozott böngészős hivatkozások igénylik azt. Az `OMNIROUTE_TRUST_PROXY` beállítást csak akkor engedélyezze, ha az OmniRoute az ügyfelek számára nem érhető el közvetlenül, és a proxy eltávolítja, majd újra létrehozza a bejövő továbbítási fejléceket.
+
+### 3.3 Engedélyezés és tesztelés
 
 ```bash
-# Remove default configuration
+# Az alapértelmezett konfiguráció eltávolítása
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
+# Az OmniRoute engedélyezése
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Test and reload
+# Tesztelés és újratöltés
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. A Cloudflare DNS konfigurálása
 
-### 4.1 Add DNS record
+### 4.1 DNS-rekord hozzáadása
 
-In the Cloudflare dashboard → DNS:
+A Cloudflare irányítópultján → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| Típus | Név    | Tartalom                    | Proxy       |
+| ----- | ------ | --------------------------- | ----------- |
+| A     | `llms` | `203.0.113.10` (VM IP-címe) | ✅ Proxyzva |
 
-### 4.2 Configure SSL
+### 4.2 SSL konfigurálása
 
-Under **SSL/TLS → Overview**:
+Az **SSL/TLS → Overview** alatt:
 
-- Mode: **Full (Strict)**
+- Mód: **Full (Strict)**
 
-Under **SSL/TLS → Edge Certificates**:
+Az **SSL/TLS → Edge Certificates** alatt:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- HTTPS állandó használata: ✅ Bekapcsolva
+- Minimális TLS-verzió: TLS 1.2
+- Automatikus HTTPS-átírások: ✅ Bekapcsolva
 
-### 4.3 Testing
+### 4.3 Tesztelés
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Should return HTTP/2 200
+# HTTP/2 200 választ kell visszaadnia
 ```
 
 ---
 
-## 5. Operations and Maintenance
+## 5. Üzemeltetés és karbantartás
 
-### Upgrade to a new version
+### Frissítés új verzióra
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,42 +303,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### Naplók megtekintése
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f omniroute          # Valós idejű adatfolyam
+docker logs omniroute --tail 50   # Utolsó 50 sor
 ```
 
-### Manual database backup
+### Az adatbázis kézi biztonsági mentése
 
 ```bash
-# Copy data from the volume to the host
+# Adatok másolása a kötetből a gazdagépre
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Or compress the entire volume
+# Vagy a teljes kötet tömörítése
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### Visszaállítás biztonsági mentésből
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. Speciális biztonsági beállítások
 
-### Restrict nginx to Cloudflare IPs
+### Az nginx korlátozása a Cloudflare IP-címeire
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
-# Cloudflare IPv4 ranges — update periodically
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
+# Cloudflare IPv4-tartományok — rendszeresen frissítendő
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -350,58 +359,69 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+Adja hozzá a következőt az `nginx.conf` fájl `http {}` blokkján belül:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### A fail2ban telepítése
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Check status
+# Állapot ellenőrzése
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### A Docker-port közvetlen elérésének blokkolása
 
 ```bash
-# Prevent direct external access to port 20128
+# A 20128-as port közvetlen külső elérésének megakadályozása
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persist the rules
+# A szabályok tartós mentése
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. Telepítés Cloudflare Workersre (opcionális)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Cloudflare Workersen keresztüli távoli eléréshez (a VM közvetlen elérhetővé tétele nélkül):
 
 ```bash
-# In the local repository
+# A helyi adattárban
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+A projekt adattárában található Cloudflare Tunnel útmutatóért lásd még: [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md). Az önálló `omnirouteCloud/` worker külön kiegészítő adattárban található.
 
 ---
 
-## Port Summary
+## Portok összefoglalása
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| Port  | Szolgáltatás | Hozzáférés                            |
+| ----- | ------------ | ------------------------------------- |
+| 22    | SSH          | Nyilvános (fail2ban védelemmel)       |
+| 80    | nginx HTTP   | Átirányítás → HTTPS                   |
+| 443   | nginx HTTPS  | Cloudflare Proxy-n keresztül          |
+| 20128 | OmniRoute    | Csak localhostról (nginxen keresztül) |
+
+## Optimalizálás kevés memóriához / kis VPS-hez
+
+Kis VPS-példányokon (legfeljebb 1 GB RAM) történő telepítéshez:
+
+- **Tiltsa le a háttérszolgáltatásokat** — állítsa be az `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1` értéket az ütemező, az MCP-kiszolgáló és az időszakos karbantartási feladatok kihagyásához. Lásd: `docs/reference/ENVIRONMENT.md`.
+- **Használja az SQLite WAL módját** — alapértelmezetten engedélyezve van, és csökkenti a memóriahasználat csúcsértékét párhuzamos olvasások során.
+- **Korlátozza a V8 heap méretét** — állítsa be az `OMNIROUTE_MEMORY_MB` értékét (például `512`), hogy a futtatókörnyezet ne kalibráljon a virtuális gépnél nagyobb felső korlátot. Lásd: `docs/reference/ENVIRONMENT.md`.
+- **A nagy erőforrás-igényű kérések befogadási korlátja automatikusan igazodik a heap korlátjához** -- miután fent beállította az `OMNIROUTE_MEMORY_MB` értékét, a fogadási bájtkeret (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ugyanebből a felső korlátból származik, így egy korlátozott memóriájú virtuális gép további hangolás nélkül is kisebb keretet kap az egyidejű kérésekhez; a keretet meghaladó kérések a memóriáért való versengés helyett újrapróbálható `503` választ kapnak `Retry-After` fejléccel. A korábbi, kérésszámon alapuló `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` korlátot csak akkor állítsa be, ha ezen felül rögzített felső határra is szüksége van.
+- **Ne futtassa a `next build` parancsot a VPS-en** — végezze el a buildet helyben, és telepítse az önálló kimenetet (`.next/standalone/`).
+- **Figyelje a rendszert a `top` / `free -m` parancsokkal** — az OmniRoute üresjáratban jellemzően 200–400 MB RSS-memóriát használ egy 1 GB-os virtuális gépen.

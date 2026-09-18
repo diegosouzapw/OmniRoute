@@ -1,4 +1,9 @@
+# Release Checklist (中文 (繁體))
+
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/RELEASE_CHECKLIST.md) · 🇪🇹 [am](../../../am/docs/ops/RELEASE_CHECKLIST.md) · 🇸🇦 [ar](../../../ar/docs/ops/RELEASE_CHECKLIST.md) · 🇦🇿 [az](../../../az/docs/ops/RELEASE_CHECKLIST.md) · 🇧🇬 [bg](../../../bg/docs/ops/RELEASE_CHECKLIST.md) · 🇧🇩 [bn](../../../bn/docs/ops/RELEASE_CHECKLIST.md) · 🇨🇿 [cs](../../../cs/docs/ops/RELEASE_CHECKLIST.md) · 🇩🇰 [da](../../../da/docs/ops/RELEASE_CHECKLIST.md) · 🇩🇪 [de](../../../de/docs/ops/RELEASE_CHECKLIST.md) · 🇬🇷 [el](../../../el/docs/ops/RELEASE_CHECKLIST.md) · 🇪🇸 [es](../../../es/docs/ops/RELEASE_CHECKLIST.md) · 🇪🇪 [et](../../../et/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇷 [fa](../../../fa/docs/ops/RELEASE_CHECKLIST.md) · 🇫🇮 [fi](../../../fi/docs/ops/RELEASE_CHECKLIST.md) · 🇫🇷 [fr](../../../fr/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇪 [ga](../../../ga/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [gu](../../../gu/docs/ops/RELEASE_CHECKLIST.md) · 🇳🇬 [ha](../../../ha/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇱 [he](../../../he/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [hi](../../../hi/docs/ops/RELEASE_CHECKLIST.md) · 🇭🇷 [hr](../../../hr/docs/ops/RELEASE_CHECKLIST.md) · 🇭🇺 [hu](../../../hu/docs/ops/RELEASE_CHECKLIST.md) · 🇦🇲 [hy](../../../hy/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇩 [id](../../../id/docs/ops/RELEASE_CHECKLIST.md) · 🇳🇬 [ig](../../../ig/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇹 [it](../../../it/docs/ops/RELEASE_CHECKLIST.md) · 🇯🇵 [ja](../../../ja/docs/ops/RELEASE_CHECKLIST.md) · 🇬🇪 [ka](../../../ka/docs/ops/RELEASE_CHECKLIST.md) · 🇰🇭 [km](../../../km/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [kn](../../../kn/docs/ops/RELEASE_CHECKLIST.md) · 🇰🇷 [ko](../../../ko/docs/ops/RELEASE_CHECKLIST.md) · 🇱🇹 [lt](../../../lt/docs/ops/RELEASE_CHECKLIST.md) · 🇱🇻 [lv](../../../lv/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [ml](../../../ml/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [mr](../../../mr/docs/ops/RELEASE_CHECKLIST.md) · 🇲🇾 [ms](../../../ms/docs/ops/RELEASE_CHECKLIST.md) · 🇲🇹 [mt](../../../mt/docs/ops/RELEASE_CHECKLIST.md) · 🇲🇲 [my](../../../my/docs/ops/RELEASE_CHECKLIST.md) · 🇳🇵 [ne](../../../ne/docs/ops/RELEASE_CHECKLIST.md) · 🇳🇱 [nl](../../../nl/docs/ops/RELEASE_CHECKLIST.md) · 🇳🇴 [no](../../../no/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [or](../../../or/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [pa](../../../pa/docs/ops/RELEASE_CHECKLIST.md) · 🇵🇭 [phi](../../../phi/docs/ops/RELEASE_CHECKLIST.md) · 🇵🇱 [pl](../../../pl/docs/ops/RELEASE_CHECKLIST.md) · 🇵🇹 [pt](../../../pt/docs/ops/RELEASE_CHECKLIST.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/RELEASE_CHECKLIST.md) · 🇷🇴 [ro](../../../ro/docs/ops/RELEASE_CHECKLIST.md) · 🇷🇺 [ru](../../../ru/docs/ops/RELEASE_CHECKLIST.md) · 🇱🇰 [si](../../../si/docs/ops/RELEASE_CHECKLIST.md) · 🇸🇰 [sk](../../../sk/docs/ops/RELEASE_CHECKLIST.md) · 🇸🇮 [sl](../../../sl/docs/ops/RELEASE_CHECKLIST.md) · 🇷🇸 [sr](../../../sr/docs/ops/RELEASE_CHECKLIST.md) · 🇸🇪 [sv](../../../sv/docs/ops/RELEASE_CHECKLIST.md) · 🇰🇪 [sw](../../../sw/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [ta](../../../ta/docs/ops/RELEASE_CHECKLIST.md) · 🇮🇳 [te](../../../te/docs/ops/RELEASE_CHECKLIST.md) · 🇹🇭 [th](../../../th/docs/ops/RELEASE_CHECKLIST.md) · 🇹🇷 [tr](../../../tr/docs/ops/RELEASE_CHECKLIST.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/RELEASE_CHECKLIST.md) · 🇵🇰 [ur](../../../ur/docs/ops/RELEASE_CHECKLIST.md) · 🇺🇿 [uz](../../../uz/docs/ops/RELEASE_CHECKLIST.md) · 🇻🇳 [vi](../../../vi/docs/ops/RELEASE_CHECKLIST.md) · 🇳🇬 [yo](../../../yo/docs/ops/RELEASE_CHECKLIST.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/RELEASE_CHECKLIST.md)
+
 ---
+
 title: "發行檢查清單"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -10,7 +15,7 @@ lastUpdated: 2026-06-28
 > 精簡化發行流程，運用 Claude Code Skills 實現自動化。
 >
 > **在發行之間保持佇列／分支為綠色：** 請參閱 [RELEASE_GREEN.md](./RELEASE_GREEN.md)
->（`/green-prs` 系列指令 + `npm run check:release-green` + `/babysit` + 夜間排程）。定期執行此流程——
+> （`/green-prs` 系列指令 + `npm run check:release-green` + `/babysit` + 夜間排程）。定期執行此流程——
 > 尤其是在執行本檢查清單**之前**——可讓發行 PR 一開始就處於綠色狀態。
 
 ## TL;DR
@@ -37,34 +42,57 @@ npm run test:e2e           # 選擇性但建議執行
 /capture-release-evidences-cc
 ```
 
-## npm 階段式發布（自 v3.8.49 起預設 — WS1.3/D2）
+## npm 可信任發佈（自 v3.8.51 起為預設）— 可依要求暫存，直接發佈作為備援
 
-npm 發布工作流程不再直接發布：它會啟動打包後的 tarball
-（`check:pack-boot`），然後執行 `npm stage publish`——確切的位元組會暫存在
-登錄檔中，在擁有者核准前**不可安裝**。人類 2FA 關卡移至
-驗證**之後**，而非之前。
+`npm-publish.yml` 預設透過 **npm 可信任發佈（OIDC）**進行發佈：
+`stage-npm` 作業（由 GitHub 託管）會使用 GitHub 的 id-token，為該次執行交換一組短效 npm
+憑證——儲存庫密鑰中不需要長效 npm token、不會出現 2FA 提示，並會附加來源證明。
+由於可略過 2FA 的 token 正在淘汰，這是 npm 目前認可的繞過方式；
+它恢復了專案截至 v3.8.48 為止所使用的全自動流程，同時維持
+WS1.3 保證（外洩的 token 無法單獨進行發佈——因為根本沒有 token）。
 
-**工作流程轉為綠色後的擁有者流程：**
+**一次性設定（擁有者）：** npmjs.com → 套件 `omniroute` → Settings → _Trusted
+Publisher_ → GitHub：擁有者 `diegosouzapw`、儲存庫 `OmniRoute`、工作流程 `npm-publish.yml`
+（環境：無）。在完成這項設定之前，自動步驟會因 `ENEEDAUTH` 而失敗：
+請使用 `publish_mode=staged`（如下）或 `direct` 重新分派。
 
-1. `npm stage list omniroute` — 找到 stage id（也會列印在工作流程摘要中）。
-2. 驗證暫存位元組（建議執行）：`npm stage download <id>`，然後將下載的 tarball
-   安裝到臨時字首目錄並啟動它（`npm run check:pack-boot` 會在 CI 中自動執行
-   相同的 pack→install→boot 驗證流程）。
-3. `npm stage approve <id>` — 2FA 提示即為發布操作。`npm stage reject <id>` 則會捨棄。
-4. 發布後網路檢查：發布後驗證器（v3.8.49 方案的 WS1.4）會從公開登錄檔安裝
-   已發布版本到一個乾淨的容器中並啟動它。
+### 暫存發佈（依要求啟用 — `publish_mode=staged`）
 
-**緊急備援：** 使用 `workflow_dispatch` 搭配 `publish_mode=direct` 可恢復
-傳統的立即 `npm publish`（僅在階段式發布本身出問題時使用；請記錄原因）。
+npm-publish 工作流程不再直接發佈：它會啟動已封裝的 tarball
+（`check:pack-boot`），然後執行 `npm stage publish`——完全相同的位元組會暫存在
+登錄檔中，且在擁有者核准前**無法安裝**。人工 2FA 閘門已移至
+驗證之後，而非之前。
 
-**一次性強化措施（擁有者，npmjs.com）：**為 `omniroute` 設定僅限階段式發布的
-Trusted Publisher，這樣即使長期權杖外洩，也無法從任何地方直接 `npm publish`——
-CI 只能暫存；只有擁有者的 2FA 才能真正發布。
+**工作流程轉為綠燈後的擁有者操作流程：**
 
-**成品損壞應對手冊（未變更）：** `npm deprecate omniroute@<bad> "<reason> — use <fixed>"`
-為預設反射動作（幾分鐘內完成，可逆轉）；`npm unpublish` 僅在 72 小時／無依賴套件
-的時間窗口內使用，且絕不作為第一步。Docker：絕不重寫版本標籤——回滾是將
-`latest` 重新指向最後一個正常的摘要。
+1. `npm stage list omniroute`——找出 stage id（工作流程摘要中也會顯示）。
+2. 驗證已暫存的位元組（建議）：`npm stage download <id>`，然後將下載的
+   tarball 安裝至暫用 prefix 並啟動它（`npm run check:pack-boot` 會在 CI 中自動執行
+   相同的封裝→安裝→啟動判定）。
+3. `npm stage approve <id>`——2FA 提示本身**就是**發佈動作。`npm stage reject <id>` 則會捨棄它。
+4. 發佈後安全網：發佈後驗證器（v3.8.49 計畫的 WS1.4）會在乾淨的容器中，從
+   公開登錄檔安裝已發佈版本並啟動它。
+
+**緊急備援：** 使用 `publish_mode=direct` 執行 `workflow_dispatch`，即可恢復舊版的
+即時 `npm publish`（僅在暫存機制本身發生異常時使用；請記錄原因）。
+
+**一次性強化（擁有者，npmjs.com）：** 為
+`omniroute` 將 Trusted Publisher 設定為僅限暫存模式，如此一來，即使長效 token 外洩，也無法從任何位置直接執行 `npm publish`
+——CI 只能暫存；只有擁有者的 2FA 能正式發佈。
+
+**損壞成品應變手冊（維持不變）：** 預設的第一反應應是執行 `npm deprecate omniroute@<bad> "<reason> — use <fixed>"`
+（只需幾分鐘、可復原）；僅可在 72 小時／無相依套件的期限內執行 `npm unpublish`，
+且絕不可將其作為第一步。Docker：絕不重寫版本標籤——復原方式是將
+`latest` 重新指向上一個正常的 digest。
+
+**Docker Hub `latest`（每次發佈穩定版 SemVer 時皆為必要）：**
+`docker-publish` 工作流程必須同時標記 **`X.Y.Z`**，且當
+`should-promote-latest.sh` 判定其為最高的穩定版 SemVer 時，也必須標記 **`:latest`**，
+兩者必須具有**相同的 digest**。作業完成後：Hub 上 `latest` 的 digest 應等於新的
+SemVer digest，且 `last_updated` 已更新。當發行說明提及僅存在於 git 上的修正時，
+不得讓 `:latest` 繼續指向較舊的建置版本。
+Compose 快速入門使用 `:latest`；GitOps 應繼續固定使用 `X.Y.Z`。請參閱
+[Docker 發佈通道](../guides/DOCKER_GUIDE.md#release-channels)及 #10317。
 
 ## Hotfix 快速通道（標籤 `hotfix`）
 
@@ -86,108 +114,108 @@ CI 只能暫存；只有擁有者的 2FA 才能真正發布。
 
 ## 詳細檢查清單
 
-### 發行前
+### 發布前
 
-- [ ] 所有目標為此版本的 PR 都已合併到 `release/vX.Y.0`
-- [ ] 所有與此版本相關的 Linear／問題項目都已關閉或推遲至下個里程碑
-- [ ] CI 在 `release/vX.Y.0` 分支上為綠色
+- [ ] 此版本的所有目標 PR 均已合併至 `release/vX.Y.0`
+- [ ] 此版本所有未完成的 Linear／issue 項目均已關閉或移至下一個里程碑
+- [ ] `release/vX.Y.0` 分支上的 CI 全部通過
 - [ ] 程式碼中沒有 `TODO(release)` 標記：`grep -r "TODO(release)" src/ open-sse/`
-- [ ] Docker 基礎映像為最新版本（目前為 `node:24.15.0-trixie-slim`）
+- [ ] Docker 基礎映像檔已更新至最新版本（目前為 `node:24.15.0-trixie-slim`）
 
-### 版本號與變更日誌
+### 版本與變更日誌
 
-- [ ] 執行 `/version-bump-cc <patch|minor|major>`（Claude Code skill）
-  - 更新 `package.json`、`electron/package.json`
-  - 從上次標籤以來的 git 提交重新產生 `CHANGELOG.md`
+- [ ] 執行 `/version-bump-cc <patch|minor|major>`（Claude Code 技能）
+  - 更新 `package.json`、`electron/package.json` 中的版本
+  - 根據自上一個標籤以來的 git 提交重新產生 `CHANGELOG.md`
   - 更新 README.md 徽章
-- [ ] 手動檢視 CHANGELOG.md，必要時清理提交訊息
-- [ ] 確認 `CHANGELOG.md` 中最新的 semver 區段與 `package.json` 版本一致
-- [ ] 保留 `## [Unreleased]` 作為變更日誌的第一個區段，供後續工作使用
-- [ ] 更新 `docs/openapi.yaml` → `info.version` 必須等於 `package.json` 版本
+- [ ] 手動檢閱 CHANGELOG.md，並視需要整理提交訊息
+- [ ] 確保 `CHANGELOG.md` 中最新的 semver 區段與 `package.json` 版本一致
+- [ ] 保留 `## [Unreleased]` 作為變更日誌的第一個區段，以供即將進行的工作使用
+- [ ] 更新 `docs/openapi.yaml` → `info.version` 必須與 `package.json` 版本一致
 
 ### 程式碼品質
 
-- [ ] `npm run lint` — 0 個錯誤（警告為預先存在的）
-- [ ] `npm run typecheck:core` — 乾淨通過
-- [ ] `npm run typecheck:noimplicit:core` — 乾淨通過（嚴格模式）
-- [ ] `npm run check:cycles` — 沒有循環依賴
-- [ ] `npm run check:any-budget:t11` — 在預算內
-- [ ] `npm run check:route-validation:t06` — 乾淨通過
-- [ ] `npm run check:node-runtime` — 符合支援的執行時期最低版本（`>=22.22.2 <23`、`>=24.0.0 <27`，詳見 `src/shared/utils/nodeRuntimeSupport.ts` 中的 `SUPPORTED_NODE_RANGE`；需與 `package.json` 的 `engines` 一致）
+- [ ] `npm run lint` — 0 個錯誤（警告為既有問題）
+- [ ] `npm run typecheck:core` — 無問題
+- [ ] `npm run typecheck:noimplicit:core` — 無問題（嚴格模式）
+- [ ] `npm run check:cycles` — 無循環相依性
+- [ ] `npm run check:any-budget:t11` — 未超出預算
+- [ ] `npm run check:route-validation:t06` — 無問題
+- [ ] `npm run check:node-runtime` — 符合最低支援執行環境要求（`>=22.22.2 <23`、`>=24.0.0 <27`，依據 `src/shared/utils/nodeRuntimeSupport.ts` 中的 `SUPPORTED_NODE_RANGE`；與 `package.json` 的 `engines` 一致）
 
 ### 測試
 
 - [ ] `npm run test:unit` — 通過
 - [ ] `npm run test:vitest` — 通過（MCP 伺服器、autoCombo、快取）
-- [ ] `npm run test:coverage` — 門檻 60/60/60/60 已達成（statements／lines／functions／branches）
-- [ ] `npm run test:integration` — 通過（若變更涉及 DB／處理器）
-- [ ] `npm run test:combo:matrix` — 通過（combo 策略矩陣：證明所有 19 種公開路由策略的選擇決策是確定性的；在更動 combo 路由、策略解析或備援邏輯時執行）
-- [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **選擇性／手動**（受閘控的真實上游冒煙測試；從 VPS `root@192.168.0.15` 讀取唯讀 DB 快照；會命中真實提供者，消耗額度；不在 CI 中執行；若無閘控變數則乾淨跳過）
-- [ ] `npm run test:combo:live:vps` — **選擇性／手動**（Phase-3 VPS 即時冒煙測試：透過純 Node ESM 對 `.15` 伺服器執行 7 個 HTTP 情境；需要 `ssh root@192.168.0.15`；只會建立／刪除 `__live_test__*` 類型的 combo；會命中真實提供者；不在 CI 中執行）
+- [ ] `npm run test:coverage` — 滿足 60/60/60/60 門檻（陳述式／程式行／函式／分支）
+- [ ] `npm run test:integration` — 通過（若變更涉及 DB／處理常式）
+- [ ] `npm run test:combo:matrix` — 通過（組合策略矩陣：以確定性方式驗證全部 19 種公開路由策略的選擇決策；變更組合路由、策略解析或備援邏輯時執行）
+- [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **選用／手動**（設有閘門的真實上游冒煙測試；從 VPS `root@192.168.0.15` 取得唯讀 DB 快照；呼叫真實提供者，會消耗點數；絕不在 CI 中執行；未啟用閘門時會正常略過）
+- [ ] `npm run test:combo:live:vps` — **選用／手動**（第 3 階段 VPS 即時冒煙測試：透過純 Node ESM 對即時 `.15` 伺服器執行 7 個 HTTP 情境；需要 `ssh root@192.168.0.15`；僅建立／刪除 `__live_test__*` 組合；呼叫真實提供者；絕不在 CI 中執行）
 - [ ] `npm run test:e2e` — 通過（UI 變更）
 - [ ] `npm run test:protocols:e2e` — 通過（MCP／A2A 變更）
 - [ ] `npm run test:ecosystem` — 通過
 
-### Hooks（Husky 驗證）
+### Hook（已由 Husky 驗證）
 
-Husky hooks 位於 `.husky/` 目錄，會在 git 操作時自動執行。
+Husky hook 位於 `.husky/`，並會在執行 git 操作時自動執行。
 
 - **pre-commit：** `npx lint-staged + node scripts/check/check-docs-sync.mjs + npm run check:any-budget:t11`
-- **pre-push：** 快速確定性關卡 — `npm run check:any-budget:t11 && npm run check:tracked-artifacts`（於 2026-06-13 啟用）。故意排除 `test:unit`（速度慢；由 CI 的 `test-unit` 工作負責）。
-  - 在推送發行分支前，請手動執行 `npm run test:unit`。
+- **pre-push：** 快速且具確定性的閘門 — `npm run check:any-budget:t11 && npm run check:tracked-artifacts`（於 2026-06-13 啟用）。刻意排除 `test:unit`（速度較慢；由 CI 的 `test-unit` 作業涵蓋）。
+  - 推送發布分支前，請手動執行 `npm run test:unit`。
 
-若 hook 失敗：請修正根本問題，不要使用 `--no-verify` 繞過。
+如果 hook 失敗：修正根本問題，不要使用 `--no-verify` 繞過。
 
 ### Conventional Commits
 
-所有與發行相關的提交都必須遵循 `type(scope): subject` 格式。
+所有納入發布版本的提交都必須遵循 `type(scope): subject` 格式。
 
 **有效類型：** `feat`、`fix`、`refactor`、`docs`、`test`、`chore`、`perf`、`style`、`ci`
 
 **有效範圍：** `db`、`sse`、`oauth`、`dashboard`、`api`、`cli`、`docker`、`ci`、`mcp`、`a2a`、`memory`、`skills`、`cloud-agent`、`guardrails`、`compression`、`auto-combo`、`resilience`、`providers`、`executors`、`translator`、`domain`、`authz`
 
-重大變更：在結尾加上 `BREAKING CHANGE:` 或在範圍後加上 `!`（例如 `feat(api)!: drop /v0`）。
+破壞性變更：加入 `BREAKING CHANGE:` 頁尾，或在範圍後加上 `!`（例如 `feat(api)!: drop /v0`）。
 
 ### 文件
 
-- [ ] `npm run check:docs-sync` 通過（pre-commit 會自動執行）
-- [ ] `npm run check:docs-all` 通過（總括：docs-sync + docs-counts + env-doc-sync + deprecated-versions + doc-links）
-- [ ] `npm run check:env-doc-sync` 退出碼為 0——程式碼 ↔ `.env.example` ↔ `docs/reference/ENVIRONMENT.md` 的環境變數合約完整無缺
-- [ ] `npm run check:doc-links` 退出碼為 0——重構後沒有損毀的內部 markdown 參照
-- [ ] 已檢視 `docs/architecture/ARCHITECTURE.md`，確認無儲存／執行時期偏差
-- [ ] 已檢視 `docs/guides/TROUBLESHOOTING.md`，確認無環境變數與操作偏差
-- [ ] 若 `.env.example` 有變更：已更新 `docs/reference/ENVIRONMENT.md`
-- [ ] 若新功能有 UI：`docs/guides/USER_GUIDE.md` 中有提及
-- [ ] 若新功能有 API：已更新 `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml`
-- [ ] 若新功能為模組：存在專屬的 `docs/<MODULE>.md`
-- [ ] 若有重大變更：`docs/guides/TROUBLESHOOTING.md` 中有遷移說明
+- [ ] `npm run check:docs-sync` 通過（由 pre-commit 自動執行）
+- [ ] `npm run check:docs-all` 通過（整合檢查：docs-sync + docs-counts + env-doc-sync + deprecated-versions + doc-links）
+- [ ] `npm run check:env-doc-sync` 以 0 結束 — 程式碼 ↔ `.env.example` ↔ `docs/reference/ENVIRONMENT.md` 的環境變數契約維持完整
+- [ ] `npm run check:doc-links` 以 0 結束 — 重構後沒有損壞的內部 markdown 參照
+- [ ] 已檢閱 `docs/architecture/ARCHITECTURE.md` 是否有儲存與執行環境偏差
+- [ ] 已檢閱 `docs/guides/TROUBLESHOOTING.md` 是否有環境變數與操作偏差
+- [ ] 如果 `.env.example` 有變更：已更新 `docs/reference/ENVIRONMENT.md`
+- [ ] 如果新功能具有 UI：`docs/guides/USER_GUIDE.md` 已提及該功能
+- [ ] 如果新功能具有 API：已更新 `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml`
+- [ ] 如果新功能是模組：存在專用的 `docs/<MODULE>.md`
+- [ ] 如果是破壞性變更：`docs/guides/TROUBLESHOOTING.md` 包含遷移說明
 
 ### i18n
 
-- [ ] `npm run i18n:check` 退出碼為 0——翻譯狀態（`.i18n-state.json`）與來源文件同步（嚴格模式下無偏差來源；警告模式對最後一刻的文件修飾可接受，但應在打標籤前歸零）
-- [ ] `npm run i18n:check-ui-coverage` 退出碼為 0——每個 UI 語系都達到或超過 80% 的覆蓋率門檻
-- [ ] `npm run i18n:sync-ui:dry` 回報 0 個缺失鍵，遍及全部 42 個語系
-- [ ] 若英文來源文件有變更，請在打標籤前執行 `npm run i18n:run`（需要在 `.env` 中有 `OMNIROUTE_TRANSLATION_API_KEY`）
-- [ ] 若翻譯貢獻不大，可延遲至下一版本（在 CHANGELOG 中追蹤）
+- [ ] `npm run i18n:check` 以 0 結束 — 翻譯狀態（`.i18n-state.json`）與來源文件同步（嚴格模式下沒有發生偏差的來源；最後一刻進行文件微調時，可接受警告模式的提示，但加上標籤前應為 0）
+- [ ] `npm run i18n:check-ui-coverage` 以 0 結束 — 每個 UI 語言地區都達到或超過 80% 的涵蓋率下限
+- [ ] `npm run i18n:sync-ui:dry` 回報全部 42 個語言地區均缺少 0 個鍵
+- [ ] 如果英文來源文件有變更，請在加上標籤前執行 `npm run i18n:run`（需要在 `.env` 中設定 `OMNIROUTE_TRANSLATION_API_KEY`）
+- [ ] 若翻譯貢獻屬於次要內容，可延後至下一個版本（在 CHANGELOG 中追蹤）
 
 ### 資料庫遷移
 
-- [ ] 若 `src/lib/db/migrations/` 中有新檔案：
-  - [ ] 每個遷移都是等冪的（`CREATE TABLE IF NOT EXISTS` 等）
-  - [ ] 遷移包含在交易中
-  - [ ] 編號正確（序列中無間隙）
-- [ ] 在全新安裝上測試：刪除 `~/.omniroute/omniroute.db` 並執行 `npm run dev`
-- [ ] 在既有安裝上測試：備份資料庫、執行遷移、驗證結構
-- [ ] 若遷移會改寫表格，需正確處理 WAL 檔案（`-wal`、`-shm`）
+- [ ] 如果 `src/lib/db/migrations/` 中有新檔案：
+  - [ ] 每個遷移皆具等冪性（`CREATE TABLE IF NOT EXISTS` 等）
+  - [ ] 遷移包裝於交易中
+  - [ ] 編號正確（序列中沒有缺號）
+- [ ] 在全新安裝環境中測試：刪除 `~/.omniroute/omniroute.db` 並執行 `npm run dev`
+- [ ] 在既有安裝環境中測試：備份 DB、執行遷移並驗證綱要
+- [ ] 如果遷移會重寫資料表，須正確處理 WAL 檔案（`-wal`、`-shm`）
 
-### 提供者目錄（Zod 驗證）
+### 提供者目錄（經 Zod 驗證）
 
-- [ ] `src/shared/constants/providers.ts` 的 Zod 結構在載入時有效
-  - [ ] 所有提供者都有必要欄位（`id`、`label`、`kind` 等）
-  - [ ] 新的免費提供者已提供 `freeNote`
+- [ ] `src/shared/constants/providers.ts` Zod schema 在載入時有效
+  - [ ] 所有提供者皆具備必要欄位（`id`、`label`、`kind` 等）
+  - [ ] 已為新的免費提供者提供 `freeNote`
   - [ ] OAuth 提供者已在 `src/lib/oauth/constants/oauth.ts` 中註冊 `oauthConfig`
-- [ ] 若新增提供者：`open-sse/executors/` 中有對應的執行器
-- [ ] 若非 OpenAI 格式：`open-sse/translator/` 中有轉譯器
+- [ ] 若新增提供者：在 `open-sse/executors/` 中新增對應的執行器
+- [ ] 若為非 OpenAI 格式：在 `open-sse/translator/` 中新增轉譯器
 - [ ] 模型已在 `open-sse/config/providerRegistry.ts` 中註冊
 - [ ] `tests/unit/` 中的單元測試涵蓋提供者分類與路由
 
@@ -196,52 +224,52 @@ Husky hooks 位於 `.husky/` 目錄，會在 git 操作時自動執行。
 若 `electron/` 有變更：
 
 - [ ] `npm run electron:smoke:packaged` 通過
-- [ ] 至少在 `:win`、`:mac`、`:linux` 其中之一測試過建置
-- [ ] 程式碼簽署憑證未過期（若有簽署）
-- [ ] `electron/package.json` 版本與根目錄 `package.json` 一致
-- [ ] 若發布至 `stable` 頻道，已更新自動更新頻道指標
+- [ ] 已針對 `:win`、`:mac`、`:linux` 中至少一個進行建置測試
+- [ ] 程式碼簽署憑證尚未過期（若進行簽署）
+- [ ] `electron/package.json` 的版本與根目錄 `package.json` 相符
+- [ ] 若發行至 `stable`，已更新自動更新通道指標
 
-### 建置目錄結構
+### 建置版面配置
 
-倉儲使用三個不同的輸出目錄——切勿混淆：
+儲存庫使用三個不同的輸出目錄——切勿混用：
 
-| 目錄       | 用途                                                | 是否追蹤？    |
-| --------- | --------------------------------------------------- | ------------- |
-| `src/`    | 應用程式原始碼（TypeScript／TSX）                    | 是            |
-| `.build/` | 建置中間產物 — `next build` 輸出（`distDir`）        | 否（gitignored）|
-| `dist/`   | 可發行的 npm 套件 — 由 `assembleStandalone` 組合而成 | 否（gitignored）|
+| 目錄      | 用途                                                | 是否追蹤？          |
+| --------- | --------------------------------------------------- | ------------------- |
+| `src/`    | 應用程式原始碼（TypeScript / TSX）                  | 是                  |
+| `.build/` | 建置中間產物——`next build` 輸出（`distDir`）        | 否（已由 git 忽略） |
+| `dist/`   | 可發布的 npm 套件組合——由 `assembleStandalone` 組裝 | 否（已由 git 忽略） |
 
-> **操作注意：** 遠端 VPS 映像目錄仍為 `/usr/lib/node_modules/omniroute/app/`。
-> 只有**倉儲內**的建置輸出目錄變更了（`app/` → `dist/`）。部署 skills 會將
-> `dist/` 內容 rsync 到遠端的 `app/` 目錄——無需變更 VPS 路徑。
+> **操作人員注意事項：**遠端 VPS 映像目錄仍為 `/usr/lib/node_modules/omniroute/app/`。
+> 僅**儲存庫內**的建置輸出已移動（`app/` → `dist/`）。部署技能會透過 rsync 將
+> `dist/` 的內容同步至遠端 `app/` 目錄——無須變更 VPS 路徑。
 
-**單一建置流程：**
+**單次建置流程：**
 
 ```
 npm run build:release
-  └─ rm -rf .build dist          （清理）
-  └─ next build → .build/next/   （中間產物）
-  └─ assembleStandalone          （複製 standalone + static + public + natives → dist/）
-  └─ 寫入 dist/BUILD_SHA         （HEAD 標記）
+  └─ rm -rf .build dist          (清理)
+  └─ next build → .build/next/   (中間產物)
+  └─ assembleStandalone          (將獨立版本 + 靜態檔案 + 公開檔案 + 原生模組複製至 dist/)
+  └─ writes dist/BUILD_SHA       (HEAD 哨兵值)
 ```
 
-請勿為了部署而先執行 `npm run build` 再執行 `npm run build:cli`——
-請使用 `npm run build:release`，它會在單一命令中完成乾淨重建 + 標記。
+部署時請勿先執行 `npm run build`，再另外執行 `npm run build:cli`——請使用
+`npm run build:release`，它會以單一命令執行全新建置並寫入哨兵值。
 
 ### 成品驗證
 
-- [ ] `npm run build:release` 成功且 `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` 乾淨通過——無 `app.__qa_backup`、`scripts/scratch`、`package-lock.json` 或其他本地殘留檔案
-- [ ] 建置後存在 `dist/server.js`
+- [ ] `npm run build:release` 成功，且 `dist/BUILD_SHA` == `git rev-parse --short HEAD`
+- [ ] `npm run check:pack-artifact` 檢查結果乾淨——沒有 `app.__qa_backup`、`scripts/scratch`、`package-lock.json` 或其他本機殘留項目
+- [ ] 建置後 `dist/server.js` 存在
 
-### 標籤與發行
+### 標記與發行
 
-- [ ] 執行 `/generate-release-cc`（Claude Code skill）：
+- [ ] 執行 `/generate-release-cc`（Claude Code 技能）：
   - 建立標籤 `vX.Y.Z`
   - 推送標籤與分支
-  - 以變更日誌內容開啟 GitHub Release
-  - 附加 Electron 安裝程式（若有建置）
-- [ ] 或手動操作：
+  - 建立含變更記錄內容的 GitHub Release
+  - 附加 Electron 安裝程式（若已建置）
+- [ ] 或手動執行：
   ```bash
   git tag -a vX.Y.Z -m "Release vX.Y.Z"
   git push origin vX.Y.Z
@@ -250,28 +278,44 @@ npm run build:release
 
 ### 部署
 
-部署 skills 使用輕量 rsync 流程——無需 `npm pack`，無需 `npm i -g`：
+部署技能使用輕量 rsync 流程——不使用 `npm pack`，也不使用 `npm i -g`：
 
-- [ ] 使用符合目標的部署 skill：
-  - `/deploy-vps-local-cc` — 本地 VPS（192.168.0.15）
-  - `/deploy-vps-akamai-cc` — Akamai VPS（69.164.221.35）
-  - `/deploy-vps-both-cc` — 兩者同時
+- [ ] 使用與目標相符的部署技能：
+  - `/deploy-vps-local-cc`——本機 VPS（192.168.0.15）
+  - `/deploy-vps-akamai-cc`——Akamai VPS（69.164.221.35）
+  - `/deploy-vps-both-cc`——兩者
 - [ ] 部署前，確認 `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] 建置必須在 `node_modules` 是真實目錄的環境中執行（主檢出目錄或已執行 `npm ci` 的工作目錄——**不是符號連結的工作目錄**）
-- [ ] 冒煙測試已部署的實例：
-  - 開啟 `/dashboard/health` → 檢查版本字串與發行版本一致
-  - 對已知提供者發送 `/v1/chat/completions` 請求
-  - 確認 `/api/monitoring/health` 回傳 `CLOSED` 的斷路器狀態
-  - 確認 MCP 傳輸協定正常回應（`/mcp` HTTP、`/mcp-sse` SSE）
+- [ ] 建置必須在具有實際 `node_modules` 的位置執行（主要簽出目錄或已執行 `npm ci` 的工作樹——不得使用符號連結的工作樹）
+- [ ] 對已部署的執行個體進行煙霧測試：
+  - 開啟 `/dashboard/health` → 檢查版本字串是否與發行版本相符
+  - 對已知提供者執行一次 `/v1/chat/completions` 請求
+  - 確認 `/api/monitoring/health` 傳回 `CLOSED` 斷路器
+  - 確認 MCP 傳輸端點有回應（`/mcp` HTTP、`/mcp-sse` SSE）
 
 ### 發行後
 
-- [ ] 執行 `/capture-release-evidences-cc`（Claude Code skill）
+- [ ] 執行 `/capture-release-evidences-cc`（Claude Code 技能）
   - 擷取新功能的 WebP 螢幕截圖／錄影
-  - 附加到版本說明／部落格文章
-- [ ] 在 GitHub Discussions／Discord 上發布發行公告
-- [ ] 開啟下一版本的里程碑
-- [ ] 若為重大更新：置頂討論或在 `news.json` 中新增應用程式內橫幅
+  - 附加至發行說明／部落格文章
+- [ ] 在 GitHub Discussions／Discord 發布發行公告
+- [ ] 為下一個版本建立里程碑
+- [ ] 若屬重大事項：置頂討論，或在 `news.json` 中發布應用程式內橫幅
+
+### Radar 公開發布關卡
+
+Radar 公告刻意以 `active: false` 提交。只有在以下每個項目皆有證據後，
+才另行進行啟用變更：
+
+- [ ] 所有堆疊式 Radar PR 均已合併，且發行端點的 CI 狀態為綠色
+- [ ] 在 `RADAR_ENABLED` 預設仍關閉的情況下，部署 OSS Radar 路由並進行煙霧測試
+- [ ] 在指定的 Radar 主機上，對 `GET /planos`、`/termos`、`/privacidade` 及 `/reembolso` 進行煙霧測試
+- [ ] 在私有服務中記錄操作人員的身分／聯絡方式／地址，以及經擁有者核准的法律審查
+- [ ] 僅在測試模式下測試 Stripe Checkout 與已簽署的 webhook
+- [ ] 使用已核准的寄件者／網域測試一次加密的交易型電子郵件傳送
+- [ ] 驗證備份還原，並執行一次有人監督且設有預算上限的研究作業
+- [ ] 在接受捐款證明前，核准 BRL／PIX 審查政策
+- [ ] 僅在上述關卡皆通過後啟用公開 Checkout，接著啟用新的 `news.json` ID
+- [ ] 確認首頁橫幅使用本地化文案，且在較舊的 ID 被關閉後，新 ID 會重新出現
 
 ## 內嵌服務冒煙測試（v3.8.4+）
 

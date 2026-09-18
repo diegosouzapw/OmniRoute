@@ -1,30 +1,21 @@
-# CODEBASE_DOCUMENTATION (മലയാളം)
+# OmniRoute Codebase Documentation (മലയാളം)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
----
-
-title: "OmniRoute കോഡ്ബേസ് ഡോക്യുമെന്റേഷൻ"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# OmniRoute കോഡ്ബേസ് ഡോക്യുമെന്റേഷൻ
-
 > **പതിപ്പ്:** v3.8.51
 > **അവസാനം പുതുക്കിയത്:** 2026-06-28
-> **ലക്ഷ്യവായനക്കാർ:** OmniRoute-ലേക്ക് സംഭാവന ചെയ്യുന്ന അല്ലെങ്കിൽ അതിന് മുകളിൽ ഇന്റഗ്രേഷനുകൾ നിർമ്മിക്കുന്ന എൻജിനീയർമാർ.
+> **വായനക്കാർ:** OmniRoute-ലേക്ക് സംഭാവന ചെയ്യുന്ന അല്ലെങ്കിൽ അതിന് മുകളിൽ ഇന്റഗ്രേഷനുകൾ നിർമ്മിക്കുന്ന എൻജിനീയർമാർ.
 >
-> ഉന്നതതല ആർക്കിടെക്ചർ ഡയഗ്രമുകൾക്കും ഓരോ സബ്സിസ്റ്റത്തിന്റെയും പിന്നിലെ യുക്തിക്കും
-> [ARCHITECTURE.md](./ARCHITECTURE.md) വായിക്കുക. ഓരോ സബ്സിസ്റ്റത്തെയും കുറിച്ചുള്ള വിശദമായ വിവരങ്ങൾക്ക്
+> ഉന്നതതല ആർക്കിടെക്ചർ രേഖാചിത്രങ്ങൾക്കും ഓരോ ഉപസിസ്റ്റത്തിന്റെയും പിന്നിലെ യുക്തിക്കും
+> [ARCHITECTURE.md](./ARCHITECTURE.md) വായിക്കുക. ഓരോ ഉപസിസ്റ്റത്തെയും കുറിച്ചുള്ള വിശദമായ വിവരങ്ങൾക്ക്
 > (Auto Combo, MCP server, A2A server, Skills, Memory, Cloud Agents, Resilience,
-> Compression തുടങ്ങിയവ) ഈ `docs/` ഡയറക്ടറിയിലെ അവയ്ക്കായി സമർപ്പിച്ചിരിക്കുന്ന ഫയലുകൾ കാണുക.
+> Compression മുതലായവ) ഈ `docs/` ഡയറക്ടറിയിലെ അവയ്ക്കായി സമർപ്പിച്ചിരിക്കുന്ന ഫയലുകൾ കാണുക.
 
-ഒരു പുതിയ എൻജിനീയർക്ക് ട്രീയിൽ സഞ്ചരിക്കാനും, റൺടൈം ലെയറിംഗ് മനസ്സിലാക്കാനും,
-പുതിയ മൊഡ്യൂളുകൾ സൃഷ്ടിക്കാതെ കോഡ് എവിടെ ചേർക്കണമെന്ന് അറിയാനും കഴിയുന്ന വിധത്തിൽ,
-**നിലവിൽ റിപ്പോസിറ്ററിയിലുള്ളവയെ** ഈ ഫയൽ വിവരിക്കുന്നു.
+ഒരു പുതിയ എൻജിനീയർക്ക് ട്രീയിലൂടെ നാവിഗേറ്റ് ചെയ്യാനും, റൺടൈം ലെയറിങ് മനസ്സിലാക്കാനും,
+പുതിയ മൊഡ്യൂളുകൾ സൃഷ്ടിക്കാതെ എവിടെ കോഡ് ചേർക്കണമെന്ന് അറിയാനും കഴിയുന്നതിനായി
+**നിലവിൽ റിപ്പോസിറ്ററിയിൽ എന്തൊക്കെയുണ്ട്** എന്ന് ഈ ഫയൽ വിവരിക്കുന്നു.
 
 ---
 

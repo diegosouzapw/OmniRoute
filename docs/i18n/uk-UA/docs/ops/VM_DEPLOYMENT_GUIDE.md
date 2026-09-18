@@ -4,127 +4,133 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+🌐 **Мови:** 🇺🇸 [English](./VM_DEPLOYMENT_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+Повний посібник зі встановлення та налаштування OmniRoute на віртуальній машині (VPS) із доменом, керованим через Cloudflare.
 
 ---
 
-## Prerequisites
+## Передумови
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| Компонент  | Мінімум                     | Рекомендовано    |
+| ---------- | --------------------------- | ---------------- |
+| **CPU**    | 1 vCPU                      | 2 vCPU           |
+| **RAM**    | 1 GB                        | 2 GB             |
+| **Диск**   | 10 GB SSD                   | 25 GB SSD        |
+| **ОС**     | Ubuntu 22.04 LTS            | Ubuntu 24.04 LTS |
+| **Домен**  | Зареєстрований у Cloudflare | —                |
+| **Docker** | Docker Engine 24+           | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**Протестовані провайдери**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configure the VM
+## 1. Налаштування VM
 
-### 1.1 Create the instance
+### 1.1 Створіть інстанс
 
-On your preferred VPS provider:
+У вибраного вами VPS-провайдера:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
+- Виберіть Ubuntu 24.04 LTS
+- Виберіть мінімальний тарифний план (1 vCPU / 1 GB RAM)
+- Установіть надійний пароль root або налаштуйте SSH-ключ
+- Запишіть **публічну IP-адресу** (наприклад, `203.0.113.10`)
 
-### 1.2 Connect via SSH
+### 1.2 Підключіться через SSH
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 Оновіть систему
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 Установіть Docker
 
 ```bash
-# Install dependencies
+# Установлення залежностей
 apt install -y ca-certificates curl gnupg
 
-# Add official Docker repository
+# Додавання офіційного репозиторію Docker
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 Установіть nginx
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 Налаштуйте брандмауер (UFW)
 
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (redirect)
+ufw allow 80/tcp    # HTTP (перенаправлення)
 ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **Порада**: Для максимальної безпеки обмежте доступ до портів 80 і 443 лише IP-адресами Cloudflare. Див. розділ [Розширена безпека](#advanced-security).
 
 ---
 
-## 2. Install OmniRoute
+## 2. Установлення OmniRoute
 
-### 2.1 Create configuration directory
+### 2.1 Створіть каталог конфігурації
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 Створіть файл змінних середовища
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
-# === Security ===
+cat > /opt/omniroute/.env << 'EOF'
+# === Безпека ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
 API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # ОБОВ’ЯЗКОВО у виробничому середовищі: використовується мостом Codex Responses WS
 
-# === App ===
+# === Застосунок ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URL-адреси (замініть на свій домен) ===
+# Внутрішня базова URL-адреса для обміну між серверами, запланованих завдань і самостійних запитів.
+BASE_URL=http://127.0.0.1:20128
+# URL-адреса для браузера, що використовується для зворотних викликів OAuth, посилань панелі керування та згенерованих публічних URL-адрес.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# Необов’язкове явне перевизначення публічного джерела для згенерованих URL-адрес публічних ресурсів.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (optional) ===
+# === Хмарна синхронізація (необов’язково) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **ВАЖЛИВО**: Згенеруйте унікальні секретні ключі! Використовуйте `openssl rand -hex 32` для кожного ключа.
 
-### 2.3 Start the container
+### 2.3 Запустіть контейнер
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +144,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 Перевірте, чи він працює
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+Мають відображатися повідомлення: `[DB] SQLite database ready` і `listening on port 20128`.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. Налаштування nginx (зворотний проксі)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 Створення SSL-сертифіката (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+На панелі керування Cloudflare:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. Перейдіть до **SSL/TLS → Origin Server**
+2. Натисніть **Create Certificate**
+3. Залиште значення за замовчуванням (15 років, \*.yourdomain.com)
+4. Скопіюйте **Origin Certificate** і **Private Key**
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Paste the certificate
+# Вставте сертифікат
 nano /etc/nginx/ssl/origin.crt
 
-# Paste the private key
+# Вставте приватний ключ
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 Конфігурація Nginx
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
-# Default server — blocks direct access via IP
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+# Сервер за замовчуванням — блокує прямий доступ через IP
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # Change to your domain
+    server_name llms.yourdomain.com;  # Замініть на свій домен
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -203,16 +209,17 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # WebSocket support
+        # Підтримка WebSocket
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
-        # SSE (Server-Sent Events) — streaming AI responses
+        # SSE (події, надіслані сервером) — потокові відповіді ШІ
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -220,7 +227,7 @@ server {
     }
 }
 
-# HTTP → HTTPS redirect
+# Переспрямування HTTP → HTTPS
 server {
     listen 80;
     listen [::]:80;
@@ -230,59 +237,67 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+Узгоджуйте тайм-аути потокового передавання зворотного проксі зі змінними середовища тайм-аутів OmniRoute. Якщо ви збільшуєте
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, збільште `proxy_read_timeout` / `proxy_send_timeout`
+понад той самий поріг.
 
-### 3.3 Enable and Test
+OmniRoute використовує `NEXT_PUBLIC_BASE_URL` як канонічну адресу джерела, доступну браузеру, для зворотних викликів OAuth
+і згенерованих загальнодоступних посилань. Автентифіковані операції запису на панелі керування використовують запити з того самого джерела
+разом із прив’язаним до сеансу захистом CSRF, тому для них не потрібна статична загальнодоступна базова URL-адреса. Наведені вище
+заголовки `X-Forwarded-*` усе ще є корисними метаданими маршрутизації, але вони не замінюють
+налаштування явної загальнодоступної URL-адреси, коли вона потрібна для OAuth або згенерованих браузерних посилань. Вмикайте
+`OMNIROUTE_TRUST_PROXY`, лише якщо OmniRoute не доступний клієнтам безпосередньо, а ваш проксі
+видаляє та повторно формує вхідні перенаправлені заголовки.
+
+### 3.3 Увімкнення та перевірка
 
 ```bash
-# Remove default configuration
+# Видаліть конфігурацію за замовчуванням
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
+# Увімкніть OmniRoute
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Test and reload
+# Перевірте та перезавантажте
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. Налаштування DNS у Cloudflare
 
-### 4.1 Add DNS record
+### 4.1 Додавання DNS-запису
 
-In the Cloudflare dashboard → DNS:
+На панелі керування Cloudflare → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| Тип | Ім’я   | Вміст                         | Проксі-сервер |
+| --- | ------ | ----------------------------- | ------------- |
+| A   | `llms` | `203.0.113.10` (IP-адреса VM) | ✅ Проксовано |
 
-### 4.2 Configure SSL
+### 4.2 Налаштування SSL
 
-Under **SSL/TLS → Overview**:
+У розділі **SSL/TLS → Overview**:
 
-- Mode: **Full (Strict)**
+- Режим: **Full (Strict)**
 
-Under **SSL/TLS → Edge Certificates**:
+У розділі **SSL/TLS → Edge Certificates**:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- Завжди використовувати HTTPS: ✅ Увімкнено
+- Мінімальна версія TLS: TLS 1.2
+- Автоматичне перенаправлення на HTTPS: ✅ Увімкнено
 
-### 4.3 Testing
+### 4.3 Тестування
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Should return HTTP/2 200
+# Має повернути HTTP/2 200
 ```
 
 ---
 
-## 5. Operations and Maintenance
+## 5. Експлуатація та обслуговування
 
-### Upgrade to a new version
+### Оновлення до нової версії
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,42 +309,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### Перегляд журналів
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f omniroute          # Потік у реальному часі
+docker logs omniroute --tail 50   # Останні 50 рядків
 ```
 
-### Manual database backup
+### Резервне копіювання бази даних вручну
 
 ```bash
-# Copy data from the volume to the host
+# Копіювання даних із тому на хост
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Or compress the entire volume
+# Або стиснення всього тому
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### Відновлення з резервної копії
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. Розширений захист
 
-### Restrict nginx to Cloudflare IPs
+### Обмеження доступу до nginx лише IP-адресами Cloudflare
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
-# Cloudflare IPv4 ranges — update periodically
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
+# Діапазони IPv4 Cloudflare — періодично оновлюйте
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -350,58 +365,69 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+Додайте наведений нижче рядок до `nginx.conf` усередині блоку `http {}`:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### Встановлення fail2ban
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Check status
+# Перевірка стану
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### Блокування прямого доступу до порту Docker
 
 ```bash
-# Prevent direct external access to port 20128
+# Запобігання прямому зовнішньому доступу до порту 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persist the rules
+# Збереження правил
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. Розгортання у Cloudflare Workers (необов’язково)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Для віддаленого доступу через Cloudflare Workers (без прямого відкриття доступу до VM):
 
 ```bash
-# In the local repository
+# У локальному репозиторії
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+Дивіться також [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md), де наведено інструкцію з налаштування Cloudflare Tunnel у репозиторії. Автономний воркер `omnirouteCloud/` розміщений в окремому супровідному репозиторії.
 
 ---
 
-## Port Summary
+## Огляд портів
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| Порт  | Служба      | Доступ                       |
+| ----- | ----------- | ---------------------------- |
+| 22    | SSH         | Публічний (із fail2ban)      |
+| 80    | nginx HTTP  | Перенаправлення → HTTPS      |
+| 443   | nginx HTTPS | Через проксі Cloudflare      |
+| 20128 | OmniRoute   | Лише localhost (через nginx) |
+
+## Оптимізація для малого обсягу пам’яті / невеликого VPS
+
+Для розгортань на невеликих екземплярах VPS (з 1 ГБ оперативної пам’яті або менше):
+
+- **Вимкніть фонові служби** — установіть `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1`, щоб не запускати планувальник, сервер MCP і періодичні завдання з обслуговування. Див. `docs/reference/ENVIRONMENT.md`.
+- **Використовуйте режим WAL для SQLite** — він увімкнений за замовчуванням і зменшує пікове споживання пам’яті під час одночасного читання.
+- **Обмежте купу V8** — установіть `OMNIROUTE_MEMORY_MB` (наприклад, `512`), щоб середовище виконання не встановлювало граничний обсяг, більший за доступний віртуальній машині. Див. `docs/reference/ENVIRONMENT.md`.
+- **Допуск ресурсомістких запитів автоматично масштабується відповідно до обмеження купи** -- після встановлення зазначеної вище змінної `OMNIROUTE_MEMORY_MB` бюджет байтів для приймання даних (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) визначається на основі того самого граничного значення, тому віртуальна машина з обмеженим обсягом пам’яті автоматично отримує менший бюджет для одночасних запитів без додаткового налаштування; надлишкові запити отримують повторювану відповідь `503` із заголовком `Retry-After`, замість того щоб конкурувати за пам’ять. Установлюйте застаріле обмеження кількості запитів `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, лише якщо вам потрібна додаткова жорстка межа.
+- **Не запускайте `next build` на VPS** — виконуйте збірку локально та розгортайте автономний результат (`.next/standalone/`).
+- **Відстежуйте стан за допомогою `top` / `free -m`** — у стані простою OmniRoute зазвичай використовує 200–400 МБ резидентної пам’яті (RSS) на віртуальній машині з 1 ГБ пам’яті.

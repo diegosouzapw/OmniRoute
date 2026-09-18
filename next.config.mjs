@@ -366,6 +366,13 @@ const nextConfig = {
     "ws",
     "bufferutil",
     "utf-8-validate",
+    // The SDK's client graph has a module-level `class extends Client` cycle
+    // against the TLA Client module. Bundled into route chunks it throws
+    // "Cannot access 'l' before initialization" during evaluation and every
+    // /api/mcp/stream initialize answers HTTP 500. Node's native ESM loader
+    // resolves the same circular graph via live bindings, so keep the SDK
+    // out of the webpack server bundle.
+    "@modelcontextprotocol/sdk",
     "child_process",
     "fs",
     "path",

@@ -1,19 +1,45 @@
 type DirectFetchOptions = RequestInit & { dispatcher?: unknown };
-type DirectFetch = (
-  input: RequestInfo | URL,
-  options: DirectFetchOptions
-) => Promise<Response>;
+type DirectFetch = (input: RequestInfo | URL, options: DirectFetchOptions) => Promise<Response>;
 
 const DEFAULT_DIRECT_HEADERS_TIMEOUT_MS = 30_000;
 const DIRECT_RESPONSE_START_TIMEOUT_CODE = "DIRECT_RESPONSE_START_TIMEOUT";
 
+// Reasoning models (GLM-5.2/5.3 reasoning.effort=high/max, codex-gpt-5.x-high,
+// third-party Claude-format replicas) warm up with a ~78s+ TTFB before emitting
+// the first byte. The stream-readiness layer (streamReadinessPolicy.ts) already
+// budgets 180s for this class (claude_format_heavy_reasoning /
+// codex_gpt_5_5_high_reasoning +30s bumps over an 80s base). This fetch-layer
+// guard must align to the SAME ceiling so it does not pre-empt a warm reasoning
+// response that the readiness layer would have permitted — that mismatch is the
+// 504 regression introduced by 142ae9349 (flat 30s cut a 78s+ reasoning TTFB).
+const REASONING_READINESS_CEILING_MS = 180_000;
+// Bounded, non-overlapping pattern: a quoted "reasoning_effort" or nested
+// "effort" field whose value is high or max. No variable-length quantifier
+// overlap → no ReDoS surface (project PII rule #1).
+const HIGH_REASONING_EFFORT_PATTERN = /"(?:reasoning_effort|effort)"\s*:\s*"(?:high|max)"/i;
+
+function hasHighReasoningEffort(body?: string | null): boolean {
+  if (!body || typeof body !== "string") return false;
+  return HIGH_REASONING_EFFORT_PATTERN.test(body);
+}
+
 export function resolveDirectHeadersTimeoutMs(
-  env: Record<string, string | undefined> = process.env
+  env: Record<string, string | undefined> = process.env,
+  body?: string | null
 ): number {
   const raw = env.OMNIROUTE_DIRECT_HEADERS_TIMEOUT_MS;
-  if (raw == null || raw.trim() === "") return DEFAULT_DIRECT_HEADERS_TIMEOUT_MS;
-  const parsed = Number(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+  const base =
+    raw == null || raw.trim() === ""
+      ? DEFAULT_DIRECT_HEADERS_TIMEOUT_MS
+      : Number.isFinite(Number(raw)) && Number(raw) > 0
+        ? Math.floor(Number(raw))
+        : 0;
+  // Operator override is a FLOOR: reasoning awareness only raises the budget,
+  // never lowers it. An override above the ceiling (e.g. 240s) is preserved.
+  if (hasHighReasoningEffort(body)) {
+    return Math.max(base, REASONING_READINESS_CEILING_MS);
+  }
+  return base;
 }
 
 function createDirectResponseStartTimeout(timeoutMs: number): Error & { code: string } {

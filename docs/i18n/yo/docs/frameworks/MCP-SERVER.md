@@ -1,36 +1,44 @@
-# MCP-SERVER (Yorùbá)
+# OmniRoute MCP Server Documentation (Yorùbá)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "Àkọsílẹ̀ Olùpín MCP OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# Àkọsílẹ̀ Olùpín MCP OmniRoute
-
-> Olùpín Model Context Protocol pẹ̀lú irinṣẹ́ 110 káàkiri àwọn iṣẹ́ ìdarí-ọ̀nà, cache, compression, memory, skills, proxy, pool, Radar, àti àwọn iṣẹ́ orísun context.
+> Sẹ́ńbà Model Context Protocol pẹ̀lú irinṣẹ́ 110 fún ìdarí ipa-ọ̀nà, àpamọ́, ìfúnpọ̀, ìrántí, àwọn ọgbọ́n, aṣojú, àkójọpọ̀, Radar, àti àwọn iṣẹ́ orísun àyíká.
 >
-> Orísun òtítọ́: `open-sse/mcp-server/server.ts` ń ṣírò **irinṣẹ́ aláìlẹ́ẹ̀kejì 110** pẹ̀lú `countUniqueMcpTools()`: àwọn ìtumọ̀ àkọ́kọ́ 45 (tí ó ní àwọn irinṣẹ́ ìgbésí-ayé CCR mẹ́fà, àkójọpọ̀ mẹ́ta agent-skills, `omniroute_radar_catalog`, àti `omniroute_x_search`), pẹ̀lú memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), local corpus (3), àti àwọn irinṣẹ́ compression méjì tí ó jẹ́ ti RTK nìkan.
+> Orísun òtítọ́: `open-sse/mcp-server/server.ts` ṣe ìṣirò **àwọn irinṣẹ́ aláìlẹ́ẹ̀mejì 110** pẹ̀lú `countUniqueMcpTools()`: àwọn ìtumọ̀ àṣẹ 45 (tí ó ní àwọn irinṣẹ́ ìgbésí-ayé CCR mẹ́fà, ẹ̀ẹ̀mẹ́ta ti ọgbọ́n aṣojú, `omniroute_radar_catalog`, àti `omniroute_x_search`), pẹ̀lú ìrántí (3), àwọn ọgbọ́n (4), àwọn ọgbọ́n GitHub (3), àkójọpọ̀ (6), ṣíṣe bí eré (8), àwọn àfikún (8), Notion (6), Obsidian (22), àkójọ ọ̀rọ̀ abẹ́lé (3), àti àwọn irinṣẹ́ ìfúnpọ̀ méjì tí ó jẹ́ ti RTK nìkan.
 
-## Fífìsórí
+## Fífi sori ẹrọ
 
-OmniRoute MCP wà nínú ètò náà láti ìbẹ̀rẹ̀. Bẹ̀rẹ̀ rẹ̀ pẹ̀lú:
+OmniRoute MCP wà nínú rẹ̀ láti ìbẹ̀rẹ̀. Bẹ̀rẹ̀ rẹ̀ pẹ̀lú:
 
 ```bash
 omniroute --mcp
 ```
 
-Tàbí nípasẹ̀ transport open-sse:
+Tàbí nípasẹ̀ ìrìnàjò open-sse:
 
 ```bash
-# Transport HTTP tí a lè ṣànwọlé (port 20130)
+# Ìrìnàjò HTTP tí a lè sanwọle (port 20130)
 omniroute --dev  # MCP máa ń bẹ̀rẹ̀ fúnra rẹ̀ lórí endpoint /mcp
 ```
+
+Àwọn ìrìnàjò HTTP (`sse` / `streamable-http`, tí server dashboard ń pèsè láàárín process náà) jẹ́
+pípà nípa àìròtẹ́lẹ̀, àti pé tẹ́lẹ̀, ojú-ìwé `/dashboard/mcp` nìkan ni a ti lè tan tàbí pa wọ́n. Láti v3.8.51
+lọ, CLI náà ní agbára kan náà:
+
+```bash
+omniroute mcp status                                  # enabled/online, ìrìnàjò, iye irinṣẹ́
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # tún àwọn session sse/streamable-http tó ń ṣiṣẹ́ ṣe
+```
+
+`mcp enable`/`mcp disable` máa ń fi PATCH ranṣẹ́ sí setting `mcpEnabled` kan náà (àti `mcpTransport` bí ó bá yẹ)
+tí dashboard ń tàn tàbí pa nípasẹ̀ `/api/settings`. `mcp restart` máa ń pe `POST /api/mcp/restart`: ó máa ń
+fopin sí àwọn session `sse`/`streamable-http` tó ń ṣiṣẹ́ kí request tó kàn lè tún bẹ̀rẹ̀ láìsí ìṣòro, ó máa ń dá
+`409` padà bí MCP bá jẹ́ pípà, àti `501` fún ìrìnàjò `stdio` (àwọn client stdio ló ni subprocess tiwọn fúnra wọn —
+kò sí handle inú process láti tún bẹ̀rẹ̀).
 
 ## Àwọn Transport
 

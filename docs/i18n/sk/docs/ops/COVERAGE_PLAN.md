@@ -4,167 +4,178 @@
 
 ---
 
-Last updated: 2026-03-28
+Posledná aktualizácia: 2026-06-28
 
-## Baseline
+> Stav nameraný 2026-05-13: riadky 82,58 %, príkazy 82,58 %, funkcie 84,23 %, vetvy 75,22 %. Fázy 1 – 5 sú dokončené. Aktuálne sa pracuje na fáze 6 (>=85 %) a fáze 7 (>=90 %).
 
-There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful.
+## Východiskový stav
 
-| Metric               | Scope                                                 | Statements / Lines | Branches | Functions | Notes                                               |
-| -------------------- | ----------------------------------------------------- | -----------------: | -------: | --------: | --------------------------------------------------- |
-| Legacy               | Old `npm run test:coverage`                           |             79.42% |   75.15% |    67.94% | Inflated: counts test files and excludes `open-sse` |
-| Diagnostic           | Source-only, excluding tests and excluding `open-sse` |             68.16% |   63.55% |    64.06% | Useful only to isolate `src/**`                     |
-| Recommended baseline | Source-only, excluding tests and including `open-sse` |             56.95% |   66.05% |    57.80% | This is the project-wide baseline to improve        |
+Existuje viacero hodnôt pokrytia v závislosti od spôsobu výpočtu reportu. Na plánovanie je užitočná iba jedna z nich.
 
-The recommended baseline is the number to optimize against.
+| Metrika           | Rozsah                                               | Príkazy / riadky |   Vetvy | Funkcie | Poznámky                                                      |
+| ----------------- | ---------------------------------------------------- | ---------------: | ------: | ------: | ------------------------------------------------------------- |
+| Pôvodná           | Starý príkaz `npm run test:coverage`                 |          79,42 % | 75,15 % | 67,94 % | Nadhodnotené: počíta testovacie súbory a vylučuje `open-sse`  |
+| Diagnostická      | Iba zdrojový kód, bez testov a bez `open-sse`        |          68,16 % | 63,55 % | 64,06 % | Užitočné iba na izoláciu `src/**`                             |
+| Odporúčaný základ | Iba zdrojový kód, bez testov, ale vrátane `open-sse` |          82,58 % | 75,22 % | 84,23 % | Toto je východiskový stav celého projektu určený na zlepšenie |
 
-## Rules
+Optimalizácia sa má riadiť odporúčaným východiskovým stavom.
 
-- Coverage targets apply to source files, not to `tests/**`.
-- `open-sse/**` is part of the product and must remain in scope.
-- New code should not reduce coverage in touched areas.
-- Prefer testing behavior and branch outcomes over implementation details.
-- Prefer temp SQLite databases and small fixtures over broad mocks for `src/lib/db/**`.
+## Pravidlá
 
-## Current command set
+- Ciele pokrytia sa vzťahujú na zdrojové súbory, nie na `tests/**`.
+- `open-sse/**` je súčasťou produktu a musí zostať zahrnutý.
+- Nový kód by nemal znižovať pokrytie v dotknutých oblastiach.
+- Uprednostňujte testovanie správania a výsledkov vetvenia pred implementačnými detailmi.
+- Pre `src/lib/db/**` uprednostňujte dočasné databázy SQLite a malé testovacie dáta pred rozsiahlymi mockmi.
+
+## Aktuálna súprava príkazov
 
 - `npm run test:coverage`
-  - Main source coverage gate for the unit test suite
-  - Generates `text-summary`, `html`, `json-summary`, and `lcov`
+  - Hlavná kontrola pokrytia zdrojového kódu pre súpravu jednotkových testov
+  - Generuje `text-summary`, `html`, `json-summary` a `lcov`
 - `npm run coverage:report`
-  - Detailed file-by-file report from the latest run
+  - Podrobný report podľa jednotlivých súborov z najnovšieho spustenia
 - `npm run test:coverage:legacy`
-  - Historical comparison only
+  - Iba na historické porovnanie
 
-## Milestones
+## Míľniky
 
-| Phase   |                 Target | Focus                                             |
-| ------- | ---------------------: | ------------------------------------------------- |
-| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          |
-| Phase 2 | 65% statements / lines | DB and route foundations                          |
-| Phase 3 | 70% statements / lines | Provider validation and usage analytics           |
-| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                |
-| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         |
-| Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites |
-| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          |
+| Fáza   |                    Cieľ | Zameranie                                                          | Stav         |
+| ------ | ----------------------: | ------------------------------------------------------------------ | ------------ |
+| Fáza 1 | 60 % príkazov / riadkov | Rýchle prínosy a nízkorizikové pokrytie pomocných funkcií          | ✅ Dokončené |
+| Fáza 2 | 65 % príkazov / riadkov | Základy databázy a trás                                            | ✅ Dokončené |
+| Fáza 3 | 70 % príkazov / riadkov | Overovanie poskytovateľov a analytika používania                   | ✅ Dokončené |
+| Fáza 4 | 75 % príkazov / riadkov | Prekladače a pomocné funkcie `open-sse`                            | ✅ Dokončené |
+| Fáza 5 | 80 % príkazov / riadkov | Handlery `open-sse` a vetvy exekútora                              | ✅ Dokončené |
+| Fáza 6 | 85 % príkazov / riadkov | Náročnejšie hraničné prípady, dlh vo vetvení, regresné súpravy     | Prebieha     |
+| Fáza 7 | 90 % príkazov / riadkov | Záverečná kontrola, odstránenie medzier, prísne zvyšovanie hranice | Čaká sa      |
 
-Branches and functions should ratchet upward with each phase, but the primary hard target is statements / lines.
+Pokrytie vetiev a funkcií by sa malo s každou fázou postupne zvyšovať, ale hlavným pevným cieľom je pokrytie príkazov / riadkov.
 
-## Priority hotspots
+## Prioritné kritické miesta
 
-These files or areas offer the best return for the next phases:
+Tieto súbory majú v súčasnosti najnižšie pokrytie riadkov (< 60 %) a ponúkajú najlepší prínos pre fázy 6 – 7. Vygenerované zo súboru `coverage/coverage-summary.json` dňa 2026-05-13:
 
-1. `open-sse/handlers`
-   - `chatCore.ts` at 7.57%
-   - Overall directory at 29.07%
-2. `open-sse/translator/request`
-   - Overall directory at 36.39%
-   - Many translators are still near single-digit coverage
-3. `open-sse/translator/response`
-   - Overall directory at 8.07%
-4. `open-sse/executors`
-   - Overall directory at 36.62%
-5. `src/lib/db`
-   - `models.ts` at 20.66%
-   - `registeredKeys.ts` at 34.46%
-   - `modelComboMappings.ts` at 36.25%
-   - `settings.ts` at 46.40%
-   - `webhooks.ts` at 33.33%
-6. `src/lib/usage`
-   - `usageHistory.ts` at 21.12%
-   - `usageStats.ts` at 9.56%
-   - `costCalculator.ts` at 30.00%
-7. `src/lib/providers`
-   - `validation.ts` at 41.16%
-8. Low-risk utility and API files for early gains
-   - `src/shared/utils/upstreamError.ts`
-   - `src/shared/utils/apiAuth.ts`
-   - `src/lib/api/errorResponse.ts`
-   - `src/app/api/settings/require-login/route.ts`
-   - `src/app/api/providers/[id]/models/route.ts`
+| #   | Súbor                                                        | Riadky % |
+| --- | ------------------------------------------------------------ | -------: |
+| 1   | `open-sse/services/compression/validation.ts`                |    7.87% |
+| 2   | `src/app/api/v1/batches/route.ts`                            |    9.67% |
+| 3   | `src/app/docs/components/FeedbackWidget.tsx`                 |    9.80% |
+| 4   | `open-sse/services/compression/toolResultCompressor.ts`      |   10.00% |
+| 5   | `src/app/docs/components/DocCodeBlocks.tsx`                  |   10.63% |
+| 6   | `open-sse/services/compression/engines/rtk/lineFilter.ts`    |   10.96% |
+| 7   | `open-sse/services/specificityRules.ts`                      |   11.28% |
+| 8   | `src/mitm/systemCommands.ts`                                 |   12.19% |
+| 9   | `open-sse/services/compression/aggressive.ts`                |   12.77% |
+| 10  | `src/app/api/v1/batches/[id]/cancel/route.ts`                |   12.98% |
+| 11  | `open-sse/services/compression/progressiveAging.ts`          |   13.26% |
+| 12  | `open-sse/services/compression/engines/rtk/smartTruncate.ts` |   13.43% |
+| 13  | `open-sse/services/compression/engines/rtk/deduplicator.ts`  |   13.51% |
+| 14  | `src/lib/cloudAgent/agents/jules.ts`                         |   13.52% |
+| 15  | `open-sse/services/compression/lite.ts`                      |   14.46% |
+| 16  | `src/app/api/v1/rerank/route.ts`                             |   14.94% |
+| 17  | `open-sse/services/compression/preservation.ts`              |   15.07% |
+| 18  | `src/lib/cloudAgent/agents/codex.ts`                         |   15.54% |
+| 19  | `open-sse/services/tierResolver.ts`                          |   16.66% |
+| 20  | `src/app/docs/components/DocsLazyWrapper.tsx`                |   16.66% |
 
-## Execution checklist
+Témy pre fázy 6 – 7:
 
-### Phase 1: 56.95% -> 60%
+- `open-sse/services/compression/**` predstavuje najhustejšiu skupinu s nízkym pokrytím a tvorí najväčšiu časť zostávajúceho rozdielu.
+- Trasy API pre dávky a preradenie (`src/app/api/v1/batches/**`, `src/app/api/v1/rerank/route.ts`) potrebujú testy na úrovni obslužných rutín.
+- Adaptéry cloudových agentov (`src/lib/cloudAgent/agents/jules.ts`, `codex.ts`) a `tierResolver.ts` potrebujú testy scenárov.
+- Komponenty používateľského rozhrania dokumentácie a `src/mitm/systemCommands.ts` majú nižšiu prioritu, ale umožňujú jednoducho zvýšiť pokrytie vetiev.
 
-- [x] Fix coverage metric so it reflects source code instead of test files
-- [x] Keep a legacy coverage script for comparison
-- [x] Record the baseline and hotspots in-repo
-- [ ] Add focused tests for low-risk utilities:
+## Kontrolný zoznam realizácie
+
+### Fáza 1: 56.95% -> 60%
+
+- [x] Opraviť metriku pokrytia tak, aby odrážala zdrojový kód namiesto testovacích súborov
+- [x] Zachovať pôvodný skript pokrytia na porovnanie
+- [x] Zaznamenať východiskový stav a kritické miesta v repozitári
+- [ ] Pridať cielené testy pre nízkorizikové pomocné moduly:
   - `src/shared/utils/upstreamError.ts`
   - `src/shared/utils/fetchTimeout.ts`
   - `src/lib/api/errorResponse.ts`
   - `src/shared/utils/apiAuth.ts`
   - `src/lib/display/names.ts`
-- [ ] Add route tests for:
+- [ ] Pridať testy trás pre:
   - `src/app/api/settings/require-login/route.ts`
   - `src/app/api/providers/[id]/models/route.ts`
 
-### Phase 2: 60% -> 65%
+### Fáza 2: 60% -> 65%
 
-- [ ] Add DB-backed tests for:
+- [ ] Pridať testy využívajúce databázu pre:
   - `src/lib/db/modelComboMappings.ts`
   - `src/lib/db/settings.ts`
   - `src/lib/db/registeredKeys.ts`
-- [ ] Cover branch behavior in:
+- [ ] Pokryť správanie vetiev v:
   - `src/lib/providers/validation.ts`
   - `src/app/api/v1/embeddings/route.ts`
   - `src/app/api/v1/moderations/route.ts`
 
-### Phase 3: 65% -> 70%
+### Fáza 3: 65% -> 70%
 
-- [ ] Add usage analytics tests for:
+- [ ] Pridať testy analytiky používania pre:
   - `src/lib/usage/usageHistory.ts`
   - `src/lib/usage/usageStats.ts`
   - `src/lib/usage/costCalculator.ts`
-- [ ] Expand route coverage for proxy management and settings branches
+- [ ] Rozšíriť pokrytie trás pre správu proxy a vetvy nastavení
 
-### Phase 4: 70% -> 75%
+### Fáza 4: 70% -> 75%
 
-- [ ] Cover translator helpers and central translation paths:
+- [ ] Pokryť pomocné moduly translátora a centrálne cesty prekladu:
   - `open-sse/translator/index.ts`
   - `open-sse/translator/helpers/*`
   - `open-sse/translator/request/*`
   - `open-sse/translator/response/*`
 
-### Phase 5: 75% -> 80%
+### Fáza 5: 75% -> 80%
 
-- [ ] Add handler-level tests for:
+- [ ] Pridať testy na úrovni obslužných rutín pre:
   - `open-sse/handlers/chatCore.ts`
   - `open-sse/handlers/responsesHandler.js`
   - `open-sse/handlers/imageGeneration.js`
   - `open-sse/handlers/embeddings.js`
-- [ ] Add executor branch coverage for provider-specific auth, retries, and endpoint overrides
+- [ ] Pridať pokrytie vetiev vykonávacích modulov pre autentifikáciu špecifickú pre poskytovateľa, opakované pokusy a prepísanie koncových bodov
 
-### Phase 6: 80% -> 85%
+### Fáza 6: 80% -> 85%
 
-- [ ] Merge more edge-case suites into the main coverage path
-- [ ] Increase function coverage for DB modules with weak constructor/helper coverage
-- [ ] Close branch gaps in `settings.ts`, `registeredKeys.ts`, `validation.ts`, and translator helpers
+- [ ] Zlúčiť viac testovacích súprav pre hraničné prípady do hlavnej cesty pokrytia
+- [ ] Zvýšiť pokrytie funkcií v databázových moduloch so slabým pokrytím konštruktorov a pomocných funkcií
+- [ ] Odstrániť medzery v pokrytí vetiev v `settings.ts`, `registeredKeys.ts`, `validation.ts` a pomocných moduloch translátora
 
-### Phase 7: 85% -> 90%
+### Fáza 7: 85% -> 90%
 
-- [ ] Treat the remaining low-coverage files as blockers
-- [ ] Add regression tests for every uncovered production bug fixed during the push to 90%
-- [ ] Raise the coverage gate in CI only after the local baseline is stable for at least two consecutive runs
+- [ ] Považovať zostávajúce súbory s nízkym pokrytím za blokujúce
+- [ ] Pridať regresné testy pre každú nepokrytú chybu v produkčnom kóde opravenú počas zvyšovania pokrytia na 90 %
+- [ ] Zvýšiť prah pokrytia v CI až po tom, ako bude lokálna východisková hodnota stabilná aspoň počas dvoch po sebe nasledujúcich spustení
 
-## Ratchet policy
+## Politika postupného zvyšovania
 
-Update `npm run test:coverage` thresholds only after the project actually exceeds the next milestone with a comfortable buffer.
+Prahové hodnoty pre `npm run test:coverage` aktualizujte až vtedy, keď projekt skutočne prekročí ďalší míľnik s dostatočnou rezervou.
 
-Recommended ratchet sequence:
+**Aktuálna hranica:** `npm run test:coverage` vynucuje **60 príkazov / 60 riadkov / 60 funkcií / 60 vetiev** (metrika bola prepočítaná vo fáze Quality-Gates 6A.1 — predchádzajúca východisková hodnota 82,58 % bola nadhodnotená, pretože započítavala testovacie súbory a vylučovala `open-sse`). Príkaz `test:coverage:legacy` zachováva starú metriku 50/50/50 na historické porovnanie.
+
+Na jednorazovú kontrolu prahových hodnôt podľa najnovšej správy použite:
+
+```bash
+node scripts/check/test-report-summary.mjs --threshold 75
+```
+
+Odporúčaná postupnosť zvyšovania (poradie je `príkazy-riadky / vetvy / funkcie`):
 
 1. 55/60/55
 2. 60/62/58
 3. 65/64/62
 4. 70/66/66
-5. 75/70/72
+5. 75/70/72 <-- aktuálna hranica (75/70/75)
 6. 80/75/78
 7. 85/80/84
 8. 90/85/88
 
-Order is `statements-lines / branches / functions`.
+Ďalším cieľom zvýšenia je `80/75/78`, keď pokrytie vetiev zostane nad 78 % počas dvoch po sebe nasledujúcich spustení.
 
-## Known gap
+## Známy nedostatok
 
-The current coverage command measures the main Node unit suite and includes source reached from it, including `open-sse`. It does not yet merge Vitest coverage into a single unified report. That merge is worth doing later, but it is not a blocker for starting the 60% -> 80% climb.
+Aktuálny príkaz na meranie pokrytia meria hlavnú sadu jednotkových testov pre Node a zahŕňa zdrojový kód, ktorý sa z nej vykoná, vrátane `open-sse`. Zatiaľ nezlučuje pokrytie z Vitest do jednej zjednotenej správy. Toto zlúčenie sa oplatí vykonať neskôr, ale nebráni začatiu zvyšovania zo 60 % na 80 %.

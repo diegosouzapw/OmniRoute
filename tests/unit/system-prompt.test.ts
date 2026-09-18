@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { injectSystemPrompt, setSystemPromptConfig, getSystemPromptConfig } =
-  await import("../../open-sse/services/systemPrompt.ts");
+const {
+  injectSystemPrompt,
+  injectSystemPromptPostTranslation,
+  setSystemPromptConfig,
+  getSystemPromptConfig,
+} = await import("../../open-sse/services/systemPrompt.ts");
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -178,6 +182,113 @@ test("injectSystemPrompt: developer role treated as system", () => {
   assert.ok(result.messages[0].content.startsWith("PRE"));
   assert.ok(result.messages[0].content.includes("Dev instructions"));
   assert.ok(result.messages[0].content.trimEnd().endsWith("SUF"));
+});
+
+// ─── Post-translation injection (codex/Responses path — #3) ────────────────
+// injectSystemPromptPostTranslation runs AFTER translation, on a body whose
+// messages[] already contains the resolved system/developer messages. The key
+// difference from injectSystemPrompt: with multiple system/developer messages
+// (codex sends a developer role per input item), prefix goes on the FIRST and
+// suffix on the LAST — so suffix retains the highest recency position.
+
+test("postTranslation: single system → prefix front, suffix back", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = {
+    messages: [
+      { role: "system", content: "Original" },
+      { role: "user", content: "hi" },
+    ],
+  };
+  const result = injectSystemPromptPostTranslation(body);
+  assert.ok(result.messages[0].content.startsWith("PRE"));
+  assert.ok(result.messages[0].content.includes("Original"));
+  assert.ok(result.messages[0].content.trimEnd().endsWith("SUF"));
+  assert.equal(result.messages.length, 2);
+});
+
+test("postTranslation: multiple system/developer → prefix on first, suffix on LAST", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  // codex-like: several developer (system-equivalent) messages then a user
+  const body = {
+    messages: [
+      { role: "developer", content: "dev-0" },
+      { role: "developer", content: "dev-1" },
+      { role: "developer", content: "dev-2" },
+      { role: "user", content: "hi" },
+    ],
+  };
+  const result = injectSystemPromptPostTranslation(body);
+  assert.equal(result.messages.length, 4);
+  // prefix on FIRST system/developer (index 0)
+  assert.ok(result.messages[0].content.startsWith("PRE"));
+  assert.ok(result.messages[0].content.includes("dev-0"));
+  // suffix on LAST system/developer (index 2) — NOT index 0
+  assert.ok(result.messages[2].content.includes("dev-2"));
+  assert.ok(result.messages[2].content.trimEnd().endsWith("SUF"));
+  // the first must NOT carry the suffix, the last must NOT carry the prefix
+  assert.ok(!result.messages[0].content.includes("SUF"));
+  assert.ok(!result.messages[2].content.includes("PRE"));
+  // middle untouched
+  assert.equal(result.messages[1].content, "dev-1");
+});
+
+test("postTranslation: array content → unshift prefix on first, push suffix on last", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = {
+    messages: [
+      { role: "developer", content: [{ type: "text", text: "dev-0" }] },
+      { role: "developer", content: [{ type: "text", text: "dev-1" }] },
+      { role: "user", content: "hi" },
+    ],
+  };
+  const result = injectSystemPromptPostTranslation(body);
+  // first developer: PRE at index 0
+  assert.equal(result.messages[0].content[0].text, "PRE");
+  assert.equal(result.messages[0].content[1].text, "dev-0");
+  // last developer: SUF at the end
+  assert.equal(result.messages[1].content[0].text, "dev-1");
+  assert.equal(result.messages[1].content[1].text, "SUF");
+});
+
+test("postTranslation: no system → combined inserted at front", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = { messages: [{ role: "user", content: "hi" }] };
+  const result = injectSystemPromptPostTranslation(body);
+  assert.equal(result.messages[0].role, "system");
+  assert.ok(result.messages[0].content.includes("PRE"));
+  assert.ok(result.messages[0].content.includes("SUF"));
+  assert.equal(result.messages.length, 2);
+});
+
+test("postTranslation: disabled / empty → no change", () => {
+  setSystemPromptConfig({ enabled: false, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = { messages: [{ role: "user", content: "hi" }] };
+  assert.deepEqual(injectSystemPromptPostTranslation(body), body);
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "", suffixPrompt: "" });
+  assert.deepEqual(injectSystemPromptPostTranslation(body), body);
+});
+
+test("postTranslation: codex regression — suffix lands on LAST developer after translation shape", () => {
+  // Simulate the post-translation body shape for a codex Responses request:
+  // openai-responses.ts converts `instructions`→system (index 0) and each
+  // input developer item→system. The After Prompt (suffix) MUST land on the
+  // LAST system/developer, not the first — otherwise it is buried by the
+  // later developer messages and loses recency priority.
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "", suffixPrompt: "AFTER-PROMPT-MARKER" });
+  const body = {
+    messages: [
+      { role: "system", content: "instructions-from-catalog" },
+      { role: "system", content: "dev-0-from-input" },
+      { role: "system", content: "dev-1-from-input" },
+      { role: "system", content: "dev-2-from-input" },
+      { role: "user", content: "do the task" },
+    ],
+  };
+  const result = injectSystemPromptPostTranslation(body);
+  const lastSys = result.messages[3];
+  assert.ok(lastSys.content.trimEnd().endsWith("AFTER-PROMPT-MARKER"));
+  // the first system must NOT carry the suffix
+  assert.ok(!result.messages[0].content.includes("AFTER-PROMPT-MARKER"));
 });
 
 // Reset

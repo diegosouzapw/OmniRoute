@@ -1,43 +1,34 @@
-# TROUBLESHOOTING (ଓଡ଼ିଆ)
+# Troubleshooting (ଓଡ଼ିଆ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 ---
 
----
+> **ବ୍ୟବହାରକାରୀଙ୍କ ପାଇଁ**: ଶୀଘ୍ର ସମାଧାନ ଖୋଜୁଛନ୍ତି କି? ତଳେ ଥିବା [ଦ୍ରୁତ ସନ୍ଦର୍ଭ](#quick-reference) ଦେଖନ୍ତୁ।
 
-title: "ଟ୍ରାବୁଲସନ୍ ଶଟିଂ"
-version: 3.8.49
-lastUpdated: 2026-07-15
----
+🌐 **ଭାଷାଗୁଡ଼ିକ:** 🇺🇸 [ଇଂରାଜୀ](./TROUBLESHOOTING.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/TROUBLESHOOTING.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/TROUBLESHOOTING.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/TROUBLESHOOTING.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../i18n/es/docs/guides/TROUBLESHOOTING.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/TROUBLESHOOTING.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/TROUBLESHOOTING.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/TROUBLESHOOTING.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/TROUBLESHOOTING.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/TROUBLESHOOTING.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/TROUBLESHOOTING.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/TROUBLESHOOTING.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/TROUBLESHOOTING.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/TROUBLESHOOTING.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/TROUBLESHOOTING.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/TROUBLESHOOTING.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/TROUBLESHOOTING.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/TROUBLESHOOTING.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/TROUBLESHOOTING.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/TROUBLESHOOTING.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/TROUBLESHOOTING.md)
 
-# ଟ୍ରାବୁଲସନ୍ ଶଟିଂ
-
-> **ବ୍ୟବହାରକାରୀମାନଙ୍କ ପାଇଁ**: ଦ୍ରୁତ ସମାଧାନ ଖୋଜୁଛନ୍ତି? ନିମ୍ନରେ ଥିବା [ଦ୍ରୁତ ରେଫରେନ୍ସ](#quick-reference) ଦେଖନ୍ତୁ।
-
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
-
-OmniRoute ପାଇଁ ସାଧାରଣ ସମସ୍ୟା ଏବଂ ସମାଧାନ।
+OmniRoute ପାଇଁ ସାଧାରଣ ସମସ୍ୟା ଏବଂ ସମାଧାନଗୁଡ଼ିକ।
 
 ---
 
-## ଶୀଘ୍ର ସନ୍ଦର୍ଭ
+## ଦ୍ରୁତ ସନ୍ଦର୍ଭ
 
-**OmniRoute ରେ ନୂଆ?** ଏଠାରୁ ଆରମ୍ଭ କରନ୍ତୁ — ଏଗୁଡ଼ିକ 90% ସମସ୍ୟା ସମାଧାନ କରନ୍ତି:
+**OmniRouteରେ ନୂଆ କି?** ଏଠାରୁ ଆରମ୍ଭ କରନ୍ତୁ — ଏଗୁଡ଼ିକ 90% ସମସ୍ୟାର ସମାଧାନ କରେ:
 
-| ମୁଁ ଏହା ଦେଖୁଛି           | ଏହାର ଅର୍ଥ                                    | କଣ କରିବେ                                                                                                   |
-| ------------------------ | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| "Connect ହୋଇପାରୁନାହିଁ"   | OmniRoute ଚାଲୁନାହିଁ                          | `omniroute` ଚଲାନ୍ତୁ କିମ୍ବା `docker restart omniroute` ଚଲାନ୍ତୁ                                              |
-| "Invalid API key"        | ଆପଣଙ୍କ ଚାବି ଭୁଲ ଅଛି କିମ୍ବା ଅପାରାଦ ହୋଇଛି      | ପ୍ରଦାନକାରୀଙ୍କ ୱେବସାଇଟ୍ରୁ ଚାବି ପୁଣି କପି କରନ୍ତୁ                                                              |
-| "Rate limit exceeded"    | ଆପଣ ବହୁତ ଅନୁରୋଧ ପଠାଉଛନ୍ତି                    | 1 ମିନିଟ୍ ଅପେକ୍ଷା କରନ୍ତୁ, କିମ୍ବା ସ୍ୱୟଂଚାଳିତ ଫଲ୍ବ୍ୟାକ୍ ପାଇଁ `model: "auto"` ବ୍ୟବହାର କରନ୍ତୁ                   |
-| "Quota exceeded"         | ଆପଣଙ୍କ ମାଗଣା/ପେଡ୍ କୋଟା ସରିଗଲାଣି              | ଅଧିକ ପ୍ରଦାନକାରୀ ସଂଯୋଗ କରନ୍ତୁ, କିମ୍ବା ମାଗଣା ପ୍ରଦାନକାରୀ (Kiro, Pollinations) ବ୍ୟବହାର କରନ୍ତୁ                  |
-| "ଧୀର ପ୍ରତିକ୍ରିୟା"        | ପ୍ରଦାନକାରୀ ବ୍ୟସ୍ତ ଅଛନ୍ତି କିମ୍ବା ଦୂରରେ ଅଛନ୍ତି | `model: "auto/fast"` ବ୍ୟବହାର କରନ୍ତୁ କିମ୍ବା ଏକ ଦ୍ରୁତତର ପ୍ରଦାନକାରୀ (Groq, Cerebras) ସଂଯୋଗ କରନ୍ତୁ             |
-| "ଭୁଲ ପ୍ରଦାନକାରୀ ବ୍ୟବହୃତ" | `auto` ଏକ ଭିନ୍ନ ପ୍ରଦାନକାରୀ ବାଛିଲା            | ସେଟା ସ୍ୱାଭାବିକ! `auto` ସର୍ବୋତ୍ତମ ବାଛେ। `model: "openai/gpt-4o"` ସହ ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ପ୍ରଦାନକାରୀ ବାଧ୍ୟ କରନ୍ତୁ  |
-| "502 Bad Gateway"        | ପ୍ରଦାନକାରୀ ଡାଉନ୍ ଅଛନ୍ତି                      | ଅପେକ୍ଷା କରନ୍ତୁ ଏବଂ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ, କିମ୍ବା ପ୍ରଦାନକାରୀ ପରିବର୍ତ୍ତନ କରିବାକୁ `model: "auto"` ବ୍ୟବହାର କରନ୍ତୁ |
-| "401 Unauthorized"       | ଆପଣଙ୍କ ପ୍ରମାଣପତ୍ର ଭୁଲ ଅଛି                    | ଆପଣଙ୍କ API ଚାବି ଯାଞ୍ଚ କରନ୍ତୁ କିମ୍ବା OAuth ସହ ପୁଣି ସତ୍ୟାପିତ କରନ୍ତୁ                                          |
-| "429 Too Many Requests"  | Rate limited                                 | 1 ମିନିଟ୍ ଅପେକ୍ଷା କରନ୍ତୁ, କିମ୍ବା ଅଧିକ ପ୍ରଦାନକାରୀ ସଂଯୋଗ କରନ୍ତୁ                                               |
+| ମୁଁ ଏହା ଦେଖୁଛି                  | ଏହାର ଅର୍ଥ                                                    | କ’ଣ କରିବେ                                                                                                         |
+| ------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| "ସଂଯୋଗ କରିହେଉନାହିଁ"             | OmniRoute ଚାଲୁନାହିଁ                                          | `omniroute` ଚଲାନ୍ତୁ କିମ୍ବା `docker restart omniroute` ଚଲାନ୍ତୁ                                                     |
+| "ଅବୈଧ API କୀ"                   | ଆପଣଙ୍କ କୀ ଭୁଲ୍ କିମ୍ବା ମିଆଦ ସରିଯାଇଛି                          | ପ୍ରଦାନକାରୀଙ୍କ ୱେବସାଇଟରୁ କୀଟିକୁ ପୁଣି କପି କରନ୍ତୁ                                                                    |
+| "ଦର ସୀମା ଅତିକ୍ରମ ହୋଇଛି"         | ଆପଣ ଅତ୍ୟଧିକ ଅନୁରୋଧ ପଠାଉଛନ୍ତି                                 | 1 ମିନିଟ୍ ଅପେକ୍ଷା କରନ୍ତୁ, କିମ୍ବା ସ୍ୱୟଂଚାଳିତ ଫଲ୍ବ୍ୟାକ୍ ପାଇଁ `model: "auto"` ବ୍ୟବହାର କରନ୍ତୁ                          |
+| "କୋଟା ଅତିକ୍ରମ ହୋଇଛି"            | ଆପଣ ନିଜର ମାଗଣା/ଦେୟଯୁକ୍ତ କୋଟା ସମ୍ପୂର୍ଣ୍ଣ ବ୍ୟବହାର କରିସାରିଛନ୍ତି | ଅଧିକ ପ୍ରଦାନକାରୀ ସଂଯୋଗ କରନ୍ତୁ, କିମ୍ବା ମାଗଣା ପ୍ରଦାନକାରୀ (Kiro, Pollinations) ବ୍ୟବହାର କରନ୍ତୁ                         |
+| "ଧୀର ପ୍ରତିକ୍ରିୟା"               | ପ୍ରଦାନକାରୀ ବ୍ୟସ୍ତ ଅଛନ୍ତି କିମ୍ବା ବହୁତ ଦୂରରେ ଅଛନ୍ତି            | `model: "auto/fast"` ବ୍ୟବହାର କରନ୍ତୁ କିମ୍ବା ଏକ ଦ୍ରୁତତର ପ୍ରଦାନକାରୀ (Groq, Cerebras) ସଂଯୋଗ କରନ୍ତୁ                    |
+| "ଭୁଲ୍ ପ୍ରଦାନକାରୀ ବ୍ୟବହୃତ ହୋଇଛି" | `auto` ଅନ୍ୟ ଏକ ପ୍ରଦାନକାରୀ ବାଛିଛି                             | ଏହା ସ୍ୱାଭାବିକ! `auto` ସର୍ବୋତ୍ତମଟି ବାଛେ। `model: "openai/gpt-4o"` ସହିତ ନିର୍ଦ୍ଦିଷ୍ଟ ପ୍ରଦାନକାରୀକୁ ବାଧ୍ୟତାମୂଳକ କରନ୍ତୁ |
+| "502 ଖରାପ ଗେଟ୍ୱେ"               | ପ୍ରଦାନକାରୀ ଅଚଳ ଅଛନ୍ତି                                        | ଅପେକ୍ଷା କରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ, କିମ୍ବା ପ୍ରଦାନକାରୀ ବଦଳାଇବା ପାଇଁ `model: "auto"` ବ୍ୟବହାର କରନ୍ତୁ                     |
+| "401 ଅନଧିକୃତ"                   | ଆପଣଙ୍କ ପ୍ରମାଣପତ୍ର ଭୁଲ୍                                       | ଆପଣଙ୍କ API କୀ ଯାଞ୍ଚ କରନ୍ତୁ କିମ୍ବା OAuth ସହିତ ପୁନଃପ୍ରମାଣୀକରଣ କରନ୍ତୁ                                                |
+| "429 ଅତ୍ୟଧିକ ଅନୁରୋଧ"            | ଦର ସୀମିତ କରାଯାଇଛି                                            | 1 ମିନିଟ୍ ଅପେକ୍ଷା କରନ୍ତୁ, କିମ୍ବା ଅଧିକ ପ୍ରଦାନକାରୀ ସଂଯୋଗ କରନ୍ତୁ                                                      |
 
-**ଏବେ ବି ଅଟକି ଯାଉଛନ୍ତି?** ନିମ୍ନରେ [ବିସ୍ତୃତ ସମସ୍ୟା ସମାଧାନ](#detailed-troubleshooting) ଦେଖନ୍ତୁ, କିମ୍ବା [Discord](https://discord.gg/U47eFqAXCn) ରେ ପଚାରନ୍ତୁ।
+**ତଥାପି ଅଟକି ଯାଇଛନ୍ତି କି?** ନିମ୍ନରେ ଥିବା [ବିସ୍ତୃତ ସମସ୍ୟା ସମାଧାନ](#detailed-troubleshooting) ଦେଖନ୍ତୁ, କିମ୍ବା [Discord](https://discord.gg/U47eFqAXCn)ରେ ପଚାରନ୍ତୁ।
 
 ---
 
@@ -45,114 +36,120 @@ OmniRoute ପାଇଁ ସାଧାରଣ ସମସ୍ୟା ଏବଂ ସମା
 
 ---
 
-### ମାଗଣା ପ୍ରଦାନକାରୀମାନଙ୍କରେ Rate Limiting (429 / 400 / 401)
+### ମାଗଣା ପ୍ରଦାନକାରୀଙ୍କ ଉପରେ ଦର ସୀମିତକରଣ (429 / 400 / 401)
 
-**ଲକ୍ଷଣ**: ମାଗଣା/କୋଣ ବିହୀନ ପ୍ରଦାନକାରୀ (opencode, auggie, ଇତ୍ୟାଦି) ସହ `model: "auto"` ବ୍ୟବହାର କରିବା ସମୟରେ, ଆପଣଙ୍କୁ ମଧ୍ୟରେ ମଧ୍ୟରେ `HTTP 429`, `400`, କିମ୍ବା `401` ମିଳେ ଉତ୍ତର ପରିବର୍ତ୍ତେ। ସେହି ସମୟ ପରେ ସେହି ପ୍ରମ୍ପଟ୍ ପୁଣି ଚେଷ୍ଟା କଲେ ସଫଳ ହୁଏ, କିନ୍ତୁ ସ୍ୱୟଂଚାଳିତ (cron jobs, agents, scripts) ପ୍ରଥମ ବିଫଳତାରେ ଭାଙ୍ଗି ଯାଏ।
+**ଲକ୍ଷଣ**: ମାଗଣା/ପ୍ରମାଣୀକରଣ-ବିହୀନ ପ୍ରଦାନକାରୀ (opencode, auggie, ଇତ୍ୟାଦି) ସହିତ `model: "auto"` ବ୍ୟବହାର କରିବାବେଳେ, ଆପଣ ବେଳେବେଳେ ଉତ୍ତର ବଦଳରେ `HTTP 429`, `400`, କିମ୍ବା `401` ପାଆନ୍ତି। କିଛି କ୍ଷଣ ପରେ ସେହି ଏକା promptକୁ ପୁଣି ଚେଷ୍ଟା କଲେ ଅନୁରୋଧଗୁଡ଼ିକ ସଫଳ ହୁଏ, କିନ୍ତୁ ପ୍ରଥମ ବିଫଳତାରେ ସ୍ୱୟଂଚାଳନ (cron କାର୍ଯ୍ୟ, ଏଜେଣ୍ଟ, ସ୍କ୍ରିପ୍ଟ) ଭାଙ୍ଗିଯାଏ।
 
-**ମୂଳ କାରଣ**: ତିନୋଟି ସ୍ୱାଧୀନ ବିଫଳତା ମୋଡ୍ ଏକାଠି ହୁଅନ୍ତି:
+**ମୂଳ କାରଣ**: ତିନୋଟି ସ୍ୱାଧୀନ ବିଫଳତା ପ୍ରକାର ଏକାଠି ଘଟେ:
 
-1. **ପ୍ରଦାନକାରୀ rate-limit (`429`)**: ମାଗଣା ସ୍ତର ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ୱିଣ୍ଡୋରେ କୋଟା ଲାଗୁ କରିପାରେ। ସମାନ୍ତରାଲ କଲ୍ଗୁଡ଼ିକର ଏକ ବର୍ଷ୍ଟ ସେ କୋଟା ସରାଇ ଦିଏ, ତେଣୁ ୱିଣ୍ଡୋ ରିସେଟ୍ ନ ହେବା ପର୍ଯ୍ୟନ୍ତ ପରବର୍ତ୍ତୀ ଅନୁରୋଧ ପ୍ରତ୍ୟାଖ୍ୟାନ ହୁଏ।
-2. **Passthrough ରେ ଭାଙ୍ଗିଗଲା ମଡେଲ (`400`/`401`)**: `auto/*` ପୁଲ୍ଗୁଡ଼ିକ opencode ର passthrough ମଡେଲ୍ ଧାରଣ କରିପାରେ ଯେଉଁଗୁଡ଼ିକ catalog ରେ ପଞ୍ଜିକୃତ ଅଛନ୍ତି କିନ୍ତୁ କୌଣସି ଲାଇଭ୍ ପ୍ରମାଣପତ୍ର ନାହିଁ (ଉଦାହରଣ: `oc/north-mini-code-free` → `401`)। auto-router ଗୋଟିଏ ଚେଷ୍ଟା କରେ, ବିଫଳ ହୁଏ, ଏବଂ ଫଲ୍ବ୍ୟାକ୍ ଚାଲୁ ହେବା ଆଗରୁ ତ୍ରୁଟି ବ୍ୟାପି ଯାଏ।
-3. **Concurrency amplification (ଲୋଡ୍ ଅଧୀନରେ `429`)**: ଯେତେବେଳେ ଏକାଧିକ agent/cron session ଏକ ସାଙ୍ଗରେ `auto` ରେ ହିଟ୍ କରେ, ସମଗ୍ର ଅନୁରୋଧ ହାର ମାଗଣା ପ୍ରଦାନକାରୀ ସହିଥାଏ ତା'ଠାରୁ ଅଧିକ ହୁଏ, ତେଣୁ ବୈଧ କଲ୍ ଦୁର୍ବ୍ୟବହାର ରୂପେ ଚିହ୍ନଟ ହୁଏ।
+1. **ପ୍ରଦାନକାରୀ ଦର-ସୀମା (`429`)**: ମାଗଣା ସ୍ତରଗୁଡ଼ିକ ପ୍ରତି-ୱିଣ୍ଡୋ କୋଟା ଲାଗୁ କରିପାରନ୍ତି। ଏକସଙ୍ଗରେ ଆସୁଥିବା ଅନେକ ସମାନ୍ତରାଳ କଲ୍ ଏହାକୁ ଶେଷ କରିଦିଏ, ତେଣୁ ୱିଣ୍ଡୋ ରିସେଟ୍ ହେବା ପର୍ଯ୍ୟନ୍ତ ପରବର୍ତ୍ତୀ ଅନୁରୋଧକୁ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ।
+2. **ପାସ୍ଥ୍ରୁରେ ତ୍ରୁଟିପୂର୍ଣ୍ଣ ମଡେଲ୍ (`400`/`401`)**: `auto/*` ପୁଲ୍ଗୁଡ଼ିକରେ `opencode`ରୁ ପାସ୍ଥ୍ରୁ ମଡେଲ୍ ରହିପାରେ, ଯେଉଁଗୁଡ଼ିକ କ୍ୟାଟାଲଗ୍ରେ ପଞ୍ଜୀକୃତ କିନ୍ତୁ ସେମାନଙ୍କର ସକ୍ରିୟ ପ୍ରମାଣପତ୍ର ନାହିଁ (ଉଦାହରଣସ୍ୱରୂପ `oc/north-mini-code-free` → `401`)। auto-router ଗୋଟିଏକୁ ଚେଷ୍ଟା କରେ, ବିଫଳ ହୁଏ, ଏବଂ ଫଲ୍ବ୍ୟାକ୍ ସକ୍ରିୟ ହେବା ପୂର୍ବରୁ ତ୍ରୁଟିଟି ପ୍ରସାରିତ ହୁଏ।
+3. **ସମକାଳୀନତା ବୃଦ୍ଧି (ଲୋଡ୍ରେ `429`)**: ଏକାଧିକ ଏଜେଣ୍ଟ/cron ସେସନ୍ ଏକସଙ୍ଗରେ `auto`କୁ ବ୍ୟବହାର କଲେ, ସମୁଦାୟ ଅନୁରୋଧ ଦର ମାଗଣା ପ୍ରଦାନକାରୀଙ୍କ ସହନ ସୀମା ଅତିକ୍ରମ କରେ, ଫଳରେ ବୈଧ କଲ୍ଗୁଡ଼ିକୁ ଅପବ୍ୟବହାର ଭାବେ ଚିହ୍ନିତ କରାଯାଏ।
 
-**ପ୍ରମାଣିତ ସମାଧାନ (ସମ୍ପ୍ରଦାୟ-ରିପୋର୍ଟେଡ୍, 2026-08-10)**: ତିନୋଟି ପରିବେଶ ପରିବର୍ତ୍ତନ ସମାୟୋଜନ କରନ୍ତୁ ଯେପରିକି rotation, concurrency, ଏବଂ fallback ମାଗଣା ସ୍ତରର churn କୁ ଶୋଷଣ କରେ ଏବଂ ସେଥିରେ ମରିବା ପରିବର୍ତ୍ତେ ଟିକିଏ ରହିପାରେ:
+**ଯାଞ୍ଚିତ ସମାଧାନ (ସମ୍ପ୍ରଦାୟ ଦ୍ୱାରା ପ୍ରତିବେଦିତ, 2026-08-10)**: ତିନୋଟି ପରିବେଶ ଭେରିଏବଲ୍କୁ ଏପରି ସଜାନ୍ତୁ ଯେ rotation, concurrency, ଏବଂ fallback ମାଗଣା-ସ୍ତରର ଅସ୍ଥିରତାରେ ବିଫଳ ହେବା ପରିବର୍ତ୍ତେ ତାହାକୁ ସମ୍ଭାଳିବ:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # 400/401 ରେ ଅନ୍ୟ ମଡେଲ/ପ୍ରଦାନକାରୀକୁ ଯାଅ (ଭାଙ୍ଗିଗଲା passthrough ମଡେଲ୍ ଛାଡ଼ିଦିଏ)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # heavyweight admission ceiling ସ୍ପଷ୍ଟ ଭାବରେ (ଡିଫଲ୍ଟ ଅନସେଟ୍: request-count cap ନାହିଁ, ନିମ୍ନରେ ନୋଟ୍ ଦେଖନ୍ତୁ)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # heavyweight capacity ପାଇଁ ଏକ ଲମ୍ବା bounded ଅପେକ୍ଷା, ତତ୍କ୍ଷଣିକ retryable 503 ପରିବର୍ତ୍ତେ
+export OMNIROUTE_ROTATE_ON_400=true           # 400/401ରେ ଅନ୍ୟ ମଡେଲ୍/ପ୍ରଦାନକାରୀକୁ ଯାଆନ୍ତୁ (ତ୍ରୁଟିପୂର୍ଣ୍ଣ ପାସ୍ଥ୍ରୁ ମଡେଲ୍ଗୁଡ଼ିକୁ ଏଡ଼ାଇଯାଏ)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # ସ୍ପଷ୍ଟ ହେଭିୱେଟ୍ ଆଡ୍ମିଶନ୍ ସର୍ବୋଚ୍ଚ ସୀମା (ଡିଫଲ୍ଟ ଭାବେ ଅସେଟ୍: କୌଣସି ଅନୁରୋଧ-ସଂଖ୍ୟା ସୀମା ନାହିଁ, ନିମ୍ନର ଟିପ୍ପଣୀ ଦେଖନ୍ତୁ)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ତତ୍କ୍ଷଣାତ୍ ପୁନଃଚେଷ୍ଟାଯୋଗ୍ୟ 503 ପରିବର୍ତ୍ତେ ହେଭିୱେଟ୍ କ୍ଷମତା ପାଇଁ ଦୀର୍ଘ, ସୀମାବଦ୍ଧ ଅପେକ୍ଷା
 ```
 
-ଏଗୁଡ଼ିକ OmniRoute ପ୍ରକ୍ରିୟା ପରିବେଶରେ ସେଟ୍ କରନ୍ତୁ (ଡେମନ, ଉଦାହରଣ ସ୍ୱରୂପ LaunchAgent plist କିମ୍ବା `systemctl edit` ମାଧ୍ୟମରେ), ତା'ପରେ OmniRoute ପୁନରାରମ୍ଭ କରନ୍ତୁ। Rotation flag ହେଉଛି ସବୁଠାରୁ ଉଚ୍ଚ-ଲିଭରେଜ୍ ଲିଭର: ଏହା ଏକ ହାର୍ଡ ବିଫଳତାକୁ ପୁଲ୍ର ଏକ ସୁସ୍ଥ ପ୍ରଦାନକାରୀ ସହ ଏକ transparent retry ରେ ରୂପାନ୍ତରିତ କରେ।
+ଏଗୁଡ଼ିକୁ OmniRoute ପ୍ରକ୍ରିୟାର ପରିବେଶରେ ସେଟ୍ କରନ୍ତୁ (daemonରେ, ଉଦାହରଣସ୍ୱରୂପ LaunchAgent plist କିମ୍ବା `systemctl edit` ମାଧ୍ୟମରେ), ତା’ପରେ OmniRouteକୁ ପୁନଃଚାଳନ କରନ୍ତୁ। rotation flag ହେଉଛି ସର୍ବାଧିକ ପ୍ରଭାବଶାଳୀ ଉପାୟ: ଏହା ଏକ କଠିନ ବିଫଳତାକୁ ପୁଲ୍ରେ ଥିବା ଏକ ସୁସ୍ଥ ପ୍ରଦାନକାରୀ ବିରୁଦ୍ଧରେ ସ୍ୱଚ୍ଛ ପୁନଃଚେଷ୍ଟାରେ ପରିଣତ କରେ।
 
-**ନୋଟ**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` କେତେ heavyweight — ଲମ୍ବା context — ଅନୁରୋଧ ଏକ ସାଙ୍ଗରେ ଚାଲିପାରେ ସେତିକି cap କରେ; ସୀମା ହେଉଛି ଏକ admission gate, ପ୍ରଦାନକାରୀ rate limiter ନୁହେଁ। **#503-fanout ଅଦ୍ୟତନ:** ଏହି var ଡିଫଲ୍ଟ ଅନସେଟ୍ ଅଛି (ଏବେ ଏହା କେବଳ ସ୍ପଷ୍ଟ ଭାବରେ କନଫିଗର୍ ହୋଇଥିଲେ ବାଇନ୍ଧା ଯାଏ, ଉପରେ ଉଲ୍ଲେଖ ଅନୁସାରେ) — heavyweight admission ଏବେ ଏକ auto-derived byte budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ଦ୍ୱାରା gate ହୁଏ ଯାହା ହୋଷ୍ଟର ପ୍ରକୃତ memory ceiling ରୁ ନିଜକୁ scale କରେ, ତେଣୁ ଏକ ନୂଆ ସ୍ଥାପନା ଏହି var ସେଟ୍ ନ କରି ମଧ୍ୟ `503 chat_admission_busy` rejects ବହୁତ କମ୍ ଦେଖିବା ଉଚିତ୍; ଏଠାରେ ସ୍ପଷ୍ଟ ଭାବରେ ସେଟ୍ କଲେ ମଧ୍ୟ ଠିକ୍ ସେହି ଉଲ୍ଲେଖ ଅନୁସାରେ କାମ କରେ। Explicit byte-budget overrides 8 MiB–2 GiB କୁ clamp କରେ। ଏକ `413 body_exceeds_budget` transient ନୁହେଁ: ସେହି byte budget ବଢ଼ାନ୍ତୁ, `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` କମ୍ କରନ୍ତୁ, କିମ୍ବା process memory ceiling ବଢ଼ାନ୍ତୁ। ଏକ `inflight_bytes_budget` shed ହେଉଛି temporary contention ଏବং retryable ରହେ। ପ୍ରତ୍ୟେକ ପ୍ରଦାନକାରୀ rate limiting (`open-sse/services/rateLimitManager.ts`) ଅଲଗା ଭାବରେ `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, ଏବଂ `RATE_LIMIT_AUTO_ENABLE` ଦ୍ୱାରା ପରିଚାଳିତ — `.env.example` ଦେଖନ୍ତୁ।
+**ଟିପ୍ପଣୀ**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ଏକାସଙ୍ଗରେ କେତୋଟି ହେଭିୱେଟ୍ — ଦୀର୍ଘ-context — ଅନୁରୋଧ ଚାଲିବ ତାହା ସୀମିତ କରେ; ଏହି ସୀମା ଏକ ଆଡ୍ମିଶନ୍ ଗେଟ୍, ପ୍ରଦାନକାରୀ ଦର ସୀମକ ନୁହେଁ। **#503-fanout ଅଦ୍ୟତନ:** ଏହି var ଏବେ ଆଉ ଡିଫଲ୍ଟ ଭାବେ ସେଟ୍ ହୁଏନାହିଁ (ଏହା ବର୍ତ୍ତମାନ କେବଳ ଉପରୋକ୍ତ ପରି ସ୍ପଷ୍ଟ ଭାବେ ବିନ୍ୟାସ କଲେ ବାନ୍ଧିଥାଏ) — ତା’ପରିବର୍ତ୍ତେ ହେଭିୱେଟ୍ ଆଡ୍ମିଶନ୍କୁ ଏକ ସ୍ୱୟଂଚାଳିତ-ନିର୍ଦ୍ଧାରିତ ବାଇଟ୍ ବଜେଟ୍ (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ଦ୍ୱାରା ନିୟନ୍ତ୍ରଣ କରାଯାଏ, ଯାହା ହୋଷ୍ଟର ପ୍ରକୃତ ମେମୋରି ସୀମା ଅନୁସାରେ ନିଜକୁ ସ୍କେଲ୍ କରେ; ତେଣୁ ଏକ ନୂଆ deploymentରେ ଏହି varକୁ ଆଦୌ ସେଟ୍ ନ କରି ମଧ୍ୟ ବହୁତ କମ୍ `503 chat_admission_busy` ପ୍ରତ୍ୟାଖ୍ୟାନ ଦେଖାଯିବା ଉଚିତ; ଏଠାରେ ଏହାକୁ ସ୍ପଷ୍ଟ ଭାବେ ସେଟ୍ କରିବା ତଥାପି ଡକ୍ୟୁମେଣ୍ଟ କରାଯାଇଥିବା ପରି ଠିକ୍ ସେହିଭଳି କାମ କରେ। ସ୍ପଷ୍ଟ ବାଇଟ୍-ବଜେଟ୍ ଓଭର୍ରାଇଡ୍ଗୁଡ଼ିକ 8 MiB–2 GiB ମଧ୍ୟରେ ସୀମିତ ହୁଏ। ଏକ `413 body_exceeds_budget` ଅସ୍ଥାୟୀ ନୁହେଁ: ସେହି ବାଇଟ୍ ବଜେଟ୍ ବଢ଼ାନ୍ତୁ, `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` କମାନ୍ତୁ, କିମ୍ବା ପ୍ରକ୍ରିୟାର ମେମୋରି ସୀମା ବଢ଼ାନ୍ତୁ। ଏକ `inflight_bytes_budget` shed ହେଉଛି ଅସ୍ଥାୟୀ contention ଏବଂ ଏହା ପୁନଃଚେଷ୍ଟାଯୋଗ୍ୟ ରହେ। ପ୍ରତି-ପ୍ରଦାନକାରୀ ଦର ସୀମିତକରଣ (`open-sse/services/rateLimitManager.ts`)କୁ `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, ଏବଂ `RATE_LIMIT_AUTO_ENABLE` ଦ୍ୱାରା ପୃଥକ ଭାବେ ପରିଚାଳନା କରାଯାଏ — `.env.example` ଦେଖନ୍ତୁ।
 
-**ଏହା କିପରି କାମ କଲା ଯାଞ୍ଚ କରିବାର ଉପାୟ**: ଆପଣଙ୍କ agent/cron କୁ ଦ୍ରୁତ ଭାବରେ ଦୁଇଥର ଚଲାନ୍ତୁ ଏବଂ ନିଶ୍ଚିତ ହୁଅନ୍ତୁ ଦୁଇଟି ମଧ୍ୟ ସଫଳ ହୁଏ। ସମାଧାନ ଆଗରୁ, ଦ୍ୱିତୀୟ ରନ୍ ସାଧାରଣତଃ `429`/`401` ଫିଙ୍ଗେ। ସମାଧାନ ପରେ, ବିଫଳତା (ଥିଲେ) transparent ଭାବରେ retry ହୁଏ ଏବଂ call ସମ୍ପୂର୍ଣ୍ଣ ହୁଏ। ଆପଣ `curl /monitoring/health` ମଧ୍ୟ ଚଲାଇ ପ୍ରଦାନକାରୀ connections ର `rateLimitedUntil` field ଏବଂ ପ୍ରଭାବିତ ପ୍ରଦାନକାରୀମାନଙ୍କ ପାଇଁ `circuitBreakers.providerBreakers[].state` ଦେଖି ପାରିବେ — state ହେଉଛି `CLOSED`, `DEGRADED`, `OPEN`, କିମ୍ବା `HALF_OPEN` ମଧ୍ୟରୁ ଗୋଟିଏ (`src/shared/utils/circuitBreaker.ts` ଦେଖନ୍ତୁ), ଏବଂ ବିଫଳ ହେବା ଜାରି ଥିବା ପ୍ରଦାନକାରୀ reset window ଏକ probe ଛାଡ଼ିବା ଆଗରୁ `CLOSED → DEGRADED → OPEN` ରେ ଫ୍ଲିପ୍ କରିବ (`HALF_OPEN`)।
+**ଏହା କାମ କରିଛି କିପରି ଯାଞ୍ଚ କରିବେ**: ଆପଣଙ୍କ ଏଜେଣ୍ଟ/cronକୁ ଅଳ୍ପ ବ୍ୟବଧାନରେ ଦୁଇଥର ଚଲାନ୍ତୁ ଏବଂ ଉଭୟ ସଫଳ ହେଉଛି କି ନିଶ୍ଚିତ କରନ୍ତୁ। ସମାଧାନ ପୂର୍ବରୁ, ଦ୍ୱିତୀୟ ଚାଳନ ସାଧାରଣତଃ `429`/`401` ଦିଏ। ସମାଧାନ ପରେ, ବିଫଳତାଗୁଡ଼ିକ (ଯଦି କିଛି ଥାଏ) ସ୍ୱଚ୍ଛ ଭାବେ ପୁନଃଚେଷ୍ଟା କରାଯାଏ ଏବଂ କଲ୍ଟି ସମ୍ପୂର୍ଣ୍ଣ ହୁଏ। ଆପଣ `curl /monitoring/health` ମଧ୍ୟ ଚଲାଇପାରିବେ ଏବଂ ପ୍ରଦାନକାରୀ ସଂଯୋଗଗୁଡ଼ିକରେ `rateLimitedUntil` ଫିଲ୍ଡ ଓ ପ୍ରଭାବିତ ପ୍ରଦାନକାରୀଙ୍କ ପାଇଁ `circuitBreakers.providerBreakers[].state` ନିରୀକ୍ଷଣ କରିପାରିବେ — ଅବସ୍ଥାଟି `CLOSED`, `DEGRADED`, `OPEN`, କିମ୍ବା `HALF_OPEN` ମଧ୍ୟରୁ ଗୋଟିଏ (`src/shared/utils/circuitBreaker.ts` ଦେଖନ୍ତୁ), ଏବଂ ଲଗାତାର ବିଫଳ ହେଉଥିବା ପ୍ରଦାନକାରୀ reset window ଏକ probeକୁ ଯିବାକୁ ଅନୁମତି ଦେବା ପୂର୍ବରୁ `CLOSED → DEGRADED → OPEN`କୁ ବଦଳିଯିବ (`HALF_OPEN`)।
 
-**ଯଦି ଆପଣ ଏବେ ବି 429 ଦେଖନ୍ତି**: ସେହି ପ୍ରଦାନକାରୀ ପାଇଁ ସକ୍ରିୟ ଆକାଉଣ୍ଟ ସତରେ ତା'ର _quota_ ସରାଇ ସାରିଛି (କେବଳ rate ନୁହେଁ)। OmniRoute dashboard → Providers → Accounts ରେ ସେହି ପ୍ରଦାନକାରୀ ପାଇଁ ଦ୍ୱିତୀୟ ଆକାଉଣ୍ଟ ଯୋଗ କରନ୍ତୁ, କିମ୍ବା ଅନ୍ୟ ଏକ ମାଗଣା ପ୍ରଦାନକାରୀ (ଉଦାହରଣ: `routeway`, `auggie`) ମିଶାନ୍ତୁ। Rotation କେବଳ transient rate/400/401 ସହ ସାହାଯ୍ୟ କରେ; ଏକ ହାର୍ଡ quota exhaustion ପାଇଁ ଦ୍ୱିତୀୟ ପ୍ରମାଣପତ୍ର କିମ୍ବା ଏକ ଭିନ୍ନ ପ୍ରଦାନକାରୀ ଆବଶ୍ୟକ।
+**ଯଦି ଆପଣ ଏବେ ମଧ୍ୟ 429 ଦେଖୁଛନ୍ତି**: ସେହି ପ୍ରଦାତା ପାଇଁ ସକ୍ରିୟ ଆକାଉଣ୍ଟ ପ୍ରକୃତରେ ତାହାର _କୋଟା_ ଶେଷ କରିସାରିଛି (କେବଳ ରେଟ୍ ନୁହେଁ)। OmniRoute ଡ୍ୟାଶବୋର୍ଡ → Providers → Accountsରେ ସେହି ପ୍ରଦାତା ପାଇଁ ଦ୍ୱିତୀୟ ଆକାଉଣ୍ଟ ଯୋଡ଼ନ୍ତୁ, କିମ୍ବା ଅନ୍ୟ ଏକ ମାଗଣା ପ୍ରଦାତା (ଯେପରିକି `routeway`, `auggie`) ମିଶାନ୍ତୁ। ରୋଟେସନ୍ କେବଳ ସାମୟିକ ରେଟ୍/400/401 ସମସ୍ୟାରେ ସାହାଯ୍ୟ କରେ; କୋଟା ସମ୍ପୂର୍ଣ୍ଣ ଶେଷ ହୋଇଥିଲେ ଦ୍ୱିତୀୟ କ୍ରେଡେନ୍ସିଆଲ୍ କିମ୍ବା ଏକ ଭିନ୍ନ ପ୍ରଦାତା ଆବଶ୍ୟକ।
 
-**ଯଦି ଆପଣ vision models (`auto/vision`, `bazaarlink/*`) ରେ 403 ଦେଖନ୍ତି**: ସଂଯୁକ୍ତ ଆକାଉଣ୍ଟରେ vision ସମାବେଶ ଥିବା ଏକ ପେଡ୍ ଯୋଜନା ନାହିଁ, କିମ୍ବା API ଚାବିର ଅପର୍ଯ୍ୟାପ୍ତ ଅନୁମତି ଅଛି। ପ୍ରଦାନକାରୀ dashboard ରେ ଯାଞ୍ଚ କରନ୍ତୁ ଯେ ଚାବି scope ରେ vision/multimodal ଅନ୍ତର୍ଭୁକ୍ତ ଅଛି, କିମ୍ବା ଏକ ପେଡ୍ ସ୍ତର ଆକାଉଣ୍ଟ ସଂଯୋଗ କରନ୍ତୁ ଏବଂ ତାକୁ vision target ରେ ରଖନ୍ତୁ।
+**ଯଦି ଆପଣ ଭିଜନ୍ ମଡେଲ୍ଗୁଡ଼ିକରେ (`auto/vision`, `bazaarlink/*`) 403 ଦେଖୁଛନ୍ତି**: ସଂଯୁକ୍ତ ଆକାଉଣ୍ଟରେ ଭିଜନ୍ ଅନ୍ତର୍ଭୁକ୍ତ ଥିବା ଏକ ପେଡ୍ ପ୍ଲାନ୍ ନାହିଁ, କିମ୍ବା API କୀରେ ପର୍ଯ୍ୟାପ୍ତ ଅନୁମତି ନାହିଁ। ପ୍ରଦାତାଙ୍କ ଡ୍ୟାଶବୋର୍ଡରେ କୀର ସ୍କୋପ୍ରେ ଭିଜନ୍/ମଲ୍ଟିମୋଡାଲ୍ ଅନ୍ତର୍ଭୁକ୍ତ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ, କିମ୍ବା ଏକ ପେଡ୍ ଟିଅର୍ ଆକାଉଣ୍ଟ ସଂଯୋଗ କରି ତାହାକୁ ଭିଜନ୍ ଟାର୍ଗେଟ୍ ଭାବେ ରଖନ୍ତୁ।
 
 ---
 
-## npm ସ୍ଥାପନ ସତର୍କତା (ERESOLVE / peer / deprecated)
+## npm install ଚେତାବନୀଗୁଡ଼ିକ (ERESOLVE / peer / deprecated)
 
-ଆପଣ `npm install -g omniroute` ଚଳାଇଲେ, `npm warn ERESOLVE`, peer-ନିର୍ଭରତା ବିଜ୍ଞପ୍ତି, ଏବଂ `deprecated` ବାର୍ତ୍ତା ଭଳି ଅନେକ ସତର୍କତା ଦେଖିପାରିବେ। **ଏଗୁଡିକ ପ୍ରତ୍ୟାଶିତ ଏବଂ କ୍ଷତିକାରକ ନୁହେଁ।** ଯଦି ଆଉଟପୁଟରେ `added <N> packages` ଦେଖାଯାଏ, ତେବେ ଆପଣଙ୍କ ସ୍ଥାପନ ସଫଳ ହୋଇଛି।
+ଆପଣ `npm install -g omniroute` ଚଲାଇବାବେଳେ, `npm warn ERESOLVE`, peer-dependency ସୂଚନା ଏବଂ `deprecated` ବାର୍ତ୍ତା ପରି ଅନେକ ଚେତାବନୀ ଦେଖିପାରନ୍ତି। **ଏଗୁଡ଼ିକ ଆଶାକରାଯାଏ ଏବଂ କ୍ଷତିହୀନ।** ଆଉଟପୁଟ୍ରେ `added <N> packages` ଦେଖାଗଲେ ଆପଣଙ୍କ ଇନ୍ଷ୍ଟଲେସନ୍ ସଫଳ ହୋଇଛି।
 
-ସତର୍କତାଗୁଡିକ OmniRoute ନିୟନ୍ତ୍ରଣ କରୁନଥିବା ତୃତୀୟ-ପକ୍ଷ ପ୍ୟାକେଜଗୁଡିକର ପୁରୁଣା peer-ନିର୍ଭରତା ପରିସରରୁ ଆସେ:
+ଏହି ଚେତାବନୀଗୁଡ଼ିକ OmniRoute ନିୟନ୍ତ୍ରଣ କରୁନଥିବା ତୃତୀୟ-ପକ୍ଷ ପ୍ୟାକେଜ୍ଗୁଡ଼ିକର ପୁରୁଣା peer-dependency ରେଞ୍ଜ୍ରୁ ଆସେ:
 
-1. **`marked-terminal` ଚାହୁଁଛି `marked >=1 <16`, ପାଇଲା `marked@18`** — ବାସ୍ତବରେ ଭଲ କାମ କରେ; ଉପରସ୍ତର peer ପରିସର କେବଳ ପୁରୁଣା।
-2. **`deprecated prebuild-install@7.1.3`** — ଏକ ଟ୍ରାନ୍ସିଟିଭ୍ ନେଟିଭ୍ ବାଇନାରୀ ଫେଚ୍ ସାହାଯ୍ୟକ। ଏହା ପିନ୍ ହୋଇଥିବା `wreq-js` ଟ୍ରାନ୍ସପୋର୍ଟ ବାଇଣ୍ଡିଂ ସ୍ଥାପନ କରିବା ପାଇଁ ବ୍ୟବହାର ହୁଏ ନାହିଁ ଏବଂ ଏହା web-କୁକି ପ୍ରଦାନକାରୀ ଟ୍ରାନ୍ସପୋର୍ଟ ସେଟଅପ୍ ବିଫଳ ହୋଇଥିବାର ସୂଚନା ଦେଉ ନାହିଁ।
+1. **`marked-terminal` ପାଇଁ `marked >=1 <16` ଆବଶ୍ୟକ, କିନ୍ତୁ `marked@18` ମିଳିଛି** — ବ୍ୟବହାରରେ ଏହା ଠିକ୍ ଭାବେ କାମ କରେ; upstream peer ରେଞ୍ଜ୍ଟି କେବଳ ପୁରୁଣା।
+2. **`deprecated prebuild-install@7.1.3`** — ଏକ ପରୋକ୍ଷ native-binary ଫେଚ୍ ସହାୟକ। ଏହାକୁ pinned `wreq-js` transport binding ଇନ୍ଷ୍ଟଲ୍ କରିବା ପାଇଁ
+   ବ୍ୟବହାର କରାଯାଏ ନାହିଁ ଏବଂ ଏହା web-cookie provider transport ସେଟଅପ୍ ବିଫଳ ହୋଇଥିବା ସୂଚାଏ ନାହିଁ।
 
-**କୌଣସି କାର୍ଯ୍ୟ ଆବଶ୍ୟକ ନାହିଁ** — ଉପରସ୍ତର ପ୍ୟାକେଜଗୁଡିକୁ fork ନ କରି ସତର୍କତାଗୁଡିକୁ ସମ୍ପୂର୍ଣ୍ଣ ରୂପେ ଚୁପ୍ କରାଯାଇପାରିବ ନାହିଁ।
+**କୌଣସି ପଦକ୍ଷେପ ଆବଶ୍ୟକ ନାହିଁ** — upstream ପ୍ୟାକେଜ୍ଗୁଡ଼ିକୁ fork ନକରି ଏହି ଚେତାବନୀଗୁଡ଼ିକୁ ସମ୍ପୂର୍ଣ୍ଣ ନିରବ କରାଯାଇପାରିବ ନାହିଁ।
 
 ---
 
 ## ଶୀଘ୍ର ସମାଧାନ
 
-| ସମସ୍ୟା                                                     | ସମାଧାନ                                                                                                                                                                                       |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ପ୍ରଥମ ଲଗଇନ୍ କାମ କରୁନାହିଁ                                   | `.env` ରେ `INITIAL_PASSWORD` ସେଟ୍ କରନ୍ତୁ (କୌଣସି ହାର୍ଡକୋଡେଡ୍ ଡିଫଲ୍ଟ ନାହିଁ)                                                                                                                    |
-| ଡ୍ୟାସବୋର୍ଡ ଭୁଲ୍ ପୋର୍ଟରେ ଖୋଲେ                               | `PORT=20128` ଏବଂ `NEXT_PUBLIC_BASE_URL=http://localhost:20128` ସେଟ୍ କରନ୍ତୁ                                                                                                                   |
-| ଡିସ୍କରେ କୌଣସି ଲଗ୍ ଲେଖା ଯାଉନାହିଁ                            | `APP_LOG_TO_FILE=true` ସେଟ୍ କରନ୍ତୁ ଏବଂ କଲ୍ ଲଗ୍ କ୍ୟାପଚର ସକ୍ଷମ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ                                                                                                       |
-| EACCES: ଅନୁମତି ଅସ୍ୱୀକୃତ                                    | `DATA_DIR=/path/to/writable/dir` ସେଟ୍ କରି `~/.omniroute` କୁ ଓଭରାଇଡ୍ କରନ୍ତୁ                                                                                                                   |
-| ରୁଟିଂ ରଣନୀତି ସଞ୍ଚୟ ହେଉନାହିଁ                                | ସର୍ବଶେଷ v3.x ରିଲିଜ୍ ରେ ଅଦ୍ୟତନ କରନ୍ତୁ (ପୁରୁଣା ସଂସ୍କରଣରେ ସେଟିଂସ୍ ସ୍ଥାୟିତ୍ୱ ପାଇଁ Zod ସ୍କିମା ସ୍ଥିରତା ପଠାଯାଇଥିଲା)                                                                                 |
-| ଲଗଇନ୍ କ୍ରାସ୍ / ଖାଲି ପୃଷ୍ଠା                                 | Node.js ସଂସ୍କରଣ ଯାଞ୍ଚ କରନ୍ତୁ — ନିମ୍ନରେ [Node.js ସୁସଙ୍ଗତତା](#nodejs-compatibility) ଦେଖନ୍ତୁ                                                                                                    |
-| `dlopen` / `slice is not valid mach-o file` (macOS)        | `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` ଚଳାନ୍ତୁ — ନିମ୍ନରେ [macOS ନେଟିଭ୍ ମଡ୍ୟୁଲ ପୁନର୍ନିର୍ମାଣ](#macos-native-module-rebuild) ଦେଖନ୍ତୁ                      |
-| ପ୍ରକ୍ସି "fetch failed"                                     | ପ୍ରକ୍ସି କନଫିଗରେସନ ସଠିକ୍ ସ୍ତରରେ ସେଟ୍ ଅଛି କି ନାହିଁ ସୁନିଶ୍ଚିତ କରନ୍ତୁ — ନିମ୍ନରେ [ପ୍ରକ୍ସି ସମସ୍ୟା](#proxy-issues) ଦେଖନ୍ତୁ                                                                          |
-| Docker `curl: (56) Recv failure: Connection reset by peer` | ଆପଣଙ୍କ Docker ପୋର୍ଟ ବାଇଣ୍ଡ୍ IPv6 ରେ ଅଛି ହୋଇପାରେ। IPv4 ବାଧ୍ୟ କରିବାପାଇଁ `-p 127.0.0.1:20128:20128` ବ୍ୟବହାର କରନ୍ତୁ, ବା `curl -4` ସହ ପରୀକ୍ଷା କରନ୍ତୁ। ନିମ୍ନରେ [Docker IPv6](#docker-ipv6) ଦେଖନ୍ତୁ |
-| ଆଣ୍ଟିଭାଇରସ `README.md` କୁ କ୍ୱାରେଣ୍ଟାଇନ୍ କରେ                | ମିଥ୍ୟା ସକାରାତ୍ମକ — ନିମ୍ନରେ [ଆଣ୍ଟିଭାଇରସ ମିଥ୍ୟା ସକାରାତ୍ମକ](#antivirus-false-positives) ଦେଖନ୍ତୁ                                                                                                 |
-| Kaspersky ଡେସ୍କଟପ୍ ଆପ୍ କୁ ଟ୍ରୋଜାନ୍ ଭାବରେ ଚିହ୍ନଟ କରେ        | ଅସ୍ୱାକ୍ଷରିତ ଇନ୍ଷ୍ଟଲର୍ ଉପରେ ବ୍ୟବହାରିକ ମିଥ୍ୟା ସକାରାତ୍ମକ — ନିମ୍ନରେ [ଆଣ୍ଟିଭାଇରସ ମିଥ୍ୟା ସକାରାତ୍ମକ](#antivirus-false-positives) ଦେଖନ୍ତୁ                                                            |
+| ସମସ୍ୟା                                                     | ସମାଧାନ                                                                                                                                                                                    |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ପ୍ରଥମ ଲଗ୍ଇନ୍ କାମ କରୁନାହିଁ                                  | `.env` ରେ `INITIAL_PASSWORD` ସେଟ୍ କରନ୍ତୁ (କୌଣସି hardcoded ଡିଫଲ୍ଟ ନାହିଁ)                                                                                                                   |
+| Dashboard ଭୁଲ୍ port ରେ ଖୋଲୁଛି                              | `PORT=20128` ଏବଂ `NEXT_PUBLIC_BASE_URL=http://localhost:20128` ସେଟ୍ କରନ୍ତୁ                                                                                                                |
+| disk ରେ କୌଣସି log ଲେଖାଯାଉନାହିଁ                             | `APP_LOG_TO_FILE=true` ସେଟ୍ କରନ୍ତୁ ଏବଂ call log capture ସକ୍ଷମ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ                                                                                                   |
+| EACCES: ଅନୁମତି ପ୍ରତ୍ୟାଖ୍ୟାନ ହୋଇଛି                          | `~/.omniroute` କୁ override କରିବା ପାଇଁ `DATA_DIR=/path/to/writable/dir` ସେଟ୍ କରନ୍ତୁ                                                                                                        |
+| Routing strategy ସେଭ୍ ହେଉନାହିଁ                             | ସର୍ବଶେଷ v3.x release କୁ ଅପଡେଟ୍ କରନ୍ତୁ (settings persistence ପାଇଁ Zod schema ସମାଧାନ ପୂର୍ବ ସଂସ୍କରଣଗୁଡ଼ିକରେ ପ୍ରଦାନ କରାଯାଇଥିଲା)                                                               |
+| ଲଗ୍ଇନ୍ କ୍ରାଶ୍ / ଖାଲି ପୃଷ୍ଠା                                | Node.js ସଂସ୍କରଣ ଯାଞ୍ଚ କରନ୍ତୁ — ତଳେ [Node.js ସୁସଙ୍ଗତତା](#nodejs-compatibility) ଦେଖନ୍ତୁ                                                                                                     |
+| `dlopen` / `slice is not valid mach-o file` (macOS)        | `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` ଚଲାନ୍ତୁ — ତଳେ [macOS native module ପୁନଃନିର୍ମାଣ](#macos-native-module-rebuild) ଦେଖନ୍ତୁ                        |
+| Proxy "fetch failed"                                       | proxy config ସଠିକ୍ ସ୍ତରରେ ସେଟ୍ ହୋଇଛି କି ନାହିଁ ସୁନିଶ୍ଚିତ କରନ୍ତୁ — ତଳେ [Proxy ସମସ୍ୟାଗୁଡ଼ିକ](#proxy-issues) ଦେଖନ୍ତୁ                                                                          |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | ଆପଣଙ୍କ Docker port bind IPv6 ରେ ପଡ଼ିପାରେ। IPv4 ବାଧ୍ୟତାମୂଳକ କରିବାକୁ `-p 127.0.0.1:20128:20128` ବ୍ୟବହାର କରନ୍ତୁ, କିମ୍ବା `curl -4` ସହ ପରୀକ୍ଷା କରନ୍ତୁ। ତଳେ [Docker IPv6](#docker-ipv6) ଦେଖନ୍ତୁ |
+| Antivirus `README.md` କୁ quarantine କରୁଛି                  | ଭୁଲ୍ ସକାରାତ୍ମକ ଚିହ୍ନଟ — ତଳେ [Antivirus ଭୁଲ୍ ସକାରାତ୍ମକ ଚିହ୍ନଟଗୁଡ଼ିକ](#antivirus-false-positives) ଦେଖନ୍ତୁ                                                                                   |
+| Kaspersky Desktop app କୁ Trojan ଭାବେ ଚିହ୍ନଟ କରୁଛି          | unsigned installer ଉପରେ ଆଚରଣଭିତ୍ତିକ ଭୁଲ୍ ସକାରାତ୍ମକ ଚିହ୍ନଟ — ତଳେ [Antivirus ଭୁଲ୍ ସକାରାତ୍ମକ ଚିହ୍ନଟଗୁଡ଼ିକ](#antivirus-false-positives) ଦେଖନ୍ତୁ                                               |
 
 ---
 
-## ଆଣ୍ଟିଭାଇରସ୍ ମିଥ୍ୟା ସକାରାତ୍ମକ
+## ଆଣ୍ଟିଭାଇରସ୍ର ଭୁଲ ସକାରାତ୍ମକ ଚିହ୍ନଟ
 
 <a name="antivirus-false-positives"></a>
 
-### ଆଭାଷ୍ଟ/ଏଭିଜି `README.md` କୁ `MD:HttpRequest-inf[Susp]` ସହ ସଂଗ୍ରହ କରେ
+### Avast/AVG `README.md`-କୁ `MD:HttpRequest-inf[Susp]` ଭାବରେ କ୍ୱାରେଣ୍ଟାଇନ୍ କରେ
 
-**ଏହା ଏକ ମିଥ୍ୟା ସକାରାତ୍ମକ। କିଛି ସଂକ୍ରମଣ ନାହିଁ, ଏବଂ କୌଣସି କାର୍ଯ୍ୟାନୁଷ୍ଠାନ ଆବଶ୍ୟକ ନାହିଁ।**
+**ଏହା ଏକ ଭୁଲ ସକାରାତ୍ମକ ଚିହ୍ନଟ। କିଛି ମଧ୍ୟ ସଂକ୍ରମିତ ହୋଇନାହିଁ ଏବଂ କୌଣସି ପଦକ୍ଷେପ ଆବଶ୍ୟକ ନାହିଁ।**
 
-ଆଭାଷ୍ଟ ଏବଂ ଏଭିଜି ଏକ ହେଉରିଷ୍ଟିକ୍ ଚଳାଇଥାଏ ଯାହା HTTP-ଅନୁରୂପ ସଂଯୋଗ ଅନେକ ଥିବା ପ୍ଲେନ୍-ଟେକ୍ସଟ୍/ମାର୍କଡାଉନ୍ ଫାଇଲ୍ କୁ ଚିହ୍ନଟ କରେ। ଓମନିରୁଟ୍ର `README.md` npm ପ୍ୟାକେଜ୍ ଭିତରେ ବାହାରିଥାଏ (ଏହା `package.json` → `files` ରେ ତାଲିକାଭୁକ୍ତ), ତେଣୁ ଗ୍ଲୋବାଲ୍ ଇନ୍ଷ୍ଟଲରେ ଏହା `node_modules/omniroute/README.md` ଠାରେ ପହଞ୍ଚିଥାଏ — ଏବଂ ଏଥିରେ ~15ଟି `http://localhost:20128/...` ଉଦାହରଣ ଅଛି (MCP HTTP/SSE ଏଣ୍ଡପଏଣ୍ଟ, A2A `.well-known` URL, ଏବଂ `curl` ସ୍ନିପେଟ୍)। ସେହି ସଂଯୋଗ ଘନତ୍ୱ ହେଉରିଷ୍ଟିକ୍ କୁ ଟ୍ରିପ୍ କରିବା ପାଇଁ ଯଥେଷ୍ଟ।
+Avast ଏବଂ AVG ଏକ ହ୍ୟୁରିଷ୍ଟିକ୍ ଚଲାନ୍ତି, ଯାହା ଅନେକ HTTP ଅନୁରୋଧ ପରି ଦେଖାଯାଉଥିବା ଲିଙ୍କ୍ ଥିବା ସାଧାରଣ-ଟେକ୍ସଟ୍/Markdown ଫାଇଲ୍ଗୁଡ଼ିକୁ ଚିହ୍ନିତ କରେ। OmniRouteର `README.md` npm ପ୍ୟାକେଜ୍ରେ ସାମିଲ ହୋଇଥାଏ (ଏହା `package.json` → `files`ରେ ତାଲିକାଭୁକ୍ତ), ତେଣୁ ଏକ ଗ୍ଲୋବାଲ୍ ଇନ୍ଷ୍ଟଲ୍ରେ ଏହା `node_modules/omniroute/README.md`ରେ ରହେ — ଏବଂ ଏଥିରେ ପ୍ରାୟ 15ଟି `http://localhost:20128/...` ଉଦାହରଣ ଅଛି (MCP HTTP/SSE ଏଣ୍ଡପଏଣ୍ଟ୍ଗୁଡ଼ିକ, A2A `.well-known` URL ଏବଂ `curl` ସ୍ନିପେଟ୍ଗୁଡ଼ିକ)। ହ୍ୟୁରିଷ୍ଟିକ୍କୁ ସକ୍ରିୟ କରିବା ପାଇଁ ଏହି ଲିଙ୍କ୍ ଘନତା ଯଥେଷ୍ଟ।
 
-ଯଦି ଏହା କେବଳ ସାମ୍ପ୍ରତିକରେ ଆରମ୍ଭ ହୋଇଛି: ଫାଇଲ୍ ପ୍ରକାରରେ ପରିବର୍ତ୍ତିତ ହୋଇ ନ ଥିଲା। README ତାହାର ଏଣ୍ଡପଏଣ୍ଟ ଟେବୁଲ୍ ବଢ଼ାଇଥିଲା (MCP HTTP + SSE + A2A ଯୋଗ କରାଯାଇଥିଲା) ଏବଂ ଅଧିକ `curl` ଉଦାହରଣ, ଯାହା ଏହାକୁ ସୀମା ଉପରେ ଧକେଲିଥିଲା।
+ଯଦି ଏହା କେବଳ ସମ୍ପ୍ରତି ଆରମ୍ଭ ହୋଇଛି: ଫାଇଲ୍ର ପ୍ରକାରରେ କୌଣସି ପରିବର୍ତ୍ତନ ହୋଇନାହିଁ। READMEର ଏଣ୍ଡପଏଣ୍ଟ୍ ସାରଣୀ ବିସ୍ତାରିତ ହୋଇଛି (MCP HTTP + SSE + A2A ଯୋଡ଼ାଯାଇଛି) ଏବଂ ଅଧିକ `curl` ଉଦାହରଣ ଯୋଡ଼ାଯାଇଛି, ଯାହା ଏହାକୁ ସୀମା ଅତିକ୍ରମ କରାଇଛି।
 
-ଫାଇଲ୍ ହେଉଛି ନିରାକାର ଡକ୍ୟୁମେଣ୍ଟେସନ୍ ଯାହାର ଜିରୋ ଏକ୍ସିକ୍ୟୁଟେବଲ୍ ବିଷୟ ଅଛି। ଆପଣ ଏହାକୁ ସୁରକ୍ଷିତ ଭାବରେ ସଂଗ୍ରହରୁ ପୁନରୁଦ୍ଧାର କରିପାରିବେ।
+ଫାଇଲ୍ଟି ଶୂନ୍ୟ ନିଷ୍ପାଦନଯୋଗ୍ୟ ବିଷୟବସ୍ତୁ ଥିବା ଏକ ନିଷ୍କ୍ରିୟ ଡକ୍ୟୁମେଣ୍ଟେସନ୍। ଆପଣ ଏହାକୁ ସୁରକ୍ଷିତ ଭାବରେ କ୍ୱାରେଣ୍ଟାଇନ୍ରୁ ପୁନଃସ୍ଥାପନ କରିପାରିବେ।
 
-**କଣ କରିବା ଉଚିତ:**
+**କ’ଣ କରିବେ:**
 
-1. **ବିଜ୍ଞପ୍ତି ବନ୍ଦ କରନ୍ତୁ** — ଆପଣଙ୍କ ଆଣ୍ଟିଭାଇରସ୍ ରେ ଇନ୍ଷ୍ଟଲ୍ ଡାଇରେକ୍ଟୋରୀ ବାଦ ଦିଅନ୍ତୁ
-   (ଆଭାଷ୍ଟ: ସେଟିଂସ୍ → ବ୍ୟତିକ୍ରମ), ଆପଣଙ୍କ ଗ୍ଲୋବାଲ୍ `node_modules` ପାଥ ଏବଂ/ବା ଓମନିରୁଟ୍ ଡାଟା ଡାଇରେକ୍ଟୋରୀ (`~/.omniroute/`) ଯୋଗ କରି।
-2. **ମିଥ୍ୟା ସକାରାତ୍ମକ ରିପୋର୍ଟ କରନ୍ତୁ** — <https://www.avast.com/false-positive-file-form.php>,
-   ସଂଗ୍ରହ କରାଯାଇଥିବା `README.md` ସଂଲଗ୍ନ କରି। ଏହା ସମସ୍ତଙ୍କୁ ସାହାଯ୍ୟ କରୁଥିବା ସମାଧାନ, କାରଣ ଏହା ହେଉଛି ବିକ୍ରେତାଙ୍କ ହେଉରିଷ୍ଟିକ୍ ଯାହା ଏକ ଟେକ୍ସଟ୍ ଫାଇଲ୍ ଉପରେ ଅତିରିକ୍ତ ପ୍ରତିକ୍ରିୟା କରୁଛି।
+1. **ବିଜ୍ଞପ୍ତିଗୁଡ଼ିକୁ ବନ୍ଦ କରନ୍ତୁ** — ଆପଣଙ୍କ ଆଣ୍ଟିଭାଇରସ୍ରେ ଇନ୍ଷ୍ଟଲ୍ ଡିରେକ୍ଟୋରୀକୁ ବାଦ ଦିଅନ୍ତୁ
+   (Avast: Settings → Exceptions), ଆପଣଙ୍କ ଗ୍ଲୋବାଲ୍ `node_modules` ପଥ ଏବଂ/କିମ୍ବା
+   OmniRoute ଡାଟା ଡିରେକ୍ଟୋରୀ (`~/.omniroute/`) ଯୋଡ଼ନ୍ତୁ।
+2. **ଭୁଲ ସକାରାତ୍ମକ ଚିହ୍ନଟ ବିଷୟରେ ରିପୋର୍ଟ କରନ୍ତୁ** — <https://www.avast.com/false-positive-file-form.php>,
+   କ୍ୱାରେଣ୍ଟାଇନ୍ ହୋଇଥିବା `README.md`-କୁ ସଂଲଗ୍ନ କରନ୍ତୁ। ଏହା ହେଉଛି ସମସ୍ତଙ୍କୁ ସାହାଯ୍ୟ କରୁଥିବା ସମାଧାନ, କାରଣ ଏହା ଏକ ଟେକ୍ସଟ୍ ଫାଇଲ୍ ପ୍ରତି ବିକ୍ରେତାଙ୍କ ହ୍ୟୁରିଷ୍ଟିକ୍ର ଅତିରିକ୍ତ ପ୍ରତିକ୍ରିୟା।
 
-**ଆମେ ଏହାକୁ ଆମ ପକ୍ଷରୁ "ସମାଧାନ" କାହିଁକି କରୁ ନାହିଁ:** ଉଦାହରଣ ସମସ୍ତ `http://localhost` ଅଛି, ଏବଂ ଲୋକାଲହୋଷ୍ଟ ସ୍ୱ-ସାକ୍ଷରତା-ସମସ୍ୟା ବିନା `https` ହୋଇପାରେ ନାହିଁ। ଗୋଟିଏ ବିକ୍ରେତାଙ୍କ ହେଉରିଷ୍ଟିକ୍ ଏଡ଼ାଇବା ପାଇଁ ଡକ୍ୟୁମେଣ୍ଟେସନ୍ ବିଗାଡ଼ିବା ସମସ୍ତ ପାଠକଙ୍କୁ ଏକ ସ୍କାନର୍ ବଗ୍ ସନ୍ତୁଷ୍ଟ କରିବା ପାଇଁ କ୍ଷତି କରିବ।
+**ଆମେ ନିଜ ପକ୍ଷରୁ ଏହାକୁ କାହିଁକି "ଠିକ୍" କରୁନାହୁଁ:** ସମସ୍ତ ଉଦାହରଣ `http://localhost` ଅଟେ, ଏବଂ ସ୍ୱୟଂ-ସ୍ୱାକ୍ଷରିତ ପ୍ରମାଣପତ୍ରଜନିତ ଅସୁବିଧା ବିନା localhost `https` ହୋଇପାରିବ ନାହିଁ। ଜଣେ ବିକ୍ରେତାଙ୍କ ହ୍ୟୁରିଷ୍ଟିକ୍କୁ ଏଡ଼ାଇବା ପାଇଁ ଡକ୍ୟୁମେଣ୍ଟେସନ୍କୁ ବିକୃତ କରିବା ଏକ ସ୍କାନର୍ ବଗ୍କୁ ସନ୍ତୁଷ୍ଟ କରିବା ନିମନ୍ତେ ପ୍ରତ୍ୟେକ ପାଠକଙ୍କ କ୍ଷତି କରିବ।
 
-### କାସ୍ପରସ୍କି ଡେସ୍କଟପ୍ ଆପ୍କୁ `PDM:Trojan.Win32.Generic` ଭାବରେ ଚିହ୍ନଟ କରେ
+### Kaspersky ଡେସ୍କଟପ୍ ଆପ୍କୁ `PDM:Trojan.Win32.Generic` ଭାବରେ ଚିହ୍ନିତ କରେ
 
-**ଏହା ଏକ ଆଚରଣଗତ ହେଉରିଷ୍ଟିକ୍ ରୁ ମିଥ୍ୟା ସକାରାତ୍ମକ। କିଛି ସଂକ୍ରମଣ ନାହିଁ।** କାସ୍ପରସ୍କିର `PDM:` ଉପସର୍ଗ ଅର୍ଥ ନିଷ୍ପତ୍ତି ଏହାର ପ୍ରୋଏକ୍ଟିଭ୍ ଡିଫେନ୍ସ ମଡ୍ୟୁଲ୍ (ସିଷ୍ଟମ୍ ୱାଚର୍) ରୁ ଆସିଛି, ଯାହା ଇନ୍ଷ୍ଟଲର୍ _କରେ_ ବୋଲି ବିଚାର କରେ ନା ଏହାକୁ ଜଣା ମ୍ୟାଲୱେୟାର୍ ସହ ମ୍ୟାଚ୍ କରେ। ଯେତେବେଳେ ଏହା ଫାୟାର୍ ହୁଏ, କାସ୍ପରସ୍କି ସମଗ୍ର ଇନ୍ଷ୍ଟଲେସନ୍ "ରୋଲ୍ ବ୍ୟାକ୍" କରେ — ଏହା ଯେଉଁ ଫାଇଲ୍ ଲେଖି ସାରିଥିଲା ସେଗୁଡ଼ିକୁ ବିଲୋପ କରେ — ତେଣୁ ଆପ୍ ଭାଙ୍ଗିଯାଏ ବା ଅନୁପସ୍ଥିତ ହୋଇଯାଏ।
+**ଏହା ଆଚରଣ-ଆଧାରିତ ହ୍ୟୁରିଷ୍ଟିକ୍ରୁ ଆସିଥିବା ଏକ ଭୁଲ ସକାରାତ୍ମକ ଚିହ୍ନଟ। କିଛି ମଧ୍ୟ ସଂକ୍ରମିତ ହୋଇନାହିଁ।** Kasperskyର `PDM:` ଉପସର୍ଗର ଅର୍ଥ ହେଉଛି ଏହି ନିଷ୍ପତ୍ତି ତାହାର Proactive Defense Module (System Watcher)ରୁ ଆସିଛି, ଯାହା ଇନ୍ଷ୍ଟଲର୍କୁ ଜଣାଶୁଣା ମାଲୱେୟାର୍ ସହ ମେଳ କରିବା ପରିବର୍ତ୍ତେ ଏହା _କ’ଣ କରେ_ ତାହା ବିଚାର କରେ। ଏହା ସକ୍ରିୟ ହେଲେ, Kaspersky ସମ୍ପୂର୍ଣ୍ଣ ଇନ୍ଷ୍ଟଲେସନ୍କୁ "ରୋଲ୍ ବ୍ୟାକ୍" କରେ — ଏହା ପୂର୍ବରୁ ଲେଖିଥିବା ଫାଇଲ୍ଗୁଡ଼ିକୁ ବିଲୋପ କରେ — ଫଳରେ ଆପ୍ଟି ଭଙ୍ଗା ଅବସ୍ଥାରେ ରହିଯାଏ କିମ୍ବା ହଜିଯାଏ।
 
-ଏହା ଯେଉଁ ଫାଇଲ୍ ଚିହ୍ନଟ କରେ ସେଗୁଡ଼ି ଡେସ୍କଟପ୍ ଆପ୍ ସହ ବଣ୍ଡଲ୍ କରାଯାଇଥିବା ଘୋଷିତ, ଓପନ୍-ସୋର୍ସ ନିର୍ଭରତାର ଷ୍ଟକ୍ ଅଂଶ, ଉଦାହରଣ ସ୍ୱରୂପ:
+ଏହା ଚିହ୍ନିତ କରୁଥିବା ଫାଇଲ୍ଗୁଡ଼ିକ ଡେସ୍କଟପ୍ ଆପ୍ ସହ ବଣ୍ଡଲ୍ ହୋଇଥିବା ଘୋଷିତ, ଓପନ୍-ସୋର୍ସ ଡିପେଣ୍ଡେନ୍ସିଗୁଡ଼ିକର ମାନକ ଅଂଶ, ଉଦାହରଣ ସ୍ୱରୂପ:
 
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` ଏବଂ
-  `workerProcessEntry.js` — [Playwright](https://playwright.dev), ବ୍ରାଉଜର୍-ଅଟୋମେସନ୍ ଲାଇବ୍ରେରୀ ଯାହା ଇନ୍-ଆପ୍ ପ୍ରୋଭାଇଡର୍ ଲଗଇନ୍ ଏବଂ ବ୍ରାଉଜର୍-ବ୍ୟାକ୍ ଚାଟ୍ ପାଇଁ ବ୍ୟବହୃତ।
+  `workerProcessEntry.js` — [Playwright](https://playwright.dev), ଆପ୍ ଭିତରେ ପ୍ରଦାନକାରୀଙ୍କ ଲଗଇନ୍ ଏବଂ ବ୍ରାଉଜର୍-ସମର୍ଥିତ ଚାଟ୍ ପାଇଁ ବ୍ୟବହୃତ ବ୍ରାଉଜର୍ ସ୍ୱୟଂଚାଳନ ଲାଇବ୍ରେରୀ।
 - `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
-  — ପିନ୍ କରାଯାଇଥିବା `wreq-js` ନେଟିଭ୍ ବାଇଣ୍ଡିଂ ଯାହା ଓ୍ୱେବ୍-କୁକି ପ୍ରୋଭାଇଡର୍ ଉପରେ ବ୍ରାଉଜର୍-ଫିଙ୍ଗରପ୍ରିଣ୍ଟ୍ HTTP ପାଇଁ ବ୍ୟବହୃତ (`<arch>` ହେଉଛି `x64` ବା `arm64`)।
+  — ୱେବ୍-କୁକି ପ୍ରଦାନକାରୀମାନଙ୍କରେ ବ୍ରାଉଜର୍-ଫିଙ୍ଗରପ୍ରିଣ୍ଟେଡ୍ HTTP ପାଇଁ ବ୍ୟବହୃତ ପିନ୍ କରାଯାଇଥିବା `wreq-js` ନେଟିଭ୍ ବାଇଣ୍ଡିଂ (`<arch>` ହେଉଛି `x64` କିମ୍ବା `arm64`)।
 
-**କାହିଁକି ଏହା ଫାୟାର୍ ହୁଏ:** ୱିଣ୍ଡୋଜ୍ ଇନ୍ଷ୍ଟଲର୍ **ଏପର୍ଯ୍ୟନ୍ତ କୋଡ୍ ସାଇନ୍ କରାଯାଇ ନାହିଁ**, ତେଣୁ ଏକ ଅସାଇନ୍ NSIS ଇନ୍ଷ୍ଟଲର୍ ପାଖରେ ଜିରୋ ଖ୍ୟାତି ଅଛି ଏବଂ ଆଚରଣଗତ ହେଉରିଷ୍ଟିକ୍ ସର୍ବୋଚ୍ଚ ଆକ୍ରମଣରେ ଚଳାଇଥାଏ। ଏକ ବଣ୍ଡଲ୍ କରାଯାଇଥିବା ନେଟିଭ୍ DLL ଏବଂ %LOCALAPPDATA%\Programs\OmniRoute ଅଧୀନରେ ଲେଖାଯାଇଥିବା ଶହ ଶହ `.js` ଫାଇଲ୍ ସହ ସଂଯୁକ୍ତ (Next.js ଷ୍ଟାଣ୍ଡାଲୋନ୍ ବିଲ୍ଡ୍ ରୁ ହ୍ୟାସ୍-ସଫିକ୍ସ ପ୍ୟାକେଜ୍ ଡାଇରେକ୍ଟୋରୀ ସହ), ଏହା ହେଉରିଷ୍ଟିକ୍ କୁ ଟ୍ରିପ୍ କରିବା ପାଇଁ ଯଥେଷ୍ଟ। କୋଡ୍ ସାଇନିଂ ଯୋଜନା କରାଯାଇଛି; ଏହା ଆସିବା ପର୍ଯ୍ୟନ୍ତ, ନୂଆ ରିଲିଜ୍ ଏହାକୁ ପୁନରାବୃତ୍ତି କରିପାରେ।
+**ଏହା କାହିଁକି ସକ୍ରିୟ ହୁଏ:** Windows ଇନ୍ଷ୍ଟଲର୍ଟି **ଏପର୍ଯ୍ୟନ୍ତ କୋଡ୍-ସ୍ୱାକ୍ଷରିତ ହୋଇନାହିଁ**, ତେଣୁ ଏକ ସ୍ୱାକ୍ଷରବିହୀନ NSIS ଇନ୍ଷ୍ଟଲର୍ର କୌଣସି ପ୍ରତିଷ୍ଠା ନଥାଏ ଏବଂ ଆଚରଣ-ଆଧାରିତ ହ୍ୟୁରିଷ୍ଟିକ୍ଗୁଡ଼ିକ ସର୍ବାଧିକ ଆକ୍ରମଣାତ୍ମକତାରେ ଚାଲେ। ବଣ୍ଡଲ୍ ହୋଇଥିବା ଏକ ନେଟିଭ୍ DLL ଏବଂ `%LOCALAPPDATA%\Programs\OmniRoute` ଅଧୀନରେ ଲେଖାଯାଇଥିବା ଶହ ଶହ `.js` ଫାଇଲ୍ (Next.js ସ୍ୱତନ୍ତ୍ର ବିଲ୍ଡ୍ରୁ ହ୍ୟାଶ୍-ପ୍ରତ୍ୟୟଯୁକ୍ତ ପ୍ୟାକେଜ୍ ଡିରେକ୍ଟୋରୀ ସମେତ) ସହିତ ମିଶି ଏହା ହ୍ୟୁରିଷ୍ଟିକ୍କୁ ସକ୍ରିୟ କରିବା ପାଇଁ ଯଥେଷ୍ଟ। କୋଡ୍ ସ୍ୱାକ୍ଷର କରିବାର ଯୋଜନା ଅଛି; ଏହା କାର୍ଯ୍ୟକାରୀ ନହେବା ପର୍ଯ୍ୟନ୍ତ, ନୂଆ ରିଲିଜ୍ଗୁଡ଼ିକରେ ଏହା ପୁନରାବୃତ୍ତି ହୋଇପାରେ।
 
-**କଣ କରିବା ଉଚିତ:**
+**କ’ଣ କରିବେ:**
 
-1. **ପ୍ରଥମେ ଆପଣଙ୍କ ଡାଉନଲୋଡ୍ ଯାଞ୍ଚ କରନ୍ତୁ** (ଏକ ପରିବର୍ତ୍ତିତ ଫାଇଲ୍ ବାଦ ଦିଅନ୍ତୁ)। ପ୍ରତ୍ୟେକ ରିଲିଜ୍ `latest.yml` ପ୍ରକାଶ କରେ, ଯାହାର `sha512` କ୍ଷେତ୍ର (base64) `OmniRoute.Setup.<version>.exe` ଇନ୍ଷ୍ଟଲର୍ କୁ ଘେରାଇଥାଏ। PowerShell ରେ, ଇନ୍ଷ୍ଟଲର୍ ଥିବା ଫୋଲ୍ଡର୍ ରୁ:
+1. **ପ୍ରଥମେ ଆପଣଙ୍କ ଡାଉନଲୋଡ୍ ଯାଞ୍ଚ କରନ୍ତୁ** (ଏହା ଫାଇଲ୍ରେ ହସ୍ତକ୍ଷେପ ହୋଇଥିବା ସମ୍ଭାବନାକୁ ବାଦ ଦିଏ)। ପ୍ରତ୍ୟେକ ରିଲିଜ୍ରେ
+   `latest.yml` ପ୍ରକାଶିତ ହୁଏ, ଯାହାର `sha512` ଫିଲ୍ଡ୍ (base64) `OmniRoute.Setup.<version>.exe`
+   ଇନ୍ଷ୍ଟଲର୍କୁ ଅନ୍ତର୍ଭୁକ୍ତ କରେ। PowerShellରେ, ଇନ୍ଷ୍ଟଲର୍ ଥିବା ଫୋଲ୍ଡର୍ରୁ:
    ```powershell
    $b = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
      [System.IO.File]::ReadAllBytes("$PWD\OmniRoute.Setup.<version>.exe"))
    [Convert]::ToBase64String($b)
    ```
-   ଆଉଟପୁଟ୍ `latest.yml` → `sha512` ସହ ମେଳ ହେବା ଉଚିତ। ଯଦି ମେଳ ନ ହୁଏ, ଫାଇଲ୍ ବିଲୋପ କରନ୍ତୁ ଏବଂ [GitHub ରିଲିଜ୍ ପୃଷ୍ଠ](https://github.com/diegosouzapw/OmniRoute/releases) ରୁ କେବଳ ପୁନଃ ଡାଉନଲୋଡ୍ କରନ୍ତୁ।
-2. **ପୁନରୁଦ୍ଧାର + ବାଦ ଦିଅନ୍ତୁ** — ସଂଗ୍ରହରୁ ରୋଲ୍ ବ୍ୟାକ୍ କରାଯାଇଥିବା ଆଇଟମ୍ ପୁନରୁଦ୍ଧାର କରନ୍ତୁ ଏବଂ %LOCALAPPDATA%\Programs\OmniRoute ପାଇଁ ଏକ ବ୍ୟତିକ୍ରମ ଯୋଗ କରନ୍ତୁ (କାସ୍ପରସ୍କି → ସେଟିଂସ୍ → ହୁମ୍ୟାନ୍ ଓ ବ୍ୟତିକ୍ରମ), ତାପରେ ପୁନଃ ଇନ୍ଷ୍ଟଲ୍ କରନ୍ତୁ।
-3. **ମିଥ୍ୟା ସକାରାତ୍ମକ ରିପୋର୍ଟ କରନ୍ତୁ** — <https://opentip.kaspersky.com/>। ଉପଯୋଗକର୍ତ୍ତା-ଦ୍ୱାରା ଦାଖଲ କରାଯାଇଥିବା FP ରିପୋର୍ଟ ସତରେ ଅନୁମୋଦନ ତାଲିକାକୁ ତ୍ୱରାନ୍ୱିତ କରେ।
+   ଆଉଟପୁଟ୍ଟି `latest.yml` → `sha512` ସହ ମେଳ ଖାଇବା ଆବଶ୍ୟକ। ଯଦି ଏହା ମେଳ ନଖାଏ, ଫାଇଲ୍ଟି ବିଲୋପ କରନ୍ତୁ ଏବଂ କେବଳ [GitHub ରିଲିଜ୍ ପୃଷ୍ଠା](https://github.com/diegosouzapw/OmniRoute/releases)ରୁ ପୁନଃ ଡାଉନଲୋଡ୍ କରନ୍ତୁ।
+2. **ପୁନଃସ୍ଥାପନ + ବାଦ ଦିଅନ୍ତୁ** — କ୍ୱାରେଣ୍ଟାଇନ୍ରୁ ରୋଲ୍-ବ୍ୟାକ୍ ହୋଇଥିବା ଆଇଟମ୍ଗୁଡ଼ିକୁ ପୁନଃସ୍ଥାପନ କରନ୍ତୁ ଏବଂ
+   `%LOCALAPPDATA%\Programs\OmniRoute` ପାଇଁ ଏକ ବାଦ ନିୟମ ଯୋଡ଼ନ୍ତୁ (Kaspersky → Settings → Threats and Exclusions),
+   ତା’ପରେ ପୁନଃ ଇନ୍ଷ୍ଟଲ୍ କରନ୍ତୁ।
+3. **ଭୁଲ ସକାରାତ୍ମକ ଚିହ୍ନଟ ବିଷୟରେ ରିପୋର୍ଟ କରନ୍ତୁ** — <https://opentip.kaspersky.com/>। ବ୍ୟବହାରକାରୀଙ୍କ ଦ୍ୱାରା ଦାଖଲ କରାଯାଇଥିବା ଭୁଲ ସକାରାତ୍ମକ ରିପୋର୍ଟଗୁଡ଼ିକ ବାସ୍ତବରେ ଅନୁମୋଦିତ ତାଲିକାରେ ଯୋଡ଼ାଯିବାକୁ ଦ୍ରୁତ କରେ।
 
 ---
 
@@ -160,74 +157,76 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # heavyweight capacity ପାଇ�
 
 <a name="nodejs-compatibility"></a>
 
-### ଲଗଇନ ପୃଷ୍ଠା କ୍ରାସ ହୁଏ କିମ୍ବା "Module self-registration" ତ୍ରୁଟି ଦେଖାଏ
+### ଲଗଇନ୍ ପୃଷ୍ଠା କ୍ରାଶ୍ ହୁଏ କିମ୍ବା "Module self-registration" ତ୍ରୁଟି ଦେଖାଏ
 
-**କାରଣ:** ଆପଣ OmniRoute ର ସ୍ୱୀକୃତ ସୁରକ୍ଷିତ ରନ୍ଟାଇମ୍ ଫ୍ଲୋର୍ ବାହାରେ ଏକ Node.js ସଂସ୍କରଣ ଚଳାଉଛନ୍ତି। ସାଧାରଣତଃ ଏକ ପୁରୁଣା Node 22 କିମ୍ବା 24 ପ୍ୟାଚ୍ ସ୍ତର ଚଲାଉଛନ୍ତି ଯାହା OmniRoute ଆବଶ୍ୟକ କରୁଥିବା ପ୍ୟାଚ୍ଡ୍ ସୁରକ୍ଷା ଫ୍ଲୋର୍ ତଳେ ଅଛି।
+**କାରଣ:** ଆପଣ OmniRoute ଦ୍ୱାରା ଅନୁମୋଦିତ ସୁରକ୍ଷିତ ରନ୍ଟାଇମ୍ର ସର୍ବନିମ୍ନ ସୀମା ବାହାରେ ଥିବା ଏକ Node.js ସଂସ୍କରଣ ଚଳାଉଛନ୍ତି। ସବୁଠାରୁ ସାଧାରଣ କ୍ଷେତ୍ରରେ, ଏକ ପୁରୁଣା Node 22 କିମ୍ବା 24 ପ୍ୟାଚ୍ ସ୍ତର ଚାଲୁଥାଏ, ଯାହା OmniRoute ଆବଶ୍ୟକ କରୁଥିବା ପ୍ୟାଚ୍ଯୁକ୍ତ ସୁରକ୍ଷା ସୀମାଠାରୁ ନିମ୍ନରେ ଥାଏ।
 
 **ଲକ୍ଷଣ:**
 
-- ଲଗଇନ ପୃଷ୍ଠା ଏକ ଖାଲି ସ୍କ୍ରିନ୍ କିମ୍ବା ସର୍ଭର ତ୍ରୁଟି ଦେଖାଏ
-- କନସୋଲ୍ `Error: Module did not self-register` କିମ୍ବା ସମାନ ନେଟିଭ ବାଇଣ୍ଡିଂ ତ୍ରୁଟି ଦେଖାଏ
-- ଯଦି ରନ୍ଟାଇମ୍ ସମର୍ଥିତ ସୁରକ୍ଷିତ ନୀତି ବାହାରେ, ଲଗଇନ ପୃଷ୍ଠା ଆପଣଙ୍କ Node ସଂସ୍କରଣ ସହିତ ଏକ **କମଳା ଚେତାବନୀ ବ୍ୟାନର୍** ଦେଖାଏ
+- ଲଗଇନ୍ ପୃଷ୍ଠାରେ ଏକ ଖାଲି ସ୍କ୍ରିନ୍ କିମ୍ବା ସର୍ଭର୍ ତ୍ରୁଟି ଦେଖାଯାଏ
+- କନସୋଲ୍ରେ `Error: Module did not self-register` କିମ୍ବା ସମାନ ନେଟିଭ୍ ବାଇଣ୍ଡିଂ ତ୍ରୁଟି ଦେଖାଯାଏ
+- ଯଦି ରନ୍ଟାଇମ୍ ସମର୍ଥିତ ସୁରକ୍ଷା ନୀତି ବାହାରେ ଥାଏ, ତେବେ ଲଗଇନ୍ ପୃଷ୍ଠାରେ ଆପଣଙ୍କ Node ସଂସ୍କରଣ ସହିତ ଏକ **କମଳା ଚେତାବନୀ ବ୍ୟାନର୍** ଦେଖାଯାଏ
 
 **ସମାଧାନ:**
 
-1. ଏକ ସମର୍ଥିତ Node.js LTS ରିଲିଜ୍ ଇନଷ୍ଟଲ କରନ୍ତୁ (ସୁପାରିଶ କରାଯାଏ: Node.js 24.x):
+1. ଏକ ସମର୍ଥିତ Node.js LTS ରିଲିଜ୍ ସଂସ୍ଥାପନ କରନ୍ତୁ (ସୁପାରିସ୍: Node.js 24.x):
    ```bash
    nvm install 24
    nvm use 24
    ```
-2. ଆପଣଙ୍କ ସଂସ୍କରଣ ଯାଞ୍ଚ କରନ୍ତୁ: `node --version` 24.x LTS ଲାଇନରେ `v24.0.0` କିମ୍ବା ନୂତନ ଦେଖାଇବା ଉଚିତ୍
-3. OmniRoute ପୁନଃସ୍ଥାପନ କରନ୍ତୁ: `npm install -g omniroute`
-4. ପୁନଃସ୍ଥାପନ କରନ୍ତୁ: `omniroute`
+2. ଆପଣଙ୍କ ସଂସ୍କରଣ ଯାଞ୍ଚ କରନ୍ତୁ: `node --version` 24.x LTS ଶୃଙ୍ଖଳାରେ `v24.0.0` କିମ୍ବା ତାହାଠାରୁ ନୂଆ ସଂସ୍କରଣ ଦେଖାଇବା ଉଚିତ
+3. OmniRoute ପୁନଃସଂସ୍ଥାପନ କରନ୍ତୁ: `npm install -g omniroute`
+4. ପୁନଃଚାଳନ କରନ୍ତୁ: `omniroute`
 
-> **ସମର୍ଥିତ ସୁରକ୍ଷିତ ସଂସ୍କରଣ:** `>=22.22.2 <23` କିମ୍ବା `>=24.0.0 <27`। Node.js 24.x LTS (Krypton) ଏବଂ Node.js 26 ସମ୍ପୂର୍ଣ୍ଣ ସମର୍ଥିତ।
+> **ସମର୍ଥିତ ସୁରକ୍ଷିତ ସଂସ୍କରଣଗୁଡ଼ିକ:** `>=22.22.2 <23` କିମ୍ବା `>=24.0.0 <27`। Node.js 24.x LTS (Krypton) ଏବଂ Node.js 26 ସମ୍ପୂର୍ଣ୍ଣ ଭାବେ ସମର୍ଥିତ।
 
-### npm v11+: `better-sqlite3` ଇନଷ୍ଟଲ ହୋଇନାହିଁ (Cannot find module)
+### npm v11+: `better-sqlite3` ସଂସ୍ଥାପିତ ହୋଇନାହିଁ (ମଡ୍ୟୁଲ୍ ଖୋଜି ପାରୁନାହିଁ)
 
 <a name="npm-v11-better-sqlite3-not-installed-cannot-find-module"></a>
 
-**କାରଣ:** npm v11 (Node.js 24+ ସହିତ ଆସିଥାଏ) ଡିଫଲ୍ଟ ଭାବରେ ଐଚ୍ଛିକ ନିର୍ଭରତା ପାଇଁ ଇନଷ୍ଟଲ ସ୍କ୍ରିପ୍ଟଗୁଡ଼ିକୁ ଅବରୋଧ କରେ। ଯେହେତୁ `better-sqlite3` `optionalDependencies` ରେ ତାଲିକାଭୁକ୍ତ ଏବଂ ଏହାକୁ ନେଟିଭ କମ୍ପାଇଲେସନ୍ (`node-gyp rebuild`) ଆବଶ୍ୟକ, npm ନୀରବରେ ଏହାକୁ ଛାଡ଼ି ଦିଏ।
+**କାରଣ:** npm v11 (Node.js 24+ ସହିତ ପ୍ରଦାନ କରାଯାଇଥାଏ) ଡିଫଲ୍ଟ ଭାବରେ ଇଚ୍ଛାଧୀନ
+ନିର୍ଭରଶୀଳତାଗୁଡ଼ିକ ପାଇଁ ସଂସ୍ଥାପନ ସ୍କ୍ରିପ୍ଟଗୁଡ଼ିକୁ ଅବରୋଧ କରେ। ଯେହେତୁ `better-sqlite3`, `optionalDependencies`
+ମଧ୍ୟରେ ତାଲିକାଭୁକ୍ତ ଏବଂ ନେଟିଭ୍ କମ୍ପାଇଲେସନ୍ (`node-gyp rebuild`) ଆବଶ୍ୟକ କରେ, npm ନିରବରେ ଏହାକୁ ଏଡ଼ାଇଯାଏ।
 
 **ଲକ୍ଷଣ:**
 
-- ସର୍ଭର ଷ୍ଟାର୍ଟଅପ୍ରେ `Cannot find module 'better-sqlite3'` ସହିତ କ୍ରାସ ହୁଏ
+- ଆରମ୍ଭ ସମୟରେ `Cannot find module 'better-sqlite3'` ସହିତ ସର୍ଭର୍ କ୍ରାଶ୍ ହୁଏ
 - `ls node_modules/better-sqlite3` "No such file or directory" ଦେଖାଏ
 - `npm ls better-sqlite3` `(empty)` ଦେଖାଏ
 
 **ସମାଧାନ:**
 
-1. ଇନଷ୍ଟଲ ସ୍କ୍ରିପ୍ଟଗୁଡ଼ିକୁ ଅନୁମୋଦନ କରନ୍ତୁ ଏବଂ ପୁନଃସ୍ଥାପନ କରନ୍ତୁ:
+1. ସଂସ୍ଥାପନ ସ୍କ୍ରିପ୍ଟଗୁଡ଼ିକୁ ଅନୁମୋଦନ କରି ପୁନଃସଂସ୍ଥାପନ କରନ୍ତୁ:
    ```bash
    npm approve-scripts better-sqlite3
    npm install
    ```
-2. କିମ୍ବା ପ୍ରିବିଲ୍ଟ ମାନୁଆଲି ଇନଷ୍ଟଲ କରନ୍ତୁ:
+2. କିମ୍ବା ପୂର୍ବରୁ ବିଲ୍ଡ୍ ହୋଇଥିବା ପ୍ୟାକେଜ୍ଟି ମାନୁଆଲ୍ ଭାବେ ସଂସ୍ଥାପନ କରନ୍ତୁ:
    ```bash
    npm pack better-sqlite3@13.0.1
    tar -xzf better-sqlite3-*.tgz -C node_modules
    mv node_modules/package node_modules/better-sqlite3
    rm better-sqlite3-*.tgz
    ```
-3. ଏହା କାମ କରୁଛି କି ଯାଞ୍ଚ କରନ୍ତୁ: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
+3. ଏହା କାମ କରୁଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
 
 ### macOS: `dlopen` / "slice is not valid mach-o file"
 
 <a name="macos-native-module-rebuild"></a>
 
-**କାରଣ:** ଏକ ଗ୍ଲୋବାଲ୍ `npm install -g omniroute` ପରେ, ପ୍ୟାକେଜ୍ ଭିତରେ ଥିବା `better-sqlite3` ନେଟିଭ ବାଇନାରୀ ସ୍ଥାନୀୟ ଭାବରେ ଚାଲୁଥିବା ତୁଳନାରେ ଏକ ଭିନ୍ନ ଆର୍କିଟେକ୍ଚର୍ କିମ୍ବା Node.js ABI ପାଇଁ କମ୍ପାଇଲ ହୋଇଥାଇପାରେ। ଯେତେବେଳେ ପ୍ରି-ବିଲ୍ଟ ବାଇନାରୀ ଆପଣଙ୍କ ପରିବେଶ ସହିତ ମେଳ ଖାଏ ନାହିଁ, ଏହା macOS (ଉଭୟ Apple Silicon ଏବଂ Intel) ରେ ସାଧାରଣ ଅଟେ।
+**କାରଣ:** ଏକ ଗ୍ଲୋବାଲ୍ `npm install -g omniroute` ପରେ, ପ୍ୟାକେଜ୍ ଭିତରେ ଥିବା `better-sqlite3` ନେଟିଭ୍ ବାଇନାରିଟି ସ୍ଥାନୀୟ ଭାବେ ଚାଲୁଥିବା ଆର୍କିଟେକ୍ଚର୍ କିମ୍ବା Node.js ABIଠାରୁ ଭିନ୍ନ ଏକ ଆର୍କିଟେକ୍ଚର୍ କିମ୍ବା ABI ପାଇଁ କମ୍ପାଇଲ୍ ହୋଇଥାଇପାରେ। ପୂର୍ବରୁ ବିଲ୍ଡ୍ ହୋଇଥିବା ବାଇନାରି ଆପଣଙ୍କ ପରିବେଶ ସହିତ ମେଳ ନଖାଇଲେ, macOSରେ (Apple Silicon ଏବଂ Intel ଉଭୟରେ) ଏହା ସାଧାରଣ ଅଟେ।
 
 **ଲକ୍ଷଣ:**
 
-- ସର୍ଭର ଷ୍ଟାର୍ଟଅପ୍ରେ ତୁରନ୍ତ `dlopen` ତ୍ରୁଟି ସହିତ ବିଫଳ ହୁଏ
-- ତ୍ରୁଟିରେ `slice is not valid mach-o file` ଅଛି
+- ଆରମ୍ଭ ସମୟରେ ଏକ `dlopen` ତ୍ରୁଟି ସହିତ ସର୍ଭର୍ ତୁରନ୍ତ ବିଫଳ ହୁଏ
+- ତ୍ରୁଟିରେ `slice is not valid mach-o file` ଥାଏ
 - ସମ୍ପୂର୍ଣ୍ଣ ଉଦାହରଣ:
 
 ```
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**ସମାଧାନ — ଆପଣଙ୍କ ସ୍ଥାନୀୟ ପରିବେଶ ପାଇଁ ପୁନଃନିର୍ମାଣ କରନ୍ତୁ (କୌଣସି Node.js ଡାଉନଗ୍ରେଡ୍ ଆବଶ୍ୟକ ନାହିଁ):**
+**ସମାଧାନ — ଆପଣଙ୍କ ସ୍ଥାନୀୟ ପରିବେଶ ପାଇଁ ପୁନଃବିଲ୍ଡ୍ କରନ୍ତୁ (Node.js ଡାଉନ୍ଗ୍ରେଡ୍ ଆବଶ୍ୟକ ନୁହେଁ):**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -235,7 +234,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **ଧ୍ୟାନ ଦିଅନ୍ତୁ:** ଏହା ଆପଣଙ୍କ ସ୍ଥାନୀୟ Node.js ସଂସ୍କରଣ ଏବଂ CPU ଆର୍କିଟେକ୍ଚର୍ ସହିତ ନେଟିଭ ବାଇଣ୍ଡିଂକୁ ପୁନଃସଂକଳନ କରେ, ଯାହା ବାଇନାରୀ ଅସଙ୍ଗତିକୁ ସମାଧାନ କରେ। ଆଧିକାରିକ ଭାବରେ ସମର୍ଥିତ ରନ୍ଟାଇମ୍ ପରିସର ହେଉଛି **`>=22.22.2 <23` କିମ୍ବା `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` `src/shared/utils/nodeRuntimeSupport.ts` ରେ, `package.json`ର `engines` ଫିଲ୍ଡ ସହିତ ସମନ୍ୱିତ)। Node.js 24.x LTS (Krypton) ଏବଂ Node.js 26 `better-sqlite3` v12.x ସହିତ ସମ୍ପୂର୍ଣ୍ଣ ସମର୍ଥିତ।
+> **ଟିପ୍ପଣୀ:** ଏହା ଆପଣଙ୍କ ସ୍ଥାନୀୟ Node.js ସଂସ୍କରଣ ଏବଂ CPU ଆର୍କିଟେକ୍ଚର୍ ଅନୁଯାୟୀ ନେଟିଭ୍ ବାଇଣ୍ଡିଂକୁ ପୁନଃକମ୍ପାଇଲ୍ କରି ବାଇନାରି ଅମେଳକୁ ସମାଧାନ କରେ। ଆଧିକାରିକ ଭାବେ ସମର୍ଥିତ ରନ୍ଟାଇମ୍ ପରିସର ହେଉଛି **`>=22.22.2 <23` କିମ୍ବା `>=24.0.0 <27`** (`src/shared/utils/nodeRuntimeSupport.ts`ରେ `SUPPORTED_NODE_RANGE`, `package.json`ର `engines` ଫିଲ୍ଡ୍ ସହିତ ସମରେଖିତ)। Node.js 24.x LTS (Krypton) ଏବଂ Node.js 26, `better-sqlite3` v12.x ସହିତ ସମ୍ପୂର୍ଣ୍ଣ ଭାବେ ସମର୍ଥିତ।
 
 ---
 
@@ -243,126 +242,136 @@ omniroute
 
 <a name="proxy-issues"></a>
 
-### ପ୍ରୋଭାଇଡର ଭାଲିଡେସନ୍ "fetch failed" ଦେଖାଏ
+### ପ୍ରଦାନକାରୀ ଯାଞ୍ଚରେ "fetch failed" ଦେଖାଯାଉଛି
 
-**କାରଣ:** API କୀ ଭାଲିଡେସନ୍ ଏଣ୍ଡପଏଣ୍ଟ (`POST /api/providers/validate`) ପୂର୍ବରୁ ପ୍ରକ୍ସି କନଫିଗରେସନ୍କୁ ବାଦ୍ ଦେଉଥିଲା, ଯାହା ପ୍ରକ୍ସି ରୁଟିଂ ଆବଶ୍ୟକ କରୁଥିବା ପରିବେଶରେ ବିଫଳତା ସୃଷ୍ଟି କରୁଥିଲା।
+**କାରଣ:** API କି ଯାଞ୍ଚ ଏଣ୍ଡପଏଣ୍ଟ (`POST /api/providers/validate`) ପୂର୍ବରୁ ପ୍ରକ୍ସି କନଫିଗରେସନ୍କୁ ଏଡ଼ାଇ ଯାଉଥିଲା, ଯାହା ପ୍ରକ୍ସି ରାଉଟିଂ ଆବଶ୍ୟକ କରୁଥିବା ପରିବେଶଗୁଡ଼ିକରେ ବିଫଳତା ସୃଷ୍ଟି କରୁଥିଲା।
 
-**ସମାଧାନ (v3.5.5+):** ଏବେ ଏହା ସମାଧାନ ହୋଇଛି। ପ୍ରୋଭାଇଡର ଭାଲିଡେସନ୍ `runWithProxyContext` ମାଧ୍ୟମରେ ରୁଟ୍ ହୁଏ, ଯାହା ପ୍ରୋଭାଇଡର-ସ୍ତରୀୟ ଏବଂ ବୈଶ୍ୱିକ ପ୍ରକ୍ସି ସେଟିଂସ୍କୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ସମ୍ମାନ କରେ।
+**ସମାଧାନ (v3.5.5+):** ଏହା ବର୍ତ୍ତମାନ ସମାଧାନ କରାଯାଇଛି। ପ୍ରଦାନକାରୀ ଯାଞ୍ଚ `runWithProxyContext` ମାଧ୍ୟମରେ ରାଉଟ୍ ହୁଏ ଏବଂ ପ୍ରଦାନକାରୀ-ସ୍ତରୀୟ ଓ ଗ୍ଲୋବାଲ୍ ପ୍ରକ୍ସି ସେଟିଂସ୍କୁ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଅନୁସରଣ କରେ।
 
-### ଟୋକେନ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ "fetch failed" ସହିତ ବିଫଳ ହୁଏ
+### ଟୋକନ୍ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ "fetch failed" ସହିତ ବିଫଳ ହେଉଛି
 
-**କାରଣ:** ପୃଷ୍ଠଭୂମି OAuth ଟୋକେନ ରିଫ୍ରେସ୍ ପ୍ରତି ସଂଯୋଗ ପାଇଁ ପ୍ରକ୍ସି କନଫିଗରେସନ୍ ସମାଧାନ କରୁନଥିଲା।
+**କାରଣ:** ପୃଷ୍ଠଭୂମି OAuth ଟୋକନ୍ ରିଫ୍ରେଶ୍ ପ୍ରତ୍ୟେକ କନେକ୍ସନ୍ ପାଇଁ ପ୍ରକ୍ସି କନଫିଗରେସନ୍କୁ ସମାଧାନ କରୁନଥିଲା।
 
-**ସମାଧାନ (v3.5.5+):** ଟୋକେନ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ ସମୟସୂଚୀକରଣକାରୀ ଏବେ ରିଫ୍ରେସ୍ କରିବା ପୂର୍ବରୁ ପ୍ରତି ସଂଯୋଗ ପାଇଁ ପ୍ରକ୍ସି କନଫିଗ୍ ସମାଧାନ କରେ। v3.5.5+ ରେ ଅପଡେଟ୍ କରନ୍ତୁ।
+**ସମାଧାନ (v3.5.5+):** ଟୋକନ୍ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ ସ୍କେଜୁଲର୍ ବର୍ତ୍ତମାନ ରିଫ୍ରେଶ୍ କରିବାକୁ ଚେଷ୍ଟା କରିବା ପୂର୍ବରୁ ପ୍ରତ୍ୟେକ କନେକ୍ସନ୍ ପାଇଁ ପ୍ରକ୍ସି କନଫିଗ୍ ସମାଧାନ କରେ। v3.5.5+କୁ ଅପଡେଟ୍ କରନ୍ତୁ।
 
-### SOCKS5 ପ୍ରକ୍ସି "invalid onRequestStart method" ଫେରାଇ ଦିଏ
+### SOCKS5 ପ୍ରକ୍ସି "invalid onRequestStart method" ଫେରାଉଛି
 
-**କାରଣ:** Node.js 22 ରେ, undici@8 ଡିସ୍ପାଚର୍ Node ର ଅନ୍ତର୍ନିହିତ `fetch()` କାର୍ଯ୍ୟାନ୍ୱୟନ ସହିତ ଅସଙ୍ଗତ।
+**କାରଣ:** Node.js 22ରେ, undici@8 ଡିସ୍ପାଚର୍ Nodeର ବିଲ୍ଟ-ଇନ୍ `fetch()` ଇମ୍ପ୍ଲିମେଣ୍ଟେସନ୍ ସହିତ ସୁସଙ୍ଗତ ନୁହେଁ।
 
-**ସମାଧାନ (v3.5.5+):** OmniRoute ଏବେ ଯେତେବେଳେ ଏକ ପ୍ରକ୍ସି ଡିସ୍ପାଚର୍ ସକ୍ରିୟ ଥାଏ, ସେତେବେଳେ undici ର ନିଜସ୍ୱ `fetch()` ଫଙ୍କସନ୍ ବ୍ୟବହାର କରେ, ଯାହା ସ୍ଥିର ଆଚରଣ ସୁନିଶ୍ଚିତ କରେ। v3.5.5+ ରେ ଅପଡେଟ୍ କରନ୍ତୁ।
+**ସମାଧାନ (v3.5.5+):** ଏକ ପ୍ରକ୍ସି ଡିସ୍ପାଚର୍ ସକ୍ରିୟ ଥିବାବେଳେ OmniRoute ବର୍ତ୍ତମାନ undiciର ନିଜସ୍ୱ `fetch()` ଫଙ୍କସନ୍ ବ୍ୟବହାର କରେ, ଯାହା ସୁସଙ୍ଗତ ଆଚରଣ ସୁନିଶ୍ଚିତ କରେ। v3.5.5+କୁ ଅପଡେଟ୍ କରନ୍ତୁ।
 
-### WSL ଅଧୀନରେ MITM ପ୍ରକ୍ସି: Windows ହୋଷ୍ଟରେ ଥିବା ଡେସ୍କଟପ୍ ଆପ୍ସଗୁଡ଼ିକ ଇଣ୍ଟରସେପ୍ଟ ହେଉନାହିଁ
+### WSL ଅଧୀନରେ MITM ପ୍ରକ୍ସି: Windows ହୋଷ୍ଟରେ ଥିବା ଡେସ୍କଟପ୍ ଆପ୍ଗୁଡ଼ିକୁ ଇଣ୍ଟରସେପ୍ଟ କରାଯାଉନାହିଁ
 
-**କାରଣ:** MITM ପ୍ରକ୍ସି ଏବଂ ଏହାର CA ସାର୍ଟିଫିକେଟ୍ OmniRoute ଚାଲୁଥିବା ପରିବେଶରେ ଇନଷ୍ଟଲ ହୁଏ। WSL ଅଧୀନରେ ସେହି ପରିବେଶ ହେଉଛି Linux ଅତିଥି, ଯେତେବେଳେ AI ଡେସ୍କଟପ୍ ଆପ୍ସଗୁଡ଼ିକ (Kiro, Trae, Copilot, Zed, …) Windows ହୋଷ୍ଟରେ ଚାଲନ୍ତି। ହୋଷ୍ଟ ଆପ୍ସଗୁଡ଼ିକ ଅତିଥିର ସାର୍ଟିଫିକେଟ୍ ଷ୍ଟୋରକୁ ବିଶ୍ୱାସ କରନ୍ତି ନାହିଁ ଏବଂ ଅତିଥିର ସିଷ୍ଟମ ପ୍ରକ୍ସି ମାଧ୍ୟମରେ ରୁଟ୍ କରନ୍ତି ନାହିଁ, ତେଣୁ ସେଠାରେ ଡେସ୍କଟପ୍ ଇଣ୍ଟରସେପ୍ସନ୍ ସକ୍ରିୟ ହୁଏ ନାହିଁ।
+**କାରଣ:** MITM ପ୍ରକ୍ସି ଏବଂ ଏହାର CA ସାର୍ଟିଫିକେଟ୍ OmniRoute ଚାଲୁଥିବା ପରିବେଶରେ ଇନଷ୍ଟଲ୍ ହୁଏ। WSL ଅଧୀନରେ ସେହି ପରିବେଶଟି ହେଉଛି Linux ଗେଷ୍ଟ୍, ଯେତେବେଳେ AI ଡେସ୍କଟପ୍ ଆପ୍ଗୁଡ଼ିକ (Kiro, Trae, Copilot, Zed, …) Windows ହୋଷ୍ଟରେ ଚାଲେ। ହୋଷ୍ଟ ଆପ୍ଗୁଡ଼ିକ ଗେଷ୍ଟ୍ର ସାର୍ଟିଫିକେଟ୍ ଷ୍ଟୋର୍କୁ ବିଶ୍ୱାସ କରନ୍ତି ନାହିଁ ଏବଂ ଗେଷ୍ଟ୍ର ସିଷ୍ଟମ୍ ପ୍ରକ୍ସି ମାଧ୍ୟମରେ ରାଉଟ୍ ହୁଅନ୍ତି ନାହିଁ, ତେଣୁ ସେଠାରେ ଡେସ୍କଟପ୍ ଇଣ୍ଟରସେପ୍ସନ୍ ସକ୍ରିୟ ହୁଏ ନାହିଁ।
 
-**ସୁପାରିଶ:** ଯେଉଁ ଡେସ୍କଟପ୍ ଆପ୍ସଗୁଡ଼ିକୁ ଆପଣ ଇଣ୍ଟରସେପ୍ଟ କରିବାକୁ ଚାହାଁନ୍ତି, ସେହି ସମାନ OS ରେ OmniRoute କୁ ନେଟିଭ୍ ଭାବେ ଚଲାନ୍ତୁ (Windows ଆପ୍ସ ପାଇଁ Windows; macOS/Linux ମଧ୍ୟ ସେହିପରି)। ହୋଷ୍ଟ ଆପ୍ସଗୁଡ଼ିକୁ ଟାର୍ଗେଟ୍ କରୁଥିବାବେଳେ OmniRoute କୁ WSL ଭିତରେ ରଖିବା ପାଇଁ Windows ହୋଷ୍ଟରେ ଉତ୍ପନ୍ନ CA ସାର୍ଟିଫିକେଟ୍କୁ ମାନୁଆଲି ବିଶ୍ୱାସ କରିବା ଏବଂ ପ୍ରତ୍ୟେକ ହୋଷ୍ଟ ଆପ୍ର ନେଟୱର୍କ/ପ୍ରକ୍ସି ସେଟିଂସ୍କୁ WSL ପ୍ରକ୍ସି ଏଣ୍ଡପଏଣ୍ଟକୁ ନିର୍ଦ୍ଦେଶ କରିବା ଆବଶ୍ୟକ — ଏହା ଏକ ଅସମର୍ଥିତ, ଦୁର୍ବଳ ସେଟଅପ୍।
+**ସୁପାରିସ:** ଆପଣ ଯେଉଁ ଡେସ୍କଟପ୍ ଆପ୍ଗୁଡ଼ିକୁ ଇଣ୍ଟରସେପ୍ଟ କରିବାକୁ ଚାହାନ୍ତି, ସେଗୁଡ଼ିକ ଯେଉଁ OSରେ ଅଛି, ସେହି OSରେ OmniRouteକୁ ନେଟିଭ୍ ଭାବରେ ଚଲାନ୍ତୁ (Windows ଆପ୍ଗୁଡ଼ିକ ପାଇଁ Windows; macOS/Linux ପାଇଁ ମଧ୍ୟ ସେହିପରି)। ହୋଷ୍ଟ ଆପ୍ଗୁଡ଼ିକୁ ଲକ୍ଷ୍ୟ କରି OmniRouteକୁ WSL ଭିତରେ ରଖିବା ପାଇଁ, Windows ହୋଷ୍ଟରେ ଜେନେରେଟ୍ ହୋଇଥିବା CA ସାର୍ଟିଫିକେଟ୍କୁ ମାନୁଆଲ୍ ଭାବରେ ବିଶ୍ୱାସଯୋଗ୍ୟ କରିବାକୁ ଏବଂ ପ୍ରତ୍ୟେକ ହୋଷ୍ଟ ଆପ୍ର ନେଟୱର୍କ/ପ୍ରକ୍ସି ସେଟିଂସ୍କୁ WSL ପ୍ରକ୍ସି ଏଣ୍ଡପଏଣ୍ଟ ଆଡ଼କୁ ନିର୍ଦ୍ଦେଶ କରିବାକୁ ପଡ଼ିବ — ଏହା ଏକ ଅସମର୍ଥିତ ଏବଂ ଭଙ୍ଗୁର ସେଟଅପ୍।
 
 ---
 
-## ପ୍ରୋଭାଇଡର ସମସ୍ୟାଗୁଡ଼ିକ
+## ପ୍ରଦାନକାରୀ ସମସ୍ୟାଗୁଡ଼ିକ
 
-### "ଭାଷା ମଡେଲ୍ ମେସେଜ୍ ପ୍ରଦାନ କରିନାହିଁ"
+### "Language model did not provide messages"
 
-**କାରଣ:** ପ୍ରୋଭାଇଡର କୋଟା ସମାପ୍ତ ହୋଇଛି।
+**କାରଣ:** ପ୍ରଦାନକାରୀଙ୍କ କୋଟା ଶେଷ ହୋଇଯାଇଛି।
 
 **ସମାଧାନ:**
 
-1. ଡ୍ୟାସବୋର୍ଡ କୋଟା ଟ୍ରାକର ଯାଞ୍ଚ କରନ୍ତୁ
-2. ଫଲବ୍ୟାକ୍ ଟାୟର୍ ସହିତ ଏକ କମ୍ବୋ ବ୍ୟବହାର କରନ୍ତୁ
-3. ସସ୍ତା/ମାଗଣା ଟାୟର୍କୁ ସୁଇଚ୍ କରନ୍ତୁ
+1. ଡ୍ୟାସବୋର୍ଡ କୋଟା ଟ୍ରାକର୍ ଯାଞ୍ଚ କରନ୍ତୁ
+2. ଫଲବ୍ୟାକ୍ ସ୍ତର ଥିବା ଏକ କମ୍ବୋ ବ୍ୟବହାର କରନ୍ତୁ
+3. ଶସ୍ତା/ମାଗଣା ସ୍ତରକୁ ସ୍ୱିଚ୍ କରନ୍ତୁ
 
 ### ରେଟ୍ ଲିମିଟିଂ
 
-**କାରଣ:** ସବସ୍କ୍ରିପ୍ସନ୍ କୋଟା ସମାପ୍ତ ହୋଇଛି।
+**କାରଣ:** ସବ୍ସ୍କ୍ରିପ୍ସନ୍ କୋଟା ଶେଷ ହୋଇଯାଇଛି।
 
 **ସମାଧାନ:**
 
-- ଫଲବ୍ୟାକ୍ ଯୋଡନ୍ତୁ: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
-- GLM/MiniMax କୁ ସସ୍ତା ବ୍ୟାକଅପ୍ ଭାବେ ବ୍ୟବହାର କରନ୍ତୁ
+- ଫଲବ୍ୟାକ୍ ଯୋଡ଼ନ୍ତୁ: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
+- GLM/MiniMaxକୁ ଶସ୍ତା ବ୍ୟାକଅପ୍ ଭାବରେ ବ୍ୟବହାର କରନ୍ତୁ
 
-### OAuth ଟୋକେନ ସମାପ୍ତ
+### OAuth ଟୋକନ୍ର ମିଆଦ ଶେଷ ହୋଇଛି
 
-OmniRoute ସ୍ୱୟଂଚାଳିତ ଭାବେ ଟୋକେନ୍ଗୁଡ଼ିକୁ ରିଫ୍ରେସ୍ କରେ। ଯଦି ସମସ୍ୟା ଜାରି ରହେ:
+OmniRoute ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଟୋକନ୍ଗୁଡ଼ିକୁ ରିଫ୍ରେଶ୍ କରେ। ସମସ୍ୟା ଜାରି ରହିଲେ:
 
-1. ଡ୍ୟାସବୋର୍ଡ → ପ୍ରୋଭାଇଡର → ପୁନଃସଂଯୋଗ କରନ୍ତୁ
-2. ପ୍ରୋଭାଇଡର ସଂଯୋଗ ଡିଲିଟ୍ କରି ପୁନଃଯୋଡନ୍ତୁ
+1. ଡ୍ୟାସବୋର୍ଡ → ପ୍ରଦାନକାରୀ → ପୁନଃସଂଯୋଗ କରନ୍ତୁ
+2. ପ୍ରଦାନକାରୀ କନେକ୍ସନ୍କୁ ଡିଲିଟ୍ କରି ପୁଣି ଯୋଡ଼ନ୍ତୁ
 
-### Kiro ମଲ୍ଟି-ଆକାଉଣ୍ଟ: ଦ୍ୱିତୀୟ ଆକାଉଣ୍ଟ ପ୍ରଥମକୁ ଅବୈଧ କରେ
+### Kiro ମଲ୍ଟି-ଆକାଉଣ୍ଟ: ଦ୍ୱିତୀୟ ଆକାଉଣ୍ଟ ପ୍ରଥମଟିକୁ ଅବୈଧ କରିଦିଏ
 
-**କାରଣ:** Kiro ର ବ୍ୟାକଏଣ୍ଡ୍ ପ୍ରତି OIDC କ୍ଲାଏଣ୍ଟ ପଞ୍ଜୀକରଣ ପାଇଁ ଏକକ ସକ୍ରିୟ ସେସନ୍ ଲାଗୁ କରେ। ଯେତେବେଳେ ଦୁଇଟି ଆକାଉଣ୍ଟ ସମାନ ପଞ୍ଜୀକୃତ କ୍ଲାଏଣ୍ଟ ଅଂଶୀଦାର କରନ୍ତି (v3.8.0 ପୂର୍ବରୁ ଆମଦାନୀ ହୋଇଥିବା ସଂଯୋଗ), ଗୋଟିଏ ଆକାଉଣ୍ଟର ଟୋକେନ ରିଫ୍ରେସ୍ କରିବା ଅନ୍ୟର ରିଫ୍ରେସ୍ ଟୋକେନକୁ ଅବୈଧ କରିଦିଏ।
+**କାରଣ:** Kiroର ବ୍ୟାକଏଣ୍ଡ ପ୍ରତ୍ୟେକ OIDC କ୍ଲାଏଣ୍ଟ ରେଜିଷ୍ଟ୍ରେସନ୍ ପାଇଁ କେବଳ ଗୋଟିଏ ସକ୍ରିୟ ସେସନ୍କୁ ଅନୁମତି ଦିଏ।
+ଯେତେବେଳେ ଦୁଇଟି ଆକାଉଣ୍ଟ ସମାନ ରେଜିଷ୍ଟର୍ ହୋଇଥିବା କ୍ଲାଏଣ୍ଟ୍କୁ ଅଂଶୀଦାର କରନ୍ତି (v3.8.0 ପୂର୍ବରୁ ଇମ୍ପୋର୍ଟ କରାଯାଇଥିବା କନେକ୍ସନ୍ଗୁଡ଼ିକ),
+ଗୋଟିଏ ଆକାଉଣ୍ଟର ଟୋକନ୍ ରିଫ୍ରେଶ୍ କଲେ ଅନ୍ୟଟିର ରିଫ୍ରେଶ୍ ଟୋକନ୍ ଅବୈଧ ହୋଇଯାଏ।
 
-**ସମାଧାନ (v3.8.0+):** ପ୍ରଭାବିତ ସଂଯୋଗଗୁଡ଼ିକୁ ପୁନଃ-ଆମଦାନୀ କରନ୍ତୁ। v3.8.0 ଠାରୁ ଆରମ୍ଭ କରି, **Import Token**, **Google/GitHub ସୋସିଆଲ ଲଗଇନ୍**, କିମ୍ବା **Auto-Import** ମାଧ୍ୟମରେ ସୃଷ୍ଟି ହୋଇଥିବା ପ୍ରତ୍ୟେକ ନୂତନ Kiro ସଂଯୋଗ ସ୍ୱୟଂଚାଳିତ ଭାବେ ନିଜର ସ୍ୱତନ୍ତ୍ର OIDC କ୍ଲାଏଣ୍ଟ ପଞ୍ଜୀକରଣ କରେ। ତେଣୁ ସଂଯୋଗ ସମ୍ପୂର୍ଣ୍ଣ ଭାବେ ପୃଥକ ହୋଇଥାଏ ଏବଂ ଗୋଟିଏ ଆକାଉଣ୍ଟ ରିଫ୍ରେସ୍ କରିବା ଅନ୍ୟ କୌଣସି ଆକାଉଣ୍ଟ ଉପରେ ପ୍ରଭାବ ପକାଏ ନାହିଁ।
+**ସମାଧାନ (v3.8.0+):** ପ୍ରଭାବିତ କନେକ୍ସନ୍ଗୁଡ଼ିକୁ ପୁନଃ ଇମ୍ପୋର୍ଟ କରନ୍ତୁ।
+v3.8.0ରୁ ଆରମ୍ଭ କରି, **Import Token**,
+**Google/GitHub social login**, କିମ୍ବା **Auto-Import** ମାଧ୍ୟମରେ ସୃଷ୍ଟି ହୋଇଥିବା ପ୍ରତ୍ୟେକ ନୂଆ Kiro କନେକ୍ସନ୍ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଏହାର ନିଜସ୍ୱ
+ଉତ୍ସର୍ଗୀକୃତ OIDC କ୍ଲାଏଣ୍ଟକୁ ରେଜିଷ୍ଟର୍ କରେ। ତେଣୁ କନେକ୍ସନ୍ଟି ସମ୍ପୂର୍ଣ୍ଣ ଭାବରେ ପୃଥକ ରହେ ଏବଂ ଗୋଟିଏ
+ଆକାଉଣ୍ଟକୁ ରିଫ୍ରେଶ୍ କରିବା ଦ୍ୱାରା ଅନ୍ୟ କୌଣସି ଆକାଉଣ୍ଟ ଉପରେ କୌଣସି ପ୍ରଭାବ ପଡ଼େ ନାହିଁ।
 
-v3.8.0 ପୂର୍ବରୁ ଆମଦାନୀ ହୋଇଥିବା ସଂଯୋଗଗୁଡ଼ିକରେ ପ୍ରତି-ସଂଯୋଗ କ୍ଲାଏଣ୍ଟ ପଞ୍ଜୀକରଣ ନଥାଏ। ସେହି ସଂଯୋଗଗୁଡ଼ିକ ସହିତ ଅଂଶୀଦାର ସୋସିଆଲ-ଅଥ୍ ରିଫ୍ରେସ୍ ଏଣ୍ଡପଏଣ୍ଟ ବ୍ୟବହାର କରିବା ଜାରି ରଖନ୍ତି। ପୃଥକତା ପାଇବାକୁ, ଡ୍ୟାସବୋର୍ଡ → ପ୍ରୋଭାଇଡରରୁ ପୁରୁଣା ସଂଯୋଗ ଡିଲିଟ୍ କରନ୍ତୁ ଏବଂ ତିନୋଟି ଆମଦାନୀ ପ୍ରବାହ ମଧ୍ୟରୁ ଯେକୌଣସି ମାଧ୍ୟମରେ ଏହାକୁ ପୁନଃଯୋଡନ୍ତୁ।
+v3.8.0 _ପୂର୍ବରୁ_ ଇମ୍ପୋର୍ଟ କରାଯାଇଥିବା କନେକ୍ସନ୍ଗୁଡ଼ିକରେ ପ୍ରତି-କନେକ୍ସନ୍ କ୍ଲାଏଣ୍ଟ
+ରେଜିଷ୍ଟ୍ରେସନ୍ ନଥାଏ। ସେହି କନେକ୍ସନ୍ଗୁଡ଼ିକ ଅଂଶୀଦାର ସୋସିଆଲ୍-ଅଥ୍ ରିଫ୍ରେଶ୍ ଏଣ୍ଡପଏଣ୍ଟ ବ୍ୟବହାର ଜାରି ରଖନ୍ତି।
+ପୃଥକତା ହାସଲ କରିବାକୁ, ଡ୍ୟାସବୋର୍ଡ → ପ୍ରଦାନକାରୀରୁ ପୁରୁଣା କନେକ୍ସନ୍କୁ ଡିଲିଟ୍ କରନ୍ତୁ ଏବଂ
+ତିନୋଟି ଇମ୍ପୋର୍ଟ ପ୍ରବାହ ମଧ୍ୟରୁ ଯେକୌଣସି ଗୋଟିଏ ମାଧ୍ୟମରେ ଏହାକୁ ପୁଣି ଯୋଡ଼ନ୍ତୁ।
 
-ଦୁଇଟି Kiro ଆକାଉଣ୍ଟକୁ ପାଖାପାଖି ଯୋଡିବା ପାଇଁ ସମ୍ପୂର୍ଣ୍ଣ ବିବରଣୀ ଏବଂ ପଦକ୍ଷେପ-ଦ୍ୱାରା-ପଦକ୍ଷେପ ନିର୍ଦ୍ଦେଶାବଳୀ ପାଇଁ, [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md) ଦେଖନ୍ତୁ।
-
----
-
-## କ୍ଲାଉଡ୍ ସମସ୍ୟା
-
-### କ୍ଲାଉଡ୍ ସିଙ୍କ୍ ତ୍ରୁଟି
-
-1. `BASE_URL` ଆପଣଙ୍କ ଚାଲୁଥିବା ଇନ୍ଷ୍ଟାନ୍ସକୁ ନିର୍ଦ୍ଦେଶ କରେ ବୋಲି ଯାଞ୍ଚ କରନ୍ତୁ (ଉଦାହରଣ, `http://localhost:20128`)
-2. `CLOUD_URL` ଆପଣଙ୍କ କ୍ଲାଉଡ୍ ଏଣ୍ଡପଏଣ୍ଟକୁ ନିର୍ଦ୍ଦେଶ କରେ ବୋଲି ଯାଞ୍ଚ କରନ୍ତୁ (ଉଦାହରଣ, `https://omniroute.dev`)
-3. `NEXT_PUBLIC_*` ମୂଲ୍ୟଗୁଡ଼ିକ ସର୍ଭର-ସାଇଡ୍ ମୂଲ୍ୟ ସହିତ ସଂଯୁକ୍ତ ରଖନ୍ତୁ
-
-### କ୍ଲାଉଡ୍ `stream=false` 500 ଫେରାଏ
-
-**ଲକ୍ଷଣ:** ଅଣ-ଷ୍ଟ୍ରିମିଂ କଲ୍ ପାଇଁ କ୍ଲାଉଡ୍ ଏଣ୍ଡପଏଣ୍ଟରେ `Unexpected token 'd'...`।
-
-**କାରଣ:** ଅପ୍ଷ୍ଟ୍ରିମ୍ SSE ପେଲୋଡ୍ ଫେରାଏ ଯେତେବେଳେ କ୍ଲାଏଣ୍ଟ୍ JSON ଆଶା କରେ।
-
-**ସମାଧାନ:** କ୍ଲାଉଡ୍ ସିଧାସଳଖ କଲ୍ ପାଇଁ `stream=true` ବ୍ୟବହାର କରନ୍ତୁ। ସ୍ଥାନୀୟ ରନଟାଇମ୍ SSE→JSON ଫାଲବ୍ୟାକ୍ ଅନ୍ତର୍ଭୁକ୍ତ କରେ।
-
-### କ୍ଲାଉଡ୍ ସଂଯୁକ୍ତ ବୋଲି କହେ କିନ୍ତୁ "Invalid API key"
-
-1. ସ୍ଥାନୀୟ ଡ୍ୟାସବୋର୍ଡ (`/api/keys`) ରୁ ଏକ ନୂଆ କୀ ସୃଷ୍ଟି କରନ୍ତୁ
-2. କ୍ଲାଉଡ୍ ସିଙ୍କ୍ ଚଳାନ୍ତୁ: କ୍ଲାଉଡ୍ ସକ୍ଷମ କରନ୍ତୁ → ଏବେ ସିଙ୍କ୍ କରନ୍ତୁ
-3. ପୁରୁଣା/ଅସିଙ୍କ୍ କୀ ଗୁଡ଼ିକ କ୍ଲାଉଡ୍ ଉପରେ ଏବେ ବି `401` ଫେରାଇ ପାରନ୍ତି
+ଦୁଇଟି Kiro ଆକାଉଣ୍ଟକୁ ପାଖାପାଖି ଯୋଡ଼ିବା ପାଇଁ ସମ୍ପୂର୍ଣ୍ଣ ବିବରଣୀ ଏବଂ ପଦକ୍ଷେପ-ଦର-ପଦକ୍ଷେପ ନିର୍ଦ୍ଦେଶାବଳୀ ପାଇଁ,
+[`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md) ଦେଖନ୍ତୁ।
 
 ---
 
-## Docker ସମସ୍ୟା
+## କ୍ଲାଉଡ୍ ସମସ୍ୟାଗୁଡ଼ିକ
+
+### କ୍ଲାଉଡ୍ ସିଙ୍କ୍ ତ୍ରୁଟିଗୁଡ଼ିକ
+
+1. `BASE_URL` ଆପଣଙ୍କର ଚାଲୁଥିବା ଇନ୍ଷ୍ଟାନ୍ସକୁ ସୂଚାଉଛି କି ଯାଞ୍ଚ କରନ୍ତୁ (ଉଦାହରଣସ୍ୱରୂପ, `http://localhost:20128`)
+2. `CLOUD_URL` ଆପଣଙ୍କର କ୍ଲାଉଡ୍ ଏଣ୍ଡପଏଣ୍ଟକୁ ସୂଚାଉଛି କି ଯାଞ୍ଚ କରନ୍ତୁ (ଉଦାହରଣସ୍ୱରୂପ, `https://omniroute.dev`)
+3. `NEXT_PUBLIC_*` ମୂଲ୍ୟଗୁଡ଼ିକୁ ସର୍ଭର-ସାଇଡ୍ ମୂଲ୍ୟଗୁଡ଼ିକ ସହ ସମାନ ରଖନ୍ତୁ
+
+### କ୍ଲାଉଡ୍ରେ `stream=false` 500 ଫେରାଏ
+
+**ଲକ୍ଷଣ:** ନନ୍-ଷ୍ଟ୍ରିମିଂ କଲ୍ଗୁଡ଼ିକ ପାଇଁ କ୍ଲାଉଡ୍ ଏଣ୍ଡପଏଣ୍ଟରେ `Unexpected token 'd'...`।
+
+**କାରଣ:** କ୍ଲାଏଣ୍ଟ JSON ଆଶା କରୁଥିବାବେଳେ ଅପ୍ଷ୍ଟ୍ରିମ୍ SSE ପେଲୋଡ୍ ଫେରାଏ।
+
+**ଅସ୍ଥାୟୀ ସମାଧାନ:** କ୍ଲାଉଡ୍କୁ ସିଧାସଳଖ କଲ୍ କରିବା ପାଇଁ `stream=true` ବ୍ୟବହାର କରନ୍ତୁ। ସ୍ଥାନୀୟ ରନ୍ଟାଇମ୍ରେ SSE→JSON ଫଲ୍ବ୍ୟାକ୍ ଅନ୍ତର୍ଭୁକ୍ତ ଅଛି।
+
+### କ୍ଲାଉଡ୍ ସଂଯୋଗ ହୋଇଛି ବୋଲି କହେ, କିନ୍ତୁ "ଅବୈଧ API କୀ"
+
+1. ସ୍ଥାନୀୟ ଡ୍ୟାସ୍ବୋର୍ଡରୁ ଏକ ନୂତନ କୀ ତିଆରି କରନ୍ତୁ (`/api/keys`)
+2. କ୍ଲାଉଡ୍ ସିଙ୍କ୍ ଚଲାନ୍ତୁ: କ୍ଲାଉଡ୍ ସକ୍ଷମ କରନ୍ତୁ → ବର୍ତ୍ତମାନ ସିଙ୍କ୍ କରନ୍ତୁ
+3. ପୁରୁଣା/ସିଙ୍କ୍ ହୋଇନଥିବା କୀଗୁଡ଼ିକ କ୍ଲାଉଡ୍ରେ ଏବେ ମଧ୍ୟ `401` ଫେରାଇପାରନ୍ତି
+
+---
+
+## Docker ସମସ୍ୟାଗୁଡ଼ିକ
 
 ### Docker IPv6 / ସଂଯୋଗ ରିସେଟ୍
 
 <a name="docker-ipv6"></a>
 
-**ଲକ୍ଷଣ:** `curl http://localhost:20128/v1/models` `curl: (56) Recv failure: Connection reset by peer` ଫେରାଏ। ଡ୍ୟାସବୋର୍ଡ ଏବଂ ଅନୁମୋଦନ-ମୁକ୍ତ ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକ କାମ କରେ, କିନ୍ତୁ ଅନୁମୋଦିତ ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକ ବିଫଳ ହୁଏ — ଏହା ଏକ ଅନୁମୋଦନ ସମସ୍ୟା ପରି ଦେଖାଯାଏ କିନ୍ତୁ ନୁହେଁ।
+**ଲକ୍ଷଣଗୁଡ଼ିକ:** `curl http://localhost:20128/v1/models` ଚଲାଇଲେ `curl: (56) Recv failure: Connection reset by peer` ଫେରାଏ। ଡ୍ୟାସ୍ବୋର୍ଡ ଏବଂ ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ କରୁନଥିବା ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକ କାମ କରେ, କିନ୍ତୁ ପ୍ରମାଣୀକୃତ ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକ ବିଫଳ ହୁଏ — ଏହା ପ୍ରମାଣୀକରଣ ସମସ୍ୟା ପରି ଦେଖାଯାଏ, କିନ୍ତୁ ପ୍ରକୃତରେ ତାହା ନୁହେଁ।
 
-**କାରଣ:** `docker run -p 20128:20128` ଉଭୟ `0.0.0.0` (IPv4) ଏବଂ `::` (IPv6) ଉପରେ ପ୍ରକାଶ କରେ, କିନ୍ତୁ କଣ୍ଟେନର ଭିତରେ ଥିବା ପ୍ରକ୍ରିୟା କେବଳ IPv4 ଉପରେ ଶୁଣେ। `localhost` ଯେଉଁ ହୋଷ୍ଟଗୁଡ଼ିକରେ ପ୍ରଥମେ `::1` କୁ ସମାଧାନ କରେ, ସେଠାରେ ସଂଯୋଗ IPv6 ପ୍ରକାଶିତ ପୋର୍ଟରେ ଅଛି ଯାହା ପଛରେ କୌଣସି ଶ୍ରୋତା ନାହିଁ → ସଂଯୋଗ ରିସେଟ୍ ହୁଏ।
+**କାରଣ:** `docker run -p 20128:20128`, `0.0.0.0` (IPv4) ଏବଂ `::` (IPv6) ଉଭୟରେ ପ୍ରକାଶ କରେ, କିନ୍ତୁ କଣ୍ଟେନର ଭିତରେ ଥିବା ପ୍ରକ୍ରିୟା କେବଳ IPv4ରେ ଲିସନ୍ କରେ। ଯେଉଁ ହୋଷ୍ଟଗୁଡ଼ିକରେ `localhost` ପ୍ରଥମେ `::1`କୁ ରିଜଲ୍ଭ ହୁଏ, ସେଠାରେ ସଂଯୋଗଟି ପଛରେ କୌଣସି ଲିସନର୍ ନଥିବା IPv6 ପ୍ରକାଶିତ ପୋର୍ଟରେ ପହଞ୍ଚେ → ସଂଯୋଗ ରିସେଟ୍ ହୁଏ।
 
 **ସମାଧାନ:**
 
-1. **ଶୀଘ୍ର ନିଦାନ:** `curl -4 http://localhost:20128/v1/models` ଚଳାନ୍ତୁ। ଯଦି `-4` ସହ କାମ କରେ କିନ୍ତୁ ବିନା ବିଫଳ ହୁଏ, ତେବେ ଆପଣଙ୍କର ଏକ IPv6 ବାଇଣ୍ଡ୍ ମିଳାପ ଅସାମଞ୍ଜସ୍ୟ ଅଛି।
-2. **ସ୍ଥାୟୀ ସମାଧାନ:** ଆପଣଙ୍କ `docker run` କମାଣ୍ଡରେ `-p 127.0.0.1:20128:20128` ବ୍ୟବହାର କରି IPv4 କୁ ସ୍ପଷ୍ଟ ଭାବରେ ବାନ୍ଧନ୍ତୁ:
+1. **ଦ୍ରୁତ ନିଦାନ:** `curl -4 http://localhost:20128/v1/models` ଚଲାନ୍ତୁ। ଯଦି ଏହା `-4` ସହ କାମ କରେ, କିନ୍ତୁ ଏହା ବିନା ବିଫଳ ହୁଏ, ତେବେ ଆପଣଙ୍କ ପାଖରେ ଏକ IPv6 ବାଇଣ୍ଡ୍ ଅମେଳ ଅଛି।
+2. **ସ୍ଥାୟୀ ସମାଧାନ:** ଆପଣଙ୍କ `docker run` କମାଣ୍ଡରେ `-p 127.0.0.1:20128:20128` ବ୍ୟବହାର କରି ସ୍ପଷ୍ଟ ଭାବରେ IPv4 ସହ ବାଇଣ୍ଡ୍ କରନ୍ତୁ:
    ```bash
    docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
      -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
    ```
-   ଏହା IPv4 ବାଇଣ୍ଡ୍ କୁ ବାଧ୍ୟ କରେ ଏବଂ ସୁଯୋଗ ପ୍ରୋକ୍ସିକୁ ସମସ୍ତ ହୋଷ୍ଟ୍ ଇଣ୍ଟରଫେସ୍ ଉପରେ ଉତ୍ପାଦନ କରିବାରୁ ମଧ୍ୟ ରୋକେ।
+   ଏହା IPv4 ବାଇଣ୍ଡ୍କୁ ବାଧ୍ୟତାମୂଳକ କରେ ଏବଂ ସମସ୍ତ ହୋଷ୍ଟ ଇଣ୍ଟରଫେସ୍ରେ ପ୍ରକ୍ସିକୁ ଉନ୍ମୁକ୍ତ କରିବାରୁ ମଧ୍ୟ ରୋକେ।
 
 ---
 
-### CLI ଟୁଲ୍ ସ୍ଥାପିତ ନାହିଁ ବୋଲି ଦେଖାଏ
+### CLI ଟୁଲ୍ ଇନ୍ଷ୍ଟଲ୍ ହୋଇନାହିଁ ବୋଲି ଦେଖାଏ
 
-1. ରନଟାଇମ୍ ଫିଲ୍ଡ ଯାଞ୍ଚ କରନ୍ତୁ: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. ପୋର୍ଟେବଲ୍ ମୋଡ୍ ପାଇଁ: ଇମେଜ୍ ଟାର୍ଗେଟ୍ `runner-cli` (ବଣ୍ଡଲ୍ CLI) ବ୍ୟବହାର କରନ୍ତୁ
-3. ହୋଷ୍ଟ୍ ମାଉଣ୍ଟ୍ ମୋଡ୍ ପାଇଁ: `CLI_EXTRA_PATHS` ସେଟ୍ କରନ୍ତୁ ଏବଂ ହୋଷ୍ଟ୍ ବିନ୍ ଡାଇରେକ୍ଟୋରୀକୁ ପଠନ-ମାତ୍ର ରୂପେ ମାଉଣ୍ଟ୍ କରନ୍ତୁ
-4. ଯଦି `installed=true` ଏବଂ `runnable=false`: ବାଇନାରୀ ମିଳିଲା କିନ୍ତୁ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ ବିଫଳ ହେଲା
+1. ରନ୍ଟାଇମ୍ ଫିଲ୍ଡଗୁଡ଼ିକ ଯାଞ୍ଚ କରନ୍ତୁ: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. ପୋର୍ଟେବଲ୍ ମୋଡ୍ ପାଇଁ: ଇମେଜ୍ ଟାର୍ଗେଟ୍ `runner-cli` ବ୍ୟବହାର କରନ୍ତୁ (ବଣ୍ଡଲ୍ କରାଯାଇଥିବା CLIଗୁଡ଼ିକ)
+3. ହୋଷ୍ଟ ମାଉଣ୍ଟ୍ ମୋଡ୍ ପାଇଁ: `CLI_EXTRA_PATHS` ସେଟ୍ କରନ୍ତୁ ଏବଂ ହୋଷ୍ଟ bin ଡିରେକ୍ଟୋରିକୁ କେବଳ ପଠନୀୟ ଭାବରେ ମାଉଣ୍ଟ୍ କରନ୍ତୁ
+4. ଯଦି `installed=true` ଏବଂ `runnable=false`: ବାଇନାରି ମିଳିଥିଲା, କିନ୍ତୁ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚରେ ବିଫଳ ହୋଇଥିଲା
 
-### ଶୀଘ୍ର ରନଟାଇମ୍ ଯାଞ୍ଚ
+### ଦ୍ରୁତ ରନ୍ଟାଇମ୍ ବୈଧୀକରଣ
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -372,138 +381,145 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ---
 
-## ଖର୍ଚ୍ଚ ସମସ୍ୟା
+## ଖର୍ଚ୍ଚ ସମସ୍ୟାଗୁଡ଼ିକ
 
 ### ଅଧିକ ଖର୍ଚ୍ଚ
 
-1. ଡ୍ୟାସବୋର୍ଡ → ବ୍ୟବହାରରେ ବ୍ୟବହାର ପରିସଂଖ୍ୟାନ ଯାଞ୍ଚ କରନ୍ତୁ
-2. ପ୍ରାଥମିକ ମଡେଲ୍ GLM/MiniMax କୁ ସ୍ଵିଚ୍ କରନ୍ତୁ
-3. ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ନୁହେଁ ଥିବା କାର୍ଯ୍ୟ ପାଇଁ ମୁକ୍ତ ସ୍ତର (Qoder, Kiro) ବ୍ୟବହାର କରନ୍ତୁ
-4. ପ୍ରତ୍ୟେକ API କୀ ପାଇଁ ଖର୍ଚ୍ଚ ବଜେଟ୍ ସେଟ୍ କରନ୍ତୁ: ଡ୍ୟାସବୋର୍ଡ → API Keys → Budget
+1. ଡ୍ୟାସ୍ବୋର୍ଡ → ବ୍ୟବହାରରେ ବ୍ୟବହାର ପରିସଂଖ୍ୟାନ ଯାଞ୍ଚ କରନ୍ତୁ
+2. ପ୍ରାଥମିକ ମଡେଲ୍କୁ GLM/MiniMaxକୁ ପରିବର୍ତ୍ତନ କରନ୍ତୁ
+3. ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ନୁହେଁ ଏପରି କାର୍ଯ୍ୟଗୁଡ଼ିକ ପାଇଁ ମାଗଣା ସ୍ତର (Qoder, Kiro) ବ୍ୟବହାର କରନ୍ତୁ
+4. ପ୍ରତ୍ୟେକ API କୀ ପାଇଁ ଖର୍ଚ୍ଚ ବଜେଟ୍ ସେଟ୍ କରନ୍ତୁ: ଡ୍ୟାସ୍ବୋର୍ଡ → API କୀଗୁଡ଼ିକ → ବଜେଟ୍
 
 ---
 
 ## ଡିବଗିଂ
 
-### ଲଗ୍ ଫାଇଲ୍ ସକ୍ଷମ କରନ୍ତୁ
+### ଲଗ୍ ଫାଇଲ୍ଗୁଡ଼ିକ ସକ୍ଷମ କରନ୍ତୁ
 
-ଆପଣଙ୍କ `.env` ଫାଇଲ୍ରେ `APP_LOG_TO_FILE=true` ସେଟ୍ କରନ୍ତୁ। ଆପ୍ଲିକେସନ୍ ଲଗ୍ `logs/` ଅନ୍ତର୍ଗତ ଲେଖା ଯାଏ।
-ଅନୁରୋଧ ଲଗ୍ ପାଇପ୍ଲାଇନ୍ ସେଟିଂସ୍ରେ ସକ୍ଷମ ଥିଲେ ଅନୁରୋଧ ଲଗ୍ ପାଇପ୍ଲାଇନ୍ `${DATA_DIR}/call_logs/` ଅନ୍ତର୍ଗତ ସଂରକ୍ଷିତ ହୁଏ।
-ପାଇପ୍ଲାଇନ୍ କ୍ୟାପଚର୍ ସକ୍ଷମ ଥିଲେ, ଷ୍ଟ୍ରିମ୍ ଚଂକ୍ ପେଲୋଡ୍ ବାଦ୍ ଦେବାପାଇଁ `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` ସେଟ୍ କରନ୍ତୁ, କିମ୍ବା ଆର୍ଟିଫାକ୍ଟ୍ କ୍ୟାପ୍କୁ KB ରେ ବଦଳାଇବାପାଇଁ `CALL_LOG_PIPELINE_MAX_SIZE_KB` ସମାୟୋଜିତ କରନ୍ତୁ।
+ଆପଣଙ୍କ `.env` ଫାଇଲ୍ରେ `APP_LOG_TO_FILE=true` ସେଟ୍ କରନ୍ତୁ। ଆପ୍ଲିକେସନ୍ ଲଗ୍ଗୁଡ଼ିକ `logs/` ଅଧୀନରେ ଲେଖାଯାଏ।
+ସେଟିଂସ୍ରେ କଲ୍ ଲଗ୍ ପାଇପ୍ଲାଇନ୍ ସକ୍ଷମ ଥିବାବେଳେ ଅନୁରୋଧ ଆର୍ଟିଫ୍ୟାକ୍ଟଗୁଡ଼ିକ `${DATA_DIR}/call_logs/` ଅଧୀନରେ ସଂରକ୍ଷିତ ହୁଏ।
+ପାଇପ୍ଲାଇନ୍ କ୍ୟାପ୍ଚର୍ ସକ୍ଷମ ଥିବାବେଳେ, ଷ୍ଟ୍ରିମ୍ ଚଙ୍କ୍ ପେଲୋଡ୍ଗୁଡ଼ିକୁ ବାଦ ଦେବା ପାଇଁ `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` ସେଟ୍ କରନ୍ତୁ, କିମ୍ବା KBରେ ଆର୍ଟିଫ୍ୟାକ୍ଟ ସୀମା ପରିବର୍ତ୍ତନ କରିବାକୁ `CALL_LOG_PIPELINE_MAX_SIZE_KB` ସମନ୍ୱୟ କରନ୍ତୁ।
 
-### ପ୍ରଦାନକାରୀ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ
+### ପ୍ରଦାନକାରୀଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ କରନ୍ତୁ
 
 ```bash
-# ସ୍ୱାସ୍ଥ୍ୟ ଡ୍ୟାସବୋର୍ଡ
+# ସ୍ୱାସ୍ଥ୍ୟ ଡ୍ୟାସ୍ବୋର୍ଡ
 http://localhost:20128/dashboard/health
 
 # API ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ
 curl http://localhost:20128/api/monitoring/health
 ```
 
-### ରନଟାଇମ୍ ଷ୍ଟୋରେଜ୍
+### ରନ୍ଟାଇମ୍ ଷ୍ଟୋରେଜ୍
 
-- ମୁଖ୍ୟ ଅବସ୍ଥା: `${DATA_DIR}/storage.sqlite` (ପ୍ରଦାନକାରୀ, କମ୍ବୋ, ଉପନାମ, କୀ, ସେଟିଂସ୍)
-- ବ୍ୟବହାର: `storage.sqlite` ରେ SQLite ଟେବୁଲ୍ (`usage_history`, `call_logs`, `proxy_logs`) + ଐଚ୍ଛିକ `${DATA_DIR}/call_logs/`
-- ଆପ୍ଲିକେସନ୍ ଲଗ୍: `<repo>/logs/...` (ଯେତେବେଳେ `APP_LOG_TO_FILE=true`)
-- କଲ୍ ଲଗ୍ ଆର୍ଟିଫାକ୍ଟ୍: କଲ୍ ଲଗ୍ ପାଇପ୍ଲାଇନ୍ ସକ୍ଷମ ଥିଲେ `${DATA_DIR}/call_logs/YYYY-MM-DD/...`
+- ମୁଖ୍ୟ ସ୍ଥିତି: `${DATA_DIR}/storage.sqlite` (ପ୍ରଦାନକାରୀ, କମ୍ବୋ, ଉପନାମ, କୀ, ସେଟିଂସ୍)
+- ବ୍ୟବହାର: `storage.sqlite`ରେ SQLite ଟେବୁଲ୍ଗୁଡ଼ିକ (`usage_history`, `call_logs`, `proxy_logs`) + ଇଚ୍ଛାଧୀନ `${DATA_DIR}/call_logs/`
+- ଆପ୍ଲିକେସନ୍ ଲଗ୍ଗୁଡ଼ିକ: `<repo>/logs/...` (`APP_LOG_TO_FILE=true` ଥିବାବେଳେ)
+- କଲ୍ ଲଗ୍ ଆର୍ଟିଫ୍ୟାକ୍ଟଗୁଡ଼ିକ: କଲ୍ ଲଗ୍ ପାଇପ୍ଲାଇନ୍ ସକ୍ଷମ ଥିବାବେଳେ `${DATA_DIR}/call_logs/YYYY-MM-DD/...`
 
-ଅନୁରୋଧ ଲଗ୍ ପୃଷ୍ଠାର **Clean history** କାର୍ଯ୍ୟ `call_logs`, ପୁରୁଣା
-`request_detail_logs`, ଏବଂ ସ୍ଥାନୀୟ `${DATA_DIR}/call_logs/` ଆର୍ଟିଫାକ୍ଟ୍ ଡାଇରେକ୍ଟୋରୀକୁ ପରିଷ୍କାର କରେ।
+ଅନୁରୋଧ ଲଗ୍ ପୃଷ୍ଠାର **ଇତିହାସ ସଫା କରନ୍ତୁ** କାର୍ଯ୍ୟଟି `call_logs`, ପୁରୁଣା
+`request_detail_logs`, ଏବଂ ସ୍ଥାନୀୟ `${DATA_DIR}/call_logs/` ଆର୍ଟିଫ୍ୟାକ୍ଟ ଡିରେକ୍ଟୋରିକୁ ସଫା କରେ।
 
 ---
 
-## ସର୍କିଟ ବ୍ରେକର ସମସ୍ୟା
+## ସର୍କିଟ୍ ବ୍ରେକର୍ ସମସ୍ୟାଗୁଡ଼ିକ
 
-### ପ୍ରୋଭାଇଡର OPEN ଅବସ୍ଥାରେ ଅଟକିଛି
+### ପ୍ରଦାତା OPEN ଅବସ୍ଥାରେ ଅଟକି ରହିଛି
 
-ଯେତେବେଳେ ଏକ ପ୍ରୋଭାଇଡରର ସର୍କିଟ ବ୍ରେକର OPEN ଅବସ୍ଥାରେ ଥାଏ, ଅନୁଗ୍ରହ କାଳ ଶେଷ ନ ହେବା ପର୍ଯ୍ୟନ୍ତ ଅନୁରୋଧଗୁଡିକ ଅବରୋଧିତ ହୋଇଥାଏ।
+ଯେତେବେଳେ କୌଣସି ପ୍ରଦାତାର ସର୍କିଟ୍ ବ୍ରେକର୍ OPEN ଥାଏ, କୁଲ୍ଡାଉନ୍ ଅବଧି ଶେଷ ହେବା ପର୍ଯ୍ୟନ୍ତ ଅନୁରୋଧଗୁଡ଼ିକୁ ଅବରୋଧ କରାଯାଏ।
 
 **ସମାଧାନ:**
 
-1. **ଡ୍ୟାଶବୋର୍ଡ → ସେଟିଂସ୍ → ରେଜିଲିଏନ୍ସ** କୁ ଯାଅ
-2. ପ୍ରଭାବିତ ପ୍ରୋଭାଇଡର ପାଇଁ ସର୍କିଟ ବ୍ରେକର କାର୍ଡ ଯାଞ୍ଚ କର
-3. ସମସ୍ତ ବ୍ରେକର ସଫା କରିବାକୁ **ସମସ୍ତ ପୁନର୍ନିର୍ମାଣ କର** ଉପରେ କ୍ଲିକ୍ କର, ଅଥବା ଅନୁଗ୍ରହ କାଳ ଶେଷ ହେବାକୁ ଅପେକ୍ଷା କର
-4. ପୁନର୍ନିର୍ମାଣ କରିବା ପୂର୍ବରୁ ପ୍ରୋଭାଇଡର ପ୍ରକୃତରେ ଉପଲବ୍ଧ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ କର
+1. **ଡ୍ୟାଶବୋର୍ଡ → ସେଟିଂସ୍ → ସ୍ଥିତିସ୍ଥାପକତା**କୁ ଯାଆନ୍ତୁ
+2. ପ୍ରଭାବିତ ପ୍ରଦାତା ପାଇଁ ସର୍କିଟ୍ ବ୍ରେକର୍ କାର୍ଡ ଯାଞ୍ଚ କରନ୍ତୁ
+3. ସମସ୍ତ ବ୍ରେକର୍ ସଫା କରିବାକୁ **ସବୁ ରିସେଟ୍ କରନ୍ତୁ** କ୍ଲିକ୍ କରନ୍ତୁ, କିମ୍ବା କୁଲ୍ଡାଉନ୍ ଅବଧି ଶେଷ ହେବା ପର୍ଯ୍ୟନ୍ତ ଅପେକ୍ଷା କରନ୍ତୁ
+4. ରିସେଟ୍ କରିବା ପୂର୍ବରୁ ପ୍ରଦାତା ପ୍ରକୃତରେ ଉପଲବ୍ଧ ଅଛନ୍ତି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ
 
-### ପ୍ରୋଭାଇଡର ବାରମ୍ବାର ସର୍କିଟ ବ୍ରେକର ଟ୍ରିପ୍ କରୁଛି
+### ପ୍ରଦାତା ବାରମ୍ବାର ସର୍କିଟ୍ ବ୍ରେକର୍କୁ ଟ୍ରିପ୍ କରୁଛନ୍ତି
 
-ଯଦି ଏକ ପ୍ରୋଭାଇଡର ବାରମ୍ବାର OPEN ଅବସ୍ଥାକୁ ପ୍ରବେଶ କରେ:
+ଯଦି କୌଣସି ପ୍ରଦାତା ବାରମ୍ବାର OPEN ଅବସ୍ଥାକୁ ଯାଆନ୍ତି:
 
-1. **ଡ୍ୟାଶବୋର୍ଡ → ସ୍ୱାସ୍ଥ୍ୟ → ପ୍ରୋଭାଇଡର ସ୍ୱାସ୍ଥ୍ୟ** ରେ ବିଫଳତା ପ୍ରକାର ଯାଞ୍ଚ କର
-2. **ସେଟିଂସ୍ → ରେଜିଲିଏନ୍ସ → ପ୍ରୋଭାଇଡର ପ୍ରୋଫାଇଲ୍ସ** କୁ ଯାଅ ଏବଂ ବିଫଳତା ଥ୍ରେସହୋଲ୍ଡ ବୃଦ୍ଧି କର
-3. ପ୍ରୋଭାଇଡର API ସୀମା ପରିବର୍ତ୍ତନ କରିଛି କି ନାହିଁ କିମ୍ବା ପୁନଃ-ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ କରେ କି ନାହିଁ ଯାଞ୍ଚ କର
-4. ବିଳମ୍ବ ଟେଲିମେଟ୍ରୀ ସମୀକ୍ଷା କର — ଅଧିକ ବିଳମ୍ବ ସମୟ-ଆଧାରିତ ବିଫଳତା କାରଣ ହୋଇପାରେ
-
----
-
-## ଅଡିଓ ଟ୍ରାନ୍ସକ୍ରିପସନ୍ ସମସ୍ୟା
-
-### "ଅସମର୍ଥିତ ମୋଡେଲ୍" ତ୍ରୁଟି
-
-- ଏକ ମୋଡେଲ୍ ଆଇଡି ବ୍ୟବହାର କର ଯାହାର ପ୍ରଥମ ଖଣ୍ଡ ସେହି ପ୍ରୋଭାଇଡର ଯାହା ପାଖରେ ଆପଣଙ୍କର ସାର୍ଟିଫିକେଟ୍ ଅଛି (`openai/whisper-1`, `openrouter/deepgram/nova-3`)। ନଗ୍ନ `deepgram/nova-3` ପାଇଁ ନେଟିଭ୍ Deepgram କୀ ଆବଶ୍ୟକ।
-- **ଡ୍ୟାଶବୋର୍ଡ → ପ୍ରୋଭାଇଡର୍ସ** ରେ ପ୍ରୋଭାଇଡର ସଂଯୋଗ ଯାଞ୍ଚ କର
-
-### ଟ୍ରାନ୍ସକ୍ରିପସନ୍ ଖାଲି ଫେରାଉଛି କିମ୍ବା ବିଫଳ ହେଉଛି
-
-- ସମର୍ଥିତ ଅଡିଓ ଫର୍ମାଟ୍ ଯାଞ୍ଚ କର: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- ଫାଇଲ୍ ଆକାର ପ୍ରୋଭାଇଡର ସୀମା ମଧ୍ୟରେ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ ସାଧାରଣତଃ < 25MB)
-- ପ୍ରୋଭାଇଡର କାର୍ଡରେ ପ୍ରୋଭାଇଡର API କୀ ବୈଧତା ଯାଞ୍ଚ କର
+1. ବିଫଳତାର ଢାଞ୍ଚା ପାଇଁ **ଡ୍ୟାଶବୋର୍ଡ → ସ୍ୱାସ୍ଥ୍ୟ → ପ୍ରଦାତା ସ୍ୱାସ୍ଥ୍ୟ** ଯାଞ୍ଚ କରନ୍ତୁ
+2. **ସେଟିଂସ୍ → ସ୍ଥିତିସ୍ଥାପକତା → ପ୍ରଦାତା ପ୍ରୋଫାଇଲ୍ଗୁଡ଼ିକ**କୁ ଯାଇ ବିଫଳତା ସୀମା ବଢ଼ାନ୍ତୁ
+3. ପ୍ରଦାତା API ସୀମା ପରିବର୍ତ୍ତନ କରିଛନ୍ତି କିମ୍ବା ପୁନଃ-ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ କରୁଛନ୍ତି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ
+4. ବିଳମ୍ବତା ଟେଲିମେଟ୍ରି ସମୀକ୍ଷା କରନ୍ତୁ — ଅଧିକ ବିଳମ୍ବତା ଟାଇମ୍ଆଉଟ୍-ଆଧାରିତ ବିଫଳତା ସୃଷ୍ଟି କରିପାରେ
 
 ---
 
-## ଟ୍ରାନ୍ସଲେଟର ଡିବଗିଂ
+## ଅଡିଓ ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ ସମସ୍ୟାଗୁଡ଼ିକ
 
-ଫର୍ମାଟ୍ ଅନୁବାଦ ସମସ୍ୟା ଡିବଗ୍ କରିବାକୁ **ଡ୍ୟାଶବୋର୍ଡ → ଟ୍ରାନ୍ସଲେଟର** ବ୍ୟବହାର କର:
+### "ଅସମର୍ଥିତ ମଡେଲ୍" ତ୍ରୁଟି
 
-| ମୋଡ୍             | କେତେବେଳେ ବ୍ୟବହାର କରିବେ                                                                                        |
-| ---------------- | ------------------------------------------------------------------------------------------------------------- |
-| **ପ୍ଲେଗ୍ରାଉଣ୍ଡ** | ଇନ୍ପୁଟ୍/ଆଉଟ୍ପୁଟ୍ ଫର୍ମାଟ୍ ଗୁଡିକୁ ସାଇଡ୍ ବାଇ ସାଇଡ୍ ତୁଳନା କର — ବିଫଳ ହୋଇଥିବା ଅନୁରୋଧ ପେଷ୍ଟ କରି ଦେଖ କିପରି ଅନୁବାଦ ହୁଏ |
-| **ଚାଟ ଟେଷ୍ଟର**   | ବାସ୍ତବ ବାର୍ତ୍ତା ପଠାଅ ଏବଂ ହେଡର୍ସ ସମେତ ସମ୍ପୂର୍ଣ୍ଣ ଅନୁରୋଧ/ପ୍ରତିକ୍ରିୟା ପେଲୋଡ୍ ନିରୀକ୍ଷଣ କର                         |
-| **ଟେଷ୍ଟ ବେଞ୍ଚ**  | ଫର୍ମାଟ୍ ସଂଯୋଜନା ମଧ୍ୟରେ ବ୍ୟାଚ୍ ପରୀକ୍ଷା ଚଳାଅ ଯେପରି କିଏ ଅନୁବାଦ ଭାଙ୍ଗିଛି ସେ ଜାଣିବାକୁ                              |
-| **ଲାଇଭ୍ ମନିଟର**  | ମଧ୍ୟବର୍ତ୍ତୀ ଅନୁବାଦ ସମସ୍ୟା ଧରିବାକୁ ବାସ୍ତବ-ସମୟ ଅନୁରୋଧ ପ୍ରବାହ ଦେଖ                                                |
+- ଏପରି ଏକ ମଡେଲ୍ id ବ୍ୟବହାର କରନ୍ତୁ ଯାହାର ପ୍ରଥମ ଖଣ୍ଡ ହେଉଛି ଏପରି ଏକ ପ୍ରଦାତା ଯାହା ପାଇଁ ଆପଣଙ୍କ ପାଖରେ ପ୍ରମାଣପତ୍ର ଅଛି (`openai/whisper-1`, `openrouter/deepgram/nova-3`)। କେବଳ `deepgram/nova-3` ବ୍ୟବହାର କରିବା ପାଇଁ ଏକ ନେଟିଭ୍ Deepgram କୀ ଆବଶ୍ୟକ।
+- ପ୍ରଦାତା **ଡ୍ୟାଶବୋର୍ଡ → ପ୍ରଦାତାମାନେ**ରେ ସଂଯୁକ୍ତ ଅଛନ୍ତି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ
 
-### ସାଧାରଣ ଫର୍ମାଟ୍ ସମସ୍ୟା
+### ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ ଖାଲି ଫେରାଉଛି କିମ୍ବା ବିଫଳ ହେଉଛି
 
-- **ଚିନ୍ତା ଟ୍ୟାଗ୍ ଦେଖାଯାଉନାହିଁ** — ଲକ୍ଷ୍ୟ ପ୍ରୋଭାଇଡର ଚିନ୍ତା ସମର୍ଥନ କରେ ଏବଂ ଚିନ୍ତା ବଜେଟ୍ ସେଟିଂ ଯାଞ୍ଚ କର
-- **ଟୁଲ୍ କଲ୍ ହରାଉଛି** — କିଛି ଫର୍ମାଟ୍ ଅନୁବାଦ ଅସମର୍ଥିତ କ୍ଷେତ୍ର ହଟାଇପାରେ; ପ୍ଲେଗ୍ରାଉଣ୍ଡ୍ ମୋଡ୍ରେ ଯାଞ୍ଚ କର
-- **ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ୍ ଅନୁପସ୍ଥିତ** — Claude ଏବଂ Gemini ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ୍ ଭିନ୍ନ ଭାବରେ ହ୍ୟାଣ୍ଡଲ୍ କରେ; ଅନୁବାଦ ଆଉଟ୍ପୁଟ୍ ଯାଞ୍ଚ କର
-- **SDK ଅବଜେକ୍ଟ୍ ପରିବର୍ତ୍ତେ କଞ୍ଚା ଷ୍ଟ୍ରିଂ ଫେରାଏ** — v1.x ରେ ସମାଧାନ ହୋଇଛି; ରେସ୍ପନ୍ସ୍ ସାନିଟାଇଜର୍ OpenAI SDK Pydantic ଯାଞ୍ଚ ବିଫଳତା ସୃଷ୍ଟି କରୁଥିବା ଅମାନକ କ୍ଷେତ୍ର (`x_groq`, `usage_breakdown`, ଆଦି) ହଟାଇଦିଏ। ଯଦି ଆପଣ v3.x+ ରେ ଏହା ଦେଖୁଛନ୍ତି, ଦୟାକରି ଏକ ସମସ୍ୟା ଦାଖଲ କରନ୍ତୁ।
-- **GLM/ERNIE `system` ଭୂମିକା ଅସ୍ୱୀକାର କରେ** — v1.x ରେ ସମାଧାନ ହୋଇଛି; ଭୂମିକା ନର୍ମାଲାଇଜର୍ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଅସମ୍ବଳ ମୋଡେଲ୍ ପାଇଁ ସିଷ୍ଟମ୍ ବାର୍ତ୍ତାକୁ ବ୍ୟବହାରକାରୀ ବାର୍ତ୍ତାରେ ମିଶ୍ରଣ କରେ। ଯଦି ଆପଣ v3.x+ ରେ ଏହା ଦେଖୁଛନ୍ତି, ଦୟାକରି ଏକ ସମସ୍ୟା ଦାଖଲ କରନ୍ତୁ।
-- **`developer` ଭୂମିକା ଚିହ୍ନିତ ହେଉନାହିଁ** — v1.x ରେ ସମାଧାନ ହୋଇଛି; ଅନ-OAI ପ୍ରୋଭାଇଡର୍ସ ପାଇଁ ସ୍ୱୟଂଚାଳିତ ଭାବରେ `system` ରେ ରୂପାନ୍ତରିତ। ଯଦି ଆପଣ v3.x+ ରେ ଏହା ଦେଖୁଛନ୍ତି, ଦୟାକରି ଏକ ସମସ୍ୟା ଦାଖଲ କରନ୍ତୁ।
-- **`json_schema` Gemini ସହ କାମ କରୁନାହିଁ** — v1.x ରେ ସମାଧାନ ହୋଇଛି; `response_format` ବର୍ତ୍ତମାନ Gemini ର `responseMimeType` + `responseSchema` ରେ ରୂପାନ୍ତରିତ। ଯଦି ଆପଣ v3.x+ ରେ ଏହା ଦେଖୁଛନ୍ତି, ଦୟାକରି ଏକ ସମସ୍ୟା ଦାଖଲ କରନ୍ତୁ।
+- ସମର୍ଥିତ ଅଡିଓ ଫର୍ମାଟ୍ଗୁଡ଼ିକ ଯାଞ୍ଚ କରନ୍ତୁ: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- ଫାଇଲ୍ ଆକାର ପ୍ରଦାତାଙ୍କ ସୀମା ମଧ୍ୟରେ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ (ସାଧାରଣତଃ < 25MB)
+- ପ୍ରଦାତା କାର୍ଡରେ ପ୍ରଦାତା API କୀର ବୈଧତା ଯାଞ୍ଚ କରନ୍ତୁ
 
 ---
 
-## ପୁନରୁଦ୍ଧାର ସେଟିଂସ
+## ଅନୁବାଦକ ଡିବଗିଂ
 
-### ସ୍ୱୟଂ ହାର ସୀମା ଟ୍ରିଗର ନହେବା
+ଫର୍ମାଟ୍ ଅନୁବାଦ ସମସ୍ୟାଗୁଡ଼ିକୁ ଡିବଗ୍ କରିବା ପାଇଁ **ଡ୍ୟାଶବୋର୍ଡ → ଅନୁବାଦକ** ବ୍ୟବହାର କରନ୍ତୁ:
 
-- ସ୍ୱୟଂ ହାର ସୀମା କେବଳ API କି ପ୍ରଦାନକାରୀମାନଙ୍କ ପାଇଁ ପ୍ରଯୋଜ୍ୟ (OAuth/ସଦସ୍ୟତା ପାଇଁ ନୁହେଁ)
-- **ସେଟିଂସ → ପୁନରୁଦ୍ଧାର → ପ୍ରଦାନକାରୀ ପ୍ରୋଫାଇଲ୍** ରେ ସ୍ୱୟଂ ହାର ସୀମା ସକ୍ଷମ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ
-- ପ୍ରଦାନକାରୀ `429` ସ୍ଥିତି କୋଡ୍ କିମ୍ବା `Retry-After` ହେଡର୍ ଫେରାଉଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ
+| ମୋଡ୍              | କେତେବେଳେ ବ୍ୟବହାର କରିବେ                                                                                                 |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **ପ୍ଲେଗ୍ରାଉଣ୍ଡ**  | ଇନ୍ପୁଟ୍/ଆଉଟ୍ପୁଟ୍ ଫର୍ମାଟ୍ଗୁଡ଼ିକୁ ପାଖାପାଖି ତୁଳନା କରନ୍ତୁ — ଏହା କିପରି ଅନୁବାଦ ହେଉଛି ଦେଖିବା ପାଇଁ ଏକ ବିଫଳ ଅନୁରୋଧ ପେଷ୍ଟ କରନ୍ତୁ |
+| **ଚାଟ୍ ଟେଷ୍ଟର୍**  | ଲାଇଭ୍ ବାର୍ତ୍ତା ପଠାନ୍ତୁ ଏବଂ ହେଡର୍ଗୁଡ଼ିକ ସମେତ ସମ୍ପୂର୍ଣ୍ଣ ଅନୁରୋଧ/ପ୍ରତିକ୍ରିୟା ପେଲୋଡ୍ ଯାଞ୍ଚ କରନ୍ତୁ                          |
+| **ଟେଷ୍ଟ୍ ବେଞ୍ଚ୍** | କେଉଁ ଅନୁବାଦଗୁଡ଼ିକ ନଷ୍ଟ ହୋଇଛି ଖୋଜିବା ପାଇଁ ଫର୍ମାଟ୍ ସଂଯୋଜନଗୁଡ଼ିକରେ ବ୍ୟାଚ୍ ପରୀକ୍ଷଣ ଚଲାନ୍ତୁ                                 |
+| **ଲାଇଭ୍ ମନିଟର୍**  | ମଝିରେ ମଝିରେ ଘଟୁଥିବା ଅନୁବାଦ ସମସ୍ୟାଗୁଡ଼ିକୁ ଧରିବା ପାଇଁ ରିଅଲ୍-ଟାଇମ୍ ଅନୁରୋଧ ପ୍ରବାହ ଦେଖନ୍ତୁ                                  |
 
-### ଘାତାଂଶକ ବ୍ୟାକଅଫ୍ ସ୍ପଷ୍ଟୀକରଣ
+### ସାଧାରଣ ଫର୍ମାଟ୍ ସମସ୍ୟାଗୁଡ଼ିକ
 
-ପ୍ରଦାନକାରୀ ପ୍ରୋଫାଇଲ୍ ଏହି ସେଟିଂସଗୁଡ଼ିକୁ ସମର୍ଥନ କରେ:
+- **ଚିନ୍ତନ ଟ୍ୟାଗ୍ଗୁଡ଼ିକ ଦେଖାଯାଉ ନାହିଁ** — ଲକ୍ଷ୍ୟ ପ୍ରଦାତା ଚିନ୍ତନକୁ ସମର୍ଥନ କରନ୍ତି କି ନାହିଁ ଏବଂ ଚିନ୍ତନ ବଜେଟ୍ ସେଟିଂ ଯାଞ୍ଚ କରନ୍ତୁ
+- **ଟୁଲ୍ କଲ୍ଗୁଡ଼ିକ ବାଦ୍ ପଡ଼ୁଛି** — କିଛି ଫର୍ମାଟ୍ ଅନୁବାଦ ଅସମର୍ଥିତ ଫିଲ୍ଡଗୁଡ଼ିକୁ କାଢ଼ି ଦେଇପାରେ; ପ୍ଲେଗ୍ରାଉଣ୍ଡ ମୋଡ୍ରେ ଯାଞ୍ଚ କରନ୍ତୁ
+- **ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ ଅନୁପସ୍ଥିତ** — Claude ଏବଂ Gemini ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟଗୁଡ଼ିକୁ ଭିନ୍ନ ଭାବରେ ପରିଚାଳନା କରନ୍ତି; ଅନୁବାଦ ଆଉଟ୍ପୁଟ୍ ଯାଞ୍ଚ କରନ୍ତୁ
+- **SDK ଅବଜେକ୍ଟ ପରିବର୍ତ୍ତେ କଞ୍ଚା ଷ୍ଟ୍ରିଙ୍ଗ୍ ଫେରାଉଛି** — v1.xରେ ସମାଧାନ କରାଯାଇଛି; ପ୍ରତିକ୍ରିୟା ସାନିଟାଇଜର୍ ଅଣ-ମାନକ ଫିଲ୍ଡଗୁଡ଼ିକୁ (`x_groq`, `usage_breakdown`, ଇତ୍ୟାଦି) କାଢ଼ି ଦିଏ, ଯାହା OpenAI SDK Pydantic ବୈଧତା ଯାଞ୍ଚ ବିଫଳତା ସୃଷ୍ଟି କରେ। ଯଦି ଆପଣ ଏବେ ମଧ୍ୟ v3.x+ରେ ଏହା ଦେଖୁଛନ୍ତି, ଦୟାକରି ଏକ ଇସ୍ୟୁ ଦାଖଲ କରନ୍ତୁ।
+- **GLM/ERNIE `system` ଭୂମିକାକୁ ପ୍ରତ୍ୟାଖ୍ୟାନ କରେ** — v1.xରେ ସମାଧାନ କରାଯାଇଛି; ଭୂମିକା ନର୍ମାଲାଇଜର୍ ଅସଙ୍ଗତ ମଡେଲ୍ଗୁଡ଼ିକ ପାଇଁ ସିଷ୍ଟମ୍ ବାର୍ତ୍ତାଗୁଡ଼ିକୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ବ୍ୟବହାରକାରୀ ବାର୍ତ୍ତାଗୁଡ଼ିକ ସହିତ ମିଶ୍ରଣ କରେ। ଯଦି ଆପଣ ଏବେ ମଧ୍ୟ v3.x+ରେ ଏହା ଦେଖୁଛନ୍ତି, ଦୟାକରି ଏକ ଇସ୍ୟୁ ଦାଖଲ କରନ୍ତୁ।
+- **`developer` ଭୂମିକା ଚିହ୍ନଟ ହେଉନାହିଁ** — v1.xରେ ସମାଧାନ କରାଯାଇଛି; ଅଣ-OpenAI ପ୍ରଦାତାମାନଙ୍କ ପାଇଁ ସ୍ୱୟଂଚାଳିତ ଭାବେ `system`କୁ ରୂପାନ୍ତରିତ ହୁଏ। ଯଦି ଆପଣ ଏବେ ମଧ୍ୟ v3.x+ରେ ଏହା ଦେଖୁଛନ୍ତି, ଦୟାକରି ଏକ ଇସ୍ୟୁ ଦାଖଲ କରନ୍ତୁ।
+- **`json_schema` Gemini ସହିତ କାମ କରୁନାହିଁ** — v1.xରେ ସମାଧାନ କରାଯାଇଛି; `response_format` ବର୍ତ୍ତମାନ Geminiର `responseMimeType` + `responseSchema`କୁ ରୂପାନ୍ତରିତ ହୁଏ। ଯଦି ଆପଣ ଏବେ ମଧ୍ୟ v3.x+ରେ ଏହା ଦେଖୁଛନ୍ତି, ଦୟାକରି ଏକ ଇସ୍ୟୁ ଦାଖଲ କରନ୍ତୁ।
 
-- **ମୌଳିକ ବିଳମ୍ବ** — ପ୍ରଥମ ବିଫଳତା ପରେ ଆରମ୍ଭିକ ଅପେକ୍ଷା ସମୟ (ଡିଫଲ୍ଟ: 1s)
-- **ସର୍ବାଧିକ ବିଳମ୍ବ** — ସର୍ବାଧିକ ଅପେକ୍ଷା ସୀମା (ଡିଫଲ୍ଟ: 30s)
-- **ଗୁଣାଙ୍କ** — ପ୍ରତ୍ୟେକ ଧାରାବାହିକ ବିଫଳତାରେ ବିଳମ୍ବ କେତେ ବଢ଼େ (ଡିଫଲ୍ଟ: 2x)
+---
 
-### ତୁମୁଡ଼ିଝଡ଼ ପ୍ରତିରୋଧ
+## ସ୍ଥିତିସ୍ଥାପକତା ସେଟିଂସମୂହ
 
-ଅନେକ ସମାନ୍ତରାଲ ଅନୁରୋଧ ଏକ ହାର ସୀମିତ ପ୍ରଦାନକାରୀକୁ ଆଘାତ କଲେ, OmniRoute ମ୍ୟୁଟେକ୍ସ୍ + ସ୍ୱୟଂ ହାର ସୀମାକୁ ବ୍ୟବହାର କରି ଅନୁରୋଧଗୁଡ଼ିକୁ କ୍ରମାନୁସାରେ ପରିଚାଳନା କରେ ଏବଂ ଧାରାବାହିକ ବିଫଳତାଗୁଡ଼ିକୁ ରୋକେ। ଏହା API କି ପ୍ରଦାନକାରୀମାନଙ୍କ ପାଇଁ ସ୍ୱୟଂଚାଳିତ।
+### ସ୍ୱୟଂଚାଳିତ ହାର-ସୀମା ସକ୍ରିୟ ହେଉନାହିଁ
 
-### ଚାଟ୍ ଅନୁରୋଧ 503 / chat_admission_busy ସହ ବିଫଳ ହୁଏ
+- ସ୍ୱୟଂଚାଳିତ ହାର-ସୀମା କେବଳ API କି ପ୍ରଦାନକାରୀଙ୍କ ପାଇଁ ପ୍ରଯୁଜ୍ୟ (OAuth/ସବ୍ସ୍କ୍ରିପ୍ସନ୍ ପାଇଁ ନୁହେଁ)
+- **Settings → Resilience → Provider Profiles**ରେ ସ୍ୱୟଂଚାଳିତ ହାର-ସୀମା ସକ୍ଷମ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ
+- ପ୍ରଦାନକାରୀ `429` ସ୍ଥିତି କୋଡ୍ କିମ୍ବା `Retry-After` ହେଡର୍ ଫେରାଉଛନ୍ତି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ
 
-**ଲକ୍ଷଣ:**
+### ଏକ୍ସପୋନେନ୍ସିଆଲ୍ ବ୍ୟାକଅଫ୍ ସମନ୍ୱୟ କରିବା
 
-- ଚାଟ୍ ସମ୍ପୂର୍ଣ୍ଣତା ପ୍ରାନ୍ତ ଏକ ପୁନଃଚେଷ୍ଟା ଯୋଗ୍ୟ `503` ଉତ୍ତର ଫେରାଏ ଯାହାର ତ୍ରୁଟି କୋଡ୍ ହେଉଛି `chat_admission_busy`।
-- ଉତ୍ତର `Retry-After` ଅନ୍ତର୍ଭୁକ୍ତ କରେ। #12135 ପରଠାରୁ ମୂଲ୍ୟ ପର୍ଯ୍ୟବେକ୍ଷିତ ଅଧିଭାର ଉତ୍ପନ୍ନ ହୁଏ — `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` ଓୱାଣ୍ଡୋ ଯାହା ଅନୁରୋଧ ଇତିମଧ୍ୟରେ ଅପେକ୍ଷା କରିଛି ଏବଂ ସମୟ ଯାହା ବର୍ତ୍ତମାନ ଓଜିନ ଭାରଯୁକ୍ତ ଲିଜ୍ ଧାରଣ କରିଛି ସେହି ଦୁଇଟି ମଧ୍ୟରୁ ବଡ଼ — ସମ୍ପୂର୍ଣ୍ଣ ସେକେଣ୍ଡରେ ରୂଣ୍ଡ କରାଯାଇଛି ଏବଂ 60 ରେ ସୀମିତ। ଏକ ନିଷ୍କ୍ରିୟ ଗେଟ୍ରେ ଏହା ଐତିହାସିକ ମୌଳିକ ମୂଲ୍ୟ ରଖେ: ବାଇଟ୍-ଆଧାରିତ ପଥରେ 2 ସେକେଣ୍ଡ, ଷ୍ଟ୍ରକଚର୍-ଆଧାରିତ ପଥରେ 1 ସେକେଣ୍ଡ (ଯାହା `reason: "structure_limit"` ମଧ୍ୟ ଅନ୍ତର୍ଭୁକ୍ତ କରେ)।
-- ଏହା ଘଟିପାରେ ଯେତେବେଳେ ଅନ୍ୟ ଏକ ଓଜିନ ଭାରଯୁକ୍ତ ଚାଟ୍ କିମ୍ବା ଦୀର୍ଘ ଚାଲୁଥିବା ଷ୍ଟ୍ରିମିଂ ଉତ୍ତର ଏବେ ବି ପ୍ରବାହରେ ଅଛି।
+ପ୍ରଦାନକାରୀ ପ୍ରୋଫାଇଲ୍ଗୁଡ଼ିକ ଏହି ସେଟିଂସମୂହକୁ ସମର୍ଥନ କରେ:
 
-ବାଇଟ୍-ଆଧାରିତ ଉତ୍ତର ବଡୀ ହେଉଛି:
+- **ମୂଳ ବିଳମ୍ବ** — ପ୍ରଥମ ବିଫଳତା ପରେ ପ୍ରାରମ୍ଭିକ ଅପେକ୍ଷା ସମୟ (ଡିଫଲ୍ଟ: 1s)
+- **ସର୍ବାଧିକ ବିଳମ୍ବ** — ଅପେକ୍ଷା ସମୟର ସର୍ବାଧିକ ସୀମା (ଡିଫଲ୍ଟ: 30s)
+- **ଗୁଣକ** — ପ୍ରତ୍ୟେକ କ୍ରମାଗତ ବିଫଳତାରେ ବିଳମ୍ବ କେତେ ବୃଦ୍ଧି କରାଯିବ (ଡିଫଲ୍ଟ: 2x)
+
+### ଥଣ୍ଡରିଂ-ହର୍ଡ ପ୍ରତିରୋଧ
+
+ଯେତେବେଳେ ଅନେକ ସମକାଳୀନ ଅନୁରୋଧ ହାର-ସୀମିତ ପ୍ରଦାନକାରୀଙ୍କୁ ପହଞ୍ଚେ, OmniRoute ଅନୁରୋଧଗୁଡ଼ିକୁ କ୍ରମିକ କରିବା ଏବଂ କ୍ରମବର୍ଦ୍ଧିଷ୍ଣୁ ବିଫଳତା ପ୍ରତିରୋଧ କରିବା ପାଇଁ mutex + ସ୍ୱୟଂଚାଳିତ ହାର-ସୀମା ବ୍ୟବହାର କରେ। API କି ପ୍ରଦାନକାରୀଙ୍କ ପାଇଁ ଏହା ସ୍ୱୟଂଚାଳିତ।
+
+### ଚାଟ୍ ଅନୁରୋଧଗୁଡ଼ିକ 503 / chat_admission_busy ସହ ବିଫଳ ହୁଏ
+
+**ଲକ୍ଷଣଗୁଡ଼ିକ:**
+
+- ଚାଟ୍ କମ୍ପ୍ଲିସନ୍ସ ଏଣ୍ଡପଏଣ୍ଟ ପୁନଃଚେଷ୍ଟାଯୋଗ୍ୟ `503` ପ୍ରତିକ୍ରିୟା ଫେରାଏ, ଯାହାର ତ୍ରୁଟି କୋଡ୍
+  `chat_admission_busy`।
+- ପ୍ରତିକ୍ରିୟାରେ `Retry-After` ଅନ୍ତର୍ଭୁକ୍ତ ଥାଏ। #12135 ପରଠାରୁ ଏହାର ମୂଲ୍ୟ ପର୍ଯ୍ୟବେକ୍ଷିତ
+  ଅଧିଭୋଗରୁ ନିର୍ଦ୍ଧାରିତ ହୁଏ — ଅନୁରୋଧଟି ପୂର୍ବରୁ ଅପେକ୍ଷା କରିଥିବା `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`
+  ୱିଣ୍ଡୋ ଏବଂ ବର୍ତ୍ତମାନର ହେଭିୱେଟ୍ ଲିଜ୍ଗୁଡ଼ିକ ଧାରଣ କରାଯାଇଥିବା ସମୟ ମଧ୍ୟରୁ ବଡ଼ଟି — ଯାହାକୁ
+  ପୂର୍ଣ୍ଣ ସେକେଣ୍ଡକୁ ଉପରମୁହାଁ ରାଉଣ୍ଡ କରାଯାଏ ଏବଂ 60ରେ ସୀମିତ ରଖାଯାଏ। ଏକ ନିଷ୍କ୍ରିୟ ଗେଟ୍ରେ
+  ଏହା ଐତିହାସିକ ସର୍ବନିମ୍ନ ସୀମାଗୁଡ଼ିକୁ ବଜାୟ ରଖେ: ବାଇଟ୍-ଆଧାରିତ ପଥରେ 2 ସେକେଣ୍ଡ,
+  ଷ୍ଟ୍ରକ୍ଚର୍-ଆଧାରିତ ପଥରେ 1 ସେକେଣ୍ଡ (ଯେଉଁଥିରେ `reason: "structure_limit"` ମଧ୍ୟ ଅନ୍ତର୍ଭୁକ୍ତ)।
+- ଅନ୍ୟ ଏକ ହେଭିୱେଟ୍ ଚାଟ୍ କିମ୍ବା ଦୀର୍ଘ ସମୟ ଧରି ଚାଲୁଥିବା ଷ୍ଟ୍ରିମିଂ ପ୍ରତିକ୍ରିୟା ଏପର୍ଯ୍ୟନ୍ତ
+  ପ୍ରକ୍ରିୟାଧୀନ ଥିବାବେଳେ ଏହା ଘଟିପାରେ।
+
+ବାଇଟ୍-ଆଧାରିତ ପ୍ରତିକ୍ରିୟା ବଡି ହେଉଛି:
 
 ```json
 {
@@ -515,159 +531,221 @@ curl http://localhost:20128/api/monitoring/health
 }
 ```
 
-ଷ୍ଟ୍ରକଚର୍-ଆଧାରିତ ଉତ୍ତର ସମାନ ପ୍ରକାର ଏବଂ କୋଡ୍ ବ୍ୟବହାର କରେ, ସନ୍ଦେଶ `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.` ଏବଂ `reason: "structure_limit"` ସହ।
-ଡିଫଲ୍ଟ ସୀମାରେ, ଏକ ଅନୁରୋଧ ସ୍ଥାନୀୟ ଭାରଯୁକ୍ତ ହୁଏ ଯେତେବେଳେ ଏହା ଅତିକମରେ `200` ବାର୍ତ୍ତା, ଅତିକମରେ `64` ଉପକରଣ, କିମ୍ବା ଅତିକମରେ `32,000` ଅନୁମାନିତ ଟୋକେନ୍ ରଖେ, କିମ୍ବା ଯେତେବେଳେ ସୀମିତ ସ୍ଥାନୀୟ ଅନୁମାନ ଏହାର `10,000` ପରିଦର୍ଶିତ ନୋଡ୍ କିମ୍ବା ଗଭୀରତା `12` ର ସୀମା ଶେଷ କରେ।
+ଷ୍ଟ୍ରକ୍ଚର୍-ଆଧାରିତ ପ୍ରତିକ୍ରିୟା ସମାନ ପ୍ରକାର ଏବଂ କୋଡ୍ ବ୍ୟବହାର କରେ, ଯାହାର ସନ୍ଦେଶ ହେଉଛି
+`Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
+ଏବଂ `reason: "structure_limit"`।
+ଡିଫଲ୍ଟ ଥ୍ରେଶହୋଲ୍ଡଗୁଡ଼ିକରେ, ଏକ ଅନୁରୋଧରେ ଅତି କମରେ `200`ଟି ସନ୍ଦେଶ,
+ଅତି କମରେ `64`ଟି ଟୁଲ୍, କିମ୍ବା ଅତି କମରେ `32,000`ଟି ଆନୁମାନିକ ଟୋକନ୍ ଥିଲେ, କିମ୍ବା ସୀମାବଦ୍ଧ
+ଷ୍ଟ୍ରକ୍ଚର୍ ଆକଳନ `10,000`ଟି ପରିଦର୍ଶିତ ନୋଡ୍ କିମ୍ବା `12` ଗଭୀରତାର ସୀମା ଅତିକ୍ରମ କଲେ,
+ତାହାକୁ ଗଠନାତ୍ମକ ଭାବେ ହେଭି ବୋଲି ଧରାଯାଏ।
 
-**କାରଣ:** ଏହା OmniRoute ଭିତରେ ସଚେତନ ଲୋଡ୍ ଛାଡ଼, ଉପର ସ୍ତର ପ୍ରଦାନକାରୀ ବିଫଳତା ନୁହେଁ। ପ୍ରତ୍ୟେକ ପ୍ରକ୍ରିୟା ଏକ ପ୍ରକ୍ରିୟା-ସ୍ଥାନୀୟ ଗାର୍ଡ୍ ବ୍ୟବହାର କରେ ସୀମିତ ଓଜିନ ଭାର ସଂରକ୍ଷଣ କରିବାକୁ ଏକ ବଡ଼ ଅନୁରୋଧ ବଡୀ ଧାରଣ ଏବଂ ବିଶ୍ଳେଷଣ କରିବା ପୂର୍ବରୁ। ଏକ ଓଜିନ ଭାର ଲିଜ୍ ଏକ SSE ଉତ୍ତରର ଆୟୁଷ୍କାଳ ପର୍ଯ୍ୟନ୍ତ ଧାରଣ ରହେ।
+**କାରଣ:** ଏହା OmniRoute ଭିତରେ ଉଦ୍ଦେଶ୍ୟମୂଳକ ଲୋଡ୍ ହ୍ରାସ, କୌଣସି ଅପ୍ଷ୍ଟ୍ରିମ୍-ପ୍ରଦାନକାରୀ ବିଫଳତା ନୁହେଁ।
+ପ୍ରତ୍ୟେକ ପ୍ରୋସେସ୍ ଏକ ବଡ଼ ଅନୁରୋଧ ବଡିକୁ ଧରି ରଖିବା ଏବଂ ପାର୍ସ କରିବା ପୂର୍ବରୁ ସୀମିତ
+ହେଭିୱେଟ୍ କ୍ଷମତା ସଂରକ୍ଷଣ କରିବା ପାଇଁ ପ୍ରୋସେସ୍-ଲୋକାଲ୍ ଗାର୍ଡ ବ୍ୟବହାର କରେ। ଏକ ହେଭିୱେଟ୍
+ଲିଜ୍ ଏକ SSE ପ୍ରତିକ୍ରିୟାର ସମଗ୍ର ଜୀବନକାଳ ପର୍ଯ୍ୟନ୍ତ ଧାରଣ କରାଯାଏ।
 
-**#503-fanout:** ଏହି ସଂଶୋଧନ ପୂର୍ବରୁ, ଗାର୍ଡ୍ ସମାନ୍ତରାଲତାକୁ ଏକ ସ୍ଥିର ଅନୁରୋଧ ଗଣନା (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, ଡିଫଲ୍ଟ `1`) ରେ ସୀମିତ କରୁଥିଲା ହୋଷ୍ଟ ସ୍ମୃତି ନିର୍ବିଶେଷରେ, ତେଣୁ କୋଡିଂ-ଏଜେଣ୍ଟ ଫ୍ୟାନ୍-ଆଉଟ୍ (ଅନେକ ଉପ-ଏଜେଣ୍ଟ/CLI, ବଡୀ ସାଧାରଣତଃ > 256 KB) ~1 ର ପ୍ରଭାବଶାଳୀ ସମାନ୍ତରାଲତା ଏବଂ ସମ୍ପୂର୍ଣ୍ଣ ସାଧାରଣ ଲୋଡରେ 503 ହୋଇ ପତନ ହୋଇଥିଲା। ଗାର୍ଡ୍ ବର୍ତ୍ତମାନ ସ୍ୱୟଂ-ଟ୍ୟୁନ୍ ହୁଏ: ଏହା ଏକ ସ୍ୱୟଂ-ପ୍ରାପ୍ତ ଗ୍ରହଣ ବାଇଟ୍ ବଜେଟ୍ (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ଦ୍ୱାରା ଗେଟ୍ ହୁଏ ଯାହା ପ୍ରକ୍ରିୟାର ପ୍ରକୃତ ସ୍ମୃତି ସୀମାରୁ ମାପା ଯାଇଥାଏ, ଏବଂ ଏହା ଏକ ଲାଇଭ୍ ସମ୍ବଳ ଚାପ ସଙ୍କେତ ମଧ୍ୟ ପରାମର୍ଶ କରେ — ସେଥିପାଇଁ ଏହା କେବଳ ସମୟରେ ଛାଡ଼େ ଯେତେବେଳେ ହୋଷ୍ଟ ପ୍ରକୃତରେ ସ୍ମୃତି ଚାପରେ ଥାଏ, କେବଳ ଏକ ସମୟରେ ଏକାଧିକ ଓଜିନ ଅନୁରୋଧ ଆସିବା କାରଣରୁ ନୁହେଁ। ପୁରାତନ ଗଣନା ସୀମା (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) ଏବେ ବି ସମ୍ମାନ କରାଯାଏ, କିନ୍ତୁ କେବଳ ଆପଣ ସ୍ପଷ୍ଟ ଭାବରେ ସେଟ୍ କଲେ।
+**#503-ଫ୍ୟାନ୍-ଆଉଟ୍:** ଏହି ସମାଧାନ ପୂର୍ବରୁ, ଗାର୍ଡ ହୋଷ୍ଟ ମେମୋରିକୁ ବିଚାର ନକରି ଏକ ନିର୍ଦ୍ଧାରିତ ଅନୁରୋଧ COUNT
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, ଡିଫଲ୍ଟ `1`)ରେ ସମକାଳୀନତାକୁ ସୀମିତ କରୁଥିଲା, ତେଣୁ କୋଡିଂ-ଏଜେଣ୍ଟ
+ଫ୍ୟାନ୍-ଆଉଟ୍ (ଏକାଧିକ ସବ୍ଏଜେଣ୍ଟ/CLI, ବଡିଗୁଡ଼ିକ ନିୟମିତ ଭାବେ > 256 KB) ପ୍ରଭାବୀ
+ସମକାଳୀନତାକୁ ~1କୁ ହ୍ରାସ କରୁଥିଲା ଏବଂ ସମ୍ପୂର୍ଣ୍ଣ ସାଧାରଣ ଲୋଡ୍ରେ 503 ତ୍ରୁଟି ସୃଷ୍ଟି କରୁଥିଲା।
+ଗାର୍ଡ ଏବେ ସ୍ୱୟଂ-ସମନ୍ୱୟ କରେ: ଏହା ପ୍ରୋସେସ୍ର ପ୍ରକୃତ ମେମୋରି ସୀମା ଆଧାରରେ ଆକାର ନିର୍ଦ୍ଧାରିତ
+ସ୍ୱୟଂ-ବ୍ୟୁତ୍ପନ୍ନ ଇନ୍ଜେଷ୍ଟ BYTE ବଜେଟ୍ (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ଦ୍ୱାରା ନିୟନ୍ତ୍ରିତ,
+ଏବଂ ଏହା ଏକ ଲାଇଭ୍ ସମ୍ବଳ-ଚାପ ସଙ୍କେତକୁ ମଧ୍ୟ ଯାଞ୍ଚ କରେ — ତେଣୁ କେବଳ ଏକାଥରେ ଏକାଧିକ
+ହେଭି ଅନୁରୋଧ ଆସିଥିବାରୁ ନୁହେଁ, ବରଂ ହୋଷ୍ଟ ପ୍ରକୃତରେ ମେମୋରି ଚାପରେ ଥିବାବେଳେ ମାତ୍ର
+ଏହା ଲୋଡ୍ ହ୍ରାସ କରେ। ପୁରୁଣା କାଉଣ୍ଟ ସୀମା (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) ଏବେବି
+ସମ୍ମାନିତ ହୁଏ, କିନ୍ତୁ କେବଳ ଆପଣ ଏହାକୁ ସ୍ପଷ୍ଟ ଭାବେ ସେଟ୍ କଲେ।
 
-କ୍ଷମତା ବ୍ୟସ୍ତ ଥିଲେ, ଏକ ଓଜିନ ଭାରଯୁକ୍ତ ଅନୁରୋଧ ପ୍ରଥମେ `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (ଡିଫଲ୍ଟ `2000`, `0` ଅପେକ୍ଷା ଅକ୍ଷମ କରେ) ପର୍ଯ୍ୟନ୍ତ ଏକ ସ୍ଲଟ୍ ମୁକ୍ତ ହେବା ପର୍ଯ୍ୟନ୍ତ ଅପେକ୍ଷା କରେ ପୁନଃଚେଷ୍ଟା ଯୋଗ୍ୟ `503` ଉତ୍ତର ଦେବା ପୂର୍ବରୁ। ସୀମିତ ଅପେକ୍ଷା ଅଛି ଯେଣୁ ଏଜେଣ୍ଟ୍-ଶୈଳୀର କ୍ଲାଏଣ୍ଟ୍ (OpenCode, Claude Code, Cursor) ଯେଉଁମାନେ ସମାନ୍ତରାଲ ଭାବରେ ଓଜିନ ଉପ-ଅନୁରୋଧ ଫ୍ୟାନ୍ ଆଉଟ୍ କରନ୍ତି ସେମାନେ ବିରସ ବର୍ଷାକୁ ଧାରାବାହିକ କରନ୍ତି ତାହା ବଦଳରେ ସେମାନଙ୍କ ସମ୍ପୂର୍ଣ୍ଣ ପୁନଃଚେଷ୍ଟା ବଜେଟ୍ ତୁରନ୍ତ ଅସ୍ଵୀକାରରେ ଏବଂ କାର୍ଯ୍ୟ ମଧ୍ୟରେ ମରିବାରେ ଖର୍ଚ୍ଚ କରନ୍ତି ନାହିଁ।
-ବର୍ତ୍ତମାନ ଓଜିନ ଭାର ଲିଜ୍ ଅଧିଭାର, ସମାଧାନ କରାଯାଇଥିବା ବାଇଟ୍ ବଜେଟ୍, ଏବଂ ଲାଇଭ୍ ଚାପ ସାଂଗ୍ରତା `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`, `budgetSource`, `pressureSeverity`, `countCapEnabled`) ରେ ପ୍ରଦାନ କରାଯାଏ — ଯେକୌଣସି ପରିବେଶ ପରିବର୍ତ୍ତନ କରିବା ପୂର୍ବରୁ ସେଗୁଡ଼ିକୁ ଯାଞ୍ଚ କରନ୍ତୁ।
-ସେଟିଂସ → ପୁନରୁଦ୍ଧାର → ଅନୁରୋଧ ଧାରା → ସମାନ୍ତରାଲ ଅନୁରୋଧ ଏହାକୁ ନିୟନ୍ତ୍ରଣ କରେ ନାହିଁ; ସେହି ସେଟିଂ ଏକ ପୃଥକ ପ୍ରଦାନକାରୀ ଅନୁରୋଧ-ଧାରା ମେକାନିଜମ୍ ଶାସନ କରେ।
+କ୍ଷମତା ବ୍ୟସ୍ତ ଥିବାବେଳେ, ପୁନଃଚେଷ୍ଟାଯୋଗ୍ୟ `503` ସହ ଉତ୍ତର ଦେବା ପୂର୍ବରୁ ଏକ ହେଭିୱେଟ୍ ଅନୁରୋଧ
+ଏକ ସ୍ଲଟ୍ ଖାଲି ହେବା ପାଇଁ ପ୍ରଥମେ `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` ପର୍ଯ୍ୟନ୍ତ (ଡିଫଲ୍ଟ `2000`,
+`0` ଅପେକ୍ଷାକୁ ଅକ୍ଷମ କରେ) ଅପେକ୍ଷା କରେ। ଏହି ସୀମାବଦ୍ଧ ଅପେକ୍ଷାର ଉଦ୍ଦେଶ୍ୟ ହେଉଛି,
+ହେଭି ଉପ-ଅନୁରୋଧଗୁଡ଼ିକୁ ସମକାଳୀନ ଭାବେ ଫ୍ୟାନ୍-ଆଉଟ୍ କରୁଥିବା ଏଜେଣ୍ଟ-ଶୈଳୀର କ୍ଲାଏଣ୍ଟମାନେ
+(OpenCode, Claude Code, Cursor) ତୁରନ୍ତ ପ୍ରତ୍ୟାଖ୍ୟାନରେ ସେମାନଙ୍କ ସମ୍ପୂର୍ଣ୍ଣ ପୁନଃଚେଷ୍ଟା ବଜେଟ୍
+ନଷ୍ଟ କରି କାର୍ଯ୍ୟ ମଧ୍ୟରେ ବନ୍ଦ ହୋଇଯିବା ପରିବର୍ତ୍ତେ ବର୍ଷ୍ଟକୁ କ୍ରମିକ କରିବେ।
+ବର୍ତ୍ତମାନର ହେଭିୱେଟ୍ ଲିଜ୍ ଅଧିଭୋଗ, ନିର୍ଦ୍ଧାରିତ ବାଇଟ୍ ବଜେଟ୍ ଏବଂ ଲାଇଭ୍ ଚାପର ତୀବ୍ରତା
+`GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+`budgetSource`, `pressureSeverity`, `countCapEnabled`)ରେ ପ୍ରଦର୍ଶିତ ହୁଏ — କୌଣସି env var
+ପରିବର୍ତ୍ତନ କରିବା ପୂର୍ବରୁ ଏଗୁଡ଼ିକ ଯାଞ୍ଚ କରନ୍ତୁ।
+Settings → Resilience → Request Queue → Concurrent Requests ଏହାକୁ ନିୟନ୍ତ୍ରଣ କରେ ନାହିଁ; ସେହି ସେଟିଂ
+ଏକ ପୃଥକ ପ୍ରଦାନକାରୀ ଅନୁରୋଧ-କ୍ୟୁ ବ୍ୟବସ୍ଥାକୁ ପରିଚାଳନା କରେ।
 
-**ସଂଶୋଧନ:**
+**ସମାଧାନ:**
 
-1. ପ୍ରଥମେ ପୁନଃଚେଷ୍ଟା କରନ୍ତୁ। କ୍ଲାଏଣ୍ଟ୍ `Retry-After` ମାନିବା ଉଚିତ୍ ଏବଂ ତୁରନ୍ତ ଅନୁରୋଧ ଦୋହରାଇବା ବଦଳରେ ବ୍ୟାକଅଫ୍ ବ୍ୟବହାର କରିବା ଉଚିତ୍।
-2. ସ୍ପଷ୍ଟୀକରଣ କରିବା ପୂର୍ବରୁ `/api/monitoring/health` → `chatAdmission` ଯାଞ୍ଚ କରନ୍ତୁ। `countCapEnabled: false` ଏବଂ ପ୍ରଶସ୍ତ `maxInflightBytes` ଅର୍ଥ ସ୍ୟୟଂ-ପ୍ରାପ୍ତ ବଜେଟ୍ ଇତିମଧ୍ୟରେ ତାହାର କାର୍ଯ୍ୟ କରୁଛି; `pressureSeverity` ର `high`/`critical` ଅର୍ଥ ହୋଷ୍ଟ ପ୍ରକୃତରେ ସ୍ମୃତି କମ୍ — ତାହା ଏକ ପ୍ରବେଶ ପରିବେଶ ପରିବର୍ତ୍ତନ ଦ୍ୱାରା ସଂଶୋଧନ ଯୋଗ୍ୟ ନୁହେଁ, ତାହାକୁ ଅଧିକ RAM କିମ୍ବା ଏକ ଛୋଟ କାର୍ଯ୍ୟଭାର ଆବଶ୍ୟକ।
-3. କେବଳ ଯଦି `/api/monitoring/health` ଦେଖାଏ ଯେ ସ୍ୟୟଂ-ପ୍ରାପ୍ତ ବଜେଟ୍ ଆପଣଙ୍କ ହୋଷ୍ଟ ପାଇଁ ପ୍ରକୃତରେ ଅତି ଛୋଟ (ଦୁର୍ଲଭ — ଏହା ଇତିମଧ୍ୟରେ କଣ୍ଟେନର ଠାରୁ ବେରେ-ଧାତୁ ପର୍ଯ୍ୟନ୍ତ ସ୍କେଲ୍ କରେ), ତାହା ସିଧାସଳଖ `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ସହ ଅତିକ୍ରମ କରନ୍ତୁ ପୁରାତନ ଅନୁରୋଧ-ଗଣନା ସୀମାକୁ ଫେରିବା ବଦଳରେ।
+1. ପ୍ରଥମେ ପୁନଃଚେଷ୍ଟା କରନ୍ତୁ। ଅନୁରୋଧକୁ ତୁରନ୍ତ ପୁନରାବୃତ୍ତି କରିବା ପରିବର୍ତ୍ତେ କ୍ଲାଏଣ୍ଟମାନେ
+   `Retry-After`କୁ ସମ୍ମାନ କରି ବ୍ୟାକଅଫ୍ ବ୍ୟବହାର କରିବା ଉଚିତ।
+2. କୌଣସି ସମନ୍ୱୟ କରିବା ପୂର୍ବରୁ `/api/monitoring/health` → `chatAdmission` ଯାଞ୍ଚ କରନ୍ତୁ। `countCapEnabled:
+false` ଏବଂ ଏକ ଉଦାର `maxInflightBytes`ର ଅର୍ଥ ହେଉଛି ସ୍ୱୟଂ-ବ୍ୟୁତ୍ପନ୍ନ ବଜେଟ୍ ପୂର୍ବରୁ ନିଜ
+   କାର୍ଯ୍ୟ କରୁଛି; `high`/`critical`ର `pressureSeverity` ଅର୍ଥ ହେଉଛି ହୋଷ୍ଟରେ ପ୍ରକୃତରେ
+   ମେମୋରି ଅଭାବ ଅଛି — ଏହାକୁ କୌଣସି ଆଡ୍ମିସନ୍ env var ଦ୍ୱାରା ସମାଧାନ କରାଯାଇପାରିବ ନାହିଁ,
+   ଏଥିପାଇଁ ଅଧିକ RAM କିମ୍ବା ଏକ ଛୋଟ ୱର୍କଲୋଡ୍ ଆବଶ୍ୟକ।
+3. କେବଳ ଯଦି `/api/monitoring/health` ଦେଖାଏ ଯେ ସ୍ୱୟଂ-ବ୍ୟୁତ୍ପନ୍ନ ବଜେଟ୍ ଆପଣଙ୍କ ହୋଷ୍ଟ ପାଇଁ
+   ପ୍ରକୃତରେ ଅତ୍ୟଧିକ ଛୋଟ (ବିରଳ — ଏହା ପୂର୍ବରୁ କଣ୍ଟେନର୍ରୁ ବେୟାର୍-ମେଟାଲ୍ ପର୍ଯ୍ୟନ୍ତ ସ୍କେଲ୍ ହୁଏ),
+   ତେବେ ପୁରୁଣା ଅନୁରୋଧ-ଗଣନା ସୀମାକୁ ଫେରିବା ପରିବର୍ତ୍ତେ `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`
+   ଦ୍ୱାରା ଏହାକୁ ସିଧାସଳଖ ଓଭର୍ରାଇଡ୍ କରନ୍ତୁ।
 
-ପ୍ରାମାଣିକ ପ୍ରବେଶ ସେଟିଂସ ପାଇଁ [ପରିବେଶ-ପରିବର୍ତ୍ତନ ସନ୍ଦର୍ଭ](../reference/ENVIRONMENT.md#4-security--authentication) ଦେଖନ୍ତୁ।
+ପ୍ରାମାଣିକ ଆଡ୍ମିସନ୍ ସେଟିଂସମୂହ ପାଇଁ [ପରିବେଶ-ଭେରିଏବଲ୍ ସନ୍ଦର୍ଭ](../reference/ENVIRONMENT.md#4-security--authentication)
+ଦେଖନ୍ତୁ।
 
 ---
 
-## ବୈକଳ୍ପିକ RAG / LLM ବିଫଳତା ଟ୍ୟାକ୍ସୋନୋମୀ (16ଟି ସମସ୍ୟା)
+## ବୈକଳ୍ପିକ RAG / LLM ବିଫଳତା ବର୍ଗୀକରଣ (16ଟି ସମସ୍ୟା)
 
-କିଛି OmniRoute ବ୍ୟବହାରକାରୀମାନେ RAG କିମ୍ବା agent stack ଗୁଡ଼ିକର ସାମ୍ନାରେ ଗେଟୱେକୁ ରଖନ୍ତି। ସେହି ସେଟ୍ଅପ୍ଗୁଡିକରେ ସାଧାରଣତଃ ଗୋଟେ ଅଜଣା ପ୍ରକାରର ଧାରା ଦେଖାଯାଏ: OmniRoute ସ୍ୱସ୍ଥ ଲାଗେ (providers up, routing profiles ok, no rate limit alerts), କିନ୍ତୁ ଶେଷ ଉତ୍ତର ତଥାପି ଭୁଲ୍ ଥାଏ।
+କିଛି OmniRoute ବ୍ୟବହାରକାରୀ ଗେଟୱେକୁ RAG କିମ୍ବା ଏଜେଣ୍ଟ ଷ୍ଟାକ୍ଗୁଡ଼ିକର ସମ୍ମୁଖରେ ରଖନ୍ତି। ସେହି ସେଟଅପ୍ଗୁଡ଼ିକରେ ଏକ ଅସ୍ୱାଭାବିକ ଢାଞ୍ଚା ଦେଖିବା ସାଧାରଣ କଥା: OmniRoute ସୁସ୍ଥ ଦେଖାଯାଏ (ପ୍ରଦାତାଗୁଡ଼ିକ ସକ୍ରିୟ, ରାଉଟିଂ ପ୍ରୋଫାଇଲ୍ଗୁଡ଼ିକ ଠିକ୍ ଅଛି, କୌଣସି ରେଟ୍ ଲିମିଟ୍ ସତର୍କତା ନାହିଁ), କିନ୍ତୁ ଅନ୍ତିମ ଉତ୍ତର ତଥାପି ଭୁଲ୍ ହୋଇଥାଏ।
 
-ବ୍ୟବହାରରେ ଏହି ଘଟଣାମାନେ ସାଧାରଣତଃ downstream RAG ପାଇପଲାଇନ୍ରୁ ଆସେ, gateway ରୁ ନୁହେଁ।
+ବ୍ୟବହାରିକ ଭାବେ, ଏହି ଘଟଣାଗୁଡ଼ିକ ସାଧାରଣତଃ ଗେଟୱେ ନିଜେ ନୁହେଁ, ବରଂ ଡାଉନ୍ଷ୍ଟ୍ରିମ୍ RAG ପାଇପଲାଇନ୍ରୁ ସୃଷ୍ଟି ହୋଇଥାଏ।
 
-ଯଦି ଆପଣ ଏହି ବିଫଳତାଗୁଡ଼ିକୁ ଏକେଇ ଶବ୍ଦଭଣ୍ଡାରରେ ବିବେଚନା କରିବାକୁ ଚାହାଁନ୍ତି, ତେବେ WFGY ProblemMap ବ୍ୟବହାର କରିପାରିବେ, ଯାହା ଏକ ବାହ୍ୟ MIT license ଟେକ୍ସଟ୍ ରିସୋର୍ସ ଏବଂ ଷୋଳଟି ପୁନରାବୃତ୍ତିଶୀଳ RAG / LLM ବିଫଳତା ପ୍ୟାଟର୍ନ୍କୁ ପରିଭାଷିତ କରେ। ଉଚ୍ଚ ସ୍ତରରେ ଏହା ଆଲୋଚନା କରେ:
+ସେହି ବିଫଳତାଗୁଡ଼ିକୁ ବର୍ଣ୍ଣନା କରିବା ପାଇଁ ଯଦି ଆପଣ ଏକ ସାଧାରଣ ଶବ୍ଦାବଳୀ ଚାହାନ୍ତି, ତେବେ WFGY ProblemMap ବ୍ୟବହାର କରିପାରିବେ। ଏହା MIT ଲାଇସେନ୍ସ ଅଧୀନରେ ଥିବା ଏକ ବାହ୍ୟ ପାଠ୍ୟ ସମ୍ବଳ, ଯାହା ଷୋହଳଟି ବାରମ୍ବାର ଘଟୁଥିବା RAG / LLM ବିଫଳତା ଢାଞ୍ଚାକୁ ପରିଭାଷିତ କରେ। ଉଚ୍ଚ ସ୍ତରରେ ଏହା ନିମ୍ନଲିଖିତ ବିଷୟଗୁଡ଼ିକୁ ଅନ୍ତର୍ଭୁକ୍ତ କରେ:
 
-- retrieval drift ଏବଂ broken context boundaries
-- empty କିମ୍ବା stale indexes ଏବଂ vector stores
-- embedding ବନାମ semantic ମେଳ ଭୁଲ
-- prompt assembly ଏବଂ context window ସମସ୍ୟା
-- logic collapse ଏବଂ overconfident answers
-- long chain ଏବଂ agent coordination ବିଫଳତା
-- multi agent memory ଏବଂ role drift
-- deployment ଏବଂ bootstrap ordering ସମସ୍ୟା
+- ରିଟ୍ରିଭାଲ୍ ଡ୍ରିଫ୍ଟ ଏବଂ ଭଙ୍ଗା ପ୍ରସଙ୍ଗ ସୀମା
+- ଖାଲି କିମ୍ବା ପୁରୁଣା ଇଣ୍ଡେକ୍ସ ଏବଂ ଭେକ୍ଟର୍ ଷ୍ଟୋର୍
+- ଏମ୍ବେଡିଂ ଏବଂ ଅର୍ଥଗତ ଅସଙ୍ଗତି
+- ପ୍ରମ୍ପ୍ଟ ସଂଯୋଜନ ଏବଂ ପ୍ରସଙ୍ଗ ୱିଣ୍ଡୋ ସମସ୍ୟା
+- ତର୍କର ବିଫଳତା ଏବଂ ଅତ୍ୟଧିକ ଆତ୍ମବିଶ୍ୱାସୀ ଉତ୍ତର
+- ଦୀର୍ଘ ଚେନ୍ ଏବଂ ଏଜେଣ୍ଟ ସମନ୍ୱୟ ବିଫଳତା
+- ମଲ୍ଟି-ଏଜେଣ୍ଟ ମେମୋରି ଏବଂ ଭୂମିକା ଡ୍ରିଫ୍ଟ
+- ଡିପ୍ଲୟମେଣ୍ଟ ଏବଂ ବୁଟ୍ଷ୍ଟ୍ରାପ୍ କ୍ରମ ସମସ୍ୟା
 
-ପ୍ରବାହଟି ସରଳ:
+ଧାରଣାଟି ସରଳ:
 
-1. ଖରାପ ଉତ୍ତରକୁ ବିଶ୍ଳେଷଣ କରିବାବେଳେ ଧରନ୍ତୁ:
-   - ବ୍ୟବହାରକାରୀ କାମ ଏବଂ ଅନୁରୋଧ
-   - OmniRoute ଭିତରେ route କିମ୍ବା provider combo
-   - downstreamରେ ବ୍ୟବହୃତ ଯେକୌଣସି RAG context (retrieved documents, tool calls, ଇତ୍ୟାଦି)
-2. ଘଟଣାକୁ ଗୋଟିଏ କିମ୍ବା ଦୁଇଟି WFGY ProblemMap ନମ୍ବରକୁ ମ୍ୟାପ୍ କରନ୍ତୁ (`No.1` … `No.16`)।
-3. ଏହି ନମ୍ବରକୁ ନିଜ dashboard, runbook କିମ୍ବା incident tracker ଭିତରେ OmniRoute logs ପାଖରେ ସଂରକ୍ଷଣ କରନ୍ତୁ।
-4. ସଠିକ WFGY ପୃଷ୍ଠା ବ୍ୟବହାର କରି ନିଷ୍ପତ୍ତି ନିଅନ୍ତୁ ଯେ ଆପଣଙ୍କୁ RAG stack, retriever କିମ୍ବା routing କୌଶଳ ପରିବର୍ତ୍ତନ କରିବା ଦରକାର କି।
+1. ଏକ ଖରାପ ପ୍ରତିକ୍ରିୟାର ତଦନ୍ତ କରିବାବେଳେ ନିମ୍ନଲିଖିତଗୁଡ଼ିକ ସଂଗ୍ରହ କରନ୍ତୁ:
+   - ବ୍ୟବହାରକାରୀଙ୍କ କାର୍ଯ୍ୟ ଏବଂ ଅନୁରୋଧ
+   - OmniRouteରେ ରୁଟ୍ କିମ୍ବା ପ୍ରଦାତା ସମ୍ମିଶ୍ରଣ
+   - ଡାଉନ୍ଷ୍ଟ୍ରିମ୍ରେ ବ୍ୟବହୃତ ଯେକୌଣସି RAG ପ୍ରସଙ୍ଗ (ପୁନରୁଦ୍ଧାର କରାଯାଇଥିବା ଡକ୍ୟୁମେଣ୍ଟ, ଟୁଲ୍ କଲ୍ ଇତ୍ୟାଦି)
+2. ଘଟଣାଟିକୁ ଗୋଟିଏ କିମ୍ବା ଦୁଇଟି WFGY ProblemMap ନମ୍ବର (`No.1` … `No.16`) ସହିତ ମ୍ୟାପ୍ କରନ୍ତୁ।
+3. OmniRoute ଲଗ୍ଗୁଡ଼ିକ ପାଖରେ ଥିବା ନିଜ ଡ୍ୟାସ୍ବୋର୍ଡ, ରନ୍ବୁକ୍ କିମ୍ବା ଇନ୍ସିଡେଣ୍ଟ ଟ୍ରାକର୍ରେ ସେହି ନମ୍ବର ସଞ୍ଚୟ କରନ୍ତୁ।
+4. ଆପଣଙ୍କ RAG ଷ୍ଟାକ୍, ରିଟ୍ରିଭର୍ କିମ୍ବା ରାଉଟିଂ କୌଶଳ ପରିବର୍ତ୍ତନ କରିବା ଆବଶ୍ୟକ କି ନାହିଁ ନିର୍ଣ୍ଣୟ କରିବାକୁ ସମ୍ପର୍କିତ WFGY ପୃଷ୍ଠା ବ୍ୟବହାର କରନ୍ତୁ।
 
-ପୂର୍ଣ୍ଣ ପାଠ୍ୟ ଏବଂ ପ୍ରାୟୋଗିକ ପଦ୍ଧତିଗୁଡ଼ିକ ଏଠାରେ ରହିଛି (MIT license, text only):
+ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ ଏବଂ ନିର୍ଦ୍ଦିଷ୍ଟ ପ୍ରଣାଳୀଗୁଡ଼ିକ ଏଠାରେ ଉପଲବ୍ଧ (MIT ଲାଇସେନ୍ସ, କେବଳ ପାଠ୍ୟ):
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-ଯଦି ଆପଣ OmniRoute ପଛରେ RAG କିମ୍ବା agent pipelines ଚଲାଉନ୍ତି ନାହିଁ, ଏହି ବିଭାଗକୁ ଅନଦେଖା କରିପାରିବେ।
+ଯଦି ଆପଣ OmniRoute ପଛରେ RAG କିମ୍ବା ଏଜେଣ୍ଟ ପାଇପଲାଇନ୍ ଚଳାଉନାହାନ୍ତି, ତେବେ ଏହି ବିଭାଗକୁ ଅଣଦେଖା କରିପାରିବେ।
 
 ---
 
-## v3.8.0 ଜଣାଶୁଣା ସମସ୍ୟାମାନ
+## v3.8.0ର ଜଣାଶୁଣା ସମସ୍ୟାଗୁଡ଼ିକ
 
-v3.8.0 ରିଲିଜ୍ର ବିଶେଷ ସମସ୍ୟାମାନେ ଏବଂ ସେମାନଙ୍କର ବର୍ତ୍ତମାନ workaround। ପରବର୍ତ୍ତୀ patch ରେ କୌଣସି fix ଆସିଲେ, ଏଣ୍ଟ୍ରିଟି ଅଦ୍ୟତନ ହେବ କିମ୍ବା ହଟାଯିବ।
+v3.8.0 ରିଲିଜ୍ର ନିର୍ଦ୍ଦିଷ୍ଟ ସମସ୍ୟା ଏବଂ ସେଗୁଡ଼ିକର ବର୍ତ୍ତମାନର ବିକଳ୍ପ ସମାଧାନ। ପରବର୍ତ୍ତୀ ପ୍ୟାଚ୍ରେ ସମାଧାନ ଯୋଡ଼ାଗଲେ, ଏଣ୍ଟ୍ରିଟି ଅପଡେଟ୍ କିମ୍ବା ଅପସାରଣ କରାଯିବ।
 
-### Devin CLI auth ବିଫଳତା
+### Devin CLI ପ୍ରମାଣୀକରଣ ବିଫଳତା
 
 **ଲକ୍ଷଣ:**
 
-- Devin-backed tools କୁ ଚାଲୁ କରିବା ସମୟରେ "Devin CLI not found" କିମ୍ବା "auth failed"
-- CLI runtime check `installed=false` ଦେଖାଏ
+- Devin-ଆଧାରିତ ଟୁଲ୍ଗୁଡ଼ିକୁ ଚାଲୁ କରିବାବେଳେ "Devin CLI not found" କିମ୍ବା "auth failed"
+- CLI ରନ୍ଟାଇମ୍ ଯାଞ୍ଚରେ `installed=false` ଦେଖାଯାଏ
 
 **କାରଣ:**
 
-- `CLI_DEVIN_BIN` ଗୋଟେ ଅବାସ୍ତବ ପଥକୁ ଇଙ୍କିତ କରେ
-- ହୋଷ୍ଟରେ Devin CLI ସ୍ଥାପିତ ନୁହେଁ
+- `CLI_DEVIN_BIN` ଏପରି ଏକ ପଥକୁ ସୂଚାଉଛି ଯାହା ଉପଲବ୍ଧ ନାହିଁ
+- ହୋଷ୍ଟରେ Devin CLI ଇନ୍ଷ୍ଟଲ୍ ହୋଇନାହିଁ
 
 **ସମାଧାନ:**
 
-1. ଆପଣଙ୍କ platform ପାଇଁ Devin CLI ସ୍ଥାପନ କରନ୍ତୁ
-2. `.env` ଭିତରେ `CLI_DEVIN_BIN=/usr/local/bin/devin` (କିମ୍ବା ପ୍ରକୃତ path) ସେଟ୍ କରନ୍ତୁ
-3. OmniRoute ପୁନର୍ଚ୍ଚାଳନ କରି **Dashboard → CLI Tools** ରୁ ପୁନଃ ପରୀକ୍ଷା କରନ୍ତୁ
+1. ଆପଣଙ୍କ ପ୍ଲାଟଫର୍ମ ପାଇଁ Devin CLI ଇନ୍ଷ୍ଟଲ୍ କରନ୍ତୁ
+2. `.env`ରେ `CLI_DEVIN_BIN=/usr/local/bin/devin` (କିମ୍ବା ପ୍ରକୃତ ପଥ) ସେଟ୍ କରନ୍ତୁ
+3. OmniRoute ପୁନଃଚାଲୁ କରନ୍ତୁ ଏବଂ **ଡ୍ୟାସ୍ବୋର୍ଡ → CLI ଟୁଲ୍ଗୁଡ଼ିକ**ରୁ ପୁନଃପରୀକ୍ଷା କରନ୍ତୁ
 
-### Model cooldown ଅଟକିଗଲା (manual reset)
-
-**ଲକ୍ଷଣ:**
-
-- ଅବଧି ସମାପ୍ତି ପରେ ମଧ୍ୟ ଗୋଟିଏ model cooldown ଭିତରେ ରହିଥାଏ
-- timestamp ଅତିତ ଥିଲେମଧ୍ୟ combo routing ଅନୁରୋଧଗୁଡ଼ିକ ଏହି model କୁ ସ୍କିପ୍ କରେ
-
-**ମ୍ୟୁଆଲ୍ ରିସେଟ୍:**
-
-- **Dashboard:** **Settings → Model Cooldowns** → ପ୍ରଭାବିତ କାର୍ଡ ଉପରେ **Re-enable** କ୍ଲିକ୍ କରନ୍ତୁ
-- **API:** ପରିଚାଳନା auth headers ସହିତ `DELETE /api/resilience/model-cooldowns`
-
-### Command Code provider ସଂଯୋଗ 403 ସହିତ ବିଫଳ
+### ମଡେଲ୍ କୁଲ୍ଡାଉନ୍ ଅଟକିଛି (ମାନୁଆଲ୍ ରିସେଟ୍)
 
 **ଲକ୍ଷଣ:**
 
-- Command Code provider connection ପରୀକ୍ଷା କରିବାବେଳେ 403
-- provider card ନୂଆକରି add କରିବା ପରେ "unauthorized" ଦେଖାଏ
+- ସମାପ୍ତି ସମୟ ଅତିକ୍ରମ କରିବା ପରେ ମଧ୍ୟ ଏକ ମଡେଲ୍ କୁଲ୍ଡାଉନ୍ରେ ତାଲିକାଭୁକ୍ତ ହୋଇ ରହେ
+- ଟାଇମ୍ଷ୍ଟାମ୍ପ ଅତୀତର ହୋଇଥିଲେ ମଧ୍ୟ କମ୍ବୋ ରାଉଟିଂରେ ଅନୁରୋଧଗୁଡ଼ିକ ସେହି ମଡେଲ୍କୁ ଏଡ଼ାଇଥାଏ
 
-**କାରଣ:** OAuth flow ସମ୍ପୂର୍ଣ୍ଣ ହୋଇନି (callback ମିଳିନି କିମ୍ବା token ସଞ୍ଚିତ ହୋଇନି)।
+**ମାନୁଆଲ୍ ରିସେଟ୍:**
+
+- **ଡ୍ୟାସ୍ବୋର୍ଡ:** **ସେଟିଂସ୍ → ମଡେଲ୍ କୁଲ୍ଡାଉନ୍ଗୁଡ଼ିକ** → ପ୍ରଭାବିତ କାର୍ଡରେ **ପୁନଃସକ୍ରିୟ କରନ୍ତୁ** କ୍ଲିକ୍ କରନ୍ତୁ
+- **API:** ପରିଚାଳନା ପ୍ରମାଣୀକରଣ ହେଡର୍ଗୁଡ଼ିକ ସହିତ `DELETE /api/resilience/model-cooldowns`
+
+### Command Code ପ୍ରଦାତା ସଂଯୋଗ 403 ସହିତ ବିଫଳ ହୁଏ
+
+**ଲକ୍ଷଣ:**
+
+- Command Code ପ୍ରଦାତା ସଂଯୋଗ ପରୀକ୍ଷା କରିବାବେଳେ 403
+- ନୂଆ ଯୋଡ଼ିବା ପରେ ପ୍ରଦାତା କାର୍ଡରେ "unauthorized" ଦେଖାଯାଏ
+
+**କାରଣ:** OAuth ପ୍ରବାହ ସମ୍ପୂର୍ଣ୍ଣ ହୋଇନଥିଲା (କଲ୍ବ୍ୟାକ୍ ମିଳିନଥିଲା କିମ୍ବା ଟୋକେନ୍ ସ୍ଥାୟୀ ଭାବେ ସଞ୍ଚିତ ହୋଇନଥିଲା)।
 
 **ସମାଧାନ:**
 
-- CLI ରୁ `omniroute providers` ଚଲାଇ OAuth flow ପୁନର୍ଚ୍ଚାଳନ କରନ୍ତୁ, କିମ୍ବା
-- **Dashboard → Providers → Command Code → Reconnect** ରୁ OAuth ପୁନଃ ଚାଲନ୍ତୁ
+- OAuth ପ୍ରବାହକୁ ପୁନଃଟ୍ରିଗର୍ କରିବା ପାଇଁ CLIରୁ `omniroute providers` ଚଲାନ୍ତୁ, କିମ୍ବା
+- **ଡ୍ୟାସ୍ବୋର୍ଡ → ପ୍ରଦାତାଗୁଡ଼ିକ → Command Code → ପୁନଃସଂଯୋଗ କରନ୍ତୁ**ରୁ OAuth ପୁନଃଚଲାନ୍ତୁ
 
-### ModelScope aggressive 429 cooldown ଫେରାଏ
-
-**ଲକ୍ଷଣ:**
-
-- କମ୍ ସଂଖ୍ୟକ requests ପରେ ModelScope ଉପରେ ବହୁତ ଛୋଟ କିମ୍ବା ତତ୍କ୍ଷଣାତ୍ cooldown ଆସେ
-- combo routing ଆଶାକୃତ ସମୟ ପୂର୍ବରୁ ModelScope କୁ ସ୍କିପ୍ କରେ
-
-**କାରଣ:** ModelScope provider-specific `Retry-After` headers ପଠାଏ। v3.8.0 ରେ ସେଗୁଡିକ ପାଇଁ ନିର୍ଦ୍ଦିଷ୍ଟ handling ରହିଛି, ତେଣୁ ପୁରୁଣା version ଗୁଡ଼ିକ ସେଗୁଡ଼ିକୁ ସାଧାରଣ rate-limit hints ଭାବରେ ଭୁଲ୍ ପଢ଼ୁଥିଲେ।
-
-**ସମାଧାନ:**
-
-- ନିଶ୍ଚିତ କରନ୍ତୁ ଯେ ଆପଣ v3.8.0 କିମ୍ବା ତା’ପରର version ଉପରେ ଅଛନ୍ତି
-- **Settings → Resilience** ଅନ୍ତର୍ଗତ `useUpstream429BreakerHints` toggle ସକ୍ରିୟ ଅଛି କି ଯାଞ୍ଚ କରନ୍ତୁ
-
-### OMNIROUTE_WS_BRIDGE_SECRET ପ୍ରୋଡକ୍ସନରେ ନାହିଁ
+### ModelScope ଅତ୍ୟଧିକ ଆକ୍ରମଣାତ୍ମକ 429 କୁଲ୍ଡାଉନ୍ ଫେରାଏ
 
 **ଲକ୍ଷଣ:**
 
-- ରିମୋଟ୍ ପ୍ରୋଡକ୍ସନ୍ ହୋଷ୍ଟରେ ପ୍ରତ୍ୟେକ Codex/Responses WebSocket bridge ଅନୁରୋଧରେ 401
-- WebSocket bridge handshake ସଂଯୋଗ ପରେ ତତ୍କ୍ଷଣାତ୍ ବନ୍ଦ ହୋଇଯାଏ
+- ଅଳ୍ପ କିଛି ଅନୁରୋଧର ଏକ ଛୋଟ ବର୍ଷ୍ଟ ପରେ ModelScopeରେ ଅତ୍ୟନ୍ତ ସ୍ୱଳ୍ପ କିମ୍ବା ତତ୍କ୍ଷଣାତ୍ କୁଲ୍ଡାଉନ୍
+- କମ୍ବୋ ରାଉଟିଂ ଆଶାଠାରୁ ଶୀଘ୍ର ModelScopeକୁ ଏଡ଼ାଇଦିଏ
 
-**କାରଣ:** `OMNIROUTE_WS_BRIDGE_SECRET` env var ପ୍ରୋଡକ୍ସନ୍ ପରିବେଶରେ ଅନୁପସ୍ଥିତ।
+**କାରଣ:** ModelScope ପ୍ରଦାତା-ନିର୍ଦ୍ଦିଷ୍ଟ `Retry-After` ହେଡର୍ଗୁଡ଼ିକ ନିର୍ଗତ କରେ। v3.8.0ରେ ସେହି ହେଡର୍ଗୁଡ଼ିକ ପାଇଁ ଉତ୍ସର୍ଗୀକୃତ ପରିଚାଳନା ରହିଛି, ତେଣୁ ପୁରୁଣା ସଂସ୍କରଣଗୁଡ଼ିକ ସେଗୁଡ଼ିକୁ ସାଧାରଣ ରେଟ୍-ଲିମିଟ୍ ସଙ୍କେତ ଭାବେ ଭୁଲ୍ ପଢ଼ନ୍ତି।
 
 **ସମାଧାନ:**
 
-1. ଗୋଟେ random secret ତିଆରି କରନ୍ତୁ: `openssl rand -hex 32`
-2. ପ୍ରୋଡକ୍ସନ୍ ସର୍ଭର env (ଏବଂ bridge ସହ କଥାହୁଏଥିବା ସମସ୍ତ client) ରେ `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` ସେଟ୍ କରନ୍ତୁ
-3. OmniRoute ପୁନର୍ଚ୍ଚାଳନ କରନ୍ତୁ
+- ଆପଣ v3.8.0 କିମ୍ବା ପରବର୍ତ୍ତୀ ସଂସ୍କରଣରେ ଅଛନ୍ତି ବୋଲି ସୁନିଶ୍ଚିତ କରନ୍ତୁ
+- **ସେଟିଂସ୍ → ରେଜିଲିଏନ୍ସ** ଅଧୀନରେ `useUpstream429BreakerHints` ଟଗଲ୍ ସକ୍ରିୟ ଥିବା ଯାଞ୍ଚ କରନ୍ତୁ
 
-### Responses API: background mode ସିଙ୍କ୍ରୋନସ୍କୁ degrade ହେଉଛି
+### ପ୍ରଡକ୍ସନ୍ରେ OMNIROUTE_WS_BRIDGE_SECRET ଅନୁପସ୍ଥିତ
 
 **ଲକ୍ଷଣ:**
 
-- warning logged: `background mode degraded to synchronous`
-- A `background: true` request ସାଧାରଣ synchronous response ଫେରାଏ, background job handle ନୁହେଁ
+- ଏକ ରିମୋଟ୍ ପ୍ରଡକ୍ସନ୍ ହୋଷ୍ଟରେ ଚାଲିବାବେଳେ ପ୍ରତ୍ୟେକ Codex/Responses WebSocket ବ୍ରିଜ୍ ଅନୁରୋଧରେ 401
+- ସଂଯୋଗ ପରେ ତତ୍କ୍ଷଣାତ୍ WebSocket ବ୍ରିଜ୍ ହ୍ୟାଣ୍ଡ୍ଶେକ୍ ବନ୍ଦ ହୋଇଯାଏ
 
-**କାରଣ:** v3.8.0 ରେ ସଚେତନଭାବେ `background: true` on the Responses API କୁ synchronous execution କୁ degrade କରାଯାଇଛି ଏବଂ ସତର୍କବାଣୀ ଦିଆଯାଇଛି। ସମ୍ପୂର୍ଣ୍ଣ async background execution ଭବିଷ୍ୟତରେ ପ୍ରଦାନ କରାଯିବ।
+**କାରଣ:** ପ୍ରଡକ୍ସନ୍ ପରିବେଶରେ `OMNIROUTE_WS_BRIDGE_SECRET` ପରିବେଶ ଭେରିଏବଲ୍ ଅନୁପସ୍ଥିତ।
 
 **ସମାଧାନ:**
 
-- client କୁ `background` ବିନା କଲ୍ କରିବା ପାଇଁ ଅନୁକୂଳ କରନ୍ତୁ, କିମ୍ବା
-- ପରବର୍ତ୍ତୀ release ଅପେକ୍ଷା କରନ୍ତୁ ଯାହା ସମ୍ପୂର୍ଣ୍ଣ async background mode ସହ ଆସିବ (changelog କୁ track କରନ୍ତୁ)
+1. ଏକ ଯାଦୃଚ୍ଛିକ ସିକ୍ରେଟ୍ ସୃଷ୍ଟି କରନ୍ତୁ: `openssl rand -hex 32`
+2. ପ୍ରଡକ୍ସନ୍ ସର୍ଭର୍ ପରିବେଶରେ (ଏବଂ ବ୍ରିଜ୍ ସହିତ ଯୋଗାଯୋଗ କରୁଥିବା ଯେକୌଣସି କ୍ଲାଏଣ୍ଟରେ) `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` ସେଟ୍ କରନ୍ତୁ
+3. OmniRoute ପୁନଃଚାଲୁ କରନ୍ତୁ
+
+### Responses API: ପୃଷ୍ଠଭୂମି ମୋଡ୍ ସିଙ୍କ୍ରୋନସ୍ ମୋଡ୍କୁ ଅବନମିତ ହୋଇଛି
+
+**ଲକ୍ଷଣ:**
+
+- ଲଗ୍ ହୋଇଥିବା ସତର୍କତା: `background mode degraded to synchronous`
+- ଏକ `background: true` ଅନୁରୋଧ ପୃଷ୍ଠଭୂମି କାର୍ଯ୍ୟ ହ୍ୟାଣ୍ଡଲ୍ ପରିବର୍ତ୍ତେ ଏକ ସାଧାରଣ ସିଙ୍କ୍ରୋନସ୍ ପ୍ରତିକ୍ରିୟା ଫେରାଏ
+
+**କାରଣ:** v3.8.0ରେ ଏକ ସତର୍କତା ନିର୍ଗତ କରିବା ସହିତ Responses APIର `background: true`କୁ ଉଦ୍ଦେଶ୍ୟମୂଳକ ଭାବେ ସିଙ୍କ୍ରୋନସ୍ ନିଷ୍ପାଦନକୁ ଅବନମିତ କରାଯାଏ। ସମ୍ପୂର୍ଣ୍ଣ ଆସିଙ୍କ୍ରୋନସ୍ ପୃଷ୍ଠଭୂମି ନିଷ୍ପାଦନ ଭବିଷ୍ୟତରେ ପ୍ରଦାନ କରାଯିବ।
+
+**ସମାଧାନ:**
+
+- `background` ବିନା କଲ୍ କରିବା ପାଇଁ କ୍ଲାଏଣ୍ଟକୁ ସମଯୋଜନ କରନ୍ତୁ, କିମ୍ବା
+- ସମ୍ପୂର୍ଣ୍ଣ ଆସିଙ୍କ୍ରୋନସ୍ ପୃଷ୍ଠଭୂମି ମୋଡ୍ ସହିତ ଆସୁଥିବା ପରବର୍ତ୍ତୀ ରିଲିଜ୍ ପାଇଁ ଅପେକ୍ଷା କରନ୍ତୁ (ଚେଞ୍ଜଲଗ୍ ଅନୁସରଣ କରନ୍ତୁ)
 
 ---
 
-## ଏବେ ବି ସମସ୍ୟାରେ ଅଟକିଛନ୍ତି?
+## ଧୀର ଷ୍ଟାର୍ଟଅପ୍ / ପ୍ରସ୍ତୁତି ସମୟସୀମା ଅତିକ୍ରମ
+
+ଯଦି CLI `⚠ Server did not respond within 60s` ପ୍ରଦର୍ଶନ କରେ, କିନ୍ତୁ ସର୍ଭର୍
+ପ୍ରକୃତରେ କାର୍ଯ୍ୟ କରୁଛି, ତେବେ ଆପଣଙ୍କ ପରିବେଶ ପାଇଁ ପ୍ରସ୍ତୁତି ଯାଞ୍ଚର ସମୟସୀମା ଅତ୍ୟନ୍ତ କମ୍ ଅଟେ।
+
+ଏହା ସାଧାରଣତଃ Windowsରେ (ଆଣ୍ଟିଭାଇରସ୍, ଫାଇଲ୍ସିଷ୍ଟମ୍ ୱାଚର୍) କିମ୍ବା ଅଧିକ
+ଷ୍ଟାର୍ଟଅପ୍ କାର୍ଯ୍ୟଭାର ଥିବା କଣ୍ଟେନର୍ଗୁଡ଼ିକରେ ଘଟିଥାଏ।
+
+**ସମାଧାନ — ସମୟସୀମା ବଢ଼ାନ୍ତୁ:**
+
+```bash
+# ପରିବେଶ ଭେରିଏବଲ୍ ମାଧ୍ୟମରେ (ପରବର୍ତ୍ତୀ ଷ୍ଟାର୍ଟଗୁଡ଼ିକରେ ମଧ୍ୟ ରହିଥାଏ):
+export OMNIROUTE_READY_TIMEOUT_MS=180000   # 3 ମିନିଟ୍
+omniroute serve
+
+# CLI ଫ୍ଲାଗ୍ ମାଧ୍ୟମରେ (କେବଳ ଥରେ):
+omniroute serve --ready-timeout 180000
+```
+
+ଡିଫଲ୍ଟ ହେଉଛି 60 000 ms (60 s)। ଏହି ଚେତାବନୀଟି କେବଳ ସୂଚନାମୂଳକ; ସର୍ଭର୍
+ପୃଷ୍ଠଭୂମିରେ ଆରମ୍ଭ ହେବା ଜାରି ରଖେ ଏବଂ ବୁଟ୍ ସମ୍ପୂର୍ଣ୍ଣ ହେଲେ ଏହାକୁ ଆକ୍ସେସ୍ କରାଯାଇପାରିବ।
+
+`OMNIROUTE_READY_TIMEOUT_MS` ବିଷୟରେ ସମ୍ପୂର୍ଣ୍ଣ ବିବରଣୀ ପାଇଁ
+[`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) ଦେଖନ୍ତୁ।
+
+---
+
+## ଏବେ ମଧ୍ୟ ଅଟକି ଯାଇଛନ୍ତି କି?
 
 - **GitHub ସମସ୍ୟାଗୁଡ଼ିକ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 - **ଆର୍କିଟେକ୍ଚର୍**: ଆଭ୍ୟନ୍ତରୀଣ ବିବରଣୀ ପାଇଁ [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) ଦେଖନ୍ତୁ
 - **API ସନ୍ଦର୍ଭ**: ସମସ୍ତ ଏଣ୍ଡପଏଣ୍ଟ ପାଇଁ [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md) ଦେଖନ୍ତୁ
-- **ସ୍ୱାସ୍ଥ୍ୟ ଡ୍ୟାସ୍ବୋର୍ଡ**: ରିଅଲ୍-ଟାଇମ୍ ସିଷ୍ଟମ୍ ସ୍ଥିତି ପାଇଁ **ଡ୍ୟାସ୍ବୋର୍ଡ → ସ୍ୱାସ୍ଥ୍ୟ** ଯାଞ୍ଚ କରନ୍ତୁ
-- **ଅନୁବାଦକ**: ଫର୍ମାଟ୍ ସମସ୍ୟାଗୁଡ଼ିକୁ ଡିବଗ୍ କରିବା ପାଇଁ **ଡ୍ୟାସ୍ବୋର୍ଡ → ଅନୁବାଦକ** ବ୍ୟବହାର କରନ୍ତୁ
+- **ସ୍ୱାସ୍ଥ୍ୟ ଡ୍ୟାସ୍ବୋର୍ଡ**: ବାସ୍ତବ-ସମୟ ସିଷ୍ଟମ୍ ସ୍ଥିତି ପାଇଁ **Dashboard → Health** ଯାଞ୍ଚ କରନ୍ତୁ
+- **ଅନୁବାଦକ**: ଫର୍ମାଟ୍ ସମସ୍ୟାଗୁଡ଼ିକୁ ଡିବଗ୍ କରିବା ପାଇଁ **Dashboard → Translator** ବ୍ୟବହାର କରନ୍ତୁ

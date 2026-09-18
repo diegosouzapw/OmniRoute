@@ -4,265 +4,335 @@
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+🌐 **भाषाएँ:** 🇺🇸 [English](./FEATURES.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/FEATURES.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/FEATURES.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/FEATURES.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/FEATURES.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/FEATURES.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/FEATURES.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/FEATURES.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/FEATURES.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/FEATURES.md) | 🇪🇸 [Español](../i18n/es/docs/guides/FEATURES.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/FEATURES.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/FEATURES.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/FEATURES.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/FEATURES.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/FEATURES.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/FEATURES.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/FEATURES.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/FEATURES.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/FEATURES.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/FEATURES.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/FEATURES.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/FEATURES.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/FEATURES.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/FEATURES.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/FEATURES.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/FEATURES.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/FEATURES.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/FEATURES.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/FEATURES.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/FEATURES.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/FEATURES.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/FEATURES.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/FEATURES.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/FEATURES.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/FEATURES.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/FEATURES.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/FEATURES.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/FEATURES.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/FEATURES.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/FEATURES.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/FEATURES.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/FEATURES.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/FEATURES.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/FEATURES.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/FEATURES.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/FEATURES.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/FEATURES.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/FEATURES.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/FEATURES.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/FEATURES.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/FEATURES.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/FEATURES.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/FEATURES.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/FEATURES.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/FEATURES.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/FEATURES.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/FEATURES.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/FEATURES.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/FEATURES.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/FEATURES.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/FEATURES.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/FEATURES.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/FEATURES.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/FEATURES.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/FEATURES.md)
+
+OmniRoute डैशबोर्ड के प्रत्येक अनुभाग की दृश्य मार्गदर्शिका।
+
+> 📅 **अंतिम अपडेट:** 2026-06-28 — **v3.8.40**
 
 ---
 
-## 🔌 Providers
+## ✨ v3.8.0 की प्रमुख विशेषताएँ
 
-![Providers Dashboard](screenshots/01-providers.png)
+v3.7.x → v3.8.0 चक्र में शून्य-कॉन्फ़िगरेशन स्वचालित रूटिंग, नए प्रदाता, OAuth प्रवाह, अधिक गहन लचीलापन और कहीं अधिक समृद्ध CLI अनुभव जोड़े गए। प्रमुख विशेषताएँ नीचे दी गई हैं — पूर्ण विवरण इस दस्तावेज़ में आगे और लिंक किए गए विनिर्देशों में उपलब्ध हैं।
 
----
+- 🤖 **Auto Combo / शून्य-कॉन्फ़िगरेशन स्वचालित रूटिंग** — `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos` उपसर्गों का उपयोग करें। यह 16-कारक स्कोरिंग इंजन और 6 सुव्यवस्थित **मोड पैक** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode) द्वारा समर्थित है
+- 🆕 **Command Code प्रदाता** (#2199) — मॉडल कैटलॉग और कोटा ट्रैकिंग के साथ प्रथम-श्रेणी पंजीकरण
+- 🆕 **Z.AI प्रदाता** — कोटा लेबल वाला नया निःशुल्क-स्तर प्रदाता
+- 🎬 **KIE मीडिया विस्तार** — वीडियो जनरेशन मॉडल सहित विस्तारित कैटलॉग
+- 🔐 **Devin प्रमाणीकरण** — Desktop किसी मौजूदा Devin API कुंजी को आयात करता है; CLI स्थानीय `devin auth login` क्रेडेंशियल का उपयोग करता है
+- 🆓 **8 नए निःशुल्क प्रदाता** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **मैनिफ़ेस्ट-जागरूक स्तर रूटिंग W1–W4** — प्रदाता मैनिफ़ेस्ट भारित स्तर चयन को संचालित करते हैं
+- 🎨 **Cursor की पूर्ण OpenAI समानता** — टूल कॉल, स्ट्रीमिंग और सत्र प्रबंधन शुरू से अंत तक
+- 📊 **Cursor Pro योजना का उपयोग** — कोटा और चक्र डेटा provider-limits डैशबोर्ड में प्रदर्शित होता है
+- ⚡ **सेवा स्तर विश्लेषण / Codex फ़ास्ट-टियर विश्लेषिकी** — प्रत्येक स्तर की खपत की दृश्यता
+- 📌 **प्रति-सत्र स्थायी रूटिंग** — Codex सत्र विभिन्न संवाद चरणों के बीच उसी खाते पर स्थिर रहते हैं
+- 🔊 **Inworld TTS संवर्द्धन** — वॉइस कैटलॉग, स्ट्रीमिंग और विलंबता में सुधार
+- 🔑 **Kiro हेडलेस प्रमाणीकरण** — स्थानीय `kiro-cli` SQLite स्टोर के माध्यम से लॉगिन, ब्राउज़र की आवश्यकता नहीं
+- 📉 **DeepSeek कोटा और सीमा निगरानी** — दैनिक/मासिक उपयोग डैशबोर्ड के माध्यम से उपलब्ध
+- 🔄 **रीसेट-जागरूक रूटिंग रणनीति** — कॉम्बो अब उन खातों को प्राथमिकता देते हैं जिनकी कोटा अवधि सबसे पहले रीसेट होती है
+- ⏱️ **`fallbackDelayMs`** और **गतिशील टूल सीमा पहचान** — अधिक सूक्ष्म फ़ॉलबैक समय-निर्धारण + प्रत्येक प्रदाता के लिए टूल-संख्या सीमाएँ
+- 🔧 **बैकग्राउंड मोड अवनयन (Responses API)** — जब अपस्ट्रीम बैकग्राउंड पोलिंग का समर्थन नहीं करता, तब संरचित चेतावनी के साथ सिंक्रोनस मोड पर वापस आ जाता है
+- 🚦 **प्रत्येक प्रदाता के लिए 429 वर्गीकरण** + `useUpstream429BreakerHints` टॉगल — अपस्ट्रीम दर-सीमा संकेतों का उपयोग करके अधिक सूक्ष्म ब्रेकर व्यवहार
+- 🩺 **मॉडल कूलडाउन डैशबोर्ड** — प्रत्येक मॉडल के लॉकआउट देखें और UI से उन्हें मैन्युअल रूप से पुनः सक्षम करें
+- 🔒 **MITM गतिशील Linux प्रमाणपत्र पहचान** — Debian/Ubuntu, Fedora/RHEL, Arch और अन्य डिस्ट्रो पर कार्य करती है
+- 💻 **CLI संवर्द्धन सुइट** — `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup` सहित 20+ कमांड
+- 🔍 **Qdrant एम्बेडिंग मॉडल खोज** — स्वचालित वेक्टर-स्टोर मॉडल जाँच
+- 🔑 **`manage` स्कोप वाली API कुंजियाँ / Bearer कुंजियाँ** — API के माध्यम से प्रोग्रामेटिक रूप से व्यवस्थापकीय कार्य करें
+- 🏥 **कॉम्बो लक्ष्य स्वास्थ्य विश्लेषिकी** + **संरचित कॉम्बो बिल्डर** — `(provider, model, connection)` चरणों को संयोजित करने के लिए प्रत्येक लक्ष्य का स्वास्थ्य और UI बिल्डर
+- 🤝 **GitLab Duo OAuth प्रदाता** — GitLab क्रेडेंशियल से लॉगिन करें
+- 🧠 **Reasoning Replay Cache** — रीजनिंग ट्रेस की हाइब्रिड इन-मेमोरी + SQLite स्थायित्व
 
-## 🎨 Combos
-
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-Recent combo improvements:
-
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
-
-![Combos Dashboard](screenshots/02-combos.png)
-
----
-
-## 📊 Analytics
-
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
-
----
-
-## 🏥 System Health
-
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
-
-![Health Dashboard](screenshots/04-health.png)
+📚 **संबंधित दस्तावेज़:** [कौशल फ़्रेमवर्क](../frameworks/SKILLS.md) · [मेमोरी सिस्टम](../frameworks/MEMORY.md) · [क्लाउड एजेंट](../frameworks/CLOUD_AGENT.md) · [वेबहुक](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔧 Translator Playground
+## 🔌 प्रदाता
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+AI प्रदाता कनेक्शन प्रबंधित करें: OAuth प्रदाता (Claude Code, Codex), API कुंजी प्रदाता (Groq, DeepSeek, OpenRouter), और निःशुल्क प्रदाता (Qoder, Kiro)। Kiro खातों में क्रेडिट शेष की ट्रैकिंग शामिल है — शेष क्रेडिट, कुल सीमा और नवीनीकरण तिथि डैशबोर्ड → उपयोग में दिखाई देती है।
 
-![Translator Playground](screenshots/05-translator.png)
+OpenRouter कनेक्शन उन्नत सेटिंग्स में प्रति-कनेक्शन `preset` संग्रहीत कर सकते हैं। इसे सेट करने पर, OmniRoute इसे OpenRouter के शीर्ष-स्तरीय अनुरोध फ़ील्ड के रूप में भेजता है, उदाहरण के लिए `"preset": "email-copywriter"`, बशर्ते क्लाइंट अनुरोध ने पहले से अपना `preset` न दिया हो।
 
----
-
-## 🎮 Model Playground _(v2.0.9+)_
-
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+![प्रदाता डैशबोर्ड](../screenshots/01-providers.png)
 
 ---
 
-## 🎨 Themes _(v2.0.5+)_
+## 🎨 कॉम्बो
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+19 सार्वजनिक रणनीतियों के साथ मॉडल रूटिंग कॉम्बो बनाएँ: priority, weighted, round-robin, context-relay, fill-first, p2c (दो विकल्पों की शक्ति), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (अंतिम-ज्ञात-कार्यशील-प्रदाता), context-optimized, cache-optimized, **fusion** (मॉडलों के एक पैनल को समानांतर रूप से अनुरोध भेजना, फिर एक निर्णायक के माध्यम से एक उत्तर संश्लेषित करना), और **pipeline**। प्रत्येक कॉम्बो स्वचालित फ़ॉलबैक के साथ कई मॉडलों को श्रृंखलाबद्ध करता है और इसमें त्वरित टेम्पलेट तथा तत्परता जाँच शामिल होती हैं।
 
----
+कॉम्बो में हाल के सुधार:
 
-## ⚙️ Settings
+- **संरचित कॉम्बो बिल्डर** — प्रदाता, मॉडल और सटीक खाता/कनेक्शन चुनकर प्रत्येक चरण बनाएँ
+- **प्रदाता दोहराने का समर्थन** — एक ही कॉम्बो में एक ही प्रदाता का कई बार पुनः उपयोग करें, बशर्ते `(provider, model, connection)` ट्यूपल अद्वितीय हो
+- **कॉम्बो लक्ष्य स्वास्थ्य** — विश्लेषण और स्वास्थ्य इंटरफ़ेस अब सभी चीज़ों को मॉडल स्ट्रिंग में समेटने के बजाय अलग-अलग कॉम्बो लक्ष्यों/चरणों में अंतर करते हैं
+- **संयुक्त टियर क्रम** — `defaultTier -> fallbackTier` अब शीर्ष-स्तरीय कॉम्बो चरणों के रनटाइम निष्पादन/फ़ॉलबैक क्रम को प्रभावित करता है
+- **सिस्टम प्रॉम्प्ट टेम्पलेट** — कॉम्बो `system_message` सर्वर-साइड
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` और `{{FINGERPRINT}}`
+  प्लेसहोल्डर का समर्थन करता है, जिन्हें प्रेषण से ठीक पहले वास्तव में रूट किए गए लक्ष्य के आधार पर विस्तृत किया जाता है।
+  ये अनुमत-सूचीबद्ध और गैर-पुनरावर्ती हैं; अज्ञात प्लेसहोल्डर अक्षरशः बने रहते हैं; रिक्त मान
+  रिक्त में विस्तृत होते हैं; क्लाइंट सिस्टम प्रॉम्प्ट कभी दोबारा नहीं लिखे जाते। `{{FINGERPRINT}}`
+  केवल पिन किए गए या स्वतः-रोटेट किए गए फ़िंगरप्रिंट वाले फ़िंगरप्रिंट-आधारित निःशुल्क प्रदाताओं के लिए
+  हल होता है — अन्य जगहों पर यह रिक्त में विस्तृत होता है (उदा.
+  एकल-फ़िंगरप्रिंट कनेक्शन, गैर-fp प्रदाता)। विस्तार में
+  मानक प्रेषण लूप, round-robin और पिन किए गए context-cache सत्र शामिल हैं;
+  fusion, chaos, pipeline और nested-execute रणनीतियाँ अभी
+  प्लेसहोल्डर विस्तृत नहीं करती हैं।
 
-Comprehensive settings panel with tabs:
-
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
-
----
-
-## 🔧 CLI Tools
-
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![कॉम्बो डैशबोर्ड](../screenshots/02-combos.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## 📊 विश्लेषण
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+टोकन खपत, लागत अनुमान, गतिविधि हीटमैप, साप्ताहिक वितरण चार्ट और प्रति-प्रदाता विवरण सहित व्यापक उपयोग विश्लेषण।
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+![विश्लेषण डैशबोर्ड](../screenshots/03-analytics.png)
 
 ---
 
-## 🔗 Context Relay _(v3.5.5+)_
+## 🏥 सिस्टम स्वास्थ्य
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+रीयल-टाइम निगरानी: अपटाइम, मेमोरी, संस्करण, विलंबता प्रतिशतक (p50/p95/p99), कैश आँकड़े, प्रदाता सर्किट ब्रेकर स्थितियाँ, सक्रिय कोटा-निगरानी वाले सत्र और कॉम्बो लक्ष्य स्वास्थ्य।
 
-Configurable via combo-level or global settings:
-
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
-
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+![स्वास्थ्य डैशबोर्ड](../screenshots/04-health.png)
 
 ---
 
-## 🛡️ Proxy Hardening _(v3.5.5+)_
+## 🔧 अनुवादक प्लेग्राउंड
 
-Comprehensive proxy configuration enforcement across the entire request pipeline:
+API अनुवादों को डीबग करने के लिए चार मोड: **प्लेग्राउंड** (फ़ॉर्मेट कन्वर्टर), **चैट टेस्टर** (लाइव अनुरोध), **टेस्ट बेंच** (बैच परीक्षण), और **लाइव मॉनिटर** (रीयल-टाइम स्ट्रीम)।
 
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+![अनुवादक प्लेग्राउंड](../screenshots/05-translator.png)
 
 ---
 
-## 📧 Email Privacy Masking _(v3.5.6+)_
+## 🎮 मॉडल प्लेग्राउंड _(v2.0.9+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
-
----
-
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
-
-The provider page model list now includes:
-
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+डैशबोर्ड से सीधे किसी भी मॉडल का परीक्षण करें। प्रदाता, मॉडल और एंडपॉइंट चुनें, Monaco Editor में प्रॉम्प्ट लिखें, रीयल-टाइम में प्रतिक्रियाएँ स्ट्रीम करें, स्ट्रीम को बीच में रोकें और समय-संबंधी मेट्रिक्स देखें।
 
 ---
 
-## 🔧 OAuth Env Repair _(v3.6.1+)_
+## 🎨 थीम्स _(v2.0.5+)_
 
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
-
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+पूरे डैशबोर्ड के लिए अनुकूलन योग्य रंग थीम्स। 7 पूर्वनिर्धारित रंगों (Coral, Blue, Red, Green, Violet, Orange, Cyan) में से चुनें या कोई भी hex रंग चुनकर कस्टम थीम बनाएँ। लाइट, डार्क और सिस्टम मोड का समर्थन करता है।
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## ⚙️ सेटिंग्स
 
-Clean removal scripts for all installation methods:
+**7 टैब** वाला व्यापक सेटिंग्स पैनल:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+- **सामान्य** — सिस्टम स्टोरेज, बैकअप प्रबंधन (डेटाबेस निर्यात/आयात)
+- **दिखावट** — थीम चयनकर्ता (डार्क/लाइट/सिस्टम), रंग थीम प्रीसेट और कस्टम रंग, हेल्थ लॉग दृश्यता, साइडबार आइटम और समूह विभाजक की दृश्यता के नियंत्रण, एंडपॉइंट टनल दृश्यता के नियंत्रण
+- **AI** — AI सहायक सुविधाएँ, डिफ़ॉल्ट रूटिंग प्रीसेट (ऑटो कॉम्बो `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), रीजनिंग रीप्ले कैश और कौशल/मेमोरी टॉगल
+- **सुरक्षा** — API एंडपॉइंट सुरक्षा, कस्टम प्रदाता ब्लॉकिंग, IP फ़िल्टरिंग, सत्र जानकारी
+- **रूटिंग** — मॉडल उपनाम, बैकग्राउंड कार्य अवनयन, मैनिफ़ेस्ट-जागरूक टियर रूटिंग (W1–W4), `fallbackDelayMs`, प्रति-सत्र स्टिकी रूटिंग
+- **लचीलापन** — रेट लिमिट स्थायित्व, सर्किट ब्रेकर ट्यूनिंग, प्रतिबंधित खातों को स्वतः अक्षम करना, प्रदाता की समाप्ति की निगरानी, **कॉन्टेक्स्ट रिले** हैंडऑफ़ सीमा और सारांश मॉडल कॉन्फ़िगरेशन, प्रति-प्रदाता 429 वर्गीकरण और `useUpstream429BreakerHints` टॉगल, मॉडल कूलडाउन
+- **उन्नत** — कॉन्फ़िगरेशन ओवरराइड, कॉन्फ़िगरेशन ऑडिट ट्रेल, फ़ॉलबैक अवनयन मोड, Responses API के लिए बैकग्राउंड मोड अवनयन
 
----
-
-## 🖼️ Media _(v2.0.3+)_
-
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
-
-## 📝 Request Logs
-
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+![सेटिंग्स डैशबोर्ड](../screenshots/06-settings.png)
 
 ---
 
-## 🌐 API Endpoint
+## 🔧 CLI टूल्स
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+AI कोडिंग टूल्स के लिए एक-क्लिक कॉन्फ़िगरेशन: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor और Factory Droid। इसमें स्वचालित कॉन्फ़िगरेशन लागू करना/रीसेट करना, कनेक्शन प्रोफ़ाइल और मॉडल मैपिंग जैसी सुविधाएँ शामिल हैं।
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
-
----
-
-## 🔑 API Key Management
-
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+![CLI टूल्स डैशबोर्ड](../screenshots/07-cli-tools.png)
 
 ---
 
-## 📋 Audit Log
+## 🤖 CLI एजेंट्स _(v2.0.11+)_
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+CLI एजेंट्स खोजने और प्रबंधित करने के लिए डैशबोर्ड। यह 16 अंतर्निहित एजेंट्स (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) का ग्रिड निम्न सुविधाओं के साथ दिखाता है:
 
----
-
-## 🖥️ Desktop Application
-
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
-
-Key features:
-
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
-
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+- **इंस्टॉलेशन स्थिति** — संस्करण की पहचान के साथ इंस्टॉल किया गया / नहीं मिला
+- **प्रोटोकॉल बैज** — stdio, HTTP आदि।
+- **कस्टम एजेंट्स** — फ़ॉर्म के माध्यम से कोई भी CLI टूल पंजीकृत करें (नाम, बाइनरी, संस्करण कमांड, स्पॉन आर्ग्युमेंट्स)
+- **CLI फ़िंगरप्रिंट मिलान** — प्रॉक्सी IP को बनाए रखते हुए प्रतिबंध के जोखिम को कम करने के लिए नेटिव CLI अनुरोध सिग्नेचर्स से मिलान करने हेतु प्रति-प्रदाता टॉगल
+- **स्थानीय Devin प्रमाणीकरण** — Devin CLI `devin auth login` का उपयोग करता है; ब्राउज़र OAuth फ़्लो की आवश्यकता नहीं है
 
 ---
 
-## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
+## 🔗 कॉन्टेक्स्ट रिले _(v3.5.5+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+एक कॉम्बो रणनीति, जो बातचीत के बीच में अकाउंट रोटेशन होने पर सेशन की निरंतरता बनाए रखती है। सक्रिय अकाउंट का कोटा समाप्त होने से पहले, OmniRoute बैकग्राउंड में एक संरचित हैंडऑफ़ सारांश तैयार करता है। अगली रिक्वेस्ट किसी दूसरे अकाउंट पर रूट होने के बाद, सारांश को सिस्टम मैसेज के रूप में शामिल किया जाता है, ताकि नया अकाउंट पूरे कॉन्टेक्स्ट के साथ बातचीत जारी रख सके।
 
-Key behaviours:
+कॉम्बो-स्तरीय या ग्लोबल सेटिंग्स के माध्यम से कॉन्फ़िगर किया जा सकता है:
 
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+- **हैंडऑफ़ थ्रेशोल्ड** — कोटा उपयोग का वह प्रतिशत, जो सारांश तैयार करने को ट्रिगर करता है (डिफ़ॉल्ट 85%)
+- **सारांश के लिए अधिकतम मैसेज** — हाल के कितने इतिहास को संक्षिप्त करना है
+- **सारांश मॉडल** — हैंडऑफ़ सारांश तैयार करने के लिए वैकल्पिक ओवरराइड मॉडल
 
----
-
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
-
-Multi-device and external operator access is now possible via **scoped sync tokens**:
-
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
-
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+वर्तमान में Codex अकाउंट रोटेशन समर्थित है। [कॉन्टेक्स्ट रिले दस्तावेज़](../architecture/ARCHITECTURE.md) देखें।
 
 ---
 
-## 🧠 GLM Thinking Preset _(v3.6.6+)_
+## 🗜️ प्रॉम्प्ट कम्प्रेशन _(v3.7.9+)_
 
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+कॉन्टेक्स्ट और कैश अब Caveman, RTK और कम्प्रेशन कॉम्बो के लिए समर्पित पेज उपलब्ध कराते हैं:
 
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+- **Caveman** — भाषा-जागरूक नियम पैक, प्रीव्यू, आउटपुट-मोड नियंत्रण और एनालिटिक्स
+- **RTK** — शेल, git, टेस्ट, बिल्ड, पैकेज, Docker, इन्फ़्रा, JSON और स्टैक-ट्रेस आउटपुट के लिए कमांड-जागरूक कम्प्रेशन
+- **कम्प्रेशन कॉम्बो** — रूटिंग कॉम्बो को असाइन की गई `rtk -> caveman` जैसी नामित पाइपलाइनें; दोनों इंजनों के लागू होने पर डिफ़ॉल्ट स्टैक्ड गणना औसतन `~89%` और योग्य-कॉन्टेक्स्ट में `78-95%` बचत तक पहुँचती है
+- **रॉ-आउटपुट रिकवरी** — कम्प्रेस की गई विफलताओं को डीबग करने के लिए वैकल्पिक रूप से संशोधित RTK रॉ-आउटपुट पॉइंटर
 
----
-
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
-
-All provider validation and model discovery calls now go through a two-layer outbound guard:
-
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
-
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+[कम्प्रेशन गाइड](../compression/COMPRESSION_GUIDE.md), [RTK कम्प्रेशन](../compression/RTK_COMPRESSION.md), और
+[कम्प्रेशन इंजन](../compression/COMPRESSION_ENGINES.md) देखें।
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## 🛡️ प्रॉक्सी हार्डनिंग _(v3.5.5+)_
 
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+पूरी रिक्वेस्ट पाइपलाइन में व्यापक प्रॉक्सी कॉन्फ़िगरेशन प्रवर्तन:
+
+- **टोकन हेल्थ चेक** — बैकग्राउंड OAuth रीफ़्रेश अब प्रत्येक कनेक्शन के लिए प्रॉक्सी कॉन्फ़िगरेशन निर्धारित करता है, जिससे प्रॉक्सी-आवश्यक वातावरणों में विफलताएँ रुकती हैं
+- **API कुंजी सत्यापन** — प्रोवाइडर कुंजी सत्यापन (`POST /api/providers/validate`) `runWithProxyContext` के माध्यम से रूट होता है और प्रोवाइडर-स्तरीय तथा ग्लोबल प्रॉक्सी सेटिंग्स का पालन करता है
+- **undici डिस्पैचर सुधार** — प्रॉक्सी डिस्पैचर Node के बिल्ट-इन fetch के बजाय undici के अपने fetch कार्यान्वयन का उपयोग करते हैं, जिससे Node.js 22 पर `invalid onRequestStart method` त्रुटियाँ हल होती हैं
+- **Node.js संस्करण पहचान** — लॉगिन पेज असंगत Node.js संस्करणों (24+) का सक्रिय रूप से पता लगाता है और Node 22 LTS का उपयोग करने के निर्देशों वाला चेतावनी बैनर दिखाता है
 
 ---
 
-## 📋 Compliance Audit v2 _(v3.6.6+)_
+## 📧 ईमेल गोपनीयता मास्किंग _(v3.5.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+स्क्रीनशॉट साझा करते या डेमो रिकॉर्ड करते समय आकस्मिक खुलासे को रोकने के लिए OAuth अकाउंट ईमेल डिफ़ॉल्ट रूप से मास्क किए जाते हैं (उदा. `di*****@g****.com`)। सभी प्रोवाइडर, कॉम्बो, लॉग, कोटा और प्लेग्राउंड स्क्रीन पर पूरे अकाउंट ईमेल को ग्लोबल रूप से दिखाने या मास्क करने के लिए सेटिंग्स → अपीयरेंस → अकाउंट ईमेल दृश्यता का उपयोग करें।
+
+---
+
+## 👁️ मॉडल दृश्यता टॉगल _(v3.5.6+)_
+
+प्रोवाइडर पेज की मॉडल सूची में अब ये शामिल हैं:
+
+- **रीयल-टाइम खोज/फ़िल्टर बार** — विशिष्ट मॉडल तुरंत खोजें
+- **प्रति-मॉडल दृश्यता टॉगल** (👁 आइकन) — छिपे हुए मॉडल धूसर दिखते हैं और `/v1/models` कैटलॉग से बाहर रखे जाते हैं
+- **सक्रिय-संख्या बैज** (`N/M सक्रिय`) — एक नज़र में दिखाता है कि कुल मॉडलों में से कितने सक्षम हैं
+
+---
+
+## 🔧 OAuth Env मरम्मत _(v3.6.1+)_
+
+OAuth प्रदाताओं के लिए एक-क्लिक "Repair env" कार्रवाई, जो अनुपलब्ध पर्यावरण वेरिएबल पुनर्स्थापित करती है और खराब प्रमाणीकरण स्थिति को ठीक करती है। इसे `Dashboard → Providers → [OAuth Provider] → Repair env` से एक्सेस किया जा सकता है। यह स्वचालित रूप से निम्न समस्याओं का पता लगाकर उन्हें ठीक करती है:
+
+- अनुपलब्ध OAuth क्लाइंट क्रेडेंशियल
+- दूषित env फ़ाइल प्रविष्टियाँ
+- बैकअप पथ का शुद्धिकरण
+
+---
+
+## 🗑️ अनइंस्टॉल / पूर्ण अनइंस्टॉल _(v3.6.2+)_
+
+सभी इंस्टॉलेशन विधियों के लिए सुव्यवस्थित निष्कासन स्क्रिप्ट:
+
+| कमांड                    | कार्रवाई                                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | सिस्टम ऐप को हटाता है, लेकिन `~/.omniroute` में **आपका DB और कॉन्फ़िगरेशन सुरक्षित रखता है**। |
+| `npm run uninstall:full` | ऐप को हटाता है और **सभी कॉन्फ़िगरेशन, कुंजियाँ तथा डेटाबेस स्थायी रूप से मिटा देता है**।      |
+
+---
+
+## 🖼️ मीडिया _(v2.0.3+)_
+
+डैशबोर्ड से चित्र, वीडियो और संगीत जनरेट करें। OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open और MusicGen समर्थित हैं।
+
+---
+
+## 📝 अनुरोध लॉग
+
+प्रदाता, मॉडल, खाते और API कुंजी के आधार पर फ़िल्टरिंग के साथ रीयल-टाइम अनुरोध लॉगिंग। स्थिति कोड, टोकन उपयोग, विलंबता और प्रतिक्रिया विवरण दिखाता है।
+
+![उपयोग लॉग](../screenshots/08-usage.png)
+
+---
+
+## 🌐 API एंडपॉइंट
+
+क्षमता विवरण के साथ आपका एकीकृत API एंडपॉइंट: चैट पूर्णताएँ, Responses API, एम्बेडिंग, चित्र जनरेशन, पुनः-रैंकिंग, ऑडियो ट्रांसक्रिप्शन, टेक्स्ट-टू-स्पीच, मॉडरेशन और पंजीकृत API कुंजियाँ। रिमोट एक्सेस के लिए Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel और क्लाउड प्रॉक्सी समर्थन उपलब्ध हैं।
+
+![एंडपॉइंट डैशबोर्ड](../screenshots/09-endpoint.png)
+
+---
+
+## 🔑 API कुंजी प्रबंधन
+
+API कुंजियाँ बनाएँ, उनका दायरा निर्धारित करें और उन्हें निरस्त करें। प्रत्येक कुंजी को पूर्ण एक्सेस या केवल-पठन अनुमतियों के साथ विशिष्ट मॉडल/प्रदाताओं तक सीमित किया जा सकता है। उपयोग ट्रैकिंग के साथ विज़ुअल कुंजी प्रबंधन।
+
+---
+
+## 📋 ऑडिट लॉग
+
+कार्रवाई प्रकार, कर्ता, लक्ष्य, IP पते और टाइमस्टैम्प के आधार पर फ़िल्टरिंग के साथ प्रशासनिक कार्रवाइयों की ट्रैकिंग। सुरक्षा घटनाओं का संपूर्ण इतिहास।
+
+---
+
+## 🖥️ डेस्कटॉप एप्लिकेशन
+
+Windows, macOS और Linux के लिए नेटिव Electron डेस्कटॉप ऐप। सिस्टम ट्रे एकीकरण, ऑफ़लाइन समर्थन, स्वचालित अपडेट और एक-क्लिक इंस्टॉलेशन के साथ OmniRoute को एक स्टैंडअलोन एप्लिकेशन के रूप में चलाएँ।
+
+प्रमुख विशेषताएँ:
+
+- सर्वर तत्परता पोलिंग (कोल्ड स्टार्ट पर कोई खाली स्क्रीन नहीं)
+- पोर्ट प्रबंधन के साथ सिस्टम ट्रे
+- सामग्री सुरक्षा नीति
+- एकल-इंस्टेंस लॉक
+- रीस्टार्ट पर स्वचालित अपडेट
+- प्लेटफ़ॉर्म-सशर्त UI (macOS ट्रैफ़िक लाइट्स, Windows/Linux डिफ़ॉल्ट टाइटलबार)
+- सुदृढ़ Electron बिल्ड पैकेजिंग — स्टैंडअलोन बंडल में सिमलिंक किए गए `node_modules` को पैकेजिंग से पहले पहचानकर अस्वीकार कर दिया जाता है, जिससे बिल्ड मशीन पर रनटाइम निर्भरता को रोका जाता है (v2.5.5+)
+- **सुचारु शटडाउन** — Electron `before-quit`, Next.js को सुव्यवस्थित रूप से बंद करता है, जिससे SQLite WAL डेटाबेस लॉक को रोका जाता है (v3.6.2+)
+
+📖 संपूर्ण दस्तावेज़ीकरण के लिए [`electron/README.md`](../../electron/README.md) देखें।
+
+---
+
+## 🌐 V1 WebSocket ब्रिज _(v3.6.6+)_
+
+OmniRoute अब `/v1/ws` अपग्रेड एंडपॉइंट के माध्यम से **OpenAI-संगत WebSocket क्लाइंट** का समर्थन करता है। कस्टम `scripts/dev/v1-ws-bridge.mjs` सर्वर Next.js को रैप करता है और WS कनेक्शनों को पूर्ण द्विदिशीय स्ट्रीमिंग सत्रों में अपग्रेड करता है। प्रमाणीकरण HTTP अनुरोधों वाली समान API कुंजी या सत्र कुकी का उपयोग करता है।
+
+प्रमुख व्यवहार:
+
+- कनेक्शन स्थापित होने से पहले WS अपग्रेड को `src/lib/ws/handshake.ts` द्वारा सत्यापित किया जाता है
+- सत्र बंद होने या अपस्ट्रीम त्रुटि होने पर स्ट्रीम को सुव्यवस्थित रूप से समाप्त किया जाता है
+- मौजूदा HTTP+SSE स्ट्रीमिंग पथ के साथ-साथ एक ही समय पर काम करता है
+
+---
+
+## 🔑 सिंक टोकन और कॉन्फ़िग बंडल _(v3.6.6+)_
+
+अब **स्कोप्ड सिंक टोकन** के माध्यम से मल्टी-डिवाइस और बाहरी ऑपरेटर एक्सेस संभव है:
+
+- **`POST /api/sync/tokens`** — नया सिंक टोकन जारी करें (स्कोप्ड, वैकल्पिक समाप्ति के साथ)
+- **`DELETE /api/sync/tokens/:id`** — किसी टोकन को निरस्त करें
+- **`GET /api/sync/bundle`** — सभी गैर-संवेदनशील सेटिंग्स का वर्ज़नयुक्त, ETag-कुंजीबद्ध JSON स्नैपशॉट डाउनलोड करें (पासवर्ड छिपाए गए हैं)
+
+कॉन्फ़िग बंडल को `src/lib/sync/bundle.ts` द्वारा बनाया जाता है। उपभोक्ता संपूर्ण पेलोड को दोबारा डाउनलोड किए बिना परिवर्तनों का पता लगाने के लिए `ETag` रिस्पॉन्स हेडर की तुलना करते हैं।
+
+---
+
+## 🧠 GLM थिंकिंग प्रीसेट _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** अब एक पंजीकृत प्रथम-श्रेणी प्रदाता है: अधिकतम 65 536 आउटपुट टोकन, 24 576 थिंकिंग बजट, 900 s डिफ़ॉल्ट टाइमआउट, Claude-संगत API प्रारूप और GLM परिवार के साथ साझा उपयोग सिंक।
+
+**हाइब्रिड टोकन गणना** भी v3.6.6 में उपलब्ध है: जब कोई Claude-संगत प्रदाता `/messages/count_tokens` उपलब्ध कराता है, तो OmniRoute बड़े अनुरोधों से पहले इसे कॉल करता है और विफलता की स्थिति में सहज अनुमान का उपयोग करता है।
+
+---
+
+## 🛡️ सुरक्षित आउटबाउंड फ़ेच और SSRF गार्ड _(v3.6.6+)_
+
+सभी प्रदाता सत्यापन और मॉडल खोज कॉल अब दो-स्तरीय आउटबाउंड गार्ड से होकर गुजरती हैं:
+
+1. **URL गार्ड** (`src/shared/network/outboundUrlGuard.ts`) — सॉकेट खुलने से पहले निजी/लूपबैक/लिंक-लोकल IP रेंज को ब्लॉक करता है।
+2. **सुरक्षित फ़ेच रैपर** (`src/shared/network/safeOutboundFetch.ts`) — URL गार्ड लागू करता है, टाइमआउट को सामान्यीकृत करता है और अस्थायी त्रुटियों पर एक्सपोनेंशियल बैकऑफ़ के साथ पुनः प्रयास करता है।
+
+गार्ड उल्लंघन HTTP 422 (`URL_GUARD_BLOCKED`) के रूप में दिखाई देते हैं और `providerAudit.ts` के माध्यम से अनुपालन ऑडिट लॉग में लिखे जाते हैं।
+
+---
+
+## 🔄 कूलडाउन-अवेयर पुनः प्रयास _(v3.6.6+)_
+
+जब कोई अपस्ट्रीम प्रदाता मॉडल-स्कोप्ड कूलडाउन लौटाता है, तो चैट अनुरोध अब **स्वचालित रूप से पुनः प्रयास** करते हैं। इसे `REQUEST_RETRY` (डिफ़ॉल्ट: 2) और `MAX_RETRY_INTERVAL_SEC` (डिफ़ॉल्ट: 30 s) के माध्यम से कॉन्फ़िगर किया जा सकता है। `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens` और `Retry-After` में रेट-लिमिट हेडर लर्निंग को बेहतर बनाया गया है — प्रति-मॉडल कूलडाउन स्थिति Resilience डैशबोर्ड में दिखाई देती है।
+
+---
+
+## 📋 अनुपालन ऑडिट v2 _(v3.6.6+)_
+
+ऑडिट लॉग का विस्तार कर्सर-आधारित पृष्ठांकन, अनुरोध संदर्भ संवर्धन (अनुरोध ID, यूज़र एजेंट, IP), संरचित प्रमाणीकरण इवेंट, डिफ़ संदर्भ सहित प्रदाता CRUD इवेंट और SSRF द्वारा ब्लॉक किए गए सत्यापन की लॉगिंग के साथ किया गया है। नए इवेंट `src/lib/compliance/providerAudit.ts` द्वारा उत्सर्जित किए जाते हैं।

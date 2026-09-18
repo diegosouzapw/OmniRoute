@@ -83,6 +83,5 @@ test("the new env vars are documented", () => {
   const docs = readSource("docs/reference/ENVIRONMENT.md");
   assert.match(docs, /OMNIROUTE_WAL_PASSIVE_INTERVAL_MS/);
   assert.match(docs, /OMNIROUTE_WAL_GUARD_MAX_MB/);
-  assert.match(docs, /OMNIROUTE_VACUUM_MIN_DELETED_ROWS/);
   assert.match(docs, /OMNIROUTE_PRESSURE_SELF_RESTART/);
 });

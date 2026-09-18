@@ -4,127 +4,133 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+🌐 **Ngôn ngữ:** 🇺🇸 [English](./VM_DEPLOYMENT_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+Hướng dẫn đầy đủ để cài đặt và cấu hình OmniRoute trên máy ảo (VPS) với tên miền được quản lý thông qua Cloudflare.
 
 ---
 
-## Prerequisites
+## Điều kiện tiên quyết
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| Hạng mục     | Tối thiểu                  | Khuyến nghị      |
+| ------------ | -------------------------- | ---------------- |
+| **CPU**      | 1 vCPU                     | 2 vCPU           |
+| **RAM**      | 1 GB                       | 2 GB             |
+| **Ổ đĩa**    | SSD 10 GB                  | SSD 25 GB        |
+| **HĐH**      | Ubuntu 22.04 LTS           | Ubuntu 24.04 LTS |
+| **Tên miền** | Đã đăng ký trên Cloudflare | —                |
+| **Docker**   | Docker Engine 24+          | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**Các nhà cung cấp đã được kiểm thử**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configure the VM
+## 1. Cấu hình máy ảo
 
-### 1.1 Create the instance
+### 1.1 Tạo máy chủ
 
-On your preferred VPS provider:
+Trên nhà cung cấp VPS mà bạn ưu tiên:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
+- Chọn Ubuntu 24.04 LTS
+- Chọn gói tối thiểu (1 vCPU / 1 GB RAM)
+- Đặt mật khẩu root mạnh hoặc cấu hình khóa SSH
+- Ghi lại **IP công khai** (ví dụ: `203.0.113.10`)
 
-### 1.2 Connect via SSH
+### 1.2 Kết nối qua SSH
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 Cập nhật hệ thống
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 Cài đặt Docker
 
 ```bash
-# Install dependencies
+# Cài đặt các phần phụ thuộc
 apt install -y ca-certificates curl gnupg
 
-# Add official Docker repository
+# Thêm kho lưu trữ Docker chính thức
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 Cài đặt nginx
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 Cấu hình tường lửa (UFW)
 
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (redirect)
+ufw allow 80/tcp    # HTTP (chuyển hướng)
 ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **Mẹo**: Để đạt mức bảo mật tối đa, chỉ cho phép các IP của Cloudflare truy cập cổng 80 và 443. Xem phần [Bảo mật nâng cao](#advanced-security).
 
 ---
 
-## 2. Install OmniRoute
+## 2. Cài đặt OmniRoute
 
-### 2.1 Create configuration directory
+### 2.1 Tạo thư mục cấu hình
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 Tạo tệp biến môi trường
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
-# === Security ===
+cat > /opt/omniroute/.env << 'EOF'
+# === Bảo mật ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
 API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # BẮT BUỘC trong môi trường production: được cầu nối Codex Responses WS sử dụng
 
-# === App ===
+# === Ứng dụng ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URL (thay đổi thành tên miền của bạn) ===
+# URL cơ sở nội bộ giữa các máy chủ dành cho tác vụ được lên lịch / yêu cầu tự truy xuất.
+BASE_URL=http://127.0.0.1:20128
+# URL dành cho trình duyệt, được sử dụng cho lệnh gọi lại OAuth, liên kết bảng điều khiển và URL công khai được tạo.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# Tùy chọn ghi đè rõ ràng nguồn công khai cho các URL tài nguyên công khai được tạo.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (optional) ===
+# === Đồng bộ hóa đám mây (tùy chọn) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **QUAN TRỌNG**: Hãy tạo các khóa bí mật riêng biệt! Sử dụng `openssl rand -hex 32` cho mỗi khóa.
 
-### 2.3 Start the container
+### 2.3 Khởi động container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +144,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 Xác minh rằng container đang chạy
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+Kết quả sẽ hiển thị: `[DB] SQLite database ready` và `listening on port 20128`.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. Cấu hình nginx (Reverse Proxy)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 Tạo chứng chỉ SSL (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+Trong bảng điều khiển Cloudflare:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. Đi tới **SSL/TLS → Origin Server**
+2. Nhấp vào **Create Certificate**
+3. Giữ nguyên các giá trị mặc định (15 năm, \*.yourdomain.com)
+4. Sao chép **Origin Certificate** và **Private Key**
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Paste the certificate
+# Dán chứng chỉ
 nano /etc/nginx/ssl/origin.crt
 
-# Paste the private key
+# Dán khóa riêng tư
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 Cấu hình Nginx
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
-# Default server — blocks direct access via IP
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+# Máy chủ mặc định — chặn truy cập trực tiếp qua IP
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # Change to your domain
+    server_name llms.yourdomain.com;  # Thay bằng tên miền của bạn
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -203,16 +209,17 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # WebSocket support
+        # Hỗ trợ WebSocket
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
-        # SSE (Server-Sent Events) — streaming AI responses
+        # SSE (Server-Sent Events) — truyền phát phản hồi AI
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -220,7 +227,7 @@ server {
     }
 }
 
-# HTTP → HTTPS redirect
+# Chuyển hướng HTTP → HTTPS
 server {
     listen 80;
     listen [::]:80;
@@ -230,59 +237,67 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+Duy trì thời gian chờ luồng của reverse proxy đồng bộ với các biến môi trường thời gian chờ của OmniRoute. Nếu bạn tăng
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, hãy tăng `proxy_read_timeout` / `proxy_send_timeout`
+cao hơn cùng ngưỡng đó.
 
-### 3.3 Enable and Test
+OmniRoute sử dụng `NEXT_PUBLIC_BASE_URL` làm origin chuẩn mà trình duyệt truy cập cho các
+callback OAuth và các liên kết công khai được tạo. Các thao tác ghi đã xác thực trên bảng điều khiển sử dụng các yêu cầu cùng origin
+kết hợp với cơ chế bảo vệ CSRF gắn với phiên, vì vậy chúng không yêu cầu URL cơ sở công khai tĩnh. Các
+header `X-Forwarded-*` ở trên vẫn là metadata định tuyến hữu ích, nhưng chúng không thể thay thế
+việc thiết lập URL công khai rõ ràng khi OAuth hoặc các liên kết trình duyệt được tạo cần đến URL đó. Chỉ bật
+`OMNIROUTE_TRUST_PROXY` nếu máy khách không thể truy cập trực tiếp OmniRoute và proxy của bạn
+loại bỏ/tạo lại các header được chuyển tiếp đến.
+
+### 3.3 Kích hoạt và kiểm tra
 
 ```bash
-# Remove default configuration
+# Xóa cấu hình mặc định
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
+# Kích hoạt OmniRoute
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Test and reload
+# Kiểm tra và tải lại
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. Cấu hình DNS Cloudflare
 
-### 4.1 Add DNS record
+### 4.1 Thêm bản ghi DNS
 
-In the Cloudflare dashboard → DNS:
+Trong bảng điều khiển Cloudflare → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| Loại | Tên    | Nội dung               | Proxy           |
+| ---- | ------ | ---------------------- | --------------- |
+| A    | `llms` | `203.0.113.10` (IP VM) | ✅ Đã bật proxy |
 
-### 4.2 Configure SSL
+### 4.2 Cấu hình SSL
 
-Under **SSL/TLS → Overview**:
+Trong **SSL/TLS → Overview**:
 
-- Mode: **Full (Strict)**
+- Chế độ: **Full (Strict)**
 
-Under **SSL/TLS → Edge Certificates**:
+Trong **SSL/TLS → Edge Certificates**:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- Luôn sử dụng HTTPS: ✅ Bật
+- Phiên bản TLS tối thiểu: TLS 1.2
+- Tự động viết lại HTTPS: ✅ Bật
 
-### 4.3 Testing
+### 4.3 Kiểm tra
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Should return HTTP/2 200
+# Phải trả về HTTP/2 200
 ```
 
 ---
 
-## 5. Operations and Maintenance
+## 5. Vận hành và bảo trì
 
-### Upgrade to a new version
+### Nâng cấp lên phiên bản mới
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,42 +309,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### Xem nhật ký
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f omniroute          # Luồng thời gian thực
+docker logs omniroute --tail 50   # 50 dòng cuối
 ```
 
-### Manual database backup
+### Sao lưu cơ sở dữ liệu thủ công
 
 ```bash
-# Copy data from the volume to the host
+# Sao chép dữ liệu từ volume sang máy chủ
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Or compress the entire volume
+# Hoặc nén toàn bộ volume
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### Khôi phục từ bản sao lưu
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. Bảo mật nâng cao
 
-### Restrict nginx to Cloudflare IPs
+### Giới hạn nginx chỉ cho phép các IP của Cloudflare
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
-# Cloudflare IPv4 ranges — update periodically
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
+# Các dải IPv4 của Cloudflare — cập nhật định kỳ
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -350,58 +365,69 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+Thêm nội dung sau vào `nginx.conf` bên trong khối `http {}`:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### Cài đặt fail2ban
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Check status
+# Kiểm tra trạng thái
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### Chặn truy cập trực tiếp vào cổng Docker
 
 ```bash
-# Prevent direct external access to port 20128
+# Ngăn truy cập trực tiếp từ bên ngoài vào cổng 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persist the rules
+# Lưu các quy tắc để duy trì sau khi khởi động lại
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. Triển khai lên Cloudflare Workers (Tùy chọn)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Để truy cập từ xa thông qua Cloudflare Workers (mà không cần để lộ VM trực tiếp):
 
 ```bash
-# In the local repository
+# Trong kho lưu trữ cục bộ
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+Xem thêm [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) để biết hướng dẫn từng bước về Cloudflare Tunnel trong kho lưu trữ. Worker `omnirouteCloud/` độc lập nằm trong một kho lưu trữ đi kèm riêng biệt.
 
 ---
 
-## Port Summary
+## Tóm tắt cổng
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| Cổng  | Dịch vụ     | Truy cập                  |
+| ----- | ----------- | ------------------------- |
+| 22    | SSH         | Công khai (với fail2ban)  |
+| 80    | nginx HTTP  | Chuyển hướng → HTTPS      |
+| 443   | nginx HTTPS | Qua Cloudflare Proxy      |
+| 20128 | OmniRoute   | Chỉ localhost (qua nginx) |
+
+## Tối ưu hóa cho VPS nhỏ / ít bộ nhớ
+
+Đối với các bản triển khai trên VPS nhỏ (RAM 1 GB trở xuống):
+
+- **Tắt các dịch vụ nền** — đặt `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1` để bỏ qua bộ lập lịch, máy chủ MCP và các tác vụ bảo trì định kỳ. Xem `docs/reference/ENVIRONMENT.md`.
+- **Sử dụng chế độ WAL của SQLite** — được bật theo mặc định, giúp giảm mức sử dụng bộ nhớ cao nhất khi có các thao tác đọc đồng thời.
+- **Giới hạn heap V8** — đặt `OMNIROUTE_MEMORY_MB` (ví dụ: `512`) để môi trường thực thi không hiệu chỉnh mức trần lớn hơn máy ảo. Xem `docs/reference/ENVIRONMENT.md`.
+- **Cơ chế tiếp nhận tác vụ nặng tự động điều chỉnh theo giới hạn heap** -- sau khi đặt `OMNIROUTE_MEMORY_MB` như trên, ngân sách byte tiếp nhận (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) sẽ được suy ra từ chính mức trần đó, vì vậy máy ảo bị giới hạn bộ nhớ sẽ tự động có ngân sách yêu cầu đồng thời nhỏ hơn mà không cần tinh chỉnh thêm; các yêu cầu vượt quá giới hạn sẽ nhận phản hồi `503` có thể thử lại cùng với `Retry-After`, thay vì cạnh tranh bộ nhớ. Chỉ đặt giới hạn số lượng yêu cầu kiểu cũ `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` nếu bạn cần thêm một mức trần cứng.
+- **Tránh chạy `next build` trên VPS** — hãy build cục bộ và triển khai đầu ra độc lập (`.next/standalone/`).
+- **Giám sát bằng `top` / `free -m`** — OmniRoute thường sử dụng 200-400 MB RSS khi nhàn rỗi trên máy ảo 1 GB.

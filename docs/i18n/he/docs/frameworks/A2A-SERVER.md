@@ -4,35 +4,50 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+> פרוטוקול Agent-to-Agent גרסה v0.3 — ‏OmniRoute כסוכן ניתוב חכם
 
-## Agent Discovery
+לממשק A2A יש שני פנים:
+
+- **JSON-RPC 2.0** בכתובת `POST /a2a` (נקודת הכניסה הקנונית, המוגדרת ב־`src/app/a2a/route.ts`).
+- **REST** תחת `/api/a2a/*` עבור לוחות מחוונים וכלי עזר (סטטוס, רשימת משימות, ביטול).
+
+המעקב אחר משימות מתבצע באמצעות `A2ATaskManager` ‏(`src/lib/a2a/taskManager.ts`, ברירת המחדל של TTL היא 5 דקות). מיומנויות מועברות לטיפול באמצעות `A2A_SKILL_HANDLERS` בקובץ `src/lib/a2a/taskExecution.ts`.
+
+## גילוי הסוכן
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+מחזירה את כרטיס הסוכן המתאר את היכולות, המיומנויות ודרישות האימות של OmniRoute.
+
+השדה `version` בכרטיס הסוכן נלקח מתוך `process.env.npm_package_version` (ראו `src/app/.well-known/agent.json/route.ts:13`), ולכן הוא נשאר מסונכרן אוטומטית עם `package.json` בכל גרסה חדשה.
 
 ---
 
-## Authentication
+## אימות
 
-All `/a2a` requests require an API key via the `Authorization` header:
+כל הבקשות אל `/a2a` דורשות מפתח API דרך הכותרת `Authorization`:
 
 ```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
 ```
 
-If no API key is configured on the server, authentication is bypassed.
+אם לא מוגדר מפתח API בשרת, האימות נעקף.
+
+## הפעלה
+
+A2A נשלט באמצעות המתג **נקודות קצה → A2A** ומושבת כברירת מחדל. כאשר הוא מושבת,
+`GET /api/a2a/status` מדווח על `status: "disabled"` ועל `online: false`; קריאות JSON-RPC אל
+`POST /a2a` מחזירות HTTP 503 עם קוד השגיאה `-32000` של JSON-RPC.
 
 ---
 
-## JSON-RPC 2.0 Methods
+## מתודות JSON-RPC 2.0
 
-### `message/send` — Synchronous Execution
+### `message/send` — ביצוע סינכרוני
 
-Sends a message to a skill and waits for the complete response.
+שולחת הודעה למיומנות וממתינה לתגובה המלאה.
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -50,7 +65,7 @@ curl -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**Response:**
+**תגובה:**
 
 ```json
 {
@@ -61,19 +76,30 @@ curl -X POST http://localhost:20128/a2a \
     "artifacts": [{ "type": "text", "content": "..." }],
     "metadata": {
       "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+      "cost_envelope": {
+        "estimated": 0.005,
+        "actual": 0.003,
+        "currency": "USD"
+      },
       "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+        {
+          "event": "primary_selected",
+          "provider": "anthropic",
+          "timestamp": "..."
+        }
       ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+      "policy_verdict": {
+        "allowed": true,
+        "reason": "within budget and quota limits"
+      }
     }
   }
 }
 ```
 
-### `message/stream` — SSE Streaming
+### `message/stream` — הזרמת SSE
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
+זהה ל־`message/send`, אך מחזירה אירועים שנשלחים מהשרת לצורך הזרמה בזמן אמת.
 
 ```bash
 curl -N -X POST http://localhost:20128/a2a \
@@ -90,7 +116,7 @@ curl -N -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**SSE Events:**
+**אירועי SSE:**
 
 ```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
@@ -100,7 +126,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
 ```
 
-### `tasks/get` — Query Task Status
+### `tasks/get` — שאילתת סטטוס משימה
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -109,7 +135,7 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
 ```
 
-### `tasks/cancel` — Cancel a Task
+### `tasks/cancel` — ביטול משימה
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -120,42 +146,123 @@ curl -X POST http://localhost:20128/a2a \
 
 ---
 
-## Available Skills
+## מיומנויות זמינות
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+OmniRoute חושפת 6 מיומנויות A2A המחוברות ב-`src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`. כל מודול מיומנות נמצא ב-`src/lib/a2a/skills/`.
 
----
+| מיומנות      | מזהה                 | תיאור                                                                                                                                           | תגיות                   | דוגמאות                                 |
+| :----------- | :------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------- | :-------------------------------------- |
+| ניתוב חכם    | `smart-routing`      | מנתבת הנחיה דרך הספק או השילוב המיטבי באמצעות מנוע השילובים והניקוד של OmniRoute                                                                | ניתוב, ספקים            | "נתב הנחיה זו באמצעות המודל הטוב ביותר" |
+| ניהול מכסות  | `quota-management`   | מדווחת על מצב המכסה של כל ספק ומסייעת למשתמשים להחליט מתי להגביל קצב או להחליף ספק                                                              | מכסה, ספקים             | "בדוק את המכסה של anthropic"            |
+| גילוי ספקים  | `provider-discovery` | מציגה את הספקים המותקנים, כולל יכולות, סימוני מסלול חינמי וסטטוס OAuth                                                                          | ספקים, גילוי            | "אילו ספקים זמינים?"                    |
+| ניתוח עלויות | `cost-analysis`      | מעריכה את העלות של בקשה או שיחה על סמך הקטלוג והשימוש האחרון                                                                                    | עלות, שימוש             | "הערך את העלות של שיחה זו"              |
+| דוח תקינות   | `health-report`      | מרכזת את מצבי מפסק הזרם, תקופת הצינון והנעילה עבור כל ספק                                                                                       | תקינות, עמידות          | "הצג את מצב התקינות של כל הספקים"       |
+| רשימת יכולות | `list-capabilities`  | מחזירה את קטלוג מיומנויות הסוכן המלא, הכולל 45 רשומות (23 API + 21 CLI + 1 הגדרה), כטבלת markdown עם כתובות URL גולמיות של SKILL.md להזרקת הקשר | קטלוג, גילוי, מיומנויות | "הצג את כל היכולות של OmniRoute"        |
 
-## Task Lifecycle
+> יש לשמור את כרטיס הסוכן מסונכרן עם הקטלוג הפעיל הכולל 352 ספקים; מספרי הספקים ומטא-נתוני החינמיות או היעדר הצורך באימות מתקבלים ממרשם זמן הריצה.
+
+### פרטי המיומנות `list-capabilities`
+
+המיומנות `list-capabilities` שימושית במיוחד לסוכנים חיצוניים שצריכים לגלות מה OmniRoute חושפת לפני שליחת קריאות API. היא מחזירה ארטיפקט מובנה של טבלת markdown:
 
 ```
-submitted → working → completed
-                    → failed
-                    → cancelled
+| מזהה | שם | קטגוריה | תחום | נקודות קצה/פקודות | כתובת URL גולמית |
+| --- | --- | --- | --- | --- | --- |
+| omni-auth | אימות והפעלות | api | אימות | POST /api/auth/login, ... | https://raw.githubusercontent.com/... |
+...
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
+כל שורה כוללת את העמודה `rawUrl`, כדי שסוכנים יוכלו לאחזר מיד את קובץ SKILL.md המלא. השדה `metadata.totalSkills` משקף את גודל הקטלוג (45 כיום). מימוש: `src/lib/a2a/skills/listCapabilities.ts`. ראו גם [AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
 ---
 
-## Error Codes
+## REST API (משני)
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
+נקודת הקצה JSON-RPC‏ `/a2a` היא נקודת הכניסה הקנונית של A2A. נקודות הקצה של REST שלהלן מספקות גישה משנית עבור לוחות מחוונים וכלים חיצוניים:
+
+| נקודת קצה                    | שיטה | תיאור                                              | אימות                                         |
+| :--------------------------- | :--- | :------------------------------------------------- | :-------------------------------------------- |
+| `/api/a2a/status`            | GET  | מצב השרת, מיומנויות רשומות                         | (ציבורי)                                      |
+| `/api/a2a/tasks`             | GET  | הצגת משימות עם מסננים                              | ניהול                                         |
+| `/api/a2a/tasks/[id]`        | GET  | קבלת משימה לפי מזהה                                | ניהול                                         |
+| `/api/a2a/tasks/[id]/cancel` | POST | ביטול משימה פעילה                                  | ניהול                                         |
+| `/.well-known/agent.json`    | GET  | כרטיס סוכן (גילוי A2A)                             | (ציבורי, נשמר במטמון למשך 3600 שניות)         |
+| `/api/a2a/tasks`             | POST | האצלה נכנסת לצי OmniConductor‏ (Conductor PRD RF5) | Bearer מול `OMNIROUTE_API_KEY` + `a2aEnabled` |
+
+**האצלת Conductor נכנסת (`POST /api/a2a/tasks`):** סוכני A2A חיצוניים מאצילים עבודת קוד לצי OmniConductor דרך OmniRoute. גוף הבקשה: `{ skill: "conductor" | "conductor-cli-<profile>", messages: [{role, content}], metadata: { conductor: { repo: { url, base_ref? }, mode?, cli?, model? } } }` — ניתן להאציל רק מיומנויות של צי Conductor (אלו שמוכרזות בכרטיס הסוכן); השדה `metadata.conductor.repo.url` הוא חובה (הצי עובד על מאגרי git). הנתיב מתרגם את הבקשה ל-`POST /v1/tasks` של ה-hub באמצעות `CONDUCTOR_ORCHESTRATOR_TOKEN` בצד השרת (עם `CONDUCTOR_HUB_TOKEN` כחלופה), ומחזיר `201 { conductor_task_id, state: "submitted" }`; מצבי המשימה זורמים בחזרה דרך שיקוף SSE→A2A‏ (RF1) וניתן לצפות בהם באמצעות `GET /api/a2a/tasks?skill=conductor`.
 
 ---
 
-## Integration Examples
+## הוספת מיומנות חדשה
+
+1. **יצירת קובץ מיומנות:** `src/lib/a2a/skills/<your-skill>.ts`
+
+   יש לייצא פונקציה אסינכרונית `(task: A2ATask) => Promise<{ artifacts, metadata }>`. יש לפעול לפי המבנה של מיומנויות קיימות, כגון `smartRouting.ts`.
+
+2. **רישום המטפל:** בקובץ `src/lib/a2a/taskExecution.ts`, יש להוסיף רשומה אל `A2A_SKILL_HANDLERS`:
+
+   ```typescript
+   export const A2A_SKILL_HANDLERS = {
+     // ...מיומנויות קיימות
+     "your-skill": async (task) => {
+       const skillModule = await import("./skills/yourSkill");
+       return skillModule.executeYourSkill(task);
+     },
+   };
+   ```
+
+3. **חשיפה בכרטיס הסוכן:** בקובץ `src/app/.well-known/agent.json/route.ts`, יש לצרף למערך `skills`:
+
+   ```json
+   {
+     "id": "your-skill",
+     "name": "Your Skill",
+     "description": "Brief, intent-focused description",
+     "tags": ["routing", "quota"],
+     "examples": ["Sample natural-language invocation"]
+   }
+   ```
+
+4. **כתיבת בדיקות:** `tests/unit/a2a-<your-skill>.test.ts`. יש לכסות את התרחיש התקין ואת תרחיש השגיאה.
+
+5. **תיעוד** המיומנות החדשה בטבלה `Available Skills` שבקובץ זה.
+
+---
+
+## זמן חיות של משימה (TTL)
+
+תוקף המשימות פג לאחר `ttlMinutes` (ברירת המחדל היא 5 דקות) — מוגדר בבנאי `A2ATaskManager` שבקובץ `src/lib/a2a/taskManager.ts:82`. להתאמה אישית, צרו פיצול של יצירת המופע `A2ATaskManager` והעבירו ערך אחר (למשל, `new A2ATaskManager(15)` עבור TTL של 15 דקות). תהליך רקע סורק משימות שתוקפן פג מדי 60 שניות.
+
+---
+
+## מחזור חיי משימה
+
+```
+הוגשה → בעבודה → הושלמה
+                 → נכשלה
+                 → בוטלה
+```
+
+- תוקף המשימות פג לאחר 5 דקות כברירת מחדל (ראו [זמן חיות של משימה (TTL)](#task-ttl))
+- מצבים סופיים: `completed`, `failed`, `cancelled`
+- יומן האירועים עוקב אחר כל מעבר בין מצבים
+
+---
+
+## קודי שגיאה
+
+| קוד    | משמעות                     |
+| :----- | :------------------------- |
+| -32700 | שגיאת ניתוח (JSON לא תקין) |
+| -32600 | בקשה לא תקינה / ללא הרשאה  |
+| -32601 | השיטה או המיומנות לא נמצאו |
+| -32602 | פרמטרים לא תקינים          |
+| -32603 | שגיאה פנימית               |
+| -32000 | נקודת הקצה של A2A מושבתת   |
+
+---
+
+## דוגמאות לשילוב
 
 ### Python (requests)
 

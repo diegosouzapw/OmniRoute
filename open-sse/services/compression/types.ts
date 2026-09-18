@@ -180,7 +180,9 @@ export interface OmniglyphConfig {
 
 /** Lite detail settings for proactive request-time transformations. */
 export interface LiteConfig {
-  /** Truncate tool-result strings over 2,000 characters before provider dispatch. */
+  /** Truncate tool-result strings over this many characters before provider dispatch. */
+  maxToolLength?: number;
+  /** When false, skip proactive tool-result truncation. */
   compressToolResults: boolean;
 }
 

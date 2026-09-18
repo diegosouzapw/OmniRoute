@@ -52,8 +52,10 @@ import {
   getWalMaintenanceState,
   logCheckpointOutcome,
 } from "./walMaintenance";
+import { isNativeSqliteLoadError, isSqliteDriverUnavailableError } from "./sqliteLoadError";
 // Re-exported so existing call sites that pull these helpers off the core module keep working.
 export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
+export { isNativeSqliteLoadError, isSqliteDriverUnavailableError };
 import {
   ensureProviderConnectionsColumns,
   ensureUsageHistoryAccountIndex,
@@ -149,39 +151,6 @@ const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   { table: "upstream_proxy_config", maxRows: 5_000 },
   { table: "webhooks", maxRows: 5_000 },
 ];
-
-export function isNativeSqliteLoadError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  const code = getErrorCode(error);
-  return (
-    message.includes("Module did not self-register") ||
-    message.includes("NODE_MODULE_VERSION") ||
-    message.includes("ERR_DLOPEN_FAILED") ||
-    // bun and similar runtimes that skip the postinstall script never download
-    // the prebuilt *.node binary, so `bindings()` fails with this message
-    // before any DLOPEN even happens (#2358).
-    message.includes("Could not locate the bindings file") ||
-    message.includes("Cannot find module 'better-sqlite3'") ||
-    code === "ERR_DLOPEN_FAILED" ||
-    code === "MODULE_NOT_FOUND"
-  );
-}
-
-export function isSqliteDriverUnavailableError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-
-  return (
-    message.includes("Nenhum driver SQLite disponível") ||
-    message.includes("Chame ensureDbInitialized() no startup") ||
-    message.includes("sql.js WASM ainda não foi pré-inicializado")
-  );
-}
-
-function getErrorCode(error: unknown): string | undefined {
-  if (!error || typeof error !== "object" || !("code" in error)) return undefined;
-  const code = (error as { code?: unknown }).code;
-  return typeof code === "string" ? code : undefined;
-}
 
 /**
  * Closes a probe/throwaway connection obtained from `openSqliteDatabase()` —
@@ -974,9 +943,9 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
 // The scheduler lives in ./walMaintenance (periodic TRUNCATE + busy warn + PASSIVE retry).
 
 const healthShutdown = new AbortController();
-const managedHealth = createDbHealthCoordinator(async (autoRepair) => {
+const managedHealth = createDbHealthCoordinator(async (autoRepair, skipIntegrity) => {
   const db = getDbInstance();
-  const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
+  const skipIntegrityCheck = skipIntegrity || process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
   const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
   const result =
     db.driver === "sql.js" || db.name === ":memory:" || !db.name
@@ -1000,10 +969,10 @@ const managedHealth = createDbHealthCoordinator(async (autoRepair) => {
   if (result.repairedCount > 0) invalidateDbCache();
   return result;
 });
-
-export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
+type ManagedHealthCheckOptions = { autoRepair?: boolean; skipIntegrityCheck?: boolean };
+export function runManagedDbHealthCheck(options?: ManagedHealthCheckOptions) {
   if (getPagerCorruption()) managedHealth.invalidate();
-  return managedHealth.run(options?.autoRepair === true);
+  return managedHealth.run(options?.autoRepair === true, options?.skipIntegrityCheck === true);
 }
 
 export function getDbInstance(): SqliteDatabase {

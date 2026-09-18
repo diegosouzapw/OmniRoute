@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-apikey-spacing-sync-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -32,10 +33,10 @@ test.beforeEach(() => {
   delete process.env.PROVIDER_LIMITS_SYNC_SPACING_MS;
 });
 
-test.after(() => {
+test.after(async () => {
   globalThis.fetch = originalFetch;
   delete process.env.PROVIDER_LIMITS_SYNC_SPACING_MS;
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 async function createGlmApiKeyConnection(i: number) {

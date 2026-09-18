@@ -19,6 +19,10 @@ const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { setParamFilterConfig, deleteParamFilterConfig } =
   await import("../../src/lib/db/paramFilters.ts");
 
+const { MODEL_SPECS } = await import("../../src/shared/constants/modelSpecs.ts");
+const { setPayloadRulesConfig, resetPayloadRulesConfigForTests } =
+  await import("../../open-sse/services/payloadRules.ts");
+
 before(async () => {
   await coreDb.ensureDbInitialized();
 });
@@ -27,6 +31,378 @@ after(() => {
   coreDb.resetDbInstance();
   fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
+
+test("explicit hash intent follows translated reasoning representations before preparation", async () => {
+  const { computeRequestHash } = await import("../../open-sse/services/requestDedup.ts");
+  const variants = [
+    {
+      source: FORMATS.CLAUDE,
+      target: FORMATS.OPENAI,
+      model: "gpt-5.2",
+      provider: "openai",
+      field: "reasoning_effort",
+    },
+    {
+      source: FORMATS.OPENAI,
+      target: FORMATS.CLAUDE,
+      model: "claude-opus-4.7",
+      provider: "anthropic",
+      field: "output_config",
+    },
+    {
+      source: FORMATS.OPENAI,
+      target: FORMATS.OPENAI_RESPONSES,
+      model: "gpt-5.2",
+      provider: "openai",
+      field: "reasoning",
+    },
+  ];
+  for (const variant of variants) {
+    const translated = ["low", "high"].map(
+      (effort) =>
+        translateRequest(
+          variant.source,
+          variant.target,
+          variant.model,
+          {
+            model: variant.model,
+            messages: [{ role: "user", content: "Compare translated intent." }],
+            ...(variant.source === FORMATS.CLAUDE
+              ? { output_config: { effort } }
+              : { reasoning_effort: effort }),
+          },
+          false,
+          null,
+          variant.provider
+        ) as Record<string, unknown>
+    );
+    assert.ok(
+      translated.every((request) => request[variant.field] !== undefined),
+      variant.field
+    );
+    // Hold unrelated translated caps/sampling constant to isolate the intent projection.
+    const requests = translated.map((request) => ({
+      model: variant.model,
+      messages: bodyMessages(),
+      reasoning_effort: request.reasoning_effort,
+      reasoning: request.reasoning,
+      thinking: request.thinking,
+      output_config: request.output_config,
+    }));
+    assert.notEqual(
+      computeRequestHash(requests[0], "tenant", {}),
+      computeRequestHash(requests[1], "tenant", {}),
+      variant.field
+    );
+  }
+
+  function bodyMessages() {
+    return [{ role: "user", content: "Compare translated intent." }];
+  }
+});
+
+test("automatic effort is limited to OpenAI chat bodies", async () => {
+  for (const targetFormat of ["claude", "openai-responses", "gemini"]) {
+    const out = await prepareUpstreamBody({
+      translatedBody: {},
+      modelToCall: "attempt-format-fixture",
+      provider: "test",
+      targetFormat,
+      credentials: null,
+      originModel: "attempt-format-fixture",
+      resolvedThinkingEffort: "high",
+      defaultThinkingEffort: "low",
+    });
+    assert.equal(out.reasoning_effort, undefined);
+  }
+});
+
+test("attempt constraints rewrite Claude fields without changing the source", async () => {
+  const source = {
+    thinking: { type: "enabled", budget_tokens: 10000 },
+    output_config: { effort: "max", format: "text" },
+  };
+  const before = structuredClone(source);
+  const options = {
+    translatedBody: source,
+    provider: "anthropic",
+    targetFormat: "claude",
+    credentials: null,
+    originModel: "claude-opus-4.7",
+    resolvedThinkingEffort: "high",
+  };
+  const adaptive = await prepareUpstreamBody({ ...options, modelToCall: "claude-opus-4.7" });
+  assert.deepEqual(adaptive.thinking, { type: "adaptive" });
+  assert.equal(adaptive.reasoning_effort, undefined);
+  const haiku = await prepareUpstreamBody({
+    ...options,
+    modelToCall: "claude-haiku-4.5",
+    translatedBody: { ...source, thinking: { type: "adaptive" } },
+  });
+  assert.deepEqual(haiku.thinking, { type: "enabled", budget_tokens: 10000 });
+  assert.deepEqual(haiku.output_config, { format: "text" });
+  const disabled = await prepareUpstreamBody({
+    ...options,
+    modelToCall: "claude-opus-5",
+    translatedBody: { ...source, thinking: { type: "disabled" } },
+  });
+  assert.deepEqual(disabled.output_config, { effort: "high", format: "text" });
+  assert.deepEqual(source, before);
+});
+
+test("attempt effort leaves sampling and recovered history reusable for replacement models", async () => {
+  const source = {
+    model: "gpt-5.2",
+    temperature: 0.3,
+    top_p: 0.8,
+    messages: [{ role: "user", content: "recovered history" }],
+  };
+  const before = structuredClone(source);
+  const options = {
+    translatedBody: source,
+    provider: "openai",
+    targetFormat: "openai",
+    credentials: null,
+    originModel: "gpt-5.2",
+    resolvedThinkingEffort: "high",
+    defaultThinkingEffort: "low",
+  };
+  const first = await prepareUpstreamBody({ ...options, modelToCall: "gpt-5.2" });
+  assert.equal(first.reasoning_effort, "high");
+  assert.equal(first.temperature, undefined);
+  assert.equal(first.top_p, undefined);
+  const replacement = await prepareUpstreamBody({ ...options, modelToCall: "gpt-5.1" });
+  assert.equal(replacement.reasoning_effort, undefined);
+  assert.equal(replacement.temperature, 0.3);
+  assert.equal(replacement.top_p, 0.8);
+  assert.deepEqual(replacement.messages, source.messages);
+  assert.deepEqual(source, before);
+  assert.notEqual(first, source);
+});
+
+test("static defaults belong to the attempt; suffix and synced defaults belong to the origin", async () => {
+  const model = "gpt-5-attempt-fixture";
+  MODEL_SPECS[model] = { defaultReasoningEffort: "low" };
+  try {
+    const options = {
+      translatedBody: { temperature: 0.3 },
+      modelToCall: model,
+      provider: "openai",
+      targetFormat: "openai",
+      credentials: null,
+      originModel: "original",
+      resolvedThinkingEffort: "high",
+      defaultThinkingEffort: "max",
+    };
+    const replacement = await prepareUpstreamBody(options);
+    assert.equal(replacement.reasoning_effort, "low");
+    assert.equal(replacement.temperature, undefined);
+    const original = await prepareUpstreamBody({ ...options, originModel: model });
+    assert.equal(original.reasoning_effort, "high");
+    const staticOnly = await prepareUpstreamBody({
+      ...options,
+      originModel: model,
+      resolvedThinkingEffort: null,
+    });
+    assert.equal(staticOnly.reasoning_effort, "low");
+    delete MODEL_SPECS[model];
+    const syncedOnly = await prepareUpstreamBody({
+      ...options,
+      originModel: model,
+      resolvedThinkingEffort: null,
+    });
+    assert.equal(syncedOnly.reasoning_effort, "max");
+  } finally {
+    delete MODEL_SPECS[model];
+  }
+});
+
+for (const choice of [
+  { thinking: { type: "disabled" } },
+  { thinking: false },
+  { thinking: null },
+  { thinking: {} },
+  { reasoning: false },
+  { reasoning: null },
+  { reasoning: {} },
+  { reasoning_effort: "none" },
+  { reasoning_effort: null },
+]) {
+  test(`explicit intent precedes destructive constraints: ${JSON.stringify(choice)}`, async () => {
+    const model = "claude-fable-5";
+    const prior = MODEL_SPECS[model];
+    MODEL_SPECS[model] = { ...prior, defaultReasoningEffort: "medium" };
+    try {
+      const source = structuredClone(choice);
+      const out = await prepareUpstreamBody({
+        translatedBody: source,
+        modelToCall: model,
+        provider: "cheaperinference",
+        targetFormat: "openai",
+        credentials: null,
+        originModel: model,
+        resolvedThinkingEffort: "high",
+        defaultThinkingEffort: "low",
+      });
+      assert.equal(
+        out.reasoning_effort,
+        "reasoning_effort" in choice ? choice.reasoning_effort : undefined
+      );
+      if (
+        "thinking" in choice &&
+        choice.thinking &&
+        typeof choice.thinking === "object" &&
+        "type" in choice.thinking
+      )
+        assert.equal(out.thinking, undefined);
+      assert.deepEqual(source, choice);
+    } finally {
+      MODEL_SPECS[model] = prior;
+    }
+  });
+}
+
+for (const metadata of [
+  {},
+  { originModel: null, resolvedThinkingEffort: null, defaultThinkingEffort: null },
+]) {
+  test(`empty bodies and absent metadata stay compatible: ${JSON.stringify(metadata)}`, async () => {
+    const source = {};
+    const out = await prepareUpstreamBody({
+      translatedBody: source,
+      modelToCall: "unconfigured-model",
+      provider: null,
+      targetFormat: "openai",
+      credentials: undefined,
+      ...metadata,
+    });
+    assert.deepEqual(out, { model: "unconfigured-model" });
+    assert.deepEqual(source, {});
+    assert.notEqual(out, source);
+  });
+}
+
+test("attempt constraints isolate nested tool history and recompute registry restrictions", async () => {
+  const source = {
+    model: "o3",
+    temperature: 0.2,
+    tools: [{ type: "function", function: { name: "lookup" } }],
+    messages: [
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [
+          { id: "call1", type: "function", function: { name: "lookup", arguments: "{}" } },
+        ],
+      },
+      { role: "tool", tool_call_id: "call1", content: "result" },
+    ],
+  };
+  const before = structuredClone(source);
+  const options = { translatedBody: source, targetFormat: "openai", credentials: null };
+  const restricted = await prepareUpstreamBody({
+    ...options,
+    provider: "aihorde",
+    modelToCall: "worker",
+  });
+  assert.equal(restricted.tools, undefined);
+  assert.ok((restricted.messages as Array<{ role: string }>).every((m) => m.role !== "tool"));
+  const open = await prepareUpstreamBody({ ...options, provider: "openai", modelToCall: "gpt-4o" });
+  assert.deepEqual(open.tools, source.tools);
+  assert.deepEqual(open.messages, source.messages);
+  assert.equal(open.temperature, 0.2);
+  const reasoning = await prepareUpstreamBody({
+    ...options,
+    provider: "openai",
+    modelToCall: "o3",
+  });
+  assert.equal(reasoning.temperature, undefined);
+  assert.deepEqual(source, before);
+});
+
+test("payload rules run after automatic guards and before target sanitation", async () => {
+  setPayloadRulesConfig({
+    default: [{ models: [{ name: "*" }], params: { reasoning_effort: "low" } }],
+    override: [
+      {
+        models: [{ name: "*" }],
+        params: { reasoning_effort: "high", temperature: 0.7, verbosity: "low" },
+      },
+    ],
+    filter: [{ models: [{ name: "*" }], params: ["top_p"] }],
+  });
+  try {
+    const source = {
+      temperature: 0.2,
+      top_p: 0.9,
+      tools: [{ type: "function", function: { name: "lookup" } }],
+    };
+    const opts = {
+      translatedBody: source,
+      provider: "openai",
+      targetFormat: "openai",
+      credentials: null,
+      originModel: "gpt-5.2",
+      resolvedThinkingEffort: "high",
+    };
+    const origin = await prepareUpstreamBody({ ...opts, modelToCall: "gpt-5.2" });
+    assert.equal(origin.reasoning_effort, "high");
+    assert.equal(origin.temperature, 0.7);
+    assert.equal(origin.top_p, undefined);
+    const replacement = await prepareUpstreamBody({
+      ...opts,
+      modelToCall: "other-model",
+      provider: "opencode-go",
+    });
+    assert.equal(replacement.reasoning_effort, "high");
+    assert.equal(replacement.verbosity, undefined);
+    assert.equal(source.temperature, 0.2);
+  } finally {
+    resetPayloadRulesConfigForTests();
+  }
+});
+
+test("sampling guard precedes the function tools guard", async () => {
+  const source = {
+    temperature: 0.4,
+    top_p: 0.8,
+    tools: [{ type: "function", function: { name: "lookup" } }],
+  };
+  const out = await prepareUpstreamBody({
+    translatedBody: source,
+    modelToCall: "gpt-5.2",
+    provider: "openai",
+    targetFormat: "openai",
+    credentials: null,
+    originModel: "gpt-5.2",
+    resolvedThinkingEffort: "high",
+  });
+  assert.equal(out.reasoning_effort, undefined);
+  assert.equal(out.temperature, undefined);
+  assert.equal(out.top_p, undefined);
+  assert.equal(source.temperature, 0.4);
+});
+
+for (const provider of ["xiaomi-mimo", "opencode-go"]) {
+  test(`${provider} cleanup runs after default selection without restoring explicit choices`, async () => {
+    const options = {
+      modelToCall: "unknown-model",
+      originModel: "unknown-model",
+      provider,
+      targetFormat: "openai",
+      credentials: null,
+      resolvedThinkingEffort: "high",
+    };
+    const out = await prepareUpstreamBody({ ...options, translatedBody: { reasoning: false } });
+    assert.equal(out.reasoning, undefined);
+    assert.equal(out.reasoning_effort, undefined);
+    if (provider === "xiaomi-mimo") {
+      const bare = await prepareUpstreamBody({ ...options, translatedBody: {} });
+      assert.equal(bare.reasoning_effort, undefined);
+      assert.equal(bare.thinking, undefined);
+    }
+  });
+}
 
 test("pins the target model when it differs from the translated body model", async () => {
   const out = await prepareUpstreamBody({

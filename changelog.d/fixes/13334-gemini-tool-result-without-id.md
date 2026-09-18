@@ -1,0 +1,1 @@
+- **fix(translator):** Gemini tool results sent without an `id` (the usual case, since OmniRoute's own Gemini responses never emit one) now reach the model instead of being replaced by an empty result, on the Gemini, Antigravity and `/v1beta` request paths ([#13334](https://github.com/diegosouzapw/OmniRoute/pull/13334))

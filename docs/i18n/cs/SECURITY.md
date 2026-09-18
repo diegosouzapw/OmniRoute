@@ -4,156 +4,181 @@
 
 ---
 
-## Reporting Vulnerabilities
+## Hlášení zranitelností
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+Pokud v OmniRoute objevíte bezpečnostní zranitelnost, nahlaste ji prosím odpovědným způsobem:
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
+1. **NEOTVÍREJTE** veřejné hlášení problému na GitHubu
+2. Použijte [bezpečnostní upozornění GitHubu](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
+3. Uveďte: popis, kroky k reprodukci a potenciální dopad
 
-## Response Timeline
+## Časový plán reakce
 
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
+| Fáze                | Cíl                          |
+| ------------------- | ---------------------------- |
+| Potvrzení přijetí   | 48 hodin                     |
+| Třídění a posouzení | 5 pracovních dnů             |
+| Vydání opravy       | 14 pracovních dnů (kritické) |
 
-## Supported Versions
+## Podporované verze
 
-| Version | Support Status |
-| ------- | -------------- |
-| 3.6.x   | ✅ Active      |
-| 3.5.x   | ✅ Security    |
-| < 3.5.0 | ❌ Unsupported |
+| Verze   | Stav podpory           |
+| ------- | ---------------------- |
+| 3.8.x   | ✅ Aktivní             |
+| 3.7.x   | ✅ Bezpečnostní opravy |
+| < 3.7.0 | ❌ Nepodporováno       |
 
 ---
 
-## Security Architecture
+## Bezpečnostní architektura
 
-OmniRoute implements a multi-layered security model:
+OmniRoute implementuje vícevrstvý bezpečnostní model:
 
 ```
-Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+Požadavek → CORS → Autorizační kanál (klasifikace → zásady → vynucení)
+          → Ochranná opatření (maskování PII, prompt injection, vision bridge)
+          → Omezovač rychlosti → Jistič → Doba čekání → Blokování modelu → Poskytovatel
 ```
 
-### 🔐 Authentication & Authorization
+### 🔐 Ověřování a autorizace
 
-| Feature              | Implementation                                             |
-| -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 32 granular scopes for MCP tool access control             |
+| Funkce                           | Implementace                                                                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Přihlášení k řídicímu panelu** | Ověřování pomocí hesla s tokeny JWT (soubory cookie HttpOnly)                                                                                                      |
+| **Ověření klíčem API**           | Klíče podepsané pomocí HMAC s validací CRC                                                                                                                         |
+| **OAuth 2.0 + PKCE**             | OAuth poskytovatele v prohlížeči/zařízení používá PKCE tam, kde je podporováno; přihlašovací údaje Devin určené pouze k importu se zpracovávají samostatně.        |
+| **Obnovení tokenu**              | Automatické obnovení tokenu OAuth před vypršením jeho platnosti                                                                                                    |
+| **Zabezpečené soubory cookie**   | `AUTH_COOKIE_SECURE=true` pro prostředí HTTPS                                                                                                                      |
+| **Autorizační kanál**            | Klasifikace tras (PUBLIC / CLIENT_API / MANAGEMENT) — viz `docs/architecture/AUTHZ_GUIDE.md`                                                                       |
+| **Úrovně ochrany tras**          | Tříúrovňový model pro trasy správy (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — viz `docs/security/ROUTE_GUARD_TIERS.md`                                         |
+| **MCP s rozsahem správy**        | Vzdálený přístup k `/api/mcp/*` je omezen na klíče API s rozsahem `manage`; `/api/cli-tools/runtime/*` zůstává striktně omezeno na loopback. Viz ROUTE_GUARD_TIERS |
+| **Rozsahy MCP**                  | 32 podrobných rozsahů (read:health, write:combos, execute:completions atd.) — viz `docs/frameworks/MCP-SERVER.md`                                                  |
 
-### 🛡️ Encryption at Rest
+### 🛡️ Šifrování uložených dat
 
-All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
+Všechna citlivá data uložená v SQLite jsou šifrována pomocí **AES-256-GCM** s odvozením klíče pomocí scrypt:
 
-- API keys, access tokens, refresh tokens, and ID tokens
-- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
+- Klíče API, přístupové tokeny, obnovovací tokeny a tokeny ID
+- Formát s verzováním: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- Režim průchodu (prostý text), pokud není nastavena proměnná `STORAGE_ENCRYPTION_KEY`
 
 ```bash
-# Generate encryption key:
+# Vygenerování šifrovacího klíče:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🧠 Prompt Injection Guard
+### 🛡️ Framework ochranných opatření
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+OmniRoute obsahuje za běhu znovu načitatelný **registr ochranných opatření** (`src/lib/guardrails/`) se 3 integrovanými ochrannými opatřeními seřazenými podle priority:
 
-| Pattern Type        | Severity | Example                                        |
-| ------------------- | -------- | ---------------------------------------------- |
-| System Override     | High     | "ignore all previous instructions"             |
-| Role Hijack         | High     | "you are now DAN, you can do anything"         |
-| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
-| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
-| Instruction Leak    | Medium   | "show me your system prompt"                   |
+| Ochranné opatření  | Priorita | Účel                                                                                                    |
+| ------------------ | -------- | ------------------------------------------------------------------------------------------------------- |
+| `vision-bridge`    | 5        | Propojuje modely bez podpory obrazu s popisy zohledňujícími obraz; ochrana adres URL obrázků proti SSRF |
+| `pii-masker`       | 10       | Redakce PII před voláním i po něm (e-maily, telefonní čísla, CPF, CNPJ, platební karty, SSN)            |
+| `prompt-injection` | 20       | Detekuje vzory přepisování instrukcí, únosu rolí, jailbreaku a úniku informací                          |
 
-Configure via dashboard (Settings → Security) or `.env`:
+Vlastní ochranná opatření se registrují pomocí `registerGuardrail(new MyGuardrail())`. Model funguje v režimu fail-open (výjimky nikdy neblokují provoz). Odhlášení pro jednotlivé požadavky je možné pomocí hlavičky `x-omniroute-disabled-guardrails`. → Viz [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
+
+### 🧠 Ochrana proti prompt injection
+
+Heuristický middleware fungující v režimu maximálního úsilí, který v požadavcích LLM detekuje vzory prompt injection.
+**Nejedná se o kompletní firewall proti prompt injection** — může vytvářet falešně pozitivní výsledky (neškodné
+prompty s personami/RPG) i falešně negativní výsledky (leetspeak, mezery, neanglické vzory).
+
+| Typ vzoru           | Závažnost | Příklad                                               |
+| ------------------- | --------- | ----------------------------------------------------- |
+| Přepsání systému    | Vysoká    | „ignoruj všechny předchozí instrukce“                 |
+| Únos role           | Střední   | „nyní jsi DAN a můžeš dělat cokoli“                   |
+| Vložení oddělovače  | Vysoká    | Zakódované oddělovače narušující hranice kontextu     |
+| DAN/Jailbreak       | Střední   | Známé vzory jailbreak promptů                         |
+| Únik instrukcí      | Vysoká    | „ukaž mi svůj systémový prompt“                       |
+| Obcházení kódováním | Střední   | Dekódování base64/rot13/hex + klíčová slova instrukcí |
+
+V režimu `block` jsou blokovány pouze detekce s **vysokou** závažností. Skupiny se střední závažností
+se zaznamenávají do protokolu, ale funkcí `sanitizeRequest` nejsou nikdy blokovány.
+
+Nakonfigurujte pomocí řídicího panelu (Nastavení → Zabezpečení) nebo souboru `.env`:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
+INPUT_SANITIZER_MODE=block    # warn | block (zásady pro injection; starší režim "redact" text injection neodstraňuje)
+INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (výchozí) | medium | low — závažnosti na této úrovni nebo vyšší jsou v režimu block blokovány
 ```
 
-### 🔒 PII Redaction
+### 🔒 Redakce PII
 
-Automatic detection and optional redaction of personally identifiable information:
+Automatická detekce a volitelná redakce osobních údajů:
 
-| PII Type      | Pattern               | Replacement        |
-| ------------- | --------------------- | ------------------ |
-| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
-| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
-| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
-| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
-| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
+| Typ PII         | Vzor                  | Náhrada            |
+| --------------- | --------------------- | ------------------ |
+| E-mail          | `user@domain.com`     | `[EMAIL_REDACTED]` |
+| CPF (Brazílie)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
+| CNPJ (Brazílie) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
+| Kreditní karta  | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
+| Telefon         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
+| SSN (USA)       | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true
+PII_REDACTION_ENABLED=true   # vyžádá přepsání PII; nezávislé na INPUT_SANITIZER_MODE
+PII_RESPONSE_SANITIZATION=true  # volitelné: rediguje PII v odpovědích poskytovatele vrácených klientům
 ```
 
-### 🌐 Network Security
+### 🌐 Zabezpečení sítě
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| Funkce                           | Popis                                                                                                 |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **CORS**                         | Explicitní seznam povolených zdrojů napříč doménami (`CORS_ALLOWED_ORIGINS`; zastaralé `CORS_ORIGIN`) |
+| **Filtrování IP adres**          | Rozsahy IP adres na seznamu povolených/blokovaných v řídicím panelu                                   |
+| **Omezení rychlosti**            | Limity požadavků pro jednotlivé poskytovatele s automatickým prodlužováním prodlevy                   |
+| **Ochrana před Thundering Herd** | Mutex + zamykání jednotlivých připojení zabraňují kaskádovým chybám 502                               |
+| **Otisk TLS**                    | Napodobení otisku TLS prohlížeče za účelem omezení detekce botů                                       |
+| **Otisk CLI**                    | Pořadí hlaviček/těla pro jednotlivé poskytovatele odpovídající nativním signaturám CLI                |
 
-### 🔌 Resilience & Availability
+### 🔌 Odolnost a dostupnost
 
-| Feature                 | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
-| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
-| **Exponential Backoff** | Automatic retry with increasing delays                             |
-| **Health Dashboard**    | Real-time provider health monitoring                               |
+| Funkce                     | Popis                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| **Jistič**                 | 3 stavy (Zavřený → Otevřený → Polootevřený) pro každého poskytovatele, uložené v SQLite |
+| **Idempotence požadavků**  | 5sekundové okno pro deduplikaci duplicitních požadavků                                  |
+| **Exponenciální prodleva** | Automatické opakování s prodlužujícími se prodlevami                                    |
+| **Panel stavu**            | Monitorování stavu poskytovatelů v reálném čase                                         |
 
-### 📋 Compliance
+### 📋 Dodržování předpisů
 
-| Feature            | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
-| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
-| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
+| Funkce                    | Popis                                                                       |
+| ------------------------- | --------------------------------------------------------------------------- |
+| **Uchovávání protokolů**  | Automatické čištění po uplynutí `CALL_LOG_RETENTION_DAYS`                   |
+| **Vypnutí protokolování** | Příznak `noLog` pro jednotlivé klíče API deaktivuje protokolování požadavků |
+| **Auditní protokol**      | Administrativní akce jsou sledovány v tabulce `audit_log`                   |
+| **Audit MCP**             | Auditní protokolování všech volání nástrojů MCP s úložištěm SQLite          |
+| **Validace Zod**          | Všechny vstupy API jsou při načtení modulu validovány pomocí schémat Zod v4 |
 
 ---
 
-## Required Environment Variables
+## Povinné proměnné prostředí
 
-All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
+Před spuštěním serveru musí být nastaveny všechny citlivé údaje. Pokud budou chybět nebo budou nedostatečně silné, server se **okamžitě ukončí**.
 
 ```bash
-# REQUIRED — server will not start without these:
-JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
+# POVINNÉ — bez těchto hodnot se server nespustí:
+JWT_SECRET=$(openssl rand -base64 48)     # min. 32 znaků
+API_KEY_SECRET=$(openssl rand -hex 32)    # min. 16 znaků
 
-# RECOMMENDED — enables encryption at rest:
+# DOPORUČENÉ — umožňuje šifrování uložených dat:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
+Server aktivně odmítá známé slabé hodnoty, jako jsou `changeme`, `secret` nebo `password`.
 
 ---
 
-## Docker Security
+## Zabezpečení Dockeru
 
-- Use non-root user in production
-- Mount secrets as read-only volumes
-- Never copy `.env` files into Docker images
-- Use `.dockerignore` to exclude sensitive files
-- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
+- V produkčním prostředí používejte uživatele bez oprávnění root
+- Připojujte citlivé údaje jako svazky pouze pro čtení
+- Nikdy nekopírujte soubory `.env` do obrazů Dockeru
+- Pomocí `.dockerignore` vylučte citlivé soubory
+- Při provozu za HTTPS nastavte `AUTH_COOKIE_SECURE=true`
 
 ```bash
 docker run -d \
@@ -170,10 +195,54 @@ docker run -d \
 
 ---
 
-## Dependencies
+## Závislosti
 
-- Run `npm audit` regularly
-- Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- Pravidelně spouštějte `npm audit` (`npm run audit:deps` zahrnuje hlavní část i Electron)
+- Udržujte závislosti aktuální
+- Projekt používá `husky` + `lint-staged` pro kontroly před commitem (lint-staged + check-docs-sync + check:any-budget:t11)
+- Pipeline CI při každém pushi spouští bezpečnostní pravidla ESLint (`no-eval`, `no-implied-eval`, `no-new-func` = chyba)
+- Konstanty poskytovatelů jsou při načtení modulu validovány pomocí Zod (`src/shared/validation/schemas.ts`)
+- Používají se knihovny, které jsou ve výchozím nastavení bezpečné: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (žádné riziko SQLi díky parametrizovaným dotazům), `bcryptjs` (hashování hesel)
+
+## Závazná bezpečnostní pravidla
+
+Dodržování těchto pravidel vynucují nástroje a kontroloři:
+
+1. **Nikdy neukládejte citlivé údaje do repozitáře** — `.env` je ignorován nástrojem Git; šablonou je `.env.example` (žádné literály, pouze komentáře — viz PUBLIC_CREDS.md níže)
+2. **Nikdy nepoužívejte `eval()`, `new Function()` ani implicitní eval** — vynucuje ESLint
+3. **Nikdy neobcházejte hooky Husky** (`--no-verify`, `--no-gpg-sign`) bez výslovného souhlasu operátora
+4. **Nikdy nezapisujte nezpracované SQL do rout** — vždy používejte `src/lib/db/` (parametrizované dotazy)
+5. **Vstupy vždy validujte pomocí Zod** — `src/shared/validation/schemas.ts`
+6. **Vždy filtrujte upstream hlavičky** — seznam zakázaných položek v `src/shared/constants/upstreamHeaders.ts`
+7. **Šifrujte přihlašovací údaje v uloženém stavu** — AES-256-GCM prostřednictvím `src/lib/db/encryption.ts`
+8. **Veřejné upstream identifikátory OAuth získávejte prostřednictvím `resolvePublicCred()`** — nikdy nevkládejte literály `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` do zdrojového kódu. Viz [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Chybové odpovědi vytvářejte prostřednictvím `buildErrorBody()` / `sanitizeErrorMessage()`** — nikdy nevkládejte nezpracované `err.stack` / `err.message` do těl odpovědí HTTP / SSE / executoru / MCP. Viz [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **Běhové hodnoty pro `exec()` / `spawn()` předávejte prostřednictvím volby `env`** — nikdy nevkládejte externí cesty ani nedůvěryhodné hodnoty pomocí řetězcové interpolace do skriptů předávaných shellu. Referenční implementace: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Upřednostňujte knihovny, které jsou ve výchozím nastavení bezpečné** — viz [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Použijte je dříve, než vytvoříte vlastní řešení.
+
+## Nálezy skenerů dodavatelského řetězce (Socket.dev / Snyk / podobné)
+
+Publikovaný npm artefakt `omniroute` obsahuje sestavení Next.js s nastavením `output: "standalone"`, což znamená, že každý obslužný program tras — včetně zdokumentovaných privilegovaných funkcí (MITM, import ze Zed, Cloud Sync, integrovaný správce služeb) — skončí v minifikovaných blocích `.next/server/*.js`. Heuristické skenery dodavatelského řetězce často porovnávají vzory v těchto blocích se signaturami malwaru.
+
+Konfigurace skeneru, kterou používáme, se nachází v souboru [`socket.yml`](socket.yml) v kořenovém adresáři repozitáře (formát Socket.dev GitHub App v2 — viz <https://docs.socket.dev/docs/socket-yml>). Výslovně vylučuje adresáře, které nejsou součástí distribuce (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` atd.), takže skener hlásí pouze cesty v kódu, které se skutečně dostanou k uživatelům publikovaného balíčku — samotné skenování provádí GitHub App služby Socket na základě tohoto souboru, nikoli workflow v tomto repozitáři.
+
+Pro každou kategorii nálezů udržujeme potvrzení správce pro jednotlivé nálezy:
+
+- **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
+  mapa jednotlivých nálezů: zdrojový soubor ↔ označený blok ↔ chování ↔ zmírnění rizika použité ve verzi v3.8.6.
+- Bloky `SECURITY-AUDITOR-NOTE:` ve zdrojovém kódu u každé označené funkce odkazují zpět na tentýž dokument.
+
+Uživatelé, jejichž pipeline neumožňuje zmírnit výstrahu, mohou sestavení vytvořit pomocí příkazu `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tím se čtyři citlivé moduly nahradí zástupnými implementacemi, které za běhu vracejí HTTP 503 `feature-disabled`, takže privilegované cesty v kódu nejsou v balíčku fyzicky přítomny. Postup publikování najdete v dokumentu [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+
+## Odkazy
+
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — autorizační pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — framework ochranných mechanismů
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — protokol auditu a uchovávání
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **povinný** vzor pro veřejné přihlašovací údaje nadřazených služeb
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **povinný** vzor pro chybové odpovědi
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — potvrzení správce k nálezům skeneru dodavatelského řetězce
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — fingerprinting TLS (právní/etické upozornění)
+- [`CLAUDE.md`](CLAUDE.md) — závazná pravidla pro agenty AI
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — kurátorovaný seznam knihoven s bezpečným výchozím nastavením

@@ -1,21 +1,12 @@
-# MCP-SERVER (ଓଡ଼ିଆ)
+# OmniRoute MCP Server Documentation (ଓଡ଼ିଆ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "OmniRoute MCP ସର୍ଭର ଡକ୍ୟୁମେଣ୍ଟେସନ୍"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# OmniRoute MCP ସର୍ଭର ଡକ୍ୟୁମେଣ୍ଟେସନ୍
-
-> Model Context Protocol ସର୍ଭର ଯାହା ରାଉଟିଂ, କ୍ୟାଶେ, କମ୍ପ୍ରେସନ୍, ମେମୋରୀ, ସ୍କିଲ୍ସ, ପ୍ରକ୍ସି, ପୁଲ୍, ରାଡାର୍ ଏବଂ କଣ୍ଟେକ୍ସଟ୍ ସୋର୍ସ କାର୍ଯ୍ୟରେ 110 ଟି ଟୁଲ୍ ପ୍ରଦାନ କରେ।
+> ରାଉଟିଂ, କ୍ୟାଶ୍, କମ୍ପ୍ରେସନ୍, ମେମୋରି, ସ୍କିଲ୍ସ, ପ୍ରକ୍ସି, ପୁଲ୍, Radar ଏବଂ କଣ୍ଟେକ୍ସ୍ଟ ସୋର୍ସ କାର୍ଯ୍ୟଗୁଡ଼ିକରେ 110ଟି ଟୁଲ୍ ସହିତ Model Context Protocol ସର୍ଭର।
 >
-> ପ୍ରାମାଣିକ ଉତ୍ସ: `open-sse/mcp-server/server.ts` `countUniqueMcpTools()` ସାହାଯ୍ୟରେ **110 ଟି ଅନନ୍ୟ ଟୁଲ୍** ଗଣନା କରେ: 45 ଟି କାନୋନିକାଲ୍ ଡେଫିନିସନ୍ (ଯେଉଁଥିରେ ଛଅଟି CCR ଲାଇଫ୍ସାଇକଲ୍ ଟୁଲ୍, ଏଜେଣ୍ଟ-ସ୍କିଲ୍ସ ତ୍ରୟୀ, `omniroute_radar_catalog`, ଏବଂ `omniroute_x_search` ଅନ୍ତର୍ଭୁକ୍ତ), ସହିତ ମେମୋରୀ (3), ସ୍କିଲ୍ସ (4), GitHub ସ୍କିଲ୍ସ (3), ପୁଲ୍ (6), ଗେମିଫିକେସନ୍ (8), ପ୍ଲଗିନ୍ (8), Notion (6), Obsidian (22), ସ୍ଥାନୀୟ କର୍ପସ୍ (3), ଏବଂ ଦୁଇଟି RTK-କେବଳ କମ୍ପ୍ରେସନ୍ ଟୁଲ୍।
+> ପ୍ରାମାଣିକ ଉତ୍ସ: `open-sse/mcp-server/server.ts`, `countUniqueMcpTools()` ବ୍ୟବହାର କରି **110ଟି ଅନନ୍ୟ ଟୁଲ୍** ଗଣନା କରେ: 45ଟି କ୍ୟାନୋନିକାଲ୍ ସଂଜ୍ଞା (ଛଅଟି CCR ଲାଇଫ୍ସାଇକଲ୍ ଟୁଲ୍, agent-skills ଟ୍ରିଓ, `omniroute_radar_catalog`, ଏବଂ `omniroute_x_search` ସମେତ), ଏଥିସହିତ ମେମୋରି (3), ସ୍କିଲ୍ସ (4), GitHub ସ୍କିଲ୍ସ (3), ପୁଲ୍ (6), ଗେମିଫିକେସନ୍ (8), ପ୍ଲଗ୍ଇନ୍ସ (8), Notion (6), Obsidian (22), ଲୋକାଲ୍ କର୍ପସ୍ (3), ଏବଂ କେବଳ RTK ପାଇଁ ଦୁଇଟି କମ୍ପ୍ରେସନ୍ ଟୁଲ୍।
 
 ## ଇନଷ୍ଟଲେସନ୍
 
@@ -28,9 +19,26 @@ omniroute --mcp
 କିମ୍ବା open-sse ଟ୍ରାନ୍ସପୋର୍ଟ ମାଧ୍ୟମରେ:
 
 ```bash
-# HTTP ସ୍ଟ୍ରିମେବଲ୍ ଟ୍ରାନ୍ସପୋର୍ଟ (ପୋର୍ଟ 20130)
-omniroute --dev  # MCP /mcp ଏଣ୍ଡପଏଣ୍ଟରେ ସ୍ୱୟଂ ଆରମ୍ଭ ହୁଏ
+# HTTP ଷ୍ଟ୍ରିମ୍ଯୋଗ୍ୟ ଟ୍ରାନ୍ସପୋର୍ଟ (ପୋର୍ଟ 20130)
+omniroute --dev  # /mcp ଏଣ୍ଡପଏଣ୍ଟରେ MCP ସ୍ୱୟଂଚାଳିତ ଭାବେ ଆରମ୍ଭ ହୁଏ
 ```
+
+HTTP ଟ୍ରାନ୍ସପୋର୍ଟଗୁଡ଼ିକ (`sse` / `streamable-http`, ଡ୍ୟାସବୋର୍ଡ ସର୍ଭର ଦ୍ୱାରା ଇନ୍-ପ୍ରୋସେସ୍ରେ ପରିବେଷିତ)
+ଡିଫଲ୍ଟ ଭାବେ ବନ୍ଦ ଥାଏ ଏବଂ ପୂର୍ବରୁ କେବଳ `/dashboard/mcp` ପୃଷ୍ଠାରୁ ଟୋଗଲ୍ କରାଯାଇପାରୁଥିଲା। v3.8.51 ଠାରୁ
+CLIରେ ମଧ୍ୟ ସମାନ ସୁବିଧା ଉପଲବ୍ଧ:
+
+```bash
+omniroute mcp status                                  # ସକ୍ଷମ/ଅନଲାଇନ୍, ଟ୍ରାନ୍ସପୋର୍ଟ, ଟୁଲ୍ ସଂଖ୍ୟା
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # ସକ୍ରିୟ sse/streamable-http ସେସନ୍ଗୁଡ଼ିକୁ ପୁନଃସେଟ୍ କରେ
+```
+
+`mcp enable`/`mcp disable`, `/api/settings` ମାଧ୍ୟମରେ ଡ୍ୟାସବୋର୍ଡ ଟୋଗଲ୍ କରୁଥିବା ସେହି
+`mcpEnabled` (ଏବଂ ଇଚ୍ଛାନୁସାରେ `mcpTransport`) ସେଟିଂକୁ PATCH କରେ। `mcp restart`, `POST /api/mcp/restart`କୁ କଲ୍ କରେ: ଏହା
+ସକ୍ରିୟ `sse`/`streamable-http` ସେସନ୍ଗୁଡ଼ିକୁ ବନ୍ଦ କରିଦିଏ, ଯାହାଦ୍ୱାରା ପରବର୍ତ୍ତୀ ଅନୁରୋଧ ସ୍ୱଚ୍ଛ ଭାବେ ପୁନଃ-ଇନିସିଆଲାଇଜ୍ ହୁଏ; MCP ଅକ୍ଷମ ଥିଲେ
+`409` ଏବଂ `stdio` ଟ୍ରାନ୍ସପୋର୍ଟ ପାଇଁ `501` ଫେରାଏ (stdio କ୍ଲାଏଣ୍ଟଗୁଡ଼ିକ ନିଜ ସବ୍ପ୍ରୋସେସ୍ର ମାଲିକ —
+ପୁନଃଆରମ୍ଭ କରିବା ପାଇଁ କୌଣସି ଇନ୍-ପ୍ରୋସେସ୍ ହ୍ୟାଣ୍ଡଲ୍ ନାହିଁ)।
 
 ## ଟ୍ରାନ୍ସପୋର୍ଟଗୁଡ଼ିକ
 

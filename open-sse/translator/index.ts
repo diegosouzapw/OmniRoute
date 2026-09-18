@@ -889,6 +889,11 @@ export function initState(sourceFormat) {
     finishReasonSent: false,
     usage: null,
     contentBlockIndex: -1,
+    // Client thinking intent threaded from the request side. The response
+    // translator only relays upstream reasoning (thinking blocks) when the
+    // client explicitly opted in — otherwise DeepSeek/GLM reasoning_content
+    // would leak into the UI as a thinking block it never asked for.
+    requestedThinking: false,
   };
 
   // Add openai-responses specific fields

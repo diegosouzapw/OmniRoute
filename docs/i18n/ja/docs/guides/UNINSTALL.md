@@ -4,53 +4,55 @@
 
 ---
 
-This guide covers how to cleanly remove OmniRoute from your system.
+🌐 **言語:** 🇺🇸 [English](./UNINSTALL.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/UNINSTALL.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/UNINSTALL.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/UNINSTALL.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/UNINSTALL.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/UNINSTALL.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/UNINSTALL.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/UNINSTALL.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/UNINSTALL.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/UNINSTALL.md) | 🇪🇸 [Español](../i18n/es/docs/guides/UNINSTALL.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/UNINSTALL.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/UNINSTALL.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/UNINSTALL.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/UNINSTALL.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/UNINSTALL.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/UNINSTALL.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/UNINSTALL.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/UNINSTALL.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/UNINSTALL.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/UNINSTALL.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/UNINSTALL.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/UNINSTALL.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/UNINSTALL.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/UNINSTALL.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/UNINSTALL.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/UNINSTALL.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/UNINSTALL.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/UNINSTALL.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/UNINSTALL.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/UNINSTALL.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/UNINSTALL.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/UNINSTALL.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/UNINSTALL.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/UNINSTALL.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/UNINSTALL.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/UNINSTALL.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/UNINSTALL.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/UNINSTALL.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/UNINSTALL.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/UNINSTALL.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/UNINSTALL.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/UNINSTALL.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/UNINSTALL.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/UNINSTALL.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/UNINSTALL.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/UNINSTALL.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/UNINSTALL.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/UNINSTALL.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/UNINSTALL.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/UNINSTALL.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/UNINSTALL.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/UNINSTALL.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/UNINSTALL.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/UNINSTALL.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/UNINSTALL.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/UNINSTALL.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/UNINSTALL.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/UNINSTALL.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/UNINSTALL.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/UNINSTALL.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/UNINSTALL.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/UNINSTALL.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/UNINSTALL.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/UNINSTALL.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/UNINSTALL.md)
+
+このガイドでは、システムから OmniRoute を完全に削除する方法について説明します。
 
 ---
 
-## Quick Uninstall (v3.6.2+)
+## クイックアンインストール (v3.6.2+)
 
-OmniRoute provides two built-in scripts for clean removal:
+OmniRoute には、クリーンに削除するための組み込みスクリプトが 2 つ用意されています。
 
-### Keep Your Data
+### データを保持する
 
 ```bash
 npm run uninstall
 ```
 
-This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
+このコマンドは OmniRoute アプリケーションを削除しますが、`~/.omniroute/` 内のデータベース、設定、API キー、プロバイダー設定は**保持**します。後で再インストールする予定があり、現在の設定を維持したい場合に使用してください。
 
-### Full Removal
+### 完全削除
 
 ```bash
 npm run uninstall:full
 ```
 
-This removes the application **and permanently erases** all data:
+このコマンドはアプリケーションを削除し、さらに以下のすべてのデータを**完全に消去**します。
 
-- Database (`storage.sqlite`)
-- Provider configurations and API keys
-- Backup files
-- Log files
-- All files in the `~/.omniroute/` directory
+- データベース (`storage.sqlite`)
+- プロバイダー設定と API キー
+- バックアップファイル
+- ログファイル
+- `~/.omniroute/` ディレクトリ内のすべてのファイル
 
-> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+> ⚠️ **警告:** `npm run uninstall:full` は取り消せません。すべてのプロバイダー接続、コンボ、API キー、使用履歴が完全に削除されます。
 
 ---
 
-## Manual Uninstall
+## 手動アンインストール
 
-### NPM Global Install
+### NPM グローバルインストール
 
 ```bash
-# Remove the global package
+# グローバルパッケージを削除
 npm uninstall -g omniroute
 
-# (Optional) Remove data directory
+# （任意）データディレクトリを削除
 rm -rf ~/.omniroute
 ```
 
-### pnpm Global Install
+### pnpm グローバルインストール
 
 ```bash
 pnpm uninstall -g omniroute
@@ -60,97 +62,97 @@ rm -rf ~/.omniroute
 ### Docker
 
 ```bash
-# Stop and remove the container
+# コンテナを停止して削除
 docker stop omniroute
 docker rm omniroute
 
-# Remove the volume (deletes all data)
+# ボリュームを削除（すべてのデータを削除）
 docker volume rm omniroute-data
 
-# (Optional) Remove the image
+# （任意）イメージを削除
 docker rmi diegosouzapw/omniroute:latest
 ```
 
 ### Docker Compose
 
 ```bash
-# Stop and remove containers
+# コンテナを停止して削除
 docker compose down
 
-# Also remove volumes (deletes all data)
+# ボリュームも削除（すべてのデータを削除）
 docker compose down -v
 ```
 
-### Electron Desktop App
+### Electron デスクトップアプリ
 
 **Windows:**
 
-- Open `Settings → Apps → OmniRoute → Uninstall`
-- Or run the NSIS uninstaller from the install directory
+- `設定 → アプリ → OmniRoute → アンインストール` を開く
+- または、インストールディレクトリから NSIS アンインストーラーを実行する
 
 **macOS:**
 
-- Drag `OmniRoute.app` from `/Applications` to Trash
-- Remove data: `rm -rf ~/Library/Application Support/omniroute`
+- `/Applications` から `OmniRoute.app` をゴミ箱にドラッグする
+- データを削除: `rm -rf ~/Library/Application Support/omniroute`
 
 **Linux:**
 
-- Remove the AppImage file
-- Remove data: `rm -rf ~/.omniroute`
+- AppImage ファイルを削除する
+- データを削除: `rm -rf ~/.omniroute`
 
-### Source Install (git clone)
+### ソースからのインストール (git clone)
 
 ```bash
-# Remove the cloned directory
+# クローンしたディレクトリを削除
 rm -rf /path/to/omniroute
 
-# (Optional) Remove data directory
+# （任意）データディレクトリを削除
 rm -rf ~/.omniroute
 ```
 
 ---
 
-## Data Directories
+## データディレクトリ
 
-OmniRoute stores data in the following locations by default:
+OmniRoute は、デフォルトで以下の場所にデータを保存します。
 
-| Platform      | Default Path                  | Override                  |
-| ------------- | ----------------------------- | ------------------------- |
-| Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` env var        |
-| Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
-| XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
+| プラットフォーム | デフォルトのパス                         | 上書き設定                 |
+| ---------------- | ---------------------------------------- | -------------------------- |
+| Linux            | `~/.omniroute/`                          | `DATA_DIR` 環境変数        |
+| macOS            | `~/.omniroute/`                          | `DATA_DIR` 環境変数        |
+| Windows          | `%APPDATA%/omniroute/`                   | `DATA_DIR` 環境変数        |
+| Docker           | `/app/data/`（マウントされたボリューム） | `DATA_DIR` 環境変数        |
+| XDG 準拠         | `$XDG_CONFIG_HOME/omniroute/`            | `XDG_CONFIG_HOME` 環境変数 |
 
-### Files in the data directory
+### データディレクトリ内のファイル
 
-| File/Directory       | Description                                       |
-| -------------------- | ------------------------------------------------- |
-| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
-| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
-| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
-| `call_logs/`         | Request payload archives                          |
-| `backups/`           | Automatic database backups                        |
-| `log.txt`            | Legacy request log (optional)                     |
+| ファイル/ディレクトリ | 説明                                                   |
+| --------------------- | ------------------------------------------------------ |
+| `storage.sqlite`      | メインデータベース（プロバイダー、コンボ、設定、キー） |
+| `storage.sqlite-wal`  | SQLite 先行書き込みログ（一時ファイル）                |
+| `storage.sqlite-shm`  | SQLite 共有メモリ（一時ファイル）                      |
+| `call_logs/`          | リクエストペイロードのアーカイブ                       |
+| `backups/`            | データベースの自動バックアップ                         |
+| `log.txt`             | 従来のリクエストログ（任意）                           |
 
 ---
 
-## Verify Complete Removal
+## 完全に削除されたことを確認する
 
-After uninstalling, verify there are no remaining files:
+アンインストール後、ファイルが残っていないことを確認します：
 
 ```bash
-# Check for global npm package
+# グローバル npm パッケージを確認
 npm list -g omniroute 2>/dev/null
 
-# Check for data directory
+# データディレクトリを確認
 ls -la ~/.omniroute/ 2>/dev/null
 
-# Check for running processes
+# 実行中のプロセスを確認
 pgrep -f omniroute
 ```
 
-If any process is still running, stop it:
+プロセスがまだ実行中の場合は、停止します：
 
 ```bash
 pkill -f omniroute

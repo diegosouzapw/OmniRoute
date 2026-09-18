@@ -163,3 +163,21 @@ test("Vertex normalization persists context separately while legacy providers re
   ]);
   assert.equal(normalizeDiscoveredModels([metadata], "openrouter")[0]?.inputTokenLimit, 1048576);
 });
+
+test("#1007: a spec-legal `</script foo>` end tag does not leak script text into a parsed cell", () => {
+  // CodeQL js/bad-tag-filter: the script/style stripper matched only `</script>` with optional
+  // whitespace, but HTML also accepts junk before the `>` — `</script\t\n bar>` closes the element.
+  // The generic `<[^>]+>` pass then removes both tags, so what survives is the script BODY, which
+  // lands in the cell text the number parser reads. Docs pages come from docs.cloud.google.com and
+  // are parsed to TEXT (never rendered), so the impact is a poisoned limit, not injection.
+  const html = modelDocsHtml(`
+    <tr><th>Model ID</th><td>gemini-3.7-flash</td></tr>
+    <tr><th>Token limits</th><td>Context window</td><td><script>999,999,999</script\t\n bar></td></tr>
+  `);
+
+  assert.equal(
+    parseVertexModelDocsHtml(html, "gemini-3.7-flash"),
+    null,
+    "a number that exists only inside a script body must not become the model's context window"
+  );
+});

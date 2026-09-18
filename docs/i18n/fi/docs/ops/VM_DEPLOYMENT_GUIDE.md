@@ -4,127 +4,133 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+🌐 **Kielet:** 🇺🇸 [English](./VM_DEPLOYMENT_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+Täydellinen opas OmniRouten asentamiseen ja määrittämiseen virtuaalikoneessa (VPS), kun verkkotunnusta hallitaan Cloudflaren kautta.
 
 ---
 
-## Prerequisites
+## Edellytykset
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| Kohde                 | Vähimmäisvaatimus         | Suositus         |
+| --------------------- | ------------------------- | ---------------- |
+| **CPU**               | 1 vCPU                    | 2 vCPU           |
+| **RAM**               | 1 GB                      | 2 GB             |
+| **Levy**              | 10 GB SSD                 | 25 GB SSD        |
+| **Käyttöjärjestelmä** | Ubuntu 22.04 LTS          | Ubuntu 24.04 LTS |
+| **Verkkotunnus**      | Rekisteröity Cloudflareen | —                |
+| **Docker**            | Docker Engine 24+         | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**Testatut palveluntarjoajat**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configure the VM
+## 1. Virtuaalikoneen määrittäminen
 
-### 1.1 Create the instance
+### 1.1 Luo instanssi
 
-On your preferred VPS provider:
+Valitsemallasi VPS-palveluntarjoajalla:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
+- Valitse Ubuntu 24.04 LTS
+- Valitse vähimmäisvaatimukset täyttävä paketti (1 vCPU / 1 GB RAM)
+- Aseta vahva root-salasana tai määritä SSH-avain
+- Kirjaa **julkinen IP-osoite** muistiin (esim. `203.0.113.10`)
 
-### 1.2 Connect via SSH
+### 1.2 Muodosta yhteys SSH:lla
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 Päivitä järjestelmä
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 Asenna Docker
 
 ```bash
-# Install dependencies
+# Asenna riippuvuudet
 apt install -y ca-certificates curl gnupg
 
-# Add official Docker repository
+# Lisää Dockerin virallinen pakettivarasto
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 Asenna nginx
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 Määritä palomuuri (UFW)
 
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (redirect)
+ufw allow 80/tcp    # HTTP (uudelleenohjaus)
 ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **Vinkki**: Parhaan mahdollisen tietoturvan saavuttamiseksi rajoita portit 80 ja 443 vain Cloudflaren IP-osoitteille. Katso [Edistynyt tietoturva](#advanced-security) -osio.
 
 ---
 
-## 2. Install OmniRoute
+## 2. OmniRouten asentaminen
 
-### 2.1 Create configuration directory
+### 2.1 Luo määrityshakemisto
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 Luo ympäristömuuttujatiedosto
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
-# === Security ===
+cat > /opt/omniroute/.env << 'EOF'
+# === Tietoturva ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
 API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # PAKOLLINEN tuotannossa: Codex Responses WS -silta käyttää tätä
 
-# === App ===
+# === Sovellus ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URL-osoitteet (vaihda omaksi verkkotunnukseksesi) ===
+# Sisäinen palvelinten välinen perus-URL ajastettuja töitä ja palvelimen itse tekemiä pyyntöjä varten.
+BASE_URL=http://127.0.0.1:20128
+# Selaimelle näkyvä URL, jota käytetään OAuth-palautusosoitteissa, hallintapaneelin linkeissä ja luoduissa julkisissa URL-osoitteissa.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# Valinnainen julkisen alkuperän eksplisiittinen ohitus luotuja julkisten resurssien URL-osoitteita varten.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (optional) ===
+# === Pilvisynkronointi (valinnainen) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **TÄRKEÄÄ**: Luo yksilölliset salaiset avaimet! Käytä komentoa `openssl rand -hex 32` jokaiselle avaimelle.
 
-### 2.3 Start the container
+### 2.3 Käynnistä säilö
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +144,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 Varmista, että se on käynnissä
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+Sen pitäisi näyttää viestit `[DB] SQLite database ready` ja `listening on port 20128`.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. Määritä nginx (käänteinen välityspalvelin)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 Luo SSL-varmenne (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+Cloudflaren hallintapaneelissa:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. Siirry kohtaan **SSL/TLS → Alkuperäpalvelin**
+2. Napsauta **Luo varmenne**
+3. Säilytä oletusasetukset (15 vuotta, \*.yourdomain.com)
+4. Kopioi **Origin-varmenne** ja **yksityinen avain**
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Paste the certificate
+# Liitä varmenne
 nano /etc/nginx/ssl/origin.crt
 
-# Paste the private key
+# Liitä yksityinen avain
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 Nginx-määritykset
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
-# Default server — blocks direct access via IP
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+# Oletuspalvelin — estää suoran käytön IP-osoitteen kautta
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # Change to your domain
+    server_name llms.yourdomain.com;  # Vaihda omaksi verkkotunnukseksesi
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -203,16 +209,17 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # WebSocket support
+        # WebSocket-tuki
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
-        # SSE (Server-Sent Events) — streaming AI responses
+        # SSE (palvelimen lähettämät tapahtumat) — tekoälyvastausten suoratoisto
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -220,7 +227,7 @@ server {
     }
 }
 
-# HTTP → HTTPS redirect
+# HTTP → HTTPS -uudelleenohjaus
 server {
     listen 80;
     listen [::]:80;
@@ -230,59 +237,67 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+Pidä käänteisen välityspalvelimen suoratoiston aikakatkaisut yhdenmukaisina OmniRouten aikakatkaisujen ympäristömuuttujien kanssa. Jos kasvatat
+`FETCH_TIMEOUT_MS`- / `STREAM_IDLE_TIMEOUT_MS`-arvoja, kasvata `proxy_read_timeout`- / `proxy_send_timeout`-arvot
+samaa kynnysarvoa suuremmiksi.
 
-### 3.3 Enable and Test
+OmniRoute käyttää `NEXT_PUBLIC_BASE_URL`-muuttujaa selaimelle näkyvänä ensisijaisena alkuperänä OAuth-
+takaisinkutsuille ja luoduille julkisille linkeille. Todennetut hallintapaneelin kirjoituspyynnöt käyttävät saman alkuperän pyyntöjä
+ja istuntoon sidottua CSRF-suojausta, joten ne eivät edellytä staattista julkista perus-URL-osoitetta. Yllä olevat
+`X-Forwarded-*`-otsakkeet ovat edelleen hyödyllisiä reitityksen metatietoja, mutta ne eivät korvaa
+nimenomaisen julkisen URL-osoitteen määrittämistä, kun OAuth tai luodut selainlinkit tarvitsevat sitä. Ota
+`OMNIROUTE_TRUST_PROXY` käyttöön vain, jos asiakkaat eivät voi käyttää OmniRoutea suoraan ja välityspalvelimesi
+poistaa saapuvat edelleenlähetysotsakkeet tai muodostaa ne uudelleen.
+
+### 3.3 Ota käyttöön ja testaa
 
 ```bash
-# Remove default configuration
+# Poista oletusmääritykset
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
+# Ota OmniRoute käyttöön
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Test and reload
+# Testaa ja lataa uudelleen
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. Cloudflare DNS:n määrittäminen
 
-### 4.1 Add DNS record
+### 4.1 Lisää DNS-tietue
 
-In the Cloudflare dashboard → DNS:
+Cloudflare-hallintapaneelissa → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| Tyyppi | Nimi   | Sisältö                         | Välityspalvelin |
+| ------ | ------ | ------------------------------- | --------------- |
+| A      | `llms` | `203.0.113.10` (VM:n IP-osoite) | ✅ Välitetty    |
 
-### 4.2 Configure SSL
+### 4.2 Määritä SSL
 
-Under **SSL/TLS → Overview**:
+Kohdassa **SSL/TLS → Yleiskatsaus**:
 
-- Mode: **Full (Strict)**
+- Tila: **Täysi (tiukka)**
 
-Under **SSL/TLS → Edge Certificates**:
+Kohdassa **SSL/TLS → Reunapalvelinvarmenteet**:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- Käytä aina HTTPS:ää: ✅ Käytössä
+- TLS:n vähimmäisversio: TLS 1.2
+- Automaattiset HTTPS-uudelleenkirjoitukset: ✅ Käytössä
 
-### 4.3 Testing
+### 4.3 Testaus
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Should return HTTP/2 200
+# Tuloksena pitäisi olla HTTP/2 200
 ```
 
 ---
 
-## 5. Operations and Maintenance
+## 5. Käyttö ja ylläpito
 
-### Upgrade to a new version
+### Päivitä uuteen versioon
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,42 +309,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### Tarkastele lokeja
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f omniroute          # Reaaliaikainen lokivirta
+docker logs omniroute --tail 50   # Viimeiset 50 riviä
 ```
 
-### Manual database backup
+### Manuaalinen tietokannan varmuuskopiointi
 
 ```bash
-# Copy data from the volume to the host
+# Kopioi tiedot taltiosta isäntäkoneelle
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Or compress the entire volume
+# Tai pakkaa koko taltio
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### Palauta varmuuskopiosta
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. Edistynyt tietoturva
 
-### Restrict nginx to Cloudflare IPs
+### Rajoita nginx-yhteydet Cloudflaren IP-osoitteisiin
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
-# Cloudflare IPv4 ranges — update periodically
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
+# Cloudflaren IPv4-osoitealueet — päivitä säännöllisesti
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -350,58 +365,69 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+Lisää seuraava `nginx.conf`-tiedoston `http {}`-lohkoon:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### Asenna fail2ban
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Check status
+# Tarkista tila
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### Estä suora pääsy Docker-porttiin
 
 ```bash
-# Prevent direct external access to port 20128
+# Estä suora ulkoinen pääsy porttiin 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persist the rules
+# Säilytä säännöt
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. Ota käyttöön Cloudflare Workersissa (valinnainen)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Etäkäyttö Cloudflare Workersin kautta (ilman VM:n suoraa altistamista):
 
 ```bash
-# In the local repository
+# Paikallisessa tietovarastossa
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+Katso myös tietovarastossa oleva Cloudflare Tunnel -ohje [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md). Erillinen `omnirouteCloud/`-worker sijaitsee erillisessä oheistietovarastossa.
 
 ---
 
-## Port Summary
+## Porttien yhteenveto
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| Portti | Palvelu     | Käyttöoikeus                        |
+| ------ | ----------- | ----------------------------------- |
+| 22     | SSH         | Julkinen (fail2ban käytössä)        |
+| 80     | nginx HTTP  | Uudelleenohjaus → HTTPS             |
+| 443    | nginx HTTPS | Cloudflare-välityspalvelimen kautta |
+| 20128  | OmniRoute   | Vain localhost (nginxin kautta)     |
+
+## Optimointi vähäiselle muistille / pienelle VPS:lle
+
+Käyttöönotot pienissä VPS-instansseissa (enintään 1 Gt RAM-muistia):
+
+- **Poista taustapalvelut käytöstä** — aseta `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1`, jotta ajastin, MCP-palvelin ja säännölliset ylläpitotehtävät ohitetaan. Katso `docs/reference/ENVIRONMENT.md`.
+- **Käytä SQLiten WAL-tilaa** — oletusarvoisesti käytössä; vähentää muistin huippukäyttöä samanaikaisten lukujen aikana.
+- **Rajoita V8-kekoa** — aseta `OMNIROUTE_MEMORY_MB` (esim. `512`), jotta suoritusympäristö ei määritä virtuaalikoneen kapasiteettia suurempaa ylärajaa. Katso `docs/reference/ENVIRONMENT.md`.
+- **Raskaiden pyyntöjen hyväksyntä skaalautuu automaattisesti kekorajoituksen mukaan** -- kun `OMNIROUTE_MEMORY_MB` on asetettu edellä, vastaanotettavien tavujen budjetti (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) johdetaan samasta ylärajasta. Näin muistirajoitteinen virtuaalikone saa automaattisesti pienemmän samanaikaisten pyyntöjen budjetin ilman lisäsäätöä. Ylimääräiset pyynnöt saavat uudelleenyrityksen sallivan `503`-vastauksen `Retry-After`-otsakkeella sen sijaan, että ne kilpailisivat muistista. Aseta vanha pyyntömäärään perustuva `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`-rajoitus vain, jos tarvitset tämän lisäksi kiinteän ylärajan.
+- **Vältä `next build` -komennon suorittamista VPS:llä** — käännä paikallisesti ja ota käyttöön itsenäinen tuloste (`.next/standalone/`).
+- **Valvo komennoilla `top` / `free -m`** — OmniRoute käyttää 1 Gt:n virtuaalikoneessa käyttämättömänä tyypillisesti 200–400 Mt RSS-muistia.

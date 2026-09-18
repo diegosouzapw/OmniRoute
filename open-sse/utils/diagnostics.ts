@@ -10,6 +10,7 @@
  */
 
 import { sanitizeErrorMessage } from "./error.ts";
+import { classifyFakeSuccessBody } from "../services/errorClassifier.ts";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,10 @@ export type MalformedReason =
   | "parse_fail"
   | "empty_choices"
   | "empty_stream"
+  // #13461: a 2xx body whose assistant text is the provider's own error
+  // prose disguised as a successful completion (allowlisted providers only
+  // — see classifyFakeSuccessBody in open-sse/services/errorClassifier.ts).
+  | "content_is_upstream_error"
   | string;
 
 export interface ReportMalformed200Opts {
@@ -52,6 +57,7 @@ const REASON_MESSAGES: Record<string, string> = {
   parse_fail: "failed to parse upstream stream",
   empty_choices: "response had no usable choices/output",
   empty_stream: "upstream stream carried no content",
+  content_is_upstream_error: "upstream reported a failure disguised as a successful response",
 };
 
 function describeReason(reason?: MalformedReason): string {
@@ -172,8 +178,19 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  * - Claude Messages shape (type:"message" + content[]) is checked directly,
  *   since a Claude client receives the body in that shape (no
  *   `choices`/`object:"response"`).
+ * - #13461: for the narrow provider allowlist in classifyFakeSuccessBody
+ *   (open-sse/services/errorClassifier.ts), a short Chat Completions
+ *   assistant message that is dominated by a known credits-exhausted /
+ *   account-deactivated phrase is treated as malformed too ("fake success")
+ *   even though it carries non-empty content — see that function's doc
+ *   comment for the false-positive guards. `provider` is optional and comes
+ *   from the single call site in chatCore.ts; every other caller/shape is
+ *   unaffected.
  */
-export function detectMalformedNonStream(resp: unknown): MalformedReason | null {
+export function detectMalformedNonStream(
+  resp: unknown,
+  provider?: string | null
+): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
 
   const body = resp as Record<string, unknown>;
@@ -320,7 +337,39 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
   });
 
   if (!anyHasOutput) return "empty_choices";
+
+  // #13461: only for the narrow provider allowlist — see classifyFakeSuccessBody's
+  // doc comment for the false-positive guards (short content + dominant signal).
+  if (provider && classifyFakeSuccessBody(extractChatCompletionText(choices), provider)) {
+    return "content_is_upstream_error";
+  }
+
   return null;
+}
+
+// Joins every non-empty text-bearing field across all choices of a Chat
+// Completions body into one string, for the #13461 fake-success check above.
+// Mirrors the shapes `anyHasOutput` already recognizes as "real" content
+// (plain string, Anthropic-style content-block array) — reasoning/tool_calls
+// are intentionally excluded, since a disguised upstream error always
+// surfaces as visible assistant text, never as a reasoning trace.
+function extractChatCompletionText(choices: unknown[]): string {
+  const parts: string[] = [];
+  for (const choice of choices) {
+    const c = choice as Record<string, unknown>;
+    const msg = c?.message as Record<string, unknown> | undefined;
+    if (typeof msg?.content === "string") {
+      parts.push(msg.content as string);
+    } else if (Array.isArray(msg?.content)) {
+      for (const block of msg.content as unknown[]) {
+        const b = block as Record<string, unknown> | null;
+        if (b && typeof b === "object" && b.type === "text" && typeof b.text === "string") {
+          parts.push(b.text as string);
+        }
+      }
+    }
+  }
+  return parts.join(" ");
 }
 
 export function describeMalformedNonStream(
@@ -339,6 +388,13 @@ export function describeMalformedNonStream(
         ? `upstream reported a failed response: ${rawMessage}`
         : "upstream reported a failed response without usable output",
       code: "upstream_response_failed",
+      type: "upstream_response_error",
+    };
+  }
+  if (reason === "content_is_upstream_error") {
+    return {
+      message: "upstream reported a failure disguised as a successful response",
+      code: "upstream_fake_success",
       type: "upstream_response_error",
     };
   }

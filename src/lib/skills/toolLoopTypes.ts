@@ -193,6 +193,15 @@ export interface NonStreamingClientTranslateInput {
   reasoningCacheScope: string | null;
   clientHeaders: Headers | Record<string, unknown> | null;
   isClaudeCodeCompatible: boolean;
+  /**
+   * The client's explicit thinking intent for THIS request (same value the
+   * streaming path threads into the SSE translator). Without it the
+   * non-streaming OpenAI→Claude conversion falls back to its legacy
+   * "always relay a thinking block" default, so the very same request answered
+   * with `stream:false` leaked reasoning that `stream:true` correctly withheld.
+   * `undefined` keeps the legacy relay for callers that cannot express intent.
+   */
+  requestedThinking?: boolean;
   phase: "intermediate" | "final";
 }
 

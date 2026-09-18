@@ -11,6 +11,11 @@ import {
 import { REVERSE_MAP, restoreClaudeToolName } from "../../services/claudeCodeToolRemapper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { splitMarkdownBoundary } from "../helpers/markdownBoundary.ts";
+import { hasDsmlToolCalls, parseDsmlToolCalls } from "../../utils/dsmlToolCalls.ts";
+import {
+  createDirectivePreambleStripper,
+  createSystemPreambleStripper,
+} from "../../utils/directivePreambleStripper.ts";
 
 function normalizeToolName(name: string): string {
   return REVERSE_MAP[name] ?? name;
@@ -47,10 +52,22 @@ function extractXmlInvokeBlocks(
     const toolCallTextMatch = remaining.match(/TOOL_CALL\s+([A-Za-z0-9_]+):\s*/);
 
     const matches = [
-      invokeMatch ? { type: "invoke" as const, index: invokeMatch.index!, data: invokeMatch } : null,
-      toolCallTagMatch ? { type: "tool_call_tag" as const, index: toolCallTagMatch.index!, data: toolCallTagMatch } : null,
-      toolCallTextMatch ? { type: "tool_call_text" as const, index: toolCallTextMatch.index!, data: toolCallTextMatch } : null,
-    ].filter(Boolean).sort((a, b) => a!.index - b!.index);
+      invokeMatch
+        ? { type: "invoke" as const, index: invokeMatch.index!, data: invokeMatch }
+        : null,
+      toolCallTagMatch
+        ? { type: "tool_call_tag" as const, index: toolCallTagMatch.index!, data: toolCallTagMatch }
+        : null,
+      toolCallTextMatch
+        ? {
+            type: "tool_call_text" as const,
+            index: toolCallTextMatch.index!,
+            data: toolCallTextMatch,
+          }
+        : null,
+    ]
+      .filter(Boolean)
+      .sort((a, b) => a!.index - b!.index);
 
     if (matches.length === 0) {
       cleaned += remaining;
@@ -95,9 +112,7 @@ function extractXmlInvokeBlocks(
         const name = (parsed.name || parsed.tool_name || "") as string;
         const rawArgs = parsed.arguments || parsed.args || parsed.parameters || {};
         const args: Record<string, string> =
-          typeof rawArgs === "string"
-            ? JSON.parse(rawArgs)
-            : (rawArgs as Record<string, string>);
+          typeof rawArgs === "string" ? JSON.parse(rawArgs) : (rawArgs as Record<string, string>);
         if (name) {
           toolCalls.push({ id: `toolu_txt_${Date.now()}_${toolCalls.length}`, name, args });
         }
@@ -115,12 +130,27 @@ function extractXmlInvokeBlocks(
       let jsonEndIndex = -1;
       for (let i = 0; i < afterPrefix.length; i++) {
         const c = afterPrefix[i];
-        if (escape) { escape = false; continue; }
-        if (c === "\\" && inString) { escape = true; continue; }
-        if (c === '"') { inString = !inString; continue; }
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (c === "\\" && inString) {
+          escape = true;
+          continue;
+        }
+        if (c === '"') {
+          inString = !inString;
+          continue;
+        }
         if (!inString) {
           if (c === "{") depth++;
-          else if (c === "}") { depth--; if (depth === 0) { jsonEndIndex = i + 1; break; } }
+          else if (c === "}") {
+            depth--;
+            if (depth === 0) {
+              jsonEndIndex = i + 1;
+              break;
+            }
+          }
         }
       }
       if (jsonEndIndex === -1) {
@@ -274,6 +304,7 @@ export function openaiToClaudeResponse(chunk, state) {
     state.model = chunk.model || "unknown";
     state.nextBlockIndex = 0;
     state._pendingXmlToolCalls = [];
+    state._dsmlHoldback = undefined;
     state._xmlInvokeBuffer = "";
     state._markdownBuffer = "";
     state._markdownCodeSpanRun = 0;
@@ -310,28 +341,43 @@ export function openaiToClaudeResponse(chunk, state) {
     }
     if (parts.length > 0) reasoningContent = parts.join("");
   }
-  if (
+  const hasReasoning =
     typeof reasoningContent === "string" &&
     reasoningContent !== "" &&
-    !isInternalReasoningPlaceholder(reasoningContent)
-  ) {
-    stopTextBlock(state, results);
+    !isInternalReasoningPlaceholder(reasoningContent);
+  if (hasReasoning) {
+    // Re-gate the thinking block EMISSION on requestedThinking === true. The
+    // _reasoningAccum accumulation below stays OUTSIDE the gate and always runs,
+    // so fix B still synthesizes a text block for reasoning-only responses (no
+    // 502, compact applies). Gating the whole block including accumulation
+    // breaks fix B => 502/compact loop.
+    if (state.requestedThinking === true) {
+      stopTextBlock(state, results);
 
-    if (!state.thinkingBlockStarted) {
-      state.thinkingBlockIndex = state.nextBlockIndex++;
-      state.thinkingBlockStarted = true;
+      if (!state.thinkingBlockStarted) {
+        state.thinkingBlockIndex = state.nextBlockIndex++;
+        state.thinkingBlockStarted = true;
+        results.push({
+          type: "content_block_start",
+          index: state.thinkingBlockIndex,
+          content_block: { type: "thinking", thinking: "" },
+        });
+      }
+
       results.push({
-        type: "content_block_start",
+        type: "content_block_delta",
         index: state.thinkingBlockIndex,
-        content_block: { type: "thinking", thinking: "" },
+        delta: { type: "thinking_delta", thinking: reasoningContent },
       });
     }
 
-    results.push({
-      type: "content_block_delta",
-      index: state.thinkingBlockIndex,
-      delta: { type: "thinking_delta", thinking: reasoningContent },
-    });
+    // FIX B: accumulate the reasoning text so the finish handler can synthesize
+    // a text content block when the response ends reasoning-only (no ordinary
+    // content block). Claude Code's autocompact parser extracts the summary from
+    // a TEXT content block — a thinking block alone is judged "empty response"
+    // and the compact is rejected, looping the session. When real content DOES
+    // arrive, it starts its own text block and this buffer is simply ignored.
+    state._reasoningAccum = (state._reasoningAccum || "") + reasoningContent;
   }
 
   // Handle regular content — strip the internal reasoning placeholder if
@@ -341,24 +387,86 @@ export function openaiToClaudeResponse(chunk, state) {
   if (delta?.content) {
     const strippedContent = stripInternalReasoningPlaceholder(delta.content);
     if (strippedContent) {
-      stopThinkingBlock(state, results);
+      // #reasoning-bilingual response side: DeepSeek-V4 and similar models echo the
+      // OMNIROUTE_SYSTEM_INSTRUCTION_APPEND directive (appended to the system tail by
+      // claude-to-openai.ts) verbatim at the START of their reply — the "system message
+      // leak" the operator reports. When the directive is configured, run the stream's
+      // first text chunk(s) through a preamble stripper so a leading reproduction is
+      // dropped before it reaches the client.
+      const directive = process.env.OMNIROUTE_SYSTEM_INSTRUCTION_APPEND?.trim();
+      if (directive) {
+        state._directiveStripper ??= createDirectivePreambleStripper(directive);
+      }
+      // #reasoning-bilingual response side (Phase B): DeepSeek-V4 and similar models
+      // may also echo whole chunks of the system prompt at the START of their reply —
+      // <analysis>/<system-reminder>/<summary> blocks or prose reproductions of the
+      // superpowers skill section. Chained after the exact-directive stripper.
+      //
+      // OPT-IN (OMNIROUTE_STRIP_SYSTEM_PREAMBLE=1), mirroring the directive
+      // stripper right above, which only runs when the operator configured
+      // OMNIROUTE_SYSTEM_INSTRUCTION_APPEND. Unlike the exact-directive match,
+      // this one recognises constructs by English-prose heuristics, so leaving it
+      // default-on would mutate the payload of EVERY openai→claude stream and can
+      // delete a legitimate section (a reply that genuinely opens with
+      // "# Skill usage: ..." loses it). Operators who hit the system-echo leak
+      // turn it on explicitly.
+      if (process.env.OMNIROUTE_STRIP_SYSTEM_PREAMBLE === "1") {
+        state._systemPreambleStripper ??= createSystemPreambleStripper();
+      }
+      let scrubbedContent = state._directiveStripper
+        ? state._directiveStripper(strippedContent)
+        : strippedContent;
+      if (state._systemPreambleStripper) {
+        scrubbedContent = state._systemPreambleStripper(scrubbedContent);
+      }
+      if (scrubbedContent) {
+        stopThinkingBlock(state, results);
+      }
 
       // Rehydrate any Markdown boundary suffix buffered from the previous chunk
       // before searching for XML tool calls, so the prefix is not lost.
       const bufferedPrefix = state._markdownBuffer || "";
       state._markdownBuffer = "";
 
+      // DSML tool calls (DeepSeek-V4-Flash's full-width-pipe format) can appear
+      // in content instead of the standard JSON tool_calls. Run the DSML
+      // parser/scrubber BEFORE extractXmlInvokeBlocks: complete <｜DSML｜:Tool>
+      // blocks become tool calls, stray closing markers are stripped, and the
+      // scrubbed remainder is handed to the XML-invoke path below. A partial
+      // opener at the chunk tail is held back in state for the next chunk so
+      // the marker cannot leak as visible text mid-stream.
+      let dsmlContent = scrubbedContent;
+      const dsmlPending = state._dsmlHoldback;
+      if (dsmlPending) {
+        dsmlContent = dsmlPending + dsmlContent;
+        state._dsmlHoldback = undefined;
+      }
+      let dsmlToolCalls: { id: string; name: string; args: Record<string, string> }[] = [];
+      if (hasDsmlToolCalls(dsmlContent)) {
+        const dsmlResult = parseDsmlToolCalls(dsmlContent);
+        dsmlContent = dsmlResult.content;
+        if (dsmlResult.holdback) {
+          state._dsmlHoldback = dsmlResult.holdback;
+        }
+        dsmlToolCalls = dsmlResult.toolCalls.map((tc) => ({
+          id: tc.id,
+          name: tc.function.name,
+          args: JSON.parse(tc.function.arguments) as Record<string, string>,
+        }));
+      }
+
       // Check for XML <invoke> blocks that some models emit instead of JSON tool_calls
       const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(
-        bufferedPrefix + strippedContent,
+        bufferedPrefix + dsmlContent,
         state
       );
 
-      // Accumulate extracted tool calls for emission at finish
-      if (xmlToolCalls.length > 0) {
+      // Accumulate extracted tool calls for emission at finish. DSML and XML
+      // invoke tool calls share the same pending queue and finish emission.
+      if (xmlToolCalls.length > 0 || dsmlToolCalls.length > 0) {
         // Close any ongoing text block before tool calls
         stopTextBlock(state, results);
-        state._pendingXmlToolCalls.push(...xmlToolCalls);
+        state._pendingXmlToolCalls.push(...xmlToolCalls, ...dsmlToolCalls);
       }
 
       // Defer any trailing incomplete Markdown boundary token to the next chunk.
@@ -378,7 +486,7 @@ export function openaiToClaudeResponse(chunk, state) {
         state._markdownFenceRun || 0,
         state._markdownFenceOpening === true,
         state._markdownFenceClosingRun || 0,
-        state._markdownLineIndent || 0,
+        state._markdownLineIndent || 0
       );
       state._markdownBuffer = textToHold;
       state._markdownCodeSpanRun = backtickRun || 0;
@@ -521,6 +629,57 @@ export function openaiToClaudeResponse(chunk, state) {
 
     state.claudeFinishEmitted = true;
     stopThinkingBlock(state, results);
+
+    // Both preamble strippers buffer while a construct is still undecided (a
+    // directive prefix that never completed, an <analysis>/<summary> block that
+    // never closed). Nothing flushed that buffer, so a stream ending mid-construct
+    // dropped the held text silently — for a single-chunk response whose block
+    // never closes, that is the ENTIRE answer replaced by an empty message.
+    // Release whatever is still held before the terminal blocks are emitted.
+    const flushedPreamble =
+      (state._directiveStripper?.flush?.() ?? "") +
+      (state._systemPreambleStripper?.flush?.() ?? "");
+    if (flushedPreamble) {
+      if (!state.textBlockStarted || state.textBlockClosed) {
+        state.textBlockIndex = state.nextBlockIndex++;
+        state.textBlockStarted = true;
+        state.textBlockClosed = false;
+        results.push({
+          type: "content_block_start",
+          index: state.textBlockIndex,
+          content_block: { type: "text", text: "" },
+        });
+      }
+      results.push({
+        type: "content_block_delta",
+        index: state.textBlockIndex,
+        delta: { type: "text_delta", text: flushedPreamble },
+      });
+    }
+
+    // FIX B: when the response ended reasoning-only (no ordinary text block was
+    // started) and the client did NOT explicitly request thinking, synthesize a
+    // text content block from the accumulated reasoning. Claude Code's
+    // autocompact parser extracts the summary from a TEXT content block — a
+    // thinking block alone is judged "empty response" and the compact is
+    // rejected, looping the session. When requestedThinking===true, skip this so
+    // reasoning is not double-exposed (thinking block + text block both carrying it).
+    if (!state.textBlockStarted && state._reasoningAccum && state.requestedThinking !== true) {
+      state.textBlockIndex = state.nextBlockIndex++;
+      state.textBlockStarted = true;
+      state.textBlockClosed = false;
+      results.push({
+        type: "content_block_start",
+        index: state.textBlockIndex,
+        content_block: { type: "text", text: "" },
+      });
+      results.push({
+        type: "content_block_delta",
+        index: state.textBlockIndex,
+        delta: { type: "text_delta", text: state._reasoningAccum },
+      });
+    }
+
     stopTextBlock(state, results);
 
     for (const [, toolInfo] of state.toolCalls) {

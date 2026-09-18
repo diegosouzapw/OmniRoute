@@ -66,7 +66,20 @@ async function main() {
   }
 
   const state = JSON.parse(await fs.readFile(STATE_PATH, "utf8"));
-  const sources = state.sources || {};
+  // Scope: only the documentation core set is translated on purpose (PR-0 decision, 22
+  // sources); state entries for other docs (older per-locale extras) are not a CI concern.
+  // `--all` restores the full-state behaviour for local inspection.
+  const { computeDocsCoreSet } = await import("./lib/docs-core-set.mjs");
+  const config = JSON.parse(await fs.readFile(path.join(ROOT, "config", "i18n.json"), "utf8"));
+  const coreSet = computeDocsCoreSet({ root: ROOT, config });
+  const coreList = Array.isArray(coreSet)
+    ? coreSet
+    : (coreSet.coreSet ?? coreSet.files ?? Object.keys(coreSet));
+  const core = new Set(coreList);
+  const scopeAll = process.argv.includes("--all");
+  const sources = Object.fromEntries(
+    Object.entries(state.sources || {}).filter(([rel]) => scopeAll || core.has(rel))
+  );
 
   const driftedSources = [];
   const missingTargets = [];

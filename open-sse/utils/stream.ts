@@ -158,6 +158,13 @@ type StreamOptions = {
   /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
   suppressThinkClose?: boolean;
   /**
+   * True when the CLIENT explicitly asked for thinking (body.thinking.type ===
+   * "enabled"). The response translator only relays upstream reasoning_content
+   * as Claude thinking blocks when this is set — otherwise DeepSeek/GLM
+   * reasoning would leak into UIs that never opted in.
+   */
+  requestedThinking?: boolean;
+  /**
    * Drop internal commentary-phase output items from Responses API passthrough
    * streams before forwarding (#6199). When omitted, falls back to the
    * `RESPONSES_PASSTHROUGH_DROP_COMMENTARY` feature flag (default on).
@@ -201,6 +208,8 @@ type TranslateState = ReturnType<typeof initState> & {
   copilotCompatibleReasoning?: boolean;
   /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
   suppressThinkClose?: boolean;
+  /** Client's explicit thinking intent — see StreamOptions.requestedThinking. */
+  requestedThinking?: boolean;
   /** Accumulated message content for call log response body */
   accumulatedContent?: string;
   /** Accumulated reasoning content (separate from content) */
@@ -650,6 +659,11 @@ export function createSSEStream(options: StreamOptions = {}) {
     clientResponseFormat = null,
     copilotCompatibleReasoning = false,
     suppressThinkClose = false,
+    // No default: "absent" must stay absent instead of being coerced into an
+    // explicit "thinking NOT requested". Mirrors translateNonStreamingResponse's
+    // `requestedThinking?: boolean` so both translation paths spell the
+    // no-intent case the same way.
+    requestedThinking,
     provider = null,
     reqLogger = null,
     toolNameMap = null,
@@ -755,6 +769,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           signatureNamespace,
           copilotCompatibleReasoning,
           suppressThinkClose,
+          requestedThinking,
           accumulatedContent: "",
           accumulatedReasoning: "",
           toolSchemas: extractToolSchemaMap(body),
@@ -1043,7 +1058,15 @@ export function createSSEStream(options: StreamOptions = {}) {
     if (decrementPendingRequest && !failureHandled) {
       clearPendingRequestFromStream();
     }
-    controller.error(markPendingRequestCleared(new Error(msg)));
+    // Preserve the `empty_response` code on the propagated Error so the
+    // single-model retry classifier (chatHelpers::shouldRetryStreamEarlyEof via
+    // chat.ts) can identify this as a retryable transient upstream glitch and
+    // attempt one bounded re-attempt — a plain `new Error(msg)` drops the code,
+    // getUpstreamErrorIdentifier (streamErrorResult.ts) reads only `error.code`,
+    // and the 502 surfaces with no retry (call logs 96ef4a / 062cf6).
+    const emptyStreamError = new Error(msg) as Error & { code?: string };
+    emptyStreamError.code = "empty_response";
+    controller.error(markPendingRequestCleared(emptyStreamError));
   };
 
   const emitTranslatedClientItem = (
@@ -3057,6 +3080,7 @@ export function createSSETransformStreamWithLogger(
   onFailure: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null = null,
   copilotCompatibleReasoning = false,
   suppressThinkClose = false,
+  requestedThinking: boolean | undefined = undefined,
   customToolNames: ReadonlySet<string> = new Set(),
   requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null,
   streamBufferBytes: number = DEFAULT_STREAM_BUFFER_BYTES
@@ -3076,6 +3100,7 @@ export function createSSETransformStreamWithLogger(
     onFailure,
     copilotCompatibleReasoning,
     suppressThinkClose,
+    requestedThinking,
     customToolNames,
     requestToolIdentityMap,
     streamBufferBytes,

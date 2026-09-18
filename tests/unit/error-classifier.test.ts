@@ -5,6 +5,8 @@ const {
   classifyProviderError,
   isResourceNotFoundResponse,
   isCloudflareFingerprintRejection,
+  isAnthropicOAuthProvider,
+  isAnthropicRequestNotAllowed,
   PROVIDER_ERROR_TYPES,
 } = await import("../../open-sse/services/errorClassifier.ts");
 
@@ -400,4 +402,57 @@ test("classifyProviderError: 422 without the BYOP code stays unclassified (no mo
     null
   );
   assert.equal(classifyProviderError(422, "some other body", "antigravity"), null);
+});
+
+// ── Anthropic OAuth 403 "Request not allowed" is a per-request refusal, not a ban ──
+
+test("classifyProviderError: claude 403 'Request not allowed' (Anthropic body) => REQUEST_REJECTED, never FORBIDDEN", () => {
+  // Verbatim Anthropic shape. On the reporting install this landed once between
+  // hundreds of 200s on the same OAuth token and permanently banned the only
+  // Claude connection.
+  const body = JSON.stringify({
+    type: "error",
+    error: { type: "permission_error", message: "Request not allowed" },
+  });
+  const result = classifyProviderError(403, body, "claude");
+  assert.equal(result, PROVIDER_ERROR_TYPES.REQUEST_REJECTED);
+  assert.notEqual(result, PROVIDER_ERROR_TYPES.FORBIDDEN, "must not ban the connection");
+});
+
+test("classifyProviderError: claude 403 'Request not allowed' via gateway-wrapped message => REQUEST_REJECTED", () => {
+  // Shape as it reaches the classifier after the executor flattens the body.
+  const result = classifyProviderError(403, "[403]: Request not allowed", "claude");
+  assert.equal(result, PROVIDER_ERROR_TYPES.REQUEST_REJECTED);
+});
+
+test("classifyProviderError: 'Request not allowed' from a non-Anthropic OAuth provider keeps its 403 semantics", () => {
+  const body = JSON.stringify({ error: { message: "Request not allowed" } });
+  assert.equal(classifyProviderError(403, body, "codex"), PROVIDER_ERROR_TYPES.FORBIDDEN);
+  assert.equal(classifyProviderError(403, body, undefined), PROVIDER_ERROR_TYPES.FORBIDDEN);
+});
+
+test("classifyProviderError: other claude 403 bodies still classify as before", () => {
+  assert.equal(
+    classifyProviderError(403, { error: { message: "you do not have permission" } }, "claude"),
+    PROVIDER_ERROR_TYPES.FORBIDDEN
+  );
+  assert.equal(
+    classifyProviderError(
+      403,
+      JSON.stringify({ error: { message: "account_deactivated: this account has been disabled" } }),
+      "claude"
+    ),
+    PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED
+  );
+});
+
+test("isAnthropicRequestNotAllowed / isAnthropicOAuthProvider helpers", () => {
+  assert.equal(isAnthropicRequestNotAllowed("Request not allowed"), true);
+  assert.equal(isAnthropicRequestNotAllowed('{"message":"request NOT allowed"}'), true);
+  assert.equal(isAnthropicRequestNotAllowed("requests not allowed here"), false);
+  assert.equal(isAnthropicRequestNotAllowed(""), false);
+  assert.equal(isAnthropicOAuthProvider("claude"), true);
+  assert.equal(isAnthropicOAuthProvider("Claude"), true);
+  assert.equal(isAnthropicOAuthProvider("anthropic"), false);
+  assert.equal(isAnthropicOAuthProvider(null), false);
 });

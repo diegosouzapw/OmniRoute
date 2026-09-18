@@ -254,7 +254,6 @@ test("public identifier vocabulary preserves current internal machine-readable c
     "BLACKBOX_RATE_LIMIT",
     "abort",
     "ABORTED",
-    "CHIPOTLE_ERROR",
     "premium_model_requires_key",
     "GROK_ERROR",
     "TLS_CLIENT_UNAVAILABLE",

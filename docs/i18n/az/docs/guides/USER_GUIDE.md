@@ -1,364 +1,447 @@
-# User Guide (Български)
+# User Guide (Azərbaycan dili)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-Complete guide for configuring providers, creating combos, integrating CLI tools, and deploying OmniRoute.
+🌐 **Dillər:** 🇺🇸 [English](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+
+Provayderlərin konfiqurasiyası, kombinasiyaların yaradılması, CLI alətlərinin inteqrasiyası və OmniRoute-un yerləşdirilməsi üçün tam təlimat.
 
 ---
 
-## Table of Contents
+## Mündəricat
 
-- [Pricing at a Glance](#-pricing-at-a-glance)
-- [Use Cases](#-use-cases)
-- [Provider Setup](#-provider-setup)
-- [CLI Integration](#-cli-integration)
-- [Deployment](#-deployment)
-- [Available Models](#-available-models)
-- [Advanced Features](#-advanced-features)
-
----
-
-## 💰 Pricing at a Glance
-
-| Tier                | Provider          | Cost        | Quota Reset           | Best For               |
-| ------------------- | ----------------- | ----------- | --------------------- | ---------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
-|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
-|                     | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
-| **🔑 API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
-|                     | Groq              | Pay per use | None                  | Ultra-fast inference   |
-|                     | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
-|                     | Mistral           | Pay per use | None                  | EU-hosted models       |
-|                     | Perplexity        | Pay per use | None                  | Search-augmented       |
-|                     | Together AI       | Pay per use | None                  | Open-source models     |
-|                     | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
-|                     | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
-|                     | Cohere            | Pay per use | None                  | Command R+ RAG         |
-|                     | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
-|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
-| **🆓 FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
-|                     | Kiro              | $0          | Provider limits apply | Claude free            |
+- [Qiymətlərə qısa baxış](#-pricing-at-a-glance)
+- [İstifadə halları](#-use-cases)
+- [Provayderin sazlanması](#-provider-setup)
+- [CLI inteqrasiyası](#-cli-integration)
+- [Yerləşdirmə](#-deployment)
+- [Mövcud modellər](#-available-models)
+- [Qabaqcıl funksiyalar](#-advanced-features)
+- [Avtomatik yönləndirmə (sıfır konfiqurasiya)](#-auto-routing-zero-config)
+- [MCP və A2A inteqrasiyası](#-mcp--a2a-integration)
+- [Bacarıqlar sistemi](#-skills-system)
+- [Yaddaş sistemi](#-memory-system)
+- [Vebhuklar](#-webhooks)
+- [Bulud agentləri](#-cloud-agents)
+- [Proqram vasitəsilə idarəetmə](#-programmatic-management)
+- [Daxili CLI](#-internal-cli)
+- [Masaüstü tətbiqi (Electron)](#-desktop-application-electron)
 
 ---
 
-## 🎯 Use Cases
+## 💰 Qiymətlərə qısa baxış
 
-### Case 1: "I have Claude Pro subscription"
+| Səviyyə          | Provayder         | Qiymət          | Kvotanın sıfırlanması                   | Ən uyğun istifadə            |
+| ---------------- | ----------------- | --------------- | --------------------------------------- | ---------------------------- |
+| **💳 ABUNƏLİK**  | Claude Code (Pro) | $20/ay          | 5 saat + həftəlik                       | Artıq abunə olanlar          |
+|                  | Codex (Plus/Pro)  | $20-200/ay      | 5 saat + həftəlik                       | OpenAI istifadəçiləri        |
+|                  | GitHub Copilot    | $10-19/ay       | Aylıq                                   | GitHub istifadəçiləri        |
+| **🔑 API AÇARI** | DeepSeek          | İstifadəyə görə | Yoxdur                                  | Ucuz mühakimə yürütmə        |
+|                  | Groq              | İstifadəyə görə | Yoxdur                                  | Ultra-sürətli inferensiya    |
+|                  | xAI (Grok)        | İstifadəyə görə | Yoxdur                                  | Grok 4 mühakiməsi            |
+|                  | Mistral           | İstifadəyə görə | Yoxdur                                  | Aİ-də yerləşdirilən modellər |
+|                  | Perplexity        | İstifadəyə görə | Yoxdur                                  | Axtarışla zənginləşdirilmiş  |
+|                  | Together AI       | İstifadəyə görə | Yoxdur                                  | Açıq mənbəli modellər        |
+|                  | Fireworks AI      | İstifadəyə görə | Yoxdur                                  | Sürətli FLUX şəkilləri       |
+|                  | Cerebras          | İstifadəyə görə | Yoxdur                                  | Vafli miqyaslı sürət         |
+|                  | Cohere            | İstifadəyə görə | Yoxdur                                  | Command R+ RAG               |
+|                  | NVIDIA NIM        | İstifadəyə görə | Yoxdur                                  | Müəssisə modelləri           |
+|                  | Baidu Qianfan     | İstifadəyə görə | Yoxdur                                  | ERNIE modelləri              |
+| **💰 UCUZ**      | GLM-4.7           | $0.6/1M         | Hər gün saat 10:00-da                   | Büdcəli ehtiyat variant      |
+|                  | MiniMax M2.1      | $0.2/1M         | Sürüşən 5 saatlıq dövr                  | Ən ucuz seçim                |
+|                  | Kimi K2           | $9/ay sabit     | 10M token/ay                            | Proqnozlaşdırıla bilən xərc  |
+| **🆓 PULSUZ**    | Qoder             | $0              | Provayder məhdudiyyətləri tətbiq olunur | Cari kataloqu yoxlayın       |
+|                  | Kiro              | $0              | ~50 kredit/ay                           | Pulsuz Claude                |
 
-**Problem:** Quota expires unused, rate limits during heavy coding
+---
 
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-7        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
+## 🎯 İstifadə halları
 
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
+### Hal 1: "Claude Pro abunəliyim var"
 
-### Case 2: "I want zero cost"
-
-**Problem:** Can't afford subscriptions, need reliable AI coding
-
-```
-Combo: "free-tier-fallback"
-  1. if/kimi-k2-thinking       (no published token cap; limits apply)
-  2. kr/qwen3-coder-next
-
-Monthly cost: $0
-Quality: verify the model, limits, privacy, and SLA for your workload
-```
-
-### Case 3: "I need 24/7 coding, no interruptions"
-
-**Problem:** Deadlines, can't afford downtime
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-7        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 fallback layers broaden resilience; upstream availability is not guaranteed
-Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
-```
-
-### Case 4: "I want FREE AI in OpenClaw"
-
-**Problem:** Need AI assistant in messaging apps, completely free
+**Problem:** Kvotanın istifadə olunmadan müddəti bitir, intensiv kodlaşdırma zamanı sürət məhdudiyyətləri yaranır
 
 ```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (no published token cap; limits apply)
-  2. if/minimax-m2.1           (no published token cap; limits apply)
-  3. if/kimi-k2-thinking       (no published token cap; limits apply)
+Kombinasiya: "maximize-claude"
+  1. cc/claude-opus-4-7        (abunəlikdən tam istifadə edin)
+  2. glm/glm-4.7               (kvota bitdikdə ucuz ehtiyat variant)
+  3. if/qwen3.8-max-preview       (fövqəladə hallar üçün pulsuz ehtiyat variant)
 
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+Aylıq xərc: $20 (abunəlik) + ~$5 (ehtiyat variant) = cəmi $25
+$20 ödəyib məhdudiyyətlərlə üzləşmək əvəzinə = daha az məyusluq
+```
+
+### Hal 2: "Heç bir xərc istəmirəm"
+
+**Problem:** Abunəlikləri ödəyə bilmirəm, etibarlı süni intellektlə kodlaşdırmaya ehtiyacım var
+
+```
+Kombinasiya: "zero-cost"
+  1. if/kimi-k2.7-code          (pulsuz giriş kimi göstərilib; sürət məhdudiyyətləri tətbiq oluna bilər)
+  2. kr/qwen3-coder-next        (pulsuz Kiro ehtiyat variantı)
+
+Aylıq xərc: $0
+Keyfiyyət: iş yükünüz üçün modeli, məhdudiyyətləri, məxfiliyi və SLA-nı yoxlayın
+```
+
+### Hal 3: "Fasiləsiz, 24/7 kodlaşdırmaya ehtiyacım var"
+
+**Problem:** Son tarixlər var, fasilələrə yol verə bilmərəm
+
+```
+Kombinasiya: "always-on"
+  1. cc/claude-opus-4-7        (ən yüksək keyfiyyət)
+  2. cx/gpt-5.5                (ikinci abunəlik)
+  3. glm/glm-4.7               (ucuzdur, hər gün sıfırlanır)
+  4. minimax/MiniMax-M2.1      (ən ucuzdur, 5 saatdan bir sıfırlanır)
+  5. if/deepseek-v4-flash       (pulsuz giriş kimi göstərilib; sürət məhdudiyyətləri tətbiq oluna bilər)
+
+Nəticə: 5 ehtiyat qat dayanıqlığı artırır; yuxarı axın xidmətlərinin əlçatanlığına zəmanət verilmir
+Aylıq xərc: $20-200 (abunəliklər) + $10-20 (ehtiyat variant)
+```
+
+### Hal 4: "OpenClaw-da PULSUZ süni intellekt istəyirəm"
+
+**Problem:** Mesajlaşma tətbiqlərində tamamilə pulsuz süni intellekt köməkçisinə ehtiyacım var
+
+```
+Kombinasiya: "openclaw-free"
+  1. if/qwen3.8-max-preview     (pulsuz giriş kimi göstərilib; sürət məhdudiyyətləri tətbiq oluna bilər)
+  2. if/deepseek-v4-flash       (pulsuz giriş kimi göstərilib; sürət məhdudiyyətləri tətbiq oluna bilər)
+  3. if/kimi-k2.7-code          (pulsuz giriş kimi göstərilib; sürət məhdudiyyətləri tətbiq oluna bilər)
+
+Aylıq xərc: $0
+Giriş vasitələri: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 ```
 
 ---
 
-## 📖 Provider Setup
+## 📖 Provayderlərin quraşdırılması
 
-### 🔐 Subscription Providers
+CSV və ya JSON faylından API açarı bağlantılarını toplu şəkildə əlavə etmək üçün **İdarəetmə paneli → Provayderlər → Fayldan idxal et** seçimindən istifadə edin. Sütunlar mövqeyə əsaslanır (`provider,name,apiKey,baseUrl,priority`); `provider` artıq idarə olunan provayder və ya uyğun qovşaq kimi mövcud olmalıdır. Baxın: [Provayderləri CSV və ya JSON faylından idxal etmək](../providers/CSV-IMPORT.md).
+
+### 🔐 Abunəlik provayderləri
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
+İdarəetmə paneli → Provayderlər → Claude Code-u qoş
+→ OAuth ilə daxil olun → Tokenin avtomatik yenilənməsi
+→ 5 saatlıq + həftəlik kvotanın izlənməsi
 
-Models:
+Modellər:
   cc/claude-opus-4-7
-  cc/claude-sonnet-4-5-20250929
+  cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
+**Peşəkar məsləhət:** Mürəkkəb tapşırıqlar üçün Opus, sürət üçün Sonnet istifadə edin. OmniRoute hər model üzrə kvotanı izləyir!
+
+Claude və Claude Code ilə uyğun marşrutlar Opus və Sonnet modelləri üçün `max` düşünmə səyini qoruyur. Haiku modelləri `max` səy səviyyəsini qəbul etmir, buna görə də OmniRoute sorğunu yuxarı axına göndərməzdən əvvəl onu yüksək düşünmə büdcəsinə endirir.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
+İdarəetmə paneli → Provayderlər → Codex-i qoş
+→ OAuth ilə daxil olun (port 1455)
+→ 5 saatlıq + həftəlik sıfırlanma
 
-Models:
-  cx/gpt-5.2-codex
-  cx/gpt-5.1-codex-max
+Modellər:
+  cx/gpt-5.5
+  cx/gpt-5.4
+  cx/gpt-5.3-codex
+  cx/gpt-5.3-codex-spark
 ```
 
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Monthly reset (1st of month)
+İdarəetmə paneli → Provayderlər → GitHub-ı qoş
+→ GitHub vasitəsilə OAuth
+→ Aylıq sıfırlanma (ayın 1-i)
 
-Models:
-  gh/gpt-5
-  gh/claude-4.5-sonnet
+Modellər:
+  gh/gpt-5.5
+  gh/gpt-5.4
+  gh/claude-sonnet-4.6
+  gh/claude-opus-4.7
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Cheap Providers
+### 💰 Ucuz provayderlər
 
-#### GLM-4.7 (Daily reset, $0.6/1M)
+#### GLM-4.7 (Gündəlik sıfırlanma, $0.6/1M)
 
-1. Sign up: [Zhipu AI](https://open.bigmodel.cn/)
-2. Get API key from Coding Plan
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+1. Qeydiyyatdan keçin: [Zhipu AI](https://open.bigmodel.cn)
+2. Coding Plan-dan API açarını əldə edin
+3. İdarəetmə paneli → API açarı əlavə et: Provayder: `glm`, API açarı: `your-key`
 
-**Use:** `glm/glm-4.7` — **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
+**İstifadə:** `glm/glm-4.7` — **Peşəkar məsləhət:** Coding Plan dəyərin 1/7-si müqabilində 3× kvota təklif edir! Hər gün saat 10:00-da sıfırlanır.
 
-#### MiniMax M2.1 (5h reset, $0.20/1M)
+#### MiniMax M2.1 (5 saatlıq sıfırlanma, $0.20/1M)
 
-1. Sign up: [MiniMax](https://www.minimax.io/)
-2. Get API key → Dashboard → Add API Key
+1. Qeydiyyatdan keçin: [MiniMax](https://www.minimax.io)
+2. API açarını əldə edin → İdarəetmə paneli → API açarı əlavə et
 
-**Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
+**İstifadə:** `minimax/MiniMax-M2.1` — **Peşəkar məsləhət:** Uzun kontekst (1M token) üçün ən ucuz seçimdir!
 
-#### Kimi K2 ($9/month flat)
+#### Kimi K2 (sabit $9/ay)
 
-1. Subscribe: [Moonshot AI](https://platform.moonshot.ai/)
-2. Get API key → Dashboard → Add API Key
+1. Abunə olun: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. API açarını əldə edin → İdarəetmə paneli → API açarı əlavə et
 
-**Use:** `kimi/kimi-latest` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
+**İstifadə:** `kimi/kimi-k2.5` — **Peşəkar məsləhət:** 10M token üçün sabit $9/ay = effektiv xərc $0.90/1M!
 
-### 🆓 FREE Providers
+#### Baidu Qianfan / ERNIE
 
-#### Qoder (8 FREE models)
+1. Qeydiyyatdan keçin: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Qianfan API açarı yaradın → İdarəetmə paneli → API açarı əlavə et: Provayder: `qianfan`
+
+**İstifadə:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` və ya OpenAI ilə uyğun başqa Qianfan model ID-si.
+
+### 🆓 PULSUZ provayderlər
+
+Autentifikasiya tələb etməyən pulsuz provayderlərin provayder səhifəsində **Autentifikasiya tələb olunmur** seçiminin yanında keçid var.
+Onu söndürmək həmin provayderi deaktiv edir, Provayderlərin konfiqurasiya edilmiş/yığcam görünüşlərindən çıxarır və modellərini `/v1/models` siyahısından silir.
+
+#### Qoder (9 PULSUZ model)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
+İdarəetmə paneli → Qoder-i qoş → OAuth ilə daxil olun → Giriş cari provayder limitlərinə tabedir
 
-Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
+Modellər: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude FREE)
+#### Kiro (Claude PULSUZ)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → Unlimited
+İdarəetmə paneli → Kiro-nu qoş → AWS Builder ID və ya Google/GitHub → ayda təxminən 50 kredit
 
-Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Modellər: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---
 
-## 🎨 Combos
+## 🎨 Kombinasiyalar
 
-You can reorder combo cards directly in **Dashboard → Combos** by dragging the handle on each card. The order is stored in SQLite and restored on reload.
+Hər kartdakı tutacağı sürükləməklə kombinasiya kartlarının sırasını birbaşa **İdarəetmə paneli → Kombinasiyalar** bölməsində dəyişə bilərsiniz. Sıra SQLite-da saxlanılır və yenidən yükləndikdə bərpa olunur.
 
-### Example 1: Maximize Subscription → Cheap Backup
-
-```
-Dashboard → Combos → Create New
-
-Name: premium-coding
-Models:
-  1. cc/claude-opus-4-7 (Subscription primary)
-  2. glm/glm-4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
-
-Use in CLI: premium-coding
-```
-
-### Example 2: Free-Only (Zero Cost)
+### Nümunə 1: Abunəliyi maksimum istifadə et → Ucuz ehtiyat
 
 ```
-Name: free-combo
-Models:
-  1. if/kimi-k2-thinking (no published token cap; provider limits may apply)
-  2. kr/qwen3-coder-next
+İdarəetmə paneli → Kombinasiyalar → Yenisini yarat
 
-Cost: currently listed as $0; terms and availability may change
+Ad: premium-coding
+Modellər:
+  1. cc/claude-opus-4-7 (Əsas abunəlik modeli)
+  2. glm/glm-4.7 (Ucuz ehtiyat, $0.6/1M)
+  3. minimax/MiniMax-M2.7 (Ən ucuz ehtiyat variantı, $0.3/1M)
+
+CLI-da istifadə: premium-coding
+```
+
+### Nümunə 2: Yalnız pulsuz (Sıfır xərc)
+
+```
+Ad: free-combo
+Modellər:
+  1. if/kimi-k2.7-code (pulsuz giriş kimi göstərilir; provayder məhdudiyyətləri tətbiq oluna bilər)
+  2. kr/qwen3-coder-next (Kiro pulsuz ehtiyat variantı)
+
+Xərc: hazırda $0 kimi göstərilir; şərtlər və əlçatanlıq dəyişə bilər
 ```
 
 ---
 
-## 🔧 CLI Integration
+## 🔧 CLI inteqrasiyası
 
 ### Cursor IDE
 
+**Cursor-dan OmniRoute klienti kimi istifadə** (Cursor çatını OmniRoute vasitəsilə yönləndirin):
+
 ```
-Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:20128/v1
-  OpenAI API Key: [from omniroute dashboard]
+Parametrlər → Modellər → Qabaqcıl:
+  OpenAI API baza URL-si: http://localhost:20128/v1
+  OpenAI API açarı: [omniroute idarəetmə panelindən]
   Model: cc/claude-opus-4-7
 ```
 
+**OmniRoute-dan Cursor provayderi kimi istifadə** (OmniRoute yuxarı axında Cursor-a müraciət edir): üstünlük olaraq
+**İdarəetmə paneli → Provayderlər → Cursor → Cursor ilə daxil ol** seçimindən istifadə edin. Docker-də
+[`docs/providers/CURSOR-DOCKER.md`](../providers/CURSOR-DOCKER.md) sənədinə baxın.
+
 ### Claude Code
 
-Edit `~/.claude/config.json`:
+`~/.claude/settings.json` faylını redaktə edin:
 
 ```json
 {
-  "anthropic_api_base": "http://localhost:20128/v1",
-  "anthropic_api_key": "your-omniroute-api-key"
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_AUTH_TOKEN": "omniroute-api-açarınız"
+  }
 }
 ```
+
+Burada Claude ilə uyğun kök son nöqtədən istifadə edin. `ANTHROPIC_BASE_URL` ünvanının sonuna `/v1` əlavə etməyin.
 
 ### Codex CLI
 
 ```bash
 export OPENAI_BASE_URL="http://localhost:20128"
-export OPENAI_API_KEY="your-omniroute-api-key"
-codex "your prompt"
+export OPENAI_API_KEY="omniroute-api-açarınız"
+codex "sorğunuz"
 ```
 
 ### OpenClaw
 
-Edit `~/.openclaw/openclaw.json`:
+`~/.openclaw/openclaw.json` faylını redaktə edin:
 
 ```json
 {
   "agents": {
     "defaults": {
-      "model": { "primary": "omniroute/if/glm-4.7" }
+      "model": { "primary": "omniroute/if/kimi-k2.7-code" }
     }
   },
   "models": {
     "providers": {
       "omniroute": {
         "baseUrl": "http://localhost:20128/v1",
-        "apiKey": "your-omniroute-api-key",
+        "apiKey": "omniroute-api-açarınız",
         "api": "openai-completions",
-        "models": [{ "id": "if/glm-4.7", "name": "glm-4.7" }]
+        "models": [{ "id": "if/kimi-k2.7-code", "name": "Kimi K2.7 Code" }]
       }
     }
   }
 }
 ```
 
-**Or use Dashboard:** CLI Tools → OpenClaw → Auto-config
+**Yaxud idarəetmə panelindən istifadə edin:** CLI Alətləri → OpenClaw → Avtomatik konfiqurasiya
 
 ### Cline / Continue / RooCode
 
 ```
-Provider: OpenAI Compatible
-Base URL: http://localhost:20128/v1
-API Key: [from dashboard]
+Provayder: OpenAI ilə uyğun
+Baza URL-si: http://localhost:20128/v1
+API açarı: [idarəetmə panelindən]
 Model: cc/claude-opus-4-7
 ```
 
 ---
 
-## Разгръщане
+## 🚀 Yerləşdirmə
 
-### Global npm install (Recommended)
+### Qlobal npm quraşdırması (Tövsiyə olunur)
 
 ```bash
 npm install -g omniroute
 
-# Create config directory
+# Konfiqurasiya qovluğunu yaradın
 mkdir -p ~/.omniroute
 
-# Create .env file (see .env.example)
+# .env faylını yaradın (.env.example faylına baxın)
 cp .env.example ~/.omniroute/.env
 
-# Start server
+# Serveri başladın
 omniroute
-# Or with custom port:
+# Yaxud xüsusi portla:
 omniroute --port 3000
 ```
 
-The CLI automatically loads `.env` from `~/.omniroute/.env` or `./.env`.
+CLI `.env` faylını avtomatik olaraq `~/.omniroute/.env` və ya `./.env` yolundan yükləyir.
 
-### Uninstalling
+### Sistem treyi rejimi
 
-When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
+OmniRoute-u sistem treyində başladın:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+```bash
+omniroute serve --tray
+```
 
-> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
+Server və sistem treyi hazır olduqdan sonra əmr tamamlanır.
 
-### VPS Deployment
+Server terminal olmadan işləməyə davam edir.
+
+Sistem treyi rejimi macOS, Windows və qrafik Linux sessiyalarını dəstəkləyir. Sistem treyi rejimi idarəetmə panelini avtomatik açmır.
+
+Aşağıdakı əməliyyatlar üçün sistem treyi menyusundan istifadə edin:
+
+- İdarəetmə panelini açmaq.
+- `/dashboard/logs` səhifəsini açmaq.
+- Avtomatik başlanğıcı dəyişdirmək.
+- OmniRoute-u dayandırmaq.
+
+`--tray` seçimini aşağıdakı seçimlərlə birlikdə istifadə etməyin:
+
+- `--daemon`
+- `--log`
+- `--no-recovery`
+
+Bu rejimlər fərqli proses sahibliyi tələb edir.
+
+Kompüterə növbəti giriş zamanı başlanğıcı aktivləşdirin:
+
+```bash
+omniroute autostart enable
+```
+
+Avtomatik başlanğıc macOS, Windows və qrafik Linux sessiyalarında sistem treyi rejimindən istifadə edir. Qrafik interfeyssiz Linux mövcud systemd istifadəçi xidmətindən istifadə edir.
+
+Giriş zamanı başlanğıcı deaktiv edin:
+
+```bash
+omniroute autostart disable
+```
+
+### Silinmə
+
+OmniRoute-a artıq ehtiyacınız olmadıqda, təmiz silinmə üçün iki sürətli skript təqdim edirik:
+
+| Əmr                      | Əməliyyat                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Sistem tətbiqini silir, lakin `~/.omniroute` daxilindəki **verilənlər bazanızı və konfiqurasiyalarınızı saxlayır**. |
+| `npm run uninstall:full` | Tətbiqi silir VƏ **bütün konfiqurasiyaları, açarları və verilənlər bazalarını** həmişəlik **silir**.                |
+
+> Qeyd: Bu əmrləri icra etmək üçün OmniRoute layihə qovluğuna keçin (əgər onu klonlamısınızsa) və əmrləri orada icra edin. Alternativ olaraq, qlobal şəkildə quraşdırılıbsa, sadəcə `npm uninstall -g omniroute` əmrini icra edə bilərsiniz.
+
+### VPS-də yerləşdirmə
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
 cd OmniRoute && npm install && npm run build
 
-export JWT_SECRET="your-secure-secret-change-this"
-export INITIAL_PASSWORD="your-password"
+export JWT_SECRET="dəyişdirilməli-təhlükəsiz-məxfi-açarınız"
+export INITIAL_PASSWORD="parolunuz"
 export DATA_DIR="/var/lib/omniroute"
 export PORT="20128"
 export HOSTNAME="0.0.0.0"
 export NODE_ENV="production"
 export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
-export API_KEY_SECRET="endpoint-proxy-api-key-secret"
+export API_KEY_SECRET="son-nöqtə-proksi-api-açarının-məxfi-dəyəri"
 
 npm run start
-# Or: pm2 start npm --name omniroute -- start
+# Yaxud: pm2 start npm --name omniroute -- start
 ```
 
-### PM2 Deployment (Low Memory)
+### PM2 ilə yerləşdirmə (Az yaddaş)
 
-For servers with limited RAM, use the memory limit option:
+Məhdud RAM-a malik serverlər üçün yaddaş limiti seçimindən istifadə edin:
 
 ```bash
-# With 512MB limit (default)
+# 512MB limitlə (standart)
 pm2 start npm --name omniroute -- start
 
-# Or with custom memory limit
+# Yaxud xüsusi yaddaş limiti ilə
 OMNIROUTE_MEMORY_MB=512 pm2 start npm --name omniroute -- start
 
-# Or using ecosystem.config.js
+# Yaxud ecosystem.config.js istifadə edərək
 pm2 start ecosystem.config.js
 ```
 
-Create `ecosystem.config.js`:
+`ecosystem.config.js` yaradın:
 
 ```javascript
 module.exports = {
@@ -370,8 +453,8 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         OMNIROUTE_MEMORY_MB: "512",
-        JWT_SECRET: "your-secret",
-        INITIAL_PASSWORD: "your-password",
+        JWT_SECRET: "məxfi-açarınız",
+        INITIAL_PASSWORD: "parolunuz",
       },
       node_args: "--max-old-space-size=512",
       max_memory_restart: "300M",
@@ -383,26 +466,26 @@ module.exports = {
 ### Docker
 
 ```bash
-# Build image (default = runner-cli with codex/claude/droid preinstalled)
+# Təsviri qurun (standart = codex/claude/droid əvvəlcədən quraşdırılmış runner-cli)
 docker build -t omniroute:cli .
 
-# Portable mode (recommended)
+# Portativ rejim (tövsiyə olunur)
 docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-data:/app/data omniroute:cli
 ```
 
-For host-integrated mode with CLI binaries, see the Docker section in the main docs.
+CLI binar faylları ilə hosta inteqrasiya olunmuş rejim üçün əsas sənədlərdəki Docker bölməsinə baxın.
 
 ### Void Linux (xbps-src)
 
-Void Linux users can package and install OmniRoute natively using the `xbps-src` cross-compilation framework. This automates the Node.js standalone build along with the required `better-sqlite3` native bindings.
+Void Linux istifadəçiləri `xbps-src` çarpaz kompilyasiya infrastrukturu vasitəsilə OmniRoute-u yerli paket kimi hazırlayıb quraşdıra bilərlər. Bu, tələb olunan `better-sqlite3` yerli bağlamaları ilə birlikdə müstəqil Node.js yığımını avtomatlaşdırır.
 
 <details>
-<summary><b>View xbps-src template</b></summary>
+<summary><b>xbps-src şablonuna baxın</b></summary>
 
 ```bash
-# Template file for 'omniroute'
+# 'omniroute' üçün şablon faylı
 pkgname=omniroute
-version=3.2.4
+version=3.8.0
 revision=1
 hostmakedepends="nodejs python3 make"
 depends="openssl"
@@ -421,7 +504,7 @@ export npm_config_fund=false
 export npm_config_audit=false
 
 do_build() {
-	# Determine target CPU arch for node-gyp
+	# node-gyp üçün hədəf CPU arxitekturasını müəyyən edin
 	local _gyp_arch
 	case "$XBPS_TARGET_MACHINE" in
 		aarch64*) _gyp_arch=arm64 ;;
@@ -430,29 +513,29 @@ do_build() {
 		*) _gyp_arch=x64 ;;
 	esac
 
-	# 1) Install all deps – skip scripts
+	# 1) Bütün asılılıqları quraşdırın – skriptləri ötürün
 	NODE_ENV=development npm ci --ignore-scripts
 
-	# 2) Build the Next.js standalone bundle
+	# 2) Next.js müstəqil paketini yığın
 	npm run build
 
-	# 3) Copy static assets into standalone
+	# 3) Statik resursları müstəqil paketə köçürün
 	cp -r .next/static .next/standalone/.next/static
 	[ -d public ] && cp -r public .next/standalone/public || true
 
-	# 4) Compile better-sqlite3 native binding
+	# 4) better-sqlite3 yerli bağlamasını kompilyasiya edin
 	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
 	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
 
-	# 5) Place the compiled binding into the standalone bundle
+	# 5) Kompilyasiya edilmiş bağlamanı müstəqil paketə yerləşdirin
 	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
 	mkdir -p "$_bs3_release"
 	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
 
-	# 6) Remove arch-specific sharp bundles
+	# 6) Arxitekturaya xas sharp paketlərini silin
 	rm -rf .next/standalone/node_modules/@img
 
-	# 7) Copy pino runtime deps omitted by Next.js static analysis:
+	# 7) Next.js statik təhlilinin buraxdığı pino icra mühiti asılılıqlarını köçürün:
 	for _mod in pino-abstract-transport split2 process-warning; do
 		cp -r "node_modules/$_mod" .next/standalone/node_modules/
 	done
@@ -466,7 +549,7 @@ do_install() {
 	vmkdir usr/lib/omniroute/.next
 	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 
-	# Prevent removal of empty Next.js app router dirs by the post-install hook
+	# Quraşdırmadan sonrakı əməliyyatın boş Next.js tətbiq marşrutlaşdırıcısı qovluqlarını silməsinin qarşısını alın
 	for _d in \
 		.next/standalone/.next/server/app/dashboard \
 		.next/standalone/.next/server/app/dashboard/settings \
@@ -492,104 +575,149 @@ post_install() {
 
 </details>
 
-### Environment Variables
+### Mühit dəyişənləri
 
-| Variable                                | Default                              | Description                                                                                               |
-| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
-| `INITIAL_PASSWORD`                      | `123456`                             | First login password                                                                                      |
-| `DATA_DIR`                              | `~/.omniroute`                       | Data directory (db, usage, logs)                                                                          |
-| `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
-| `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
-| `NODE_ENV`                              | runtime default                      | Set `production` for deploy                                                                               |
-| `BASE_URL`                              | `http://localhost:20128`             | Server-side internal base URL                                                                             |
-| `CLOUD_URL`                             | `https://omniroute.dev`              | Cloud sync endpoint base URL                                                                              |
-| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
-| `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
-| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow Api Manager to copy full API keys on demand                                                         |
-| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
-| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
-| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
-| `AUTH_COOKIE_SECURE`                    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                                   |
-| `CLOUDFLARED_BIN`                       | unset                                | Use an existing `cloudflared` binary instead of managed download                                          |
-| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Transport for managed Quick Tunnels (`http2`, `quic`, or `auto`)                                          |
-| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js heap limit in MB                                                                                  |
-| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Max prompt cache entries                                                                                  |
-| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Max semantic cache entries                                                                                |
+| Dəyişən                                 | Defolt                               | Təsvir                                                                                                                                                       |
+| --------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT imzalama sirri (**produksiya mühitində dəyişdirin**)                                                                                                     |
+| `INITIAL_PASSWORD`                      | `CHANGEME`                           | İlk giriş parolu                                                                                                                                             |
+| `DATA_DIR`                              | `~/.omniroute`                       | Məlumat qovluğu (verilənlər bazası, istifadə məlumatları, jurnallar)                                                                                         |
+| `PORT`                                  | freymvorkun defolt dəyəri            | Xidmət portu (nümunələrdə `20128`)                                                                                                                           |
+| `HOSTNAME`                              | freymvorkun defolt dəyəri            | Bağlanılacaq host (Docker üçün defolt dəyər `0.0.0.0`-dır)                                                                                                   |
+| `NODE_ENV`                              | icra mühitinin defolt dəyəri         | Yerləşdirmə üçün `production` olaraq təyin edin                                                                                                              |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | İdarə panelində göstərilən və serverə təqdim olunan ümumi baza URL-i (köhnə `BASE_URL` dəyişənini əvəz edir)                                                 |
+| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Bulud sinxronizasiya son nöqtəsinin baza URL-i (köhnə `CLOUD_URL` dəyişənini əvəz edir)                                                                      |
+| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | Yaradılan API açarları üçün HMAC sirri                                                                                                                       |
+| `REQUIRE_API_KEY`                       | `false`                              | `/v1/*` üçün Bearer API açarını məcburi edin                                                                                                                 |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Autentifikasiya olunmuş idarə paneli istifadəçilərinə saxlanılan API açarlarının tam dəyərlərini sorğu əsasında göstərməyə icazə verin                       |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Keşlənmiş Provayder Limitləri məlumatlarının server tərəfində yenilənmə intervalı; interfeysdəki yeniləmə düymələri yenə də əl ilə sinxronizasiyanı başladır |
+| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Yazma/idxal/bərpa əməliyyatlarından əvvəl avtomatik SQLite anlıq görüntülərini deaktiv edin; əl ilə ehtiyat nüsxələmə işləməyə davam edir                    |
+| `APP_LOG_TO_FILE`                       | `true`                               | Tətbiq və audit jurnallarının diskə yazılmasını aktivləşdirir                                                                                                |
+| `AUTH_COOKIE_SECURE`                    | `false`                              | `Secure` autentifikasiya kukisini məcburi edin (HTTPS əks proksisinin arxasında)                                                                             |
+| `CLOUDFLARED_BIN`                       | təyin edilməyib                      | İdarə olunan endirmə əvəzinə mövcud `cloudflared` binar faylından istifadə edin                                                                              |
+| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | İdarə olunan Sürətli Tunellər üçün nəqliyyat protokolu (`http2`, `quic` və ya `auto`)                                                                        |
+| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js üçün MB ilə heap yaddaş limiti                                                                                                                       |
+| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Prompt keşindəki maksimum qeyd sayı                                                                                                                          |
+| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Semantik keşdəki maksimum qeyd sayı                                                                                                                          |
 
-For the full environment variable reference, see the [README](../README.md).
+Mühit dəyişənlərinin tam siyahısı üçün [README](../README.md) faylına baxın.
 
 ---
 
-## 📊 Available Models
+## 📊 Mövcud Modellər
 
 <details>
-<summary><b>View all available models</b></summary>
+<summary><b>Bütün mövcud modellərə baxın</b></summary>
 
-**Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-7`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
+> Aşağıdakı siyahı v3.8.0 üçün `open-sse/config/providerRegistry.ts` faylından seçilərək hazırlanıb. Bulud kataloqları (Gemini, OpenRouter və s.) dinamik şəkildə sinxronlaşdırılır — tam və aktual kataloq üçün **İdarəetmə paneli → Provayderlər → [provayder] → Mövcud modellər** bölməsini açın və ya `GET /api/models/catalog` sorğusunu çağırın.
+>
+> Provayderin daxili siyahısı aktuallığını itiribsə, yuxarı axındakı aktual kataloqu əldə etmək üçün həmin səhifədə **/models-dən idxal et** seçimindən istifadə edin (və ya **Avtomatik sinxronlaşdırma** funksiyasını aktivləşdirin). Bu, LLM7.io (`gemini-3.1-flash-lite`) və UncloseAI (`solidrust/Hermes-3-Llama-3.1-8B-AWQ`) üçün v3.8.50 versiyasında təsdiqlənib; eyni sınaq mərhələsində Pollinations anonim girişi yuxarı axın tərəfindən məhdudlaşdırılmış olaraq qalıb.
 
-**Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
+**Claude Code (`cc/`)** — Pro/Max OAuth: `cc/claude-opus-4-8`, `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
-**GitHub Copilot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
+**Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ səy səviyyələri: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
 
-**GLM (`glm/`)** — $0.6/1M: `glm/glm-4.7`
+**GitHub Copilot (`gh/`)** — OAuth: `gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 
-**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.1`
+**Kiro (`kr/`)** — PULSUZ OAuth: **İdarəetmə paneli → Provayderlər → Kiro → Mövcud modellər** bölməsində göstərilən aktual kataloqdan istifadə edin. Əlçatanlıq hesabdan və plandan asılıdır.
 
-**Qoder (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
+**Qoder (`if/`)** — PULSUZ OAuth: `if/qwen3.8-max-preview`, `if/qwen3.7-max`, `if/qwen3.7-plus`, `if/kimi-k3`, `if/kimi-k2.7-code`, `if/glm-5.2`, `if/deepseek-v4-pro`, `if/deepseek-v4-flash`, `if/minimax-m3`
 
-**Kiro (`kr/`)** — FREE: `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`
+**GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — $0.2–0.6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
 
-**DeepSeek (`ds/`)**: `ds/deepseek-chat`, `ds/deepseek-reasoner`
+**MiniMax (`minimax/`, `minimax-cn/`)** — $0.2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.7-highspeed`, `minimax/MiniMax-M2.5`, `minimax/MiniMax-M2.5-highspeed`
 
-**Groq (`groq/`)**: `groq/llama-3.3-70b-versatile`, `groq/llama-4-maverick-17b-128e-instruct`
+**Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — aylıq sabit $9 və ya istifadəyə görə ödəniş: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
 
-**xAI (`xai/`)**: `xai/grok-4`, `xai/grok-4-0709-fast-reasoning`, `xai/grok-code-mini`
+**DeepSeek (`ds/`)** — API açarı: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
 
-**Mistral (`mistral/`)**: `mistral/mistral-large-2501`, `mistral/codestral-2501`
+**Groq (`groq/`)** — Ultra sürətli: `groq/llama-3.3-70b-versatile`, `groq/meta-llama/llama-4-maverick-17b-128e-instruct`, `groq/qwen/qwen3-32b`, `groq/openai/gpt-oss-120b`
 
-**Perplexity (`pplx/`)**: `pplx/sonar-pro`, `pplx/sonar`
+**xAI (`xai/`)** — Yerli Grok: `xai/grok-4.3`, `xai/grok-4.20-multi-agent-0309`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
 
-**Together AI (`together/`)**: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo`
+**Mistral (`mistral/`)** — Aİ-də yerləşdirilir: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
 
-**Fireworks AI (`fireworks/`)**: `fireworks/accounts/fireworks/models/deepseek-v3p1`
+**Perplexity (`pplx/`)** — Axtarışla zənginləşdirilmiş: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
 
-**Cerebras (`cerebras/`)**: `cerebras/llama-3.3-70b`
+**Together AI (`together/`)** — Açıq mənbəli: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (pulsuz), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
 
-**Cohere (`cohere/`)**: `cohere/command-r-plus-08-2024`
+**Fireworks AI (`fireworks/`)** — Sürətli inferensiya: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
 
-**NVIDIA NIM (`nvidia/`)**: `nvidia/nvidia/llama-3.3-70b-instruct`
+**Cerebras (`cerebras/`)** — Vafli miqyasında: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
+
+**Cohere (`cohere/`)** — RAG yönümlü: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
+
+**NVIDIA NIM (`nvidia/`)** — Müəssisələr üçün: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m2.7`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
+
+**Baidu Qianfan (`qianfan/`)** — ERNIE: `qianfan/ernie-5.1`, `qianfan/ernie-5.0-thinking-latest`, `qianfan/ernie-x1.1`
+
+**Ollama Cloud (`ollama-cloud/`)**: `ollama-cloud/deepseek-v4-pro`, `ollama-cloud/deepseek-v4-flash`, `ollama-cloud/kimi-k2.6`, `ollama-cloud/glm-5.1`, `ollama-cloud/minimax-m2.7`, `ollama-cloud/gemma4:31b`, `ollama-cloud/qwen3.5:397b`
+
+**Gemini (Google Cloud `gemini/`)**: Google-dan hər API açarı üzrə real vaxt rejimində sinxronlaşdırılır — statik siyahı yoxdur. **İdarəetmə paneli → Provayderlər** bölməsində açarı qoşun, sonra cari kataloqu idxal etmək üçün **Mövcud modellər** seçimindən istifadə edin (məsələn, `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
+
+**Digər uyğun provayderlər** (seçilmiş): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (`aws-bedrock` vasitəsilə), `azure-ai`, `openrouter` (ötürmə kataloqu), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Hər biri `providerRegistry.ts` daxilində öz model siyahısını saxlayır və provayder `/models` son nöqtəsini təqdim etdikdə avtomatik sinxronlaşdırıla bilər.
+
+**Model ID-ləri haqqında qeyd:** OmniRoute provayderə məxsus ID-lərdən (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`) istifadə edir. Bəzi ID-lərə nöqtəli versiyalar daxildir, çünki yuxarı axın API-si onları bu formada gözləyir. Model yuxarıda göstərilməyibsə, əlçatanlığını təsdiqləmək üçün `omniroute models --search <term>` əmrini icra edin və ya `GET /api/models/catalog` sorğusunu göndərin.
 
 </details>
 
 ---
 
-## 🧩 Advanced Features
+## 🧩 Təkmil Funksiyalar
 
-### Custom Models
+### Fərdi Modellər
 
-Add any model ID to any provider without waiting for an app update:
+Tətbiq yeniləməsini gözləmədən istənilən provayderə istənilən model ID-sini əlavə edin:
 
 ```bash
-# Via API
+# API vasitəsilə
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
-  -d '{"provider": "openai", "modelId": "gpt-4.5-preview", "modelName": "GPT-4.5 Preview"}'
+  -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# List: curl http://localhost:20128/api/provider-models?provider=openai
-# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-4.5-preview"
+# Siyahı: curl http://localhost:20128/api/provider-models?provider=openai
+# Silmək: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-Or use Dashboard: **Providers → [Provider] → Custom Models**.
+Və ya İdarəetmə Panelindən istifadə edin: **Provayderlər → [Provayder] → Fərdi Modellər**.
 
-Notes:
+Qeydlər:
 
-- OpenRouter and OpenAI/Anthropic-compatible providers are managed from **Available Models** only. Manual add, import, and auto-sync all land in the same available-model list, so there is no separate Custom Models section for those providers.
-- The **Custom Models** section is intended for providers that do not expose managed available-model imports.
+- OpenRouter və OpenAI/Anthropic ilə uyğun provayderlər yalnız **Mövcud Modellər** bölməsindən idarə olunur. Əllə əlavəetmə, idxal və avtomatik sinxronizasiya eyni mövcud modellər siyahısına daxil olur, buna görə də həmin provayderlər üçün ayrıca Fərdi Modellər bölməsi yoxdur.
+- **Fərdi Modellər** bölməsi idarə olunan mövcud model idxalını təqdim etməyən provayderlər üçün nəzərdə tutulub.
 
-### Dedicated Provider Routes
+### OmniRoute Qovşaqlarının Zəncirlənməsi
 
-Route requests directly to a specific provider with model validation:
+Başqa bir OmniRoute şlüzü **Fərdi OpenAI-uyğun** provayder kimi əlavə edilə bilər. Qovşağın
+`/v1` əsas URL-indən və həmin qovşaq tərəfindən verilmiş ayrıca, minimal səlahiyyətli API açarından istifadə edin.
+
+Qarşılıqlı və ya çoxkeçidli zəncirlər üçün hər şlüzdə könüllü dövr mühafizəsini aktivləşdirin:
+
+```bash
+# gateway-a
+OMNIROUTE_INSTANCE_ID=gateway-a
+OMNIROUTE_PEER_URLS=http://gateway-b:20128/v1
+OMNIROUTE_PEER_MAX_HOPS=4
+```
+
+```bash
+# gateway-b
+OMNIROUTE_INSTANCE_ID=gateway-b
+OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
+OMNIROUTE_PEER_MAX_HOPS=4
+```
+
+Yalnız açıq şəkildə icazə siyahısına əlavə edilmiş qovşaq URL-inə göndərilən sorğular
+`X-OmniRoute-Peer-Trace` başlığını alır. Şlüz təkrarlanan instansiya ID-sini və ya tükənmiş keçid
+limitini HTTP `508 Loop Detected` ilə rədd edir; adi yuxarı axın provayderləri heç bir qovşaq metadatası almır.
+
+Qovşaq zəncirlənməsi verilənlər bazasının replikasiyası və ya hostun nasazlıq zamanı əvəzlənməsi deyil. Hər şlüz müstəqil
+SQLite vəziyyətini, keşləri, tezlik sayğaclarını və sessiyaları saxlayır. Aktiv/passiv və ya aktiv/aktiv əlçatanlıq üçün sağlamlıq yoxlamalı əks proksi və ya klient
+ehtiyat keçidindən istifadə edin və bir SQLite verilənlər bazasını heç vaxt eyni vaxtda işləyən bir neçə OmniRoute instansiyasına qoşmayın.
+
+### Xüsusi Provayder Marşrutları
+
+Model doğrulaması ilə sorğuları birbaşa konkret provayderə yönləndirin:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -597,338 +725,582 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-The provider prefix is auto-added if missing. Mismatched models return `400`.
+Provayder prefiksi yoxdursa, avtomatik əlavə olunur. Uyğun olmayan modellər `400` qaytarır.
 
-### Network Proxy Configuration
+### Şəbəkə Proksi Konfiqurasiyası
 
 ```bash
-# Set global proxy
+# Qlobal proksini təyin edin
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Per-provider proxy
+# Hər provayder üçün proksi
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Test proxy
+# Proksini sınaqdan keçirin
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Precedence:** Key-specific → Combo-specific → Provider-specific → Global → Environment.
+**Üstünlük sırası:** Açara xas → Kombinasiyaya xas → Provayderə xas → Qlobal → Mühit.
 
-### Model Catalog API
+### Model Kataloqu API-si
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Returns models grouped by provider with types (`chat`, `embedding`, `image`).
+Provayderə görə qruplaşdırılmış modelləri növləri (`chat`, `embedding`, `image`) ilə birlikdə qaytarır.
 
-### Cloud Sync
+### Bulud Sinxronizasiyası
 
-- Sync providers, combos, and settings across devices
-- Automatic background sync with timeout + fail-fast
-- Prefer server-side `BASE_URL`/`CLOUD_URL` in production
+- Provayderləri, kombinasiyaları və parametrləri cihazlar arasında sinxronlaşdırın
+- Taymaut və erkən xəta ilə avtomatik fon sinxronizasiyası
+- İstehsal mühitində server tərəfli `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` istifadə etməyə üstünlük verin
 
-### Cloudflare Quick Tunnel
+### Cloudflare Sürətli Tuneli
 
-- Available in **Dashboard → Endpoints** for Docker and other self-hosted deployments
-- Creates a temporary `https://*.trycloudflare.com` URL that forwards to your current OpenAI-compatible `/v1` endpoint
-- First enable installs `cloudflared` only when needed; later restarts reuse the same managed binary
-- Quick Tunnels are not auto-restored after an OmniRoute or container restart; re-enable them from the dashboard when needed
-- Tunnel URLs are ephemeral and change every time you stop/start the tunnel
-- Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained containers
-- Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want to override the managed transport choice
-- Set `CLOUDFLARED_BIN` if you prefer using a preinstalled `cloudflared` binary instead of the managed download
+- Docker və digər öz serverində yerləşdirilən qurulumlar üçün **İdarəetmə Paneli → Son Nöqtələr** bölməsində mövcuddur
+- Cari OpenAI-uyğun `/v1` son nöqtənizə yönləndirilən müvəqqəti `https://*.trycloudflare.com` URL-i yaradır
+- İlk aktivləşdirmə zamanı `cloudflared` yalnız ehtiyac olduqda quraşdırılır; sonrakı yenidən başladılmalarda eyni idarə olunan binar fayldan istifadə edilir
+- Sürətli Tunellər OmniRoute və ya konteyner yenidən başladıldıqdan sonra avtomatik bərpa edilmir; ehtiyac olduqda onları idarəetmə panelindən yenidən aktivləşdirin
+- Tunel URL-ləri müvəqqətidir və tuneli hər dayandırıb-başlatdığınız zaman dəyişir
+- İdarə olunan Sürətli Tunellər məhdud konteynerlərdə səs-küylü QUIC UDP bufer xəbərdarlıqlarının qarşısını almaq üçün standart olaraq HTTP/2 nəqliyyatından istifadə edir
+- İdarə olunan nəqliyyat seçimini dəyişdirmək istəyirsinizsə, `CLOUDFLARED_PROTOCOL=quic` və ya `auto` təyin edin
+- İdarə olunan endirmə əvəzinə əvvəlcədən quraşdırılmış `cloudflared` binar faylından istifadə etməyə üstünlük verirsinizsə, `CLOUDFLARED_BIN` təyin edin
+- Cloudflare Quick Tunnel, Tailscale Funnel və ngrok Tunnel panelləri **Parametrlər → Görünüş** bölməsində göstərilə və ya gizlədilə bilər. Paneli gizlətmək işləyən tuneli dayandırmır.
 
-### LLM Gateway Intelligence (Phase 9)
+### LLM Şlüz İntellekti (Mərhələ 9)
 
-- **Semantic Cache** — Auto-caches non-streaming, temperature=0 responses (bypass with `X-OmniRoute-No-Cache: true`)
-- **Request Idempotency** — Deduplicates requests within 5s via `Idempotency-Key` or `X-Request-Id` header
-- **Progress Tracking** — Opt-in SSE `event: progress` events via `X-OmniRoute-Progress: true` header
-
----
-
-### Translator Playground
-
-Access via **Dashboard → Translator**. Debug and visualize how OmniRoute translates API requests between providers.
-
-| Mode             | Purpose                                                                                |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| **Playground**   | Select source/target formats, paste a request, and see the translated output instantly |
-| **Chat Tester**  | Send live chat messages through the proxy and inspect the full request/response cycle  |
-| **Test Bench**   | Run batch tests across multiple format combinations to verify translation correctness  |
-| **Live Monitor** | Watch real-time translations as requests flow through the proxy                        |
-
-**Use cases:**
-
-- Debug why a specific client/provider combination fails
-- Verify that thinking tags, tool calls, and system prompts translate correctly
-- Compare format differences between OpenAI, Claude, Gemini, and Responses API formats
+- **Semantik Keş** — Axınsız, temperature=0 cavablarını avtomatik keşləyir (`X-OmniRoute-No-Cache: true` ilə yan keçin)
+- **Sorğuların İdempotentliyi** — `Idempotency-Key` və ya `X-Request-Id` başlığı vasitəsilə 5 saniyə ərzində sorğuların təkrarlanmasının qarşısını alır
+- **İrəliləyişin İzlənməsi** — `X-OmniRoute-Progress: true` başlığı vasitəsilə könüllü SSE `event: progress` hadisələri
 
 ---
 
-### Routing Strategies
+### Tərcüməçi Sınaq Meydançası
 
-Configure via **Dashboard → Settings → Routing**.
+**İdarəetmə Paneli → Tərcüməçi** vasitəsilə daxil olun. OmniRoute-un provayderlər arasında API sorğularını necə çevirdiyini sazlayın və vizuallaşdırın.
 
-| Strategy                       | Description                                                                                      |
-| ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| **Fill First**                 | Uses accounts in priority order — primary account handles all requests until unavailable         |
-| **Round Robin**                | Cycles through all accounts with a configurable sticky limit (default: 3 calls per account)      |
-| **P2C (Power of Two Choices)** | Picks 2 random accounts and routes to the healthier one — balances load with awareness of health |
-| **Random**                     | Randomly selects an account for each request using Fisher-Yates shuffle                          |
-| **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
-| **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
+| Rejim                | Məqsəd                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
+| **Sınaq Meydançası** | Mənbə/hədəf formatlarını seçin, sorğunu yerləşdirin və çevrilmiş nəticəni dərhal görün            |
+| **Çat Sınaqçısı**    | Proksi vasitəsilə canlı çat mesajları göndərin və tam sorğu/cavab dövrünü yoxlayın                |
+| **Sınaq Stendi**     | Tərcümənin düzgünlüyünü yoxlamaq üçün bir neçə format kombinasiyası üzrə paket sınaqları başladın |
+| **Canlı Monitor**    | Sorğular proksidən keçərkən real vaxtda tərcümələri izləyin                                       |
 
-#### External Sticky Session Header
+**İstifadə halları:**
 
-For external session affinity (for example, Claude Code/Codex agents behind reverse proxies), send:
+- Konkret klient/provayder kombinasiyasının niyə uğursuz olduğunu sazlayın
+- Düşünmə teqlərinin, alət çağırışlarının və sistem təlimatlarının düzgün çevrildiyini yoxlayın
+- OpenAI, Claude, Gemini və Responses API formatları arasındakı format fərqlərini müqayisə edin
+
+---
+
+### Marşrutlaşdırma Strategiyaları
+
+**İdarəetmə paneli → Parametrlər → Marşrutlaşdırma** vasitəsilə konfiqurasiya edin. İdarəetmə panelində ən çox istifadə olunan altı strategiya göstərilir; kombinasiyalar və avtomatik marşrutlaşdırıcı daxildə daha geniş strategiya dəstini dəstəkləyir.
+
+**İdarəetmə panelində görünən strategiyalar (hesab səviyyəsində marşrutlaşdırma):**
+
+| Strategiya                        | Təsvir                                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **İlkini Doldur**                 | Hesabları prioritet sırası ilə istifadə edir — əsas hesab əlçatan olmayana qədər bütün sorğuları emal edir                |
+| **Dairəvi Növbələmə**             | Konfiqurasiya edilə bilən sabit limitlə bütün hesablar arasında növbə ilə keçir (standart: hər hesaba 3 çağırış)          |
+| **P2C (İki Seçimin Gücü)**        | Təsadüfi 2 hesab seçir və sorğunu daha sağlam olana yönləndirir — sağlamlıq vəziyyətini nəzərə alaraq yükü balanslaşdırır |
+| **Təsadüfi**                      | Fisher-Yates qarışdırmasından istifadə edərək hər sorğu üçün təsadüfi hesab seçir                                         |
+| **Ən Az İstifadə Olunan**         | Sorğunu ən köhnə `lastUsedAt` vaxt nişanına malik hesaba yönləndirərək trafiki bərabər paylayır                           |
+| **Xərcə Görə Optimallaşdırılmış** | Sorğunu ən aşağı prioritet dəyərinə malik hesaba yönləndirərək ən aşağı xərcli provayderlər üçün optimallaşdırır          |
+
+**Qabaqcıl kombinasiya və avtomatik strategiyalar** (hər kombinasiya üçün ayrıca və ya `auto/*` prefiksləri vasitəsilə konfiqurasiya edilə bilər — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) sənədinə baxın):
+
+- `priority` — ciddi ardıcıllıq, heç vaxt dairəvi növbələmə etmir
+- `weighted` — hər model üzrə çəkilərə əsaslanan proporsional trafik bölgüsü
+- `fill-first` — limitlərə çatana qədər ilk modeli tam istifadə edir
+- `round-robin` / `strict-random` / `random`
+- `p2c` (İki Seçimin Gücü)
+- `least-used` və `cost-optimized`
+- `auto` — bütün namizədlər arasında bala əsaslanan seçim
+- `lkgp` (Son Məlum Yaxşı Provayder) — son uğurlu provayderə bağlanır, sonra qaydalara əsaslanan ehtiyat varianta keçir
+- `context-optimized` — ən böyük boş kontekst pəncərəsinə malik modeli seçir
+- `context-relay` — sonrakı müraciətlər üçün böyük kontekstli modelləri zəncirvari birləşdirir
+
+#### Xarici Sabit Sessiya Başlığı
+
+Xarici sessiya bağlılığı üçün (məsələn, əks proksilərin arxasındakı Claude Code/Codex agentləri) aşağıdakı başlığı göndərin:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute also accepts `x_session_id` and returns the effective session key in `X-OmniRoute-Session-Id`.
+OmniRoute həmçinin `x_session_id` başlığını qəbul edir və faktiki sessiya açarını `X-OmniRoute-Session-Id` başlığında qaytarır.
 
-If you use Nginx and send underscore-form headers, enable:
+Nginx istifadə edirsinizsə və alt xəttli başlıqlar göndərirsinizsə, bunu aktivləşdirin:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Wildcard Model Aliases
+#### Əvəzedici Simvollu Model Aliasları
 
-Create wildcard patterns to remap model names:
-
-```
-Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-5-20250929
-Pattern: gpt-*               →  Target: gh/gpt-5.1-codex
-```
-
-Wildcards support `*` (any characters) and `?` (single character).
-
-#### Fallback Chains
-
-Define global fallback chains that apply across all requests:
+Model adlarını yenidən uyğunlaşdırmaq üçün əvəzedici simvol nümunələri yaradın:
 
 ```
-Chain: production-fallback
+Nümunə: claude-sonnet-*     →  Hədəf: cc/claude-sonnet-4-6
+Nümunə: gpt-*               →  Hədəf: gh/gpt-5.3-codex
+```
+
+Əvəzedici simvollar `*` (istənilən simvollar) və `?` (bir simvol) işarələrini dəstəkləyir.
+
+#### Ehtiyat Keçid Zəncirləri
+
+Bütün sorğulara tətbiq olunan qlobal ehtiyat keçid zəncirlərini müəyyənləşdirin:
+
+```
+Zəncir: production-fallback
   1. cc/claude-opus-4-7
-  2. gh/gpt-5.1-codex
+  2. gh/gpt-5.3-codex
   3. glm/glm-4.7
 ```
 
 ---
 
-### Resilience & Circuit Breakers
+### Dayanıqlılıq və Dövrə Kəsiciləri
 
-Configure via **Dashboard → Settings → Resilience**.
+**İdarəetmə paneli → Parametrlər → Dayanıqlılıq** vasitəsilə konfiqurasiya edin.
 
-OmniRoute implements provider-level resilience with five components:
+OmniRoute provayder səviyyəsində dayanıqlılığı beş komponent vasitəsilə təmin edir:
 
-1. **Request Queue & Pacing** — System-level request shaping:
-   - **Requests Per Minute (RPM)** — Maximum requests per minute per account
-   - **Min Time Between Requests** — Minimum gap in milliseconds between requests
-   - **Max Concurrent Requests** — Maximum simultaneous requests per account
+1. **Sorğu Növbəsi və Tempin Tənzimlənməsi** — Sistem səviyyəsində sorğuların formalaşdırılması:
+   - **Dəqiqədə Sorğular (RPM)** — Hər hesab üçün dəqiqə ərzində maksimum sorğu sayı
+   - **Sorğular Arasında Minimum Vaxt** — Sorğular arasında millisaniyə ilə minimum fasilə
+   - **Maksimum Paralel Sorğular** — Hər hesab üçün maksimum eyni vaxtlı sorğu sayı
 
-2. **Connection Cooldown** — Per-auth-type configuration for a single connection after retryable failures:
-   - **Base Cooldown** — Default cooldown window for retryable upstream failures
-   - **Use Upstream Retry Hints** — Honors authoritative `Retry-After` or reset hints when provided
-   - **Max Backoff Steps** — Maximum exponential backoff level for repeated failures
+2. **Bağlantının Soyuma Müddəti** — Təkrar cəhd edilə bilən xətalardan sonra tək bir bağlantı üçün autentifikasiya növünə görə konfiqurasiya:
+   - **Əsas Soyuma Müddəti** — Təkrar cəhd edilə bilən yuxarı axın xətaları üçün standart soyuma müddəti
+   - **Yuxarı Axının Təkrar Cəhd Göstərişlərindən İstifadə** — Təqdim edildikdə mötəbər `Retry-After` və ya sıfırlama göstərişlərinə əməl edir
+   - **Maksimum Geriçəkilmə Addımları** — Təkrarlanan xətalar üçün maksimum eksponensial geriçəkilmə səviyyəsi
 
-3. **Provider Circuit Breaker** — Tracks end-to-end provider failures and automatically opens the breaker when the configured threshold is reached:
-   - **Failure Threshold** — Consecutive provider failures before opening the breaker
-   - **Reset Timeout** — Time window before the provider is tested again
-   - **CLOSED** (Healthy) — Requests flow normally
-   - **OPEN** — Provider is temporarily blocked after repeated failures
-   - **HALF_OPEN** — Testing if provider has recovered
+3. **Provayder Dövrə Kəsicisi** — Provayderin ucdan-uca xətalarını izləyir, konfiqurasiya edilmiş xəbərdarlıq həddində provayderi zəifləmiş kimi işarələyir və konfiqurasiya edilmiş xəta həddinə çatdıqda kəsicini açır:
+   - **Zəifləmə Həddi** — `DEGRADED` vəziyyətinə keçməzdən əvvəl ardıcıl provayder xətalarının sayı
+   - **Xəta Həddi** — `OPEN` vəziyyətinə keçməzdən əvvəl ardıcıl provayder xətalarının sayı
+   - **Sıfırlama Taym-autu** — Provayder yenidən sınaqdan keçirilməzdən əvvəlki vaxt intervalı
+   - **CLOSED** (Sağlam) — Sorğular normal şəkildə ötürülür
+   - **DEGRADED** — Artan xətalar izlənilərkən sorğular ötürülməyə davam edir
+   - **OPEN** — Təkrarlanan xətalardan sonra provayder müvəqqəti olaraq bloklanır
+   - **HALF_OPEN** — Provayderin bərpa olunub-olunmadığı yoxlanılır
 
-   Connection-scoped `429` rate limits stay in **Connection Cooldown** and do not count toward the provider breaker.
+   Bağlantı səviyyəli `429` sürət limitləri **Bağlantının Soyuma Müddəti** daxilində qalır və provayder kəsicisində nəzərə alınmır.
 
-   The provider breaker runtime state is shown on **Dashboard → Health** only.
+   Provayder kəsicisinin icra vaxtı vəziyyəti yalnız **İdarəetmə paneli → Sağlamlıq** bölməsində göstərilir.
 
-4. **Wait For Cooldown** — If every candidate connection is already cooling down, OmniRoute can wait for the earliest cooldown and retry the same client request automatically.
+4. **Soyuma Müddətini Gözləmə** — Bütün namizəd bağlantılar artıq soyuma mərhələsindədirsə, OmniRoute ən tez bitəcək soyuma müddətini gözləyə və eyni müştəri sorğusunu avtomatik olaraq yenidən sınaya bilər.
 
-5. **Rate Limit Auto-Detection** — When upstream providers return explicit wait windows, those hints override the local connection cooldown when the setting is enabled.
+5. **Sürət Limitinin Avtomatik Aşkarlanması** — Yuxarı axın provayderləri açıq gözləmə intervalları qaytardıqda və bu parametr aktiv olduqda, həmin göstərişlər yerli bağlantı soyuma müddətini əvəz edir.
 
-**Pro Tip:** Use the **Health** page to inspect and reset live provider breakers after an outage. The Resilience page only changes configuration.
+**Peşəkar Məsləhət:** Nasazlıqdan sonra aktiv provayder kəsicilərini yoxlamaq və sıfırlamaq üçün **Sağlamlıq** səhifəsindən istifadə edin. Dayanıqlılıq səhifəsi yalnız konfiqurasiyanı dəyişir.
 
 ---
 
-### Database Export / Import
+### Verilənlər Bazasının İxracı / İdxalı
 
-Manage database backups in **Dashboard → Settings → System & Storage**.
+Verilənlər bazasının ehtiyat nüsxələrini **İdarəetmə paneli → Parametrlər → Sistem və Saxlama** bölməsində idarə edin.
 
-| Action                   | Description                                                                                                                                    |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                                      |
-| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata                 |
-| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created unless `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| Əməliyyat                        | Təsvir                                                                                                                                                                             |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Verilənlər bazasını ixrac et** | Cari SQLite verilənlər bazasını `.sqlite` faylı kimi endirir                                                                                                                       |
+| **Hamısını ixrac et (.tar.gz)**  | Aşağıdakıları ehtiva edən tam ehtiyat nüsxəsi arxivini endirir: verilənlər bazası, parametrlər, kombolar, provayder bağlantıları (giriş məlumatları olmadan), API açarı metadatası |
+| **Verilənlər bazasını idxal et** | Cari verilənlər bazasını əvəz etmək üçün `.sqlite` faylı yükləyir. `DISABLE_SQLITE_AUTO_BACKUP=true` olmadıqda, idxaldan əvvəl avtomatik olaraq ehtiyat nüsxəsi yaradılır          |
 
 ```bash
-# API: Export database
+# API: Verilənlər bazasını ixrac et
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Export all (full archive)
+# API: Hamısını ixrac et (tam arxiv)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: Import database
+# API: Verilənlər bazasını idxal et
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Import Validation:** The imported file is validated for integrity (SQLite pragma check), required tables (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), and size (max 100MB).
+**İdxalın yoxlanılması:** İdxal edilən fayl bütövlük (SQLite pragma yoxlaması), tələb olunan cədvəllər (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) və ölçü (maksimum 100MB) baxımından yoxlanılır.
 
-**Use Cases:**
+**İstifadə halları:**
 
-- Migrate OmniRoute between machines
-- Create external backups for disaster recovery
-- Share configurations between team members (export all → share archive)
-
----
-
-### Settings Dashboard
-
-The settings page is organized into 6 tabs for easy navigation:
-
-| Tab            | Contents                                                                                     |
-| -------------- | -------------------------------------------------------------------------------------------- |
-| **General**    | System storage tools, appearance settings, theme controls, and per-item sidebar visibility   |
-| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking    |
-| **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults |
-| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior  |
-| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats            |
-| **Advanced**   | Global proxy configuration (HTTP/SOCKS5)                                                     |
+- OmniRoute-u maşınlar arasında köçürmək
+- Fəlakətdən sonra bərpa üçün xarici ehtiyat nüsxələri yaratmaq
+- Konfiqurasiyaları komanda üzvləri arasında paylaşmaq (hamısını ixrac et → arxivi paylaş)
 
 ---
 
-### Costs & Budget Management
+### Parametrlər idarəetmə paneli
 
-Access via **Dashboard → Costs**.
+Rahat naviqasiya üçün parametrlər səhifəsi **7 tab** şəklində təşkil edilib:
 
-| Tab         | Purpose                                                                                  |
-| ----------- | ---------------------------------------------------------------------------------------- |
-| **Budget**  | Set spending limits per API key with daily/weekly/monthly budgets and real-time tracking |
-| **Pricing** | View and edit model pricing entries — cost per 1K input/output tokens per provider       |
+| Tab                 | Məzmun                                                                                                                                                                                                                     |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ümumi**           | Sistem yaddaşı alətləri, standart davranış, endpoint tunelinin görünməsi                                                                                                                                                   |
+| **Görünüş**         | Mövzu idarəetmələri (işıqlı/qaranlıq/sistem), yan panelin görünməsi, Cloudflare/Tailscale/ngrok tunel kartları üçün panel keçidləri                                                                                        |
+| **AI**              | Düşünmə büdcəsi (dəyişikliksiz ötürmə / avtomatik silmə / fərdi / adaptiv — [THINKING_BUDGET.md](./THINKING_BUDGET.md) sənədinə baxın), qlobal sistem promptu, prompt keşinin statistikası                                 |
+| **Təhlükəsizlik**   | Giriş/Parol parametrləri, IP girişinə nəzarət, `/models` üçün API autentifikasiyası, provayderlərin bloklanması, prompt inyeksiyasından qorunma                                                                            |
+| **Marşrutlaşdırma** | Qlobal marşrutlaşdırma strategiyası (Əvvəlcə doldur / Dövri növbə / P2C / Təsadüfi / Ən az istifadə olunan / Xərc üzrə optimallaşdırılmış), model ləqəblərində universal simvollar, ehtiyat zəncirləri, kombo standartları |
+| **Dayanıqlılıq**    | Sorğu növbəsi, bağlantının gözləmə müddəti, provayder dövrəqıranının konfiqurasiyası və gözləmə müddətinin bitməsini gözləmə davranışı                                                                                     |
+| **Qabaqcıl**        | Qlobal proksi konfiqurasiyası (HTTP/SOCKS5), hər provayder üçün proksi əvəzləmələri                                                                                                                                        |
+
+Ümumi bölməsi artıq yalnız oxumaq üçün olan jurnal və keş qeydlərini təkrarlamır. Verilənlər bazasının saxlanma müddəti və
+optimallaşdırma parametrləri `/api/settings/database` vasitəsilə yadda saxlanılır; keşi əl ilə təmizləmək üçün
+`DELETE /api/cache` istifadə olunur. Sorğu və proksi jurnalı sətirlərinin limitləri
+`CALL_LOGS_TABLE_MAX_ROWS` və `PROXY_LOGS_TABLE_MAX_ROWS` vasitəsilə idarə olunur.
+
+---
+
+### Xərclərin və büdcənin idarə edilməsi
+
+**İdarəetmə paneli → Xərclər** vasitəsilə daxil olun.
+
+| Tab                | Məqsəd                                                                                                         |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| **Büdcə**          | Gündəlik/həftəlik/aylıq büdcələrlə hər API açarı üçün xərc limitləri təyin etmək və onları real vaxtda izləmək |
+| **Qiymətləndirmə** | Model qiymət qeydlərinə baxmaq və onları redaktə etmək — hər provayder üzrə 1K giriş/çıxış tokeninin qiyməti   |
 
 ```bash
-# API: Set a budget
+# API: Büdcə təyin et
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Get current budget status
+# API: Cari büdcə vəziyyətini əldə et
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Cost Tracking:** Every request logs token usage and calculates cost using the pricing table. View breakdowns in **Dashboard → Usage** by provider, model, and API key.
+**Xərclərin izlənməsi:** Hər sorğu token istifadəsini jurnala yazır və qiymətləndirmə cədvəlindən istifadə edərək xərci hesablayır. Provayder, model və API açarı üzrə bölgülərə **İdarəetmə paneli → İstifadə** bölməsində baxın.
 
 ---
 
-### Audio Transcription
+### Audio transkripsiyası
 
-OmniRoute supports audio transcription via the OpenAI-compatible endpoint:
+OmniRoute OpenAI ilə uyğun endpoint vasitəsilə audio transkripsiyasını dəstəkləyir:
 
 ```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
-# Example with curl
+# curl ilə nümunə
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
-  -F "model=deepgram/nova-3"
+  -F "model=openai/whisper-1"
 ```
 
-Available providers: **Deepgram** (`deepgram/`), **AssemblyAI** (`assemblyai/`).
+`deepgram/nova-3` yerli Deepgram marşrutudur və Deepgram API açarı tələb edir.
+Yalnız OpenRouter konfiqurasiya edilibsə, `openrouter/deepgram/nova-3` istifadə edin.
 
-Supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
+**Nitqdən mətnə (transkripsiya)** provayderləri:
 
----
+- `openai/` (whisper ilə uyğun)
+- `groq/` (Groq Whisper Turbo)
+- `deepgram/` (Nova ailəsi)
+- `assemblyai/`
+- `nvidia/` (Parakeet, Canary)
+- `huggingface/` (whisper variantları)
+- `qwen/`
 
-### Combo Balancing Strategies
+**Mətndən nitqə (`POST /v1/audio/speech`)** provayderləri:
 
-Configure per-combo balancing in **Dashboard → Combos → Create/Edit → Strategy**.
+- `openai/` (tts-1, tts-1-hd)
+- `hyperbolic/`
+- `deepgram/` (Aura)
+- `nvidia/` (Magpie TTS)
+- `elevenlabs/`
+- `huggingface/`
+- `inworld/`
+- `cartesia/`
+- `playht/`
+- `kie/`
+- `aws-polly/`
+- `xiaomi-mimo/`
+- `coqui/`, `tortoise/`
+- `qwen/`
 
-| Strategy           | Description                                                              |
-| ------------------ | ------------------------------------------------------------------------ |
-| **Round-Robin**    | Rotates through models sequentially                                      |
-| **Priority**       | Always tries the first model; falls back only on error                   |
-| **Random**         | Picks a random model from the combo for each request                     |
-| **Weighted**       | Routes proportionally based on assigned weights per model                |
-| **Least-Used**     | Routes to the model with the fewest recent requests (uses combo metrics) |
-| **Cost-Optimized** | Routes to the cheapest available model (uses pricing table)              |
-
-Global combo defaults can be set in **Dashboard → Settings → Routing → Combo Defaults**.
-
----
-
-### Health Dashboard
-
-Access via **Dashboard → Health**. Real-time system health overview with 6 cards:
-
-| Card                  | What It Shows                                               |
-| --------------------- | ----------------------------------------------------------- |
-| **System Status**     | Uptime, version, memory usage, data directory               |
-| **Provider Health**   | Global provider circuit breaker runtime state               |
-| **Rate Limits**       | Active connection cooldowns per account with remaining time |
-| **Active Lockouts**   | Active model-scoped lockouts and temporary exclusions       |
-| **Signature Cache**   | Deduplication cache stats (active keys, hit rate)           |
-| **Latency Telemetry** | p50/p95/p99 latency aggregation per provider                |
-
-**Pro Tip:** The Health page auto-refreshes every 10 seconds. Use the circuit breaker card to identify which providers are experiencing issues.
+Transkripsiya üçün dəstəklənən audio formatları: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS çıxış formatları provayderdən asılıdır (mp3, wav, opus, pcm, mulaw).
 
 ---
 
-## 🖥️ Desktop Application (Electron)
+### Kombo balanslaşdırma strategiyaları
 
-OmniRoute is available as a native desktop application for Windows, macOS, and Linux.
+Hər kombo üçün balanslaşdırmanı **İdarəetmə paneli → Kombolar → Yarat/Redaktə et → Strategiya** bölməsində konfiqurasiya edin.
 
-### Инсталиране
+| Strategiya                             | Təsvir                                                                                 |
+| -------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Dövrü növbələmə**                    | Modellər arasında ardıcıl şəkildə keçid edir                                           |
+| **Prioritet**                          | Həmişə əvvəlcə birinci modeli sınayır; yalnız xəta baş verdikdə ehtiyat modelə keçir   |
+| **Təsadüfi**                           | Hər sorğu üçün kombinasiyadan təsadüfi bir model seçir                                 |
+| **Çəkili**                             | Hər modelə təyin edilmiş çəkilərə əsasən proporsional marşrutlaşdırma aparır           |
+| **Ən az istifadə edilən**              | Ən az son sorğuya malik modelə yönləndirir (kombinasiya metrikalarından istifadə edir) |
+| **Xərc baxımından optimallaşdırılmış** | Ən ucuz əlçatan modelə yönləndirir (qiymət cədvəlindən istifadə edir)                  |
+
+Qlobal kombinasiya standartları **İdarəetmə paneli → Parametrlər → Marşrutlaşdırma → Kombinasiya standartları** bölməsində təyin edilə bilər.
+Kombinasiya hədəflərinin vaxt aşımı standart olaraq cari sorğunun vaxt aşımı dəyərini miras alır. Yalnız hədəf üzrə daha qısa limitin ehtiyat varianta daha sürətli keçidi işə salmalı olduğu hallarda kombinasiya standartlarında və ya fərdi kombinasiyada **Hədəf vaxt aşımı
+(saniyə)** parametrindən istifadə edin.
+
+Sıfır gecikməli kombinasiya optimallaşdırmaları seçim əsasında aktivləşdirilir. Bu gecikmə funksiyalarının ehtiyat hədəflərlə yarışmasının, TTFT
+tarixçəsinə əsasən hədəfləri ötürməsinin və ya ehtiyat sorğuları sıxışdırmasının qarşısını almaq üçün **Sıfır gecikməli optimallaşdırmalar** parametrini deaktiv saxlayın; onu aktivləşdirmək konfiqurasiya edilmiş paralel ehtiyat sorğularına, proqnozlaşdırıcı TTFT
+ötürmələrinə və proaktiv ehtiyat sıxışdırmasına marşrutlaşdırma/sorğu dəqiqliyini daha aşağı sonluq
+gecikməsi ilə dəyişməyə imkan verir.
+
+Yuxarı axın provayderləri sərt
+`max_tokens` / `maxOutputTokens` limitləri tələb etdikdə **Düşünmə tokeni buferi** parametrini deaktiv edin. Aktiv olduqda, kombinasiya marşrutlaşdırması yalnız məlum çıxış limitinə malik modellər üçün düşünmə modellərinə
+əlavə ehtiyat sahəsi əlavə edir və təhlükəsiz buferlənmiş dəyər həmin limiti aşacağı halda müştərinin token limitini dəyişməz saxlayır. Müştəri limiti artıq məlum limitdən yuxarıdırsa,
+OmniRoute yuxarı axın sorğusunu göndərməzdən əvvəl onu həmin limitə endirir.
+
+---
+
+### Sistem vəziyyəti paneli
+
+**İdarəetmə paneli → Sistem vəziyyəti** vasitəsilə daxil olun. 6 kartdan ibarət real vaxt rejimində sistem vəziyyətinə ümumi baxış:
+
+| Kart                      | Göstərdiyi məlumatlar                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| **Sistem statusu**        | İşləmə müddəti, versiya, yaddaş istifadəsi, məlumat qovluğu                              |
+| **Provayder vəziyyəti**   | Qlobal provayder dövrəqıranının icra vəziyyəti                                           |
+| **Sürət limitləri**       | Qalan vaxtla birlikdə hər hesab üzrə aktiv bağlantı gözləmə müddətləri                   |
+| **Aktiv bloklamalar**     | Aktiv model səviyyəli bloklamalar və müvəqqəti istisnalar                                |
+| **İmza keşi**             | Dublikatların aradan qaldırılması keşinin statistikası (aktiv açarlar, uyğunluq nisbəti) |
+| **Gecikmə telemetriyası** | Hər provayder üzrə p50/p95/p99 gecikmə aqreqasiyası                                      |
+
+**Peşəkar məsləhət:** Sistem vəziyyəti səhifəsi hər 10 saniyədən bir avtomatik yenilənir. Hansı provayderlərdə problemlər yarandığını müəyyən etmək üçün dövrəqıran kartından istifadə edin.
+
+---
+
+## 🤖 Avtomatik Marşrutlaşdırma (Sıfır konfiqurasiya)
+
+OmniRoute hər bir sorğu üçün bütün qoşulmuş provayderlər arasından ən yaxşı modeli seçən **xal əsaslı avtomatik marşrutlaşdırıcı** ilə təqdim olunur — idarə ediləcək heç bir kombinasiya yoxdur. Sorğunu sadəcə `auto/*` prefikslərindən biri ilə göndərin və OmniRoute gecikmə, xərc, uğur faizi, kontekstə uyğunluq, modelin tapşırığa uyğunluğu, son uğursuzluqlar, kvota və dövrə açarının vəziyyətinə əsasən namizədləri qiymətləndirərək dinamik şəkildə virtual kombinasiya yaradacaq.
+
+| Prefiks        | Optimallaşdırma meyarı                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------ |
+| `auto`         | Balanslaşdırılmış standart seçim (gecikmə × xərc × uğur faizi)                                               |
+| `auto/coding`  | Kodlaşdırma tapşırıqları: Claude, GPT-5, GLM, Kimi, Qwen Coder və DeepSeek kodlayıcılarına üstünlük verir    |
+| `auto/cheap`   | Ən aşağı $/token, daha yüksək gecikməni qəbul edir                                                           |
+| `auto/fast`    | Ən aşağı gecikmə, xərc nəzərə alınmır                                                                        |
+| `auto/offline` | Yalnız lokal provayderlər (Ollama, vLLM, llama.cpp) — şəbəkədən təcrid olunmuş quraşdırmalar üçün faydalıdır |
+| `auto/smart`   | İlk növbədə mühakimə keyfiyyəti (Opus, GPT-5 xhigh, R1, GLM 5.1 reasoning)                                   |
+| `auto/lkgp`    | "Son Məlum Yaxşı Provayder" — son uğurlu provayderə sabitlənir, sonra qaydalara əsasən ehtiyat seçimə keçir  |
+
+Nümunə:
 
 ```bash
-# From the electron directory:
+curl -X POST http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer $OMNIROUTE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "auto/coding",
+    "messages": [{ "role": "user", "content": "Refactor this Python function" }],
+    "stream": true
+  }'
+```
+
+Avtomatik marşrutlaşdırıcı [AUTO-COMBO.md](../routing/AUTO-COMBO.md) sənədində tam təsvir olunub — buraya qiymətləndirmə çəkilərinin tənzimlənməsi, provayderlərin qara siyahıya salınması və marşrutlaşdırma qərarlarının **İdarəetmə paneli → Avtomatik Kombinasiya** bölməsində yoxlanılması daxildir.
+
+---
+
+## 🔌 MCP və A2A İnteqrasiyası
+
+OmniRoute həm **MCP serveri** (Model Kontekst Protokolu), həm də **A2A serveridir** (Agentdən Agentə JSON-RPC 2.0). MCP ilə uyğun istənilən IDE və ya agent hostu OmniRoute alətlərini birbaşa çağıra bilər — əlavə örtük tələb olunmur.
+
+### MCP nəqliyyatları
+
+- **SSE**: `http://localhost:20128/api/mcp/sse`
+- **Axınlı HTTP**: `http://localhost:20128/api/mcp/stream`
+- **stdio**: `omniroute --mcp` (stdio-ya üstünlük verən IDE plaginləri üçün)
+
+### Claude Desktop-a qoşulma
+
+`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) faylını və ya Windows/Linux sistemlərindəki ekvivalentini redaktə edin:
+
+```json
+{
+  "mcpServers": {
+    "omniroute": {
+      "command": "omniroute",
+      "args": ["--mcp"]
+    }
+  }
+}
+```
+
+### Cursor / Continue / VS Code MCP-yə qoşulma
+
+`http://localhost:20128/api/mcp/sse` SSE URL-indən və **İdarəetmə paneli → API Açarları** bölməsində yaradılmış Bearer API açarından istifadə edin.
+
+### Əhatə dairələri
+
+MCP hazırda 32 adlandırılmış əhatə dairəsi müəyyən edir. Hər bir Bearer açarı konkret əhatə dairələri ilə məhdudlaşdırıla bilər — səlahiyyətli əhatə dairəsi və alətlər siyahısı üçün [MCP-SERVER.md](../frameworks/MCP-SERVER.md), JSON-RPC sxemi üçün isə [A2A-SERVER.md](../frameworks/A2A-SERVER.md) sənədinə baxın.
+
+---
+
+## 🧠 Bacarıqlar Sistemi
+
+OmniRoute agentlərin və A2A son nöqtəsinin domenə xas prosedurları (məsələn, `code-review`, `summarize`, `extract-facts`, `web-research`) icra edə bilməsi üçün genişləndirilə bilən **bacarıq çərçivəsi** (`src/lib/skills/`) təqdim edir.
+
+- **Marketplace interfeysi** — **İdarəetmə paneli → Bacarıqlar** bölməsindən bacarıqlara baxın və onları quraşdırın
+- **Hər açar üzrə əhatə dairələri** — Hansı API açarlarının hansı bacarıqları çağıra biləcəyini məhdudlaşdırın
+- **Fərdi bacarıqlar** — TypeScript faylını `src/lib/a2a/skills/` qovluğuna yerləşdirib qeydiyyatdan keçirin və o, dərhal A2A üzərindən çağırıla bilsin
+
+Tam istinad sənədi: [SKILLS.md](../frameworks/SKILLS.md).
+
+---
+
+## 💾 Yaddaş Sistemi
+
+OmniRoute hibrid axtarışla **uzunmüddətli danışıq yaddaşını** saxlayır:
+
+- Keçmiş dialoq addımları üzrə açar söz axtarışı üçün **SQLite FTS5**
+- Semantik xatırlama üçün **Qdrant vektor yaddaşı** (ixtiyari)
+- **Faktların avtomatik çıxarılması** — obyektlər, seçimlər və qərarlar hər sessiyadan sonra ümumiləşdirilir və `memory_facts` cədvəlində saxlanılır
+- Yaddaşlar hər API açarı və hər sessiya üzrə əhatələndirilir
+
+Yaddaşları **İdarəetmə paneli → Yaddaş** bölməsində idarə edin (axtarış, redaktə, ixrac, təmizləmə). HTTP interfeysi (`/api/memory/*`) agentlərə faktları proqram vasitəsilə göndərməyə və sorğulamağa imkan verir — [MEMORY.md](../frameworks/MEMORY.md) sənədinə baxın.
+
+---
+
+## 🔔 Vebhuklar
+
+Real vaxt rejimində monitorinq və avtomatlaşdırma üçün OmniRoute hadisələrinə abunə olun.
+
+- Hədəf URL və HMAC imzalama sirri ilə **İdarəetmə paneli → Vebhuklar** bölməsində vebhuk yaradın
+- Mövcud hadisələr: `request.completed`, `request.failed`, `provider.unavailable`, `budget.exceeded`, `combo.switched`, `circuit_breaker.opened`, `circuit_breaker.closed`
+- Hər faydalı yük yoxlama üçün `X-OmniRoute-Signature` (HMAC-SHA256) ehtiva edir
+- Təkrar cəhdlər: eksponensial gecikmə ilə 3 cəhd, sonra ölü məktublar növbəsi
+
+Tam sxem [WEBHOOKS.md](../frameworks/WEBHOOKS.md) sənədindədir.
+
+---
+
+## ☁️ Bulud Agentləri
+
+OmniRoute bulud kodlaşdırma agentləri (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) ilə inteqrasiya olunur, beləliklə, lokal marşrutlaşdırmanızı idarə edən eyni paneldən uzunmüddətli tapşırıqlar göndərə bilərsiniz.
+
+- Tapşırıqları **İdarəetmə paneli → Bulud Agentləri** bölməsində və ya `POST /api/v1/agents/tasks` vasitəsilə yaradın
+- Hər tapşırıq üzrə statusu, jurnalları və artefaktları izləyin
+- Hər provayder üçün öz API açarınızı istifadə edin — giriş məlumatları heç vaxt OmniRoute instansiyasını tərk etmir
+
+Tam istinad sənədi: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
+
+---
+
+## 🛠️ Proqram Vasitəsilə İdarəetmə
+
+**`manage` əhatə dairəsinə malik Bearer açarından** istifadə edərək bütün OmniRoute resurslarını (provayderlər, kombinasiyalar, açarlar, parametrlər) HTTP üzərindən idarə edə bilərsiniz.
+
+Açarı **İdarəetmə paneli → API Açarları → Yeni Açar → Əhatə dairəsi: manage** bölməsində yaradın, sonra:
+
+```bash
+# Provayderləri siyahılayın
+curl http://localhost:20128/api/providers \
+  -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
+
+# Provayder bağlantısı əlavə edin
+curl -X POST http://localhost:20128/api/providers \
+  -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
+
+# Kombinasiya yaradın
+curl -X POST http://localhost:20128/api/combos \
+  -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
+
+# API açarlarını siyahılayın/yaradın
+curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
+curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+  -d '{ "name": "ci-bot", "scopes": ["chat"] }'
+```
+
+Son nöqtələrin tam kataloqu və sorğu/cavab sxemləri üçün [API_REFERENCE.md](../reference/API_REFERENCE.md) sənədinə baxın.
+
+---
+
+## 💻 Daxili CLI
+
+OmniRoute quraşdırma, diaqnostika və işləmə zamanı idarəetmə üçün daxili CLI (`omniroute …`) ilə təqdim olunur. Bu, üçüncü tərəf CLI-lərinin (Claude Code, Cursor, Codex, Cline, …) OmniRoute ilə əlaqə qura bilməsi üçün onları konfiqurasiya edən idarəetmə panelindəki **"CLI Alətləri" səhifəsindən ayrıdır**.
+
+```bash
+omniroute setup                    # İnteraktiv quraşdırma köməkçisi (parol, provayderlər, kombinasiyalar)
+omniroute setup --non-interactive  # CI üçün uyğundur
+omniroute doctor                   # Sağlamlıq diaqnostikası (məlumat kataloqu, verilənlər bazası, provayderlər, portlar)
+omniroute providers available      # Dəstəklənən provayderləri sadala
+omniroute providers list           # Konfiqurasiya edilmiş bağlantıları sadala
+omniroute providers test <id>      # Provayder bağlantısını real vaxtda sına
+omniroute combos list              # Kombinasiyaları sadala
+omniroute combos switch <name>     # Standart kombinasiyanı təyin et
+omniroute models                   # Mövcud modelləri sadala (--json, --search)
+omniroute keys add | list | remove # API açarlarını terminaldan idarə et
+omniroute backup                   # Konfiqurasiyanın və verilənlər bazasının anlıq surətini yarat
+omniroute restore [<timestamp>]    # Anlıq surətdən bərpa et
+omniroute health                   # Ətraflı sağlamlıq məlumatı (qoruyucular, keş, yaddaş)
+omniroute quota                    # Provayder kvotasının istifadəsi
+omniroute mcp status               # MCP serverinin statusu
+omniroute a2a status               # A2A serverinin statusu
+omniroute tunnel list|create|stop  # Cloudflare/Tailscale/ngrok tunelləri
+omniroute reset-password           # Administrator parolunu sıfırla
+omniroute --mcp                    # MCP serverini stdio üzərindən işə sal
+omniroute --port 3000              # Serveri fərdi portda işə sal
+```
+
+İpucu: qeyri-sağlam provayder bağlantıları barədə xəbərdarlıq almaq üçün `omniroute doctor --json` əmrini monitorinq alətinizlə birlikdə istifadə edin.
+
+---
+
+## 🖥️ Masaüstü Tətbiqi (Electron)
+
+OmniRoute Windows, macOS və Linux üçün yerli masaüstü tətbiqi kimi mövcuddur.
+
+### Quraşdırma
+
+```bash
+# electron kataloqundan:
 cd electron
 npm install
 
-# Development mode (connect to running Next.js dev server):
+# İnkişaf rejimi (işləyən Next.js inkişaf serverinə qoşulur):
 npm run dev
 
-# Production mode (uses standalone build):
+# İstehsal rejimi (müstəqil yığmadan istifadə edir):
 npm start
 ```
 
-### Building Installers
+### Quraşdırıcıların Yığılması
 
 ```bash
 cd electron
-npm run build          # Current platform
+npm run build          # Cari platforma
 npm run build:win      # Windows (.exe NSIS)
 npm run build:mac      # macOS (.dmg universal)
 npm run build:linux    # Linux (.AppImage)
 ```
 
-Output → `electron/dist-electron/`
+Çıxış → `electron/dist-electron/`
 
-### Key Features
+### Əsas Xüsusiyyətlər
 
-| Feature                     | Description                                          |
-| --------------------------- | ---------------------------------------------------- |
-| **Server Readiness**        | Polls server before showing window (no blank screen) |
-| **System Tray**             | Minimize to tray, change port, quit from tray menu   |
-| **Port Management**         | Change server port from tray (auto-restarts server)  |
-| **Content Security Policy** | Restrictive CSP via session headers                  |
-| **Single Instance**         | Only one app instance can run at a time              |
-| **Offline Mode**            | Bundled Next.js server works without internet        |
+| Xüsusiyyət                         | Təsvir                                                                  |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| **Serverin Hazırlığı**             | Pəncərəni göstərməzdən əvvəl serveri yoxlayır (boş ekran yoxdur)        |
+| **Sistem Treyi**                   | Trey sahəsinə kiçiltmə, portu dəyişdirmə, trey menyusundan çıxma        |
+| **Portun İdarə Edilməsi**          | Server portunu treydən dəyişdirmə (server avtomatik yenidən başladılır) |
+| **Məzmun Təhlükəsizliyi Siyasəti** | Sessiya başlıqları vasitəsilə məhdudlaşdırıcı CSP                       |
+| **Tək Nüsxə**                      | Eyni anda tətbiqin yalnız bir nüsxəsi işləyə bilər                      |
+| **Oflayn Rejim**                   | Paketə daxil edilmiş Next.js serveri internetsiz işləyir                |
 
-### Environment Variables
+### Mühit Dəyişənləri
 
-| Variable              | Default | Description                      |
-| --------------------- | ------- | -------------------------------- |
-| `OMNIROUTE_PORT`      | `20128` | Server port                      |
-| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
+| Dəyişən               | Standart | Təsvir                                     |
+| --------------------- | -------- | ------------------------------------------ |
+| `OMNIROUTE_PORT`      | `20128`  | Server portu                               |
+| `OMNIROUTE_MEMORY_MB` | `512`    | Node.js qalaq yaddaşı limiti (64–16384 MB) |
 
-📖 Full documentation: [`electron/README.md`](../electron/README.md)
+📖 Tam sənədləşmə: [`electron/README.md`](../../electron/README.md)

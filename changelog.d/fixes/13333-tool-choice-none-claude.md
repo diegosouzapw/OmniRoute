@@ -1,0 +1,1 @@
+- **fix(translator):** `tool_choice: "none"` is now sent to Claude-format providers as `{ type: "none" }` (and back to OpenAI as `"none"`) instead of `auto`, so the model can no longer call tools the client switched off ([#13333](https://github.com/diegosouzapw/OmniRoute/pull/13333))

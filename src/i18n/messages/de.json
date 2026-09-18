@@ -996,9 +996,9 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy-Pools und die kontobasierte Rotation von opencode verwenden einen Proxy, der gerade fehlgeschlagen ist (abgelehnte TCP-Prüfung oder darüber empfangener 429-Statuscode), für einen prozessbezogenen Zeitraum nicht erneut. Dieser Zeitraum verdoppelt sich bei jeder Wiederholung bis zu einer Obergrenze. Es wird kein Proxy-Status gespeichert; wenn alle Kandidaten zurückgestellt wurden, bleibt die Auswahl unverändert. Standardmäßig deaktiviert: Die Auswahlreihenfolge entspricht exakt der einfachen Rotation.",
   "featureFlagProxyPoolEgressObservationDescription": "Zeigt im Dashboard unter einem Proxy-Pool an, wie viele beobachtete Egress-IPs dessen Mitglieder in den letzten 24 h bedient haben, wie viele Verbindungen sie verwendet haben und wie viele maximal hinter einer einzelnen IP beobachtet wurden. Schreibgeschützt, aus dem Proxy-Protokoll berechnet und niemals für das Routing verwendet. Standardmäßig deaktiviert: Der Pool-Editor bleibt unverändert und die Beobachtungsroute gibt null zurück.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Ermöglicht bei der Proxy-Zustandsprüfung, dass eine vom Ziel abgelehnte Prüfung (401/403/429: Der Proxy hat die Anfrage weitergeleitet, das Ziel hat diese Egress-IP abgelehnt) die Serie aufeinanderfolgender Fehler des Proxys zurücksetzt, wie bei einer erfolgreich beantworteten Prüfung. Standardmäßig deaktiviert: Eine Ablehnung bleibt neutral und die Serie wird beibehalten. Ein 5xx-Status bleibt in beiden Fällen nicht aussagekräftig, und eine Ablehnung entfernt, deaktiviert oder reaktiviert niemals einen Proxy.",
-  "featureFlagBatchAndFileAutoCleanupEnabledDescription": "__MISSING__:Let the automatic cleanup sweep delete terminal (completed/failed/cancelled/expired) Batch API jobs older than OMNIROUTE_BATCH_RETENTION_DAYS, along with their per-line checkpoints, and clear the BLOB content of uploaded files past their own expires_at. Off by default: every existing install keeps this data exactly as before until an operator opts in. The operator-triggered DELETE /api/v1/batches/delete-completed route is unaffected either way -- it is a separate, unconditional public API contract.",
-  "featureFlagXaiOauthLiveModelDiscoveryDescription": "__MISSING__:Fetch the live xAI model catalog for xai-oauth connections from https://api.x.ai/v1/models using the OAuth bearer token, instead of the frozen static seed. Off by default: xai-oauth keeps serving the static seed unchanged. On any resolution error, discovery falls back to the seed.",
-  "featureFlagDbHealthcheckStartupDeferredEnabledDescription": "__MISSING__:Run the startup database integrity/health check after the server starts accepting requests instead of blocking startup until it completes. Off by default: startup blocks on the check exactly like before this change, so a corrupt database is still caught before the first request is served.",
+  "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Erlaubt dem automatischen Bereinigungslauf, abgeschlossene Batch-API-Aufträge (completed/failed/cancelled/expired), die älter als OMNIROUTE_BATCH_RETENTION_DAYS sind, zusammen mit ihren zeilenweisen Prüfpunkten zu löschen und den BLOB-Inhalt hochgeladener Dateien nach Ablauf ihres jeweiligen expires_at zu leeren. Standardmäßig deaktiviert: Jede bestehende Installation behält diese Daten genau wie bisher, bis ein Betreiber die Funktion aktiviert. Die vom Betreiber ausgelöste Route DELETE /api/v1/batches/delete-completed bleibt unabhängig davon unverändert – sie ist ein separater, uneingeschränkter öffentlicher API-Vertrag.",
+  "featureFlagXaiOauthLiveModelDiscoveryDescription": "Ruft für xai-oauth-Verbindungen den aktuellen xAI-Modellkatalog mit dem OAuth-Bearer-Token von https://api.x.ai/v1/models ab, anstatt den unveränderlichen statischen Ausgangsbestand zu verwenden. Standardmäßig deaktiviert: xai-oauth stellt weiterhin unverändert den statischen Ausgangsbestand bereit. Bei jedem Auflösungsfehler greift die Erkennung auf den Ausgangsbestand zurück.",
+  "featureFlagDbHealthcheckStartupDeferredEnabledDescription": "Führt die Integritäts-/Zustandsprüfung der Datenbank beim Start erst aus, nachdem der Server Anfragen annimmt, anstatt den Start bis zum Abschluss der Prüfung zu blockieren. Standardmäßig deaktiviert: Der Start wird durch die Prüfung genau wie vor dieser Änderung blockiert, sodass eine beschädigte Datenbank weiterhin erkannt wird, bevor die erste Anfrage verarbeitet wird.",
   "sidebar": {
     "home": "Zuhause",
     "dashboard": "Dashboard",
@@ -3288,6 +3288,10 @@
     "models": "Modelle",
     "autoBalance": "Automatischer Ausgleich",
     "advancedSettings": "Erweiterte Einstellungen",
+    "targetTimeout": "Ziel-Timeout (Sekunden)",
+    "comboTimeout": "Combo-Timeout (Sekunden)",
+    "inheritRequestTimeout": "übernehmen",
+    "inheritComboSafetyTimeout": "übernehmen (10 Min.)",
     "retryDelay": "Wiederholungsverzögerung (ms)",
     "concurrencyPerModel": "Parallelität / Modell",
     "queueTimeout": "Warteschlangen-Timeout (ms)",
@@ -3434,6 +3438,8 @@
       "failoverBeforeRetry": "Wenn diese Option aktiviert ist, löst jeder Upstream-Fehler ein sofortiges Failover zum nächsten Kombinationsziel aus, wobei alle Wiederholungsversuche und Fallback-URLs übersprungen werden.",
       "maxSetRetries": "Anzahl der Wiederholungsversuche mit dem vollständigen Zielsatz, wenn jedes Ziel fehlschlägt. 0 = kein Wiederholungsversuch auf festgelegter Ebene.",
       "setRetryDelayMs": "Verzögerung zwischen Wiederholungsversuchen auf Satzebene, sodass vorübergehende Probleme Zeit zur Lösung haben.",
+      "targetTimeoutMs": "Optionaler Timeout pro Ziel. Wenn leer, wird der aktuelle Anfrage-Timeout übernommen; höhere Werte werden auf diesen Timeout begrenzt.",
+      "comboTimeoutMs": "Optionales Gesamtzeitbudget für das gesamte Combo über alle Failover-Ziele hinweg. Wenn leer, bleibt der 10-minütige Schutz vor Hängen bestehen; ein positiver Wert ersetzt ihn. Dieser Wert sollte länger als der Ziel-Timeout sein, damit noch Zeit für Failover bleibt.",
       "disableSessionStickiness": "Bei jeder Anfrage zu einer anderen Verbindung wechseln, anstatt eine gesamte Konversation anhand des Hashs der ersten Nachricht an eine Verbindung zu binden. Überschreibt den globalen Standardwert. Auf „Inherit“ belassen, um Prompt-Cache-Treffer für Multi-Turn-Chats beizubehalten."
     },
     "templatesTitle": "Schnellvorlagen",
@@ -5966,6 +5972,8 @@
     "validationModelIdHint": "Modell, das zur Überprüfung des API-Schlüssels verwendet wird. Leer lassen, um das erste verfügbare Modell des Anbieters zu verwenden.",
     "validationModelIdLabel": "Validierungsmodell",
     "validationModelIdPlaceholder": "z. B. meta-llama/llama-3.1-8b-instruct",
+    "vertexCredentialLabel": "API-Key oder Service-Account-JSON",
+    "vertexCredentialHint": "API-Keys verwenden den kuratierten Projektkatalog. Ein Service-Account-JSON aktiviert die Live-Erkennung im Model Garden.",
     "vertexServiceAccountPlaceholder": "Füge dein Service-Account-JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) oder ein OAuth-access_token ein",
     "webCookieProviders": "Web-Cookie-Anbieter",
     "weeklyShort": "Wöchentl.",
@@ -6482,9 +6490,7 @@
     "savedModelEndpointSettings": "Einstellungen für den gespeicherten Modell-Endpunkt",
     "searchByModelAria": "Nach Modell suchen",
     "selectSupportedEndpoint": "Wählen Sie mindestens einen unterstützten Endpunkt aus",
-    "antigravityClientProfileHarness": "Testsystem / CLI",
-    "vertexCredentialLabel": "API-Key oder Service-Account-JSON",
-    "vertexCredentialHint": "API-Keys verwenden den kuratierten Projektkatalog. Ein Service-Account-JSON aktiviert die Live-Erkennung im Model Garden."
+    "antigravityClientProfileHarness": "Testsystem / CLI"
   },
   "settings": {
     "title": "Einstellungen",
@@ -7202,6 +7208,12 @@
     "maxRetriesLabel": "Max. Wiederholungsversuche",
     "retryDelayLabel": "Wiederholungsverzögerung (ms)",
     "timeoutLabel": "Zeitüberschreitung (ms)",
+    "targetTimeout": "Ziel-Timeout (Sekunden)",
+    "comboTimeout": "Combo-Timeout (Sekunden)",
+    "inheritRequestTimeout": "Anfrage-Timeout übernehmen",
+    "inheritComboSafetyTimeout": "10-minütigen Schutz vor Hängen übernehmen",
+    "targetTimeoutHint": "Combo-Ziele übernehmen standardmäßig den aktuellen Anfrage-Timeout. Legen Sie hier nur dann einen niedrigeren Wert fest, wenn Sie einen schnelleren Fallback wünschen.",
+    "comboTimeoutHint": "Gesamtzeitbudget für das gesamte Combo über alle Failover-Ziele hinweg. Wenn leer, bleibt der 10-minütige Schutz vor Hängen bestehen. Dieser Wert sollte länger als der Ziel-Timeout sein, damit noch Zeit für Failover bleibt.",
     "healthCheck": "Gesundheitscheck",
     "healthCheckDesc": "Überprüfen Sie vorab die Verfügbarkeit des Anbieters",
     "trackMetrics": "Verfolgen Sie Metriken",
@@ -8596,7 +8608,11 @@
       },
       "compressToolResults": {
         "label": "Proaktiv lange Tool-Ergebnisse kürzen",
-        "description": "Trimmt die Toolergebnisse über 2.000 Zeichen während der Lite-Kompression. Der Notüberlauf-Schutz kann den Inhalt weiterhin kürzen, wenn der Kontext das Modellbudget überschreitet."
+        "description": "Kürzt lange Tool-Ergebnisse während der Lite-Kompression. Die Obergrenze setzt das Feld „Maximale Tool-Ergebnis-Länge“ (oder OMNIROUTE_LITE_MAX_TOOL_LENGTH, wenn das Feld leer ist). Der Notüberlauf-Schutz kann den Inhalt weiter kürzen, wenn der Kontext das Modellbudget überschreitet."
+      },
+      "maxToolLength": {
+        "label": "Maximale Tool-Ergebnis-Länge",
+        "description": "Zeichenobergrenze für die vorausschauende Kürzung von Tool-Ergebnissen. Standard 2000. Überschreiben mit OMNIROUTE_LITE_MAX_TOOL_LENGTH, wenn das Feld leer ist."
       }
     },
     "engineFields": {
@@ -11365,6 +11381,8 @@
       "copy": "Kopieren",
       "autoscrollOn": "Autoscroll: ein",
       "autoscrollOff": "Autoscroll: aus",
+      "rawViewOn": "Rohansicht: ein",
+      "rawViewOff": "Rohansicht: aus",
       "collapseAllLevels": "Alle einklappen",
       "collapseOneLevel": "Eine Ebene einklappen",
       "currentExpandLevel": "Aktuelle Ausklappebene",
@@ -11432,9 +11450,7 @@
       "correlationIdValue": "Korrelations-ID: {id}",
       "detailedPayloadInfo": "Aktivieren Sie zuerst das detaillierte Protokollieren, wenn Sie die vierstufige Client/Provider-Payload-Ansicht für neue Anfragen wünschen.",
       "copyAll": "Alle kopieren",
-      "copiedAll": "Alles kopiert",
-      "rawViewOff": "__MISSING__:Raw view: off",
-      "rawViewOn": "__MISSING__:Raw view: on"
+      "copiedAll": "Alles kopiert"
     }
   },
   "proxyLogger": {

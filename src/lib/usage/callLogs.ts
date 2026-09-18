@@ -909,3 +909,42 @@ export async function exportCallLogsSince(since: string) {
   }
   return logs;
 }
+
+/**
+ * Total number of call_logs rows with timestamp >= `since` — a cheap
+ * aggregate query, no row hydration. Used by /api/logs/export to report
+ * `totalAvailable` without paying the cost of hydrating every row (#13123).
+ */
+export function countCallLogsSince(since: string): number {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT COUNT(*) AS count FROM call_logs WHERE timestamp >= ?")
+    .get(since) as { count: number };
+  return row.count;
+}
+
+/**
+ * Streams up to `limit` hydrated call logs with timestamp >= `since`, most
+ * recent first, one at a time. Only fetches the id list eagerly (small — just
+ * strings) and bounds it with SQL LIMIT; each full log entry (which can
+ * include large request/response artifacts via `getCallLogById`) is only
+ * hydrated and held in memory long enough to be yielded (#13123: the previous
+ * `exportCallLogsSince()` + slice-after-fetch approach hydrated and buffered
+ * every matching row — including rows beyond the cap — before the row cap
+ * was ever applied, which is what left the peak V8 heap unchanged).
+ */
+export async function* iterateCallLogsSince(
+  since: string,
+  limit: number
+): AsyncGenerator<unknown, void, void> {
+  const db = getDbInstance();
+  const ids = db
+    .prepare("SELECT id FROM call_logs WHERE timestamp >= ? ORDER BY timestamp DESC LIMIT ?")
+    .all(since, limit)
+    .map((row) => String((row as { id: string }).id));
+
+  for (const id of ids) {
+    const log = await getCallLogById(id);
+    if (log) yield log;
+  }
+}

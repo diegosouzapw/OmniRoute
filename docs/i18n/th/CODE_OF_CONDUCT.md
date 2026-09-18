@@ -4,61 +4,44 @@
 
 ---
 
-## Our Pledge
+## คำมั่นสัญญาของเรา
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+พวกเราในฐานะสมาชิก ผู้มีส่วนร่วม และผู้นำ ขอให้คำมั่นว่าจะทำให้การมีส่วนร่วมในชุมชนของเราเป็นประสบการณ์ที่ปราศจากการคุกคามสำหรับทุกคน โดยไม่คำนึงถึงอายุ รูปร่างหรือขนาดของร่างกาย ความพิการที่มองเห็นได้หรือมองไม่เห็น เชื้อชาติ ลักษณะทางเพศ อัตลักษณ์และการแสดงออกทางเพศ ระดับประสบการณ์ การศึกษา สถานะทางเศรษฐกิจและสังคม สัญชาติ รูปลักษณ์ภายนอก เชื้อชาติ ศาสนา หรืออัตลักษณ์และรสนิยมทางเพศ
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+เราขอให้คำมั่นว่าจะประพฤติและมีปฏิสัมพันธ์ในลักษณะที่ส่งเสริมชุมชนที่เปิดกว้าง เป็นมิตร มีความหลากหลาย ไม่แบ่งแยก และมีสุขภาวะที่ดี
 
-## Our Standards
+## มาตรฐานของเรา
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+ตัวอย่างพฤติกรรมที่ส่งเสริมสภาพแวดล้อมเชิงบวกให้แก่ชุมชนของเรา ได้แก่:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- แสดงความเห็นอกเห็นใจและความเมตตาต่อผู้อื่น
+- เคารพความคิดเห็น มุมมอง และประสบการณ์ที่แตกต่าง
+- ให้ข้อเสนอแนะที่สร้างสรรค์และน้อมรับอย่างเหมาะสม
+- ยอมรับผิดและขอโทษผู้ที่ได้รับผลกระทบจากความผิดพลาดของเรา
+  รวมถึงเรียนรู้จากประสบการณ์ดังกล่าว
+- มุ่งเน้นสิ่งที่ดีที่สุด ไม่ใช่เพียงสำหรับเราในฐานะปัจเจกบุคคล แต่สำหรับ
+  ชุมชนโดยรวมด้วย
 
-Examples of unacceptable behavior include:
+ตัวอย่างพฤติกรรมที่ไม่สามารถยอมรับได้ ได้แก่:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- การใช้ภาษาหรือภาพที่สื่อไปในทางเพศ รวมถึงการแสดงความสนใจหรือ
+  การล่วงเกินทางเพศทุกรูปแบบ
+- การก่อกวน การแสดงความคิดเห็นเชิงดูหมิ่นหรือเหยียดหยาม และการโจมตีส่วนบุคคลหรือทางการเมือง
+- การคุกคามทั้งในที่สาธารณะหรือเป็นการส่วนตัว
+- การเผยแพร่ข้อมูลส่วนตัวของผู้อื่น เช่น ที่อยู่จริงหรือที่อยู่
+  อีเมล โดยไม่ได้รับอนุญาตอย่างชัดแจ้งจากเจ้าของข้อมูล
+- พฤติกรรมอื่นใดที่อาจถือได้อย่างสมเหตุสมผลว่าไม่เหมาะสมใน
+  สภาพแวดล้อมทางวิชาชีพ
 
-## Enforcement Responsibilities
+## ความรับผิดชอบในการบังคับใช้
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+ผู้นำชุมชนมีหน้าที่ชี้แจงและบังคับใช้มาตรฐานด้านพฤติกรรมที่ยอมรับได้ของเรา และจะดำเนินมาตรการแก้ไขที่เหมาะสมและเป็นธรรมเพื่อตอบสนองต่อพฤติกรรมใดๆ ที่พวกเขาเห็นว่าไม่เหมาะสม คุกคาม ก้าวร้าว หรือเป็นอันตราย
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+ผู้นำชุมชนมีสิทธิและหน้าที่ในการลบ แก้ไข หรือปฏิเสธความคิดเห็น คอมมิต โค้ด การแก้ไขวิกิ ประเด็นปัญหา และการมีส่วนร่วมอื่นๆ ที่ไม่สอดคล้องกับหลักปฏิบัตินี้ และจะแจ้งเหตุผลของการตัดสินใจดูแลจัดการเมื่อเห็นสมควร
 
-## Scope
+## ขอบเขต
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+จรรยาบรรณนี้มีผลบังคับใช้ภายในพื้นที่ชุมชนทั้งหมด และยังมีผลเมื่อบุคคลใดบุคคลหนึ่งเป็นตัวแทนของชุมชนอย่างเป็นทางการในพื้นที่สาธารณะ ตัวอย่างของการเป็นตัวแทนชุมชนของเรา ได้แก่ การใช้ที่อยู่อีเมลอย่างเป็นทางการ การโพสต์ผ่านบัญชีโซเชียลมีเดียอย่างเป็นทางการ หรือการปฏิบัติหน้าที่ในฐานะตัวแทนที่ได้รับการแต่งตั้งในงานออนไลน์หรือออฟไลน์
 
 ## Enforcement
 
@@ -70,51 +53,33 @@ All complaints will be reviewed and investigated promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-## Enforcement Guidelines
+## แนวทางการบังคับใช้
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+ผู้นำชุมชนจะปฏิบัติตามแนวทางด้านผลกระทบต่อชุมชนเหล่านี้ในการพิจารณาผลที่ตามมาจากการกระทำใดๆ ที่เห็นว่าเป็นการละเมิดจรรยาบรรณนี้:
 
-### 1. Correction
+### 1. การแก้ไข
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**ผลกระทบต่อชุมชน**: การใช้ภาษาที่ไม่เหมาะสมหรือพฤติกรรมอื่นที่ถือว่าไม่เป็นมืออาชีพหรือไม่เป็นที่ยอมรับในชุมชน
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**ผลที่ตามมา**: คำเตือนเป็นลายลักษณ์อักษรแบบส่วนตัวจากผู้นำชุมชน โดยให้ความชัดเจนเกี่ยวกับลักษณะของการละเมิดและอธิบายเหตุผลว่าทำไมพฤติกรรมนั้นจึงไม่เหมาะสม ทั้งนี้ อาจมีการร้องขอให้กล่าวคำขอโทษต่อสาธารณะ
 
-### 2. Warning
+### 2. คำเตือน
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**ผลกระทบต่อชุมชน**: การละเมิดที่เกิดจากเหตุการณ์เดียวหรือการกระทำต่อเนื่องหลายครั้ง
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**ผลที่ตามมา**: คำเตือนที่ระบุผลที่จะตามมาหากยังคงมีพฤติกรรมดังกล่าว ห้ามมีปฏิสัมพันธ์กับบุคคลที่เกี่ยวข้อง รวมถึงการมีปฏิสัมพันธ์โดยไม่ได้รับเชิญกับผู้ที่บังคับใช้จรรยาบรรณ เป็นระยะเวลาที่กำหนด ซึ่งรวมถึงการหลีกเลี่ยงปฏิสัมพันธ์ในพื้นที่ของชุมชน ตลอดจนช่องทางภายนอก เช่น สื่อสังคมออนไลน์ การละเมิดข้อกำหนดเหล่านี้อาจนำไปสู่การระงับสิทธิ์ชั่วคราวหรือถาวร
 
-### 3. Temporary Ban
+### 3. การระงับสิทธิ์ชั่วคราว
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**ผลกระทบต่อชุมชน**: การละเมิดมาตรฐานของชุมชนอย่างร้ายแรง รวมถึงการมีพฤติกรรมที่ไม่เหมาะสมอย่างต่อเนื่อง
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**ผลที่ตามมา**: การระงับสิทธิ์ชั่วคราวจากการมีปฏิสัมพันธ์หรือการสื่อสารสาธารณะทุกรูปแบบกับชุมชนเป็นระยะเวลาที่กำหนด ในระหว่างช่วงเวลาดังกล่าว ไม่อนุญาตให้มีปฏิสัมพันธ์ทั้งต่อสาธารณะหรือเป็นการส่วนตัวกับบุคคลที่เกี่ยวข้อง รวมถึงการมีปฏิสัมพันธ์โดยไม่ได้รับเชิญกับผู้ที่บังคับใช้จรรยาบรรณ การละเมิดข้อกำหนดเหล่านี้อาจนำไปสู่การระงับสิทธิ์ถาวร
 
-### 4. Permanent Ban
+### 4. การระงับสิทธิ์ถาวร
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**ผลกระทบต่อชุมชน**: การแสดงให้เห็นถึงรูปแบบของการละเมิดมาตรฐานของชุมชน รวมถึงการมีพฤติกรรมที่ไม่เหมาะสมอย่างต่อเนื่อง การคุกคามบุคคล หรือการแสดงความก้าวร้าวหรือดูหมิ่นบุคคลบางกลุ่ม
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**ผลที่ตามมา**: การระงับสิทธิ์ถาวรจากการมีปฏิสัมพันธ์ต่อสาธารณะทุกรูปแบบภายในชุมชน
 
 ## Attribution
 

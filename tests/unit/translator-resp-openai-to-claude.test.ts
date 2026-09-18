@@ -15,6 +15,14 @@ function createState() {
   };
 }
 
+/** State carrying explicit client thinking intent (thinking:{type:"enabled"}). */
+function createThinkingState() {
+  return {
+    ...createState(),
+    requestedThinking: true,
+  };
+}
+
 function flatten(items) {
   return items.flatMap((item) => item || []);
 }
@@ -52,7 +60,7 @@ test("OpenAI stream: text delta starts Claude message and closes cleanly on stop
 });
 
 test("OpenAI stream: reasoning_content closes before text content starts", () => {
-  const state = createState();
+  const state = createThinkingState();
   const reasoning = openaiToClaudeResponse(
     {
       id: "chatcmpl-2",
@@ -76,6 +84,37 @@ test("OpenAI stream: reasoning_content closes before text content starts", () =>
   assert.equal(result[3].type, "content_block_stop");
   assert.equal(result[4].content_block.type, "text");
   assert.equal(result[5].delta.text, "Answer");
+});
+
+test("OpenAI stream: reasoning_content is suppressed by default when client did not request thinking", () => {
+  const state = createState();
+  const reasoning = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-2d",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: { reasoning_content: "Plan" }, finish_reason: null }],
+    },
+    state
+  );
+  const text = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-2d",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: { content: "Answer" }, finish_reason: null }],
+    },
+    state
+  );
+  const result = flatten([reasoning, text]);
+
+  assert.equal(
+    result.some(
+      (event) => event.type === "content_block_start" && event.content_block?.type === "thinking"
+    ),
+    false
+  );
+  assert.equal(result[0].type, "message_start");
+  assert.equal(result[1].content_block.type, "text");
+  assert.equal(result[2].delta.text, "Answer");
 });
 
 test("OpenAI stream: internal reasoning replay placeholder stays hidden from Claude thinking block", () => {
@@ -593,4 +632,53 @@ test("OpenAI stream: no XML in content behaves normally", () => {
 
 test("OpenAI stream: null chunk is ignored", () => {
   assert.equal(openaiToClaudeResponse(null, createState()), null);
+});
+
+// Regression for the autocompact 502 empty_response (call logs
+// 1787569671800-5782c0, 1787570213960-d98520): Claude Code sends
+// thinking:{type:"adaptive"} on autocompact. A prior gate (e28d02066) only
+// recognized type === "enabled", so adaptive left requestedThinking false and
+// the translator DROPPED a GLM-5.2 reasoning-only response — no content block
+// survived, and stream.ts:emitClaudeEmptyStreamErrorAndAbort raised a 502.
+// With adaptive now recognized (hasActiveClaudeThinking), reasoning_content
+// must become a thinking block so the stream is never empty.
+test("OpenAI stream: reasoning-only response with thinking:{type:adaptive} is relayed as a thinking block (not empty 502)", () => {
+  // Simulate the chatCore-side decision: adaptive is now treated as thinking
+  // requested (mirrors hasActiveClaudeThinking).
+  const state = createThinkingState();
+  // GLM-5.2 returns ONLY reasoning_content, no content — the autocompact case.
+  const reasoning = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-adaptive-502",
+      model: "glm-5.2",
+      choices: [
+        { index: 0, delta: { reasoning_content: "Compacting context..." }, finish_reason: null },
+      ],
+    },
+    state
+  );
+  const final = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-adaptive-502",
+      model: "glm-5.2",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 100, completion_tokens: 5, total_tokens: 105 },
+    },
+    state
+  );
+  const result = flatten([reasoning, final]);
+
+  // A thinking block MUST be present — this is what prevents the empty-stream
+  // 502 at flush time. With the old enabled-only gate, requestedThinking would
+  // be false and this block would never be emitted.
+  const thinkingStarts = result.filter((e) => e?.content_block?.type === "thinking");
+  assert.ok(
+    thinkingStarts.length >= 1,
+    "adaptive must produce a thinking block so the stream is not empty"
+  );
+  const thinkingDeltas = result.filter((e) => e?.delta?.type === "thinking_delta");
+  assert.equal(thinkingDeltas[0].delta.thinking, "Compacting context...");
+  // The message must finish normally (end_turn), not as an error.
+  const messageDeltas = result.filter((e) => e?.type === "message_delta");
+  assert.equal(messageDeltas[0].delta.stop_reason, "end_turn");
 });

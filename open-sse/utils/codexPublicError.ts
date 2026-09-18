@@ -76,6 +76,7 @@ const CODEX_PUBLIC_ERROR_RULES = new Map<string, CodexPublicErrorRule>([
     "upstream_websocket_connect_failed",
     { type: "provider_error", allowsStatus: exactStatuses(502) },
   ],
+  ["upstream_websocket_closed", { type: "provider_error", allowsStatus: exactStatuses(502) }],
   ["upstream_websocket_error", { type: "provider_error", allowsStatus: exactStatuses(502) }],
   ["usage_limit_reached", { type: "rate_limit_error", allowsStatus: exactStatuses(429) }],
 ]);

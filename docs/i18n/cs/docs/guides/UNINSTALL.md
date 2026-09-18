@@ -4,53 +4,55 @@
 
 ---
 
-This guide covers how to cleanly remove OmniRoute from your system.
+🌐 **Jazyky:** 🇺🇸 [English](./UNINSTALL.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/UNINSTALL.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/UNINSTALL.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/UNINSTALL.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/UNINSTALL.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/UNINSTALL.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/UNINSTALL.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/UNINSTALL.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/UNINSTALL.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/UNINSTALL.md) | 🇪🇸 [Español](../i18n/es/docs/guides/UNINSTALL.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/UNINSTALL.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/UNINSTALL.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/UNINSTALL.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/UNINSTALL.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/UNINSTALL.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/UNINSTALL.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/UNINSTALL.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/UNINSTALL.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/UNINSTALL.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/UNINSTALL.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/UNINSTALL.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/UNINSTALL.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/UNINSTALL.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/UNINSTALL.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/UNINSTALL.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/UNINSTALL.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/UNINSTALL.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/UNINSTALL.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/UNINSTALL.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/UNINSTALL.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/UNINSTALL.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/UNINSTALL.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/UNINSTALL.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/UNINSTALL.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/UNINSTALL.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/UNINSTALL.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/UNINSTALL.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/UNINSTALL.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/UNINSTALL.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/UNINSTALL.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/UNINSTALL.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/UNINSTALL.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/UNINSTALL.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/UNINSTALL.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/UNINSTALL.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/UNINSTALL.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/UNINSTALL.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/UNINSTALL.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/UNINSTALL.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/UNINSTALL.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/UNINSTALL.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/UNINSTALL.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/UNINSTALL.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/UNINSTALL.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/UNINSTALL.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/UNINSTALL.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/UNINSTALL.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/UNINSTALL.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/UNINSTALL.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/UNINSTALL.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/UNINSTALL.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/UNINSTALL.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/UNINSTALL.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/UNINSTALL.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/UNINSTALL.md)
+
+Tato příručka popisuje, jak čistě odebrat OmniRoute ze systému.
 
 ---
 
-## Quick Uninstall (v3.6.2+)
+## Rychlá odinstalace (v3.6.2+)
 
-OmniRoute provides two built-in scripts for clean removal:
+OmniRoute poskytuje dva vestavěné skripty pro čisté odebrání:
 
-### Keep Your Data
+### Zachování dat
 
 ```bash
 npm run uninstall
 ```
 
-This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
+Tento příkaz odebere aplikaci OmniRoute, ale **zachová** vaši databázi, konfigurace, klíče API a nastavení poskytovatelů v adresáři `~/.omniroute/`. Použijte jej, pokud plánujete aplikaci později znovu nainstalovat a chcete zachovat své nastavení.
 
-### Full Removal
+### Úplné odebrání
 
 ```bash
 npm run uninstall:full
 ```
 
-This removes the application **and permanently erases** all data:
+Tento příkaz odebere aplikaci **a trvale vymaže** všechna data:
 
-- Database (`storage.sqlite`)
-- Provider configurations and API keys
-- Backup files
-- Log files
-- All files in the `~/.omniroute/` directory
+- Databázi (`storage.sqlite`)
+- Konfigurace poskytovatelů a klíče API
+- Záložní soubory
+- Soubory protokolů
+- Všechny soubory v adresáři `~/.omniroute/`
 
-> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+> ⚠️ **Varování:** Příkaz `npm run uninstall:full` je nevratný. Všechna vaše připojení k poskytovatelům, kombinace, klíče API a historie využití budou trvale odstraněny.
 
 ---
 
-## Manual Uninstall
+## Ruční odinstalace
 
-### NPM Global Install
+### Globální instalace pomocí NPM
 
 ```bash
-# Remove the global package
+# Odebrání globálního balíčku
 npm uninstall -g omniroute
 
-# (Optional) Remove data directory
+# (Volitelné) Odebrání datového adresáře
 rm -rf ~/.omniroute
 ```
 
-### pnpm Global Install
+### Globální instalace pomocí pnpm
 
 ```bash
 pnpm uninstall -g omniroute
@@ -60,97 +62,97 @@ rm -rf ~/.omniroute
 ### Docker
 
 ```bash
-# Stop and remove the container
+# Zastavení a odebrání kontejneru
 docker stop omniroute
 docker rm omniroute
 
-# Remove the volume (deletes all data)
+# Odebrání svazku (odstraní všechna data)
 docker volume rm omniroute-data
 
-# (Optional) Remove the image
+# (Volitelné) Odebrání obrazu
 docker rmi diegosouzapw/omniroute:latest
 ```
 
 ### Docker Compose
 
 ```bash
-# Stop and remove containers
+# Zastavení a odebrání kontejnerů
 docker compose down
 
-# Also remove volumes (deletes all data)
+# Odebrání také svazků (odstraní všechna data)
 docker compose down -v
 ```
 
-### Electron Desktop App
+### Desktopová aplikace Electron
 
 **Windows:**
 
-- Open `Settings → Apps → OmniRoute → Uninstall`
-- Or run the NSIS uninstaller from the install directory
+- Otevřete `Nastavení → Aplikace → OmniRoute → Odinstalovat`
+- Nebo spusťte odinstalační program NSIS z instalačního adresáře
 
 **macOS:**
 
-- Drag `OmniRoute.app` from `/Applications` to Trash
-- Remove data: `rm -rf ~/Library/Application Support/omniroute`
+- Přetáhněte `OmniRoute.app` z `/Applications` do koše
+- Odeberte data: `rm -rf ~/Library/Application Support/omniroute`
 
 **Linux:**
 
-- Remove the AppImage file
-- Remove data: `rm -rf ~/.omniroute`
+- Odeberte soubor AppImage
+- Odeberte data: `rm -rf ~/.omniroute`
 
-### Source Install (git clone)
+### Instalace ze zdrojového kódu (git clone)
 
 ```bash
-# Remove the cloned directory
+# Odebrání naklonovaného adresáře
 rm -rf /path/to/omniroute
 
-# (Optional) Remove data directory
+# (Volitelné) Odebrání datového adresáře
 rm -rf ~/.omniroute
 ```
 
 ---
 
-## Data Directories
+## Datové adresáře
 
-OmniRoute stores data in the following locations by default:
+OmniRoute ve výchozím nastavení ukládá data do následujících umístění:
 
-| Platform      | Default Path                  | Override                  |
-| ------------- | ----------------------------- | ------------------------- |
-| Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` env var        |
-| Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
-| XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
+| Platforma          | Výchozí cesta                   | Přepsání                             |
+| ------------------ | ------------------------------- | ------------------------------------ |
+| Linux              | `~/.omniroute/`                 | proměnná prostředí `DATA_DIR`        |
+| macOS              | `~/.omniroute/`                 | proměnná prostředí `DATA_DIR`        |
+| Windows            | `%APPDATA%/omniroute/`          | proměnná prostředí `DATA_DIR`        |
+| Docker             | `/app/data/` (připojený svazek) | proměnná prostředí `DATA_DIR`        |
+| Kompatibilní s XDG | `$XDG_CONFIG_HOME/omniroute/`   | proměnná prostředí `XDG_CONFIG_HOME` |
 
-### Files in the data directory
+### Soubory v datovém adresáři
 
-| File/Directory       | Description                                       |
-| -------------------- | ------------------------------------------------- |
-| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
-| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
-| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
-| `call_logs/`         | Request payload archives                          |
-| `backups/`           | Automatic database backups                        |
-| `log.txt`            | Legacy request log (optional)                     |
+| Soubor/adresář       | Popis                                                        |
+| -------------------- | ------------------------------------------------------------ |
+| `storage.sqlite`     | Hlavní databáze (poskytovatelé, kombinace, nastavení, klíče) |
+| `storage.sqlite-wal` | Protokol SQLite pro dopředný zápis (dočasný)                 |
+| `storage.sqlite-shm` | Sdílená paměť SQLite (dočasná)                               |
+| `call_logs/`         | Archivy dat požadavků                                        |
+| `backups/`           | Automatické zálohy databáze                                  |
+| `log.txt`            | Starší protokol požadavků (volitelné)                        |
 
 ---
 
-## Verify Complete Removal
+## Ověření úplného odstranění
 
-After uninstalling, verify there are no remaining files:
+Po odinstalaci ověřte, že nezůstaly žádné soubory:
 
 ```bash
-# Check for global npm package
+# Kontrola globálního balíčku npm
 npm list -g omniroute 2>/dev/null
 
-# Check for data directory
+# Kontrola datového adresáře
 ls -la ~/.omniroute/ 2>/dev/null
 
-# Check for running processes
+# Kontrola spuštěných procesů
 pgrep -f omniroute
 ```
 
-If any process is still running, stop it:
+Pokud je některý proces stále spuštěný, ukončete jej:
 
 ```bash
 pkill -f omniroute
