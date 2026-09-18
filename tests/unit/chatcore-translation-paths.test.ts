@@ -2993,7 +2993,7 @@ test("buildStreamingResponseHeaders drops upstream compression and framing heade
     )
   );
 
-  assert.equal(headers.get("Content-Type"), "text/event-stream");
+  assert.equal(headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.equal(headers.get("Content-Encoding"), null);
   assert.equal(headers.get("Content-Length"), null);
   assert.equal(headers.get("Transfer-Encoding"), null);
@@ -3028,7 +3028,7 @@ test("chatCore strips upstream compression and length headers from streaming res
   });
 
   assert.equal(result.success, true);
-  assert.equal(result.response.headers.get("Content-Type"), "text/event-stream");
+  assert.equal(result.response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.equal(result.response.headers.get("Content-Length"), null);
   assert.equal(result.response.headers.get("X-Upstream-Trace"), "trace-1");
   assert.equal(result.response.headers.get("X-OmniRoute-Cache"), "MISS");

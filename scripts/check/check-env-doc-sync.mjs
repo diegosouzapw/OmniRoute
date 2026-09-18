@@ -272,6 +272,10 @@ const DOC_ONLY_ALLOWLIST = new Set([
   // SQL keyword mentioned in the new VACUUM scheduler docs (#4437).
   // The check's regex picks up the bare word in description text.
   "VACUUM",
+  // Source-code constant (open-sse/services/combo/comboPredicates.ts:35 —
+  // `export const COMBO_LOOP_SAFETY_TIMEOUT_MS = 10 * 60 * 1000`), cited in the
+  // comboTimeoutMs narrative added by #13857. Not operator-configurable.
+  "COMBO_LOOP_SAFETY_TIMEOUT_MS",
 ]);
 
 // Vars present in .env.example but intentionally absent from ENVIRONMENT.md.

@@ -48,8 +48,7 @@
     "TS2322": 1
   },
   "src/app/api/combos/test/route.ts": {
-    "TS2345": 1,
-    "TS2339": 1
+    "TS2345": 1
   },
   "src/app/api/compression/compare/route.ts": {
     "TS2345": 1
@@ -70,11 +69,7 @@
     "TS2554": 1
   },
   "src/app/api/internal/codex-responses-ws/route.ts": {
-    "TS2740": 1,
-    "TS2339": 7
-  },
-  "src/app/api/keys/[id]/route.ts": {
-    "TS2339": 1
+    "TS2339": 4
   },
   "src/app/api/local/redis/start/route.ts": {
     "TS2339": 1

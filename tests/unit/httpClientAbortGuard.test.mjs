@@ -202,3 +202,38 @@ test("installProcessCrashGuard still crashes on genuine errors (no over-swallowi
   assert.notEqual(status, 0, "genuine errors must keep crash semantics");
   assert.doesNotMatch(stdout, /SHOULD_NOT_REACH/);
 });
+
+// A swallowed error is the ONLY evidence it ever happened; logging just
+// code/message throws away the stack. The logger must receive the full
+// error object so the origin stays diagnosable.
+test("installProcessCrashGuard logs the full error object for swallowed errors", async () => {
+  const guardPath = fileURLToPath(
+    new URL("../../src/shared/utils/httpClientAbortGuard.mjs", import.meta.url)
+  );
+  const script = `
+    const { installProcessCrashGuard } = await import(process.argv[1]);
+    installProcessCrashGuard((level, ...args) => {
+      console.log(
+        "LOGARGS",
+        level,
+        args.map((a) => (a instanceof Error ? "Error" : typeof a)).join(",")
+      );
+    });
+    process.emit(
+      "unhandledRejection",
+      Object.assign(new Error("hedge-cancelled"), { name: "AbortError" }),
+      Promise.resolve()
+    );
+  `;
+  const { status, stdout } = await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["--input-type=module", "-e", script, guardPath], {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let out = "";
+    child.stdout.on("data", (d) => (out += d));
+    child.on("close", (status) => resolve({ status, stdout: out }));
+    child.on("error", reject);
+  });
+  assert.equal(status, 0);
+  assert.match(stdout, /LOGARGS warn string,Error/);
+});

@@ -42,8 +42,13 @@ const OPERATION_LEASE_OWNER_PREFIX = "vlo_";
 type ProxyLike = Parameters<typeof runWithProxyContext>[0];
 
 /** A connection with no proxy must go explicitly direct — passing null to
- * runWithProxyContext would inherit an ambient context instead. */
-function runWithConnectionFetch<T>(proxy: ProxyLike, fn: () => T): T {
+ * runWithProxyContext would inherit an ambient context instead.
+ *
+ * `runWithProxyContext` is an untyped `async` JS helper (`Promise<any>`), so the
+ * awaited-callback contract has to be stated here: every call site passes an
+ * async callback and awaits the result. Declaring `fn: () => Promise<T>` keeps
+ * `runWithDirectFetchContext<Promise<T>>` returning `Promise<T>` too. */
+function runWithConnectionFetch<T>(proxy: ProxyLike, fn: () => Promise<T>): Promise<T> {
   return proxy ? runWithProxyContext(proxy, fn) : runWithDirectFetchContext(fn);
 }
 

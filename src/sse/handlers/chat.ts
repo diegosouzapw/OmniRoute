@@ -1430,7 +1430,7 @@ async function handleSingleModelChat(
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
-) {
+): Promise<Response> {
   // 1. Resolve model → provider/model
   const resolved = await resolveModelOrError(
     modelStr,
