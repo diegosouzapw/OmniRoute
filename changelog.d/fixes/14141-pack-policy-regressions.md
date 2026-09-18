@@ -1,0 +1,1 @@
+- **fix(build):** restore the pack-artifact policy entries for the crash guard and allowlist the Antigravity bridge proxy ([#14141](https://github.com/diegosouzapw/OmniRoute/pull/14141))
