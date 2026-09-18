@@ -45,6 +45,13 @@ import {
   rebuildJsonFromForcedStream,
   surfaceFromBaseUrl,
 } from "./opencodeFreeTierContract.ts";
+import {
+  applyMuseSparkMinOutputTokens,
+  createMuseSparkStreamFinishNormalizer,
+  isResponsesTerminalLine,
+  normalizeMuseSparkFinishReason,
+} from "./opencodeMuseSpark.ts";
+import { currentRequestContext, runInRequestContext } from "./opencodeRequestContext.ts";
 import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
 
 // Re-exported: the free-model catalog moved to the contract module (it decides whether the
@@ -163,111 +170,12 @@ export function resolveOpencodeTargetFormat(provider: string, model: string): st
   return getModelTargetFormat(alias, model) || "openai";
 }
 
-/**
- * muse-spark (opencode-go) burns its entire output budget on invisible
- * server-side reasoning before emitting any content. With small caller-set
- * budgets the upstream answers HTTP 200 with an empty message
- * (`{"message":{"role":"assistant"},"finish_reason":null}` and
- * `completion_tokens == max_tokens`) — chatCore then flags the fake success as
- * "Provider returned empty content" / 502 and burns a fallback attempt.
- *
- * Verified live 2026-08-23: max_tokens=64/100 → empty content;
- * 256/512/1024 → content present (hidden reasoning consumed 196–253 of it).
- *
- * Floor raised budgets only — explicit large budgets and non-muse-spark models
- * are untouched, and no budget is synthesized when the caller set none.
- */
-export const MUSE_SPARK_MIN_OUTPUT_TOKENS = 512;
-
-export function applyMuseSparkMinOutputTokens(model: string, body: Record<string, unknown>): void {
-  if (!model.startsWith("muse-spark")) return;
-  const current = body.max_tokens;
-  if (typeof current !== "number" || !Number.isFinite(current)) return;
-  if (current >= MUSE_SPARK_MIN_OUTPUT_TOKENS) return;
-  body.max_tokens = MUSE_SPARK_MIN_OUTPUT_TOKENS;
-}
-
-/**
- * muse-spark's gateway reports `finish_reason:"length"` whenever its hidden
- * reasoning consumed part of the output budget — even when the visible
- * completion is tiny relative to the requested budget (observed: ~270
- * completion tokens on a 128000-token request). OpenAI-protocol clients map a
- * "length" stop onto the caller's own max-tokens cap, so Claude Code aborts a
- * fully-delivered answer with "response exceeded the 128000 output token
- * maximum".
- *
- * Rewrite `length` → `stop` when the reported completion count proves the real
- * token limit was never reached (<90% of the caller's budget). Genuine
- * truncations at the budget are preserved. Streaming frames carry usage before
- * the terminal finish frame, so the completion count is known in time.
- */
-export function normalizeMuseSparkFinishReason(
-  payload: Record<string, unknown>,
-  requestedBudget: number | null,
-  /** Streaming: usage arrives in an earlier frame than the finish frame — caller passes the tracked count here. */
-  completionOverride?: number | null
-): void {
-  const choices = Array.isArray(payload.choices) ? payload.choices : [];
-  for (const choice of choices) {
-    if (!choice || typeof choice !== "object") continue;
-    const record = choice as Record<string, unknown>;
-    if (record.finish_reason !== "length") continue;
-    if (requestedBudget === null || requestedBudget === undefined) continue;
-    const usage = payload.usage as Record<string, unknown> | undefined;
-    const completion =
-      typeof completionOverride === "number"
-        ? completionOverride
-        : typeof usage?.completion_tokens === "number"
-          ? usage.completion_tokens
-          : null;
-    if (completion === null) continue;
-    if (completion < Math.floor(requestedBudget * 0.9)) {
-      record.finish_reason = "stop";
-    }
-  }
-}
-
-/** SSE line normalizer for muse-spark streams: tracks usage, rewrites finish frames. */
-export function createMuseSparkStreamFinishNormalizer(
-  requestedBudget: number | null
-): (dataLine: string) => string {
-  let completionTokens: number | null = null;
-  return (line: string): string => {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("data:") || trimmed.includes("[DONE]")) return line;
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(trimmed.slice(5).trim());
-    } catch {
-      return line;
-    }
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return line;
-    const payload = parsed as Record<string, unknown>;
-    const usage = payload.usage as Record<string, unknown> | undefined;
-    if (usage && typeof usage.completion_tokens === "number") {
-      completionTokens = usage.completion_tokens;
-    }
-    const hadFinish = Array.isArray(payload.choices)
-      ? (payload.choices as Array<Record<string, unknown>>).some(
-          (c) => c && c.finish_reason === "length"
-        )
-      : false;
-    if (!hadFinish) return line;
-    normalizeMuseSparkFinishReason(payload, requestedBudget, completionTokens);
-    return `data: ${JSON.stringify(payload)}`;
-  };
-}
-
-function isResponsesTerminalLine(line: string): boolean {
-  const trimmed = line.trim();
-  if (!trimmed.startsWith("data:")) return false;
-  try {
-    const payload = JSON.parse(trimmed.slice(5).trim()) as Record<string, unknown>;
-    return payload.type === "response.completed";
-  } catch {
-    return false;
-  }
-}
+export {
+  MUSE_SPARK_MIN_OUTPUT_TOKENS,
+  applyMuseSparkMinOutputTokens,
+  createMuseSparkStreamFinishNormalizer,
+  normalizeMuseSparkFinishReason,
+} from "./opencodeMuseSpark.ts";
 
 export class OpencodeExecutor extends BaseExecutor {
   /** Delegates to `isPremiumOpencodeModel`. Exported for testability. */
@@ -275,9 +183,31 @@ export class OpencodeExecutor extends BaseExecutor {
     return isPremiumOpencodeModel(model, provider);
   }
 
-  _requestFormat: string | null = null;
-  /** Set in buildHeaders, which execute() runs before transformRequest. */
-  private _clientSession: string | undefined;
+  /**
+   * The target format and the client session of the request being served. While `execute()`
+   * runs they live in that request's own context (this instance is shared and requests
+   * overlap); outside it they fall back to plain fields, which is how `buildHeaders`,
+   * `buildUrl` and `transformRequest` are exercised on their own.
+   */
+  private _formatFallback: string | null = null;
+  private _sessionFallback: string | undefined;
+  get _requestFormat(): string | null {
+    return currentRequestContext()?.format ?? this._formatFallback;
+  }
+  set _requestFormat(value: string | null) {
+    const context = currentRequestContext();
+    if (context) context.format = value;
+    else this._formatFallback = value;
+  }
+  private get _clientSession(): string | undefined {
+    const context = currentRequestContext();
+    return context ? context.session : this._sessionFallback;
+  }
+  private set _clientSession(value: string | undefined) {
+    const context = currentRequestContext();
+    if (context) context.session = value;
+    else this._sessionFallback = value;
+  }
   private _surface = () => surfaceFromBaseUrl(this.config?.baseUrl);
 
   /**
@@ -483,7 +413,7 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    return withRequestShapeRetry(input, (i) => this.executeOnce(i));
+    return runInRequestContext(() => withRequestShapeRetry(input, (i) => this.executeOnce(i)));
   }
 
   private async executeOnce(input: ExecuteInput) {
