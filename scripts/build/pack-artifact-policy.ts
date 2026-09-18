@@ -54,6 +54,8 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   // server-ws.mjs import (sd_notify helper) — enforced by the closure test
   // tests/unit/pack-artifact-server-ws-closure.test.ts.
   "systemd-notify.mjs",
+  // server-ws.mjs import (process crash guard, #13636) — same closure test.
+  "httpClientAbortGuard.mjs",
   "responses-ws-proxy.mjs",
   "bin/chatgpt-web-codex-mcp.mjs",
   "scripts/dev/sync-env.mjs",
@@ -100,6 +102,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "config/release/wreq-js-rust-notices.md",
   "bin/aliasResolver.mjs",
   "bin/chatgpt-web-codex-mcp.mjs",
+  // #14006: opt-in Antigravity bridge proxy (isMain entrypoint) — shipped via
+  // package.json "files": ["bin/"], so it must be allowed here.
+  "bin/antigravity-bridge.mjs",
   // #7808: ESM loader hook split out of bin/aliasResolver.mjs to silence CodeQL
   // js/incomplete-url-substring-sanitization (the old code built a
   // `data:text/javascript,...` URL dynamically). Loaded via pathToFileURL() at
@@ -201,6 +206,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/main-server-timeouts.mjs",
   // server-ws.mjs import (sd_notify helper) — enforced by the closure test.
   "dist/systemd-notify.mjs",
+  "dist/httpClientAbortGuard.mjs",
   "dist/http-method-guard.cjs",
   // #5452: regression guard — make check:pack-artifact fail loudly if the TLS
   // opt-in sidecar (imported by dist/server-ws.mjs) ever vanishes from the tarball.
