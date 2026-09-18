@@ -15,13 +15,25 @@ export interface OutputStyle {
   description?: string;
   /** Instruction text per intensity. Static / deterministic. */
   levels: { lite: string; full: string; ultra: string };
-  /** Optional per-style boundary clause; when absent the SHARED_BOUNDARIES is used. */
+  /** Optional extra boundary clause, appended AFTER the shared SHARED_BOUNDARIES. */
   boundaries?: string;
+  /** Optional localized `boundaries`, keyed by language code; falls back to `boundaries`. */
+  boundariesI18n?: Record<string, string>;
   /** Locale gate: when set, the style is only offered/honored under this language code. */
   locale?: string;
   /** Optional localized `levels`, keyed by language code. */
   i18n?: Record<string, { lite: string; full: string; ultra: string }>;
 }
+
+/**
+ * The ponytail safety carve-out, verbatim from upstream
+ * (https://github.com/DietrichGebert/ponytail — MIT): lazy compression of CODE
+ * must never cut validation, error handling, security, or accessibility.
+ * `ponytail` and `less-code` shape code, so they ADD this clause on top of the
+ * prose-oriented SHARED_BOUNDARIES rather than replacing it.
+ */
+export const SAFETY_BOUNDARIES =
+  "Never simplify away: input validation at trust boundaries, error handling that prevents data loss, security measures, or accessibility basics.";
 
 /**
  * The Output Style registry. Adding a style = one entry here; the injector and the
@@ -55,6 +67,23 @@ export const OUTPUT_STYLE_CATALOG: Record<string, OutputStyle> = {
     label: "Less code",
     description: "YAGNI ladder: smallest working change, no unrequested abstractions.",
     // Ported from 9router ponytail (ponytailPrompt.js); attribution preserved.
+    // Carries the ponytail safety carve-out (upstream guarantees it; the bare
+    // YAGNI prompt drops guards in upstream's benchmark) in addition to the
+    // shared prose boundaries.
+    boundaries: SAFETY_BOUNDARIES,
+    boundariesI18n: {
+      "pt-BR":
+        "Nunca simplifique removendo: validação de entrada em limites de confiança, tratamento de erros que previne perda de dados, medidas de segurança ou básicos de acessibilidade.",
+      vi: "Không bao giờ đơn giản hóa bằng cách bỏ: xác thực đầu vào tại ranh giới tin cậy, xử lý lỗi chống mất dữ liệu, biện pháp bảo mật hoặc các yêu cầu tối thiểu về khả năng tiếp cận.",
+      ja: "省略してはならないもの：信頼境界での入力バリデーション、データ損失を防ぐエラー処理、セキュリティ対策、アクセシビリティの基本。",
+      id: "Jangan pernah disederhanakan sampai hilang: validasi input di batas kepercayaan, penanganan error yang mencegah kehilangan data, langkah keamanan, atau dasar-dasar aksesibilitas.",
+      es: "Nunca simplifiques quitando: validación de entrada en límites de confianza, manejo de errores que evite pérdida de datos, medidas de seguridad o aspectos básicos de accesibilidad.",
+      de: "Niemals wegsimplifizieren: Eingabevalidierung an Vertrauensgrenzen, Fehlerbehandlung, die Datenverlust verhindert, Sicherheitsmaßnahmen oder Barrierefreiheits-Grundlagen.",
+      fr: "Ne simplifiez jamais au point de retirer : la validation des entrées aux frontières de confiance, la gestion des erreurs qui évite la perte de données, les mesures de sécurité ou les bases de l'accessibilité.",
+      it: "Non semplificare mai rimuovendo: la validazione degli input ai confini di fiducia, la gestione degli errori che previene la perdita di dati, le misure di sicurezza o le basi dell'accessibilità.",
+      ru: "Никогда не упрощай, убирая: валидацию ввода на границах доверия, обработку ошибок, предотвращающую потерю данных, меры безопасности или основы доступности.",
+      zh: "绝不能简化掉：信任边界的输入校验、防止数据丢失的错误处理、安全措施或无障碍基本要求。",
+    },
     levels: {
       lite: `Write the smallest change that satisfies the request. Skip speculative abstractions. ${SHARED_BOUNDARIES}`,
       full: `Act like a lazy senior dev applying YAGNI. Smallest working change only. No unrequested abstractions, no premature generalization, no extra layers, no defensive scaffolding the request did not ask for. Reuse existing code over adding new code. ${SHARED_BOUNDARIES}`,
@@ -123,6 +152,23 @@ export const OUTPUT_STYLE_CATALOG: Record<string, OutputStyle> = {
     label: "Ponytail (lazy senior dev)",
     description:
       "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff.",
+    // The safety carve-out is the part of upstream ponytail that keeps its
+    // benchmark at 100% safety (the bare "one-liners" prompt drops to 95%).
+    // See README: "never cut validation, error handling, security, or accessibility".
+    boundaries: SAFETY_BOUNDARIES,
+    boundariesI18n: {
+      "pt-BR":
+        "Nunca simplifique removendo: validação de entrada em limites de confiança, tratamento de erros que previne perda de dados, medidas de segurança ou básicos de acessibilidade.",
+      vi: "Không bao giờ đơn giản hóa bằng cách bỏ: xác thực đầu vào tại ranh giới tin cậy, xử lý lỗi chống mất dữ liệu, biện pháp bảo mật hoặc các yêu cầu tối thiểu về khả năng tiếp cận.",
+      ja: "省略してはならないもの：信頼境界での入力バリデーション、データ損失を防ぐエラー処理、セキュリティ対策、アクセシビリティの基本。",
+      id: "Jangan pernah disederhanakan sampai hilang: validasi input di batas kepercayaan, penanganan error yang mencegah kehilangan data, langkah keamanan, atau dasar-dasar aksesibilitas.",
+      es: "Nunca simplifiques quitando: validación de entrada en límites de confianza, manejo de errores que evite pérdida de datos, medidas de seguridad o aspectos básicos de accesibilidad.",
+      de: "Niemals wegsimplifizieren: Eingabevalidierung an Vertrauensgrenzen, Fehlerbehandlung, die Datenverlust verhindert, Sicherheitsmaßnahmen oder Barrierefreiheits-Grundlagen.",
+      fr: "Ne simplifiez jamais au point de retirer : la validation des entrées aux frontières de confiance, la gestion des erreurs qui évite la perte de données, les mesures de sécurité ou les bases de l'accessibilité.",
+      it: "Non semplificare mai rimuovendo: la validazione degli input ai confini di fiducia, la gestione degli errori che previene la perdita di dati, le misure di sicurezza o le basi dell'accessibilità.",
+      ru: "Никогда не упрощай, убирая: валидацию ввода на границах доверия, обработку ошибок, предотвращающую потерю данных, меры безопасности или основы доступности.",
+      zh: "绝不能简化掉：信任边界的输入校验、防止数据丢失的错误处理、安全措施或无障碍基本要求。",
+    },
     levels: {
       lite: `# Ponytail (lite)\nBefore writing code: does it need to exist? Does it already exist here? Does the stdlib or an installed dep cover it? Only then: write the minimum. Reuse over rewrite. ${SHARED_BOUNDARIES}`,
       full: `# Ponytail — lazy senior dev\n\nYou are a lazy senior developer. Lazy = efficient, not careless. The best code is the code never written.\n\nBefore writing any code, stop at the first rung that holds:\n1. Does this need to exist? (YAGNI)\n2. Does it already exist in this codebase? Reuse it.\n3. Does the stdlib do this? Use it.\n4. Does a platform feature or installed dep cover it? Use it.\n5. Can it be one line? Make it one line.\n6. Only then: write the minimum that works.\n\nBug fix = root cause, not symptom. Grep every caller of the function you touch; fix the shared function once — one guard there is a smaller diff than one per caller.\n\nRules:\n- No unrequested abstractions. No new deps. No boilerplate.\n- Deletion over addition. Boring over clever. Fewest files.\n- Shortest working diff wins — but only after you understand the problem.\n- Question complex asks: "Do you need X, or does Y cover it?"\n- When two solutions tie, pick the edge-case-correct one. ${SHARED_BOUNDARIES}`,

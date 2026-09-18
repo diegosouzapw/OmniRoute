@@ -5,7 +5,7 @@ import {
   systemFieldIncludesMarker,
 } from "../outputMode.ts";
 import { detectCompressionLanguage } from "../languageDetector.ts";
-import { OUTPUT_STYLE_IDS, outputStyleMeta } from "./catalog.ts";
+import { OUTPUT_STYLE_IDS, outputStyleMeta, type OutputStyle } from "./catalog.ts";
 
 export type OutputStyleLevel = "lite" | "full" | "ultra";
 
@@ -110,16 +110,40 @@ function buildStyleInstructions(resolved: OutputStyleSelectionEntry[], language:
     const meta = outputStyleMeta(id);
     const localized = meta.i18n?.[language];
     const levels = localized ?? meta.levels;
-    // Strip the per-style boundary so SHARED_BOUNDARIES is appended exactly once below.
+    // Strip the per-style boundary so the combined boundary block is appended once below.
     parts.push(levels[level].replace(SHARED_BOUNDARIES, "").trim());
   }
   return parts.join("\n");
 }
 
 /**
+ * Resolve the combined boundary block for a resolved selection, in catalog
+ * order. SHARED_BOUNDARIES is always the base clause — every style keeps it —
+ * and a style that declares `boundaries` contributes its own clause on top
+ * (localized via `boundariesI18n` when available). The two ADD rather than
+ * replace, so a code-shaping style never loses the shared guarantee (e.g.
+ * "keep code blocks, file paths, commands, errors, URLs exact") while gaining
+ * its carve-out. Pure / deterministic (D-A4: static per (selection, language)
+ * so the injected prefix stays prompt-cache-stable).
+ */
+function buildStyleBoundaries(resolved: OutputStyleSelectionEntry[], language: string): string {
+  const clauses: string[] = [SHARED_BOUNDARIES];
+  for (const { id } of resolved) {
+    const meta: OutputStyle = outputStyleMeta(id);
+    const localized = meta.boundariesI18n?.[language];
+    clauses.push(localized ?? meta.boundaries ?? SHARED_BOUNDARIES);
+  }
+  // Deduplicate repeated clauses (e.g. two styles sharing the same carve-out)
+  // while preserving catalog order — keeps the injection minimal and stable.
+  return [...new Set(clauses)].join("\n");
+}
+
+/**
  * Inject one or more output styles deterministically and front-loaded into the system prompt.
  * - Selection resolved in catalog order; unknown/locale-mismatched styles dropped.
- * - SHARED_BOUNDARIES applied once at the end (not per style).
+ * - Boundary block appended once at the end: SHARED_BOUNDARIES plus the
+ *   `boundaries` clause of every style that declares one (localized via
+ *   `boundariesI18n`). Duplicates collapse; catalog order preserved.
  * - Single idempotency marker; re-applying is a no-op.
  * - Content bypass runs once across the whole turn (all-or-nothing); reason recorded.
  */
@@ -133,9 +157,12 @@ export function applyOutputStyles(
     return { body, applied: false, skippedReason: "no_styles" };
   }
 
-  // Single space before the shared boundary so a legacy single-style (terse-prose)
-  // injection stays byte-identical to the old caveman output mode (D-A5 back-compat).
-  const combined = `${buildStyleInstructions(resolved, language)} ${SHARED_BOUNDARIES}`;
+  // Single space before the boundary block so a legacy single-style
+  // (terse-prose) injection stays byte-identical to the old caveman output mode
+  // (D-A5 back-compat): terse-prose declares no `boundaries`, so its block is
+  // exactly SHARED_BOUNDARIES as before. A style that declares one gets the
+  // shared clause AND its own, in catalog order.
+  const combined = `${buildStyleInstructions(resolved, language)} ${buildStyleBoundaries(resolved, language)}`;
   const instruction = `${OUTPUT_STYLE_MARKER}\n${combined}`;
 
   const messages = Array.isArray(body.messages) ? body.messages : null;
