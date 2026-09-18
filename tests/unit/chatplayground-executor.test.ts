@@ -8,8 +8,6 @@ import {
   chatplaygroundExecutor,
   stripChatId,
   buildChatPlaygroundPayload,
-  toOpenAiCompletionEnvelope,
-  enqueueSseCompletion,
 } from "../../open-sse/executors/chatplayground.ts";
 import {
   decodeJwtPayload,
@@ -21,7 +19,6 @@ import {
   clearChatPlaygroundJwtCache,
 } from "../../open-sse/services/chatplaygroundAuth.ts";
 import {
-  CHATPLAYGROUND_FALLBACK_MODELS,
   stripChatPlaygroundPrefix,
   resolveChatPlaygroundEndpoint,
   resolveChatPlaygroundModel,
