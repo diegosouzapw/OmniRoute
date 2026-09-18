@@ -172,6 +172,7 @@ import {
 import { shouldUseMidConversationSystem } from "../executors/claudeIdentity.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
+import { shouldSkipCredentialRefresh } from "./chatCore/skipCredentialRefresh.ts";
 import { checkToolCallingRequiredButUnsupported } from "./chatCore/toolCallingRequiredCheck.ts";
 import {
   supportsMaxTokens,
@@ -4373,7 +4374,8 @@ export async function handleChatCore({
       (providerResponse.status === HTTP_STATUS.UNAUTHORIZED ||
         providerResponse.status === HTTP_STATUS.FORBIDDEN) &&
       !hadStreamOptions && // Skip refresh if failure may be from stream_options removal, not auth
-      !(await shouldIsolateProbeFailures())
+      !(await shouldIsolateProbeFailures()) &&
+      !(await shouldSkipCredentialRefresh(provider, providerResponse))
     ) {
       // Fix A: wrap refreshCredentials in runWithOnPersist so the persist callback
       // executes INSIDE the per-connection mutex held by getAccessToken. This makes
