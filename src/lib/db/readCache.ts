@@ -269,6 +269,58 @@ export function invalidateModelCatalogCache(): void {
 }
 
 /**
+ * Connection fields written by the chat path's error/cooldown machinery.
+ * The unified model catalog builder consumes ONLY `isActive` and
+ * `providerSpecificData.excludedModels` from a connection row (see
+ * src/app/api/v1/models/catalog.ts and hasEligibleConnectionForModel) — none of
+ * the fields below appear anywhere in the catalog build. Writing them is
+ * high-frequency runtime bookkeeping (measured 2026-09-17: ~2.6 writes/min on a
+ * live gateway — 429 cooldowns, markAccountUnavailable, clearAccountError), and
+ * every one of those writes used to bump `modelCatalogCacheVersion` through
+ * `invalidateDbCache("connections")`, dropping the memoized /v1/models body so
+ * the endpoint paid its full ~7 s rebuild on nearly every call.
+ */
+const CONNECTION_RUNTIME_STATE_FIELDS = new Set([
+  "testStatus",
+  "lastError",
+  "lastErrorAt",
+  "lastErrorType",
+  "lastErrorSource",
+  "errorCode",
+  "rateLimitedUntil",
+  "backoffLevel",
+]);
+
+/**
+ * True when an update touches ONLY runtime-state fields, i.e. fields that keep
+ * account selection/cooldown state fresh but cannot change the catalog body.
+ * Fail-closed by construction: an empty update or any field outside the set
+ * (isActive, provider, priority, providerSpecificData, ...) returns false and
+ * the caller falls back to the full catalog invalidation.
+ */
+export function isConnectionRuntimeStateUpdate(data: Record<string, unknown>): boolean {
+  const keys = Object.keys(data);
+  return keys.length > 0 && keys.every((key) => CONNECTION_RUNTIME_STATE_FIELDS.has(key));
+}
+
+/**
+ * Invalidate the connection read caches for a runtime-state write WITHOUT
+ * bumping the model-catalog version. Selection must see new cooldowns/error
+ * state immediately (these caches are the same ones `invalidateDbCache`
+ * clears for the "connections" scope), but the catalog generation is
+ * untouched because none of these fields feed the catalog builder.
+ */
+export function invalidateConnectionRuntimeStateCache(id?: string): void {
+  connectionsCache.invalidate();
+  rawConnectionsCache.invalidate();
+  if (id) {
+    connectionByIdCache.invalidate(id);
+  } else {
+    connectionByIdCache.invalidate();
+  }
+}
+
+/**
  * Invalidate caches (call after writes to any of: settings, pricing,
  * connections, combos, nodes, model capability/context metadata).
  *

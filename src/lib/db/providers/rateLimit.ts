@@ -3,7 +3,7 @@
  */
 
 import { getDbInstance } from "../core";
-import { invalidateDbCache } from "../readCache";
+import { invalidateConnectionRuntimeStateCache, invalidateDbCache } from "../readCache";
 
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
@@ -32,7 +32,9 @@ export function setConnectionRateLimitUntil(connectionId: string, until: number 
   db.prepare(
     "UPDATE provider_connections SET rate_limited_until = ?, updated_at = ? WHERE id = ?"
   ).run(until, new Date().toISOString(), connectionId);
-  invalidateDbCache("connections");
+  // rate_limited_until is runtime cooldown state the catalog never reads; keep
+  // the connection caches fresh without dropping the memoized /v1/models body.
+  invalidateConnectionRuntimeStateCache(connectionId);
 }
 
 /**
