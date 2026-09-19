@@ -37,11 +37,10 @@ const MIGRATION_SQL = fs.readFileSync(
 import { tryOpenSync } from "../../src/lib/db/adapters/driverFactory";
 import type { SqliteAdapter } from "../../src/lib/db/adapters/types";
 const core = await import("../../src/lib/db/core.ts");
-const { syncArenaElo, getArenaEloSyncStatus, stopArenaEloSync } =
+const { syncArenaElo, stopArenaEloSync } =
   await import("../../src/lib/arenaEloSync.ts");
 import type {
   ArenaLeaderboardData,
-  ArenaLeaderboardMap,
   ArenaModelEntry,
 } from "../../src/lib/arenaEloSync.ts";
 
@@ -75,15 +74,6 @@ function makeLeaderboardData(
   category = "text"
 ): ArenaLeaderboardData {
   return { meta: { leaderboard: category, model_count: models.length }, models };
-}
-function makeLeaderboardMap(
-  categories: Partial<Record<string, ArenaModelEntry[]>>
-): ArenaLeaderboardMap {
-  const map: ArenaLeaderboardMap = {};
-  for (const [cat, models] of Object.entries(categories)) {
-    map[cat] = makeLeaderboardData(models ?? [], cat);
-  }
-  return map;
 }
 
 let testAdapter: SqliteAdapter;
