@@ -583,7 +583,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["qwen3.8-max"],
+  },
+  // #14181: the GA `qwen3.8-max` is its own model now (opencode-go ships it).
+  // Same envelope as the preview spec; the preview id is NOT an alias — the two
+  // are distinct upstream models on providers that expose both.
+  "qwen3.8-max": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
   },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,

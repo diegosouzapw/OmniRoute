@@ -46,6 +46,15 @@ export const opencode_goProvider: RegistryEntry = {
     // kimi-k2.7-code declared identically on opencode-zen — see OPENCODE_ZEN_GO_SHARED_MODELS.
     { id: "kimi-k2.6", name: "Kimi K2.6" },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
+    // #14181: the GA qwen3.8-max ships on opencode-go upstream; keep the exact
+    // id (the global deprecation rewrite to -preview caused 401s here).
+    {
+      id: "qwen3.8-max",
+      name: "Qwen3.8 Max",
+      targetFormat: "claude",
+      supportsReasoning: true,
+      supportsVision: false,
+    },
     // #8353: Kimi K3 base + max-effort alias from the OpenCode Go registry.
     { id: "kimi-k3", name: "Kimi K3", supportsReasoning: true, supportedThinkingEfforts: ["max"] },
     { id: "kimi-k3-max", name: "Kimi K3 (max effort)", supportsReasoning: true },
