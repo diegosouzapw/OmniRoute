@@ -20,6 +20,10 @@ interface ErrorResponseBody {
     type?: string;
     code?: string;
     reason?: string;
+    /** Seconds until the caller may retry — only ever set for a resolved FUTURE instant. */
+    retry_after?: number;
+    /** ISO-8601 instant the underlying quota/limit resets — pairs with retry_after. */
+    reset_at?: string;
   };
   upstream_details?: Record<string, unknown> | null; // sanitized upstream provider body
 }
@@ -29,6 +33,8 @@ export type ErrorBodyClassification = {
   type?: string;
   code?: string;
   reason?: string;
+  /** ISO / epoch-ms / Date the underlying quota/limit resets — see resolveRetryAfterInstant(). */
+  retryAfter?: string | number | Date | null;
 };
 
 const PUBLIC_ERROR_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -67,6 +73,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "blackbox_subscription_required",
   "body_exceeds_budget",
   "browser_stream_inconsistent",
+  "budget_exceeded",
   "capability_mismatch",
   "cf_mitigated_challenge",
   "chat_admission_busy",
@@ -322,6 +329,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "upstream_timeout",
   "upstream_websocket_connect_failed",
   "upstream_websocket_error",
+  "usage_limit_exceeded",
   "usage_limit_reached",
   "video_artifact_content_type_invalid",
   "video_artifact_download_failed",
@@ -357,12 +365,44 @@ export function projectPublicErrorIdentifier(value: unknown, fallback: unknown):
 }
 
 /**
+ * Resolve a retryAfter hint (ISO string / epoch-ms number / seconds-duration
+ * number / Date) into the error body's `retry_after` (integer seconds, rounded up,
+ * minimum 1) + `reset_at` (ISO instant) pair. Returns null for anything that is
+ * absent, unparseable, or already in the past — callers MUST omit both fields
+ * rather than emit `retry_after: 0` for a past/invalid input.
+ */
+export function resolveRetryAfterInstant(
+  retryAfter?: string | number | Date | null
+): { retry_after: number; reset_at: string } | null {
+  let ms: number | null = null;
+  if (typeof retryAfter === "number") {
+    if (!Number.isFinite(retryAfter) || retryAfter <= 0) return null;
+    ms = retryAfter < 1_000_000_000 ? Date.now() + retryAfter * 1000 : retryAfter;
+  } else if (typeof retryAfter === "string") {
+    if (retryAfter.trim() === "" || !Number.isNaN(Number(retryAfter))) return null;
+    const parsed = new Date(retryAfter).getTime();
+    ms = Number.isFinite(parsed) ? parsed : null;
+  } else if (retryAfter instanceof Date) {
+    const parsed = retryAfter.getTime();
+    ms = Number.isFinite(parsed) ? parsed : null;
+  }
+  if (ms === null) return null;
+  const now = Date.now();
+  if (ms <= now) return null;
+  return {
+    retry_after: Math.max(Math.ceil((ms - now) / 1000), 1),
+    reset_at: new Date(ms).toISOString(),
+  };
+}
+
+/**
  * Build OpenAI-compatible error response body. Message is always sanitized
  * so callers do not need to remember to strip stack traces themselves.
  * Optional third argument `upstreamDetails` (raw parsed provider body) is
  * sanitized by sanitizeUpstreamDetails before inclusion as `upstream_details`.
  * Optional fourth argument `classification` preserves an explicit type/code
- * instead of re-deriving both from the status-code table.
+ * instead of re-deriving both from the status-code table; a `retryAfter` on it
+ * populates `retry_after`/`reset_at` when it resolves to a future instant.
  */
 export function buildErrorBody(
   statusCode: number,
@@ -376,6 +416,7 @@ export function buildErrorBody(
     typeof classification?.reason === "string" && isSafePublicErrorIdentifier(classification.reason)
       ? classification.reason
       : undefined;
+  const retryAfterFields = resolveRetryAfterInstant(classification?.retryAfter);
 
   const body: ErrorResponseBody = {
     error: {
@@ -383,6 +424,7 @@ export function buildErrorBody(
       type: projectPublicErrorIdentifier(classification?.type, errorInfo.type),
       code: projectPublicErrorIdentifier(classification?.code, errorInfo.code),
       reason: safeReason,
+      ...retryAfterFields,
     },
   };
 
@@ -571,7 +613,7 @@ export function errorResponseWithComboDiagnostics(
   statusCode: number,
   message: string,
   diagnostics: ComboDiagnostics,
-  opts: { code?: string; type?: string } = {}
+  opts: { code?: string; type?: string; retryAfter?: ErrorBodyClassification["retryAfter"] } = {}
 ): Response {
   const safe = sanitizeComboDiagnostics(diagnostics);
   const body = buildErrorBody(statusCode, message, undefined, opts) as ErrorResponseBody & {
@@ -593,6 +635,9 @@ export function errorResponseWithComboDiagnostics(
     "x-omniroute-combo-excluded": excludedHeader,
     "x-omniroute-combo-terminal-reason": toHeaderSafeAscii(safe.terminalReason.slice(0, 200)),
   };
+  if (typeof body.error.retry_after === "number") {
+    headers["Retry-After"] = String(body.error.retry_after);
+  }
 
   if (safe.recovery) {
     headers["x-omniroute-recovery-action"] = safe.recovery.action;
@@ -627,17 +672,11 @@ export function errorResponse(
   message: string,
   classification?: ErrorBodyClassification
 ): Response {
-  return new Response(
-    JSON.stringify(
-      buildErrorBody(statusCode, sanitizeErrorMessage(message), undefined, classification)
-    ),
-    {
-      status: statusCode,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const body = buildErrorBody(statusCode, sanitizeErrorMessage(message), undefined, classification);
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (typeof body.error.retry_after === "number")
+    headers["Retry-After"] = String(body.error.retry_after);
+  return new Response(JSON.stringify(body), { status: statusCode, headers });
 }
 
 /**
@@ -785,6 +824,21 @@ export function parseProseRetryDelayMs(text: unknown): number | null {
   const m = /retry\s+after\s+(\d{1,9})\s*s/i.exec(text);
   const ms = m ? Number.parseInt(m[1], 10) * 1000 : 0;
   return ms > 0 ? Math.min(ms, MAX_PROSE_RETRY_MS) : null;
+}
+
+/**
+ * Combo target drain fallback: read a raw HTTP `Retry-After` header (seconds or an
+ * HTTP-date) into an ISO instant, or null when absent/past/unparseable. Used when a
+ * target's error BODY carries no retry hint at all (quota-reset-timing).
+ */
+export function parseRetryAfterHeader(headers: Headers | null | undefined): string | null {
+  const raw = headers?.get?.("retry-after");
+  if (!raw) return null;
+  const seconds = Number(raw.trim());
+  if (Number.isFinite(seconds) && seconds > 0)
+    return new Date(Date.now() + Math.ceil(seconds) * 1000).toISOString();
+  const ms = Date.parse(raw);
+  return Number.isFinite(ms) && ms > Date.now() ? new Date(ms).toISOString() : null;
 }
 
 /**
@@ -1016,14 +1070,23 @@ export function unavailableResponse(
   const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
   const safeRetryAfterHuman = retryAfterHuman ? sanitizeErrorMessage(retryAfterHuman) : "";
   const msg = safeRetryAfterHuman ? `${safeMessage} (${safeRetryAfterHuman})` : safeMessage;
-  const error = provenance
-    ? { message: msg, retry_after_provenance: retryAfterSec === null ? "none" : "signal" }
-    : { message: msg };
+  // Preserve unavailableResponse's established bare envelope; adding the generic
+  // type/code from buildErrorBody would be an unrelated API-shape change. Only a
+  // concrete future hint adds the two structured timing fields.
+  const retryFields = resolveRetryAfterInstant(retryAfter);
+  const error: {
+    message: string;
+    retry_after?: number;
+    reset_at?: string;
+    retry_after_provenance?: "none" | "signal";
+  } = { message: msg, ...retryFields };
+  if (provenance) error.retry_after_provenance = retryAfterSec === null ? "none" : "signal";
+  const effectiveRetryAfterSec = retryFields?.retry_after ?? retryAfterSec;
   return new Response(JSON.stringify({ error }), {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",
-      ...(retryAfterSec === null ? {} : { "Retry-After": String(retryAfterSec) }),
+      ...(effectiveRetryAfterSec === null ? {} : { "Retry-After": String(effectiveRetryAfterSec) }),
     },
   });
 }

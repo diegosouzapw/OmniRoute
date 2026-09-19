@@ -2354,6 +2354,54 @@ test("handleComboChat normalizes legacy strategy names at runtime", async () => 
   assert.deepEqual(usageCalls, ["model-b"]);
 });
 
+test("handleComboChat surfaces the earliest provider-account reset when every target is unavailable", async () => {
+  const later = new Date(Date.now() + 5 * 60_000).toISOString();
+  const sooner = new Date(Date.now() + 2 * 60_000).toISOString();
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Cooling later",
+    apiKey: "sk-cooling-later",
+    testStatus: "unavailable",
+    rateLimitedUntil: later,
+  });
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Cooling sooner",
+    apiKey: "sk-cooling-sooner",
+    testStatus: "unavailable",
+    rateLimitedUntil: sooner,
+  });
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "provider-pool-cooling-down",
+      strategy: "priority",
+      models: ["openai/model-a", "openai/model-b"],
+    },
+    handleSingleModel: async () => {
+      throw new Error("handleSingleModel should not run when all models are inactive");
+    },
+    isModelAvailable: async () => false,
+    log: createLog(),
+    settings: null,
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as {
+    error: { type?: string; code?: string; retry_after?: number; reset_at?: string };
+  };
+  assert.equal(result.status, 429);
+  assert.equal(payload.error.type, "rate_limit_error");
+  assert.equal(payload.error.code, "ALL_TARGETS_SKIPPED");
+  assert.equal(payload.error.reset_at, sooner);
+  assert.ok(payload.error.retry_after >= 119 && payload.error.retry_after <= 120);
+  assert.equal(result.headers.get("Retry-After"), String(payload.error.retry_after));
+});
+
 test("handleComboChat returns a 503 when every model is unavailable before execution", async () => {
   const result = await handleComboChat({
     body: {},

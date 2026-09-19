@@ -4,7 +4,16 @@
  *
  * @internal — not part of the public combo.ts barrel.
  */
-import { formatRetryAfter, getModelLockoutInfo } from "../accountFallback.ts";
+import {
+  formatRetryAfter,
+  getEarliestRateLimitedUntil,
+  getModelLockoutInfo,
+} from "../accountFallback.ts";
+import {
+  getCachedProviderConnectionById,
+  getCachedProviderConnections,
+} from "../../../src/lib/db/readCache.ts";
+import { getProviderAlias, resolveProviderId } from "../../../src/shared/constants/providers.ts";
 import {
   errorResponse,
   errorResponseWithComboDiagnostics,
@@ -51,6 +60,63 @@ import {
 import { evaluateExecuteTargetGates } from "./executeTargetGates.ts";
 import { executeTargetAttempt } from "./executeTargetAttempt.ts";
 import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./attemptLoopTypes.ts";
+
+/**
+ * Resolve the earliest known connection cooldown across every target's eligible
+ * pool. A target may pin one connection, allowlist several, or leave selection to
+ * the provider pool; all three shapes must participate or provider-level combos
+ * lose the reset time when every account is exhausted. Best-effort by design:
+ * terminal error construction must never become a new database failure.
+ */
+async function computeEarliestSkippedRateLimitedUntil(
+  orderedTargets: AttemptLoopState["orderedTargets"]
+): Promise<string | null> {
+  try {
+    const connectionIds = new Set<string>();
+    const unrestrictedProviders = new Set<string>();
+
+    for (const target of orderedTargets) {
+      if (target.connectionId) {
+        connectionIds.add(target.connectionId);
+        continue;
+      }
+      if (Array.isArray(target.allowedConnectionIds) && target.allowedConnectionIds.length > 0) {
+        for (const id of target.allowedConnectionIds) {
+          if (typeof id === "string" && id.trim()) connectionIds.add(id.trim());
+        }
+        continue;
+      }
+      if (target.provider && target.provider !== "unknown") {
+        unrestrictedProviders.add(target.provider);
+      }
+    }
+
+    const connections = await Promise.all(
+      [...connectionIds].map((id) => getCachedProviderConnectionById(id))
+    );
+    const providerConnections = await Promise.all(
+      [...unrestrictedProviders].map(async (provider) => {
+        const canonical = resolveProviderId(provider);
+        const alias = getProviderAlias(canonical);
+        const ids = new Set([provider, canonical, alias].filter(Boolean));
+        const rows = await Promise.all(
+          [...ids].map((id) => getCachedProviderConnections({ provider: id, isActive: true }))
+        );
+        return rows.flat();
+      })
+    );
+
+    const accounts = [...connections, ...providerConnections.flat()]
+      .filter((connection): connection is Record<string, unknown> => Boolean(connection))
+      .map((connection) => ({
+        rateLimitedUntil:
+          typeof connection.rateLimitedUntil === "string" ? connection.rateLimitedUntil : null,
+      }));
+    return getEarliestRateLimitedUntil(accounts);
+  } catch {
+    return null;
+  }
+}
 
 export type DispatchWithCooldownRetryExtra = {
   maxSetRetries: number;
@@ -452,14 +518,21 @@ export async function dispatchWithCooldownRetry(opts: {
           const quotaSkip = formatQuotaSkipMessage(
             collectQuotaWindowExclusions(state.orderedTargets)
           );
+          const skippedRateLimitedUntil = await computeEarliestSkippedRateLimitedUntil(
+            state.orderedTargets
+          );
           return withQuotaExhaustionClassification(
             errorResponseWithComboDiagnostics(
-              503,
+              skippedRateLimitedUntil ? 429 : 503,
               quotaSkip
                 ? `Service temporarily unavailable: all targets were skipped by pre-dispatch filters (${quotaSkip})`
                 : "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
               buildComboDiag("all_targets_skipped"),
-              { code: "ALL_TARGETS_SKIPPED", type: "service_unavailable" }
+              {
+                code: "ALL_TARGETS_SKIPPED",
+                type: skippedRateLimitedUntil ? "rate_limit_error" : "service_unavailable",
+                retryAfter: skippedRateLimitedUntil,
+              }
             ),
             state.observedFailure ? state.allObservedFailuresQuota : null
           );
@@ -471,11 +544,18 @@ export async function dispatchWithCooldownRetry(opts: {
           fallbackCount: state.fallbackCount,
         });
         recordComboFailure(deps.effectiveSessionId, deps.combo.name);
+        const inactiveRateLimitedUntil = await computeEarliestSkippedRateLimitedUntil(
+          state.orderedTargets
+        );
         return errorResponseWithComboDiagnostics(
-          503,
+          inactiveRateLimitedUntil ? 429 : 503,
           "Service temporarily unavailable: all upstream accounts are inactive",
           buildComboDiag("all_accounts_inactive"),
-          { code: "ALL_ACCOUNTS_INACTIVE", type: "service_unavailable" }
+          {
+            code: "ALL_ACCOUNTS_INACTIVE",
+            type: inactiveRateLimitedUntil ? "rate_limit_error" : "service_unavailable",
+            retryAfter: inactiveRateLimitedUntil,
+          }
         );
       }
 
