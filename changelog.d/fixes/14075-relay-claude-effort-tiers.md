@@ -1,0 +1,1 @@
+- **fix(providers):** declare official Claude thinking-effort tiers on relay/third-party registry entries (Bedrock, Kiro, AgentRouter, GitLab Duo, Anthropic-Messages relays) so suffixed combo ids fold the same way as first-party claude/anthropic ([#14075](https://github.com/diegosouzapw/OmniRoute/pull/14075))
