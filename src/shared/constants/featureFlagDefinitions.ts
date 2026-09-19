@@ -252,11 +252,22 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "OPENCODE_TRANSIENT_FAILOVER_BACKOFF",
-    label: "OpenCode Transient Failover Backoff",
+    key: "OPENCODE_TRANSIENT_FAILOVER_BACKOFF",    label: "OpenCode Transient Failover Backoff",
     description:
       "For the OpenCode multi-account rotation, pause before dispatching to the next account once two consecutive attempts failed with a transient upstream error (5xx or an empty 400 rejection). The pause starts at 1.5s, doubles per further consecutive failure, is capped at 6s per pause and 10s per request, is skipped when the client disconnects, and the failed response body is released before waiting. Off by default: failover stays immediate.",
     descriptionI18nKey: "featureFlagOpencodeTransientFailoverBackoffDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "FLUSH_EMPTY_RETRY_ENABLED",
+    label: "Flush Empty Turn Retry",
+    description:
+      "On translated streaming turns, when the upstream turn carries no usable content (reasoning-only completion or zero valuable chunks), issue bounded retries through the normal credential path (up to `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX`) before anything is exposed to the client. Off by default: empty turns keep the current behavior (empty 200 or empty-content 502).",
+    descriptionI18nKey: "featureFlagFlushEmptyRetryEnabledDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",

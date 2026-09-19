@@ -63,13 +63,25 @@ type EmptyChoicesRejectContext = {
 };
 
 /**
+ * Shared empty-turn core (extracted literally from the #9268 guard below):
+ * a turn is empty when nothing valuable was forwarded AND no valid usage
+ * was accumulated. Imported by the flush-empty-retry classifier so both
+ * sites share one implementation.
+ */
+export function isEmptyTurnCore(
+  forwardedValuableChunk: boolean,
+  hasValidUsage: boolean
+): boolean {
+  return !forwardedValuableChunk && !hasValidUsage;
+}
+
+/**
  * Returns `true` when the empty-stream condition was detected and the caller
  * must abort the stream (controller.error + early return); `false` when the
  * stream legitimately forwarded content/usage and should complete normally.
  */
 export function rejectEmptyChoicesStream(ctx: EmptyChoicesRejectContext): boolean {
-  if (ctx.forwardedValuableChunk || ctx.hasValidUsage) return false;
-
+  if (!isEmptyTurnCore(ctx.forwardedValuableChunk, ctx.hasValidUsage)) return false;
   const error = new Error(
     "Provider returned empty content — stream forwarded no valuable chunks"
   ) as Error & { statusCode: number; code: string };

@@ -68,7 +68,8 @@ describe("isServerOwnedToolLoopEnabled wrapper", () => {
 
 describe("feature-flags-settings count update", () => {
   it("flag count matches updated expected value", () => {
-    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 74);
+    // FLUSH_EMPTY_RETRY_ENABLED (flush empty-turn retry, default off) bumps it to 75.
+    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 75);
   });
 });
 
