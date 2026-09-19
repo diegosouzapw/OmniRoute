@@ -1,3 +1,4 @@
+import { executeProviderRequest as executeProviderRequestFromLeaf } from "./chatCore/executeProviderRequest.ts";
 import {
   extractRequestToolIdentityMap,
   resolveResponseToolNameMap,
@@ -76,7 +77,6 @@ import { getCombosCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
 import {
   resolveAccountSemaphoreKey,
-  resolveAccountSemaphoreMaxConcurrency,
   buildClaudePromptCacheLogMeta,
 } from "./chatCore/executorHelpers.ts";
 import {
@@ -87,8 +87,8 @@ import {
   redactPassthroughThinkingSignatures,
   isClaudeCodeSemanticPassthroughRequest,
 } from "./chatCore/passthroughHelpers.ts";
-import { recoverAnthropicThinkingSignature } from "./chatCore/thinkingSignatureRecovery.ts";
 import { runProviderExecutionPipeline } from "./chatCore/providerExecutionPipeline.ts";
+import { onStreamThrow } from "./chatCore/recoveryPolicy.ts";
 import { runNonStreamingProviderLeg } from "./chatCore/nonStreamingProviderLeg.ts";
 import type { NonStreamingProviderLegResult } from "@/lib/skills/toolLoopTypes.ts";
 import {
@@ -101,8 +101,6 @@ import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import {
   buildStreamingResponseHeaders,
-  materializeDeduplicatedExecutionResult,
-  stripNextMiddlewareControlHeaders,
   stripStaleForwardingHeaders,
 } from "./chatCore/responseHeaders.ts";
 import {
@@ -129,7 +127,6 @@ import { stripStore, usesClaudeBridge } from "./chatCore/agentRouterProtocol.ts"
 import { normalizeClaudeToolsForDispatch } from "./chatCore/claudeToolDefaults.ts";
 import {
   injectCustomSystemPrompt,
-  injectSystemPromptPostTranslation,
   injectSystemPromptPreTranslation,
 } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
@@ -219,33 +216,24 @@ import {
   STREAM_READINESS_MAX_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
-  STREAM_RECOVERY,
   DEFAULT_MAX_TOKENS,
   STREAM_DISCONNECT_GRACE_PERIOD_MS,
 } from "../config/constants.ts";
 import { applyStatusRestatement } from "../config/upstreamStatusRestatement.ts";
-import { createRecoverableStream, makeContinuationBody } from "../services/streamRecovery.ts";
-import { buildContinuationLogHooks } from "./chatCore/recoveryTraceLogging.ts";
-import {
-  resolveResilienceSettings,
-  isStreamRecoveryExplicitlyConfigured,
-} from "@/lib/resilience/settings";
+import { resolveResilienceSettings } from "@/lib/resilience/settings";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
 import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
 import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
-import { readNonStreamingResponseBody } from "./chatCore/nonStreamingResponseBody.ts";
 import {
   createSafeAbortError,
   createStreamingErrorResult,
   isSemaphoreCapacityError,
-  formatStreamRecoveryRetryWarning,
   getSafeErrorMetadata,
   getUpstreamErrorIdentifier,
 } from "./chatCore/streamErrorResult.ts";
-import { wrapReadableStreamWithFinalize } from "./chatCore/streamFinalize.ts";
 import { buildCacheUsageLogMeta } from "./chatCore/cacheUsageMeta.ts";
 import { buildExecutorClientHeaders } from "./chatCore/executorClientHeaders.ts";
 import { getExecutionConnectionId } from "./chatCore/executionCredentials.ts";
@@ -312,11 +300,7 @@ import { recordStreamingUsageStats } from "./chatCore/streamingUsageStats.ts";
 import { recordStreamingCost } from "./chatCore/streamingCost.ts";
 import { isJsonRecord } from "./chatCore/nonStreamingResponseParse.ts";
 import { recordNonStreamingUsageStats } from "./chatCore/nonStreamingUsageStats.ts";
-import {
-  normalizeExecutorResult,
-  executeWithUpstreamStartTimeout,
-  resolveConnectionTimeoutMs,
-} from "./chatCore/upstreamTimeouts.ts";
+import { normalizeExecutorResult } from "./chatCore/upstreamTimeouts.ts";
 import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/db/models";
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { assertExclusiveConnectionLeaseFence } from "@/lib/db/exclusiveConnectionLeases";
@@ -345,25 +329,16 @@ import {
   requiresReasoningReplay,
 } from "../services/reasoningCache.ts";
 import { isCompactResponsesEndpoint } from "../executors/codex.ts";
-import { persistCodexChildQuotaResponse } from "../services/codexAccount/index.ts";
-import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
-import { invalidateGenericQuotaCacheOnStatus } from "../services/genericQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import {
-  withRateLimit,
   updateFromHeaders,
   updateFromResponseBody,
   initializeRateLimits,
-  resolveRequestQueueMaxWaitMs,
 } from "../services/rateLimitManager.ts";
 import * as localLimiterErrors from "../services/rateLimitManager/errors.ts";
-import { rethrowAdmissionError, remainingQueueBudgetMs } from "./chatCore/queueBudget.ts";
-import {
-  acquireMany as acquireConcurrencyGates,
-  markBlocked as markAccountSemaphoreBlocked,
-} from "../services/accountSemaphore.ts";
+import { markBlocked as markAccountSemaphoreBlocked } from "../services/accountSemaphore.ts";
 import {
   lockModel,
   lockModelIfPerModelQuota,
@@ -372,13 +347,11 @@ import {
 } from "../services/accountFallback.ts";
 import { saveIdempotency } from "@/lib/idempotencyLayer";
 import {
-  isModelUnavailableError,
   getNextFamilyFallback,
   isContextOverflowError,
   findLargerContextModel,
   getModelFamily,
 } from "../services/modelFamilyFallback.ts";
-import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 import {
   compressContext,
   estimateTokens,
@@ -404,29 +377,16 @@ import { writeTerminalStatus } from "@/shared/utils/terminalStatus";
 import { extractFacts } from "@/lib/memory/extraction";
 import { handleToolCallExecution } from "@/lib/skills/interception";
 import { MEMORY_BUILTIN_TOOL_NAMES } from "@/lib/skills/memoryBuiltins";
-import { resolveProviderId } from "@/shared/constants/providers";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   buildClaudeCodeCompatibleRequest,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
-import {
-  classifyModelScope429,
-  getModelScopeRetryDelayMs,
-  isModelScopeProvider,
-} from "../services/modelscopePolicy.ts";
-import {
-  incrementRequestCount,
-  incrementTokenUsage,
-  isTpmExhausted,
-} from "../services/geminiRateLimitTracker.ts";
+import { classifyModelScope429, isModelScopeProvider } from "../services/modelscopePolicy.ts";
+import { incrementTokenUsage, isTpmExhausted } from "../services/geminiRateLimitTracker.ts";
+import { computeRequestHash, shouldDeduplicate } from "../services/requestDedup.ts";
 import { getProactiveCompressionRatio } from "@/lib/db/compression";
-
-type ChatCoreExecutorResult = ReturnType<typeof normalizeExecutorResult> & {
-  _executionCredentials?: Record<string, unknown>;
-  _accountSemaphoreRelease?: () => void;
-};
 
 /**
  * #12150 P1b: shape of handleChatCore's optional `videoBridgeLog` param — see
@@ -3033,502 +2993,53 @@ export async function handleChatCore({
     ? computeRequestHash(dedupRequestBody, apiKeyInfo?.id, trustedEffortContext)
     : null;
 
-  const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
-    const execute = async () => {
-      // Upstream body preparation extracted to chatCore/upstreamBody.ts (#3501 — first internal
-      // sub-slice of executeProviderRequest); produces the body sent upstream (payload rules +
-      // tool-limit truncation + prompt_cache_key injection).
-      let bodyToSend = await prepareUpstreamBody({
-        translatedBody,
-        modelToCall,
-        ...trustedEffortContext,
-        provider,
-        targetFormat,
-        credentials: getExecutionCredentials(),
-        log,
-        bypassDefaultToolLimit: isOpencodeClient,
-        isOpencodeClient,
-        rawBody: body,
-        clientRawRequest,
-      });
-
-      // Global System Prompt — SINGLE injection point (post-translation) for
-      // carrier-ful targets. The old unconditional pre-translation pass
-      // (former chatCore injectSystemPrompt call) was removed: it chained
-      // with this pass to inject prefix/suffix 2-3x and dual-wrote
-      // body.system + messages[] on the claude path, which strict upstreams
-      // (HCP-Vision vLLM: "System message must be at the beginning") reject
-      // with 400. Format-aware via targetFormat: messages[] (openai/codex —
-      // prefix FIRST system, suffix LAST), claude `system` field, gemini
-      // `systemInstruction`, responses `instructions`. Carrier-less targets
-      // (kiro user-fold, antigravity Cloud Code envelope) are covered by the
-      // gated PRE-translation pass before translateRequest instead.
-      bodyToSend = injectSystemPromptPostTranslation(bodyToSend, { targetFormat });
-
-      updatePendingScope(pendingScope, {
-        providerRequest: bodyToSend,
-        stage: "payload_prepared",
-      });
-
-      let releaseRawResultAccountSemaphore = () => {};
-      try {
-        const rawResult: ChatCoreExecutorResult = await (async () => {
-          let attempts = 0;
-          const isModelScopeForRequest = isModelScope();
-          const maxAttempts = isModelScopeForRequest ? 3 : provider === "codex" ? 3 : 1;
-
-          while (attempts < maxAttempts) {
-            trace("pre_executor", { attempt: attempts });
-            updatePendingScope(pendingScope, {
-              stage: "sending_to_provider",
-            });
-            const execCreds = getExecutionCredentials();
-            const executionConnectionId = getExecutionConnectionId(execCreds);
-            const attemptConnectionId = executionConnectionId || connectionId;
-            const accountSemaphoreMaxConcurrency = resolveAccountSemaphoreMaxConcurrency(execCreds);
-            const accountSemaphoreKey = resolveAccountSemaphoreKey({
-              provider,
-              model: modelToCall,
-              connectionId: attemptConnectionId,
-              credentials: execCreds,
-            });
-            const canonicalProviderKey = resolveProviderId(String(provider).trim().toLowerCase());
-            const providerConcurrency =
-              resilienceSettings.providerQuotaOverrides[canonicalProviderKey]
-                ?.providerConcurrency ?? 0;
-
-            trace("pre_semaphore", {
-              semaphoreKey: accountSemaphoreKey,
-              max: accountSemaphoreMaxConcurrency,
-            });
-            if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
-              updatePendingScope(pendingScope, {
-                stage: "waiting_account_slot",
-              });
-            }
-            const maxWaitMs = resolveRequestQueueMaxWaitMs(
-              provider,
-              undefined,
-              attemptConnectionId ?? undefined
-            );
-            const gateStartedAt = Date.now();
-            const releaseAccountSemaphore = await acquireConcurrencyGates(
-              [
-                {
-                  key: "global",
-                  maxConcurrency: resilienceSettings.requestQueue.globalConcurrentRequests,
-                },
-                {
-                  key: `provider:${canonicalProviderKey}`,
-                  maxConcurrency: providerConcurrency,
-                },
-                {
-                  key: accountSemaphoreKey || "",
-                  maxConcurrency: accountSemaphoreKey ? accountSemaphoreMaxConcurrency : null,
-                },
-              ],
-              {
-                timeoutMs: maxWaitMs,
-                maxQueueSize: resilienceSettings.requestQueue.maxQueueDepth,
-                signal: streamController.signal,
-              }
-            ).catch(rethrowAdmissionError);
-            const remainingAfterGate = remainingQueueBudgetMs(maxWaitMs, gateStartedAt);
-            trace("post_semaphore", { maxWaitMs, remainingAfterGate });
-            updatePendingScope(pendingScope, {
-              stage: "waiting_rate_limit",
-            });
-
-            try {
-              trace("pre_rate_limit", { connectionId: attemptConnectionId });
-              const rawExecutorResult = await withRateLimit(
-                provider,
-                attemptConnectionId,
-                modelToCall,
-                async () => {
-                  trace("inside_rate_limit", { connectionId: attemptConnectionId });
-                  updatePendingScope(pendingScope, {
-                    stage: "rate_limit_slot_acquired",
-                  });
-                  assertManagedLeaseFence(attemptConnectionId);
-                  return executeWithUpstreamStartTimeout({
-                    executor,
-                    provider,
-                    model: modelToCall,
-                    connectionTimeoutMs: resolveConnectionTimeoutMs(
-                      execCreds?.providerSpecificData
-                    ),
-                    signal: streamController.signal,
-                    log,
-                    execute: (signal) =>
-                      runWithCapture(providerRequestCapture, () =>
-                        executor.execute({
-                          model: modelToCall,
-                          body: bodyToSend,
-                          stream: upstreamStream,
-                          credentials: execCreds,
-                          signal,
-                          log,
-                          extendedContext,
-                          upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-                          clientHeaders: buildExecutorClientHeaders(
-                            clientRawRequest?.headers,
-                            userAgent
-                          ),
-                          clientResponseFormat,
-                          onCredentialsRefreshed,
-                          skipUpstreamRetry,
-                          contextEditing: { enabled: contextEditingEnabled },
-                          correlationId,
-                        })
-                      ),
-                  });
-                },
-                streamController.signal,
-                remainingAfterGate,
-                correlationId ?? undefined,
-                {
-                  executor: executor as unknown as { getTimeoutMs?: () => unknown },
-                  providerSpecificData: execCreds?.providerSpecificData,
-                }
-              );
-              const res = normalizeExecutorResult(rawExecutorResult);
-              trace("post_executor", { status: res?.response?.status });
-
-              if (
-                provider === "codex" &&
-                attemptConnectionId &&
-                !(await shouldIsolateProbeFailures())
-              ) {
-                try {
-                  const persistedQuota = await persistCodexChildQuotaResponse({
-                    connectionId: String(attemptConnectionId),
-                    model: modelToCall || model || requestedModel || "",
-                    headers: normalizeHeaders(res.response.headers),
-                    status: res.response.status,
-                  });
-                  if (persistedQuota) {
-                    execCreds.providerSpecificData = persistedQuota.providerSpecificData;
-                    if (persistedQuota.exhaustionLog) {
-                      log?.debug?.("CODEX", persistedQuota.exhaustionLog);
-                    }
-                  }
-                  if (res.response.status === 429) {
-                    invalidateCodexQuotaCache(String(attemptConnectionId));
-                  }
-                } catch (err) {
-                  const errMessage = err instanceof Error ? err.message : String(err);
-                  log?.debug?.("CODEX", `Failed to persist codex quota state: ${errMessage}`);
-                }
-              } else if (attemptConnectionId && res.response.status === 429) {
-                // Dropped generic quota cache after 429
-                invalidateGenericQuotaCacheOnStatus({
-                  provider,
-                  connectionId: String(attemptConnectionId),
-                  status: res.response.status,
-                  isolateProbe: await shouldIsolateProbeFailures(),
-                });
-              }
-
-              // Track Gemini RPM + RPD request counts for 429 classification
-              if (provider === "gemini") {
-                incrementRequestCount(modelToCall);
-              }
-
-              updatePendingScope(pendingScope, {
-                stage: "provider_response_started",
-              });
-
-              if (
-                stream &&
-                (res.response.ok ||
-                  res.response.status === HTTP_STATUS.UNAUTHORIZED ||
-                  res.response.status === HTTP_STATUS.FORBIDDEN) &&
-                executionConnectionId &&
-                !(await shouldIsolateProbeFailures())
-              ) {
-                const failureDetail = res.response.ok
-                  ? ""
-                  : await res.response
-                      .clone()
-                      .text()
-                      .catch(() => "");
-                recordKeyHealthStatus(res.response.status, execCreds, res.transport, failureDetail);
-              }
-
-              if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
-                const bodyPeek = await res.response
-                  .clone()
-                  .text()
-                  .catch(() => "");
-                const normalizedHeaders = normalizeHeaders(res.response.headers);
-                const decision = classifyModelScope429(bodyPeek, normalizedHeaders);
-                if (decision.retryable) {
-                  const delay = getModelScopeRetryDelayMs(normalizedHeaders, attempts);
-                  log?.warn?.(
-                    "MODELSCOPE_RETRY",
-                    `429 ${decision.kind}; retrying in ${delay}ms (model remaining: ${decision.snapshot.modelRemaining ?? "unknown"})`
-                  );
-                  releaseAccountSemaphore();
-                  await new Promise((r) => setTimeout(r, delay));
-                  attempts++;
-                  continue;
-                }
-              }
-
-              // For streaming: release the semaphore when the client drains or cancels the stream.
-              // Non-2xx streams must drop the slot before returning so the pipeline can rotate
-              // accounts without holding the failed connection's concurrency gate. Do NOT
-              // cancel() the body here — the pipeline clones it (BYOP 422 / toOutcome).
-              if (stream) {
-                const originalBody = res.response.body;
-                const okStatus = res.response.status >= 200 && res.response.status < 300;
-                if (!originalBody || !okStatus) {
-                  releaseAccountSemaphore();
-                  return {
-                    ...res,
-                    _executionCredentials: execCreds,
-                  };
-                }
-
-                // Opt-in transparent stream recovery (free-claude-code port, default OFF).
-                // Only engages for a successful (2xx) stream — an error body must never be
-                // held or replayed. Setting is read once here from the cached resolved
-                // resilience settings; the default path is byte-for-byte unchanged.
-                let streamRecoveryEnabled = false;
-                let continueMidStreamEnabled = false;
-                let throughputWatchdog =
-                  resolveResilienceSettings(null).streamRecovery.throughputWatchdog;
-                if (okStatus) {
-                  try {
-                    // Reuse the request-consolidated settings read (see line ~2076) — no
-                    // second DB/cache hit. Default OFF when the setting is absent.
-                    const sr = resolveResilienceSettings(settings).streamRecovery;
-                    // Fail-closed: the agent-goal-policy heuristic may only ADD recovery
-                    // when the operator has no explicit configuration. If the operator
-                    // explicitly configured stream recovery (env var or DB/settings
-                    // override), that value always wins — the goal policy must never
-                    // re-enable recovery the operator explicitly turned off.
-                    const operatorExplicit = isStreamRecoveryExplicitlyConfigured(settings);
-                    const goalOverride = !operatorExplicit && agentGoalPolicy.streamRecoveryEnabled;
-                    streamRecoveryEnabled = sr.enabled || goalOverride;
-                    continueMidStreamEnabled = sr.continueMidStream === true;
-                    throughputWatchdog = sr.throughputWatchdog;
-                    if (goalOverride && !sr.enabled) {
-                      log?.info?.(
-                        "AGENT_GOAL",
-                        `agentGoalPolicy override: stream recovery enabled for goal request requestId=${traceId} model=${modelToCall || model || requestedModel || "unknown"}`
-                      );
-                    }
-                  } catch {
-                    streamRecoveryEnabled = false;
-                    continueMidStreamEnabled = false;
-                    throughputWatchdog =
-                      resolveResilienceSettings(null).streamRecovery.throughputWatchdog;
-                  }
-                }
-
-                let clientBody: ReadableStream<Uint8Array>;
-                if (streamRecoveryEnabled || throughputWatchdog.enabled) {
-                  // Run the SAME upstream (same account/creds) with a given body and return
-                  // its 2xx stream, or null. Used both by the early-retry re-open (same body)
-                  // and the mid-stream continuation (assistant-prefilled body).
-                  const runUpstreamStream = async (
-                    body: unknown
-                  ): Promise<ReadableStream<Uint8Array> | null> => {
-                    try {
-                      assertManagedLeaseFence(attemptConnectionId);
-                      const retryRaw = await executeWithUpstreamStartTimeout({
-                        executor,
-                        provider,
-                        model: modelToCall,
-                        connectionTimeoutMs: resolveConnectionTimeoutMs(
-                          execCreds?.providerSpecificData
-                        ),
-                        signal: streamController.signal,
-                        log,
-                        execute: (signal) =>
-                          runWithCapture(providerRequestCapture, () =>
-                            executor.execute({
-                              model: modelToCall,
-                              body,
-                              stream: upstreamStream,
-                              credentials: execCreds,
-                              signal,
-                              log,
-                              extendedContext,
-                              upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-                              clientHeaders: buildExecutorClientHeaders(
-                                clientRawRequest?.headers,
-                                userAgent
-                              ),
-                              clientResponseFormat,
-                              onCredentialsRefreshed,
-                              skipUpstreamRetry,
-                              contextEditing: { enabled: contextEditingEnabled },
-                              correlationId,
-                            })
-                          ),
-                      });
-                      const retryRes = normalizeExecutorResult(retryRaw);
-                      const retryOk =
-                        retryRes.response.status >= 200 && retryRes.response.status < 300;
-                      if (retryOk && retryRes.response.body) {
-                        return retryRes.response.body as ReadableStream<Uint8Array>;
-                      }
-                      await retryRes.response.body?.cancel().catch(() => {});
-                      return null;
-                    } catch {
-                      return null;
-                    }
-                  };
-
-                  // Mid-stream continuation (Fase 4.4): re-request with the partial text as an
-                  // assistant prefill. Gated by its own setting and only for OpenAI-compatible
-                  // bodies (makeContinuationBody returns null otherwise).
-                  const continueStream = continueMidStreamEnabled
-                    ? (assistantSoFar: string) => {
-                        const continuationBody = makeContinuationBody(
-                          bodyToSend as Record<string, unknown>,
-                          assistantSoFar
-                        );
-                        return continuationBody
-                          ? runUpstreamStream(continuationBody)
-                          : Promise.resolve(null);
-                      }
-                    : undefined;
-
-                  clientBody = createRecoverableStream(
-                    originalBody as ReadableStream<Uint8Array>,
-                    () => runUpstreamStream(bodyToSend),
-                    {
-                      finalize: releaseAccountSemaphore,
-                      onRetry: (attempt, err) =>
-                        log?.warn?.(
-                          "STREAM_RECOVERY",
-                          formatStreamRecoveryRetryWarning(
-                            attempt,
-                            STREAM_RECOVERY.EARLY_RETRY_MAX,
-                            err
-                          )
-                        ),
-                      continueStream,
-                      ...buildContinuationLogHooks(log),
-                      throughputWatchdog,
-                      onWatchdogAbort: () =>
-                        log?.warn?.(
-                          "STREAM_WATCHDOG",
-                          "active upstream stream stayed below the configured useful-output rate"
-                        ),
-                    }
-                  );
-                } else {
-                  clientBody = wrapReadableStreamWithFinalize(
-                    originalBody,
-                    releaseAccountSemaphore
-                  );
-                }
-
-                return {
-                  ...res,
-                  _executionCredentials: execCreds,
-                  response: new Response(clientBody, {
-                    status: res.response.status,
-                    statusText: res.response.statusText,
-                    headers: new Headers(normalizeHeaders(res.response.headers)),
-                  }),
-                };
-              }
-
-              return {
-                ...res,
-                _executionCredentials: execCreds,
-                _accountSemaphoreRelease: releaseAccountSemaphore,
-              };
-            } catch (error) {
-              releaseAccountSemaphore();
-              throw error;
-            }
-          }
-        })();
-
-        if (stream) {
-          return rawResult;
-        }
-
-        // Non-stream: release semaphore immediately after reading full response body.
-        const status = rawResult.response.status;
-
-        releaseRawResultAccountSemaphore =
-          typeof rawResult._accountSemaphoreRelease === "function"
-            ? rawResult._accountSemaphoreRelease
-            : () => {};
-
-        const statusText = rawResult.response.statusText;
-        const headersObj = normalizeHeaders(rawResult.response.headers);
-        const responseHeaders = new Headers(headersObj);
-        stripStaleForwardingHeaders(responseHeaders);
-        stripNextMiddlewareControlHeaders(responseHeaders);
-        // The upstream headers (turn-state included) are about to be committed
-        // to the client — record which connection minted the blob so a later
-        // cross-account echo can be stripped (Codex failover guard).
-        if (provider === "codex" && readCodexTurnStateHeader(responseHeaders)) {
-          noteCodexTurnStateProvenance(
-            getCodexClientSessionId(clientRawRequest?.headers),
-            rawResult._executionCredentials?.connectionId ?? credentials?.connectionId
-          );
-        }
-        const contentType = (responseHeaders.get("content-type") || "").toLowerCase();
-        const payload = await readNonStreamingResponseBody(
-          rawResult.response,
-          contentType,
-          upstreamStream
-        );
-        // Use the exact execution credential selected for this request. Model capability
-        // failures stay in routing telemetry; authoritative success only recovers this key.
-        if (
-          rawResult._executionCredentials?.connectionId &&
-          (rawResult._executionCredentials.apiKey || rawResult._executionCredentials.accessToken)
-        ) {
-          recordKeyHealthStatus(
-            status,
-            rawResult._executionCredentials,
-            rawResult.transport,
-            status >= 400 ? payload : ""
-          );
-        }
-        releaseRawResultAccountSemaphore();
-        releaseRawResultAccountSemaphore = () => {};
-
-        return {
-          ...rawResult,
-          response: new Response(payload, { status, statusText, headers: responseHeaders }),
-          _dedupSnapshot: {
-            status,
-            statusText,
-            headers: (() => {
-              const arr: [string, string][] = [];
-              responseHeaders.forEach((v, k) => arr.push([k, v]));
-              return arr;
-            })(),
-            payload,
-          },
-        };
-      } catch (error) {
-        releaseRawResultAccountSemaphore();
-        throw error;
-      }
+  const executeProviderRequest = (modelToCall = effectiveModel, allowDedup = false) => {
+    const sendDeps = {
+      agentGoalPolicy,
+      assertManagedLeaseFence,
+      buildUpstreamHeadersForExecute,
+      clientRawRequest,
+      clientResponseFormat,
+      connectionId,
+      correlationId,
+      contextEditingEnabled,
+      credentials,
+      dedupEnabled,
+      dedupHash,
+      effectiveModel,
+      executor,
+      extendedContext,
+      getExecutionCredentials,
+      isClaudePassthrough,
+      isModelScope,
+      isOpencodeClient,
+      log,
+      model,
+      onCredentialsRefreshed,
+      pendingScope,
+      provider,
+      providerRequestCapture,
+      rawBody: body,
+      recordKeyHealthStatus,
+      requestedModel,
+      resilienceSettings,
+      settings,
+      skipUpstreamRetry,
+      stream,
+      streamController,
+      targetFormat,
+      trace,
+      traceId,
+      translatedBody,
+      trustedEffortContext,
+      upstreamStream,
+      userAgent,
     };
-
-    if (allowDedup && dedupEnabled && dedupHash) {
-      const dedupResult = await deduplicate(dedupHash, execute);
-      if (dedupResult.wasDeduplicated) {
-        log?.debug?.("DEDUP", `Joined in-flight request hash=${dedupHash}`);
-      }
-      return materializeDeduplicatedExecutionResult(dedupResult.result);
-    }
-
-    return execute();
+    return executeProviderRequestFromLeaf(
+      sendDeps as unknown as import("./chatCore/executeProviderRequest.ts").ExecuteProviderRequestDeps,
+      modelToCall,
+      allowDedup
+    );
   };
 
   const registeredProviderRequest =
@@ -4038,7 +3549,6 @@ export async function handleChatCore({
     }
   };
 
-  let pipelineRecovered = false;
   if (stream) {
     try {
       const pipelineOutcome = await runProviderExecutionPipeline({
@@ -4139,7 +3649,6 @@ export async function handleChatCore({
           executeProviderRequest(modelToCall, allowDedup),
       });
 
-      pipelineRecovered = true;
       currentModel = pipelineOutcome.model;
       if (pipelineOutcome.kind === "error") {
         providerResponse = pipelineOutcome.result.response;
@@ -4195,6 +3704,7 @@ export async function handleChatCore({
         // fail-open: saturation signal is best-effort
       }
     } catch (error) {
+      onStreamThrow();
       trackPendingRequest(model, provider, connectionId, false);
       const errorMetadata = getSafeErrorMetadata(error);
       const managedLeaseFenceCode = getManagedLeaseFenceErrorCode(errorMetadata.code);
@@ -4587,53 +4097,6 @@ export async function handleChatCore({
         );
       }
 
-      const signatureRecovery = pipelineRecovered
-        ? { attempted: false, succeeded: false, execution: null, error: null, recoveryBody: null }
-        : await recoverAnthropicThinkingSignature({
-            provider,
-            statusCode,
-            message,
-            body: translatedBody,
-            execute: async (recoveryBody) => {
-              translatedBody = recoveryBody as typeof translatedBody;
-              return executeProviderRequest(currentModel, false);
-            },
-            parseError: (response) => parseUpstreamError(response, provider),
-          });
-      if (!pipelineRecovered && signatureRecovery.attempted && signatureRecovery.execution) {
-        providerResponse = signatureRecovery.execution.response;
-        if (signatureRecovery.succeeded) {
-          providerUrl = signatureRecovery.execution.url;
-          providerHeaders = signatureRecovery.execution.headers;
-          finalBody = providerRequestCapture.body(signatureRecovery.execution.transformedBody);
-          reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-          updatePendingScope(pendingScope, {
-            providerRequest: finalBody,
-            providerUrl,
-            stage: "provider_response_started",
-          });
-          log?.info?.(
-            "THINKING_SIGNATURE",
-            `Recovered ${provider}/${currentModel} after one historical-thinking retry`
-          );
-        } else if (signatureRecovery.error) {
-          statusCode = signatureRecovery.error.statusCode;
-          message = signatureRecovery.error.message;
-          retryAfterMs = signatureRecovery.error.retryAfterMs;
-          upstreamErrorBody = signatureRecovery.error.responseBody;
-          upstreamErrorCode =
-            typeof signatureRecovery.error.errorCode === "string"
-              ? signatureRecovery.error.errorCode
-              : undefined;
-          upstreamErrorType =
-            typeof signatureRecovery.error.errorType === "string"
-              ? signatureRecovery.error.errorType
-              : undefined;
-        }
-      }
-
-      if (signatureRecovery.succeeded) break providerFailure;
-
       // #10281 — tiny-budget reasoning probes (e.g. Claude Code's `/model` check
       // sends `max_tokens: 1`): the model burns the whole budget on thinking, and
       // some upstreams (e.g. api.cline.bot for deepseek-v4-flash) answer the empty
@@ -4700,100 +4163,7 @@ export async function handleChatCore({
 
       // Rate limiter updated in applyProviderFailureClassification
 
-      // ── T5: Intra-family model fallback ──────────────────────────────────────
-      // Before returning a model-unavailable error upstream, try sibling models
-      // from the same family. This keeps the request alive on the same account
-      // instead of failing the entire combo.
-      if (!pipelineRecovered && isModelUnavailableError(statusCode, message, provider)) {
-        const nextModel = getNextFamilyFallback(currentModel, triedModels, provider);
-        if (nextModel) {
-          triedModels.add(nextModel);
-          currentModel = nextModel;
-          translatedBody.model = nextModel;
-          log?.info?.(
-            "MODEL_FALLBACK",
-            `${model} unavailable (${statusCode}) → trying ${nextModel}`
-          );
-          // Re-execute with the fallback model
-          try {
-            const fallbackResult = await executeProviderRequest(nextModel, false);
-            if (fallbackResult.response.ok) {
-              providerResponse = fallbackResult.response;
-              providerUrl = fallbackResult.url;
-              providerHeaders = fallbackResult.headers;
-              finalBody = providerRequestCapture.body(fallbackResult.transformedBody);
-              reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-              updatePendingScope(pendingScope, {
-                providerRequest: finalBody,
-                providerUrl,
-                stage: "provider_response_started",
-              });
-              // Continue processing with the fallback response — skip error return
-              log?.info?.("MODEL_FALLBACK", `Serving ${nextModel} as fallback for ${model}`);
-              // Jump to streaming/non-streaming handling below
-              // We fall through by NOT returning here
-            } else {
-              // Fallback also failed — return original error
-              persistAttemptLogs({
-                status: statusCode,
-                error: safeErrMsg,
-                providerRequest: finalBody || translatedBody,
-                providerResponse: safeUpstreamErrorBody,
-                clientResponse: buildErrorBody(statusCode, errMsg),
-                cacheSource: "upstream",
-              });
-              persistFailureUsage(statusCode, "model_unavailable");
-              return createErrorResult(
-                statusCode,
-                errMsg,
-                retryAfterMs,
-                upstreamErrorCode,
-                upstreamErrorType,
-                upstreamErrorBody,
-                { passthrough: sourceFormat === FORMATS.CLAUDE }
-              );
-            }
-          } catch {
-            persistAttemptLogs({
-              status: statusCode,
-              error: safeErrMsg,
-              providerRequest: finalBody || translatedBody,
-              providerResponse: safeUpstreamErrorBody,
-              clientResponse: buildErrorBody(statusCode, errMsg),
-              cacheSource: "upstream",
-            });
-            persistFailureUsage(statusCode, "model_unavailable");
-            return createErrorResult(
-              statusCode,
-              errMsg,
-              retryAfterMs,
-              upstreamErrorCode,
-              upstreamErrorType,
-              upstreamErrorBody,
-              { passthrough: sourceFormat === FORMATS.CLAUDE }
-            );
-          }
-        } else {
-          persistAttemptLogs({
-            status: statusCode,
-            error: safeErrMsg,
-            providerRequest: finalBody || translatedBody,
-            providerResponse: safeUpstreamErrorBody,
-            clientResponse: buildErrorBody(statusCode, errMsg),
-            cacheSource: "upstream",
-          });
-          persistFailureUsage(statusCode, "model_unavailable");
-          return createErrorResult(
-            statusCode,
-            errMsg,
-            retryAfterMs,
-            upstreamErrorCode,
-            upstreamErrorType,
-            upstreamErrorBody,
-            { passthrough: sourceFormat === FORMATS.CLAUDE }
-          );
-        }
-      } else if (isContextOverflowError(statusCode, message)) {
+      if (isContextOverflowError(statusCode, message)) {
         const familyCandidates = getModelFamily(currentModel, provider).filter(
           (m) => m !== currentModel && !triedModels.has(m)
         );
@@ -4912,7 +4282,6 @@ export async function handleChatCore({
           { passthrough: sourceFormat === FORMATS.CLAUDE }
         );
       }
-      // ── End T5 ───────────────────────────────────────────────────────────────
     }
   }
 
@@ -5117,7 +4486,6 @@ export async function handleChatCore({
         return err;
       }
 
-      pipelineRecovered = true;
       const expectedConn = managedLease
         ? String(getCurrentConnectionId() || connectionId || "") || undefined
         : undefined;

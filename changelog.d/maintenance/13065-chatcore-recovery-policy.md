@@ -1,0 +1,2 @@
+- **refactor(sse):** add a chat-core recovery policy as effects plus dispatch
+- **refactor(sse):** drive provider recovery from one policy table
