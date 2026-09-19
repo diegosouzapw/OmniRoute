@@ -14060,7 +14060,12 @@
     "hour": "saat",
     "day": "gün",
     "unknownModel": "naməlum",
-    "pending": "gözləyir"
+    "pending": "gözləyir",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Sıxma",

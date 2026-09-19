@@ -14063,7 +14063,12 @@
     "hour": "jam",
     "day": "hari",
     "unknownModel": "tidak diketahui",
-    "pending": "tertunda"
+    "pending": "tertunda",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Kompresi",

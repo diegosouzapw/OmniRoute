@@ -14060,7 +14060,12 @@
     "hour": "час",
     "day": "ден",
     "unknownModel": "неизвестен",
-    "pending": "в очакване"
+    "pending": "в очакване",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Компресия",
