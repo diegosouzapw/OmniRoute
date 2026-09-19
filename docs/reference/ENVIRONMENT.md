@@ -832,8 +832,8 @@ combo defaults, or provider override only to make combo fallback faster; values 
 current upstream timeout are capped to the upstream timeout.
 
 `comboTimeoutMs` is a separate whole-combo wall-clock budget across failover targets.
-Leave it unset or `0` to keep unlimited iteration (the 10-minute
-`COMBO_LOOP_SAFETY_TIMEOUT_MS` hang-stop still applies). A positive value replaces that
+Leave it unset or `0` to keep unlimited iteration (a 10-minute hardcoded hang-stop in
+`comboPredicates.ts` still applies). A positive value replaces that
 safety net for the combo. Keep `comboTimeoutMs` longer than `targetTimeoutMs` so failover
 still has time after a slow first target.
 
