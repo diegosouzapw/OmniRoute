@@ -429,7 +429,7 @@ export const XAI_MODELS_CONFIG: ProviderModelsConfigEntry = {
  * Resolve the live-discovery config for xai-oauth when the
  * XAI_OAUTH_LIVE_MODEL_DISCOVERY flag is on, or `undefined` when it is off
  * (or its resolution throws) so the caller falls back to the frozen static
- * seed — the flag defaults to "false" and fails closed on any error.
+ * seed — the flag defaults to "true" and fails closed on any error.
  */
 export function getXaiOauthLiveModelsConfig(): ProviderModelsConfigEntry | undefined {
   try {
@@ -444,7 +444,7 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   "alibaba-cn": ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   claude: {
-    url: "https://api.anthropic.com/v1/models",
+    url: "https://api.anthropic.com/v1/models?limit=1000",
     method: "GET",
     headers: {
       "anthropic-version": "2023-06-01",

@@ -138,7 +138,7 @@ test("providerSets.isNamedOpenAIStyleProvider matches Set membership", () => {
 // ── providerModelsConfig leaf ────────────────────────────────────────────────
 
 test("providerModelsConfig.PROVIDER_MODELS_CONFIG keeps core provider entries", () => {
-  assert.equal(PROVIDER_MODELS_CONFIG.claude.url, "https://api.anthropic.com/v1/models");
+  assert.equal(PROVIDER_MODELS_CONFIG.claude.url, "https://api.anthropic.com/v1/models?limit=1000");
   assert.equal(PROVIDER_MODELS_CONFIG["qwen-web"], undefined);
   assert.ok(PROVIDER_MODELS_CONFIG["qwen-cloud"]);
 });
