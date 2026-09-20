@@ -1,0 +1,1 @@
+- **fix(resilience):** treat Grok Build OAuth 403 content refusals as non-terminal request rejections ([#14258](https://github.com/diegosouzapw/OmniRoute/issues/14258))

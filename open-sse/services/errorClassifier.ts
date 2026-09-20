@@ -295,6 +295,14 @@ export function isAnthropicRequestNotAllowed(errorText: string): boolean {
   return /\brequest not allowed\b/i.test(String(errorText || ""));
 }
 
+export function isGrokOAuthProvider(provider?: string | null): boolean {
+  return String(provider || "").toLowerCase() === "grok-cli";
+}
+
+export function isGrokContentRefusal(errorText: string): boolean {
+  return /\bi can['’]t help with that request\b/i.test(String(errorText || ""));
+}
+
 function responseBodyToString(responseBody: unknown): string {
   if (typeof responseBody === "string") return responseBody;
   if (responseBody !== null && typeof responseBody === "object") {
@@ -440,6 +448,13 @@ export function classifyProviderError(
     // Per-request refusal on an otherwise healthy Claude OAuth token — see
     // isAnthropicRequestNotAllowed. Must be checked BEFORE the generic 403 →
     // FORBIDDEN fall-through, which bans the connection permanently.
+    return PROVIDER_ERROR_TYPES.REQUEST_REJECTED;
+  }
+  if (statusCode === 403 && isGrokOAuthProvider(provider) && isGrokContentRefusal(bodyStr)) {
+    // Per-request content refusal on an otherwise healthy Grok Build OAuth token
+    // (e.g. xAI refusal "I can't help with that request" on safety/security prompts).
+    // Must be checked BEFORE the generic 403 → FORBIDDEN fall-through, which bans
+    // the connection permanently.
     return PROVIDER_ERROR_TYPES.REQUEST_REJECTED;
   }
   if (statusCode === 403) {
