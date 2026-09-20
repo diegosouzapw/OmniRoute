@@ -1,1 +1,0 @@
-- **fix(providers):** retired cloud `gemini-cli` connections now fail closed before executor fallback or proxy overrides can route them through another backend.
