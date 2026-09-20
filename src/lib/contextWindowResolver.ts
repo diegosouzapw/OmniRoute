@@ -5,6 +5,10 @@ import {
   setModelContextOverride,
   removeModelContextOverride,
 } from "./db/modelContextOverrides";
+import {
+  getAuthoritativeContextWindow,
+  getAuthoritativeProviderContextWindow,
+} from "../shared/constants/modelSpecs";
 
 /**
  * Feature 5004 — self-correcting context-window reconciler.
@@ -30,6 +34,7 @@ export interface ReconcileDeps {
   getExistingSource: (provider: string, modelId: string) => string | null;
   writeAuto: (provider: string, modelId: string, window: number) => void;
   removeOverride: (provider: string, modelId: string) => void;
+  isAuthoritative?: (provider: string, modelId: string) => boolean;
 }
 
 export interface ReconcileResult {
@@ -57,6 +62,14 @@ export function reconcileContextWindows(
     const existingSource = deps.getExistingSource(provider, modelId);
     if (existingSource === "manual") {
       result.skippedManual++;
+      continue;
+    }
+
+    if (deps.isAuthoritative?.(provider, modelId)) {
+      if (existingSource === "auto:discovery") {
+        deps.removeOverride(provider, modelId);
+        result.removed++;
+      }
       continue;
     }
 
@@ -112,6 +125,9 @@ export async function runContextWindowReconcile(): Promise<ReconcileResult> {
     removeOverride: (provider, modelId) => {
       removeModelContextOverride(provider, modelId);
     },
+    isAuthoritative: (provider, modelId) =>
+      getAuthoritativeProviderContextWindow(provider, modelId) !== null ||
+      getAuthoritativeContextWindow(modelId) !== null,
   });
 }
 
