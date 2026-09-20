@@ -1,0 +1,1 @@
+- fix(claude): forward and auto-detect `anthropic-beta: inline-tools-2026-09-15` when client negotiates it or request contains `tool_removal` content blocks

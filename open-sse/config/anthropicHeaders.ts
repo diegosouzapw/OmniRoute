@@ -65,6 +65,9 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   // gate (#9505), so a client that sent it must keep it through the merge —
   // otherwise its effort negotiation is silently dropped.
   "effort-2025-11-24",
+  // inline-tools-2026-09-15 enables dynamic tool_removal and inline tool modifications
+  // sent by newer Claude Code versions in long-running sessions.
+  "inline-tools-2026-09-15",
 ]);
 
 /**
