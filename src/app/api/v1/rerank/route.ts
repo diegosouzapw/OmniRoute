@@ -69,16 +69,25 @@ async function postHandler(request, context) {
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
 
-  return handleValidatedRerankRequestBody(body, {
-    apiKeyId: policy.apiKeyInfo?.id || null,
-    apiKeyName: policy.apiKeyInfo?.name || null,
-  });
+  return handleValidatedRerankRequestBody(
+    {
+      ...body,
+      documents: body.documents,
+      top_n: typeof body.top_n === "number" ? body.top_n : undefined,
+      return_documents:
+        typeof body.return_documents === "boolean" ? body.return_documents : undefined,
+    },
+    {
+      apiKeyId: policy.apiKeyInfo?.id || null,
+      apiKeyName: policy.apiKeyInfo?.name || null,
+    }
+  );
 }
 
 type ValidatedRerankBody = {
   model: string;
   query: string;
-  documents: Array<string | Record<string, unknown>>;
+  documents: unknown[];
   top_n?: number;
   return_documents?: boolean;
 };
