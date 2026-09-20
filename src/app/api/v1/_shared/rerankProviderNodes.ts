@@ -87,9 +87,14 @@ export async function loadRerankProviderNodes(): Promise<DynamicRerankProvider[]
   let nodes: RerankProviderNodeRow[] = [];
   try {
     const rows = await getCachedProviderNodes();
-    nodes = (Array.isArray(rows) ? rows : []).filter(
-      (n): n is RerankProviderNodeRow => n !== null && typeof n === "object"
-    );
+    nodes = (Array.isArray(rows) ? rows : [])
+      .filter((n): n is Record<string, unknown> => n !== null && typeof n === "object")
+      .map((n) => ({
+        id: typeof n.id === "string" ? n.id : undefined,
+        prefix: typeof n.prefix === "string" ? n.prefix : null,
+        baseUrl: typeof n.baseUrl === "string" ? n.baseUrl : null,
+        apiType: typeof n.apiType === "string" ? n.apiType : null,
+      }));
   } catch {
     // Non-critical — continue with cloud providers only
     return [];

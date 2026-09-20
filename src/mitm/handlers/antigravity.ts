@@ -285,7 +285,7 @@ export class AntigravityHandler extends MitmHandlerBase {
               const desc = typeof c.description === "string" ? c.description.trim() : undefined;
               return name ? { id: name, displayName: name, description: desc } : null;
             })
-            .filter((c): c is DynamicCatalogModel => Boolean(c));
+            .filter((c): c is NonNullable<typeof c> => c !== null);
         }
       }
     } catch {
