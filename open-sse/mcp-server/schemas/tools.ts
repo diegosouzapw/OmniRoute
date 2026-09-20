@@ -436,6 +436,7 @@ export const listModelsCatalogOutput = z.object({
       capabilities: z.array(z.string()),
       status: z.enum(["available", "degraded", "unavailable"]),
       thinkingEffort: z.string().optional(),
+      context_length: z.number().optional(),
       pricing: z
         .object({
           inputPerMillion: z.number().nullable(),
@@ -444,6 +445,17 @@ export const listModelsCatalogOutput = z.object({
         .optional(),
     })
   ),
+  source: z.string().optional(),
+  warning: z.string().optional(),
+  providerFailures: z
+    .array(
+      z.object({
+        provider: z.string(),
+        connectionId: z.string().optional(),
+        status: z.literal("unavailable"),
+      })
+    )
+    .optional(),
 });
 
 export const listModelsCatalogTool: McpToolDefinition<
