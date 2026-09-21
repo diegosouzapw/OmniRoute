@@ -188,6 +188,30 @@ function getCompatibleProviderVisual(providerNodeType: string | null): ProviderV
   return { icon: "api", color: "#6B7280", source: "provider-node" };
 }
 
+function isDefaultChatRoutingMetadata(input: {
+  supportedEndpoints?: string[];
+  apiFormat?: string | null;
+}): boolean {
+  const endpoints = input.supportedEndpoints;
+  return (
+    Array.isArray(endpoints) &&
+    endpoints.length === 1 &&
+    endpoints[0] === "chat" &&
+    (!toStringOrNull(input.apiFormat) || input.apiFormat === "chat-completions")
+  );
+}
+
+function hasStaticMediaRoutingMetadata(model: ComboBuilderModelOption): boolean {
+  return (
+    model.source === "system" &&
+    Boolean(
+      model.supportedEndpoints?.some((endpoint) =>
+        ["images", "videos", "audio-speech", "audio-transcriptions"].includes(endpoint)
+      )
+    )
+  );
+}
+
 function getProviderVisual(
   providerId: string,
   providerNode: ProviderNodeLike | null
@@ -340,8 +364,18 @@ function addModelOption(
   }
   if (input.customPrecedence) {
     existing.name = toStringOrNull(input.name) || existing.name;
-    if (input.supportedEndpoints?.length) existing.supportedEndpoints = input.supportedEndpoints;
-    if (toStringOrNull(input.apiFormat)) existing.apiFormat = input.apiFormat || undefined;
+    // A custom row created before media metadata existed carries the form's
+    // historical defaults (`chat-completions` + `["chat"]`).  Those defaults
+    // are not an intentional reclassification and must not erase a same-id
+    // image/video/audio registry entry.  Keep explicit non-default custom
+    // routing metadata authoritative, while still allowing all other custom
+    // fields (display name, token limits, thinking support) to take precedence.
+    const preserveStaticMediaRouting =
+      hasStaticMediaRoutingMetadata(existing) && isDefaultChatRoutingMetadata(input);
+    if (!preserveStaticMediaRouting) {
+      if (input.supportedEndpoints?.length) existing.supportedEndpoints = input.supportedEndpoints;
+      if (toStringOrNull(input.apiFormat)) existing.apiFormat = input.apiFormat || undefined;
+    }
     if (typeof input.contextLength === "number") existing.contextLength = input.contextLength;
     if (typeof input.outputTokenLimit === "number") {
       existing.outputTokenLimit = input.outputTokenLimit;

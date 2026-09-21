@@ -49,6 +49,46 @@ test("static media registry models are selectable for a configured provider with
   assert.ok(transcription, "a configured provider's static audio model must be selectable");
 });
 
+test("default chat metadata on a legacy custom row does not erase static image metadata", async () => {
+  await modelsDb.addCustomModel(
+    "openrouter",
+    "black-forest-labs/flux.2-pro",
+    "Custom FLUX.2 Pro",
+    "manual",
+    "chat-completions",
+    ["chat"]
+  );
+
+  const payload = await getComboBuilderOptions();
+  const provider = payload.providers.find((entry) => entry.providerId === "openrouter");
+  assert.ok(provider);
+
+  const matches = provider.models.filter((model) => model.id === "black-forest-labs/flux.2-pro");
+  assert.equal(matches.length, 1, "the static and custom rows must deduplicate");
+  assert.equal(matches[0]?.name, "Custom FLUX.2 Pro", "custom display metadata still wins");
+  assert.deepEqual(matches[0]?.supportedEndpoints, ["images"]);
+  assert.equal(matches[0]?.apiFormat, "images");
+  assert.deepEqual(matches[0]?.sources, ["system", "custom"]);
+});
+
+test("intentional non-default custom routing metadata still overrides static media metadata", async () => {
+  await modelsDb.addCustomModel(
+    "openrouter",
+    "black-forest-labs/flux.2-flex",
+    "Custom FLUX.2 Flex",
+    "manual",
+    "responses",
+    ["chat"]
+  );
+
+  const payload = await getComboBuilderOptions();
+  const provider = payload.providers.find((entry) => entry.providerId === "openrouter");
+  const model = provider?.models.find((entry) => entry.id === "black-forest-labs/flux.2-flex");
+  assert.ok(model);
+  assert.deepEqual(model.supportedEndpoints, ["chat"]);
+  assert.equal(model.apiFormat, "responses");
+});
+
 test("a video-only visibility override hides the matching Combo Builder media option", async () => {
   modelsDb.setModelIsHidden("openrouter", "google/veo-3.1", true, "videos");
 
