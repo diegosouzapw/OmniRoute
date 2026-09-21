@@ -491,6 +491,44 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
   };
 }
 
+function hydrateApiKeyView(row: ApiKeyRow): ApiKeyView {
+  const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
+  camelRow.modelAccessMode = parseModelAccessMode(camelRow.modelAccessMode, camelRow.allowedModels);
+  camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
+  camelRow.blockedModels = parseAllowedModels(camelRow.blockedModels);
+  camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
+  camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
+  camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
+  camelRow.noLog = parseNoLog(camelRow.noLog);
+  camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
+  camelRow.isActive = parseIsActive(camelRow.isActive);
+  camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
+  camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
+  camelRow.isBanned = parseIsBanned(camelRow.isBanned);
+  camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
+  camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+  camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
+  camelRow.cacheDefaultMode = parseCacheDefaultMode((camelRow as JsonRecord).cacheDefaultMode);
+  camelRow.disableNonPublicModels = parseDisableNonPublicModels(
+    (camelRow as JsonRecord).disableNonPublicModels
+  );
+  camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+  camelRow.chaosModeEnabled = parseChaosModeEnabled((camelRow as JsonRecord).chaosModeEnabled);
+  camelRow.compressionEnabled = parseCompressionEnabled(
+    (camelRow as JsonRecord).compressionEnabled
+  );
+  camelRow.allowAutoCombos = parseAllowAutoCombos((camelRow as JsonRecord).allowAutoCombos);
+  camelRow.allowCcDiscoveryAliases = parseAllowCcDiscoveryAliases(
+    (camelRow as JsonRecord).allowCcDiscoveryAliases
+  );
+  camelRow.catalogScope = parseCatalogScope((camelRow as JsonRecord).catalogScope);
+  Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
+  if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
+    setNoLog(camelRow.id, camelRow.noLog === true);
+  }
+  return camelRow;
+}
+
 export async function getApiKeys(limit?: number, offset?: number) {
   const db = getDbInstance() as ApiKeysDbLike;
   let rows: ApiKeyRow[];
@@ -501,46 +539,7 @@ export async function getApiKeys(limit?: number, offset?: number) {
     const stmt = getPreparedStatements(db);
     rows = stmt.getAllKeys.all();
   }
-  return rows.map((row) => {
-    const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
-    camelRow.modelAccessMode = parseModelAccessMode(
-      camelRow.modelAccessMode,
-      camelRow.allowedModels
-    );
-    camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
-    camelRow.blockedModels = parseAllowedModels(camelRow.blockedModels);
-    camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
-    camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
-    camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
-    camelRow.noLog = parseNoLog(camelRow.noLog);
-    camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
-    camelRow.isActive = parseIsActive(camelRow.isActive);
-    camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
-    camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
-    camelRow.isBanned = parseIsBanned(camelRow.isBanned);
-    camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
-    camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
-    camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
-    camelRow.cacheDefaultMode = parseCacheDefaultMode((camelRow as JsonRecord).cacheDefaultMode);
-    camelRow.disableNonPublicModels = parseDisableNonPublicModels(
-      (camelRow as JsonRecord).disableNonPublicModels
-    );
-    camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
-    camelRow.chaosModeEnabled = parseChaosModeEnabled((camelRow as JsonRecord).chaosModeEnabled);
-    camelRow.compressionEnabled = parseCompressionEnabled(
-      (camelRow as JsonRecord).compressionEnabled
-    );
-    camelRow.allowAutoCombos = parseAllowAutoCombos((camelRow as JsonRecord).allowAutoCombos);
-    camelRow.allowCcDiscoveryAliases = parseAllowCcDiscoveryAliases(
-      (camelRow as JsonRecord).allowCcDiscoveryAliases
-    );
-    camelRow.catalogScope = parseCatalogScope((camelRow as JsonRecord).catalogScope);
-    Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
-    if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
-      setNoLog(camelRow.id, camelRow.noLog === true);
-    }
-    return camelRow;
-  });
+  return rows.map(hydrateApiKeyView);
 }
 
 export function getApiKeysCount(): number {
@@ -647,41 +646,7 @@ export async function getApiKeyById(id: string) {
   const stmt = getPreparedStatements(db);
   const row = stmt.getKeyById.get(id);
   if (!row) return null;
-  const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
-  camelRow.modelAccessMode = parseModelAccessMode(camelRow.modelAccessMode, camelRow.allowedModels);
-  camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
-  camelRow.blockedModels = parseAllowedModels(camelRow.blockedModels);
-  camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
-  camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
-  camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
-  camelRow.noLog = parseNoLog(camelRow.noLog);
-  camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
-  camelRow.isActive = parseIsActive(camelRow.isActive);
-  camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
-  camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
-  camelRow.isBanned = parseIsBanned(camelRow.isBanned);
-  camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
-  camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
-  camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
-  camelRow.cacheDefaultMode = parseCacheDefaultMode((camelRow as JsonRecord).cacheDefaultMode);
-  camelRow.disableNonPublicModels = parseDisableNonPublicModels(
-    (camelRow as JsonRecord).disableNonPublicModels
-  );
-  camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
-  camelRow.chaosModeEnabled = parseChaosModeEnabled((camelRow as JsonRecord).chaosModeEnabled);
-  camelRow.compressionEnabled = parseCompressionEnabled(
-    (camelRow as JsonRecord).compressionEnabled
-  );
-  camelRow.allowAutoCombos = parseAllowAutoCombos((camelRow as JsonRecord).allowAutoCombos);
-  camelRow.allowCcDiscoveryAliases = parseAllowCcDiscoveryAliases(
-    (camelRow as JsonRecord).allowCcDiscoveryAliases
-  );
-  camelRow.catalogScope = parseCatalogScope((camelRow as JsonRecord).catalogScope);
-  Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
-  if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
-    setNoLog(camelRow.id, camelRow.noLog === true);
-  }
-  return camelRow;
+  return hydrateApiKeyView(row);
 }
 
 async function hashKey(key: string): Promise<string> {

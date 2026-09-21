@@ -96,7 +96,7 @@ import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 import { toSafeMcpErrorMessage } from "./errorMessage.ts";
 import { mcpFetchTimeoutSignal } from "./fetchTimeout.ts";
-import { getMcpModelsCatalog } from "./catalog.ts";
+import { handleListModelsCatalog } from "./catalogTool.ts";
 import { registerRadarCatalogTool } from "./radarCatalog.ts";
 import type { TextToolResult } from "./toolResult.ts";
 export { getMcpModelsCatalog } from "./catalog.ts";
@@ -614,26 +614,6 @@ async function handleCostReport(args: { period?: string }) {
   } catch (err) {
     const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_cost_report", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleListModelsCatalog(args: z.infer<typeof listModelsCatalogInput>) {
-  const start = Date.now();
-  try {
-    const result = await getMcpModelsCatalog(args);
-
-    await logToolCall(
-      "omniroute_list_models_catalog",
-      args,
-      { mode: result.mode, returned: result.returned, total: result.total },
-      Date.now() - start,
-      true
-    );
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_list_models_catalog", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }

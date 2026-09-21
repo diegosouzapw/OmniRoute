@@ -124,3 +124,85 @@ export async function getOpenRouterVideoCatalog(): Promise<{
       : { data: [], stale: true, cachedAt: null, fromCache: false };
   }
 }
+
+type UnifiedCatalogModel = Record<string, unknown> & { id?: unknown };
+
+interface MergeOpenRouterVideoCatalogOptions {
+  models: UnifiedCatalogModel[];
+  videoModels: OpenRouterVideoCatalogEntry[];
+  timestamp: number;
+  isHidden: (
+    providerId: string,
+    modelId: string,
+    canonicalProviderId?: string | null,
+    modality?: string
+  ) => boolean;
+  shouldHideByExposure: (providerId: string, modelId: string) => boolean;
+  qualifyModelId: (modelId: string) => string;
+  yieldAfterModel: () => Promise<void>;
+}
+
+/** Merge the dedicated OpenRouter video feed into the unified model catalog. */
+export async function mergeOpenRouterVideoCatalogModels({
+  models,
+  videoModels,
+  timestamp,
+  isHidden,
+  shouldHideByExposure,
+  qualifyModelId,
+  yieldAfterModel,
+}: MergeOpenRouterVideoCatalogOptions): Promise<void> {
+  for (const videoModel of videoModels) {
+    if (!videoModel?.id || typeof videoModel.id !== "string") continue;
+    if (isHidden("openrouter", videoModel.id, "openrouter", "videos")) continue;
+    if (shouldHideByExposure("openrouter", videoModel.id)) continue;
+
+    const qualifiedId = qualifyModelId(videoModel.id);
+    const videoFields = {
+      type: "video",
+      input_modalities: ["text"],
+      output_modalities: ["video"],
+      ...(Array.isArray(videoModel.supported_sizes)
+        ? { supported_sizes: videoModel.supported_sizes }
+        : {}),
+      media_capabilities: {
+        ...(Array.isArray(videoModel.supported_resolutions)
+          ? { supported_resolutions: videoModel.supported_resolutions }
+          : {}),
+        ...(Array.isArray(videoModel.supported_aspect_ratios)
+          ? { supported_aspect_ratios: videoModel.supported_aspect_ratios }
+          : {}),
+        ...(Array.isArray(videoModel.supported_durations)
+          ? { supported_durations: videoModel.supported_durations }
+          : {}),
+        ...(Array.isArray(videoModel.supported_frame_images)
+          ? { supported_frame_images: videoModel.supported_frame_images }
+          : {}),
+        ...(typeof videoModel.generate_audio === "boolean"
+          ? { generate_audio: videoModel.generate_audio }
+          : {}),
+        ...(Array.isArray(videoModel.allowed_passthrough_parameters)
+          ? { allowed_passthrough_parameters: videoModel.allowed_passthrough_parameters }
+          : {}),
+      },
+    };
+    const existing = models.find((entry) => entry.id === qualifiedId);
+    if (existing) {
+      Object.assign(existing, videoFields);
+    } else {
+      models.push({
+        id: qualifiedId,
+        object: "model",
+        created: videoModel.created || timestamp,
+        owned_by: "openrouter",
+        permission: [],
+        root: videoModel.canonical_slug || videoModel.id,
+        parent: null,
+        name: videoModel.name || videoModel.id,
+        ...(videoModel.description ? { description: videoModel.description } : {}),
+        ...videoFields,
+      });
+    }
+    await yieldAfterModel();
+  }
+}
