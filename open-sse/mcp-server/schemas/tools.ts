@@ -15,6 +15,7 @@ import { pickFastestModelTool } from "./pickFastestModel.ts";
 import { getActiveSearchProviders } from "./providerEnums";
 import { CCR_MCP_TOOLS } from "./ccrTools.ts";
 import { radarCatalogTool } from "./radarCatalog.ts";
+import { listModelsCatalogTool } from "./listModelsCatalog.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -27,6 +28,11 @@ export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
 import type { McpToolDefinition } from "./toolDefinition.ts";
 export { pickFastestModelInput, pickFastestModelOutput } from "./pickFastestModel.ts";
 export * from "./ccrTools.ts";
+export {
+  listModelsCatalogInput,
+  listModelsCatalogOutput,
+  listModelsCatalogTool,
+} from "./listModelsCatalog.ts";
 // ============ Phase 1: Essential Tools ============
 
 // --- Tool 1: omniroute_get_health ---
@@ -420,46 +426,8 @@ export const costReportTool: McpToolDefinition<typeof costReportInput, typeof co
 };
 
 // --- Tool 8: omniroute_list_models_catalog ---
-export const listModelsCatalogInput = z.object({
-  provider: z.string().optional().describe("Filter by provider name"),
-  capability: z
-    .enum(["chat", "embedding", "image", "audio", "video", "rerank", "moderation"])
-    .optional()
-    .describe("Filter by model capability"),
-});
-
-export const listModelsCatalogOutput = z.object({
-  models: z.array(
-    z.object({
-      id: z.string(),
-      provider: z.string(),
-      capabilities: z.array(z.string()),
-      status: z.enum(["available", "degraded", "unavailable"]),
-      thinkingEffort: z.string().optional(),
-      pricing: z
-        .object({
-          inputPerMillion: z.number().nullable(),
-          outputPerMillion: z.number().nullable(),
-        })
-        .optional(),
-    })
-  ),
-});
-
-export const listModelsCatalogTool: McpToolDefinition<
-  typeof listModelsCatalogInput,
-  typeof listModelsCatalogOutput
-> = {
-  name: "omniroute_list_models_catalog",
-  description:
-    "Lists all available AI models across all providers with their capabilities, current status, and pricing information.",
-  inputSchema: listModelsCatalogInput,
-  outputSchema: listModelsCatalogOutput,
-  scopes: ["read:models"],
-  auditLevel: "none",
-  phase: 1,
-  sourceEndpoints: ["/api/models/catalog", "/v1/models"],
-};
+// Schema + tool definition live in ./listModelsCatalog.ts so this frozen
+// registry file does not grow when catalog output fields are extended.
 
 // --- Tool 10: omniroute_web_search ---
 export function buildWebSearchInputSchema(blockedProviders: string[] = []) {
