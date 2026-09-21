@@ -179,6 +179,18 @@ function extractStreamPayload(payload: string): ComboTestStreamResult | undefine
       if (content) collected.push(content);
       else if (reasoning) collected.push(reasoning);
     }
+
+    // Anthropic-compatible Messages endpoints stream assistant text as
+    // `content_block_delta` events instead of OpenAI `choices[].delta`
+    // chunks. Preserve the raw chunk here (the final stream result is trimmed)
+    // so whitespace at chunk boundaries is not lost. Tool-input and thinking
+    // deltas do not expose `delta.text`, so they remain ignored.
+    if (body.type === "content_block_delta") {
+      const delta = asRecord(body.delta);
+      if (typeof delta.text === "string" && delta.text) {
+        collected.push(delta.text);
+      }
+    }
     return { text: collected.join("") };
   } catch {
     // Ignore malformed/non-JSON SSE events; a later valid event can still

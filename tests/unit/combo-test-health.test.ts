@@ -32,6 +32,25 @@ test("combo test helper ignores keepalives and extracts streamed model content",
   assert.equal(text, "OK");
 });
 
+test("combo test helper extracts Anthropic content block deltas", () => {
+  const text = extractComboTestStreamText(
+    'event: message_start\ndata: {"type":"message_start","message":{"content":[]}}\n\n' +
+      'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hello"}}\n\n' +
+      'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":" world"}}\n\n' +
+      'event: message_stop\ndata: {"type":"message_stop"}\n\n'
+  );
+
+  assert.equal(text, "hello world");
+});
+
+test("combo test helper ignores Anthropic tool input deltas", () => {
+  const text = extractComboTestStreamText(
+    'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\\\"query\\\":\\\"docs\\\"}"}}\n\n'
+  );
+
+  assert.equal(text, "");
+});
+
 test("combo test helper preserves streamed upstream errors", () => {
   const result = extractComboTestStreamResult(
     'data: {"error":{"message":"Rate limit exceeded","code":"429"}}\n\n'
