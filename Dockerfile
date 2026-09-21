@@ -355,9 +355,11 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #   2. `codex` / `claude-code` dev pre-releases (`@next`, dist-tags) mutate
 #      API surface without notice; reproducible builds need a SHA-pinned dev
 #      build, not the floating `@latest`.
+# npm 11 runs lifecycle scripts by default. Claude Code and OpenClaw need their
+# install/postinstall hooks to place native runtime assets, so lifecycle scripts
+# must remain enabled for this pinned global install.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm install -g --no-audit --no-fund \
-    --allow-scripts=@anthropic-ai/claude-code,droid,openclaw,@google/genai,koffi,tree-sitter-bash,protobufjs \
     @openai/codex@0.153.4 \
     @anthropic-ai/claude-code@2.1.260 \
     droid@0.212.0 \

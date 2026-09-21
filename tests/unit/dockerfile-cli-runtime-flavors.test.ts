@@ -27,10 +27,10 @@ test("Docker-client-free CLI target retains every supported AI CLI", () => {
   for (const cli of ["@openai/codex@", "@anthropic-ai/claude-code@", "droid@", "openclaw@"]) {
     assert.match(core, new RegExp(cli.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
-  assert.match(
+  assert.doesNotMatch(
     core,
-    /--allow-scripts=[^\s]*@anthropic-ai\/claude-code[^\s]*openclaw/,
-    "native CLI lifecycle scripts must be explicitly allowed so installed tools are runnable"
+    /--ignore-scripts/,
+    "native CLI lifecycle scripts must run so Claude Code and OpenClaw are runnable"
   );
 });
 
