@@ -615,7 +615,7 @@ async function handleCostReport(args: { period?: string }) {
   }
 }
 
-async function handleListModelsCatalog(args: { provider?: string; capability?: string }) {
+async function handleListModelsCatalog(args: z.infer<typeof listModelsCatalogInput>) {
   const start = Date.now();
   try {
     const result = await getMcpModelsCatalog(args);
@@ -623,7 +623,7 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
     await logToolCall(
       "omniroute_list_models_catalog",
       args,
-      { modelCount: result.models.length },
+      { mode: result.mode, returned: result.returned, total: result.total },
       Date.now() - start,
       true
     );
@@ -913,7 +913,8 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
   server.registerTool(
     "omniroute_list_models_catalog",
     {
-      description: "Lists all available AI models across providers with capabilities and pricing",
+      description:
+        "Lists a bounded, paginated AI model catalog with search, filters, and summary mode. Returns 50 models by default (100 maximum); follow nextCursor until null.",
       inputSchema: listModelsCatalogInput,
     },
     withScopeEnforcement("omniroute_list_models_catalog", (args) =>

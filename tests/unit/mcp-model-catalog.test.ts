@@ -53,6 +53,11 @@ test("getMcpModelsCatalog aggregates only active connection model endpoints", as
         pricing: undefined,
       },
     ],
+    mode: "models",
+    total: 2,
+    returned: 2,
+    limit: 50,
+    nextCursor: null,
     source: "api",
   });
 });
@@ -249,7 +254,250 @@ test("getMcpModelsCatalog returns empty result when requested provider has no ac
 
   assert.deepEqual(result, {
     models: [],
+    mode: "models",
+    total: 0,
+    returned: 0,
+    limit: 50,
+    nextCursor: null,
     source: "provider_connections",
     warning: "No active connections found for provider 'github'.",
   });
+});
+
+test("getMcpModelsCatalog returns deterministic pages with an explicit total and cursor", async () => {
+  const fetchJson = async () => ({
+    source: "api",
+    models: [
+      { id: "zulu", owned_by: "openai", supportedEndpoints: ["chat"] },
+      { id: "alpha", owned_by: "openai", supportedEndpoints: ["chat"] },
+      { id: "middle", owned_by: "openai", supportedEndpoints: ["chat"] },
+    ],
+  });
+  const listProviderConnections = async () => [
+    { id: "conn-openai", provider: "openai", isActive: true },
+  ];
+
+  const first = await getMcpModelsCatalog({ limit: 2 }, { fetchJson, listProviderConnections });
+  assert.deepEqual(
+    first.models.map((model) => model.id),
+    ["alpha", "middle"]
+  );
+  assert.equal(first.total, 3);
+  assert.equal(first.returned, 2);
+  assert.equal(first.limit, 2);
+  assert.match(first.nextCursor ?? "", /^v1\./);
+
+  const second = await getMcpModelsCatalog(
+    { limit: 2, cursor: first.nextCursor ?? undefined },
+    {
+      // A new model sorted before the cursor must not shift the next page boundary.
+      fetchJson: async () => ({
+        source: "api",
+        models: [
+          { id: "aardvark", owned_by: "openai", supportedEndpoints: ["chat"] },
+          { id: "zulu", owned_by: "openai", supportedEndpoints: ["chat"] },
+          { id: "alpha", owned_by: "openai", supportedEndpoints: ["chat"] },
+          { id: "middle", owned_by: "openai", supportedEndpoints: ["chat"] },
+        ],
+      }),
+      listProviderConnections,
+    }
+  );
+  assert.deepEqual(
+    second.models.map((model) => model.id),
+    ["zulu"]
+  );
+  assert.equal(second.total, 4);
+  assert.equal(second.returned, 1);
+  assert.equal(second.nextCursor, null);
+});
+
+test("getMcpModelsCatalog bounds the default response for a ten-thousand-model catalog", async () => {
+  const result = await getMcpModelsCatalog(
+    {},
+    {
+      listProviderConnections: async () => [
+        { id: "conn-openai", provider: "openai", isActive: true },
+      ],
+      fetchJson: async () => ({
+        source: "api",
+        models: Array.from({ length: 10_000 }, (_, index) => ({
+          id: `model-${String(index).padStart(5, "0")}`,
+          owned_by: "openai",
+          supportedEndpoints: ["chat"],
+        })),
+      }),
+    }
+  );
+
+  assert.equal(result.total, 10_000);
+  assert.equal(result.limit, 50);
+  assert.equal(result.returned, 50);
+  assert.equal(result.models.length, 50);
+  assert.match(result.nextCursor ?? "", /^v1\./);
+  assert.equal(listModelsCatalogOutput.safeParse(result).success, true);
+});
+
+test("getMcpModelsCatalog applies provider, capability, and search filters before pagination", async () => {
+  const calls: string[] = [];
+  const result = await getMcpModelsCatalog(
+    { provider: "openai", capability: "embedding", query: "SMALL", limit: 1 },
+    {
+      listProviderConnections: async () => [
+        { id: "conn-openai", provider: "openai", isActive: true },
+        { id: "conn-github", provider: "github", isActive: true },
+      ],
+      fetchJson: async (path: string) => {
+        calls.push(path);
+        return {
+          source: "api",
+          models: [
+            {
+              id: "text-embedding-3-large",
+              owned_by: "openai",
+              supportedEndpoints: ["embeddings"],
+            },
+            {
+              id: "text-embedding-3-small",
+              owned_by: "openai",
+              supportedEndpoints: ["embeddings"],
+            },
+            {
+              id: "text-embedding-small-legacy",
+              owned_by: "openai",
+              supportedEndpoints: ["embeddings"],
+            },
+            { id: "gpt-4.1-small", owned_by: "openai", supportedEndpoints: ["chat"] },
+          ],
+        };
+      },
+    }
+  );
+
+  assert.deepEqual(calls, ["/api/providers/conn-openai/models?excludeHidden=true"]);
+  assert.deepEqual(
+    result.models.map((model) => model.id),
+    ["text-embedding-3-small"]
+  );
+  assert.equal(result.total, 2);
+  assert.match(result.nextCursor ?? "", /^v1\./);
+
+  const next = await getMcpModelsCatalog(
+    {
+      provider: "openai",
+      capability: "embedding",
+      query: "SMALL",
+      limit: 1,
+      cursor: result.nextCursor ?? undefined,
+    },
+    {
+      listProviderConnections: async () => [
+        { id: "conn-openai", provider: "openai", isActive: true },
+      ],
+      fetchJson: async () => ({
+        source: "api",
+        models: [
+          {
+            id: "text-embedding-small-legacy",
+            owned_by: "openai",
+            supportedEndpoints: ["embeddings"],
+          },
+          {
+            id: "text-embedding-3-small",
+            owned_by: "openai",
+            supportedEndpoints: ["embeddings"],
+          },
+        ],
+      }),
+    }
+  );
+  assert.deepEqual(
+    next.models.map((model) => model.id),
+    ["text-embedding-small-legacy"]
+  );
+  assert.equal(next.total, 2);
+  assert.equal(next.nextCursor, null);
+});
+
+test("getMcpModelsCatalog summary mode returns stable aggregate counts without model payloads", async () => {
+  const result = await getMcpModelsCatalog(
+    { mode: "summary", query: "openai" },
+    {
+      listProviderConnections: async () => [
+        { id: "conn-openai", provider: "openai", isActive: true },
+        { id: "conn-github", provider: "github", isActive: true },
+      ],
+      fetchJson: async (path: string) => {
+        if (path.includes("conn-openai")) {
+          return {
+            source: "api",
+            models: [
+              {
+                id: "omni",
+                owned_by: "openai",
+                capabilities: ["chat", "image", "image"],
+              },
+              { id: "embed", owned_by: "openai", supportedEndpoints: ["embeddings"] },
+            ],
+          };
+        }
+        return {
+          source: "api",
+          models: [{ id: "other", owned_by: "github", supportedEndpoints: ["chat"] }],
+        };
+      },
+    }
+  );
+
+  assert.equal(result.mode, "summary");
+  assert.equal(result.total, 2);
+  assert.equal(result.returned, 0);
+  assert.deepEqual(result.models, []);
+  assert.equal(result.nextCursor, null);
+  assert.deepEqual(result.summary, {
+    byProvider: [{ provider: "openai", count: 2 }],
+    byCapability: [
+      { capability: "chat", count: 1 },
+      { capability: "embedding", count: 1 },
+      { capability: "image", count: 1 },
+    ],
+    byStatus: [{ status: "available", count: 2 }],
+  });
+  assert.equal(listModelsCatalogOutput.safeParse(result).success, true);
+});
+
+test("listModelsCatalogInput rejects invalid bounds and getMcpModelsCatalog rejects bad cursors", async () => {
+  const { listModelsCatalogInput } = await import("../../open-sse/mcp-server/schemas/tools.ts");
+
+  assert.equal(listModelsCatalogInput.safeParse({ limit: 0 }).success, false);
+  assert.equal(listModelsCatalogInput.safeParse({ limit: 101 }).success, false);
+  assert.equal(listModelsCatalogInput.safeParse({ limit: 1.5 }).success, false);
+  assert.equal(listModelsCatalogInput.safeParse({ query: "   " }).success, false);
+  assert.equal(listModelsCatalogInput.safeParse({ cursor: "not-a-cursor" }).success, false);
+
+  let discoveryCalled = false;
+  await assert.rejects(
+    getMcpModelsCatalog(
+      { limit: 101 },
+      {
+        listProviderConnections: async () => {
+          discoveryCalled = true;
+          return [];
+        },
+      }
+    ),
+    /between 1 and 100/
+  );
+  assert.equal(discoveryCalled, false);
+
+  await assert.rejects(
+    getMcpModelsCatalog(
+      { cursor: "v1.bm90LWEtbnVtYmVy" },
+      {
+        listProviderConnections: async () => [],
+        fetchJson: async () => ({ models: [] }),
+      }
+    ),
+    /Invalid catalog cursor/
+  );
 });

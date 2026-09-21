@@ -5,17 +5,23 @@ import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "../../src/shared/constants/provi
 
 type JsonRecord = Record<string, unknown>;
 type McpCatalogStatus = "available" | "degraded" | "unavailable";
+type McpCatalogMode = "models" | "summary";
 
-type McpCatalogResponse = {
-  models: Array<{
-    id: string;
-    provider: string;
-    capabilities: string[];
-    status: McpCatalogStatus;
-    thinkingEffort?: string;
-    pricing?: unknown;
-    context_length?: number;
-  }>;
+const DEFAULT_CATALOG_PAGE_SIZE = 50;
+const MAX_CATALOG_PAGE_SIZE = 100;
+
+type McpCatalogModel = {
+  id: string;
+  provider: string;
+  capabilities: string[];
+  status: McpCatalogStatus;
+  thinkingEffort?: string;
+  pricing?: unknown;
+  context_length?: number;
+};
+
+type McpCatalogBaseResponse = {
+  models: McpCatalogModel[];
   source: string;
   warning?: string;
   providerFailures?: Array<{
@@ -23,6 +29,28 @@ type McpCatalogResponse = {
     connectionId?: string;
     status: "unavailable";
   }>;
+};
+
+type McpCatalogResponse = McpCatalogBaseResponse & {
+  mode: McpCatalogMode;
+  total: number;
+  returned: number;
+  limit: number;
+  nextCursor: string | null;
+  summary?: {
+    byProvider: Array<{ provider: string; count: number }>;
+    byCapability: Array<{ capability: string; count: number }>;
+    byStatus: Array<{ status: McpCatalogStatus; count: number }>;
+  };
+};
+
+type McpCatalogArgs = {
+  provider?: string;
+  capability?: string;
+  query?: string;
+  mode?: McpCatalogMode;
+  limit?: number;
+  cursor?: string;
 };
 
 type ProviderConnectionLike = {
@@ -213,11 +241,145 @@ function noAuthProviderSpec(requestedProvider: string): McpCatalogRequestSpec {
   };
 }
 
-function emptyCatalogForProvider(requestedProvider: string): McpCatalogResponse {
+function emptyCatalogForProvider(requestedProvider: string): McpCatalogBaseResponse {
   return {
     models: [],
     source: "provider_connections",
     warning: `No active connections found for provider '${requestedProvider}'.`,
+  };
+}
+
+function compareText(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
+function compareCatalogModels(left: McpCatalogModel, right: McpCatalogModel): number {
+  return compareText(left.provider, right.provider) || compareText(left.id, right.id);
+}
+
+function compareCatalogModelToCursor(model: McpCatalogModel, cursor: McpCatalogCursor): number {
+  return compareText(model.provider, cursor.provider) || compareText(model.id, cursor.id);
+}
+
+function validatePageSize(limit: number | undefined): number {
+  const resolved = limit ?? DEFAULT_CATALOG_PAGE_SIZE;
+  if (!Number.isInteger(resolved) || resolved < 1 || resolved > MAX_CATALOG_PAGE_SIZE) {
+    throw new Error(`Catalog limit must be an integer between 1 and ${MAX_CATALOG_PAGE_SIZE}.`);
+  }
+  return resolved;
+}
+
+type McpCatalogCursor = Pick<McpCatalogModel, "provider" | "id">;
+
+function encodeCursor(model: McpCatalogModel): string {
+  const payload: McpCatalogCursor = { provider: model.provider, id: model.id };
+  return `v1.${Buffer.from(JSON.stringify(payload), "utf8").toString("base64url")}`;
+}
+
+function decodeCursor(cursor: string | undefined): McpCatalogCursor | null {
+  if (!cursor) return null;
+
+  const match = /^v1\.([A-Za-z0-9_-]+)$/.exec(cursor);
+  if (!match) throw new Error("Invalid catalog cursor.");
+
+  try {
+    const payload: unknown = JSON.parse(Buffer.from(match[1], "base64url").toString("utf8"));
+    const record = toRecord(payload);
+    if (typeof record.provider !== "string" || typeof record.id !== "string") {
+      throw new Error("invalid payload");
+    }
+    return { provider: record.provider, id: record.id };
+  } catch {
+    throw new Error("Invalid catalog cursor.");
+  }
+}
+
+function incrementCount(counts: Map<string, number>, key: string) {
+  counts.set(key, (counts.get(key) ?? 0) + 1);
+}
+
+function sortedCounts<K extends string>(
+  counts: Map<string, number>,
+  key: K
+): Array<Record<K, string> & { count: number }> {
+  return [...counts.entries()]
+    .sort(([left], [right]) => compareText(left, right))
+    .map(([name, count]) => ({ [key]: name, count }) as Record<K, string> & { count: number });
+}
+
+function buildCatalogSummary(
+  models: McpCatalogModel[]
+): NonNullable<McpCatalogResponse["summary"]> {
+  const providers = new Map<string, number>();
+  const capabilities = new Map<string, number>();
+  const statuses = new Map<string, number>();
+
+  for (const model of models) {
+    incrementCount(providers, model.provider);
+    incrementCount(statuses, model.status);
+    for (const capability of new Set(model.capabilities)) {
+      incrementCount(capabilities, capability);
+    }
+  }
+
+  return {
+    byProvider: sortedCounts(providers, "provider"),
+    byCapability: sortedCounts(capabilities, "capability"),
+    byStatus: sortedCounts(statuses, "status") as Array<{
+      status: McpCatalogStatus;
+      count: number;
+    }>,
+  };
+}
+
+function modelMatchesQuery(model: McpCatalogModel, query: string): boolean {
+  const searchable = [model.id, model.provider, ...model.capabilities];
+  return searchable.some((value) => value.toLowerCase().includes(query));
+}
+
+function finalizeCatalogResponse(
+  response: McpCatalogBaseResponse,
+  args: McpCatalogArgs
+): McpCatalogResponse {
+  const mode = args.mode ?? "models";
+  const limit = validatePageSize(args.limit);
+  const cursor = decodeCursor(args.cursor);
+  const query = args.query?.trim().toLowerCase() ?? "";
+  const models = response.models
+    .filter((model) => !query || modelMatchesQuery(model, query))
+    .sort(compareCatalogModels);
+  const total = models.length;
+
+  if (mode === "summary") {
+    return {
+      ...response,
+      models: [],
+      mode,
+      total,
+      returned: 0,
+      limit,
+      nextCursor: null,
+      summary: buildCatalogSummary(models),
+    };
+  }
+
+  const start = cursor
+    ? models.findIndex((model) => compareCatalogModelToCursor(model, cursor) > 0)
+    : 0;
+  const page = start >= 0 && start < total ? models.slice(start, start + limit) : [];
+  const pageEnd = start + page.length;
+  const lastModel = page.at(-1);
+
+  return {
+    ...response,
+    models: page,
+    mode,
+    total,
+    returned: page.length,
+    limit,
+    nextCursor: lastModel && pageEnd < total ? encodeCursor(lastModel) : null,
   };
 }
 
@@ -295,12 +457,16 @@ async function collectCatalogModels(
 }
 
 export async function getMcpModelsCatalog(
-  args: { provider?: string; capability?: string },
+  args: McpCatalogArgs,
   deps: {
     fetchJson?: (path: string) => Promise<unknown>;
     listProviderConnections?: () => Promise<ProviderConnectionLike[]>;
   } = {}
 ): Promise<McpCatalogResponse> {
+  // Validate caller-controlled bounds before model discovery performs any upstream work.
+  validatePageSize(args.limit);
+  decodeCursor(args.cursor);
+
   const fetchJson =
     deps.fetchJson ?? ((path: string) => import("./server.ts").then((m) => m.omniRouteFetch(path)));
   const listProviderConnections = deps.listProviderConnections ?? getProviderConnections;
@@ -329,7 +495,7 @@ export async function getMcpModelsCatalog(
     if (isNoAuthProvider) {
       requestSpecs.push(noAuthProviderSpec(requestedProvider));
     } else {
-      return emptyCatalogForProvider(requestedProvider);
+      return finalizeCatalogResponse(emptyCatalogForProvider(requestedProvider), args);
     }
   }
 
@@ -340,10 +506,13 @@ export async function getMcpModelsCatalog(
     requestedProvider === null
   );
 
-  return {
-    models: [...collectedModels.values()],
-    source: sources.size === 1 ? [...sources][0] : "aggregated_provider_models",
-    ...(warnings.size > 0 ? { warning: [...warnings].join(" | ") } : {}),
-    ...(providerFailures.length > 0 ? { providerFailures } : {}),
-  };
+  return finalizeCatalogResponse(
+    {
+      models: [...collectedModels.values()],
+      source: sources.size === 1 ? [...sources][0] : "aggregated_provider_models",
+      ...(warnings.size > 0 ? { warning: [...warnings].join(" | ") } : {}),
+      ...(providerFailures.length > 0 ? { providerFailures } : {}),
+    },
+    args
+  );
 }

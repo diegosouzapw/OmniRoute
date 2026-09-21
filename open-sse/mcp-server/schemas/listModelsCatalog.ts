@@ -8,6 +8,31 @@ export const listModelsCatalogInput = z.object({
     .enum(["chat", "embedding", "image", "audio", "video", "rerank", "moderation"])
     .optional()
     .describe("Filter by model capability"),
+  query: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .optional()
+    .describe("Case-insensitive search across model IDs, providers, and capabilities"),
+  mode: z
+    .enum(["models", "summary"])
+    .default("models")
+    .describe("Return a bounded model page or aggregate counts only"),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(50)
+    .describe("Models per page (default 50, maximum 100)"),
+  cursor: z
+    .string()
+    .min(1)
+    .max(2048)
+    .regex(/^v1\.[A-Za-z0-9_-]+$/, "Invalid catalog cursor")
+    .optional()
+    .describe("Opaque cursor returned by the previous page"),
 });
 
 export const listModelsCatalogOutput = z.object({
@@ -27,6 +52,27 @@ export const listModelsCatalogOutput = z.object({
         .optional(),
     })
   ),
+  mode: z.enum(["models", "summary"]),
+  total: z.number().int().nonnegative(),
+  returned: z.number().int().nonnegative(),
+  limit: z.number().int().min(1).max(100),
+  nextCursor: z.string().nullable(),
+  summary: z
+    .object({
+      byProvider: z.array(
+        z.object({ provider: z.string(), count: z.number().int().nonnegative() })
+      ),
+      byCapability: z.array(
+        z.object({ capability: z.string(), count: z.number().int().nonnegative() })
+      ),
+      byStatus: z.array(
+        z.object({
+          status: z.enum(["available", "degraded", "unavailable"]),
+          count: z.number().int().nonnegative(),
+        })
+      ),
+    })
+    .optional(),
   source: z.string().optional(),
   warning: z.string().optional(),
   providerFailures: z
@@ -46,7 +92,7 @@ export const listModelsCatalogTool: McpToolDefinition<
 > = {
   name: "omniroute_list_models_catalog",
   description:
-    "Lists all available AI models across all providers with their capabilities, current status, and pricing information.",
+    "Lists a bounded, paginated AI model catalog with stable ordering, search, provider/capability filters, status, pricing, and an optional count-only summary mode. Follow nextCursor until null to traverse all matching models.",
   inputSchema: listModelsCatalogInput,
   outputSchema: listModelsCatalogOutput,
   scopes: ["read:models"],
