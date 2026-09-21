@@ -634,6 +634,11 @@ export function normalizeDiscoveredModels(
     // window as `max_model_len`, the value the engine was actually started with.
     // Without it a vLLM model syncs with no window at all and the resolver hands
     // out the 128K default, understating a 250K deployment by half. #12858
+    // `max_tokens` is deliberately NOT a candidate: on these catalogs it is the model's
+    // maximum *output* length — the same meaning as the request parameter — so reading it
+    // as a window sizes a 128K model at its 4K output cap and the combo context-window
+    // filter then drops it for any prompt above that. A provider that genuinely reports
+    // its window that way must be added per-provider with a test naming it. #14318
     const contextWindow = firstPositiveNumber(
       record.context_length,
       record.contextLength,
@@ -641,7 +646,6 @@ export function normalizeDiscoveredModels(
       record.max_model_len,
       record.maxModelLen,
       record.max_context_window,
-      record.max_tokens,
       topProvider.context_length
     );
     const isVertexProvider = providerId === "vertex" || providerId === "vertex-partner";
