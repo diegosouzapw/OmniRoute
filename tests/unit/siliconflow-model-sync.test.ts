@@ -11,10 +11,11 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const syncModelsRoute = await import("../../src/app/api/providers/[id]/sync-models/route.ts");
-const { buildModelSyncInternalHeaders } =
-  await import("../../src/shared/services/modelSyncScheduler.ts");
+const scheduler = await import("../../src/shared/services/modelSyncScheduler.ts");
+const { buildModelSyncInternalHeaders } = scheduler;
 
 const originalFetch = globalThis.fetch;
+scheduler.__setModelSyncInternalTransportForTests((input, init) => globalThis.fetch(input, init));
 
 type JsonBody = Record<string, unknown>;
 
@@ -52,6 +53,7 @@ test.beforeEach(async () => {
 });
 
 test.after(async () => {
+  scheduler.__setModelSyncInternalTransportForTests(null);
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });

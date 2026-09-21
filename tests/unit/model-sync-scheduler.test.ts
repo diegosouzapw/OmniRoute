@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -21,8 +22,10 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
-    } catch (error: any) {
-      if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
+    } catch (error: unknown) {
+      const code =
+        error && typeof error === "object" && "code" in error ? String(error.code) : undefined;
+      if ((code === "EBUSY" || code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
         throw error;
@@ -270,6 +273,130 @@ test("modelSyncScheduler pins HTTPS transport to IPv4 while retaining localhost 
   assert.equal(forwardedOptions?.servername, "localhost");
 });
 
+test("modelSyncScheduler uses private dispatchers for both HTTP and HTTPS", async () => {
+  const previous = {
+    DASHBOARD_PORT: process.env.DASHBOARD_PORT,
+    OMNIROUTE_INTERNAL_SCHEME: process.env.OMNIROUTE_INTERNAL_SCHEME,
+  };
+  const originalFetch = globalThis.fetch;
+  let globalFetchCalls = 0;
+  globalThis.fetch = async () => {
+    globalFetchCalls += 1;
+    throw new Error("patched global fetch must not handle internal model-sync traffic");
+  };
+
+  try {
+    process.env.DASHBOARD_PORT = "22128";
+    delete process.env.OMNIROUTE_INTERNAL_SCHEME;
+    const httpScheduler = await loadScheduler("private-http-transport");
+    let httpDispatcher;
+    httpScheduler.__setModelSyncInternalTransportForTests(async (_input, init) => {
+      httpDispatcher = init.dispatcher;
+      return new Response(null, { status: 204 });
+    });
+    await httpScheduler.fetchModelSyncInternal("http://127.0.0.1:22128/health");
+
+    process.env.OMNIROUTE_INTERNAL_SCHEME = "https";
+    const httpsScheduler = await loadScheduler("private-https-transport");
+    let httpsDispatcher;
+    httpsScheduler.__setModelSyncInternalTransportForTests(async (_input, init) => {
+      httpsDispatcher = init.dispatcher;
+      return new Response(null, { status: 204 });
+    });
+    await httpsScheduler.fetchModelSyncInternal("https://localhost:22128/health");
+
+    assert.ok(httpDispatcher, "HTTP internal fetch should receive a private dispatcher");
+    assert.ok(httpsDispatcher, "HTTPS internal fetch should receive a private dispatcher");
+    assert.notEqual(httpDispatcher, httpsDispatcher, "TLS uses its pinned private dispatcher");
+    assert.equal(globalFetchCalls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
+test("modelSyncScheduler completes more than 32 concurrent nested loopback requests privately", async () => {
+  const previous = {
+    DASHBOARD_PORT: process.env.DASHBOARD_PORT,
+    OMNIROUTE_INTERNAL_SCHEME: process.env.OMNIROUTE_INTERNAL_SCHEME,
+  };
+  const originalFetch = globalThis.fetch;
+  let globalFetchCalls = 0;
+  let scheduler: Awaited<ReturnType<typeof loadScheduler>>;
+
+  globalThis.fetch = async () => {
+    globalFetchCalls += 1;
+    throw new Error("patched global fetch must not handle internal model-sync traffic");
+  };
+
+  const server = http.createServer(async (request, response) => {
+    try {
+      const requestUrl = new URL(request.url || "/", "http://127.0.0.1");
+      if (requestUrl.pathname.startsWith("/outer/")) {
+        const id = requestUrl.pathname.slice("/outer/".length);
+        const nested = await scheduler.fetchModelSyncInternal(
+          `http://127.0.0.1:${process.env.DASHBOARD_PORT}/inner/${id}`,
+          { signal: AbortSignal.timeout(2_000) }
+        );
+        response.writeHead(nested.status, { "Content-Type": "text/plain" });
+        response.end(await nested.text());
+        return;
+      }
+      if (requestUrl.pathname.startsWith("/inner/")) {
+        response.writeHead(200, { "Content-Type": "text/plain" });
+        response.end(requestUrl.pathname.slice("/inner/".length));
+        return;
+      }
+      response.writeHead(404);
+      response.end();
+    } catch (error) {
+      response.writeHead(500, { "Content-Type": "text/plain" });
+      response.end(String(error));
+    }
+  });
+
+  try {
+    await new Promise((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(0, "127.0.0.1", resolve);
+    });
+    const address = server.address();
+    assert.ok(address && typeof address === "object");
+    process.env.DASHBOARD_PORT = String(address.port);
+    delete process.env.OMNIROUTE_INTERNAL_SCHEME;
+    scheduler = await loadScheduler("nested-private-loopback");
+
+    const startedAt = Date.now();
+    const responses = await Promise.all(
+      Array.from({ length: 40 }, (_, index) =>
+        scheduler.fetchModelSyncInternal(`http://127.0.0.1:${address.port}/outer/${index}`, {
+          signal: AbortSignal.timeout(5_000),
+        })
+      )
+    );
+    const bodies = await Promise.all(responses.map((response) => response.text()));
+
+    assert.ok(responses.every((response) => response.status === 200));
+    assert.deepEqual(
+      bodies,
+      Array.from({ length: 40 }, (_, index) => String(index))
+    );
+    assert.equal(globalFetchCalls, 0, "the public ProxyFetch path must remain unused");
+    assert.ok(Date.now() - startedAt < 5_000, "nested burst must not hit the 30s pool plateau");
+  } finally {
+    globalThis.fetch = originalFetch;
+    await new Promise((resolve) => server.close(resolve));
+    server.closeAllConnections();
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
 test("runtime launchers publish the actual internal listener scheme", () => {
   const runNext = fs.readFileSync(path.join(process.cwd(), "scripts/dev/run-next.mjs"), "utf8");
   const standalone = fs.readFileSync(
@@ -361,6 +488,9 @@ test("modelSyncScheduler starts once, honors env interval and syncs only active 
 
   try {
     const scheduler = await loadScheduler("active-connections");
+    scheduler.__setModelSyncInternalTransportForTests(async (input, init) => {
+      return globalThis.fetch(input, init);
+    });
 
     scheduler.startModelSyncScheduler("http://127.0.0.1:7777", 1000);
     scheduler.startModelSyncScheduler("http://127.0.0.1:8888", 9999);
@@ -375,8 +505,8 @@ test("modelSyncScheduler starts once, honors env interval and syncs only active 
     await timers.timeouts[0].fn();
 
     assert.equal(fetchCalls.length, 1);
-    assert.match(fetchCalls[0].url, /^http:\/\/127\.0\.0\.1:20128\//);
-    assert.match(fetchCalls[0].url, /\/api\/providers\/.*\/sync-models$/);
+    assert.match(String(fetchCalls[0].url), /^http:\/\/127\.0\.0\.1:20128\//);
+    assert.match(String(fetchCalls[0].url), /\/api\/providers\/.*\/sync-models$/);
     assert.equal(fetchCalls[0].options.method, "POST");
     assert.equal(fetchCalls[0].options.redirect, "error");
     assert.equal(fetchCalls[0].options.headers["Content-Type"], "application/json");
@@ -429,6 +559,9 @@ test("modelSyncScheduler skips empty cycles and tolerates failing sync requests"
     });
 
     const failingScheduler = await loadScheduler("failing-cycle");
+    failingScheduler.__setModelSyncInternalTransportForTests(async (input, init) => {
+      return globalThis.fetch(input, init);
+    });
     failingScheduler.startModelSyncScheduler("http://127.0.0.1:5555", 10_000);
     await timers.timeouts[0].fn();
 
@@ -445,7 +578,7 @@ test("modelSyncScheduler skips empty cycles and tolerates failing sync requests"
 test("test 12: default interval is 6h; env hours override; no-arg uses default", async () => {
   const source = fs.readFileSync(
     path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
-    "utf8",
+    "utf8"
   );
   assert.match(source, /DEFAULT_INTERVAL_MS\s*=\s*6\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
   assert.doesNotMatch(source, /DEFAULT_INTERVAL_MS\s*=\s*24\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
@@ -457,7 +590,7 @@ test("test 12: default interval is 6h; env hours override; no-arg uses default",
 test("test 12: MODEL_SYNC_INTERVAL_HOURS still wins over default", () => {
   const source = fs.readFileSync(
     path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
-    "utf8",
+    "utf8"
   );
   assert.match(source, /MODEL_SYNC_INTERVAL_HOURS/);
   assert.match(source, /envHours \* 60 \* 60 \* 1000/);
