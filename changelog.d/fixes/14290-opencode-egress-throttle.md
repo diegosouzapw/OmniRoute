@@ -1,0 +1,1 @@
+- **feat(sse):** multi-account rotation now spreads sends per network egress and eases off fleet-wide when throttled, opt-in via `OPENCODE_EGRESS_THROTTLE_ENABLED=1` ([#14290](https://github.com/diegosouzapw/OmniRoute/pull/14290)) — thanks @maxmad64bis
