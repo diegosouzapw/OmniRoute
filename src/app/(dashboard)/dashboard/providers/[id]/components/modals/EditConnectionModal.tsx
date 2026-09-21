@@ -52,7 +52,10 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import HarImportButton from "../HarImportButton";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import ClaudeConnectionFields from "./ClaudeConnectionFields";
-import { claudeConnectionFieldPatch, claudeConnectionFieldValues } from "./claudeConnectionFields";
+import {
+  claudeConnectionFieldPatch,
+  claudeConnectionFieldValues,
+} from "./claudeConnectionFieldHelpers";
 import { CodexConnectionFields } from "./CodexFingerprintFields";
 import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
 import { isM365TierCapableProvider, normalizeM365TierValue, type M365TierValue } from "./m365Tier";

@@ -356,6 +356,7 @@ export default function Sidebar({
           {
             id: "pinned" as SidebarSectionId,
             title: getSidebarLabel("pinnedSection", "Pinned"),
+            showTitle: true,
             children: pinnedItemList,
           },
           ...visibleSections.slice(insertIndex),
@@ -767,7 +768,7 @@ export default function Sidebar({
             }
 
             // Sections without a visible title (e.g. Home) render items directly
-            if (section.showTitle === false) {
+            if ("showTitle" in section && section.showTitle === false) {
               return (
                 <div key={section.id} className={cn("space-y-0.5", !isFirst && "mt-1")}>
                   {sectionItems.map((item: any) =>

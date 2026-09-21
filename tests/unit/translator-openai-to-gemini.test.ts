@@ -1649,6 +1649,21 @@ test("OpenAI -> Gemini allows thinkingConfig for unknown model (no spec)", () =>
   assert.equal(result.generationConfig.thinkingConfig.includeThoughts, true);
 });
 
+interface GeminiTurnTestPart {
+  text?: string;
+  functionCall?: { name: string; arguments: string };
+  functionResponse?: { name: string; response?: { result?: string } };
+}
+
+interface GeminiTurnTestContent {
+  role?: string;
+  parts?: GeminiTurnTestPart[];
+}
+
+interface GeminiTurnTestResponse {
+  contents: GeminiTurnTestContent[];
+}
+
 test("OpenAI -> Gemini pairs tool calls and responses per turn without cross-turn ID collision mismatch", () => {
   const result = openaiToCloudCodeGeminiRequest(
     "gemini-3.8-flash-high",
@@ -1692,51 +1707,53 @@ test("OpenAI -> Gemini pairs tool calls and responses per turn without cross-tur
       ],
     },
     false
-  ) as any;
+  ) as unknown as GeminiTurnTestResponse;
 
   // Verify Turn 1 functionCall and functionResponse
-  const turn1Model = result.contents.find((c: any) =>
-    c.parts?.some((p: any) => p.functionCall?.name === "read_file")
+  const turn1Model = result.contents.find((c: GeminiTurnTestContent) =>
+    c.parts?.some((p: GeminiTurnTestPart) => p.functionCall?.name === "read_file")
   );
   assert.ok(turn1Model, "Turn 1 model functionCall must be read_file");
 
-  const turn1User = result.contents.find((c: any) =>
+  const turn1User = result.contents.find((c: GeminiTurnTestContent) =>
     c.parts?.some(
-      (p: any) =>
+      (p: GeminiTurnTestPart) =>
         p.functionResponse?.response?.result === "file content from turn 1" ||
         p.functionResponse?.name === "read_file"
     )
   );
   assert.ok(turn1User, "Turn 1 user functionResponse must exist");
-  const turn1Resp = turn1User.parts.find((p: any) => p.functionResponse);
+  const turn1Resp = turn1User.parts?.find((p: GeminiTurnTestPart) => p.functionResponse);
+  assert.ok(turn1Resp?.functionResponse);
   assert.equal(
     turn1Resp.functionResponse.name,
     "read_file",
     "Turn 1 functionResponse name must match functionCall name, not be overwritten by turn 2"
   );
   assert.equal(
-    turn1Resp.functionResponse.response.result,
+    turn1Resp.functionResponse.response?.result,
     "file content from turn 1",
     "Turn 1 functionResponse must contain turn 1 output, not turn 2 output"
   );
 
   // Verify Turn 2 functionCall and functionResponse
-  const turn2User = result.contents.find((c: any) =>
+  const turn2User = result.contents.find((c: GeminiTurnTestContent) =>
     c.parts?.some(
-      (p: any) =>
+      (p: GeminiTurnTestPart) =>
         p.functionResponse?.response?.result === "terminal output from turn 2" ||
         p.functionResponse?.name === "run_terminal_command"
     )
   );
   assert.ok(turn2User, "Turn 2 user functionResponse must exist");
-  const turn2Resp = turn2User.parts.find((p: any) => p.functionResponse);
+  const turn2Resp = turn2User.parts?.find((p: GeminiTurnTestPart) => p.functionResponse);
+  assert.ok(turn2Resp?.functionResponse);
   assert.equal(
     turn2Resp.functionResponse.name,
     "run_terminal_command",
     "Turn 2 functionResponse name must match functionCall name"
   );
   assert.equal(
-    turn2Resp.functionResponse.response.result,
+    turn2Resp.functionResponse.response?.result,
     "terminal output from turn 2",
     "Turn 2 functionResponse must contain turn 2 output"
   );
@@ -1787,11 +1804,13 @@ test("OpenAI -> Gemini pairs tool calls and responses in context mode without ID
     false,
     null,
     { signaturelessToolCallMode: "context" }
-  ) as any;
+  ) as unknown as GeminiTurnTestResponse;
 
   // In context mode without thought signatures, tool responses are emitted as context text
-  const textParts = result.contents.flatMap((c: any) =>
-    (c.parts || []).filter((p: any) => typeof p.text === "string").map((p: any) => p.text)
+  const textParts = result.contents.flatMap((c: GeminiTurnTestContent) =>
+    (c.parts || [])
+      .filter((p: GeminiTurnTestPart) => typeof p.text === "string")
+      .map((p: GeminiTurnTestPart) => p.text as string)
   );
   assert.ok(
     textParts.some(

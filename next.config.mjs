@@ -301,6 +301,7 @@ const nextConfig = {
     // Using "**/*" ensures the exclusion applies across all app and API routes, not just "/".
     "**/*": [
       "**/.git/**",
+      "**/.eslintcache",
       "**/_tasks/**",
       "**/_references/**",
       "**/_ideia/**",

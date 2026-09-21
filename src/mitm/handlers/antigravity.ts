@@ -278,14 +278,18 @@ export class AntigravityHandler extends MitmHandlerBase {
       if (typeof combosMod?.getCombos === "function") {
         const combos = await combosMod.getCombos();
         if (Array.isArray(combos)) {
-          return combos
-            .filter((c: Record<string, unknown>) => c.isActive !== false && !c.isHidden)
-            .map((c: Record<string, unknown>) => {
+          const models: DynamicCatalogModel[] = [];
+          for (const item of combos) {
+            const c = item as Record<string, unknown>;
+            if (c && c.isActive !== false && !c.isHidden) {
               const name = typeof c.name === "string" ? c.name.trim() : "";
               const desc = typeof c.description === "string" ? c.description.trim() : undefined;
-              return name ? { id: name, displayName: name, description: desc } : null;
-            })
-            .filter((c): c is DynamicCatalogModel => Boolean(c));
+              if (name) {
+                models.push({ id: name, displayName: name, description: desc });
+              }
+            }
+          }
+          return models;
         }
       }
     } catch {
