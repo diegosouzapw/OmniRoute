@@ -26,6 +26,7 @@ import { join, resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
 const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+const INSECURE_DEFAULT_PASSWORD = "CHANGEME";
 
 // ── OAuth secrets that are optional but warn if missing ─────────────────────
 const OPTIONAL_OAUTH_SECRETS = [
@@ -158,14 +159,17 @@ function hasEncryptedCredentials(dataDir) {
  * an unavailable, unmigrated, or malformed database must never make a fresh
  * install look secured.
  */
-function hasPersistedManagementPasswordHash(dataDir) {
+function hasSecurePersistedManagementPasswordHash(dataDir) {
   const dbPath = join(dataDir, "storage.sqlite");
   if (!existsSync(dbPath)) return false;
 
-  const isPersistedBcryptHash = (row) => {
+  const isSecurePersistedBcryptHash = (row) => {
     if (!row || typeof row.value !== "string") return false;
     try {
-      return BCRYPT_HASH_PATTERN.test(JSON.parse(row.value));
+      const hash = JSON.parse(row.value);
+      if (typeof hash !== "string" || !BCRYPT_HASH_PATTERN.test(hash)) return false;
+      const bcrypt = require("bcryptjs");
+      return !bcrypt.compareSync(INSECURE_DEFAULT_PASSWORD, hash);
     } catch {
       return false;
     }
@@ -181,7 +185,7 @@ function hasPersistedManagementPasswordHash(dataDir) {
             "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'password' LIMIT 1"
           )
           .get();
-        return isPersistedBcryptHash(row);
+        return isSecurePersistedBcryptHash(row);
       } finally {
         db.close();
       }
@@ -195,7 +199,7 @@ function hasPersistedManagementPasswordHash(dataDir) {
           "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'password' LIMIT 1"
         )
         .get();
-      return isPersistedBcryptHash(row);
+      return isSecurePersistedBcryptHash(row);
     } finally {
       db.close();
     }
@@ -344,8 +348,8 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
 
   // ── Warn about default password ────────────────────────────────────────────
   const insecureBootstrapPassword =
-    merged.INITIAL_PASSWORD === "CHANGEME" || !merged.INITIAL_PASSWORD?.trim();
-  if (insecureBootstrapPassword && !hasPersistedManagementPasswordHash(dataDir)) {
+    merged.INITIAL_PASSWORD === INSECURE_DEFAULT_PASSWORD || !merged.INITIAL_PASSWORD?.trim();
+  if (insecureBootstrapPassword && !hasSecurePersistedManagementPasswordHash(dataDir)) {
     log("⚠️  INITIAL_PASSWORD is not set — using default 'CHANGEME'. Change it in Settings!");
   }
 

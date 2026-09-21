@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import bcrypt from "bcryptjs";
 import Database from "better-sqlite3";
 
 import { bootstrapEnv } from "../../scripts/build/bootstrap-env.mjs";
@@ -220,7 +221,7 @@ test("bootstrapEnv ignores blank dataDirOverride values", () => {
 test("bootstrapEnv suppresses the default-password warning when a bcrypt password is persisted", () => {
   withTempEnv(({ dataDir }) => {
     process.env.DATA_DIR = dataDir;
-    seedBootstrapDatabase(dataDir, `$2b$12$${"a".repeat(53)}`);
+    seedBootstrapDatabase(dataDir, bcrypt.hashSync("rotated-password", 4));
     seedBootstrapSecrets(dataDir);
 
     const output = captureBootstrapStderr(() => {
@@ -235,7 +236,7 @@ test("bootstrapEnv lets a persisted bcrypt password override a stale CHANGEME bo
   withTempEnv(({ dataDir }) => {
     process.env.DATA_DIR = dataDir;
     process.env.INITIAL_PASSWORD = "CHANGEME";
-    seedBootstrapDatabase(dataDir, `$2b$12$${"a".repeat(53)}`);
+    seedBootstrapDatabase(dataDir, bcrypt.hashSync("rotated-password", 4));
     seedBootstrapSecrets(dataDir);
 
     const output = captureBootstrapStderr(() => {
@@ -250,6 +251,20 @@ test("bootstrapEnv keeps the default-password warning when no persisted bcrypt h
   withTempEnv(({ dataDir }) => {
     process.env.DATA_DIR = dataDir;
     seedBootstrapDatabase(dataDir, "legacy-plaintext-password");
+    seedBootstrapSecrets(dataDir);
+
+    const output = captureBootstrapStderr(() => {
+      bootstrapEnv();
+    });
+
+    assert.match(output, /INITIAL_PASSWORD is not set/);
+  });
+});
+
+test("bootstrapEnv keeps the default-password warning when the persisted hash is CHANGEME", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    seedBootstrapDatabase(dataDir, bcrypt.hashSync("CHANGEME", 4));
     seedBootstrapSecrets(dataDir);
 
     const output = captureBootstrapStderr(() => {
