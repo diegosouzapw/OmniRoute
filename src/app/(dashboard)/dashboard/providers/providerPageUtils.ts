@@ -8,10 +8,15 @@ import {
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
 import {
+  AGGREGATOR_PROVIDER_IDS,
+  EMBEDDING_RERANK_PROVIDER_IDS,
+  ENTERPRISE_CLOUD_PROVIDER_IDS,
   getProviderConnectionFamilyIds,
+  IMAGE_ONLY_PROVIDER_IDS,
   isClaudeCodeCompatibleProvider,
   supportsApiKeyOnFreeProvider,
   supportsDualAuthProvider,
+  VIDEO_PROVIDER_IDS,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { getProviderServiceKinds, providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
@@ -218,6 +223,25 @@ export function providerEntryIsWebFetchOnly<TProvider>(entry: ProviderEntry<TPro
     !kinds.includes("webSearch") &&
     providerLacksModelListing(entry.providerId, kinds)
   );
+}
+
+export function isPrimaryLlmProviderEntry<TProvider>(entry: ProviderEntry<TProvider>): boolean {
+  return (
+    !IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId) &&
+    !AGGREGATOR_PROVIDER_IDS.has(entry.providerId) &&
+    !ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId) &&
+    !VIDEO_PROVIDER_IDS.has(entry.providerId) &&
+    !EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId) &&
+    !providerEntryIsToolOnly(entry)
+  );
+}
+
+export function resolveVisibleWebFetchEntries<TProvider>(
+  webFetchEntries: ProviderEntry<TProvider>[],
+  activeCategory: string | null
+): ProviderEntry<TProvider>[] {
+  if (activeCategory === "webfetch") return webFetchEntries;
+  return webFetchEntries.filter(providerEntryIsWebFetchOnly);
 }
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
