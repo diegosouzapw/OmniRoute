@@ -2650,6 +2650,19 @@ export function buildExhaustionOptions(
 }
 
 /** Persist exponential-backoff state for an unavailable provider connection. */
+/**
+ * True for the 502 OmniRoute synthesizes when an upstream stream ends without a
+ * content block — NOT a provider-reported 502. Keyed off the exact message
+ * emitted by `emitClaudeEmptyStreamErrorAndAbort`.
+ */
+export function isSyntheticEmptyStreamFailure(
+  status: number,
+  errorText: string | null | undefined
+): boolean {
+  if (status !== 502) return false;
+  return /empty response \(no content block\)/i.test(String(errorText || ""));
+}
+
 export async function markAccountUnavailable(
   connectionId: string,
   status: number,
@@ -3025,7 +3038,18 @@ export async function markAccountUnavailable(
       // combo-provider-cooldown-sibling.test.ts — "Gemini 503 should NOT skip
       // cooldown"). 502/503/504 keep the pre-#6216 model-lockout path: cooldownMs
       // 0 hot-loops the failing upstream (broke resilience-http-e2e on the PR).
-      if (status === 500) {
+      //
+      // The one 502 that must NOT lock the model is the one OmniRoute SYNTHESIZES
+      // for an empty upstream stream (open-sse/utils/stream.ts →
+      // emitClaudeEmptyStreamErrorAndAbort, code "empty_response"). That status
+      // never came from the provider: the model is fine, the stream just carried
+      // no content block. Locking it for the provider cooldown pulls a HEALTHY
+      // account out of rotation, and when the remaining accounts are genuinely
+      // rate-limited it turns an intermittent blip into a total outage that
+      // surfaces to the client as "all targets were skipped by pre-dispatch
+      // filters" (live incident 2026-09-21: two healthy Claude accounts locked
+      // 60s each while the other two were rate-limited).
+      if (status === 500 || isSyntheticEmptyStreamFailure(status, errorText)) {
         updateProviderConnection(connectionId, {
           lastErrorType: reason,
           lastError: `Model ${model} ${reason}`,

@@ -85,6 +85,7 @@ import {
   shouldUseNativeOpenAICompatibleResponsesPassthrough,
   stampNativeResponsesPassthroughBody,
   redactPassthroughThinkingSignatures,
+  CLAUDE_CLIENT_ONLY_TOP_LEVEL_FIELDS,
   isClaudeCodeSemanticPassthroughRequest,
 } from "./chatCore/passthroughHelpers.ts";
 import { recoverAnthropicThinkingSignature } from "./chatCore/thinkingSignatureRecovery.ts";
@@ -2432,6 +2433,20 @@ export async function handleChatCore({
         // VS Code Claude extension and similar clients send both; strip top_p.
         if (translatedBody.temperature !== undefined && translatedBody.top_p !== undefined) {
           delete translatedBody.top_p;
+        }
+
+        // Anthropic rejects unknown top-level fields outright with
+        //   400 safeguards: Extra inputs are not permitted
+        // Newer Claude Code builds send `safeguards`, which the pure-passthrough
+        // path forwards verbatim, so EVERY such request 400s. The field is
+        // client-side only and carries nothing Anthropic would honour — the
+        // request is rejected whole rather than degraded — so dropping it is
+        // strictly better than failing. Same rationale as the top_p strip above.
+        // Live incident 2026-09-21.
+        for (const clientOnlyField of CLAUDE_CLIENT_ONLY_TOP_LEVEL_FIELDS) {
+          if (translatedBody[clientOnlyField] !== undefined) {
+            delete translatedBody[clientOnlyField];
+          }
         }
       }
 

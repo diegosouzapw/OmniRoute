@@ -8,6 +8,20 @@ export { isResponsesEndpointPath };
 
 export const XAI_API_PROVIDERS = new Set(["xai", "xai-oauth", "xao"]);
 
+/**
+ * Top-level request fields that Claude Code sends but Anthropic's Messages API
+ * does not accept. The pure-passthrough path forwards the client body verbatim,
+ * so an unknown field is not ignored — Anthropic rejects the whole request:
+ *
+ *   400 safeguards: Extra inputs are not permitted
+ *
+ * These are client-side concerns with no upstream meaning, so stripping them is
+ * lossless in practice and strictly better than a guaranteed 400. Only applied
+ * on the Anthropic-native `claude` provider; third-party Claude-shape gateways
+ * are left untouched.
+ */
+export const CLAUDE_CLIENT_ONLY_TOP_LEVEL_FIELDS = ["safeguards"] as const;
+
 export function shouldUseNativeCodexPassthrough({
   provider,
   sourceFormat,
