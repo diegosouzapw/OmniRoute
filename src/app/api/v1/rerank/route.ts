@@ -4,7 +4,7 @@ import {
   clearRecoveredProviderState,
 } from "@/sse/services/auth";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { parseRerankModel, getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
+import { parseRerankModel } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
@@ -51,7 +51,7 @@ export async function OPTIONS() {
  * `RERANK_REMOTE_PROVIDER_NODES` opt-in and must pass the provider outbound URL policy
  * (see `_shared/rerankProviderNodes.ts`).
  */
-async function postHandler(request, context) {
+async function postHandler(request, _context) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -95,6 +95,8 @@ type ValidatedRerankBody = {
 type RerankRequestMeta = {
   apiKeyId?: string | null;
   apiKeyName?: string | null;
+  requestedModel?: string | null;
+  comboName?: string | null;
 };
 
 /**
@@ -109,6 +111,7 @@ export async function handleValidatedRerankRequestBody(
   meta: RerankRequestMeta = {}
 ): Promise<Response> {
   const modelStr = body.model;
+  const requestedModel = meta.requestedModel ?? modelStr;
 
   if (!modelStr.includes("/")) {
     try {
@@ -130,7 +133,11 @@ export async function handleValidatedRerankRequestBody(
           handleSingleModel: async (reqBody: any, targetModelStr: string) =>
             handleValidatedRerankRequestBody(
               { ...reqBody, model: targetModelStr } as ValidatedRerankBody,
-              meta
+              {
+                ...meta,
+                requestedModel,
+                comboName: meta.comboName || combo.name,
+              }
             ),
           isModelAvailable: undefined,
           log,
@@ -237,6 +244,8 @@ export async function handleValidatedRerankRequestBody(
       connectionId: (credentials as { connectionId?: string } | null)?.connectionId || null,
       apiKeyId: meta.apiKeyId || null,
       apiKeyName: meta.apiKeyName || null,
+      requestedModel,
+      comboName: meta.comboName || null,
     });
     if (response?.ok) {
       await clearRecoveredProviderState(credentials);
@@ -325,6 +334,8 @@ export async function handleValidatedRerankRequestBody(
             error: errorMessage,
             apiKeyId: meta.apiKeyId || undefined,
             apiKeyName: meta.apiKeyName || undefined,
+            requestedModel,
+            comboName: meta.comboName || undefined,
           }).catch(() => {});
           return errorResponse(res.status, errorMessage);
         }
@@ -357,6 +368,8 @@ export async function handleValidatedRerankRequestBody(
           responseBody: data,
           apiKeyId: meta.apiKeyId || undefined,
           apiKeyName: meta.apiKeyName || undefined,
+          requestedModel,
+          comboName: meta.comboName || undefined,
         }).catch(() => {});
 
         const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
@@ -384,6 +397,8 @@ export async function handleValidatedRerankRequestBody(
           error: err.message,
           apiKeyId: meta.apiKeyId || undefined,
           apiKeyName: meta.apiKeyName || undefined,
+          requestedModel,
+          comboName: meta.comboName || undefined,
         }).catch(() => {});
         return errorResponse(500, `Rerank request failed: ${err.message}`);
       }
