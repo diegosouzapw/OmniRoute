@@ -606,6 +606,14 @@ export async function buildProviderHealthAutopilotReport(
               warning: providerQuota.filter((snapshot) => snapshot.status === "warning").length,
               exhausted: providerQuota.filter((snapshot) => snapshot.status === "exhausted").length,
               errors: providerQuota.filter((snapshot) => snapshot.status === "error").length,
+              monitoredConnectionIds: Array.from(
+                new Set(
+                  providerQuota.flatMap((snapshot) => {
+                    const accountId = toString(snapshot.accountId);
+                    return accountId ? [accountId] : [];
+                  })
+                )
+              ).sort(),
             }
           : null,
       },

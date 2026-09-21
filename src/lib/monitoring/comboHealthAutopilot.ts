@@ -1,5 +1,8 @@
 import { getCombos } from "@/lib/db/combos";
-import { buildProviderHealthAutopilotReport } from "@/lib/monitoring/providerHealthAutopilot";
+import {
+  buildProviderHealthAutopilotReport,
+  type ProviderAutopilotReport,
+} from "@/lib/monitoring/providerHealthAutopilot";
 import { buildComboForecastResponse } from "@/lib/usage/comboForecast";
 import { buildComboHealthResponse } from "@/lib/usage/comboHealth";
 import type {
@@ -16,7 +19,6 @@ import type {
   ComboForecastMetrics,
   ComboForecastResponse,
   ComboForecastRiskLevel,
-  ProviderAutopilotReport,
   ComboHealthMetrics,
   ComboHealthResponse,
   ComboRecord,
@@ -202,11 +204,29 @@ function hasForecastDataQualityGap(forecast: ComboForecastMetrics): boolean {
   );
 }
 
+function buildQuotaMonitorConnectionIndex(
+  report: ProviderAutopilotReport
+): Map<string, Set<string>> {
+  const monitoredByProvider = new Map<string, Set<string>>();
+  for (const provider of report.providers) {
+    const quotaMonitor = provider.signals.quotaMonitor;
+    if (!quotaMonitor || typeof quotaMonitor !== "object" || Array.isArray(quotaMonitor)) continue;
+    const connectionIds = (quotaMonitor as JsonRecord).monitoredConnectionIds;
+    if (!Array.isArray(connectionIds)) continue;
+    const normalized = connectionIds.filter(
+      (connectionId): connectionId is string =>
+        typeof connectionId === "string" && connectionId.trim().length > 0
+    );
+    if (normalized.length > 0) monitoredByProvider.set(provider.provider, new Set(normalized));
+  }
+  return monitoredByProvider;
+}
+
 function buildIssuesForCombo(
   combo: ComboHealthMetrics,
   forecast: ComboForecastMetrics | undefined,
   providerIssues: ProviderIssueView[],
-  quotaMonitorProviders: Set<string>,
+  quotaMonitorConnectionsByProvider: Map<string, Set<string>>,
   includeActions: boolean
 ): ComboAutopilotIssue[] {
   const issues: ComboAutopilotIssue[] = [];
@@ -381,8 +401,25 @@ function buildIssuesForCombo(
     const worstTarget = forecast.targets.find(
       (target) => target.executionKey === forecast.quotaRisk.worstTargetExecutionKey
     );
+    const healthTarget = worstTarget
+      ? targets.find((target) => target.executionKey === worstTarget.executionKey)
+      : undefined;
+    const eligibleConnectionIds = healthTarget
+      ? (healthTarget as TargetEligibilityView).eligibleConnectionIds
+      : undefined;
+    const relevantConnectionIds = worstTarget?.connectionId
+      ? [worstTarget.connectionId]
+      : Array.isArray(eligibleConnectionIds)
+        ? eligibleConnectionIds
+        : null;
+    const monitoredConnectionIds = worstTarget
+      ? quotaMonitorConnectionsByProvider.get(worstTarget.provider)
+      : undefined;
     const hasQuotaMonitorCoverage = Boolean(
-      worstTarget && quotaMonitorProviders.has(worstTarget.provider)
+      relevantConnectionIds &&
+      relevantConnectionIds.length > 0 &&
+      monitoredConnectionIds &&
+      relevantConnectionIds.every((connectionId) => monitoredConnectionIds.has(connectionId))
     );
     const diagnosticOnly =
       !hasQuotaMonitorCoverage ||
@@ -404,6 +441,12 @@ function buildIssuesForCombo(
           quotaCoverage: forecast.dataQuality.quotaCoverage,
           worstTargetExecutionKey: forecast.quotaRisk.worstTargetExecutionKey,
           worstTargetProvider: worstTarget?.provider ?? null,
+          worstTargetRelevantConnectionIds: relevantConnectionIds,
+          monitoredConnectionIds: monitoredConnectionIds
+            ? Array.from(monitoredConnectionIds).sort()
+            : [],
+          quotaMonitorCoverageAmbiguous:
+            !worstTarget || !relevantConnectionIds || relevantConnectionIds.length === 0,
           hasDataQualityGap,
           hasQuotaMonitorCoverage,
           diagnosticOnly,
@@ -466,14 +509,14 @@ function buildAutopilotCombo(
   combo: ComboHealthMetrics,
   forecast: ComboForecastMetrics | undefined,
   providerIssues: ProviderIssueView[],
-  quotaMonitorProviders: Set<string>,
+  quotaMonitorConnectionsByProvider: Map<string, Set<string>>,
   includeActions: boolean
 ): ComboAutopilotCombo {
   const issues = buildIssuesForCombo(
     combo,
     forecast,
     providerIssues,
-    quotaMonitorProviders,
+    quotaMonitorConnectionsByProvider,
     includeActions
   );
   const state = stateForIssues(issues);
@@ -538,11 +581,7 @@ export async function buildComboHealthAutopilotReport(
 
   const forecastsByComboId = new Map(forecast.combos.map((entry) => [entry.comboId, entry]));
   const providerIssues = buildProviderIssueIndex(providerHealth);
-  const quotaMonitorProviders = new Set(
-    providerHealth.providers.flatMap((provider) =>
-      provider.signals.quotaMonitor ? [provider.provider] : []
-    )
-  );
+  const quotaMonitorConnectionsByProvider = buildQuotaMonitorConnectionIndex(providerHealth);
   const activeComboIds = combosSnapshot
     ? new Set(
         combosSnapshot.flatMap((combo) =>
@@ -572,7 +611,7 @@ export async function buildComboHealthAutopilotReport(
         combo,
         forecastsByComboId.get(combo.comboId),
         providerIssues,
-        quotaMonitorProviders,
+        quotaMonitorConnectionsByProvider,
         includeActions
       )
     );

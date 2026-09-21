@@ -23,6 +23,7 @@ const reportRoute = await import("../../../src/app/api/providers/health-autopilo
 const routeGuard = await import("../../../src/server/authz/routeGuard.ts");
 const authzPipeline = await import("../../../src/server/authz/pipeline.ts");
 const accountFallback = await import("@omniroute/open-sse/services/accountFallback");
+const quotaMonitor = await import("@omniroute/open-sse/services/quotaMonitor.ts");
 
 const PROVIDER = "autopilot-test-provider";
 
@@ -64,11 +65,13 @@ function findAction(report: autopilot.ProviderAutopilotReport, type: string) {
 
 test.beforeEach(async () => {
   accountFallback.clearProviderFailure(PROVIDER);
+  quotaMonitor.clearQuotaMonitors();
   await resetStorage();
 });
 
 test.after(async () => {
   accountFallback.clearProviderFailure(PROVIDER);
+  quotaMonitor.clearQuotaMonitors();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
@@ -192,6 +195,41 @@ test("provider health autopilot keeps active info-only diagnostics healthy", asy
   assert.equal(report.providers[0].state, "healthy");
   assert.equal(report.providers[0].issues[0].kind, "stale_connection_error");
   assert.equal(report.providers[0].issues[0].severity, "info");
+});
+
+test("provider health autopilot exposes quota monitor account ids without credentials", async () => {
+  const providerId = "account-scoped-monitor-provider";
+  const monitored = (await providersDb.createProviderConnection({
+    provider: providerId,
+    authType: "apikey",
+    name: "monitored-account",
+    apiKey: "monitored-secret",
+    isActive: true,
+    testStatus: "active",
+  })) as Record<string, unknown>;
+  const unmonitored = (await providersDb.createProviderConnection({
+    provider: providerId,
+    authType: "apikey",
+    name: "unmonitored-account",
+    apiKey: "unmonitored-secret",
+    isActive: true,
+    testStatus: "active",
+  })) as Record<string, unknown>;
+  quotaMonitor.startQuotaMonitor("account-scope-session", providerId, String(monitored.id), {
+    providerSpecificData: { quotaMonitorEnabled: true },
+  });
+
+  const report = await autopilot.buildProviderHealthAutopilotReport({
+    provider: providerId,
+    includeHealthy: true,
+  });
+  const provider = report.providers[0];
+  const signal = provider.signals.quotaMonitor as Record<string, unknown>;
+
+  assert.deepEqual(signal.monitoredConnectionIds, [String(monitored.id)]);
+  assert.equal((signal.monitoredConnectionIds as string[]).includes(String(unmonitored.id)), false);
+  assert.equal(JSON.stringify(signal).includes("monitored-secret"), false);
+  assert.equal(JSON.stringify(signal).includes("unmonitored-secret"), false);
 });
 
 test("provider health autopilot summary and status do not depend on healthy-row filtering", async () => {

@@ -5,9 +5,9 @@ import type {
   ComboForecastResponse,
   ComboHealthResponse,
   ComboRecord,
-  ProviderAutopilotReport,
 } from "../../src/shared/types/utilization.ts";
 import { buildComboHealthAutopilotReport } from "../../src/lib/monitoring/comboHealthAutopilot.ts";
+import type { ProviderAutopilotReport } from "../../src/lib/monitoring/providerHealthAutopilot.ts";
 
 function healthResponse(): ComboHealthResponse {
   return {
@@ -211,7 +211,7 @@ describe("combo health autopilot counter", () => {
               stepId: "c1-step",
               provider: "p",
               model: "m",
-              connectionId: null,
+              connectionId: "p-account-a",
               label: null,
               trafficShare: 1,
               history: { requests: 10, costUsd: 0, totalTokens: 0 },
@@ -276,7 +276,12 @@ describe("combo health autopilot counter", () => {
               staleErrors: 0,
             },
             modelLockouts: 0,
-            quotaMonitor: { warning: 0, exhausted: 0, errors: 0 },
+            quotaMonitor: {
+              warning: 0,
+              exhausted: 0,
+              errors: 0,
+              monitoredConnectionIds: ["p-account-a"],
+            },
           },
           issues: [],
         },
@@ -296,12 +301,41 @@ describe("combo health autopilot counter", () => {
     );
     assert.equal(monitoredReport.combos[0].state, "down");
 
+    monitoredProviderHealth.providers[0].signals.quotaMonitor = {
+      warning: 0,
+      exhausted: 0,
+      errors: 0,
+      monitoredConnectionIds: ["p-account-b"],
+    };
+    const wrongAccountReport = await buildComboHealthAutopilotReport({
+      ...buildOptions(),
+      includeHealthy: true,
+      healthResponse: healthyTargetResponse(),
+      forecastResponse: forecast,
+      providerHealthResponse: monitoredProviderHealth,
+    });
+    const wrongAccountIssue = wrongAccountReport.combos[0].issues.find(
+      (issue) => issue.kind === "forecast_quota_risk"
+    );
+    assert.equal(wrongAccountIssue?.severity, "info");
+    assert.deepEqual(wrongAccountIssue?.evidence.worstTargetRelevantConnectionIds, ["p-account-a"]);
+    assert.deepEqual(wrongAccountIssue?.evidence.monitoredConnectionIds, ["p-account-b"]);
+    assert.equal(wrongAccountIssue?.evidence.hasQuotaMonitorCoverage, false);
+
+    monitoredProviderHealth.providers[0].signals.quotaMonitor = {
+      warning: 0,
+      exhausted: 0,
+      errors: 0,
+      monitoredConnectionIds: ["p-account-a"],
+    };
+
     forecast.combos[0].quotaRisk.worstTargetExecutionKey = "q-target";
     forecast.combos[0].targets.push({
       ...forecast.combos[0].targets[0],
       executionKey: "q-target",
       stepId: "q-step",
       provider: "q",
+      connectionId: "q-account",
     });
     const mixedProviderReport = await buildComboHealthAutopilotReport({
       ...buildOptions(),
