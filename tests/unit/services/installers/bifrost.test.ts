@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execSync } from "node:child_process";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-bifrost-installer-"));
 const FAKE_BIN_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-bifrost-fake-bin-"));
@@ -38,10 +37,25 @@ if [ "$CMD" = "view" ]; then
 fi
 exit 0
 `;
-const fakeNpmPath = path.join(FAKE_BIN_DIR, "npm");
-fs.writeFileSync(fakeNpmPath, fakeNpmScript, { mode: 0o755 });
-
-execSync("which npm", { env: process.env });
+const fakeNpmCmd = `@echo off
+set "CMD=%~1"
+if "%CMD%"=="install" (
+  set "PKG_DIR=%npm_config_prefix%\\node_modules\\@maximhq\\bifrost"
+  mkdir "%npm_config_prefix%\\node_modules\\@maximhq\\bifrost" 2>nul
+  > "%npm_config_prefix%\\node_modules\\@maximhq\\bifrost\\package.json" echo {"name":"@maximhq/bifrost","version":"1.6.3"}
+  type nul > "%npm_config_prefix%\\node_modules\\@maximhq\\bifrost\\bin.js"
+  exit /b 0
+)
+if "%CMD%"=="view" (
+  echo 1.6.3
+  exit /b 0
+)
+exit /b 0
+`;
+const fakeNpmPath = path.join(FAKE_BIN_DIR, process.platform === "win32" ? "npm.cmd" : "npm");
+fs.writeFileSync(fakeNpmPath, process.platform === "win32" ? fakeNpmCmd : fakeNpmScript, {
+  mode: 0o755,
+});
 
 // DB bootstrap (must be before bifrost import due to db/core eager init)
 const core = await import("../../../../src/lib/db/core.ts");
@@ -57,6 +71,7 @@ const {
   getInstalledVersion,
   getLatestVersion,
   resolveSpawnArgs,
+  getBifrostCacheDir,
   BIFROST_DEFAULT_PORT,
   BIFROST_INSTALL_DIR,
 } = await import("../../../../src/lib/services/installers/bifrost.ts");
@@ -121,7 +136,13 @@ test("resolveSpawnArgs shape: command is node, bin.js path, Go single-dash flags
 
   const appDirIdx = args.args.indexOf("-app-dir");
   assert.ok(appDirIdx !== -1, "must have -app-dir flag");
-  assert.ok(args.args[appDirIdx + 1]?.includes("bifrost"), "-app-dir must point into bifrost dir");
+  assert.equal(args.args[appDirIdx + 1], INSTALL_DIR, "-app-dir must use the install dir");
+  assert.equal(args.cwd, INSTALL_DIR, "child cwd must use the install dir");
+  assert.equal(
+    args.env.XDG_CACHE_HOME,
+    path.join(INSTALL_DIR, ".cache"),
+    "child cache must stay within the writable Bifrost service directory"
+  );
 
   const logLevelIdx = args.args.indexOf("-log-level");
   assert.ok(logLevelIdx !== -1, "must have -log-level flag");
@@ -148,6 +169,33 @@ test("resolveSpawnArgs with different port passes correct -port value", () => {
   const portIdx = args.args.indexOf("-port");
   assert.ok(portIdx !== -1);
   assert.equal(args.args[portIdx + 1], "9090");
+});
+
+test("install and spawn paths honor a runtime DATA_DIR override consistently", async () => {
+  const runtimeDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-bifrost-runtime-"));
+  const previousDataDir = process.env.DATA_DIR;
+
+  try {
+    process.env.DATA_DIR = runtimeDataDir;
+    const expectedInstallDir = path.join(runtimeDataDir, "services", "bifrost");
+    const result = await install("1.6.3");
+    const args = resolveSpawnArgs(8181);
+    const appDirIdx = args.args.indexOf("-app-dir");
+
+    assert.equal(result.installPath, expectedInstallDir);
+    assert.equal(args.cwd, expectedInstallDir);
+    assert.equal(
+      args.args[0],
+      path.join(expectedInstallDir, "node_modules", "@maximhq", "bifrost", "bin.js")
+    );
+    assert.equal(args.args[appDirIdx + 1], expectedInstallDir);
+    assert.equal(args.env.XDG_CACHE_HOME, path.join(expectedInstallDir, ".cache"));
+    assert.equal(getBifrostCacheDir(), path.join(expectedInstallDir, ".cache"));
+  } finally {
+    if (previousDataDir === undefined) delete process.env.DATA_DIR;
+    else process.env.DATA_DIR = previousDataDir;
+    fs.rmSync(runtimeDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
 });
 
 test("INSTALL_DIR constant points into DATA_DIR/services/bifrost", () => {

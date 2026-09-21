@@ -1,6 +1,7 @@
 /** Periodic health-check poller for embedded services. */
 
 import type { HealthState } from "./types";
+import { getOriginalFetch } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 const HEALTH_FETCH_TIMEOUT_MS = 5_000;
 const FAILURE_THRESHOLD = 3;
@@ -49,8 +50,9 @@ export class HealthChecker {
     const timeout = setTimeout(() => controller.abort(), HEALTH_FETCH_TIMEOUT_MS);
 
     try {
-      const res = await fetch(this.healthUrl(), { signal: controller.signal });
-      clearTimeout(timeout);
+      // Service-health traffic stays on loopback and must bypass the patched
+      // provider egress stack. Refused ports are health state, not proxy noise.
+      const res = await getOriginalFetch()(this.healthUrl(), { signal: controller.signal });
 
       if (res.ok) {
         this.consecutiveFailures = 0;
@@ -59,8 +61,9 @@ export class HealthChecker {
         this.recordFailure();
       }
     } catch {
-      clearTimeout(timeout);
       this.recordFailure();
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

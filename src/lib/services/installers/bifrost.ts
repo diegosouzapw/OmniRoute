@@ -28,10 +28,22 @@ const VERSION_CACHE_TTL_MS = 3_600_000;
 // Resolve the install dir lazily from the *current* DATA_DIR so a runtime
 // DATA_DIR override (operator env change, or a test's tmp-dir isolation) is
 // honored — the module-level BIFROST_INSTALL_DIR const is frozen at import.
-function getBifrostInstallDir(): string {
+export function getBifrostInstallDir(): string {
   return process.env.DATA_DIR
     ? path.join(process.env.DATA_DIR, "services", "bifrost")
     : BIFROST_INSTALL_DIR;
+}
+
+/**
+ * Cache used only by the embedded Bifrost child.
+ *
+ * The container's HOME may intentionally point at an unmounted/unwritable
+ * location. Keeping Bifrost's lazy Go transport download beside its npm host
+ * package makes the entire embedded service live under OmniRoute's existing
+ * writable DATA_DIR mount without requiring another bind mount.
+ */
+export function getBifrostCacheDir(): string {
+  return path.join(getBifrostInstallDir(), ".cache");
 }
 
 function getInstalledPkgPath(): string {
@@ -74,10 +86,11 @@ export async function getLatestVersion(): Promise<string | null> {
 
 export async function install(version = "latest"): Promise<InstallResult> {
   const startMs = Date.now();
+  const installDir = getBifrostInstallDir();
 
   // Create install dir + minimal package.json (idempotent)
-  fs.mkdirSync(BIFROST_INSTALL_DIR, { recursive: true });
-  const hostPkgPath = path.join(BIFROST_INSTALL_DIR, "package.json");
+  fs.mkdirSync(installDir, { recursive: true });
+  const hostPkgPath = path.join(installDir, "package.json");
   if (!fs.existsSync(hostPkgPath)) {
     fs.writeFileSync(
       hostPkgPath,
@@ -93,7 +106,7 @@ export async function install(version = "latest"): Promise<InstallResult> {
   await runNpm(
     ["install", `${BIFROST_PACKAGE}@${version}`, "--omit=dev", "--no-audit", "--no-fund"],
     // `--prefix` via `prefix` (→ npm_config_prefix env) so paths with spaces survive Windows shell
-    { cwd: BIFROST_INSTALL_DIR, prefix: BIFROST_INSTALL_DIR }
+    { cwd: installDir, prefix: installDir }
   );
 
   const installedVersion = await getInstalledVersion();
@@ -118,7 +131,7 @@ export async function install(version = "latest"): Promise<InstallResult> {
 
   return {
     installedVersion,
-    installPath: BIFROST_INSTALL_DIR,
+    installPath: installDir,
     durationMs: Date.now() - startMs,
   };
 }
@@ -146,6 +159,7 @@ export function formatTransportVersion(version: string | null): string {
 }
 
 export function resolveSpawnArgs(port: number): SpawnArgs {
+  const installDir = getBifrostInstallDir();
   const binPath = getBinPath();
   // Pin transport version to the installed npm version for reproducibility (spec §2b)
   const transportVersion = formatTransportVersion(getInstalledVersionSync());
@@ -159,14 +173,15 @@ export function resolveSpawnArgs(port: number): SpawnArgs {
       "-host",
       "127.0.0.1",
       "-app-dir",
-      BIFROST_INSTALL_DIR,
+      installDir,
       "-log-level",
       "warn",
     ],
     env: {
       ...process.env,
       BIFROST_TRANSPORT_VERSION: transportVersion,
+      XDG_CACHE_HOME: getBifrostCacheDir(),
     },
-    cwd: BIFROST_INSTALL_DIR,
+    cwd: installDir,
   };
 }

@@ -290,10 +290,20 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
  *   Hard Rules #15/#17 still apply to POST.
  *   /api/tunnels/cloudflared — GET reads tunnel status only; only POST
  *   spawns the cloudflared process (#11531).
+ *   /api/services/{bifrost,cliproxy,dario,mux,openwa}/status — GET returns
+ *   sanitized lifecycle/version metadata only. Lifecycle mutations remain
+ *   LOCAL_ONLY through the parent /api/services/ prefix. 9router is excluded:
+ *   its status handler also supports `?reveal=key` and can return a plaintext
+ *   service credential when the confirmation header is present.
  */
 export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
   "/api/system/version",
   "/api/tunnels/cloudflared",
+  "/api/services/bifrost/status",
+  "/api/services/cliproxy/status",
+  "/api/services/dario/status",
+  "/api/services/mux/status",
+  "/api/services/openwa/status",
 ]);
 
 /** Safe HTTP methods that can be exempted for read-only paths. */
