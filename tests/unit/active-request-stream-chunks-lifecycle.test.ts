@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
+const completedRequestDetails = await import("../../src/lib/usage/completedRequestDetails.ts");
 
 // Captured stream chunks carry a per-chunk arrival-time prefix ("[HH:MM:SS.mmm] ")
 // added by the request logger for streaming-latency observability (#5834). Strip it
@@ -608,6 +609,120 @@ test("completedDetails cache evicts oldest entries when bounded", () => {
   );
   assert.equal(usageHistory.getCompletedDetails().has(ids[0]), false);
   assert.equal(usageHistory.getCompletedDetails().has(ids[ids.length - 1]), true);
+});
+
+test("JON-562 completedDetails detaches previews from large backing strings", () => {
+  usageHistory.clearPendingRequests();
+
+  const largeBacking = "JON-562-large-backing-" + "x".repeat(4 * 1024 * 1024);
+  const clientRequest = {
+    messages: [{ role: "user", content: `${largeBacking.slice(0, 1200)}...` }],
+  };
+  const detail = {
+    id: "JON-562-detached",
+    model: "gpt-4.1",
+    provider: "openai",
+    connectionId: "conn-JON-562-detached",
+    startedAt: Date.now(),
+    clientRequest,
+  };
+
+  assert.equal(completedRequestDetails.storeCompletedDetail(detail), true);
+  const stored = usageHistory.getCompletedDetails().get(detail.id);
+
+  assert.ok(stored);
+  assert.notStrictEqual(stored, detail, "the cache must own a detached detail object");
+  assert.notStrictEqual(
+    stored.clientRequest,
+    clientRequest,
+    "nested payload objects must not retain the pending-request object graph"
+  );
+});
+
+test("JON-562 cache budget wording does not claim a hard process memory ceiling", () => {
+  const source = fs.readFileSync(
+    new URL("../../src/lib/usage/completedRequestDetails.ts", import.meta.url),
+    "utf8"
+  );
+  assert.match(source, /estimated cache payload budget/i);
+  assert.doesNotMatch(source, /hard process-wide ceiling/i);
+});
+
+test("JON-562 completedDetails enforces a byte budget as well as the 256-entry cap", () => {
+  usageHistory.clearPendingRequests();
+  const chunkBytes = Math.floor(completedRequestDetails.MAX_COMPLETED_DETAILS_BYTES * 0.6);
+
+  for (let index = 0; index < 2; index += 1) {
+    assert.equal(
+      completedRequestDetails.storeCompletedDetail({
+        id: `JON-562-budget-${index}`,
+        model: "gpt-4.1",
+        provider: "openai",
+        connectionId: "conn-JON-562-budget",
+        startedAt: Date.now() + index,
+        streamChunks: { client: ["x".repeat(chunkBytes)] },
+      }),
+      true
+    );
+  }
+
+  assert.ok(
+    completedRequestDetails.getCompletedDetailsByteSize() <=
+      completedRequestDetails.MAX_COMPLETED_DETAILS_BYTES
+  );
+  assert.equal(usageHistory.getCompletedDetails().has("JON-562-budget-0"), false);
+  assert.equal(usageHistory.getCompletedDetails().has("JON-562-budget-1"), true);
+});
+
+test("JON-562 oversized completed detail is rejected and replacement clears its timer", () => {
+  usageHistory.clearPendingRequests();
+  const id = "JON-562-oversized-replacement";
+  const base = {
+    id,
+    model: "gpt-4.1",
+    provider: "openai",
+    connectionId: "conn-JON-562-oversized-replacement",
+    startedAt: Date.now(),
+  };
+
+  assert.equal(completedRequestDetails.storeCompletedDetail(base), true);
+  completedRequestDetails.scheduleCompletedDetailCleanup(id);
+  assert.deepEqual(completedRequestDetails.getCompletedDetailsCacheStats(), {
+    entries: 1,
+    cleanupTimers: 1,
+    bytes: completedRequestDetails.getCompletedDetailsByteSize(),
+  });
+
+  const oversized = "x".repeat(completedRequestDetails.MAX_COMPLETED_DETAILS_BYTES + 1);
+  assert.equal(
+    completedRequestDetails.storeCompletedDetail({
+      ...base,
+      streamChunks: { client: [oversized] },
+    }),
+    false
+  );
+  assert.equal(usageHistory.getCompletedDetails().has(id), false);
+  assert.deepEqual(completedRequestDetails.getCompletedDetailsCacheStats(), {
+    entries: 0,
+    cleanupTimers: 0,
+    bytes: 0,
+  });
+});
+
+test("JON-562 finalize schedules no cleanup timer when an oversized detail is not stored", () => {
+  usageHistory.clearPendingRequests();
+  const model = "gpt-4.1";
+  const provider = "openai";
+  const connectionId = "conn-JON-562-oversized-finalize";
+  const id = usageHistory.trackPendingRequest(model, provider, connectionId, true);
+  assert.ok(id);
+  usageHistory.updatePendingRequestStreamChunks(model, provider, connectionId, {
+    client: ["x".repeat(completedRequestDetails.MAX_COMPLETED_DETAILS_BYTES + 1)],
+  });
+
+  assert.equal(usageHistory.finalizePendingRequestById(id, { status: 200 }), true);
+  assert.equal(usageHistory.getCompletedDetails().has(id), false);
+  assert.equal(completedRequestDetails.getCompletedDetailsCacheStats().cleanupTimers, 0);
 });
 
 test("streamChunks in completedDetails survives beyond the logs polling window", async () => {

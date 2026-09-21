@@ -399,6 +399,22 @@ export function classifyRunError(err, timeoutMs) {
 // every one a false-positive red against the release branch).
 const HERMETIC_SCRUB = ["OMNIROUTE_API_KEY", "OMNIROUTE_URL"];
 let hermetic = false;
+/**
+ * Env for the pack gate's provenance guard (#10427).
+ *
+ * `validate-pack-artifact.ts` checks `dist/BUILD_SHA` for ancestry against
+ * `OMNIROUTE_RELEASE_REF`, defaulting to `origin/main`. That default is right at
+ * PUBLICATION (npm-publish.yml runs on main) but structurally impossible here: this
+ * validator runs ON a release branch, whose tip is by definition NOT an ancestor of
+ * main mid-cycle, so the gate reported `off-release-line` on every single run and the
+ * tarball boot-smoke cascaded off it. `ci.yml` already resolves the same problem for
+ * `pull_request` by pointing the ref at the head under test; the checkable invariant
+ * here is identical — "the stamp matches the tree we just validated" — so point it at
+ * HEAD. This does not relax the guard: a dist/ built from some other commit still
+ * fails, and a missing BUILD_SHA still fails.
+ */
+const PACK_GATE_ENV = { OMNIROUTE_RELEASE_REF: "HEAD" };
+
 function buildGateEnv(extra) {
   const env = { ...process.env, FORCE_COLOR: "0", ...(extra || {}) };
   if (hermetic) for (const k of HERMETIC_SCRUB) delete env[k];
@@ -443,6 +459,37 @@ async function runAsync(cmd, cmdArgs, opts = {}) {
   } catch (err) {
     return classifyRunError(err, opts.timeout);
   }
+}
+
+/**
+ * Package-artifact gate, run the way ci.yml's pack job runs it (#10427).
+ *
+ * `check:pack-artifact` assembles dist/ through `build:cli` when staging is missing, and
+ * `build:cli` never writes dist/BUILD_SHA — only `build:release` does. Pointing the ref at
+ * HEAD (PACK_GATE_ENV) is not enough on its own: the guard still stops at "dist/BUILD_SHA is
+ * missing". ci.yml builds, stamps, then validates; mirror that order here. The guard is not
+ * relaxed: an unstamped dist/ or one built from another commit still fails.
+ */
+async function runPackArtifactGate(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  const steps = [
+    { cmd: npmCmd, args: ["run", "build:cli"] },
+    { cmd: process.execPath, args: ["scripts/build/write-build-sha.mjs"] },
+    {
+      cmd: npmCmd,
+      args: ["run", "check:pack-artifact"],
+      env: PACK_GATE_ENV,
+    },
+  ];
+  let out = "";
+  for (const step of steps) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return classifyRunError({ killed: true, signal: "SIGTERM" }, timeoutMs);
+    const result = await runAsync(step.cmd, step.args, { env: step.env, timeout: remaining });
+    out += result.out;
+    if (result.code !== 0) return { code: result.code, out };
+  }
+  return { code: 0, out };
 }
 
 async function main() {
@@ -697,13 +744,15 @@ async function main() {
       slow.push({
         id: "pack-artifact",
         label: "Package artifact (npm pack policy)",
-        args: ["run", "check:pack-artifact"],
+        run: runPackArtifactGate,
         timeout: 20 * 60 * 1000,
       });
     }
     slow.forEach((g) => announce(`${g.label} [parallel]`));
     const slowResults = await Promise.all(
-      slow.map((g) => runAsync(npmCmd, g.args, { timeout: g.timeout }))
+      slow.map((g) =>
+        g.run ? g.run(g.timeout) : runAsync(npmCmd, g.args, { timeout: g.timeout, env: g.env })
+      )
     );
     slow.forEach((g, i) => {
       const { code, out } = slowResults[i];
@@ -753,9 +802,7 @@ async function main() {
     }
   } else if (WITH_BUILD) {
     // --with-build without the suites (--quick): still verify the package artifact.
-    const { code, out } = await runAsync(npmCmd, ["run", "check:pack-artifact"], {
-      timeout: 20 * 60 * 1000,
-    });
+    const { code, out } = await runPackArtifactGate(20 * 60 * 1000);
     saveGateLog("pack-artifact", out);
     record({
       id: "pack-artifact",

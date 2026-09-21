@@ -1,5 +1,6 @@
 import "./setupPolyfill.ts";
 import { Agent, ProxyAgent, type Dispatcher } from "undici";
+import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 import { stripIpv6Brackets, detectIpLiteralFamily, parseProxyFamily } from "./proxyFamily.ts";
 import { createSocksDispatcherWithFamily } from "./socksConnectorWithFamily.ts";
@@ -248,8 +249,7 @@ function normalizePort(port: string | number | null | undefined, protocol: strin
  * listen on these ports, so we must always include the port explicitly.
  */
 function buildProxyUrlString(parsed: URL, port: string): string {
-  const auth =
-    parsed.username || parsed.password ? `${parsed.username}:${parsed.password}@` : "";
+  const auth = parsed.username || parsed.password ? `${parsed.username}:${parsed.password}@` : "";
   return `${parsed.protocol}//${auth}${parsed.hostname}:${port}`;
 }
 
@@ -437,6 +437,23 @@ export function __createRoundRobinDispatcherForTest(dispatchers: Dispatcher[]): 
 }
 
 /**
+ * `Proxy-Authorization` value for an HTTP(S) proxy URL carrying userinfo, or null.
+ *
+ * undici's ProxyAgent builds this header itself with a bare `decodeURIComponent` on the
+ * URL's username/password, which throws `URIError` for a credential holding a literal
+ * `%` (e.g. `pa%ss`) — the dispatcher could not even be constructed. We build the same
+ * header (same `Basic base64(user:pass)` / `user:` shapes undici emits) with the guarded
+ * decoder and hand it over as `token`, so undici never decodes. Correctly encoded
+ * credentials (`user%40corp`) produce exactly the header undici produced before.
+ */
+function buildProxyAuthorizationToken(parsed: URL): string | null {
+  if (!parsed.username) return null;
+  const user = decodeUserinfo(parsed.username);
+  const pass = parsed.password ? decodeUserinfo(parsed.password) : "";
+  return `Basic ${Buffer.from(`${user}:${pass}`).toString("base64")}`;
+}
+
+/**
  * Build a ProxyAgent / socks dispatcher for a normalized proxy URL using the
  * given options. Shared by the pooled dispatcher (keep-alive, pipelining 4)
  * and the retry dispatcher (fresh no-keep-alive socket, mirrors #4252).
@@ -458,8 +475,8 @@ function buildProxyDispatcher(
       host: stripIpv6Brackets(parsed.hostname),
       port: Number(port),
     };
-    if (parsed.username) socksOptions.userId = decodeURIComponent(parsed.username);
-    if (parsed.password) socksOptions.password = decodeURIComponent(parsed.password);
+    if (parsed.username) socksOptions.userId = decodeUserinfo(parsed.username);
+    if (parsed.password) socksOptions.password = decodeUserinfo(parsed.password);
     return createSocksDispatcherWithFamily(
       socksOptions as unknown as Parameters<typeof createSocksDispatcherWithFamily>[0],
       family,
@@ -473,6 +490,7 @@ function buildProxyDispatcher(
   // `{ family, autoSelectFamily }` pin. At runtime undici merges these options into
   // net.connect (the uri already carries the host:port), so the partial pin is
   // valid; the cast suppresses the spurious missing-`port` error.
+  const proxyAuthorization = buildProxyAuthorizationToken(parsed);
   return new ProxyAgent({
     uri: cleanUri,
     // undici 8.6+ forwards plain-HTTP requests through the proxy as an origin
@@ -482,6 +500,7 @@ function buildProxyDispatcher(
     // undici <8.6 → silently ignored (that version already tunneled by default).
     proxyTunnel: true,
     ...options,
+    ...(proxyAuthorization ? { token: proxyAuthorization } : {}),
     ...(family !== null
       ? { proxyTls: { family, autoSelectFamily: false } as ProxyAgent.Options["proxyTls"] }
       : {}),
@@ -553,7 +572,7 @@ export function __getSocksOptionsForTest(proxyUrl: string): SocksDispatcherOptio
     host: stripIpv6Brackets(parsed.hostname),
     port: Number(port),
   };
-  if (parsed.username) socksOptions.userId = decodeURIComponent(parsed.username);
-  if (parsed.password) socksOptions.password = decodeURIComponent(parsed.password);
+  if (parsed.username) socksOptions.userId = decodeUserinfo(parsed.username);
+  if (parsed.password) socksOptions.password = decodeUserinfo(parsed.password);
   return socksOptions;
 }

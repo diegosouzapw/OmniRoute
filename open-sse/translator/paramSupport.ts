@@ -25,6 +25,11 @@ type StripRule = {
   drop?: string[];
   clampToModelMaxOutput?: boolean;
   maxOutputCap?: number;
+  // Remap `thinking.type` from one value to another instead of dropping the
+  // whole field, preserving any other keys already on `thinking` (e.g.
+  // budget_tokens). Only applies when `thinking` is an object whose current
+  // `type` matches the key.
+  mapThinkingType?: Record<string, string>;
 };
 
 const MAX_OUTPUT_TOKEN_KEYS = ["max_tokens", "max_completion_tokens", "max_output_tokens"] as const;
@@ -34,6 +39,13 @@ const STRIP_RULES: StripRule[] = [
   { match: /claude-opus-4/i, drop: ["temperature"] },
   // GitHub Copilot gpt-5.4: temperature unsupported.
   { provider: "github", match: /gpt-5\.4/i, drop: ["temperature"] },
+  // Codex /responses (chatgpt.com backend-api) rejects sampling params with
+  // FastAPI 400 `{"detail":"Unsupported parameter: temperature"}`. Native
+  // Codex passthrough returns before the Responses allowlist, so this rule
+  // must run from CodexExecutor.transformRequest via
+  // stripCodexPassthroughRejectedParams. Live: combo codex-review
+  // gpt-5.6-sol-xhigh / gpt-5.6-luna-max.
+  { provider: "codex", match: /.*/, drop: ["temperature", "top_p"] },
   // GitHub Copilot Claude (except opus/sonnet 4.6): thinking + reasoning_effort rejected. #713
   {
     provider: "github",
@@ -93,6 +105,17 @@ const STRIP_RULES: StripRule[] = [
   // to read), hence the fixed cap.
   { provider: "azure-openai", match: /^gpt-4o-mini/i, maxOutputCap: 16384 },
   { provider: "azure-ai", match: /^gpt-4o-mini/i, maxOutputCap: 16384 },
+  // AgentRouter routes GLM models through the generic DefaultExecutor (no
+  // GLM-specific handling), so a Claude-style `thinking.type: "adaptive"`
+  // (the default a Claude-format client like Claude Code sends) reaches
+  // AgentRouter's upstream GLM endpoint verbatim and 400s: `thinking.type
+  // "adaptive" is not supported by glm models; must be one of enabled,
+  // disabled`. The native GLM/ZAI executor already remaps adaptive->enabled
+  // for its own provider (glm.ts); AgentRouter needs the same mapping since
+  // it never reaches that code path. Scoped to the whole glm-* family, not a
+  // single model id, since AgentRouter's static catalog carries no glm-*
+  // entries (passthroughModels: true lets arbitrary GLM ids through). #13696.
+  { provider: "agentrouter", match: /glm-/i, mapThinkingType: { adaptive: "enabled" } },
 ];
 
 function matches(rule: StripRule, model: string): boolean {
@@ -135,6 +158,24 @@ function applyMaxOutputClamp(
 }
 
 /**
+ * When a rule requests it, remap `body.thinking.type` from one value to
+ * another (e.g. "adaptive" -> "enabled"), preserving every other key already
+ * present on `thinking`. No-op when `thinking` is absent, not an object, or
+ * its current `type` has no entry in the rule's map.
+ */
+function applyThinkingTypeMap(rule: StripRule, body: Record<string, unknown>): void {
+  if (!rule.mapThinkingType) return;
+  const thinking = body.thinking;
+  if (!thinking || typeof thinking !== "object" || Array.isArray(thinking)) return;
+  const thinkingRecord = thinking as Record<string, unknown>;
+  const currentType = thinkingRecord.type;
+  if (typeof currentType !== "string") return;
+  const mapped = rule.mapThinkingType[currentType];
+  if (mapped === undefined || mapped === currentType) return;
+  body.thinking = { ...thinkingRecord, type: mapped };
+}
+
+/**
  * Remove unsupported params from `body` in place. Returns the same reference
  * (or `body` unchanged when it is not a plain object / model is empty).
  */
@@ -157,6 +198,7 @@ export function stripUnsupportedParams<T>(
       if (rec[key] !== undefined) delete rec[key];
     }
     applyMaxOutputClamp(rule, provider, model, rec);
+    applyThinkingTypeMap(rule, rec);
   }
 
   // Phase 2: Config-driven rules from DB

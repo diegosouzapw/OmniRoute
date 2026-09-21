@@ -4631,9 +4631,21 @@ export function buildStaticProviderEntry(
           .map((m) => m.max_output_tokens)
           .filter((v): v is number => typeof v === "number" && v > 0);
 
-        if (contextValues.length > 0 && outputValues.length > 0) {
+        // Prefer the server-computed aggregate (accounts for explicit
+        // context_length overrides and members outside memberEntries, e.g.
+        // not yet resolved in /v1/models) over the raw Math.min(member)
+        // lower bound. Mirrors mapComboToModelV2's limit.context logic
+        // (#13000) so the static catalog and the dynamic hook agree.
+        const preferredContext =
+          typeof combo.computed_context_length === "number" && combo.computed_context_length > 0
+            ? combo.computed_context_length
+            : contextValues.length > 0
+              ? Math.min(...contextValues)
+              : undefined;
+
+        if (preferredContext !== undefined && outputValues.length > 0) {
           entry.limit = {
-            context: Math.min(...contextValues),
+            context: preferredContext,
             output: Math.min(...outputValues),
           };
         }
@@ -5511,6 +5523,32 @@ export function createOmniRouteConfigHook(
 
         const modelsFetchOk = !modelsFetchThrew && localRawModels.length > 0;
 
+        // Snapshot backfill for computed_context_length: a live /api/combos
+        // response can come back without this field (server hasn't finished
+        // recomputing it yet, e.g. just after a restart) even though the
+        // combo's members and identity are otherwise unchanged. When that
+        // happens, prefer the last-known-good value from the warm disk
+        // snapshot over the Math.min(member) fallback in
+        // mapComboToModelV2() — never overwrite any other combo field
+        // (models/name/etc.) with stale data, only this one derived number.
+        if (warmSnapshot) {
+          const snapshotComboById = new Map(warmSnapshot.rawCombos.map((c) => [c.id, c]));
+          for (const combo of localRawCombos) {
+            const hasLive =
+              typeof combo.computed_context_length === "number" &&
+              combo.computed_context_length > 0;
+            if (hasLive) continue;
+            const stale = snapshotComboById.get(combo.id);
+            if (
+              stale &&
+              typeof stale.computed_context_length === "number" &&
+              stale.computed_context_length > 0
+            ) {
+              combo.computed_context_length = stale.computed_context_length;
+            }
+          }
+        }
+
         // Disk-cache fallback (cold first run, no warm snapshot): when the
         // live fetch returned no models AND features.diskCache !== false,
         // hydrate from the last-known-good snapshot so OC still surfaces a
@@ -5518,9 +5556,17 @@ export function createOmniRouteConfigHook(
         if (modelsFetchThrew && wantDiskCache && !warmSnapshot) {
           const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
           if (snapshot && snapshot.rawModels.length > 0) {
+            // Report snapshot age like the warm-startup path already does:
+            // "stale" alone reads as a transient blip, so a week-old catalog
+            // is indistinguishable from a five-minute-old one.
+            const snapshotAge = snapshot.writtenAt;
+            const snapshotAgeLabel =
+              typeof snapshotAge === "number"
+                ? `${Math.round((Date.now() - snapshotAge) / 3_600_000)}h`
+                : "unknown";
             logAt(
               "warn",
-              `config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
+              `config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models, age ${snapshotAgeLabel})`
             );
             localRawModels = snapshot.rawModels;
             localRawCombos = snapshot.rawCombos;

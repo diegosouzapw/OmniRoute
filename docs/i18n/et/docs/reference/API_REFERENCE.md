@@ -1,21 +1,12 @@
-# API_REFERENCE (Eesti)
+# API Reference (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-title: "API viide"
-version: 3.8.51
-lastUpdated: 2026-08-31
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
-# API viide
-
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
-
-OmniRoute API põhiviide. See hõlmab avalikku `/v1` liidest ja enim kasutatavaid haldusotspunkte; masinloetav [`docs/openapi.yaml`](../openapi.yaml) ja marsruutide puu asukohas `src/app/api/` on kõikehõlmavad allikad.
+OmniRoute API põhiviide. See hõlmab avalikku `/v1` liidest ja enim kasutatavaid halduse lõpp-punkte; täielikud allikad on masinloetav [`docs/openapi.yaml`](../openapi.yaml) ja marsruudipuu kataloogis `src/app/api/`.
 
 ---
 
@@ -426,68 +417,90 @@ Kasuta seda endpointi, kui sidecar töötab väliselt (out-of-process) ja ei saa
 
 ---
 
-## Ühilduvuse endpointid
+## Ühilduvusotspunktid
 
-| Meetod | Tee                                       | Formaat                                           |
-| ------ | ----------------------------------------- | ------------------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                            |
-| POST   | `/v1/messages`                            | Anthropic                                         |
-| POST   | `/v1/responses`                           | OpenAI Responses                                  |
-| POST   | `/v1/embeddings`                          | OpenAI                                            |
-| POST   | `/v1/images/generations`                  | OpenAI Images                                     |
-| POST   | `/v1/images/edits`                        | OpenAI Images (redigeerimine/inpaint)             |
-| POST   | `/v1/videos/generations`                  | OpenAI-laadne video genereerimine                 |
-| POST   | `/v1/music/generations`                   | OpenAI-laadne muusika genereerimine               |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                                |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (tagastab audio sisu)                  |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-laadne uuesti järjestamine (rerank) |
-| POST   | `/v1/classify`                            | Jina klassifitseerimine (`api.jina.ai`)           |
-| POST   | `/v1/segment`                             | Jina segmenteerija (`segment.jina.ai`)            |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                                |
-| GET    | `/v1/models`                              | OpenAI                                            |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                                         |
-| GET    | `/v1beta/models`                          | Gemini                                            |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                            |
-| POST   | `/v1/api/chat`                            | Ollama                                            |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI kataloogi alias                            |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI mudelite alias                             |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenitud alias                            |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenitud alias                  |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenitud alias                            |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenitud alias                       |
+| Meetod | Tee                                       | Vorming                                 |
+| ------ | ----------------------------------------- | --------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                  |
+| POST   | `/v1/messages`                            | Anthropic                               |
+| POST   | `/v1/responses`                           | OpenAI Responses                        |
+| POST   | `/v1/embeddings`                          | OpenAI                                  |
+| POST   | `/v1/images/generations`                  | OpenAI Images                           |
+| POST   | `/v1/images/edits`                        | OpenAI Images (redigeerimine/inpaint)   |
+| POST   | `/v1/videos/generations`                  | OpenAI-laadne videogeneratsioon         |
+| POST   | `/v1/music/generations`                   | OpenAI-laadne muusikageneratsioon       |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (tagastab heli sisuosa)      |
+| POST   | `/v1/rerank`                              | Cohere/Voyage-laadne ümberjärjestamine  |
+| POST   | `/v1/classify`                            | Jina klassifitseerimine (`api.jina.ai`) |
+| POST   | `/v1/segment`                             | Jina segmentija (`segment.jina.ai`)     |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                      |
+| GET    | `/v1/models`                              | OpenAI                                  |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                               |
+| GET    | `/v1beta/models`                          | Gemini                                  |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                  |
+| POST   | `/v1/api/chat`                            | Ollama                                  |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI kataloogi alias                  |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI mudelite alias                   |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokeniseeritud alias             |
+| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokeniseeritud alias   |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokeniseeritud alias             |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama siltide tokeniseeritud alias     |
 
-Kõik POST-teed järgivad sama struktuuri: `Bearer your-api-key` + Zod-valideeritud JSON-sisu (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` jne, vaata `src/shared/validation/schemas.ts`). Skeemi valideerimise ebaõnnestumisel tagastatakse 4xx.
+Kõik POST-marsruudid järgivad sama kuju: `Bearer your-api-key` + Zodiga valideeritud JSON-i sisuosa (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` jne, vt `src/shared/validation/schemas.ts`). Skeemi valideerimise nurjumisel tagastatakse 4xx.
 
-Klientidele, kes ei saa lisada `Authorization: Bearer ...`, aktsepteerib OmniRoute API võtmeid ka URL-is, kas päringustringi ühilduvuse kaudu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) või allpool dokumenteeritud eraldi `/api/v1/vscode/{token}/...` endpointide kaudu.
+Klientide jaoks, mis ei saa lisada päist `Authorization: Bearer ...`, aktsepteerib OmniRoute API võtmeid ka URL-is kas päringustringi ühilduvuse kaudu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) või allpool dokumenteeritud spetsiaalsete `/api/v1/vscode/{token}/...` otspunktide kaudu.
 
 ```bash
-# Uuesti järjestamine (rerank)
+# Ümberjärjestamine (pilveregistri pakkuja või OpenAI-ga ühilduv pakkujasõlm kujul "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina klassifitseerimine (Foundation API mandaadid)
+# Jina klassifitseerimine (Foundation API mandaat)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenteerija
+# Jina segmentija
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina otsing (s.jina.ai; provider'i aliased: jina-search, jina-ai, jina)
+# Jina otsing (s.jina.ai; pakkuja aliased: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Modereerimine
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — tagastab audio/mpeg (või soovitud vormingus) sisu
+# TTS — tagastab audio/mpeg-vormingus (või soovitud vormingus) sisuosa
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Pildi redigeerimine (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Video / muusika genereerimine (provider'i eesliitega mudeli ID)
+# Video / muusika genereerimine (pakkuja prefiksiga mudeli ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Provider'ile pühendatud teed
+> **Ümberjärjestamise pakkujasõlmed:** `POST /v1/rerank` suunab päringuid ka OpenAI-ga ühilduvatesse pakkujasõlmedesse
+> (oMLX, vLLM, Infinity, TEI lüüsi taga jne), mille aadress on `<node-prefix>/<model>`. Tagasisideahela
+> sõlmed (`localhost`, `127.0.0.1`, `172.16.0.0/12`) on alati lubatud. Mis tahes muus hostis
+> asuvad sõlmed — kohtvõrgu masin või Tailscale'i partner — on lubatud ainult siis, kui operaator lubab
+> funktsioonilipu `RERANK_REMOTE_PROVIDER_NODES` **ja** sõlme baas-URL läbib pakkuja
+> väljamineva URL-i poliitika (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> pilvemetaandmete hostidesse ei suunata kunagi päringuid. Mälu mootori ümberjärjestamise samm kutsub seda marsruuti
+> tagasisideahela kaudu, seega reguleerib sama reegel mälu seadetes väärtust `rerankProviderModel`.
+>
+> **Kohalike serverite kujud:** sõlme kutsutakse aadressil `<base>/v1/rerank` ja vastuse 404 korral aadressil `<base>/rerank`
+> (Infinity, TEI). Ülesvoolu sisuosa sisaldab nii Cohere'i/OpenAI kirjapilti (`documents`,
+> `return_documents`) kui ka TEI kirjapilti (`texts`, `return_text`) ning ülesvoolu vastus
+> normaliseeritakse Cohere'i ümbrikuks: TEI tühi `[{index, score, text}]`, õhukeste lüüside
+> `{results: [{index, score}]}` ja Voyage'i-laadne `{data: [...]}` tagastatakse kõik kliendile kujul
+> `{results: [{index, relevance_score, document?}]}`, sordituna skoori järgi ja piiratud väärtusega `top_n`.
+
+> **Pakkujasõlmede tuvastamine:** OpenAI-ga ühilduva pakkujasõlme mudelid kuvatakse päringus `GET /v1/models`
+> sõlme prefiksi all. Read, mis ei sisalda otspunkti metaandmeid (tüüpiline kohalike `/v1/models` loendite puhul),
+> pärivad sõlme `apiType` väärtuse, mistõttu `embeddings`-sõlme mudelite väärtus on `type: "embedding"` ja
+> `rerank`-sõlme mudelite väärtus on `type: "rerank"`, selle asemel et kasutada vaikimisi vestlust; sünkroonitud
+> või käsitsi lisatud rea selgesõnaline `supportedEndpoints` on endiselt ülimuslik.
+
+### Spetsiaalsed pakkujamarsruudid
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -495,39 +508,47 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Provider'i eesliide lisatakse automaatselt, kui see puudub. Mittevastavate mudelite korral tagastatakse `400`.
+Pakkuja prefiks lisatakse automaatselt, kui see puudub. Sobimatud mudelid tagastavad vastuse `400`.
 
 ---
 
 ## Files API
 
-OpenAI-ga ühilduv failide lõpp-punkt partiisisendite/väljundite ja faili-otstarbeliste üleslaadimiste jaoks.
+OpenAI-ga ühilduv failide lõpp-punkt pakksisendi ja -väljundi ning faili eesmärgipõhiste üleslaadimiste jaoks.
 
-| Meetod | Tee                      | Kirjeldus                                                                                                       |
-| ------ | ------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/files`              | Laadi üles fail (multipart: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — max 512 MiB |
-| GET    | `/v1/files`              | Loetle autenditud API-võtme failid                                                                              |
-| GET    | `/v1/files/[id]`         | Hangi faili metaandmed                                                                                          |
-| DELETE | `/v1/files/[id]`         | Kustuta fail                                                                                                    |
-| GET    | `/v1/files/[id]/content` | Voogeda tagasi faili toorsisu                                                                                   |
+| Meetod | Tee                      | Kirjeldus                                                                                                           |
+| ------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/v1/files`              | Laadi fail üles (mitmeosaline: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — kuni 512 MiB |
+| GET    | `/v1/files`              | Loetle autentitud API-võtme failid                                                                                  |
+| GET    | `/v1/files/[id]`         | Too faili metaandmed                                                                                                |
+| DELETE | `/v1/files/[id]`         | Kustuta fail                                                                                                        |
+| GET    | `/v1/files/[id]/content` | Voogedasta faili töötlemata sisu tagasi                                                                             |
 
-**Autentimine:** Bearer API-võti — failid on ulatuslikult seotud API-võtme kaupa, kasutades `getApiKeyRequestScope`.
+**Autentimine:** Bearer API-võti — failid on `getApiKeyRequestScope` kaudu API-võtme kaupa piiritletud. Võti
+näeb ja saab alla laadida ning kustutada ainult enda faile; võtmeta juhtpaneeli seanss saab lugeda
+kogu eksemplari; omanikuta failile (anonüümne või juhtpaneeli seansi kaudu üles laaditud) keelatakse juurdepääs kõigile
+seansivälistele kutsujatele. `GET /v1/files` lükkab anonüümse kutsuja — ja esitatud võtme, mida
+ei õnnestu tuvastada — tagasi vastusega `401` isegi siis, kui `REQUIRE_API_KEY=false`, selle asemel et loetleda kõigi rentnike
+faile (GHSA-m3hp-hq9g-fpmv, GHSA-2jm2-mpx8-6523).
 
 ---
 
 ## Batches API
 
-OpenAI-ga ühilduv partiitöötlus.
+OpenAI-ga ühilduv pakktöötlus.
 
-| Meetod | Tee                       | Kirjeldus                                                                                                          |
-| ------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| POST   | `/v1/batches`             | Loo partii — keha valideeritakse skeemiga `v1BatchCreateSchema` (`input_file_id`, `endpoint`, `completion_window`) |
-| GET    | `/v1/batches`             | Loetle partiid                                                                                                     |
-| GET    | `/v1/batches/[id]`        | Hangi partii olek + `request_counts`                                                                               |
-| DELETE | `/v1/batches/[id]`        | Kustuta lõpetatud/ebaõnnestunud partii                                                                             |
-| POST   | `/v1/batches/[id]/cancel` | Katkesta pooleliolev partii                                                                                        |
+| Meetod | Tee                       | Kirjeldus                                                                                                               |
+| ------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/v1/batches`             | Pakktöö loomine — keha valideeritakse skeemiga `v1BatchCreateSchema` (`input_file_id`, `endpoint`, `completion_window`) |
+| GET    | `/v1/batches`             | Pakktööde loendi hankimine                                                                                              |
+| GET    | `/v1/batches/[id]`        | Pakktöö oleku ja `request_counts` hankimine                                                                             |
+| DELETE | `/v1/batches/[id]`        | Lõpetatud/nurjunud pakktöö kustutamine                                                                                  |
+| POST   | `/v1/batches/[id]/cancel` | Poolelioleva pakktöö tühistamine                                                                                        |
 
-**Autentimine:** Bearer API-võti. Partiid on ulatuslikult seotud API-võtme kaupa.
+**Autentimine:** Bearer API-võti. Pakktööd on API-võtme põhised ning neile kehtib sama kolmeosaline reegel nagu
+failidele: juurdepääs ainult oma võtmega, juhtpaneeli seansil kogu eksemplari ulatuses, null-omanikuga kirjetele on juurdepääs keelatud kõigile
+seansivälistele kutsujatele (hankimine, kustutamine, tühistamine ja loomisel tehtav `input_file_id` kontroll).
+`GET /v1/batches` lükkab anonüümse kutsuja tagasi vastusega `401` isegi siis, kui `REQUIRE_API_KEY=false`.
 
 ---
 
@@ -1591,23 +1612,23 @@ Ainult administraatoritele mõeldud lõpp-punktid operatiivseks haldamiseks.
 
 ---
 
-## CLI-tööriistade haldamine
+## CLI-tööriistade haldus
 
-Halda CLI-tööriistu, mis integreeruvad OmniRoute-iga (antigravity, chipotle, commandCode,
-devin-cli jne). Täieliku loendi leiad siit: [Pakkujate viide](./PROVIDER_REFERENCE.md).
+Hallake OmniRoute’iga integreeruvaid CLI-tööriistu (antigravity, commandCode,
+devin-cli jne). Täieliku loendi leiate jaotisest [Teenusepakkujate viited](./PROVIDER_REFERENCE.md).
 
-| Meetod | Tee                                     | Kirjeldus                                                                                                                                                                              |
-| ------ | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/cli-tools/all-statuses`           | Kõigi CLI-tööriistade olek (paigaldatud, versioon, viimati nähtud)                                                                                                                     |
-| GET    | `/api/cli-tools/status`                 | Ühe CLI-tööriista oleku üksikasjad (`?tool=` päring)                                                                                                                                   |
-| POST   | `/api/cli-tools/apply`                  | Kirjuta tööriista genereeritud konfiguratsioon (`dryRun` teeb eelvaate; `422` + `containerEphemeralTarget` konteineriseerituse korral; `migration` viitab vanapärasele Codex YAML-ile) |
-| GET    | `/api/cli-tools/backups`                | CLI-tööriistade konfiguratsioonide varukoopiate loend                                                                                                                                  |
-| POST   | `/api/cli-tools/backups`                | Loo varukoopia kõigist CLI-tööriistade konfiguratsioonidest                                                                                                                            |
-| POST   | `/api/cli-tools/backups`                | Taasta: sama lõpp-punkt, kuid kehas `{tool, backupId}` taastab vastava varukoopia                                                                                                      |
-| GET    | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM-vahendusserveri olek ("antigravity-mitm" CLI-tööriist)                                                                                                                |
-| POST   | `/api/cli-tools/antigravity-mitm/alias` | Antigravity-mitm aliaste konfigureerimine                                                                                                                                              |
+| Meetod | Tee                                     | Kirjeldus                                                                                                                                                                      |
+| ------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GET    | `/api/cli-tools/all-statuses`           | Kõigi CLI-tööriistade olek (installitud, versioon, viimati nähtud)                                                                                                             |
+| GET    | `/api/cli-tools/status`                 | Ühe CLI-tööriista oleku üksikasjad (`?tool=` päringuparameeter)                                                                                                                |
+| POST   | `/api/cli-tools/apply`                  | Kirjutab tööriista genereeritud konfiguratsiooni (`dryRun` kuvab eelvaate; konteineris käitamisel `422` + `containerEphemeralTarget`; `migration` märgib pärand-Codexi YAML-i) |
+| GET    | `/api/cli-tools/backups`                | Loetleb CLI-tööriistade konfiguratsioonide varukoopiad                                                                                                                         |
+| POST   | `/api/cli-tools/backups`                | Loob kõigi CLI-tööriistade konfiguratsioonidest varukoopia                                                                                                                     |
+| POST   | `/api/cli-tools/backups`                | Taastamine: sama lõpp-punkt taastab vastava varukoopia, kui päringu kehas on `{tool, backupId}`                                                                                |
+| GET    | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM-puhverserveri olek (CLI-tööriist „antigravity-mitm”)                                                                                                          |
+| POST   | `/api/cli-tools/antigravity-mitm/alias` | Konfigureerib antigravity-mitm-i aliased                                                                                                                                       |
 
-**Autentimine:** Vajalik haldusseanss.
+**Autentimine:** Nõuab haldusseanssi.
 
 ---
 

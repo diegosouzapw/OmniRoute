@@ -1,29 +1,21 @@
-# CODEBASE_DOCUMENTATION (Eesti)
+# OmniRoute Codebase Documentation (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
-
-title: "OmniRoute koodivaramu dokumentatsioon"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# OmniRoute koodivaramu dokumentatsioon
 
 > **Versioon:** v3.8.51
 > **Viimati uuendatud:** 2026-06-28
-> **Sihtgrupp:** Insenerid, kes aitavad kaasa OmniRoute'le või ehitavad selle peale integratsioone.
+> **Sihtrühm:** Insenerid, kes panustavad OmniRoute’i või loovad selle peale integratsioone.
 >
-> Ülevaatlike arhitektuuridiagrammide ja iga alamsüsteemi taga oleva põhjenduse kohta lugege
-> [ARCHITECTURE.md](./ARCHITECTURE.md). Üksikasjalike sukeldumiste kohta üksikute alamsüsteemide
-> (Auto Combo, MCP server, A2A server, Skills, Memory, Cloud Agents, Resilience,
-> Compression jne) kohta vaadake nende pühendatud faile selles `docs/` kataloogis.
+> Kõrgtaseme arhitektuuriskeemide ja iga alamsüsteemi aluseks olevate põhjenduste kohta lugege
+> faili [ARCHITECTURE.md](./ARCHITECTURE.md). Üksikute alamsüsteemide
+> (Auto Combo, MCP-server, A2A-server, Skills, Memory, Cloud Agents, Resilience,
+> Compression jne) põhjalikuma käsitluse leiate nende eraldi failidest selles `docs/` kataloogis.
 
-See kirjeldab **praegu hoidlas olevat**, et uus insener saaks
-puu sirvida, käitamiskihte mõista ja teada, kuhu koodi lisada, ilma uusi mooduleid leiutamata.
+See fail kirjeldab, **mis on hoidlas praegu olemas**, et uus insener
+saaks kataloogipuus orienteeruda, mõista käitusaegset kihistust ja teada, kuhu koodi lisada,
+ilma uusi mooduleid välja mõtlemata.
 
 ---
 
@@ -441,10 +433,10 @@ Jaotatud keskendunud alamkataloogidesse:
 
 ---
 
-## 4. `open-sse/` — Voogude mootori tööruum
+## 4. `open-sse/` — voogedastusmootori tööruum
 
-Eraldi npm tööruum, avaldatud kui `@omniroute/open-sse`. Vastutab
-päringu töötlemise, käivitajate, tõlkijate, teenuste, teisendaja ja MCP serveri eest.
+Eraldi npm-i tööruum, mis avaldatakse paketina `@omniroute/open-sse`. Haldab päringute
+töötlemist, täitureid, tõlkureid, teenuseid, teisendajat ja MCP-serverit.
 
 ```
 open-sse/
@@ -452,125 +444,125 @@ open-sse/
 ├── package.json            Tööruumi manifest
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 Pakkuja registrid, päiseprofiilid, identiteet, …
-├── handlers/               Päringu käsitlejad (chat, embeddings, audio, image, …)
-├── executors/              108 pakkuja-spetsiifilist HTTP käivitajat
-├── translator/             Vormingute teisendamine (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
+├── config/                 Pakkujaregistrid, päiseprofiilid, identiteet, …
+├── handlers/               Päringutöötlejad (vestlus, manused, heli, pilt, …)
+├── executors/              108 pakkujapõhist HTTP-täiturit
+├── translator/             Vormingu teisendamine (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions voo teisendaja
-├── services/               80+ teenust moodulit (kombod, asenduskäsitlus, kvoodid, identiteet, …)
-├── utils/                  Voo abivahendid, TLS klient, AWS SigV4, proksi fetch, …
-└── mcp-server/             MCP server (3 transporti, 33 skooppi, 110 tööriista)
+├── services/               Üle 80 teenusemooduli (kombod, varuvariandid, kvoodid, identiteet, …)
+├── utils/                  Voogedastuse abifunktsioonid, TLS-klient, AWS SigV4, puhverserveri päringud, …
+└── mcp-server/             MCP-server (3 transporti, 33 kehtivusala, 110 tööriista)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| Käsitleja               | Eesmärk                                                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------- |
-| `chatCore.ts`           | Põhiline vestlusring (vahemälu, kiirusepiirang, kombineeritud marsruutimine, käivitaja suunamine) |
-| `responsesHandler.ts`   | OpenAI Responses API sisenemispunkt                                                               |
-| `embeddings.ts`         | Poogid                                                                                            |
-| `imageGeneration.ts`    | Pildi genereerimine                                                                               |
-| `audioSpeech.ts`        | Tekstiks kõneks                                                                                   |
-| `audioTranscription.ts` | Kõneks tekstiks                                                                                   |
-| `videoGeneration.ts`    | Video genereerimine                                                                               |
-| `musicGeneration.ts`    | Muusika genereerimine                                                                             |
-| `rerank.ts`             | Ümberjärjestamine                                                                                 |
-| `moderations.ts`        | Modereerimine                                                                                     |
-| `search.ts`             | Veebiotsing                                                                                       |
-| `sseParser.ts`          | SSE sündmuste parser                                                                              |
-| `usageExtractor.ts`     | Tokkide arvude väljatõmbmine ülemvoolu voogudest                                                  |
-| `responseSanitizer.ts`  | Pakkuja-spetsiifilise müra eemaldamine                                                            |
-| `responseTranslator.ts` | Pakkuja vastuse ja tõlkija kihi liim                                                              |
+| Töötleja                | Otstarve                                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------------------------- |
+| `chatCore.ts`           | Peamine vestluskonveier (vahemälu, kiiruse piiramine, kombomarsruutimine, täituri käivitamine) |
+| `responsesHandler.ts`   | OpenAI Responses API sisenemispunkt                                                            |
+| `embeddings.ts`         | Manused                                                                                        |
+| `imageGeneration.ts`    | Piltide genereerimine                                                                          |
+| `audioSpeech.ts`        | Tekst kõneks                                                                                   |
+| `audioTranscription.ts` | Kõne tekstiks                                                                                  |
+| `videoGeneration.ts`    | Videote genereerimine                                                                          |
+| `musicGeneration.ts`    | Muusika genereerimine                                                                          |
+| `rerank.ts`             | Ümberjärjestamine                                                                              |
+| `moderations.ts`        | Modereerimine                                                                                  |
+| `search.ts`             | Veebiotsing                                                                                    |
+| `sseParser.ts`          | SSE-sündmuste parser                                                                           |
+| `usageExtractor.ts`     | Loendab ülesvoolu voogudest tokenid                                                            |
+| `responseSanitizer.ts`  | Eemaldab pakkujapõhise müra                                                                    |
+| `responseTranslator.ts` | Ühenduslüli pakkuja vastuse ja tõlkekihi vahel                                                 |
 
 ### 4.2 `open-sse/executors/`
 
-108 pakkuja käivitajat, igaüks laiendades `BaseExecutor` (`base.ts`):
+108 pakkujatäiturit, millest igaüks laiendab klassi `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, lisaks `claudeIdentity.ts`
-(jagatud identiteedi abivahend) ja `index.ts` (register).
+(jagatud identiteedi abifunktsioon) ja `index.ts` (register).
 
 > Märkus: siin loetlemata pakkujaid teenindab `default.ts`, kasutades üldist
-> OpenAI-ühilduvat käivitajat. Täielik pakkuja kataloog (355 pakkuja) asub
+> OpenAI-ga ühilduvat täiturit. Täielik pakkujakataloog (355 pakkujat) asub failis
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-Tigu ja kiire tõlge (OpenAI on keskne).
+Keskme ja kodarate põhimõttel tõlkimine (OpenAI on kese).
 
-- **9 päringu tõlkijat** (`translator/request/`):
+- **9 päringutõlkurit** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
-- **9 vastuse tõlkijat** (`translator/response/`):
+- **9 vastusetõlkurit** (`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **9 abivahendit** (`translator/helpers/`):
+- **9 abimoodulit** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, lisaks
-  abivahendite testid.
-- **Pildi abivahendid** (`translator/image/sizeMapper.ts`).
-- Ülemisel tasemel: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
+  abifunktsioonide testid.
+- **Pildiabimoodulid** (`translator/image/sizeMapper.ts`).
+- Tipptasemel: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
 - `responsesTransformer.ts` — `TransformStream`-il põhinev Responses API ↔ Chat
-  Completions teisendaja (kasutatakse `responses/` marsruuti kõigihõive puhul).
+  Completions teisendaja (kasutatakse marsruudi `responses/` kõikehõlmavas töötlejas).
 
 ### 4.5 `open-sse/services/`
 
-Esiletõstud (täielik nimekiri asub `open-sse/services/`):
+Olulisemad moodulid (täielik loend asub kataloogis `open-sse/services/`):
 
-| Teema                           | Failud                                                                                                                                                                                                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kombineeritud marsruutimine     | `combo.ts` (19 strateegiat), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                            |
-| Automaatne kombineeritud mootor | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| Vastupidavus                    | `accountFallback.ts` (jahutus + lukustus), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                              |
-| Kvoodid                         | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| Vahemälu                        | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
-| Marsruutimise intelligents      | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| Mudelite käsitlus               | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| Tihendamine                     | `compression/` — tihendamismootori täielik juhtmestik                                                                                                                                                                                             |
-| Tokkid + seanss                 | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| Liik / manifest                 | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP / võrk                       | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| Partiid                         | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| Kasutus                         | `usage.ts`                                                                                                                                                                                                                                        |
+| Valdkond                     | Failid                                                                                                                                                                                                                                                   |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Combo-marsruutimine          | `combo.ts` (19 strateegiat), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                   |
+| Auto Combo mootor            | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| Tõrkekindlus                 | `accountFallback.ts` (ooteaeg + lukustus), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                         |
+| Kvoodid                      | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| Vahemällu salvestamine       | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| Marsruutimise intelligentsus | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| Mudelite käsitlemine         | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| Tihendamine                  | `compression/` — tihendusmootori täielik ühendamine                                                                                                                                                                                                      |
+| Tokenid + seansid            | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| Tase / manifest              | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / võrk                    | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| Pakktöötlus                  | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Kasutus                      | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 unikaalset tööriista** ühendatud `server.ts` (45 kanonilist `schemas/tools.ts` +
-  mälu, oskused, GitHub-oskused, bassein, gamifitseerimine, pistikprogramm, Notion, Obsidian,
-  kohalik korpus ja tihendamismoodulid — üheloend, mida loendab `countUniqueMcpTools`).
-- **3 transporti**: stdio, HTTP voogedastatav, SSE.
-- **33 skooppi** kehtestatakse jooksvalt — baasloend `src/shared/constants/mcpScopes.ts`, täielik komplekt on iga tööriistamooduli poolt deklareeritud skoopide üheloend.
-- Auditi tabel: `mcp_tool_audit` (täidetud `audit.ts` poolt).
+- **110 unikaalset tööriista**, mis on ühendatud failis `server.ts` (45 kanoonilist failis `schemas/tools.ts` +
+  mälu-, oskuste, GitHubi oskuste, puuli-, mängustamise, plugina-, Notioni, Obsidiani,
+  kohaliku korpuse ja tihendusmoodulid — ühendloend arvutatakse funktsiooniga `countUniqueMcpTools`).
+- **3 transporti**: stdio, HTTP Streamable, SSE.
+- Käitusajal jõustatakse **33 ulatust** — baasloend asub failis `src/shared/constants/mcpScopes.ts`, täielik hulk on iga tööriistamooduli deklareeritud ulatuste ühend.
+- Audititabel: `mcp_tool_audit` (täidab `audit.ts`).
 - Failid: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
-  lisaks testid `__tests__/` all.
-- Vaata [MCP-SERVER.md](../frameworks/MCP-SERVER.md) täieliku tööriistade kataloogi jaoks.
+  lisaks testid kataloogis `__tests__/`.
+- Täielikku tööriistakataloogi vaadake failist [MCP-SERVER.md](../frameworks/MCP-SERVER.md).
 
 ### 4.7 `open-sse/config/`
 
-Pakkuja registrid (`providerRegistry.ts`, `providerModels.ts`,
+Pakkujate registrid (`providerRegistry.ts`, `providerModels.ts`,
 `providerHeaderProfiles.ts`), vormingupõhised mudeliregistrid (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-identiteedi abivahendid (`codexIdentity.ts`, `codexInstructions.ts`,
+identiteedi abifunktsioonid (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-mandaadi abivahendid (`credentialLoader.ts`, `codexClient.ts`) ja pilve
+mandaadi abifunktsioonid (`credentialLoader.ts`, `codexClient.ts`) ja pilve-
 adapterid (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-Vooprimitiivid ja pakkuja abivahendid: `stream.ts`, `streamHandler.ts`,
+Voogedastuse primitiivid ja teenusepakkuja abifunktsioonid: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,
@@ -579,6 +571,8 @@ Vooprimitiivid ja pakkuja abivahendid: `stream.ts`, `streamHandler.ts`,
 `thinkTagParser.ts`, `urlSanitize.ts`, `usageTracking.ts`, `requestLogger.ts`,
 `progressTracker.ts`, `cors.ts`, `error.ts`, `logger.ts`, `sleep.ts`,
 `ollamaTransform.ts`.
+
+---
 
 ## 5. `electron/` — Töölaua kate
 
@@ -661,7 +655,7 @@ bin/
 
 ## 8. `scripts/`
 
-Organiseeritud 6 alamkataloogi järgi otstarvet.
+Jaotatud otstarbe järgi kuude alamkausta.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
   `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,

@@ -34,6 +34,7 @@ import { refreshAndUpdateCredentialsWithResolver } from "@/lib/usage/providerLim
 import { getCircuitBreaker } from "@/shared/utils/circuitBreaker";
 import {
   QUOTA_AUTOPING_FAILURE_COOLDOWN_MS,
+  QUOTA_AUTOPING_FAR_RESET_SKIP_MS,
   QUOTA_AUTOPING_PROVIDERS,
   QUOTA_AUTOPING_REFRESH_AHEAD_MS,
   QUOTA_AUTOPING_TICK_INTERVAL_MS,
@@ -346,6 +347,12 @@ function shouldSendPing(
   resetKey: string,
   nowMs: number
 ): boolean {
+  // #13601: warming a window whose reset is days away has no benefit — the
+  // window cannot roll soon, so the ping can only fail (quota-hammering).
+  const resetAtMs = new Date(resetAt).getTime();
+  if (Number.isFinite(resetAtMs) && resetAtMs - nowMs > QUOTA_AUTOPING_FAR_RESET_SKIP_MS) {
+    return false;
+  }
   if (
     providerConfig.skipWhenBlockingQuotaExhausted &&
     hasExhaustedBlockingQuota(quotas, providerConfig.quotaKey)

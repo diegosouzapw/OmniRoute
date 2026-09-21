@@ -1,0 +1,1 @@
+- **fix(providers):** correct Magnific API key validation, which reported every valid key as invalid due to a GET probe against a POST-only endpoint (#12927) — thanks @hubo1989

@@ -14,18 +14,6 @@
     "jsonOpt": "以 JSON 格式輸出",
     "yesOpt": "跳過確認"
   },
-  "program": {
-    "description": "OmniRoute — 具有自動故障轉移的智慧 AI 路由器",
-    "version": "列印版本並退出",
-    "output": "輸出格式（table, json, jsonl, csv）",
-    "quiet": "禁止非必要輸出",
-    "no_color": "停用彩色輸出",
-    "timeout": "HTTP 請求超時（毫秒）",
-    "api_key": "OmniRoute 伺服器的 API 金鑰",
-    "base_url": "OmniRoute 伺服器的基礎 URL",
-    "context": "此命令使用的伺服器上下文/配置檔案",
-    "lang": "設定 CLI 顯示語言（覆蓋 OMNIROUTE_LANG）"
-  },
   "setup": {
     "title": "OmniRoute 設定",
     "passwordPrompt": "管理員密碼",
@@ -145,6 +133,20 @@
       "listTitle": "{days} 天內過期的金鑰："
     }
   },
+  "authExport": {
+    "description": "匯出已解密的提供者憑據（僅限本機，明文輸出）",
+    "idOpt": "僅匯出與此 id/名稱/提供者相符的連線",
+    "formatOpt": "輸出格式：json 或 env",
+    "outOpt": "將輸出寫入檔案而非標準輸出（以 0600 權限寫入）",
+    "forceOpt": "確認你了解此操作會列印/寫入明文密鑰",
+    "warning": "⚠ 此操作會列印/寫入已解密的明文 API 金鑰和 OAuth 令牌。請確保你的螢幕、shell 歷史記錄以及任何輸出檔案保持私密。",
+    "confirmHeading": "⚠ 警告：此操作會以明文匯出已解密的提供者憑據",
+    "confirmBody": "此命令會為所選連線解密並列印/寫入 apiKey、accessToken、refreshToken 和\nidToken。請將輸出視為機密。",
+    "confirmFooter": "如需確認，請執行：\n  omniroute auth export --force",
+    "missingKey": "匯出憑據需要 STORAGE_ENCRYPTION_KEY。",
+    "notFound": "找不到連線：{id}",
+    "invalidFormat": "無效格式：{format}。請使用 json 或 env。"
+  },
   "stream": {
     "description": "使用 SSE 檢查模式流式傳輸聊天響應",
     "file": "從檔案讀取提示",
@@ -254,6 +256,7 @@
     "max_restarts": "30 秒內的最大崩潰重啟次數（預設：2）",
     "tray": "顯示系統托盤圖示（僅桌面，選擇加入）",
     "no_tray": "停用系統托盤圖示",
+    "ready_timeout": "就緒探測逾時（毫秒）（也可用 OMNIROUTE_READY_TIMEOUT_MS，預設 60000）",
     "tls_cert": "用於提供 HTTPS 服務的 TLS 憑證（PEM）路徑（也可用 OMNIROUTE_TLS_CERT）",
     "tls_key": "用於提供 HTTPS 服務的 TLS 私鑰（PEM）路徑（也可用 OMNIROUTE_TLS_KEY）"
   },
@@ -301,7 +304,7 @@
     "status": "狀態：{status}",
     "uptime": "執行時間：{uptime}",
     "requests": "請求數（24h）：{count}",
-    "cost": "成本（24h）："
+    "cost": "成本（24h）：${cost}"
   },
   "quota": {
     "description": "顯示提供者配額使用情況",
@@ -345,6 +348,16 @@
     "running": "MCP 伺服器正在執行（{transport}）",
     "stopped": "MCP 伺服器已停止。",
     "restarted": "MCP 伺服器已重啟。",
+    "stoppedHint": "執行 `omniroute mcp enable` 以啟用它。",
+    "enabled": "MCP 伺服器已啟用。",
+    "disabled": "MCP 伺服器已停用。",
+    "enable": {
+      "description": "啟用 MCP 伺服器",
+      "transport": "要使用的傳輸方式：stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "停用 MCP 伺服器"
+    },
     "call": {
       "description": "直接呼叫 MCP 工具",
       "args": "JSON 引數物件（內聯）",
@@ -807,6 +820,18 @@
       "event": "要模擬的事件型別（預設：request.completed）"
     }
   },
+  "program": {
+    "description": "OmniRoute — 具有自動故障轉移的智慧 AI 路由器",
+    "version": "列印版本並退出",
+    "output": "輸出格式（table, json, jsonl, csv）",
+    "quiet": "禁止非必要輸出",
+    "no_color": "停用彩色輸出",
+    "timeout": "HTTP 請求超時（毫秒）",
+    "api_key": "OmniRoute 伺服器的 API 金鑰",
+    "base_url": "OmniRoute 伺服器的基礎 URL",
+    "context": "此命令使用的伺服器上下文/配置檔案",
+    "lang": "設定 CLI 顯示語言（覆蓋 OMNIROUTE_LANG）"
+  },
   "files": {
     "description": "管理檔案（上傳、列出、獲取、下載、刪除）",
     "list": {
@@ -906,6 +931,11 @@
       "description": "顯示與上游價格的差異",
       "model": "按模型篩選"
     }
+  },
+  "radar": {
+    "description": "檢查並同步本機 Radar 目錄訂閱來源",
+    "status": "顯示本機 Radar 設定和訂閱來源快取狀態",
+    "sync": "透過本機伺服器同步目錄、推薦、優惠和 Intel"
   },
   "resilience": {
     "description": "檢查和管理彈性機制",
@@ -1234,8 +1264,8 @@
     "description": "管理 OmniRoute 開機自啟（Linux：systemd 使用者服務）",
     "enable": "啟用開機自啟",
     "disable": "停用開機自啟",
-    "status": "顯示自啟狀態",
-    "toggle": "切換開機自啟"
+    "toggle": "切換開機自啟",
+    "status": "顯示自啟狀態"
   },
   "runtime": {
     "description": "管理本地執行時依賴",
@@ -1261,25 +1291,6 @@
     "search": "搜尋 npm 登錄檔中的可用外掛",
     "update": "更新已安裝的外掛",
     "scaffold": "搭建新的外掛模板"
-  },
-  "authExport": {
-    "description": "匯出已解密的提供者憑據（僅限本機，明文輸出）",
-    "idOpt": "僅匯出與此 id/名稱/提供者相符的連線",
-    "formatOpt": "輸出格式：json 或 env",
-    "outOpt": "將輸出寫入檔案而非標準輸出（以 0600 權限寫入）",
-    "forceOpt": "確認你了解此操作會列印/寫入明文密鑰",
-    "warning": "⚠ 此操作會列印/寫入已解密的明文 API 金鑰和 OAuth 令牌。請確保你的螢幕、shell 歷史記錄以及任何輸出檔案保持私密。",
-    "confirmHeading": "⚠ 警告：此操作會以明文匯出已解密的提供者憑據",
-    "confirmBody": "此命令會為所選連線解密並列印/寫入 apiKey、accessToken、refreshToken 和\nidToken。請將輸出視為機密。",
-    "confirmFooter": "如需確認，請執行：\n  omniroute auth export --force",
-    "missingKey": "匯出憑據需要 STORAGE_ENCRYPTION_KEY。",
-    "notFound": "找不到連線：{id}",
-    "invalidFormat": "無效格式：{format}。請使用 json 或 env。"
-  },
-  "radar": {
-    "description": "檢查並同步本機 Radar 目錄訂閱來源",
-    "status": "顯示本機 Radar 設定和訂閱來源快取狀態",
-    "sync": "透過本機伺服器同步目錄、推薦、優惠和 Intel"
   },
   "launch": {
     "description": "啟動指向 OmniRoute 的 Claude Code（本機或遠端，使用 --profile）",

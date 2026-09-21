@@ -11,9 +11,18 @@ import {
 import { validateBody } from "@/shared/validation/helpers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
+function getAssessBaseUrl(): string {
+  return (
+    process.env.OMNIROUTE_BASE_URL ??
+    process.env.OMNIROUTe_BASE_URL ??
+    process.env.BASE_URL ??
+    `http://localhost:${process.env.API_PORT ?? process.env.PORT ?? 20128}/v1`
+  );
+}
+
 const assessor = new Assessor(
-  process.env.OMNIROUTe_API_KEY ?? process.env.API_KEY ?? "",
-  process.env.OMNIROUTe_BASE_URL ?? "http://localhost:20128/v1"
+  process.env.OMNIROUTE_API_KEY ?? process.env.OMNIROUTe_API_KEY ?? process.env.API_KEY ?? "",
+  getAssessBaseUrl()
 );
 
 const categorizer = new Categorizer();
@@ -142,9 +151,12 @@ export async function GET(request: NextRequest) {
 
 async function getAllModels(): Promise<Array<{ providerId: string; modelId: string }>> {
   try {
-    const resp = await fetch("http://localhost:20128/v1/models", {
+    const baseUrl = getAssessBaseUrl();
+    const apiKey =
+      process.env.OMNIROUTE_API_KEY ?? process.env.OMNIROUTe_API_KEY ?? process.env.API_KEY ?? "";
+    const resp = await fetch(`${baseUrl}/models`, {
       headers: {
-        Authorization: `Bearer ${process.env.OMNIROUTe_API_KEY ?? process.env.API_KEY ?? ""}`,
+        Authorization: `Bearer ${apiKey}`,
       },
     });
     const data = (await resp.json()) as { data?: unknown };

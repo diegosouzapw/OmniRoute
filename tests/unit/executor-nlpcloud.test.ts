@@ -6,6 +6,16 @@ import { NlpCloudExecutor } from "../../open-sse/executors/nlpcloud.ts";
 
 const encoder = new TextEncoder();
 
+type ChatCompletionPayload = {
+  object: string;
+  choices: Array<{ message: { role: string; content: string } }>;
+  model: string;
+};
+
+type ErrorPayload = {
+  error: { message: string };
+};
+
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -35,7 +45,7 @@ test("NlpCloudExecutor is registered in the executor index", async () => {
   assert.ok((await getExecutor("nlpcloud")) instanceof NlpCloudExecutor);
 });
 
-test.skip("NlpCloudExecutor converts OpenAI messages into chatbot input/context/history and wraps JSON responses", async () => {
+test("NlpCloudExecutor converts OpenAI messages into chatbot input/context/history and wraps JSON responses", async () => {
   const executor = new NlpCloudExecutor();
   const originalFetch = globalThis.fetch;
   const calls: Array<{
@@ -84,7 +94,7 @@ test.skip("NlpCloudExecutor converts OpenAI messages into chatbot input/context/
     assert.equal(calls[0].body.context, "You are concise.");
     assert.deepEqual(calls[0].body.history, [{ input: "Hello", response: "Hi there!" }]);
 
-    const body = (await result.response.json()) as any;
+    const body = (await result.response.json()) as ChatCompletionPayload;
     assert.equal(body.object, "chat.completion");
     assert.equal(body.choices[0].message.role, "assistant");
     assert.equal(body.choices[0].message.content, "Hi back from NLP Cloud.");
@@ -141,7 +151,7 @@ test("NlpCloudExecutor maps upstream auth failures to OpenAI-style errors", asyn
     });
 
     assert.equal(result.response.status, 403);
-    const body = (await result.response.json()) as any;
+    const body = (await result.response.json()) as ErrorPayload;
     assert.match(body.error.message, /status 403/i);
   } finally {
     globalThis.fetch = originalFetch;

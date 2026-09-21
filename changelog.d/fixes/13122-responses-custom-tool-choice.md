@@ -1,0 +1,1 @@
+- **fix(sse):** stop rejecting a Responses API `tool_choice.type: "custom"` (e.g. Codex CLI forcing `functions__exec`) with a 400 `unsupported_feature` error (#13122) — thanks @phamtienduceng-eng

@@ -1,1 +1,0 @@
-- **chore(quality):** retighten the `src/sse/handlers/chat.ts` unused-vars suppression count to the 8 violations that actually remain

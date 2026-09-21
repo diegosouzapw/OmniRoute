@@ -31,7 +31,14 @@ import { assertContext } from "./compat.js";
 import { type ApiKeyOrigin, resolveApiKey, warnIfMissing } from "./credentials.js";
 import { createSourceErrorReporter } from "./enrichment-report.js";
 import { sanitizeToolSchemasFor } from "./gemini-language.js";
-import { PLUGIN_ID, parsePluginOptions, resolveTimeouts, type PluginOptions } from "./options.js";
+import {
+  MANAGEMENT_TOKEN_ENV_VAR,
+  PLUGIN_ID,
+  parsePluginOptions,
+  resolveManagementReadToken,
+  resolveTimeouts,
+  type PluginOptions,
+} from "./options.js";
 
 /**
  * A fetch result that says whether it succeeded. Returning a bare `[]` on
@@ -61,7 +68,7 @@ function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
     providerId: parsed.providerId,
     baseURL: parsed.baseURL,
     apiKey: parsed.apiKey ?? process.env.OMNIROUTE_API_KEY ?? "",
-    managementReadToken: parsed.managementReadToken,
+    managementReadToken: resolveManagementReadToken(parsed.managementReadToken),
     timeoutMs: parsed.timeoutMs,
     timeouts: parsed.timeouts,
     logLevel: parsed.logLevel,
@@ -93,6 +100,16 @@ export default define({
     resolved.logLevel = parsed.logLevel;
     resolved.startupDebug = parsed.startupDebug;
     log.info(`[omniroute-v2] init providerId=${X}`);
+    // The inference key stands in below when no management token is set, and
+    // gateways usually reject that stand-in with 401/403. Say so once here,
+    // before any fetch, instead of letting the refusal surface per endpoint.
+    if (resolved.managementReadToken === undefined) {
+      log.warn(
+        `[omniroute-v2] no management token configured: management endpoints (/api/*) will reuse the inference key, ` +
+          `which gateways usually reject with 401/403. Set "managementReadToken" in the plugin options ` +
+          `or export ${MANAGEMENT_TOKEN_ENV_VAR}.`
+      );
+    }
 
     // v1 parity port: in-memory TTL + disk snapshot. The memory key
     // `baseURL::sha256(creds)` isolates credential tuples (prod vs
@@ -297,7 +314,7 @@ export default define({
       };
       if (models.length > 0) {
         state.entries.set(cacheKey, snapshot);
-        await writeDiskSnapshot(X, snapshot, identityFingerprint);
+        await writeDiskSnapshot(X, snapshot, identityFingerprint, log);
       }
       void optional.then(
         (parts) => upgradeWithOptional(snapshot, parts),
@@ -344,7 +361,7 @@ export default define({
       if (unchanged) return;
       state.entries.set(cacheKey, upgraded);
       if (upgraded.models.length > 0) {
-        await writeDiskSnapshot(X, upgraded, identityFingerprint);
+        await writeDiskSnapshot(X, upgraded, identityFingerprint, log);
       }
       // Reload only when the optional tier actually moved: the catalog
       // fingerprint covers ids alone, so without this the host would rebuild

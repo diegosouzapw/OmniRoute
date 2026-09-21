@@ -1,0 +1,1 @@
+- fix(guardrails): resolve nested `combo-ref` steps to their real leaf models when deciding vision-bridge behavior, so a pass-through combo pointing at an all-vision-capable inner combo skips the describe-and-replace path instead of stripping raw images (#13927)

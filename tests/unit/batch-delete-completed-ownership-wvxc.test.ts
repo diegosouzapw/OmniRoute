@@ -29,11 +29,15 @@ const KEY_A = "key-wvxc-aaaa";
 const KEY_B = "key-wvxc-bbbb";
 
 function seedCompletedBatch(apiKeyId: string | null, tag: string) {
+  // The file carries the batch's owner, as an upload through that key does in production.
+  // #13374 (SEC-C) scopes the file half of a key sweep to files the caller owns, so an
+  // unowned file referenced by the caller's batch is deliberately left intact.
   const file = createFile({
     bytes: 10,
     filename: `wvxc-${tag}.jsonl`,
     purpose: "batch",
     content: Buffer.from("{}"),
+    apiKeyId,
   });
   const batch = createBatch({
     endpoint: "/v1/chat/completions",
@@ -45,12 +49,15 @@ function seedCompletedBatch(apiKeyId: string | null, tag: string) {
   return { file, batch };
 }
 
+// The helper now takes an explicit scope (#12969): `{ apiKeyId }` or `{ allTenants: true }`.
+// A bare string or an omitted argument throws instead of widening the sweep, so every call
+// below states its scope. The assertions are the original #13211 ones, unchanged.
 describe("deleteCompletedBatches — ownership scoping (GHSA-wvxc-jp3v-5mg5)", () => {
   it("scoped to one key deletes ONLY that key's completed batches", () => {
     const a = seedCompletedBatch(KEY_A, "a1");
     const b = seedCompletedBatch(KEY_B, "b1");
 
-    const result = deleteCompletedBatches(KEY_A);
+    const result = deleteCompletedBatches({ apiKeyId: KEY_A });
 
     assert.equal(getBatch(a.batch.id), null, "the caller's own batch should be gone");
     assert.ok(getBatch(b.batch.id), "another key's batch must survive");
@@ -61,7 +68,7 @@ describe("deleteCompletedBatches — ownership scoping (GHSA-wvxc-jp3v-5mg5)", (
     const a = seedCompletedBatch(KEY_A, "a2");
     const b = seedCompletedBatch(KEY_B, "b2");
 
-    deleteCompletedBatches(KEY_A);
+    deleteCompletedBatches({ apiKeyId: KEY_A });
 
     assert.equal(getFile(a.file.id), null, "the caller's own file should be gone");
     assert.ok(getFile(b.file.id), "another key's file must survive with its content intact");
@@ -70,7 +77,7 @@ describe("deleteCompletedBatches — ownership scoping (GHSA-wvxc-jp3v-5mg5)", (
   it("a key with no completed batches deletes nothing at all", () => {
     const b = seedCompletedBatch(KEY_B, "b3");
 
-    const result = deleteCompletedBatches("key-wvxc-with-nothing");
+    const result = deleteCompletedBatches({ apiKeyId: "key-wvxc-with-nothing" });
 
     assert.equal(result.deletedBatches, 0);
     assert.equal(result.deletedFiles, 0);
@@ -79,11 +86,11 @@ describe("deleteCompletedBatches — ownership scoping (GHSA-wvxc-jp3v-5mg5)", (
 
   it("unscoped (dashboard session) still clears the whole instance", () => {
     // The operator's own dashboard legitimately cleans up everything; that is
-    // the ONLY caller allowed to omit the key. Preserved deliberately.
+    // the ONLY caller allowed to ask for allTenants. Preserved deliberately.
     seedCompletedBatch(KEY_A, "a4");
     seedCompletedBatch(KEY_B, "b4");
 
-    const result = deleteCompletedBatches();
+    const result = deleteCompletedBatches({ allTenants: true });
 
     assert.ok(
       result.deletedBatches >= 2,
@@ -107,7 +114,8 @@ describe("the route passes the caller's key through", () => {
       "the route still calls deleteCompletedBatches() with no owner — every tenant's batches go"
     );
     assert.ok(
-      /deleteCompletedBatches\(\s*scope\./.test(src),
+      /deleteCompletedBatches\(\s*sweepScope\s*\)/.test(src) &&
+        /sweepScope = \{ apiKeyId: scope\.apiKeyId \}/.test(src),
       "the route must pass the caller's scope into the helper"
     );
   });

@@ -1,0 +1,1 @@
+- fix(providers): **declare Agnes chat models' live `reasoning_effort` vocabulary so catalog/builder/sanitizer stop inventing aliases the API 400s.** 2.0/2.5 accept `none/low/medium/high/max`; 3.0 also accepts `minimal` and `xhigh`. `off`/`ultra` still clamp off the wire.

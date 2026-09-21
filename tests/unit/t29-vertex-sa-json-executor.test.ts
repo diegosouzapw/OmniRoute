@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { VertexExecutor } = await import("../../open-sse/executors/vertex.ts");
+const { VertexExecutor, parseSAFromApiKey } = await import("../../open-sse/executors/vertex.ts");
 
 const MIN_SA_JSON = JSON.stringify({
   project_id: "vertex-project-123",
@@ -22,7 +22,7 @@ test("T29: Vertex executor builds regional Gemini URL from Service Account proje
 
 test("T29: Vertex executor routes partner models to global openapi endpoint", () => {
   const executor = new VertexExecutor();
-  const url = executor.buildUrl("DeepSeek-V4-Pro", false, 0, {
+  const url = executor.buildUrl("deepseek-ai/deepseek-v3.2-maas", false, 0, {
     apiKey: MIN_SA_JSON,
     providerSpecificData: { region: "us-central1" },
   });
@@ -69,6 +69,16 @@ test("T29: Vertex executor rejects incomplete Service Account JSON clearly", asy
         credentials: { apiKey: JSON.stringify({ project_id: "p" }) },
       }),
     /missing required fields/i
+  );
+});
+
+test("T29: Vertex distinguishes OAuth client JSON from a Service Account key", () => {
+  assert.throws(
+    () =>
+      parseSAFromApiKey(
+        JSON.stringify({ web: { client_id: "example.apps.googleusercontent.com" } })
+      ),
+    /OAuth client JSON is not a Service Account key/i
   );
 });
 

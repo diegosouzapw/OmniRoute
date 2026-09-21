@@ -1,0 +1,1 @@
+- **fix(cli):** skip the POSIX CLI path lookup during Windows autostart setup, preventing a bogus path error before successful enablement ([#12993](https://github.com/diegosouzapw/OmniRoute/pull/12993))

@@ -25,6 +25,7 @@ process.env.API_KEY_SECRET = "test-secret";
 const core = await import("../../src/lib/db/core.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const { safeResolveProxy } = await import("../../src/sse/handlers/chatHelpers.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -137,6 +138,61 @@ test("BLOCKS: a dead GLOBAL proxy assignment blocks any connection", async () =>
     proxiesDb.hasBlockingProxyAssignment(connId),
     true,
     "a dead global proxy assignment must block, not leak direct"
+  );
+});
+
+test("BLOCKS: a dead COMBO-scoped proxy assignment when the combo name is threaded through (#13469)", async () => {
+  await resetStorage();
+  const connId = await makeConnection();
+  const proxy = await proxiesDb.createProxy({
+    name: "Dead combo proxy",
+    type: "http",
+    host: "127.0.0.1",
+    port: 9006,
+  });
+  await proxiesDb.updateProxy(proxy!.id, { status: "inactive" });
+  await proxiesDb.assignProxyToScope("combo", "my-combo", proxy!.id);
+
+  assert.equal(
+    proxiesDb.hasBlockingProxyAssignment(connId, "openai", "my-combo"),
+    true,
+    "a dead combo-scoped proxy must block when the combo name is passed"
+  );
+  assert.equal(
+    proxiesDb.hasBlockingProxyAssignment(connId, "openai", "some-other-combo"),
+    false,
+    "a dead combo-scoped proxy must NOT block a request routed under a different combo"
+  );
+  assert.equal(
+    proxiesDb.hasBlockingProxyAssignment(connId, "openai"),
+    false,
+    "without a combo name (e.g. a non-combo request), the combo-scoped assignment is irrelevant"
+  );
+});
+
+test("WIRING #13469: safeResolveProxy fails closed end-to-end for a dead combo-scoped pool", async () => {
+  await resetStorage();
+  const connId = await makeConnection();
+  const proxy = await proxiesDb.createProxy({
+    name: "Dead combo proxy (wiring)",
+    type: "http",
+    host: "127.0.0.1",
+    port: 9007,
+  });
+  await proxiesDb.updateProxy(proxy!.id, { status: "inactive" });
+  await proxiesDb.assignProxyToScope("combo", "wired-combo", proxy!.id);
+
+  await assert.rejects(
+    () => safeResolveProxy(connId, undefined, "openai", "wired-combo"),
+    (err: unknown) => (err as { code?: string }).code === "PROXY_ASSIGNED_UNAVAILABLE",
+    "safeResolveProxy must thread comboName through to the guard and block instead of leaking direct egress"
+  );
+
+  const resolved = await safeResolveProxy(connId, undefined, "openai");
+  assert.deepEqual(
+    resolved,
+    { proxy: null, level: "direct", levelId: null },
+    "the combo scope must not affect a plain (non-combo) request on the same connection"
   );
 });
 

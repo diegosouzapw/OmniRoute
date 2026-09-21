@@ -1,7 +1,7 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getBatch, updateBatch } from "@/lib/db/batches";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
+import { getApiKeyRequestScope, canAccessOwnedRecord } from "@/app/api/v1/_helpers/apiKeyScope";
 import { formatBatchResponse } from "../../formatBatchResponse";
 
 export async function OPTIONS() {
@@ -11,12 +11,15 @@ export async function OPTIONS() {
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const scope = await getApiKeyRequestScope(request);
   if (scope.rejection) return scope.rejection;
-  const apiKeyId = scope.apiKeyId;
 
   const { id } = await params;
   const batch = getBatch(id);
 
-  if (!batch || (batch.apiKeyId !== null && batch.apiKeyId !== apiKeyId)) {
+  // The shared 3-way rule: the operator's dashboard (session auth) may cancel
+  // ANY batch — the old inline check 404'd every dashboard cancel of a
+  // key-owned batch (#13683) — a key cancels its own, and a null-owner batch
+  // is denied to a foreign key and to an anonymous caller (GHSA-2jm2-mpx8-6523).
+  if (!batch || !canAccessOwnedRecord(scope, batch.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "Batch not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }

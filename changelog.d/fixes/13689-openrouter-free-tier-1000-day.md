@@ -1,0 +1,1 @@
+- **fix(openrouter):** sync the `:free` 1000/day tier from `/credits` lifetime purchases instead of staying stuck at 50/day for $10+ accounts

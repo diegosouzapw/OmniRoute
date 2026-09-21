@@ -19,6 +19,7 @@ const LIST_URL = "https://grok.com/prod_mc_billing.ConsumerUiSvc/GetRemainingRes
 const REDEEM_URL = "https://grok.com/prod_mc_billing.ConsumerUiSvc/RedeemReset";
 const GRANTED = 1786560540;
 const EXPIRES = 1789238940;
+const FIXTURE_NOW_MS = Date.UTC(2026, 8, 6);
 const TOKEN_ID = "test-token-id";
 
 function encodeVarint(value: number): Buffer {
@@ -122,7 +123,8 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("listGrokResetCredits returns public rows without logging token ids in usage", async () => {
+test("listGrokResetCredits returns public rows without logging token ids in usage", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: FIXTURE_NOW_MS });
   const connection = (await createGrokConnection()) as { id: string };
   globalThis.fetch = async (url) => {
     if (String(url) === LIST_URL) return listResponse([{ id: TOKEN_ID, expires: EXPIRES }]);

@@ -7,6 +7,7 @@ import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws
 import { getModelInfo } from "@/sse/services/model";
 import { resolveCcDiscoveryAliasStrip } from "@/lib/ccDiscoveryAliasResolve";
 import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
+import { acquireCodexWsLease, releaseCodexWsLease } from "@/sse/services/codexWsLease";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
 import { resolveCodexWsModelInfo } from "./modelResolution";
@@ -22,6 +23,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
 import { resolveProxy } from "@omniroute/open-sse/utils/networkProxy.ts";
 import { withCodexFingerprintCredentials } from "@omniroute/open-sse/config/codexIdentity.ts";
+import { withReasoningRuleContext } from "@omniroute/open-sse/utils/reasoningRuleContext.ts";
 import { proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 import {
   attachReasoningRuleDirective,
@@ -32,7 +34,10 @@ import {
   validateCodexWsDecision,
 } from "@/lib/reasoningRouting/policy";
 import { resolveRequestRoutingTags } from "@/domain/tagRouter";
-import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
+import {
+  validateApiKeyRoutingTarget,
+  type ApiKeyMetadata as PolicyApiKeyMetadata,
+} from "@/shared/utils/apiKeyPolicy";
 import { persistResponsesWsCallHistory } from "./history";
 import { applyResponsesWsCompression } from "./compression";
 import { getComboByName } from "@/lib/db/combos";
@@ -48,7 +53,52 @@ const executor = new CodexExecutor();
 const log = logger("RESPONSES_WS");
 
 type JsonRecord = Record<string, unknown>;
-type ApiKeyMetadata = Awaited<ReturnType<typeof getApiKeyMetadata>>;
+// Key metadata reaches this bridge from two sources that each declare their own
+// shape: `getApiKeyMetadata()` (every field required) and `enforceApiKeyPolicy()`
+// (every field optional). The policy shape is the wider of the two and the db
+// shape is assignable to it, so it is the only one that can hold both — pinning
+// the alias to the db shape is what produced the "Type 'ApiKeyMetadata' is
+// missing … from type 'ApiKeyMetadata'" mismatch at the policy boundary.
+type ApiKeyMetadata = PolicyApiKeyMetadata | null;
+
+/**
+ * Bridge helpers below either fail with a ready-made HTTP response or return
+ * their success payload. `error` must exist on exactly ONE member of each union:
+ * for an unannotated object-literal union TypeScript synthesises `error?:
+ * undefined` on the success member, and `"error" in x` then keeps that member
+ * too — which is how every `if ("error" in context)` guard in this file silently
+ * stopped narrowing. Annotating the returns keeps the discriminant real.
+ */
+type CodexWsFailure = { error: Response };
+
+type CodexWsReasoningRoute = {
+  decision: Awaited<ReturnType<typeof resolveReasoningRoutingRule>>;
+  intent: ReturnType<typeof extractReasoningIntent>;
+  sourceModels: Awaited<ReturnType<typeof resolveReasoningSourceModels>>;
+  routingTags: ReturnType<typeof resolveRequestRoutingTags>;
+};
+
+type CodexWsCredentials = {
+  credentials: NonNullable<Awaited<ReturnType<typeof checkAndRefreshToken>>>;
+  leaseId: string;
+};
+
+type CodexWsRequestContext = CodexWsReasoningRoute & {
+  authRequest: Request;
+  apiKey: string | null;
+  responseBody: JsonRecord;
+  requestedModel: string;
+  clientHeaders: Record<string, string>;
+  metadata: ApiKeyMetadata;
+  allowedConnections: string[] | null;
+};
+
+type CodexWsUpstreamContext = CodexWsRequestContext &
+  CodexWsCredentials & {
+    provider: string;
+    model: string;
+    reasoningDecision: Awaited<ReturnType<typeof resolveReasoningRoutingRule>>;
+  };
 
 const bridgePayloadSchema = z
   .object({
@@ -323,10 +373,10 @@ async function enforceCodexWsApiKeyPolicy(
 async function prepareReasoningRoute(
   authRequest: Request,
   apiKey: string | null,
-  metadata: ApiKeyMetadata | null,
+  metadata: ApiKeyMetadata,
   requestedModel: string,
   responseBody: JsonRecord
-) {
+): Promise<CodexWsFailure | CodexWsReasoningRoute> {
   const reasoningIntent = extractReasoningIntent(requestedModel, responseBody);
   const sourceModels = await resolveReasoningSourceModels(reasoningIntent.model, (model) =>
     resolveCodexWsModelInfo(model, getModelInfo)
@@ -371,32 +421,64 @@ async function resolveCodexCredentials(
   provider: string,
   model: string,
   allowedConnections: string[] | null
-) {
-  const credentials = await getProviderCredentialsWithQuotaPreflight(
-    provider,
-    null,
-    allowedConnections,
-    model
-  );
-  if (!credentials || "allRateLimited" in credentials) {
-    return {
-      error: jsonError(
-        503,
-        "codex_credentials_unavailable",
-        "No available Codex OAuth connection for Responses WebSocket"
-      ),
-    };
+): Promise<CodexWsFailure | CodexWsCredentials> {
+  const excludedConnectionIds: string[] = [];
+  let credentials: Awaited<ReturnType<typeof getProviderCredentialsWithQuotaPreflight>> = null;
+
+  // A saturated account is excluded and another eligible account is selected;
+  // never queue a Responses WS session behind an existing tool turn — a queued
+  // session times out client-side as 499/502.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      allowedConnections,
+      model,
+      { excludeConnectionIds: excludedConnectionIds }
+    );
+    if (!credentials || "allRateLimited" in credentials || !credentials.connectionId) break;
+
+    const leaseId = await acquireCodexWsLease(credentials.connectionId, credentials.maxConcurrent);
+    if (!leaseId) {
+      excludedConnectionIds.push(credentials.connectionId);
+      continue;
+    }
+
+    let refreshed: Awaited<ReturnType<typeof checkAndRefreshToken>>;
+    try {
+      refreshed = await checkAndRefreshToken(provider, credentials);
+    } catch (error) {
+      releaseCodexWsLease(leaseId);
+      return {
+        error: jsonError(
+          502,
+          "codex_ws_prepare_failed",
+          sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+        ),
+      };
+    }
+
+    if (!refreshed?.accessToken) {
+      releaseCodexWsLease(leaseId);
+      return {
+        error: jsonError(401, "codex_oauth_token_missing", "Codex OAuth access token is missing"),
+      };
+    }
+    return { credentials: refreshed, leaseId };
   }
-  const refreshed = await checkAndRefreshToken(provider, credentials);
-  if (!refreshed?.accessToken) {
-    return {
-      error: jsonError(401, "codex_oauth_token_missing", "Codex OAuth access token is missing"),
-    };
-  }
-  return { credentials: refreshed };
+
+  return {
+    error: jsonError(
+      503,
+      "codex_credentials_unavailable",
+      "No available Codex OAuth connection for Responses WebSocket"
+    ),
+  };
 }
 
-async function resolveCodexRequestContext(body: JsonRecord) {
+async function resolveCodexRequestContext(
+  body: JsonRecord
+): Promise<CodexWsFailure | CodexWsRequestContext> {
   if (!isFeatureFlagEnabled("OMNIROUTE_CODEX_WS_ENABLED")) {
     return {
       error: jsonError(503, "codex_ws_disabled", "Codex Responses WebSocket transport is disabled"),
@@ -445,7 +527,7 @@ async function resolveCodexRequestContext(body: JsonRecord) {
     requestedModel,
     responseBody
   );
-  if (reasoningRoute.error) return { error: reasoningRoute.error };
+  if ("error" in reasoningRoute) return reasoningRoute;
   return {
     authRequest,
     apiKey,
@@ -459,8 +541,8 @@ async function resolveCodexRequestContext(body: JsonRecord) {
 }
 
 async function resolveCodexUpstreamContext(
-  context: Awaited<ReturnType<typeof resolveCodexRequestContext>>
-) {
+  context: CodexWsFailure | CodexWsRequestContext
+): Promise<CodexWsFailure | CodexWsUpstreamContext> {
   if ("error" in context) return context;
   const routedModel = context.decision?.targetModel ?? context.requestedModel;
   const modelInfo = await resolveCodexWsModelInfo(routedModel, getModelInfo);
@@ -480,22 +562,34 @@ async function resolveCodexUpstreamContext(
     model,
     context.allowedConnections
   );
-  if (credentialResult.error) return credentialResult;
+  if ("error" in credentialResult) return credentialResult;
   let reasoningDecision = context.decision;
   if (!reasoningDecision) {
-    reasoningDecision = await resolveReasoningRoutingRule({
-      sourceModel: context.intent.model,
-      sourceModelAliases: context.sourceModels.aliases,
-      sourceEffort: context.intent.sourceEffort,
-      hasReasoningSignal: context.intent.hasReasoningSignal,
-      hasThinkingBudget: context.intent.hasThinkingBudget,
-      apiKeyId: context.metadata?.id ?? null,
-      connectionId: credentialResult.credentials.connectionId,
-      requestTags: context.routingTags.tags,
-      connectionOnly: true,
-      capabilityModel: `codex/${model}`,
-    });
+    try {
+      reasoningDecision = await resolveReasoningRoutingRule({
+        sourceModel: context.intent.model,
+        sourceModelAliases: context.sourceModels.aliases,
+        sourceEffort: context.intent.sourceEffort,
+        hasReasoningSignal: context.intent.hasReasoningSignal,
+        hasThinkingBudget: context.intent.hasThinkingBudget,
+        apiKeyId: context.metadata?.id ?? null,
+        connectionId: credentialResult.credentials.connectionId,
+        requestTags: context.routingTags.tags,
+        connectionOnly: true,
+        capabilityModel: `codex/${model}`,
+      });
+    } catch (error) {
+      releaseCodexWsLease(credentialResult.leaseId);
+      return {
+        error: jsonError(
+          502,
+          "codex_ws_prepare_failed",
+          sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+        ),
+      };
+    }
     if (reasoningDecision?.capability === "unsupported") {
+      releaseCodexWsLease(credentialResult.leaseId);
       return {
         error: jsonError(
           400,
@@ -510,6 +604,7 @@ async function resolveCodexUpstreamContext(
     provider,
     model,
     credentials: credentialResult.credentials,
+    leaseId: credentialResult.leaseId,
     reasoningDecision,
   };
 }
@@ -518,7 +613,7 @@ async function resolveCodexProxy(provider: string): Promise<string | undefined> 
   try {
     return proxyConfigToUrl(await resolveProxy(provider)) || undefined;
   } catch (err) {
-    logger.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
+    log.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
     return undefined;
   }
 }
@@ -537,51 +632,89 @@ async function prepare(body: JsonRecord) {
       );
     }
   }
+
   const upstream = await resolveCodexUpstreamContext(context);
   if ("error" in upstream) return upstream.error;
-  const { responseBody, metadata, provider, model, credentials: refreshedCredentials } = upstream;
-  const reasoningDecision = upstream.reasoningDecision;
-
-  let responseBodyWithMemory = await maybeInjectResponsesWsMemory(responseBody, metadata);
-  let reasoningRouting: JsonRecord | null = null;
-  if (reasoningDecision) {
-    const withDirective = attachReasoningRuleDirective(responseBodyWithMemory, reasoningDecision);
-    reasoningRouting = isRecord(withDirective._omnirouteReasoningRouteTrace)
-      ? withDirective._omnirouteReasoningRouteTrace
-      : null;
-    responseBodyWithMemory = applyReasoningRuleDirective(withDirective) as JsonRecord;
-    delete responseBodyWithMemory._omnirouteReasoningRouteTrace;
-  }
-  // #8052: the WS bridge previously skipped the whole prompt-compression pipeline that the
-  // HTTP/SSE path (chatCore.ts) runs on every request — wire the same core pipeline in here,
-  // per logical turn, before handing off to the executor.
-  responseBodyWithMemory = await applyResponsesWsCompression(responseBodyWithMemory, {
+  const {
+    responseBody,
+    metadata,
     provider,
     model,
-    requestId: randomUUID(),
-  });
-  const credentialsWithFingerprint = withCodexFingerprintCredentials(
-    refreshedCredentials,
-    context.clientHeaders,
-    responseBodyWithMemory
-  );
-  const transformed = (await executor.transformRequest(
-    model,
-    responseBodyWithMemory,
-    true,
-    credentialsWithFingerprint
-  )) as JsonRecord;
-  transformed.model = model;
-  delete transformed.stream;
-  delete transformed.stream_options;
+    credentials: refreshedCredentials,
+    leaseId,
+  } = upstream;
+  const reasoningDecision = upstream.reasoningDecision;
 
-  const headers = normalizeUpstreamHeaders(executor.buildHeaders(credentialsWithFingerprint, true));
+  let responseBodyWithMemory: JsonRecord;
+  let reasoningRouting: JsonRecord | null = null;
+  let transformed: JsonRecord;
+  let credentialsWithFingerprint: typeof refreshedCredentials;
+  let reasoningRuleDirective: unknown;
+  try {
+    responseBodyWithMemory = await maybeInjectResponsesWsMemory(responseBody, metadata);
+    if (reasoningDecision) {
+      const withDirective = attachReasoningRuleDirective(responseBodyWithMemory, reasoningDecision);
+      reasoningRuleDirective = withDirective._omnirouteReasoningRule;
+      reasoningRouting = isRecord(withDirective._omnirouteReasoningRouteTrace)
+        ? withDirective._omnirouteReasoningRouteTrace
+        : null;
+      responseBodyWithMemory = applyReasoningRuleDirective(
+        withDirective,
+        "openai-responses"
+      ) as JsonRecord;
+      delete responseBodyWithMemory._omnirouteReasoningRouteTrace;
+    }
+    // #8052: the WS bridge previously skipped the whole prompt-compression pipeline that the
+    // HTTP/SSE path (chatCore.ts) runs on every request — wire the same core pipeline in here,
+    // per logical turn, before handing off to the executor.
+    responseBodyWithMemory = await applyResponsesWsCompression(responseBodyWithMemory, {
+      provider,
+      model,
+      requestId: randomUUID(),
+    });
+    credentialsWithFingerprint = withCodexFingerprintCredentials(
+      withReasoningRuleContext(refreshedCredentials, reasoningRuleDirective),
+      context.clientHeaders,
+      responseBodyWithMemory
+    );
+    transformed = (await executor.transformRequest(
+      model,
+      // This route already accepts native Responses input. Match HTTP passthrough
+      // so the executor preserves custom tools and native tool-result history.
+      { ...responseBodyWithMemory, _nativeCodexPassthrough: true },
+      true,
+      credentialsWithFingerprint
+    )) as JsonRecord;
+    transformed.model = model;
+    delete transformed.stream;
+    delete transformed.stream_options;
+  } catch (error) {
+    releaseCodexWsLease(leaseId);
+    return jsonError(
+      502,
+      "codex_ws_prepare_failed",
+      sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+    );
+  }
 
-  // #5611: apply the configured Global/provider proxy to the upstream Codex
-  // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
-  // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
-  // so a no-direct-egress container failed with a DNS lookup error.
-  const proxy = await resolveCodexProxy(provider);
+  let headers: Record<string, string>;
+  let proxy: string | undefined;
+  try {
+    headers = normalizeUpstreamHeaders(executor.buildHeaders(credentialsWithFingerprint, true));
+
+    // #5611: apply the configured Global/provider proxy to the upstream Codex
+    // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
+    // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
+    // so a no-direct-egress container failed with a DNS lookup error.
+    proxy = await resolveCodexProxy(provider);
+  } catch (error) {
+    releaseCodexWsLease(leaseId);
+    return jsonError(
+      502,
+      "codex_ws_prepare_failed",
+      sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+    );
+  }
 
   return NextResponse.json({
     ok: true,
@@ -593,6 +726,7 @@ async function prepare(body: JsonRecord) {
     browser: "chrome_142",
     os: "windows",
     connectionId: refreshedCredentials.connectionId,
+    leaseId,
     provider,
     account: refreshedCredentials.email || null,
     model,
@@ -627,6 +761,12 @@ export async function POST(request: Request) {
   }
   if (action === "prepare") {
     return prepare(body);
+  }
+  if (action === "release") {
+    return NextResponse.json({
+      ok: true,
+      released: releaseCodexWsLease(toStringOrNull(body.leaseId)),
+    });
   }
   if (action === "log") {
     try {

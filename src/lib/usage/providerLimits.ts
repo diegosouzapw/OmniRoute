@@ -91,6 +91,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "agentrouter",
   // OpenRouter API key → /key limits + /credits account balance
   "openrouter",
+  // LLM Gateway API key (llmgtwy_…) → GET /v1/key DevPass allowance
+  "llmgateway",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -902,6 +904,7 @@ export async function fetchAndPersistProviderLimits(
     const staleUsage: JsonRecord = {
       ...usage,
       quotas: previous.quotas,
+      modelQuotas: previous.modelQuotas,
       plan: previous.plan ?? usage.plan ?? null,
       bankedResetCredits: previous.bankedResetCredits,
       billing: previous.billing,

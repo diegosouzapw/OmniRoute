@@ -297,6 +297,7 @@ export function createResponsesApiTransformStream(
           id: state.reasoningId,
           type: "reasoning",
           summary: [],
+          status: "in_progress",
         },
       });
 
@@ -347,6 +348,7 @@ export function createResponsesApiTransformStream(
         id: state.reasoningId,
         type: "reasoning",
         summary: [{ type: "summary_text", text: state.reasoningBuf }],
+        status: "completed",
       };
 
       emit(controller, "response.output_item.done", {
@@ -388,6 +390,7 @@ export function createResponsesApiTransformStream(
         type: "message",
         content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
         role: "assistant",
+        status: "completed",
       };
 
       emit(controller, "response.output_item.done", {
@@ -438,7 +441,7 @@ export function createResponsesApiTransformStream(
         ...(customTool ? { input: "" } : { arguments: "" }),
         call_id: state.funcCallIds[idx],
         name: state.funcNames[idx] || "",
-        ...(customTool ? { status: "in_progress" } : {}),
+        status: "in_progress",
       },
     });
     return true;
@@ -519,6 +522,7 @@ export function createResponsesApiTransformStream(
           arguments: args,
           call_id: callId,
           name: toolName,
+          status: "completed",
         };
       }
 
@@ -678,6 +682,9 @@ export function createResponsesApiTransformStream(
                 object: "response",
                 created_at: state.created,
                 status: "in_progress",
+                background: false,
+                error: null,
+                output: [],
               },
             });
           }
@@ -763,7 +770,13 @@ export function createResponsesApiTransformStream(
                   emit(controller, "response.output_item.added", {
                     type: "response.output_item.added",
                     output_index: msgIdx,
-                    item: { id: msgId, type: "message", content: [], role: "assistant" },
+                    item: {
+                      id: msgId,
+                      type: "message",
+                      content: [],
+                      role: "assistant",
+                      status: "in_progress",
+                    },
                   });
                 }
 
@@ -795,7 +808,7 @@ export function createResponsesApiTransformStream(
           }
 
           // Handle tool_calls
-          if (delta.tool_calls) {
+          if (delta.tool_calls?.length) {
             // Close reasoning first so tool calls do not collide with an
             // open reasoning item, then close the message at its real index.
             if (state.reasoningId && !state.reasoningDone) {

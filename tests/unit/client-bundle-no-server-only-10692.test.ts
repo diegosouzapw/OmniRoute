@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import fs from "node:fs";
 import path from "node:path";
+import { builtinModules } from "node:module";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -26,6 +27,20 @@ import { fileURLToPath } from "node:url";
  *  - **Dynamic `import()` is not followed.** It does not actually break a bundle edge (that was
  *    tried for #10692 and failed), but it does move the module into a chunk the browser only
  *    fetches on demand, which is a legitimate boundary for a lazily-used server path.
+ *
+ * A reached module counts as server-only when it statically imports a Node builtin the
+ * production bundler cannot resolve for the browser. The pinned list below (the original
+ * #10692 chain) stays explicit so it keeps failing loudly even if the discovery logic
+ * changes; everything else is found by walking the graph and checking each visited file
+ * for a builtin import.
+ *
+ * Builtins Next ships a browser polyfill for are tolerated when imported by their BARE name
+ * (`path`, `os`, `crypto`, `buffer`, …): Next's client build maps exactly those names to
+ * `next/dist/compiled/*` shims (`resolve.fallback` for the client compiler in
+ * `node_modules/next/dist/build/webpack-config.js`), so flagging them would cry wolf the
+ * same way counting `import type` did. The `node:` scheme is never tolerated — the client
+ * build has no fallback for it (`UnhandledSchemeError` on `node:fs` / `node:os` / `node:path`
+ * is what broke the build this guard was widened for).
  */
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -38,6 +53,45 @@ const SERVER_ONLY = new Set([
   "open-sse/utils/proxyFetch.ts",
   "open-sse/utils/tlsClient.ts",
 ]);
+
+/**
+ * Bare builtin names Next's client build polyfills (the client `resolve.fallback` map in
+ * `next/dist/build/webpack-config.js`). Kept in sync by the drift test at the bottom.
+ */
+const NEXT_CLIENT_POLYFILLED_BUILTINS = new Set([
+  "assert",
+  "buffer",
+  "constants",
+  "crypto",
+  "domain",
+  "events",
+  "http",
+  "https",
+  "os",
+  "path",
+  "process",
+  "punycode",
+  "querystring",
+  "stream",
+  "string_decoder",
+  "sys",
+  "timers",
+  "tty",
+  "util",
+  "vm",
+  "zlib",
+]);
+
+const NODE_BUILTINS = new Set(
+  builtinModules.map((name) => name.replace(/^node:/, "")).filter((bare) => !bare.startsWith("_"))
+);
+
+/** True when `specifier` names a Node builtin the browser bundle cannot resolve. */
+function isBrowserForbiddenBuiltin(specifier: string): boolean {
+  if (specifier.startsWith("node:")) return true; // no client fallback for the scheme
+  const root = specifier.split("/")[0]; // `fs/promises` → `fs`
+  return NODE_BUILTINS.has(root) && !NEXT_CLIENT_POLYFILLED_BUILTINS.has(root);
+}
 
 /**
  * Non-`"use client"` entry points that still end up in a client bundle because client
@@ -60,6 +114,9 @@ function resolveSpecifier(fromFile: string, specifier: string): string | null {
   } else if (specifier.startsWith("@omniroute/open-sse")) {
     const rest = specifier.slice("@omniroute/open-sse".length).replace(/^\//, "");
     base = path.join(REPO_ROOT, "open-sse", rest);
+  } else if (specifier.startsWith("@omniroute/browser-pool")) {
+    const rest = specifier.slice("@omniroute/browser-pool".length).replace(/^\//, "");
+    base = path.join(REPO_ROOT, "packages/browser-pool/src", rest);
   } else if (specifier.startsWith("@/")) {
     base = path.join(REPO_ROOT, "src", specifier.slice(2));
   } else {
@@ -118,29 +175,53 @@ function staticSpecifiers(source: string): string[] {
 }
 
 const specifierCache = new Map<string, string[]>();
-function edgesOf(file: string): string[] {
+function specifiersOf(file: string): string[] {
   const cached = specifierCache.get(file);
   if (cached) return cached;
   const absolute = path.join(REPO_ROOT, file);
-  let edges: string[] = [];
+  let specs: string[] = [];
   if (fs.existsSync(absolute)) {
-    edges = staticSpecifiers(fs.readFileSync(absolute, "utf8"))
-      .map((specifier) => resolveSpecifier(file, specifier))
-      .filter((resolved): resolved is string => resolved !== null);
+    specs = staticSpecifiers(fs.readFileSync(absolute, "utf8"));
   }
-  specifierCache.set(file, edges);
+  specifierCache.set(file, specs);
+  return specs;
+}
+// Resolved edges and verdicts are cached per file: the BFS runs once per client entry and
+// re-visits the same shared modules thousands of times, so re-resolving specifiers
+// (fs.existsSync/statSync per candidate) on every visit made the guard ~6x slower.
+const edgeCache = new Map<string, string[]>();
+function edgesOf(file: string): string[] {
+  const cached = edgeCache.get(file);
+  if (cached) return cached;
+  const edges = specifiersOf(file)
+    .map((specifier) => resolveSpecifier(file, specifier))
+    .filter((resolved): resolved is string => resolved !== null);
+  edgeCache.set(file, edges);
   return edges;
+}
+
+const serverOnlyVerdictCache = new Map<string, boolean>();
+/** True when the file is pinned server-only or itself imports a browser-forbidden builtin. */
+function isServerOnly(file: string): boolean {
+  const cached = serverOnlyVerdictCache.get(file);
+  if (cached !== undefined) return cached;
+  const verdict = SERVER_ONLY.has(file) || specifiersOf(file).some(isBrowserForbiddenBuiltin);
+  serverOnlyVerdictCache.set(file, verdict);
+  return verdict;
 }
 
 /** BFS over static imports; returns the first path reaching a server-only module. */
 function findServerOnlyPath(entry: string): string[] | null {
   const seen = new Set<string>([entry]);
+  if (isServerOnly(entry)) return [entry];
   const queue: Array<string[]> = [[entry]];
   while (queue.length > 0) {
     const trail = queue.shift()!;
     for (const resolved of edgesOf(trail[trail.length - 1])) {
       if (seen.has(resolved)) continue;
-      if (SERVER_ONLY.has(resolved)) return [...trail, resolved];
+      if (isServerOnly(resolved)) {
+        return [...trail, resolved];
+      }
       seen.add(resolved);
       queue.push([...trail, resolved]);
     }
@@ -163,7 +244,9 @@ function walk(dir: string, acc: string[] = []): string[] {
 
 function clientEntryPoints(): string[] {
   return walk(path.join(REPO_ROOT, "src")).filter((file) =>
-    /^\s*["']use client["']/m.test(fs.readFileSync(path.join(REPO_ROOT, file), "utf8").slice(0, 200))
+    /^\s*["']use client["']/m.test(
+      fs.readFileSync(path.join(REPO_ROOT, file), "utf8").slice(0, 200)
+    )
   );
 }
 
@@ -183,4 +266,33 @@ test("no client entry point statically reaches server-only code", () => {
       "\nBreak the chain — or, when the binding is only a type, mark it `import type` so it " +
       "carries no runtime edge."
   );
+});
+
+test("builtin classification: node: scheme always forbidden, bare polyfilled names tolerated", () => {
+  for (const specifier of ["node:fs", "node:path", "node:os", "node:crypto", "fs", "fs/promises"]) {
+    assert.equal(isBrowserForbiddenBuiltin(specifier), true, specifier);
+  }
+  for (const specifier of ["child_process", "net", "tls", "module", "worker_threads"]) {
+    assert.equal(isBrowserForbiddenBuiltin(specifier), true, specifier);
+  }
+  for (const specifier of ["path", "os", "crypto", "buffer", "events", "util", "stream"]) {
+    assert.equal(isBrowserForbiddenBuiltin(specifier), false, specifier);
+  }
+  for (const specifier of ["react", "@/lib/db/core", "./local", "zod"]) {
+    assert.equal(isBrowserForbiddenBuiltin(specifier), false, specifier);
+  }
+});
+
+test("the polyfilled-builtin allowlist matches Next's client resolve.fallback", () => {
+  const webpackConfig = fs.readFileSync(
+    path.join(REPO_ROOT, "node_modules/next/dist/build/webpack-config.js"),
+    "utf8"
+  );
+  for (const name of NEXT_CLIENT_POLYFILLED_BUILTINS) {
+    assert.match(
+      webpackConfig,
+      new RegExp(`\\b${name}: require\\.resolve\\(`),
+      `Next no longer polyfills "${name}" for the client — drop it from the allowlist`
+    );
+  }
 });

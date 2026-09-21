@@ -42,7 +42,12 @@ function makeBaseArgs(overrides: Record<string, unknown> = {}) {
       },
     },
     effectiveServiceTier: undefined,
-    connectionId: null as string | null,
+    pendingScope: {
+      id: null,
+      model: "gpt-4o",
+      provider: "openai",
+      connectionId: null,
+    },
     startTime: Date.now(),
     log: {
       debug: () => {
@@ -162,7 +167,12 @@ function makeHitArgs(overrides: Record<string, unknown> = {}) {
       },
     },
     effectiveServiceTier: undefined,
-    connectionId: null as string | null,
+    pendingScope: {
+      id: null,
+      model: "gpt-4o",
+      provider: "openai",
+      connectionId: null,
+    },
     startTime: Date.now() - 5,
     log: {
       debug: (...a: unknown[]) => {
@@ -495,6 +505,53 @@ test("checkSemanticCache HIT includes X-OmniRoute-Cache-Latency: synthetic heade
   );
 });
 
+test("checkSemanticCache HIT finalizes the exact pending request by id", async () => {
+  clearCache();
+  const { clearPendingRequests, getPendingById, trackPendingRequest } =
+    await import("../../src/lib/usage/usageHistory.ts");
+  const { getCompletedDetails } = await import("../../src/lib/usage/completedRequestDetails.ts");
+  clearPendingRequests();
+  try {
+    const cached = {
+      id: "chatcmpl-cached-finalize",
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "finalize answer" },
+          finish_reason: "stop",
+        },
+      ],
+      usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10 },
+    };
+    const pendingId = trackPendingRequest("gpt-4o", "openai", "account-a", true);
+    assert.ok(pendingId);
+    const { args } = makeHitArgs({
+      body: {
+        model: "gpt-4o",
+        messages: [{ role: "user", content: "hit query finalize" }],
+        temperature: 0,
+      },
+      pendingScope: {
+        id: pendingId,
+        model: "gpt-4o",
+        provider: "openai",
+        connectionId: "account-a",
+      },
+    });
+    seedHit(args, cached);
+
+    const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+    assert.ok(result);
+    assert.equal(getPendingById().has(pendingId as string), false);
+    const completed = getCompletedDetails().get(pendingId as string);
+    assert.ok(completed);
+    assert.equal(completed.status, 200);
+    assert.deepEqual(completed.clientResponse, cached);
+  } finally {
+    clearPendingRequests();
+  }
+});
+
 // ─── tool_choice / tools / response_format must be part of the signature (#12734) ────────────
 
 test("#12734: cached tool_calls response must NOT be replayed for tool_choice: 'none'", async () => {
@@ -510,7 +567,11 @@ test("#12734: cached tool_calls response must NOT be replayed for tool_choice: '
           role: "assistant",
           content: null,
           tool_calls: [
-            { id: "call_1", type: "function", function: { name: "memory_search", arguments: "{}" } },
+            {
+              id: "call_1",
+              type: "function",
+              function: { name: "memory_search", arguments: "{}" },
+            },
           ],
         },
       },
@@ -541,7 +602,11 @@ test("#12734: identical tool_choice/tools/response_format across requests still 
   const tools = [
     {
       type: "function",
-      function: { name: "get_weather", description: "Get the weather", parameters: { type: "object" } },
+      function: {
+        name: "get_weather",
+        description: "Get the weather",
+        parameters: { type: "object" },
+      },
     },
   ];
   const cached = {

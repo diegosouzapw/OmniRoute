@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
 const { extractUsage, normalizeUsage } = await import("../../open-sse/utils/usageTracking.ts");
 
-test("normalizeUsage keeps only finite numeric fields for stream cost calculation", () => {
+test("normalizeUsage keeps finite nested cache-read fields for stream cost calculation", () => {
   assert.deepEqual(
     normalizeUsage({
       input_tokens: "12",
@@ -12,7 +12,7 @@ test("normalizeUsage keeps only finite numeric fields for stream cost calculatio
       total_tokens: Number.POSITIVE_INFINITY,
       input_tokens_details: { cached_tokens: 2 },
     }),
-    { input_tokens: 12, output_tokens: 3 }
+    { input_tokens: 12, output_tokens: 3, cached_tokens: 2 }
   );
 });
 
@@ -191,6 +191,29 @@ test("extractUsageFromResponse totals Claude prompt tokens with cache read and c
     cache_creation_input_tokens: 6,
   });
 });
+
+for (const provider of ["vertex", "vertex-partner"]) {
+  test(`extractUsageFromResponse totals Claude cache tokens for ${provider}`, () => {
+    const usage = extractUsageFromResponse(
+      {
+        usage: {
+          input_tokens: 10,
+          output_tokens: 7,
+          cache_read_input_tokens: 4_000,
+          cache_creation_input_tokens: 1_000,
+        },
+      },
+      provider
+    );
+
+    assert.deepEqual(usage, {
+      prompt_tokens: 5_010,
+      completion_tokens: 7,
+      cache_read_input_tokens: 4_000,
+      cache_creation_input_tokens: 1_000,
+    });
+  });
+}
 
 test("extractUsageFromResponse surfaces Claude thinking tokens without inflating completion", () => {
   const usage = extractUsageFromResponse(

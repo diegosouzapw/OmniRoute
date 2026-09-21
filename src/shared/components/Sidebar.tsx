@@ -51,6 +51,7 @@ const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 const DEFAULT_EXPANDED: SidebarSectionId = "omni-proxy";
 const EXPANDED_SECTIONS_KEY = "sidebar-expanded-sections";
 const PINNED_SECTIONS_KEY = "sidebar-pinned-sections";
+const PINNED_ITEMS_KEY = "sidebar-pinned-items";
 
 type SidebarGlyphStyle = CSSProperties & {
   "--sidebar-icon-accent": string;
@@ -104,6 +105,13 @@ function readStoredPinnedRaw() {
     return null;
   }
 }
+function readStoredPinnedItemsRaw() {
+  try {
+    return localStorage.getItem(PINNED_ITEMS_KEY);
+  } catch {
+    return null;
+  }
+}
 
 export default function Sidebar({
   onClose,
@@ -143,6 +151,8 @@ export default function Sidebar({
     new Set([DEFAULT_EXPANDED])
   );
   const [pinnedSections, setPinnedSections] = useState<Set<SidebarSectionId>>(new Set());
+  const [pinnedItems, setPinnedItems] = useState<Set<string>>(new Set());
+  const [pinnedSectionCollapsed, setPinnedSectionCollapsed] = useState(false);
   const [sidebarExpansionLoaded, setSidebarExpansionLoaded] = useState(false);
   const [skipInitialActiveExpansion, setSkipInitialActiveExpansion] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
@@ -168,6 +178,11 @@ export default function Sidebar({
     readStoredPinnedRaw,
     getServerSnapshotNull
   );
+  const storedPinnedItemsRaw = useSyncExternalStore(
+    noopSubscribe,
+    readStoredPinnedItemsRaw,
+    getServerSnapshotNull
+  );
   if (hydrated && !sidebarExpansionLoaded) {
     const storedExpanded = parseStoredArray<SidebarSectionId[]>(storedExpandedRaw, [
       DEFAULT_EXPANDED,
@@ -176,6 +191,7 @@ export default function Sidebar({
       storedPinnedRaw !== null
         ? parseStoredArray<SidebarSectionId[]>(storedPinnedRaw, [])
         : (SIDEBAR_SECTIONS.filter((s) => s.defaultPinned).map((s) => s.id) as SidebarSectionId[]);
+    const storedPinnedItems = parseStoredArray<string[]>(storedPinnedItemsRaw, []);
 
     const initialPinned = new Set<SidebarSectionId>(storedPinned);
     const initialExpanded = hydrateExpandedSections(storedExpanded, initialPinned);
@@ -183,6 +199,7 @@ export default function Sidebar({
     setSkipInitialActiveExpansion(storedExpanded.length === 0);
     setExpandedSections(initialExpanded);
     setPinnedSections(initialPinned);
+    setPinnedItems(new Set(storedPinnedItems));
     setSidebarExpansionLoaded(true);
   }
 
@@ -326,12 +343,31 @@ export default function Sidebar({
     section.children.flatMap((child: any) => (child.type === "group" ? child.items : [child]))
   );
 
+  const pinnedItemList = Array.from(pinnedItems)
+    .map((id) => allVisibleItems.find((item) => item.id === id))
+    .filter(Boolean) as (SidebarItemDefinition & { label: string; subtitle?: string })[];
+
+  const homeIndex = visibleSections.findIndex((s) => s.id === "home");
+  const insertIndex = homeIndex >= 0 ? homeIndex + 1 : 0;
+  const sectionsWithPinned =
+    pinnedItemList.length > 0
+      ? [
+          ...visibleSections.slice(0, insertIndex),
+          {
+            id: "pinned" as SidebarSectionId,
+            title: getSidebarLabel("pinnedSection", "Pinned"),
+            children: pinnedItemList,
+          },
+          ...visibleSections.slice(insertIndex),
+        ]
+      : visibleSections;
+
   const activeHref = getActiveSidebarHref(pathname, allVisibleItems);
 
   const isSearching = searchQuery.trim().length > 0;
   const displaySections = isSearching
-    ? filterSidebarSectionsByQuery(visibleSections, searchQuery)
-    : visibleSections;
+    ? filterSidebarSectionsByQuery(sectionsWithPinned, searchQuery)
+    : sectionsWithPinned;
 
   // Keep the active page visible while preserving accordion semantics for
   // unpinned sections. Render-time adjustment (react.dev "You Might Not Need
@@ -377,6 +413,10 @@ export default function Sidebar({
   // Accordion toggle: opening a section closes all non-pinned sections
   const toggleSection = useCallback(
     (sectionId: SidebarSectionId) => {
+      if (sectionId === "pinned") {
+        setPinnedSectionCollapsed((prev) => !prev);
+        return;
+      }
       setExpandedSections((prev) => toggleExpandedSection(prev, pinnedSections, sectionId));
     },
     [pinnedSections]
@@ -398,6 +438,19 @@ export default function Sidebar({
         });
       }
       saveToStorage(PINNED_SECTIONS_KEY, [...next]);
+      return next;
+    });
+  }, []);
+
+  const togglePinItem = useCallback((itemId: string) => {
+    setPinnedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      saveToStorage(PINNED_ITEMS_KEY, [...next]);
       return next;
     });
   }, []);
@@ -444,8 +497,10 @@ export default function Sidebar({
 
   const handleMouseLeave = useCallback(() => setHoveredItem(null), []);
 
-  const renderNavLink = (item) => {
+  const renderNavLink = (item: any, keyPrefix?: string) => {
     const active = !item.external && activeHref === item.href;
+    const isItemPinned = pinnedItems.has(item.id);
+    const itemKey = keyPrefix ? `${keyPrefix}-${item.href}` : item.href;
     const className = cn(
       "flex items-center gap-3 rounded-lg transition-all group",
       collapsed ? "justify-center px-2 py-2.5" : "px-3 py-1.5",
@@ -455,7 +510,7 @@ export default function Sidebar({
     );
     const iconClassName = cn(
       "material-symbols-outlined text-[18px] shrink-0",
-      active ? "fill-1" : "group-hover:text-primary transition-colors"
+      active ? "fill-1" : "group-hover/nav-item:text-primary transition-colors"
     );
     const content = (
       <>
@@ -463,7 +518,7 @@ export default function Sidebar({
           {item.icon}
         </span>
         {!collapsed && (
-          <div className="flex min-w-0 flex-col">
+          <div className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-sm font-medium">{item.label}</span>
             {item.subtitle && (
               <span className="truncate text-[10px] text-text-muted/60">{item.subtitle}</span>
@@ -477,33 +532,105 @@ export default function Sidebar({
       onMouseLeave: handleMouseLeave,
     };
 
-    if (item.external) {
+    if (collapsed) {
+      if (item.external) {
+        return (
+          <a
+            key={itemKey}
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className={className}
+            {...sharedProps}
+          >
+            {content}
+          </a>
+        );
+      }
+
       return (
-        <a
-          key={item.href}
+        <Link
+          key={itemKey}
           href={item.href}
-          target="_blank"
-          rel="noopener noreferrer"
+          prefetch={false}
           onClick={onClose}
           className={className}
           {...sharedProps}
         >
           {content}
-        </a>
+        </Link>
+      );
+    }
+
+    const pinButton = item.id !== "home" && (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          togglePinItem(item.id);
+        }}
+        title={isItemPinned ? t("unpinItem") : t("pinItem")}
+        aria-label={isItemPinned ? t("unpinItem") : t("pinItem")}
+        className={cn(
+          "mr-1.5 p-0.5 rounded transition-all shrink-0",
+          isItemPinned
+            ? "text-primary opacity-100 hover:text-primary/80"
+            : "text-text-muted/30 opacity-0 group-hover/nav-item:opacity-100 hover:text-text-muted/80"
+        )}
+      >
+        <span
+          className="material-symbols-outlined text-[13px]"
+          style={{
+            fontSize: "13px",
+            ...(isItemPinned ? { fontVariationSettings: "'FILL' 1" } : {}),
+          }}
+        >
+          push_pin
+        </span>
+      </button>
+    );
+
+    const containerClassName = cn(
+      "group/nav-item flex items-center rounded-lg transition-all",
+      active
+        ? "bg-primary/10 text-primary"
+        : "text-text-muted hover:bg-surface/50 hover:text-text-main"
+    );
+    const innerLinkClassName = "flex min-w-0 flex-1 items-center gap-3 px-3 py-1.5";
+
+    if (item.external) {
+      return (
+        <div key={itemKey} className={containerClassName}>
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className={innerLinkClassName}
+            {...sharedProps}
+          >
+            {content}
+          </a>
+          {pinButton}
+        </div>
       );
     }
 
     return (
-      <Link
-        key={item.href}
-        href={item.href}
-        prefetch={false}
-        onClick={onClose}
-        className={className}
-        {...sharedProps}
-      >
-        {content}
-      </Link>
+      <div key={itemKey} className={containerClassName}>
+        <Link
+          href={item.href}
+          prefetch={false}
+          onClick={onClose}
+          className={innerLinkClassName}
+          {...sharedProps}
+        >
+          {content}
+        </Link>
+        {pinButton}
+      </div>
     );
   };
 
@@ -616,7 +743,9 @@ export default function Sidebar({
           )}
           {displaySections.map((section, idx) => {
             const sectionId = section.id as SidebarSectionId;
-            const isExpanded = isSearching || expandedSections.has(sectionId);
+            const isExpanded =
+              isSearching ||
+              (sectionId === "pinned" ? !pinnedSectionCollapsed : expandedSections.has(sectionId));
             const isPinned = pinnedSections.has(sectionId);
             const isFirst = idx === 0;
             const sectionItems = section.children.flatMap((child: any) =>
@@ -630,7 +759,9 @@ export default function Sidebar({
                   {!isFirst && (
                     <div className="border-t border-black/5 dark:border-white/5 my-1.5" />
                   )}
-                  {sectionItems.map(renderNavLink)}
+                  {sectionItems.map((item: any) =>
+                    renderNavLink(item, section.id === "pinned" ? "pinned" : undefined)
+                  )}
                 </div>
               );
             }
@@ -639,7 +770,9 @@ export default function Sidebar({
             if (section.showTitle === false) {
               return (
                 <div key={section.id} className={cn("space-y-0.5", !isFirst && "mt-1")}>
-                  {sectionItems.map(renderNavLink)}
+                  {sectionItems.map((item: any) =>
+                    renderNavLink(item, section.id === "pinned" ? "pinned" : undefined)
+                  )}
                 </div>
               );
             }
@@ -657,30 +790,32 @@ export default function Sidebar({
                     {section.title}
                   </span>
 
-                  {/* Pin button — right side near chevron */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      togglePin(sectionId);
-                    }}
-                    title={isPinned ? t("unpinSection") : t("pinSectionOpen")}
-                    className={cn(
-                      "p-0.5 rounded transition-all shrink-0",
-                      isPinned
-                        ? "text-primary opacity-100"
-                        : "text-text-muted/30 opacity-0 group-hover/header:opacity-100 hover:text-text-muted/70"
-                    )}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontSize: "10px",
-                        ...(isPinned ? { fontVariationSettings: "'FILL' 1" } : {}),
+                  {/* Pin button — right side near chevron (only for standard sections) */}
+                  {sectionId !== "pinned" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        togglePin(sectionId);
                       }}
+                      title={isPinned ? t("unpinSection") : t("pinSectionOpen")}
+                      className={cn(
+                        "p-0.5 rounded transition-all shrink-0",
+                        isPinned
+                          ? "text-primary opacity-100"
+                          : "text-text-muted/30 opacity-0 group-hover/header:opacity-100 hover:text-text-muted/70"
+                      )}
                     >
-                      push_pin
-                    </span>
-                  </button>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{
+                          fontSize: "10px",
+                          ...(isPinned ? { fontVariationSettings: "'FILL' 1" } : {}),
+                        }}
+                      >
+                        push_pin
+                      </span>
+                    </button>
+                  )}
 
                   <span
                     className={cn(
@@ -708,11 +843,13 @@ export default function Sidebar({
                                 </span>
                               </div>
                             )}
-                            {child.items.map(renderNavLink)}
+                            {child.items.map((item: any) =>
+                              renderNavLink(item, section.id === "pinned" ? "pinned" : undefined)
+                            )}
                           </div>
                         );
                       }
-                      return renderNavLink(child);
+                      return renderNavLink(child, section.id === "pinned" ? "pinned" : undefined);
                     })}
                   </div>
                 )}

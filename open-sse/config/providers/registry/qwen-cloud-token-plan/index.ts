@@ -7,6 +7,7 @@ export const qwen_cloud_token_planProvider: RegistryEntry = {
   executor: "default",
   baseUrl:
     "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
+  modelsUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/models",
   authType: "apikey",
   authHeader: "bearer",
   models: [

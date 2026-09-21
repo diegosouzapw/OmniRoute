@@ -9,13 +9,18 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { APIKEY_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
 const { VIDEO_PROVIDER_IDS } = await import("../../src/shared/constants/providers.ts");
-const { REGISTRY: providerRegistry } = await import("../../open-sse/config/providerRegistry.ts");
+const { REGISTRY: providerRegistry, getRegistryModelThinkingEfforts } =
+  await import("../../open-sse/config/providerRegistry.ts");
 const { IMAGE_PROVIDERS, getAllImageModels } =
   await import("../../open-sse/config/imageRegistry.ts");
 const { VIDEO_PROVIDERS, getAllVideoModels } =
   await import("../../open-sse/config/videoRegistry.ts");
 const { FREE_MODEL_BUDGETS } = await import("../../open-sse/config/freeModelCatalog.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
+const { sanitizeReasoningEffortForProvider } =
+  await import("../../open-sse/executors/base/reasoningEffort.ts");
+const { getThinkingCapabilityFields } =
+  await import("../../src/app/api/v1/models/catalogHelpers.ts");
 const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
 const { handleVideoGeneration } = await import("../../open-sse/handlers/videoGeneration.ts");
 const { resolveChatCoreTargetFormat } =
@@ -87,6 +92,7 @@ test("agnes ships the current public chat models with the correct capabilities",
   assert.equal(flash20.contextLength, 262144);
   assert.equal(flash20.maxOutputTokens, 65536);
   assert.equal(flash20.supportsReasoning, true);
+  assert.deepEqual(flash20.supportedThinkingEfforts, ["none", "low", "medium", "high", "max"]);
   assert.equal(flash20.supportsVision, true);
   assert.equal(flash20.toolCalling, true);
 
@@ -94,15 +100,87 @@ test("agnes ships the current public chat models with the correct capabilities",
   assert.ok(flash25, "agnes-2.5-flash must be defined");
   assert.equal(flash25.contextLength, 524288);
   assert.equal(flash25.maxOutputTokens, 65536);
+  assert.equal(flash25.supportsReasoning, true);
+  assert.deepEqual(flash25.supportedThinkingEfforts, ["none", "low", "medium", "high", "max"]);
 
   const flash30 = entry.models.find((m) => m.id === "agnes-3.0-flash");
   assert.ok(flash30, "agnes-3.0-flash must be defined");
   assert.equal(flash30.contextLength, 524288);
   assert.equal(flash30.maxOutputTokens, 65536);
   assert.equal(flash30.supportsReasoning, true);
+  assert.deepEqual(flash30.supportedThinkingEfforts, [
+    "none",
+    "minimal",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+  ]);
   assert.equal(flash30.supportsVision, true);
   assert.equal(flash30.toolCalling, true);
   assert.equal(flash30.interleavedField, "reasoning_content");
+});
+
+test("agnes chat models advertise official thinking vocabulary", () => {
+  for (const id of ["agnes-2.0-flash", "agnes-2.5-flash"]) {
+    assert.deepEqual(getRegistryModelThinkingEfforts("agnes", id), [
+      "none",
+      "low",
+      "medium",
+      "high",
+      "max",
+    ]);
+  }
+  assert.deepEqual(getRegistryModelThinkingEfforts("agnes", "agnes-3.0-flash"), [
+    "none",
+    "minimal",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+  ]);
+});
+
+test("agnes catalog effort_tiers match declared vocabulary, not six-tier fallback", () => {
+  const efforts = getRegistryModelThinkingEfforts("agnes", "agnes-3.0-flash");
+  assert.ok(efforts && efforts.length > 0);
+  assert.deepEqual(
+    getThinkingCapabilityFields("agnes", "agnes-3.0-flash", true, efforts, !efforts.length),
+    {
+      thinking: true,
+      supportsThinking: true,
+      effort_tiers: ["none", "minimal", "low", "medium", "high", "xhigh", "max"],
+    }
+  );
+});
+
+test("agnes sanitizer keeps official tiers and clamps undocumented ones", () => {
+  const clamp = (model: string, effort: string) =>
+    (
+      sanitizeReasoningEffortForProvider({ reasoning_effort: effort }, "agnes", model) as {
+        reasoning_effort?: string;
+      }
+    ).reasoning_effort;
+
+  assert.equal(clamp("agnes-3.0-flash", "none"), "none");
+  assert.equal(clamp("agnes-3.0-flash", "minimal"), "minimal");
+  assert.equal(clamp("agnes-3.0-flash", "low"), "low");
+  assert.equal(clamp("agnes-3.0-flash", "high"), "high");
+  assert.equal(clamp("agnes-3.0-flash", "xhigh"), "xhigh");
+  assert.equal(clamp("agnes-3.0-flash", "max"), "max");
+  assert.equal(clamp("agnes-3.0-flash", "ultra"), "max");
+  assert.equal(clamp("agnes-3.0-flash", "off"), "none");
+
+  // 2.0/2.5 reject xhigh (HTTP 400); clamp up to the next accepted tier (max).
+  assert.equal(clamp("agnes-2.0-flash", "xhigh"), "max");
+  assert.equal(clamp("agnes-2.5-flash", "xhigh"), "max");
+  assert.equal(clamp("agnes-2.0-flash", "max"), "max");
+  assert.equal(clamp("agnes-2.0-flash", "off"), "none");
+  assert.equal(clamp("agnes-2.0-flash", "minimal"), "low");
+  assert.equal(clamp("agnes-2.5-flash", "minimal"), "low");
+  assert.equal(clamp("agnes-2.5-flash", "off"), "none");
 });
 
 test("agnes registry advertises the live OpenAI-style /models endpoint", () => {
@@ -111,9 +189,8 @@ test("agnes registry advertises the live OpenAI-style /models endpoint", () => {
 });
 
 test("agnes is classified for live OpenAI-style /models discovery", async () => {
-  const { isNamedOpenAIStyleProvider } = await import(
-    "../../src/app/api/providers/[id]/models/discovery/providerSets.ts"
-  );
+  const { isNamedOpenAIStyleProvider } =
+    await import("../../src/app/api/providers/[id]/models/discovery/providerSets.ts");
   assert.equal(isNamedOpenAIStyleProvider("agnes"), true);
 });
 
@@ -125,9 +202,8 @@ test("agnes honors per-connection CN base URL override", () => {
 });
 
 test("agnes base-URL field is always-on so CN keys can point at api.agnes-ai.cn", async () => {
-  const helpers = await import(
-    "../../src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts"
-  );
+  const helpers =
+    await import("../../src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts");
   assert.equal(helpers.isBaseUrlConfigurableProvider("agnes"), true);
   assert.equal(helpers.getProviderBaseUrlDefault("agnes"), "https://apihub.agnes-ai.com/v1");
   assert.equal(helpers.getProviderBaseUrlPlaceholder("agnes"), AGNES_CN_BASE_URL);

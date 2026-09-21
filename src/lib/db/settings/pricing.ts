@@ -4,7 +4,7 @@
 
 import { getDbInstance } from "../core";
 import { backupDbFile } from "../backup";
-import { invalidateDbCache } from "../readCache";
+import { getCachedPricing, invalidateDbCache } from "../readCache";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { type JsonRecord, toRecord } from "./shared";
 
@@ -131,7 +131,7 @@ export async function getPricingWithSources(): Promise<{
 }
 
 export async function getPricingForModel(provider: string, model: string) {
-  const pricing = await getPricing();
+  const pricing = (await getCachedPricing()) as PricingByProvider;
 
   const findKeyInsensitive = <T>(
     obj: Record<string, T> | undefined | null,

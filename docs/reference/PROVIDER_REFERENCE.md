@@ -1,16 +1,16 @@
 ---
 title: "Provider Reference"
 version: 3.8.51
-lastUpdated: 2026-09-05
+lastUpdated: 2026-09-18
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-09-05
+> **Last generated:** 2026-09-18
 
-Total providers: **356**. See category breakdown below.
+Total providers: **359**. See category breakdown below.
 
 ## Categories
 
@@ -34,19 +34,18 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 ---
 
-## No-auth Providers (no key required) (11)
+## No-auth Providers (no key required) (10)
 
 | ID | Alias | Name | Tags | Website | Notes | Tool calling |
 |----|-------|------|------|---------|-------|--------------|
 | `aihorde` | `horde` | AI Horde | No-auth | [link](https://aihorde.net) | No API key required — uses AI Horde's documented anonymous key. Adding a free aihorde.net key is optional and only buys higher queue priority (kudos). | — |
 | `auggie` | `aug` | Augment (Auggie CLI) | No-auth | [link](https://augmentcode.com) | No API key stored by OmniRoute. Install the Auggie CLI and run `auggie login` on this machine, then OmniRoute spawns it locally for each request. | — |
-| `chipotle` | `pepper` | Chipotle Pepper AI (Free) | No-auth | [link](https://amelia.chipotle.com) | No credentials required. Uses Chipotle's public support chatbot via reverse-engineered SockJS/STOMP protocol. | — |
 | `cloudflare-playground` | `cfp` | Cloudflare AI Playground | No-auth | [link](https://playground.ai.cloudflare.com) | No credentials required — anonymous browser sessions over a reverse-engineered cf_agent WebSocket protocol (Playwright transport). | — |
 | `codex-app-server` | `cxa` | OpenAI Codex (App-Server) | No-auth | [link](https://developers.openai.com/codex/cli) | No token stored by OmniRoute. The Codex CLI app-server manages its own ChatGPT sign-in (~/.codex/auth.json, auto-refreshed). Use “Sign in with ChatGPT” if the CLI is not yet authenticated. | — |
 | `devin-cli-agentic` | `dva` | Devin CLI Agentic Bridge | No-auth | [link](https://docs.devin.ai/work-with-devin/devin-cli) | Authentication is owned by the official Devin CLI in its isolated bridge volume. | emulated |
 | `duckduckgo-web` | `ddgw` | DuckDuckGo AI Chat | No-auth | [link](https://duckduckgo.com/duckchat) | No credentials required — DuckDuckGo AI Chat is anonymous and free. | emulated |
 | `opencode` | `oc` | OpenCode Free | No-auth | [link](https://opencode.ai) | No API key required — uses OpenCode's public free endpoint. | — |
-| `uncloseai` | `unc` | UncloseAI | No-auth | [link](https://uncloseai.com) | No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: solidrust/Hermes-3-Llama-3.1-8B-AWQ. | — |
+| `uncloseai` | `unc` | UncloseAI | No-auth | [link](https://uncloseai.com) | No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: Lorbus/Qwen3.6-27B-int4-AutoRound. | — |
 | `veoaifree-web` | `veo-free` | Veo AI Free | No-auth, video | [link](https://veoaifree.com) | No auth required. Rate limited to 6 requests/hour per IP. | — |
 | `zcode` | `zc` | ZCode (GLM Coding Plan) | No-auth | [link](https://zcode.z.ai) | No API key stored by OmniRoute. The local ZCode app-server uses the existing builtin:zai-coding-plan login. | — |
 
@@ -72,7 +71,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `kilocode` | `kc` | Kilo Code | OAuth | — | — |
 | `kimi-coding` | `kmc` | Kimi Code CLI | OAuth | [link](https://www.kimi.com/code?aff=omniroute) | Sign in with the same Kimi account used by Kimi Code CLI. OmniRoute uses the CLI OAuth flow and Kimi Coding Plan endpoints. |
 | `kiro` | `kr` | Kiro AI | OAuth | — | Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use. |
-| `openference` | `of` | Openference | OAuth | [link](https://openference.com) | Sign in with your Openference account to route requests through api.openference.com. An active plan is required for inference — OAuth may authenticate but return 402 without one. |
+| `openference` | `of` | Openference | OAuth | [link](https://openference.com) | Sign in with your Openference account to route requests through api.openference.com. Includes free-tier access to Qwen3.8 27b and Llama 3.2 3B — see openference.com/pricing for current plan terms. |
 | `qoder` | `if` | Qoder | OAuth | — | — |
 | `trae` | `tr` | Trae | OAuth | [link](https://trae.ai) | Trae is an AI-native IDE by ByteDance (SOLO remote agent). Authorize via trae.ai in the popup, or sign in at solo.trae.ai and paste the Cloud-IDE-JWT (sent as 'Authorization: Cloud-IDE-JWT <token>', ~14-day lifetime) as the access token; web_id/biz_user_id/user_unique_id/scope/tenant/region propagate via providerSpecificData. No headless refresh for pasted tokens — re-paste on expiry. |
 | `xai-oauth` | `xao` | xAI OAuth (Grok) | OAuth | [link](https://x.ai) | Sign in with xAI to use api.x.ai models such as Grok 4.5. This is separate from Grok Build JWT sessions, which use cli-chat-proxy.grok.com and grok-build model aliases. |
@@ -118,13 +117,14 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web | Web cookie | [link](https://chat.z.ai) | Copy the "token" value from chat.z.ai → DevTools → Application → Local Storage. Do not copy cookies; OmniRoute handles the per-request CAPTCHA through its browser transport. | — |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
-## API Key Providers (paid / paid-with-free-credits) (238)
+## API Key Providers (paid / paid-with-free-credits) (242)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
 | `360ai` | `360ai` | 360 AI | API key | [link](https://ai.360.cn) | Get API key at ai.360.cn |
 | `agentrouter` | `agentrouter` | AgentRouter | API key, aggregator | [link](https://agentrouter.org) | $200 free credits on signup - multi-model routing gateway |
 | `agnes` | `agnes` | Agnes AI | API key, video | [link](https://agnes-ai.com) | Get API key at agnes-ai.com |
+| `agnes-cn` | `agnescn` | Agnes AI (China) | API key | [link](https://api.agnes-ai.cn) | Get API key from the Agnes CN site. |
 | `ai21` | `ai21` | AI21 Labs | API key | [link](https://www.ai21.com) | $10 trial credits on signup (valid 3 months), no credit card required |
 | `aimlapi` | `aiml` | AI/ML API | API key, aggregator | [link](https://aimlapi.com) | Free tier paused (2026) — AI/ML API is now pay-as-you-go only (min $20 top-up); no recurring free credits. |
 | `ainative` | `ainative` | AINative Studio | API key | [link](https://ainative.studio) | Create a free API key at ainative.studio (no card), then paste it here as a Bearer token. |
@@ -182,6 +182,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `dxnt` | `dxnt` | DXNT / DX Token | API key, aggregator | [link](https://www.dxnt.com) | Free accounts are documented at 100 calls/day; the quota may increase through invitations and can vary by account. |
 | `electronhub` | `electronhub` | Electron Hub | API key, aggregator | [link](https://www.electronhub.ai) | Free plan: 5 RPM, $0.25 weekly credits and 10 Neutrinos/day for :free models; family budgets also apply. |
 | `empower` | `empower` | Empower | API key, aggregator | [link](https://docs.empower.dev) | Bearer API key for the Empower OpenAI-compatible endpoint. |
+| `eurouter` | `eurouter` | EURouter | API key, aggregator | [link](https://eurouter.ai) | — |
 | `factory` | `factory` | Factory | API key | [link](https://factory.ai) | Bearer API key for the Factory OpenAI-compatible gateway. |
 | `fal-ai` | `fal` | Fal.ai | API key, image | [link](https://fal.ai) | — |
 | `fastrouter` | `fastrouter` | FastRouter | API key, aggregator | [link](https://fastrouter.ai) | Models with the :free suffix allow 10 requests/day per organization and model; availability may change. |
@@ -210,6 +211,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `glm` | `glm` | GLM Coding | API key | [link](https://z.ai/subscribe) | — |
 | `glm-cn` | `glmcn` | GLM Coding (China) | API key | [link](https://open.bigmodel.cn) | — |
 | `glmt` | `glmt` | GLM Thinking | API key | [link](https://open.bigmodel.cn) | — |
+| `greenpt` | `greenpt` | GreenPT | API key | [link](https://greenpt.com) | API subscription is free to create; inference is billed per token. No free inference allowance is published. |
 | `groq` | `groq` | Groq | API key | [link](https://groq.com) | Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file. |
 | `haiper` | `hp` | Haiper | API key, video | [link](https://haiper.ai) | Get API key at haiper.ai/haiper-api |
 | `hcnsec` | `hcnsec` | Huancheng Public API | API key | [link](https://api.hcnsec.cn) | Get API key at api.hcnsec.cn |
@@ -278,7 +280,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `openai` | `openai` | OpenAI | API key | [link](https://platform.openai.com) | — |
 | `opencode-go` | `opencode-go` | OpenCode Go | API key | [link](https://opencode.ai/go) | — |
 | `opencode-zen` | `opencode-zen` | OpenCode Zen | API key | [link](https://opencode.ai/zen) | — |
-| `openference-api` | `ofa` | Openference API | API key | [link](https://openference.com) | Free plan: 3-day trial with open-source models — no credit card required |
+| `openference-api` | `ofa` | Openference API | API key | [link](https://openference.com) | Free tier: includes Qwen3.8 27b and Llama 3.2 3B — see openference.com/pricing for current terms |
 | `openrouter` | `openrouter` | OpenRouter | API key, aggregator | [link](https://openrouter.ai) | Free models at $0/token with :free suffix - 20 RPM / 200 RPD |
 | `openvecta` | `openvecta` | OpenVecta | API key | [link](https://openvecta.com) | Free credits on signup for OpenAI-compatible inference across LLMs, embeddings, and reasoning models |
 | `opper` | `opper` | Opper | API key, aggregator | [link](https://opper.ai) | — |
@@ -339,8 +341,8 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `v0-vercel` | `v0` | v0 (Vercel) | API key | [link](https://v0.dev) | — |
 | `venice` | `venice` | Venice.ai | API key | [link](https://venice.ai) | — |
 | `vercel-ai-gateway` | `vag` | Vercel AI Gateway | API key, aggregator | [link](https://vercel.com/docs/ai-gateway) | — |
-| `vertex` | `vertex` | Vertex AI | API key, enterprise | [link](https://cloud.google.com/vertex-ai) | Provide Service Account JSON or OAuth access_token |
-| `vertex-partner` | `vp` | Vertex AI Partners | API key, enterprise | [link](https://cloud.google.com/vertex-ai) | Provide the same Service Account JSON used for Vertex AI partner models. |
+| `vertex` | `vertex` | Vertex AI | API key, enterprise | [link](https://cloud.google.com/vertex-ai) | Provide Service Account JSON, an OAuth access token, a Vertex Express API key, or a service-account-bound authorization key. Express mode supports Gemini only; partner models require project-scoped credentials. |
+| `vertex-partner` | `vp` | Vertex AI Partners | API key, enterprise | [link](https://cloud.google.com/vertex-ai) | Provide Service Account JSON or OAuth credentials. A service-account-bound authorization key also supports discovery, but partner inference additionally requires its Google Cloud project ID. Standard Express keys support Gemini only. |
 | `void-ai` | `void-ai` | Void AI | API key, aggregator | [link](https://voidai.app) | The public model catalog marks some models with a free plan requirement, but access is conditional and no numeric quota is confirmed. |
 | `volcengine` | `volcengine` | Volcengine | API key | [link](https://www.volcengine.com) | — |
 | `volcengine-agent-plan` | `veap` | Volcengine Ark Agent Plan | API key | [link](https://console.volcengine.com/ark/region:cn-beijing/subscription/agent-plan) | Connect your Volcano Engine account or use an Ark Agent Plan subscription API key. |
@@ -354,6 +356,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `xai` | `xai` | xAI (Grok) | API key | [link](https://x.ai) | Use an official xAI API key, or sign in with xAI OAuth. Grok Build JWT sessions remain a separate provider. |
 | `xiaomi-mimo` | `mimo` | Xiaomi MiMo | API key | [link](https://mimo.mi.com) | — |
 | `xiaomi-mimo-token-plan` | `mimotp` | Xiaomi MiMo Token Plan | API key | [link](https://mimo.mi.com) | — |
+| `xkiro` | `xkiro` | xKiro | API key, aggregator | [link](https://xkiro.com) | Create a free account at xkiro.com and paste the key here (Bearer; x-api-key also accepted). |
 | `yi` | `yi` | Yi (01.AI) | API key | [link](https://01.ai) | Get API key at platform.lingyiwanwu.com |
 | `yolo-auto` | `yolo-auto` | Yolo-Auto | API key, aggregator | [link](https://yolo-auto.com) | Free API access is request-limited and intended for testing; no numeric daily quota is published and free access is not promised indefinitely. |
 | `zai` | `zai` | Z.AI | API key | [link](https://open.bigmodel.cn) | — |
@@ -444,7 +447,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 - Catalog: [`src/shared/constants/providers.ts`](../../src/shared/constants/providers.ts)
 - Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)
-- Executors: [`open-sse/executors/`](../../open-sse/executors/) (109 implementations)
+- Executors: [`open-sse/executors/`](../../open-sse/executors/) (114 implementations)
 - Translators: [`open-sse/translator/`](../../open-sse/translator/)
 
 ## See Also

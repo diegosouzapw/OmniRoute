@@ -30,6 +30,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/memory/rerank-providers/route.ts": 1,
     "src/app/api/search/providers/route.ts": 3,
     "src/app/api/v1/_shared/elevenLabsProxy.ts": 1,
+    "src/app/api/v1/_shared/fishAudioProxy.ts": 1,
     "src/app/api/v1/audio/speech/route.ts": 1,
     "src/app/api/v1/_shared/videoModelResolution.ts": 1,
     "src/app/api/v1/audio/transcriptions/route.ts": 2,
@@ -37,8 +38,9 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/v1/classify/route.ts": 1,
     // v3.8.51 #11754: the second resolveImageRouteModel() call (a duplicate
     // of the retirement-check one hoisted before enforceApiKeyPolicy) was
-    // removed as dead redundant code, 6->5.
-    "src/app/api/v1/images/edits/route.ts": 5,
+    // removed as dead redundant code, 6->5. #12653 added combo target
+    // resolution with the same shape as imageCombo, 5->6.
+    "src/app/api/v1/images/edits/route.ts": 6,
     "src/app/api/v1/images/generations/route.ts": 3,
     "src/app/api/v1/images/upscale/route.ts": 1,
     "src/app/api/v1/messages/count_tokens/route.ts": 1,
@@ -86,12 +88,16 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
   },
   connection: {
     "open-sse/handlers/autoComboCandidates.ts": 1,
-    "open-sse/handlers/chatCore.ts": 2,
+    "open-sse/handlers/chatCore.ts": 3,
     "open-sse/handlers/cursorCliProxy.ts": 1,
     "open-sse/services/alibabaFreeTier.ts": 1,
     "open-sse/services/alibabaFreeTierQuotaFetcher.ts": 1,
     // Family cooldown persist looks the row up to write PSD, not dispatch.
     "open-sse/services/antigravityFamilyCooldown.ts": 1,
+    // #12864: on the first REQUEST_REJECTED refusal seen by this process the
+    // streak seeder reads the row's lastErrorType/lastErrorAt so a crash loop
+    // cannot reset the backoff count on every boot — a state read, not dispatch.
+    "open-sse/handlers/chatCore/requestRejectedFailure.ts": 1,
     // v3.8.50 back-merge additions (f95b03d7): combo routing infra and the
     // volcengine-plan binding/auto-sync services query connections the same
     // way as their classified siblings.
@@ -161,7 +167,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/db/providers.ts": 3,
     "src/lib/db/readCache.ts": 2,
     "src/lib/freeProviderRankings.ts": 1,
-    "src/lib/guardrails/visionBridgeCredentials.ts": 1,
+    "src/lib/guardrails/visionBridgeCredentials.ts": 2,
     "src/lib/kimi/tokenRefresh.ts": 1,
     "src/lib/monitoring/providerHealthAutopilot.ts": 1,
     "src/lib/monitoring/providerHealthMatrix.ts": 1,
@@ -189,6 +195,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/usage/callLogs.ts": 1,
     "src/lib/usage/codexResetCredits.ts": 1,
     "src/lib/usage/comboScoringInspector.ts": 1,
+    "src/lib/usage/glmResetCards.ts": 1,
     // v3.8.51 #12805 (c042a5188): grok-cli sibling of codexResetCredits.ts, same
     // shape — isConnectionUnavailableToAuxiliaryActivity() gates the lookup, so an
     // ACTIVE exclusive lease defers redemption (409 exclusive_lease_active).
@@ -242,6 +249,7 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
         "src/lib/providers/volcenginePlanBinding.ts",
         "src/lib/services/quotaAutoPing.ts",
         "src/lib/usage/codexResetCredits.ts",
+        "src/lib/usage/glmResetCards.ts",
         "src/lib/usage/grokResetCredits.ts",
         "src/lib/usage/providerLimits.ts",
         "src/lib/vncSession/service.ts",
@@ -351,6 +359,7 @@ test("managed request surfaces are fenced centrally or rejected before independe
     "src/lib/api/modelTestRunner.ts",
     "src/lib/services/quotaAutoPing.ts",
     "src/lib/usage/codexResetCredits.ts",
+    "src/lib/usage/glmResetCards.ts",
     "src/lib/usage/grokResetCredits.ts",
     "src/lib/vncSession/service.ts",
     "src/lib/warmupScheduler.ts",

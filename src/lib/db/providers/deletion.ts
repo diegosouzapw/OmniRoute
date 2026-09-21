@@ -19,7 +19,7 @@ import {
 import { invalidateDbCache } from "../readCache";
 import { invalidateReasoningRoutingRuleCache } from "../reasoningRoutingRules";
 import { bumpProxyConfigGeneration } from "../settings";
-import { deleteSyncedAvailableModelsForProvider } from "../models";
+import { deleteSyncedAvailableModelsForProvider } from "../models/syncedAvailableModelPersistence";
 import { toRecord } from "./columns";
 
 interface StatementLike<TRow = unknown> {

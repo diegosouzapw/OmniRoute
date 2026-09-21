@@ -55,6 +55,7 @@ omniroute restart
 - `--max-restarts <n>`
 - `--tray`
 - `--no-tray`
+- `--ready-timeout <ms>`
 - `--tls-cert <path>`
 - `--tls-key <path>`
 

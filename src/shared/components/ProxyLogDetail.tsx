@@ -14,6 +14,17 @@ import { formatDuration as formatLatency } from "@/shared/utils/formatting";
  * Proxy log detail modal — shows full proxy event metadata, error info, and config.
  * Extracted from ProxyLogger.js for maintainability.
  */
+/**
+ * Proxy label for the detail pane: the registry name when the log carries one
+ * (`murphy-eu-fr (http://host:port)`), else `type://host:port`, else the direct label.
+ * Module-scope so the component's cyclomatic complexity stays inside the ratchet.
+ */
+function formatProxyLabel(proxy, directLabel) {
+  if (!proxy) return directLabel;
+  const endpoint = `${proxy.type}://${proxy.host}:${proxy.port}`;
+  return proxy.name ? `${proxy.name} (${endpoint})` : endpoint;
+}
+
 export default function ProxyLogDetail({ log, onClose }) {
   const t = useTranslations("proxyLog");
   useEffect(() => {
@@ -109,9 +120,7 @@ export default function ProxyLogDetail({ log, onClose }) {
                 {t("proxy")}
               </div>
               <div className="text-sm font-medium font-mono text-primary">
-                {log.proxy
-                  ? `${log.proxy.type}://${log.proxy.host}:${log.proxy.port}`
-                  : t("direct")}
+                {formatProxyLabel(log.proxy, t("direct"))}
               </div>
             </div>
             <div>

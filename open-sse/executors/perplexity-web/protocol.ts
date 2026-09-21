@@ -91,12 +91,14 @@ export const THINKING_MAP: Record<string, string> = {
   "pplx-grok-4.6": "grok46medium",
 };
 
-export const CITATION_RE = /\[\d+\]/g;
+// Eats the space before the marker so "text [1] more" cleans to "text more".
+// Never squash runs of spaces here: the non-streaming path (tool mode always)
+// would flatten code indentation (#13968).
+export const CITATION_RE = / ?\[\d+\]/g;
 export const GROK_TAG_RE = /<grok:[^>]*>.*?<\/grok:[^>]*>/gs;
 export const GROK_SELF_RE = /<grok:[^>]*\/>/g;
 export const XML_DECL_RE = /<[?]xml[^?]*[?]>/g;
 export const RESPONSE_TAG_RE = /<\/?response\b[^>]*>/gi;
-export const MULTI_SPACE = / {2,}/g;
 export const MULTI_NL = /\n{3,}/g;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -109,7 +111,6 @@ export function cleanResponse(text: string, strip = true): string {
   t = t.replace(GROK_SELF_RE, "");
   t = t.replace(RESPONSE_TAG_RE, "");
   if (strip) {
-    t = t.replace(MULTI_SPACE, " ");
     t = t.replace(MULTI_NL, "\n\n");
     t = t.trim();
   }
@@ -408,7 +409,12 @@ function searchHintEnabled(): boolean {
 }
 
 export function buildQuery(parsed: ParsedMessages, followUpUuid: string | null): string {
-  if (followUpUuid) return parsed.currentMsg;
+  if (followUpUuid) {
+    const sys = parsed.systemMsg.trim();
+    const hint = searchHintEnabled() ? `\n\n${SEARCH_HINT}` : "";
+    const contract = sys ? `${sys}${hint}` : "";
+    return contract ? `${contract}\n\n${parsed.currentMsg}` : parsed.currentMsg;
+  }
 
   const obj: Record<string, unknown> = {};
   if (parsed.systemMsg.trim()) {
@@ -439,9 +445,8 @@ export interface ContentChunk {
   /** Structured error code for quota / rate-limit surfaces (e.g. quota_exhausted). */
   errorCode?: string;
   /**
-   * Suggested client/account cooldown in seconds when the stream failed due to
-   * advanced-model weekly quota (or similar). Downstream marks the connection
-   * rate_limited_until and VibeProxy limit badges parse this + "reset after Xs".
+   * Suggested cooldown when quota is classified before the HTTP stream is committed.
+   * Once SSE 200 starts, a late error cannot retroactively add status or Retry-After metadata.
    */
   resetSeconds?: number;
   done?: boolean;
@@ -797,6 +802,7 @@ export async function* extractContent(
     if (event.error_code || event.error_message) {
       yield {
         error: event.error_message || `Perplexity error: ${event.error_code}`,
+        errorCode: event.error_code,
         done: true,
       };
       return;

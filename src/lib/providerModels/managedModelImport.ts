@@ -26,6 +26,7 @@ import { isDiscoverableAgyModelId } from "@omniroute/open-sse/config/agyModels.t
 import { filterChatSelectableModels } from "@omniroute/open-sse/services/modelEndpointPolicy.ts";
 import { filterSelectableModels } from "@omniroute/open-sse/services/modelLifecycle.ts";
 import { isSelfHostedChatProvider } from "@/shared/constants/providers";
+import type { VertexModelMetadataProvenance } from "@/lib/providerModels/vertexModelMetadata";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -42,7 +43,9 @@ export type ManagedImportedModel = {
   supportedThinkingEfforts?: string[];
   defaultThinkingEffort?: string;
   inputTokenLimit?: number;
+  contextWindow?: number;
   outputTokenLimit?: number;
+  metadataProvenance?: VertexModelMetadataProvenance;
   description?: string;
   supportsThinking?: boolean;
   alwaysThinking?: boolean;
@@ -77,8 +80,12 @@ function copyImportedModelMetadata(target: ManagedImportedModel, model: JsonReco
     target.defaultThinkingEffort = model.defaultThinkingEffort as string;
   }
   if (typeof model.inputTokenLimit === "number") target.inputTokenLimit = model.inputTokenLimit;
+  if (typeof model.contextWindow === "number") target.contextWindow = model.contextWindow;
   if (typeof model.outputTokenLimit === "number") {
     target.outputTokenLimit = model.outputTokenLimit;
+  }
+  if (model.metadataProvenance && typeof model.metadataProvenance === "object") {
+    target.metadataProvenance = model.metadataProvenance as VertexModelMetadataProvenance;
   }
   if (typeof model.description === "string") target.description = model.description;
   if (typeof model.supportsThinking === "boolean") {
@@ -124,6 +131,7 @@ function copyComparableModelMetadata(target: JsonRecord, model: JsonRecord): voi
     target.defaultThinkingEffort = model.defaultThinkingEffort;
   }
   if (typeof model.inputTokenLimit === "number") target.inputTokenLimit = model.inputTokenLimit;
+  if (typeof model.contextWindow === "number") target.contextWindow = model.contextWindow;
   if (typeof model.outputTokenLimit === "number") {
     target.outputTokenLimit = model.outputTokenLimit;
   }
@@ -307,7 +315,9 @@ export async function importManagedModels({
       supportedThinkingEfforts?: string[];
       defaultThinkingEffort?: string;
       inputTokenLimit?: number;
+      contextWindow?: number;
       outputTokenLimit?: number;
+      metadataProvenance?: VertexModelMetadataProvenance;
       description?: string;
       supportsThinking?: boolean;
       alwaysThinking?: boolean;

@@ -79,6 +79,35 @@ function appendReasoningContent(current: unknown, next: string): string {
   return existing ? `${existing}\n\n${next}` : next;
 }
 
+function normalizeRoleBasedToolCalls(toolCalls: unknown): JsonRecord[] {
+  if (!Array.isArray(toolCalls)) return [];
+
+  return (
+    toolCalls
+      .map((toolCallValue) => {
+        const toolCall = toRecord(toolCallValue);
+        const fn = toRecord(toolCall.function);
+        const name = toString(fn.name).trim();
+        const id = toString(toolCall.id).trim();
+        if (!name || !id) return null;
+        return {
+          id,
+          type: "function",
+          function: {
+            name,
+            arguments:
+              typeof fn.arguments === "string" ? fn.arguments : JSON.stringify(fn.arguments ?? {}),
+          },
+        };
+      })
+      // The mapped element is the tool-call object or null, which is NOT a
+      // Record<string, unknown> as far as the predicate rule is concerned (TS2677:
+      // the predicate type must be assignable to the parameter type). Narrow by the
+      // element's own type; the literal satisfies JsonRecord at the return.
+      .filter((toolCall): toolCall is NonNullable<typeof toolCall> => toolCall !== null)
+  );
+}
+
 /**
  * Convert OpenAI Responses API request to OpenAI Chat Completions format
  */
@@ -252,6 +281,15 @@ export function openaiResponsesToOpenAIRequest(
         pendingToolResults = [];
       }
 
+      if (toString(item.role) === "tool") {
+        messages.push({
+          role: "tool",
+          tool_call_id: toString(item.tool_call_id),
+          content: toolOutputContentToString(item.content),
+        });
+        continue;
+      }
+
       // Convert content: input_text -> text, output_text -> text
       const content = Array.isArray(item.content)
         ? item.content.map((contentValue) => {
@@ -288,7 +326,17 @@ export function openaiResponsesToOpenAIRequest(
         : item.content;
 
       if (role === "assistant") {
-        if (!currentAssistantMsg) {
+        const roleBasedToolCalls = normalizeRoleBasedToolCalls(item.tool_calls);
+        if (roleBasedToolCalls.length > 0) {
+          if (currentAssistantMsg) {
+            messages.push(currentAssistantMsg);
+          }
+          currentAssistantMsg = {
+            role,
+            content,
+            tool_calls: roleBasedToolCalls,
+          };
+        } else if (!currentAssistantMsg) {
           currentAssistantMsg = { role, content };
         } else if (currentAssistantMsg.content == null && content != null) {
           currentAssistantMsg.content = content;
@@ -468,14 +516,16 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
-    // Skip tool_search_call items. These are Responses-API-only metadata items
-    // emitted by Codex's dynamic tool-search optimization: they record that the
-    // model queried a subset of available tools, but carry no content that Chat
-    // Completions can represent. Throwing here would break every multi-turn
-    // conversation where Codex previously used tool_search (the whole session
-    // would carry tool_search_call items forward in `input`). Skipping matches
-    // the reasoning-item policy: display-only metadata, no chat side-effect.
-    if (itemType === "tool_search_call" || itemType === "tool_search_result") {
+    // Skip Responses-only search metadata. tool_search_call/tool_search_result
+    // are Codex's dynamic tool-discovery items; web_search_call is emitted by
+    // OmniRoute's web-search fallback alongside function_call_output, which
+    // already carries the result for Chat Completions. Replayed metadata has no
+    // lossless Chat representation and must not fail a follow-up turn.
+    if (
+      itemType === "tool_search_call" ||
+      itemType === "tool_search_result" ||
+      itemType === "web_search_call"
+    ) {
       continue;
     }
 
@@ -712,10 +762,19 @@ export function openaiResponsesToOpenAIRequest(
   ) {
     const tc = toRecord(result.tool_choice);
     const tcType = toString(tc.type);
-    if (tcType === "function" && tc.name !== undefined && !tc.function) {
+    // Custom/freeform tools are normalized to Chat function tools with an { input: string }
+    // schema above. Force the normalized function here while response-side custom-tool metadata
+    // restores custom_tool_call and raw input for the Responses client.
+    if ((tcType === "function" || tcType === "custom") && tc.name !== undefined && !tc.function) {
       result.tool_choice = { type: "function", function: { name: tc.name } };
     } else if (tcType === "local_shell") {
       result.tool_choice = { type: "function", function: { name: "shell" } };
+    } else if (tcType === "custom" && tc.name !== undefined) {
+      // #13122: forced custom/freeform tool_choice (Codex CLI's wire_api="responses"
+      // sends this to force functions__exec-style tools). Custom tools are already
+      // normalized into a Chat { input: string } function schema above, so forcing that
+      // same declared name via Chat's tool_choice selects it correctly.
+      result.tool_choice = { type: "function", function: { name: tc.name } };
     } else if (tcType === "allowed_tools") {
       const mode = toString(tc.mode);
       if (mode !== "auto" && mode !== "required") {

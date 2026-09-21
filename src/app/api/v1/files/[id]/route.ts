@@ -1,7 +1,7 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getFile, deleteFile, formatFileResponse } from "@/lib/db/files";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
+import { getApiKeyRequestScope, canAccessOwnedRecord } from "@/app/api/v1/_helpers/apiKeyScope";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -10,12 +10,14 @@ export async function OPTIONS() {
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const scope = await getApiKeyRequestScope(request);
   if (scope.rejection) return scope.rejection;
-  const apiKeyId = scope.apiKeyId;
 
   const { id } = await params;
   const file = getFile(id);
 
-  if (!file || (file.apiKeyId !== null && file.apiKeyId !== apiKeyId && !scope.isSessionAuth)) {
+  // Session = operator, key = own rows only, null owner = denied
+  // (GHSA-2jm2-mpx8-6523). A foreign or anonymous caller gets the same 404 as
+  // a missing id so the id space cannot be probed.
+  if (!file || !canAccessOwnedRecord(scope, file.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "File not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }
@@ -28,21 +30,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const scope = await getApiKeyRequestScope(request);
   if (scope.rejection) return scope.rejection;
-  const apiKeyId = scope.apiKeyId;
 
   const { id } = await params;
   const file = getFile(id);
 
-  if (!file) {
-    return NextResponse.json(
-      { error: { message: "File not found", type: "invalid_request_error" } },
-      { status: 404, headers: CORS_HEADERS }
-    );
-  }
-
-  // Allow session-authenticated (dashboard) requests to delete any file;
-  // for API-key-authenticated requests, enforce scope.
-  if (!scope.isSessionAuth && file.apiKeyId !== null && file.apiKeyId !== apiKeyId) {
+  if (!file || !canAccessOwnedRecord(scope, file.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "File not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }

@@ -1,4 +1,5 @@
 import type { RegistryEntry } from "../../../shared.ts";
+import { VERTEX_XAI_MODELS } from "../../../../vertexModels.ts";
 
 export const vertex_partnerProvider: RegistryEntry = {
   id: "vertex-partner",
@@ -9,10 +10,15 @@ export const vertex_partnerProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   models: [
-    { id: "DeepSeek-V4-Flash", name: "DeepSeek V4 Flash" },
-    { id: "DeepSeek-V4-Pro", name: "DeepSeek V4 Pro" },
-    { id: "Qwen3.6-35B-A3B", name: "Qwen 3.6 35B A3B" },
-    { id: "GLM-5.1-FP8", name: "GLM 5.1" },
+    { id: "deepseek-ai/deepseek-v3.2-maas", name: "DeepSeek V3.2", targetFormat: "openai" },
+    { id: "deepseek-ai/deepseek-v3.1-maas", name: "DeepSeek V3.1", targetFormat: "openai" },
+    {
+      id: "qwen/qwen3-next-80b-a3b-instruct-maas",
+      name: "Qwen3 Next 80B Instruct",
+      targetFormat: "openai",
+    },
+    { id: "zai-org/glm-5-maas", name: "GLM 5", targetFormat: "openai" },
+    ...VERTEX_XAI_MODELS,
     { id: "claude-fable-5-1", name: "Claude Fable 5.1", targetFormat: "claude" },
     { id: "claude-fable-5", name: "Claude Fable 5", targetFormat: "claude" },
     { id: "claude-opus-5", name: "Claude Opus 5", targetFormat: "claude" },
@@ -27,4 +33,5 @@ export const vertex_partnerProvider: RegistryEntry = {
     { id: "claude-opus-4-5", name: "Claude Opus 4.5", targetFormat: "claude" },
     { id: "claude-haiku-4-5", name: "Claude Haiku 4.5", targetFormat: "claude" },
   ],
+  liveCatalogAuthoritative: false,
 };

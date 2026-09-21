@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-presets-auth-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -49,4 +50,8 @@ test("REQUIRE_API_KEY=true: no session and no API key -> 401 (guard still enforc
 test("REQUIRE_API_KEY=true: a tampered/invalid session token -> 401", async () => {
   const res = await GET(new Request(BASE, { headers: { cookie: "auth_token=not.a.valid.jwt" } }));
   assert.equal(res.status, 401);
+});
+
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });

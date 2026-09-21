@@ -1,0 +1,1 @@
+- **test(models):** the custom Jina specialty-model catalog test expects the `jina-ai/` prefix again: custom rows keep the connection provider id, only synced rows resolve through the `jina` alias, and #13403 had switched the custom assertion to `jina/` ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

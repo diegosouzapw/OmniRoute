@@ -1,0 +1,1 @@
+- **fix(sse):** a configured daily-quota reset hour that falls inside a daylight-saving gap (New York 02:00 on spring-forward, Havana/Santiago midnight) now resolves to the first wall-clock time that exists instead of landing an hour early, sometimes on the previous day ([#13671](https://github.com/diegosouzapw/OmniRoute/pull/13671)) — thanks @maxmad64bis

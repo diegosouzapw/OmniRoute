@@ -1,0 +1,1 @@
+- **fix(dev):** allow Ctrl+C to promptly kill dev server by closing active connections ([#13020](https://github.com/diegosouzapw/OmniRoute/pull/13020)) — thanks @tuandinh0801

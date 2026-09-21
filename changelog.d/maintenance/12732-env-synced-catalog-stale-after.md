@@ -1,0 +1,1 @@
+- **docs(env):** document `OMNIROUTE_SYNCED_CATALOG_STALE_AFTER_MS` (#12849, default 30 days) in `.env.example` and `ENVIRONMENT.md`; the stale-synced-catalog fail-open shipped the override without either, which the env/docs contract gate reports as code-only ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

@@ -248,6 +248,19 @@ test("ambiguous 'daily rate limit' messages classify as quota_exhausted (intenti
   );
 });
 
+test("monthly call allowances classify as quota_exhausted regardless of phrase order", () => {
+  const messages = [
+    "Monthly API call limit reached",
+    "Limited to 1000 API calls per month",
+    "You are using a Trial key, which is limited to 1000 API calls / month.",
+    "Your plan allows 5,000 requests/month and that allowance is exhausted.",
+  ];
+
+  for (const body of messages) {
+    assert.equal(classify429({ status: 429, body }), "quota_exhausted", body);
+  }
+});
+
 test("parseRetryAfter: integer seconds", () => {
   assert.equal(parseRetryAfter("60"), 60);
   assert.equal(parseRetryAfter("3600"), 3600);

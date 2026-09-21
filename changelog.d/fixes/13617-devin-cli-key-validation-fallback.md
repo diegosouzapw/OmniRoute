@@ -1,0 +1,1 @@
+- **fix(devin):** Fall back to the CLI probe (`devin acp --agent-type summarizer`) when the connection-test HTTP API rejects a CLI-format key, since routing authenticates against the local Devin CLI, not `api.devin.ai` ([#13617](https://github.com/diegosouzapw/OmniRoute/pull/13617))

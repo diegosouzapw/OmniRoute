@@ -77,7 +77,7 @@ test("combo targets each execute under their own connection's proxy", async () =
       name: "proxy-per-target-combo",
       strategy: "priority",
       config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-      models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+      models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
     });
 
     const proxySeen: Record<string, string | null> = {};
@@ -166,7 +166,7 @@ test("count_tokens provider call runs inside the connection's proxy context", as
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude/claude-3-5-sonnet-20241022",
+          model: "claude/claude-sonnet-4-6",
           messages: [{ role: "user", content: "count me" }],
         }),
       })

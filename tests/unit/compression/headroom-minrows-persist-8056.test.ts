@@ -81,6 +81,34 @@ describe("#8056 headroom minRows persistence", () => {
     assert.equal(result.success, false);
   });
 
+  it("schema accepts Lite maxToolLength", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { compressToolResults: true, maxToolLength: 8000 },
+    });
+    assert.equal(result.success, true, JSON.stringify(result.error?.issues));
+  });
+
+  it("schema rejects a string Lite maxToolLength", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { maxToolLength: "8000" },
+    });
+    assert.equal(result.success, false);
+  });
+
+  it("schema rejects a Lite maxToolLength below 256", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { maxToolLength: 10 },
+    });
+    assert.equal(result.success, false);
+  });
+
+  it("schema accepts null Lite maxToolLength to clear a stored cap", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { compressToolResults: true, maxToolLength: null },
+    });
+    assert.equal(result.success, true, JSON.stringify(result.error?.issues));
+  });
+
   it("schema accepts headroom.minRows=5", () => {
     const result = compressionSettingsUpdateSchema.safeParse({
       headroom: { minRows: 5 },

@@ -1,0 +1,1 @@
+- **fix(providers):** remove the `chipotle`/`pepper` provider — its upstream (`amelia.chipotle.com`) now 404s on every route and is fully decommissioned (#13131, #4037) — thanks @Falco20100

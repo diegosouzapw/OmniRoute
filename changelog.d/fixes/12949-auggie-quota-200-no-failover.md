@@ -1,0 +1,1 @@
+- **fix(routing):** Auggie now fails over to the next combo model instead of returning the quota-exhausted CLI warning as a successful reply (#12949) — thanks @honeypot55

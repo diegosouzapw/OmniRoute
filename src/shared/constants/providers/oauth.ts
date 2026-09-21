@@ -44,9 +44,10 @@ export const OAUTH_PROVIDERS = {
     textIcon: "OF",
     website: "https://openference.com",
     hasFree: true,
-    freeNote: "Free plan: 3-day trial with open-source models — no credit card required",
+    freeNote:
+      "Free tier: includes Qwen3.8 27b and Llama 3.2 3B — see openference.com/pricing for current terms",
     authHint:
-      "Sign in with your Openference account to route requests through api.openference.com. An active plan is required for inference — OAuth may authenticate but return 402 without one.",
+      "Sign in with your Openference account to route requests through api.openference.com. Includes free-tier access to Qwen3.8 27b and Llama 3.2 3B — see openference.com/pricing for current plan terms.",
   },
   "grok-cli": {
     id: "grok-cli",
@@ -142,7 +143,14 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
   },
-  github: { id: "github", serviceKinds: ["llm"], alias: "gh", name: "GitHub Copilot", icon: "code", color: "#333333" },
+  github: {
+    id: "github",
+    serviceKinds: ["llm"],
+    alias: "gh",
+    name: "GitHub Copilot",
+    icon: "code",
+    color: "#333333",
+  },
   "gitlab-duo": {
     id: "gitlab-duo",
     serviceKinds: ["llm"],

@@ -99,7 +99,12 @@ export async function GET() {
           displayName: m.name || m.id,
           ...(typeof m.description === "string" ? { description: m.description } : {}),
           supportedGenerationMethods: ["generateContent"],
-          inputTokenLimit: typeof m.inputTokenLimit === "number" ? m.inputTokenLimit : 128000,
+          inputTokenLimit:
+            typeof m.inputTokenLimit === "number"
+              ? m.inputTokenLimit
+              : typeof m.contextWindow === "number"
+                ? m.contextWindow
+                : 128000,
           outputTokenLimit: typeof m.outputTokenLimit === "number" ? m.outputTokenLimit : 8192,
           ...(m.supportsThinking === true ? { thinking: true } : {}),
         });
@@ -131,7 +136,9 @@ export async function GET() {
             inputTokenLimit:
               typeof m.inputTokenLimit === "number"
                 ? m.inputTokenLimit
-                : resolved.maxInputTokens || resolved.contextWindow || 128000,
+                : typeof m.contextWindow === "number"
+                  ? m.contextWindow
+                  : resolved.maxInputTokens || resolved.contextWindow || 128000,
             outputTokenLimit:
               typeof m.outputTokenLimit === "number"
                 ? m.outputTokenLimit
@@ -173,7 +180,9 @@ export async function GET() {
             inputTokenLimit:
               typeof m.inputTokenLimit === "number"
                 ? m.inputTokenLimit
-                : resolved.maxInputTokens || resolved.contextWindow || 128000,
+                : typeof m.contextWindow === "number"
+                  ? m.contextWindow
+                  : resolved.maxInputTokens || resolved.contextWindow || 128000,
             outputTokenLimit:
               typeof m.outputTokenLimit === "number"
                 ? m.outputTokenLimit

@@ -1,43 +1,29 @@
-# CLI-INTEGRATIONS (Latviešu)
+# CLI Integrations (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
-title: "CLI integrācijas — pievienojiet jebkuru kodēšanas CLI OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
+OmniRoute nodrošina `setup-*` komandu saimi, kas konfigurē programmēšanas
+CLI (Codex, Claude Code, OpenCode, Cline, …), lai tas izmantotu OmniRoute kā savu aizmugursistēmu — tādējādi
+rīks sazinās ar **vienu** galapunktu, bet OmniRoute novirza pieprasījumus uz pareizo pakalpojumu sniedzēju,
+izmantojot automātisku rezerves variantu. Katra komanda nolasa **aktuālo** modeļu katalogu no darbojošās
+OmniRoute instances (lokālas vai attālas) un ieraksta paša rīka konfigurācijas failu **jūsu**
+datorā. Ja rīks to atbalsta, atsauce uz API atslēgu tiek norādīta ar vides mainīgo. Komandas, kas saglabā rīka lokālo vides failu, ir norādītas tālāk.
 
-# CLI integrācijas
-
-OmniRoute nodrošina `setup-*` komandu saimi, kas konfigurē kodēšanas
-CLI (Codex, Claude Code, OpenCode, Cline, …), lai izmantotu OmniRoute kā
-aizmugursistēmu — tādējādi rīks sazinās ar **vienu** galapunktu, bet OmniRoute
-novirza pieprasījumu pie pareizā nodrošinātāja ar automātisku rezerves
-pārslēgšanu. Katra komanda nolasa **aktuālo** modeļu katalogu no darbojošās
-OmniRoute instances (lokālas vai attālas) un ieraksta rīka paša konfigurācijas
-failu **jūsu** datorā. API atslēga tiek norādīta, izmantojot vides mainīgo,
-ja vien konkrētais rīks to atbalsta. Komandas, kas saglabā rīka lokālo vides
-failu, ir norādītas tālāk.
-
-Pieejams arī vispārīgs palaidējs — `omniroute run <target>` — kas palaiž
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` vai `gemini`, ievadot
-atbilstošos vides mainīgos, bet neveicot nekādas konfigurācijas izmaiņas.
-Mērķi un to aizstājvārdi tiek ņemti no kanoniskā manifesta
-`bin/cli/cli-manifest.mjs`
+Ir pieejams arī universāls palaidējs — `omniroute run <target>` —, kas palaiž
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` vai `gemini` ar
+ievadītu atbilstošo vidi, vispār neierakstot nekādu konfigurāciju. Mērķi un to
+aizstājvārdi tiek iegūti no kanoniskā manifesta `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), un `omniroute completion` piedāvā
-tos pašus no manifesta atvasinātos mērķu vārdus. Mantotie katra rīka palaidēji —
-`omniroute launch` (Claude Code) un `omniroute launch-codex` (Codex) — joprojām
-ir pieejami.
+`open-code`, `qwen-code`, `gemini-cli`), un `omniroute completion` piedāvā tos
+pašus no manifesta iegūtos mērķu nosaukumus. Mantotie katram rīkam paredzētie palaidēji —
+`omniroute launch` (Claude Code) un `omniroute launch-codex` (Codex) — joprojām ir
+pieejami.
 
-Nodrošinātāju pievienošana ir pieejama tajā pašā lokālajā/attālajā kontekstā.
-Tālāk norādītās API pirmajā vietā izmantojošās komandas nošķir pārvaldības
-autentifikāciju no nodrošinātāju akreditācijas datiem un nekad neizdrukā
-akreditācijas datus strukturētā izvadē:
+Pakalpojumu sniedzēju pievienošana ir pieejama tajā pašā lokālajā vai attālajā kontekstā. Tālāk norādītās
+API prioritārās komandas nošķir pārvaldības autentifikāciju no pakalpojumu sniedzēju
+akreditācijas datiem un nekad neizvada akreditācijas datus strukturētā izvadē:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -47,18 +33,18 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skriptiem dodiet priekšroku `--credential-stdin` vai `--credential-env`;
-`--credential` tiek saglabāta kontrolētai lokālai lietošanai. `providers remove`
-neinteraktīvā terminālī pieprasa `--yes`, un visas piecas komandas ievēro aktīvo
-kontekstu vai globālās `--base-url`/`--api-key` opcijas.
+Skriptos ieteicams izmantot `--credential-stdin` vai `--credential-env`; `--credential`
+ir saglabāts kontrolētai lokālai lietošanai. Neinteraktīvā terminālī komandai `providers remove`
+ir nepieciešams `--yes`, un visas piecas komandas ievēro aktīvo kontekstu vai
+globālās opcijas `--base-url`/`--api-key`.
 
-Lai skatītu divu visplašāko integrāciju vienreizējo, manuāli rakstīto
-pamataiestatīšanu, skatiet katra rīka padziļinātos aprakstus:
+Informāciju par abu funkcijām bagātāko integrāciju vienreizējo, manuāli veicamo pamatkonfigurāciju skatiet
+katram rīkam paredzētajos detalizētajos aprakstos:
 
 - [Claude Code konfigurācija](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI konfigurācija](./CODEX-CLI-CONFIGURATION.md)
-- [Attālais režīms](./REMOTE-MODE.md) — vadiet attālu OmniRoute (VPS / Tailnet) no sava klēpjdatora
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot paplašinājums; tas var arī palaist šīs
+- [Attālais režīms](./REMOTE-MODE.md) — pārvaldiet attālu OmniRoute instanci (VPS / Tailnet) no sava klēpjdatora
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot paplašinājums; tas var arī izpildīt šīs
   `setup-*` komandas jūsu vietā tieši redaktorā
 
 ---
@@ -66,88 +52,93 @@ pamataiestatīšanu, skatiet katra rīka padziļinātos aprakstus:
 ## Galvenā tabula
 
 Katra komanda ievēro **aktīvo kontekstu** (iestatīts ar `omniroute connect`, skatiet
-[Attālais režīms](./REMOTE-MODE.md)) vai tiešos `--remote <url> --api-key <key`
-karogus. Tālāk minētais “lokāls vai attāls” nozīmē: bez karogiem mērķis ir
-`http://localhost:20128`; ar `--remote` (vai aktīvu attālo kontekstu) tā no
-šī servera iegūst katalogu un lokāli ieraksta konfigurāciju.
+[Attālais režīms](./REMOTE-MODE.md)) vai tieši norādītos `--remote <url> --api-key <key>` karogus.
+Tālāk tekstā “lokāls vai attāls” nozīmē: bez karogiem mērķis ir `http://localhost:20128`;
+ar `--remote` (vai aktīvu attālo kontekstu) katalogs tiek izgūts no attiecīgā
+servera, un konfigurācija tiek ierakstīta lokāli.
 
-| Komanda                    | Rīks                          | Ko tā ieraksta                                                                                                                                                                                               | Galvenie karogi                                                                                                                            | Lokāls vai attāls |
-| -------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
-| `omniroute setup-codex`    | OpenAI Codex CLI              | `~/.codex/<name>.config.toml` — viens profils katram saderīgam teksta modelim (`codex --profile <name>`)                                                                                                     | `--remote` `--api-key` `--only` `--dry-run` `--port` `--codex-home`                                                                        | Abi               |
-| `omniroute setup-claude`   | Claude Code                   | `~/.claude/profiles/<name>/settings.json` — viens profils katram atrastajam modelim (`CLAUDE_CONFIG_DIR`)                                                                                                    | `--remote` `--api-key` `--only` `--dry-run` `--port` `--claude-home`                                                                       | Abi               |
-| `omniroute setup-opencode` | OpenCode (saderīgs ar openai) | `~/.config/opencode/opencode.json` — `omniroute` nodrošinātājs ar visiem kataloga modeļiem (`opencode -m omniroute/<model>`)                                                                                 | `--remote` `--api-key` `--only` `--model` `--dry-run` `--port`                                                                             | Abi               |
-| `omniroute setup-cline`    | Cline                         | `~/.cline/data/{globalState,secrets}.json` (CLI režīms) + izdrukā VS Code paplašinājuma iestatījumus                                                                                                         | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--cline-dir`                                                                | Abi               |
-| `omniroute setup-kilo`     | Kilo Code                     | `~/.local/share/kilo/auth.json` (CLI) + apvieno `kilocode.*` ar VS Code `settings.json`, ja tas ir pieejams                                                                                                  | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--auth-path` `--vscode-settings`                                            | Abi               |
-| `omniroute setup-continue` | Continue / `cn` CLI           | `~/.continue/config.yaml` — `provider: openai` modeļi, atslēga, izmantojot `${{ secrets.OMNIROUTE_API_KEY }}`                                                                                                | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path`                                                                       | Abi               |
-| `omniroute setup-cursor`   | Cursor                        | Nekas — izdrukā darbības lietotnē (Cursor konfigurācija ir necaurspīdīga SQLite datubāze)                                                                                                                    | `--remote` `--api-key` `--only` `--port`                                                                                                   | Abi               |
-| `omniroute setup-roo`      | Roo Code                      | `~/.omniroute/roo-settings.json` (importēšanas dokuments) + iestata `roo-cline.autoImportSettingsPath`, ja pastāv VS Code `settings.json`                                                                    | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--import-path` `--vscode-settings`                                          | Abi               |
-| `omniroute setup-crush`    | Crush                         | `~/.config/crush/crush.json` — `openai-compat` nodrošinātājs, atslēga, izmantojot `$OMNIROUTE_API_KEY`                                                                                                       | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path`                                                                       | Abi               |
-| `omniroute setup-goose`    | Goose                         | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER`/`OPENAI_HOST`/`GOOSE_MODEL`) + izdrukā vides recepti                                                                                                         | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Abi               |
-| `omniroute setup-aider`    | Aider                         | `~/.aider.conf.yml` (`openai-api-base` + `model: openai/<id>`) + izdrukā vides recepti                                                                                                                       | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Abi               |
-| `omniroute setup-qwen`     | Qwen Code                     | `~/.qwen/settings.json` — V4 `modelProviders.openai` masīvs + `OMNIROUTE_API_KEY` failā `~/.qwen/.env`                                                                                                       | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` `--env-path`                                                 | Abi               |
-| `omniroute setup-5dive`    | 5dive (aģentu flote)          | Nekas zem `$HOME` — ieraksta 5dive **autentifikācijas profilu** (`/var/lib/5dive/auth-profiles/<name>/`), izmantojot `5dive agent auth set`; nepieciešamas root tiesības, izpilde notiek flotes resursdatorā | `--remote` `--api-key` `--model` `--auth-profile` `--agent` `--byo-provider` `--fivedive-bin` `--no-sudo` `--yes` `--dry-run` `--port`     | Abi               |
-| `omniroute run <target>`   | Vispārīga izpilde             | Nekas — palaiž `claude`/`codex`/`aider`/`goose`/`opencode`/`qwen`/`gemini` ar pareizo vidi un argumentiem; Qwen un Gemini izmanto pagaidu izolētu sākumdirektoriju                                           | `--remote` `--base-url` `--context` `--provider` `--model` `--api-key` `--api-key-env` `--dry-run` `--json` `--port` `--profile` `--token` | Abi               |
-| `omniroute launch`         | Claude Code                   | Nekas — palaiž `claude`, ievadot `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN`                                                                                                                                 | `--remote` `--api-key` `--token` `--profile` `--port`                                                                                      | Abi               |
-| `omniroute launch-codex`   | OpenAI Codex CLI              | Nekas — palaiž `codex`, ievadot `omniroute` nodrošinātāju, izmantojot `-c` karogus                                                                                                                           | `--remote` `--api-key` `--profile` (`-p`) `--port`                                                                                         | Abi               |
+| Komanda                    | Rīks                              | Ko tā ieraksta                                                                                                                                                                                         | Galvenie karodziņi                                                                                                                         | Lokāli vai attālināti |
+| -------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- |
+| `omniroute setup-codex`    | OpenAI Codex CLI                  | `~/.codex/<name>.config.toml` — viens profils katram saderīgajam teksta modelim (`codex --profile <name>`)                                                                                             | `--remote` `--api-key` `--only` `--dry-run` `--port` `--codex-home`                                                                        | Abi                   |
+| `omniroute setup-claude`   | Claude Code                       | `~/.claude/profiles/<name>/settings.json` — viens profils katram atbilstošajam modelim (`CLAUDE_CONFIG_DIR`)                                                                                           | `--remote` `--api-key` `--only` `--dry-run` `--port` `--claude-home`                                                                       | Abi                   |
+| `omniroute setup-opencode` | OpenCode (saderīgs ar OpenAI)     | `~/.config/opencode/opencode.json` — `omniroute` nodrošinātājs ar visiem kataloga modeļiem (`opencode -m omniroute/<model>`)                                                                           | `--remote` `--api-key` `--only` `--model` `--dry-run` `--port`                                                                             | Abi                   |
+| `omniroute setup-cline`    | Cline                             | `~/.cline/data/{globalState,secrets}.json` (CLI režīms) + izdrukā VS Code paplašinājuma iestatījumus                                                                                                   | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--cline-dir`                                                                | Abi                   |
+| `omniroute setup-kilo`     | Kilo Code                         | `~/.local/share/kilo/auth.json` (CLI) + apvieno `kilocode.*` ar VS Code `settings.json`, ja tas pastāv                                                                                                 | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--auth-path` `--vscode-settings`                                            | Abi                   |
+| `omniroute setup-continue` | Continue / `cn` CLI               | `~/.continue/config.yaml` — `provider: openai` modeļi, atslēga, izmantojot `${{ secrets.OMNIROUTE_API_KEY }}`                                                                                          | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path`                                                                       | Abi                   |
+| `omniroute setup-cursor`   | Cursor                            | Neko — izdrukā lietotnē veicamās darbības (Cursor konfigurācija ir necaurskatāma SQLite datubāze)                                                                                                      | `--remote` `--api-key` `--only` `--port`                                                                                                   | Abi                   |
+| `omniroute setup-roo`      | Roo Code                          | `~/.omniroute/roo-settings.json` (importēšanas dokuments) + iestata `roo-cline.autoImportSettingsPath`, ja pastāv VS Code `settings.json`                                                              | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--import-path` `--vscode-settings`                                          | Abi                   |
+| `omniroute setup-crush`    | Crush                             | `~/.config/crush/crush.json` — `openai-compat` nodrošinātājs, atslēga, izmantojot `$OMNIROUTE_API_KEY`                                                                                                 | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path`                                                                       | Abi                   |
+| `omniroute setup-goose`    | Goose                             | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER`/`OPENAI_HOST`/`GOOSE_MODEL`) + izdrukā vides konfigurēšanas norādījumus                                                                                | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Abi                   |
+| `omniroute setup-aider`    | Aider                             | `~/.aider.conf.yml` (`openai-api-base` + `model: openai/<id>`) + izdrukā vides konfigurēšanas norādījumus                                                                                              | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Abi                   |
+| `omniroute setup-qwen`     | Qwen Code                         | `~/.qwen/settings.json` — V4 `modelProviders.openai` masīvs + `OMNIROUTE_API_KEY` failā `~/.qwen/.env`                                                                                                 | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` `--env-path`                                                 | Abi                   |
+| `omniroute setup-5dive`    | 5dive (aģentu flote)              | Neko mapē `$HOME` — ieraksta 5dive **autentifikācijas profilu** (`/var/lib/5dive/auth-profiles/<name>/`), izmantojot `5dive agent auth set`; nepieciešamas root tiesības, darbojas flotes resursdatorā | `--remote` `--api-key` `--model` `--auth-profile` `--agent` `--byo-provider` `--fivedive-bin` `--no-sudo` `--yes` `--dry-run` `--port`     | Abi                   |
+| `omniroute run <target>`   | Izpildlaika palaišana (vispārīga) | Neko — palaiž `claude`/`codex`/`aider`/`goose`/`opencode`/`qwen`/`gemini` ar pareizo vidi un argumentiem; Qwen un Gemini izmanto pagaidu izolētu mājas direktoriju                                     | `--remote` `--base-url` `--context` `--provider` `--model` `--api-key` `--api-key-env` `--dry-run` `--json` `--port` `--profile` `--token` | Abi                   |
+| `omniroute launch`         | Claude Code                       | Neko — palaiž `claude` ar ievadītiem `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN`                                                                                                                       | `--remote` `--api-key` `--token` `--profile` `--port`                                                                                      | Abi                   |
+| `omniroute launch-codex`   | OpenAI Codex CLI                  | Neko — palaiž `codex` ar `omniroute` nodrošinātāju, kas ievadīts, izmantojot `-c` karodziņus                                                                                                           | `--remote` `--api-key` `--profile` (`-p`) `--port`                                                                                         | Abi                   |
 
-Piezīmes par karogiem (pārbaudīts komandu avotā):
+Piezīmes par karodziņiem (pārbaudītas komandas pirmkodā):
 
-- `--remote <url>` — iegūst katalogu no attāla OmniRoute (ignorē `--port`
-  un aktīvo kontekstu). `--api-key <key>` nodrošina akreditācijas datus šim
-  serverim (pēc noklusējuma tiek izmantots `OMNIROUTE_API_KEY` vides mainīgais
-  vai aktīvā konteksta marķieris).
-- `--only <patterns>` — ar komatiem atdalītas apakšvirknes; saglabā tikai modeļu
-  ID, kas tām atbilst (piemēram, `--only glm,kimi`). Pieejams
-  `setup-codex`, `setup-claude`, `setup-opencode`, `setup-continue`,
-  `setup-cursor`, `setup-crush`.
-- `--dry-run` — izdrukā tieši to, kas tiktu ierakstīts, nepieskaroties failu
-  sistēmai. Pieejams visās `setup-*` komandās **izņemot** `setup-cursor`
-  (kas nekad neieraksta failu).
-- `--model <id>` — nepieciešams (vai tiek izvēlēts interaktīvi) rīkiem, kuriem
-  nav automātiskas modeļu atklāšanas: Cline, Kilo, Roo, Goose, Qwen, Aider, 5dive.
-  Šie rīki atbalsta arī `--yes` neinteraktīvām izpildēm (kurām nepieciešams
-  `--model`). `setup-opencode` izmanto `--model`, lai iestatītu noklusējuma
-  modeli augšējā līmenī.
-- `--model <id>` komandā `omniroute run` seko manifesta mērķim specifiskajai
-  konfigurācijai (`bin/cli/cli-manifest.mjs`): **aider** saņem `--model openai/<id>`,
-  bet **opencode** — `--model omniroute/<id>` (prefikss tiek pievienots tikai tad,
-  ja ID tas vēl nav ietverts); **qwen** un **gemini** saņem ID burtiski;
-  **claude** to saņem, izmantojot `ANTHROPIC_MODEL`, **goose** — izmantojot
-  `GOOSE_MODEL`, bet **codex** — izmantojot `-c model_providers.omniroute.*`
-  argumentus. **Qwen ir vienīgais `run` mērķis, kuram obligāti nepieciešams
-  `--model`** — `omniroute run qwen` bez tā iziet ar kodu `2` un skaidru kļūdas
-  ziņojumu.
-- `--port <port>` — lokālais OmniRoute ports (pēc noklusējuma `20128`, tiek
-  ignorēts, ja iestatīts `--remote`). Pieejams visās `setup-*` komandās un abos
-  palaidējos.
-- `omniroute run` izejas kodi: pakārtotā CLI paša izejas kods tiek nodots
-  burtiski; `2` = nederīgi argumenti (neatbalstīts mērķis, trūkst obligātā
-  `--model`, konteinera aizsardzība); `127` = mērķa binārais fails nav atrodams
-  `PATH`; `130`/`143`/`129`, ja palaišana tiek pārtraukta ar
-  `SIGINT`/`SIGTERM`/`SIGHUP`; `1` = cita izpildlaika palaišanas kļūme.
-- Abi palaidēji (`launch`, `launch-codex`) pieņem `--profile <name>`, lai
-  atlasītu profilu, ko ierakstījis `setup-claude` / `setup-codex`, kā arī nodod
-  tālāk argumentus pamatā esošajam `claude` / `codex` binārajam failam.
+- `--remote <url>` — izgūst katalogu no attāla OmniRoute servera (ignorē `--port`
+  un aktīvo kontekstu). `--api-key <key>` norāda šī servera akreditācijas datus
+  (pēc noklusējuma izmanto `OMNIROUTE_API_KEY` vides mainīgo vai aktīvā konteksta pilnvaru).
+- `--only <patterns>` — ar komatiem atdalītas apakšvirknes; patur tikai modeļu ID, kas atbilst
+  (piem., `--only glm,kimi`). Pieejams komandām `setup-codex`, `setup-claude`,
+  `setup-opencode`, `setup-continue`, `setup-cursor`, `setup-crush`.
+- `--dry-run` — izvada tieši to, kas tiktu ierakstīts, nemainot
+  failu sistēmu. Pieejams katrai `setup-*` komandai, **izņemot** `setup-cursor`
+  (kas nekad neraksta failā).
+- `--model <id>` — obligāts (vai izvēlēts interaktīvi) rīkiem, kuriem nav
+  automātiskas modeļu atrašanas: Cline, Kilo, Roo, Goose, Qwen, Aider, 5dive. Šie rīki
+  atbalsta arī `--yes` neinteraktīvai palaišanai (tādā gadījumā nepieciešams `--model`).
+  `setup-opencode` izmanto `--model`, lai iestatītu noklusējuma augstākā līmeņa modeli.
+- `--model <id>` komandā `omniroute run` ievēro manifesta katram mērķim noteikto sasaisti
+  (`bin/cli/cli-manifest.mjs`): **aider** saņem `--model openai/<id>`, bet
+  **opencode** — `--model omniroute/<id>` (prefikss tiek pievienots tikai tad, ja ID
+  tas vēl nav norādīts); **qwen** un **gemini** saņem ID nemainītā veidā;
+  **claude** to saņem ar `ANTHROPIC_MODEL`, **goose** — ar `GOOSE_MODEL`, bet
+  **codex** — ar `-c model_providers.omniroute.*` argumentiem. **Qwen ir vienīgais palaišanas
+  mērķis, kuram `--model` ir obligāti nepieciešams** — `omniroute run qwen` bez tā beidz darbu
+  ar kodu `2` un nepārprotamu kļūdas ziņojumu.
+- `--port <port>` — lokālais OmniRoute ports (pēc noklusējuma `20128`; tiek ignorēts, ja norādīts
+  `--remote`). Pieejams visām `setup-*` komandām un abiem palaidējiem.
+- `omniroute run` izejas kodi: pakārtotā CLI izejas kods tiek nodots
+  nemainīts; `2` = nederīgi argumenti (neatbalstīts mērķis, trūkst obligātā
+  `--model`, konteinera aizsardzības pārbaude); `127` = mērķa izpildāmais fails nav atrodams `PATH`;
+  `130`/`143`/`129`, ja palaišanu pārtrauc `SIGINT`/`SIGTERM`/`SIGHUP`;
+  `1` = cita izpildlaika palaišanas kļūme.
+- Abi palaidēji (`launch`, `launch-codex`) pieņem `--profile <name>`, lai atlasītu
+  profilu, ko izveidojis `setup-claude` / `setup-codex`, kā arī tālāk nododamus argumentus
+  pamatā esošajam `claude` / `codex` izpildāmajam failam.
 
-Interaktīvais atlasītājs tiek koplietots arī iestatīšanas receptēm:
+Interaktīvo atlasītāju kopīgi izmanto arī iestatīšanas receptes:
 
 ```bash
-# Izvēlieties no aktīvā lokālā vai attālā modeļu kataloga un konfigurējiet mērķi.
+# Atlasiet modeli no aktīvā lokālā vai attālā modeļu kataloga un konfigurējiet mērķi.
 omniroute configure claude
 omniroute configure opencode --provider glm
 omniroute configure qwen --model qwen/qwen3.8-max-preview --yes
 ```
 
-`configure` pašlaik deleģē pārbaudītajām receptēm priekš `codex`, `claude`,
+`configure` pašlaik deleģē darbību pārbaudītajām receptēm šādiem rīkiem: `codex`, `claude`,
 `opencode`, `qwen`, `aider`, `goose`, `cline`, `continue`, `kilo` un `5dive`.
-Tikai IDE paredzētie, MITM un tikai ceļvežiem paredzētie kataloga ieraksti
-joprojām izmanto atsevišķas `setup-*`/manuālas plūsmas un netiek rādīti kā
-palaižami mērķi.
+Tikai IDE paredzētie,
+MITM un tikai ceļvežos aprakstītie kataloga ieraksti joprojām izmanto atsevišķas `setup-*`/manuālas darbplūsmas un
+netiek piedāvāti kā palaižami mērķi.
 
-> `setup-opencode` ir **vieglā OpenAI saderīgā** OpenCode integrācija.
-> Pieejama arī bagātīgāka spraudņa integrācija — `omniroute setup opencode` —
-> kas instalē `@omniroute/opencode-plugin`. Tās ir atšķirīgas komandas; iepriekš
-> esošajā tabulā ir aprakstīta `setup-opencode`.
+> `setup-opencode` ir **vienkāršotā ar openai saderīgā** OpenCode integrācija.
+> Ir pieejama arī funkcionāli bagātāka spraudņa integrācija — `omniroute setup opencode` —, kas
+> instalē `@omniroute/opencode-plugin`. Tās ir atšķirīgas komandas; iepriekš esošajā tabulā
+> ir dokumentēta `setup-opencode`.
+>
+> Spraudnis ir pieejams divās pakotnēs — pa vienai katrai OpenCode galvenajai versijai —, jo abi
+> ielādētāji sagaida atšķirīgus ieejas punktus:
+> `@omniroute/opencode-plugin` paredzēts OpenCode v1, bet
+> `@omniroute/opencode-plugin-v2` — OpenCode v2. v2 pakotne ir jauna
+> (`0.1.0`) un ievēro resursdatora līgumu, kas joprojām mainās, tādēļ tā nolasa
+> struktūru, ko OpenCode ievieto kataloga melnrakstā, nevis pieņem konkrētu struktūru.
+> Instalējiet to, pievienojot `plugins` ierakstu failam `opencode.json`; `omniroute setup opencode`
+> joprojām instalē v1 pakotni. Opcijas un akreditācijas datu meklēšanas secība ir aprakstīta
+> pakotnes README failā.
 
 ---
 

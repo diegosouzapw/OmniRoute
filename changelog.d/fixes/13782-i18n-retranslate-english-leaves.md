@@ -1,0 +1,1 @@
+- **fix(i18n):** retranslate the English strings that had been copied verbatim into the locale catalogs (Spanish alone carried 7,142) and turn the real-translation ratio gate into a blocking ratchet. (#13782)

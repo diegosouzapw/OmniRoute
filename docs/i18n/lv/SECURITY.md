@@ -1,6 +1,6 @@
 # Security Policy (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -224,24 +224,33 @@ docker run -d \
 
 Publicētais `omniroute` npm artefakts ietver Next.js `output: "standalone"`
 būvējumu, kas nozīmē, ka katrs maršruta apstrādātājs — tostarp dokumentētās
-priviliģētās funkcijas (MITM, Zed importēšana, Cloud Sync, iegultais pakalpojumu
-uzraugs) — nonāk `.next/server/*.js` minimizētajos gabalos. Heiristiskie
-piegādes ķēdes skeneri bieži salīdzina šos gabalus ar ļaunprogrammatūras
-parakstiem.
+priviliģētās funkcijas (MITM, Zed importēšana, Cloud Sync, iegultā pakalpojuma
+pārraugs) — nonāk `.next/server/*.js` minificētajos fragmentos. Heiristiskie
+piegādes ķēdes skeneri bieži salīdzina šo fragmentu paraugus ar ļaunprogrammatūras
+signatūrām.
 
-Katrai atraduma kategorijai mēs uzturam atsevišķu uzturētāja apliecinājumu:
+Mūsu izmantotā skenera konfigurācija atrodas repozitorija saknes failā
+[`socket.yml`](socket.yml) (Socket.dev GitHub App formāts v2 — skatiet
+<https://docs.socket.dev/docs/socket-yml>). Tā nepārprotami izslēdz nepiegādātās
+direktorijas (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`,
+`docs/` utt.), lai skeneris ziņotu tikai par koda ceļiem, kas faktiski sasniedz
+publicētās versijas lietotājus — pašu skenēšanu veic Socket GitHub App, nolasot
+šo failu, nevis darbplūsma šajā repozitorijā.
+
+Katrai atradumu kategorijai mēs uzturam atsevišķu uzturētāja apliecinājumu:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  katra atraduma kartējums: avota fails ↔ atzīmētais gabals ↔ darbība ↔
-  mazināšanas pasākums, kas piemērots v3.8.6.
-- Avota kodā `SECURITY-AUDITOR-NOTE:` bloki pie katra atzīmētās funkcijas punkta
-  norāda uz to pašu dokumentu.
+  katra atraduma kartējums: avota fails ↔ atzīmētais fragments ↔ darbība ↔
+  versijā v3.8.6 ieviestais riska mazināšanas pasākums.
+- Avota kodā esošie `SECURITY-AUDITOR-NOTE:` bloki pie katras atzīmētās
+  funkcijas norāda uz to pašu dokumentu.
 
-Lietotājiem, kuru konveijers nevar atslābināt brīdinājumu, jābūvē ar
+Lietotājiem, kuru konveijerā brīdinājumu nevar mīkstināt: veidojiet būvējumu ar
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tādējādi četri sensitīvie
-moduļi tiek aizstāti ar stublājiem, kas izpildes laikā atgriež HTTP 503
-`feature-disabled`, tādēļ priviliģētie koda ceļi fiziski nepastāv komplektā.
-Publicēšanas recepti skatiet [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+moduļi tiek aizstāti ar aizstājējiem, kas izpildlaikā atgriež HTTP 503
+`feature-disabled`, tāpēc priviliģētie koda ceļi fiziski nav iekļauti komplektā.
+Publicēšanas norādījumus skatiet
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Atsauces
 

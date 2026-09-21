@@ -1,0 +1,27 @@
+{
+  "description": "Site catalog keys (omnirouteSite/lang/<code>.json) that must stay identical to lang/_source.en.json — brand and product names, package names, URLs, protocol acronyms and literal config values. retranslate-site.mjs never sends these to the translation backend.",
+  "keys": [
+    "combos.mode.auto",
+    "compare.ops.oauth.lite",
+    "compare.res.tls.cli",
+    "compare.res.tls.own",
+    "cta.community.whatsapp.brazil",
+    "deploy.arm",
+    "deploy.docker",
+    "deploy.npm",
+    "deploy.opencode.cmd",
+    "deploy.pwa",
+    "deploy.termux",
+    "deploy.vscode",
+    "footer.github",
+    "footer.protocols",
+    "hero.cta.github",
+    "providers.cat.local.ex",
+    "providers.cat.oauth",
+    "viral.footer.github",
+    "viral.footer.home",
+    "why.flow.ide",
+    "why.where.reddit.title",
+    "why.where.x.title"
+  ]
+}

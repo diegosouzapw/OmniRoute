@@ -1,0 +1,1 @@
+- fix(sse): deepseek provider registry now declares `defaultContextLength: 1_000_000` and an explicit `deepseek-flash` model entry, so unlisted/new DeepSeek models (like the new DeepSeek V4.1 Flash) no longer fall back to the generic 128k context limit (#13922)

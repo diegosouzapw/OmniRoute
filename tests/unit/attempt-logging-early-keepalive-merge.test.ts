@@ -23,7 +23,11 @@ const { recordEarlyKeepaliveBytes, takeEarlyKeepaliveBytes } =
   await import("../../open-sse/utils/earlyKeepaliveByteBuffer.ts");
 
 function baseCtx(overrides: Record<string, unknown> = {}) {
+  // #13481/#13546: the call log row is keyed on traceId. It defaults to
+  // pendingRequestId so these tests keep polling by the id they pass in.
+  const pendingRequestId = (overrides.pendingRequestId as string) ?? "REPLACE";
   return {
+    traceId: overrides.traceId ?? pendingRequestId,
     provider: "openai",
     connectionId: "conn-1",
     model: "gpt-x",
@@ -48,13 +52,19 @@ function baseCtx(overrides: Record<string, unknown> = {}) {
   } as Parameters<typeof persistAttemptLogs>[1];
 }
 
-async function pollForCallLog(id: string, tries = 120) {
-  for (let i = 0; i < tries; i++) {
+// Wall-clock deadline instead of 120 tries x 20ms (2.4s): on a loaded runner the
+// async SQLite write routinely outlasts that ceiling and the row reads as missing.
+// Same budget and rationale as tests/unit/video-bridge-log-redaction.test.ts.
+const POLL_DEADLINE_MS = 30_000;
+
+async function pollForCallLog(id: string, deadlineMs = POLL_DEADLINE_MS) {
+  const deadline = Date.now() + deadlineMs;
+  for (;;) {
     const row = await getCallLogById(id);
     if (row) return row as Record<string, unknown>;
+    if (Date.now() >= deadline) return null;
     await new Promise((r) => setTimeout(r, 20));
   }
-  return null;
 }
 
 before(async () => {

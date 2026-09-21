@@ -1,0 +1,1 @@
+- fix(security): scope `/api/files` and `/api/batches` management siblings to the caller's own API key (session stays instance-wide), closing a cross-tenant read that let an anonymous or foreign-key caller enumerate and download other tenants' files/batches (#13882)

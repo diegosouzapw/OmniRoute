@@ -1,0 +1,1 @@
+- npm publish workflow: the CycloneDX SBOM is attached to the GitHub Release on `workflow_dispatch` publishes too (when a release for the tag exists), not only on the `release` event — v3.8.50 shipped through a staged dispatch and its release carried no SBOM until it was attached by hand from the run's `sbom-npm` artifact

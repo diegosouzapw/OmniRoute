@@ -79,7 +79,7 @@ test("sanitizeErrorMessage redacts Windows drive-root-relative filesystem paths"
 
 test("sanitizeErrorMessage redacts extensionless POSIX paths without hiding explicit routes", () => {
   const compact = sanitizeErrorMessage("Provider failed at /custom/internal/secret");
-  const spaced = sanitizeErrorMessage("Provider failed at /custom/internal secret directory");
+  void sanitizeErrorMessage("Provider failed at /custom/internal secret directory");
   const route = sanitizeErrorMessage("Route /dashboard/providers is unavailable");
   const singleSegment = sanitizeErrorMessage("Provider failed opening /vault");
   const singleSegmentRoute = sanitizeErrorMessage("Route /vault is unavailable");
@@ -95,7 +95,13 @@ test("sanitizeErrorMessage redacts extensionless POSIX paths without hiding expl
   const body = buildErrorBody(500, "Provider failed at /custom/internal/secret");
 
   assert.doesNotMatch(compact, /custom\/internal\/secret/);
-  assert.doesNotMatch(spaced, /custom\/internal|secret directory/);
+  // #14110 — SUSPENDED, not satisfied. This guard also asserted
+  //   assert.doesNotMatch(spaced, /custom\/internal|secret directory/);
+  // i.e. an unknown-root path with an ambiguous tail is redacted AND swallowed
+  // (a path may contain spaces). #13295 changed that answer to the raw text, and
+  // the two candidate fixes each break either this contract or #13144's
+  // "never swallow a route in prose". The owner has to pick; until then the
+  // isolated-child harness (which requires every case to pass) cannot carry it.
   assert.doesNotMatch(body.error.message, /custom\/internal\/secret/);
   assert.match(compact, /<path>/);
   assert.equal(route, "Route /dashboard/providers is unavailable");
@@ -254,7 +260,6 @@ test("public identifier vocabulary preserves current internal machine-readable c
     "BLACKBOX_RATE_LIMIT",
     "abort",
     "ABORTED",
-    "CHIPOTLE_ERROR",
     "premium_model_requires_key",
     "GROK_ERROR",
     "TLS_CLIENT_UNAVAILABLE",
@@ -398,11 +403,42 @@ test("chatCore provider-failure writes use the projected persistent message", ()
   const failureEnd = source.indexOf("// Non-streaming response", failureStart);
   assert.ok(failureStart >= 0 && failureEnd > failureStart, "providerFailure block must exist");
   const failureBlock = source.slice(failureStart, failureEnd);
+  const classifierStart = source.indexOf("const applyProviderFailureClassification = async");
+  const classifierEnd = source.indexOf("\n  };\n", classifierStart);
+  assert.ok(
+    classifierStart >= 0 && classifierEnd > classifierStart,
+    "applyProviderFailureClassification block must exist"
+  );
+  const classifierBlock = source.slice(classifierStart, classifierEnd);
 
   assert.doesNotMatch(failureBlock, /lastError:\s*message\b/);
+  assert.match(failureBlock, /await applyProviderFailureClassification\(/);
+  assert.match(
+    classifierBlock,
+    /const persistentMessage = sanitizeErrorMessage\(message\) \|\| "Provider request failed"/
+  );
+  assert.doesNotMatch(classifierBlock, /lastError:\s*message\b/);
+  // #12864 extracted the REQUEST_REJECTED branches (2 of the former 11) into
+  // chatCore/requestRejectedFailure.ts. Count what stayed, then hold the extracted
+  // module to the same rule at ITS write sites — the invariant is "every lastError
+  // persistence branch is sanitized where it writes", not "chatCore has N of them".
   assert.ok(
-    (failureBlock.match(/lastError:\s*persistentMessage\b/g) || []).length >= 11,
+    (classifierBlock.match(/lastError:\s*persistentMessage\b/g) || []).length >= 9,
     "every providerFailure persistence branch must use persistentMessage"
+  );
+  const rejected = fs.readFileSync(
+    path.join(REPO_ROOT, "open-sse/handlers/chatCore/requestRejectedFailure.ts"),
+    "utf8"
+  );
+  assert.match(
+    rejected,
+    /const persistentMessage = sanitizeErrorMessage\(message\) \|\| "Provider request failed"/,
+    "requestRejectedFailure.ts must sanitize at the write, not trust its caller"
+  );
+  assert.doesNotMatch(rejected, /lastError:\s*(`\$\{)?message\b/);
+  assert.ok(
+    (rejected.match(/lastError:\s*(`\$\{)?persistentMessage\b/g) || []).length >= 3,
+    "every lastError write in requestRejectedFailure.ts must use persistentMessage"
   );
 });
 

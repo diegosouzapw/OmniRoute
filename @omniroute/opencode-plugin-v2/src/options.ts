@@ -61,6 +61,21 @@ const pluginOptionsSchema = z
 
 export type PluginOptions = z.infer<typeof pluginOptionsSchema>;
 
+/** Environment source for the management token (option wins over this). */
+export const MANAGEMENT_TOKEN_ENV_VAR = "OMNIROUTE_MANAGEMENT_API_KEY";
+
+/**
+ * Resolve the management token: a non-empty option wins, then a non-empty
+ * environment value, else absent. Empty counts as absent on both inputs, the
+ * same rule the inference key follows; no trimming, the token is opaque.
+ */
+export function resolveManagementReadToken(optionValue: string | undefined): string | undefined {
+  if (optionValue !== undefined && optionValue.length > 0) return optionValue;
+  const fromEnv = process.env[MANAGEMENT_TOKEN_ENV_VAR];
+  if (fromEnv !== undefined && fromEnv.length > 0) return fromEnv;
+  return undefined;
+}
+
 /** Per-endpoint timeout defaults (v1 parity). `timeoutMs` is the global fallback. */
 export const DEFAULT_TIMEOUT_MS = 10_000 as const;
 /** Auto-combos keep the v1 5s budget; the field is resolved now for the P3 port. */

@@ -24,6 +24,149 @@ const body = {
   stream: false,
 };
 
+test("trusted effort contexts split plain, low and high requests", () => {
+  const hashes = [null, "low", "high"].map((resolvedThinkingEffort) =>
+    computeRequestHash(body, "tenant", {
+      originModel: "original",
+      resolvedThinkingEffort,
+    })
+  );
+  assert.equal(new Set(hashes).size, 3);
+});
+
+test("trusted hash context has fixed keys and null defaults", () => {
+  assert.equal(
+    computeRequestHash(body, "tenant", {}),
+    computeRequestHash(body, "tenant", {
+      defaultThinkingEffort: null,
+      resolvedThinkingEffort: null,
+      originModel: null,
+    })
+  );
+  assert.equal(
+    computeRequestHash(body, "tenant", { originModel: "original", resolvedThinkingEffort: "high" }),
+    computeRequestHash(body, "tenant", {
+      resolvedThinkingEffort: "high",
+      originModel: "original",
+      defaultThinkingEffort: undefined,
+    })
+  );
+  for (const key of ["originModel", "resolvedThinkingEffort", "defaultThinkingEffort"] as const) {
+    assert.notEqual(
+      computeRequestHash(body, "tenant", {}),
+      computeRequestHash(body, "tenant", { [key]: "different" })
+    );
+  }
+  assert.notEqual(computeRequestHash(body, "tenant", {}), computeRequestHash(body, "other", {}));
+  assert.notEqual(computeRequestHash(body, "tenant"), computeRequestHash(body, "tenant", {}));
+});
+
+test("legacy digest projection is unchanged without trusted context", async () => {
+  const { createHash } = await import("node:crypto");
+  const expected = createHash("sha256")
+    .update(
+      JSON.stringify({
+        model: body.model,
+        messages: body.messages,
+        system: null,
+        temperature: 0,
+        tools: null,
+        tool_choice: null,
+        max_tokens: null,
+        response_format: null,
+        top_p: null,
+        frequency_penalty: null,
+        presence_penalty: null,
+      })
+    )
+    .digest("hex")
+    .slice(0, 16);
+  assert.equal(computeRequestHash(body), expected);
+  assert.equal(computeRequestHash(body, "tenant"), `tenant.${expected}`);
+  assert.equal(
+    computeRequestHash({ ...body, trustedContext: { resolvedThinkingEffort: "high" } }, "tenant"),
+    `tenant.${expected}`
+  );
+});
+
+for (const field of ["reasoning_effort", "reasoning", "thinking", "output_config"]) {
+  test(`explicit hash intent preserves ${field} presence and complete values`, () => {
+    const values = [undefined, null, false, {}, "none", "high", { effort: "high" }];
+    const hashes = values.map((value) =>
+      computeRequestHash({ ...body, [field]: value }, "tenant", {})
+    );
+    assert.equal(new Set(hashes).size, values.length);
+    assert.equal(hashes[0], computeRequestHash(body, "tenant", {}));
+    for (const value of values) {
+      const request = { ...body, [field]: value };
+      assert.equal(
+        computeRequestHash(request, "tenant", {}),
+        computeRequestHash(structuredClone(request), "tenant", {})
+      );
+      assert.notEqual(
+        computeRequestHash(request, "tenant", {}),
+        computeRequestHash(request, "other", {})
+      );
+      assert.equal(computeRequestHash(request, "tenant"), computeRequestHash(body, "tenant"));
+    }
+  });
+}
+
+for (const [field, first, second] of [
+  ["reasoning", { effort: "high", summary: "auto" }, { effort: "high", summary: "detailed" }],
+  ["thinking", { type: "enabled", budget_tokens: 1024 }, { type: "enabled", budget_tokens: 2048 }],
+  ["output_config", { effort: "high" }, { effort: "max" }],
+  [
+    "output_config",
+    { effort: "high", format: { type: "text" } },
+    { effort: "high", format: { type: "json" } },
+  ],
+] as const) {
+  test(`explicit hash intent preserves nested ${field} knobs ${JSON.stringify(second)}`, () => {
+    assert.notEqual(
+      computeRequestHash({ ...body, [field]: first }, "tenant", {}),
+      computeRequestHash({ ...body, [field]: second }, "tenant", {})
+    );
+  });
+}
+
+test("explicit hash intent uses fixed outer keys and ordinary nested JSON order", () => {
+  const a = { ...body, reasoning: { effort: "high", summary: "auto" }, thinking: false };
+  const b = { thinking: false, reasoning: { effort: "high", summary: "auto" }, ...body };
+  assert.equal(computeRequestHash(a, "tenant", {}), computeRequestHash(b, "tenant", {}));
+  assert.notEqual(
+    computeRequestHash(a, "tenant", {}),
+    computeRequestHash({ ...a, reasoning: { summary: "auto", effort: "high" } }, "tenant", {})
+  );
+  assert.notEqual(
+    computeRequestHash({ ...body, reasoning: { knobs: [1, 2] } }, "tenant", {}),
+    computeRequestHash({ ...body, reasoning: { knobs: [2, 1] } }, "tenant", {})
+  );
+});
+
+test("explicit hash intent cannot spoof origin metadata and retains suffix separation", () => {
+  const request = { ...body, reasoning_effort: "high" };
+  const trusted = { originModel: "original", resolvedThinkingEffort: "low" };
+  assert.equal(
+    computeRequestHash(request, "tenant", trusted),
+    computeRequestHash(
+      {
+        ...request,
+        trustedContext: { resolvedThinkingEffort: "high" },
+        requestIntent: { reasoning_effort: "none" },
+        originModel: "spoofed",
+        resolvedThinkingEffort: "high",
+      },
+      "tenant",
+      trusted
+    )
+  );
+  assert.notEqual(
+    computeRequestHash(request, "tenant", trusted),
+    computeRequestHash(request, "tenant", { ...trusted, resolvedThinkingEffort: "high" })
+  );
+});
+
 test("the same request from two different API keys does NOT share a dedup hash", () => {
   const hashKey1 = computeRequestHash(body, "apikey-1");
   const hashKey2 = computeRequestHash(body, "apikey-2");

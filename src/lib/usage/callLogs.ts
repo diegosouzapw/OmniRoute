@@ -50,6 +50,7 @@ import {
   protectPipelinePayloads,
   buildRequestSummary,
   classifyCallLogError,
+  toStoredErrorType,
 } from "./callLogs/format";
 import {
   clearArtifactReference,
@@ -451,6 +452,12 @@ function getLegacyInlineDetail(id: string) {
 
 async function saveCallLogOperation(entry: any): Promise<void> {
   try {
+    // Bind the DB instance up front, before any await (resolveAccountName,
+    // writeCallArtifactAsync). If the singleton is reset/closed while this
+    // operation awaits, the insert must target the instance this request
+    // started against — a closed handle fails into the catch below instead of
+    // silently writing into whatever database opened afterwards (#12780).
+    const db = getDbInstance();
     const apiKeyContext = getCallLogApiKeyContext();
     // `||` (not `??`): an empty-string apiKeyId/apiKeyName is "unattributed",
     // same as before this fallback existed — it must not be persisted verbatim
@@ -507,7 +514,9 @@ async function saveCallLogOperation(entry: any): Promise<void> {
     // while reasoning source/char-count are recorded separately for observability.
     const tokensReasoning = getReasoningTokensOrNull(entry.tokens);
     const reasoningObservation = resolveReasoningObservation(tokensReasoning, entry.responseBody);
-    const errorType = classifyCallLogError(entry.status, entry.error, entry.provider);
+    const errorType = toStoredErrorType(
+      classifyCallLogError(entry.status, entry.error, entry.provider)
+    );
     const logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
@@ -588,7 +597,6 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       }
     }
 
-    const db = getDbInstance();
     db.prepare(
       `
       INSERT INTO call_logs (
@@ -905,4 +913,43 @@ export async function exportCallLogsSince(since: string) {
     if (log) logs.push(log);
   }
   return logs;
+}
+
+/**
+ * Total number of call_logs rows with timestamp >= `since` — a cheap
+ * aggregate query, no row hydration. Used by /api/logs/export to report
+ * `totalAvailable` without paying the cost of hydrating every row (#13123).
+ */
+export function countCallLogsSince(since: string): number {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT COUNT(*) AS count FROM call_logs WHERE timestamp >= ?")
+    .get(since) as { count: number };
+  return row.count;
+}
+
+/**
+ * Streams up to `limit` hydrated call logs with timestamp >= `since`, most
+ * recent first, one at a time. Only fetches the id list eagerly (small — just
+ * strings) and bounds it with SQL LIMIT; each full log entry (which can
+ * include large request/response artifacts via `getCallLogById`) is only
+ * hydrated and held in memory long enough to be yielded (#13123: the previous
+ * `exportCallLogsSince()` + slice-after-fetch approach hydrated and buffered
+ * every matching row — including rows beyond the cap — before the row cap
+ * was ever applied, which is what left the peak V8 heap unchanged).
+ */
+export async function* iterateCallLogsSince(
+  since: string,
+  limit: number
+): AsyncGenerator<unknown, void, void> {
+  const db = getDbInstance();
+  const ids = db
+    .prepare("SELECT id FROM call_logs WHERE timestamp >= ? ORDER BY timestamp DESC LIMIT ?")
+    .all(since, limit)
+    .map((row) => String((row as { id: string }).id));
+
+  for (const id of ids) {
+    const log = await getCallLogById(id);
+    if (log) yield log;
+  }
 }

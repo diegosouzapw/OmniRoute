@@ -1,0 +1,64 @@
+# ──────────────────────────────────────────────────────────────────────
+#  OmniRoute — Self-Host Compose (零月费自托管 / zero-fee self-host)
+# ──────────────────────────────────────────────────────────────────────
+#  KISS: ONE command brings up the whole thing on loopback.
+#
+#    cp .env.selfhost.example .env   # edit the 2 secrets you want
+#    docker compose -f docker-compose.selfhost.yml up -d
+#    open http://127.0.0.1:20128
+#
+#  No profiles, no build step, no multi-tenant anything.
+#  Pulls the published image `diegosouzapw/omniroute:latest`.
+#
+#  All app ports bind to 127.0.0.1 ONLY by default (REQUIRE_API_KEY ships
+#  as false). Set APP_BIND_HOST=0.0.0.0 in .env ONLY after you have set
+#  REQUIRE_API_KEY=true OR put an auth-enforcing reverse proxy in front.
+#  See docs/getting-started/SELF_HOST_GUIDE.md.
+# ──────────────────────────────────────────────────────────────────────
+
+services:
+  redis:
+    image: docker.io/library/redis:8.6.5-alpine
+    container_name: omniroute-redis
+    restart: unless-stopped
+    # No port published to the host — the app reaches Redis over the compose
+    # network (redis:6379). Publishing an unauthenticated Redis on 0.0.0.0
+    # is a footgun we refuse to ship. If you need host-side redis-cli, run
+    #   docker exec -it omniroute-redis redis-cli
+    volumes:
+      - redis-data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  omniroute:
+    image: diegosouzapw/omniroute:latest
+    container_name: omniroute
+    restart: unless-stopped
+    stop_grace_period: 40s
+    env_file: .env
+    environment:
+      - DATA_DIR=/app/data
+      - REDIS_URL=redis://redis:6379
+    ports:
+      # Loopback-only by default. Override APP_BIND_HOST in .env to expose.
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.mjs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  redis-data:

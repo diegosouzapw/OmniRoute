@@ -1,0 +1,1 @@
+- **fix(mcp):** load the audit `better-sqlite3` driver via the shared `runtimeRequire()` helper instead of `createRequire(import.meta.url)`, which broke when the Next.js standalone build emits the module as a CommonJS chunk ([#13223](https://github.com/diegosouzapw/OmniRoute/pull/13223)) — thanks @chatchawan-simplewish

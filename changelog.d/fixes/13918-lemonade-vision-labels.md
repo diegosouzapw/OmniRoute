@@ -1,0 +1,1 @@
+- fix(providers): `detectVisionInput` now recognizes Lemonade Server's `labels[]` vision capability, so Lemonade vision models import with `supportsVision` set instead of being treated as text-only (#13918)

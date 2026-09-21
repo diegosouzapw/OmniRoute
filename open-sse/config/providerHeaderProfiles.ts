@@ -41,11 +41,25 @@ export const GITHUB_COPILOT_REFRESH_USER_AGENT = "GithubCopilot/1.0";
 export function getGitHubCopilotChatUserAgent(): string {
   return `GitHubCopilotChat/${getGitHubCopilotCliVersion()}`;
 }
-export const GITHUB_COPILOT_INTEGRATION_ID = "copilot-developer-cli";
+export const GITHUB_COPILOT_CLI_INTEGRATION_ID = "copilot-developer-cli";
+export const GITHUB_COPILOT_CHAT_INTEGRATION_ID = "copilot-chat";
+export const GITHUB_COPILOT_INTEGRATION_ID = GITHUB_COPILOT_CLI_INTEGRATION_ID;
 export const GITHUB_COPILOT_OPENAI_INTENT = "conversation-agent";
 export const GITHUB_COPILOT_INTERACTION_TYPE = "conversation-user";
 export const GITHUB_COPILOT_HARNESS_ID = "copilot-sdk";
 export const GITHUB_COPILOT_DEFAULT_INITIATOR = "user";
+
+export function normalizeCopilotIntegrationId(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed || /[\r\n]/.test(trimmed)) return null;
+  return trimmed;
+}
+
+export function resolveCopilotIntegrationIdOverride(): string | null {
+  const raw = typeof process === "undefined" ? undefined : process.env?.COPILOT_INTEGRATION_ID;
+  return normalizeCopilotIntegrationId(raw);
+}
 
 // Stable per-install device fingerprint (the CLI's X-Client-Machine-Id). The
 // real @github/copilot CLI sends ONE stable UUID on every inference + /models
@@ -68,6 +82,14 @@ export const QWEN_STAINLESS_LANG = "js";
 
 export const QODER_DEFAULT_USER_AGENT = "Qoder-Cli";
 
+// CODEBUDDY_CN_USER_AGENT is the single source of truth for the CLI/CodeBuddy version
+// string. It MUST stay identical across OAuth (src/lib/oauth/constants/oauth.ts), chat
+// completions (open-sse/config/providers/registry/codebuddy-cn/index.ts) and usage/quota
+// (open-sse/services/usage/codebuddy-cn.ts) — a mismatched version string across a
+// single account's auth vs. chat calls is exactly the kind of internally-inconsistent
+// client fingerprint Tencent's WAF flags as anomalous (#12702).
+export const CODEBUDDY_CN_USER_AGENT = "CLI/2.108.1 CodeBuddy/2.108.1";
+
 export const KIRO_SDK_USER_AGENT = "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0";
 export const KIRO_AMZ_USER_AGENT = "aws-sdk-js/3.0.0 kiro-ide/1.0.0";
 export const KIRO_STREAMING_TARGET =
@@ -78,7 +100,7 @@ export const CURSOR_REGISTRY_VERSION = "3.9";
 export function getGitHubCopilotChatHeaders(
   accept = "application/json",
   initiator = GITHUB_COPILOT_DEFAULT_INITIATOR,
-  options: { vision?: boolean; intent?: string } = {}
+  options: { vision?: boolean; intent?: string; integrationId?: string } = {}
 ): Record<string, string> {
   // Matches the live @github/copilot CLI 1.0.81-6 inference request 1:1 (MITM-
   // captured). NOTE the CLI does NOT send `editor-plugin-version` nor
@@ -89,8 +111,12 @@ export function getGitHubCopilotChatHeaders(
   // is the catalog-unlock lever; the stable X-Client-Machine-Id is the CLI's
   // per-install device fingerprint.
   const version = getGitHubCopilotCliVersion();
+  const integrationId =
+    normalizeCopilotIntegrationId(options.integrationId) ||
+    resolveCopilotIntegrationIdOverride() ||
+    GITHUB_COPILOT_CLI_INTEGRATION_ID;
   const headers: Record<string, string> = {
-    "copilot-integration-id": GITHUB_COPILOT_INTEGRATION_ID,
+    "copilot-integration-id": integrationId,
     "editor-version": `copilot/${version}`,
     "user-agent": `copilot/${version}`,
     "openai-intent": options.intent || GITHUB_COPILOT_OPENAI_INTENT,

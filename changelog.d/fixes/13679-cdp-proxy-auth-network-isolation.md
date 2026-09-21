@@ -1,0 +1,1 @@
+- **fix(docker):** isolate the ChatGPT Web (Codex) CDP proxy sidecar onto its own Compose network, add an opt-in `CDP_PROXY_TOKEN` auth gate to `cdp-proxy.mjs`, and stop the VNC browser-login CDP bridge from starting when no token is configured (#13679)

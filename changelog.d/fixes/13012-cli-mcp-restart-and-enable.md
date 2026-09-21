@@ -1,0 +1,1 @@
+- **fix(cli):** `omniroute mcp restart` no longer 404s — the missing `POST /api/mcp/restart` route now exists — and new `omniroute mcp enable`/`mcp disable [--transport]` subcommands give the CLI a way to turn the MCP server on without the dashboard ([#13012](https://github.com/diegosouzapw/OmniRoute/issues/13012)) — thanks @ricardusx

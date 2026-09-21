@@ -218,6 +218,13 @@ function parsePsi(text: string | null): ResourceSignals["psi"] {
   return matched ? result : null;
 }
 
+function firstParseablePsi(...samples: Array<string | null>): string | null {
+  for (const sample of samples) {
+    if (parsePsi(sample)) return sample;
+  }
+  return null;
+}
+
 export async function sampleResourceSignals(
   deps: SampleResourceSignalsDeps = {}
 ): Promise<ResourceSignals> {
@@ -249,6 +256,7 @@ export async function sampleResourceSignals(
         readText(path.join(cgroupDirectory, "memory.high")),
         readText(path.join(cgroupDirectory, "memory.events")),
         readText(path.join(cgroupDirectory, "memory.stat")),
+        readText(path.join(cgroupDirectory, "memory.pressure")),
       ])
     : null;
   // Named bindings instead of positional indices: the read order above is
@@ -260,8 +268,15 @@ export async function sampleResourceSignals(
     high: cgroupReads?.[2] ?? null,
     events: cgroupReads?.[3] ?? null,
     stat: cgroupReads?.[4] ?? null,
+    pressure: cgroupReads?.[5] ?? null,
   };
-  const psi = await readText("/proc/pressure/memory").catch(() => null);
+  // /proc/pressure/memory is host-wide. Inside Docker/cgroup that stalls the
+  // chat admission gate (503 resource_pressure) when the *machine* is swapping
+  // even if this container is idle. Prefer this unit's cgroup PSI; fall back
+  // to the host file only when the cgroup sample is missing or unparseable
+  // (bare metal, cgroup v1, or a stub filesystem).
+  const hostPsi = await readText("/proc/pressure/memory").catch(() => null);
+  const psi = firstParseablePsi(cgroupFiles.pressure, hostPsi);
 
   return {
     observedAtMs: (deps.nowMs ?? Date.now)(),

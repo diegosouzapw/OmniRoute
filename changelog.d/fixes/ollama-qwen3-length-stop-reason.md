@@ -1,0 +1,1 @@
+- **fix(sse):** `detectMalformedNonStream` no longer flags a Claude-format message as malformed when the content array only contains empty text blocks or the `(empty response)` sentinel and `stop_reason` is `"length"` — a legitimate truncation (e.g. `ollama/qwen3:1.7b` exhausting its reasoning budget before producing visible text), not a real 502-worthy empty response.

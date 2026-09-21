@@ -1,21 +1,12 @@
-# API_REFERENCE (Gaeilge)
+# API Reference (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-title: "Tagairt API"
-version: 3.8.51
-lastUpdated: 2026-08-31
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
-# Tagairt API
-
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
-
-Príomhthagairt don API OmniRoute. Cuimsíonn sé an dromchla poiblí `/v1` agus na pointí bainistíochta is mó a úsáidtear; [`docs/openapi.yaml`](../openapi.yaml) léite le meaisín agus an crann ródanna faoi `src/app/api/` is iad na foinsí iomlána.
+Croíthagairt d’API OmniRoute. Clúdaíonn sí an dromchla poiblí `/v1` agus na críochphointí bainistíochta is mó úsáid; is iad [`docs/openapi.yaml`](../openapi.yaml), atá inléite ag meaisín, agus an crann ródaithe faoi `src/app/api/` na foinsí uileghabhálacha.
 
 ---
 
@@ -422,68 +413,90 @@ Bain úsáid as an bhfeidhmchlár seo nuair a rithíonn sidecar lasmuigh den phr
 
 ---
 
-## Feidhmeanna Comhoiriúnachta
+## Críochphointí Comhoiriúnachta
 
-| Modh | Cosán                                     | Formáid                               |
-| ---- | ----------------------------------------- | ------------------------------------- |
-| POST | `/v1/chat/completions`                    | OpenAI                                |
-| POST | `/v1/messages`                            | Anthropic                             |
-| POST | `/v1/responses`                           | OpenAI Responses                      |
-| POST | `/v1/embeddings`                          | OpenAI                                |
-| POST | `/v1/images/generations`                  | OpenAI Images                         |
-| POST | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)          |
-| POST | `/v1/videos/generations`                  | Gineadh físeán ar stíl OpenAI         |
-| POST | `/v1/music/generations`                   | Gineadh ceol ar stíl OpenAI           |
-| POST | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
-| POST | `/v1/audio/speech`                        | OpenAI TTS (fillfidh corp fuaime)     |
-| POST | `/v1/rerank`                              | Athrangement ar stíl Cohere/Voyage    |
-| POST | `/v1/classify`                            | Aicmigh Jina (`api.jina.ai`)          |
-| POST | `/v1/segment`                             | Deighilteoir Jina (`segment.jina.ai`) |
-| POST | `/v1/moderations`                         | Modhnuithe OpenAI                     |
-| GET  | `/v1/models`                              | OpenAI                                |
-| POST | `/v1/messages/count_tokens`               | Anthropic                             |
-| GET  | `/v1beta/models`                          | Gemini                                |
-| POST | `/v1beta/models/{...path}`                | Gemini generateContent                |
-| POST | `/v1/api/chat`                            | Ollama                                |
-| GET  | `/api/v1/vscode/{token}/`                 | Ailias catalóige OpenAI               |
-| GET  | `/api/v1/vscode/{token}/models`           | Ailias múnlaí OpenAI                  |
-| POST | `/api/v1/vscode/{token}/chat/completions` | Ailias tógála OpenAI                  |
-| POST | `/api/v1/vscode/{token}/responses`        | Ailias tógála OpenAI Responses        |
-| POST | `/api/v1/vscode/{token}/api/chat`         | Ailias tógála Ollama                  |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | Ailias tógála clibeanna Ollama        |
+| Modh | Conair                                    | Formáid                                        |
+| ---- | ----------------------------------------- | ---------------------------------------------- |
+| POST | `/v1/chat/completions`                    | OpenAI                                         |
+| POST | `/v1/messages`                            | Anthropic                                      |
+| POST | `/v1/responses`                           | Freagraí OpenAI                                |
+| POST | `/v1/embeddings`                          | OpenAI                                         |
+| POST | `/v1/images/generations`                  | Íomhánna OpenAI                                |
+| POST | `/v1/images/edits`                        | Íomhánna OpenAI (eagarthóireacht/inphéinteáil) |
+| POST | `/v1/videos/generations`                  | Giniúint físe ar stíl OpenAI                   |
+| POST | `/v1/music/generations`                   | Giniúint ceoil ar stíl OpenAI                  |
+| POST | `/v1/audio/transcriptions`                | Fuaim OpenAI (STT)                             |
+| POST | `/v1/audio/speech`                        | OpenAI TTS (tugann sé corp fuaime ar ais)      |
+| POST | `/v1/rerank`                              | Athrangú ar stíl Cohere/Voyage                 |
+| POST | `/v1/classify`                            | Aicmiú Jina (`api.jina.ai`)                    |
+| POST | `/v1/segment`                             | Deighilteoir Jina (`segment.jina.ai`)          |
+| POST | `/v1/moderations`                         | Modhnóireacht OpenAI                           |
+| GET  | `/v1/models`                              | OpenAI                                         |
+| POST | `/v1/messages/count_tokens`               | Anthropic                                      |
+| GET  | `/v1beta/models`                          | Gemini                                         |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent                         |
+| POST | `/v1/api/chat`                            | Ollama                                         |
+| GET  | `/api/v1/vscode/{token}/`                 | Ailias catalóige OpenAI                        |
+| GET  | `/api/v1/vscode/{token}/models`           | Ailias samhlacha OpenAI                        |
+| POST | `/api/v1/vscode/{token}/chat/completions` | Ailias comharthaíochta OpenAI                  |
+| POST | `/api/v1/vscode/{token}/responses`        | Ailias comharthaíochta Freagraí OpenAI         |
+| POST | `/api/v1/vscode/{token}/api/chat`         | Ailias comharthaíochta Ollama                  |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | Ailias comharthaíochta clibeanna Ollama        |
 
-Leanann gach cosán POST an chéanna: `Bearer your-api-key` + corp JSON atá bailíochta ag Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, srl., féach `src/shared/validation/schemas.ts`). Filleann 4xx ar theip scéime.
+Leanann gach bealach POST an struchtúr céanna: `Bearer your-api-key` + corp JSON bailíochtaithe ag Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, srl., féach `src/shared/validation/schemas.ts`). Tugtar 4xx ar ais má theipeann ar an scéimre.
 
-Do chliaint nach féidir leo `Authorization: Bearer ...` a cheangal, glactha le eochracha API freisin i URL trí áiseanna comhoiriúnachta sreangfhiarróta (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) nó na feidhmeanna speisialta `/api/v1/vscode/{token}/...` atá dhoiciméadaithe thíos.
+I gcás cliant nach féidir leo `Authorization: Bearer ...` a cheangal, glacann OmniRoute le heochracha API san URL freisin, trí chomhoiriúnacht teaghráin iarratais (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) nó trí na críochphointí tiomnaithe `/api/v1/vscode/{token}/...` atá doiciméadaithe thíos.
 
 ```bash
-# Athrangement
+# Athrangú (soláthraí clárlainne néil, nó nód soláthraí atá comhoiriúnach le OpenAI mar "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Aicmigh Jina (Cúigí Aiceanáise)
+# Aicmiú Jina (dintiúir Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Deighilteoir Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Cuardach Jina (s.jina.ai; ainmneacha soláthraithe: jina-search, jina-ai, jina)
+# Cuardach Jina (s.jina.ai; ailiasanna soláthraí: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Modhnuithe
+# Modhnóireachtaí
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — fillfidh corp audio/mpeg (nó formáid iarrata)
+# TTS — tugann sé corp audio/mpeg (nó na formáide iarrtha) ar ais
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Eagarthóir íomhá (ilpháirt)
+# Eagarthóireacht íomhá (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Gineadh físeáin/ceoil (ID múnla le réimír soláthraithe)
+# Giniúint físe / ceoil (aitheantas samhla le réimír soláthraí)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Cosáin Soláthraithe Speisialta
+> **Nóid soláthraí athrangaithe:** seolann `POST /v1/rerank` iarratais chuig nóid soláthraí atá comhoiriúnach le OpenAI freisin
+> (oMLX, vLLM, Infinity, TEI taobh thiar de gheata, …) agus a seoltar chucu mar `<node-prefix>/<model>`. Bíonn nóid
+> aisfhillteacha (`localhost`, `127.0.0.1`, `172.16.0.0/12`) incháilithe i gcónaí. Ní bhíonn nóid ar aon
+> óstach eile — bosca LAN nó piara Tailscale — incháilithe ach amháin nuair a chumasaíonn an t-oibreoir
+> an bhratach gné `RERANK_REMOTE_PROVIDER_NODES` **agus** nuair a éiríonn le bun-URL an nóid polasaí URL
+> amach an tsoláthraí (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> ní sheoltar iarratais chuig óstaigh mheiteashonraí néil riamh. Glaonn céim athrangaithe an innill chuimhne ar an mbealach seo thar
+> aisfhillte, agus mar sin rialaíonn an riail chéanna `rerankProviderModel` sna socruithe Cuimhne.
+>
+> **Struchtúir freastalaí áitiúil:** glaoitear ar an nód ag `<base>/v1/rerank` agus, i gcás 404, ag `<base>/rerank`
+> (Infinity, TEI). Bíonn litriú Cohere/OpenAI (`documents`,
+> `return_documents`) agus litriú TEI (`texts`, `return_text`) araon sa chorp réamhtheachtach, agus
+> normalaítear an freagra réamhtheachtach chuig clúdach Cohere: eagar lom TEI `[{index, score, text}]`,
+> `{results: [{index, score}]}` ó gheataí tanaí, agus `{data: [...]}` ar stíl Voyage — tagann siad ar fad ar ais chuig an gcliant mar
+> `{results: [{index, relevance_score, document?}]}`, sórtáilte de réir scóir agus teoranta ag `top_n`.
+
+> **Aimsiú nóid soláthraí:** feictear samhlacha ar nód soláthraí atá comhoiriúnach le OpenAI in `GET /v1/models`
+> faoi réimír an nóid. Faigheann rónna nach bhfuil meiteashonraí críochphointe acu (rud atá coitianta i liostaí áitiúla `/v1/models`)
+> `apiType` an nóid le hoidhreacht, ionas gur `type: "embedding"` iad samhlacha nóid `embeddings` agus gur
+> `type: "rerank"` iad samhlacha nóid `rerank`, seachas comhrá a úsáid mar réamhshocrú; bíonn tosaíocht fós ag
+> `supportedEndpoints` sainráite ar ró sioncronaithe nó curtha leis de láimh.
+
+### Bealaí Tiomnaithe Soláthraí
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -491,39 +504,47 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Cuirtear réimír an tsoláthraigh leis go huathoibríoch más gá. Filleann múnlaí mímhaithe `400`.
+Cuirtear réimír an tsoláthraí leis go huathoibríoch má tá sé ar iarraidh. Tugann samhlacha nach bhfuil comhoiriúnach `400` ar ais.
 
 ---
 
-## Comhaid API
+## API Comhad
 
-Deireadh pointí comhoiriúnach le haghaidh comhaid OpenAI le haghaidh isteach/méideanna buana agus uaslódálacha cuspóir comhaid.
+Críochphointe comhad atá comhoiriúnach le OpenAI le haghaidh ionchur/aschur baisce agus uaslódálacha de réir cuspóir comhaid.
 
-| Modh   | Conair                   | Cur Síos                                                                                                             |
-| ------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/files`              | Uaslódáil comhad (ilchuidiúil: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — 512 MiB uasta |
-| GET    | `/v1/files`              | Liostaigh comhaid le haghaidh eochair API deimhnithe                                                                 |
-| GET    | `/v1/files/[id]`         | Faigh amach meiteashonraí comhaid                                                                                    |
-| DELETE | `/v1/files/[id]`         | Scrios comhad                                                                                                        |
-| GET    | `/v1/files/[id]/content` | Sruth-amharc comhad amh i dteachtaireacht ais                                                                        |
+| Modh   | Conair                   | Cur síos                                                                                                                 |
+| ------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| POST   | `/v1/files`              | Uaslódáil comhad (ilpháirteach: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — uasmhéid 512 MiB |
+| GET    | `/v1/files`              | Liostaigh comhaid don eochair API fhíordheimhnithe                                                                       |
+| GET    | `/v1/files/[id]`         | Aisghabh meiteashonraí comhaid                                                                                           |
+| DELETE | `/v1/files/[id]`         | Scrios comhad                                                                                                            |
+| GET    | `/v1/files/[id]/content` | Sruthaigh corp amh an chomhaid ar ais                                                                                    |
 
-**Fíordheimhniú:** Eochair API Bearer — tá comhaid scóipeáilte in aghaidh na heochr API trí `getApiKeyRequestScope`.
+**Fíordheimhniú:** Eochair API Bearer — déantar raon feidhme na gcomhad a shocrú de réir na heochrach API trí `getApiKeyRequestScope`. Ní féidir le heochair
+ach a comhaid féin a fheiceáil, a íoslódáil agus a scriosadh; léann seisiún deais gan eochair an
+t-ásc iomlán; diúltaítear comhad gan úinéir (uaslódáil anaithnid nó uaslódáil ó sheisiún deais) do gach
+glaoiteoir nach glaoiteoir seisiúin é. Diúltaíonn `GET /v1/files` do ghlaoiteoir anaithnid — agus d'eochair a chuirtear ar fáil
+nach féidir a réiteach — le `401` fiú nuair atá `REQUIRE_API_KEY=false`, seachas comhaid gach tionónta a
+liostú (GHSA-m3hp-hq9g-fpmv, GHSA-2jm2-mpx8-6523).
 
 ---
 
-## Easbatches API
+## API Baisceanna
 
-Próiseáil easbatches comhoiriúnach le haghaidh OpenAI.
+Próiseáil baisceanna atá comhoiriúnach le OpenAI.
 
-| Modh   | Conair                    | Cur Síos                                                                                                                            |
-| ------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/batches`             | Cruthaigh easbatch — déantar bailíocht ar an gcomhlacht ag `v1BatchCreateSchema` (`input_file_id`, `endpoint`, `completion_window`) |
-| GET    | `/v1/batches`             | Liostaigh easbatches                                                                                                                |
-| GET    | `/v1/batches/[id]`        | Faigh amach stádas easbatch + `request_counts`                                                                                      |
-| DELETE | `/v1/batches/[id]`        | Scrios easbatch críochnaithe/teipthe                                                                                                |
-| POST   | `/v1/batches/[id]/cancel` | Cealaigh easbatch atá ar siúl                                                                                                       |
+| Modh   | Conair                    | Cur síos                                                                                                              |
+| ------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/v1/batches`             | Cruthaigh baisc — bailíochtaítear an corp le `v1BatchCreateSchema` (`input_file_id`, `endpoint`, `completion_window`) |
+| GET    | `/v1/batches`             | Liostaigh baisceanna                                                                                                  |
+| GET    | `/v1/batches/[id]`        | Aisghabh stádas na baisce + `request_counts`                                                                          |
+| DELETE | `/v1/batches/[id]`        | Scrios baisc atá críochnaithe/teipthe                                                                                 |
+| POST   | `/v1/batches/[id]/cancel` | Cealaigh baisc atá ar siúl                                                                                            |
 
-**Fíordheimhniú:** Eochair API Bearer. Tá easbatches scóipeáilte in aghaidh na heochr API.
+**Fíordheimhniú:** Eochair API Bearer. Tá raon feidhme na mbaisceanna teoranta de réir na heochrach API faoin riail thríthaobhach chéanna agus a bhaineann le
+comhaid: an eochair féin amháin, seisiún an deais ar fud na háisce, agus diúltaítear taifid gan úinéir do gach
+glaoiteoir nach glaoiteoir seisiúin é (aisghabháil, scriosadh, cealú, agus seiceáil `input_file_id` tráth cruthaithe).
+Diúltaíonn `GET /v1/batches` do ghlaoiteoir anaithnid le `401` fiú nuair atá `REQUIRE_API_KEY=false`.
 
 ---
 
@@ -1556,20 +1577,21 @@ Deireannaí ar nósanna riarachána amháin le haghaidh bainistíochta oibríoch
 
 ## Bainistíocht Uirlisí CLI
 
-Bainistigh uirlisí CLI a chomhtháthaíonn le OmniRoute (antigravity, chiplete, commandCode, devin-cli, srl.). Féach [Tagairt Soláthraí](./PROVIDER_REFERENCE.md) le haghaidh an liosta iomlán.
+Bainistigh uirlisí CLI a chomhtháthaíonn le OmniRoute (antigravity, commandCode,
+devin-cli, srl.). Féach [Tagairt Soláthraithe](./PROVIDER_REFERENCE.md) chun an liosta iomlán a fháil.
 
-| Modh | Conair                                  | Cur Síos                                                                                                                                                                  |
-| ---- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET  | `/api/cli-tools/all-statuses`           | Stádas gach uirlisí CLI (suiteáilte, leagan, feicthe go deireanach)                                                                                                       |
-| GET  | `/api/cli-tools/status`                 | Mionsonraí stádais d'uirlis CLI amháin (iarratais `?tool=`)                                                                                                               |
-| POST | `/api/cli-tools/apply`                  | Scríobh cumraíocht ghinmheánach uirlis (`dryRun` réamhamharcanna; `422` + `containerEphemeralTarget` nuair atá i gcoimeádán; `migration` nótaíonn sé YAML Codex sean-nós) |
-| GET  | `/api/cli-tools/backups`                | Liosta cúltacaí cumraíochta uirlisí CLI                                                                                                                                   |
-| POST | `/api/cli-tools/backups`                | Cruthaigh cúltaca de gach cumraíocht uirlisí CLI                                                                                                                          |
-| POST | `/api/cli-tools/backups`                | Athchóirigh: an chéanna le pointe deiridh agus `{tool, backupId}` sa chomhlacht athchóiríonn an cúltaca sin                                                               |
-| GET  | `/api/cli-tools/antigravity-mitm`       | Stádas seachbhreithe MITM antigravity (uirlis CLI "antigravity-mitm")                                                                                                     |
-| POST | `/api/cli-tools/antigravity-mitm/alias` | Cumraigh ailiasanna antigravity-mitm                                                                                                                                      |
+| Modh | Conair                                  | Cur Síos                                                                                                                                                                          |
+| ---- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET  | `/api/cli-tools/all-statuses`           | Stádas gach uirlise CLI (suiteáilte, leagan, an uair dheireanach a chonacthas í)                                                                                                  |
+| GET  | `/api/cli-tools/status`                 | Sonraí stádais d'uirlis CLI amháin (iarratas `?tool=`)                                                                                                                            |
+| POST | `/api/cli-tools/apply`                  | Scríobh cumraíocht ghinte uirlise (réamhamharcann `dryRun`; `422` + `containerEphemeralTarget` nuair atá sí coimeádánaithe; tugann `migration` faoi deara YAML Codex oidhreachta) |
+| GET  | `/api/cli-tools/backups`                | Liostaigh cúltacaí cumraíochta uirlisí CLI                                                                                                                                        |
+| POST | `/api/cli-tools/backups`                | Cruthaigh cúltaca de chumraíochtaí uile na n-uirlisí CLI                                                                                                                          |
+| POST | `/api/cli-tools/backups`                | Athchóirigh: athchóiríonn an críochphointe céanna an cúltaca sin le `{tool, backupId}` sa chorp                                                                                   |
+| GET  | `/api/cli-tools/antigravity-mitm`       | Stádas seachfhreastalaí MITM Antigravity (an uirlis CLI "antigravity-mitm")                                                                                                       |
+| POST | `/api/cli-tools/antigravity-mitm/alias` | Cumraigh ailiasanna antigravity-mitm                                                                                                                                              |
 
-**Údarú:** Éilíonn sé seisiún bainistíochta.
+**Fíordheimhniú:** Teastaíonn seisiún bainistíochta.
 
 ---
 

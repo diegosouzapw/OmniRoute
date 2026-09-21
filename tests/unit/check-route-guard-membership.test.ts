@@ -9,6 +9,7 @@ import {
   isSpawnCapableSource,
   findSpawnCapableRoutes,
   KNOWN_UNCLASSIFIED_SOURCE_SPAWN,
+  SPAWN_CAPABLE_ROUTE_ROOTS,
 } from "../../scripts/check/check-route-guard-membership.ts";
 import { isLocalOnlyPath } from "../../src/server/authz/routeGuard.ts";
 
@@ -64,11 +65,7 @@ test("flags a spawn-capable route that is NOT classified local-only (RCE-via-tun
   // this gate guards against.
   const leaky = (path: string): boolean => path.startsWith("/api/mcp/");
   assert.deepEqual(
-    findUnclassifiedSpawnRoutes(
-      ["/api/mcp/tools", "/api/services/cliproxy/install"],
-      leaky,
-      {}
-    ),
+    findUnclassifiedSpawnRoutes(["/api/mcp/tools", "/api/services/cliproxy/install"], leaky, {}),
     ["/api/services/cliproxy/install"]
   );
 });
@@ -76,11 +73,9 @@ test("flags a spawn-capable route that is NOT classified local-only (RCE-via-tun
 test("allowlisted routes are not flagged (frozen pre-existing exceptions)", () => {
   const leaky = (path: string): boolean => path.startsWith("/api/mcp/");
   assert.deepEqual(
-    findUnclassifiedSpawnRoutes(
-      ["/api/mcp/tools", "/api/services/legacy/route"],
-      leaky,
-      { "/api/services/legacy/route": "frozen pre-existing exception" }
-    ),
+    findUnclassifiedSpawnRoutes(["/api/mcp/tools", "/api/services/legacy/route"], leaky, {
+      "/api/services/legacy/route": "frozen pre-existing exception",
+    }),
     []
   );
 });
@@ -128,7 +123,10 @@ test("6A.8 findSpawnCapableRoutes: detects real spawn-capable route.ts files", (
   ];
   const found = findSpawnCapableRoutes(repoRoot);
   for (const r of knownSpawnRoutes) {
-    assert.ok(found.includes(r), `expected ${r} in spawn-capable routes, found: ${found.join(", ")}`);
+    assert.ok(
+      found.includes(r),
+      `expected ${r} in spawn-capable routes, found: ${found.join(", ")}`
+    );
   }
 });
 
@@ -151,6 +149,51 @@ test("#7948: /api/acp/agents (transitive execFileSync via registry) is classifie
   // subcheck above only greps the route file itself, so it cannot catch this
   // class of gap. This assertion is the direct regression guard for #7948.
   assert.equal(isLocalOnlyPath("/api/acp/agents"), true);
+});
+
+test("GHSA-35fw-cv32-2373: every cli-tools route that reaches getCliRuntimeStatus()/detectAllTools() is classified local-only", () => {
+  // Same transitive-spawn class as #7948: the spawn lives in
+  // src/shared/services/cliRuntime.ts (runProcess -> spawn) and
+  // src/lib/cli-helper/tool-detector.ts (execFile), never in the route file, so
+  // the source-scan subcheck is blind to it. Six siblings were already gated;
+  // these 14 called the same helper and were not. Each is now a
+  // SPAWN_CAPABLE_ROUTE_ROOT so subcheck 1 enforces membership going forward.
+  const routes = [
+    "/api/cli-tools/all-statuses",
+    "/api/cli-tools/claude-settings",
+    "/api/cli-tools/cline-settings",
+    "/api/cli-tools/codewhale-settings",
+    "/api/cli-tools/codex-settings",
+    "/api/cli-tools/crush-settings",
+    "/api/cli-tools/deepseek-tui-settings",
+    "/api/cli-tools/detect",
+    "/api/cli-tools/droid-settings",
+    "/api/cli-tools/kilo-settings",
+    "/api/cli-tools/openclaw-settings",
+    "/api/cli-tools/pi-settings",
+    "/api/cli-tools/smelt-settings",
+    "/api/cli-tools/status",
+  ];
+  for (const r of routes) {
+    assert.equal(isLocalOnlyPath(r), true, `${r} must be local-only`);
+    assert.ok(
+      SPAWN_CAPABLE_ROUTE_ROOTS.includes(`src/app${r}`),
+      `src/app${r} must be a SPAWN_CAPABLE_ROUTE_ROOT`
+    );
+  }
+});
+
+test("GHSA-jx89-f37j-pq89: /api/skills/install + /api/skills/executions (transitive sandbox spawn) are classified local-only", () => {
+  // The spawn is three modules away from the route (executor.ts -> builtins.ts ->
+  // sandbox.ts childProcess.spawn), so the source-scan subcheck cannot see it.
+  // Both are now SPAWN_CAPABLE_ROUTE_ROOTs so subcheck 1 enforces membership.
+  for (const r of ["/api/skills/install", "/api/skills/executions"]) {
+    assert.equal(isLocalOnlyPath(r), true, `${r} must be local-only`);
+    assert.ok(
+      SPAWN_CAPABLE_ROUTE_ROOTS.includes(`src/app${r}`),
+      `src/app${r} must be a SPAWN_CAPABLE_ROUTE_ROOT`
+    );
+  }
 });
 
 test("6A.8: spawn-capable routes in SPAWN_CAPABLE_ROUTE_ROOTS are still all classified local-only", async () => {

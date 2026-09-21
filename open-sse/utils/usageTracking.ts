@@ -479,6 +479,8 @@ function clearCachedTokenDetail<T extends UsageTokenDetail | null | undefined>(v
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const result = { ...value };
   if (result.cached_tokens !== undefined) result.cached_tokens = 0;
+  if (result.cache_creation_tokens !== undefined) result.cache_creation_tokens = 0;
+  if (result.cache_write_tokens !== undefined) result.cache_write_tokens = 0;
   return result;
 }
 
@@ -513,6 +515,8 @@ export function sanitizeProviderUsageForRequest(
 
   if (format === FORMATS.CLAUDE) {
     result.input_tokens = estimatedInput;
+    result.prompt_tokens_details = clearCachedTokenDetail(result.prompt_tokens_details);
+    result.input_tokens_details = clearCachedTokenDetail(result.input_tokens_details);
     result.cache_read_input_tokens = 0;
     result.cache_creation_input_tokens = 0;
     return result;
@@ -531,6 +535,7 @@ export function sanitizeProviderUsageForRequest(
 
   if (format === FORMATS.OPENAI_RESPONSES) {
     result.input_tokens = estimatedInput;
+    result.prompt_tokens_details = clearCachedTokenDetail(result.prompt_tokens_details);
     result.input_tokens_details = clearCachedTokenDetail(result.input_tokens_details);
     result.cache_read_input_tokens = 0;
     result.cache_creation_input_tokens = 0;
@@ -624,7 +629,12 @@ export function normalizeUsage(usage: UsageLike | null | undefined) {
   assignNumber("output_tokens", usage?.output_tokens);
   assignNumber("cache_read_input_tokens", usage?.cache_read_input_tokens);
   assignNumber("cache_creation_input_tokens", pickCacheCreationTokens(usage));
-  assignNumber("cached_tokens", usage?.cached_tokens);
+  assignNumber(
+    "cached_tokens",
+    usage?.cached_tokens ??
+      usage?.prompt_tokens_details?.cached_tokens ??
+      usage?.input_tokens_details?.cached_tokens
+  );
   assignNumber("no_cache_tokens", usage?.no_cache_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
   // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —
@@ -640,6 +650,33 @@ export function normalizeUsage(usage: UsageLike | null | undefined) {
 
   if (Object.keys(normalized).length === 0) return null;
   return normalized;
+}
+
+// Internal marker for usage that was estimated locally (a web/cookie executor with no
+// upstream metering). A NON-enumerable symbol: JSON.stringify, object spread and
+// filterUsageForFormat never copy it, so it cannot reach a client payload or change any
+// usage field, cost or budget — it only lets the call-log sink tell estimated usage apart
+// after extraction rebuilt the object without the provider's `estimated` flag.
+const ESTIMATED_USAGE_MARKER = Symbol.for("omniroute.usage.estimated");
+
+export function carryEstimatedUsageMarker<T>(source: unknown, rebuilt: T): T {
+  const estimated =
+    !!source && typeof source === "object" && (source as UsageLike).estimated === true;
+  if (estimated && rebuilt && typeof rebuilt === "object") {
+    Object.defineProperty(rebuilt, ESTIMATED_USAGE_MARKER, { value: true, enumerable: false });
+  }
+  return rebuilt;
+}
+
+/**
+ * True when token usage was estimated locally instead of reported by the provider: either
+ * the usage still carries `estimated: true` (OmniRoute's own estimateUsage fallback) or
+ * extraction kept the internal marker. Observability only — billing does not read it.
+ */
+export function isEstimatedUsage(usage: unknown): boolean {
+  if (!usage || typeof usage !== "object") return false;
+  if ((usage as UsageLike).estimated === true) return true;
+  return Reflect.get(usage, ESTIMATED_USAGE_MARKER) === true;
 }
 
 /**
@@ -786,7 +823,7 @@ export function extractUsage(chunk: UsagePayloadLike | null | undefined) {
     typeof chunk.usage === "object" &&
     (chunk.usage.prompt_tokens !== undefined || chunk.usage.input_tokens !== undefined)
   ) {
-    return normalizeUsage({
+    const normalized = normalizeUsage({
       prompt_tokens: chunk.usage.prompt_tokens ?? chunk.usage.input_tokens ?? 0,
       completion_tokens: chunk.usage.completion_tokens ?? chunk.usage.output_tokens ?? 0,
       cached_tokens:
@@ -804,6 +841,7 @@ export function extractUsage(chunk: UsagePayloadLike | null | undefined) {
       // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A).
       cost_in_usd_ticks: chunk.usage.cost_in_usd_ticks,
     });
+    return carryEstimatedUsageMarker(chunk.usage, normalized);
   }
 
   // Gemini format (Antigravity)

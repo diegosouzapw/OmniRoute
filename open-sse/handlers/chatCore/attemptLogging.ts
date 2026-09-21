@@ -20,6 +20,7 @@ import type { VideoBridgeLogRedactionEntry } from "@/lib/guardrails/videoBridge"
 import { FORMATS } from "../../translator/formats.ts";
 import { takeEarlyKeepaliveBytes } from "../../utils/earlyKeepaliveByteBuffer.ts";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
+import { isEstimatedUsage } from "../../utils/usageTracking.ts";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./logTruncation.ts";
 import { attachLogMeta } from "./cacheUsageMeta.ts";
 
@@ -359,7 +360,6 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     skillRequestId,
     detailedLoggingEnabled,
     reqLogger,
-    pendingRequestId,
     clientRawRequest,
     requestedModel,
     credentials,
@@ -458,8 +458,11 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     }
   }
 
+  // #13481: each combo attempt needs its own row. Attempts share pendingRequestId, so
+  // keying the log on it made the successful member's insert hit the UNIQUE constraint
+  // and vanish from the dashboard; traceId is per attempt and pairs with request.started.
   saveCallLog({
-    id: pendingRequestId,
+    id: traceId,
     method: "POST",
     path: clientRawRequest?.endpoint || "/v1/chat/completions",
     status,
@@ -491,6 +494,9 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
             }
           : null,
         claudePromptCacheUsage: claudeCacheUsageMeta,
+        // Operators can tell estimated token counts (and the cost derived from them)
+        // apart from provider-reported ones. Log-only: billing is unchanged.
+        usageEstimated: isEstimatedUsage(tokens) ? true : null,
       })
     ),
     error: error || null,

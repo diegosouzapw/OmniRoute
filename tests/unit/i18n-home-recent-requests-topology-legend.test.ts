@@ -53,6 +53,22 @@ const COGNATES = new Set([
   // "Model" is the correct Croatian and Slovenian word; there is nothing to translate.
   "hr.home.recentRequestsModel",
   "sl.home.recentRequestsModel",
+  // PR-4 retranslated every verbatim-English leaf and these came back unchanged: "Model" is
+  // also the word in Azerbaijani, Czech, Danish, Indonesian, Malay, Dutch, Polish, Romanian,
+  // Slovak, Turkish and Uzbek; "Recent" is Dutch; "Error" is the Filipino loanword.
+  "az.home.recentRequestsModel",
+  "cs.home.recentRequestsModel",
+  "da.home.recentRequestsModel",
+  "id.home.recentRequestsModel",
+  "ms.home.recentRequestsModel",
+  "nl.home.recentRequestsModel",
+  "nl.home.topologyLegendRecent",
+  "phi.home.topologyLegendError",
+  "pl.home.recentRequestsModel",
+  "ro.home.recentRequestsModel",
+  "sk.home.recentRequestsModel",
+  "tr.home.recentRequestsModel",
+  "uz.home.recentRequestsModel",
 ]);
 
 test("home widget keys exist as non-empty strings in every locale catalog", () => {

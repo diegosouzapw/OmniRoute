@@ -7,6 +7,7 @@ export const deepseekProvider: RegistryEntry = {
   executor: "default",
   baseUrl: "https://api.deepseek.com/responses",
   authType: "apikey",
+  defaultContextLength: 1_000_000,
   authHeader: "bearer",
   alternateFormats: [
     {
@@ -30,6 +31,15 @@ export const deepseekProvider: RegistryEntry = {
     {
       id: "deepseek-v4-flash",
       name: "DeepSeek V4 Flash (0731)",
+      contextLength: 1_000_000,
+      maxOutputTokens: 384_000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["none", "low", "high", "max"],
+      toolCalling: true,
+    },
+    {
+      id: "deepseek-flash",
+      name: "DeepSeek V4.1 Flash",
       contextLength: 1_000_000,
       maxOutputTokens: 384_000,
       supportsReasoning: true,

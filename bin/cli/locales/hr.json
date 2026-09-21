@@ -256,6 +256,7 @@
     "max_restarts": "Maksimalni broj ponovnih pokretanja nakon pada unutar 30 s prije odustajanja (zadano: 2)",
     "tray": "Pokretanje u programskoj traci (samo za stolna računala, po izboru)",
     "no_tray": "Onemogući ikonu programske trake",
+    "ready_timeout": "Vremensko ograničenje provjere spremnosti u ms (također OMNIROUTE_READY_TIMEOUT_MS, zadano 60000)",
     "tls_cert": "Putanja do TLS certifikata (PEM) za posluživanje HTTPS-a (također OMNIROUTE_TLS_CERT)",
     "tls_key": "Putanja do TLS privatnog ključa (PEM) za posluživanje HTTPS-a (također OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP poslužitelj je pokrenut ({transport})",
     "stopped": "MCP poslužitelj je zaustavljen.",
     "restarted": "MCP poslužitelj je ponovo pokrenut.",
+    "stoppedHint": "Pokrenite `omniroute mcp enable` da biste ga uključili.",
+    "enabled": "MCP poslužitelj omogućen.",
+    "disabled": "MCP poslužitelj onemogućen.",
+    "enable": {
+      "description": "Omogući MCP poslužitelj",
+      "transport": "Prijenos koji će se koristiti: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Onemogući MCP poslužitelj"
+    },
     "call": {
       "description": "Izravno pozovi MCP alat",
       "args": "JSON objekt argumenata (unutarnji)",

@@ -866,7 +866,11 @@ test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schem
   assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
   assert.equal(result.enabledCreditTypes, undefined);
   assert.equal(result.request.systemInstruction.parts[0].text, ANTIGRAVITY_DEFAULT_SYSTEM);
-  assert.equal(result.request.systemInstruction.parts.length, 1, "systemInstruction must contain only ANTIGRAVITY_DEFAULT_SYSTEM (#9030)");
+  assert.equal(
+    result.request.systemInstruction.parts.length,
+    1,
+    "systemInstruction must contain only ANTIGRAVITY_DEFAULT_SYSTEM (#9030)"
+  );
   // #9030 — Client system content moved to first user message to avoid upstream 429s
   assert.equal(result.request.contents[0].parts[0].text, "Project rules");
   assert.equal(result.request.contents[0].parts[1].text, "Read a file");
@@ -1024,6 +1028,28 @@ test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is
   );
   assert.equal((result as any).request?.generationConfig.thinkingConfig.thinkingBudget > 0, true);
   assert.equal((result as any).request?.generationConfig.thinkingConfig.includeThoughts, true);
+});
+
+test("OpenAI -> Antigravity Gemini thinking models omit maxOutputTokens when max_tokens is undefined", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-3.8-flash-tiered",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+    },
+    false,
+    { projectId: "proj-gemini-thinking" } as unknown as Parameters<
+      typeof openaiToAntigravityRequest
+    >[3]
+  ) as Record<string, unknown>;
+
+  const envelopeRequest = result.request as Record<string, unknown> | undefined;
+  const genConfig = envelopeRequest?.generationConfig as Record<string, unknown> | undefined;
+  assert.ok(genConfig?.thinkingConfig, "expected thinkingConfig to be set");
+  assert.equal(
+    genConfig.maxOutputTokens,
+    undefined,
+    "maxOutputTokens must be undefined when not requested"
+  );
 });
 
 // Regression for #2480: when projectId is stored in providerSpecificData rather than at
@@ -1621,4 +1647,162 @@ test("OpenAI -> Gemini allows thinkingConfig for unknown model (no spec)", () =>
   ) as any;
   assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 5000);
   assert.equal(result.generationConfig.thinkingConfig.includeThoughts, true);
+});
+
+test("OpenAI -> Gemini pairs tool calls and responses per turn without cross-turn ID collision mismatch", () => {
+  const result = openaiToCloudCodeGeminiRequest(
+    "gemini-3.8-flash-high",
+    {
+      messages: [
+        { role: "user", content: "read file" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_collision_123",
+              type: "function",
+              function: { name: "read_file", arguments: '{"path":"a.txt"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_collision_123",
+          content: "file content from turn 1",
+        },
+        { role: "user", content: "now run terminal command" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_collision_123",
+              type: "function",
+              function: { name: "run_terminal_command", arguments: '{"command":"ls"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_collision_123",
+          content: "terminal output from turn 2",
+        },
+        { role: "user", content: "done" },
+      ],
+    },
+    false
+  ) as any;
+
+  // Verify Turn 1 functionCall and functionResponse
+  const turn1Model = result.contents.find((c: any) =>
+    c.parts?.some((p: any) => p.functionCall?.name === "read_file")
+  );
+  assert.ok(turn1Model, "Turn 1 model functionCall must be read_file");
+
+  const turn1User = result.contents.find((c: any) =>
+    c.parts?.some(
+      (p: any) =>
+        p.functionResponse?.response?.result === "file content from turn 1" ||
+        p.functionResponse?.name === "read_file"
+    )
+  );
+  assert.ok(turn1User, "Turn 1 user functionResponse must exist");
+  const turn1Resp = turn1User.parts.find((p: any) => p.functionResponse);
+  assert.equal(
+    turn1Resp.functionResponse.name,
+    "read_file",
+    "Turn 1 functionResponse name must match functionCall name, not be overwritten by turn 2"
+  );
+  assert.equal(
+    turn1Resp.functionResponse.response.result,
+    "file content from turn 1",
+    "Turn 1 functionResponse must contain turn 1 output, not turn 2 output"
+  );
+
+  // Verify Turn 2 functionCall and functionResponse
+  const turn2User = result.contents.find((c: any) =>
+    c.parts?.some(
+      (p: any) =>
+        p.functionResponse?.response?.result === "terminal output from turn 2" ||
+        p.functionResponse?.name === "run_terminal_command"
+    )
+  );
+  assert.ok(turn2User, "Turn 2 user functionResponse must exist");
+  const turn2Resp = turn2User.parts.find((p: any) => p.functionResponse);
+  assert.equal(
+    turn2Resp.functionResponse.name,
+    "run_terminal_command",
+    "Turn 2 functionResponse name must match functionCall name"
+  );
+  assert.equal(
+    turn2Resp.functionResponse.response.result,
+    "terminal output from turn 2",
+    "Turn 2 functionResponse must contain turn 2 output"
+  );
+});
+
+test("OpenAI -> Gemini pairs tool calls and responses in context mode without ID collision mismatch", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [
+        { role: "user", content: "read file" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_collision_999",
+              type: "function",
+              function: { name: "read_file", arguments: '{"path":"a.txt"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_collision_999",
+          content: "file content from turn 1",
+        },
+        { role: "user", content: "now run terminal command" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_collision_999",
+              type: "function",
+              function: { name: "run_terminal_command", arguments: '{"command":"ls"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_collision_999",
+          content: "terminal output from turn 2",
+        },
+        { role: "user", content: "done" },
+      ],
+    },
+    false,
+    null,
+    { signaturelessToolCallMode: "context" }
+  ) as any;
+
+  // In context mode without thought signatures, tool responses are emitted as context text
+  const textParts = result.contents.flatMap((c: any) =>
+    (c.parts || []).filter((p: any) => typeof p.text === "string").map((p: any) => p.text)
+  );
+  assert.ok(
+    textParts.some(
+      (t: string) => t.includes("read_file") && t.includes("file content from turn 1")
+    ),
+    "Turn 1 context text must pair read_file with its own turn 1 output"
+  );
+  assert.ok(
+    textParts.some(
+      (t: string) => t.includes("run_terminal_command") && t.includes("terminal output from turn 2")
+    ),
+    "Turn 2 context text must pair run_terminal_command with its own turn 2 output"
+  );
 });

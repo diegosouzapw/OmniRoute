@@ -230,6 +230,7 @@ export const PROVIDER_CONNECTIONS_COLUMNS = new Set([
   "rate_limit_overrides_json",
   "created_at",
   "updated_at",
+  "synced_models_at",
 ]);
 
 // ──────────────── Provider Connections ────────────────
@@ -1097,11 +1098,36 @@ export async function touchConnectionLastUsed(
 }
 
 /**
+ * #12849: stamp when a connection's synced model catalog was last written.
+ * getActiveSyncedCatalog reads this to stop treating a synced catalog as
+ * authoritative forever — a connection synced once and never refreshed
+ * silently pinned routing to that point-in-time snapshot with no staleness
+ * check. Lightweight targeted UPDATE, mirrors touchConnectionLastUsed.
+ */
+export async function touchConnectionSyncedModelsAt(id: string): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      synced_models_at = @syncedModelsAt,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    syncedModelsAt: now,
+    updatedAt: now,
+    id,
+  });
+}
+
+/**
  * Lightweight backoff reset — runs a targeted UPDATE without SELECT or re-encrypt.
  * Follows the `clearConnectionErrorIfUnchanged` pattern but without the CAS check,
  * since the caller already verified the connection is eligible for reset.
  * Resets all backoff/error columns so the connection re-enters the selection pool.
  * Does invalidateDbCache + bumpProxyConfigGeneration since backoff affects priority.
+ * #13389: `skipModelCatalog` — the catalog builder never reads backoff/error
+ * state, so this must not bust the expensive-to-rebuild `/v1/models` cache.
  */
 export async function resetConnectionBackoff(id: string): Promise<void> {
   if (!id) return;
@@ -1122,7 +1148,7 @@ export async function resetConnectionBackoff(id: string): Promise<void> {
     updatedAt: now,
     id,
   });
-  invalidateDbCache("connections");
+  invalidateDbCache("connections", id, { skipModelCatalog: true });
   bumpProxyConfigGeneration();
 }
 

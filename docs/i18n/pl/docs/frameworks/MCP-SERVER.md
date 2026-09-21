@@ -1,51 +1,66 @@
----
-title: "Dokumentacja serwera MCP OmniRoute"
-version: 3.8.40
-lastUpdated: 2026-06-28
+# OmniRoute MCP Server Documentation (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+
 ---
 
-# Dokumentacja serwera MCP OmniRoute
-
-> Serwer Model Context Protocol z 105 narzędziami obejmującymi routing, cache, kompresję, pamięć, skills, proxy, pool oraz operacje na źródłach kontekstu.
+> Serwer Model Context Protocol ze 110 narzędziami do obsługi routingu, pamięci podręcznej, kompresji, pamięci, umiejętności, proxy, puli, Radar oraz operacji na źródłach kontekstu.
 >
-> Źródło prawdy: `open-sse/mcp-server/server.ts` wylicza **105 unikalne narzędzia** przez `countUniqueMcpTools()`: 42 kanoniczne definicje (w tym sześć narzędzi cyklu życia CCR oraz trio agent-skills), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22) oraz dwa narzędzia kompresji wyłącznie RTK.
+> Źródło prawdy: `open-sse/mcp-server/server.ts` wylicza **110 unikalnych narzędzi** za pomocą `countUniqueMcpTools()`: 45 definicji kanonicznych (w tym sześć narzędzi cyklu życia CCR, trzy narzędzia agent-skills, `omniroute_radar_catalog` i `omniroute_x_search`), a także narzędzia pamięci (3), umiejętności (4), umiejętności GitHub (3), puli (6), grywalizacji (8), wtyczek (8), Notion (6), Obsidian (22), lokalnego korpusu (3) oraz dwa narzędzia kompresji dostępne wyłącznie w RTK.
 
 ## Instalacja
 
-OmniRoute MCP jest wbudowany. Uruchom go poleceniem:
+OmniRoute MCP jest wbudowany. Uruchom go za pomocą:
 
 ```bash
 omniroute --mcp
 ```
 
-Albo przez transport open-sse:
+Lub za pośrednictwem transportu open-sse:
 
 ```bash
-# HTTP streamable transport (port 20130)
-omniroute --dev  # MCP auto-starts on /mcp endpoint
+# Transport strumieniowy HTTP (port 20130)
+omniroute --dev  # MCP uruchamia się automatycznie w punkcie końcowym /mcp
 ```
+
+Transporty HTTP (`sse` / `streamable-http`, obsługiwane w ramach procesu przez serwer panelu) są
+domyślnie wyłączone i wcześniej można je było przełączać wyłącznie na stronie `/dashboard/mcp`. Od v3.8.51
+CLI zapewnia te same możliwości:
+
+```bash
+omniroute mcp status                                  # stan włączenia/dostępności, transport, liczba narzędzi
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # resetuje aktywne sesje sse/streamable-http
+```
+
+`mcp enable`/`mcp disable` wysyłają żądanie PATCH dla tego samego ustawienia `mcpEnabled` (oraz opcjonalnie `mcpTransport`),
+które panel przełącza za pośrednictwem `/api/settings`. `mcp restart` wywołuje `POST /api/mcp/restart`: zamyka
+aktywne sesje `sse`/`streamable-http`, dzięki czemu następne żądanie wykonuje czystą ponowną inicjalizację; zwraca
+`409`, jeśli MCP jest wyłączony, oraz `501` dla transportu `stdio` (klienci stdio zarządzają własnymi
+podprocesami — nie istnieje uchwyt wewnątrz procesu, który można ponownie uruchomić).
 
 ## Transporty
 
-Serwer MCP udostępnia trzy transporty, wszystkie oparte o tę samą fabrykę `createMcpServer()`:
+Serwer MCP udostępnia trzy transporty, wszystkie oparte na tej samej fabryce `createMcpServer()`:
 
-| Transport         | Gdzie                                       | Kiedy używać                                                    |
-| :---------------- | :------------------------------------------ | :-------------------------------------------------------------- |
-| `stdio`           | `open-sse/mcp-server/server.ts`             | Integracje IDE (Claude Desktop, Cursor itd.)                    |
-| `sse`             | `POST/GET /api/mcp/sse` via `httpTransport` | Klienci przeglądarkowi/agentowi potrzebujący strumienia zdarzeń |
-| `streamable-http` | `POST/GET/DELETE /api/mcp/stream`           | Wielosesyjne klienty HTTP (nagłówek `mcp-session-id`)           |
+| Transport         | Lokalizacja                                   | Kiedy używać                                                |
+| :---------------- | :-------------------------------------------- | :---------------------------------------------------------- |
+| `stdio`           | `open-sse/mcp-server/server.ts`               | Integracje z IDE (Claude Desktop, Cursor itp.)              |
+| `sse`             | `POST/GET /api/mcp/sse` przez `httpTransport` | Klienci przeglądarkowi/agenci wymagający strumienia zdarzeń |
+| `streamable-http` | `POST/GET/DELETE /api/mcp/stream`             | Wielosesyjni klienci HTTP (nagłówek `mcp-session-id`)       |
 
-Aktywny transport HTTP (`sse` lub `streamable-http`) wybiera ustawienie `mcpTransport`. Przełączenie transportu zamyka istniejące sesje na drugim transporcie.
+Aktywny transport HTTP (`sse` lub `streamable-http`) jest wybierany za pomocą ustawienia `mcpTransport`. Zmiana transportu zamyka istniejące sesje korzystające z drugiego transportu.
 
-### Dostęp zdalny (bypass scope manage)
+### Dostęp zdalny (obejście za pomocą zakresu manage)
 
-`/api/mcp/*` jest w warstwie LOCAL_ONLY (`src/server/authz/routeGuard.ts`) — domyślnie docierają do niego tylko hosty loopback (`localhost`, `127.0.0.1`, `::1`). Od v3.8.2 klienci spoza loopback mogą się łączyć, jeśli przedstawią `Authorization: Bearer <api-key>`, a klucz ma scope `manage`. To jedyny sposób na dostęp do zdalnego serwera MCP przez tunel, reverse proxy lub publiczną nazwę hosta.
+`/api/mcp/*` znajduje się w warstwie LOCAL_ONLY (`src/server/authz/routeGuard.ts`) — domyślnie dostęp do niego mają wyłącznie hosty interfejsu pętli zwrotnej (`localhost`, `127.0.0.1`, `::1`). Od v3.8.2 klienci spoza interfejsu pętli zwrotnej mogą się łączyć, jeśli przedstawią nagłówek `Authorization: Bearer <api-key>`, którego klucz ma zakres `manage`. Jest to jedyny sposób uzyskania dostępu do zdalnego serwera MCP przez tunel, odwrotne proxy lub publiczną nazwę hosta.
 
 ```bash
-# Grant manage scope: open the dashboard API Keys page and toggle
-# "Management Access" on the key, or POST scopes:["manage"] when creating.
+# Nadaj zakres manage: otwórz stronę API Keys w panelu i włącz
+# opcję „Management Access” dla klucza albo przekaż scopes:["manage"] podczas jego tworzenia.
 
-# Then connect from a remote MCP client:
+# Następnie połącz się ze zdalnego klienta MCP:
 curl -i \
   -H "Host: your-public-host.example" \
   -H "Authorization: Bearer sk-…" \
@@ -55,348 +70,361 @@ curl -i \
   https://your-public-host.example/api/mcp/stream
 ```
 
-Klucz bez `manage` (lub brak Bearer) zwraca `403 LOCAL_ONLY`. Sąsiedni prefiks `/api/cli-tools/runtime/*` celowo NIE podlega bypassowi — zob. [Route Guard Tiers — Manage-scope carve-out](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
+Klucz bez zakresu `manage` (lub brak uwierzytelnienia Bearer) powoduje zwrócenie `403 LOCAL_ONLY`. Powiązanego prefiksu `/api/cli-tools/runtime/*` celowo nie można obejść — zobacz [Warstwy ochrony tras — wyjątek dla zakresu manage](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
 
 ## Konfiguracja IDE
 
-Zobacz [MCP Client Configuration](../guides/SETUP_GUIDE.md#mcp-client-configuration) dla Claude Desktop,
-Cursor, Cline oraz kompatybilnych klientów MCP.
+Zobacz [Konfiguracja klienta MCP](../guides/SETUP_GUIDE.md#mcp-client-configuration), aby skonfigurować Claude Desktop,
+Cursor, Cline oraz kompatybilne klienty MCP.
 
 ---
 
-## Essential Tools (8) — Phase 1
+## Podstawowe narzędzia (14) — Etap 1
 
-| Tool                            | Scopes                | Description                                                        |
-| :------------------------------ | :-------------------- | :----------------------------------------------------------------- |
-| `omniroute_get_health`          | `read:health`         | Uptime, pamięć, circuit breakery, limity rate, statystyki cache    |
-| `omniroute_list_combos`         | `read:combos`         | Wszystkie skonfigurowane combo ze strategiami (opcjonalne metryki) |
-| `omniroute_get_combo_metrics`   | `read:combos`         | Metryki wydajności dla konkretnego combo                           |
-| `omniroute_switch_combo`        | `write:combos`        | Aktywacja lub deaktywacja combo                                    |
-| `omniroute_check_quota`         | `read:quota`          | Quota used/total, procent pozostały, czas resetu, health tokenów   |
-| `omniroute_route_request`       | `execute:completions` | Wysłanie chat completion przez routing OmniRoute                   |
-| `omniroute_cost_report`         | `read:usage`          | Raport kosztów wg okresu (session/day/week/month)                  |
-| `omniroute_list_models_catalog` | `read:models`         | Pełny katalog modeli z capabilities, statusem i pricing            |
+| Narzędzie                       | Zakresy               | Opis                                                                                                                                                          |
+| :------------------------------ | :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `omniroute_get_health`          | `read:health`         | Czas działania, pamięć, wyłączniki obwodu, limity szybkości, statystyki pamięci podręcznej                                                                    |
+| `omniroute_list_combos`         | `read:combos`         | Wszystkie skonfigurowane kombinacje wraz ze strategiami (opcjonalnie z metrykami)                                                                             |
+| `omniroute_get_combo_metrics`   | `read:combos`         | Metryki wydajności dla określonej kombinacji                                                                                                                  |
+| `omniroute_switch_combo`        | `write:combos`        | Aktywowanie lub dezaktywowanie kombinacji                                                                                                                     |
+| `omniroute_create_combo`        | `write:combos`        | Tworzenie zweryfikowanej kombinacji za pośrednictwem istniejącego API kombinacji                                                                              |
+| `omniroute_check_quota`         | `read:quota`          | Wykorzystany/całkowity limit, pozostała wartość procentowa, czas resetowania, stan tokenu                                                                     |
+| `omniroute_route_request`       | `execute:completions` | Wysyłanie żądania ukończenia czatu przez mechanizm routingu OmniRoute                                                                                         |
+| `omniroute_cost_report`         | `read:usage`          | Raport kosztów według okresu (sesja/dzień/tydzień/miesiąc)                                                                                                    |
+| `omniroute_list_models_catalog` | `read:models`         | Pełny katalog modeli wraz z możliwościami, stanem i cennikiem                                                                                                 |
+| `omniroute_radar_catalog`       | `read:radar`          | Lokalny, podpisany katalog Radar; opcjonalne filtry według dostawcy/rodziny                                                                                   |
+| `omniroute_tool_search`         | `read:tools`          | Wyszukiwanie narzędzi w zarejestrowanym katalogu MCP                                                                                                          |
+| `omniroute_web_search`          | `execute:search`      | Wyszukiwanie w sieci za pośrednictwem skonfigurowanych dostawców wyszukiwania. Nie obejmuje X/Twittera.                                                       |
+| `omniroute_x_search`            | `execute:search`      | Wyszukiwanie w X przez xAI/SuperGrok lub wybór `xquik-search` w celu uzyskania wyników z API Xquik. Wymaga danych uwierzytelniających dla wybranego zaplecza. |
+| `omniroute_web_fetch`           | `execute:search`      | Pobieranie treści internetowych za pośrednictwem skonfigurowanych dostawców pobierania                                                                        |
 
-## Phase 1 — Search
+## Narzędzia zaawansowane (11) — Faza 2
 
-| Tool                   | Scopes           | Description                                                                                                                            |
-| :--------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_web_search` | `execute:search` | Wyszukiwanie w sieci przez bramkę search OmniRoute (Serper/Brave/Perplexity/Exa/Tavily/Google PSE/Linkup/SearchAPI/SearXNG) z failover |
+| Narzędzie                          | Zakresy                              | Opis                                                                                                                                             |
+| :--------------------------------- | :----------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_simulate_route`         | `read:health`, `read:combos`         | Symulacja routingu bez wykonywania żądania, z drzewem mechanizmów awaryjnych                                                                     |
+| `omniroute_set_budget_guard`       | `write:budget`                       | Budżet sesji z działaniem polegającym na degradacji, blokowaniu lub alarmowaniu                                                                  |
+| `omniroute_set_routing_strategy`   | `write:combos`                       | Aktualizacja strategii kombinacji w czasie wykonywania (priorytetowa/ważona/automatyczna/itp.)                                                   |
+| `omniroute_set_resilience_profile` | `write:resilience`                   | Zastosowanie ustawienia odporności `aggressive` / `balanced` / `conservative`                                                                    |
+| `omniroute_test_combo`             | `execute:completions`, `read:combos` | Test każdego dostawcy w kombinacji na żywo przy użyciu rzeczywistego wywołania usługi nadrzędnej                                                 |
+| `omniroute_get_provider_metrics`   | `read:health`                        | Metryki poszczególnych dostawców z opóźnieniami p50/p95/p99 i stanem wyłącznika automatycznego                                                   |
+| `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | Rekomendacja kombinacji według typu zadania, z uwzględnieniem ograniczeń budżetu i opóźnienia                                                    |
+| `omniroute_explain_route`          | `read:health`, `read:usage`          | Wyjaśnienie, dlaczego żądanie skierowano do danego dostawcy (czynniki punktacji + opcje awaryjne)                                                |
+| `omniroute_get_session_snapshot`   | `read:usage`                         | Pełny obraz sesji: koszt, tokeny, najczęstsze modele/dostawcy, błędy i ochrona budżetu                                                           |
+| `omniroute_db_health_check`        | `read:health`, `write:resilience`    | Diagnozowanie (i opcjonalna automatyczna naprawa) niespójności bazy danych, takich jak uszkodzone odwołania do kombinacji lub osierocone wiersze |
+| `omniroute_sync_pricing`           | `pricing:write`                      | Synchronizacja danych cenowych ze źródeł zewnętrznych (LiteLLM); obsługuje `dryRun`                                                              |
 
-## Advanced Tools (11) — Phase 2
+## Narzędzia pamięci podręcznej (2)
 
-| Tool                               | Scopes                               | Description                                                                                   |
-| :--------------------------------- | :----------------------------------- | :-------------------------------------------------------------------------------------------- |
-| `omniroute_simulate_route`         | `read:health`, `read:combos`         | Symulacja routingu dry-run z drzewem fallback                                                 |
-| `omniroute_set_budget_guard`       | `write:budget`                       | Budżet sesji z akcją degrade/block/alert                                                      |
-| `omniroute_set_routing_strategy`   | `write:combos`                       | Aktualizacja strategii combo w runtime (priority/weighted/auto itd.)                          |
-| `omniroute_set_resilience_profile` | `write:resilience`                   | Zastosowanie presetu resilience `aggressive` / `balanced` / `conservative`                    |
-| `omniroute_test_combo`             | `execute:completions`, `read:combos` | Live test każdego providera w combo przez realne wywołanie upstream                           |
-| `omniroute_get_provider_metrics`   | `read:health`                        | Metryki per provider z latencją p50/p95/p99 i stanem circuit breakera                         |
-| `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | Rekomendacja combo wg typu zadania z ograniczeniami budżetu/latencji                          |
-| `omniroute_explain_route`          | `read:health`, `read:usage`          | Wyjaśnienie, dlaczego request poszedł do providera (czynniki scoringu + fallbacki)            |
-| `omniroute_get_session_snapshot`   | `read:usage`                         | Pełny snapshot sesji: koszt, tokeny, top modele/providerzy, błędy, budget guard               |
-| `omniroute_db_health_check`        | `read:health`, `write:resilience`    | Diagnoza (i opcjonalna auto-naprawa) driftu bazy, np. uszkodzone refy combo / wiersze-sieroty |
-| `omniroute_sync_pricing`           | `pricing:write`                      | Synchronizacja danych cenowych ze źródeł zewnętrznych (LiteLLM); obsługuje `dryRun`           |
+| Narzędzie               | Zakresy       | Opis                                                                 |
+| :---------------------- | :------------ | :------------------------------------------------------------------- |
+| `omniroute_cache_stats` | `read:cache`  | Statystyki pamięci semantycznej, pamięci promptów i idempotentności  |
+| `omniroute_cache_flush` | `write:cache` | Opróżnienie pamięci podręcznej globalnie lub według sygnatury/modelu |
 
-## Cache Tools (2)
+## Narzędzia kompresji (13)
 
-| Tool                    | Scopes        | Description                                           |
-| :---------------------- | :------------ | :---------------------------------------------------- |
-| `omniroute_cache_stats` | `read:cache`  | Statystyki semantic cache, prompt-cache i idempotency |
-| `omniroute_cache_flush` | `write:cache` | Flush cache globalnie albo wg signature/model         |
+| Narzędzie                           | Zakresy             | Opis                                                                                                                                                  |
+| :---------------------------------- | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_compression_status`      | `read:compression`  | Ustawienia kompresji, podsumowanie analityczne i statystyki uwzględniające pamięć podręczną (obejmuje metadane `analytics.mcpDescriptionCompression`) |
+| `omniroute_compression_configure`   | `write:compression` | Konfiguracja trybu kompresji, progu, docelowego współczynnika, zachowywania promptu systemowego i przełącznika kompresji opisów MCP                   |
+| `omniroute_set_compression_engine`  | `write:compression` | Wybór aktywnego silnika (off/caveman/rtk/stacked) oraz intensywności Caveman/RTK                                                                      |
+| `omniroute_list_compression_combos` | `read:compression`  | Lista nazwanych kombinacji kompresji i ich potoków silników                                                                                           |
+| `omniroute_compression_combo_stats` | `read:compression`  | Dane analityczne pogrupowane według kombinacji kompresji i silnika                                                                                    |
+| `omniroute_ccr_store`               | `write:compression` | Zapisanie zawartości izolowanej dla wywołującego w ograniczonym magazynie CCR w pamięci i zwrócenie znacznika wraz z odwołaniem `ccr://`              |
+| `omniroute_ccr_retrieve`            | `read:compression`  | Pobranie pełnej zawartości CCR lub w trybie początku, końca, wierszy, grep albo statystyk                                                             |
+| `omniroute_ccr_inspect`             | `read:compression`  | Sprawdzenie metadanych CCR należących do wywołującego bez zwracania zawartości                                                                        |
+| `omniroute_ccr_list`                | `read:compression`  | Wyświetlenie stronicowanych metadanych bloków CCR należących do wywołującego                                                                          |
+| `omniroute_ccr_delete`              | `write:compression` | Usunięcie bloku CCR należącego do wywołującego                                                                                                        |
+| `omniroute_ccr_stats`               | `read:compression`  | Raportowanie użycia pamięci w zakresie wywołującego, liczników cyklu życia i limitów magazynu                                                         |
+| `omniroute_rtk_discover`            | `read:compression`  | Wykrywanie powtarzających się zakłóceń w dobrowolnie udostępnionych próbkach danych wyjściowych RTK                                                   |
+| `omniroute_rtk_learn`               | `read:compression`  | Generowanie możliwej do przejrzenia wersji roboczej filtra RTK na podstawie dobrowolnie udostępnionych próbek                                         |
 
-## Compression Tools (13)
+Wpisy CCR są przechowywane wyłącznie w pamięci i znikają po ponownym uruchomieniu. Każdy blok ma limit 2 MiB, każdy
+podmiot uwierzytelniony — 16 MiB, a globalny magazyn — 64 MiB. Domyślny czas TTL wpisów wynosi 24 godziny (maksymalnie
+siedem dni). Pełne pobieranie przez MCP jest ograniczone do 256 KiB; większe bloki pozostają dostępne za pośrednictwem
+trybów zakresowych i grep. Zapisywanie, pobieranie, wyświetlanie listy, sprawdzanie, usuwanie i statystyki są izolowane
+według podmiotu uwierzytelnionego kluczem API. Rekordy audytu zawierają skróty i metadane rozmiaru, nigdy zawartość.
 
-| Tool                                | Scopes              | Description                                                                                                                       |
-| :---------------------------------- | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_compression_status`      | `read:compression`  | Ustawienia kompresji, podsumowanie analytics oraz statystyki cache-aware (zawiera metadane `analytics.mcpDescriptionCompression`) |
-| `omniroute_compression_configure`   | `write:compression` | Konfiguracja trybu kompresji, progu, target ratio, zachowania system-prompt oraz przełącznika kompresji opisów MCP                |
-| `omniroute_set_compression_engine`  | `write:compression` | Wybór aktywnego silnika (off/caveman/rtk/stacked) oraz intensywności Caveman/RTK                                                  |
-| `omniroute_list_compression_combos` | `read:compression`  | Lista nazwanych compression combo i ich pipeline'ów silników                                                                      |
-| `omniroute_compression_combo_stats` | `read:compression`  | Analytics pogrupowane wg compression combo i silnika                                                                              |
-| `omniroute_ccr_store`               | `write:compression` | Zapis izolowanej per-caller treści w ograniczonym in-memory magazynie CCR i zwrot markera plus referencji `ccr://`                |
-| `omniroute_ccr_retrieve`            | `read:compression`  | Odczyt treści CCR w całości albo w trybach head, tail, lines, grep i stats                                                        |
-| `omniroute_ccr_inspect`             | `read:compression`  | Podgląd metadanych CCR należących do callera bez zwracania treści                                                                 |
-| `omniroute_ccr_list`                | `read:compression`  | Stronicowana lista metadanych bloków CCR należących do callera                                                                    |
-| `omniroute_ccr_delete`              | `write:compression` | Usunięcie bloku CCR należącego do callera                                                                                         |
-| `omniroute_ccr_stats`               | `read:compression`  | Raport użycia pamięci w zakresie callera, liczników cyklu życia i limitów magazynu                                                |
-| `omniroute_rtk_discover`            | `read:compression`  | Wykrywanie powtarzającego się szumu w opt-in próbkach wyjścia RTK                                                                 |
-| `omniroute_rtk_learn`               | `read:compression`  | Generowanie draftu filtra RTK do przeglądu na podstawie opt-in próbek                                                             |
+`omniroute_compression_status` raportuje kompresję opisów MCP osobno w polu
+`analytics.mcpDescriptionCompression`. Wartości te są szacunkami rozmiaru metadanych dla opisów
+MCP dostępnych na listach (`tools`, `prompts`, `resources` i `resourceTemplates`); nie są one
+potwierdzeniami użycia dostawcy i są oznaczone jako `source: "mcp_metadata_estimate"`.
 
-Wpisy CCR są wyłącznie w pamięci i znikają po restarcie. Każdy blok ma limit 2 MiB, każdy
-principal 16 MiB, a globalny magazyn 64 MiB. Wpisy domyślnie mają TTL 24 godziny (maksimum
-siedem dni). Pełny odczyt MCP jest ograniczony do 256 KiB; większe bloki pozostają dostępne przez
-tryby ranged i grep. Przechowywanie, odczyt, listowanie, inspekcja, usuwanie i statystyki są izolowane wg
-uwierzytelnionego principalu klucza API. Rekordy audytu zawierają hashe i metadane rozmiaru, nigdy treść.
+### Filtr drzewa dostępności MCP (v3.8.0)
 
-`omniroute_compression_status` raportuje kompresję opisów MCP osobno pod
-`analytics.mcpDescriptionCompression`. Te wartości to szacunki rozmiaru metadanych listowalnych
-opisów MCP (`tools`, `prompts`, `resources` i `resourceTemplates`); nie są to rachunki użycia
-providera i są oznaczone `source: "mcp_metadata_estimate"`.
+Niezależnie od powyższych narzędzi do kompresji OmniRoute zawiera filtr wykonywany po zakończeniu
+operacji, który kompresuje **wyniki narzędzi** przeglądarkowych/dostępności MCP, zanim zostaną one
+zwrócone agentowi. Ten filtr sam w sobie nie jest narzędziem — działa w sposób przezroczysty na
+każdym wyniku narzędzia zawierającym rozbudowany tekst drzewa dostępności lub migawki przeglądarki
+(≥2000 znaków).
 
-### MCP Accessibility Tree Filter (v3.8.0)
+Najważniejsze zachowania:
 
-Osobno od powyższych narzędzi kompresji OmniRoute zawiera filtr post-execution, który
-kompresuje **wyniki narzędzi** MCP przeglądarki/accessibility, zanim wrócą do
-agenta. Ten filtr sam w sobie nie jest narzędziem — działa przejrzyście na każdym wyniku toola, który zawiera
-rozwlekły tekst accessibility-tree lub browser-snapshot (≥2000 znaków).
-
-Kluczowe zachowania:
-
-- Zwijanie ≥30 kolejnych powtórzonych linii-rodzeństwa do podsumowania head + tail
-- Zachowuje kotwice `[ref=eXX]` wymagane przez Playwright/computer-use
-- Twardo ucina zbyt duży tekst (>50 000 znaków) z podpowiedzią nawigacji
-- Oczekiwane oszczędności: **60–80%** na payloadach browser snapshot
+- Zastępuje ≥30 kolejnych, powtarzających się wierszy elementów równorzędnych podsumowaniem zawierającym początek i koniec
+- Zachowuje kotwice `[ref=eXX]` wymagane przez Playwright/obsługę komputera
+- Twardo obcina zbyt długi tekst (>50 000 znaków), dodając wskazówkę dotyczącą nawigacji
+- Oczekiwana oszczędność: **60–80%** dla danych migawek przeglądarki
 
 Konfiguracja: `compression.mcpAccessibility` w ustawieniach globalnych (migracja 056).
 Implementacja: `open-sse/services/compression/engines/mcpAccessibility/`.
-Pełna dokumentacja: [Compression Engines — MCP Accessibility Tree Filter](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
+Pełna dokumentacja: [Mechanizmy kompresji — filtr drzewa dostępności MCP](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
 
-Zobacz [Compression Engines](../compression/COMPRESSION_ENGINES.md) oraz [RTK Compression](../compression/RTK_COMPRESSION.md) dla
-modelu kompresji runtime stojącego za tymi narzędziami.
+Zobacz [Mechanizmy kompresji](../compression/COMPRESSION_ENGINES.md) i [Kompresja RTK](../compression/RTK_COMPRESSION.md), aby
+poznać model kompresji w czasie wykonywania używany przez te narzędzia.
 
-## 1Proxy Tools (3)
+## Narzędzia 1Proxy (3)
 
-| Tool                        | Scopes         | Description                                                                            |
-| :-------------------------- | :------------- | :------------------------------------------------------------------------------------- |
-| `omniroute_oneproxy_fetch`  | `read:proxies` | Pobranie darmowych proxy z marketplace 1proxy (filtry protocol/country/quality/limit)  |
-| `omniroute_oneproxy_rotate` | `read:proxies` | Pobranie kolejnego dostępnego proxy wg strategii (`random` / `quality` / `sequential`) |
-| `omniroute_oneproxy_stats`  | `read:proxies` | Statystyki poola, status sync, rozkład wg protocol i country                           |
+| Narzędzie                   | Zakresy        | Opis                                                                                          |
+| :-------------------------- | :------------- | :-------------------------------------------------------------------------------------------- |
+| `omniroute_oneproxy_fetch`  | `read:proxies` | Pobiera bezpłatne serwery proxy z marketplace 1proxy (filtry protokołu/kraju/jakości/limitu)  |
+| `omniroute_oneproxy_rotate` | `read:proxies` | Pobiera następny dostępny serwer proxy według strategii (`random` / `quality` / `sequential`) |
+| `omniroute_oneproxy_stats`  | `read:proxies` | Statystyki puli, stan synchronizacji oraz rozkład według protokołu i kraju                    |
 
-## Memory Tools (3)
+## Narzędzia pamięci (3)
 
-Zdefiniowane w `open-sse/mcp-server/tools/memoryTools.ts`. Auth/scope jest egzekwowany przez standardowy pipeline scope MCP.
+Zdefiniowane w `open-sse/mcp-server/tools/memoryTools.ts`. Uwierzytelnianie i zakresy są egzekwowane za pośrednictwem standardowego potoku zakresów MCP.
 
-| Tool                      | Scopes         | Description                                                                                    |
-| :------------------------ | :------------- | :--------------------------------------------------------------------------------------------- |
-| `omniroute_memory_search` | `read:memory`  | Wyszukiwanie pamięci po query / type / API key z egzekwowaniem token-budget                    |
-| `omniroute_memory_add`    | `write:memory` | Dodanie nowego wpisu pamięci (`factual` / `episodic` / `procedural` / `semantic`)              |
-| `omniroute_memory_clear`  | `write:memory` | Czyszczenie pamięci dla klucza API, opcjonalnie filtrowane po type lub timestampie `olderThan` |
+| Narzędzie                 | Zakresy        | Opis                                                                                                |
+| :------------------------ | :------------- | :-------------------------------------------------------------------------------------------------- |
+| `omniroute_memory_search` | `read:memory`  | Wyszukuje wspomnienia według zapytania / typu / klucza API z egzekwowaniem budżetu tokenów          |
+| `omniroute_memory_add`    | `write:memory` | Dodaje nowy wpis pamięci (`factual` / `episodic` / `procedural` / `semantic`)                       |
+| `omniroute_memory_clear`  | `write:memory` | Usuwa wspomnienia dla klucza API, opcjonalnie filtrując według typu lub znacznika czasu `olderThan` |
 
-## Skill Tools (4)
+## Narzędzia umiejętności (4)
 
-Zdefiniowane w `open-sse/mcp-server/tools/skillTools.ts`. Oparte o `src/lib/skills/registry` + `src/lib/skills/executor`.
+Zdefiniowane w `open-sse/mcp-server/tools/skillTools.ts`. Obsługiwane przez `src/lib/skills/registry` + `src/lib/skills/executor`.
 
-| Tool                          | Scopes           | Description                                                                             |
-| :---------------------------- | :--------------- | :-------------------------------------------------------------------------------------- |
-| `omniroute_skills_list`       | `read:skills`    | Lista zarejestrowanych skills z opcjonalnym filtrem po API key, name lub stanie enabled |
-| `omniroute_skills_enable`     | `write:skills`   | Włączenie lub wyłączenie konkretnego skilla po ID                                       |
-| `omniroute_skills_execute`    | `execute:skills` | Wykonanie skilla z podanym inputem i zwrot rekordu wykonania                            |
-| `omniroute_skills_executions` | `read:skills`    | Lista niedawnej historii wykonań skills                                                 |
+| Narzędzie                     | Zakresy          | Opis                                                                                                          |
+| :---------------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------ |
+| `omniroute_skills_list`       | `read:skills`    | Wyświetla zarejestrowane umiejętności z opcjonalnym filtrowaniem według klucza API, nazwy lub stanu włączenia |
+| `omniroute_skills_enable`     | `write:skills`   | Włącza lub wyłącza określoną umiejętność według identyfikatora                                                |
+| `omniroute_skills_execute`    | `execute:skills` | Wykonuje umiejętność z podanymi danymi wejściowymi i zwraca rekord wykonania                                  |
+| `omniroute_skills_executions` | `read:skills`    | Wyświetla historię ostatnich wykonań umiejętności                                                             |
 
-## Notion Context Source (6)
+## Źródło kontekstu Notion (6)
 
-Zdefiniowane w `open-sse/mcp-server/tools/notionTools.ts`. Token przechowywany w tabeli `key_value` przez `src/lib/db/notion.ts`. Klient REST w `src/lib/notion/api.ts`. API ustawień w `src/app/api/settings/notion/route.ts`. UI dashboardu w `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
+Zdefiniowane w `open-sse/mcp-server/tools/notionTools.ts`. Token jest przechowywany w tabeli `key_value` za pośrednictwem `src/lib/db/notion.ts`. Klient REST znajduje się w `src/lib/notion/api.ts`. Interfejs API ustawień znajduje się w `src/app/api/settings/notion/route.ts`. Interfejs panelu znajduje się w `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
 
-Skonfiguruj token integracji Notion w zakładce **Context Sources** w Endpoint dashboard albo przez REST API:
+Skonfiguruj token integracji Notion na karcie **Źródła kontekstu** w panelu punktu końcowego lub za pośrednictwem interfejsu API REST:
 
 ```bash
-# Set token
+# Ustaw token
 curl -X POST http://localhost:20128/api/settings/notion \
   -H "Content-Type: application/json" \
   -d '{"token": "ntn_..."}'
 
-# Check status
+# Sprawdź stan
 curl http://localhost:20128/api/settings/notion
 
-# Disconnect
+# Rozłącz
 curl -X DELETE http://localhost:20128/api/settings/notion
 ```
 
-| Tool                         | Scopes         | Description                                                      |
-| :--------------------------- | :------------- | :--------------------------------------------------------------- |
-| `notion_search`              | `read:notion`  | Wyszukiwanie full-text po wszystkich stronach i bazach           |
-| `notion_get_page`            | `read:notion`  | Pobranie strony po ID wraz z properties                          |
-| `notion_list_block_children` | `read:notion`  | Lista bloków-dzieci strony lub bloku                             |
-| `notion_query_database`      | `read:notion`  | Zapytanie do bazy z filtrami, sortami i paginacją                |
-| `notion_get_database`        | `read:notion`  | Pobranie schematu bazy po ID                                     |
-| `notion_append_blocks`       | `write:notion` | Dołączenie bloków-dzieci do bloku-rodzica (maks. 100 na request) |
+| Narzędzie                    | Zakresy        | Opis                                                                      |
+| :--------------------------- | :------------- | :------------------------------------------------------------------------ |
+| `notion_search`              | `read:notion`  | Wyszukuje pełnotekstowo we wszystkich stronach i bazach danych            |
+| `notion_get_page`            | `read:notion`  | Pobiera stronę według identyfikatora wraz z jej właściwościami            |
+| `notion_list_block_children` | `read:notion`  | Wyświetla bloki podrzędne strony lub bloku                                |
+| `notion_query_database`      | `read:notion`  | Wysyła zapytanie do bazy danych z filtrami, sortowaniem i paginacją       |
+| `notion_get_database`        | `read:notion`  | Pobiera schemat bazy danych według identyfikatora                         |
+| `notion_append_blocks`       | `write:notion` | Dołącza bloki podrzędne do bloku nadrzędnego (maksymalnie 100 na żądanie) |
 
-## Agent Skill Catalog Tools (3)
+## Narzędzia katalogu umiejętności agentów (3)
 
-Zdefiniowane w `open-sse/mcp-server/tools/agentSkillTools.ts`. Oparte o `src/lib/agentSkills/catalog`. Te narzędzia udostępniają 42-elementowy katalog dokumentacji Agent Skills klientom MCP i zewnętrznym agentom. Scope: `read:catalog`.
+Zdefiniowane w `open-sse/mcp-server/tools/agentSkillTools.ts`. Obsługiwane przez `src/lib/agentSkills/catalog`. Narzędzia te udostępniają klientom MCP i zewnętrznym agentom katalog dokumentacji zawierający 45 umiejętności agentów. Zakres: `read:catalog`.
 
-| Tool                              | Scopes         | Description                                                                                                         |
-| :-------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------ |
-| `omniroute_agent_skills_list`     | `read:catalog` | Lista wszystkich 42 agent skills z opcjonalnymi filtrami `category` (api\|cli) i `area`; zwraca metadata + coverage |
-| `omniroute_agent_skills_get`      | `read:catalog` | Pełne metadata + treść SKILL.md dla pojedynczego skilla po kanonicznym `id`                                         |
-| `omniroute_agent_skills_coverage` | `read:catalog` | Statystyki coverage: ile z 22 API i 20 CLI skills ma pliki SKILL.md na filesystemie względem sum katalogu           |
+| Narzędzie                         | Zakresy        | Opis                                                                                                                                                                             |
+| :-------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`     | `read:catalog` | Wyświetla wszystkie 45 umiejętności agentów z opcjonalnymi filtrami `category` (api\|cli) i `area`; zwraca metadane oraz pokrycie                                                |
+| `omniroute_agent_skills_get`      | `read:catalog` | Pobiera pełne metadane oraz zawartość SKILL.md dla pojedynczej umiejętności według kanonicznego `id`                                                                             |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Statystyki pokrycia: liczba umiejętności spośród 23 API, 21 CLI i 1 konfiguracyjnej, które mają pliki SKILL.md w systemie plików, w porównaniu z łącznymi wartościami w katalogu |
 
-Zobacz [AGENT-SKILLS.md](./AGENT-SKILLS.md) po pełny katalog i sposób konsumowania przez zewnętrznych agentów.
+Pełny katalog oraz informacje o tym, jak korzystają z niego zewnętrzni agenci, znajdują się w dokumencie [AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
-## Pokrewne frameworki (v3.8.0)
+## Powiązane frameworki (v3.8.0)
 
-Powyższy inwentarz narzędzi MCP (105 unikalne tools, wyliczane przez `countUniqueMcpTools()`) jest celowo
-ograniczony do operacji runtime: routing/cache/compression/memory/skills/proxy/context-source. Dwa sąsiednie
-frameworki dostarczane razem z serwerem MCP w v3.8.0 są udokumentowane osobno:
+Powyższy zestaw narzędzi MCP (110 unikalnych narzędzi, obliczonych przez `countUniqueMcpTools()`) jest celowo
+ograniczony do operacji routingu, pamięci podręcznej, kompresji, pamięci, umiejętności, proxy i źródeł kontekstu w czasie wykonywania. Dwa sąsiednie
+frameworki są dostarczane wraz z serwerem MCP w v3.8.0 i udokumentowane osobno:
 
-### Cloud Agents
+### Agenci chmurowi
 
-Cloud Agents to poza-procesowe agenty AI do kodowania (codex-cloud, devin, jules) podpięte do
-OmniRoute przez ten sam model połączeń co providery LLM. Są wystawione przez
-własną powierzchnię REST (`/api/v1/agents/*`) i **nie** należą do katalogu narzędzi MCP
-— wywołanie Cloud Agent nie zużywa scope MCP.
+Agenci chmurowi to działający poza procesem agenci AI do programowania (codex-cloud, cursor-cloud, devin, jules), zintegrowani z
+OmniRoute za pomocą tego samego modelu połączeń, który jest używany dla dostawców LLM. Są udostępniani za pośrednictwem
+własnego interfejsu REST (`/api/v1/agents/*`) i **nie** stanowią części katalogu narzędzi MCP
+— wywołanie agenta chmurowego nie wykorzystuje zakresu MCP.
 
-- Implementacja: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex-cloud.ts`, `agents/devin.ts`, `agents/jules.ts`).
+- Implementacja: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex.ts`, `agents/cursor.ts`, `agents/devin.ts`, `agents/jules.ts`).
 - Cykl życia: `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`.
 - Dokumentacja: [docs/frameworks/CLOUD_AGENT.md](./CLOUD_AGENT.md).
 
-### Guardrails
+### Mechanizmy ochronne
 
-Guardrails to filtry pre/post-execution (vision-bridge, pii-masker, prompt-injection)
-stosowane wewnątrz pipeline'u chat. Działają zanim dojdzie do warstwy narzędzi/routingu MCP
-i emitują ustrukturyzowane naruszenia do pipeline'u audytu; nie są wywoływane jako narzędzia MCP.
+Mechanizmy ochronne to filtry wykonywane przed operacją lub po niej (vision-bridge, pii-masker, prompt-injection),
+stosowane wewnątrz potoku czatu. Działają przed dotarciem do warstwy narzędzi/routingu MCP
+i wysyłają ustrukturyzowane informacje o naruszeniach do potoku audytu; nie są wywoływane jako narzędzia MCP.
 
 - Implementacja: `src/lib/guardrails/`.
 - Dokumentacja: [docs/security/GUARDRAILS.md](../security/GUARDRAILS.md).
 
-Przy debugowaniu wywołania MCP, które wygląda na zablokowane, sprawdź zarówno log audytu MCP
-(wpisy `scope_denied:*`), jak i ścieżkę audytu guardrails — request może zostać odrzucony przez
-guardrail **zanim** dotrze do warstwy egzekwowania scope MCP.
+Podczas debugowania wywołania MCP, które wydaje się zablokowane, sprawdź zarówno dziennik audytu MCP
+(wpisy `scope_denied:*`), jak i ścieżkę audytu mechanizmów ochronnych — żądanie może zostać odrzucone przez
+mechanizm ochronny **przed** dotarciem do warstwy wymuszania zakresów MCP.
 
 ---
 
 ## Endpointy REST API
 
-| Endpoint               | Method                | Description                                                                                     | Auth                       |
-| :--------------------- | :-------------------- | :---------------------------------------------------------------------------------------------- | :------------------------- |
-| `/api/mcp/status`      | `GET`                 | Status serwera: heartbeat, stan transportu HTTP, podsumowanie aktywności audytu                 | Management (session/admin) |
-| `/api/mcp/tools`       | `GET`                 | Katalog narzędzi (name, description, scopes, phase, source endpoints)                           | Management                 |
-| `/api/mcp/sse`         | `GET` / `POST`        | Endpoint transportu SSE (bramkowany przez `mcpEnabled` + `mcpTransport === "sse"`)              | API key + scopes           |
-| `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Transport Streamable HTTP (używa nagłówka `mcp-session-id`; `DELETE` kończy sesję)              | API key + scopes           |
-| `/api/mcp/audit`       | `GET`                 | Wpisy logu audytu z `mcp_tool_audit` (filtry: `limit`, `offset`, `tool`, `success`, `apiKeyId`) | Management                 |
-| `/api/mcp/audit/stats` | `GET`                 | Zagregowane statystyki audytu (`totalCalls`, `successRate`, `avgDurationMs`, top tools)         | Management                 |
+| Endpoint               | Metoda                | Opis                                                                                                        | Uwierzytelnianie                  |
+| :--------------------- | :-------------------- | :---------------------------------------------------------------------------------------------------------- | :-------------------------------- |
+| `/api/mcp/status`      | `GET`                 | Stan serwera: heartbeat, stan transportu HTTP, podsumowanie aktywności audytu                               | Zarządzanie (sesja/administrator) |
+| `/api/mcp/tools`       | `GET`                 | Katalog narzędzi (nazwa, opis, zakresy, faza, endpointy źródłowe)                                           | Zarządzanie                       |
+| `/api/mcp/sse`         | `GET` / `POST`        | Endpoint transportu SSE (kontrolowany przez `mcpEnabled` + `mcpTransport === "sse"`)                        | Klucz API + zakresy               |
+| `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Strumieniowy transport HTTP (używa nagłówka `mcp-session-id`; `DELETE` kończy sesję)                        | Klucz API + zakresy               |
+| `/api/mcp/audit`       | `GET`                 | Wpisy dziennika audytu z `mcp_tool_audit` (filtry: `limit`, `offset`, `tool`, `success`, `apiKeyId`)        | Zarządzanie                       |
+| `/api/mcp/audit/stats` | `GET`                 | Zagregowane statystyki audytu (`totalCalls`, `successRate`, `avgDurationMs`, najczęściej używane narzędzia) | Zarządzanie                       |
 
 Pliki źródłowe: `src/app/api/mcp/{status,tools,sse,stream,audit,audit/stats}/route.ts`.
 
-Oba transporty SSE i Streamable HTTP są zablokowane, dopóki serwer MCP nie jest włączony w Settings (`mcpEnabled`) i nie wybrano odpowiedniego `mcpTransport`. Przy złym transporcie route zwraca HTTP 400 z podpowiedzią zmiany ustawień.
+Transporty SSE i strumieniowy HTTP są blokowane do czasu włączenia serwera MCP w Ustawieniach (`mcpEnabled`) i wybrania odpowiedniej wartości `mcpTransport`. Jeśli skonfigurowano niewłaściwy transport, trasa zwraca kod HTTP 400 wraz ze wskazówką dotyczącą zmiany ustawień.
 
 ---
 
-## Uwierzytelnianie i scope'y
+## Uwierzytelnianie i zakresy
 
-Narzędzia MCP są uwierzytelniane przez scope'y kluczy API. Egzekwowanie scope jest scentralizowane w
-`open-sse/mcp-server/scopeEnforcement.ts`. Każde narzędzie wymaga określonych scope'ów:
+Narzędzia MCP są uwierzytelniane za pomocą zakresów klucza API. Egzekwowanie zakresów jest scentralizowane w
+`open-sse/mcp-server/scopeEnforcement.ts`. Każde narzędzie wymaga określonych zakresów:
 
-| Scope                 | Tools                                                                                                             |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check` |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                         |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                            |
-| `read:quota`          | `check_quota`                                                                                                     |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                            |
-| `read:models`         | `list_models_catalog`                                                                                             |
-| `execute:completions` | `route_request`, `test_combo`                                                                                     |
-| `execute:search`      | `web_search`                                                                                                      |
-| `write:budget`        | `set_budget_guard`                                                                                                |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                       |
-| `pricing:write`       | `sync_pricing`                                                                                                    |
-| `read:cache`          | `cache_stats`                                                                                                     |
-| `write:cache`         | `cache_flush`                                                                                                     |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                        |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                 |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                             |
-| `read:notion`         | `notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`           |
-| `write:notion`        | `notion_append_blocks`                                                                                            |
-| `read:memory`         | `memory_search`                                                                                                   |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                      |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                |
-| `write:skills`        | `skills_enable`                                                                                                   |
-| `execute:skills`      | `skills_execute`                                                                                                  |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                  |
+| Zakres                | Narzędzia                                                                                                                                                                             |
+| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                     |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                             |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                                |
+| `read:quota`          | `check_quota`                                                                                                                                                                         |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                                |
+| `read:models`         | `list_models_catalog`                                                                                                                                                                 |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                         |
+| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                                 |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                                    |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                           |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                                        |
+| `read:cache`          | `cache_stats`                                                                                                                                                                         |
+| `write:cache`         | `cache_flush`                                                                                                                                                                         |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                            |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                     |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                                 |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                      |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                                |
+| `read:memory`         | `memory_search`                                                                                                                                                                       |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                          |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                    |
+| `write:skills`        | `skills_enable`                                                                                                                                                                       |
+| `execute:skills`      | `skills_execute`                                                                                                                                                                      |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                      |
+| `read:tools`          | `omniroute_tool_search`                                                                                                                                                               |
+| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                             |
+| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                      |
+| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                        |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                    |
+| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                       |
+| `read:obsidian`       | 13 narzędzi do odczytu — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | 9 narzędzi do zapisu — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                 |
+| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                     |
 
-Obsługiwane są scope'y wildcard: `read:*` daje wszystkie scope'y read, `*` daje pełny dostęp.
+Obsługiwane są zakresy z symbolami wieloznacznymi: `read:*` przyznaje wszystkie zakresy odczytu, a `*` przyznaje pełny dostęp.
 
-### `mcp:connect` — wąska capability route (#7895)
+### `mcp:connect` — wąskie uprawnienie do trasy (#7895)
 
-Dostęp do transportu HTTP/SSE MCP (`/api/mcp/*`) spoza loopback wymaga carve-outu
-LOCAL_ONLY dla `/api/mcp/` (zob. `docs/security/ROUTE_GUARD_TIERS.md`). Historycznie
-ten carve-out przyjmował tylko klucz API z pełnym scope `manage`/`admin` — zbyt szeroki dla
-callera, który potrzebuje wyłącznie MCP. `src/shared/constants/managementScopes.ts` eksportuje teraz
-`MCP_CONNECT_SCOPE = "mcp:connect"`: addytywny, wąski scope (ten sam precedens co
-`SELF_USAGE_SCOPE`), który autoryzuje WYŁĄCZNIE bypass `/api/mcp/` w
-`src/server/authz/policies/management.ts` — nie daje dostępu do innych route'ów management
-i celowo jest trzymany POZA `MANAGEMENT_API_KEY_SCOPES`. Klucz z `manage`/`admin`
-nadal przechodzi carve-out bez zmian; `mcp:connect` to alternatywa o niższych uprawnieniach dla
-zdalnych callerów wyłącznie MCP, sprawdzana przez `hasMcpConnectOrManageScope()`.
+Dostęp do transportu HTTP/SSE MCP (`/api/mcp/*`) spoza interfejsu loopback wymaga
+wyjątku LOCAL_ONLY dla `/api/mcp/` (zobacz `docs/security/ROUTE_GUARD_TIERS.md`). Dotychczas
+ten wyjątek akceptował wyłącznie klucz API z pełnym zakresem `manage`/`admin` — zbyt szerokim dla
+klienta, który potrzebuje jedynie komunikować się z MCP. Plik `src/shared/constants/managementScopes.ts`
+eksportuje teraz `MCP_CONNECT_SCOPE = "mcp:connect"`: dodatkowy, wąski zakres (zgodnie z precedensem
+`SELF_USAGE_SCOPE`), który autoryzuje WYŁĄCZNIE obejście dla `/api/mcp/` w
+`src/server/authz/policies/management.ts` — nie przyznaje dostępu do żadnych innych tras zarządzania
+i celowo NIE jest uwzględniony w `MANAGEMENT_API_KEY_SCOPES`. Klucz zawierający zakres `manage`/`admin`
+nadal korzysta z wyjątku bez zmian; `mcp:connect` jest alternatywą o niższych uprawnieniach dla
+zdalnych klientów korzystających wyłącznie z MCP, sprawdzaną za pomocą `hasMcpConnectOrManageScope()`.
 
-### Per-key HTTP scope binding (#7895)
+### Powiązanie zakresów HTTP z poszczególnymi kluczami (#7895)
 
-Po HTTP/SSE `open-sse/mcp-server/httpTransport.ts` rozwiązuje teraz rzeczywiste
-`api_keys.scopes` callera przez `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-i przekazuje je do `transport.handleRequest(req, { authInfo })` SDK MCP, więc
-`extra.authInfo.scopes` docierające do każdego wywołania toola odzwierciedla własne scope'y klucza Bearer.
-`resolveCallerScopeContext()` w `scopeEnforcement.ts` już priorytetyzował `authInfo` nad
-fallbackami `_meta` i env `OMNIROUTE_MCP_SCOPES` — ta zmiana tylko zapełnia to pierwsze,
-najwyżej priorytetowe źródło, które wcześniej nie było karmione po HTTP. Gdy klucz API się nie rozwiąże
-(brak nagłówka, nieprawidłowy klucz), `authInfo` pozostaje `undefined` i resolucja spada na
-istniejący łańcuch `meta`/env bez zmian. To NIE zmienia domyślnej wartości `OMNIROUTE_MCP_ENFORCE_SCOPES`
-— egzekwowanie nadal trzeba włączyć jawnie; ta zmiana sprawia tylko, że
-ścieżka per-key ma pierwszeństwo, gdy jest włączone. stdio nie ma tożsamości per-caller (zob.
-`mcpCallerIdentity.ts`) i pozostaje nietknięte — zostaje na łańcuchu fallback `_meta`/env.
+W przypadku HTTP/SSE plik `open-sse/mcp-server/httpTransport.ts` określa teraz rzeczywiste
+`api_keys.scopes` klienta za pomocą `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+i przekazuje je do `transport.handleRequest(req, { authInfo })` zestawu SDK MCP, dzięki czemu
+`extra.authInfo.scopes` docierające do każdego wywołania narzędzia odzwierciedlają zakresy własne klucza Bearer.
+Funkcja `resolveCallerScopeContext()` z `scopeEnforcement.ts` już wcześniej nadawała `authInfo` wyższy
+priorytet niż `_meta` i wartość rezerwową ze zmiennej środowiskowej `OMNIROUTE_MCP_SCOPES` — ta zmiana jedynie
+uzupełnia to pierwsze źródło o najwyższym priorytecie, które wcześniej nie było zasilane w przypadku HTTP.
+Gdy nie uda się rozpoznać żadnego klucza API (brak nagłówka, nieprawidłowy klucz), `authInfo` pozostaje
+`undefined`, a rozpoznawanie przechodzi do istniejącego łańcucha `meta`/zmiennej środowiskowej bez zmian.
+NIE zmienia to domyślnej wartości `OMNIROUTE_MCP_ENFORCE_SCOPES` — egzekwowanie nadal musi zostać jawnie
+włączone; ta zmiana jedynie sprawia, że po jego włączeniu ścieżka dotycząca poszczególnych kluczy ma
+pierwszeństwo. stdio nie ma tożsamości poszczególnych klientów (zobacz `mcpCallerIdentity.ts`) i pozostaje
+bez zmian — nadal korzysta z rezerwowego łańcucha `_meta`/zmiennej środowiskowej.
 
 ---
 
 ## Zmienne środowiskowe
 
-| Variable                                | Default                            | Purpose                                                                                                       |
-| :-------------------------------------- | :--------------------------------- | :------------------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`           | Bazowy URL używany przez serwer MCP przy wywołaniach wewnętrznych API OmniRoute                               |
-| `OMNIROUTE_API_KEY`                     | (empty)                            | Klucz API przekazywany jako `Authorization: Bearer` do wewnętrznych wywołań API                               |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (only `"true"` enables it) | Po włączeniu brakujące scope'y odmawiają wywołań tooli i logują `scope_denied:<reason>` w audycie             |
-| `OMNIROUTE_MCP_SCOPES`                  | (empty)                            | Lista scope'ów rozdzielona przecinkami uważanych domyślnie za „dostępne” (gdy caller nie podaje własnych)     |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (unset = on)                       | Ustawienie na `0/false/off/no` wyłącza kompresję opisów MCP w czasie rejestracji                              |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (unset = on)                       | Alternatywny alias tego samego przełącznika co powyżej                                                        |
-| `MCP_TOOL_DENY`                         | (unset = no filter)                | Nazwy tooli rozdzielone przecinkami do usunięcia z `tools/list` (redukcja kardynalności tooli — zob. poniżej) |
-| `MCP_TOOL_ALLOW`                        | (unset = no filter)                | Nazwy tooli rozdzielone przecinkami do wyłącznego zachowania (tryb allow-list — zob. poniżej)                 |
-| `DATA_DIR`                              | `~/.omniroute`                     | Plik heartbeat jest zapisywany do `${DATA_DIR}/runtime/mcp-heartbeat.json`                                    |
+| Zmienna                                 | Wartość domyślna                  | Przeznaczenie                                                                                                                              |
+| :-------------------------------------- | :-------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`          | Bazowy adres URL używany przez serwer MCP podczas wywoływania wewnętrznych interfejsów API OmniRoute                                       |
+| `OMNIROUTE_API_KEY`                     | (pusta)                           | Klucz API przekazywany jako `Authorization: Bearer` do wewnętrznych wywołań API                                                            |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (włącza tylko `"true"`)   | Po włączeniu brakujące zakresy powodują odrzucenie wywołań narzędzi i zapisanie `scope_denied:<reason>` w dzienniku audytu                 |
+| `OMNIROUTE_MCP_SCOPES`                  | (pusta)                           | Rozdzielona przecinkami lista dozwolonych zakresów uznawanych domyślnie za „dostępne” (używana, gdy wywołujący nie poda własnych zakresów) |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (nieustawiona = włączone)         | Ustawienie na `0/false/off/no` wyłącza kompresję opisów MCP podczas rejestracji                                                            |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (nieustawiona = włączone)         | Alternatywny alias tego samego przełącznika co powyżej                                                                                     |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                           | Limit czasu do przerwania wewnętrznych odczytów zarządzania (kondycja, odporność, kombinacje, limity, użycie)                              |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                           | Limit czasu do przerwania etapów oczekujących na dostawcę (`route_request`, `web_search`, `web_fetch`)                                     |
+| `MCP_TOOL_DENY`                         | (nieustawiona = brak filtrowania) | Rozdzielone przecinkami nazwy narzędzi usuwanych z `tools/list` (redukcja liczby narzędzi — zobacz poniżej)                                |
+| `MCP_TOOL_ALLOW`                        | (nieustawiona = brak filtrowania) | Rozdzielone przecinkami nazwy narzędzi, które mają zostać zachowane jako jedyne (tryb listy dozwolonych — zobacz poniżej)                  |
+| `DATA_DIR`                              | `~/.omniroute`                    | Plik pulsu jest zapisywany w `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                      |
 
 ---
 
 ## Kompresja opisów
 
-Rejestry tooli, promptów i resources MCP mogą kompresować opisy w czasie rejestracji/listowania, aby zmniejszyć ślad metadanych wystawianych klientom (a tym samym koszt kontekstu promptu). Implementacja żyje w `open-sse/mcp-server/descriptionCompressor.ts` i jest podpięta do serwera MCP przez `compressMcpRegistryMetadata` wewnątrz `createMcpServer()`.
+Rejestry narzędzi, promptów i zasobów MCP mogą kompresować opisy podczas rejestracji lub wyświetlania listy, aby zmniejszyć ilość metadanych udostępnianych klientom (a tym samym koszt kontekstu promptu). Implementacja znajduje się w `open-sse/mcp-server/descriptionCompressor.ts` i jest zintegrowana z serwerem MCP za pośrednictwem `compressMcpRegistryMetadata` wewnątrz `createMcpServer()`.
 
-- Kompresja działa na tekście opisu z użyciem rulesetu Caveman (`getRulesForContext("all", "full")`) z ekstrakcją zachowanych bloków (code spans, fenced blocks itd.), więc treść strukturalna nie jest zmieniana.
-- Przełącznik per-deployment przez wartość `compression.mcpDescriptionCompressionEnabled` w tabeli ustawień `key_value` (domyślnie: włączone) — w UI jako **Analytics → MCP description compression**.
-- Przełącznik process-wide przez `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` albo `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false`.
-- Statystyki realtime są dostępne przez `omniroute_compression_status` pod `analytics.mcpDescriptionCompression` i oznaczone `source: "mcp_metadata_estimate"`, aby odróżnić je od rzeczywistych rachunków użycia providera.
+- Kompresja jest wykonywana na tekście opisu przy użyciu zestawu reguł Caveman (`getRulesForContext("all", "full")`) z wyodrębnianiem zachowywanych bloków (fragmentów kodu, bloków ograniczonych znacznikami itp.), dzięki czemu treść strukturalna nie jest zmieniana.
+- Przełączanie dla poszczególnych wdrożeń odbywa się za pomocą wartości `compression.mcpDescriptionCompressionEnabled` w tabeli ustawień `key_value` (domyślnie: włączone) — dostępnej w interfejsie użytkownika jako **Analityka → Kompresja opisów MCP**.
+- Przełączanie dla całego procesu odbywa się za pomocą `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` lub `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false`.
+- Statystyki w czasie rzeczywistym są udostępniane za pośrednictwem `omniroute_compression_status` w `analytics.mcpDescriptionCompression` i oznaczane tagiem `source: "mcp_metadata_estimate"`, aby odróżnić je od rzeczywistych raportów użycia pochodzących od dostawców.
 
 ---
 
-## Redukcja kardynalności tooli (F4.3)
+## Redukcja liczby narzędzi (F4.3)
 
-Kompresja opisów zmniejsza metadane każdego toola; **redukcja kardynalności tooli** idzie o krok dalej, ograniczając _ile_ tooli jest w ogóle ogłaszanych. Reklamowanie mniejszej liczby tooli w manifeście `tools/list` tnie koszt tokenów per-request, jaki model klienta płaci za katalog tooli (kompresja „warstwy 5”). Implementacja to czysty, bezstanowy filtr w `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), podpięty do pętli rejestracji w `createMcpServer()` (`open-sse/mcp-server/server.ts`).
+Kompresja opisów zmniejsza metadane każdego narzędzia; **redukcja liczby narzędzi** idzie o krok dalej, ograniczając liczbę narzędzi, które są w ogóle ogłaszane. Udostępnianie mniejszej liczby narzędzi w manifeście `tools/list` obniża koszt tokenów ponoszony przy każdym żądaniu przez model klienta z tytułu katalogu narzędzi (kompresja „warstwy 5”). Implementacja jest czystym, bezstanowym filtrem w `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), podłączonym do pętli rejestracji w `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Opt-in, domyślnie wyłączone.** Filtr działa tylko gdy ustawiona jest co najmniej jedna z dwóch zmiennych środowiskowych; bez żadnej wszystkie 104 tools są ogłaszane bez zmian.
+**Funkcja opcjonalna, domyślnie wyłączona.** Filtr działa tylko wtedy, gdy ustawiona jest co najmniej jedna z dwóch zmiennych środowiskowych; jeśli żadna nie jest ustawiona, wszystkie 110 narzędzi jest ogłaszanych bez zmian.
 
-| Variable         | Mode                                                                                         |
-| :--------------- | :------------------------------------------------------------------------------------------- |
-| `MCP_TOOL_DENY`  | Blacklist — nazwy tooli rozdzielone przecinkami zawsze usuwane z `tools/list`                |
-| `MCP_TOOL_ALLOW` | Allow-list — nazwy tooli rozdzielone przecinkami; tylko te przechodzą, reszta jest dropowana |
+| Zmienna          | Tryb                                                                                                                            |
+| :--------------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| `MCP_TOOL_DENY`  | Czarna lista — rozdzielone przecinkami nazwy narzędzi, które zawsze są usuwane z `tools/list`                                   |
+| `MCP_TOOL_ALLOW` | Lista dozwolonych — rozdzielone przecinkami nazwy narzędzi; zachowywane są tylko te narzędzia, a wszystkie pozostałe są usuwane |
 
-`deny` ma priorytet nad `allow`. Nazwy są rozdzielone przecinkami, trimowane, a puste wpisy ignorowane. Przykłady:
+`deny` ma wyższy priorytet niż `allow`. Nazwy są rozdzielane przecinkami, usuwane są otaczające je białe znaki, a puste wpisy są ignorowane. Przykłady:
 
 ```bash
-# Drop two tools from the catalog
+# Usuń dwa narzędzia z katalogu
 MCP_TOOL_DENY="omniroute_get_health,omniroute_list_combos" omniroute --mcp
 
-# Announce only the routing + quota tools (allow-list mode)
+# Ogłaszaj tylko narzędzia routingu i limitów (tryb listy dozwolonych)
 MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
 ```
 
-**Jak usuwane są odfiltrowane tool'e:** rejestracja zawsze się udaje; tool odrzucony przez profil jest potem `.disable()` na uchwycie SDK MCP, więc nie pojawia się w `tools/list`, ale okablowanie zostaje (czyste enable/disable, bez re-rejestracji). Parser profilu to `readMcpToolProfileFromEnv(process.env)`, który zwraca `null` (brak filtrowania), gdy obie zmienne są puste.
+**Sposób usuwania odfiltrowanych narzędzi:** rejestracja zawsze kończy się powodzeniem; narzędzie odrzucone przez profil jest następnie wyłączane za pomocą `.disable()` na uchwycie SDK MCP, dzięki czemu nigdy nie pojawia się w `tools/list`, ale konfiguracja połączeń pozostaje nienaruszona (czyste włączanie/wyłączanie bez ponownej rejestracji). Parser profilu to `readMcpToolProfileFromEnv(process.env)`, który zwraca `null` (brak filtrowania), gdy obie zmienne są puste.
 
-Bogatszy kształt `ToolProfile` za `reduceToolManifest` obsługuje też filtrowanie po przecięciu scope (`allowScopes`, z matchingiem wildcard w stylu `read:*`) oraz deterministyczny limit `maxTools`, ale te dwa pokrętła wymagają pełnego manifestu w czasie rejestracji i **nie** są dziś wystawione przez zmienne środowiskowe (hook na poziomie `tools/list` to śledzony follow-up). `estimateManifestTokens()` jest dostępne do porównania kosztu tokenów manifestu przed i po redukcji.
+Bardziej rozbudowana struktura `ToolProfile`, na której opiera się `reduceToolManifest`, obsługuje również filtrowanie przez przecięcie zakresów (`allowScopes`, z dopasowywaniem symboli wieloznacznych w stylu `read:*`) oraz deterministyczny limit `maxTools`, lecz te dwa ustawienia wymagają pełnego manifestu podczas rejestracji i **nie** są obecnie udostępniane za pośrednictwem zmiennych środowiskowych (obsługa na poziomie `tools/list` jest zaplanowana jako kolejny etap). Funkcja `estimateManifestTokens()` umożliwia porównanie kosztu tokenów manifestu przed redukcją i po niej.
 
 ---
 
-## Heartbeat runtime
+## Sygnał aktywności środowiska uruchomieniowego
 
-Transport stdio zapisuje liveness do `${DATA_DIR}/runtime/mcp-heartbeat.json` co 5 sekund. Dashboard (`/api/mcp/status`) czyta ten plik plus liveness PID, aby wyliczyć `online`. Transporty HTTP raportują stan z in-process `getMcpHttpStatus()` (bez zapisu do pliku).
+Transport stdio co 5 sekund zapisuje informacje o aktywności w `${DATA_DIR}/runtime/mcp-heartbeat.json`. Panel (`/api/mcp/status`) odczytuje ten plik oraz sprawdza aktywność PID, aby określić wartość `online`. Transporty HTTP raportują natomiast stan za pomocą działającej w procesie funkcji `getMcpHttpStatus()` (bez zapisu do pliku).
 
-Snapshot heartbeat zawiera:
+Migawka sygnału aktywności zawiera:
 
 ```json
 {
@@ -407,53 +435,53 @@ Snapshot heartbeat zawiera:
   "transport": "stdio",
   "scopesEnforced": false,
   "allowedScopes": [],
-  "toolCount": 43
+  "toolCount": 110
 }
 ```
 
 ---
 
-## Logowanie audytu
+## Rejestrowanie audytowe
 
-Każde wywołanie toola jest logowane do tabeli SQLite `mcp_tool_audit` przez `open-sse/mcp-server/audit.ts`:
+Każde wywołanie narzędzia jest rejestrowane w tabeli SQLite `mcp_tool_audit` przez `open-sse/mcp-server/audit.ts`:
 
-- Nazwa toola, argumenty (hashowane/obcinane wg per-tool `auditLevel`), wynik
-- Czas trwania w ms, flaga success/failure, komunikat błędu (gdy dotyczy)
-- Hash klucza API, timestamp
-- Odmowy scope są logowane jako `scope_denied:<reason>` z listą brakujących scope'ów
+- Nazwa narzędzia, argumenty (haszowane/skracane zgodnie z właściwym dla narzędzia poziomem `auditLevel`), wynik
+- Czas trwania w ms, flaga powodzenia/niepowodzenia, komunikat o błędzie (jeśli dotyczy)
+- Skrót klucza API, znacznik czasu
+- Odmowy dostępu do zakresów są rejestrowane jako `scope_denied:<reason>` wraz z listą brakujących zakresów
 
-Użyj dashboardu albo endpointów REST `/api/mcp/audit` i `/api/mcp/audit/stats`, aby przejrzeć niedawne wywołania.
+Aby sprawdzić ostatnie wywołania, użyj panelu lub punktów końcowych REST `/api/mcp/audit` i `/api/mcp/audit/stats`.
 
 ---
 
 ## Pliki
 
-| File                                                                     | Purpose                                                              |
-| :----------------------------------------------------------------------- | :------------------------------------------------------------------- |
-| `open-sse/mcp-server/server.ts`                                          | Fabryka serwera MCP, punkt wejścia stdio, rejestracje tooli ze scope |
-| `open-sse/mcp-server/httpTransport.ts`                                   | Transporty SSE + Streamable HTTP (zarządzanie sesjami)               |
-| `open-sse/mcp-server/scopeEnforcement.ts`                                | Ewaluacja scope tooli i resolucja callera                            |
-| `open-sse/mcp-server/audit.ts`                                           | Logowanie audytu wywołań tooli (`mcp_tool_audit`)                    |
-| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | Writer heartbeat stdio (`mcp-heartbeat.json`)                        |
-| `open-sse/mcp-server/descriptionCompressor.ts`                           | Kompresja opisów rejestrów tool / prompt / resource                  |
-| `open-sse/mcp-server/schemas/tools.ts`                                   | Schematy Zod + rejestr tooli (`MCP_TOOLS`, 34 wpisy)                 |
-| `open-sse/mcp-server/tools/advancedTools.ts`                             | Handlery tooli Phase 2 + cache + 1proxy                              |
-| `open-sse/mcp-server/tools/compressionTools.ts`                          | Handlery tooli kompresji                                             |
-| `open-sse/mcp-server/tools/memoryTools.ts`                               | Definicje tooli memory (3 tools)                                     |
-| `open-sse/mcp-server/tools/skillTools.ts`                                | Definicje tooli skill (4 tools)                                      |
-| `open-sse/mcp-server/tools/notionTools.ts`                               | Definicje tooli źródła kontekstu Notion (6 tools)                    |
-| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Definicje tooli gamification (8 tools)                               |
-| `open-sse/mcp-server/tools/pluginTools.ts`                               | Tool'e rejestracji i zarządzania pluginami (8 tools)                 |
-| `src/app/api/mcp/status/route.ts`                                        | Endpoint `/api/mcp/status`                                           |
-| `src/app/api/mcp/tools/route.ts`                                         | Endpoint `/api/mcp/tools`                                            |
-| `src/app/api/mcp/sse/route.ts`                                           | Route transportu SSE `/api/mcp/sse`                                  |
-| `src/app/api/mcp/stream/route.ts`                                        | Route transportu Streamable HTTP `/api/mcp/stream`                   |
-| `src/app/api/mcp/audit/route.ts`                                         | Zapytanie logu audytu `/api/mcp/audit`                               |
-| `src/app/api/mcp/audit/stats/route.ts`                                   | Zagregowane metryki audytu `/api/mcp/audit/stats`                    |
-| `src/lib/notion/api.ts`                                                  | Klient REST API Notion (retry, timeout, klasyfikacja błędów)         |
-| `src/lib/db/notion.ts`                                                   | Persystencja tokenu Notion (tabela `key_value`)                      |
-| `src/app/api/settings/notion/route.ts`                                   | API ustawień Notion (GET/POST/DELETE)                                |
-| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | UI zarządzania tokenem Notion                                        |
-| `tests/unit/notion-api.test.ts`                                          | Testy klienta API Notion (7)                                         |
-| `tests/unit/notion-tools.test.ts`                                        | Testy egzekwowania scope tooli Notion (10)                           |
-| `tests/unit/db/notion.test.mjs`                                          | Testy modułu DB Notion (3)                                           |
+| Plik                                                                     | Przeznaczenie                                                                         |
+| :----------------------------------------------------------------------- | :------------------------------------------------------------------------------------ |
+| `open-sse/mcp-server/server.ts`                                          | Fabryka serwera MCP, punkt wejścia stdio, rejestracja narzędzi z zakresami            |
+| `open-sse/mcp-server/httpTransport.ts`                                   | Transport SSE + Streamable HTTP (zarządzanie sesjami)                                 |
+| `open-sse/mcp-server/scopeEnforcement.ts`                                | Ocena zakresów narzędzi i rozpoznawanie wywołującego                                  |
+| `open-sse/mcp-server/audit.ts`                                           | Rejestrowanie audytu wywołań narzędzi (`mcp_tool_audit`)                              |
+| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | Moduł zapisujący sygnał heartbeat dla stdio (`mcp-heartbeat.json`)                    |
+| `open-sse/mcp-server/descriptionCompressor.ts`                           | Kompresja opisów w rejestrach narzędzi, promptów i zasobów                            |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Schematy Zod + rejestr narzędzi (`MCP_TOOLS`, 45 wpisów)                              |
+| `open-sse/mcp-server/tools/advancedTools.ts`                             | Procedury obsługi narzędzi fazy 2, pamięci podręcznej i 1proxy                        |
+| `open-sse/mcp-server/tools/compressionTools.ts`                          | Procedury obsługi narzędzi kompresji                                                  |
+| `open-sse/mcp-server/tools/memoryTools.ts`                               | Definicje narzędzi pamięci (3 narzędzia)                                              |
+| `open-sse/mcp-server/tools/skillTools.ts`                                | Definicje narzędzi umiejętności (4 narzędzia)                                         |
+| `open-sse/mcp-server/tools/notionTools.ts`                               | Definicje narzędzi źródła kontekstu Notion (6 narzędzi)                               |
+| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Definicje narzędzi grywalizacji (8 narzędzi)                                          |
+| `open-sse/mcp-server/tools/pluginTools.ts`                               | Narzędzia do rejestracji wtyczek i zarządzania nimi (8 narzędzi)                      |
+| `src/app/api/mcp/status/route.ts`                                        | Punkt końcowy `/api/mcp/status`                                                       |
+| `src/app/api/mcp/tools/route.ts`                                         | Punkt końcowy `/api/mcp/tools`                                                        |
+| `src/app/api/mcp/sse/route.ts`                                           | Trasa transportu SSE `/api/mcp/sse`                                                   |
+| `src/app/api/mcp/stream/route.ts`                                        | Trasa transportu Streamable HTTP `/api/mcp/stream`                                    |
+| `src/app/api/mcp/audit/route.ts`                                         | Zapytanie dziennika audytu `/api/mcp/audit`                                           |
+| `src/app/api/mcp/audit/stats/route.ts`                                   | Zagregowane metryki audytu `/api/mcp/audit/stats`                                     |
+| `src/lib/notion/api.ts`                                                  | Klient interfejsu REST API Notion (ponawianie prób, limit czasu, klasyfikacja błędów) |
+| `src/lib/db/notion.ts`                                                   | Trwałe przechowywanie tokenu Notion (tabela `key_value`)                              |
+| `src/app/api/settings/notion/route.ts`                                   | Interfejs API ustawień Notion (GET/POST/DELETE)                                       |
+| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Interfejs użytkownika do zarządzania tokenem Notion                                   |
+| `tests/unit/notion-api.test.ts`                                          | Testy klienta interfejsu API Notion (7)                                               |
+| `tests/unit/notion-tools.test.ts`                                        | Testy egzekwowania zakresów narzędzi Notion (10)                                      |
+| `tests/unit/db/notion.test.mjs`                                          | Testy modułu bazy danych Notion (3)                                                   |

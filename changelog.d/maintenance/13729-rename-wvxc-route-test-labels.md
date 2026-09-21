@@ -1,0 +1,2 @@
+- **test(batches):** the two seeded-batch labels of the delete-completed route-scope suite that sat right after a `key*.id` argument are renamed to short literals (`route401`/`route500`), so a gitleaks scan that reads those lines (full-tree, or git-mode on a branch that adds them) no longer reports them as `generic-api-key` hits ([#13729](https://github.com/diegosouzapw/OmniRoute/pull/13729))
+  — no gate changes: the CI secret ratchet scans `src`/`open-sse`/`bin`/`electron`/`scripts`, never `tests/`

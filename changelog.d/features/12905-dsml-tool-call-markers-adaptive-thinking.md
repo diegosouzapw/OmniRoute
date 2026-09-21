@@ -1,0 +1,1 @@
+- **feat(sse):** parse/scrub DSML tool-call markers embedded in reasoning and recognize adaptive thinking on the response side — `dsmlToolCalls.ts` module + translator/stream/handler wiring ([#12905](https://github.com/diegosouzapw/OmniRoute/pull/12905)) — thanks @initguru

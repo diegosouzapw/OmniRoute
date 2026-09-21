@@ -25,6 +25,8 @@ import {
   resolvePersistedConnectionCooldownSkipReason,
 } from "./comboPredicates.ts";
 import { resolveQuotaExhaustionCutoffForTarget } from "./quotaExhaustionCutoff.ts";
+import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
+import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 import type { AttemptLoopDeps, AttemptLoopState, GateDecision } from "./attemptLoopTypes.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
@@ -58,11 +60,19 @@ export async function evaluateExecuteTargetGates(opts: {
   const protectedPriorityTarget =
     deps.strategy === "priority" && target.fallbackOnlyOnQuotaExhaustion === true;
 
-  const stopProtectedPriorityTarget = (message: string) => {
+  const stopProtectedPriorityTarget = (message: string, cause?: ProtectedPriorityStopCause) => {
     state.observeFailure(false, target.executionKey);
-    deps.clearStaleLKGP(deps.combo.name, target.executionKey, deps.combo.id, deps.log, "COMBO");
+    deps.clearStaleLKGP(
+      deps.combo.name,
+      target.executionKey,
+      deps.combo.id,
+      deps.log,
+      "COMBO",
+      undefined,
+      target
+    );
     return protectedPriorityTarget
-      ? { ok: false as const, response: errorResponse(503, message) }
+      ? { ok: false as const, response: errorResponse(protectedPriorityStopStatus(cause), message) }
       : null;
   };
 
@@ -93,7 +103,10 @@ export async function evaluateExecuteTargetGates(opts: {
     bumpFallback();
     return {
       kind: "skip",
-      result: stopProtectedPriorityTarget(`Provider ${provider} circuit breaker is open`),
+      result: stopProtectedPriorityTarget(
+        `Provider ${provider} circuit breaker is open`,
+        "circuit_open"
+      ),
     };
   }
 
@@ -151,7 +164,15 @@ export async function evaluateExecuteTargetGates(opts: {
         decision: "skipped_before_dispatch",
         reason: "persisted_cooldown",
       });
-      deps.clearStaleLKGP(deps.combo.name, target.executionKey, deps.combo.id, deps.log, "COMBO");
+      deps.clearStaleLKGP(
+        deps.combo.name,
+        target.executionKey,
+        deps.combo.id,
+        deps.log,
+        "COMBO",
+        undefined,
+        target
+      );
       bumpFallback();
       return { kind: "skip", result: null };
     }
@@ -207,7 +228,15 @@ export async function evaluateExecuteTargetGates(opts: {
         "COMBO",
         `Skipping ${modelStr} — quota exhaustion cutoff (${quotaCutoff.reason || "quota_exhausted"})`
       );
-      deps.clearStaleLKGP(deps.combo.name, target.executionKey, deps.combo.id, deps.log, "COMBO");
+      deps.clearStaleLKGP(
+        deps.combo.name,
+        target.executionKey,
+        deps.combo.id,
+        deps.log,
+        "COMBO",
+        undefined,
+        target
+      );
       recordComboDecision(deps.traceInvocationId, {
         step: target.executionKey,
         target: modelStr,
@@ -244,7 +273,15 @@ export async function evaluateExecuteTargetGates(opts: {
         "COMBO",
         `Skipping ${modelStr} — quota budget ${quotaDecision.reason} (remaining ${quotaDecision.tokensRemaining ?? 0}, cost ${quotaDecision.estimatedCost ?? 0})`
       );
-      deps.clearStaleLKGP(deps.combo.name, target.executionKey, deps.combo.id, deps.log, "COMBO");
+      deps.clearStaleLKGP(
+        deps.combo.name,
+        target.executionKey,
+        deps.combo.id,
+        deps.log,
+        "COMBO",
+        undefined,
+        target
+      );
       bumpFallback();
       return { kind: "skip", result: null };
     }
@@ -257,7 +294,15 @@ export async function evaluateExecuteTargetGates(opts: {
         "COMBO",
         `Skipping ${modelStr} — no credentials available or model excluded`
       );
-      deps.clearStaleLKGP(deps.combo.name, target.executionKey, deps.combo.id, deps.log, "COMBO");
+      deps.clearStaleLKGP(
+        deps.combo.name,
+        target.executionKey,
+        deps.combo.id,
+        deps.log,
+        "COMBO",
+        undefined,
+        target
+      );
       recordComboDecision(deps.traceInvocationId, {
         step: target.executionKey,
         target: modelStr,

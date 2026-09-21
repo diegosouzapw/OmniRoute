@@ -2,8 +2,9 @@
 
 // src/app/(dashboard)/dashboard/playground/components/CompareColumn.tsx
 
-import type { StreamMetrics } from "@/shared/schemas/playground";
 import { useTranslations } from "next-intl";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import type { StreamMetrics } from "@/shared/schemas/playground";
 import MarkdownMessage from "./MarkdownMessage";
 import ProviderMetrics from "./ProviderMetrics";
 
@@ -30,10 +31,11 @@ interface CompareColumnProps {
  */
 export default function CompareColumn({ column, onCancel, onRemove }: CompareColumnProps) {
   const t = useTranslations("playground");
+  const { copied, copy } = useCopyToClipboard();
   const { id, model, status, metrics, response, errorMessage } = column;
 
   return (
-    <div className="flex flex-col h-full border-r border-border last:border-r-0 min-w-0">
+    <div className="flex flex-col h-full border-r border-border last:border-r-0 min-w-0 min-h-0 overflow-hidden">
       {/* Column header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-bg-alt shrink-0">
         <div className="flex items-center gap-2 min-w-0">
@@ -65,6 +67,17 @@ export default function CompareColumn({ column, onCancel, onRemove }: CompareCol
               {t("cancel")}
             </button>
           )}
+          <button
+            onClick={() => void copy(response, id)}
+            disabled={response === ""}
+            className="p-0.5 rounded text-text-muted hover:text-text-main transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            title={copied === id ? t("copiedCode") : t("copy")}
+            aria-label={copied === id ? t("copiedCode") : t("copy")}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {copied === id ? "check" : "content_copy"}
+            </span>
+          </button>
           <button
             onClick={() => onRemove(id)}
             className="p-0.5 rounded text-text-muted hover:text-destructive transition-colors"

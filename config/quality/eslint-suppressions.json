@@ -21,7 +21,7 @@
   },
   "open-sse/config/providers/registry/claude/index.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 7
+      "count": 6
     }
   },
   "open-sse/config/providers/registry/vertex/index.ts": {
@@ -69,11 +69,6 @@
       "count": 1
     }
   },
-  "open-sse/executors/chipotle.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/executors/claude-web.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -92,11 +87,6 @@
   "open-sse/executors/copilot-web.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 3
-    }
-  },
-  "open-sse/executors/cursor.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "open-sse/executors/deepseek-web.ts": {
@@ -169,11 +159,6 @@
       "count": 2
     }
   },
-  "open-sse/executors/notion-web.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/executors/opencode.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
@@ -200,9 +185,6 @@
     }
   },
   "open-sse/executors/tinycmsSigner.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    },
     "@typescript-eslint/no-unused-vars": {
       "count": 2
     }
@@ -396,11 +378,6 @@
       "count": 1
     }
   },
-  "open-sse/services/antigravityIdentity.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/antigravityProjectBootstrap.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -474,7 +451,7 @@
   },
   "open-sse/services/combo.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 21
+      "count": 1
     }
   },
   "open-sse/services/combo/providerWildcard.ts": {
@@ -558,11 +535,6 @@
       "count": 1
     }
   },
-  "open-sse/services/genericQuotaFetcher.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "open-sse/services/grokQuotaFetcher.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -588,11 +560,6 @@
       "count": 1
     }
   },
-  "open-sse/services/rateLimitManager.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "open-sse/services/routing/index.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -614,11 +581,6 @@
     }
   },
   "open-sse/services/tierResolver.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "open-sse/services/tlsClientBase.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -734,11 +696,6 @@
   "open-sse/utils/bypassHandler.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "open-sse/utils/cursorAgentProtobuf.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "open-sse/utils/earlyStreamKeepalive.ts": {
@@ -936,19 +893,9 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/providers/[id]/hooks/useModelImportHandlers.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/providers/[id]/hooks/useModelVisibilityHandlers.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
-    }
-  },
-  "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "src/app/(dashboard)/dashboard/providers/page.tsx": {
@@ -1092,11 +1039,6 @@
     }
   },
   "src/app/(dashboard)/dashboard/usage/components/SessionsTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/webhooks/__tests__/webhook-wizard.test.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -1289,11 +1231,6 @@
       "count": 10
     }
   },
-  "src/app/api/v1/models/catalogCache.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/api/v1/models/catalogOpenrouter.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1321,7 +1258,7 @@
   },
   "src/app/api/v1/rerank/route.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 3
+      "count": 2
     }
   },
   "src/app/api/v1/search/route.ts": {
@@ -1667,16 +1604,6 @@
       "count": 1
     }
   },
-  "src/lib/oauth/providers/github.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/oauth/providers/kimi-coding.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/oauth/providers/kiro.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 3
@@ -1712,11 +1639,6 @@
       "count": 1
     }
   },
-  "src/lib/providers/validation/webProvidersB.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/quota/quotaAdapters.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1729,11 +1651,6 @@
   },
   "src/lib/quota/sqliteQuotaStore.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/semanticCache.ts": {
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -2730,7 +2647,7 @@
   },
   "tests/unit/build/check-licenses.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 5
+      "count": 4
     }
   },
   "tests/unit/bypass-handler.test.ts": {
@@ -2834,7 +2751,7 @@
   },
   "tests/unit/chatcore-translation-paths.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 31
+      "count": 30
     }
   },
   "tests/unit/check-docs-symbols.test.ts": {
@@ -2845,11 +2762,6 @@
   "tests/unit/check-route-guard-membership.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "tests/unit/chipotle-executor.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
     }
   },
   "tests/unit/claude-code-compatible-helpers.test.ts": {
@@ -3320,7 +3232,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 268
+      "count": 267
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
@@ -3341,11 +3253,6 @@
   "tests/unit/combo-sessionless-pin-3825.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 17
-    }
-  },
-  "tests/unit/combo-strategies.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/unit/combo-strategy-fallbacks.test.ts": {
@@ -3608,7 +3515,7 @@
   },
   "tests/unit/db-health-check.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 29
+      "count": 25
     }
   },
   "tests/unit/db-health-route.test.ts": {
@@ -4448,11 +4355,6 @@
   "tests/unit/provider-models-token-limits.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/unit/provider-models-v1-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "tests/unit/provider-node-icon-url.test.ts": {

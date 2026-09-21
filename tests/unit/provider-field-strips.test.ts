@@ -13,6 +13,10 @@ test("findOffendingField matches known field names in a 400 body", () => {
   );
   assert.equal(findOffendingField("unexpected field chat_template"), "chat_template");
   assert.equal(findOffendingField("reasoning_content is not allowed"), "reasoning_content");
+  // Strict OpenAI-compatible gateways 400 with "Unsupported parameter:
+  // reasoning_effort" when they don't implement the reasoning-effort knob —
+  // the strip-and-retry in base.ts must fire instead of surfacing the 400.
+  assert.equal(findOffendingField("Unsupported parameter: reasoning_effort"), "reasoning_effort");
   // #1468: Claude Code's top-level context_management field rejected by strict
   // anthropic-compatible gateways → strip + retry regardless of the contextEditing flag.
   assert.equal(
@@ -76,4 +80,3 @@ test("stripGroqUnsupportedFields drops unsupported messages[].model and other me
   assert.equal("messageId" in out.messages[1], false);
   assert.equal("sender" in out.messages[1], false);
 });
-

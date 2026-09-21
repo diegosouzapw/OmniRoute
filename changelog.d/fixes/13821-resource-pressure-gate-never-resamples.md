@@ -1,0 +1,1 @@
+- fix(resilience): the chat admission gate's pressure check now actively re-samples instead of reading a passive cache, so the `resource_pressure` guard can observe recovery and stop shedding once real pressure clears, instead of requiring a full process restart

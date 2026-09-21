@@ -25,6 +25,23 @@ Or via the open-sse transport:
 omniroute --dev  # MCP auto-starts on /mcp endpoint
 ```
 
+The HTTP transports (`sse` / `streamable-http`, served in-process by the dashboard server) are
+off by default and were previously toggleable only from the `/dashboard/mcp` page. As of v3.8.51
+the CLI has parity:
+
+```bash
+omniroute mcp status                                  # enabled/online, transport, tool count
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # resets active sse/streamable-http sessions
+```
+
+`mcp enable`/`mcp disable` PATCH the same `mcpEnabled` (and optionally `mcpTransport`) setting
+the dashboard toggles via `/api/settings`. `mcp restart` calls `POST /api/mcp/restart`: it tears
+down active `sse`/`streamable-http` sessions so the next request re-initializes cleanly, returns
+`409` if MCP is disabled, and `501` for the `stdio` transport (stdio clients own their own
+subprocess — there is no in-process handle to restart).
+
 ## Transports
 
 The MCP server exposes three transports, all backed by the same `createMcpServer()` factory:

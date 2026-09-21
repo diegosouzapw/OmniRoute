@@ -281,6 +281,12 @@ async function removeDirWithRetry(dir: string) {
 const relay = createFakeEmbeddingRelay();
 let app: ReturnType<typeof createServerProcess>;
 const RELAY_BASE = `http://127.0.0.1:${RELAY_PORT}`;
+// The `/v1/files` + `/v1/batches` flow is owner-scoped: a file uploaded with no
+// key has no owner, and a null-owner record is denied to every non-session
+// caller (GHSA-2jm2-mpx8-6523 / GHSA-m3hp-hq9g-fpmv). Mint a real API key
+// through the management API (open bootstrap mode, same path that seeds the
+// provider node) and present it on every `/v1` call below.
+let clientAuthHeaders: Record<string, string> = {};
 
 test.before(async () => {
   await relay.start();
@@ -307,6 +313,17 @@ test.before(async () => {
       `Failed to create provider node: ${nodeResp.status} ${JSON.stringify(nodeBody)}`
     );
   }
+
+  const keyResp = await fetch(`${app.baseUrl}/api/keys`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "Batch E2E Test Key" }),
+  });
+  const keyBody = (await keyResp.json().catch(() => null)) as { key?: string } | null;
+  if (!keyResp.ok || !keyBody?.key) {
+    throw new Error(`Failed to create API key: ${keyResp.status} ${JSON.stringify(keyBody)}`);
+  }
+  clientAuthHeaders = { Authorization: `Bearer ${keyBody.key}` };
 });
 
 test.after(async () => {
@@ -348,6 +365,7 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
 
   const uploadResp = await fetch(`${app.baseUrl}/api/v1/files`, {
     method: "POST",
+    headers: clientAuthHeaders,
     body: formData,
   });
   assert.match(
@@ -362,7 +380,7 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
   // 2. Create batch via HTTP POST
   const batchResp = await fetch(`${app.baseUrl}/api/v1/batches`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...clientAuthHeaders },
     body: JSON.stringify({
       input_file_id: fileId,
       endpoint: "/v1/embeddings",
@@ -381,7 +399,9 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
   while (attempts < maxAttempts) {
     await sleep(2_000);
     attempts++;
-    const sr = await fetch(`${app.baseUrl}/api/v1/batches/${batchId}`);
+    const sr = await fetch(`${app.baseUrl}/api/v1/batches/${batchId}`, {
+      headers: clientAuthHeaders,
+    });
     const text = await sr.text();
     let sb: BatchResponse;
     try {
@@ -433,7 +453,9 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
   );
 
   // 5. Verify batch results
-  const finalResp = await fetch(`${app.baseUrl}/api/v1/batches/${batchId}`);
+  const finalResp = await fetch(`${app.baseUrl}/api/v1/batches/${batchId}`, {
+    headers: clientAuthHeaders,
+  });
   const finalBody = await readJsonForTest<BatchResponse>(finalResp, "Final batch fetch", app);
   assert.equal(
     finalBody.request_counts?.completed,

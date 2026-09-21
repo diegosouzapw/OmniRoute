@@ -41,12 +41,26 @@ password on every invocation.
 | **No `always`-protected bypass** | `isAlwaysProtectedPath()` is evaluated before the CLI token check. `/api/shutdown` and `/api/settings/database` always require JWT.                                                    |
 | **Non-exportable**               | Token is never written to disk or logged.                                                                                                                                              |
 
+## Default salt (random per install)
+
+When `OMNIROUTE_CLI_SALT` is not set, the salt is a random 64-char hex string
+generated once and persisted at `<DATA_DIR>/cli-token-salt.json` (mode `0600`) —
+not the checked-in literal `omniroute-cli-auth-v1`. Both `getActiveSalt()` in
+`src/lib/machineToken.ts` and its mirror in `bin/cli/utils/cliToken.mjs` read the
+same file, so the server and every CLI invocation on this install converge on the
+same value; the checked-in literal is used only as a last-resort fallback when no
+persisted or env salt can be established yet (for example a fresh CLI-only install
+before the server has ever run). This closes a weakness of the old fixed literal
+default: `/etc/machine-id` is commonly world-readable, so any local user could
+otherwise derive the same token for every install that never set
+`OMNIROUTE_CLI_SALT`.
+
 ## Salt rotation
 
-Set `OMNIROUTE_CLI_SALT` to rotate the derived token without code changes.
-After rotation, all CLI processes on this machine will use the new token
-automatically. Useful after a process-list leak that may have exposed the
-previous derived value.
+Set `OMNIROUTE_CLI_SALT` to rotate the derived token without code changes — it
+always takes priority over the persisted per-install salt. After rotation, all CLI
+processes on this machine will use the new token automatically. Useful after a
+process-list leak that may have exposed the previous derived value.
 
 ```bash
 # Persistent rotation (add to shell profile)
@@ -55,8 +69,6 @@ export OMNIROUTE_CLI_SALT="my-secret-salt-2026"
 # Verify new token is in use
 omniroute status
 ```
-
-Default salt: `omniroute-cli-auth-v1`
 
 ## Legacy format (SHA-256, 32-char) — still accepted
 
@@ -81,6 +93,8 @@ user on the same host could compute the same token.
 | File                                      | Purpose                                  |
 | ----------------------------------------- | ---------------------------------------- |
 | `src/lib/machineToken.ts`                 | Token derivation (`getMachineTokenSync`) |
+| `bin/cli/utils/cliToken.mjs`              | CLI-side mirror of the same derivation   |
+| `<DATA_DIR>/cli-token-salt.json`          | Persisted random per-install salt        |
 | `src/server/authz/headers.ts`             | `CLI_TOKEN_HEADER` constant              |
 | `src/server/authz/policies/management.ts` | Server-side verification                 |
 | `src/server/authz/routeGuard.ts`          | Loopback host check (`isLoopbackHost`)   |

@@ -1,4 +1,9 @@
+# Authorization Guide (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+
 ---
+
 title: "Przewodnik po autoryzacji"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -17,27 +22,61 @@ OmniRoute ma potok autoryzacji zależny od trasy, który bramkuje każde żądan
 
 ## Dwa tryby uwierzytelniania
 
-### 1. API Key (Bearer)
+### 1. Klucz API (Bearer)
 
-Używany dla klienckich API zgodnych z OpenAI/Anthropic/Gemini oraz dla kilku tras management, gdy klucz ma scope `manage`.
+Używany przez interfejsy API klienta zgodne z OpenAI/Anthropic/Gemini oraz kilka tras zarządzania, gdy klucz ma zakres `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Walidowane przez `isValidApiKey()` / `extractApiKey()` w `src/sse/services/auth.ts` i reeksportowane przez `src/shared/utils/apiAuth.ts`. Walidator akceptuje też zmienne środowiskowe `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` jako trwałe klucze passthrough (issue #1350).
+Walidowany przez `isValidApiKey()` / `extractApiKey()` w `src/sse/services/auth.ts` i ponownie eksportowany przez `src/shared/utils/apiAuth.ts`. Walidator akceptuje również zmienne środowiskowe `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` jako trwałe klucze przekazywane bez zmian (zgłoszenie #1350).
 
-### 2. Sesja dashboardu (ciastko auth_token)
+### 2. Sesja panelu (plik cookie auth_token)
 
-Dla stron dashboardu i operacji administracyjnych.
+Dla stron panelu i operacji administracyjnych.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Weryfikowane przez `isDashboardSessionAuthenticated()` w `src/shared/utils/apiAuth.ts`. Potok automatycznie odświeża JWT, gdy zostało mniej niż 7 dni z 30-dniowego czasu życia.
+Plik cookie jest sesją tylko wtedy, gdy token JWT przejdzie weryfikację **i** zawiera `authenticated: true`
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Każdy
+konsument pliku cookie (strażnik trasy, odświeżanie potoku autoryzacji, uzgadnianie połączenia WebSocket, serwer
+na żywo, `/api/settings/require-login`, `/api/auth/status`) korzysta z tego pomocnika.
+Istnieją również inne tokeny JWT podpisane za pomocą `JWT_SECRET` — mechanizm przekazywania Cursor CLI generuje
+dla posiadaczy kluczy tokeny `iss "omniroute" / aud "cursor-cli"` — i nigdy nie są one sesjami
+(#13298).
 
-Niektóre trasy management akceptują **którykolwiek** tryb: ciastko LUB `Bearer <key>`, gdy klucz API ma scope `manage` (lub `admin`). To umożliwia workflow „konfigurowalne przez wywołania API” dodany w v3.8.
+Weryfikacja odbywa się za pomocą `isDashboardSessionAuthenticated()` w `src/shared/utils/apiAuth.ts`. Potok automatycznie odświeża token JWT, gdy do końca jego 30-dniowego okresu ważności pozostało mniej niż 7 dni.
+
+Niektóre trasy zarządzania akceptują **dowolny** z tych trybów: plik cookie LUB `Bearer <key>`, gdy klucz API ma zakres `manage` (lub `admin`). Umożliwia to przepływ pracy „konfigurowalny za pomocą wywołań API”, dodany w v3.8.
+
+#### Opcjonalna brama logowania OIDC (#6973)
+
+Logowanie administratora do panelu obsługuje również **opcjonalny** przepływ OIDC (OpenID Connect)
+obok domyślnego logowania za pomocą hasła — logowanie hasłem nigdy nie jest usuwane, a jedynie
+uzupełniane:
+
+- Jest wyłączone, chyba że `settings.oidcEnabled === true` **oraz** wszystkie wartości `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` są skonfigurowane (Ustawienia → Uwierzytelnianie).
+  W przeciwnym razie `GET /api/auth/oidc/login` zwraca `400`.
+- `GET /api/auth/oidc/login` wykrywa `authorization_endpoint` na podstawie
+  `/.well-known/openid-configuration` wystawcy (awaryjnie używa
+  `<issuer>/authorize`), tworzy identyfikator URI przekierowania na podstawie przychodzącego żądania
+  (z uwzględnieniem `x-forwarded-proto`) i przekierowuje do dostawcy tożsamości z losową wartością `state`
+  zapisaną w pliku cookie `oidc_state` z flagą `httpOnly`.
+- `GET /api/auth/oidc/callback` weryfikuje `state`, wymienia kod autoryzacyjny
+  i weryfikuje podpis tokenu ID przy użyciu JWKS wystawcy
+  (`createRemoteJWKSet` z pakietu `jose`, buforowane osobno dla każdego identyfikatora URI JWKS), sprawdzając
+  `issuer`/`audience`. Opcjonalna lista dozwolonych wartości `oidcAllowedSubjects` dopasowuje
+  deklarację `sub` tokenu lub jego deklarację `email` — deklaracja adresu e-mail jest uwzględniana tylko wtedy, gdy
+  `email_verified === true`, dlatego niezweryfikowany adres e-mail u dostawcy tożsamości nigdy nie umożliwi
+  przejścia przez bramę.
+- Po pomyślnym zakończeniu generowany jest **dokładnie taki sam** 30-dniowy token JWT `auth_token`, jaki wystawia
+  logowanie hasłem (`src/app/api/auth/login/route.ts`), dzięki czemu pozostała część
+  potoku sesji panelu (automatyczne odświeżanie, flagi plików cookie) pozostaje niezmieniona —
+  OIDC zastępuje jedynie sposób generowania pliku cookie, a nie przyznawane przez niego uprawnienia.
 
 ## Klasy tras
 

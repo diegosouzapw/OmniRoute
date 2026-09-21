@@ -1,0 +1,1 @@
+- **fix(sse):** stop over-escaped tabs from `gpt-5.6-luna-xhigh` corrupting Codex tool-call arguments — `\\t` is now collapsed back to a real tab instead of a literal `\t` text ([#12841](https://github.com/diegosouzapw/OmniRoute/pull/12841)) — thanks @rafacpti23

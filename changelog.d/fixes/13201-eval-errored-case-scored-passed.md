@@ -1,0 +1,1 @@
+- **fix(evals):** an eval case whose model call errored is no longer scored as passed — a case that never reached a model has no measured behaviour to grade ([#13201](https://github.com/diegosouzapw/OmniRoute/pull/13201)) — thanks @aaustinhuang

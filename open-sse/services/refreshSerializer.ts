@@ -27,6 +27,12 @@ const ROTATION_LOCK_GROUP: Record<string, string> = {
   "gitlab-duo": "gitlab-duo",
   kiro: "kiro",
   "kimi-coding": "kimi-coding",
+  // Cline rotates on every refresh — `refreshClineToken` reads a new
+  // `refreshToken` out of the response body, and a measured refresh moved a
+  // connection's stored token to a different value. It was missing here while
+  // already listed in tokenHealthCheck's ROTATING_REFRESH_PROVIDERS, so sibling
+  // connections could refresh concurrently and present superseded tokens.
+  cline: "cline",
 };
 
 // Protective settle gap (ms) between two consecutive sibling refreshes when the

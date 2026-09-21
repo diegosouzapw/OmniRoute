@@ -1,4 +1,9 @@
+# Progressive Web App (PWA) Guide (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/PWA_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/PWA_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/PWA_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/PWA_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/PWA_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/PWA_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/PWA_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/PWA_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/PWA_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/PWA_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/PWA_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/PWA_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/PWA_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/PWA_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/PWA_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/PWA_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/PWA_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/PWA_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/PWA_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/PWA_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/PWA_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/PWA_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/PWA_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/PWA_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/PWA_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/PWA_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/PWA_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/PWA_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/PWA_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/PWA_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/PWA_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/PWA_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/PWA_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/PWA_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/PWA_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/PWA_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/PWA_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/PWA_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/PWA_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/PWA_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/PWA_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/PWA_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/PWA_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/PWA_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/PWA_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/PWA_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/PWA_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/PWA_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/PWA_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/PWA_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/PWA_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/PWA_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/PWA_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/PWA_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/PWA_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/PWA_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/PWA_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/PWA_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/PWA_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/PWA_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/PWA_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/PWA_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/PWA_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/PWA_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/PWA_GUIDE.md)
+
 ---
+
 title: "Przewodnik po Progressive Web App (PWA)"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -45,53 +50,53 @@ Progressive Web App zamienia webowy dashboard OmniRoute w coś, co wygląda i dz
 
 ## Funkcje
 
-### Doświadczenie pełnoekranowe
+### Tryb pełnoekranowy
 
-Manifest jest skonfigurowany z `display: "fullscreen"`, co oznacza, że zainstalowana aplikacja zajmuje cały ekran — bez chrome przeglądarki i bez nakładania się paska statusu. Dzięki temu dashboard sprawia wrażenie w pełni natywnego.
+Manifest jest skonfigurowany z ustawieniem `display: "fullscreen"`, co oznacza, że zainstalowana aplikacja wykorzystuje cały ekran — bez elementów interfejsu przeglądarki i bez nakładania się na pasek stanu. Dzięki temu panel sprawia wrażenie prawdziwie natywnego.
 
-### Wsparcie offline
+### Obsługa trybu offline
 
-OmniRoute zawiera service worker (`sw.js`), który zapewnia inteligentne buforowanie:
+OmniRoute zawiera service workera (`sw.js`), który zapewnia inteligentne buforowanie:
 
-| Typ zasobu                                             | Strategia                          | Zachowanie                                                                   |
-| ------------------------------------------------------ | ---------------------------------- | ---------------------------------------------------------------------------- |
-| **App Shell**                                          | Cache-first                        | `/`, `/offline`, manifest i ikony są wstępnie buforowane przy instalacji     |
-| **Zasoby statyczne** (CSS, JS, obrazy, fonty)          | Network-first with cache fallback  | Pobiera świeże dane z sieci; w razie offline wraca do cache                  |
-| **Bundle'y Next.js** (`/_next/`)                       | Network-first with cache update    | Pobiera z sieci i aktualizuje cache; offline serwuje wersję z cache          |
-| **Żądania nawigacji**                                  | Network-only with offline fallback | Zawsze pobiera z sieci; przy braku sieci pokazuje stronę `/offline`          |
-| **Trasy API** (`/api/`, `/a2a`, `/dashboard/endpoint`) | Bypass (never cached)              | Zawsze idzie bezpośrednio na serwer — nigdy nie jest przechwytywane przez SW |
+| Typ zasobu                                             | Strategia                                                         | Działanie                                                                                                                 |
+| ------------------------------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Powłoka aplikacji**                                  | Najpierw pamięć podręczna                                         | `/`, `/offline`, manifest i ikony są wstępnie buforowane podczas instalacji                                               |
+| **Zasoby statyczne** (CSS, JS, obrazy, czcionki)       | Najpierw sieć, z użyciem pamięci podręcznej w razie niepowodzenia | Pobiera aktualne zasoby z sieci; w trybie offline korzysta z pamięci podręcznej                                           |
+| **Pakiety Next.js** (`/_next/`)                        | Najpierw sieć, z aktualizacją pamięci podręcznej                  | Pobiera zasoby z sieci i aktualizuje pamięć podręczną; w trybie offline udostępnia wersję z pamięci podręcznej            |
+| **Żądania nawigacyjne**                                | Pomijanie (nigdy nie są przechwytywane)                           | Przeglądarka zarządza przełączaniem awaryjnym HTTP/3→HTTP/2; nieaktywny socket QUIC nie może skutkować `Response.error()` |
+| **Trasy API / panelu** (`/api/`, `/a2a`, `/dashboard`) | Pomijanie (nigdy nie są buforowane)                               | Zawsze trafiają bezpośrednio do serwera — nigdy nie są przechwytywane przez service workera                               |
 
-### Strona offline
+### Strona trybu offline
 
-Gdy sieć jest niedostępna i użytkownik przechodzi na nową stronę, service worker serwuje dedykowaną stronę `/offline`, która:
+Gdy sieć jest niedostępna, a użytkownik przechodzi do nowej strony, service worker wyświetla dedykowaną stronę `/offline`, która:
 
-- Wyświetla czytelny komunikat **"Connectivity Issue"**
-- Pokazuje żywy **wskaźnik statusu online/offline** aktualizowany w czasie rzeczywistym
-- Udostępnia przycisk **"Retry Connection"** do przeładowania po powrocie łączności
-- Linkuje do **Status Page** w celach diagnostycznych
+- Wyświetla jasny komunikat **„Problem z połączeniem”**
+- Pokazuje aktualizowany w czasie rzeczywistym **wskaźnik stanu online/offline**
+- Udostępnia przycisk **„Ponów połączenie”**, który umożliwia ponowne załadowanie strony po przywróceniu łączności
+- Zawiera łącze do **strony stanu** umożliwiającej diagnostykę
 
 ### Ikony aplikacji
 
-OmniRoute dostarcza ikony zoptymalizowane pod każdą platformę:
+OmniRoute udostępnia ikony zoptymalizowane dla poszczególnych platform:
 
-| Plik                   | Rozmiar          | Używane przez                           |
-| ---------------------- | ---------------- | --------------------------------------- |
-| `icon-512.png`         | 512×512          | Monit instalacji Android, splash screen |
-| `apple-touch-icon.png` | 180×180          | Ikona ekranu głównego iOS               |
-| `icon-192.svg`         | 192×192 (wektor) | Adaptive icon Android                   |
-| `apple-touch-icon.svg` | 180×180 (wektor) | Fallback Apple                          |
-| `favicon.svg`          | Wektor           | Karty przeglądarki                      |
-| `favicon.ico`          | Wiele rozmiarów  | Starsze przeglądarki                    |
+| Plik                   | Rozmiar             | Zastosowanie                                         |
+| ---------------------- | ------------------- | ---------------------------------------------------- |
+| `icon-512.png`         | 512×512             | Monit instalacji w systemie Android, ekran powitalny |
+| `apple-touch-icon.png` | 180×180             | Ikona na ekranie głównym systemu iOS                 |
+| `icon-192.svg`         | 192×192 (wektorowa) | Adaptacyjna ikona systemu Android                    |
+| `apple-touch-icon.svg` | 180×180 (wektorowa) | Ikona zapasowa dla urządzeń Apple                    |
+| `favicon.svg`          | Wektorowy           | Karty przeglądarki                                   |
+| `favicon.ico`          | Wiele rozmiarów     | Starsze przeglądarki                                 |
 
 ### Automatyczna rejestracja
 
-Service worker jest rejestrowany automatycznie przez komponent `<PwaRegister />` w root layout. Nie jest potrzebna żadna akcja użytkownika — aplikacja staje się instalowalna, gdy tylko przeglądarka wykryje poprawny manifest i service worker.
+Service worker jest rejestrowany automatycznie za pośrednictwem komponentu `<PwaRegister />` w głównym układzie. Użytkownik nie musi podejmować żadnych działań — aplikację można zainstalować, gdy tylko przeglądarka wykryje prawidłowy manifest i service workera.
 
 ## Architektura techniczna
 
-### Web App Manifest (`manifest.webmanifest`)
+### Manifest aplikacji internetowej (`manifest.webmanifest`)
 
-Generowany przez Next.js przez `src/app/manifest.ts`:
+Generowany przez Next.js za pośrednictwem `src/app/manifest.ts`:
 
 ```json
 {
@@ -105,7 +110,12 @@ Generowany przez Next.js przez `src/app/manifest.ts`:
   "background_color": "#0b0f1a",
   "theme_color": "#0b0f1a",
   "icons": [
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
   ]
 }
@@ -113,32 +123,32 @@ Generowany przez Next.js przez `src/app/manifest.ts`:
 
 ### Service Worker (`public/sw.js`)
 
-Zwykły service worker (bez zależności frameworkowych) z:
+Standardowy service worker (bez zależności od frameworków), obejmujący:
 
-- **Faza install**: wstępnie buforuje app shell (root, strona offline, manifest, ikony)
-- **Faza activate**: czyści stare wersje cache i przejmuje wszystkie klienty
-- **Faza fetch**: inteligentne routowanie według typu żądania (nawigacja, zasób statyczny, API)
-- **Wersjonowanie cache**: `omniroute-pwa-v2` — zwiększ tę wartość, aby wymusić świeży cache przy aktualizacji
+- **Faza instalacji**: Wstępnie zapisuje w pamięci podręcznej szkielet aplikacji (stronę główną, stronę trybu offline, manifest i ikony)
+- **Faza aktywacji**: Usuwa stare wersje pamięci podręcznej i przejmuje kontrolę nad wszystkimi klientami
+- **Faza pobierania**: Inteligentnie kieruje żądania na podstawie ich typu (nawigacja, zasób statyczny, API)
+- **Wersjonowanie pamięci podręcznej**: `omniroute-pwa-v3` — zwiększ tę wartość, aby wymusić utworzenie nowej pamięci podręcznej po aktualizacji
 
-### Metadane layoutu (`src/app/layout.tsx`)
+### Metadane układu (`src/app/layout.tsx`)
 
-Root layout dostarcza wszystkie meta tagi wymagane do zgodności z PWA:
+Układ główny zawiera wszystkie metatagi wymagane do zapewnienia zgodności z PWA:
 
-- Link `manifest` do `/manifest.webmanifest`
-- `apple-web-app-capable: true` dla trybu standalone na iOS
+- Łącze `manifest` do `/manifest.webmanifest`
+- `apple-web-app-capable: true` dla trybu autonomicznego w systemie iOS
 - `apple-web-app-status-bar-style: black-translucent`
-- `mobile-web-app-capable: yes` dla Chrome na Androidzie
+- `mobile-web-app-capable: yes` dla przeglądarki Chrome na Androidzie
 - `theme-color: #0b0f1a`
-- `viewport-fit: cover` do renderowania od krawędzi do krawędzi
+- `viewport-fit: cover` dla renderowania od krawędzi do krawędzi
 
 ### Komponent: `PwaRegister`
 
-Znajduje się w `src/shared/components/PwaRegister.tsx`. Ten komponent kliencki:
+Znajdujący się w `src/shared/components/PwaRegister.tsx` komponent kliencki:
 
-1. Uruchamia się przy montowaniu (tylko po stronie klienta)
+1. Uruchamia się po zamontowaniu (wyłącznie po stronie klienta)
 2. Sprawdza obsługę `serviceWorker` w przeglądarce
-3. Rejestruje `/sw.js` w tle (błędy są połykane, aby nie blokować aplikacji)
-4. Nic nie renderuje (`return null`) — to komponent wyłącznie ze skutkami ubocznymi
+3. Rejestruje `/sw.js` bez komunikatów (błędy są ignorowane, aby uniknąć blokowania aplikacji)
+4. Niczego nie renderuje (`return null`) — jest to komponent służący wyłącznie do wykonywania efektów ubocznych
 
 ## Użycie z Termux (Android)
 

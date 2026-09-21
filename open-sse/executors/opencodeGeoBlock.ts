@@ -11,6 +11,20 @@
 // (2026-09-07 — app.log: "This model is not available in your country.");
 // siblings cover the same class, not the single incident. No bare "in your
 // country/region": location text without the full prefix is not a geo signal.
+// `user_blocked` refusal (observed 2026-09-13 — upstream 403 with this token).
+// Rotation on it is opt-in (OPENCODE_USER_BLOCKED_ROTATION) and bounded to one
+// hop; when enabled it reuses the geo tried-set. 403 and 451 are classified the
+// same way. Literal exact token only; `user-blocked` / `user blocked` are
+// unobserved phrasings (fail closed).
+const USER_BLOCKED_SIGNAL = "user_blocked";
+// Free-tier refusal (observed 2026-09-17): upstream rejects a request whose client
+// identity or request shape does not match the OpenCode client contract. Two
+// signals, both observed on the same response: the machine token in `error.type`,
+// and the relayed sentence in `error.message`. The sentence matters on its own
+// because the shared error parser keeps `error.type` aside, so the classifier only
+// ever sees the message. Both are exact substrings; no looser phrasing is
+// recognized (fail closed).
+const FREE_TIER_SIGNALS = ["freetiererror", "free tier can only be used"];
 const GEO_SIGNALS = [
   "not available in your country",
   "not available in your region",
@@ -49,7 +63,58 @@ export function isOpencodeGeoBlocked(status: number, bodyText: string): boolean 
   return GEO_SIGNALS.some((signal) => lower.includes(signal));
 }
 
+/** 403 or 451 whose body carries the user_blocked token and is not a geo block or 1010 rejection. */
+export function isOpencodeUserBlocked(status: number, bodyText: string | null): boolean {
+  if (status !== 403 && status !== 451) return false;
+  const text = String(bodyText || "");
+  if (isFingerprintRejection(text) || isOpencodeGeoBlocked(status, text)) return false;
+  return text.toLowerCase().includes(USER_BLOCKED_SIGNAL);
+}
+
+/**
+ * 403 or 451 refusing the request itself (client identity or request shape), not
+ * the account: every account gets the same verdict from the same request, so this
+ * is never a rotation signal and never an account-health signal. More specific
+ * refusals win: a fingerprint rejection, a geo block or a `user_blocked` body is
+ * left to its own predicate.
+ */
+export function isOpencodeFreeTierRefusal(status: number, bodyText: string | null): boolean {
+  if (status !== 403 && status !== 451) return false;
+  const text = String(bodyText || "");
+  if (
+    isFingerprintRejection(text) ||
+    isOpencodeGeoBlocked(status, text) ||
+    isOpencodeUserBlocked(status, text)
+  ) {
+    return false;
+  }
+  const lower = text.toLowerCase();
+  return FREE_TIER_SIGNALS.some((signal) => lower.includes(signal));
+}
+
 export function proxyKeyOf(proxy: { host: string; port: number } | null): string | null {
   if (!proxy) return null;
   return `${proxy.host}:${proxy.port}`;
+}
+
+/**
+ * Whether this provider and response are an OpenCode free-tier refusal.
+ *
+ * Scoped to the opencode family the same way `classifyProviderError` scopes it, so a
+ * foreign provider echoing the same sentence keeps its existing handling.
+ *
+ * Callers use this to decide that nothing about the refusal belongs on the account or the
+ * model: the refusal is scoped to the REQUEST. Every sibling account returns the same
+ * verdict for it, and the same account answers 200 once the request matches the upstream
+ * contract. Writing a cooldown, a lockout or an error state would be wrong twice over —
+ * the model is not forbidden, and one refusal per account empties the pool until the
+ * provider answers "no active credentials" for requests that would have been served.
+ */
+export function isOpencodeFreeTierRefusalForProvider(
+  provider: string | null | undefined,
+  status: number,
+  bodyText: string | null
+): boolean {
+  if (!provider || !provider.toLowerCase().startsWith("opencode")) return false;
+  return isOpencodeFreeTierRefusal(status, bodyText);
 }

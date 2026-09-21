@@ -133,7 +133,13 @@ export function checkIP(ip) {
 
   switch (_config.mode) {
     case "whitelist":
-      // Only whitelisted IPs allowed
+      // Only whitelisted IPs allowed — but if the whitelist is empty the admin
+      // has just switched to this mode and has not added IPs yet.  Allow the
+      // request through so the admin can still reach the dashboard to populate
+      // the list.  Once at least one entry exists, enforcement kicks in.
+      if (_config.whitelist.size === 0) {
+        return { allowed: true };
+      }
       if (!matchesAny(normalizedIP, _config.whitelist)) {
         return { allowed: false, reason: "IP not in whitelist" };
       }

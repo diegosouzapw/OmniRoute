@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { homedir } from "node:os";
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type {
   OmniRouteEnrichmentEntry,
@@ -81,6 +81,12 @@ interface DiskSnapshotV2 {
  */
 const MAX_SNAPSHOT_BYTES = 32 * 1024 * 1024;
 
+// Suffix for the temp file each write publishes via rename. Monotone per
+// process: two writes for one provider (for example across a credential
+// rotation) must not share a temp name. Built after the empty-models and
+// size-cap guards, so only real attempts consume a value.
+let snapshotWriteCounter = 0;
+
 function trimTrailingSlashes(value: string): string {
   let i = value.length;
   while (i > 0 && value.charCodeAt(i - 1) === 0x2f) i -= 1;
@@ -133,7 +139,7 @@ export async function readDiskSnapshot(
     if (
       !parsed ||
       typeof parsed.v !== "number" ||
-      parsed.v < SNAPSHOT_FORMAT_VERSION ||
+      parsed.v !== SNAPSHOT_FORMAT_VERSION ||
       typeof parsed.identityFingerprint !== "string" ||
       parsed.identityFingerprint !== identityFingerprint
     ) {
@@ -179,8 +185,14 @@ export async function readDiskSnapshot(
 export async function writeDiskSnapshot(
   providerId: string,
   snapshot: CatalogSnapshot,
-  identityFingerprint: string
+  identityFingerprint: string,
+  logger?: { warn: (message: string) => void }
 ): Promise<void> {
+  // Monotone per-process suffix: two writes for one provider (for example
+  // across a credential rotation) must not share a temp name. Declared here
+  // so the catch below can clean it up; assigned after the guards so only
+  // real attempts consume a counter value.
+  let tmp = "";
   try {
     if (snapshot.models.length === 0) return;
     const file = diskSnapshotPath(providerId);
@@ -196,14 +208,33 @@ export async function writeDiskSnapshot(
       writtenAt: Date.now(),
     };
     let payload = JSON.stringify(envelope);
-    if (payload.length > MAX_SNAPSHOT_BYTES && envelope.enrichment !== undefined) {
+    if (
+      Buffer.byteLength(payload, "utf8") > MAX_SNAPSHOT_BYTES &&
+      envelope.enrichment !== undefined
+    ) {
       delete envelope.enrichment;
       payload = JSON.stringify(envelope);
     }
-    if (payload.length > MAX_SNAPSHOT_BYTES) return;
-    await writeFile(file, payload, { encoding: "utf8", mode: 0o600 });
-  } catch {
+    if (Buffer.byteLength(payload, "utf8") > MAX_SNAPSHOT_BYTES) {
+      logger?.warn(
+        `[omniroute-v2] snapshot for ${providerId} exceeds the size cap, skipping disk write`
+      );
+      return;
+    }
+    tmp = `${file}.${process.pid}.${snapshotWriteCounter++}`;
+    await writeFile(tmp, payload, { encoding: "utf8", mode: 0o600 });
+    await rename(tmp, file);
+  } catch (err) {
     // Best-effort: callers already hold the in-memory entry.
+    logger?.warn(
+      `[omniroute-v2] snapshot write failed for ${providerId}: ` +
+        `${err instanceof Error ? err.message : String(err)}, keeping the in-memory entry`
+    );
+    try {
+      await unlink(tmp);
+    } catch {
+      // Ignore: the temp file may not exist (mkdir failed first).
+    }
   }
 }
 

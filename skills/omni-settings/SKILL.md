@@ -1150,6 +1150,17 @@ curl -X DELETE https://localhost:20128/api/settings/proxies/pool \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/settings/proxies/pool/egress-observation
+
+GET settings › proxies › pool › egress observation
+
+Read-only observation of how many distinct egress IPs actually served the members of a proxy pool over the last 24 h, read from the proxy log (numbers only, never used for routing). Opt-in through the PROXY_POOL_EGRESS_OBSERVATION feature flag: while it is off, or when the read fails, the body is JSON null. Results are cached for 30 seconds per normalized scope (key is read as account, global as the stored global pool).
+
+```bash
+curl https://localhost:20128/api/settings/proxies/pool/egress-observation \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ### POST /api/settings/proxy/cloudflare-deploy
 
 POST settings › proxy › cloudflare deploy

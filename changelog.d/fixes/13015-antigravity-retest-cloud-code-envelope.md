@@ -1,0 +1,1 @@
+- **fix(providers):** Antigravity connection Retest probes Cloud Code envelope ([#13015](https://github.com/diegosouzapw/OmniRoute/pull/13015)) — thanks @tuandinh0801

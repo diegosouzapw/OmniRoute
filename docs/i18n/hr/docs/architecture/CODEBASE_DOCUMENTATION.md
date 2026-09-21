@@ -1,30 +1,21 @@
-# CODEBASE_DOCUMENTATION (Hrvatski)
+# OmniRoute Codebase Documentation (Hrvatski)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
-
-title: "OmniRoute Codebase Documentation"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# OmniRoute Dokumentacija Kodne Baze
 
 > **Verzija:** v3.8.51
-> **Zadnje ažuriranje:** 2026-06-28
-> **Ciljana publika:** Inženjeri koji doprinose OmniRoute-u ili grade integracije na njemu.
+> **Posljednje ažuriranje:** 2026-06-28
+> **Ciljana publika:** Inženjeri koji doprinose projektu OmniRoute ili izrađuju integracije povrh njega.
 >
-> Za arhitekturne dijagrame visoke razine i obrazloženje svakog podsustava, pročitajte
-> [ARCHITECTURE.md](./ARCHITECTURE.md). Za dubinska istraživanja pojedinih podsustava
-> (Auto Combo, MCP server, A2A server, Skills, Memory, Cloud Agents, Resilience,
-> Compression, itd.) pogledajte njihove namjenske datoteke u ovom direktoriju `docs/`.
+> Za arhitekturne dijagrame visoke razine i obrazloženje svakog podsustava pročitajte
+> [ARCHITECTURE.md](./ARCHITECTURE.md). Za detaljan uvid u pojedinačne podsustave
+> (Auto Combo, MCP poslužitelj, A2A poslužitelj, Skills, Memory, Cloud Agents, Resilience,
+> Compression itd.) pogledajte njihove namjenske datoteke u ovom direktoriju `docs/`.
 
-Ova datoteka opisuje **što danas postoji u repozitoriju** kako bi novi inženjer
-mogao navigirati strukturom, razumjeti slojevitost izvođenja i znati gdje dodati kod
-bez izmišljanja novih modula.
+Ova datoteka opisuje **što trenutačno postoji u repozitoriju** kako bi se novi inženjer
+mogao snaći u stablu, razumjeti slojeve izvođenja i znati gdje dodati kôd
+bez osmišljavanja novih modula.
 
 ---
 
@@ -443,9 +434,9 @@ Podijeljeno u fokusirane poddirektorije:
 
 ---
 
-## 4. `open-sse/` — Radni prostor streaming pogona
+## 4. `open-sse/` — Radni prostor mehanizma za streaming
 
-Zasebni npm radni prostor objavljen kao `@omniroute/open-sse`. Sadrži obradu
+Zaseban npm radni prostor objavljen kao `@omniroute/open-sse`. Obuhvaća obradu
 zahtjeva, izvršitelje, prevoditelje, servise, transformator i MCP poslužitelj.
 
 ```
@@ -454,53 +445,53 @@ open-sse/
 ├── package.json            Manifest radnog prostora
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 Registri pružatelja usluga, profili zaglavlja, identitet, …
-├── handlers/               Upravljači zahtjevima (chat, ugrađivanja, audio, slika, …)
-├── executors/              108 izvršitelja specifičnih za pružatelja usluga (HTTP)
+├── config/                 Registri pružatelja, profili zaglavlja, identitet, …
+├── handlers/               Obrađivači zahtjeva (razgovor, ugradnje, zvuk, slika, …)
+├── executors/              108 HTTP izvršitelja specifičnih za pružatelje
 ├── translator/             Pretvorba formata (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
-├── transformer/            Responses API ↔ transformator toka Chat Completions
-├── services/               80+ servisnih modula (kombinacije, zamjena, kvote, identitet, …)
-├── utils/                  Streaming pomoćnici, TLS klijent, AWS SigV4, proxy dohvat, …
+├── transformer/            Transformator streama Responses API ↔ Chat Completions
+├── services/               Više od 80 servisnih modula (kombinacije, pričuvni mehanizmi, kvote, identitet, …)
+├── utils/                  Pomagala za streaming, TLS klijent, AWS SigV4, dohvaćanje putem proxyja, …
 └── mcp-server/             MCP poslužitelj (3 transporta, 33 opsega, 110 alata)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| Upravljač               | Svrha                                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------ |
-| `chatCore.ts`           | Glavni chat cjevovod (predmemorija, ograničenje brzine, usmjeravanje kombinacija, otprema izvršitelja) |
-| `responsesHandler.ts`   | Ulazna točka OpenAI Responses API-ja                                                                   |
-| `embeddings.ts`         | Ugrađivanja                                                                                            |
-| `imageGeneration.ts`    | Generiranje slika                                                                                      |
-| `audioSpeech.ts`        | Pretvorba teksta u govor                                                                               |
-| `audioTranscription.ts` | Pretvorba govora u tekst                                                                               |
-| `videoGeneration.ts`    | Generiranje videa                                                                                      |
-| `musicGeneration.ts`    | Generiranje glazbe                                                                                     |
-| `rerank.ts`             | Ponovni poredak                                                                                        |
-| `moderations.ts`        | Moderiranje                                                                                            |
-| `search.ts`             | Pretraživanje weba                                                                                     |
-| `sseParser.ts`          | Parser SSE događaja                                                                                    |
-| `usageExtractor.ts`     | Izvlačenje broja tokena iz uzvodnih tokova                                                             |
-| `responseSanitizer.ts`  | Uklanjanje šuma specifičnog za pružatelja usluga                                                       |
-| `responseTranslator.ts` | Spona između odgovora pružatelja usluga i sloja prevoditelja                                           |
+| Obrađivač               | Namjena                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `chatCore.ts`           | Glavni tijek razgovora (predmemorija, ograničenje brzine, usmjeravanje kombinacija, prosljeđivanje izvršitelju) |
+| `responsesHandler.ts`   | Ulazna točka za OpenAI Responses API                                                                            |
+| `embeddings.ts`         | Ugradnje                                                                                                        |
+| `imageGeneration.ts`    | Generiranje slika                                                                                               |
+| `audioSpeech.ts`        | Pretvaranje teksta u govor                                                                                      |
+| `audioTranscription.ts` | Pretvaranje govora u tekst                                                                                      |
+| `videoGeneration.ts`    | Generiranje videozapisa                                                                                         |
+| `musicGeneration.ts`    | Generiranje glazbe                                                                                              |
+| `rerank.ts`             | Ponovno rangiranje                                                                                              |
+| `moderations.ts`        | Moderiranje                                                                                                     |
+| `search.ts`             | Pretraživanje weba                                                                                              |
+| `sseParser.ts`          | Parser SSE događaja                                                                                             |
+| `usageExtractor.ts`     | Izdvajanje broja tokena iz uzvodnih streamova                                                                   |
+| `responseSanitizer.ts`  | Uklanjanje šuma specifičnog za pružatelja                                                                       |
+| `responseTranslator.ts` | Poveznica između odgovora pružatelja i prevoditeljskog sloja                                                    |
 
 ### 4.2 `open-sse/executors/`
 
-108 izvršitelja pružatelja usluga, svaki proširuje `BaseExecutor` (`base.ts`):
+108 izvršitelja za pružatelje, od kojih svaki proširuje `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
-`pollinations`, `qoder`, `vertex`, `devin-desktop`, plus `claudeIdentity.ts`
-(dijeljeni pomoćnik identiteta) i `index.ts` (registar).
+`pollinations`, `qoder`, `vertex`, `devin-desktop`, uz `claudeIdentity.ts`
+(zajedničko pomagalo za identitet) i `index.ts` (registar).
 
-> Napomena: pružatelji usluga koji nisu navedeni ovdje poslužuju se putem `default.ts` koristeći generički
-> izvršitelj kompatibilan s OpenAI-jem. Potpuni katalog pružatelja usluga (355 pružatelja) nalazi se u
+> Napomena: pružatelje koji ovdje nisu navedeni poslužuje `default.ts` koristeći generički
+> izvršitelj kompatibilan s OpenAI-jem. Potpuni katalog pružatelja (355 pružatelja) nalazi se u
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-Prevođenje tipa zvjezdišta i žbica (OpenAI je zvjezdište).
+Prevođenje prema modelu središta i krakova (OpenAI je središte).
 
 - **9 prevoditelja zahtjeva** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
@@ -510,69 +501,69 @@ Prevođenje tipa zvjezdišta i žbica (OpenAI je zvjezdište).
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **9 pomoćnika** (`translator/helpers/`):
+- **9 pomagala** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
-  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, plus
-  testovi pomoćnika.
-- **Pomoćnici za slike** (`translator/image/sizeMapper.ts`).
+  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, uz
+  testove pomagala.
+- **Pomagala za slike** (`translator/image/sizeMapper.ts`).
 - Najviša razina: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — pretvarač Responses API ↔ Chat Completions temeljen na `TransformStream`
-  (koristi ga catch-all ruta `responses/`).
+- `responsesTransformer.ts` — pretvarač Responses API ↔ Chat
+  Completions temeljen na `TransformStream` (upotrebljava ga ruta `responses/` koja obuhvaća sve ostale slučajeve).
 
 ### 4.5 `open-sse/services/`
 
-Istaknuti primjeri (cijeli popis u `open-sse/services/`):
+Istaknuto (potpuni popis nalazi se u `open-sse/services/`):
 
-| Područje                   | Datoteke                                                                                                                                                                                                                                          |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Usmjeravanje kombinacija   | `combo.ts` (19 strategija), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                             |
-| Pogon Auto Combo           | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| Otpornost                  | `accountFallback.ts` (hlađenje + zaključavanje), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                        |
-| Kvote                      | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| Predmemoriranje            | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
-| Inteligencija usmjeravanja | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| Rukovanje modelima         | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| Kompresija                 | `compression/` — potpuno ožičenje pogona kompresije                                                                                                                                                                                               |
-| Token i sesija             | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| Razina i manifest          | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP i mreža                 | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| Grupna obrada              | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| Korištenje                 | `usage.ts`                                                                                                                                                                                                                                        |
+| Područje                  | Datoteke                                                                                                                                                                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kombinirano usmjeravanje  | `combo.ts` (19 strategija), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
+| Mehanizam Auto Combo      | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| Otpornost                 | `accountFallback.ts` (razdoblje čekanja + zaključavanje), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                          |
+| Kvote                     | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| Predmemoriranje           | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| Inteligentno usmjeravanje | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| Obrada modela             | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| Kompresija                | `compression/` — potpuno povezivanje mehanizma za kompresiju                                                                                                                                                                                             |
+| Tokeni + sesije           | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| Razina / manifest         | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / mreža                | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| Skupne obrade             | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Upotreba                  | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 jedinstvenih alata** ožičenih u `server.ts` (45 kanonskih u `schemas/tools.ts` +
-  moduli za memoriju, vještine, GitHub-vještine, pool, gamifikaciju, dodatke, Notion, Obsidian,
-  lokalni korpus i kompresiju — unija prebrojana pomoću `countUniqueMcpTools`).
-- **3 transporta**: stdio, HTTP Streamable, SSE.
-- **33 opsega** provedenih pri izvođenju — osnovni popis u `src/shared/constants/mcpScopes.ts`, potpuni skup je unija opsega koje deklarira svaki modul alata.
-- Revizijska tablica: `mcp_tool_audit` (popunjava `audit.ts`).
+- **110 jedinstvenih alata** povezanih u `server.ts` (45 kanonskih u `schemas/tools.ts` +
+  moduli za memoriju, vještine, GitHub-vještine, skupove, gamifikaciju, dodatke, Notion, Obsidian,
+  lokalni korpus i kompresiju — unija prebrojena funkcijom `countUniqueMcpTools`).
+- **3 prijenosa**: stdio, HTTP Streamable, SSE.
+- **33 opsega** provode se tijekom izvođenja — osnovni popis nalazi se u `src/shared/constants/mcpScopes.ts`, a potpuni je skup unija opsega koje deklarira svaki modul alata.
+- Tablica revizije: `mcp_tool_audit` (popunjava je `audit.ts`).
 - Datoteke: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
-  plus testovi u `__tests__/`.
-- Pogledajte [MCP-SERVER.md](../frameworks/MCP-SERVER.md) za potpuni katalog alata.
+  uz testove u `__tests__/`.
+- Potpuni katalog alata pogledajte u [MCP-SERVER.md](../frameworks/MCP-SERVER.md).
 
 ### 4.7 `open-sse/config/`
 
-Registri pružatelja usluga (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), registri modela po formatu (`audioRegistry.ts`,
+Registri pružatelja (`providerRegistry.ts`, `providerModels.ts`,
+`providerHeaderProfiles.ts`), registri modela po formatima (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-pomoćnici identiteta (`codexIdentity.ts`, `codexInstructions.ts`,
+pomoćne funkcije za identitet (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-pomoćnici vjerodajnica (`credentialLoader.ts`, `codexClient.ts`) i cloud
-adapteri (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+pomoćne funkcije za vjerodajnice (`credentialLoader.ts`, `codexClient.ts`) i adapteri
+za oblak (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-Primitivi streaminga i pomoćnici pružatelja usluga: `stream.ts`, `streamHandler.ts`,
+Primitivi za streaming i pomoćni alati pružatelja usluga: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,

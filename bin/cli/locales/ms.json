@@ -1,5 +1,1340 @@
 {
+  "common": {
+    "error": "Ralat: {message}",
+    "serverOffline": "Pelayan OmniRoute di luar talian. Mulakannya dengan: omniroute serve",
+    "authRequired": "Pengesahan diperlukan. Tetapkan OMNIROUTE_API_KEY atau jalankan: omniroute setup",
+    "rateLimited": "Had kadar telah dilebihi. Cuba semula selepas {seconds}s.",
+    "timeout": "Permintaan tamat masa selepas {ms}ms.",
+    "success": "Selesai.",
+    "yes": "ya",
+    "no": "tidak",
+    "confirm": "Adakah anda pasti? (ya/tidak)",
+    "dryRun": "[dry-run] akan {action}",
+    "cancelled": "Dibatalkan.",
+    "jsonOpt": "Output sebagai JSON",
+    "yesOpt": "Langkau gesaan pengesahan"
+  },
+  "setup": {
+    "title": "Persediaan OmniRoute",
+    "passwordPrompt": "Kata laluan pentadbir",
+    "providerPrompt": "Penyedia lalai (biarkan kosong untuk langkau)",
+    "done": "Persediaan selesai",
+    "passwordSet": "Kata laluan pentadbir telah dikonfigurasikan",
+    "providerSet": "Penyedia dikonfigurasikan: {name}",
+    "testingProvider": "Menguji sambungan penyedia: {name}",
+    "testPassed": "Ujian penyedia berjaya",
+    "testFailed": "Ujian penyedia gagal: {error}",
+    "loginEnabled": "Log masuk: didayakan (kata laluan dikemas kini)",
+    "loginDisabled": "Log masuk: dilumpuhkan",
+    "providerInfo": "Penyedia: {info}",
+    "opencode": "Pasang dan konfigurasikan @omniroute/opencode-plugin terbina dalam untuk OpenCode"
+  },
+  "doctor": {
+    "title": "Diagnostik OmniRoute",
+    "dbOk": "Pangkalan data: OK ({path})",
+    "dbMissing": "Pangkalan data: belum dimulakan — jalankan `omniroute setup`",
+    "portOk": "Port {port}: tersedia",
+    "portConflict": "Port {port}: sedang digunakan oleh proses lain",
+    "encryptionOk": "Kunci penyulitan: dikonfigurasikan",
+    "encryptionMissing": "Kunci penyulitan tiada — jalankan `omniroute setup`",
+    "allGood": "Semua semakan berjaya.",
+    "warnings": "{count} amaran — lihat di atas."
+  },
+  "providers": {
+    "title": "Penyedia",
+    "noProviders": "Tiada penyedia dikonfigurasikan. Jalankan: omniroute setup",
+    "testing": "Menguji {name}...",
+    "available": "{count} penyedia tersedia",
+    "connected": "Disambungkan",
+    "disconnected": "Terputus",
+    "validationFailed": "Pengesahan gagal: {error}",
+    "metrics": {
+      "description": "Tunjukkan metrik prestasi penyedia (kependaman, kadar kejayaan, kos)",
+      "provider": "Tapis mengikut ID penyedia",
+      "connection_id": "Tapis mengikut ID sambungan",
+      "period": "Tempoh masa: 1h|6h|24h|7d|30d (lalai: 24h)",
+      "metric": "Fokus pada medan metrik tertentu",
+      "sort": "Isih mengikut medan (menurun)",
+      "limit": "Baris maksimum (lalai: 50)",
+      "watch": "Muat semula setiap 5s (mod langsung)",
+      "compare": "ID penyedia dipisahkan koma untuk dibandingkan sebelah-menyebelah"
+    },
+    "metric_single": {
+      "description": "Dapatkan satu nilai metrik untuk sambungan tertentu"
+    },
+    "rotate": {
+      "description": "Gilirkan kunci API huluan untuk sambungan penyedia",
+      "newKeyOpt": "Nilai kunci API baharu (elakkan: utamakan --from-env)",
+      "fromEnvOpt": "Baca kunci baharu daripada pemboleh ubah persekitaran VAR",
+      "oauthOpt": "Cetuskan aliran pengesahan semula OAuth sebaliknya",
+      "skipTestOpt": "Langkau ujian kesambungan selepas penggiliran",
+      "dryRunOpt": "Paparkan perubahan yang akan dilakukan tanpa menulis",
+      "confirmPrompt": "Gantikan kunci API untuk sambungan \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Akan menggilirkan kunci untuk \"{name}\" ({id}). Tiada perubahan dibuat.",
+      "oauthHint": "Sambungan OAuth — jalankan: omniroute oauth {provider}",
+      "envVarEmpty": "Pemboleh ubah persekitaran {var} tidak ditetapkan atau kosong.",
+      "success": "Kunci telah digilirkan untuk \"{name}\". Jalankan `providers test {id}` untuk mengesahkan.",
+      "testPassed": "Ujian selepas penggiliran berjaya.",
+      "testFailed": "Ujian selepas penggiliran gagal: {error}"
+    },
+    "status": {
+      "description": "Tunjukkan status kunci untuk semua sambungan penyedia (usia, tamat tempoh, tempoh bertenang)",
+      "providerOpt": "Tapis mengikut nama penyedia",
+      "header": "ID         Penyedia       Nama                     Status Tamat Tempoh  Status Ujian  Tempoh Bertenang Hingga",
+      "noData": "Tiada data sambungan penyedia tersedia.",
+      "requiresServer": "providers status memerlukan pelayan OmniRoute sedang berjalan."
+    }
+  },
+  "keys": {
+    "title": "Kunci API",
+    "addDescription": "Tambah atau kemas kini kunci API untuk penyedia",
+    "listDescription": "Senaraikan semua kunci API yang dikonfigurasikan",
+    "removeDescription": "Alih keluar kunci API untuk penyedia",
+    "regenerateDescription": "Jana semula kunci API OmniRoute",
+    "revokeDescription": "Batalkan kunci API OmniRoute",
+    "revealDescription": "Dedahkan nilai kunci API yang tidak disamarkan",
+    "usageDescription": "Tunjukkan penggunaan terkini untuk kunci API",
+    "usageLimitOpt": "Bilangan permintaan terkini",
+    "rotateDescription": "Jana kunci baharu dan batalkan kunci lama",
+    "graceOpt": "Tempoh tangguh (ms) sebelum kunci lama dinyahsahkan",
+    "stdinOpt": "Baca kunci API daripada stdin dan bukannya argumen",
+    "added": "Kunci ditambahkan untuk {provider}.",
+    "removed": "Kunci dialih keluar.",
+    "listed": "{count} kunci.",
+    "noKeys": "Tiada kunci dikonfigurasikan.",
+    "noUsage": "Tiada data penggunaan ditemukan.",
+    "confirmRemove": "Alih keluar kunci {id}?",
+    "confirmRegenerate": "Jana semula kunci {id}?",
+    "confirmRevoke": "Batalkan kunci {id}?",
+    "confirmRotate": "Putar ganti kunci {id}? (kunci lama akan dinyahsahkan selepas tempoh tangguh)",
+    "regenerated": "Telah dijana semula. Kunci baharu: {key}",
+    "revoked": "Kunci {id} telah dibatalkan.",
+    "rotated": "Kunci {id} telah diputar ganti. ID kunci baharu: {newId}",
+    "revealWarning": "⚠  Ini akan memaparkan kunci penuh tanpa penyamaran. Pastikan skrin anda tidak dapat dilihat oleh orang lain.",
+    "providerRequired": "Penyedia diperlukan.",
+    "keyRequired": "Kunci API diperlukan.",
+    "stdinEmpty": "Tiada kunci API diberikan melalui stdin.",
+    "unknownProvider": "Penyedia tidak diketahui: {provider}",
+    "policy": {
+      "title": "Dasar Kunci",
+      "showDescription": "Tunjukkan dasar kadar/kos untuk kunci",
+      "setDescription": "Tetapkan dasar kadar/kos untuk kunci",
+      "rateLimitOpt": "Permintaan maksimum seminit",
+      "maxCostOpt": "Kos maksimum sehari (USD)",
+      "allowedModelsOpt": "Senarai model yang dibenarkan, dipisahkan dengan koma",
+      "nothingToSet": "Tiada medan dasar diberikan. Gunakan --rate-limit, --max-cost, atau --allowed-models.",
+      "updated": "Dasar telah dikemas kini."
+    },
+    "expiration": {
+      "title": "Tamat Tempoh Kunci",
+      "listDescription": "Senaraikan kunci yang akan tamat tempoh tidak lama lagi",
+      "daysOpt": "Tunjukkan kunci yang akan tamat tempoh dalam tempoh N hari",
+      "none": "Tiada kunci yang akan tamat tempoh dalam tempoh {days} hari.",
+      "listTitle": "Kunci yang akan tamat tempoh dalam tempoh {days} hari:"
+    }
+  },
+  "authExport": {
+    "description": "Eksport kelayakan penyedia yang DINYAHKRIP (setempat sahaja, output teks biasa)",
+    "idOpt": "Eksport hanya sambungan yang sepadan dengan id/nama/penyedia ini",
+    "formatOpt": "Format output: json atau env",
+    "outOpt": "Tulis output ke fail dan bukannya stdout (ditulis dengan kebenaran 0600)",
+    "forceOpt": "Sahkan bahawa anda memahami tindakan ini akan mencetak/menulis rahsia dalam bentuk teks biasa",
+    "warning": "⚠ Tindakan ini mencetak/menulis kunci API dan token OAuth yang telah DINYAHKRIP dalam bentuk teks biasa. Pastikan skrin, sejarah shell dan sebarang fail output anda kekal peribadi.",
+    "confirmHeading": "⚠ AMARAN: tindakan ini mengeksport kelayakan penyedia yang telah DINYAHKRIP dalam bentuk teks biasa",
+    "confirmBody": "Perintah ini menyahkrip dan mencetak/menulis apiKey, accessToken, refreshToken, dan\nidToken untuk sambungan yang dipilih. Anggap output ini sebagai rahsia.",
+    "confirmFooter": "Untuk mengesahkan, jalankan:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY diperlukan untuk mengeksport bukti kelayakan.",
+    "notFound": "Sambungan tidak ditemukan: {id}",
+    "invalidFormat": "Format tidak sah: {format}. Gunakan json atau env."
+  },
+  "stream": {
+    "description": "Strim respons sembang dengan mod pemeriksaan SSE",
+    "file": "Baca gesaan daripada fail",
+    "stdin": "Baca gesaan daripada stdin",
+    "model": "ID model (lalai: auto)",
+    "system": "Gesaan sistem",
+    "combo": "Paksa kombo tertentu mengikut nama",
+    "max_tokens": "Token maksimum dalam respons",
+    "responses_api": "Gunakan /v1/responses dan bukannya /v1/chat/completions",
+    "raw": "Cetak baris SSE mentah seperti yang diterima",
+    "debug": "Cetak maklumat pemasaan setiap cebisan ke stderr",
+    "save": "Simpan semua peristiwa SSE ke fail .jsonl",
+    "error": {
+      "empty_prompt": "Ralat: gesaan diperlukan (argumen kedudukan, --file, atau --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analitis penggunaan, belanjawan, kuota dan log",
+    "analytics": {
+      "description": "Tunjukkan analitis penggunaan teragregat",
+      "period": "Julat masa: 1d|7d|30d|90d|ytd|all (lalai: 30d)",
+      "provider": "Tapis mengikut ID penyedia"
+    },
+    "budget": {
+      "description": "Urus belanjawan kos",
+      "set": {
+        "scope": "Skop belanjawan (lalai: global)",
+        "period": "Tempoh belanjawan: daily|weekly|monthly (lalai: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Tunjukkan penggunaan kuota penyedia",
+      "provider": "Tapis mengikut ID penyedia",
+      "check": "Tunjukkan sama ada kuota tersedia untuk permintaan baharu"
+    },
+    "logs": {
+      "description": "Tunjukkan log panggilan permintaan",
+      "limit": "Bilangan entri log untuk dikembalikan (lalai: 100)",
+      "search": "Pertanyaan carian untuk menapis log",
+      "since": "Kembalikan log sejak cap masa ini",
+      "follow": "Ikuti entri log baharu secara berterusan",
+      "api_key": "Tapis log mengikut kunci API"
+    },
+    "utilization": {
+      "description": "Tunjukkan metrik penggunaan kunci API",
+      "api_key": "Tapis mengikut kunci API"
+    },
+    "history": {
+      "description": "Tunjukkan sejarah permintaan",
+      "limit": "Bilangan entri sejarah (lalai: 100)"
+    },
+    "proxy_logs": {
+      "description": "Tunjukkan log permintaan peringkat proksi",
+      "limit": "Bilangan entri log proksi (lalai: 100)"
+    }
+  },
+  "cost": {
+    "description": "Tunjukkan laporan kos dengan pecahan mengikut penyedia, model, kombo atau kunci API",
+    "period": "Julat masa: 1d|7d|30d|90d|ytd|all (lalai: 30d)",
+    "since": "Tarikh mula (format ISO, cth. 2026-01-01) — mengatasi --period",
+    "until": "Tarikh tamat (format ISO)",
+    "group_by": "Kumpulkan hasil mengikut: provider|model|api-key|combo|day (lalai: provider)",
+    "api_key_filter": "Tapis mengikut kunci API tertentu",
+    "limit": "Bilangan maksimum baris untuk dipaparkan (lalai: 100)"
+  },
+  "simulate": {
+    "description": "Simulasi penghalaan percubaan — tunjukkan penyedia yang akan dipilih tanpa memanggil upstream",
+    "file": "Muatkan kandungan penuh permintaan daripada fail JSON",
+    "model": "ID model (lalai: auto)",
+    "combo": "Paksa combo tertentu mengikut nama",
+    "reasoning": "Tahap usaha penaakulan (low|medium|high)",
+    "thinking": "Bajet token pemikiran lanjutan",
+    "explain": "Cetak pepohon fallback dan julat kos ke stderr",
+    "noCombo": "Tiada combo yang sepadan ditemui. Konfigurasikan satu dengan: omniroute combo create"
+  },
+  "chat": {
+    "description": "Hantar gesaan sembang sekali sahaja kepada OmniRoute",
+    "file": "Baca gesaan daripada fail",
+    "stdin": "Baca gesaan daripada stdin",
+    "system": "Gesaan sistem",
+    "model": "ID model (lalai: auto)",
+    "max_tokens": "Token maksimum dalam respons",
+    "temperature": "Suhu pensampelan (0–2)",
+    "top_p": "Pensampelan nukleus top-p",
+    "reasoning_effort": "Tahap usaha penaakulan (low|medium|high)",
+    "thinking_budget": "Bajet token pemikiran lanjutan",
+    "combo": "Paksa combo tertentu mengikut nama",
+    "responses_api": "Gunakan /v1/responses dan bukannya /v1/chat/completions",
+    "stream": "Strim respons secara berperingkat",
+    "no_history": "Jangan simpan ke ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Ralat: gesaan diperlukan (argumen kedudukan, --file, atau --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Mulakan pelayan OmniRoute (tindakan lalai)",
+    "starting": "Memulakan pelayan OmniRoute pada port {port}...",
+    "ready": "Sedia di http://localhost:{port}",
+    "stopping": "Menghentikan pelayan (PID {pid})...",
+    "stopped": "Pelayan dihentikan.",
+    "notRunning": "Pelayan tidak sedang berjalan.",
+    "port": "Port untuk menerima sambungan (lalai: 20128)",
+    "no_open": "Jangan buka pelayar secara automatik",
+    "daemon": "Jalankan pelayan sebagai daemon latar belakang",
+    "log": "Tunjukkan log pelayan sebaris",
+    "no_recovery": "Lumpuhkan mula semula automatik apabila ranap (mod penyahpepijatan)",
+    "max_restarts": "Bilangan maksimum mula semula akibat ranap dalam tempoh 30s sebelum berhenti mencuba (lalai: 2)",
+    "tray": "Mulakan dalam dulang sistem (desktop sahaja, ikut serta)",
+    "no_tray": "Lumpuhkan ikon dulang sistem",
+    "ready_timeout": "Tamat masa prob kesediaan dalam ms (juga OMNIROUTE_READY_TIMEOUT_MS, lalai 60000)",
+    "tls_cert": "Laluan ke sijil TLS (PEM) untuk menyediakan HTTPS (juga OMNIROUTE_TLS_CERT)",
+    "tls_key": "Laluan ke kunci peribadi TLS (PEM) untuk menyediakan HTTPS (juga OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Sandaran",
+    "description": "Cipta sandaran data OmniRoute",
+    "creating": "Mencipta sandaran...",
+    "done": "Sandaran disimpan ke {path}",
+    "noFiles": "Tiada fail untuk disandarkan (pangkalan data belum dimulakan)",
+    "failed": "Sandaran gagal: {error}",
+    "restoring": "Memulihkan daripada {path}...",
+    "restored": "Pemulihan selesai.",
+    "restoreDescription": "Pulihkan daripada sandaran",
+    "listTitle": "Sandaran Tersedia",
+    "noBackups": "Tiada sandaran ditemukan.",
+    "notFound": "Sandaran tidak ditemukan: {name}",
+    "confirmRestore": "Tulis ganti data semasa dengan sandaran daripada {ts}?",
+    "createDescription": "Cipta sandaran data OmniRoute",
+    "nameOpt": "Nama sandaran tersuai",
+    "cloudOpt": "Muat naik sandaran ke storan awan",
+    "encryptOpt": "Sulitkan sandaran dengan AES-256-GCM",
+    "keyFileOpt": "Laluan ke fail yang mengandungi frasa laluan penyulitan",
+    "excludeOpt": "Kecualikan fail yang sepadan dengan corak (boleh diulang)",
+    "retentionOpt": "Kekalkan hanya N sandaran terakhir",
+    "passphrasePrompt": "Frasa laluan penyulitan:",
+    "noPassphrase": "Frasa laluan diperlukan untuk sandaran yang disulitkan.",
+    "cloudFailed": "Amaran: muat naik ke awan gagal. Sandaran setempat telah disimpan.",
+    "cloudUploaded": "Sandaran awan dimuat naik: {url}",
+    "auto": {
+      "title": "Jadual Sandaran",
+      "enableDescription": "Dayakan sandaran automatik berjadual",
+      "disableDescription": "Lumpuhkan sandaran automatik berjadual",
+      "statusDescription": "Tunjukkan status jadual sandaran semasa",
+      "cronOpt": "Ungkapan cron untuk jadual (lalai: setiap hari pada pukul 3 pagi)",
+      "enabled": "Sandaran automatik didayakan (cron: {cron}).",
+      "hint": "Jadual dibaca oleh omniroute serve semasa permulaan.",
+      "disabled": "Sandaran automatik dilumpuhkan.",
+      "notConfigured": "Tiada jadual sandaran dikonfigurasikan."
+    }
+  },
+  "health": {
+    "description": "Semak kesihatan pelayan dan status komponen",
+    "noServer": "Pelayan tidak berjalan. Mulakan dengan: omniroute serve",
+    "title": "Kesihatan",
+    "status": "Status: {status}",
+    "uptime": "Masa operasi: {uptime}",
+    "requests": "Permintaan (24j): {count}",
+    "cost": "Kos (24j): ${cost}"
+  },
+  "quota": {
+    "description": "Tunjukkan penggunaan kuota penyedia",
+    "noServer": "Pelayan tidak berjalan. Mulakan dengan: omniroute serve",
+    "noData": "Tiada maklumat kuota tersedia."
+  },
+  "cache": {
+    "description": "Urus cache respons",
+    "noServer": "Pelayan tidak berjalan. Mulakan dengan: omniroute serve",
+    "cleared": "Cache dikosongkan.",
+    "clearFailed": "Gagal mengosongkan cache."
+  },
   "redis": {
     "description": "Lancarkan kontena Redis tempatan dengan satu klik (Podman atau Docker) untuk caching dan penjejakan kuota OmniRoute"
+  },
+  "test": {
+    "description": "Uji sambungan penyedia",
+    "noServer": "Pelayan tidak berjalan. Mulakan dengan: omniroute serve",
+    "testing": "Menguji {provider} / {model}...",
+    "passed": "Sambungan berjaya!",
+    "failed": "Sambungan gagal: {error}",
+    "allProvidersOpt": "Uji semua penyedia yang dikonfigurasikan",
+    "latencyOpt": "Tunjukkan ukuran kependaman (purata/min/maks ms)",
+    "repeatOpt": "Ulangi ujian sebanyak N kali dan gabungkan hasil",
+    "compareOpt": "Model dipisahkan koma untuk dibandingkan (cth. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Simpan hasil ke fail JSON",
+    "saved": "Hasil disimpan ke {path}",
+    "compareTitle": "Perbandingan Model",
+    "compareMinTwo": "Sekurang-kurangnya dua model diperlukan untuk --compare (dipisahkan koma)",
+    "noProviders": "Tiada penyedia dikonfigurasikan. Tambah satu dengan: omniroute keys add"
+  },
+  "update": {
+    "checking": "Menyemak kemas kini...",
+    "upToDate": "Sudah dikemas kini ({version}).",
+    "available": "Kemas kini tersedia: {current} → {latest}",
+    "installing": "Memasang {latest}...",
+    "done": "Dikemas kini kepada {latest}. Mulakan semula pelayan untuk menerapkannya."
+  },
+  "mcp": {
+    "title": "Pelayan MCP",
+    "running": "Pelayan MCP sedang berjalan ({transport})",
+    "stopped": "Pelayan MCP dihentikan.",
+    "restarted": "Pelayan MCP dimulakan semula.",
+    "stoppedHint": "Jalankan `omniroute mcp enable` untuk menghidupkannya.",
+    "enabled": "Pelayan MCP didayakan.",
+    "disabled": "Pelayan MCP dilumpuhkan.",
+    "enable": {
+      "description": "Dayakan pelayan MCP",
+      "transport": "Pengangkutan untuk digunakan: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Nyahdayakan pelayan MCP"
+    },
+    "call": {
+      "description": "Panggil alat MCP secara langsung",
+      "args": "Objek argumen JSON (sebaris)",
+      "args_file": "Laluan ke fail argumen JSON",
+      "stream": "Gunakan titik akhir penstriman (/api/mcp/stream)",
+      "scope": "Skop yang diperlukan (boleh diulang, cth. read:health)"
+    },
+    "scopes": {
+      "description": "Senaraikan skop MCP yang tersedia",
+      "tool": "Tunjukkan skop yang diperlukan oleh alat tertentu"
+    },
+    "tools": {
+      "description": "Periksa alat MCP",
+      "list": {
+        "description": "Senaraikan semua alat MCP",
+        "scope": "Tapis mengikut skop"
+      },
+      "info": {
+        "description": "Tunjukkan metadata untuk alat MCP"
+      },
+      "schema": {
+        "description": "Tunjukkan skema JSON input/output untuk alat MCP",
+        "io": "Jenis skema: input|output (lalai: input)"
+      }
+    },
+    "audit": {
+      "description": "Log audit MCP (alias untuk audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Senaraikan kemahiran A2A yang tersedia daripada kad ejen"
+    },
+    "invoke": {
+      "description": "Panggil kemahiran A2A dan kembalikan ID tugas",
+      "input": "Objek input JSON",
+      "input_file": "Laluan ke fail input JSON",
+      "wait": "Tunggu sehingga tugas selesai sebelum kembali",
+      "timeout": "Had masa menunggu sehingga selesai dalam ms (lalai: 60000)"
+    },
+    "tasks": {
+      "description": "Urus tugas A2A",
+      "list": {
+        "status": "Tapis mengikut status",
+        "skill": "Tapis mengikut ID kemahiran"
+      },
+      "watch": {
+        "description": "Semak status tugas secara berkala sehingga selesai"
+      },
+      "stream": {
+        "description": "Strim peristiwa pelaksanaan tugas melalui SSE"
+      },
+      "logs": {
+        "description": "Tunjukkan mesej dan artifak tugas"
+      }
+    }
+  },
+  "policy": {
+    "description": "Urus dasar kebenaran OmniRoute",
+    "list": {
+      "description": "Senaraikan dasar",
+      "kind": "Tapis mengikut jenis (allow|deny|rate-limit|cost-cap)",
+      "scope": "Tapis mengikut skop (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Dapatkan butiran dasar mengikut ID"
+    },
+    "create": {
+      "description": "Cipta dasar daripada fail JSON",
+      "file": "Laluan ke fail JSON dasar"
+    },
+    "update": {
+      "description": "Kemas kini dasar daripada fail JSON",
+      "file": "Laluan ke fail JSON dasar"
+    },
+    "delete": {
+      "description": "Padam dasar mengikut ID",
+      "yes": "Langkau gesaan pengesahan"
+    },
+    "evaluate": {
+      "description": "Jalankan penilaian dasar secara percubaan (keluar 0=dibenarkan, 4=ditolak)",
+      "api_key": "Kunci API untuk dinilai",
+      "action": "Tindakan untuk diperiksa (cth. chat, embed, admin)",
+      "resource": "Laluan atau pengecam sumber",
+      "context": "Konteks tambahan sebagai objek JSON"
+    },
+    "export": {
+      "description": "Eksport semua dasar ke fail JSON"
+    },
+    "import": {
+      "description": "Import dasar daripada fail JSON",
+      "overwrite": "Tulis ganti dasar sedia ada dengan ID yang sama"
+    }
+  },
+  "compression": {
+    "description": "Konfigurasikan dan periksa saluran pemampatan OmniRoute",
+    "status": {
+      "description": "Tunjukkan status dan tetapan pemampatan semasa"
+    },
+    "configure": {
+      "description": "Konfigurasikan tetapan pemampatan",
+      "engine": "Enjin pemampatan (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Keagresifan Caveman 0.0–1.0",
+      "rtk_budget": "Belanjawan token RTK",
+      "language_pack": "Pek bahasa untuk diaktifkan"
+    },
+    "engine": {
+      "description": "Dapatkan atau tetapkan enjin pemampatan aktif"
+    },
+    "combos": {
+      "description": "Urus statistik gabungan pemampatan"
+    },
+    "rules": {
+      "description": "Urus peraturan pemampatan",
+      "add": {
+        "pattern": "Corak untuk dipadankan (regex atau field:pattern)",
+        "action": "Tindakan: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Senaraikan pek bahasa pemampatan yang tersedia"
+    },
+    "preview": {
+      "description": "Pratonton kesan pemampatan pada permintaan",
+      "file": "Laluan ke fail JSON permintaan"
+    }
+  },
+  "tunnel": {
+    "title": "Terowong",
+    "listDescription": "Senaraikan terowong aktif",
+    "createDescription": "Cipta terowong",
+    "created": "Terowong dicipta: {url}",
+    "stopped": "Terowong dihentikan.",
+    "confirmStop": "Hentikan terowong {id}?",
+    "stopDescription": "Hentikan terowong",
+    "statusDescription": "Tunjukkan status terperinci terowong",
+    "logsDescription": "Tunjukkan log untuk terowong",
+    "infoDescription": "Tunjukkan butiran konfigurasi terowong",
+    "rotateDescription": "Jana URL terowong baharu",
+    "tailOpt": "Bilangan baris log untuk ditunjukkan",
+    "typeRequired": "Jenis terowong diperlukan.",
+    "noLogs": "Tiada log tersedia.",
+    "notAvailable": "Maklumat terowong tidak tersedia.",
+    "noTunnels": "Tiada terowong aktif.",
+    "infoTitle": "Maklumat terowong: {type}",
+    "rotated": "URL terowong ditukar: {url}",
+    "confirmRotate": "Tukar URL terowong {type}? (URL baharu akan dijana)"
+  },
+  "stop": {
+    "description": "Hentikan pelayan OmniRoute",
+    "stopping": "Sedang menghentikan pelayan (PID {pid})...",
+    "stopped": "Pelayan dihentikan.",
+    "notRunning": "Tiada pelayan sedang berjalan.",
+    "portFallback": "Tiada fail PID ditemukan, cuba menghentikan berdasarkan port..."
+  },
+  "restart": {
+    "description": "Mulakan semula pelayan OmniRoute",
+    "restarting": "Sedang memulakan semula pelayan OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Buka papan pemuka OmniRoute dalam pelayar",
+    "opening": "Sedang membuka papan pemuka di {url}",
+    "urlOnly": "Paparkan URL papan pemuka tanpa membuka pelayar",
+    "tui": "Buka papan pemuka TUI interaktif (UI terminal, 7 tab)"
+  },
+  "models": {
+    "description": "Senaraikan model yang tersedia (memerlukan pelayan)",
+    "search": "Tapis model mengikut ID, nama, penyedia atau perihalan",
+    "noServer": "Pelayan tidak berjalan. Mulakan dengan: omniroute serve",
+    "noModels": "Tiada model ditemukan."
+  },
+  "audit": {
+    "description": "Akses log audit pematuhan dan MCP",
+    "source": "Sumber log: all|compliance|mcp (lalai: all)",
+    "since": "Kembalikan entri sejak cap masa ini (ISO 8601)",
+    "until": "Kembalikan entri sehingga cap masa ini (ISO 8601)",
+    "tail": {
+      "description": "Tunjukkan entri log audit terkini",
+      "follow": "Ikuti entri baharu secara berterusan (tinjauan setiap 2s)",
+      "limit": "Bilangan maksimum entri untuk ditunjukkan (lalai: 100)"
+    },
+    "search": {
+      "description": "Cari entri log audit mengikut kata kunci",
+      "limit": "Bilangan maksimum hasil (lalai: 200)",
+      "actor": "Tapis mengikut ID pelaku",
+      "action": "Tapis mengikut nama tindakan"
+    },
+    "export": {
+      "description": "Eksport log audit ke fail",
+      "format": "Format output: jsonl|csv (lalai: jsonl)"
+    },
+    "stats": {
+      "description": "Tunjukkan statistik log audit",
+      "period": "Tempoh masa: 1d|7d|30d (lalai: 7d)"
+    },
+    "get": {
+      "description": "Dapatkan satu entri log audit mengikut ID"
+    }
+  },
+  "skills": {
+    "description": "Urus kemahiran OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Senaraikan kemahiran yang dipasang",
+      "type": "Tapis mengikut jenis (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Tunjukkan kemahiran yang didayakan sahaja",
+      "disabled": "Tunjukkan kemahiran yang dilumpuhkan sahaja",
+      "api_key": "Tapis mengikut kunci API"
+    },
+    "get": {
+      "description": "Dapatkan butiran kemahiran mengikut ID"
+    },
+    "install": {
+      "description": "Pasang kemahiran daripada fail atau URL",
+      "from_file": "Laluan ke fail definisi JSON kemahiran",
+      "from_url": "URL definisi kemahiran jauh",
+      "type": "Jenis kemahiran (sandbox|custom|hybrid)",
+      "enable": "Dayakan kemahiran selepas pemasangan"
+    },
+    "enable": {
+      "description": "Dayakan kemahiran mengikut ID"
+    },
+    "disable": {
+      "description": "Nyahdayakan kemahiran mengikut ID",
+      "yes": "Langkau gesaan pengesahan"
+    },
+    "delete": {
+      "description": "Padam kemahiran mengikut ID",
+      "yes": "Langkau gesaan pengesahan"
+    },
+    "execute": {
+      "description": "Laksanakan kemahiran mengikut ID",
+      "input": "Objek input JSON",
+      "input_file": "Laluan ke fail input JSON",
+      "timeout": "Had masa pelaksanaan dalam ms (lalai: 30000)"
+    },
+    "executions": {
+      "description": "Senaraikan sejarah pelaksanaan kemahiran",
+      "skill": "Tapis mengikut ID kemahiran",
+      "limit": "Hasil maksimum (lalai: 50)",
+      "status": "Tapis mengikut status (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Urus kemahiran yang dipasang melalui SSH"
+    },
+    "marketplace": {
+      "description": "Semak imbas dan pasang kemahiran daripada pasaran"
+    },
+    "mp": {
+      "search": {
+        "description": "Cari pakej pasaran",
+        "category": "Tapis mengikut kategori",
+        "tag": "Tapis mengikut tag",
+        "limit": "Hasil maksimum (lalai: 30)",
+        "sort": "Isih mengikut: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Tunjukkan butiran pakej dan readme"
+      },
+      "install": {
+        "description": "Pasang pakej pasaran",
+        "version": "Versi pakej (lalai: latest)",
+        "enable": "Dayakan selepas pemasangan",
+        "yes": "Langkau gesaan pengesahan"
+      },
+      "categories": {
+        "description": "Senaraikan kategori pasaran"
+      },
+      "featured": {
+        "description": "Tunjukkan pakej pasaran pilihan"
+      }
+    }
+  },
+  "memory": {
+    "description": "Urus memori perbualan OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Cari entri memori menggunakan pertanyaan semantik",
+      "type": "Tapis mengikut jenis memori (user|feedback|project|reference)",
+      "limit": "Hasil maksimum (lalai: 20)",
+      "api_key": "Tapis mengikut kunci API",
+      "token_budget": "Hadkan jumlah token dalam hasil"
+    },
+    "add": {
+      "description": "Tambah entri memori baharu",
+      "content": "Kandungan teks memori",
+      "file": "Baca kandungan daripada fail",
+      "type": "Jenis memori (lalai: user)",
+      "metadata": "Objek metadata JSON",
+      "api_key": "Kaitkan dengan kunci API"
+    },
+    "clear": {
+      "description": "Padam entri memori yang sepadan dengan penapis",
+      "type": "Tapis mengikut jenis",
+      "older": "Padam entri yang lebih lama daripada tempoh (30d, 6m, 1y)",
+      "api_key": "Tapis mengikut kunci API",
+      "yes": "Langkau gesaan pengesahan"
+    },
+    "list": {
+      "description": "Senaraikan entri memori tanpa pengisihan kedudukan carian",
+      "type": "Tapis mengikut jenis",
+      "limit": "Hasil maksimum (lalai: 100)",
+      "api_key": "Tapis mengikut kunci API"
+    },
+    "get": {
+      "description": "Dapatkan satu entri memori mengikut ID"
+    },
+    "delete": {
+      "description": "Padam entri memori mengikut ID",
+      "yes": "Langkau gesaan pengesahan"
+    },
+    "health": {
+      "description": "Tunjukkan status kesihatan subsistem memori (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Urus sambungan penyedia OAuth",
+    "providers": {
+      "description": "Senaraikan penyedia yang menyokong OAuth dan jenis aliran mereka"
+    },
+    "start": {
+      "description": "Mulakan aliran kebenaran OAuth untuk penyedia",
+      "provider": "ID penyedia (gemini, copilot, cursor, …)",
+      "no_browser": "Cetak URL sahaja — jangan buka pelayar",
+      "import_system": "Import kelayakan secara automatik daripada konfigurasi sistem setempat",
+      "social": "Penyedia log masuk sosial (google|github) — diperlukan untuk kiro",
+      "timeout": "Had masa menunggu kebenaran dalam ms (lalai: 300000)"
+    },
+    "status": {
+      "description": "Senaraikan sambungan OAuth yang aktif",
+      "provider": "Tapis mengikut ID penyedia"
+    },
+    "revoke": {
+      "description": "Batalkan sambungan OAuth",
+      "provider": "ID penyedia untuk dibatalkan",
+      "connection_id": "Batalkan sambungan tertentu mengikut ID",
+      "yes": "Langkau gesaan pengesahan"
+    }
+  },
+  "cloud": {
+    "description": "Urus tugas ejen AI awan (codex, devin, jules)",
+    "agents": {
+      "description": "Senaraikan ejen awan yang tersedia"
+    },
+    "agent": {
+      "description": "Urus tugas ejen awan {agent}",
+      "auth": {
+        "description": "Benarkan {agent} melalui OAuth"
+      }
+    },
+    "task": {
+      "description": "Urus tugas ejen awan",
+      "create": {
+        "description": "Cipta tugas ejen baharu",
+        "title": "Tajuk tugas (lalai kepada 80 aksara pertama gesaan)",
+        "prompt": "Teks gesaan tugas",
+        "prompt_file": "Baca gesaan daripada fail",
+        "repo": "URL repositori untuk diklon bagi tugas",
+        "branch": "Nama cabang untuk digunakan",
+        "metadata": "Objek metadata JSON"
+      },
+      "list": {
+        "description": "Senaraikan tugas ejen",
+        "status": "Tapis mengikut status (running|completed|failed|cancelled)",
+        "limit": "Hasil maksimum (lalai: 50)"
+      },
+      "get": {
+        "description": "Dapatkan butiran tugas mengikut ID"
+      },
+      "status": {
+        "description": "Paparkan status tugas (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Batalkan tugas yang sedang berjalan",
+        "yes": "Langkau gesaan pengesahan"
+      },
+      "approve": {
+        "description": "Luluskan pelan ejen untuk memulakan pelaksanaan"
+      },
+      "message": {
+        "description": "Hantar mesej kepada tugas yang sedang berjalan"
+      }
+    },
+    "sources": {
+      "description": "Senaraikan fail sumber yang dihasilkan oleh tugas"
+    }
+  },
+  "eval": {
+    "description": "Urus suite dan pelaksanaan penilaian",
+    "suites": {
+      "description": "Urus suite penilaian",
+      "list": {
+        "description": "Senaraikan suite penilaian"
+      },
+      "get": {
+        "description": "Dapatkan butiran suite penilaian mengikut ID"
+      },
+      "create": {
+        "description": "Cipta suite penilaian daripada fail JSON",
+        "file": "Laluan ke fail JSON definisi suite"
+      }
+    },
+    "run": {
+      "description": "Mulakan pelaksanaan penilaian untuk suite",
+      "model": "ID model untuk dinilai (lalai: auto)",
+      "combo": "Paksa kombo tertentu mengikut nama",
+      "concurrency": "Bilangan sampel serentak (lalai: 4)",
+      "tag": "Tag pelaksanaan ini untuk penapisan kemudian",
+      "watch": "Pantau kemajuan pelaksanaan sehingga selesai"
+    },
+    "list": {
+      "description": "Senaraikan pelaksanaan penilaian",
+      "suite": "Tapis mengikut ID suite",
+      "status": "Tapis mengikut status",
+      "since": "Kembalikan pelaksanaan sejak cap masa ini",
+      "limit": "Hasil maksimum (lalai: 50)"
+    },
+    "get": {
+      "description": "Dapatkan butiran pelaksanaan penilaian mengikut ID"
+    },
+    "results": {
+      "description": "Tunjukkan hasil sampel untuk pelaksanaan penilaian",
+      "failed": "Tunjukkan sampel yang gagal sahaja"
+    },
+    "cancel": {
+      "description": "Batalkan penilaian yang sedang berjalan",
+      "yes": "Langkau gesaan pengesahan"
+    },
+    "scorecard": {
+      "description": "Tunjukkan kad skor untuk pelaksanaan penilaian yang telah selesai"
+    }
+  },
+  "webhooks": {
+    "description": "Urus webhook OmniRoute",
+    "events": {
+      "description": "Senaraikan semua jenis peristiwa webhook yang tersedia"
+    },
+    "list": {
+      "description": "Senaraikan webhook yang dikonfigurasikan"
+    },
+    "get": {
+      "description": "Dapatkan butiran webhook mengikut ID"
+    },
+    "add": {
+      "description": "Daftarkan webhook baharu",
+      "url": "URL destinasi",
+      "events": "Senarai jenis acara yang dipisahkan dengan koma",
+      "secret": "Rahsia penandatanganan HMAC",
+      "header": "Pengepala tambahan dalam format key=value (boleh diulang)",
+      "no_enabled": "Cipta webhook dalam keadaan dinyahdayakan"
+    },
+    "update": {
+      "description": "Kemas kini webhook sedia ada",
+      "enabled": "Tetapkan keadaan didayakan (true|false)"
+    },
+    "remove": {
+      "description": "Padam webhook",
+      "yes": "Langkau gesaan pengesahan"
+    },
+    "test": {
+      "description": "Hantar acara ujian kepada webhook",
+      "event": "Jenis acara untuk disimulasikan (lalai: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — Penghala AI Pintar dengan Sandaran Automatik",
+    "version": "Paparkan versi dan keluar",
+    "output": "Format output (table, json, jsonl, csv)",
+    "quiet": "Sembunyikan output yang tidak penting",
+    "no_color": "Nyahdayakan output berwarna",
+    "timeout": "Had masa permintaan HTTP dalam milisaat",
+    "api_key": "Kunci API untuk pelayan OmniRoute",
+    "base_url": "URL asas pelayan OmniRoute",
+    "context": "Konteks/profil pelayan untuk digunakan bagi perintah ini",
+    "lang": "Tetapkan bahasa paparan CLI (mengatasi OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Urus fail (muat naik, senaraikan, dapatkan, muat turun, padam)",
+    "list": {
+      "purpose": "Tapis mengikut tujuan",
+      "limit": "Hasil maksimum"
+    },
+    "get": {
+      "description": "Dapatkan metadata fail"
+    },
+    "upload": {
+      "description": "Muat naik fail",
+      "purpose": "Tujuan fail (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Muat turun kandungan fail",
+      "out": "Simpan ke laluan (lalai: stdout)"
+    },
+    "delete": {
+      "yes": "Langkau pengesahan"
+    }
+  },
+  "batches": {
+    "description": "Urus tugas kelompok yang serasi dengan OpenAI",
+    "list": {
+      "status": "Tapis mengikut status",
+      "limit": "Hasil maksimum"
+    },
+    "create": {
+      "description": "Cipta tugas kelompok",
+      "inputFile": "ID fail input",
+      "endpoint": "Titik akhir sasaran",
+      "window": "Tempoh penyiapan",
+      "metadata": "Tambah metadata key=value"
+    },
+    "submit": {
+      "description": "Muat naik fail JSONL dan cipta kelompok",
+      "jsonl": "Laluan ke fail JSONL",
+      "endpoint": "Titik akhir sasaran",
+      "wait": "Tunggu sehingga selesai"
+    },
+    "cancel": {
+      "yes": "Langkau pengesahan"
+    },
+    "wait": {
+      "timeout": "Had masa dalam ms"
+    },
+    "output": {
+      "out": "Simpan output ke laluan"
+    },
+    "errors": {
+      "out": "Simpan ralat ke laluan"
+    }
+  },
+  "translator": {
+    "description": "Terjemahkan isi permintaan antara format LLM",
+    "detect": {
+      "description": "Kesan format isi"
+    },
+    "translate": {
+      "description": "Tukar isi daripada satu format kepada format yang lain"
+    },
+    "send": {
+      "description": "Terjemahkan dan hantar ke huluan"
+    },
+    "stream": {
+      "description": "Terjemahkan secara penstriman isi permintaan"
+    },
+    "from": "Format sumber (openai|anthropic|gemini|cohere)",
+    "to": "Format sasaran (openai|anthropic|gemini|cohere)",
+    "file": "Laluan ke fail JSON isi permintaan",
+    "out": "Simpan output ke fail",
+    "model": "Gantikan model",
+    "history": {
+      "limit": "Hasil maksimum"
+    }
+  },
+  "pricing": {
+    "description": "Urus data harga untuk model",
+    "sync": {
+      "description": "Segerakkan harga daripada sumber huluan",
+      "provider": "Tapis mengikut penyedia",
+      "force": "Paksa penyegerakan semula"
+    },
+    "list": {
+      "provider": "Tapis mengikut penyedia",
+      "model": "Tapis mengikut model",
+      "limit": "Hasil maksimum"
+    },
+    "defaults": {
+      "description": "Urus harga lalai",
+      "input": "Kos input bagi setiap 1J token (USD)",
+      "output": "Kos output bagi setiap 1J token (USD)",
+      "cacheRead": "Kos bacaan cache bagi setiap 1J token (USD)",
+      "cacheWrite": "Kos penulisan cache bagi setiap 1J token (USD)"
+    },
+    "diff": {
+      "description": "Tunjukkan perbezaan daripada harga huluan",
+      "model": "Tapis mengikut model"
+    }
+  },
+  "radar": {
+    "description": "Periksa dan segerakkan suapan katalog Radar setempat",
+    "status": "Tunjukkan tetapan Radar setempat dan status cache suapan",
+    "sync": "Segerakkan katalog, rujukan, tawaran dan Intel melalui pelayan setempat"
+  },
+  "resilience": {
+    "description": "Periksa dan urus mekanisme daya tahan",
+    "status": {
+      "provider": "Tapis mengikut penyedia"
+    },
+    "breakers": {
+      "provider": "Tapis mengikut penyedia"
+    },
+    "cooldowns": {
+      "provider": "Tapis mengikut penyedia",
+      "connectionId": "Tapis mengikut ID sambungan"
+    },
+    "lockouts": {
+      "provider": "Tapis mengikut penyedia",
+      "model": "Tapis mengikut model"
+    },
+    "reset": {
+      "description": "Tetapkan semula keadaan pemutus/tempoh bertenang",
+      "provider": "Penyedia untuk ditetapkan semula",
+      "connectionId": "ID sambungan untuk ditetapkan semula",
+      "model": "Model untuk menetapkan semula sekatan",
+      "allCooldowns": "Tetapkan semula semua tempoh bertenang bagi penyedia",
+      "yes": "Langkau pengesahan"
+    },
+    "profile": {
+      "description": "Urus profil daya tahan",
+      "name": "Nama profil"
+    },
+    "config": {
+      "description": "Urus konfigurasi daya tahan",
+      "threshold": "Ambang kegagalan",
+      "resetTimeout": "Tamat masa penetapan semula dalam ms",
+      "baseCooldown": "Tempoh bertenang asas dalam ms"
+    }
+  },
+  "nodes": {
+    "description": "Urus nod penyedia (titik akhir)",
+    "list": {
+      "provider": "Tapis mengikut penyedia",
+      "enabled": "Tunjukkan nod yang didayakan sahaja"
+    },
+    "add": {
+      "provider": "Nama penyedia",
+      "baseUrl": "URL asas untuk nod",
+      "name": "Nama nod",
+      "weight": "Pemberat pengimbangan beban",
+      "region": "Tag rantau",
+      "authHeader": "Pengepala pengesahan tersuai (key=value)"
+    },
+    "update": {
+      "baseUrl": "URL asas baharu",
+      "name": "Nama baharu",
+      "weight": "Pemberat baharu",
+      "region": "Rantau baharu",
+      "enabled": "Dayakan atau nyahdayakan (true|false)"
+    },
+    "remove": {
+      "yes": "Langkau pengesahan"
+    },
+    "validate": {
+      "baseUrl": "URL untuk disahkan",
+      "provider": "Penyedia untuk digunakan bagi pengesahan"
+    },
+    "test": {
+      "description": "Hantar permintaan ujian ke nod"
+    },
+    "metrics": {
+      "description": "Tunjukkan metrik nod",
+      "period": "Tempoh masa (cth. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Konfigurasikan saluran paip kejuruteraan konteks (Caveman, RTK)",
+    "analytics": {
+      "period": "Tempoh masa (cth. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Urus pemampat konteks Caveman",
+      "config": {
+        "description": "Tunjukkan atau kemas kini konfigurasi Caveman",
+        "aggressiveness": "Tahap keagresifan 0.0–1.0",
+        "maxShrinkPct": "Peratusan pengecilan maksimum",
+        "preserveTags": "Tag dipisahkan koma untuk dikekalkan"
+      }
+    },
+    "rtk": {
+      "description": "Urus pengoptimum konteks RTK",
+      "config": {
+        "description": "Tunjukkan atau kemas kini konfigurasi RTK",
+        "tokenBudget": "Bajet token untuk RTK",
+        "reservePct": "Peratusan rizab"
+      },
+      "filters": {
+        "description": "Urus penapis RTK",
+        "pattern": "Corak penapis (regex)",
+        "priority": "Keutamaan penapis (lalai: 100)",
+        "action": "Tindakan penapis: drop|shrink|replace",
+        "yes": "Langkau pengesahan"
+      },
+      "test": {
+        "file": "Laluan ke fail JSON permintaan"
+      }
+    },
+    "combos": {
+      "description": "Pengurusan kombo peka konteks"
+    }
+  },
+  "sessions": {
+    "description": "Periksa dan urus sesi aktif",
+    "list": {
+      "user": "Tapis mengikut pengguna",
+      "kind": "Tapis mengikut jenis (dashboard|api-key|mcp|a2a)",
+      "active": "Tunjukkan sesi aktif sahaja",
+      "limit": "Hasil maksimum (lalai: 100)"
+    },
+    "expire": {
+      "yes": "Langkau pengesahan"
+    },
+    "expireAll": {
+      "user": "Pengguna yang sesinya akan ditamatkan",
+      "yes": "Langkau pengesahan"
+    }
+  },
+  "tags": {
+    "description": "Urus tag sumber",
+    "add": {
+      "color": "Warna tag (hex atau nama)",
+      "description": "Perihalan tag"
+    },
+    "remove": {
+      "yes": "Langkau pengesahan"
+    },
+    "assign": {
+      "tag": "Nama tag",
+      "to": "Sumber sasaran dalam format type:id (cth. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Nama tag",
+      "from": "Sumber asal dalam format type:id"
+    }
+  },
+  "openapi": {
+    "description": "Akses dan uji spesifikasi OpenAPI OmniRoute",
+    "dump": {
+      "description": "Eksport spesifikasi OpenAPI ke stdout atau fail",
+      "format": "Format output: yaml|json (lalai: yaml)",
+      "out": "Simpan ke laluan fail"
+    },
+    "validate": {
+      "description": "Sahkan spesifikasi OpenAPI"
+    },
+    "try": {
+      "description": "Uji titik akhir API melalui spesifikasi",
+      "method": "Kaedah HTTP (lalai: GET)",
+      "body": "Laluan ke fail JSON isi permintaan",
+      "query": "Parameter pertanyaan dalam format key=value (boleh diulang)",
+      "header": "Pengepala dalam format key=value (boleh diulang)"
+    },
+    "endpoints": {
+      "description": "Senaraikan semua titik akhir API",
+      "search": "Tapis mengikut laluan atau ringkasan"
+    },
+    "paths": {
+      "description": "Senaraikan semua laluan API"
+    }
+  },
+  "combo": {
+    "title": "Kombo",
+    "switched": "Gabungan aktif: {name}",
+    "created": "Gabungan dicipta: {name}",
+    "deleted": "Gabungan dipadamkan: {name}",
+    "noCombos": "Tiada gabungan dikonfigurasikan.",
+    "confirmDelete": "Padamkan gabungan {name}?",
+    "suggest": {
+      "description": "Cadangkan gabungan terbaik untuk sesuatu tugas menggunakan pemarkahan AI",
+      "task": "Penerangan tugas",
+      "maxCost": "Kos maksimum bagi setiap permintaan dalam USD",
+      "maxLatencyMs": "Kependaman maksimum dalam milisaat",
+      "weights": "Pemberat pemarkahan JSON, cth. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Bilangan calon teratas untuk dipaparkan (lalai: 5)",
+      "explain": "Cetak rasional ke stderr",
+      "switch": "Aktifkan gabungan dengan kedudukan tertinggi"
+    }
+  },
+  "oneproxy": {
+    "description": "Urus kumpulan huluan OneProxy",
+    "stats": {
+      "provider": "Tapis mengikut penyedia",
+      "period": "Tempoh masa (lalai: 24h)"
+    },
+    "fetch": {
+      "description": "Dapatkan proksi daripada kumpulan",
+      "count": "Bilangan proksi untuk didapatkan (lalai: 1)",
+      "type": "Jenis proksi: http|socks5 (lalai: http)"
+    },
+    "rotate": {
+      "description": "Paksa penggiliran proksi",
+      "provider": "Penyedia untuk digilirkan",
+      "connectionId": "ID sambungan khusus untuk digilirkan"
+    },
+    "config": {
+      "description": "Tunjukkan atau kemas kini konfigurasi OneProxy",
+      "enabled": "Dayakan kumpulan proksi (true|false)",
+      "poolSize": "Saiz kumpulan",
+      "providerSource": "URL untuk penyedia proksi",
+      "rotationPolicy": "Dasar penggiliran: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Senaraikan kumpulan proksi semasa berserta metrik"
+    }
+  },
+  "open": {
+    "description": "Buka halaman papan pemuka OmniRoute tertentu dalam pelayar",
+    "url": "Cetak URL sahaja, jangan buka pelayar"
+  },
+  "telemetry": {
+    "description": "Akses data telemetri teragregat",
+    "summary": {
+      "description": "Tunjukkan ringkasan telemetri teragregat",
+      "period": "Tempoh masa: 24h|7d|30d (lalai: 24h)",
+      "compareTo": "Bandingkan dengan tempoh sebelumnya"
+    },
+    "export": {
+      "description": "Eksport peristiwa telemetri ke JSONL",
+      "out": "Laluan fail output (lalai: telemetry.jsonl)",
+      "period": "Tempoh masa untuk eksport (lalai: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Segerakkan konfigurasi antara tika OmniRoute",
+    "push": {
+      "description": "Tolak konfigurasi ke awan atau tika jauh",
+      "target": "Sasaran (cloud atau context:name)",
+      "bundle": "Bahagian pakej untuk disegerakkan",
+      "dryRun": "Pratonton tanpa menggunakan perubahan"
+    },
+    "pull": {
+      "description": "Tarik konfigurasi daripada awan atau jauh",
+      "source": "Sumber (awan atau context:name)",
+      "merge": "Gabungkan dengan konfigurasi sedia ada",
+      "replace": "Gantikan konfigurasi sedia ada",
+      "dryRun": "Pratonton tanpa menggunakan perubahan"
+    },
+    "diff": {
+      "source": "Konteks sumber",
+      "target": "Konteks sasaran"
+    },
+    "bundle": {
+      "description": "Eksport konfigurasi sebagai fail pakej",
+      "include": "Bahagian untuk disertakan (dipisahkan dengan koma)"
+    },
+    "import": {
+      "description": "Import fail pakej",
+      "dryRun": "Sahkan tanpa menggunakan perubahan"
+    },
+    "initialize": {
+      "fromCloud": "Mulakan daripada sandaran awan"
+    },
+    "tokens": {
+      "description": "Urus token penyegerakan",
+      "create": {
+        "name": "Nama token",
+        "scope": "Skop token",
+        "ttl": "TTL token (cth. 30d)"
+      },
+      "revoke": {
+        "yes": "Langkau pengesahan"
+      }
+    },
+    "resolve": {
+      "description": "Selesaikan konflik penyegerakan secara interaktif"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Urus konteks/profil pelayan (tambah, guna, senarai, papar, alih keluar, namakan semula, eksport, import)"
+    },
+    "lang": {
+      "description": "Urus bahasa paparan CLI",
+      "getDescription": "Papar kod bahasa yang sedang aktif",
+      "setDescription": "Tetapkan bahasa paparan dan simpannya dalam konfigurasi",
+      "listDescription": "Senaraikan semua bahasa yang tersedia",
+      "listTitle": "Bahasa Tersedia",
+      "current": "Bahasa: {code} ({name})",
+      "saved": "Bahasa ditetapkan kepada {code} ({name}).",
+      "noCode": "Kod bahasa diperlukan. Jalankan 'omniroute config lang list' untuk melihat kod yang tersedia.",
+      "unknown": "Kod bahasa tidak diketahui: {code}. Jalankan 'omniroute config lang list' untuk melihat kod yang tersedia.",
+      "alreadySet": "Bahasa telah pun ditetapkan kepada {code}.",
+      "envHint": "Petua: anda juga boleh menetapkan OMNIROUTE_LANG={code} dalam persekitaran anda."
+    }
+  },
+  "completion": {
+    "description": "Jana atau pasang skrip pelengkapan shell",
+    "zsh": "Cetak skrip pelengkapan zsh",
+    "bash": "Cetak skrip pelengkapan bash",
+    "fish": "Cetak skrip pelengkapan fish",
+    "install": "Pasang skrip pelengkapan secara global untuk shell yang dikesan",
+    "refresh": "Segarkan semula cache gabungan/penyedia/model"
+  },
+  "logs": {
+    "description": "Strim atau eksport log permintaan",
+    "follow": "Strim log dalam masa nyata",
+    "filter": "Tapis mengikut tahap (error,warn,info) — dipisahkan dengan koma",
+    "lines": "Bilangan baris untuk diambil",
+    "timeout": "Tamat masa sambungan dalam ms",
+    "baseUrl": "URL asas API OmniRoute",
+    "requestId": "Tapis mengikut ID permintaan",
+    "apiKey": "Tapis mengikut kunci API",
+    "combo": "Tapis mengikut nama kombo",
+    "status": "Tapis mengikut kod status HTTP",
+    "durationMin": "Tempoh minimum permintaan dalam ms",
+    "durationMax": "Tempoh maksimum permintaan dalam ms",
+    "export": "Simpan log ke fail (json/jsonl/csv)",
+    "exported": "Log disimpan ke {path}",
+    "stopped": "Strim log dihentikan.",
+    "streamError": "Ralat strim log: {message}"
+  },
+  "tray": {
+    "description": "Kawal ikon dulang sistem",
+    "show": "Tunjukkan ikon dulang (jika pelayan sedang berjalan dengan --tray)",
+    "hide": "Sembunyikan ikon dulang",
+    "quit": "Keluar daripada OmniRoute melalui dulang"
+  },
+  "autostart": {
+    "description": "Urus mula automatik OmniRoute semasa but (Linux: perkhidmatan pengguna systemd)",
+    "enable": "Dayakan mula automatik semasa but",
+    "disable": "Lumpuhkan mula automatik semasa but",
+    "toggle": "Togol mula automatik semasa but",
+    "status": "Tunjukkan status mula automatik"
+  },
+  "runtime": {
+    "description": "Urus kebergantungan masa jalan natif",
+    "check": "Semak status kebergantungan natif dalam direktori masa jalan",
+    "repair": "Pasang semula kebergantungan natif dalam direktori masa jalan",
+    "repair_force": "Paksa pemasangan semula walaupun sah",
+    "clean": "Alih keluar direktori masa jalan (mengosongkan ruang cakera)",
+    "clean_yes": "Langkau pengesahan"
+  },
+  "repl": {
+    "description": "REPL berbilang giliran interaktif dengan LLM",
+    "model": "Model untuk digunakan (lalai: auto)",
+    "combo": "Nama kombo untuk digunakan",
+    "system": "Gesaan sistem",
+    "resume": "Sambung semula sesi tersimpan mengikut nama"
+  },
+  "plugin": {
+    "description": "Urus pemalam CLI (omniroute-cmd-*)",
+    "list": "Senaraikan pemalam yang dipasang",
+    "install": "Pasang pemalam daripada npm atau laluan setempat",
+    "remove": "Alih keluar pemalam yang dipasang",
+    "info": "Tunjukkan butiran pemalam yang dipasang",
+    "search": "Cari pendaftaran npm untuk pemalam yang tersedia",
+    "update": "Kemas kini pemalam yang dipasang",
+    "scaffold": "Jana rangka asas pemalam baharu"
+  },
+  "launch": {
+    "description": "Lancarkan Claude Code yang diarahkan ke OmniRoute (setempat atau jauh, dengan --profile)",
+    "token": "Token yang perlu dihantar oleh klien Claude (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute tidak dapat dicapai pada {port}. Mulakannya dengan 'omniroute serve'.",
+    "notFound": "CLI 'claude' tidak ditemukan dalam PATH."
+  },
+  "run": {
+    "description": "Lancarkan sasaran CLI yang disokong melalui OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Jana profil Claude Code ~/.claude/profiles daripada katalog model OmniRoute"
+  },
+  "connect": {
+    "description": "Sambung ke pelayan OmniRoute jauh dan masuk ke mod jauh"
+  },
+  "tokens": {
+    "description": "Urus token akses CLI berskop (mod jauh)"
+  },
+  "configure": {
+    "description": "Pilih penyedia+model daripada pelayan aktif dan konfigurasikan CLI setempat yang disokong"
+  },
+  "launchCodex": {
+    "description": "Lancarkan Codex CLI yang diarahkan ke OmniRoute (VPS setempat atau jauh)"
+  },
+  "setupCodex": {
+    "description": "Jana fail profil ~/.codex daripada katalog model langsung OmniRoute"
+  },
+  "packs": {
+    "description": "Urus pek masa jalan pilihan (ML / automasi pelayar)",
+    "listDescription": "Senaraikan pek pilihan dan status pemasangannya",
+    "installDescription": "Pasang pek pilihan ke dalam DATA_DIR",
+    "verifyDescription": "Sahkan pek yang dipasang berdasarkan indeks jumlah semak yang disertakan",
+    "removeDescription": "Alih keluar pek pilihan yang dipasang",
+    "sourceOpt": "Direktori yang mengandungi muatan pek dan indeks pek",
+    "warnNoIndex": "optional-packs.index.json tidak ditemukan — pemasangan/pengesahan tidak tersedia dalam salinan kod ini (berkas desktop menyertakannya)",
+    "errUnknown": "pek tidak diketahui: {name}",
+    "errNoIndex": "indeks pek tidak ditemukan; berikan --source <dir> yang mengandungi muatan pek (berkas desktop menyertakannya bersebelahan dengan aplikasi)",
+    "installed": "pek \"{name}\" dipasang dan disahkan di {dir}",
+    "restartHint": "mulakan semula pelayan OmniRoute (atau aplikasi desktop) supaya masa jalan mengesan pek tersebut",
+    "removed": "pek \"{name}\" dialih keluar",
+    "notInstalled": "pek \"{name}\" tidak dipasang",
+    "verifyOk": "semua pek yang dipasang telah disahkan",
+    "verifyFailed": "{count} pek gagal disahkan",
+    "noneInstalled": "tiada pek pilihan dipasang"
   }
 }

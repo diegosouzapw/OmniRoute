@@ -1,0 +1,1 @@
+- **fix(cli):** persist the supervisor's give-up crash record to `<DATA_DIR>/server/crash.log` (surfaced by `omniroute doctor`) instead of only printing it — the console output was discarded when `--tray` mode's detached worker exited, leaving no trace of why the gateway/tray disappeared (#13538) — thanks @ProphetOfDoom-PoD

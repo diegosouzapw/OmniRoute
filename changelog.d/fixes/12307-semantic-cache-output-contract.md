@@ -1,0 +1,1 @@
+- fix(cache): fold `response_format`/Responses-API `text.format` into the semantic cache signature so a `temp=0` request can no longer be served a stored response body with a different output schema (#12307)

@@ -450,6 +450,97 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
   );
 });
 
+test("combo test route aborts in-flight probes when the client disconnects", async () => {
+  await createTestCombo(["provider/first", "provider/second"]);
+
+  let inFlight = 0;
+  let maxInFlight = 0;
+  let fetchCalls = 0;
+  let observedCombinedSignal: AbortSignal | null = null;
+  let observedParentSignal: AbortSignal | null = null;
+  const realSetTimeout = globalThis.setTimeout;
+  const realClearTimeout = globalThis.clearTimeout;
+  let createdProbeTimers = 0;
+  let clearedProbeTimers = 0;
+
+  const externalController = new AbortController();
+
+  const setProbeTimeout = (
+    handler: (...args: unknown[]) => void,
+    ms?: number,
+    ...rest: unknown[]
+  ) => {
+    createdProbeTimers += 1;
+    return realSetTimeout(handler, ms, ...rest);
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  globalThis.setTimeout = setProbeTimeout as any;
+  globalThis.clearTimeout = ((id: unknown) => {
+    clearedProbeTimers += 1;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return realClearTimeout(id as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
+
+  globalThis.fetch = (async (_url, init: RequestInit = {}) => {
+    fetchCalls += 1;
+    inFlight += 1;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    observedCombinedSignal = (init.signal as AbortSignal) ?? null;
+    observedParentSignal = externalController.signal;
+    try {
+      await new Promise((_resolve, reject) => {
+        init.signal?.addEventListener("abort", () => {
+          const error = new Error("aborted");
+          error.name = "AbortError";
+          reject(error);
+        });
+      });
+      throw new Error("probe should have been aborted");
+    } finally {
+      inFlight -= 1;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
+
+  try {
+    const pending = route.POST(
+      new Request("http://localhost/api/combos/test", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ comboName: "strict-live-test" }),
+        signal: externalController.signal,
+      })
+    );
+    const watchdog = new Promise<never>((_resolve, reject) => {
+      realSetTimeout(() => reject(new Error("abort did not propagate within 5s")), 5000);
+    });
+    await new Promise((resolve) => realSetTimeout(resolve, 10));
+    assert.equal(fetchCalls, 1);
+    assert.equal(maxInFlight, 1);
+    externalController.abort();
+
+    const response = await Promise.race([pending, watchdog]);
+    const body = (await response.json()) as ComboTestBody;
+
+    assert.equal(response.status, 200);
+    assert.equal(fetchCalls, 1);
+    assert.equal(maxInFlight, 1);
+    assert.equal(inFlight, 0);
+    assert.equal(observedCombinedSignal?.aborted, true);
+    assert.equal(observedCombinedSignal !== observedParentSignal, true);
+    assert.equal(body.resolvedBy, null);
+    assert.equal(body.results.length, 1);
+    assert.equal(body.results[0].status, "error");
+    assert.equal(body.results[0].error, "Client disconnected");
+    assert.equal(clearedProbeTimers >= createdProbeTimers, true);
+    assert.equal(createdProbeTimers >= 1, true);
+  } finally {
+    globalThis.setTimeout = realSetTimeout;
+    globalThis.clearTimeout = realClearTimeout;
+  }
+});
+
 test("combo test route stops probing once the total budget is spent", async () => {
   await createTestCombo(["provider/first", "provider/second", "provider/third"]);
 

@@ -1,0 +1,1 @@
+- **fix(combo):** a priority combo whose steps are different models on one Claude OAuth connection now falls through to the next step — a model-specific 404 or 5xx is scoped to the model instead of retiring the whole account, while a 429 stays account-wide ([#12334](https://github.com/diegosouzapw/OmniRoute/issues/12334))

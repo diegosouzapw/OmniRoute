@@ -1,6 +1,6 @@
 # Security Policy (Српски)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,28 +220,36 @@ docker run -d \
 10. **Runtime вредности за `exec()` / `spawn()` путем опције `env`** — никада не радите string-интерполацију спољних путања или неповерљивих вредности у скриптове који се прослеђују shell-у. Референца: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Дајте приоритет безбедним подразумеваним библиотекама** — погледајте [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Посегните за њима пре него што правите сопствено решење.
 
-## Nalazi skenera lanca snabdevanja (Socket.dev / Snyk / slično)
+## Налази скенера ланца снабдевања (Socket.dev / Snyk / слични)
 
-Objavljeni `omniroute` npm artefakt sadrži Next.js `output: "standalone"`
-build, što znači da svaki route handler — uključujući dokumentovane privilegovane
-funkcionalnosti (MITM, Zed import, Cloud Sync, ugrađeni service supervisor) — završava
-u minifikovanim `.next/server/*.js` chunkovima. Heuristički skeneri lanca snabdevanja
-često pattern-matchuju te chunkove sa signaturama malvera.
+Објављени npm артефакт `omniroute` садржи Next.js верзију изграђену са `output: "standalone"`,
+што значи да сваки обрађивач рута — укључујући документоване привилеговане
+функционалности (MITM, Zed увоз, Cloud Sync, уграђени надзорник услуга) — завршава
+у минификованим фрагментима `.next/server/*.js`. Хеуристички скенери ланца снабдевања
+често упоређују обрасце из тих фрагмената са потписима злонамерног софтвера.
 
-Za svaku kategoriju nalaza održavamo atestaciju održavaoca po nalazu:
+Конфигурација скенера коју користимо налази се у датотеци [`socket.yml`](socket.yml) у
+корену репозиторијума (Socket.dev GitHub App формат v2 — погледајте
+<https://docs.socket.dev/docs/socket-yml>). Она изричито искључује
+директоријуме који се не испоручују (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` итд.), тако да скенер извештава само о путањама кода које
+заиста стижу до корисника објављеног пакета — само скенирање покреће Socket
+GitHub App читањем те датотеке, а не ток посла у овом репозиторијуму.
+
+За сваку категорију налаза одржавамо потврду одржаваоца за сваки појединачни налаз:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa po nalazu: izvorni fajl ↔ obeleženi chunk ↔ ponašanje ↔ mitigacija
-  primenjena u v3.8.6.
-- Blokovi `SECURITY-AUDITOR-NOTE:` u samom izvornom kodu na svakoj obeleženoj funkciji
-  upućuju na isti dokument.
+  мапа по налазу: изворна датотека ↔ означени фрагмент ↔ понашање ↔ ублажавање
+  примењено у v3.8.6.
+- Блокови `SECURITY-AUDITOR-NOTE:` у изворном коду, код сваке означене функције,
+  упућују на исти документ.
 
-Za korisnike čiji pipeline ne može da relaksira upozorenje: build-ujte sa
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. To zamenjuje četiri
-osetljiva modula stubovima koji u runtime-u vraćaju HTTP 503 `feature-disabled`,
-tako da su privilegovane putanje koda fizički odsutne iz bundle-a.
-Pogledajte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-za recept za objavljivanje.
+За кориснике чији систем за испоруку не може да ублажи упозорење: изградите помоћу
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. То замењује четири
+осетљива модула заменским имплементацијама које током извршавања враћају HTTP 503
+`feature-disabled`, тако да су привилеговане путање кода физички одсутне из пакета.
+Погледајте [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+за поступак објављивања.
 
 ## Referenca
 

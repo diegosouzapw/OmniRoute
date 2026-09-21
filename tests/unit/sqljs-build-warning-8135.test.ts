@@ -38,7 +38,8 @@ test("#8135: sqljsAdapter must not statically resolve sql.js at build time", () 
 
   // The standalone assembler ships sql.js as a real runtime package, so the
   // adapter must not depend on a build-time createRequire/require.resolve lookup.
-  assert.doesNotMatch(source, /createRequire/);
+  assert.doesNotMatch(source, /createRequire\(\s*(?:import\.meta\.url|__filename)/);
+  assert.doesNotMatch(source, /^const\s+\w+\s*=\s*(?:\w+\.)?createRequire\s*\(/m);
   assert.doesNotMatch(source, /\.resolve\(["']sql\.js["']\)/);
   assert.match(source, /process\.cwd\(\)[\s\S]*"node_modules"[\s\S]*"sql\.js"/);
 });

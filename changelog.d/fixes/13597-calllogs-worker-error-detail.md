@@ -1,0 +1,1 @@
+- **fix(usage):** the call-logs artifact worker's failure warning now includes the underlying error's message/code instead of the generic "detail omitted" — a crashed or non-zero-exit worker was previously undiagnosable in the logs (#13597) — thanks @afonsoft

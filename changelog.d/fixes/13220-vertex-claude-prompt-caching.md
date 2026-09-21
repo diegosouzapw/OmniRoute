@@ -1,0 +1,1 @@
+- **fix(vertex):** preserve Claude prompt-cache breakpoints for Vertex and Vertex Partner, use the documented five-minute ephemeral TTL by default, and forward cache usage metadata through streaming responses ([#13220](https://github.com/diegosouzapw/OmniRoute/pull/13220)) — fixes #13219

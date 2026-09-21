@@ -1,0 +1,1 @@
+- **chore(ci):** register the #13609 ambiguous-401 regression test in the mutation-coverage config, clearing the second `check:agent-skills-sync`/`mutation-test-coverage` base-red (#12732)

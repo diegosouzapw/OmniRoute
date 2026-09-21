@@ -29,6 +29,12 @@ lastUpdated: 2026-06-28
 
 ## Quick Run
 
+> **Self-host in one command?** See the
+> [Self-Host Guide](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (published image +
+> Redis, loopback-only, no profile choice). The Quick Run below is the
+> single-container path for users who already run Redis elsewhere.
+
 ```bash
 docker run -d \
   --name omniroute \

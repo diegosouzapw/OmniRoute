@@ -1,38 +1,30 @@
-# CLI-INTEGRATIONS (Hrvatski)
+# CLI Integrations (Hrvatski)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
-title: "CLI Integracije — usmjerite bilo koji coding CLI na OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
+OmniRoute dolazi sa skupinom naredbi `setup-*` koje konfiguriraju CLI za
+programiranje (Codex, Claude Code, OpenCode, Cline, …) tako da koristi OmniRoute kao pozadinski sustav — stoga
+alat komunicira s **jednom** krajnjom točkom, a OmniRoute usmjerava zahtjeve odgovarajućem pružatelju uz
+automatsko prebacivanje u slučaju poteškoća. Svaka naredba čita **aktivni** katalog modela iz pokrenute
+instance OmniRoutea (lokalne ili udaljene) i zapisuje konfiguracijsku datoteku samog alata na **vašem**
+računalu. API ključ navodi se putem varijable okruženja kad god alat to
+podržava. Naredbe koje trajno pohranjuju lokalnu datoteku okruženja alata navedene su u nastavku.
 
-# CLI Integracije
-
-OmniRoute isporučuje skupinu `setup-*` naredbi koje konfiguriraju coding
-CLI (Codex, Claude Code, OpenCode, Cline, …) da koristi OmniRoute kao pozadinsku uslugu — tako
-da alat komunicira s **jednom** krajnjom točkom, a OmniRoute preusmjerava na pravog pružatelja uz
-automatski prelazak na zamjenu. Svaka naredba čita **aktivan** katalog modela s pokrenutog
-OmniRoute instance (lokalne ili udaljene) i zapisuje vlastitu konfiguracijsku datoteku alata na **vašem**
-računalu. API ključ se referencira putem varijable okruženja gdje god to alat podržava. Naredbe koje trajno pohranjuju lokalnu datoteku okruženja alata navedene su u nastavku.
-
-Postoji i generički pokretač — `omniroute run <target>` — koji pokreće
+Dostupan je i generički pokretač — `omniroute run <target>` — koji pokreće
 `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ili `gemini` s
-ispravno postavljenim env varijablama, bez pisanja ikakve konfiguracije. Ciljevi i njihovi
+umetnutim odgovarajućim varijablama okruženja, bez zapisivanja ikakve konfiguracije. Ciljevi i njihovi
 pseudonimi dolaze iz kanonskog manifesta `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), a `omniroute completion` nudi
-iste ciljne riječi izvedene iz manifesta. Naslijeđeni pokretači za pojedine alate —
-`omniroute launch` (Claude Code) i `omniroute launch-codex` (Codex) — ostaju
+`open-code`, `qwen-code`, `gemini-cli`), a `omniroute completion` nudi iste
+nazive ciljeva izvedene iz manifesta. Zastarjeli pokretači za pojedine alate —
+`omniroute launch` (Claude Code) i `omniroute launch-codex` (Codex) — i dalje su
 dostupni.
 
-Uključivanje pružatelja usluga dostupno je iz istog lokalnog/udaljenog konteksta. Naredbe
-usmjerene na API u nastavku drže autentikaciju upravljanja odvojenom od vjerodajnica pružatelja
-i nikada ne ispisuju vjerodajnicu u strukturiranom izlazu:
+Uključivanje pružatelja dostupno je iz istog lokalnog/udaljenog konteksta. Naredbe
+u nastavku, koje prvenstveno koriste API, drže autentifikaciju za upravljanje odvojenom od vjerodajnica
+pružatelja i nikada ne ispisuju vjerodajnicu u strukturiranom izlazu:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -42,84 +34,84 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Za skripte preferirajte `--credential-stdin` ili `--credential-env`; `--credential`
-je zadržan za kontroliranu lokalnu upotrebu. `providers remove` zahtijeva `--yes` na
-neterminalnom sučelju, a svih pet naredbi poštuje aktivni kontekst ili
+Za skripte koristite `--credential-stdin` ili `--credential-env`; opcija `--credential`
+zadržana je za kontroliranu lokalnu upotrebu. `providers remove` zahtijeva `--yes` u
+neinteraktivnom terminalu, a svih pet naredbi poštuje aktivni kontekst ili
 globalne opcije `--base-url`/`--api-key`.
 
-Za jednokratno, ručno pisano osnovno postavljanje dviju najbogatijih integracija, pogledajte
+Za jednokratno, ručno osnovno postavljanje dviju najbogatijih integracija pogledajte
 detaljne vodiče za pojedine alate:
 
-- [Konfiguracija Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
-- [Konfiguracija Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Udaljeni način rada](./REMOTE-MODE.md) — upravljajte udaljenim OmniRoute (VPS / Tailnet) s vašeg laptopa
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot ekstenzija; može i sama pokrenuti ove
-  `setup-*` naredbe iz uređivača
+- [Konfiguracija alata Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
+- [Konfiguracija alata Codex CLI](./CODEX-CLI-CONFIGURATION.md)
+- [Udaljeni način rada](./REMOTE-MODE.md) — upravljajte udaljenom instancom OmniRoutea (VPS / Tailnet) sa svojeg prijenosnog računala
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — proširenje OmniCopilot; također može pokretati ove
+  naredbe `setup-*` umjesto vas iz samog uređivača
 
 ---
 
 ## Glavna tablica
 
-Svaka naredba poštuje **aktivni kontekst** (postavljen s `omniroute connect`, vidi
+Svaka naredba poštuje **aktivni kontekst** (postavljen pomoću `omniroute connect`, pogledajte
 [Udaljeni način rada](./REMOTE-MODE.md)) ili eksplicitne zastavice `--remote <url> --api-key <key>`.
-"Lokalno vs udaljeno" u nastavku znači: bez zastavica cilja `http://localhost:20128`;
-s `--remote` (ili aktivnim udaljenim kontekstom) dohvaća katalog s tog
+„Lokalno naspram udaljenog” u nastavku znači: bez zastavica cilja `http://localhost:20128`;
+uz `--remote` (ili aktivni udaljeni kontekst) dohvaća katalog s tog
 poslužitelja i lokalno zapisuje konfiguraciju.
 
-| Naredba                    | Alat                           | Što zapisuje                                                                                                                                                           | Ključne zastavice                                                                                                                          | Lokalno vs udaljeno |
-| -------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
-| `omniroute setup-codex`    | OpenAI Codex CLI               | `~/.codex/<name>.config.toml` — jedan profil po kompatibilnom tekstualnom modelu (`codex --profile <name>`)                                                            | `--remote` `--api-key` `--only` `--dry-run` `--port` `--codex-home`                                                                        | Oba                 |
-| `omniroute setup-claude`   | Claude Code                    | `~/.claude/profiles/<name>/settings.json` — jedan profil po odgovarajućem modelu (`CLAUDE_CONFIG_DIR`)                                                                 | `--remote` `--api-key` `--only` `--dry-run` `--port` `--claude-home`                                                                       | Oba                 |
-| `omniroute setup-opencode` | OpenCode (openai-compatible)   | `~/.config/opencode/opencode.json` — `omniroute` pružatelj s svakim modelom iz kataloga (`opencode -m omniroute/<model>`)                                              | `--remote` `--api-key` `--only` `--model` `--dry-run` `--port`                                                                             | Oba                 |
-| `omniroute setup-cline`    | Cline                          | `~/.cline/data/{globalState,secrets}.json` (CLI način) + ispisuje postavke VS Code ekstenzije                                                                          | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--cline-dir`                                                                | Oba                 |
-| `omniroute setup-kilo`     | Kilo Code                      | `~/.local/share/kilo/auth.json` (CLI) + spaja `kilocode.*` u VS Code `settings.json` ako postoji                                                                       | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--auth-path` `--vscode-settings`                                            | Oba                 |
-| `omniroute setup-continue` | Continue / `cn` CLI            | `~/.continue/config.yaml` — modeli s `provider: openai`, ključ putem `${{ secrets.OMNIROUTE_API_KEY }}`                                                                | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path`                                                                       | Oba                 |
-| `omniroute setup-cursor`   | Cursor                         | Ništa — ispisuje korake unutar aplikacije (Cursor konfiguracija je neprozirni SQLite)                                                                                  | `--remote` `--api-key` `--only` `--port`                                                                                                   | Oba                 |
-| `omniroute setup-roo`      | Roo Code                       | `~/.omniroute/roo-settings.json` (dokument za uvoz) + postavlja `roo-cline.autoImportSettingsPath` ako postoji VS Code `settings.json`                                 | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--import-path` `--vscode-settings`                                          | Oba                 |
-| `omniroute setup-crush`    | Crush                          | `~/.config/crush/crush.json` — `openai-compat` pružatelj, ključ putem `$OMNIROUTE_API_KEY`                                                                             | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path`                                                                       | Oba                 |
-| `omniroute setup-goose`    | Goose                          | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER`/`OPENAI_HOST`/`GOOSE_MODEL`) + ispisuje env recept                                                                     | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Oba                 |
-| `omniroute setup-aider`    | Aider                          | `~/.aider.conf.yml` (`openai-api-base` + `model: openai/<id>`) + ispisuje env recept                                                                                   | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Oba                 |
-| `omniroute setup-qwen`     | Qwen Code                      | `~/.qwen/settings.json` — V4 `modelProviders.openai` polje + `OMNIROUTE_API_KEY` u `~/.qwen/.env`                                                                      | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` `--env-path`                                                 | Oba                 |
-| `omniroute setup-5dive`    | 5dive (agent fleet)            | Ništa pod `$HOME` — zapisuje 5dive **auth profil** (`/var/lib/5dive/auth-profiles/<name>/`) putem `5dive agent auth set`; samo root, pokreće se na fleet hostu         | `--remote` `--api-key` `--model` `--auth-profile` `--agent` `--byo-provider` `--fivedive-bin` `--no-sudo` `--yes` `--dry-run` `--port`     | Oba                 |
-| `omniroute run <target>`   | Runtime pokretanje (generičko) | Ništa — pokreće `claude`/`codex`/`aider`/`goose`/`opencode`/`qwen`/`gemini` s ispravnim env varijablama i argumentima; Qwen i Gemini koriste privremeni izolirani home | `--remote` `--base-url` `--context` `--provider` `--model` `--api-key` `--api-key-env` `--dry-run` `--json` `--port` `--profile` `--token` | Oba                 |
-| `omniroute launch`         | Claude Code                    | Ništa — pokreće `claude` s umetnutim `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN`                                                                                       | `--remote` `--api-key` `--token` `--profile` `--port`                                                                                      | Oba                 |
-| `omniroute launch-codex`   | OpenAI Codex CLI               | Ništa — pokreće `codex` s umetnutim `omniroute` pružateljem putem `-c` zastavica                                                                                       | `--remote` `--api-key` `--profile` (`-p`) `--port`                                                                                         | Oba                 |
+| Naredba                    | Alat                                     | Što zapisuje                                                                                                                                                                                          | Ključne zastavice                                                                                                                          | Lokalno ili udaljeno |
+| -------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
+| `omniroute setup-codex`    | OpenAI Codex CLI                         | `~/.codex/<name>.config.toml` — jedan profil po kompatibilnom tekstnom modelu (`codex --profile <name>`)                                                                                              | `--remote` `--api-key` `--only` `--dry-run` `--port` `--codex-home`                                                                        | Oboje                |
+| `omniroute setup-claude`   | Claude Code                              | `~/.claude/profiles/<name>/settings.json` — jedan profil po podudarnom modelu (`CLAUDE_CONFIG_DIR`)                                                                                                   | `--remote` `--api-key` `--only` `--dry-run` `--port` `--claude-home`                                                                       | Oboje                |
+| `omniroute setup-opencode` | OpenCode (kompatibilan s openai)         | `~/.config/opencode/opencode.json` — pružatelj `omniroute` sa svakim modelom iz kataloga (`opencode -m omniroute/<model>`)                                                                            | `--remote` `--api-key` `--only` `--model` `--dry-run` `--port`                                                                             | Oboje                |
+| `omniroute setup-cline`    | Cline                                    | `~/.cline/data/{globalState,secrets}.json` (CLI način rada) + ispisuje postavke proširenja za VS Code                                                                                                 | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--cline-dir`                                                                | Oboje                |
+| `omniroute setup-kilo`     | Kilo Code                                | `~/.local/share/kilo/auth.json` (CLI) + spaja `kilocode.*` u VS Code `settings.json` ako postoji                                                                                                      | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--auth-path` `--vscode-settings`                                            | Oboje                |
+| `omniroute setup-continue` | Continue / `cn` CLI                      | `~/.continue/config.yaml` — modeli s `provider: openai`, ključ putem `${{ secrets.OMNIROUTE_API_KEY }}`                                                                                               | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path`                                                                       | Oboje                |
+| `omniroute setup-cursor`   | Cursor                                   | Ništa — ispisuje korake unutar aplikacije (konfiguracija Cursora neprozirni je SQLite)                                                                                                                | `--remote` `--api-key` `--only` `--port`                                                                                                   | Oboje                |
+| `omniroute setup-roo`      | Roo Code                                 | `~/.omniroute/roo-settings.json` (dokument za uvoz) + postavlja `roo-cline.autoImportSettingsPath` ako postoji VS Code `settings.json`                                                                | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--import-path` `--vscode-settings`                                          | Oboje                |
+| `omniroute setup-crush`    | Crush                                    | `~/.config/crush/crush.json` — pružatelj `openai-compat`, ključ putem `$OMNIROUTE_API_KEY`                                                                                                            | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path`                                                                       | Oboje                |
+| `omniroute setup-goose`    | Goose                                    | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER`/`OPENAI_HOST`/`GOOSE_MODEL`) + ispisuje recept za varijable okruženja                                                                                 | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Oboje                |
+| `omniroute setup-aider`    | Aider                                    | `~/.aider.conf.yml` (`openai-api-base` + `model: openai/<id>`) + ispisuje recept za varijable okruženja                                                                                               | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Oboje                |
+| `omniroute setup-qwen`     | Qwen Code                                | `~/.qwen/settings.json` — V4 polje `modelProviders.openai` + `OMNIROUTE_API_KEY` u `~/.qwen/.env`                                                                                                     | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` `--env-path`                                                 | Oboje                |
+| `omniroute setup-5dive`    | 5dive (flota agenata)                    | Ništa pod `$HOME` — zapisuje 5dive **profil za autentifikaciju** (`/var/lib/5dive/auth-profiles/<name>/`) putem `5dive agent auth set`; samo za korisnika root, izvršava se na glavnom računalu flote | `--remote` `--api-key` `--model` `--auth-profile` `--agent` `--byo-provider` `--fivedive-bin` `--no-sudo` `--yes` `--dry-run` `--port`     | Oboje                |
+| `omniroute run <target>`   | Pokretanje tijekom izvođenja (generičko) | Ništa — pokreće `claude`/`codex`/`aider`/`goose`/`opencode`/`qwen`/`gemini` s odgovarajućim okruženjem i argumentima; Qwen i Gemini koriste privremeni izolirani matični direktorij                   | `--remote` `--base-url` `--context` `--provider` `--model` `--api-key` `--api-key-env` `--dry-run` `--json` `--port` `--profile` `--token` | Oboje                |
+| `omniroute launch`         | Claude Code                              | Ništa — pokreće `claude` s umetnutim varijablama `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN`                                                                                                          | `--remote` `--api-key` `--token` `--profile` `--port`                                                                                      | Oboje                |
+| `omniroute launch-codex`   | OpenAI Codex CLI                         | Ništa — pokreće `codex` s pružateljem `omniroute` umetnutim putem zastavica `-c`                                                                                                                      | `--remote` `--api-key` `--profile` (`-p`) `--port`                                                                                         | Oboje                |
 
-Napomene o zastavicama (provjereno u izvornom kodu naredbi):
+Napomene o zastavicama (provjereno u izvornom kodu naredbe):
 
-- `--remote <url>` — dohvaća katalog s udaljenog OmniRoute (nadjačava `--port`
+- `--remote <url>` — dohvaća katalog s udaljenog OmniRoute poslužitelja (nadjačava `--port`
   i aktivni kontekst). `--api-key <key>` pruža vjerodajnicu za taj
-  poslužitelj (zadano na env varijablu `OMNIROUTE_API_KEY`, ili token aktivnog konteksta).
-- `--only <patterns>` — podnizkovi odvojeni zarezima; zadržava samo ID-ove modela koji se podudaraju
-  (npr. `--only glm,kimi`). Dostupno na `setup-codex`, `setup-claude`,
+  poslužitelj (zadano koristi varijablu okruženja `OMNIROUTE_API_KEY` ili token aktivnog konteksta).
+- `--only <patterns>` — podnizovi odvojeni zarezima; zadržava samo ID-ove modela koji se podudaraju
+  (npr. `--only glm,kimi`). Dostupno za `setup-codex`, `setup-claude`,
   `setup-opencode`, `setup-continue`, `setup-cursor`, `setup-crush`.
-- `--dry-run` — ispisuje točno što bi bilo zapisano bez dodirivanja
-  datotečnog sustava. Dostupno na svakoj `setup-*` naredbi **osim** `setup-cursor`
+- `--dry-run` — ispisuje točno ono što bi bilo zapisano bez izmjena u
+  datotečnom sustavu. Dostupno za svaku naredbu `setup-*` **osim** `setup-cursor`
   (koja nikada ne zapisuje datoteku).
-- `--model <id>` — obavezno (ili odabrano interaktivno) za alate koji nemaju
+- `--model <id>` — obavezno (ili se odabire interaktivno) za alate koji nemaju
   automatsko otkrivanje modela: Cline, Kilo, Roo, Goose, Qwen, Aider, 5dive. Ti alati
-  također prihvaćaju `--yes` za neinteraktivna pokretanja (što tada zahtijeva `--model`).
-  `setup-opencode` prima `--model` za postavljanje zadanog modela najviše razine.
-- `--model <id>` na `omniroute run` prati ožičenje manifesta po cilju
+  također prihvaćaju `--yes` za neinteraktivna pokretanja (koja tada zahtijevaju `--model`).
+  `setup-opencode` prihvaća `--model` za postavljanje zadanog modela najviše razine.
+- `--model <id>` uz `omniroute run` slijedi povezivanje po ciljevima iz manifesta
   (`bin/cli/cli-manifest.mjs`): **aider** prima `--model openai/<id>`, a
-  **opencode** `--model omniroute/<id>` (prefiks se dodaje samo kada id
-  ga već ne sadrži); **qwen** i **gemini** primaju id doslovno;
+  **opencode** `--model omniroute/<id>` (prefiks se dodaje samo kada ga ID
+  već ne sadrži); **qwen** i **gemini** primaju ID doslovno;
   **claude** ga dobiva putem `ANTHROPIC_MODEL`, **goose** putem `GOOSE_MODEL`, a
-  **codex** putem `-c model_providers.omniroute.*` argumenata. **Qwen je jedini run
-  cilj koji strogo zahtijeva `--model`** — `omniroute run qwen` bez njega izlazi
-  s `2` uz eksplicitnu grešku.
-- `--port <port>` — lokalni OmniRoute port (zadano `20128`, ignorira se kada je postavljen `--remote`).
-  Prisutno na svim `setup-*` naredbama i oba pokretača.
-- Izlazni kodovi `omniroute run`: vlastiti izlazni kod podređenog CLI-ja se prenosi
-  doslovno; `2` = nevaljani argumenti (nepodržani cilj, nedostaje obavezni
-  `--model`, zaštita kontejnera); `127` = ciljana binarna datoteka nije u `PATH`-u;
-  `130`/`143`/`129` kada je pokretanje završeno s `SIGINT`/`SIGTERM`/`SIGHUP`;
-  `1` = ostale greške pri pokretanju.
-- Oba pokretača (`launch`, `launch-codex`) prihvaćaju `--profile <name>` za odabir
-  profila zapisanog s `setup-claude` / `setup-codex`, uz argumente za prosljeđivanje temeljnoj
-  binarnoj datoteci `claude` / `codex`.
+  **codex** putem argumenata `-c model_providers.omniroute.*`. **Qwen je jedini cilj za pokretanje
+  koji izričito zahtijeva `--model`** — `omniroute run qwen` bez njega završava
+  kodom `2` uz izričitu pogrešku.
+- `--port <port>` — lokalni OmniRoute priključak (zadano `20128`, zanemaruje se kada je postavljen
+  `--remote`). Prisutan na svim naredbama `setup-*` i oba pokretača.
+- Izlazni kodovi naredbe `omniroute run`: vlastiti izlazni kod podređenog CLI-ja prenosi se
+  doslovno; `2` = neispravni argumenti (nepodržani cilj, nedostaje obavezni
+  `--model`, zaštita spremnika); `127` = izvršna datoteka cilja nije u `PATH`;
+  `130`/`143`/`129` kada se pokretanje prekine signalom `SIGINT`/`SIGTERM`/`SIGHUP`;
+  `1` = druga pogreška pokretanja tijekom izvođenja.
+- Dva pokretača (`launch`, `launch-codex`) prihvaćaju `--profile <name>` za odabir
+  profila koji je zapisao `setup-claude` / `setup-codex`, kao i argumente koji se prosljeđuju
+  temeljnoj izvršnoj datoteci `claude` / `codex`.
 
-Interaktivni birač također je zajednički za setup recepte:
+Interaktivni izbornik također dijele recepti za postavljanje:
 
 ```bash
 # Odaberite iz aktivnog lokalnog ili udaljenog kataloga modela i konfigurirajte cilj.
@@ -128,16 +120,26 @@ omniroute configure opencode --provider glm
 omniroute configure qwen --model qwen/qwen3.8-max-preview --yes
 ```
 
-`configure` trenutno delegira na testirane recepte za `codex`, `claude`,
+`configure` trenutačno delegira na testirane recepte za `codex`, `claude`,
 `opencode`, `qwen`, `aider`, `goose`, `cline`, `continue`, `kilo` i `5dive`.
-Unosi kataloga samo za IDE,
-MITM i samo za vodiče ostaju eksplicitni `setup-*`/ručni tokovi i
-nisu prikazani kao ciljevi koji se mogu pokrenuti.
+Stavke kataloga namijenjene samo IDE-u,
+MITM-u i vodičima ostaju izričiti `setup-*`/ručni postupci i
+ne prikazuju se kao ciljevi koji se mogu pokrenuti.
 
-> `setup-opencode` je **lagana openai-kompatibilna** OpenCode integracija.
-> Postoji i bogatija integracija putem dodatka — `omniroute setup opencode` — koja
-> instalira `@omniroute/opencode-plugin`. To su različite naredbe; tablica
-> iznad dokumentira `setup-opencode`.
+> `setup-opencode` je **lagana integracija kompatibilna s OpenAI-jem** za OpenCode.
+> Postoji i bogatija integracija dodatka — `omniroute setup opencode` — koja
+> instalira `@omniroute/opencode-plugin`. To su različite naredbe; gornja tablica
+> dokumentira `setup-opencode`.
+>
+> Dodatak dolazi u dva paketa, po jedan za svaku glavnu verziju OpenCodea, jer dva
+> učitavača očekuju različite ulazne točke:
+> `@omniroute/opencode-plugin` za OpenCode v1 i
+> `@omniroute/opencode-plugin-v2` za OpenCode v2. Paket za v2 je nov
+> (`0.1.0`) i slijedi ugovor glavnog sustava koji se još mijenja, stoga čita
+> strukturu koju OpenCode umeće u nacrt kataloga umjesto da je pretpostavlja. Instalirajte
+> ga dodavanjem stavke `plugins` u `opencode.json`; `omniroute setup opencode`
+> i dalje instalira paket za v1. Opcije i redoslijed traženja vjerodajnica nalaze se u
+> README-u paketa.
 
 ---
 

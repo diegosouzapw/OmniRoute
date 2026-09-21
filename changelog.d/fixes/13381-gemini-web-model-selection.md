@@ -1,0 +1,1 @@
+- **fix(providers):** `gemini-web` now attempts to select and verify the requested Gemini UI mode (and Extended Thinking) before answering, and fails closed with a clear 400 instead of silently running the account default under a mismatched model label (#13381) — thanks @formilw

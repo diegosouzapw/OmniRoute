@@ -1,103 +1,9 @@
-export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
-  // Gemini 3.7 Flash tiers listed by the current official Antigravity model catalog.
-  // Keep the upstream model ids unchanged so discovery and execution address the same
-  // models selected by the native client.
-  {
-    id: "gemini-3.7-flash-high",
-    name: "Gemini 3.7 Flash (High)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.7-flash-medium",
-    name: "Gemini 3.7 Flash (Medium)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.7-flash-low",
-    name: "Gemini 3.7 Flash (Low)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.7-flash-tiered",
-    name: "Gemini 3.7 Flash (Tiered)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  // Gemini 3.1 Pro budget tiers. Live streamGenerateContent validation uses
-  // `gemini-pro-agent` for High; the separately advertised `gemini-3.1-pro-high`
-  // discovery slot currently returns HTTP 400 and is intentionally not public.
-  {
-    id: "gemini-pro-agent",
-    name: "Gemini 3.1 Pro (High)",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.1-pro-low",
-    name: "Gemini 3.1 Pro (Low)",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.1-flash-lite",
-    name: "Gemini 3.1 Flash Lite",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    toolCalling: true,
-  },
-  // Claude (Antigravity backend). The `agy` provider already ships these from the live
-  // :fetchAvailableModels probe (see agyModels.ts) and discussion #3184 confirmed they
-  // are user-callable through the `antigravity` OAuth provider too — same backend.
-  // `antigravity/claude-opus-4-6-thinking` and `antigravity/claude-sonnet-4-6` both work.
-  // They are upstream IDs, so no alias remapping is required.
-  {
-    id: "claude-opus-4-6-thinking",
-    name: "Claude Opus 4.6 (Thinking)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "claude-sonnet-4-6",
-    name: "Claude Sonnet 4.6 (Thinking)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gpt-oss-120b-medium",
-    name: "GPT-OSS 120B (Medium)",
-    contextLength: 131072,
-    maxOutputTokens: 32768,
-    supportsReasoning: true,
-    toolCalling: true,
-  },
-]);
+import { ANTIGRAVITY_SHARED_MODELS, buildSurfaceCatalog } from "./antigravitySharedModels.ts";
+
+export const ANTIGRAVITY_PUBLIC_MODELS = buildSurfaceCatalog(ANTIGRAVITY_SHARED_MODELS, {
+  add: [], // IDE-only models (currently none)
+  remove: [], // Models hidden from IDE (currently none)
+});
 
 export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   // Gemini 3.7 Flash tiers map to the upstream tiered endpoint model; the thinking
@@ -106,6 +12,11 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   "gemini-3.7-flash-high": "gemini-3.7-flash-tiered",
   "gemini-3.7-flash-medium": "gemini-3.7-flash-tiered",
   "gemini-3.7-flash-low": "gemini-3.7-flash-tiered",
+  // Gemini 3.8 Flash tiers are served DIRECTLY by the live Cloud Code upstream
+  // (v1internal:streamGenerateContent) at their own tier ids — unlike 3.7, there is no
+  // shared "-tiered" endpoint for 3.8. -high/-medium/-low are accepted verbatim; only
+  // the bare display id needs a default-tier alias.
+  "gemini-3.8-flash": "gemini-3.8-flash-high",
   "gpt-oss-120b": "gpt-oss-120b-medium",
   // gemini-3.1-pro-low is not aliased: the upstream accepts it verbatim.
   // gemini-3.1-pro-high: the discovery slot returns HTTP 400 on v1internal;
@@ -170,6 +81,13 @@ const ANTIGRAVITY_NON_CHAT_MODEL_IDS = new Set([
   "gemini-2.5-flash-preview-tts",
   "tab_flash_lite_preview",
   "tab_jump_flash_lite_preview",
+]);
+
+// Non-chat models that still expose user-facing quota buckets. Keep these out of
+// chat discovery while allowing Provider Limits to surface their live quota.
+const ANTIGRAVITY_QUOTA_VISIBLE_NON_CHAT_MODEL_IDS = new Set([
+  "gemini-3-pro-image-preview",
+  "gemini-3.1-flash-image",
 ]);
 
 const ANTIGRAVITY_RETIRED_MODEL_IDS = new Set([
@@ -251,4 +169,18 @@ export function isDiscoverableAntigravityModelId(modelId: string): boolean {
     return false;
   }
   return !ANTIGRAVITY_NON_CHAT_MODEL_PATTERN.test(id);
+}
+
+/**
+ * Return whether an Antigravity model quota should be visible to users. Quota
+ * visibility is intentionally broader than chat discovery: image-only models
+ * are callable through /v1/images/generations and have their own live quota
+ * buckets, but must remain excluded from the chat model catalog.
+ */
+export function isUserVisibleAntigravityQuotaModelId(modelId: string): boolean {
+  const id = modelId.trim();
+  if (!id) return false;
+  return (
+    isDiscoverableAntigravityModelId(id) || ANTIGRAVITY_QUOTA_VISIBLE_NON_CHAT_MODEL_IDS.has(id)
+  );
 }

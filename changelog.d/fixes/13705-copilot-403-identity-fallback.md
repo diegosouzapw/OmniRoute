@@ -1,0 +1,1 @@
+- **fix(copilot):** fall back to the `copilot-chat` identity once when a standard GitHub Copilot account rejects the CLI identity with a 403, without breaking Enterprise Copilot ([#13705](https://github.com/diegosouzapw/OmniRoute/pull/13705)) — thanks @tuandinh0801

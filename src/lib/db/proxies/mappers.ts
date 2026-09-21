@@ -1,4 +1,5 @@
 import { decrypt, looksEncrypted } from "../encryption";
+import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import type {
   JsonRecord,
   ProxyScope,
@@ -180,8 +181,8 @@ export function coerceProxyPayload(value: unknown, fallbackName: string): ProxyP
         type: parsed.protocol.replace(":", "") || "http",
         host: parsed.hostname,
         port: Number(parsed.port || (parsed.protocol === "https:" ? "443" : "8080")),
-        username: parsed.username ? decodeURIComponent(parsed.username) : "",
-        password: parsed.password ? decodeURIComponent(parsed.password) : "",
+        username: parsed.username ? decodeUserinfo(parsed.username) : "",
+        password: parsed.password ? decodeUserinfo(parsed.password) : "",
         status: "active",
       };
     } catch {

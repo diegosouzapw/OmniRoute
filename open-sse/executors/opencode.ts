@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import {
   BaseExecutor,
   type ExecuteInput,
@@ -16,21 +15,61 @@ import {
   runWithDirectFetchContext,
   runWithProxyContext,
 } from "../utils/proxyFetch.ts";
-import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
+import {
+  clientSuppliedOpencodeSession,
+  forwardOpencodeClientHeaders,
+  resolveOpencodeCliDefaults,
+} from "../utils/opencodeHeaders.ts";
 import {
   type AccountProxyConfig,
   type RotatableAccount,
   pickAccount as pickRotatableAccount,
-  markCooldown as markAccountCooldown,
-  markSuccess as markAccountSuccess,
   maskAccountId,
   isNetworkErrorRotatable,
   isEmptyUpstreamRejection,
   extractChatcmplId,
 } from "./accountRotation.ts";
-import { isOpencodeGeoBlocked, proxyKeyOf } from "./opencodeGeoBlock.ts";
-import { isRetriableUpstreamFailure } from "./opencodeTransientFailure.ts";
-import { isNetworkRotationSharedEgressGuardEnabled } from "@/shared/utils/featureFlags";
+import { markCooldown, markOutcome, noteResponseServed } from "./opencodeAccountHealth.ts";
+import {
+  isOpencodeFreeTierRefusal,
+  isOpencodeGeoBlocked,
+  proxyKeyOf,
+  isOpencodeUserBlocked,
+} from "./opencodeGeoBlock.ts";
+import {
+  isGatedFreeTierRequest,
+  isPremiumOpencodeModel,
+  noteFreeTierOutcome,
+  prepareFreeTierRequest,
+  rebuildJsonFromForcedStream,
+  surfaceFromBaseUrl,
+  type FreeTierContractAttempt,
+} from "./opencodeFreeTierContract.ts";
+
+// Re-exported: the free-model catalog moved to the contract module (it decides whether the
+// contract applies), and existing importers keep resolving it from the executor.
+export { isPremiumOpencodeModel };
+import {
+  guardResponsesStall,
+  isResponsesFirstByteTimeout,
+  resolveResponsesStallWindowMs,
+} from "./opencodeResponsesStall.ts";
+import { discardResponseBody } from "./opencodeResponseBody.ts";
+import {
+  isRetriableUpstreamFailure,
+  releaseResponseBody,
+  sleepAbortable,
+  transientRetryDelayMs,
+} from "./opencodeTransientFailure.ts";
+import { isProxyAvoided, noteProxyRefusal, proxyEgressKey } from "../utils/proxyRefusalMemory.ts";
+import {
+  isNetworkRotationSharedEgressGuardEnabled,
+  isProxySkipRecentlyFailedEnabled,
+  isOpencodeUserBlockedRotationEnabled,
+  isOpencodeTransientFailoverBackoffEnabled,
+  isOpencodeRateLimited429EarlyStopEnabled,
+} from "@/shared/utils/featureFlags";
+import { classifyUpstream429 } from "./opencodeRateLimited.ts";
 
 /**
  * The main OpenCode Zen host, shared by the `opencode` and `opencode-zen`
@@ -55,31 +94,6 @@ interface OpencodeAccountState extends RotatableAccount {
 const EFFORT_LEVELS = ["none", "low", "high", "max"] as const;
 
 /**
- * Models that work WITHOUT any API key on the free/noauth opencode tier.
- *
- * The upstream free tier rotates frequently — when a `-free` suffix model is
- * delisted upstream, the upstream returns "Model X is not supported" (a separate
- * issue from this gate). The set is defined by two data sources:
- *
- *   1. **Known free models** — models explicitly listed in the noauth
- *      `opencode` provider registry (`open-sse/config/providers/registry/opencode/index.ts`).
- *      These are the canonical free models. `deepseek-v4-flash-free` appears in both
- *      the noauth AND the zen registry (it is free on both tiers).
- *   2. **`-free` suffix** — any model whose id ends in `-free`. This automatically
- *      covers upstream free-tier additions without a code deploy.
- *
- * For `opencode-go`, there is no free tier — ALL models require an API key.
- */
-const OPENCODE_FREE_MODELS = new Set([
-  "big-pickle",
-  "deepseek-v4-flash-free",
-  "mimo-v2.5-free",
-  "hy3-free",
-  "nemotron-3-ultra-free",
-  "north-mini-code-free",
-]);
-
-/**
  * Models on opencode-go that support effort-tier aliases. Each entry maps the
  * canonical base id to the set of effort suffixes the upstream supports.
  *
@@ -94,6 +108,8 @@ const OPENCODE_FREE_MODELS = new Set([
  *   grok-4.5 low/medium/high; hy3 none/low/high; kimi-k3 max;
  *   qwen3.6-plus / qwen3.7-max / qwen3.7-plus high/max;
  *   muse-spark-1.2-contributor minimal/low/medium/high/xhigh (no max)
+ * - #12674 Muse Spark 1.3 Contributor: minimal/low/medium/high/xhigh (no max),
+ *   verified via `opencode models opencode-go --refresh --verbose`
  */
 const EFFORT_TIERS: Record<string, readonly string[]> = {
   "deepseek-v4-pro": EFFORT_LEVELS,
@@ -107,6 +123,7 @@ const EFFORT_TIERS: Record<string, readonly string[]> = {
   "qwen3.7-max": ["high", "max"],
   "qwen3.7-plus": ["high", "max"],
   "muse-spark-1.2-contributor": ["minimal", "low", "medium", "high", "xhigh"],
+  "muse-spark-1.3-contributor": ["minimal", "low", "medium", "high", "xhigh"],
 };
 
 /**
@@ -125,25 +142,6 @@ export function parseEffortLevel(model: string): { baseModel: string; effort: st
     }
   }
   return null;
-}
-
-/**
- * Determine whether a model requires an API key on the given opencode provider.
- *
- * - `opencode-go`: ALL models require a key (no free tier).
- * - `opencode` / `opencode-zen`: premium = any model NOT in the free set (known
- *   free models OR ending in `-free`).
- * - Unknown models are assumed premium (fail-safe).
- */
-export function isPremiumOpencodeModel(model: string, provider: string): boolean {
-  // opencode-go has no free tier — every model requires a key.
-  if (provider === "opencode-go") return true;
-
-  // Models ending in `-free` are always free on the noauth/zen tier.
-  if (model.endsWith("-free")) return false;
-
-  // Check the known free model catalog.
-  return !OPENCODE_FREE_MODELS.has(model);
 }
 
 /**
@@ -277,6 +275,10 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   _requestFormat: string | null = null;
+  private _contractAttempt: FreeTierContractAttempt | null = null;
+  /** Set in buildHeaders, which execute() runs before transformRequest. */
+  private _clientSession: string | undefined;
+  private _surface = () => surfaceFromBaseUrl(this.config?.baseUrl);
 
   /**
    * Per-account rotation state, rebuilt from credentials on each request. The
@@ -291,6 +293,10 @@ export class OpencodeExecutor extends BaseExecutor {
   // pickRotatableAccount(), which needs a plain `{ nextAccountIdx }` shape —
   // TS's private-member nominal check rejects `this` there otherwise.
   nextAccountIdx = 0;
+  // Sleep used by the opt-in transient failover pause (#13615). Not `private`:
+  // tests swap in a recording fake instead of waiting on real timers.
+  transientPauseSleep: (ms: number, signal?: AbortSignal | null) => Promise<boolean> =
+    sleepAbortable;
 
   constructor(provider: string) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
@@ -340,23 +346,30 @@ export class OpencodeExecutor extends BaseExecutor {
     return pickRotatableAccount(this.accounts, this, isReady);
   }
 
-  private markCooldown(
-    account: OpencodeAccountState,
-    kind: "transient" | "terminal" = "transient"
-  ): void {
-    markAccountCooldown(account, kind);
-  }
-
-  private markSuccess(account: OpencodeAccountState): void {
-    markAccountSuccess(account);
-  }
-
   /**
    * Rewrite muse-spark's bogus `finish_reason:"length"` (see the
    * normalizeMuseSparkFinishReason note) to `"stop"` on both streaming and
    * non-streaming success responses. Non-muse-spark models pass through
    * untouched.
    */
+  /**
+   * Hand a JSON caller a JSON body even though the free-tier contract forced the upstream
+   * request to stream. A streaming caller, a refusal and an already-JSON body pass through.
+   */
+  private finalizeForcedStream(
+    input: ExecuteInput,
+    result: ExecutorExecuteResult
+  ): ExecutorExecuteResult {
+    noteFreeTierOutcome(this._contractAttempt, "response" in result && !!result.response?.ok);
+    if (input.stream) return result;
+    if (!("response" in result) || !result.response) return result;
+    // Non-null exactly when the contract applied: stands in for the old surface/model guard.
+    if (!this._contractAttempt) return result;
+    const model = this._contractAttempt.model;
+    const response = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
+    return response === result.response ? result : { ...result, response };
+  }
+
   private normalizeMuseSparkResponse(
     input: ExecuteInput,
     result: ExecutorExecuteResult
@@ -518,6 +531,9 @@ export class OpencodeExecutor extends BaseExecutor {
       const cid = input.correlationId ? `correlationId=${input.correlationId} ` : "";
 
       const hasProxies = this.accounts.some((a) => a.proxy !== null);
+      // Opt-in Responses first-byte stall guard (#13484); a no-op when the window is 0.
+      const stallWindowMs = resolveResponsesStallWindowMs(input.stream, this._requestFormat);
+      const guardStall = <T>(r: T) => guardResponsesStall(r, stallWindowMs, input.signal);
       // Fast path: no multi-account proxy wiring configured → original behavior,
       // plus exactly ONE bounded retry when the upstream answers a 400 empty
       // rejection (same predicate and logging as the rotation loop). Everything
@@ -530,9 +546,9 @@ export class OpencodeExecutor extends BaseExecutor {
         // Only pin direct egress when no such context exists; otherwise let the
         // ambient proxy stand instead of clobbering it with the direct sentinel.
         const dispatch = () => super.execute(input);
-        const single = (await (hasAmbientProxyContext()
-          ? dispatch()
-          : runWithDirectFetchContext(dispatch))) as HttpExecuteResult;
+        const single = (await guardStall(
+          await (hasAmbientProxyContext() ? dispatch() : runWithDirectFetchContext(dispatch))
+        )) as HttpExecuteResult;
         if (single.response.status === 400) {
           let bodyText: string | null = null;
           try {
@@ -547,7 +563,10 @@ export class OpencodeExecutor extends BaseExecutor {
                 "OPENCODE",
                 `${cid}upstream empty rejection on direct account (${chatcmplId}), retrying once…`
               );
-              return this.normalizeMuseSparkResponse(input, await super.execute(input));
+              return this.finalizeForcedStream(
+                input,
+                this.normalizeMuseSparkResponse(input, await guardStall(await super.execute(input)))
+              );
             }
             log?.debug?.(
               "OPENCODE",
@@ -555,7 +574,7 @@ export class OpencodeExecutor extends BaseExecutor {
             );
           }
         }
-        return this.normalizeMuseSparkResponse(input, single);
+        return this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, single));
       }
 
       // This loop only ever dispatches through super.execute() (the HTTP request
@@ -583,7 +602,21 @@ export class OpencodeExecutor extends BaseExecutor {
       // model (geo-blocked, or transient 5xx). Request-local only — nothing
       // persists past execute().
       const geoTriedProxyKeys = new Set<string>();
+      // Opt-in (PROXY_SKIP_RECENTLY_FAILED, default off): members the provider just refused
+      // (received refusal or refused TCP probe) are skipped. Off = plain rotation.
+      const skipRecentlyFailed = isProxySkipRecentlyFailedEnabled();
       let directTried = false;
+      // Stalls before the first Responses byte: one rotation, then fail fast.
+      let stalledAttempts = 0;
+      // A response an opt-in branch rotated away from. It stays lastResult (and
+      // intact) until a newer attempt replaces it, then its body is cancelled.
+      let abandonedResponse: Response | null = null;
+      // OPENCODE_USER_BLOCKED_ROTATION: rotations spent on user_blocked refusals (max 1).
+      let userBlockedRotations = 0;
+      // Consecutive transient failures (5xx / empty 400) and the pause time spent on
+      // them this request — only acted on when OPENCODE_TRANSIENT_FAILOVER_BACKOFF is on.
+      let transientStreak = 0;
+      let transientPausedMs = 0;
 
       for (let attempt = 0; attempt < this.accounts.length + emptyRejectionBudget; attempt++) {
         const isProxiedCandidate = (a: OpencodeAccountState): boolean => {
@@ -591,6 +624,7 @@ export class OpencodeExecutor extends BaseExecutor {
           // Without any geo evidence this pass, every cooldown-ready account
           // stays eligible (preserves the plain round-robin first pick).
           if (a.proxy === null) return !directTried || geoTriedProxyKeys.size === 0;
+          if (skipRecentlyFailed && isProxyAvoided(proxyEgressKey(a.proxy))) return false;
           const k = proxyKeyOf(a.proxy);
           return k !== null && !geoTriedProxyKeys.has(k);
         };
@@ -636,6 +670,19 @@ export class OpencodeExecutor extends BaseExecutor {
           continue;
         }
 
+        // Opt-in (#13615): after repeated transient failures, release the failed body
+        // and wait (bounded) before the next account; a client abort stops the loop.
+        const pauseMs = transientRetryDelayMs(transientStreak, transientPausedMs);
+        if (pauseMs > 0 && lastResult !== null && isOpencodeTransientFailoverBackoffEnabled()) {
+          lastResult = { ...lastResult, response: releaseResponseBody(lastResult.response) };
+          transientPausedMs += pauseMs;
+          log?.info?.(
+            "OPENCODE",
+            `${cid}${transientStreak} transient failures, pausing ${pauseMs}ms`
+          );
+          if (!(await this.transientPauseSleep(pauseMs, input.signal))) break;
+        }
+
         // #5217 (Gap 2): promoted debug→info so the per-request account/proxy
         // rotation selection is visible in the Console log view at the default
         // APP_LOG_LEVEL=info (users could not see which account/proxy was used).
@@ -656,11 +703,30 @@ export class OpencodeExecutor extends BaseExecutor {
           // super.execute() here always dispatches the HTTP path (opencode is an
           // OpenAI-compatible API, never the web/scraping bare-Response arm) —
           // see base.ts:290-294.
-          result = (await runWithProxyContext(account.proxy, () =>
-            super.execute({ ...input, skipUpstreamRetry: true })
+          result = (await guardStall(
+            await runWithProxyContext(account.proxy, () =>
+              super.execute({ ...input, skipUpstreamRetry: true })
+            )
           )) as HttpExecuteResult;
         } catch (err) {
           const reason = err instanceof Error ? err.message : String(err);
+          // Stall guard: headers arrived, so the egress works — never a shared-egress
+          // outage; proxied and proxy-less accounts rotate alike. A client abort never rotates.
+          if (stallWindowMs > 0 && (isResponsesFirstByteTimeout(err) || input.signal?.aborted)) {
+            if (input.signal?.aborted) throw err;
+            markCooldown(account);
+            const stallKey = proxyKeyOf(account.proxy);
+            if (stallKey !== null) geoTriedProxyKeys.add(stallKey);
+            else directTried = true;
+            const rotate = ++stalledAttempts === 1;
+            log?.warn?.(
+              "OPENCODE",
+              `${cid}Responses stream stalled on account ${masked}, ${rotate ? "rotating to next…" : "not rotating again"} (${reason})`
+            );
+            if (!rotate) throw err;
+            continue;
+          }
+          transientStreak = 0;
           // A network exception (timeout, connection refused/reset) is only
           // account-scoped when this account has its OWN egress (a configured
           // proxy) — that's the case a dead/unreachable proxy justifies rotating
@@ -669,7 +735,7 @@ export class OpencodeExecutor extends BaseExecutor {
           // silently either way: logged before rotating, skipping, or rethrowing.
           if (!isNetworkErrorRotatable(account)) {
             if (sharedEgressGuardEnabled) {
-              this.markCooldown(account);
+              markCooldown(account);
               sharedEgressDown = true;
               lastSharedEgressError = err;
               log?.warn?.(
@@ -684,21 +750,45 @@ export class OpencodeExecutor extends BaseExecutor {
             );
             throw err;
           }
-          this.markCooldown(account);
+          markCooldown(account);
           log?.warn?.(
             "OPENCODE",
             `${cid}network error on account ${masked}, rotating to next… (${reason})`
           );
           continue;
         }
+        discardResponseBody(abandonedResponse);
+        abandonedResponse = null;
         lastResult = result;
+        const priorTransientStreak = transientStreak;
+        transientStreak = 0;
 
         const status = result.response.status;
         if (status === 429) {
-          this.markCooldown(account);
+          markCooldown(account);
+          // The provider refused through this member: set it aside beyond the account
+          // cooldown. A direct account has a null key and is never set aside.
+          const setAsideMs = skipRecentlyFailed
+            ? noteProxyRefusal(proxyEgressKey(account.proxy), "ip_quota_429")
+            : null;
+          // Opt-in (#13657): a 429 that names a real rate limit stops the wave and
+          // the real upstream 429 is returned untouched (body, Retry-After, quota
+          // headers), so provider error rules still apply. Flag off → rotate.
+          if (
+            isOpencodeRateLimited429EarlyStopEnabled() &&
+            (await classifyUpstream429(result.response)) === "rate_limited"
+          ) {
+            log?.warn?.(
+              "OPENCODE",
+              `${cid}rate-limited 429 on account ${masked}, stopping the account wave`
+            );
+            return result;
+          }
           log?.warn?.(
             "OPENCODE",
-            `${cid}Rate limited (429) on account ${masked}, rotating to next…`
+            `${cid}Rate limited (429) on account ${masked}` +
+              (setAsideMs ? `, member set aside for ${Math.round(setAsideMs / 1000)}s` : "") +
+              ", rotating to next…"
           );
           continue;
         }
@@ -707,6 +797,7 @@ export class OpencodeExecutor extends BaseExecutor {
           const key = proxyKeyOf(account.proxy);
           if (key !== null) geoTriedProxyKeys.add(key);
           else directTried = true;
+          transientStreak = priorTransientStreak + 1;
           log?.warn?.(
             "OPENCODE",
             `${cid}transient upstream ${status} on account ${masked} (proxy ${key ?? "direct"}), rotating to next…`
@@ -741,6 +832,42 @@ export class OpencodeExecutor extends BaseExecutor {
             if (this.accounts.length === 1) return result;
             continue;
           }
+          // Opt-in (#13498): an upstream user_blocked refusal (403 or 451, same
+          // predicate) cools the refused account down, joins the tried-set and
+          // rotates at most once per request. Never a success mark. Flag off →
+          // falls through to the unchanged path below.
+          if (
+            bodyText !== null &&
+            isOpencodeUserBlocked(status, bodyText) &&
+            isOpencodeUserBlockedRotationEnabled()
+          ) {
+            const key = proxyKeyOf(account.proxy);
+            if (key !== null) geoTriedProxyKeys.add(key);
+            else directTried = true;
+            markCooldown(account);
+            const rotate = userBlockedRotations === 0 && this.accounts.length > 1;
+            log?.warn?.(
+              "OPENCODE",
+              `${cid}user_blocked ${status} on account ${masked} (proxy ${key ?? "direct"}), ${rotate ? "rotating to next account once…" : "returning the refusal"}`
+            );
+            if (!rotate) return result;
+            userBlockedRotations++;
+            abandonedResponse = result.response;
+            continue;
+          }
+          // Free-tier refusal: upstream rejected the REQUEST (client identity or
+          // request shape), not this account. Every sibling account gets the same
+          // verdict from the same request, so rotating only adds latency; and the
+          // refusal must not touch account health — markSuccess would revive an
+          // evicted account. Return it untouched, health and cooldown unchanged.
+          if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
+            log?.warn?.(
+              "OPENCODE",
+              `${cid}free-tier refusal ${status} on account ${masked} (proxy ${proxyKeyOf(account.proxy) ?? "direct"}), returning it unchanged (request-scoped, no rotation)`
+            );
+            noteResponseServed(account);
+            return result;
+          }
         }
 
         // Empty upstream rejection (malformed 400: no error field, no real
@@ -759,6 +886,7 @@ export class OpencodeExecutor extends BaseExecutor {
           }
           if (bodyText !== null && isRetriableUpstreamFailure(400, bodyText)) {
             const chatcmplId = extractChatcmplId(bodyText);
+            transientStreak = priorTransientStreak + 1;
             log?.warn?.(
               "OPENCODE",
               `${cid}upstream empty rejection on account ${masked} (${chatcmplId}), rotating to next…`
@@ -767,12 +895,12 @@ export class OpencodeExecutor extends BaseExecutor {
           }
           // A 400 carrying a real error (or non-empty content): propagate
           // immediately, untouched — same as before this change.
-          this.markSuccess(account);
+          markOutcome(account, result.response);
           return result;
         }
 
-        this.markSuccess(account);
-        return this.normalizeMuseSparkResponse(input, result);
+        markOutcome(account, result.response);
+        return this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, result));
       }
 
       // The loop exhausted without a result. If it's because every remaining
@@ -786,7 +914,13 @@ export class OpencodeExecutor extends BaseExecutor {
       }
 
       // All accounts returned 429 (or errored) — surface the last response.
-      return this.normalizeMuseSparkResponse(input, lastResult ?? (await super.execute(input)));
+      return this.finalizeForcedStream(
+        input,
+        this.normalizeMuseSparkResponse(
+          input,
+          lastResult ?? (await guardStall(await super.execute(input)))
+        )
+      );
     } finally {
       this._requestFormat = null;
     }
@@ -855,7 +989,14 @@ export class OpencodeExecutor extends BaseExecutor {
       headers["anthropic-version"] = "2023-06-01";
     }
 
-    if (stream) {
+    // The free tier only answers streamed requests (measured 2026-09-17: a non-streamed
+    // body answers 403 FreeTierError), so a JSON client is served by streaming upstream and
+    // rebuilding the JSON body from the event stream — the path chatCore already takes for
+    // any buffered event-stream response. Announcing the stream here keeps that buffering an
+    // expected outcome rather than a warning.
+    const gatedScope =
+      Boolean(model) && isGatedFreeTierRequest(this._surface(), this.provider, model);
+    if (stream || gatedScope) {
       headers["Accept"] = "text/event-stream";
     }
 
@@ -864,24 +1005,12 @@ export class OpencodeExecutor extends BaseExecutor {
     // OPENCODE_SYNTHESIZE_CLI_HEADERS=false. Client-supplied headers always win;
     // User-Agent is replaced with the CLI UA unless the client already sends one that
     // looks like the OpenCode CLI. Default values match 9router's proven defaults.
-    const synthesizeCli = !/^(0|false|no|off)$/i.test(
-      process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS?.trim() ?? ""
+    const cliDefaults = resolveOpencodeCliDefaults(
+      this.config?.id || this.provider || "opencode",
+      gatedScope
     );
-    const cliDefaults = synthesizeCli
-      ? (() => {
-          const providerId = this.config?.id || this.provider || "opencode";
-          const envUAKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
-          return {
-            userAgent:
-              process.env[envUAKey]?.trim() ||
-              process.env.OPENCODE_USER_AGENT?.trim() ||
-              "opencode",
-            client: process.env.OPENCODE_CLIENT?.trim() || "desktop",
-            project: process.env.OPENCODE_PROJECT?.trim() || "global",
-          };
-        })()
-      : undefined;
 
+    this._clientSession = clientSuppliedOpencodeSession(clientHeaders);
     if (clientHeaders || cliDefaults) {
       const b = body && typeof body === "object" ? (body as Record<string, unknown>) : null;
       forwardOpencodeClientHeaders(headers, clientHeaders ?? {}, {
@@ -894,6 +1023,12 @@ export class OpencodeExecutor extends BaseExecutor {
               messages: Array.isArray(b.messages)
                 ? (b.messages as Array<{ role?: string; content?: unknown }>)
                 : undefined,
+              // The Responses surface carries the conversation under `input`; without it the
+              // fingerprint collapses to the model alone and every conversation on that model
+              // would share one upstream session.
+              input: Array.isArray(b.input)
+                ? (b.input as Array<{ role?: string; content?: unknown }>)
+                : undefined,
               tools: Array.isArray(b.tools)
                 ? (b.tools as Array<{ name?: string; function?: { name?: string } }>)
                 : undefined,
@@ -902,17 +1037,10 @@ export class OpencodeExecutor extends BaseExecutor {
       });
     }
 
-    // Muse's Responses endpoint rejects the short conversation fingerprint used
-    // by the Chat endpoint in practice. Keep the workaround scoped to Muse.
-    if (
-      this._requestFormat === "openai-responses" &&
-      model.startsWith("muse-spark") &&
-      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-        headers["x-opencode-session"] || ""
-      )
-    ) {
-      headers["x-opencode-session"] = randomUUID();
-    }
+    // The Muse Responses workaround that forced a UUID session here is gone: the shape it
+    // produced is exactly what the upstream now refuses, and the canonical session it used
+    // to overwrite is accepted on that surface (measured 2026-09-17, 200 on
+    // muse-spark-1.3-contributor-free via /v1/responses).
 
     void model;
 
@@ -998,6 +1126,19 @@ export class OpencodeExecutor extends BaseExecutor {
   ): any {
     let modifiedBody = super.transformRequest(model, body, stream, credentials);
     modifiedBody = this.applyDeepSeekJsonSchemaFallback(model, modifiedBody);
+    // Free-tier request contract (see opencodeFreeTierContract.ts): streaming plus a
+    // non-empty tools array, in the shape of the surface this model is served on. Paid
+    // models on the same host are not gated and stay untouched.
+    const prepared = prepareFreeTierRequest(
+      modifiedBody,
+      this._requestFormat ?? resolveOpencodeTargetFormat(this.provider, model),
+      this._surface(),
+      this.provider,
+      model,
+      this._clientSession
+    );
+    modifiedBody = prepared.body;
+    this._contractAttempt = prepared.attempt;
     // 9router#1442: OpenCode upstreams (e.g. kimi-k2.6 via opencode-go) return
     // 400 "Extra inputs are not permitted, field: 'client_metadata'" — an
     // OpenAI-Codex/Claude-CLI passthrough field with no equivalent here. The
@@ -1013,6 +1154,11 @@ export class OpencodeExecutor extends BaseExecutor {
     }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
+      // OpenCode accepts stream_options only on streaming Chat Completions (#13699).
+      const format = this._requestFormat ?? resolveOpencodeTargetFormat(this.provider, model);
+      if (format !== "openai" || mb.stream !== true) {
+        delete mb.stream_options;
+      }
       const parsed = parseEffortLevel(model);
       if (parsed) {
         const deepseekFamily =

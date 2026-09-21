@@ -60,7 +60,11 @@ function videoBody() {
 }
 
 function baseCtx(overrides: Record<string, unknown> = {}) {
+  // #13481/#13546: the call log row is keyed on traceId. It defaults to
+  // pendingRequestId so these tests keep polling by the id they pass in.
+  const pendingRequestId = (overrides.pendingRequestId as string) ?? "REPLACE";
   return {
+    traceId: overrides.traceId ?? pendingRequestId,
     provider: "openai",
     connectionId: "conn-1",
     model: "gpt-x",
