@@ -474,6 +474,52 @@
       "stream": "https://api.arcee.ai/api/v1/chat/completions"
     }
   },
+  "ashna": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.ashna.ai/v1/api/chat/completions",
+      "stream": "https://api.ashna.ai/v1/api/chat/completions"
+    }
+  },
+  "atria": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.atria-asi.ai/v1/chat/completions",
+      "stream": "https://api.atria-asi.ai/v1/chat/completions"
+    }
+  },
   "auggie": {
     "format": "openai",
     "headers": {
@@ -2437,6 +2483,29 @@
       "stream": "https://api.galadriel.ai/v1/chat/completions"
     }
   },
+  "gapgpt": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.gapgpt.app/v1/chat/completions",
+      "stream": "https://api.gapgpt.app/v1/chat/completions"
+    }
+  },
   "gemini": {
     "format": "gemini",
     "headers": {
@@ -2995,6 +3064,29 @@
     "url": {
       "nonStream": "https://us.inference.heroku.com/v1/chat/completions",
       "stream": "https://us.inference.heroku.com/v1/chat/completions"
+    }
+  },
+  "hooshyar": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://wqai.morvism.ir/v1/chat/completions",
+      "stream": "https://wqai.morvism.ir/v1/chat/completions"
     }
   },
   "huggingchat": {

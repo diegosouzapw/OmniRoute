@@ -1,4 +1,14 @@
 export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
+  // ashna / atria (2026-09-21): OpenAI-compatible gateways whose real catalogs
+  // live on the upstream /models list (ashna ~88 volatile ids; atria a single
+  // case-sensitive id). Live fetch keeps them fresh; the seed stays as fallback.
+  "ashna",
+  "atria",
+  // gapgpt / hooshyar (2026-09-21): Iranian regional gateways — same class:
+  // live upstream /models catalogs (gapgpt ~129 ids, hooshyar 10 ids), live
+  // fetch keeps them fresh, the small seed stays as offline fallback.
+  "gapgpt",
+  "hooshyar",
   "modal",
   "reka",
   "empower",

@@ -42,7 +42,9 @@ import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
 
-const APIKEY_PROVIDER_COUNT = 242;
+// #14308 registers Ashna, Atria, GapGPT and Hooshyar (regional family, Iran/China
+// regional coverage): +4, landing at 246.
+const APIKEY_PROVIDER_COUNT = 246;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [

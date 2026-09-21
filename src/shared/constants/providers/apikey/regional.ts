@@ -1,5 +1,5 @@
 /**
- * APIKEY provider catalog — regional family (China + other regional providers).
+ * APIKEY provider catalog — regional family (China + other regional providers, incl. Iran coverage).
  * Pure data; merged by apikey/index.ts via spread (god-file decomposition; semantic split).
  */
 export const APIKEY_PROVIDERS_REGIONAL = {
@@ -575,5 +575,75 @@ export const APIKEY_PROVIDERS_REGIONAL = {
       "Typhoon is OpenAI-compatible on /v1. Built by SCB 10X (Thailand); typhoon-v2.5-30b-a3b-instruct is a thai-first, multilingual model.",
     hasFree: true,
     freeNote: "Free API key with a 5 req/s and 200 req/m rate limit.",
+  },
+  // Ashna (https://www.ashna.ai) — OpenAI-compatible multi-model gateway with a
+  // native Ashna-X1 model plus a ~88-id foundation catalog (OpenAI, Anthropic,
+  // Google, DeepSeek, GLM, Kimi, Mistral, NVIDIA, xAI). One host also speaks
+  // Anthropic Messages and OpenAI Responses. Keys are created at Account → API.
+  ashna: {
+    id: "ashna",
+    serviceKinds: ["llm"],
+    alias: "ashna",
+    name: "Ashna",
+    icon: "hub",
+    color: "#6D28D9",
+    textIcon: "AS",
+    passthroughModels: true,
+    website: "https://www.ashna.ai",
+    apiHint:
+      "Create an API key at https://app.ashna.ai (Account → API), then use https://api.ashna.ai/v1/api as the OpenAI-compatible base URL.",
+  },
+  // Atria (https://atria-asi.ai) — official API of the Atria Dawn agentic family
+  // from the Shanghai AI Laboratory. Atria Dawn Preview: 744B MoE on the GLM-5.2
+  // foundation, 256K context, always-on reasoning, text-only. Per-account RPM cap
+  // shared across all keys; an announced 100M free-token grant.
+  atria: {
+    id: "atria",
+    serviceKinds: ["llm"],
+    alias: "atria",
+    name: "Atria",
+    icon: "wb_twilight",
+    color: "#F97316",
+    textIcon: "AT",
+    website: "https://atria-asi.ai",
+    hasFree: true,
+    freeNote:
+      "Announced as 100 million free tokens per account; the reset period is not published, and a per-account RPM cap applies (x-rpm-limit headers). Free access is a preview benefit and not promised indefinitely.",
+    apiHint:
+      "Create an atr_ API key at https://api.atria-asi.ai/console/keys, then use https://api.atria-asi.ai/v1 as the OpenAI-compatible base URL. Model ids are case-sensitive.",
+  },
+  // GapGPT (https://gapgpt.app) — Iranian relay. Regional coverage for Iran,
+  // where direct OpenAI/Anthropic/Google access is blocked: a Persian storefront
+  // sells API keys in minutes and serves a ~129-id catalog (plus native
+  // gapgpt-* models) from api.gapgpt.app/v1. NewAPI-style prepaid billing.
+  gapgpt: {
+    id: "gapgpt",
+    serviceKinds: ["llm"],
+    alias: "gapgpt",
+    name: "GapGPT",
+    icon: "storefront",
+    color: "#0EA5E9",
+    textIcon: "GG",
+    passthroughModels: true,
+    website: "https://gapgpt.app",
+    apiHint:
+      "Buy an API key at https://gapgpt.app (Persian storefront), then use https://api.gapgpt.app/v1 as the OpenAI-compatible base URL. Iranian-hosted — reachable from Iran where direct OpenAI/Anthropic access is blocked.",
+  },
+  // Hooshyar (https://wqai.morvism.ir) — Iranian gateway. Same regional role:
+  // a 10-id catalog (Claude/GPT/Grok/Kimi/GLM incl. a free-tier id) behind one
+  // OpenAI-compatible surface. Keys are issued by the operator (no public
+  // self-service signup documented); issued tokens expire and need renewal.
+  hooshyar: {
+    id: "hooshyar",
+    serviceKinds: ["llm"],
+    alias: "hooshyar",
+    name: "Hooshyar",
+    icon: "smart_toy",
+    color: "#DC2626",
+    textIcon: "HR",
+    passthroughModels: true,
+    website: "https://wqai.morvism.ir",
+    apiHint:
+      "Iranian-hosted OpenAI-compatible gateway at https://wqai.morvism.ir/v1. Keys are issued by the service operator (no public self-service signup documented); tokens expire and must be renewed.",
   },
 };
