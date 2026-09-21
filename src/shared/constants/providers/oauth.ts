@@ -307,4 +307,21 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Tencent CodeBuddy CN (copilot.tencent.com). Sign in via the official CLI device-code flow, or paste a direct API key (sent as Authorization: Bearer). Catalog: GLM / Kimi / MiniMax / DeepSeek / Hunyuan.",
   },
+  workbuddy: {
+    id: "workbuddy",
+    serviceKinds: ["llm"],
+    alias: "wb",
+    name: "WorkBuddy",
+    icon: "smart_toy",
+    color: "#1A73E8",
+    textIcon: "WB",
+    website: "https://www.workbuddy.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    // Not to be confused with CodeBuddy CN above: WorkBuddy is a separate
+    // Tencent agent platform on its own host and account system, and a
+    // CodeBuddy account does not work here.
+    authHint:
+      "Tencent WorkBuddy (www.workbuddy.ai). Authorize the CLI device flow in the popup; OmniRoute then polls for the token and attaches the required X-Product: SaaS header. The model roster is served by the authenticated catalogue, so it is discovered live rather than listed here. WorkBuddy only accepts streaming requests, which OmniRoute accumulates back into a JSON response for non-streaming callers.",
+  },
 };

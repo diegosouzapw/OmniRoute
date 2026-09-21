@@ -239,6 +239,34 @@ export interface RegistryEntry {
    */
   requiresPlainStringContent?: boolean;
   /**
+   * True for upstreams that accept a single-turn request but reject the
+   * replayed history an agent client sends from turn two on. Set this when the
+   * upstream reports a broken tool-call sequence or a missing reasoning
+   * passthrough for a history that is structurally valid Chat Completions.
+   *
+   * The repair, in `utils/strictChatHistory.ts`, coalesces a split assistant
+   * turn, keeps one result per tool call in call order, merges neighbouring
+   * user turns (upstreams that collapse them keep only the text, which silently
+   * drops a lifted image), and folds a trailing assistant message back onto the
+   * turn's tool results. Every step is a no-op on a body that already satisfies
+   * the shape, so this is safe to enable for any provider that needs one of them.
+   *
+   * WorkBuddy is the reference case: `11148 tool_call_sequence_broken` and
+   * `11155 reasoning content from the previous turn must be passed back`.
+   */
+  strictChatHistory?: boolean;
+  /**
+   * Literal string replacements applied to every string value in the outgoing
+   * request body, for upstreams that reject a request naming a competing client
+   * rather than rejecting a specific field. Keys, numbers, and structure are
+   * never touched.
+   *
+   * Order matters: list longer needles first so a shorter one cannot match
+   * inside them. WorkBuddy answers `11128 Illegal API invocation from an
+   * unapproved channel` for a body naming another agent client.
+   */
+  bodyStringReplacements?: ReadonlyArray<readonly [string, string]>;
+  /**
    * Anthropic-compatible providers that omit the required `signature` field
    * from streamed thinking block starts. The passthrough stream adds only an
    * empty placeholder; later provider `signature_delta` events remain intact.

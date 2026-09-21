@@ -119,6 +119,32 @@ export const CODEBUDDY_CN_CONFIG = {
   pollInterval: 5000,
 };
 
+// WorkBuddy (Tencent — www.workbuddy.ai) OAuth Configuration.
+//
+// WorkBuddy is a SEPARATE product from CodeBuddy CN above: its own host, its own
+// account system, its own model catalog. It reuses the same *plugin-auth
+// protocol shape* (POST stateUrl → open authUrl → GET tokenUrl?state=), which is
+// why the config looks similar, but every host below is WorkBuddy's own and the
+// two credentials are not interchangeable in either direction.
+//
+// Verified against the live gateway (2026-09-19):
+//   POST {stateUrl}?platform=CLI  -> { code: 0, data: { state, authUrl } }
+//   GET  {tokenUrl}?state=<state> -> code 11217 while pending, code 0 + data.accessToken when done
+//   POST {refreshUrl}             -> carries the token in the X-Refresh-Token header,
+//                                    not the body. A malformed token answers
+//                                    12153 "refresh token failed: token format error",
+//                                    which is how the carrier was confirmed.
+//
+// No client_id/secret: the upstream CLI ships none.
+export const WORKBUDDY_CONFIG = {
+  baseUrl: "https://www.workbuddy.ai",
+  stateUrl: "https://www.workbuddy.ai/v2/plugin/auth/state",
+  tokenUrl: "https://www.workbuddy.ai/v2/plugin/auth/token",
+  refreshUrl: "https://www.workbuddy.ai/v2/plugin/auth/token/refresh",
+  platform: "CLI",
+  pollInterval: 5000,
+};
+
 // Grok Build (xAI) OAuth Configuration (Device Code + import-token fallback)
 // Public client_id resolved through resolvePublicCred so it is never a literal.
 export const GROK_CLI_CONFIG = {
@@ -511,6 +537,7 @@ export const PROVIDERS = {
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",
+  WORKBUDDY: "workbuddy",
   GROK_CLI: "grok-cli",
   XAI_OAUTH: "xai-oauth",
   OPENFERENCE: "openference",

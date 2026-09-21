@@ -6260,6 +6260,32 @@
       "stream": "https://api.inference.wandb.ai/v1/chat/completions"
     }
   },
+  "workbuddy": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Product": "SaaS"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Product": "SaaS"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Product": "SaaS"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.workbuddy.ai/v2/chat/completions",
+      "stream": "https://www.workbuddy.ai/v2/chat/completions"
+    }
+  },
   "writer": {
     "format": "openai",
     "headers": {

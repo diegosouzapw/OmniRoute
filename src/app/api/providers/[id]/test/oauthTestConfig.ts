@@ -275,6 +275,19 @@ export const OAUTH_TEST_CONFIG: Record<string, OAuthTestConfigEntry> = {
     checkExpiry: true,
     refreshable: true,
   },
+  workbuddy: {
+    // WorkBuddy is a separate product from CodeBuddy CN (own host and account
+    // system) but shares the same plugin-auth protocol shape, so the same
+    // reasoning applies: validate on token presence + the refresh path.
+    //
+    // Deliberately NOT a live probe against GET /v3/config. That endpoint
+    // answers 200 with `data.models: null` for an unauthenticated caller
+    // (verified 2026-09-19), so a 2xx there proves reachability, not auth —
+    // it would turn a dead token green. Real connectivity is exercised by
+    // every /v2/chat/completions request.
+    checkExpiry: true,
+    refreshable: true,
+  },
   "devin-cli": {
     // Same gap as grok-cli #7610: absent from this table, so "Test Connection"
     // always fell through to "Provider test not supported" and left a working

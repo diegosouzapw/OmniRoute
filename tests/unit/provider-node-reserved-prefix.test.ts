@@ -189,7 +189,9 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // alias "pepper" from the REGISTRY walk (414 -> 412) — the two land back on the same total.
   // #12648 registers xKiro: id "xkiro" with no separate alias — a single REGISTRY
   // member (412 -> 413).
-  assert.equal(RESERVED_PREFIX_COUNT, 413);
+  // #14212 registers WorkBuddy: id "workbuddy" + alias "wb" — two REGISTRY members
+  // (413 -> 415).
+  assert.equal(RESERVED_PREFIX_COUNT, 415);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {
