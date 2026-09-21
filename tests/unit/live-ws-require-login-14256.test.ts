@@ -54,11 +54,17 @@ function getFreePort(host: string): Promise<number> {
 /**
  * Connect to the WS server at ws://127.0.0.1:<port>/live-ws, subscribe to
  * the "requests" channel, and return the first "welcome" or "error" message.
+ * `extraHeaders` go out on the upgrade request, simulating a reverse proxy
+ * in front of the dashboard that stamps x-forwarded-for / x-real-ip.
  */
-function connectAndWait(port: number): Promise<{ type: string; code?: string; message?: string }> {
+function connectAndWait(
+  port: number,
+  extraHeaders: Record<string, string> = {}
+): Promise<{ type: string; code?: string; message?: string }> {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(`ws://127.0.0.1:${port}/live-ws`, {
       origin: "http://127.0.0.1:20128",
+      headers: extraHeaders,
     });
     const timer = setTimeout(() => {
       ws.terminate();
@@ -146,6 +152,51 @@ describe("LiveWS authorizeConnection — requireLogin=false bypass (#14256)", ()
     const server = await startLiveDashboardServer(port, "127.0.0.1");
     try {
       const msg = await connectAndWait(port);
+      assert.equal(msg.type, "error", `Expected error but got type=${msg.type}`);
+      assert.equal(msg.code, "UNAUTHORIZED");
+    } finally {
+      await new Promise<void>((r) => server.close(() => r()));
+    }
+  });
+
+  test("fresh-install bypass still welcomes a genuinely local client", async () => {
+    // Fresh install: no password, no OIDC, no INITIAL_PASSWORD, setup not
+    // complete, loopback bind. The pre-setup anonymous window must keep
+    // working for real local dashboard clients (control for the proxy test).
+    resetDbInstance();
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+
+    await updateSettings({ requireLogin: true });
+
+    const port = await getFreePort("127.0.0.1");
+    const server = await startLiveDashboardServer(port, "127.0.0.1");
+    try {
+      const msg = await connectAndWait(port);
+      assert.equal(msg.type, "welcome", `Expected welcome but got type=${msg.type}`);
+    } finally {
+      await new Promise<void>((r) => server.close(() => r()));
+    }
+  });
+
+  test("fresh-install bypass is refused through forwarding headers (tunnel/proxy)", async () => {
+    // Same fresh-install state, but the upgrade carries x-forwarded-for /
+    // x-real-ip — the signature of a reverse proxy or tunnel hop. The peer is
+    // not the local dashboard user, so the pre-setup anonymous window must
+    // NOT open (same discipline as isLoopbackRequest on the HTTP routes).
+    resetDbInstance();
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+
+    await updateSettings({ requireLogin: true });
+
+    const port = await getFreePort("127.0.0.1");
+    const server = await startLiveDashboardServer(port, "127.0.0.1");
+    try {
+      const msg = await connectAndWait(port, {
+        "x-forwarded-for": "203.0.113.7",
+        "x-real-ip": "203.0.113.7",
+      });
       assert.equal(msg.type, "error", `Expected error but got type=${msg.type}`);
       assert.equal(msg.code, "UNAUTHORIZED");
     } finally {
