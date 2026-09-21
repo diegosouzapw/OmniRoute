@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const syncModelsRoute = await import("../../src/app/api/providers/[id]/sync-models/route.ts");
 const scheduler = await import("../../src/shared/services/modelSyncScheduler.ts");
 const { buildModelSyncInternalHeaders } = scheduler;
@@ -75,6 +76,12 @@ test("sync-models rejects local catalog fallback and preserves existing SiliconF
       connectionId: connection.id,
       source: "local_catalog",
       warning: "API unavailable — using local catalog",
+      discoveryFailure: {
+        kind: "http_status",
+        upstreamStatus: 503,
+        contentType: "application/json",
+        bodyShape: "json",
+      },
       models: [{ id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" }],
     });
   };
@@ -85,6 +92,20 @@ test("sync-models rejects local catalog fallback and preserves existing SiliconF
   assert.equal(response.status, 502);
   assert.equal(body.source, "local_catalog");
   assert.equal(body.error, "API unavailable — using local catalog");
+  assert.deepEqual(body.discoveryFailure, {
+    kind: "http_status",
+    upstreamStatus: 503,
+    contentType: "application/json",
+    bodyShape: "json",
+  });
+
+  const logs = await callLogs.getCallLogs({ provider: "siliconflow", limit: 5 });
+  assert.equal(logs.length, 1);
+  const detail = await callLogs.getCallLogById(logs[0].id);
+  assert.deepEqual(
+    (detail?.responseBody as JsonBody | null)?.discoveryFailure,
+    body.discoveryFailure
+  );
 
   const syncedModels = await modelsDb.getSyncedAvailableModelsForConnection(
     "siliconflow",

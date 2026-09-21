@@ -174,10 +174,53 @@ export type GitHubCopilotModelsResult = {
   models: GitHubCopilotModel[];
   /** "api" = live discovery; "fallback" = static catalog (offline/unauthed/error). */
   source: "api" | "fallback";
+  /** Safe, structured reason why live discovery fell back. Never carries credentials/body text. */
+  failure?: GitHubCopilotDiscoveryFailure;
 };
 
+export type GitHubCopilotDiscoveryFailureKind =
+  "missing_token" | "http_status" | "invalid_json" | "empty_catalog" | "network";
+
+export type GitHubCopilotDiscoveryFailure = {
+  kind: GitHubCopilotDiscoveryFailureKind;
+  upstreamStatus?: number;
+  contentType?: string;
+  bodyShape?: string;
+};
+
+function safeContentType(response: Response): string | undefined {
+  const mediaType = (response.headers.get("content-type") || "")
+    .split(";", 1)[0]!
+    .trim()
+    .toLowerCase();
+  // Content-Type is upstream-controlled. Preserve only a normal media type and
+  // cap its size so diagnostics cannot become a header/body-text exfiltration path.
+  if (mediaType.length > 128) return undefined;
+  return /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/.test(mediaType) ? mediaType : undefined;
+}
+
+function bodyShapeFromHeaders(response: Response, contentType?: string): string | undefined {
+  if (response.headers.get("content-length")?.trim() === "0") return "empty";
+  if (contentType?.endsWith("/json") || contentType?.endsWith("+json")) return "json";
+  if (contentType?.startsWith("text/")) return "text";
+  if (contentType) return "binary";
+  return undefined;
+}
+
+function jsonBodyShape(data: unknown): string {
+  if (Array.isArray(data)) return "array";
+  if (data === null) return "null";
+  if (typeof data !== "object") return typeof data;
+  const payload = data as RawRecord;
+  if (Array.isArray(payload.data)) return "object.data_array";
+  if (Array.isArray(payload.models)) return "object.models_array";
+  if ("data" in payload || "models" in payload) return "object.catalog_non_array";
+  return "object";
+}
+
 function toFallbackResult(
-  fallbackModels: Array<{ id: string; name?: string }> | undefined
+  fallbackModels: Array<{ id: string; name?: string }> | undefined,
+  failure: GitHubCopilotDiscoveryFailure
 ): GitHubCopilotModelsResult {
   const models = (fallbackModels || [])
     .map((model) => {
@@ -187,7 +230,7 @@ function toFallbackResult(
       return { id, name: toNonEmptyString(model.name) || id, owned_by: "github" };
     })
     .filter((model): model is GitHubCopilotModel => Boolean(model));
-  return { models, source: "fallback" };
+  return { models, source: "fallback", failure };
 }
 
 /**
@@ -200,32 +243,55 @@ export async function fetchGitHubCopilotModels(
   const { token, fetchImpl = fetch, fallbackModels } = options;
 
   if (!toNonEmptyString(token)) {
-    return toFallbackResult(fallbackModels);
+    return toFallbackResult(fallbackModels, { kind: "missing_token" });
   }
 
+  let response: Response;
   try {
-    const response = await fetchImpl(GITHUB_COPILOT_MODELS_URL, {
+    response = await fetchImpl(GITHUB_COPILOT_MODELS_URL, {
       method: "GET",
       headers: {
         ...getGitHubCopilotChatHeaders("application/json"),
         Authorization: `Bearer ${token}`,
       },
     });
-
-    if (!response.ok) {
-      return toFallbackResult(fallbackModels);
-    }
-
-    const data = await response.json();
-    const models = parseGitHubCopilotModels(data);
-    if (models.length === 0) {
-      return toFallbackResult(fallbackModels);
-    }
-    return { models, source: "api" };
   } catch {
-    // Network/parse failure — never break the import flow.
-    return toFallbackResult(fallbackModels);
+    return toFallbackResult(fallbackModels, { kind: "network" });
   }
+
+  const contentType = safeContentType(response);
+  if (!response.ok) {
+    const bodyShape = bodyShapeFromHeaders(response, contentType);
+    return toFallbackResult(fallbackModels, {
+      kind: "http_status",
+      upstreamStatus: response.status,
+      ...(contentType ? { contentType } : {}),
+      ...(bodyShape ? { bodyShape } : {}),
+    });
+  }
+
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    return toFallbackResult(fallbackModels, {
+      kind: "invalid_json",
+      upstreamStatus: response.status,
+      ...(contentType ? { contentType } : {}),
+      bodyShape: "unparseable",
+    });
+  }
+
+  const models = parseGitHubCopilotModels(data);
+  if (models.length === 0) {
+    return toFallbackResult(fallbackModels, {
+      kind: "empty_catalog",
+      upstreamStatus: response.status,
+      ...(contentType ? { contentType } : {}),
+      bodyShape: jsonBodyShape(data),
+    });
+  }
+  return { models, source: "api" };
 }
 
 /**
