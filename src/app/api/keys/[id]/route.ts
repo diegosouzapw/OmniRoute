@@ -87,6 +87,7 @@ export async function PATCH(request, { params }) {
       streamDefaultMode,
       compressionEnabled,
       allowAutoCombos,
+      allowCcDiscoveryAliases,
       catalogScope,
       cacheDefaultMode,
       disableNonPublicModels,
@@ -122,6 +123,8 @@ export async function PATCH(request, { params }) {
     if (streamDefaultMode !== undefined) payload.streamDefaultMode = streamDefaultMode;
     if (compressionEnabled !== undefined) payload.compressionEnabled = compressionEnabled;
     if (allowAutoCombos !== undefined) payload.allowAutoCombos = allowAutoCombos;
+    if (allowCcDiscoveryAliases !== undefined)
+      payload.allowCcDiscoveryAliases = allowCcDiscoveryAliases;
     if (catalogScope !== undefined) payload.catalogScope = catalogScope;
     if (cacheDefaultMode !== undefined) payload.cacheDefaultMode = cacheDefaultMode;
     if (disableNonPublicModels !== undefined)
@@ -161,6 +164,7 @@ export async function PATCH(request, { params }) {
       ...(allowedEndpoints !== undefined && { allowedEndpoints }),
       ...(streamDefaultMode !== undefined && { streamDefaultMode }),
       ...(compressionEnabled !== undefined && { compressionEnabled }),
+      ...(allowCcDiscoveryAliases !== undefined && { allowCcDiscoveryAliases }),
       ...(cacheDefaultMode !== undefined && { cacheDefaultMode }),
       ...(disableNonPublicModels !== undefined && { disableNonPublicModels }),
       ...(allowUsageCommand !== undefined && { allowUsageCommand }),

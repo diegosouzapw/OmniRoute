@@ -63,6 +63,10 @@ export const API_KEY_COLUMN_FALLBACKS = [
     definition: "allow_auto_combos INTEGER NOT NULL DEFAULT 1",
   },
   {
+    name: "allow_cc_discovery_aliases",
+    definition: "allow_cc_discovery_aliases INTEGER NOT NULL DEFAULT 1",
+  },
+  {
     name: "catalog_scope",
     definition:
       "catalog_scope TEXT NOT NULL DEFAULT 'all' CHECK (catalog_scope IN ('all', 'combos', 'models'))",

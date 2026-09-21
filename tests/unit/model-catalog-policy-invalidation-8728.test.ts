@@ -81,6 +81,9 @@ test("updateApiKeyPermissions increments only on catalog-affecting fields", asyn
   await apiKeys.updateApiKeyPermissions(created.id, { allowAutoCombos: false });
   assert.equal(catalogVersion(), ++version);
 
+  await apiKeys.updateApiKeyPermissions(created.id, { allowCcDiscoveryAliases: false });
+  assert.equal(catalogVersion(), ++version);
+
   await apiKeys.updateApiKeyPermissions(created.id, { catalogScope: "combos" });
   assert.equal(catalogVersion(), ++version);
 });

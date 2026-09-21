@@ -835,6 +835,7 @@ async function buildUnifiedModelsResponseCore(
           prefixMode,
           aliasToProviderId,
           hideNoThinkVariants: settings.hideNoThinkVariants === true,
+          allowCcDiscoveryAliases: earlyKeyMeta?.allowCcDiscoveryAliases !== false,
         });
         return finalizeCatalogResponse(request, quotaFinal, () => undefined, {
           ...corsHeaders,
@@ -2109,6 +2110,7 @@ async function buildUnifiedModelsResponseCore(
       prefixMode,
       aliasToProviderId,
       hideNoThinkVariants: settings.hideNoThinkVariants === true,
+      allowCcDiscoveryAliases: earlyKeyMeta?.allowCcDiscoveryAliases !== false,
     });
 
     const getDefaultContextFallback = (model: any): number | undefined => {
