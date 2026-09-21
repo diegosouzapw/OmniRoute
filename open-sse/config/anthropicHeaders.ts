@@ -54,6 +54,16 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
  * credit gate); forwarding it when the CLIENT negotiated it matches what real
  * Claude Code sends for `/model <id>[1m]` and is required for >200K-context
  * requests on models/accounts where the beta is enforced.
+ *
+ * dangerous-tool-use-2026-09-03 is the auto-mode classifier pair: Claude Code
+ * v2.1.278+ sends it together with the top-level `safeguards` request field and
+ * reads the answer back from `message_delta.delta.safeguard_results`. The body
+ * field already survives the claude to claude passthrough, so dropping only the
+ * beta left the upstream with a field it was not asked to act on: no results
+ * come back, the client latches "something on the path to the API dropped it"
+ * and falls back to its own billed classifier requests for the rest of the
+ * session. Forwarding the pair intact is what makes a gateway session eligible
+ * (https://code.claude.com/docs/en/auto-mode-classifier-billing).
  */
 export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "tool-search-tool-2025-10-19",
@@ -69,6 +79,7 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   // upstream rejects `thinking.block_binding` / `thinking.display` with 400.
   "thinking-binding-controls-2026-08-01",
   "thinking-display-updates-2026-08-18",
+  "dangerous-tool-use-2026-09-03",
 ]);
 
 /**
