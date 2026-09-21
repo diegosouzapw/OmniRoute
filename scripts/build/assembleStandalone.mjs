@@ -408,6 +408,39 @@ export async function syncStandaloneExtraModules(rootDir, fsImpl = fs, log = con
 }
 
 /**
+ * Remove Next.js output-file-tracing manifests after the runtime bundle has
+ * been assembled. Next consumes these files while constructing standalone;
+ * the standalone server never reads them at runtime. Keeping thousands of
+ * manifests in the final tree can add hundreds of megabytes to container
+ * images without adding executable content.
+ *
+ * Symlinked directories are deliberately not traversed, so pruning cannot
+ * escape the assembled artifact.
+ *
+ * @param {string} rootDir assembled standalone root
+ * @returns {number} number of trace manifests removed
+ */
+export function pruneStandaloneTraceManifests(rootDir) {
+  if (!fsSync.existsSync(rootDir)) return 0;
+
+  let removed = 0;
+  const pending = [path.resolve(rootDir)];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    for (const entry of fsSync.readdirSync(current, { withFileTypes: true })) {
+      const entryPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        pending.push(entryPath);
+      } else if (entry.name.endsWith(".nft.json")) {
+        fsSync.rmSync(entryPath, { force: true });
+        removed += 1;
+      }
+    }
+  }
+  return removed;
+}
+
+/**
  * Internal: copy native assets to an arbitrary outDir.
  *
  * @param {string} projectRoot
@@ -1042,5 +1075,13 @@ export function assembleStandalone({
         );
       }
     }
+  }
+
+  // 8. Output-file-tracing manifests are build/packaging inputs, not runtime
+  // assets. Prune only after every assembly/repair pass has completed so the
+  // final tree copied into Docker contains executable files, not trace metadata.
+  const prunedTraceManifests = pruneStandaloneTraceManifests(resolvedOutDir);
+  if (prunedTraceManifests > 0) {
+    console.log(`[assembleStandalone] Pruned ${prunedTraceManifests} Next.js trace manifest(s)`);
   }
 }

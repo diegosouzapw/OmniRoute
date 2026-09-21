@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import {
   assembleStandalone,
   patchTurbopackChunks,
+  pruneStandaloneTraceManifests,
   syncStandaloneNativeAssets,
   syncStandaloneExtraModules,
 } from "../../../scripts/build/assembleStandalone.mjs";
@@ -100,6 +101,67 @@ test("assembleStandalone copies standalone + static + public + sidecars into out
     "static is NOT placed under a literal .next (would 404 against distDir server)"
   );
   assert.ok(fs.existsSync(path.join(outDir, "public/logo.svg")), "public copied");
+  fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
+
+test("assembleStandalone prunes Next trace manifests but preserves runtime JSON", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "assemble-trace-prune-"));
+  const distDir = path.join(tmp, ".build/next");
+  const standaloneDir = path.join(distDir, "standalone");
+  const outDir = path.join(tmp, "dist");
+  fs.mkdirSync(path.join(standaloneDir, ".build/next/server/app/api/health"), {
+    recursive: true,
+  });
+  fs.writeFileSync(path.join(standaloneDir, "server.js"), "// server");
+  fs.writeFileSync(
+    path.join(standaloneDir, ".build/next/server/app/api/health/route.js.nft.json"),
+    JSON.stringify({ version: 1, files: ["runtime.js"] })
+  );
+  fs.writeFileSync(
+    path.join(standaloneDir, ".build/next/server/app/api/health/runtime.json"),
+    JSON.stringify({ required: true })
+  );
+
+  assembleStandalone({
+    distDir,
+    outDir,
+    projectRoot: tmp,
+    sanitizePaths: false,
+    copyNatives: false,
+  });
+
+  assert.equal(
+    fs.existsSync(path.join(outDir, ".build/next/server/app/api/health/route.js.nft.json")),
+    false,
+    "trace manifest is packaging metadata and must not ship"
+  );
+  assert.equal(
+    fs.existsSync(path.join(outDir, ".build/next/server/app/api/health/runtime.json")),
+    true,
+    "ordinary runtime JSON must remain"
+  );
+  fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
+
+test("trace pruning does not follow directory symlinks outside the standalone root", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "assemble-trace-symlink-"));
+  const root = path.join(tmp, "standalone");
+  const outside = path.join(tmp, "outside");
+  fs.mkdirSync(root, { recursive: true });
+  fs.mkdirSync(outside, { recursive: true });
+  const outsideTrace = path.join(outside, "keep.js.nft.json");
+  fs.writeFileSync(outsideTrace, "{}");
+  const linkedDir = path.join(root, "linked");
+
+  try {
+    fs.symlinkSync(outside, linkedDir, process.platform === "win32" ? "junction" : "dir");
+  } catch {
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    return;
+  }
+
+  assert.equal(pruneStandaloneTraceManifests(root), 0);
+  assert.equal(fs.existsSync(outsideTrace), true, "pruning must stay inside the artifact root");
   fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
