@@ -3,6 +3,11 @@
   "scope": "Validation-related npm aliases, not workflow jobs or matrix instances. Profiles list static scans only; no profile here proves release acceptance.",
   "aliases": [
     {
+      "name": "check:quality-skill-contract",
+      "command": "node scripts/quality/check-skill-contract.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
       "name": "check",
       "command": "npm run lint && npm run test",
       "disposition": "separately-invoked"
