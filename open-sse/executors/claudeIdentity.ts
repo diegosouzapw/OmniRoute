@@ -425,7 +425,13 @@ export function selectBetaFlags(
     flags.push("advanced-tool-use-2025-11-20", "effort-2025-11-24");
   }
 
-  const hasToolRemoval = (() => {
+  // Every block type gated behind the inline-tools beta. Claude Code emits
+  // `tool_addition` as well as `tool_removal`, and a request carrying ONLY
+  // `tool_addition` is rejected upstream with
+  //   messages.N.content.M: `tool_addition` blocks require anthropic-beta: inline-tools-2026-09-15
+  // Detecting a single member of the family is therefore not enough.
+  const INLINE_TOOL_BLOCK_TYPES = new Set(["tool_removal", "tool_addition"]);
+  const hasInlineToolBlock = (() => {
     const messages = b.messages;
     if (Array.isArray(messages)) {
       for (const msg of messages) {
@@ -433,12 +439,11 @@ export function selectBetaFlags(
           const content = (msg as Record<string, unknown>).content;
           if (Array.isArray(content)) {
             for (const block of content) {
-              if (
-                block &&
-                typeof block === "object" &&
-                (block as Record<string, unknown>).type === "tool_removal"
-              ) {
-                return true;
+              if (block && typeof block === "object") {
+                const type = (block as Record<string, unknown>).type;
+                if (typeof type === "string" && INLINE_TOOL_BLOCK_TYPES.has(type)) {
+                  return true;
+                }
               }
             }
           }
@@ -447,7 +452,7 @@ export function selectBetaFlags(
     }
     return false;
   })();
-  if (clientBetaSet?.has("inline-tools-2026-09-15") || hasToolRemoval) {
+  if (clientBetaSet?.has("inline-tools-2026-09-15") || hasInlineToolBlock) {
     flags.push("inline-tools-2026-09-15");
   }
 
