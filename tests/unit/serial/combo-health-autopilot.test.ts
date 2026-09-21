@@ -15,6 +15,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../../src/lib/db/core.ts");
 const combosDb = await import("../../../src/lib/db/combos.ts");
+const providersDb = await import("../../../src/lib/db/providers.ts");
 const settingsDb = await import("../../../src/lib/db/settings.ts");
 const quotaSnapshotsDb = await import("../../../src/lib/db/quotaSnapshots.ts");
 const callLogs = await import("../../../src/lib/usage/callLogs.ts");
@@ -154,6 +155,94 @@ test("combo health autopilot supports report-only mode without actions", async (
     report.combos[0].issues.every((issue) => issue.actions.length === 0),
     true
   );
+});
+
+test("combo health autopilot proves target and model eligibility before using fallback capacity", async () => {
+  const provider = "combo-autopilot-eligibility";
+  const affected = (await providersDb.createProviderConnection({
+    provider,
+    authType: "apikey",
+    name: "affected-account",
+    apiKey: "affected-key",
+    isActive: true,
+    testStatus: "unavailable",
+    lastError: "rate limited",
+    lastErrorType: "upstream_rate_limited",
+    errorCode: "429",
+    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+  })) as Record<string, unknown>;
+  const nominalHealthy = (await providersDb.createProviderConnection({
+    provider,
+    authType: "apikey",
+    name: "nominal-healthy-account",
+    apiKey: "healthy-key",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: { excludedModels: ["test-model"] },
+  })) as Record<string, unknown>;
+  const eligibleFallback = (await providersDb.createProviderConnection({
+    provider,
+    authType: "apikey",
+    name: "eligible-fallback-account",
+    apiKey: "fallback-key",
+    isActive: true,
+    testStatus: "active",
+  })) as Record<string, unknown>;
+  const affectedId = String(affected.id);
+  const healthyId = String(nominalHealthy.id);
+  const fallbackId = String(eligibleFallback.id);
+  const combo = await combosDb.createCombo({
+    name: "combo-autopilot-allowlist",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        providerId: provider,
+        model: `${provider}/test-model`,
+        allowedConnectionIds: [affectedId, healthyId],
+      },
+    ],
+  });
+
+  const report = await comboAutopilot.buildComboHealthAutopilotReport({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    includeHealthy: true,
+  });
+  const providerIssue = report.combos[0].issues.find(
+    (issue) => issue.kind === "provider_health_issue"
+  );
+
+  assert.ok(providerIssue);
+  assert.equal(providerIssue.severity, "warning");
+  assert.equal(providerIssue.evidence.eligibilityProven, true);
+  assert.deepEqual(providerIssue.evidence.eligibleConnectionIds, []);
+  assert.equal(providerIssue.evidence.hasUnpinnedFallbackCapacity, false);
+  assert.equal(report.combos[0].state, "degraded");
+
+  await combosDb.updateCombo(String(combo.id), {
+    models: [
+      {
+        kind: "model",
+        providerId: provider,
+        model: `${provider}/test-model`,
+        allowedConnectionIds: [affectedId, healthyId, fallbackId],
+      },
+    ],
+  });
+  const reportWithEligibleFallback = await comboAutopilot.buildComboHealthAutopilotReport({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    includeHealthy: true,
+  });
+  const downgradedIssue = reportWithEligibleFallback.combos[0].issues.find(
+    (issue) => issue.kind === "provider_health_issue"
+  );
+  assert.equal(downgradedIssue?.severity, "info");
+  assert.deepEqual(downgradedIssue?.evidence.eligibleConnectionIds, [fallbackId]);
+  assert.equal(downgradedIssue?.evidence.hasUnpinnedFallbackCapacity, true);
 });
 
 test("combo health autopilot route requires auth, validates query, and returns 404", async () => {

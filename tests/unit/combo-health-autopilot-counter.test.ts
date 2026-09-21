@@ -62,9 +62,10 @@ function providerHealthResponse(): ProviderAutopilotReport {
 function healthyTargetResponse(
   comboId = "c1",
   comboName = "my-combo",
-  connectionId: string | null = null
+  connectionId: string | null = null,
+  eligibleConnectionIds: string[] | null = null
 ): ComboHealthResponse {
-  return {
+  const response: ComboHealthResponse = {
     timeRange: "24h",
     combos: [
       {
@@ -97,6 +98,13 @@ function healthyTargetResponse(
       },
     ],
   };
+  const target = response.combos[0].targetHealth?.[0] as
+    | (NonNullable<ComboHealthResponse["combos"][number]["targetHealth"]>[number] & {
+        eligibleConnectionIds: string[] | null;
+      })
+    | undefined;
+  if (target) target.eligibleConnectionIds = eligibleConnectionIds;
+  return response;
 }
 
 function buildOptions() {
@@ -197,7 +205,27 @@ describe("combo health autopilot counter", () => {
             timeToExhaustDays: 1,
             worstTargetExecutionKey: "c1-target",
           },
-          targets: [],
+          targets: [
+            {
+              executionKey: "c1-target",
+              stepId: "c1-step",
+              provider: "p",
+              model: "m",
+              connectionId: null,
+              label: null,
+              trafficShare: 1,
+              history: { requests: 10, costUsd: 0, totalTokens: 0 },
+              forecast: { projectedRequests: 10, projectedCostUsd: 0, projectedTokens: 0 },
+              quota: {
+                scope: "provider",
+                remainingPct: 5,
+                depletionPctPerDay: 5,
+                projectedRemainingPct: 0,
+                timeToExhaustDays: 1,
+                risk: "critical",
+              },
+            },
+          ],
           dataQuality: { pricingCoveragePct: 0, quotaCoverage: "provider", notes: [] },
         },
       ],
@@ -222,43 +250,44 @@ describe("combo health autopilot counter", () => {
 
     forecast.combos[0].confidence = "high";
     forecast.combos[0].dataQuality.pricingCoveragePct = 100;
+    const monitoredProviderHealth: ProviderAutopilotReport = {
+      status: "healthy",
+      checkedAt: new Date(0).toISOString(),
+      summary: {
+        providerCount: 1,
+        connectionCount: 1,
+        healthyCount: 1,
+        issueCount: 0,
+        actionableCount: 0,
+      },
+      providers: [
+        {
+          provider: "p",
+          state: "healthy",
+          score: 1,
+          signals: {
+            circuitBreaker: null,
+            connections: {
+              total: 1,
+              active: 1,
+              inactive: 0,
+              cooldown: 0,
+              terminal: 0,
+              staleErrors: 0,
+            },
+            modelLockouts: 0,
+            quotaMonitor: { warning: 0, exhausted: 0, errors: 0 },
+          },
+          issues: [],
+        },
+      ],
+    };
     const monitoredReport = await buildComboHealthAutopilotReport({
       ...buildOptions(),
       includeHealthy: true,
       healthResponse: healthyTargetResponse(),
       forecastResponse: forecast,
-      providerHealthResponse: {
-        status: "healthy",
-        checkedAt: new Date(0).toISOString(),
-        summary: {
-          providerCount: 1,
-          connectionCount: 1,
-          healthyCount: 1,
-          issueCount: 0,
-          actionableCount: 0,
-        },
-        providers: [
-          {
-            provider: "p",
-            state: "healthy",
-            score: 1,
-            signals: {
-              circuitBreaker: null,
-              connections: {
-                total: 1,
-                active: 1,
-                inactive: 0,
-                cooldown: 0,
-                terminal: 0,
-                staleErrors: 0,
-              },
-              modelLockouts: 0,
-              quotaMonitor: { warning: 0, exhausted: 0, errors: 0 },
-            },
-            issues: [],
-          },
-        ],
-      },
+      providerHealthResponse: monitoredProviderHealth,
     });
     assert.equal(
       monitoredReport.combos[0].issues.find((issue) => issue.kind === "forecast_quota_risk")
@@ -266,6 +295,27 @@ describe("combo health autopilot counter", () => {
       "critical"
     );
     assert.equal(monitoredReport.combos[0].state, "down");
+
+    forecast.combos[0].quotaRisk.worstTargetExecutionKey = "q-target";
+    forecast.combos[0].targets.push({
+      ...forecast.combos[0].targets[0],
+      executionKey: "q-target",
+      stepId: "q-step",
+      provider: "q",
+    });
+    const mixedProviderReport = await buildComboHealthAutopilotReport({
+      ...buildOptions(),
+      includeHealthy: true,
+      healthResponse: healthyTargetResponse(),
+      forecastResponse: forecast,
+      providerHealthResponse: monitoredProviderHealth,
+    });
+    const mixedIssue = mixedProviderReport.combos[0].issues.find(
+      (issue) => issue.kind === "forecast_quota_risk"
+    );
+    assert.equal(mixedIssue?.severity, "info");
+    assert.equal(mixedIssue?.evidence.worstTargetProvider, "q");
+    assert.equal(mixedIssue?.evidence.hasQuotaMonitorCoverage, false);
   });
 
   it("keeps an unpinned connection issue informational when provider capacity remains", async () => {
@@ -315,7 +365,7 @@ describe("combo health autopilot counter", () => {
     const report = await buildComboHealthAutopilotReport({
       ...buildOptions(),
       includeHealthy: true,
-      healthResponse: healthyTargetResponse(),
+      healthResponse: healthyTargetResponse("c1", "my-combo", null, ["remaining-connection"]),
       providerHealthResponse: providerHealth,
     });
 

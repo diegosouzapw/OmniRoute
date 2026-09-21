@@ -48,8 +48,11 @@ type ProviderIssueView = {
     connectionId?: string;
   };
   evidence?: JsonRecord;
-  providerActiveConnections?: number;
-  providerAffectedActiveConnections?: number;
+  providerAffectedConnectionIds?: string[];
+};
+
+type TargetEligibilityView = NonNullable<ComboHealthMetrics["targetHealth"]>[number] & {
+  eligibleConnectionIds?: string[] | null;
 };
 
 function sanitizeId(parts: Array<string | null | undefined>): string {
@@ -171,22 +174,20 @@ function providerIssueEvidence(providerIssue: ProviderIssueView): JsonRecord {
 
 function buildProviderIssueIndex(report: ProviderAutopilotReport): ProviderIssueView[] {
   return report.providers.flatMap((provider) => {
-    const affectedActiveConnections = new Set(
-      provider.issues.flatMap((entry) => {
-        const connectionId = entry.target.connectionId;
-        const evidence = entry.evidence as JsonRecord;
-        return connectionId && entry.severity !== "info" && evidence.isActive !== false
-          ? [connectionId]
-          : [];
-      })
-    ).size;
+    const affectedConnectionIds = Array.from(
+      new Set(
+        provider.issues.flatMap((entry) => {
+          const connectionId = entry.target.connectionId;
+          return connectionId && entry.severity !== "info" ? [connectionId] : [];
+        })
+      )
+    );
 
     return (provider.issues as ProviderIssueView[])
       .filter((entry) => Boolean(entry.target?.provider))
       .map((entry) => ({
         ...entry,
-        providerActiveConnections: provider.signals.connections.active,
-        providerAffectedActiveConnections: affectedActiveConnections,
+        providerAffectedConnectionIds: affectedConnectionIds,
       }));
   });
 }
@@ -340,11 +341,16 @@ function buildIssuesForCombo(
 
     for (const providerIssue of providerIssues) {
       if (!providerIssueMatchesTarget(providerIssue, target)) continue;
+      const eligibleConnectionIds = (target as TargetEligibilityView).eligibleConnectionIds;
+      const issueConnectionId = providerIssue.target?.connectionId;
+      const affectedConnectionIds = new Set(providerIssue.providerAffectedConnectionIds ?? []);
       const hasUnpinnedFallbackCapacity = Boolean(
         !target.connectionId &&
-        providerIssue.target?.connectionId &&
-        (providerIssue.providerActiveConnections ?? 0) >
-          (providerIssue.providerAffectedActiveConnections ?? 0)
+        issueConnectionId &&
+        Array.isArray(eligibleConnectionIds) &&
+        eligibleConnectionIds.length > 0 &&
+        (!eligibleConnectionIds.includes(issueConnectionId) ||
+          eligibleConnectionIds.some((connectionId) => !affectedConnectionIds.has(connectionId)))
       );
       const providerSeverity = hasUnpinnedFallbackCapacity
         ? "info"
@@ -359,6 +365,8 @@ function buildIssuesForCombo(
           {
             ...providerIssueEvidence(providerIssue),
             hasUnpinnedFallbackCapacity,
+            eligibilityProven: Array.isArray(eligibleConnectionIds),
+            eligibleConnectionIds: eligibleConnectionIds ?? null,
           },
           includeActions,
           ["open_provider_health_autopilot", "open_combo_editor"],
@@ -370,8 +378,11 @@ function buildIssuesForCombo(
 
   if (forecast && riskRank(forecast.quotaRisk.level) >= riskRank("medium")) {
     const hasDataQualityGap = hasForecastDataQualityGap(forecast);
-    const hasQuotaMonitorCoverage = targets.some((target) =>
-      quotaMonitorProviders.has(target.provider)
+    const worstTarget = forecast.targets.find(
+      (target) => target.executionKey === forecast.quotaRisk.worstTargetExecutionKey
+    );
+    const hasQuotaMonitorCoverage = Boolean(
+      worstTarget && quotaMonitorProviders.has(worstTarget.provider)
     );
     const diagnosticOnly =
       !hasQuotaMonitorCoverage ||
@@ -391,6 +402,8 @@ function buildIssuesForCombo(
           timeToExhaustDays: forecast.quotaRisk.timeToExhaustDays,
           confidence: forecast.confidence,
           quotaCoverage: forecast.dataQuality.quotaCoverage,
+          worstTargetExecutionKey: forecast.quotaRisk.worstTargetExecutionKey,
+          worstTargetProvider: worstTarget?.provider ?? null,
           hasDataQualityGap,
           hasQuotaMonitorCoverage,
           diagnosticOnly,

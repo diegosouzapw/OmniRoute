@@ -1,6 +1,18 @@
 import { getComboById, getCombos } from "@/lib/db/combos";
 import { getDbInstance } from "@/lib/db/core";
+import {
+  getSyncedAvailableModelsByConnection,
+  SYNCED_AVAILABLE_MODELS_MALFORMED,
+  type SyncedAvailableModelsByConnection,
+} from "@/lib/db/models";
+import { getProviderConnections } from "@/lib/db/providers";
 import { getQuotaSnapshots } from "@/lib/db/quotaSnapshots";
+import {
+  inspectTargetResilience,
+  type ProviderConnectionView,
+} from "@/lib/usage/resilienceExplain";
+import { isModelAdvertisedByConnection } from "@/domain/connectionModelRules";
+import { isSelfHostedChatProvider } from "@/shared/constants/providers";
 import { getComboMetrics } from "@omniroute/open-sse/services/comboMetrics.ts";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import type {
@@ -50,7 +62,13 @@ type ResolvedComboTargetView = {
   modelStr: string;
   provider: string;
   connectionId: string | null;
+  allowedConnectionIds?: string[] | null;
   label: string | null;
+};
+
+type TargetHealthWithEligibility = NonNullable<ComboHealthMetrics["targetHealth"]>[number] & {
+  /** null means eligibility could not be proven and consumers must fail conservative. */
+  eligibleConnectionIds: string[] | null;
 };
 
 type RuntimeTargetMetricView = {
@@ -119,7 +137,10 @@ function calculateGini(values: number[]): number {
   return (2 * weightedSum) / (count * sum) - (count + 1) / count;
 }
 
-export function buildProviderHealth(provider: string, snapshots: QuotaSnapshotRow[]): ProviderHealth {
+export function buildProviderHealth(
+  provider: string,
+  snapshots: QuotaSnapshotRow[]
+): ProviderHealth {
   if (snapshots.length === 0) {
     return {
       provider,
@@ -328,7 +349,10 @@ function buildPerformance(comboName: string, since: string): ComboHealthMetrics[
   };
 }
 
-export function buildQuotaHealth(providers: string[], since: string): ComboHealthMetrics["quotaHealth"] {
+export function buildQuotaHealth(
+  providers: string[],
+  since: string
+): ComboHealthMetrics["quotaHealth"] {
   const providerHealth = providers.map((provider) =>
     buildProviderHealth(provider, getQuotaSnapshots({ provider, since }))
   );
@@ -425,83 +449,132 @@ function getHistoricalTargetMetrics(
   return metrics;
 }
 
-function buildTargetHealth(
+async function resolveEligibleConnectionIds(
+  target: ResolvedComboTargetView,
+  providerConnections: ProviderConnectionView[] | null,
+  syncedModels: SyncedAvailableModelsByConnection | null,
+  now: number
+): Promise<string[] | null> {
+  if (providerConnections === null) return null;
+
+  try {
+    const resilience = await inspectTargetResilience({
+      provider: target.provider,
+      model: target.modelStr,
+      connectionId: target.connectionId,
+      allowedConnectionIds: target.allowedConnectionIds,
+      providerConnections,
+      now,
+    });
+    return resilience.accounts
+      .filter((account) => account.state === "eligible")
+      .filter((account) => {
+        if (!syncedModels || syncedModels[SYNCED_AVAILABLE_MODELS_MALFORMED]) return true;
+        const advertised = syncedModels[account.connectionId];
+        if (!Array.isArray(advertised) || advertised.length === 0) return true;
+        return isModelAdvertisedByConnection(
+          target.modelStr,
+          new Set(advertised.flatMap((model) => (model.id ? [model.id] : [])))
+        );
+      })
+      .map((account) => account.connectionId);
+  } catch {
+    return null;
+  }
+}
+
+async function buildTargetHealth(
   comboName: string,
   targets: ResolvedComboTargetView[],
-  since: string
-): NonNullable<ComboHealthMetrics["targetHealth"]> {
+  since: string,
+  activeConnectionsByProvider: Map<string, ProviderConnectionView[]> | null,
+  syncedModelsByProvider: Map<string, SyncedAvailableModelsByConnection>,
+  now: number
+): Promise<TargetHealthWithEligibility[]> {
   const comboMetrics = getComboMetrics(comboName);
   const historicalMetrics = getHistoricalTargetMetrics(comboName, since);
 
-  return targets.map((target) => {
-    const historicalMetric =
-      historicalMetrics.get(target.executionKey) || historicalMetrics.get(target.stepId) || null;
-    const runtimeMetric =
-      historicalMetric === null
-        ? ((comboMetrics?.byTarget?.[target.executionKey] ||
-            comboMetrics?.byTarget?.[target.stepId] ||
-            null) as RuntimeTargetMetricView | null)
-        : null;
+  return Promise.all(
+    targets.map(async (target) => {
+      const historicalMetric =
+        historicalMetrics.get(target.executionKey) || historicalMetrics.get(target.stepId) || null;
+      const runtimeMetric =
+        historicalMetric === null
+          ? ((comboMetrics?.byTarget?.[target.executionKey] ||
+              comboMetrics?.byTarget?.[target.stepId] ||
+              null) as RuntimeTargetMetricView | null)
+          : null;
 
-    let quotaRemainingPct: number | null = null;
-    let quotaIsExhausted: boolean | null = null;
-    let quotaTrend: "improving" | "stable" | "declining" | null = null;
-    let quotaScope: "connection" | "provider" | "none" = "none";
+      let quotaRemainingPct: number | null = null;
+      let quotaIsExhausted: boolean | null = null;
+      let quotaTrend: "improving" | "stable" | "declining" | null = null;
+      let quotaScope: "connection" | "provider" | "none" = "none";
 
-    if (target.connectionId) {
-      const connectionHealth = buildConnectionHealth(
-        target.provider,
-        target.connectionId,
-        getQuotaSnapshots({
-          provider: target.provider,
-          connectionId: target.connectionId,
-          since,
-        })
-      );
-      if (connectionHealth) {
-        quotaRemainingPct = connectionHealth.remainingPct;
-        quotaIsExhausted = connectionHealth.isExhausted;
-        quotaTrend = connectionHealth.trend;
-        quotaScope = "connection";
+      if (target.connectionId) {
+        const connectionHealth = buildConnectionHealth(
+          target.provider,
+          target.connectionId,
+          getQuotaSnapshots({
+            provider: target.provider,
+            connectionId: target.connectionId,
+            since,
+          })
+        );
+        if (connectionHealth) {
+          quotaRemainingPct = connectionHealth.remainingPct;
+          quotaIsExhausted = connectionHealth.isExhausted;
+          quotaTrend = connectionHealth.trend;
+          quotaScope = "connection";
+        }
       }
-    }
 
-    if (quotaScope === "none") {
-      const providerSnapshots = getQuotaSnapshots({ provider: target.provider, since });
-      const providerHealth = buildProviderHealth(target.provider, providerSnapshots);
-      if (providerSnapshots.length > 0) {
-        quotaRemainingPct = providerHealth.remainingPct;
-        quotaIsExhausted = providerHealth.isExhausted;
-        quotaTrend = providerHealth.trend;
-        quotaScope = "provider";
+      if (quotaScope === "none") {
+        const providerSnapshots = getQuotaSnapshots({ provider: target.provider, since });
+        const providerHealth = buildProviderHealth(target.provider, providerSnapshots);
+        if (providerSnapshots.length > 0) {
+          quotaRemainingPct = providerHealth.remainingPct;
+          quotaIsExhausted = providerHealth.isExhausted;
+          quotaTrend = providerHealth.trend;
+          quotaScope = "provider";
+        }
       }
-    }
 
-    return {
-      executionKey: target.executionKey,
-      stepId: target.stepId,
-      model: target.modelStr,
-      provider: target.provider,
-      connectionId: target.connectionId,
-      label: target.label,
-      requests: toSafeNumber(historicalMetric?.requests ?? runtimeMetric?.requests),
-      successRate: toSafeNumber(historicalMetric?.successRate ?? runtimeMetric?.successRate),
-      avgLatencyMs: toSafeNumber(historicalMetric?.avgLatencyMs ?? runtimeMetric?.avgLatencyMs),
-      lastStatus: historicalMetric?.lastStatus ?? runtimeMetric?.lastStatus ?? null,
-      lastUsedAt: historicalMetric?.lastUsedAt ?? runtimeMetric?.lastUsedAt ?? null,
-      quotaRemainingPct,
-      quotaIsExhausted,
-      quotaTrend,
-      quotaScope,
-    };
-  });
+      return {
+        executionKey: target.executionKey,
+        stepId: target.stepId,
+        model: target.modelStr,
+        provider: target.provider,
+        connectionId: target.connectionId,
+        label: target.label,
+        requests: toSafeNumber(historicalMetric?.requests ?? runtimeMetric?.requests),
+        successRate: toSafeNumber(historicalMetric?.successRate ?? runtimeMetric?.successRate),
+        avgLatencyMs: toSafeNumber(historicalMetric?.avgLatencyMs ?? runtimeMetric?.avgLatencyMs),
+        lastStatus: historicalMetric?.lastStatus ?? runtimeMetric?.lastStatus ?? null,
+        lastUsedAt: historicalMetric?.lastUsedAt ?? runtimeMetric?.lastUsedAt ?? null,
+        quotaRemainingPct,
+        quotaIsExhausted,
+        quotaTrend,
+        quotaScope,
+        eligibleConnectionIds: await resolveEligibleConnectionIds(
+          target,
+          activeConnectionsByProvider?.get(target.provider) ??
+            (activeConnectionsByProvider === null ? null : []),
+          syncedModelsByProvider.get(target.provider) ?? null,
+          now
+        ),
+      };
+    })
+  );
 }
 
-function buildComboHealth(
+async function buildComboHealth(
   combo: ComboRecord,
   since: string,
-  allCombos: ComboRecord[]
-): ComboHealthMetrics | null {
+  allCombos: ComboRecord[],
+  activeConnectionsByProvider: Map<string, ProviderConnectionView[]> | null,
+  syncedModelsByProvider: Map<string, SyncedAvailableModelsByConnection>,
+  now: number
+): Promise<ComboHealthMetrics | null> {
   const comboId = typeof combo.id === "string" ? combo.id : "";
   const comboName = typeof combo.name === "string" ? combo.name : "";
   if (!comboId || !comboName) return null;
@@ -518,7 +591,14 @@ function buildComboHealth(
         ? combo.strategy
         : "priority",
     models,
-    targetHealth: buildTargetHealth(comboName, targets, since),
+    targetHealth: await buildTargetHealth(
+      comboName,
+      targets,
+      since,
+      activeConnectionsByProvider,
+      syncedModelsByProvider,
+      now
+    ),
     quotaHealth: buildQuotaHealth(providers, since),
     usageSkew: buildUsageSkew(comboName, models, since),
     performance: buildPerformance(comboName, since),
@@ -531,7 +611,8 @@ export async function buildComboHealthResponse(opts: {
   now?: number;
   combos?: ComboRecord[];
 }): Promise<ComboHealthResponse> {
-  const since = getRangeStartIso(opts.range, opts.now);
+  const now = opts.now ?? Date.now();
+  const since = getRangeStartIso(opts.range, now);
   const allCombos = opts.combos ?? ((await getCombos()) as ComboRecord[]);
   let combos: ComboRecord[] = [];
 
@@ -544,10 +625,54 @@ export async function buildComboHealthResponse(opts: {
     combos = allCombos;
   }
 
+  let activeConnectionsByProvider: Map<string, ProviderConnectionView[]> | null = null;
+  try {
+    const activeConnections = (await getProviderConnections({
+      isActive: true,
+    })) as ProviderConnectionView[];
+    activeConnectionsByProvider = new Map<string, ProviderConnectionView[]>();
+    for (const connection of activeConnections) {
+      if (typeof connection.provider !== "string" || !connection.provider) continue;
+      const providerConnections = activeConnectionsByProvider.get(connection.provider) ?? [];
+      providerConnections.push(connection);
+      activeConnectionsByProvider.set(connection.provider, providerConnections);
+    }
+  } catch {
+    activeConnectionsByProvider = null;
+  }
+
+  const targetProviders = new Set<string>();
+  for (const combo of combos) {
+    for (const target of resolveNestedComboTargets(combo, allCombos) as ResolvedComboTargetView[]) {
+      if (isSelfHostedChatProvider(target.provider)) targetProviders.add(target.provider);
+    }
+  }
+  const syncedModelsByProvider = new Map<string, SyncedAvailableModelsByConnection>();
+  await Promise.all(
+    [...targetProviders].map(async (provider) => {
+      try {
+        syncedModelsByProvider.set(provider, await getSyncedAvailableModelsByConnection(provider));
+      } catch {
+        // Auth routing also treats missing/malformed synced inventory as unknown (fail open).
+      }
+    })
+  );
+
+  const health = await Promise.all(
+    combos.map((combo) =>
+      buildComboHealth(
+        combo,
+        since,
+        allCombos,
+        activeConnectionsByProvider,
+        syncedModelsByProvider,
+        now
+      )
+    )
+  );
+
   return {
     timeRange: opts.range,
-    combos: combos
-      .map((combo) => buildComboHealth(combo, since, allCombos))
-      .filter((combo): combo is ComboHealthMetrics => combo !== null),
+    combos: health.filter((combo): combo is ComboHealthMetrics => combo !== null),
   };
 }
