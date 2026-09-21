@@ -1,8 +1,7 @@
 /**
  * Shared duration-aware quota window labels for AUTH preflight and /api/usage.
- * Routing keys (`session`, `weekly`) stay position-based; only the display
- * string follows the real window length so a 30-day primary window is not
- * reported as "session (5h)".
+ * Routing keys (`session`, `weekly`, `monthly`) are normalized from duration
+ * when the upstream supplies it; display strings use the same duration signal.
  */
 
 const SESSION_MAX_SECONDS = 6 * 3600;
