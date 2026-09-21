@@ -285,6 +285,27 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create a GreenPT API key, then use https://api.greenpt.ai/v1 as the OpenAI-compatible base URL. Review jurisdiction, privacy and regional data-transfer requirements before use.",
   },
+  onomeo: {
+    id: "onomeo",
+    serviceKinds: ["llm"],
+    alias: "onomeo",
+    name: "onomeo",
+    icon: "router",
+    color: "#C2410C",
+    textIcon: "ONO",
+    passthroughModels: true,
+    website: "https://onomeo.com",
+    // Free credits come from a daily check-in, not a standing quota: 1,200 a day,
+    // rising to 3,500 with a streak. Credits count characters sent and received,
+    // so this is a small allowance; premium models cost many times more.
+    hasFree: true,
+    freeNote:
+      "Sign in (email, Google or GitHub, no card) and check in daily for 1,200 credits, up to 3,500 with a streak. Credits count characters sent and received; premium models cost many times more. 12 requests/min per key, 60 requests per 5 hours per account.",
+    // onomeo routes to third-party upstreams; some may train on prompts, and each
+    // model page on onomeo.com says which.
+    apiHint:
+      "Create an API key on the onomeo dashboard, then use https://onomeo.com/v1 as the OpenAI-compatible base URL. Models are served by third-party upstreams, some of which may train on prompts; each model page on onomeo.com states this.",
+  },
   eurouter: {
     id: "eurouter",
     serviceKinds: ["llm"],
