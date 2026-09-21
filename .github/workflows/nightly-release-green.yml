@@ -247,7 +247,9 @@ jobs:
           path: |
             release-green.json
             release-green.log
+            _artifacts/release-green/
           if-no-files-found: error
+          retention-days: 14
 
       - name: Enforce validation verdict
         if: always()
@@ -388,7 +390,9 @@ jobs:
           path: |
             main-green.json
             main-green.log
+            _artifacts/release-green/
           if-no-files-found: error
+          retention-days: 14
 
       - name: Enforce validation verdict
         if: always()

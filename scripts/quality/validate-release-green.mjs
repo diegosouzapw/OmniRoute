@@ -22,12 +22,9 @@
 //     maintainer at release. Drift NEVER changes the exit code, so wiring this as
 //     a check can never block anyone on drift.
 //
-// COMPLETENESS: this mirrors the FULL release-PR gate set (quality-gate +
-// quality-extended + docs-sync-strict + integration), not a subset — and reports
-// EVERY red in one pass (the report is collected, not fail-fast), so the release
-// PR is green on its first CI run instead of revealing reds in ~40-min layers. The
-// only release-PR gates it cannot reproduce locally are GitHub-side CodeQL semantic
-// analysis and SonarQube/SonarCloud (external services).
+// SCOPE: this diagnoses the curated checks below and, with --full-ci, the static
+// commands extracted from selected CI jobs. It does not reproduce every workflow,
+// matrix, hosted scanner or merge-candidate gate. A local PASS is not merge admission.
 //
 // This script DIAGNOSES + REPORTS only (no auto-fix). The fix-to-green
 // orchestration lives in the /green-prs + review-prs flows that call it.
@@ -50,21 +47,21 @@
 // Per-gate output is saved to _artifacts/release-green/<gate>.log (gitignored) —
 // diagnose a red from the file instead of re-running the gate.
 
-import { execFile, execFileSync } from "node:child_process";
-import { promisify } from "node:util";
+import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
+import { runGateProcess } from "./gate-process.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 export const ESLINT_TIMEOUT_MS = 60 * 60 * 1000;
 
-// Per-gate captured output. execFileSync buffers everything and the report only
-// shows a one-line summary, so without these files every red requires RE-RUNNING
-// the gate just to see the detail (the dominant cost of the 2026-07-05 pre-flight).
+// Convenient per-gate summaries. The supervisor additionally persists immutable,
+// incremental command logs and receipts under commands/; these are required evidence.
 const LOG_DIR = join(ROOT, "_artifacts", "release-green");
 function saveGateLog(id, out) {
   try {
@@ -189,6 +186,20 @@ export function parseEslintJson(out) {
  * the parser instead of the gate ceiling.
  */
 export function evaluateEslintRun({ code, out }, warningBaseline) {
+  if (code !== 0) {
+    return [
+      {
+        id: "lint",
+        label: "ESLint",
+        kind: "hard",
+        ok: false,
+        detail:
+          code === 124
+            ? firstFailureLine(out)
+            : `ESLint process exited ${code}: ${firstFailureLine(out)}`,
+      },
+    ];
+  }
   const parsed = parseEslintJson(out);
   if (!parsed) {
     return [
@@ -385,7 +396,7 @@ export function classifyRunError(err, timeoutMs) {
   if (timedOut && timeoutMs) {
     return {
       code: 124,
-      out: `gate exceeded its ${Math.round(timeoutMs / 1000)}s ceiling and was killed — treat as a hung/failed gate (e.g. an unreleased DB handle in the unit suite); does NOT pass`,
+      out: `${err?.stdout || ""}${err?.stderr || ""}${err?.stdout || err?.stderr ? "\n" : ""}gate exceeded its ${Math.round(timeoutMs / 1000)}s ceiling and was killed — treat as a hung/failed gate (e.g. an unreleased DB handle in the unit suite); does NOT pass`,
     };
   }
   return {
@@ -421,45 +432,28 @@ function buildGateEnv(extra) {
   return env;
 }
 
-function run(cmd, cmdArgs, opts = {}) {
-  try {
-    const out = execFileSync(cmd, cmdArgs, {
-      cwd: ROOT,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-      maxBuffer: 256 * 1024 * 1024,
-      env: buildGateEnv(opts.env),
-      // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
-      // exit, so they show no progress while running). undefined = no timeout for fast gates.
-      ...(opts.timeout ? { timeout: opts.timeout } : {}),
-    });
-    return { code: 0, out };
-  } catch (err) {
-    return classifyRunError(err, opts.timeout);
-  }
+const commandReceipts = [];
+const cancellation = new AbortController();
+
+async function run(cmd, cmdArgs, opts = {}) {
+  const label = `${cmd} ${cmdArgs.join(" ")}`;
+  const logPath = join(LOG_DIR, "commands", `${randomUUID()}.log`);
+  const result = await runGateProcess(cmd, cmdArgs, {
+    cwd: ROOT,
+    env: buildGateEnv(opts.env),
+    logPath,
+    timeout: opts.timeout || 30 * 60 * 1000,
+    signal: cancellation.signal,
+    onHeartbeat: ({ elapsedMs, bytes, lastOutputAt }) =>
+      process.stderr.write(
+        `… ${label}: ${Math.round(elapsedMs / 1000)}s, ${bytes} bytes, last output ${lastOutputAt}\n`
+      ),
+  });
+  commandReceipts.push({ command: label, receiptPath: result.receiptPath, ...result.receipt });
+  return result;
 }
 
-const execFileAsync = promisify(execFile);
-
-// Async twin of run() — same {code, out} contract, so the slow suites (unit /
-// vitest / integration / pack-artifact) can run CONCURRENTLY instead of in
-// series. Sequentially they dominate the pre-flight wall time (~2h in the
-// v3.8.45 run); they are independent processes with per-process DATA_DIR
-// isolation, so overlapping them cuts the pre-flight to ~the slowest single one.
-async function runAsync(cmd, cmdArgs, opts = {}) {
-  try {
-    const { stdout, stderr } = await execFileAsync(cmd, cmdArgs, {
-      cwd: ROOT,
-      encoding: "utf8",
-      maxBuffer: 256 * 1024 * 1024,
-      env: buildGateEnv(opts.env),
-      ...(opts.timeout ? { timeout: opts.timeout } : {}),
-    });
-    return { code: 0, out: `${stdout || ""}${stderr || ""}` };
-  } catch (err) {
-    return classifyRunError(err, opts.timeout);
-  }
-}
+const runAsync = run;
 
 /**
  * Package-artifact gate, run the way ci.yml's pack job runs it (#10427).
@@ -493,6 +487,9 @@ async function runPackArtifactGate(timeoutMs) {
 }
 
 async function main() {
+  for (const signal of ["SIGINT", "SIGTERM"]) {
+    process.once(signal, () => cancellation.abort(signal));
+  }
   const args = new Set(process.argv.slice(2));
   const JSON_OUT = args.has("--json");
   const WITH_BUILD = args.has("--with-build");
@@ -507,14 +504,13 @@ async function main() {
     process.stderr.write(`${icon} [${r.kind}] ${r.label}${r.detail ? ` — ${r.detail}` : ""}\n`);
   };
 
-  // Announce a gate BEFORE running it. The long suites (unit/vitest/integration) run silently
-  // for many minutes (execFileSync buffers their output until exit), which previously looked like
-  // a hang and got the pre-flight killed before it surfaced the unit reds (the v3.8.42 miss).
+  // Announce before running; supervisor heartbeats then distinguish a quiet process
+  // from a missing observation without treating silence as a successful result.
   const announce = (label) => process.stderr.write(`▶ ${label}…\n`);
 
-  const hardCmd = (id, label, cmd, cmdArgs, opts) => {
+  const hardCmd = async (id, label, cmd, cmdArgs, opts) => {
     announce(label);
-    const { code, out } = run(cmd, cmdArgs, opts);
+    const { code, out } = await run(cmd, cmdArgs, opts);
     saveGateLog(id, out);
     record({
       id,
@@ -530,9 +526,9 @@ async function main() {
   // non-zero exit here is drift to rebaseline at release, never a contributor block.
   // ALL checks run regardless of earlier failures (the report is collected, not
   // fail-fast) so one pass surfaces every red instead of revealing them in layers.
-  const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
+  const driftCmd = async (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
     announce(label);
-    const { code, out } = run(cmd, cmdArgs, opts);
+    const { code, out } = await run(cmd, cmdArgs, opts);
     saveGateLog(id, out);
     record({
       id,
@@ -545,7 +541,7 @@ async function main() {
 
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
 
-  hardCmd("typecheck", "Typecheck (core)", npmCmd, ["run", "typecheck:core"]);
+  await hardCmd("typecheck", "Typecheck (core)", npmCmd, ["run", "typecheck:core"]);
 
   // ESLint: ONE pass → errors (hard) + warnings (drift)
   {
@@ -554,7 +550,7 @@ async function main() {
     // pre-existing debt in config/quality/eslint-suppressions.json must not count as
     // errors here — only NET-NEW violations are release reds. The cold release runner can
     // exceed 30 minutes as the repository grows, and this pre-flight often runs under load.
-    const lintRun = run(
+    const lintRun = await run(
       "npx",
       [
         "eslint",
@@ -585,13 +581,13 @@ async function main() {
     }
   }
 
-  hardCmd("db-rules", "DB rules", npmCmd, ["run", "check:db-rules"]);
-  hardCmd("public-creds", "Public creds", npmCmd, ["run", "check:public-creds"]);
+  await hardCmd("db-rules", "DB rules", npmCmd, ["run", "check:db-rules"]);
+  await hardCmd("public-creds", "Public creds", npmCmd, ["run", "check:public-creds"]);
 
   // Complexity + cognitive (one ESLint walk; both still recorded as drift)
   {
     announce("Complexity + cognitive ratchets (shared ESLint walk)");
-    const { out } = run(npmCmd, ["run", "check:complexity-ratchets"]);
+    const { out } = await run(npmCmd, ["run", "check:complexity-ratchets"]);
     saveGateLog("complexity-ratchets", out);
     const cogCurrent = parseCognitiveCount(out);
     const cogBase = baselineValue("cognitiveComplexity");
@@ -631,7 +627,7 @@ async function main() {
 
   // file-size (drift)
   {
-    const { code, out } = run(npmCmd, ["run", "check:file-size"]);
+    const { code, out } = await run(npmCmd, ["run", "check:file-size"]);
     record({
       id: "file-size",
       label: "File-size ratchet",
@@ -649,8 +645,10 @@ async function main() {
   if (!QUICK) {
     announce("Test-masking (weakened-assert guard vs main)");
     // best-effort fetch so the merge-base diff is accurate; ignore fetch failure (offline pre-flight)
-    run("git", ["fetch", "--no-tags", "origin", "main", "--depth=200"], { timeout: 60 * 1000 });
-    const { code, out } = run(npmCmd, ["run", "check:test-masking"], {
+    await run("git", ["fetch", "--no-tags", "origin", "main", "--depth=200"], {
+      timeout: 60 * 1000,
+    });
+    const { code, out } = await run(npmCmd, ["run", "check:test-masking"], {
       env: { GITHUB_BASE_REF: "main" },
     });
     saveGateLog("test-masking", out);
@@ -668,27 +666,36 @@ async function main() {
   // CI Quality Ratchet job is fail-fast — only on the release PR. Running them all
   // here (drift, never blocking) means a single rebaseline pass at release.
   // complexity recorded above with cognitive (check:complexity-ratchets)
-  driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
-  driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, ["run", "check:type-coverage"]);
-  driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, [
+  await driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
+  await driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, [
+    "run",
+    "check:type-coverage",
+  ]);
+  await driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, [
     "run",
     "check:compression-budget",
   ]);
-  driftCmd("openapi-coverage", "OpenAPI route coverage (ratchet)", npmCmd, [
+  await driftCmd("openapi-coverage", "OpenAPI route coverage (ratchet)", npmCmd, [
     "run",
     "check:openapi-coverage",
   ]);
-  driftCmd("workflow-lint", "Workflow lint (zizmor ratchet)", npmCmd, [
+  await driftCmd("workflow-lint", "Workflow lint (zizmor ratchet)", npmCmd, [
     "run",
     "check:workflows",
     "--",
     "--ratchet",
   ]);
-  driftCmd("codeql-ratchet", "CodeQL alerts (ratchet)", npmCmd, ["run", "check:codeql-ratchet"]);
+  await driftCmd("codeql-ratchet", "CodeQL alerts (ratchet)", npmCmd, [
+    "run",
+    "check:codeql-ratchet",
+  ]);
 
   // Docs sync + fabricated-docs (strict) is a real-defect gate (invented env vars /
   // routes, i18n mirror drift) — HARD.
-  hardCmd("docs-all", "Docs sync + fabricated-docs (strict)", npmCmd, ["run", "check:docs-all"]);
+  await hardCmd("docs-all", "Docs sync + fabricated-docs (strict)", npmCmd, [
+    "run",
+    "check:docs-all",
+  ]);
 
   if (!QUICK) {
     // These are the gates that catch inherited base-red tests from cycle PRs (the fast-path
@@ -834,7 +841,7 @@ async function main() {
     for (const g of gates) {
       // Skip a gate the curated pass already ran with the same id (avoid double-running lint).
       if (already.has(g.id)) continue;
-      const { code, out } = run(npmCmd, g.args, {
+      const { code, out } = await run(npmCmd, g.args, {
         env: g.env,
         timeout: fullCiTimeoutFor(g.id),
       });
@@ -852,6 +859,19 @@ async function main() {
     }
   }
 
+  // A crashed or unobserved tool is not measured ratchet drift. Keep infrastructure
+  // uncertainty blocking even when the command normally produces advisory findings.
+  commandReceipts.forEach((receipt, index) => {
+    if (!["PASS", "FAIL"].includes(receipt.outcome)) {
+      record({
+        id: `execution-${index}`,
+        label: receipt.command,
+        kind: "hard",
+        ok: false,
+        detail: `${receipt.outcome}: ${receipt.receiptPath}`,
+      });
+    }
+  });
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);
 
   process.stderr.write("\n──────── verdict ────────\n");
@@ -862,7 +882,7 @@ async function main() {
   process.stderr.write(
     releaseGreen
       ? "\n✅ RELEASE-GREEN (no hard failures). Any drift above is rebaselined at release, not a contributor concern.\n"
-      : "\n❌ NOT release-green — hard failures must be fixed (in the originating PR branch, via co-authorship).\n"
+      : "\n❌ NOT release-green — inspect execution evidence and compare the exact base before attributing a failure to a contributor.\n"
   );
 
   if (JSON_OUT) {
@@ -880,6 +900,7 @@ async function main() {
           hardFailures: hardFailures.map((r) => ({ id: r.id, label: r.label, detail: r.detail })),
           drift: drift.map((r) => ({ id: r.id, label: r.label, detail: r.detail })),
           checks: results.map((r) => ({ id: r.id, kind: r.kind, ok: r.ok, detail: r.detail })),
+          commandReceipts,
         },
         null,
         2
