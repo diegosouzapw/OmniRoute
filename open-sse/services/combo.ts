@@ -126,6 +126,12 @@ import {
 import { fetchResetAwareQuotaWithCache, preScreenTargets } from "./combo/quotaStrategies.ts";
 import { buildAutoQuotaThresholds } from "./combo/quotaExhaustionCutoff.ts";
 import { expandTargetsByFingerprints } from "./combo/fingerprintExpansion.ts";
+import {
+  expandTargetsWithinConnectionScope,
+  groupConnectionsByProvider,
+  normalizeAutoConnectionScope,
+  permittedActiveConnections,
+} from "./combo/autoConnectionScope.ts";
 import { resolveComboTargetPipeline } from "./combo/targetResolution.ts";
 import { dispatchWithCooldownRetry } from "./combo/comboAttemptLoop.ts";
 import { evaluateExecuteTargetGates } from "./combo/executeTargetGates.ts";
@@ -288,7 +294,8 @@ export async function buildAutoCandidates(
   comboName: string,
   sessionId: string | null | undefined = null,
   resetWindowConfig: ResetWindowConfig = resolveResetWindowConfig(null),
-  resilienceSettings: ResilienceSettings | null = null
+  resilienceSettings: ResilienceSettings | null = null,
+  apiKeyAllowedConnections: string[] | null = null
 ): Promise<AutoProviderCandidate[]> {
   const hiddenModelsMap = getHiddenModelsByProvider();
   const metrics = getComboMetrics(comboName);
@@ -313,38 +320,60 @@ export async function buildAutoCandidates(
   const poolMedian = poolMedianP95Ms(historicalLatencyStats);
   const hasStats = Object.keys(historicalLatencyStats).length > 0;
 
-  const uniqueProviders = Array.from(
-    new Set(
-      targets.map((target) => target.provider || parseModel(target.modelStr).provider || "unknown")
-    )
-  );
   const connectionPoolCounts = new Map<string, number>();
   const connectionsByProvider = new Map<string, Array<Record<string, unknown>>>();
   const connectionById = new Map<string, Record<string, unknown>>();
-  await Promise.all(
-    uniqueProviders.map(async (provider) => {
-      try {
-        const connections = (await getCachedProviderConnections({
-          provider,
-          isActive: true,
-        })) as Array<Record<string, unknown>>;
-        const active = Array.isArray(connections) ? connections : [];
-        connectionPoolCounts.set(provider, active.length);
-        connectionsByProvider.set(provider, active);
-        for (const connection of active) {
-          if (connection && typeof connection === "object" && typeof connection.id === "string") {
-            connectionById.set(connection.id, connection as Record<string, unknown>);
-          }
-        }
-      } catch {
-        connectionPoolCounts.set(provider, 0);
-        connectionsByProvider.set(provider, []);
+  const connectionScope = normalizeAutoConnectionScope(apiKeyAllowedConnections);
+  let targetsForExpansion = targets;
+  if (connectionScope) {
+    try {
+      const allConnections = (await getCachedProviderConnections({
+        isActive: true,
+      })) as Array<Record<string, unknown>>;
+      const permitted = permittedActiveConnections(allConnections, connectionScope);
+      const grouped = groupConnectionsByProvider(permitted);
+      for (const [provider, connections] of grouped) {
+        connectionPoolCounts.set(provider, connections.length);
+        connectionsByProvider.set(provider, connections);
+        for (const connection of connections) connectionById.set(connection.id, connection);
       }
-    })
-  );
+      targetsForExpansion = expandTargetsWithinConnectionScope(targets, grouped, connectionScope);
+    } catch {
+      targetsForExpansion = [];
+    }
+  } else {
+    const uniqueProviders = Array.from(
+      new Set(
+        targets.map(
+          (target) => target.provider || parseModel(target.modelStr).provider || "unknown"
+        )
+      )
+    );
+    await Promise.all(
+      uniqueProviders.map(async (provider) => {
+        try {
+          const connections = (await getCachedProviderConnections({
+            provider,
+            isActive: true,
+          })) as Array<Record<string, unknown>>;
+          const active = Array.isArray(connections) ? connections : [];
+          connectionPoolCounts.set(provider, active.length);
+          connectionsByProvider.set(provider, active);
+          for (const connection of active) {
+            if (connection && typeof connection === "object" && typeof connection.id === "string") {
+              connectionById.set(connection.id, connection as Record<string, unknown>);
+            }
+          }
+        } catch {
+          connectionPoolCounts.set(provider, 0);
+          connectionsByProvider.set(provider, []);
+        }
+      })
+    );
+  }
 
   const expandedTargets = expandPromptCacheAffinityTargetsFromConnections(
-    targets,
+    targetsForExpansion,
     connectionsByProvider
   );
 

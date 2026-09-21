@@ -55,6 +55,12 @@ import {
   matchesRoutingTags,
   resolveRequestRoutingTags,
 } from "../../../src/domain/tagRouter.ts";
+import {
+  expandTargetsWithinConnectionScope,
+  groupConnectionsByProvider,
+  normalizeAutoConnectionScope,
+  permittedActiveConnections,
+} from "./autoConnectionScope.ts";
 
 // Quota Share soft-policy deprioritization factor (B17).
 // When a candidate has quotaSoftPenalty === true, its auto-combo score is
@@ -435,8 +441,14 @@ export function scoreAutoTargets(
  */
 export async function expandAutoComboCandidatePool(
   eligibleTargets: ResolvedComboTarget[],
-  combo: { autoConfig?: unknown; config?: unknown } | null | undefined
+  combo: { autoConfig?: unknown; config?: unknown } | null | undefined,
+  apiKeyAllowedConnectionIds: string[] | null = null
 ): Promise<ResolvedComboTarget[]> {
+  const connectionScope = normalizeAutoConnectionScope(apiKeyAllowedConnectionIds);
+  if (connectionScope) {
+    return expandRestrictedAutoComboCandidatePool(eligibleTargets, combo, connectionScope);
+  }
+
   for (let index = eligibleTargets.length - 1; index >= 0; index -= 1) {
     const target = eligibleTargets[index];
     if (isCommonChatGptWebRetiredProviderId(target.providerId || target.provider)) {
@@ -539,6 +551,123 @@ export async function expandAutoComboCandidatePool(
   }
 
   return eligibleTargets;
+}
+
+async function expandRestrictedAutoComboCandidatePool(
+  eligibleTargets: ResolvedComboTarget[],
+  combo: { autoConfig?: unknown; config?: unknown } | null | undefined,
+  connectionScope: ReadonlySet<string>
+): Promise<ResolvedComboTarget[]> {
+  let allConnections: Array<Record<string, unknown>>;
+  try {
+    allConnections = (await getCachedProviderConnections({
+      isActive: true,
+    })) as Array<Record<string, unknown>>;
+  } catch {
+    // Authorization scope is not a best-effort optimization. If the permitted
+    // active rows cannot be established, return no candidates instead of
+    // falling back to an unscoped catalog target.
+    return [];
+  }
+
+  const permittedConnections = permittedActiveConnections(allConnections, connectionScope).filter(
+    (connection) =>
+      !isMicrosoftDesignerWebRetiredProviderId(connection.provider) &&
+      !isRuntimeRetiredProviderId(connection.provider) &&
+      !isCommonChatGptWebRetiredProviderId(connection.provider)
+  );
+  const connectionsByProvider = groupConnectionsByProvider(permittedConnections);
+  const nonRetiredTargets = eligibleTargets.filter((target) => {
+    const providerId = target.providerId || target.provider;
+    return (
+      !isMicrosoftDesignerWebRetiredProviderId(providerId) &&
+      !isRuntimeRetiredProviderId(providerId) &&
+      !isCommonChatGptWebRetiredProviderId(providerId)
+    );
+  });
+  const scopedTargets = expandTargetsWithinConnectionScope(
+    nonRetiredTargets,
+    connectionsByProvider,
+    connectionScope
+  );
+
+  const localAutoConfig =
+    (combo?.autoConfig as Record<string, unknown> | undefined) ||
+    (isRecord((combo?.config as Record<string, unknown>)?.auto)
+      ? ((combo?.config as Record<string, unknown>).auto as Record<string, unknown>)
+      : null) ||
+    (combo?.config as Record<string, unknown> | undefined) ||
+    {};
+  if (Array.isArray(localAutoConfig.candidatePool) && localAutoConfig.candidatePool.length > 0) {
+    return scopedTargets;
+  }
+
+  const explicitModels = (combo as Record<string, unknown> | null | undefined)?.models;
+  if (Array.isArray(explicitModels) && explicitModels.length > 0) return scopedTargets;
+
+  const seenTargets = new Set(
+    scopedTargets.map((target) => `${target.modelStr}\0${target.connectionId ?? ""}`)
+  );
+  const hiddenModelsMap = getHiddenModelsByProvider();
+  for (const [providerId, providerConnections] of connectionsByProvider) {
+    try {
+      const [syncedModelsRaw, customModelsRaw] = await Promise.all([
+        getSyncedAvailableModels(providerId),
+        getCustomModels(providerId),
+      ]);
+      const syncedModels = filterChatSelectableModels(providerId, syncedModelsRaw);
+      const customModels = filterChatSelectableModels(
+        providerId,
+        Array.isArray(customModelsRaw)
+          ? customModelsRaw.filter(
+              (model): model is { id: string; supportedEndpoints?: string[] } =>
+                isRecord(model) && typeof model.id === "string" && model.id.length > 0
+            )
+          : []
+      );
+      const hiddenModels = hiddenModelsMap.get(providerId);
+      const userVisibleIds = new Set<string>();
+      for (const model of syncedModels) {
+        if (model.id && !hiddenModels?.has(model.id)) userVisibleIds.add(model.id);
+      }
+      for (const model of customModels) {
+        if (model.id && !hiddenModels?.has(model.id)) userVisibleIds.add(model.id);
+      }
+      const expandIds =
+        userVisibleIds.size > 0
+          ? Array.from(userVisibleIds)
+          : filterChatSelectableModels(providerId, getProviderModels(providerId))
+              .map((model) => model.id)
+              .filter((modelId) => !hiddenModels?.has(modelId));
+
+      for (const modelId of expandIds) {
+        const modelStr = `${providerId}/${modelId}`;
+        for (const connection of providerConnections) {
+          const identity = `${modelStr}\0${connection.id}`;
+          if (seenTargets.has(identity)) continue;
+          seenTargets.add(identity);
+          scopedTargets.push({
+            kind: "model",
+            stepId: modelStr,
+            executionKey: `${modelStr}@${connection.id}`,
+            provider: providerId,
+            providerId,
+            modelStr,
+            weight: 1,
+            connectionId: connection.id,
+            allowedConnectionIds: [connection.id],
+            authType: typeof connection.authType === "string" ? connection.authType : null,
+            label: null,
+          });
+        }
+      }
+    } catch {
+      // One provider's model inventory is best-effort. The already-scoped
+      // explicit targets and every other permitted provider remain available.
+      continue;
+    }
+  }
+  return scopedTargets;
 }
 
 /**
