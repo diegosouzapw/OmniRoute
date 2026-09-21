@@ -31,8 +31,8 @@ import {
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
   shouldShowProviderSection,
-  providerEntryIsToolOnly,
-  providerEntryIsWebFetchOnly,
+  isPrimaryLlmProviderEntry,
+  resolveVisibleWebFetchEntries,
   upsertProviderNodeById,
   loadProviderPageData,
 } from "./providerPageUtils";
@@ -581,15 +581,7 @@ function ProvidersPageContent() {
   );
 
   const apiKeyProviderEntriesAll = buildStaticProviderEntries("apikey", getProviderStats);
-  const llmProviderEntriesAll = apiKeyProviderEntriesAll.filter(
-    (entry) =>
-      !IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId) &&
-      !AGGREGATOR_PROVIDER_IDS.has(entry.providerId) &&
-      !ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId) &&
-      !VIDEO_PROVIDER_IDS.has(entry.providerId) &&
-      !EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId) &&
-      !providerEntryIsToolOnly(entry)
-  );
+  const llmProviderEntriesAll = apiKeyProviderEntriesAll.filter(isPrimaryLlmProviderEntry);
   const llmProviderEntries = filterConfiguredProviderEntries(
     llmProviderEntriesAll,
     effectiveShowConfiguredOnly,
@@ -837,18 +829,7 @@ function ProvidersPageContent() {
     liveModelsByProviderId,
     connections
   );
-  const webFetchOnlyEntries = filterConfiguredProviderEntries(
-    webFetchEntriesAll.filter(providerEntryIsWebFetchOnly),
-    effectiveShowConfiguredOnly,
-    searchQuery,
-    showFreeOnly,
-    modelSearchQuery,
-    activeServiceKind,
-    liveModelsByProviderId,
-    connections
-  );
-  const visibleWebFetchEntries =
-    activeCategory === "webfetch" ? webFetchEntries : webFetchOnlyEntries;
+  const visibleWebFetchEntries = resolveVisibleWebFetchEntries(webFetchEntries, activeCategory);
 
   const compactProviderEntries = buildCompactProviderEntriesForPage({
     activeCategory,
