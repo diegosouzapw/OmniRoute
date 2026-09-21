@@ -12,7 +12,7 @@
  * module instances, one shared SQLite file, the clock frozen inside the same
  * millisecond, both writing through the public `saveCallLog()`.
  *
- * Run: node --import tsx/esm --test tests/unit/call-log-id-collision-14338.test.ts
+ * Run: node --import tsx/esm --test tests/unit/call-log-id-generator-collision-14338.test.ts
  */
 import test from "node:test";
 import assert from "node:assert/strict";
