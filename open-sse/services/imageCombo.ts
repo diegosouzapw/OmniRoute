@@ -24,6 +24,11 @@ import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import * as logger from "@/sse/utils/logger";
+import {
+  hasDistinctMediaFallback,
+  isTargetLocalMediaStatus,
+  pinnedConnectionIds,
+} from "./mediaComboFallback.ts";
 
 /**
  * Caller-facing shape of handleImageGeneration(). The handler is untyped and
@@ -37,6 +42,8 @@ type ImageGenerationResult =
 /** Minimum shape a combo target must expose to be iterated. */
 export interface ImageComboTarget {
   modelStr: string;
+  connectionId?: string | null;
+  allowedConnectionIds?: string[] | null;
 }
 
 /** Normalized per-target dispatch result (success or classified failure). */
@@ -89,7 +96,8 @@ export interface RunImageComboTargetsOptions<T extends ImageComboTarget> {
  *
  *  - missing credentials, DB errors, and rate-limited accounts are skipped
  *    (fall through to the next target) rather than terminating the request;
- *  - a 400/401/403 from an actual dispatch attempt is terminal (stop iterating);
+ *  - a 400/401/403 from an actual dispatch attempt advances only when a later
+ *    target uses a distinct provider/account; otherwise it is terminal;
  *  - any other dispatch failure (429/5xx) is non-terminal (try the next target);
  *  - the first success wins.
  *
@@ -105,7 +113,8 @@ export async function runImageComboTargets<T extends ImageComboTarget>(
   let lastError: { status: number; error: string } | null = null;
   let fallbackCount = 0;
 
-  for (const target of targets) {
+  for (let targetIndex = 0; targetIndex < targets.length; targetIndex += 1) {
+    const target = targets[targetIndex];
     const { provider, model } = opts.resolveProvider(target);
     if (!provider) {
       lastError = { status: 400, error: `Invalid image model: ${target.modelStr}` };
@@ -156,10 +165,26 @@ export async function runImageComboTargets<T extends ImageComboTarget>(
     const status = result.status || 500;
     const error = typeof result.error === "string" ? result.error : failureLabel;
 
-    // Terminal failures (400 bad model, 403 banned, etc.) — stop iterating
-    // Non-terminal failures (429, 5xx) — try next target
-    if (status === 400 || status === 403 || status === 401) {
-      return { outcome: "terminal", provider, status, error, fallbackCount };
+    // Bad-model/auth failures are local to the provider account that handled
+    // the attempt. A genuinely different provider/account may still succeed;
+    // retrying the same unpinned account would only duplicate the failure.
+    if (isTargetLocalMediaStatus(status)) {
+      const credentialConnectionId =
+        credentials && typeof credentials === "object" && "connectionId" in credentials
+          ? String((credentials as { connectionId?: unknown }).connectionId || "") || null
+          : null;
+      const connectionId = credentialConnectionId || target.connectionId || null;
+      const hasDistinctFallback = hasDistinctMediaFallback({
+        currentProvider: provider,
+        currentConnectionId: connectionId,
+        remaining: targets.slice(targetIndex + 1).map((candidate) => ({
+          target: candidate,
+          provider: opts.resolveProvider(candidate).provider,
+        })),
+      });
+      if (!hasDistinctFallback) {
+        return { outcome: "terminal", provider, status, error, fallbackCount };
+      }
     }
 
     lastError = { status, error: `[${provider}] ${error}` };
@@ -221,7 +246,13 @@ export async function executeImageCombo(
   //    /v1/images/edits can reuse the exact same iteration semantics (#12547).
   const run = await runImageComboTargets(imageTargets, {
     resolveProvider: (target) => parseImageModel(target.modelStr),
-    resolveCredentials: (provider) => getProviderCredentialsWithQuotaPreflight(provider),
+    resolveCredentials: (provider, target) =>
+      getProviderCredentialsWithQuotaPreflight(
+        provider,
+        null,
+        pinnedConnectionIds(target),
+        parseImageModel(target.modelStr).model
+      ),
     dispatch: async ({ target, credentials }) =>
       (await handleImageGeneration({
         body: { ...body, model: target.modelStr },

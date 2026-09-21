@@ -16,6 +16,7 @@ import { handleLeonardoVideoGeneration } from "./videoGeneration/leonardoHandler
 import { handleDashscopeVideoGeneration } from "./videoGeneration/dashscopeHandler.ts";
 import { handleNovitaVideoGeneration } from "./videoGeneration/novitaHandler.ts";
 import { handleXaiVideoGeneration } from "./videoGeneration/xaiGrokImagineHandler.ts";
+import { handleOpenRouterVideoGeneration } from "./videoGeneration/openrouter.ts";
 import { handleSegmindVideoGeneration } from "./videoGeneration/providers/segmind.ts";
 import { handleUcVideoGeneration } from "./videoGeneration/providers/ucVideo.ts";
 import { handleAdobeFireflyVideoGeneration } from "./videoGeneration/adobeFireflyHandler.ts";
@@ -304,6 +305,16 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
   }
   if (providerConfig.format === "xai-video") {
     return handleXaiVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+  if (providerConfig.format === "openrouter-video") {
+    return handleOpenRouterVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
   }
   if (providerConfig.format === "uc-video") {
     // UC (uncensored.com): one handler serves both surfaces, picking by

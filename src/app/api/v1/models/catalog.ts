@@ -61,6 +61,7 @@ import {
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { mergeCustomModelMetadata } from "@/lib/providers/modelMetadataPrecedence";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
+import { getOpenRouterVideoCatalog } from "@/lib/catalog/openrouterVideoCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
   INTERNAL_PROXY_ERROR,
@@ -1369,7 +1370,10 @@ async function buildUnifiedModelsResponseCore(
       !providersWithSyncedModels.has("openrouter")
     ) {
       try {
-        const openRouterCatalog = await getOpenRouterCatalog();
+        const [openRouterCatalog, openRouterVideoCatalog] = await Promise.all([
+          getOpenRouterCatalog(),
+          getOpenRouterVideoCatalog(),
+        ]);
         const openRouterCaps: Record<string, ModelCapabilityEntry> = {};
         for (const openRouterModel of openRouterCatalog.data || []) {
           if (!openRouterModel?.id || typeof openRouterModel.id !== "string") continue;
@@ -1438,6 +1442,65 @@ async function buildUnifiedModelsResponseCore(
           await maybeYieldCatalogBuild();
         }
         upsertSyncedCapabilities("openrouter", openRouterCaps);
+
+        // OpenRouter publishes video generation through its dedicated
+        // `/api/v1/videos/models` catalog. Merge that authoritative list so
+        // newly added video slugs become discoverable without a static registry
+        // release. When the general catalog already supplied an entry, enrich it
+        // with the video-specific capability fields instead of duplicating it.
+        for (const videoModel of openRouterVideoCatalog.data || []) {
+          if (!videoModel?.id || typeof videoModel.id !== "string") continue;
+          if (isModelHiddenBulk("openrouter", videoModel.id, "openrouter", "videos")) continue;
+          if (shouldHideByExposure("openrouter", videoModel.id)) continue;
+
+          const qualifiedId = qualifyOpenRouterModelId(videoModel.id);
+          const videoFields = {
+            type: "video",
+            input_modalities: ["text"],
+            output_modalities: ["video"],
+            ...(Array.isArray(videoModel.supported_sizes)
+              ? { supported_sizes: videoModel.supported_sizes }
+              : {}),
+            media_capabilities: {
+              ...(Array.isArray(videoModel.supported_resolutions)
+                ? { supported_resolutions: videoModel.supported_resolutions }
+                : {}),
+              ...(Array.isArray(videoModel.supported_aspect_ratios)
+                ? { supported_aspect_ratios: videoModel.supported_aspect_ratios }
+                : {}),
+              ...(Array.isArray(videoModel.supported_durations)
+                ? { supported_durations: videoModel.supported_durations }
+                : {}),
+              ...(Array.isArray(videoModel.supported_frame_images)
+                ? { supported_frame_images: videoModel.supported_frame_images }
+                : {}),
+              ...(typeof videoModel.generate_audio === "boolean"
+                ? { generate_audio: videoModel.generate_audio }
+                : {}),
+              ...(Array.isArray(videoModel.allowed_passthrough_parameters)
+                ? { allowed_passthrough_parameters: videoModel.allowed_passthrough_parameters }
+                : {}),
+            },
+          };
+          const existing = models.find((entry: any) => entry?.id === qualifiedId);
+          if (existing) {
+            Object.assign(existing, videoFields);
+          } else {
+            models.push({
+              id: qualifiedId,
+              object: "model",
+              created: videoModel.created || timestamp,
+              owned_by: "openrouter",
+              permission: [],
+              root: videoModel.canonical_slug || videoModel.id,
+              parent: null,
+              name: videoModel.name || videoModel.id,
+              ...(videoModel.description ? { description: videoModel.description } : {}),
+              ...videoFields,
+            });
+          }
+          await maybeYieldCatalogBuild();
+        }
       } catch (err) {
         console.error("[catalog] Error loading OpenRouter catalog:", err);
       }
@@ -1610,6 +1673,9 @@ async function buildUnifiedModelsResponseCore(
     // Add video models (filtered by active providers)
     for (const videoModel of getAllVideoModels()) {
       if (!isProviderActive(videoModel.provider)) continue;
+      // A dynamic catalog (currently OpenRouter's authoritative
+      // /api/v1/videos/models feed) may already have inserted this exact id.
+      if (models.some((existingModel: any) => existingModel?.id === videoModel.id)) continue;
       const rawModelId = getSpecialtyModelRelativeId(videoModel.id, videoModel.provider);
       if (!providerSupportsModel(videoModel.provider, rawModelId)) continue;
       if (isModelHiddenBulk(videoModel.provider, rawModelId, null, "videos")) continue;
