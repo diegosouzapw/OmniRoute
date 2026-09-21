@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { CORS_HEADERS } from "@/shared/utils/cors";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
@@ -138,6 +140,8 @@ function countTools(tools: unknown, ctx: TokenizerContext): number {
   return tokens;
 }
 
+const InputTokensBodySchema = z.object({}).passthrough();
+
 async function postHandler(request: Request): Promise<Response> {
   let body: unknown;
   try {
@@ -146,7 +150,12 @@ async function postHandler(request: Request): Promise<Response> {
     return json({ error: { message: "Invalid JSON body", type: "invalid_request_error" } }, 400);
   }
 
-  const record = asRecord(body);
+  // Hard Rule #7: validate at the boundary with Zod, the same shape the catch-all
+  // Responses route accepts. The body is a free-form Responses request (model,
+  // instructions, input, tools) that the counters below walk defensively, so the
+  // schema pins the envelope — a plain object — not the per-field shapes.
+  const parsed = InputTokensBodySchema.safeParse(body);
+  const record = parsed.success ? asRecord(parsed.data) : null;
   if (!record) {
     return json(
       { error: { message: "Request body must be a JSON object", type: "invalid_request_error" } },

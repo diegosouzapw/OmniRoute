@@ -482,7 +482,17 @@
       "tests/unit/provider-401-ambiguous-runtime.test.ts",
       "tests/unit/13601-header-drop-count-surfaced.test.ts",
       "tests/unit/combo-identical-error-streak.test.ts",
-      "tests/unit/semantic-cache-no-truncated-writes.test.ts"
+      "tests/unit/semantic-cache-no-truncated-writes.test.ts",
+      "tests/unit/12307-semantic-cache-output-contract.test.ts",
+      "tests/unit/antigravity-account-lease-flag.test.ts",
+      "tests/unit/circuit-breaker-half-open-probe-lease-13836.test.ts",
+      "tests/unit/grok-cli-free-usage-429.test.ts",
+      "tests/unit/opencode-free-tier-refusal-no-model-lockout.test.ts",
+      "tests/unit/prompt194-astra-vision-compat.test.ts",
+      "tests/unit/quota-signal-errortext-threading.test.ts",
+      "tests/unit/rate-limit-learned-cap-13594.test.ts",
+      "tests/unit/native-codex-auto-resume.test.ts",
+      "tests/unit/translator-openai-to-gemini-turn-pairing-13848.test.ts"
     ],
     "nodeArgs": [
       "--import",

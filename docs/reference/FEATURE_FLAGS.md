@@ -46,7 +46,7 @@ A boolean flag is considered **enabled** when its effective value is `"true"`,
 
 ## Flag Catalog
 
-74 flags across 6 categories. **Default** is the definition default — the value
+75 flags across 6 categories. **Default** is the definition default — the value
 used when neither a DB override nor an environment variable is present.
 
 ### Security (10)
@@ -64,7 +64,7 @@ used when neither a DB override nor an environment variable is present.
 | `AUTH_LOG_INCLUDE_ACCOUNT_ID`           | boolean | `false`  | Include account prefix in AUTH log lines (e.g. "Using <provider> account: abc12345..."). Disabled by default so account identifiers are redacted from shared/multi-tenant process logs. Independent from Debug Mode; flipping Debug Mode does not reveal this. |
 | `OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN` | boolean | `false`  | When OIDC is enabled, disable password login so users can only authenticate via OIDC Single Sign-On. When disabled (default), both password login and OIDC are available.                                                                                      |
 
-### Network (16)
+### Network (17)
 
 | Key                                             | Type    | Default | Restart | Description                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ----------------------------------------------- | ------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -79,6 +79,7 @@ used when neither a DB override nor an environment variable is present.
 | `OPENCODE_RESPONSES_STALL_ROTATION`             | boolean | `false` |         | For the OpenCode executor, watch the first body byte of a streamed Responses reply (window: `RESPONSES_FIRST_BYTE_TIMEOUT_MS`, default `15000`). A 2xx Responses stream that stays silent past the window is treated as stalled: the account is cooled down and the request rotates to the next account once; a second stall fails fast. Off by default: stalled streams keep today's wait until the stream readiness timeout.                          |
 | `OPENCODE_USER_BLOCKED_ROTATION`                | boolean | `false` |         | OpenCode executor: on a 403/451 carrying a `user_blocked` refusal (not geo, not a Cloudflare fingerprint rejection), cool the refused account down and rotate to the next account at most once per request; a second refusal is returned as-is, without a success mark. Off by default: routing around an upstream user block can look like evasion and spread the flag across the fleet.                                                               |
 | `OPENCODE_TRANSIENT_FAILOVER_BACKOFF`           | boolean | `false` |         | OpenCode rotation: after two consecutive transient upstream failures (5xx or an empty 400), pause before the next account — 1.5s doubling per further failure, capped at 6s per pause and 10s per request, skipped on client disconnect; the failed body is released before waiting. Off by default: failover stays immediate.                                                                                                                          |
+| `OPENCODE_PARK_AND_RESUME`                      | boolean | `false` |         | OpenCode rotation: park the request after repeated transient 429s (or a fresh pool-strain marker) with a heartbeat, then replay one capped leg of up to 3 sequential accounts instead of fanning out the whole fleet. Off by default: every 429 rotates to the next account exactly as before.                                                                                                                                                          |
 | `OPENCODE_RATE_LIMITED_429_EARLY_STOP`          | boolean | `false` |         | OpenCode rotation: stop the account wave at the first 429 classified as a real rate limit (parseable `Retry-After`, or a body naming a rate/usage limit) and return that upstream 429 unchanged. Unclassified 429s keep rotating. Off by default: the free tier is limited per egress IP (#9611), so every 429 rotates and an exhausted wave returns the last upstream 429.                                                                             |
 | `MITM_DISABLE_TLS_VERIFY`                       | boolean | `false` | ✓       | Disable TLS certificate verification for the MITM proxy. **Danger.**                                                                                                                                                                                                                                                                                                                                                                                    |
 | `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |         | Allow provider URLs pointing to private/internal networks.                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -214,7 +215,7 @@ Returns every flag with its effective value, source, and a summary.
       "requiresRestart": false,
       "warningLevel": "caution",
     },
-    // ... all 74 flags
+    // ... all 75 flags
   ],
   "summary": {
     "total": 56,
