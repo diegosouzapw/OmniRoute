@@ -32,6 +32,7 @@ import {
   maybeEnrichCompletedDetail,
   scheduleCompletedDetailCleanup,
   storeCompletedDetail,
+  getCompletedDetails,
 } from "./completedRequestDetails";
 import { shouldPersistToDisk } from "./migrations";
 import { emitUsageRecorded } from "./usageEvents";
@@ -59,6 +60,14 @@ export type PendingRequestMetadata = {
   sessionTag?: string | null;
 };
 export type PendingRequestDetail = {
+  tokens?: {
+    in: number;
+    out: number;
+    cacheRead: number | null;
+    cacheCreation: number | null;
+    reasoning: number | null;
+    compressed: number | null;
+  };
   id: string;
   model: string;
   provider: string;
@@ -367,7 +376,10 @@ export function trackPendingRequest(
       pendingRequests.details[connectionId][modelKey].push(newDetail);
       pendingById.set(newDetail.id, newDetail);
       if (normalizedMetadata.correlationId) {
-        pendingIdByCorrelation.set(normalizedMetadata.correlationId, { id: newDetail.id, touchedAt: now });
+        pendingIdByCorrelation.set(normalizedMetadata.correlationId, {
+          id: newDetail.id,
+          touchedAt: now,
+        });
       }
       return newDetail.id;
     } else if (!started && nextCount >= 0) {
@@ -405,6 +417,18 @@ export function updatePendingRequestById(id: string | null, metadata: PendingReq
   if (!detail) return false;
   Object.assign(detail, normalizePendingMetadata(metadata));
   return true;
+}
+
+/** Attach scalar usage to the exact attempt, even if its stream already finalized. */
+export function updateRequestTokensById(id: unknown, tokens: PendingRequestDetail["tokens"]) {
+  if (typeof id !== "string") return;
+  const pending = pendingById.get(id);
+  if (pending) {
+    pending.tokens = tokens;
+    return;
+  }
+  const completed = getCompletedDetails().get(id);
+  if (completed) storeCompletedDetail({ ...completed, tokens });
 }
 
 /**
@@ -731,7 +755,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         )
         .get(
           timestamp,
-          (entry.provider ? resolveProviderId(entry.provider) : null),
+          entry.provider ? resolveProviderId(entry.provider) : null,
           entry.model || null,
           entry.connectionId || null,
           entry.apiKeyId || null,
@@ -759,7 +783,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
-        (entry.provider ? resolveProviderId(entry.provider) : null),
+        entry.provider ? resolveProviderId(entry.provider) : null,
         entry.model || null,
         entry.connectionId || null,
         accountIdentity.accountKey,
