@@ -428,10 +428,10 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     // /api/v1/videos/models response so newly published slugs do not require a
     // code release before they can be discovered or routed.
     models: [
-      { id: "alibaba/wan-2.7", name: "Alibaba Wan 2.7 (OpenRouter)" },
-      { id: "alibaba/wan-2.6", name: "Alibaba Wan 2.6 (OpenRouter)" },
-      { id: "bytedance/seedance-2.0-fast", name: "ByteDance Seedance 2.0 Fast (OpenRouter)" },
-      { id: "google/veo-3.1-fast", name: "Google Veo 3.1 Fast (OpenRouter)" },
+      { id: "google/veo-3.1", name: "Google Veo 3.1 (OpenRouter)" },
+      { id: "bytedance/seedance-2.0", name: "ByteDance Seedance 2.0 (OpenRouter)" },
+      { id: "alibaba/wan-3.0-prime", name: "Alibaba Wan 3.0 Prime (OpenRouter)" },
+      { id: "minimax/hailuo-3", name: "MiniMax Hailuo 3 (OpenRouter)" },
     ],
   },
 

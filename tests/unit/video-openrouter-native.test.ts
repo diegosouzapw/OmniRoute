@@ -23,12 +23,12 @@ test("OpenRouter video registry uses the native async endpoint and current fallb
   assert.equal(provider.statusUrl, CREATE_URL);
   assert.equal(provider.format, "openrouter-video");
   assert.deepEqual(
-    provider.models.map((model) => model.id),
+    provider.models.map(({ id, name }) => ({ id, name })),
     [
-      "alibaba/wan-2.7",
-      "alibaba/wan-2.6",
-      "bytedance/seedance-2.0-fast",
-      "google/veo-3.1-fast",
+      { id: "google/veo-3.1", name: "Google Veo 3.1 (OpenRouter)" },
+      { id: "bytedance/seedance-2.0", name: "ByteDance Seedance 2.0 (OpenRouter)" },
+      { id: "alibaba/wan-3.0-prime", name: "Alibaba Wan 3.0 Prime (OpenRouter)" },
+      { id: "minimax/hailuo-3", name: "MiniMax Hailuo 3 (OpenRouter)" },
     ]
   );
 });
@@ -132,7 +132,8 @@ test("native OpenRouter transport submits, polls, retrieves authenticated conten
 
 test("native OpenRouter transport preserves target-local auth status for combo fallback", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async () => json({ error: { message: "account key expired" } }, 401)) as typeof fetch;
+  globalThis.fetch = (async () =>
+    json({ error: { message: "account key expired" } }, 401)) as typeof fetch;
   try {
     const result = await handleVideoGeneration({
       body: { model: "openrouter/google/veo-3.1-fast", prompt: "x" },
