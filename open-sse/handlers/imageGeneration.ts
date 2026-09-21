@@ -6,6 +6,10 @@ import {
   CHATGPT_WEB_RETIRED_MESSAGE,
   isCommonChatGptWebRetiredProviderId,
 } from "@/shared/constants/chatgptWebRetirement";
+import {
+  isMicrosoftDesignerWebRetiredProviderId,
+  MICROSOFT_DESIGNER_WEB_RETIRED_MESSAGE,
+} from "@/shared/constants/designerWebRetirement";
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
@@ -38,10 +42,6 @@ import {
   getConfiguredTimeout,
 } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
-import {
-  isMicrosoftDesignerWebRetiredProviderId,
-  MICROSOFT_DESIGNER_WEB_RETIRED_MESSAGE,
-} from "@/shared/constants/designerWebRetirement";
 
 import { handleSDWebUIImageGeneration } from "./imageGeneration/providers/sdWebUI.ts";
 import { handleHyperbolicImageGeneration } from "./imageGeneration/providers/hyperbolic.ts";
@@ -181,6 +181,17 @@ const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
 const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
 
 /**
+ * `fetchRemoteImage` options for any URL that did not originate from an OmniRoute-controlled
+ * host (caller-supplied `image_url`, upstream-returned result URLs).
+ *
+ * GHSA-34rg-3pqj-35g9 / #13883: pin `public-only` (never the operator outbound policy, which
+ * would let a request body reach loopback/LAN) and `pinDns: true` to close the DNS-rebinding
+ * TOCTOU where a second, un-pinned resolution at connect time could answer differently than
+ * the validated lookup and bypass the guard.
+ */
+const UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS = { guard: "public-only", pinDns: true } as const;
+
+/**
  * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
  * provider node (#3205).
  *
@@ -239,9 +250,17 @@ function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): strin
   return mapImageSize(typeof fallbackSize === "string" ? fallbackSize : null);
 }
 
-function normalizeImageGenerationSize(snakeCaseValue: unknown, camelCaseValue: unknown): string {
-  const value = snakeCaseValue ?? camelCaseValue;
-  if (typeof value !== "string") return "1K";
+/**
+ * Normalize the caller's `image_size` for Antigravity's `imageConfig.imageSize`.
+ *
+ * This is the output-resolution axis (`1K` | `2K` | `4K`, the values Gemini image models
+ * accept), distinct from the `size`/`aspect_ratio` axis handled by `normalizeImageAspectRatio`.
+ * Returns `undefined` when the caller sent nothing usable (absent or non-string), so the key
+ * is left out and the upstream default applies; a string that is not one of the accepted
+ * values is clamped to `1K` because upstream rejects anything else.
+ */
+function normalizeImageGenerationSize(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
   const normalized = value.trim().toUpperCase();
   return IMAGE_SIZE_PATTERN.test(normalized) ? normalized : "1K";
 }
@@ -394,6 +413,9 @@ export async function handleImageGeneration({
   clientHeaders = null,
   peerLocality = null,
 }) {
+  // Retirement guards: the retired-provider sets hold bare provider ids only, so testing
+  // the `<provider>/` prefix (or the whole model when it carries no slash) covers both the
+  // `provider/model` and bare-id request shapes.
   const requestedModel = typeof body?.model === "string" ? body.model : "";
   const slash = requestedModel.indexOf("/");
   const requestedPrefix = slash > 0 ? requestedModel.slice(0, slash) : requestedModel;
@@ -408,15 +430,13 @@ export async function handleImageGeneration({
     };
   }
 
-  const requestedProvider = slash > 0 ? requestedModel.slice(0, slash) : null;
   if (
     isCommonChatGptWebRetiredProviderId(resolvedProvider) ||
-    isCommonChatGptWebRetiredProviderId(requestedProvider) ||
-    isCommonChatGptWebRetiredProviderId(requestedModel)
+    isCommonChatGptWebRetiredProviderId(requestedPrefix)
   ) {
     return {
       success: false,
-      status: 410,
+      status: HTTP_STATUS.GONE,
       error: CHATGPT_WEB_RETIRED_MESSAGE,
       code: CHATGPT_WEB_RETIRED_ERROR_CODE,
     };
@@ -1030,7 +1050,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     typeof body.n === "number" && Number.isFinite(body.n) && body.n > 0 ? Math.floor(body.n) : 1;
   const promptText = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
   const aspectRatio = normalizeImageAspectRatio(body.aspect_ratio, body.size);
-  const imageSize = normalizeImageGenerationSize(body.image_size, body.imageSize);
+  const imageSize = normalizeImageGenerationSize(body.image_size);
 
   // Summarized request for call log
   const logRequestBody = {
@@ -1068,7 +1088,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
         candidateCount,
         imageConfig: {
           aspectRatio,
-          imageSize,
+          ...(imageSize ? { imageSize } : {}),
         },
       },
     },
@@ -1088,7 +1108,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     const promptPreview = promptText.slice(0, 60);
     log.info(
       "IMAGE",
-      `antigravity/${model} (gemini) | prompt: "${promptPreview}..." | ${aspectRatio} ${imageSize}`
+      `antigravity/${model} (gemini) | prompt: "${promptPreview}..." | ${aspectRatio} ${imageSize ?? "default"}`
     );
   }
 
@@ -2243,11 +2263,8 @@ export async function resolveImageSource(source) {
   }
 
   if (isHttpUrl(trimmed)) {
-    // GHSA-34rg-3pqj-35g9 / #13883: caller-input URL — pin `public-only` (never the operator
-    // outbound policy, which would let a request body reach loopback/LAN) and `pinDns: true`
-    // to close the DNS-rebinding TOCTOU where a second, un-pinned resolution at connect time
-    // could answer differently than the validated lookup and bypass the guard.
-    const remoteImage = await fetchRemoteImage(trimmed, { guard: "public-only", pinDns: true });
+    // Caller-input URL — see UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS.
+    const remoteImage = await fetchRemoteImage(trimmed, UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS);
     return {
       buffer: remoteImage.buffer,
       base64: remoteImage.buffer.toString("base64"),
@@ -3276,10 +3293,9 @@ export async function normalizeNanoBananaTaskResult(taskData, body, log) {
 
     if (urlCandidates.length > 0) {
       const firstUrl = urlCandidates[0];
-      // GHSA-34rg-3pqj-35g9 / #13883: upstream-supplied result URL, not an OmniRoute-
-      // controlled host — pin `public-only`, never the operator outbound policy, and
-      // `pinDns: true` to close the DNS-rebinding TOCTOU (see `resolveImageSource`).
-      const remoteImage = await fetchRemoteImage(firstUrl, { guard: "public-only", pinDns: true });
+      // Upstream-supplied result URL, not an OmniRoute-controlled host — see
+      // UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS.
+      const remoteImage = await fetchRemoteImage(firstUrl, UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS);
       const base64 = remoteImage.buffer.toString("base64");
       return [{ b64_json: base64, revised_prompt: body.prompt }];
     }
