@@ -132,6 +132,30 @@ export function mergeClientAnthropicBeta(
 }
 
 /**
+ * Apply the client's negotiated `anthropic-beta` to an outbound header set.
+ *
+ * `seedWhenAbsent` is for Anthropic-format upstreams that carry no static beta
+ * set of their own (`anthropic-compatible-*`): without it the caller had no
+ * `anthropic-beta` key to merge into, skipped the merge entirely, and forwarded
+ * no client beta at all rather than a filtered one. The seeded base is empty, so
+ * the allowlist still decides what travels and the gateway never invents betas a
+ * third-party upstream did not advertise. A merge that survives to nothing leaves
+ * the header unset instead of emitting an empty one.
+ */
+export function applyClientAnthropicBeta(
+  headers: Record<string, string>,
+  clientBeta: string | null | undefined,
+  options: { seedWhenAbsent?: boolean; model?: string | null } = {}
+): void {
+  if (typeof clientBeta !== "string" || !clientBeta.trim()) return;
+  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+  const key = existingKey ?? (options.seedWhenAbsent ? "anthropic-beta" : null);
+  if (!key) return;
+  const merged = mergeClientAnthropicBeta(headers[key] ?? "", clientBeta, undefined, options.model);
+  if (merged) headers[key] = merged;
+}
+
+/**
  * Collapse a list of comma-list header values into a deduped, trimmed token
  * array. Empty/undefined/null entries are dropped. Used to reconcile the
  * case-variant `anthropic-version` / `anthropic-beta` headers below.

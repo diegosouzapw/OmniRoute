@@ -14,7 +14,7 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
-  mergeClientAnthropicBeta,
+  applyClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
 } from "../config/anthropicHeaders.ts";
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
@@ -687,30 +687,13 @@ export class DefaultExecutor extends BaseExecutor {
       // 400 "Tool reference not found". Allowlist-merge preserves it without
       // forwarding betas the backend rejects.
       const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
-      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
-      // An anthropic-compatible-* upstream carries no static beta set of its own,
-      // so `betaKey` was undefined there and the whole merge was skipped: the
-      // client's negotiated betas never reached an Anthropic-format endpoint at
-      // all. Seed the header for those providers so the SAME allowlist decides
-      // what travels, instead of nothing travelling. The base stays empty, so
-      // the allowlist forwards what the client asked for and never invents
-      // betas a third-party gateway did not advertise.
-      const targetBetaKey =
-        betaKey ?? (this.provider?.startsWith?.("anthropic-compatible-") ? "anthropic-beta" : null);
-      if (targetBetaKey && clientBeta) {
-        const mergedBeta = mergeClientAnthropicBeta(
-          headers[targetBetaKey] ?? "",
-          clientBeta,
-          undefined,
-          // Gate the client-negotiated context-1m beta on the RESOLVED target model:
-          // combo/fallback can route a request negotiated for a [1m] sibling onto a
-          // model that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
-          model
-        );
-        if (mergedBeta) {
-          headers[targetBetaKey] = mergedBeta;
-        }
-      }
+      // `model` gates the client-negotiated context-1m beta on the RESOLVED target:
+      // combo/fallback can route a request negotiated for a [1m] sibling onto a model
+      // that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
+      applyClientAnthropicBeta(headers, clientBeta, {
+        seedWhenAbsent: this.provider?.startsWith?.("anthropic-compatible-") === true,
+        model,
+      });
     }
 
     normalizeAnthropicHeaderVariants(headers);
