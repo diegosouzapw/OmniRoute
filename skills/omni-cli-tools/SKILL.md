@@ -14,743 +14,81 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 
 ## Endpoints
 
-### GET /api/cli-tools/backups
-
-List CLI tool backups
-
-```bash
-curl https://localhost:20128/api/cli-tools/backups \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/backups
-
-Create CLI tool backup
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/backups \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/cli-tools/runtime/{toolId}
-
-Get runtime status for a CLI tool
-
-```bash
-curl https://localhost:20128/api/cli-tools/runtime/{toolId} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/guide-settings/{toolId}
-
-Get guide settings for a tool
-
-```bash
-curl https://localhost:20128/api/cli-tools/guide-settings/{toolId} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/antigravity-mitm
-
-Get Antigravity MITM proxy settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/antigravity-mitm \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/antigravity-mitm
-
-Update Antigravity MITM proxy settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/antigravity-mitm \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/antigravity-mitm
-
-Reset Antigravity MITM proxy settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/antigravity-mitm \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/antigravity-mitm/alias
-
-Get Antigravity MITM alias configuration
-
-```bash
-curl https://localhost:20128/api/cli-tools/antigravity-mitm/alias \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/cli-tools/antigravity-mitm/alias
-
-Update Antigravity MITM alias configuration
-
-```bash
-curl -X PUT https://localhost:20128/api/cli-tools/antigravity-mitm/alias \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/cli-tools/claude-settings
-
-Get Claude CLI settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/claude-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/claude-settings
-
-Apply Claude CLI settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/claude-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/claude-settings
-
-Reset Claude CLI settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/claude-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/cline-settings
-
-Get Cline CLI settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/cline-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/cline-settings
-
-Apply Cline CLI settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/cline-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/cline-settings
-
-Reset Cline CLI settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/cline-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/codex-profiles
-
-Get Codex profiles
-
-```bash
-curl https://localhost:20128/api/cli-tools/codex-profiles \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/codex-profiles
-
-Create Codex profile
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/codex-profiles \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### PUT /api/cli-tools/codex-profiles
-
-Update Codex profile
-
-```bash
-curl -X PUT https://localhost:20128/api/cli-tools/codex-profiles \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/codex-profiles
-
-Delete Codex profile
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/codex-profiles \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/codex-settings
-
-Get Codex CLI settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/codex-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/codex-settings
-
-Apply Codex CLI settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/codex-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/codex-settings
-
-Reset Codex CLI settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/codex-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/droid-settings
-
-Get Droid CLI settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/droid-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/droid-settings
-
-Apply Droid CLI settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/droid-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/droid-settings
-
-Reset Droid CLI settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/droid-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/kilo-settings
-
-Get Kilo CLI settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/kilo-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/kilo-settings
-
-Apply Kilo CLI settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/kilo-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/kilo-settings
-
-Reset Kilo CLI settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/kilo-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/openclaw-settings
-
-Get OpenClaw CLI settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/openclaw-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/openclaw-settings
-
-Apply OpenClaw CLI settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/openclaw-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/openclaw-settings
-
-Reset OpenClaw CLI settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/openclaw-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/crush-settings
-
-Read Crush CLI OmniRoute config
-
-Local-only. Reads the OmniRoute provider block in Crush's config.
-
-```bash
-curl https://localhost:20128/api/cli-tools/crush-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/crush-settings
-
-Write Crush CLI OmniRoute config
-
-Local-only. Registers OmniRoute as an `openai-compat` provider in Crush's config.
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/crush-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/crush-settings
-
-Remove OmniRoute from Crush CLI config
-
-Local-only. Removes the OmniRoute provider block from Crush's config.
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/crush-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/codewhale-settings
-
-Read CodeWhale CLI OmniRoute config
-
-Local-only. Reads the OmniRoute config block from `~/.codewhale/config.toml` (with `~/.deepseek/config.toml` legacy fallback).
-
-```bash
-curl https://localhost:20128/api/cli-tools/codewhale-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/codewhale-settings
-
-Write CodeWhale CLI OmniRoute config
-
-Local-only. Writes the OmniRoute config block in CodeWhale TOML format.
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/codewhale-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/codewhale-settings
-
-Remove OmniRoute from CodeWhale CLI config
-
-Local-only. Removes the OmniRoute config block from CodeWhale's config.
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/codewhale-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/all-statuses
-
-GET cli tools › all statuses
-
-```bash
-curl https://localhost:20128/api/cli-tools/all-statuses \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/apply
-
-POST cli tools › apply
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/apply \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/cli-tools/config
-
-GET cli tools › config
-
-```bash
-curl https://localhost:20128/api/cli-tools/config \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/config
-
-POST cli tools › config
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/config \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/cli-tools/deepseek-tui-settings
-
-GET cli tools › deepseek tui settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/deepseek-tui-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/deepseek-tui-settings
-
-POST cli tools › deepseek tui settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/deepseek-tui-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/deepseek-tui-settings
-
-DELETE cli tools › deepseek tui settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/deepseek-tui-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/detect
-
-GET cli tools › detect
-
-```bash
-curl https://localhost:20128/api/cli-tools/detect \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/forge-settings
-
-GET cli tools › forge settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/forge-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/forge-settings
-
-POST cli tools › forge settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/forge-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/forge-settings
-
-DELETE cli tools › forge settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/forge-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/grok-build-settings
-
-GET cli tools › grok build settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/grok-build-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/grok-build-settings
-
-POST cli tools › grok build settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/grok-build-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/grok-build-settings
-
-DELETE cli tools › grok build settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/grok-build-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/hermes-agent-settings
-
-GET cli tools › hermes agent settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/hermes-agent-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/hermes-agent-settings
-
-POST cli tools › hermes agent settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/hermes-agent-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/cli-tools/jcode-settings
-
-GET cli tools › jcode settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/jcode-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/jcode-settings
-
-POST cli tools › jcode settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/jcode-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/jcode-settings
-
-DELETE cli tools › jcode settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/jcode-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/keys
-
-GET cli tools › keys
-
-```bash
-curl https://localhost:20128/api/cli-tools/keys \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/letta-settings
-
-GET cli tools › letta settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/letta-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/letta-settings
-
-POST cli tools › letta settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/letta-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/letta-settings
-
-DELETE cli tools › letta settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/letta-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/logs
-
-GET cli tools › logs
-
-```bash
-curl https://localhost:20128/api/cli-tools/logs \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/omp-settings
-
-GET cli tools › omp settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/omp-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/omp-settings
-
-POST cli tools › omp settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/omp-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/omp-settings
-
-DELETE cli tools › omp settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/omp-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/openclaw/auto-order
-
-GET cli tools › openclaw › auto order
-
-```bash
-curl https://localhost:20128/api/cli-tools/openclaw/auto-order \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/pi-settings
-
-GET cli tools › pi settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/pi-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/pi-settings
-
-POST cli tools › pi settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/pi-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/pi-settings
-
-DELETE cli tools › pi settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/pi-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/qwen-settings
-
-GET cli tools › qwen settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/qwen-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/qwen-settings
-
-POST cli tools › qwen settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/qwen-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/qwen-settings
-
-DELETE cli tools › qwen settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/qwen-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/smelt-settings
-
-GET cli tools › smelt settings
-
-```bash
-curl https://localhost:20128/api/cli-tools/smelt-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/cli-tools/smelt-settings
-
-POST cli tools › smelt settings
-
-```bash
-curl -X POST https://localhost:20128/api/cli-tools/smelt-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/cli-tools/smelt-settings
-
-DELETE cli tools › smelt settings
-
-```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/smelt-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/cli-tools/status
-
-GET cli tools › status
-
-```bash
-curl https://localhost:20128/api/cli-tools/status \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
+- [`GET /api/cli-tools/backups`](references/endpoints.md#get-apicli-toolsbackups)
+- [`POST /api/cli-tools/backups`](references/endpoints.md#post-apicli-toolsbackups)
+- [`GET /api/cli-tools/runtime/{toolId}`](references/endpoints.md#get-apicli-toolsruntimetoolid)
+- [`GET /api/cli-tools/guide-settings/{toolId}`](references/endpoints.md#get-apicli-toolsguide-settingstoolid)
+- [`GET /api/cli-tools/antigravity-mitm`](references/endpoints.md#get-apicli-toolsantigravity-mitm)
+- [`POST /api/cli-tools/antigravity-mitm`](references/endpoints.md#post-apicli-toolsantigravity-mitm)
+- [`DELETE /api/cli-tools/antigravity-mitm`](references/endpoints.md#delete-apicli-toolsantigravity-mitm)
+- [`GET /api/cli-tools/antigravity-mitm/alias`](references/endpoints.md#get-apicli-toolsantigravity-mitmalias)
+- [`PUT /api/cli-tools/antigravity-mitm/alias`](references/endpoints.md#put-apicli-toolsantigravity-mitmalias)
+- [`GET /api/cli-tools/claude-settings`](references/endpoints.md#get-apicli-toolsclaude-settings)
+- [`POST /api/cli-tools/claude-settings`](references/endpoints.md#post-apicli-toolsclaude-settings)
+- [`DELETE /api/cli-tools/claude-settings`](references/endpoints.md#delete-apicli-toolsclaude-settings)
+- [`GET /api/cli-tools/cline-settings`](references/endpoints.md#get-apicli-toolscline-settings)
+- [`POST /api/cli-tools/cline-settings`](references/endpoints.md#post-apicli-toolscline-settings)
+- [`DELETE /api/cli-tools/cline-settings`](references/endpoints.md#delete-apicli-toolscline-settings)
+- [`GET /api/cli-tools/codex-profiles`](references/endpoints.md#get-apicli-toolscodex-profiles)
+- [`POST /api/cli-tools/codex-profiles`](references/endpoints.md#post-apicli-toolscodex-profiles)
+- [`PUT /api/cli-tools/codex-profiles`](references/endpoints.md#put-apicli-toolscodex-profiles)
+- [`DELETE /api/cli-tools/codex-profiles`](references/endpoints.md#delete-apicli-toolscodex-profiles)
+- [`GET /api/cli-tools/codex-settings`](references/endpoints.md#get-apicli-toolscodex-settings)
+- [`POST /api/cli-tools/codex-settings`](references/endpoints.md#post-apicli-toolscodex-settings)
+- [`DELETE /api/cli-tools/codex-settings`](references/endpoints.md#delete-apicli-toolscodex-settings)
+- [`GET /api/cli-tools/droid-settings`](references/endpoints.md#get-apicli-toolsdroid-settings)
+- [`POST /api/cli-tools/droid-settings`](references/endpoints.md#post-apicli-toolsdroid-settings)
+- [`DELETE /api/cli-tools/droid-settings`](references/endpoints.md#delete-apicli-toolsdroid-settings)
+- [`GET /api/cli-tools/kilo-settings`](references/endpoints.md#get-apicli-toolskilo-settings)
+- [`POST /api/cli-tools/kilo-settings`](references/endpoints.md#post-apicli-toolskilo-settings)
+- [`DELETE /api/cli-tools/kilo-settings`](references/endpoints.md#delete-apicli-toolskilo-settings)
+- [`GET /api/cli-tools/openclaw-settings`](references/endpoints.md#get-apicli-toolsopenclaw-settings)
+- [`POST /api/cli-tools/openclaw-settings`](references/endpoints.md#post-apicli-toolsopenclaw-settings)
+- [`DELETE /api/cli-tools/openclaw-settings`](references/endpoints.md#delete-apicli-toolsopenclaw-settings)
+- [`GET /api/cli-tools/crush-settings`](references/endpoints.md#get-apicli-toolscrush-settings)
+- [`POST /api/cli-tools/crush-settings`](references/endpoints.md#post-apicli-toolscrush-settings)
+- [`DELETE /api/cli-tools/crush-settings`](references/endpoints.md#delete-apicli-toolscrush-settings)
+- [`GET /api/cli-tools/codewhale-settings`](references/endpoints.md#get-apicli-toolscodewhale-settings)
+- [`POST /api/cli-tools/codewhale-settings`](references/endpoints.md#post-apicli-toolscodewhale-settings)
+- [`DELETE /api/cli-tools/codewhale-settings`](references/endpoints.md#delete-apicli-toolscodewhale-settings)
+- [`GET /api/cli-tools/all-statuses`](references/endpoints.md#get-apicli-toolsall-statuses)
+- [`POST /api/cli-tools/apply`](references/endpoints.md#post-apicli-toolsapply)
+- [`GET /api/cli-tools/config`](references/endpoints.md#get-apicli-toolsconfig)
+- [`POST /api/cli-tools/config`](references/endpoints.md#post-apicli-toolsconfig)
+- [`GET /api/cli-tools/deepseek-tui-settings`](references/endpoints.md#get-apicli-toolsdeepseek-tui-settings)
+- [`POST /api/cli-tools/deepseek-tui-settings`](references/endpoints.md#post-apicli-toolsdeepseek-tui-settings)
+- [`DELETE /api/cli-tools/deepseek-tui-settings`](references/endpoints.md#delete-apicli-toolsdeepseek-tui-settings)
+- [`GET /api/cli-tools/detect`](references/endpoints.md#get-apicli-toolsdetect)
+- [`GET /api/cli-tools/forge-settings`](references/endpoints.md#get-apicli-toolsforge-settings)
+- [`POST /api/cli-tools/forge-settings`](references/endpoints.md#post-apicli-toolsforge-settings)
+- [`DELETE /api/cli-tools/forge-settings`](references/endpoints.md#delete-apicli-toolsforge-settings)
+- [`GET /api/cli-tools/grok-build-settings`](references/endpoints.md#get-apicli-toolsgrok-build-settings)
+- [`POST /api/cli-tools/grok-build-settings`](references/endpoints.md#post-apicli-toolsgrok-build-settings)
+- [`DELETE /api/cli-tools/grok-build-settings`](references/endpoints.md#delete-apicli-toolsgrok-build-settings)
+- [`GET /api/cli-tools/hermes-agent-settings`](references/endpoints.md#get-apicli-toolshermes-agent-settings)
+- [`POST /api/cli-tools/hermes-agent-settings`](references/endpoints.md#post-apicli-toolshermes-agent-settings)
+- [`GET /api/cli-tools/jcode-settings`](references/endpoints.md#get-apicli-toolsjcode-settings)
+- [`POST /api/cli-tools/jcode-settings`](references/endpoints.md#post-apicli-toolsjcode-settings)
+- [`DELETE /api/cli-tools/jcode-settings`](references/endpoints.md#delete-apicli-toolsjcode-settings)
+- [`GET /api/cli-tools/keys`](references/endpoints.md#get-apicli-toolskeys)
+- [`GET /api/cli-tools/letta-settings`](references/endpoints.md#get-apicli-toolsletta-settings)
+- [`POST /api/cli-tools/letta-settings`](references/endpoints.md#post-apicli-toolsletta-settings)
+- [`DELETE /api/cli-tools/letta-settings`](references/endpoints.md#delete-apicli-toolsletta-settings)
+- [`GET /api/cli-tools/logs`](references/endpoints.md#get-apicli-toolslogs)
+- [`GET /api/cli-tools/omp-settings`](references/endpoints.md#get-apicli-toolsomp-settings)
+- [`POST /api/cli-tools/omp-settings`](references/endpoints.md#post-apicli-toolsomp-settings)
+- [`DELETE /api/cli-tools/omp-settings`](references/endpoints.md#delete-apicli-toolsomp-settings)
+- [`GET /api/cli-tools/openclaw/auto-order`](references/endpoints.md#get-apicli-toolsopenclawauto-order)
+- [`GET /api/cli-tools/pi-settings`](references/endpoints.md#get-apicli-toolspi-settings)
+- [`POST /api/cli-tools/pi-settings`](references/endpoints.md#post-apicli-toolspi-settings)
+- [`DELETE /api/cli-tools/pi-settings`](references/endpoints.md#delete-apicli-toolspi-settings)
+- [`GET /api/cli-tools/qwen-settings`](references/endpoints.md#get-apicli-toolsqwen-settings)
+- [`POST /api/cli-tools/qwen-settings`](references/endpoints.md#post-apicli-toolsqwen-settings)
+- [`DELETE /api/cli-tools/qwen-settings`](references/endpoints.md#delete-apicli-toolsqwen-settings)
+- [`GET /api/cli-tools/smelt-settings`](references/endpoints.md#get-apicli-toolssmelt-settings)
+- [`POST /api/cli-tools/smelt-settings`](references/endpoints.md#post-apicli-toolssmelt-settings)
+- [`DELETE /api/cli-tools/smelt-settings`](references/endpoints.md#delete-apicli-toolssmelt-settings)
+- [`GET /api/cli-tools/status`](references/endpoints.md#get-apicli-toolsstatus)
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

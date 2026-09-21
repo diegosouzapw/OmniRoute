@@ -20,7 +20,7 @@ import { getCatalog, refreshCatalog } from "./catalog";
 import { parseOpenapi } from "./openapiParser";
 import { parseCliRegistry } from "./cliRegistryParser";
 import type { AgentSkill, GeneratorOptions, GeneratorReport } from "./types";
-import type { ParsedOpenapi } from "./openapiParser";
+import type { OpenapiPath, ParsedOpenapi } from "./openapiParser";
 import type { ParsedCliRegistry } from "./cliRegistryParser";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -31,11 +31,24 @@ const GENERATED_COMMENT =
 const CUSTOM_START_MARKER = "<!-- skill:custom-start -->";
 const CUSTOM_END_MARKER = "<!-- skill:custom-end -->";
 
+const MAX_SKILL_BODY_LINES = 500;
+const REFERENCE_TOC_THRESHOLD_LINES = 100;
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface BuildSources {
   openapi: ParsedOpenapi;
   cliRegistry: ParsedCliRegistry;
+}
+
+interface GeneratedSkillReference {
+  path: string;
+  content: string;
+}
+
+interface ApiSkillDocuments {
+  body: string;
+  references: GeneratedSkillReference[];
 }
 
 // ── Frontmatter helpers ───────────────────────────────────────────────────────
@@ -73,7 +86,69 @@ function extractCustomBlock(content: string): string | null {
 
 // ── Body builders ─────────────────────────────────────────────────────────────
 
-function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
+function endpointBlockLines(op: OpenapiPath, usesDashboardSession: boolean): string[] {
+  const lines: string[] = [];
+
+  lines.push(`### ${op.method} ${op.path}\n`);
+  if (op.summary) {
+    lines.push(`${op.summary}`);
+    lines.push("");
+  }
+  if (op.description) {
+    lines.push(op.description);
+    lines.push("");
+  }
+
+  // Minimal curl example. Only omni-auth establishes and consumes a dashboard
+  // session; generic API skills use independently usable Bearer examples.
+  lines.push("```bash");
+  if (usesDashboardSession && op.path === "/api/auth/login" && op.method === "POST") {
+    lines.push(`curl -X POST https://localhost:20128${op.path} \\`);
+    lines.push('  -H "Content-Type: application/json" \\');
+    lines.push("  -c cookie.jar \\");
+    lines.push('  -d \'{"password":"<management-password>"}\'');
+  } else if (usesDashboardSession) {
+    const curlMethod = op.method === "GET" ? "" : `-X ${op.method} `;
+    if (op.method === "GET") {
+      lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
+      lines.push("  -b cookie.jar");
+    } else {
+      lines.push(
+        "CSRF_TOKEN=$(curl -s https://localhost:20128/api/auth/csrf -b cookie.jar | jq -r .token)"
+      );
+      lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
+      lines.push("  -b cookie.jar \\");
+      const hasJsonBody = ["POST", "PUT", "PATCH"].includes(op.method);
+      lines.push(`  -H "x-omniroute-csrf: $CSRF_TOKEN"${hasJsonBody ? " \\" : ""}`);
+      if (hasJsonBody) {
+        lines.push('  -H "Content-Type: application/json" \\');
+        lines.push("  -d '{}'");
+      }
+    }
+  } else {
+    const curlMethod = op.method === "GET" ? "" : `-X ${op.method} `;
+    const hasJsonBody = ["POST", "PUT", "PATCH"].includes(op.method);
+    lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
+    lines.push(`  -H "Authorization: Bearer $OMNIROUTE_TOKEN"${hasJsonBody ? " \\" : ""}`);
+    if (hasJsonBody) {
+      lines.push('  -H "Content-Type: application/json" \\');
+      lines.push("  -d '{}'");
+    }
+  }
+  lines.push("```");
+  lines.push("");
+
+  return lines;
+}
+
+function markdownAnchor(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, "")
+    .replace(/ /g, "-");
+}
+
+function buildApiDocuments(skill: AgentSkill, sources: BuildSources): ApiSkillDocuments {
   const areaMap = sources.openapi.areas;
   const ops = areaMap.get(skill.area as Parameters<typeof areaMap.get>[0]) ?? [];
   const usesDashboardSession = skill.id === "omni-auth";
@@ -98,70 +173,50 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
   }
   lines.push("");
 
-  lines.push("## Endpoints\n");
+  const endpointBlocks = ops.map((op) => ({
+    title: `${op.method} ${op.path}`,
+    lines: endpointBlockLines(op, usesDashboardSession),
+  }));
+  const endpointLines =
+    endpointBlocks.length === 0
+      ? ["_No endpoints mapped for this area yet._"]
+      : endpointBlocks.flatMap((block) => block.lines);
+  const payloadLines = [
+    "## Payloads\n",
+    "See the full OpenAPI specification at `GET /api/openapi/spec` or " +
+      "`docs/openapi.yaml` for detailed request/response schemas.",
+    "",
+  ];
 
-  if (ops.length === 0) {
-    lines.push("_No endpoints mapped for this area yet._");
-  } else {
-    for (const op of ops) {
-      lines.push(`### ${op.method} ${op.path}\n`);
-      if (op.summary) {
-        lines.push(`${op.summary}`);
-        lines.push("");
-      }
-      if (op.description) {
-        lines.push(op.description);
-        lines.push("");
-      }
-      // Minimal curl example. Only omni-auth establishes and consumes a dashboard
-      // session; generic API skills use independently usable Bearer examples.
-      lines.push("```bash");
-      if (usesDashboardSession && op.path === "/api/auth/login" && op.method === "POST") {
-        lines.push(`curl -X POST https://localhost:20128${op.path} \\`);
-        lines.push('  -H "Content-Type: application/json" \\');
-        lines.push("  -c cookie.jar \\");
-        lines.push('  -d \'{"password":"<management-password>"}\'');
-      } else if (usesDashboardSession) {
-        const curlMethod = op.method === "GET" ? "" : `-X ${op.method} `;
-        if (op.method === "GET") {
-          lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
-          lines.push("  -b cookie.jar");
-        } else {
-          lines.push(
-            "CSRF_TOKEN=$(curl -s https://localhost:20128/api/auth/csrf -b cookie.jar | jq -r .token)"
-          );
-          lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
-          lines.push("  -b cookie.jar \\");
-          const hasJsonBody = ["POST", "PUT", "PATCH"].includes(op.method);
-          lines.push(`  -H "x-omniroute-csrf: $CSRF_TOKEN"${hasJsonBody ? " \\" : ""}`);
-          if (hasJsonBody) {
-            lines.push('  -H "Content-Type: application/json" \\');
-            lines.push("  -d '{}'");
-          }
-        }
-      } else {
-        const curlMethod = op.method === "GET" ? "" : `-X ${op.method} `;
-        const hasJsonBody = ["POST", "PUT", "PATCH"].includes(op.method);
-        lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
-        lines.push(`  -H "Authorization: Bearer $OMNIROUTE_TOKEN"${hasJsonBody ? " \\" : ""}`);
-        if (hasJsonBody) {
-          lines.push('  -H "Content-Type: application/json" \\');
-          lines.push("  -d '{}'");
-        }
-      }
-      lines.push("```");
-      lines.push("");
-    }
+  const inlineLines = [...lines, "## Endpoints\n", ...endpointLines, ...payloadLines];
+  const inlineBody = inlineLines.join("\n");
+  if (inlineLines.length <= MAX_SKILL_BODY_LINES) {
+    return { body: inlineBody, references: [] };
   }
 
-  lines.push("## Payloads\n");
-  lines.push(
-    "See the full OpenAPI specification at `GET /api/openapi/spec` or " +
-      "`docs/openapi.yaml` for detailed request/response schemas."
+  const endpointIndex = endpointBlocks.map(
+    (block) => `- [\`${block.title}\`](references/endpoints.md#${markdownAnchor(block.title)})`
   );
-  lines.push("");
+  const indexedLines = [...lines, "## Endpoints\n", ...endpointIndex, ...payloadLines];
 
-  return lines.join("\n");
+  const referencePreamble = [GENERATED_COMMENT, "", "# Endpoint reference", ""];
+  const tableOfContents = endpointBlocks.map(
+    (block) => `- [\`${block.title}\`](#${markdownAnchor(block.title)})`
+  );
+  const needsTableOfContents =
+    referencePreamble.length + tableOfContents.length + 2 + endpointLines.length >
+    REFERENCE_TOC_THRESHOLD_LINES;
+  const referenceLines = [...referencePreamble];
+  if (needsTableOfContents) {
+    referenceLines.push("## Table of contents", "");
+  }
+  referenceLines.push(...endpointLines);
+  const referenceContent = referenceLines.join("\n");
+
+  return {
+    body: indexedLines.join("\n"),
+    references: [{ path: "references/endpoints.md", content: referenceContent }],
+  };
 }
 
 function buildCliBody(skill: AgentSkill, sources: BuildSources): string {
@@ -225,7 +280,11 @@ export function buildSkillMarkdown(
   skillId: string,
   sources: BuildSources,
   existingContent?: string
-): { frontmatter: { name: string; description: string }; body: string } {
+): {
+  frontmatter: { name: string; description: string };
+  body: string;
+  references: GeneratedSkillReference[];
+} {
   const skill = getCatalog().find((s) => s.id === skillId);
   if (!skill) {
     throw new Error(`buildSkillMarkdown: skill "${skillId}" not found in catalog`);
@@ -236,9 +295,10 @@ export function buildSkillMarkdown(
     description: skill.description.slice(0, 2000),
   };
 
+  const apiDocuments = skill.category === "api" ? buildApiDocuments(skill, sources) : undefined;
   const bodyLines =
     skill.category === "api"
-      ? buildApiBody(skill, sources)
+      ? apiDocuments.body
       : skill.category === "external"
         ? "" // external: content lives in the custom block below
         : buildCliBody(skill, sources); // cli + config share the CLI-shaped body
@@ -254,7 +314,7 @@ export function buildSkillMarkdown(
 
   const body = GENERATED_COMMENT + "\n\n" + bodyLines + customBlock;
 
-  return { frontmatter: fm, body };
+  return { frontmatter: fm, body, references: apiDocuments?.references ?? [] };
 }
 
 /**
@@ -262,6 +322,14 @@ export function buildSkillMarkdown(
  */
 function assembleFileContent(fm: { name: string; description: string }, body: string): string {
   return serializeFrontmatter(fm) + body;
+}
+
+function readReferenceFile(skillDir: string, referencePath: string): string | undefined {
+  try {
+    return fs.readFileSync(path.join(skillDir, referencePath), "utf-8");
+  } catch {
+    return undefined;
+  }
 }
 
 // ── Main generator ─────────────────────────────────────────────────────────────
@@ -367,22 +435,44 @@ export async function generateAgentSkills(opts: GeneratorOptions): Promise<Gener
         existingContent = undefined;
       }
 
-      const { frontmatter, body } = buildSkillMarkdown(skill.id, sources, existingContent);
+      const { frontmatter, body, references } = buildSkillMarkdown(
+        skill.id,
+        sources,
+        existingContent
+      );
       const newContent = assembleFileContent(frontmatter, body);
 
+      const staleReferencePath = references.length === 0 ? "references/endpoints.md" : undefined;
+      const referenceChanges = new Set(
+        references
+          .filter((reference) => readReferenceFile(skillDir, reference.path) !== reference.content)
+          .map((reference) => reference.path)
+      );
+      if (staleReferencePath && readReferenceFile(skillDir, staleReferencePath) !== undefined) {
+        referenceChanges.add(staleReferencePath);
+      }
+      const hasChanges = existingContent !== newContent || referenceChanges.size > 0;
+
       // Compare with existing to detect actual changes
-      if (existingContent !== undefined && existingContent === newContent) {
+      if (!hasChanges) {
         report.unchanged.push(skill.id);
         continue;
       }
 
       if (dryRun) {
-        // In dry-run: classify as generated (would write) but don't touch disk
+        // In dry-run: classify as generated (would write/remove) but don't touch disk
         report.generated.push(skill.id);
       } else {
         // Apply: ensure directory + write file
         fs.mkdirSync(skillDir, { recursive: true });
         fs.writeFileSync(skillFile, newContent, "utf-8");
+        for (const reference of references) {
+          fs.mkdirSync(path.dirname(path.join(skillDir, reference.path)), { recursive: true });
+          fs.writeFileSync(path.join(skillDir, reference.path), reference.content, "utf-8");
+        }
+        if (staleReferencePath) {
+          fs.rmSync(path.join(skillDir, staleReferencePath), { force: true });
+        }
         report.generated.push(skill.id);
       }
     } catch (err) {
