@@ -293,10 +293,16 @@ export function inferSyntxMediaKind(aiName: string): SyntxMediaKind | null {
   if (SCOPE_BY_AI_NAME[key]) return SCOPE_BY_AI_NAME[key];
   const lower = key.toLowerCase();
   if (lower === "magnific" || lower === "topaz_ai" || lower.includes("upscale")) return "upscale";
-  if (lower.includes("suno") || lower.includes("udio") || lower.endsWith("-music") || lower.includes("music")) {
+  if (
+    lower.includes("suno") ||
+    lower.includes("udio") ||
+    lower.endsWith("-music") ||
+    lower.includes("music")
+  ) {
     return "music";
   }
-  if (lower.includes("eleven") || lower.includes("tts") || lower.endsWith("-voice")) return "speech";
+  if (lower.includes("eleven") || lower.includes("tts") || lower.endsWith("-voice"))
+    return "speech";
   if (
     lower.endsWith("_video") ||
     lower === "kling" ||
@@ -364,7 +370,11 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 export function parseSyntxAiServices(json: unknown): Map<string, string> {
-  const rows = Array.isArray(json) ? json : Array.isArray(asRecord(json).data) ? (asRecord(json).data as unknown[]) : [];
+  const rows = Array.isArray(json)
+    ? json
+    : Array.isArray(asRecord(json).data)
+      ? (asRecord(json).data as unknown[])
+      : [];
   const map = new Map<string, string>();
   for (const row of rows) {
     const rec = asRecord(row);
@@ -423,7 +433,11 @@ export function parseSyntxMediaModelsCatalog(
   return models;
 }
 
-function resolveLiveKind(aiName: string, serviceScope: string, modelType = ""): SyntxMediaKind | null {
+function resolveLiveKind(
+  aiName: string,
+  serviceScope: string,
+  modelType = ""
+): SyntxMediaKind | null {
   const type = (modelType || "").trim().toLowerCase();
   if (type === "upscale" || type.includes("upscale")) return "upscale";
   const fromName = inferSyntxMediaKind(aiName);
@@ -447,7 +461,7 @@ function inputModalitiesFor(kind: SyntxMediaKind, accepted: string[], modelType:
 
 function defaultCapsFor(
   kind: SyntxMediaKind,
-  aiName: string,
+  _aiName: string,
   modelType: string,
   inputModalities: string[]
 ): SyntxMediaCaps {
@@ -485,7 +499,9 @@ export async function discoverSyntxMediaModels(options: {
     fetchImpl(SYNTX_AI_SERVICES_URL, { method: "GET", headers }),
     fetchImpl(SYNTX_MEDIA_MODELS_URL, { method: "GET", headers }),
   ]);
-  const services = servicesRes.ok ? parseSyntxAiServices(await servicesRes.json()) : new Map<string, string>();
+  const services = servicesRes.ok
+    ? parseSyntxAiServices(await servicesRes.json())
+    : new Map<string, string>();
   if (!modelsRes.ok) throw new Error(`SYNTX media models HTTP ${modelsRes.status}`);
   const models = parseSyntxMediaModelsCatalog(await modelsRes.json(), services);
   if (models.length === 0) throw new Error("SYNTX media catalog was empty");
@@ -507,7 +523,10 @@ export async function getSyntxMediaCatalog(options: {
   }
 }
 
-export function modelsForKind(kind: SyntxMediaKind, live?: readonly SyntxMediaModel[]): SyntxMediaModel[] {
+export function modelsForKind(
+  kind: SyntxMediaKind,
+  live?: readonly SyntxMediaModel[]
+): SyntxMediaModel[] {
   const source = live && live.length > 0 ? live : SYNTX_FALLBACK_MEDIA_MODELS;
   const rows = source.filter((row) => row.kind === kind);
   return rows.length > 0

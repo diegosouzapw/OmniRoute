@@ -22,7 +22,10 @@
  */
 import { createHash, randomBytes } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult, sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  makeExecutorErrorResult as makeErrorResult,
+  sanitizeErrorMessage,
+} from "../utils/error.ts";
 import {
   SYNTX_API_BASE,
   SYNTX_SSE_ORIGIN,
@@ -35,7 +38,6 @@ import {
 import {
   inferSyntxAiName,
   mapSyntxModel,
-  stripSyntxModelPrefix,
   type SyntxCatalogModel,
 } from "../services/syntxModels.ts";
 import {
@@ -63,7 +65,11 @@ import {
   type SyntxChatMessage,
 } from "../services/syntxSessions.ts";
 
-export { mapSyntxModel, stripSyntxModelPrefix, SYNTX_DEFAULT_MODEL } from "../services/syntxModels.ts";
+export {
+  mapSyntxModel,
+  stripSyntxModelPrefix,
+  SYNTX_DEFAULT_MODEL,
+} from "../services/syntxModels.ts";
 export { looksLikeJwt, resolveSyntxToken } from "../services/syntxAuth.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -257,7 +263,9 @@ export function flattenSyntxMessages(messages: unknown, dropClientSystem = false
       parts.push(`<assistant>\n${text}\n</assistant>`);
     } else if (role === "tool" || role === "function") {
       const name = toStringOrEmpty(rec.name) || toStringOrEmpty(rec.tool_call_id) || "tool";
-      parts.push(`<tool_result name="${name}">\n${extractSyntxMessageText(rec.content)}\n</tool_result>`);
+      parts.push(
+        `<tool_result name="${name}">\n${extractSyntxMessageText(rec.content)}\n</tool_result>`
+      );
     }
   }
   return parts.join("\n\n").trim();
@@ -283,7 +291,8 @@ export function messagesHaveSyntxToolTraffic(messages: unknown): boolean {
     const rec = message as JsonRecord;
     const role = typeof rec.role === "string" ? rec.role : "";
     if (role === "tool" || role === "function") return true;
-    if (role === "assistant" && Array.isArray(rec.tool_calls) && rec.tool_calls.length > 0) return true;
+    if (role === "assistant" && Array.isArray(rec.tool_calls) && rec.tool_calls.length > 0)
+      return true;
     if (extractSyntxMessageText(rec.content).includes(TOOL_MARK)) return true;
   }
   return false;
@@ -304,7 +313,9 @@ export function trailingSyntxToolResults(messages: unknown): string {
     const role = (rec.role || "").toString().toLowerCase();
     if (role === "tool" || role === "function") {
       const name = toStringOrEmpty(rec.name) || toStringOrEmpty(rec.tool_call_id) || "tool";
-      parts.unshift(`<tool_result name="${name}">\n${extractSyntxMessageText(rec.content)}\n</tool_result>`);
+      parts.unshift(
+        `<tool_result name="${name}">\n${extractSyntxMessageText(rec.content)}\n</tool_result>`
+      );
       continue;
     }
     if (role === "user" || role === "human") {
@@ -327,7 +338,10 @@ function formatSyntxUserToolResult(rec: JsonRecord): string | null {
       const type = toStringOrEmpty(item.type).toLowerCase();
       if (type !== "tool_result" && type !== "function_result") continue;
       const name =
-        toStringOrEmpty(item.name) || toStringOrEmpty(item.tool_use_id) || toStringOrEmpty(item.tool_call_id) || "tool";
+        toStringOrEmpty(item.name) ||
+        toStringOrEmpty(item.tool_use_id) ||
+        toStringOrEmpty(item.tool_call_id) ||
+        "tool";
       const body =
         extractSyntxMessageText(item.content) ||
         extractSyntxMessageText(item.output) ||
@@ -373,7 +387,9 @@ export function buildSyntxGenerateText(options: {
 }): SyntxGenerateText {
   const emulate = options.emulateTools ?? isSyntxPromptToolEmulationEnabled();
   const injectCatalog =
-    emulate && wantsSyntxToolCatalog(options.tools, options.messages) && !options.toolsAlreadyInjected;
+    emulate &&
+    wantsSyntxToolCatalog(options.tools, options.messages) &&
+    !options.toolsAlreadyInjected;
   const catalog = injectCatalog
     ? Array.isArray(options.tools) && options.tools.length > 0
       ? formatSyntxToolDefs(options.tools)
@@ -494,7 +510,11 @@ export function capSyntxGenerateText(text: string, max = SYNTX_MAX_GENERATE_CHAR
   return `${t.slice(0, head).trimEnd()}${marker}${t.slice(-tail).trimStart()}`;
 }
 
-export function wantSyntxThinking(body: JsonRecord, modelId: string, _catalog?: SyntxCatalogModel): boolean {
+export function wantSyntxThinking(
+  body: JsonRecord,
+  modelId: string,
+  _catalog?: SyntxCatalogModel
+): boolean {
   if (body.thinking === true) return true;
   const thinkingObj = asRecord(body.thinking);
   const thinkingType = toStringOrEmpty(thinkingObj.type).toLowerCase();
@@ -506,7 +526,13 @@ export function wantSyntxThinking(body: JsonRecord, modelId: string, _catalog?: 
     toStringOrEmpty(asRecord(body.reasoning).effort) ||
     thinkingType;
   const lowered = effort.toLowerCase();
-  if (lowered && lowered !== "none" && lowered !== "minimal" && lowered !== "disabled" && lowered !== "false") {
+  if (
+    lowered &&
+    lowered !== "none" &&
+    lowered !== "minimal" &&
+    lowered !== "disabled" &&
+    lowered !== "false"
+  ) {
     return true;
   }
   if (modelId.toLowerCase().includes("thinking")) return true;
@@ -546,7 +572,11 @@ export function parseSyntxToolCalls(text: string): { calls: SyntxToolCall[]; con
   while ((match = regex.exec(text)) !== null) {
     try {
       let raw = match[1].trim();
-      if (raw.startsWith("```")) raw = raw.replace(/^```\w*\n?/, "").replace(/\n?```$/, "").trim();
+      if (raw.startsWith("```"))
+        raw = raw
+          .replace(/^```\w*\n?/, "")
+          .replace(/\n?```$/, "")
+          .trim();
       const call = toolCallFromUnknown(JSON.parse(raw) as unknown);
       if (call) calls.push(call);
     } catch {
@@ -572,7 +602,11 @@ export type SyntxSseUsage = {
   total_tokens: number;
 };
 
-export function extractSyntxSseEvent(event: string): { delta?: string; usage?: SyntxSseUsage; error?: string } {
+export function extractSyntxSseEvent(event: string): {
+  delta?: string;
+  usage?: SyntxSseUsage;
+  error?: string;
+} {
   const result: { delta?: string; usage?: SyntxSseUsage; error?: string } = {};
   for (const line of event.split("\n")) {
     const match = line.match(/^\s*data:\s*(.*)\s*$/);
@@ -593,7 +627,10 @@ export function extractSyntxSseEvent(event: string): { delta?: string; usage?: S
           total_tokens: prompt + completion,
         };
       } else if (type === "error") {
-        result.error = toStringOrEmpty(parsed.message) || toStringOrEmpty(parsed.content) || "SYNTX stream error";
+        result.error =
+          toStringOrEmpty(parsed.message) ||
+          toStringOrEmpty(parsed.content) ||
+          "SYNTX stream error";
       }
     } catch {
       /* ignore malformed SSE data lines */
@@ -605,7 +642,11 @@ export function extractSyntxSseEvent(event: string): { delta?: string; usage?: S
 export function isSyntxStreamUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === "https:" && parsed.origin === SYNTX_SSE_ORIGIN && parsed.pathname.startsWith("/stream/");
+    return (
+      parsed.protocol === "https:" &&
+      parsed.origin === SYNTX_SSE_ORIGIN &&
+      parsed.pathname.startsWith("/stream/")
+    );
   } catch {
     return false;
   }
@@ -682,7 +723,8 @@ export function collectSyntxImageSources(content: unknown): SyntxImageSource[] {
     const type = toStringOrEmpty(rec.type).toLowerCase();
     if (type === "image_url" || type === "input_image") {
       const nested = asRecord(rec.image_url);
-      const url = toStringOrEmpty(rec.url) || toStringOrEmpty(nested.url) || toStringOrEmpty(rec.image);
+      const url =
+        toStringOrEmpty(rec.url) || toStringOrEmpty(nested.url) || toStringOrEmpty(rec.image);
       if (url) pushUrl(url);
     } else if (typeof rec.image_url === "string") {
       pushUrl(rec.image_url);
@@ -700,7 +742,13 @@ function decodeDataUrl(dataUrl: string): { bytes: Uint8Array; mime: string; name
   return { bytes, mime, name: `image.${ext}` };
 }
 
-function openAiChunk(id: string, created: number, modelId: string, delta: JsonRecord, finish: string | null = null) {
+function openAiChunk(
+  id: string,
+  created: number,
+  modelId: string,
+  delta: JsonRecord,
+  finish: string | null = null
+) {
   return {
     id,
     object: "chat.completion.chunk",
@@ -810,7 +858,9 @@ export class SyntxExecutor extends BaseExecutor {
     });
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
-      throw new Error(`SYNTX create chat HTTP ${response.status}: ${sanitizeErrorMessage(errText)}`);
+      throw new Error(
+        `SYNTX create chat HTTP ${response.status}: ${sanitizeErrorMessage(errText)}`
+      );
     }
     const json = asRecord(await response.json());
     const uuid = toStringOrEmpty(json.uuid);
@@ -830,7 +880,9 @@ export class SyntxExecutor extends BaseExecutor {
     if (prompt.length > SYNTX_ACCOUNT_SYSTEM_PROMPT_MAX_CHARS) {
       const slice = prompt.slice(0, SYNTX_ACCOUNT_SYSTEM_PROMPT_MAX_CHARS);
       const nl = slice.lastIndexOf("\n");
-      prompt = (nl >= SYNTX_ACCOUNT_SYSTEM_PROMPT_MAX_CHARS / 2 ? slice.slice(0, nl) : slice).trimEnd();
+      prompt = (
+        nl >= SYNTX_ACCOUNT_SYSTEM_PROMPT_MAX_CHARS / 2 ? slice.slice(0, nl) : slice
+      ).trimEnd();
     }
     const payload = disable
       ? { user: { text: { system_prompt_enabled: { default: false } } } }
@@ -858,7 +910,8 @@ export class SyntxExecutor extends BaseExecutor {
     file: { bytes: Uint8Array; mime: string; name: string },
     fetchImpl: typeof fetch
   ): Promise<{ url: string; objectType: string } | null> {
-    if (!file.bytes || file.bytes.byteLength === 0 || file.bytes.byteLength > 50 * 1024 * 1024) return null;
+    if (!file.bytes || file.bytes.byteLength === 0 || file.bytes.byteLength > 50 * 1024 * 1024)
+      return null;
     const encoded = encodeSyntxUploadMultipart({
       bytes: file.bytes,
       name: file.name || "tmp.txt",
@@ -931,7 +984,8 @@ export class SyntxExecutor extends BaseExecutor {
     });
     const messages = normalizeSyntxRequestMessages(bodyObj);
     const hasTools =
-      (Array.isArray(bodyObj.tools) && bodyObj.tools.length > 0) || messagesHaveSyntxToolTraffic(messages);
+      (Array.isArray(bodyObj.tools) && bodyObj.tools.length > 0) ||
+      messagesHaveSyntxToolTraffic(messages);
 
     if (!looksLikeJwt(token)) {
       return makeErrorResult(
@@ -947,11 +1001,16 @@ export class SyntxExecutor extends BaseExecutor {
       bodyObj.syntx_isolated === true ||
       bodyObj.syntx_force_new_chat === true ||
       bodyObj.syntx_deep_research === true;
-    const continueFirst = canonicalizeSyntxUserText(toStringOrEmpty(bodyObj.syntx_continue_first_user));
+    const continueFirst = canonicalizeSyntxUserText(
+      toStringOrEmpty(bodyObj.syntx_continue_first_user)
+    );
     const wantContinue = bodyObj.syntx_continue_chat === true && Boolean(continueFirst);
     const sessionReset = looksLikeClaudeCodeSessionReset(lastUserTextForReset(messages));
     const sessionMessages = sessionReset ? syntxMessagesForNewSession(messages) : messages;
-    let chatUuid = isolated || sessionReset ? null : lookupSyntxChatUuidForMessages(fingerprint, modelId, messages);
+    let chatUuid =
+      isolated || sessionReset
+        ? null
+        : lookupSyntxChatUuidForMessages(fingerprint, modelId, messages);
     if (!chatUuid && wantContinue && !isolated && !sessionReset) {
       chatUuid = lookupSyntxContinueChatUuid(fingerprint, modelId, continueFirst);
     }
@@ -963,14 +1022,15 @@ export class SyntxExecutor extends BaseExecutor {
       shouldRolloverSyntxChat(chatUuid);
     if (threadRollover) chatUuid = null;
     const posted = Boolean(chatUuid) && hasSyntxGeneratePosted(chatUuid);
-    const virginChat =
-      Boolean(chatUuid) && !posted && getSyntxChatGenerateCount(chatUuid) === 0;
+    const virginChat = Boolean(chatUuid) && !posted && getSyntxChatGenerateCount(chatUuid) === 0;
     // OpenCode retries the first turn before persist. Reuse the uuid but still
     // flatten catalog+system until generate has actually been posted.
     const reuseChat = Boolean(chatUuid) && !virginChat && !threadRollover;
     const toolsFingerprint = syntxToolCatalogFingerprint(bodyObj.tools);
     const priorToolsFp = chatUuid ? getSyntxInjectedToolsFingerprint(chatUuid) : null;
-    const catalogChanged = Boolean(toolsFingerprint && priorToolsFp && priorToolsFp !== toolsFingerprint);
+    const catalogChanged = Boolean(
+      toolsFingerprint && priorToolsFp && priorToolsFp !== toolsFingerprint
+    );
     const omitClientSystem = Boolean(toStringOrEmpty(bodyObj.syntx_account_system_prompt));
     const generated = buildSyntxGenerateText({
       messages: sessionMessages,
@@ -1048,8 +1108,7 @@ export class SyntxExecutor extends BaseExecutor {
         }
         files.push({ object_type: uploaded.objectType || "file", object_url: uploaded.url });
         if (isolated || wantContinue) {
-          const prompt =
-            toStringOrEmpty(bodyObj.syntx_history_prompt) || SYNTX_FILE_COMPACT_PROMPT;
+          const prompt = toStringOrEmpty(bodyObj.syntx_history_prompt) || SYNTX_FILE_COMPACT_PROMPT;
           text = prompt;
         }
       } catch {
@@ -1058,7 +1117,12 @@ export class SyntxExecutor extends BaseExecutor {
     }
 
     if (!text) {
-      return makeErrorResult(400, "SYNTX requires a non-empty user message", body, SYNTX_GENERATE_PATH);
+      return makeErrorResult(
+        400,
+        "SYNTX requires a non-empty user message",
+        body,
+        SYNTX_GENERATE_PATH
+      );
     }
 
     const emptyClientTools = Array.isArray(bodyObj.tools) && bodyObj.tools.length === 0;
@@ -1164,7 +1228,9 @@ export class SyntxExecutor extends BaseExecutor {
       const stream = new ReadableStream({
         start: async (controller) => {
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(openAiChunk(id, created, clientModel, { role: "assistant" }))}\n\n`)
+            encoder.encode(
+              `data: ${JSON.stringify(openAiChunk(id, created, clientModel, { role: "assistant" }))}\n\n`
+            )
           );
           try {
             const upstream = await openStream();
@@ -1175,12 +1241,16 @@ export class SyntxExecutor extends BaseExecutor {
             if (!hasTools) {
               const read = await this.readSse(upstream, (delta) => {
                 controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify(openAiChunk(id, created, clientModel, { content: delta }))}\n\n`)
+                  encoder.encode(
+                    `data: ${JSON.stringify(openAiChunk(id, created, clientModel, { content: delta }))}\n\n`
+                  )
                 );
               });
               persistSession(read.text);
               controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify(openAiChunk(id, created, clientModel, {}, "stop"))}\n\n`)
+                encoder.encode(
+                  `data: ${JSON.stringify(openAiChunk(id, created, clientModel, {}, "stop"))}\n\n`
+                )
               );
             } else {
               const read = await this.readSse(upstream, () => undefined);
@@ -1210,14 +1280,17 @@ export class SyntxExecutor extends BaseExecutor {
                   );
                 }
                 controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify(openAiChunk(id, created, clientModel, {}, "stop"))}\n\n`)
+                  encoder.encode(
+                    `data: ${JSON.stringify(openAiChunk(id, created, clientModel, {}, "stop"))}\n\n`
+                  )
                 );
               }
             }
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
           } catch (error) {
-            if (!signal?.aborted) controller.error(error instanceof Error ? error : new Error("SYNTX stream error"));
+            if (!signal?.aborted)
+              controller.error(error instanceof Error ? error : new Error("SYNTX stream error"));
             else {
               try {
                 controller.close();
@@ -1254,7 +1327,12 @@ export class SyntxExecutor extends BaseExecutor {
     if (!upstream.ok) {
       const errText = await upstream.text().catch(() => "");
       return {
-        ...makeErrorResult(upstream.status, `SYNTX stream error: ${sanitizeErrorMessage(errText)}`, body, streamUrl),
+        ...makeErrorResult(
+          upstream.status,
+          `SYNTX stream error: ${sanitizeErrorMessage(errText)}`,
+          body,
+          streamUrl
+        ),
         headers: { authorization: "Bearer <redacted>" },
         transformedBody: generateBody,
       };
@@ -1275,7 +1353,9 @@ export class SyntxExecutor extends BaseExecutor {
     }
 
     persistSession(read.text);
-    const parsed = hasTools ? parseSyntxToolCalls(read.text) : { calls: [] as SyntxToolCall[], content: read.text };
+    const parsed = hasTools
+      ? parseSyntxToolCalls(read.text)
+      : { calls: [] as SyntxToolCall[], content: read.text };
 
     if (wantStream) {
       const chunks: string[] = [
@@ -1289,14 +1369,18 @@ export class SyntxExecutor extends BaseExecutor {
             })
           )}\n\n`
         );
-        chunks.push(`data: ${JSON.stringify(openAiChunk(id, created, clientModel, {}, "tool_calls"))}\n\n`);
+        chunks.push(
+          `data: ${JSON.stringify(openAiChunk(id, created, clientModel, {}, "tool_calls"))}\n\n`
+        );
       } else {
         if (read.text) {
           chunks.push(
             `data: ${JSON.stringify(openAiChunk(id, created, clientModel, { content: read.text }))}\n\n`
           );
         }
-        chunks.push(`data: ${JSON.stringify(openAiChunk(id, created, clientModel, {}, "stop"))}\n\n`);
+        chunks.push(
+          `data: ${JSON.stringify(openAiChunk(id, created, clientModel, {}, "stop"))}\n\n`
+        );
       }
       chunks.push("data: [DONE]\n\n");
       return {

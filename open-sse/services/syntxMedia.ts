@@ -10,12 +10,7 @@
  * Chat/LLM generate stays in executors/syntx.ts and is not used here.
  */
 import { randomBytes } from "node:crypto";
-import {
-  SYNTX_API_BASE,
-  looksLikeJwt,
-  resolveSyntxToken,
-  syntxAuthHeaders,
-} from "./syntxAuth.ts";
+import { SYNTX_API_BASE, looksLikeJwt, resolveSyntxToken, syntxAuthHeaders } from "./syntxAuth.ts";
 import {
   defaultAiNameForKind,
   parseSyntxMediaModelId,
@@ -90,7 +85,8 @@ export function applySyntxProviderRules(
 
   if (aiName === "grok_video") {
     if (modelType === "grok_i2v") drop(settings, "aspect_ratio");
-    if (modelType === "grok_v2v") dropAll(settings, ["aspect_ratio", "video_duration", "resolution"]);
+    if (modelType === "grok_v2v")
+      dropAll(settings, ["aspect_ratio", "video_duration", "resolution"]);
   }
   if (aiName === "kling" && /^kling_o1_/.test(modelType)) drop(settings, "mode");
   if (aiName === "runway" && modelType === "acttwo") drop(settings, "video_duration");
@@ -114,22 +110,32 @@ export function applySyntxProviderRules(
       ]);
     }
   }
-  if (aiName === "luma_image" && fileCount > 0 && settings.mode !== undefined) settings.mode = "auto";
+  if (aiName === "luma_image" && fileCount > 0 && settings.mode !== undefined)
+    settings.mode = "auto";
   if (aiName === "midjourney" && (settings.version === "8.1" || settings.version === "niji 7")) {
     drop(settings, "quality");
   }
   if (aiName === "runway-frames") drop(settings, "style");
   if (aiName === "seedream") {
-    if ((modelType === "seedream-4.5" || modelType === "seedream-5") && settings.resolution === "1K") {
+    if (
+      (modelType === "seedream-4.5" || modelType === "seedream-5") &&
+      settings.resolution === "1K"
+    ) {
       settings.resolution = "2K";
     }
-    if (modelType === "seedream-5.0-pro" && settings.resolution === "4K") settings.resolution = "2K";
+    if (modelType === "seedream-5.0-pro" && settings.resolution === "4K")
+      settings.resolution = "2K";
   }
   if (aiName === "sora-images" && modelType !== "gpt-image-2") {
     drop(settings, "quality");
     drop(settings, "details_quality");
   }
-  if (aiName === "wan_image" && modelType === "wan-2.7-pro" && fileCount > 0 && settings.resolution === "4K") {
+  if (
+    aiName === "wan_image" &&
+    modelType === "wan-2.7-pro" &&
+    fileCount > 0 &&
+    settings.resolution === "4K"
+  ) {
     settings.resolution = "2K";
   }
   if (aiName === "suno" && (settings.mode ?? "generate") === "generate") {
@@ -167,7 +173,11 @@ function firstNumber(body: JsonRecord, keys: string[]): number | undefined {
  * actually accepts. Size "16:9" is aspect_ratio; "1024x1024" / "2K" / "720p"
  * is resolution. Quality is only kept when it is not a resolution alias.
  */
-export function mapSyntxImageRequestSettings(aiName: string, modelType: string, body: JsonRecord): JsonRecord {
+export function mapSyntxImageRequestSettings(
+  aiName: string,
+  modelType: string,
+  body: JsonRecord
+): JsonRecord {
   const settings: JsonRecord = { model_type: modelType };
   const n = typeof body.n === "number" && body.n > 0 ? Math.min(body.n, 8) : 1;
   settings.n = n;
@@ -187,7 +197,11 @@ export function mapSyntxImageRequestSettings(aiName: string, modelType: string, 
   return settings;
 }
 
-export function mapSyntxVideoRequestSettings(aiName: string, modelType: string, body: JsonRecord): JsonRecord {
+export function mapSyntxVideoRequestSettings(
+  aiName: string,
+  modelType: string,
+  body: JsonRecord
+): JsonRecord {
   const settings: JsonRecord = { model_type: modelType };
   const aspect = firstString(body, ["aspect_ratio", "aspectRatio", "ratio", "size"]);
   if (ASPECT_TOKEN.test(aspect) || /^\d+:\d+$/.test(aspect.replace("x", ":"))) {
@@ -209,7 +223,11 @@ export function mapSyntxVideoRequestSettings(aiName: string, modelType: string, 
   return settings;
 }
 
-export function mapSyntxAudioRequestSettings(aiName: string, modelType: string, body: JsonRecord): JsonRecord {
+export function mapSyntxAudioRequestSettings(
+  _aiName: string,
+  modelType: string,
+  body: JsonRecord
+): JsonRecord {
   const settings: JsonRecord = { model_type: modelType };
   const voice = firstString(body, ["voice", "voice_id"]);
   if (voice && voice.toLowerCase() !== "alloy") settings.voice_id = voice;
@@ -277,7 +295,15 @@ function extractUrlsDeep(value: unknown, into: SyntxMediaItem[], kindHint: strin
     return;
   }
   const rec = asRecord(value);
-  const preferred = ["object_url", "url", "image_url", "video_url", "audio_url", "file_url", "download_url"];
+  const preferred = [
+    "object_url",
+    "url",
+    "image_url",
+    "video_url",
+    "audio_url",
+    "file_url",
+    "download_url",
+  ];
   for (const key of preferred) {
     const raw = rec[key];
     if (typeof raw === "string" && /^https?:\/\//i.test(raw)) {
@@ -338,11 +364,10 @@ export async function createSyntxMediaChat(options: {
   return uuid;
 }
 
-function encodeUploadMultipart(file: {
-  bytes: Uint8Array;
-  name: string;
-  mime: string;
-}): { body: Buffer; contentType: string } {
+function encodeUploadMultipart(file: { bytes: Uint8Array; name: string; mime: string }): {
+  body: Buffer;
+  contentType: string;
+} {
   const safeName = file.name.replace(/["\r\n]/g, "_") || "upload.bin";
   const safeMime = file.mime.replace(/[\r\n]/g, "") || "application/octet-stream";
   const boundary = `----WebKitFormBoundary${randomBytes(8).toString("hex")}`;
@@ -417,10 +442,7 @@ export async function pollSyntxChatMedia(options: {
     if (options.signal?.aborted) throw new SyntxMediaError("SYNTX media wait cancelled", 499);
     const elapsed = Date.now() - start;
     if (elapsed > timeout) {
-      throw new SyntxMediaError(
-        `Timeout waiting for SYNTX media in chat ${options.chatUuid}`,
-        504
-      );
+      throw new SyntxMediaError(`Timeout waiting for SYNTX media in chat ${options.chatUuid}`, 504);
     }
     const { status, json } = await syntxJson(
       fetchImpl,
@@ -497,7 +519,10 @@ async function generateDesignWithChat(options: {
     settings,
   });
   if (status < 200 || status >= 300) {
-    throw new SyntxMediaError(`SYNTX image generate HTTP ${status}: ${sanitizeErrorMessage(text)}`, status);
+    throw new SyntxMediaError(
+      `SYNTX image generate HTTP ${status}: ${sanitizeErrorMessage(text)}`,
+      status
+    );
   }
   const immediate: SyntxMediaItem[] = [];
   extractUrlsDeep(json, immediate, "image");
@@ -590,7 +615,10 @@ export async function runSyntxVideoGeneration(options: {
   const url = `${SYNTX_API_BASE}/api/v1/video/generate?ai_name=${encodeURIComponent(aiName)}`;
   const { status, json, text } = await syntxJson(fetchImpl, options.token, "POST", url, body);
   if (status < 200 || status >= 300) {
-    throw new SyntxMediaError(`SYNTX video generate HTTP ${status}: ${sanitizeErrorMessage(text)}`, status);
+    throw new SyntxMediaError(
+      `SYNTX video generate HTTP ${status}: ${sanitizeErrorMessage(text)}`,
+      status
+    );
   }
   const immediate: SyntxMediaItem[] = [];
   extractUrlsDeep(json, immediate, "video");
@@ -640,7 +668,10 @@ export async function runSyntxAudioGeneration(options: {
   const url = `${SYNTX_API_BASE}/api/v1/audio/generate?ai_name=${encodeURIComponent(aiName)}`;
   const { status, json, text } = await syntxJson(fetchImpl, options.token, "POST", url, body);
   if (status < 200 || status >= 300) {
-    throw new SyntxMediaError(`SYNTX audio generate HTTP ${status}: ${sanitizeErrorMessage(text)}`, status);
+    throw new SyntxMediaError(
+      `SYNTX audio generate HTTP ${status}: ${sanitizeErrorMessage(text)}`,
+      status
+    );
   }
   const immediate: SyntxMediaItem[] = [];
   extractUrlsDeep(json, immediate, "audio");
@@ -721,7 +752,10 @@ export async function fetchSyntxMediaBytes(
 ): Promise<{ bytes: Buffer; contentType: string }> {
   const response = await fetchImpl(url);
   if (!response.ok) {
-    throw new SyntxMediaError(`Failed to download SYNTX media HTTP ${response.status}`, response.status);
+    throw new SyntxMediaError(
+      `Failed to download SYNTX media HTTP ${response.status}`,
+      response.status
+    );
   }
   const bytes = Buffer.from(await response.arrayBuffer());
   const contentType = response.headers.get("content-type") || "application/octet-stream";
