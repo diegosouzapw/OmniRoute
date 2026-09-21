@@ -119,4 +119,23 @@ describe("the route passes the caller's key through", () => {
       "the route must pass the caller's scope into the helper"
     );
   });
+
+  it("does not re-run validateApiKey: getApiKeyRequestScope is the single lifecycle gate and the audit reason is its keyState (omni-code-review LEDGER-3/9)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { fileURLToPath } = await import("node:url");
+    const src = readFileSync(
+      fileURLToPath(
+        new URL("../../src/app/api/v1/batches/delete-completed/route.ts", import.meta.url)
+      ),
+      "utf8"
+    );
+    assert.ok(
+      !/import\s*\{[^}]*\bvalidateApiKey\b|\bvalidateApiKey\s*\(/.test(src),
+      "the route re-checks a lifecycle the helper already folded into apiKeyId: null — a redundant second lookup on every keyed request"
+    );
+    assert.ok(
+      /reason:\s*scope\.keyState/.test(src),
+      "the audit reason must come from the helper's keyState, not be re-derived from apiKeyId"
+    );
+  });
 });
