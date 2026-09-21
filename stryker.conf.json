@@ -482,7 +482,8 @@
       "tests/unit/provider-401-ambiguous-runtime.test.ts",
       "tests/unit/13601-header-drop-count-surfaced.test.ts",
       "tests/unit/combo-identical-error-streak.test.ts",
-      "tests/unit/semantic-cache-no-truncated-writes.test.ts"
+      "tests/unit/semantic-cache-no-truncated-writes.test.ts",
+      "tests/unit/obsidian-ssrf-guard.test.ts"
     ],
     "nodeArgs": [
       "--import",
