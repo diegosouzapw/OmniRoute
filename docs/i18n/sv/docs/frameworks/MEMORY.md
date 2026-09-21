@@ -164,33 +164,35 @@ Tabellen `memory_vec_meta` (migrering `083_memory_vec.sql`) lagrar:
 ## Inställningstillägg
 
 Nio inbäddnings- och vektorfält finns tillgängliga i `MemorySettingsExtended` i
-`src/shared/schemas/memory.ts` och sparas via `src/lib/db/settings.ts`:
+`src/shared/schemas/memory.ts` och lagras via `src/lib/db/settings.ts`:
 
-| Fält                     | Typ                                                | Standardvärde | Beskrivning                                                     |
-| ------------------------ | -------------------------------------------------- | ------------- | --------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Vilken inbäddningskälla som ska användas                        |
-| `embeddingProviderModel` | `string \| null`                                   | `null`        | Leverantör/modell i formatet `provider/model`                   |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | OpenAI-kompatibel bas-URL endast för minnen                     |
-| `customModelId`          | `string \| null`                                   | `null`        | Modell-ID som skickas till den anpassade slutpunkten            |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Aktivt val av Transformers.js (MiniLM, ~400 MB)                 |
-| `staticEnabled`          | `boolean`                                          | `false`       | Aktivt val av den lokala statiska modellen potion-base-8M       |
-| `rerankEnabled`          | `boolean`                                          | `false`       | Aktivera omrangordningssteget (lägger till +200–500 ms/begäran) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`        | Leverantör/modell för omrangordning i formatet `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`      | Vilken vektorbackend som ska användas                           |
+| Fält                     | Typ                                                | Standardvärde | Beskrivning                                                  |
+| ------------------------ | -------------------------------------------------- | ------------- | ------------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Vilken inbäddningskälla som ska användas                     |
+| `embeddingProviderModel` | `string \| null`                                   | `null`        | Leverantör/modell i formatet `provider/model`                |
+| `customBaseUrl`          | `string \| null`                                   | `null`        | OpenAI-kompatibel bas-URL för slutpunkt, endast för minne    |
+| `customModelId`          | `string \| null`                                   | `null`        | Modell-ID som skickas till den anpassade slutpunkten         |
+| `transformersEnabled`    | `boolean`                                          | `false`       | Aktivt val för Transformers.js (MiniLM, ~400 MB)             |
+| `staticEnabled`          | `boolean`                                          | `false`       | Aktivt val för den lokala statiska modellen potion-base-8M   |
+| `rerankEnabled`          | `boolean`                                          | `false`       | Aktivera omrankningssteget (lägger till +200–500 ms/begäran) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`        | Omrankningsleverantör/modell i formatet `provider/model`     |
+
+`rerankProviderModel` matchas av `POST /v1/rerank` (anropas via loopback), så det accepterar allt som den rutten accepterar: en utvald molnbaserad omrankningsmodell (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) eller en OpenAI-kompatibel leverantörsnod som `<node-prefix>/<model>` (t.ex. `skilled-mini/bge-reranker-v2-m3` för en TEI/Infinity-instans). Loopback-noder är alltid tillåtna. En nod på en annan värd (LAN, Tailscale) kräver dessutom funktionsflaggan `RERANK_REMOTE_PROVIDER_NODES` och måste godkännas av policyn för utgående URL:er från leverantörer – se [Funktionsflaggor](../reference/FEATURE_FLAGS.md). Instrumentpanelens väljare listar utvalda leverantörer samt lokala noder. Alla giltiga `provider/model`-strängar kan anges direkt via `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Vilken vektorbackend som ska användas |
 
 Dessa exponeras via `GET /PUT /api/settings/memory` (schemat `MemorySettingsExtendedSchema`).
 
-För källan `remote` godtar Memory även de valfria inställningarna `customBaseUrl` och
+För källan `remote` accepterar Memory även de valfria inställningarna `customBaseUrl` och
 `customModelId`. Tillsammans väljer de en OpenAI-kompatibel `/embeddings`-slutpunkt
 och modell utan att ändra det globala inbäddningsregistret. Slutpunkten normaliseras
-före användning och kontrolleras av leverantörens policy för utgående URL:er: HTTP(S)
-krävs, inbäddade autentiseringsuppgifter och frågesträngar avvisas och adresser till
-molnmetadata förblir blockerade. Tomma värden bevarar den valda registerleverantören.
-Fel som returneras till instrumentpanelen saneras och autentiseringsuppgifter för
-slutpunkten loggas aldrig.
+före användning och kontrolleras av policyn för utgående URL:er från leverantörer:
+HTTP(S) krävs, inbäddade autentiseringsuppgifter och frågesträngar avvisas och
+molnmetadataadresser förblir blockerade. Tomma värden bevarar den valda
+registerleverantören. Fel som returneras till instrumentpanelen saneras och
+slutpunktens autentiseringsuppgifter loggas aldrig.
 
-> **TODO (D20):** Omfattningen `global` (delning av minnen mellan alla API-nycklar) är inte
-> implementerad i den här versionen. Den kräver schemaändringar och en global
+> **TODO (D20):** Omfånget `global` (delning av minnen mellan alla API-nycklar) är inte
+> implementerat i den här versionen. Det kräver schemaändringar och en global
 > hämtningsväg. Spåra detta separat.
 
 ## Lagringslager

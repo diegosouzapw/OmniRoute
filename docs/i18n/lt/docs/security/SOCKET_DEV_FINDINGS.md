@@ -4,21 +4,23 @@
 
 ---
 
-Šis dokumentas yra prižiūrėtojo parengtas patvirtinimas dėl šešių
-`AI-detected potential malware` aptikimų, pateiktų dėl `omniroute@3.8.5`, ir
-rizikos mažinimo priemonių, pritaikytų `omniroute@3.8.6`. Jis parengtas tam, kad:
+> **Taikymo srities pastaba:** `socket.yml` konfigūruoja Socket.dev registro pusėje po paskelbimo atliekamą npm artefakto nuskaitymą (neįtraukiamus kelius, skirtus neplatinamam turiniui, pvz., `tests/`, `docs/` ir kompiliavimo ataskaitoms). Jis nesukuria CI/PR suliejimo kontrolės — jokia darbo eiga, esanti `.github/workflows`, joks `package.json` scenarijus ir joks `Makefile` tikslas neiškviečia Socket.dev.
 
-1. Saugumo konvejerio operatoriai turėtų vieną šaltinį, kurį galėtų nurodyti,
-   kai reikia įvertinti aptikimus pagal faktinį pirminį kodą.
-2. Būsimi DI skaitytuvai galėtų aptikti prižiūrėtojo pasirašytą pareiškimą, kad
-   kiekvienas pažymėtas kelias yra tyčinis, pasirenkamas ir dokumentuotas.
-3. Turėtume rašytinį įrašą, _kodėl_ kiekviena iškvietimo vieta yra suformuota
-   būtent taip — kad būsimas refaktorizavimas netyčia iš naujo neįdiegtų
-   požymio, kuris buvo sąmoningai pašalintas.
+Šis dokumentas yra prižiūrėtojo parengtas patvirtinimas dėl šešių
+`DI aptiktos galimos kenkėjiškos programinės įrangos` radinių, nustatytų `omniroute@3.8.5`, ir
+rizikos mažinimo priemonių, pritaikytų `omniroute@3.8.6`. Jis skirtas tam, kad:
+
+1. Saugumo procesų operatoriai turėtų vieną nuorodą, kurią galėtų nurodyti, kai jiems reikia
+   įvertinti radinius pagal faktinį pirminį kodą.
+2. Būsimi DI skaitytuvai galėtų aptikti prižiūrėtojo pasirašytą pareiškimą, kad kiekvienas
+   pažymėtas kelias yra numatytas, pasirenkamas ir dokumentuotas.
+3. Turėtume rašytinį įrašą, _kodėl_ kiekviena iškvietimo vieta suformuota būtent taip —
+   kad ateityje pertvarkant kodą nebūtų netyčia vėl įvestas požymis, kuris
+   buvo sąmoningai pašalintas.
 
 Jei naudojate skaitytuvą, kuris po v3.8.6 rizikos mažinimo priemonių išleidimo
-iš naujo pažymi kurią nors iš toliau nurodytų iškvietimo vietų, atverkite
-problemą ir pridėkite nuskaitymo trasą, o mes čia papildysime patvirtinimą.
+vėl pažymi kurią nors iš toliau nurodytų iškvietimo vietų, atidarykite problemą, pridėkite
+nuskaitymo seką, ir mes čia papildysime patvirtinimą.
 
 ---
 

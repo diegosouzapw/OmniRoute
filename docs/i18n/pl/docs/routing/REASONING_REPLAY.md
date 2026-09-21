@@ -1,4 +1,9 @@
+# Reasoning Replay Cache (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/REASONING_REPLAY.md) · 🇪🇹 [am](../../../am/docs/routing/REASONING_REPLAY.md) · 🇸🇦 [ar](../../../ar/docs/routing/REASONING_REPLAY.md) · 🇦🇿 [az](../../../az/docs/routing/REASONING_REPLAY.md) · 🇧🇬 [bg](../../../bg/docs/routing/REASONING_REPLAY.md) · 🇧🇩 [bn](../../../bn/docs/routing/REASONING_REPLAY.md) · 🇨🇿 [cs](../../../cs/docs/routing/REASONING_REPLAY.md) · 🇩🇰 [da](../../../da/docs/routing/REASONING_REPLAY.md) · 🇩🇪 [de](../../../de/docs/routing/REASONING_REPLAY.md) · 🇬🇷 [el](../../../el/docs/routing/REASONING_REPLAY.md) · 🇪🇸 [es](../../../es/docs/routing/REASONING_REPLAY.md) · 🇪🇪 [et](../../../et/docs/routing/REASONING_REPLAY.md) · 🇮🇷 [fa](../../../fa/docs/routing/REASONING_REPLAY.md) · 🇫🇮 [fi](../../../fi/docs/routing/REASONING_REPLAY.md) · 🇫🇷 [fr](../../../fr/docs/routing/REASONING_REPLAY.md) · 🇮🇪 [ga](../../../ga/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [gu](../../../gu/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [ha](../../../ha/docs/routing/REASONING_REPLAY.md) · 🇮🇱 [he](../../../he/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [hi](../../../hi/docs/routing/REASONING_REPLAY.md) · 🇭🇷 [hr](../../../hr/docs/routing/REASONING_REPLAY.md) · 🇭🇺 [hu](../../../hu/docs/routing/REASONING_REPLAY.md) · 🇦🇲 [hy](../../../hy/docs/routing/REASONING_REPLAY.md) · 🇮🇩 [id](../../../id/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [ig](../../../ig/docs/routing/REASONING_REPLAY.md) · 🇮🇹 [it](../../../it/docs/routing/REASONING_REPLAY.md) · 🇯🇵 [ja](../../../ja/docs/routing/REASONING_REPLAY.md) · 🇬🇪 [ka](../../../ka/docs/routing/REASONING_REPLAY.md) · 🇰🇭 [km](../../../km/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [kn](../../../kn/docs/routing/REASONING_REPLAY.md) · 🇰🇷 [ko](../../../ko/docs/routing/REASONING_REPLAY.md) · 🇱🇹 [lt](../../../lt/docs/routing/REASONING_REPLAY.md) · 🇱🇻 [lv](../../../lv/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [ml](../../../ml/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [mr](../../../mr/docs/routing/REASONING_REPLAY.md) · 🇲🇾 [ms](../../../ms/docs/routing/REASONING_REPLAY.md) · 🇲🇹 [mt](../../../mt/docs/routing/REASONING_REPLAY.md) · 🇲🇲 [my](../../../my/docs/routing/REASONING_REPLAY.md) · 🇳🇵 [ne](../../../ne/docs/routing/REASONING_REPLAY.md) · 🇳🇱 [nl](../../../nl/docs/routing/REASONING_REPLAY.md) · 🇳🇴 [no](../../../no/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [or](../../../or/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [pa](../../../pa/docs/routing/REASONING_REPLAY.md) · 🇵🇭 [phi](../../../phi/docs/routing/REASONING_REPLAY.md) · 🇵🇹 [pt](../../../pt/docs/routing/REASONING_REPLAY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/REASONING_REPLAY.md) · 🇷🇴 [ro](../../../ro/docs/routing/REASONING_REPLAY.md) · 🇷🇺 [ru](../../../ru/docs/routing/REASONING_REPLAY.md) · 🇱🇰 [si](../../../si/docs/routing/REASONING_REPLAY.md) · 🇸🇰 [sk](../../../sk/docs/routing/REASONING_REPLAY.md) · 🇸🇮 [sl](../../../sl/docs/routing/REASONING_REPLAY.md) · 🇷🇸 [sr](../../../sr/docs/routing/REASONING_REPLAY.md) · 🇸🇪 [sv](../../../sv/docs/routing/REASONING_REPLAY.md) · 🇰🇪 [sw](../../../sw/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [ta](../../../ta/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [te](../../../te/docs/routing/REASONING_REPLAY.md) · 🇹🇭 [th](../../../th/docs/routing/REASONING_REPLAY.md) · 🇹🇷 [tr](../../../tr/docs/routing/REASONING_REPLAY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/REASONING_REPLAY.md) · 🇵🇰 [ur](../../../ur/docs/routing/REASONING_REPLAY.md) · 🇺🇿 [uz](../../../uz/docs/routing/REASONING_REPLAY.md) · 🇻🇳 [vi](../../../vi/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [yo](../../../yo/docs/routing/REASONING_REPLAY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/REASONING_REPLAY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/REASONING_REPLAY.md)
+
 ---
+
 title: "Cache odtwarzania reasoning (Reasoning Replay)"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -26,19 +31,22 @@ Typowe klienty (Cursor, Cline, Roo Code, OpenAI SDK) usuwają jednak `reasoning_
 ```
 Tura N (asystent generuje):
   → odpowiedź zawiera reasoning_content + tool_calls
-  → cacheReasoningFromAssistantMessage() zapisuje (pamięć + DB), kluczowane po każdym tool_call.id
-  → przekaż odpowiedź do klienta (który może, ale nie musi zachować reasoning)
+  → jeśli requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
+      zapisuje (pamięć + DB), z kluczem dla każdego tool_call.id
+  → przekazanie odpowiedzi do klienta (który może zachować reasoning lub nie)
 
-Tura N+1 (klient wysyła follow-up):
+Tura N+1 (klient wysyła kolejne żądanie):
   → translator wykrywa: requiresReasoningReplay(provider, model) === true
   → dla każdej wiadomości asystenta z tool_calls i bez reasoning_content:
       lookupReasoning(toolCalls[0].id) → pamięć → DB
-      hit  → msg.reasoning_content = cached; recordReplay()
-      miss → msg.reasoning_content = "" (legacy fallback dla starszego DeepSeek)
-  → upstream widzi spójną historię → brak 400
+      trafienie     → msg.reasoning_content = cached; recordReplay()
+      brak trafienia → msg.reasoning_content = "" (starszy mechanizm rezerwowy dla wcześniejszych wersji DeepSeek)
+  → upstream otrzymuje spójną historię → brak błędu 400
 ```
 
-Przechwytywanie odbywa się w `open-sse/handlers/chatCore.ts` (dwa miejsca, ok. linii 4093 i 4380). Odtwarzanie odbywa się w `open-sse/translator/index.ts` po koercji schematu, a przed dispatch.
+Przechwytywanie odbywa się w `open-sse/handlers/chatCore.ts` (w dwóch miejscach, w których wywoływana jest funkcja `cacheReasoningFromAssistantMessage`). Odtwarzanie odbywa się w `open-sse/translator/index.ts` po wymuszeniu zgodności ze schematem, ale przed wysłaniem.
+
+Zwykłe tury asystenta (bez wywołań narzędzi) mają klucze tworzone inaczej: `buildAssistantMessageCacheKey()` oblicza skrót zakresu sesji oraz znormalizowanego transkryptu w formacie OpenAI aż do danej tury, ponieważ DeepSeek wymaga reasoning ze _wszystkich_ wcześniejszych tur, gdy obecne jest `tools`. W przypadku celów korzystających z Responses API (na przykład `opencode-go/deepseek-v4-flash`, kierowanego do `/responses`) treść żądania upstream zawiera `input`, a nie `messages`, dlatego `translateRequest()` (`open-sse/translator/index.ts`) zgłasza za pośrednictwem opcji callbacka transkrypt pośredni, dla którego obliczono skrót, a miejsca przechwytywania obliczają skrót tego samego transkryptu. Przebieg odtwarzania Responses działa na transkrypcie pośrednim OpenAI dla każdego formatu źródłowego, dzięki czemu odtwarzane są również żądania klientów Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Przechowywanie — hybrydowa pamięć + SQLite
 

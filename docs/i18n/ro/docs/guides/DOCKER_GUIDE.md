@@ -25,7 +25,13 @@
 
 ---
 
-## Rulare rapidă
+## Pornire rapidă
+
+> **Auto-găzduire cu o singură comandă?** Consultați
+> [Ghidul de auto-găzduire](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (imagine publicată +
+> Redis, accesibil doar prin interfața loopback, fără alegerea unui profil). Secțiunea Pornire rapidă de mai jos descrie
+> varianta cu un singur container pentru utilizatorii care rulează deja Redis în altă parte.
 
 ```bash
 docker run -d \

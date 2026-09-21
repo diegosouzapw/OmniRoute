@@ -169,33 +169,36 @@ A tabela `memory_vec_meta` (migração `083_memory_vec.sql`) armazena:
 
 ## Extensão das configurações
 
-Nove campos de embeddings e vetores estão disponíveis em `MemorySettingsExtended` em
+Nove campos de embedding e vetores estão disponíveis em `MemorySettingsExtended` em
 `src/shared/schemas/memory.ts`, persistidos por meio de `src/lib/db/settings.ts`:
 
-| Campo                    | Tipo                                               | Padrão   | Descrição                                                      |
-| ------------------------ | -------------------------------------------------- | -------- | -------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Qual fonte de embeddings usar                                  |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Provedor/modelo no formato `provider/model`                    |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL base de endpoint compatível com OpenAI apenas para memória |
-| `customModelId`          | `string \| null`                                   | `null`   | ID do modelo enviado ao endpoint personalizado                 |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Adesão ao Transformers.js (MiniLM, ~400MB)                     |
-| `staticEnabled`          | `boolean`                                          | `false`  | Adesão ao modelo local estático potion-base-8M                 |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Habilita a etapa de reclassificação (adiciona +200-500ms/req)  |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Provedor/modelo de reclassificação no formato `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Qual backend vetorial usar                                     |
+| Campo                    | Tipo                                               | Padrão   | Descrição                                                       |
+| ------------------------ | -------------------------------------------------- | -------- | --------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Qual fonte de embedding usar                                    |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Provedor/modelo no formato `provider/model`                     |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL base de endpoint compatível com OpenAI somente para memória |
+| `customModelId`          | `string \| null`                                   | `null`   | ID do modelo enviado ao endpoint personalizado                  |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Adesão ao Transformers.js (MiniLM, ~400MB)                      |
+| `staticEnabled`          | `boolean`                                          | `false`  | Adesão ao modelo local estático potion-base-8M                  |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Habilita a etapa de reranqueamento (adiciona +200-500ms/req)    |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Provedor/modelo de reranqueamento no formato `provider/model`   |
+
+`rerankProviderModel` é resolvido por `POST /v1/rerank` (chamado via loopback), portanto aceita qualquer valor aceito por essa rota: um modelo de reranqueamento em nuvem selecionado (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ou um nó de provedor compatível com OpenAI como `<node-prefix>/<model>` (por exemplo, `skilled-mini/bge-reranker-v2-m3` para uma máquina TEI/Infinity). Nós de loopback são sempre elegíveis; um nó em outro host (LAN, Tailscale) também exige a feature flag `RERANK_REMOTE_PROVIDER_NODES` e deve passar pela política de URLs de saída do provedor — consulte [Feature Flags](../reference/FEATURE_FLAGS.md). O seletor do painel lista provedores selecionados e nós locais; qualquer string `provider/model` válida pode ser definida diretamente por meio de `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Qual backend vetorial usar |
 
 Esses campos são expostos por meio de `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Para a fonte `remote`, o Memory também aceita as configurações opcionais `customBaseUrl` e
 `customModelId`. Juntas, elas selecionam um endpoint `/embeddings` compatível com OpenAI
-e um modelo sem alterar o registro global de embeddings. O endpoint é
-normalizado antes do uso e verificado pela política de URLs de saída do provedor: HTTP(S) é
-obrigatório, credenciais incorporadas e strings de consulta são rejeitadas, e endereços de
-metadados de nuvem permanecem bloqueados. Valores vazios preservam o provedor selecionado no registro. Os erros
-retornados ao painel são sanitizados, e as credenciais do endpoint nunca são registradas em logs.
+e um modelo sem alterar o registro global de embeddings. O endpoint é normalizado antes
+do uso e verificado pela política de URLs de saída do provedor: HTTP(S) é obrigatório,
+credenciais incorporadas e strings de consulta são rejeitadas, e endereços de metadados
+de nuvem permanecem bloqueados. Valores vazios preservam o provedor selecionado no
+registro. Os erros retornados ao painel são sanitizados, e as credenciais do endpoint
+nunca são registradas em logs.
 
 > **TODO (D20):** O escopo `global` (compartilhamento de memórias entre todas as chaves de API) não está
-> implementado nesta versão. Ele requer alterações no schema e um caminho de recuperação
+> implementado nesta versão. Ele exige alterações no schema e um caminho de recuperação
 > global. Acompanhe separadamente.
 
 ## Camadas de armazenamento

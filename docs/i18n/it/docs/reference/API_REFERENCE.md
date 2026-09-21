@@ -435,7 +435,7 @@ Utilizzare questo endpoint quando un sidecar viene eseguito fuori processo e non
 | POST   | `/v1/music/generations`                   | Generazione musicale in stile OpenAI    |
 | POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
 | POST   | `/v1/audio/speech`                        | OpenAI TTS (restituisce il corpo audio) |
-| POST   | `/v1/rerank`                              | Reranking in stile Cohere/Voyage        |
+| POST   | `/v1/rerank`                              | Rerank in stile Cohere/Voyage           |
 | POST   | `/v1/classify`                            | Classificazione Jina (`api.jina.ai`)    |
 | POST   | `/v1/segment`                             | Segmentatore Jina (`segment.jina.ai`)   |
 | POST   | `/v1/moderations`                         | OpenAI Moderations                      |
@@ -451,12 +451,12 @@ Utilizzare questo endpoint quando un sidecar viene eseguito fuori processo e non
 | POST   | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama con token                  |
 | GET    | `/api/v1/vscode/{token}/api/tags`         | Alias dei tag Ollama con token          |
 
-Tutte le route POST seguono la stessa struttura: `Bearer your-api-key` + corpo JSON convalidato tramite Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` e così via; vedere `src/shared/validation/schemas.ts`). In caso di errore di convalida dello schema viene restituito un codice 4xx.
+Tutte le route POST seguono la stessa struttura: `Bearer your-api-key` + corpo JSON convalidato da Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ecc.; vedere `src/shared/validation/schemas.ts`). In caso di errore dello schema viene restituito un codice 4xx.
 
 Per i client che non possono aggiungere `Authorization: Bearer ...`, OmniRoute accetta anche le chiavi API nell'URL, tramite la compatibilità con i parametri della stringa di query (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) oppure tramite gli endpoint dedicati `/api/v1/vscode/{token}/...` documentati di seguito.
 
 ```bash
-# Reranking
+# Rerank (provider del registro cloud oppure nodo provider compatibile con OpenAI come "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Classificazione Jina (credenziali Foundation API)
@@ -468,7 +468,7 @@ POST /v1/segment     { "content": "...", "return_chunks": true }
 # Ricerca Jina (s.jina.ai; alias del provider: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderazione
+# Moderazioni
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — restituisce un corpo audio/mpeg (o nel formato richiesto)
@@ -477,12 +477,34 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # Modifica di immagini (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generazione di video/musica (ID modello con prefisso del provider)
+# Generazione video/musicale (ID modello con prefisso del provider)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Route dedicate ai provider
+> **Nodi provider di rerank:** `POST /v1/rerank` instrada le richieste anche verso nodi provider compatibili con OpenAI
+> (oMLX, vLLM, Infinity, TEI dietro un gateway, …) identificati come `<node-prefix>/<model>`. I nodi di loopback
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sono sempre idonei. I nodi su qualsiasi altro
+> host — un dispositivo nella LAN o un peer Tailscale — sono idonei solo quando l'operatore abilita il
+> feature flag `RERANK_REMOTE_PROVIDER_NODES` **e** l'URL di base del nodo supera i criteri degli URL in uscita del provider
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> gli host dei metadati cloud non vengono mai utilizzati per l'instradamento. Il passaggio di rerank del motore di memoria richiama questa route
+> tramite loopback, quindi la stessa regola disciplina `rerankProviderModel` nelle impostazioni della memoria.
+>
+> **Strutture dei server locali:** il nodo viene chiamato tramite `<base>/v1/rerank` e, in caso di 404, tramite `<base>/rerank`
+> (Infinity, TEI). Il corpo inviato all'upstream include sia la nomenclatura Cohere/OpenAI (`documents`,
+> `return_documents`) sia quella TEI (`texts`, `return_text`), mentre la risposta upstream viene
+> normalizzata secondo l'involucro Cohere: l'array semplice di TEI `[{index, score, text}]`, la struttura `{results: [{index, score}]}`
+> proveniente da gateway leggeri e la struttura in stile Voyage `{data: [...]}` vengono tutte restituite al client come
+> `{results: [{index, relevance_score, document?}]}`, ordinate per punteggio e limitate a `top_n`.
+
+> **Rilevamento dei nodi provider:** i modelli presenti su un nodo provider compatibile con OpenAI vengono visualizzati in `GET /v1/models`
+> sotto il prefisso del nodo. Le righe prive di metadati dell'endpoint (tipico degli elenchi locali `/v1/models`)
+> ereditano l'`apiType` del nodo, pertanto i modelli di un nodo `embeddings` sono `type: "embedding"` e quelli di un
+> nodo `rerank` sono `type: "rerank"`, anziché essere impostati per impostazione predefinita come chat; un valore
+> `supportedEndpoints` esplicito in una riga sincronizzata o aggiunta manualmente mantiene comunque la precedenza.
+
+### Route dedicate dei provider
 
 ```bash
 POST /v1/providers/{provider}/chat/completions

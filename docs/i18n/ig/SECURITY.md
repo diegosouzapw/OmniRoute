@@ -220,37 +220,38 @@ Tooling na ndị nyocha na-amanye iwu ndị a:
 10. **Ụkpụrụ runtime nke `exec()` / `spawn()` ga-esite na nhọrọ `env`** — etinyela external paths ma ọ bụ ụkpụrụ a na-atụkwasịghị obi n'ime scripts a na-eziga na shell site na string interpolation ma ọlị. Ntụaka: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Họrọ libraries ndị nwere nchekwa na ndabara** — lee [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Jiri ha tupu ịmepụta nke gị.
 
-## Ihe nyocha supply-chain chọpụtara (Socket.dev / Snyk / ndị yiri ha)
+## Nchọpụta ihe nyocha usoro ọkọnọ (Socket.dev / Snyk / ndị yiri ha)
 
-Ngwa npm `omniroute` e bipụtara na-achịkọta build Next.js `output: "standalone"`,
-nke pụtara na route handler ọ bụla — gụnyere atụmatụ nwere ikike pụrụ iche
-e depụtara n’akwụkwọ (MITM, mbubata Zed, Cloud Sync, onye nlekọta service
-e tinyere n’ime ya) — na-abanye n’ime chunks `.next/server/*.js` e mere minify.
-Ndị nyocha supply-chain na-eji heuristic na-ejikọkarị ụkpụrụ ndị dị na chunks
-ndị ahụ na signatures malware.
+> **Ndetu gbasara oke:** `socket.yml` dị na mgbọrọgwụ ebe nchekwa ahụ na-ahazi naanị `projectIgnorePaths` maka nyocha Socket.dev nke na-eme n'akụkụ ndekọ mgbe e bipụtachara ngwugwu npm — ọ bụghị ọnụ ụzọ CI/PR a na-amanye tupu e jikọta koodu. Ọ dịghị workflow dị na `.github/workflows`, ọ dịghị script `package.json`, ọ dịghịkwa target `Makefile` na-akpọ Socket.dev.
 
-Nhazi scanner anyị na-eji dị na [`socket.yml`](socket.yml) na mgbọrọgwụ repo
-(usoro Socket.dev GitHub App v2 — lee
-<https://docs.socket.dev/docs/socket-yml>). Ọ na-ewepụ kpọmkwem directories
-ndị anaghị eso na mbipụta (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/`, wdg.) ka scanner wee kọọ naanị code paths ndị na-erute
-n’ezie ndị ọrụ nke mbipụta ahụ — Socket GitHub App na-agụ faịlụ ahụ bụ ya
-na-eme scan ahụ n’onwe ya, ọ bụghị workflow dị na repository a.
+Ngwugwu npm `omniroute` e bipụtara gụnyere build Next.js `output: "standalone"`,
+nke pụtara na route handler ọ bụla — gụnyere atụmatụ ndị nwere ikike pụrụ iche
+e depụtara n'akwụkwọ (MITM, mbubata Zed, Cloud Sync, na onye nlekọta ọrụ
+agbakwunyere) — na-abanye na chunks `.next/server/*.js` e belatara. Ndị nyocha
+usoro ọkọnọ na-eji heuristic na-ejikarị ụkpụrụ tụnyere chunks ndị ahụ na
+mbinye aka malware.
 
-Maka ụdị finding ọ bụla, anyị na-edobe nkwenye maintainer pụrụ iche maka finding
-nke ọ bụla:
+Nhazi ihe nyocha anyị na-eji dị na [`socket.yml`](socket.yml) n'ime
+mgbọrọgwụ repo ahụ (usoro Socket.dev GitHub App v2 — lee
+<https://docs.socket.dev/docs/socket-yml>). Ọ na-ewepụ kpọmkwem
+directories ndị a naghị eziga (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, wdg.) ka ihe nyocha ahụ wee kọọ naanị ụzọ koodu ndị
+na-erute ndị ọrụ nke mbipụta ahụ n'ezie — Socket GitHub App na-agụ faịlụ ahụ
+bụ ya na-ebute nyocha ahụ, ọ bụghị workflow dị n'ebe nchekwa a.
+
+Maka ụdị nchọpụta ọ bụla, anyị na-edobe nkwenye onye nlekọta maka nchọpụta ọ bụla:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  map finding ọ bụla: source file ↔ chunk e nyere ọkọlọtọ ↔ omume ↔ mbelata
-  ihe ize ndụ etinyere na v3.8.6.
-- Blocks `SECURITY-AUDITOR-NOTE:` dị n’ime source n’ebe function ọ bụla e nyere
-  ọkọlọtọ na-atụgharị aka azụ n’otu akwụkwọ ahụ.
+  maapụ maka nchọpụta ọ bụla: faịlụ mmalite ↔ chunk e kara akara ↔ omume ↔
+  usoro mbelata ihe ize ndụ etinyere na v3.8.6.
+- Blọk `SECURITY-AUDITOR-NOTE:` dị n'ime koodu n'ebe function ọ bụla e kara
+  akara na-atụghachi aka n'otu akwụkwọ ahụ.
 
-Maka ndị ọrụ pipeline ha na-enweghị ike ime ka alert ahụ dị mfe: jiri
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` wuo ya. Nke ahụ na-eji stubs
-na-eweghachi HTTP 503 `feature-disabled` n’oge runtime dochie modules anọ ahụ
-nwere mmetụta pụrụ iche, nke mere na code paths nwere ikike pụrụ iche agaghị
-adị n’anụ ahụ n’ime bundle ahụ. Lee
+Maka ndị ọrụ pipeline ha na-enweghị ike ime ka ọkwa ịdọ aka ná ntị ahụ dị mfe:
+jiri `OMNIROUTE_BUILD_PROFILE=minimal npm run build` mee build. Nke ahụ na-eji
+stubs na-eweghachi HTTP 503 `feature-disabled` n'oge runtime dochie modules anọ
+nwere mmetụta pụrụ iche, ya mere ụzọ koodu ndị nwere ikike pụrụ iche adịghị
+n'ime bundle ahụ n'anụ ahụ. Lee
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 maka usoro mbipụta ahụ.
 

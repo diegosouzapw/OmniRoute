@@ -220,24 +220,32 @@ Kanuni hizi hutekelezwa na zana na wakaguzi:
 10. **Thamani za wakati wa utekelezaji za `exec()` / `spawn()` kupitia chaguo la `env`** — kamwe usichope njia za nje au thamani zisizoaminika moja kwa moja kwenye scripts zinazopitishwa kwa shell. Rejea: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Pendelea maktaba salama kwa chaguo-msingi** — tazama [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Zitumie kabla ya kutengeneza suluhisho lako mwenyewe.
 
-## Matokeo ya kichanganuzi cha mnyororo wa ugavi (Socket.dev / Snyk / vinginevyo)
+## Matokeo ya kichanganuzi cha mnyororo wa usambazaji (Socket.dev / Snyk / vingine vinavyofanana)
 
-Artefakti ya npm ya `omniroute` iliyochapishwa ina jengo la Next.js lenye `output: "standalone"`, jambo linalomaanisha kuwa kila kidhibiti cha njia — ikiwemo vipengele maalumu vilivyoandikwa kwenye nyaraka (MITM, uingizaji wa Zed, Cloud Sync, msimamizi wa huduma aliyopachikwa) — huishia katika vipande vilivyofupishwa vya `.next/server/*.js`. Vichanganuzi vya kiheuristiki vya mnyororo wa ugavi mara nyingi hulinganisha ruwaza za vipande hivyo na sahihi za programu hasidi.
+> **Dokezo kuhusu upeo:** `socket.yml` katika mzizi wa hazina huelekeza tu `projectIgnorePaths` kwa uchanganuzi wa Socket.dev unaofanywa upande wa sajili baada ya uchapishaji wa artefakti ya npm iliyochapishwa — si kizuizi kinachotekelezwa cha kuunganisha CI/PR. Hakuna mtiririko wa kazi katika `.github/workflows`, hati ya `package.json`, wala lengo la `Makefile` linaloendesha Socket.dev.
 
-Usanidi wa kichanganuzi tunaotumia unapatikana katika [`socket.yml`](socket.yml) kwenye mzizi wa repo (muundo wa v2 wa Socket.dev GitHub App — tazama <https://docs.socket.dev/docs/socket-yml>). Huondoa waziwazi saraka zisizosambazwa (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/`, n.k.) ili kichanganuzi kiripoti tu njia za msimbo zinazowafikia watumiaji wa toleo lililochapishwa — uchanganuzi wenyewe huendeshwa na Socket GitHub App inayosoma faili hiyo, si mtiririko wa kazi katika hazina hii.
+Artefakti ya npm ya `omniroute` iliyochapishwa hujumuisha toleo la Next.js la `output: "standalone"`, jambo linalomaanisha kuwa kila kidhibiti cha njia — ikiwa ni pamoja na vipengele maalumu vilivyoandikwa kwenye nyaraka (MITM, uingizaji wa Zed, Cloud Sync, msimamizi wa huduma aliyopachikwa) — huishia katika vipande vya `.next/server/*.js` vilivyopunguzwa. Vichanganuzi vya mnyororo wa usambazaji vinavyotumia mbinu za kiheuristiki mara nyingi hulinganisha ruwaza za vipande hivyo na sahihi za programu hasidi.
 
-Kwa kila kategoria ya matokeo, tunadumisha uthibitisho wa mtunzaji kwa kila tokeo:
+Usanidi wa kichanganuzi tunaotumia unapatikana katika [`socket.yml`](socket.yml) kwenye
+mzizi wa hazina (muundo wa v2 wa Socket.dev GitHub App — tazama
+<https://docs.socket.dev/docs/socket-yml>). Unaondoa kwa uwazi
+saraka ambazo hazisambazwi (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, n.k.) ili kichanganuzi kiripoti tu njia za msimbo ambazo
+zinawafikia watumiaji wa artefakti iliyochapishwa — uchanganuzi wenyewe huendeshwa na Socket
+GitHub App inayosoma faili hiyo, si mtiririko wa kazi katika hazina hii.
+
+Kwa kila aina ya matokeo, tunadumisha uthibitisho wa mtunzaji kwa kila tokeo:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  ramani ya kila tokeo: faili chanzo ↔ kipande kilichoalamishwa ↔ tabia ↔ upunguzaji wa hatari
-  uliotumika katika v3.8.6.
-- Vitalu vya ndani ya msimbo vya `SECURITY-AUDITOR-NOTE:` katika kila sehemu ya kitendakazi kilichoalamishwa
-  hurejelea hati hiyo hiyo.
+  ramani ya kila tokeo: faili chanzo ↔ kipande kilichoalamishwa ↔ tabia ↔ hatua ya kupunguza hatari
+  iliyotumika katika v3.8.6.
+- Vitalu vya `SECURITY-AUDITOR-NOTE:` ndani ya msimbo kwenye kila sehemu ya kitendakazi kilichoalamishwa
+  huelekeza kwenye hati hiyo hiyo.
 
 Kwa watumiaji ambao mchakato wao hauwezi kulegeza tahadhari: jenga kwa kutumia
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Hii hubadilisha moduli nne
-nyeti na vibadala vinavyorejesha HTTP 503 `feature-disabled` wakati wa utekelezaji,
-hivyo njia za msimbo zenye ruhusa maalumu hazipo kabisa kwenye kifurushi.
+nyeti na vibadala vinavyorejesha HTTP 503 `feature-disabled` wakati wa
+utekelezaji, hivyo njia za msimbo zenye ruhusa maalumu hazipo kabisa katika kifurushi.
 Tazama [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 kwa utaratibu wa uchapishaji.
 

@@ -220,35 +220,37 @@ Te reguły są egzekwowane przez narzędzia i recenzentów:
 10. **Wartości runtime `exec()` / `spawn()` przez opcję `env`** — nigdy nie interpoluj zewnętrznych ścieżek ani niezaufanych wartości w skryptach przekazywanych do powłoki. Odniesienie: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Preferuj biblioteki secure-by-default** — zob. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Sięgaj po nie, zanim napiszesz własne.
 
-## Wyniki skanowania łańcucha dostaw (Socket.dev / Snyk / podobne)
+## Wyniki skanowania łańcucha dostaw (Socket.dev / Snyk / podobne narzędzia)
+
+> **Uwaga dotycząca zakresu:** plik `socket.yml` w katalogu głównym repozytorium konfiguruje wyłącznie `projectIgnorePaths` dla wykonywanego przez Socket.dev po publikacji skanowania opublikowanego artefaktu npm po stronie rejestru — nie stanowi wymuszanej bramy scalania w CI/PR. Żaden przepływ pracy w `.github/workflows`, żaden skrypt w `package.json` ani żaden cel w `Makefile` nie uruchamia Socket.dev.
 
 Opublikowany artefakt npm `omniroute` zawiera kompilację Next.js z opcją `output: "standalone"`,
-co oznacza, że każdy moduł obsługi trasy — w tym udokumentowane funkcje uprzywilejowane
+co oznacza, że każdy program obsługi trasy — w tym udokumentowane funkcje uprzywilejowane
 (MITM, import Zed, Cloud Sync, wbudowany nadzorca usług) — trafia
 do zminimalizowanych fragmentów `.next/server/*.js`. Heurystyczne skanery łańcucha dostaw
 często dopasowują wzorce z tych fragmentów do sygnatur złośliwego oprogramowania.
 
-Używana przez nas konfiguracja skanera znajduje się w pliku [`socket.yml`](socket.yml) w katalogu
-głównym repozytorium (format v2 aplikacji GitHub Socket.dev — zobacz
+Używana przez nas konfiguracja skanera znajduje się w pliku [`socket.yml`](socket.yml) w
+katalogu głównym repozytorium (format v2 aplikacji GitHub Socket.dev — zobacz
 <https://docs.socket.dev/docs/socket-yml>). Jawnie wyklucza ona
-katalogi niedołączane do publikowanego pakietu (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` itd.), dzięki czemu skaner raportuje wyłącznie ścieżki kodu, które
-faktycznie trafiają do użytkowników opublikowanego pakietu — samo skanowanie jest uruchamiane przez aplikację
+katalogi, które nie są dystrybuowane (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` itd.), dzięki czemu skaner zgłasza wyłącznie ścieżki kodu, które
+faktycznie trafiają do użytkowników opublikowanego pakietu — samo skanowanie jest inicjowane przez aplikację
 GitHub Socket, która odczytuje ten plik, a nie przez przepływ pracy w tym repozytorium.
 
-Dla każdej kategorii wykrytych problemów utrzymujemy osobne poświadczenie opiekuna:
+Dla każdej kategorii wyników utrzymujemy poświadczenie opiekuna dotyczące każdego wyniku:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa poszczególnych wykrytych problemów: plik źródłowy ↔ oznaczony fragment ↔ zachowanie ↔ środki zaradcze
+  mapa poszczególnych wyników: plik źródłowy ↔ oznaczony fragment ↔ zachowanie ↔ środki zaradcze
   zastosowane w v3.8.6.
 - Bloki `SECURITY-AUDITOR-NOTE:` w kodzie źródłowym przy każdej oznaczonej funkcji
   odsyłają do tego samego dokumentu.
 
-Użytkownicy, których potok nie pozwala na złagodzenie alertu, mogą wykonać kompilację za pomocą
+Użytkownicy, których potok nie pozwala złagodzić tego alertu, mogą wykonać kompilację za pomocą
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Powoduje to zastąpienie czterech
-wrażliwych modułów atrapami, które w czasie wykonywania zwracają odpowiedź HTTP 503 `feature-disabled`,
+wrażliwych modułów atrapami, które w czasie wykonywania zwracają HTTP 503 `feature-disabled`,
 dzięki czemu uprzywilejowane ścieżki kodu są fizycznie nieobecne w pakiecie wynikowym.
-Instrukcję publikowania zawiera dokument [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+Instrukcję publikowania zawiera [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Odniesienia
 

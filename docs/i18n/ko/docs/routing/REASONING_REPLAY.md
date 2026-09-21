@@ -25,19 +25,21 @@ Param Incorrect: The reasoning_content in the thinking mode must be passed back 
 턴 N(어시스턴트가 생성):
   → 응답에 reasoning_content + tool_calls가 포함됨
   → requiresReasoningReplay(provider, model)인 경우: cacheReasoningFromAssistantMessage()
-      모든 tool_call.id를 키로 사용하여 (메모리 + DB)에 기록
-  → 클라이언트로 응답 전달(클라이언트가 추론을 유지할 수도 있고 유지하지 않을 수도 있음)
+      모든 tool_call.id를 키로 하여 (메모리 + DB)에 기록
+  → 응답을 클라이언트로 전달(클라이언트가 reasoning을 유지할 수도 있고 유지하지 않을 수도 있음)
 
 턴 N+1(클라이언트가 후속 요청 전송):
-  → 변환기가 다음을 감지: requiresReasoningReplay(provider, model) === true
+  → 트랜슬레이터가 다음을 감지: requiresReasoningReplay(provider, model) === true
   → tool_calls가 있고 reasoning_content가 없는 각 어시스턴트 메시지에 대해:
       lookupReasoning(toolCalls[0].id) → 메모리 → DB
       적중  → msg.reasoning_content = cached; recordReplay()
-      누락 → msg.reasoning_content = "" (이전 DeepSeek 버전을 위한 레거시 폴백)
-  → 업스트림에 일관된 기록이 전달됨 → 400 오류 없음
+      실패 → msg.reasoning_content = "" (이전 DeepSeek 버전을 위한 레거시 폴백)
+  → 업스트림이 일관된 기록을 확인 → 400 오류 없음
 ```
 
-캡처는 `open-sse/handlers/chatCore.ts`에서 수행됩니다(`cacheReasoningFromAssistantMessage`가 호출되는 두 위치). 재생은 스키마 강제 변환 후 디스패치 전에 `open-sse/translator/index.ts`에서 수행됩니다.
+캡처는 `open-sse/handlers/chatCore.ts`에서 수행됩니다(`cacheReasoningFromAssistantMessage` 호출 지점 두 곳). 재생은 스키마 강제 변환 후 디스패치 전에 `open-sse/translator/index.ts`에서 수행됩니다.
+
+일반적인(도구 호출이 없는) 어시스턴트 턴은 다른 방식으로 키가 지정됩니다. `tools`가 존재하면 DeepSeek는 _모든_ 이전 턴의 추론을 요구하므로, `buildAssistantMessageCacheKey()`는 세션 범위와 해당 턴까지 정규화된 OpenAI 형식의 트랜스크립트를 함께 다이제스트합니다. Responses API 대상(예: `/responses`로 라우팅되는 `opencode-go/deepseek-v4-flash`)의 경우 업스트림 본문에는 `messages`가 아니라 `input`이 포함되므로, `translateRequest()`(`open-sse/translator/index.ts`)는 콜백 옵션을 통해 자신이 다이제스트한 피벗 트랜스크립트를 보고하고, 캡처 지점에서도 동일한 트랜스크립트를 다이제스트합니다. Responses 재생 단계는 모든 소스 형식에 대해 OpenAI 피벗에서 실행되므로 Anthropic Messages 클라이언트(Claude → OpenAI → Responses)도 재생됩니다.
 
 ## 스토리지 — 하이브리드 메모리 + SQLite
 

@@ -440,7 +440,7 @@ Sidecar jarayondan tashqarida ishlaganda va `open-sse/config/providerPluginManif
 | POST  | `/v1/music/generations`                   | OpenAI uslubidagi musiqa yaratish              |
 | POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                             |
 | POST  | `/v1/audio/speech`                        | OpenAI TTS (audio tanasini qaytaradi)          |
-| POST  | `/v1/rerank`                              | Cohere/Voyage uslubida qayta tartiblash        |
+| POST  | `/v1/rerank`                              | Cohere/Voyage uslubidagi qayta saralash        |
 | POST  | `/v1/classify`                            | Jina tasniflash (`api.jina.ai`)                |
 | POST  | `/v1/segment`                             | Jina segmentatori (`segment.jina.ai`)          |
 | POST  | `/v1/moderations`                         | OpenAI Moderations                             |
@@ -456,12 +456,12 @@ Sidecar jarayondan tashqarida ishlaganda va `open-sse/config/providerPluginManif
 | POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenlashtirilgan taxallusi             |
 | GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama teglarining tokenlashtirilgan taxallusi |
 
-Barcha POST yoʻnalishlari bir xil tuzilishga ega: `Bearer your-api-key` + Zod orqali tekshirilgan JSON tanasi (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` va boshqalar; `src/shared/validation/schemas.ts` fayliga qarang). Sxema tekshiruvi muvaffaqiyatsiz boʻlsa, 4xx qaytariladi.
+Barcha POST yoʻnalishlari bir xil shaklga amal qiladi: `Bearer your-api-key` + Zod yordamida tekshiriladigan JSON tanasi (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` va boshqalar, `src/shared/validation/schemas.ts` fayliga qarang). Sxema tekshiruvi muvaffaqiyatsiz boʻlsa, 4xx qaytariladi.
 
-`Authorization: Bearer ...` sarlavhasini biriktira olmaydigan mijozlar uchun OmniRoute API kalitlarini URL orqali ham qabul qiladi: soʻrov satri mosligi (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) yoki quyida hujjatlashtirilgan maxsus `/api/v1/vscode/{token}/...` endpointlari orqali.
+`Authorization: Bearer ...` sarlavhasini biriktira olmaydigan mijozlar uchun OmniRoute API kalitlarini URL ichida ham qabul qiladi: soʻrov satri mosligi (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) yoki quyida hujjatlashtirilgan maxsus `/api/v1/vscode/{token}/...` endpointlari orqali.
 
 ```bash
-# Qayta tartiblash
+# Qayta saralash (bulut registri provayderi yoki "<prefix>/<model>" shaklidagi OpenAI-mos provayder tuguni)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina tasniflash (Foundation API hisob maʼlumotlari)
@@ -476,16 +476,43 @@ POST /v1/search      { "query": "...", "provider": "jina-search" }
 # Moderatsiyalar
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (yoki soʻralgan formatdagi) tanani qaytaradi
+# TTS — audio/mpeg (yoki soʻralgan format) tanasini qaytaradi
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Rasmni tahrirlash (multipart)
+# Tasvirni tahrirlash (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # Video / musiqa yaratish (provayder prefiksli model identifikatori)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Qayta saralash provayderi tugunlari:** `POST /v1/rerank` soʻrovlarni `<node-prefix>/<model>`
+> shaklida manzillangan OpenAI-mos provayder tugunlariga (oMLX, vLLM, Infinity, shlyuz ortidagi
+> TEI, …) ham yoʻnaltiradi. Loopback tugunlari (`localhost`, `127.0.0.1`, `172.16.0.0/12`) har
+> doim foydalanish uchun mos hisoblanadi. Boshqa har qanday hostdagi tugunlar — LAN qurilmasi
+> yoki Tailscale peeri — faqat operator `RERANK_REMOTE_PROVIDER_NODES` funksiya bayrogʻini yoqsa
+> **va** tugunning asosiy URL manzili provayderning chiquvchi URL siyosatidan
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) oʻtsa,
+> foydalanish uchun mos hisoblanadi; bulut metamaʼlumotlari hostlariga hech qachon soʻrov
+> yoʻnaltirilmaydi. Xotira mexanizmining qayta saralash bosqichi ushbu yoʻnalishni loopback orqali
+> chaqiradi, shuning uchun ayni qoida Xotira sozlamalaridagi `rerankProviderModel` uchun ham amal qiladi.
+>
+> **Mahalliy server shakllari:** tugun `<base>/v1/rerank` manzilida, 404 holatida esa
+> `<base>/rerank` manzilida chaqiriladi (Infinity, TEI). Yuqori oqim tanasi Cohere/OpenAI
+> yozilishini (`documents`, `return_documents`) ham, TEI yozilishini (`texts`, `return_text`) ham
+> oʻz ichiga oladi va yuqori oqim javobi Cohere konvertiga meʼyorlashtiriladi: TEI’ning oddiy
+> `[{index, score, text}]`, yupqa shlyuzlardan keladigan `{results: [{index, score}]}` va
+> Voyage uslubidagi `{data: [...]}` javoblarining barchasi mijozga
+> `{results: [{index, relevance_score, document?}]}` shaklida, ball boʻyicha saralangan va
+> `top_n` bilan cheklangan holda qaytariladi.
+
+> **Provayder tugunlarini aniqlash:** OpenAI-mos provayder tugunidagi modellar `GET /v1/models`
+> natijasida tugun prefiksi ostida koʻrinadi. Endpoint metamaʼlumotlariga ega boʻlmagan qatorlar
+> (mahalliy `/v1/models` roʻyxatlari uchun odatiy holat) tugunning `apiType` qiymatini meros qilib
+> oladi, shu sababli `embeddings` tugunining modellari standart ravishda chatga tegishli deb
+> belgilanmasdan `type: "embedding"`, `rerank` tugunining modellari esa `type: "rerank"` boʻladi;
+> sinxronlangan yoki qoʻlda qoʻshilgan qatordagi aniq `supportedEndpoints` qiymati baribir ustuvorlikka ega.
 
 ### Maxsus provayder yoʻnalishlari
 
@@ -495,7 +522,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Agar provayder prefiksi mavjud boʻlmasa, u avtomatik ravishda qoʻshiladi. Mos kelmaydigan modellar `400` qaytaradi.
+Agar provayder prefiksi mavjud bo‘lmasa, u avtomatik ravishda qo‘shiladi. Mos kelmaydigan modellar `400` kodini qaytaradi.
 
 ---
 

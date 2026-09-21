@@ -27,6 +27,12 @@
 
 ## Execução rápida
 
+> **Hospedar por conta própria com um único comando?** Consulte o
+> [Guia de hospedagem própria](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (imagem publicada +
+> Redis, somente loopback, sem escolha de perfil). A execução rápida abaixo é a
+> opção de contêiner único para usuários que já executam o Redis em outro local.
+
 ```bash
 docker run -d \
   --name omniroute \

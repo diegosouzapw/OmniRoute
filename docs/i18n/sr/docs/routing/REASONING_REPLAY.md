@@ -25,19 +25,21 @@ OmniRoute бележи `reasoning_content` асистента који прои�
 Корак N (асистент генерише):
   → одговор садржи reasoning_content + tool_calls
   → ако requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      уписује (меморија + база), са кључем за сваки tool_call.id
-  → прослеђује одговор клијенту (који може, али не мора да задржи образложење)
+      уписује (меморија + база података), индексирано по сваком tool_call.id
+  → прослеђује одговор клијенту (који може, али не мора да задржи резоновање)
 
 Корак N+1 (клијент шаље наредни захтев):
   → преводилац открива: requiresReasoningReplay(provider, model) === true
   → за сваку поруку асистента са tool_calls и без reasoning_content:
-      lookupReasoning(toolCalls[0].id) → меморија → база
-      погодак   → msg.reasoning_content = cached; recordReplay()
-      промашај → msg.reasoning_content = "" (резервно понашање за старије DeepSeek моделе)
-  → надређени сервис види доследну историју → нема грешке 400
+      lookupReasoning(toolCalls[0].id) → меморија → база података
+      погодак  → msg.reasoning_content = кеширано; recordReplay()
+      промашај → msg.reasoning_content = "" (резервни механизам за старије верзије DeepSeek-а)
+  → узводни сервис добија доследну историју → нема грешке 400
 ```
 
-Бележeње се обавља у `open-sse/handlers/chatCore.ts` (на два места, на две локације позива `cacheReasoningFromAssistantMessage`). Поновно прослеђивање се обавља у `open-sse/translator/index.ts` након усклађивања са шемом, али пре слања.
+Снимање се обавља у `open-sse/handlers/chatCore.ts` (на два места, на оба места позива `cacheReasoningFromAssistantMessage`). Поновна репродукција се обавља у `open-sse/translator/index.ts` након усклађивања са шемом, али пре отпремања.
+
+Обични потези асистента (без позива алата) индексирају се другачије: `buildAssistantMessageCacheKey()` израчунава сажетак опсега сесије заједно са нормализованим транскриптом у OpenAI формату до тог потеза, јер DeepSeek захтева резоновање из _сваког_ претходног потеза када је присутно `tools`. За одредишта Responses API-ја (на пример `opencode-go/deepseek-v4-flash`, усмерена на `/responses`) узводно тело садржи `input`, а не `messages`, па `translateRequest()` (`open-sse/translator/index.ts`) преко опције повратног позива пријављује посредни транскрипт за који је израчунао сажетак, а места снимања израчунавају сажетак тог истог транскрипта. Пролаз поновне репродукције за Responses извршава се над OpenAI посредним форматом за сваки изворни формат, тако да се поново репродукују и клијенти Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Складиштење — хибрид меморије и SQLite базе
 

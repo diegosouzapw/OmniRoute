@@ -436,68 +436,90 @@ Bifrost, CLIProxyAPI மற்றும் எதிர்கால sidecar rout
 
 ---
 
-## இணக்கத்தன்மை Endpoint-கள்
+## இணக்கத்தன்மை முனைப்புள்ளிகள்
 
-| முறை | பாதை                                      | வடிவம்                                    |
-| ---- | ----------------------------------------- | ----------------------------------------- |
-| POST | `/v1/chat/completions`                    | OpenAI                                    |
-| POST | `/v1/messages`                            | Anthropic                                 |
-| POST | `/v1/responses`                           | OpenAI Responses                          |
-| POST | `/v1/embeddings`                          | OpenAI                                    |
-| POST | `/v1/images/generations`                  | OpenAI Images                             |
-| POST | `/v1/images/edits`                        | OpenAI Images (திருத்தம்/inpaint)         |
-| POST | `/v1/videos/generations`                  | OpenAI-பாணி காணொளி உருவாக்கம்             |
-| POST | `/v1/music/generations`                   | OpenAI-பாணி இசை உருவாக்கம்                |
-| POST | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                        |
-| POST | `/v1/audio/speech`                        | OpenAI TTS (ஒலி body-ஐ வழங்கும்)          |
-| POST | `/v1/rerank`                              | Cohere/Voyage-பாணி மறுதரவரிசை             |
-| POST | `/v1/classify`                            | Jina வகைப்படுத்தல் (`api.jina.ai`)        |
-| POST | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)        |
-| POST | `/v1/moderations`                         | OpenAI Moderations                        |
-| GET  | `/v1/models`                              | OpenAI                                    |
-| POST | `/v1/messages/count_tokens`               | Anthropic                                 |
-| GET  | `/v1beta/models`                          | Gemini                                    |
-| POST | `/v1beta/models/{...path}`                | Gemini generateContent                    |
-| POST | `/v1/api/chat`                            | Ollama                                    |
-| GET  | `/api/v1/vscode/{token}/`                 | OpenAI பட்டியல் மாற்றுப்பெயர்             |
-| GET  | `/api/v1/vscode/{token}/models`           | OpenAI model-கள் மாற்றுப்பெயர்            |
-| POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI token உடைய மாற்றுப்பெயர்           |
-| POST | `/api/v1/vscode/{token}/responses`        | OpenAI Responses token உடைய மாற்றுப்பெயர் |
-| POST | `/api/v1/vscode/{token}/api/chat`         | Ollama token உடைய மாற்றுப்பெயர்           |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama tag-கள் token உடைய மாற்றுப்பெயர்   |
+| முறை | பாதை                                      | வடிவம்                                             |
+| ---- | ----------------------------------------- | -------------------------------------------------- |
+| POST | `/v1/chat/completions`                    | OpenAI                                             |
+| POST | `/v1/messages`                            | Anthropic                                          |
+| POST | `/v1/responses`                           | OpenAI Responses                                   |
+| POST | `/v1/embeddings`                          | OpenAI                                             |
+| POST | `/v1/images/generations`                  | OpenAI Images                                      |
+| POST | `/v1/images/edits`                        | OpenAI Images (திருத்தம்/உள்நிரப்பல்)              |
+| POST | `/v1/videos/generations`                  | OpenAI பாணி காணொளி உருவாக்கம்                      |
+| POST | `/v1/music/generations`                   | OpenAI பாணி இசை உருவாக்கம்                         |
+| POST | `/v1/audio/transcriptions`                | OpenAI Audio (பேச்சிலிருந்து உரை)                  |
+| POST | `/v1/audio/speech`                        | OpenAI TTS (ஒலி உடற்பகுதியை வழங்கும்)              |
+| POST | `/v1/rerank`                              | Cohere/Voyage பாணி மறுதரவரிசைப்படுத்தல்            |
+| POST | `/v1/classify`                            | Jina வகைப்படுத்தல் (`api.jina.ai`)                 |
+| POST | `/v1/segment`                             | Jina பிரிப்பான் (`segment.jina.ai`)                |
+| POST | `/v1/moderations`                         | OpenAI Moderations                                 |
+| GET  | `/v1/models`                              | OpenAI                                             |
+| POST | `/v1/messages/count_tokens`               | Anthropic                                          |
+| GET  | `/v1beta/models`                          | Gemini                                             |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent                             |
+| POST | `/v1/api/chat`                            | Ollama                                             |
+| GET  | `/api/v1/vscode/{token}/`                 | OpenAI பட்டியல் மாற்றுப்பெயர்                      |
+| GET  | `/api/v1/vscode/{token}/models`           | OpenAI மாதிரிகள் மாற்றுப்பெயர்                     |
+| POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI token உடைய மாற்றுப்பெயர்                    |
+| POST | `/api/v1/vscode/{token}/responses`        | OpenAI Responses token உடைய மாற்றுப்பெயர்          |
+| POST | `/api/v1/vscode/{token}/api/chat`         | Ollama token உடைய மாற்றுப்பெயர்                    |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama குறிச்சொற்களுக்கான token உடைய மாற்றுப்பெயர் |
 
-அனைத்து POST route-களும் ஒரே கட்டமைப்பைப் பின்பற்றுகின்றன: `Bearer your-api-key` + Zod மூலம் சரிபார்க்கப்பட்ட JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` போன்றவை; `src/shared/validation/schemas.ts`-ஐப் பார்க்கவும்). Schema சரிபார்ப்பு தோல்வியடைந்தால் 4xx வழங்கப்படும்.
+அனைத்து POST வழித்தடங்களும் ஒரே அமைப்பைப் பின்பற்றுகின்றன: `Bearer your-api-key` + Zod மூலம் சரிபார்க்கப்பட்ட JSON உடற்பகுதி (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` போன்றவை; `src/shared/validation/schemas.ts` என்பதைப் பார்க்கவும்). Schema சரிபார்ப்பு தோல்வியடைந்தால் 4xx வழங்கப்படும்.
 
-`Authorization: Bearer ...`-ஐ இணைக்க முடியாத client-களுக்காக, query-string இணக்கத்தன்மை (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) அல்லது கீழே ஆவணப்படுத்தப்பட்டுள்ள பிரத்யேக `/api/v1/vscode/{token}/...` endpoint-கள் வழியாக URL-இல் API key-களையும் OmniRoute ஏற்கிறது.
+`Authorization: Bearer ...` என்பதை இணைக்க முடியாத client-களுக்காக, query-string இணக்கத்தன்மை (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) அல்லது கீழே ஆவணப்படுத்தப்பட்டுள்ள பிரத்யேக `/api/v1/vscode/{token}/...` முனைப்புள்ளிகள் வழியாகவும் URL-இல் API key-களை OmniRoute ஏற்றுக்கொள்கிறது.
 
 ```bash
-# மறுதரவரிசை
+# மறுதரவரிசைப்படுத்தல் (cloud registry provider அல்லது "<prefix>/<model>" எனும் OpenAI-இணக்கமான provider node)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina வகைப்படுத்தல் (Foundation API நற்சான்றுகள்)
+# Jina வகைப்படுத்தல் (Foundation API சான்றுகள்)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Jina பிரிப்பான்
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina தேடல் (s.jina.ai; வழங்குநர் மாற்றுப்பெயர்கள்: jina-search, jina-ai, jina)
+# Jina தேடல் (s.jina.ai; provider மாற்றுப்பெயர்கள்: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# உள்ளடக்க நெறிப்படுத்தல்கள்
+# உள்ளடக்க மதிப்பீடுகள்
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (அல்லது கோரப்பட்ட வடிவம்) body-ஐ வழங்கும்
+# TTS — audio/mpeg (அல்லது கோரப்பட்ட வடிவம்) உடற்பகுதியை வழங்கும்
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # படத் திருத்தம் (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# காணொளி / இசை உருவாக்கம் (வழங்குநர் முன்னொட்டுள்ள model id)
+# காணொளி / இசை உருவாக்கம் (provider முன்னொட்டுடன் கூடிய model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### பிரத்யேக வழங்குநர் Route-கள்
+> **மறுதரவரிசைப்படுத்தல் provider node-கள்:** `POST /v1/rerank` என்பது OpenAI-இணக்கமான provider node-களுக்கும்
+> (oMLX, vLLM, Infinity, gateway-க்குப் பின்னால் உள்ள TEI, …) வழிப்படுத்தப்படும்; அவை `<node-prefix>/<model>` எனக் குறிப்பிடப்படுகின்றன. Loopback
+> node-கள் (`localhost`, `127.0.0.1`, `172.16.0.0/12`) எப்போதும் தகுதியுடையவை. வேறு எந்த
+> host-இலும் உள்ள node-கள் — LAN கணினி அல்லது Tailscale peer — operator
+> `RERANK_REMOTE_PROVIDER_NODES` feature flag-ஐ இயக்கியிருக்கும்போதும், node-இன் base URL provider
+> வெளிச்செல்லும் URL கொள்கையை (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) பூர்த்தி செய்யும்போதும் மட்டுமே தகுதியுடையவை;
+> cloud-metadata host-களுக்கு ஒருபோதும் வழிப்படுத்தப்படாது. Memory engine-இன் மறுதரவரிசைப்படுத்தல் படிநிலை இந்த வழித்தடத்தை
+> loopback வழியாக அழைப்பதால், Memory அமைப்புகளில் உள்ள `rerankProviderModel`-க்கும் இதே விதி பொருந்தும்.
+>
+> **உள்ளூர் server அமைப்புகள்:** node முதலில் `<base>/v1/rerank` இலும், 404 ஏற்பட்டால் `<base>/rerank`
+> (Infinity, TEI) இலும் அழைக்கப்படும். Upstream உடற்பகுதி Cohere/OpenAI எழுத்துமுறையையும் (`documents`,
+> `return_documents`) TEI எழுத்துமுறையையும் (`texts`, `return_text`) கொண்டிருக்கும்; மேலும் upstream பதில்
+> Cohere உறை வடிவத்திற்கு இயல்பாக்கப்படும்: TEI-இன் நேரடி `[{index, score, text}]`, எளிய gateway-களிலிருந்து வரும் `{results: [{index, score}]}`
+> மற்றும் Voyage பாணி `{data: [...]}` ஆகிய அனைத்தும் client-க்கு
+> `{results: [{index, relevance_score, document?}]}` எனத் திருப்பி அனுப்பப்படும்; அவை score அடிப்படையில் வரிசைப்படுத்தப்பட்டு `top_n` அளவிற்கு வரம்பிடப்படும்.
+
+> **Provider-node கண்டறிதல்:** OpenAI-இணக்கமான provider node-இல் உள்ள model-கள் `GET /v1/models` இல்
+> node முன்னொட்டின் கீழ் தோன்றும். Endpoint metadata இல்லாத வரிசைகள் (உள்ளூர் `/v1/models` பட்டியல்களில் இது வழக்கமானது)
+> node-இன் `apiType`-ஐப் பெறுகின்றன; எனவே `embeddings` node-இன் model-கள் இயல்புநிலையாக chat ஆக மாறாமல் `type: "embedding"` ஆகவும்,
+> `rerank` node-இன் model-கள் `type: "rerank"` ஆகவும் இருக்கும்; ஒத்திசைக்கப்பட்ட அல்லது கைமுறையாகச் சேர்க்கப்பட்ட வரிசையில் வெளிப்படையாகக் குறிப்பிடப்பட்ட
+> `supportedEndpoints` இருந்தால், அதற்கே இன்னும் முன்னுரிமை வழங்கப்படும்.
+
+### பிரத்யேக Provider வழித்தடங்கள்
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -505,7 +527,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-வழங்குநர் முன்னொட்டு இல்லாவிட்டால் அது தானாகச் சேர்க்கப்படும். பொருந்தாத model-கள் `400`-ஐ வழங்கும்.
+வழங்குநர் முன்னொட்டு இல்லையெனில், அது தானாகச் சேர்க்கப்படும். பொருந்தாத மாதிரிகள் `400` ஐத் திருப்பி அனுப்பும்.
 
 ---
 

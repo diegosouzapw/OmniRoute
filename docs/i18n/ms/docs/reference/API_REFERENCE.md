@@ -434,40 +434,40 @@ Gunakan titik akhir ini apabila sidecar berjalan di luar proses dan tidak dapat 
 
 ## Titik Akhir Keserasian
 
-| Kaedah | Laluan                                    | Format                               |
-| ------ | ----------------------------------------- | ------------------------------------ |
-| POST   | `/v1/chat/completions`                    | OpenAI                               |
-| POST   | `/v1/messages`                            | Anthropic                            |
-| POST   | `/v1/responses`                           | Respons OpenAI                       |
-| POST   | `/v1/embeddings`                          | OpenAI                               |
-| POST   | `/v1/images/generations`                  | Imej OpenAI                          |
-| POST   | `/v1/images/edits`                        | Imej OpenAI (edit/inpaint)           |
-| POST   | `/v1/videos/generations`                  | Penjanaan video gaya OpenAI          |
-| POST   | `/v1/music/generations`                   | Penjanaan muzik gaya OpenAI          |
-| POST   | `/v1/audio/transcriptions`                | Audio OpenAI (STT)                   |
-| POST   | `/v1/audio/speech`                        | TTS OpenAI (mengembalikan isi audio) |
-| POST   | `/v1/rerank`                              | Penyusunan semula gaya Cohere/Voyage |
-| POST   | `/v1/classify`                            | Pengelasan Jina (`api.jina.ai`)      |
-| POST   | `/v1/segment`                             | Pensegmen Jina (`segment.jina.ai`)   |
-| POST   | `/v1/moderations`                         | Moderasi OpenAI                      |
-| GET    | `/v1/models`                              | OpenAI                               |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                            |
-| GET    | `/v1beta/models`                          | Gemini                               |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent               |
-| POST   | `/v1/api/chat`                            | Ollama                               |
-| GET    | `/api/v1/vscode/{token}/`                 | Alias katalog OpenAI                 |
-| GET    | `/api/v1/vscode/{token}/models`           | Alias model OpenAI                   |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias bertoken OpenAI                |
-| POST   | `/api/v1/vscode/{token}/responses`        | Alias bertoken Respons OpenAI        |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias bertoken Ollama                |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias teg bertoken Ollama            |
+| Kaedah | Laluan                                    | Format                                 |
+| ------ | ----------------------------------------- | -------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                 |
+| POST   | `/v1/messages`                            | Anthropic                              |
+| POST   | `/v1/responses`                           | OpenAI Responses                       |
+| POST   | `/v1/embeddings`                          | OpenAI                                 |
+| POST   | `/v1/images/generations`                  | OpenAI Images                          |
+| POST   | `/v1/images/edits`                        | OpenAI Images (suntingan/inpaint)      |
+| POST   | `/v1/videos/generations`                  | Penjanaan video gaya OpenAI            |
+| POST   | `/v1/music/generations`                   | Penjanaan muzik gaya OpenAI            |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (mengembalikan badan audio) |
+| POST   | `/v1/rerank`                              | Pengisihan semula gaya Cohere/Voyage   |
+| POST   | `/v1/classify`                            | Pengelasan Jina (`api.jina.ai`)        |
+| POST   | `/v1/segment`                             | Pensegmen Jina (`segment.jina.ai`)     |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                     |
+| GET    | `/v1/models`                              | OpenAI                                 |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                              |
+| GET    | `/v1beta/models`                          | Gemini                                 |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                 |
+| POST   | `/v1/api/chat`                            | Ollama                                 |
+| GET    | `/api/v1/vscode/{token}/`                 | Alias katalog OpenAI                   |
+| GET    | `/api/v1/vscode/{token}/models`           | Alias model OpenAI                     |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias OpenAI bertoken                  |
+| POST   | `/api/v1/vscode/{token}/responses`        | Alias OpenAI Responses bertoken        |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama bertoken                  |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tag Ollama bertoken              |
 
-Semua laluan POST mengikut bentuk yang sama: `Bearer your-api-key` + isi JSON yang disahkan oleh Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` dan sebagainya, lihat `src/shared/validation/schemas.ts`). 4xx dikembalikan apabila pengesahan skema gagal.
+Semua laluan POST mengikut struktur yang sama: `Bearer your-api-key` + badan JSON yang disahkan oleh Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, dan sebagainya, lihat `src/shared/validation/schemas.ts`). 4xx dikembalikan apabila pengesahan skema gagal.
 
-Bagi klien yang tidak dapat melampirkan `Authorization: Bearer ...`, OmniRoute turut menerima kunci API dalam URL sama ada melalui keserasian rentetan pertanyaan (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) atau titik akhir khusus `/api/v1/vscode/{token}/...` yang didokumenkan di bawah.
+Untuk klien yang tidak boleh melampirkan `Authorization: Bearer ...`, OmniRoute turut menerima kunci API dalam URL melalui sama ada keserasian rentetan pertanyaan (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) atau titik akhir khusus `/api/v1/vscode/{token}/...` yang didokumenkan di bawah.
 
 ```bash
-# Susun semula
+# Isih semula (penyedia pendaftaran awan atau nod penyedia serasi OpenAI sebagai "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Pengelasan Jina (kelayakan API Foundation)
@@ -479,19 +479,41 @@ POST /v1/segment     { "content": "...", "return_chunks": true }
 # Carian Jina (s.jina.ai; alias penyedia: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderasi
+# Penyederhanaan
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — mengembalikan isi audio/mpeg (atau format yang diminta)
+# TTS — mengembalikan badan audio/mpeg (atau format yang diminta)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Edit imej (multipart)
+# Suntingan imej (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Penjanaan video / muzik (ID model berawalan penyedia)
+# Penjanaan video / muzik (ID model dengan awalan penyedia)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Nod penyedia pengisihan semula:** `POST /v1/rerank` turut menghalakan permintaan kepada nod penyedia serasi OpenAI
+> (oMLX, vLLM, Infinity, TEI di belakang get laluan, …) yang dialamatkan sebagai `<node-prefix>/<model>`. Nod gelung balik
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sentiasa layak. Nod pada mana-mana hos lain
+> — mesin LAN atau rakan setara Tailscale — hanya layak apabila pengendali mendayakan bendera ciri
+> `RERANK_REMOTE_PROVIDER_NODES` **dan** URL asas nod tersebut melepasi dasar URL keluar penyedia
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> hos metadata awan tidak akan dihalakan kepadanya. Langkah pengisihan semula enjin memori memanggil laluan ini melalui
+> gelung balik, maka peraturan yang sama mengawal `rerankProviderModel` dalam tetapan Memori.
+>
+> **Struktur pelayan setempat:** nod dipanggil pada `<base>/v1/rerank` dan, apabila menerima 404, pada `<base>/rerank`
+> (Infinity, TEI). Badan huluan membawa kedua-dua ejaan Cohere/OpenAI (`documents`,
+> `return_documents`) dan ejaan TEI (`texts`, `return_text`), manakala respons huluan
+> dinormalkan kepada sampul Cohere: respons kosong TEI `[{index, score, text}]`, `{results: [{index, score}]}`
+> daripada get laluan ringkas, dan `{data: [...]}` gaya Voyage semuanya dikembalikan kepada klien sebagai
+> `{results: [{index, relevance_score, document?}]}`, diisih mengikut skor dan dihadkan kepada `top_n`.
+
+> **Penemuan nod penyedia:** model pada nod penyedia serasi OpenAI muncul dalam `GET /v1/models`
+> di bawah awalan nod. Baris yang tidak mengandungi metadata titik akhir (lazim bagi penyenaraian `/v1/models` setempat)
+> mewarisi `apiType` nod, maka model nod `embeddings` mempunyai `type: "embedding"` dan model nod
+> `rerank` mempunyai `type: "rerank"` dan bukannya menggunakan sembang secara lalai; `supportedEndpoints` yang dinyatakan
+> secara eksplisit pada baris yang disegerakkan atau ditambah secara manual masih diberi keutamaan.
 
 ### Laluan Penyedia Khusus
 

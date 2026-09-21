@@ -25,7 +25,13 @@
 
 ---
 
-## Execução rápida
+## Execução Rápida
+
+> **Pretende alojar localmente com um único comando?** Consulte o
+> [Guia de Alojamento Local](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (imagem publicada +
+> Redis, apenas loopback, sem escolha de perfil). A Execução Rápida abaixo é a
+> opção de contentor único para utilizadores que já executam o Redis noutro local.
 
 ```bash
 docker run -d \

@@ -25,19 +25,21 @@ OmniRoute, thinking-mode ආකෘති මඟින් නිපදවන ස�
 වාරය N (සහායකයා ජනනය කරයි):
   → ප්රතිචාරයේ reasoning_content + tool_calls අඩංගු වේ
   → requiresReasoningReplay(provider, model) නම්: cacheReasoningFromAssistantMessage()
-      සෑම tool_call.id එකක්ම යතුර ලෙස භාවිත කරමින් (memory + DB) වෙත ලියයි
-  → ප්රතිචාරය සේවාලාභියා වෙත යොමු කරයි (ඔහු reasoning රඳවා ගත හැකිය හෝ නොගත හැකිය)
+      සෑම tool_call.id එකක්ම යතුර ලෙස භාවිත කරමින් (මතකය + DB) වෙත ලියයි
+  → ප්රතිචාරය සේවාලාභියා වෙත යොමු කරයි (ඔහු reasoning රඳවා තබාගැනීමට හෝ නොගැනීමට ඉඩ ඇත)
 
-වාරය N+1 (සේවාලාභියා පසු විපරමක් යවයි):
-  → පරිවර්තකය හඳුනා ගනී: requiresReasoningReplay(provider, model) === true
+වාරය N+1 (සේවාලාභියා පසු විමසුමක් යවයි):
+  → පරිවර්තකය හඳුනාගනී: requiresReasoningReplay(provider, model) === true
   → tool_calls ඇති සහ reasoning_content නොමැති සෑම සහායක පණිවිඩයක් සඳහාම:
-      lookupReasoning(toolCalls[0].id) → memory → DB
+      lookupReasoning(toolCalls[0].id) → මතකය → DB
       හමු විය  → msg.reasoning_content = cached; recordReplay()
-      හමු නොවීය → msg.reasoning_content = "" (පැරණි DeepSeek සඳහා උරුම fallback එක)
-  → upstream සේවාව අනුකූල ඉතිහාසයක් දකියි → 400 නොලැබේ
+      හමු නොවීය → msg.reasoning_content = "" (පැරණි DeepSeek සඳහා අනුකූලතා පසුබැසීම)
+  → ඉහළ ප්රවාහයට අනුකූල ඉතිහාසයක් පෙනේ → 400 දෝෂයක් නැත
 ```
 
-ග්රහණය කිරීම `open-sse/handlers/chatCore.ts` තුළ සිදු වේ (`cacheReasoningFromAssistantMessage` කැඳවීම් ඇති ස්ථාන දෙකෙහි). නැවත ධාවනය කිරීම schema coercion එකෙන් පසුව, නමුත් dispatch කිරීමට පෙර `open-sse/translator/index.ts` තුළ සිදු වේ.
+ග්රහණය කිරීම `open-sse/handlers/chatCore.ts` තුළ සිදු වේ (`cacheReasoningFromAssistantMessage` කැඳවන ස්ථාන දෙකෙහි). නැවත ධාවනය, schema බලහත්කාර පරිවර්තනයෙන් පසුව නමුත් යොමු කිරීමට පෙර, `open-sse/translator/index.ts` තුළ සිදු වේ.
+
+සාමාන්ය (tool-call නොවන) සහායක වාර සඳහා යතුරු වෙනස් ආකාරයකින් නිර්මාණය කෙරේ: `buildAssistantMessageCacheKey()` මඟින් session විෂය පථය සහ එම වාරය දක්වා සාමාන්යකරණය කළ OpenAI-ආකෘතියේ පිටපත සාරාංශගත කරයි, මන්ද `tools` පවතින විට පෙර පැවති _සෑම_ වාරයකම reasoning DeepSeek හට අවශ්ය වන බැවිනි. Responses-API ඉලක්ක සඳහා (උදාහරණයක් ලෙස `/responses` වෙත යොමු කෙරෙන `opencode-go/deepseek-v4-flash`) ඉහළ ප්රවාහයේ body එක `messages` නොව `input` රැගෙන යයි. එබැවින් `translateRequest()` (`open-sse/translator/index.ts`) callback විකල්පයක් හරහා තමන් සාරාංශගත කළ pivot පිටපත වාර්තා කරන අතර, ග්රහණ ස්ථාන එම පිටපතම සාරාංශගත කරයි. සෑම මූලාශ්ර ආකෘතියක් සඳහාම Responses නැවත ධාවන අදියර OpenAI pivot මත ක්රියාත්මක වන බැවින්, Anthropic Messages සේවාලාභීන්ද (Claude → OpenAI → Responses) නැවත ධාවනය කෙරේ.
 
 ## ගබඩාව — දෙමුහුන් Memory + SQLite
 
@@ -56,9 +58,9 @@ OmniRoute, thinking-mode ආකෘති මඟින් නිපදවන ස�
 - උපරිම memory ඇතුළත් කිරීම්: `200` (`MAX_MEMORY_ENTRIES`)
 - ඉවත් කිරීම: පැරණිතම `createdAt` පළමුව
 
-## දත්ත සමුදා Schema එක
+## දත්ත සමුදා යෝජනා ක්රමය
 
-Migration: `src/lib/db/migrations/033_create_reasoning_cache.sql`
+සංක්රමණය: `src/lib/db/migrations/033_create_reasoning_cache.sql`
 
 ```sql
 CREATE TABLE IF NOT EXISTS reasoning_cache (
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indexes: `expires_at`, `provider`, `model`, `created_at`. `expires_at` Unix epoch තත්පර ලෙස ගබඩා කෙරේ; SELECT ස්තරය `EXPIRES_AT_EPOCH_SQL` හරහා පැරණි text අගයන් සාමාන්යකරණය කරයි.
+දර්ශක: `expires_at`, `provider`, `model`, `created_at`. `expires_at` Unix epoch තත්පර ලෙස ගබඩා කර ඇත; SELECT ස්තරය `EXPIRES_AT_EPOCH_SQL` හරහා පැරණි පෙළ අගයන් සාමාන්යකරණය කරයි.
 
 ## සපයන්නා / ආකෘතිය හඳුනාගැනීම
 

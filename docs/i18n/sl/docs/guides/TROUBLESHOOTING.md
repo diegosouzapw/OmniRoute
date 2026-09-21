@@ -66,18 +66,26 @@ Te spremenljivke nastavite v okolju procesa OmniRoute (demona, npr. prek datotek
 
 ---
 
-## Opozorila pri npm install (ERESOLVE / peer / deprecated)
+## Opozorila pri npm install (ERESOLVE / enakovredne odvisnosti / zastarelo)
 
-Ko zaženete `npm install -g omniroute`, se lahko prikaže množica opozoril, kot so `npm warn ERESOLVE`, obvestila o enakovrednih odvisnostih in sporočila `deprecated`. **Ta opozorila so pričakovana in neškodljiva.** Namestitev je bila uspešna, če je v izpisu prikazano `added <N> packages`.
+Ko zaženete `npm install -g omniroute`, se lahko prikaže množica opozoril, kot so `npm warn ERESOLVE`, obvestila o enakovrednih odvisnostih in sporočila `deprecated`. **To je pričakovano in neškodljivo.** Namestitev je uspela, če je v izpisu prikazano `added <N> packages`.
 
-Opozorila izvirajo iz zastarelih razponov enakovrednih odvisnosti v paketih tretjih ponudnikov, nad katerimi OmniRoute nima nadzora:
+Če želite skriti opozorila o razreševanju enakovrednih odvisnosti, uporabite podprto obliko namestitve za OmniRoute:
 
-1. **`marked-terminal` zahteva `marked >=1 <16`, najden pa je bil `marked@18`** — v praksi deluje brez težav; razpon enakovredne odvisnosti v izvornem projektu je preprosto zastarel.
-2. **`deprecated prebuild-install@7.1.3`** — prehodni pomožni program za pridobivanje izvornih binarnih datotek. Ne uporablja se
-   za namestitev pripete transportne vezave `wreq-js` in ne pomeni, da nastavitev transporta ponudnika
-   spletnih piškotkov ni uspela.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Ukrepanje ni potrebno** — opozoril ni mogoče popolnoma utišati brez razvejanja izvornih paketov.
+`--legacy-peer-deps` skrije samo obvestila `ERESOLVE` in obvestila o enakovrednih odvisnostih. Obvestila o zastarelosti ostanejo vidna, ker izvirajo iz prehodnih paketov tretjih oseb; ne pomenijo, da namestitev ni uspela.
+
+Opozorila izvirajo iz zastarelih razponov enakovrednih odvisnosti v paketih tretjih oseb, ki jih OmniRoute ne nadzoruje:
+
+1. **`marked-terminal` zahteva `marked >=1 <16`, najden pa je bil `marked@18`** — v praksi deluje brez težav; zgornji razpon enakovredne odvisnosti je preprosto zastarel.
+2. **`deprecated prebuild-install@7.1.3`** — prehodni pomožni program za pridobivanje izvornih binarnih datotek. Ne
+   uporablja se za namestitev pripete transportne vezave `wreq-js` in ne pomeni, da nastavitev transporta
+   ponudnika spletnih piškotkov ni uspela.
+
+**Ukrepanje ni potrebno** — opozoril ni mogoče v celoti skriti brez razvejanja izvornih paketov.
 
 ---
 

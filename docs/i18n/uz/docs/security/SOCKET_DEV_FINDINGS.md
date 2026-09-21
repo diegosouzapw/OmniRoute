@@ -4,22 +4,22 @@
 
 ---
 
-Ushbu hujjat `omniroute@3.8.5` bo‘yicha qayd etilgan oltita
-`AI-detected potential malware` topilmasi va `omniroute@3.8.6` da qo‘llangan
-yumshatish choralari uchun loyiha kuzatuvchisi tomonidan yozilgan attestatsiyadir. Uning maqsadlari:
+> **Qo‘llanish doirasi bo‘yicha izoh:** `socket.yml` Socket.dev xizmatining npm artefakti e’lon qilingandan keyin reyestr tomonida bajariladigan skanerlashini sozlaydi (yetkazib berilmaydigan `tests/`, `docs/` va yig‘ish hisobotlari kabi kontent uchun e’tiborsiz qoldiriladigan yo‘llar). U CI/PR birlashtirish to‘sig‘ini o‘rnatmaydi — `.github/workflows` ichidagi hech qanday ish jarayoni, `package.json` skripti yoki `Makefile` maqsadi Socket.dev xizmatini ishga tushirmaydi.
 
-1. Xavfsizlik konveyeri operatorlari topilmalarni haqiqiy manba kodi bilan
-   solishtirib baholashlari kerak bo‘lganda havola qilishlari uchun yagona manbani taqdim etish.
-2. Kelajakdagi AI skanerlari belgilangan har bir yo‘l ataylab yaratilgani,
-   faqat foydalanuvchi roziligi bilan ishga tushishi va hujjatlashtirilgani haqidagi
-   loyiha kuzatuvchisi imzolagan bayonotni aniqlay olishi.
-3. Har bir chaqiruv joyi _nima uchun_ aynan shunday tuzilganining yozma qaydiga ega bo‘lish —
-   toki kelajakdagi refaktoring ataylab olib tashlangan raqamli izni
-   tasodifan qayta kiritmasin.
+Ushbu hujjat `omniroute@3.8.5` bo‘yicha aniqlangan oltita
+`AI tomonidan aniqlangan ehtimoliy zararli dastur` topilmasi va
+`omniroute@3.8.6` da qo‘llangan yumshatish choralari uchun kuzatuvchi tomonidan yozilgan attestatsiyadir. Uning maqsadlari:
 
-Agar v3.8.6 yumshatish choralari chiqarilganidan keyin quyidagi chaqiruv
-joylaridan birortasi skaneringiz tomonidan yana belgilansa, skanerlash trassasi bilan muammo oching,
-biz esa bu attestatsiyani shu yerda kengaytiramiz.
+1. Xavfsizlik quvuri operatorlari topilmalarni amaldagi manba kodi bilan
+   taqqoslab baholashlari zarur bo‘lganda havola qilishlari uchun yagona manbani taqdim etish.
+2. Kelajakdagi AI skanerlari belgilangan har bir yo‘l qasddan yaratilgani,
+   ixtiyoriy ravishda yoqilishi va hujjatlashtirilgani haqidagi kuzatuvchi imzolagan bayonotni aniqlay olishi.
+3. Har bir chaqiruv nuqtasi _nima sababdan_ aynan shu tarzda tuzilganining yozma qaydiga ega bo‘lish —
+   shunda kelajakdagi refaktoring ataylab olib tashlangan izni tasodifan qayta kiritmaydi.
+
+Agar v3.8.6 dagi yumshatish choralari chiqarilgandan keyin quyidagi chaqiruv
+nuqtalaridan birortasi skaneringiz tomonidan yana belgilansa, skanerlash izi bilan birga muammo oching va
+biz bu yerdagi attestatsiyani kengaytiramiz.
 
 ---
 

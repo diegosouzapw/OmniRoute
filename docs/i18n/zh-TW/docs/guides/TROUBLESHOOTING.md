@@ -68,16 +68,24 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # 在等待重量級請求容量�
 
 ## npm install 警告（ERESOLVE / peer / deprecated）
 
-執行 `npm install -g omniroute` 時，您可能會看到大量警告，例如 `npm warn ERESOLVE`、對等相依性通知，以及 `deprecated` 訊息。**這些都是預期中的情況，不會造成影響。**如果輸出中出現 `added <N> packages`，即表示安裝成功。
+當您執行 `npm install -g omniroute` 時，可能會看到大量警告，例如 `npm warn ERESOLVE`、對等相依性通知，以及 `deprecated` 訊息。**這些都是預期中的情況，且不會造成影響。** 如果輸出中出現 `added <N> packages`，即表示安裝已成功。
+
+若要隱藏對等相依性解析警告，請使用 OmniRoute 支援的安裝方式：
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` 僅會隱藏 `ERESOLVE` 和對等相依性通知。棄用通知仍會顯示，因為它們來自遞移的第三方套件；這些通知並不表示安裝失敗。
 
 這些警告來自 OmniRoute 無法控制的第三方套件中過時的對等相依性版本範圍：
 
-1. **`marked-terminal` 要求 `marked >=1 <16`，但找到的是 `marked@18`** — 實際使用時運作正常；只是上游的對等相依性版本範圍已過時。
-2. **`deprecated prebuild-install@7.1.3`** — 這是一個遞移相依的原生二進位檔擷取輔助工具。它不會
-   用於安裝已鎖定版本的 `wreq-js` 傳輸繫結，也不表示 Web Cookie
+1. **`marked-terminal` 要求 `marked >=1 <16`，但找到的是 `marked@18`** — 實際使用時運作正常；只是上游的對等相依性範圍已過時。
+2. **`deprecated prebuild-install@7.1.3`** — 一個遞移的原生二進位檔擷取輔助工具。它不會
+   用於安裝已鎖定版本的 `wreq-js` 傳輸繫結，也不表示 web-cookie
    提供者的傳輸設定失敗。
 
-**不需要採取任何動作** — 除非分叉上游套件，否則無法完全消除這些警告。
+**無需採取任何動作** — 除非分叉上游套件，否則無法完全隱藏這些警告。
 
 ---
 

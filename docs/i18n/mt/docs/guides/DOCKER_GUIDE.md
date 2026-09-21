@@ -25,7 +25,13 @@
 
 ---
 
-## Tħaddim Rapidu
+## Tħaddim Malajr
+
+> **Ospita waħdek b'kmand wieħed?** Ara l-
+> [Gwida għall-Ospitar Awtonomu](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (immaġni ppubblikata +
+> Redis, aċċessibbli biss mil-loopback, mingħajr għażla ta' profil). It-Tħaddim Malajr hawn taħt huwa
+> l-metodu b'kontenitur wieħed għall-utenti li diġà jħaddmu Redis x'imkien ieħor.
 
 ```bash
 docker run -d \

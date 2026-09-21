@@ -166,32 +166,34 @@ Jadual `memory_vec_meta` (migrasi `083_memory_vec.sql`) menyimpan:
 ## Sambungan tetapan
 
 Sembilan medan pembenaman dan vektor tersedia dalam `MemorySettingsExtended` di
-`src/shared/schemas/memory.ts`, dan dikekalkan melalui `src/lib/db/settings.ts`:
+`src/shared/schemas/memory.ts`, dan disimpan melalui `src/lib/db/settings.ts`:
 
-| Medan                    | Jenis                                              | Lalai    | Penerangan                                                            |
-| ------------------------ | -------------------------------------------------- | -------- | --------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Sumber pembenaman yang hendak digunakan                               |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Penyedia/model dalam format `provider/model`                          |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL asas titik akhir serasi OpenAI khusus Memory                      |
-| `customModelId`          | `string \| null`                                   | `null`   | ID model yang dihantar ke titik akhir tersuai                         |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Pilihan ikut serta untuk Transformers.js (MiniLM, ~400MB)             |
-| `staticEnabled`          | `boolean`                                          | `false`  | Pilihan ikut serta untuk model setempat statik potion-base-8M         |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Dayakan langkah pemeringkatan semula (menambah +200-500ms/permintaan) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Penyedia/model pemeringkatan semula dalam format `provider/model`     |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Bahagian belakang vektor yang hendak digunakan                        |
+| Medan                    | Jenis                                              | Lalai    | Penerangan                                                                   |
+| ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Sumber pembenaman yang akan digunakan                                        |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Penyedia/model dalam format `provider/model`                                 |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL asas titik akhir serasi OpenAI khusus Memori                             |
+| `customModelId`          | `string \| null`                                   | `null`   | ID model yang dihantar ke titik akhir tersuai                                |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Pilihan ikut serta untuk Transformers.js (MiniLM, ~400MB)                    |
+| `staticEnabled`          | `boolean`                                          | `false`  | Pilihan ikut serta untuk model setempat statik potion-base-8M                |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Dayakan langkah penyusunan semula kedudukan (menambah +200-500ms/permintaan) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Penyedia/model penyusunan semula kedudukan dalam format `provider/model`     |
 
-Ini didedahkan melalui `GET /PUT /api/settings/memory` (skema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` diselesaikan oleh `POST /v1/rerank` (dipanggil melalui gelung balik), maka ia menerima apa-apa yang diterima oleh laluan tersebut: model penyusunan semula kedudukan awan yang dipilih susun (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) atau nod penyedia serasi OpenAI sebagai `<node-prefix>/<model>` (contohnya `skilled-mini/bge-reranker-v2-m3` untuk kotak TEI/Infinity). Nod gelung balik sentiasa layak; nod pada hos lain (LAN, Tailscale) turut memerlukan bendera ciri `RERANK_REMOTE_PROVIDER_NODES` dan mesti melepasi dasar URL keluar penyedia — lihat [Bendera Ciri](../reference/FEATURE_FLAGS.md). Pemilih papan pemuka menyenaraikan penyedia yang dipilih susun serta nod setempat; sebarang rentetan `provider/model` yang sah boleh ditetapkan secara langsung melalui `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Bahagian belakang vektor yang akan digunakan |
 
-Untuk sumber `remote`, Memory turut menerima tetapan pilihan `customBaseUrl` dan
-`customModelId`. Bersama-sama, tetapan ini memilih titik akhir `/embeddings` yang
-serasi dengan OpenAI dan model tanpa mengubah pendaftar pembenaman global. Titik akhir
-dinormalkan sebelum digunakan dan diperiksa oleh dasar URL keluar penyedia: HTTP(S)
-diperlukan, kelayakan terbenam dan rentetan pertanyaan ditolak, dan alamat metadata
-awan kekal disekat. Nilai kosong mengekalkan penyedia pendaftar yang dipilih. Ralat
-yang dikembalikan kepada papan pemuka dibersihkan dan kelayakan titik akhir tidak pernah
-direkodkan.
+Tetapan ini didedahkan melalui `GET /PUT /api/settings/memory` (skema `MemorySettingsExtendedSchema`).
 
-> **TODO (D20):** Skop `global` (perkongsian memori merentas semua kunci API) tidak
+Bagi sumber `remote`, Memori turut menerima tetapan pilihan `customBaseUrl` dan
+`customModelId`. Kedua-duanya memilih titik akhir `/embeddings` dan model yang serasi
+dengan OpenAI tanpa mengubah daftaran pembenaman global. Titik akhir dinormalkan
+sebelum digunakan dan diperiksa oleh dasar URL keluar penyedia: HTTP(S) diperlukan,
+bukti kelayakan terbenam dan rentetan pertanyaan ditolak, manakala alamat metadata
+awan kekal disekat. Nilai kosong mengekalkan penyedia daftaran yang dipilih. Ralat yang
+dikembalikan kepada papan pemuka disanitasi dan bukti kelayakan titik akhir tidak
+pernah dilog.
+
+> **TODO (D20):** Skop `global` (perkongsian memori merentas semua kunci API) belum
 > dilaksanakan dalam keluaran ini. Ia memerlukan perubahan skema dan laluan pemerolehan
 > global. Jejaki secara berasingan.
 

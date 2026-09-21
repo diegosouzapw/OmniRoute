@@ -26,18 +26,20 @@ Runde N (assistenten genererer):
   → svaret inneholder reasoning_content + tool_calls
   → hvis requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
       skriver (minne + DB), indeksert etter hver tool_call.id
-  → videresend svaret til klienten (som kanskje beholder resonneringen)
+  → videresend svaret til klienten (som kanskje beholder resonneringen, kanskje ikke)
 
 Runde N+1 (klienten sender en oppfølging):
   → oversetteren oppdager: requiresReasoningReplay(provider, model) === true
   → for hver assistentmelding med tool_calls og uten reasoning_content:
       lookupReasoning(toolCalls[0].id) → minne → DB
       treff     → msg.reasoning_content = cached; recordReplay()
-      bom       → msg.reasoning_content = "" (eldre reserveløsning for tidligere DeepSeek)
-  → oppstrømstjenesten mottar konsistent historikk → ingen 400
+      bom       → msg.reasoning_content = "" (eldre reservemekanisme for gamle DeepSeek-versjoner)
+  → oppstrømstjenesten ser en konsistent historikk → ingen 400
 ```
 
-Registrering skjer i `open-sse/handlers/chatCore.ts` (to steder, ved de to kallestedene for `cacheReasoningFromAssistantMessage`). Avspilling skjer i `open-sse/translator/index.ts` etter skjemakonvertering, men før videresending.
+Innhenting skjer i `open-sse/handlers/chatCore.ts` (på to steder, ved de to kallestedene for `cacheReasoningFromAssistantMessage`). Gjenbruk skjer i `open-sse/translator/index.ts` etter skjemakonvertering, men før videresending.
+
+Vanlige assistentrunder (uten verktøykall) indekseres på en annen måte: `buildAssistantMessageCacheKey()` beregner et sammendrag av øktomfanget samt den normaliserte transkripsjonen i OpenAI-format frem til den aktuelle runden, fordi DeepSeek krever resonneringen fra _hver_ tidligere runde når `tools` finnes. For mål som bruker Responses-API-et (for eksempel `opencode-go/deepseek-v4-flash`, rutet til `/responses`), inneholder oppstrømsforespørselen `input`, ikke `messages`. Derfor rapporterer `translateRequest()` (`open-sse/translator/index.ts`) pivottranskripsjonen som ble brukt i beregningen, via et tilbakekallsalternativ, og innhentingsstedene beregner et sammendrag av den samme transkripsjonen. Gjenbrukspasseringen for Responses kjører på OpenAI-pivoten for alle kildeformater, slik at Anthropic Messages-klienter (Claude → OpenAI → Responses) også får resonneringen gjenbrukt.
 
 ## Lagring — hybrid minne + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indekser: `expires_at`, `provider`, `model`, `created_at`. `expires_at` lagres som Unix-epoketid i sekunder. SELECT-laget normaliserer eldre tekstverdier via `EXPIRES_AT_EPOCH_SQL`.
+Indekser: `expires_at`, `provider`, `model`, `created_at`. `expires_at` lagres som Unix-epokesekunder. SELECT-laget normaliserer eldre tekstverdier via `EXPIRES_AT_EPOCH_SQL`.
 
 ## Leverandør-/modellgjenkjenning
 

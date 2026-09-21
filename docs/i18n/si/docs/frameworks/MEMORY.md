@@ -159,34 +159,36 @@ RRF(d) = Σ  1 / (k + rank_i(d))      මෙහි k = 60 (MEMORY_RRF_K හර�
 
 ## සැකසුම් දිගුව
 
-Embedding සහ vector ක්ෂේත්ර නවයක් `src/shared/schemas/memory.ts` හි
-`MemorySettingsExtended` තුළ ලබා ගත හැකි අතර, ඒවා `src/lib/db/settings.ts` හරහා ස්ථිරව ගබඩා කෙරේ:
+`src/shared/schemas/memory.ts` තුළ ඇති `MemorySettingsExtended` හි embedding සහ vector ක්ෂේත්ර නවයක් පවතින අතර, ඒවා `src/lib/db/settings.ts` හරහා සුරැකේ:
 
-| ක්ෂේත්රය                 | වර්ගය                                              | පෙරනිමිය | විස්තරය                                                                    |
-| ------------------------ | -------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | භාවිත කළ යුතු embedding මූලාශ්රය                                           |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ආකෘතියෙන් ඇති සැපයුම්කරු/ආකෘතිය                           |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | Memory සඳහා පමණක් වන OpenAI-අනුකූල endpoint මූලික URL එක                   |
-| `customModelId`          | `string \| null`                                   | `null`   | අභිරුචි endpoint එකට යවන ආකෘති ID එක                                       |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js සඳහා කැමැත්තෙන් සක්රිය කිරීම (MiniLM, ~400MB)              |
-| `staticEnabled`          | `boolean`                                          | `false`  | ස්ථිතික potion-base-8M දේශීය ආකෘතිය සඳහා කැමැත්තෙන් සක්රිය කිරීම           |
-| `rerankEnabled`          | `boolean`                                          | `false`  | නැවත ශ්රේණිගත කිරීමේ පියවර සක්රිය කිරීම (එක් ඉල්ලීමකට +200-500ms එක් කරයි) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ආකෘතියෙන් ඇති නැවත ශ්රේණිගත කිරීමේ සැපයුම්කරු/ආකෘතිය      |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | භාවිත කළ යුතු vector backend එක                                            |
+| ක්ෂේත්රය                 | වර්ගය                                              | පෙරනිමිය | විස්තරය                                                                   |
+| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | භාවිත කළ යුතු embedding මූලාශ්රය                                          |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ආකෘතියේ සැපයුම්කරු/මාදිලිය                               |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | Memory සඳහා පමණක් වන OpenAI-අනුකූල endpoint මූලික URL එක                  |
+| `customModelId`          | `string \| null`                                   | `null`   | අභිරුචි endpoint එකට යවන මාදිලි ID එක                                     |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js සඳහා කැමැත්ත පළ කිරීම (MiniLM, ~400MB)                    |
+| `staticEnabled`          | `boolean`                                          | `false`  | ස්ථිතික potion-base-8M දේශීය මාදිලිය සඳහා කැමැත්ත පළ කිරීම                |
+| `rerankEnabled`          | `boolean`                                          | `false`  | නැවත ශ්රේණිගත කිරීමේ පියවර සක්රීය කරන්න (එක් ඉල්ලීමකට +200-500ms එකතු වේ) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ආකෘතියේ නැවත ශ්රේණිගත කිරීමේ සැපයුම්කරු/මාදිලිය          |
 
-මේවා `GET /PUT /api/settings/memory` හරහා නිරාවරණය කෙරේ (schema එක `MemorySettingsExtendedSchema`).
+`rerankProviderModel` විසඳනු ලබන්නේ `POST /v1/rerank` මඟින්ය (loopback හරහා කැඳවනු ලැබේ), එබැවින් එම route එක පිළිගන්නා ඕනෑම දෙයක් එය පිළිගනී: තෝරාගත් cloud නැවත ශ්රේණිගත කිරීමේ මාදිලියක් (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) හෝ `<node-prefix>/<model>` ආකාරයේ OpenAI-අනුකූල සැපයුම්කරු node එකක් (උදා. TEI/Infinity box එකක් සඳහා `skilled-mini/bge-reranker-v2-m3`). Loopback nodes සැමවිටම සුදුසුකම් ලබයි; වෙනත් host එකක (LAN, Tailscale) ඇති node එකකට අමතරව `RERANK_REMOTE_PROVIDER_NODES` feature flag එක අවශ්ය වන අතර, එය සැපයුම්කරුගේ outbound URL ප්රතිපත්තිය සමත් විය යුතුය — [Feature Flags](../reference/FEATURE_FLAGS.md) බලන්න. Dashboard selector එක තෝරාගත් සැපයුම්කරුවන් සහ දේශීය nodes ලැයිස්තුගත කරයි; වලංගු ඕනෑම `provider/model` string එකක් `PUT /api/settings/memory` හරහා සෘජුවම සැකසිය හැක.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | භාවිත කළ යුතු vector backend එක |
+
+මේවා `GET /PUT /api/settings/memory` හරහා නිරාවරණය කර ඇත (schema එක `MemorySettingsExtendedSchema`).
 
 `remote` මූලාශ්රය සඳහා, Memory විසින් විකල්ප `customBaseUrl` සහ
-`customModelId` සැකසුම් ද පිළිගනී. එක්ව, ඒවා ගෝලීය embedding registry එක වෙනස් නොකර OpenAI-අනුකූල `/embeddings`
-endpoint එකක් සහ ආකෘතියක් තෝරා ගනී. භාවිතයට පෙර endpoint එක
-සාමාන්යකරණය කර සැපයුම්කරුගේ පිටතට යන URL ප්රතිපත්තිය මඟින් පරීක්ෂා කෙරේ: HTTP(S)
-අවශ්ය වේ, අන්තර්ගත කළ අක්තපත්ර සහ query string ප්රතික්ෂේප කෙරෙන අතර cloud-metadata
-ලිපින තවදුරටත් අවහිරව පවතී. හිස් අගයන් තෝරාගත් registry සැපයුම්කරු එලෙසම තබා ගනී. Dashboard එකට
-ආපසු ලබා දෙන දෝෂ පිරිසිදු කර ඇති අතර endpoint අක්තපත්ර කිසිවිටෙක log නොකෙරේ.
+`customModelId` සැකසුම් ද පිළිගනී. ගෝලීය embedding registry එක වෙනස් නොකර,
+මේවා එක්ව OpenAI-අනුකූල `/embeddings` endpoint එකක් සහ මාදිලියක් තෝරයි. භාවිතයට
+පෙර endpoint එක normalized කර සැපයුම්කරුගේ outbound URL ප්රතිපත්තිය මඟින් පරීක්ෂා
+කරනු ලැබේ: HTTP(S) අවශ්යය, කාවැද්දූ credentials සහ query strings ප්රතික්ෂේප කරනු
+ලබන අතර cloud-metadata ලිපින තවදුරටත් අවහිර කර ඇත. හිස් අගයන් තෝරාගත් registry
+සැපයුම්කරු රඳවා ගනී. Dashboard එකට ආපසු යවන දෝෂ sanitize කරනු ලබන අතර endpoint
+credentials කිසිවිටෙකත් log නොකෙරේ.
 
-> **TODO (D20):** සියලු API key අතර memory බෙදාගැනීම සඳහා වන `global` විෂය පථය මෙම නිකුතුවේ
-> ක්රියාත්මක කර නොමැත. එයට schema වෙනස්කම් සහ ගෝලීය retrieval
-> මාර්ගයක් අවශ්ය වේ. වෙනම නිරීක්ෂණය කරන්න.
+> **TODO (D20):** `global` scope එක (සියලු API keys හරහා memories බෙදාගැනීම) මෙම
+> නිකුතුවේ ක්රියාත්මක කර නොමැත. ඒ සඳහා schema වෙනස්කම් සහ ගෝලීය retrieval
+> path එකක් අවශ්ය වේ. වෙනම නිරීක්ෂණය කරන්න.
 
 ## ගබඩා ස්තර
 

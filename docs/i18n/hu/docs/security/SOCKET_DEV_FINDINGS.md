@@ -4,15 +4,27 @@
 
 ---
 
-> **Hatály megjegyzés:** A `socket.yml` konfigurálja a Socket.dev regisztrációs oldalán történő, közzététel utáni npm műtermék vizsgálatát (kihagyandó útvonalak a nem szállított tartalmakhoz, mint például a `tests/`, `docs/`, és a build jelentések). Nem kapcsol be CI/PR egyesítési kaput — nincs munkafolyamat a `.github/workflows` fájlban, nincs `package.json` szkript, és nincs `Makefile` cél, ami meghívná a Socket.dev-et.
+> **Hatókörre vonatkozó megjegyzés:** A `socket.yml` a Socket.dev rendszerleíró adatbázis oldalán végzett, közzététel utáni npm-összetevővizsgálatát konfigurálja (figyelmen kívül hagyandó elérési utak a nem szállított tartalmakhoz, például a `tests/`, `docs/` könyvtárakhoz és az összeállítási jelentésekhez). Nem állít be CI/PR-egyesítési kaput — sem a `.github/workflows` egyik munkafolyamata, sem `package.json`-szkript, sem `Makefile`-cél nem hívja meg a Socket.dev szolgáltatást.
 
-Ez a dokumentum a karbantartó által írt igazolás az `omniroute@3.8.5` ellen felmerült hat `AI-detected potential malware` megállapításról és az `omniroute@3.8.6` verzióban alkalmazott enyhítésekről. Célja, hogy:
+Ez a dokumentum a karbantartó által készített tanúsítás az `omniroute@3.8.5`
+verzióval kapcsolatban jelzett hat
+`AI által észlelt potenciális rosszindulatú program` megállapításról, valamint
+az `omniroute@3.8.6` verzióban alkalmazott enyhítő intézkedésekről. Célja, hogy:
 
-1. A biztonsági pipeline operátorok egyetlen hivatkozással rendelkezzenek, amelyet idézhetnek, amikor a megállapításokat az aktuális forrással szemben kell értékelniük.
-2. A jövőbeli AI szkennerek felismerjék a karbantartó által aláírt állítást, miszerint minden megjelölt útvonal szándékos, választható és dokumentált.
-3. Írásos feljegyzésünk legyen arról, hogy _miért_ alakult ki az egyes hívási pontok a jelenlegi formájukban — így egy jövőbeli refaktorálás véletlenül sem vezet vissza egy olyan ujjlenyomatot, amelyet szándékosan eltávolítottak.
+1. A biztonsági folyamatok üzemeltetői egyetlen hivatkozható forrással
+   rendelkezzenek, amikor a megállapításokat a tényleges forráskód alapján
+   kell értékelniük.
+2. A jövőbeli MI-alapú ellenőrzők felismerhessék a karbantartó által aláírt
+   állítást, miszerint minden megjelölt elérési út szándékos, külön
+   engedélyezendő és dokumentált.
+3. Írásos feljegyzésünk legyen arról, hogy az egyes hívási helyek _miért_
+   olyan kialakításúak, amilyenek — hogy egy jövőbeli refaktorálás véletlenül
+   se vezessen vissza egy szándékosan eltávolított ujjlenyomatot.
 
-Ha olyan szkennert üzemeltet, amely a v3.8.6 enyhítések bevezetése után újra megjelöli az alábbi hívási pontok bármelyikét, kérjük, nyisson egy hibajegyet a vizsgálati nyomkövetéssel, és mi kiegészítjük az igazolást itt.
+Ha olyan ellenőrzőt üzemeltet, amely a v3.8.6 enyhítő intézkedéseinek
+kiadása után ismét megjelöli az alábbi hívási helyek bármelyikét, kérjük,
+nyisson egy hibajegyet az ellenőrzési nyomvonallal, és itt kibővítjük a
+tanúsítást.
 
 ---
 

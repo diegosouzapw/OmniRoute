@@ -22,24 +22,24 @@ A tipikus kliensek (Cursor, Cline, Roo Code, OpenAI SDK) azonban eltávolítják
 ## Architektúra
 
 ```
-N. kör (asszisztens generál):
-  → a válasz tartalmazza: reasoning_content + tool_calls
+N. forduló (az asszisztens generál):
+  → a válasz reasoning_content + tool_calls mezőket tartalmaz
   → ha requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      írás (memória + DB), minden tool_call.id kulccsal
-  → válasz továbbítása a kliensnek (amely megtarthatja vagy eldobhatja a gondolatmenetet)
+      ír (memóriába + DB-be), minden tool_call.id alapján kulcsolva
+  → továbbítja a választ a kliensnek (amely megőrizheti vagy eldobhatja az indoklást)
 
-N+1. kör (kliens küldi a folytatást):
+N+1. forduló (a kliens utánkövető üzenetet küld):
   → a fordító észleli: requiresReasoningReplay(provider, model) === true
-  → minden olyan asszisztens üzenethez, amelyben vannak tool_calls, de nincs reasoning_content:
+  → minden olyan asszisztensüzenetnél, amely rendelkezik tool_calls mezővel, de reasoning_content mezővel nem:
       lookupReasoning(toolCalls[0].id) → memória → DB
-      találat → msg.reasoning_content = gyorsítótárazott; recordReplay()
-      nincs találat → msg.reasoning_content = "" (örökölt tartalék régebbi DeepSeek verziókhoz)
-  → az upstream konzisztens előzményeket lát → nincs 400-as hiba
+      találat  → msg.reasoning_content = cached; recordReplay()
+      nincs találat → msg.reasoning_content = "" (örökölt tartalékmegoldás a régebbi DeepSeekhez)
+  → a felsőbb réteg konzisztens előzményeket lát → nincs 400-as hiba
 ```
 
-A rögzítés az `open-sse/handlers/chatCore.ts` fájlban történik (két helyen, a két `cacheReasoningFromAssistantMessage` hívási pontnál). A visszajátszás az `open-sse/translator/index.ts` fájlban történik, a séma kényszerítése után, de a továbbítás előtt.
+A rögzítés az `open-sse/handlers/chatCore.ts` fájlban történik (két helyen, a két `cacheReasoningFromAssistantMessage` hívási helyén). A visszajátszás az `open-sse/translator/index.ts` fájlban történik, a séma kényszerített átalakítása után, de a továbbítás előtt.
 
-Az egyszerű (nem tool-call) asszisztens körök kulcsozása eltérő: a `buildAssistantMessageCacheKey()` a munkamenet hatókörét és az adott körig terjedő, normalizált OpenAI-formátumú átiratot dolgozza fel, mivel a DeepSeek minden korábbi kör gondolatmenetét igényli, amint a `tools` jelen van. A Responses-API célpontok esetében (például `opencode-go/deepseek-v4-flash`, a `/responses` útvonalra irányítva) az upstream törzs `input`-ot tartalmaz, nem `messages`-t, ezért a `translateRequest()` (`open-sse/translator/index.ts`) jelenti a feldolgozott pivot átiratot egy visszahívási opción keresztül, a rögzítési pontok pedig ugyanazt az átiratot dolgozzák fel. A Responses visszajátszási menet minden forrásformátum esetén az OpenAI pivoton fut, így az Anthropic Messages kliensek (Claude → OpenAI → Responses) szintén visszajátszásra kerülnek.
+Az egyszerű (eszközhívás nélküli) asszisztensi fordulók kulcsa eltérően készül: a `buildAssistantMessageCacheKey()` a munkamenet hatóköréből és az adott fordulóig terjedő, normalizált OpenAI-formátumú átiratból képez kivonatot, mivel a DeepSeek minden korábbi forduló indoklását megköveteli, amint a `tools` jelen van. A Responses API-t használó céloknál (például az `/responses` végpontra irányított `opencode-go/deepseek-v4-flash` esetében) a felsőbb rétegnek küldött törzs `input` mezőt tartalmaz, nem pedig `messages` mezőt, ezért a `translateRequest()` (`open-sse/translator/index.ts`) egy visszahívási opción keresztül jelenti az általa kivonatolt köztes átiratot, a rögzítési helyek pedig ugyanebből az átiratból képeznek kivonatot. A Responses visszajátszási menete minden forrásformátum esetén az OpenAI köztes reprezentációján fut, így az Anthropic Messages kliensek (Claude → OpenAI → Responses) esetében is megtörténik a visszajátszás.
 
 ## Tárolás — hibrid memória + SQLite
 

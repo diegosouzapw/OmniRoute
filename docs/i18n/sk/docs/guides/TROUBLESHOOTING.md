@@ -70,14 +70,22 @@ Nastavte ich v prostredí procesu OmniRoute (démon, napr. prostredníctvom súb
 
 Keď spustíte `npm install -g omniroute`, môže sa zobraziť množstvo upozornení, napríklad `npm warn ERESOLVE`, oznámenia o partnerských závislostiach a správy `deprecated`. **Tieto upozornenia sú očakávané a neškodné.** Inštalácia bola úspešná, ak sa vo výstupe zobrazí `added <N> packages`.
 
+Ak chcete potlačiť upozornenia týkajúce sa riešenia partnerských závislostí, použite podporovaný spôsob inštalácie OmniRoute:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` potlačí iba upozornenia `ERESOLVE` a oznámenia o partnerských závislostiach. Oznámenia o zastaraní zostanú viditeľné, pretože pochádzajú z tranzitívnych balíkov tretích strán; neznamenajú, že inštalácia zlyhala.
+
 Upozornenia pochádzajú zo zastaraných rozsahov partnerských závislostí v balíkoch tretích strán, ktoré OmniRoute nemá pod kontrolou:
 
-1. **`marked-terminal` vyžaduje `marked >=1 <16`, ale našiel sa `marked@18`** — v praxi funguje bez problémov; rozsah partnerskej závislosti v pôvodnom balíku je iba zastaraný.
+1. **`marked-terminal` vyžaduje `marked >=1 <16`, nájdený bol `marked@18`** — v praxi funguje bez problémov; rozsah partnerskej závislosti v upstream balíku je iba zastaraný.
 2. **`deprecated prebuild-install@7.1.3`** — tranzitívny pomocný nástroj na získavanie natívnych binárnych súborov. Nepoužíva sa
    na inštaláciu pripnutej transportnej väzby `wreq-js` a neznamená, že nastavenie transportu poskytovateľa webových súborov cookie
    zlyhalo.
 
-**Nie je potrebná žiadna akcia** — upozornenia nemožno úplne potlačiť bez vytvorenia forkov pôvodných balíkov.
+**Nie je potrebná žiadna akcia** — upozornenia nemožno úplne potlačiť bez vytvorenia vlastných fork verzií upstream balíkov.
 
 ---
 

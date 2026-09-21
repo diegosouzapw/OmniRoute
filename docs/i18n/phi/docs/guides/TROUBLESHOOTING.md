@@ -68,16 +68,24 @@ I-set ang mga ito sa process environment ng OmniRoute (ang daemon, hal. sa pamam
 
 ## Mga Babala sa npm install (ERESOLVE / peer / deprecated)
 
-Kapag pinatakbo mo ang `npm install -g omniroute`, maaari kang makakita ng napakaraming babala tulad ng `npm warn ERESOLVE`, mga abiso tungkol sa peer dependency, at mga mensaheng `deprecated`. **Inaasahan ang mga ito at hindi nakapipinsala.** Matagumpay ang iyong pag-install kung makikita mo ang `added <N> packages` sa output.
+Kapag pinatakbo mo ang `npm install -g omniroute`, maaari kang makakita ng napakaraming babala gaya ng `npm warn ERESOLVE`, mga abiso tungkol sa peer dependency, at mga mensaheng `deprecated`. **Inaasahan ang mga ito at hindi nakapipinsala.** Matagumpay ang pag-install kung makikita mo ang `added <N> packages` sa output.
+
+Upang huwag ipakita ang mga babala sa paglutas ng peer dependency, gamitin ang sinusuportahang paraan ng pag-install ng OmniRoute:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+Hindi ipinapakita ng `--legacy-peer-deps` ang `ERESOLVE` at mga abiso sa peer dependency lamang. Mananatiling nakikita ang mga abiso sa deprecation dahil nagmumula ang mga ito sa mga transitive na third-party package; hindi ipinahihiwatig ng mga ito na nabigo ang pag-install.
 
 Nagmumula ang mga babala sa mga lumang saklaw ng peer dependency sa mga third-party package na hindi kontrolado ng OmniRoute:
 
-1. **Kinakailangan ng `marked-terminal` ang `marked >=1 <16`, ngunit `marked@18` ang nakita** — gumagana ito nang maayos sa aktuwal na paggamit; luma lamang ang upstream peer range.
-2. **`deprecated prebuild-install@7.1.3`** — isang transitive helper para sa pagkuha ng native binary. Hindi ito
-   ginagamit upang i-install ang naka-pin na `wreq-js` transport binding at hindi ito nagpapahiwatig na nabigo ang
+1. **Kinakailangan ng `marked-terminal` ang `marked >=1 <16`, ngunit `marked@18` ang nakita** — gumagana naman ito nang maayos sa aktuwal na paggamit; luma lamang ang upstream peer range.
+2. **`deprecated prebuild-install@7.1.3`** — isang transitive na helper para sa pagkuha ng native binary. Hindi ito
+   ginagamit upang i-install ang naka-pin na `wreq-js` transport binding at hindi nito ipinahihiwatig na nabigo ang
    pag-setup ng transport ng web-cookie provider.
 
-**Walang kailangang gawin** — hindi ganap na mapapatahimik ang mga babala nang hindi nagfo-fork ng mga upstream package.
+**Walang kailangang gawin** — hindi lubusang maitatago ang mga babala nang hindi nagfo-fork ng mga upstream package.
 
 ---
 
