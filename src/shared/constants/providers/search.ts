@@ -195,6 +195,17 @@ export const SEARCH_PROVIDERS = {
     website: "https://ollama.com/settings/keys",
     authHint: "Same API key as Ollama Cloud (from ollama.com/settings/keys)",
   },
+  "kimi-search": {
+    id: "kimi-search",
+    serviceKinds: ["webSearch"],
+    alias: "kimi-search",
+    name: "Kimi Search",
+    icon: "search",
+    color: "#2563EB",
+    textIcon: "KM",
+    website: "https://platform.kimi.ai/docs/api/tools-search",
+    authHint: "Moonshot AI API key (MOONSHOT_API_KEY) from platform.kimi.ai",
+  },
   context7: {
     id: "context7",
     alias: "context7",

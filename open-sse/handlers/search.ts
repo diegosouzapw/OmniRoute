@@ -461,6 +461,26 @@ function buildTavilyRequest(
   };
 }
 
+function buildKimiRequest(
+  config: SearchProviderConfig,
+  params: SearchRequestParams
+): { url: string; init: RequestInit } {
+  if (!params.token) throw new Error("Kimi Search requires an API key");
+  const body: Record<string, unknown> = {
+    text_query: params.query,
+    limit: Math.min(params.maxResults, config.maxMaxResults),
+    include_content: true,
+  };
+  return {
+    url: config.baseUrl,
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${params.token}` },
+      body: JSON.stringify(body),
+    },
+  };
+}
+
 function buildNimbleRequest(
   config: SearchProviderConfig,
   params: SearchRequestParams
@@ -725,6 +745,7 @@ const requestBuilders: Record<string, SearchRequestBuilder> = {
   "perplexity-search": buildPerplexityRequest,
   "exa-search": buildExaRequest,
   "tavily-search": buildTavilyRequest,
+  "kimi-search": buildKimiRequest,
   "nimble-search": buildNimbleRequest,
   firecrawl: fcSearch.buildFirecrawlSearchRequest,
   "google-pse-search": buildGooglePseRequest,
@@ -858,6 +879,44 @@ interface NimbleSearchItem {
 interface NimbleSearchEnvelope {
   results?: NimbleSearchItem[];
   total_results?: number;
+}
+
+interface KimiSearchItem {
+  title?: string;
+  url?: string;
+  snippet?: string;
+  text?: string;
+  date?: string;
+}
+
+interface KimiSearchEnvelope {
+  search_results?: KimiSearchItem[];
+}
+
+function normalizeKimiResponse(
+  data: unknown,
+  _query: string,
+  _searchType: string
+): { results: SearchResult[]; totalResults: number | null } {
+  const now = new Date().toISOString();
+  const envelope = (data ?? {}) as KimiSearchEnvelope;
+  if (!Array.isArray(envelope.search_results)) return { results: [], totalResults: null };
+  const results = envelope.search_results.map((item, idx) =>
+    makeResult(
+      "kimi-search",
+      {
+        title: item.title,
+        url: item.url,
+        snippet: item.snippet || "",
+        published_at: item.date,
+        full_text: item.text || undefined,
+        text_format: "text",
+      },
+      idx,
+      now
+    )
+  );
+  return { results, totalResults: results.length };
 }
 
 function normalizeNimbleResponse(
@@ -1344,6 +1403,7 @@ const responseNormalizers: Record<string, SearchResponseNormalizer> = {
   "perplexity-search": normalizePerplexityResponse,
   "exa-search": normalizeExaResponse,
   "tavily-search": normalizeTavilyResponse,
+  "kimi-search": normalizeKimiResponse,
   "nimble-search": normalizeNimbleResponse,
   firecrawl: (data: FirecrawlSearchEnvelope, _query: string, searchType: string) =>
     fcSearch.normalizeFirecrawlSearchResponse(data, searchType, makeResult),
