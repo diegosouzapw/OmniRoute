@@ -29,7 +29,7 @@ import {
   isEmptyUpstreamRejection,
   extractChatcmplId,
 } from "./accountRotation.ts";
-import { markCooldown, markOutcome, noteResponseServed } from "./opencodeAccountHealth.ts";
+import { markCooldown, markOutcome, markSuccess, noteResponseServed } from "./opencodeAccountHealth.ts";
 import {
   isOpencodeFreeTierRefusal,
   isOpencodeGeoBlocked,
@@ -68,8 +68,15 @@ import {
   isOpencodeUserBlockedRotationEnabled,
   isOpencodeTransientFailoverBackoffEnabled,
   isOpencodeRateLimited429EarlyStopEnabled,
+  isOpencodeParkAndResumeEnabled,
 } from "@/shared/utils/featureFlags";
 import { classifyUpstream429 } from "./opencodeRateLimited.ts";
+import {
+  BURST_PARK_THRESHOLD,
+  parkWaitMs,
+  readPoolStrainMarker,
+  runParkAndReplay,
+} from "./opencodeParkResume.ts";
 
 /**
  * The main OpenCode Zen host, shared by the `opencode` and `opencode-zen`
@@ -297,6 +304,7 @@ export class OpencodeExecutor extends BaseExecutor {
   // tests swap in a recording fake instead of waiting on real timers.
   transientPauseSleep: (ms: number, signal?: AbortSignal | null) => Promise<boolean> =
     sleepAbortable;
+  parkSleep: (ms: number, signal?: AbortSignal | null) => Promise<boolean> = sleepAbortable;
 
   constructor(provider: string) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
@@ -617,6 +625,8 @@ export class OpencodeExecutor extends BaseExecutor {
       // them this request — only acted on when OPENCODE_TRANSIENT_FAILOVER_BACKOFF is on.
       let transientStreak = 0;
       let transientPausedMs = 0;
+      let burstStreak = 0,
+        parked = false;
 
       for (let attempt = 0; attempt < this.accounts.length + emptyRejectionBudget; attempt++) {
         const isProxiedCandidate = (a: OpencodeAccountState): boolean => {
@@ -762,6 +772,7 @@ export class OpencodeExecutor extends BaseExecutor {
         lastResult = result;
         const priorTransientStreak = transientStreak;
         transientStreak = 0;
+        if (result.response.status !== 429) burstStreak = 0;
 
         const status = result.response.status;
         if (status === 429) {
@@ -790,6 +801,36 @@ export class OpencodeExecutor extends BaseExecutor {
               (setAsideMs ? `, member set aside for ${Math.round(setAsideMs / 1000)}s` : "") +
               ", rotating to next…"
           );
+          burstStreak += 1;
+          if (!parked && isOpencodeParkAndResumeEnabled()) {
+            const marker = await readPoolStrainMarker();
+            if (burstStreak >= BURST_PARK_THRESHOLD || marker.fresh) {
+              parked = true;
+              log?.warn?.(
+                "OPENCODE",
+                `${cid}burstStreak=${burstStreak} freshD2=${marker.fresh} park`
+              );
+              const p = await runParkAndReplay(
+                {
+                  execute: (i: ExecuteInput) =>
+                    super.execute(i) as Promise<ExecutorExecuteResult & { response: Response }>,
+                  markSuccess: (a: OpencodeAccountState) => markSuccess(a),
+                  sleep: this.parkSleep,
+                  accounts: this.accounts,
+                },
+                input,
+                parkWaitMs(marker.fresh ? marker.ttlLeftMs : null),
+                result,
+                log,
+                cid
+              );
+              if (p && p !== result) return this.normalizeMuseSparkResponse(input, p);
+              if (p) {
+                discardResponseBody(abandonedResponse);
+                return this.normalizeMuseSparkResponse(input, result);
+              }
+            }
+          }
           continue;
         }
 
