@@ -2,20 +2,22 @@
 
 import { NextResponse } from "next/server";
 import { getSupervisor } from "@/lib/services/registry";
+import { persistStoppedWithoutSupervisor } from "@/lib/services/persistedState";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 import { parseVersionManagerToolRequest } from "../request";
 
 export async function POST(request: Request) {
   const parsed = await parseVersionManagerToolRequest(request);
-  if (!parsed.ok) {
+  if (parsed.ok === false) {
     return parsed.response;
   }
 
   try {
     const sup = getSupervisor("cliproxy");
     if (!sup) {
-      // Already stopped — no supervisor registered yet, nothing to do.
+      // Already stopped in memory; reconcile any volatile state left in the DB.
+      await persistStoppedWithoutSupervisor(parsed.tool);
       return NextResponse.json({ success: true });
     }
     await sup.stop();
