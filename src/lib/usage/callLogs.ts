@@ -5,6 +5,7 @@
  * filesystem artifacts and are loaded only for explicit detail/export flows.
  */
 
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
@@ -136,11 +137,14 @@ type DeleteResult = {
   deletedArtifacts: number;
 };
 
-let logIdCounter = 0;
-
 function generateLogId() {
-  logIdCounter++;
-  return `${Date.now()}-${logIdCounter}`;
+  // The millisecond prefix keeps ids readable and roughly time-ordered; the
+  // suffix has to be unique per call, not per process. It used to be a
+  // module-level counter, which two instances of this module (worker threads,
+  // separate route bundles) both start at 0 - same millisecond, identical id,
+  // and SQLite silently dropped the second call-log row on the UNIQUE
+  // constraint. See #14338.
+  return `${Date.now()}-${randomUUID()}`;
 }
 
 async function resolveAccountName(connectionId: string | null | undefined) {
