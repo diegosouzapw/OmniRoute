@@ -148,6 +148,7 @@ import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTel
 import { generateRequestId } from "../../shared/utils/requestId";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
+import { checkMeteredBudgetForProvider } from "@/lib/usage/meteredBudgetPolicy";
 import { hasProviderQuotaBypassScope } from "../../shared/constants/apiKeyPolicyScopes";
 import { isMicrosoftDesignerWebProviderRetiredError } from "../../shared/constants/designerWebRetirement";
 import { cloneBoundedForLog } from "@omniroute/open-sse/utils/requestLogger.ts";
@@ -688,8 +689,20 @@ async function handleChatImplementation(
   }
 
   // Pipeline: API key policy enforcement (model restrictions + budget limits)
+  //
+  // The metered dollar budget is deferred to the candidate boundary on this
+  // path. A chat request can resolve to several provider candidates with
+  // different economics, and the api-key-scoped budget cannot tell a metered
+  // API from a flat-rate subscription before the provider is resolved —
+  // rejecting here would take eligible flat-rate capacity down with the spent
+  // allowance. handleSingleModelChat re-applies it for each resolved candidate
+  // before a credential is selected — the single dispatch funnel for this
+  // endpoint, direct requests and combo targets alike — so no metered call
+  // escapes the allowance.
   telemetry.startPhase("policy");
-  const policy = await enforceApiKeyPolicy(request, modelStr);
+  const policy = await enforceApiKeyPolicy(request, modelStr, {
+    meteredBudget: "defer-to-candidate",
+  });
   if (policy.rejection) {
     log.warn(
       "POLICY",
@@ -1539,6 +1552,32 @@ async function handleSingleModelChat(
     return runtimeOptions.providerId;
   })();
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
+
+  // Monetary eligibility, before a credential is selected. The api-key policy
+  // phase defers the metered dollar budget to here because it runs before the
+  // provider is known and cannot tell a metered API from a flat-rate plan the
+  // allowance does not pay for. This is the enforcement point for every dispatch
+  // on this path — a direct single-model request as much as one combo target.
+  //
+  // It deliberately sits BEFORE credential selection: a refusal must not acquire
+  // an account, and a locally-refused 429 must never reach the fallback loop
+  // below, which would read it as an upstream rate limit and cool a connection
+  // that is perfectly healthy.
+  const meteredBudget = checkMeteredBudgetForProvider(apiKeyInfo?.id, provider);
+  if (!meteredBudget.allowed) {
+    log.info(
+      "BUDGET",
+      `Rejecting ${modelStr} — ${provider} draws on the metered budget and it is exhausted`
+    );
+    return errorResponse(
+      HTTP_STATUS.RATE_LIMITED,
+      meteredBudget.reason || "Budget limit exceeded",
+      {
+        code: "BUDGET_EXCEEDED",
+      }
+    );
+  }
+
   const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
   const forcedConnectionId =
     typeof runtimeOptions.forcedConnectionId === "string"

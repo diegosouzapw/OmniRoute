@@ -67,6 +67,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "blackbox_subscription_required",
   "body_exceeds_budget",
   "browser_stream_inconsistent",
+  "budget_exceeded",
   "capability_mismatch",
   "cf_mitigated_challenge",
   "chat_admission_busy",
