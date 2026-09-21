@@ -11,7 +11,12 @@ import {
   migrateLegacyEncryptedString,
 } from "./encryption";
 import { createLazyRowProxy } from "./providers/lazyConnectionView";
-import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
+import {
+  invalidateConnectionRuntimeStateCache,
+  invalidateDbCache,
+  isConnectionRuntimeStateUpdate,
+  getCachedRawProviderConnections,
+} from "./readCache";
 import { reorderConnections } from "./providers/deletion";
 import {
   removeConnectionHealth,
@@ -890,7 +895,15 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   })();
   backupDbFile("pre-write");
-  invalidateDbCache("connections"); // Bust connections read cache
+  // Runtime-state-only updates (cooldowns, error fields) keep the connection
+  // read caches fresh without dropping the memoized /v1/models catalog — the
+  // builder never reads these fields. Anything else falls back to the full
+  // invalidation so config edits stay immediately visible in the catalog.
+  if (isConnectionRuntimeStateUpdate(data)) {
+    invalidateConnectionRuntimeStateCache(id);
+  } else {
+    invalidateDbCache("connections"); // Bust connections read cache
+  }
   bumpProxyConfigGeneration();
 
   if (data.priority !== undefined) {
@@ -967,7 +980,7 @@ export async function clearConnectionErrorIfUnchanged(
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");
-    invalidateDbCache("connections");
+    invalidateConnectionRuntimeStateCache(id);
     bumpProxyConfigGeneration();
   }
   return applied;
@@ -1027,7 +1040,7 @@ export async function resetConnectionBackoff(id: string): Promise<void> {
     updatedAt: now,
     id,
   });
-  invalidateDbCache("connections");
+  invalidateConnectionRuntimeStateCache(id);
   bumpProxyConfigGeneration();
 }
 
