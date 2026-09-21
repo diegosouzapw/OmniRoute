@@ -308,7 +308,7 @@ export async function buildProviderHealthAutopilotReport(
   }
   if (providerFilter) providerIds.add(providerFilter);
 
-  const providers: ProviderAutopilotProvider[] = [];
+  const allProviders: ProviderAutopilotProvider[] = [];
   for (const provider of [...providerIds].sort()) {
     const providerConnections = connections.filter(
       (connection) => canonicalProviderId(connection.provider) === provider
@@ -531,28 +531,52 @@ export async function buildProviderHealthAutopilotReport(
     const staleErrors = providerConnections.filter((connection) =>
       hasStaleConnectionError(connection, now)
     ).length;
+    const retainedDisabledInventory =
+      providerConnections.length > 0 && activeConnections.length === 0;
+    const routingConnections = retainedDisabledInventory ? [] : activeConnections;
+    const routingCooldownCount = routingConnections.filter((connection) =>
+      isConnectionInCooldown(connection, now)
+    ).length;
+    const routingTerminalCount = routingConnections.filter(isTerminalConnection).length;
+    const routingStaleErrors = routingConnections.filter((connection) =>
+      hasStaleConnectionError(connection, now)
+    ).length;
+    const routingLockoutCount = retainedDisabledInventory
+      ? 0
+      : providerLockouts.filter((lockout) => {
+          const connectionId = toString(lockout.connectionId);
+          const connection = providerConnections.find((entry) => entry.id === connectionId);
+          return !connection || connection.isActive !== false;
+        }).length;
     const breakerPenalty =
       breaker?.state === "OPEN" ? 0.35 : breaker?.state === "HALF_OPEN" ? 0.2 : 0;
-    const total = Math.max(1, providerConnections.length);
+    const total = Math.max(1, routingConnections.length);
     const score = Math.max(
       0,
       Math.min(
         1,
         1 -
-          breakerPenalty -
-          (cooldownCount / total) * 0.25 -
-          (terminalCount / total) * 0.35 -
-          Math.min(0.2, providerLockouts.length * 0.05) -
-          Math.min(0.1, staleErrors * 0.03)
+          (retainedDisabledInventory ? 0 : breakerPenalty) -
+          (routingCooldownCount / total) * 0.25 -
+          (routingTerminalCount / total) * 0.35 -
+          Math.min(0.2, routingLockoutCount * 0.05) -
+          Math.min(0.1, routingStaleErrors * 0.03)
       )
     );
-    const hasCritical = issues.some((issue) => issue.severity === "critical");
-    const state: ProviderAutopilotState =
-      hasCritical || (providerConnections.length > 0 && activeConnections.length === 0)
-        ? "down"
-        : issues.length > 0
-          ? "degraded"
-          : "healthy";
+    const routingIssues = retainedDisabledInventory
+      ? []
+      : issues.filter((issue) => {
+          const connectionId = issue.target.connectionId;
+          if (!connectionId) return true;
+          const connection = providerConnections.find((entry) => entry.id === connectionId);
+          return !connection || connection.isActive !== false;
+        });
+    const hasCritical = routingIssues.some((issue) => issue.severity === "critical");
+    const state: ProviderAutopilotState = hasCritical
+      ? "down"
+      : routingIssues.length > 0
+        ? "degraded"
+        : "healthy";
 
     const item: ProviderAutopilotProvider = {
       provider,
@@ -587,27 +611,30 @@ export async function buildProviderHealthAutopilotReport(
       issues,
     };
 
-    if (includeHealthy || item.issues.length > 0) providers.push(item);
+    allProviders.push(item);
   }
 
-  const issueCount = providers.reduce((count, provider) => count + provider.issues.length, 0);
-  const actionableCount = providers.reduce(
+  const issueCount = allProviders.reduce((count, provider) => count + provider.issues.length, 0);
+  const actionableCount = allProviders.reduce(
     (count, provider) =>
       count + provider.issues.reduce((sum, issue) => sum + issue.actions.length, 0),
     0
   );
-  const healthyCount = providers.filter((provider) => provider.state === "healthy").length;
-  const status: ProviderAutopilotStatus = providers.some((provider) => provider.state === "down")
+  const healthyCount = allProviders.filter((provider) => provider.state === "healthy").length;
+  const status: ProviderAutopilotStatus = allProviders.some((provider) => provider.state === "down")
     ? "critical"
-    : providers.some((provider) => provider.state === "degraded")
+    : allProviders.some((provider) => provider.state === "degraded")
       ? "warning"
       : "healthy";
+  const providers = includeHealthy
+    ? allProviders
+    : allProviders.filter((provider) => provider.issues.length > 0);
 
   return {
     status,
     checkedAt,
     summary: {
-      providerCount: providers.length,
+      providerCount: allProviders.length,
       connectionCount: connections.length,
       healthyCount,
       issueCount,

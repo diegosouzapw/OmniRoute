@@ -114,6 +114,95 @@ test("provider health autopilot reports actionable cooldown and model lockout is
   }
 });
 
+test("provider health autopilot keeps disabled-only inventory visible without degrading routing", async () => {
+  const baseline = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
+  await providersDb.createProviderConnection({
+    provider: "disabled-clean-provider",
+    authType: "apikey",
+    name: "disabled-clean",
+    apiKey: "test-key",
+    isActive: false,
+    testStatus: "active",
+  });
+  await providersDb.createProviderConnection({
+    provider: "disabled-terminal-provider",
+    authType: "apikey",
+    name: "disabled-terminal",
+    apiKey: "test-key",
+    isActive: false,
+    testStatus: "banned",
+    lastError: "forbidden",
+    lastErrorType: "forbidden",
+    errorCode: "403",
+  });
+
+  const report = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
+
+  assert.equal(report.status, "healthy");
+  assert.equal(report.summary.providerCount, baseline.summary.providerCount + 2);
+  assert.equal(report.summary.healthyCount, baseline.summary.healthyCount + 2);
+  assert.equal(report.summary.issueCount, baseline.summary.issueCount + 2);
+
+  const clean = report.providers.find((entry) => entry.provider === "disabled-clean-provider");
+  assert.ok(clean);
+  assert.equal(clean.state, "healthy");
+  assert.equal(clean.score, 1);
+  assert.deepEqual(
+    clean.issues.map((issue) => issue.kind),
+    ["inactive_connection"]
+  );
+
+  const terminal = report.providers.find(
+    (entry) => entry.provider === "disabled-terminal-provider"
+  );
+  assert.ok(terminal);
+  assert.equal(terminal.state, "healthy");
+  assert.equal(terminal.score, 1);
+  assert.deepEqual(
+    terminal.issues.map((issue) => issue.kind),
+    ["terminal_connection_error"]
+  );
+  assert.equal(terminal.issues[0].severity, "critical");
+});
+
+test("provider health autopilot summary and status do not depend on healthy-row filtering", async () => {
+  const baseline = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
+  await providersDb.createProviderConnection({
+    provider: "active-healthy-provider",
+    authType: "apikey",
+    name: "active-healthy",
+    apiKey: "test-key",
+    isActive: true,
+    testStatus: "active",
+  });
+  await providersDb.createProviderConnection({
+    provider: "disabled-inventory-provider",
+    authType: "apikey",
+    name: "disabled-inventory",
+    apiKey: "test-key",
+    isActive: false,
+    testStatus: "active",
+  });
+
+  const full = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
+  const filtered = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: false });
+
+  assert.equal(full.status, "healthy");
+  assert.equal(filtered.status, full.status);
+  assert.deepEqual(filtered.summary, full.summary);
+  assert.equal(full.providers.length, baseline.providers.length + 2);
+  const disabled = filtered.providers.find(
+    (entry) => entry.provider === "disabled-inventory-provider"
+  );
+  assert.ok(disabled);
+  assert.equal(disabled.state, "healthy");
+  assert.equal(disabled.issues[0].kind, "inactive_connection");
+  assert.equal(
+    filtered.providers.some((entry) => entry.provider === "active-healthy-provider"),
+    false
+  );
+});
+
 test("provider health autopilot canonicalizes alias-keyed signals while preserving raw breaker actions", async () => {
   const canonicalProvider = "nous-research";
   const aliasProvider = "nous";
