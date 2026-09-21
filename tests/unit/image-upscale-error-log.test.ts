@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-upscale-errlog-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -32,6 +33,25 @@ const AUTH_MESSAGE = `upstream rejected header Authorization: Bearer ${SECRET}`;
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
+
+// ── imageGeneration.ts must not carry its own copy (LEDGER-22 follow-up) ──
+
+test("imageGeneration.ts imports the shared stringifyImageErrorForLog instead of redefining it", () => {
+  const handlerPath = fileURLToPath(
+    new URL("../../open-sse/handlers/imageGeneration.ts", import.meta.url)
+  );
+  const source = fs.readFileSync(handlerPath, "utf8");
+  assert.ok(
+    !/^function stringifyImageErrorForLog\(/m.test(source),
+    "imageGeneration.ts must not redefine stringifyImageErrorForLog — import it from ./imageErrorLog"
+  );
+  assert.ok(
+    /import\s*\{[^}]*\bstringifyImageErrorForLog\b[^}]*\}\s*from\s*["']\.\/imageErrorLog(?:\.ts)?["']/.test(
+      source
+    ),
+    "imageGeneration.ts must import stringifyImageErrorForLog from ./imageErrorLog"
+  );
 });
 
 // ── stringifyImageErrorForLog ──────────────────────────────────────────────
