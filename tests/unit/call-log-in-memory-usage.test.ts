@@ -126,3 +126,35 @@ test("chat attempt logging connects its trace id to the live pending request id"
   assert.equal(history.getCompletedDetails().get(id)?.tokens?.in, 1234);
   assert.equal(history.getCompletedDetails().get(id)?.tokens?.out, 56);
 });
+
+test("late artifact enrichment does not erase usage recorded after finalization", async () => {
+  const { writeCallArtifact } = await import("../../src/lib/usage/callLogArtifacts.ts");
+  const id = history.trackPendingRequest("enrichment-model", "provider", "connection", true);
+  const timestamp = new Date().toISOString();
+  const artifactPath = `usage-enrichment/${id}.json`;
+  writeCallArtifact(
+    {
+      schemaVersion: 5,
+      summary: { id, timestamp, model: "enrichment-model" },
+      responseBody: { restored: true },
+    } as never,
+    artifactPath
+  );
+  getDbInstance()
+    .prepare(
+      "INSERT INTO call_logs (id, timestamp, model, connection_id, artifact_relpath) VALUES (?, ?, ?, ?, ?)"
+    )
+    .run(`artifact-${id}`, timestamp, "enrichment-model", "connection", artifactPath);
+
+  // Finalization starts asynchronous artifact recovery with a pre-usage snapshot.
+  history.finalizePendingRequestById(id, { status: 200 });
+  await saveCallLog({ id, tokens: { input: 4321, output: 65 } });
+  const deadline = Date.now() + 5000;
+  while (!history.getCompletedDetails().get(id)?.providerResponse && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  const detail = history.getCompletedDetails().get(id);
+  assert.deepEqual(detail?.providerResponse, { restored: true });
+  assert.equal(detail?.tokens?.in, 4321);
+  assert.equal(detail?.tokens?.out, 65);
+});
