@@ -43,6 +43,7 @@ import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 import { countUniqueMcpTools } from "./toolCount.ts";
 import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
+import { withMcpAuditCallerId } from "./auditCallerContext.ts";
 import {
   evaluateToolScopes,
   resolveCallerScopeContext,
@@ -227,52 +228,54 @@ export async function omniRouteFetch(path: string, options: RequestInit = {}): P
   return response.json();
 }
 
-function withScopeEnforcement(
+export function withScopeEnforcement(
   toolName: string,
   handler: (args: unknown, extra?: McpToolExtraLike) => Promise<TextToolResult>,
   toolScopes?: readonly string[]
 ) {
   return async (args: unknown, extra?: McpToolExtraLike): Promise<TextToolResult> => {
-    const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
-    const scopeCheck = evaluateToolScopes(
-      toolName,
-      scopeContext.scopes,
-      MCP_ENFORCE_SCOPES,
-      toolScopes
-    );
-    if (!scopeCheck.allowed) {
-      const missingScopes =
-        scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
-      const reason = scopeCheck.reason || "scope_check_failed";
-      const msg =
-        `Insufficient MCP scopes for ${toolName}. ` +
-        `Missing: ${missingScopes}. ` +
-        `Caller=${scopeContext.callerId}, source=${scopeContext.source}.`;
-      const safeArgs = args && typeof args === "object" ? toRecord(args) : { rawArgs: args };
-      await logToolCall(
+    return withMcpAuditCallerId(extra?.authInfo?.clientId, async () => {
+      const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
+      const scopeCheck = evaluateToolScopes(
         toolName,
-        {
-          ...safeArgs,
-          _scopeCheck: {
-            callerId: scopeContext.callerId,
-            source: scopeContext.source,
-            required: scopeCheck.required,
-            provided: scopeCheck.provided,
-            missing: scopeCheck.missing,
-          },
-        },
-        null,
-        0,
-        false,
-        `scope_denied:${reason}`
+        scopeContext.scopes,
+        MCP_ENFORCE_SCOPES,
+        toolScopes
       );
-      return {
-        content: [{ type: "text" as const, text: `Error: ${msg}` }],
-        isError: true,
-      };
-    }
+      if (!scopeCheck.allowed) {
+        const missingScopes =
+          scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
+        const reason = scopeCheck.reason || "scope_check_failed";
+        const msg =
+          `Insufficient MCP scopes for ${toolName}. ` +
+          `Missing: ${missingScopes}. ` +
+          `Caller=${scopeContext.callerId}, source=${scopeContext.source}.`;
+        const safeArgs = args && typeof args === "object" ? toRecord(args) : { rawArgs: args };
+        await logToolCall(
+          toolName,
+          {
+            ...safeArgs,
+            _scopeCheck: {
+              callerId: scopeContext.callerId,
+              source: scopeContext.source,
+              required: scopeCheck.required,
+              provided: scopeCheck.provided,
+              missing: scopeCheck.missing,
+            },
+          },
+          null,
+          0,
+          false,
+          `scope_denied:${reason}`
+        );
+        return {
+          content: [{ type: "text" as const, text: `Error: ${msg}` }],
+          isError: true,
+        };
+      }
 
-    return handler(args, extra);
+      return handler(args, extra);
+    });
   };
 }
 

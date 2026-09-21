@@ -7,6 +7,7 @@
  */
 
 import { hashInput, summarizeOutput } from "./schemas/audit.ts";
+import { getMcpAuditCallerId } from "./auditCallerContext.ts";
 import { runtimeRequire } from "../../src/lib/db/adapters/runtimeRequire.ts";
 import { isNativeSqliteLoadError } from "../../src/lib/db/core.ts";
 
@@ -380,7 +381,10 @@ export async function logToolCall(
 
     const inputHash = await hashInput(input);
     const outputSummary = summarizeOutput(output);
-    const apiKeyId = process.env.OMNIROUTE_API_KEY_ID || null;
+    // HTTP MCP calls bind the authenticated database key id around the entire
+    // tool invocation. Stdio/unscoped calls have no request context and retain
+    // the existing process-level fallback.
+    const apiKeyId = getMcpAuditCallerId() || process.env.OMNIROUTE_API_KEY_ID || null;
 
     database
       .prepare(
