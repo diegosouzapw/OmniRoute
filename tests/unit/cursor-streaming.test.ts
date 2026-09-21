@@ -88,6 +88,28 @@ function buildJsonErrorPayload(): Buffer {
   );
 }
 
+function buildNamedModelEntitlementErrorPayload(): Buffer {
+  return Buffer.from(
+    JSON.stringify({
+      error: {
+        code: "resource_exhausted",
+        message: "resource exhausted",
+        details: [
+          {
+            debug: {
+              details: {
+                title: "Resource limit exceeded",
+                detail: "Named models unavailable. Free plans can only use Auto.",
+              },
+            },
+          },
+        ],
+      },
+    }),
+    "utf8"
+  );
+}
+
 // ─── Tests ─────────────────────────────────────────────────────────────────
 
 test("newStreamCtx initializes with empty state", () => {
@@ -184,12 +206,15 @@ test("REGRESSION #10215: long preamble (>2.5K chars) then KV then exec_mcp keeps
   // Covers the at-risk band the reporter identified (2505-2933 chars of text
   // before the tool call on cursor/grok-4.5-high). A KV checkpoint arriving
   // mid-preamble must not truncate the still-pending exec_mcp.
-  const longPreamble =
-    "The model streams a lengthy preamble before invoking a tool. ".repeat(60);
+  const longPreamble = "The model streams a lengthy preamble before invoking a tool. ".repeat(60);
   assert.ok(longPreamble.length > 2500);
   for (const model of ["cursor/grok-4.5-high", "auto"]) {
     const ctx = newStreamCtx(model, () => {});
-    driveFrames(ctx, [buildTextDeltaPayload(longPreamble), buildKvServerMessagePayload(), buildExecMcpPayload()]);
+    driveFrames(ctx, [
+      buildTextDeltaPayload(longPreamble),
+      buildKvServerMessagePayload(),
+      buildExecMcpPayload(),
+    ]);
     assert.equal(ctx.toolCalls.length, 1, `model ${model} must keep the tool call`);
     assert.equal(ctx.endReason, "tool_calls");
     assert.ok(ctx.totalText.length > 2500);
@@ -223,6 +248,18 @@ test("processFrame captures mid-stream JSON error", () => {
   assert.equal(ctx.endReason, "server_end");
   assert.ok(ctx.midStreamError);
   assert.match(ctx.midStreamError!.message, /rate limited/);
+});
+
+test("processFrame preserves Cursor debug title and detail for named-model entitlement", () => {
+  const ctx = newStreamCtx("gpt-5.6-sol-low", () => {});
+  processFrame(buildNamedModelEntitlementErrorPayload(), ctx, new Set());
+  assert.equal(ctx.endReason, "server_end");
+  assert.ok(ctx.midStreamError);
+  assert.equal(ctx.midStreamError!.status, 404);
+  assert.match(ctx.midStreamError!.message, /Resource limit exceeded/);
+  assert.match(ctx.midStreamError!.message, /Named models unavailable/);
+  assert.match(ctx.midStreamError!.message, /Free plans can only use Auto/);
+  assert.doesNotMatch(ctx.midStreamError!.message, /rate limit \/ usage exceeded/i);
 });
 
 test("processFrame JSON error after text terminates without overwriting content", () => {

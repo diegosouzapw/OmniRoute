@@ -14,6 +14,20 @@ test("classifyCursorErrorKind: resource_exhausted without size cue is rate_limit
   assert.equal(classifyCursorErrorKind("You're out of usage. Increase limits"), "rate_limit");
 });
 
+test("classifyCursorErrorKind: named-model entitlement is model unavailable, not quota", () => {
+  for (const message of [
+    "RESOURCE_EXHAUSTED: Resource limit exceeded — Named models unavailable",
+    "Free plans can only use Auto",
+  ]) {
+    assert.equal(classifyCursorErrorKind(message), "model_unavailable");
+    const classified = classifyCursorError(message);
+    assert.equal(classified.kind, "model_unavailable");
+    assert.equal(classified.status, 404);
+    assert.equal(classified.type, "invalid_request_error");
+    assert.doesNotMatch(classified.message, /rate limit \/ usage exceeded/i);
+  }
+});
+
 test("classifyCursorErrorKind: resource_exhausted + size cue is invalid", () => {
   assert.equal(classifyCursorErrorKind("resource_exhausted: tool catalog too large"), "invalid");
   assert.equal(isCursorRequestTooLargeDetail("tool catalog too large"), true);

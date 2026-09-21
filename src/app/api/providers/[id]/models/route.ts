@@ -96,7 +96,7 @@ import { getAdobeModels } from "./adobeFireflyDiscovery";
 import { getSyncedAvailableModels, getCustomModels, getModelIsHidden } from "@/lib/db/models";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
-import { fetchCursorAvailableModels } from "@/lib/providerModels/cursorAvailableModels";
+import { fetchCursorConnectionAvailableModels } from "@/lib/providerModels/cursorAvailableModels";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { resolveCopilotDiscoveryToken } from "@/lib/providerModels/copilotDiscoveryToken";
 import {
@@ -1362,7 +1362,7 @@ export async function GET(
       return buildApiDiscoveryResponse(normalizeSapModelsResponse(await response.json()));
     }
 
-    if (provider === "cursor") {
+    if (provider === "cursor" || provider === "cursor-api") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
@@ -1380,8 +1380,9 @@ export async function GET(
 
       if (token) {
         try {
-          const models = await fetchCursorAvailableModels({
-            accessToken: token,
+          const models = await fetchCursorConnectionAvailableModels({
+            apiKey,
+            accessToken,
             machineId,
           });
           return buildApiDiscoveryResponse(models);
@@ -1392,6 +1393,22 @@ export async function GET(
         }
       } else {
         warnings.push("no Cursor access token on connection");
+      }
+
+      // cursor-agent is authenticated to the host's IDE account, not to this
+      // connection's `crsr_` API key. Falling back to it for cursor-api would
+      // falsely certify named models that the API-key account cannot use.
+      if (provider === "cursor-api") {
+        const detail = warnings.join("; ");
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `${detail} — using cached catalog`,
+          localWarning: `${detail} — using non-authoritative local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch Cursor API-key models: ${detail}` },
+          { status: 502 }
+        );
       }
 
       try {

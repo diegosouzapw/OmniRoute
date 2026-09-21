@@ -2,9 +2,11 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   ensureCursorAutoCatalogEntry,
+  fetchCursorConnectionAvailableModels,
   normalizeCursorAvailableModelsPayload,
 } from "../../src/lib/providerModels/cursorAvailableModels.ts";
 import { resolveRequestedModel } from "../../open-sse/utils/cursorAgentProtobuf.ts";
+import { __resetCursorApiKeyAuthForTest } from "../../open-sse/services/cursorApiKeyAuth.ts";
 
 describe("normalizeCursorAvailableModelsPayload", () => {
   it("extracts models from models[] with name ids", () => {
@@ -99,5 +101,54 @@ describe("ensureCursorAutoCatalogEntry + resolveRequestedModel", () => {
       modelId: "default",
       parameters: [{ id: "optimization", value: "intelligence" }],
     });
+  });
+});
+
+describe("fetchCursorConnectionAvailableModels", () => {
+  it("exchanges cursor-api credentials and treats only live account models as authoritative", async () => {
+    __resetCursorApiKeyAuthForTest();
+    const futureExp = Math.floor(Date.now() / 1000) + 3600;
+    const part = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
+    const sessionToken = `${part({ alg: "none" })}.${part({ exp: futureExp })}.sig`;
+    const calls: Array<{ url: string; authorization: string }> = [];
+    const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      const authorization = new Headers(init?.headers).get("authorization") || "";
+      calls.push({ url, authorization });
+      if (url.endsWith("/auth/exchange_user_api_key")) {
+        return new Response(JSON.stringify({ accessToken: sessionToken, refreshToken: null }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return new Response(
+        JSON.stringify({
+          models: [
+            { name: "default", displayName: "Auto" },
+            { name: "gpt-entitled", displayName: "Entitled GPT" },
+            { name: "gpt-not-usable", displayName: "Unavailable GPT", usable: false },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }) as typeof fetch;
+
+    const models = await fetchCursorConnectionAvailableModels({
+      apiKey: "crsr_live_capability_test",
+      machineId: "machine-test",
+      fetchImpl,
+    });
+
+    assert.equal(calls.length, 2);
+    assert.match(calls[0].url, /\/auth\/exchange_user_api_key$/);
+    assert.equal(calls[0].authorization, "Bearer crsr_live_capability_test");
+    assert.doesNotMatch(calls[1].authorization, /crsr_live_capability_test/);
+    assert.equal(calls[1].authorization, `Bearer ${sessionToken}`);
+    assert.ok(models.some((model) => model.id === "auto"));
+    assert.ok(models.some((model) => model.id === "gpt-entitled"));
+    assert.equal(
+      models.some((model) => model.id === "gpt-not-usable"),
+      false
+    );
   });
 });

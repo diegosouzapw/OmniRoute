@@ -14,6 +14,8 @@ export const ACCOUNT_LIVE_PROVIDER_IDS = [
   "gemini",
   "cursor",
   "cu",
+  "cursor-api",
+  "cua",
   "grok-cli",
 ] as const;
 

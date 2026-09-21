@@ -265,9 +265,15 @@ function tryParseJsonError(payload: Buffer): { message: string; status: number }
     if (!text.includes('"error"')) return null;
     const parsed = JSON.parse(text);
     const err = parsed?.error || {};
+    const debugDetails = err?.details?.[0]?.debug?.details;
+    const debugTitle = typeof debugDetails?.title === "string" ? debugDetails.title.trim() : "";
+    const debugDetail = typeof debugDetails?.detail === "string" ? debugDetails.detail.trim() : "";
+    // Cursor's actionable entitlement explanation is carried in `detail`, while
+    // `title` only says RESOURCE_EXHAUSTED. Preserve both instead of letting the
+    // title's truthiness silently discard the useful half of the envelope.
+    const debugMessage = [...new Set([debugTitle, debugDetail].filter(Boolean))].join(" — ");
     const rawMessage =
-      err?.details?.[0]?.debug?.details?.title ||
-      err?.details?.[0]?.debug?.details?.detail ||
+      debugMessage ||
       err?.message ||
       (typeof err?.code === "string" ? `${err.code}: ${text}` : text);
     const codeHint =

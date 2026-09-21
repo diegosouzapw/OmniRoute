@@ -39,6 +39,22 @@ describe("mergeProviderModelListing (cursor exclusive)", () => {
     assert.ok(models.every((m) => m.source === "imported" || m.id.startsWith("auto")));
   });
 
+  it("cursor-api also requires a live synced catalog before named models are trusted", () => {
+    const models = mergeProviderModelListing({
+      providerId: "cursor-api",
+      registryModels: registry,
+      syncedModels: [{ id: "auto", name: "Auto" }],
+      customModels: [],
+      usesCuratedModelsOnly: false,
+    });
+
+    const ids = models.map((model) => model.id);
+    assert.ok(ids.includes("auto"));
+    assert.ok(ids.includes("auto-cost"));
+    assert.equal(ids.includes("gpt-5.5-high"), false);
+    assert.equal(ids.includes("claude-4.6-sonnet-high"), false);
+  });
+
   it("exclusive + synced: keeps operator custom models", () => {
     const models = mergeProviderModelListing({
       providerId: "cursor",
