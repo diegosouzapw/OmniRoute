@@ -12,7 +12,7 @@ process.env.NODE_ENV = "test";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
 const originalPath = process.env.PATH ?? "";
-process.env.PATH = `${FAKE_BIN_DIR}:${originalPath}`;
+process.env.PATH = `${FAKE_BIN_DIR}${path.delimiter}${originalPath}`;
 
 const INSTALL_DIR = path.join(TEST_DATA_DIR, "services", "bifrost");
 const fakeNpmScript = `#!/bin/sh

@@ -638,6 +638,9 @@ test("runSyncCycle keeps in-flight catalog fetches at or below the cycle concurr
 
   try {
     const scheduler = await loadScheduler("bounded-cycle-concurrency");
+    scheduler.__setModelSyncInternalTransportForTests(async (input, init) => {
+      return globalThis.fetch(input, init);
+    });
     assert.equal(scheduler.MODEL_SYNC_CYCLE_CONCURRENCY, cycleCap);
     scheduler.startModelSyncScheduler("http://127.0.0.1:7777", 1000);
     const cycle = timers.timeouts[0].fn();
