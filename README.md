@@ -1468,25 +1468,18 @@ Métricas canônicas em 2026-08-24: **1.029 vídeos únicos** · **11.132.922 vi
       <sub>🏅 62 GitHub-attributed commits</sub>
     </td>
     <td align="center" width="160">
-      <a href="https://github.com/artickc">
-        <img src="https://github.com/artickc.png" width="40" style="border-radius:50%" alt="artickc"/><br/>
-        <b>artickc</b>
-      </a><br/>
-      <sub>🏅 59 GitHub-attributed commits</sub>
-    </td>
-    <td align="center" width="160">
       <a href="https://github.com/HouMinXi">
         <img src="https://github.com/HouMinXi.png" width="40" style="border-radius:50%" alt="Bob.Hou"/><br/>
         <b>Bob.Hou</b>
       </a><br/>
-      <sub>🏅 51 GitHub-attributed commits · tied #11</sub>
+      <sub>🏅 51 GitHub-attributed commits · tied #10</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/xz-dev">
         <img src="https://github.com/xz-dev.png" width="40" style="border-radius:50%" alt="Xiangzhe"/><br/>
         <b>Xiangzhe</b>
       </a><br/>
-      <sub>🏅 51 GitHub-attributed commits · tied #11</sub>
+      <sub>🏅 51 GitHub-attributed commits · tied #10</sub>
     </td>
   </tr>
 </table>
