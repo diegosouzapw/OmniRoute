@@ -1,0 +1,1 @@
+- **fix(api):** model discovery no longer reads `max_tokens` as a context window. OpenAI-compatible catalogs use it for the maximum _output_ length, so a record carrying only `max_tokens` synced an `inputTokenLimit` of e.g. 4096 for a 128K model and the combo context-window filter then dropped that model for any prompt above the cap (#14318, #14320).
