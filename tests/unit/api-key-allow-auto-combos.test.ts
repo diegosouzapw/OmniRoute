@@ -1,7 +1,7 @@
 /**
- * Per-key control over the built-in `auto/*` combos.
+ * Per-key control over the built-in `auto` / `auto/*` combos.
  *
- * `auto/*` combos are virtual — they are synthesised in the catalog, not stored
+ * Built-in auto combos are virtual — they are synthesised in the catalog, not stored
  * as rows — so `resolveRequestedComboName()` returns null for them and
  * `isComboAllowedForKey()` FAILS OPEN (`src/shared/utils/apiKeyPolicy.ts`:
  * `if (!comboName) return { allowed: true, comboName: null }`). Because
@@ -9,7 +9,7 @@
  * `allowedModels` / `blockedModels` check is never reached for an `auto/*` id
  * either.
  *
- * Net effect before this change: `auto/*` bypassed per-key authorisation
+ * Net effect before this change: built-in auto routing bypassed per-key authorisation
  * completely. A key scoped via `allowedCombos` to a single cheap lane could
  * still send `auto/best-coding` and reach every model on the gateway. Observed
  * on a live gateway: a key whose `allowedCombos` held 24 named combos and no
@@ -19,13 +19,14 @@
  * deny them, for the early-return reason above.
  *
  * The fix is an explicit per-key flag, `allowAutoCombos`, defaulting to TRUE so
- * every existing key keeps working. Setting it to false denies `auto/*` at
- * dispatch and drops the ids from that key's catalog.
+ * every existing key keeps working. Setting it to false denies `auto` and
+ * `auto/*` at dispatch and drops the ids from that key's catalog. A persisted
+ * combo literally named `auto` keeps its normal precedence and permissions.
  *
  * Rules:
  *   R1 The column is declared with DEFAULT 1 (allowed) for legacy rows.
  *   R2 The row parser treats anything but an explicit falsy value as allowed.
- *   R3 The deny predicate fires only for auto/* ids on a key that opted out.
+ *   R3 The deny predicate fires only for built-in auto ids on a key that opted out.
  *   R4 The PATCH schema preserves the flag and counts it as a real update.
  *   R5 The update route forwards it into the payload.
  *   R6 The catalog skips the auto/* synthesis loop for an opted-out key.
@@ -36,9 +37,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
+process.env.API_KEY_SECRET ||= "api-key-allow-auto-combos-test-secret";
+
 const { API_KEY_COLUMN_FALLBACKS } = await import("../../src/lib/db/apiKeyColumnFallbacks.ts");
 const { parseAllowAutoCombos } = await import("../../src/lib/db/apiKeys/rowParsers.ts");
-const { isAutoComboDeniedForKey } = await import("../../src/shared/utils/apiKeyPolicy.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
+const { enforceApiKeyPolicy, isAutoComboDeniedForKey } =
+  await import("../../src/shared/utils/apiKeyPolicy.ts");
 const schemas = await import("../../src/shared/validation/schemas.ts");
 
 function read(relativePath: string) {
@@ -70,15 +76,28 @@ test("R2: the row parser defaults to allowed and opts out only on an explicit fa
   assert.equal(parseAllowAutoCombos(false), false);
 });
 
-test("R3: the deny predicate fires only for auto/* on a key that opted out", () => {
+test("R3: the deny predicate classifies bare auto and auto/* for an opted-out key", () => {
   const optedOut = { allowAutoCombos: false };
   const optedIn = { allowAutoCombos: true };
   const legacy = {}; // flag absent entirely
 
+  assert.equal(isAutoComboDeniedForKey(optedOut, "auto"), true);
+  assert.equal(
+    isAutoComboDeniedForKey(optedOut, "auto", "auto"),
+    false,
+    "a persisted combo literally named auto keeps ordinary combo precedence"
+  );
   assert.equal(isAutoComboDeniedForKey(optedOut, "auto/best-coding"), true);
+  assert.equal(
+    isAutoComboDeniedForKey(optedOut, "auto/best-coding", "auto/best-coding"),
+    true,
+    "auto/* remains built-in even if a similarly named combo exists"
+  );
   assert.equal(isAutoComboDeniedForKey(optedOut, "auto/coding:fast"), true);
 
   // Opted in, or never configured — never denied.
+  assert.equal(isAutoComboDeniedForKey(optedIn, "auto"), false);
+  assert.equal(isAutoComboDeniedForKey(legacy, "auto"), false);
   assert.equal(isAutoComboDeniedForKey(optedIn, "auto/best-coding"), false);
   assert.equal(isAutoComboDeniedForKey(legacy, "auto/best-coding"), false);
   assert.equal(isAutoComboDeniedForKey(undefined, "auto/best-coding"), false);
@@ -88,9 +107,65 @@ test("R3: the deny predicate fires only for auto/* on a key that opted out", () 
   assert.equal(isAutoComboDeniedForKey(optedOut, "claude-haiku"), false);
   assert.equal(isAutoComboDeniedForKey(optedOut, "codex/gpt-5.6-sol-xhigh"), false);
   assert.equal(isAutoComboDeniedForKey(optedOut, "qtSd/pool-1"), false);
+  // Explicit combo syntax remains ordinary combo syntax, even when the stored
+  // combo itself is named "auto".
+  assert.equal(isAutoComboDeniedForKey(optedOut, "combo/auto"), false);
   // A combo whose name merely starts with the word "auto" is not an auto/* id.
   assert.equal(isAutoComboDeniedForKey(optedOut, "auto-router"), false);
   assert.equal(isAutoComboDeniedForKey(optedOut, ""), false);
+});
+
+test("R3b: bare auto is denied only when it falls through to the built-in router", async () => {
+  const allowedKey = await apiKeysDb.createApiKey("Bare auto allowed combo", "machine-auto-1");
+  await apiKeysDb.updateApiKeyPermissions(allowedKey.id, {
+    allowAutoCombos: false,
+    allowedCombos: ["auto"],
+  });
+  const request = () =>
+    new Request("http://localhost/api/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${allowedKey.key}` },
+    });
+
+  const builtInBare = await enforceApiKeyPolicy(request(), "auto");
+  assert.equal(
+    builtInBare.rejection?.status,
+    403,
+    "the built-in bare auto fallback must be denied"
+  );
+
+  await combosDb.createCombo({
+    name: "auto",
+    strategy: "priority",
+    models: ["openai/gpt-4.1"],
+  });
+
+  const storedBare = await enforceApiKeyPolicy(request(), "auto");
+  assert.equal(
+    storedBare.rejection,
+    null,
+    "an allowed persisted combo named auto must remain usable"
+  );
+
+  const explicitStored = await enforceApiKeyPolicy(request(), "combo/auto");
+  assert.equal(explicitStored.rejection, null, "combo/auto must remain ordinary combo syntax");
+
+  const virtualPrefixed = await enforceApiKeyPolicy(request(), "auto/best-coding");
+  assert.equal(virtualPrefixed.rejection?.status, 403, "auto/* must remain denied");
+
+  const blockedKey = await apiKeysDb.createApiKey("Bare auto blocked combo", "machine-auto-2");
+  await apiKeysDb.updateApiKeyPermissions(blockedKey.id, {
+    allowAutoCombos: false,
+    allowedCombos: [],
+  });
+  const blocked = await enforceApiKeyPolicy(
+    new Request("http://localhost/api/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${blockedKey.key}` },
+    }),
+    "auto"
+  );
+  assert.equal(blocked.rejection?.status, 403, "stored auto must still obey combo permissions");
 });
 
 test("R4: the PATCH schema preserves allowAutoCombos and counts it as a real update", () => {

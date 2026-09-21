@@ -553,9 +553,9 @@ async function validateQuotaAccess(context: PolicyContext): Promise<Response | n
 }
 
 /**
- * Whether this key is barred from the built-in `auto/*` combos.
+ * Whether this key is barred from the built-in `auto` / `auto/*` combos.
  *
- * `auto/*` ids are virtual, so they resolve to no stored combo and
+ * Built-in auto ids are virtual, so they resolve to no stored combo and
  * `isComboAllowedForKey()` fails open on them; `validateModelAccess()` then
  * returns before the allow/deny model lists are consulted. This flag is the
  * only per-key gate that reaches them. It defaults to allowed (undefined) so
@@ -563,16 +563,23 @@ async function validateQuotaAccess(context: PolicyContext): Promise<Response | n
  */
 export function isAutoComboDeniedForKey(
   apiKeyInfo: { allowAutoCombos?: boolean } | null | undefined,
-  modelStr: string | null | undefined
+  modelStr: string | null | undefined,
+  resolvedComboName: string | null = null
 ): boolean {
-  if (!modelStr || !modelStr.startsWith("auto/")) return false;
+  if (!modelStr || (modelStr !== "auto" && !modelStr.startsWith("auto/"))) return false;
+  if (modelStr === "auto" && resolvedComboName === "auto") return false;
   return apiKeyInfo?.allowAutoCombos === false;
 }
 
 async function validateModelAccess(context: PolicyContext): Promise<Response | null> {
   const { request, apiKey, apiKeyInfo, modelStr } = context;
   if (!modelStr || apiKeyInfo.allowedQuotas?.length) return null;
-  if (isAutoComboDeniedForKey(apiKeyInfo, modelStr)) {
+  const autoComboDenied = isAutoComboDeniedForKey(apiKeyInfo, modelStr);
+  // `auto/*` always denotes the built-in virtual router. Bare `auto` is
+  // different: a persisted combo literally named "auto" takes precedence, so
+  // resolve ordinary combo access before deciding whether it fell through to
+  // the built-in route.
+  if (autoComboDenied && modelStr !== "auto") {
     return policyErrorResponse(
       request,
       HTTP_STATUS.FORBIDDEN,
@@ -585,6 +592,25 @@ async function validateModelAccess(context: PolicyContext): Promise<Response | n
   const comboAccess = await validateComboAccess(apiKeyInfo.allowedCombos, modelStr);
   if (comboAccess.rejection) return comboAccess.rejection;
   let requestedComboName = comboAccess.comboName;
+
+  if (autoComboDenied && !requestedComboName) {
+    try {
+      requestedComboName = await resolveRequestedComboName(modelStr);
+    } catch (error) {
+      log.error("API_POLICY", "Bare auto combo resolution failed. Request blocked.", { error });
+      return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key combo policy unavailable");
+    }
+  }
+  if (isAutoComboDeniedForKey(apiKeyInfo, modelStr, requestedComboName)) {
+    return policyErrorResponse(
+      request,
+      HTTP_STATUS.FORBIDDEN,
+      `Auto combo "${modelStr}" is not allowed for this API key`,
+      `Auto combos are not enabled for this API key. Choose an explicit model or combo.`,
+      "invalid_request_error",
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
 
   const hasModelRestrictions =
     apiKeyInfo.modelAccessMode === "restricted" ||
