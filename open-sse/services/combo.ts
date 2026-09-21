@@ -626,9 +626,12 @@ export async function handleComboChat(options: HandleComboChatOptions): Promise<
   const response = await handleComboChatInner({ ...options, invocationId: traceInvocationId });
   response.headers.set("X-OmniRoute-Combo-Trace", traceInvocationId);
   const trace = getComboTrace(traceInvocationId);
+  const coverage = trace?.coverage;
   options.log.info(
     "COMBO",
-    `combo trace ${traceInvocationId} terminal=${JSON.stringify(trace?.terminal ?? null)} decisions=${trace?.decisions.length ?? 0}`
+    `combo trace ${traceInvocationId} terminal=${JSON.stringify(trace?.terminal ?? null)} ` +
+      `decisions=${trace?.decisions.length ?? 0} targets=${coverage?.orderedTargetCount ?? 0} ` +
+      `decided=${coverage?.decidedTargetCount ?? 0} notReached=${coverage?.notReachedCount ?? 0}`
   );
   return response;
 }
