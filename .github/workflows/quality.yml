@@ -39,6 +39,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
+      - name: Validate gate inventory
+        run: npm run check:gate-manifest
       - id: classify
         env:
           EVENT_NAME: ${{ github.event_name }}

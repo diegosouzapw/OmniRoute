@@ -15,7 +15,26 @@ replication plan of the same system, see the
 
 ---
 
-## Gate Inventory (~90 scripts)
+## Gate inventory and execution profiles
+
+The versioned npm-alias inventory and static-scan membership live in
+`config/quality/gate-manifest.json`. Run `npm run check:gate-manifest` to validate
+script names and exact commands against `package.json`; additions, removals and
+command drift fail both the local hook and the change-classification jobs in CI.
+An alias is not a workflow job, matrix instance or test case: these counts must
+not be presented as interchangeable.
+
+Use `npm run quality:scan -- --list` or `npm run quality:scan:fast -- --list`
+to inspect the selected aliases without executing them. The runner invokes the
+npm entrypoint, so its runtime (including Bun where configured) is preserved.
+The manifest records aliases outside those profiles as separately invoked, and
+maintenance commands are forbidden in read-only scan profiles.
+
+These profiles cover the static scan only. They do not certify product tests,
+coverage, packaging, external checks or a candidate's full release acceptance.
+Workflow admission and release-observer profiles have not yet migrated to this
+manifest; inspect their applicable jobs and receipts separately. The prose
+inventory below is a reference, not proof that a gate actually ran.
 
 Scripts live under `scripts/check/` (policy gates) and `scripts/quality/` (ratchet engine).
 The CI source of truth is `.github/workflows/ci.yml`.

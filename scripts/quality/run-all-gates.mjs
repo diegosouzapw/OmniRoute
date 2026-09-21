@@ -13,44 +13,11 @@
 
 import { spawn } from "node:child_process";
 import { pathToFileURL } from "node:url";
+import { readManifest, resolveProfile } from "./gate-manifest.mjs";
 
 const FAST_ONLY = process.argv.includes("--fast");
-
-// Gates determinísticos filesystem-only, agrupados por tempo estimado.
-// Cada entrada: { name: string, cmd: string[], label?: string }
-// "slow" gates são omitidos com --fast.
-const GATES = [
-  // Group A — instant (<1s)
-  { name: "check:tracked-artifacts", cmd: ["node", "scripts/check/check-tracked-artifacts.mjs"] },
-  { name: "check:any-budget:t11", cmd: ["node", "scripts/check/check-t11-any-budget.mjs"] },
-  { name: "check:migration-numbering", cmd: ["node", "scripts/check/check-migration-numbering.mjs"] },
-  { name: "check:node-runtime", cmd: ["node", "--import", "tsx", "scripts/check/check-supported-node-runtime.ts"] },
-
-  // Group B — fast (<5s)
-  { name: "check:provider-consistency", cmd: ["node", "--import", "tsx", "scripts/check/check-provider-consistency.ts"] },
-  { name: "check:provider-assets", cmd: ["node", "scripts/check/check-provider-assets.mjs"] },
-  { name: "check:pricing-freshness", cmd: ["node", "scripts/check/check-pricing-freshness.mjs"] },
-  { name: "check:provider-order-sync", cmd: ["node", "scripts/check/check-provider-order-sync.mjs"] },
-  { name: "check:public-creds", cmd: ["node", "scripts/check/check-public-creds.mjs"] },
-  { name: "check:error-helper", cmd: ["node", "scripts/check/check-error-helper.mjs"] },
-  { name: "check:fetch-targets", cmd: ["node", "scripts/check/check-fetch-targets.mjs"] },
-  { name: "check:api-docs-refs", cmd: ["node", "scripts/check/check-api-docs-refs.mjs"] },
-  { name: "check:deps", cmd: ["node", "scripts/check/check-deps.mjs"] },
-
-  // Group C — moderate (<15s)
-  { name: "check:db-rules", cmd: ["node", "scripts/check/check-db-rules.mjs"] },
-  { name: "check:file-size", cmd: ["node", "scripts/check/check-file-size.mjs"] },
-  { name: "check:complexity-ratchets", cmd: ["node", "scripts/check/check-complexity-ratchets.mjs"] },
-  // docs-symbols folded into check:api-docs-refs (Group B)
-  { name: "check:known-symbols", cmd: ["node", "--import", "tsx", "scripts/check/check-known-symbols.ts"] },
-  { name: "check:route-guard-membership", cmd: ["node", "--import", "tsx", "scripts/check/check-route-guard-membership.ts"] },
-  { name: "check:test-discovery", cmd: ["node", "scripts/check/check-test-discovery.mjs"] },
-  { name: "check:test-masking", cmd: ["node", "scripts/check/check-test-masking.mjs"] },
-
-  // Group D — slow (>15s); skipped with --fast
-  { name: "check:duplication", cmd: ["node", "scripts/check/check-duplication.mjs"], slow: true },
-  { name: "check:cycles", cmd: ["node", "scripts/check/check-cycles.mjs"], slow: true },
-];
+// The manifest owns membership; package.json owns each command/runtime.
+const PROFILE = FAST_ONLY ? "quality-scan-fast" : "quality-scan";
 
 const CONCURRENCY = 4;
 
@@ -92,7 +59,7 @@ function runGate(gate) {
 
 /**
  * Run gates with a concurrency pool.
- * @param {typeof GATES} gates
+ * @param {{ name: string, cmd: string[] }[]} gates
  * @param {number} concurrency
  * @returns {Promise<ReturnType<typeof runGate>[]>}
  */
@@ -141,9 +108,26 @@ function formatTable(results) {
 }
 
 async function main() {
-  const gates = FAST_ONLY ? GATES.filter((g) => !g.slow) : GATES;
+  const { manifest, scripts } = readManifest();
+  const gates = resolveProfile(manifest, scripts, PROFILE);
+  if (process.argv.includes("--list")) {
+    console.log(
+      JSON.stringify(
+        {
+          profile: PROFILE,
+          aliases: gates.map((gate) => gate.name),
+          releaseAcceptance: false,
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
 
-  console.log(`\n[quality:scan] Running ${gates.length} gate(s) with concurrency=${CONCURRENCY}...\n`);
+  console.log(
+    `\n[quality:scan] Running ${gates.length} gate(s) with concurrency=${CONCURRENCY}...\n`
+  );
   const wallStart = Date.now();
 
   const results = await runWithPool(gates, CONCURRENCY);
@@ -166,7 +150,12 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("[quality:scan] All gates passed.");
+  console.log("[quality:scan] All selected static gates passed; not full release acceptance.");
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();
+if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
+  main().catch((error) => {
+    console.error(`[quality:scan] ${error.message}`);
+    process.exitCode = 1;
+  });
+}

@@ -12,6 +12,7 @@ sh scripts/check/check-git-identity.sh
 # The stash is shared by every worktree. Never let a local hook stash another
 # session's changes, and never download a missing tool during a commit.
 npx --no-install lint-staged --no-stash
+node scripts/quality/gate-manifest.mjs
 node scripts/check/check-docs-sync.mjs
 npm run check:any-budget:t11
 node scripts/check/check-tracked-artifacts.mjs

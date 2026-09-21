@@ -42,6 +42,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
+      - name: Validate gate inventory
+        run: npm run check:gate-manifest
+
       # Refuse a PR that targets its own head branch before spending anything on it. #8912 has
       # head == base == release/v3.8.50: no diff, can never merge, and it sits in the queue with
       # a full check board attached on every push to that branch. One field comparison.

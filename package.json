@@ -238,6 +238,7 @@
     "quality:relax-baselines": "node scripts/quality/relax-baselines.mjs",
     "quality:refresh-model-lifecycle": "node scripts/quality/refresh-model-lifecycle.mjs",
     "quality:gate": "npm run quality:collect && npm run quality:ratchet -- --allow-missing",
+    "check:gate-manifest": "node scripts/quality/gate-manifest.mjs",
     "quality:scan": "node scripts/quality/run-all-gates.mjs",
     "quality:scan:fast": "node scripts/quality/run-all-gates.mjs --fast",
     "audit:deps": "npm audit --audit-level=critical && (npm audit --audit-level=high || echo '::warning::high-severity advisories present (non-blocking)') && npm run audit:electron",

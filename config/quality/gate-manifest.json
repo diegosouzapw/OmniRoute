@@ -1,0 +1,712 @@
+{
+  "schemaVersion": 1,
+  "scope": "Validation-related npm aliases, not workflow jobs or matrix instances. Profiles list static scans only; no profile here proves release acceptance.",
+  "aliases": [
+    {
+      "name": "check",
+      "command": "npm run lint && npm run test",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:agent-skills-sync",
+      "command": "node --import tsx/esm scripts/skills/generate-agent-skills.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:any-budget:t11",
+      "command": "node scripts/check/check-t11-any-budget.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:api-docs-refs",
+      "command": "node scripts/check/check-api-docs-refs.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:build-scope",
+      "command": "node scripts/check/check-build-scope.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:bundle-size",
+      "command": "node scripts/check/check-bundle-size.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:changelog-integrity",
+      "command": "node scripts/check/check-changelog-integrity.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:circular-deps",
+      "command": "node scripts/check/check-circular-deps.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:cli-i18n",
+      "command": "node scripts/check/check-cli-i18n.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:codeql-ratchet",
+      "command": "node scripts/check/check-codeql-ratchet.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:cognitive-complexity",
+      "command": "node scripts/check/check-cognitive-complexity.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:complexity",
+      "command": "node scripts/check/check-complexity.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:complexity-ratchets",
+      "command": "node scripts/check/check-complexity-ratchets.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:compression-budget",
+      "command": "bun scripts/check/check-compression-budget.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:cycles",
+      "command": "node scripts/check/check-cycles.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:dashboard-typecheck",
+      "command": "node scripts/check/check-dashboard-typecheck.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:db-rules",
+      "command": "node scripts/check/check-db-rules.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:dead-code",
+      "command": "node scripts/check/check-dead-code.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:deprecated-versions",
+      "command": "node scripts/check/check-deprecated-versions.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:deps",
+      "command": "node scripts/check/check-deps.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:doc-links",
+      "command": "node scripts/check/check-doc-links.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:docs-all",
+      "command": "npm run check:docs-sync && npm run check:docs-frontmatter && npm run check:docs-counts && npm run check:env-doc-sync && npm run check:deprecated-versions && npm run check:doc-links && npm run check:fabricated-docs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:docs-counts",
+      "command": "node scripts/check/check-docs-counts-sync.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:docs-frontmatter",
+      "command": "node scripts/check/check-docs-frontmatter.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:docs-symbols",
+      "command": "node scripts/check/check-docs-symbols.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:docs-sync",
+      "command": "node scripts/check/check-docs-sync.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:duplication",
+      "command": "node scripts/check/check-duplication.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:env-doc-sync",
+      "command": "node scripts/check/check-env-doc-sync.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:error-helper",
+      "command": "node scripts/check/check-error-helper.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:fabricated-docs",
+      "command": "node scripts/check/check-fabricated-docs.mjs --strict",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:fetch-targets",
+      "command": "node scripts/check/check-fetch-targets.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:file-size",
+      "command": "node scripts/check/check-file-size.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:forgotten-sibling-tests",
+      "command": "node scripts/check/check-forgotten-sibling-tests.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:gate-manifest",
+      "command": "node scripts/quality/gate-manifest.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:install-upgrade",
+      "command": "node scripts/check/check-install-upgrade.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:known-symbols",
+      "command": "bun scripts/check/check-known-symbols.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:licenses",
+      "command": "node scripts/check/check-licenses.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:lockfile",
+      "command": "node scripts/check/check-lockfile.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:migration-numbering",
+      "command": "node scripts/check/check-migration-numbering.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:model-lifecycle",
+      "command": "node --import tsx/esm scripts/check/check-model-lifecycle.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:mutation-ratchet",
+      "command": "node scripts/check/check-mutation-ratchet.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:mutation-test-coverage",
+      "command": "node scripts/check/check-mutation-test-coverage.mjs --strict",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:native-deps",
+      "command": "node scripts/check/check-native-deps.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:node-runtime",
+      "command": "node --import tsx scripts/check/check-supported-node-runtime.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:nvidia-catalog-drift",
+      "command": "node --import tsx/esm scripts/check/check-nvidia-catalog-drift.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:open-sse-typecheck",
+      "command": "node scripts/check/check-open-sse-typecheck.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:openapi-breaking",
+      "command": "node scripts/check/check-openapi-breaking.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:openapi-coverage",
+      "command": "node scripts/check/check-openapi-coverage.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:openapi-routes",
+      "command": "node scripts/check/check-openapi-routes.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:openapi-security-tiers",
+      "command": "node scripts/check/check-openapi-security-tiers.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:pack-artifact",
+      "command": "node --import tsx scripts/build/validate-pack-artifact.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:pack-boot",
+      "command": "node scripts/check/check-pack-boot.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:pack-policy",
+      "command": "node --import tsx scripts/build/validate-pack-artifact.ts --policy-only",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:pr-evidence",
+      "command": "node scripts/check/check-pr-evidence.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:pr-test-policy",
+      "command": "node scripts/check/check-pr-test-policy.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:pricing-freshness",
+      "command": "node scripts/check/check-pricing-freshness.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:provider-asset-provenance",
+      "command": "node scripts/check/check-provider-asset-provenance.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:provider-assets",
+      "command": "node scripts/check/check-provider-assets.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:provider-consistency",
+      "command": "bun scripts/check/check-provider-consistency.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:provider-order-sync",
+      "command": "node scripts/check/check-provider-order-sync.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:public-creds",
+      "command": "node scripts/check/check-public-creds.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:radar-sentinels",
+      "command": "node scripts/check/check-radar-sentinels.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:ratchet-bank",
+      "command": "node scripts/quality/verify-ratchet-bank.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:release-green",
+      "command": "node scripts/quality/validate-release-green.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:route-guard-membership",
+      "command": "node --import tsx scripts/check/check-route-guard-membership.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:route-validation:t06",
+      "command": "node scripts/check/check-route-validation.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:router-eval",
+      "command": "node --import tsx scripts/check/check-router-eval-regression.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:routing-error-guard",
+      "command": "node scripts/check/check-routing-error-guard.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:rtl-ratchet",
+      "command": "node scripts/check/check-rtl-ratchet.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:secrets",
+      "command": "node scripts/check/check-secrets.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:test-discovery",
+      "command": "node scripts/check/check-test-discovery.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:test-masking",
+      "command": "node scripts/check/check-test-masking.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:test-runner-api",
+      "command": "node scripts/check/check-test-runner-api.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:tracked-artifacts",
+      "command": "node scripts/check/check-tracked-artifacts.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:ts7-diagnostics-ratchet",
+      "command": "node scripts/check/check-ts7-diagnostics-ratchet.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:type-coverage",
+      "command": "node scripts/check/check-type-coverage.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:vitest-exclusions",
+      "command": "node scripts/check/check-vitest-exclusions.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:vuln-ratchet",
+      "command": "node scripts/check/check-vuln-ratchet.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "check:workflows",
+      "command": "node scripts/check/check-workflows.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "lint",
+      "command": "eslint . --cache --cache-location .eslintcache --suppressions-location config/quality/eslint-suppressions.json",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "lint:json",
+      "command": "node scripts/quality/run-eslint-json.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "lint:md",
+      "command": "npx --yes markdownlint-cli2 \"docs/**/*.md\" \"*.md\" \"!docs/i18n\" \"!docs/research\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "lint:prose",
+      "command": "vale docs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "quality:collect",
+      "command": "node scripts/quality/collect-metrics.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "quality:gate",
+      "command": "npm run quality:collect && npm run quality:ratchet -- --allow-missing",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "quality:headroom",
+      "command": "node scripts/quality/baseline-headroom.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "quality:ratchet",
+      "command": "node scripts/quality/check-quality-ratchet.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "quality:refresh-model-lifecycle",
+      "command": "node scripts/quality/refresh-model-lifecycle.mjs",
+      "disposition": "maintenance"
+    },
+    {
+      "name": "quality:relax-baselines",
+      "command": "node scripts/quality/relax-baselines.mjs",
+      "disposition": "maintenance"
+    },
+    {
+      "name": "quality:scan",
+      "command": "node scripts/quality/run-all-gates.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "quality:scan:fast",
+      "command": "node scripts/quality/run-all-gates.mjs --fast",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \"tests/unit/dashboard/**/*.test.ts\" && npm run test:unit:serial",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:all",
+      "command": "npm run test:unit && npm run test:vitest && npm run test:vitest:ui && npm run test:ecosystem && npm run test:e2e",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:boundary:live",
+      "command": "cross-env RUN_BOUNDARY_LIVE=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/boundary/*.live.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:bun:db",
+      "command": "bun test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:chaos",
+      "command": "cross-env RUN_CHAOS_INT=1 node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 tests/integration/resilience-chaos.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:combo:live",
+      "command": "cross-env RUN_COMBO_LIVE=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/combo-live/*.live.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:combo:live:vps",
+      "command": "node scripts/test/combo-live-vps.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:combo:live:vps:failover",
+      "command": "node scripts/test/combo-live-vps.mjs --failover",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:combo:matrix",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/combo-matrix/*.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:coverage",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true NODE_OPTIONS=--max-old-space-size=8192 c8 --merge-async --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 60 --lines 60 --functions 60 --branches 60 npm run test:coverage:runner",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:coverage:legacy",
+      "command": "c8 --output-dir coverage --exclude=open-sse --check-coverage --lines 50 --functions 50 --branches 50 node --import tsx/esm --test tests/unit/*.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:coverage:runner",
+      "command": "node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=8 tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true NODE_OPTIONS=--max-old-space-size=8192 c8 --merge-async --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 60 --lines 60 --functions 60 --branches 60 node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=8 \"tests/unit/dashboard/**/*.test.ts\" && npm run test:unit:serial",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:e2e",
+      "command": "node scripts/dev/run-playwright-tests.mjs test tests/e2e/*.spec.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:ecosystem",
+      "command": "node scripts/dev/run-ecosystem-tests.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:fixes",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test tests/unit/fixes-p1.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:heap",
+      "command": "node --expose-gc --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit tests/integration/heap-growth.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:integration",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 tests/integration/*.test.ts \"tests/integration/combo-matrix/*.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:integration:ci",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=$TEST_SHARD tests/integration/*.test.ts \"tests/integration/combo-matrix/*.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:mutation",
+      "command": "stryker run",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:plan3",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test tests/unit/plan3-p0.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:property",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test --test-force-exit tests/unit/correctness/*.property.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:protocols:e2e",
+      "command": "node scripts/dev/run-protocol-clients-tests.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:scoped",
+      "command": "bash scripts/quality/test-scoped.sh",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:scoped:full",
+      "command": "bash scripts/quality/test-scoped.sh --full",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:scoped:staged",
+      "command": "bash scripts/quality/test-scoped.sh --staged",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:security",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test tests/unit/security-fase01.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:system",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 tests/e2e/system-failover.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:unit",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \"tests/unit/dashboard/**/*.test.ts\" && npm run test:unit:serial",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:unit:ci",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \"tests/unit/dashboard/**/*.test.ts\" && npm run test:unit:serial",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:unit:ci:shard",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=$TEST_SHARD tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=$TEST_SHARD \"tests/unit/dashboard/**/*.test.ts\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=$TEST_SHARD \"tests/unit/serial/**/*.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:unit:fast",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-isolation=none tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-isolation=none \"tests/unit/dashboard/**/*.test.ts\" && npm run test:unit:serial",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:unit:serial",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/unit/serial/**/*.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:unit:shard",
+      "command": "concurrently --kill-others-on-fail -n s1,s2 \"npm:test:unit:shard:1\" \"npm:test:unit:shard:2\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:unit:shard:1",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=10 --test-shard=1/2 tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=10 --test-shard=1/2 \"tests/unit/dashboard/**/*.test.ts\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=1/2 \"tests/unit/serial/**/*.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:unit:shard:2",
+      "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=10 --test-shard=2/2 tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=10 --test-shard=2/2 \"tests/unit/dashboard/**/*.test.ts\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=2/2 \"tests/unit/serial/**/*.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:vitest",
+      "command": "vitest run --config vitest.mcp.config.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:vitest:ui",
+      "command": "vitest run --config vitest.config.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "typecheck:core",
+      "command": "tsc --pretty false -p tsconfig.typecheck-core.json",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "typecheck:noimplicit:core",
+      "command": "tsc --pretty false -p tsconfig.typecheck-noimplicit-core.json",
+      "disposition": "separately-invoked"
+    }
+  ],
+  "profiles": {
+    "quality-scan": {
+      "description": "All gates of the static filesystem scan; excludes product tests, build and live GitHub checks.",
+      "aliases": [
+        "check:gate-manifest",
+        "check:tracked-artifacts",
+        "check:any-budget:t11",
+        "check:migration-numbering",
+        "check:node-runtime",
+        "check:provider-consistency",
+        "check:provider-assets",
+        "check:pricing-freshness",
+        "check:provider-order-sync",
+        "check:public-creds",
+        "check:error-helper",
+        "check:fetch-targets",
+        "check:api-docs-refs",
+        "check:deps",
+        "check:db-rules",
+        "check:file-size",
+        "check:complexity-ratchets",
+        "check:known-symbols",
+        "check:route-guard-membership",
+        "check:test-discovery",
+        "check:test-masking",
+        "check:duplication",
+        "check:cycles"
+      ]
+    },
+    "quality-scan-fast": {
+      "description": "Static filesystem scan excluding duplication and cycles; not full acceptance.",
+      "aliases": [
+        "check:gate-manifest",
+        "check:tracked-artifacts",
+        "check:any-budget:t11",
+        "check:migration-numbering",
+        "check:node-runtime",
+        "check:provider-consistency",
+        "check:provider-assets",
+        "check:pricing-freshness",
+        "check:provider-order-sync",
+        "check:public-creds",
+        "check:error-helper",
+        "check:fetch-targets",
+        "check:api-docs-refs",
+        "check:deps",
+        "check:db-rules",
+        "check:file-size",
+        "check:complexity-ratchets",
+        "check:known-symbols",
+        "check:route-guard-membership",
+        "check:test-discovery",
+        "check:test-masking"
+      ]
+    }
+  }
+}
