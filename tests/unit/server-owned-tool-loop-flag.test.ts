@@ -68,7 +68,8 @@ describe("isServerOwnedToolLoopEnabled wrapper", () => {
 
 describe("feature-flags-settings count update", () => {
   it("flag count matches updated expected value", () => {
-    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 74);
+    // 893fef9c added OPENCODE_PARK_AND_RESUME (74 -> 75).
+    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 75);
   });
 });
 
