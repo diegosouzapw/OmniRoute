@@ -287,6 +287,8 @@ import {
   recordQuotaExhaustionClassification,
   withQuotaExhaustionClassification,
 } from "./combo/quotaExhaustion.ts";
+import { parseAutoConfig } from "./combo/autoConfig.ts";
+import { prepareOmniJev, injectOmniJev } from "./autoCombo/omniJev.ts";
 
 export { RESET_WINDOW_NAMES, QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
@@ -748,6 +750,20 @@ async function handleComboChatInner({
   // #10681: opaque per-invocation decision trace (safe routing metadata only).
   const traceInvocationId = invocationId ?? createInvocationId();
   startComboTrace(traceInvocationId, { strategy, comboName: combo.name });
+  // Enrich once before routing/context checks and upstream cache lookup.
+  // Every attempt receives a clone of this same enriched body.
+  if (strategy === "auto" && sourceFormat !== "embeddings") {
+    const auto = parseAutoConfig(combo, []);
+    if (auto.routingStrategy === "omni-jev" && auto.omniJev.injectionEnabled) {
+      const packet = await prepareOmniJev(body, auto.omniJev, { signal: signal ?? undefined });
+      if (signal?.aborted) return new Response(null, { status: 499 });
+      body = injectOmniJev(body, packet, sourceFormat ?? undefined);
+      log.info(
+        "OMNIJEV",
+        `source=${packet.source} version=${packet.version} reason=${packet.reason ?? "none"}`
+      );
+    }
+  }
 
   const handleSingleModelWithTimeout = buildTargetTimeoutRunner({
     handleSingleModel,
@@ -785,6 +801,7 @@ async function handleComboChatInner({
 
   const cfg = config as Record<string, unknown>;
   const fusionDispatch = await tryFusionDispatch({
+    sourceFormat,
     body,
     combo,
     cfg,
@@ -804,7 +821,6 @@ async function handleComboChatInner({
     perTargetAdmission,
     deferContextOverflowWhenCompressible,
     compressionExclusions,
-    sourceFormat,
     endpointPath,
     requestHeaders,
     runCombo: handleComboChat,
@@ -842,6 +858,7 @@ async function handleComboChatInner({
   if (pipelineDispatch) return pipelineDispatch;
 
   const runtimeUnitDispatch = await tryRuntimeUnitDispatch({
+    sourceFormat,
     body,
     combo,
     config,
@@ -860,7 +877,6 @@ async function handleComboChatInner({
     perTargetAdmission,
     deferContextOverflowWhenCompressible,
     compressionExclusions,
-    sourceFormat,
     endpointPath,
     requestHeaders,
     runCombo: handleComboChat,

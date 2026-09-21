@@ -10,6 +10,7 @@
  */
 
 import { z } from "zod";
+import { omniJevConfigSchema } from "../../../src/shared/validation/omniJev.ts";
 import { toolSearchTool } from "./toolSearch.ts";
 import { pickFastestModelTool } from "./pickFastestModel.ts";
 import { getActiveSearchProviders } from "./providerEnums";
@@ -687,6 +688,9 @@ export const setBudgetGuardTool: McpToolDefinition<
 
 // --- Tool 11: omniroute_set_routing_strategy ---
 export const setRoutingStrategyInput = z.object({
+  omniJev: omniJevConfigSchema
+    .optional()
+    .describe("OmniJev enrichment settings; Jev API key stays in the server environment"),
   comboId: z.string().describe("Combo ID or name to update"),
   strategy: z.enum(ROUTING_STRATEGY_VALUES).describe("Routing strategy to apply"),
   autoRoutingStrategy: z
@@ -711,7 +715,7 @@ export const setRoutingStrategyTool: McpToolDefinition<
 > = {
   name: "omniroute_set_routing_strategy",
   description:
-    "Updates a combo routing strategy (priority/weighted/auto/etc.) at runtime. Supports selecting the sub-strategy used by auto mode (rules/cost/latency/sla-aware).",
+    "Updates a combo routing strategy (priority/weighted/auto/etc.) at runtime. Supports auto sub-strategies including omni-jev for pre-generation enrichment with optional Jev API.",
   inputSchema: setRoutingStrategyInput,
   outputSchema: setRoutingStrategyOutput,
   scopes: ["write:combos"],

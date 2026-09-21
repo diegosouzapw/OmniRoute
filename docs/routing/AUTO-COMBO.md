@@ -10,6 +10,28 @@ lastUpdated: 2026-06-28
 
 > Self-managing model chains with adaptive scoring + zero-config auto-routing
 
+## OmniJev
+
+`omni-jev` is an optional auto-routing mode implemented in
+`open-sse/services/autoCombo/omniJev.ts`. Before target selection and generation it
+adds a bounded TypeSafe/Jev-inspired methodology prompt to the client request. The
+prompt preserves the requested output format and treats `noul`, `choice`, and `score`
+as bounded decision tools, not as a replacement for normal prose or code generation.
+
+The mode works locally without credentials. Set `omniJev.mode` to `jev-api` to enable
+the optional typed preflight through `https://api.typesafe.ai/v1/systemone`; the server
+reads `TYPESAFE_API_KEY` from its environment. Missing credentials, timeout, provider
+errors, or invalid/low-confidence answers fall back to the local methodology and do
+not block generation. The API contract is based on the TypeSafe/Jev documentation:
+[SystemOne quickstart](https://docs.typesafe.ai/introduction/quickstart),
+[choice](https://docs.typesafe.ai/primitives/choice), and
+[score](https://docs.typesafe.ai/primitives/score).
+
+OmniJev reorders only already eligible targets, preferring the same recognized model
+family after the first target. Existing circuit-breaker, quota, authorization, and
+retry gates remain authoritative. A successful response is returned directly; there
+is no post-generation reviewer or silent replacement of a delivered stream.
+
 ## Zero-Config Auto-Routing (`auto/` prefix)
 
 > **NEW:** No combo creation required. Use `auto/` prefix directly in any client.
@@ -418,6 +440,8 @@ Persisted `strategy: "auto"` combos can set `config.routerStrategy` (or legacy
 - `sla-aware` / `sla` — prefer candidates that satisfy p95 latency, error-rate, and optional
   cost SLOs
 - `lkgp` — last known good provider first
+- `omni-jev` / `typesafe` / `jev` — TypeSafe/Jev pre-generation enrichment with same-family
+  fallback ordering; see the [OmniJev](#omnijev) section above
 
 ### Router strategies in detail
 

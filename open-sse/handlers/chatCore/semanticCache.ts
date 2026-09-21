@@ -1,14 +1,11 @@
-import {
-  generateSignature,
-  getCachedResponse,
-  isCacheableForRead,
-} from "@/lib/semanticCache";
+import { generateSignature, getCachedResponse, isCacheableForRead } from "@/lib/semanticCache";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { trackPendingRequest } from "@/lib/usageDb";
 import { synthesizeOpenAiSseFromJson } from "../../utils/jsonToSse.ts";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { extractUsageFromResponse } from "../usageExtractor.ts";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
+import { semanticCacheConversation } from "./semanticCacheConversation.ts";
 
 export async function checkSemanticCache({
   semanticCacheEnabled,
@@ -48,7 +45,7 @@ export async function checkSemanticCache({
   if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {
     const signature = generateSignature(
       model,
-      body.messages ?? body.input,
+      semanticCacheConversation(body),
       body.temperature,
       body.top_p,
       apiKeyId ?? undefined

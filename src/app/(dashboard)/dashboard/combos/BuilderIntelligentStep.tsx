@@ -220,6 +220,53 @@ export default function BuilderIntelligentStep({
         </Card.Section>
       </div>
 
+      {normalizedConfig.routerStrategy === "omni-jev" && (
+        <Card.Section>
+          <p className="text-sm font-semibold">OmniJev</p>
+          <p className="text-xs text-text-muted mt-1">
+            {getI18nOrFallback(
+              t,
+              "omniJevDescription",
+              "Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure."
+            )}
+          </p>
+          <label className="text-xs font-semibold block mt-3 mb-2" htmlFor="omni-jev-mode">
+            {getI18nOrFallback(t, "omniJevMode", "Enrichment mode")}
+          </label>
+          <select
+            id="omni-jev-mode"
+            value={normalizedConfig.omniJev?.mode ?? "methodology"}
+            onChange={(event) =>
+              updateConfig({ omniJev: { ...normalizedConfig.omniJev, mode: event.target.value } })
+            }
+            className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent"
+          >
+            <option value="methodology">
+              {getI18nOrFallback(t, "omniJevLocal", "Skill methodology (no Jev API key)")}
+            </option>
+            <option value="jev-api">
+              {getI18nOrFallback(t, "omniJevApi", "Optional Jev API preflight")}
+            </option>
+          </select>
+          {normalizedConfig.omniJev?.mode === "jev-api" && (
+            <p className="text-xs text-text-muted mt-2">
+              {getI18nOrFallback(
+                t,
+                "omniJevApiHint",
+                "Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology."
+              )}
+            </p>
+          )}
+          <p className="text-[11px] text-text-muted mt-3">
+            {getI18nOrFallback(
+              t,
+              "omniJevCredit",
+              "Based on TypeSafe/Jev, adapted from typesafe-jev-engine."
+            )}
+          </p>
+        </Card.Section>
+      )}
+
       {isSlaAwareStrategy && (
         <Card.Section>
           <div className="flex items-start justify-between gap-3">

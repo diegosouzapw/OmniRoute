@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { omniJevConfigSchema } from "../omniJev";
 import {
   ACCOUNT_FALLBACK_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -154,6 +155,14 @@ export const responseValidationSchema = z
 
 export const comboRuntimeConfigSchema = z
   .object({
+    omniJev: omniJevConfigSchema.optional(),
+    auto: z
+      .object({
+        routerStrategy: z.string().optional(),
+        omniJev: omniJevConfigSchema.optional(),
+      })
+      .passthrough()
+      .optional(),
     responseValidation: responseValidationSchema.optional(),
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),

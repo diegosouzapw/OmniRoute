@@ -41,6 +41,8 @@ import { errorResponseWithComboDiagnostics } from "../../utils/error.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
 import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
 import { applyStrategyOrdering } from "./applyStrategyOrdering.ts";
+import { parseAutoConfig } from "./autoConfig.ts";
+import { orderSimilarTargets } from "../autoCombo/omniJev.ts";
 import { clampComboDepth } from "./comboPredicates.ts";
 import {
   describeCapabilityFilterExhaustion,
@@ -727,6 +729,13 @@ export async function resolveComboTargetPipeline(
   );
 
   // Parallel pre-screen: check provider profiles and model availability for all targets
+  if (strategy === "auto") {
+    const auto = parseAutoConfig(combo, orderedTargets);
+    if (auto.routingStrategy === "omni-jev" && auto.omniJev.fallbackMode === "similar-first") {
+      orderedTargets = orderSimilarTargets(orderedTargets);
+    }
+  }
+
   // Only runs for priority strategy where sequential checking causes latency
   const preScreenMap =
     strategy === "priority"

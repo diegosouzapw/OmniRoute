@@ -1030,6 +1030,7 @@ async function handleChatImplementation(
     const { defer: deferContextOverflowWhenCompressible, exclusions: compressionExclusions } =
       await resolveComboContextOverflowDeferral(log, apiKeyInfo);
     const response = await (handleComboChat as any)({
+      sourceFormat,
       body,
       combo,
       deferContextOverflowWhenCompressible,
@@ -1344,6 +1345,7 @@ async function handleSingleModelChat(
     // from chatCore's own native-codex-passthrough decision.
     const sNetSourceFormat = detectFormatFromEndpoint(body, clientRawRequest?.endpoint || "");
     return handleComboChat({
+      sourceFormat: detectFormatFromUrl(body, request.url),
       body,
       combo: redirectCombo,
       deferContextOverflowWhenCompressible: sNetDefer,

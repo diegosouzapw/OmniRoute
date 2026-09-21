@@ -1,3 +1,9 @@
+import {
+  isOmniJevStrategy,
+  normalizeOmniJevConfig,
+  type OmniJevConfig,
+} from "../../shared/validation/omniJev";
+
 type JsonRecord = Record<string, unknown>;
 
 export const INTELLIGENT_STRATEGIES = ["auto", "lkgp"] as const;
@@ -22,6 +28,7 @@ export type IntelligentRoutingWeights = {
 };
 
 export type IntelligentRoutingConfig = {
+  omniJev?: OmniJevConfig;
   candidatePool: string[];
   explorationRate: number;
   modePack: string;
@@ -66,6 +73,7 @@ export const MODE_PACK_OPTIONS = [
 ] as const;
 
 export const ROUTER_STRATEGY_OPTIONS = [
+  { id: "omni-jev", label: "OmniJev" },
   { id: "rules", label: "Rules (6-Factor Scoring)" },
   { id: "cost", label: "Cost Optimized" },
   { id: "latency", label: "Latency Optimized" },
@@ -127,7 +135,8 @@ export function filterCombosByStrategyCategory<T extends { strategy?: unknown }>
 }
 
 export function normalizeIntelligentRoutingConfig(config: unknown): IntelligentRoutingConfig {
-  const configRecord = isRecord(config) ? config : {};
+  const root = isRecord(config) ? config : {};
+  const configRecord = { ...root, ...(isRecord(root.auto) ? root.auto : {}) };
   const rawWeights = isRecord(configRecord.weights) ? configRecord.weights : {};
   const rawSla = isRecord(configRecord.sla) ? configRecord.sla : {};
   const slaTargetP95Ms = configRecord.slaTargetP95Ms ?? rawSla.targetP95Ms;
@@ -169,9 +178,11 @@ export function normalizeIntelligentRoutingConfig(config: unknown): IntelligentR
         toFiniteNumber(rawWeights.resetWindowAffinity) ??
         DEFAULT_INTELLIGENT_WEIGHTS.resetWindowAffinity,
     },
-    routerStrategy:
-      typeof configRecord.routerStrategy === "string" &&
-      configRecord.routerStrategy.trim().length > 0
+    omniJev: normalizeOmniJevConfig(configRecord.omniJev),
+    routerStrategy: isOmniJevStrategy(configRecord.routerStrategy)
+      ? "omni-jev"
+      : typeof configRecord.routerStrategy === "string" &&
+          configRecord.routerStrategy.trim().length > 0
         ? configRecord.routerStrategy
         : "rules",
     slaTargetP95Ms: toPositiveNumber(slaTargetP95Ms),

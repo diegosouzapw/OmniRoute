@@ -15,6 +15,7 @@ import {
   isCacheableForWrite as defaultIsCacheableForWrite,
 } from "@/lib/semanticCache";
 import { isSmallEnoughForSemanticCache as defaultIsSmallEnough } from "../../utils/estimateSize.ts";
+import { semanticCacheConversation } from "./semanticCacheConversation.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 
@@ -66,7 +67,7 @@ function writeStreamingCacheEntry(
     if (!deps.isSmallEnoughForSemanticCache(cleanBody)) return;
     const sig = deps.generateSignature(
       args.model,
-      args.body.messages ?? args.body.input,
+      semanticCacheConversation(args.body),
       args.body.temperature,
       args.body.top_p,
       args.apiKeyId ?? undefined

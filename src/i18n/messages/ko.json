@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "50% discount on input + output tokens",
     "batchConceptAsync24h": "Async with a 24h completion window",
     "batchConceptUseCases": "Best for bulk classification, evaluations, and embeddings",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "Batch files",
     "filesConceptSubtitle": "JSONL files used by batches: input requests, results, and errors.",
     "filesConceptInput": "Input — your JSONL with one request per line",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "{count, plural, one {# 배치} other {# 배치들}}",
     "batchFilePreview": "미리보기",
     "batchFilePreviewTruncated": "첫 번째 {shown} 줄 표시 ({total} 총 줄)",
-    "batchFileDownloadFull": "전체 파일 다운로드",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "전체 파일 다운로드"
   },
   "disabled": "비활성화됨",
   "featureFlagOmnirouteEmergencyFallbackDescription": "예산이 소진된 요청을 긴급 무료 폴백 제공자/모델로 라우팅합니다.",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "IDE 에이전트 트래픽 가로채기",
     "trafficInspector": "트래픽 인스펙터",
     "trafficInspectorSubtitle": "__MISSING__:Inspect request and response traffic from your apps",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "CLI 코드",
     "cliCodeSubtitle": "OmniRoute를 가리키는 코드 도구",
     "cliAgents": "CLI 에이전트",
@@ -1300,8 +1301,7 @@
       "open": "열기",
       "close": "닫기"
     },
-    "noResults": "결과가 없습니다",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "결과가 없습니다"
   },
   "webhooks": {
     "title": "웹훅",
@@ -1808,6 +1808,11 @@
     "updateStarted": "업데이트 시작됨...",
     "reloadingPageAutomatically": "페이지를 자동으로 새로고침하는 중...",
     "providerTopology": "공급자 토폴로지",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "DMG 다운로드 (macOS)",
     "downloadDmgDescription": "OmniRoute 데스크탑 앱의 새 버전이 출시되었습니다. 업데이트를 위해 macOS DMG 설치 프로그램을 다운로드하고 설치해 주십시오(현재: v{version}).",
     "downloadExe": "EXE 다운로드 (Windows)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "릴리스 노트",
     "readMore": "더 읽기",
     "noAuthLabel": "인증 없음",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "Open Interpreter 자율 코딩 에이전트 CLI",
       "omp": "Oh My Pi 터미널 코딩 에이전트",
       "letta": "지속성 메모리 및 도구 사용 기능이 포함된 Letta CLI 에이전트",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "사용자 정의 제공자 지원 기능이 포함된 Warp AI 터미널",
-      "agent-deck": "Agent Deck 다중 에이전트 오케스트레이터",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "Agent Deck 다중 에이전트 오케스트레이터"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "All providers",
     "modePackLabel": "Mode Pack",
     "routerStrategyLabel": "Router Strategy",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Rules (6-Factor Scoring)",
     "explorationRateLabel": "Exploration Rate",
     "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "API 엔드포인트",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "사용 가능한 엔드포인트",
     "cloudProxy": "클라우드 프록시",
     "disableConfirm": "클라우드 프록시를 비활성화하시겠습니까?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "내부 통합을 생성합니다.",
     "notionIntegrationToken": "Notion 내부 통합 토큰",
     "notionNotConnected": "연결되지 않음",
-    "notionTokenConfigured": "토큰이 구성되었습니다. Notion 도구는 MCP를 통해 사용할 수 있습니다.",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "토큰이 구성되었습니다. Notion 도구는 MCP를 통해 사용할 수 있습니다."
   },
   "endpoints": {
     "tabProxy": "엔드포인트 프록시",
@@ -4632,6 +4638,13 @@
     "retry": "재시도",
     "allOperational": "모든 시스템 작동",
     "issuesDetected": "시스템 문제가 감지되었습니다.",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "{time} 업데이트됨",
     "latency": "대기 시간",
     "latencyP50": "p50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count}개 이슈",
     "score": "점수",
     "lastRequest": "최근 요청",
-    "lastError": "최근 오류",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "최근 오류"
   },
   "telemetry": {
     "title": "시스템 원격 측정",
@@ -4954,7 +4960,9 @@
     "multiProvider": "다중 공급자",
     "usageTracking": "사용량 추적",
     "securityDesc": "대시보드를 보호하기 위해 비밀번호를 설정하거나 지금은 건너뛰세요.",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "첫 번째 AI 공급자를 연결하세요. 나중에 더 추가할 수 있습니다.",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "API 키(필수)",
     "customUrlOptional": "맞춤 URL(선택사항)",
     "testDesc": "공급자 연결이 작동하는지 확인해 보겠습니다.",
@@ -5011,9 +5019,7 @@
         "skipped": "이미 구성됨",
         "failed": "실패했습니다"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "공급자",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "공급자의 자체 도메인에서 필수 자격 증명을 복사합니다. 쿠키의 경우 Cookie 헤더 값만 복사하고 Cookie:를 생략하세요.",
     "webSessionGuideStep3Manual": "수동 경로: 브라우저 개발자 도구를 열고 (F12 → 네트워크), 페이지를 새로 고치고, 인증된 요청을 열고, 요청 헤더에서 쿠키 헤더 값을 복사합니다 — Cookie: 접두사는 생략합니다.",
     "webSessionGuideStep4": "여기에 붙여넣고 연결을 확인하세요. 작동이 중지되면 다시 로그인하여 새로운 값으로 바꾸세요.",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "이 값을 비밀번호처럼 취급하세요. 만료되거나 취소되기 전까지 로그인된 웹 계정에 액세스할 수 있습니다.",
     "webNoAuthGuideTitle": "자격 증명이 필요하지 않습니다",
     "webNoAuthGuideBody": "{provider}에는 API 키나 쿠키가 필요하지 않습니다. 무료 웹 엔드포인트를 사용하려면 연결을 저장하세요.",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "저장된 모델 엔드포인트 설정",
     "searchByModelAria": "모델로 검색",
     "selectSupportedEndpoint": "지원되는 엔드포인트를 최소한 하나 선택하세요.",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "설정",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "상태 확인 로그 숨기기",
     "hideHealthLogsDesc": "ON일 때, 서버 콘솔에서 [HealthCheck] 메시지를 억제합니다.",
     "themeAccent": "테마 색상",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "건강",
     "cliproxyapiPort": "포트",
     "qdrantHost": "호스트",
-    "qdrantCollection": "컬렉션",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "컬렉션"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "ACP 에이전트",
         "phrase": "OmniRoute가 실행 백엔드로 생성하는 CLI (역방향 흐름)",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "클라이언트 → OmniRoute → CLI 생성 (stdio/ACP) → 응답",
-        "seeOther": "보기 →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "보기 →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "각 호환성 노드에 대해 다중 연결을 허용합니다."
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "클라이언트로 전달하기 전에 Responses API 패스스루 스트림에서 내부 해설 단계 출력 항목을 제거합니다. 원시 업스트림 해설을 수신하려면 이 플래그를 비활성화하세요."
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "스킬 샌드박스에서 네트워크 액세스를 활성화합니다."
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "연결 복원력",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "상태",
       "provider": "공급자",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "모델 잠금",
         "count": "연결 수"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "대상 모델에 필수 기능(비전, 도구, 구조화된 출력, 컨텍스트 창)이 부족할 경우 요청을 발송 전에 거부합니다. 콤보 레이어 호환성 필터를 우회하는 직접 단일 공급자 요청을 보호합니다.",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "페이지를 찾을 수 없습니다",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "제공자가 구조화된 출력을 지원하지 않습니다",
     "contextWindowMismatch": "요청이 공급자 컨텍스트 창을 초과했습니다"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",

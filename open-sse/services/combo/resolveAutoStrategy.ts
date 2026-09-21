@@ -20,6 +20,7 @@ import { parseModel } from "../model.ts";
 import { supportsToolCalling } from "../modelCapabilities.ts";
 import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
 import { parseAutoConfig } from "./autoConfig.ts";
+import { orderSimilarTargets } from "../autoCombo/omniJev.ts";
 import { dedupeTargetsByExecutionKey } from "./comboData.ts";
 import {
   getModelContextLimitForModelString,
@@ -198,6 +199,7 @@ export async function resolveAutoStrategyOrder(
 
   const {
     routingStrategy,
+    omniJev,
     candidatePool,
     weights: configWeights,
     explorationRate,
@@ -303,7 +305,7 @@ export async function resolveAutoStrategyOrder(
     let selectedConnectionId: string | null = null;
     let selectionReason = "";
 
-    if (routingStrategy !== "rules") {
+    if (routingStrategy !== "rules" && routingStrategy !== "omni-jev") {
       try {
         const decision = selectWithStrategy(
           routableCandidates,
@@ -348,7 +350,7 @@ export async function resolveAutoStrategyOrder(
             modePack,
             budgetCap,
             budgetFallback,
-            explorationRate,
+            explorationRate: routingStrategy === "omni-jev" ? 0 : explorationRate,
           },
           routableCandidates,
           taskType
@@ -419,11 +421,30 @@ export async function resolveAutoStrategyOrder(
       )
     );
 
+    if (routingStrategy === "omni-jev") {
+      const allowed = new Set(
+        routableCandidates
+          .filter((candidate) => candidate.circuitBreakerState !== "OPEN")
+          .map((candidate) => candidate.executionKey)
+      );
+      orderedTargets = orderedTargets.filter((target) => allowed.has(target.executionKey));
+      autoUsedExplicitRouter = true;
+      if (omniJev.fallbackMode === "similar-first") {
+        orderedTargets = orderSimilarTargets(orderedTargets);
+      }
+      if (!orderedTargets.length) {
+        return { earlyResponse: unavailableResponse(429, "No eligible OmniJev targets") };
+      }
+    }
+
     log.info(
       "COMBO",
       `Auto selection: ${selectedTarget?.modelStr || `${selectedProvider}/${selectedModel}`} | intent=${intent} task=${taskType} | strategy=${routingStrategy} | ${selectionReason}`
     );
   } else {
+    if (routingStrategy === "omni-jev") {
+      return { earlyResponse: unavailableResponse(429, "No eligible OmniJev targets") };
+    }
     log.warn("COMBO", "Auto strategy has no candidates, keeping default ordering");
   }
 

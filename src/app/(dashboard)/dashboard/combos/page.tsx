@@ -79,11 +79,17 @@ const STRATEGY_OPTIONS = ROUTING_STRATEGIES.map((strategy) => ({
   labelKey: strategy.labelKey,
   descKey: strategy.combosDescKey,
   icon: strategy.icon,
-}));
+})).concat({
+  value: "omni-jev",
+  labelKey: "omniJev",
+  descKey: "omniJevDescription",
+  icon: "psychology",
+});
 
 const STRATEGY_LABEL_FALLBACK = {
   "context-relay": "Context Relay",
   "reset-aware": "Reset-Aware RR",
+  "omni-jev": "OmniJev",
 };
 
 const STRATEGY_DESC_FALLBACK = {
@@ -91,6 +97,8 @@ const STRATEGY_DESC_FALLBACK = {
     "Priority-style routing with automatic context handoffs when account rotation happens.",
   "reset-aware":
     "Quota remaining and reset windows decide the order; similar scores rotate round-robin.",
+  "omni-jev":
+    "Enriches requests with the TypeSafe/Jev methodology and fails over to a similar model.",
 };
 
 const STRATEGY_GUIDANCE_FALLBACK = {
@@ -2907,6 +2915,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     usesIntelligentBuilderStage && (isExpertMode || builderStage === "intelligent");
   const showReviewSection = !isExpertMode && builderStage === "review";
   const advancedConfigVisible = isExpertMode || showAdvanced;
+  const selectedStrategy =
+    strategy === "auto" && intelligentConfig.routerStrategy === "omni-jev" ? "omni-jev" : strategy;
 
   return (
     <>
@@ -3126,7 +3136,17 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                 {STRATEGY_OPTIONS.map((s) => (
                   <button
                     key={s.value}
-                    onClick={() => setStrategy(s.value)}
+                    onClick={() => {
+                      if (s.value === "omni-jev") {
+                        setStrategy("auto");
+                        setConfig((previousConfig) => ({
+                          ...previousConfig,
+                          routerStrategy: "omni-jev",
+                        }));
+                      } else {
+                        setStrategy(s.value);
+                      }
+                    }}
                     data-testid={`strategy-option-${s.value}`}
                     title={!isExpertMode ? getStrategyDescription(t, s.value) : undefined}
                     aria-label={
@@ -3135,7 +3155,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         : `${getStrategyLabel(t, s.value)}. ${getStrategyDescription(t, s.value)}`
                     }
                     className={`py-1.5 px-2 rounded-md text-xs font-medium transition-all ${
-                      strategy === s.value
+                      selectedStrategy === s.value
                         ? "bg-white dark:bg-white/5 shadow-sm text-primary"
                         : "text-text-muted hover:text-text-main"
                     }`}

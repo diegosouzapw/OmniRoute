@@ -7,6 +7,10 @@ import { getModePack } from "../autoCombo/modePacks.ts";
 import { isRecord } from "./comboData.ts";
 import { resolveResetWindowConfig, resolveSlaRoutingPolicy } from "./quotaScoring.ts";
 import type { ComboLike, ResolvedComboTarget } from "./types.ts";
+import {
+  isOmniJevStrategy,
+  normalizeOmniJevConfig,
+} from "../../../src/shared/validation/omniJev.ts";
 
 /**
  * Resolve the auto-strategy routing configuration for a combo.
@@ -64,7 +68,8 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
   const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
 
   return {
-    routingStrategy,
+    routingStrategy: isOmniJevStrategy(routingStrategy) ? "omni-jev" : routingStrategy,
+    omniJev: normalizeOmniJevConfig(autoConfigSource.omniJev),
     candidatePool,
     weights,
     explorationRate,

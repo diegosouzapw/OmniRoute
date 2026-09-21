@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "50% discount on input + output tokens",
     "batchConceptAsync24h": "Async with a 24h completion window",
     "batchConceptUseCases": "Best for bulk classification, evaluations, and embeddings",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "Batch files",
     "filesConceptSubtitle": "JSONL files used by batches: input requests, results, and errors.",
     "filesConceptInput": "Input — your JSONL with one request per line",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "Käytetään {count, plural, one {# erä} other {# erää}}",
     "batchFilePreview": "Esikatselu",
     "batchFilePreviewTruncated": "Näytetään ensimmäiset {shown} riviä ({total} yhteensä riviä)",
-    "batchFileDownloadFull": "Lataa Koko Tiedosto",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "Lataa Koko Tiedosto"
   },
   "disabled": "Poistettu käytöstä",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Reititä budjettinsa ylittäneet pyynnöt varalla olevalle ilmaiselle varatarjoajalle/-mallille.",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "Kaappaa IDE-agentin liikenne",
     "trafficInspector": "Liikennetarkastin",
     "trafficInspectorSubtitle": "__MISSING__:Inspect request and response traffic from your apps",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "CLI-koodi",
     "cliCodeSubtitle": "OmniRouteen osoittavat koodityökalut",
     "cliAgents": "CLI-agentit",
@@ -1300,8 +1301,7 @@
       "open": "avaa",
       "close": "sulje"
     },
-    "noResults": "Ei tuloksia",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "Ei tuloksia"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -1808,6 +1808,11 @@
     "updateStarted": "Päivitys aloitettu...",
     "reloadingPageAutomatically": "Ladataan sivua automaattisesti uudelleen...",
     "providerTopology": "Palveluntarjoajan topologia",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "Lataa DMG (macOS)",
     "downloadDmgDescription": "Uusi versio OmniRoute-työpöytäsovelluksesta on saatavilla. Lataa ja asenna macOS DMG -asennustiedosto päivittääksesi (nykyinen: v{version}).",
     "downloadExe": "Lataa EXE (Windows)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "Julkaisutiedot",
     "readMore": "Lue lisää",
     "noAuthLabel": "Ei todennusta",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "Autonominen Open Interpreter -koodausagentti-CLI",
       "omp": "Oh My Pi -terminaalikoodausagentti",
       "letta": "Letta CLI -agentti pysyvällä muistilla ja työkalujen käytöllä",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "Warp AI -terminaali mukautetun palveluntarjoajan tuella",
-      "agent-deck": "Agent Deck -moniagenttiorkestraattori",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "Agent Deck -moniagenttiorkestraattori"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "All providers",
     "modePackLabel": "Mode Pack",
     "routerStrategyLabel": "Router Strategy",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Rules (6-Factor Scoring)",
     "explorationRateLabel": "Exploration Rate",
     "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "API-päätepiste",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "Käytettävissä olevat päätepisteet",
     "cloudProxy": "Pilvivälityspalvelin",
     "disableConfirm": "Haluatko varmasti poistaa pilvivälityspalvelimen käytöstä?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "Luo sisäinen integraatio kohdassa",
     "notionIntegrationToken": "Notionin sisäinen integraatiotunnus",
     "notionNotConnected": "Ei yhdistetty",
-    "notionTokenConfigured": "Token on määritetty. Notion-työkalut ovat saatavilla MCP:n kautta.",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "Token on määritetty. Notion-työkalut ovat saatavilla MCP:n kautta."
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -4632,6 +4638,13 @@
     "retry": "Yritä uudelleen",
     "allOperational": "Kaikki järjestelmät toimivat",
     "issuesDetected": "Järjestelmäongelmia havaittu",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "Päivitetty {time}",
     "latency": "Latenssi",
     "latencyP50": "p50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count} ongelmaa",
     "score": "Pisteet",
     "lastRequest": "Viimeisin pyyntö",
-    "lastError": "Viimeisin virhe",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "Viimeisin virhe"
   },
   "telemetry": {
     "title": "Järjestelmän telemetria",
@@ -4954,7 +4960,9 @@
     "multiProvider": "Multi-Provider",
     "usageTracking": "Käytön seuranta",
     "securityDesc": "Aseta salasana kojelautasi suojaamiseksi tai ohita toistaiseksi.",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "Yhdistä ensimmäinen AI-palveluntarjoajasi. Voit lisätä myöhemmin lisää.",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "API-avain (pakollinen)",
     "customUrlOptional": "Muokattu URL-osoite (valinnainen)",
     "testDesc": "Varmistetaan, että palveluntarjoajayhteytesi toimii.",
@@ -5011,9 +5019,7 @@
         "skipped": "jo määritetty",
         "failed": "epäonnistui"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "Palveluntarjoajat",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "Kopioi tarvittavat tunnistetiedot palveluntarjoajan omasta verkkotunnuksesta. Kopioi evästeitä varten vain Evästeen otsikon arvo ja jätä pois Cookie:.",
     "webSessionGuideStep3Manual": "Manuaalinen polku: avaa selaimen kehittäjätyökalut (F12 → Verkko), päivitä sivu, avaa todennettu pyyntö ja kopioi Cookie-otsikon arvo Pyyntöotsikoista — jätä Cookie:-etuliite pois.",
     "webSessionGuideStep4": "Liitä se tähän ja tarkista yhteys. Jos se lakkaa toimimasta, kirjaudu uudelleen sisään ja korvaa se uudella arvolla.",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "Käsittele tätä kuin salasanaa: se voi käyttää kirjautuneena verkkotiliäsi, kunnes se vanhenee tai se peruutetaan.",
     "webNoAuthGuideTitle": "Tunnuksia ei vaadita",
     "webNoAuthGuideBody": "{provider} ei tarvitse API-avainta tai evästettä. Tallenna yhteys käyttääksesi sen ilmaista verkkopäätepistettä.",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "Tallennetun mallin päätepisteen asetukset",
     "searchByModelAria": "Hae mallin mukaan",
     "selectSupportedEndpoint": "Valitse vähintään yksi tuettu päätepiste",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "Asetukset",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "Piilota kuntotarkastuslokit",
     "hideHealthLogsDesc": "Kun PÄÄLLÄ, estä [HealthCheck]-viestit palvelinkonsolissa",
     "themeAccent": "Teeman väri",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "Terveys",
     "cliproxyapiPort": "Portti",
     "qdrantHost": "Isäntä",
-    "qdrantCollection": "Kokoelma",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "Kokoelma"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "ACP-agentit",
         "phrase": "CLI:t, jotka OmniRoute käynnistää suoritustaustana (käänteinen virtaus)",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "Asiakas → OmniRoute → käynnistä CLI (stdio/ACP) → vastaus",
-        "seeOther": "Katso →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "Katso →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "Salli useita yhteyksiä kullekin yhteensopivuussolmulle."
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "Poista sisäiset kommentointivaiheen tulostetiedot Responses API -läpivientivirroista ennen niiden välittämistä asiakkaille. Poista tämä valinta käytöstä vastaanottaaksesi raakaa ylävirran kommentointia."
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Ota käyttöön verkkoyhteys taitojen hiekkalaatikossa."
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "Yhteyden Kestävyys",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "Tila",
       "provider": "Palveluntarjoaja",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "Mallilukitukset",
         "count": "Yhteyksien Määrä"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Hylkää pyynnöt ennen lähettämistä, kun kohdemallilta puuttuu vaadittuja ominaisuuksia (näkö, työkalut, jäsennelty ulostulo, kontekstikkelu). Suojaa suorat yhden tarjoajan pyynnöt, jotka ohittavat yhdistelmäkerroksen yhteensopivuussuodattimen.",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "Sivua ei löytynyt",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "Palveluntarjoaja ei tue jäsenneltyä tulostusta",
     "contextWindowMismatch": "Pyyntö ylittää tarjoajan kontekstin ikkunan"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",

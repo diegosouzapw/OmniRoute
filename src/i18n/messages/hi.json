@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "50% discount on input + output tokens",
     "batchConceptAsync24h": "Async with a 24h completion window",
     "batchConceptUseCases": "Best for bulk classification, evaluations, and embeddings",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "Batch files",
     "filesConceptSubtitle": "JSONL files used by batches: input requests, results, and errors.",
     "filesConceptInput": "Input — your JSONL with one request per line",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "{count, plural, one {# बैच} other {# बैचों}}",
     "batchFilePreview": "पूर्वावलोकन",
     "batchFilePreviewTruncated": "पहले {shown} पंक्तियाँ दिखा रहे हैं ({total} कुल पंक्तियाँ)",
-    "batchFileDownloadFull": "पूर्ण फ़ाइल डाउनलोड करें",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "पूर्ण फ़ाइल डाउनलोड करें"
   },
   "disabled": "अक्षम",
   "featureFlagOmnirouteEmergencyFallbackDescription": "बजट समाप्त हो चुके अनुरोधों को आपातकालीन निःशुल्क फ़ॉलबैक प्रदाता/मॉडल पर रूट करें।",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "IDE एजेंट ट्रैफ़िक को इंटरसेप्ट करें",
     "trafficInspector": "ट्रैफ़िक इंस्पेक्टर",
     "trafficInspectorSubtitle": "LLM कॉल्स की निगरानी करें + किसी भी HTTPS ट्रैफ़िक को डीबग करें",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "CLI कोड",
     "cliCodeSubtitle": "OmniRoute पर पॉइंट करने वाले कोड टूल्स",
     "cliAgents": "CLI एजेंट्स",
@@ -1300,8 +1301,7 @@
       "open": "खोलें",
       "close": "बंद करें"
     },
-    "noResults": "कोई परिणाम नहीं",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "कोई परिणाम नहीं"
   },
   "webhooks": {
     "title": "वेबहुक",
@@ -1808,6 +1808,11 @@
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "पृष्ठ स्वचालित रूप से पुनः लोड हो रहा है...",
     "providerTopology": "प्रदाता टोपोलॉजी",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "DMG डाउनलोड करें (macOS)",
     "downloadDmgDescription": "OmniRoute डेस्कटॉप ऐप का एक नया संस्करण उपलब्ध है। कृपया अपडेट करने के लिए macOS DMG इंस्टॉलर डाउनलोड और इंस्टॉल करें (वर्तमान: v{version})।",
     "downloadExe": "EXE डाउनलोड करें (Windows)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "रिलीज़ नोट्स",
     "readMore": "और पढ़ें",
     "noAuthLabel": "कोई प्रमाणीकरण नहीं",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "Open Interpreter स्वायत्त कोडिंग एजेंट CLI",
       "omp": "Oh My Pi टर्मिनल कोडिंग एजेंट",
       "letta": "स्थायी मेमोरी और टूल उपयोग के साथ Letta CLI एजेंट",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "कस्टम प्रदाता समर्थन के साथ Warp AI टर्मिनल",
-      "agent-deck": "Agent Deck मल्टी-एजेंट ऑर्केस्ट्रेटर",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "Agent Deck मल्टी-एजेंट ऑर्केस्ट्रेटर"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "All providers",
     "modePackLabel": "Mode Pack",
     "routerStrategyLabel": "Router Strategy",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Rules (6-Factor Scoring)",
     "explorationRateLabel": "Exploration Rate",
     "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "एपीआई समापन बिंदु",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "उपलब्ध समापनबिंदु",
     "cloudProxy": "क्लाउड प्रॉक्सी",
     "disableConfirm": "क्या आप वाकई क्लाउड प्रॉक्सी को अक्षम करना चाहते हैं?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "एक आंतरिक एकीकरण बनाएं at",
     "notionIntegrationToken": "Notion आंतरिक एकीकरण टोकन",
     "notionNotConnected": "कनेक्टेड नहीं",
-    "notionTokenConfigured": "टोकन कॉन्फ़िगर किया गया। Notion उपकरण MCP के माध्यम से उपलब्ध हैं।",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "टोकन कॉन्फ़िगर किया गया। Notion उपकरण MCP के माध्यम से उपलब्ध हैं।"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -4632,6 +4638,13 @@
     "retry": "पुनः प्रयास करें",
     "allOperational": "सभी प्रणालियाँ क्रियाशील",
     "issuesDetected": "सिस्टम संबंधी समस्याओं का पता चला",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "अपडेट किया गया {time}",
     "latency": "विलंबता",
     "latencyP50": "p50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count} समस्याएं",
     "score": "स्कोर",
     "lastRequest": "अंतिम अनुरोध",
-    "lastError": "अंतिम त्रुटि",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "अंतिम त्रुटि"
   },
   "telemetry": {
     "title": "सिस्टम टेलीमेट्री",
@@ -4954,7 +4960,9 @@
     "multiProvider": "बहु-प्रदाता",
     "usageTracking": "उपयोग ट्रैकिंग",
     "securityDesc": "अपने डैशबोर्ड की सुरक्षा के लिए एक पासवर्ड सेट करें, या अभी के लिए छोड़ें।",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "अपना पहला AI प्रदाता कनेक्ट करें. आप बाद में और भी जोड़ सकते हैं.",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "एपीआई कुंजी (आवश्यक)",
     "customUrlOptional": "कस्टम यूआरएल (वैकल्पिक)",
     "testDesc": "आइए सत्यापित करें कि आपका प्रदाता कनेक्शन काम करता है।",
@@ -5011,9 +5019,7 @@
         "skipped": "पहले से कॉन्फ़िगर किया गया",
         "failed": "असफल"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "प्रदाता",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "प्रदाता के अपने डोमेन से आवश्यक क्रेडेंशियल कॉपी करें। कुकीज़ के लिए, केवल कुकी हेडर मान की प्रतिलिपि बनाएँ और कुकी: को हटा दें।",
     "webSessionGuideStep3Manual": "मैनुअल पथ: ब्राउज़र डेवलपर टूल्स खोलें (F12 → नेटवर्क), पृष्ठ को रिफ्रेश करें, एक प्रमाणित अनुरोध खोलें, और अनुरोध हेडर से कुकी हेडर मान को कॉपी करें — कुकी: प्रीफिक्स को छोड़ दें।",
     "webSessionGuideStep4": "इसे यहां पेस्ट करें और कनेक्शन जांचें। यदि यह काम करना बंद कर देता है, तो दोबारा साइन इन करें और इसे नए मान से बदलें।",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "इसे एक पासवर्ड की तरह समझें: यह आपके साइन-इन किए गए वेब खाते तक तब तक पहुंच सकता है जब तक कि यह समाप्त न हो जाए या निरस्त न हो जाए।",
     "webNoAuthGuideTitle": "किसी प्रमाण पत्र की आवश्यकता नहीं है",
     "webNoAuthGuideBody": "{provider} को API कुंजी या कुकी की आवश्यकता नहीं है। इसके निःशुल्क वेब एंडपॉइंट का उपयोग करने के लिए कनेक्शन सहेजें।",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "सहेजे गए मॉडल एंडपॉइंट सेटिंग्स",
     "searchByModelAria": "मॉडल द्वारा खोजें",
     "selectSupportedEndpoint": "कम से कम एक समर्थित एंडपॉइंट चुनें",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "स्वास्थ्य जांच लॉग छुपाएं",
     "hideHealthLogsDesc": "चालू होने पर, सर्वर कंसोल में [हेल्थचेक] संदेशों को दबाएँ",
     "themeAccent": "थीम का रंग",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "स्वास्थ्य",
     "cliproxyapiPort": "पोर्ट",
     "qdrantHost": "होस्ट",
-    "qdrantCollection": "संग्रह",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "संग्रह"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "ACP एजेंट्स",
         "phrase": "CLIs जिन्हें OmniRoute निष्पादन बैकएंड (रिवर्स फ़्लो) के रूप में स्पॉन करता है",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "क्लाइंट → OmniRoute → spawn CLI (stdio/ACP) → प्रतिक्रिया",
-        "seeOther": "देखें →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "देखें →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "प्रत्येक संगतता नोड के लिए एकाधिक कनेक्शन की अनुमति दें।"
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "ग्राहकों को अग्रेषित करने से पहले Responses API पासथ्रू स्ट्रीम से आंतरिक टिप्पणी-चरण आउटपुट आइटम हटा दें। कच्चे अपस्ट्रीम कमेंट्री प्राप्त करने के लिए इस फ़्लैग को अक्षम करें।"
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "स्किल्स सैंडबॉक्स में नेटवर्क एक्सेस सक्षम करें।"
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "कनेक्शन रेज़िलिएंस",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "स्थिति",
       "provider": "प्रदाता",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "मॉडल लॉकआउट",
         "count": "कनेक्शन गणना"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "डिस्पैच से पहले अनुरोधों को अस्वीकार करें जब लक्षित मॉडल आवश्यक क्षमताओं (दृष्टि, उपकरण, संरचित आउटपुट, संदर्भ विंडो) से रहित हो। यह सीधे एकल-प्रदाता अनुरोधों की रक्षा करता है जो कॉम्बो-लेयर संगतता फ़िल्टर को बायपास करते हैं।",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "पृष्ठ नहीं मिला",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "प्रदाता संरचित आउटपुट का समर्थन नहीं करता",
     "contextWindowMismatch": "अनुरोध प्रदाता संदर्भ विंडो से अधिक है"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",

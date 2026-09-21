@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "輸入 + 輸出權杖享受 50% 折扣",
     "batchConceptAsync24h": "非同步處理，24 小時完成視窗",
     "batchConceptUseCases": "最適合批次分類、評估和嵌入",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "批處理檔案",
     "filesConceptSubtitle": "批處理使用的 JSONL 檔案：輸入請求、結果和錯誤。",
     "filesConceptInput": "輸入 — 每行一個請求的 JSONL",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "被 {count, plural, one {# 批次} other {# 批次}} 使用",
     "batchFilePreview": "預覽",
     "batchFilePreviewTruncated": "顯示前 {shown} 行（共 {total} 行）",
-    "batchFileDownloadFull": "下載完整檔案",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "下載完整檔案"
   },
   "disabled": "已停用",
   "featureFlagOmnirouteEmergencyFallbackDescription": "將預算耗盡的請求路由到緊急免費備用提供者/模型。",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "攔截 IDE 代理流量",
     "trafficInspector": "流量檢查器",
     "trafficInspectorSubtitle": "__MISSING__:Inspect request and response traffic from your apps",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "CLI 程式碼的",
     "cliCodeSubtitle": "指向 OmniRoute 的程式碼工具",
     "cliAgents": "CLI 代理",
@@ -1300,8 +1301,7 @@
       "open": "打開",
       "close": "關閉"
     },
-    "noResults": "沒有結果",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "沒有結果"
   },
   "webhooks": {
     "title": "Webhook",
@@ -1808,6 +1808,11 @@
     "updateStarted": "更新已開始...",
     "reloadingPageAutomatically": "自動重新載入頁面...",
     "providerTopology": "提供者拓撲",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "下載 DMG (macOS)",
     "downloadDmgDescription": "OmniRoute 桌面應用程式的新版本已經可用。請下載並安裝 macOS DMG 安裝程式以進行更新（目前版本：v{version}）。",
     "downloadExe": "下載 EXE (Windows)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "發佈說明",
     "readMore": "閱讀更多",
     "noAuthLabel": "無認證",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "Open Interpreter 自主程式代理 CLI",
       "omp": "Oh My Pi 終端機程式代理",
       "letta": "Letta CLI 代理，具備持久記憶與工具使用能力",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "Warp AI 終端機，支援自訂提供者",
-      "agent-deck": "Agent Deck 多代理協調器",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "Agent Deck 多代理協調器"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "所有提供者",
     "modePackLabel": "模式包",
     "routerStrategyLabel": "路由策略",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "規則（6 因子評分）",
     "explorationRateLabel": "探索率",
     "explorationRateHint": "{percent}% 的請求可以探索非最優提供者。",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "API 端點",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "可用端點",
     "cloudProxy": "雲代理",
     "disableConfirm": "確定要停用雲代理嗎？",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "在此創建內部整合",
     "notionIntegrationToken": "Notion 內部整合令牌",
     "notionNotConnected": "未連接",
-    "notionTokenConfigured": "已配置令牌。Notion 工具可通過 MCP 使用。",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "已配置令牌。Notion 工具可通過 MCP 使用。"
   },
   "endpoints": {
     "tabProxy": "端點代理",
@@ -4632,6 +4638,13 @@
     "retry": "重試",
     "allOperational": "所有系統均可執行",
     "issuesDetected": "檢測到系統問題",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "更新了 {time}",
     "latency": "延遲",
     "latencyP50": "p50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count} 個問題",
     "score": "評分",
     "lastRequest": "最近請求",
-    "lastError": "最近錯誤",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "最近錯誤"
   },
   "telemetry": {
     "title": "系統遙測",
@@ -4954,7 +4960,9 @@
     "multiProvider": "多提供者",
     "usageTracking": "使用情況追蹤",
     "securityDesc": "設定密碼以保護您的儀表板，或暫時跳過。",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "連線你的第一個 AI 提供者。你之後還可以繼續新增。",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "API 金鑰（必填）",
     "customUrlOptional": "自定義 URL（可選）",
     "testDesc": "讓我們驗證您的提供者連線是否有效。",
@@ -5011,9 +5019,7 @@
         "skipped": "已配置",
         "failed": "失敗"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "提供者",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "從提供者自己的域複製所需的憑據。對於 cookie，僅複製 Cookie 標頭值並省略 Cookie:。",
     "webSessionGuideStep3Manual": "手動路徑：打開瀏覽器開發者工具 (F12 → 網路)，刷新頁面，打開一個經過身份驗證的請求，並從請求標頭中複製 Cookie 標頭值 — 省略 Cookie: 前綴。",
     "webSessionGuideStep4": "將其貼上到此處並檢查連線。如果它停止工作，請重新登入並將其替換為新值。",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "將其視為密碼：它可以訪問您登入的網路帳戶，直到其過期或被撤銷。",
     "webNoAuthGuideTitle": "無需任何憑證",
     "webNoAuthGuideBody": "{provider} 不需要 API 金鑰或 cookie。儲存連線以使用其免費 Web 端點。",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "已儲存的模型端點設定",
     "searchByModelAria": "按型號搜尋",
     "selectSupportedEndpoint": "請選擇至少一個受支持的端點",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "設定",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "隱藏側邊欄專案",
     "sidebarVisibilityDesc": "可以隱藏任意側邊欄導航項，以減少視覺負擔，但不會停用任何功能",
     "sidebarVisibilityHint": "當某個側邊欄分組中的所有專案都被隱藏時，該分組會自動隱藏",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "隱藏健康檢查日誌",
     "hideHealthLogsDesc": "開啟後，將抑制伺服器控制台中的 [HealthCheck] 訊息",
     "themeAccent": "主題顏色",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "健康",
     "cliproxyapiPort": "埠",
     "qdrantHost": "主機",
-    "qdrantCollection": "集合",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "集合"
   },
   "contextRtk": {
     "title": "RTK 引擎",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "ACP 代理",
         "phrase": "OmniRoute 作為執行後端（反向流）生成的 CLI",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "客戶端 → OmniRoute → 生成 CLI (stdio/ACP) → 回應",
-        "seeOther": "檢視 →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "檢視 →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "允許每個相容性節點的多重連線。"
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "在將 Responses API 穿透串流轉發至用戶端之前，移除內部註解階段的輸出項目。停用此旗標以接收原始上游註解。"
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "在技能沙盒中啟用網路存取。"
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "連線韌性",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "狀態",
       "provider": "提供者",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "模型鎖定",
         "count": "連線數"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "在目標模型缺乏所需功能（視覺、工具、結構化輸出、上下文窗口）時，拒絕發送前的請求。保護繞過組合層兼容性過濾器的直接單一提供者請求。",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "找不到頁面",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "提供者不支援結構化輸出",
     "contextWindowMismatch": "請求超出提供者上下文窗口"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",

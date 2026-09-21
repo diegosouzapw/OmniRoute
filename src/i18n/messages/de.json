@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "50% discount on input + output tokens",
     "batchConceptAsync24h": "Async with a 24h completion window",
     "batchConceptUseCases": "Best for bulk classification, evaluations, and embeddings",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "Batch files",
     "filesConceptSubtitle": "JSONL files used by batches: input requests, results, and errors.",
     "filesConceptInput": "Input — your JSONL with one request per line",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "Verwendet von {count, plural, one {# Batch} other {# Batches}}",
     "batchFilePreview": "Vorschau",
     "batchFilePreviewTruncated": "Zeige die ersten {shown} Zeilen ({total} insgesamt)",
-    "batchFileDownloadFull": "Vollständige Datei herunterladen",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "Vollständige Datei herunterladen"
   },
   "disabled": "Deaktiviert",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Anfragen mit erschöpftem Budget an den kostenlosen Notfall-Fallback-Anbieter/das Notfall-Fallback-Modell weiterleiten.",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "IDE-Agenten-Datenverkehr abfangen",
     "trafficInspector": "Traffic Inspector",
     "trafficInspectorSubtitle": "__MISSING__:Inspect request and response traffic from your apps",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "CLI-Code",
     "cliCodeSubtitle": "Code-Tools, die auf OmniRoute verweisen",
     "cliAgents": "CLI-Agenten",
@@ -1300,8 +1301,7 @@
       "open": "öffnen",
       "close": "schließen"
     },
-    "noResults": "Keine Ergebnisse",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "Keine Ergebnisse"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -1808,6 +1808,11 @@
     "updateStarted": "Aktualisierung gestartet...",
     "reloadingPageAutomatically": "Seite wird automatisch neu geladen...",
     "providerTopology": "Anbietertopologie",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "DMG herunterladen (macOS)",
     "downloadDmgDescription": "Eine neue Version der OmniRoute-Desktop-App ist verfügbar. Bitte laden Sie den macOS DMG-Installer herunter und installieren Sie ihn, um zu aktualisieren (aktuell: v{version}).",
     "downloadExe": "EXE herunterladen (Windows)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "Versionshinweise",
     "readMore": "Mehr Lesen",
     "noAuthLabel": "Keine Authentifizierung",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "Open Interpreter CLI für autonome Coding-Agenten",
       "omp": "Oh My Pi Terminal-Coding-Agent",
       "letta": "Letta CLI-Agent mit persistentem Speicher und Tool-Nutzung",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "Warp AI-Terminal mit Unterstützung für benutzerdefinierte Anbieter",
-      "agent-deck": "Agent Deck Multi-Agenten-Orchestrator",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "Agent Deck Multi-Agenten-Orchestrator"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "All providers",
     "modePackLabel": "Mode Pack",
     "routerStrategyLabel": "Router Strategy",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Rules (6-Factor Scoring)",
     "explorationRateLabel": "Exploration Rate",
     "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "API-Endpunkt",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "Verfügbare Endpunkte",
     "cloudProxy": "Cloud-Proxy",
     "disableConfirm": "Sind Sie sicher, dass Sie den Cloud-Proxy deaktivieren möchten?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "Erstellen Sie eine interne Integration bei",
     "notionIntegrationToken": "Notion Interner Integrations-Token",
     "notionNotConnected": "Nicht verbunden",
-    "notionTokenConfigured": "Token konfiguriert. Notion-Tools sind über MCP verfügbar.",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "Token konfiguriert. Notion-Tools sind über MCP verfügbar."
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -4632,6 +4638,13 @@
     "retry": "Versuchen Sie es noch einmal",
     "allOperational": "Alle Systeme betriebsbereit",
     "issuesDetected": "Systemprobleme erkannt",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "Aktualisiert {time}",
     "latency": "Latenz",
     "latencyP50": "S. 50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count} Probleme",
     "score": "Score",
     "lastRequest": "Letzte Anfrage",
-    "lastError": "Letzter Fehler",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "Letzter Fehler"
   },
   "telemetry": {
     "title": "Systemtelemetrie",
@@ -4954,7 +4960,9 @@
     "multiProvider": "Multi-Provider",
     "usageTracking": "Nutzungsverfolgung",
     "securityDesc": "Legen Sie ein Passwort fest, um Ihr Dashboard zu schützen, oder überspringen Sie es zunächst.",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "Verbinden Sie Ihren ersten KI-Anbieter. Sie können später weitere hinzufügen.",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "API-Schlüssel (erforderlich)",
     "customUrlOptional": "Benutzerdefinierte URL (optional)",
     "testDesc": "Lassen Sie uns überprüfen, ob Ihre Provider-Verbindung funktioniert.",
@@ -5011,9 +5019,7 @@
         "skipped": "bereits konfiguriert",
         "failed": "fehlgeschlagen"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "Anbieter",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "Kopieren Sie die erforderlichen Zugangsdaten von der Domain des Anbieters. Bei Cookies nur den Cookie-Header-Wert kopieren und Cookie: weglassen.",
     "webSessionGuideStep3Manual": "Manueller Pfad: Öffnen Sie die Entwicklertools des Browsers (F12 → Netzwerk), aktualisieren Sie die Seite, öffnen Sie eine authentifizierte Anfrage und kopieren Sie den Wert des Cookie-Headers aus den Anfrage-Headern — lassen Sie das Präfix Cookie: weg.",
     "webSessionGuideStep4": "Fügen Sie den Wert hier ein und prüfen Sie die Verbindung. Falls er nicht mehr funktioniert, melden Sie sich erneut an und ersetzen ihn durch einen frischen Wert.",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "Behandeln Sie dies wie ein Passwort: Es kann Zugriff auf Ihr angemeldetes Webkonto ermöglichen, bis es abläuft oder widerrufen wird.",
     "webNoAuthGuideTitle": "Keine Zugangsdaten erforderlich",
     "webNoAuthGuideBody": "{provider} benötigt keinen API-Schlüssel und kein Cookie. Speichern Sie die Verbindung, um den kostenlosen Web-Endpunkt zu verwenden.",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "Einstellungen für den gespeicherten Modell-Endpunkt",
     "searchByModelAria": "Nach Modell suchen",
     "selectSupportedEndpoint": "Wählen Sie mindestens einen unterstützten Endpunkt aus",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "Einstellungen",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "Gesundheitsprüfungsprotokolle ausblenden",
     "hideHealthLogsDesc": "Wenn diese Option aktiviert ist, werden [HealthCheck]-Meldungen in der Serverkonsole unterdrückt",
     "themeAccent": "Themenfarbe",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "Gesundheit",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
-    "qdrantCollection": "Sammlung",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "Sammlung"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "ACP-Agenten",
         "phrase": "CLIs, die OmniRoute als Ausführungs-Backend startet (umgekehrter Fluss)",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "Client → OmniRoute → CLI starten (stdio/ACP) → Antwort",
-        "seeOther": "Siehe →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "Siehe →"
       }
     },
     "comparison": {
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "Verbindungsresilienz",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "Status",
       "provider": "Anbieter",
@@ -13477,13 +13490,6 @@
         "modelLockouts": "Modellsperren",
         "count": "Verbindungsanzahl"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Lehnen Sie Anfragen ab, bevor sie versendet werden, wenn das Zielmodell über die erforderlichen Funktionen (Vision, Werkzeuge, strukturierte Ausgabe, Kontextfenster) nicht verfügt. Schützt direkte Einzelanbieteranfragen, die den Kombo-Schicht-Kompatibilitätsfilter umgehen.",

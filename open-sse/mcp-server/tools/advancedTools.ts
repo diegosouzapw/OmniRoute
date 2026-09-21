@@ -17,6 +17,11 @@
  */
 
 import { logToolCall } from "../audit.ts";
+import {
+  omniJevConfigSchema,
+  isOmniJevStrategy,
+  type OmniJevConfig,
+} from "../../../src/shared/validation/omniJev.ts";
 import { getMcpHttpAuthHeadersForInternalFetch } from "../httpAuthContext.ts";
 import { normalizeQuotaResponse } from "../../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
@@ -30,6 +35,7 @@ import type {
   RoutingStrategyValue,
 } from "../../../src/shared/constants/routingStrategies.ts";
 import { normalizeRoutingStrategy } from "../../../src/shared/constants/routingStrategies.ts";
+import { toNumber } from "../../../src/shared/utils/numeric.ts";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
@@ -74,16 +80,6 @@ function toArrayOfRecords(value: unknown): JsonRecord[] {
 
 function toString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function toBoolean(value: unknown, fallback = false): boolean {
@@ -381,6 +377,7 @@ export async function handleSetRoutingStrategy(args: {
   comboId: string;
   strategy: RoutingStrategyValue;
   autoRoutingStrategy?: AutoRoutingStrategyValue;
+  omniJev?: OmniJevConfig;
 }) {
   const start = Date.now();
   try {
@@ -424,13 +421,20 @@ export async function handleSetRoutingStrategy(args: {
 
     const normalizedStrategy = normalizeRoutingStrategy(args.strategy);
     let nextConfig: JsonRecord | undefined = undefined;
-    if (normalizedStrategy === "auto" && args.autoRoutingStrategy) {
+    if (normalizedStrategy === "auto" && (args.autoRoutingStrategy || args.omniJev)) {
       const currentAutoConfig = toRecord(currentConfig.auto);
       nextConfig = {
         ...currentConfig,
         auto: {
+          ...Object.fromEntries(Object.entries(currentConfig).filter(([key]) => key !== "auto")),
           ...currentAutoConfig,
-          routerStrategy: args.autoRoutingStrategy,
+          routerStrategy: isOmniJevStrategy(args.autoRoutingStrategy)
+            ? "omni-jev"
+            : (args.autoRoutingStrategy ??
+              currentAutoConfig.routerStrategy ??
+              currentConfig.routerStrategy ??
+              "rules"),
+          ...(args.omniJev ? { omniJev: omniJevConfigSchema.parse(args.omniJev) } : {}),
         },
       };
     }

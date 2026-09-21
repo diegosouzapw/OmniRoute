@@ -36,6 +36,9 @@ export type InternalRoutingStrategyValue = (typeof INTERNAL_ROUTING_STRATEGY_VAL
 export type AnyRoutingStrategyValue = RoutingStrategyValue | InternalRoutingStrategyValue;
 
 export const AUTO_ROUTING_STRATEGY_VALUES = [
+  "omni-jev",
+  "typesafe",
+  "jev",
   "rules",
   "cost",
   "eco",

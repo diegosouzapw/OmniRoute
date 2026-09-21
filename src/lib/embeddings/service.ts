@@ -111,6 +111,7 @@ export async function createEmbeddingResponse(
             : body;
 
         return handleComboChat({
+          sourceFormat: "embeddings",
           body: bodyWithDimensions,
           combo: combo as any,
           handleSingleModel: async (reqBody: any, targetModelStr: string, target?: any) => {
