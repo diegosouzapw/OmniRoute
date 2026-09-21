@@ -69,9 +69,15 @@ export async function createEmbeddingResponse(
   const modelStr = body.model;
   const startTime = Date.now();
 
-  if (!modelStr.includes("/")) {
+  if (!modelStr.includes("/") || modelStr.startsWith("combo/")) {
     try {
-      const combo = await getComboByName(modelStr);
+      let combo = await getComboByName(modelStr);
+      if (
+        (!combo || !Array.isArray(combo.models) || combo.models.length === 0) &&
+        modelStr.startsWith("combo/")
+      ) {
+        combo = await getComboByName(modelStr.slice("combo/".length));
+      }
       if (combo) {
         let allCombos: Awaited<ReturnType<typeof getCombos>> = [];
         try {
