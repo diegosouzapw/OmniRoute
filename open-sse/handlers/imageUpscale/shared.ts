@@ -9,6 +9,7 @@
 
 import { saveCallLog } from "@/lib/usageDb";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { stringifyImageErrorForLog } from "../imageErrorLog";
 
 export const UPSCALE_CALL_LOG_PATH = "/v1/images/upscale";
 
@@ -367,8 +368,7 @@ export function saveUpscaleErrorResult(opts: {
     model: `${opts.provider}/${opts.model}`,
     provider: opts.provider,
     duration: Date.now() - opts.startTime,
-    error:
-      typeof opts.error === "string" ? opts.error.slice(0, 500) : String(opts.error).slice(0, 500),
+    error: stringifyImageErrorForLog(opts.error).slice(0, 500),
     requestBody: opts.requestBody ?? null,
   }).catch(() => {});
 
