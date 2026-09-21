@@ -276,6 +276,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "OPENCODE_PARK_AND_RESUME",
+    label: "OpenCode 429 Park And Resume",
+    description:
+      "For the OpenCode multi-account rotation, park the request after repeated transient 429s (or a fresh pool-strain marker) with a heartbeat, then replay one capped leg of up to 3 sequential accounts instead of fanning out the whole fleet. Off by default: every 429 rotates to the next account exactly as before.",
+    descriptionI18nKey: "featureFlagOpencodeParkAndResumeDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "MITM_DISABLE_TLS_VERIFY",
     label: "Disable TLS Verify (MITM)",
     description: "Disable TLS certificate verification for MITM proxy",
