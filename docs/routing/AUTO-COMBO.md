@@ -440,6 +440,8 @@ Persisted `strategy: "auto"` combos can set `config.routerStrategy` (or legacy
 - `sla-aware` / `sla` — prefer candidates that satisfy p95 latency, error-rate, and optional
   cost SLOs
 - `lkgp` — last known good provider first
+- `omni-jev` / `typesafe` / `jev` — TypeSafe/Jev pre-generation enrichment with same-family
+  fallback ordering; see the [OmniJev](#omnijev) section above
 
 ### Router strategies in detail
 

@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "50% discount on input + output tokens",
     "batchConceptAsync24h": "Async with a 24h completion window",
     "batchConceptUseCases": "Best for bulk classification, evaluations, and embeddings",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "Batch files",
     "filesConceptSubtitle": "JSONL files used by batches: input requests, results, and errors.",
     "filesConceptInput": "Input — your JSONL with one request per line",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "Brugt af {count, plural, one {# batch} other {# batches}}",
     "batchFilePreview": "Forhåndsvisning",
     "batchFilePreviewTruncated": "Viser de første {shown} linjer ({total} linjer i alt)",
-    "batchFileDownloadFull": "Download Fuld Fil",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "Download Fuld Fil"
   },
   "disabled": "Deaktiveret",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Diriger budgetudtømte anmodninger til den gratis nød-fallback-udbyder/-model.",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "Opsnap IDE-agenttrafik",
     "trafficInspector": "Trafikinspektør",
     "trafficInspectorSubtitle": "__MISSING__:Inspect request and response traffic from your apps",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "CLI-kode",
     "cliCodeSubtitle": "Kodeværktøjer, der peger på OmniRoute",
     "cliAgents": "CLI-agenter",
@@ -1300,8 +1301,7 @@
       "open": "åben",
       "close": "luk"
     },
-    "noResults": "Ingen resultater",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "Ingen resultater"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -1808,6 +1808,11 @@
     "updateStarted": "Opdatering startet...",
     "reloadingPageAutomatically": "Genindlæser siden automatisk...",
     "providerTopology": "Udbydertopologi",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "Download DMG (macOS)",
     "downloadDmgDescription": "En ny version af OmniRoute desktopappen er tilgængelig. Download og installer venligst macOS DMG-installationsprogrammet for at opdatere (nuværende: v{version}).",
     "downloadExe": "Download EXE (Windows)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "Udgivelsesnoter",
     "readMore": "Læs Mere",
     "noAuthLabel": "Ingen godkendelse",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "Open Interpreter autonom kodningsagent-CLI",
       "omp": "Oh My Pi terminal-kodningsagent",
       "letta": "Letta CLI-agent med persistent hukommelse og brug af værktøjer",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "Warp AI-terminal med understøttelse af brugerdefineret udbyder",
-      "agent-deck": "Agent Deck multi-agent-orkestrator",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "Agent Deck multi-agent-orkestrator"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "All providers",
     "modePackLabel": "Mode Pack",
     "routerStrategyLabel": "Router Strategy",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Rules (6-Factor Scoring)",
     "explorationRateLabel": "Exploration Rate",
     "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "API-endepunkt",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "Tilgængelige endepunkter",
     "cloudProxy": "Cloud proxy",
     "disableConfirm": "Er du sikker på, at du vil deaktivere cloud-proxy?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "Opret en intern integration ved",
     "notionIntegrationToken": "Notion Intern Token til Integration",
     "notionNotConnected": "Ikke tilsluttet",
-    "notionTokenConfigured": "Token konfigureret. Notion-værktøjer er tilgængelige via MCP.",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "Token konfigureret. Notion-værktøjer er tilgængelige via MCP."
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -4632,6 +4638,13 @@
     "retry": "Prøv igen",
     "allOperational": "Alle systemer i drift",
     "issuesDetected": "Systemproblemer opdaget",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "Opdateret {time}",
     "latency": "Latency",
     "latencyP50": "p50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count} problemer",
     "score": "Score",
     "lastRequest": "Sidste anmodning",
-    "lastError": "Sidste fejl",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "Sidste fejl"
   },
   "telemetry": {
     "title": "System telemetri",
@@ -4954,7 +4960,9 @@
     "multiProvider": "Multi-udbyder",
     "usageTracking": "Brugssporing",
     "securityDesc": "Indstil en adgangskode for at beskytte dit dashboard, eller spring over indtil videre.",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "Tilslut din første AI-udbyder. Du kan tilføje flere senere.",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "API-nøgle (påkrævet)",
     "customUrlOptional": "Tilpasset webadresse (valgfrit)",
     "testDesc": "Lad os kontrollere, at din udbyderforbindelse fungerer.",
@@ -5011,9 +5019,7 @@
         "skipped": "allerede konfigureret",
         "failed": "mislykkedes"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "Udbydere",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "Kopiér de påkrævede legitimationsoplysninger fra udbyderens eget domæne. For cookies skal du kun kopiere Cookie-headerværdien og udelade Cookie:.",
     "webSessionGuideStep3Manual": "Manuel sti: åbn browserens udviklerværktøjer (F12 → Netværk), opdater siden, åbn en godkendt anmodning, og kopier Cookie-headerens værdi fra anmodningsoverskrifterne — udelad Cookie:-præfikset.",
     "webSessionGuideStep4": "Indsæt det her og kontroller forbindelsen. Hvis det holder op med at fungere, skal du logge ind igen og erstatte det med en ny værdi.",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "Behandl dette som en adgangskode: den kan få adgang til din loggede webkonto, indtil den udløber eller tilbagekaldes.",
     "webNoAuthGuideTitle": "Der kræves ingen legitimationsoplysninger",
     "webNoAuthGuideBody": "{provider} behøver ikke en API-nøgle eller cookie. Gem forbindelsen for at bruge dens gratis webslutpunkt.",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "Indstillinger for gemt model endpoint",
     "searchByModelAria": "Søg efter model",
     "selectSupportedEndpoint": "Vælg mindst én understøttet endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "Indstillinger",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "Skjul logs til sundhedstjek",
     "hideHealthLogsDesc": "Når ON, skal du undertrykke [HealthCheck]-meddelelser i serverkonsollen",
     "themeAccent": "Temafarve",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "Sundhed",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Vært",
-    "qdrantCollection": "Samling",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "Samling"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "ACP-agenter",
         "phrase": "CLI'er, som OmniRoute starter som eksekveringsbackend (omvendt flow)",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "Klient → OmniRoute → spawn CLI (stdio/ACP) → svar",
-        "seeOther": "Se →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "Se →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "Tillad flere forbindelser for hver kompatibilitetsnode."
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "Fjern interne outputelementer fra kommentarfase fra Responses API-passthrough-streams, før de videresendes til klienter. Deaktivér dette flag for at modtage rå upstream-kommentarer."
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Aktivér netværksadgang i skills-sandkassen."
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "Forbindelsesresiliens",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "Status",
       "provider": "Udbyder",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "Modellåsninger",
         "count": "Antal Forbindelser"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Afvis anmodninger før afsendelse, når målmodellen mangler de nødvendige funktioner (vision, værktøjer, struktureret output, kontekstvindue). Beskytter direkte anmodninger fra en enkelt udbyder, der omgår kombinationslagets kompatibilitetsfilter.",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "Siden blev ikke fundet",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "Udbyderen understøtter ikke struktureret output",
     "contextWindowMismatch": "Anmodningen overskrider udbyderens kontekstvindue"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",

@@ -179,3 +179,48 @@ test("similar family first, stable general tail, distinct connection identities"
     ["a", "c", "b", "d"]
   );
 });
+test("real process.env without TYPESAFE_API_KEY never reaches the global fetch in jev-api mode", async () => {
+  // Deliberately does NOT pass deps.apiKey or deps.fetch — this exercises the actual
+  // `process.env.TYPESAFE_API_KEY` read, not a test double, proving the opt-in "jev-api"
+  // mode makes zero network calls when the server has no key configured.
+  const originalKey = process.env.TYPESAFE_API_KEY;
+  delete process.env.TYPESAFE_API_KEY;
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = (async () => {
+    called = true;
+    throw new Error("must not call the network when TYPESAFE_API_KEY is unset");
+  }) as typeof fetch;
+  try {
+    const packet = await prepareOmniJev(body, { ...config, mode: "jev-api" });
+    assert.equal(called, false);
+    assert.equal(packet.source, "methodology-fallback");
+    assert.equal(packet.reason, "missing-key");
+    assert.equal(packet.task, "coding");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.TYPESAFE_API_KEY;
+    else process.env.TYPESAFE_API_KEY = originalKey;
+  }
+});
+test("default combo config (mode omitted) is local-only: no jev-api call even with a key present", async () => {
+  // The default omniJevConfigSchema parse (mode: "methodology") must never dial out,
+  // regardless of what TYPESAFE_API_KEY holds — opt-in requires an explicit mode switch.
+  const originalKey = process.env.TYPESAFE_API_KEY;
+  process.env.TYPESAFE_API_KEY = "present-but-should-be-unused";
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = (async () => {
+    called = true;
+    throw new Error("must not call the network in default local mode");
+  }) as typeof fetch;
+  try {
+    const packet = await prepareOmniJev(body, config);
+    assert.equal(called, false);
+    assert.equal(packet.source, "methodology");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.TYPESAFE_API_KEY;
+    else process.env.TYPESAFE_API_KEY = originalKey;
+  }
+});

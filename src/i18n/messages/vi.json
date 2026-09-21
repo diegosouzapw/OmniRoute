@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "Giảm 50% cho token đầu vào và đầu ra",
     "batchConceptAsync24h": "Bất đồng bộ với khung thời gian hoàn thành 24 giờ",
     "batchConceptUseCases": "Phù hợp nhất cho phân loại số lượng lớn, đánh giá và embedding",
+    "batchHeaderSubtitle": "Chạy nhiều yêu cầu như một job duy nhất",
+    "batchStep1": "1 · Tải lên JSONL",
+    "batchStep1Desc": "Thêm yêu cầu",
+    "batchStep2": "2 · Tạo batch",
+    "batchStep2Desc": "Chạy job",
+    "batchStep3": "3 · Nhận kết quả",
+    "batchStep3Desc": "Tải xuống đầu ra",
     "filesConceptTitle": "Tập tin lô",
     "filesConceptSubtitle": "Các tập tin JSONL được sử dụng bởi các lô: yêu cầu đầu vào, kết quả và lỗi.",
     "filesConceptInput": "Đầu vào — tập tin JSONL của bạn với một yêu cầu trên mỗi dòng",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "{count, plural, one {# batch} other {# batch}}",
     "batchFilePreview": "Bản xem trước",
     "batchFilePreviewTruncated": "Hiển thị {shown} dòng đầu tiên (tổng cộng {total} dòng)",
-    "batchFileDownloadFull": "Tải xuống toàn bộ tệp",
-    "batchHeaderSubtitle": "Chạy nhiều yêu cầu như một job duy nhất",
-    "batchStep1": "1 · Tải lên JSONL",
-    "batchStep1Desc": "Thêm yêu cầu",
-    "batchStep2": "2 · Tạo batch",
-    "batchStep2Desc": "Chạy job",
-    "batchStep3": "3 · Nhận kết quả",
-    "batchStep3Desc": "Tải xuống đầu ra"
+    "batchFileDownloadFull": "Tải xuống toàn bộ tệp"
   },
   "disabled": "Đã tắt",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Định tuyến các yêu cầu đã hết ngân sách đến nhà cung cấp/mô hình dự phòng khẩn cấp miễn phí.",
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "Tất cả nhà cung cấp",
     "modePackLabel": "Gói chế độ",
     "routerStrategyLabel": "Chiến lược định tuyến",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Quy tắc (Chấm điểm 6 yếu tố)",
     "explorationRateLabel": "Tỷ lệ khám phá",
     "explorationRateHint": "{percent}% yêu cầu có thể dùng để khám phá các nhà cung cấp không tối ưu.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "Endpoint API",
+    "subtitle": "Dùng endpoint tương thích OpenAI với hầu hết SDK và công cụ.",
+    "testEndpoint": "Kiểm tra endpoint →",
+    "advancedProtocols": "Giao thức nâng cao",
     "available": "Các endpoint có sẵn",
     "cloudProxy": "Proxy đám mây",
     "disableConfirm": "Bạn có chắc chắn muốn tắt proxy đám mây không?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "Tạo một Tích hợp nội bộ tại",
     "notionIntegrationToken": "Token tích hợp nội bộ Notion",
     "notionNotConnected": "Chưa kết nối",
-    "notionTokenConfigured": "Đã cấu hình token. Các công cụ Notion khả dụng qua MCP.",
-    "subtitle": "Dùng endpoint tương thích OpenAI với hầu hết SDK và công cụ.",
-    "testEndpoint": "Kiểm tra endpoint →",
-    "advancedProtocols": "Giao thức nâng cao"
+    "notionTokenConfigured": "Đã cấu hình token. Các công cụ Notion khả dụng qua MCP."
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -4954,7 +4960,9 @@
     "multiProvider": "Đa nhà cung cấp",
     "usageTracking": "Theo dõi mức sử dụng",
     "securityDesc": "Đặt mật khẩu để bảo vệ bảng điều khiển của bạn, hoặc bỏ qua lúc này.",
+    "securityDescSkipWarning": "⚠️ Không có mật khẩu, bạn sẽ không thể thêm nhà cung cấp trong quá trình thiết lập. Bạn có thể thêm sau từ bảng điều khiển sau khi đặt mật khẩu.",
     "providerDesc": "Kết nối nhà cung cấp AI đầu tiên của bạn. Bạn có thể thêm nhiều nhà cung cấp khác sau.",
+    "providerRequiresPassword": "Bạn cần đặt mật khẩu trước khi thêm nhà cung cấp. Hãy quay lại bước bảo mật và đặt mật khẩu, hoặc thêm nhà cung cấp sau từ bảng điều khiển.",
     "apiKeyRequired": "Khóa API (bắt buộc)",
     "customUrlOptional": "URL tùy chỉnh (tùy chọn)",
     "testDesc": "Hãy xác minh xem kết nối với nhà cung cấp của bạn có hoạt động không.",
@@ -5011,9 +5019,7 @@
         "skipped": "đã được cấu hình",
         "failed": "thất bại"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Không có mật khẩu, bạn sẽ không thể thêm nhà cung cấp trong quá trình thiết lập. Bạn có thể thêm sau từ bảng điều khiển sau khi đặt mật khẩu.",
-    "providerRequiresPassword": "Bạn cần đặt mật khẩu trước khi thêm nhà cung cấp. Hãy quay lại bước bảo mật và đặt mật khẩu, hoặc thêm nhà cung cấp sau từ bảng điều khiển."
+    }
   },
   "providers": {
     "title": "Nhà cung cấp",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "Các tác nhân ACP",
         "phrase": "Các CLI mà OmniRoute khởi chạy làm phần phụ trợ thực thi (luồng ngược)",
+        "warning": "Hầu hết người dùng có thể bỏ qua — chỉ dùng khi một tích hợp yêu cầu.",
         "flow": "Ứng dụng khách → OmniRoute → khởi chạy CLI (stdio/ACP) → phản hồi",
-        "seeOther": "See →",
-        "warning": "Hầu hết người dùng có thể bỏ qua — chỉ dùng khi một tích hợp yêu cầu."
+        "seeOther": "See →"
       }
     },
     "comparison": {
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "Khả Năng Phục Hồi Kết Nối",
+    "reassuranceTitle": "Kết nối của bạn tự khôi phục",
+    "reassuranceDetail": "Thường không cần hành động. OmniRoute tạm cho kết nối nghỉ sau lỗi, rồi thử lại an toàn.",
+    "plainStates": {
+      "healthy": "Có thể gửi yêu cầu",
+      "coolingDown": "Sắp thử lại",
+      "lockedOut": "Cần bạn xử lý"
+    },
     "table": {
       "status": "Trạng Thái",
       "provider": "Nhà Cung Cấp",
@@ -13477,13 +13490,6 @@
         "modelLockouts": "Khóa Mô Hình",
         "count": "Số Lượng Kết Nối"
       }
-    },
-    "reassuranceTitle": "Kết nối của bạn tự khôi phục",
-    "reassuranceDetail": "Thường không cần hành động. OmniRoute tạm cho kết nối nghỉ sau lỗi, rồi thử lại an toàn.",
-    "plainStates": {
-      "healthy": "Có thể gửi yêu cầu",
-      "coolingDown": "Sắp thử lại",
-      "lockedOut": "Cần bạn xử lý"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Từ chối yêu cầu trước khi gửi đi khi mô hình đích thiếu các khả năng bắt buộc (thị giác, công cụ, đầu ra có cấu trúc, cửa sổ ngữ cảnh). Bảo vệ các yêu cầu trực tiếp đến một nhà cung cấp khi chúng bỏ qua bộ lọc tương thích của combo.",

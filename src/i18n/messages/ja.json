@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "50% discount on input + output tokens",
     "batchConceptAsync24h": "Async with a 24h completion window",
     "batchConceptUseCases": "Best for bulk classification, evaluations, and embeddings",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "Batch files",
     "filesConceptSubtitle": "JSONL files used by batches: input requests, results, and errors.",
     "filesConceptInput": "Input — your JSONL with one request per line",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "{count, plural, one {# バッチ} other {# バッチ}}",
     "batchFilePreview": "プレビュー",
     "batchFilePreviewTruncated": "最初の {shown} 行を表示中 ({total} 行中)",
-    "batchFileDownloadFull": "フルファイルをダウンロード",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "フルファイルをダウンロード"
   },
   "disabled": "無効",
   "featureFlagOmnirouteEmergencyFallbackDescription": "予算を使い果たしたリクエストを、緊急用の無料フォールバックプロバイダー/モデルにルーティングします。",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "IDEエージェントのトラフィックをインターセプト",
     "trafficInspector": "Traffic Inspector",
     "trafficInspectorSubtitle": "__MISSING__:Inspect request and response traffic from your apps",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "CLIコード",
     "cliCodeSubtitle": "OmniRouteを指すコードツール",
     "cliAgents": "CLIエージェント",
@@ -1300,8 +1301,7 @@
       "open": "開く",
       "close": "閉じる"
     },
-    "noResults": "結果がありません",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "結果がありません"
   },
   "webhooks": {
     "title": "Webhook",
@@ -1808,6 +1808,11 @@
     "updateStarted": "更新を開始しました...",
     "reloadingPageAutomatically": "ページを自動的に再読み込みしています...",
     "providerTopology": "プロバイダー トポロジ",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "DMGをダウンロード (macOS)",
     "downloadDmgDescription": "OmniRouteデスクトップアプリの新しいバージョンが利用可能です。macOS DMGインストーラーをダウンロードしてインストールし、更新してください（現在のバージョン: v{version}）。",
     "downloadExe": "EXEをダウンロード (Windows)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "リリースノート",
     "readMore": "続きを読む",
     "noAuthLabel": "認証なし",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "Open Interpreter自律型コーディングエージェントCLI",
       "omp": "Oh My Piターミナルコーディングエージェント",
       "letta": "永続メモリとツール使用を備えたLetta CLIエージェント",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "カスタムプロバイダーをサポートするWarp AIターミナル",
-      "agent-deck": "Agent Deckマルチエージェントオーケストレーター",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "Agent Deckマルチエージェントオーケストレーター"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "All providers",
     "modePackLabel": "Mode Pack",
     "routerStrategyLabel": "Router Strategy",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Rules (6-Factor Scoring)",
     "explorationRateLabel": "Exploration Rate",
     "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "APIエンドポイント",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "利用可能なエンドポイント",
     "cloudProxy": "クラウドプロキシ",
     "disableConfirm": "クラウド プロキシを無効にしてもよろしいですか?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "内部統合を作成する at",
     "notionIntegrationToken": "Notion内部統合トークン",
     "notionNotConnected": "接続されていません",
-    "notionTokenConfigured": "トークンが設定されました。NotionツールはMCPを介して利用可能です。",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "トークンが設定されました。NotionツールはMCPを介して利用可能です。"
   },
   "endpoints": {
     "tabProxy": "エンドポイント プロキシ",
@@ -4632,6 +4638,13 @@
     "retry": "再試行",
     "allOperational": "すべてのシステムが稼働中",
     "issuesDetected": "システムの問題が検出されました",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "{time} を更新しました",
     "latency": "レイテンシー",
     "latencyP50": "p50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count} 件の問題",
     "score": "スコア",
     "lastRequest": "最終リクエスト",
-    "lastError": "最終エラー",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "最終エラー"
   },
   "telemetry": {
     "title": "システムテレメトリ",
@@ -4954,7 +4960,9 @@
     "multiProvider": "マルチプロバイダー",
     "usageTracking": "使用状況の追跡",
     "securityDesc": "ダッシュボードを保護するためにパスワードを設定するか、今はスキップしてください。",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "初めての AI プロバイダーに接続します。後でさらに追加することもできます。",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "APIキー(必須)",
     "customUrlOptional": "カスタム URL (オプション)",
     "testDesc": "プロバイダー接続が機能することを確認してみましょう。",
@@ -5011,9 +5019,7 @@
         "skipped": "すでに設定済み",
         "failed": "失敗しました"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "プロバイダー",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "プロバイダー独自のドメインから必要な資格情報をコピーします。 Cookie の場合は、Cookie ヘッダー値のみをコピーし、Cookie: を省略します。",
     "webSessionGuideStep3Manual": "手動パス: ブラウザの開発者ツールを開く (F12 → ネットワーク)、ページをリフレッシュし、認証されたリクエストを開き、リクエストヘッダーからCookieヘッダーの値をコピーします — Cookie: プレフィックスは省略してください。",
     "webSessionGuideStep4": "ここに貼り付けて接続を確認してください。動作しなくなった場合は、再度サインインして新しい値に置き換えます。",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "これをパスワードのように扱います。有効期限が切れるか取り消されるまで、サインインしている Web アカウントにアクセスできます。",
     "webNoAuthGuideTitle": "資格情報は必要ありません",
     "webNoAuthGuideBody": "{provider} には API キーや Cookie は必要ありません。無料の Web エンドポイントを使用するには、接続を保存します。",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "保存されたモデルエンドポイント設定",
     "searchByModelAria": "モデルで検索",
     "selectSupportedEndpoint": "サポートされているエンドポイントを少なくとも1つ選択してください",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "設定",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "ヘルスチェックログを非表示にする",
     "hideHealthLogsDesc": "ON の場合、サーバー コンソールで [HealthCheck] メッセージを抑制します",
     "themeAccent": "テーマカラー",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "健康",
     "cliproxyapiPort": "ポート",
     "qdrantHost": "ホスト",
-    "qdrantCollection": "コレクション",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "コレクション"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "ACPエージェント",
         "phrase": "OmniRouteが実行バックエンドとして起動するCLI（逆フロー）",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "クライアント → OmniRoute → CLI起動 (stdio/ACP) → レスポンス",
-        "seeOther": "詳細 →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "詳細 →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "Allow multiple connections for each compatibility node."
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "Remove internal commentary-phase output items from Responses API passthrough streams before forwarding them to clients. Disable this flag to receive raw upstream commentary."
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Enable network access in the skills sandbox."
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "接続レジリエンス",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "状態",
       "provider": "プロバイダー",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "モデルロックアウト",
         "count": "接続数"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "ディスパッチ前にリクエストを拒否します。ターゲットモデルに必要な機能（ビジョン、ツール、構造化出力、コンテキストウィンドウ）が欠けている場合。コンボレイヤーの互換性フィルターをバイパスする直接の単一プロバイダーリクエストを保護します。",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "ページが見つかりません",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "プロバイダーは構造化出力をサポートしていません",
     "contextWindowMismatch": "リクエストがプロバイダーのコンテキストウィンドウを超えています"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",

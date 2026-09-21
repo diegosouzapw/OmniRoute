@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "50% discount on input + output tokens",
     "batchConceptAsync24h": "Async with a 24h completion window",
     "batchConceptUseCases": "Best for bulk classification, evaluations, and embeddings",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "Batch files",
     "filesConceptSubtitle": "JSONL files used by batches: input requests, results, and errors.",
     "filesConceptInput": "Input — your JSONL with one request per line",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "استفاده شده توسط {count, plural, one {# دسته} other {# دسته‌ها}}",
     "batchFilePreview": "پیش‌نمایش",
     "batchFilePreviewTruncated": "نمایش {shown} خط اول ({total} خط کل)",
-    "batchFileDownloadFull": "دانلود فایل کامل",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "دانلود فایل کامل"
   },
   "disabled": "Disabled",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Route budget-exhausted requests to the emergency free fallback provider/model.",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "رهگیری ترافیک ایجنت IDE",
     "trafficInspector": "بازرس ترافیک",
     "trafficInspectorSubtitle": "__MISSING__:Inspect request and response traffic from your apps",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "کد CLI",
     "cliCodeSubtitle": "ابزارهای کد متصل به OmniRoute",
     "cliAgents": "ایجنت‌های CLI",
@@ -1300,8 +1301,7 @@
       "open": "باز کردن",
       "close": "بستن"
     },
-    "noResults": "هیچ نتیجه‌ای یافت نشد",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "هیچ نتیجه‌ای یافت نشد"
   },
   "webhooks": {
     "title": "وب هوک ها",
@@ -1808,6 +1808,11 @@
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "بارگیری مجدد صفحه به صورت خودکار...",
     "providerTopology": "توپولوژی ارائه دهنده",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "دانلود DMG (macOS)",
     "downloadDmgDescription": "نسخه جدیدی از برنامه دسکتاپ OmniRoute در دسترس است. لطفاً DMG نصب‌کننده macOS را دانلود و نصب کنید تا به‌روزرسانی کنید (فعلی: v{version}).",
     "downloadExe": "دانلود EXE (ویندوز)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "یادداشت‌های انتشار",
     "readMore": "بیشتر بخوانید",
     "noAuthLabel": "بدون احراز هویت",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "CLI عامل کدنویسی خودکار Open Interpreter",
       "omp": "عامل کدنویسی ترمینال Oh My Pi",
       "letta": "عامل Letta CLI با حافظه پایدار و استفاده از ابزار",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "ترمینال هوش مصنوعی Warp با پشتیبانی از ارائه‌دهنده سفارشی",
-      "agent-deck": "ارکستراتور چندعاملی Agent Deck",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "ارکستراتور چندعاملی Agent Deck"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "All providers",
     "modePackLabel": "Mode Pack",
     "routerStrategyLabel": "Router Strategy",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Rules (6-Factor Scoring)",
     "explorationRateLabel": "Exploration Rate",
     "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "API Endpoint",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "Available Endpoints",
     "cloudProxy": "Cloud Proxy",
     "disableConfirm": "Are you sure you want to disable cloud proxy?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "یک ادغام داخلی در",
     "notionIntegrationToken": "توکن ادغام داخلی نوتیون",
     "notionNotConnected": "متصل نیستید",
-    "notionTokenConfigured": "توکن پیکربندی شده است. ابزارهای Notion از طریق MCP در دسترس هستند.",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "توکن پیکربندی شده است. ابزارهای Notion از طریق MCP در دسترس هستند."
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -4632,6 +4638,13 @@
     "retry": "Retry",
     "allOperational": "All systems operational",
     "issuesDetected": "System issues detected",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "Updated {time}",
     "latency": "Latency",
     "latencyP50": "p50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count} مشکل",
     "score": "امتیاز",
     "lastRequest": "آخرین درخواست",
-    "lastError": "آخرین خطا",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "آخرین خطا"
   },
   "telemetry": {
     "title": "سیستم تله متری",
@@ -4954,7 +4960,9 @@
     "multiProvider": "Multi-Provider",
     "usageTracking": "Usage Tracking",
     "securityDesc": "Set a password to protect your dashboard, or skip for now.",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "Connect your first AI provider. You can add more later.",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "API Key (required)",
     "customUrlOptional": "Custom URL (optional)",
     "testDesc": "Let's verify your provider connection works.",
@@ -5011,9 +5019,7 @@
         "skipped": "قبلاً پیکربندی شده است",
         "failed": "ناموفق"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "Providers",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "اعتبار مورد نیاز را از دامنه خود ارائه دهنده کپی کنید. برای کوکی ها، فقط مقدار هدر Cookie را کپی کنید و Cookie: را حذف کنید.",
     "webSessionGuideStep3Manual": "مسیر دستی: ابزارهای توسعه‌دهنده مرورگر را باز کنید (F12 → Network)، صفحه را تازه‌سازی کنید، یک درخواست احراز هویت‌شده را باز کنید و مقدار هدر Cookie را از هدرهای درخواست کپی کنید — پیشوند Cookie: را حذف کنید.",
     "webSessionGuideStep4": "آن را در اینجا قرار دهید و اتصال را بررسی کنید. اگر از کار افتاد، دوباره وارد شوید و آن را با یک مقدار جدید جایگزین کنید.",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "با این موضوع مانند یک رمز عبور رفتار کنید: ممکن است تا زمانی که منقضی شود یا لغو شود، به حساب وب وارد شده شما دسترسی داشته باشد.",
     "webNoAuthGuideTitle": "بدون نیاز به اعتبار",
     "webNoAuthGuideBody": "{provider} به کلید API یا کوکی نیاز ندارد. اتصال را ذخیره کنید تا از نقطه پایانی وب رایگان آن استفاده کنید.",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "تنظیمات نقطه پایانی مدل ذخیره شده",
     "searchByModelAria": "جستجو بر اساس مدل",
     "selectSupportedEndpoint": "حداقل یک نقطه پایانی پشتیبانی شده را انتخاب کنید",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "Settings",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter without disabling any features",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when all of its entries are hidden",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "Hide Health Check Logs",
     "hideHealthLogsDesc": "When ON, suppress [HealthCheck] messages in server console",
     "themeAccent": "Theme color",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "سلامت",
     "cliproxyapiPort": "پورت",
     "qdrantHost": "میزبان",
-    "qdrantCollection": "مجموعه",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "مجموعه"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "عامل‌های ACP",
         "phrase": "CLIهایی که OmniRoute به عنوان بک‌اند اجرا ایجاد می‌کند (جریان معکوس)",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "کلاینت → OmniRoute → ایجاد CLI (stdio/ACP) → پاسخ",
-        "seeOther": "مشاهده →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "مشاهده →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "اجازه دادن به چندین اتصال برای هر گره سازگاری."
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "حذف موارد خروجی فاز تفسیر داخلی از جریان‌های عبوری Responses API قبل از ارسال آن‌ها به کلاینت‌ها. این پرچم را غیرفعال کنید تا تفسیر خام بالادستی را دریافت کنید."
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "فعال‌سازی دسترسی به شبکه در محیط ایزوله مهارت‌ها."
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "تاب‌آوری اتصال",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "وضعیت",
       "provider": "ارائه‌دهنده",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "قفل‌های مدل",
         "count": "تعداد اتصالات"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "درخواست‌ها را قبل از ارسال رد کنید زمانی که مدل هدف قابلیت‌های مورد نیاز (بینایی، ابزارها، خروجی ساختاریافته، پنجره زمینه) را ندارد. از درخواست‌های مستقیم تک‌تأمین‌کننده که فیلتر سازگاری لایه ترکیبی را دور می‌زنند، محافظت می‌کند.",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "صفحه پیدا نشد",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "ارائه‌دهنده خروجی ساختاریافته را پشتیبانی نمی‌کند",
     "contextWindowMismatch": "درخواست از حد مجاز پنجره زمینه ارائه‌دهنده فراتر می‌رود"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",

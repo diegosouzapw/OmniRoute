@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "50% discount on input + output tokens",
     "batchConceptAsync24h": "Async with a 24h completion window",
     "batchConceptUseCases": "Best for bulk classification, evaluations, and embeddings",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "Batch files",
     "filesConceptSubtitle": "JSONL files used by batches: input requests, results, and errors.",
     "filesConceptInput": "Input — your JSONL with one request per line",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "Използвано от {count, plural, one {# партида} other {# партиди}}",
     "batchFilePreview": "Преглед",
     "batchFilePreviewTruncated": "Показване на първите {shown} реда ({total} общо реда)",
-    "batchFileDownloadFull": "Изтеглете целия файл",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "Изтеглете целия файл"
   },
   "disabled": "Деактивирано",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Маршрутизиране на заявки с изчерпан бюджет към аварийния безплатен резервен доставчик/модел.",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "Прихващане на трафик от IDE агенти",
     "trafficInspector": "Инспектор на трафика",
     "trafficInspectorSubtitle": "Мониторинг на LLM повиквания + дебъгване на всякакъв HTTPS трафик",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "CLI код",
     "cliCodeSubtitle": "Инструменти за код, насочени към OmniRoute",
     "cliAgents": "CLI агенти",
@@ -1300,8 +1301,7 @@
       "open": "отвори",
       "close": "затвори"
     },
-    "noResults": "Няма резултати",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "Няма резултати"
   },
   "webhooks": {
     "title": "Уеб кукички",
@@ -1808,6 +1808,11 @@
     "updateStarted": "Актуализацията започна...",
     "reloadingPageAutomatically": "Страницата се презарежда автоматично...",
     "providerTopology": "Топология на доставчика",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "Изтеглете DMG (macOS)",
     "downloadDmgDescription": "Налична е нова версия на настолната апликация OmniRoute. Моля, изтеглете и инсталирайте DMG инсталатора за macOS, за да актуализирате (текуща: v{version}).",
     "downloadExe": "Изтеглете EXE (Windows)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "Бележки за изданието",
     "readMore": "Прочетете повече",
     "noAuthLabel": "Без удостоверяване",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "Open Interpreter CLI автономен агент за програмиране",
       "omp": "Oh My Pi терминален агент за програмиране",
       "letta": "Letta CLI агент с постоянна памет и използване на инструменти",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "Warp AI терминал с поддръжка на персонализиран доставчик",
-      "agent-deck": "Agent Deck мултиагентен оркестратор",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "Agent Deck мултиагентен оркестратор"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "All providers",
     "modePackLabel": "Mode Pack",
     "routerStrategyLabel": "Router Strategy",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "Rules (6-Factor Scoring)",
     "explorationRateLabel": "Exploration Rate",
     "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "Крайна точка на API",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "Налични крайни точки",
     "cloudProxy": "Облачен прокси",
     "disableConfirm": "Сигурни ли сте, че искате да деактивирате облачното прокси?",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "Създайте вътрешна интеграция на",
     "notionIntegrationToken": "Токен за вътрешна интеграция на Notion",
     "notionNotConnected": "Не е свързано",
-    "notionTokenConfigured": "Токенът е конфигуриран. Инструментите на Notion са налични чрез MCP.",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "Токенът е конфигуриран. Инструментите на Notion са налични чрез MCP."
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -4632,6 +4638,13 @@
     "retry": "Опитайте отново",
     "allOperational": "Всички системи работят",
     "issuesDetected": "Открити са системни проблеми",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "Актуализиран {time}",
     "latency": "Латентност",
     "latencyP50": "p50",
@@ -4742,14 +4755,7 @@
     "issueCount": "{count} проблема",
     "score": "Оценка",
     "lastRequest": "Последна заявка",
-    "lastError": "Последна грешка",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "Последна грешка"
   },
   "telemetry": {
     "title": "Системна телеметрия",
@@ -4954,7 +4960,9 @@
     "multiProvider": "Мулти-доставчик",
     "usageTracking": "Проследяване на използването",
     "securityDesc": "Задайте парола, за да защитите таблото си за управление, или пропуснете засега.",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "Свържете първия си доставчик на AI. Можете да добавите още по-късно.",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "API ключ (задължително)",
     "customUrlOptional": "Персонализиран URL (по избор)",
     "testDesc": "Нека проверим дали връзката ви с доставчика работи.",
@@ -5011,9 +5019,7 @@
         "skipped": "вече конфигурирано",
         "failed": "неуспешно"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "Доставчици",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "Копирайте необходимите идентификационни данни от собствения домейн на доставчика. За бисквитки копирайте само стойността на заглавката на бисквитката и пропуснете Cookie:.",
     "webSessionGuideStep3Manual": "Ръчен път: отворете инструментите за разработчици на браузъра (F12 → Network), обновете страницата, отворете удостоверена заявка и копирайте стойността на заглавката Cookie от заглавките на заявката — пропуснете префикса Cookie:.",
     "webSessionGuideStep4": "Поставете го тук и проверете връзката. Ако спре да работи, влезте отново и го заменете с нова стойност.",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "Отнасяйте се към това като към парола: тя може да осъществява достъп до вашия уеб акаунт, в който сте влезли, докато не изтече или бъде отменена.",
     "webNoAuthGuideTitle": "Не се изискват идентификационни данни",
     "webNoAuthGuideBody": "{provider} не се нуждае от API ключ или бисквитка. Запазете връзката, за да използвате нейната безплатна уеб крайна точка.",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "Настройки на крайна точка на запазен модел",
     "searchByModelAria": "Търсене по модел",
     "selectSupportedEndpoint": "Изберете поне една поддържана крайна точка",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "Настройки",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "Скриване на журналите за проверка на здравето",
     "hideHealthLogsDesc": "Когато е ВКЛЮЧЕНО, потиска съобщенията [HealthCheck] в сървърната конзола",
     "themeAccent": "Цвят на темата",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "Здраве",
     "cliproxyapiPort": "Порт",
     "qdrantHost": "Хост",
-    "qdrantCollection": "Колекция",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "Колекция"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "ACP агенти",
         "phrase": "CLI, които OmniRoute стартира като бекенд за изпълнение (обратен поток)",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "Клиент → OmniRoute → стартиране на CLI (stdio/ACP) → отговор",
-        "seeOther": "Вижте →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "Вижте →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "Разрешаване на множество връзки за всеки възел за съвместимост."
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "Премахване на вътрешните изходни елементи от фазата на коментари от транзитните потоци на Responses API, преди да бъдат препратени към клиентите. Деактивирайте този флаг, за да получавате необработени коментари от източника."
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Активиране на мрежов достъп в пясъчника за умения."
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "Устойчивост на Връзката",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "Статус",
       "provider": "Доставчик",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "Заключвания на Модел",
         "count": "Брой Връзки"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Отхвърлете заявките преди изпращане, когато целевият модел няма необходимите възможности (визия, инструменти, структурирани изходи, контекстен прозорец). Защитава директните заявки от един доставчик, които заобикалят филтъра за съвместимост на комбинирания слой.",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "Страницата не е намерена",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "Доставчикът не поддържа структурирано изходно съдържание",
     "contextWindowMismatch": "Заявката надвишава контекстния прозорец на доставчика"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",

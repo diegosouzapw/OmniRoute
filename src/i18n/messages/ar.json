@@ -805,6 +805,13 @@
     "batchConceptBenefit50pct": "خصم 50% على رموز الإدخال والإخراج",
     "batchConceptAsync24h": "غير متزامن مع نافذة إكمال لمدة 24 ساعة",
     "batchConceptUseCases": "الأفضل للتصنيف المجمع والتقييمات والتضمينات",
+    "batchHeaderSubtitle": "Run many requests as one job",
+    "batchStep1": "1 · Upload JSONL",
+    "batchStep1Desc": "Add requests",
+    "batchStep2": "2 · Create batch",
+    "batchStep2Desc": "Run job",
+    "batchStep3": "3 · Get results",
+    "batchStep3Desc": "Download output",
     "filesConceptTitle": "ملفات دفعة",
     "filesConceptSubtitle": "ملفات JSONL المستخدمة بواسطة الدفعات: طلبات الإدخال والنتائج والأخطاء.",
     "filesConceptInput": "الإدخال - JSONL الخاص بك مع طلب واحد في كل سطر",
@@ -974,14 +981,7 @@
     "batchFileUsedByCount": "مستخدم بواسطة {count, plural, one {دفعة واحدة} other {# دفعات}}",
     "batchFilePreview": "معاينة",
     "batchFilePreviewTruncated": "عرض {shown} سطرًا أوليًا ({total} سطرًا إجماليًا)",
-    "batchFileDownloadFull": "تحميل الملف الكامل",
-    "batchHeaderSubtitle": "Run many requests as one job",
-    "batchStep1": "1 · Upload JSONL",
-    "batchStep1Desc": "Add requests",
-    "batchStep2": "2 · Create batch",
-    "batchStep2Desc": "Run job",
-    "batchStep3": "3 · Get results",
-    "batchStep3Desc": "Download output"
+    "batchFileDownloadFull": "تحميل الملف الكامل"
   },
   "disabled": "معطل",
   "featureFlagOmnirouteEmergencyFallbackDescription": "توجيه الطلبات التي استنفدت الميزانية إلى موفر/نموذج الاحتياط المجاني للطوارئ.",
@@ -1267,6 +1267,7 @@
     "agentBridgeSubtitle": "اعتراض حركة مرور وكيل IDE",
     "trafficInspector": "مفتش حركة المرور",
     "trafficInspectorSubtitle": "__MISSING__:Inspect request and response traffic from your apps",
+    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client.",
     "cliCode": "كود CLI",
     "cliCodeSubtitle": "أدوات الكود التي تشير إلى OmniRoute",
     "cliAgents": "وكلاء CLI",
@@ -1300,8 +1301,7 @@
       "open": "فتح",
       "close": "إغلاق"
     },
-    "noResults": "لا توجد نتائج",
-    "trafficInspectorPurpose": "See exactly what your application sends to and receives from AI providers. Works with any OpenAI-compatible client."
+    "noResults": "لا توجد نتائج"
   },
   "webhooks": {
     "title": "خطافات الويب",
@@ -1808,6 +1808,11 @@
     "updateStarted": "بدأ التحديث...",
     "reloadingPageAutomatically": "جارٍ إعادة تحميل الصفحة تلقائيًا...",
     "providerTopology": "طوبولوجيا الموفر",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When",
     "downloadDmg": "تحميل DMG (macOS)",
     "downloadDmgDescription": "يتوفر إصدار جديد من تطبيق OmniRoute لسطح المكتب. يرجى تنزيل وتثبيت مثبت DMG لنظام macOS للتحديث (الحالي: v{version}).",
     "downloadExe": "تحميل EXE (ويندوز)",
@@ -1865,11 +1870,6 @@
     "releaseNotes": "ملاحظات الإصدار",
     "readMore": "اقرأ المزيد",
     "noAuthLabel": "لا يوجد مصادقة",
-    "recentRequests": "Recent Requests",
-    "recentRequestsEmpty": "No requests yet.",
-    "recentRequestsModel": "Model",
-    "recentRequestsTokens": "In / Out",
-    "recentRequestsWhen": "When",
     "readinessEyebrow": "Get ready to route",
     "readinessTitle": "Send your first request",
     "readinessSubtitle": "Four small steps. OmniRoute checks readiness as you go.",
@@ -2922,9 +2922,9 @@
       "interpreter": "واجهة خط أوامر عميل البرمجة المستقل Open Interpreter",
       "omp": "عميل برمجة الطرفية Oh My Pi",
       "letta": "عميل Letta CLI بذاكرة مستمرة واستخدام للأدوات",
+      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support",
       "warp": "طرفية Warp AI مع دعم لمزودي الخدمة المخصصين",
-      "agent-deck": "منسق الوكلاء المتعددين Agent Deck",
-      "prime-agent": "Prime Agent — self-improving RLM coding harness with OpenAI-compatible provider support"
+      "agent-deck": "منسق الوكلاء المتعددين Agent Deck"
     },
     "guides": {
       "cursor": {
@@ -3496,6 +3496,12 @@
     "candidatePoolAllProviders": "جميع المزوّدين",
     "modePackLabel": "حزمة الوضع",
     "routerStrategyLabel": "استراتيجية التوجيه",
+    "omniJevDescription": "__MISSING__:Enrich requests before generation using the TypeSafe/Jev methodology. Compatible models take over on failure.",
+    "omniJevMode": "__MISSING__:Enrichment mode",
+    "omniJevLocal": "__MISSING__:Skill methodology (no Jev API key)",
+    "omniJevApi": "__MISSING__:Optional Jev API preflight",
+    "omniJevApiHint": "__MISSING__:Uses TYPESAFE_API_KEY from the server environment. Sends the latest user text to TypeSafe. Without a key or if the API fails, enrichment continues with the local methodology.",
+    "omniJevCredit": "__MISSING__:Based on TypeSafe/Jev, adapted from typesafe-jev-engine.",
     "strategyRules": "قواعد التقييم (6 عوامل)",
     "explorationRateLabel": "معدل الاستكشاف",
     "explorationRateHint": "{percent}٪ من الطلبات يمكن أن تستكشف موفري الخدمات غير الأمثل.",
@@ -3849,6 +3855,9 @@
   },
   "endpoint": {
     "title": "نقطة نهاية واجهة برمجة التطبيقات",
+    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
+    "testEndpoint": "Test endpoint →",
+    "advancedProtocols": "Advanced protocols",
     "available": "نقاط النهاية المتاحة",
     "cloudProxy": "بروكسي السحابي",
     "disableConfirm": "هل أنت متأكد أنك تريد تعطيل الوكيل السحابي؟",
@@ -4156,10 +4165,7 @@
     "notionIntegrationHelp": "إنشاء تكامل داخلي في",
     "notionIntegrationToken": "رمز تكامل Notion الداخلي",
     "notionNotConnected": "غير متصل",
-    "notionTokenConfigured": "تم تكوين الرمز. أدوات Notion متاحة عبر MCP.",
-    "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
-    "testEndpoint": "Test endpoint →",
-    "advancedProtocols": "Advanced protocols"
+    "notionTokenConfigured": "تم تكوين الرمز. أدوات Notion متاحة عبر MCP."
   },
   "endpoints": {
     "tabProxy": "بروكسي نقطة النهاية",
@@ -4632,6 +4638,13 @@
     "retry": "أعد المحاولة",
     "allOperational": "جميع الأنظمة قيد التشغيل",
     "issuesDetected": "تم اكتشاف مشاكل في النظام",
+    "healthVerdictReady": "OmniRoute is ready",
+    "healthVerdictActionRequired": "Action required to restore full operation",
+    "healthVerdictCoolingDown": "Cooling down after recent changes",
+    "healthSubtitle": "System health check",
+    "advancedDiagnosticsTitle": "Advanced diagnostics",
+    "hide": "Hide",
+    "show": "Show",
     "updatedAt": "تم التحديث {time}",
     "latency": "الكمون",
     "latencyP50": "ص50",
@@ -4742,14 +4755,7 @@
     "issueCount": "قضايا {count}",
     "score": "النتيجة",
     "lastRequest": "الطلب الأخير",
-    "lastError": "الخطأ الأخير",
-    "healthVerdictReady": "OmniRoute is ready",
-    "healthVerdictActionRequired": "Action required to restore full operation",
-    "healthVerdictCoolingDown": "Cooling down after recent changes",
-    "healthSubtitle": "System health check",
-    "advancedDiagnosticsTitle": "Advanced diagnostics",
-    "hide": "Hide",
-    "show": "Show"
+    "lastError": "الخطأ الأخير"
   },
   "telemetry": {
     "title": "القياس عن بعد للنظام",
@@ -4954,7 +4960,9 @@
     "multiProvider": "متعدد الموفر",
     "usageTracking": "تتبع الاستخدام",
     "securityDesc": "قم بتعيين كلمة مرور لحماية لوحة المعلومات الخاصة بك، أو قم بالتخطي الآن.",
+    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
     "providerDesc": "قم بتوصيل مزود الذكاء الاصطناعي الأول الخاص بك. يمكنك إضافة المزيد لاحقا.",
+    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard.",
     "apiKeyRequired": "مفتاح واجهة برمجة التطبيقات (مطلوب)",
     "customUrlOptional": "عنوان URL المخصص (اختياري)",
     "testDesc": "دعونا نتحقق من أن اتصال المزود الخاص بك يعمل.",
@@ -5011,9 +5019,7 @@
         "skipped": "تم التكوين بالفعل",
         "failed": "فشل"
       }
-    },
-    "securityDescSkipWarning": "⚠️ Without a password, you won't be able to add providers during setup. You can add them later from the dashboard after setting a password.",
-    "providerRequiresPassword": "You need to set a password first to add providers. Please go back to the security step and set a password, or add providers later from the dashboard."
+    }
   },
   "providers": {
     "title": "المزودون",
@@ -6302,6 +6308,20 @@
     "webSessionGuideStep3": "انسخ بيانات الاعتماد المطلوبة من المجال الخاص بالموفر. بالنسبة لملفات تعريف الارتباط، انسخ فقط قيمة رأس ملف تعريف الارتباط واحذف ملف تعريف الارتباط:.",
     "webSessionGuideStep3Manual": "المسار اليدوي: افتح أدوات مطور المتصفح (F12 → الشبكة)، قم بتحديث الصفحة، افتح طلبًا مصادقًا، وانسخ قيمة رأس الكوكي من رؤوس الطلب — احذف بادئة Cookie: .",
     "webSessionGuideStep4": "الصقها هنا وتحقق من الاتصال. إذا توقفت عن العمل، قم بتسجيل الدخول مرة أخرى واستبدلها بقيمة جديدة.",
+    "harImportButtonLabel": "Import .har file",
+    "harImportButtonBusy": "Importing…",
+    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
+    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
+    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
+    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
+    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
+    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
+    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
+    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
+    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
+    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
+    "harImportErrorReadFailed": "Couldn't read that file.",
+    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file.",
     "webSessionSecurityHint": "تعامل مع هذا ككلمة مرور: فقد يصل إلى حساب الويب الذي قمت بتسجيل الدخول إليه حتى تنتهي صلاحيته أو يتم إبطاله.",
     "webNoAuthGuideTitle": "لا توجد بيانات الاعتماد المطلوبة",
     "webNoAuthGuideBody": "{provider} لا يحتاج إلى مفتاح API أو ملف تعريف الارتباط. احفظ الاتصال لاستخدام نقطة نهاية الويب المجانية الخاصة به.",
@@ -6416,21 +6436,7 @@
     "savedModelEndpointSettings": "إعدادات نقطة نهاية النموذج المحفوظ",
     "searchByModelAria": "البحث حسب الطراز",
     "selectSupportedEndpoint": "اختر نقطة نهاية مدعومة واحدة على الأقل",
-    "antigravityClientProfileHarness": "Harness / CLI",
-    "harImportButtonLabel": "Import .har file",
-    "harImportButtonBusy": "Importing…",
-    "harImportButtonHint": "Export from DevTools Network tab after sending at least one chat message.",
-    "harImportStatusValid": "Imported — valid for ~{minutes}m.",
-    "harImportStatusExpiringSoon": "Imported — valid for only ~{minutes}m more.",
-    "harImportStatusExpired": "Imported, but this token already expired ({minutes}m ago) — export a fresh HAR.",
-    "harImportStatusUnknownExpiry": "Imported. Couldn't read its expiry.",
-    "harImportErrorNotJson": "That file isn't valid JSON — is it really a .har export?",
-    "harImportErrorNoEntries": "This HAR has no network entries recorded.",
-    "harImportErrorNoChathubUrl": "No Copilot chat connection found in this HAR. Send at least one chat message in m365.cloud.microsoft before exporting.",
-    "harImportErrorUnparsableUrl": "Found the chat connection, but couldn't read its URL.",
-    "harImportErrorMissingFields": "Found the chat connection, but the token was missing from it.",
-    "harImportErrorReadFailed": "Couldn't read that file.",
-    "harImportErrorUnknown": "Couldn't extract a credential from that HAR file."
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "الإعدادات",
@@ -6710,6 +6716,18 @@
     "sidebarVisibility": "إخفاء عناصر الشريط الجانبي",
     "sidebarVisibilityDesc": "قم بإخفاء أي إدخال للتنقل في الشريط الجانبي لتقليل الفوضى المرئية.",
     "sidebarVisibilityHint": "يتم إخفاء أي قسم من الشريط الجانبي تلقائيًا عند...",
+    "presetAll": "All",
+    "presetAllDesc": "Show everything",
+    "presetEssentials": "Essentials",
+    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
+    "presetMinimal": "Minimal",
+    "presetMinimalDesc": "Core pages only",
+    "presetDeveloper": "Developer",
+    "presetDeveloperDesc": "Dev & proxy tools",
+    "presetAdmin": "Admin",
+    "presetAdminDesc": "Monitoring & audit",
+    "settingsSidebarTitle": "Sidebar Customization",
+    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable.",
     "hideHealthLogs": "إخفاء سجلات التحقق من الصحة",
     "hideHealthLogsDesc": "عند التشغيل، قم بمنع رسائل [HealthCheck] في وحدة تحكم الخادم",
     "themeAccent": "لون السمة",
@@ -8277,19 +8295,7 @@
     "cliproxyapiHealth": "الصحة",
     "cliproxyapiPort": "منفذ",
     "qdrantHost": "مضيف",
-    "qdrantCollection": "مجموعة",
-    "presetAll": "All",
-    "presetAllDesc": "Show everything",
-    "presetEssentials": "Essentials",
-    "presetEssentialsDesc": "Beginner path - Advanced tools stay searchable",
-    "presetMinimal": "Minimal",
-    "presetMinimalDesc": "Core pages only",
-    "presetDeveloper": "Developer",
-    "presetDeveloperDesc": "Dev & proxy tools",
-    "presetAdmin": "Admin",
-    "presetAdminDesc": "Monitoring & audit",
-    "settingsSidebarTitle": "Sidebar Customization",
-    "settingsSidebarDesc": "Choose which sidebar items to show. Essentials keeps Advanced tools searchable."
+    "qdrantCollection": "مجموعة"
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",
@@ -12075,9 +12081,9 @@
       "acp": {
         "title": "وكلاء ACP",
         "phrase": "واجهات CLI التي يقوم OmniRoute بإنشائها كخلفية تنفيذ (تدفق عكسي)",
+        "warning": "Most users can ignore this — use only when an integration requires it.",
         "flow": "العميل → OmniRoute → إنشاء CLI (stdio/ACP) → الاستجابة",
-        "seeOther": "عرض →",
-        "warning": "Most users can ignore this — use only when an integration requires it."
+        "seeOther": "عرض →"
       }
     },
     "comparison": {
@@ -12836,6 +12842,10 @@
       "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
         "description": "السماح باتصالات متعددة لكل عقدة توافق."
       },
+      "DISABLE_CONTEXT_WINDOW_CHECKS": {
+        "label": "Disable Context Window Checks",
+        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
+      },
       "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
         "description": "إزالة عناصر مخرجات مرحلة التعليقات الداخلية من تدفقات التمرير الخاصة بـ Responses API قبل إعادة توجيهها إلى العملاء. عطل هذه العلامة لتلقي تعليقات المصدر الأولية."
       },
@@ -12901,10 +12911,6 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "تمكين الوصول إلى الشبكة في بيئة اختبار المهارات المعزولة."
-      },
-      "DISABLE_CONTEXT_WINDOW_CHECKS": {
-        "label": "Disable Context Window Checks",
-        "description": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active."
       }
     }
   },
@@ -13383,6 +13389,13 @@
   },
   "resilienceConnections": {
     "title": "مرونة الاتصال",
+    "reassuranceTitle": "Your connections recover automatically",
+    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
+    "plainStates": {
+      "healthy": "Requests can be sent",
+      "coolingDown": "Trying again soon",
+      "lockedOut": "Needs your attention"
+    },
     "table": {
       "status": "الحالة",
       "provider": "المزوّد",
@@ -13477,16 +13490,10 @@
         "modelLockouts": "حظر النماذج",
         "count": "عدد الاتصالات"
       }
-    },
-    "reassuranceTitle": "Your connections recover automatically",
-    "reassuranceDetail": "Usually no action is needed. OmniRoute temporarily rests a connection after failures, then safely tries it again.",
-    "plainStates": {
-      "healthy": "Requests can be sent",
-      "coolingDown": "Trying again soon",
-      "lockedOut": "Needs your attention"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "رفض الطلبات قبل الإرسال عندما يفتقر النموذج المستهدف إلى القدرات المطلوبة (الرؤية، الأدوات، المخرجات المنظمة، نافذة السياق). يحمي الطلبات المباشرة من مزود واحد التي تتجاوز فلتر توافق الطبقة المجمعة.",
+  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "publicSystem": {
     "notFound": {
       "title": "الصفحة غير موجودة",
@@ -13922,7 +13929,6 @@
     "structuredOutputMismatch": "المزود لا يدعم الإخراج المنظم",
     "contextWindowMismatch": "تجاوز الطلب نافذة سياق المزود"
   },
-  "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
   "cheaperInferenceSponsorBanner": {
     "title": "Cheaper Inference is an OmniRoute Open Source Friend",
     "description": "A cost-ranked gateway reselling dozens of frontier models behind one OpenAI-compatible endpoint — routing each request to the cheapest eligible provider, never above list price.",
