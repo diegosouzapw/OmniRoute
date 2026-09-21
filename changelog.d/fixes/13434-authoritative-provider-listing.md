@@ -1,1 +1,0 @@
-- **fix(models):** Reconcile provider dashboards with confirmed authoritative live catalogs, excluding retired built-in/imported rows while preserving manual custom models and partial-catalog fallbacks. ([#13434](https://github.com/diegosouzapw/OmniRoute/pull/13434)) — thanks @JxnLexn
