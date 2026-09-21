@@ -20,11 +20,27 @@ describe("CLIProxyAPI account health", () => {
           unavailable: true,
           created_at: "2026-08-23T10:00:00Z",
           updated_at: "2026-08-23T11:00:00Z",
+          next_retry_after: "2026-08-23T12:00:00Z",
           success: 9,
           failed: 2,
           recent_requests: [
             { time: "2026-08-23T11:00:00Z", success: 3, failed: 1, token: "secret" },
           ],
+          model_quotas: {
+            "claude-opus-4-6": {
+              observed_at: "2026-08-23T11:00:00Z",
+              signals: {
+                "Anthropic-Ratelimit-Unified-Status": "rejected",
+                "Retry-After": "120",
+                "X-Codex-Plan-Type": "Bearer private-token",
+                Authorization: "Bearer secret",
+              },
+            },
+            "private@example.com": {
+              observed_at: "2026-08-23T11:00:00Z",
+              signals: { "Retry-After": "120" },
+            },
+          },
           path: "/home/user/.cli-proxy-api/acct.json",
           access_token: "secret",
           metadata: { refresh_token: "secret" },
@@ -44,13 +60,29 @@ describe("CLIProxyAPI account health", () => {
         unavailable: true,
         createdAt: "2026-08-23T10:00:00Z",
         updatedAt: "2026-08-23T11:00:00Z",
+        nextRetryAfter: "2026-08-23T12:00:00Z",
         success: 9,
         failed: 2,
         recentRequests: [{ time: "2026-08-23T11:00:00Z", success: 3, failed: 1 }],
+        modelQuotas: {
+          "claude-opus-4-6": {
+            observedAt: "2026-08-23T11:00:00Z",
+            signals: {
+              "Anthropic-Ratelimit-Unified-Status": "rejected",
+              "Retry-After": "120",
+            },
+          },
+        },
       },
     ]);
     const serialized = JSON.stringify(accounts);
-    for (const secret of ["path", "access_token", "refresh_token", "private@example.com"]) {
+    for (const secret of [
+      "path",
+      "access_token",
+      "refresh_token",
+      "private@example.com",
+      "private-token",
+    ]) {
       assert.equal(serialized.includes(secret), false);
     }
   });

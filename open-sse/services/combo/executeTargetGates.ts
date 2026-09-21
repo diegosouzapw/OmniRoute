@@ -18,6 +18,7 @@ import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
 import { parseModel } from "../model.ts";
 import { canAffordRequest } from "../../../src/lib/quota/quotaScheduler.ts";
 import { getCachedProviderConnectionById } from "../../../src/lib/db/readCache.ts";
+import { evaluateCliproxyPreflightGate } from "../../../src/lib/services/cliproxyManagementPreflight.ts";
 import { lookupPositiveCap } from "./concurrencyCaps.ts";
 import { recordComboDecision } from "./decisionTrace.ts";
 import {
@@ -320,6 +321,43 @@ export async function evaluateExecuteTargetGates(opts: {
   // Lift-as-is: combo.ts uses the same `as string | undefined` cast.
   const connectionId = target.connectionId as string | undefined;
   if (connectionId) {
+    // CLIProxyAPI management-health preflight intentionally runs immediately
+    // before the credential gate. It only recognizes explicitly CLIProxy-backed
+    // connections and fails open for all management API failures or unknown
+    // model/account states, so generic OpenAI-compatible targets are unaffected.
+    const connection = await getCachedProviderConnectionById(connectionId);
+    if (connection) {
+      const managementHealth = await evaluateCliproxyPreflightGate({
+        connection: {
+          id: connectionId,
+          provider,
+          providerSpecificData:
+            connection.providerSpecificData && typeof connection.providerSpecificData === "object"
+              ? (connection.providerSpecificData as Record<string, unknown>)
+              : null,
+        },
+        modelStr,
+        healthCache: deps.cliproxyManagementHealthCache,
+      });
+      if (managementHealth.shouldSkip) {
+        deps.log.info(
+          "COMBO",
+          `Skipping ${modelStr} — CLIProxyAPI management health: ${managementHealth.reason || "unavailable"}`
+        );
+        recordComboDecision(deps.traceInvocationId, {
+          step: target.executionKey,
+          target: modelStr,
+          decision: "skipped_before_dispatch",
+          reason: "cliproxy_management_health",
+        });
+        bumpFallback();
+        return {
+          kind: "skip",
+          result: stopProtectedPriorityTarget(`CLIProxyAPI target ${modelStr} is unavailable`),
+        };
+      }
+    }
+
     const gateResult = checkCredentialGate(connectionId, provider, modelStr);
     if (gateResult.allowed === false) {
       logCredentialSkip(deps.log, modelStr, gateResult.reason || "Credential gate blocked");
