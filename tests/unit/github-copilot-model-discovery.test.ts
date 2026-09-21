@@ -46,11 +46,17 @@ const MOCK_COPILOT_MODELS_RESPONSE = {
       capabilities: { type: "chat" },
     },
     {
-      id: "hidden-from-picker",
-      name: "Hidden from picker",
+      // GitHub currently returns false for every row, including policy-enabled
+      // models that successfully serve chat completions. Picker visibility is
+      // UI metadata, not a routing entitlement signal.
+      id: "picker-hidden-but-routable",
+      name: "Picker-hidden but routable",
       model_picker_enabled: false,
       policy: { state: "enabled" },
-      capabilities: { type: "chat" },
+      capabilities: {
+        limits: { max_output_tokens: 16_384, max_prompt_tokens: 128_000 },
+        supports: { tool_calls: true },
+      },
     },
     {
       id: "claude-sonnet-4.5",
@@ -87,7 +93,7 @@ test("#3120 parseGitHubCopilotModels keeps every entitled CHAT model (capability
   const ids = models.map((m) => m.id);
   // grok-4.6 is kept even though it is in no hardcoded allowlist — it's an
   // entitled chat model in the live response.
-  assert.deepEqual(ids, ["gpt-5.4", "claude-sonnet-4.5", "grok-4.6"]);
+  assert.deepEqual(ids, ["gpt-5.4", "picker-hidden-but-routable", "claude-sonnet-4.5", "grok-4.6"]);
   const gpt = models.find((m) => m.id === "gpt-5.4");
   assert.ok(gpt, "gpt-5.4 entry present");
   assert.equal(gpt.name, "GPT-5.4");
@@ -95,7 +101,53 @@ test("#3120 parseGitHubCopilotModels keeps every entitled CHAT model (capability
   assert.ok(!ids.includes("text-embedding-3-small"), "embeddings models are skipped");
   assert.ok(!ids.includes("gpt-41-copilot"), "completion utility models are skipped");
   assert.ok(!ids.includes("disabled-by-policy"), "policy.state=disabled is not routable");
-  assert.ok(!ids.includes("hidden-from-picker"), "model_picker_enabled=false is not routable");
+  assert.ok(
+    ids.includes("picker-hidden-but-routable"),
+    "model_picker_enabled=false must not hide a policy-enabled usable chat model"
+  );
+});
+
+test("Copilot picker metadata does not override policy and chat capability gates", () => {
+  const models = parseGitHubCopilotModels({
+    data: [
+      {
+        id: "picker-false-enabled-chat",
+        model_picker_enabled: false,
+        policy: { state: "enabled" },
+        capabilities: {
+          limits: { max_output_tokens: 8_192, max_prompt_tokens: 64_000 },
+          supports: { tool_calls: false },
+        },
+      },
+      {
+        id: "picker-false-disabled-chat",
+        model_picker_enabled: false,
+        policy: { state: "disabled" },
+        capabilities: {
+          limits: { max_output_tokens: 8_192, max_prompt_tokens: 64_000 },
+          supports: { tool_calls: true },
+        },
+      },
+      {
+        id: "picker-false-embedding",
+        model_picker_enabled: false,
+        policy: { state: "enabled" },
+        capabilities: { type: "embeddings" },
+        supported_endpoints: ["/embeddings"],
+      },
+      {
+        id: "picker-true-chat",
+        model_picker_enabled: true,
+        policy: { state: "enabled" },
+        capabilities: { type: "chat" },
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    models.map((model) => model.id),
+    ["picker-false-enabled-chat", "picker-true-chat"]
+  );
 });
 
 test("#3121 a model NOT in the live response is not advertised (entitlement filtering)", () => {
@@ -136,7 +188,7 @@ test("#3120 fetchGitHubCopilotModels does a live fetch and returns parsed models
   assert.equal(result.source, "api");
   assert.equal(result.failure, undefined);
   const ids = result.models.map((m) => m.id);
-  assert.deepEqual(ids, ["gpt-5.4", "claude-sonnet-4.5", "grok-4.6"]);
+  assert.deepEqual(ids, ["gpt-5.4", "picker-hidden-but-routable", "claude-sonnet-4.5", "grok-4.6"]);
   assert.ok(!ids.includes("gemini-3.1-pro-preview"));
 });
 

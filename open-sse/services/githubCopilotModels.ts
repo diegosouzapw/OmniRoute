@@ -92,17 +92,16 @@ function toNonEmptyString(value: unknown): string | null {
 // (rename-robust) rather than an id allowlist: any model the account is entitled
 // to whose capabilities.type is "chat" (or that carries a chat-shaped
 // supported_endpoints) is kept, so a newly-entitled model shows up with no code
-// change. Also filters out rows when policy.state is set and != "enabled", or
-// when model_picker_enabled=false. Explicitly non-chat rows (embeddings /
-// completion) are dropped as well.
+// change. `model_picker_enabled` is intentionally NOT a routing gate: GitHub
+// currently reports it as false even for policy-enabled models that accept chat
+// requests. Policy-disabled and explicitly non-chat rows are still rejected.
 function isRoutableChatModel(item: RawRecord): boolean {
   const policy = asRecord(item.policy);
-  const policyState = toNonEmptyString(policy.state);
-  if (policyState && policyState !== "enabled") return false;
-  if (item.model_picker_enabled === false) return false;
+  const policyState = toNonEmptyString(policy.state)?.toLowerCase();
+  if (policyState === "disabled") return false;
 
   const capabilities = asRecord(item.capabilities);
-  const capType = toNonEmptyString(capabilities.type);
+  const capType = toNonEmptyString(capabilities.type)?.toLowerCase();
   if (capType) return capType === "chat";
 
   // No capabilities.type present — fall back to supported_endpoints shape. A
@@ -121,9 +120,32 @@ function isRoutableChatModel(item: RawRecord): boolean {
     });
   }
 
-  // Neither signal present: keep it unless its id looks like a known non-chat
-  // utility (embedding / completion sentinels). This keeps discovery permissive
-  // without re-introducing a brittle positive allowlist.
+  // Current Copilot catalogs do not always provide capabilities.type or an
+  // endpoint list. In that shape, the same signals required by Copilot clients
+  // establish that the row is a usable chat model: bounded prompt/output
+  // limits and an explicit tool-calling capability (true OR false). Requiring
+  // the full shape keeps internal/utility rows with partial metadata out.
+  const limits = asRecord(capabilities.limits);
+  const supports = asRecord(capabilities.supports);
+  const maxOutputTokens = limits.max_output_tokens;
+  const maxPromptTokens = limits.max_prompt_tokens;
+  const hasUsableChatShape =
+    typeof maxOutputTokens === "number" &&
+    Number.isFinite(maxOutputTokens) &&
+    maxOutputTokens > 0 &&
+    typeof maxPromptTokens === "number" &&
+    Number.isFinite(maxPromptTokens) &&
+    maxPromptTokens > 0 &&
+    typeof supports.tool_calls === "boolean";
+  if (hasUsableChatShape) return true;
+
+  // A row with structured capability metadata that did not match any chat
+  // signal is not safe to route as chat. This rejects utility rows without
+  // relying on a continually stale model-id denylist.
+  if (Object.keys(capabilities).length > 0) return false;
+
+  // Legacy/sparse catalogs may omit capabilities entirely. Preserve the prior
+  // compatibility fallback unless the id is a known non-chat utility.
   const id = (toNonEmptyString(item.id) || toNonEmptyString(item.model) || "").toLowerCase();
   if (!id) return false;
   return !(id.includes("embedding") || id === "gpt-41-copilot");
