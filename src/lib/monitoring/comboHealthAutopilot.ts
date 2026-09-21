@@ -48,6 +48,8 @@ type ProviderIssueView = {
     connectionId?: string;
   };
   evidence?: JsonRecord;
+  providerActiveConnections?: number;
+  providerAffectedActiveConnections?: number;
 };
 
 function sanitizeId(parts: Array<string | null | undefined>): string {
@@ -167,14 +169,43 @@ function providerIssueEvidence(providerIssue: ProviderIssueView): JsonRecord {
   };
 }
 
-function buildProviderIssueIndex(providerIssues: ProviderIssueView[]): ProviderIssueView[] {
-  return providerIssues.filter((entry) => Boolean(entry.target?.provider));
+function buildProviderIssueIndex(report: ProviderAutopilotReport): ProviderIssueView[] {
+  return report.providers.flatMap((provider) => {
+    const affectedActiveConnections = new Set(
+      provider.issues.flatMap((entry) => {
+        const connectionId = entry.target.connectionId;
+        const evidence = entry.evidence as JsonRecord;
+        return connectionId && entry.severity !== "info" && evidence.isActive !== false
+          ? [connectionId]
+          : [];
+      })
+    ).size;
+
+    return (provider.issues as ProviderIssueView[])
+      .filter((entry) => Boolean(entry.target?.provider))
+      .map((entry) => ({
+        ...entry,
+        providerActiveConnections: provider.signals.connections.active,
+        providerAffectedActiveConnections: affectedActiveConnections,
+      }));
+  });
+}
+
+function hasForecastDataQualityGap(forecast: ComboForecastMetrics): boolean {
+  return (
+    forecast.confidence === "no_data" ||
+    forecast.confidence === "low" ||
+    forecast.dataQuality.pricingCoveragePct < 100 ||
+    forecast.dataQuality.quotaCoverage === "none" ||
+    forecast.dataQuality.quotaCoverage === "partial"
+  );
 }
 
 function buildIssuesForCombo(
   combo: ComboHealthMetrics,
   forecast: ComboForecastMetrics | undefined,
   providerIssues: ProviderIssueView[],
+  quotaMonitorProviders: Set<string>,
   includeActions: boolean
 ): ComboAutopilotIssue[] {
   const issues: ComboAutopilotIssue[] = [];
@@ -309,14 +340,26 @@ function buildIssuesForCombo(
 
     for (const providerIssue of providerIssues) {
       if (!providerIssueMatchesTarget(providerIssue, target)) continue;
+      const hasUnpinnedFallbackCapacity = Boolean(
+        !target.connectionId &&
+        providerIssue.target?.connectionId &&
+        (providerIssue.providerActiveConnections ?? 0) >
+          (providerIssue.providerAffectedActiveConnections ?? 0)
+      );
+      const providerSeverity = hasUnpinnedFallbackCapacity
+        ? "info"
+        : (providerIssue.severity ?? "warning");
       issues.push(
         issue(
           combo,
           "provider_health_issue",
-          providerIssue.severity === "critical" ? "critical" : "warning",
+          providerSeverity,
           providerIssue.title ?? "Provider health issue affects combo target",
           providerIssue.recommendation ?? "Review provider health autopilot details.",
-          providerIssueEvidence(providerIssue),
+          {
+            ...providerIssueEvidence(providerIssue),
+            hasUnpinnedFallbackCapacity,
+          },
           includeActions,
           ["open_provider_health_autopilot", "open_combo_editor"],
           target
@@ -326,17 +369,31 @@ function buildIssuesForCombo(
   }
 
   if (forecast && riskRank(forecast.quotaRisk.level) >= riskRank("medium")) {
+    const hasDataQualityGap = hasForecastDataQualityGap(forecast);
+    const hasQuotaMonitorCoverage = targets.some((target) =>
+      quotaMonitorProviders.has(target.provider)
+    );
+    const diagnosticOnly =
+      !hasQuotaMonitorCoverage ||
+      forecast.confidence === "no_data" ||
+      forecast.confidence === "low" ||
+      forecast.dataQuality.quotaCoverage === "none";
     issues.push(
       issue(
         combo,
         "forecast_quota_risk",
-        forecast.quotaRisk.level === "critical" ? "critical" : "warning",
+        diagnosticOnly ? "info" : forecast.quotaRisk.level === "critical" ? "critical" : "warning",
         "Forecast predicts quota pressure",
         "Rebalance targets or review quotas before the forecast horizon is reached.",
         {
           risk: forecast.quotaRisk.level,
           projectedWorstRemainingPct: forecast.quotaRisk.projectedWorstRemainingPct,
           timeToExhaustDays: forecast.quotaRisk.timeToExhaustDays,
+          confidence: forecast.confidence,
+          quotaCoverage: forecast.dataQuality.quotaCoverage,
+          hasDataQualityGap,
+          hasQuotaMonitorCoverage,
+          diagnosticOnly,
         },
         includeActions,
         ["review_quota_limits", "open_combo_editor"]
@@ -345,19 +402,20 @@ function buildIssuesForCombo(
   }
 
   if (forecast) {
-    const hasDataQualityGap =
-      forecast.confidence === "no_data" ||
-      forecast.confidence === "low" ||
-      forecast.dataQuality.pricingCoveragePct < 100 ||
-      forecast.dataQuality.quotaCoverage === "none" ||
-      forecast.dataQuality.quotaCoverage === "partial";
+    const hasDataQualityGap = hasForecastDataQualityGap(forecast);
 
     if (hasDataQualityGap) {
+      const hasEnoughTrafficForPricingWarning =
+        forecast.history.requests > 0 &&
+        forecast.confidence !== "no_data" &&
+        forecast.confidence !== "low";
       issues.push(
         issue(
           combo,
           "data_quality_gap",
-          forecast.dataQuality.pricingCoveragePct < 80 ? "warning" : "info",
+          hasEnoughTrafficForPricingWarning && forecast.dataQuality.pricingCoveragePct < 80
+            ? "warning"
+            : "info",
           "Forecast data quality is incomplete",
           "Add pricing/quota data or generate more traffic to improve autopilot confidence.",
           {
@@ -395,9 +453,16 @@ function buildAutopilotCombo(
   combo: ComboHealthMetrics,
   forecast: ComboForecastMetrics | undefined,
   providerIssues: ProviderIssueView[],
+  quotaMonitorProviders: Set<string>,
   includeActions: boolean
 ): ComboAutopilotCombo {
-  const issues = buildIssuesForCombo(combo, forecast, providerIssues, includeActions);
+  const issues = buildIssuesForCombo(
+    combo,
+    forecast,
+    providerIssues,
+    quotaMonitorProviders,
+    includeActions
+  );
   const state = stateForIssues(issues);
   const providerIssueCount = issues.filter(
     (entry) => entry.kind === "provider_health_issue"
@@ -455,22 +520,49 @@ export async function buildComboHealthAutopilotReport(
         combos: combosSnapshot,
       }),
     options.providerHealthResponse ??
-      buildProviderHealthAutopilotReport({ includeHealthy: false, includeActions: false }),
+      buildProviderHealthAutopilotReport({ includeHealthy: true, includeActions: false }),
   ]);
 
   const forecastsByComboId = new Map(forecast.combos.map((entry) => [entry.comboId, entry]));
-  const providerIssues = buildProviderIssueIndex(
-    providerHealth.providers.flatMap((provider) => provider.issues as ProviderIssueView[])
-  );
-
-  const allCombos = health.combos.map((combo) =>
-    buildAutopilotCombo(
-      combo,
-      forecastsByComboId.get(combo.comboId),
-      providerIssues,
-      includeActions
+  const providerIssues = buildProviderIssueIndex(providerHealth);
+  const quotaMonitorProviders = new Set(
+    providerHealth.providers.flatMap((provider) =>
+      provider.signals.quotaMonitor ? [provider.provider] : []
     )
   );
+  const activeComboIds = combosSnapshot
+    ? new Set(
+        combosSnapshot.flatMap((combo) =>
+          (combo as JsonRecord).isActive !== false && typeof combo.id === "string" ? [combo.id] : []
+        )
+      )
+    : null;
+  const activeComboNames = combosSnapshot
+    ? new Set(
+        combosSnapshot.flatMap((combo) =>
+          (combo as JsonRecord).isActive !== false && typeof combo.name === "string"
+            ? [combo.name]
+            : []
+        )
+      )
+    : null;
+
+  const allCombos = health.combos
+    .filter(
+      (combo) =>
+        !activeComboIds ||
+        activeComboIds.has(combo.comboId) ||
+        activeComboNames?.has(combo.comboName)
+    )
+    .map((combo) =>
+      buildAutopilotCombo(
+        combo,
+        forecastsByComboId.get(combo.comboId),
+        providerIssues,
+        quotaMonitorProviders,
+        includeActions
+      )
+    );
   const combos = includeHealthy
     ? allCombos
     : allCombos.filter((combo) => combo.state !== "healthy");
