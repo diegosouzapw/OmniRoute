@@ -37,62 +37,156 @@ export interface CliproxyPreflightDecision {
  * Rejects generic OpenAI-compatible connections unconditionally unless they
  * explicitly indicate CLIProxy usage.
  */
+function hasExplicitCliproxyMarker(psd: Record<string, unknown>): boolean {
+  return (
+    psd.isCliproxy === true ||
+    psd.cliproxy === true ||
+    psd.cliproxyapi === true ||
+    psd.prefix === "cliproxy" ||
+    psd.backend === "cliproxy" ||
+    psd.backend === "cliproxyapi" ||
+    psd.cliproxyapiMode === "claude-native" ||
+    typeof psd.managementKey === "string" ||
+    typeof psd.managementPort === "number"
+  );
+}
+
+function hasPortMarker(psd: Record<string, unknown>): boolean {
+  return (
+    psd.isCliproxy !== undefined ||
+    psd.cliproxy !== undefined ||
+    psd.cliproxyapiMode !== undefined ||
+    psd.backend !== undefined
+  );
+}
+
+function parseUrlOrNull(value: string): URL | null {
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
+}
+
+function baseUrlIndicatesCliproxy(psd: Record<string, unknown>): boolean {
+  const rawBaseUrl = psd.baseUrl;
+  if (typeof rawBaseUrl !== "string" || !rawBaseUrl.trim()) {
+    return false;
+  }
+  const url = parseUrlOrNull(rawBaseUrl.trim());
+  if (!url) {
+    return false;
+  }
+
+  // Host contains "cliproxy" (e.g. cliproxy:8317, my-cliproxyapi.internal)
+  if (url.hostname.toLowerCase().includes("cliproxy")) {
+    return true;
+  }
+
+  // Port 8317 is CLIProxy default port, BUT port 8317 on a generic host
+  // (such as localhost or an arbitrary IP) is ONLY considered CLIProxy-backed
+  // when an explicit marker is present.
+  return url.port === "8317" && hasPortMarker(psd);
+}
+
+/**
+ * Check whether a connection is demonstrably CLIProxy-backed.
+ *
+ * Rejects generic OpenAI-compatible connections unconditionally unless they
+ * explicitly indicate CLIProxy usage.
+ */
 export function isCliproxyBackedConnection(
   providerSpecificData?: Record<string, unknown> | null
 ): boolean {
   if (!providerSpecificData || typeof providerSpecificData !== "object") {
     return false;
   }
+  return (
+    hasExplicitCliproxyMarker(providerSpecificData) ||
+    baseUrlIndicatesCliproxy(providerSpecificData)
+  );
+}
 
-  // 1. Explicit properties on providerSpecificData
-  if (
-    providerSpecificData.isCliproxy === true ||
-    providerSpecificData.cliproxy === true ||
-    providerSpecificData.cliproxyapi === true ||
-    providerSpecificData.prefix === "cliproxy" ||
-    providerSpecificData.backend === "cliproxy" ||
-    providerSpecificData.backend === "cliproxyapi" ||
-    providerSpecificData.cliproxyapiMode === "claude-native" ||
-    typeof providerSpecificData.managementKey === "string" ||
-    typeof providerSpecificData.managementPort === "number"
-  ) {
-    return true;
+/**
+ * Classify a model string into a CLIProxy backend family.
+ *
+ * Recognized families:
+ *   - "claude"
+ *   - "antigravity" (or gemini / agy)
+ *   - "gemini"
+ *   - "codex" (or openai / gpt)
+ *   - "xai" (or grok)
+ *   - "unknown" (triggers fail-open)
+ */
+const EXPLICIT_FAMILY_ALIASES: Readonly<Record<string, CliproxyBackendFamily>> = {
+  claude: "claude",
+  antigravity: "antigravity",
+  agy: "antigravity",
+  gemini: "gemini",
+  codex: "codex",
+  openai: "codex",
+  gpt: "codex",
+  xai: "xai",
+  grok: "xai",
+};
+
+const MODEL_FAMILY_MATCHERS: ReadonlyArray<{
+  readonly family: CliproxyBackendFamily;
+  readonly prefixes: readonly string[];
+  readonly substrings: readonly string[];
+}> = [
+  {
+    family: "antigravity",
+    prefixes: ["antigravity-", "antigravity/", "agy/"],
+    substrings: ["antigravity"],
+  },
+  {
+    family: "claude",
+    prefixes: ["claude", "anthropic/"],
+    substrings: ["claude-"],
+  },
+  {
+    family: "gemini",
+    prefixes: ["gemini", "google/gemini"],
+    substrings: ["gemini-"],
+  },
+  {
+    family: "codex",
+    prefixes: ["codex/", "openai/", "gpt-", "o1-", "o3-", "o4-", "text-embedding"],
+    substrings: ["codex"],
+  },
+  {
+    family: "xai",
+    prefixes: ["xai/", "grok-"],
+    substrings: ["grok"],
+  },
+];
+
+function resolveExplicitFamily(
+  providerSpecificData?: Record<string, unknown> | null
+): CliproxyBackendFamily | null {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") {
+    return null;
   }
-
-  const rawBaseUrl = providerSpecificData.baseUrl;
-  if (typeof rawBaseUrl !== "string" || !rawBaseUrl.trim()) {
-    return false;
+  const explicitFamily =
+    providerSpecificData.cliproxyFamily ??
+    providerSpecificData.backendFamily ??
+    providerSpecificData.upstreamProvider;
+  if (typeof explicitFamily !== "string" || !explicitFamily.trim()) {
+    return null;
   }
+  return EXPLICIT_FAMILY_ALIASES[explicitFamily.trim().toLowerCase()] ?? null;
+}
 
-  try {
-    const url = new URL(rawBaseUrl.trim());
-    const hostname = url.hostname.toLowerCase();
-    const port = url.port;
-
-    // Host contains "cliproxy" (e.g. cliproxy:8317, my-cliproxyapi.internal)
-    if (hostname.includes("cliproxy")) {
-      return true;
+function resolveModelFamily(cleanModel: string): CliproxyBackendFamily {
+  for (const matcher of MODEL_FAMILY_MATCHERS) {
+    const byPrefix = matcher.prefixes.some((prefix) => cleanModel.startsWith(prefix));
+    const bySubstring = matcher.substrings.some((needle) => cleanModel.includes(needle));
+    if (byPrefix || bySubstring) {
+      return matcher.family;
     }
-
-    // Port 8317 is CLIProxy default port, BUT port 8317 on a generic host
-    // (such as localhost or an arbitrary IP) is ONLY considered CLIProxy-backed
-    // when an explicit marker is present.
-    if (port === "8317") {
-      if (
-        providerSpecificData.isCliproxy !== undefined ||
-        providerSpecificData.cliproxy !== undefined ||
-        providerSpecificData.cliproxyapiMode !== undefined ||
-        providerSpecificData.backend !== undefined
-      ) {
-        return true;
-      }
-    }
-  } catch {
-    // Malformed URL
-    return false;
   }
-
-  return false;
+  return "unknown";
 }
 
 /**
@@ -110,73 +204,14 @@ export function resolveCliproxyBackendFamily(
   modelStr: string | null | undefined,
   providerSpecificData?: Record<string, unknown> | null
 ): CliproxyBackendFamily {
-  if (providerSpecificData && typeof providerSpecificData === "object") {
-    const explicitFamily =
-      providerSpecificData.cliproxyFamily ??
-      providerSpecificData.backendFamily ??
-      providerSpecificData.upstreamProvider;
-    if (typeof explicitFamily === "string" && explicitFamily.trim()) {
-      const lowerExplicit = explicitFamily.trim().toLowerCase();
-      if (lowerExplicit === "claude") return "claude";
-      if (lowerExplicit === "antigravity" || lowerExplicit === "agy") return "antigravity";
-      if (lowerExplicit === "gemini") return "gemini";
-      if (lowerExplicit === "codex" || lowerExplicit === "openai" || lowerExplicit === "gpt") {
-        return "codex";
-      }
-      if (lowerExplicit === "xai" || lowerExplicit === "grok") return "xai";
-    }
+  const explicit = resolveExplicitFamily(providerSpecificData);
+  if (explicit !== null) {
+    return explicit;
   }
-
   if (!modelStr || typeof modelStr !== "string") {
     return "unknown";
   }
-
-  const clean = modelStr.toLowerCase().trim();
-
-  // Explicit Antigravity prefix/marker
-  if (
-    clean.startsWith("antigravity-") ||
-    clean.startsWith("antigravity/") ||
-    clean.startsWith("agy/") ||
-    clean.includes("antigravity")
-  ) {
-    return "antigravity";
-  }
-
-  // Claude models
-  if (clean.startsWith("claude") || clean.startsWith("anthropic/") || clean.includes("claude-")) {
-    return "claude";
-  }
-
-  // Gemini models
-  if (
-    clean.startsWith("gemini") ||
-    clean.startsWith("google/gemini") ||
-    clean.includes("gemini-")
-  ) {
-    return "gemini";
-  }
-
-  // Codex / OpenAI / GPT models
-  if (
-    clean.startsWith("codex/") ||
-    clean.startsWith("openai/") ||
-    clean.startsWith("gpt-") ||
-    clean.startsWith("o1-") ||
-    clean.startsWith("o3-") ||
-    clean.startsWith("o4-") ||
-    clean.startsWith("text-embedding") ||
-    clean.includes("codex")
-  ) {
-    return "codex";
-  }
-
-  // xAI / Grok models
-  if (clean.startsWith("xai/") || clean.startsWith("grok-") || clean.includes("grok")) {
-    return "xai";
-  }
-
-  return "unknown";
+  return resolveModelFamily(modelStr.toLowerCase().trim());
 }
 
 function parseModelId(modelStr: string): string {
@@ -266,6 +301,26 @@ export interface EvaluateCliproxyTargetHealthOptions {
   now?: number;
 }
 
+const FAMILY_ACCOUNT_ALIASES: Readonly<
+  Record<Exclude<CliproxyBackendFamily, "unknown">, readonly string[]>
+> = {
+  claude: ["claude"],
+  antigravity: ["antigravity", "gemini"],
+  gemini: ["gemini", "antigravity"],
+  codex: ["codex", "openai", "gpt"],
+  xai: ["xai", "grok"],
+};
+
+function accountMatchesFamily(
+  acct: CliproxyAccountHealth,
+  family: Exclude<CliproxyBackendFamily, "unknown">
+): boolean {
+  const aliases = FAMILY_ACCOUNT_ALIASES[family];
+  const provider = acct.provider.toLowerCase().trim();
+  const type = acct.type.toLowerCase().trim();
+  return aliases.includes(provider) || aliases.includes(type);
+}
+
 /**
  * Pure evaluation function for target health against known CLIProxy accounts.
  *
@@ -286,32 +341,9 @@ export function evaluateCliproxyTargetHealth(
     return { shouldSkip: false };
   }
 
-  // Filter accounts belonging to this family
-  const relevantAccounts = accounts.filter((acct) => {
-    const p = acct.provider.toLowerCase().trim();
-    const t = acct.type.toLowerCase().trim();
-    if (family === "claude") return p === "claude" || t === "claude";
-    if (family === "antigravity") {
-      return p === "antigravity" || t === "antigravity" || p === "gemini" || t === "gemini";
-    }
-    if (family === "gemini") {
-      return p === "gemini" || t === "gemini" || p === "antigravity" || t === "antigravity";
-    }
-    if (family === "codex") {
-      return (
-        p === "codex" ||
-        t === "codex" ||
-        p === "openai" ||
-        t === "openai" ||
-        p === "gpt" ||
-        t === "gpt"
-      );
-    }
-    if (family === "xai") {
-      return p === "xai" || t === "xai" || p === "grok" || t === "grok";
-    }
-    return false;
-  });
+  // Filter accounts belonging to this family. The alias table keeps families
+  // isolated: a cooling Claude account never skips Gemini/Codex/XAI targets.
+  const relevantAccounts = accounts.filter((acct) => accountMatchesFamily(acct, family));
 
   if (relevantAccounts.length === 0) {
     // Fail open: no accounts for this family in auth-files, could be configured differently
@@ -323,26 +355,16 @@ export function evaluateCliproxyTargetHealth(
   // Check if every relevant account is blocked for this concrete model
   // (either account is disabled/cooling/unavailable OR this specific model quota is rejected/cooling).
   // If at least one account is available and not quota-rejected, we must NOT skip.
-  let allBlocked = true;
-
   for (const acct of relevantAccounts) {
-    const acctUnavailable = isAccountUnavailable(acct, now);
-    const quotaRejected = isModelQuotaRejected(acct, rawModelId, now);
-
-    if (!acctUnavailable && !quotaRejected) {
-      allBlocked = false;
+    if (!isAccountUnavailable(acct, now) && !isModelQuotaRejected(acct, rawModelId, now)) {
       return { shouldSkip: false };
     }
   }
 
-  if (allBlocked) {
-    return {
-      shouldSkip: true,
-      reason: `All ${relevantAccounts.length} ${family} accounts are unavailable or model ${rawModelId} quota rejected`,
-    };
-  }
-
-  return { shouldSkip: false };
+  return {
+    shouldSkip: true,
+    reason: `All ${relevantAccounts.length} ${family} accounts are unavailable or model ${rawModelId} quota rejected`,
+  };
 }
 
 // ──────────────── In-Memory Cache with Singleflight ────────────────
