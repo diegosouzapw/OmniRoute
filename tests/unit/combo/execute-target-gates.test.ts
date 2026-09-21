@@ -349,7 +349,9 @@ async function makeCliproxyConnection(
     name,
     apiKey,
     providerSpecificData: {
-      baseUrl: "http://cliproxy.internal:8317/v1",
+      // Same host/port as the operator default so the gate may reuse trusted
+      // management health. A foreign cliproxy baseUrl must fail open instead.
+      baseUrl: "http://127.0.0.1:8317/v1",
       isCliproxy: true,
     },
   });
@@ -718,6 +720,71 @@ test("CLIProxyAPI preflight gate: stale per-model rejected flag on a recovered a
     version: "1.0",
   };
   const cache = new CliproxyManagementHealthCache({ fetcher: async () => health });
+
+  test("CLIProxyAPI preflight gate: protected priority target falls through on pure management skip like quota cutoff", async () => {
+    const providersDb = await import("../../../src/lib/db/providers.ts");
+    const readCache = await import("../../../src/lib/db/readCache.ts");
+    const { evaluateExecuteTargetGates } =
+      await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+    const connection = await makeCliproxyConnection(
+      providersDb,
+      readCache,
+      "CLIProxy-Protected-Priority",
+      "cpa-secret-protected"
+    );
+
+    const health: CliproxyAccountHealthResult = {
+      state: "ready",
+      accounts: [
+        accountFixture({
+          authIndex: "c1",
+          provider: "claude",
+          type: "claude",
+          unavailable: true,
+        }),
+      ],
+      version: "1.0",
+    };
+    const cache = new CliproxyManagementHealthCache({ fetcher: async () => health });
+
+    const target = modelTarget({
+      connectionId: connection.id,
+      provider: "openai",
+      modelStr: "claude-3-7-sonnet",
+      fallbackOnlyOnQuotaExhaustion: true,
+    });
+    const state = emptyState({
+      orderedTargets: [target],
+      observeFailure(quotaExhausted, executionKey) {
+        this.observedFailure = true;
+        this.allObservedFailuresQuota &&= quotaExhausted;
+        if (!executionKey) return;
+        const trust = this.targetFailureTrust.get(executionKey) ?? {
+          observedFailure: false,
+          allObservedFailuresQuota: true,
+        };
+        trust.observedFailure = true;
+        trust.allObservedFailuresQuota &&= quotaExhausted;
+        this.targetFailureTrust.set(executionKey, trust);
+      },
+    });
+
+    const decision = await evaluateExecuteTargetGates({
+      index: 0,
+      state,
+      deps: baseDeps({ cliproxyManagementHealthCache: cache, strategy: "priority" }),
+    });
+
+    assert.equal(decision.kind, "skip");
+    if (decision.kind === "skip") {
+      assert.equal(
+        decision.result,
+        null,
+        "quota-like management skip must fall through to backup targets for protected priority"
+      );
+    }
+  });
 
   const opusDecision = await evaluateExecuteTargetGates({
     index: 0,

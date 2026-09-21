@@ -9,10 +9,14 @@
  * 2. In-memory TTL cache (30-60s) with singleflight concurrency coalescing.
  * 3. Only inspects demonstrably CLIProxy-backed connections (baseUrl containing "cliproxy"
  *    or port 8317 with explicit marker, or explicit cliproxy/management properties).
- * 4. Provider family isolation: Claude unavailable never skips Gemini/Codex/XAI on the same instance.
- * 5. Model quota awareness: skips only when all relevant accounts for that model/family are unavailable
+ * 4. Management probes use only the operator-configured CLIProxy endpoint
+ *    (CLIPROXYAPI_HOST/PORT or the embedded loopback instance). A connection
+ *    baseUrl is never a probe target; a cliproxy-shaped baseUrl that points
+ *    at a different instance fails open instead of inheriting that snapshot.
+ * 5. Provider family isolation: Claude unavailable never skips Gemini/Codex/XAI on the same instance.
+ * 6. Model quota awareness: skips only when all relevant accounts for that model/family are unavailable
  *    or specifically rejected/in cooldown for that model.
- * 6. Stale-rejection awareness: per-model "rejected" flags are honored only while their retry window
+ * 7. Stale-rejection awareness: per-model "rejected" flags are honored only while their retry window
  *    is open or the producing account-level cooldown is still active.
  */
 
@@ -21,6 +25,7 @@ import {
   type CliproxyAccountHealth,
   type CliproxyAccountHealthResult,
 } from "./cliproxyAccountHealth.ts";
+import { CLIPROXY_DEFAULT_PORT } from "@/lib/services/installers/cliproxy";
 
 export type CliproxyBackendFamily =
   "claude" | "antigravity" | "gemini" | "codex" | "xai" | "unknown";
@@ -381,6 +386,58 @@ export type HealthFetcher = (options: {
   timeoutMs?: number;
 }) => Promise<CliproxyAccountHealthResult>;
 
+const CLIPROXY_DEFAULT_HOST = "127.0.0.1";
+
+function canonicalizeCliproxyHost(host: string): string {
+  const lower = host.trim().toLowerCase();
+  if (lower === "localhost" || lower === "::1" || lower === "[::1]") {
+    return CLIPROXY_DEFAULT_HOST;
+  }
+  return lower;
+}
+
+function parseManagementEndpoint(value: string): { host: string; port: number } | null {
+  const url = parseUrlOrNull(value.trim());
+  if (!url?.hostname) return null;
+  const parsedPort = url.port ? Number.parseInt(url.port, 10) : CLIPROXY_DEFAULT_PORT;
+  if (!Number.isInteger(parsedPort) || parsedPort <= 0) return null;
+  return { host: canonicalizeCliproxyHost(url.hostname), port: parsedPort };
+}
+
+function resolveTrustedManagementEndpoint(): { host: string; port: number } {
+  const host = canonicalizeCliproxyHost(process.env.CLIPROXYAPI_HOST || CLIPROXY_DEFAULT_HOST);
+  const parsedPort = Number.parseInt(
+    process.env.CLIPROXYAPI_PORT?.trim() || String(CLIPROXY_DEFAULT_PORT),
+    10
+  );
+  const port = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : CLIPROXY_DEFAULT_PORT;
+  return { host, port };
+}
+
+/**
+ * A connection may only reuse trusted management health when its data plane
+ * rides the operator instance. Marker-only and deep-mode connections
+ * (`cliproxyapiMode`) keep their native provider baseUrl; the executor still
+ * sends them through CLIPROXYAPI_HOST / cliproxyapi_url, so they reuse the
+ * trusted snapshot. A cliproxy-shaped baseUrl is compared to the trusted
+ * endpoint and fails open on mismatch: the untrusted URL must never receive
+ * CLIPROXYAPI_MANAGEMENT_KEY, and a foreign instance's snapshot must not
+ * decide this target.
+ */
+function connectionMayUseTrustedManagementHealth(
+  psd: Record<string, unknown> | null | undefined,
+  trusted: { host: string; port: number }
+): boolean {
+  if (!psd || !baseUrlIndicatesCliproxy(psd)) {
+    return true;
+  }
+  const rawBaseUrl = typeof psd.baseUrl === "string" ? psd.baseUrl : "";
+  const connection = parseManagementEndpoint(rawBaseUrl);
+  return (
+    connection !== null && connection.host === trusted.host && connection.port === trusted.port
+  );
+}
+
 export class CliproxyManagementHealthCache {
   private cache = new Map<string, HealthCacheEntry>();
   private inFlight = new Map<string, Promise<CliproxyAccountHealthResult>>();
@@ -442,9 +499,14 @@ export class CliproxyManagementHealthCache {
   }
 
   private makeCacheKey(baseUrl: string, managementKey?: string | null): string {
-    // The distinction is needed only to avoid accidentally sharing a snapshot
-    // across a credentialed and uncredentialed caller; never retain the key.
-    return `${baseUrl.trim()}::${managementKey ? "credentialed" : "default"}`;
+    // Partition by normalized host:port so equivalent URL spellings (path,
+    // case, trailing slash, localhost alias) share one snapshot without ever
+    // retaining the management secret itself.
+    const endpoint = parseManagementEndpoint(baseUrl) ?? {
+      host: CLIPROXY_DEFAULT_HOST,
+      port: CLIPROXY_DEFAULT_PORT,
+    };
+    return `${endpoint.host}:${endpoint.port}::${managementKey ? "credentialed" : "default"}`;
   }
 
   private fetchAndCache(
@@ -453,20 +515,19 @@ export class CliproxyManagementHealthCache {
     managementKey: string | null | undefined,
     timeoutMs: number
   ): Promise<CliproxyAccountHealthResult> {
-    let host = "127.0.0.1";
-    let port = 8317;
-    try {
-      const url = new URL(baseUrl);
-      host = url.hostname;
-      if (url.port) port = Number.parseInt(url.port, 10);
-    } catch {
-      // URL parsing is defensive; isCliproxyBackedConnection already rejected
-      // malformed URLs before this point.
-    }
+    const endpoint = parseManagementEndpoint(baseUrl) ?? {
+      host: CLIPROXY_DEFAULT_HOST,
+      port: CLIPROXY_DEFAULT_PORT,
+    };
 
     const promise = (async () => {
       try {
-        const result = await this.fetcher({ host, port, managementKey, timeoutMs });
+        const result = await this.fetcher({
+          host: endpoint.host,
+          port: endpoint.port,
+          managementKey,
+          timeoutMs,
+        });
         this.cache.set(key, { result, expiresAt: Date.now() + this.ttlMs });
         return result;
       } catch {
@@ -501,6 +562,19 @@ export interface EvaluateCliproxyPreflightGateOptions {
   timeoutMs?: number;
 }
 
+async function fetchTrustedManagementHealth(
+  cache: CliproxyManagementHealthCache,
+  trusted: { host: string; port: number },
+  timeoutMs: number
+): Promise<CliproxyAccountHealthResult> {
+  const hasExternalManagementHost = Boolean(process.env.CLIPROXYAPI_HOST?.trim());
+  const managementKey = process.env.CLIPROXYAPI_MANAGEMENT_KEY || null;
+  if (!hasExternalManagementHost && !managementKey) {
+    return cache.getDefaultHealth(timeoutMs);
+  }
+  return cache.getHealth(`http://${trusted.host}:${trusted.port}`, managementKey, timeoutMs);
+}
+
 /**
  * Gate entry point for evaluateExecuteTargetGates.
  *
@@ -518,28 +592,18 @@ export async function evaluateCliproxyPreflightGate(
     return { shouldSkip: false };
   }
 
-  // 2. Resolve management endpoint & key
-  const cache = options.healthCache ?? defaultCliproxyManagementHealthCache;
-  const timeoutMs = options.timeoutMs ?? 500; // Fast initial preflight timeout (spec requirement #5)
-
-  let baseUrl = typeof psd?.baseUrl === "string" ? psd.baseUrl.trim() : "";
-  if (!baseUrl) {
-    const host = process.env.CLIPROXYAPI_HOST || "127.0.0.1";
-    const port = process.env.CLIPROXYAPI_PORT || "8317";
-    baseUrl = `http://${host}:${port}`;
+  // 2. Probe only the operator-configured management endpoint. A cliproxy
+  //    baseUrl that points elsewhere fails open: the management key must not
+  //    travel to a connection-controlled host, and a foreign instance's
+  //    snapshot must not decide this target.
+  const trusted = resolveTrustedManagementEndpoint();
+  if (!connectionMayUseTrustedManagementHealth(psd, trusted)) {
+    return { shouldSkip: false };
   }
 
-  // Per-connection provider data must not carry management secrets. The
-  // established external-service convention is CLIPROXYAPI_MANAGEMENT_KEY;
-  // embedded mode resolves its separate control-plane key inside
-  // getCliproxyAccountHealth.
-  const hasExternalManagementHost = Boolean(process.env.CLIPROXYAPI_HOST?.trim());
-  const managementKey = process.env.CLIPROXYAPI_MANAGEMENT_KEY || null;
-
-  const health =
-    hasExternalManagementHost || managementKey
-      ? await cache.getHealth(baseUrl, managementKey, timeoutMs)
-      : await cache.getDefaultHealth(timeoutMs);
+  const cache = options.healthCache ?? defaultCliproxyManagementHealthCache;
+  const timeoutMs = options.timeoutMs ?? 500; // Fast initial preflight timeout (spec requirement #5)
+  const health = await fetchTrustedManagementHealth(cache, trusted, timeoutMs);
 
   // 3. Management errors fail open
   if (health.state !== "ready") {

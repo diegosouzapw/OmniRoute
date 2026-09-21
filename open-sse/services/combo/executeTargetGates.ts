@@ -344,6 +344,15 @@ export async function evaluateExecuteTargetGates(opts: {
           "COMBO",
           `Skipping ${modelStr} — CLIProxyAPI management health: ${managementHealth.reason || "unavailable"}`
         );
+        deps.clearStaleLKGP(
+          deps.combo.name,
+          target.executionKey,
+          deps.combo.id,
+          deps.log,
+          "COMBO",
+          undefined,
+          target
+        );
         recordComboDecision(deps.traceInvocationId, {
           step: target.executionKey,
           target: modelStr,
@@ -351,10 +360,23 @@ export async function evaluateExecuteTargetGates(opts: {
           reason: "cliproxy_management_health",
         });
         bumpFallback();
-        return {
-          kind: "skip",
-          result: stopProtectedPriorityTarget(`CLIProxyAPI target ${modelStr} is unavailable`),
-        };
+        // Same skip contract as quota_cutoff: a cooldown/quota snapshot is not
+        // proven infra, so protected-priority may fall through while mixed
+        // non-quota trust still answers 503.
+        state.observeFailure(true, target.executionKey);
+        if (protectedPriorityTarget) {
+          const protectedTargetTrust = state.targetFailureTrust.get(target.executionKey);
+          if (!protectedTargetTrust?.allObservedFailuresQuota) {
+            return {
+              kind: "skip",
+              result: {
+                ok: false,
+                response: errorResponse(503, `CLIProxyAPI target ${modelStr} is unavailable`),
+              },
+            };
+          }
+        }
+        return { kind: "skip", result: null };
       }
     }
 

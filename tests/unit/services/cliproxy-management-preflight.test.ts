@@ -503,8 +503,8 @@ describe("CLIProxy Management Preflight - Pure Decision Logic", () => {
             id: "conn-1",
             provider: "openai-compatible-cliproxy",
             providerSpecificData: {
-              baseUrl: "http://cliproxy.internal:8317/v1",
-              managementKey: "bad-key",
+              baseUrl: "http://127.0.0.1:8317/v1",
+              isCliproxy: true,
             },
           },
           modelStr: "claude-3-7-sonnet",
@@ -513,6 +513,230 @@ describe("CLIProxy Management Preflight - Pure Decision Logic", () => {
 
         assert.equal(gate.shouldSkip, false, `Failed open for state ${errState}`);
       }
+    });
+
+    it("normalizes cache keys so URL spelling variants share one snapshot", async () => {
+      let fetchCount = 0;
+      const cache = new CliproxyManagementHealthCache({
+        ttlMs: 1000,
+        fetcher: async () => {
+          fetchCount++;
+          return { state: "ready", accounts: [], version: null };
+        },
+      });
+
+      await cache.getHealth("http://Cliproxy.internal:8317/v1/", "key");
+      await cache.getHealth("http://cliproxy.internal:8317", "key");
+      assert.equal(fetchCount, 1, "path/case variants must share one cache entry");
+    });
+
+    it("canonicalizes localhost variants onto 127.0.0.1", async () => {
+      let fetchCount = 0;
+      const cache = new CliproxyManagementHealthCache({
+        ttlMs: 1000,
+        fetcher: async () => {
+          fetchCount++;
+          return { state: "ready", accounts: [], version: null };
+        },
+      });
+
+      await cache.getHealth("http://localhost:8317", "key");
+      await cache.getHealth("http://127.0.0.1:8317/v1", "key");
+      assert.equal(fetchCount, 1, "localhost and 127.0.0.1 must share one cache entry");
+    });
+  });
+
+  describe("trusted management endpoint hardening (SSRF guard)", () => {
+    const ENV_KEYS = [
+      "CLIPROXYAPI_HOST",
+      "CLIPROXYAPI_PORT",
+      "CLIPROXYAPI_MANAGEMENT_KEY",
+    ] as const;
+    type EnvKey = (typeof ENV_KEYS)[number];
+
+    async function withEnv(
+      values: Partial<Record<EnvKey, string>>,
+      fn: () => Promise<void>
+    ): Promise<void> {
+      const saved = new Map<string, string | undefined>();
+      for (const key of ENV_KEYS) {
+        saved.set(key, process.env[key]);
+        if (values[key] === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = values[key];
+        }
+      }
+      try {
+        await fn();
+      } finally {
+        for (const [key, value] of saved) {
+          if (value === undefined) delete process.env[key];
+          else process.env[key] = value;
+        }
+      }
+    }
+
+    it("never probes a connection-controlled cliproxy baseUrl and fails open", async () => {
+      await withEnv({ CLIPROXYAPI_MANAGEMENT_KEY: "secret" }, async () => {
+        const probed: string[] = [];
+        const cache = new CliproxyManagementHealthCache({
+          fetcher: async (opts) => {
+            probed.push(`${opts.host}:${opts.port}`);
+            return { state: "ready", accounts: [], version: null };
+          },
+        });
+
+        const gate = await evaluateCliproxyPreflightGate({
+          connection: {
+            id: "conn-ssrf",
+            provider: "openai-compatible",
+            providerSpecificData: { baseUrl: "http://evil-cliproxy.attacker.example:8317/v1" },
+          },
+          modelStr: "claude-3-7-sonnet",
+          healthCache: cache,
+        });
+
+        assert.equal(gate.shouldSkip, false, "foreign cliproxy baseUrl must fail open");
+        assert.deepEqual(probed, [], "no management probe may target the connection baseUrl");
+      });
+    });
+
+    it("probes the operator-configured endpoint, not the connection baseUrl", async () => {
+      await withEnv(
+        {
+          CLIPROXYAPI_HOST: "10.1.2.3",
+          CLIPROXYAPI_PORT: "9000",
+          CLIPROXYAPI_MANAGEMENT_KEY: "secret",
+        },
+        async () => {
+          const probed: string[] = [];
+          const cache = new CliproxyManagementHealthCache({
+            fetcher: async (opts) => {
+              probed.push(`${opts.host}:${opts.port}`);
+              return { state: "ready", accounts: [], version: null };
+            },
+          });
+
+          const gate = await evaluateCliproxyPreflightGate({
+            connection: {
+              id: "conn-trusted",
+              provider: "openai-compatible",
+              providerSpecificData: { isCliproxy: true, baseUrl: "http://10.1.2.3:9000/v1" },
+            },
+            modelStr: "claude-3-7-sonnet",
+            healthCache: cache,
+          });
+
+          assert.deepEqual(probed, ["10.1.2.3:9000"]);
+          assert.equal(gate.shouldSkip, false, "empty accounts fail open");
+        }
+      );
+    });
+
+    it("fails open when the connection baseUrl points at a different healthy instance", async () => {
+      await withEnv(
+        { CLIPROXYAPI_HOST: "cliproxy-a.internal", CLIPROXYAPI_MANAGEMENT_KEY: "secret" },
+        async () => {
+          const cache = new CliproxyManagementHealthCache({
+            fetcher: async () => ({
+              state: "ready",
+              accounts: [
+                {
+                  authIndex: "1",
+                  provider: "claude",
+                  type: "claude",
+                  label: "A1",
+                  status: "active",
+                  disabled: false,
+                  unavailable: true,
+                  createdAt: null,
+                  updatedAt: null,
+                  nextRetryAfter: "2099-01-01T00:00:00Z",
+                  success: 0,
+                  failed: 5,
+                  recentRequests: [],
+                  modelQuotas: {},
+                },
+              ],
+              version: "1.0",
+            }),
+          });
+
+          const gate = await evaluateCliproxyPreflightGate({
+            connection: {
+              id: "conn-other-instance",
+              provider: "openai-compatible",
+              providerSpecificData: { baseUrl: "http://cliproxy-b.internal:8317/v1" },
+            },
+            modelStr: "claude-3-7-sonnet",
+            healthCache: cache,
+          });
+
+          assert.equal(
+            gate.shouldSkip,
+            false,
+            "instance A health must not decide instance B targets"
+          );
+        }
+      );
+    });
+
+    it("marker-only connection without baseUrl reuses trusted default health", async () => {
+      await withEnv({ CLIPROXYAPI_MANAGEMENT_KEY: "secret" }, async () => {
+        let fetchCount = 0;
+        const cache = new CliproxyManagementHealthCache({
+          fetcher: async () => {
+            fetchCount++;
+            return { state: "ready", accounts: [], version: null };
+          },
+        });
+
+        const gate = await evaluateCliproxyPreflightGate({
+          connection: {
+            id: "conn-marker-only",
+            provider: "openai-compatible",
+            providerSpecificData: { isCliproxy: true },
+          },
+          modelStr: "claude-3-7-sonnet",
+          healthCache: cache,
+        });
+
+        assert.equal(gate.shouldSkip, false, "empty accounts fail open");
+        assert.equal(fetchCount, 1, "marker-only connection probes trusted default once");
+      });
+    });
+
+    it("deep-mode native baseUrl still probes the trusted operator endpoint", async () => {
+      await withEnv({ CLIPROXYAPI_MANAGEMENT_KEY: "secret" }, async () => {
+        const probed: string[] = [];
+        const cache = new CliproxyManagementHealthCache({
+          fetcher: async (opts) => {
+            probed.push(`${opts.host}:${opts.port}`);
+            return { state: "ready", accounts: [], version: null };
+          },
+        });
+
+        const gate = await evaluateCliproxyPreflightGate({
+          connection: {
+            id: "conn-deep-mode-native-url",
+            provider: "anthropic",
+            providerSpecificData: {
+              cliproxyapiMode: "claude-native",
+              baseUrl: "https://api.anthropic.com",
+            },
+          },
+          modelStr: "claude-3-7-sonnet",
+          healthCache: cache,
+        });
+
+        assert.equal(gate.shouldSkip, false, "empty accounts fail open");
+        assert.deepEqual(
+          probed,
+          ["127.0.0.1:8317"],
+          "deep-mode native baseUrl still uses the trusted operator endpoint"
+        );
+      });
     });
 
     it("does not call management API for non-CLIProxy generic OpenAI-compatible connections", async () => {
