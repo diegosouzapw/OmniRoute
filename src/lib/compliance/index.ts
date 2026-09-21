@@ -23,6 +23,7 @@ import {
 import { getUserDatabaseSettings } from "../db/databaseSettings";
 import { generateRequestId, getRequestId } from "@/shared/utils/requestId";
 import { HIGH_LEVEL_ACTIONS } from "@/lib/audit/highLevelActions";
+import { isNoLog } from "./noLog";
 
 /** @returns {SqliteAdapter | null} */
 function getDb() {
@@ -127,6 +128,12 @@ const SENSITIVE_AUDIT_KEYS = new Set([
   "clientsecret",
 ]);
 
+export const API_KEY_AUTH_TOUCH_ACTION = "api_key.auth.touch";
+export const API_KEY_AUTH_TOUCH_MAX_ROWS = 1_000;
+const API_KEY_AUTH_TOUCH_COALESCE_MS = 5 * 60 * 1_000;
+const API_KEY_AUTH_TOUCH_PATH_MAX_LENGTH = 256;
+const API_KEY_AUTH_TOUCH_USER_AGENT_MAX_LENGTH = 256;
+
 function normalizeAuditKey(key: string) {
   return key.replace(/[^a-z0-9]/gi, "").toLowerCase();
 }
@@ -171,6 +178,24 @@ function serializeAuditValue(value: unknown): string | null {
   } catch {
     return String(sanitizedValue);
   }
+}
+
+function sanitizeBoundedAuditText(value: unknown, maxLength: number): string | null {
+  if (typeof value !== "string") return null;
+  const sanitized = value
+    .replace(/[\u0000-\u001f\u007f]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return sanitized ? sanitized.slice(0, maxLength) : null;
+}
+
+function normalizeAuditPath(value: unknown): string {
+  const raw = sanitizeBoundedAuditText(value, API_KEY_AUTH_TOUCH_PATH_MAX_LENGTH) || "/";
+  const pathOnly = raw.split(/[?#]/, 1)[0] || "/";
+  return (pathOnly.startsWith("/") ? pathOnly : `/${pathOnly}`).slice(
+    0,
+    API_KEY_AUTH_TOUCH_PATH_MAX_LENGTH
+  );
 }
 
 function parseAuditValue(value: unknown): unknown {
@@ -386,6 +411,101 @@ export function logAuditEvent(entry: {
 }
 
 /**
+ * Record a successful metadata/discovery API-key authentication without
+ * creating an inference call-log row. Identical touches are coalesced for a
+ * short window and the action has its own hard row cap in addition to normal
+ * application-log retention.
+ */
+export function recordApiKeyAuthTouch(entry: {
+  apiKeyId: string;
+  method: string;
+  normalizedPath: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  createdAt?: string;
+}): void {
+  const apiKeyId = sanitizeBoundedAuditText(entry.apiKeyId, 128);
+  if (!apiKeyId || apiKeyId === "env-key" || isNoLog(apiKeyId)) return;
+
+  const method = sanitizeBoundedAuditText(entry.method, 16)?.toUpperCase() || "GET";
+  if (method !== "GET" && method !== "HEAD") return;
+
+  const db = getDb();
+  if (!db) return;
+
+  try {
+    ensureAuditLogSchema(db);
+    const createdAt = entry.createdAt || new Date().toISOString();
+    const createdAtMs = Date.parse(createdAt);
+    const timestamp = Number.isFinite(createdAtMs) ? createdAt : new Date().toISOString();
+    const ipAddress = sanitizeBoundedAuditText(entry.ipAddress, 64);
+    const requestId = sanitizeBoundedAuditText(entry.requestId, 128);
+    const metadata = {
+      method,
+      path: normalizeAuditPath(entry.normalizedPath),
+      userAgent: sanitizeBoundedAuditText(
+        entry.userAgent,
+        API_KEY_AUTH_TOUCH_USER_AGENT_MAX_LENGTH
+      ),
+    };
+    const serializedMetadata = serializeAuditValue(metadata);
+    const cutoff = new Date(
+      (Number.isFinite(createdAtMs) ? createdAtMs : Date.now()) - API_KEY_AUTH_TOUCH_COALESCE_MS
+    ).toISOString();
+
+    const recent = db
+      .prepare(
+        `SELECT id
+         FROM audit_log
+         WHERE action = ? AND target = ? AND status = 'success'
+           AND ip_address IS ? AND metadata IS ? AND timestamp >= ?
+         ORDER BY timestamp DESC, id DESC
+         LIMIT 1`
+      )
+      .get(API_KEY_AUTH_TOUCH_ACTION, apiKeyId, ipAddress, serializedMetadata, cutoff) as
+      { id?: number } | undefined;
+
+    if (recent?.id) {
+      db.prepare(
+        `UPDATE audit_log
+         SET timestamp = ?, request_id = ?
+         WHERE id = ?`
+      ).run(timestamp, requestId, recent.id);
+      return;
+    }
+
+    db.prepare(
+      `INSERT INTO audit_log (
+        timestamp, action, actor, target, details, ip_address,
+        resource_type, status, request_id, metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, 'api_key', 'success', ?, ?)`
+    ).run(
+      timestamp,
+      API_KEY_AUTH_TOUCH_ACTION,
+      "api_key",
+      apiKeyId,
+      serializedMetadata,
+      ipAddress,
+      requestId,
+      serializedMetadata
+    );
+
+    db.prepare(
+      `DELETE FROM audit_log
+       WHERE id IN (
+         SELECT id FROM audit_log
+         WHERE action = ?
+         ORDER BY timestamp DESC, id DESC
+         LIMIT -1 OFFSET ?
+       )`
+    ).run(API_KEY_AUTH_TOUCH_ACTION, API_KEY_AUTH_TOUCH_MAX_ROWS);
+  } catch {
+    // Authentication observability is best effort and must never block a request.
+  }
+}
+
+/**
  * Query audit log entries.
  *
  * @param {Object} [filter={}]
@@ -421,8 +541,7 @@ export function countAuditLog(filter: AuditLogFilter = {}) {
   ensureAuditLogSchema(db);
   const { where, params } = buildAuditLogQuery(filter);
   const row = db.prepare(`SELECT COUNT(*) as count FROM audit_log ${where}`).get(...params) as
-    | { count?: number }
-    | undefined;
+    { count?: number } | undefined;
   return Number(row?.count || 0);
 }
 

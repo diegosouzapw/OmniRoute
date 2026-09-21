@@ -1,9 +1,12 @@
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth.ts";
+import { recordApiKeyAuthTouch } from "@/lib/compliance/index";
+import { classifyIpScope, getClientIpFromRequest } from "@/lib/ipUtils";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { extractApiKey } from "@/sse/services/auth.ts";
 import { extractGoogApiKeyHeader } from "@/sse/services/googApiKeyAuth.ts";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
+import { isViaProxyRequest, requestPeerAddress } from "../peerContext";
 
 const HANDSHAKE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -54,6 +57,34 @@ function maskKeyId(apiKey: string): string {
   return `key_${tail}`;
 }
 
+function redactCredentialFromUserAgent(
+  userAgent: string | null,
+  credentials: Array<string | null | undefined>
+): string | null {
+  if (!userAgent) return null;
+  let sanitized = userAgent;
+  for (const credential of credentials) {
+    if (credential) sanitized = sanitized.split(credential).join("[redacted]");
+  }
+  return sanitized;
+}
+
+function getAuthTouchClientIp(ctx: PolicyContext): string {
+  const peerAddress = requestPeerAddress(ctx);
+  const peerScope = classifyIpScope(peerAddress);
+  const trustedProxyHop =
+    isViaProxyRequest(ctx) && (peerScope === "loopback" || peerScope === "private");
+
+  return getClientIpFromRequest({
+    headers: ctx.request.headers,
+    // A token-validated proxy stamp plus a local/private socket peer is the
+    // app's trusted-proxy boundary. Withhold that hop so ipUtils resolves the
+    // forwarded client. Public/direct peers remain authoritative even if they
+    // spoof forwarding headers.
+    ip: trustedProxyHop ? undefined : (peerAddress ?? undefined),
+  });
+}
+
 export const clientApiPolicy: RoutePolicy = {
   routeClass: "CLIENT_API",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
@@ -77,7 +108,7 @@ export const clientApiPolicy: RoutePolicy = {
       return reject(401, "AUTH_002", "Authentication required");
     }
 
-    const { validateApiKey } = await import("../../../lib/db/apiKeys");
+    const { getApiKeyMetadata, validateApiKey } = await import("../../../lib/db/apiKeys");
     const ok = await validateApiKey(bearer);
     if (!ok) {
       // Issue #2257: when REQUIRE_API_KEY is off, a stale CLI config (Codex
@@ -94,6 +125,24 @@ export const clientApiPolicy: RoutePolicy = {
         return allow({ kind: "anonymous", id: "local" });
       }
       return reject(401, "AUTH_002", "Invalid API key");
+    }
+
+    const method = ctx.request.method.toUpperCase();
+    if (method === "GET" || method === "HEAD") {
+      const metadata = await getApiKeyMetadata(bearer);
+      if (metadata && metadata.id !== "env-key" && metadata.noLog !== true) {
+        recordApiKeyAuthTouch({
+          apiKeyId: metadata.id,
+          method,
+          normalizedPath: ctx.classification.normalizedPath,
+          ipAddress: getAuthTouchClientIp(ctx),
+          userAgent: redactCredentialFromUserAgent(ctx.request.headers.get("user-agent"), [
+            bearer,
+            metadata.keyHash,
+          ]),
+          requestId: ctx.requestId,
+        });
+      }
     }
 
     return allow({ kind: "client_api_key", id: maskKeyId(bearer) });
