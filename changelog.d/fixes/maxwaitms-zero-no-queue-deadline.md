@@ -1,0 +1,1 @@
+- **Rate limit:** `requestQueue.maxWaitMs=0` (the disable sentinel from #12902) no longer trips the #12715 queue-budget gate — every request on a protected connection was rejected with an immediate `503 queue budget` instead of waiting without a queue deadline. Execution stays bounded by `executionMaxWaitMs` and the upstream fetch-start timeout.

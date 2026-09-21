@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import fsSync from "fs";
 import os from "os";
 import path from "path";
-import { spawn, execFileSync } from "child_process";
+import { spawn } from "child_process";
 import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";

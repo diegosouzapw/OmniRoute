@@ -87,6 +87,8 @@ export async function loadRerankProviderNodes(): Promise<DynamicRerankProvider[]
   let nodes: RerankProviderNodeRow[] = [];
   try {
     const rows = await getCachedProviderNodes();
+    // Cached rows are not assignable to RerankProviderNodeRow (TS2677, #13866).
+    // Narrow to a plain object, then project known string fields instead of casting.
     nodes = (Array.isArray(rows) ? rows : [])
       .filter((n): n is Record<string, unknown> => n !== null && typeof n === "object")
       .map((n) => ({
