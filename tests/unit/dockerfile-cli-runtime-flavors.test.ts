@@ -27,6 +27,11 @@ test("Docker-client-free CLI target retains every supported AI CLI", () => {
   for (const cli of ["@openai/codex@", "@anthropic-ai/claude-code@", "droid@", "openclaw@"]) {
     assert.match(core, new RegExp(cli.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+  assert.match(
+    core,
+    /--allow-scripts=[^\s]*@anthropic-ai\/claude-code[^\s]*openclaw/,
+    "native CLI lifecycle scripts must be explicitly allowed so installed tools are runnable"
+  );
 });
 
 test("generic runner-cli remains backward compatible with Docker and Compose clients", () => {
