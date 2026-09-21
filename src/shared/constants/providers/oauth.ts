@@ -307,4 +307,19 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Tencent CodeBuddy CN (copilot.tencent.com). Sign in via the official CLI device-code flow, or paste a direct API key (sent as Authorization: Bearer). Catalog: GLM / Kimi / MiniMax / DeepSeek / Hunyuan.",
   },
+  "muse-code": {
+    id: "muse-code",
+    serviceKinds: ["llm"],
+    alias: "mc",
+    name: "Muse Code (Meta)",
+    icon: "auto_awesome",
+    color: "#0866FF",
+    textIcon: "MC",
+    website: "https://ai.developer.meta.com/docs/muse-code/auth",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    passthroughModels: true,
+    authHint:
+      "Sign in with the Muse Code device flow (same as `muse login` / CLIProxyAPI `-meta-login`) to use a Muse subscription, or paste a META_API_KEY. Device login keeps the durable dca token and mints the inference key; a 401 remints that key. Wire format is OpenAI Responses (POST /responses).",
+  },
 };
