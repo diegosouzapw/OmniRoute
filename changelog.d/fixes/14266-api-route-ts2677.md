@@ -1,0 +1,1 @@
+- **fix(ci):** convert `RerankProviderNodeRow` to a type alias and annotate the Antigravity catalog `.map()` return so the two `TS2677` errors leave the API Route Typecheck frozen baseline ([#14266](https://github.com/diegosouzapw/OmniRoute/pull/14266)) — thanks @HouMinXi

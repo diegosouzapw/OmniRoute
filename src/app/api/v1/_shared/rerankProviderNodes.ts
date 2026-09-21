@@ -22,12 +22,12 @@ import { isEligibleProviderNodeHost } from "@/shared/network/providerNodeHost";
 /** Feature flag gating remote (non-loopback) rerank provider nodes. Default OFF. */
 export const RERANK_REMOTE_NODES_FLAG = "RERANK_REMOTE_PROVIDER_NODES";
 
-export interface RerankProviderNodeRow {
+export type RerankProviderNodeRow = {
   id?: string;
   prefix?: string | null;
   baseUrl?: string | null;
   apiType?: string | null;
-}
+};
 
 export interface DynamicRerankProvider {
   id: string;
