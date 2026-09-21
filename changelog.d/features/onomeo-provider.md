@@ -1,1 +1,0 @@
-- **feat(providers):** Added onomeo as an OpenAI-compatible API-key gateway (`https://onomeo.com/v1`), with live model discovery via `passthroughModels`. The free note states that credits come from a daily check-in (1,200/day, up to 3,500 with a streak) and the published rate limits, and the hint says models are served by third-party upstreams.
