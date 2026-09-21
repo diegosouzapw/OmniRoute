@@ -25,6 +25,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
+const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
 
 // ── OAuth secrets that are optional but warn if missing ─────────────────────
 const OPTIONAL_OAUTH_SECRETS = [
@@ -147,6 +148,59 @@ function hasEncryptedCredentials(dataDir) {
       ? " The better-sqlite3 native binding loaded but did not expose a usable constructor; try `npm rebuild better-sqlite3`."
       : "";
     throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}${hint}`);
+  }
+}
+
+/**
+ * Best-effort check for the dashboard password that the application persists
+ * after first login. The bootstrap script runs before the app's DB layer is
+ * available, so keep this read-only and fail open to the existing warning:
+ * an unavailable, unmigrated, or malformed database must never make a fresh
+ * install look secured.
+ */
+function hasPersistedManagementPasswordHash(dataDir) {
+  const dbPath = join(dataDir, "storage.sqlite");
+  if (!existsSync(dbPath)) return false;
+
+  const isPersistedBcryptHash = (row) => {
+    if (!row || typeof row.value !== "string") return false;
+    try {
+      return BCRYPT_HASH_PATTERN.test(JSON.parse(row.value));
+    } catch {
+      return false;
+    }
+  };
+
+  try {
+    if (process.versions.bun) {
+      const { Database } = require("bun:sqlite");
+      const db = new Database(dbPath, { readonly: true, create: false });
+      try {
+        const row = db
+          .query(
+            "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'password' LIMIT 1"
+          )
+          .get();
+        return isPersistedBcryptHash(row);
+      } finally {
+        db.close();
+      }
+    }
+
+    const Database = require("better-sqlite3");
+    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    try {
+      const row = db
+        .prepare(
+          "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'password' LIMIT 1"
+        )
+        .get();
+      return isPersistedBcryptHash(row);
+    } finally {
+      db.close();
+    }
+  } catch {
+    return false;
   }
 }
 
@@ -289,7 +343,9 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   }
 
   // ── Warn about default password ────────────────────────────────────────────
-  if (merged.INITIAL_PASSWORD === "CHANGEME" || !merged.INITIAL_PASSWORD?.trim()) {
+  const insecureBootstrapPassword =
+    merged.INITIAL_PASSWORD === "CHANGEME" || !merged.INITIAL_PASSWORD?.trim();
+  if (insecureBootstrapPassword && !hasPersistedManagementPasswordHash(dataDir)) {
     log("⚠️  INITIAL_PASSWORD is not set — using default 'CHANGEME'. Change it in Settings!");
   }
 
