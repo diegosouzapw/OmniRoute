@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 
 import { buildErrorBody } from "../../utils/error.ts";
 import type { ExecutorLog } from "../base.ts";
@@ -6,6 +6,7 @@ import type { ExecutorLog } from "../base.ts";
 export interface ClaudeWebStreamOptions {
   model: string;
   stream: boolean;
+  endpointSuffix?: "completion" | "retry_completion";
   responseMetadata: Record<string, string>;
   onComplete(result: { assistantText: string; stopReason: string }): void;
   onFailure(): void;
@@ -13,7 +14,19 @@ export interface ClaudeWebStreamOptions {
 }
 
 type StreamPhase = "awaiting_message" | "in_message" | "stopped" | "failed";
-type BlockKind = "thinking" | "text" | "tool_use" | "other";
+type BlockKind = "thinking" | "redacted_thinking" | "text" | "tool_use";
+type ParserPhase = "sse_decode" | "event_decode" | "protocol_dispatch" | "stream_terminal";
+type ProtocolErrorCategory =
+  | "size_limit"
+  | "malformed_event"
+  | "invalid_order"
+  | "unknown_event"
+  | "unsupported_block"
+  | "unsupported_delta"
+  | "upstream_error"
+  | "premature_done"
+  | "premature_eof"
+  | "internal_error";
 const MAX_CLAUDE_WEB_SSE_PENDING_CHARS = 1024 * 1024;
 type SemanticEvent =
   | { kind: "content"; text: string }
@@ -61,10 +74,98 @@ interface StreamControl {
 }
 
 class ClaudeWebProtocolError extends Error {
-  constructor(message: string) {
+  readonly diagnostic: ClaudeWebProtocolDiagnostic;
+
+  constructor(message: string, diagnostic: ClaudeWebProtocolDiagnostic) {
     super(message);
     this.name = "ClaudeWebProtocolError";
+    this.diagnostic = diagnostic;
   }
+}
+
+interface ClaudeWebProtocolDiagnostic {
+  category: ProtocolErrorCategory;
+  phase: ParserPhase;
+  eventKind?: string;
+  eventKindHash?: string;
+  blockKind?: BlockKind | "unrecognized";
+  blockKindHash?: string;
+  deltaKind?: string;
+  deltaKindHash?: string;
+  index?: number;
+  upstreamErrorType?: string;
+  upstreamErrorCode?: string;
+  upstreamErrorHash?: string;
+  exceptionHash?: string;
+  parserState?: {
+    phase: StreamPhase;
+    openBlockCount: number;
+  };
+}
+
+const ALLOWED_EVENT_KINDS = new Set([
+  "message_start",
+  "content_block_start",
+  "content_block_delta",
+  "content_block_stop",
+  "message_delta",
+  "message_stop",
+  "error",
+  ...KNOWN_METADATA_EVENTS,
+]);
+const ALLOWED_DELTA_KINDS = new Set([
+  "text_delta",
+  "thinking_delta",
+  "thinking_summary_delta",
+  "signature_delta",
+  "input_json_delta",
+]);
+const ALLOWED_UPSTREAM_ERROR_TYPES = new Set([
+  "api_error",
+  "authentication_error",
+  "billing_error",
+  "invalid_request_error",
+  "overloaded_error",
+  "permission_error",
+  "rate_limit_error",
+  "request_too_large",
+]);
+const ALLOWED_UPSTREAM_ERROR_CODES = new Set([
+  "authentication_error",
+  "billing_error",
+  "invalid_request",
+  "overloaded",
+  "permission_denied",
+  "rate_limit",
+  "request_too_large",
+]);
+
+function stableDiagnosticHash(value: string): string {
+  return createHash("sha256").update(value).digest("hex").slice(0, 16);
+}
+
+function safeKnownKind(value: unknown, allowlist: ReadonlySet<string>): string | undefined {
+  return typeof value === "string" && allowlist.has(value) ? value : undefined;
+}
+
+function errorWithState(
+  error: unknown,
+  state: ProtocolState,
+  fallbackPhase: ParserPhase = "protocol_dispatch"
+): ClaudeWebProtocolError {
+  const parserState = { phase: state.phase, openBlockCount: state.openBlocks.size };
+  if (error instanceof ClaudeWebProtocolError) {
+    error.diagnostic.parserState ??= parserState;
+    return error;
+  }
+  const name = error instanceof Error ? error.name : typeof error;
+  const message = error instanceof Error ? error.message : String(error);
+  return new ClaudeWebProtocolError("Unexpected Claude Web parser failure", {
+    category: "internal_error",
+    phase: fallbackPhase,
+    parserState,
+    exceptionHash: stableDiagnosticHash(`${name}:${message}`),
+  });
 }
 
 async function* decodeSseData(
@@ -81,7 +182,10 @@ async function* decodeSseData(
 
   const consumeLine = (rawLine: string): string | null => {
     if (rawLine.length > MAX_CLAUDE_WEB_SSE_PENDING_CHARS) {
-      throw new ClaudeWebProtocolError("SSE line exceeded the size limit");
+      throw new ClaudeWebProtocolError("SSE line exceeded the size limit", {
+        category: "size_limit",
+        phase: "sse_decode",
+      });
     }
     const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
     if (line === "") {
@@ -100,7 +204,10 @@ async function* decodeSseData(
     if (field === "data") {
       dataChars += value.length + (dataLines.length > 0 ? 1 : 0);
       if (dataChars > MAX_CLAUDE_WEB_SSE_PENDING_CHARS) {
-        throw new ClaudeWebProtocolError("SSE event exceeded the size limit");
+        throw new ClaudeWebProtocolError("SSE event exceeded the size limit", {
+          category: "size_limit",
+          phase: "sse_decode",
+        });
       }
       dataLines.push(value);
     }
@@ -125,7 +232,10 @@ async function* decodeSseData(
         newlineIndex = buffer.indexOf("\n");
       }
       if (buffer.length > MAX_CLAUDE_WEB_SSE_PENDING_CHARS) {
-        throw new ClaudeWebProtocolError("SSE line exceeded the size limit");
+        throw new ClaudeWebProtocolError("SSE line exceeded the size limit", {
+          category: "size_limit",
+          phase: "sse_decode",
+        });
       }
     }
 
@@ -171,14 +281,20 @@ function projectMetadataEvent(
 
 function requireRecord(value: unknown, context: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new ClaudeWebProtocolError(`${context} must be an object`);
+    throw new ClaudeWebProtocolError(`${context} must be an object`, {
+      category: "malformed_event",
+      phase: "protocol_dispatch",
+    });
   }
   return value as Record<string, unknown>;
 }
 
 function requireBlockIndex(event: Record<string, unknown>): number {
   if (!Number.isInteger(event.index) || (event.index as number) < 0) {
-    throw new ClaudeWebProtocolError("Content block index is invalid");
+    throw new ClaudeWebProtocolError("Content block index is invalid", {
+      category: "malformed_event",
+      phase: "protocol_dispatch",
+    });
   }
   return event.index as number;
 }
@@ -188,7 +304,10 @@ function deltaText(delta: Record<string, unknown>, fields: string[]): string {
     const value = delta[field];
     if (typeof value === "string") return value;
   }
-  throw new ClaudeWebProtocolError("Content delta text is invalid");
+  throw new ClaudeWebProtocolError("Content delta text is invalid", {
+    category: "malformed_event",
+    phase: "protocol_dispatch",
+  });
 }
 
 function thinkingSummaryText(delta: Record<string, unknown>): string {
@@ -206,9 +325,17 @@ interface ProtocolState {
   stopReason: string;
 }
 
-function protocolFailure(state: ProtocolState, message: string): never {
+function protocolFailure(
+  state: ProtocolState,
+  message: string,
+  diagnostic: Omit<ClaudeWebProtocolDiagnostic, "parserState">
+): never {
+  const parserState = { phase: state.phase, openBlockCount: state.openBlocks.size };
   state.phase = "failed";
-  throw new ClaudeWebProtocolError(message);
+  throw new ClaudeWebProtocolError(message, {
+    ...diagnostic,
+    parserState,
+  });
 }
 
 function assertInMessage(
@@ -217,7 +344,11 @@ function assertInMessage(
   blocksMustBeClosed = false
 ): void {
   if (state.phase !== "in_message" || (blocksMustBeClosed && state.openBlocks.size > 0)) {
-    protocolFailure(state, `${eventType} is out of order`);
+    protocolFailure(state, `${eventType} is out of order`, {
+      category: "invalid_order",
+      phase: "protocol_dispatch",
+      eventKind: safeKnownKind(eventType, ALLOWED_EVENT_KINDS),
+    });
   }
 }
 
@@ -230,29 +361,40 @@ function parseProtocolEvent(
     event = requireRecord(JSON.parse(data), "SSE event");
   } catch (error) {
     if (error instanceof ClaudeWebProtocolError) throw error;
-    protocolFailure(state, "SSE event contains malformed JSON");
+    protocolFailure(state, "SSE event contains malformed JSON", {
+      category: "malformed_event",
+      phase: "event_decode",
+    });
   }
 
   const eventType = event.type;
   if (typeof eventType !== "string" || !eventType) {
-    protocolFailure(state, "SSE event type is missing");
+    protocolFailure(state, "SSE event type is missing", {
+      category: "malformed_event",
+      phase: "event_decode",
+    });
   }
   return { event, eventType };
 }
 
 function handleMessageStart(state: ProtocolState): null {
   if (state.phase !== "awaiting_message") {
-    protocolFailure(state, "message_start is out of order");
+    protocolFailure(state, "message_start is out of order", {
+      category: "invalid_order",
+      phase: "protocol_dispatch",
+      eventKind: "message_start",
+    });
   }
   state.phase = "in_message";
   return null;
 }
 
-function blockKind(block: Record<string, unknown>): BlockKind {
+function blockKind(block: Record<string, unknown>): BlockKind | null {
   if (block.type === "thinking") return "thinking";
+  if (block.type === "redacted_thinking") return "redacted_thinking";
   if (block.type === "text") return "text";
   if (block.type === "tool_use") return "tool_use";
-  return "other";
+  return null;
 }
 
 function handleContentBlockStart(
@@ -261,10 +403,28 @@ function handleContentBlockStart(
 ): SemanticEvent | null {
   assertInMessage(state, "content_block_start");
   const index = requireBlockIndex(event);
-  if (state.openBlocks.has(index)) protocolFailure(state, "Content block was opened twice");
+  if (state.openBlocks.has(index)) {
+    protocolFailure(state, "Content block was opened twice", {
+      category: "invalid_order",
+      phase: "protocol_dispatch",
+      eventKind: "content_block_start",
+      index,
+    });
+  }
 
   const contentBlock = requireRecord(event.content_block, "content_block");
   const kind = blockKind(contentBlock);
+  if (!kind) {
+    const rawKind = typeof contentBlock.type === "string" ? contentBlock.type : "";
+    protocolFailure(state, "Unsupported Claude Web content block", {
+      category: "unsupported_block",
+      phase: "protocol_dispatch",
+      eventKind: "content_block_start",
+      blockKind: "unrecognized",
+      index,
+      ...(rawKind ? { blockKindHash: stableDiagnosticHash(rawKind) } : {}),
+    });
+  }
   state.openBlocks.set(index, kind);
 
   if (kind === "tool_use") {
@@ -292,7 +452,14 @@ function handleContentBlockDelta(
   assertInMessage(state, "content_block_delta");
   const index = requireBlockIndex(event);
   const block = state.openBlocks.get(index);
-  if (!block) protocolFailure(state, "Content delta has no open block");
+  if (!block) {
+    protocolFailure(state, "Content delta has no open block", {
+      category: "invalid_order",
+      phase: "protocol_dispatch",
+      eventKind: "content_block_delta",
+      index,
+    });
+  }
 
   const delta = requireRecord(event.delta, "delta");
   if (delta.type === "text_delta" && block === "text") {
@@ -304,15 +471,40 @@ function handleContentBlockDelta(
   if (delta.type === "thinking_summary_delta" && block === "thinking") {
     return { kind: "reasoning", text: thinkingSummaryText(delta) };
   }
+  if (delta.type === "signature_delta" && block === "thinking") {
+    // Signatures are opaque replay metadata. Validate their shape, but never emit or log them.
+    deltaText(delta, ["signature"]);
+    return null;
+  }
   if (delta.type === "input_json_delta" && block === "tool_use") {
     const toolBlock = state.toolBlocks.get(index);
-    if (!toolBlock) protocolFailure(state, "input_json_delta has no tool block state");
+    if (!toolBlock) {
+      protocolFailure(state, "input_json_delta has no tool block state", {
+        category: "invalid_order",
+        phase: "protocol_dispatch",
+        eventKind: "content_block_delta",
+        blockKind: block,
+        deltaKind: "input_json_delta",
+        index,
+      });
+    }
     if (typeof delta.partial_json === "string") {
       toolBlock.inputParts.push(delta.partial_json);
     }
     return null;
   }
-  return protocolFailure(state, "Content delta type does not match its block");
+  const rawDeltaKind = typeof delta.type === "string" ? delta.type : "";
+  return protocolFailure(state, "Content delta type does not match its block", {
+    category: "unsupported_delta",
+    phase: "protocol_dispatch",
+    eventKind: "content_block_delta",
+    blockKind: block,
+    deltaKind: safeKnownKind(rawDeltaKind, ALLOWED_DELTA_KINDS) ?? "unrecognized",
+    ...(rawDeltaKind && !ALLOWED_DELTA_KINDS.has(rawDeltaKind)
+      ? { deltaKindHash: stableDiagnosticHash(rawDeltaKind) }
+      : {}),
+    index,
+  });
 }
 
 function handleContentBlockStop(
@@ -322,13 +514,28 @@ function handleContentBlockStop(
   assertInMessage(state, "content_block_stop");
   const index = requireBlockIndex(event);
   const kind = state.openBlocks.get(index);
-  if (!kind) protocolFailure(state, "Content block stop has no open block");
+  if (!kind) {
+    protocolFailure(state, "Content block stop has no open block", {
+      category: "invalid_order",
+      phase: "protocol_dispatch",
+      eventKind: "content_block_stop",
+      index,
+    });
+  }
   state.openBlocks.delete(index);
 
   if (kind === "tool_use") {
     const toolBlock = state.toolBlocks.get(index);
     state.toolBlocks.delete(index);
-    if (!toolBlock) protocolFailure(state, "Tool block stop has no tool state");
+    if (!toolBlock) {
+      protocolFailure(state, "Tool block stop has no tool state", {
+        category: "invalid_order",
+        phase: "protocol_dispatch",
+        eventKind: "content_block_stop",
+        blockKind: kind,
+        index,
+      });
+    }
 
     let inputStr = "";
     if (toolBlock.inputParts.length > 0) {
@@ -349,7 +556,11 @@ function handleMessageDelta(event: Record<string, unknown>, state: ProtocolState
   const stopReason = delta.stop_reason;
   if (stopReason === null || stopReason === undefined) return null;
   if (typeof stopReason !== "string" || !stopReason) {
-    protocolFailure(state, "Stop reason is invalid");
+    protocolFailure(state, "Stop reason is invalid", {
+      category: "malformed_event",
+      phase: "protocol_dispatch",
+      eventKind: "message_delta",
+    });
   }
   state.stopReason = stopReason;
   return null;
@@ -380,10 +591,39 @@ function dispatchProtocolEvent(
     case "message_stop":
       return handleMessageStop(state);
     case "error":
-      return protocolFailure(state, "Upstream reported a stream error");
+      return upstreamProtocolFailure(state, event);
     default:
-      return protocolFailure(state, "Unknown Claude Web stream event");
+      return protocolFailure(state, "Unknown Claude Web stream event", {
+        category: "unknown_event",
+        phase: "protocol_dispatch",
+        eventKind: "unrecognized",
+        eventKindHash: stableDiagnosticHash(eventType),
+      });
   }
+}
+
+function upstreamProtocolFailure(state: ProtocolState, event: Record<string, unknown>): never {
+  const upstream =
+    event.error && typeof event.error === "object" && !Array.isArray(event.error)
+      ? (event.error as Record<string, unknown>)
+      : {};
+  const rawType = typeof upstream.type === "string" ? upstream.type : "";
+  const rawCode = typeof upstream.code === "string" ? upstream.code : "";
+  const upstreamErrorType = safeKnownKind(rawType, ALLOWED_UPSTREAM_ERROR_TYPES);
+  const upstreamErrorCode = safeKnownKind(rawCode, ALLOWED_UPSTREAM_ERROR_CODES);
+  const unknownIdentity = [upstreamErrorType ? "" : rawType, upstreamErrorCode ? "" : rawCode].join(
+    ":"
+  );
+  return protocolFailure(state, "Upstream reported a stream error", {
+    category: "upstream_error",
+    phase: "protocol_dispatch",
+    eventKind: "error",
+    ...(upstreamErrorType ? { upstreamErrorType } : {}),
+    ...(upstreamErrorCode ? { upstreamErrorCode } : {}),
+    ...(unknownIdentity !== ":"
+      ? { upstreamErrorHash: stableDiagnosticHash(unknownIdentity) }
+      : {}),
+  });
 }
 
 async function* parseClaudeWebEvents(
@@ -397,25 +637,35 @@ async function* parseClaudeWebEvents(
     stopReason: "end_turn",
   };
 
-  for await (const data of decodeSseData(source, control)) {
-    if (data === "[DONE]") {
-      protocolFailure(state, "DONE arrived before message_stop");
+  try {
+    for await (const data of decodeSseData(source, control)) {
+      if (data === "[DONE]") {
+        protocolFailure(state, "DONE arrived before message_stop", {
+          category: "premature_done",
+          phase: "stream_terminal",
+        });
+      }
+
+      const { event, eventType } = parseProtocolEvent(data, state);
+      if (KNOWN_METADATA_EVENTS.has(eventType)) {
+        yield { kind: "metadata", eventType, data: projectMetadataEvent(eventType, event) };
+        continue;
+      }
+
+      const semanticEvent = dispatchProtocolEvent(eventType, event, state);
+      if (!semanticEvent) continue;
+      yield semanticEvent;
+      if (semanticEvent.kind === "finish") return;
     }
 
-    const { event, eventType } = parseProtocolEvent(data, state);
-    if (KNOWN_METADATA_EVENTS.has(eventType)) {
-      yield { kind: "metadata", eventType, data: projectMetadataEvent(eventType, event) };
-      continue;
-    }
-
-    const semanticEvent = dispatchProtocolEvent(eventType, event, state);
-    if (!semanticEvent) continue;
-    yield semanticEvent;
-    if (semanticEvent.kind === "finish") return;
+    if (control.cancelled) return;
+    protocolFailure(state, "Claude Web stream ended before message_stop", {
+      category: "premature_eof",
+      phase: "stream_terminal",
+    });
+  } catch (error) {
+    throw errorWithState(error, state);
   }
-
-  if (control.cancelled) return;
-  throw new ClaudeWebProtocolError("Claude Web stream ended before message_stop");
 }
 
 function openAiFinishReason(stopReason: string): string {
@@ -458,6 +708,36 @@ function protocolErrorBody(): Record<string, unknown> {
     code: "claude_web_protocol_error",
   });
   return body as unknown as Record<string, unknown>;
+}
+
+function protocolDiagnosticForLog(
+  error: unknown,
+  options: ClaudeWebStreamOptions
+): Record<string, unknown> {
+  const endpointSuffix =
+    options.endpointSuffix === "completion" || options.endpointSuffix === "retry_completion"
+      ? options.endpointSuffix
+      : "unknown";
+  if (error instanceof ClaudeWebProtocolError) {
+    return { endpointSuffix, ...error.diagnostic };
+  }
+  const name = error instanceof Error ? error.name : typeof error;
+  const message = error instanceof Error ? error.message : String(error);
+  return {
+    endpointSuffix,
+    category: "internal_error",
+    phase: "protocol_dispatch",
+    exceptionHash: stableDiagnosticHash(`${name}:${message}`),
+  };
+}
+
+function logProtocolFailure(error: unknown, options: ClaudeWebStreamOptions): void {
+  options.log?.error?.(
+    "CLAUDE-WEB-STREAM",
+    `Claude Web stream protocol validation failed ${JSON.stringify(
+      protocolDiagnosticForLog(error, options)
+    )}`
+  );
 }
 
 function responseHeaders(contentType: string, metadata: Record<string, string>): Headers {
@@ -565,8 +845,8 @@ async function createBufferedResponse(
         headers: responseHeaders("application/json", options.responseMetadata),
       }
     );
-  } catch {
-    options.log?.error?.("CLAUDE-WEB-STREAM", "Claude Web stream protocol validation failed");
+  } catch (error) {
+    logProtocolFailure(error, options);
     notifyFailure(options);
     return new Response(JSON.stringify(protocolErrorBody()), {
       status: 502,
@@ -697,8 +977,12 @@ async function queueSemanticEvent(
   state.terminal = true;
 }
 
-function queueStreamFailure(state: StreamingState, options: ClaudeWebStreamOptions): void {
-  options.log?.error?.("CLAUDE-WEB-STREAM", "Claude Web stream protocol validation failed");
+function queueStreamFailure(
+  state: StreamingState,
+  options: ClaudeWebStreamOptions,
+  error: unknown
+): void {
+  logProtocolFailure(error, options);
   failStreamOnce(state, options);
   state.pendingChunks.push(encodeStreamEvent(state, protocolErrorBody()));
   state.pendingChunks.push(state.encoder.encode("data: [DONE]\n\n"));
@@ -721,7 +1005,10 @@ async function pullStreamingChunk(
       const next = await state.iterator.next();
       if (state.control.cancelled) return;
       if (next.done === true) {
-        throw new ClaudeWebProtocolError("Claude Web stream ended without a terminal event");
+        throw new ClaudeWebProtocolError("Claude Web stream ended without a terminal event", {
+          category: "premature_eof",
+          phase: "stream_terminal",
+        });
       }
       await queueSemanticEvent(state, next.value, options);
       if (state.pendingChunks.length > 0) {
@@ -729,9 +1016,9 @@ async function pullStreamingChunk(
         return;
       }
     }
-  } catch {
+  } catch (error) {
     if (state.control.cancelled) return;
-    queueStreamFailure(state, options);
+    queueStreamFailure(state, options, error);
     flushStreamChunk(state, controller);
   }
 }

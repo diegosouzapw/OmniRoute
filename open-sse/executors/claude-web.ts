@@ -16,7 +16,6 @@ import {
   BaseExecutor,
   mergeAbortSignals,
   type ExecuteInput,
-  type ExecutorLog,
   type ProviderCredentials,
 } from "./base.ts";
 import {
@@ -516,6 +515,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
       const response = await createClaudeWebResponse(transportResult.body, {
         model,
         stream,
+        endpointSuffix: turn.endpointSuffix,
         responseMetadata: turn.responseMetadata,
         onComplete: ({ assistantText }) => commitClaudeWebTurn(turn, assistantText),
         onFailure: () => invalidateClaudeWebTurn(turn),
