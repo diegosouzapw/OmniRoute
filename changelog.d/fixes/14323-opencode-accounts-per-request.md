@@ -1,0 +1,1 @@
+- **fix(opencode):** Keep each request on its own member list so concurrent requests no longer replace each other's list ([#14323](https://github.com/diegosouzapw/OmniRoute/pull/14323)) — thanks @maxmad64bis
