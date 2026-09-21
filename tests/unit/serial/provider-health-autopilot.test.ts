@@ -165,6 +165,35 @@ test("provider health autopilot keeps disabled-only inventory visible without de
   assert.equal(terminal.issues[0].severity, "critical");
 });
 
+test("provider health autopilot keeps active info-only diagnostics healthy", async () => {
+  const providerId = "active-info-only-provider";
+  await providersDb.createProviderConnection({
+    provider: providerId,
+    authType: "apikey",
+    name: "active-with-stale-error",
+    apiKey: "test-key",
+    isActive: true,
+    testStatus: "unavailable",
+    lastError: "historical upstream error",
+    lastErrorType: "upstream_error",
+    errorCode: "503",
+  });
+
+  const report = await autopilot.buildProviderHealthAutopilotReport({
+    provider: providerId,
+    includeHealthy: false,
+  });
+
+  assert.equal(report.status, "healthy");
+  assert.equal(report.summary.providerCount, 1);
+  assert.equal(report.summary.healthyCount, 1);
+  assert.equal(report.summary.issueCount, 1);
+  assert.equal(report.providers.length, 1);
+  assert.equal(report.providers[0].state, "healthy");
+  assert.equal(report.providers[0].issues[0].kind, "stale_connection_error");
+  assert.equal(report.providers[0].issues[0].severity, "info");
+});
+
 test("provider health autopilot summary and status do not depend on healthy-row filtering", async () => {
   const baseline = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
   await providersDb.createProviderConnection({
