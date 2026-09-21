@@ -136,7 +136,10 @@ describe("provider page — proxy save refreshes per-connection proxy badges", (
         hook = hookResult;
       }, [hookResult]);
 
-      const panelProps = {
+// Harness mirrors the real page partially: the panel only consumes the
+      // proxy-refresh slice, so props are filled as Partial and cast once at the
+      // render boundary below.
+      const panelProps: Partial<React.ComponentProps<typeof ProviderModalsPanel>> = {
         providerId: "codex",
         providerInfo: { name: "Codex" },
         isCompatible: false,
@@ -179,7 +182,6 @@ describe("provider page — proxy save refreshes per-connection proxy badges", (
         emailsVisible: false,
         proxyTarget,
         setProxyTarget,
-        fetchProxyConfig: hookResult.fetchProxyConfig,
         refreshProxyState: hookResult.refreshProxyState,
         importProgress: {
           current: 0,
@@ -195,7 +197,10 @@ describe("provider page — proxy save refreshes per-connection proxy badges", (
         t: (key: string) => key,
       };
 
-      return <ProviderModalsPanel {...(panelProps as never)} />;
+      // The panel requires the full props contract; this harness exercises only the
+      // proxy-refresh slice, so the partial bag is asserted once at the boundary
+      // (the replaced `as never` cast is itself a TS2698 error).
+      return <ProviderModalsPanel {...(panelProps as React.ComponentProps<typeof ProviderModalsPanel>)} />;
     }
 
     await act(async () => {

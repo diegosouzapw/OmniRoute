@@ -42,10 +42,22 @@ import {
   isSidebarItemVisibleForFlags,
   resolveRuntimeSidebarSections,
   type SidebarSectionId,
+  type SidebarSectionDefinition,
   type SidebarItemDefinition,
   type SidebarItemGroup,
   type SidebarItemOrder,
 } from "@/shared/constants/sidebarVisibility";
+
+/**
+ * A section after title resolution (the render form used below). Children stay
+ * `any[]` like the pre-existing `visibleSections` inference: the search helper
+ * only reads `label`/`items`, and the runtime children mix labeled items with
+ * enriched groups (extra `title`/`separatorHidden` props).
+ */
+type DisplaySection = Omit<SidebarSectionDefinition, "children" | "title"> & {
+  title: string;
+  children: any[];
+};
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 const DEFAULT_EXPANDED: SidebarSectionId = "omni-proxy";
@@ -349,12 +361,14 @@ export default function Sidebar({
 
   const homeIndex = visibleSections.findIndex((s) => s.id === "home");
   const insertIndex = homeIndex >= 0 ? homeIndex + 1 : 0;
-  const sectionsWithPinned =
+  const sectionsWithPinned: readonly DisplaySection[] =
     pinnedItemList.length > 0
       ? [
           ...visibleSections.slice(0, insertIndex),
           {
             id: "pinned" as SidebarSectionId,
+            titleKey: "pinnedSection",
+            titleFallback: "Pinned",
             title: getSidebarLabel("pinnedSection", "Pinned"),
             children: pinnedItemList,
           },

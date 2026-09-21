@@ -1,0 +1,1 @@
+- **fix(dashboard):** the sidebar pinned-section entry and the provider proxy-refresh test harness no longer carry type errors that fail the dashboard typecheck gate; both fixes are annotation-level, with no behavior change.
