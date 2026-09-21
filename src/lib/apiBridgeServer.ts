@@ -2,6 +2,7 @@ import http from "http";
 import type { IncomingMessage, ServerResponse } from "http";
 import net from "net";
 import { getRuntimePorts } from "@/lib/runtime/ports";
+import { warnIfNonLoopbackWithoutApiKey } from "@/lib/startup/nonLoopbackApiKeyGuard";
 import { getApiBridgeTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 import {
   attachRequestStreamGuards,
@@ -184,6 +185,7 @@ export function initApiBridgeServer(): void {
   if (apiPort === dashboardPort) return;
 
   const host = process.env.API_HOST || "127.0.0.1";
+  warnIfNonLoopbackWithoutApiKey("API bridge", host);
 
   const server = http.createServer((req, res) => {
     // Absorb client-abort errors (browser closes the socket during navigation/

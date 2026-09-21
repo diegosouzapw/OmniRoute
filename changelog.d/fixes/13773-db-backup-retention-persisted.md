@@ -1,0 +1,1 @@
+- **fix(db):** Health-check-repair backup pruning now resolves `maxFiles`/`retentionDays` from the persisted Storage-page setting (not just env vars), matching manual/API/auto backups. ([#13308](https://github.com/diegosouzapw/OmniRoute/issues/13308))

@@ -1,1 +1,0 @@
-- **feat(gamification):** enforce the documented 1000 XP/min per-API-key anti-cheat rate limit on the XP award path; over-limit awards are logged and skipped instead of persisted, and the sliding window now matches the timestamp format stored in `xp_audit_log` ([#2403](https://github.com/diegosouzapw/OmniRoute/issues/2403))

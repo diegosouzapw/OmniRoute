@@ -1,6 +1,6 @@
 import { AutoComboConfig } from "./engine";
 import { MODE_PACKS } from "./modePacks";
-import { DEFAULT_WEIGHTS, ScoringWeights } from "./scoring";
+import { DEFAULT_WEIGHTS, reliabilityFactor, ScoringWeights } from "./scoring";
 import { getCachedProviderConnections } from "@/lib/db/readCache";
 import { getSettings } from "@/lib/db/settings";
 import { getProviderRegistry } from "./providerRegistryAccessor";
@@ -26,11 +26,15 @@ import {
   type AutoTier,
 } from "./suffixComposition";
 import { classifyTier } from "../tierResolver";
+import { getQualityScore } from "../routing/quality.ts";
+import { readBreakerStates, snapshotHealthFactor, type BreakerState } from "./snapshotBreaker.ts";
+import { resolveVirtualCost } from "../providerCostData";
 import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { getSyncedAvailableModelsByConnection, getCustomModels } from "@/lib/db/models";
-import { filterPaidOnlyCandidates } from "./paidModelFilter";
+import { filterPaidOnlyCandidatesWithDiagnosis } from "./paidModelFilter";
+import { filterLockoutCandidates, warnPoolDrop } from "./modelLockoutFilter";
 import { filterModelExposureCandidates } from "./modelExposureFilter";
 import {
   filterSubscriptionOnlyCandidates,
@@ -39,6 +43,7 @@ import {
 } from "./subscriptionLadder";
 import {
   classifyStrictZeroCostCandidate,
+  countStrictExclusions,
   filterStrictZeroCostCandidates,
   filterTosAvoidCandidates,
   findBudgetEntry,
@@ -105,12 +110,16 @@ export interface VirtualAutoComboCandidate {
   model: string;
   modelStr: string; // e.g., 'openai/gpt-4o'
   costPer1MTokens: number; // from providerRegistry
+  /** Observed failure rate 0..1 when known; null/absent reads fully reliable. */
+  failureRate?: number | null;
   /** Build-local capability snapshot. Runtime calls rebuild it; catalog entries reuse it. */
   resolvedContextLength?: number | null;
   resolvedMaxOutputTokens?: number | null;
   resolvedSupportsVision?: boolean;
   resolvedReasoning?: boolean;
   resolvedSupportsThinking?: boolean;
+  /** Observed feedback quality 0..1 (the same signal as ProviderCandidate.quality). */
+  quality?: number | null;
   /**
    * Why STRICT_ZERO_COST would exclude this candidate, or null when it would
    * not. Only populated for the read-only inspector build (`skip`), where the
@@ -330,7 +339,7 @@ const SYNTHETIC_NOAUTH_CONNECTION_ID = RESILIENCE_NOAUTH_CONNECTION_ID;
 // candidate pool. Narrowed to the backends verified to answer without any
 // configuration on our reference egress (VPS .15): `opencode` returns 200
 // there, while duckduckgo-web (429/VQD rate limit),
-// chipotle (502), aihorde (401, anon key rejected)
+// aihorde (401, anon key rejected)
 // and the others are unreliable. The excluded providers stay fully usable via
 // direct `<alias>/<model>` calls — they are just kept OUT of auto-routing until
 // re-verified. Re-add an id here to bring it back into every auto/* pool.
@@ -440,7 +449,7 @@ function getNoAuthCandidates(
         connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
         model: modelId,
         modelStr: `${routingPrefix}/${modelId}`,
-        costPer1MTokens: 0,
+        costPer1MTokens: resolveVirtualCost(providerId, modelId),
       });
     }
   }
@@ -544,7 +553,7 @@ function yieldVirtualAutoPreparationTurn(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function attachPreparedCapabilityValues(
+export async function attachPreparedCapabilityValues(
   candidates: readonly VirtualAutoComboCandidate[],
   state: PreparedCapabilityState
 ): Promise<VirtualAutoComboCandidate[]> {
@@ -591,7 +600,11 @@ async function attachPreparedCapabilityValues(
         await yieldVirtualAutoPreparationTurn();
       }
     }
-    prepared.push({ ...candidate, ...values });
+    prepared.push({
+      ...candidate,
+      ...values,
+      quality: getQualityScore(candidate.provider, candidate.model),
+    });
   }
   return prepared;
 }
@@ -672,10 +685,21 @@ export async function prepareVirtualAutoComboInputs(
     // back to the static catalog only when the user has none. This keeps catalog-only
     // models (e.g. openrouter/auto) out of every auto/* pool when the operator only
     // synced a subset (e.g. OpenRouter with importFreeModelsOnly).
-    const [syncedByConnection, customModels] = await Promise.all([
+    const [syncedByConnection, rawCustomModels] = await Promise.all([
       getSyncedAvailableModelsByConnection(providerId),
       getCustomModels(providerId),
     ]);
+    // The `customModels` key_value blob is operator-writable and is stored as raw
+    // parsed JSON, so a row can be `null` or a non-object. The catalog builder
+    // already filters those out (catalog.ts, "Add custom models"); without the same
+    // filter here every read below null-derefs and the whole auto/* pool fails to
+    // materialize ("Could not materialize built-in auto model auto/<id>").
+    const customModels: Array<{ id?: string }> = (
+      Array.isArray(rawCustomModels) ? rawCustomModels : []
+    ).filter(
+      (model: unknown): model is { id?: string } =>
+        !!model && typeof model === "object" && !Array.isArray(model)
+    );
     const userVisibleIds = new Set<string>();
     for (const models of Object.values(syncedByConnection)) {
       for (const m of models) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
@@ -718,7 +742,7 @@ export async function prepareVirtualAutoComboInputs(
         allowedConnectionIds,
         model: modelId,
         modelStr: `${providerId}/${modelId}`,
-        costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
+        costPer1MTokens: resolveVirtualCost(providerId, modelId),
       });
     }
   }
@@ -749,8 +773,13 @@ export async function prepareVirtualAutoComboInputs(
 
     // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
     // exclude paid-only backends from EVERY `auto/*` candidate pool.
-    const paidFilteredPool = filterPaidOnlyCandidates(pool, settings.hidePaidModels === true);
-    if (paidFilteredPool !== pool) pool = paidFilteredPool;
+    const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
+    warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
+    pool = paid.pool;
+
+    const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
+    warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
+    if (lockout) pool = lockout.pool;
 
     // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
@@ -772,15 +801,20 @@ export async function prepareVirtualAutoComboInputs(
       maxStateAgeMs: toNumber(settings.autoRefreshProviderQuotaInterval, 180) * 1000,
     };
     const strictZeroCostOn = settings.freeAccessPolicy === "strict";
-    const strictFilteredPool = filterStrictZeroCostCandidates(pool, {
+    const strictOptions = {
       // The read-only candidate inspector (#9133) must be able to see what the
       // guard would exclude, and why — the same opt-out the resilience filter
       // already honours through `skip`. Dispatch (`skip === false`) is unaffected.
       enabled: strictZeroCostOn && !skip,
       resolveFreeAccessState,
       ...strictZeroCostThresholds,
-    });
-    if (strictFilteredPool !== pool) pool = strictFilteredPool;
+    };
+    const strictFilteredPool = filterStrictZeroCostCandidates(pool, strictOptions);
+    if (strictFilteredPool !== pool) {
+      const s = countStrictExclusions(pool, strictOptions);
+      warnPoolDrop(log, "STRICT", s.excluded, pool.length, ` (no-hard-stop ${s.noHardStop})`);
+      pool = strictFilteredPool;
+    }
 
     // Annotate here rather than in the handler: this is where the thresholds and
     // `resolveFreeAccessState` already live. Doing it downstream would mean a second
@@ -846,7 +880,8 @@ export async function prepareVirtualAutoComboInputs(
  */
 export function computeSnapshotWeights(
   candidates: readonly VirtualAutoComboCandidate[],
-  weights: ScoringWeights
+  weights: ScoringWeights,
+  breakerByProvider?: ReadonlyMap<string, BreakerState>
 ): Map<string, number> {
   const scores = new Map<string, number>();
   for (const c of candidates) {
@@ -884,8 +919,14 @@ export function computeSnapshotWeights(
     // (no runtime data at snapshot time, so equal baseline)
     if (weights.latencyInv > 0) score += weights.latencyInv * 0.5;
 
-    // health + quota: no runtime telemetry at snapshot time → neutral baseline
-    score += (weights.health + weights.quota) * 0.5;
+    // reliability (#12792): the same failure-rate factor as scoring.ts; absent reads as
+    // fully reliable. The snapshot path was the only one still ignoring it.
+    if (weights.reliability > 0) score += weights.reliability * reliabilityFactor(c);
+
+    // health: build-time breaker state (OPEN 0, CLOSED 1, else neutral 0.5); quota stays neutral
+    score += weights.health * snapshotHealthFactor(breakerByProvider, c.provider);
+    score += weights.quota * 0.5;
+    score += (weights.quality ?? 0) * (Number.isFinite(c.quality) ? Number(c.quality) : 0.5);
 
     scores.set(c.modelStr, Math.min(score, 1));
   }
@@ -1086,7 +1127,8 @@ export async function createVirtualAutoComboFromPrepared(
   }
 
   const providerPool = [...new Set(effectivePool.map((c) => c.provider))];
-  const snapshotScores = computeSnapshotWeights(effectivePool, weights);
+  const breakerStates = readBreakerStates(providerPool);
+  const snapshotScores = computeSnapshotWeights(effectivePool, weights, breakerStates);
   const models = effectivePool.map((candidate, index) => ({
     id: `virtual-auto-${variant || "default"}-${index + 1}-${candidate.provider}`,
     kind: "model" as const,

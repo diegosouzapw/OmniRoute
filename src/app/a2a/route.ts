@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
   const tm = getTaskManager();
   // GHSA-jcm5-6wpp-wjj8: scope every task read/mutation below to the caller's
   // owner id (hashed API key; undefined under the keyless local-first posture).
-  const callerOwner = resolveA2AOwner(req);
+  const callerOwner = await resolveA2AOwner(req);
 
   // A2A 1.0 method-name compatibility (SendMessage → message/send, etc.)
   const isV1Method = method in V1_METHOD_ALIASES;

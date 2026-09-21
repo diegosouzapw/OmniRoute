@@ -11,6 +11,13 @@
 
 import { createConnection } from "node:net";
 import { stripIpv6Brackets } from "@omniroute/open-sse/utils/proxyFamily";
+import {
+  hasProxyRefusals,
+  noteProxyRecovered,
+  noteProxyRefusal,
+  proxyEgressKey,
+} from "@omniroute/open-sse/utils/proxyRefusalMemory";
+import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
 
 // Configurable via env vars
 const FAST_FAIL_TIMEOUT_MS = parseInt(process.env.PROXY_FAST_FAIL_TIMEOUT_MS ?? "2000", 10);
@@ -32,6 +39,19 @@ const proxyHealthInflight = new Map<string, Promise<boolean>>();
 
 type TcpCheck = (host: string, port: number, timeoutMs: number) => Promise<boolean>;
 let tcpCheckImpl: TcpCheck = tcpCheck;
+
+// Feed a real probe verdict to proxy selection (opt-in, PROXY_SKIP_RECENTLY_FAILED): a proxy
+// that refused the TCP connection is set aside by pools and account rotation, and taken back
+// as soon as it answers again. With the flag off nothing is ever written.
+function noteProbeVerdict(proxyUrl: string, healthy: boolean): void {
+  if (healthy) {
+    if (hasProxyRefusals()) noteProxyRecovered(proxyEgressKey(proxyUrl), "proxy_unreachable");
+    return;
+  }
+  if (isProxySkipRecentlyFailedEnabled()) {
+    noteProxyRefusal(proxyEgressKey(proxyUrl), "proxy_unreachable");
+  }
+}
 
 /**
  * T14: Perform a fast TCP check to see if a proxy host:port is reachable.
@@ -83,6 +103,8 @@ export async function isProxyReachable(
   }
 
   const probe = tcpCheckImpl(host, port, timeoutMs).then((healthy) => {
+    // Before the cache write, so the verdict's TTL starts after the (flag-gated) note.
+    noteProbeVerdict(proxyUrl, healthy);
     proxyHealthCache.set(proxyUrl, {
       healthy,
       checkedAt: Date.now(),

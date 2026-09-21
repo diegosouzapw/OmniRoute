@@ -4,19 +4,65 @@
  *
  * Extracted from chatCore: identify semaphore capacity errors, build a sanitized SSE error result
  * (an `data: {...}\n\ndata: [DONE]\n\n` body wrapped in an event-stream Response), and pull a string
- * error code off an unknown error. Side-effect-free; behaviour is byte-identical to the previous
- * module-level functions.
+ * error code off an unknown error. The status and SSE envelope remain stable while every public
+ * message/code/type crosses the canonical sanitizer; raw internal fields stay outside this body.
  */
 
-import { buildErrorBody } from "../../utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../../utils/error.ts";
+
+export interface SafeErrorMetadata {
+  code?: string;
+  errorCode?: string;
+  message?: string;
+  name?: string;
+  status?: number;
+}
+
+function readErrorProperty(error: object, property: string): unknown {
+  try {
+    return Reflect.get(error, property);
+  } catch {
+    // Provider rejections may be hostile Proxies; public error handling fails closed per field.
+    return undefined;
+  }
+}
+
+export function getSafeErrorMetadata(error: unknown): SafeErrorMetadata {
+  if (error === null || (typeof error !== "object" && typeof error !== "function")) {
+    return {};
+  }
+  const code = readErrorProperty(error, "code");
+  const errorCode = readErrorProperty(error, "errorCode");
+  const message = readErrorProperty(error, "message");
+  const name = readErrorProperty(error, "name");
+  const status = readErrorProperty(error, "status");
+  return {
+    code: typeof code === "string" && code.length > 0 ? code : undefined,
+    errorCode: typeof errorCode === "string" && errorCode.length > 0 ? errorCode : undefined,
+    message: typeof message === "string" && message.length > 0 ? message : undefined,
+    name: typeof name === "string" && name.length > 0 ? name : undefined,
+    status: typeof status === "number" && Number.isFinite(status) ? status : undefined,
+  };
+}
+
+export function createSafeAbortError(): Error {
+  const error = new Error("Request aborted");
+  error.name = "AbortError";
+  return error;
+}
+
+export function formatStreamRecoveryRetryWarning(
+  attempt: number,
+  maxAttempts: number,
+  error: unknown
+): string {
+  const safeName = sanitizeErrorMessage(getSafeErrorMetadata(error).name) || "truncation";
+  return `transparent early-retry ${attempt}/${maxAttempts} after ${safeName}`;
+}
 
 export function isSemaphoreCapacityError(error: unknown): error is Error & { code: string } {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    ((error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT" ||
-      (error as { code?: unknown }).code === "SEMAPHORE_QUEUE_FULL")
-  );
+  const code = getSafeErrorMetadata(error).code;
+  return code === "SEMAPHORE_TIMEOUT" || code === "SEMAPHORE_QUEUE_FULL";
 }
 
 export function createStreamingErrorResult(
@@ -25,13 +71,7 @@ export function createStreamingErrorResult(
   code?: string,
   type?: string
 ) {
-  const errorBody = buildErrorBody(statusCode, message);
-  if (code) {
-    errorBody.error.code = code;
-  }
-  if (type) {
-    errorBody.error.type = type;
-  }
+  const errorBody = buildErrorBody(statusCode, message, undefined, { code, type });
 
   const body = `data: ${JSON.stringify(errorBody)}\n\ndata: [DONE]\n\n`;
 
@@ -52,7 +92,5 @@ export function createStreamingErrorResult(
 }
 
 export function getUpstreamErrorIdentifier(error: unknown): string | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const value = (error as { code?: unknown }).code;
-  return typeof value === "string" && value.length > 0 ? value : undefined;
+  return getSafeErrorMetadata(error).code;
 }

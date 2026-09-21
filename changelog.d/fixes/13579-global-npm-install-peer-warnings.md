@@ -1,0 +1,1 @@
+- **fix(cli):** `omniroute update` now passes `--legacy-peer-deps` to `npm install -g`, suppressing the `ERESOLVE` / peer-dependency wall seen on fresh global installs; dry-run output reflects the same flag; troubleshooting guide documents the supported install form (#13579 — thanks @prabhu-omkar)

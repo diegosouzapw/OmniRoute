@@ -4,7 +4,7 @@ import pino from "pino";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 
 import { getProviderMetrics } from "@/lib/db/callLogStats";
-import { toNumber } from "@/shared/utils/numeric";
+import { toNumber, toNumberOrNull } from "@/shared/utils/numeric";
 
 const logger = pino({ name: "provider-metrics-api" });
 
@@ -22,7 +22,7 @@ export async function GET() {
         totalRequests: number;
         totalSuccesses: number;
         successRate: number;
-        avgLatencyMs: number;
+        avgLatencyMs: number | null;
         lastRequestAt: string | null;
         lastErrorAt: string | null;
         lastStatus: number | null;
@@ -41,7 +41,7 @@ export async function GET() {
           : "unknown";
       const totalRequests = toNumber(row.totalRequests);
       const totalSuccesses = toNumber(row.totalSuccesses);
-      const avgLatencyMs = toNumber(row.avgLatencyMs);
+      const avgLatencyMs = toNumberOrNull(row.avgLatencyMs);
       const lastRequestAt = typeof row.lastRequestAt === "string" ? row.lastRequestAt : null;
       const lastErrorAt = typeof row.lastErrorAt === "string" ? row.lastErrorAt : null;
       const lastStatus = row.lastStatus == null ? null : toNumber(row.lastStatus);
@@ -66,8 +66,7 @@ export async function GET() {
       // Only flag as errorProvider if the provider's MOST RECENT request was itself
       // a failure. A provider with a historical lastErrorAt but a recent success
       // (lastStatus 2xx/3xx) must not be shown as currently errored (#3619).
-      const isCurrentlyInError =
-        lastStatus !== null && (lastStatus < 200 || lastStatus >= 400);
+      const isCurrentlyInError = lastStatus !== null && (lastStatus < 200 || lastStatus >= 400);
       const errorTs = isCurrentlyInError && lastErrorAt ? Date.parse(lastErrorAt) : 0;
       if (Number.isFinite(errorTs) && errorTs > errorProviderTs) {
         errorProvider = provider;

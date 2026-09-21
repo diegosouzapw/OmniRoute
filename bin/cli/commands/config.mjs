@@ -16,6 +16,29 @@ function ensureBackup(configPath) {
   return backupPath;
 }
 
+function mergeClaudeSettings(existingContent, generatedContent) {
+  const generated = JSON.parse(generatedContent);
+  let current = {};
+  if (existingContent && existingContent.trim()) {
+    current = JSON.parse(existingContent);
+    if (!current || typeof current !== "object" || Array.isArray(current)) current = {};
+  }
+  return JSON.stringify(
+    {
+      ...current,
+      ...generated,
+      env: {
+        ...(current.env && typeof current.env === "object" && !Array.isArray(current.env)
+          ? current.env
+          : {}),
+        ...(generated.env || {}),
+      },
+    },
+    null,
+    2
+  );
+}
+
 async function runConfigListCommand(opts = {}) {
   const { detectAllTools } = await import("../../../src/lib/cli-helper/tool-detector.ts");
   const tools = await detectAllTools();
@@ -120,7 +143,12 @@ async function runConfigSetCommand(toolId, opts = {}) {
   const backupPath = ensureBackup(result.configPath);
   if (backupPath) printInfo(`Backup saved to: ${backupPath}`);
 
-  fs.writeFileSync(result.configPath, result.content, "utf-8");
+  let content = result.content;
+  if (toolId === "claude" && fs.existsSync(result.configPath)) {
+    content = mergeClaudeSettings(fs.readFileSync(result.configPath, "utf-8"), result.content);
+  }
+
+  fs.writeFileSync(result.configPath, content, "utf-8");
   printSuccess(`Config written to ${result.configPath}`);
   return 0;
 }

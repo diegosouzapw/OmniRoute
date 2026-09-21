@@ -295,7 +295,8 @@ export function shouldProtectOriginalFirst(
     strategy === "weighted" ||
     strategy === "priority" ||
     strategy === "fill-first" ||
-    strategy === "lkgp"
+    strategy === "lkgp" ||
+    strategy === "quota-weighted"
   );
 }
 

@@ -27,6 +27,8 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       ["rate_limit_protection", "INTEGER DEFAULT 0"],
       ["last_used_at", "TEXT"],
       ["default_model", "TEXT"], // legacy-schema hole; later data migrations read it
+      ["last_ping_at", "TEXT"], // added by 123_quota_auto_ping; back-filled here for divergent lineages
+      ["last_pinged_reset_key", "TEXT"], // added by 123_quota_auto_ping; back-filled here for divergent lineages
     ]) {
       if (!columnNames.has(column)) {
         db.exec(`ALTER TABLE provider_connections ADD COLUMN ${column} ${type}`);
@@ -238,6 +240,14 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN request_summary TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.request_summary column");
     }
+    // added by 173_call_logs_video_content_removed; back-filled here because
+    // resolvePreviousResponseState SELECTs it on every continuation lookup — a
+    // lineage that skipped the migration would throw "no such column" there
+    // rather than fail closed. Same hole #12470 closed for provider_connections.
+    if (!columnNames.has("video_content_removed")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN video_content_removed INTEGER NOT NULL DEFAULT 0");
+      console.log("[DB] Added call_logs.video_content_removed column");
+    }
     if (!columnNames.has("correlation_id")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN correlation_id TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.correlation_id column");
@@ -255,6 +265,12 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       "CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model)"
     );
     db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type)");
+    // #12832's provider-stats index. It lives here rather than in SCHEMA_SQL because
+    // SCHEMA_SQL runs before this healing pass: on a legacy call_logs table that
+    // predates `request_type` the CREATE INDEX aborts the whole schema exec.
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_cl_request_provider ON call_logs(request_type, provider)"
+    );
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_cl_combo_target ON call_logs(combo_name, combo_execution_key, timestamp)"
     );
@@ -275,6 +291,14 @@ export function ensureProxyLogsColumns(db: SqliteDatabase) {
     if (!columnNames.has("egress_ip")) {
       db.exec("ALTER TABLE proxy_logs ADD COLUMN egress_ip TEXT");
       console.log("[DB] Added proxy_logs.egress_ip column");
+    }
+    if (!columnNames.has("upstream_status")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN upstream_status INTEGER");
+      console.log("[DB] Added proxy_logs.upstream_status column");
+    }
+    if (!columnNames.has("proxy_name")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN proxy_name TEXT");
+      console.log("[DB] Added proxy_logs.proxy_name column");
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

@@ -33,11 +33,11 @@ const LEGACY_GROK_ALIASES = {
   "grok-4.5-fast-xhigh": "cursor-grok-4.5-xhigh-fast",
 } as const;
 
-test("keeps legacy Cursor combo model ids in the static catalog", () => {
+test("keeps legacy Cursor combo model ids out of the curated static catalog", () => {
   const catalogIds = new Set(cursorProvider.models.map((model) => model.id));
 
   for (const modelId of LEGACY_CURSOR_COMBO_MODEL_IDS) {
-    assert.ok(catalogIds.has(modelId), `missing Cursor catalog model: ${modelId}`);
+    assert.equal(catalogIds.has(modelId), false, `unexpected Cursor catalog model: ${modelId}`);
   }
 });
 

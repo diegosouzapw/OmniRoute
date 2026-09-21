@@ -148,6 +148,15 @@ test("a qoder PAT (apikey) connection is picked up by the provider-limits sync",
     isSupportedUsageConnection({ id: "c2", provider: "some-random-provider", authType: "apikey" }),
     false
   );
+  assert.equal(
+    isSupportedUsageConnection({
+      id: "c3",
+      provider: "openai-compatible-chat-e2971611-bc02-4c37-8fc5-39b8e3906fdf",
+      authType: "apikey",
+      providerSpecificData: { baseUrl: "https://api.moonshot.cn/v1" },
+    }),
+    true,
+  );
 });
 
 // Guards the shared exchange contract the usage path relies on.

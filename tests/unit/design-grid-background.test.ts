@@ -103,16 +103,106 @@ test("status colors come from one canonical module", () => {
   assert.match(mod, /warning:\s*"#f59e0b"/);
   assert.match(mod, /error:\s*"#ef4444"/);
 
+  // Fase 3 (D1): the two shared flow surfaces moved from the fixed dark hex to the
+  // theme-aware `--orch-status-*` tokens. STATUS_HEX stays exported as the dark-mode
+  // mirror (and the canonical source of the token values in globals.css `.dark`).
   const edges = read("../../src/shared/components/flow/edgeStyles.ts");
   const badge = read("../../src/shared/components/TokenHealthBadge.tsx");
   assert.ok(
-    edges.includes('from "@/shared/constants/statusColors"'),
-    "edgeStyles imports the module"
+    edges.includes("var(--orch-status-success)"),
+    "edgeStyles uses the success token, not a literal"
   );
-  assert.ok(edges.includes("STATUS_HEX.success"), "edgeStyles uses STATUS_HEX, not a literal");
+  assert.ok(edges.includes("var(--orch-status-error)"), "edgeStyles uses the error token");
+  assert.ok(edges.includes("var(--orch-status-warning)"), "edgeStyles uses the warning token");
   assert.ok(!edges.includes('"#22c55e"'), "edgeStyles no longer hardcodes the success hex");
-  assert.ok(badge.includes("STATUS_HEX.success"), "TokenHealthBadge uses STATUS_HEX");
+  assert.ok(
+    badge.includes("var(--orch-status-success)"),
+    "TokenHealthBadge uses the success token"
+  );
+  assert.ok(badge.includes("var(--orch-status-error)"), "TokenHealthBadge uses the error token");
+  assert.ok(
+    badge.includes("var(--orch-status-warning)"),
+    "TokenHealthBadge uses the warning token"
+  );
   assert.ok(!badge.includes('"#22c55e"'), "TokenHealthBadge no longer hardcodes the success hex");
+
+  // Both themes must define every token these surfaces read.
+  for (const token of ["success", "warning", "error", "muted"]) {
+    const hits = globalsCss.match(new RegExp(`--orch-status-${token}:`, "g")) ?? [];
+    assert.equal(hits.length, 2, `--orch-status-${token} is defined in light AND dark`);
+  }
+});
+
+// ── Phase 3 (D2): the remaining flow surfaces read the status tokens ──
+
+test("flow surfaces express state with --orch-status-* tokens, not fixed hex", () => {
+  // Every state-bearing color on the four flow surfaces (home topology, combo live
+  // studio, compression cockpit/waterfall, compression nodes) must be a theme-aware
+  // token. Decorative/categorical palettes (STRATEGY_COLORS, LAYER_COLORS, the
+  // provider brand color, the input/output identity pair) legitimately stay hex and
+  // are asserted below so a future migration does not silently swallow them.
+  const combo = read("../../src/app/(dashboard)/dashboard/combos/live/ComboLiveStudio.tsx");
+  const engine = read(
+    "../../src/app/(dashboard)/dashboard/compression/studio/nodes/EngineNode.tsx"
+  );
+  const waterfall = read(
+    "../../src/app/(dashboard)/dashboard/compression/studio/WaterfallInspector.tsx"
+  );
+  const cockpit = read(
+    "../../src/app/(dashboard)/dashboard/compression/studio/CompressionCockpit.tsx"
+  );
+  const io = read("../../src/app/(dashboard)/dashboard/compression/studio/nodes/IoNode.tsx");
+
+  // Combo live studio: active/error provider pills + the run outcome tri-state.
+  assert.ok(combo.includes("FLOW_EDGE_COLORS.active"), "combo active pill uses the flow palette");
+  assert.ok(combo.includes("FLOW_EDGE_COLORS.error"), "combo error pill uses the flow palette");
+  assert.ok(
+    combo.includes('"var(--orch-status-success)"'),
+    "combo outcome succeeded = success token"
+  );
+  assert.ok(combo.includes('"var(--orch-status-error)"'), "combo outcome exhausted = error token");
+  assert.ok(
+    combo.includes('"var(--orch-status-warning)"'),
+    "combo outcome pending = warning token"
+  );
+  assert.ok(!combo.includes('"#22c55e"'), "combo studio hardcodes no success hex");
+  assert.ok(!combo.includes('"#ef4444"'), "combo studio hardcodes no error hex");
+  assert.ok(!combo.includes('"#f59e0b"'), "combo studio hardcodes no warning hex");
+
+  // Compression engine node: savings ramp + the running state.
+  assert.ok(engine.includes('"var(--orch-status-success)"'), "engine savings>=30 = success token");
+  assert.ok(
+    engine.includes('"var(--orch-status-warning)"'),
+    "engine savings>=15 / running = warning token"
+  );
+  assert.ok(engine.includes('"var(--orch-status-muted)"'), "engine no-savings = muted token");
+  assert.ok(
+    engine.includes("flowColorAlpha("),
+    "engine glow uses color-mix, not a hex alpha suffix"
+  );
+  assert.ok(!engine.includes('"#f59e0b"'), "engine hardcodes no warning hex");
+  assert.ok(!engine.includes("#f59e0b40"), "the 8-bit alpha suffix is gone (invalid on a var())");
+
+  // Waterfall inspector: same ramp + the skipped/idle state + the total savings.
+  assert.ok(waterfall.includes('"var(--orch-status-success)"'), "waterfall success token");
+  assert.ok(waterfall.includes('"var(--orch-status-warning)"'), "waterfall warning token");
+  assert.ok(waterfall.includes('"var(--orch-status-muted)"'), "waterfall skipped = muted token");
+  assert.ok(!waterfall.includes('"#22c55e"'), "waterfall hardcodes no success hex");
+  assert.ok(!waterfall.includes('"#6b7280"'), "waterfall hardcodes no muted hex");
+
+  // Cockpit header + IoNode savings readout.
+  assert.ok(cockpit.includes('"var(--orch-status-success)"'), "cockpit savings = success token");
+  assert.ok(!cockpit.includes('"#22c55e"'), "cockpit hardcodes no success hex");
+  assert.ok(io.includes('"var(--orch-status-success)"'), "IoNode savings = success token");
+
+  // Deliberately NOT migrated — categorical/brand palettes, not state.
+  const strategy = read("../../src/app/(dashboard)/dashboard/combos/live/nodes/StrategyNode.tsx");
+  assert.ok(strategy.includes("STRATEGY_COLORS"), "strategy hues stay a categorical palette");
+  assert.ok(engine.includes("LAYER_COLORS"), "layer pills stay a categorical palette");
+  assert.ok(
+    io.includes('isInput ? "#6366f1" : "#22c55e"'),
+    "IoNode keeps its indigo/green input-output identity pair"
+  );
 });
 
 test("globals.css defines a monospace token (site parity)", () => {

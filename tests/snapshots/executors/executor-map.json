@@ -105,11 +105,6 @@
       "configSource": "cheaperinference",
       "provider": "cheaperinference"
     },
-    "chipotle": {
-      "className": "ChipotleExecutor",
-      "configSource": "<custom-config>",
-      "provider": "chipotle"
-    },
     "cinf": {
       "className": "CheaperInferenceExecutor",
       "configSource": "cheaperinference",
@@ -134,6 +129,11 @@
       "className": "CloudflarePlaygroundExecutor",
       "configSource": "<custom-config>",
       "provider": "cloudflare-playground"
+    },
+    "clova-studio": {
+      "className": "ClovaStudioExecutor",
+      "configSource": "clova-studio",
+      "provider": "clova-studio"
     },
     "cmd": {
       "className": "CommandCodeExecutor",
@@ -485,11 +485,6 @@
       "configSource": "opencode-zen",
       "provider": "opencode-zen"
     },
-    "pepper": {
-      "className": "ChipotleExecutor",
-      "configSource": "<custom-config>",
-      "provider": "chipotle"
-    },
     "perplexity-web": {
       "className": "PerplexityWebExecutor",
       "configSource": "<custom-config>",
@@ -671,6 +666,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 134,
+  "keyCount": 133,
   "sharedInstances": []
 }

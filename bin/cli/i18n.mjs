@@ -5,6 +5,25 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const LOCALES_DIR = join(__dirname, "locales");
 const FALLBACK_LOCALE = "en";
+const I18N_CONFIG_PATH = join(__dirname, "..", "..", "config", "i18n.json");
+let aliasMap = null; // lower-case tag → canonical locale code
+
+function loadAliasMap() {
+  if (aliasMap) return aliasMap;
+  aliasMap = new Map();
+  try {
+    const { locales } = JSON.parse(readFileSync(I18N_CONFIG_PATH, "utf8"));
+    for (const entry of locales) {
+      aliasMap.set(entry.code.toLowerCase(), entry.code);
+      for (const alias of entry.aliases || []) {
+        aliasMap.set(String(alias).toLowerCase(), entry.code);
+      }
+    }
+  } catch {
+    // config absent (trimmed package): keep file-based detection only
+  }
+  return aliasMap;
+}
 
 const cache = new Map();
 let activeLocale = null;
@@ -24,8 +43,16 @@ function normalize(raw) {
   const stripped = String(raw).split(".")[0].replaceAll("_", "-");
   if (!stripped || !/^[a-zA-Z0-9-]+$/.test(stripped)) return FALLBACK_LOCALE;
   if (hasCatalog(stripped)) return stripped;
-  const base = stripped.split("-")[0];
+  const lower = stripped.toLowerCase();
+  const base = lower.split("-")[0];
+  const aliases = loadAliasMap();
+  const viaAlias = aliases.get(lower) ?? aliases.get(base);
+  if (viaAlias && hasCatalog(viaAlias)) return viaAlias;
   if (hasCatalog(base)) return base;
+  const regional = [...new Set(aliases.values())].find(
+    (code) => code.includes("-") && code.toLowerCase().split("-")[0] === base
+  );
+  if (regional && hasCatalog(regional)) return regional;
   return FALLBACK_LOCALE;
 }
 
@@ -103,4 +130,5 @@ export function resetForTests() {
   cache.clear();
   activeLocale = null;
   fallbackCatalog = null;
+  aliasMap = null;
 }

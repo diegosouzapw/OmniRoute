@@ -20,6 +20,7 @@ const STRATEGY_COLORS: Record<string, string> = {
   lkgp: "#ec4899",
   "context-optimized": "#14b8a6",
   "context-relay": "#0ea5e9",
+  "quota-weighted": "#0d9488",
 };
 
 function getStrategyColor(strategy: string): string {

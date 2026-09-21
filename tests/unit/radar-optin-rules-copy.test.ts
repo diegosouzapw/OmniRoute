@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import i18nConfig from "../../config/i18n.json" with { type: "json" };
 
 function radarCopy(locale: "en" | "pt-BR"): Record<string, string> {
   const file = path.resolve(process.cwd(), `src/i18n/messages/${locale}.json`);
@@ -101,7 +102,11 @@ test("Brazilian Portuguese Radar opt-in copy states D32 without a PR-count grant
 test("every UI locale carries the D32 keys and none retains the superseded 5+ PR promise", () => {
   const messagesDir = path.resolve(process.cwd(), "src/i18n/messages");
   const files = fs.readdirSync(messagesDir).filter((file) => file.endsWith(".json"));
-  assert.equal(files.length, 43, "expected the complete 43-locale UI catalog");
+  assert.equal(
+    files.length,
+    i18nConfig.locales.length,
+    `expected the complete ${i18nConfig.locales.length}-locale UI catalog`
+  );
 
   for (const file of files) {
     const messages = JSON.parse(fs.readFileSync(path.join(messagesDir, file), "utf8")) as {

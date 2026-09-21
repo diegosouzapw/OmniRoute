@@ -3,21 +3,45 @@ import assert from "node:assert/strict";
 
 import { nvidiaProvider } from "../../open-sse/config/providers/registry/nvidia/index.ts";
 
-// Regression guard for #6108: the static NVIDIA NIM model registry had gone
-// stale — z-ai/glm-5.1 was EOL'd (410) 2026-07-02, while glm-5.2 and
-// nvidia/nemotron-3-ultra-550b-a55b were absent. minimaxai/minimax-m3 stays
-// excluded per the #3329 guard (nvidia-minimax-m3-removed-3329.test.ts) — the
-// single 200 probe in #6108 wasn't reproducible enough to override it.
-const modelIds = new Set(nvidiaProvider.models.map((m) => m.id));
+const EXPECTED_MODEL_IDS = [
+  "moonshotai/kimi-k3",
+  "deepseek-ai/deepseek-v4-pro-0813",
+  "deepseek-ai/deepseek-v4-flash-0731",
+  "meta/muse-glimmer-30b",
+  "poolside/laguna-xs-2.1",
+  "google/gemma-4-31b-it",
+  "google/diffusiongemma-26b-a4b-it",
+  "nvidia/nemotron-3-ultra-550b-a55b",
+  "nvidia/nemotron-3-super-120b-a12b",
+  "nvidia/nemotron-3.5-lightning-30b-a3b",
+  "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "openai/gpt-oss-120b",
+] as const;
 
-test("#6108: NVIDIA NIM registry contains the refreshed live models", () => {
-  assert.ok(modelIds.has("z-ai/glm-5.2"), "z-ai/glm-5.2 must be present");
-  assert.ok(
-    modelIds.has("nvidia/nemotron-3-ultra-550b-a55b"),
-    "nvidia/nemotron-3-ultra-550b-a55b must be present"
+test("NVIDIA NIM registry exactly matches the current hosted-model catalog", () => {
+  assert.deepEqual(
+    nvidiaProvider.models.map((model) => model.id),
+    EXPECTED_MODEL_IDS
   );
 });
 
-test("#6108: NVIDIA NIM registry no longer lists EOL z-ai/glm-5.1", () => {
-  assert.ok(!modelIds.has("z-ai/glm-5.1"), "EOL z-ai/glm-5.1 must be removed");
+test("NVIDIA NIM registry preserves known model capabilities", () => {
+  const byId = new Map(nvidiaProvider.models.map((model) => [model.id, model]));
+
+  for (const id of [
+    "deepseek-ai/deepseek-v4-pro-0813",
+    "deepseek-ai/deepseek-v4-flash-0731",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  ]) {
+    assert.equal(byId.get(id)?.supportsReasoning, true, `${id} must support reasoning`);
+  }
+
+  const omni = byId.get("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning");
+  assert.equal(omni?.supportsVision, true, "Nemotron 3 Nano Omni must support vision");
+
+  assert.equal(
+    byId.get("openai/gpt-oss-120b")?.toolCalling,
+    false,
+    "openai/gpt-oss-120b must keep tool calling disabled"
+  );
 });

@@ -1,0 +1,1 @@
+- **fix(compression):** report compression-worker faults instead of silently sending the uncompressed body, and fall back to the in-process pipeline for fast faults (thread error, exit, engine throw); a dispatch timeout still degrades to uncompressed, but is now logged ([#13637](https://github.com/diegosouzapw/OmniRoute/pull/13637))

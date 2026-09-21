@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { CLAUDE_CONFIG } from "../constants/oauth";
-import { CLAUDE_CODE_VERSION } from "@omniroute/open-sse/executors/claudeIdentity.ts";
+import { getClaudeCodeVersion } from "@omniroute/open-sse/executors/claudeIdentity.ts";
 
 const BOOTSTRAP_FETCH_TIMEOUT_MS = 10_000;
 
@@ -14,7 +14,7 @@ async function fetchClaudeBootstrap(accessToken) {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
-        "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
+        "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
         "anthropic-beta": "oauth-2025-04-20",
       },
       signal: ctrl.signal,
@@ -143,6 +143,7 @@ export const claude = {
     const providerSpecificData: any = {
       // Generated once at provisioning; preserved across token refresh.
       cliUserID: crypto.randomBytes(32).toString("hex"),
+      autoSync: true,
     };
     if (bs.account_uuid) providerSpecificData.accountUUID = bs.account_uuid;
     if (bs.organization_uuid) providerSpecificData.organizationUUID = bs.organization_uuid;

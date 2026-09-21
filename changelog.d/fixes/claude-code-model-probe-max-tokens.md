@@ -1,1 +1,0 @@
-- fix(sse): accept Claude `content:[]` + `stop_reason: max_tokens`/`tool_use` in `detectMalformedNonStream` (match `isEmptyContentResponse`) so Claude Code `/model` probes with `max_tokens: 1` no longer become a false 502

@@ -3,9 +3,12 @@ import { FORMATS } from "../formats.ts";
 // CLAUDE_SYSTEM_PROMPT import removed — no longer injected unconditionally (#1966/#2130)
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
-import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
+import { normalizeClaudeToolInputSchema, sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { safeParseJSON } from "../helpers/jsonUtil.ts";
-import { applyKimiCodingThinking } from "../helpers/claudeHelper.ts";
+import {
+  applyKimiCodingThinking,
+  createDefaultClaudeCacheControl,
+} from "../helpers/claudeHelper.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import {
   getDefaultThinkingBudget,
@@ -434,10 +437,13 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
         // MCP tools (e.g. pencil, computer_use) may omit properties on object-type schemas.
         const rawSchema: Record<string, unknown> = toolData.parameters ||
           toolData.input_schema || { type: "object", properties: {}, required: [] };
-        const normalizedSchema =
+        const withProperties =
           rawSchema.type === "object" && !rawSchema.properties
             ? { ...rawSchema, properties: {} }
             : rawSchema;
+        // Flatten a root-level anyOf/oneOf/allOf: Anthropic refuses it outright with
+        // "input_schema does not support oneOf, allOf, or anyOf at the top level" (#13552).
+        const normalizedSchema = normalizeClaudeToolInputSchema(withProperties);
 
         return {
           name: toolName,
@@ -454,7 +460,7 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
     // rejects cache_control on defer_loading tools.
     for (let i = result.tools.length - 1; i >= 0; i--) {
       if (!result.tools[i].defer_loading) {
-        result.tools[i].cache_control = { type: "ephemeral", ttl: "1h" };
+        result.tools[i].cache_control = createDefaultClaudeCacheControl(routedProvider);
         break;
       }
     }
@@ -491,7 +497,7 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
     const systemBlock = {
       type: "text",
       text: systemText,
-      cache_control: { type: "ephemeral", ttl: "1h" },
+      cache_control: createDefaultClaudeCacheControl(routedProvider),
     };
     // Merge with existing body.system if present
     if (Array.isArray(body.system)) {
@@ -728,8 +734,10 @@ function convertOpenAIToolChoice(choice) {
     if (choice.type === "function" && choice.function?.name) {
       return { type: "tool", name: choice.function.name };
     }
-    // Map OpenAI string types to Claude equivalents
-    if (choice.type === "auto" || choice.type === "none") return { type: "auto" };
+    // Map OpenAI string types to Claude equivalents. Claude has its own "none"; mapping it
+    // to "auto" let the model call tools the client had switched off.
+    if (choice.type === "auto") return { type: "auto" };
+    if (choice.type === "none") return { type: "none" };
     if (choice.type === "required" || choice.type === "any")
       return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
     // If type is "tool" already (Claude-native), pass through
@@ -737,7 +745,8 @@ function convertOpenAIToolChoice(choice) {
     // Fallback: unknown object type — default to auto to avoid 400 errors
     return { type: "auto" };
   }
-  if (choice === "auto" || choice === "none") return { type: "auto" };
+  if (choice === "auto") return { type: "auto" };
+  if (choice === "none") return { type: "none" };
   if (choice === "required") return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
   if (typeof choice === "object" && choice.function) {
     return { type: "tool", name: choice.function.name };

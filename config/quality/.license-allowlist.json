@@ -74,6 +74,24 @@
       "justification": "CC-BY-4.0 applies to the caniuse browser-support data (a dataset, not code). The Creative Commons Attribution license requires attribution when distributing — OmniRoute does not distribute caniuse-lite data directly to end users; it is consumed by browserslist/PostCSS at build time to generate CSS compatibility info. This is a widely accepted pattern in the Node.js ecosystem (caniuse-lite is in millions of projects). Attribution is satisfied by keeping the package in node_modules with its original license file.",
       "risk": "low",
       "reviewAt": "v4.0.0"
+    },
+    "@eloqnt/config": {
+      "license": "MIT",
+      "justification": "Transitive of next-intl (MIT). npm registry SPDX for the @eloqnt scope is MIT; @eloqnt/config@0.1.0 republished with license: MIT. The locked 0.0.2 tarball (next-intl's ^0.0.2 range, which is 0.0.x only) omits both package.json#license and a LICENSE file, so license-checker reports UNKNOWN. Same author (Jan Amann / amannn). OmniRoute does not modify the package. Re-review when next-intl bumps the range to a release that ships the license field.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "@eloqnt/format-json": {
+      "license": "MIT",
+      "justification": "Same as @eloqnt/config: next-intl transitive, registry SPDX MIT, locked 0.0.3 tarball omits license field and LICENSE file so the checker reports UNKNOWN. Re-review with the next-intl range bump.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "@eloqnt/format-po": {
+      "license": "MIT",
+      "justification": "Same as @eloqnt/config: next-intl transitive, registry SPDX MIT, locked 0.0.3 tarball omits license field and LICENSE file so the checker reports UNKNOWN. Re-review with the next-intl range bump.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
     }
   }
 }

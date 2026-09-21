@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 import QuotaMiniBar from "../dashboard/usage/components/ProviderLimits/QuotaMiniBar";
 import { PROVIDER_LABEL } from "../dashboard/usage/components/ProviderLimits/constants";
 import { translateUsageOrFallback } from "../dashboard/usage/components/ProviderLimits/i18nFallback";
@@ -25,6 +25,7 @@ type Connection = {
   name?: string;
   displayName?: string;
   email?: string;
+  providerSpecificData?: unknown;
 };
 
 type QuotaData = Record<string, any>;
@@ -178,7 +179,7 @@ export default function ProviderQuotaWidget({
       const quotaResponseData = quotasResponse.ok ? await quotasResponse.json() : {};
       const relevant = ((connectionData.connections || []) as Connection[]).filter(
         (connection) =>
-          USAGE_SUPPORTED_PROVIDERS.includes(connection.provider) &&
+          supportsProviderQuota(connection.provider, connection) &&
           (connection.authType === "oauth" || connection.authType === "apikey")
       );
       setConnections(relevant);

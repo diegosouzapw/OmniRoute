@@ -18,7 +18,7 @@ const route = await import("../../src/app/api/cli-tools/codex-settings/route.ts"
 
 const authCookie = async (): Promise<string> => {
   process.env.JWT_SECRET = "codex-wire-api-default-test-secret";
-  const token = await new SignJWT({ sub: "codex-wire-api-default-test" })
+  const token = await new SignJWT({ authenticated: true, sub: "codex-wire-api-default-test" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")

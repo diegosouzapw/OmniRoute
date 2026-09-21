@@ -1,1 +1,0 @@
-- **feat(zai):** add GLM-5.3-Flash Coding Plan support (1M context, 128K output, vision, `low|high|max` reasoning) and route `zai` GLM-5.3-family API-key traffic through the OpenAI-compatible Coding Plan endpoint with native thinking defaults ([#11801](https://github.com/diegosouzapw/OmniRoute/pull/11801)) — thanks @Neuron-Mr-White

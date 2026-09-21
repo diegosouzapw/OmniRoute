@@ -1,0 +1,1 @@
+- **fix(opencode):** the v2 plugin reads the management token from OMNIROUTE_MANAGEMENT_API_KEY (plugin option wins) and warns once at startup when management calls fall back to the inference key ([#13613](https://github.com/diegosouzapw/OmniRoute/pull/13613)) — thanks @maxmad64bis

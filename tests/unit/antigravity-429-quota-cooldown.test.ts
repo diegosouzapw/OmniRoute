@@ -171,6 +171,11 @@ test("direct Antigravity has one downstream model-lock owner and clamps body pro
   );
   assert.match(
     chatCoreSource,
+    /Dropped generic quota cache after 429/,
+    "non-Codex 429 must leave a QUOTA debug breadcrumb"
+  );
+  assert.match(
+    chatCoreSource,
     /if \(deferAntigravityQuotaStateToCaller\)[\s\S]{0,2000}else if \(kimiRateLimitResetAt\)/
   );
   assert.doesNotMatch(chatCoreSource, /lockExactModel/);

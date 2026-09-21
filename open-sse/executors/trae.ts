@@ -26,6 +26,19 @@ type ChatMessage = { role?: string; content?: unknown };
 
 const STREAM_TIMEOUT_MS = parseInt(process.env.TRAE_STREAM_TIMEOUT_MS || "300000", 10);
 
+// Trae's web client origin moved from solo.trae.ai to work.trae.ai (the SOLO
+// coding agent is now served under the TraeWork product surface); the backend
+// appears to validate Origin/Referer against the JWT session's real origin, so
+// a stale value here produces a clean 401 even with a fresh token (#12190).
+// Kept overridable — via env for a fleet-wide bump without a code change, and
+// per-connection via providerSpecificData.refererOrigin for an account that
+// still authenticates against the legacy host — rather than a second
+// hardcoded guess that would go stale the same way.
+const DEFAULT_TRAE_WEB_ORIGIN = (process.env.TRAE_WEB_ORIGIN || "https://work.trae.ai").replace(
+  /\/$/,
+  ""
+);
+
 function flattenQuery(messages: ChatMessage[]): string {
   const parts: string[] = [];
   for (const m of messages) {
@@ -61,13 +74,17 @@ export class TraeExecutor extends BaseExecutor {
   buildHeaders(credentials): Record<string, string> {
     const token = (credentials.accessToken as string) || "";
     const psd = (credentials.providerSpecificData as JsonRecord) || {};
+    const webOrigin = ((psd.refererOrigin as string) || DEFAULT_TRAE_WEB_ORIGIN).replace(/\/$/, "");
+    const timezone = psd.userTimezone as string | undefined;
     return {
       Authorization: `Cloud-IDE-JWT ${token}`,
       "Content-Type": "application/json",
       "X-Trae-Client-Type": "web",
       "X-Preferenced-Language": (psd.appLanguage as string) || "en",
       "x-user-region": (psd.userRegion as string) || "US",
-      Referer: "https://solo.trae.ai/",
+      Referer: `${webOrigin}/`,
+      Origin: webOrigin,
+      ...(timezone ? { "x-trae-user-timezone": timezone } : {}),
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
         "(KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",

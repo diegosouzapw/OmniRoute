@@ -46,7 +46,8 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     textIcon: "OF",
     website: "https://openference.com",
     hasFree: true,
-    freeNote: "Free plan: 3-day trial with open-source models — no credit card required",
+    freeNote:
+      "Free tier: includes Qwen3.8 27b and Llama 3.2 3B — see openference.com/pricing for current terms",
   },
   poolside: {
     id: "poolside",
@@ -86,7 +87,12 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     textIcon: "CB",
     website: "https://inference.cerebras.ai",
     hasFree: true,
-    freeNote: "Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card.",
+    // #11773: Cerebras retired the no-card 1M tokens/day trial. Live
+    // cerebras.ai/pricing (2026-09-03) is a one-time $5 signup credit that
+    // requires a payment method and expires after 30 days — LongCat-shaped
+    // (hasFree stays true; not a recurring grant).
+    freeNote:
+      "One-time $5 signup credit (30-day validity); a payment method is required. Not a recurring free tier.",
   },
   nvidia: {
     id: "nvidia",

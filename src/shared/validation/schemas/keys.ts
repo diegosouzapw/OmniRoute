@@ -33,19 +33,42 @@ const requireExclusiveLeaseConnections = (
     });
 };
 
+const requireConsistentModelAccess = (
+  value: {
+    modelAccessMode?: "all" | "restricted";
+    allowedModels?: string[];
+  },
+  ctx: z.RefinementCtx
+) => {
+  if (value.modelAccessMode === "all" && value.allowedModels && value.allowedModels.length > 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "allowedModels must be empty when modelAccessMode is 'all'",
+      path: ["allowedModels"],
+    });
+  }
+};
+
 export const createKeySchema = z
   .object({
     name: z.string().min(1, "Name is required").max(200),
+    modelAccessMode: z.enum(["all", "restricted"]).optional(),
+    allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     noLog: z.boolean().optional(),
     allowUsageCommand: z.boolean().optional(),
     usageLimitEnabled: z.boolean().optional(),
     dailyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
     weeklyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
     chaosModeEnabled: z.boolean().optional(),
+    expiresAt: z.string().datetime().nullable().optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedConnections: z.array(z.string().uuid()).min(1).max(100).optional(),
   })
-  .superRefine(requireExclusiveLeaseConnections);
+  .superRefine((value, ctx) => {
+    requireConsistentModelAccess(value, ctx);
+    requireExclusiveLeaseConnections(value, ctx);
+  });
 
 export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
@@ -103,6 +126,7 @@ export const updateKeyPermissionsSchema = z
     modelAccessMode: z.enum(["all", "restricted"]).optional(),
     connectionAccessMode: z.enum(["all", "restricted"]).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    blockedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
     noLog: z.boolean().optional(),
@@ -127,6 +151,8 @@ export const updateKeyPermissionsSchema = z
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
     compressionEnabled: z.boolean().optional(),
+    allowAutoCombos: z.boolean().optional(),
+    catalogScope: z.enum(["all", "combos", "models"]).optional(),
     cacheDefaultMode: z.enum(["legacy", "bypass"]).optional(),
     disableNonPublicModels: z.boolean().optional(),
     allowUsageCommand: z.boolean().optional(),
@@ -169,6 +195,7 @@ export const updateKeyPermissionsSchema = z
       value.modelAccessMode === undefined &&
       value.connectionAccessMode === undefined &&
       value.allowedModels === undefined &&
+      value.blockedModels === undefined &&
       value.allowedCombos === undefined &&
       value.allowedConnections === undefined &&
       value.noLog === undefined &&
@@ -184,6 +211,8 @@ export const updateKeyPermissionsSchema = z
       value.allowedEndpoints === undefined &&
       value.streamDefaultMode === undefined &&
       value.compressionEnabled === undefined &&
+      value.allowAutoCombos === undefined &&
+      value.catalogScope === undefined &&
       value.cacheDefaultMode === undefined &&
       value.disableNonPublicModels === undefined &&
       value.allowUsageCommand === undefined &&

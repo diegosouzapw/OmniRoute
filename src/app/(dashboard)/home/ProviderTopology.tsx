@@ -8,7 +8,7 @@ import { AI_PROVIDERS } from "@/shared/constants/providers";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import { StatusDot } from "@/shared/components/flow/StatusDot";
-import { edgeStyle, FLOW_EDGE_COLORS } from "@/shared/components/flow/edgeStyles";
+import { edgeStyle, FLOW_EDGE_COLORS, flowColorAlpha } from "@/shared/components/flow/edgeStyles";
 import { getFallbackProviderColor } from "@/shared/utils/providerFallbackColor";
 import { resolveTopologyNodeLabel } from "./topologyLabel";
 
@@ -63,11 +63,11 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
       style={{
         borderColor: error ? RED : active ? color : healthy ? GREEN : "var(--color-border)",
         boxShadow: error
-          ? `0 0 12px ${RED}30`
+          ? `0 0 12px ${flowColorAlpha(RED, 19)}`
           : active
             ? `0 0 12px ${color}30`
             : healthy
-              ? `0 0 10px ${GREEN}20`
+              ? `0 0 10px ${flowColorAlpha(GREEN, 13)}`
               : "none",
         minWidth: "136px",
       }}

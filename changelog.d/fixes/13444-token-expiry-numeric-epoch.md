@@ -1,0 +1,1 @@
+- **fix(oauth):** token health check now parses a numeric epoch `expires_at` (number or string, seconds or milliseconds), so connections synced by external tools keep their expiry-driven refresh instead of being skipped forever — or refreshed on every sweep ([#13444](https://github.com/diegosouzapw/OmniRoute/pull/13444)) — thanks @elielsousa-pathbit

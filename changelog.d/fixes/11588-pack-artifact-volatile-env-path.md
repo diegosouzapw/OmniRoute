@@ -1,1 +1,0 @@
-- **fix(pack):** register `bin/cli/utils/volatileEnvPath.mjs` in `PACK_ARTIFACT_REQUIRED_PATHS`, so the prune can no longer silently drop a module the published CLI imports on every boot ([#11588](https://github.com/diegosouzapw/OmniRoute/pull/11588))

@@ -23,14 +23,17 @@ async function runStage(name: string, action: () => Promise<void>): Promise<void
 async function selectZaiBrowserModel(page: Page, modelName: string): Promise<void> {
   const selector = page.locator('[aria-label="Select a model"]').first();
   await selector.waitFor({ state: "visible", timeout: 10_000 });
-  if ((await selector.innerText()).includes(modelName)) return;
+  if ((await selector.getByText(modelName, { exact: true }).count()) > 0) return;
 
   // The landing-page hero animation can remain above the already-visible
   // selector and make coordinate-based clicks time out.
   await selector.evaluate((element) => (element as HTMLElement).click());
   const menu = page.locator('[role="menu"]').filter({ hasText: modelName }).first();
   await menu.waitFor({ state: "visible", timeout: 5_000 });
-  const modelButton = menu.locator("button").filter({ hasText: modelName }).first();
+  const modelButton = menu
+    .getByText(modelName, { exact: true })
+    .first()
+    .locator("xpath=ancestor::button[1]");
   await modelButton.evaluate((element) => (element as HTMLElement).click());
   await page
     .locator('[aria-label="Select a model"]')
@@ -73,13 +76,13 @@ async function setZaiBrowserWebSearch(page: Page, enabled: boolean): Promise<voi
   }
 }
 
-/** Pick the High/Max effort button inside an already-open Deep Think menu. */
+/** Pick the Low/High/Max effort button inside an already-open Deep Think menu. */
 async function selectZaiBrowserEffortLevel(
   menu: ReturnType<Page["locator"]>,
   effort: ZaiThinkingConfig["effort"]
 ): Promise<void> {
   const effortButton = menu.locator("button").filter({
-    hasText: effort === "high" ? "High" : "Max",
+    hasText: effort === "low" ? "Low" : effort === "high" ? "High" : "Max",
   });
   if ((await effortButton.getAttribute("data-selected")) === "true") return;
   await runStage(`select ${effort}`, () =>

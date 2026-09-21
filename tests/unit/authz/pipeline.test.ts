@@ -102,6 +102,32 @@ test("runAuthzPipeline redirects root to dashboard before management auth", asyn
   assert.equal(response.headers.get("location"), "http://localhost/dashboard");
 });
 
+test("runAuthzPipeline forwards zed-hosted native-app callback from root to /callback preserving the query string (#13140)", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/?user_id=abc123&access_token=tok-xyz"),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 307);
+  assert.equal(
+    response.headers.get("location"),
+    "http://localhost/callback?user_id=abc123&access_token=tok-xyz"
+  );
+});
+
+test("runAuthzPipeline still redirects root to dashboard when only one native-app callback param is present (#13140)", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(request("http://localhost/?user_id=abc123"), {
+    enforce: true,
+  });
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/dashboard");
+});
+
 test("runAuthzPipeline redirects unauthenticated dashboard pages to login", async () => {
   await forceAuthRequired();
 
@@ -200,7 +226,7 @@ test("runAuthzPipeline allows onboarding when login is required but no password 
   assert.equal(response.headers.get("x-omniroute-route-class"), "PUBLIC");
 });
 
-test("runAuthzPipeline allows first password writes when login is required but no password exists", async () => {
+test("runAuthzPipeline allows first password writes when login is required but no password exists — from the stamped loopback peer only (GHSA-7pq4-8pvv-rx7r)", async () => {
   delete process.env.INITIAL_PASSWORD;
   await settingsDb.updateSettings({
     requireLogin: true,
@@ -208,13 +234,47 @@ test("runAuthzPipeline allows first password writes when login is required but n
     password: "",
   });
 
-  const response = await pipeline.runAuthzPipeline(
+  // The local operator (real TCP peer 127.0.0.1, stamped by the custom server)
+  // keeps the first-password flow, whatever hostname they typed.
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = "pipeline-test-peer-stamp-token";
+  const local = await pipeline.runAuthzPipeline(
+    request("https://example.com/api/settings/require-login", {
+      method: "POST",
+      headers: {
+        "x-omniroute-peer-ip": "pipeline-test-peer-stamp-token|127.0.0.1",
+        "x-omniroute-via-proxy": "pipeline-test-peer-stamp-token|0",
+      },
+    }),
+    { enforce: true }
+  );
+  assert.equal(local.status, 200);
+  assert.equal(local.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+
+  // A remote peer — even one spelling the URL as localhost and forging the
+  // pipeline's own locality verdict header — must not reach the anonymous write
+  // that flips requireLogin=false (the first link of the JWT_SECRET chain).
+  const spoofed = await pipeline.runAuthzPipeline(
+    request("http://localhost/api/settings/require-login", {
+      method: "POST",
+      headers: {
+        host: "localhost",
+        "x-omniroute-peer-locality": "loopback",
+        "x-omniroute-peer-ip": "pipeline-test-peer-stamp-token|203.0.113.9",
+        "x-omniroute-via-proxy": "pipeline-test-peer-stamp-token|0",
+      },
+    }),
+    { enforce: true }
+  );
+  assert.equal(spoofed.status, 401);
+  assert.equal((await spoofed.json()).error.code, "AUTH_001");
+
+  // No stamp at all (nothing trustworthy about the peer) → fail closed.
+  delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+  const unstamped = await pipeline.runAuthzPipeline(
     request("https://example.com/api/settings/require-login", { method: "POST" }),
     { enforce: true }
   );
-
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+  assert.equal(unstamped.status, 401);
 });
 
 test("runAuthzPipeline keeps management API rejections as JSON", async () => {
@@ -337,18 +397,37 @@ test("runAuthzPipeline allows dashboard sessions to read model catalog aliases",
   assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
 });
 
-test("runAuthzPipeline allows dashboard sessions to reach DB health management API", async () => {
+test("runAuthzPipeline gates the DB health API on loopback, not on the session alone", async () => {
   await forceAuthRequired();
 
-  const response = await pipeline.runAuthzPipeline(
+  // #13717 moved /api/db/health to Tier 1 LOCAL_ONLY: runManagedDbHealthCheck()
+  // forks native diagnostics into a child process (Hard Rules #15 + #17), and the
+  // route is NOT in LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES. So a dashboard session
+  // is no longer sufficient by itself — an unstamped peer fails closed, whatever the
+  // URL says, because requestPeerAddress() never reads the spoofable Host header.
+  const unstamped = await pipeline.runAuthzPipeline(
     request("http://localhost/api/db/health", {
       headers: { cookie: await dashboardCookie() },
     }),
     { enforce: true }
   );
+  assert.equal(unstamped.status, 403);
 
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+  // The local operator — real TCP peer 127.0.0.1, stamped by the custom server —
+  // still reaches it with their session.
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = "pipeline-test-peer-stamp-token";
+  const loopback = await pipeline.runAuthzPipeline(
+    request("http://localhost/api/db/health", {
+      headers: {
+        cookie: await dashboardCookie(),
+        "x-omniroute-peer-ip": "pipeline-test-peer-stamp-token|127.0.0.1",
+        "x-omniroute-via-proxy": "pipeline-test-peer-stamp-token|0",
+      },
+    }),
+    { enforce: true }
+  );
+  assert.equal(loopback.status, 200);
+  assert.equal(loopback.headers.get("x-omniroute-route-class"), "MANAGEMENT");
 });
 
 test("runAuthzPipeline accepts dashboard mutations from configured public origin", async () => {

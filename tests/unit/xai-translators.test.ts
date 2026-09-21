@@ -193,6 +193,51 @@ test("chatRequestToXaiResponses: maps max_tokens to max_output_tokens", () => {
   assert.equal(out.max_output_tokens, 512);
 });
 
+test("#12692: chatRequestToXaiResponses maps legacy assistant function_call to a function_call item", () => {
+  const req = {
+    model: "grok-4",
+    messages: [
+      {
+        role: "assistant",
+        content: null,
+        function_call: { name: "get_weather", arguments: '{"city":"Paris"}' },
+      },
+    ],
+  };
+  const out = chatRequestToXaiResponses(req);
+  const calls = (out.input as Array<{ type: string; name?: string; arguments?: string }>).filter(
+    (i) => i.type === "function_call"
+  );
+  assert.equal(calls.length, 1, "expected a function_call item to be present in xAI input");
+  assert.equal(calls[0]?.name, "get_weather");
+  assert.equal(calls[0]?.arguments, '{"city":"Paris"}');
+});
+
+test("#12692: chatRequestToXaiResponses preserves leading text alongside legacy function_call", () => {
+  const req = {
+    model: "grok-4",
+    messages: [
+      {
+        role: "assistant",
+        content: "Let me check that for you.",
+        function_call: { name: "get_weather", arguments: '{"city":"Paris"}' },
+      },
+    ],
+  };
+  const out = chatRequestToXaiResponses(req);
+  const items = out.input as Array<{
+    type?: string;
+    role?: string;
+    content?: unknown;
+    name?: string;
+  }>;
+  const textItem = items.find((i) => i.role === "assistant");
+  assert.ok(textItem, "expected the leading assistant text block to be preserved");
+  const calls = items.filter((i) => i.type === "function_call");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0]?.name, "get_weather");
+});
+
 // ─── xaiCompletedToChatJson ──────────────────────────────────────────────────
 
 test("xaiCompletedToChatJson: extracts output_text content into message", () => {
@@ -235,6 +280,21 @@ test("xaiCompletedToChatJson: maps function_call to tool_calls with finish_reaso
   assert.equal(toolCalls[0].id, "call_1");
   const fn = toolCalls[0].function as Record<string, unknown>;
   assert.equal(fn.name, "get_weather");
+});
+
+test("#12700: xaiCompletedToChatJson sums legacy prompt_tokens/completion_tokens into total_tokens", () => {
+  const completed = {
+    output: [{ type: "message", content: [{ type: "output_text", text: "hi" }] }],
+    usage: { prompt_tokens: 10, completion_tokens: 5 },
+  };
+  const result = xaiCompletedToChatJson(completed) as { usage?: Record<string, unknown> };
+  assert.equal(result.usage?.prompt_tokens, 10);
+  assert.equal(result.usage?.completion_tokens, 5);
+  assert.equal(
+    result.usage?.total_tokens,
+    15,
+    "total_tokens should sum legacy fields, not report 0"
+  );
 });
 
 // ─── openaiResponsesRequestToXai ─────────────────────────────────────────────
@@ -520,4 +580,20 @@ test("xaiCompletedToGeminiJson: maps usage to usageMetadata", () => {
   assert.equal(meta.promptTokenCount, 10);
   assert.equal(meta.candidatesTokenCount, 20);
   assert.equal(meta.totalTokenCount, 30);
+});
+
+test("#12700: xaiCompletedToGeminiJson sums legacy prompt_tokens/completion_tokens into totalTokenCount", () => {
+  const completed = {
+    model: "grok-4",
+    output: [],
+    usage: { prompt_tokens: 10, completion_tokens: 5 },
+  };
+  const result = xaiCompletedToGeminiJson(completed) as { usageMetadata?: Record<string, unknown> };
+  assert.equal(result.usageMetadata?.promptTokenCount, 10);
+  assert.equal(result.usageMetadata?.candidatesTokenCount, 5);
+  assert.equal(
+    result.usageMetadata?.totalTokenCount,
+    15,
+    "totalTokenCount should sum legacy fields, not report 0"
+  );
 });

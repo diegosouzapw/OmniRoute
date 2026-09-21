@@ -16,6 +16,7 @@ import {
   CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
   CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
   CLAUDE_CLI_USER_AGENT,
+  getClaudeCodeUserAgent,
 } from "../anthropicHeaders.ts";
 import { getCodexDefaultHeaders } from "../codexClient.ts";
 import {
@@ -55,6 +56,13 @@ export interface RegistryModel {
   liveCatalogIds?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
+  /**
+   * Model reasons unconditionally (always-on reasoning). When true,
+   * ensureThinkingBudget treats it as implicit reasoning opt-in so a tiny
+   * caller max_tokens gets the 4096 floor even without explicit thinking
+   * settings (#13198).
+   */
+  alwaysReasons?: boolean;
   supportedThinkingEfforts?: readonly string[];
   supportsVision?: boolean;
   supportsAudio?: boolean;
@@ -136,6 +144,16 @@ export interface RegistryEntry {
   responsesBaseUrl?: string;
   /** Provider-bound replay format; omitted providers accept portable plaintext reasoning. */
   reasoningTransport?: ReasoningTransport;
+  /**
+   * Thinking-mode upstreams proxied by this provider require the assistant's
+   * prior-turn `reasoning_content` to be echoed back on every follow-up request
+   * (e.g. DeepSeek-reselling gateways such as `bai`). Standard OpenAI-shaped
+   * clients do not preserve that field when replaying history, so when this is
+   * `true`, DefaultExecutor injects a placeholder via
+   * `open-sse/utils/reasoningContentInjector.ts` for model ids matching
+   * `isThinkingMessageModel()`. See issue #13599.
+   */
+  requiresReasoningContentEcho?: boolean;
   /** Anthropic-native /v1/messages endpoint (e.g. GitHub Copilot's shim) used
    *  for models tagged `targetFormat: "claude"` on an otherwise openai-format
    *  provider — see registry/github/index.ts. */
@@ -165,6 +183,11 @@ export interface RegistryEntry {
   chatPath?: string;
   clientVersion?: string;
   timeoutMs?: number;
+  /** Headers-wait ceiling override for streaming requests (#11526). Gateways
+   *  that buffer entire generations (Console Go / Command Code) need this well
+   *  above the 110s global cap — generateLegacyProviders() copies it into the
+   *  executor's LegacyProvider config. */
+  fetchStartTimeoutCapMs?: number;
   passthroughModels?: boolean;
   /**
    * Whether a non-empty synchronized live model list is exhaustive enough
@@ -263,6 +286,7 @@ export interface LegacyProvider {
   chatPath?: string;
   clientVersion?: string;
   timeoutMs?: number;
+  fetchStartTimeoutCapMs?: number;
 }
 
 export const buildModels = (ids: readonly string[]): RegistryModel[] =>
@@ -761,7 +785,7 @@ export function getClaudeCliHeaders(): Record<string, string> {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
     "Anthropic-Beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
     "Anthropic-Dangerous-Direct-Browser-Access": "true",
-    "User-Agent": CLAUDE_CLI_USER_AGENT,
+    "User-Agent": getClaudeCodeUserAgent("cli"),
     "X-App": "cli",
     "X-Stainless-Helper-Method": "stream",
     "X-Stainless-Retry-Count": "0",

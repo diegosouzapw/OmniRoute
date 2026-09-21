@@ -1,0 +1,1 @@
+- **fix(i18n):** reviewer pass over the 1,865 pt-BR leaves retranslated in #13782 (172 corrections) via the new `review-locale` script. (#13885)

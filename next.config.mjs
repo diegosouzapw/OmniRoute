@@ -10,6 +10,7 @@ import {
   nonPageRoutePrefixes,
   resolveDashboardEmbedMode,
 } from "./scripts/build/dashboardEmbed.mjs";
+import { shouldBuildStandalone } from "./scripts/build/backendOnlyPages.mjs";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".build/next";
@@ -109,8 +110,6 @@ function filterKnownInfrastructureWarnings(baseConsole) {
 // The resulting artifact is intended to be published as `omniroute-secure`
 // for security-sensitive environments. See docs/security/SOCKET_DEV_FINDINGS.md.
 const isMinimalBuild = process.env.OMNIROUTE_BUILD_PROFILE === "minimal";
-// Contributor builds validate compilation only and do not need a shippable standalone bundle.
-const isContributorBuild = process.env.OMNIROUTE_BUILD_PROFILE === "contributor";
 
 // #10273: `null` unless the operator opts in with DASHBOARD_ALLOW_EMBED=vscode. Read at build
 // time like every other knob in this file (OMNIROUTE_BASE_PATH, OMNIROUTE_BUILD_PROFILE, …),
@@ -220,7 +219,7 @@ const nextConfig = {
       },
     ],
   },
-  ...(isContributorBuild ? {} : { output: "standalone" }),
+  ...(shouldBuildStandalone(process.env) ? { output: "standalone" } : {}),
   compress: true,
   productionBrowserSourceMaps: false,
   // Issue #67: enable React Compiler — automates memoization, removes manual useCallback/useMemo debt.
@@ -349,6 +348,10 @@ const nextConfig = {
     "keytar",
     "wreq-js",
     "zod",
+    // jsdom relies on Node class relationships that Turbopack's server-chunk transform can break
+    // (observed as "Class extends value undefined" during Vertex metadata sync). Keep the native
+    // package boundary; standalone file tracing still copies the runtime dependency.
+    "jsdom",
     "@ngrok/ngrok",
     "@huggingface/transformers",
     // The ESM entry imports tiktoken_bg.wasm as a module. Turbopack can compile
@@ -362,6 +365,13 @@ const nextConfig = {
     "ws",
     "bufferutil",
     "utf-8-validate",
+    // The SDK's client graph has a module-level `class extends Client` cycle
+    // against the TLA Client module. Bundled into route chunks it throws
+    // "Cannot access 'l' before initialization" during evaluation and every
+    // /api/mcp/stream initialize answers HTTP 500. Node's native ESM loader
+    // resolves the same circular graph via live bindings, so keep the SDK
+    // out of the webpack server bundle.
+    "@modelcontextprotocol/sdk",
     "child_process",
     "fs",
     "path",

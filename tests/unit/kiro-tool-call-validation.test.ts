@@ -236,23 +236,45 @@ test("Kiro stream errors become Responses response.failed events", async () => {
     null,
     "kiro-model"
   );
-  const writer = transform.writable.getWriter();
-  const responseText = new Response(transform.readable).text();
+  // Drive the transform the way production does — `response.body.pipeThrough(transform)`
+  // read chunk by chunk — instead of `new Response(transform.readable).text()`.
+  // createStreamFailureAborter forwards the translated failure event and then errors the
+  // controller on purpose, so a translated upstream error can never end as a clean,
+  // successful-looking stream (open-sse/utils/streamFailureBoundary.ts). `.text()` cannot
+  // observe that: it discards the forwarded bytes and rejects, and the abandoned
+  // rejection lands as an unhandledRejection after the test ends. A reader keeps the
+  // event that was already delivered and still sees the termination.
+  const upstream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(
+        textEncoder.encode(
+          `data: ${JSON.stringify({
+            error: {
+              message: "Invalid Kiro tool_call payload: missing nested MCP tool name at input.name",
+              type: "invalid_request_error",
+              code: "invalid_kiro_tool_call",
+            },
+          })}\n\n`
+        )
+      );
+      controller.close();
+    },
+  });
 
-  await writer.write(
-    textEncoder.encode(
-      `data: ${JSON.stringify({
-        error: {
-          message: "Invalid Kiro tool_call payload: missing nested MCP tool name at input.name",
-          type: "invalid_request_error",
-          code: "invalid_kiro_tool_call",
-        },
-      })}\n\n`
-    )
-  );
-  await writer.close();
-  const text = await responseText;
+  const reader = upstream.pipeThrough(transform).getReader();
+  let text = "";
+  let streamError: unknown = null;
+  try {
+    for (;;) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      text += new TextDecoder().decode(chunk.value);
+    }
+  } catch (caught) {
+    streamError = caught;
+  }
 
+  assert.ok(streamError, "a translated upstream error must terminate the stream");
   assert.match(text, /event: response\.failed/);
   assert.match(text, /invalid_kiro_tool_call/);
   assert.match(text, /missing nested MCP tool name/);

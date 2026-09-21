@@ -24,6 +24,15 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-12058-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+// Every `getRows()` call resets the builder, so each one is a *cold* catalog
+// build. That path is bounded by `CATALOG_BUILD_TIMEOUT_MS` (8s by default),
+// and a cold build of the full catalog already costs ~7s on an idle box before
+// the fire-and-forget upstream usage refreshes land — so on a loaded CI runner
+// the bound trips and `getRows()` sees a 500 instead of the rows under test.
+// That budget is not what this regression covers (row shaping in canonical
+// mode is), so pin it out of the way exactly like #12627 does. Every
+// assertion below is unchanged.
+process.env.CATALOG_BUILD_TIMEOUT_MS = "120000";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");

@@ -1,1 +1,0 @@
-- **fix(search):** Allow REST and MCP web-fetch requests to select the advertised `anysearch-search` provider explicitly ([#11716](https://github.com/diegosouzapw/OmniRoute/pull/11716)) — thanks @pacocartones

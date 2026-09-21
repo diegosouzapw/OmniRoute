@@ -3,11 +3,13 @@
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 import {
+  GPT_6_ASTRA_PRICING,
   GEMINI_3_7_FLASH_PROMO_PRICING,
   GPT_5_5_PRICING,
   GPT_5_6_LUNA_PRICING,
   GPT_5_6_SOL_PRICING,
   GPT_5_6_TERRA_PRICING,
+  CLAUDE_FABLE_5_1_PRICING,
   CLAUDE_FABLE_5_PRICING,
   CLAUDE_OPUS_5_PRICING,
   CLAUDE_OPUS_4_PRICING,
@@ -19,6 +21,7 @@ import {
 
 export const DEFAULT_PRICING_FRONTIER = {
   openai: {
+    "gpt-6-astra": GPT_6_ASTRA_PRICING,
     "gpt-5.6": GPT_5_6_SOL_PRICING,
     "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
     "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,
@@ -213,6 +216,7 @@ export const DEFAULT_PRICING_FRONTIER = {
     // Common model IDs (without dates) used across providers
     // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
     // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
+    "claude-fable-5-1": CLAUDE_FABLE_5_1_PRICING,
     "claude-fable-5": CLAUDE_FABLE_5_PRICING,
     "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "claude-sonnet-5": CLAUDE_SONNET_5_PRICING,

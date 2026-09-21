@@ -47,12 +47,12 @@ test("providers with no published token quota never inflate the headline", () =>
   }
 });
 
-test("nara is a single shared 5M/day pool, counted once", () => {
+test("nara is a single shared 7M/day pool, counted once", () => {
   const rows = byProvider("nara");
   assert.ok(rows.length >= 1);
-  // 5M tokens/day shared across all models => 150M/month, deduped by poolKey.
+  // 7M tokens/day shared across all plan models => 210M/month (re-audited 2026-09-02, GET /api/plans).
   assert.ok(rows.every((m) => m.poolKey === "nara-free"));
-  assert.ok(rows.every((m) => m.monthlyTokens === 150_000_000));
+  assert.ok(rows.every((m) => m.monthlyTokens === 210_000_000));
   assert.ok(rows.every((m) => m.freeType === "recurring-daily"));
 });
 

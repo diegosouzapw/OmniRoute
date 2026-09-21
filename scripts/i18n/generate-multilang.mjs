@@ -270,15 +270,6 @@ const LOCALE_SPECS = [
     docsName: "Bahasa Indonesia",
   },
   {
-    code: "in",
-    googleTl: "id",
-    label: "IN",
-    flag: "🇮🇩",
-    languageName: "Bahasa Indonesia (Alt)",
-    readmeName: "Bahasa Indonesia (Alt)",
-    docsName: "Bahasa Indonesia (Alt)",
-  },
-  {
     code: "ko",
     googleTl: "ko",
     label: "KO",

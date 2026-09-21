@@ -55,7 +55,7 @@ export function IoNode({ data }: NodeProps) {
       {!isInput && savingsPercent != null && (
         <div
           className="mt-1 text-[11px] font-semibold"
-          style={{ color: "#22c55e" }}
+          style={{ color: "var(--orch-status-success)" }}
           data-testid="io-savings-percent"
         >
           {`-${(savingsPercent as number).toFixed(1)}%`}

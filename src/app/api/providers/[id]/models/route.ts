@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  getProviderConnectionFamilyIds,
   isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
@@ -11,6 +12,7 @@ import { resolveAlibabaProviderModelsUrl } from "@/shared/constants/alibabaProvi
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { mergeModelsWithCustomPrecedence } from "@/lib/providers/modelMetadataPrecedence";
+import { addModelsSuffix } from "@/lib/providers/validation/urlHelpers";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { resolveProxyForProvider } from "@/lib/db/proxies";
 import {
@@ -26,6 +28,11 @@ import {
 import { errorResponse, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
+import {
+  buildTokenPlanCatalogRequest,
+  isTokenPlanCatalogProvider,
+  parseTokenPlanCatalog,
+} from "@/lib/providerModels/tokenPlanModelDiscovery";
 import { resolveZedModels } from "@omniroute/open-sse/shared/zedAuth.ts";
 import {
   fetchGitHubCopilotModels,
@@ -86,12 +93,12 @@ import {
 } from "@/lib/providerModels/modelDiscovery";
 import { buildProviderModelsUrl, getDiscoveryClientVersionOptions } from "./discoveryClientVersion";
 import { getAdobeModels } from "./adobeFireflyDiscovery";
-import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import { getSyncedAvailableModels, getCustomModels, getModelIsHidden } from "@/lib/db/models";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 import { fetchCursorAvailableModels } from "@/lib/providerModels/cursorAvailableModels";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
+import { resolveCopilotDiscoveryToken } from "@/lib/providerModels/copilotDiscoveryToken";
 import {
   type JsonRecord,
   asRecord,
@@ -117,15 +124,19 @@ import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
 import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
 import {
   type ProviderModelsConfigEntry,
+  assembleProviderModelsHeaders,
+  getXaiOauthLiveModelsConfig,
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
 import {
-  buildCodexDiscoveryCatalog,
   enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
   fetchCodexGithubCatalogModels,
+  reconcileCodexDiscoveryCatalog,
 } from "./discovery/codex";
+import { getCodexDiscoveryMode } from "@/shared/services/codexDiscoveryPolicy";
 import { maybeHandleConolModelDiscovery } from "./conolDiscovery";
+import { maybeHandleVertexModelDiscovery } from "./vertexDiscovery";
 import { buildNoAuthModelsResponse, filterModelsForRoute } from "./modelRouteProjection";
 
 /**
@@ -144,6 +155,7 @@ export async function GET(
     const excludeHidden = searchParams.get("excludeHidden") === "true";
     const excludeCustom = searchParams.get("excludeCustom") === "true";
     const refresh = searchParams.get("refresh") === "true";
+    const includeCandidates = searchParams.get("includeCandidates") === "true";
     const chatOnly =
       searchParams.get("chatOnly") === "true" ||
       request.headers.get("x-omniroute-model-surface")?.toLowerCase() === "chat";
@@ -243,7 +255,12 @@ export async function GET(
     const connectionId = typeof connection.id === "string" ? connection.id : id;
     const apiKey = typeof connection.apiKey === "string" ? connection.apiKey : "";
     const accessToken = typeof connection.accessToken === "string" ? connection.accessToken : "";
-    const autoFetchModels = isAutoFetchModelsEnabled(connection.providerSpecificData);
+    const codexDiscoveryMode =
+      provider === "codex" ? getCodexDiscoveryMode(connection.providerSpecificData) : "off";
+    const autoFetchModels =
+      provider === "codex"
+        ? codexDiscoveryMode !== "off"
+        : isAutoFetchModelsEnabled(connection.providerSpecificData);
     const cachedDiscoveryModels = usesCuratedModelsOnly
       ? []
       : filterModelsForRoute(
@@ -613,9 +630,7 @@ export async function GET(
       try {
         const discovery = await discoverMaxaiModels({
           providerSpecificData: connection.providerSpecificData as
-            | Record<string, unknown>
-            | null
-            | undefined,
+            Record<string, unknown> | null | undefined,
           accessToken: apiKey || accessToken,
           fetchImpl: (url, init) =>
             safeOutboundFetch(url, {
@@ -1336,14 +1351,6 @@ export async function GET(
       return buildApiDiscoveryResponse(normalizeSapModelsResponse(await response.json()));
     }
 
-    if (provider === "claude") {
-      return buildResponse({
-        provider,
-        connectionId,
-        models: getStaticModelsForProvider("claude") || [],
-      });
-    }
-
     if (provider === "cursor") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
@@ -1650,8 +1657,10 @@ export async function GET(
       // the exchanged token; only DISCOVERY needs the raw token.) This mirrors the
       // Copilot CLI + Hermes "de-gate model discovery" fix. Exchanged token stays
       // as a fallback for connections that only captured that.
-      const copilotToken =
-        toNonEmptyString(accessToken) || toNonEmptyString(psd.copilotToken) || null;
+      const copilotToken = resolveCopilotDiscoveryToken({
+        accessToken,
+        copilotToken: psd.copilotToken,
+      });
 
       const discovery = await fetchGitHubCopilotModels({
         token: copilotToken,
@@ -1697,8 +1706,10 @@ export async function GET(
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
       const psd = asRecord(connection.providerSpecificData);
-      const copilotToken =
-        toNonEmptyString(psd.copilotToken) || toNonEmptyString(accessToken) || null;
+      const copilotToken = resolveCopilotDiscoveryToken({
+        accessToken,
+        copilotToken: psd.copilotToken,
+      });
       // endpoints.api serves the real chat model catalog; endpoints.proxy only
       // has NES/autocomplete models. Prefer the api host, fall back to proxy for
       // legacy connections that predate copilotApiUrl capture.
@@ -1789,169 +1800,22 @@ export async function GET(
       });
     }
 
-    if (provider === "vertex" || provider === "vertex-partner") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      // Vertex AI lists models from the Generative Language `v1beta/models` endpoint, which both
-      // Express-mode API keys (via ?key=) and Service Account JSON (via a minted OAuth Bearer
-      // token) can reach. This surfaces the live catalog, including gemini-*-image models
-      // absent from the static registry list.
-      const credential = (apiKey || "").trim();
-      let queryKey: string | null = null;
-      let bearerToken: string | null = null;
-      try {
-        const { parseSAFromApiKey, getAccessToken } =
-          await import("@omniroute/open-sse/executors/vertex.ts");
-        if (accessToken) {
-          bearerToken = accessToken;
-        } else if (credential) {
-          // A Service Account credential is a JSON object; a Vertex AI Express-mode API key is an
-          // opaque (non-JSON) string. Detect locally so this branch has no dependency on optional
-          // executor helpers.
-          let isServiceAccountJson = false;
-          try {
-            const parsed = JSON.parse(credential);
-            isServiceAccountJson = !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
-          } catch {
-            isServiceAccountJson = false;
-          }
-
-          if (isServiceAccountJson) {
-            bearerToken = await getAccessToken(parseSAFromApiKey(credential));
-          } else {
-            queryKey = credential;
-          }
-        }
-      } catch (error) {
-        // Couldn't resolve a usable credential (e.g. malformed Service Account JSON).
-        const fallback = buildDiscoveryErrorFallbackResponse(error, {
-          cacheWarning: "Vertex credential unavailable — using cached catalog",
-          localWarning: "Vertex credential unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-      }
-
-      if (!queryKey && !bearerToken) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "No usable Vertex credential — using cached catalog",
-          localWarning: "No usable Vertex credential — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: "No usable Vertex AI credential configured for model discovery." },
-          { status: 400 }
-        );
-      }
-
-      const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000";
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (bearerToken) headers["Authorization"] = `Bearer ${bearerToken}`;
-
-      const allModels: any[] = [];
-      let pageUrl = queryKey ? `${baseUrl}&key=${encodeURIComponent(queryKey)}` : baseUrl;
-      let pageCount = 0;
-      const MAX_PAGES = 20;
-      const seenTokens = new Set<string>();
-
-      try {
-        while (pageUrl && pageCount < MAX_PAGES) {
-          pageCount++;
-          const response = await safeOutboundFetch(pageUrl, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsPagination,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "GET",
-            headers,
-          });
-
-          if (!response.ok) {
-            // Avoid logging the raw upstream body (may contain sensitive data); status is enough.
-            console.log("[models] Vertex model discovery failed", {
-              provider,
-              status: response.status,
-            });
-            const fallback = buildDiscoveryFallbackResponse();
-            if (fallback) return fallback;
-            return NextResponse.json(
-              { error: `Failed to fetch Vertex models: ${response.status}` },
-              { status: response.status }
-            );
-          }
-
-          const data = await response.json();
-          allModels.push(...parseGeminiModelsList(data));
-
-          const nextPageToken = data.nextPageToken;
-          if (!nextPageToken || seenTokens.has(nextPageToken)) break;
-          seenTokens.add(nextPageToken);
-          pageUrl = `${baseUrl}&pageToken=${encodeURIComponent(nextPageToken)}`;
-          if (queryKey) pageUrl += `&key=${encodeURIComponent(queryKey)}`;
-        }
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error);
-        if (fallback) return fallback;
-        throw error;
-      }
-
-      // Anthropic partner models via Model Garden publisher endpoint (Bearer only).
-      //
-      // Model Garden's publisher-model LIST is served by the v1beta1 API — the v1
-      // API does not support list operations (every /v1/.../publishers/anthropic/models
-      // path 404s at the Google Front End). The list is also global: it returns the
-      // full Anthropic Claude catalog regardless of the connection's project or
-      // region, so no project/region scoping is applied here (execution region is
-      // handled separately by the vertex executor at request time).
-      if (bearerToken) {
-        const anthropicModelsUrl =
-          "https://aiplatform.googleapis.com/v1beta1/publishers/anthropic/models";
-
-        try {
-          const anthropicResponse = await safeOutboundFetch(anthropicModelsUrl, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${bearerToken}`,
-            },
-          });
-          if (anthropicResponse.ok) {
-            const anthropicData = await anthropicResponse.json();
-            const { parseVertexAnthropicModels } =
-              await import("@/lib/providerModels/vertexAnthropicModelsParser");
-            allModels.push(...parseVertexAnthropicModels(anthropicData));
-          } else {
-            console.log("[models] Vertex Anthropic partner discovery failed", {
-              provider,
-              status: anthropicResponse.status,
-            });
-          }
-        } catch (err) {
-          console.log("[models] Vertex Anthropic partner discovery error", {
-            provider,
-            error: err instanceof Error ? err.message : String(err),
-          });
-        }
-      }
-
-      if (allModels.length > 0) {
-        return buildApiDiscoveryResponse(allModels);
-      }
-
-      const fallback = buildDiscoveryFallbackResponse();
-      if (fallback) return fallback;
-      return buildResponse({
-        provider,
-        connectionId,
-        models: [],
-        source: "api",
-      });
-    }
+    const vertexResponse = await maybeHandleVertexModelDiscovery({
+      provider,
+      connectionId,
+      connection,
+      apiKey,
+      accessToken,
+      proxy,
+      cachedDiscoveryModels,
+      maybeReturnCachedDiscovery,
+      maybeReturnAutoFetchDisabled,
+      buildDiscoveryFallbackResponse,
+      buildDiscoveryErrorFallbackResponse,
+      buildResponse,
+      buildApiDiscoveryResponse,
+    });
+    if (vertexResponse) return vertexResponse;
 
     if (isAnthropicCompatibleProvider(provider)) {
       // CC providers never support models listing — this check must precede
@@ -2086,19 +1950,62 @@ export async function GET(
       }
     }
 
+    const xaiOauthLiveConfig = provider === "xai-oauth" ? getXaiOauthLiveModelsConfig() : undefined;
+    if (isTokenPlanCatalogProvider(provider)) {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+      const disabledResponse = maybeReturnAutoFetchDisabled();
+      if (disabledResponse) return disabledResponse;
+
+      const catalogRequest = buildTokenPlanCatalogRequest(
+        provider,
+        connection.providerSpecificData
+      );
+      let liveModels: Array<{ id: string; name: string }>;
+      try {
+        const response = await safeOutboundFetch(catalogRequest.url, {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          ...catalogRequest.init,
+          guard: "public-only",
+          proxyConfig: proxy,
+        });
+        if (!response.ok) throw new Error("Token Plan catalog request failed");
+        liveModels = parseTokenPlanCatalog(await response.json());
+      } catch {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "Token Plan live catalog unavailable — using cached catalog",
+          localWarning: "Token Plan live catalog unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+        return errorResponse(502, "Token Plan live catalog unavailable. Please try again later.");
+      }
+      return buildApiDiscoveryResponse(liveModels, undefined, {
+        catalogMode: "live_token_plan_catalog",
+        catalogScope: "product",
+      });
+    }
+
     const config =
-      provider in PROVIDER_MODELS_CONFIG
+      xaiOauthLiveConfig ??
+      (provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
-        : deriveConfigFromRegistryModelsUrl(provider);
+        : deriveConfigFromRegistryModelsUrl(provider));
     if (provider === "codex") {
-      // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
-      // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.
       const staticCodexCatalog = mergeLocalCatalogModels(
         getModelsByProviderId("codex") || [],
         getStaticModelsForProvider("codex") || []
       );
+      const reconcileCodexCatalog = (
+        remoteModels: typeof cachedDiscoveryModels,
+        source: "live" | "github" = "live"
+      ) =>
+        reconcileCodexDiscoveryCatalog(
+          remoteModels.map((model) => ({ ...model, discoverySource: source })),
+          staticCodexCatalog,
+          codexDiscoveryMode
+        );
       const finalizeCodexCatalog = (remoteModels: typeof cachedDiscoveryModels) =>
-        buildCodexDiscoveryCatalog(remoteModels, staticCodexCatalog);
+        reconcileCodexCatalog(remoteModels).activeModels;
       const cachedCatalogModels = finalizeCodexCatalog(cachedDiscoveryModels);
       const cachedIdsMatchFinalCatalog =
         cachedDiscoveryModels.length === cachedCatalogModels.length &&
@@ -2110,11 +2017,14 @@ export async function GET(
 
       if (!refresh && cachedDiscoveryModels.length > 0) {
         await persistFilteredCacheIfNeeded();
+        const catalog = reconcileCodexCatalog(cachedDiscoveryModels);
         return buildResponse({
           provider,
           connectionId,
-          models: cachedCatalogModels,
+          models: catalog.activeModels,
           source: "cache",
+          discovery: { mode: codexDiscoveryMode },
+          ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
         });
       }
 
@@ -2153,14 +2063,24 @@ export async function GET(
           githubCatalogModels && githubCatalogModels.length > 0
             ? enrichCodexModelsFromGithubCatalog(liveModels, githubCatalogModels)
             : liveModels;
-        return buildApiDiscoveryResponse(finalizeCodexCatalog(enrichedLiveModels));
+        const catalog = reconcileCodexCatalog(enrichedLiveModels);
+        return buildApiDiscoveryResponse(catalog.activeModels, undefined, {
+          discovery: { mode: codexDiscoveryMode },
+          ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
+        });
       }
 
       if (githubCatalogModels && githubCatalogModels.length > 0) {
-        return buildApiDiscoveryResponse(
-          finalizeCodexCatalog(githubCatalogModels),
-          "Codex live catalog unavailable — using GitHub model catalog"
-        );
+        const catalog = reconcileCodexCatalog(githubCatalogModels, "github");
+        return buildResponse({
+          provider,
+          connectionId,
+          models: catalog.activeModels,
+          source: "github_catalog",
+          warning: "Codex live catalog unavailable — using GitHub model catalog",
+          discovery: { mode: codexDiscoveryMode },
+          ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
+        });
       }
 
       if (cachedDiscoveryModels.length > 0) {
@@ -2273,6 +2193,23 @@ export async function GET(
         url = `${base}/v1/models`;
       }
     }
+    // OpenRouter is pinned by PROVIDER_MODELS_CONFIG to the *global* catalog
+    // (https://openrouter.ai/api/v1/models), so it never consulted the
+    // per-connection base-URL override. A connection pointed at a different
+    // OpenRouter region — e.g. the EU in-region endpoint
+    // (https://eu.openrouter.ai/api/v1) — therefore kept importing the global
+    // catalog and advertised models that endpoint cannot serve. Those ids then
+    // 404 at inference time even though the per-connection model list, and the
+    // auto-sync that maintains it, look healthy. Mirrors the `openai` override
+    // handling above (#5899). addModelsSuffix() reuses the shared normalization:
+    // it drops a trailing chat/responses/messages path, appends /models, and
+    // leaves an already-/models URL untouched.
+    if (provider === "openrouter") {
+      const customBaseUrl = getProviderBaseUrl(connection.providerSpecificData);
+      if (customBaseUrl) {
+        url = addModelsSuffix(customBaseUrl) || url;
+      }
+    }
     if (provider === "cloudflare-ai") {
       const pData = asRecord(connection.providerSpecificData);
       const accountId =
@@ -2292,12 +2229,8 @@ export async function GET(
     }
 
     // Build headers
-    const headers = config.buildHeaders
-      ? config.buildHeaders(token, connection)
-      : { ...config.headers };
-    if (!config.buildHeaders && config.authHeader && !config.authQuery) {
-      headers[config.authHeader] = (config.authPrefix || "") + token;
-    }
+    const headerContext = { ...connection, accessToken, apiKey };
+    const headers = assembleProviderModelsHeaders(config, token, headerContext);
 
     // Make request (with pagination for providers that use nextPageToken, e.g. Gemini)
     const fetchOptions: any = {
@@ -2346,7 +2279,7 @@ export async function GET(
 
       const data = await response.json();
       let pageModels = config.parseResponse(data);
-      if (provider === "alibaba" || provider === "alibaba-cn") {
+      if (getProviderConnectionFamilyIds("alibaba").includes(provider)) {
         const { parseAlibabaModelStudioModelsForConnection } =
           await import("./discovery/providerModelsConfig.ts");
         pageModels = parseAlibabaModelStudioModelsForConnection(
@@ -2375,7 +2308,7 @@ export async function GET(
       );
     }
 
-    if (provider === "alibaba" || provider === "alibaba-cn") {
+    if (getProviderConnectionFamilyIds("alibaba").includes(provider)) {
       const { shouldUseLiveAlibabaFreeModelDiscovery } =
         await import("@omniroute/open-sse/services/alibabaFreeTier.ts");
       const { scheduleAlibabaFreeTierProbeRefresh } =

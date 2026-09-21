@@ -203,7 +203,7 @@ test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {
   // GPT OSS models should not be blocked by the heuristic
   assert.equal(modelCapabilities.supportsToolCalling("fake-provider/gpt-oss-120b"), true);
   assert.equal(modelCapabilities.supportsToolCalling("gpt-oss-120b"), true);
-  assert.equal(modelCapabilities.supportsToolCalling("nvidia/openai/gpt-oss-20b"), false); // in registry
+  assert.equal(modelCapabilities.supportsToolCalling("nvidia/openai/gpt-oss-120b"), false); // in registry
 
   // DeepSeek Reasoner supports tool calling
   assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), true);

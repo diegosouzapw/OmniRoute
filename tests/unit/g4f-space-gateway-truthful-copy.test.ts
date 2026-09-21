@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import i18nConfig from "../../config/i18n.json" with { type: "json" };
 
 interface G4fProviderMetadata {
   hasFree?: boolean;
@@ -75,8 +76,8 @@ test("g4f.space metadata describes conditional access and the remote data bounda
 
 test("every shipped locale gives both g4f.space access paths without a fixed quota", () => {
   assert.ok(
-    localeFiles.length >= 43,
-    `expected the 43 shipped locales, found ${localeFiles.length}`
+    localeFiles.length >= i18nConfig.locales.length,
+    `expected the ${i18nConfig.locales.length} configured locales, found ${localeFiles.length}`
   );
 
   for (const file of localeFiles) {

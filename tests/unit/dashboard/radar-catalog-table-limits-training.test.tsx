@@ -136,6 +136,71 @@ describe("the prompt-training badge", () => {
     expect(cells).toContain("20/min · 200/day");
   });
 
+  it("explains an absent limits cell instead of leaving the dash mute", () => {
+    renderTable([entry({ limits: null })]);
+    const dash = [...container.querySelectorAll("span")].find(
+      (element) =>
+        element.textContent === "—" && element.getAttribute("title") === "label:limitsUnknownHelp"
+    );
+    expect(dash).not.toBeNull();
+  });
+
+  it("explains an unknown context window instead of leaving the dash mute", () => {
+    renderTable([entry({ contextWindow: null })]);
+    const dash = [...container.querySelectorAll("span")].find(
+      (element) =>
+        element.textContent === "—" && element.getAttribute("title") === "label:contextUnknownHelp"
+    );
+    expect(dash).not.toBeNull();
+  });
+
+  it("explains unreported capabilities on their badges (tools, vision, thinking)", () => {
+    renderTable([entry({ capabilities: { tools: null, vision: null, thinking: null } })]);
+    const badges = [...container.querySelectorAll("span")].filter(
+      (element) =>
+        element.textContent?.includes("?") &&
+        element.getAttribute("title") === "label:capabilityUnknownHelp"
+    );
+    expect(badges.length).toBe(3);
+  });
+
+  it("leaves an explicit false capability badge alone (no tooltip)", () => {
+    renderTable([entry({ capabilities: { tools: false, vision: null, thinking: null } })]);
+    const cross = [...container.querySelectorAll("span")].find((element) =>
+      element.textContent?.includes("✕")
+    );
+    expect(cross).not.toBeNull();
+    expect(cross?.getAttribute("title")).toBeNull();
+  });
+
+  it("renders reported limits with no parasitic explanation", () => {
+    renderTable([
+      entry({ limits: { rpm: 20, rpd: 200, tpm: null, tpd: null }, contextWindow: 128_000 }),
+    ]);
+    const cell = [...container.querySelectorAll("td")].find((c) =>
+      c.textContent?.includes("20/min")
+    );
+    expect(cell).not.toBeNull();
+    expect(cell?.querySelector("span[title]")).toBeNull();
+  });
+
+  it("renders a feed-reported zero context window as zero, not unknown", () => {
+    renderTable([entry({ contextWindow: 0 })]);
+    const contextCell = [...container.querySelectorAll("tbody tr td")].find((cell) =>
+      cell.textContent?.includes("0K")
+    );
+    expect(contextCell).not.toBeNull();
+    expect(contextCell?.querySelector("span[title]")).toBeNull();
+  });
+
+  it("falls back to EN when the locale value is a __MISSING__ sentinel", async () => {
+    const en = (await import("@/i18n/messages/en.json")).default as Record<string, unknown>;
+    const radar = (en.radarPage ?? en) as Record<string, string>;
+    expect(radar.limitsUnknownHelp).toMatch(/^Limits reported by Radar feed/);
+    expect(radar.contextUnknownHelp).toMatch(/^Context window unknown/);
+    expect(radar.capabilityUnknownHelp).toMatch(/^Capability not reported/);
+  });
+
   it("gives every row exactly as many cells as the header has columns", () => {
     // A column added to the header and not to the body shifts every cell after it.
     renderTable([entry({ limits: { rpm: 20, rpd: null, tpm: null, tpd: null } })]);

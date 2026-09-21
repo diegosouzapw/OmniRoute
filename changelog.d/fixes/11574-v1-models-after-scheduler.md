@@ -1,1 +1,0 @@
-- **fix(api):** `/v1/models` schedules its stale-while-revalidate rebuild through Next's `after()` again, so a stale catalog reaches the client before the rebuild blocks the event loop ([#11574](https://github.com/diegosouzapw/OmniRoute/pull/11574))

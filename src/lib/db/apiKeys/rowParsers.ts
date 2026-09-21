@@ -69,6 +69,20 @@ export function parseCompressionEnabled(value: unknown): boolean {
   return true;
 }
 
+export function parseAllowAutoCombos(value: unknown): boolean {
+  // DEFAULT 1 — a key predating this column keeps its auto/* access.
+  if (value === 0 || value === "0" || value === false) return false;
+  return true;
+}
+
+export type CatalogScope = "all" | "combos" | "models";
+
+export function parseCatalogScope(value: unknown): CatalogScope {
+  // DEFAULT 'all' — a key predating this column advertises everything, as before.
+  // An unrecognised value must widen to 'all' rather than silently hide rows.
+  return value === "combos" || value === "models" ? value : "all";
+}
+
 export function parseAccessSchedule(value: unknown): AccessSchedule | null {
   if (!value || typeof value !== "string" || value.trim() === "") return null;
   try {

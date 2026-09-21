@@ -1,0 +1,1 @@
+- **ci:** repair the `API Route Typecheck` base-red on `release/v3.8.51` — type the awaited-callback contract of `runWithConnectionFetch` (glmResetCards), annotate `handleSingleModelChat(): Promise<Response>`, and give the codex-responses-ws bridge helpers real `{ error } | payload` discriminants so `"error" in x` narrows again; baseline ratcheted 294 → 283 (no widening).

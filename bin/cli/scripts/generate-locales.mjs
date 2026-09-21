@@ -6,7 +6,9 @@
  * For top-tier languages, a translated `common` + `program` section is included.
  * All other keys fall back to `en` via i18n.mjs's existing fallback mechanism.
  *
- * Run: node bin/cli/scripts/generate-locales.mjs [--force]
+ * Run: node bin/cli/scripts/generate-locales.mjs [--force] [--code=<locale>]
+ *   --code=<locale>  generate only that locale (scripts/i18n/add-locale.mjs uses it
+ *                    to scaffold the catalog of the locale it is adding)
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -17,8 +19,13 @@ const ROOT = join(__dirname, "..", "..", "..");
 const LOCALES_DIR = join(__dirname, "..", "locales");
 const I18N_CFG = join(ROOT, "config", "i18n.json");
 const FORCE = process.argv.includes("--force");
+const ONLY = process.argv.find((arg) => arg.startsWith("--code="))?.slice("--code=".length) || null;
 
 const { locales } = JSON.parse(readFileSync(I18N_CFG, "utf8"));
+if (ONLY && !locales.some((locale) => locale.code === ONLY)) {
+  console.error(`--code=${ONLY} is not listed in config/i18n.json`);
+  process.exit(1);
+}
 
 // common + program translations for each language code.
 // Keys that are absent fall back to en automatically.
@@ -883,12 +890,12 @@ const TRANSLATIONS = {
 
 // Languages with no translation in this script — will be created as empty objects
 // All keys fall back to `en` via i18n.mjs's fallback mechanism.
-const SCAFFOLD_ONLY = ["bn", "gu", "he", "in", "mr", "ms", "phi", "sw", "ta", "te", "ur"];
+const SCAFFOLD_ONLY = ["bn", "gu", "he", "mr", "ms", "phi", "sw", "ta", "te", "ur"];
 
 let created = 0;
 let skipped = 0;
 
-for (const locale of locales) {
+for (const locale of locales.filter((candidate) => !ONLY || candidate.code === ONLY)) {
   const { code } = locale;
   if (code === "en" || code === "pt-BR") {
     skipped++;

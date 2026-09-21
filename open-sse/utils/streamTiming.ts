@@ -30,6 +30,8 @@
  * instances as absolute times — the same convention `earlyStreamKeepalive.ts`
  * already follows on this streaming path.
  */
+import { attachTokensPerSecond, generationDurationMs } from "./generationThroughput.ts";
+
 export interface StreamTiming {
   startedAt: number;
   firstByteAt: number | null;
@@ -48,6 +50,10 @@ export interface StreamTiming {
   avgItlMs(): number | null;
   /** Time from stream start to completion (ms). */
   totalMs(): number;
+  /**
+   * Attach gateway-measured tok/s (TTFT excluded). No-op when TTFT is unknown.
+   */
+  withTps<T>(usage: T): T;
 }
 
 /** Max number of inter-chunk samples kept (bounds memory). */
@@ -87,6 +93,9 @@ export function createStreamTiming(): StreamTiming {
     },
     totalMs() {
       return performance.now() - this.startedAt;
+    },
+    withTps(usage) {
+      return attachTokensPerSecond(usage, generationDurationMs(this.totalMs(), this.ttftMs()));
     },
   };
   return timing;

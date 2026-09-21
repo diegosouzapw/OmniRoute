@@ -1,0 +1,1 @@
+- **fix(mitm):** add catch-all (*) model mapping fallback for Agent Bridge ([#13013](https://github.com/diegosouzapw/OmniRoute/pull/13013)) — thanks @tuandinh0801

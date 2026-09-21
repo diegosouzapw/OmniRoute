@@ -150,6 +150,9 @@ export async function POST(request) {
       // #9820: optional video-generation job preset (job/poll path).
       generationConfig,
       isFree,
+      dimensions,
+      supportedInputTypes,
+      modelType,
     } = validation.data;
 
     const model = await addCustomModel(
@@ -166,7 +169,12 @@ export async function POST(request) {
       },
       typeof supportsVision === "boolean" ? supportsVision : undefined,
       generationConfig,
-      typeof isFree === "boolean" ? isFree : undefined
+      typeof isFree === "boolean" ? isFree : undefined,
+      {
+        ...(typeof dimensions === "number" && dimensions > 0 ? { dimensions } : {}),
+        ...(Array.isArray(supportedInputTypes) ? { supportedInputTypes } : {}),
+        ...(typeof modelType === "string" ? { modelType } : {}),
+      }
     );
     return Response.json({ model });
   } catch (error) {
@@ -258,7 +266,7 @@ export async function PUT(request) {
       }
     }
 
-    const model = await updateCustomModel(provider, modelId, updates);
+    const model = await updateCustomModel(provider, modelId, updates, { createIfMissing: true });
 
     if (!model) {
       const rawKeys = Object.keys(raw);
@@ -412,6 +420,17 @@ export async function PATCH(request) {
       );
     }
 
+    // #12172: optional modality scope (e.g. "chat", "images") so hiding a model on one
+    // registry surface does not also hide an identically-ID'd model on another one.
+    // Omitted = legacy "hide everywhere" behavior, unchanged for existing callers.
+    if (typeof body.modality !== "undefined" && typeof body.modality !== "string") {
+      return Response.json(
+        { error: { message: "modality must be a string when provided", type: "validation_error" } },
+        { status: 400 }
+      );
+    }
+    const modality = typeof body.modality === "string" && body.modality ? body.modality : undefined;
+
     const modelIds = normalizeRequestedModelIds(searchParams, body);
     if (modelIds.length === 0) {
       return Response.json(
@@ -428,7 +447,7 @@ export async function PATCH(request) {
     for (const modelId of modelIds) {
       const updatedModel = await updateCustomModel(provider, modelId, { isHidden: body.isHidden });
       if (!updatedModel) {
-        mergeModelCompatOverride(provider, modelId, { isHidden: body.isHidden });
+        mergeModelCompatOverride(provider, modelId, { isHidden: body.isHidden, modality });
       }
     }
 

@@ -1,3 +1,5 @@
+import { isMistralAmbiguous401 } from "@omniroute/open-sse/services/accountFallback/mistralAmbiguousAuth.ts";
+
 /**
  * #7638: Mistral's quota-exhausted response is `401 {"detail":"Unauthorized"}` — byte-identical
  * to a genuinely revoked key. Unlike other providers, a bare Mistral 401 with no auth-specific
@@ -21,16 +23,6 @@ export interface ClassifyFailureArgs {
   refreshFailed?: boolean;
   unsupported?: boolean;
   provider?: string;
-}
-
-function isMistralAmbiguous401(provider: string | undefined, normalized: string): boolean {
-  if (provider !== "mistral") return false;
-  const hasAuthSignal =
-    normalized.includes("invalid api key") ||
-    normalized.includes("token invalid") ||
-    normalized.includes("revoked") ||
-    normalized.includes("access denied");
-  return !hasAuthSignal;
 }
 
 /** Decides the diagnosis for a 401/403 status: ambiguous (Mistral-only) or the generic auth error. */

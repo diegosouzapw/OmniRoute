@@ -6,20 +6,20 @@
  * (explicit daily/monthly token cap, or documented RPD × ~800 tokens × 30).
  *
  * Deliberately EXCLUDED (rate-limit-only, no published token cap — theoretical,
- * not granted): tencent, siliconflow, nvidia, baidu, publicai, sparkdesk.
+ * not granted): tencent, siliconflow, nvidia, baidu, publicai, sparkdesk,
+ * gemini (no per-model limits published since 2025-12), ollama-cloud (starter
+ * credits, no figure).
  * One-time signup credits and discontinued tiers are excluded (do not recur).
  */
 export type TosVerdict = "ok" | "caution" | "ambiguous" | "avoid" | "unknown";
 
 export const FREE_TIER_BUDGETS: Record<string, number> = {
   mistral: 1_000_000_000,
+  nara: 210_000_000,
   "cloudflare-ai": 122_000_000,
-  gemini: 60_000_000,
   doubao: 60_000_000,
-  cerebras: 30_000_000,
+  groq: 30_000_000,
   "api-airforce": 24_000_000,
-  "ollama-cloud": 20_000_000,
-  groq: 15_000_000,
   bluesminds: 7_200_000,
   sambanova: 6_000_000,
   "arcee-ai": 4_800_000,

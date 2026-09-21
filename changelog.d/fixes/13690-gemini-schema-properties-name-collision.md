@@ -1,0 +1,1 @@
+- **fix(translator):** prevent schema property name collisions (e.g. `properties`, `required`) in Gemini schema sanitizer ([#13690](https://github.com/diegosouzapw/OmniRoute/pull/13690)) — thanks @zcrew0x

@@ -119,3 +119,43 @@ test("#9683: the sync-models route gates on the combined predicate", async () =>
     "the narrow predicate must no longer be the route's only gate"
   );
 });
+
+// ── github_catalog is display fallback, not persist ────────────────────────
+// Codex live-empty GET returns `{ source: "github_catalog", warning: "…" }`
+// via buildResponse. That payload must be refuse-to-sync, same class as #9683
+// cache fallback: live discovery failed, public models.json is not authoritative.
+
+const GITHUB_CATALOG_FALLBACK = {
+  source: "github_catalog",
+  warning: "Codex live catalog unavailable — using GitHub model catalog",
+};
+
+test("github_catalog with a warning is a degraded discovery", () => {
+  assert.equal(isDegradedDiscovery(GITHUB_CATALOG_FALLBACK), true);
+  assert.equal(
+    isDegradedDiscovery({
+      source: "  GITHUB_CATALOG  ",
+      warning: GITHUB_CATALOG_FALLBACK.warning,
+    }),
+    true,
+    "source match is case-insensitive like cache"
+  );
+});
+
+test("healthy api and warning-less cache stay successful discoveries", () => {
+  assert.equal(isDegradedDiscovery({ source: "api" }), false);
+  assert.equal(isDegradedDiscovery({ source: "api", warning: "anything" }), false);
+  assert.equal(isDegradedDiscovery(HEALTHY_CACHE), false);
+  assert.equal(
+    isDegradedDiscovery({ source: "github_catalog" }),
+    false,
+    "github_catalog without a warning is not the Codex live-empty fallback"
+  );
+  for (const blank of ["", "   "]) {
+    assert.equal(
+      isDegradedDiscovery({ source: "github_catalog", warning: blank }),
+      false,
+      "a blank warning is not a degradation signal"
+    );
+  }
+});

@@ -86,6 +86,12 @@ export const VNC_CONFIG = {
   maxSessionMs: Number(process.env.OMNIROUTE_VNC_MAX_MS || 30 * 60 * 1000),
   maxSessions: Number(process.env.OMNIROUTE_VNC_MAX_SESSIONS || 4),
   dockerBin: process.env.OMNIROUTE_DOCKER_BIN || "docker",
+  /**
+   * Dedicated bridge network for browser-login containers (#12571): keeps
+   * them off Docker's default bridge network so sibling containers can't
+   * reach the CDP bridge port over the container-to-container path.
+   */
+  network: process.env.OMNIROUTE_VNC_NETWORK || "omniroute-vnc-browser-login",
   browserReadyTimeoutMs: Number(process.env.OMNIROUTE_VNC_READY_MS || 45_000),
   harvestTimeoutMs: Number(process.env.OMNIROUTE_VNC_HARVEST_MS || 20_000),
   chromiumArgs:

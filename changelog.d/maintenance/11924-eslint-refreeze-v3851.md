@@ -1,1 +1,0 @@
-- Re-freeze the ESLint suppressions on `release/v3.8.51` from a clean-room measurement (2 stale file entries pruned, 55 pre-existing `no-explicit-any` in six new files frozen under #11924) and drop the dead `GPT_SIZE_MAP` constant orphaned by the Adobe Firefly client split, so `No new ESLint warnings` stops failing every PR with exit 2 (Refs #11924)

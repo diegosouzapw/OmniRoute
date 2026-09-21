@@ -1,1 +1,0 @@
-- Treat Docker publishing from a non-default release branch as an expected skip instead of a failed workflow, while preserving the guard that prevents it from overwriting the `next` channel.

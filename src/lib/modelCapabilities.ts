@@ -845,14 +845,16 @@ export function getResolvedModelCapabilities(
   // fields keep using the non-leaf `spec` from getStaticSpec() above.
   const visionSpec = getVisionStaticSpec(resolved.model, resolved.rawModel);
 
-  // #9195: read the custom model's supportsVision override from the DB so the
-  // dashboard "Vision capable" toggle affects Combo routing.
+  // #9195 / #12758: keep the original provider&&model short-circuit. All
+  // three advertised id forms still parse to both halves; the matcher
+  // recovers the stored connection-id row via lookupKey / path leftover.
   const customVisionOverride =
     resolved.provider && resolved.model
       ? getCustomModelVisionOverride(
           resolved.provider,
           resolved.model,
-          snapshot?.customVisionOverrides
+          snapshot?.customVisionOverrides,
+          { lookupKey: resolved.lookupKey ?? resolved.rawModel ?? lookupKey }
         )
       : null;
 

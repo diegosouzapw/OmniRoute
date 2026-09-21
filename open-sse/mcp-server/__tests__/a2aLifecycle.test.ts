@@ -1,11 +1,21 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { A2ATaskManager } from "../../../src/lib/a2a/taskManager.ts";
+import { A2ATaskManager, type A2APersistence } from "../../../src/lib/a2a/taskManager.ts";
 import { executeA2ATaskWithState } from "../../../src/lib/a2a/taskExecution.ts";
 
 const managers: A2ATaskManager[] = [];
 
+// Default persistence opens SQLite (167 migrations) inside the vitest thread pool.
+// Tests inject a no-op so they never touch the DB (same seam as a2a-task-persistence.test.ts).
+function noopPersistence(): A2APersistence {
+  return {
+    upsert: (() => {}) as A2APersistence["upsert"],
+    appendEvent: (() => {}) as A2APersistence["appendEvent"],
+    purge: ((): number => 0) as A2APersistence["purge"],
+  };
+}
+
 function createManager(ttlMinutes = 5) {
-  const manager = new A2ATaskManager(ttlMinutes);
+  const manager = new A2ATaskManager(ttlMinutes, noopPersistence());
   managers.push(manager);
   return manager;
 }
@@ -44,9 +54,14 @@ describe("A2A task lifecycle regressions", () => {
     tm.updateTask(task.id, "working");
 
     await expect(
-      executeA2ATaskWithState(tm, task, async () => {
-        throw new Error("upstream failure");
-      })
+      executeA2ATaskWithState(
+        tm,
+        task,
+        async () => {
+          throw new Error("upstream failure");
+        },
+        { search: async () => [], appendEvent: () => {} }
+      )
     ).rejects.toThrow("upstream failure");
 
     const loaded = tm.getTask(task.id);

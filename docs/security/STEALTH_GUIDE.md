@@ -31,6 +31,13 @@ unavailable; a caller may explicitly select a fallback outside this wrapper.
 - Proxy resolution (priority): `HTTPS_PROXY` → `HTTP_PROXY` → `ALL_PROXY` (also lower-case)
 - Timeout: `TLS_CLIENT_TIMEOUT_MS` (inherits from `FETCH_TIMEOUT_MS`, default 600000)
 - `wreq-js` Response is fetch-compatible (`headers`, `text()`, `json()`, `clone()`, `body`).
+- First-byte watchdog (`open-sse/utils/tlsFirstByteWatchdog.ts`, #12656): `TlsClient.fetch()`
+  resolves as soon as upstream headers arrive, so `TLS_CLIENT_TIMEOUT_MS` alone cannot bound a
+  body that never yields a first byte. `guardTlsFirstByte()` races the body's first `read()`
+  against `TLS_FIRST_BYTE_WATCHDOG_MS` (default `10000`, `0` disables it); a healthy body is
+  unaffected, while a stalled body cancels the wreq reader and lets `proxyFetch`'s existing
+  TLS-fallback logic fall through to the direct/proxy dispatcher (a non-replay-safe request, e.g.
+  a POST with a body, still throws instead of being silently retried).
 
 ### Web-cookie provider transport — wreq-js 3.2.0
 
@@ -117,8 +124,8 @@ Applied to: `system` blocks, all `messages[].content`, and `tools[].description`
 
 For third-party Anthropic relays that only accept "real Claude Code" traffic:
 
-- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.220 (external, sdk-cli)"`
-- `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0"`
+- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.258 (external, sdk-cli)"`
+- `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.112.1"`
 - `CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v26.3.0"`
 - `anthropic-beta = "claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24"` by default
 - The per-connection "Enable redact-thinking beta" toggle adds `redact-thinking-2026-02-12` when a CC Compatible upstream specifically requires redacted thinking streams
@@ -241,7 +248,7 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 
 | Variable                 | Default                                                         |
 | ------------------------ | --------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.220 (external, cli)`                            |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
 | `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |

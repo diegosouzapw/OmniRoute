@@ -17,7 +17,9 @@ describe("normalizeCursorAvailableModelsPayload", () => {
     });
     assert.equal(models[0].id, "auto");
     assert.ok(models.some((m) => m.id === "claude-opus-5-high"));
+    assert.ok(models.some((m) => m.id === "claude-opus-5-high-1m"));
     assert.ok(models.some((m) => m.id === "gpt-5.6-sol-high"));
+    assert.ok(models.some((m) => m.id === "gpt-5.6-sol-high-1m"));
     assert.ok(models.some((m) => m.id === "auto-cost"));
     assert.equal(models.find((m) => m.id === "claude-opus-5-high")?.name, "Opus 5");
     assert.equal(models.find((m) => m.id === "claude-opus-5-high")?.owned_by, "cursor");

@@ -255,6 +255,7 @@ export const GLMT_REQUEST_DEFAULTS = Object.freeze({
 });
 
 export const GLM_COUNT_TOKENS_TIMEOUT_MS = 3_000;
+/** Module-load snapshot. Wire UA uses getClaudeCodeUserAgent("sdk-cli"). */
 export const GLM_CLAUDE_CODE_USER_AGENT = getClaudeCodeUserAgent("sdk-cli");
 export const GLM_ANTHROPIC_BETA = [
   "claude-code-20250219",
@@ -379,6 +380,41 @@ export function buildGlmQuotaFetch(
     Accept: "application/json",
   };
 
+  if (teamConfig.state === "configured") {
+    headers["bigmodel-organization"] = teamConfig.organizationId;
+    headers["bigmodel-project"] = teamConfig.projectId;
+  }
+
+  return { url, headers };
+}
+
+/**
+ * Coding Plan Reset Card endpoints, mirroring GLM_QUOTA_URLS. `/list` reports the cards
+ * banked on the key, `/use` redeems one. Same Bearer credential as the quota route.
+ */
+export const GLM_RESET_CARD_URLS = Object.freeze({
+  international: "https://api.z.ai/api/biz/customer-package-reset",
+  china: "https://open.bigmodel.cn/api/biz/customer-package-reset",
+});
+
+export type GlmResetCardAction = "list" | "use";
+
+export function buildGlmResetCardFetch(
+  apiKey: string,
+  providerSpecificData: unknown,
+  action: GlmResetCardAction
+): { url: string; headers: Record<string, string> } {
+  const base = GLM_RESET_CARD_URLS[getGlmApiRegion(providerSpecificData)];
+  const url = action === "list" ? `${base}/list?targetType=PERSONAL` : `${base}/use`;
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${apiKey}`,
+    Accept: "application/json",
+    ...(action === "use" ? { "Content-Type": "application/json" } : {}),
+  };
+
+  // Team-plan keys carry the same org/project routing headers as the quota fetch.
+  const teamConfig = getGlmTeamQuotaConfig(providerSpecificData);
   if (teamConfig.state === "configured") {
     headers["bigmodel-organization"] = teamConfig.organizationId;
     headers["bigmodel-project"] = teamConfig.projectId;
@@ -582,7 +618,7 @@ export function buildGlmBaseHeaders(apiKey: string, stream = true): Record<strin
     "anthropic-version": ANTHROPIC_VERSION_HEADER,
     "anthropic-beta": GLM_ANTHROPIC_BETA,
     "anthropic-dangerous-direct-browser-access": "true",
-    "User-Agent": GLM_CLAUDE_CODE_USER_AGENT,
+    "User-Agent": getClaudeCodeUserAgent("sdk-cli"),
     "X-Stainless-Lang": "js",
     "X-Stainless-Runtime": "node",
     "X-Stainless-Retry-Count": "0",

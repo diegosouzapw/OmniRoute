@@ -1,1 +1,0 @@
-- fix(ui): wrap quota card footer action buttons to prevent clipping Refresh button on narrow cards — when extra action buttons such as `View credits` are present on Codex cards, allow the footer row to flex-wrap with `shrink-0` buttons so `Refresh now` remains visible and clickable across all responsive card widths

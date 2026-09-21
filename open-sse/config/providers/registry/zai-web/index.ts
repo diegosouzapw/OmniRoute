@@ -15,29 +15,26 @@ export const zai_webProvider: RegistryEntry = {
   // not accept caller-supplied OpenAI `tools`, which remains disabled here.
   models: [
     {
+      id: "glm-5.3-flash",
+      name: "GLM-5.3-Flash",
+      toolCalling: false,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "high", "max"],
+      supportsVision: true,
+    },
+    {
+      id: "glm-5.3",
+      name: "GLM-5.3",
+      toolCalling: false,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "high", "max"],
+    },
+    {
       id: "glm-5.2",
       name: "GLM-5.2",
       toolCalling: false,
       supportsReasoning: true,
-    },
-    {
-      id: "GLM-5.1",
-      name: "GLM-5.1",
-      toolCalling: false,
-      supportsReasoning: true,
-    },
-    {
-      id: "GLM-5-Turbo",
-      name: "GLM-5-Turbo",
-      toolCalling: false,
-      supportsReasoning: true,
-    },
-    {
-      id: "GLM-5v-Turbo",
-      name: "GLM-5V-Turbo",
-      toolCalling: false,
-      supportsReasoning: true,
-      supportsVision: true,
+      supportedThinkingEfforts: ["high", "max"],
     },
   ],
 };

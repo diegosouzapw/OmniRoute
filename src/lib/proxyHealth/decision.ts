@@ -28,10 +28,16 @@
  *       both flags are set, auto-remove (destructive) wins: a proxy that is
  *       about to be deleted has no use for a soft-disable in between.
  *   E — a `blocked` probe (the TARGET refused this egress IP: 401/403/429) is
- *       neutral like `inconclusive`. The proxy relayed correctly, so it is not
- *       failing; but it is not serving that destination either, which `ok` hid.
- *       Kept out of the failure count on purpose: one target refusing an IP
- *       does not make the proxy dead, and the operator owns the removal policy.
+ *       neutral like `inconclusive` by default (#10654). The proxy relayed
+ *       correctly, so it is not failing; but it is not serving that destination
+ *       either, which `ok` hid. Kept out of the failure count on purpose: one
+ *       target refusing an IP does not make the proxy dead, and the operator
+ *       owns the removal policy.
+ *       Opt-in (`blockedResetsStreak`, the PROXY_HEALTH_BLOCKED_RESETS_STREAK
+ *       feature flag): a refusal additionally RESETS the consecutive-failure
+ *       streak, since the proxy demonstrably relayed. It still never counts,
+ *       never sets a status and never removes. This covers 401/403/429 only: a
+ *       relayed 5xx stays `inconclusive` (policy B) and keeps the streak.
  */
 
 export type ProxyProbeOutcome = "ok" | "fail" | "inconclusive" | "blocked";
@@ -67,6 +73,12 @@ export interface ProxyHealthDecisionInput {
   autoDisable?: boolean;
   /** Consecutive conclusive failures required before a downgrade/removal. */
   removeAfter: number;
+  /**
+   * PROXY_HEALTH_BLOCKED_RESETS_STREAK — operator opted into letting a `blocked`
+   * probe reset the streak (policy E). Optional/defaults to `false`: `blocked`
+   * stays neutral, exactly as before.
+   */
+  blockedResetsStreak?: boolean;
 }
 
 export interface ProxyHealthDecision {
@@ -81,14 +93,28 @@ export interface ProxyHealthDecision {
 }
 
 export function decideProxyHealthAction(input: ProxyHealthDecisionInput): ProxyHealthDecision {
-  const { outcome, priorFailures, autoRemove, autoDisable = false, removeAfter } = input;
+  const {
+    outcome,
+    priorFailures,
+    autoRemove,
+    autoDisable = false,
+    removeAfter,
+    blockedResetsStreak = false,
+  } = input;
   const threshold = Number.isFinite(removeAfter) && removeAfter > 0 ? removeAfter : 3;
   // Either opt-in flag hands status control from the operator to the sweep.
   const managesStatus = autoRemove || autoDisable;
 
-  // B/E: inconclusive and blocked probes are neutral — no count, no status.
-  if (outcome === "inconclusive" || outcome === "blocked") {
+  // B/E: inconclusive and (by default) blocked probes are neutral — no count, no status.
+  if (outcome === "inconclusive" || (outcome === "blocked" && !blockedResetsStreak)) {
     return { failures: priorFailures, clearFailures: false, setStatus: null, remove: false };
+  }
+
+  // E (opt-in): a refused relay still proves the proxy relayed, so the streak resets.
+  // Status and removal stay untouched: forgetting failures is not declaring the proxy
+  // healthy, and one target refusing an IP never removes or disables a proxy.
+  if (outcome === "blocked") {
+    return { failures: 0, clearFailures: true, setStatus: null, remove: false };
   }
 
   // Success: reset the streak. Only (re)assert "active" when the operator has

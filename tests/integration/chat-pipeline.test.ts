@@ -16,11 +16,13 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const readCacheDb = await import("../../src/lib/db/readCache.ts");
 const { getLatestCallLog, getResponsesCallLogs } = await import("./_chatPipelineCallLogs.ts");
+const { waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
 const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
 const { encodeSkillToolName } = await import("../../src/lib/skills/injection.ts");
 const { handleChat } = await import("../../src/sse/handlers/chat.ts");
+const providerNodeRoute = await import("../../src/app/api/provider-nodes/[id]/route.ts");
 const { initTranslators } = await import("../../open-sse/translator/index.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const { setCliCompatProviders } = await import("../../open-sse/config/cliFingerprints.ts");
@@ -170,7 +172,7 @@ function buildOpenAIToolCallResponse({
   );
 }
 
-function buildClaudeResponse(text = "ok", model = "claude-3-5-sonnet-20241022") {
+function buildClaudeResponse(text = "ok", model = "claude-sonnet-4-6") {
   return new Response(
     JSON.stringify({
       id: "msg_json",
@@ -286,7 +288,7 @@ function buildOpenAIStreamResponse(text = "streamed from openai") {
 
 function buildOpenAIResponsesSSE({
   text = "responses streamed from codex",
-  model = "gpt-5.1-codex",
+  model = "gpt-5.6-sol",
   usage = null,
 } = {}) {
   return new Response(
@@ -372,6 +374,15 @@ async function resetStorage() {
   readCacheDb.invalidateDbCache();
   invalidateMemorySettingsCache();
   await new Promise((resolve) => setTimeout(resolve, 20));
+  // Call-log persistence is fire-and-forget (persistAttemptLogs → saveCallLog with
+  // a .catch(() => {})), and the first cold artifact-worker spawn can take ~2.4s, so
+  // the previous test's saves may still be in flight here. Draining before the DB
+  // reset keeps those rows in the DB being torn down instead of letting them land
+  // in the next test's fresh database (#12780).
+  const drained = await waitForCallLogSaves(10_000);
+  if (!drained) {
+    console.warn("[chat-pipeline] call-log saves did not drain within 10s; resetting anyway");
+  }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -550,6 +561,93 @@ test("chat pipeline handles OpenAI passthrough with valid API key auth", async (
   assert.equal(json.choices[0].message.content, "OpenAI passthrough");
 });
 
+test("#11884 chat pipeline sends a custom node's edited Chat API type upstream", async () => {
+  // Mirror POST /api/provider-nodes: the generated node id embeds the API type chosen at
+  // creation time, so a node created as Responses keeps "responses" in its id forever.
+  const providerId = "openai-compatible-responses-11884";
+  const prefix = "edited-node-11884";
+  const baseUrl = "https://edited-node-11884.example.invalid/v1";
+  const nodeName = "Edited node 11884";
+  await providersDb.createProviderNode({
+    id: providerId,
+    type: "openai-compatible",
+    name: nodeName,
+    prefix,
+    apiType: "responses",
+    baseUrl,
+  });
+  await seedConnection(providerId, {
+    apiKey: "sk-edited-node-11884",
+    providerSpecificData: { baseUrl, apiType: "responses" },
+  });
+
+  // The operator edits the node from Responses to Chat through the real route, which also
+  // rewrites the connection's saved apiType.
+  const editResponse = await providerNodeRoute.PUT(
+    new Request(`http://localhost/api/provider-nodes/${providerId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: nodeName, prefix, apiType: "chat", baseUrl }),
+    }),
+    { params: Promise.resolve({ id: providerId }) }
+  );
+  assert.equal(editResponse.status, 200);
+  const [connection] = (await providersDb.getProviderConnections({
+    provider: providerId,
+  })) as Array<{
+    providerSpecificData?: { apiType?: unknown };
+  }>;
+  assert.equal(connection?.providerSpecificData?.apiType, "chat");
+
+  const apiKey = await seedApiKey();
+  const fetchCalls: FetchCall[] = [];
+  globalThis.fetch = async (url, init: RequestInit = {}) => {
+    const call: FetchCall = {
+      url: String(url),
+      method: init.method || "GET",
+      headers: toPlainHeaders(init.headers),
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    };
+    fetchCalls.push(call);
+    if (!call.url.startsWith(baseUrl)) {
+      throw new Error(`unexpected upstream call: ${call.method} ${call.url}`);
+    }
+    return buildOpenAIResponse("Edited node reply", "edited-model");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      authKey: apiKey.key,
+      body: {
+        model: `${prefix}/edited-model`,
+        stream: false,
+        messages: [{ role: "user", content: "Hello edited node" }],
+      },
+    })
+  );
+
+  const json = (await response.json()) as { choices: Array<{ message: { content: string } }> };
+  assert.ok(fetchCalls.length >= 1, "expected an upstream request");
+  const upstream = fetchCalls[0];
+  assert.equal(upstream.method, "POST");
+  assert.equal(upstream.url, `${baseUrl}/chat/completions`);
+  assert.equal(upstream.headers.Authorization, "Bearer sk-edited-node-11884");
+  assert.deepEqual(
+    upstream.body.messages,
+    [{ role: "user", content: "Hello edited node" }],
+    "the saved Chat API type must produce a Chat Completions body"
+  );
+  assert.equal(
+    upstream.body.input,
+    undefined,
+    "the stale Responses API type from the node id must not shape the upstream body"
+  );
+  assert.equal(upstream.body.model, "edited-model");
+  assert.equal(fetchCalls.length, 1, "exactly one upstream request");
+  assert.equal(response.status, 200);
+  assert.equal(json.choices[0].message.content, "Edited node reply");
+});
+
 test("chat pipeline persists Codex responses cache and reasoning tokens to call logs", async () => {
   await seedConnection("codex", { apiKey: "sk-codex-primary" });
   const fetchCalls = [];
@@ -567,7 +665,7 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
     buildRequest({
       url: "http://localhost/v1/responses",
       body: {
-        model: "codex/gpt-5.1-codex",
+        model: "codex/gpt-5.6-sol",
         stream: false,
         input: "Persist cache + reasoning usage",
       },
@@ -575,7 +673,13 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
   );
 
   const json = (await response.json()) as any;
-  const callLog = await waitFor(() => getLatestCallLog());
+  // Wait specifically for THIS request's Codex /v1/responses row instead of taking
+  // whatever the latest row happens to be: an unfiltered read can surface a row from
+  // a previous test that landed late in this database (#12780).
+  const callLog = await waitFor(async () => {
+    const rows = await getResponsesCallLogs();
+    return rows.find((row) => row.provider === "codex") ?? null;
+  });
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
@@ -983,7 +1087,7 @@ test("chat pipeline translates OpenAI requests to Claude and returns OpenAI-shap
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "claude/claude-3-5-sonnet-20241022",
+        model: "claude/claude-sonnet-4-6",
         stream: false,
         messages: [{ role: "user", content: "Hello Claude" }],
       },
@@ -1090,7 +1194,9 @@ test("chat pipeline converts Claude SSE streams into OpenAI SSE output", async (
 
   const raw = await response.text();
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("Content-Type"), "text/event-stream");
+  // #13416: streaming responses declare an explicit charset (matches the rest of the
+  // codebase's streaming executors — see open-sse/executors/{uc,maxai,codex-app-server}.ts).
+  assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.match(raw, /chat\.completion\.chunk/);
   assert.match(raw, /Streamed Claude chunk/);
   assert.match(raw, /\[DONE\]/);
@@ -1183,7 +1289,9 @@ test("chat pipeline treats Accept text/event-stream as streaming mode and return
 
   const raw = await response.text();
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("Content-Type"), "text/event-stream");
+  // #13416: streaming responses declare an explicit charset (matches the rest of the
+  // codebase's streaming executors — see open-sse/executors/{uc,maxai,codex-app-server}.ts).
+  assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
   assert.match(raw, /Accept header stream/);
   assert.match(raw, /\[DONE\]/);
@@ -1269,6 +1377,10 @@ test("chat pipeline returns current no-credentials contract when no provider con
 
 test("chat pipeline surfaces upstream 500 responses as structured errors", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-500" });
+  await settingsDb.updateSettings({
+    requestRetry: 0,
+    maxRetryIntervalSec: 0,
+  });
 
   globalThis.fetch = async () =>
     new Response(JSON.stringify({ error: { message: "provider exploded" } }), {
@@ -1566,7 +1678,7 @@ test("chat pipeline falls back across combo models when the first provider fails
     name: "combo-fallback",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
   const attempts = [];
 

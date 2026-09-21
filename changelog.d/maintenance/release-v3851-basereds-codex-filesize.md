@@ -1,0 +1,1 @@
+- **quality:** rebaseline `open-sse/executors/codex.ts` 1552 → 1553 — the +1 landed with #14065 (#13643) without a baseline entry and turned `check:file-size` red on the release tip.

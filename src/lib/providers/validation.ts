@@ -108,6 +108,7 @@ import {
 } from "./validation/webCookie";
 import { validateAiHordeProvider } from "./validation/aihorde";
 import { validateDifyProvider } from "./validation/dify";
+import { validateZyloApiProvider } from "./validation/zylo";
 import { validateAdobeFireflyProvider } from "./validation/adobeFirefly";
 import {
   validateV0VercelProvider,
@@ -241,6 +242,16 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     // #5422: auth-only probe — Bytez 404s on every chat model until the account adds it to
     // its catalog, so the generic chat probe can't validate a fresh key.
     bytez: validateBytezProvider,
+    // #13828: Zylo serves GET /v1/models WITHOUT authentication — 200 with no Authorization
+    // header, and 200 for a bogus key. The generic OpenAI-like probe returns on the first 2xx
+    // from that route, so the setup dialog greened any string and the user only discovered the
+    // key was rejected when their own model test came back `401 {"error":"Key not found: zk-…"}`.
+    // Probe the chat route, which is the one Zylo actually authenticates.
+    "zylo-api": validateZyloApiProvider,
+    // Registered under the alias too: connections are commonly stored as "zylo" (same prefix as
+    // the zylo/<model> routing ids), and the alias must not fall back to the open-catalog probe.
+    // Same shape as the adobe-firefly/firefly pair above.
+    zylo: validateZyloApiProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     "rev-ai": validateRevAiProvider,

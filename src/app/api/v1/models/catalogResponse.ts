@@ -40,6 +40,7 @@ import {
 } from "@/shared/utils/featureFlags";
 import { extractApiKey } from "@/sse/services/auth";
 import { maybeOmitCatalogModelName } from "./catalogHelpers";
+import { applyCatalogPage, catalogJsonResponse, parseCatalogPage } from "./catalogPagination";
 import { isCodexModelCatalogClient } from "./catalogRequest";
 
 /**
@@ -283,13 +284,19 @@ export async function finalizeCatalogResponse(
   // empty/foreign `base_instructions` would drop codex's agent prompt to nothing and
   // break its agent behavior (verified empirically against codex 0.137). An empty array
   // keeps codex on its built-in model info — same inference as today, minus the error.
+  const page = parseCatalogPage(request);
+  const paged = applyCatalogPage(orderedModels, page);
   const responseBody: Record<string, unknown> = {
     object: "list",
-    data: orderedModels,
+    data: paged.models,
   };
+  if (page.limit != null || page.after) {
+    responseBody.has_more = paged.hasMore;
+    if (paged.lastId) responseBody.last_id = paged.lastId;
+  }
   if (isCodexModelCatalogClient(request)) {
     responseBody.models = [];
   }
 
-  return Response.json(responseBody, { headers });
+  return catalogJsonResponse(responseBody, headers);
 }

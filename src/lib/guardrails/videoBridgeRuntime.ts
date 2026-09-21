@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { promisify } from "node:util";
 
+import { JPEG_FRAME_DATA_URI_PREFIX } from "./videoBridgeFrameContract";
+
 const execFileAsync = promisify(execFile);
 
 export interface VideoCommandOptions {
@@ -997,7 +999,7 @@ export async function extractVideoFramesFromBytes(
     return {
       durationSeconds: metadata.durationSeconds,
       frames: frameFiles.map((frame, index) => ({
-        dataUri: `data:image/jpeg;base64,${frameBytes[index].toString("base64")}`,
+        dataUri: `${JPEG_FRAME_DATA_URI_PREFIX}${frameBytes[index].toString("base64")}`,
         timestampSeconds: frame.timestampSeconds,
       })),
       sampling: frameFiles.sampling,

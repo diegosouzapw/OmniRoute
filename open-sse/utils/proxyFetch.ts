@@ -13,7 +13,8 @@ import {
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
-import tlsClient, { type TlsFetchOptions } from "./tlsClient.ts";
+import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
+import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
@@ -109,9 +110,8 @@ const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
   maxai: { browser: "firefox_150", os: "windows" },
 };
 
-function tlsProfileForProvider(
-  provider: string | null | undefined
-): { browserProfile?: string; os?: string } {
+type TlsProfileResult = { browserProfile?: string; os?: string };
+function tlsProfileForProvider(provider: string | null | undefined): TlsProfileResult {
   if (!provider) return {};
   const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
   return p ? { browserProfile: p.browser, os: p.os } : {};
@@ -188,7 +188,7 @@ type TlsFingerprintStore = {
  * the egress logger read the innermost applied proxy (the last writer wins, which
  * is the executor's per-account proxy).
  */
-export type AppliedProxySink = { proxy: unknown };
+export type AppliedProxySink = { proxy: unknown; upstreamStatus?: number };
 const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
 
 /**
@@ -628,7 +628,7 @@ export async function runWithProxyContext(
         );
         return runDirect();
       }
-    } else {
+    } else if (new URL(resolvedProxyUrl).protocol !== "socks5:") {
       // Fire the probe WITHOUT awaiting; dispatch optimistically below.
       unreachableProbe = isProxyReachable(resolvedProxyUrl);
     }
@@ -753,7 +753,7 @@ export async function runWithProxyContextOrDirect(proxyConfig, fn) {
   return runWithProxyContext(proxyConfig, fn, { directFallbackOnUnreachable: true });
 }
 
-async function patchedFetch(
+async function patchedFetchUnrecorded(
   input: RequestInfo | URL,
   options: FetchWithDispatcherOptions = {},
   deps: ProxyFetchDeps = {}
@@ -807,7 +807,7 @@ async function patchedFetch(
           ...tlsProfileForProvider(tlsStore?.provider),
         });
         if (tlsStore) tlsStore.used = true;
-        return response;
+        return await guardTlsFirstByte(response);
       } catch (error) {
         if (isCallerAbort(error, getEffectiveSignal(input, options))) throw error;
         const sessionHadCookies =
@@ -847,7 +847,8 @@ async function patchedFetch(
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
     let lastDispatcherError: unknown = null;
-    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs();
+    const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
+    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;
@@ -863,7 +864,7 @@ async function patchedFetch(
             dispatcher: attempt === 0 ? getDefaultDispatcher() : getRetryDispatcher(),
           },
           _undiciDirect,
-          directHeadersTimeoutMs
+          resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout, attempt, !!options.signal)
         );
       } catch (dispatcherError) {
         if (isDirectResponseStartTimeout(dispatcherError)) {
@@ -1100,7 +1101,7 @@ async function patchedFetch(
         ...tlsProfileForProvider(tlsStore?.provider),
       });
       if (tlsStore) tlsStore.used = true;
-      return response;
+      return await guardTlsFirstByte(response);
     } catch (error) {
       if (isCallerAbort(error, getEffectiveSignal(input, options))) throw error;
       const sessionHadCookies =
@@ -1178,6 +1179,9 @@ async function patchedFetch(
   }
   throw lastProxyError;
 }
+
+const getAppliedProxySink = () => appliedProxyContext.getStore();
+const patchedFetch = withUpstreamStatusCapture(patchedFetchUnrecorded, getAppliedProxySink);
 
 /**
  * Named export for proxyFetch — identical to the patched globalThis.fetch but

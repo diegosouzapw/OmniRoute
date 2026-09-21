@@ -40,4 +40,65 @@ describe("detectBrowserLocale", () => {
   it("is case-insensitive", () => {
     assert.equal(detectBrowserLocale(["PT-br"], SUPPORTED_LOCALES), "pt-BR");
   });
+
+  // Regional-code locales (`uk-UA`, `phi`) plus the alias map shape exported by
+  // `@/i18n/config` (`LOCALE_ALIASES`) — browsers send `uk`, `fil`/`tl`.
+  const REGIONAL_LOCALES = ["en", "uk-UA", "phi", "pt", "pt-BR", "zh-CN", "zh-TW"] as const;
+  const ALIASES = { "uk-UA": ["uk"], phi: ["fil", "tl"] } as const;
+
+  it("resolves a declared alias (fil → phi)", () => {
+    assert.equal(detectBrowserLocale(["fil"], REGIONAL_LOCALES, ALIASES), "phi");
+  });
+
+  it("resolves an alias carried by a regional tag (fil-PH → phi, TL → phi)", () => {
+    assert.equal(detectBrowserLocale(["fil-PH"], REGIONAL_LOCALES, ALIASES), "phi");
+    assert.equal(detectBrowserLocale(["TL"], REGIONAL_LOCALES, ALIASES), "phi");
+  });
+
+  it("matches a bare base language to a regional locale of that language (uk → uk-UA) without aliases", () => {
+    assert.equal(detectBrowserLocale(["uk"], REGIONAL_LOCALES), "uk-UA");
+  });
+
+  it("picks the first regional locale in config order for a bare base language (zh → zh-CN)", () => {
+    assert.equal(detectBrowserLocale(["zh"], REGIONAL_LOCALES), "zh-CN");
+  });
+
+  it("keeps the exact/prefix precedence: pt-PT → pt, pt-BR → pt-BR", () => {
+    assert.equal(detectBrowserLocale(["pt-PT"], REGIONAL_LOCALES, ALIASES), "pt");
+    assert.equal(detectBrowserLocale(["pt-BR"], REGIONAL_LOCALES, ALIASES), "pt-BR");
+  });
+
+  it("still returns null when nothing matches, even with aliases", () => {
+    assert.equal(detectBrowserLocale(["ja-JP"], REGIONAL_LOCALES, ALIASES), null);
+  });
+
+  // RFC 4647 lookup truncation (`zh-Hant-TW` → `zh-hant` → `zh`): a script-tagged
+  // Traditional-Chinese browser must reach `zh-TW` through the declared `zh-hant`
+  // alias instead of falling through to the first `zh-*` locale in config order
+  // (`zh-CN`, Simplified). Same alias list `config/i18n.json` declares for zh-TW.
+  const SCRIPT_ALIASES = { ...ALIASES, "zh-TW": ["zh-hk", "zh-mo", "zh-hant"] } as const;
+
+  it("resolves zh-Hant-TW to zh-TW through the zh-hant alias, not to zh-CN", () => {
+    assert.equal(detectBrowserLocale(["zh-Hant-TW"], REGIONAL_LOCALES, SCRIPT_ALIASES), "zh-TW");
+  });
+
+  it("resolves bare zh-Hant to zh-TW through the zh-hant alias", () => {
+    assert.equal(detectBrowserLocale(["zh-Hant"], REGIONAL_LOCALES, SCRIPT_ALIASES), "zh-TW");
+  });
+
+  it("resolves zh-Hant-HK to zh-TW through the zh-hant alias, not to zh-CN", () => {
+    assert.equal(detectBrowserLocale(["zh-Hant-HK"], REGIONAL_LOCALES, SCRIPT_ALIASES), "zh-TW");
+  });
+
+  it("resolves zh-Hans-CN to zh-CN through the base language (no zh-hans alias needed)", () => {
+    assert.equal(detectBrowserLocale(["zh-Hans-CN"], REGIONAL_LOCALES, SCRIPT_ALIASES), "zh-CN");
+  });
+
+  it("still folds zh-HK to zh-TW without aliases, even when zh-CN precedes zh-TW", () => {
+    assert.equal(detectBrowserLocale(["zh-HK"], REGIONAL_LOCALES), "zh-TW");
+  });
+
+  it("truncates a script+region tag down to its base-language locale (sr-Latn-RS → sr)", () => {
+    assert.equal(detectBrowserLocale(["sr-Latn-RS"], ["en", "sr"]), "sr");
+  });
 });

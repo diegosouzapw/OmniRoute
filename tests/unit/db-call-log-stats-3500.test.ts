@@ -81,6 +81,21 @@ function insertCallLog(row: Record<string, unknown>) {
 
 test.before(() => {
   core.resetDbInstance();
+  // Search queries only surface providers with a live provider_connections
+  // row — seed connections for the search providers used below so their
+  // call_logs rows are not filtered out as deleted providers.
+  const now = new Date().toISOString();
+  const db = core.getDbInstance();
+  for (const [id, provider] of [
+    ["conn-3500-brave", "brave"],
+    ["conn-3500-serper", "serper"],
+    ["conn-3500-bing", "bing"],
+    ["conn-3500-rare-provider", "rare_provider"],
+  ] as const) {
+    db.prepare(
+      `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
+    ).run(id, provider, now, now);
+  }
 });
 
 test.after(() => {
@@ -295,12 +310,12 @@ test("#3500 getSearchProviderCounts — ordered by cnt desc", () => {
   if (rows.length >= 2) {
     assert.ok(rows[0].cnt >= rows[rows.length - 1].cnt, "ordered by cnt desc");
   }
-  // bing (5 added) should beat rare_provider (2 added) if both appear
+  // bing (5 added) should beat rare_provider (2 added)
   const bing = rows.find((r) => r.provider === "bing");
   const rare = rows.find((r) => r.provider === "rare_provider");
-  if (bing && rare) {
-    assert.ok(bing.cnt > rare.cnt, "bing cnt > rare_provider cnt");
-  }
+  assert.ok(bing, "bing row present");
+  assert.ok(rare, "rare_provider row present");
+  assert.ok(bing.cnt > rare.cnt, "bing cnt > rare_provider cnt");
 });
 
 // ---------------------------------------------------------------------------

@@ -1,1 +1,0 @@
-- **test(models):** follow #11503's retarget of the `gemini-3-pro-high` alias to the hyphenated catalog id ([#11593](https://github.com/diegosouzapw/OmniRoute/pull/11593))

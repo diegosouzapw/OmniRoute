@@ -75,12 +75,19 @@ export function reconcileContextWindows(
 
 /** Flatten the per-provider discovery map into the reconcile input. */
 function toDiscoveredWindows(
-  byProvider: Record<string, Array<{ id: string; inputTokenLimit?: number }>>
+  byProvider: Record<
+    string,
+    Array<{ id: string; contextWindow?: number; inputTokenLimit?: number }>
+  >
 ): DiscoveredWindow[] {
   const out: DiscoveredWindow[] = [];
   for (const [provider, models] of Object.entries(byProvider)) {
     for (const m of models) {
-      out.push({ provider, modelId: m.id, window: m.inputTokenLimit ?? null });
+      out.push({
+        provider,
+        modelId: m.id,
+        window: m.contextWindow ?? m.inputTokenLimit ?? null,
+      });
     }
   }
   return out;

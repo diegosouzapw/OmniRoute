@@ -67,7 +67,14 @@ export const InterceptedRequestSchema = z.object({
 export type NormalizedBlock =
   | { type: "text"; text: string }
   | { type: "tool_use"; id: string; name: string; input: unknown }
-  | { type: "tool_result"; tool_use_id: string; content: unknown };
+  | { type: "tool_result"; tool_use_id: string; content: unknown }
+  // A tool identity node whose display content hasn't resolved from its
+  // call-log artifact yet (see resolveTurnDisplayContent /
+  // /api/conversations/[id]/tree's own doc comment) -- distinct from a real
+  // empty text reply. Only ever produced by /dashboard/conversations while
+  // the owning request is still in flight; every other NormalizedBlock
+  // producer (buildRequestTurns/buildResponseTurns) never emits this.
+  | { type: "pending" };
 
 export interface NormalizedTurn {
   role: "system" | "user" | "assistant" | "tool";

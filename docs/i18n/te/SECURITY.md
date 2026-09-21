@@ -1,159 +1,184 @@
 # Security Policy (తెలుగు)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
-## Reporting Vulnerabilities
+## దుర్బలత్వాలను నివేదించడం
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+OmniRouteలో మీరు భద్రతా దుర్బలత్వాన్ని కనుగొంటే, దయచేసి బాధ్యతాయుతంగా నివేదించండి:
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
+1. పబ్లిక్ GitHub ఇష్యూను **తెరవవద్దు**
+2. [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new) ఉపయోగించండి
+3. వీటిని చేర్చండి: వివరణ, పునరుత్పత్తి దశలు మరియు సంభావ్య ప్రభావం
 
-## Response Timeline
+## ప్రతిస్పందన కాలక్రమం
 
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
+| దశ               | లక్ష్యం                      |
+| ---------------- | ---------------------------- |
+| స్వీకరణ నిర్ధారణ | 48 గంటలు                     |
+| ట్రయాజ్ & అంచనా  | 5 పని దినాలు                 |
+| ప్యాచ్ విడుదల    | 14 పని దినాలు (క్లిష్టమైనవి) |
 
-## Supported Versions
+## మద్దతు ఉన్న వెర్షన్లు
 
-| Version | Support Status |
+| వెర్షన్ | మద్దతు స్థితి  |
 | ------- | -------------- |
-| 3.6.x   | ✅ Active      |
-| 3.5.x   | ✅ Security    |
-| < 3.5.0 | ❌ Unsupported |
+| 3.8.x   | ✅ సక్రియం     |
+| 3.7.x   | ✅ భద్రత       |
+| < 3.7.0 | ❌ మద్దతు లేదు |
 
 ---
 
-## Security Architecture
+## భద్రతా ఆర్కిటెక్చర్
 
-OmniRoute implements a multi-layered security model:
+OmniRoute బహుళ-స్థాయి భద్రతా నమూనాను అమలు చేస్తుంది:
 
 ```
-Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+అభ్యర్థన → CORS → Authz పైప్లైన్ (వర్గీకరణ → విధానాలు → అమలు)
+         → రక్షణ నియమాలు (PII మాస్కర్, ప్రాంప్ట్ ఇంజెక్షన్, విజన్ బ్రిడ్జ్)
+         → రేట్ లిమిటర్ → సర్క్యూట్ బ్రేకర్ → కూల్డౌన్ → మోడల్ లాకౌట్ → ప్రొవైడర్
 ```
 
-### 🔐 Authentication & Authorization
+### 🔐 ప్రామాణీకరణ & అధికార నిర్ధారణ
 
-| Feature              | Implementation                                             |
-| -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 32 granular scopes for MCP tool access control             |
+| ఫీచర్                    | అమలు                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **డ్యాష్బోర్డ్ లాగిన్**  | JWT టోకెన్లతో పాస్వర్డ్-ఆధారిత ప్రామాణీకరణ (HttpOnly కుకీలు)                                                                                                                    |
+| **API కీ ప్రామాణీకరణ**   | CRC ధ్రువీకరణతో HMAC-సంతకం చేసిన కీలు                                                                                                                                           |
+| **OAuth 2.0 + PKCE**     | ప్రొవైడర్-నిర్దిష్ట బ్రౌజర్/పరికర OAuth, మద్దతు ఉన్న చోట PKCEను ఉపయోగిస్తుంది; దిగుమతి-మాత్రమే Devin క్రెడెన్షియల్స్ విడిగా నిర్వహించబడతాయి.                                    |
+| **టోకెన్ రిఫ్రెష్**      | గడువు ముగియడానికి ముందు స్వయంచాలక OAuth టోకెన్ రిఫ్రెష్                                                                                                                         |
+| **సురక్షిత కుకీలు**      | HTTPS ఎన్విరాన్మెంట్ల కోసం `AUTH_COOKIE_SECURE=true`                                                                                                                            |
+| **Authz పైప్లైన్**       | రూట్ వర్గీకరణ (PUBLIC / CLIENT_API / MANAGEMENT) — `docs/architecture/AUTHZ_GUIDE.md` చూడండి                                                                                    |
+| **రూట్ గార్డ్ స్థాయిలు** | మేనేజ్మెంట్ రూట్ల కోసం 3-స్థాయి నమూనా (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — `docs/security/ROUTE_GUARD_TIERS.md` చూడండి                                                |
+| **మేనేజ్-స్కోప్ MCP**    | రిమోట్ `/api/mcp/*` యాక్సెస్ `manage` స్కోప్ ఉన్న API కీల ద్వారా నియంత్రించబడుతుంది; `/api/cli-tools/runtime/*` కఠినమైన లూప్బ్యాక్కే పరిమితమై ఉంటుంది. ROUTE_GUARD_TIERS చూడండి |
+| **MCP స్కోప్లు**         | 32 సూక్ష్మస్థాయి స్కోప్లు (read:health, write:combos, execute:completions మొదలైనవి) — `docs/frameworks/MCP-SERVER.md` చూడండి                                                    |
 
-### 🛡️ Encryption at Rest
+### 🛡️ నిల్వలో ఉన్న డేటా ఎన్క్రిప్షన్
 
-All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
+SQLiteలో నిల్వ చేయబడిన సున్నితమైన డేటా అంతా scrypt కీ డెరివేషన్తో **AES-256-GCM** ఉపయోగించి ఎన్క్రిప్ట్ చేయబడుతుంది:
 
-- API keys, access tokens, refresh tokens, and ID tokens
-- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
+- API కీలు, యాక్సెస్ టోకెన్లు, రిఫ్రెష్ టోకెన్లు మరియు ID టోకెన్లు
+- వెర్షన్ చేయబడిన ఫార్మాట్: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- `STORAGE_ENCRYPTION_KEY` సెట్ చేయనప్పుడు పాస్త్రూ మోడ్ (ప్లెయిన్టెక్స్ట్)
 
 ```bash
-# Generate encryption key:
+# ఎన్క్రిప్షన్ కీని రూపొందించండి:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🧠 Prompt Injection Guard
+### 🛡️ రక్షణ నియమాల ఫ్రేమ్వర్క్
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+OmniRoute, ప్రాధాన్యత ప్రకారం అమర్చబడిన 3 అంతర్నిర్మిత రక్షణ నియమాలతో హాట్-రీలోడ్ చేయగల **రక్షణ నియమాల రిజిస్ట్రీ**ని (`src/lib/guardrails/`) అందిస్తుంది:
 
-| Pattern Type        | Severity | Example                                        |
-| ------------------- | -------- | ---------------------------------------------- |
-| System Override     | High     | "ignore all previous instructions"             |
-| Role Hijack         | High     | "you are now DAN, you can do anything"         |
-| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
-| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
-| Instruction Leak    | Medium   | "show me your system prompt"                   |
+| రక్షణ నియమం        | ప్రాధాన్యత | ప్రయోజనం                                                                               |
+| ------------------ | ---------- | -------------------------------------------------------------------------------------- |
+| `vision-bridge`    | 5          | ఇమేజ్-అవగాహన వివరణలతో నాన్-విజన్ మోడల్లను అనుసంధానిస్తుంది; ఇమేజ్ URLల కోసం SSRF రక్షణ |
+| `pii-masker`       | 10         | కాల్కు ముందు+తర్వాత PII తొలగింపు (ఇమెయిళ్లు, ఫోన్, CPF, CNPJ, క్రెడిట్ కార్డులు, SSN)  |
+| `prompt-injection` | 20         | ఓవర్రైడ్/రోల్-హైజాక్/జైల్బ్రేక్/లీక్ నమూనాలను గుర్తిస్తుంది                            |
 
-Configure via dashboard (Settings → Security) or `.env`:
+అనుకూల రక్షణ నియమాలు `registerGuardrail(new MyGuardrail())` ద్వారా నమోదు అవుతాయి. ఈ నమూనా ఫెయిల్-ఓపెన్గా ఉంటుంది (మినహాయింపులు ట్రాఫిక్ను ఎప్పుడూ నిరోధించవు). ప్రతి అభ్యర్థనకు `x-omniroute-disabled-guardrails` హెడర్ ద్వారా మినహాయింపు ఇవ్వవచ్చు. → [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) చూడండి.
+
+### 🧠 ప్రాంప్ట్ ఇంజెక్షన్ రక్షణ
+
+LLM అభ్యర్థనల్లో ప్రాంప్ట్ ఇంజెక్షన్ నమూనాలను గుర్తించే సాధ్యమైనంత-ఉత్తమమైన హ్యూరిస్టిక్ మిడిల్వేర్.
+**ఇది సంపూర్ణ ప్రాంప్ట్-ఇంజెక్షన్ ఫైర్వాల్ కాదు** — ఫాల్స్ పాజిటివ్లు (హానిరహిత
+పర్సోనా/RPG ప్రాంప్ట్లు) మరియు ఫాల్స్ నెగటివ్లు (లీట్స్పీక్, స్పేసింగ్, ఆంగ్లేతర నమూనాలు) ఏర్పడవచ్చు.
+
+| నమూనా రకం           | తీవ్రత   | ఉదాహరణ                                                       |
+| ------------------- | -------- | ------------------------------------------------------------ |
+| సిస్టమ్ ఓవర్రైడ్    | అధికం    | "మునుపటి సూచనలన్నింటినీ విస్మరించు"                          |
+| రోల్ హైజాక్         | మధ్యస్థం | "ఇప్పుడు నువ్వు DAN, నువ్వు ఏదైనా చేయగలవు"                   |
+| డెలిమిటర్ ఇంజెక్షన్ | అధికం    | కాంటెక్స్ట్ సరిహద్దులను ఛేదించడానికి ఎన్కోడ్ చేసిన విభాజకాలు |
+| DAN/జైల్బ్రేక్      | మధ్యస్థం | తెలిసిన జైల్బ్రేక్ ప్రాంప్ట్ నమూనాలు                         |
+| సూచనల లీక్          | అధికం    | "నీ సిస్టమ్ ప్రాంప్ట్ను నాకు చూపించు"                        |
+| ఎన్కోడింగ్ ఎవేషన్   | మధ్యస్థం | base64/rot13/hex డీకోడ్ + సూచన కీవర్డ్లు                     |
+
+`block` మోడ్లో **అధిక** తీవ్రత కలిగిన గుర్తింపులు మాత్రమే నిరోధించబడతాయి. మధ్యస్థ-తీవ్రత
+వర్గాలు లాగ్ చేయబడతాయి, కానీ `sanitizeRequest` ద్వారా ఎప్పటికీ నిరోధించబడవు.
+
+డ్యాష్బోర్డ్ (Settings → Security) లేదా `.env` ద్వారా కాన్ఫిగర్ చేయండి:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
+INPUT_SANITIZER_MODE=block    # warn | block (ఇంజెక్షన్ విధానం; పాత "redact" ఇంజెక్షన్ టెక్స్ట్ను తొలగించదు)
+INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (డిఫాల్ట్) | medium | low — ఈ స్థాయి లేదా అంతకంటే ఎక్కువ తీవ్రతలు block మోడ్లో నిరోధించబడతాయి
 ```
 
-### 🔒 PII Redaction
+### 🔒 PII తొలగింపు
 
-Automatic detection and optional redaction of personally identifiable information:
+వ్యక్తిగతంగా గుర్తించగల సమాచారాన్ని స్వయంచాలకంగా గుర్తించడం మరియు ఐచ్ఛికంగా తొలగించడం:
 
-| PII Type      | Pattern               | Replacement        |
-| ------------- | --------------------- | ------------------ |
-| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
-| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
-| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
-| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
-| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
+| PII రకం         | నమూనా                 | ప్రత్యామ్నాయం      |
+| --------------- | --------------------- | ------------------ |
+| ఇమెయిల్         | `user@domain.com`     | `[EMAIL_REDACTED]` |
+| CPF (బ్రెజిల్)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
+| CNPJ (బ్రెజిల్) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
+| క్రెడిట్ కార్డ్ | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
+| ఫోన్            | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
+| SSN (US)        | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true
+PII_REDACTION_ENABLED=true   # అభ్యర్థనలో PII పునర్వ్రాతను ప్రారంభిస్తుంది; INPUT_SANITIZER_MODEతో సంబంధం లేకుండా పనిచేస్తుంది
+PII_RESPONSE_SANITIZATION=true  # ఐచ్ఛికం: క్లయింట్లకు తిరిగి ఇచ్చే ప్రొవైడర్ ప్రతిస్పందనలలోని PIIని తొలగిస్తుంది
 ```
 
-### 🌐 Network Security
+### 🌐 నెట్వర్క్ భద్రత
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| ఫీచర్                     | వివరణ                                                                              |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| **CORS**                  | స్పష్టమైన క్రాస్-ఆరిజిన్ అనుమతి జాబితా (`CORS_ALLOWED_ORIGINS`; పాత `CORS_ORIGIN`) |
+| **IP ఫిల్టరింగ్**         | డ్యాష్బోర్డ్లో అనుమతి జాబితా/నిరోధ జాబితా IP పరిధులు                               |
+| **రేట్ పరిమితి**          | ఆటోమేటిక్ బ్యాక్ఆఫ్తో ప్రతి ప్రొవైడర్కు రేట్ పరిమితులు                             |
+| **యాంటీ-థండరింగ్ హెర్డ్** | మ్యూటెక్స్ + ప్రతి కనెక్షన్కు లాకింగ్ వరుసగా సంభవించే 502లను నివారిస్తుంది         |
+| **TLS ఫింగర్ప్రింట్**     | బాట్ గుర్తింపును తగ్గించడానికి బ్రౌజర్ను పోలిన TLS ఫింగర్ప్రింట్ స్పూఫింగ్         |
+| **CLI ఫింగర్ప్రింట్**     | స్థానిక CLI సిగ్నేచర్లతో సరిపోలడానికి ప్రతి ప్రొవైడర్కు హెడర్/బాడీ క్రమం           |
 
-### 🔌 Resilience & Availability
+### 🔌 స్థితిస్థాపకత & లభ్యత
 
-| Feature                 | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
-| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
-| **Exponential Backoff** | Automatic retry with increasing delays                             |
-| **Health Dashboard**    | Real-time provider health monitoring                               |
+| ఫీచర్                          | వివరణ                                                                                                       |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **సర్క్యూట్ బ్రేకర్**          | ప్రతి ప్రొవైడర్కు 3-స్థితులు (మూసివేయబడింది → తెరవబడింది → పాక్షికంగా తెరవబడింది), SQLiteలో నిల్వ చేయబడతాయి |
+| **అభ్యర్థన ఐడెంపొటెన్సీ**      | నకిలీ అభ్యర్థనల కోసం 5-సెకన్ల డీడూప్లికేషన్ వ్యవధి                                                          |
+| **ఎక్స్పోనెన్షియల్ బ్యాక్ఆఫ్** | పెరుగుతున్న ఆలస్యాలతో ఆటోమేటిక్ పునఃప్రయత్నం                                                                |
+| **హెల్త్ డ్యాష్బోర్డ్**        | ప్రొవైడర్ ఆరోగ్య స్థితిని నిజ సమయంలో పర్యవేక్షించడం                                                         |
 
-### 📋 Compliance
+### 📋 అనుగుణ్యత
 
-| Feature            | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
-| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
-| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
+| ఫీచర్                 | వివరణ                                                                       |
+| --------------------- | --------------------------------------------------------------------------- |
+| **లాగ్ నిల్వ**        | `CALL_LOG_RETENTION_DAYS` తర్వాత ఆటోమేటిక్ క్లీనప్                          |
+| **నో-లాగ్ నిలిపివేత** | ప్రతి API కీకి సంబంధించిన `noLog` ఫ్లాగ్ అభ్యర్థన లాగింగ్ను నిలిపివేస్తుంది |
+| **ఆడిట్ లాగ్**        | పరిపాలనా చర్యలు `audit_log` పట్టికలో ట్రాక్ చేయబడతాయి                       |
+| **MCP ఆడిట్**         | అన్ని MCP టూల్ కాల్ల కోసం SQLite-ఆధారిత ఆడిట్ లాగింగ్                       |
+| **Zod ధ్రువీకరణ**     | మాడ్యూల్ లోడ్ సమయంలో అన్ని API ఇన్పుట్లు Zod v4 స్కీమాలతో ధ్రువీకరించబడతాయి |
 
 ---
 
-## Required Environment Variables
+## అవసరమైన పర్యావరణ వేరియబుల్స్
 
-All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
+సర్వర్ను ప్రారంభించే ముందు అన్ని రహస్య విలువలను తప్పనిసరిగా సెట్ చేయాలి. అవి లేకపోయినా లేదా బలహీనంగా ఉన్నా సర్వర్ **వెంటనే విఫలమవుతుంది**.
 
 ```bash
-# REQUIRED — server will not start without these:
-JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
+# తప్పనిసరి — ఇవి లేకుండా సర్వర్ ప్రారంభం కాదు:
+JWT_SECRET=$(openssl rand -base64 48)     # కనీసం 32 అక్షరాలు
+API_KEY_SECRET=$(openssl rand -hex 32)    # కనీసం 16 అక్షరాలు
 
-# RECOMMENDED — enables encryption at rest:
+# సిఫార్సు చేయబడింది — నిల్వలో ఉన్నప్పుడు ఎన్క్రిప్షన్ను ప్రారంభిస్తుంది:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
+`changeme`, `secret`, లేదా `password` వంటి బలహీనమైనవిగా తెలిసిన విలువలను సర్వర్ క్రియాశీలంగా తిరస్కరిస్తుంది.
 
 ---
 
-## Docker Security
+## Docker భద్రత
 
-- Use non-root user in production
-- Mount secrets as read-only volumes
-- Never copy `.env` files into Docker images
-- Use `.dockerignore` to exclude sensitive files
-- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
+- ప్రొడక్షన్లో non-root వినియోగదారును ఉపయోగించండి
+- రహస్యాలను read-only వాల్యూమ్లుగా మౌంట్ చేయండి
+- `.env` ఫైళ్లను Docker ఇమేజ్లలోకి ఎప్పుడూ కాపీ చేయవద్దు
+- సున్నితమైన ఫైళ్లను మినహాయించడానికి `.dockerignore` ఉపయోగించండి
+- HTTPS వెనుక ఉన్నప్పుడు `AUTH_COOKIE_SECURE=true` సెట్ చేయండి
 
 ```bash
 docker run -d \
@@ -170,10 +195,73 @@ docker run -d \
 
 ---
 
-## Dependencies
+## డిపెండెన్సీలు
 
-- Run `npm audit` regularly
-- Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- `npm audit`ను క్రమం తప్పకుండా అమలు చేయండి (`npm run audit:deps` ప్రధాన భాగం + electronను కవర్ చేస్తుంది)
+- డిపెండెన్సీలను అప్డేట్గా ఉంచండి
+- pre-commit తనిఖీల కోసం ప్రాజెక్ట్ `husky` + `lint-staged`ను ఉపయోగిస్తుంది (lint-staged + check-docs-sync + check:any-budget:t11)
+- ప్రతి pushపై CI pipeline ESLint భద్రతా నియమాలను అమలు చేస్తుంది (`no-eval`, `no-implied-eval`, `no-new-func` = లోపం)
+- మాడ్యూల్ లోడ్ సమయంలో Zod ద్వారా Provider స్థిరాంకాలు ధ్రువీకరించబడతాయి (`src/shared/validation/schemas.ts`)
+- ఉపయోగిస్తున్న secure-by-default లైబ్రరీలు: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (పారామీటరైజ్డ్ క్వెరీల కారణంగా SQLi ప్రమాదం లేదు), `bcryptjs` (పాస్వర్డ్ హ్యాషింగ్)
+
+## కఠినమైన భద్రతా నియమాలు
+
+ఈ నియమాలు సాధనాలు మరియు సమీక్షకుల ద్వారా అమలు చేయబడతాయి:
+
+1. **రహస్యాలను ఎప్పుడూ commit చేయవద్దు** — `.env` gitignore చేయబడింది; `.env.example` అనేది టెంప్లేట్ (లిటరల్స్ ఉండవు, వ్యాఖ్యలు మాత్రమే — దిగువన ఉన్న PUBLIC_CREDS.md చూడండి)
+2. **`eval()`, `new Function()`, లేదా implied evalను ఎప్పుడూ ఉపయోగించవద్దు** — ESLint దీన్ని అమలు చేస్తుంది
+3. **స్పష్టమైన ఆపరేటర్ ఆమోదం లేకుండా Husky hooksను ఎప్పుడూ దాటవేయవద్దు** (`--no-verify`, `--no-gpg-sign`)
+4. **routesలో ముడి SQLను ఎప్పుడూ వ్రాయవద్దు** — ఎల్లప్పుడూ `src/lib/db/` ద్వారా వెళ్లండి (పారామీటరైజ్డ్)
+5. **Zodతో ఇన్పుట్లను ఎల్లప్పుడూ ధ్రువీకరించండి** — `src/shared/validation/schemas.ts`
+6. **upstream headersను ఎల్లప్పుడూ శుద్ధి చేయండి** — `src/shared/constants/upstreamHeaders.ts`లో denylist ఉంది
+7. **నిల్వలో credentialsను ఎన్క్రిప్ట్ చేయండి** — `src/lib/db/encryption.ts` ద్వారా AES-256-GCM
+8. **`resolvePublicCred()` ద్వారా పబ్లిక్ upstream OAuth identifiers** — సోర్స్లో `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` లిటరల్స్ను ఎప్పుడూ పొందుపరచవద్దు. [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) చూడండి.
+9. **`buildErrorBody()` / `sanitizeErrorMessage()` ద్వారా లోప ప్రతిస్పందనలు** — HTTP / SSE / executor / MCP ప్రతిస్పందన bodiesలో ముడి `err.stack` / `err.message`ను ఎప్పుడూ ఉంచవద్దు. [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) చూడండి.
+10. **`env` ఎంపిక ద్వారా `exec()` / `spawn()` runtime విలువలు** — బాహ్య paths లేదా విశ్వసించలేని విలువలను shellకు పంపే scriptsలో string-interpolate చేయవద్దు. సూచన: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **secure-by-default లైబ్రరీలకు ప్రాధాన్యం ఇవ్వండి** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) చూడండి (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). మీ స్వంత పరిష్కారాన్ని రూపొందించే ముందు వాటిని ఉపయోగించండి.
+
+## సప్లై-చైన్ స్కానర్ నిర్ధారణలు (Socket.dev / Snyk / సారూప్యమైనవి)
+
+ప్రచురించిన `omniroute` npm ఆర్టిఫాక్ట్ Next.js `output: "standalone"`
+బిల్డ్ను బండిల్ చేస్తుంది. అంటే డాక్యుమెంట్ చేయబడిన ప్రత్యేకాధికార
+ఫీచర్లతో (MITM, Zed దిగుమతి, Cloud Sync, ఎంబెడెడ్ సర్వీస్ సూపర్వైజర్) సహా ప్రతి రూట్ హ్యాండ్లర్
+`.next/server/*.js` మినిఫైడ్ చంక్లలో చేరుతుంది. హ్యూరిస్టిక్ సప్లై-చైన్ స్కానర్లు
+తరచుగా ఆ చంక్లను మాల్వేర్ సిగ్నేచర్లతో ప్యాటర్న్-మ్యాచ్ చేస్తాయి.
+
+మేము ఉపయోగించే స్కానర్ కాన్ఫిగరేషన్ రిపోజిటరీ రూట్లోని [`socket.yml`](socket.yml)లో
+ఉంటుంది (Socket.dev GitHub App ఫార్మాట్ v2 —
+<https://docs.socket.dev/docs/socket-yml> చూడండి). ఇది షిప్ చేయని
+డైరెక్టరీలను (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, మొదలైనవి) స్పష్టంగా మినహాయిస్తుంది. అందువల్ల స్కానర్ వాస్తవంగా
+ప్రచురిత వినియోగదారులకు చేరే కోడ్ పాత్లను మాత్రమే నివేదిస్తుంది — ఈ స్కాన్ను ఈ
+రిపోజిటరీలోని వర్క్ఫ్లో కాకుండా, ఆ ఫైల్ను చదివే Socket
+GitHub App నిర్వహిస్తుంది.
+
+ప్రతి నిర్ధారణ వర్గానికి, ఒక్కో నిర్ధారణకు సంబంధించిన మెయింటైనర్ ధృవీకరణను మేము నిర్వహిస్తాము:
+
+- **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
+  ఒక్కో నిర్ధారణ మ్యాప్: సోర్స్ ఫైల్ ↔ ఫ్లాగ్ చేయబడిన చంక్ ↔ ప్రవర్తన ↔ v3.8.6లో
+  వర్తింపజేసిన ఉపశమన చర్య.
+- ఫ్లాగ్ చేయబడిన ప్రతి ఫంక్షన్ వద్ద ఉన్న ఇన్-సోర్స్ `SECURITY-AUDITOR-NOTE:` బ్లాక్లు
+  అదే డాక్యుమెంట్కు తిరిగి సూచిస్తాయి.
+
+తమ పైప్లైన్లో అలర్ట్ను సడలించలేని వినియోగదారులు:
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`తో బిల్డ్ చేయండి. ఇది నాలుగు
+సున్నితమైన మాడ్యూల్లను రన్టైమ్లో HTTP 503 `feature-disabled`ను తిరిగి ఇచ్చే
+స్టబ్లతో భర్తీ చేస్తుంది. అందువల్ల ప్రత్యేకాధికార కోడ్ పాత్లు బండిల్లో భౌతికంగా
+ఉండవు. ప్రచురణ విధానం కోసం
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)ను
+చూడండి.
+
+## సూచనలు
+
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — ఆథరైజేషన్ పైప్లైన్
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — గార్డ్రైల్స్ ఫ్రేమ్వర్క్
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — ఆడిట్ లాగ్ మరియు నిల్వ
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — పబ్లిక్ అప్స్ట్రీమ్ క్రెడెన్షియల్స్ కోసం **తప్పనిసరి** ప్యాటర్న్
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — ఎర్రర్ రెస్పాన్స్ల కోసం **తప్పనిసరి** ప్యాటర్న్
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — సప్లై-చైన్ స్కానర్ నిర్ధారణల కోసం మెయింటైనర్ ధృవీకరణ
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — సర్క్యూట్ బ్రేకర్ + కూల్డౌన్ + లాకౌట్
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS ఫింగర్ప్రింటింగ్ (చట్టపరమైన/నైతిక గమనిక)
+- [`CLAUDE.md`](CLAUDE.md) — AI ఏజెంట్ల కోసం కఠిన నియమాలు
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — జాగ్రత్తగా ఎంపిక చేసిన సెక్యూర్-బై-డిఫాల్ట్ లైబ్రరీలు

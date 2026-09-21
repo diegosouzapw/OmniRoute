@@ -13,20 +13,15 @@ const documentedFreeIds = new Set(
 
 const reviewedIds = new Set(reviewedLiveIds);
 
-test("NVIDIA registry excludes retired DeepSeek V4 models", () => {
-  assert.ok(
-    !registryIds.has("deepseek-ai/deepseek-v4-pro"),
-    "retired deepseek-ai/deepseek-v4-pro must not be advertised"
-  );
-
-  assert.ok(
-    !registryIds.has("deepseek-ai/deepseek-v4-flash"),
-    "retired deepseek-ai/deepseek-v4-flash must not be advertised"
-  );
-});
-
-test("NVIDIA static lifecycle metadata excludes known EOL models", () => {
-  for (const modelId of ["z-ai/glm-5.1", "deepseek-ai/deepseek-v4-pro"]) {
+test("NVIDIA static catalog metadata excludes superseded model ids", () => {
+  for (const modelId of [
+    "z-ai/glm-5.1",
+    "z-ai/glm-5.2",
+    "deepseek-ai/deepseek-v4-pro",
+    "deepseek-ai/deepseek-v4-flash",
+    "minimaxai/minimax-m2.7",
+  ]) {
+    assert.ok(!registryIds.has(modelId), `${modelId} must not remain in the NVIDIA registry`);
     assert.ok(
       !reviewedIds.has(modelId),
       `${modelId} must not remain in the reviewed NVIDIA hosted-model snapshot`
@@ -39,16 +34,9 @@ test("NVIDIA static lifecycle metadata excludes known EOL models", () => {
   }
 });
 
-test("NVIDIA cleanup preserves the healthy GLM replacement", () => {
-  assert.ok(registryIds.has("z-ai/glm-5.2"), "z-ai/glm-5.2 must remain in the NVIDIA registry");
-
-  assert.ok(
-    reviewedIds.has("z-ai/glm-5.2"),
-    "z-ai/glm-5.2 must remain in the reviewed NVIDIA hosted-model snapshot"
-  );
-
-  assert.ok(
-    documentedFreeIds.has("z-ai/glm-5.2"),
-    "z-ai/glm-5.2 must remain in the NVIDIA free-model catalog"
-  );
+test("NVIDIA reviewed snapshot matches the registry and trial entries remain valid", () => {
+  assert.deepEqual([...reviewedIds], [...registryIds]);
+  for (const modelId of documentedFreeIds) {
+    assert.ok(registryIds.has(modelId), `${modelId} must exist in the NVIDIA hosted catalog`);
+  }
 });

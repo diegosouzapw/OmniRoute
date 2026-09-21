@@ -12,6 +12,8 @@ process.env.CLOUD_URL = "http://cloud.example";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
+const apiKeyPolicy = await import("../../src/shared/utils/apiKeyPolicy.ts");
 const { updateSettings } = await import("@/lib/db/settings");
 const localDb = { updateSettings };
 const compliance = await import("../../src/lib/compliance/index.ts");
@@ -132,6 +134,74 @@ test("POST /api/keys creates a key, preserves special characters, and persists n
   assert.equal(stored?.noLog, true);
   assert.equal(stored?.compressionEnabled, true);
   assert.equal(compliance.isNoLog(body.id), true);
+});
+
+test("POST /api/keys preserves creation-time ACL and enforces it (#12275)", async () => {
+  await enableManagementAuth();
+  await createManagementKey();
+
+  const response = await listRoute.POST(
+    await makeManagementSessionRequest("http://localhost/api/keys", {
+      method: "POST",
+      body: {
+        name: "Restricted Create",
+        modelAccessMode: "restricted",
+        allowedModels: ["openai/gpt-4.1-mini"],
+        allowedCombos: ["focused-chat"],
+      },
+    })
+  );
+  const body = (await response.json()) as {
+    id: string;
+    key: string;
+    modelAccessMode: string;
+    allowedModels: string[];
+    allowedCombos: string[];
+  };
+  const stored = await apiKeysDb.getApiKeyById(body.id);
+
+  await combosDb.createCombo({
+    name: "focused-chat",
+    strategy: "priority",
+    config: { maxRetries: 0, retryDelayMs: 0 },
+    models: ["openai/gpt-4.1-mini"],
+  });
+  await combosDb.createCombo({
+    name: "blocked-chat",
+    strategy: "priority",
+    config: { maxRetries: 0, retryDelayMs: 0 },
+    models: ["anthropic/claude-sonnet-4-5"],
+  });
+
+  assert.equal(response.status, 201);
+  assert.equal(body.modelAccessMode, "restricted");
+  assert.deepEqual(body.allowedModels, ["openai/gpt-4.1-mini"]);
+  assert.deepEqual(body.allowedCombos, ["focused-chat"]);
+  assert.equal(stored?.modelAccessMode, "restricted");
+  assert.deepEqual(stored?.allowedModels, ["openai/gpt-4.1-mini"]);
+  assert.deepEqual(stored?.allowedCombos, ["focused-chat"]);
+
+  const allowed = await apiKeyPolicy.enforceApiKeyPolicy(
+    makeRequest("http://localhost/api/v1/chat/completions", { token: body.key }),
+    "openai/gpt-4.1-mini"
+  );
+  const denied = await apiKeyPolicy.enforceApiKeyPolicy(
+    makeRequest("http://localhost/api/v1/chat/completions", { token: body.key }),
+    "anthropic/claude-sonnet-4-5"
+  );
+  const allowedCombo = await apiKeyPolicy.enforceApiKeyPolicy(
+    makeRequest("http://localhost/api/v1/chat/completions", { token: body.key }),
+    "focused-chat"
+  );
+  const deniedCombo = await apiKeyPolicy.enforceApiKeyPolicy(
+    makeRequest("http://localhost/api/v1/chat/completions", { token: body.key }),
+    "blocked-chat"
+  );
+
+  assert.equal(allowed.rejection, null);
+  assert.equal(denied.rejection?.status, 403);
+  assert.equal(allowedCombo.rejection, null);
+  assert.equal(deniedCombo.rejection?.status, 403);
 });
 
 test("POST /api/keys validates missing and oversized names", async () => {

@@ -6,9 +6,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { assembleStreamingResponseHeaders } = await import(
-  "../../open-sse/handlers/chatCore/streamingResponseHeaders.ts"
-);
+const { assembleStreamingResponseHeaders } =
+  await import("../../open-sse/handlers/chatCore/streamingResponseHeaders.ts");
 
 function makeBuild() {
   const calls: Array<{ headers: unknown; meta: Record<string, unknown> }> = [];
@@ -51,7 +50,10 @@ test("buildStreamingResponseHeaders receives zeroed latency/usage/cost and cache
 
 test("no compression meta → no compression header", () => {
   const { build } = makeBuild();
-  const h = assembleStreamingResponseHeaders(baseArgs({ compressionResponseMeta: undefined }), build);
+  const h = assembleStreamingResponseHeaders(
+    baseArgs({ compressionResponseMeta: undefined }),
+    build
+  );
   assert.ok(!Object.values(h).includes("engine:z"));
 });
 
@@ -62,4 +64,17 @@ test("compression meta present → compression header set", () => {
     build
   );
   assert.ok(Object.values(h).includes("engine:z; source=routing"));
+});
+
+test("forwards fallbackAttempts into the streaming meta payload", () => {
+  const { build, calls } = makeBuild();
+  assembleStreamingResponseHeaders(baseArgs({ fallbackAttempts: 2 }), build);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].meta.fallbackAttempts, 2);
+});
+
+test("omitted fallbackAttempts does not invent a count", () => {
+  const { build, calls } = makeBuild();
+  assembleStreamingResponseHeaders(baseArgs(), build);
+  assert.equal("fallbackAttempts" in calls[0].meta, false);
 });

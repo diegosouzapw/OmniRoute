@@ -49,6 +49,8 @@ import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./us
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 import { getAdobeFireflyUsage } from "./usage/adobeFirefly.ts";
 import { getOpenrouterUsage } from "./usage/openrouter.ts";
+import { getOpenAiCompatibleUsage } from "./usage/openaiCompatible.ts";
+import { getLlmgatewayUsage } from "./usage/llmgateway.ts";
 import { getOllamaCloudUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import { getPromptQlUsage } from "./usage/promptql.ts";
@@ -61,6 +63,8 @@ import { getQoderUsage, parseQoderUserStatusUsage } from "./usage/qoder.ts";
 export { parseQoderUserStatusUsage } from "./usage/qoder.ts";
 import { getOpencodeUsage } from "./usage/opencode.ts";
 import { getDeepseekUsage } from "./usage/deepseek.ts";
+import { getMoonshotOpenPlatformUsage } from "./moonshotQuotaFetcher.ts";
+import { isMoonshotOpenPlatformConnection } from "./usage/moonshotOpenPlatform.ts";
 import { getDevinCliUsage } from "./usage/devinCli.ts";
 import { getBailianCodingPlanUsage } from "./usage/bailian.ts";
 import { getVertexUsage } from "./usage/vertex.ts";
@@ -110,6 +114,19 @@ export async function getUsageForProvider(
   options: { forceRefresh?: boolean } = {}
 ) {
   const { id, provider, accessToken, apiKey, providerSpecificData, projectId, email } = connection;
+
+  if (isMoonshotOpenPlatformConnection(connection)) {
+    return await getMoonshotOpenPlatformUsage(connection);
+  }
+
+  // openai-compatible-* ids are generated per connection, so they can never
+  // appear in the switch below or in USAGE_FETCHER_PROVIDERS. The connection
+  // itself declares where its quota lives (#13616); without that declaration
+  // this returns a message and the sync treats it as "nothing to show", exactly
+  // as it did before.
+  if (typeof provider === "string" && provider.startsWith("openai-compatible-")) {
+    return await getOpenAiCompatibleUsage(apiKey, providerSpecificData);
+  }
 
   switch (provider) {
     case "github":
@@ -168,8 +185,13 @@ export async function getUsageForProvider(
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
+    case "moonshot":
+    case "kimi":
+      return await getMoonshotOpenPlatformUsage(connection);
     case "openrouter":
       return await getOpenrouterUsage(id || "", apiKey || "", providerSpecificData);
+    case "llmgateway":
+      return await getLlmgatewayUsage(id || "", apiKey || "");
     case "opencode":
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");

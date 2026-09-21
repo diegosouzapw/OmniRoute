@@ -127,13 +127,18 @@ function normalizeGrokBuildReasoning(
   model: string
 ): Record<string, unknown> | null {
   const reasoning = asRequestRecord(value);
+  // Capture BEFORE stripping: an explicit (but unsupported/invalid, e.g. "none"/"off"/
+  // "xhigh") effort must still count as an explicit off-switch below — only the true
+  // ABSENCE of an effort key gets the model default. Restores the #7358 behavior the
+  // 4.6 default accidentally regressed: without this, every explicit "none"/"off" from
+  // grok-cli got silently promoted to "high", leaving no way to disable reasoning.
   const hasExplicitEffort = Object.prototype.hasOwnProperty.call(reasoning, "effort");
   if (!GROK_BUILD_REASONING_EFFORT_SET.has(String(reasoning.effort))) {
     delete reasoning.effort;
   }
   if (model === "grok-composer-2.5-fast") {
     delete reasoning.effort;
-  } else if (model === "grok-4.5" && !hasExplicitEffort) {
+  } else if ((model === "grok-4.5" || model === "grok-4.6") && !hasExplicitEffort) {
     reasoning.effort = GROK_BUILD_DEFAULT_REASONING_EFFORT;
   }
   return Object.keys(reasoning).length > 0 ? reasoning : null;

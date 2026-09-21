@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { VideoBridgeGuardrail } from "../../../src/lib/guardrails/videoBridge.ts";
+import {
+  VideoBridgeGuardrail,
+  reanchorVideoBridgeRedaction,
+} from "../../../src/lib/guardrails/videoBridge.ts";
 import { callVisionModel } from "../../../src/lib/guardrails/visionBridgeHelpers.ts";
 import {
   buildModalityBridgeHeader,
@@ -820,4 +823,60 @@ test("audio/video fusion telemetry reaches guardrail meta, bridge stats, and cac
   const after = getBridgeStats().video;
   assert.equal(after.fusionRuns - before.fusionRuns, 2);
   assert.equal(after.fusionPartials - before.fusionPartials, 2);
+});
+
+test("reanchorVideoBridgeRedaction re-reads fullText from the post-guardrail body (PII/credential masker interaction)", () => {
+  // A later chain guardrail (PII masker @10, credential masker @95) rewrote the
+  // description text IN PLACE after video-bridge@7 built the redaction map, so
+  // the map's fullText is stale. Re-anchoring at the advisory indices must pick
+  // up the post-masker text so the log sink's content-match still finds the part.
+  const entries = [
+    {
+      container: "messages" as const,
+      messageIndex: 0,
+      partIndex: 1,
+      fullText:
+        "[Video description: transcript[source=client;confidence=0.90;interval=00:01.000-00:02.000] my name is Alice]",
+      redactedText:
+        "[Video description: transcript[source=client;confidence=0.90;interval=00:01.000-00:02.000] [redacted-video-transcript]]",
+    },
+  ];
+  const finalBody = {
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "hello" },
+          {
+            type: "text",
+            // PII masker replaced "Alice" with a token in place:
+            text: "[Video description: transcript[source=client;confidence=0.90;interval=00:01.000-00:02.000] my name is [NAME_1]]",
+          },
+        ],
+      },
+    ],
+  };
+  const reanchored = reanchorVideoBridgeRedaction(entries, finalBody);
+  assert.equal(
+    reanchored[0].fullText,
+    (finalBody.messages[0].content[1] as { text: string }).text,
+    "fullText must equal the post-masker part text so the sink match succeeds"
+  );
+  assert.equal(reanchored[0].redactedText, entries[0].redactedText, "redactedText is unchanged");
+  // Original entries object is not mutated (meta is shared).
+  assert.equal(entries[0].fullText.includes("Alice"), true);
+});
+
+test("reanchorVideoBridgeRedaction keeps original fullText when the advisory index no longer resolves", () => {
+  const entries = [
+    {
+      container: "messages" as const,
+      messageIndex: 5,
+      partIndex: 9,
+      fullText: "[Video description: original]",
+      redactedText: "[Video description: [redacted-video-transcript]]",
+    },
+  ];
+  const reanchored = reanchorVideoBridgeRedaction(entries, { messages: [] });
+  assert.equal(reanchored[0].fullText, "[Video description: original]");
 });

@@ -1,1 +1,0 @@
-- **fix(cli):** keep the global OmniRoute server `--base-url` separate from provider-node `--endpoint` values in add, update, and validate commands ([#11860](https://github.com/diegosouzapw/OmniRoute/pull/11860)) — thanks @pacocartones

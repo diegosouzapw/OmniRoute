@@ -106,7 +106,18 @@ function solveInWorker(
   activeWorkerCount += 1;
 
   return new Promise<number>((resolve, reject) => {
-    const worker = new Worker(resolveWorkerPath(), { workerData: validated });
+    // The slot is taken before this executor runs, so anything that throws here
+    // -- a missing worker script, a spawn failure -- has to hand it back. Without
+    // this, MAX_CONCURRENT_WORKERS spawn failures wedge the solver permanently
+    // and every later call reports "capacity reached" instead of the real cause.
+    let worker: Worker;
+    try {
+      worker = new Worker(resolveWorkerPath(), { workerData: validated });
+    } catch (error) {
+      activeWorkerCount = Math.max(0, activeWorkerCount - 1);
+      reject(error instanceof Error ? error : new Error(String(error)));
+      return;
+    }
     let settled = false;
 
     const cleanup = () => {

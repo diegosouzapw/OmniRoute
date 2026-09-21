@@ -1,0 +1,1 @@
+- **fix(opencode-plugin-v2):** write the catalog snapshot to a temp file and rename it into place, ignore newer snapshot versions, and warn when a write is skipped or fails ([#13607](https://github.com/diegosouzapw/OmniRoute/pull/13607)) — thanks @maxmad64bis

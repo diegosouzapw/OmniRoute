@@ -1,19 +1,25 @@
 #!/usr/bin/env node
 // scripts/check/check-model-lifecycle.mjs
-// Gate anti-drift (#11503): as duas tabelas mantidas à mão que decidem roteamento —
+// Gate anti-drift (#11503): as três tabelas mantidas à mão que decidem roteamento —
 // FITNESS_TABLE (open-sse/services/autoCombo/taskFitness.ts, camada 4 do task fitness) e
 // BUILT_IN_ALIASES (open-sse/services/modelDeprecation.ts, reescreve `body.model` em toda
-// request) — apodrecem em silêncio quando o fornecedor aposenta um modelo. Em
+// request), além de DEFAULT_DEGRADATION_MAP (backgroundTaskDetector.ts) — apodrecem em
+// silêncio quando o fornecedor aposenta um modelo. Em
 // release/v3.8.51 o resultado foi uma inversão de ranking (modelo morto 0.98 vs flagship
-// vivo 0.50) e aliases que garantiam 404. Este gate compara as duas contra o snapshot de
+// vivo 0.50) e aliases apontando para ids obsoletos. Este gate compara as três contra o snapshot de
 // ciclo de vida em config/quality/model-lifecycle.json (sem rede; regenerar com
 // `npm run quality:refresh-model-lifecycle`).
 //
-// Três checagens, todas somadas antes do exit — nenhuma aborta as outras:
+// Quatro checagens, todas somadas antes do exit — nenhuma aborta as outras:
 //   (a) nenhum padrão do FITNESS_TABLE pontua um id aposentado que o catálogo roteia;
 //   (b) nenhum alvo de BUILT_IN_ALIASES está aposentado ou ausente do catálogo;
 //   (c) todo id aposentado ainda presente no REGISTRY tem encaminhamento em
-//       BUILT_IN_ALIASES ou consta em `allowedRetiredInCatalog` (a catraca a queimar).
+//       BUILT_IN_ALIASES ou consta em `allowedRetiredInCatalog` (a catraca a queimar);
+//   (d) nenhuma linha de DEFAULT_DEGRADATION_MAP (open-sse/services/backgroundTaskDetector.ts)
+//       tem origem ou destino aposentado. A origem aposentada é linha morta: checkLifecycle
+//       devolve 410 antes de resolveBackgroundTaskRedirect rodar. O destino aposentado é o
+//       normalmente rejeitado com 410 quando o ciclo de vida é validado novamente após o
+//       redirecionamento; a resolução de alias ainda pode convertê-lo em um id aceito.
 //
 // (a) é deliberadamente restrita aos ids ROTEÁVEIS: linhas versionadas legítimas como
 // `gpt-4o` também casam com ids aposentados que o catálogo nunca serviu
@@ -88,6 +94,22 @@ export function findUnforwardedRetiredIds(routableRetiredIds, aliases, allowlist
     .map((id) => `${id} is retired but still routable with no BUILT_IN_ALIASES forward`);
 }
 
+/** (d) Linhas de DEFAULT_DEGRADATION_MAP com origem ou destino aposentado. */
+export function findRetiredDegradationRows(degradationMap, retiredIds) {
+  const violations = [];
+  for (const [source, target] of Object.entries(degradationMap ?? {})) {
+    if (isRetiredId(source, retiredIds)) {
+      violations.push(
+        `${source} → ${target} (the vendor has retired the source id; checkLifecycle rejects it before the redirect runs)`
+      );
+    }
+    if (isRetiredId(target, retiredIds)) {
+      violations.push(`${source} → ${target} (the vendor has retired the target id)`);
+    }
+  }
+  return violations;
+}
+
 export function readSnapshot(snapshotPath = SNAPSHOT_PATH) {
   const snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
   const retiredIds = new Set(
@@ -102,12 +124,18 @@ async function loadProductionTables() {
   // Nenhum gate pode migrar o banco do operador: taskFitness.ts importa src/lib/db/core.ts,
   // então DATA_DIR aponta para um diretório descartável ANTES do import dinâmico.
   process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-lifecycle-gate-"));
-  const [{ REGISTRY }, { getStaticFitnessTableScore }, { getBuiltInAliases }] = await Promise.all([
+  const [
+    { REGISTRY },
+    { getStaticFitnessTableScore },
+    { getBuiltInAliases },
+    { getDefaultDegradationMap },
+  ] = await Promise.all([
     import(pathToFileURL(path.join(ROOT, "open-sse/config/providers/index.ts")).href),
     import(pathToFileURL(path.join(ROOT, "open-sse/services/autoCombo/taskFitness.ts")).href),
     import(pathToFileURL(path.join(ROOT, "open-sse/services/modelDeprecation.ts")).href),
+    import(pathToFileURL(path.join(ROOT, "open-sse/services/backgroundTaskDetector.ts")).href),
   ]);
-  return { REGISTRY, getStaticFitnessTableScore, getBuiltInAliases };
+  return { REGISTRY, getStaticFitnessTableScore, getBuiltInAliases, getDefaultDegradationMap };
 }
 
 function report(label, violations, hint) {
@@ -125,11 +153,13 @@ function report(label, violations, hint) {
 
 async function main() {
   const { snapshot, retiredIds } = readSnapshot();
-  const { REGISTRY, getStaticFitnessTableScore, getBuiltInAliases } = await loadProductionTables();
+  const { REGISTRY, getStaticFitnessTableScore, getBuiltInAliases, getDefaultDegradationMap } =
+    await loadProductionTables();
 
   const catalogIds = collectCatalogIds(REGISTRY);
   const routableRetired = catalogIds.filter((id) => isRetiredId(id, retiredIds)).sort();
   const aliases = getBuiltInAliases();
+  const degradationMap = getDefaultDegradationMap();
 
   let failures = 0;
   failures += report(
@@ -138,7 +168,7 @@ async function main() {
     "drop the row from FITNESS_TABLE in open-sse/services/autoCombo/taskFitness.ts, or replace it with the versioned id of the live successor."
   );
   failures += report(
-    `all ${Object.keys(aliases).length} BUILT_IN_ALIASES targets are live catalog models`,
+    `all ${Object.keys(aliases).length} BUILT_IN_ALIASES targets are present in REGISTRY and absent from the retired-id snapshot`,
     findBadAliasTargets(aliases, catalogIds, retiredIds),
     "point the alias at the replacement the vendor publishes (see `sources` in config/quality/model-lifecycle.json). Never invent a target."
   );
@@ -148,8 +178,14 @@ async function main() {
     "add a BUILT_IN_ALIASES forward to the vendor's replacement, remove the model from the provider catalog, or (last resort) add the id to `allowedRetiredInCatalog` in config/quality/model-lifecycle.json with a tracking issue."
   );
 
+  failures += report(
+    `none of the ${Object.keys(degradationMap).length} DEFAULT_DEGRADATION_MAP rows names a retired id`,
+    findRetiredDegradationRows(degradationMap, retiredIds),
+    "drop the row from DEFAULT_DEGRADATION_MAP in open-sse/services/backgroundTaskDetector.ts (a retired source can never reach the redirect), or point a retired target at the replacement the vendor publishes (see `sources` in config/quality/model-lifecycle.json)."
+  );
+
   if (failures) {
-    console.error(`[model-lifecycle] FAIL — ${failures} violation(s) across 3 check(s).`);
+    console.error(`[model-lifecycle] FAIL — ${failures} violation(s) across 4 check(s).`);
     process.exit(1);
   }
   console.log(

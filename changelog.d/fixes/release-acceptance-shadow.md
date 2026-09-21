@@ -1,0 +1,1 @@
+- Add a shadow release-acceptance report next to release-green.json. It does not close #12732 and is not a Mergify required check.

@@ -83,11 +83,11 @@ test("bumps undersized max_tokens for a non-clinepass reasoning provider (gate r
   // Nemotron Nano with supportsReasoning in the NVIDIA registry.
   const executor = new DefaultExecutor("nvidia");
   const body = {
-    model: "nvidia/nvidia-nemotron-nano-9b-v2",
+    model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
     reasoning_effort: "high",
     max_tokens: 100,
   } as Record<string, unknown>;
 
-  executor.ensureThinkingBudget(body, "nvidia/nvidia-nemotron-nano-9b-v2");
+  executor.ensureThinkingBudget(body, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning");
   assert.equal(body.max_tokens, 4096);
 });

@@ -28,13 +28,13 @@ export async function GET(request: NextRequest) {
 
     const db = getDbInstance();
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-    const tempDir = path.join(os.tmpdir(), `omniroute-export-${timestamp}`);
+    // Use mkdtempSync (exclusive creation, random suffix) instead of a
+    // deterministic timestamp path — a predictable path lets a local
+    // attacker pre-place a symlink and redirect the write (TOCTOU).
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-export-"));
     const zipPath = path.join(os.tmpdir(), `omniroute-full-backup-${timestamp}.zip`);
 
     try {
-      // Create temp directory
-      fs.mkdirSync(tempDir, { recursive: true });
-
       // 1. Export database using native backup API
       const dbBackupPath = path.join(tempDir, "storage.sqlite");
       await db.backup(dbBackupPath);

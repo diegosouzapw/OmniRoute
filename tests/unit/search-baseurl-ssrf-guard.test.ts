@@ -58,18 +58,26 @@ describe("resolveSearchBaseUrl — SSRF guard on client-controlled baseUrl (GHSA
     });
   }
 
-  it("still allows a self-hosted loopback/LAN override (block-metadata, not public-only)", () => {
+  // CORRECTED for GHSA-3f8g-pfh9-j687. This case originally asserted the
+  // loopback/LAN override via `providerOptions` — i.e. via TENANT input — which
+  // is the SSRF-with-readback half of that advisory. The self-hosted use case
+  // this test was written to protect is operator configuration, and it arrives
+  // on `providerSpecificData` (search.ts reads it from the stored connection's
+  // `credentials?.providerSpecificData`), so that is where it is asserted now.
+  // Tenant-supplied overrides are refused outright — see
+  // search-baseurl-client-override-3f8g.test.ts.
+  it("still allows a self-hosted loopback/LAN override from OPERATOR config", () => {
     assert.equal(
       resolveSearchBaseUrl(config, {
         ...base,
-        providerOptions: { baseUrl: "http://127.0.0.1:9999" },
+        providerSpecificData: { baseUrl: "http://127.0.0.1:9999" },
       }),
       "http://127.0.0.1:9999"
     );
     assert.equal(
       resolveSearchBaseUrl(config, {
         ...base,
-        providerOptions: { baseUrl: "http://10.0.0.5:8080" },
+        providerSpecificData: { baseUrl: "http://10.0.0.5:8080" },
       }),
       "http://10.0.0.5:8080"
     );

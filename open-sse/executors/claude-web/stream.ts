@@ -453,15 +453,19 @@ function makeChunk(
 }
 
 function protocolErrorBody(): Record<string, unknown> {
-  const body = buildErrorBody(502, "Claude Web stream protocol error");
-  body.error.type = "upstream_protocol_error";
-  body.error.code = "claude_web_protocol_error";
+  const body = buildErrorBody(502, "Claude Web stream protocol error", undefined, {
+    type: "upstream_protocol_error",
+    code: "claude_web_protocol_error",
+  });
   return body as unknown as Record<string, unknown>;
 }
 
 function responseHeaders(contentType: string, metadata: Record<string, string>): Headers {
+  const charsetAware = contentType.includes("charset")
+    ? contentType
+    : `${contentType}; charset=utf-8`;
   const headers = new Headers({
-    "Content-Type": contentType,
+    "Content-Type": charsetAware,
     "Cache-Control": "no-cache",
   });
   const headerNames: Record<string, string> = {

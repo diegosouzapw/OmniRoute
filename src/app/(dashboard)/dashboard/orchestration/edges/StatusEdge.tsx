@@ -17,6 +17,13 @@ interface StatusEdgeData {
   state?: OrchState;
   active?: boolean;
   mirror?: boolean;
+  /**
+   * Particle budget gate, set by `orchestrationToFlow` (see `PARTICLE_EDGE_CAP`). `false`
+   * means the canvas has too many simultaneously active edges to animate them all — the edge
+   * still renders its active stroke, just without the 3 SMIL particles. Absent/`true` keeps
+   * the animation (so a caller that never sets it behaves exactly as before).
+   */
+  particles?: boolean;
 }
 
 /** Mesma precedência do edgeStyle da v1: failed > active > succeeded > idle. */
@@ -52,6 +59,7 @@ function StatusEdgeImpl(props: EdgeProps) {
         style={{ ...s, ...(data.mirror ? { strokeDasharray: "6 4" } : {}) }}
       />
       {data.active &&
+        data.particles !== false &&
         Array.from({ length: PARTICLES }, (_, i) => (
           <ellipse
             key={i}

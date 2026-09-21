@@ -10,9 +10,8 @@ import assert from "node:assert/strict";
  * same defect register one rule array — no pipeline changes.
  */
 
-const { applyStatusRestatement, statusRestatementRegistry } = await import(
-  "../../open-sse/config/upstreamStatusRestatement.ts"
-);
+const { applyStatusRestatement, statusRestatementRegistry } =
+  await import("../../open-sse/config/upstreamStatusRestatement.ts");
 
 test("R1: agentrouter 403 + 用户额度不足 → 429 with synthetic Retry-After", () => {
   const out = applyStatusRestatement({
@@ -119,8 +118,50 @@ test("R10: chatCore wires applyStatusRestatement into the providerFailure block"
     "utf8"
   );
   assert.match(src, /applyStatusRestatement\(/, "chatCore must call applyStatusRestatement");
-  const hookIndex = src.indexOf("applyStatusRestatement(");
+
+  const helperIndex = src.indexOf("const applyProviderFailureClassification = async (");
+  const blockIndex = src.indexOf("providerFailure: if (!providerResponse.ok)");
+  assert.ok(helperIndex > -1 && blockIndex > helperIndex, "classification helper and block exist");
+  const classifyCalls = src.match(/classifyProviderError\(/g) ?? [];
+  assert.equal(classifyCalls.length, 1, "chatCore classifies provider errors in exactly one place");
   const classifyIndex = src.indexOf("classifyProviderError(statusCode");
-  assert.ok(hookIndex > -1 && classifyIndex > -1 && hookIndex < classifyIndex,
-    "restatement must run BEFORE classifyProviderError so fallback sees the corrected status");
+  assert.ok(
+    classifyIndex > helperIndex && classifyIndex < blockIndex,
+    "classifyProviderError must live inside applyProviderFailureClassification"
+  );
+
+  const block = src.slice(blockIndex);
+  const hookIndex = block.indexOf("applyStatusRestatement(");
+  const statusReassign = block.indexOf("statusCode = restatement.status;");
+  const retryReassign = block.indexOf("retryAfterMs = restatement.retryAfterMs;");
+  const classifyCallIndex = block.indexOf("await applyProviderFailureClassification(");
+  assert.ok(
+    hookIndex > -1 &&
+      statusReassign > hookIndex &&
+      retryReassign > hookIndex &&
+      classifyCallIndex > statusReassign &&
+      classifyCallIndex > retryReassign,
+    "restatement must reassign statusCode and retryAfterMs BEFORE the providerFailure block classifies"
+  );
+});
+
+test("R11: the shared provider execution pipeline restates before building the error result", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const src = await readFile(
+    new URL("../../open-sse/handlers/chatCore/providerExecutionPipeline.ts", import.meta.url),
+    "utf8"
+  );
+  const outcomeIndex = src.indexOf("async function toOutcome(");
+  assert.ok(outcomeIndex > -1, "toOutcome exists");
+  const body = src.slice(outcomeIndex);
+  const hookIndex = body.indexOf("applyStatusRestatement(");
+  const resultIndex = body.search(/createErrorResult\(\s*restatement\.status,/);
+  assert.ok(
+    hookIndex > -1 && resultIndex > hookIndex,
+    "the non-streaming leg must surface the restated status to classification and the client"
+  );
+  assert.match(
+    body,
+    /createErrorResult\(\s*restatement\.status,\s*message,\s*restatement\.retryAfterMs/
+  );
 });

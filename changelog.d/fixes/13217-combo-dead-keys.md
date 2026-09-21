@@ -1,0 +1,1 @@
+- **fix(combos):** stop dropping live keys and persisting dead ones ([#13217](https://github.com/diegosouzapw/OmniRoute/pull/13217)) — thanks @maxmad64bis

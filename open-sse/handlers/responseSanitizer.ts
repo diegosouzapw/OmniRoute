@@ -1061,6 +1061,7 @@ function convertOpenAIResponseToResponses(openaiResponse: JsonRecord): JsonRecor
 /**
  * Sanitize a streaming SSE chunk for passthrough mode.
  * Lighter than full sanitization — only strips problematic extra fields.
+ * Fast-path: returns original when no mutations are needed.
  */
 export function sanitizeStreamingChunk(parsed: unknown): unknown {
   const parsedRecord = toRecord(parsed);
@@ -1078,14 +1079,29 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
   if (eventType === "content_block_delta") {
     const deltaRecord = toRecord(parsedRecord.delta);
     if (deltaRecord) {
+      let mutated = false;
       if (typeof deltaRecord.text === "string") {
         deltaRecord.text = stripZeroWidthText(deltaRecord.text);
+        mutated = true;
       }
       if (typeof deltaRecord.thinking === "string") {
         deltaRecord.thinking = stripZeroWidthText(deltaRecord.thinking);
+        mutated = true;
       }
+      return mutated ? parsedRecord : parsed;
     }
-    return parsedRecord;
+    return parsed;
+  }
+
+  // Fast-path: check if any mutations would actually be needed
+  // Most passthrough chunks (content deltas) need no sanitization
+  const needsIdNormalization = parsedRecord.id !== undefined && parsedRecord.id !== null && typeof parsedRecord.id !== "string";
+  const hasChoices = Array.isArray(parsedRecord.choices) && parsedRecord.choices.length > 0;
+  const hasUsage = parsedRecord.usage !== undefined;
+  const hasSystemFingerprint = parsedRecord.system_fingerprint !== undefined;
+  if (!needsIdNormalization && !hasChoices && !hasUsage && !hasSystemFingerprint) {
+    // Nothing to sanitize — forward original
+    return parsed;
   }
 
   // Build sanitized chunk

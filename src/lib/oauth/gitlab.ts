@@ -103,16 +103,19 @@ export function isGitLabDirectAccessDisabled(status: number, bodyText: string): 
 }
 
 /**
- * #10365 / #10499: same predicate the chat-path executor (open-sse/executors/gitlab.ts)
- * uses to decide whether a failed `direct_access` exchange should fall back to the
- * public Code Suggestions completions endpoint instead of surfacing a hard error.
- * A rejected exchange (401 — invalid/expired direct_access grant) or an explicitly
- * disabled direct-connections tenant (403 with the GitLab-specific message) both mean
- * "direct mode unavailable, but the public monolith endpoint may still work" — never a
- * definitive "the token itself is bad" signal on their own.
+ * #10365 / #10499 / #12958: same predicate the chat-path executor
+ * (open-sse/executors/gitlab.ts) uses to decide whether a failed `direct_access`
+ * exchange should fall back to the public Code Suggestions completions endpoint
+ * instead of surfacing a hard error. A rejected exchange (401 — invalid/expired
+ * direct_access grant) or ANY 403 (an explicitly disabled direct-connections tenant,
+ * or an entitlement/scope-resolution failure GitLab does not document a distinct
+ * status for — #12958) both mean "direct mode unavailable, but the public monolith
+ * endpoint may still work" — never a definitive "the token itself is bad" signal on
+ * their own. `isGitLabDirectAccessDisabled()` stays available for log/diagnostic
+ * labeling; it no longer gates this decision.
  */
-export function shouldFallbackToPublicCodeSuggestions(status: number, bodyText: string): boolean {
-  return status === 401 || isGitLabDirectAccessDisabled(status, bodyText);
+export function shouldFallbackToPublicCodeSuggestions(status: number, _bodyText: string): boolean {
+  return status === 401 || status === 403;
 }
 
 /** Headers for a public Code Suggestions completions probe (chat path and connection test). */

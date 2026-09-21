@@ -7,7 +7,7 @@ import {
   invalidateProxyHealth,
   __setProxyHealthTcpCheckForTesting,
 } from "../../src/lib/proxyHealth.ts";
-import { runWithProxyContext } from "../../open-sse/utils/proxyFetch.ts";
+import { runWithProxyContext, proxyFetch } from "../../open-sse/utils/proxyFetch.ts";
 
 test("T14: isProxyReachable caches unreachable proxy result", async () => {
   const proxyUrl = "http://127.0.0.1:1";
@@ -101,4 +101,157 @@ test("T14: runWithProxyContext fails an in-flight request fast when the proxy is
 
   assert.equal(executed, true, "dispatch is optimistic; the request was started before the abort");
   releaseRequest();
+});
+
+test("SOCKS5 ordinary data-plane: no T14 TCP health probe", async () => {
+  const proxyUrl = "socks5://127.0.0.1:1080";
+  invalidateProxyHealth(proxyUrl);
+  let probeCount = 0;
+  __setProxyHealthTcpCheckForTesting(async () => {
+    probeCount += 1;
+    return true;
+  });
+  try {
+    let executed = false;
+    const result = await runWithProxyContext(proxyUrl, async () => {
+      executed = true;
+      return "socks5-data-plane-ok";
+    });
+    assert.equal(result, "socks5-data-plane-ok");
+    assert.equal(executed, true);
+    assert.equal(probeCount, 0, "SOCKS5 ordinary data-plane must not probe");
+  } finally {
+    __setProxyHealthTcpCheckForTesting(null);
+    invalidateProxyHealth(proxyUrl);
+  }
+});
+
+test("SOCKS5 real transport failure: owned by transport path, not T14 probe", async () => {
+  const proxyUrl = "socks5://127.0.0.1:1";
+  invalidateProxyHealth(proxyUrl);
+  let probeCount = 0;
+  __setProxyHealthTcpCheckForTesting(async () => {
+    probeCount += 1;
+    return false;
+  });
+  try {
+    await runWithProxyContext(proxyUrl, async () => {
+      await assert.rejects(
+        proxyFetch("http://example.com"),
+        (err: Error & { code?: string; message?: string }) => {
+          assert.ok(
+            err.code === "PROXY_REQUEST_FAILED" || err.code === "PROXY_UNREACHABLE",
+            `expected transport failure code, got ${err.code}`
+          );
+          assert.ok(
+            !err.message?.includes("[Proxy Fast-Fail]"),
+            "real SOCKS failure must not manufacture [Proxy Fast-Fail] message"
+          );
+          return true;
+        }
+      );
+    });
+    assert.equal(probeCount, 0, "SOCKS data-plane request must not invoke reachability probe");
+  } finally {
+    __setProxyHealthTcpCheckForTesting(null);
+    invalidateProxyHealth(proxyUrl);
+  }
+});
+
+test("control-plane directFallbackOnUnreachable SOCKS5: blocking probe preserved", async () => {
+  const proxyUrl = "socks5://127.0.0.1:1080";
+  invalidateProxyHealth(proxyUrl);
+  const prevEnv = process.env.OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK;
+  process.env.OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK = "true";
+  let probeCount = 0;
+  __setProxyHealthTcpCheckForTesting(async () => {
+    probeCount += 1;
+    return false;
+  });
+  try {
+    let executed = false;
+    const result = await runWithProxyContext(
+      proxyUrl,
+      async () => {
+        executed = true;
+        return "fallback-ok";
+      },
+      { directFallbackOnUnreachable: true }
+    );
+    assert.equal(result, "fallback-ok");
+    assert.equal(executed, true);
+    assert.equal(
+      probeCount,
+      1,
+      "control-plane direct fallback SOCKS must invoke reachability check"
+    );
+  } finally {
+    __setProxyHealthTcpCheckForTesting(null);
+    invalidateProxyHealth(proxyUrl);
+    if (prevEnv === undefined) {
+      delete process.env.OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK;
+    } else {
+      process.env.OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK = prevEnv;
+    }
+  }
+});
+
+test("control-plane directFallbackOnUnreachable HTTP: blocking probe preserved", async () => {
+  const proxyUrl = "http://127.0.0.1:8080";
+  invalidateProxyHealth(proxyUrl);
+  const prevEnv = process.env.OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK;
+  process.env.OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK = "true";
+  let probeCount = 0;
+  __setProxyHealthTcpCheckForTesting(async () => {
+    probeCount += 1;
+    return false;
+  });
+  try {
+    let executed = false;
+    const result = await runWithProxyContext(
+      proxyUrl,
+      async () => {
+        executed = true;
+        return "fallback-ok";
+      },
+      { directFallbackOnUnreachable: true }
+    );
+    assert.equal(result, "fallback-ok");
+    assert.equal(executed, true);
+    assert.equal(
+      probeCount,
+      1,
+      "control-plane direct fallback HTTP must invoke reachability check"
+    );
+  } finally {
+    __setProxyHealthTcpCheckForTesting(null);
+    invalidateProxyHealth(proxyUrl);
+    if (prevEnv === undefined) {
+      delete process.env.OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK;
+    } else {
+      process.env.OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK = prevEnv;
+    }
+  }
+});
+
+test("nested same-context: probe runs only once", async () => {
+  const cfg = { type: "http" as const, host: "127.0.0.1", port: 8080 };
+  const proxyUrl = "http://127.0.0.1:8080";
+  invalidateProxyHealth(proxyUrl);
+  let probeCount = 0;
+  __setProxyHealthTcpCheckForTesting(async () => {
+    probeCount += 1;
+    return true;
+  });
+  try {
+    const result = await runWithProxyContext(cfg, async () => {
+      invalidateProxyHealth(proxyUrl);
+      return runWithProxyContext(cfg, async () => "nested-marker");
+    });
+    assert.equal(result, "nested-marker");
+    assert.equal(probeCount, 1, "nested same-context call must skip reachability probe");
+  } finally {
+    __setProxyHealthTcpCheckForTesting(null);
+    invalidateProxyHealth(proxyUrl);
+  }
 });

@@ -65,9 +65,13 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   // Llama short aliases
   "llama-3.3": "llama-3.3-70b-versatile",
   "llama-3-70b": "llama-3.3-70b-versatile",
-  // #11503: llama3-8b-8192 was deprecated by Groq on 2025-08-30 and is not in the
+  // #11503: llama3-8b-8192 deprecated on Groq 2025-08-30 and not in the
   // catalog; llama-3.1-8b-instant is the replacement Groq names.
   "llama-3-8b": "llama-3.1-8b-instant",
+
+  // Agnes 1.5 Flash: wiki marks deprecated; live GET /v1/models
+  // (2026-09-09) no longer lists it (503 no channel).
+  "agnes-1.5-flash": "agnes-3.0-flash",
 };
 
 // ── Custom Aliases (persisted via Settings API) ─────────────────────────────

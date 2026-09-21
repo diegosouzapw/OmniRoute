@@ -121,6 +121,18 @@ test("agy live discovery accepts new chat models while excluding tab-completion 
   assert.equal(isDiscoverableAgyModelId(""), false);
 });
 
+const quotaNormalize = await import("../../src/lib/usage/providerLimits/quotaNormalize.ts");
+
+test("test 9: agy live catalog is authoritative; quota keys use discoverable denylist", () => {
+  assert.equal(REGISTRY.agy.liveCatalogAuthoritative, true);
+  assert.equal(REGISTRY.antigravity.liveCatalogAuthoritative, true);
+  const { isUsageQuotaKeyAllowed } = quotaNormalize;
+  assert.equal(isDiscoverableAgyModelId("gemini-new-live-tier"), true);
+  assert.equal(isUsageQuotaKeyAllowed("agy", "gemini-new-live-tier"), true);
+  assert.equal(isUserCallableAgyModelId("gemini-new-live-tier"), false);
+  assert.equal(isUsageQuotaKeyAllowed("agy", "tab_flash_lite_preview"), false);
+});
+
 test("agy token refresh is wired on the Google (non-rotating) refresh path", () => {
   assert.equal(supportsTokenRefresh("agy"), true);
   // Same 15-minute proactive lead as antigravity (Google refresh tokens are permanent).

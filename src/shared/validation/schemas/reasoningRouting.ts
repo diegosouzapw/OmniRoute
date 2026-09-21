@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { partialWithoutDefaults } from "@/shared/validation/partialWithoutDefaults";
 
 export const reasoningRuleScopeSchema = z.enum([
   "global",
@@ -81,9 +82,9 @@ function validateReasoningRule(
 
 export const createReasoningRoutingRuleSchema =
   reasoningRoutingRuleObjectSchema.superRefine(validateReasoningRule);
-export const updateReasoningRoutingRuleSchema = reasoningRoutingRuleObjectSchema
-  .partial()
-  .refine((value) => Object.keys(value).length > 0, "No fields to update");
+export const updateReasoningRoutingRuleSchema = partialWithoutDefaults(
+  reasoningRoutingRuleObjectSchema
+).refine((value) => Object.keys(value).length > 0, "No fields to update");
 
 export const simulateReasoningRoutingSchema = z.object({
   model: z.string().trim().min(1).max(500),

@@ -5,6 +5,7 @@ import LogToolSourcesCard from "../components/LogToolSourcesCard";
 import PayloadRulesTab from "../components/PayloadRulesTab";
 import RequestLimitsTab from "../components/RequestLimitsTab";
 import CliproxyapiSettingsTab from "../components/CliproxyapiSettingsTab";
+import HeadroomProxyCard from "../components/HeadroomProxyCard";
 
 export default function SettingsAdvancedPage() {
   return (
@@ -14,6 +15,7 @@ export default function SettingsAdvancedPage() {
       <PayloadRulesTab />
       <RequestLimitsTab />
       <CliproxyapiSettingsTab />
+      <HeadroomProxyCard />
     </div>
   );
 }

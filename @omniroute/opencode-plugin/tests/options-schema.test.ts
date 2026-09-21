@@ -59,6 +59,26 @@ test("parseOmniRoutePluginOptions: invalid baseURL (not a URL) → throws", () =
   assert.throws(() => parseOmniRoutePluginOptions({ baseURL: "not-a-url" }), /baseURL/i);
 });
 
+test("parseOmniRoutePluginOptions: baseURL without an http(s) scheme → throws", () => {
+  // `new URL()` reads "localhost:20128" as the scheme "localhost:" followed by
+  // a path, so the address parses and the models are published with an api url
+  // no client can call.
+  for (const baseURL of ["localhost:20128", "localhost:20128/v1", "ftp://or.example.com", "or.example.com"]) {
+    assert.throws(
+      () => parseOmniRoutePluginOptions({ baseURL }),
+      /baseURL must be an http\(s\) URL/,
+      `expected ${baseURL} to be rejected`
+    );
+  }
+});
+
+test("parseOmniRoutePluginOptions: http and https baseURLs are accepted, padding trimmed", () => {
+  for (const baseURL of ["http://localhost:20128", "https://or.example.com/v1"]) {
+    assert.equal(parseOmniRoutePluginOptions({ baseURL }).baseURL, baseURL);
+    assert.equal(parseOmniRoutePluginOptions({ baseURL: `  ${baseURL}  ` }).baseURL, baseURL);
+  }
+});
+
 test("parseOmniRoutePluginOptions: unknown key → throws (strict mode catches typos)", () => {
   assert.throws(
     () =>

@@ -45,6 +45,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "qwen-cloud-token-plan",
   "nanogpt",
   "deepseek",
+  "moonshot",
+  "kimi",
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",
@@ -56,6 +58,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "vertex-partner",
   "codebuddy-cn",
   "openrouter",
+  // LLM Gateway DevPass allowance (GET /v1/key → monthly + weekly premium)
+  "llmgateway",
   // PromptQL playground credits (data.pro.ql.app getCreditSummary)
   "promptql",
   "pql",

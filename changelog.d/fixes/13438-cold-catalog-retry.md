@@ -1,0 +1,1 @@
+- **fix(models):** return a retryable 503 with Retry-After instead of a 500 when the first catalog build outlasts its time bound ([#13438](https://github.com/diegosouzapw/OmniRoute/pull/13438)) — thanks @maxmad64bis

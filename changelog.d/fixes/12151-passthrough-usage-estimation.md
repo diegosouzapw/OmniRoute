@@ -1,1 +1,0 @@
-- **fix(sse):** passthrough streams now estimate usage on finish when upstream closes without usage even with `stream_options.include_usage` — avoids `0 tokens / 0%` for providers that stay silent (and correctly handles trailing empty-choices usage) ([#12151](https://github.com/diegosouzapw/OmniRoute/pull/12151))

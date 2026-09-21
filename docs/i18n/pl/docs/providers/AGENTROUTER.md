@@ -1,4 +1,9 @@
+# AgentRouter Setup Guide (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../providers/AGENTROUTER.md) · 🇪🇹 [am](../../../am/docs/providers/AGENTROUTER.md) · 🇸🇦 [ar](../../../ar/docs/providers/AGENTROUTER.md) · 🇦🇿 [az](../../../az/docs/providers/AGENTROUTER.md) · 🇧🇬 [bg](../../../bg/docs/providers/AGENTROUTER.md) · 🇧🇩 [bn](../../../bn/docs/providers/AGENTROUTER.md) · 🇨🇿 [cs](../../../cs/docs/providers/AGENTROUTER.md) · 🇩🇰 [da](../../../da/docs/providers/AGENTROUTER.md) · 🇩🇪 [de](../../../de/docs/providers/AGENTROUTER.md) · 🇬🇷 [el](../../../el/docs/providers/AGENTROUTER.md) · 🇪🇸 [es](../../../es/docs/providers/AGENTROUTER.md) · 🇪🇪 [et](../../../et/docs/providers/AGENTROUTER.md) · 🇮🇷 [fa](../../../fa/docs/providers/AGENTROUTER.md) · 🇫🇮 [fi](../../../fi/docs/providers/AGENTROUTER.md) · 🇫🇷 [fr](../../../fr/docs/providers/AGENTROUTER.md) · 🇮🇪 [ga](../../../ga/docs/providers/AGENTROUTER.md) · 🇮🇳 [gu](../../../gu/docs/providers/AGENTROUTER.md) · 🇳🇬 [ha](../../../ha/docs/providers/AGENTROUTER.md) · 🇮🇱 [he](../../../he/docs/providers/AGENTROUTER.md) · 🇮🇳 [hi](../../../hi/docs/providers/AGENTROUTER.md) · 🇭🇷 [hr](../../../hr/docs/providers/AGENTROUTER.md) · 🇭🇺 [hu](../../../hu/docs/providers/AGENTROUTER.md) · 🇦🇲 [hy](../../../hy/docs/providers/AGENTROUTER.md) · 🇮🇩 [id](../../../id/docs/providers/AGENTROUTER.md) · 🇳🇬 [ig](../../../ig/docs/providers/AGENTROUTER.md) · 🇮🇹 [it](../../../it/docs/providers/AGENTROUTER.md) · 🇯🇵 [ja](../../../ja/docs/providers/AGENTROUTER.md) · 🇬🇪 [ka](../../../ka/docs/providers/AGENTROUTER.md) · 🇰🇭 [km](../../../km/docs/providers/AGENTROUTER.md) · 🇮🇳 [kn](../../../kn/docs/providers/AGENTROUTER.md) · 🇰🇷 [ko](../../../ko/docs/providers/AGENTROUTER.md) · 🇱🇹 [lt](../../../lt/docs/providers/AGENTROUTER.md) · 🇱🇻 [lv](../../../lv/docs/providers/AGENTROUTER.md) · 🇮🇳 [ml](../../../ml/docs/providers/AGENTROUTER.md) · 🇮🇳 [mr](../../../mr/docs/providers/AGENTROUTER.md) · 🇲🇾 [ms](../../../ms/docs/providers/AGENTROUTER.md) · 🇲🇹 [mt](../../../mt/docs/providers/AGENTROUTER.md) · 🇲🇲 [my](../../../my/docs/providers/AGENTROUTER.md) · 🇳🇵 [ne](../../../ne/docs/providers/AGENTROUTER.md) · 🇳🇱 [nl](../../../nl/docs/providers/AGENTROUTER.md) · 🇳🇴 [no](../../../no/docs/providers/AGENTROUTER.md) · 🇮🇳 [or](../../../or/docs/providers/AGENTROUTER.md) · 🇮🇳 [pa](../../../pa/docs/providers/AGENTROUTER.md) · 🇵🇭 [phi](../../../phi/docs/providers/AGENTROUTER.md) · 🇵🇹 [pt](../../../pt/docs/providers/AGENTROUTER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/providers/AGENTROUTER.md) · 🇷🇴 [ro](../../../ro/docs/providers/AGENTROUTER.md) · 🇷🇺 [ru](../../../ru/docs/providers/AGENTROUTER.md) · 🇱🇰 [si](../../../si/docs/providers/AGENTROUTER.md) · 🇸🇰 [sk](../../../sk/docs/providers/AGENTROUTER.md) · 🇸🇮 [sl](../../../sl/docs/providers/AGENTROUTER.md) · 🇷🇸 [sr](../../../sr/docs/providers/AGENTROUTER.md) · 🇸🇪 [sv](../../../sv/docs/providers/AGENTROUTER.md) · 🇰🇪 [sw](../../../sw/docs/providers/AGENTROUTER.md) · 🇮🇳 [ta](../../../ta/docs/providers/AGENTROUTER.md) · 🇮🇳 [te](../../../te/docs/providers/AGENTROUTER.md) · 🇹🇭 [th](../../../th/docs/providers/AGENTROUTER.md) · 🇹🇷 [tr](../../../tr/docs/providers/AGENTROUTER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/providers/AGENTROUTER.md) · 🇵🇰 [ur](../../../ur/docs/providers/AGENTROUTER.md) · 🇺🇿 [uz](../../../uz/docs/providers/AGENTROUTER.md) · 🇻🇳 [vi](../../../vi/docs/providers/AGENTROUTER.md) · 🇳🇬 [yo](../../../yo/docs/providers/AGENTROUTER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/providers/AGENTROUTER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/providers/AGENTROUTER.md)
+
 ---
+
 title: "Przewodnik konfiguracji AgentRouter"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -122,24 +127,24 @@ jak każdego innego providera.
 
 ---
 
-## Szczegóły obrazu sieciowego
+## Szczegóły danych przesyłanych
 
-Dla odniesienia mostek cc-compatible wysyła na każde żądanie upstream
-następujące elementy (zob. `open-sse/services/claudeCodeCompatible.ts`):
+Dla porównania most zgodny z cc wysyła następujące dane przy każdym żądaniu nadrzędnym
+(zobacz `open-sse/services/claudeCodeCompatible.ts`):
 
-| Header                                      | Value                                                                                                    |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `Authorization`                             | `Bearer <api-key>`                                                                                       |
-| `User-Agent`                                | `claude-cli/2.1.219 (external, sdk-cli)`                                                                 |
-| `anthropic-version`                         | `2023-06-01`                                                                                             |
-| `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                 |
-| Per-connection redact-thinking beta toggle  | Dodaje `redact-thinking-2026-02-12` dla upstreamów, które wymagają redagowanych strumieni thinking       |
-| Per-connection summarized thinking toggle   | Dodaje `display: "summarized"` do żądań thinking CC Compatible, które nie ustawiły jeszcze trybu display |
-| `anthropic-dangerous-direct-browser-access` | `true`                                                                                                   |
-| `x-app`                                     | `cli`                                                                                                    |
-| `X-Stainless-*`                             | Różne nagłówki Stainless SDK (lang, wersja pakietu, OS, arch itd.)                                       |
+| Nagłówek                                                             | Wartość                                                                                                                         |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `Authorization`                                                      | `Bearer <api-key>`                                                                                                              |
+| `User-Agent`                                                         | `claude-cli/2.1.258 (external, sdk-cli)`                                                                                        |
+| `anthropic-version`                                                  | `2023-06-01`                                                                                                                    |
+| `anthropic-beta`                                                     | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                                        |
+| Przełącznik beta redagowania rozumowania dla poszczególnych połączeń | Dodaje `redact-thinking-2026-02-12` w przypadku usług nadrzędnych, które wyraźnie wymagają strumieni z redagowanym rozumowaniem |
+| Przełącznik podsumowanego rozumowania dla poszczególnych połączeń    | Dodaje `display: "summarized"` do zgodnych z CC żądań rozumowania, w których nie ustawiono jeszcze trybu wyświetlania           |
+| `anthropic-dangerous-direct-browser-access`                          | `true`                                                                                                                          |
+| `x-app`                                                              | `cli`                                                                                                                           |
+| `X-Stainless-*`                                                      | Różne nagłówki zestawu SDK Stainless (język, wersja pakietu, system operacyjny, architektura itp.)                              |
 
-To właśnie pozwala żądaniom przejść przez upstreamowy WAF / whitelistę klientów.
+Dzięki temu żądania mogą przechodzić przez nadrzędny WAF / białą listę klientów.
 
 ---
 

@@ -323,10 +323,11 @@ async function applyBackgroundDegradationSection(backgroundDegradation: JsonReco
 
   setBackgroundDegradationConfig({
     enabled: backgroundDegradation.enabled === true,
-    degradationMap: {
-      ...getDefaultDegradationMap(),
-      ...normalizeStringRecord(backgroundDegradation.degradationMap),
-    },
+    // #12424: a present stored record is authoritative for degradationMap — do NOT back-fill
+    // defaults, or a key the user deleted (absent from the stored map) resurrects on every
+    // apply/restart. Mirrors detectionPatterns below, which already treats a present stored
+    // value as authoritative and only falls back to defaults when it is empty.
+    degradationMap: normalizeStringRecord(backgroundDegradation.degradationMap),
     detectionPatterns:
       normalizeStringArray(backgroundDegradation.detectionPatterns).length > 0
         ? normalizeStringArray(backgroundDegradation.detectionPatterns)

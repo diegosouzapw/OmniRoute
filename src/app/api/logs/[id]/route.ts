@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorFramesFromLogChunks } from "@/lib/logPayloads";
 import { getCallLogById } from "@/lib/usageDb";
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
+import {
+  extractPreviousResponseId,
+  resolveCallLogIdByResponseId,
+} from "@/lib/db/responsesContinuationStore";
 
 // Each logged chunk-array element is one raw network read, timestamp-prefixed
 // for the debug display — NOT one complete SSE `data:` line. A single JSON
@@ -13,6 +19,29 @@ import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 // continuous string first, so a value split across elements rejoins correctly
 // before it's parsed.
 const CHUNK_LOG_TIMESTAMP_PREFIX = /^\[\d{2}:\d{2}:\d{2}\.\d{3}\]\s*/;
+
+type ManagementStreamChunks = {
+  provider?: string[];
+  openai?: string[];
+  client?: string[];
+};
+
+function projectManagementStreamChunks(
+  streamChunks: ManagementStreamChunks | null | undefined
+): ManagementStreamChunks | null {
+  if (!streamChunks) return null;
+  return {
+    ...(streamChunks.provider
+      ? { provider: sanitizeErrorFramesFromLogChunks(streamChunks.provider) }
+      : {}),
+    ...(streamChunks.openai
+      ? { openai: sanitizeErrorFramesFromLogChunks(streamChunks.openai) }
+      : {}),
+    ...(streamChunks.client
+      ? { client: sanitizeErrorFramesFromLogChunks(streamChunks.client) }
+      : {}),
+  };
+}
 
 // Best-effort parse of the accumulated SSE `data:` lines captured live for an
 // in-flight request (open-sse/utils/requestLogger.ts's appendConvertedChunk
@@ -73,12 +102,13 @@ export async function GET(
     try {
       const pendingRequestDetail = getPendingById().get(id);
       if (pendingRequestDetail) {
+        const safeStreamChunks = projectManagementStreamChunks(pendingRequestDetail.streamChunks);
         const pipelinePayloads: any = {
           clientRequest: pendingRequestDetail.clientRequest ?? null,
           providerRequest: pendingRequestDetail.providerRequest ?? null,
           providerResponse: pendingRequestDetail.providerResponse ?? null,
           clientResponse: pendingRequestDetail.clientResponse ?? null,
-          streamChunks: pendingRequestDetail.streamChunks ?? null,
+          streamChunks: safeStreamChunks,
         };
 
         const activeEntry = {
@@ -98,7 +128,7 @@ export async function GET(
           // The still-generating reply so far — the request's own context
           // panel renders this alongside its (already-complete) requestBody
           // instead of waiting for the stream to finish.
-          partialAssistantText: extractPartialAssistantText(pendingRequestDetail.streamChunks),
+          partialAssistantText: extractPartialAssistantText(safeStreamChunks),
         };
 
         return NextResponse.json(activeEntry);
@@ -119,12 +149,13 @@ export async function GET(
         const completed = getCompletedDetails();
         const inMem = completed.get(id);
         if (inMem) {
+          const safeStreamChunks = projectManagementStreamChunks(inMem.streamChunks);
           const pipelinePayloads: any = {
             clientRequest: inMem.clientRequest ?? null,
             providerRequest: inMem.providerRequest ?? null,
             providerResponse: inMem.providerResponse ?? null,
             clientResponse: inMem.clientResponse ?? null,
-            streamChunks: inMem.streamChunks ?? null,
+            streamChunks: safeStreamChunks,
           };
 
           const minimal = {
@@ -138,7 +169,7 @@ export async function GET(
             duration: Date.now() - inMem.startedAt,
             detailState: "in-memory",
             active: false,
-            error: inMem.error || null,
+            error: sanitizeErrorMessage(inMem.error) || null,
             pipelinePayloads,
             hasPipelineDetails: true,
           };
@@ -159,7 +190,20 @@ export async function GET(
 
     if (!persistedRequest) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    return NextResponse.json(persistedRequest);
+    // "Continues from" link for the dashboard's conversation panel: resolve
+    // this entry's own previous_response_id back to the call-log row that
+    // produced it. Persisted-only (apiKeyId isn't plumbed onto the
+    // pending/in-memory branches above) -- required for the same tenant
+    // scoping resolveCallLogIdByResponseId enforces, so an active/in-memory
+    // entry simply renders no parent link rather than resolving unscoped.
+    const previousResponseId = extractPreviousResponseId(
+      persistedRequest.pipelinePayloads as Record<string, unknown> | null | undefined
+    );
+    const parentLogId = previousResponseId
+      ? resolveCallLogIdByResponseId(previousResponseId, persistedRequest.apiKeyId ?? null)
+      : null;
+
+    return NextResponse.json({ ...persistedRequest, previousResponseId, parentLogId });
   } catch (err) {
     console.error("[API ERROR] /api/logs/[id] failed:", err);
     return NextResponse.json({ error: "Failed to fetch log" }, { status: 500 });

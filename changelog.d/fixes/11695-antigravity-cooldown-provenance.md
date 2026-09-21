@@ -1,1 +1,0 @@
-- Cap prose-derived Antigravity quota resets at the configured model cooldown maximum while preserving authoritative Retry-After headers and Google RetryInfo hints. (#11695) Thanks @pacocartones.

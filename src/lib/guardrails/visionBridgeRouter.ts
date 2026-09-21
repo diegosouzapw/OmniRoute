@@ -7,8 +7,16 @@ import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { getActiveSyncedCatalog } from "@/lib/db/models/activeSyncedCatalog";
 import { PROVIDER_MODELS } from "@omniroute/open-sse/config/providerModels";
 import { getRegisteredProviderEffortBaseModelId } from "@omniroute/open-sse/utils/registeredEffortVariants.ts";
-import { hasUsableCredentialsForModel } from "./visionBridgeCredentials";
+import {
+  hasUsableCredentialsForModel,
+  getUsableConnectionsForModel,
+} from "./visionBridgeCredentials";
 import { isVisionBridgeForcedModel } from "@/shared/constants/visionBridgeDefaults";
+import { resolveProviderId } from "@/shared/constants/providers";
+import {
+  isModelLocked,
+  getAllModelLockouts,
+} from "@omniroute/open-sse/services/accountFallback.ts";
 
 export interface VisionModelCandidate {
   modelId: string;
@@ -109,6 +117,12 @@ function calculateSuccessRate(modelId: string): number {
 export interface VisionBridgeRouterDeps {
   hasUsableCredentials?: (model: string) => Promise<boolean | null>;
   getActiveSyncedCatalog?: (provider: string) => Promise<VisionModelCatalog>;
+  /**
+   * (#12111) Per-connection model-lockout check, defaulting to the real
+   * `accountFallback.isModelLocked`. Injectable for the same reason as
+   * `hasUsableCredentials`: `node:test` has no supported ESM module-mocking.
+   */
+  isModelLocked?: (provider: string, connectionId: string, model: string) => boolean;
 }
 
 export interface VisionModelCatalog {
@@ -150,6 +164,53 @@ function createCatalogModelPredicate(
   };
 }
 
+/**
+ * connectionIds worth probing for a `(providerAlias, modelId)` lockout check:
+ * the provider's DB-known usable connections, plus any connectionId that
+ * already has an active lockout entry for this provider (#12111) — a 404
+ * lock (`accountFallback.lockModel`) can target a connectionId the DB-backed
+ * lookup does not surface (e.g. it predates a reconnect, or the credential
+ * check path a caller injected does not go through the same DB rows), and
+ * missing it would silently fail the exclusion open.
+ */
+function collectLockoutConnectionIds(providerAlias: string): string[] {
+  const canonicalProvider = resolveProviderId(providerAlias);
+  return getAllModelLockouts()
+    .filter((entry) => entry.provider === canonicalProvider)
+    .map((entry) => entry.connectionId);
+}
+
+/**
+ * (#12111) True unless `modelId` is locked (a post-404 model lockout, see
+ * `accountFallback.lockModel`) on every connection that could actually serve
+ * it. `isModelLocked` is scoped per provider+connection+model, so a single
+ * locked connection must not exclude a model that's still reachable through
+ * another connection on the same provider — mirrors
+ * `isConnectionEligibleForModel` in
+ * open-sse/services/autoCombo/resilienceCandidateFilter.ts. Fails open (never
+ * excludes) when nothing is known about the provider's connections, matching
+ * `hasUsableCredentialsForModel`'s existing fail-open contract — this check
+ * only narrows an already-credentialed candidate, it never widens the pool.
+ */
+async function isModelUsableGivenLockouts(
+  providerAlias: string,
+  modelId: string,
+  deps: VisionBridgeRouterDeps
+): Promise<boolean> {
+  const checkLocked = deps.isModelLocked ?? isModelLocked;
+  const dbConnections = await getUsableConnectionsForModel(`${providerAlias}/${modelId}`);
+  if (dbConnections === null) return true; // indeterminate credential store — fail open
+
+  const candidateIds = new Set(dbConnections.map((conn) => conn.id));
+  for (const id of collectLockoutConnectionIds(providerAlias)) candidateIds.add(id);
+  if (candidateIds.size === 0) return true; // nothing known about this provider's connections
+
+  for (const id of candidateIds) {
+    if (!checkLocked(providerAlias, id, modelId)) return true;
+  }
+  return false;
+}
+
 async function cachedModelRemainsAvailable(
   fullModelId: string,
   deps: VisionBridgeRouterDeps
@@ -161,6 +222,8 @@ async function cachedModelRemainsAvailable(
   const modelId = fullModelId.slice(separator + 1);
   const registryModel = PROVIDER_MODELS[providerAlias]?.find((model) => model.id === modelId);
   if (!registryModel) return false;
+
+  if (!(await isModelUsableGivenLockouts(providerAlias, modelId, deps))) return false;
 
   const catalog = await readActiveCatalog(providerAlias, deps);
   return createCatalogModelPredicate(providerAlias, catalog)(registryModel);
@@ -193,13 +256,27 @@ async function getVisionCapableModels(
       });
       if (visionModels.length === 0) return [];
 
-      const usableModels = (
+      const credentialedModels = (
         await Promise.all(
           visionModels.map(async (model) =>
             (await checkCreds(`${providerAlias}/${model.id}`)) === false ? null : model
           )
         )
       ).filter((model): model is (typeof visionModels)[number] => model !== null);
+      if (credentialedModels.length === 0) return [];
+
+      // (#12111) A healthy provider connection does not mean every model on
+      // it is servable: chatCore.ts locks one specific model for 120s on a
+      // 404 while leaving the connection active, so the credential check
+      // above never sees it. Drop only the models locked on every usable
+      // connection for this provider.
+      const usableModels = (
+        await Promise.all(
+          credentialedModels.map(async (model) =>
+            (await isModelUsableGivenLockouts(providerAlias, model.id, deps)) ? model : null
+          )
+        )
+      ).filter((model): model is (typeof credentialedModels)[number] => model !== null);
       if (usableModels.length === 0) return [];
 
       const catalog = await readActiveCatalog(providerAlias, deps);

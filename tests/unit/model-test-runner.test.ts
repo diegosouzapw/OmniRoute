@@ -74,6 +74,8 @@ test("detectTestKind defaults to a plain chat test for ordinary models", () => {
     isRerank: false,
     isEmbedding: false,
     isAudioTranscription: false,
+    isResponses: false,
+    isNonChatGeneration: false,
   });
 });
 
@@ -95,6 +97,8 @@ test("detectTestKind detects rerank by id and by metadata, and rerank wins over 
     isRerank: true,
     isEmbedding: false,
     isAudioTranscription: false,
+    isResponses: false,
+    isNonChatGeneration: false,
   });
   // apiFormat metadata drives detection even when the id is opaque
   assert.equal(detectTestKind("vendor/opaque-model", { apiFormat: "rerank" }).isRerank, true);
@@ -116,6 +120,8 @@ test("detectTestKind detects audio transcription from metadata, and it wins over
     isRerank: false,
     isEmbedding: false,
     isAudioTranscription: true,
+    isResponses: false,
+    isNonChatGeneration: false,
   });
   assert.equal(
     detectTestKind("vendor/opaque-model", { supportedEndpoints: ["audio-transcriptions"] })
@@ -152,6 +158,8 @@ test("detectTestKind falls back to the provider node's configured apiType", () =
     isRerank: false,
     isEmbedding: false,
     isAudioTranscription: false,
+    isResponses: false,
+    isNonChatGeneration: false,
   });
 
   // Per-model metadata still wins when present.
@@ -314,7 +322,7 @@ test("resolveModelTestTimeoutMs defaults ordinary model checks to 30 seconds", (
 
 test("resolveModelTestTimeoutMs gives zai-web checks up to 60 seconds", () => {
   assert.equal(resolveModelTestTimeoutMs("zai-web", "glm-5.2", 30_000), 60_000);
-  assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/GLM-5V-Turbo", 90_000), 90_000);
+  assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/glm-5.3-flash", 90_000), 90_000);
 });
 
 // ---------------------------------------------------------------------------
@@ -429,5 +437,44 @@ test("runSingleModelTest preserves trusted local limiter HTTP statuses", async (
     }
   } finally {
     await rateLimitManager.__resetRateLimitManagerForTests();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// #13376 skip path — a non-chat generation model (image/music/video) must be
+// rejected with a real HTTP status and never dispatched as a chat completion.
+//
+// The route hands `result.httpStatus` straight to NextResponse
+// (src/app/api/models/test/route.ts). When the early return omitted it, the
+// status was `undefined`, Next fell back to 200, and a skipped test reached the
+// client as an HTTP success carrying `status: "error"` in the body.
+// ---------------------------------------------------------------------------
+
+test("#13376 a generation-only model is skipped with a 4xx and is never dispatched", async () => {
+  const { addCustomModel } = await import("@/lib/db/models");
+  await addCustomModel("openai", "image-only-13376", "Image only", "manual", "images-generations", [
+    "images",
+  ]);
+
+  const originalFetch = globalThis.fetch;
+  let dispatched = false;
+  globalThis.fetch = async () => {
+    dispatched = true;
+    throw new Error("a generation-only model must not be dispatched as a chat completion");
+  };
+
+  try {
+    const result = await runSingleModelTest({
+      providerId: "openai",
+      modelId: "image-only-13376",
+      timeoutMs: 1_000,
+    });
+
+    assert.equal(dispatched, false, "no billable generation may be triggered");
+    assert.equal(result.status, "error");
+    assert.equal(typeof result.httpStatus, "number", "the route needs a real status code");
+    assert.equal(result.httpStatus, 422);
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });

@@ -35,26 +35,34 @@ export async function createNodeSqliteAdapter(filePath: string): Promise<SqliteA
   }, CHECKPOINT_INTERVAL_MS);
   (checkpointTimer as unknown as NodeJS.Timeout).unref?.();
 
+  // Declared before gracefulClose so the close path can detach them. Without
+  // this, every closed adapter leaves three closures pinned on `process` --
+  // each holding this adapter and its DatabaseSync handle alive -- and short-
+  // lived adapters (POST /api/db-backups/import opens one per request) trip
+  // Node's MaxListenersExceededWarning. #7494 fixed exactly this for sql.js.
+  const onBeforeExit = () => {
+    adapter.close();
+  };
+  const onSignal = () => {
+    adapter.close();
+    process.exit(0);
+  };
+
   function gracefulClose() {
     clearInterval(checkpointTimer as unknown as NodeJS.Timeout);
     try {
       db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
     } catch {}
+    process.removeListener("beforeExit", onBeforeExit);
+    process.removeListener("SIGINT", onSignal);
+    process.removeListener("SIGTERM", onSignal);
   }
 
   const adapter = createNodeSqliteAdapterFromDatabase(db, filePath, gracefulClose);
 
-  process.once("beforeExit", () => {
-    adapter.close();
-  });
-  process.once("SIGINT", () => {
-    adapter.close();
-    process.exit(0);
-  });
-  process.once("SIGTERM", () => {
-    adapter.close();
-    process.exit(0);
-  });
+  process.once("beforeExit", onBeforeExit);
+  process.once("SIGINT", onSignal);
+  process.once("SIGTERM", onSignal);
 
   return adapter;
 }

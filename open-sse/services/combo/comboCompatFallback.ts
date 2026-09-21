@@ -1,4 +1,9 @@
-import type { ComboLogger, HandleSingleModel, IsModelAvailable, ResolvedComboTarget } from "./types";
+import type {
+  ComboLogger,
+  HandleSingleModel,
+  IsModelAvailable,
+  ResolvedComboTarget,
+} from "./types";
 
 /**
  * Last-resort fallback tier for combo routing (#6238).
@@ -40,7 +45,8 @@ export async function attemptCompatRejectedFallback(
 ): Promise<Response | null> {
   if (rejectedTargets.length === 0) return null;
 
-  for (const target of rejectedTargets) {
+  for (let i = 0; i < rejectedTargets.length; i++) {
+    const target = rejectedTargets[i];
     if (ctx.isModelAvailable) {
       const available = await ctx.isModelAvailable(target.modelStr, target);
       if (!available) {
@@ -67,6 +73,7 @@ export async function attemptCompatRejectedFallback(
     const result = await ctx.handleSingleModel(body, target.modelStr, {
       ...target,
       effectiveComboStrategy: ctx.strategy,
+      fallbackAttempts: i,
     });
     if (result.ok) {
       ctx.log.info("COMBO", `Last-resort compat fallback succeeded via ${target.modelStr}`);

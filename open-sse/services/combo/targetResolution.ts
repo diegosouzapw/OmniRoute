@@ -24,13 +24,13 @@
  *
  * See _tasks/quality/2026-06-19-DESIGN-godfiles-decomposition.md §4.
  */
-import { isModelLocked } from "../accountFallback.ts";
+import { getModelLockoutInfo, isModelLocked } from "../accountFallback.ts";
 import { parseAutoPrefix } from "../autoCombo/autoPrefix.ts";
 import { handlePipelineCombo, buildPipelineResponse } from "../autoCombo/pipelineRouter.ts";
 import type { resolveComboSetupConfig } from "../comboConfig.ts";
 import { orderTargetsByEvalScores } from "../evalRouting.ts";
 import { parseModel } from "../model.ts";
-import { isProviderInCooldown } from "../providerCooldownTracker.ts";
+import { getRemainingCooldownMs, isProviderInCooldown } from "../providerCooldownTracker.ts";
 import {
   classifyTask,
   getConversationCacheKey,
@@ -52,7 +52,13 @@ import {
 } from "./comboStructure.ts";
 import { applyContextRequirements } from "./contextRequirements.ts";
 import { recordComboFailure } from "./failureTracker.ts";
-import { buildEmptyComboTargetsPayload, buildRecoveryHint } from "./pinRecovery.ts";
+import {
+  buildAllTargetsCoolingDownResponse,
+  buildEmptyComboTargetsPayload,
+  buildRecoveryHint,
+  formatPreDispatchExclusions,
+  type PreDispatchExclusion,
+} from "./pinRecovery.ts";
 import {
   applyPromptCacheAffinity,
   expandPromptCacheAffinityTargets,
@@ -64,6 +70,7 @@ import {
   expandProviderWildcardsInCollection,
 } from "./providerWildcard.ts";
 import { preScreenTargets, type PreScreenResult } from "./quotaStrategies.ts";
+import { incrementInflight, decrementInflight } from "./quotaShareInflight.ts";
 import { resolveAutoStrategyOrder, type ResolveAutoStrategyDeps } from "./resolveAutoStrategy.ts";
 import {
   MAX_RR_COUNTERS,
@@ -124,10 +131,12 @@ export interface ResolvedComboTargetPipeline {
   sticky: ApplyStickinessResult;
   preScreenMap: Map<string, PreScreenResult>;
   /**
-   * Idempotent release for the in-flight slot quota-share ordering reserved for
-   * its winner (#11371). Null unless the `quota-share` strategy ran. The host MUST
-   * invoke it when the request settles; this pipeline already releases it on any
-   * earlyResponse it produces after selection.
+   * Idempotent release for the in-flight slot reserved for the winner.
+   * Non-null for `quota-share` (reserved inside selectQuotaShareTarget) and for
+   * `quota-weighted` (reserved in the orderer on the draw). Stickiness/cache may
+   * still move [0]; this pipeline transfers the slot onto the dispatched account
+   * for both strategies. The host MUST invoke it when the request settles; this
+   * pipeline already releases it on any earlyResponse it produces after selection.
    */
   quotaShareRelease: (() => void) | null;
 }
@@ -143,37 +152,55 @@ type WeightedStepGroups =
 /**
  * Weighted-strategy eligibility predicate: a step counts as selectable only when at
  * least one of its targets clears the provider breaker, the connection cooldown, the
- * per-model lockout and the caller's availability probe.
+ * per-model lockout and the caller's availability probe. Returns `null` for a
+ * selectable target, otherwise which gate excluded it and — for the resilience
+ * gates — how long it stays excluded, so an emptied pool can be reported as
+ * "cooling down" instead of the silent drop that used to end as a 404.
  */
-async function isTargetSelectableForWeighted(
+async function describeWeightedExclusion(
   target: ResolvedComboTarget,
   resilienceSettings: ResilienceSettings,
   isModelAvailable?: IsModelAvailable
-): Promise<boolean> {
+): Promise<PreDispatchExclusion | null> {
   const rawModel = parseModel(target.modelStr).model || target.modelStr;
-  if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN")
-    return false;
+  const exclude = (
+    reason: PreDispatchExclusion["reason"],
+    retryAfterMs: number | null = null
+  ): PreDispatchExclusion => ({ provider: target.provider, model: rawModel, reason, retryAfterMs });
+  if (target.provider) {
+    const breaker = getCircuitBreaker(target.provider).getStatus();
+    if (breaker.state === "OPEN") return exclude("circuit_open", breaker.retryAfterMs);
+  }
   if (
     resilienceSettings.providerCooldown.enabled &&
     Boolean(target.provider && target.provider !== "unknown") &&
     isProviderInCooldown(target.provider, target.connectionId ?? undefined, resilienceSettings)
   ) {
-    return false;
+    return exclude(
+      "provider_cooldown",
+      getRemainingCooldownMs(target.provider, target.connectionId ?? undefined, resilienceSettings)
+    );
   }
   if (
     target.provider &&
     rawModel &&
     isModelLocked(target.provider, target.connectionId || "", rawModel)
   ) {
-    return false;
+    return exclude(
+      "model_lockout",
+      getModelLockoutInfo(target.provider, target.connectionId || "", rawModel)?.remainingMs ?? null
+    );
   }
   if (target.provider && rawModel && target.connectionId) {
     const { isAlibabaFreeTierModelRoutable } = await import("../alibabaFreeTier.ts");
     if (!(await isAlibabaFreeTierModelRoutable(target.provider, target.connectionId, rawModel))) {
-      return false;
+      return exclude("free_tier_drained");
     }
   }
-  return isModelAvailable ? await isModelAvailable(target.modelStr, target) : true;
+  if (isModelAvailable && !(await isModelAvailable(target.modelStr, target))) {
+    return exclude("unavailable");
+  }
+  return null;
 }
 
 /**
@@ -220,22 +247,32 @@ async function collectWeightedEligibility(
   resilienceSettings: ResilienceSettings,
   isModelAvailable?: IsModelAvailable,
   hiddenModelsByProvider?: HiddenModelsByProvider
-): Promise<{ stepGroups: WeightedStepGroups; weightedEligibleKeys: Set<string> }> {
+): Promise<{
+  stepGroups: WeightedStepGroups;
+  weightedEligibleKeys: Set<string>;
+  /** Targets of the steps that had no selectable target — why, and for how long. */
+  exclusions: PreDispatchExclusion[];
+}> {
   const weightedEligibleKeys = new Set<string>();
+  const exclusions: PreDispatchExclusion[] = [];
   const stepGroups = resolveWeightedStepGroups(
     expandedCombo,
     expandedAllCombos,
     hiddenModelsByProvider
   );
   for (const group of stepGroups) {
-    const availability = await Promise.all(
+    const verdicts = await Promise.all(
       group.targets.map((target) =>
-        isTargetSelectableForWeighted(target, resilienceSettings, isModelAvailable)
+        describeWeightedExclusion(target, resilienceSettings, isModelAvailable)
       )
     );
-    if (availability.some(Boolean)) weightedEligibleKeys.add(group.step.executionKey);
+    if (verdicts.some((verdict) => verdict === null)) {
+      weightedEligibleKeys.add(group.step.executionKey);
+    } else {
+      for (const verdict of verdicts) if (verdict) exclusions.push(verdict);
+    }
   }
-  return { stepGroups, weightedEligibleKeys };
+  return { stepGroups, weightedEligibleKeys, exclusions };
 }
 
 /**
@@ -268,12 +305,17 @@ async function resolveWeightedSelection(
   expandedCombo: ComboLike,
   expandedAllCombos: ComboCollectionLike,
   stickyWeightedLimit: number
-): Promise<{ weightedResolution: WeightedResolution; stickyWeightedKey: string | null }> {
+): Promise<{
+  weightedResolution: WeightedResolution;
+  stickyWeightedKey: string | null;
+  exclusions: PreDispatchExclusion[];
+}> {
   const { strategy } = deps;
   const comboName = deps.combo.name;
   evictOldestWeightedSticky(strategy, comboName);
   let stepGroups: WeightedStepGroups;
   let weightedEligibleKeys = new Set<string>();
+  let exclusions: PreDispatchExclusion[] = [];
   if (strategy === "weighted") {
     const eligibility = await collectWeightedEligibility(
       expandedCombo,
@@ -284,6 +326,7 @@ async function resolveWeightedSelection(
     );
     stepGroups = eligibility.stepGroups;
     weightedEligibleKeys = eligibility.weightedEligibleKeys;
+    exclusions = eligibility.exclusions;
   }
   const stickyWeightedKey = resolveStickyWeightedKey(
     strategy,
@@ -301,7 +344,7 @@ async function resolveWeightedSelection(
           stepGroups
         )
       : null;
-  return { weightedResolution, stickyWeightedKey };
+  return { weightedResolution, stickyWeightedKey, exclusions };
 }
 
 /** Maps an attempted target back to the weighted step it came from (sticky write-back). */
@@ -693,6 +736,31 @@ async function applyPromptCacheStage(
   return nextTargets;
 }
 
+function buildWeightedExhaustionResponse(
+  deps: ResolveComboTargetPipelineDeps,
+  weightedResolution: WeightedResolution,
+  exclusions: PreDispatchExclusion[]
+): Response | null {
+  if (deps.strategy !== "weighted" || (weightedResolution?.orderedTargets.length ?? 0) > 0) {
+    return null;
+  }
+  // Every step was excluded before dispatch. When a resilience timer (model
+  // lockout, open breaker, provider cooldown) did it, the pool is configured and
+  // connected and merely cooling down: answer 503 + Retry-After with the
+  // excluded targets, not the host's 404 "no executable targets / switch combo".
+  const coolingDown = buildAllTargetsCoolingDownResponse(exclusions);
+  if (!coolingDown) return null;
+  deps.log.warn(
+    "COMBO",
+    `Weighted selection: every target excluded before dispatch — ${formatPreDispatchExclusions(exclusions)}`
+  );
+  recordComboFailure(
+    deps.combo.context_cache_protection ? (deps.relayOptions?.sessionId ?? null) : null,
+    deps.combo.name
+  );
+  return coolingDown;
+}
+
 export async function resolveComboTargetPipeline(
   deps: ResolveComboTargetPipelineDeps
 ): Promise<ResolveComboTargetPipelineResult> {
@@ -702,13 +770,15 @@ export async function resolveComboTargetPipeline(
   const stickyWeightedLimit = clampStickyWeightedTargetLimit(
     (config as Record<string, unknown>).stickyWeightedLimit
   );
-  const { weightedResolution, stickyWeightedKey } = await resolveWeightedSelection(
+  const { weightedResolution, stickyWeightedKey, exclusions } = await resolveWeightedSelection(
     deps,
     expandedCombo,
     expandedAllCombos,
     stickyWeightedLimit
   );
   const getWeightedStepKeyForTarget = buildWeightedStepKeyMapper(weightedResolution);
+  const weightedExhaustion = buildWeightedExhaustionResponse(deps, weightedResolution, exclusions);
+  if (weightedExhaustion) return { earlyResponse: weightedExhaustion };
   let orderedTargets =
     strategy === "weighted"
       ? weightedResolution?.orderedTargets || []
@@ -746,7 +816,9 @@ export async function resolveComboTargetPipeline(
 
   const ordering = await orderByStrategy(deps, orderedTargets);
   if ("earlyResponse" in ordering) return ordering;
-  const { autoUsedExplicitRouter, quotaShareRelease } = ordering;
+  const { autoUsedExplicitRouter } = ordering;
+  let { quotaShareRelease } = ordering;
+  const drawnId = ordering.orderedTargets[0]?.connectionId ?? "";
 
   const continuity = await applyContinuityFilters(deps, ordering.orderedTargets);
   if ("earlyResponse" in continuity) {
@@ -762,6 +834,35 @@ export async function resolveComboTargetPipeline(
     continuity.sticky.stuck,
     autoUsedExplicitRouter
   );
+
+  // quota-weighted reserves the draw inside the orderer (same synchronous
+  // turn as the pick). quota-share reserves inside selectQuotaShareTarget.
+  // Stickiness / prompt-cache may still move [0]; transfer the slot so the
+  // reserved account is the one that will be dispatched. The empty-id
+  // fallback (drawn target had no connectionId, later filters put a real
+  // id in [0]) is quota-weighted only — quota-share always hands back a
+  // release, even a no-op, and inventing a slot here would double-count.
+  if (strategy === "quota-weighted" || strategy === "quota-share") {
+    const finalId = orderedTargets[0]?.connectionId ?? "";
+    if (quotaShareRelease && drawnId && finalId && finalId !== drawnId) {
+      quotaShareRelease();
+      incrementInflight(finalId);
+      let released = false;
+      quotaShareRelease = () => {
+        if (released) return;
+        released = true;
+        decrementInflight(finalId);
+      };
+    } else if (strategy === "quota-weighted" && !quotaShareRelease && finalId) {
+      incrementInflight(finalId);
+      let released = false;
+      quotaShareRelease = () => {
+        if (released) return;
+        released = true;
+        decrementInflight(finalId);
+      };
+    }
+  }
 
   // Parallel pre-screen: check provider profiles and model availability for all targets
   // Only runs for priority strategy where sequential checking causes latency

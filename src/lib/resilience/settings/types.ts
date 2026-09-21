@@ -28,6 +28,8 @@ export interface RequestQueueSettings {
    * only after a job leaves QUEUED). Kept separate from `maxWaitMs` because
    * non-incremental gateways legitimately take minutes before first bytes;
    * the backstop must never undercut the upstream fetch-start timeout.
+   * Per-connection `rateLimitOverrides.executionMaxWaitMs` can override this
+   * global default (bounded 0..600000 via provider schema; 0 falls through).
    */
   executionMaxWaitMs: number;
   /**

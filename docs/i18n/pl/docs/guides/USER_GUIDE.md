@@ -1,14 +1,12 @@
+# User Guide (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+
 ---
-title: "Przewodnik użytkownika"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
 
-# Przewodnik użytkownika
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
-🌐 **Languages:** 🇺🇸 [English](./USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md)
-
-Kompletny przewodnik po konfiguracji providerów, tworzeniu combo, integracji narzędzi CLI i wdrażaniu OmniRoute.
+Kompletny przewodnik po konfigurowaniu dostawców, tworzeniu kombinacji, integrowaniu narzędzi CLI i wdrażaniu OmniRoute.
 
 ---
 
@@ -35,27 +33,27 @@ Kompletny przewodnik po konfiguracji providerów, tworzeniu combo, integracji na
 
 ## 💰 Cennik w skrócie
 
-| Poziom             | Provider          | Koszt              | Reset limitu       | Najlepsze do             |
-| ------------------ | ----------------- | ------------------ | ------------------ | ------------------------ |
-| **💳 SUBSKRYPCJA** | Claude Code (Pro) | $20/mies.          | 5h + tygodniowo    | Już masz subskrypcję     |
-|                    | Codex (Plus/Pro)  | $20-200/mies.      | 5h + tygodniowo    | Użytkownicy OpenAI       |
-|                    | GitHub Copilot    | $10-19/mies.       | Miesięcznie        | Użytkownicy GitHub       |
-| **🔑 KLUCZ API**   | DeepSeek          | Płatność za użycie | Brak               | Tanie rozumowanie        |
-|                    | Groq              | Płatność za użycie | Brak               | Ultra-szybka inferencja  |
-|                    | xAI (Grok)        | Płatność za użycie | Brak               | Rozumowanie Grok 4       |
-|                    | Mistral           | Płatność za użycie | Brak               | Modele hostowane w UE    |
-|                    | Perplexity        | Płatność za użycie | Brak               | Wzbogacone wyszukiwaniem |
-|                    | Together AI       | Płatność za użycie | Brak               | Modele open-source       |
-|                    | Fireworks AI      | Płatność za użycie | Brak               | Szybkie obrazy FLUX      |
-|                    | Cerebras          | Płatność za użycie | Brak               | Prędkość wafer-scale     |
-|                    | Cohere            | Płatność za użycie | Brak               | Command R+ RAG           |
-|                    | NVIDIA NIM        | Płatność za użycie | Brak               | Modele enterprise        |
-|                    | Baidu Qianfan     | Płatność za użycie | Brak               | Modele ERNIE             |
-| **💰 TANIO**       | GLM-4.7           | $0.6/1M            | Codziennie 10:00   | Zapas budżetowy          |
-|                    | MiniMax M2.1      | $0.2/1M            | Okno 5-godzinne    | Najtańsza opcja          |
-|                    | Kimi K2           | $9/mies. ryczałt   | 10M tokenów/mies.  | Przewidywalny koszt      |
-| **🆓 ZA DARMO**    | Qoder             | $0                 | Brak opublikowanego capu; limity obowiązują | 8 modeli za darmo |
-|                    | Kiro              | $0                 | ~50 kredytów/mies. | Claude za darmo          |
+| Poziom             | Provider          | Koszt              | Reset limitu                                | Najlepsze do             |
+| ------------------ | ----------------- | ------------------ | ------------------------------------------- | ------------------------ |
+| **💳 SUBSKRYPCJA** | Claude Code (Pro) | $20/mies.          | 5h + tygodniowo                             | Już masz subskrypcję     |
+|                    | Codex (Plus/Pro)  | $20-200/mies.      | 5h + tygodniowo                             | Użytkownicy OpenAI       |
+|                    | GitHub Copilot    | $10-19/mies.       | Miesięcznie                                 | Użytkownicy GitHub       |
+| **🔑 KLUCZ API**   | DeepSeek          | Płatność za użycie | Brak                                        | Tanie rozumowanie        |
+|                    | Groq              | Płatność za użycie | Brak                                        | Ultra-szybka inferencja  |
+|                    | xAI (Grok)        | Płatność za użycie | Brak                                        | Rozumowanie Grok 4       |
+|                    | Mistral           | Płatność za użycie | Brak                                        | Modele hostowane w UE    |
+|                    | Perplexity        | Płatność za użycie | Brak                                        | Wzbogacone wyszukiwaniem |
+|                    | Together AI       | Płatność za użycie | Brak                                        | Modele open-source       |
+|                    | Fireworks AI      | Płatność za użycie | Brak                                        | Szybkie obrazy FLUX      |
+|                    | Cerebras          | Płatność za użycie | Brak                                        | Prędkość wafer-scale     |
+|                    | Cohere            | Płatność za użycie | Brak                                        | Command R+ RAG           |
+|                    | NVIDIA NIM        | Płatność za użycie | Brak                                        | Modele enterprise        |
+|                    | Baidu Qianfan     | Płatność za użycie | Brak                                        | Modele ERNIE             |
+| **💰 TANIO**       | GLM-4.7           | $0.6/1M            | Codziennie 10:00                            | Zapas budżetowy          |
+|                    | MiniMax M2.1      | $0.2/1M            | Okno 5-godzinne                             | Najtańsza opcja          |
+|                    | Kimi K2           | $9/mies. ryczałt   | 10M tokenów/mies.                           | Przewidywalny koszt      |
+| **🆓 ZA DARMO**    | Qoder             | $0                 | Brak opublikowanego capu; limity obowiązują | 8 modeli za darmo        |
+|                    | Kiro              | $0                 | ~50 kredytów/mies.                          | Claude za darmo          |
 
 ---
 
@@ -120,37 +118,37 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Konfiguracja providerów
+## 📖 Konfiguracja dostawców
 
-### 🔐 Providerzy subskrypcyjni
+Aby zbiorczo dodać połączenia z kluczami API z pliku CSV lub JSON, użyj opcji **Panel → Dostawcy → Importuj z pliku**. Kolumny są pozycyjne (`provider,name,apiKey,baseUrl,priority`); wartość `provider` musi już istnieć jako zarządzany dostawca lub zgodny węzeł. Zobacz [Importowanie dostawców z pliku CSV lub JSON](../providers/CSV-IMPORT.md).
+
+### 🔐 Dostawcy subskrypcyjni
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
+Panel → Dostawcy → Połącz z Claude Code
+→ Logowanie OAuth → Automatyczne odświeżanie tokenu
+→ Monitorowanie limitu 5-godzinnego i tygodniowego
 
-Models:
+Modele:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**Wskazówka:** Używaj Opus do złożonych zadań, Sonnet dla szybkości. OmniRoute śledzi limit per model!
+**Wskazówka:** Używaj modelu Opus do złożonych zadań, a Sonnet, gdy liczy się szybkość. OmniRoute monitoruje limit osobno dla każdego modelu!
 
-Trasy zgodne z Claude i Claude Code zachowują poziom myślenia `max` dla modeli Opus i Sonnet
-Modele Haiku nie akceptują poziomu wysiłku `max`, więc OmniRoute obniża to
-żądanie do wysokiego budżetu myślenia przed wysłaniem upstream.
+Trasy zgodne z Claude i Claude Code zachowują poziom wysiłku rozumowania `max` dla modeli Opus i Sonnet. Modele Haiku nie obsługują poziomu wysiłku `max`, dlatego przed wysłaniem żądania do dostawcy nadrzędnego OmniRoute obniża go do wysokiego budżetu rozumowania.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
+Panel → Dostawcy → Połącz z Codex
+→ Logowanie OAuth (port 1455)
+→ Reset co 5 godzin i co tydzień
 
-Models:
+Modele:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -160,11 +158,11 @@ Models:
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Monthly reset (1st of month)
+Panel → Dostawcy → Połącz z GitHub
+→ OAuth przez GitHub
+→ Reset miesięczny (1. dnia miesiąca)
 
-Models:
+Modele:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -172,57 +170,55 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Tanie providery
+### 💰 Tani dostawcy
 
 #### GLM-4.7 (reset codzienny, $0.6/1M)
 
 1. Zarejestruj się: [Zhipu AI](https://open.bigmodel.cn)
-2. Pobierz klucz API z Coding Plan
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+2. Uzyskaj klucz API w ramach Coding Plan
+3. Panel → Dodaj klucz API: Dostawca: `glm`, Klucz API: `your-key`
 
-**Użyj:** `glm/glm-4.7` — **Wskazówka:** Coding Plan daje 3× limit przy 1/7 kosztu! Reset codziennie o 10:00.
+**Użycie:** `glm/glm-4.7` — **Wskazówka:** Coding Plan oferuje 3× większy limit za 1/7 ceny! Reset następuje codziennie o 10:00.
 
-#### MiniMax M2.1 (reset 5h, $0.20/1M)
+#### MiniMax M2.1 (reset co 5 godz., $0.20/1M)
 
 1. Zarejestruj się: [MiniMax](https://www.minimax.io)
-2. Pobierz klucz API → Dashboard → Add API Key
+2. Uzyskaj klucz API → Panel → Dodaj klucz API
 
-**Użyj:** `minimax/MiniMax-M2.1` — **Wskazówka:** Najtańsza opcja dla długiego kontekstu (1M tokenów)!
+**Użycie:** `minimax/MiniMax-M2.1` — **Wskazówka:** Najtańsza opcja dla długiego kontekstu (1M tokenów)!
 
-#### Kimi K2 ($9/mies. ryczałt)
+#### Kimi K2 (stała opłata $9/miesiąc)
 
-1. Subskrybuj: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Pobierz klucz API → Dashboard → Add API Key
+1. Wykup subskrypcję: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. Uzyskaj klucz API → Panel → Dodaj klucz API
 
-**Użyj:** `kimi/kimi-k2.5` — **Wskazówka:** Stałe $9/mies. za 10M tokenów = efektywny koszt $0.90/1M!
+**Użycie:** `kimi/kimi-k2.5` — **Wskazówka:** Stała opłata $9/miesiąc za 10M tokenów = efektywny koszt $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Zarejestruj się: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Utwórz klucz API Qianfan → Dashboard → Add API Key: Provider: `qianfan`
+2. Utwórz klucz API Qianfan → Panel → Dodaj klucz API: Dostawca: `qianfan`
 
-**Użyj:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` lub inny identyfikator modelu Qianfan zgodny z OpenAI.
+**Użycie:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` lub inny identyfikator modelu Qianfan zgodnego z OpenAI.
 
-### 🆓 Providerzy ZA DARMO
+### 🆓 BEZPŁATNI dostawcy
 
-Darmowi providerzy bez auth mają przełącznik obok **No authentication required** na stronie providera.
-Wyłączenie dezaktywuje providera, usuwa go z widoków Providers configured/compact oraz
-usuwa jego modele z `/v1/models`.
+Dostawcy bezpłatni, którzy nie wymagają uwierzytelniania, mają przełącznik obok opcji **Uwierzytelnianie nie jest wymagane** na swojej stronie dostawcy. Wyłączenie go dezaktywuje tego dostawcę, usuwa go ze skonfigurowanych i kompaktowych widoków Dostawców oraz usuwa jego modele z `/v1/models`.
 
-#### Qoder (9 modeli ZA DARMO)
+#### Qoder (9 BEZPŁATNYCH modeli)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
+Panel → Połącz z Qoder → Logowanie OAuth → Dostęp podlega aktualnym limitom dostawcy
 
-Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Modele: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude ZA DARMO)
+#### Kiro (Claude BEZPŁATNIE)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
+Panel → Połącz z Kiro → AWS Builder ID lub Google/GitHub → ~50 kredytów/miesiąc
 
-Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Modele: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---

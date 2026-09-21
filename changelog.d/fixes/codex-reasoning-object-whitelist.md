@@ -1,0 +1,1 @@
+- Fixed Codex executor forwarding client `reasoning` sub-fields (`enabled`, `max_tokens`, `exclude`) that the Codex Responses API rejects with HTTP 400, taking down every combo target with a deterministic client error. The reasoning object is now whitelisted to `effort`/`summary`, and `enabled: false` maps to effort `none` when no more specific effort was requested.

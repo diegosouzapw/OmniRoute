@@ -1,1 +1,0 @@
-- **fix(catalog):** keep large `/v1/models` builds responsive by reusing the build-local capability snapshot throughout enrichment and Auto-Combo preparation, yielding cooperatively while constructing virtual candidate pools, and avoiding unrelated synchronous database diagnostics on the cache-TTL read path ([#11367](https://github.com/diegosouzapw/OmniRoute/pull/11367))

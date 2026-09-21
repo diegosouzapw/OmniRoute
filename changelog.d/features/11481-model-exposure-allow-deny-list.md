@@ -1,1 +1,0 @@
-- feat(api): add an opt-in `modelVisibilityAllowlist`/`modelVisibilityDenylist` settings pair to curate exactly which models `/v1/models` advertises, mirrored into every `auto/*` combo candidate pool so a denied model cannot be routed to via combo selection either (#11481)

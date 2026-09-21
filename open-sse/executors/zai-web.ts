@@ -5,8 +5,9 @@
  * browser-issued CAPTCHA proof for chat completions. The browser transport is
  * the default; callers with a short-lived proof can use the direct HTTP path.
  *
- * Completions go to /api/v2/chat/completions; the older unversioned
- * /api/chat/completions path is stale and 404s model-independently (#8014).
+ * Completions go to /api/v2/chat/completions. Z.ai's CAPTCHA rejects true
+ * headless Chromium with F001, so the browser transport uses off-screen headed
+ * Chromium while retaining the shared browser pool.
  */
 import { createHash, randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
@@ -50,6 +51,7 @@ import {
   makeZaiChunkEmitter,
 } from "./zai-web/stream.ts";
 import { browserBackedChat } from "../services/browserBackedChat.ts";
+import { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
 import { CursorImageError, resolveCursorImages } from "../utils/cursorImages.ts";
 import {
   makeExecutorErrorResult as makeErrorResult,
@@ -67,6 +69,7 @@ export {
   parseZaiFrontendVersion,
   resolveZaiThinkingConfig,
   resolveZaiVlmConfig,
+  zaiUpstreamModelId,
 } from "./zai-web/protocol.ts";
 export type {
   ZaiModelCapabilities,
@@ -174,6 +177,7 @@ function buildZaiBrowserChatOptions(input: {
     userAgent: ZAI_USER_AGENT,
     locale: "en-US",
     timezone: "Asia/Seoul",
+    headless: false,
     inputSelector: "#chat-input",
     submitButtonSelector: '[aria-label="Send Message"] button:not([disabled])',
     submitButtonMode: "dom",
@@ -243,7 +247,7 @@ function resolveZaiRequest(
   const modelId = (bodyObj.model as string) || model || ZAI_DEFAULT_MODEL;
   if (imageUrls.length > 0 && !getZaiModelCapabilities(modelId).vision) {
     return fail(
-      `Z.ai model ${unprefixedModelId(modelId)} does not accept image input; use GLM-5V-Turbo.`
+      `Z.ai model ${unprefixedModelId(modelId)} does not accept image input; use GLM-5.3-Flash.`
     );
   }
 
@@ -421,9 +425,26 @@ export class ZaiWebExecutor extends BaseExecutor {
     try {
       result = await browserBackedChat(buildZaiBrowserChatOptions({ ...input, attachments }));
     } catch (error) {
-      const message = sanitizeErrorMessage(
-        error instanceof Error ? error.message : "browser transport unavailable"
-      );
+      const rawMessage = error instanceof Error ? error.message : "browser transport unavailable";
+      // #13232: a missing Playwright browser binary is a host/config problem, not a transient
+      // upstream fault (same class as #3516 in gemini-web.ts). Surface an actionable message and
+      // tag it with the connection-cooldown hint so accountFallback skips the whole-provider
+      // circuit breaker (502/500 would trip it) and applies a short, non-exponential cooldown
+      // instead.
+      if (isMissingBrowserExecutable(rawMessage)) {
+        return {
+          errorResult: makeErrorResult(
+            503,
+            "Z.ai requires the Playwright Chromium browser, which is not installed. " +
+              "Run `npx playwright install chromium` on the host (or rebuild the Docker image " +
+              "with browsers).",
+            input.body,
+            ZAI_CHAT_URL,
+            { "X-Omni-Fallback-Hint": "connection_cooldown" }
+          ),
+        };
+      }
+      const message = sanitizeErrorMessage(rawMessage);
       return {
         errorResult: makeErrorResult(
           502,

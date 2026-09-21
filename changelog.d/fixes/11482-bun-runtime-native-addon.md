@@ -1,1 +1,0 @@
-- **fix(docker-bun):** remove every vendored `better-sqlite3` native addon from the Bun runtime image so startup cannot abort before the `bun:sqlite` fallback ([#11482](https://github.com/diegosouzapw/OmniRoute/pull/11482)) — thanks @TheDemonTuan

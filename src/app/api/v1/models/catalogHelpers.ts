@@ -91,6 +91,11 @@ export function intersectStringArrays(arrays: string[][]): string[] {
   });
 }
 
+/** LCD over known arrays only. Empty/unknown entries degrade instead of wiping. */
+export function intersectKnownStringArrays(arrays: string[][]): string[] {
+  return intersectStringArrays(arrays.filter((values) => values.length > 0));
+}
+
 export function minKnownNumber(values: Array<number | undefined>): number | undefined {
   const knownValues = values.filter(isPositiveFiniteNumber);
   if (knownValues.length === 0) return undefined;
@@ -216,4 +221,71 @@ export function mergeComboCapabilities(
     capabilities.effort_tiers = intersectStringArrays(effortTiers);
   }
   return capabilities;
+}
+
+/**
+ * #12798: a combo can advertise `capabilities.vision: true` while emitting no
+ * `input_modalities` / `output_modalities`. The merged vision verdict flows
+ * from the targets canonical capabilities - which honour the #9195 operator
+ * "Vision capable" override - while the combo-level modality intersection in
+ * buildComboCatalogMetadata only fills when EVERY known target carries synced
+ * modality data. An operator-flagged vision head with no synced modalities
+ * therefore listed `vision: true` next to an empty modality set, so
+ * models.dev-shaped clients that key off `input_modalities` (not the boolean)
+ * still saw a text-only entry. Derives the modalities from the already
+ * advertised vision verdict: mergeComboCapabilities only emits `vision: true`
+ * when every known target is vision-capable, so this makes no new claim.
+ * Synced intersections keep precedence; nothing is derived for unknown or
+ * text-only verdicts.
+ */
+export function visionDerivedModalities(
+  capabilities: Record<string, boolean | string[]>,
+  syncedInput: string[],
+  syncedOutput: string[]
+): { input_modalities?: string[]; output_modalities?: string[] } {
+  return {
+    ...(syncedInput.length > 0
+      ? { input_modalities: syncedInput }
+      : capabilities.vision === true
+        ? { input_modalities: ["text", "image"] }
+        : {}),
+    ...(syncedOutput.length > 0
+      ? { output_modalities: syncedOutput }
+      : capabilities.vision === true
+        ? { output_modalities: ["text"] }
+        : {}),
+  };
+}
+
+/**
+ * Memoize per-target catalog metadata for one catalog build, yielding between misses.
+ * #12046 resolves metadata for every target of every built-in `auto/*` combo, and those
+ * ~40 combos draw on the same candidate pool: unmemoized, the build repeated the same
+ * lookups tens of thousands of times without yielding (#9147 — 720 synced models took the
+ * cold build from ~4s to ~18s, past the 8s cold-build bound). Metadata depends only on
+ * the target fields in the key, so each distinct target is resolved once per build.
+ */
+export function memoizeTargetMetadata<T>(
+  resolve: (target: ComboCatalogTarget) => T | null,
+  afterMiss: () => Promise<void>
+): (targets: ComboCatalogTarget[]) => Promise<Array<T | null>> {
+  const byKey = new Map<string, T | null>();
+  return async (targets) => {
+    const resolved: Array<T | null> = [];
+    for (const target of targets) {
+      const key = JSON.stringify([
+        target.providerId ?? null,
+        target.provider ?? null,
+        target.modelStr ?? null,
+        target.connectionId ?? null,
+        target.allowedConnectionIds ?? null,
+      ]);
+      if (!byKey.has(key)) {
+        byKey.set(key, resolve(target));
+        await afterMiss();
+      }
+      resolved.push(byKey.get(key) ?? null);
+    }
+    return resolved;
+  };
 }

@@ -1,64 +1,58 @@
 # Contributor Covenant Code of Conduct (Українська)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇪🇹 [am](../am/CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇳🇬 [ha](../ha/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇦🇲 [hy](../hy/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇳🇬 [ig](../ig/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇬🇪 [ka](../ka/CODE_OF_CONDUCT.md) · 🇰🇭 [km](../km/CODE_OF_CONDUCT.md) · 🇮🇳 [kn](../kn/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [ml](../ml/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇲🇲 [my](../my/CODE_OF_CONDUCT.md) · 🇳🇵 [ne](../ne/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇮🇳 [or](../or/CODE_OF_CONDUCT.md) · 🇮🇳 [pa](../pa/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇱🇰 [si](../si/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇺🇿 [uz](../uz/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇳🇬 [yo](../yo/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
 
 ---
 
-## Our Pledge
+## Наше зобов’язання
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+Ми, як учасники, дописувачі та лідери, зобов’язуємося зробити участь у нашій
+спільноті вільною від переслідувань для всіх, незалежно від віку, будови
+тіла, видимої чи невидимої інвалідності, етнічного походження, статевих ознак,
+гендерної ідентичності та самовираження, рівня досвіду, освіти, соціально-економічного
+статусу, національності, зовнішності, раси, релігії, сексуальної ідентичності
+та орієнтації.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+Ми зобов’язуємося діяти та взаємодіяти у спосіб, що сприяє створенню відкритої,
+гостинної, різноманітної, інклюзивної та здорової спільноти.
 
-## Our Standards
+## Наші стандарти
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+Приклади поведінки, яка сприяє створенню позитивного середовища для нашої
+спільноти:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- Виявлення емпатії та доброзичливості до інших людей
+- Шанобливе ставлення до відмінних думок, поглядів і досвіду
+- Надання та доброзичливе сприйняття конструктивного зворотного зв’язку
+- Визнання відповідальності, принесення вибачень тим, кого зачепили наші помилки,
+  та врахування отриманого досвіду
+- Зосередження на тому, що є найкращим не лише для кожного з нас особисто, а й для
+  спільноти загалом
 
-Examples of unacceptable behavior include:
+Приклади неприйнятної поведінки:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- Використання сексуалізованої мови чи зображень, а також сексуальна увага або
+  домагання будь-якого характеру
+- Тролінг, образливі чи принизливі коментарі, а також особисті чи політичні нападки
+- Публічне чи приватне переслідування
+- Оприлюднення приватної інформації інших осіб, наприклад фізичної або електронної
+  адреси, без їхнього явного дозволу
+- Інша поведінка, яку обґрунтовано можна вважати недоречною в
+  професійному середовищі
 
-## Enforcement Responsibilities
+## Обов’язки щодо забезпечення дотримання
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+Лідери спільноти відповідають за роз’яснення та забезпечення дотримання наших стандартів прийнятної поведінки й вживатимуть належних і справедливих коригувальних заходів у відповідь на будь-яку поведінку, яку вони вважають неприйнятною, загрозливою, образливою або шкідливою.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+Лідери спільноти мають право й обов’язок видаляти, редагувати або відхиляти коментарі, коміти, код, редагування вікі, звернення та інші внески, що не відповідають цьому Кодексу поведінки, і, за потреби, повідомлятимуть причини рішень щодо модерації.
 
-## Scope
+## Сфера застосування
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+Цей Кодекс поведінки діє в усіх просторах спільноти, а також у випадках, коли
+особа офіційно представляє спільноту в публічному просторі.
+Прикладами представлення нашої спільноти є використання офіційної адреси електронної пошти,
+публікація через офіційний обліковий запис у соціальних мережах або виконання обов’язків призначеного
+представника на онлайн- чи офлайн-заході.
 
 ## Enforcement
 
@@ -70,51 +64,51 @@ All complaints will be reviewed and investigated promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-## Enforcement Guidelines
+## Настанови щодо застосування
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+Лідери спільноти керуватимуться цими Настановами щодо впливу на спільноту під час визначення
+наслідків будь-яких дій, які вони вважають порушенням цього Кодексу поведінки:
 
-### 1. Correction
+### 1. Виправлення
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**Вплив на спільноту**: Використання неприйнятної мови або інша поведінка, що вважається
+непрофесійною чи небажаною у спільноті.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**Наслідок**: Приватне письмове попередження від лідерів спільноти з
+роз’ясненням характеру порушення та поясненням того, чому така
+поведінка була неприйнятною. Може бути запропоновано публічно вибачитися.
 
-### 2. Warning
+### 2. Попередження
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**Вплив на спільноту**: Порушення внаслідок окремого інциденту або низки
+дій.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**Наслідок**: Попередження із зазначенням наслідків у разі продовження такої поведінки. Забороняється
+взаємодіяти із залученими особами, зокрема без запрошення взаємодіяти з
+тими, хто забезпечує дотримання Кодексу поведінки, протягом визначеного періоду часу. Це
+передбачає уникнення взаємодії як у просторах спільноти, так і в зовнішніх каналах,
+як-от соціальні мережі. Порушення цих умов може призвести до тимчасової або
+постійної заборони участі.
 
-### 3. Temporary Ban
+### 3. Тимчасова заборона
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**Вплив на спільноту**: Серйозне порушення стандартів спільноти, зокрема
+тривала неприйнятна поведінка.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**Наслідок**: Тимчасова заборона на будь-яку взаємодію або публічне
+спілкування зі спільнотою протягом визначеного періоду часу. Упродовж цього періоду не дозволяється
+публічно чи приватно взаємодіяти із залученими особами, зокрема без запрошення взаємодіяти
+з тими, хто забезпечує дотримання Кодексу поведінки.
+Порушення цих умов може призвести до постійної заборони.
 
-### 4. Permanent Ban
+### 4. Постійна заборона
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**Вплив на спільноту**: Систематичне порушення стандартів
+спільноти, зокрема тривала неприйнятна поведінка, переслідування
+окремої особи, агресія щодо груп осіб або їх зневажання.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**Наслідок**: Постійна заборона на будь-яку публічну взаємодію в межах
+спільноти.
 
 ## Attribution
 

@@ -90,11 +90,33 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     "/api/tunnels/tailscale/install",
     "/api/tunnels/tailscale/login",
     "/api/tunnels/tailscale/start-daemon",
+    // GHSA-35fw-cv32-2373: the 14 cli-tools routes that reach the same
+    // getCliRuntimeStatus() / detectAllTools() spawn as their gated siblings.
+    "/api/cli-tools/all-statuses",
+    "/api/cli-tools/claude-settings",
+    "/api/cli-tools/cline-settings",
+    "/api/cli-tools/codewhale-settings",
+    "/api/cli-tools/codex-settings",
+    "/api/cli-tools/crush-settings",
+    "/api/cli-tools/deepseek-tui-settings",
+    "/api/cli-tools/detect",
+    "/api/cli-tools/droid-settings",
+    "/api/cli-tools/kilo-settings",
+    "/api/cli-tools/openclaw-settings",
+    "/api/cli-tools/pi-settings",
+    "/api/cli-tools/smelt-settings",
+    "/api/cli-tools/status",
+    // GHSA-jx89-f37j-pq89: skills handler registration + execution reach the
+    // sandbox container spawn transitively.
+    "/api/skills/install",
+    "/api/skills/executions",
   ]) {
     assert.ok(
       SPAWN_CAPABLE_PREFIXES.includes(prefix),
       `SPAWN_CAPABLE_PREFIXES lost the spawn-capable prefix "${prefix}" during extraction`
     );
   }
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 20);
+  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373) + 2 (GHSA-jx89-f37j-pq89).
+  // qwen-settings is the one pre-existing entry not enumerated above.
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 36);
 });

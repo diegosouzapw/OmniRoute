@@ -17,6 +17,10 @@
  * atomically.
  */
 import { SlidingWindowLimiter, type RateLimitWindow } from "./slidingWindowLimiter.ts";
+import {
+  markLocalRateLimitError,
+  LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE,
+} from "./rateLimitManager/errors.ts";
 
 // Opt-in per-provider caps. Example shape (commented — add real entries as needed):
 //   "some-headerless-provider": { requests: 60, windowMs: 60_000 },
@@ -128,16 +132,36 @@ export async function awaitProviderDefaultSlot(
   provider: string,
   connectionId: string | null,
   signal: AbortSignal | null,
-  maxWaitMs?: number
+  remainingBudgetMs?: number
 ): Promise<void> {
   const cfg = getProviderDefaultRateLimit(provider);
   if (!cfg) return;
-  const budget = Math.max(cfg.windowMs, maxWaitMs && maxWaitMs > 0 ? maxWaitMs : 0);
+  if (typeof remainingBudgetMs === "number" && remainingBudgetMs <= 0)
+    throw markLocalRateLimitError(
+      new Error(
+        `Queue budget exhausted before provider-default slot (remaining=${remainingBudgetMs}ms)`
+      ),
+      LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
+    );
+  const budget =
+    typeof remainingBudgetMs === "number" && Number.isFinite(remainingBudgetMs)
+      ? Math.min(remainingBudgetMs, cfg.windowMs)
+      : Math.max(cfg.windowMs, 0);
   const start = Date.now();
   for (;;) {
     const waitMs = acquireProviderDefaultSlot(provider, connectionId);
     if (waitMs === 0) return;
-    if (Date.now() - start >= budget) return; // waited the budget; let it through
-    await sleepOrAbort(Math.min(waitMs, budget), signal);
+    if (Date.now() - start >= budget)
+      throw markLocalRateLimitError(
+        new Error(`Provider-default slot wait exceeded budget ${budget}ms`),
+        LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
+      );
+    const remainingBudget = budget - (Date.now() - start);
+    if (remainingBudget <= 0)
+      throw markLocalRateLimitError(
+        new Error(`Provider-default slot budget exhausted`),
+        LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
+      );
+    await sleepOrAbort(Math.min(waitMs, remainingBudget), signal);
   }
 }

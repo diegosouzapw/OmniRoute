@@ -22,8 +22,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { shouldWaitForComboCooldown, resolveComboCooldownWaitDecision, COMBO_COOLDOWN_WAIT_MARGIN_MS } =
-  await import("../../open-sse/services/combo/comboCooldownRetry.ts");
+const {
+  shouldWaitForComboCooldown,
+  resolveComboCooldownWaitDecision,
+  resolveCircuitOpenWaitDecision,
+  COMBO_COOLDOWN_WAIT_MARGIN_MS,
+} = await import("../../open-sse/services/combo/comboCooldownRetry.ts");
 
 function baseSettings(overrides: Partial<Record<string, unknown>> = {}) {
   return {
@@ -75,6 +79,11 @@ test("reason not_found_local is EXCLUDED", () => {
 test("missing/unknown reason (null) → no wait (only an explicit transient reason qualifies)", () => {
   const r = shouldWaitForComboCooldown(baseInput({ reason: null }) as never);
   assert.equal(r.wait, false);
+});
+
+test("reason circuit_open is eligible (whole-provider breaker OPEN is a short reset)", () => {
+  const r = shouldWaitForComboCooldown(baseInput({ reason: "circuit_open" }) as never);
+  assert.equal(r.wait, true);
 });
 
 test("waitMs above the configured ceiling → no wait", () => {
@@ -146,6 +155,7 @@ test("returned waitMs is clamped to a finite number (0 when input invalid)", () 
 // ── resolveComboCooldownWaitDecision (target resolution + hint/fallback) ──────
 
 const M = COMBO_COOLDOWN_WAIT_MARGIN_MS;
+assert.equal(M, 50, "wait margin is a pinned production constant, not a free parameter");
 
 function decisionInput(overrides: Record<string, unknown> = {}) {
   return {
@@ -268,4 +278,76 @@ test("resolve: lock remaining above the ceiling → no wait (not a SHORT cooldow
     }) as never
   );
   assert.equal(r.wait, false);
+});
+
+// Live incident 2026-09-03: a single-target combo pre-skipped every target because
+// the whole-provider breaker was OPEN (claude Overloaded STREAM_EARLY_EOF). That
+// path crystallized ALL_TARGETS_SKIPPED in ~43ms and never entered the cooldown
+// wait, even though the breaker resetTimeout is 60s and comboCooldownWait was on.
+
+function circuitOpenInput(overrides: Record<string, unknown> = {}) {
+  return {
+    skippedForCircuitOpen: true,
+    retryAfterMs: 30_000,
+    attempt: 0,
+    budgetLeftMs: 90_000,
+    settings: baseSettings({ maxWaitMs: 90_000, budgetMs: 300_000, maxAttempts: 5 }),
+    ...overrides,
+  };
+}
+
+test("circuit-open skip with a short breaker reset → wait", () => {
+  const r = resolveCircuitOpenWaitDecision(circuitOpenInput() as never);
+  assert.equal(r.wait, true);
+  assert.equal(r.waitMs, 30_000 + M);
+  assert.equal(r.reason, "circuit_open");
+});
+
+test("circuit-open skip is ignored when no target was skipped for circuit_open", () => {
+  const r = resolveCircuitOpenWaitDecision(
+    circuitOpenInput({ skippedForCircuitOpen: false }) as never
+  );
+  assert.equal(r.wait, false);
+  assert.equal(r.reason, null);
+});
+
+test("circuit-open skip with zero retryAfter → no wait", () => {
+  const r = resolveCircuitOpenWaitDecision(circuitOpenInput({ retryAfterMs: 0 }) as never);
+  assert.equal(r.wait, false);
+});
+
+test("circuit-open skip above the wait ceiling → no wait", () => {
+  const r = resolveCircuitOpenWaitDecision(
+    circuitOpenInput({
+      retryAfterMs: 120_000,
+      settings: baseSettings({ maxWaitMs: 90_000, budgetMs: 300_000, maxAttempts: 5 }),
+    }) as never
+  );
+  assert.equal(r.wait, false);
+});
+
+test("circuit-open skip honors attempt/budget the same as model-lockout waits", () => {
+  assert.equal(
+    resolveCircuitOpenWaitDecision(circuitOpenInput({ attempt: 5 }) as never).wait,
+    false
+  );
+  assert.equal(
+    resolveCircuitOpenWaitDecision(circuitOpenInput({ budgetLeftMs: 1_000 }) as never).wait,
+    false
+  );
+});
+
+test("circuit-open skip is off when comboCooldownWait.enabled is false", () => {
+  const r = resolveCircuitOpenWaitDecision(
+    circuitOpenInput({
+      settings: baseSettings({
+        enabled: false,
+        maxWaitMs: 90_000,
+        budgetMs: 300_000,
+        maxAttempts: 5,
+      }),
+    }) as never
+  );
+  assert.equal(r.wait, false);
+  assert.equal(r.reason, null);
 });

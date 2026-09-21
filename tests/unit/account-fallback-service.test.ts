@@ -1196,6 +1196,22 @@ test("isCreditsExhausted returns true for actual credits-exhausted signals", () 
   );
 });
 
+test("isCreditsExhausted matches FriendliAI credit-exhaustion 403 body (#13040)", () => {
+  // FriendliAI returns HTTP 403 with body {"detail":"You've exhausted all your
+  // credits..."} when free tier credits are depleted via Adaptive Rate Limits.
+  // Before #13040 this fell through every quota/credits check to the generic
+  // 403 -> AUTH_ERROR fallback; the signal below routes it to QUOTA_EXHAUSTED.
+  assert.equal(isCreditsExhausted("You've exhausted all your credits"), true);
+  assert.equal(
+    isCreditsExhausted('{"detail":"You\'ve exhausted all your credits"}'),
+    true
+  );
+  assert.equal(
+    isCreditsExhausted("exhausted all your credits"),
+    true
+  );
+});
+
 test("CREDITS_EXHAUSTED_SIGNALS no longer contains generic gRPC resource-exhausted patterns", () => {
   // These patterns were removed because they falsely matched Gemini RPM 429 errors
   assert.equal(CREDITS_EXHAUSTED_SIGNALS.includes("resource has been exhausted"), false);
@@ -2004,4 +2020,52 @@ test("#10460 acceptance: unambiguous model-unsupported 400 makes exactly ONE ups
       `untried account ${connId} must stay active`
     );
   }
+});
+
+const MOONSHOT_COMPAT = "openai-compatible-chat-e2971611-bc02-4c37-8fc5-39b8e3906fdf";
+const MOONSHOT_TPD =
+  "[429]: Your account org-x / proj-y <ak-z> request reached organization TPD rate limit, current: 1537190, limit: 1500000";
+const MOONSHOT_BROKE =
+  "[429]: Your account org-x <ak-z> is suspended due to insufficient balance, please recharge your account or check your plan and billing details";
+
+test("checkFallbackError: compatible Moonshot insufficient balance is creditsExhausted", () => {
+  const result = checkFallbackError(429, MOONSHOT_BROKE, 0, null, MOONSHOT_COMPAT);
+  assert.equal(result.creditsExhausted, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+test("checkFallbackError: compatible node empty wallet without billing-suspend phrasing is creditsExhausted", () => {
+  const result = checkFallbackError(
+    429,
+    "You have insufficient balance, please recharge your account",
+    0,
+    null,
+    MOONSHOT_COMPAT,
+  );
+  assert.equal(result.creditsExhausted, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+test("isDailyQuotaExhausted detects organization TPD rate limit", () => {
+  const { isDailyQuotaExhausted } = accountFallback;
+  assert.equal(isDailyQuotaExhausted(MOONSHOT_TPD), true);
+  assert.equal(isDailyQuotaExhausted("The engine is currently overloaded"), false);
+});
+
+test("checkFallbackError: TPD with node clock uses that instant, not host midnight", () => {
+  const now = Date.parse("2026-09-02T07:30:00Z");
+  const result = checkFallbackError(429, MOONSHOT_TPD, 0, null, MOONSHOT_COMPAT, null, null, null, null, {
+    timezone: "Asia/Shanghai",
+    hour: 0,
+    nowMs: now,
+  });
+  assert.equal(result.dailyQuotaExhausted, true);
+  assert.equal(result.cooldownMs, Date.parse("2026-09-02T16:00:00Z") - now);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+test("checkFallbackError: TPD without clock or header is NOT host-midnight lock", () => {
+  const result = checkFallbackError(429, MOONSHOT_TPD, 0, null, MOONSHOT_COMPAT);
+  assert.notEqual(result.dailyQuotaExhausted, true);
+  assert.ok(result.cooldownMs < 2 * 60 * 60 * 1000);
 });

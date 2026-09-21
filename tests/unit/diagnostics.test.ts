@@ -56,6 +56,19 @@ test("synthOpenAIErrorChunk references provider in message", () => {
   );
 });
 
+test("detectMalformedNonStream allows Claude message with (empty response) + stop_reason=length (ollama qwen3)", () => {
+  const resp = {
+    type: "message",
+    content: [{ type: "text", text: "(empty response)" }],
+    stop_reason: "length",
+  };
+  assert.strictEqual(
+    detectMalformedNonStream(resp),
+    null,
+    "ollama reasoning truncation should not be empty_choices"
+  );
+});
+
 // ── (b) synthResponsesFailure matches a response.failed event ────────────────
 
 test("synthResponsesFailure produces a response.failed SSE event", () => {
@@ -100,6 +113,22 @@ test("failed Responses API body gets a request-scoped machine-readable classific
   assert.equal(reason, "empty_choices");
   assert.deepEqual(describeMalformedNonStream(failed, reason), {
     message: "upstream reported a failed response without usable output",
+    code: "upstream_response_failed",
+    type: "upstream_response_error",
+  });
+});
+
+test("failed Responses API body surfaces the upstream error message when present", () => {
+  const failed = {
+    object: "response",
+    status: "failed",
+    output: [],
+    error: { code: "server_error", message: "  Gemini 503: overloaded  " },
+  };
+  const reason = detectMalformedNonStream(failed);
+  assert.equal(reason, "empty_choices");
+  assert.deepEqual(describeMalformedNonStream(failed, reason), {
+    message: "upstream reported a failed response: Gemini 503: overloaded",
     code: "upstream_response_failed",
     type: "upstream_response_error",
   });

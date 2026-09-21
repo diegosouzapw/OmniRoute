@@ -1,1 +1,0 @@
-- **i18n(vi):** translate the five reliability-column strings on the free-provider rankings page, which rendered as `__MISSING__:` markers in the Vietnamese UI ([#11589](https://github.com/diegosouzapw/OmniRoute/pull/11589))

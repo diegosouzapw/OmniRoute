@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { buildZaiStreamingBody, parseZaiFrame, collectZaiNonStreaming } = await import(
-  "../../open-sse/executors/zai-web/stream.ts"
-);
+const { buildZaiStreamingBody, parseZaiFrame, collectZaiNonStreaming } =
+  await import("../../open-sse/executors/zai-web/stream.ts");
 
 /**
  * Hard Rule #6 — "never silently swallow errors in SSE streams".
@@ -47,6 +46,23 @@ async function readAll(stream: ReadableStream): Promise<string> {
   return out;
 }
 
+async function readUntilError(stream: ReadableStream): Promise<{ output: string; error: unknown }> {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let output = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return { output, error: null };
+      output += decoder.decode(value as Uint8Array, { stream: true });
+    }
+  } catch (error) {
+    return { output, error };
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 const emitChunk = (
   controller: ReadableStreamDefaultController,
   delta: Record<string, unknown>,
@@ -60,6 +76,14 @@ const emitChunk = (
 
 const contentOf = (sse: string) =>
   [...sse.matchAll(/"content":"([^"]*)"/g)].map((m) => m[1]).join("");
+
+function errorPayloads(sse: string): Array<Record<string, unknown>> {
+  return sse
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith("data: ") && line !== "data: [DONE]")
+    .map((line) => JSON.parse(line.slice(6)) as Record<string, unknown>)
+    .filter((payload) => "error" in payload);
+}
 
 test("parseZaiFrame classifies an error-shaped frame instead of discarding it", () => {
   assert.equal(parseZaiFrame({ error: "captcha expired" })?.error, "captcha expired");
@@ -88,25 +112,42 @@ test("REGRESSION GUARD: contentless frames are still skipped, not reported as er
   assert.equal(parseZaiFrame("not-an-object"), null);
 });
 
-test("a 200 stream carrying an error frame surfaces it instead of finishing empty", async () => {
+test("a 200 stream carrying an error frame emits a terminal error instead of false success", async () => {
   const upstream = sseStream(JSON.stringify({ error: { detail: "signature invalid" } }));
   const out = await readAll(buildZaiStreamingBody(upstream, emitChunk, null));
 
-  assert.match(contentOf(out), /signature invalid/, "the upstream's diagnosis must reach the caller");
-  assert.match(contentOf(out), /\[Z\.ai error\]/, "tagged like the other web executors");
-  assert.ok(out.includes('"finish_reason":"stop"'));
-  assert.ok(out.includes("[DONE]"), "the stream still terminates cleanly for the client");
+  assert.equal(contentOf(out), "", "an upstream failure must not become assistant content");
+  assert.deepEqual(errorPayloads(out), [
+    {
+      error: {
+        message: "Z.ai stream failed: signature invalid",
+        type: "upstream_error",
+        code: "zai_stream_error",
+      },
+    },
+  ]);
+  assert.ok(!out.includes("response.failed"), "Chat streams cannot emit Responses events");
+  assert.ok(!out.includes('"finish_reason":"stop"'), "a failure must not report a normal stop");
+  assert.ok(!out.includes("[DONE]"), "readiness must see an error-only pre-content stream");
 });
 
-test("an error frame after partial content still surfaces, keeping what was streamed", async () => {
+test("an error after partial content preserves it, then errors the producer stream", async () => {
   const upstream = sseStream(
-    JSON.stringify({ type: "chat:completion", data: { delta_content: "partial", phase: "answer" } }),
+    JSON.stringify({
+      type: "chat:completion",
+      data: { delta_content: "partial", phase: "answer" },
+    }),
     JSON.stringify({ error: "stream aborted upstream" })
   );
-  const out = await readAll(buildZaiStreamingBody(upstream, emitChunk, null));
+  const { output, error } = await readUntilError(buildZaiStreamingBody(upstream, emitChunk, null));
 
-  assert.match(contentOf(out), /partial/, "already-streamed content is preserved");
-  assert.match(contentOf(out), /stream aborted upstream/, "and the failure is appended, not dropped");
+  assert.match(contentOf(output), /partial/, "already-streamed content is preserved");
+  assert.match(String(error), /Z\.ai stream failed: stream aborted upstream/);
+  assert.ok(!output.includes("response.failed"), "the producer stays protocol-neutral");
+  assert.ok(
+    !output.includes('"finish_reason":"stop"'),
+    "partial output does not make failure success"
+  );
 });
 
 test("control: a well-formed stream is untouched", async () => {

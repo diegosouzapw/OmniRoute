@@ -1,242 +1,261 @@
----
-title: "🗜️ Przewodnik po kompresji promptów — OmniRoute"
-version: 3.8.40
-lastUpdated: 2026-06-28
+# 🗜️ Prompt Compression Guide — OmniRoute (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+
 ---
 
-# 🗜️ Przewodnik po kompresji promptów — OmniRoute
-
-> Oszczędzaj automatycznie 15–95% kwalifikującego się kontekstu. Szybki przegląd: [sekcja Compression w README](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically).
+> Automatycznie oszczędzaj 15–95% kwalifikującego się kontekstu. Krótkie omówienie znajdziesz w [sekcji README dotyczącej kompresji](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically).
 
 ## Przegląd
 
-OmniRoute implementuje modularny potok kompresji promptów, który działa **proaktywnie** zanim żądania trafią do upstreamowych providerów. Oszczędności tokenów zachodzą więc przejrzyście — bez zmian w Twoim workflow.
+OmniRoute implementuje modułowy potok kompresji promptów, który działa **proaktywnie**, zanim żądania trafią do dostawców nadrzędnych. Oznacza to, że tokeny są oszczędzane w sposób transparentny — nie musisz niczego zmieniać w swoim przepływie pracy.
 
 ```
-Client Request
-  → Compression Strategy Selector
-    → Combo override? → Use combo setting
-    → Auto-trigger threshold? → Use auto mode
-    → Default mode? → Use global setting
-    → Off? → Skip compression
-  → Selected Compression Mode
-    → Off: No compression
-    → Lite: Safe whitespace/formatting cleanup (~15%)
-    → Standard: Caveman-speak filler removal (~30%)
-    → Aggressive: History aging + summarization (~50%)
-    → Ultra: Heuristic pruning + code-block thinning (~75%)
-    → RTK: Command-aware terminal/tool-output filtering (60-90% upstream range)
-    → Stacked: Ordered multi-engine pipeline, usually RTK then Caveman (78-95% eligible range)
-  → Compressed Request → Provider
+Żądanie klienta
+  → Selektor strategii kompresji
+    → Nadpisanie przez kombinację? → Użyj ustawienia kombinacji
+    → Próg automatycznego wyzwalania? → Użyj trybu automatycznego
+    → Tryb domyślny? → Użyj ustawienia globalnego
+    → Wyłączona? → Pomiń kompresję
+  → Wybrany tryb kompresji
+    → Wyłączony: Brak kompresji
+    → Lekki: Bezpieczne czyszczenie białych znaków i formatowania (~15%)
+    → Standardowy: Usuwanie zbędnych wyrażeń w stylu telegraficznym (~30%)
+    → Agresywny: Starzenie historii i podsumowywanie (~50%)
+    → Ultra: Przycinanie heurystyczne i odchudzanie bloków kodu (~75%)
+    → RTK: Filtrowanie danych wyjściowych terminala/narzędzi z uwzględnieniem poleceń (zakres 60–90% po stronie nadrzędnej)
+    → Warstwowy: Uporządkowany potok wielu silników, zwykle RTK, a następnie Caveman (zakres 78–95% kwalifikującej się treści)
+  → Skompresowane żądanie → Dostawca
 ```
 
 ---
 
 ## Tryby kompresji
 
-### Off
+### Wyłączony
 
-Brak kompresji. Wszystkie wiadomości przechodzą bez zmian.
+Kompresja nie jest stosowana. Wszystkie wiadomości są przekazywane bez zmian.
 
-### Lite Mode (~15% oszczędności, opóźnienie <1 ms)
+### Tryb lekki (~15% oszczędności, opóźnienie <1 ms)
 
-Najbezpieczniejszy tryb — zero zmian semantycznych, tylko porządkowanie formatowania:
+Najbezpieczniejszy tryb — bez żadnych zmian semantycznych, wyłącznie czyszczenie formatowania:
 
-| Technique                | Description                                   |
-| ------------------------ | --------------------------------------------- |
-| `collapseWhitespace`     | Scala kolejne puste linie i końcowe spacje    |
-| `dedupSystemPrompt`      | Usuwa zduplikowane wiadomości systemowe       |
-| `compressToolResults`    | Kompresuje rozwlekłe wyjścia narzędzi/funkcji |
-| `removeRedundantContent` | Usuwa powtórzone instrukcje                   |
-| `replaceImageUrls`       | Skraca URI danych obrazów base64              |
+| Technika                 | Opis                                                           |
+| ------------------------ | -------------------------------------------------------------- |
+| `collapseWhitespace`     | Łączenie kolejnych pustych wierszy i usuwanie końcowych spacji |
+| `dedupSystemPrompt`      | Usuwanie zduplikowanych wiadomości systemowych                 |
+| `compressToolResults`    | Kompresowanie rozwlekłych wyników narzędzi/funkcji             |
+| `removeRedundantContent` | Usuwanie powtarzających się instrukcji                         |
+| `replaceImageUrls`       | Skracanie identyfikatorów URI obrazów w formacie base64        |
 
-**Najlepsze do:** ciągłego włączonego użycia, workflow krytycznych dla bezpieczeństwa.
+**Najlepszy do:** Stałego stosowania i przepływów pracy o krytycznym znaczeniu dla bezpieczeństwa.
 
-### Standard Mode (~30% oszczędności)
+### Tryb standardowy (~30% oszczędności)
 
-Inspirowany [Caveman](https://github.com/JuliusBrussee/caveman) — usuwa wypełniacze i rozwlekłe sformułowania, zachowując sens:
+Inspirowany projektem [Caveman](https://github.com/JuliusBrussee/caveman) — usuwa zbędne słowa i rozwlekłe sformułowania, zachowując znaczenie:
 
-- Usuwa słowa-wypełniacze („please”, „I think”, „basically”, „actually”)
-- Skraca rozwlekłe frazy („in order to” → „to”, „as a result of” → „because”)
-- Usuwa grzecznościowe owijanie („Would you mind...”, „If you could possibly...”)
-- Ponad 30 reguł regex dostrojonych do promptów kodowania
+- Usuwa zbędne słowa („please”, „I think”, „basically”, „actually”)
+- Skraca rozwlekłe wyrażenia („in order to” → „to”, „as a result of” → „because”)
+- Usuwa nadmiernie uprzejme i asekuracyjne sformułowania („Would you mind...”, „If you could possibly...”)
+- Ponad 30 reguł wyrażeń regularnych dostrojonych do promptów programistycznych
 
-**Najlepsze do:** codziennego kodowania, zespołów dbających o koszty.
+**Najlepszy do:** Codziennych zadań programistycznych i zespołów dbających o koszty.
 
-### Aggressive Mode (~50% oszczędności)
+### Tryb agresywny (~50% oszczędności)
 
-Inteligentne zarządzanie historią w długich sesjach:
+Inteligentne zarządzanie historią długich sesji:
 
-- **Message Aging** — starsze wiadomości są stopniowo mocniej kompresowane
-- **Tool Result Summarization** — długie wyjścia narzędzi zastępowane streszczeniami
-- **Structural Integrity Guards** — pary `tool_use` + `tool_result` pozostają spójne
-- **Context Window Awareness** — respektuje limity tokenów per model
+- **Starzenie wiadomości** — starsze wiadomości są stopniowo coraz bardziej kompresowane
+- **Podsumowywanie wyników narzędzi** — długie wyniki narzędzi są zastępowane podsumowaniami
+- **Mechanizmy ochrony integralności strukturalnej** — zapewniają spójność par `tool_use` + `tool_result`
+- **Uwzględnianie okna kontekstu** — respektuje limity tokenów poszczególnych modeli
 
-**Najlepsze do:** długich sesji debugowania, dużych codebase’ów.
+**Najlepszy do:** Długich sesji debugowania i dużych baz kodu.
 
-### Ultra Mode (~75% oszczędności)
+### Tryb Ultra (~75% oszczędności)
 
-Maksymalna kompresja w scenariuszach krytycznych dla tokenów:
+Maksymalna kompresja w scenariuszach, w których liczba tokenów ma krytyczne znaczenie:
 
-- **Heuristic Pruning** — usuwa wiadomości poniżej progu istotności
-- **Code Block Thinning** — kompresuje powtarzalne przykłady kodu
-- **Binary Search Truncation** — znajduje optymalny punkt cięcia okna kontekstu
-- Zawiera wszystkie funkcje trybu Aggressive
+- **Przycinanie heurystyczne** — usuwa wiadomości poniżej progu istotności
+- **Odchudzanie bloków kodu** — kompresuje powtarzalne przykłady kodu
+- **Obcinanie z użyciem wyszukiwania binarnego** — znajduje optymalny punkt odcięcia dla okna kontekstu
+- Obejmuje wszystkie funkcje trybu agresywnego
 
-**Najlepsze do:** gdy wielokrotnie dobijasz do limitów kontekstu.
+**Najlepszy do:** Sytuacji, w których wielokrotnie osiągasz limity kontekstu.
 
-### RTK Mode (zakres upstream 60–90%)
+### Tryb RTK (zakres 60–90% po stronie nadrzędnej)
 
-Tryb RTK jest zoptymalizowany pod rozwlekłe wyjścia narzędzi w sesjach agentów kodujących:
+Tryb RTK jest zoptymalizowany pod kątem rozwlekłych wyników narzędzi pojawiających się w sesjach agentów programistycznych:
 
-- Wykrywa klasy poleceń/wyjść takie jak `git status`, `git diff`, `git log`, test runnery,
-  buildy TypeScript/Vite/Webpack, ESLint/Biome/Prettier, npm audit/install, logi Docker, wyjście
-  infrastruktury oraz generyczne wyjście shell
+- Wykrywa klasy poleceń/wyników, takie jak `git status`, `git diff`, `git log`, narzędzia uruchamiające testy,
+  kompilacje TypeScript/Vite/Webpack, ESLint/Biome/Prettier, audyty/instalacje npm, logi Docker, dane wyjściowe
+  infrastruktury i ogólne dane wyjściowe powłoki
 - Stosuje pakiety filtrów JSON z `open-sse/services/compression/engines/rtk/filters/`
 - Importuje filtry schematu RTK TOML v1 z projektowych lub globalnych plików `filters.toml`, z walidacją
-  testów inline i bramką zaufania dla plików projektowych
-- Dostarcza 49 wbudowanych filtrów z próbkami weryfikacji inline
-- Usuwa sekwencje sterujące ANSI, paski postępu, powtórzone linie i nieistotny szum
-- Zachowuje awarie, błędy, ostrzeżenia, zmienione pliki, podsumowania oraz ogon długiego wyjścia
-- Wspiera filtry projektowe z bramką zaufania, filtry globalne oraz opcjonalne odzyskiwanie zredagowanego surowego wyjścia
+  testów wbudowanych i kontrolą zaufania dla plików projektowych
+- Zawiera 49 wbudowanych filtrów z wbudowanymi przykładami weryfikacyjnymi
+- Usuwa sekwencje sterujące ANSI, paski postępu, powtarzające się wiersze i nieprzydatny szum
+- Zachowuje informacje o niepowodzeniach, błędach, ostrzeżeniach, zmienionych plikach, podsumowaniach i końcowej części długich danych wyjściowych
+- Obsługuje filtry projektowe podlegające kontroli zaufania, filtry globalne i opcjonalne odzyskiwanie zredagowanych surowych danych wyjściowych
 
-**Najlepsze do:** sesji agentów z transkryptami shell, build, test, git, grep i wyjściem plików.
+**Najlepszy do:** Sesji agentów zawierających transkrypcje powłoki, kompilacji, testów, poleceń git i grep oraz operacji na plikach.
 
-### Stacked Mode (zakres kwalifikowalny 78–95%)
+### Tryb warstwowy (zakres 78–95% kwalifikującej się treści)
 
-Tryb stacked uruchamia wiele silników kompresji w deterministycznej kolejności. Domyślny potok:
+Tryb warstwowy uruchamia wiele silników kompresji w deterministycznej kolejności. Domyślny potok to:
 
 ```txt
 RTK -> Caveman
 ```
 
-Ta kolejność najpierw kompaktuje wyjście terminala/narzędzi, a potem stosuje semantyczną kondensację Caveman
-do pozostałego promptu w języku naturalnym. Potoki stacked można konfigurować globalnie lub przez
-combo kompresji przypisane do combo routingu.
+Ta kolejność najpierw kompresuje dane wyjściowe terminala/narzędzi, a następnie stosuje semantyczną kondensację Caveman do
+pozostałego promptu w języku naturalnym. Potoki warstwowe można konfigurować globalnie lub za pomocą
+kombinacji kompresji przypisanych do kombinacji routingu.
 
-**Najlepsze do:** mieszanego kontekstu z dużymi logami narzędzi oraz instrukcjami człowieka lub streszczeniami asystenta.
+**Najlepszy do:** Mieszanego kontekstu zawierającego duże logi narzędzi oraz instrukcje użytkownika lub podsumowania asystenta.
 
 ---
 
-## Matematyka oszczędności upstream
+## Obliczanie oszczędności z projektów bazowych
 
-OmniRoute dokumentuje oszczędności kompresji z dwóch źródeł: benchmarków projektów upstream oraz
+OmniRoute dokumentuje oszczędności wynikające z kompresji na podstawie dwóch źródeł: testów wydajności projektów bazowych oraz
 własnej kompozycji silników OmniRoute.
 
-| Source  | Upstream README number used here                                                                                      |
-| ------- | --------------------------------------------------------------------------------------------------------------------- |
-| Caveman | `~75%` fewer output tokens, `65%` benchmark average output savings, `22-87%` range, and `~46%` input compression tool |
-| RTK     | `60-90%` command-output savings; sample session `~118,000 -> ~23,900` tokens, or `79.7%` saved (`~80%`)               |
+| Źródło  | Wartość z README projektu bazowego użyta tutaj                                                                                                                              |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Caveman | `~75%` mniej tokenów wyjściowych, średnia oszczędność wyjściowa w testach wynosząca `65%`, zakres `22-87%` oraz narzędzie do kompresji danych wejściowych o wartości `~46%` |
+| RTK     | `60-90%` oszczędności na danych wyjściowych poleceń; przykładowa sesja: `~118,000 -> ~23,900` tokenów, czyli oszczędność `79.7%` (`~80%`)                                   |
 
-Dla nakładających się payloadów narzędzi/kontekstu domyślne combo OmniRoute układa silniki w stos:
+W przypadku nakładających się danych narzędzi/kontekstu domyślna kombinacja OmniRoute łączy silniki kaskadowo:
 
 ```txt
 RTK -> Caveman
 ```
 
-Połączone oszczędności są multiplikatywne, nie addytywne:
+Łączne oszczędności są mnożone, a nie dodawane:
 
 ```txt
-combined = 1 - (1 - RTK savings) * (1 - Caveman input savings)
-average  = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
-range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
+łącznie  = 1 - (1 - oszczędności RTK) * (1 - oszczędności wejściowe Caveman)
+średnia  = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
+zakres   = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
 ```
 
-Liczba `78-95%` dotyczy sytuacji, gdy zarówno RTK, jak i Caveman mogą zredukować ten sam payload wejścia/kontekstu.
-Tryb wyjścia odpowiedzi Caveman jest osobny: gdy włączony, stosuj własne oszczędności wyjścia Caveman (`65%`
-średnio, `~75%` w nagłówku, zakres `22-87%`). Całkowite oszczędności rozliczeniowe zależą od mieszanki prompt/wyjście.
+Wartość `78-95%` ma zastosowanie, gdy zarówno RTK, jak i Caveman mogą zmniejszyć ten sam ładunek wejściowy/kontekstowy.
+Tryb wyjściowy odpowiedzi Caveman jest osobny: po jego włączeniu należy używać własnych wartości oszczędności wyjściowych Caveman (`65%`
+średnio, `~75%` w głównej deklaracji, zakres `22-87%`). Całkowite oszczędności rozliczeniowe zależą od proporcji promptów i danych wyjściowych.
+
+### Co właściwie oznacza „kwalifikujący się”
+
+Deklarowany zakres 15-95% jest rzeczywisty, ale dotyczy wyłącznie **nadmiarowej lub rozwlekłej** treści — powtarzających się
+wierszy błędów, dziennika kompilacji zasypywanego tym samym ostrzeżeniem czy zbyt obszernego wyniku `grep`/odczytu pliku. **Nie**
+oznacza to, że każde żądanie zapewni taką oszczędność.
+
+Potwierdzono empirycznie (`tests/unit/compression/stacked-compression-tool-result-savings.test.ts`): uruchomienie
+`stacked` (RTK + Caveman) na bloku `tool_result` w formacie Anthropic, zawierającym 300 identycznych
+wierszy błędów, przyniosło **95.93% oszczędności tokenów / 96.26% oszczędności znaków** — dokładnie w reklamowanym
+zakresie. Jednak uruchomienie tego samego potoku na zwykłych, nienadmiarowych danych wyjściowych narzędzia (czysta lista dopasowań `grep`,
+krótki odczyt pliku, zwykły tekst konwersacyjny) prawidłowo daje **oszczędności bliskie zeru**, ponieważ
+nie ma niczego powtarzalnego do usunięcia, a `validateCompression()` (`validation.ts`) nie zezwala na użycie
+przekształconej treści, która usuwałaby lub zmieniała bloki kodu, adresy URL, nagłówki, wersje albo identyfikatory stałych zapisane WIELKIMI_LITERAMI.
+
+Jest to oczekiwane i bezpieczne zachowanie, a nie błąd: sesja programistyczna, która głównie odczytuje/przeszukuje czyste pliki,
+przyniesie umiarkowane łączne oszczędności nawet przy w pełni włączonej kompresji, natomiast sesja, która trafi na zapętlony
+błąd lub nadmiernie gadatliwy linter, osiągnie pełny zakres 78-95% dla tego ruchu. Nie należy traktować niskiego
+łącznego procentu oszczędności z pojedynczej sesji jako dowodu na nieprawidłową konfigurację kompresji — najpierw sprawdź, czy
+bazowe dane wyjściowe narzędzia rzeczywiście były nadmiarowe.
 
 ---
 
 ## Wizualizacja oszczędności tokenów
 
 ```
-Without compression: 47K tokens sent to LLM
-With Lite:           40K tokens sent          (15% saved — safe, always-on)
-With Standard:       33K tokens sent          (30% saved — caveman-speak rules)
-With Aggressive:     24K tokens sent          (50% saved — aging + summarization)
-With Ultra:          12K tokens sent          (75% saved — heuristic pruning)
-With RTK:            19K-5K tokens sent       (60-90% saved on command/tool output)
-With Stacked:        10K-2.5K tokens sent     (78-95% eligible RTK+Caveman range)
+Bez kompresji:       47K tokenów wysłanych do LLM
+Z Lite:              40K tokenów wysłanych          (15% oszczędności — bezpiecznie, zawsze włączone)
+Ze Standard:         33K tokenów wysłanych          (30% oszczędności — reguły caveman-speak)
+Z Aggressive:        24K tokenów wysłanych          (50% oszczędności — starzenie + podsumowywanie)
+Z Ultra:             12K tokenów wysłanych          (75% oszczędności — przycinanie heurystyczne)
+Z RTK:               19K-5K tokenów wysłanych       (60-90% oszczędności na danych wyjściowych poleceń/narzędzi)
+Ze Stacked:          10K-2.5K tokenów wysłanych     (kwalifikujący się zakres RTK+Caveman: 78-95%)
 ```
 
 ---
 
 ## Konfiguracja
 
-### Dashboard
+### Panel sterowania
 
 Przejdź do `Dashboard → Context & Cache`:
 
-- **Caveman** — wybór trybu, language packi, podgląd i globalne domyślne
-- **RTK** — podgląd filtrów poleceń, ustawienia bezpieczeństwa RTK i katalog filtrów
-- **Compression Combos** — nazwane potoki silników przypisane do combo routingu
-- **Auto-Trigger Threshold** — automatycznie włącza kompresję, gdy liczba tokenów przekroczy próg
+- **Caveman** — wybór trybu, pakiety językowe, podgląd i globalne ustawienia domyślne
+- **RTK** — podgląd filtrowania poleceń, ustawienia bezpieczeństwa RTK i katalog filtrów
+- **Compression Combos** — nazwane potoki silników przypisane do kombinacji routingu
+- **Auto-Trigger Threshold** — automatyczne włączanie kompresji, gdy liczba tokenów przekroczy próg
 
-### Nadpisanie per combo
+### Nadpisanie dla kombinacji
 
-W `Dashboard → Context & Cache → Compression Combos` przypisz combo kompresji do combo
+W `Dashboard → Context & Cache → Compression Combos` przypisz kombinację kompresji do kombinacji
 routingu:
 
 ```txt
-Combo: "free-tier-fallback"
-  Compression Combo: "coding-agent-stack"
-  Pipeline: RTK -> Caveman
-  Targets:
+Kombinacja: "free-tier-fallback"
+  Kombinacja kompresji: "coding-agent-stack"
+  Potok: RTK -> Caveman
+  Cele:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Pozwala to używać kompresji stacked na darmowych/kodujących providerach, a trybu lite na płatnych
-subskrypcjach.
+Pozwala to używać kompresji wieloetapowej u bezpłatnych dostawców lub dostawców przeznaczonych do
+kodowania, zachowując jednocześnie tryb uproszczony w płatnych subskrypcjach.
 
-To przypisanie „Per-Combo Override” to inna kontrolka niż nadpisanie **trybu kompresji combo routingu**
-(Default/Off/Lite/Standard/Aggressive/Ultra) — to nadpisanie nie wybiera nazwanego
-potoku compression-combo; ustawia jedynie pole `compressionMode` odczytywane przez
-`resolveCompressionPlan`. Można je ustawić na karcie combo (`Dashboard → Combos`) albo, od
-#6760, per combo routingu na liście „Assign to routing” w
-`Dashboard → Context & Cache → Compression Combos`, tuż obok checkboxa przypisania potoku
-opisanego wyżej. Oba miejsca zapisują przez ten sam endpoint `PUT /api/combos/{id}`.
+To przypisanie „Nadpisanie dla kombinacji” jest innym mechanizmem sterowania niż nadpisanie
+**trybu kompresji kombinacji routingu** (Default/Off/Lite/Standard/Aggressive/Ultra) — to nadpisanie
+nie wybiera nazwanego potoku kombinacji kompresji; ustawia jedynie pole `compressionMode`
+uwzględniane przez `resolveCompressionPlan`. Można je ustawić na karcie kombinacji
+(`Dashboard → Combos`) lub, od wersji #6760, dla każdej kombinacji routingu na liście
+„Assign to routing” w `Dashboard → Context & Cache → Compression Combos`, tuż obok pola wyboru
+przypisania potoku opisanego powyżej. Ustawienia z obu miejsc są zapisywane przez ten sam punkt
+końcowy `PUT /api/combos/{id}`.
 
-### Nadpisanie per żądanie
+### Nadpisanie dla żądania
 
 Wyślij nagłówek żądania `x-omniroute-compression`, aby nadpisać plan kompresji dla pojedynczego
-żądania. Ma najwyższy priorytet — wygrywa z nadpisaniem combo routingu, aktywnym profilem,
-auto-triggerem i panelem Default. Nieznane wartości są ignorowane (żądanie nigdy nie jest odrzucane), a
-globalny przełącznik główny nadal blokuje wszystko: gdy kompresja jest globalnie wyłączona, nagłówek nie może
-jej włączyć. Wartości:
+żądania. Ma on najwyższy priorytet — zastępuje nadpisanie kombinacji routingu, aktywny profil,
+automatyczne wyzwalanie oraz ustawienie Default z panelu. Nieznane wartości są ignorowane
+(żądanie nigdy nie zostaje odrzucone), a globalny przełącznik główny nadal kontroluje całość:
+gdy kompresja jest globalnie wyłączona, nagłówek nie może jej włączyć. Wartości:
 
-| Value         | Effect                                                                 |
-| ------------- | ---------------------------------------------------------------------- |
-| `off`         | Brak kompresji dla tego żądania.                                       |
-| `default`     | Profil Default z panelu (ignoruje aktywny profil).                     |
-| `engine:<id>` | Pojedynczy silnik, gdy włączony, np. `engine:rtk`.                     |
-| `<combo>`     | Nazwane combo — najpierw po nazwie (bez wielkości liter), potem po id. |
+| Wartość       | Efekt                                                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Brak kompresji dla tego żądania.                                                                                              |
+| `default`     | Domyślny profil wynikający z ustawień panelu (ignoruje aktywny profil).                                                       |
+| `engine:<id>` | Pojedynczy silnik, jeśli jest włączony, np. `engine:rtk`.                                                                     |
+| `<combo>`     | Nazwana kombinacja, dopasowywana najpierw według nazwy (bez rozróżniania wielkości liter), a następnie według identyfikatora. |
 
-Zastosowany plan jest zwracany w nagłówku odpowiedzi `X-OmniRoute-Compression: <mode>; source=<source>`,
-gdzie `<source>` to jedno z: `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` lub `off`.
+Zastosowany plan jest zwracany w nagłówku odpowiedzi
+`X-OmniRoute-Compression: <mode>; source=<source>`, gdzie `<source>` przyjmuje jedną z wartości:
+`request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` lub `off`.
 
 ### API
 
 ```bash
-# Get compression settings
+# Pobierz ustawienia kompresji
 curl http://localhost:20128/api/settings/compression
 
-# Update compression settings
+# Zaktualizuj ustawienia kompresji
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Preview a specific RTK/stacked payload
+# Wyświetl podgląd określonego ładunku RTK/wieloetapowego
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# List RTK filter packs
+# Wyświetl listę pakietów filtrów RTK
 curl http://localhost:20128/api/context/rtk/filters
 
-# Test RTK directly with optional command metadata
+# Przetestuj RTK bezpośrednio z opcjonalnymi metadanymi polecenia
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -244,20 +263,20 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ---
 
-## Co jest chronione
+## Co podlega ochronie
 
-Silnik kompresji **zawsze zachowuje:**
+Mechanizm kompresji **zawsze zachowuje:**
 
-- ✅ Bloki kodu (fenced i inline)
-- ✅ URL-e i ścieżki plików
+- ✅ Bloki kodu (wydzielone i w tekście)
+- ✅ Adresy URL i ścieżki plików
 - ✅ Struktury JSON i dane strukturalne
 - ✅ Identyfikatory i chronione tokeny techniczne
 - ✅ Wyrażenia matematyczne
 - ✅ Definicje wywołań narzędzi/funkcji
-- ✅ System prompty (w trybie lite)
+- ✅ Prompty systemowe (w trybie lite)
 
-Odzyskiwanie surowego wyjścia RTK redaguje typowe klucze API, tokeny bearer, tokeny Slack, klucze dostępu AWS,
-hasła, tokeny i sekrety zanim cokolwiek zostanie zapisane.
+Odzyskiwanie surowych danych wyjściowych RTK redaguje typowe klucze API, tokeny bearer, tokeny Slack, klucze dostępu AWS,
+hasła, tokeny i dane poufne, zanim cokolwiek zostanie utrwalone.
 
 ---
 
@@ -281,48 +300,48 @@ Każde skompresowane żądanie zawiera statystyki w logach serwera:
 
 ---
 
-## Roadmapa faz
+## Plan etapów
 
-| Phase    | Modes                                                                                                        | Status                                                                        |
-| -------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| Phase 1  | Off, Lite                                                                                                    | ✅ Wydane                                                                     |
-| Phase 2  | Standard, Aggressive, Ultra                                                                                  | ✅ Wydane                                                                     |
-| Phase 3  | RTK, Stacked, Compression Combos                                                                             | ✅ Wydane                                                                     |
-| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | ✅ Wydane                                                                     |
-| Phase 4C | Adaptive context-budget („dial”) — silnik compute + API (`contextBudget` na `PUT /api/settings/compression`) | ✅ Wydane (konfigurowalne przez API; kontrolki dashboardu jeszcze nie, #7005) |
+| Etap    | Tryby                                                                                                                                                            | Status    |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Etap 1  | Off, Lite                                                                                                                                                        | ✅ Wydano |
+| Etap 2  | Standard, Aggressive, Ultra                                                                                                                                      | ✅ Wydano |
+| Etap 3  | RTK, Stacked, kombinacje kompresji                                                                                                                               | ✅ Wydano |
+| Etap 4  | Style danych wyjściowych, Ultra klasy SLM, zestaw ewaluacyjny                                                                                                    | ✅ Wydano |
+| Etap 4C | Adaptacyjny budżet kontekstu („pokrętło”) — mechanizm obliczeniowy + API (`contextBudget` w `PUT /api/settings/compression`) + kontrolki trybu/polityki w panelu | ✅ Wydano |
 
 ---
 
 ## Podziękowania
 
-Reguły kompresji trybu Standard są inspirowane przez **[Caveman](https://github.com/JuliusBrussee/caveman)** autorstwa **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — viralowy projekt „why use many token when few token do trick”. Caveman raportuje `~75%` mniej tokenów wyjścia, `65%` średnich oszczędności wyjścia w benchmarku, zakres wyjścia `22-87%` oraz narzędzie kompresji wejścia `~46%`.
+Reguły kompresji trybu Standard są inspirowane projektem **[Caveman](https://github.com/JuliusBrussee/caveman)** autorstwa **[Juliusa Brussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — wirusowym projektem „po co używać wielu tokenów, skoro kilka wystarczy”. Caveman deklaruje `~75%` mniej tokenów wyjściowych, średnią oszczędność danych wyjściowych w benchmarkach na poziomie `65%`, zakres oszczędności danych wyjściowych wynoszący `22-87%` oraz narzędzie do kompresji danych wejściowych na poziomie `~46%`.
 
-Tryb RTK jest inspirowany przez **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** autorstwa **[RTK AI](https://github.com/rtk-ai)** — wysokowydajny projekt kompresji wyjścia poleceń do filtrowania terminala, buildów, testów, git i wyjścia narzędzi. RTK raportuje oszczędności `60-90%`, a przykładowa sesja w README pokazuje `~80%` zaoszczędzonych tokenów.
+Tryb RTK jest inspirowany projektem **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** autorstwa **[RTK AI](https://github.com/rtk-ai)** — wysokowydajnym projektem kompresji danych wyjściowych poleceń, przeznaczonym do filtrowania danych wyjściowych terminala, kompilacji, testów, git i narzędzi. RTK deklaruje oszczędności na poziomie `60-90%`, a przykładowa sesja w pliku README pokazuje oszczędność wynoszącą `~80%`.
 
 ---
 
 ## Zaawansowane systemy kompresji
 
-Poza 7 standardowymi trybami OmniRoute zawiera kilka zaawansowanych systemów kompresji,
+Oprócz 7 standardowych trybów OmniRoute obejmuje kilka zaawansowanych systemów kompresji,
 które działają automatycznie w zależności od kontekstu.
 
-### Kompresja świadoma cache
+### Kompresja uwzględniająca pamięć podręczną
 
-Niektórzy providerzy (np. Anthropic z prompt caching) wspierają **prompt caching**,
-który pozwala cache’ować części promptu w celu obniżenia kosztów i opóźnień. Gdy
-cache jest włączony, agresywna kompresja może faktycznie **pogorszyć** wydajność,
-bo zmienia cache’owane tokeny i unieważnia cache.
+Niektórzy dostawcy (np. Anthropic z buforowaniem promptów) obsługują **buforowanie promptów**,
+co pozwala im zapisywać części promptu w pamięci podręcznej w celu zmniejszenia kosztów i opóźnień. Gdy
+buforowanie jest włączone, agresywna kompresja może w rzeczywistości **pogorszyć** wydajność,
+ponieważ zmienia buforowane tokeny, unieważniając pamięć podręczną.
 
-Moduł `cachingAware.ts` rozwiązuje to przez **wykrywanie kontekstu cache** i
-**dostosowanie strategii kompresji**.
+Moduł `cachingAware.ts` rozwiązuje ten problem poprzez **wykrywanie kontekstu buforowania** i
+odpowiednie **dostosowywanie strategii kompresji**.
 
 #### Jak to działa
 
-1. **Wykryj kontekst cache** — skanuje body żądania pod kątem znaczników `cache_control`
-2. **Zidentyfikuj providerów z cache** — sprawdza, czy docelowy provider wspiera cache
-3. **Dostosuj strategię** — obniża `aggressive`/`ultra` do `standard` dla providerów z cache
-4. **Pomiń system prompt** — system prompty zwykle są cache’owane, więc ich nie kompresuj
-5. **Używaj transformacji deterministycznych** — tylko transformacje dające spójne wyjście
+1. **Wykrywanie kontekstu buforowania** — Skanuje treść żądania pod kątem znaczników `cache_control`
+2. **Identyfikacja dostawców obsługujących buforowanie** — Sprawdza, czy docelowy dostawca obsługuje buforowanie
+3. **Dostosowanie strategii** — Obniża poziom `aggressive`/`ultra` do `standard` w przypadku dostawców obsługujących buforowanie
+4. **Pomijanie promptu systemowego** — Prompty systemowe są zwykle buforowane, dlatego nie należy ich kompresować
+5. **Używanie deterministycznych transformacji** — Używa wyłącznie transformacji generujących spójne dane wyjściowe
 
 #### Przykład kodu
 
@@ -335,7 +354,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Cache marker
+  cache_control: { type: "ephemeral" }, // ← Znacznik pamięci podręcznej
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -347,21 +366,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kiedy używać
 
-Kompresja świadoma cache jest **zawsze włączona** — bez konfiguracji. Włącza się tylko
-gdy:
+Kompresja uwzględniająca pamięć podręczną jest **zawsze włączona** — nie wymaga konfiguracji. Uruchamia się tylko
+wtedy, gdy:
 
-- Żądanie ma znaczniki `cache_control`
-- Docelowy provider wspiera prompt caching (Anthropic, OpenAI itd.)
+- Żądanie zawiera znaczniki `cache_control`
+- Docelowy dostawca obsługuje buforowanie promptów (Anthropic, OpenAI itp.)
 
-### Progressive Aging
+### Stopniowe starzenie
 
-Długie rozmowy gromadzą wiele tur wiadomości, ale starsze tury stają się mniej
-istotne. Moduł `progressiveAging.ts` **degraduje wiadomości według odległości tur**:
+Długie konwersacje gromadzą wiele tur wiadomości, ale starsze tury stają się mniej
+istotne. Moduł `progressiveAging.ts` **degraduje wiadomości zależnie od odległości między turami**:
 
-- **Ostatnie tury (0–3)**: bez zmian (pełny detal)
-- **Średnie tury (4–8)**: kompresja lite (whitespace, porządkowanie formatowania)
-- **Stare tury (9+)**: kompresja Caveman (usuwanie wypełniaczy, streszczanie)
-- **Bardzo stare tury (20+)**: mocno streszczone lub usunięte
+- **Ostatnie tury (0-3)**: Zachowywane dosłownie (pełne szczegóły)
+- **Średnio odległe tury (4-8)**: Kompresja Lite (czyszczenie odstępów i formatowania)
+- **Stare tury (9+)**: Kompresja Caveman (usuwanie wypełniaczy, podsumowywanie)
+- **Bardzo stare tury (20+)**: Intensywnie podsumowywane lub usuwane
 
 #### Przykład kodu
 
@@ -372,48 +391,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... 50 kolejnych tur ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // First 3 turns: verbatim
-  light: 8, // Turns 4-8: lite compression
-  moderate: 20, // Turns 9-20: caveman compression
-  // Turns 21+: heavy summarization
+  verbatim: 3, // Pierwsze 3 tury: dosłownie
+  light: 8, // Tury 4-8: kompresja lite
+  moderate: 20, // Tury 9-20: kompresja caveman
+  // Tury 21+: intensywne podsumowywanie
 });
 
-// saved = number of tokens saved
+// saved = liczba zaoszczędzonych tokenów
 ```
 
 #### Kiedy używać
 
-Progressive aging jest **zawsze włączone** dla trybów `aggressive` i `ultra`. Szczególnie
-skuteczne przy:
+Progresywne starzenie jest **zawsze włączone** w trybach `aggressive` i `ultra`. Jest
+szczególnie skuteczne w przypadku:
 
-- Długich sesjach kodowania
-- Rozmowach wielodniowych
-- Workflow agentowych z wieloma wywołaniami narzędzi
+- Długotrwałych sesji programistycznych
+- Wielodniowych konwersacji
+- Agentowych przepływów pracy z wieloma wywołaniami narzędzi
 
 ### Tryb wyjścia Caveman
 
-Moduł `outputMode.ts` wstrzykuje **instrukcje system promptu**, aby model sam
-produkował skompresowane, zwięzłe wyjście (styl „caveman”).
+Moduł `outputMode.ts` wstrzykuje **instrukcje promptu systemowego**, aby sam
+model generował skompresowane, zwięzłe odpowiedzi (w stylu „caveman”).
 
 #### Jak to działa
 
-Zamiast kompresować wejście, ten tryb dodaje system prompt w stylu:
+Zamiast kompresować dane wejściowe, ten tryb dodaje prompt systemowy podobny do:
 
-> "Reply in minimal words. Skip pleasantries. Use short sentences."
+> „Odpowiadaj minimalną liczbą słów. Pomijaj uprzejmości. Używaj krótkich zdań.”
 
-Szczególnie dobrze działa przy:
+Działa to szczególnie dobrze w przypadku:
 
-- Generowaniu kodu (zwięźlejsze wyjście = mniej tokenów)
-- Szybkim Q&A (bez rozbudowanych wyjaśnień)
-- Przetwarzaniu wsadowym (maksymalna przepustowość)
+- Generowania kodu (zwięźlejsze odpowiedzi = mniej tokenów)
+- Szybkich pytań i odpowiedzi (bez potrzeby rozbudowanych wyjaśnień)
+- Przetwarzania wsadowego (maksymalizacja przepustowości)
 
 #### Kiedy używać
 
-Tryb wyjścia Caveman jest **opt-in** — ustaw go w konfiguracji combo:
+Tryb wyjścia Caveman jest **opcjonalny** — ustaw go za pomocą konfiguracji łączonej:
 
 ```json
 {
@@ -426,46 +445,104 @@ Tryb wyjścia Caveman jest **opt-in** — ustaw go w konfiguracji combo:
 }
 ```
 
+### Style wyjścia (katalog)
+
+Opisany powyżej tryb wyjścia Caveman to **starsza ścieżka pojedynczego stylu**. Faza 4 rozszerzyła go
+do postaci katalogu komponowalnych stylów wyjścia: `OUTPUT_STYLE_CATALOG` w
+`open-sse/services/compression/outputStyles/catalog.ts`. Każdy styl jest instrukcją promptu
+systemowego, która skłania model do generowania tańszych odpowiedzi; style można włączać
+jednocześnie, a są one wstrzykiwane w kolejności katalogowej.
+
+| Styl                               | `id`          | Działanie                                                                                                                                                                                                                                                    | Języki instrukcji                                                                                   |
+| ---------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Zwięzła proza                      | `terse-prose` | Usuwa wypełniacze/rodzajniki/asekuracyjne sformułowania; zachowuje dokładną treść techniczną. Ten sam tekst co w starszym trybie wyjścia Caveman (przywoływany, a nie powielany).                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                       |
+| Mniej kodu                         | `less-code`   | Drabina YAGNI: najmniejsza działająca zmiana, bez niezamawianych abstrakcji.                                                                                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                       |
+| Kucyk (leniwy starszy programista) | `ponytail`    | „Najlepszy kod to kod, który nigdy nie powstał”: ponowne użycie > przepisywanie, przyczyna źródłowa > objaw, najkrótszy działający diff.                                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                       |
+| Mam ADHD (najpierw działanie)      | `i-have-adhd` | Najpierw działanie (polecenie/ścieżka/fragment przed opisem), ponumerowane kroki o ograniczonej liczbie, JEDEN konkretny następny krok, bez wstępu/podsumowania/zakończeń. Zaadaptowano z [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                       |
+| Zwięzły CJK (文言)                 | `terse-cjk`   | Ultranwięzły styl klasycznego języka chińskiego.                                                                                                                                                                                                             | zh (ograniczony ustawieniami regionalnymi: oferowany tylko wtedy, gdy ustalonym językiem jest `zh`) |
+
+Każdy styl udostępnia trzy poziomy intensywności — `lite`, `full`, `ultra` — a każdy poziom
+kończy się wspólną klauzulą ograniczeń, która zachowuje bloki kodu, ścieżki plików, polecenia,
+komunikaty błędów, adresy URL i identyfikatory bez zmian.
+
+#### Jak działa wstrzykiwanie
+
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) dopasowuje
+wybór do katalogu (nieznane identyfikatory i style niedopasowane do ustawień regionalnych są
+pomijane i nigdy nie powodują błędu), łączy wybrane instrukcje w kolejności katalogowej,
+dołącza klauzulę ograniczeń **jeden raz** i umieszcza wynik na początku promptu
+systemowego za pojedynczym znacznikiem idempotencji (`[OmniRoute Output Styles]`) — ponowne zastosowanie
+nie powoduje żadnych zmian. Gdy dostępne jest tłumaczenie dla wykrytego języka żądania,
+zamiast instrukcji angielskiej wstrzykiwana jest instrukcja zlokalizowana.
+
+#### Jak włączyć
+
+W panelu: **Kontekst → Ustawienia → Kompresja** — po jednym wierszu na styl, z
+przełącznikiem włączania/wyłączania i selektorem poziomu. Programowo konfiguracja kompresji zapisuje
+wybór jako:
+
+```json
+{
+  "outputStyles": [
+    { "id": "i-have-adhd", "level": "full" },
+    { "id": "less-code", "level": "lite" }
+  ]
+}
+```
+
+Zgodność wsteczna: starsze ustawienie łączone `outputMode: "caveman"` nadal działa i jest mapowane na
+`terse-prose`, z identycznym ciągiem bajtów jak stare wstrzyknięcie w każdym starszym języku.
+
+Wybór języka: przy włączonym `languageConfig.enabled` opcja `autoDetect` wybiera
+język najnowszej wiadomości użytkownika (ten sam detektor co w silnikach wejściowych);
+wyłączenie `autoDetect` wymusza `defaultLanguage`. Wyłączone → angielski.
+
+Macierz styl × język jest utrwalona przez
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: nowy styl nie może zostać wydany
+bez co najmniej tłumaczenia pt-BR (lub jawnie śledzonego wyjątku), a
+istniejący styl nie może po cichu utracić wersji językowej. Aby dodać styl, zobacz
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+
 ### Kompresja wyników narzędzi
 
-Moduł `toolResultCompressor.ts` oferuje **5 specjalistycznych strategii kompresji**
-dla wyników narzędzi (wywołania funkcji, wyjścia agentów, wyniki wyszukiwania itd.):
+Moduł `toolResultCompressor.ts` udostępnia **5 wyspecjalizowanych strategii kompresji**
+wyników narzędzi (wywołań funkcji, wyników agentów, wyników wyszukiwania itd.):
 
-1. **Kompresja wyników wyszukiwania** — usuwa zbędne wyniki, zostawia top-N
-2. **Kompresja odczytu plików** — obcina duże pliki, zachowuje nagłówki/importy
-3. **Kompresja wykonania kodu** — zostawia tylko istotny stdout/stderr
-4. **Kompresja zapytań do bazy** — limituje wiersze, usuwa rozwlekłe metadane
-5. **Kompresja odpowiedzi API** — usuwa pola null, kondensuje tablice
+1. **Kompresja wyników wyszukiwania** — Usuwa nadmiarowe wyniki, zachowuje top-N
+2. **Kompresja odczytu plików** — Skraca duże pliki, zachowuje nagłówki/importy
+3. **Kompresja wykonania kodu** — Zachowuje tylko niezbędne stdout/stderr
+4. **Kompresja zapytań do bazy danych** — Ogranicza liczbę wierszy, usuwa rozbudowane metadane
+5. **Kompresja odpowiedzi API** — Usuwa pola null, kondensuje tablice
 
 #### Kiedy używać
 
-Kompresja wyników narzędzi jest **zawsze włączona**, gdy obecne są wywołania narzędzi. Bez
+Kompresja wyników narzędzi jest **zawsze włączona**, gdy występują wywołania narzędzi. Nie wymaga
 konfiguracji.
 
-### Potok Stacked
+### Potok stosowy
 
-Tryb stacked uruchamia **wiele silników sekwencyjnie** — zwykle najpierw RTK
-(60–90% oszczędności na wyjściu narzędzi), potem Caveman (dodatkowe ~30% na
-pozostałym tekście). Daje to **łącznie 78–95% oszczędności**.
+Tryb stosowy uruchamia **wiele silników po kolei** — zwykle najpierw RTK
+(60–90% oszczędności na wynikach narzędzi), a następnie Caveman (dodatkowe 30% oszczędności na
+pozostałym tekście). Pozwala to osiągnąć **78–95% łącznych oszczędności**.
 
 #### Jak to działa
 
 ```
-Input (1000 tokens)
-  → RTK (command-aware filter) → 200 tokens
-    → Caveman (filler removal) → 140 tokens
-  → Output (140 tokens, 86% savings)
+Wejście (1000 tokenów)
+  → RTK (filtr uwzględniający polecenia) → 200 tokenów
+    → Caveman (usuwanie wypełniaczy) → 140 tokenów
+  → Wyjście (140 tokenów, 86% oszczędności)
 ```
 
 #### Kiedy używać
 
-Używaj trybu stacked dla:
+Używaj trybu stosowego w przypadku:
 
-- Workflow mocno opartych o narzędzia (agentowe kodowanie, research)
+- Przepływów pracy intensywnie korzystających z narzędzi (programowanie agentowe, badania)
 - Przetwarzania wsadowego wrażliwego na koszty
-- Gdy potrzebujesz maksymalnych oszczędności tokenów
+- Gdy potrzebujesz maksymalnej oszczędności tokenów
 
-Konfiguracja przez combo:
+Skonfiguruj za pomocą konfiguracji łączonej:
 
 ```json
 {
@@ -480,10 +557,10 @@ Konfiguracja przez combo:
 
 ---
 
-## Nadpisania combo kompresji
+## Nadpisywanie kompresji dla kombinacji
 
-Możesz nadpisać globalny tryb kompresji **per combo**, aby dostroić zachowanie
-dla różnych przypadków użycia:
+Możesz nadpisać globalny tryb kompresji **dla każdej kombinacji osobno**, aby precyzyjnie dostosować zachowanie
+do różnych przypadków użycia:
 
 ```json
 {
@@ -503,21 +580,21 @@ dla różnych przypadków użycia:
 }
 ```
 
-Przydatne dla:
+Jest to przydatne w przypadku:
 
-- **Combo kodowania**: tryb `aggressive` przy długich sesjach
-- **Combo szybkiego Q&A**: tryb `lite` dla szybkich odpowiedzi
-- **Combo mocno narzędziowe**: tryb `stacked` dla max oszczędności
-- **Combo produkcyjne**: tryb `cache-aware` dla providerów z cache
+- **Kombinacji do programowania**: użyj trybu `aggressive` podczas długich sesji
+- **Kombinacji do szybkich pytań i odpowiedzi**: użyj trybu `lite`, aby uzyskać szybkie odpowiedzi
+- **Kombinacji intensywnie korzystających z narzędzi**: użyj trybu `stacked`, aby uzyskać maksymalne oszczędności
+- **Kombinacji produkcyjnych**: użyj trybu `cache-aware` w przypadku dostawców obsługujących buforowanie
 
 ---
 
-## Zobacz też
+## Zobacz także
 
 - [Konfiguracja środowiska](../reference/ENVIRONMENT.md) — zmienne środowiskowe kompresji
-- [Przewodnik po architekturze](../architecture/ARCHITECTURE.md) — wnętrze potoku kompresji
-- [Przewodnik użytkownika](../guides/USER_GUIDE.md) — pierwsze kroki z kompresją
-- [Kompresja RTK](./RTK_COMPRESSION.md) — filtry RTK, model zaufania, bramka verify, odzyskiwanie surowego wyjścia
-- [Silniki kompresji](./COMPRESSION_ENGINES.md) — Caveman, RTK, stacked, API, MCP, dashboard
-- [Format reguł kompresji](./COMPRESSION_RULES_FORMAT.md) — format pakietów reguł JSON
-- [Language packi kompresji](./COMPRESSION_LANGUAGE_PACKS.md) — reguły Caveman zależne od języka
+- [Przewodnik po architekturze](../architecture/ARCHITECTURE.md) — wewnętrzne mechanizmy potoku kompresji
+- [Podręcznik użytkownika](../guides/USER_GUIDE.md) — pierwsze kroki z kompresją
+- [Kompresja RTK](./RTK_COMPRESSION.md) — filtry RTK, model zaufania, bramka weryfikacyjna i odzyskiwanie nieprzetworzonych danych wyjściowych
+- [Mechanizmy kompresji](./COMPRESSION_ENGINES.md) — Caveman, RTK, tryb stosowy, interfejsy API, MCP i panel sterowania
+- [Format reguł kompresji](./COMPRESSION_RULES_FORMAT.md) — format pakietu reguł JSON
+- [Pakiety językowe kompresji](./COMPRESSION_LANGUAGE_PACKS.md) — reguły Caveman specyficzne dla języka

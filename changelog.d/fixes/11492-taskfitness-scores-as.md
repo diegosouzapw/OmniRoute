@@ -1,1 +1,0 @@
-- **fix(autoCombo):** effort/alias model variants (`gpt-5.6-sol-xhigh`, `gpt-5.6`, cursor's `claude-4.6-opus-high`) inherit their base model's task fitness instead of falling to the wildcard 0.5 ([#11492](https://github.com/diegosouzapw/OmniRoute/pull/11492))

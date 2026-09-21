@@ -1,1 +1,0 @@
-- **fix(cli):** Resolve Bun's `--preload` polyfill path against the package root instead of `dist/`, so `omniroute` installed with `bun install -g` no longer crashes at startup with `error: preload not found …/dist/open-sse/utils/setupPolyfill.ts` ([#11980](https://github.com/diegosouzapw/OmniRoute/issues/11980)) — thanks @joglomedia

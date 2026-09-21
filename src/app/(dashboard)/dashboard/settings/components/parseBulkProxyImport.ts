@@ -28,7 +28,8 @@ export type ParsedProxyEntry = {
   password: string;
   type: string;
   region: string;
-  status: string;
+  /** Absent when the line carries no status: the import then leaves the stored one alone. */
+  status?: string;
   notes: string;
 };
 
@@ -90,7 +91,6 @@ function pushShorthandEntry(
     password,
     type: normalizedType,
     region: "",
-    status: "active",
     notes: "",
   });
   return true;
@@ -236,8 +236,8 @@ export function parseBulkImportText(text: string): {
         errors.push({ line: lineNum, reason: "bulkImportErrorInvalidType" });
         continue;
       }
-      const normalizedStatus = (status || "active").toLowerCase();
-      if (!VALID_PROXY_STATUSES[normalizedStatus]) {
+      const normalizedStatus = status ? status.toLowerCase() : undefined;
+      if (normalizedStatus !== undefined && !VALID_PROXY_STATUSES[normalizedStatus]) {
         errors.push({ line: lineNum, reason: "bulkImportErrorInvalidStatus" });
         continue;
       }
@@ -250,7 +250,7 @@ export function parseBulkImportText(text: string): {
         password: password || "",
         type: normalizedType,
         region: region || "",
-        status: normalizedStatus,
+        ...(normalizedStatus ? { status: normalizedStatus } : {}),
         notes: notes || "",
       });
       continue;

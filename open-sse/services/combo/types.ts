@@ -60,8 +60,10 @@ export type SingleModelTarget =
       modelAbortSignal?: AbortSignal | null;
       /** True when this target was selected via context-cache session pinning. */
       modelPinned?: boolean;
+      /** Prior combo legs already attempted before this dispatch (#12339). */
+      fallbackAttempts?: number;
     })
-  | { modelAbortSignal: AbortSignal };
+  | { modelAbortSignal: AbortSignal; fallbackAttempts?: number };
 
 export type HandleSingleModel = (
   body: Record<string, unknown>,

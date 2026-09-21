@@ -1,0 +1,1 @@
+- **fix(pricing):** saving model pricing from the dashboard no longer fails with a 400 / `[object Object]` — sync-written pricing fields round-trip through PATCH and validation errors surface actionable details ([#12629](https://github.com/diegosouzapw/OmniRoute/pull/12629)) — thanks @wofiporia

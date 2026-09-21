@@ -1,0 +1,1 @@
+- **fix(tests):** eight combo integration suites still targeted the retired `claude-3-5-sonnet-20241022`, which the lifecycle registry rejects with 410; they now use its successor `claude-sonnet-4-6`, un-hiding 23 routing cases ([#13056](https://github.com/diegosouzapw/OmniRoute/pull/13056)) — thanks @doramirdor

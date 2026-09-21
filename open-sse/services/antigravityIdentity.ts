@@ -76,6 +76,7 @@ export function getAntigravitySessionId(
 ): string {
   return (
     toNonEmptyString(fallback) ||
+    deriveAntigravitySessionId(getAntigravityAccountKey(credentials)) ||
     generateAntigravitySessionId()
   );
 }

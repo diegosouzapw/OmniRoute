@@ -1,1 +1,0 @@
-- **test(executors):** drop the stale 128-tool truncation assertion that contradicted the #11444 pass-through contract ([#11591](https://github.com/diegosouzapw/OmniRoute/pull/11591))

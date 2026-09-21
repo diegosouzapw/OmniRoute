@@ -60,7 +60,7 @@ def get_target_lang() -> str:
 
 # Keys that should NOT be translated (technical terms, proper names, etc.)
 # Loaded from external file for easier maintenance
-_UNTRANSLATABLE_KEYS_FILE = _script_dir / "i18n" / "untranslatable-keys.json"
+_UNTRANSLATABLE_KEYS_FILE = _script_dir / "untranslatable-keys.json"
 if _UNTRANSLATABLE_KEYS_FILE.exists():
     with open(_UNTRANSLATABLE_KEYS_FILE, "r", encoding="utf-8") as _f:
         UNTRANSLATABLE_KEYS = set(json.load(_f).get("keys", []))

@@ -1,9 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 // Tests for the business logic embedded in DELETE route handlers.
 // These verify every code path without importing Next.js route modules
-// (which pull in pino/thread-stream — broken on Node 26).
+// (which pull in pino/thread-stream — broken on Node 26). The ownership rule is
+// the REAL shared helper, not a local copy: a copy drifted from production once
+// (v3.8.4 tightened the copy, production stayed open — GHSA-2jm2-mpx8-6523).
+// The helper's module pulls in the DB layer, so isolate DATA_DIR before it loads.
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "batch-deletion-route-logic-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+const { canAccessOwnedRecord } = await import("../../src/app/api/v1/_helpers/apiKeyScope.ts");
 
 const TERMINAL = ["completed", "failed", "cancelled", "expired"];
 
@@ -12,14 +21,16 @@ function scopeCheck(
   recordApiKeyId: string | null | undefined,
   apiKeyId: string | null
 ): boolean {
-  if (isSessionAuth) return true;
-  if (recordApiKeyId === null || recordApiKeyId === undefined) return apiKeyId !== null;
-  return recordApiKeyId === apiKeyId;
+  return canAccessOwnedRecord({ isSessionAuth, apiKeyId }, recordApiKeyId);
 }
 
 function canDeleteBatch(status: string): boolean {
   return TERMINAL.includes(status);
 }
+
+test.after(() => {
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
 
 test("scopeCheck — session auth always passes", () => {
   assert.strictEqual(scopeCheck(true, "key-1", "key-1"), true);
@@ -28,11 +39,11 @@ test("scopeCheck — session auth always passes", () => {
   assert.strictEqual(scopeCheck(true, undefined, null), true);
 });
 
-test("scopeCheck — null record ApiKeyId requires an authenticated API key", () => {
-  assert.strictEqual(scopeCheck(false, null, null), false);
-  assert.strictEqual(scopeCheck(false, null, "any-key"), true);
-  assert.strictEqual(scopeCheck(false, undefined, null), false);
-  assert.strictEqual(scopeCheck(false, undefined, "any-key"), true);
+test("scopeCheck — a null-owner record is denied to every non-session caller (GHSA-2jm2-mpx8-6523)", () => {
+  assert.strictEqual(scopeCheck(false, null, null), false, "anonymous");
+  assert.strictEqual(scopeCheck(false, null, "any-key"), false, "any authenticated key");
+  assert.strictEqual(scopeCheck(false, undefined, null), false, "anonymous, undefined owner");
+  assert.strictEqual(scopeCheck(false, undefined, "any-key"), false, "any key, undefined owner");
 });
 
 test("scopeCheck — matching apiKeyId passes", () => {

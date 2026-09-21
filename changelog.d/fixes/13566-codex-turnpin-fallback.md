@@ -1,0 +1,1 @@
+- fix(sse): release the native Codex turn pin when the pinned model becomes model-scoped unusable, so a long-running Codex session falls back to the next healthy combo model instead of dying to a terminal `400 NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE` (#13564)

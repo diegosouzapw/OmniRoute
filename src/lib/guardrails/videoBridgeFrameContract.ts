@@ -24,5 +24,6 @@ export function decodeJpegFrameDataUri(dataUri: string): Buffer {
 export function estimateJpegFrameBytes(dataUri: string): number {
   const encoded = matchJpegFrame(dataUri);
   const padding = encoded.endsWith("==") ? 2 : encoded.endsWith("=") ? 1 : 0;
-  return Math.floor((encoded.length * 3) / 4) - padding;
+  // Padding-only payloads (e.g. "=") pass the charset pattern; never report a negative size.
+  return Math.max(0, Math.floor((encoded.length * 3) / 4) - padding);
 }

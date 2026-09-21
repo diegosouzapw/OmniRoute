@@ -1,1 +1,0 @@
-- **fix(config):** Nous Research's `Hermes-4-405B` model now displays as "Hermes 4 405B (Nous Research)" in both the provider registry and the free-model catalog, instead of the mislabelled "Hermes 4 7B" ([#11861](https://github.com/diegosouzapw/OmniRoute/issues/11861)) — thanks @Karan825

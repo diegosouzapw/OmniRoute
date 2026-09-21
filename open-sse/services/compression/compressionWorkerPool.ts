@@ -80,9 +80,31 @@ export function resolveWorkerFile(): string {
 function unchanged(body: Record<string, unknown>): CompressionResult {
   return { body, compressed: false, stats: null };
 }
+/**
+ * #13145: why a worker fault happened decides what the caller may do about it.
+ *
+ * `retryInProcess: false` marks a fault whose work is *provably expensive* — a dispatch
+ * timeout means the worker already spent its whole budget without finishing, so re-running
+ * the same CPU-bound pipeline on the main event loop would stall every other in-flight
+ * request. Those degrade to the uncompressed body, as before, but are now reported instead
+ * of being swallowed. Every other fault (thread error, exit, engine throw) fails fast
+ * without doing the work, so retrying in-process is cheap and restores compression.
+ */
+export class CompressionWorkerError extends Error {
+  readonly retryInProcess: boolean;
+  constructor(message: string, retryInProcess: boolean) {
+    super(message);
+    this.name = "CompressionWorkerError";
+    this.retryInProcess = retryInProcess;
+  }
+}
 interface PendingJob extends CompressionWorkerJob {
   originalBody: Record<string, unknown>;
   resolve: (result: CompressionResult) => void;
+  // #13145: a worker failure must be reportable to the caller. Without a reject path the
+  // pool could only degrade to `unchanged(...)`, which silently disabled compression for
+  // the whole request while every layer above still believed the plan had been applied.
+  reject: (error: Error) => void;
   onEngineStep?: (step: StackedCompressionStep) => void;
 }
 interface PoolWorker {
@@ -116,7 +138,7 @@ export class CompressionWorkerPool {
     options?: CompressionWorkerOptions,
     onEngineStep?: (step: StackedCompressionStep) => void
   ): Promise<CompressionResult> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.queue.push({
         id: this.nextId++,
         body,
@@ -124,6 +146,7 @@ export class CompressionWorkerPool {
         options,
         originalBody: body,
         resolve,
+        reject,
         onEngineStep,
       });
       this.dispatch();
@@ -131,7 +154,7 @@ export class CompressionWorkerPool {
   }
   async close(): Promise<void> {
     for (const job of this.queue.splice(0)) job.resolve(unchanged(job.originalBody));
-    await Promise.all([...this.workers].map((slot) => this.remove(slot, true)));
+    await Promise.all([...this.workers].map((slot) => this.remove(slot)));
   }
   private spawn(): PoolWorker {
     const slot: PoolWorker = {
@@ -144,9 +167,14 @@ export class CompressionWorkerPool {
     slot.worker.on("message", (message: CompressionWorkerMessage) =>
       this.handleMessage(slot, message)
     );
-    slot.worker.on("error", () => this.fail(slot));
-    slot.worker.on("exit", () => {
-      if (this.workers.has(slot)) this.fail(slot);
+    slot.worker.on("error", (error) =>
+      this.fail(
+        slot,
+        `compression worker thread error: ${error instanceof Error ? error.message : String(error)}`
+      )
+    );
+    slot.worker.on("exit", (code) => {
+      if (this.workers.has(slot)) this.fail(slot, `compression worker exited (code ${code})`);
     });
     return slot;
   }
@@ -159,9 +187,21 @@ export class CompressionWorkerPool {
       const job = this.queue.shift();
       if (!job) return;
       slot.job = job;
-      slot.timeout = setTimeout(() => this.fail(slot!), this.timeoutMs);
+      slot.timeout = setTimeout(
+        () => this.fail(slot!, `compression worker timed out after ${this.timeoutMs}ms`, false),
+        this.timeoutMs
+      );
       slot.timeout.unref();
-      const { originalBody: _body, resolve: _resolve, onEngineStep: _step, ...wireJob } = job;
+      // `reject` must be stripped alongside the other non-cloneable fields: postMessage
+      // uses structured clone, and leaking any function into the wire job throws
+      // DataCloneError before the worker ever sees it.
+      const {
+        originalBody: _body,
+        resolve: _resolve,
+        reject: _reject,
+        onEngineStep: _step,
+        ...wireJob
+      } = job;
       slot.worker.postMessage(wireJob);
     }
   }
@@ -176,7 +216,16 @@ export class CompressionWorkerPool {
       }
       return;
     }
-    this.finish(slot, message.type === "result" ? message.result : unchanged(job.originalBody));
+    if (message.type === "result") {
+      this.finish(slot, message.result);
+      return;
+    }
+    // #13145: the worker reported a thrown engine error. Surface it instead of quietly
+    // handing back the uncompressed body — the caller falls back to in-process compression.
+    this.abort(
+      slot,
+      new CompressionWorkerError(`compression worker error: ${message.error}`, true)
+    );
   }
   private finish(slot: PoolWorker, result: CompressionResult): void {
     const job = slot.job;
@@ -185,21 +234,38 @@ export class CompressionWorkerPool {
     slot.timeout = null;
     slot.job = null;
     job.resolve(result);
-    slot.idle = setTimeout(() => void this.remove(slot, false), this.idleMs);
+    // Idle eviction MUST terminate. Dropping the slot from the set only releases our
+    // reference - the thread, its MessagePort and its private heap outlive the pool
+    // for the whole process lifetime, invisible to process.memoryUsage(). (#12812)
+    slot.idle = setTimeout(() => void this.remove(slot), this.idleMs);
     slot.idle.unref();
     this.dispatch();
   }
-  private fail(slot: PoolWorker): void {
-    const job = slot.job;
-    if (job) job.resolve(unchanged(job.originalBody));
-    slot.job = null;
-    void this.remove(slot, true).finally(() => this.dispatch());
+  private fail(
+    slot: PoolWorker,
+    reason = "compression worker failed or timed out",
+    retryInProcess = true
+  ): void {
+    this.abort(slot, new CompressionWorkerError(reason, retryInProcess));
   }
-  private async remove(slot: PoolWorker, terminate: boolean): Promise<void> {
+  /** #13145: release a slot and report the failure to the caller so it can fall back to
+   *  in-process compression. Previously this resolved with the uncompressed body, which
+   *  turned every worker fault into a silent, unlogged no-op. */
+  private abort(slot: PoolWorker, error: CompressionWorkerError): void {
+    const job = slot.job;
+    if (slot.timeout) clearTimeout(slot.timeout);
+    slot.timeout = null;
+    slot.job = null;
+    if (job) job.reject(error);
+    void this.remove(slot).finally(() => this.dispatch());
+  }
+  /** Drop a slot and release its OS thread. Removal always terminates: a pooled worker
+   *  has no other owner, so skipping terminate() strands the thread permanently. */
+  private async remove(slot: PoolWorker): Promise<void> {
     if (!this.workers.delete(slot)) return;
     if (slot.timeout) clearTimeout(slot.timeout);
     if (slot.idle) clearTimeout(slot.idle);
-    if (terminate) await slot.worker.terminate().catch(() => undefined);
+    await slot.worker.terminate().catch(() => undefined);
   }
 }
 

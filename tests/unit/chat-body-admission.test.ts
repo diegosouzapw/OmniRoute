@@ -344,7 +344,13 @@ test("an existing byte-heavy lease is reused for structure-heavy admission", asy
 test("heavyweight admission is atomic and returns retryable 503 at capacity", async () => {
   const controller = new ChatAdmissionController(1);
   const body = JSON.stringify({ messages: [{ role: "user", content: "x".repeat(40) }] });
-  const options = { controller, largeBodyBytes: 32, hardMaxBytes: 1024 };
+  const options = {
+    controller,
+    largeBodyBytes: 32,
+    hardMaxBytes: 1024,
+    // #10437 byte-path: shedding still requires real heap pressure.
+    heapPressureCheck: () => true,
+  };
 
   const first = await admitChatRequest(chatRequest(body), options);
   assert.equal(first.admit, true);
@@ -407,6 +413,7 @@ test("unknown or lying-small lengths cannot bypass occupied heavyweight capacity
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 1024,
+      heapPressureCheck: () => true,
     });
     assert.equal(result.admit, false);
     if (!result.admit) assert.equal(result.response.status, 503);
@@ -771,6 +778,7 @@ test("external clients cannot use the bypass header without a trusted self-loop 
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 10 * 1024 * 1024,
+      heapPressureCheck: () => true,
     });
 
     // Unknown key + bypass header must NOT bypass — capacity is exhausted → 503.
@@ -784,10 +792,15 @@ test("external clients cannot use the bypass header without a trusted self-loop 
 
 // ── self-loop bearer resolution (env-key aware, #1350) ─────────────────
 
-test("resolveSelfLoopBearer falls back to sk_omniroute when no env key is set", () => {
+test("resolveSelfLoopBearer falls back to a random per-process secret when no env key is set (#13679)", () => {
   const restore = withSelfLoopEnv({});
   try {
-    assert.equal(resolveSelfLoopBearer(), "sk_omniroute");
+    // #13679 PR C: the fallback must NOT be the predictable checked-in literal
+    // "sk_omniroute" — it is a per-process random value (dedicated regression test:
+    // tests/unit/chat-admission-selfloop-random-bearer-13679.test.ts).
+    const bearer = resolveSelfLoopBearer();
+    assert.notEqual(bearer, "sk_omniroute");
+    assert.equal(bearer, resolveSelfLoopBearer(), "must be memoized for the process lifetime");
   } finally {
     restore();
   }
@@ -877,6 +890,7 @@ test("sk_omniroute sentinel is rejected once an env key is configured (REQUIRE_A
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 10 * 1024 * 1024,
+      heapPressureCheck: () => true,
     });
 
     assert.equal(result.admit, false, "sentinel must not bypass when an env key is configured");

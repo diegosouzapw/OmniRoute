@@ -78,7 +78,7 @@ test("forceLiveComboTest=true prevents breaker trip (combo will try next target)
 // `{ success: false, status: 5xx }` as a success.
 test("classifyProviderBreakerResult: a resolved 503 on the single-model path is a failure", () => {
   const outcome = classifyProviderBreakerResult(
-    { success: false, status: 503, errorCode: null, errorType: null, error: "overloaded" },
+    { success: false, status: 503, errorCode: null, errorType: null, error: "service unavailable" },
     false,
     false
   );

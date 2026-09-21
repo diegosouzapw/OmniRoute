@@ -33,6 +33,10 @@ export interface FreeBudgetData {
   boostMonthlyTokens?: number;
   /** Providers that are permanently free but publish no token cap (rate/concurrency-limited). */
   uncappedProviders?: string[];
+  /** Pool-deduped tokens/mo behind a regional identity check — real quota, never in the headline. */
+  gatedRecurringTokens?: number;
+  /** Providers behind that check. */
+  gatedProviders?: string[];
   headline?: string;
   /** ISO timestamp of the last catalog update. Absent/null → freshness is not shown. */
   catalogUpdatedAt?: string | null;
@@ -88,6 +92,7 @@ interface FreeBudgetLabels {
   segmentHint: string;
   boost: (tokens: string) => string;
   uncapped: string;
+  gated: (tokens: string) => string;
   tosRestricted: (count: number) => string;
   provider: string;
   model: string;
@@ -111,6 +116,8 @@ const DEFAULT_LABELS: FreeBudgetLabels = {
     `Unlock ~${tokens} more/mo with a one-time $10 OpenRouter top-up (50 → 1000 req/day)`,
   uncapped:
     "Permanently free, no published cap (rate-limited) — real access, not counted in the headline:",
+  gated: (tokens) =>
+    `~${tokens}/mo more behind a regional identity check — real quota, not counted in the headline:`,
   tosRestricted: (count) =>
     `${count} model${count === 1 ? "" : "s"} flagged as ToS-restricted — you decide`,
   provider: "Provider",
@@ -339,6 +346,8 @@ export function FreeBudgetView({
     perModel,
     boostMonthlyTokens = 0,
     uncappedProviders = [],
+    gatedRecurringTokens = 0,
+    gatedProviders = [],
     catalogUpdatedAt,
     noCredentialProviders = [],
   } = data;
@@ -429,9 +438,7 @@ export function FreeBudgetView({
             <span className="material-symbols-outlined text-[14px] text-emerald-500">
               lock_open
             </span>
-            <span className="text-[11px] font-semibold text-emerald-500">
-              {labels.noApiKey}
-            </span>
+            <span className="text-[11px] font-semibold text-emerald-500">{labels.noApiKey}</span>
             <span className="text-[10.5px] text-text-muted">
               ({keylessModels.length}个模型 · {keylessProviders.length}个提供者)
             </span>
@@ -468,6 +475,23 @@ export function FreeBudgetView({
                 key={p}
                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10.5px] text-text-muted tabular-nums"
                 style={{ borderColor: providerColor.get(p) ?? "var(--border)" }}
+              >
+                {p}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {gatedRecurringTokens > 0 && (
+        <div className="mx-3 mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+          <span className="text-[11px] text-amber-600 dark:text-amber-400">
+            {labels.gated(fmt(gatedRecurringTokens))}
+          </span>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {gatedProviders.map((p) => (
+              <span
+                key={p}
+                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10.5px] text-text-muted tabular-nums"
               >
                 {p}
               </span>
@@ -669,6 +693,7 @@ export default function FreeBudgetCard() {
           segmentHint: t("segmentHint"),
           boost: (tokens) => t("boost", { tokens }),
           uncapped: t("uncapped"),
+          gated: (tokens) => t("gated", { tokens }),
           tosRestricted: (count) => t("tosRestricted", { count }),
           provider: t("provider"),
           model: t("model"),

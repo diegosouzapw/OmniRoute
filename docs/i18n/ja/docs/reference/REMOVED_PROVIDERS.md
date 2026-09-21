@@ -1,0 +1,36 @@
+# Providers removed at their operator's request (日本語)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/REMOVED_PROVIDERS.md) · 🇪🇹 [am](../../../am/docs/reference/REMOVED_PROVIDERS.md) · 🇸🇦 [ar](../../../ar/docs/reference/REMOVED_PROVIDERS.md) · 🇦🇿 [az](../../../az/docs/reference/REMOVED_PROVIDERS.md) · 🇧🇬 [bg](../../../bg/docs/reference/REMOVED_PROVIDERS.md) · 🇧🇩 [bn](../../../bn/docs/reference/REMOVED_PROVIDERS.md) · 🇨🇿 [cs](../../../cs/docs/reference/REMOVED_PROVIDERS.md) · 🇩🇰 [da](../../../da/docs/reference/REMOVED_PROVIDERS.md) · 🇩🇪 [de](../../../de/docs/reference/REMOVED_PROVIDERS.md) · 🇬🇷 [el](../../../el/docs/reference/REMOVED_PROVIDERS.md) · 🇪🇸 [es](../../../es/docs/reference/REMOVED_PROVIDERS.md) · 🇪🇪 [et](../../../et/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇷 [fa](../../../fa/docs/reference/REMOVED_PROVIDERS.md) · 🇫🇮 [fi](../../../fi/docs/reference/REMOVED_PROVIDERS.md) · 🇫🇷 [fr](../../../fr/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇪 [ga](../../../ga/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [gu](../../../gu/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇬 [ha](../../../ha/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇱 [he](../../../he/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [hi](../../../hi/docs/reference/REMOVED_PROVIDERS.md) · 🇭🇷 [hr](../../../hr/docs/reference/REMOVED_PROVIDERS.md) · 🇭🇺 [hu](../../../hu/docs/reference/REMOVED_PROVIDERS.md) · 🇦🇲 [hy](../../../hy/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇩 [id](../../../id/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇬 [ig](../../../ig/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇹 [it](../../../it/docs/reference/REMOVED_PROVIDERS.md) · 🇬🇪 [ka](../../../ka/docs/reference/REMOVED_PROVIDERS.md) · 🇰🇭 [km](../../../km/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [kn](../../../kn/docs/reference/REMOVED_PROVIDERS.md) · 🇰🇷 [ko](../../../ko/docs/reference/REMOVED_PROVIDERS.md) · 🇱🇹 [lt](../../../lt/docs/reference/REMOVED_PROVIDERS.md) · 🇱🇻 [lv](../../../lv/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [ml](../../../ml/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [mr](../../../mr/docs/reference/REMOVED_PROVIDERS.md) · 🇲🇾 [ms](../../../ms/docs/reference/REMOVED_PROVIDERS.md) · 🇲🇹 [mt](../../../mt/docs/reference/REMOVED_PROVIDERS.md) · 🇲🇲 [my](../../../my/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇵 [ne](../../../ne/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇱 [nl](../../../nl/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇴 [no](../../../no/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [or](../../../or/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [pa](../../../pa/docs/reference/REMOVED_PROVIDERS.md) · 🇵🇭 [phi](../../../phi/docs/reference/REMOVED_PROVIDERS.md) · 🇵🇱 [pl](../../../pl/docs/reference/REMOVED_PROVIDERS.md) · 🇵🇹 [pt](../../../pt/docs/reference/REMOVED_PROVIDERS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/REMOVED_PROVIDERS.md) · 🇷🇴 [ro](../../../ro/docs/reference/REMOVED_PROVIDERS.md) · 🇷🇺 [ru](../../../ru/docs/reference/REMOVED_PROVIDERS.md) · 🇱🇰 [si](../../../si/docs/reference/REMOVED_PROVIDERS.md) · 🇸🇰 [sk](../../../sk/docs/reference/REMOVED_PROVIDERS.md) · 🇸🇮 [sl](../../../sl/docs/reference/REMOVED_PROVIDERS.md) · 🇷🇸 [sr](../../../sr/docs/reference/REMOVED_PROVIDERS.md) · 🇸🇪 [sv](../../../sv/docs/reference/REMOVED_PROVIDERS.md) · 🇰🇪 [sw](../../../sw/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [ta](../../../ta/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [te](../../../te/docs/reference/REMOVED_PROVIDERS.md) · 🇹🇭 [th](../../../th/docs/reference/REMOVED_PROVIDERS.md) · 🇹🇷 [tr](../../../tr/docs/reference/REMOVED_PROVIDERS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/REMOVED_PROVIDERS.md) · 🇵🇰 [ur](../../../ur/docs/reference/REMOVED_PROVIDERS.md) · 🇺🇿 [uz](../../../uz/docs/reference/REMOVED_PROVIDERS.md) · 🇻🇳 [vi](../../../vi/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇬 [yo](../../../yo/docs/reference/REMOVED_PROVIDERS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/REMOVED_PROVIDERS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/REMOVED_PROVIDERS.md)
+
+---
+
+一部のサービスは OmniRoute に統合された後、それらを運営する方々からの要請により削除されました。このページは、それらの削除に関する恒久的な記録です。その唯一の目的は、誤って再導入されることを防ぐことです。古いフォーク、キャッシュされた npm tarball、アーカイブされた Issue、または「プロバイダー X を復元してほしい」というリクエストを見つけたコントリビューターが、**再導入してはならない**ことを確認できる場所として使用されます。
+
+このページは、終了または廃止されたサービスの一覧では**ありません**。それらは
+[`FREE_TIERS.md`](FREE_TIERS.md)（「削除済み／無料枠なし」）で管理されており、サービスが復活すれば再導入できます。以下の項目を再導入できるのは、要請に記載された運営者から書面による許可を得た場合のみであり、その許可へのリンクを該当項目に記載する必要があります。
+
+## ポリシー
+
+1. **サービス運営者からの削除要請は受け入れるものであり、交渉するものではありません。** OmniRoute は、いかなる上流サービスとも提携していません。サービスの運営者から統合を削除するよう求められた場合、その統合が公式 API を使用していたかどうかにかかわらず、削除します。
+2. **「削除」とは、OmniRoute が管理するすべての対象から削除することを意味します。** Executor、レジストリエントリ、プロバイダー ID とエイリアス、モデル一覧、エンドポイント、環境変数、アイコン、ダッシュボードカード、生成されたプロバイダーリファレンス、`FREE_TIERS.md`、環境リファレンス、README の件数、`llm.txt` のミラー、専用テストとゴールデンスナップショット、コードコメント、CHANGELOG の箇条書き（台帳に記録された調整を伴うこと。`config/release/changelog-reconciliations.json` を参照）、GitHub Releases のリリースノート、Wiki、および当該プロバイダーを主題とする GitHub の Issue、Discussion、Pull Request が含まれます（Issue と Discussion は削除します。GitHub では Pull Request を削除できないため、Pull Request はタイトルを変更し、説明を差し替えたうえでスレッドをロックします）。
+3. **書面による許可なしに、このページの項目を再導入してはなりません。** これには、ID またはエイリアスをプロバイダーカタログへ戻すこと、ドメインを Executor に追加すること、それを「復元」するコントリビューターの PR を受け入れること、無料モデルカタログに追加すること、または OmniRoute 経由で手動アクセスする方法を文書化することが含まれます。このような PR や Issue は、このページへのリンクを添えてクローズしてください。
+4. **項目は最小限に保ってください。** 再導入をレビュー担当者が識別するために必要な情報（識別子、ドメイン、日付、および削除を行った Pull Request）のみを記録してください。統合がどのように機能していたかは記載しないでください。
+5. **回帰防止機構は `tests/unit/removed-providers-blocklist.test.ts` です。** 以下の識別子またはドメインのいずれかが、プロバイダーカタログ、Executor マップ、またはプロバイダーレジストリのソースに再び現れると、このテストは失敗します。ここに行を追加する PR と同じ PR で、新しい識別子をそのテストに追加してください。
+
+## 登録簿
+
+| 削除日     | プロバイダー ID | エイリアス | ドメイン                                | 要請者                           | 削除 PR                                                        | 備考                                                                                                                 |
+| ---------- | --------------- | ---------- | --------------------------------------- | -------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-12 | `puter`         | `pu`       | `puter.com`                             | Puter の所有者（Nariman Jelveh） | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API キー方式のプロバイダー。マイグレーション `152_remove_puter_provider.sql` により保存済み設定を削除。              |
+| 2026-09-02 | `theoldllm`     | `tllm`     | `theoldllm.com`, `theoldllm.vercel.app` | サービス運営者（サポートメール） | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | キーレスプロバイダー。書面による要請を 2026-08-30 に受領。専用の Issue と Discussion を削除し、PR のタイトルを変更。 |
+
+## 項目の追加
+
+新しい削除要請を受け取った場合：
+
+1. 要請がサービスの運営者（そのサポートアドレス、または運営者が管理するドメイン）から送られたものであることを確認し、そのメッセージは非公開で保管してください。
+2. ポリシー項目 2 のチェックリストに従って統合を削除してください。キーレスプロバイダーについては
+   [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) を、接続情報が保存される API キー方式のプロバイダーについては [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) を参照してください（マイグレーションを追加します）。
+3. 同じ PR で、上の表に 1 行追加し、識別子を
+   `tests/unit/removed-providers-blocklist.test.ts` に追加してください。
+4. PR がマージされたら、削除した内容と OmniRoute では変更できないもの（すでに公開済みの npm および Docker バージョン、git 履歴、サードパーティーのフォーク）を列挙して、運営者に返信してください。

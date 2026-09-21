@@ -56,7 +56,7 @@ test("priority combo walks a 3-target chain: 500 → 503 → success", async () 
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
     models: [
       "openai/gpt-4o-mini",
-      "claude/claude-3-5-sonnet-20241022",
+      "claude/claude-sonnet-4-6",
       "gemini/gemini-2.5-flash",
     ],
   });
@@ -100,7 +100,7 @@ test("priority combo fails over when the first target exceeds its per-target tim
     strategy: "priority",
     // 80ms per-target ceiling; the first target hangs past it and is aborted.
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, targetTimeoutMs: 80 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
 
   const attempts: string[] = [];
@@ -139,7 +139,7 @@ test("auto combo selects and dispatches a scored candidate end-to-end", async ()
     name: "router-auto",
     strategy: "auto",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
 
   const seen: string[] = [];

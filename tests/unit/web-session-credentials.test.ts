@@ -104,6 +104,33 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
   });
 });
 
+test("MaxAI and UC keep independent top-level credential contracts", () => {
+  assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("maxai"), {
+    kind: "token",
+    credentialName: "MaxAI access token (Bearer) + device id",
+    placeholder:
+      "Use browser sign-in — OmniRoute mints the MaxAI access token, device id, and user id for you",
+    acceptsFullCookieHeader: false,
+    storageKeys: [
+      "accessToken",
+      "access_token",
+      "maxaiAccessToken",
+      "deviceId",
+      "maxaiDeviceId",
+      "userId",
+      "maxaiUserId",
+    ],
+  });
+
+  const uc = webSessionCredentials.getWebSessionCredentialRequirement("uc");
+  assert.ok(uc && uc.kind === "cookie");
+  assert.equal(uc.credentialName, "Clerk __client cookie + session id + user id");
+  assert.equal(uc.acceptsFullCookieHeader, true);
+  assert.ok(uc.storageKeys.includes("__client"));
+  assert.ok(uc.storageKeys.includes("sid"));
+  assert.ok(uc.storageKeys.includes("uid"));
+});
+
 test("web session credential validator requires provider-specific non-empty values", () => {
   assert.equal(
     webSessionCredentials.hasUsableWebSessionCredential("kimi-web", { token: "kimi-token" }),

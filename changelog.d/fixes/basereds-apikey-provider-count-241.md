@@ -1,0 +1,1 @@
+- **fix(tests):** bump the `APIKEY_PROVIDERS` tripwire count to 241 — Agnes AI China (#13399) added one `apikey/regional` entry, and the stale 240 was failing a unit-test shard on every open PR against `release/v3.8.51`

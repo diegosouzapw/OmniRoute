@@ -36,6 +36,7 @@ type ChatCompletionPayload = {
     prompt_tokens: number;
     completion_tokens: number;
     total_tokens: number;
+    completion_tokens_details?: { reasoning_tokens: number };
   };
 };
 
@@ -482,6 +483,33 @@ test("AntigravityExecutor.collectStreamToResponse turns SSE Gemini chunks into a
   });
 });
 
+test("AntigravityExecutor.collectStreamToResponse preserves upstream thought token usage", async () => {
+  const executor = new AntigravityExecutor();
+  const response = new Response(
+    'data: {"response":{"candidates":[{"content":{"parts":[{"text":"Done"}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":5,"candidatesTokenCount":3,"thoughtsTokenCount":7,"totalTokenCount":15}}}\n\n',
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
+
+  const result = await executor.collectStreamToResponse(
+    response,
+    "gemini-3.7-pro-high",
+    "https://example.com",
+    { Authorization: "Bearer ag-token" },
+    { request: {} }
+  );
+  const payload = (await result.response.json()) as ChatCompletionPayload;
+
+  assert.deepEqual(payload.usage, {
+    prompt_tokens: 5,
+    completion_tokens: 10,
+    total_tokens: 15,
+    completion_tokens_details: { reasoning_tokens: 7 },
+  });
+});
+
 test("AntigravityExecutor.collectStreamToResponse converts textual tool call SSE to structured tool_calls", async () => {
   const executor = new AntigravityExecutor();
   const response = new Response(
@@ -843,6 +871,7 @@ test("AntigravityExecutor.execute bounds a persistent short-retry 429 instead of
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
   const calls: string[] = [];
+  const telemetry: string[] = [];
   seedAntigravityIdeVersionCache("2.1.1");
 
   // "rate limited" with no parseable retry hint classifies as rate_limited →
@@ -869,7 +898,13 @@ test("AntigravityExecutor.execute bounds a persistent short-retry 429 instead of
       body: { request: { contents: [] } },
       stream: true,
       credentials: { accessToken: "token", projectId: "project-1" },
-      log: { debug() {}, warn() {} },
+      log: {
+        debug(_scope, message) {
+          telemetry.push(String(message));
+        },
+        warn() {},
+      },
+      correlationId: "prompt194-physical-send-test",
     });
 
     // Returns the 429 rather than hanging.
@@ -878,6 +913,11 @@ test("AntigravityExecutor.execute bounds a persistent short-retry 429 instead of
     // Bounded: switchAuth declines same-URL retries → 2 live runtime endpoints
     // × 1 attempt each = 2 attempts total (#9351).
     assert.equal(calls.length, 2);
+    const physicalSends = telemetry.filter((line) => line.includes("[Antigravity] PhysicalSend"));
+    assert.equal(physicalSends.length, calls.length);
+    assert.match(physicalSends[0] ?? "", /RequestId: prompt194-physical-send-test/);
+    assert.match(physicalSends[0] ?? "", /PhysicalSend: 1/);
+    assert.match(physicalSends[1] ?? "", /PhysicalSend: 2/);
 
     // Tried every distinct live runtime base URL before giving up.
     const distinctHosts = new Set(calls.map((u) => new URL(u).host));

@@ -94,6 +94,13 @@ function render(el: React.ReactElement) {
     },
   };
 }
+/** Types into a controlled input the way React 19 sees it (native value setter + input event). */
+function typeInto(input: HTMLInputElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
+  setter.call(input, value);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 afterEach(() => {
   document.body.innerHTML = "";
   replaceMock.mockClear();
@@ -280,9 +287,7 @@ describe("OrchestrationPageClient", () => {
     searchState.current = "tab=agents&node=cloud-agent:1";
     const { c, cleanup } = render(<OrchestrationPageClient />);
     // Sanity: the page-level drawer is up before switching, open on the selected node.
-    expect((drawerCalls.at(-1) as { node: { id: string } | null }).node?.id).toBe(
-      "cloud-agent:1"
-    );
+    expect((drawerCalls.at(-1) as { node: { id: string } | null }).node?.id).toBe("cloud-agent:1");
 
     const historyTabButton = Array.from(c.querySelectorAll('[role="tab"]')).find(
       (el) => el.textContent === "tabHistory"
@@ -307,5 +312,95 @@ describe("OrchestrationPageClient", () => {
     expect(c.querySelector('[data-testid="drawer-stub"]')).toBeFalsy();
     expect(drawerCalls.length).toBe(drawerCallsBefore);
     cleanup();
+  });
+
+  // Task B3.5 — AgentsTab can only tell "nothing running" from "filter matched nothing" if the
+  // page hands it the parsed filter plus a way to clear it.
+  it("hands AgentsTab the parsed filter and an onClearFilters that resets q/state/source/provider", () => {
+    searchState.current = "tab=agents&q=login&state=running";
+    const { cleanup } = render(<OrchestrationPageClient />);
+    const props = agentsTabCalls.at(-1) as {
+      filter: { q: string; states: ReadonlySet<string> };
+      onClearFilters: () => void;
+    };
+    expect(props.filter.q).toBe("login");
+    expect([...props.filter.states]).toEqual(["running"]);
+    act(() => {
+      props.onClearFilters();
+    });
+    expect(replaceMock).toHaveBeenCalledTimes(1);
+    const [url] = replaceMock.mock.calls[0];
+    expect(url).not.toContain("q=");
+    expect(url).not.toContain("state=");
+    cleanup();
+  });
+
+  // Task B3.3 — a padded CSV param (`?state=running, failed`) must parse, not silently drop.
+  it("parses CSV params with surrounding whitespace", () => {
+    searchState.current = "tab=agents&state=running,%20failed";
+    const { cleanup } = render(<OrchestrationPageClient />);
+    const props = agentsTabCalls.at(-1) as { filter: { states: ReadonlySet<string> } };
+    expect([...props.filter.states].sort()).toEqual(["failed", "running"]);
+    cleanup();
+  });
+
+  // Task B3.2 — the search box needs its own accessible name; the placeholder alone is not one.
+  it("the search input carries an aria-label from i18n", () => {
+    searchState.current = "tab=agents";
+    const { c, cleanup } = render(<OrchestrationPageClient />);
+    const input = c.querySelector('input[type="search"]') as HTMLInputElement;
+    expect(input).toBeTruthy();
+    expect(input.getAttribute("aria-label")).toBe("searchPlaceholder");
+    cleanup();
+  });
+
+  // Task B3.1 — typing then clicking a chip: the pending debounce timer must be dropped, or it
+  // fires 300ms later against the pre-chip params and silently reverts the chip.
+  it("clicking a chip cancels the pending search debounce instead of letting it overwrite the URL", () => {
+    vi.useFakeTimers();
+    try {
+      searchState.current = "tab=agents";
+      const { c, cleanup } = render(<OrchestrationPageClient />);
+      const input = c.querySelector('input[type="search"]') as HTMLInputElement;
+      act(() => {
+        typeInto(input, "log");
+      });
+      expect(replaceMock).toHaveBeenCalledTimes(0);
+
+      const runningChip = Array.from(c.querySelectorAll("button")).find(
+        (el) => el.textContent === "stateRunning"
+      ) as HTMLButtonElement;
+      act(() => {
+        runningChip.click();
+      });
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(replaceMock).toHaveBeenCalledTimes(1);
+      expect(replaceMock.mock.calls[0][0]).toContain("state=running");
+      cleanup();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("the debounced search still writes ?q= when no chip interrupts it", () => {
+    vi.useFakeTimers();
+    try {
+      searchState.current = "tab=agents";
+      const { c, cleanup } = render(<OrchestrationPageClient />);
+      const input = c.querySelector('input[type="search"]') as HTMLInputElement;
+      act(() => {
+        typeInto(input, "login");
+      });
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(replaceMock).toHaveBeenCalledTimes(1);
+      expect(replaceMock.mock.calls[0][0]).toContain("q=login");
+      cleanup();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

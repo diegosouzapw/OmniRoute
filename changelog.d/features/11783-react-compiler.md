@@ -1,1 +1,0 @@
-- **feat(ui):** enable React Compiler (`reactCompiler: true` + `babel-plugin-react-compiler`) for automatic memoization at build time ([#11783](https://github.com/diegosouzapw/OmniRoute/pull/11783)) — thanks @jonlwheat2-gif

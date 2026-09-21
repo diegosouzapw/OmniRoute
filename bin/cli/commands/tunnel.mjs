@@ -18,7 +18,7 @@ export function registerTunnel(program) {
     });
 
   tunnel
-    .command("create [type]")
+    .command("create")
     .description(t("tunnel.createDescription"))
     .addArgument(
       new Argument("[type]", "Tunnel type").choices(VALID_TUNNEL_TYPES).default("cloudflare")

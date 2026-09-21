@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { after, describe, it } from "node:test";
+import { Worker } from "node:worker_threads";
 import {
   isCompressionWorkerEligible,
   isStrictlySerializable,
@@ -95,6 +96,26 @@ describe("compression worker eligibility", () => {
     cyclic.self = cyclic;
     assert.equal(isStrictlySerializable(cyclic), false);
   });
+
+  it("#13154: does not misread a shared (non-cyclic) sub-object referenced by two sibling branches as a cycle", () => {
+    // Original bug: a single `seen` set shared across the whole recursion tree (never
+    // backtracked) meant visiting the SAME object twice via two different, non-cyclic
+    // paths (e.g. two messages both pointing at the same cached template object) was
+    // indistinguishable from a real cycle. Path-based tracking (add before descending,
+    // delete after) must treat this as eligible.
+    const shared = { nested: true };
+    const sharedBody = { messages: [shared, shared] };
+    assert.equal(isStrictlySerializable(sharedBody), true);
+    assert.equal(isCompressionWorkerEligible(sharedBody, "standard", { config }), true);
+  });
+
+  it("still rejects a body with a genuine cycle before it ever reaches postMessage", () => {
+    const cyclicMessage: Record<string, unknown> = { role: "user" };
+    cyclicMessage.self = cyclicMessage;
+    const cyclicBody = { messages: [cyclicMessage] };
+    assert.equal(isStrictlySerializable(cyclicBody), false);
+    assert.equal(isCompressionWorkerEligible(cyclicBody, "standard", { config }), false);
+  });
 });
 
 describe("compression worker execution", () => {
@@ -126,13 +147,57 @@ describe("compression worker execution", () => {
     assert.deepEqual(steps, ["rtk", "caveman"]);
   });
 
-  it("fails open without inline compression when a job times out", async () => {
+  it("reports a timeout as a non-retryable fault instead of silently failing open (#13145)", async () => {
+    // The pool no longer swallows a dispatch timeout: it rejects with a typed fault
+    // whose retryInProcess=false tells the caller (strategySelector) that the worker
+    // already burned its budget, so the caller ships the body uncompressed and LOGS
+    // the fault rather than re-running the same heavy pipeline on the event loop.
     const pool = new CompressionWorkerPool({ size: 1, timeoutMs: 1, idleMs: 100 });
     try {
-      const result = await pool.run(body, "stacked", { config });
-      assert.deepEqual(result, { body, compressed: false, stats: null });
+      await assert.rejects(
+        () => pool.run(body, "stacked", { config }),
+        (err: unknown) =>
+          err instanceof Error &&
+          err.name === "CompressionWorkerError" &&
+          (err as { retryInProcess?: boolean }).retryInProcess === false &&
+          /timed out/.test(err.message)
+      );
     } finally {
       await pool.close();
+    }
+  });
+
+  it("terminates an idle worker instead of only dropping it from the pool", async () => {
+    const spawned = new Set<Worker>();
+    const terminated: Promise<number>[] = [];
+    const originalPostMessage = Worker.prototype.postMessage;
+    const originalTerminate = Worker.prototype.terminate;
+    Worker.prototype.postMessage = function (this: Worker, ...args) {
+      spawned.add(this);
+      return originalPostMessage.apply(this, args);
+    };
+    Worker.prototype.terminate = function (this: Worker) {
+      const exit = originalTerminate.call(this);
+      terminated.push(exit);
+      return exit;
+    };
+    const messagePorts = () =>
+      process.getActiveResourcesInfo().filter((resource) => resource === "MessagePort").length;
+    const portsBefore = messagePorts();
+    const pool = new CompressionWorkerPool({ size: 1, idleMs: 50 });
+    try {
+      await pool.run(body, "stacked", { config });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      assert.equal(spawned.size, 1);
+      assert.equal(terminated.length, 1, "idle eviction must terminate the worker thread");
+      await Promise.all(terminated);
+      assert.ok(messagePorts() <= portsBefore, "idle eviction must not retain the worker's port");
+    } finally {
+      Worker.prototype.postMessage = originalPostMessage;
+      Worker.prototype.terminate = originalTerminate;
+      await pool.close();
+      // Reap anything the pool forgot so a regression fails instead of hanging the runner.
+      await Promise.all([...spawned].map((worker) => worker.terminate().catch(() => undefined)));
     }
   });
 

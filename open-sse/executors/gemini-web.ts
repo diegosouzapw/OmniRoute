@@ -15,34 +15,34 @@
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
+import { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
 import { normalizeGeminiCookieInput } from "../utils/geminiCookies.ts";
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import {
   checkGeminiWebUnsupportedControls,
   GEMINI_WEB_UNSUPPORTED_CONTROL_CODE,
+  isForcingToolChoice,
+  requestsThinkingBudget,
 } from "./gemini-web/capabilities.ts";
+import {
+  describeModeSelectionFailure,
+  selectGeminiExtendedThinking,
+  selectGeminiModel,
+} from "./gemini-web/modeSelection.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const GEMINI_URL = "https://gemini.google.com/app";
+/** Response-label fallback when no `model` was requested at all (unchanged since pre-#13381). */
+const DEFAULT_MODEL_ID = "gemini-2.5-pro";
 
-/**
- * Whether an error came from Playwright failing to launch because the browser binary is not
- * installed (`chromium.launch: Executable doesn't exist at ...`). This is a host/config
- * problem, not a transient upstream fault, so the executor must NOT surface it as a retryable
- * 500 (which marks the account unavailable and loops / trips the provider breaker). See #3516.
- */
-export function isMissingBrowserExecutable(message: string): boolean {
-  if (!message) return false;
-  const lower = message.toLowerCase();
-  return (
-    lower.includes("executable doesn't exist") ||
-    lower.includes("executablenotfound") ||
-    lower.includes("playwright install") ||
-    (lower.includes("chromium") && lower.includes("download"))
-  );
-}
+// Re-exported for backward compatibility: some tests/callers import this classification helper
+// from gemini-web.ts, its original home (#3516). The implementation now lives in
+// browserExecutableCheck.ts so other browser-backed executors (e.g. zai-web.ts, #13232) can
+// share it without importing this whole executor module.
+export { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
+
 const GEMINI_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
@@ -96,9 +96,13 @@ function formatStreamChunk(content: string, model: string, finishReason: string 
  * flatten the full history into one prompt so the web UI still sees the
  * conversation.
  *
- * Single-turn requests are preserved byte-for-byte (only the final user message
- * is returned) — the regression guard for the pre-existing no-tools path.
- * Multi-turn requests emit a labeled transcript:
+ * Single-turn requests with NO system message are preserved byte-for-byte
+ * (only the final user message is returned) — the regression guard for the
+ * pre-existing no-tools path. A single-turn request that DOES carry a system
+ * message prepends it the same way the multi-turn branch does (#13380 — the
+ * old fast path silently dropped the system instruction whenever there was
+ * no prior user/assistant turn, e.g. title generation or a one-shot chat
+ * completion). Multi-turn requests emit a labeled transcript:
  *
  *   System:
  *   <system text>
@@ -125,15 +129,18 @@ export function buildGeminiPrompt(messages: Array<{ role: string; content: unkno
     (m, i) => i < lastUserIdx && (m.role === "user" || m.role === "assistant")
   );
 
-  // Single-turn (no earlier user/assistant turns): byte-for-byte the original
-  // single-message derivation. Do NOT prepend system text here — the old
-  // no-tools path ignored a system-only prefix on the first turn.
-  if (priorTurns.length === 0) return lastUserContent;
-
   const systemText = textMessages
     .filter((m) => m.role === "system")
     .map((m) => m.content)
     .join("\n\n");
+
+  // Single-turn (no earlier user/assistant turns) with no system message:
+  // byte-for-byte the original single-message derivation.
+  if (priorTurns.length === 0 && !systemText) return lastUserContent;
+
+  // Single-turn with a system message (#13380): prepend it instead of
+  // silently dropping it.
+  if (priorTurns.length === 0) return `System:\n${systemText}\n\n${lastUserContent}`;
 
   const historyLines = priorTurns.map(
     (m) => `${m.role === "assistant" ? "Assistant" : "User"}: ${m.content}`
@@ -148,18 +155,29 @@ export function buildGeminiPrompt(messages: Array<{ role: string; content: unkno
 
 /**
  * Build the plain-text prompt typed into the Gemini web UI when a tool
- * contract is active — the synthetic system message injected by
- * `prepareToolMessages()` prepended to the last user message. gemini-web
- * only ever sends a single flat string (no native message array), so the
- * tool contract and the user's ask are concatenated (#7286).
+ * contract is active — every system message (the client's own instruction(s)
+ * plus the synthetic tool contract that `prepareToolMessages()` appends last)
+ * prepended, in order, to the last user message. gemini-web only ever sends
+ * a single flat string (no native message array), so the tool contract and
+ * the user's ask are concatenated (#7286).
+ *
+ * `prepareToolMessages()` (open-sse/translator/webTools.ts) pushes the
+ * synthetic tool contract as the LAST system message so it never buries a
+ * long client system prompt. Picking only the FIRST system message
+ * (`.find()`) therefore dropped the tool contract whenever the client
+ * already sent its own system message — #13380. Joining ALL system messages
+ * in order keeps the client instruction(s) first and the tool contract last,
+ * matching that dual-placement design intent.
  */
 export function buildGeminiToolPrompt(
   effectiveMessages: Array<{ role: string; content: unknown }>
 ): string {
-  const toolSystemMsg = effectiveMessages.find((m) => m.role === "system");
+  const toolPrompt = effectiveMessages
+    .filter((m) => m.role === "system" && typeof m.content === "string")
+    .map((m) => m.content as string)
+    .join("\n\n");
   const lastUserMsg = [...effectiveMessages].reverse().find((m) => m.role === "user");
   const userText = typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
-  const toolPrompt = typeof toolSystemMsg?.content === "string" ? toolSystemMsg.content : "";
   return toolPrompt ? `${toolPrompt}\n\n${userText}` : userText;
 }
 
@@ -407,21 +425,28 @@ export class GeminiWebExecutor extends BaseExecutor {
     const { model, body, stream, credentials, signal, log, onCredentialsRefreshed } = input;
     const requestBody = body as GeminiRequestBody;
 
-    // #9356: fail fast on controls this provider cannot honor (reasoning_effort
-    // above "minimal", forced tool_choice). Runs before the credential check and
-    // before Playwright launches — the request is unservable no matter which
-    // cookie is used, and answering 200 with ordinary prose made agents believe
-    // their reasoning/tool requirements had been met. See ./gemini-web/capabilities.ts.
-    const violation = checkGeminiWebUnsupportedControls(body as Record<string, unknown>);
-    if (violation) {
+    // #9356: forced tool_choice is a guarantee gemini-web's prompt-emulation shim can
+    // never make — no UI control for it exists at all, on any account, so this still
+    // fails fast before the credential check and before Playwright launches. See
+    // ./gemini-web/capabilities.ts.
+    //
+    // `reasoning_effort` (Extended Thinking) is different (#13381 follow-up comment,
+    // 2026-09-11): eligible Gemini accounts DO expose a real Extended Thinking toggle
+    // in the UI, so a blanket "we can never do this" would be the same dishonesty this
+    // fix exists to remove. It is no longer rejected here — it is attempted, verified
+    // via read-back, and only THEN rejected if it cannot be confirmed. See the in-browser
+    // step below and ./gemini-web/modeSelection.ts.
+    const rawBody = body as Record<string, unknown>;
+    if (isForcingToolChoice(rawBody.tool_choice)) {
+      const violation = checkGeminiWebUnsupportedControls({ tool_choice: rawBody.tool_choice });
       log?.warn?.(
         "GEMINI-WEB",
-        `Rejected request: "${violation.param}" is not supported by this provider`
+        `Rejected request: "${violation!.param}" is not supported by this provider`
       );
       return {
         response: new Response(
           JSON.stringify(
-            buildErrorBody(400, violation.message, null, {
+            buildErrorBody(400, violation!.message, null, {
               type: "invalid_request_error",
               code: GEMINI_WEB_UNSUPPORTED_CONTROL_CODE,
             })
@@ -433,6 +458,7 @@ export class GeminiWebExecutor extends BaseExecutor {
         transformedBody: body,
       };
     }
+    const wantsExtendedThinking = requestsThinkingBudget(rawBody.reasoning_effort);
 
     const cookie = resolveGeminiWebCookie(credentials);
     if (!cookie) {
@@ -456,13 +482,23 @@ export class GeminiWebExecutor extends BaseExecutor {
     // hasTools === false: flatten the full multi-turn history into the single
     // prompt so gemini-web (a stateless web-cookie provider that captures only
     // the first StreamGenerate response) preserves prior context across turns
-    // (#8371). Single-turn requests stay byte-for-byte identical to the original
-    // derivation, keeping the #7286 no-tools regression guard intact.
+    // (#8371). Single-turn requests with no system message stay byte-for-byte
+    // identical to the original derivation; a single-turn system message is
+    // now prepended instead of silently dropped (#13380).
     const prompt = hasTools
       ? buildGeminiToolPrompt(effectiveMessages)
       : buildGeminiPrompt(messages);
 
-    if (!prompt) {
+    // A system-only request (no user message at all) must still 400 — since
+    // #13380 prepends the system text, `prompt` alone is no longer a
+    // reliable "no user message" signal for the no-tools path (it used to be
+    // empty for a system-only request; now it carries the system text).
+    const hasUserMessage = messages.some(
+      (m: { role: string; content: unknown }) =>
+        m.role === "user" && typeof m.content === "string" && m.content.trim().length > 0
+    );
+
+    if (!prompt || (!hasTools && !hasUserMessage)) {
       return {
         response: new Response(JSON.stringify({ error: "No user message found" }), {
           status: 400,
@@ -473,6 +509,11 @@ export class GeminiWebExecutor extends BaseExecutor {
         transformedBody: body,
       };
     }
+
+    // Resolved up front (#13381) — the pre-fix code only read `model` AFTER the
+    // response was already captured, purely to stamp it on the reply. It now also
+    // drives the in-browser mode-selection step below, before anything is typed.
+    const modelId = model || DEFAULT_MODEL_ID;
 
     let browser: any = null;
     let abortBrowser: (() => void) | null = null;
@@ -530,12 +571,83 @@ export class GeminiWebExecutor extends BaseExecutor {
       }
       await page.waitForTimeout(3000);
 
+      // #13381 (Option B): verify the requested Gemini UI mode is actually active
+      // BEFORE anything is typed. `gemini-3.1-pro` is the mode gemini.google.com/app
+      // already opens to (no interaction attempted); every other advertised model is
+      // switched to and its active-mode indicator is read back — a confirmed match is
+      // required, or the request is rejected instead of silently running the account
+      // default under the requested model's label. See ./gemini-web/modeSelection.ts
+      // for why the selectors involved are UNVALIDATED and why that is safe here.
+      if (model) {
+        const modelSelection = await selectGeminiModel(page, modelId);
+        if (!modelSelection.confirmed) {
+          log?.warn?.(
+            "GEMINI-WEB",
+            `Rejected request: could not confirm Gemini UI mode for "${modelId}" ` +
+              `(${modelSelection.reason})`
+          );
+          return {
+            response: new Response(
+              JSON.stringify(
+                buildErrorBody(
+                  400,
+                  describeModeSelectionFailure(modelId, modelSelection.reason),
+                  null,
+                  { type: "invalid_request_error", code: GEMINI_WEB_UNSUPPORTED_CONTROL_CODE }
+                )
+              ),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            ),
+            url: GEMINI_URL,
+            headers: {},
+            transformedBody: body,
+          };
+        }
+      }
+
+      // Extended Thinking (#13381 follow-up, 2026-09-11): same detect-and-verify,
+      // fail-closed pattern as model selection above — attempted only when requested
+      // (`reasoning_effort` above "minimal"), never assumed available.
+      if (wantsExtendedThinking) {
+        const thinkingSelection = await selectGeminiExtendedThinking(page);
+        if (!thinkingSelection.confirmed) {
+          log?.warn?.(
+            "GEMINI-WEB",
+            `Rejected request: could not confirm Extended Thinking is available ` +
+              `(${thinkingSelection.reason})`
+          );
+          return {
+            response: new Response(
+              JSON.stringify(
+                buildErrorBody(
+                  400,
+                  describeModeSelectionFailure("Extended Thinking", thinkingSelection.reason),
+                  null,
+                  { type: "invalid_request_error", code: GEMINI_WEB_UNSUPPORTED_CONTROL_CODE }
+                )
+              ),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            ),
+            url: GEMINI_URL,
+            headers: {},
+            transformedBody: body,
+          };
+        }
+      }
+
       // Type and send message
       const inputEl = await page.waitForSelector(".ql-editor, [contenteditable='true']", {
         timeout: 10000,
       });
       await inputEl.click();
-      await page.keyboard.type(prompt, { delay: 10 });
+      // insertText() dispatches a DOM `input` event atomically instead of a
+      // per-character keydown/keypress/keyup sequence (#13380) — an embedded
+      // `\n` in `prompt` (produced by the multi-turn transcript format above,
+      // or by any multiline system/user text) no longer fires the
+      // composer's Enter-submits-the-message handler before this function's
+      // own explicit Enter below. It also removes the fixed 10ms/char typing
+      // cost that made long prompts race the 30s response-wait timeout.
+      await page.keyboard.insertText(prompt);
       await page.waitForTimeout(300);
       await page.keyboard.press("Enter");
 
@@ -557,8 +669,6 @@ export class GeminiWebExecutor extends BaseExecutor {
       }
 
       await this.persistRotatedCookies(context, cookie, credentials, onCredentialsRefreshed, log);
-
-      const modelId = model || "gemini-2.5-pro";
 
       if (hasTools) {
         const cid = `chatcmpl-gwe-${crypto.randomUUID().slice(0, 12)}`;

@@ -7,6 +7,7 @@ fi
 
 # Cheap, deterministic local gates (re-enabled). Slower checks (i18n drift,
 # openapi coverage/security-tiers, env-doc sync) run in CI to keep commits fast.
+sh scripts/check/check-git-identity.sh
 npx lint-staged
 node scripts/check/check-docs-sync.mjs
 npm run check:any-budget:t11

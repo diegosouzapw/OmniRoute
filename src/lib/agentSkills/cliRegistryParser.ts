@@ -104,6 +104,11 @@ const DESCRIPTION_RE = /\.description\(\s*["']([^"']+)["']/g;
 // Matches: .option("--flag ...", "desc") — capture group 1 = flag string
 const OPTION_RE = /\.option\(\s*["']([^"']+)["']/g;
 
+// Matches: .addArgument(new Argument("<name>")) or ("[name]") — group 1 = the
+// token including its brackets, so it reads the same as an inline positional
+// written straight into .command("stop <type>").
+const ARGUMENT_RE = /new\s+Argument\(\s*["'](<[^"']+>|\[[^"']+\])["']/g;
+
 // ── Parser helpers ───────────────────────────────────────────────────────────
 
 interface RawCommand {
@@ -157,6 +162,16 @@ function extractCommandsFromContent(content: string, topLevelName: string): RawC
       flags.push(optMatch[1]);
     }
 
+    // Positionals declared with .addArgument() rather than inline in the
+    // .command() string. Commander accepts both, and the generated page has
+    // no way to tell them apart, so they are appended to the name here.
+    const args: string[] = [];
+    ARGUMENT_RE.lastIndex = 0;
+    let argMatch: RegExpExecArray | null;
+    while ((argMatch = ARGUMENT_RE.exec(effectiveSlice)) !== null) {
+      args.push(argMatch[1]);
+    }
+
     // Compose full command name:
     // - If rawName equals the top-level name (or is the isDefault pattern), use as-is
     // - Otherwise, qualify as "topLevel subname"
@@ -166,7 +181,8 @@ function extractCommandsFromContent(content: string, topLevelName: string): RawC
       // Some files declare standalone root commands (e.g. serve, health)
       !rawName.includes(" ");
 
-    const fullName = isTopLevel && i === 0 ? rawName : `${topLevelName} ${rawName}`;
+    const base = isTopLevel && i === 0 ? rawName : `${topLevelName} ${rawName}`;
+    const fullName = args.length > 0 ? `${base} ${args.join(" ")}` : base;
 
     commands.push({ name: fullName.trim(), description, flags });
   }

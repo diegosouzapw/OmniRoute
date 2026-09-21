@@ -1,1 +1,0 @@
-- **fix(providers):** OrcaRouter chat requests now target `/v1/chat/completions` instead of the bare `/v1` API root, fixing the upstream `404 Invalid URL (POST /v1)` ([#11923](https://github.com/diegosouzapw/OmniRoute/pull/11923)).

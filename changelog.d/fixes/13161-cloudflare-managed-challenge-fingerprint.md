@@ -1,0 +1,1 @@
+- **resilience:** a Cloudflare managed challenge (`cf-mitigated: challenge` / challenge HTML on 403) is classified as a fingerprint rejection and retried on another account/transport instead of banning the connection (#13161 — thanks @anhtran-ai)

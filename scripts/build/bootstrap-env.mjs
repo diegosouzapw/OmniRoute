@@ -67,6 +67,11 @@ function isNativeSqliteLoadError(error) {
   const message = error instanceof Error ? error.message : String(error);
   const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
 
+  // Deliberately narrower than src/lib/db/sqliteLoadError.ts. There, a
+  // non-callable export means "fall back to another driver". Here, the only
+  // consumer treats a match as "no encrypted credentials exist", which lets
+  // STORAGE_ENCRYPTION_KEY be regenerated over a database that still holds
+  // enc:v1: rows. A generic TypeError must stay loud on this path.
   return (
     message.includes("Module did not self-register") ||
     message.includes("NODE_MODULE_VERSION") ||
@@ -76,6 +81,11 @@ function isNativeSqliteLoadError(error) {
     code === "ERR_DLOPEN_FAILED" ||
     code === "MODULE_NOT_FOUND"
   );
+}
+
+function isLikelyBrokenNativeBinding(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("is not a function") || message.includes("is not a constructor");
 }
 
 function hasEncryptedCredentials(dataDir) {
@@ -133,7 +143,10 @@ function hasEncryptedCredentials(dataDir) {
     }
 
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
+    const hint = isLikelyBrokenNativeBinding(error)
+      ? " The better-sqlite3 native binding loaded but did not expose a usable constructor; try `npm rebuild better-sqlite3`."
+      : "";
+    throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}${hint}`);
   }
 }
 

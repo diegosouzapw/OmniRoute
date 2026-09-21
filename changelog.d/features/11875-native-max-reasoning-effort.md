@@ -1,1 +1,0 @@
-- **feat(sse):** treat `max` as a first-class reasoning-effort tier and clamp per model family (GLM 5.1+/DeepSeek V4+/Kimi K3+ keep native `max`; o1/MiniMax/Grok/Muse Spark clamp to their upstream ceiling) ([#11875](https://github.com/diegosouzapw/OmniRoute/pull/11875)) — thanks @Chewji9875

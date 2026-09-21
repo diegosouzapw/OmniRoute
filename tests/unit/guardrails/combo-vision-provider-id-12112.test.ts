@@ -3,29 +3,27 @@ import assert from "node:assert/strict";
 
 process.env.DATA_DIR = `/tmp/omniroute-test-12112-${Date.now()}`;
 
-const { getComboVisionBridgeDecision } = await import(
-  "../../../src/lib/guardrails/visionBridge.ts"
-);
+const { getComboVisionBridgeDecision } =
+  await import("../../../src/lib/guardrails/visionBridge.ts");
 const combosDb = await import("../../../src/lib/db/combos.ts");
 const core = await import("../../../src/lib/db/core.ts");
-const { isVisionIncompatibleTarget } = await import(
-  "../../../open-sse/services/combo/comboStructure.ts"
-);
+const { isVisionIncompatibleTarget } =
+  await import("../../../open-sse/services/combo/comboStructure.ts");
 import type { ResolvedComboTarget } from "../../../open-sse/services/combo/types.ts";
 
 test.after(() => {
   core.resetDbInstance();
 });
 
-test("#12112: checkComboVision respects providerId for namespaced vision models (e.g. nvidia/nemotron-nano-12b-v2-vl)", async () => {
-  // Model 'nvidia/nemotron-nano-12b-v2-vl' is declared with supportsVision: true in nvidia provider registry.
+test("#12112: checkComboVision respects providerId for namespaced vision models (e.g. nvidia/nemotron-3-nano-omni-30b-a3b-reasoning)", async () => {
+  // Model 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning' is declared with supportsVision: true in nvidia provider registry.
   // It has a slash in model id and requires providerId="nvidia" to resolve capabilities.
   await combosDb.createCombo({
     name: "nvidia-vision-combo-12112",
     models: [
       {
         providerId: "nvidia",
-        model: "nvidia/nemotron-nano-12b-v2-vl",
+        model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
         weight: 1,
       },
     ],
@@ -44,7 +42,7 @@ test("#12112: isVisionIncompatibleTarget passes providerId to resolve vision cap
     kind: "model",
     stepId: "step-1",
     executionKey: "step-1",
-    modelStr: "nvidia/nemotron-nano-12b-v2-vl",
+    modelStr: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
     provider: "nvidia",
     providerId: "nvidia",
     connectionId: "conn-1",
@@ -64,6 +62,6 @@ test("#12112: isVisionIncompatibleTarget passes providerId to resolve vision cap
   assert.equal(
     incompatible,
     false,
-    "Target with providerId='nvidia' and model='nvidia/nemotron-nano-12b-v2-vl' must be vision-compatible"
+    "Target with providerId='nvidia' and model='nvidia/nemotron-3-nano-omni-30b-a3b-reasoning' must be vision-compatible"
   );
 });

@@ -1,0 +1,1 @@
+- **fix(db):** stop routine connection-backoff auto-recovery from busting the entire `/v1/models` response cache, which was causing intermittent 75-120s/502 responses on deployments routing many providers (#13389) — thanks @RaviTharuma

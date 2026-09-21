@@ -1,8 +1,9 @@
-import { jwtVerify, SignJWT } from "jose";
+import { SignJWT } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCachedSettings } from "../../lib/db/readCache";
 import { isDraining } from "../../lib/gracefulShutdown";
 import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySizeGuard";
+import { verifyDashboardSessionToken } from "@/shared/utils/dashboardSessionToken";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
 import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
@@ -153,7 +154,13 @@ async function refreshDashboardSessionIfNeeded(
   if (!token) return;
 
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const payload = await verifyDashboardSessionToken(token, secret);
+    if (!payload) {
+      // Not a dashboard session (foreign/expired/claim-less token): drop it so a
+      // Cursor CLI token can never ride along as the cookie (#13298).
+      response.cookies.delete("auth_token");
+      return;
+    }
     const exp = typeof payload.exp === "number" ? payload.exp : null;
     if (!exp) return;
 
@@ -263,8 +270,25 @@ export async function runAuthzPipeline(
   const requestId = generateRequestId();
 
   if (pathname === "/") {
+    // Zed's native-app sign-in redirects the browser to the loopback ROOT
+    // (http://127.0.0.1:<port>/?user_id=...&access_token=...), ignoring any
+    // path. When the dashboard's own loopback port is reused as native_app_port
+    // (see src/lib/oauth/providers/zed-hosted.ts), that redirect lands HERE. The
+    // root page (src/app/page.tsx) is meant to forward the payload to the
+    // /callback relay, but this middleware runs first and the redirect below
+    // only built `basePath + "/dashboard"` — dropping the query string and
+    // silently losing the zed-hosted / native_app_signin result. Detect the
+    // native callback and forward it straight to /callback preserving the
+    // params, mirroring page.tsx.
+    const { searchParams, search } = request.nextUrl;
+    const hasNativeCallback = searchParams.get("user_id") && searchParams.get("access_token");
     const response = NextResponse.redirect(
-      new URL(`${request.nextUrl.basePath}/dashboard`, request.url)
+      new URL(
+        hasNativeCallback
+          ? `${request.nextUrl.basePath}/callback${search}`
+          : `${request.nextUrl.basePath}/dashboard`,
+        request.url
+      )
     );
     return stampRouteResponse(response, requestId, "MANAGEMENT");
   }

@@ -13,7 +13,7 @@ import { fromCloudAgent } from "../model/fromCloudAgent";
 import { fromA2A } from "../model/fromA2A";
 import { fromConductor } from "../model/fromConductor";
 import { mergeSnapshot } from "../model/mergeSnapshot";
-import type { OrchSnapshot, SourceStatus } from "../model/orchestrationTypes";
+import type { OrchSnapshot, OrchSource, SourceStatus } from "../model/orchestrationTypes";
 
 export const POLL_MS = 5_000;
 export const POLL_MS_WS_CONNECTED = 30_000;
@@ -59,13 +59,27 @@ export function snapshotContentKey(s: OrchSnapshot): string {
   ]);
 }
 
-/** Builds the 3-source status list from a `Promise.allSettled` triple. */
+/**
+ * Builds the 3-source status list from a `Promise.allSettled` triple.
+ *
+ * `prev` is the source-status list from the previous poll: a source that is failing NOW
+ * reuses the `staleSince` it already had when it was ALSO failing in `prev` (so the
+ * timestamp pins to the FIRST failure instead of advancing every tick — that advance both
+ * misreported "stale since" as the last poll and defeated `snapshotContentKey`'s stability,
+ * since it serializes `sources`). A source that recovers loses `staleSince`; a source
+ * failing for the first time (or failing again after recovering) is stamped with `nowIso`.
+ */
 function buildSourceStatuses(
   ca: PromiseSettledResult<{ data: CloudAgentTask[] }>,
   a2a: PromiseSettledResult<{ tasks: A2ATask[] }>,
   cond: PromiseSettledResult<FleetSnapshot>,
-  nowIso: string
+  nowIso: string,
+  prev: SourceStatus[]
 ): SourceStatus[] {
+  const staleSinceFor = (source: OrchSource): string => {
+    const prevStatus = prev.find((s) => s.source === source);
+    return prevStatus && !prevStatus.ok && prevStatus.staleSince ? prevStatus.staleSince : nowIso;
+  };
   const next: SourceStatus[] = [];
   if (ca.status === "fulfilled") next.push({ source: "cloud-agent", ok: true });
   else
@@ -73,10 +87,16 @@ function buildSourceStatuses(
       source: "cloud-agent",
       ok: false,
       error: String(ca.reason),
-      staleSince: nowIso,
+      staleSince: staleSinceFor("cloud-agent"),
     });
   if (a2a.status === "fulfilled") next.push({ source: "a2a", ok: true });
-  else next.push({ source: "a2a", ok: false, error: String(a2a.reason), staleSince: nowIso });
+  else
+    next.push({
+      source: "a2a",
+      ok: false,
+      error: String(a2a.reason),
+      staleSince: staleSinceFor("a2a"),
+    });
   if (cond.status === "fulfilled") {
     next.push({ source: "conductor", ok: true, offline: cond.value.offline });
   } else
@@ -84,7 +104,7 @@ function buildSourceStatuses(
       source: "conductor",
       ok: false,
       error: String(cond.reason),
-      staleSince: nowIso,
+      staleSince: staleSinceFor("conductor"),
     });
   return next;
 }
@@ -124,7 +144,6 @@ export function useOrchestrationSnapshot() {
       if (controller.signal.aborted) return;
       const nowMs = Date.now();
       const nowIso = new Date(nowMs).toISOString();
-      const next = buildSourceStatuses(ca, a2a, cond, nowIso);
 
       // Failed sources keep the previously stored slice — only overwrite what
       // actually resolved this round ("last good data" contract from the brief).
@@ -133,7 +152,10 @@ export function useOrchestrationSnapshot() {
         a2a: a2a.status === "fulfilled" ? a2a.value.tasks : prev.a2a,
         conductor: cond.status === "fulfilled" ? cond.value : prev.conductor,
       }));
-      setStatuses(next);
+      // Functional updater form: gives `buildSourceStatuses` the latest previous
+      // statuses (for the staleSince-pinning rule) without a stale closure over
+      // `statuses` and without adding a ref or an extra effect for it.
+      setStatuses((prevStatuses) => buildSourceStatuses(ca, a2a, cond, nowIso, prevStatuses));
       setPolledAt(nowMs);
       setIsLoading(false);
     };

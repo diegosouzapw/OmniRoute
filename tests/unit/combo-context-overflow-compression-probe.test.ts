@@ -148,12 +148,15 @@ test("#10225 combo keeps the fast 400 when compression is disabled", async () =>
 
 // #10501-sweep #10503 — the deferral above is NOT target-aware by default: it only
 // checks operator-named compression exclusions, never whether chatCore will actually
-// attempt compression for the resolved target. handleChatCore.ts unconditionally sets
-// `compressionExcluded = nativeCodexPassthrough || ...` for a verified native Codex
-// Responses passthrough target (open-sse/handlers/chatCore.ts) — deferring the
+// attempt compression for the resolved target. chatCore's *reactive* compaction and
+// last-resort gates still bypass native Codex passthrough targets
+// (open-sse/handlers/chatCore.ts `!nativeCodexPassthrough` checks) — deferring the
 // preflight there means an oversized request sails past BOTH gates uncompressed. These
 // tests pin the fix: a native-codex-passthrough target must never count toward "can
 // compress", so the hard preflight stays active and no upstream dispatch happens.
+// NOTE: prompt (proactive) compression DOES run for native passthrough since the
+// codex analytics fix (see chatCore.ts `compressionExcluded`); only the reactive /
+// combo-deferral bypasses remain. That split is intentional prompt-only scope.
 // NOTE on `clientManagedResponsesContext: false` below: these tests deliberately do
 // NOT set it, to isolate the fix from the PRE-EXISTING, unrelated early-return a few
 // lines above in knownContextOverflow.ts ("Native Codex Responses clients compact
@@ -163,7 +166,7 @@ test("#10225 combo keeps the fast 400 when compression is disabled", async () =>
 // circuits to true for `provider === "codex"` regardless of verification (see
 // passthroughHelpers.ts), so an UNVERIFIED request that nonetheless targets a `codex`
 // combo member over `/v1/responses` in openai-responses format still hits chatCore's
-// compression bypass — exactly the gap `sourceFormat`/`endpointPath` (not the looser
+// reactive compression bypass — exactly the gap `sourceFormat`/`endpointPath` (not the looser
 // `clientManagedResponsesContext` flag) now closes.
 test("#10503 handleComboChat: native-codex-passthrough pool fails FAST locally, zero upstream dispatches", async () => {
   saveModelsDevCapabilities({ codex: { "gpt-5.6-terra": capabilityEntry(272_000) } });

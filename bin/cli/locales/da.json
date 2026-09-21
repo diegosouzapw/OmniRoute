@@ -14,6 +14,812 @@
     "jsonOpt": "Output som JSON",
     "yesOpt": "Spring bekræftelse over"
   },
+  "setup": {
+    "title": "Opsætning af OmniRoute",
+    "passwordPrompt": "Administratoradgangskode",
+    "providerPrompt": "Standardudbyder (lad feltet være tomt for at springe over)",
+    "done": "Opsætning fuldført",
+    "passwordSet": "Administratoradgangskode konfigureret",
+    "providerSet": "Udbyder konfigureret: {name}",
+    "testingProvider": "Tester udbyderforbindelse: {name}",
+    "testPassed": "Udbydertest bestået",
+    "testFailed": "Udbydertest mislykkedes: {error}",
+    "loginEnabled": "Login: aktiveret (adgangskode opdateret)",
+    "loginDisabled": "Login: deaktiveret",
+    "providerInfo": "Udbyder: {info}",
+    "opencode": "Installer og konfigurer det medfølgende @omniroute/opencode-plugin til OpenCode"
+  },
+  "doctor": {
+    "title": "OmniRoute-diagnosticering",
+    "dbOk": "Database: OK ({path})",
+    "dbMissing": "Database: ikke initialiseret — kør `omniroute setup`",
+    "portOk": "Port {port}: tilgængelig",
+    "portConflict": "Port {port}: bruges af en anden proces",
+    "encryptionOk": "Krypteringsnøgle: konfigureret",
+    "encryptionMissing": "Krypteringsnøgle mangler — kør `omniroute setup`",
+    "allGood": "Alle kontroller bestået.",
+    "warnings": "{count} advarsel/advarsler — se ovenfor."
+  },
+  "providers": {
+    "title": "Udbydere",
+    "noProviders": "Ingen udbydere konfigureret. Kør: omniroute setup",
+    "testing": "Tester {name}...",
+    "available": "{count} udbyder(e) tilgængelig(e)",
+    "connected": "Forbundet",
+    "disconnected": "Afbrudt",
+    "validationFailed": "Validering mislykkedes: {error}",
+    "metrics": {
+      "description": "Vis målinger af udbydernes ydeevne (ventetid, succesrate, omkostninger)",
+      "provider": "Filtrer efter udbyder-id",
+      "connection_id": "Filtrer efter forbindelses-id",
+      "period": "Tidsperiode: 1h|6h|24h|7d|30d (standard: 24h)",
+      "metric": "Fokusér på et bestemt målefelt",
+      "sort": "Sortér efter felt (faldende)",
+      "limit": "Maksimalt antal rækker (standard: 50)",
+      "watch": "Opdater hvert 5. sekund (livetilstand)",
+      "compare": "Kommaseparerede udbyder-id'er, der skal sammenlignes side om side"
+    },
+    "metric_single": {
+      "description": "Hent en enkelt måleværdi for en bestemt forbindelse"
+    },
+    "rotate": {
+      "description": "Udskift den overordnede API-nøgle for en udbyderforbindelse",
+      "newKeyOpt": "Ny API-nøgleværdi (undgå: brug helst --from-env)",
+      "fromEnvOpt": "Læs den nye nøgle fra miljøvariablen VAR",
+      "oauthOpt": "Udløs OAuth-genautentificeringsflowet i stedet",
+      "skipTestOpt": "Spring forbindelsestesten efter rotation over",
+      "dryRunOpt": "Vis, hvad der ville blive ændret, uden at gemme",
+      "confirmPrompt": "Erstat API-nøglen for forbindelsen \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Ville rotere nøglen for \"{name}\" ({id}). Ingen ændringer foretaget.",
+      "oauthHint": "OAuth-forbindelse — kør: omniroute oauth {provider}",
+      "envVarEmpty": "Miljøvariablen {var} er ikke angivet eller er tom.",
+      "success": "Nøglen for \"{name}\" er roteret. Kør `providers test {id}` for at bekræfte.",
+      "testPassed": "Testen efter rotation blev gennemført.",
+      "testFailed": "Testen efter rotation mislykkedes: {error}"
+    },
+    "status": {
+      "description": "Vis nøglestatus for alle udbyderforbindelser (alder, udløb, nedkølingsperiode)",
+      "providerOpt": "Filtrer efter udbydernavn",
+      "header": "ID         Udbyder        Navn                     Udløbsstatus  Teststatus  Nedkøling indtil",
+      "noData": "Ingen data om udbyderforbindelser tilgængelige.",
+      "requiresServer": "providers status kræver, at OmniRoute-serveren kører."
+    }
+  },
+  "keys": {
+    "title": "API-nøgler",
+    "addDescription": "Tilføj eller opdater en API-nøgle for en udbyder",
+    "listDescription": "Vis alle konfigurerede API-nøgler",
+    "removeDescription": "Fjern en API-nøgle for en udbyder",
+    "regenerateDescription": "Generér en OmniRoute API-nøgle igen",
+    "revokeDescription": "Tilbagekald en OmniRoute API-nøgle",
+    "revealDescription": "Vis den umaskerede API-nøgleværdi",
+    "usageDescription": "Vis seneste brug af en API-nøgle",
+    "usageLimitOpt": "Antal seneste anmodninger",
+    "rotateDescription": "Generér en ny nøgle, og ugyldiggør den gamle",
+    "graceOpt": "Henstandsperiode (ms), før den gamle nøgle ugyldiggøres",
+    "stdinOpt": "Læs API-nøglen fra stdin i stedet for argumentet",
+    "added": "Nøgle tilføjet for {provider}.",
+    "removed": "Nøglen er fjernet.",
+    "listed": "{count} nøgle(r).",
+    "noKeys": "Ingen nøgler konfigureret.",
+    "noUsage": "Ingen brugsdata fundet.",
+    "confirmRemove": "Fjern nøgle {id}?",
+    "confirmRegenerate": "Generér nøgle {id} igen?",
+    "confirmRevoke": "Tilbagekald nøgle {id}?",
+    "confirmRotate": "Rotér nøgle {id}? (den gamle nøgle ugyldiggøres efter henstandsperioden)",
+    "regenerated": "Genereret igen. Ny nøgle: {key}",
+    "revoked": "Nøgle {id} er tilbagekaldt.",
+    "rotated": "Nøglen {id} blev roteret. Nyt nøgle-id: {newId}",
+    "revealWarning": "⚠  Dette viser hele nøglen uden maskering. Sørg for, at din skærm ikke kan ses af andre.",
+    "providerRequired": "Udbyder er påkrævet.",
+    "keyRequired": "API-nøgle er påkrævet.",
+    "stdinEmpty": "Der blev ikke angivet nogen API-nøgle via stdin.",
+    "unknownProvider": "Ukendt udbyder: {provider}",
+    "policy": {
+      "title": "Nøglepolitik",
+      "showDescription": "Vis grænser for antal anmodninger og omkostninger for en nøgle",
+      "setDescription": "Angiv grænser for antal anmodninger og omkostninger for en nøgle",
+      "rateLimitOpt": "Maks. antal anmodninger pr. minut",
+      "maxCostOpt": "Maks. omkostning pr. dag (USD)",
+      "allowedModelsOpt": "Kommaadskilt liste over tilladte modeller",
+      "nothingToSet": "Der blev ikke angivet nogen politikfelter. Brug --rate-limit, --max-cost eller --allowed-models.",
+      "updated": "Politikken blev opdateret."
+    },
+    "expiration": {
+      "title": "Nøgleudløb",
+      "listDescription": "Vis nøgler, der snart udløber",
+      "daysOpt": "Vis nøgler, der udløber inden for N dage",
+      "none": "Ingen nøgler udløber inden for {days} dage.",
+      "listTitle": "Nøgler, der udløber inden for {days} dage:"
+    }
+  },
+  "authExport": {
+    "description": "Eksportér DEKRYPTEREDE udbyderlegitimationsoplysninger (kun lokalt, output i klartekst)",
+    "idOpt": "Eksportér kun den forbindelse, der matcher dette id/navn/denne udbyder",
+    "formatOpt": "Outputformat: json eller env",
+    "outOpt": "Skriv output til en fil i stedet for stdout (skrives med 0600-tilladelser)",
+    "forceOpt": "Bekræft, at du forstår, at dette udskriver/skriver hemmeligheder i klartekst",
+    "warning": "⚠ Dette udskriver/skriver DEKRYPTEREDE API-nøgler og OAuth-tokens i klartekst. Sørg for, at din skærm, din shellhistorik og eventuelle outputfiler forbliver private.",
+    "confirmHeading": "⚠ ADVARSEL: Dette eksporterer DEKRYPTEREDE udbyderlegitimationsoplysninger i klartekst",
+    "confirmBody": "Denne kommando dekrypterer og udskriver/skriver apiKey, accessToken, refreshToken og\nidToken for de valgte forbindelser. Behandl outputtet som en hemmelighed.",
+    "confirmFooter": "Kør følgende for at bekræfte:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY er påkrævet for at eksportere legitimationsoplysninger.",
+    "notFound": "Forbindelsen blev ikke fundet: {id}",
+    "invalidFormat": "Ugyldigt format: {format}. Brug json eller env."
+  },
+  "stream": {
+    "description": "Stream et chatsvar med SSE-inspektionstilstande",
+    "file": "Læs prompt fra fil",
+    "stdin": "Læs prompt fra stdin",
+    "model": "Model-id (standard: auto)",
+    "system": "Systemprompt",
+    "combo": "Gennemtving en bestemt kombination efter navn",
+    "max_tokens": "Maksimalt antal tokens i svaret",
+    "responses_api": "Brug /v1/responses i stedet for /v1/chat/completions",
+    "raw": "Udskriv rå SSE-linjer, efterhånden som de modtages",
+    "debug": "Udskriv tidsoplysninger pr. del til stderr",
+    "save": "Gem alle SSE-hændelser i en .jsonl-fil",
+    "error": {
+      "empty_prompt": "Fejl: prompt er påkrævet (positionelt argument, --file eller --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Brugsanalyse, budgetter, kvoter og logfiler",
+    "analytics": {
+      "description": "Vis aggregeret brugsanalyse",
+      "period": "Tidsinterval: 1d|7d|30d|90d|ytd|all (standard: 30d)",
+      "provider": "Filtrer efter udbyder-id"
+    },
+    "budget": {
+      "description": "Administrer omkostningsbudgetter",
+      "set": {
+        "scope": "Budgetomfang (standard: globalt)",
+        "period": "Budgetperiode: daily|weekly|monthly (standard: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Vis udbyderens kvoteforbrug",
+      "provider": "Filtrer efter udbyder-id",
+      "check": "Vis, om der er tilgængelig kvote til en ny anmodning"
+    },
+    "logs": {
+      "description": "Vis logfiler for anmodningskald",
+      "limit": "Antal logposter, der skal returneres (standard: 100)",
+      "search": "Søgeforespørgsel til filtrering af logfiler",
+      "since": "Returner logfiler siden dette tidsstempel",
+      "follow": "Følg løbende nye logposter",
+      "api_key": "Filtrer logfiler efter API-nøgle"
+    },
+    "utilization": {
+      "description": "Vis målinger for brug af API-nøgler",
+      "api_key": "Filtrer efter API-nøgle"
+    },
+    "history": {
+      "description": "Vis anmodningshistorik",
+      "limit": "Antal historikposter (standard: 100)"
+    },
+    "proxy_logs": {
+      "description": "Vis anmodningslogfiler på proxyniveau",
+      "limit": "Antal proxylogposter (standard: 100)"
+    }
+  },
+  "cost": {
+    "description": "Vis omkostningsrapport med opdeling efter udbyder, model, kombination eller API-nøgle",
+    "period": "Tidsinterval: 1d|7d|30d|90d|ytd|all (standard: 30d)",
+    "since": "Startdato (ISO-format, f.eks. 2026-01-01) — tilsidesætter --period",
+    "until": "Slutdato (ISO-format)",
+    "group_by": "Gruppér resultater efter: provider|model|api-key|combo|day (standard: provider)",
+    "api_key_filter": "Filtrer efter en bestemt API-nøgle",
+    "limit": "Maksimalt antal rækker, der skal vises (standard: 100)"
+  },
+  "simulate": {
+    "description": "Dry-run-routingsimulering — vis, hvilke udbydere der ville blive valgt, uden at kalde upstream",
+    "file": "Indlæs hele anmodningsteksten fra en JSON-fil",
+    "model": "Model-id (standard: auto)",
+    "combo": "Gennemtving en bestemt kombination efter navn",
+    "reasoning": "Niveau for ræsonneringsindsats (low|medium|high)",
+    "thinking": "Tokenbudget til udvidet tænkning",
+    "explain": "Udskriv fallback-træ og omkostningsinterval til stderr",
+    "noCombo": "Ingen matchende kombination fundet. Konfigurer en med: omniroute combo create"
+  },
+  "chat": {
+    "description": "Send en enkeltstående chatprompt til OmniRoute",
+    "file": "Læs prompt fra fil",
+    "stdin": "Læs prompt fra stdin",
+    "system": "Systemprompt",
+    "model": "Model-id (standard: auto)",
+    "max_tokens": "Maksimalt antal tokens i svaret",
+    "temperature": "Samplingtemperatur (0–2)",
+    "top_p": "Top-p-nucleus-sampling",
+    "reasoning_effort": "Niveau for ræsonneringsindsats (low|medium|high)",
+    "thinking_budget": "Tokenbudget til udvidet tænkning",
+    "combo": "Gennemtving en bestemt kombination efter navn",
+    "responses_api": "Brug /v1/responses i stedet for /v1/chat/completions",
+    "stream": "Stream svaret løbende",
+    "no_history": "Gem ikke i ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Fejl: Prompt er påkrævet (positionsargument, --file eller --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Start OmniRoute-serveren (standardhandling)",
+    "starting": "Starter OmniRoute-serveren på port {port}...",
+    "ready": "Klar på http://localhost:{port}",
+    "stopping": "Stopper serveren (PID {pid})...",
+    "stopped": "Serveren er stoppet.",
+    "notRunning": "Serveren kører ikke.",
+    "port": "Port, der skal lyttes på (standard: 20128)",
+    "no_open": "Åbn ikke browseren automatisk",
+    "daemon": "Kør serveren som en baggrundsdaemon",
+    "log": "Vis serverlogfiler direkte",
+    "no_recovery": "Deaktivér automatisk genstart efter nedbrud (fejlretningstilstand)",
+    "max_restarts": "Maksimalt antal genstarter efter nedbrud inden for 30 sek., før der gives op (standard: 2)",
+    "tray": "Start i systembakken (kun desktop, tilvalg)",
+    "no_tray": "Deaktivér ikonet i systembakken",
+    "ready_timeout": "Timeout for klargøringstest i ms (også OMNIROUTE_READY_TIMEOUT_MS, standard 60000)",
+    "tls_cert": "Sti til et TLS-certifikat (PEM) til HTTPS (også OMNIROUTE_TLS_CERT)",
+    "tls_key": "Sti til den private TLS-nøgle (PEM) til HTTPS (også OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Sikkerhedskopi",
+    "description": "Opret en sikkerhedskopi af OmniRoute-data",
+    "creating": "Opretter sikkerhedskopi...",
+    "done": "Sikkerhedskopien blev gemt i {path}",
+    "noFiles": "Ingen filer at sikkerhedskopiere (databasen er ikke initialiseret)",
+    "failed": "Sikkerhedskopiering mislykkedes: {error}",
+    "restoring": "Gendanner fra {path}...",
+    "restored": "Gendannelsen er fuldført.",
+    "restoreDescription": "Gendan fra en sikkerhedskopi",
+    "listTitle": "Tilgængelige sikkerhedskopier",
+    "noBackups": "Ingen sikkerhedskopier fundet.",
+    "notFound": "Sikkerhedskopien blev ikke fundet: {name}",
+    "confirmRestore": "Overskriv aktuelle data med sikkerhedskopien fra {ts}?",
+    "createDescription": "Opret en sikkerhedskopi af OmniRoute-data",
+    "nameOpt": "Brugerdefineret navn på sikkerhedskopi",
+    "cloudOpt": "Upload sikkerhedskopi til cloudlager",
+    "encryptOpt": "Kryptér sikkerhedskopi med AES-256-GCM",
+    "keyFileOpt": "Sti til filen, der indeholder krypteringsadgangskoden",
+    "excludeOpt": "Udelad filer, der matcher mønsteret (kan gentages)",
+    "retentionOpt": "Behold kun de seneste N sikkerhedskopier",
+    "passphrasePrompt": "Krypteringsadgangskode:",
+    "noPassphrase": "Der kræves en adgangskode til en krypteret sikkerhedskopi.",
+    "cloudFailed": "Advarsel: Upload til cloudlager mislykkedes. Den lokale sikkerhedskopi blev gemt.",
+    "cloudUploaded": "Sikkerhedskopi uploadet til cloudlager: {url}",
+    "auto": {
+      "title": "Tidsplan for sikkerhedskopiering",
+      "enableDescription": "Aktivér planlagte automatiske sikkerhedskopieringer",
+      "disableDescription": "Deaktivér planlagte automatiske sikkerhedskopieringer",
+      "statusDescription": "Vis aktuel status for tidsplanen for sikkerhedskopiering",
+      "cronOpt": "Cron-udtryk for tidsplanen (standard: dagligt kl. 03.00)",
+      "enabled": "Automatisk sikkerhedskopiering aktiveret (cron: {cron}).",
+      "hint": "Tidsplanen indlæses af omniroute serve ved opstart.",
+      "disabled": "Automatisk sikkerhedskopiering deaktiveret.",
+      "notConfigured": "Der er ikke konfigureret nogen tidsplan for sikkerhedskopiering."
+    }
+  },
+  "health": {
+    "description": "Kontrollér serverens tilstand og komponentstatus",
+    "noServer": "Serveren kører ikke. Start den med: omniroute serve",
+    "title": "Tilstand",
+    "status": "Status: {status}",
+    "uptime": "Oppetid: {uptime}",
+    "requests": "Anmodninger (24 t.): {count}",
+    "cost": "Omkostninger (24 t.): ${cost}"
+  },
+  "quota": {
+    "description": "Vis udbyderens kvoteforbrug",
+    "noServer": "Serveren kører ikke. Start den med: omniroute serve",
+    "noData": "Ingen kvoteoplysninger tilgængelige."
+  },
+  "cache": {
+    "description": "Administrer svarcache",
+    "noServer": "Serveren kører ikke. Start den med: omniroute serve",
+    "cleared": "Cachen blev ryddet.",
+    "clearFailed": "Cachen kunne ikke ryddes."
+  },
+  "redis": {
+    "description": "Start en lokal Redis-container med ét klik (Podman eller Docker) til OmniRoute-caching og kvoteovervågning"
+  },
+  "test": {
+    "description": "Test en udbyderforbindelse",
+    "noServer": "Serveren kører ikke. Start med: omniroute serve",
+    "testing": "Tester {provider} / {model}...",
+    "passed": "Forbindelsen blev oprettet!",
+    "failed": "Forbindelsen mislykkedes: {error}",
+    "allProvidersOpt": "Test alle konfigurerede udbydere",
+    "latencyOpt": "Vis latensmålinger (gns./min./maks. ms)",
+    "repeatOpt": "Gentag testen N gange, og sammenfat resultaterne",
+    "compareOpt": "Kommaseparerede modeller, der skal sammenlignes (f.eks. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Gem resultaterne i en JSON-fil",
+    "saved": "Resultaterne blev gemt i {path}",
+    "compareTitle": "Modelsammenligning",
+    "compareMinTwo": "Der kræves mindst to modeller til --compare (kommasepareret)",
+    "noProviders": "Ingen udbydere er konfigureret. Tilføj en med: omniroute keys add"
+  },
+  "update": {
+    "checking": "Søger efter opdateringer...",
+    "upToDate": "Allerede opdateret ({version}).",
+    "available": "Opdatering tilgængelig: {current} → {latest}",
+    "installing": "Installerer {latest}...",
+    "done": "Opdateret til {latest}. Genstart serveren for at anvende opdateringen."
+  },
+  "mcp": {
+    "title": "MCP-server",
+    "running": "MCP-serveren kører ({transport})",
+    "stopped": "MCP-serveren er stoppet.",
+    "restarted": "MCP-serveren er genstartet.",
+    "stoppedHint": "Kør `omniroute mcp enable` for at aktivere den.",
+    "enabled": "MCP-serveren er aktiveret.",
+    "disabled": "MCP-serveren er deaktiveret.",
+    "enable": {
+      "description": "Aktivér MCP-serveren",
+      "transport": "Transport, der skal bruges: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Deaktivér MCP-serveren"
+    },
+    "call": {
+      "description": "Kald et MCP-værktøj direkte",
+      "args": "JSON-argumentobjekt (integreret)",
+      "args_file": "Sti til JSON-argumentfil",
+      "stream": "Brug streaming-slutpunktet (/api/mcp/stream)",
+      "scope": "Påkrævet omfang (kan gentages, f.eks. read:health)"
+    },
+    "scopes": {
+      "description": "Vis tilgængelige MCP-omfang",
+      "tool": "Vis omfang, der kræves af et bestemt værktøj"
+    },
+    "tools": {
+      "description": "Undersøg MCP-værktøjer",
+      "list": {
+        "description": "Vis alle MCP-værktøjer",
+        "scope": "Filtrér efter omfang"
+      },
+      "info": {
+        "description": "Vis metadata for et MCP-værktøj"
+      },
+      "schema": {
+        "description": "Vis JSON-skemaet for input/output for et MCP-værktøj",
+        "io": "Skematype: input|output (standard: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP-revisionslog (alias for audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Vis tilgængelige A2A-færdigheder fra agentkortet"
+    },
+    "invoke": {
+      "description": "Kald en A2A-færdighed, og returner opgave-ID'et",
+      "input": "JSON-inputobjekt",
+      "input_file": "Sti til JSON-inputfil",
+      "wait": "Vent på, at opgaven fuldføres, før der returneres",
+      "timeout": "Timeout for ventetid på fuldførelse i ms (standard: 60000)"
+    },
+    "tasks": {
+      "description": "Administrer A2A-opgaver",
+      "list": {
+        "status": "Filtrer efter status",
+        "skill": "Filtrer efter færdigheds-ID"
+      },
+      "watch": {
+        "description": "Forespørg opgavestatus løbende, indtil opgaven er fuldført"
+      },
+      "stream": {
+        "description": "Stream hændelser fra opgaveudførelsen via SSE"
+      },
+      "logs": {
+        "description": "Vis opgavemeddelelser og artefakter"
+      }
+    }
+  },
+  "policy": {
+    "description": "Administrer OmniRoute-godkendelsespolitikker",
+    "list": {
+      "description": "Vis politikker",
+      "kind": "Filtrer efter type (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filtrer efter omfang (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Hent politikdetaljer efter ID"
+    },
+    "create": {
+      "description": "Opret en politik fra en JSON-fil",
+      "file": "Sti til JSON-politikfil"
+    },
+    "update": {
+      "description": "Opdater en politik fra en JSON-fil",
+      "file": "Sti til JSON-politikfil"
+    },
+    "delete": {
+      "description": "Slet en politik efter ID",
+      "yes": "Spring bekræftelsesprompt over"
+    },
+    "evaluate": {
+      "description": "Prøvekør politikevaluering (exit 0=allowed, 4=denied)",
+      "api_key": "API-nøgle, der skal evalueres",
+      "action": "Handling, der skal kontrolleres (f.eks. chat, embed, admin)",
+      "resource": "Ressourcesti eller identifikator",
+      "context": "Yderligere kontekst som JSON-objekt"
+    },
+    "export": {
+      "description": "Eksportér alle politikker til en JSON-fil"
+    },
+    "import": {
+      "description": "Importér politikker fra en JSON-fil",
+      "overwrite": "Overskriv eksisterende politikker med samme ID"
+    }
+  },
+  "compression": {
+    "description": "Konfigurer og inspicer OmniRoute-komprimeringspipelinen",
+    "status": {
+      "description": "Vis aktuel komprimeringsstatus og indstillinger"
+    },
+    "configure": {
+      "description": "Konfigurer komprimeringsindstillinger",
+      "engine": "Komprimeringsmotor (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Caveman-aggressivitet 0.0–1.0",
+      "rtk_budget": "RTK-tokenbudget",
+      "language_pack": "Sprogpakke, der skal aktiveres"
+    },
+    "engine": {
+      "description": "Hent eller indstil den aktive komprimeringsmotor"
+    },
+    "combos": {
+      "description": "Administrer statistik for komprimeringskombinationer"
+    },
+    "rules": {
+      "description": "Administrer komprimeringsregler",
+      "add": {
+        "pattern": "Mønster, der skal matches (regex eller felt:mønster)",
+        "action": "Handling: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Vis tilgængelige sprogpakker til komprimering"
+    },
+    "preview": {
+      "description": "Forhåndsvis komprimeringseffekten på en anmodning",
+      "file": "Sti til JSON-fil med anmodning"
+    }
+  },
+  "tunnel": {
+    "title": "Tunneler",
+    "listDescription": "Vis aktive tunneler",
+    "createDescription": "Opret en tunnel",
+    "created": "Tunnel oprettet: {url}",
+    "stopped": "Tunnel stoppet.",
+    "confirmStop": "Stop tunnel {id}?",
+    "stopDescription": "Stop en tunnel",
+    "statusDescription": "Vis detaljeret status for en tunnel",
+    "logsDescription": "Vis logfiler for en tunnel",
+    "infoDescription": "Vis konfigurationsoplysninger for en tunnel",
+    "rotateDescription": "Generer en ny tunnel-URL",
+    "tailOpt": "Antal loglinjer, der skal vises",
+    "typeRequired": "Tunneltype er påkrævet.",
+    "noLogs": "Ingen logfiler tilgængelige.",
+    "notAvailable": "Tunneloplysninger er ikke tilgængelige.",
+    "noTunnels": "Ingen aktive tunneler.",
+    "infoTitle": "Tunneloplysninger: {type}",
+    "rotated": "Tunnel-URL ændret: {url}",
+    "confirmRotate": "Skift URL for tunnel {type}? (en ny URL bliver genereret)"
+  },
+  "stop": {
+    "description": "Stop OmniRoute-serveren",
+    "stopping": "Stopper serveren (PID {pid})...",
+    "stopped": "Serveren er stoppet.",
+    "notRunning": "Der kører ingen server.",
+    "portFallback": "Ingen PID-fil fundet, forsøger portbaseret stop..."
+  },
+  "restart": {
+    "description": "Genstart OmniRoute-serveren",
+    "restarting": "Genstarter OmniRoute-serveren..."
+  },
+  "dashboard": {
+    "description": "Åbn OmniRoute-dashboardet i en browser",
+    "opening": "Åbner dashboardet på {url}",
+    "urlOnly": "Udskriv dashboardets URL uden at åbne browseren",
+    "tui": "Åbn interaktivt TUI-dashboard (terminalbrugerflade, 7 faner)"
+  },
+  "models": {
+    "description": "Vis tilgængelige modeller (kræver server)",
+    "search": "Filtrer modeller efter id, navn, udbyder eller beskrivelse",
+    "noServer": "Serveren kører ikke. Start med: omniroute serve",
+    "noModels": "Ingen modeller fundet."
+  },
+  "audit": {
+    "description": "Få adgang til compliance- og MCP-revisionslogfiler",
+    "source": "Logkilde: all|compliance|mcp (standard: all)",
+    "since": "Returner poster siden dette tidsstempel (ISO 8601)",
+    "until": "Returner poster indtil dette tidsstempel (ISO 8601)",
+    "tail": {
+      "description": "Vis seneste poster i revisionsloggen",
+      "follow": "Følg løbende nye poster (forespørgsel hvert 2. sek.)",
+      "limit": "Maksimalt antal poster, der skal vises (standard: 100)"
+    },
+    "search": {
+      "description": "Søg i revisionslogposter efter nøgleord",
+      "limit": "Maksimalt antal resultater (standard: 200)",
+      "actor": "Filtrer efter aktør-id",
+      "action": "Filtrer efter handlingsnavn"
+    },
+    "export": {
+      "description": "Eksportér revisionsloggen til en fil",
+      "format": "Outputformat: jsonl|csv (standard: jsonl)"
+    },
+    "stats": {
+      "description": "Vis statistik for revisionsloggen",
+      "period": "Tidsperiode: 1d|7d|30d (standard: 7d)"
+    },
+    "get": {
+      "description": "Hent en enkelt revisionslogpost efter id"
+    }
+  },
+  "skills": {
+    "description": "Administrer OmniRoute-færdigheder (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Vis installerede færdigheder",
+      "type": "Filtrer efter type (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Vis kun aktiverede færdigheder",
+      "disabled": "Vis kun deaktiverede færdigheder",
+      "api_key": "Filtrer efter API-nøgle"
+    },
+    "get": {
+      "description": "Hent oplysninger om en færdighed efter id"
+    },
+    "install": {
+      "description": "Installér en færdighed fra en fil eller URL",
+      "from_file": "Sti til JSON-definitionsfilen for færdigheden",
+      "from_url": "URL til ekstern færdighedsdefinition",
+      "type": "Færdighedstype (sandbox|custom|hybrid)",
+      "enable": "Aktivér færdigheden efter installation"
+    },
+    "enable": {
+      "description": "Aktivér en færdighed efter id"
+    },
+    "disable": {
+      "description": "Deaktiver en færdighed efter id",
+      "yes": "Spring bekræftelsesprompten over"
+    },
+    "delete": {
+      "description": "Slet en færdighed efter id",
+      "yes": "Spring bekræftelsesprompten over"
+    },
+    "execute": {
+      "description": "Kør en færdighed efter id",
+      "input": "JSON-inputobjekt",
+      "input_file": "Sti til JSON-inputfil",
+      "timeout": "Timeout for kørsel i ms (standard: 30000)"
+    },
+    "executions": {
+      "description": "Vis historik over kørsel af færdigheder",
+      "skill": "Filtrer efter færdigheds-ID",
+      "limit": "Maksimalt antal resultater (standard: 50)",
+      "status": "Filtrer efter status (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Administrer færdigheder installeret via SSH"
+    },
+    "marketplace": {
+      "description": "Gennemse og installer færdigheder fra markedspladsen"
+    },
+    "mp": {
+      "search": {
+        "description": "Søg efter pakker på markedspladsen",
+        "category": "Filtrer efter kategori",
+        "tag": "Filtrer efter tag",
+        "limit": "Maksimalt antal resultater (standard: 30)",
+        "sort": "Sortér efter: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Vis pakkedetaljer og readme"
+      },
+      "install": {
+        "description": "Installer en pakke fra markedspladsen",
+        "version": "Pakkeversion (standard: latest)",
+        "enable": "Aktivér efter installation",
+        "yes": "Spring bekræftelsesprompt over"
+      },
+      "categories": {
+        "description": "Vis kategorier på markedspladsen"
+      },
+      "featured": {
+        "description": "Vis fremhævede pakker på markedspladsen"
+      }
+    }
+  },
+  "memory": {
+    "description": "Administrer OmniRoute-samtalehukommelse (FTS5 + vector)",
+    "search": {
+      "description": "Søg i hukommelsesposter med en semantisk forespørgsel",
+      "type": "Filtrer efter hukommelsestype (user|feedback|project|reference)",
+      "limit": "Maksimalt antal resultater (standard: 20)",
+      "api_key": "Filtrer efter API-nøgle",
+      "token_budget": "Begræns det samlede antal tokens i resultaterne"
+    },
+    "add": {
+      "description": "Tilføj en ny hukommelsespost",
+      "content": "Hukommelsens tekstindhold",
+      "file": "Læs indhold fra fil",
+      "type": "Hukommelsestype (standard: user)",
+      "metadata": "JSON-metadataobjekt",
+      "api_key": "Knyt til API-nøgle"
+    },
+    "clear": {
+      "description": "Slet hukommelsesposter, der matcher filtrene",
+      "type": "Filtrer efter type",
+      "older": "Slet poster, der er ældre end varigheden (30d, 6m, 1y)",
+      "api_key": "Filtrer efter API-nøgle",
+      "yes": "Spring bekræftelsesprompt over"
+    },
+    "list": {
+      "description": "Vis hukommelsesposter uden søgerangering",
+      "type": "Filtrer efter type",
+      "limit": "Maksimalt antal resultater (standard: 100)",
+      "api_key": "Filtrer efter API-nøgle"
+    },
+    "get": {
+      "description": "Hent en enkelt hukommelsespost efter ID"
+    },
+    "delete": {
+      "description": "Slet en hukommelsespost efter ID",
+      "yes": "Spring bekræftelsesprompten over"
+    },
+    "health": {
+      "description": "Vis hukommelsesundersystemets tilstand (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Administrer forbindelser til OAuth-udbydere",
+    "providers": {
+      "description": "Vis OAuth-kompatible udbydere og deres flowtyper"
+    },
+    "start": {
+      "description": "Start OAuth-godkendelsesflowet for en udbyder",
+      "provider": "Udbyder-id (gemini, copilot, cursor, …)",
+      "no_browser": "Udskriv kun URL'en — åbn ikke browseren",
+      "import_system": "Importér automatisk legitimationsoplysninger fra den lokale systemkonfiguration",
+      "social": "Udbyder af socialt login (google|github) — påkrævet for kiro",
+      "timeout": "Timeout for ventetid på godkendelse i ms (standard: 300000)"
+    },
+    "status": {
+      "description": "Vis aktive OAuth-forbindelser",
+      "provider": "Filtrer efter udbyder-id"
+    },
+    "revoke": {
+      "description": "Tilbagekald en OAuth-forbindelse",
+      "provider": "Udbyder-id, der skal tilbagekaldes",
+      "connection_id": "Tilbagekald en bestemt forbindelse efter id",
+      "yes": "Spring bekræftelsesprompten over"
+    }
+  },
+  "cloud": {
+    "description": "Administrer opgaver for cloudbaserede AI-agenter (codex, devin, jules)",
+    "agents": {
+      "description": "Vis tilgængelige cloudagenter"
+    },
+    "agent": {
+      "description": "Administrer opgaver for cloudagenten {agent}",
+      "auth": {
+        "description": "Godkend {agent} via OAuth"
+      }
+    },
+    "task": {
+      "description": "Administrer cloudagentopgaver",
+      "create": {
+        "description": "Opret en ny agentopgave",
+        "title": "Opgavetitel (som standard de første 80 tegn i prompten)",
+        "prompt": "Prompttekst til opgaven",
+        "prompt_file": "Læs prompt fra fil",
+        "repo": "URL til repository, der skal klones til opgaven",
+        "branch": "Navn på branch, der skal bruges",
+        "metadata": "JSON-metadataobjekt"
+      },
+      "list": {
+        "description": "Vis agentopgaver",
+        "status": "Filtrer efter status (running|completed|failed|cancelled)",
+        "limit": "Maksimalt antal resultater (standard: 50)"
+      },
+      "get": {
+        "description": "Hent opgavedetaljer efter id"
+      },
+      "status": {
+        "description": "Udskriv opgavestatus (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Annuller en kørende opgave",
+        "yes": "Spring bekræftelsesprompten over"
+      },
+      "approve": {
+        "description": "Godkend agentplanen for at starte udførelsen"
+      },
+      "message": {
+        "description": "Send en besked til en kørende opgave"
+      }
+    },
+    "sources": {
+      "description": "Vis kildefiler, der er oprettet af en opgave"
+    }
+  },
+  "eval": {
+    "description": "Administrer evalueringspakker og kørsler",
+    "suites": {
+      "description": "Administrer evalueringspakker",
+      "list": {
+        "description": "Vis evalueringssuiter"
+      },
+      "get": {
+        "description": "Hent oplysninger om evalueringssuite via ID"
+      },
+      "create": {
+        "description": "Opret en evalueringssuite fra en JSON-fil",
+        "file": "Sti til JSON-filen med suitedefinitionen"
+      }
+    },
+    "run": {
+      "description": "Start en evalueringskørsel for en suite",
+      "model": "Model-ID, der skal evalueres (standard: auto)",
+      "combo": "Gennemtving en bestemt kombination efter navn",
+      "concurrency": "Antal samtidige prøver (standard: 4)",
+      "tag": "Mærk denne kørsel til senere filtrering",
+      "watch": "Overvåg kørslens status, indtil den er fuldført"
+    },
+    "list": {
+      "description": "Vis evalueringskørsler",
+      "suite": "Filtrer efter suite-ID",
+      "status": "Filtrer efter status",
+      "since": "Returner kørsler siden dette tidsstempel",
+      "limit": "Maksimalt antal resultater (standard: 50)"
+    },
+    "get": {
+      "description": "Hent oplysninger om evalueringskørsel via ID"
+    },
+    "results": {
+      "description": "Vis prøveresultater for en evalueringskørsel",
+      "failed": "Vis kun mislykkede prøver"
+    },
+    "cancel": {
+      "description": "Annuller en igangværende evaluering",
+      "yes": "Spring bekræftelsesprompten over"
+    },
+    "scorecard": {
+      "description": "Vis scorekort for en fuldført evalueringskørsel"
+    }
+  },
+  "webhooks": {
+    "description": "Administrer OmniRoute-webhooks",
+    "events": {
+      "description": "Vis alle tilgængelige webhook-hændelsestyper"
+    },
+    "list": {
+      "description": "Vis konfigurerede webhooks"
+    },
+    "get": {
+      "description": "Hent webhook-oplysninger via ID"
+    },
+    "add": {
+      "description": "Registrer en ny webhook",
+      "url": "Destinations-URL",
+      "events": "Kommasepareret liste over hændelsestyper",
+      "secret": "HMAC-signeringshemmelighed",
+      "header": "Ekstra header i formatet key=value (kan gentages)",
+      "no_enabled": "Opret webhook i deaktiveret tilstand"
+    },
+    "update": {
+      "description": "Opdater en eksisterende webhook",
+      "enabled": "Angiv aktiveret tilstand (true|false)"
+    },
+    "remove": {
+      "description": "Slet en webhook",
+      "yes": "Spring bekræftelsesprompten over"
+    },
+    "test": {
+      "description": "Send en testhændelse til en webhook",
+      "event": "Hændelsestype, der skal simuleres (standard: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Smart AI-router med automatisk fallback",
     "version": "Vis version og afslut",
@@ -26,7 +832,509 @@
     "context": "Server-kontekst/profil til denne kommando",
     "lang": "Angiv CLI-visningssprog (tilsidesætter OMNIROUTE_LANG)"
   },
-  "redis": {
-    "description": "Start en lokal Redis-container med ét klik (Podman eller Docker) til OmniRoute-caching og kvoteovervågning"
+  "files": {
+    "description": "Administrer filer (upload, vis, hent, download, slet)",
+    "list": {
+      "purpose": "Filtrer efter formål",
+      "limit": "Maksimalt antal resultater"
+    },
+    "get": {
+      "description": "Hent filmetadata"
+    },
+    "upload": {
+      "description": "Upload en fil",
+      "purpose": "Filformål (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Download filindhold",
+      "out": "Gem til sti (standard: stdout)"
+    },
+    "delete": {
+      "yes": "Spring bekræftelse over"
+    }
+  },
+  "batches": {
+    "description": "Administrer OpenAI-kompatible batchjob",
+    "list": {
+      "status": "Filtrer efter status",
+      "limit": "Maks. antal resultater"
+    },
+    "create": {
+      "description": "Opret et batchjob",
+      "inputFile": "Inputfil-id",
+      "endpoint": "Målslutpunkt",
+      "window": "Fuldførelsesvindue",
+      "metadata": "Tilføj metadata key=value"
+    },
+    "submit": {
+      "description": "Upload JSONL-fil, og opret batch",
+      "jsonl": "Sti til JSONL-fil",
+      "endpoint": "Målslutpunkt",
+      "wait": "Vent på fuldførelse"
+    },
+    "cancel": {
+      "yes": "Spring bekræftelse over"
+    },
+    "wait": {
+      "timeout": "Timeout i ms"
+    },
+    "output": {
+      "out": "Gem output på sti"
+    },
+    "errors": {
+      "out": "Gem fejl på sti"
+    }
+  },
+  "translator": {
+    "description": "Oversæt anmodningstekster mellem LLM-formater",
+    "detect": {
+      "description": "Registrer formatet på anmodningsteksten"
+    },
+    "translate": {
+      "description": "Konvertér anmodningsteksten fra ét format til et andet"
+    },
+    "send": {
+      "description": "Oversæt, og send videre til upstream"
+    },
+    "stream": {
+      "description": "Stream-oversæt en anmodningstekst"
+    },
+    "from": "Kildeformat (openai|anthropic|gemini|cohere)",
+    "to": "Målformat (openai|anthropic|gemini|cohere)",
+    "file": "Sti til JSON-fil med anmodningstekst",
+    "out": "Gem output i fil",
+    "model": "Tilsidesæt model",
+    "history": {
+      "limit": "Maks. antal resultater"
+    }
+  },
+  "pricing": {
+    "description": "Administrer prisdata for modeller",
+    "sync": {
+      "description": "Synkroniser priser fra upstream-kilder",
+      "provider": "Filtrer efter udbyder",
+      "force": "Gennemtving ny synkronisering"
+    },
+    "list": {
+      "provider": "Filtrer efter udbyder",
+      "model": "Filtrer efter model",
+      "limit": "Maks. antal resultater"
+    },
+    "defaults": {
+      "description": "Administrer standardpriser",
+      "input": "Inputomkostning pr. 1 mio. tokens (USD)",
+      "output": "Outputomkostning pr. 1 mio. tokens (USD)",
+      "cacheRead": "Omkostning ved cachelæsning pr. 1 mio. tokens (USD)",
+      "cacheWrite": "Omkostning ved cacheskrivning pr. 1 mio. tokens (USD)"
+    },
+    "diff": {
+      "description": "Vis afvigelse fra upstream-priser",
+      "model": "Filtrer efter model"
+    }
+  },
+  "radar": {
+    "description": "Inspicér og synkroniser de lokale Radar-katalogfeeds",
+    "status": "Vis lokale Radar-indstillinger og status for feedcachen",
+    "sync": "Synkroniser katalog, henvisninger, tilbud og Intel via den lokale server"
+  },
+  "resilience": {
+    "description": "Inspicér og administrer robusthedsmekanismer",
+    "status": {
+      "provider": "Filtrer efter udbyder"
+    },
+    "breakers": {
+      "provider": "Filtrer efter udbyder"
+    },
+    "cooldowns": {
+      "provider": "Filtrer efter udbyder",
+      "connectionId": "Filtrer efter forbindelses-id"
+    },
+    "lockouts": {
+      "provider": "Filtrer efter udbyder",
+      "model": "Filtrer efter model"
+    },
+    "reset": {
+      "description": "Nulstil breaker-/nedkølingstilstand",
+      "provider": "Udbyder, der skal nulstilles",
+      "connectionId": "Forbindelses-id, der skal nulstilles",
+      "model": "Model, hvis spærring skal nulstilles",
+      "allCooldowns": "Nulstil alle nedkølingsperioder for udbyderen",
+      "yes": "Spring bekræftelse over"
+    },
+    "profile": {
+      "description": "Administrer robusthedsprofil",
+      "name": "Profilnavn"
+    },
+    "config": {
+      "description": "Administrer robusthedskonfiguration",
+      "threshold": "Fejltærskel",
+      "resetTimeout": "Timeout for nulstilling i ms",
+      "baseCooldown": "Grundlæggende nedkølingsperiode i ms"
+    }
+  },
+  "nodes": {
+    "description": "Administrer udbydernoder (slutpunkter)",
+    "list": {
+      "provider": "Filtrer efter udbyder",
+      "enabled": "Vis kun aktiverede noder"
+    },
+    "add": {
+      "provider": "Udbydernavn",
+      "baseUrl": "Basis-URL for noden",
+      "name": "Nodenavn",
+      "weight": "Vægtning for belastningsfordeling",
+      "region": "Områdetag",
+      "authHeader": "Tilpasset godkendelsesheader (key=value)"
+    },
+    "update": {
+      "baseUrl": "Ny basis-URL",
+      "name": "Nyt navn",
+      "weight": "Ny vægt",
+      "region": "Ny region",
+      "enabled": "Aktivér eller deaktiver (true|false)"
+    },
+    "remove": {
+      "yes": "Spring bekræftelse over"
+    },
+    "validate": {
+      "baseUrl": "URL, der skal valideres",
+      "provider": "Udbyder, der skal valideres mod"
+    },
+    "test": {
+      "description": "Send testanmodning til node"
+    },
+    "metrics": {
+      "description": "Vis nodemålinger",
+      "period": "Tidsperiode (f.eks. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Konfigurer pipeline til kontekstbehandling (Caveman, RTK)",
+    "analytics": {
+      "period": "Tidsperiode (f.eks. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Administrer Caveman-kontekstkomprimering",
+      "config": {
+        "description": "Vis eller opdater Caveman-konfiguration",
+        "aggressiveness": "Aggressivitet 0.0–1.0",
+        "maxShrinkPct": "Maksimal reduktionsprocent",
+        "preserveTags": "Kommaseparerede tags, der skal bevares"
+      }
+    },
+    "rtk": {
+      "description": "Administrer RTK-kontekstoptimering",
+      "config": {
+        "description": "Vis eller opdater RTK-konfiguration",
+        "tokenBudget": "Tokenbudget for RTK",
+        "reservePct": "Reserveprocent"
+      },
+      "filters": {
+        "description": "Administrer RTK-filtre",
+        "pattern": "Filtermønster (regex)",
+        "priority": "Filterprioritet (standard: 100)",
+        "action": "Filterhandling: drop|shrink|replace",
+        "yes": "Spring bekræftelse over"
+      },
+      "test": {
+        "file": "Sti til JSON-fil med anmodning"
+      }
+    },
+    "combos": {
+      "description": "Kontekstafhængig administration af kombinationer"
+    }
+  },
+  "sessions": {
+    "description": "Undersøg og administrer aktive sessioner",
+    "list": {
+      "user": "Filtrer efter bruger",
+      "kind": "Filtrer efter type (dashboard|api-key|mcp|a2a)",
+      "active": "Vis kun aktive sessioner",
+      "limit": "Maksimalt antal resultater (standard: 100)"
+    },
+    "expire": {
+      "yes": "Spring bekræftelse over"
+    },
+    "expireAll": {
+      "user": "Bruger, hvis sessioner skal udløbe",
+      "yes": "Spring bekræftelse over"
+    }
+  },
+  "tags": {
+    "description": "Administrer ressourcetags",
+    "add": {
+      "color": "Tagfarve (hex eller navn)",
+      "description": "Tagbeskrivelse"
+    },
+    "remove": {
+      "yes": "Spring bekræftelse over"
+    },
+    "assign": {
+      "tag": "Tagnavn",
+      "to": "Målressource som type:id (f.eks. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Tagnavn",
+      "from": "Kilderessource som type:id"
+    }
+  },
+  "openapi": {
+    "description": "Tilgå og test OmniRoute OpenAPI-specifikationen",
+    "dump": {
+      "description": "Udskriv OpenAPI-specifikationen til stdout eller en fil",
+      "format": "Outputformat: yaml|json (standard: yaml)",
+      "out": "Gem på filsti"
+    },
+    "validate": {
+      "description": "Valider OpenAPI-specifikationen"
+    },
+    "try": {
+      "description": "Test et API-slutpunkt via specifikationen",
+      "method": "HTTP-metode (standard: GET)",
+      "body": "Sti til JSON-fil med anmodningens brødtekst",
+      "query": "Forespørgselsparameter som key=value (kan gentages)",
+      "header": "Header som key=value (kan gentages)"
+    },
+    "endpoints": {
+      "description": "Vis alle API-slutpunkter",
+      "search": "Filtrer efter sti eller oversigt"
+    },
+    "paths": {
+      "description": "Vis alle API-stier"
+    }
+  },
+  "combo": {
+    "title": "Kombinationer",
+    "switched": "Aktiv kombination: {name}",
+    "created": "Kombination oprettet: {name}",
+    "deleted": "Kombination slettet: {name}",
+    "noCombos": "Ingen kombinationer er konfigureret.",
+    "confirmDelete": "Slet kombinationen {name}?",
+    "suggest": {
+      "description": "Foreslå den bedste kombination til en opgave ved hjælp af AI-scoring",
+      "task": "Opgavebeskrivelse",
+      "maxCost": "Maksimal pris pr. anmodning i USD",
+      "maxLatencyMs": "Maksimal latenstid i millisekunder",
+      "weights": "JSON-vægtning til scoring, f.eks. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Antal topkandidater, der skal vises (standard: 5)",
+      "explain": "Udskriv begrundelse til stderr",
+      "switch": "Aktivér den højest rangerede kombination"
+    }
+  },
+  "oneproxy": {
+    "description": "Administrer OneProxy-upstreampuljen",
+    "stats": {
+      "provider": "Filtrer efter udbyder",
+      "period": "Tidsperiode (standard: 24h)"
+    },
+    "fetch": {
+      "description": "Hent proxyer fra puljen",
+      "count": "Antal proxyer, der skal hentes (standard: 1)",
+      "type": "Proxytype: http|socks5 (standard: http)"
+    },
+    "rotate": {
+      "description": "Gennemtving proxyrotation",
+      "provider": "Udbyder, der skal roteres for",
+      "connectionId": "Specifikt forbindelses-id, der skal roteres"
+    },
+    "config": {
+      "description": "Vis eller opdater OneProxy-konfigurationen",
+      "enabled": "Aktivér proxypulje (true|false)",
+      "poolSize": "Puljestørrelse",
+      "providerSource": "URL til proxyudbyder",
+      "rotationPolicy": "Rotationspolitik: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Vis den aktuelle proxypulje med målinger"
+    }
+  },
+  "open": {
+    "description": "Åbn en bestemt OmniRoute-dashboardside i browseren",
+    "url": "Udskriv kun URL, åbn ikke browseren"
+  },
+  "telemetry": {
+    "description": "Få adgang til aggregerede telemetridata",
+    "summary": {
+      "description": "Vis aggregeret telemetrioversigt",
+      "period": "Tidsperiode: 24h|7d|30d (standard: 24h)",
+      "compareTo": "Sammenlign med den foregående periode"
+    },
+    "export": {
+      "description": "Eksportér telemetrihændelser til JSONL",
+      "out": "Sti til outputfil (standard: telemetry.jsonl)",
+      "period": "Tidsperiode for eksport (standard: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Synkroniser konfiguration mellem OmniRoute-instanser",
+    "push": {
+      "description": "Send konfiguration til cloud eller fjerninstans",
+      "target": "Mål (cloud eller context:name)",
+      "bundle": "Pakkedele, der skal synkroniseres",
+      "dryRun": "Forhåndsvis uden at anvende"
+    },
+    "pull": {
+      "description": "Hent konfiguration fra cloud eller fjerninstans",
+      "source": "Kilde (cloud eller context:name)",
+      "merge": "Flet med eksisterende konfiguration",
+      "replace": "Erstat eksisterende konfiguration",
+      "dryRun": "Forhåndsvis uden at anvende"
+    },
+    "diff": {
+      "source": "Kildekontekst",
+      "target": "Målkontekst"
+    },
+    "bundle": {
+      "description": "Eksportér konfiguration som en pakkefil",
+      "include": "Dele, der skal medtages (kommasepareret)"
+    },
+    "import": {
+      "description": "Importér en pakkefil",
+      "dryRun": "Valider uden at anvende"
+    },
+    "initialize": {
+      "fromCloud": "Initialiser fra cloud-sikkerhedskopi"
+    },
+    "tokens": {
+      "description": "Administrer synkroniseringstokens",
+      "create": {
+        "name": "Tokennavn",
+        "scope": "Tokenomfang",
+        "ttl": "Tokens levetid (f.eks. 30d)"
+      },
+      "revoke": {
+        "yes": "Spring bekræftelse over"
+      }
+    },
+    "resolve": {
+      "description": "Løs synkroniseringskonflikter interaktivt"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Administrer serverkontekster/-profiler (tilføj, brug, vis liste, vis, fjern, omdøb, eksportér, importér)"
+    },
+    "lang": {
+      "description": "Administrer CLI-visningssprog",
+      "getDescription": "Vis den aktuelt aktive sprogkode",
+      "setDescription": "Indstil visningssproget, og gem det i konfigurationen",
+      "listDescription": "Vis alle tilgængelige sprog",
+      "listTitle": "Tilgængelige sprog",
+      "current": "Sprog: {code} ({name})",
+      "saved": "Sproget er indstillet til {code} ({name}).",
+      "noCode": "Sprogkode er påkrævet. Kør 'omniroute config lang list' for at se tilgængelige koder.",
+      "unknown": "Ukendt sprogkode: {code}. Kør 'omniroute config lang list' for at se tilgængelige koder.",
+      "alreadySet": "Sproget er allerede indstillet til {code}.",
+      "envHint": "Tip: Du kan også indstille OMNIROUTE_LANG={code} i dit miljø."
+    }
+  },
+  "completion": {
+    "description": "Generér eller installér scripts til kommandofuldførelse",
+    "zsh": "Udskriv script til zsh-kommandofuldførelse",
+    "bash": "Udskriv script til bash-kommandofuldførelse",
+    "fish": "Udskriv script til fish-kommandofuldførelse",
+    "install": "Installér script til kommandofuldførelse globalt for den registrerede shell",
+    "refresh": "Opdater cachen for kombinationer/udbydere/modeller"
+  },
+  "logs": {
+    "description": "Stream eller eksportér anmodningslogfiler",
+    "follow": "Stream logfiler i realtid",
+    "filter": "Filtrér efter niveau (error,warn,info) — kommasepareret",
+    "lines": "Antal linjer, der skal hentes",
+    "timeout": "Timeout for forbindelse i ms",
+    "baseUrl": "Basis-URL til OmniRoute API",
+    "requestId": "Filtrér efter anmodnings-id",
+    "apiKey": "Filtrér efter API-nøgle",
+    "combo": "Filtrér efter kombinationsnavn",
+    "status": "Filtrér efter HTTP-statuskode",
+    "durationMin": "Mindste varighed for anmodning i ms",
+    "durationMax": "Maksimal varighed for anmodning i ms",
+    "export": "Gem logfiler i en fil (json/jsonl/csv)",
+    "exported": "Logfiler gemt i {path}",
+    "stopped": "Logstream stoppet.",
+    "streamError": "Fejl i logstream: {message}"
+  },
+  "tray": {
+    "description": "Administrer ikonet i systembakken",
+    "show": "Vis ikonet i systembakken (hvis serveren kører med --tray)",
+    "hide": "Skjul ikonet i systembakken",
+    "quit": "Afslut OmniRoute via systembakken"
+  },
+  "autostart": {
+    "description": "Administrer automatisk start af OmniRoute ved opstart (Linux: systemd-brugertjeneste)",
+    "enable": "Aktivér automatisk start ved opstart",
+    "disable": "Deaktivér automatisk start ved opstart",
+    "toggle": "Slå automatisk start ved opstart til eller fra",
+    "status": "Vis status for automatisk start"
+  },
+  "runtime": {
+    "description": "Administrer native runtime-afhængigheder",
+    "check": "Kontrollér status for native afhængigheder i runtime-mappen",
+    "repair": "Geninstaller native afhængigheder i runtime-mappen",
+    "repair_force": "Gennemtving geninstallation, selv hvis de er gyldige",
+    "clean": "Fjern runtime-mappen (frigør diskplads)",
+    "clean_yes": "Spring bekræftelse over"
+  },
+  "repl": {
+    "description": "Interaktiv REPL med flere samtalerunder og LLM",
+    "model": "Model, der skal bruges (standard: auto)",
+    "combo": "Navn på kombination, der skal bruges",
+    "system": "Systemprompt",
+    "resume": "Genoptag en gemt session efter navn"
+  },
+  "plugin": {
+    "description": "Administrer CLI-plugins (omniroute-cmd-*)",
+    "list": "Vis installerede plugins",
+    "install": "Installer et plugin fra npm eller en lokal sti",
+    "remove": "Fjern et installeret plugin",
+    "info": "Vis oplysninger om et installeret plugin",
+    "search": "Søg i npm-registret efter tilgængelige plugins",
+    "update": "Opdater installerede plugins",
+    "scaffold": "Opret en skabelon til et nyt plugin"
+  },
+  "launch": {
+    "description": "Start Claude Code med forbindelse til OmniRoute (lokalt eller eksternt, med --profile)",
+    "token": "Token, som Claude-klienten skal sende (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute kan ikke nås på {port}. Start den med 'omniroute serve'.",
+    "notFound": "'claude'-CLI'en blev ikke fundet i PATH."
+  },
+  "run": {
+    "description": "Start et understøttet CLI-mål via OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Generér Claude Code-profiler i ~/.claude/profiles ud fra OmniRoutes modelkatalog"
+  },
+  "connect": {
+    "description": "Opret forbindelse til en ekstern OmniRoute-server, og skift til ekstern tilstand"
+  },
+  "tokens": {
+    "description": "Administrer afgrænsede CLI-adgangstokens (ekstern tilstand)"
+  },
+  "configure": {
+    "description": "Vælg en udbyder og model fra den aktive server, og konfigurer en understøttet lokal CLI"
+  },
+  "launchCodex": {
+    "description": "Start Codex CLI med forbindelse til OmniRoute (lokalt eller på en ekstern VPS)"
+  },
+  "setupCodex": {
+    "description": "Generér profilfiler i ~/.codex ud fra OmniRoutes aktive modelkatalog"
+  },
+  "packs": {
+    "description": "Administrer valgfrie runtime-pakker (ML/browserautomatisering)",
+    "listDescription": "Vis valgfrie pakker og deres installationsstatus",
+    "installDescription": "Installer en valgfri pakke i DATA_DIR",
+    "verifyDescription": "Kontrollér installerede pakker mod det medfølgende kontrolsumindeks",
+    "removeDescription": "Fjern en installeret valgfri pakke",
+    "sourceOpt": "Mappe, der indeholder pakkedata og pakkeindekset",
+    "warnNoIndex": "optional-packs.index.json blev ikke fundet — installation/kontrol er ikke tilgængelig i denne checkout (desktop-pakker indeholder den)",
+    "errUnknown": "ukendt pakke: {name}",
+    "errNoIndex": "pakkeindekset blev ikke fundet; angiv --source <dir> med pakkedataene (desktop-pakker indeholder det ved siden af appen)",
+    "installed": "pakken \"{name}\" er installeret og kontrolleret i {dir}",
+    "restartHint": "genstart OmniRoute-serveren (eller desktopappen), så runtime-miljøet registrerer pakken",
+    "removed": "pakken \"{name}\" er fjernet",
+    "notInstalled": "pakken \"{name}\" var ikke installeret",
+    "verifyOk": "alle installerede pakker er verificeret",
+    "verifyFailed": "{count} pakke(r) kunne ikke verificeres",
+    "noneInstalled": "ingen valgfrie pakker er installeret"
   }
 }

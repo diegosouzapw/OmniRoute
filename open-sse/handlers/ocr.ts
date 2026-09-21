@@ -11,7 +11,8 @@ import {
   parseOcrModel,
   OCR_PROVIDERS,
 } from "../config/ocrRegistry.ts";
-import { errorResponse, redactSensitiveErrorText } from "../utils/error.ts";
+import { errorResponse, sanitizeErrorMessage } from "../utils/error.ts";
+import { buildSanitizedUpstreamErrorResponse } from "../utils/upstreamErrorResponse.ts";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 import {
@@ -151,15 +152,11 @@ export async function handleOcr({
 
     if (!res.ok) {
       const errText = await res.text();
-      // secret-leak hardening: an upstream OCR provider can echo the offending
-      // request (Authorization header / api key) inside its error text. Redact
-      // secret patterns (structure-preserving) before relaying to the client.
-      return new Response(redactSensitiveErrorText(errText), {
+      return buildSanitizedUpstreamErrorResponse({
         status: res.status,
-        headers: {
-          "Content-Type": "application/json",
-          ...CORS_HEADERS,
-        },
+        rawBody: errText,
+        fallbackMessage: `OCR provider returned HTTP ${res.status}`,
+        headers: CORS_HEADERS,
       });
     }
 
@@ -184,7 +181,8 @@ export async function handleOcr({
     });
     return new Response(JSON.stringify(parsed), { status: 200, headers });
   } catch (err) {
-    console.error("[OCR]", err);
+    const safeErrorMessage = sanitizeErrorMessage(err).trim() || "OCR request failed";
+    console.error("[OCR]", safeErrorMessage);
     return errorResponse(500, "OCR request failed");
   }
 }

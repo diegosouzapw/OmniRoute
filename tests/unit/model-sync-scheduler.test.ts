@@ -441,3 +441,24 @@ test("modelSyncScheduler skips empty cycles and tolerates failing sync requests"
     timers.restore();
   }
 });
+
+test("test 12: default interval is 6h; env hours override; no-arg uses default", async () => {
+  const source = fs.readFileSync(
+    path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
+    "utf8",
+  );
+  assert.match(source, /DEFAULT_INTERVAL_MS\s*=\s*6\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
+  assert.doesNotMatch(source, /DEFAULT_INTERVAL_MS\s*=\s*24\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
+  assert.match(source, /intervalMs\s*=\s*DEFAULT_INTERVAL_MS/);
+  const { DEFAULT_INTERVAL_MS } = await import("../../src/shared/services/modelSyncScheduler.ts");
+  assert.equal(DEFAULT_INTERVAL_MS, 6 * 60 * 60 * 1000);
+});
+
+test("test 12: MODEL_SYNC_INTERVAL_HOURS still wins over default", () => {
+  const source = fs.readFileSync(
+    path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
+    "utf8",
+  );
+  assert.match(source, /MODEL_SYNC_INTERVAL_HOURS/);
+  assert.match(source, /envHours \* 60 \* 60 \* 1000/);
+});

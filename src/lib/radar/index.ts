@@ -86,6 +86,7 @@ export function baselineToMergedEntries(budgets: typeof FREE_MODEL_BUDGETS): Mer
     poolKey: b.poolKey ?? null,
     tos: b.tos,
     trainsOnPrompts: b.trainsOnPrompts,
+    eligibilityGate: b.eligibilityGate,
     enabled: true,
     origin: "baseline" as const,
   }));

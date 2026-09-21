@@ -1,6 +1,6 @@
-# Güvenlik Politikası (Türkçe)
+# Security Policy (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -14,18 +14,18 @@ OmniRoute'ta bir güvenlik açığı keşfederseniz, lütfen sorumlu bir şekild
 
 ## Yanıt Zaman Çizelgesi
 
-| Aşama                 | Hedef Süre                  |
-| --------------------- | --------------------------- |
-| İlk Bildirim Teyidi   | 48 saat                     |
-| Ön İnceleme ve Değerlendirme | 5 iş günü             |
-| Yama Sürümü (Patch)   | 14 iş günü (kritik)         |
+| Aşama                        | Hedef Süre          |
+| ---------------------------- | ------------------- |
+| İlk Bildirim Teyidi          | 48 saat             |
+| Ön İnceleme ve Değerlendirme | 5 iş günü           |
+| Yama Sürümü (Patch)          | 14 iş günü (kritik) |
 
 ## Desteklenen Sürümler
 
-| Sürüm   | Destek Durumu  |
-| ------- | -------------- |
-| 3.8.x   | ✅ Aktif       |
-| 3.7.x   | ✅ Güvenlik    |
+| Sürüm   | Destek Durumu     |
+| ------- | ----------------- |
+| 3.8.x   | ✅ Aktif          |
+| 3.7.x   | ✅ Güvenlik       |
 | < 3.7.0 | ❌ Desteklenmiyor |
 
 ---
@@ -42,17 +42,17 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 
 ### 🔐 Kimlik Doğrulama ve Yetkilendirme
 
-| Özellik               | Uygulama                                                                                                                                  |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Pano Girişi**       | JWT belirteçleri ile parola tabanlı kimlik doğrulama (HttpOnly çerezler)                                                                 |
-| **API Anahtarı Doğrulaması** | CRC doğrulamalı HMAC imzalı anahtarlar                                                                                            |
-| **OAuth 2.0 + PKCE**  | Sağlayıcıya özel tarayıcı/cihaz OAuth'u desteklenen yerlerde PKCE kullanır; yalnızca içe aktarılan Devin kimlik bilgileri ayrı işlenir.  |
-| **Belirteç Yenileme** | Süresi dolmadan önce otomatik OAuth belirteci yenileme                                                                                    |
-| **Güvenli Çerezler**  | HTTPS ortamları için `AUTH_COOKIE_SECURE=true`                                                                                            |
-| **Yetkilendirme Hattı** | Rota sınıflandırması (PUBLIC / CLIENT_API / MANAGEMENT) — bkz. `docs/architecture/AUTHZ_GUIDE.md`                                        |
-| **Rota Koruma Katmanları** | Yönetim rotaları için 3 katmanlı model (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — bkz. `docs/security/ROUTE_GUARD_TIERS.md`         |
-| **Yönetim Kapsamlı MCP** | `manage` kapsamına sahip API anahtarlarıyla korunan uzak `/api/mcp/*` erişimi; `/api/cli-tools/runtime/*` katı yerel döngüde kalır.     |
-| **MCP Kapsamları**    | 32 ayrıntılı kapsam (read:health, write:combos, execute:completions vb.) — bkz. `docs/frameworks/MCP-SERVER.md`                          |
+| Özellik                      | Uygulama                                                                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pano Girişi**              | JWT belirteçleri ile parola tabanlı kimlik doğrulama (HttpOnly çerezler)                                                                |
+| **API Anahtarı Doğrulaması** | CRC doğrulamalı HMAC imzalı anahtarlar                                                                                                  |
+| **OAuth 2.0 + PKCE**         | Sağlayıcıya özel tarayıcı/cihaz OAuth'u desteklenen yerlerde PKCE kullanır; yalnızca içe aktarılan Devin kimlik bilgileri ayrı işlenir. |
+| **Belirteç Yenileme**        | Süresi dolmadan önce otomatik OAuth belirteci yenileme                                                                                  |
+| **Güvenli Çerezler**         | HTTPS ortamları için `AUTH_COOKIE_SECURE=true`                                                                                          |
+| **Yetkilendirme Hattı**      | Rota sınıflandırması (PUBLIC / CLIENT_API / MANAGEMENT) — bkz. `docs/architecture/AUTHZ_GUIDE.md`                                       |
+| **Rota Koruma Katmanları**   | Yönetim rotaları için 3 katmanlı model (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — bkz. `docs/security/ROUTE_GUARD_TIERS.md`         |
+| **Yönetim Kapsamlı MCP**     | `manage` kapsamına sahip API anahtarlarıyla korunan uzak `/api/mcp/*` erişimi; `/api/cli-tools/runtime/*` katı yerel döngüde kalır.     |
+| **MCP Kapsamları**           | 32 ayrıntılı kapsam (read:health, write:combos, execute:completions vb.) — bkz. `docs/frameworks/MCP-SERVER.md`                         |
 
 ### 🛡️ Dinlenmede Şifreleme (Encryption at Rest)
 
@@ -71,11 +71,11 @@ STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 
 OmniRoute, öncelik sırasına göre sıralanmış 3 yerleşik güvenlik önlemi içeren, çalışırken yeniden yüklenebilir bir **güvenlik önlemleri kayıt defteri** (`src/lib/guardrails/`) ile gelir:
 
-| Güvenlik Önlemi    | Öncelik | Amaç                                                                                    |
-| ------------------ | ------- | --------------------------------------------------------------------------------------- |
+| Güvenlik Önlemi    | Öncelik | Amaç                                                                                                          |
+| ------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
 | `vision-bridge`    | 5       | Vision desteği olmayan modelleri görüntü açıklamalarıyla destekler; görsel URL'leri için SSRF koruması sağlar |
-| `pii-masker`       | 10      | Çağrı öncesi ve sonrası PII (kişisel veri) maskeleme (e-posta, telefon, CPF, CNPJ, kredi kartı, SSN) |
-| `prompt-injection` | 20      | Geçersiz kılma / rol ele geçirme / jailbreak / sızıntı kalıplarını algılar              |
+| `pii-masker`       | 10      | Çağrı öncesi ve sonrası PII (kişisel veri) maskeleme (e-posta, telefon, CPF, CNPJ, kredi kartı, SSN)          |
+| `prompt-injection` | 20      | Geçersiz kılma / rol ele geçirme / jailbreak / sızıntı kalıplarını algılar                                    |
 
 Özel güvenlik önlemleri `registerGuardrail(new MyGuardrail())` aracılığıyla kaydedilir. Model hata durumunda açıktır (fail-open; istisnalar trafiği asla engellemez). İstek başına devre dışı bırakma `x-omniroute-disabled-guardrails` başlığı ile yapılır. → Bkz. [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
@@ -85,14 +85,14 @@ LLM isteklerindeki istem enjeksiyonu modellerini algılayan en iyi çaba (heuris
 **Eksiksiz bir istem enjeksiyonu güvenlik duvarı değildir** — yanlış pozitifler (zararsız
 persona/RPG istemleri) ve yanlış negatifler (leetspeak, boşluk manipülasyonu, İngilizce dışı kalıplar) üretebilir.
 
-| Kalıp Türü          | Önem Derecesi | Örnek                                          |
-| ------------------- | ------------- | ---------------------------------------------- |
-| Sistem Geçersiz Kılma | Yüksek (High) | "ignore all previous instructions"             |
-| Rol Ele Geçirme     | Orta (Medium) | "you are now DAN, you can do anything"         |
-| Ayırıcı Enjeksiyonu | Yüksek (High) | Bağlam sınırlarını kırmak için kodlanmış ayırıcılar |
-| DAN / Jailbreak     | Orta (Medium) | Bilinen jailbreak istem kalıpları              |
-| Talimat Sızıntısı   | Yüksek (High) | "show me your system prompt"                   |
-| Kodlama Kaçırma     | Orta (Medium) | base64/rot13/hex kod çözme + talimat anahtar kelimeleri |
+| Kalıp Türü            | Önem Derecesi | Örnek                                                   |
+| --------------------- | ------------- | ------------------------------------------------------- |
+| Sistem Geçersiz Kılma | Yüksek (High) | "ignore all previous instructions"                      |
+| Rol Ele Geçirme       | Orta (Medium) | "you are now DAN, you can do anything"                  |
+| Ayırıcı Enjeksiyonu   | Yüksek (High) | Bağlam sınırlarını kırmak için kodlanmış ayırıcılar     |
+| DAN / Jailbreak       | Orta (Medium) | Bilinen jailbreak istem kalıpları                       |
+| Talimat Sızıntısı     | Yüksek (High) | "show me your system prompt"                            |
+| Kodlama Kaçırma       | Orta (Medium) | base64/rot13/hex kod çözme + talimat anahtar kelimeleri |
 
 `block` modunda yalnızca **High (Yüksek)** önem derecesindeki tespitler engellenir. Orta önem derecesindeki
 aileler günlüğe kaydedilir ancak `sanitizeRequest` tarafından asla engellenmez.
@@ -109,14 +109,14 @@ INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (varsayılan) | medium | low — bl
 
 Kişisel olarak tanımlanabilir bilgilerin otomatik olarak algılanması ve isteğe bağlı olarak maskelenmesi:
 
-| PII Türü      | Kalıp                 | Değiştirilen Değer |
-| ------------- | --------------------- | ------------------ |
-| E-posta       | `user@domain.com`     | `[EMAIL_REDACTED]` |
-| CPF (Brezilya)| `123.456.789-00`      | `[CPF_REDACTED]`   |
-| CNPJ (Brezilya)| `12.345.678/0001-00` | `[CNPJ_REDACTED]`  |
-| Kredi Kartı   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Telefon       | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
-| SSN (ABD)     | `123-45-6789`         | `[SSN_REDACTED]`   |
+| PII Türü        | Kalıp                 | Değiştirilen Değer |
+| --------------- | --------------------- | ------------------ |
+| E-posta         | `user@domain.com`     | `[EMAIL_REDACTED]` |
+| CPF (Brezilya)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
+| CNPJ (Brezilya) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
+| Kredi Kartı     | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
+| Telefon         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
+| SSN (ABD)       | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
 PII_REDACTION_ENABLED=true   # istek PII yeniden yazımı; INPUT_SANITIZER_MODE'dan bağımsızdır
@@ -125,33 +125,33 @@ PII_RESPONSE_SANITIZATION=true  # isteğe bağlı: istemcilere döndürülen sa�
 
 ### 🌐 Ağ Güvenliği
 
-| Özellik                  | Açıklama                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| **CORS**                 | Açık kaynaklar arası izin listesi (`CORS_ALLOWED_ORIGINS`; eski `CORS_ORIGIN`)  |
-| **IP Filtreleme**        | Panoda IP aralıklarını izin listesine / engelleme listesine alma                |
-| **Hız Sınırlaması**      | Otomatik geri çekilme ile sağlayıcı başına hız sınırları                       |
-| **Sürü Önleme (Anti-Thundering Herd)** | Mutex + bağlantı başına kilitleme ile basamaklı 502 hatalarını önler |
-| **TLS Parmak İzi**       | Bot algılamasını azaltmak için tarayıcı benzeri TLS parmak izi taklidi         |
-| **CLI Parmak İzi**       | Yerel CLI imzalarıyla eşleşmesi için sağlayıcı başına başlık/gövde sıralaması  |
+| Özellik                                | Açıklama                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| **CORS**                               | Açık kaynaklar arası izin listesi (`CORS_ALLOWED_ORIGINS`; eski `CORS_ORIGIN`) |
+| **IP Filtreleme**                      | Panoda IP aralıklarını izin listesine / engelleme listesine alma               |
+| **Hız Sınırlaması**                    | Otomatik geri çekilme ile sağlayıcı başına hız sınırları                       |
+| **Sürü Önleme (Anti-Thundering Herd)** | Mutex + bağlantı başına kilitleme ile basamaklı 502 hatalarını önler           |
+| **TLS Parmak İzi**                     | Bot algılamasını azaltmak için tarayıcı benzeri TLS parmak izi taklidi         |
+| **CLI Parmak İzi**                     | Yerel CLI imzalarıyla eşleşmesi için sağlayıcı başına başlık/gövde sıralaması  |
 
 ### 🔌 Dayanıklılık ve Erişilebilirlik
 
-| Özellik                 | Açıklama                                                           |
-| ----------------------- | ------------------------------------------------------------------ |
+| Özellik                            | Açıklama                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------- |
 | **Devre Kesici (Circuit Breaker)** | Sağlayıcı başına 3 durumlu (Kapalı → Açık → Yarı Açık), SQLite ile kalıcı |
-| **İstek Tekilleştirme** | Yinelenen istekler için 5 saniyelik tekilleştirme penceresi        |
-| **Üstel Geri Çekilme**  | Artan gecikmelerle otomatik yeniden deneme                         |
-| **Sağlık Panosu**       | Gerçek zamanlı sağlayıcı sağlığı izleme                            |
+| **İstek Tekilleştirme**            | Yinelenen istekler için 5 saniyelik tekilleştirme penceresi               |
+| **Üstel Geri Çekilme**             | Artan gecikmelerle otomatik yeniden deneme                                |
+| **Sağlık Panosu**                  | Gerçek zamanlı sağlayıcı sağlığı izleme                                   |
 
 ### 📋 Uyumluluk (Compliance)
 
-| Özellik            | Açıklama                                                    |
-| ------------------ | ----------------------------------------------------------- |
-| **Günlük Saklama** | `CALL_LOG_RETENTION_DAYS` sonrasında otomatik temizleme     |
-| **Günlük Tutmama Tercihi** | API anahtarı başına `noLog` bayrağı istek kaydını devre dışı bırakır |
-| **Denetim Günlüğü**| `audit_log` tablosunda izlenen yönetim eylemleri            |
-| **MCP Denetimi**   | Tüm MCP araç çağrıları için SQLite tabanlı denetim kaydı    |
-| **Zod Doğrulaması**| Modül yükleme sırasında Zod v4 şemalarıyla doğrulanan tüm API girdileri |
+| Özellik                    | Açıklama                                                                |
+| -------------------------- | ----------------------------------------------------------------------- |
+| **Günlük Saklama**         | `CALL_LOG_RETENTION_DAYS` sonrasında otomatik temizleme                 |
+| **Günlük Tutmama Tercihi** | API anahtarı başına `noLog` bayrağı istek kaydını devre dışı bırakır    |
+| **Denetim Günlüğü**        | `audit_log` tablosunda izlenen yönetim eylemleri                        |
+| **MCP Denetimi**           | Tüm MCP araç çağrıları için SQLite tabanlı denetim kaydı                |
+| **Zod Doğrulaması**        | Modül yükleme sırasında Zod v4 şemalarıyla doğrulanan tüm API girdileri |
 
 ---
 
@@ -220,17 +220,39 @@ Bu kurallar araçlar ve inceleyiciler tarafından zorunlu kılınmıştır:
 10. **`exec()` / `spawn()` çalışma zamanı değerleri `env` seçeneği üzerinden iletilmelidir** — kabuk komutlarına harici yolları veya güvenilmeyen değerleri asla dize birleştirme ile eklemeyin. Referans: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Varsayılan olarak güvenli kütüphaneleri tercih edin** — bkz. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Kendi çözümünüzü yazmadan önce bunlara başvurun.
 
-## Tedarik Zinciri Tarayıcı Bulguları (Socket.dev / Snyk / Benzeri)
+## Tedarik zinciri tarayıcısı bulguları (Socket.dev / Snyk / benzerleri)
 
-Yayımlanan `omniroute` npm paketi, Next.js `output: "standalone"` derlemesini paketler; bu da belgelenmiş ayrıcalıklı özellikler (MITM, Zed içe aktarma, Cloud Sync, gömülü servis süpervizörü) dahil her rota işleyicisinin `.next/server/*.js` küçültülmüş yığınlarında yer alması anlamına gelir. Sezgisel tedarik zinciri tarayıcıları bu yığınları sıklıkla kötü amaçlı yazılım imzalarıyla eşleştirebilir.
+Yayımlanan `omniroute` npm artefaktı, Next.js `output: "standalone"`
+derlemesini paketler; bu da belgelenmiş ayrıcalıklı özellikler (MITM, Zed içe
+aktarma, Cloud Sync, gömülü hizmet denetleyicisi) dâhil olmak üzere her rota
+işleyicisinin `.next/server/*.js` altındaki küçültülmüş parçalarda yer alması
+anlamına gelir. Sezgisel tedarik zinciri tarayıcıları bu parçaları sıklıkla
+kötü amaçlı yazılım imzalarıyla eşleştirir.
 
-Her bulgu kategorisi için proje yöneticisi onay beyanı tutulmaktadır:
+Kullandığımız tarayıcı yapılandırması, depo kökündeki
+[`socket.yml`](socket.yml) dosyasında bulunur (Socket.dev GitHub App biçimi v2 —
+bkz. <https://docs.socket.dev/docs/socket-yml>). Yapılandırma, dağıtılmayan
+dizinleri (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`,
+`docs/` vb.) açıkça hariç tutar; böylece tarayıcı yalnızca yayımlanan
+kullanıcılara gerçekten ulaşan kod yollarını raporlar. Taramanın kendisi, bu
+depodaki bir iş akışı tarafından değil, söz konusu dosyayı okuyan Socket
+GitHub App tarafından yürütülür.
+
+Her bulgu kategorisi için bulgu bazında bir bakımcı beyanı tutuyoruz:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  bulgu başına harita: kaynak dosya ↔ işaretlenen yığın ↔ davranış ↔ v3.8.6'da uygulanan hafifletme.
-- İşaretlenen her fonksiyondaki kaynak içi `SECURITY-AUDITOR-NOTE:` blokları aynı belgeye işaret eder.
+  bulgu bazında eşleme: kaynak dosya ↔ işaretlenen parça ↔ davranış ↔ v3.8.6
+  sürümünde uygulanan azaltım.
+- İşaretlenen her işlevde bulunan kaynak içi `SECURITY-AUDITOR-NOTE:` blokları,
+  aynı belgeye geri yönlendirir.
 
-Geliştirme hattında uyarıları esnetemeyen kullanıcılar için: `OMNIROUTE_BUILD_PROFILE=minimal npm run build` ile derleme yapın. Bu, dört hassas modülü çalışma zamanında HTTP 503 `feature-disabled` döndüren taslaklarla değiştirir; böylece ayrıcalıklı kod yolları pakette fiziksel olarak bulunmaz. Yayımlama tarifi için bkz. [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+İşlem hattı uyarıyı esnetemeyen kullanıcılar için:
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ile derleme yapın. Bu, dört
+hassas modülü çalışma zamanında HTTP 503 `feature-disabled` döndüren
+taslaklarla değiştirir; böylece ayrıcalıklı kod yolları pakette fiziksel olarak
+bulunmaz. Yayımlama tarifi için
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+belgesine bakın.
 
 ## Referanslar
 

@@ -243,5 +243,5 @@ When a resolved proxy object carries a non-`auto` `family`, `proxyConfigToUrl` a
 > 📖 **Related documentation:**
 >
 > - [Proxy Guide](../ops/PROXY_GUIDE.md) — full proxy system: registry CRUD, 4-level resolution, rotation, health checking, API reference
-> - [Stealth Guide](./STEALTH_GUIDE.md) — TLS fingerprint and CLI fingerprint layers that ride on top of the proxy
+> - `docs/security/STEALTH_GUIDE.md` (git; not compiled into `/docs`) — TLS fingerprint and CLI fingerprint layers that ride on top of the proxy
 > - [Route Guard Tiers](./ROUTE_GUARD_TIERS.md) — loopback enforcement for local-only routes

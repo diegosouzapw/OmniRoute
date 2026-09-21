@@ -1,130 +1,136 @@
 # OmniRoute — Deployment Guide on VM with Cloudflare (ગુજરાતી)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../ar/docs/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../bg/docs/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../bn/docs/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../cs/docs/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../da/docs/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../de/docs/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../es/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../fa/docs/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../fi/docs/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../fr/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../gu/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../he/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../hi/docs/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../hu/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../id/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../it/docs/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../ja/docs/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../ko/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../mr/docs/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../ms/docs/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../nl/docs/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../no/docs/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../phi/docs/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../pl/docs/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../pt/docs/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../ro/docs/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../ru/docs/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../sk/docs/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../sv/docs/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../sw/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../ta/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../te/docs/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../th/docs/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../tr/docs/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../ur/docs/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../vi/docs/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/VM_DEPLOYMENT_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇹 [am](../../../am/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../../da/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇭 [km](../../../km/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇲 [my](../../../my/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [or](../../../or/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇰 [si](../../../si/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇹 [am](../../../am/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../../da/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇭 [km](../../../km/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇲 [my](../../../my/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [or](../../../or/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇰 [si](../../../si/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+Cloudflare દ્વારા સંચાલિત ડોમેન સાથે VM (VPS) પર OmniRoute ઇન્સ્ટોલ અને કૉન્ફિગર કરવા માટેની સંપૂર્ણ માર્ગદર્શિકા.
 
 ---
 
-## Prerequisites
+## પૂર્વજરૂરિયાતો
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| વસ્તુ      | ન્યૂનતમ                | ભલામણ કરેલ       |
+| ---------- | ---------------------- | ---------------- |
+| **CPU**    | 1 vCPU                 | 2 vCPU           |
+| **RAM**    | 1 GB                   | 2 GB             |
+| **ડિસ્ક**  | 10 GB SSD              | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS       | Ubuntu 24.04 LTS |
+| **ડોમેન**  | Cloudflare પર નોંધાયેલ | —                |
+| **Docker** | Docker Engine 24+      | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**ચકાસાયેલા પ્રદાતાઓ**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configure the VM
+## 1. VM રૂપરેખાંકિત કરો
 
-### 1.1 Create the instance
+### 1.1 ઇન્સ્ટન્સ બનાવો
 
-On your preferred VPS provider:
+તમારા પસંદગીના VPS પ્રદાતા પર:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
+- Ubuntu 24.04 LTS પસંદ કરો
+- ન્યૂનતમ પ્લાન (1 vCPU / 1 GB RAM) પસંદ કરો
+- મજબૂત root પાસવર્ડ સેટ કરો અથવા SSH કી રૂપરેખાંકિત કરો
+- **સાર્વજનિક IP** નોંધી લો (દા.ત., `203.0.113.10`)
 
-### 1.2 Connect via SSH
+### 1.2 SSH દ્વારા કનેક્ટ કરો
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 સિસ્ટમ અપડેટ કરો
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 Docker ઇન્સ્ટૉલ કરો
 
 ```bash
-# Install dependencies
+# નિર્ભરતાઓ ઇન્સ્ટૉલ કરો
 apt install -y ca-certificates curl gnupg
 
-# Add official Docker repository
+# અધિકૃત Docker રિપોઝિટરી ઉમેરો
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 nginx ઇન્સ્ટૉલ કરો
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 ફાયરવૉલ (UFW) રૂપરેખાંકિત કરો
 
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (redirect)
+ufw allow 80/tcp    # HTTP (રીડાયરેક્ટ)
 ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **સૂચન**: મહત્તમ સુરક્ષા માટે, પોર્ટ 80 અને 443 ને ફક્ત Cloudflare IP સુધી મર્યાદિત કરો. [અદ્યતન સુરક્ષા](#advanced-security) વિભાગ જુઓ.
 
 ---
 
-## 2. Install OmniRoute
+## 2. OmniRoute ઇન્સ્ટૉલ કરો
 
-### 2.1 Create configuration directory
+### 2.1 રૂપરેખાંકન ડિરેક્ટરી બનાવો
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 એન્વાયરમેન્ટ વેરિએબલ્સની ફાઇલ બનાવો
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
-# === Security ===
+cat > /opt/omniroute/.env << 'EOF'
+# === સુરક્ષા ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
 API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # પ્રોડક્શનમાં આવશ્યક: Codex Responses WS bridge દ્વારા ઉપયોગમાં લેવાય છે
 
-# === App ===
+# === ઍપ ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URLs (તમારા ડોમેન પ્રમાણે બદલો) ===
+# નિર્ધારિત કાર્યો / સ્વ-ફેચ માટે આંતરિક સર્વર-થી-સર્વર બેઝ URL.
+BASE_URL=http://127.0.0.1:20128
+# OAuth કૉલબૅક્સ, ડૅશબોર્ડ લિંક્સ અને જનરેટ કરેલા સાર્વજનિક URLs માટે વપરાતું બ્રાઉઝર-ફેસિંગ URL.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# જનરેટ કરેલા સાર્વજનિક ઍસેટ URLs માટે વૈકલ્પિક સ્પષ્ટ સાર્વજનિક ઑરિજિન ઓવરરાઇડ.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (optional) ===
+# === ક્લાઉડ સિંક (વૈકલ્પિક) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **મહત્વપૂર્ણ**: અનન્ય સિક્રેટ કીઓ જનરેટ કરો! દરેક કી માટે `openssl rand -hex 32` નો ઉપયોગ કરો.
 
-### 2.3 Start the container
+### 2.3 કન્ટેનર શરૂ કરો
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +144,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 તે ચાલી રહ્યું છે તેની ચકાસણી કરો
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+તેમાં આ પ્રદર્શિત થવું જોઈએ: `[DB] SQLite database ready` અને `listening on port 20128`.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. nginx ગોઠવો (રિવર્સ પ્રોક્સી)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 SSL પ્રમાણપત્ર બનાવો (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+Cloudflare ડૅશબોર્ડમાં:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. **SSL/TLS → Origin Server** પર જાઓ
+2. **Create Certificate** પર ક્લિક કરો
+3. ડિફૉલ્ટ સેટિંગ્સ જાળવી રાખો (15 વર્ષ, \*.yourdomain.com)
+4. **Origin Certificate** અને **Private Key** કૉપિ કરો
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Paste the certificate
+# પ્રમાણપત્ર પેસ્ટ કરો
 nano /etc/nginx/ssl/origin.crt
 
-# Paste the private key
+# ખાનગી કી પેસ્ટ કરો
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 Nginx ગોઠવણી
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
-# Default server — blocks direct access via IP
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+# ડિફૉલ્ટ સર્વર — IP મારફતે સીધા ઍક્સેસને અવરોધે છે
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # Change to your domain
+    server_name llms.yourdomain.com;  # તમારા ડોમેનમાં બદલો
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -203,16 +209,17 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # WebSocket support
+        # WebSocket સપોર્ટ
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
-        # SSE (Server-Sent Events) — streaming AI responses
+        # SSE (Server-Sent Events) — સ્ટ્રીમિંગ AI પ્રતિસાદો
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -220,7 +227,7 @@ server {
     }
 }
 
-# HTTP → HTTPS redirect
+# HTTP → HTTPS રીડાયરેક્ટ
 server {
     listen 80;
     listen [::]:80;
@@ -230,59 +237,67 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+રિવર્સ-પ્રોક્સી સ્ટ્રીમ ટાઇમઆઉટને તમારા OmniRoute ટાઇમઆઉટ env vars સાથે સુસંગત રાખો. જો તમે
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS` વધારો, તો `proxy_read_timeout` / `proxy_send_timeout`ને
+સમાન મર્યાદાથી ઉપર વધારો.
 
-### 3.3 Enable and Test
+OAuth કૉલબૅક્સ અને જનરેટ કરેલી જાહેર લિંક્સ માટે OmniRoute બ્રાઉઝરને દેખાતા પ્રમાણભૂત ઓરિજિન તરીકે `NEXT_PUBLIC_BASE_URL`નો ઉપયોગ કરે છે.
+પ્રમાણિત ડૅશબોર્ડ રાઇટ્સ સમાન-ઓરિજિન વિનંતીઓ
+અને સેશન-બાઉન્ડ CSRF સુરક્ષાનો ઉપયોગ કરે છે, તેથી તેમને સ્થિર જાહેર બેઝ URLની જરૂર નથી. ઉપર આપેલા
+`X-Forwarded-*` હેડર્સ હજી પણ ઉપયોગી રૂટિંગ મેટાડેટા છે, પરંતુ જ્યારે OAuth અથવા જનરેટ કરેલી બ્રાઉઝર લિંક્સને તેની જરૂર હોય ત્યારે
+તેઓ સ્પષ્ટ જાહેર URL સેટ કરવાના વિકલ્પ નથી. `OMNIROUTE_TRUST_PROXY`ને માત્ર ત્યારે જ સક્ષમ કરો
+જ્યારે ક્લાયન્ટ્સ OmniRoute સુધી સીધા પહોંચી શકતા ન હોય અને તમારું પ્રોક્સી
+આવતા ફોરવર્ડેડ હેડર્સને દૂર કરીને ફરીથી બનાવતું હોય.
+
+### 3.3 સક્ષમ કરો અને પરીક્ષણ કરો
 
 ```bash
-# Remove default configuration
+# ડિફૉલ્ટ ગોઠવણી દૂર કરો
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
+# OmniRoute સક્ષમ કરો
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Test and reload
+# પરીક્ષણ કરો અને ફરીથી લોડ કરો
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. Cloudflare DNS ગોઠવો
 
-### 4.1 Add DNS record
+### 4.1 DNS રેકોર્ડ ઉમેરો
 
-In the Cloudflare dashboard → DNS:
+Cloudflare ડૅશબોર્ડ → DNS માં:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| પ્રકાર | નામ    | સામગ્રી                | પ્રોક્સી         |
+| ------ | ------ | ---------------------- | ---------------- |
+| A      | `llms` | `203.0.113.10` (VM IP) | ✅ પ્રોક્સી કરેલ |
 
-### 4.2 Configure SSL
+### 4.2 SSL ગોઠવો
 
-Under **SSL/TLS → Overview**:
+**SSL/TLS → Overview** હેઠળ:
 
-- Mode: **Full (Strict)**
+- મોડ: **Full (Strict)**
 
-Under **SSL/TLS → Edge Certificates**:
+**SSL/TLS → Edge Certificates** હેઠળ:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- હંમેશાં HTTPS વાપરો: ✅ ચાલુ
+- ન્યૂનતમ TLS સંસ્કરણ: TLS 1.2
+- સ્વચાલિત HTTPS પુનર્લેખન: ✅ ચાલુ
 
-### 4.3 Testing
+### 4.3 પરીક્ષણ
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Should return HTTP/2 200
+# HTTP/2 200 પરત આવવું જોઈએ
 ```
 
 ---
 
-## 5. Operations and Maintenance
+## 5. સંચાલન અને જાળવણી
 
-### Upgrade to a new version
+### નવા સંસ્કરણ પર અપગ્રેડ કરો
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,42 +309,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### લૉગ્સ જુઓ
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f omniroute          # રીઅલ-ટાઇમ સ્ટ્રીમ
+docker logs omniroute --tail 50   # છેલ્લી 50 લાઇનો
 ```
 
-### Manual database backup
+### મેન્યુઅલ ડેટાબેઝ બૅકઅપ
 
 ```bash
-# Copy data from the volume to the host
+# વૉલ્યુમમાંથી હોસ્ટ પર ડેટા કૉપિ કરો
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Or compress the entire volume
+# અથવા સમગ્ર વૉલ્યુમને સંકુચિત કરો
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### બૅકઅપમાંથી પુનઃસ્થાપિત કરો
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. અદ્યતન સુરક્ષા
 
-### Restrict nginx to Cloudflare IPs
+### nginx ને Cloudflare IP સુધી મર્યાદિત કરો
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
-# Cloudflare IPv4 ranges — update periodically
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
+# Cloudflare IPv4 રેન્જ — સમયાંતરે અપડેટ કરો
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -350,58 +365,69 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+`nginx.conf` માં `http {}` બ્લૉકની અંદર નીચેનું ઉમેરો:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### fail2ban ઇન્સ્ટૉલ કરો
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Check status
+# સ્થિતિ તપાસો
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### Docker પોર્ટની સીધી ઍક્સેસને અવરોધો
 
 ```bash
-# Prevent direct external access to port 20128
+# પોર્ટ 20128 પર સીધી બાહ્ય ઍક્સેસ અટકાવો
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persist the rules
+# નિયમોને કાયમી બનાવો
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. Cloudflare Workers પર ડિપ્લૉય કરો (વૈકલ્પિક)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+VM ને સીધું જાહેર કર્યા વિના Cloudflare Workers મારફતે રિમોટ ઍક્સેસ માટે:
 
 ```bash
-# In the local repository
+# સ્થાનિક રિપોઝિટરીમાં
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+રિપોઝિટરીમાં રહેલી Cloudflare Tunnel માર્ગદર્શિકા માટે [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) પણ જુઓ. સ્વતંત્ર `omnirouteCloud/` worker અલગ સહાયક રિપોઝિટરીમાં આવેલો છે.
 
 ---
 
-## Port Summary
+## પોર્ટ સારાંશ
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| પોર્ટ | સેવા        | ઍક્સેસ                          |
+| ----- | ----------- | ------------------------------- |
+| 22    | SSH         | જાહેર (`fail2ban` સાથે)         |
+| 80    | nginx HTTP  | રીડાયરેક્ટ → HTTPS              |
+| 443   | nginx HTTPS | Cloudflare Proxy મારફતે         |
+| 20128 | OmniRoute   | ફક્ત Localhost (`nginx` મારફતે) |
+
+## ઓછી મેમરી / નાના VPS માટે ઑપ્ટિમાઇઝેશન
+
+નાના VPS ઇન્સ્ટન્સ (1 GB RAM અથવા ઓછી) પર ડિપ્લોયમેન્ટ માટે:
+
+- **બૅકગ્રાઉન્ડ સેવાઓ અક્ષમ કરો** — શેડ્યૂલર, MCP સર્વર અને સમયાંતરે ચાલતાં જાળવણી કાર્યોને છોડવા માટે `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1` સેટ કરો. `docs/reference/ENVIRONMENT.md` જુઓ.
+- **SQLite WAL મોડનો ઉપયોગ કરો** — ડિફૉલ્ટ રૂપે સક્ષમ છે અને સમકાલીન રીડ દરમિયાન પીક મેમરીનો ઉપયોગ ઘટાડે છે.
+- **V8 હીપને મર્યાદિત કરો** — `OMNIROUTE_MEMORY_MB` (દા.ત. `512`) સેટ કરો, જેથી રનટાઇમ VM કરતાં મોટી મહત્તમ મર્યાદા નક્કી ન કરે. `docs/reference/ENVIRONMENT.md` જુઓ.
+- **હેવીવેઇટ ઍડમિશન હીપ મર્યાદા અનુસાર આપમેળે સ્કેલ થાય છે** -- ઉપર `OMNIROUTE_MEMORY_MB` સેટ કર્યા પછી, ઇનજેસ્ટ બાઇટ બજેટ (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) એ જ મહત્તમ મર્યાદામાંથી સ્વયં નિર્ધારિત થાય છે, તેથી મેમરી-મર્યાદિત VMને કોઈ વધારાના ટ્યુનિંગ વિના પહેલેથી જ નાનું સમકાલીન-વિનંતી બજેટ મળે છે; વધારાની વિનંતીઓ મેમરી માટે સ્પર્ધા કરવાને બદલે `Retry-After` સાથે ફરી પ્રયાસ કરી શકાય એવો `503` પ્રતિસાદ મેળવે છે. તેની ઉપર વિનંતીઓની સંખ્યાની કડક મહત્તમ મર્યાદા જરૂરી હોય તો જ લેગસી `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` મર્યાદા સેટ કરો.
+- **VPS પર `next build` ટાળો** — સ્થાનિક રીતે બિલ્ડ કરો અને સ્ટૅન્ડઅલોન આઉટપુટ (`.next/standalone/`) ડિપ્લોય કરો.
+- **`top` / `free -m` વડે મૉનિટર કરો** — OmniRoute સામાન્ય રીતે 1 GB VM પર નિષ્ક્રિય સ્થિતિમાં 200-400 MB RSS વાપરે છે.

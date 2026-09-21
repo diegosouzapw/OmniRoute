@@ -47,6 +47,7 @@ import {
   waitForProbeSlot,
 } from "./probeTarget.ts";
 import { resolveProviderProbeTarget } from "./providerProbeTarget.ts";
+import { isProxyHealthBlockedResetsStreakEnabled } from "@/shared/utils/featureFlags";
 
 // #6246: a HEAD to the public probe target through a legit (often loaded) proxy
 // can exceed a few seconds; the old 5s ceiling produced false negatives that
@@ -133,8 +134,10 @@ function isBackgroundServicesDisabled(): boolean {
  * decision layer can apply the #6246 policy:
  *   - "ok"           — the proxy relayed and the target served the request.
  *   - "blocked"      — the proxy relayed, but the TARGET refused this egress IP
- *                      (401/403/429). Neutral like "inconclusive": the proxy is
- *                      not at fault, yet it is not serving that destination.
+ *                      (401/403/429). Neutral like "inconclusive" by default: the
+ *                      proxy is not at fault, yet it is not serving that
+ *                      destination. With PROXY_HEALTH_BLOCKED_RESETS_STREAK on it
+ *                      also resets the consecutive-failure streak (never a status).
  *   - "inconclusive" — NOT the proxy's fault: our own timeout/abort, or the probe
  *                      TARGET returned a 5xx (the proxy connected fine). Never
  *                      penalizes the proxy.
@@ -210,6 +213,7 @@ async function sweep(): Promise<void> {
   const removeAfter = getRemoveAfter();
   const autoRemove = isAutoRemoveEnabled();
   const autoDisable = isAutoDisableEnabled();
+  const blockedResetsStreak = isProxyHealthBlockedResetsStreakEnabled();
 
   let tested = 0;
   let alive = 0;
@@ -244,6 +248,7 @@ async function sweep(): Promise<void> {
         autoRemove,
         autoDisable,
         removeAfter,
+        blockedResetsStreak,
       });
 
       if (decision.clearFailures) failureMap.delete(id);
@@ -273,7 +278,7 @@ async function sweep(): Promise<void> {
   }
 
   console.log(
-    `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ${blocked} blocked by target, ` +
+    `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ${blocked} refused by target, ` +
       `${inconclusive} inconclusive, ${removed} auto-removed, ${disabled} auto-disabled`
   );
 }

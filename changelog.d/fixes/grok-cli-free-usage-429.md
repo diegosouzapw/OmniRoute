@@ -1,0 +1,1 @@
+- **fix(grok-cli):** a 429 "used all the included free usage … rolling 24-hour window" on Grok Build is quota exhaustion for that model, not a 30s rate-limit wait. Combo skips the drained grok-4.6 login and tries the next account

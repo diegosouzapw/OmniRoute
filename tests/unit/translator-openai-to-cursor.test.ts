@@ -199,3 +199,15 @@ test("OpenAI -> Cursor accepts shorthand image_url string form", () => {
     { type: "image_url", image_url: { url: "data:image/png;base64,AAAA" } },
   ]);
 });
+
+test("#12689: non-array tool_calls is skipped instead of throwing TypeError", () => {
+  for (const toolCalls of [5, { a: 1 }, "x"]) {
+    const result = buildCursorRequest(
+      "gpt-4o",
+      { messages: [{ role: "assistant", content: "Working", tool_calls: toolCalls }] },
+      false,
+      null
+    );
+    assert.ok(result);
+  }
+});

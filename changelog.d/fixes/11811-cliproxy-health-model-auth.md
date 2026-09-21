@@ -1,1 +1,0 @@
-- **fix(services):** embedded CLIProxyAPI lifecycle checks now use public `/healthz`, while model discovery uses the configured dedicated data-plane API key instead of the management password ([#11811](https://github.com/diegosouzapw/OmniRoute/pull/11811))

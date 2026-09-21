@@ -35,16 +35,24 @@ export function resolveOpencodeTarget(opts = {}) {
       baseUrl = `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
   }
 
+  // Precedence: explicit --api-key flag > OMNIROUTE_API_KEY env var > active
+  // context's management token. A context's accessToken/apiKey is a CLI
+  // management credential (oma_live_...) with no /v1/* inference scope — it
+  // must never silently outrank a real inference key the caller supplied
+  // either as a flag or via the ambient env var (mirrors the explicit >
+  // ambient-env > context precedence documented in bin/cli/api.mjs's
+  // buildHeaders()). Only fall back to the context token when neither an
+  // explicit flag nor the env var is set.
   let apiKey = opts.apiKey ?? opts["api-key"];
+  if (!apiKey) apiKey = process.env.OMNIROUTE_API_KEY || "";
   if (!apiKey) {
     try {
       const c = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
-      apiKey = c?.accessToken || c?.apiKey;
+      apiKey = c?.accessToken || c?.apiKey || "";
     } catch {
       /* no context auth */
     }
   }
-  if (!apiKey) apiKey = process.env.OMNIROUTE_API_KEY || "";
   return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
 }
 
@@ -177,8 +185,17 @@ export function registerSetupOpencode(program) {
       "--allow-container-write",
       "Write even when the target is inside a container and not mounted from the host"
     )
-    .action(async (opts) => {
-      const code = await runSetupOpencodeCommand(opts);
+    .action(async (opts, cmd) => {
+      // Commander parses the ancestor program's own global --api-key option
+      // (bin/cli/program.mjs, bound to .env("OMNIROUTE_API_KEY")) against any
+      // occurrence of the flag in argv, so it wins the value even when the
+      // user typed --api-key AFTER `setup-opencode` — this local option's own
+      // `opts.apiKey` never sees it. cmd.optsWithGlobals() resolves to the
+      // correct value either way ("globals overwrite locals" is exactly the
+      // outcome we want here, since the global option is where the value
+      // always actually lands).
+      const resolvedOpts = { ...opts, apiKey: cmd.optsWithGlobals().apiKey ?? opts.apiKey };
+      const code = await runSetupOpencodeCommand(resolvedOpts);
       if (code !== 0) process.exit(code);
     });
 }

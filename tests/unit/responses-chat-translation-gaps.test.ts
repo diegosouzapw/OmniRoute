@@ -125,7 +125,6 @@ test("Responses -> Chat rejects input item types without a lossless Chat equival
     { type: "item_reference", id: "item_123" },
     { type: "computer_call_output", call_id: "call_1", output: {} },
     { type: "mcp_call", name: "remote", arguments: "{}" },
-    { type: "web_search_call", id: "search_1" },
     { unexpected: true },
   ]) {
     assert.throws(
@@ -170,6 +169,47 @@ test("Responses -> Chat skips encrypted or mixed agent_message items", () => {
           { type: "encrypted_content", encrypted_content: "opaque" },
         ],
       },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    { role: "user", content: [{ type: "text", text: "Run the task" }] },
+  ]);
+});
+
+test("Responses -> Chat converts string-content agent_message items to assistant history", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Run the task" }] },
+      { type: "agent_message", author: "worker", content: "Task completed" },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    { role: "user", content: [{ type: "text", text: "Run the task" }] },
+    { role: "assistant", content: [{ type: "text", text: "Task completed" }] },
+  ]);
+});
+
+test("Responses -> Chat converts role-based agent_message items without a type field", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Run the task" }] },
+      { role: "agent_message", content: [{ type: "text", text: "Worker reply" }] },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    { role: "user", content: [{ type: "text", text: "Run the task" }] },
+    { role: "assistant", content: [{ type: "text", text: "Worker reply" }] },
+  ]);
+});
+
+test("Responses -> Chat does not throw when an agent_message item slips past normalize", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Run the task" }] },
+      { type: "agent_message", content: [{ type: "unknown_part" }] },
     ],
   });
 

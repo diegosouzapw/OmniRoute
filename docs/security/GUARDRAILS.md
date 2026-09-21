@@ -476,23 +476,32 @@ fusion counters. The default Video Bridge path does not invoke speech-to-text
 or download a second media copy; without that explicit track, it remains
 video-only.
 
-**Transcript retention (opt-in feature, #12150 P1).** When a request renders any
-transcript cue (a caller-declared `transcript` or a fused `audioTranscript`), the
-guardrail marks it `videoBridgeObserved` and produces a redacted shadow of the
-video description — an identical rendering in which every cue's free-text body is
-replaced by `[redacted-video-transcript]`, built by substituting the structured
-cue field before the string is assembled (never by parsing the flattened text, so
-no cue content — adversarial or ordinary, including bodies containing `]` such as
+**Transcript retention (#12150 P1).** This applies automatically whenever the
+Video Bridge (itself opt-in) renders a transcript cue — there is no separate
+retention flag. When a request renders any transcript cue (a caller-declared
+`transcript` or a fused `audioTranscript`), the guardrail marks it
+`videoBridgeObserved` and produces a redacted shadow of the video description —
+an identical rendering in which every cue's free-text body is replaced by
+`[redacted-video-transcript]`, built by substituting the structured cue field
+before the string is assembled (never by parsing the flattened text, so no cue
+content — adversarial or ordinary, including bodies containing `]` such as
 `[inaudible]`/`[music]` — can survive). The persisted call-log request body swaps
 each video-derived text part for that redacted shadow, matched by content
-equality (so it stays correct even after system-prompt/handoff/memory injection
-reshapes the message array); the body sent upstream to the model is unchanged.
-An observed request also populates no durable Memory (both request- and
-response-derived extraction are skipped), so the model's own reply cannot echo
-transcript text into Memory. Two further retention surfaces — the raw
-pre-guardrail client-request snapshot in the detailed-log artifact and
-`previous_response_id` continuation fail-closed — are tracked for a follow-up
-(P2) and are not yet closed.
+equality; the `fullText` anchor is re-read from the finished pre-call guardrail
+payload, so the match still succeeds after later chain guardrails (the PII and
+credential maskers, priorities 10/95) rewrite the description text in place and
+after system-prompt/handoff/memory injection reshapes the message array. The
+body sent upstream to the model is unchanged. An observed request also populates
+no durable Memory (both request- and response-derived extraction are skipped),
+so the model's own reply cannot echo transcript text into Memory.
+
+Retention surfaces still open, tracked for a follow-up (**P2**, #12430): the raw
+pre-guardrail client-request snapshot in the detailed-log artifact;
+`previous_response_id` continuation fail-closed; derived-prompt internal
+dispatches that embed the transcript inside a synthesized string prompt
+(pipeline stages, context-handoff); and the response body / semantic-cache copy
+of a model reply that quotes the transcript. These are raw/response-class or
+opt-in surfaces outside P1's persisted-request-body + Memory scope.
 
 The internal `/api/modality-bridge/video/drilldown` lifecycle is a separate,
 loopback/token-authenticated cache substrate. Every operation also requires a

@@ -133,6 +133,9 @@ const runtimePageClientMessages: Record<string, string> = {
   openQuota: "Open Quota",
   allQuotasHealthy: "All quotas healthy",
   moreSuffix: "+{count} more",
+  statusExhausted: "EXHAUSTED",
+  statusAlerting: "ALERTING",
+  statusError: "ERROR",
 };
 
 function runtimePageClientTranslate(key: string, values?: Record<string, unknown>): string {
@@ -196,6 +199,63 @@ describe("RuntimePageClient", () => {
     await waitForText("future-provider");
     await waitForText("DEG");
     await waitForText("UNK");
+    await waitForText("All quotas healthy");
     expect(document.body.textContent).not.toContain("Internal Server Error");
+  });
+
+  it("renders error and exhausted quota monitors without a nodeMap ReferenceError", async () => {
+    fetchMock.mockImplementation((input: RequestInfo | URL) => {
+      const path = getRequestPath(input);
+      if (path === "/api/monitoring/health") {
+        return Promise.resolve(
+          jsonResponse({
+            providerBreakers: [],
+            lockouts: {},
+            sessions: { activeCount: 0, stickyBoundCount: 0, byApiKey: {}, top: [] },
+            quotaMonitor: {
+              active: 2,
+              alerting: 0,
+              exhausted: 1,
+              errors: 1,
+              monitors: [
+                {
+                  accountId: "acct-error",
+                  provider: "agy",
+                  window: "5h",
+                  status: "error",
+                  remainingPercent: 3,
+                },
+                {
+                  accountId: "acct-exhausted",
+                  provider: "volcengine-coding-plan",
+                  window: "5h",
+                  status: "exhausted",
+                  remainingPercent: 0,
+                },
+              ],
+            },
+          })
+        );
+      }
+      if (path === "/api/providers/client") {
+        return Promise.resolve(jsonResponse({ connections: [] }));
+      }
+      if (path === "/api/provider-nodes") {
+        return Promise.resolve(jsonResponse({ nodes: [] }));
+      }
+      return Promise.resolve(jsonResponse({}));
+    });
+
+    await renderRuntimePage();
+
+    await waitForText("Runtime");
+    await waitForText("acct-error");
+    await waitForText("acct-exhausted");
+    await waitForText("ERROR");
+    await waitForText("EXHAUSTED");
+    expect(document.body.textContent).toContain("agy");
+    expect(document.body.textContent).toContain("volcengine-coding-plan");
+    expect(document.body.textContent).not.toContain("Internal Server Error");
+    expect(document.body.textContent).not.toContain("All quotas healthy");
   });
 });

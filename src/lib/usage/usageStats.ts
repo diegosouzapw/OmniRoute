@@ -318,6 +318,10 @@ export async function getUsageStats() {
   }
 
   const pendingRequests = getPendingRequests();
+  const publicPendingRequests = {
+    byModel: pendingRequests.byModel,
+    byAccount: pendingRequests.byAccount,
+  };
 
   const stats: {
     totalRequests: number;
@@ -329,7 +333,7 @@ export async function getUsageStats() {
     byAccount: Record<string, UsageBreakdown>;
     byApiKey: Record<string, UsageBreakdown>;
     last10Minutes: UsageBucket[];
-    pending: ReturnType<typeof getPendingRequests>;
+    pending: Pick<ReturnType<typeof getPendingRequests>, "byModel" | "byAccount">;
     activeRequests: ActiveRequest[];
   } = {
     totalRequests: 0,
@@ -341,7 +345,7 @@ export async function getUsageStats() {
     byAccount: {},
     byApiKey: {},
     last10Minutes: [],
-    pending: pendingRequests,
+    pending: publicPendingRequests,
     activeRequests: [],
   };
 

@@ -56,7 +56,9 @@ export async function persistCodexChildQuotaResponse(params: {
           rateLimitedUntil,
           rateLimitSource: exhaustedWindow ? ("quota_reset" as const) : ("fallback" as const),
         }
-      : {}),
+      : params.status === 200
+        ? { rateLimitedUntil: null }
+        : {}),
   });
   if (!providerSpecificData) return null;
 

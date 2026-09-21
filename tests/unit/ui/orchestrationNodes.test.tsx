@@ -246,4 +246,33 @@ describe("StatusEdge", () => {
     expect(c.querySelectorAll("ellipse.orch-edge-particle").length).toBe(0);
     cleanup();
   });
+
+  it("data.particles === false renders the stroke only, even while active (particle cap)", () => {
+    const props = {
+      ...baseProps,
+      data: { state: "running", active: true, mirror: false, particles: false },
+    };
+    const { c, cleanup } = render(
+      <svg>
+        <StatusEdge {...(props as unknown as EdgeProps)} />
+      </svg>
+    );
+    expect(c.querySelectorAll("ellipse.orch-edge-particle").length).toBe(0);
+    expect(c.querySelector("path")).toBeTruthy();
+    cleanup();
+  });
+
+  it("data.particles === true keeps the particles (explicit opt-in from orchestrationToFlow)", () => {
+    const props = {
+      ...baseProps,
+      data: { state: "running", active: true, mirror: false, particles: true },
+    };
+    const { c, cleanup } = render(
+      <svg>
+        <StatusEdge {...(props as unknown as EdgeProps)} />
+      </svg>
+    );
+    expect(c.querySelectorAll("ellipse.orch-edge-particle").length).toBe(3);
+    cleanup();
+  });
 });

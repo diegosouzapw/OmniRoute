@@ -1,1 +1,0 @@
-- **fix(video):** apply the caption-frame cap after bounded visual deduplication, preserve first/final candidates plus small high-contrast motion and text changes, and version the dedup policy in result-cache identity ([#11382](https://github.com/diegosouzapw/OmniRoute/pull/11382)).

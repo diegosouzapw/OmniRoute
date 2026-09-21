@@ -1,1 +1,0 @@
-- **test(chatcore):** move Codex/Claude combo fixtures off models the lifecycle guard now rejects — `gpt-5.1-codex`/`gpt-5-codex` are vendor-retired (snapshot, #11626) and `claude-3-5-sonnet-20241022` is shut down, so native-passthrough and combo-fallback tests switched to `gpt-5.6-sol` and `claude-sonnet-4.6` ([#11626](https://github.com/diegosouzapw/OmniRoute/pull/11626)).

@@ -159,8 +159,6 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   db: () => import("./doubao-web.ts").then((m) => new m.DoubaoWebExecutor()), // Alias
   "zai-web": () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()),
   zw: () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()), // Alias
-  chipotle: () => import("./chipotle.ts").then((m) => new m.ChipotleExecutor()),
-  pepper: () => import("./chipotle.ts").then((m) => new m.ChipotleExecutor()), // Alias
   lmarena: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()),
   lma: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()), // Alias
   "grok-cli": () => import("./grok-cli.ts").then((m) => new m.GrokCliExecutor()),
@@ -180,6 +178,7 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   xai: () => import("./xai.ts").then((m) => new m.XaiExecutor()),
   "xai-oauth": () => import("./xai.ts").then((m) => new m.XaiExecutor("xai-oauth")),
   xao: () => import("./xai.ts").then((m) => new m.XaiExecutor("xai-oauth")),
+  "clova-studio": () => import("./clova-studio.ts").then((m) => new m.ClovaStudioExecutor()),
   "conol-web": () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()),
   cnl: () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()), // Alias
 };

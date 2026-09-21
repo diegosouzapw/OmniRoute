@@ -9,6 +9,7 @@ test("claude-web registry matches the current selectable model set", () => {
   assert.deepEqual(
     ids,
     [
+      "claude-fable-5-1",
       "claude-fable-5",
       "claude-haiku-4-5-20251001",
       "claude-opus-5",

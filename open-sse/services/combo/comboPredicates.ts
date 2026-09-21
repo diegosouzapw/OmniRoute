@@ -7,14 +7,24 @@
  */
 
 import { EXECUTOR_CONTRACT_VIOLATION_CODE } from "../../config/constants.ts";
+import { remainingPercentFromQuotaWindows } from "../antigravityQuotaFamily.ts";
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
 import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
-import { isLocalStreamLifecycleError, isLocalExecutionError } from "@/shared/utils/circuitBreaker";
-import { CONTEXT_OVERFLOW_PATTERNS, MODEL_ACCESS_DENIED_PATTERNS } from "../accountFallback.ts";
+import {
+  isLocalStreamLifecycleError,
+  isLocalExecutionError,
+  isModelCapacityOverloadError,
+} from "@/shared/utils/circuitBreaker";
+import {
+  CONTEXT_OVERFLOW_PATTERNS,
+  MODEL_ACCESS_DENIED_PATTERNS,
+  cooldownUntilMs,
+} from "../accountFallback.ts";
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
 import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
 import type { ResolvedComboTarget } from "./types.ts";
+import type { ComboErrorEntry } from "./comboErrorAggregation.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 export const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -101,6 +111,29 @@ export const MAX_GLOBAL_ATTEMPTS = 30;
 // but never above this cap — an unbounded attempt budget is the same runaway
 // background-request DoS risk that motivated MAX_COMBO_DEPTH_HARD_CAP.
 export const MAX_GLOBAL_ATTEMPTS_HARD_CAP = 200;
+
+// A malformed/unsupported request shape (e.g. an incompatible tool-call
+// history for a provider's translation layer) fails the SAME way against
+// every fallback target, since it's a property of the request, not of any
+// one provider. Once this many *consecutive* targets have failed with the
+// identical model-shape error (same kind, status, and message), retrying the
+// remaining fallbacks — or the whole set again — cannot succeed either; it
+// only burns MAX_GLOBAL_ATTEMPTS and wall-clock time. See combo.ts's
+// `comboRequestMalformed` handling.
+export const IDENTICAL_MODEL_ERROR_STREAK = 3;
+
+export function hasIdenticalModelErrorStreak(
+  comboErrors: ReadonlyArray<ComboErrorEntry>,
+  streak: number = IDENTICAL_MODEL_ERROR_STREAK
+): boolean {
+  if (comboErrors.length < streak) return false;
+  const tail = comboErrors.slice(-streak);
+  const [first, ...rest] = tail;
+  if (first.kind !== "model") return false;
+  return rest.every(
+    (e) => e.kind === first.kind && e.status === first.status && e.error === first.error
+  );
+}
 
 /**
  * Clamp an operator-configured combo nesting depth (config.maxComboDepth) to a
@@ -212,6 +245,12 @@ export function shouldRecordProviderBreakerFailure(args: {
 }): boolean {
   return (
     (!args.isStreamReadinessFailure || args.isStreamEarlyEof === true) &&
+    // Overloaded 502 (STREAM_EARLY_EOF wrapping "Overloaded") must not trip
+    // the whole-provider breaker. The status=529 check is defense in depth:
+    // 529 is not in PROVIDER_BREAKER_FAILURE_STATUSES today, but a later
+    // addition of 529 to that set must still stay off the breaker.
+    !isModelCapacityOverloadError(args.error) &&
+    !isModelCapacityOverloadError(args.status) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     (!args.sameProviderNext || args.isProxyUnreachable === true) &&
     !args.skipProviderBreaker &&
@@ -231,6 +270,7 @@ const REQUEST_SCOPED_UPSTREAM_ERROR_CODES: Record<string, true> = {
   rate_limit_queue_timeout: true,
   rate_limit_queue_full: true,
   rate_limit_queue_wedged: true,
+  token_limit_exceeded: true,
   // #10360: our own executor-result contract violation. An internal defect, not
   // a provider/account fault — it must never cool a connection or trip a breaker.
   [EXECUTOR_CONTRACT_VIOLATION_CODE]: true,
@@ -431,23 +471,20 @@ export function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
-export function quotaRemainingPercentFromQuota(quota: unknown): number {
+export function quotaRemainingPercentFromQuota(
+  quota: unknown,
+  scope?: { provider?: string | null; requestedModel?: string | null }
+): number {
   if (!quota || typeof quota !== "object") return 100;
   const record = quota as Record<string, unknown>;
-  if (record.limitReached === true) return 0;
 
   const windows = record.windows;
   if (windows && typeof windows === "object" && !Array.isArray(windows)) {
-    let minRemaining: number | null = null;
-    for (const windowInfo of Object.values(windows as Record<string, unknown>)) {
-      if (!windowInfo || typeof windowInfo !== "object") continue;
-      const percentUsed = Number((windowInfo as Record<string, unknown>).percentUsed);
-      if (!Number.isFinite(percentUsed)) continue;
-      const remaining = clampPercent((1 - percentUsed) * 100);
-      minRemaining = minRemaining === null ? remaining : Math.min(minRemaining, remaining);
-    }
-    if (minRemaining !== null) return minRemaining;
+    const fromWindows = remainingPercentFromQuotaWindows(windows as Record<string, unknown>, scope);
+    if (fromWindows !== null) return fromWindows;
   }
+
+  if (record.limitReached === true) return 0;
 
   const percentUsed = Number(record.percentUsed);
   if (Number.isFinite(percentUsed)) return clampPercent((1 - percentUsed) * 100);
@@ -468,7 +505,9 @@ export function normalizeConnectionStatus(value: unknown): string {
 
 export function hasFutureRateLimitUntil(value: unknown): boolean {
   if (value == null || value === "") return false;
-  const time = new Date(String(value)).getTime();
+  if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date))
+    return false;
+  const time = cooldownUntilMs(value);
   return Number.isFinite(time) && time > Date.now();
 }
 

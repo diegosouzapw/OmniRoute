@@ -1,1 +1,0 @@
-- **fix(kie):** map the remaining `google-imagen/*` KIE Market catalog ids (`nano-banana`, `nano-banana-pro`, `nano-banana-edit`) to their real, KIE-documented upstream `model` values — `#11225`'s fix only covered `nano-banana-2` ([#11326](https://github.com/diegosouzapw/OmniRoute/pull/11326)).

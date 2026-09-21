@@ -1,1 +1,0 @@
-- **fix(sessions):** preserve legacy Sessions data when the additive exclusive-session projection is unavailable, returning an empty projection and warning only once per contiguous outage instead of failing the endpoint; the Sessions badge intentionally reflects the merged legacy and exclusive row count introduced by [#11389](https://github.com/diegosouzapw/OmniRoute/pull/11389)

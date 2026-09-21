@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Input, Modal } from "@/shared/components";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
+import { extractErrorMessage } from "@/shared/utils/upstreamError";
 
 /**
  * VolcengineConnectModal — phone/SMS-code login for the Volcano Engine console.
@@ -64,6 +65,16 @@ const TERMINAL_PHASES: SessionPhase[] = [
 
 function isTerminal(phase: SessionPhase | undefined): boolean {
   return !!phase && TERMINAL_PHASES.includes(phase);
+}
+
+function extractModalError(data: unknown, fallback: string): string {
+  const record = data && typeof data === "object" ? (data as Record<string, unknown>) : null;
+  return (
+    extractErrorMessage(record?.error) ||
+    (typeof record?.error === "string" ? record.error : null) ||
+    (typeof record?.message === "string" ? record.message : null) ||
+    fallback
+  );
 }
 
 type VolcengineConnectModalProps = {
@@ -218,7 +229,7 @@ export default function VolcengineConnectModal({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data?.success || !data?.session) {
-        throw new Error(data?.error || "Failed to start Volcano login");
+        throw new Error(extractModalError(data, "Failed to start Volcano login"));
       }
       setSession(data.session);
       setResendCountdown(
@@ -269,7 +280,7 @@ export default function VolcengineConnectModal({
           void onConnected();
         }
       } else {
-        throw new Error(data?.error || "Failed to submit verification code");
+        throw new Error(extractModalError(data, "Failed to submit verification code"));
       }
     } catch (error) {
       notify.error(error instanceof Error ? error.message : "Failed to submit verification code");

@@ -112,7 +112,14 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
   const store = await getQuotaStore();
 
   // 3. Resolve the provider plan (dimensions).
-  const plan = resolvePlan(input.connectionId, input.provider);
+  //
+  // Resolved from the pool's canonical (primary) connection — NOT
+  // input.connectionId — because the wizard's "Limite" step only ever PUTs a
+  // manual plan override to the pool's primary connection (connectionIds[0]).
+  // A request served through a different pool member must still be checked
+  // against that same plan/limit, or a non-primary connection silently falls
+  // back to a different (catalog/empty) plan shape (#13876).
+  const plan = resolvePlan(pool.connectionId, input.provider);
 
   // 3b. Per-(key, model) model-cap pre-check (Fase 3 #7).
   //
@@ -302,8 +309,10 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
 
   if (!allocations.length) return;
 
-  // Find the pool matching this connection
-  let poolId: string | null = null;
+  // Find the pool matching this connection.
+  // Keep the matched pool object (not just its id) so plan resolution below
+  // can use the pool's canonical primary connection — see (#13876).
+  let matchedPool: import("@/lib/db/quotaPools").QuotaPool | null = null;
   for (const { poolId: pid } of allocations) {
     let p: import("@/lib/db/quotaPools").QuotaPool | null = null;
     try {
@@ -318,14 +327,18 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
         ? p.connectionIds.includes(input.connectionId)
         : p.connectionId === input.connectionId)
     ) {
-      poolId = pid;
+      matchedPool = p;
       break;
     }
   }
 
-  if (!poolId) return;
+  if (!matchedPool) return;
+  const poolId = matchedPool.id;
 
-  const plan = resolvePlan(input.connectionId, input.provider);
+  // Resolved from the pool's canonical (primary) connection so writes always
+  // land under the same dimension shape the dashboard reads back via
+  // resolvePlan(pool.connectionId, ...) — see enforceQuotaShare above (#13876).
+  const plan = resolvePlan(matchedPool.connectionId, input.provider);
   const store = await getQuotaStore();
 
   // Pool-level dimension consumption (existing behaviour).

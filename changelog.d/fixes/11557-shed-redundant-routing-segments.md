@@ -1,1 +1,0 @@
-- fix(chat): shed any of the matched provider-node's routing identifiers (public prefix or internal id) before model lookup, so composites like `<connId>/<connId>/<model>` no longer reach upstream verbatim (#11557)

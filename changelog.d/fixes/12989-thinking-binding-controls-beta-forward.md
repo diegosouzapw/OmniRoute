@@ -1,0 +1,1 @@
+- **fix(claude):** forward client-negotiated `thinking-binding-controls-2026-08-01` and `thinking-display-updates-2026-08-18` betas so Fable 5.1 `thinking.block_binding` / `thinking.display` requests are no longer rejected upstream with `Extra inputs are not permitted` ([#12989](https://github.com/diegosouzapw/OmniRoute/pull/12989))

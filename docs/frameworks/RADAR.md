@@ -352,7 +352,7 @@ migration 142.
 The version floor above compares `version`, not either date.
 
 Two gaps remain, both deliberate: the dashboard still shows only `Last fetched`, so reading
-the build date there needs a new label (and its 42 locale entries); and the offers and intel
+the build date there needs a new label (and its 41 locale entries); and the offers and intel
 caches keep no build date at all, even though their feed schemas carry one — `GET
 /api/radar/status` therefore omits the field for those two rather than reporting a `null`
 that would read as "unknown".

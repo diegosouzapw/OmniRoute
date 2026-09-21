@@ -38,7 +38,8 @@ import {
   resolveCodexAccount,
   type CodexPersistedQuotaState,
 } from "@omniroute/open-sse/services/codexAccount/index.ts";
-import { getAntigravityQuotaFamily } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { selectAntigravityQuotaWindowNames } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -52,6 +53,8 @@ interface QuotaInfo {
   // percentage; `false` means "unknown", so callers must not treat the
   // defaulted-to-0 `remainingPercentage` as genuine exhaustion.
   fractionReported?: boolean;
+  displayName?: string;
+  windowSeconds?: number | null;
 }
 
 interface QuotaCacheEntry {
@@ -69,6 +72,8 @@ interface QuotaWindowStatus {
   usedPercentage: number;
   resetAt: string | null;
   reachedThreshold: boolean;
+  displayName?: string;
+  windowSeconds?: number | null;
 }
 
 export interface QuotaWindowObservation {
@@ -249,6 +254,12 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
   const result: Record<string, QuotaInfo> = {};
   for (const [key, q] of Object.entries(rawQuotas)) {
     if (q && typeof q === "object") {
+      const windowSeconds =
+        typeof q.windowSeconds === "number" && Number.isFinite(q.windowSeconds)
+          ? q.windowSeconds
+          : typeof q.window_seconds === "number" && Number.isFinite(q.window_seconds)
+            ? q.window_seconds
+            : null;
       result[key] = {
         remainingPercentage:
           safePercentage(q.remainingPercentage) ??
@@ -257,6 +268,10 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
         // #10095 — thread through the "did upstream actually report this
         // window's fraction" signal (see UsageQuota in usage/quota.ts).
         fractionReported: q.fractionReported === false ? false : undefined,
+        ...(typeof q.displayName === "string" && q.displayName.trim()
+          ? { displayName: q.displayName.trim() }
+          : {}),
+        ...(windowSeconds != null ? { windowSeconds } : {}),
       };
     }
   }
@@ -273,37 +288,7 @@ function resolveAntigravityQuotaWindowsForModel(
   quotaNames: string[],
   requestedModel: string
 ): string[] {
-  const requestedFamily = getAntigravityQuotaFamily(requestedModel);
-  const cleanRequestedModel = requestedModel.replace(/^(antigravity|agy)\//, "");
-  const bareModel = cleanRequestedModel.includes("/")
-    ? cleanRequestedModel.slice(cleanRequestedModel.lastIndexOf("/") + 1)
-    : cleanRequestedModel;
-
-  if (requestedFamily === "other") {
-    return quotaNames.filter((windowName) => {
-      const bare = windowName.replace(/^(antigravity|agy)\//, "");
-      return bare === bareModel || bare === cleanRequestedModel;
-    });
-  }
-
-  const familyAggregates =
-    requestedFamily === "gemini"
-      ? ["gemini_weekly"]
-      : requestedFamily === "claude"
-        ? ["claude_gpt_weekly"]
-        : [];
-
-  const exactWindows = quotaNames.filter((windowName) => {
-    const bare = windowName.replace(/^(antigravity|agy)\//, "");
-    return bare === bareModel;
-  });
-  const aggregateWindows = familyAggregates.filter((key) => quotaNames.includes(key));
-  const scoped = [...exactWindows, ...aggregateWindows];
-  if (scoped.length > 0) return scoped;
-
-  return quotaNames.filter(
-    (windowName) => getAntigravityQuotaFamily(windowName) === requestedFamily
-  );
+  return selectAntigravityQuotaWindowNames(quotaNames, requestedModel);
 }
 
 function isAntigravityQuotaExhausted(
@@ -319,8 +304,8 @@ function isAntigravityQuotaExhausted(
     matchingWindows.length > 0 &&
     matchingWindows.every(
       (windowName) =>
-        getQuotaWindowStatus(connectionId, windowName, DEFAULT_QUOTA_THRESHOLD_PERCENT)
-          ?.reachedThreshold
+        // Automatic exhaustion is not the operator's optional usage cutoff.
+        getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
     )
   );
 }
@@ -437,8 +422,10 @@ function isStandardQuotaExhausted(entry: QuotaCacheEntry, now: number): boolean 
 export function isQuotaExhaustedForRequest(
   connectionId: string,
   provider: string,
-  requestedModel: string | null = null
+  requestedModel: string | null = null,
+  providerSpecificData?: unknown
 ): boolean {
+  if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
 
@@ -669,6 +656,8 @@ export function getQuotaWindowStatus(
         : remainingPercentage <= 0
           ? true
           : usedPercentage >= thresholdPercent,
+    ...(window.displayName ? { displayName: window.displayName } : {}),
+    ...(window.windowSeconds != null ? { windowSeconds: window.windowSeconds } : {}),
   };
 }
 
@@ -692,6 +681,45 @@ export function getQuotaWindowObservation(
     resetAt: status.resetAt,
     observedAt: Number.isFinite(observedDate.getTime()) ? observedDate.toISOString() : null,
   };
+}
+
+/**
+ * Mark an account as out of credits from a 402-class response.
+ *
+ * Upstream refusing the request for balance is authoritative: it outranks
+ * whatever remaining percentage the last snapshot happened to hold, which may
+ * be hours old. Without this, a connection that answered 402 keeps its stale
+ * non-zero remaining and the next quota-weighted draw can pick it again.
+ *
+ * The entry is kept (never deactivated or deleted) — credits come back, and a
+ * later successful refresh or window reset clears the flag through the same
+ * paths that clear a 429 mark.
+ */
+export function markAccountExhaustedFromCredits(connectionId: string, provider: string) {
+  markAccountExhaustedFrom429(connectionId, provider);
+}
+
+/**
+ * Remaining headroom the quota-weighted strategy should credit this connection
+ * with, as a percentage. Returns 0 once the connection is known exhausted so a
+ * 402-marked account cannot be weighted back into the draw.
+ */
+export function getQuotaWeightedRemainingPercent(connectionId: string): number | null {
+  const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  if (!entry) return null;
+  if (isAccountQuotaExhausted(connectionId)) return 0;
+
+  const remaining = Object.values(entry.quotas)
+    .filter((quota) => quota.fractionReported !== false)
+    .map((quota) => clampPercent(quota.remainingPercentage));
+  if (remaining.length === 0) return null;
+  return Math.min(...remaining);
+}
+
+/** Epoch-ms of the observation backing this connection's snapshot, if any. */
+export function getQuotaSnapshotFetchedAt(connectionId: string): number | null {
+  const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  return entry ? entry.fetchedAt : null;
 }
 
 /**

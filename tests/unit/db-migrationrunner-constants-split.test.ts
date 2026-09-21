@@ -61,17 +61,17 @@ describe("migrationRunner/constants — exact small-table snapshots", () => {
     assert.deepEqual(INITIAL_SCHEMA_SENTINELS, ["provider_connections", "combos", "call_logs"]);
   });
 
-  it("OPTIONAL_FTS5_MIGRATION_VERSIONS is exactly {022, 023}", () => {
+  it("OPTIONAL_FTS5_MIGRATION_VERSIONS includes dependent FTS migrations", () => {
     assert.ok(OPTIONAL_FTS5_MIGRATION_VERSIONS instanceof Set);
-    assert.deepEqual([...OPTIONAL_FTS5_MIGRATION_VERSIONS].sort(), ["022", "023"]);
+    assert.deepEqual([...OPTIONAL_FTS5_MIGRATION_VERSIONS].sort(), ["022", "023", "178"]);
   });
 });
 
 // ── large tables — count + shape + spot-checks (corruption guard) ─────────────
 
 describe("migrationRunner/constants — large-table integrity", () => {
-  it("RENAMED_MIGRATION_COMPATIBILITY has 31 well-formed entries", () => {
-    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 31);
+  it("RENAMED_MIGRATION_COMPATIBILITY has 32 well-formed entries", () => {
+    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 32);
     for (const e of RENAMED_MIGRATION_COMPATIBILITY) {
       assert.equal(typeof e.fromVersion, "string");
       assert.equal(typeof e.fromName, "string");
@@ -112,6 +112,17 @@ describe("migrationRunner/constants — large-table integrity", () => {
         "143",
         "144",
       ]
+    );
+    assert.deepEqual(
+      RENAMED_MIGRATION_COMPATIBILITY.find(
+        (e) => e.fromVersion === "074" && e.fromName === "inspector_custom_hosts"
+      ),
+      {
+        fromVersion: "074",
+        fromName: "inspector_custom_hosts",
+        toVersion: "081",
+        toName: "inspector_custom_hosts",
+      }
     );
     assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-7), {
       fromVersion: "134",

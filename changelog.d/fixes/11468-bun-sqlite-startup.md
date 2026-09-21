@@ -1,1 +1,0 @@
-- **fix(bun):** use native `bun:sqlite` in `bootstrap-env` and `sync-env` to avoid loading `better-sqlite3` N-API addon during Bun startup ([#11468](https://github.com/diegosouzapw/OmniRoute/pull/11468)) — thanks @TheDemonTuan

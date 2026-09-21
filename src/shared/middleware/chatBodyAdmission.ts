@@ -38,6 +38,7 @@ import {
   type IngestBudgetAcquireResult,
 } from "./ingestByteAdmission";
 import {
+  checkResourcePressureGuard,
   getResourcePressureObservation,
   type PressureSeverity,
 } from "@omniroute/open-sse/utils/resourcePressure.ts";
@@ -217,10 +218,45 @@ export type ChatAdmissionShedReason =
   | "inflight_bytes_budget"
   | "resource_pressure";
 
-/** Read cached pressure severity; sampling failures must not cause false sheds. */
+/**
+ * Read pressure severity for admission decisions.
+ *
+ * This MUST drive an active re-sample (`checkResourcePressureGuard`), not a
+ * passive cache read of `getResourcePressureObservation`. The resource-pressure
+ * runtime only refreshes its sample and re-evaluates recovery from *inside*
+ * `check()` (via `scheduleRefresh`) — nothing else in the singleton mutates
+ * `state` or schedules a refresh. The structural admission gate that calls
+ * this function runs *before* every other code path that would otherwise call
+ * `check()` (`handleChatCore`, `checkResourcePressureBeforeProviderWork`,
+ * `AdaptiveAdmissionRuntimeImpl.acquire`) — so once `state.severity` flips to
+ * "critical", a passive read here sheds every subsequent request before any
+ * of those downstream paths can run, which means `check()` never gets called
+ * again and the guard can never observe recovery. See
+ * https://github.com/diegosouzapw/OmniRoute/issues/13821.
+ *
+ * `checkResourcePressureGuard()` is cheap on the hot path: it only does a
+ * synchronous `process.memoryUsage()` read plus a timestamp comparison per
+ * call; the actual signal sampling (`/proc/pressure/memory`, cgroup reads)
+ * happens asynchronously via `scheduleRefresh()` and is throttled by
+ * `staleAfterMs`, so calling this on every admitted request does not add
+ * per-request I/O.
+ *
+ * A non-null guard is this request's authoritative "shed now" answer and maps
+ * to "critical". A null guard means this request is not shed, but the
+ * observation's cached label can still read "critical" for a few more
+ * milliseconds until the async refresh settles (or if the last real sample
+ * merely went stale — `check()`'s own `maxStaleMs` fallback) — reporting that
+ * stale "critical" label to callers that branch on severity (e.g. the queue
+ * wait sizing at admitChatRequest's `reserve()`) would just re-introduce the
+ * same "never downgrades" problem for the "high" queueing bucket, so it is
+ * downgraded to "high" here instead.
+ */
 export function defaultPressureSeverity(): PressureSeverity {
   try {
-    return getResourcePressureObservation().state.severity;
+    const guard = checkResourcePressureGuard();
+    if (guard) return "critical";
+    const severity = getResourcePressureObservation().state.severity;
+    return severity === "critical" ? "high" : severity;
   } catch {
     return "normal";
   }
@@ -945,14 +981,7 @@ function rebuildRequest(request: Request, body: Uint8Array): Request {
   } as RequestInit & { duplex: "half" });
 }
 
-/**
- * Reserve heavyweight capacity and ingest the body with a hard byte bound before JSON
- * parsing. Missing/invalid Content-Length is sniffed only up to the heavyweight threshold;
- * a lease is acquired atomically before retaining bytes at or beyond that threshold.
- *
- * Internal self-loop sub-requests (vision-bridge describe calls) bypass the lease
- * reservation — they run inside a parent request that already holds the lease.
- */
+/** Reserve heavyweight capacity and ingest the body with a hard byte bound. */
 export async function admitChatRequest(
   request: Request,
   options: {
@@ -961,6 +990,7 @@ export async function admitChatRequest(
     largeBodyBytes?: number;
     hardMaxBytes?: number;
     queueMs?: number;
+    heapPressureCheck?: () => boolean;
   } = {}
 ): Promise<ChatRequestAdmission> {
   const sessionId = options.sessionId ?? resolveSessionId(request);
@@ -1028,15 +1058,16 @@ export async function admitChatRequest(
     return { admit: false, response: bodyExceedsBudgetResponse(controller.maxInflightBytes) };
   }
 
+  const heapPressureCheck = options.heapPressureCheck ?? defaultHeapPressureCheck;
   let lease: ChatAdmissionLease | null = null;
+  // #10437: busy primary + healthy heap uses tryAcquireHealthyHeadroom; else queue/shed.
+  // Bodies at/above OMNIROUTE_CHAT_LARGE_BODY_BYTES take this same heavyweight lease.
   const reserve = async (bytes = 0): Promise<boolean> => {
     if (lease) return true;
-    const countLease = await controller.acquireHeavyWithin(
-      queueMs,
-      request.signal,
-      bytes,
-      sessionId
-    );
+    const countLease =
+      controller.tryAcquireHeavy() ??
+      (!heapPressureCheck() ? controller.tryAcquireHealthyHeadroom() : null) ??
+      (await controller.acquireHeavyWithin(queueMs, request.signal, bytes, sessionId));
     if (!countLease) return false;
 
     // Additive ingest byte-budget gate (#503-fanout), layered on top of the

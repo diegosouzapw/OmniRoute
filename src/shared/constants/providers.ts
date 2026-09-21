@@ -102,6 +102,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "laozhang",
   "vercel-ai-gateway",
   "unorouter",
+  "xkiro",
   "agentrouter",
   "thebai",
   "fenayai",
@@ -123,6 +124,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "llmgateway",
   "llm-kiwi",
   "literouter",
+  "eurouter",
   "mnn-ai",
   "meganova-ai",
   "mixlayer",
@@ -144,6 +146,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "helixmind",
   "tabitoken",
   "logfare",
+  "seekai",
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([

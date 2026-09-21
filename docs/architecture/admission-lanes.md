@@ -39,7 +39,10 @@ complementary; operators should know which one they are looking at.
   cgroup, PSI, OOM events — `open-sse/utils/resourcePressurePolicy.ts`) shortens
   the bounded wait under `high` pressure and sheds immediately with
   `503 resource_pressure` under `critical` pressure, before any bytes are even
-  ingested.
+  ingested. PSI is read from this unit's cgroup `memory.pressure` when present
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` is
+  host-wide and is only the fallback on bare metal / cgroup v1, so a swapping
+  host cannot 503 an idle container.
 - **Tuning:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override for the auto-derived byte budget
   - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — legacy request-count cap, opt-in only
@@ -120,3 +123,22 @@ against the **parent's** tenant lane.
 The byte-level lanes bound the memory-heavy parse/compress path; the adaptive lanes
 bound dispatch cost per tenant. #9654's criterion 1 ("one session's burst does not 503
 another") is enforced by system 1 unconditionally and by system 2 once opt-in is enabled.
+
+## 4. One-process long `/v1/responses` (healthy-headroom)
+
+[#10437](https://github.com/diegosouzapw/OmniRoute/pull/10437) added
+`tryAcquireHealthyHeadroom` so a second structurally-heavy request is admitted
+when the heap is below `OMNIROUTE_CHAT_ADMISSION_HEAP_SHED_RATIO`. The BYTE
+path used by `admitChatRequest` (bodies ≥ `OMNIROUTE_CHAT_LARGE_BODY_BYTES`,
+default 256 KiB, including `POST /v1/responses`) uses the **same** escape.
+
+This is the supported **one-process** recipe for more than two concurrent long
+SSE `/v1/responses`: raise primary + healthy-headroom only as far as the heap
+and the process-wide inflight-byte budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`
+/ #10110) allow. Tens of long SSE clients (40–50) is that memory-budget
+question, not a hard “max 2” product limit. A pressured heap still sheds with
+retryable `503` so #7849 does not return.
+
+To **multiply heaps**, run N independent `DATA_DIR`s (#11024). Never
+`replicas > 1` on one SQLite file (#10350). This section is not a reopen of
+the DATA_DIR scale-out recipe.

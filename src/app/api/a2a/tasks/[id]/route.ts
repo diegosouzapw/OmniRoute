@@ -20,6 +20,40 @@ function safeJsonParse<T>(json: string | null | undefined, fallback: T): T {
 }
 
 const STATE_EVENT_PREFIX = "state:";
+/** Event type written by `collectMemoryHits` (src/lib/a2a/taskExecution.ts). */
+const MEMORY_HITS_EVENT_TYPE = "memory_hits";
+const MEMORY_HIT_FIELDS = ["id", "key", "type", "snippet"] as const;
+
+interface MemoryHit {
+  id: string;
+  key: string;
+  type: string;
+  snippet: string;
+}
+
+/**
+ * Parse a persisted `memory_hits` event's `data_json` into the hits the drawer renders.
+ * Mirrors `DrawerMemory`'s validation in
+ * `src/app/(dashboard)/dashboard/orchestration/drawer/OrchestrationDrawer.tsx`: `metadata` is
+ * caller-supplied and unvalidated end to end, so what got persisted can be anything —
+ * a bare string (`"boom"`, whose `.length` is truthy), an object, or an array carrying entries
+ * with a non-string `key`/`type`/`snippet` (rendered as React children, so an object there
+ * would throw "Objects are not valid as a React child" and take the whole drawer down).
+ * Never throws: a malformed payload degrades to an empty list, so the route answers 200
+ * with `metadata: {}` instead of 500.
+ */
+function parseMemoryHits(dataJson: string | null | undefined): MemoryHit[] {
+  const raw = safeJsonParse<unknown>(dataJson, null);
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (hit): hit is MemoryHit =>
+      !!hit &&
+      typeof hit === "object" &&
+      MEMORY_HIT_FIELDS.every(
+        (field) => typeof (hit as Record<string, unknown>)[field] === "string"
+      )
+  );
+}
 
 /**
  * Reconstitute the in-memory `A2ATask` shape (src/lib/a2a/taskManager.ts) from a persisted
@@ -29,22 +63,32 @@ const STATE_EVENT_PREFIX = "state:";
  * state each event represents is recovered by stripping that prefix.
  */
 function reconstituteHistoricalTask(row: A2ATaskHistoryRow) {
-  const input = safeJsonParse<{ skill: string; messages: Array<{ role: string; content: string }> }>(
-    row.input_json,
-    { skill: row.skill_id ?? "", messages: [] }
-  );
+  const input = safeJsonParse<{
+    skill: string;
+    messages: Array<{ role: string; content: string }>;
+  }>(row.input_json, { skill: row.skill_id ?? "", messages: [] });
   const artifacts = safeJsonParse<unknown[]>(row.output_json, []);
-  const events = listA2ATaskEvents(row.id).map((event) => {
-    const data = safeJsonParse<{ message?: string } | null>(event.data_json, null);
-    const state = event.event_type.startsWith(STATE_EVENT_PREFIX)
-      ? event.event_type.slice(STATE_EVENT_PREFIX.length)
-      : row.state;
-    return {
-      timestamp: event.created_at,
-      state,
-      ...(data?.message !== undefined ? { message: data.message } : {}),
-    };
-  });
+  const eventRows = listA2ATaskEvents(row.id);
+
+  // `memory_hits` is observability, not a state transition — it is hydrated into `metadata`
+  // (Fase 3, Task C1) and kept out of the timeline the drawer renders.
+  const memoryHits = eventRows
+    .filter((event) => event.event_type === MEMORY_HITS_EVENT_TYPE)
+    .flatMap((event) => parseMemoryHits(event.data_json));
+
+  const events = eventRows
+    .filter((event) => event.event_type !== MEMORY_HITS_EVENT_TYPE)
+    .map((event) => {
+      const data = safeJsonParse<{ message?: string } | null>(event.data_json, null);
+      const state = event.event_type.startsWith(STATE_EVENT_PREFIX)
+        ? event.event_type.slice(STATE_EVENT_PREFIX.length)
+        : row.state;
+      return {
+        timestamp: event.created_at,
+        state,
+        ...(data?.message !== undefined ? { message: data.message } : {}),
+      };
+    });
 
   return {
     id: row.id,
@@ -53,7 +97,7 @@ function reconstituteHistoricalTask(row: A2ATaskHistoryRow) {
     input,
     artifacts,
     events,
-    metadata: {},
+    metadata: memoryHits.length > 0 ? { memoryHits } : {},
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     expiresAt: row.updated_at,

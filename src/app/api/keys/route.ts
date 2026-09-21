@@ -71,6 +71,9 @@ export async function POST(request) {
     }
     const {
       name,
+      modelAccessMode,
+      allowedModels,
+      allowedCombos,
       noLog,
       scopes,
       allowedConnections,
@@ -79,12 +82,19 @@ export async function POST(request) {
       dailyUsageLimitUsd,
       weeklyUsageLimitUsd,
       chaosModeEnabled,
+      expiresAt,
     } = validation.data;
 
     // Always get machineId from server
     const machineId = await getConsistentMachineId();
     const normalizedScopes = normalizeSelfServiceScopesForCreate(scopes);
-    const apiKey = await createApiKey(name, machineId, normalizedScopes, { allowedConnections });
+    const apiKey = await createApiKey(name, machineId, normalizedScopes, {
+      modelAccessMode,
+      allowedModels,
+      allowedCombos,
+      allowedConnections,
+      expiresAt,
+    });
     if (
       noLog === true ||
       allowUsageCommand === true ||
@@ -119,6 +129,9 @@ export async function POST(request) {
         name: apiKey.name,
         id: apiKey.id,
         machineId: apiKey.machineId,
+        modelAccessMode: apiKey.modelAccessMode,
+        allowedModels: apiKey.allowedModels,
+        allowedCombos: apiKey.allowedCombos,
         allowedConnections: apiKey.allowedConnections,
         noLog: noLog === true,
         allowUsageCommand: allowUsageCommand === true,
@@ -126,6 +139,7 @@ export async function POST(request) {
         dailyUsageLimitUsd: dailyUsageLimitUsd ?? null,
         weeklyUsageLimitUsd: weeklyUsageLimitUsd ?? null,
         chaosModeEnabled: chaosModeEnabled === true,
+        expiresAt: expiresAt ?? null,
         streamDefaultMode: "legacy",
         compressionEnabled: true,
         cacheDefaultMode: "legacy",

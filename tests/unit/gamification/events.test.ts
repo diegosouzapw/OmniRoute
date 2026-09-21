@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { emitGamificationEvent } from "../../../src/lib/gamification/events";
+import { XP_REWARDS } from "../../../src/lib/gamification/xp";
 import { getDbInstance } from "../../../src/lib/db/core";
 
 describe("Gamification Events", () => {
@@ -107,7 +108,10 @@ describe("Gamification Events", () => {
       await emitGamificationEvent({ apiKeyId: key, action: "request" });
 
       assert.equal(countRequestRows(key), 1);
-      assert.equal(leaderboardScore(key), 1);
+      // The very first request also unlocks the "first-token" badge, and badge unlocks now
+      // pay XP_REWARDS.badge_unlock through the same leaderboard path. The gate only governs
+      // the action award, so the score is the 1 XP action plus the badge bonus.
+      assert.equal(leaderboardScore(key), 1 + XP_REWARDS.badge_unlock);
       cleanup(key);
     });
 

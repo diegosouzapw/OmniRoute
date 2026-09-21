@@ -118,7 +118,20 @@ export async function detectPlan(
   if (!result.ok) {
     return { available: false, usage: {}, error: result.error };
   }
-  return { available: true, usage: record(result.json.Result), error: null };
+  const usage = record(result.json.Result);
+  if (kind === "coding") {
+    const quotaUsage = usage.QuotaUsage;
+    if (!Array.isArray(quotaUsage) || quotaUsage.length === 0) {
+      return { available: false, usage: {}, error: "No active Coding Plan quota windows" };
+    }
+  } else if (kind === "agent") {
+    const hasFiveHour = Boolean(usage.AFPFiveHour && Object.keys(record(usage.AFPFiveHour)).length > 0);
+    const hasWeekly = Boolean(usage.AFPWeekly && Object.keys(record(usage.AFPWeekly)).length > 0);
+    if (!hasFiveHour && !hasWeekly) {
+      return { available: false, usage: {}, error: "No active Agent Plan quota windows" };
+    }
+  }
+  return { available: true, usage, error: null };
 }
 
 function firstApiKeyItem(result: JsonRecord): JsonRecord | null {
@@ -173,16 +186,102 @@ async function fetchRawApiKey(
   return { apiKey, id, maskedKey: stringField(item?.Key) || null, error: null };
 }
 
-async function upsertConnection(
+export interface FindTargetConnectionCriteria {
+  targetConnectionId?: string;
+  provider: string;
+  apiKey?: string;
+  apiKeyId?: number | null;
+  defaultName: string;
+}
+
+/**
+ * Pure matcher to find an existing connection to adopt or update during console binding.
+ *
+ * Matching precedence:
+ * 1. targetConnectionId priority match (strictly verified against criteria.provider).
+ * 2. Exact apiKey match, or volcApiKeyId match (numeric and > 0).
+ * 3. Canonical default name match (e.g. 'Volcano Ark Coding Plan').
+ * 4. Intentional fallback: safe adoption for single existing connection under this provider.
+ *    - Design rationale: Operators commonly created custom connections (e.g. named 'main')
+ *      prior to console login. This fallback connects console cookies to that sole instance.
+ *    - Safety boundary: strictly scoped to allConnections.length === 1 so that multiple
+ *      distinct accounts are never silently clobbered.
+ * 5. When multiple connections exist and none match: returns undefined (triggers new connection creation).
+ */
+export function findTargetConnection(
+  allConnections: JsonRecord[],
+  criteria: FindTargetConnectionCriteria
+): JsonRecord | undefined {
+  // 1. targetConnectionId priority match (with provider affinity check)
+  if (criteria.targetConnectionId) {
+    const matched = allConnections.find(
+      (conn) =>
+        stringField(conn.id) === criteria.targetConnectionId &&
+        stringField(conn.provider) === criteria.provider
+    );
+    if (matched) return matched;
+  }
+
+  // 2. Match by valid apiKey or valid volcApiKeyId
+  if (criteria.apiKey) {
+    const matched = allConnections.find(
+      (conn) =>
+        stringField(conn.apiKey) === criteria.apiKey &&
+        stringField(conn.provider) === criteria.provider
+    );
+    if (matched) return matched;
+  }
+  if (typeof criteria.apiKeyId === "number" && criteria.apiKeyId > 0) {
+    const matched = allConnections.find((conn) => {
+      const psd = record(conn.providerSpecificData);
+      return (
+        Number(psd.volcApiKeyId) === criteria.apiKeyId &&
+        stringField(conn.provider) === criteria.provider
+      );
+    });
+    if (matched) return matched;
+  }
+
+  // 3. Match by canonical default name
+  const nameMatched = allConnections.find(
+    (conn) =>
+      stringField(conn.name) === criteria.defaultName &&
+      stringField(conn.provider) === criteria.provider
+  );
+  if (nameMatched) return nameMatched;
+
+  // 4. Safe adoption for single connection scenario under matching provider (e.g. user-named 'main')
+  if (allConnections.length === 1 && stringField(allConnections[0].provider) === criteria.provider) {
+    return allConnections[0];
+  }
+
+  // 5. Multiple connections exist and none matched -> do not clobber; return undefined
+  return undefined;
+}
+
+export async function upsertConnection(
   kind: PlanKind,
   apiKey: string,
   cookieHeader: string,
   csrfToken: string,
   apiKeyId: number | null,
-  usage: JsonRecord
+  usage: JsonRecord,
+  targetConnectionId?: string
 ) {
   const cfg = PLAN_CONFIG[kind];
+  const allConnections = (await getProviderConnections({ provider: cfg.provider })) as JsonRecord[];
+
+  const matched = findTargetConnection(allConnections, {
+    targetConnectionId,
+    provider: cfg.provider,
+    apiKey,
+    apiKeyId,
+    defaultName: cfg.name,
+  });
+
+  const existingPsd = matched ? record(matched.providerSpecificData) : {};
   const providerSpecificData = {
+    ...existingPsd,
     volcConsoleCookie: cookieHeader,
     volcCsrfToken: csrfToken,
     volcApiKeyId: apiKeyId,
@@ -192,14 +291,10 @@ async function upsertConnection(
     autoSync: true,
   };
 
-  const existing = (await getProviderConnections({ provider: cfg.provider })).find(
-    (conn: JsonRecord) => stringField(conn.name) === cfg.name
-  );
-
-  if (existing?.id) {
-    return await updateProviderConnection(stringField(existing.id), {
+  if (matched?.id) {
+    return await updateProviderConnection(stringField(matched.id), {
       apiKey,
-      name: cfg.name,
+      name: stringField(matched.name) || cfg.name,
       providerSpecificData,
       isActive: true,
       testStatus: "active",
@@ -217,7 +312,10 @@ async function upsertConnection(
   });
 }
 
-export async function bindVolcenginePlansFromConsoleCredentials(credentials: JsonRecord) {
+export async function bindVolcenginePlansFromConsoleCredentials(
+  credentials: JsonRecord,
+  options?: { targetConnectionId?: string }
+) {
   const cookieHeader = buildCookieHeader(credentials);
   const csrfToken = extractCsrf(credentials, cookieHeader);
   if (!cookieHeader || !csrfToken) {
@@ -260,7 +358,8 @@ export async function bindVolcenginePlansFromConsoleCredentials(credentials: Jso
       cookieHeader,
       csrfToken,
       key.id,
-      detected.usage
+      detected.usage,
+      options?.targetConnectionId
     );
     results.push({
       plan: kind,
@@ -277,3 +376,8 @@ export async function bindVolcenginePlansFromConsoleCredentials(credentials: Jso
     results,
   };
 }
+
+export const __testing = {
+  findTargetConnection,
+  upsertConnection,
+};

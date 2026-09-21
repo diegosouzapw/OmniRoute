@@ -1,1 +1,0 @@
-- **fix(db):** Fresh installs no longer log a non-fatal `no such table: compression_run_telemetry` warning when retention cleanup runs before the lazily-created telemetry table exists ([#11802](https://github.com/diegosouzapw/OmniRoute/pull/11802)) — thanks @RaviTharuma

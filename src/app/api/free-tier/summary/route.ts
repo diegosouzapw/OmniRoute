@@ -46,6 +46,7 @@ function toBudgetEntry(entry: MergedEntry): FreeModelBudget & { enabled?: boolea
     poolKey: entry.poolKey,
     tos: entry.tos,
     trainsOnPrompts: entry.trainsOnPrompts,
+    eligibilityGate: entry.eligibilityGate,
     hardStopGuaranteed: HARD_STOP_BY_KEY.get(`${entry.provider}:${entry.modelId}`),
     enabled: entry.enabled,
   };
@@ -78,7 +79,14 @@ export async function GET(req: Request): Promise<Response> {
     meta.generatedAt !== null &&
     meta.generatedAt.slice(0, 10) >= FREE_CATALOG_CURATED_AT;
 
-  const serveOverlay = overlayIsFresh && (meta.tier !== "live" || (await isAuthenticated(req)));
+  // #13679: computed once and reused below to also gate the operator-specific
+  // usage fields — this endpoint ships an unconditional wildcard CORS header
+  // (the community free-tier catalog is intentionally public), so anything
+  // that is NOT meant to be world-readable must be withheld here rather than
+  // relying on Origin checks the browser CORS model doesn't actually enforce
+  // for a same-origin-looking (DNS-rebinding) caller.
+  const authed = await isAuthenticated(req);
+  const serveOverlay = overlayIsFresh && (meta.tier !== "live" || authed);
 
   // Withheld only because it is stale: drop the feed, keep the operator's own
   // local state. Falling back to the raw baseline here would resurrect models the
@@ -94,11 +102,15 @@ export async function GET(req: Request): Promise<Response> {
         })
       : computeFreeModelTotals({ excludeTosAvoid });
 
-  const usedThisMonth = sumUsageTokensThisMonth();
+  // #13679: usedThisMonth/remaining reveal the operator's own local usage —
+  // unlike the catalog totals, that is not meant to be public. Withhold both
+  // from unauthenticated callers instead of gating the whole route, so the
+  // intentionally-public catalog fields stay served to everyone.
+  const usedThisMonth = authed ? sumUsageTokensThisMonth() : null;
   const body = {
     ...totals,
     usedThisMonth,
-    remaining: Math.max(0, totals.steadyRecurringTokens - usedThisMonth),
+    remaining: authed ? Math.max(0, totals.steadyRecurringTokens - usedThisMonth!) : null,
     // Which source answered, and the date of what was actually served — the
     // feed's own build date when the overlay answers (null when a cache row
     // predates build-date tracking; never the download time standing in),

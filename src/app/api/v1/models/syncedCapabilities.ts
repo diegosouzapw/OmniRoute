@@ -21,6 +21,12 @@
  * `<id>-<tier>` catalog entries (open-sse/utils/syncedEffortVariants.ts) — it
  * never runs over the base entry's `capabilities`, so it cannot substitute
  * for this check. Required (not optional) so no call site can silently skip it.
+ *
+ * #12299 carve-out: Kimi K3's synced base entries (`k3`, `k3-256k` — the kmca
+ * catalog's `low`/`high`/`max` vocabulary) are exempted from the exclusion so
+ * catalog-only clients (OpenCode, plain SDK pickers) can see and select their
+ * tiers. Model-scoped, never provider-wide: Codex, GLM, and non-K3 kimi models
+ * keep the full exclusion exactly as before this carve-out.
  */
 // Use the same canonical alias as catalogModelPolicy.ts (l.1) — a relative path from
 // src/app/api/v1/models/ to open-sse/ would need 5 `../` and silently breaks under
@@ -39,8 +45,30 @@ interface SyncedCapabilityFlags {
   supportedThinkingEfforts?: string[];
 }
 
+// Model-id pattern for the Kimi K3 family (#12299): the kmca catalog syncs
+// `k3`/`k3-256k` (and prefixed forms such as `kmca/k3`). Same shape the
+// executor/translator layers use to recognize K3 elsewhere
+// (reasoningContentInjector.ts::K3_AUTHENTIC_REASONING_PATTERN).
+const KIMI_K3_MODEL_ID_PATTERN = /(?:^|\/)(?:kimi-)?k3(?:$|-)/i;
+
+/**
+ * #12299: only Kimi K3's synced BASE entries are exempt from the
+ * `isSkippedEffortProvider` exclusion. Model-scoped, never provider-wide —
+ * the exemption requires a kimi-owned provider AND a K3 model id, so Codex,
+ * GLM, and non-K3 kimi models keep the exclusion contract from #7694.
+ */
+function isExemptKimiK3BaseModel(sm: SyncedCapabilityFlags, ownedBy: string): boolean {
+  return (
+    ownedBy.startsWith("kimi") && typeof sm.id === "string" && KIMI_K3_MODEL_ID_PATTERN.test(sm.id)
+  );
+}
+
 function effectiveEffortTiers(sm: SyncedCapabilityFlags, ownedBy: string): string[] | undefined {
-  if (isSkippedEffortProvider(ownedBy)) return undefined;
+  // Exclusion gate (#7694): codex/glm/kimi own a conflicting `-{effort}` suffix
+  // mechanism — the blind opencode-plugin mapping must never see effort_tiers
+  // for them, or it double-handles the suffix. #12299 narrows only the kimi K3
+  // base-model entries out of that gate; everything else stays excluded.
+  if (isSkippedEffortProvider(ownedBy) && !isExemptKimiK3BaseModel(sm, ownedBy)) return undefined;
   const learned = sm.id ? getLearnedReasoningEffortForModel(sm.id) : null;
   const synced =
     Array.isArray(sm.supportedThinkingEfforts) && sm.supportedThinkingEfforts.length > 0

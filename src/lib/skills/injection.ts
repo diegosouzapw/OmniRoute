@@ -51,6 +51,133 @@ export function decodeSkillToolName(toolName: string): string {
   }
 }
 
+// Depth guard mirroring open-sse/services/toolSchemaSanitizer.ts's
+// MAX_RECURSION_DEPTH, so a pathological/cyclic-looking nested schema
+// submitted by a custom skill (POST /api/skills accepts any z.record shape)
+// cannot blow the stack.
+const MAX_SCHEMA_REPAIR_DEPTH = 32;
+
+// JSON Schema keywords whose *value* is itself a schema node/map, not a
+// user-declared property — recursing into their children must not treat the
+// container itself as a "bare property map" candidate. Mirrors
+// open-sse/translator/helpers/geminiHelper.ts's SCHEMA_MAP_KEYS for the
+// Gemini-only normalizeMalformedSchemaObjects this mirrors (#12269).
+const SCHEMA_MAP_KEYS = new Set(["properties", "$defs", "definitions", "patternProperties"]);
+
+const SCHEMA_NODE_KEYS = new Set([
+  "additionalProperties",
+  "additionalItems",
+  "contains",
+  "default",
+  "dependencies",
+  "discriminator",
+  "else",
+  "example",
+  "examples",
+  "if",
+  "patternProperties",
+  "propertyNames",
+  "then",
+]);
+
+function isSchemaNode(record: Record<string, unknown>): boolean {
+  if (Object.keys(record).some((key) => key.startsWith("x-") || SCHEMA_NODE_KEYS.has(key))) {
+    return true;
+  }
+  if (typeof record.type === "string" || Array.isArray(record.type)) return true;
+  if (record.properties !== undefined || Array.isArray(record.required)) return true;
+  if (record.items !== undefined) return true;
+  if (record.anyOf !== undefined || record.oneOf !== undefined || record.allOf !== undefined) {
+    return true;
+  }
+  return record.$ref !== undefined || record.enum !== undefined || record.const !== undefined;
+}
+
+function isBarePropertyMap(record: Record<string, unknown>): boolean {
+  const keys = Object.keys(record);
+  if (keys.length === 0 || isSchemaNode(record)) return false;
+  return keys.every((key) => {
+    const value = record[key];
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  });
+}
+
+// Strips a scalar (non-array) `required` off every property of `record` and,
+// only when it was `true`, promotes the property's key onto the parent
+// schema's own `required` array (created if absent, deduped if present).
+function promoteBooleanRequired(record: Record<string, unknown>): void {
+  const properties = record.properties;
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) return;
+
+  const required = Array.isArray(record.required)
+    ? record.required.filter((field): field is string => typeof field === "string")
+    : [];
+
+  for (const [name, schema] of Object.entries(properties as Record<string, unknown>)) {
+    if (!schema || typeof schema !== "object" || Array.isArray(schema)) continue;
+    const child = schema as Record<string, unknown>;
+    if (child.required === true && !required.includes(name)) {
+      required.push(name);
+    }
+    if ("required" in child && !Array.isArray(child.required)) {
+      delete child.required;
+    }
+  }
+
+  if (required.length > 0) {
+    record.required = required;
+  } else if (!Array.isArray(record.required)) {
+    delete record.required;
+  }
+}
+
+// Repairs the two malformed-schema shapes strict JSON Schema validators
+// (agnes/nvidia/DeepSeek and other OpenAI-compatible upstreams) reject,
+// recursing into every nested level of a skill's declared input schema —
+// not just the root map #11881 already handled:
+//   1. A bare property map with no `type`/`properties` wrapper (e.g.
+//      `{ opts: { limit: { type: "number" } } }`) is lifted into
+//      `{ type: "object", properties: {...} }`, bottom-up so nested bare
+//      maps are fixed before their parent is inspected.
+//   2. A scalar `required: true` on a property is stripped and promoted onto
+//      the parent's `required` array instead.
+// Mirrors open-sse/translator/helpers/geminiHelper.ts's
+// normalizeMalformedSchemaObjects (itself modeled on CLIProxyAPI's function
+// of the same name), which already does this for the Gemini/Antigravity
+// request-translation path (#12269) — this is the skill-injection-path
+// equivalent, additive and independent from that implementation.
+function repairMalformedSchema(node: unknown, parentKey?: string, depth = 0): void {
+  if (!node || typeof node !== "object" || depth > MAX_SCHEMA_REPAIR_DEPTH) return;
+
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      repairMalformedSchema(item, parentKey, depth + 1);
+    }
+    return;
+  }
+
+  const record = node as Record<string, unknown>;
+
+  for (const [key, value] of Object.entries(record)) {
+    if (value && typeof value === "object") {
+      repairMalformedSchema(value, key, depth + 1);
+    }
+  }
+
+  if (parentKey === undefined || !SCHEMA_MAP_KEYS.has(parentKey)) {
+    if (isBarePropertyMap(record)) {
+      const props = { ...record };
+      for (const key of Object.keys(record)) {
+        delete record[key];
+      }
+      record.type = "object";
+      record.properties = props;
+    }
+  }
+
+  promoteBooleanRequired(record);
+}
+
 // Skills store a flat JSON Schema record ({ "text": { "type": "string" } }),
 // but Gemini (function_declarations[].parameters) and Anthropic
 // (input_schema) require a full object schema with a properties wrapper.
@@ -60,23 +187,30 @@ function normalizeInputSchema(input: Record<string, unknown>): Record<string, un
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
     return input ?? {};
   }
+
+  let root: Record<string, unknown>;
   if (typeof input.type === "string") {
-    return input;
+    // Already a full object schema (#11881's root case doesn't apply) — but
+    // it may still carry the deeper #13022 malformations (nested bare
+    // property maps, per-property boolean `required`) inside `properties`,
+    // so still recurse; just skip the root-level string-shorthand expansion.
+    root = { ...input };
+  } else {
+    // Some builtin skills declare property types in shorthand ("content":
+    // "string" instead of "content": { "type": "string" }). Strict schema
+    // validators — Zhipu GLM served through opencode-go (upstream error [1210]
+    // "Invalid API parameter") — reject the shorthand as malformed JSON Schema,
+    // which 400s every request the skill tools are injected into. Expand string
+    // values to { type: value }; non-string values pass through untouched.
+    const properties: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(input)) {
+      properties[key] = typeof value === "string" ? { type: value } : value;
+    }
+    root = { type: "object", properties };
   }
-  // Some builtin skills declare property types in shorthand ("content":
-  // "string" instead of "content": { "type": "string" }). Strict schema
-  // validators — Zhipu GLM served through opencode-go (upstream error [1210]
-  // "Invalid API parameter") — reject the shorthand as malformed JSON Schema,
-  // which 400s every request the skill tools are injected into. Expand string
-  // values to { type: value }; non-string values pass through untouched.
-  const properties: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(input)) {
-    properties[key] = typeof value === "string" ? { type: value } : value;
-  }
-  return {
-    type: "object",
-    properties,
-  };
+
+  repairMalformedSchema(root);
+  return root;
 }
 
 function skillToOpenAI(skill: Skill): OpenAITool {
@@ -253,6 +387,28 @@ function scoreAutoSkill(
 }
 
 export function injectSkills(options: InjectionOptions): unknown[] {
+  return injectSkillsWithMetadata(options).tools;
+}
+
+export interface InjectSkillsWithMetadataResult {
+  tools: unknown[];
+  injectedNames: string[];
+}
+
+function getToolNameFromDef(tool: unknown): string {
+  if (!tool || typeof tool !== "object") return "";
+  const r = tool as Record<string, unknown>;
+  if (typeof r.name === "string") return r.name;
+  if (r.function && typeof r.function === "object") {
+    const fn = r.function as Record<string, unknown>;
+    if (typeof fn.name === "string") return fn.name;
+  }
+  return "";
+}
+
+export function injectSkillsWithMetadata(
+  options: InjectionOptions
+): InjectSkillsWithMetadataResult {
   const contextText = buildContextText(options);
   const contextTokens = extractTokens(contextText);
   const backgroundTokens = extractTokens(toLowerText(options.backgroundReason));
@@ -295,7 +451,7 @@ export function injectSkills(options: InjectionOptions): unknown[] {
       apiKeyId: options.apiKeyId,
       reason: "no_enabled_skills",
     });
-    return options.existingTools || [];
+    return { tools: options.existingTools || [], injectedNames: [] };
   }
 
   log.info("skills.injection.injected", {
@@ -317,11 +473,30 @@ export function injectSkills(options: InjectionOptions): unknown[] {
     }
   });
 
-  if (options.existingTools && options.existingTools.length > 0) {
-    return [...injectedTools, ...options.existingTools];
+  // Compute the set of existing tool names to exclude client collisions.
+  const existingToolNames = new Set(
+    (options.existingTools || []).map((t) => getToolNameFromDef(t)).filter(Boolean)
+  );
+
+  // Filter out skills whose encoded name collides with a client-declared tool.
+  const nonCollidingTools = injectedTools.filter((tool) => {
+    const name = getToolNameFromDef(tool);
+    return name && !existingToolNames.has(name);
+  });
+
+  const injectedNames: string[] = [];
+  for (const tool of nonCollidingTools) {
+    const name = getToolNameFromDef(tool);
+    if (name) {
+      injectedNames.push(name);
+    }
   }
 
-  return injectedTools;
+  if (options.existingTools && options.existingTools.length > 0) {
+    return { tools: [...nonCollidingTools, ...options.existingTools], injectedNames };
+  }
+
+  return { tools: nonCollidingTools, injectedNames };
 }
 
 export function injectSkillTools(

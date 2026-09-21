@@ -1,1 +1,0 @@
-- **fix(models):** custom provider-node models (synced, custom, and alias-backed) now appear under their configured prefix in the unified catalog when the operator's model-id prefix mode is canonical, instead of being dropped whenever alias-inclusion was otherwise disabled ([#11918](https://github.com/diegosouzapw/OmniRoute/pull/11918) — thanks @HouMinXi).

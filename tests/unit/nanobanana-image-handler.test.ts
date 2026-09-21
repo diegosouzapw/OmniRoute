@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import dns from "node:dns";
 
 import { handleImageGeneration } from "../../open-sse/handlers/imageGeneration.ts";
+import { setPinnedFetchTestOverride } from "../../src/shared/network/remoteImageFetch.ts";
 
 // Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx DNS-rebinding guard
 // (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts).
@@ -93,7 +94,7 @@ test("handleImageGeneration(nanobanana): async submit+poll returns URL payload",
 test("handleImageGeneration(nanobanana): response_format=b64_json converts URL to b64", async () => {
   const originalFetch = globalThis.fetch;
 
-  globalThis.fetch = async (url) => {
+  const mockFetchImpl = async (url) => {
     const u = String(url);
 
     if (u.includes("/generate")) {
@@ -123,6 +124,12 @@ test("handleImageGeneration(nanobanana): response_format=b64_json converts URL t
 
     throw new Error(`Unexpected URL: ${u}`);
   };
+  // #13883: resolveImageSource (used for the URL result → base64 conversion) now sets
+  // `pinDns: true`, which pins the connection via a real undici socket and would bypass
+  // this mocked globalThis.fetch — route it through the test-only pinned-fetch override
+  // instead (src/shared/network/remoteImageFetch.ts).
+  globalThis.fetch = mockFetchImpl;
+  setPinnedFetchTestOverride(mockFetchImpl);
 
   try {
     const result = await handleImageGeneration({
@@ -140,5 +147,69 @@ test("handleImageGeneration(nanobanana): response_format=b64_json converts URL t
     assert.equal(result.data.data[0].b64_json, "iVBORw==");
   } finally {
     globalThis.fetch = originalFetch;
+    setPinnedFetchTestOverride(undefined);
   }
 });
+
+// GHSA-34rg-3pqj-35g9 — the `response_format=b64_json` path re-fetches the result URL the
+// upstream task reports. That URL is upstream-supplied (lower risk than a request-body
+// URL), but it went through `fetchRemoteImage()` with no explicit `guard`, i.e. under the
+// OPERATOR outbound policy (`block-metadata` on a default install: LAN/loopback allowed,
+// DNS check skipped). Pin it to `public-only`, mirroring the AI Horde result download.
+for (const privateUrl of ["http://127.0.0.1:1/x.png", "http://192.168.1.50/x.png"]) {
+  test(`handleImageGeneration(nanobanana): b64_json never downloads a private result URL (${privateUrl}) (GHSA-34rg-3pqj-35g9)`, async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchedUrls: string[] = [];
+
+    globalThis.fetch = async (url) => {
+      const u = String(url);
+      fetchedUrls.push(u);
+
+      if (u.includes("/generate")) {
+        return new Response(
+          JSON.stringify({ code: 200, msg: "success", data: { taskId: "task-ssrf-1" } }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        );
+      }
+
+      if (u.includes("/record-info")) {
+        return new Response(
+          JSON.stringify({
+            code: 200,
+            msg: "success",
+            data: { successFlag: 1, response: { resultImageUrl: privateUrl } },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        );
+      }
+
+      if (u === privateUrl) {
+        // Canary: on the vulnerable code these bytes come back to the caller as b64_json.
+        return new Response(new Uint8Array([0x89, 0x50, 0x4e, 0x47]), { status: 200 });
+      }
+
+      throw new Error(`Unexpected URL: ${u}`);
+    };
+
+    try {
+      const result = await handleImageGeneration({
+        body: {
+          model: "nanobanana/nanobanana-flash",
+          prompt: "galaxy test",
+          response_format: "b64_json",
+        },
+        credentials: { apiKey: "test-key" },
+        log: null,
+      });
+
+      assert.equal(result.success, false);
+      assert.match(String(result.error), /blocked/i);
+      assert.ok(
+        !fetchedUrls.includes(privateUrl),
+        `the private result URL must never be fetched (fetched: ${fetchedUrls.join(", ")})`
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+}

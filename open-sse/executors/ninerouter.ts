@@ -26,6 +26,7 @@ import {
   type ProviderCredentials,
   type ExecuteInput,
 } from "./base.ts";
+import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { buildErrorBody } from "../utils/error.ts";
 import { getSupervisor } from "@/lib/services/registry";
@@ -72,8 +73,7 @@ export class NineRouterExecutor extends BaseExecutor {
    * Message goes through buildErrorBody to satisfy hard rule #12 (no raw err.message).
    */
   private buildServiceUnavailableResponse(message: string): Response {
-    const body = buildErrorBody(503, message);
-    body.error.code = "service_not_running";
+    const body = buildErrorBody(503, message, undefined, { code: "service_not_running" });
     return new Response(JSON.stringify(body), {
       status: 503,
       headers: {
@@ -167,6 +167,7 @@ export class NineRouterExecutor extends BaseExecutor {
       dynamicCredentials
     );
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders ?? null);
+    stripInternalBodyFields(transformedBody);
 
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
     const combinedSignal = input.signal

@@ -16,7 +16,9 @@ async function getPublicIp(): Promise<string> {
     return publicIp;
   }
   try {
-    const res = await fetch("https://api64.ipify.org?format=json");
+    const res = await fetch("https://api64.ipify.org?format=json", {
+      signal: AbortSignal.timeout(5000),
+    });
     const json = (await res.json()) as { ip: string };
     publicIp = json.ip;
     lastIpFetch = now;
@@ -35,6 +37,7 @@ async function fetchChallenge(uuid: string): Promise<any> {
       Accept: "application/json",
       "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
     },
+    signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) {
     throw new Error(`Failed to fetch challenge: ${res.status}`);

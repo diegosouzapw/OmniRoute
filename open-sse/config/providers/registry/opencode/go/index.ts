@@ -13,6 +13,13 @@ export const opencode_goProvider: RegistryEntry = {
   authHeader: "Authorization",
   authPrefix: "Bearer",
   defaultContextLength: 200000,
+  // glm-5.3-flash and other always-thinking models need a generous output
+  // budget or reasoning consumes every token before content is emitted.
+  requestDefaults: { maxTokens: 16_384 },
+  // Console Go / Command Code gateways buffer entire generations — no upstream
+  // bytes flow until the model finishes thinking. Streaming needs a headers-wait
+  // ceiling well above the 110s global cap for long reasoning generations.
+  fetchStartTimeoutCapMs: 600_000,
   models: [
     // Port from decolua/9router 8efacc11: align with official Go endpoints —
     // glm-5.2 is now advertised and Kimi chat traffic must route through
@@ -226,6 +233,78 @@ export const opencode_goProvider: RegistryEntry = {
       supportsVideo: true,
       targetFormat: "openai-responses",
     },
+    // #12674: Muse Spark 1.3 Contributor — base + effort-tier aliases from the
+    // OpenCode Go registry (`opencode models opencode-go --refresh --verbose`;
+    // exact suffix set: minimal/low/medium/high/xhigh, no max — same as 1.2).
+    // Upstream serves Muse Spark only on the Responses API; without
+    // targetFormat:"openai-responses" these fall through to /chat/completions
+    // and the upstream returns 500 (same class as #12196).
+    {
+      id: "muse-spark-1.3-contributor",
+      name: "Muse Spark 1.3 Contributor",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsVision: true,
+      supportsAudio: true,
+      supportsVideo: true,
+      targetFormat: "openai-responses",
+    },
+    {
+      id: "muse-spark-1.3-contributor-minimal",
+      name: "Muse Spark 1.3 Contributor (minimal effort)",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsVision: true,
+      supportsAudio: true,
+      supportsVideo: true,
+      targetFormat: "openai-responses",
+    },
+    {
+      id: "muse-spark-1.3-contributor-low",
+      name: "Muse Spark 1.3 Contributor (low effort)",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsVision: true,
+      supportsAudio: true,
+      supportsVideo: true,
+      targetFormat: "openai-responses",
+    },
+    {
+      id: "muse-spark-1.3-contributor-medium",
+      name: "Muse Spark 1.3 Contributor (medium effort)",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsVision: true,
+      supportsAudio: true,
+      supportsVideo: true,
+      targetFormat: "openai-responses",
+    },
+    {
+      id: "muse-spark-1.3-contributor-high",
+      name: "Muse Spark 1.3 Contributor (high effort)",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsVision: true,
+      supportsAudio: true,
+      supportsVideo: true,
+      targetFormat: "openai-responses",
+    },
+    {
+      id: "muse-spark-1.3-contributor-xhigh",
+      name: "Muse Spark 1.3 Contributor (xhigh effort)",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsVision: true,
+      supportsAudio: true,
+      supportsVideo: true,
+      targetFormat: "openai-responses",
+    },
     // #8353: Grok 4.5 + effort tiers from the OpenCode Go registry.
     {
       id: "grok-4.5",
@@ -249,6 +328,16 @@ export const opencode_goProvider: RegistryEntry = {
       supportsReasoning: true,
       supportedThinkingEfforts: ["none", "low", "high", "max"],
       targetFormat: "openai-responses",
+    },
+    // #12196: the Go upstream serves this model only on /responses —
+    // /chat/completions 500s for it. github already declares the same model
+    // id with targetFormat:"openai-responses" (see github/index.ts).
+    {
+      id: "gpt-5.6-luna",
+      name: "GPT-5.6 Luna",
+      supportsReasoning: true,
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
     },
     // Console Go free GLM-tier model (live-verified 2026-08-23): the upstream
     // rejects every reasoning_effort outside {low, high, max} whenever tools

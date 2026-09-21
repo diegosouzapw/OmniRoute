@@ -55,7 +55,9 @@ export default function ProviderCharts({
             tickLine={{ stroke: "var(--color-border)" }}
             width={44}
           />
+          <Legend />
           <Tooltip
+            wrapperStyle={{ zIndex: 1000, pointerEvents: "none" }}
             labelFormatter={(value) => formatTooltipTimestamp(String(value), range)}
             formatter={(value: number, name: string) => [formatPercent(value), name]}
             contentStyle={{
@@ -63,12 +65,12 @@ export default function ProviderCharts({
               borderColor: "var(--color-border)",
               borderRadius: 12,
               color: "var(--color-text-main)",
-              boxShadow: "var(--shadow-soft)",
+              boxShadow: "var(--shadow-elevated)",
+              opacity: 1,
             }}
             itemStyle={{ color: "var(--color-text-main)" }}
             labelStyle={{ color: "var(--color-text-main)", fontWeight: 600 }}
           />
-          <Legend />
           {providers.map((provider) => (
             <Line
               key={provider}

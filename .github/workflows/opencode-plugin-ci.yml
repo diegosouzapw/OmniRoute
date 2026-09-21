@@ -5,10 +5,12 @@ on:
     branches: [main, "release/**"]
     paths:
       - "@omniroute/opencode-plugin/**"
+      - "@omniroute/opencode-plugin-v2/**"
   pull_request:
     branches: [main, "release/**"]
     paths:
       - "@omniroute/opencode-plugin/**"
+      - "@omniroute/opencode-plugin-v2/**"
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
@@ -44,10 +46,33 @@ jobs:
       - run: npm run build
       - run: npm test
 
+  test-v2:
+    name: Test v2 (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["22", "24"]
+    defaults:
+      run:
+        working-directory: "@omniroute/opencode-plugin-v2"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: "@omniroute/opencode-plugin-v2/package-lock.json"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npm test
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, test-v2]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -55,12 +80,11 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: "@omniroute/opencode-plugin/package-lock.json"
-      - run: npm install --no-audit --no-fund
-      - run: npm run build
+      - name: Build plugin-v2 artifact
+        working-directory: "@omniroute/opencode-plugin-v2"
+        run: npm ci --no-audit --no-fund && npm run build
       - uses: actions/upload-artifact@v7
         with:
-          name: opencode-plugin-dist
-          path: "@omniroute/opencode-plugin/dist"
+          name: opencode-plugin-v2-dist
+          path: "@omniroute/opencode-plugin-v2/dist"
           retention-days: 7

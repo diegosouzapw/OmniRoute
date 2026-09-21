@@ -1,1 +1,0 @@
-- **fix(dashboard):** Keep the Profile level and progress aligned with aggregate XP, including bounded handling for invalid totals ([#11604](https://github.com/diegosouzapw/OmniRoute/pull/11604)) — thanks @pacocartones

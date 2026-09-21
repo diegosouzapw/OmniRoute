@@ -1,4 +1,9 @@
+# open-sse Architecture (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/OPEN_SSE_ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/OPEN_SSE_ARCHITECTURE.md)
+
 ---
+
 title: "Architektura open-sse"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -167,30 +172,30 @@ Artefakty call log (jeśli włączone) trafiają do `${DATA_DIR}/call_logs/`.
 
 ---
 
-## Kluczowe pliki — deep-dive
+## Szczegółowa analiza kluczowych plików
 
-### chatCore.ts (5977 linii)
+### chatCore.ts (5977 wierszy)
 
-**Główny handler żądań**. Mimo rozmiaru ma przejrzystą strukturę:
+**Główny moduł obsługi żądań**. Pomimo swoich rozmiarów ma przejrzystą strukturę:
 
 ```ts
-// Pseudo-structure of chatCore.ts
+// Pseudostruktura pliku chatCore.ts
 export async function handleChat(request: NextRequest) {
-  // 1. Auth + CORS
+  // 1. Uwierzytelnianie i CORS
   await authenticateRequest(request);
   applyCorsHeaders(response);
 
-  // 2. Body validation
+  // 2. Walidacja treści
   const body = await parseRequestBody(request);
 
-  // 3. Format detection + translation
+  // 3. Wykrywanie i konwersja formatu
   const sourceFormat = detectFormat(request);
   const targetFormat = getTargetFormat(providerId);
   if (needsTranslation(sourceFormat, targetFormat)) {
     body = translateRequest(body, sourceFormat, targetFormat);
   }
 
-  // 4. Combo routing
+  // 4. Routing kombinacji
   const targets = await resolveComboTargets(comboId, body);
   for (const target of targets) {
     try {
@@ -198,20 +203,20 @@ export async function handleChat(request: NextRequest) {
       await recordUsage(result);
       return result;
     } catch (err) {
-      // Continue to next target
+      // Przejdź do następowego celu
     }
   }
 
-  // 5. Emergency fallback
+  // 5. Awaryjny mechanizm rezerwowy
   return await emergencyFallback(body);
 }
 ```
 
-Mimo że to jedna wielka funkcja, jest zorganizowana w **sekcje z komentarzami**, które mapują się na 5-etapowy pipeline.
+Pomimo tego, że jest jedną ogromną funkcją, kod podzielono na **opisane komentarzami sekcje**, które odpowiadają pięcioetapowemu potokowi.
 
-### combo.ts (4456 LOC)
+### combo.ts (4456 wierszy kodu)
 
-**Silnik routingu**, który rozwiązuje combo do uporządkowanej listy targetów.
+**Silnik routingu**, który przekształca kombinację w uporządkowaną listę celów.
 
 ```ts
 // services/combo.ts
@@ -228,132 +233,129 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Obsługuje **19 publicznych strategii routingu** (zob. `src/shared/constants/routingStrategies.ts`):
+Obsługuje **19 strategii routingu** (zobacz `src/shared/constants/routingStrategies.ts`):
 
-| Strategia           | Zachowanie                                                            |
-| ------------------- | --------------------------------------------------------------------- |
-| `priority`          | Uporządkowana lista first-target                                      |
-| `weighted`          | Probabilistycznie według wagi per-target                              |
-| `round-robin`       | Cykl przez targety w kolejności                                       |
-| `context-relay`     | Przekazywanie kontekstu między targetami                              |
-| `fill-first`        | Wypełnij quota przed przejściem do następnego                         |
-| `p2c`               | Power of two choices                                                  |
-| `random`            | Losowy jednostajny                                                    |
-| `least-used`        | Wybierz ten z najmniejszą liczbą ostatnich użyć                       |
-| `cost-optimized`    | Najtańszy healthy target najpierw                                     |
-| `reset-aware`       | Świadomy okien resetu providera                                       |
-| `reset-window`      | Routing oparty o okno resetu                                          |
-| `headroom`          | Najpierw największy pozostały headroom quota                          |
-| `strict-random`     | Prawdziwie jednostajny (bez ważenia jakości)                          |
-| `auto`              | Scoring 13-czynnikowy (`autoCombo/`)                                  |
-| `lkgp`              | Last known good provider najpierw                                     |
-| `context-optimized` | Najlepszy dla żądań long-context                                      |
-| `cache-optimized`   | Preferuj target z najlepszym dopasowaniem prompt cache                |
-| `fusion`            | Fan-out do panelu równolegle, potem synteza przez judge (`fusion.ts`) |
-| `pipeline`          | Sekwencyjnie przekazuj output każdego kroku do następnego             |
+| Strategia           | Działanie                                                                         |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `priority`          | Uporządkowana lista, w której pierwszy cel ma pierwszeństwo                       |
+| `weighted`          | Wybór probabilistyczny na podstawie wagi każdego celu                             |
+| `round-robin`       | Cykliczne przechodzenie przez cele w ustalonej kolejności                         |
+| `context-relay`     | Przekazywanie kontekstu pomiędzy celami                                           |
+| `fill-first`        | Wypełnienie limitu przed przejściem do następnego celu                            |
+| `p2c`               | Wybór spośród dwóch możliwości                                                    |
+| `random`            | Jednostajny wybór losowy                                                          |
+| `least-used`        | Wybór celu używanego ostatnio najrzadziej                                         |
+| `cost-optimized`    | Najpierw najtańszy prawidłowo działający cel                                      |
+| `reset-aware`       | Uwzględnianie okien resetowania dostawcy                                          |
+| `reset-window`      | Routing oparty na oknach resetowania                                              |
+| `headroom`          | Najpierw cel z największym pozostałym zapasem limitu                              |
+| `strict-random`     | Rzeczywiście jednostajny wybór losowy (bez ważenia według jakości)                |
+| `auto`              | Użycie oceny opartej na 16 czynnikach (`autoCombo/`)                              |
+| `lkgp`              | Najpierw ostatni znany prawidłowo działający dostawca                             |
+| `context-optimized` | Najlepszy wybór dla żądań z długim kontekstem                                     |
+| `fusion`            | Równoległe rozesłanie do panelu, a następnie synteza przez sędziego (`fusion.ts`) |
 
-### base.ts (1170 LOC)
+### base.ts (1170 wierszy kodu)
 
-**Abstrakcyjny executor**, po którym dziedziczą moduły implementacji executorów. Katalog ma
-obecnie 89 top-level modułów implementacji. Zawiera:
+**Abstrakcyjny moduł wykonawczy**, po którym dziedziczy wszystkich 107 modułów wykonawczych. Zawiera:
 
-- `buildUrl()` — domyślna konstrukcja URL (podklasy nadpisują dla custom)
-- `buildHeaders()` — domyślne nagłówki (auth, content-type)
-- `transformRequest()` — domyślnie pass-through
-- `execute()` — główna pętla HTTP z retry/backoff/breaker
+- `buildUrl()` — domyślne konstruowanie adresu URL (podklasy nadpisują tę metodę w przypadku niestandardowej obsługi)
+- `buildHeaders()` — domyślne nagłówki (uwierzytelnianie, typ zawartości)
+- `transformRequest()` — domyślnie przekazuje dane bez zmian
+- `execute()` — główna pętla HTTP z ponawianiem prób, opóźnieniami i wyłącznikiem awaryjnym
 
 ```ts
 // open-sse/executors/default.ts
 export class DefaultExecutor extends BaseExecutor {
-  // Handles all OpenAI/Anthropic-compatible providers
-  // Providers register configurations (URL, auth, headers) but share executor logic
+  // Obsługuje wszystkich dostawców zgodnych z OpenAI/Anthropic
+  // Dostawcy rejestrują konfiguracje (adres URL, uwierzytelnianie, nagłówki), ale współdzielą logikę modułu wykonawczego
 }
 ```
 
-Zachowanie specyficzne dla providera (auth headers, base URL, version headers) jest konfigurowane przez provider registry, a nie przez osobne klasy executorów.
+Zachowanie specyficzne dla dostawcy (nagłówki uwierzytelniania, bazowy adres URL, nagłówki wersji) jest konfigurowane za pomocą rejestru dostawców, a nie oddzielnych klas modułów wykonawczych.
 
 ````
 
 ---
 
-## Serwisy (117 modułów)
+## Usługi (117 modułów)
 
-Serwisy to **skupione, jednozadaniowe moduły**, które handlery komponują ze sobą. Główne kategorie:
+Usługi to **wyspecjalizowane moduły o pojedynczym przeznaczeniu**, które są łączone przez handlery. Główne kategorie:
 
 ### Routing i Combo
 
-- `combo.ts` — punkt wejścia dla żądań routowanych przez combo
-- `services/autoCombo/` — scoring 13-czynnikowy, warianty i mode packs auto-routingu
-- `wildcardRouter.ts` — dopasowanie wildcard routes (`gpt-*`)
-- `modelFamilyFallback.ts` — fallback T5 wewnątrz rodziny modeli
+- `combo.ts` — punkt wejścia dla żądań kierowanych przez combo
+- `services/autoCombo/` — ocenianie na podstawie 16 czynników, 8 automatycznych strategii routingu
+- `wildcardRouter.ts` — dopasowuje trasy z symbolami wieloznacznymi (`gpt-*`)
+- `modelFamilyFallback.ts` — mechanizm awaryjny T5 w obrębie rodziny
 
-### Rate limiting i quota
+### Ograniczanie częstotliwości i limity
 
-- `rateLimitManager.ts` — token bucket per key+provider
-- `usage.ts` — zapis usage
-- `quotaCache.ts` — migawki quota w pamięci
+- `rateLimitManager.ts` — kubełek tokenów dla każdej pary klucz+dostawca
+- `usage.ts` — rejestrowanie użycia
+- `quotaCache.ts` — przechowywane w pamięci migawki limitów
 
-### Account i token
+### Konta i tokeny
 
-- `tokenRefresh.ts` — odświeżanie OAuth przy 401
-- `accountFallback.ts` — przełączenie na alternatywne konto
-- `sessionManager.ts` — stan sesji multi-turn
+- `tokenRefresh.ts` — odświeżanie OAuth po błędzie 401
+- `accountFallback.ts` — przełączanie na konto alternatywne
+- `sessionManager.ts` — stan sesji obejmującej wiele tur
 
-### Intelligence
+### Inteligencja
 
-- `intentClassifier.ts` — klasyfikacja intencji żądania
-- `taskAwareRouter.ts` — routing według typu zadania
-- `thinkingBudget.ts` — alokacja thinking tokens
-- `contextManager.ts` — wstrzykiwanie kontekstu routingu
+- `intentClassifier.ts` — klasyfikuje intencję żądania
+- `taskAwareRouter.ts` — kieruje według typu zadania
+- `thinkingBudget.ts` — przydziela tokeny rozumowania
+- `contextManager.ts` — wstrzykuje kontekst routingu
 
-### Resilience
+### Odporność
 
-- `resilience.ts` — orkiestracja retry, backoff, breaker
-- `emergencyFallback.ts` — fallback ostateczności
-- `modelDeprecation.ts` — auto-routing do modeli-następców
+- `resilience.ts` — koordynacja ponownych prób, opóźnień i bezpiecznika
+- `emergencyFallback.ts` — awaryjny mechanizm ostatniej szansy
+- `modelDeprecation.ts` — automatyczne kierowanie do modeli następczych
 
-### State
+### Stan
 
-- `signatureCache.ts` — deduplikacja po sygnaturze żądania
-- `volumeDetector.ts` — load shedding
+- `signatureCache.ts` — deduplikacja według sygnatury żądania
+- `volumeDetector.ts` — ograniczanie obciążenia
 - `contextHandoff.ts` — serializacja sesji
 
-### Compression
+### Kompresja
 
-- `compression/` (podkatalog) — pełny pipeline kompresji
-- 39 plików obejmujących engines, rule packs, adapters
+- `compression/` (podkatalog) — kompletny potok kompresji
+- 39 plików obejmujących silniki, pakiety reguł i adaptery
 
-### Skills
+### Umiejętności
 
 - (opisane w [SKILLS.md](./SKILLS.md))
 
-### Memory
+### Pamięć
 
-- (opisane w [MEMORY.md](./MEMORY.md))
+- (opisana w [MEMORY.md](./MEMORY.md))
 
 ---
 
-## Executory (75+ plików)
+## Executory (ponad 75 plików)
 
-Jeden plik na providera. Wszystkie dziedziczą po `BaseExecutor` i nadpisują to, co się różni.
+Jeden plik na dostawcę. Wszystkie rozszerzają `BaseExecutor` i nadpisują różniące się elementy.
 
-### Wspólne wzorce
+### Typowe wzorce
 
-Providery są rozwiązywane przez `getExecutor(providerId)`, które zwraca skonfigurowany executor. Providery kompatybilne z OpenAI/Anthropic używają `DefaultExecutor` (`executors/default.ts`). Zachowanie specyficzne dla providera (base URL, auth headers, API version) jest konfigurowane w `open-sse/config/providers/`, a transformacje body żądania obsługuje `open-sse/translator/`.
+Dostawcy są rozpoznawani za pomocą `getExecutor(providerId)`, która zwraca skonfigurowany executor. Dostawcy zgodni z OpenAI/Anthropic używają `DefaultExecutor` (`executors/default.ts`). Zachowanie specyficzne dla dostawcy (bazowy adres URL, nagłówki uwierzytelniania, wersja API) jest konfigurowane w `open-sse/config/providers/`, natomiast przekształcenia treści żądania są obsługiwane w `open-sse/translator/`.
 
-**Custom URL** ustawia się przez konfigurację providera:
+**Niestandardowy adres URL** jest ustawiany za pomocą konfiguracji dostawcy:
 
 ```ts
-// Provider config in open-sse/config/providers/
+// Konfiguracja dostawcy w open-sse/config/providers/
 export default {
   id: "together",
   baseURL: "https://api.together.xyz/v1/chat/completions",
 }
 ````
 
-**Custom auth** jest obsługiwany przez konfigurację auth w provider registry (API key, OAuth, profile nagłówków).
+**Niestandardowe uwierzytelnianie** jest obsługiwane przez konfigurację uwierzytelniania rejestru dostawców (klucz API, OAuth, profile nagłówków).
 
-**Custom body żądania** — transformacje (np. Anthropic oddzielające `system` od `messages`) są rejestrowane per-provider w `open-sse/translator/`.
+**Niestandardowe przekształcenia treści żądania** (np. oddzielanie `system` od `messages` przez Anthropic) są rejestrowane osobno dla każdego dostawcy w `open-sse/translator/`.
 
 ````
 
@@ -371,7 +373,7 @@ const result = await executor.execute({
 });
 ````
 
-Fabryka korzysta z katalogu 329 wpisów providerów oraz wspólnych wartości domyślnych i 89 modułów implementacji executorów.
+Rozpoznawanie odbywa się za pośrednictwem `ExecutorRegistry` (`executors/registry.ts`): każdy wyspecjalizowany executor jest zadeklarowany we wbudowanej tabeli w `executors/index.ts` i rejestrowany za pomocą `registerExecutor(alias, instance)` podczas ładowania modułu; `getExecutor()` sprawdza rejestr i w przypadku każdego dostawcy bez wyspecjalizowanego wpisu używa zapamiętanej instancji `DefaultExecutor`. Pełne mapowanie alias → executor jest określone przez test referencyjny `tests/unit/executor-map-golden.test.ts`.
 
 ---
 
@@ -488,13 +490,13 @@ Obsługuje:
 
 `open-sse/config/` to warstwa konfiguracji:
 
-| Plik                          | Przeznaczenie                      |
-| ----------------------------- | ---------------------------------- |
+| Plik                          | Przeznaczenie                            |
+| ----------------------------- | ---------------------------------------- |
 | `providerRegistry.ts`         | Wspólna konfiguracja rejestru providerów |
-| `providerModels.ts`           | Aliasy modeli, mapowanie formatów  |
-| `constants.ts`                | Timeouty, limity, kody statusu     |
-| `defaultThinkingSignature.ts` | Domyślna sygnatura thinking Claude |
-| `modelStrip.ts` (w services)  | Stripowanie pól per-provider       |
+| `providerModels.ts`           | Aliasy modeli, mapowanie formatów        |
+| `constants.ts`                | Timeouty, limity, kody statusu           |
+| `defaultThinkingSignature.ts` | Domyślna sygnatura thinking Claude       |
+| `modelStrip.ts` (w services)  | Stripowanie pól per-provider             |
 
 ### Schemat Provider Registry
 

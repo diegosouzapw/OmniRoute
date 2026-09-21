@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 import {
   APP_STAGING_ALLOWED_EXACT_PATHS,
@@ -240,6 +240,31 @@ test("setupPolyfill.ts is allowed in the tarball (bin/omniroute.mjs imports it a
   assert.deepEqual(unexpectedPaths, []);
 });
 
+test("config/i18n.json ships in the tarball: allowed, required, and in package.json files[]", () => {
+  // Locale source of truth read at runtime by bin/cli/i18n.mjs (OMNIROUTE_LANG alias
+  // resolution, e.g. uk → uk-UA / fil → phi) and bin/cli/commands/config.mjs
+  // (`config lang list`). package.json "files" never shipped config/, so the published
+  // CLI silently fell back to en for every alias — pin all three layers so the file can
+  // never drop out of the tarball again.
+  const configPath = "config/i18n.json";
+
+  const unexpectedPaths = findUnexpectedArtifactPaths([configPath], {
+    exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
+    prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+  });
+  assert.deepEqual(unexpectedPaths, [], `${configPath} must be allowed in the tarball`);
+
+  assert.ok(
+    PACK_ARTIFACT_REQUIRED_PATHS.includes(configPath),
+    `${configPath} must be a required tarball path (check:pack-artifact regression guard)`
+  );
+
+  const files: string[] = JSON.parse(
+    readFileSync(new URL("../../package.json", import.meta.url), "utf8")
+  ).files;
+  assert.ok(files.includes(configPath), `package.json "files" must list ${configPath}`);
+});
+
 test("findMissingArtifactPaths flags missing root runtime files in the tarball", () => {
   const missingPaths = findMissingArtifactPaths(
     [
@@ -268,6 +293,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "bin/mcp-server.mjs",
     "bin/mcpStdioConsoleGuard.mjs",
     "bin/nodeRuntimeSupport.mjs",
+    "config/i18n.json",
     "config/release/wreq-js-native-manifest.json",
     "config/release/wreq-js-rust-license-inventory.json",
     "config/release/wreq-js-rust-notices.md",
@@ -280,6 +306,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "dist/peer-stamp.mjs",
     "dist/responses-ws-proxy.mjs",
     "dist/server-ws.mjs",
+    "dist/src/lib/db/healthCheckWorker.js",
     "dist/src/lib/usage/callLogArtifactWorker.js",
     "dist/systemd-notify.mjs",
     "dist/tls-options.mjs",
@@ -292,4 +319,19 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "scripts/packs/optionalPackManifest.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);
+});
+
+test("every shipped @omniroute workspace package is covered by an artifact prefix", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { files: string[] };
+  assert.ok(packageJson.files.includes("@omniroute/"));
+
+  const workspacePackages = readdirSync("@omniroute", { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && existsSync(`@omniroute/${entry.name}/package.json`))
+    .map((entry) => `@omniroute/${entry.name}/`);
+
+  assert.ok(workspacePackages.includes("@omniroute/opencode-plugin-v2/"));
+  const uncovered = workspacePackages.filter(
+    (prefix) => !PACK_ARTIFACT_ALLOWED_PATH_PREFIXES.includes(prefix)
+  );
+  assert.deepEqual(uncovered, []);
 });

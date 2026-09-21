@@ -169,8 +169,20 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     format: "agnes-image",
     models: [
       {
+        id: "agnes-image-2.0-flash",
+        name: "Agnes Image 2.0 Flash",
+        inputModalities: ["text", "image"],
+        description: "Agnes text-to-image, image-to-image, and multi-image composition model",
+      },
+      {
         id: "agnes-image-2.1-flash",
         name: "Agnes Image 2.1 Flash",
+        inputModalities: ["text", "image"],
+        description: "Agnes text-to-image, image-to-image, and multi-image composition model",
+      },
+      {
+        id: "agnes-image-2.5-flash",
+        name: "Agnes Image 2.5 Flash",
         inputModalities: ["text", "image"],
         description: "Agnes text-to-image, image-to-image, and multi-image composition model",
       },

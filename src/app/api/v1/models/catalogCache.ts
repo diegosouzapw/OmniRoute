@@ -18,7 +18,9 @@ import { after } from "next/server";
 
 import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
 import { extractApiKey } from "@/sse/services/auth";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
+import { catalogPageCacheKey, catalogStringResponse, parseCatalogPage } from "./catalogPagination";
 import { isCodexModelCatalogClient } from "./catalogRequest";
 
 /** Fingerprint an API key for the catalog memo Map. Never store the raw secret. */
@@ -135,35 +137,46 @@ export type CatalogCacheOptions = {
  */
 export const CATALOG_CACHE_TTL_MS_DEFAULT = 60_000;
 
-/**
- * Per-call knobs for {@link resolveCachedCatalogResponse}.
- *
- * `hideAutoCombos` / `hideNoThinkVariants` are catalog-shape dimensions folded into
- * the cache key. `getStaleWhileRevalidateMs` and `scheduleBackgroundRefresh` are the
- * injection points restored in #11551: the route wires Next's `after()` so the
- * background refresh runs only once the response has been flushed to the client.
- */
+/** Cold-path wait bound for a coalesced catalog rebuild (#12627). Override with CATALOG_BUILD_TIMEOUT_MS. */
+export const CATALOG_BUILD_TIMEOUT_MS_DEFAULT = 8_000;
 
-/** Defers `task` until it is safe to run without delaying the current response. */
+function catalogBuildTimeoutMs(): number {
+  const raw = process.env.CATALOG_BUILD_TIMEOUT_MS;
+  if (!raw) return CATALOG_BUILD_TIMEOUT_MS_DEFAULT;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : CATALOG_BUILD_TIMEOUT_MS_DEFAULT;
+}
 
-/**
- * Default scheduler (#8728 / #11551).
- *
- * Next's `after()` runs the task once the response has been flushed, which is the
- * whole point of the stale-while-revalidate path: the builder is overwhelmingly
- * synchronous under the single-threaded App Router, so running it before the flush
- * pins the event loop and the "served immediately" stale body only reaches the
- * client after the rebuild finishes.
- *
- * `after()` requires a Next request scope. Callers outside one (instrumentation
- * warm-up, direct unit-test imports) fall back to a macrotask, which preserves the
- * "hand the response back first" ordering within the same process.
- */
+const catalogLastGood = new Map<string, CachedCatalog>();
 
-type CatalogInFlight = {
-  version: number;
-  promise: Promise<CachedCatalog>;
-};
+export class CatalogBuildTimeoutError extends Error {
+  constructor() {
+    super("catalog_build_timeout");
+    this.name = "CatalogBuildTimeoutError";
+  }
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      if (label === "catalog_build_timeout") {
+        reject(new CatalogBuildTimeoutError());
+      } else {
+        reject(new Error(label));
+      }
+    }, ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
 
 const catalogCache = new Map<string, CachedCatalog>();
 
@@ -175,7 +188,12 @@ const catalogCache = new Map<string, CachedCatalog>();
  * It still resolves to its own original caller (that request legitimately waits
  * on it), just without being persisted.
  */
-type InFlightBuild = { generation: number; promise: Promise<CachedCatalog> };
+type InFlightBuild = {
+  generation: number;
+  promise: Promise<CachedCatalog>;
+  lastKeptAt?: number;
+  timeoutCount?: number;
+};
 const catalogInFlight = new Map<string, InFlightBuild>();
 
 let _catalogBuilderRuns = 0;
@@ -188,7 +206,8 @@ function buildCatalogCacheKey(request: Request, catalogSettings?: CatalogCacheOp
   const configuredOnly = url.searchParams.get("configuredOnly") === "true" ? "1" : "0";
   const hideAuto = catalogSettings?.hideAutoCombos ? "1" : "0";
   const hideNoThink = catalogSettings?.hideNoThinkVariants ? "1" : "0";
-  return `${prefix}|${isCodex}|${fingerprintCatalogAuthKey(apiKey)}|${configuredOnly}|${hideAuto}|${hideNoThink}`;
+  const page = catalogPageCacheKey(parseCatalogPage(request));
+  return `${prefix}|${isCodex}|${fingerprintCatalogAuthKey(apiKey)}|${configuredOnly}|${hideAuto}|${hideNoThink}|${page}`;
 }
 
 // Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last
@@ -250,7 +269,10 @@ function storePayload(
   };
   if (buildGeneration === getModelCatalogCacheVersion()) {
     catalogCache.set(cacheKey, entry);
+    if (entry.status === 200) catalogLastGood.set(cacheKey, entry);
   }
+  // Cross-generation orphan: return entry to its original caller unchanged,
+  // persist neither cache nor lastGood.
   return entry;
 }
 
@@ -301,7 +323,12 @@ function startBackgroundRefresh(
   // observes the failure.
   refreshPromise.catch(() => {});
 
-  catalogInFlight.set(cacheKey, { generation, promise: refreshPromise });
+  catalogInFlight.set(cacheKey, {
+    generation,
+    promise: refreshPromise,
+    lastKeptAt: Date.now(),
+    timeoutCount: 0,
+  });
   refreshPromise
     .catch(() => {})
     .finally(() => {
@@ -316,6 +343,60 @@ function runBuilder(
 ): Promise<CatalogPayload> {
   _catalogBuilderRuns++;
   return buildPayload(request);
+}
+
+async function awaitCatalogInFlight(
+  cacheKey: string,
+  inflight: InFlightBuild,
+  corsHeaders: Record<string, string>,
+  diagnosticHeaders: Record<string, string>
+): Promise<Response> {
+  let payload: CachedCatalog;
+  try {
+    payload = await withTimeout(inflight.promise, catalogBuildTimeoutMs(), "catalog_build_timeout");
+  } catch (err) {
+    if (!(err instanceof CatalogBuildTimeoutError)) {
+      if (catalogInFlight.get(cacheKey)?.promise === inflight.promise) {
+        catalogInFlight.delete(cacheKey);
+      }
+      throw err;
+    }
+    const lastGood = catalogLastGood.get(cacheKey);
+    if (lastGood) {
+      return catalogStringResponse(
+        lastGood.body,
+        mergeCatalogHeaders(corsHeaders, lastGood.headers, diagnosticHeaders, {
+          "x-omniroute-catalog": "last-good",
+        }),
+        lastGood.status
+      );
+    }
+    const shared = catalogInFlight.get(cacheKey);
+    if (shared && shared.promise === inflight.promise) {
+      shared.timeoutCount = (shared.timeoutCount ?? 0) + 1;
+      shared.lastKeptAt = Date.now();
+    }
+    const boundMs = catalogBuildTimeoutMs();
+    const retryAfterSec = Math.max(1, Math.ceil((2 * boundMs) / 1000));
+    const body = JSON.stringify(
+      buildErrorBody(503, "catalog_build_timeout", undefined, {
+        type: "service_unavailable",
+      })
+    );
+    return catalogStringResponse(
+      body,
+      mergeCatalogHeaders(corsHeaders, diagnosticHeaders, {
+        "x-omniroute-catalog": "build-timeout",
+        "Retry-After": String(retryAfterSec),
+      }),
+      503
+    );
+  }
+  return catalogStringResponse(
+    payload.body,
+    mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
+    payload.status
+  );
 }
 
 /**
@@ -339,10 +420,11 @@ export async function resolveCachedCatalogResponse(
   const cached = catalogCache.get(cacheKey);
 
   if (cached && cached.expiresAt > now) {
-    return new Response(cached.body, {
-      status: cached.status,
-      headers: mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
-    });
+    return catalogStringResponse(
+      cached.body,
+      mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
+      cached.status
+    );
   }
 
   // Stale-while-revalidate: an expired entry is still served immediately as long as
@@ -359,10 +441,11 @@ export async function resolveCachedCatalogResponse(
       buildPayload,
       catalogSettings?.scheduleBackgroundRefresh ?? defaultBackgroundRefreshScheduler
     );
-    return new Response(cached.body, {
-      status: cached.status,
-      headers: mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
-    });
+    return catalogStringResponse(
+      cached.body,
+      mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
+      cached.status
+    );
   }
 
   const currentGeneration = getModelCatalogCacheVersion();
@@ -370,23 +453,27 @@ export async function resolveCachedCatalogResponse(
   // Only join an in-flight build from the CURRENT generation. A build bound to an
   // older (pre-write) generation reflects stale state, so a new request starts a
   // fresh build instead of joining it.
-  if (!inflight || inflight.generation !== currentGeneration) {
+  const boundMs = catalogBuildTimeoutMs();
+  const existing = inflight;
+  const joinable =
+    !!existing &&
+    existing.generation === currentGeneration &&
+    Date.now() - (existing.lastKeptAt ?? 0) <= 3 * boundMs &&
+    (existing.timeoutCount ?? 0) < 3;
+  if (!joinable) {
     const generation = currentGeneration;
     const promise = runBuilder(buildPayload, request).then((payload) =>
       storePayload(cacheKey, payload, generation)
     );
-    inflight = { generation, promise };
+    inflight = { generation, promise, lastKeptAt: Date.now(), timeoutCount: 0 };
     catalogInFlight.set(cacheKey, inflight);
+    promise.catch(() => {});
     promise.finally(() => {
       if (catalogInFlight.get(cacheKey)?.promise === promise) catalogInFlight.delete(cacheKey);
     });
   }
 
-  const payload = await inflight.promise;
-  return new Response(payload.body, {
-    status: payload.status,
-    headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
-  });
+  return awaitCatalogInFlight(cacheKey, inflight, corsHeaders, diagnosticHeaders);
 }
 
 // ── Test hooks ───────────────────────────────────────────────────────────────
@@ -397,6 +484,7 @@ export function __resetCatalogBuilderRunsForTest(): void {
   _catalogBuilderRuns = 0;
   catalogCache.clear();
   catalogInFlight.clear();
+  catalogLastGood.clear();
   lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
 }
 
@@ -450,5 +538,7 @@ export function __forceCatalogInFlightRejectionForTest(request: Request, error: 
   catalogInFlight.set(buildCatalogCacheKey(request), {
     generation: getModelCatalogCacheVersion(),
     promise: rejected,
+    lastKeptAt: Date.now(),
+    timeoutCount: 0,
   });
 }

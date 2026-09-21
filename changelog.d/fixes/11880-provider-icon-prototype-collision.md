@@ -1,1 +1,0 @@
-- **fix(dashboard):** the providers page no longer crashes into the error boundary when a provider id collides with an `Object.prototype` member (`constructor`, `__proto__`); icon lookups are own-property guarded ([#11880](https://github.com/diegosouzapw/OmniRoute/pull/11880)) — thanks @NoxzRCW

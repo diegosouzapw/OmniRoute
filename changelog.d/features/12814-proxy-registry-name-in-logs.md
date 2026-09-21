@@ -1,0 +1,1 @@
+- **feat(proxylogs):** proxy log columns and detail pane now show the registry proxy name instead of a bare `host:port` when several registry entries share the same gateway ([#12814](https://github.com/diegosouzapw/OmniRoute/pull/12814)) — thanks @tiangao88

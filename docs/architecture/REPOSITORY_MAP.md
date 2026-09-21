@@ -121,7 +121,7 @@ src/
 ├── domain/              # Pure domain logic (policy engine, fallback, cost, lockout, comboResolver, assessment)
 ├── server/              # Server-only modules (authz pipeline, cors, auth middleware) — cannot import from client
 ├── shared/              # Shared between server and client where safe (constants, types, validation, contracts, utils)
-├── i18n/                # next-intl config + per-locale message JSON (43 locales)
+├── i18n/                # next-intl config + per-locale message JSON (42 locales)
 ├── middleware/          # Next.js middleware (request enrichment, locale detection)
 ├── mitm/                # MITM proxy core: cert gen/install, handlers, targets, inspector, masks, passthrough
 │   ├── handlers/        # 9 IDE-agent handler classes extending MitmHandlerBase (antigravity, kiro, copilot, codex, cursor, zed, claudeCode, openCode, trae)
@@ -396,7 +396,7 @@ open-sse/
 | `COVERAGE_PLAN.md`          | Coverage goals and current state                                                      |
 | `FREE_TIERS.md`             | Curated free-tier providers (48+ free + 11 OAuth)                                     |
 | `CLI-TOOLS.md`              | External CLI integrations + Internal OmniRoute CLI                                    |
-| `I18N.md`                   | i18n architecture, adding a language, 43 locales                                      |
+| `I18N.md`                   | i18n architecture, adding a language, 42 locales                                      |
 | `UNINSTALL.md`              | Clean uninstall steps                                                                 |
 | `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 355 providers (regen: `npm run gen:provider-reference`) |
 
@@ -418,7 +418,7 @@ open-sse/
 | `REASONING_REPLAY.md`      | Hybrid memory/SQLite cache for `reasoning_content`                   |
 | `AUTHZ_GUIDE.md`           | Authorization pipeline (`classify` → `policies` → `enforce`)         |
 | `RESILIENCE_GUIDE.md`      | Circuit breaker + cooldown + model lockout                           |
-| `STEALTH_GUIDE.md`         | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
+| `docs/security/STEALTH_GUIDE.md` (git only)         | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
 | `AUTO-COMBO.md`            | Auto Combo engine (16-factor scoring, 6 mode packs, virtual factory) |
 
 ### Compression
@@ -448,7 +448,7 @@ open-sse/
 
 | Subdir                | Purpose                                                                                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docs/i18n/`          | Localized doc translations (42 locales)                                                                                                                                                        |
+| `docs/i18n/`          | Localized doc translations (41 locales)                                                                                                                                                        |
 | `docs/screenshots/`   | Image assets for guides                                                                                                                                                                        |
 | `_tasks/superpowers/` | Plans/specs from superpowers (`writing-plans`/`brainstorming`) + research — isolated, separately-versioned repo, gitignored by the main tree. See CLAUDE.md → "Planning & Research Artifacts". |
 

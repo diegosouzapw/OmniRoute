@@ -1,0 +1,1 @@
+- **fix(providers):** xAI requests no longer silently drop an assistant tool call sent in the legacy OpenAI `function_call` shape (instead of `tool_calls[]`) — the call is now translated into the xAI request the same way modern tool calls are (#12692) — thanks @soroush5

@@ -75,7 +75,13 @@ test("F4.3: anthropic-compatible-cc-* relay → clear_tool_uses lands in the bod
       model: "claude-opus-4-8",
       body: { ...baseBody },
       stream: false,
-      credentials: { apiKey: "relay-key", baseUrl: "https://relay.example/v1" },
+      // #13452/#13798: the relay's baseUrl must live in providerSpecificData — a top-level
+      // credentials.baseUrl is never read on the chat path, and buildUrl() now refuses
+      // an unhydrated `*-compatible-*` node instead of falling back to the real API.
+      credentials: {
+        apiKey: "relay-key",
+        providerSpecificData: { baseUrl: "https://relay.example/v1" },
+      },
       contextEditing: { enabled: true },
     });
   } finally {
@@ -95,7 +101,13 @@ test("F4.3: generic anthropic-compatible-* (non-cc) relay → NO context_managem
       model: "claude-opus-4-8",
       body: { ...baseBody },
       stream: false,
-      credentials: { apiKey: "relay-key", baseUrl: "https://relay.example/v1" },
+      // #13452/#13798: the relay's baseUrl must live in providerSpecificData — a top-level
+      // credentials.baseUrl is never read on the chat path, and buildUrl() now refuses
+      // an unhydrated `*-compatible-*` node instead of falling back to the real API.
+      credentials: {
+        apiKey: "relay-key",
+        providerSpecificData: { baseUrl: "https://relay.example/v1" },
+      },
       contextEditing: { enabled: true },
     });
   } finally {
@@ -120,7 +132,13 @@ test("F4.2: upstream 400 rejecting context_management → strips it and retries 
       model: "claude-opus-4-8",
       body: { ...baseBody },
       stream: false,
-      credentials: { apiKey: "relay-key", baseUrl: "https://relay.example/v1" },
+      // #13452/#13798: the relay's baseUrl must live in providerSpecificData — a top-level
+      // credentials.baseUrl is never read on the chat path, and buildUrl() now refuses
+      // an unhydrated `*-compatible-*` node instead of falling back to the real API.
+      credentials: {
+        apiKey: "relay-key",
+        providerSpecificData: { baseUrl: "https://relay.example/v1" },
+      },
       contextEditing: { enabled: true },
     });
   } finally {
@@ -145,7 +163,13 @@ test("F4.2: an UNRELATED 400 does NOT strip context_management or retry", async 
       model: "claude-opus-4-8",
       body: { ...baseBody },
       stream: false,
-      credentials: { apiKey: "relay-key", baseUrl: "https://relay.example/v1" },
+      // #13452/#13798: the relay's baseUrl must live in providerSpecificData — a top-level
+      // credentials.baseUrl is never read on the chat path, and buildUrl() now refuses
+      // an unhydrated `*-compatible-*` node instead of falling back to the real API.
+      credentials: {
+        apiKey: "relay-key",
+        providerSpecificData: { baseUrl: "https://relay.example/v1" },
+      },
       contextEditing: { enabled: true },
     });
   } finally {

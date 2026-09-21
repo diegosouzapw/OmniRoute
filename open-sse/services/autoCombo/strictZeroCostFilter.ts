@@ -328,6 +328,31 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
 }
 
 /**
+ * How many candidates the STRICT filter drops outright (the same verdict it keeps on),
+ * and how many of those only for lack of a hard-stop guarantee.
+ */
+export function countStrictExclusions<T extends StrictZeroCostCandidate>(
+  pool: T[],
+  options: StrictZeroCostOptions
+): { excluded: number; noHardStop: number } {
+  let excluded = 0;
+  let noHardStop = 0;
+  for (const candidate of pool) {
+    const budgetEntry = findBudgetEntry(candidate, options.catalog);
+    const verdict = classifyStrictZeroCostCandidate(
+      candidate,
+      budgetEntry,
+      options.resolveFreeAccessState,
+      options
+    );
+    if (verdict.outcome === "safe") continue;
+    excluded++;
+    if (verdict.outcome === "no-hard-stop") noHardStop++;
+  }
+  return { excluded, noHardStop };
+}
+
+/**
  * Separate, optional ToS guard — kept independent from economic safety on
  * purpose (Marco's requirement): a model can be economically SAFE and still
  * excluded here for ToS reasons, or left in when this guard is off even if

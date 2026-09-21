@@ -30,14 +30,19 @@ import path from "node:path";
 import http from "node:http";
 import { EventEmitter } from "node:events";
 import { createCipheriv, randomBytes, scryptSync } from "node:crypto";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
+// `URL.pathname` is a URL path, not an OS path: on Windows it yields
+// "/C:/..." — a leading slash before the drive letter. `path.resolve` does not
+// treat that as absolute, so it prepends the CWD and produces "C:\C:\...",
+// which fails to import. `fileURLToPath` decodes to a real OS path on every
+// platform (it also un-escapes %20 in paths containing spaces).
 const HANDLER_PATH = path.resolve(
-  path.dirname(new URL(import.meta.url).pathname),
+  path.dirname(fileURLToPath(import.meta.url)),
   "../../scripts/dev/webdav-handler.mjs"
 );
 

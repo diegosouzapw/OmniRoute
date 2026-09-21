@@ -8,7 +8,9 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { resolveProviderId } from "@/shared/constants/providers";
 import { protectPayloadForLog } from "../logPayloads";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import {
   resolveOrphanedUsageAccountIdentity,
   resolveUsageAccountIdentity,
@@ -128,7 +130,7 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
     normalized.status = Number.isFinite(status) ? status : null;
   }
   if (metadata.error !== undefined) {
-    normalized.error = toStringOrNull(metadata.error) || null;
+    normalized.error = sanitizeErrorMessage(toStringOrNull(metadata.error)) || null;
   }
   if (metadata.errorCode !== undefined) {
     normalized.errorCode = toStringOrNull(metadata.errorCode) || null;
@@ -154,6 +156,7 @@ declare global {
           details: Record<string, Record<string, PendingRequestDetail[]>>;
         };
         pendingById: Map<string, PendingRequestDetail>;
+        pendingIdByCorrelation: Map<string, { id: string; touchedAt: number }>;
       }
     | undefined;
 }
@@ -173,6 +176,7 @@ const pendingState = (globalThis.__omnirouteUsageHistoryPendingState ??= {
     details: Object.create(null) as Record<string, Record<string, PendingRequestDetail[]>>,
   },
   pendingById: new Map<string, PendingRequestDetail>(),
+  pendingIdByCorrelation: new Map<string, { id: string; touchedAt: number }>(),
 });
 
 const pendingRequests = pendingState.pendingRequests;
@@ -182,6 +186,21 @@ const pendingRequests = pendingState.pendingRequests;
  * Populated when a detail is created and cleaned up when it is removed/finalized.
  */
 const pendingById = pendingState.pendingById;
+
+// Live incident: a combo dispatch calls trackPendingRequest once PER TARGET
+// ATTEMPT (open-sse/handlers/chatCore.ts's single "started" call site, hit
+// again on every fallback), each generating its OWN fresh id. A dashboard tab
+// polling /api/logs/<id> for the FIRST attempt goes stale the moment that
+// attempt finalizes and the combo silently retries with a different target
+// under a different id -- the tab has no way to discover the new id, and the
+// request keeps streaming (successfully) with nobody watching it live. Since
+// correlationId is already stable across every attempt of one client request
+// (see the trackPendingRequest call site's `correlationId` metadata field),
+// reusing the SAME pending id for every attempt sharing a correlationId keeps
+// one dashboard tab's poll target valid across combo fallbacks. Bounded by
+// PENDING_SWEEP_INTERVAL_MS's existing reaper cycle (see sweepStalePendingRequests)
+// so this never grows unboundedly with one-shot correlation ids.
+const pendingIdByCorrelation = pendingState.pendingIdByCorrelation;
 
 const DEFAULT_MAX_PENDING_REQUEST_AGE_MS = 60 * 60 * 1000;
 const MAX_PENDING_DETAILS = 5000;
@@ -249,6 +268,20 @@ export function sweepStalePendingRequests(
     for (const detail of oldest) remove(detail);
   }
 
+  // pendingIdByCorrelation entries are correlation ids, never reused across
+  // separate client requests, so nothing else ever removes them — same
+  // age/cap sweep as pendingById above, or the map grows unboundedly.
+  for (const [correlationId, entry] of pendingIdByCorrelation) {
+    if (now - entry.touchedAt > maxAgeMs) pendingIdByCorrelation.delete(correlationId);
+  }
+  if (pendingIdByCorrelation.size > MAX_PENDING_DETAILS) {
+    const overflow = pendingIdByCorrelation.size - MAX_PENDING_DETAILS;
+    const oldest = [...pendingIdByCorrelation.entries()]
+      .sort((a, b) => a[1].touchedAt - b[1].touchedAt)
+      .slice(0, overflow);
+    for (const [correlationId] of oldest) pendingIdByCorrelation.delete(correlationId);
+  }
+
   return removed;
 }
 
@@ -308,11 +341,23 @@ export function trackPendingRequest(
         pendingRequests.details[connectionId][modelKey] = [];
       }
       const now = Date.now();
+      // Reuse the same pending id across every target attempt of one client
+      // request (see pendingIdByCorrelation's module-level comment) so a
+      // dashboard tab's live poll survives a combo fallback to a different
+      // target instead of silently going stale. Concurrent speculative
+      // attempts (combo.ts's zeroLatencyOptimizationsEnabled hedging) can
+      // race two "started" calls for the same correlationId — the second
+      // simply overwrites the id-keyed view of the first's still-live entry,
+      // no worse than today's per-attempt id (which loses tracking entirely
+      // once any attempt finalizes) and self-corrects on the next attempt.
+      const reusableId = normalizedMetadata.correlationId
+        ? pendingIdByCorrelation.get(normalizedMetadata.correlationId)?.id
+        : undefined;
       const newDetail = {
         // crypto RNG (not Math.random) to satisfy CodeQL js/insecure-randomness —
         // this pending-request id flows into attempt logging; it's a correlation
         // id, not a security secret.
-        id: `${now}-${globalThis.crypto.randomUUID().slice(0, 6)}`,
+        id: reusableId ?? `${now}-${globalThis.crypto.randomUUID().slice(0, 6)}`,
         model,
         provider,
         connectionId,
@@ -321,6 +366,9 @@ export function trackPendingRequest(
       };
       pendingRequests.details[connectionId][modelKey].push(newDetail);
       pendingById.set(newDetail.id, newDetail);
+      if (normalizedMetadata.correlationId) {
+        pendingIdByCorrelation.set(normalizedMetadata.correlationId, { id: newDetail.id, touchedAt: now });
+      }
       return newDetail.id;
     } else if (!started && nextCount >= 0) {
       if (pendingRequests.details[connectionId]?.[modelKey]?.length) {
@@ -418,9 +466,11 @@ function finalizePendingDetailAt(
     completedAt,
     durationMs: Math.max(0, completedAt - details[index].startedAt),
   };
-  storeCompletedDetail(updated);
-  maybeEnrichCompletedDetail(updated, connectionId);
-  scheduleCompletedDetailCleanup(updated.id);
+  const storedCompletedDetail = storeCompletedDetail(updated);
+  if (storedCompletedDetail) {
+    maybeEnrichCompletedDetail(updated, connectionId);
+    scheduleCompletedDetailCleanup(updated.id);
+  }
 
   details.splice(index, 1);
   pendingById.delete(updated.id);
@@ -519,6 +569,7 @@ export function clearPendingRequests() {
     Record<string, PendingRequestDetail[]>
   >;
   pendingById.clear();
+  pendingIdByCorrelation.clear();
   clearCompletedDetails();
 }
 
@@ -680,7 +731,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         )
         .get(
           timestamp,
-          entry.provider || null,
+          (entry.provider ? resolveProviderId(entry.provider) : null),
           entry.model || null,
           entry.connectionId || null,
           entry.apiKeyId || null,
@@ -708,7 +759,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
-        entry.provider || null,
+        (entry.provider ? resolveProviderId(entry.provider) : null),
         entry.model || null,
         entry.connectionId || null,
         accountIdentity.accountKey,

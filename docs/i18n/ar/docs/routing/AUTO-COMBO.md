@@ -1,67 +1,781 @@
 # OmniRoute Auto-Combo Engine (العربية)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/AUTO-COMBO.md) · 🇸🇦 [ar](../../ar/docs/AUTO-COMBO.md) · 🇧🇬 [bg](../../bg/docs/AUTO-COMBO.md) · 🇧🇩 [bn](../../bn/docs/AUTO-COMBO.md) · 🇨🇿 [cs](../../cs/docs/AUTO-COMBO.md) · 🇩🇰 [da](../../da/docs/AUTO-COMBO.md) · 🇩🇪 [de](../../de/docs/AUTO-COMBO.md) · 🇪🇸 [es](../../es/docs/AUTO-COMBO.md) · 🇮🇷 [fa](../../fa/docs/AUTO-COMBO.md) · 🇫🇮 [fi](../../fi/docs/AUTO-COMBO.md) · 🇫🇷 [fr](../../fr/docs/AUTO-COMBO.md) · 🇮🇳 [gu](../../gu/docs/AUTO-COMBO.md) · 🇮🇱 [he](../../he/docs/AUTO-COMBO.md) · 🇮🇳 [hi](../../hi/docs/AUTO-COMBO.md) · 🇭🇺 [hu](../../hu/docs/AUTO-COMBO.md) · 🇮🇩 [id](../../id/docs/AUTO-COMBO.md) · 🇮🇹 [it](../../it/docs/AUTO-COMBO.md) · 🇯🇵 [ja](../../ja/docs/AUTO-COMBO.md) · 🇰🇷 [ko](../../ko/docs/AUTO-COMBO.md) · 🇮🇳 [mr](../../mr/docs/AUTO-COMBO.md) · 🇲🇾 [ms](../../ms/docs/AUTO-COMBO.md) · 🇳🇱 [nl](../../nl/docs/AUTO-COMBO.md) · 🇳🇴 [no](../../no/docs/AUTO-COMBO.md) · 🇵🇭 [phi](../../phi/docs/AUTO-COMBO.md) · 🇵🇱 [pl](../../pl/docs/AUTO-COMBO.md) · 🇵🇹 [pt](../../pt/docs/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/AUTO-COMBO.md) · 🇷🇴 [ro](../../ro/docs/AUTO-COMBO.md) · 🇷🇺 [ru](../../ru/docs/AUTO-COMBO.md) · 🇸🇰 [sk](../../sk/docs/AUTO-COMBO.md) · 🇸🇪 [sv](../../sv/docs/AUTO-COMBO.md) · 🇰🇪 [sw](../../sw/docs/AUTO-COMBO.md) · 🇮🇳 [ta](../../ta/docs/AUTO-COMBO.md) · 🇮🇳 [te](../../te/docs/AUTO-COMBO.md) · 🇹🇭 [th](../../th/docs/AUTO-COMBO.md) · 🇹🇷 [tr](../../tr/docs/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/AUTO-COMBO.md) · 🇵🇰 [ur](../../ur/docs/AUTO-COMBO.md) · 🇻🇳 [vi](../../vi/docs/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/AUTO-COMBO.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> **للمستخدمين**: هل تبحث عن بداية سريعة؟ راجع [دليل مستخدم Auto-Combo](../getting-started/AUTO-COMBO-GUIDE.md) للحصول على شروحات وأمثلة مبسّطة.
 
-## How It Works
+> سلاسل نماذج ذاتية الإدارة مع تقييم تكيّفي + توجيه تلقائي دون إعدادات
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+## التوجيه التلقائي دون إعدادات (بادئة `auto/`)
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+> **جديد:** لا حاجة إلى إنشاء تركيبة. استخدم البادئة `auto/` مباشرةً في أي عميل.
 
-## Mode Packs
+### أمثلة سريعة
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+| معرّف النموذج  | المتغير   | السلوك                                                               |
+| -------------- | --------- | -------------------------------------------------------------------- |
+| `auto`         | افتراضي   | جميع المزوّدين المتصلين، واستراتيجية LKGP، وأوزان متوازنة            |
+| `auto/coding`  | برمجة     | أوزان تعطي الأولوية للجودة، مناسبة لتوليد الشيفرة البرمجية           |
+| `auto/fast`    | سريع      | اختيار موزون بزمن انتقال منخفض                                       |
+| `auto/cheap`   | رخيص      | توجيه محسّن من حيث التكلفة (الأقل تكلفة أولًا)                       |
+| `auto/offline` | دون اتصال | يفضّل المزوّدين ذوي أعلى حصة متاحة                                   |
+| `auto/smart`   | ذكي       | إعطاء الأولوية للجودة + معدل استكشاف أعلى (10%) لاكتشاف أفضل للنماذج |
+| `auto/lkgp`    | lkgp      | LKGP صريح (مماثل لـ `auto` الافتراضي)                                |
+| `auto/chaos`   | فوضى      | أوزان لحقن الأعطال لاختبار المرونة (هندسة الفوضى)                    |
 
-## Self-Healing
+### تركيب الفئة × المستوى (`auto/<category>:<tier>`)
 
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+تفصل اللاحقات بأسلوب OpenRouter بين **نوع المسار** (الفئة) و**كيفية تحسينه** (المستوى)، بحيث يمكنك تركيبهما بحرية (#4235 Phase B، `open-sse/services/autoCombo/suffixComposition.ts`):
 
-## Bandit Exploration
+- **الفئات** (ترشّح مجموعة المرشحين حسب الإمكانية): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. يحتفظ `vision`/`multimodal` بالنماذج التي تدعم الرؤية؛ بينما يحتفظ `reasoning` بنماذج الاستدلال/التفكير.
+- **المستويات** (تختار أوزان التقييم / مرشّح المجموعة): `fast` (الإصدار السريع) · `cheap` (الاسم البديل `floor`، موفّر للتكلفة) · `reliable` (حالة قاطع الدائرة + استقرار زمن الانتقال) · `free` / `pro` (ترشّح المجموعة حسب مستوى النموذج عبر `classifyTier` — المستوى المجاني مقابل المتميز).
 
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+| المثال                 | النتيجة                                                                  |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `auto/coding:fast`     | مجموعة البرمجة، أوزان بزمن انتقال منخفض                                  |
+| `auto/coding:cheap`    | مجموعة البرمجة، محسّنة من حيث التكلفة (الاسم البديل `auto/coding:floor`) |
+| `auto/reasoning:pro`   | نماذج الاستدلال/التفكير فقط، المستوى المتميز                             |
+| `auto/vision`          | نماذج تدعم الرؤية (دون مستوى ← أوزان متوازنة)                            |
+| `auto/multimodal:free` | نماذج تدعم الوسائط المتعددة، المستوى المجاني فقط                         |
+
+يُحلّ أي نمط صالح من `auto/<category>[:<tier>]` عند الطلب؛ ويُعلن عن مجموعة فرعية منتقاة في `/v1/models` ولوحة المعلومات (`AUTO_SUFFIX_VARIANTS` في `open-sse/services/autoCombo/builtinCatalog.ts`). تعمل التصفية وفق مبدأ **الفتح عند الفشل** — فإذا لم يطابق أحد القيود أي نموذج متصل، تُستخدم المجموعة الكاملة حتى لا يتعطل التوجيه مطلقًا. يظل المُقيّم الأساسي (`combo.ts`) دون تغيير؛ ويُطبّق مرشّح الفئة/المستوى في `buildAutoCandidates`.
+
+> **معلومات مباشرة عن النماذج:** تستند ملاءمة التوجيه التلقائي إلى تصنيفات **Arena ELO** المباشرة + بيانات مستويات **models.dev** عند تفعيل العلامة `ARENA_ELO_SYNC_ENABLED` (وإلا يُرجع إلى خريطة الملاءمة الثابتة).
+
+**كيفية الاستخدام:**
+
+```bash
+# أي أداة IDE أو CLI تدعم تنسيق OpenAI
+عنوان URL الأساسي: http://localhost:20128/v1
+مفتاح API:  <your-endpoint-key>
+
+# في الشيفرة/الإعدادات لديك، عيّن النموذج إلى:
+model: "auto"                 # الإعداد الافتراضي المتوازن
+model: "auto/coding"          # الأفضل لمهام البرمجة
+model: "auto/fast"            # الأسرع من بين المتاح
+model: "auto/cheap"           # الأرخص لكل رمز
+```
+
+**ما الذي يحدث:**
+
+1. يكتشف OmniRoute البادئة `auto/` في `src/sse/handlers/chat.ts`
+2. يستعلم عن جميع **اتصالات المزوّدين النشطة** من قاعدة البيانات
+3. يرشّحها للاحتفاظ بتلك التي لديها بيانات اعتماد صالحة (مفتاح API أو رمز OAuth)
+4. يحدد النموذج لكل اتصال (`connection.defaultModel` أو أول نموذج للمزوّد)
+5. ينشئ **تركيبة افتراضية** في الذاكرة (لا تُخزّن في قاعدة البيانات)
+6. يوجّه باستخدام ملف أوزان المتغير المحدد + استراتيجية LKGP
+
+**الخصائص الرئيسية:**
+
+- ✅ **يعمل دائمًا:** لا حاجة إلى مفتاح تبديل أو إنشاء تركيبة أو أي إعداد
+- ✅ **ديناميكي:** يعكس المزوّدين المتصلين حاليًا بصورة تلقائية
+- ✅ **ثبات الجلسة:** تضمن LKGP إعطاء الأولوية لآخر مزوّد نجح
+- ✅ **مراعاة الحسابات المتعددة:** يصبح كل اتصال بمزوّد مرشحًا منفصلًا
+- ✅ **دون عمليات كتابة في قاعدة البيانات:** لا توجد التركيبة الافتراضية إلا أثناء الطلب، دون أي أعباء استمرارية
+
+### التحكم في المرشحين لكل مفتاح (#7819، المستوى 1+2)
+
+تُعدّ `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = اللاحقة بعد `auto/`، أو
+القيمة الحرفية `auto` للقناة الأساسية) نقطة نهاية **للقراءة فقط** تسرد مجموعة
+المرشحين الحالية لقناة `auto/*` مع تزيينها بحالة إمكانية الوصول المباشرة، مع إعادة استخدام
+قراءات المرونة الحالية (وليس `state` الخام لقاطع الدائرة مطلقًا):
+
+- قاطع دائرة المزوّد — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- فترة انتظار الاتصال — `rateLimitedUntil` / `testStatus` في صف
+  `provider_connections` الذي جرى حله
+- قفل النموذج — `isModelLocked(provider, connectionId, model)`
+
+يحمل كل مرشح أيضًا علامة `excluded` الخاصة بمفتاح API هذا. تُخزّن الاستثناءات
+لكل مفتاح API (جدول `auto_candidate_overrides`، والترحيل `128`) — يعمل OmniRoute
+وفق مستأجر واحد دون جدول `users`، لذا فإن `apiKeyId` هو أقرب هوية فعلية لكل مستدعٍ
+— وتُفرض عند نقطة الاختناق الخاصة بمجموعة المرشحين في
+`open-sse/services/autoCombo/virtualFactory.ts` عبر الدالة النقية المختبرة بالوحدات
+`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
+يعمل المرشّح وفق مبدأ **الفتح عند الفشل**: يؤدي كل من غياب apiKeyId/القناة أو فشل البحث في قاعدة البيانات
+إلى إبقاء المجموعة دون تصفية، بحيث يرى المشغّل الذي لم يضبط أي تجاوزات توجيهًا
+مطابقًا على مستوى البايتات لما كان عليه قبل هذه الميزة.
+
+**مؤجل إلى مشكلة لاحقة:** أوزان خاصة بكل مرشح + ترتيب صريح (المستوى 3
+— يُغذي مسارات استراتيجية الأوزان/الأولوية الحالية) وتثبيت استراتيجية
+`combo.ts` محددة لكل قناة `auto/*` (المستوى 4). راجع خطة #7819 للاطلاع على السؤال
+المفتوح حول ما إذا كان ينبغي أن تظل التجاوزات خاصة بكل مفتاح API أم تصبح عامة في ضوء
+نموذج المستأجر الواحد.
+
+**خلف الكواليس:**
+
+```txt
+الطلب: { model: "auto/coding" }
+   ↓
+يكتشف src/sse/handlers/chat.ts البادئة
+   ↓
+createVirtualAutoCombo('coding') → candidatePool من الاتصالات النشطة
+   ↓
+handleComboChat (المحرك نفسه المستخدم مع التركيبات المحفوظة)
+   ↓
+يختار التقييم التلقائي أفضل مزود/نموذج لكل طلب
+```
+
+**ملفات التنفيذ:**
+
+| الملف                                                     | الغرض                                           |
+| --------------------------------------------------------- | ----------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | محلل البادئة (`parseAutoPrefix`)                |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | ينشئ كائنات `AutoComboConfig` افتراضية          |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | خطاف اختبار لمحاكاة سجل المزودين                |
+| `src/sse/handlers/chat.ts`                                | التكامل: اختصار المعالجة عند وجود بادئة تلقائية |
+| `src/shared/constants/providers.ts`                       | إدخال النظام `SYSTEM_PROVIDERS.auto`            |
+
+## أسماء المجموعات التي تطابق معرّف نموذج حقيقي
+
+إن المجموعة التي يكون `name` الخاص بها مطابقًا لمعرّف نموذج مجرد (مثل مجموعة باسم
+`gpt-5.5`) هي **نمط مقصود ومدعوم** وليست خطأً برمجيًا: فهي الآلية المستخدمة لتوفير
+الانتقال الاحتياطي بين المزوّدين لكل معرّف نموذج، كما هو موثق في
+[#6940](https://github.com/diegosouzapw/OmniRoute/issues/6940). ولأن التحقق من
+المجموعة يسبق تحليل معرّف النموذج المجرّد
+(`getComboForModel()` في `src/sse/services/model.ts`)، فإن الطلب الخاص بالمعرّف
+المجرّد `gpt-5.5` يُوجَّه عبر أهداف المجموعة (مثل
+`acme-responses/gpt-5.5` و`backup-responses/gpt-5.5`) بدلًا من توجيهه مباشرةً إلى
+مزوّد واحد — ويعيد هذا استخدام أسبقية المجموعة قبل إعادة الكتابة التي بُنيت من أجل
+[#3227/#3233](https://github.com/diegosouzapw/OmniRoute/issues/3227)، كما تغطيه
+اختبارات منع الانحدار `tests/unit/responses-combo-resolution-3227.test.ts` و
+`tests/unit/combo-name-codex-responses-rewrite.test.ts`.
+
+لا يتم **أبدًا رفض** إنشاء مجموعة أو إعادة تسميتها إلى اسم يحجب معرّف نموذج حقيقي —
+إذ سيؤدي ذلك إلى تعطيل سير العمل الموثق هذا. وبدلًا من ذلك
+(#8530)، تُرفق `POST /api/combos` و`PUT /api/combos/[id]` حقل `warning` غير حاجب
+بالاستجابة عندما يتعارض الاسم (الجديد) مع معرّف نموذج حقيقي:
+
+```json
+{
+  "warning": {
+    "code": "COMBO_NAME_SHADOWS_MODEL",
+    "modelId": "gpt-5.5",
+    "providerId": "openai"
+  }
+}
+```
+
+عند بدء التشغيل، تسجّل `scanComboModelNameCollisionsAtBoot()`
+(`src/instrumentation-node.ts`) أيضًا تحذير `[STARTUP]` من سطر واحد يسرد كل
+مجموعة موجودة تحجب معرّف نموذج، بحيث يتلقى المشغّلون الذين واجهوا ذلك عن طريق الخطأ
+(بدلًا من القيام به عمدًا، وفقًا لـ #6940) تنبيهًا. توجد دالة الكشف المساعدة في
+`src/lib/combos/modelNameCollision.ts`.
+
+## استدعاء مجموعة مخصصة من عميل
+
+لا تُستخدم المجموعات المحفوظة (الإعدادات ← المجموعات) إلا عندما يرسل العميل **الاسم المطابق تمامًا** للمجموعة في حقل `model` — فلا توجد مطابقة تقريبية أو جزئية لاسم المجموعة، ولا تُستخدم بادئة `auto/`. ترتيب التحليل (`getComboForModel()` في `src/sse/services/model.ts`):
+
+1. مطابقة اسم المجموعة تمامًا (`model: "my-combo"`)،
+2. بادئة `combo/<name>`‏ (`model: "combo/my-combo"`)،
+3. تعيينات الأنماط الشاملة من النموذج إلى المجموعة (`/api/model-combo-mappings`).
+
+```bash
+curl -X POST http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"my-combo","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+مشكلتان شائعتان:
+
+- **لا يستخدم `auto` مجموعاتك.** يبني `auto`/`auto/*` مجموعة المرشحين الخاصة به من دون إعداد، ولا يرجع إلى المجموعات المحفوظة إلا إذا كانت هناك مجموعة اسمها حرفيًا `auto` (وهذا غير مستحسن). للتوجيه عبر مجموعة، أرسل اسمها المطابق تمامًا — وليس `auto`.
+- **يُعد `openrouter/auto` منتجًا حقيقيًا مدفوعًا من OpenRouter** ("أفضل خيار متاح تلقائيًا")، وليس اسمًا مستعارًا في OmniRoute. وهو إدخال النموذج الثابت الوحيد في سجل OpenRouter (`open-sse/config/providers/registry/openrouter/index.ts`)، وتُحتسب تكلفته بصورة منفصلة. استخدم الإعدادات ← التوجيه ← إخفاء النماذج المدفوعة لاستبعاده من مجموعات `auto`.
+
+راجع [#7992](https://github.com/diegosouzapw/OmniRoute/issues/7992) و[#7111](https://github.com/diegosouzapw/OmniRoute/issues/7111) للاطلاع على الالتباس الأصلي الذي توضحه هذه الوثائق.
+
+## كيف تعمل (التركيبات التلقائية المستمرة)
+
+يختار محرك التركيبات التلقائية ديناميكيًا أفضل مزوّد/نموذج لكل طلب باستخدام **دالة تقييم من 16 عاملًا** (مُعرَّفة في `open-sse/services/autoCombo/scoring.ts` ← `DEFAULT_WEIGHTS`). يبلغ مجموع الأوزان الافتراضية `1.0`؛ ويُعاد تطبيع الأوزان المخصصة بواسطة `normalizeScoringWeights()`. يحمل عاملان من العوامل الستة عشر — `cacheAffinity` و`resetWindowAffinity` — وزنًا افتراضيًا قدره `0`؛ ويحمل `reliability` وزنًا قدره `0` في `DEFAULT_WEIGHTS` لكن `0.03` في الحزم العامة و`0.04` في `reliability-first`، بينما يحمل `quality` وزنًا قدره `0.02` في الحزم (`0.03` في `quality-first`): ومع ذلك، تظل هذه العوامل محسوبة لكل مرشح، كما يتحكم `cacheAffinity` في إزالة التكرار لذاكرة التخزين المؤقت للمطالبات خارج نطاق التقييم، ولذلك لا تسهم العوامل ذات الوزن الافتراضي الصفري في الاختيار افتراضيًا، بينما تسهم فيها الحزم.
+
+![تقييم التركيبات التلقائية باستخدام 16 عاملًا](../diagrams/exported/auto-combo-scoring.svg)
+
+> المصدر: [diagrams/auto-combo-scoring.mmd](../diagrams/auto-combo-scoring.mmd) (أعد التوليد عبر `npm run docs:render-diagrams`). اسم الملف قديم؛ إذ يعرض المصدر والمخطط الناتج جميع العوامل الستة عشر المعلنة في `DEFAULT_WEIGHTS`.
+
+| العامل                | الوزن الافتراضي | الوصف                                                                                                                                                                                                     |
+| :-------------------- | :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `quota`               | 0.1429          | الحصة المتبقية / الهامش المتاح لحد معدل الطلبات [0..1]                                                                                                                                                    |
+| `health`              | 0.1605          | درجة الصحة من قاطع الدائرة (CLOSED=1.0، HALF_OPEN=0.5، OPEN=0.0)                                                                                                                                          |
+| `costInv`             | 0.1429          | معكوس التكلفة **الممزوجة** (60% من سعر رموز الإدخال + 40% من سعر رموز الإخراج، بعد التطبيع) — الأقل تكلفة = درجة أعلى                                                                                     |
+| `latencyInv`          | 0.1143          | معكوس زمن الاستجابة p95 بعد تطبيعه بالنسبة إلى المجموعة — الأسرع = درجة أعلى                                                                                                                              |
+| `taskFit`             | 0.0762          | الملاءمة لنوع المهمة (البرمجة، المراجعة، التخطيط، التحليل، تصحيح الأخطاء، التوثيق)                                                                                                                        |
+| `stability`           | 0.0476          | استقرار قائم على التباين، محسوب من الانحراف المعياري لزمن الاستجابة — يحصل المرشح الذي يتذبذب زمن استجابته على درجة أقل                                                                                   |
+| `tierPriority`        | 0.0476          | أولوية فئة الحساب — Ultra=1.0، Pro=0.67، Standard=0.33، Free=0.0                                                                                                                                          |
+| `tierAffinity`        | 0.0476          | مدى التقارب بين فئة المرشح والفئة الموصى بها في البيان                                                                                                                                                    |
+| `specificityMatch`    | 0.0476          | مدى التطابق بين خصوصية الطلب (تلميح البيان) وفئة النموذج                                                                                                                                                  |
+| `contextAffinity`     | 0.0476          | مدى التقارب بين حاجة الطلب إلى نافذة السياق ونافذة سياق النموذج                                                                                                                                           |
+| `sessionAvailability` | 0.0476          | مدى توفر جلسة OAuth لاتصال المرشح في هذه الجلسة (`getOAuthSessionAvailability()`؛ تحصل الاتصالات التي لا تستخدم OAuth على درجة 1.0)                                                                       |
+| `connectionDensity`   | 0.0476          | يوزع الحمل بين اتصالات المزوّد نفسه (لمنع التركز)                                                                                                                                                         |
+| `cacheAffinity`       | 0.00            | تقارب قائم على تجزئة Rendezvous نحو الاتصال الأرجح أنه يحتفظ بالفعل ببادئة ذاكرة التخزين المؤقت لمطالبة هذا الطلب (`open-sse/services/combo/promptCacheAffinity.ts`)؛ معطل افتراضيًا (#8008)              |
+| `resetWindowAffinity` | 0.00            | انحياز نحو الاتصالات التي تكون نافذة إعادة تعيين حصتها مواتية (معطل افتراضيًا)                                                                                                                            |
+| `quality`             | 0.03            | إشارة لجودة المخرجات مدفوعة بالملاحظات من متتبع جودة أحداث التوجيه؛ يحصل المرشحون الذين ليست لديهم ملاحظات على قيمة محايدة قدرها 0.5                                                                      |
+| `reliability`         | 0.00            | نسبة النجاح المرصودة، `1 - failureRate`، من سجل استخدام آخر 24 ساعة، بعد حد أدنى قدره عشر عينات (وإلا تُستخدم المقاييس الآنية)؛ تُقرأ قيمة المرشحين الذين ليست لديهم ملاحظات على أنها 1.0. معطل افتراضيًا |
+
+**المجموع:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0` كما هو معلن في `DEFAULT_WEIGHTS`؛ ويُعاد تطبيع الأوزان التي يضبطها المستخدم إلى توزيع بواسطة `normalizeScoringWeights()` قبل التقييم.
+
+## حِزم الأوضاع
+
+6 ملفات تعريف أوزان محددة مسبقًا في `open-sse/services/autoCombo/modePacks.ts`. تستبدل كل حزمة الأوزان الافتراضية بالكامل لتحييز الاختيار نحو هدف واحد. يبلغ مجموع كل حزمة بالفعل `1.0` (`0.9999` كما يظهر عند الطباعة بأربع منازل عشرية)، لذلك لا يوجد ما يستحق التصحيح فعليًا بواسطة `normalizeScoringWeights()` عندما تكون إحدى الحزم نشطة — القيم أدناه هي، ضمن حدود التقريب، القيم التي يطبقها نظام التسجيل.
+
+| العامل                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
+| :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
+| `quota`               | 0.1133     | 0.1133     | 0.0752        | **0.3324**       | 0.1133            | 0.0376     |
+| `health`              | 0.2667     | 0.1810     | 0.1714        | 0.2667           | **0.3524**        | **0.4000** |
+| `costInv`             | 0.0276     | **0.3324** | 0.0276        | 0.0752           | 0.0181            | 0.0140     |
+| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0186     |
+| `taskFit`             | 0.0952     | 0.0952     | **0.3524**    | 0.0000           | 0.0952            | 0.1905     |
+| `stability`           | 0.0000     | 0.0476     | 0.1429        | 0.0952           | 0.1905            | 0.1714     |
+| `tierPriority`        | 0.0376     | 0.0376     | 0.0276        | 0.0376           | 0.0276            | 0.0040     |
+| `tierAffinity`        | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `specificityMatch`    | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0186     |
+| `sessionAvailability` | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `resetWindowAffinity` | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `connectionDensity`   | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
+| `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
+
+ملاحظات:
+
+- **تتضمن الحزم `quality` و`reliability`** (`quality 0.02`، و`quality-first 0.03`؛ و`reliability 0.03`، و`reliability-first 0.04`) وتستبدل خريطة الأوزان بالكامل (`weights = pack`، وليست عملية دمج). تتضمن `DEFAULT_WEIGHTS` القيم `quality 0.03 / reliability 0`؛ يؤدي اختيار `balanced`/`default` إلى الإبقاء على تلك القيم الافتراضية، بينما يستخدم اختيار حزمةٍ ما قيم الحزمة الموضحة أعلاه. في تجمّع بارد (لا توجد ملاحظات بعد، لذا تكون `quality 0.5` و`reliability 1`)، يضيف هذان العاملان `+0.04` عند استخدام حزمة عامة (`0.03 + 0.01`)، و`+0.045` عند استخدام `quality-first`، و`+0.05` عند استخدام `reliability-first`.
+- تكون قيم `tierAffinity` و`specificityMatch` و`resetWindowAffinity` مساوية صراحةً لـ`0` في كل حزمة.
+- نظرة سريعة على ما تؤكد عليه كل حزمة:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (اتصالات سليمة ومنخفضة الكمون)
+  - **cost-saver** → costInv 0.3324 (تفوز الرموز الأقل تكلفة)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03، وهي الأعلى بين جميع الحزم (أفضل نموذج للمهمة، بأداء متسق)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (أقصى هامش متاح بغض النظر عن السرعة/التكلفة)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04، وهي الأعلى بين جميع الحزم (أقل قدر من المفاجآت)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (ملف تعريف لحقن الأعطال)
+
+### عناصر التحكم لكل طلب (الترويسات) — #6023 / #6024 / #6025 / #3470
+
+يمكن توجيه تركيبة `auto` **لكل طلب** عبر ثلاث ترويسات، من دون تعديل الإعدادات المخزنة
+للتركيبة. لا تنطبق هذه العناصر إلا على استراتيجية `auto`، وعلى الطلب الذي
+يحملها فقط؛ وتُستخدم قيم `modePack`/`budgetCap`/`budgetFallback` المحفوظة للتركيبة
+عند غياب الترويسة.
+
+| الترويسة                      | تقبل                                                                                                                                                                                               | التأثير                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | اسمًا مستعارًا لإعداد مسبق (`fast`، `balanced`، `quality`، `cheap`، `reliable`، `offline`) أو اسم حزمة خامًا (`ship-fast`، `cost-saver`، `quality-first`، `offline-friendly`، `reliability-first`) | تتجاوز أوزان التقييم لهذا الطلب. يفرض `balanced`/`default` الأوزان الافتراضية (من دون حزمة). تُتجاهل القيم غير المعروفة (مع الحفاظ على الإعدادات).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `X-OmniRoute-Budget`          | رقمًا موجبًا (الحد الأقصى بالدولار الأمريكي لكل طلب)                                                                                                                                               | حد أقصى صارم للتكلفة: تُستبعد قبل الاختيار العناصر المرشحة التي تتجاوز تكلفتها المقدّرة هذا الحد. ويحدّد `X-OmniRoute-Budget-Fallback` أدناه ما يحدث عندما يتجاوز **كل** عنصر مرشح هذا الحد.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (الافتراضي، الأسماء المستعارة: `cheapest-viable`، `soft`) أو `strict` (الأسماء المستعارة: `block`، `hard`)                                                                              | `cheapest`: يعود إلى أرخص عنصر مرشح على مستوى النظام، رغم أنه لا يزال يتجاوز الحد الأقصى (السلوك القديم). `strict`: يرفض الاختيار — يفشل الطلب فورًا مع `HTTP 402` بدلًا من تجاوز الميزانية بصمت. تُتجاهل القيم غير المعروفة.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `X-OmniRoute-Effort`          | `auto` (القيم الأخرى محجوزة)                                                                                                                                                                       | ميزانية تفكير تكيّفية: عندما لا يحتوي الطلب على **أي** حقل استدلال بأي صيغة (`reasoning_effort`، `reasoning`، `thinking`)، تحوّل البوابة `auto` إلى `low`/`medium`/`high` استنادًا إلى إشارات حتمية من بنية الطلب (طول آخر رسالة للمستخدم، وحجم السياق حتى آخر رسالة للمستخدم، ونتائج الأدوات السابقة، وعمق حلقة الأدوات). تقتصر الإشارات على الدور الحالي — ويُتجاهل كل ما يأتي بعد آخر رسالة للمستخدم — ولذلك يُحدَّد المستوى نفسه لكل طلب في حلقة الأدوات (تثبيت عديم الحالة لكل دور، بلا حالة جلسة، وبلا تصعيد في منتصف الحلقة قد يعطّل بادئات ذاكرة التخزين المؤقت للموجّه في المنبع). تكون الأولوية دائمًا لحقل استدلال صريح من العميل. يقتصر ذلك على الطلبات التي يُحوَّل إرسالها في المنبع إلى صيغة OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — فالحقل `reasoning_effort` ذو صيغة خاصة بـ OpenAI، ولذلك لا يكون للترويسة أي تأثير على طلب موجّه إلى Claude أو Gemini (راجع `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+
+```bash
+# افرض أسرع ملف تعريف، وحدّد الحد الأقصى لتكلفة هذا الطلب عند $0.05، ونفّذ حظرًا صارمًا بدلًا من تجاوز الميزانية
+curl -sS http://localhost:20128/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-OmniRoute-Mode: fast" \
+  -H "X-OmniRoute-Budget: 0.05" \
+  -H "X-OmniRoute-Budget-Fallback: strict" \
+  -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
+```
+
+الحل دالة نقية (`open-sse/services/autoCombo/requestControls.ts`)؛ وتُمرَّر
+القيم الناتجة إلى مدخلات المحرك الحالية `config.modePack` / `config.budgetCap` /
+`config.budgetFallback`. تضبط قيمة `config.budgetFallback` المخزّنة للمجموعة ("strict" |
+"cheapest") السياسة الدائمة؛ بينما تتجاوزها الترويسة لطلب واحد فقط.
+
+## جميع استراتيجيات التوجيه
+
+يدعم محرك التركيبات في OmniRoute **19 استراتيجية توجيه** (مُعلنة في `src/shared/constants/routingStrategies.ts` ← `ROUTING_STRATEGY_VALUES`). يتوفر محرك Auto Combo نفسه ضمن استراتيجية `auto`؛ أما الاستراتيجيات الأخرى فهي متاحة للتركيبات المحفوظة.
+
+| الاستراتيجية        | الوصف                                                                                                                                                                                          |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | قائمة مرتبة تبدأ بالهدف الأول مع أولوية صريحة                                                                                                                                                  |
+| `weighted`          | اختيار عشوائي مرجّح وفق وزن كل هدف                                                                                                                                                             |
+| `round-robin`       | التنقّل دوريًا بين الأهداف بالترتيب                                                                                                                                                            |
+| `context-relay`     | تمرير السياق بين الأهداف (للمحادثات الطويلة)                                                                                                                                                   |
+| `fill-first`        | استنفاد حصة كل هدف قبل الانتقال إلى الهدف التالي                                                                                                                                               |
+| `p2c`               | موازنة حمل عشوائية بقوة الاختيارين                                                                                                                                                             |
+| `random`            | اختيار عشوائي منتظم                                                                                                                                                                            |
+| `least-used`        | اختيار الهدف ذي أقل حمل حالي                                                                                                                                                                   |
+| `cost-optimized`    | تقليل التكلفة بالدولار لكل طلب استنادًا إلى أسعار الكتالوج                                                                                                                                     |
+| `reset-aware` ⭐    | ترتيب الأولوية حسب وقت إعادة تعيين الحصة — تُمنح نوافذ إعادة التعيين القصيرة ترتيبًا أعلى                                                                                                      |
+| `reset-window`      | تفضيل الأهداف التي ستُعاد تهيئة نافذة حصتها في أقرب وقت                                                                                                                                        |
+| `headroom`          | اختيار الهدف الذي يملك أكبر هامش متبقٍ من الحصة                                                                                                                                                |
+| `strict-random`     | اختيار عشوائي من دون إزالة التكرارات                                                                                                                                                           |
+| `auto`              | استخدام تسجيل Auto Combo (بـ16 عاملًا) — **موصى به**                                                                                                                                           |
+| `lkgp`              | مسار آخر حالة نجاح معروفة (يثبّت الاستخدام على آخر موفّر ناجح، ثم يعود إلى القواعد عند الفشل)                                                                                                  |
+| `context-optimized` | اختيار الهدف الأنسب لحجم السياق الحالي                                                                                                                                                         |
+| `cache-optimized`   | إعادة ترتيب الأهداف وفق تقارب ذاكرة التخزين المؤقت للموجّه — تُجرَّب أولًا الوصلة الأرجح احتفاظًا بالبادئة المخزنة مؤقتًا لهذا الطلب (`open-sse/services/combo/promptCacheAffinity.ts`، #8008) |
+| `fusion` 🧬         | إرسال الطلب بالتوازي إلى مجموعة من النماذج، ثم توليف إجابة واحدة عبر نموذج حَكَم (انظر أدناه)                                                                                                  |
+| `pipeline`          | تشغيل الأهداف بالتسلسل، مع تمرير مخرجات كل خطوة إلى مدخلات الخطوة التالية؛ ولا تُعاد إلا الإجابة النهائية (#6396)                                                                              |
+
+⭐ = جديد في v3.8.0 · 🧬 = جديد في v3.8.36
+
+### دلالات `weighted`
+
+تعتمد `weighted` على **سحب عشوائي تناسبي لكل طلب**
+(`open-sse/services/combo/targetSorters.ts` ← `selectWeightedTarget`)، وليست آليةً لمعادلة التوزيع:
+
+- يسحب كل طلب خطوة **واحدة** باحتمال `weight / totalWeight`؛ وتُرتّب الخطوات المتبقية
+  تنازليًا حسب الوزن لتشكّل سلسلة الخيارات الاحتياطية لذلك الطلب.
+- الخطوة التي يكون وزنها `0` (أو غير محدد) **لا تُسحب أبدًا** ما دامت هناك أي خطوة أخرى
+  بوزن > 0 — ولا يمكنها العمل إلا كخيار احتياطي بعد فشل الخطوة المسحوبة. ولا يصبح الاختيار
+  منتظمًا إلا عندما تكون **جميع** الأوزان 0.
+- تُزال من السحب قبل إجرائه الخطوات التي تكون جميع أهدافها غير متاحة — قاطع دائرة الموفّر
+  `OPEN`، أو فترة انتظار الاتصال، أو حظر النموذج —
+  (`open-sse/services/combo/targetResolution.ts`)، ولذلك يمكن لخطوة سليمة واحدة أن تفوز مؤقتًا
+  بكل طلب.
+- يثبّت `stickyWeightedLimit` (إعداد للتركيبة، قيمته الافتراضية `1` = معطّل) الخطوة المسحوبة لعدد محدد
+  من النجاحات المتتالية قبل إعادة السحب.
+
+للتناوب الصارم، استخدم `round-robin`؛ إذ تمنح الأوزان المتساوية في `weighted` توازنًا إحصائيًا —
+وليس صارمًا.
+
+## استراتيجية Fusion
+
+تُعد `fusion` الاستراتيجية الوحيدة التي **لا** تختار هدفًا واحدًا. فهي توزّع الموجّه
+على **كل نماذج اللجنة بالتوازي**، ثم يقوم **نموذج حَكَم** قابل للتهيئة بتجميع
+إجابة نهائية واحدة من جميع ردود اللجنة. نُقلت من المشروع الأصلي `decolua/9router`
+(تصميم Fusion الخاص بـ OpenRouter)؛ والتنفيذ موجود في `open-sse/services/fusion.ts`.
+
+آلية العمل:
+
+0. **تجاوز الطلبات المتضمنة أدوات** — يتخطى الطلب الذي يحمل مصفوفة `tools` غير فارغة، مع
+   عدم تعيين `tool_choice` صراحةً إلى `"none"`، اللجنة بالكامل: إذ يُوجَّه مباشرةً إلى
+   نموذج واحد (الحَكَم المُهيّأ، أو `panel[0]`) مع تمرير `tools`/`tool_choice`
+   دون تعديل. لا يملك أعضاء اللجنة وصولًا إلى الأدوات، كما أن توجيه التجميع الخاص بالحَكَم
+   يثبط إصدار استدعاءات الأدوات، وبذلك تحصل التطبيقات العميلة الوكيلة/المستدعية للأدوات
+   على قرار حقيقي بشأن استدعاء الأداة بدلًا من نص مُجمَّع (#6771).
+1. **التوزيع المتوازي** (للطلبات غير المتضمنة أدوات فقط) — يُرسل الموجّه إلى كل نماذج
+   اللجنة دفعةً واحدة، مع فرض عدم استخدام البث وإزالة الأدوات (يحتاج الحَكَم إلى
+   نصوص كاملة لتجميعها).
+2. **الجمع وفق النصاب وفترة السماح** — بمجرد وصول `minPanel` من الإجابات، يبدأ مؤقت
+   سماح قصير للمتأخرين، ثم تتابع Fusion بما جُمع من إجابات.
+   يحد ذلك من تأثير أبطأ نموذج على الوقت الإجمالي، ضمن مهلة قصوى صارمة.
+3. **تجميع الحَكَم** — تُخفى هويات إجابات اللجنة (`Source 1`، `Source 2`، … — كي
+   يقيّم الحَكَم المضمون لا العلامة التجارية للنموذج) وتُسلَّم إلى الحَكَم، الذي يحلل
+   التوافق / التناقضات / التغطية الجزئية / الرؤى الفريدة / النقاط العمياء، ثم
+   يكتب إجابة موثوقة **واحدة**. يحتفظ استدعاء الحَكَم بقيمة `stream` الأصلية الخاصة
+   بالعميل وبالأدوات، لذا يظل البث واستخدام الأدوات في المراحل اللاحقة ممكنين.
+4. **التدهور السلس** — 0 من إجابات اللجنة ← `503`؛ ناجٍ واحد فقط ← تُعاد تلك الإجابة
+   مباشرةً (فلا يوجد ما يمكن دمجه)؛ واللجنة ذات النموذج الواحد تُجيب مباشرةً.
+
+يمكن أيضًا أن يكون عضو اللجنة خطوة `combo-ref` ‏(`{kind: "combo-ref", comboName: "..."}`) تشير
+إلى مجموعة أخرى — وتُحل باعتبارها **صوتًا واحدًا من أصوات اللجنة كصندوق أسود** (عملية توجيه
+تكرارية كاملة إلى المجموعة المشار إليها، وليست توزيعًا متوازيًا على أهداف تلك المجموعة)،
+مع وسائل الحماية نفسها من العمق/الدورات التي تستخدمها بالفعل كل استراتيجية أخرى تستهلك
+combo-ref ‏(#6764).
+
+### التهيئة
+
+تُضبط الإعدادات في كائن `config` الخاص بالمجموعة (دون ترحيل للمخطط — إذ يعيد استخدام
+جدول `combos` الحالي):
+
+| الحقل                                    | النوع    | القيمة الافتراضية   | الغرض                                                                              |
+| :--------------------------------------- | :------- | :------------------ | :--------------------------------------------------------------------------------- |
+| `config.judgeModel`                      | `string` | أول نموذج في اللجنة | النموذج الذي يجمع الإجابة النهائية                                                 |
+| `config.fusionTuning.minPanel`           | `number` | `2`                 | عدد الإجابات الناجحة المطلوبة قبل بدء مؤقت السماح (مقيّد بالنطاق `[2, panelSize]`) |
+| `config.fusionTuning.stragglerGraceMs`   | `number` | `8000`              | مدة انتظار المتأخرين بعد بلوغ النصاب                                               |
+| `config.fusionTuning.panelHardTimeoutMs` | `number` | `90000`             | حد أقصى مطلق كي لا يتمكن نموذج عالق من تعطيل الطلب                                 |
+
+توجد القيم الافتراضية في `FUSION_DEFAULTS` ‏(`open-sse/services/fusion.ts`).
+
+### مثال
+
+```bash
+curl -X POST http://localhost:20128/api/combos \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "fusion-panel",
+    "strategy": "fusion",
+    "targets": [
+      { "model": "cc/claude-opus-4-7" },
+      { "model": "cx/gpt-5.5" },
+      { "model": "glm/glm-5.1" }
+    ],
+    "config": {
+      "judgeModel": "cc/claude-opus-4-7",
+      "fusionTuning": { "minPanel": 2, "stragglerGraceMs": 8000, "panelHardTimeoutMs": 90000 }
+    }
+  }'
+```
+
+ثم استدعِها مثل أي مجموعة أخرى: `{"model":"fusion-panel","messages":[...]}`.
+
+## مصنع Auto-Combo الافتراضي
+
+لا يتطلب محرك Auto Combo مجموعات مُعرَّفة مسبقًا. بدلًا من ذلك، ينشئ `open-sse/services/autoCombo/virtualFactory.ts` المرشحين أثناء التشغيل:
+
+1. يستدعي `getProviderConnections({ isActive: true })` (جميع الاتصالات المُمكَّنة)
+2. يرشّح الاتصالات التي لديها بيانات اعتماد صالحة (مفتاح API أو رمز OAuth غير منتهي الصلاحية عبر `hasUsableOAuthToken()`)
+3. يقارنها مع `getProviderRegistry()` للتحقق من توافر النماذج والأسعار
+4. ينشئ `VirtualAutoComboCandidate` لكل صف `(provider, model, connection)`
+5. يختار `connection.defaultModel` (أو النموذج الأول في السجل) بوصفه هدف التوجيه
+6. يمنح كل مرشح درجة باستخدام `scorePool()` ذي العوامل الـ16 وحزمة أوزان المتغير
+7. يعيد `AutoComboConfig` الناتج والموجود في الذاكرة إلى `handleComboChat()` — ولا يتم حفظه مطلقًا في قاعدة البيانات
+
+يعني هذا أن **إضافة مزود جديد مع تمكين `auto/*` توسّع مجموعة المرشحين تلقائيًا** — دون الحاجة إلى تعديل المجموعة يدويًا. يُعاد إنشاء المجموعة الافتراضية لكل طلب، ولذلك تُلتقط الاتصالات المضافة حديثًا أو التي استعادت حالتها السليمة فورًا.
+
+## التعافي الذاتي
+
+- **الاستبعاد المؤقت**: الدرجة < 0.2 ← الاستبعاد لمدة 5 دقائق (تراجع تدريجي، بحد أقصى 30 دقيقة)
+- **مراعاة قاطع الدائرة**: OPEN ← استبعاد تلقائي؛ HALF_OPEN ← طلبات فحص
+- **وضع الحوادث**: أكثر من 50% في حالة OPEN ← تعطيل الاستكشاف وتعظيم الاستقرار
+- **التعافي بعد فترة التهدئة**: بعد الاستبعاد، يكون الطلب الأول بمثابة "فحص" بمهلة زمنية مخفّضة
+
+## استكشاف Bandit
+
+يتم توجيه 5% من الطلبات (قابلة للتهيئة) إلى مزودين عشوائيين لأغراض الاستكشاف. يُعطَّل ذلك في وضع الحوادث.
 
 ## API
 
-```bash
-# Create auto-combo
-curl -X POST http://localhost:20128/api/combos/auto \
-  -H "Content-Type: application/json" \
-  -d '{"id":"my-auto","name":"Auto Coder","candidatePool":["anthropic","google","openai"],"modePack":"ship-fast"}'
+لا توجد **نقطة نهاية مخصصة باسم `POST /api/combos/auto`** — ويُستخدم Auto-Combo بطريقتين:
 
-# List auto-combos
-curl http://localhost:20128/api/combos/auto
+1. **دون تهيئة (موصى به):** أرسل أي طلب إكمال محادثة مع `model: "auto"` أو `model: "auto/<variant>"`. ينشئ المصنع الافتراضي المجموعة لكل طلب — دون حفظ ودون الحاجة إلى استدعاءات API.
+
+2. **مجموعة محفوظة مع `strategy: "auto"`:** أنشئ مجموعة عادية عبر `POST /api/combos` وعيّن `strategy: "auto"` بالإضافة إلى `config.auto.weights` / `config.auto.candidatePool`. يُستخدم محرك التقييم نفسه؛ وتُخزَّن المجموعة في `combos` ويمكن إعادة استخدامها حسب المعرّف.
+
+للاستكشاف، يسرد `GET /api/combos/auto` كل متغير مع مجموعة مرشحيه المحسومة، بالإضافة إلى `context_length` / `max_output_tokens` — وهي القيمة القصوى عبر نوافذ مجموعة المرشحين. يجب على العملاء (مثل ملحق opencode) الإعلان عن هذه القيم بدلًا من `0`: إذ يؤدي سياق بقيمة صفر إلى تعطيل الضغط التلقائي في opencode بالكامل، مما يسمح للجلسات بالنمو إلى أن تتسبب عملية حذف السجل في البوابة بإتلاف السياق. من الآمن الإعلان عن القيمة القصوى لأن مرشح السياق المسبق في auto-combo يوجّه الطلبات كبيرة الحجم إلى المرشحين ذوي النوافذ الكبيرة.
+
+```bash
+# استخدام دون تهيئة (من دون إنشاء مجموعة)
+curl -X POST http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto/coding","messages":[{"role":"user","content":"Hello"}]}'
+
+# مجموعة تلقائية محفوظة عبر نقطة نهاية المجموعات العادية
+curl -X POST http://localhost:20128/api/combos \
+  -H "Content-Type: application/json" \
+  -d '{"id":"my-auto","name":"Auto Coder","strategy":"auto","config":{"auto":{"candidatePool":["anthropic","google","openai"],"weights":{"quota":0.15,"health":0.3,"costInv":0.05,"latencyInv":0.35,"taskFit":0.1,"stability":0,"tierPriority":0.05}}}}'
 ```
 
-## Task Fitness
+### استراتيجيات الموجّه التلقائي
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+يمكن للمجموعات المحفوظة ذات `strategy: "auto"` تعيين `config.routerStrategy` (أو الخيار القديم
+`config.auto.routerStrategy`) إلى أحد الخيارات التالية:
 
-## Files
+- `rules` — التقييم الموزون الافتراضي
+- `score` — يحدد أعلى درجة موزونة تم تكوينها. عند التعادل التام، يُحافَظ على ترتيب
+  المرشحين المكوَّن؛ ويأخذ `explorationRate` الحالي عينات من كامل المجموعة المرتبة.
+- `cost` / `eco` — أرخص مزود سليم
+- `latency` / `fast` — أقل زمن استجابة p95 مع جزاء للموثوقية
+- `sla-aware` / `sla` — تفضيل المرشحين الذين يستوفون أهداف SLO الخاصة بزمن استجابة p95 ومعدل الأخطاء
+  والتكلفة الاختيارية
+- `lkgp` — المزود الأخير المعروف بأنه سليم أولًا
 
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+### استراتيجيات الموجّه بالتفصيل
+
+يوفر محرك auto-combo ستة تطبيقات قابلة للتبديل من **RouterStrategy**
+يمكنك التبديل بينها عبر `config.routerStrategy` (أو الخيار القديم `config.auto.routerStrategy`).
+تختار كل استراتيجية مزودًا واحدًا من مجموعة المرشحين، استنادًا إلى `RoutingContext`
+(نوع المهمة، وتلميحات الأدوات/الرؤية، وتقدير الرموز، وسياسة SLA اختيارية،
+والمزود الأخير المعروف بأنه سليم، اختياريًا).
+
+#### 1. `rules` (الافتراضي) — تقييم موزون من 16 عاملًا
+
+يغلّف محرك التقييم الحالي. يرشّح مرشحي قاطع الدائرة الذين تكون حالتهم `OPEN`
+ثم يشغّل `scorePool()` باستخدام نوع المهمة الحالي و`getTaskFitness()`،
+ويختار المزود صاحب أعلى درجة.
+
+```ts
+class RulesStrategyImpl implements RouterStrategy {
+  readonly name = "rules";
+  readonly description = "16-factor weighted scoring (see DEFAULT_WEIGHTS)";
+
+  select(pool, context) {
+    const eligible = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const ranked = scorePool(
+      eligible.length > 0 ? eligible : pool,
+      context.taskType,
+      undefined,
+      getTaskFitness
+    );
+    return { provider: ranked[0].provider /* ... */ };
+  }
+}
+```
+
+**متى تُستخدم**: افتراضيًا. استخدمها عندما تريد موازنة متزنة بين جميع الإشارات.
+
+**الاسم البديل**: `rules` (لا يوجد اسم بديل)
+
+---
+
+#### 2. `cost` / `eco` — أرخص مزود سليم
+
+ترتّب مجموعة المرشحين حسب `costPer1MTokens` (تصاعديًا) وتختار الأرخص.
+وترشّح المرشحين الذين تكون حالتهم `OPEN` أولًا.
+
+```ts
+class CostStrategyImpl implements RouterStrategy {
+  readonly name = "cost";
+  readonly description = "Always selects cheapest available provider";
+
+  select(pool, context) {
+    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const sorted = [...healthy].sort((a, b) => a.costPer1MTokens - b.costPer1MTokens);
+    return { provider: sorted[0].provider /* ... */ };
+  }
+}
+```
+
+**متى تُستخدم**: لأحمال العمل الحساسة للتكلفة، أو المعالجة الدفعية، أو المهام التي تعمل في الخلفية.
+
+**الأسماء البديلة**: `cost`، `eco`
+
+---
+
+#### 3. `latency` / `fast` — أقل زمن استجابة p95 مع جزاء للموثوقية
+
+يُرتَّب حسب `p95LatencyMs + (errorRate * 1000)`. تضمن عقوبة معدل الأخطاء
+ترتيب مزوّدي الخدمة غير الموثوقين في مرتبة أدنى، حتى إذا كان زمن الاستجابة الاسمي لديهم منخفضًا.
+
+```ts
+class LatencyStrategyImpl implements RouterStrategy {
+  readonly name = "latency";
+  readonly description = "Prioritizes lowest p95 latency with reliability weighting";
+
+  select(pool, context) {
+    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const sorted = [...healthy].sort(
+      (a, b) => a.p95LatencyMs + a.errorRate * 1000 - (b.p95LatencyMs + b.errorRate * 1000)
+    );
+    return { provider: sorted[0].provider /* ... */ };
+  }
+}
+```
+
+**متى تُستخدم**: أعباء العمل الحساسة لزمن الاستجابة، مثل الدردشة في الوقت الفعلي، والإكمال التلقائي، أو
+مساعدي البرمجة التفاعليين.
+
+**الأسماء البديلة**: `latency`، `fast`
+
+---
+
+#### 4. `sla-aware` / `sla` — الامتثال لأهداف مستوى الخدمة الخاصة بزمن الاستجابة/الأخطاء/التكلفة
+
+تمنح كل مرشح درجة بناءً على مدى استيفائه لسياسة أهداف مستوى الخدمة المكوَّنة:
+
+| العامل             | الوزن | الصيغة                                               |
+| ------------------ | ----- | ---------------------------------------------------- |
+| درجة زمن الاستجابة | 35%   | `threshold / max(value, ε)`                          |
+| درجة الأخطاء       | 35%   | `threshold / max(value, ε)`                          |
+| درجة السلامة       | 15%   | `1.0` (CLOSED) / `0.5` (HALF_OPEN) / `0.0` (OPEN)    |
+| درجة التكلفة       | 10%   | `threshold / max(value, ε)` أو المعكوس بعد التطبيع   |
+| درجة الاستقرار     | 5%    | الانحراف المعياري لزمن الاستجابة معكوسًا بعد التطبيع |
+
+عندما تكون `hardConstraints: true`، يُرتَّب المرشحون أساسًا حسب **درجة الانتهاك**
+(مدى تجاوزهم لأي هدف من أهداف مستوى الخدمة)، ثم حسب الدرجة المركبة. وبخلاف ذلك، يُستخدم
+الترتيب حسب الدرجة المركبة فقط.
+
+```ts
+class SLAStrategyImpl implements RouterStrategy {
+  readonly name = "sla-aware";
+  readonly description =
+    "Selects the provider most likely to satisfy latency, error-rate, and cost SLOs";
+
+  select(pool, context) {
+    // ... يمنح كل مرشح درجة وفقًا للسياسة: { targetP95Ms, maxErrorRate, maxCostPer1MTokens, hardConstraints }
+  }
+}
+```
+
+**حقول اتفاقية مستوى الخدمة** (تُعيَّن في تكوين المجموعة):
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "sla-aware",
+    "slaTargetP95Ms": 1500,
+    "slaMaxErrorRate": 0.05,
+    "slaMaxCostPer1MTokens": 5,
+    "slaHardConstraints": true
+  }
+}
+```
+
+**متى تُستخدم**: أعباء عمل الإنتاج ذات الحدود الصارمة لزمن الاستجابة أو معدل الأخطاء أو التكلفة.
+
+**الأسماء البديلة**: `sla-aware`، `sla`
+
+---
+
+#### 5. `lkgp` — آخر مزوّد خدمة معروف بأنه صالح أولًا
+
+تُجرَّب أولًا خدمة **آخر مزوّد معروف بأنه صالح** (إذا كان محددًا)، ثم يُلجأ إلى
+استراتيجية `rules`. يفيد ذلك في تثبيت الجلسة — إذ يتولى مزوّد الخدمة نفسه
+طلبات المتابعة ضمن المحادثة.
+
+```ts
+class LKGPStrategyImpl implements RouterStrategy {
+  readonly name = "lkgp";
+  readonly description = "Tries last known good provider first, then falls back to rules";
+
+  select(pool, context) {
+    if (context.lkgpEnabled === false) {
+      return getStrategy("rules").select(pool, context);
+    }
+
+    if (context.lastKnownGoodProvider) {
+      const candidates = pool.filter(
+        (c) => c.provider === context.lastKnownGoodProvider && c.circuitBreakerState !== "OPEN"
+      );
+      if (candidates.length > 0) {
+        return { provider: candidates[0].provider /* ... */ };
+      }
+    }
+
+    // الرجوع إلى استراتيجية rules
+    return getStrategy("rules").select(pool, context);
+  }
+}
+```
+
+**متى تُستخدم**: المحادثات متعددة الأدوار التي تريد فيها أن يتولى مزوّد الخدمة نفسه
+طلبات المتابعة (على سبيل المثال، لأغراض التخزين المؤقت، أو استمرارية السياق، أو اتساق التسعير).
+
+**الاسم البديل**: `lkgp` (لا يوجد اسم بديل)
+
+---
+
+### استراتيجيات الموجّه المخصصة
+
+يمكنك تسجيل تنفيذك الخاص لـ `RouterStrategy` عبر واجهة API العامة:
+
+```ts
+import {
+  registerStrategy,
+  type RouterStrategy,
+} from "@omniroute/open-sse/services/autoCombo/routerStrategy";
+
+class MyCustomStrategy implements RouterStrategy {
+  readonly name = "my-custom";
+  readonly description = "My custom routing strategy";
+
+  select(pool, context) {
+    // منطق التوجيه الخاص بك هنا
+    return {
+      provider: pool[0].provider,
+      model: pool[0].model,
+      strategy: this.name,
+      reason: "MyCustomStrategy: ...",
+      candidatesConsidered: pool.length,
+      finalScore: 1.0,
+    };
+  }
+}
+
+registerStrategy("my-custom", new MyCustomStrategy());
+```
+
+ثم استخدمها:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "my-custom"
+  }
+}
+```
+
+---
+
+### دليل اختيار استراتيجية الموجّه
+
+| حالة الاستخدام         | الاستراتيجية | السبب                              |
+| ---------------------- | ------------ | ---------------------------------- |
+| عبء عمل متوازن         | `rules`      | الافتراضية — تراعي جميع العوامل    |
+| تقليل التكلفة          | `cost`       | تختار دائمًا الأقل تكلفة           |
+| تقليل زمن الاستجابة    | `latency`    | تختار أسرع مزوّد خدمة موثوق        |
+| أهداف مستوى خدمة صارمة | `sla-aware`  | ترشّح حسب حدود p95/الأخطاء/التكلفة |
+| دردشة متعددة الأدوار   | `lkgp`       | تثبيت الجلسة                       |
+
+حقول اتفاقية مستوى الخدمة:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "sla-aware",
+    "slaTargetP95Ms": 1500,
+    "slaMaxErrorRate": 0.05,
+    "slaMaxCostPer1MTokens": 5,
+    "slaHardConstraints": true
+  }
+}
+```
+
+## ملاءمة المهام
+
+حصل أكثر من 30 نموذجًا على درجات عبر 6 أنواع من المهام (`coding`، `review`، `planning`، `analysis`، `debugging`، `documentation`). يدعم أنماط أحرف البدل (مثلًا، `*-coder` ← درجة مرتفعة في البرمجة).
+
+## ملخص المتغيرات التلقائية
+
+باحتساب `auto` المجرّد (الافتراضي) بالإضافة إلى قيم `AutoVariant` الست المعلنة في `autoPrefix.ts`، توجد **7 معرّفات نماذج قابلة للاستدعاء**:
+
+`auto`، `auto/coding`، `auto/fast`، `auto/cheap`، `auto/offline`، `auto/smart`، `auto/lkgp`
+
+(يسرد `AutoVariant` نفسه 6 قيم؛ أما الخيار السابع فهو «بلا متغير» — أي `auto` المجرّد — وتتعامل معه `parseAutoPrefix()` بوصفه `variant: undefined`.)
+
+## كيفية تكامل المستويات مع Auto-Combo
+
+تتعامل دالة احتساب الدرجات ذات العوامل الـ16 (`open-sse/services/autoCombo/scoring.ts`) مع الانتماء إلى المستوى بوصفه إشارتين: `tierPriority`‏ (0.0476) و`tierAffinity`‏ (0.0476). راجع [جدول عوامل احتساب الدرجات](#how-it-works-persisted-auto-combos) المرجعي أعلاه للاطلاع على مجموعة `DEFAULT_WEIGHTS` الكاملة — وترد التجاوزات الخاصة بكل حزمة (ship-fast/cost-saver/quality-first/
+offline-friendly) في جدول «ملفات تعريف الأوزان لكل حزمة».
+
+لا يفرض المستوى وحده **تقديم** المستوى 1 — فإذا كان زمن استجابة المستوى 1 سيئًا أو كانت
+مقايضة التكلفة مقابل الجودة دون المستوى الأمثل، يفوز المستوى 2. لفرض ترتيب المستويات، استخدم
+استراتيجية المجموعة `priority` ورتّب المزوّدين حسب المستوى.
+
+لإعطاء أفضلية قوية للمستوى 1 (الاشتراك)، زد وزن `tierPriority`:
+
+```json
+{
+  "strategy": "auto",
+  "config": { "auto": { "weights": { "tierPriority": 0.3, "costInv": 0.05 } } }
+}
+```
+
+راجع `docs/marketing/TIERS.md` للاطلاع على تعريفات المستويات وتصنيف المزوّدين.
+
+## الاختبار والتغطية
+
+### مصفوفة حتمية لقرارات التوجيه (`npm run test:combo:matrix`)
+
+تثبت اختبارات `tests/integration/combo-matrix/*.test.ts` **قرار** التوجيه لجميع
+الاستراتيجيات العامة الـ19 من البداية إلى النهاية عبر مسار المجموعة الحقيقي باستخدام خدمة منبع وهمية.
+تشمل التغطية:
+
+- جميع استراتيجيات `ROUTING_STRATEGY_VALUES` الـ19 (المرتبة، والموزونة، والتكلفة، والسياق، والدمج، …).
+- استراتيجية `quota-share` (داخلية) من البداية إلى النهاية: عدالة DRR + خفض أولوية التشبع عبر
+  نقطة التكامل الحقيقية `selectQuotaShareTarget`‏ (`registerQuotaFetcher` / `setLKGP` /
+  `__setHeadroomSaturationFetcherForTests`).
+- تغطية التسليم الشامل لاستراتيجية `context-relay` عبر كل عدد ممكن من الأهداف.
+
+تعمل هذه الحزمة في CI (مهمة `test:integration`) باستخدام `--test-concurrency=1` و
+`--test-force-exit`، ولذلك فهي حتمية ولا تتطلب بيانات اعتماد حية.
+
+### اختبارات دخانية حية مشروطة (ليست ضمن CI — مزوّدون حقيقيون)
+
+| الأمر                                  | ما يفعله                                                                                     |
+| :------------------------------------- | :------------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | توجيه حقيقي داخل العملية باستخدام `RUN_COMBO_LIVE=1`؛ يلتقط لقطة لقاعدة بيانات OmniRoute حية |
+| `npm run test:combo:live:vps`          | استدعاءات HTTP إلى خادم OmniRoute حي (اضبط `COMBO_LIVE_BASE_URL`)                            |
+| `npm run test:combo:live:vps:failover` | الأمر نفسه، مع سيناريوهات تجاوز فشل متعمدة                                                   |
+
+تختبر هذه الاختبارات الدخانية مسار الاتصال الحقيقي (المجموعة ← المزوّد ← الإكمال). وهي
+مستبعدة عمدًا من CI لأنها تتطلب بيانات اعتماد حية وإمكانية الوصول إلى VPS.
+
+---
+
+## الملفات
+
+| الملف                                                     | الغرض                                                                                                                 |
+| :-------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | دالة تقييم ذات 16 عاملًا، و`DEFAULT_WEIGHTS`، وتطبيع المجموعة                                                         |
+| `open-sse/services/autoCombo/taskFitness.ts`              | البحث عن مدى ملاءمة النموذج × المهمة                                                                                  |
+| `open-sse/services/autoCombo/engine.ts`                   | منطق الاختيار، وخوارزمية bandit، وسقف الميزانية                                                                       |
+| `open-sse/services/autoCombo/selfHealing.ts`              | الاستبعاد، وعمليات الفحص، ووضع الحوادث                                                                                |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 ملفات تعريف للأوزان (الشحن السريع، موفّر التكلفة، الجودة أولًا، ملائم للعمل دون اتصال، الموثوقية أولًا، وضع الفوضى) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | محلل البادئة `auto/` + 6 متغيرات                                                                                      |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | إنشاء `AutoComboConfig` في الذاكرة من الاتصالات النشطة                                                                |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | نقطة ربط اختبارية لمحاكاة سجل موفّري الخدمة                                                                           |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` ‏(19 استراتيجية)                                                                            |
+| `src/sse/handlers/chat.ts`                                | التكامل: تجاوز مبكر للبادئة التلقائية                                                                                 |

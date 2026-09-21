@@ -138,7 +138,7 @@ export function useModelImportHandlers({
     });
 
     try {
-      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true&chatOnly=true`);
+      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({
@@ -150,6 +150,9 @@ export function useModelImportHandlers({
         return;
       }
       const fetchedModels = data.models || [];
+      // Discovery persists its result even when no new models need importing.
+      // Refresh the active listing so removals take effect without a page reload.
+      await fetchProviderModelMeta();
       const importWarning = extractImportWarning(data);
       if (fetchedModels.length === 0) {
         setImportProgress((prev) => ({
@@ -230,6 +233,17 @@ export function useModelImportHandlers({
             ...(Array.isArray(model.supportedEndpoints)
               ? { supportedEndpoints: model.supportedEndpoints }
               : {}),
+            ...(typeof model.dimensions === "number" && model.dimensions > 0
+              ? { dimensions: model.dimensions }
+              : {}),
+            ...(Array.isArray(model.supportedInputTypes)
+              ? { supportedInputTypes: model.supportedInputTypes }
+              : {}),
+            ...(typeof model.modelType === "string" ? { modelType: model.modelType } : {}),
+            ...(typeof model.inputTokenLimit === "number" && model.inputTokenLimit > 0
+              ? { max_input_tokens: model.inputTokenLimit }
+              : {}),
+            ...(typeof model.targetFormat === "string" ? { targetFormat: model.targetFormat } : {}),
           }),
         });
         if (!modelAliases[baseAlias]) {
@@ -305,6 +319,8 @@ export function useModelImportHandlers({
       if (!response.ok) {
         throw new Error(data.error || t("failedImportModels"));
       }
+      await fetchProviderModelMeta();
+      await fetchAliases();
 
       if (data.freeFilterEmpty) {
         setImportProgress((prev) => ({

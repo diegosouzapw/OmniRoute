@@ -3,7 +3,7 @@
  *
  * Automatically refreshes model lists for provider connections that have
  * autoSync enabled in their providerSpecificData, at a configurable
- * interval (default: 24h).
+ * interval (default: 6h).
  *
  * Pattern mirrors cloudSyncScheduler.ts for consistency.
  */
@@ -14,7 +14,7 @@ import { getSettings, updateSettings } from "@/lib/db/settings";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
-const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const DEFAULT_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 const MODEL_SYNC_SETTING_KEY = "model_sync_last_run";
 const MODEL_SYNC_INTERNAL_AUTH_HEADER = "x-model-sync-internal-auth";
 
@@ -270,7 +270,7 @@ async function runSyncCycle(apiBaseUrl: string): Promise<void> {
 /**
  * Start the model sync scheduler.
  * @param apiBaseUrl — internal base URL to call OmniRoute's own API
- * @param intervalMs — sync interval in milliseconds (default: 24h)
+ * @param intervalMs — sync interval in milliseconds (default: 6h)
  */
 export function startModelSyncScheduler(
   apiBaseUrl = getModelSyncInternalBaseUrl(),

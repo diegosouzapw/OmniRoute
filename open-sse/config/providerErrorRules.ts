@@ -32,7 +32,7 @@ export type ProviderErrorRuleMatch = {
   /**
    * Intended lock scope. #10334: for a BUILT-IN catalog rule, this field is
    * CONSUMED end-to-end only for providers in `HONORS_RULE_LOCK_SCOPE_PROVIDERS`
-   * (agentrouter-exclusive today, gated by `honorsRuleLockScope()`) — for those,
+   * (agentrouter + the opencode family, gated by `honorsRuleLockScope()`) — for
    * `checkFallbackError` surfaces it as `ruleScope` on its return value for the
    * persistence layer to honor instead of re-deriving scope from
    * `hasPerModelQuota()`. For every other built-in-rule provider it remains
@@ -153,6 +153,19 @@ function buildOpencodeRules(): ProviderErrorRule[] {
           return { reason: "quota_exhausted", scope: "connection" };
         }
         return null;
+      },
+    },
+    {
+      id: "opencode-400-model-unavailable",
+      match: ({ status, body }) => {
+        if (status !== 400) return null;
+        const text = JSON.stringify(body ?? "").toLowerCase();
+        if (!text.includes("upstream request failed: model is unavailable.")) return null;
+        return {
+          reason: "model_capacity",
+          scope: "model",
+          cooldownMs: 3_600_000,
+        };
       },
     },
   ];
@@ -290,15 +303,16 @@ function buildAgentrouterRules(): ProviderErrorRule[] {
   ];
 }
 
+/** Providers sharing the opencode upstream envelope, hence the opencode catalog rules. */
+const OPENCODE_RULE_FAMILY = ["opencode", "opencode-zen", "opencode-go", "opencode-cli"];
+
 /**
  * Global registry. Provider name → ordered list of rules (first match wins).
  * Add new providers here; the matcher in classifyError will pick them up
  * automatically.
  */
 export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
-  ["opencode", buildOpencodeRules()],
-  ["opencode-go", buildOpencodeRules()],
-  ["opencode-cli", buildOpencodeRules()],
+  ...OPENCODE_RULE_FAMILY.map((id): [string, ProviderErrorRule[]] => [id, buildOpencodeRules()]),
   ["minimax", buildMinimaxRules()],
   ["minimax-passthrough", buildMinimaxRules()],
   ["cloudflare-ai", buildCloudflareAiRules()],
@@ -323,7 +337,7 @@ export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
  * mechanism (#11104) silently inert for every provider except the ones listed
  * below. See `hasOperatorRuleForProvider`.
  */
-const HONORS_RULE_LOCK_SCOPE_PROVIDERS = new Set(["agentrouter"]);
+const HONORS_RULE_LOCK_SCOPE_PROVIDERS = new Set(["agentrouter", ...OPENCODE_RULE_FAMILY]);
 
 export function honorsRuleLockScope(provider: string | null | undefined): boolean {
   if (!provider) return false;
@@ -508,4 +522,22 @@ export function parseResetCountdownMs(text: string): number | null {
     default:
       return null;
   }
+}
+
+/**
+ * Opencode-family "Upstream request failed: Model is unavailable." 400: the rule's
+ * model-scope match, or null for any other provider, status or rule. Takes the raw
+ * error text so it stays independent of FULL_TEXT_RULE_PROVIDERS (#10880).
+ */
+export function getOpencodeModelUnavailableMatch(
+  provider: string | null | undefined,
+  status: number,
+  headers: Headers | Record<string, string> | null | undefined,
+  errorText: unknown
+): ProviderErrorRuleMatch | null {
+  if (status !== 400 || !provider || !OPENCODE_RULE_FAMILY.includes(provider.toLowerCase())) {
+    return null;
+  }
+  const match = getProviderErrorRuleMatch(provider, status, headers, errorText);
+  return match?.scope === "model" && match.reason === "model_capacity" ? match : null;
 }

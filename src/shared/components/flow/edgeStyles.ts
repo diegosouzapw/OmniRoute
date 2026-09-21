@@ -4,14 +4,32 @@
  * the Compression Studio (Tela A) so all three flow graphs speak the same
  * color language: green = active, red = error, amber = last-used, muted = idle.
  */
-import { STATUS_HEX } from "@/shared/constants/statusColors";
-
+/**
+ * Theme-aware CSS custom properties (light values in `:root`, dark values in `.dark`
+ * of `src/app/globals.css`) — the dark values are exactly the old `STATUS_HEX` hexes,
+ * so dark mode is byte-identical while light mode finally gets legible contrast.
+ * `idle` was already a var, which is the precedent that proves a `var()` resolves in
+ * an SVG `stroke` (ReactFlow renders edge `style` onto a real `<path>`).
+ *
+ * `STATUS_HEX` stays exported for the callers that genuinely need a resolved hex
+ * (canvas 2D, string math); it is no longer used here.
+ */
 export const FLOW_EDGE_COLORS = {
-  active: STATUS_HEX.success,
-  error: STATUS_HEX.error,
-  last: STATUS_HEX.warning,
+  active: "var(--orch-status-success)",
+  error: "var(--orch-status-error)",
+  last: "var(--orch-status-warning)",
   idle: "var(--color-text-muted)",
 } as const;
+
+/**
+ * Translucent variant of a flow color. The palette values are `var()` now, so the old
+ * `${hex}30` suffix trick no longer resolves; `color-mix` is the theme-aware equivalent
+ * (same precedent as `orchStateBadgeBg` in the orchestration model). Percentages mirror
+ * the previous 8-bit alpha suffixes: `20` -> 13%, `30` -> 19%, `40` -> 25%.
+ */
+export function flowColorAlpha(color: string, percent: number): string {
+  return `color-mix(in srgb, ${color} ${percent}%, transparent)`;
+}
 
 export interface FlowEdgeStyle {
   stroke: string;

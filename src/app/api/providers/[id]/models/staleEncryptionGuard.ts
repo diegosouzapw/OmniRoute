@@ -40,9 +40,7 @@ export function buildStaleEncryptionKeyResponse(
     `(STORAGE_ENCRYPTION_KEY changed or unset). Re-authenticate this account, or verify ` +
     `STORAGE_ENCRYPTION_KEY matches the key used to store it.`;
 
-  // buildErrorBody sanitizes the message (Rule #12); override the type so the
-  // client can key off the specific stale-encryption cause.
-  const body = buildErrorBody(424, message);
-  body.error.type = "storage_encryption_stale";
+  // buildErrorBody sanitizes the message and projects the client-visible classification.
+  const body = buildErrorBody(424, message, undefined, { type: "storage_encryption_stale" });
   return NextResponse.json(body, { status: 424 });
 }

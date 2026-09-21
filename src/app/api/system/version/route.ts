@@ -25,6 +25,7 @@ import {
 } from "@/lib/system/versionCheck";
 import { resolveGlobalOmniroutePath } from "@/lib/system/globalPackagePath";
 import { restartRunningServer } from "@/lib/system/processManagerRestart";
+import { APP_CONFIG } from "@/shared/constants/appConfig";
 // #5542 — On Windows npm is `npm.cmd`; Node ≥24 refuses to execFile a `.cmd` without
 // a shell (nodejs/node#52554 → "spawn npm ENOENT"). buildNpmExecOptions enables the
 // shell on win32 only; SERVICE_VERSION_PATTERN keeps the shell-joined version safe.
@@ -35,11 +36,7 @@ const execFileAsync = promisify(execFile);
 export const dynamic = "force-dynamic";
 
 function getCurrentVersion(): string {
-  try {
-    return require("../../../../../package.json").version as string;
-  } catch {
-    return "unknown";
-  }
+  return APP_CONFIG.version;
 }
 
 /**

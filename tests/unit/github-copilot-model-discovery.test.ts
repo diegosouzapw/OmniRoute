@@ -39,6 +39,20 @@ const MOCK_COPILOT_MODELS_RESPONSE = {
       capabilities: { type: "chat", limits: { max_context_window_tokens: 128000 } },
     },
     {
+      id: "disabled-by-policy",
+      name: "Disabled by policy",
+      model_picker_enabled: true,
+      policy: { state: "disabled" },
+      capabilities: { type: "chat" },
+    },
+    {
+      id: "hidden-from-picker",
+      name: "Hidden from picker",
+      model_picker_enabled: false,
+      policy: { state: "enabled" },
+      capabilities: { type: "chat" },
+    },
+    {
       id: "claude-sonnet-4.5",
       name: "Claude Sonnet 4.5",
       model_picker_enabled: true,
@@ -80,6 +94,8 @@ test("#3120 parseGitHubCopilotModels keeps every entitled CHAT model (capability
   assert.equal(gpt.owned_by, "github");
   assert.ok(!ids.includes("text-embedding-3-small"), "embeddings models are skipped");
   assert.ok(!ids.includes("gpt-41-copilot"), "completion utility models are skipped");
+  assert.ok(!ids.includes("disabled-by-policy"), "policy.state=disabled is not routable");
+  assert.ok(!ids.includes("hidden-from-picker"), "model_picker_enabled=false is not routable");
 });
 
 test("#3121 a model NOT in the live response is not advertised (entitlement filtering)", () => {

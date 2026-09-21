@@ -11,7 +11,7 @@
  * Kept as a pure, dependency-light function so the filter is unit-testable in
  * isolation without seeding the DB-backed virtual factory.
  */
-import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
+import { isFreeForProvider } from "@/shared/utils/freeModels";
 
 interface PaidFilterCandidate {
   provider: string;
@@ -22,10 +22,7 @@ interface PaidFilterCandidate {
  * selected model itself qualifies as free — mirrors `shouldHidePaid` in
  * `src/app/api/v1/models/catalog.ts`. */
 function isFreeCandidate(candidate: PaidFilterCandidate): boolean {
-  return (
-    providerHasFreeModels(candidate.provider) &&
-    isFreeModel(candidate.provider, { id: candidate.model })
-  );
+  return isFreeForProvider(candidate.provider, { id: candidate.model });
 }
 
 /**
@@ -35,10 +32,20 @@ function isFreeCandidate(candidate: PaidFilterCandidate): boolean {
  * the caller's existing graceful empty-pool path handles it (consistent with the
  * opt-in intent — the operator asked not to route to paid models).
  */
+export type PaidFilterDiagnosis = { excludedPaid: number; total: number };
+
+export function filterPaidOnlyCandidatesWithDiagnosis<T extends PaidFilterCandidate>(
+  pool: T[],
+  hidePaidModels: boolean
+): { pool: T[]; diagnosis: PaidFilterDiagnosis | null } {
+  if (!hidePaidModels) return { pool, diagnosis: null };
+  const kept = pool.filter(isFreeCandidate);
+  return { pool: kept, diagnosis: { excludedPaid: pool.length - kept.length, total: pool.length } };
+}
+
 export function filterPaidOnlyCandidates<T extends PaidFilterCandidate>(
   pool: T[],
   hidePaidModels: boolean
 ): T[] {
-  if (!hidePaidModels) return pool;
-  return pool.filter(isFreeCandidate);
+  return filterPaidOnlyCandidatesWithDiagnosis(pool, hidePaidModels).pool;
 }

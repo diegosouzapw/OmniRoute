@@ -1,67 +1,763 @@
 # OmniRoute Auto-Combo Engine (தமிழ்)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/AUTO-COMBO.md) · 🇸🇦 [ar](../../ar/docs/AUTO-COMBO.md) · 🇧🇬 [bg](../../bg/docs/AUTO-COMBO.md) · 🇧🇩 [bn](../../bn/docs/AUTO-COMBO.md) · 🇨🇿 [cs](../../cs/docs/AUTO-COMBO.md) · 🇩🇰 [da](../../da/docs/AUTO-COMBO.md) · 🇩🇪 [de](../../de/docs/AUTO-COMBO.md) · 🇪🇸 [es](../../es/docs/AUTO-COMBO.md) · 🇮🇷 [fa](../../fa/docs/AUTO-COMBO.md) · 🇫🇮 [fi](../../fi/docs/AUTO-COMBO.md) · 🇫🇷 [fr](../../fr/docs/AUTO-COMBO.md) · 🇮🇳 [gu](../../gu/docs/AUTO-COMBO.md) · 🇮🇱 [he](../../he/docs/AUTO-COMBO.md) · 🇮🇳 [hi](../../hi/docs/AUTO-COMBO.md) · 🇭🇺 [hu](../../hu/docs/AUTO-COMBO.md) · 🇮🇩 [id](../../id/docs/AUTO-COMBO.md) · 🇮🇹 [it](../../it/docs/AUTO-COMBO.md) · 🇯🇵 [ja](../../ja/docs/AUTO-COMBO.md) · 🇰🇷 [ko](../../ko/docs/AUTO-COMBO.md) · 🇮🇳 [mr](../../mr/docs/AUTO-COMBO.md) · 🇲🇾 [ms](../../ms/docs/AUTO-COMBO.md) · 🇳🇱 [nl](../../nl/docs/AUTO-COMBO.md) · 🇳🇴 [no](../../no/docs/AUTO-COMBO.md) · 🇵🇭 [phi](../../phi/docs/AUTO-COMBO.md) · 🇵🇱 [pl](../../pl/docs/AUTO-COMBO.md) · 🇵🇹 [pt](../../pt/docs/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/AUTO-COMBO.md) · 🇷🇴 [ro](../../ro/docs/AUTO-COMBO.md) · 🇷🇺 [ru](../../ru/docs/AUTO-COMBO.md) · 🇸🇰 [sk](../../sk/docs/AUTO-COMBO.md) · 🇸🇪 [sv](../../sv/docs/AUTO-COMBO.md) · 🇰🇪 [sw](../../sw/docs/AUTO-COMBO.md) · 🇮🇳 [ta](../../ta/docs/AUTO-COMBO.md) · 🇮🇳 [te](../../te/docs/AUTO-COMBO.md) · 🇹🇭 [th](../../th/docs/AUTO-COMBO.md) · 🇹🇷 [tr](../../tr/docs/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/AUTO-COMBO.md) · 🇵🇰 [ur](../../ur/docs/AUTO-COMBO.md) · 🇻🇳 [vi](../../vi/docs/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/AUTO-COMBO.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> **பயனர்களுக்கு**: விரைவாகத் தொடங்க விரும்புகிறீர்களா? எளிய விளக்கங்களுக்கும் எடுத்துக்காட்டுகளுக்கும் [Auto-Combo பயனர் வழிகாட்டியை](../getting-started/AUTO-COMBO-GUIDE.md) பார்க்கவும்.
 
-## How It Works
+> தகவமைப்பு மதிப்பீடு + கட்டமைப்பில்லா தானியக்க வழித்தேர்வு கொண்ட, தன்னைத்தானே நிர்வகிக்கும் மாதிரிச் சங்கிலிகள்
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+## கட்டமைப்பில்லா தானியக்க வழித்தேர்வு (`auto/` முன்னொட்டு)
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+> **புதியது:** combo உருவாக்கம் தேவையில்லை. எந்த client-இலும் `auto/` முன்னொட்டை நேரடியாகப் பயன்படுத்தவும்.
 
-## Mode Packs
+### விரைவு எடுத்துக்காட்டுகள்
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+| மாதிரி ID      | மாறுபாடு   | செயல்பாடு                                                                     |
+| -------------- | ---------- | ----------------------------------------------------------------------------- |
+| `auto`         | இயல்புநிலை | இணைக்கப்பட்ட அனைத்து providers, LKGP உத்தி, சமநிலையான எடைகள்                  |
+| `auto/coding`  | coding     | தரத்திற்கு முன்னுரிமை அளிக்கும் எடைகள், code உருவாக்கத்திற்கு ஏற்றது          |
+| `auto/fast`    | fast       | குறைந்த தாமதம் கொண்ட எடையிட்ட தேர்வு                                          |
+| `auto/cheap`   | cheap      | செலவுக்கு உகந்த வழித்தேர்வு (முதலில் குறைந்த செலவு)                           |
+| `auto/offline` | offline    | அதிக quota கிடைப்புத்தன்மை கொண்ட providers-க்கு முன்னுரிமை அளிக்கிறது         |
+| `auto/smart`   | smart      | தரத்திற்கு முன்னுரிமை + சிறந்த மாதிரி கண்டறிதலுக்காக அதிக ஆராய்வு வீதம் (10%) |
+| `auto/lkgp`    | lkgp       | வெளிப்படையான LKGP (இயல்புநிலை `auto` போன்றதே)                                 |
+| `auto/chaos`   | chaos      | மீள்திறன் சோதனைக்கான பிழை-உட்செலுத்தல் எடைகள் (chaos engineering)             |
 
-## Self-Healing
+### வகை × அடுக்கு சேர்க்கை (`auto/<category>:<tier>`)
 
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+OpenRouter பாணியிலான பின்னொட்டுகள் **எந்த வகையான வழி** (வகை) என்பதை **அதை எவ்வாறு மேம்படுத்துவது** (அடுக்கு) என்பதிலிருந்து பிரிக்கின்றன; எனவே அவற்றை நீங்கள் விரும்பியவாறு சேர்த்துப் பயன்படுத்தலாம் (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-## Bandit Exploration
+- **வகைகள்** (திறனின் அடிப்படையில் candidate pool-ஐ வடிகட்டுகின்றன): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` ஆகியவை vision திறன் கொண்ட மாதிரிகளைத் தக்கவைக்கின்றன; `reasoning` என்பது reasoning/thinking மாதிரிகளைத் தக்கவைக்கிறது.
+- **அடுக்குகள்** (மதிப்பீட்டு எடைகள் / pool filter-ஐத் தேர்ந்தெடுக்கின்றன): `fast` (வேகமாக வெளியிடுதல்) · `cheap` (`floor` மாற்றுப்பெயர், செலவு சேமிப்பு) · `reliable` (circuit-breaker ஆரோக்கியம் + தாமத நிலைத்தன்மை) · `free` / `pro` (`classifyTier` வழியாக மாதிரி அடுக்கின் அடிப்படையில் pool-ஐ வடிகட்டும் — இலவச அடுக்கு மற்றும் premium).
 
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+| எடுத்துக்காட்டு        | இதற்கு மாற்றப்படுகிறது                                                     |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `auto/coding:fast`     | coding pool, குறைந்த தாமத எடைகள்                                           |
+| `auto/coding:cheap`    | coding pool, செலவுக்கு உகந்தது (`auto/coding:floor` என்பதன் மாற்றுப்பெயர்) |
+| `auto/reasoning:pro`   | reasoning/thinking மாதிரிகள் மட்டும், premium அடுக்கு                      |
+| `auto/vision`          | vision திறன் கொண்ட மாதிரிகள் (அடுக்கு இல்லை → சமநிலையான எடைகள்)            |
+| `auto/multimodal:free` | multimodal திறன் கொண்ட மாதிரிகள், இலவச அடுக்கு மட்டும்                     |
+
+செல்லுபடியாகும் எந்த `auto/<category>[:<tier>]` வடிவமும் தேவைக்கேற்ப தீர்க்கப்படும்; தேர்ந்தெடுக்கப்பட்ட ஒரு துணைத்தொகுப்பு `/v1/models` மற்றும் dashboard-இல் விளம்பரப்படுத்தப்படுகிறது (`open-sse/services/autoCombo/builtinCatalog.ts`-இல் `AUTO_SUFFIX_VARIANTS`). வடிகட்டுதல் **fail-open** முறையில் செயல்படுகிறது — எந்தக் கட்டுப்பாடும் இணைக்கப்பட்ட மாதிரிகளுடன் பொருந்தவில்லை என்றால், வழித்தேர்வு ஒருபோதும் செயலிழக்காதபடி முழு pool பயன்படுத்தப்படும். மைய scorer (`combo.ts`) மாற்றப்படவில்லை; வகை/அடுக்கு filter `buildAutoCandidates`-இல் பயன்படுத்தப்படுகிறது.
+
+> **நேரடி மாதிரி நுண்ணறிவு:** `ARENA_ELO_SYNC_ENABLED` flag இயக்கத்தில் இருக்கும்போது, நேரடி **Arena ELO** தரவரிசைகள் + **models.dev** அடுக்குத் தரவு தானியக்க வழித்தேர்வு பொருத்தத்தைக் கணிக்கப் பயன்படுத்தப்படுகின்றன (இல்லையெனில் நிலையான fitness map பயன்படுத்தப்படும்).
+
+**பயன்படுத்தும் முறை:**
+
+```bash
+# OpenAI வடிவமைப்பை ஆதரிக்கும் எந்த IDE அல்லது CLI கருவியும்
+அடிப்படை URL: http://localhost:20128/v1
+API Key:  <your-endpoint-key>
+
+# உங்கள் code/config-இல் model-ஐ இவ்வாறு அமைக்கவும்:
+model: "auto"                 # சமநிலையான இயல்புநிலை
+model: "auto/coding"          # coding பணிகளுக்குச் சிறந்தது
+model: "auto/fast"            # கிடைக்கக்கூடியவற்றில் அதிவேகமானது
+model: "auto/cheap"           # token ஒன்றுக்கு மலிவானது
+```
+
+**என்ன நடக்கிறது:**
+
+1. OmniRoute, `src/sse/handlers/chat.ts`-இல் `auto/` முன்னொட்டைக் கண்டறிகிறது
+2. database-இலிருந்து அனைத்து **செயலில் உள்ள provider இணைப்புகளையும்** வினவுகிறது
+3. செல்லுபடியாகும் credentials (API key அல்லது OAuth token) கொண்டவற்றை மட்டும் வடிகட்டுகிறது
+4. ஒவ்வொரு இணைப்பிற்குமான மாதிரியைத் தீர்மானிக்கிறது (`connection.defaultModel` அல்லது provider-இன் முதல் மாதிரி)
+5. memory-இல் ஒரு **virtual combo**-ஐ உருவாக்குகிறது (DB-இல் சேமிக்கப்படாது)
+6. தேர்ந்தெடுக்கப்பட்ட மாறுபாட்டின் weight profile + LKGP உத்தியைப் பயன்படுத்தி வழித்தேர்வு செய்கிறது
+
+**முக்கிய பண்புகள்:**
+
+- ✅ **எப்போதும் இயக்கத்தில்:** toggle, combo உருவாக்கம் அல்லது கட்டமைப்பு எதுவும் தேவையில்லை
+- ✅ **மாறும் தன்மை:** தற்போது இணைக்கப்பட்டுள்ள providers-ஐத் தானாகப் பிரதிபலிக்கிறது
+- ✅ **Session நிலைத்தன்மை:** கடைசியாக வெற்றியடைந்த provider-க்கு முன்னுரிமை வழங்கப்படுவதை LKGP உறுதிசெய்கிறது
+- ✅ **பல-account விழிப்புணர்வு:** ஒவ்வொரு provider இணைப்பும் தனித்தனி candidate ஆகிறது
+- ✅ **DB எழுதல்கள் இல்லை:** Virtual combo request-க்கு மட்டும் உள்ளது; persistence overhead பூஜ்ஜியம்
+
+### ஒவ்வொரு key-க்கும் candidate கட்டுப்பாடு (#7819, Level 1+2)
+
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = `auto/`-க்குப் பிந்தைய பின்னொட்டு, அல்லது
+அடிப்படை channel-க்கான நேரடி `auto`) என்பது, ஏற்கனவே உள்ள resilience reads-ஐ மீண்டும் பயன்படுத்தி,
+நேரடி அணுகல்தன்மைத் தகவலுடன் அலங்கரிக்கப்பட்ட ஓர் `auto/*` channel-இன் தற்போதைய candidate pool-ஐப் பட்டியலிடும்
+**படிக்க மட்டும்** இயங்கும் endpoint ஆகும் (மூல breaker `state` ஒருபோதும் பயன்படுத்தப்படாது):
+
+- provider circuit breaker — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- connection cooldown — தீர்க்கப்பட்ட `provider_connections` row-இல் உள்ள `rateLimitedUntil` / `testStatus`
+- மாதிரி lockout — `isModelLocked(provider, connectionId, model)`
+
+ஒவ்வொரு candidate-உம் இந்த API key-க்கான `excluded` flag-ஐக் கொண்டிருக்கும். விலக்கல்கள்
+ஒவ்வொரு API key-க்கும் தனித்தனியாகச் சேமிக்கப்படுகின்றன (`auto_candidate_overrides` table, migration `128`) — OmniRoute
+`users` table இல்லாத single-tenant அமைப்பு என்பதால், உண்மையான ஒவ்வொரு caller-க்குமான
+அடையாளத்திற்கு மிக நெருக்கமானது `apiKeyId` ஆகும் — மேலும் அவை
+`open-sse/services/autoCombo/virtualFactory.ts`-இல் உள்ள candidate-pool chokepoint-இல், தூய்மையான மற்றும் unit-tested
+`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`) வழியாகச் செயல்படுத்தப்படுகின்றன.
+இந்த filter **fail-open** முறையில் செயல்படுகிறது: அமைக்கப்படாத apiKeyId/channel அல்லது DB lookup தோல்வி ஆகிய இரண்டுமே
+pool-ஐ வடிகட்டாமல் விட்டுவிடும்; எனவே overrides எதுவும் உள்ளமைக்கப்படாத operator-க்கு, இந்த அம்சத்திற்கு முன்பிருந்த
+routing byte-identical ஆகவே இருக்கும்.
+
+**தொடர் சிக்கலுக்காக ஒத்திவைக்கப்பட்டது:** ஒவ்வொரு candidate-க்குமான weights + வெளிப்படையான ordering (Level 3
+— ஏற்கனவே உள்ள weighted/priority strategy பாதைகளுடன் இணைகிறது) மற்றும் ஒவ்வொரு `auto/*` channel-க்கும் ஒரு குறிப்பிட்ட
+`combo.ts` strategy-ஐ pin செய்தல் (Level 4). single-tenant model-ஐக் கருத்தில் கொண்டு overrides ஒவ்வொரு API key-க்கும் தனித்தனியாகத் தொடர வேண்டுமா அல்லது global ஆக வேண்டுமா என்ற திறந்த
+கேள்விக்கு #7819 திட்டத்தைப் பார்க்கவும்.
+
+**திரைக்குப் பின்னால்:**
+
+```txt
+கோரிக்கை: { model: "auto/coding" }
+   ↓
+src/sse/handlers/chat.ts prefix-ஐக் கண்டறிகிறது
+   ↓
+createVirtualAutoCombo('coding') → செயலில் உள்ள connections-இலிருந்து candidatePool
+   ↓
+handleComboChat (persist செய்யப்பட்ட combos பயன்படுத்தும் அதே engine)
+   ↓
+Auto-scoring ஒவ்வொரு கோரிக்கைக்கும் சிறந்த provider/model-ஐத் தேர்ந்தெடுக்கிறது
+```
+
+**செயலாக்கக் கோப்புகள்:**
+
+| கோப்பு                                                    | நோக்கம்                                            |
+| --------------------------------------------------------- | -------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefix parser (`parseAutoPrefix`)                  |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Virtual `AutoComboConfig` objects-ஐ உருவாக்குகிறது |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provider registry-ஐ mock செய்வதற்கான test hook     |
+| `src/sse/handlers/chat.ts`                                | ஒருங்கிணைப்பு: auto prefix short-circuit           |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` system entry               |
+
+## உண்மையான Model Id உடன் பொருந்தும் Combo பெயர்கள்
+
+ஒரு combo-வின் `name`, prefix இல்லாத model id-க்கு ஒரே மாதிரியாக இருப்பது (எ.கா., `gpt-5.5` எனப் பெயரிடப்பட்ட combo) ஒரு பிழை அல்ல; அது **வேண்டுமென்றே வடிவமைக்கப்பட்ட, ஆதரிக்கப்படும் முறை**: [#6940](https://github.com/diegosouzapw/OmniRoute/issues/6940)-இல் ஆவணப்படுத்தப்பட்டுள்ள, ஒவ்வொரு model id-க்குமான provider fallback இயங்குமுறை இதுவாகும். Prefix இல்லாத model-id resolution-க்கு முன்பாக combo resolution சரிபார்க்கப்படுவதால் (`src/sse/services/model.ts`-இல் உள்ள `getComboForModel()`), prefix இல்லாத id `gpt-5.5`-க்கான கோரிக்கை, நேரடியாக ஒற்றை provider-க்கு அனுப்பப்படுவதற்குப் பதிலாக combo-வின் targets வழியாக (எ.கா., `acme-responses/gpt-5.5`, `backup-responses/gpt-5.5`) வழிமாற்றப்படுகிறது — இது [#3227/#3233](https://github.com/diegosouzapw/OmniRoute/issues/3227)-க்காக உருவாக்கப்பட்ட combo-before-rewrite முன்னுரிமையை மீண்டும் பயன்படுத்துகிறது; மேலும் இது `tests/unit/responses-combo-resolution-3227.test.ts` மற்றும் `tests/unit/combo-name-codex-responses-rewrite.test.ts` ஆகியவற்றால் regression சோதனை செய்யப்படுகிறது.
+
+உண்மையான model id-ஐ மறைக்கும் பெயருடன் combo ஒன்றை உருவாக்குவதோ அல்லது அதற்கு அத்தகைய பெயரை மாற்றுவதோ **ஒருபோதும் நிராகரிக்கப்படாது** — அவ்வாறு செய்வது ஆவணப்படுத்தப்பட்ட இந்தப் பணிப்பாய்வை முறித்துவிடும். அதற்குப் பதிலாக (#8530), (புதிய) பெயர் உண்மையான model id உடன் மோதும்போது, `POST /api/combos` மற்றும் `PUT /api/combos/[id]` ஆகியவை response-இல் செயல்பாட்டைத் தடுக்காத `warning` field-ஐ இணைக்கின்றன:
+
+```json
+{
+  "warning": {
+    "code": "COMBO_NAME_SHADOWS_MODEL",
+    "modelId": "gpt-5.5",
+    "providerId": "openai"
+  }
+}
+```
+
+தொடக்கத்தின்போது, `scanComboModelNameCollisionsAtBoot()` (`src/instrumentation-node.ts`) ஒரு model id-ஐ மறைக்கும் ஒவ்வொரு existing combo-வையும் பட்டியலிடும் ஒற்றை வரி `[STARTUP]` எச்சரிக்கையையும் பதிவு செய்கிறது. இதனால், #6940-இன்படி வேண்டுமென்றே செய்வதற்குப் பதிலாகத் தற்செயலாக இதைச் சந்திக்கும் operators-க்கு ஓர் அறிகுறி கிடைக்கிறது. கண்டறிதலுக்கான helper, `src/lib/combos/modelNameCollision.ts`-இல் உள்ளது.
+
+## Client-இலிருந்து Custom Combo ஒன்றை அழைத்தல்
+
+சேமிக்கப்பட்ட combos (அமைப்புகள் → Combos), client ஆனது combo-வின் **துல்லியமான பெயரை** `model` field-இல் அனுப்பும்போது மட்டுமே பயன்படுத்தப்படும் — combo பெயருக்கு fuzzy அல்லது partial matching எதுவும் இல்லை; மேலும் `auto/` prefix-உம் இதில் ஈடுபடாது. Resolution வரிசை (`src/sse/services/model.ts`-இல் உள்ள `getComboForModel()`):
+
+1. துல்லியமான combo-name பொருத்தம் (`model: "my-combo"`),
+2. `combo/<name>` prefix (`model: "combo/my-combo"`),
+3. model→combo glob mappings (`/api/model-combo-mappings`).
+
+```bash
+curl -X POST http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"my-combo","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+பொதுவான இரண்டு இடர்ப்பாடுகள்:
+
+- **`auto` உங்கள் combos-ஐப் பயன்படுத்தாது.** `auto`/`auto/*` அதன் சொந்த zero-config candidate pool-ஐ உருவாக்குகிறது; மேலும் ஒரு combo-வின் பெயர் உண்மையிலேயே `auto` என இருந்தால் மட்டுமே சேமிக்கப்பட்ட combos-ஐப் பரிசீலிக்கும் (பரிந்துரைக்கப்படவில்லை). Combo வழியாக வழிமாற்ற, அதன் துல்லியமான பெயரை அனுப்பவும் — `auto`-ஐ அல்ல.
+- **`openrouter/auto` என்பது கட்டணம் வசூலிக்கப்படும் உண்மையான OpenRouter தயாரிப்பு** ("Auto Best Available"); அது OmniRoute alias அல்ல. இது OpenRouter registry-இன் (`open-sse/config/providers/registry/openrouter/index.ts`) ஒற்றை static model entry ஆகும்; இதற்குத் தனியாகக் கட்டணம் வசூலிக்கப்படும். `auto` pools-இலிருந்து இதை விலக்க, அமைப்புகள் → Routing → கட்டண model-களை மறை என்பதைப் பயன்படுத்தவும்.
+
+இங்கு ஆவணப்படுத்தப்பட்டுள்ள இந்த அசல் குழப்பம் குறித்த விவரங்களுக்கு [#7992](https://github.com/diegosouzapw/OmniRoute/issues/7992) மற்றும் [#7111](https://github.com/diegosouzapw/OmniRoute/issues/7111) ஆகியவற்றைப் பார்க்கவும்.
+
+## இது எவ்வாறு செயல்படுகிறது (நிலையாகச் சேமிக்கப்படும் தானியங்கு-சேர்க்கைகள்)
+
+தானியங்கு-சேர்க்கை இயந்திரம், ஒவ்வொரு கோரிக்கைக்கும் சிறந்த வழங்குநர்/மாதிரியை **16-காரணி மதிப்பீட்டுச் செயல்பாட்டைப்** பயன்படுத்தி மாறும் வகையில் தேர்ந்தெடுக்கிறது (`open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS` என்பதில் வரையறுக்கப்பட்டுள்ளது). இயல்புநிலை எடைகளின் கூட்டுத்தொகை `1.0`; தனிப்பயன் எடைகள் `normalizeScoringWeights()` மூலம் மீண்டும் இயல்பாக்கப்படுகின்றன. பதினாறில் `cacheAffinity` மற்றும் `resetWindowAffinity` ஆகிய இரண்டும் இயல்புநிலை எடையாக `0`-ஐக் கொண்டுள்ளன; `reliability` என்பது `DEFAULT_WEIGHTS`-இல் `0`-ஐயும், பொதுவான தொகுப்புகளில் `0.03`-ஐயும், `reliability-first`-இல் `0.04`-ஐயும் கொண்டுள்ளது; மேலும் `quality` தொகுப்புகளில் `0.02`-ஐக் கொண்டுள்ளது (`quality-first`-இல் `0.03`): இருப்பினும், ஒவ்வொரு தேர்வருக்கும் அவை கணக்கிடப்படுகின்றன; மேலும் மதிப்பெண்ணுக்கு வெளியே, தூண்டல்-தற்காலிகச் சேமிப்பக நகல் நீக்கத்தை `cacheAffinity` கட்டுப்படுத்துகிறது. எனவே, பூஜ்ஜிய இயல்புநிலை கொண்ட காரணிகள் இயல்பாக வாக்களிப்பதில்லை; ஆனால் தொகுப்புகளில் அவை வாக்களிக்கின்றன.
+
+![தானியங்கு-சேர்க்கையின் 16-காரணி மதிப்பீடு](../diagrams/exported/auto-combo-scoring.svg)
+
+> மூலம்: [diagrams/auto-combo-scoring.mmd](../diagrams/auto-combo-scoring.mmd) (`npm run docs:render-diagrams` மூலம் மீண்டும் உருவாக்கவும்). கோப்புப்பெயர் வரலாற்றுக் காரணங்களால் அப்படியே உள்ளது; `DEFAULT_WEIGHTS`-இல் அறிவிக்கப்பட்டுள்ள அனைத்து 16 காரணிகளையும் மூலமும் உருவாக்கப்பட்ட வரைபடமும் காட்டுகின்றன.
+
+| காரணி                 | இயல்புநிலை எடை | விளக்கம்                                                                                                                                                                                                                                                                                    |
+| :-------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `quota`               | 0.1429         | மீதமுள்ள ஒதுக்கீடு / வீத-வரம்பு இடவசதி [0..1]                                                                                                                                                                                                                                               |
+| `health`              | 0.1605         | சுற்று முறிப்பானிலிருந்து பெறப்படும் ஆரோக்கிய மதிப்பெண் (CLOSED=1.0, HALF_OPEN=0.5, OPEN=0.0)                                                                                                                                                                                               |
+| `costInv`             | 0.1429         | தலைகீழ் **கலப்பு** செலவு (60% உள்ளீடு + 40% வெளியீட்டு டோக்கன் விலை, இயல்பாக்கப்பட்டது) — விலை குறைவாக இருந்தால் மதிப்பெண் அதிகம்                                                                                                                                                           |
+| `latencyInv`          | 0.1143         | தொகுப்புக்கு இயல்பாக்கப்பட்ட தலைகீழ் p95 தாமதம் — வேகம் அதிகமாக இருந்தால் மதிப்பெண் அதிகம்                                                                                                                                                                                                  |
+| `taskFit`             | 0.0762         | பணி-வகைப் பொருத்தம் (நிரலாக்கம், மதிப்பாய்வு, திட்டமிடல், பகுப்பாய்வு, பிழைத்திருத்தம், ஆவணங்கள்)                                                                                                                                                                                           |
+| `stability`           | 0.0476         | தாமதத்தின் திட்ட விலக்கிலிருந்து பெறப்படும் மாறுபாடு-அடிப்படையிலான நிலைத்தன்மை — பதில் நேரம் அதிகமாக ஏற்றத்தாழ்வு அடையும் தேர்வருக்கு குறைந்த மதிப்பெண் கிடைக்கும்                                                                                                                          |
+| `tierPriority`        | 0.0476         | கணக்கு-அடுக்கு முன்னுரிமை — Ultra=1.0, Pro=0.67, Standard=0.33, Free=0.0                                                                                                                                                                                                                    |
+| `tierAffinity`        | 0.0476         | தேர்வரின் அடுக்கிற்கும் மேனிஃபெஸ்ட் பரிந்துரைக்கும் அடுக்கிற்கும் இடையிலான ஒத்திசைவு                                                                                                                                                                                                        |
+| `specificityMatch`    | 0.0476         | கோரிக்கையின் குறிப்புத்தன்மைக்கும் (மேனிஃபெஸ்ட் குறிப்பு) மாதிரி அடுக்கிற்கும் இடையிலான பொருத்தம்                                                                                                                                                                                           |
+| `contextAffinity`     | 0.0476         | கோரிக்கையின் சூழல்-சாளரத் தேவைக்கும் மாதிரியின் சூழல் சாளரத்திற்கும் இடையிலான ஒத்திசைவு                                                                                                                                                                                                     |
+| `sessionAvailability` | 0.0476         | இந்த அமர்வுக்கான தேர்வு இணைப்பின் OAuth அமர்வுக் கிடைப்புத்தன்மை (`getOAuthSessionAvailability()`; OAuth அல்லாத இணைப்புகள் 1.0 மதிப்பெண் பெறும்)                                                                                                                                            |
+| `connectionDensity`   | 0.0476         | ஒரே வழங்குநரின் இணைப்புகள் முழுவதும் சுமையைப் பரவச் செய்கிறது (செறிவைத் தவிர்த்தல்)                                                                                                                                                                                                         |
+| `cacheAffinity`       | 0.00           | இந்தக் கோரிக்கையின் தூண்டல்-தற்காலிகச் சேமிப்பக முன்னொட்டை ஏற்கெனவே கொண்டிருக்க அதிக வாய்ப்புள்ள இணைப்பை நோக்கிய Rendezvous-hash ஒத்திசைவு (`open-sse/services/combo/promptCacheAffinity.ts`); இயல்பாக முடக்கப்பட்டுள்ளது (#8008)                                                           |
+| `resetWindowAffinity` | 0.00           | சாதகமான ஒதுக்கீட்டு மீட்டமைப்புச் சாளரத்தைக் கொண்ட இணைப்புகளை நோக்கிய சார்பு (இயல்பாக முடக்கப்பட்டுள்ளது)                                                                                                                                                                                   |
+| `quality`             | 0.03           | வழிப்படுத்தல்-நிகழ்வுத் தரக் கண்காணிப்பானிலிருந்து பெறப்படும் பின்னூட்டத்தால் இயக்கப்படும் வெளியீட்டுத் தரச் சமிக்ஞை; கண்காணிப்புகள் இல்லாத தேர்வர்கள் நடுநிலையான 0.5-ஐப் பெறுகின்றனர்                                                                                                      |
+| `reliability`         | 0.00           | பத்து-மாதிரிக் குறைந்தபட்ச வரம்பிற்குப் பின்னால் உள்ள 24 மணிநேரப் பயன்பாட்டு வரலாற்றிலிருந்து பெறப்பட்ட, `1 - failureRate` என்ற கண்காணிக்கப்பட்ட வெற்றி விகிதம் (இல்லையெனில் நிகழ்நேர அளவீடுகள்); கண்காணிப்புகள் இல்லாத தேர்வர்களுக்கு இது 1.0 ஆகக் கருதப்படும். இயல்பாக முடக்கப்பட்டுள்ளது |
+
+**கூட்டுத்தொகை:** `DEFAULT_WEIGHTS`-இல் அறிவிக்கப்பட்டுள்ளபடி `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0`; பயனர் உள்ளமைத்த எடைகள் மதிப்பீட்டுக்கு முன் `normalizeScoringWeights()` மூலம் ஒரு பகிர்வாக மீண்டும் இயல்பாக்கப்படுகின்றன.
+
+## பயன்முறை தொகுப்புகள்
+
+`open-sse/services/autoCombo/modePacks.ts`-இல் முன் வரையறுக்கப்பட்ட 6 எடைச் சுயவிவரங்கள் உள்ளன. ஒவ்வொரு தொகுப்பும் தேர்வை ஒரு இலக்கை நோக்கிச் சாய்க்க, இயல்புநிலை எடைகளை முழுமையாக மாற்றுகிறது. ஒவ்வொரு தொகுப்பின் கூட்டுத்தொகையும் ஏற்கெனவே `1.0` (நான்கு தசம இடங்களில் அச்சிடப்படும்போது `0.9999`) ஆக இருப்பதால், ஒரு தொகுப்பு செயலில் இருக்கும்போது `normalizeScoringWeights()` அர்த்தமுள்ளதாக எதையும் திருத்த வேண்டியதில்லை — கீழேயுள்ள மதிப்புகளே, முழுமையாக்கலைக் கணக்கில் கொண்டால், மதிப்பீட்டாளர் பயன்படுத்துபவை.
+
+| காரணி                 | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
+| :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
+| `quota`               | 0.1133     | 0.1133     | 0.0752        | **0.3324**       | 0.1133            | 0.0376     |
+| `health`              | 0.2667     | 0.1810     | 0.1714        | 0.2667           | **0.3524**        | **0.4000** |
+| `costInv`             | 0.0276     | **0.3324** | 0.0276        | 0.0752           | 0.0181            | 0.0140     |
+| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0186     |
+| `taskFit`             | 0.0952     | 0.0952     | **0.3524**    | 0.0000           | 0.0952            | 0.1905     |
+| `stability`           | 0.0000     | 0.0476     | 0.1429        | 0.0952           | 0.1905            | 0.1714     |
+| `tierPriority`        | 0.0376     | 0.0376     | 0.0276        | 0.0376           | 0.0276            | 0.0040     |
+| `tierAffinity`        | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `specificityMatch`    | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0186     |
+| `sessionAvailability` | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `resetWindowAffinity` | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `connectionDensity`   | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
+| `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
+
+குறிப்புகள்:
+
+- **தொகுப்புகள் `quality` மற்றும் `reliability` ஆகியவற்றைக் கொண்டுள்ளன** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) மற்றும் எடை வரைபடத்தை முழுமையாக மாற்றுகின்றன (`weights = pack`, ஒன்றிணைப்பு அல்ல). `DEFAULT_WEIGHTS` ஆனது `quality 0.03 / reliability 0`-ஐக் கொண்டுள்ளது; `balanced`/`default`-ஐத் தேர்ந்தெடுப்பது அந்த இயல்புநிலைகளைத் தக்கவைக்கிறது, ஒரு தொகுப்பைத் தேர்ந்தெடுப்பது மேலேயுள்ள அந்தத் தொகுப்பின் மதிப்புகளைப் பயன்படுத்துகிறது. தொடக்கநிலைத் தொகுப்பில் (இன்னும் கண்காணிப்புகள் எதுவும் இல்லாததால், `quality 0.5` மற்றும் `reliability 1`) இந்த இரண்டு காரணிகளும் ஒரு பொதுவான தொகுப்பின் கீழ் `+0.04` (`0.03 + 0.01`), `quality-first`-இன் கீழ் `+0.045`, மற்றும் `reliability-first`-இன் கீழ் `+0.05` ஆகியவற்றைச் சேர்க்கின்றன.
+- ஒவ்வொரு தொகுப்பிலும் `tierAffinity`, `specificityMatch` மற்றும் `resetWindowAffinity` ஆகியவை வெளிப்படையாக `0` என அமைக்கப்பட்டுள்ளன.
+- ஒவ்வொரு தொகுப்பின் முக்கியத்துவமும் ஒரு பார்வையில்:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (குறைந்த தாமதம், ஆரோக்கியமான இணைப்புகள்)
+  - **cost-saver** → costInv 0.3324 (மிக மலிவான டோக்கன்கள் வெல்லும்)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, எந்தத் தொகுப்பையும் விட உயர்ந்தது (பணிக்கான சிறந்த மாதிரி, சீரானது)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (வேகம்/செலவைப் பொருட்படுத்தாமல் அதிகபட்ச இருப்பு இடம்)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, எந்தத் தொகுப்பையும் விட உயர்ந்தது (மிகக் குறைவான எதிர்பாராத நிகழ்வுகள்)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (தவறு-உட்செலுத்தல் சுயவிவரம்)
+
+### கோரிக்கை-வாரியான கட்டுப்பாடுகள் (தலைப்புகள்) — #6023 / #6024 / #6025 / #3470
+
+காம்போவின் சேமிக்கப்பட்ட உள்ளமைவை மாற்றாமல், மூன்று தலைப்புகள் வழியாக ஒரு `auto` காம்போவை **ஒவ்வொரு கோரிக்கைக்கும் தனித்தனியாக** வழிநடத்தலாம். இவை `auto` உத்திக்கு மட்டுமே, அவற்றைக் கொண்டுள்ள கோரிக்கைக்கு மட்டுமே பொருந்தும்; தலைப்பு இல்லாதபோது காம்போவில் சேமிக்கப்பட்ட `modePack`/`budgetCap`/`budgetFallback` பயன்படுத்தப்படும்.
+
+| தலைப்பு                       | ஏற்கும் மதிப்புகள்                                                                                                                                                                                     | விளைவு                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `X-OmniRoute-Mode`            | முன்நிர்ணய மாற்றுப்பெயர் (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) அல்லது மூலப் பேக் பெயர் (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | இந்தக் கோரிக்கைக்கான மதிப்பீட்டு எடைகளை மீறியமைக்கிறது. `balanced`/`default` இயல்புநிலை எடைகளைப் பயன்படுத்தக் கட்டாயப்படுத்தும் (பேக் இல்லை). அறியப்படாத மதிப்புகள் புறக்கணிக்கப்படும் (உள்ளமைவு பாதுகாக்கப்படும்).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `X-OmniRoute-Budget`          | ஒரு நேர்மறை எண் (ஒரு கோரிக்கைக்கான அதிகபட்ச USD)                                                                                                                                                       | கண்டிப்பான செலவு உச்சவரம்பு: மதிப்பிடப்பட்ட செலவு இதை மீறும் தேர்வுகள், தேர்ந்தெடுப்பதற்கு முன் வடிகட்டப்படும். **ஒவ்வொரு** தேர்வும் இதை மீறும்போது என்ன நிகழும் என்பது கீழே உள்ள `X-OmniRoute-Budget-Fallback` மூலம் கட்டுப்படுத்தப்படுகிறது.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (இயல்புநிலை, மாற்றுப்பெயர்கள்: `cheapest-viable`, `soft`) அல்லது `strict` (மாற்றுப்பெயர்கள்: `block`, `hard`)                                                                               | `cheapest`: வரம்பை இன்னும் மீறினாலும், ஒட்டுமொத்தமாக மிகக் குறைந்த செலவுடைய தேர்வுக்குப் பின்னடையும் (மரபார்ந்த நடத்தை). `strict`: தேர்ந்தெடுக்க மறுக்கும் — மௌனமாக அதிகம் செலவிடுவதற்குப் பதிலாகக் கோரிக்கை `HTTP 402` உடன் உடனடியாகத் தோல்வியடையும். அறியப்படாத மதிப்புகள் புறக்கணிக்கப்படும்.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `X-OmniRoute-Effort`          | `auto` (பிற மதிப்புகள் ஒதுக்கப்பட்டுள்ளன)                                                                                                                                                              | தகவமைப்புச் சிந்தனை ஒதுக்கீடு: கோரிக்கையில் எந்த வடிவிலுமான காரணவியல் புலமும் (`reasoning_effort`, `reasoning`, `thinking`) **இல்லாதபோது**, கேட்வே `auto` என்பதை நிர்ணயிக்கத்தக்க கோரிக்கை-வடிவச் சமிக்ஞைகளிலிருந்து (கடைசி பயனர் செய்தியின் நீளம், கடைசி பயனர் செய்தி வரையிலான சூழலின் அளவு, முந்தைய கருவி முடிவுகள், கருவிச் சுழற்சி ஆழம்) `low`/`medium`/`high` ஆகத் தீர்மானிக்கிறது. சமிக்ஞைகள் தற்போதைய சுற்றுக்கு மட்டுமே வரையறுக்கப்படுகின்றன — கடைசி பயனர் செய்திக்குப் பிந்தைய அனைத்தும் புறக்கணிக்கப்படும் — எனவே கருவிச் சுழற்சியிலுள்ள ஒவ்வொரு கோரிக்கையும் ஒரே நிலைக்குத் தீர்மானிக்கப்படும் (ஒவ்வொரு சுற்றுக்கும் நிலைசாராத நிர்ணயம், அமர்வு நிலை இல்லை, அப்ஸ்ட்ரீம் ப்ராம்ப்ட்-கேச் முன்னொட்டுகளைச் சிதைக்கும் சுழற்சியிடை அதிகரிப்பு இல்லை). கிளையண்ட் வெளிப்படையாக வழங்கும் காரணவியல் புலமே எப்போதும் முன்னுரிமை பெறும். அப்ஸ்ட்ரீம் அனுப்புகை OpenAI Chat Completions வடிவத்திற்கு (`targetFormat === FORMATS.OPENAI`) தீர்மானிக்கப்படும் கோரிக்கைகளுக்கு மட்டுமே இது பொருந்தும் — `reasoning_effort` என்பது OpenAI வடிவமைப்பிலான புலம் என்பதால், Claude அல்லது Gemini-ஐ இலக்காகக் கொண்ட கோரிக்கையில் இந்தத் தலைப்பு எந்த விளைவையும் ஏற்படுத்தாது (`open-sse/handlers/chatCore/adaptiveEffortWiring.ts`-ஐப் பார்க்கவும்). |
+
+```bash
+# மிக வேகமான சுயவிவரத்தை கட்டாயப்படுத்தி, இந்தக் கோரிக்கையை $0.05 ஆக வரம்பிட்டு, அதிகமாகச் செலவிடுவதற்குப் பதிலாக முற்றிலும் தடுக்கவும்
+curl -sS http://localhost:20128/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-OmniRoute-Mode: fast" \
+  -H "X-OmniRoute-Budget: 0.05" \
+  -H "X-OmniRoute-Budget-Fallback: strict" \
+  -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
+```
+
+தீர்மானம் ஒரு தூய செயல்பாடாகும் (`open-sse/services/autoCombo/requestControls.ts`); தீர்மானிக்கப்பட்ட
+மதிப்புகள் என்ஜினில் ஏற்கெனவே உள்ள `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` உள்ளீடுகளுக்கு வழங்கப்படுகின்றன. ஒரு combo-வில் சேமிக்கப்பட்டுள்ள `config.budgetFallback` ("strict" |
+"cheapest") நிலையான கொள்கையை அமைக்கிறது; header ஒற்றைக் கோரிக்கைக்கு மட்டும் அதை மேலெழுதுகிறது.
+
+## அனைத்து வழிச்செலுத்தல் உத்திகளும்
+
+OmniRoute-இன் காம்போ எஞ்சின் **19 வழிச்செலுத்தல் உத்திகளை** ஆதரிக்கிறது (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` என்பதில் அறிவிக்கப்பட்டுள்ளன). Auto Combo எஞ்சின், `auto` உத்தியின் கீழ் வழங்கப்படுகிறது; மற்றவை நிலையாகச் சேமிக்கப்பட்ட காம்போக்களுக்குக் கிடைக்கின்றன.
+
+| உத்தி               | விளக்கம்                                                                                                                                                                                                                                                           |
+| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | வெளிப்படையான முன்னுரிமையுடன், முதல் இலக்கை முதன்மைப்படுத்தும் வரிசைப்படுத்தப்பட்ட பட்டியல்                                                                                                                                                                         |
+| `weighted`          | ஒவ்வொரு இலக்கிற்குமான எடையின் அடிப்படையிலான எடையிட்ட சீரற்ற தேர்வு                                                                                                                                                                                                 |
+| `round-robin`       | இலக்குகளை வரிசைப்படி சுழற்சி முறையில் பயன்படுத்துதல்                                                                                                                                                                                                               |
+| `context-relay`     | இலக்குகளுக்கு இடையே சூழலைக் கையளித்தல் (நீண்ட உரையாடல்கள்)                                                                                                                                                                                                         |
+| `fill-first`        | அடுத்த இலக்கிற்குச் செல்லும் முன் ஒவ்வொரு இலக்கின் ஒதுக்கீட்டையும் நிரப்புதல்                                                                                                                                                                                      |
+| `p2c`               | 2 தேர்வுகளின் ஆற்றலைப் பயன்படுத்தும் சீரற்ற சுமைச் சமநிலைப்படுத்தல்                                                                                                                                                                                                |
+| `random`            | சீரான சீரற்ற தேர்வு                                                                                                                                                                                                                                                |
+| `least-used`        | தற்போதைய சுமை மிகக் குறைவாக உள்ள இலக்கைத் தேர்ந்தெடுத்தல்                                                                                                                                                                                                          |
+| `cost-optimized`    | பட்டியல் விலையிடலின் அடிப்படையில் ஒவ்வொரு கோரிக்கைக்குமான $ செலவைக் குறைத்தல்                                                                                                                                                                                      |
+| `reset-aware` ⭐    | ஒதுக்கீடு மீட்டமைக்கப்படும் நேரத்தின் அடிப்படையில் முன்னுரிமை அளித்தல் — குறுகிய மீட்டமைப்பு சாளரங்கள் உயர்ந்த தரவரிசை பெறும்                                                                                                                                      |
+| `reset-window`      | ஒதுக்கீட்டுச் சாளரம் மிக விரைவில் மீட்டமைக்கப்படும் இலக்குகளை விரும்புதல்                                                                                                                                                                                          |
+| `headroom`          | மீதமுள்ள ஒதுக்கீட்டு இடைவெளி அதிகமாக உள்ள இலக்கைத் தேர்ந்தெடுத்தல்                                                                                                                                                                                                 |
+| `strict-random`     | மீண்டும் நிகழும் தேர்வுகளை நகல்நீக்கம் செய்யாத சீரற்ற தேர்வு                                                                                                                                                                                                       |
+| `auto`              | Auto Combo மதிப்பீட்டைப் (16 காரணிகள்) பயன்படுத்துதல் — **பரிந்துரைக்கப்படுகிறது**                                                                                                                                                                                 |
+| `lkgp`              | கடைசியாகச் செயல்பட்ட நல்ல பாதை (கடைசியாக வெற்றிபெற்ற வழங்குநருடன் நிலையாக இணைந்து, பின்னர் விதிகளுக்குப் பின்செல்கிறது)                                                                                                                                            |
+| `context-optimized` | தற்போதைய சூழல் அளவுக்கு மிகவும் பொருத்தமான இலக்கைத் தேர்ந்தெடுத்தல்                                                                                                                                                                                                |
+| `cache-optimized`   | prompt-cache பொருத்தத்தின் அடிப்படையில் இலக்குகளை மறுவரிசைப்படுத்துதல் — இந்தக் கோரிக்கையின் தற்காலிகச் சேமிப்பிலுள்ள முன்னொட்டை ஏற்கெனவே கொண்டிருக்க அதிக வாய்ப்புள்ள இணைப்பு முதலில் முயற்சிக்கப்படும் (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | மாதிரிகளின் ஒரு குழுவுக்கு இணையாகக் கோரிக்கைகளை அனுப்பி, பின்னர் ஒரு மதிப்பீட்டாளர் மூலம் ஒரே பதிலைத் தொகுத்தல் (கீழே காண்க)                                                                                                                                       |
+| `pipeline`          | இலக்குகளைத் தொடர்ச்சியாக இயக்கி, ஒவ்வொரு படியின் வெளியீட்டையும் அடுத்த படியின் உள்ளீடாக அனுப்புதல்; இறுதிப் பதில் மட்டுமே திருப்பி வழங்கப்படும் (#6396)                                                                                                            |
+
+⭐ = v3.8.0-இல் புதிது · 🧬 = v3.8.36-இல் புதிது
+
+### `weighted`-இன் செயல்முறை
+
+`weighted` என்பது ஒரு சமநிலைப்படுத்தி அல்ல; அது **ஒவ்வொரு கோரிக்கைக்கும் விகிதாசார சீரற்ற தேர்வு**
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`):
+
+- ஒவ்வொரு கோரிக்கையும் `weight / totalWeight` நிகழ்தகவுடன் **ஒரு** படியைத் தேர்ந்தெடுக்கிறது; மீதமுள்ள படிகள்
+  அந்தக் கோரிக்கைக்கான மாற்றுப் பாதைத் தொடராக, எடையின் இறங்கு வரிசையில் ஒழுங்குபடுத்தப்படுகின்றன.
+- எடை `0` ஆக உள்ள (அல்லது எடை குறிப்பிடப்படாத) ஒரு படி, வேறு ஏதேனும் படிக்கு
+  எடை > 0 ஆக இருக்கும்போது **ஒருபோதும் தேர்ந்தெடுக்கப்படாது** — தேர்ந்தெடுக்கப்பட்ட படி தோல்வியடைந்த பிறகு மட்டுமே அது மாற்றுப் பாதையாகச் செயல்பட முடியும். **அனைத்து**
+  எடைகளும் 0 ஆக இருக்கும்போது மட்டுமே தேர்வு சீரானதாக மாறும்.
+- இலக்குகள் அனைத்தும் கிடைக்காத படிகள் — வழங்குநரின் சர்க்யூட் பிரேக்கர் `OPEN`, இணைப்பு
+  காத்திருப்பு இடைவேளை, மாதிரி பூட்டல் — தேர்வு நடைபெறுவதற்கு முன்பே அதிலிருந்து அகற்றப்படுகின்றன
+  (`open-sse/services/combo/targetResolution.ts`); எனவே ஆரோக்கியமான ஒரே படி, தற்காலிகமாக
+  ஒவ்வொரு கோரிக்கையிலும் தேர்வாகலாம்.
+- `stickyWeightedLimit` (காம்போ உள்ளமைவு, இயல்புநிலை `1` = முடக்கப்பட்டது), மீண்டும் தேர்வு செய்வதற்கு முன் தேர்ந்தெடுக்கப்பட்ட படியை அத்தனை
+  தொடர்ச்சியான வெற்றிகளுக்கு நிலையாக வைத்திருக்கும்.
+
+கண்டிப்பான சுழற்சிக்கு `round-robin`-ஐப் பயன்படுத்தவும்; `weighted`-இல் சமமான எடைகள் புள்ளிவிவர ரீதியான சமநிலையையே வழங்கும் —
+கண்டிப்பான சமநிலையை அல்ல.
+
+## ஒன்றிணைப்பு உத்தி
+
+`fusion` என்பது ஒற்றை இலக்கைத் தேர்ந்தெடுக்காத **ஒரே** உத்தியாகும். இது prompt-ஐ
+**ஒவ்வொரு panel model-க்கும் இணையாக** அனுப்பி, பின்னர் அமைக்கக்கூடிய **judge model** மூலம்
+அனைத்து panel பதில்களிலிருந்தும் ஒற்றை இறுதிப் பதிலைத் தொகுக்கிறது. Upstream `decolua/9router`
+(OpenRouter-இன் Fusion வடிவமைப்பு) இலிருந்து port செய்யப்பட்டது; செயலாக்கம் `open-sse/services/fusion.ts`-இல் உள்ளது.
+
+இது செயல்படும் விதம்:
+
+0. **கருவிகளைக் கொண்ட கோரிக்கைக்கான bypass** — காலியாக இல்லாத `tools` array-ஐக் கொண்டதும்,
+   `tool_choice` வெளிப்படையாக `"none"` என அமைக்கப்படாததுமான கோரிக்கை panel-ஐ முழுமையாகத் தவிர்க்கிறது:
+   அது `tools`/`tool_choice`-ஐ மாற்றமின்றி அனுப்பி, ஒற்றை model-க்கு (அமைக்கப்பட்ட judge அல்லது
+   `panel[0]`) நேரடியாக route செய்யப்படுகிறது. Panel உறுப்பினர்களுக்குக் கருவி அணுகல் இல்லை;
+   மேலும் judge-இன் தொகுப்பு வழிகாட்டுதல் tool-call வெளியீட்டைத் தவிர்க்கச் சொல்கிறது. எனவே,
+   agentic/tool-calling clients தொகுக்கப்பட்ட உரைக்குப் பதிலாக உண்மையான tool-call முடிவைப்
+   பெறுகின்றன (#6771).
+1. **Fan-out** (கருவிகளைக் கொண்டிராத கோரிக்கைகளுக்கு மட்டும்) — prompt ஒவ்வொரு panel
+   model-க்கும் ஒரே நேரத்தில் அனுப்பப்படுகிறது; tools அகற்றப்பட்டு, streaming இல்லாததாகக்
+   கட்டாயப்படுத்தப்படுகிறது (தொகுப்பதற்கு judge-க்கு முழுமையான உரை தேவை).
+2. **Quorum-grace சேகரிப்பு** — `minPanel` பதில்கள் கிடைத்தவுடன், தாமதிக்கும் model-களுக்காக
+   ஒரு குறுகிய grace timer தொடங்குகிறது; அதன் பிறகு சேகரிக்கப்பட்டவற்றைக் கொண்டு fusion
+   தொடர்கிறது. இது கடின timeout வரம்பிற்குள், மிக மெதுவான model சுவர்-கடிகார நேரத்தில்
+   ஏற்படுத்தும் தாமதத்தைக் கட்டுப்படுத்துகிறது.
+3. **Judge தொகுப்பு** — panel பதில்கள் பெயரறியாதவையாக மாற்றப்படுகின்றன (`Source 1`,
+   `Source 2`, … — இதனால் judge model brand-ஐ அல்லாமல் உள்ளடக்கத்தையே மதிப்பிடுகிறது);
+   பின்னர் அவை judge-க்கு வழங்கப்படுகின்றன. அது ஒருமித்த கருத்து / முரண்பாடுகள் / பகுதியளவு
+   உள்ளடக்கம் / தனித்துவமான நுண்ணறிவுகள் / கவனிக்கப்படாத பகுதிகள் ஆகியவற்றைப் பகுப்பாய்வு
+   செய்து, **ஒரே** அதிகாரபூர்வமான பதிலை எழுதுகிறது. Judge call, client-இன் அசல்
+   `stream` flag + tools-ஐத் தக்கவைத்துக்கொள்கிறது; எனவே streaming மற்றும் downstream
+   கருவிப் பயன்பாடு தொடர்ந்து செயல்படும்.
+4. **சீரான தரக்குறைப்பு** — 0 panel பதில்கள் → `503`; சரியாக 1 பதில் மட்டும் எஞ்சினால் →
+   அந்தப் பதில் நேரடியாகத் திருப்பி அனுப்பப்படும் (ஒன்றிணைக்க எதுவுமில்லை); ஒற்றை-model
+   panel நேரடியாகப் பதிலளிக்கும்.
+
+ஒரு panel உறுப்பினர், மற்றொரு combo-ஐக் குறிக்கும் `combo-ref` படியாகவும்
+(`{kind: "combo-ref", comboName: "..."}`) இருக்கலாம் — அது **ஒற்றை black-box panel குரலாகத்**
+தீர்க்கப்படுகிறது (குறிப்பிடப்பட்ட combo-க்குள் முழுமையான recursive dispatch; அந்த combo-வின் சொந்த
+இலக்குகளுக்கான fan-out அல்ல). மற்ற எல்லா combo-ref-ஐப் பயன்படுத்தும் உத்திகளும் ஏற்கனவே பயன்படுத்தும்
+அதே depth/cycle பாதுகாப்பு இதற்கும் பொருந்தும் (#6764).
+
+### கட்டமைப்பு
+
+Combo-வின் `config` blob-இல் அமைக்கப்படுகிறது (schema migration இல்லை — ஏற்கனவே உள்ள
+`combos` table-ஐ மீண்டும் பயன்படுத்துகிறது):
+
+| புலம்                                    | வகை      | இயல்புநிலை        | நோக்கம்                                                                                                              |
+| :--------------------------------------- | :------- | :---------------- | :------------------------------------------------------------------------------------------------------------------- |
+| `config.judgeModel`                      | `string` | முதல் panel model | இறுதிப் பதிலைத் தொகுக்கும் model                                                                                     |
+| `config.fusionTuning.minPanel`           | `number` | `2`               | Grace timer தொடங்குவதற்கு முன் தேவைப்படும் வெற்றிகரமான பதில்கள் (`[2, panelSize]` வரம்பிற்குள் கட்டுப்படுத்தப்படும்) |
+| `config.fusionTuning.stragglerGraceMs`   | `number` | `8000`            | Quorum எட்டப்பட்ட பிறகு தாமதிப்பவர்களுக்காகக் காத்திருக்கும் காலம்                                                   |
+| `config.fusionTuning.panelHardTimeoutMs` | `number` | `90000`           | பதிலளிக்காமல் சிக்கிய ஒரு model கோரிக்கையைத் தாமதப்படுத்த முடியாதபடி அமைக்கப்படும் முழுமையான உச்சவரம்பு              |
+
+இயல்புநிலைகள் `FUSION_DEFAULTS` (`open-sse/services/fusion.ts`)-இல் உள்ளன.
+
+### எடுத்துக்காட்டு
+
+```bash
+curl -X POST http://localhost:20128/api/combos \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "fusion-panel",
+    "strategy": "fusion",
+    "targets": [
+      { "model": "cc/claude-opus-4-7" },
+      { "model": "cx/gpt-5.5" },
+      { "model": "glm/glm-5.1" }
+    ],
+    "config": {
+      "judgeModel": "cc/claude-opus-4-7",
+      "fusionTuning": { "minPanel": 2, "stragglerGraceMs": 8000, "panelHardTimeoutMs": 90000 }
+    }
+  }'
+```
+
+பின்னர், மற்ற combo-களைப் போலவே இதையும் அழைக்கவும்: `{"model":"fusion-panel","messages":[...]}`.
+
+## மெய்நிகர் Auto-Combo தொழிற்சாலை
+
+Auto Combo எஞ்சினுக்குத் முன்-வரையறுக்கப்பட்ட காம்போக்கள் தேவையில்லை. அதற்குப் பதிலாக, `open-sse/services/autoCombo/virtualFactory.ts` இயக்கநேரத்திலேயே தேர்வுக்குரியவற்றை உருவாக்குகிறது:
+
+1. `getProviderConnections({ isActive: true })`-ஐப் பெறுகிறது (இயக்கப்பட்ட அனைத்து இணைப்புகளும்)
+2. செல்லுபடியாகும் நற்சான்றுகளைக் கொண்டவற்றை வடிகட்டுகிறது (`hasUsableOAuthToken()` வழியாக API விசை அல்லது காலாவதியாகாத OAuth டோக்கன்)
+3. மாடல் கிடைப்புத்தன்மை + விலை நிர்ணயத்திற்காக `getProviderRegistry()` உடன் குறுக்குச் சரிபார்ப்பு செய்கிறது
+4. ஒவ்வொரு `(provider, model, connection)` மும்மத்திற்கும், ஒரு `VirtualAutoComboCandidate`-ஐ உருவாக்குகிறது
+5. அனுப்பீட்டு இலக்காக `connection.defaultModel`-ஐ (அல்லது பதிவகத்தின் முதல் மாடலை) தேர்ந்தெடுக்கிறது
+6. 16-காரணி `scorePool()` மற்றும் மாறுபாட்டின் எடைத் தொகுப்பைப் பயன்படுத்தி ஒவ்வொரு தேர்வுக்குரியதற்கும் மதிப்பெண் அளிக்கிறது
+7. `handleComboChat()`-க்காக உருவான நினைவகத்திலுள்ள `AutoComboConfig`-ஐ வழங்குகிறது — தரவுத்தளத்தில் ஒருபோதும் நிலைநிறுத்தப்படாது
+
+இதன் பொருள், **`auto/*` இயக்கப்பட்ட ஒரு புதிய வழங்குநரைச் சேர்ப்பது தேர்வுக்குரியவற்றின் தொகுப்பைத் தானாகவே விரிவுபடுத்தும்** — காம்போவை கைமுறையாகத் திருத்த வேண்டியதில்லை. ஒவ்வொரு கோரிக்கைக்கும் மெய்நிகர் காம்போ மீண்டும் உருவாக்கப்படுவதால், புதிதாகச் சேர்க்கப்பட்ட அல்லது புதிதாக ஆரோக்கியமான நிலையை அடைந்த இணைப்புகள் உடனடியாகத் தேர்ந்தெடுக்கப்படுகின்றன.
+
+## சுய-சீரமைப்பு
+
+- **தற்காலிக விலக்கம்**: மதிப்பெண் < 0.2 → 5 நிமிடங்களுக்கு விலக்கப்படும் (படிப்படியான பின்வாங்கல், அதிகபட்சம் 30 நிமிடங்கள்)
+- **சுற்றுத் துண்டிப்பான் நிலை விழிப்புணர்வு**: OPEN → தானாக விலக்கப்படும்; HALF_OPEN → சோதனைக் கோரிக்கைகள்
+- **சம்பவ முறை**: >50% OPEN → ஆய்வை முடக்கி, நிலைத்தன்மையை அதிகபட்சமாக்கும்
+- **காத்திருப்புக்குப் பிந்தைய மீட்பு**: விலக்கத்திற்குப் பிறகு, முதல் கோரிக்கை குறைக்கப்பட்ட காலக்கெடுவுடன் ஒரு "சோதனை" கோரிக்கையாக இருக்கும்
+
+## Bandit ஆய்வு
+
+5% கோரிக்கைகள் (அமைவாக்கக்கூடியது) ஆய்வுக்காகச் சீரற்ற வழங்குநர்களுக்கு வழிப்படுத்தப்படுகின்றன. சம்பவ முறையில் இது முடக்கப்படும்.
 
 ## API
 
-```bash
-# Create auto-combo
-curl -X POST http://localhost:20128/api/combos/auto \
-  -H "Content-Type: application/json" \
-  -d '{"id":"my-auto","name":"Auto Coder","candidatePool":["anthropic","google","openai"],"modePack":"ship-fast"}'
+**பிரத்யேகமான `POST /api/combos/auto` முனைப்புள்ளி இல்லை** — Auto-Combo இரண்டு வழிகளில் பயன்படுத்தப்படுகிறது:
 
-# List auto-combos
-curl http://localhost:20128/api/combos/auto
+1. **பூஜ்ஜிய-அமைவு (பரிந்துரைக்கப்படுகிறது):** `model: "auto"` அல்லது `model: "auto/<variant>"` உடன் ஏதேனும் chat completion கோரிக்கையை அனுப்பவும். மெய்நிகர் தொழிற்சாலை ஒவ்வொரு கோரிக்கைக்கும் காம்போவை உருவாக்குகிறது — நிலைநிறுத்தலோ API அழைப்புகளோ தேவையில்லை.
+
+2. **`strategy: "auto"` கொண்ட நிலைநிறுத்தப்பட்ட காம்போ:** `POST /api/combos` வழியாக ஒரு வழக்கமான காம்போவை உருவாக்கி, `strategy: "auto"` என்பதுடன் `config.auto.weights` / `config.auto.candidatePool`-ஐ அமைக்கவும். அதே மதிப்பீட்டு எஞ்சின் பயன்படுத்தப்படுகிறது; காம்போ `combos`-இல் சேமிக்கப்பட்டு ID மூலம் மீண்டும் பயன்படுத்தக்கூடியதாக இருக்கும்.
+
+கண்டறிதலுக்காக, `GET /api/combos/auto` ஒவ்வொரு மாறுபாட்டையும், அதன் தீர்மானிக்கப்பட்ட தேர்வுக்குரியவற்றின் தொகுப்பு மற்றும் `context_length` / `max_output_tokens` ஆகியவற்றுடன் பட்டியலிடுகிறது — இவை தேர்வுக்குரியவற்றின் தொகுப்பிலுள்ள சூழல் சாளரங்களின் அதிகபட்ச மதிப்பாகும். கிளையன்ட்கள் (எ.கா. opencode செருகுநிரல்) `0` என்பதற்குப் பதிலாக இந்த மதிப்புகளை அறிவிக்க வேண்டும்: பூஜ்ஜிய சூழல் மதிப்பு opencode-இன் தானியங்குச் சுருக்கத்தை முற்றிலும் முடக்குவதால், நுழைவாயிலின் வரலாற்று நீக்கம் சூழலை அழிக்கும் வரை அமர்வுகள் வளர அனுமதிக்கப்படுகின்றன. MAX மதிப்பை அறிவிப்பது பாதுகாப்பானது, ஏனெனில் auto-combo சூழல் முன்-வடிகட்டி அளவுமீறிய கோரிக்கைகளைப் பெரிய-சாளரத் தேர்வுக்குரியவற்றுக்கு வழிப்படுத்துகிறது.
+
+```bash
+# பூஜ்ஜிய-அமைவுப் பயன்பாடு (காம்போ உருவாக்கம் இல்லை)
+curl -X POST http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto/coding","messages":[{"role":"user","content":"Hello"}]}'
+
+# வழக்கமான combos முனைப்புள்ளி வழியாக நிலைநிறுத்தப்பட்ட auto combo
+curl -X POST http://localhost:20128/api/combos \
+  -H "Content-Type: application/json" \
+  -d '{"id":"my-auto","name":"Auto Coder","strategy":"auto","config":{"auto":{"candidatePool":["anthropic","google","openai"],"weights":{"quota":0.15,"health":0.3,"costInv":0.05,"latencyInv":0.35,"taskFit":0.1,"stability":0,"tierPriority":0.05}}}}'
 ```
 
-## Task Fitness
+### Auto வழிப்படுத்தி உத்திகள்
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+நிலைநிறுத்தப்பட்ட `strategy: "auto"` காம்போக்களில் `config.routerStrategy`-ஐ (அல்லது மரபுவழி
+`config.auto.routerStrategy`-ஐ) பின்வருவனவற்றில் ஒன்றாக அமைக்கலாம்:
 
-## Files
+- `rules` — இயல்புநிலை எடையிடப்பட்ட மதிப்பீடு
+- `score` — அமைவாக்கப்பட்ட மிக உயர்ந்த எடையிடப்பட்ட மதிப்பெண்ணைத் தேர்ந்தெடுக்கிறது. துல்லியமான சமநிலைகளில் அமைவாக்கப்பட்ட
+  தேர்வுக்குரிய வரிசை பாதுகாக்கப்படும்; ஏற்கனவே உள்ள `explorationRate`, முழு தரவரிசைத் தொகுப்பிலிருந்து மாதிரியைத் தேர்ந்தெடுக்கிறது.
+- `cost` / `eco` — மிக மலிவான ஆரோக்கியமான வழங்குநர்
+- `latency` / `fast` — நம்பகத்தன்மை அபராதத்துடன் மிகக் குறைந்த p95 தாமதம்
+- `sla-aware` / `sla` — p95 தாமதம், பிழை விகிதம் மற்றும் விருப்பத்திற்குரிய
+  செலவு SLO-களைப் பூர்த்தி செய்யும் தேர்வுக்குரியவற்றுக்கு முன்னுரிமை அளிக்கும்
+- `lkgp` — கடைசியாக அறியப்பட்ட நல்ல வழங்குநருக்கு முதலில் முன்னுரிமை
 
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+### வழிப்படுத்தி உத்திகள் விரிவாக
+
+Auto-combo எஞ்சின், `config.routerStrategy` வழியாக (அல்லது மரபுவழி `config.auto.routerStrategy` வழியாக)
+நீங்கள் மாற்றிப் பயன்படுத்தக்கூடிய 6 செருகக்கூடிய **RouterStrategy** செயலாக்கங்களை வழங்குகிறது.
+ஒவ்வொரு உத்தியும் ஒரு `RoutingContext` (பணி வகை, கருவி/பார்வைக் குறிப்புகள், டோக்கன் மதிப்பீடு, விருப்பத்திற்குரிய SLA கொள்கை, விருப்பத்திற்குரிய
+கடைசியாக அறியப்பட்ட நல்ல வழங்குநர்) கொடுக்கப்பட்டபோது, தேர்வுக்குரியவற்றின் தொகுப்பிலிருந்து ஒரு வழங்குநரைத் தேர்ந்தெடுக்கிறது.
+
+#### 1. `rules` (இயல்புநிலை) — 16-காரணி எடையிடப்பட்ட மதிப்பீடு
+
+ஏற்கனவே உள்ள மதிப்பீட்டு எஞ்சினைச் சுற்றிப் பொதிக்கிறது. `OPEN` சுற்றுத் துண்டிப்பான் நிலையிலுள்ள
+தேர்வுக்குரியவற்றை வடிகட்டி, பின்னர் தற்போதைய பணி வகை மற்றும் `getTaskFitness()` உடன் `scorePool()`-ஐ இயக்கி,
+அதிக மதிப்பெண் பெற்ற வழங்குநரைத் தேர்ந்தெடுக்கிறது.
+
+```ts
+class RulesStrategyImpl implements RouterStrategy {
+  readonly name = "rules";
+  readonly description = "16-factor weighted scoring (see DEFAULT_WEIGHTS)";
+
+  select(pool, context) {
+    const eligible = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const ranked = scorePool(
+      eligible.length > 0 ? eligible : pool,
+      context.taskType,
+      undefined,
+      getTaskFitness
+    );
+    return { provider: ranked[0].provider /* ... */ };
+  }
+}
+```
+
+**எப்போது பயன்படுத்துவது**: இயல்புநிலை. அனைத்து சமிக்ஞைகளிலும் சமநிலையான சமரசம் தேவைப்படும்போது பயன்படுத்தவும்.
+
+**மாற்றுப்பெயர்**: `rules` (மாற்றுப்பெயர் இல்லை)
+
+---
+
+#### 2. `cost` / `eco` — மிக மலிவான ஆரோக்கியமான வழங்குநர்
+
+தேர்வுக்குரியவற்றின் தொகுப்பை `costPer1MTokens` அடிப்படையில் (ஏறுவரிசையில்) வரிசைப்படுத்தி, மிக மலிவானதைத் தேர்ந்தெடுக்கிறது.
+முதலில் `OPEN` நிலையிலுள்ள தேர்வுக்குரியவற்றை வடிகட்டுகிறது.
+
+```ts
+class CostStrategyImpl implements RouterStrategy {
+  readonly name = "cost";
+  readonly description = "Always selects cheapest available provider";
+
+  select(pool, context) {
+    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const sorted = [...healthy].sort((a, b) => a.costPer1MTokens - b.costPer1MTokens);
+    return { provider: sorted[0].provider /* ... */ };
+  }
+}
+```
+
+**எப்போது பயன்படுத்துவது**: செலவு-உணர்திறன் கொண்ட பணிச்சுமைகள், தொகுதி செயலாக்கம் அல்லது பின்னணிப் பணிகள்.
+
+**மாற்றுப்பெயர்கள்**: `cost`, `eco`
+
+---
+
+#### 3. `latency` / `fast` — நம்பகத்தன்மை அபராதத்துடன் மிகக் குறைந்த p95 தாமதம்
+
+`p95LatencyMs + (errorRate * 1000)` அடிப்படையில் வரிசைப்படுத்துகிறது. பெயரளவிலான தாமதம் குறைவாக இருந்தாலும்,
+நம்பகமற்ற வழங்குநர்கள் கீழ்நிலையில் தரவரிசைப்படுத்தப்படுவதைப் பிழை-விகித அபராதம் உறுதிசெய்கிறது.
+
+```ts
+class LatencyStrategyImpl implements RouterStrategy {
+  readonly name = "latency";
+  readonly description = "Prioritizes lowest p95 latency with reliability weighting";
+
+  select(pool, context) {
+    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const sorted = [...healthy].sort(
+      (a, b) => a.p95LatencyMs + a.errorRate * 1000 - (b.p95LatencyMs + b.errorRate * 1000)
+    );
+    return { provider: sorted[0].provider /* ... */ };
+  }
+}
+```
+
+**எப்போது பயன்படுத்த வேண்டும்**: நிகழ்நேர அரட்டை, தானியங்கு நிறைவு அல்லது
+ஊடாடும் நிரலாக்க உதவியாளர்கள் போன்ற தாமதத்தைப் பொறுத்த பணிச்சுமைகள்.
+
+**மாற்றுப்பெயர்கள்**: `latency`, `fast`
+
+---
+
+#### 4. `sla-aware` / `sla` — தாமதம்/பிழை/செலவு SLO இணக்கம்
+
+உள்ளமைக்கப்பட்ட SLO கொள்கையை ஒவ்வொரு தேர்வரும் எவ்வளவு சிறப்பாகப் பூர்த்திசெய்கிறார் என்பதன் அடிப்படையில் மதிப்பெண் அளிக்கிறது:
+
+| காரணி                 | எடை | சூத்திரம்                                                     |
+| --------------------- | --- | ------------------------------------------------------------- |
+| தாமத மதிப்பெண்        | 35% | `threshold / max(value, ε)`                                   |
+| பிழை மதிப்பெண்        | 35% | `threshold / max(value, ε)`                                   |
+| ஆரோக்கிய மதிப்பெண்    | 15% | `1.0` (CLOSED) / `0.5` (HALF_OPEN) / `0.0` (OPEN)             |
+| செலவு மதிப்பெண்       | 10% | `threshold / max(value, ε)` அல்லது தலைகீழாக இயல்பாக்கப்பட்டது |
+| நிலைத்தன்மை மதிப்பெண் | 5%  | தலைகீழாக இயல்பாக்கப்பட்ட தாமதத் திட்ட விலக்கம்                |
+
+`hardConstraints: true` என இருக்கும்போது, தேர்வர்கள் முதன்மையாக **மீறல் மதிப்பெண்**
+(ஏதேனும் SLO-ஐ அவர்கள் எவ்வளவு மீறுகிறார்கள் என்பது) அடிப்படையிலும், பின்னர் கூட்டு மதிப்பெண் அடிப்படையிலும் வரிசைப்படுத்தப்படுகிறார்கள். இல்லையெனில்,
+கூட்டு மதிப்பெண் மட்டுமே பயன்படுத்தப்படும்.
+
+```ts
+class SLAStrategyImpl implements RouterStrategy {
+  readonly name = "sla-aware";
+  readonly description =
+    "Selects the provider most likely to satisfy latency, error-rate, and cost SLOs";
+
+  select(pool, context) {
+    // ... கொள்கையுடன் ஒப்பிட்டு ஒவ்வொரு தேர்வருக்கும் மதிப்பெண் அளிக்கிறது: { targetP95Ms, maxErrorRate, maxCostPer1MTokens, hardConstraints }
+  }
+}
+```
+
+**SLA புலங்கள்** (combo உள்ளமைவில் அமைக்கவும்):
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "sla-aware",
+    "slaTargetP95Ms": 1500,
+    "slaMaxErrorRate": 0.05,
+    "slaMaxCostPer1MTokens": 5,
+    "slaHardConstraints": true
+  }
+}
+```
+
+**எப்போது பயன்படுத்த வேண்டும்**: கடுமையான தாமதம், பிழை-விகிதம் அல்லது செலவு வரவுசெலவுத் திட்டங்களைக் கொண்ட உற்பத்திப் பணிச்சுமைகள்.
+
+**மாற்றுப்பெயர்கள்**: `sla-aware`, `sla`
+
+---
+
+#### 5. `lkgp` — கடைசியாக நன்றாகச் செயல்பட்டதாக அறியப்பட்ட வழங்குநருக்கு முன்னுரிமை
+
+**கடைசியாக நன்றாகச் செயல்பட்டதாக அறியப்பட்ட வழங்குநர்** (அமைக்கப்பட்டிருந்தால்) முதலில் முயற்சிக்கப்படுகிறார்; பின்னர்
+`rules` உத்திக்கு மாறுகிறது. அமர்வு ஒட்டுநிலைக்கு இது பயனுள்ளது — உரையாடலில் வரும்
+தொடர் கோரிக்கைகளை அதே வழங்குநர் கையாளுவார்.
+
+```ts
+class LKGPStrategyImpl implements RouterStrategy {
+  readonly name = "lkgp";
+  readonly description = "Tries last known good provider first, then falls back to rules";
+
+  select(pool, context) {
+    if (context.lkgpEnabled === false) {
+      return getStrategy("rules").select(pool, context);
+    }
+
+    if (context.lastKnownGoodProvider) {
+      const candidates = pool.filter(
+        (c) => c.provider === context.lastKnownGoodProvider && c.circuitBreakerState !== "OPEN"
+      );
+      if (candidates.length > 0) {
+        return { provider: candidates[0].provider /* ... */ };
+      }
+    }
+
+    // rules உத்திக்கு மாறுதல்
+    return getStrategy("rules").select(pool, context);
+  }
+}
+```
+
+**எப்போது பயன்படுத்த வேண்டும்**: தொடர் கோரிக்கைகளை அதே வழங்குநர் கையாள வேண்டும் என நீங்கள் விரும்பும்
+பல-சுற்று உரையாடல்கள் (எ.கா., தற்காலிகச் சேமிப்பு, சூழல் தொடர்ச்சி அல்லது விலை நிலைத்தன்மைக்காக).
+
+**மாற்றுப்பெயர்**: `lkgp` (மாற்றுப்பெயர் இல்லை)
+
+---
+
+### தனிப்பயன் திசைவி உத்திகள்
+
+பொது API வழியாக உங்களுடைய சொந்த `RouterStrategy` செயலாக்கத்தைப் பதிவுசெய்யலாம்:
+
+```ts
+import {
+  registerStrategy,
+  type RouterStrategy,
+} from "@omniroute/open-sse/services/autoCombo/routerStrategy";
+
+class MyCustomStrategy implements RouterStrategy {
+  readonly name = "my-custom";
+  readonly description = "My custom routing strategy";
+
+  select(pool, context) {
+    // உங்கள் திசைவிப்பு தர்க்கம் இங்கே
+    return {
+      provider: pool[0].provider,
+      model: pool[0].model,
+      strategy: this.name,
+      reason: "MyCustomStrategy: ...",
+      candidatesConsidered: pool.length,
+      finalScore: 1.0,
+    };
+  }
+}
+
+registerStrategy("my-custom", new MyCustomStrategy());
+```
+
+பின்னர் இதைப் பயன்படுத்தவும்:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "my-custom"
+  }
+}
+```
+
+---
+
+### திசைவி உத்தித் தேர்வு வழிகாட்டி
+
+| பயன்பாட்டு நிலை      | உத்தி       | காரணம்                                                 |
+| -------------------- | ----------- | ------------------------------------------------------ |
+| சமநிலையான பணிச்சுமை  | `rules`     | இயல்புநிலை — அனைத்து காரணிகளையும் கருதுகிறது           |
+| செலவைக் குறைத்தல்    | `cost`      | எப்போதும் மிகக் குறைந்த செலவுடையதைத் தேர்ந்தெடுக்கிறது |
+| தாமதத்தைக் குறைத்தல் | `latency`   | மிக வேகமான நம்பகமான வழங்குநரைத் தேர்ந்தெடுக்கிறது      |
+| கடுமையான SLO-கள்     | `sla-aware` | p95/பிழை/செலவு வரம்புகளின் அடிப்படையில் வடிகட்டுகிறது  |
+| பல-சுற்று அரட்டை     | `lkgp`      | அமர்வு ஒட்டுநிலை                                       |
+
+SLA-aware புலங்கள்:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "sla-aware",
+    "slaTargetP95Ms": 1500,
+    "slaMaxErrorRate": 0.05,
+    "slaMaxCostPer1MTokens": 5,
+    "slaHardConstraints": true
+  }
+}
+```
+
+## பணி பொருத்தம்
+
+6 பணி வகைகளில் (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`) 30+ மாதிரிகள் மதிப்பிடப்பட்டுள்ளன. வைல்ட்கார்டு வடிவங்களை ஆதரிக்கிறது (எ.கா., `*-coder` → அதிக coding மதிப்பெண்).
+
+## Auto வகைகளின் மீள்பார்வை
+
+அடிப்படை `auto` (இயல்புநிலை) மற்றும் `autoPrefix.ts`-இல் அறிவிக்கப்பட்டுள்ள 6 `AutoVariant` மதிப்புகள் உட்பட, **7 அழைக்கக்கூடிய மாதிரி ID-கள்** உள்ளன:
+
+`auto`, `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`
+
+(`AutoVariant` தானாகவே 6 மதிப்புகளைப் பட்டியலிடுகிறது; 7-வது விருப்பம் "வகை இல்லை" — அடிப்படை `auto` — இது `parseAutoPrefix()` மூலம் `variant: undefined` ஆகக் கையாளப்படுகிறது.)
+
+## Auto-Combo-வில் அடுக்குகள் எவ்வாறு பொருந்துகின்றன
+
+16-காரணி மதிப்பீட்டுச் செயல்பாடு (`open-sse/services/autoCombo/scoring.ts`), அடுக்கு
+உறுப்பினராக இருப்பதை இரண்டு சமிக்ஞைகளாகக் கருதுகிறது: `tierPriority` (0.0476) மற்றும் `tierAffinity` (0.0476). முழுமையான
+`DEFAULT_WEIGHTS` தொகுப்பிற்கு மேலேயுள்ள நியமன [மதிப்பீட்டுக் காரணி அட்டவணையை](#how-it-works-persisted-auto-combos) பார்க்கவும் — ஒவ்வொரு தொகுப்பிற்குமான மீறல்கள் (ship-fast/cost-saver/quality-first/
+offline-friendly) "ஒவ்வொரு தொகுப்பிற்குமான எடை சுயவிவரங்கள்" அட்டவணையில் பட்டியலிடப்பட்டுள்ளன.
+
+அடுக்கு மட்டும் Tier 1-ஐ முதலில் பயன்படுத்துமாறு **கட்டாயப்படுத்தாது** — Tier 1 தாமதம் மோசமாக இருந்தால் அல்லது
+செலவு-எதிர்-தரம் உகந்ததாக இல்லாவிட்டால், Tier 2 வெற்றி பெறும். அடுக்கு வரிசையை கட்டாயப்படுத்த, சேர்க்கை
+உத்தி `priority`-ஐப் பயன்படுத்தி, வழங்குநர்களை அடுக்கின்படி அமைக்கவும்.
+
+Tier 1-க்கு (சந்தா) வலுவான முன்னுரிமை வழங்க, `tierPriority` எடையை அதிகரிக்கவும்:
+
+```json
+{
+  "strategy": "auto",
+  "config": { "auto": { "weights": { "tierPriority": 0.3, "costInv": 0.05 } } }
+}
+```
+
+அடுக்கு வரையறைகள் மற்றும் வழங்குநர் வகைப்பாட்டிற்கு `docs/marketing/TIERS.md`-ஐப் பார்க்கவும்.
+
+## சோதனையும் உள்ளடக்கமும்
+
+### தீர்மானகரமான வழிப்படுத்தல்-முடிவு அணி (`npm run test:combo:matrix`)
+
+`tests/integration/combo-matrix/*.test.ts`, போலியாக்கப்பட்ட மேல் நிலைச் சேவை வழியாக உண்மையான சேர்க்கைச் செயலாக்கத் தொடரைப் பயன்படுத்தி, அனைத்து 19
+பொது உத்திகளின் வழிப்படுத்தல் **முடிவையும்** தொடக்கத்திலிருந்து முடிவுவரை நிரூபிக்கிறது.
+உள்ளடக்கம் பின்வருவனவற்றைச் சேர்க்கிறது:
+
+- அனைத்து 19 `ROUTING_STRATEGY_VALUES` உத்திகளும் (ordered, weighted, cost, context, fusion, …).
+- `quota-share` (உள் பயன்பாடு) தொடக்கத்திலிருந்து முடிவுவரை: உண்மையான `selectQuotaShareTarget` இணைப்புப் புள்ளி (`registerQuotaFetcher` / `setLKGP` /
+  `__setHeadroomSaturationFetcherForTests`) வழியாக DRR நியாயத்தன்மை + செறிவுநிலை முன்னுரிமைக் குறைப்பு.
+- ஒவ்வொரு இலக்கு எண்ணிக்கையிலும் `context-relay` பொதுவான-ஒப்படைப்பு உள்ளடக்கம்.
+
+இந்தச் சோதனைத் தொகுப்பு CI-இல் (`test:integration` பணி) `--test-concurrency=1` மற்றும்
+`--test-force-exit` உடன் இயங்குகிறது; எனவே இது தீர்மானகரமானது மற்றும் நேரடி சான்றுகளைத் தேவையாக்காது.
+
+### நிபந்தனைக்குட்பட்ட நேரடி புகைச் சோதனை (CI-இல் இல்லை — உண்மையான வழங்குநர்கள்)
+
+| கட்டளை                                 | அது செய்வது                                                                                                   |
+| :------------------------------------- | :------------------------------------------------------------------------------------------------------------ |
+| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1` உடன் செயல்முறைக்குள் உண்மையான வழிப்படுத்தல்; நேரடி OmniRoute DB-இன் நிலைப்பதிவை எடுக்கிறது |
+| `npm run test:combo:live:vps`          | நேரடி OmniRoute சேவையகத்திற்கான HTTP அழைப்புகள் (`COMBO_LIVE_BASE_URL`-ஐ அமைக்கவும்)                          |
+| `npm run test:combo:live:vps:failover` | அதே சோதனை, திட்டமிட்ட மாற்றுவழிச் சூழல்களுடன்                                                                 |
+
+இந்தப் புகைச் சோதனைகள் உண்மையான தகவல் பரிமாற்றப் பாதையை (சேர்க்கை → வழங்குநர் → நிறைவு) சோதிக்கின்றன. இவற்றுக்கு
+நேரடி சான்றுகளும் VPS அணுகலும் தேவைப்படுவதால், இவை திட்டமிட்டே CI-இலிருந்து விலக்கப்பட்டுள்ளன.
+
+---
+
+## கோப்புகள்
+
+| கோப்பு                                                    | நோக்கம்                                                                                                                                   |
+| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16-காரணி மதிப்பீட்டுச் செயல்பாடு, `DEFAULT_WEIGHTS`, தொகுதிச் சீராக்கம்                                                                   |
+| `open-sse/services/autoCombo/taskFitness.ts`              | மாதிரி × பணி பொருத்தத் தேடல்                                                                                                              |
+| `open-sse/services/autoCombo/engine.ts`                   | தேர்வு தர்க்கம், bandit, செலவு வரம்பு                                                                                                     |
+| `open-sse/services/autoCombo/selfHealing.ts`              | விலக்கல், ஆய்வுகள், நிகழ்வு முறை                                                                                                          |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 எடைச் சுயவிவரங்கள் (விரைவாக-வெளியிடு, செலவு-சேமிப்பான், தரம்-முதலில், இணையமின்றி-இயங்குவதற்கு-உகந்த, நம்பகத்தன்மை-முதலில், குழப்ப-முறை) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` முன்னொட்டுப் பகுப்பாய்வி + 6 மாறுபாடுகள்                                                                                          |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | நேரடி இணைப்புகளிலிருந்து நினைவகத்திலேயே `AutoComboConfig`-ஐ உருவாக்குகிறது                                                                |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | வழங்குநர் பதிவகத்தைப் போலியாக்குவதற்கான சோதனை இணைப்பு                                                                                     |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (19 உத்திகள்)                                                                                                   |
+| `src/sse/handlers/chat.ts`                                | ஒருங்கிணைப்பு: auto-prefix குறுக்குவழி                                                                                                    |

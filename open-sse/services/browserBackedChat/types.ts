@@ -29,6 +29,8 @@ export interface BrowserBackedChatRequest {
   locale?: string;
   /** Browser IANA timezone. Defaults to America/New_York. */
   timezone?: string;
+  /** Launch a headed browser when the provider rejects true headless mode. */
+  headless?: boolean;
   /** Selector for the provider chat input. */
   inputSelector: string;
   /** Optional selector for the provider submit button. */
@@ -64,6 +66,8 @@ export interface BrowserBackedChatResult {
   isStealth: boolean;
   /** Sanitized POST targets observed while submitting. */
   observedPostUrls?: string[];
+  /** Sanitized POST response targets and statuses observed while submitting. */
+  observedPostResponses?: Array<{ url: string; status: number }>;
   timing: {
     acquireContextMs: number;
     navigateMs: number;

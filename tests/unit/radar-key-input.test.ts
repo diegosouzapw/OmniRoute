@@ -26,6 +26,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import i18nConfig from "../../config/i18n.json" with { type: "json" };
 
 const PAGE_PATH = path.resolve(process.cwd(), "src/app/(dashboard)/dashboard/radar/page.tsx");
 const PAGE_SRC = fs.readFileSync(PAGE_PATH, "utf-8");
@@ -114,14 +115,17 @@ test("radar page: references the 4 new key-input t(...) keys", () => {
   }
 });
 
-test("radar page + all 43 locale files: no price/monetary value in the key-input copy (D14)", () => {
+test(`radar page + all ${i18nConfig.locales.length} locale files: no price/monetary value in the key-input copy (D14)`, () => {
   const PRICE_PATTERN =
     /\$\s?\d|R\$\s?\d|\d+[.,]\d{2}\s?(USD|BRL|EUR)|\b(lifetime|life-time)\b.{0,20}\$/i;
   assert.ok(!PRICE_PATTERN.test(PAGE_SRC), "page.tsx must not contain a price/monetary value");
 
   const messagesDir = path.resolve(process.cwd(), "src/i18n/messages");
   const files = fs.readdirSync(messagesDir).filter((f) => f.endsWith(".json"));
-  assert.ok(files.length >= 40, `expected ~43 locale files, found ${files.length}`);
+  assert.ok(
+    files.length >= i18nConfig.locales.length,
+    `expected the ${i18nConfig.locales.length} configured locales, found ${files.length}`
+  );
 
   for (const file of files) {
     const data = JSON.parse(fs.readFileSync(path.join(messagesDir, file), "utf-8"));

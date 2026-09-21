@@ -417,3 +417,46 @@ test("callVisionModel propagates an external abort to fetch and stops before fal
     globalThis.fetch = originalFetch;
   }
 });
+
+// GHSA-34rg-3pqj-35g9 — the Anthropic describe self-call inlines the user's image URL to
+// base64 through the same `fetchRemoteImageAsDataUri()` sink as the claude-wire reroute.
+// The DNS stub at the top of this file answers a public IP for every hostname, so only the
+// `public-only` string check stands between the request body and a loopback/RFC-1918 fetch.
+for (const privateUrl of ["http://127.0.0.1:1/x.png", "http://192.168.1.50/x.png"]) {
+  test(`callVisionModel never fetches a private image URL (${privateUrl}) for the Anthropic describe path (GHSA-34rg-3pqj-35g9)`, async () => {
+    const fetchedUrls: string[] = [];
+    const fetchImpl: typeof fetch = async (url) => {
+      const requestUrl = String(url);
+      fetchedUrls.push(requestUrl);
+      if (requestUrl === privateUrl) {
+        // Canary: on the vulnerable code these bytes are inlined into the Anthropic body.
+        return new Response(Buffer.from("intranet-bytes"), {
+          status: 200,
+          headers: { "Content-Type": "image/png" },
+        });
+      }
+      return new Response(JSON.stringify({ content: [{ type: "text", text: "described" }] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const config: VisionModelConfig = {
+      model: "anthropic/claude-3-haiku",
+      prompt: "Describe this image",
+      timeoutMs: 30000,
+      maxImages: 10,
+      fetchImpl,
+    };
+
+    await assert.rejects(
+      () => callVisionModel(privateUrl, config, "sk-ant", { maxFallbackAttempts: 1 }),
+      /blocked/i
+    );
+    assert.deepStrictEqual(
+      fetchedUrls,
+      [],
+      "neither the private download nor the self-call may happen"
+    );
+  });
+}

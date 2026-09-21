@@ -1,1 +1,0 @@
-- **feat(leases):** add an explicit owner-authenticated status action that returns only the active lease's privacy-safe configured connection and provider labels, with generation fencing and no credential or internal-id disclosure ([#11910](https://github.com/diegosouzapw/OmniRoute/pull/11910)) — thanks @KaspaPulse

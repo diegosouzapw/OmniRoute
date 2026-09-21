@@ -6,9 +6,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildAllTargetsCoolingDownResponse,
   buildRecoveryHint,
   buildNoUpstreamResponseDiagnostics,
   buildEmptyComboTargetsPayload,
+  formatPreDispatchExclusions,
 } from "../../../open-sse/services/combo/pinRecovery.ts";
 
 test("buildRecoveryHint: reasoning_budget_exhausted maps to switch-combo", () => {
@@ -104,4 +106,82 @@ test("buildEmptyComboTargetsPayload: empty pre-filter pool → generic no_execut
   assert.equal(diagnostics.terminalReason, "no_executable_targets");
   assert.equal(diagnostics.poolSize, 0);
   assert.deepEqual(diagnostics.excluded, []);
+});
+
+// ── all_targets_cooling_down: weighted pre-dispatch exclusions ──────────────
+
+test("buildRecoveryHint: all_targets_cooling_down maps to wait with retry_after_seconds", () => {
+  const hint = buildRecoveryHint("all_targets_cooling_down", 42);
+  assert.equal(hint.action, "wait");
+  assert.equal(hint.retry_after_seconds, 42);
+  assert.match(hint.next_step, /cooling down|cooldown/i);
+  assert.equal("retry_after_seconds" in buildRecoveryHint("all_targets_cooling_down"), false);
+});
+
+test("buildAllTargetsCoolingDownResponse: null when no resilience timer excluded anything", () => {
+  assert.equal(buildAllTargetsCoolingDownResponse([]), null);
+  assert.equal(
+    buildAllTargetsCoolingDownResponse([
+      { provider: "openai", model: "a", reason: "unavailable", retryAfterMs: null },
+      { provider: "zai", model: "glm", reason: "free_tier_drained", retryAfterMs: null },
+    ]),
+    null
+  );
+});
+
+test("buildAllTargetsCoolingDownResponse: 503 with Retry-After = earliest lapse and every exclusion listed", async () => {
+  const res = buildAllTargetsCoolingDownResponse([
+    { provider: "openai", model: "a", reason: "model_lockout", retryAfterMs: 57_400 },
+    { provider: "claude", model: "b", reason: "circuit_open", retryAfterMs: 12_000 },
+    { provider: "gemini", model: "c", reason: "provider_cooldown", retryAfterMs: null },
+    { provider: "zai", model: "d", reason: "unavailable", retryAfterMs: null },
+  ]);
+  assert.ok(res);
+  assert.equal(res.status, 503);
+  assert.equal(res.headers.get("Retry-After"), "12");
+  assert.equal(res.headers.get("x-omniroute-retry-after-seconds"), "12");
+  assert.equal(res.headers.get("x-omniroute-combo-terminal-reason"), "all_targets_cooling_down");
+  const body = (await res.json()) as {
+    error: { code?: string };
+    diagnostics: {
+      poolSize: number;
+      excluded: Array<{ provider: string; model?: string; reason: string }>;
+    };
+    recovery_hint: { action: string; retry_after_seconds?: number };
+  };
+  assert.equal(body.error.code, "all_targets_cooling_down");
+  assert.equal(body.diagnostics.poolSize, 4);
+  assert.deepEqual(
+    body.diagnostics.excluded.map((e) => `${e.provider}/${e.model}:${e.reason}`),
+    [
+      "openai/a:model_lockout",
+      "claude/b:circuit_open",
+      "gemini/c:provider_cooldown",
+      "zai/d:unavailable",
+    ]
+  );
+  assert.deepEqual(body.recovery_hint, {
+    action: "wait",
+    retry_after_seconds: 12,
+    next_step: body.recovery_hint.next_step,
+  });
+});
+
+test("buildAllTargetsCoolingDownResponse: no Retry-After when no exclusion carries a timer", () => {
+  const res = buildAllTargetsCoolingDownResponse([
+    { provider: "openai", model: "a", reason: "model_lockout", retryAfterMs: null },
+  ]);
+  assert.ok(res);
+  assert.equal(res.status, 503);
+  assert.equal(res.headers.get("Retry-After"), null);
+});
+
+test("formatPreDispatchExclusions: operator one-liner with remaining seconds when known", () => {
+  assert.equal(
+    formatPreDispatchExclusions([
+      { provider: "openai", model: "a", reason: "model_lockout", retryAfterMs: 57_400 },
+      { provider: "claude", model: "b", reason: "circuit_open", retryAfterMs: null },
+    ]),
+    "openai/a: model_lockout (58s), claude/b: circuit_open"
+  );
 });

@@ -1,56 +1,58 @@
 # OmniRoute — Uninstall Guide (ગુજરાતી)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/UNINSTALL.md) · 🇸🇦 [ar](../../ar/docs/UNINSTALL.md) · 🇧🇬 [bg](../../bg/docs/UNINSTALL.md) · 🇧🇩 [bn](../../bn/docs/UNINSTALL.md) · 🇨🇿 [cs](../../cs/docs/UNINSTALL.md) · 🇩🇰 [da](../../da/docs/UNINSTALL.md) · 🇩🇪 [de](../../de/docs/UNINSTALL.md) · 🇪🇸 [es](../../es/docs/UNINSTALL.md) · 🇮🇷 [fa](../../fa/docs/UNINSTALL.md) · 🇫🇮 [fi](../../fi/docs/UNINSTALL.md) · 🇫🇷 [fr](../../fr/docs/UNINSTALL.md) · 🇮🇳 [gu](../../gu/docs/UNINSTALL.md) · 🇮🇱 [he](../../he/docs/UNINSTALL.md) · 🇮🇳 [hi](../../hi/docs/UNINSTALL.md) · 🇭🇺 [hu](../../hu/docs/UNINSTALL.md) · 🇮🇩 [id](../../id/docs/UNINSTALL.md) · 🇮🇹 [it](../../it/docs/UNINSTALL.md) · 🇯🇵 [ja](../../ja/docs/UNINSTALL.md) · 🇰🇷 [ko](../../ko/docs/UNINSTALL.md) · 🇮🇳 [mr](../../mr/docs/UNINSTALL.md) · 🇲🇾 [ms](../../ms/docs/UNINSTALL.md) · 🇳🇱 [nl](../../nl/docs/UNINSTALL.md) · 🇳🇴 [no](../../no/docs/UNINSTALL.md) · 🇵🇭 [phi](../../phi/docs/UNINSTALL.md) · 🇵🇱 [pl](../../pl/docs/UNINSTALL.md) · 🇵🇹 [pt](../../pt/docs/UNINSTALL.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/UNINSTALL.md) · 🇷🇴 [ro](../../ro/docs/UNINSTALL.md) · 🇷🇺 [ru](../../ru/docs/UNINSTALL.md) · 🇸🇰 [sk](../../sk/docs/UNINSTALL.md) · 🇸🇪 [sv](../../sv/docs/UNINSTALL.md) · 🇰🇪 [sw](../../sw/docs/UNINSTALL.md) · 🇮🇳 [ta](../../ta/docs/UNINSTALL.md) · 🇮🇳 [te](../../te/docs/UNINSTALL.md) · 🇹🇭 [th](../../th/docs/UNINSTALL.md) · 🇹🇷 [tr](../../tr/docs/UNINSTALL.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/UNINSTALL.md) · 🇵🇰 [ur](../../ur/docs/UNINSTALL.md) · 🇻🇳 [vi](../../vi/docs/UNINSTALL.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/UNINSTALL.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/UNINSTALL.md) · 🇪🇹 [am](../../../am/docs/guides/UNINSTALL.md) · 🇸🇦 [ar](../../../ar/docs/guides/UNINSTALL.md) · 🇦🇿 [az](../../../az/docs/guides/UNINSTALL.md) · 🇧🇬 [bg](../../../bg/docs/guides/UNINSTALL.md) · 🇧🇩 [bn](../../../bn/docs/guides/UNINSTALL.md) · 🇨🇿 [cs](../../../cs/docs/guides/UNINSTALL.md) · 🇩🇰 [da](../../../da/docs/guides/UNINSTALL.md) · 🇩🇪 [de](../../../de/docs/guides/UNINSTALL.md) · 🇬🇷 [el](../../../el/docs/guides/UNINSTALL.md) · 🇪🇸 [es](../../../es/docs/guides/UNINSTALL.md) · 🇪🇪 [et](../../../et/docs/guides/UNINSTALL.md) · 🇮🇷 [fa](../../../fa/docs/guides/UNINSTALL.md) · 🇫🇮 [fi](../../../fi/docs/guides/UNINSTALL.md) · 🇫🇷 [fr](../../../fr/docs/guides/UNINSTALL.md) · 🇮🇪 [ga](../../../ga/docs/guides/UNINSTALL.md) · 🇳🇬 [ha](../../../ha/docs/guides/UNINSTALL.md) · 🇮🇱 [he](../../../he/docs/guides/UNINSTALL.md) · 🇮🇳 [hi](../../../hi/docs/guides/UNINSTALL.md) · 🇭🇷 [hr](../../../hr/docs/guides/UNINSTALL.md) · 🇭🇺 [hu](../../../hu/docs/guides/UNINSTALL.md) · 🇦🇲 [hy](../../../hy/docs/guides/UNINSTALL.md) · 🇮🇩 [id](../../../id/docs/guides/UNINSTALL.md) · 🇳🇬 [ig](../../../ig/docs/guides/UNINSTALL.md) · 🇮🇹 [it](../../../it/docs/guides/UNINSTALL.md) · 🇯🇵 [ja](../../../ja/docs/guides/UNINSTALL.md) · 🇬🇪 [ka](../../../ka/docs/guides/UNINSTALL.md) · 🇰🇭 [km](../../../km/docs/guides/UNINSTALL.md) · 🇮🇳 [kn](../../../kn/docs/guides/UNINSTALL.md) · 🇰🇷 [ko](../../../ko/docs/guides/UNINSTALL.md) · 🇱🇹 [lt](../../../lt/docs/guides/UNINSTALL.md) · 🇱🇻 [lv](../../../lv/docs/guides/UNINSTALL.md) · 🇮🇳 [ml](../../../ml/docs/guides/UNINSTALL.md) · 🇮🇳 [mr](../../../mr/docs/guides/UNINSTALL.md) · 🇲🇾 [ms](../../../ms/docs/guides/UNINSTALL.md) · 🇲🇹 [mt](../../../mt/docs/guides/UNINSTALL.md) · 🇲🇲 [my](../../../my/docs/guides/UNINSTALL.md) · 🇳🇵 [ne](../../../ne/docs/guides/UNINSTALL.md) · 🇳🇱 [nl](../../../nl/docs/guides/UNINSTALL.md) · 🇳🇴 [no](../../../no/docs/guides/UNINSTALL.md) · 🇮🇳 [or](../../../or/docs/guides/UNINSTALL.md) · 🇮🇳 [pa](../../../pa/docs/guides/UNINSTALL.md) · 🇵🇭 [phi](../../../phi/docs/guides/UNINSTALL.md) · 🇵🇱 [pl](../../../pl/docs/guides/UNINSTALL.md) · 🇵🇹 [pt](../../../pt/docs/guides/UNINSTALL.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/UNINSTALL.md) · 🇷🇴 [ro](../../../ro/docs/guides/UNINSTALL.md) · 🇷🇺 [ru](../../../ru/docs/guides/UNINSTALL.md) · 🇱🇰 [si](../../../si/docs/guides/UNINSTALL.md) · 🇸🇰 [sk](../../../sk/docs/guides/UNINSTALL.md) · 🇸🇮 [sl](../../../sl/docs/guides/UNINSTALL.md) · 🇷🇸 [sr](../../../sr/docs/guides/UNINSTALL.md) · 🇸🇪 [sv](../../../sv/docs/guides/UNINSTALL.md) · 🇰🇪 [sw](../../../sw/docs/guides/UNINSTALL.md) · 🇮🇳 [ta](../../../ta/docs/guides/UNINSTALL.md) · 🇮🇳 [te](../../../te/docs/guides/UNINSTALL.md) · 🇹🇭 [th](../../../th/docs/guides/UNINSTALL.md) · 🇹🇷 [tr](../../../tr/docs/guides/UNINSTALL.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/UNINSTALL.md) · 🇵🇰 [ur](../../../ur/docs/guides/UNINSTALL.md) · 🇺🇿 [uz](../../../uz/docs/guides/UNINSTALL.md) · 🇻🇳 [vi](../../../vi/docs/guides/UNINSTALL.md) · 🇳🇬 [yo](../../../yo/docs/guides/UNINSTALL.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/UNINSTALL.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/UNINSTALL.md)
 
 ---
 
-This guide covers how to cleanly remove OmniRoute from your system.
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/UNINSTALL.md) · 🇪🇹 [am](../../../am/docs/guides/UNINSTALL.md) · 🇸🇦 [ar](../../../ar/docs/guides/UNINSTALL.md) · 🇦🇿 [az](../../../az/docs/guides/UNINSTALL.md) · 🇧🇬 [bg](../../../bg/docs/guides/UNINSTALL.md) · 🇧🇩 [bn](../../../bn/docs/guides/UNINSTALL.md) · 🇨🇿 [cs](../../../cs/docs/guides/UNINSTALL.md) · 🇩🇰 [da](../../../da/docs/guides/UNINSTALL.md) · 🇩🇪 [de](../../../de/docs/guides/UNINSTALL.md) · 🇬🇷 [el](../../../el/docs/guides/UNINSTALL.md) · 🇪🇸 [es](../../../es/docs/guides/UNINSTALL.md) · 🇪🇪 [et](../../../et/docs/guides/UNINSTALL.md) · 🇮🇷 [fa](../../../fa/docs/guides/UNINSTALL.md) · 🇫🇮 [fi](../../../fi/docs/guides/UNINSTALL.md) · 🇫🇷 [fr](../../../fr/docs/guides/UNINSTALL.md) · 🇮🇪 [ga](../../../ga/docs/guides/UNINSTALL.md) · 🇳🇬 [ha](../../../ha/docs/guides/UNINSTALL.md) · 🇮🇱 [he](../../../he/docs/guides/UNINSTALL.md) · 🇮🇳 [hi](../../../hi/docs/guides/UNINSTALL.md) · 🇭🇷 [hr](../../../hr/docs/guides/UNINSTALL.md) · 🇭🇺 [hu](../../../hu/docs/guides/UNINSTALL.md) · 🇦🇲 [hy](../../../hy/docs/guides/UNINSTALL.md) · 🇮🇩 [id](../../../id/docs/guides/UNINSTALL.md) · 🇳🇬 [ig](../../../ig/docs/guides/UNINSTALL.md) · 🇮🇹 [it](../../../it/docs/guides/UNINSTALL.md) · 🇯🇵 [ja](../../../ja/docs/guides/UNINSTALL.md) · 🇬🇪 [ka](../../../ka/docs/guides/UNINSTALL.md) · 🇰🇭 [km](../../../km/docs/guides/UNINSTALL.md) · 🇮🇳 [kn](../../../kn/docs/guides/UNINSTALL.md) · 🇰🇷 [ko](../../../ko/docs/guides/UNINSTALL.md) · 🇱🇹 [lt](../../../lt/docs/guides/UNINSTALL.md) · 🇱🇻 [lv](../../../lv/docs/guides/UNINSTALL.md) · 🇮🇳 [ml](../../../ml/docs/guides/UNINSTALL.md) · 🇮🇳 [mr](../../../mr/docs/guides/UNINSTALL.md) · 🇲🇾 [ms](../../../ms/docs/guides/UNINSTALL.md) · 🇲🇹 [mt](../../../mt/docs/guides/UNINSTALL.md) · 🇲🇲 [my](../../../my/docs/guides/UNINSTALL.md) · 🇳🇵 [ne](../../../ne/docs/guides/UNINSTALL.md) · 🇳🇱 [nl](../../../nl/docs/guides/UNINSTALL.md) · 🇳🇴 [no](../../../no/docs/guides/UNINSTALL.md) · 🇮🇳 [or](../../../or/docs/guides/UNINSTALL.md) · 🇮🇳 [pa](../../../pa/docs/guides/UNINSTALL.md) · 🇵🇭 [phi](../../../phi/docs/guides/UNINSTALL.md) · 🇵🇱 [pl](../../../pl/docs/guides/UNINSTALL.md) · 🇵🇹 [pt](../../../pt/docs/guides/UNINSTALL.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/UNINSTALL.md) · 🇷🇴 [ro](../../../ro/docs/guides/UNINSTALL.md) · 🇷🇺 [ru](../../../ru/docs/guides/UNINSTALL.md) · 🇱🇰 [si](../../../si/docs/guides/UNINSTALL.md) · 🇸🇰 [sk](../../../sk/docs/guides/UNINSTALL.md) · 🇸🇮 [sl](../../../sl/docs/guides/UNINSTALL.md) · 🇷🇸 [sr](../../../sr/docs/guides/UNINSTALL.md) · 🇸🇪 [sv](../../../sv/docs/guides/UNINSTALL.md) · 🇰🇪 [sw](../../../sw/docs/guides/UNINSTALL.md) · 🇮🇳 [ta](../../../ta/docs/guides/UNINSTALL.md) · 🇮🇳 [te](../../../te/docs/guides/UNINSTALL.md) · 🇹🇭 [th](../../../th/docs/guides/UNINSTALL.md) · 🇹🇷 [tr](../../../tr/docs/guides/UNINSTALL.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/UNINSTALL.md) · 🇵🇰 [ur](../../../ur/docs/guides/UNINSTALL.md) · 🇺🇿 [uz](../../../uz/docs/guides/UNINSTALL.md) · 🇻🇳 [vi](../../../vi/docs/guides/UNINSTALL.md) · 🇳🇬 [yo](../../../yo/docs/guides/UNINSTALL.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/UNINSTALL.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/UNINSTALL.md)
+
+આ માર્ગદર્શિકા તમારી સિસ્ટમમાંથી OmniRouteને સ્વચ્છ રીતે કેવી રીતે દૂર કરવું તે સમજાવે છે.
 
 ---
 
-## Quick Uninstall (v3.6.2+)
+## ઝડપી અનઇન્સ્ટોલ (v3.6.2+)
 
-OmniRoute provides two built-in scripts for clean removal:
+OmniRoute સ્વચ્છ રીતે દૂર કરવા માટે બે બિલ્ટ-ઇન સ્ક્રિપ્ટ પ્રદાન કરે છે:
 
-### Keep Your Data
+### તમારો ડેટા જાળવી રાખો
 
 ```bash
 npm run uninstall
 ```
 
-This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
+આ OmniRoute એપ્લિકેશનને દૂર કરે છે, પરંતુ `~/.omniroute/`માં રહેલા તમારા ડેટાબેઝ, કૉન્ફિગરેશનો, API કીઓ અને પ્રોવાઇડર સેટિંગ્સને **જાળવી રાખે છે**. જો તમે પછીથી ફરી ઇન્સ્ટોલ કરવાની યોજના ધરાવતા હો અને તમારું સેટઅપ જાળવી રાખવા માંગતા હો, તો આનો ઉપયોગ કરો.
 
-### Full Removal
+### સંપૂર્ણપણે દૂર કરવું
 
 ```bash
 npm run uninstall:full
 ```
 
-This removes the application **and permanently erases** all data:
+આ એપ્લિકેશનને દૂર કરે છે **અને તમામ ડેટાને કાયમ માટે ભૂંસી નાખે છે**:
 
-- Database (`storage.sqlite`)
-- Provider configurations and API keys
-- Backup files
-- Log files
-- All files in the `~/.omniroute/` directory
+- ડેટાબેઝ (`storage.sqlite`)
+- પ્રોવાઇડર કૉન્ફિગરેશનો અને API કીઓ
+- બૅકઅપ ફાઇલો
+- લૉગ ફાઇલો
+- `~/.omniroute/` ડિરેક્ટરીમાંની બધી ફાઇલો
 
-> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+> ⚠️ **ચેતવણી:** `npm run uninstall:full`ને પૂર્વવત્ કરી શકાતું નથી. તમારા બધા પ્રોવાઇડર કનેક્શનો, કૉમ્બોઝ, API કીઓ અને ઉપયોગનો ઇતિહાસ કાયમ માટે કાઢી નાખવામાં આવશે.
 
 ---
 
-## Manual Uninstall
+## મેન્યુઅલ અનઇન્સ્ટોલ
 
-### NPM Global Install
+### NPM ગ્લોબલ ઇન્સ્ટોલ
 
 ```bash
-# Remove the global package
+# ગ્લોબલ પૅકેજ દૂર કરો
 npm uninstall -g omniroute
 
-# (Optional) Remove data directory
+# (વૈકલ્પિક) ડેટા ડિરેક્ટરી દૂર કરો
 rm -rf ~/.omniroute
 ```
 
-### pnpm Global Install
+### pnpm ગ્લોબલ ઇન્સ્ટોલ
 
 ```bash
 pnpm uninstall -g omniroute
@@ -60,97 +62,97 @@ rm -rf ~/.omniroute
 ### Docker
 
 ```bash
-# Stop and remove the container
+# કન્ટેનરને બંધ કરીને દૂર કરો
 docker stop omniroute
 docker rm omniroute
 
-# Remove the volume (deletes all data)
+# વૉલ્યૂમ દૂર કરો (બધો ડેટા કાઢી નાખે છે)
 docker volume rm omniroute-data
 
-# (Optional) Remove the image
+# (વૈકલ્પિક) ઇમેજ દૂર કરો
 docker rmi diegosouzapw/omniroute:latest
 ```
 
 ### Docker Compose
 
 ```bash
-# Stop and remove containers
+# કન્ટેનરોને બંધ કરીને દૂર કરો
 docker compose down
 
-# Also remove volumes (deletes all data)
+# વૉલ્યૂમ પણ દૂર કરો (બધો ડેટા કાઢી નાખે છે)
 docker compose down -v
 ```
 
-### Electron Desktop App
+### Electron ડેસ્કટૉપ ઍપ
 
 **Windows:**
 
-- Open `Settings → Apps → OmniRoute → Uninstall`
-- Or run the NSIS uninstaller from the install directory
+- `Settings → Apps → OmniRoute → Uninstall` ખોલો
+- અથવા ઇન્સ્ટોલ ડિરેક્ટરીમાંથી NSIS અનઇન્સ્ટોલર ચલાવો
 
 **macOS:**
 
-- Drag `OmniRoute.app` from `/Applications` to Trash
-- Remove data: `rm -rf ~/Library/Application Support/omniroute`
+- `/Applications`માંથી `OmniRoute.app`ને ટ્રૅશમાં ખેંચો
+- ડેટા દૂર કરો: `rm -rf ~/Library/Application Support/omniroute`
 
 **Linux:**
 
-- Remove the AppImage file
-- Remove data: `rm -rf ~/.omniroute`
+- AppImage ફાઇલ દૂર કરો
+- ડેટા દૂર કરો: `rm -rf ~/.omniroute`
 
-### Source Install (git clone)
+### સોર્સ ઇન્સ્ટોલ (git clone)
 
 ```bash
-# Remove the cloned directory
+# ક્લોન કરેલી ડિરેક્ટરી દૂર કરો
 rm -rf /path/to/omniroute
 
-# (Optional) Remove data directory
+# (વૈકલ્પિક) ડેટા ડિરેક્ટરી દૂર કરો
 rm -rf ~/.omniroute
 ```
 
 ---
 
-## Data Directories
+## ડેટા ડિરેક્ટરીઓ
 
-OmniRoute stores data in the following locations by default:
+OmniRoute ડિફૉલ્ટ રૂપે નીચેના સ્થાનોમાં ડેટા સંગ્રહિત કરે છે:
 
-| Platform      | Default Path                  | Override                  |
-| ------------- | ----------------------------- | ------------------------- |
-| Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` env var        |
-| Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
-| XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
+| પ્લૅટફૉર્મ | ડિફૉલ્ટ પાથ                          | ઓવરરાઇડ                                |
+| ---------- | ------------------------------------ | -------------------------------------- |
+| Linux      | `~/.omniroute/`                      | `DATA_DIR` એન્વાયરમેન્ટ વેરિએબલ        |
+| macOS      | `~/.omniroute/`                      | `DATA_DIR` એન્વાયરમેન્ટ વેરિએબલ        |
+| Windows    | `%APPDATA%/omniroute/`               | `DATA_DIR` એન્વાયરમેન્ટ વેરિએબલ        |
+| Docker     | `/app/data/` (માઉન્ટ કરેલું વૉલ્યૂમ) | `DATA_DIR` એન્વાયરમેન્ટ વેરિએબલ        |
+| XDG-સુસંગત | `$XDG_CONFIG_HOME/omniroute/`        | `XDG_CONFIG_HOME` એન્વાયરમેન્ટ વેરિએબલ |
 
-### Files in the data directory
+### ડેટા ડિરેક્ટરીમાંની ફાઇલો
 
-| File/Directory       | Description                                       |
-| -------------------- | ------------------------------------------------- |
-| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
-| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
-| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
-| `call_logs/`         | Request payload archives                          |
-| `backups/`           | Automatic database backups                        |
-| `log.txt`            | Legacy request log (optional)                     |
+| ફાઇલ/ડિરેક્ટરી       | વર્ણન                                              |
+| -------------------- | -------------------------------------------------- |
+| `storage.sqlite`     | મુખ્ય ડેટાબેઝ (પ્રોવાઇડરો, કૉમ્બોઝ, સેટિંગ્સ, કીઓ) |
+| `storage.sqlite-wal` | SQLite રાઇટ-અહેડ લૉગ (કામચલાઉ)                     |
+| `storage.sqlite-shm` | SQLite શૅર્ડ મેમરી (કામચલાઉ)                       |
+| `call_logs/`         | રિક્વેસ્ટ પેલોડ આર્કાઇવ્સ                          |
+| `backups/`           | ઑટોમૅટિક ડેટાબેઝ બૅકઅપ્સ                           |
+| `log.txt`            | લેગસી રિક્વેસ્ટ લૉગ (વૈકલ્પિક)                     |
 
 ---
 
-## Verify Complete Removal
+## સંપૂર્ણ દૂર કરવાની ચકાસણી કરો
 
-After uninstalling, verify there are no remaining files:
+અનઇન્સ્ટોલ કર્યા પછી, ખાતરી કરો કે કોઈ ફાઇલો બાકી નથી:
 
 ```bash
-# Check for global npm package
+# વૈશ્વિક npm પૅકેજ માટે તપાસ કરો
 npm list -g omniroute 2>/dev/null
 
-# Check for data directory
+# ડેટા ડિરેક્ટરી માટે તપાસ કરો
 ls -la ~/.omniroute/ 2>/dev/null
 
-# Check for running processes
+# ચાલી રહેલી પ્રક્રિયાઓ માટે તપાસ કરો
 pgrep -f omniroute
 ```
 
-If any process is still running, stop it:
+જો કોઈ પ્રક્રિયા હજી પણ ચાલી રહી હોય, તો તેને બંધ કરો:
 
 ```bash
 pkill -f omniroute

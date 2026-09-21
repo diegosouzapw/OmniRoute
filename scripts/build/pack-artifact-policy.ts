@@ -47,6 +47,7 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/services/compression/engines/llmlingua/onnxWorker.js",
   "open-sse/services/compression/compressionWorker.js",
   "src/lib/usage/callLogArtifactWorker.js",
+  "src/lib/db/healthCheckWorker.js",
   "package.json",
   "peer-stamp.mjs",
   "main-server-timeouts.mjs",
@@ -122,6 +123,11 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "bin/restore-policies.sh",
   "bin/rollback.sh",
   "bin/snapshot-data.sh",
+  // Locale source of truth read at runtime by bin/cli/i18n.mjs (OMNIROUTE_LANG alias
+  // resolution: uk → uk-UA, fil/tl → phi, zh-hk/zh-mo/zh-hant → zh-TW) and by
+  // bin/cli/commands/config.mjs (`config lang list`). Shipped via package.json "files";
+  // without it the published CLI cannot resolve aliases and `config lang list` is empty.
+  "config/i18n.json",
   "open-sse/mcp-server/README.md",
   "open-sse/mcp-server/audit.ts",
   "open-sse/mcp-server/httpTransport.ts",
@@ -164,6 +170,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   "@omniroute/opencode-plugin/",
+  // #12870 shipped the v2 plugin beside its v1 sibling but never widened this
+  // allowlist, so every packed file under it read as an unexpected artifact.
+  "@omniroute/opencode-plugin-v2/",
   "@omniroute/opencode-provider/",
   "bin/cli/",
   // Broad open-sse + src source dirs added to package.json "files" in v3.8.21
@@ -182,6 +191,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",
   "dist/src/lib/usage/callLogArtifactWorker.js",
+  "dist/src/lib/db/healthCheckWorker.js",
   "dist/open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.js",
   "dist/open-sse/services/compression/rules/en/filler.json",
   "dist/server.js",
@@ -223,6 +233,10 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   // or the CLI fails to boot — list them REQUIRED so a regression is loud.
   "bin/aliasResolver.mjs",
   "bin/aliasResolverHook.mjs",
+  // Locale aliases consumed by bin/cli/i18n.mjs at runtime. config/ is not an allowlist
+  // PREFIX, so a vanished file would never fail the unexpected-paths check — list it
+  // REQUIRED so the tarball can never silently lose it again (#7065 class).
+  "config/i18n.json",
   "config/release/wreq-js-native-manifest.json",
   "config/release/wreq-js-rust-license-inventory.json",
   "config/release/wreq-js-rust-notices.md",

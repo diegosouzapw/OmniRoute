@@ -1,0 +1,1 @@
+- **feat(providers):** share the existing `api.x.ai/v1/models` discovery config with `xai-oauth` so SuperGrok OAuth connections pick up new Grok ids without a registry seed edit.

@@ -1,0 +1,1 @@
+- Expose combo wall-clock timeout (`comboTimeoutMs`) next to Target timeout in the combo editor and Combo defaults. Empty keeps the 10-minute hang-stop; a positive value replaces it. ([#13857](https://github.com/diegosouzapw/OmniRoute/pull/13857))

@@ -177,7 +177,7 @@ Wydania, wdrożenia, proxy, tunele, pokrycie testami, baza danych, monitoring.
 
 ## i18n/
 
-Przetłumaczone lustrzane kopie dokumentacji w 43 locale. Listę obsługiwanych języków znajdziesz w [i18n/README.md](i18n/README.md).
+Przetłumaczone lustrzane kopie dokumentacji w 41 locale. Listę obsługiwanych języków znajdziesz w [i18n/README.md](i18n/README.md).
 
 ## screenshots/
 

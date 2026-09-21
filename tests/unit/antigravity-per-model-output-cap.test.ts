@@ -20,6 +20,7 @@ import {
   ANTIGRAVITY_MODEL_ALIASES,
   ANTIGRAVITY_PUBLIC_MODELS,
 } from "../../open-sse/config/antigravityModelAliases.ts";
+import { getResolvedModelCapabilities } from "../../src/lib/modelCapabilities.ts";
 
 function generationConfigOf(request: unknown): Record<string, unknown> {
   const gc = (request as Record<string, unknown>)?.generationConfig;
@@ -197,6 +198,57 @@ test("an aliased id is capped by the model it resolves to", async () => {
   }
 });
 
+test("Gemini 3.8 Flash retains its output allowance above the thinking budget", async () => {
+  const executor = new AntigravityExecutor();
+  for (const model of [
+    "gemini-3.8-flash-high",
+    "gemini-3.8-flash-medium",
+    "gemini-3.8-flash-low",
+    "gemini-3.8-flash-tiered",
+  ]) {
+    const result = await executor.transformRequest(
+      `antigravity/${model}`,
+      {
+        request: {
+          contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+          generationConfig: {
+            maxOutputTokens: 65536,
+            thinkingConfig: { thinkingBudget: 24576, includeThoughts: true },
+          },
+        },
+      },
+      true,
+      { projectId: "project-1" }
+    );
+    if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+    const config = generationConfigOf(result.request);
+    assert.equal(config.maxOutputTokens, 65536, model);
+    assert.equal((config.thinkingConfig as Record<string, unknown>).thinkingBudget, 24576, model);
+  }
+});
+
+test("Gemini 3.8 Flash static spec keeps thinking and context, not only the output cap", () => {
+  const expectedBudget: Record<string, number> = {
+    "gemini-3.8-flash-high": 24576,
+    "gemini-3.8-flash-medium": 8192,
+    "gemini-3.8-flash-low": 1024,
+    "gemini-3.8-flash-tiered": 8192,
+  };
+  for (const model of Object.keys(expectedBudget)) {
+    const caps = getResolvedModelCapabilities({
+      provider: "antigravity",
+      model,
+    });
+    assert.equal(caps.maxOutputTokens, 65536, model);
+    assert.equal(caps.supportsThinking, true, model);
+    assert.equal(caps.supportsTools, true, model);
+    assert.equal(caps.supportsVision, true, model);
+    assert.equal(caps.contextWindow, 1048576, model);
+    assert.equal(caps.defaultThinkingBudget, expectedBudget[model], model);
+    assert.equal(caps.thinkingBudgetCap, 24576, model);
+  }
+});
+
 test("the executor's cap differs per model on the same code path", async () => {
   const executor = new AntigravityExecutor();
 
@@ -227,6 +279,7 @@ test("a provider-prefixed model id resolves to the model's ceiling, not the fall
     ["agy/gemini-3.1-pro-high", 65535],
     ["antigravity/gemini-3.1-pro-high", 65535],
     ["agy/gemini-3.7-flash-high", 65536],
+    ["agy/gemini-3.8-flash-high", 65536],
     ["agy/gpt-oss-120b-medium", 32768],
   ];
 

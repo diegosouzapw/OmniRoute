@@ -66,6 +66,38 @@ export interface VideoBridgeLogRedactionEntry {
   redactedText: string;
 }
 
+/**
+ * #12150 P1 final-review fix: re-anchor each redaction entry's `fullText` from
+ * the FINAL pre-call guardrail payload. The video-bridge guardrail runs at
+ * priority 7, but the PII masker (10) and credential masker (95) rewrite the
+ * SAME chained payload afterward, in place — so by the end of the chain the
+ * replaced part's text may differ from what video-bridge recorded, and the log
+ * sink's content-match (`part.text === fullText`) would miss (fail open). Chain
+ * guardrails only rewrite text in place — they never splice the message array —
+ * so the advisory `(container, messageIndex, partIndex)` still resolves inside
+ * the finished chain payload; reading the part text there yields the true
+ * post-chain text the log sink will see. Falls back to the original `fullText`
+ * when the index no longer resolves. Returns new entries; never mutates the
+ * shared guardrail `meta` array. `redactedText` is unchanged (it is rendered
+ * from the structured cues, independent of any masker rewrite).
+ */
+export function reanchorVideoBridgeRedaction(
+  entries: readonly VideoBridgeLogRedactionEntry[],
+  finalBody: unknown
+): VideoBridgeLogRedactionEntry[] {
+  const body = finalBody as Record<string, unknown> | null | undefined;
+  return entries.map((entry) => {
+    const container = body?.[entry.container];
+    if (!Array.isArray(container)) return { ...entry };
+    const message = container[entry.messageIndex] as { content?: unknown } | undefined;
+    const content = message?.content;
+    if (!Array.isArray(content)) return { ...entry };
+    const part = content[entry.partIndex] as { text?: unknown } | undefined;
+    if (!part || typeof part.text !== "string") return { ...entry };
+    return { ...entry, fullText: part.text };
+  });
+}
+
 type VideoBridgeBody = {
   model?: string;
   messages?: Array<{ role?: string; content?: unknown }>;

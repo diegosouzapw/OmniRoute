@@ -142,5 +142,5 @@ Namespaces added by Group B:
 | `sidebar.costsOverview` | Costs overview item                                            |
 | `activity.*`            | All Activity page strings (title, verbs, filters, empty state) |
 
-Source-of-truth locales: `pt-BR` and `en`. All other 41 locales fall back to
+Source-of-truth locales: `pt-BR` and `en`. All other 40 locales fall back to
 English via the `next-intl` fallback mechanism (configured in `src/i18n/config.ts`).

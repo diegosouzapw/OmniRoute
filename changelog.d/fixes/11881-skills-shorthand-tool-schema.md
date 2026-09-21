@@ -1,1 +1,0 @@
-- **fix(skills):** injected skill tools declared in shorthand (`{"content": "string"}`) now forward valid JSON Schema, unblocking providers that validate tool schemas strictly such as Zhipu GLM on the Console Go tier ([#11881](https://github.com/diegosouzapw/OmniRoute/pull/11881)) — thanks @NoxzRCW

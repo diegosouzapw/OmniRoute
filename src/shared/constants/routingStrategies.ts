@@ -11,6 +11,7 @@ export const ROUTING_STRATEGY_VALUES = [
   "reset-aware",
   "reset-window",
   "headroom",
+  "quota-weighted",
   "strict-random",
   "auto",
   "lkgp",
@@ -170,6 +171,13 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     combosDescKey: "headroomDesc",
     settingsDescKey: "headroomDesc",
     icon: "battery_charging_full",
+  },
+  {
+    value: "quota-weighted",
+    labelKey: "quotaWeighted",
+    combosDescKey: "quotaWeightedDesc",
+    settingsDescKey: "quotaWeightedDesc",
+    icon: "pie_chart",
   },
   {
     value: "strict-random",

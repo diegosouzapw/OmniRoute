@@ -5,10 +5,14 @@ import { getComboByName, getCombos } from "@/lib/db/combos";
 import { pickApiKeyForInternalUse } from "@/lib/db/apiKeys";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
+import type { ResolvedComboTarget } from "@omniroute/open-sse/services/combo/types.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
+export const COMBO_TEST_TIMEOUT_MS = 60_000;
+export const COMBO_TEST_TOTAL_TIMEOUT_MS = 180_000;
 
 async function getInternalApiKey(): Promise<string | null> {
   // Combo health-check probes hit /v1/chat/completions, which enforces
@@ -17,7 +21,24 @@ async function getInternalApiKey(): Promise<string | null> {
   return pickApiKeyForInternalUse("combo-health-check");
 }
 
-function buildComboTestResult(target, partial = {}) {
+type ComboTestResult = {
+  model: string;
+  provider: string;
+  stepId: string;
+  executionKey: string;
+  connectionId: string | null;
+  label: string | null;
+  status?: string;
+  error?: string;
+  statusCode?: number;
+  latencyMs?: number;
+  responseText?: string;
+};
+
+function buildComboTestResult(
+  target: ResolvedComboTarget,
+  partial: Partial<ComboTestResult> = {}
+): ComboTestResult {
   return {
     model: target.modelStr,
     provider: target.provider,
@@ -29,7 +50,12 @@ function buildComboTestResult(target, partial = {}) {
   };
 }
 
-async function testComboTarget(target, baseInternalUrl, internalApiKey: string | null) {
+async function testComboTarget(
+  target: ResolvedComboTarget,
+  baseInternalUrl: string,
+  internalApiKey: string | null,
+  parentSignal: AbortSignal | null = null
+) {
   const startTime = Date.now();
   try {
     // Issue #2359: combo entries with a malformed/missing modelStr surfaced
@@ -53,7 +79,10 @@ async function testComboTarget(target, baseInternalUrl, internalApiKey: string |
     const testBody = buildComboTestRequestBody(modelStr, isEmbedding);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
+    const timeout = setTimeout(() => controller.abort(), COMBO_TEST_TIMEOUT_MS);
+    const combinedSignal = parentSignal
+      ? AbortSignal.any([parentSignal, controller.signal])
+      : controller.signal;
 
     let res;
     try {
@@ -70,7 +99,7 @@ async function testComboTarget(target, baseInternalUrl, internalApiKey: string |
           "X-Request-Id": `combo-test-${randomUUID()}`,
         },
         body: JSON.stringify(testBody),
-        signal: controller.signal,
+        signal: combinedSignal,
       });
     } finally {
       clearTimeout(timeout);
@@ -115,9 +144,20 @@ async function testComboTarget(target, baseInternalUrl, internalApiKey: string |
     });
   } catch (error) {
     const latencyMs = Date.now() - startTime;
+    const err = error as Error;
+    let errorMessage: string;
+    if (err.name === "AbortError") {
+      // Parent abort wins over timer expiry: retrying is pointless once the client is gone.
+      errorMessage =
+        parentSignal?.aborted === true
+          ? sanitizeErrorMessage("Client disconnected")
+          : `Timeout (${COMBO_TEST_TIMEOUT_MS / 1000}s)`;
+    } else {
+      errorMessage = sanitizeErrorMessage(err.message);
+    }
     return buildComboTestResult(target, {
       status: "error",
-      error: error.name === "AbortError" ? "Timeout (20s)" : sanitizeErrorMessage(error.message),
+      error: errorMessage,
       latencyMs,
     });
   }
@@ -168,9 +208,26 @@ export async function POST(request) {
 
     const baseInternalUrl = getInternalBaseUrl();
     const internalApiKey = await getInternalApiKey();
-    const results = await Promise.all(
-      targets.map((target) => testComboTarget(target, baseInternalUrl, internalApiKey))
-    );
+    const results: ComboTestResult[] = [];
+    const loopStarted = Date.now();
+    for (const target of targets) {
+      // Client disconnects surface through request.signal (passed as
+      // parentSignal at the call site below). Stop instead of starting another doomed probe.
+      if (request.signal?.aborted) {
+        break;
+      }
+      if (Date.now() - loopStarted >= COMBO_TEST_TOTAL_TIMEOUT_MS) {
+        results.push(
+          buildComboTestResult(target, {
+            status: "error",
+            error: `Timeout (${COMBO_TEST_TOTAL_TIMEOUT_MS / 1000}s total)`,
+            latencyMs: 0,
+          })
+        );
+        continue;
+      }
+      results.push(await testComboTarget(target, baseInternalUrl, internalApiKey, request.signal));
+    }
     const resolvedResult = results.find((result) => result.status === "ok") || null;
     const resolvedBy = resolvedResult?.model || null;
 

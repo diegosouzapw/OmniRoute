@@ -1,0 +1,1 @@
+- **feat(i18n):** 7 new locales — Hausa (`ha`), Yoruba (`yo`), Igbo (`ig`), Amharic (`am`), Uzbek (`uz`), Georgian (`ka`), Armenian (`hy`) — across the dashboard, docs mirrors, CLI, README and the site (66 locales, the full planned expansion from 43). (#13727)

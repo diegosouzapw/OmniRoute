@@ -58,8 +58,8 @@ OmniRoute includes a service worker (`sw.js`) that provides intelligent caching:
 | **App Shell**                                           | Cache-first                        | `/`, `/offline`, manifest, and icons are pre-cached on install               |
 | **Static assets** (CSS, JS, images, fonts)              | Network-first with cache fallback  | Fetches fresh from the network; falls back to cache if offline               |
 | **Next.js bundles** (`/_next/`)                         | Network-first with cache update    | Fetches from network and updates cache; serves cached version if offline     |
-| **Navigation requests**                                 | Network-only with offline fallback | Always fetches from network; shows `/offline` page if network is unavailable |
-| **API routes** (`/api/`, `/a2a`, `/dashboard/endpoint`) | Bypass (never cached)              | Always goes directly to the server — never intercepted by the service worker |
+| **Navigation requests**                                 | Bypass (never intercepted)         | Browser owns HTTP/3→HTTP/2 fallback; a dead QUIC socket must not become `Response.error()` |
+| **API / dashboard routes** (`/api/`, `/a2a`, `/dashboard`) | Bypass (never cached)           | Always goes directly to the server — never intercepted by the service worker |
 
 ### Offline Page
 
@@ -118,7 +118,7 @@ A vanilla service worker (no framework dependencies) with:
 - **Install phase**: Pre-caches the app shell (root, offline page, manifest, icons)
 - **Activate phase**: Cleans up old cache versions and claims all clients
 - **Fetch phase**: Intelligent routing based on request type (navigation, static asset, API)
-- **Cache versioning**: `omniroute-pwa-v2` — bump this to force a fresh cache on update
+- **Cache versioning**: `omniroute-pwa-v3` — bump this to force a fresh cache on update
 
 ### Layout Metadata (`src/app/layout.tsx`)
 

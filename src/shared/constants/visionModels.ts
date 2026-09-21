@@ -34,6 +34,14 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "minicpm-v",
   "moondream",
   "mimo-vl",
+  // #13847: MiMo V2.5 is multimodal across the provider aliases that expose it
+  // (including `*-free` variants). Keep the known text-only Pro siblings out in
+  // isVisionModelId() below so this shared heuristic stays safe for routing,
+  // `/v1/models`, combo projection and lite compression alike.
+  "mimo-v2.5",
+  // #13847: Step 3.7 Flash is exposed through provider-qualified `:free` routes
+  // as well as direct registry entries. The capability must survive that suffix.
+  "step-3.7-flash",
   "kimi-vl",
   "glm-4v",
   "glm-4.5v",
@@ -57,6 +65,11 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "mistral-medium-3",
   "minimax-m3",
   "kimi-k2.",
+  // Naver CLOVA Studio: HCX-005 is the only v3 model with image input. Listed by
+  // exact id (not a family fragment) to stay conservative — live-verified on
+  // 2026-09-01 that it answers image prompts over both a public URL and a
+  // base64 data URI, while HCX-007 and HCX-DASH-002 reject images.
+  "hcx-005",
   "-vision",
   "multimodal",
 ] as const;
@@ -69,5 +82,13 @@ export const VISION_MODEL_ID_FRAGMENTS = [
 export function isVisionModelId(modelId: string | null | undefined): boolean {
   if (!modelId) return false;
   const normalized = String(modelId).toLowerCase();
+
+  // Xiaomi documents the Pro chat variants as text-only even though the base
+  // MiMo V2.5 model is multimodal. Keep these exclusions beside the shared
+  // heuristic so every consumer gets the same verdict instead of relying on a
+  // resolver-specific exception.
+  if (/(?:^|\/)mimo-v2\.5-pro(?:$|[:/])/i.test(normalized)) return false;
+  if (/(?:^|\/)mimo-v2-pro(?:$|[:/])/i.test(normalized)) return false;
+
   return VISION_MODEL_ID_FRAGMENTS.some((fragment) => normalized.includes(fragment));
 }

@@ -5,15 +5,15 @@ import { edgeStyle, FLOW_EDGE_COLORS } from "../../../src/shared/components/flow
 
 describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
   it("exposes the shared flow palette", () => {
-    assert.equal(FLOW_EDGE_COLORS.active, "#22c55e");
-    assert.equal(FLOW_EDGE_COLORS.error, "#ef4444");
-    assert.equal(FLOW_EDGE_COLORS.last, "#f59e0b");
+    assert.equal(FLOW_EDGE_COLORS.active, "var(--orch-status-success)");
+    assert.equal(FLOW_EDGE_COLORS.error, "var(--orch-status-error)");
+    assert.equal(FLOW_EDGE_COLORS.last, "var(--orch-status-warning)");
     assert.equal(FLOW_EDGE_COLORS.idle, "var(--color-text-muted)");
   });
 
   it("styles an error edge", () => {
     assert.deepEqual(edgeStyle(false, false, true), {
-      stroke: "#ef4444",
+      stroke: "var(--orch-status-error)",
       strokeWidth: 2,
       opacity: 0.85,
     });
@@ -21,7 +21,7 @@ describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
 
   it("styles an active edge", () => {
     assert.deepEqual(edgeStyle(true, false, false), {
-      stroke: "#22c55e",
+      stroke: "var(--orch-status-success)",
       strokeWidth: 2.5,
       opacity: 1,
     });
@@ -29,7 +29,7 @@ describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
 
   it("styles a last-used edge", () => {
     assert.deepEqual(edgeStyle(false, true, false), {
-      stroke: "#f59e0b",
+      stroke: "var(--orch-status-warning)",
       strokeWidth: 1.5,
       opacity: 0.6,
     });
@@ -45,7 +45,7 @@ describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
 
   it("styles a healthy (connected, no in-flight traffic) edge as static dim green", () => {
     assert.deepEqual(edgeStyle(false, false, false, true), {
-      stroke: "#22c55e",
+      stroke: "var(--orch-status-success)",
       strokeWidth: 1.5,
       opacity: 0.4,
     });
@@ -60,10 +60,10 @@ describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
   });
 
   it("applies precedence error > active > last > healthy", () => {
-    assert.equal(edgeStyle(true, true, true).stroke, "#ef4444"); // error wins
-    assert.equal(edgeStyle(true, true, false).stroke, "#22c55e"); // active beats last
-    assert.equal(edgeStyle(false, false, true, true).stroke, "#ef4444"); // error beats healthy
-    assert.equal(edgeStyle(false, true, false, true).stroke, "#f59e0b"); // last beats healthy
+    assert.equal(edgeStyle(true, true, true).stroke, "var(--orch-status-error)"); // error wins
+    assert.equal(edgeStyle(true, true, false).stroke, "var(--orch-status-success)"); // active beats last
+    assert.equal(edgeStyle(false, false, true, true).stroke, "var(--orch-status-error)"); // error beats healthy
+    assert.equal(edgeStyle(false, true, false, true).stroke, "var(--orch-status-warning)"); // last beats healthy
     // healthy green is dimmer/thinner than the active pulse green
     assert.equal(edgeStyle(false, false, false, true).opacity, 0.4);
     assert.equal(edgeStyle(true, false, false, true).opacity, 1); // active still wins

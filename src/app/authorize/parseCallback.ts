@@ -29,6 +29,8 @@ export type ParsedTraeCallback = {
       clientId: string;
       refreshExpireAt: number | null;
       authMethod: "oauth_callback";
+      userRegion?: string;
+      userTimezone?: string;
     };
     testStatus: "active";
   };
@@ -65,6 +67,13 @@ export function parseTraeCallbackQuery(q: URLSearchParams): ParsedTraeCallback |
 
   const userId = (info.UserID as string) || "";
   const region = (info.Region as string) || "US-East";
+  // Best-effort: the /authorize callback's userInfo payload has not been
+  // observed to carry a distinct x-user-region/timezone value distinct from
+  // Region — if Trae ever adds one under these names it propagates
+  // automatically; otherwise buildHeaders() falls back to "US"/no timezone
+  // header exactly as it does today (#12190).
+  const userRegion = (info.UserRegion as string) || undefined;
+  const userTimezone = (info.Timezone as string) || undefined;
 
   return {
     ok: true,
@@ -90,6 +99,8 @@ export function parseTraeCallbackQuery(q: URLSearchParams): ParsedTraeCallback |
         clientId: (userJwt.ClientID as string) || "en1oxy7wnw8j9n",
         refreshExpireAt: refreshExpiresAtMs || null,
         authMethod: "oauth_callback",
+        ...(userRegion ? { userRegion } : {}),
+        ...(userTimezone ? { userTimezone } : {}),
       },
       testStatus: "active",
     },

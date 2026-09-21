@@ -282,6 +282,48 @@ describe("DRR: deficit round robin", () => {
     );
   });
 
+  test("unweighted steps (weight 0 from the resolver) still alternate instead of pinning the first", () => {
+    // comboStructure resolves a step with no weight to 0, and #10881 made 0 mean "disabled".
+    // With every target at 0 the total weight is 0 and DRR returned definition order, so a
+    // quota-share combo without explicit weights sent every request to its first target.
+    const t1 = makeTarget("ek-unweighted-1", "conn-unweighted-1", 0);
+    const t2 = makeTarget("ek-unweighted-2", "conn-unweighted-2", 0);
+
+    const selected: Array<string | undefined> = [];
+    for (let i = 0; i < 4; i++) {
+      const r = selectQuotaShareTarget(
+        [t1, t2],
+        "combo-unweighted",
+        "anthropic/claude-sonnet-4-5",
+        NOW
+      );
+      selected.push(r.target?.executionKey);
+      r.decrementInflight();
+    }
+    assert.deepEqual(selected, [
+      "ek-unweighted-1",
+      "ek-unweighted-2",
+      "ek-unweighted-1",
+      "ek-unweighted-2",
+    ]);
+  });
+
+  test("an explicit weight 0 still disables that target while another target is weighted", () => {
+    const weighted = makeTarget("ek-on", "conn-on", 100);
+    const disabled = makeTarget("ek-off", "conn-off", 0);
+
+    for (let i = 0; i < 4; i++) {
+      const r = selectQuotaShareTarget(
+        [disabled, weighted],
+        "combo-disabled",
+        "anthropic/claude-sonnet-4-5",
+        NOW
+      );
+      assert.equal(r.target?.executionKey, "ek-on");
+      r.decrementInflight();
+    }
+  });
+
   test("DRR state is isolated per comboName", () => {
     const t = makeTarget("ek-shared", "conn-shared", 100);
     selectQuotaShareTarget([t], "combo-A", "anthropic/claude-sonnet-4-5", NOW);

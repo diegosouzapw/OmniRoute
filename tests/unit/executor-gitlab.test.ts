@@ -320,3 +320,55 @@ test("GitlabExecutor falls back to the public Code Suggestions endpoint when dir
     globalThis.fetch = originalFetch;
   }
 });
+
+// #12958: an entitlement/scope-resolution 403 (NOT the "direct connections are
+// disabled" tenant-config message) must ALSO fall back to the public Code Suggestions
+// completions endpoint — previously only that exact message recovered; any other 403
+// hard-failed the request even when the same token was accepted by the public endpoint.
+test("GitlabExecutor falls back to the public Code Suggestions endpoint on an entitlement-flavored 403 (#12958)", async () => {
+  const executor = (await getExecutor("gitlab-duo")) as GitlabExecutor;
+  const originalFetch = globalThis.fetch;
+  const calls: string[] = [];
+
+  globalThis.fetch = async (url) => {
+    calls.push(String(url));
+
+    if (String(url) === "https://gitlab.example.com/api/v4/code_suggestions/direct_access") {
+      return jsonResponse({ error: "insufficient_scope", scope: "ai_features" }, 403);
+    }
+
+    return jsonResponse({
+      model: { name: "code-gecko" },
+      choices: [{ text: "fallback path works" }],
+    });
+  };
+
+  try {
+    const result = await executor.execute({
+      model: "gitlab-duo-code-suggestions",
+      body: {
+        messages: [{ role: "user", content: "Say hello" }],
+      },
+      stream: false,
+      credentials: {
+        accessToken: "oauth-access",
+        providerSpecificData: {
+          baseUrl: "https://gitlab.example.com",
+        },
+      },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+
+    assert.deepEqual(calls, [
+      "https://gitlab.example.com/api/v4/code_suggestions/direct_access",
+      "https://gitlab.example.com/api/v4/code_suggestions/completions",
+    ]);
+
+    const body = (await result.response.json()) as GitLabResponseBody;
+    assert.equal(body.model, "code-gecko");
+    assert.match(body.choices[0].message.content, /fallback path/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

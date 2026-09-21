@@ -1,7 +1,7 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createFile, listFiles, formatFileResponse, countFiles } from "@/lib/db/files";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
+import { getApiKeyRequestScope, resolveListScope } from "@/app/api/v1/_helpers/apiKeyScope";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -130,7 +130,14 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const scope = await getApiKeyRequestScope(request);
   if (scope.rejection) return scope.rejection;
-  const apiKeyId = scope.apiKeyId;
+
+  // Key → own files only; dashboard session without a key → instance-wide;
+  // anonymous / unresolvable bearer → 401. `listFiles`/`countFiles` read an
+  // absent owner as "every tenant", so the widening must be an explicit
+  // decision here, never a fallback (GHSA-m3hp-hq9g-fpmv).
+  const listScope = resolveListScope(scope);
+  if (listScope.mode === "rejected") return listScope.response;
+  const ownerFilter = listScope.mode === "api_key" ? listScope.apiKeyId : undefined;
 
   const { searchParams } = new URL(request.url);
   const parsed = parseFilesListQuery(searchParams);
@@ -139,7 +146,7 @@ export async function GET(request: Request) {
 
   // We fetch limit + 1 to check if there are more items
   const files = listFiles({
-    apiKeyId: apiKeyId || undefined,
+    apiKeyId: ownerFilter,
     purpose,
     limit: limit + 1,
     after,
@@ -148,7 +155,7 @@ export async function GET(request: Request) {
 
   const hasMore = files.length > limit;
   const data = files.slice(0, limit);
-  const totalCount = countFiles({ apiKeyId: apiKeyId || undefined, purpose });
+  const totalCount = countFiles({ apiKeyId: ownerFilter, purpose });
 
   return NextResponse.json(
     {

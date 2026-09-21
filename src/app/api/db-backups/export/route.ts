@@ -27,20 +27,28 @@ export async function GET(request: Request) {
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const exportFilename = `omniroute-backup-${timestamp}.sqlite`;
-    const tmpDir = os.tmpdir();
-    const tmpPath = path.join(tmpDir, exportFilename);
+    // Use mkdtempSync (exclusive creation, random suffix) instead of a
+    // deterministic timestamp path — a predictable path lets a local
+    // attacker pre-place a symlink and redirect the write (TOCTOU).
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-backup-"));
+    const tmpPath = path.join(tmpDir, "backup.sqlite");
 
     // Use native SQLite backup API for a consistent snapshot
     const db = getDbInstance();
-    await db.backup(tmpPath);
+    try {
+      await db.backup(tmpPath);
+    } catch (backupError) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+      throw backupError;
+    }
 
     const { size: fileSize } = fs.statSync(tmpPath);
     const readStream = fs.createReadStream(tmpPath);
 
-    // Cleanup temp file on completion, error, or client abort
+    // Cleanup temp dir (and everything in it) on completion, error, or client abort
     const cleanup = () => {
       readStream.destroy();
-      fs.unlink(tmpPath, () => {});
+      fs.rm(tmpDir, { recursive: true, force: true }, () => {});
     };
     request.signal.addEventListener("abort", cleanup, { once: true });
 

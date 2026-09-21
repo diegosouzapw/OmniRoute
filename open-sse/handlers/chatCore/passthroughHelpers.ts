@@ -53,19 +53,35 @@ export function stampNativeResponsesPassthroughBody(
   return { ...body, _nativeOpenAICompatibleResponsesPassthrough: true };
 }
 
+// A body only qualifies for the native-Responses passthrough fast path when it is
+// actually shaped like a Responses API request (`input`, no `messages`). Endpoint
+// path alone is not sufficient: an internally-synthesized Chat Completions-shaped
+// body (e.g. the context-handoff summary request) can be dispatched through a
+// closure that still carries the original client request's `/responses` endpoint,
+// which otherwise makes `sourceFormat` resolve to "openai-responses" even though
+// the body itself was never translated. See issue #12129.
+function isResponsesShapedBody(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false;
+  const candidate = body as Record<string, unknown>;
+  return candidate.input !== undefined && candidate.messages === undefined;
+}
+
 export function shouldUseNativeOpenAICompatibleResponsesPassthrough({
   provider,
   sourceFormat,
   endpointPath,
   providerSpecificData,
+  body,
 }: {
   provider?: string | null;
   sourceFormat?: string | null;
   endpointPath?: string | null;
   providerSpecificData?: unknown;
+  body?: unknown;
 }): boolean {
   if (!provider?.startsWith("openai-compatible-")) return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
+  if (body !== undefined && !isResponsesShapedBody(body)) return false;
   if (providerSpecificData && typeof providerSpecificData === "object") {
     const psd = providerSpecificData as Record<string, unknown>;
     if (psd.apiType === "responses" || psd._omnirouteForceResponsesUpstream === true) {

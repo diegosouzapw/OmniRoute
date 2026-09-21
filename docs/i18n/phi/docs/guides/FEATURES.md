@@ -1,269 +1,337 @@
 # OmniRoute — Dashboard Features Gallery (Filipino)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/FEATURES.md) · 🇸🇦 [ar](../../ar/docs/FEATURES.md) · 🇧🇬 [bg](../../bg/docs/FEATURES.md) · 🇧🇩 [bn](../../bn/docs/FEATURES.md) · 🇨🇿 [cs](../../cs/docs/FEATURES.md) · 🇩🇰 [da](../../da/docs/FEATURES.md) · 🇩🇪 [de](../../de/docs/FEATURES.md) · 🇪🇸 [es](../../es/docs/FEATURES.md) · 🇮🇷 [fa](../../fa/docs/FEATURES.md) · 🇫🇮 [fi](../../fi/docs/FEATURES.md) · 🇫🇷 [fr](../../fr/docs/FEATURES.md) · 🇮🇳 [gu](../../gu/docs/FEATURES.md) · 🇮🇱 [he](../../he/docs/FEATURES.md) · 🇮🇳 [hi](../../hi/docs/FEATURES.md) · 🇭🇺 [hu](../../hu/docs/FEATURES.md) · 🇮🇩 [id](../../id/docs/FEATURES.md) · 🇮🇹 [it](../../it/docs/FEATURES.md) · 🇯🇵 [ja](../../ja/docs/FEATURES.md) · 🇰🇷 [ko](../../ko/docs/FEATURES.md) · 🇮🇳 [mr](../../mr/docs/FEATURES.md) · 🇲🇾 [ms](../../ms/docs/FEATURES.md) · 🇳🇱 [nl](../../nl/docs/FEATURES.md) · 🇳🇴 [no](../../no/docs/FEATURES.md) · 🇵🇭 [phi](../../phi/docs/FEATURES.md) · 🇵🇱 [pl](../../pl/docs/FEATURES.md) · 🇵🇹 [pt](../../pt/docs/FEATURES.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/FEATURES.md) · 🇷🇴 [ro](../../ro/docs/FEATURES.md) · 🇷🇺 [ru](../../ru/docs/FEATURES.md) · 🇸🇰 [sk](../../sk/docs/FEATURES.md) · 🇸🇪 [sv](../../sv/docs/FEATURES.md) · 🇰🇪 [sw](../../sw/docs/FEATURES.md) · 🇮🇳 [ta](../../ta/docs/FEATURES.md) · 🇮🇳 [te](../../te/docs/FEATURES.md) · 🇹🇭 [th](../../th/docs/FEATURES.md) · 🇹🇷 [tr](../../tr/docs/FEATURES.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/FEATURES.md) · 🇵🇰 [ur](../../ur/docs/FEATURES.md) · 🇻🇳 [vi](../../vi/docs/FEATURES.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/FEATURES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+
+Biswal na gabay sa bawat seksyon ng dashboard ng OmniRoute.
+
+> 📅 **Huling na-update:** 2026-06-28 — **v3.8.40**
 
 ---
 
-## 🔌 Providers
+## ✨ Mga Tampok ng v3.8.0
 
+Nagdagdag ang siklong v3.7.x → v3.8.0 ng zero-config na awtomatikong pagruruta, mga bagong provider, mga daloy ng OAuth, mas matibay na katatagan, at higit na pinahusay na karanasan sa CLI. Nasa ibaba ang mga pangunahing tampok — makikita ang kumpletong detalye sa susunod na bahagi ng dokumento at sa mga naka-link na detalye.
 
-![Providers Dashboard](screenshots/01-providers.png)
+- 🤖 **Auto Combo / Zero-config na awtomatikong pagruruta** — gumamit ng mga prefix na `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Sinusuportahan ng 16-factor scoring engine at 6 na piniling **mode pack** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- 🆕 **Command Code provider** (#2199) — ganap na pagpaparehistro na may katalogo ng modelo at pagsubaybay sa quota
+- 🆕 **Z.AI provider** — bagong free-tier provider na may mga label ng quota
+- 🎬 **Pagpapalawak ng KIE media** — pinalawak na katalogo na kinabibilangan ng mga modelo para sa pagbuo ng video
+- 🔐 **Pagpapatotoo ng Devin** — ini-import ng Desktop ang umiiral na Devin API key; ginagamit ng CLI ang mga lokal na kredensyal ng `devin auth login`
+- 🆓 **8 bagong libreng provider** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Manifest-aware na tier routing W1–W4** — ginagamit ng mga provider manifest ang weighted na pagpili ng tier
+- 🎨 **Ganap na OpenAI parity ng Cursor** — mga tool call, streaming, at pamamahala ng session mula simula hanggang dulo
+- 📊 **Paggamit ng Cursor Pro plan** — ipinapakita ang data ng quota at cycle sa dashboard ng mga limitasyon ng provider
+- ⚡ **Detalye ng service tier / analytics ng Codex fast tier** — visibility sa pagkonsumo ng bawat tier
+- 📌 **Sticky routing sa bawat session** — nananatiling naka-pin ang mga Codex session sa parehong account sa pagitan ng mga turn
+- 🔊 **Mga pagpapahusay sa Inworld TTS** — mga katalogo ng boses, streaming, at mga pagpapahusay sa latency
+- 🔑 **Headless na pagpapatotoo ng Kiro** — mag-login sa pamamagitan ng lokal na SQLite store ng `kiro-cli`, nang hindi nangangailangan ng browser
+- 📉 **Pagsubaybay sa quota at limitasyon ng DeepSeek** — ipinapakita sa dashboard ang arawan/buwanang paggamit
+- 🔄 **Reset-aware na estratehiya sa pagruruta** — mas pinipili na ngayon ng mga combo ang mga account na may pinakamalapit na pag-reset ng quota window
+- ⏱️ **`fallbackDelayMs`** at **dynamic na pagtukoy sa limitasyon ng tool** — mas pinong timing ng fallback + mga limitasyon sa bilang ng tool para sa bawat provider
+- 🔧 **Pag-degrade ng background mode (Responses API)** — bumabalik sa synchronous mode na may structured na babala kapag walang background polling ang upstream
+- 🚦 **Pag-uuri ng 429 para sa bawat provider** + toggle na `useUpstream429BreakerHints` — mas pinong gawi ng breaker gamit ang mga pahiwatig sa rate limit mula sa upstream
+- 🩺 **Dashboard ng mga cooldown ng modelo** — subaybayan ang mga lockout ng bawat modelo at manu-manong paganahin muli mula sa UI
+- 🔒 **Dynamic na pagtukoy sa Linux cert para sa MITM** — gumagana sa Debian/Ubuntu, Fedora/RHEL, Arch, at iba pang distro
+- 💻 **Hanay ng mga pagpapahusay sa CLI** — 20+ command kabilang ang `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Pagtuklas sa embedding model ng Qdrant** — awtomatikong pag-probe sa modelo ng vector store
+- 🔑 **Mga API Key / Bearer key na may saklaw na `manage`** — magsagawa ng mga operasyong pang-admin sa pamamagitan ng API
+- 🏥 **Analytics sa kalusugan ng combo target** + **structured na combo builder** — kalusugan ng bawat target at UI builder para sa pagbubuo ng mga hakbang na `(provider, model, connection)`
+- 🤝 **GitLab Duo OAuth provider** — mag-login gamit ang mga kredensyal ng GitLab
+- 🧠 **Reasoning Replay Cache** — hybrid na in-memory + SQLite persistence ng mga reasoning trace
+
+📚 **Mga kaugnay na dokumento:** [Framework ng Mga Skill](../frameworks/SKILLS.md) · [Sistema ng Memory](../frameworks/MEMORY.md) · [Mga Cloud Agent](../frameworks/CLOUD_AGENT.md) · [Mga Webhook](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🎨 Combos
+## 🔌 Mga Provider
 
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+Pamahalaan ang mga koneksyon sa AI provider: mga OAuth provider (Claude Code, Codex), mga API key provider (Groq, DeepSeek, OpenRouter), at mga libreng provider (Qoder, Kiro). Kasama sa mga Kiro account ang pagsubaybay sa balanse ng credit — makikita sa Dashboard → Usage ang mga natitirang credit, kabuuang allowance, at petsa ng pag-renew.
 
-Recent combo improvements:
+Maaaring mag-imbak ang mga koneksyon sa OpenRouter ng `preset` para sa bawat koneksyon sa Advanced Settings. Kapag nakatakda, ipinapadala ito ng OmniRoute bilang top-level request field ng OpenRouter, halimbawa `"preset": "email-copywriter"`, maliban kung nagbigay na ang request ng client ng sarili nitong `preset`.
 
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+![Dashboard ng Mga Provider](../screenshots/01-providers.png)
 
-![Combos Dashboard](screenshots/02-combos.png)
+---
+
+## 🎨 Mga Combo
+
+Gumawa ng mga combo sa pagruruta ng modelo gamit ang 19 na pampublikong strategy: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (sabay-sabay na magpadala sa isang panel ng mga modelo, pagkatapos ay bumuo ng iisang sagot sa pamamagitan ng isang judge), at **pipeline**. Pinagkakawing ng bawat combo ang maraming modelo na may awtomatikong fallback at may kasamang mga mabilisang template at pagsusuri sa kahandaan.
+
+Mga kamakailang pagpapahusay sa combo:
+
+- **Structured combo builder** — gawin ang bawat hakbang sa pamamagitan ng pagpili ng provider, modelo, at eksaktong account/koneksyon
+- **Suporta para sa paulit-ulit na provider** — gamitin muli ang parehong provider nang maraming beses sa isang combo hangga't natatangi ang tuple na `(provider, model, connection)`
+- **Kalusugan ng combo target** — tinutukoy na ngayon nang magkahiwalay ng analytics at mga health surface ang bawat combo target/hakbang sa halip na pagsama-samahin ang lahat bilang mga model string
+- **Pagkakasunud-sunod ng composite tier** — naiimpluwensiyahan na ngayon ng `defaultTier -> fallbackTier` ang pagkakasunud-sunod ng runtime execution/fallback para sa mga top-level na hakbang ng combo
+- **Mga template ng system prompt** — sinusuportahan ng `system_message` ng combo ang server-side na
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` at `{{FINGERPRINT}}`
+  na mga placeholder, na pinapalawak mula sa aktuwal na na-routeng target bago mismo ang dispatch.
+  Nasa allowlist at hindi recursive; nananatiling literal ang mga hindi kilalang placeholder; ang mga walang lamang value
+  ay nagiging walang laman; hindi kailanman nire-rewrite ang mga system prompt ng client. Ang `{{FINGERPRINT}}`
+  ay nire-resolve lamang para sa mga fingerprint-based na libreng provider na may naka-pin o
+  awtomatikong iniikot na fingerprint — nagiging walang laman ito sa ibang lugar (hal.
+  mga koneksyong may iisang fingerprint, mga non-fp provider). Saklaw ng expansion ang
+  karaniwang dispatch loop, round-robin, at mga naka-pin na context-cache session;
+  hindi pa nag-e-expand ng mga placeholder ang fusion, chaos, pipeline at mga nested-execute strategy.
+
+![Dashboard ng Mga Combo](../screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+Komprehensibong analytics sa paggamit na may pagkonsumo ng token, mga pagtatantiya ng gastos, mga activity heatmap, mga lingguhang distribution chart, at mga breakdown ayon sa provider.
 
-![Analytics Dashboard](screenshots/03-analytics.png)
+![Dashboard ng Analytics](../screenshots/03-analytics.png)
 
 ---
 
-## 🏥 System Health
+## 🏥 Kalusugan ng System
 
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
+Real-time na pagsubaybay: uptime, memory, version, mga latency percentile (p50/p95/p99), mga istatistika ng cache, mga estado ng circuit breaker ng provider, mga aktibong session na sinusubaybayan ang quota, at kalusugan ng combo target.
 
-![Health Dashboard](screenshots/04-health.png)
+![Dashboard ng Kalusugan](../screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+Apat na mode para sa pag-debug ng mga pagsasalin ng API: **Playground** (tagapag-convert ng format), **Chat Tester** (mga live na request), **Test Bench** (mga batch test), at **Live Monitor** (real-time na stream).
 
-![Translator Playground](screenshots/05-translator.png)
+![Translator Playground](../screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+Subukan ang anumang model nang direkta mula sa dashboard. Piliin ang provider, model, at endpoint, magsulat ng mga prompt gamit ang Monaco Editor, mag-stream ng mga tugon nang real-time, ihinto habang nagsi-stream, at tingnan ang mga sukatan ng oras.
 
 ---
 
-## 🎨 Themes _(v2.0.5+)_
+## 🎨 Mga Tema _(v2.0.5+)_
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
-
----
-
-## ⚙️ Settings
-
-Comprehensive settings panel with tabs:
-
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
+Nako-customize na mga tema ng kulay para sa buong dashboard. Pumili mula sa 7 preset na kulay (Coral, Blue, Red, Green, Violet, Orange, Cyan) o gumawa ng custom na tema sa pamamagitan ng pagpili ng anumang hex na kulay. Sinusuportahan ang light, dark, at system mode.
 
 ---
 
-## 🔧 CLI Tools
+## ⚙️ Mga Setting
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+Komprehensibong panel ng mga setting na may **7 tab**:
 
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+- **Pangkalahatan** — Imbakan ng system, pamamahala ng backup (pag-export/pag-import ng database)
+- **Hitsura** — Tagapili ng tema (dark/light/system), mga preset na tema ng kulay at custom na kulay, visibility ng health log, mga kontrol sa visibility ng mga item sa sidebar at separator ng grupo, mga kontrol sa visibility ng Endpoint tunnel
+- **AI** — Mga feature ng AI assistant, mga default na routing preset (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), cache ng reasoning replay, at mga toggle ng skill/memory
+- **Seguridad** — Proteksyon ng API endpoint, pag-block sa custom na provider, pag-filter ng IP, impormasyon ng session
+- **Routing** — Mga alias ng model, degradation ng background task, manifest-aware na tier routing (W1–W4), `fallbackDelayMs`, sticky routing para sa bawat session
+- **Resilience** — Pagpapanatili ng rate limit, pag-tune ng circuit breaker, awtomatikong pag-disable sa mga naka-ban na account, pagsubaybay sa expiration ng provider, threshold ng handoff at configuration ng summary model ng **Context Relay**, klasipikasyon ng 429 para sa bawat provider at toggle na `useUpstream429BreakerHints`, mga cooldown ng model
+- **Advanced** — Mga override ng configuration, audit trail ng configuration, fallback degradation mode, degradation ng background mode para sa Responses API
+
+![Dashboard ng Mga Setting](../screenshots/06-settings.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## 🔧 Mga CLI Tool
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Isang-click na configuration para sa mga AI coding tool: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, at Factory Droid. Kasama sa mga feature ang awtomatikong pag-apply/pag-reset ng config, mga profile ng koneksyon, at pagmamapa ng model.
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+![Dashboard ng Mga CLI Tool](../screenshots/07-cli-tools.png)
+
+---
+
+## 🤖 Mga CLI Agent _(v2.0.11+)_
+
+Dashboard para sa pagtuklas at pamamahala ng mga CLI agent. Nagpapakita ng grid ng 16 na built-in na agent (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) na may:
+
+- **Status ng pag-install** — Naka-install / Hindi Natagpuan, na may pagtukoy ng bersyon
+- **Mga badge ng protocol** — stdio, HTTP, atbp.
+- **Mga custom na agent** — Magrehistro ng anumang CLI tool sa pamamagitan ng form (pangalan, binary, version command, spawn args)
+- **Pagtutugma ng CLI Fingerprint** — Toggle para sa bawat provider upang itugma ang mga signature ng request ng native CLI, na nagpapababa sa panganib na ma-ban habang pinananatili ang proxy IP
+- **Lokal na authentication ng Devin** — Ginagamit ng Devin CLI ang `devin auth login`; hindi kailangan ang browser OAuth flow
 
 ---
 
 ## 🔗 Context Relay _(v3.5.5+)_
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+Isang combo strategy na nagpapanatili ng pagpapatuloy ng session kapag nangyari ang pagpapalit ng account sa kalagitnaan ng pag-uusap. Bago maubos ang aktibong account, bumubuo ang OmniRoute ng isang nakaayos na buod ng handoff sa background. Kapag ang susunod na request ay napunta sa ibang account, ini-inject ang buod bilang isang system message upang makapagpatuloy ang bagong account nang may kumpletong konteksto.
 
-Configurable via combo-level or global settings:
+Maaaring i-configure sa pamamagitan ng mga setting sa antas ng combo o ng mga global na setting:
 
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
+- **Handoff Threshold** — Porsiyento ng paggamit ng quota na nagti-trigger sa pagbuo ng buod (default na 85%)
+- **Max Messages For Summary** — Dami ng kamakailang history na paiikliin
+- **Summary Model** — Opsyonal na pamalit na model para sa pagbuo ng buod ng handoff
 
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+Kasalukuyang sinusuportahan ang pagpapalit-palit ng Codex account. Tingnan ang [dokumentasyon ng Context Relay](../architecture/ARCHITECTURE.md).
+
+---
+
+## 🗜️ Prompt Compression _(v3.7.9+)_
+
+Mayroon na ngayong mga nakalaang page ang Context & Cache para sa Caveman, RTK, at Compression Combos:
+
+- **Caveman** — mga rule pack na isinasaalang-alang ang wika, preview, mga kontrol sa output mode, at analytics
+- **RTK** — compression na isinasaalang-alang ang command para sa output ng shell, git, test, build, package, Docker, infra, JSON, at stack trace
+- **Compression Combos** — mga pinangalanang pipeline gaya ng `rtk -> caveman` na itinatalaga sa mga routing combo; umaabot ang default na pinagsamang pagkalkula sa average na `~89%` at `78-95%` na pagtitipid sa kwalipikadong konteksto kapag parehong ginagamit ang dalawang engine
+- **Pag-recover ng raw output** — mga opsyonal at ni-redact na RTK raw-output pointer para sa pag-debug ng mga na-compress na failure
+
+Tingnan ang [Gabay sa Compression](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md), at
+[Mga Compression Engine](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
 ## 🛡️ Proxy Hardening _(v3.5.5+)_
 
-Comprehensive proxy configuration enforcement across the entire request pipeline:
+Komprehensibong pagpapatupad ng configuration ng proxy sa buong request pipeline:
 
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+- **Token Health Check** — Nire-resolve na ngayon ng background OAuth refresh ang proxy config para sa bawat koneksyon, na pumipigil sa mga failure sa mga environment na nangangailangan ng proxy
+- **API Key Validation** — Ang validation ng provider key (`POST /api/providers/validate`) ay dumaraan sa `runWithProxyContext`, na sumusunod sa mga setting ng proxy sa antas ng provider at sa mga global na setting
+- **undici Dispatcher Fix** — Ginagamit ng mga proxy dispatcher ang sariling fetch implementation ng undici sa halip na ang built-in fetch ng Node, na lumulutas sa mga error na `invalid onRequestStart method` sa Node.js 22
+- **Node.js Version Detection** — Aktibong tinutukoy ng login page ang mga hindi tugmang bersyon ng Node.js (24+) at nagpapakita ng warning banner na may mga tagubilin na gamitin ang Node 22 LTS
 
 ---
 
 ## 📧 Email Privacy Masking _(v3.5.6+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
+Naka-mask bilang default ang mga email ng OAuth account (hal. `di*****@g****.com`) upang maiwasan ang hindi sinasadyang paglalantad kapag nagbabahagi ng mga screenshot o nagre-record ng mga demo. Gamitin ang Settings → Appearance → Account email visibility upang ipakita o i-mask ang buong email ng account sa lahat ng provider, combo, log, quota, at playground screen.
 
 ---
 
 ## 👁️ Model Visibility Toggle _(v3.5.6+)_
 
-The provider page model list now includes:
+Kasama na ngayon sa listahan ng model sa page ng provider ang:
 
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
-
----
-
-## 🔧 OAuth Env Repair _(v3.6.1+)_
-
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
-
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+- **Real-time na search/filter bar** — Mabilis na maghanap ng mga partikular na model
+- **Visibility toggle para sa bawat model** (👁 icon) — Naka-gray out ang mga nakatagong model at hindi isinasama sa catalog na `/v1/models`
+- **Badge ng bilang ng aktibo** (`N/M active`) — Ipinapakita agad kung ilang model ang naka-enable kumpara sa kabuuang bilang
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## 🔧 Pag-aayos ng OAuth Env _(v3.6.1+)_
 
-Clean removal scripts for all installation methods:
+Isang-click na aksyong "Repair env" para sa mga OAuth provider na nagpapanumbalik ng mga nawawalang environment variable at nag-aayos ng sirang estado ng auth. Maa-access mula sa `Dashboard → Providers → [OAuth Provider] → Repair env`. Awtomatikong tinutukoy at inaayos ang:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+- Mga nawawalang kredensyal ng OAuth client
+- Mga sirang entry sa env file
+- Paglilinis ng backup path
+
+---
+
+## 🗑️ Pag-uninstall / Ganap na Pag-uninstall _(v3.6.2+)_
+
+Malilinis na script sa pag-aalis para sa lahat ng paraan ng pag-install:
+
+| Command                  | Aksyon                                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Inaalis ang system app ngunit **pinananatili ang iyong DB at mga configuration** sa `~/.omniroute`. |
+| `npm run uninstall:full` | Inaalis ang app AT permanenteng **binubura ang lahat ng configuration, key, at database**.          |
 
 ---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+Bumuo ng mga larawan, video, at musika mula sa dashboard. Sinusuportahan ang OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, at MusicGen.
 
 ---
 
-## 📝 Request Logs
+## 📝 Mga Log ng Request
 
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+Real-time na pag-log ng request na may pag-filter ayon sa provider, model, account, at API key. Ipinapakita ang mga status code, paggamit ng token, latency, at mga detalye ng response.
 
-![Usage Logs](screenshots/08-usage.png)
+![Mga Log ng Paggamit](../screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+Ang iyong pinag-isang API endpoint na may paghahati-hati ayon sa kakayahan: Chat Completions, Responses API, Embeddings, Pagbuo ng Larawan, Reranking, Transkripsyon ng Audio, Text-to-Speech, Moderations, at mga nakarehistrong API key. Available ang suporta para sa Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, at cloud proxy para sa remote na access.
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+![Dashboard ng Endpoint](../screenshots/09-endpoint.png)
 
 ---
 
-## 🔑 API Key Management
+## 🔑 Pamamahala ng API Key
 
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+Gumawa, magtakda ng saklaw, at magpawalang-bisa ng mga API key. Maaaring limitahan ang bawat key sa mga partikular na model/provider na may ganap na access o read-only na pahintulot. Biswal na pamamahala ng key na may pagsubaybay sa paggamit.
 
 ---
 
 ## 📋 Audit Log
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+Pagsubaybay sa mga administratibong aksyon na may pag-filter ayon sa uri ng aksyon, nagsagawa, target, IP address, at timestamp. Kumpletong kasaysayan ng mga kaganapang panseguridad.
 
 ---
 
 ## 🖥️ Desktop Application
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+Native na Electron desktop app para sa Windows, macOS, at Linux. Patakbuhin ang OmniRoute bilang standalone na application na may integrasyon sa system tray, offline na suporta, awtomatikong pag-update, at isang-click na pag-install.
 
-Key features:
+Mga pangunahing feature:
 
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
+- Pag-poll sa kahandaan ng server (walang blangkong screen sa cold start)
+- System tray na may pamamahala ng port
 - Content Security Policy
 - Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
+- Awtomatikong pag-update sa pag-restart
+- UI na nakabatay sa platform (mga traffic light ng macOS, default na titlebar ng Windows/Linux)
+- Pinatibay na packaging ng Electron build — ang naka-symlink na `node_modules` sa standalone bundle ay tinutukoy at tinatanggihan bago ang packaging, na pumipigil sa runtime dependency sa build machine (v2.5.5+)
+- **Maayos na pag-shutdown** — maayos na isinasara ng Electron `before-quit` ang Next.js, na pumipigil sa mga lock ng SQLite WAL database (v3.6.2+)
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+📖 Tingnan ang [`electron/README.md`](../../electron/README.md) para sa kumpletong dokumentasyon.
 
 ---
 
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+Sinusuportahan na ngayon ng OmniRoute ang mga **OpenAI-compatible na WebSocket client** sa pamamagitan ng `/v1/ws` upgrade endpoint. Binalot ng custom na `scripts/dev/v1-ws-bridge.mjs` server ang Next.js at ina-upgrade ang mga WS connection tungo sa ganap na bidirectional streaming session. Ginagamit ng authentication ang parehong API key o session cookie na ginagamit ng mga HTTP request.
 
-Key behaviours:
+Mga pangunahing gawi:
 
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+- Vina-validate ang WS upgrade ng `src/lib/ws/handshake.ts` bago maitatag ang connection
+- Maayos na tinatapos ang mga stream kapag isinara ang session o nagkaroon ng upstream error
+- Gumagana nang sabay sa kasalukuyang HTTP+SSE streaming path
 
 ---
 
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
+## 🔑 Mga Sync Token at Config Bundle _(v3.6.6+)_
 
-Multi-device and external operator access is now possible via **scoped sync tokens**:
+Posible na ngayon ang pag-access gamit ang maraming device at mga panlabas na operator sa pamamagitan ng **mga sync token na may saklaw**:
 
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+- **`POST /api/sync/tokens`** — Mag-isyu ng bagong sync token (may saklaw at opsyonal na expiration)
+- **`DELETE /api/sync/tokens/:id`** — Bawiin ang isang token
+- **`GET /api/sync/bundle`** — Mag-download ng may bersyong JSON snapshot na may ETag key ng lahat ng hindi sensitibong setting (nakatago ang mga password)
 
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+Binubuo ang config bundle ng `src/lib/sync/bundle.ts`. Inihahambing ng mga consumer ang `ETag` response header upang matukoy ang mga pagbabago nang hindi muling dina-download ang buong payload.
 
 ---
 
 ## 🧠 GLM Thinking Preset _(v3.6.6+)_
 
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+Ang **GLM Thinking (`glmt`)** ay isa na ngayong nakarehistrong first-class provider: 65 536 maximum na output token, 24 576 na thinking budget, 900 s na default timeout, API format na compatible sa Claude, at nakabahaging pag-sync ng paggamit sa GLM family.
 
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
-
----
-
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
-
-All provider validation and model discovery calls now go through a two-layer outbound guard:
-
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
-
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+Kasama na rin sa v3.6.6 ang **hybrid token counting**: kapag naglalantad ang isang provider na compatible sa Claude ng `/messages/count_tokens`, tinatawag ito ng OmniRoute bago ang malalaking request, na may maayos na fallback sa pagtatantiya.
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## 🛡️ Ligtas na Outbound Fetch at SSRF Guard _(v3.6.6+)_
 
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+Dumadaan na ngayon ang lahat ng tawag para sa validation ng provider at pagtuklas ng modelo sa isang two-layer na outbound guard:
+
+1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Hinaharangan ang mga private/loopback/link-local na saklaw ng IP bago buksan ang socket.
+2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Inilalapat ang URL guard, ginagawang pare-pareho ang mga timeout, at muling sinusubukan ang mga pansamantalang error gamit ang exponential backoff.
+
+Lumalabas ang mga paglabag sa guard bilang HTTP 422 (`URL_GUARD_BLOCKED`) at itinatala sa compliance audit log sa pamamagitan ng `providerAudit.ts`.
+
+---
+
+## 🔄 Mga Retry na Isinasaalang-alang ang Cooldown _(v3.6.6+)_
+
+**Awtomatikong muling sinusubukan** na ngayon ang mga chat request kapag nagbalik ang isang upstream provider ng cooldown na nakalaan sa isang modelo. Maaaring i-configure sa pamamagitan ng `REQUEST_RETRY` (default: 2) at `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Pinahusay ang pagkatuto mula sa mga rate-limit header sa `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, at `Retry-After` — makikita sa Resilience dashboard ang estado ng cooldown ng bawat modelo.
 
 ---
 
 ## 📋 Compliance Audit v2 _(v3.6.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+Pinalawak ang audit log upang isama ang pagination na nakabatay sa cursor, pagpapayaman ng konteksto ng request (request ID, user agent, IP), mga structured auth event, mga provider CRUD event na may konteksto ng pagkakaiba, at pag-log ng validation na hinarang ng SSRF. Ang mga bagong event ay inilalabas ng `src/lib/compliance/providerAudit.ts`.

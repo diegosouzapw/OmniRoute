@@ -97,4 +97,11 @@
       # credential; the generic-api-key rule flags the long hyphenated string.
       '''omniroute-cheaperinference-sponsor-banner-dismissed-v\d+''',
       '''SunbreakWebUI1''',
+      # Uzbek dashboard catalog (#13727, src/i18n/messages/uz.json `outputTokenDesc`):
+      # "Yakunlash/javob tokenlari" = "completion/response tokens". The rule reads the
+      # `...TokenDesc` key as a token assignment and the translated words as its value.
+      '''Yakunlash/javob''',
+      # Feature-flag id from #13439 (src/shared/constants/featureFlagDefinitions.ts):
+      # `key: "PROTECTED_PRIORITY_INFRA_502_ENABLED"` is a flag name, not a credential.
+      '''PROTECTED_PRIORITY_INFRA_502_ENABLED''',
     ]

@@ -1,0 +1,1 @@
+- **fix(cli):** translate the CLI for every locale — 38 catalogs carried 1–24 of 830 keys and fell back to English; `sync-ui-keys --catalog=cli` fills them (52,000 strings) and a completeness gate keeps them full. (#13892)

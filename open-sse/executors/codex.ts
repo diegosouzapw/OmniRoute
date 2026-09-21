@@ -19,12 +19,15 @@ import {
 } from "../config/codexInstructions.ts";
 import { FETCH_BODY_TIMEOUT_MS, HTTP_STATUS, PROVIDERS } from "../config/constants.ts";
 import { readCodexPeekChunk, buildCodexTimeoutSafePassthroughBody } from "./codex/bodyTimeout.ts";
+import { stripCodexPassthroughRejectedParams } from "./codex/stripPassthroughRejectedParams.ts";
 import {
   CODEX_CLI_RS_ORIGINATOR,
   getCodexClientVersion,
+  getCodexClientVersionFromHeaders,
   getCodexUserAgent,
   normalizeCodexSessionId,
 } from "../config/codexClient.ts";
+import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import {
   applyCodexClientIdentityHeaders,
   applyCodexClientMetadata,
@@ -33,15 +36,18 @@ import {
   withCodexFingerprintCredentials,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
-import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
+import { sanitizeCodexResponsesInput } from "../services/responsesInputSanitizer.ts";
 import { applyReasoningInputPolicy } from "../services/reasoningInputPolicy.ts";
+import { getForcedReasoningEffort } from "../utils/reasoningRuleContext.ts";
 import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { projectCodexPublicError } from "../utils/codexPublicError.ts";
 import { errorResponse } from "../utils/error.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
+import { loadDynamicModule } from "./codex/wreqLoader.ts";
 // Quota parsing/scheduling extracted to a pure leaf; re-exported for the
 // Codex account module and tests.
 export {
@@ -53,7 +59,7 @@ export {
 import { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
 import {
   CODEX_EFFORT_ORDER as EFFORT_ORDER,
-  GPT_5_6_ULTRA_ALIAS_MODELS,
+  CODEX_ULTRA_ALIAS_MODELS,
   splitCodexReasoningSuffix,
   type CodexEffortLevel as EffortLevel,
 } from "./codex/reasoningSuffix.ts";
@@ -75,7 +81,7 @@ type WreqWebSocket = {
   close: (code?: number, reason?: string) => void;
   onmessage: ((event: { data: unknown }) => void) | null;
   onerror: ((event: { message?: string }) => void) | null;
-  onclose: (() => void) | null;
+  onclose: ((event?: { code?: number; reason?: string }) => void) | null;
 };
 type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
 type ResponsesMessageInput = { role?: unknown; phase?: unknown; content?: unknown };
@@ -89,7 +95,7 @@ function getCodexWebSocketTransport(): WebsocketFn | null {
   if (_wreqChecked) return _websocketFn;
   _wreqChecked = true;
   try {
-    const mod = _wreqRequire("wreq-js") as { websocket?: WebsocketFn };
+    const mod = loadDynamicModule(_wreqRequire, "wreq-js") as { websocket?: WebsocketFn };
     _websocketFn = typeof mod.websocket === "function" ? mod.websocket : null;
   } catch {
     console.warn("[codex] wreq-js import failed, websocket disabled");
@@ -166,13 +172,13 @@ function isCodexResponsesLiteRequest(
   );
 }
 
-// GPT-5.6 ultra-tier (sol/terra at "ultra") and luna at "max" coordinate delegation to
+// Astra/Sol/Terra at "ultra" and Luna at "max" coordinate delegation to
 // sub-agents via parallel tool calls (see the effort-clamp comment near clampEffort()).
 // Responses Lite must not strip parallel_tool_calls for those model/effort combos, or
 // delegation silently breaks while the request still returns HTTP 200 (issue #7821).
 function isCodexDelegationDependentModel(model: unknown): boolean {
   const { baseModel, effort } = splitCodexReasoningSuffix(model);
-  if (effort === "ultra" && GPT_5_6_ULTRA_ALIAS_MODELS.has(baseModel)) return true;
+  if (effort === "ultra" && CODEX_ULTRA_ALIAS_MODELS.has(baseModel)) return true;
   if (effort === "max" && baseModel === "gpt-5.6-luna") return true;
   return false;
 }
@@ -323,12 +329,9 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
   return normalized;
 }
 
-/**
- * Maximum reasoning effort allowed per Codex model.
- * Models not listed here retain the legacy xhigh cap.
- * Update this table when Codex releases new models with different caps.
- */
+/** Maximum reasoning effort per Codex model; unlisted models keep the xhigh cap. */
 const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
+  "gpt-6-astra": "ultra",
   "gpt-5.6-sol": "ultra",
   "gpt-5.6-terra": "ultra",
   "gpt-5.6-luna": "max",
@@ -493,7 +496,6 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
     typeof upstreamError.message === "string" && upstreamError.message.trim()
       ? upstreamError.message
       : "Codex upstream error";
-  const error: Record<string, unknown> = { code, message };
   const explicitStatus =
     toStatusCode(parsed.status_code) ??
     toStatusCode(parsed.status) ??
@@ -503,8 +505,10 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
     toStatusCode(upstreamError.status);
   const statusCode =
     explicitStatus ?? (looksLikeQuotaOrRateLimit(code, type, message) ? 429 : null);
+  const error: Record<string, unknown> = {
+    ...projectCodexPublicError({ status: statusCode, code, type }),
+  };
 
-  if (type) error.type = type;
   if (statusCode !== null) error.status_code = statusCode;
 
   return {
@@ -538,6 +542,10 @@ export function codexDropNonstandardEvents(): boolean {
 // every `codex.*` event block from the byte stream before it reaches the client.
 // Exported for unit testing (#4715). Strips `codex.*` SSE event blocks from a
 // streaming Response when `codexDropNonstandardEvents()` is on (default, #11014).
+// Pre-compiled: the filter's transform() runs on every chunk, so these were
+// re-allocated per block/iteration before hoisting.
+const CODEX_SSE_EVENT_LINE_RE = /^event:\s*(.+)$/m;
+const CODEX_SSE_BLOCK_SEP_RE = /\r?\n\r?\n/;
 export function filterNonstandardCodexSse(response: Response): Response {
   const contentType = response.headers.get("content-type") || "";
   if (!response.body || !contentType.includes("text/event-stream")) {
@@ -547,14 +555,14 @@ export function filterNonstandardCodexSse(response: Response): Response {
   const encoder = new TextEncoder();
   let buffer = "";
   const dropBlock = (block: string): boolean => {
-    const match = /^event:\s*(.+)$/m.exec(block);
+    const match = CODEX_SSE_EVENT_LINE_RE.exec(block);
     return !!match && match[1].trim().startsWith("codex.");
   };
   const transform = new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
       buffer += decoder.decode(chunk, { stream: true });
       while (true) {
-        const separator = /\r?\n\r?\n/.exec(buffer);
+        const separator = CODEX_SSE_BLOCK_SEP_RE.exec(buffer);
         if (!separator) break;
         const blockEnd = separator.index + separator[0].length;
         const block = buffer.slice(0, blockEnd);
@@ -815,6 +823,22 @@ export class CodexExecutor extends BaseExecutor {
       requestInput.body
     );
     const nextInput = { ...requestInput, credentials };
+    const forcedEffort = getForcedReasoningEffort(credentials);
+    if (forcedEffort) {
+      const nextBody =
+        nextInput.body && typeof nextInput.body === "object"
+          ? (nextInput.body as Record<string, unknown>)
+          : {};
+      nextInput.body = {
+        ...nextBody,
+        reasoning: {
+          ...(nextBody.reasoning && typeof nextBody.reasoning === "object"
+            ? nextBody.reasoning
+            : {}),
+          effort: forcedEffort,
+        },
+      };
+    }
 
     if (isCodexAppServerRequired(nextInput.credentials)) {
       if (!this.appServer) {
@@ -953,18 +977,20 @@ export class CodexExecutor extends BaseExecutor {
 
     const failController = (code: string, message: string) => {
       if (closed) return;
+      nextInput.log?.warn?.("CODEX", `WebSocket stream failed (${code}): ${message}`);
       const controller = streamController;
       const payload = JSON.stringify({
         type: "response.failed",
         response: {
           id: null,
           status: "failed",
-          error: { code, message },
+          error: projectCodexPublicError({ status: 502, code, type: "provider_error" }),
         },
       });
       try {
         controller?.enqueue(encoder.encode(`event: response.failed\ndata: ${payload}\n\n`));
       } catch {
+        console.warn("[codex] failController: failed to enqueue response.failed");
         // Downstream closed before the failure could be delivered.
       }
       finishStream({ reason: "upstream_failed" });
@@ -1021,8 +1047,19 @@ export class CodexExecutor extends BaseExecutor {
               event.message || "Codex upstream WebSocket error"
             );
           };
-          ws.onclose = () => {
-            finishStream({ reason: "upstream_closed", closeSocket: false });
+          ws.onclose = (event) => {
+            // A close after a terminal event already finished the stream — no-op.
+            // A close before any terminal event means the upstream died mid-response:
+            // emit a terminal response.failed instead of ending the client stream as
+            // if it completed normally (silent truncation).
+            if (closed) return;
+            const closeDetail = event
+              ? ` (code ${event.code ?? "unknown"}${event.reason ? `: ${event.reason}` : ""})`
+              : "";
+            failController(
+              "upstream_websocket_closed",
+              `Codex upstream WebSocket closed before a terminal response event${closeDetail}`
+            );
           };
           if (!closed) {
             await prl.captureCurrentProviderBody(url, headers, bodyString, nextInput.log);
@@ -1082,11 +1119,30 @@ export class CodexExecutor extends BaseExecutor {
    * Always request event-stream from upstream, even when client requested stream=false.
    * Includes chatgpt-account-id header for strict workspace binding.
    */
-  buildHeaders(credentials: ProviderCredentials, stream = true) {
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null,
+    model?: string,
+    health?: Record<string, KeyHealth>
+  ) {
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
-    const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
-    headers.Version = getCodexClientVersion();
-    setUserAgentHeader(headers, getCodexUserAgent());
+    const headers = super.buildHeaders(
+      credentials,
+      isCompactRequest ? false : true,
+      clientHeaders,
+      model,
+      health
+    );
+
+    // Forward the CALLER's own Codex client version upstream instead of a pinned
+    // default. The ChatGPT backend gates newer models on the reported client
+    // version (e.g. "The 'gpt-6-astra' model requires a newer version of Codex"),
+    // so a hardcoded value silently rots whenever the user upgrades their CLI.
+    // Falls back to the configured/default version when the caller sends none.
+    const clientVersion = getCodexClientVersionFromHeaders(clientHeaders);
+    headers.Version = clientVersion ?? getCodexClientVersion();
+    setUserAgentHeader(headers, getCodexUserAgent(clientVersion));
 
     // Add workspace binding header if workspaceId is persisted
     const workspaceId = credentials?.providerSpecificData?.workspaceId;
@@ -1271,11 +1327,7 @@ export class CodexExecutor extends BaseExecutor {
 
     normalizeCodexResponsesInput(body);
 
-    if (Array.isArray(body.input)) {
-      body.input = sanitizeResponsesInputItems(body.input, false, {
-        dropInternalAssistantMessages: !nativeCodexPassthrough,
-      });
-    }
+    sanitizeCodexResponsesInput(body, nativeCodexPassthrough);
     stripOrphanedCodexFunctionCallOutputs(body);
     repairMissingCodexToolCallOutputs(body);
 
@@ -1376,8 +1428,18 @@ export class CodexExecutor extends BaseExecutor {
     // Issue #2331: model suffix aliases (for example gpt-5.5-xhigh) represent an
     // explicit model selection, so they must override client-injected defaults such
     // as OpenCode's automatic reasoning.effort=medium for GPT-5-family requests.
+    // A server-selected force rule is stronger than either source.
+    // OpenRouter-style `enabled: false` asks for reasoning to be off. It
+    // wins over the connection default but still loses to any per-request
+    // effort selection (model suffix, reasoning.effort, or flat
+    // reasoning_effort).
+    const clientDisabledReasoning = reasoningRecord?.enabled === false;
     const rawEffort =
-      modelEffort || explicitReasoning || requestReasoningEffort || fallbackReasoningEffort;
+      getForcedReasoningEffort(credentials) ||
+      modelEffort ||
+      explicitReasoning ||
+      requestReasoningEffort ||
+      (clientDisabledReasoning ? "none" : fallbackReasoningEffort);
 
     if (rawEffort) {
       const clampedEffort = clampEffort(cleanModel, rawEffort);
@@ -1386,6 +1448,24 @@ export class CodexExecutor extends BaseExecutor {
         // Ultra coordinates delegation in Codex clients; the upstream wire effort is Max.
         effort: clampedEffort === "ultra" ? "max" : clampedEffort,
       };
+    }
+
+    // The Codex Responses API accepts only `effort` and `summary` inside
+    // `reasoning`. Client ecosystems send OpenRouter-style keys (`enabled`,
+    // `max_tokens`, `exclude`, ...) that the upstream rejects with HTTP 400
+    // "Unknown parameter: 'reasoning.<key>'", so whitelist the object before
+    // it reaches the wire. This must run even when no effort was resolved,
+    // because the client's original object is forwarded unchanged in that
+    // case.
+    const wireReasoning =
+      body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
+        ? (body.reasoning as Record<string, unknown>)
+        : null;
+    if (wireReasoning) {
+      for (const key of Object.keys(wireReasoning)) {
+        if (key !== "effort" && key !== "summary") delete wireReasoning[key];
+      }
+      if (Object.keys(wireReasoning).length === 0) delete body.reasoning;
     }
     ensureCodexReasoningSummary(body);
     if (isCompactRequest) {
@@ -1405,16 +1485,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.truncation;
     delete body.background; // Droid CLI sends this but Codex Responses API rejects it
 
-    // Issue #3317: strip client-only fields the Codex Responses API rejects with
-    // 400 "Unsupported parameter" — for BOTH the native passthrough (early return
-    // below) and the translated path. The chat-completions path already removes
-    // these (base.ts prompt_cache_retention #1884; openai-responses translator
-    // safety_identifier #2770), but the responses->responses passthrough skips
-    // translation. `user` is always rejected by Codex /responses, so it is removed
-    // unconditionally here (unlike base.ts, which only drops it when empty).
-    delete body.prompt_cache_retention;
-    delete body.safety_identifier;
-    delete body.user;
+    stripCodexPassthroughRejectedParams(cleanModel || model, body);
 
     // Inject prompt_cache_key for Codex prompt caching.
     // The official Codex client sets this to conversation_id (a stable UUID per session).

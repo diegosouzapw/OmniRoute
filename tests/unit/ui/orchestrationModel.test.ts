@@ -375,6 +375,55 @@ describe("mergeSnapshot", () => {
     const offlineNode = offlineSnap.nodes.find((n) => n.id === "source:conductor");
     assert.equal(offlineNode?.staleSince, undefined);
   });
+  it("flags an EXISTING source node when its status starts failing (kept nodes, still stale)", () => {
+    const staleSince = "2026-09-01T12:00:00.000Z";
+    const cloudAgent = fromCloudAgent([caTask({ id: "live" })]);
+    const originalSourceNode = cloudAgent.nodes.find((n) => n.id === "source:cloud-agent");
+    assert.ok(originalSourceNode, "the mapper must already emit source:cloud-agent");
+    const src = [
+      { source: "cloud-agent" as const, ok: false, staleSince },
+      { source: "a2a" as const, ok: true },
+      { source: "conductor" as const, ok: true },
+    ];
+    const snap = mergeSnapshot({ cloudAgent, a2a: empty, conductor: empty }, src, { now: NOW });
+    const merged = snap.nodes.find((n) => n.id === "source:cloud-agent");
+    assert.equal(merged?.sourceIssue, "error");
+    assert.equal(merged?.staleSince, staleSince);
+    assert.ok(
+      snap.nodes.some((n) => n.id === "cloud-agent:live"),
+      "the source's work nodes must be kept, not replaced by a placeholder"
+    );
+    assert.equal(
+      snap.nodes.filter((n) => n.id === "source:cloud-agent").length,
+      1,
+      "no duplicate placeholder for a source that already had a node"
+    );
+    // Pure contract: the object handed in through `parts` must stay untouched.
+    assert.equal("sourceIssue" in (originalSourceNode as object), false);
+    assert.equal("staleSince" in (originalSourceNode as object), false);
+  });
+  it("flags an EXISTING source node as offline when its status reports offline:true", () => {
+    const conductor = fromConductor(baseSnap);
+    const src = [
+      { source: "cloud-agent" as const, ok: true },
+      { source: "a2a" as const, ok: true },
+      { source: "conductor" as const, ok: true, offline: true },
+    ];
+    const snap = mergeSnapshot({ cloudAgent: empty, a2a: empty, conductor }, src, { now: NOW });
+    const merged = snap.nodes.find((n) => n.id === "source:conductor");
+    assert.equal(merged?.sourceIssue, "offline");
+    assert.equal(merged?.staleSince, undefined);
+  });
+  it("leaves a healthy source node free of sourceIssue/staleSince", () => {
+    const cloudAgent = fromCloudAgent([caTask({ id: "ok1" })]);
+    const snap = mergeSnapshot({ cloudAgent, a2a: empty, conductor: empty }, OK_SOURCES, {
+      now: NOW,
+    });
+    const merged = snap.nodes.find((n) => n.id === "source:cloud-agent");
+    assert.ok(merged, "source:cloud-agent expected");
+    assert.equal(merged?.sourceIssue, undefined);
+    assert.equal(merged?.staleSince, undefined);
+  });
   it("overflow node carries droppedByState with the per-state counts of dropped work nodes", () => {
     const many = Array.from({ length: MAX_WORK_NODES + 5 }, (_, i) =>
       caTask({

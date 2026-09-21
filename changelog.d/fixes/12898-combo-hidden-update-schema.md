@@ -1,0 +1,1 @@
+- **fix(combos):** A combo's visibility can be changed through the API again: `updateComboSchema` accepts `isHidden`, so a visibility-only update is no longer rejected as empty and a mixed update no longer drops it ([#12898](https://github.com/diegosouzapw/OmniRoute/pull/12898), closes [#12836](https://github.com/diegosouzapw/OmniRoute/issues/12836))

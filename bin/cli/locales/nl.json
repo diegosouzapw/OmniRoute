@@ -14,6 +14,812 @@
     "jsonOpt": "Uitvoer als JSON",
     "yesOpt": "Bevestiging overslaan"
   },
+  "setup": {
+    "title": "OmniRoute-installatie",
+    "passwordPrompt": "Beheerderswachtwoord",
+    "providerPrompt": "Standaardprovider (laat leeg om over te slaan)",
+    "done": "Installatie voltooid",
+    "passwordSet": "Beheerderswachtwoord geconfigureerd",
+    "providerSet": "Provider geconfigureerd: {name}",
+    "testingProvider": "Providerverbinding testen: {name}",
+    "testPassed": "Providertest geslaagd",
+    "testFailed": "Providertest mislukt: {error}",
+    "loginEnabled": "Inloggen: ingeschakeld (wachtwoord bijgewerkt)",
+    "loginDisabled": "Inloggen: uitgeschakeld",
+    "providerInfo": "Provider: {info}",
+    "opencode": "Installeer en configureer de meegeleverde @omniroute/opencode-plugin voor OpenCode"
+  },
+  "doctor": {
+    "title": "OmniRoute-diagnose",
+    "dbOk": "Database: OK ({path})",
+    "dbMissing": "Database: niet geïnitialiseerd — voer `omniroute setup` uit",
+    "portOk": "Poort {port}: beschikbaar",
+    "portConflict": "Poort {port}: in gebruik door een ander proces",
+    "encryptionOk": "Encryptiesleutel: geconfigureerd",
+    "encryptionMissing": "Encryptiesleutel ontbreekt — voer `omniroute setup` uit",
+    "allGood": "Alle controles geslaagd.",
+    "warnings": "{count} waarschuwing(en) — zie hierboven."
+  },
+  "providers": {
+    "title": "Providers",
+    "noProviders": "Geen providers geconfigureerd. Voer uit: omniroute setup",
+    "testing": "{name} testen...",
+    "available": "{count} provider(s) beschikbaar",
+    "connected": "Verbonden",
+    "disconnected": "Niet verbonden",
+    "validationFailed": "Validatie mislukt: {error}",
+    "metrics": {
+      "description": "Prestatiestatistieken van providers weergeven (latentie, succespercentage, kosten)",
+      "provider": "Filteren op provider-ID",
+      "connection_id": "Filteren op verbindings-ID",
+      "period": "Tijdsperiode: 1h|6h|24h|7d|30d (standaard: 24h)",
+      "metric": "Focussen op een specifiek statistiekveld",
+      "sort": "Sorteren op veld (aflopend)",
+      "limit": "Maximumaantal rijen (standaard: 50)",
+      "watch": "Elke 5 s vernieuwen (livemodus)",
+      "compare": "Door komma's gescheiden provider-ID's om naast elkaar te vergelijken"
+    },
+    "metric_single": {
+      "description": "Eén statistiekwaarde voor een specifieke verbinding ophalen"
+    },
+    "rotate": {
+      "description": "De upstream-API-sleutel voor een providerverbinding roteren",
+      "newKeyOpt": "Nieuwe API-sleutelwaarde (vermijd dit; gebruik bij voorkeur --from-env)",
+      "fromEnvOpt": "Lees de nieuwe sleutel uit omgevingsvariabele VAR",
+      "oauthOpt": "Start in plaats daarvan de OAuth-herauthenticatiestroom",
+      "skipTestOpt": "Sla de verbindingstest na rotatie over",
+      "dryRunOpt": "Toon wat er zou veranderen zonder wijzigingen op te slaan",
+      "confirmPrompt": "API-sleutel voor verbinding \"{name}\" ({id}) vervangen? [y/N]",
+      "dryRunResult": "[dry-run] Sleutel voor \"{name}\" ({id}) zou worden geroteerd. Er zijn geen wijzigingen aangebracht.",
+      "oauthHint": "OAuth-verbinding — voer uit: omniroute oauth {provider}",
+      "envVarEmpty": "Omgevingsvariabele {var} is niet ingesteld of is leeg.",
+      "success": "Sleutel voor \"{name}\" geroteerd. Voer `providers test {id}` uit om dit te verifiëren.",
+      "testPassed": "Test na rotatie geslaagd.",
+      "testFailed": "Test na rotatie mislukt: {error}"
+    },
+    "status": {
+      "description": "Toon de sleutelstatus voor alle providerverbindingen (leeftijd, vervaldatum, afkoelperiode)",
+      "providerOpt": "Filteren op providernaam",
+      "header": "ID         Provider       Naam                     Vervaldatum Status  Teststatus  Afkoelperiode tot",
+      "noData": "Geen gegevens over providerverbindingen beschikbaar.",
+      "requiresServer": "Voor providers status moet de OmniRoute-server actief zijn."
+    }
+  },
+  "keys": {
+    "title": "API-sleutels",
+    "addDescription": "Een API-sleutel voor een provider toevoegen of bijwerken",
+    "listDescription": "Alle geconfigureerde API-sleutels weergeven",
+    "removeDescription": "Een API-sleutel voor een provider verwijderen",
+    "regenerateDescription": "Een OmniRoute-API-sleutel opnieuw genereren",
+    "revokeDescription": "Een OmniRoute-API-sleutel intrekken",
+    "revealDescription": "De ongemaskeerde waarde van de API-sleutel weergeven",
+    "usageDescription": "Recent gebruik van een API-sleutel weergeven",
+    "usageLimitOpt": "Aantal recente verzoeken",
+    "rotateDescription": "Een nieuwe sleutel genereren en de oude ongeldig maken",
+    "graceOpt": "Respijtperiode (ms) voordat de oude sleutel ongeldig wordt gemaakt",
+    "stdinOpt": "API-sleutel uit stdin lezen in plaats van uit het argument",
+    "added": "Sleutel toegevoegd voor {provider}.",
+    "removed": "Sleutel verwijderd.",
+    "listed": "{count} sleutel(s).",
+    "noKeys": "Geen sleutels geconfigureerd.",
+    "noUsage": "Geen gebruiksgegevens gevonden.",
+    "confirmRemove": "Sleutel {id} verwijderen?",
+    "confirmRegenerate": "Sleutel {id} opnieuw genereren?",
+    "confirmRevoke": "Sleutel {id} intrekken?",
+    "confirmRotate": "Sleutel {id} roteren? (de oude sleutel wordt na de respijtperiode ongeldig gemaakt)",
+    "regenerated": "Opnieuw gegenereerd. Nieuwe sleutel: {key}",
+    "revoked": "Sleutel {id} ingetrokken.",
+    "rotated": "Sleutel {id} geroteerd. Nieuwe sleutel-ID: {newId}",
+    "revealWarning": "⚠  Hiermee wordt de volledige, niet-gemaskeerde sleutel weergegeven. Zorg dat niemand op uw scherm kan meekijken.",
+    "providerRequired": "Provider is vereist.",
+    "keyRequired": "API-sleutel is vereist.",
+    "stdinEmpty": "Geen API-sleutel via stdin opgegeven.",
+    "unknownProvider": "Onbekende provider: {provider}",
+    "policy": {
+      "title": "Sleutelbeleid",
+      "showDescription": "Beleid voor limieten/kosten van een sleutel weergeven",
+      "setDescription": "Beleid voor limieten/kosten van een sleutel instellen",
+      "rateLimitOpt": "Maximaal aantal aanvragen per minuut",
+      "maxCostOpt": "Maximale kosten per dag (USD)",
+      "allowedModelsOpt": "Door komma's gescheiden lijst met toegestane modellen",
+      "nothingToSet": "Geen beleidsvelden opgegeven. Gebruik --rate-limit, --max-cost of --allowed-models.",
+      "updated": "Beleid bijgewerkt."
+    },
+    "expiration": {
+      "title": "Vervaldatum van sleutel",
+      "listDescription": "Binnenkort verlopende sleutels weergeven",
+      "daysOpt": "Sleutels weergeven die binnen N dagen verlopen",
+      "none": "Geen sleutels die binnen {days} dagen verlopen.",
+      "listTitle": "Sleutels die binnen {days} dagen verlopen:"
+    }
+  },
+  "authExport": {
+    "description": "ONTSLEUTELDE providerreferenties exporteren (alleen lokaal, uitvoer als platte tekst)",
+    "idOpt": "Alleen de verbinding exporteren die overeenkomt met deze id/naam/provider",
+    "formatOpt": "Uitvoerformaat: json of env",
+    "outOpt": "Uitvoer naar een bestand schrijven in plaats van stdout (geschreven met 0600-machtigingen)",
+    "forceOpt": "Bevestigen dat u begrijpt dat hiermee geheimen als platte tekst worden weergegeven/geschreven",
+    "warning": "⚠ Hiermee worden ONTSLEUTELDE API-sleutels en OAuth-tokens als platte tekst weergegeven/geschreven. Zorg ervoor dat uw scherm, shellgeschiedenis en eventuele uitvoerbestanden privé blijven.",
+    "confirmHeading": "⚠ WAARSCHUWING: hiermee worden ONTSLEUTELDE providerreferenties als platte tekst geëxporteerd",
+    "confirmBody": "Deze opdracht ontsleutelt apiKey, accessToken, refreshToken en\nidToken voor de geselecteerde verbinding(en) en geeft deze weer of schrijft ze weg. Behandel de uitvoer als een geheim.",
+    "confirmFooter": "Voer ter bevestiging het volgende uit:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY is vereist om referenties te exporteren.",
+    "notFound": "Verbinding niet gevonden: {id}",
+    "invalidFormat": "Ongeldig formaat: {format}. Gebruik json of env."
+  },
+  "stream": {
+    "description": "Een chatreactie streamen met SSE-inspectiemodi",
+    "file": "Prompt uit bestand lezen",
+    "stdin": "Prompt uit stdin lezen",
+    "model": "Model-ID (standaard: auto)",
+    "system": "Systeemprompt",
+    "combo": "Een specifieke combinatie op naam afdwingen",
+    "max_tokens": "Maximaal aantal tokens in reactie",
+    "responses_api": "/v1/responses gebruiken in plaats van /v1/chat/completions",
+    "raw": "Onbewerkte SSE-regels afdrukken zoals ontvangen",
+    "debug": "Timinginformatie per chunk naar stderr schrijven",
+    "save": "Alle SSE-gebeurtenissen opslaan in een .jsonl-bestand",
+    "error": {
+      "empty_prompt": "Fout: prompt is vereist (positioneel argument, --file of --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Gebruiksanalyses, budgetten, quota en logboeken",
+    "analytics": {
+      "description": "Geaggregeerde gebruiksanalyses weergeven",
+      "period": "Tijdsbereik: 1d|7d|30d|90d|ytd|all (standaard: 30d)",
+      "provider": "Filteren op provider-ID"
+    },
+    "budget": {
+      "description": "Kostenbudgetten beheren",
+      "set": {
+        "scope": "Budgetbereik (standaard: global)",
+        "period": "Budgetperiode: daily|weekly|monthly (standaard: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Quotagebruik van provider weergeven",
+      "provider": "Filteren op provider-ID",
+      "check": "Weergeven of quota beschikbaar is voor een nieuwe aanvraag"
+    },
+    "logs": {
+      "description": "Logboeken van aanvraagaanroepen weergeven",
+      "limit": "Aantal te retourneren logboekvermeldingen (standaard: 100)",
+      "search": "Zoekopdracht om logboeken te filteren",
+      "since": "Logboeken vanaf dit tijdstempel retourneren",
+      "follow": "Nieuwe logboekvermeldingen continu volgen",
+      "api_key": "Logboeken filteren op API-sleutel"
+    },
+    "utilization": {
+      "description": "Gebruiksstatistieken van API-sleutels weergeven",
+      "api_key": "Filteren op API-sleutel"
+    },
+    "history": {
+      "description": "Aanvraaggeschiedenis weergeven",
+      "limit": "Aantal geschiedenisvermeldingen (standaard: 100)"
+    },
+    "proxy_logs": {
+      "description": "Aanvraaglogboeken op proxyniveau weergeven",
+      "limit": "Aantal proxylogboekvermeldingen (standaard: 100)"
+    }
+  },
+  "cost": {
+    "description": "Kostenrapport weergeven met uitsplitsing naar provider, model, combinatie of API-sleutel",
+    "period": "Tijdsbereik: 1d|7d|30d|90d|ytd|all (standaard: 30d)",
+    "since": "Startdatum (ISO-formaat, bijv. 2026-01-01) — overschrijft --period",
+    "until": "Einddatum (ISO-formaat)",
+    "group_by": "Resultaten groeperen op: provider|model|api-key|combo|day (standaard: provider)",
+    "api_key_filter": "Filteren op een specifieke API-sleutel",
+    "limit": "Maximaal aantal weer te geven rijen (standaard: 100)"
+  },
+  "simulate": {
+    "description": "Dry-run-routingsimulatie — weergeven welke providers zouden worden geselecteerd zonder upstream aan te roepen",
+    "file": "Volledige aanvraagbody laden vanuit JSON-bestand",
+    "model": "Model-ID (standaard: auto)",
+    "combo": "Een specifieke combinatie op naam afdwingen",
+    "reasoning": "Niveau van redeneerinspanning (low|medium|high)",
+    "thinking": "Tokenbudget voor uitgebreid denken",
+    "explain": "Fallbackboom en kostenbereik naar stderr schrijven",
+    "noCombo": "Geen overeenkomende combinatie gevonden. Configureer er een met: omniroute combo create"
+  },
+  "chat": {
+    "description": "Stuur een eenmalige chatprompt naar OmniRoute",
+    "file": "Prompt uit bestand lezen",
+    "stdin": "Prompt van stdin lezen",
+    "system": "Systeemprompt",
+    "model": "Model-ID (standaard: auto)",
+    "max_tokens": "Maximumaantal tokens in antwoord",
+    "temperature": "Samplingtemperatuur (0–2)",
+    "top_p": "Top-p-nucleussampling",
+    "reasoning_effort": "Niveau van redeneerinspanning (low|medium|high)",
+    "thinking_budget": "Tokenbudget voor uitgebreid denkwerk",
+    "combo": "Een specifieke combinatie op naam afdwingen",
+    "responses_api": "/v1/responses gebruiken in plaats van /v1/chat/completions",
+    "stream": "Antwoord stapsgewijs streamen",
+    "no_history": "Niet opslaan in ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Fout: prompt is vereist (positioneel argument, --file of --stdin)"
+    }
+  },
+  "serve": {
+    "description": "De OmniRoute-server starten (standaardactie)",
+    "starting": "OmniRoute-server wordt gestart op poort {port}...",
+    "ready": "Beschikbaar op http://localhost:{port}",
+    "stopping": "Server wordt gestopt (PID {pid})...",
+    "stopped": "Server gestopt.",
+    "notRunning": "Server is niet actief.",
+    "port": "Poort om op te luisteren (standaard: 20128)",
+    "no_open": "Browser niet automatisch openen",
+    "daemon": "Server als achtergronddaemon uitvoeren",
+    "log": "Serverlogboeken inline weergeven",
+    "no_recovery": "Automatisch opnieuw starten na crash uitschakelen (foutopsporingsmodus)",
+    "max_restarts": "Maximaal aantal herstarts na crashes binnen 30 s voordat wordt opgegeven (standaard: 2)",
+    "tray": "Starten in het systeemvak (alleen desktop, optioneel)",
+    "no_tray": "Systeemvakpictogram uitschakelen",
+    "ready_timeout": "Time-out voor gereedheidscontrole in ms (ook OMNIROUTE_READY_TIMEOUT_MS, standaard 60000)",
+    "tls_cert": "Pad naar een TLS-certificaat (PEM) om HTTPS aan te bieden (ook OMNIROUTE_TLS_CERT)",
+    "tls_key": "Pad naar de privésleutel voor TLS (PEM) om HTTPS aan te bieden (ook OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Back-up",
+    "description": "Een back-up van OmniRoute-gegevens maken",
+    "creating": "Back-up wordt gemaakt...",
+    "done": "Back-up opgeslagen in {path}",
+    "noFiles": "Geen bestanden om een back-up van te maken (database niet geïnitialiseerd)",
+    "failed": "Back-up mislukt: {error}",
+    "restoring": "Herstellen vanaf {path}...",
+    "restored": "Herstel voltooid.",
+    "restoreDescription": "Herstellen vanuit een back-up",
+    "listTitle": "Beschikbare back-ups",
+    "noBackups": "Geen back-ups gevonden.",
+    "notFound": "Back-up niet gevonden: {name}",
+    "confirmRestore": "Huidige gegevens overschrijven met de back-up van {ts}?",
+    "createDescription": "Een back-up van OmniRoute-gegevens maken",
+    "nameOpt": "Aangepaste back-upnaam",
+    "cloudOpt": "Back-up uploaden naar cloudopslag",
+    "encryptOpt": "Back-up versleutelen met AES-256-GCM",
+    "keyFileOpt": "Pad naar het bestand met de wachtwoordzin voor versleuteling",
+    "excludeOpt": "Bestanden uitsluiten die overeenkomen met het patroon (herhaalbaar)",
+    "retentionOpt": "Alleen de laatste N back-ups bewaren",
+    "passphrasePrompt": "Wachtwoordzin voor versleuteling:",
+    "noPassphrase": "Een wachtwoordzin is vereist voor een versleutelde back-up.",
+    "cloudFailed": "Waarschuwing: uploaden naar de cloud is mislukt. De lokale back-up is opgeslagen.",
+    "cloudUploaded": "Cloudback-up geüpload: {url}",
+    "auto": {
+      "title": "Back-upschema",
+      "enableDescription": "Geplande automatische back-ups inschakelen",
+      "disableDescription": "Geplande automatische back-ups uitschakelen",
+      "statusDescription": "Huidige status van het back-upschema weergeven",
+      "cronOpt": "Cron-expressie voor het schema (standaard: dagelijks om 03.00 uur)",
+      "enabled": "Automatische back-up ingeschakeld (cron: {cron}).",
+      "hint": "Het schema wordt bij het opstarten gelezen door omniroute serve.",
+      "disabled": "Automatische back-up uitgeschakeld.",
+      "notConfigured": "Geen back-upschema geconfigureerd."
+    }
+  },
+  "health": {
+    "description": "Serverstatus en componentstatus controleren",
+    "noServer": "Server is niet actief. Start met: omniroute serve",
+    "title": "Status",
+    "status": "Status: {status}",
+    "uptime": "Actief sinds: {uptime}",
+    "requests": "Verzoeken (24 uur): {count}",
+    "cost": "Kosten (24 uur): ${cost}"
+  },
+  "quota": {
+    "description": "Quotagebruik van provider weergeven",
+    "noServer": "Server is niet actief. Start met: omniroute serve",
+    "noData": "Geen quota-informatie beschikbaar."
+  },
+  "cache": {
+    "description": "Antwoordcache beheren",
+    "noServer": "Server is niet actief. Start met: omniroute serve",
+    "cleared": "Cache gewist.",
+    "clearFailed": "Kan cache niet wissen."
+  },
+  "redis": {
+    "description": "Start een lokale Redis-container met één klik (Podman of Docker) voor OmniRoute-caching en quotumtracking"
+  },
+  "test": {
+    "description": "Een providerverbinding testen",
+    "noServer": "Server draait niet. Start met: omniroute serve",
+    "testing": "{provider} / {model} testen...",
+    "passed": "Verbinding geslaagd!",
+    "failed": "Verbinding mislukt: {error}",
+    "allProvidersOpt": "Alle geconfigureerde providers testen",
+    "latencyOpt": "Latentiemetingen weergeven (gem./min./max. ms)",
+    "repeatOpt": "Test N keer herhalen en resultaten samenvoegen",
+    "compareOpt": "Door komma's gescheiden modellen om te vergelijken (bijv. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Resultaten opslaan in een JSON-bestand",
+    "saved": "Resultaten opgeslagen in {path}",
+    "compareTitle": "Modelvergelijking",
+    "compareMinTwo": "Ten minste twee modellen vereist voor --compare (door komma's gescheiden)",
+    "noProviders": "Geen providers geconfigureerd. Voeg er een toe met: omniroute keys add"
+  },
+  "update": {
+    "checking": "Controleren op updates...",
+    "upToDate": "Al up-to-date ({version}).",
+    "available": "Update beschikbaar: {current} → {latest}",
+    "installing": "{latest} installeren...",
+    "done": "Bijgewerkt naar {latest}. Start de server opnieuw om de update toe te passen."
+  },
+  "mcp": {
+    "title": "MCP-server",
+    "running": "MCP-server actief ({transport})",
+    "stopped": "MCP-server gestopt.",
+    "restarted": "MCP-server opnieuw gestart.",
+    "stoppedHint": "Voer `omniroute mcp enable` uit om deze in te schakelen.",
+    "enabled": "MCP-server ingeschakeld.",
+    "disabled": "MCP-server uitgeschakeld.",
+    "enable": {
+      "description": "De MCP-server inschakelen",
+      "transport": "Te gebruiken transport: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "De MCP-server uitschakelen"
+    },
+    "call": {
+      "description": "Een MCP-tool rechtstreeks aanroepen",
+      "args": "Object met JSON-argumenten (inline)",
+      "args_file": "Pad naar bestand met JSON-argumenten",
+      "stream": "Streaming-endpoint gebruiken (/api/mcp/stream)",
+      "scope": "Vereist bereik (herhaalbaar, bijv. read:health)"
+    },
+    "scopes": {
+      "description": "Beschikbare MCP-bereiken weergeven",
+      "tool": "Bereiken weergeven die door een specifieke tool worden vereist"
+    },
+    "tools": {
+      "description": "MCP-tools inspecteren",
+      "list": {
+        "description": "Alle MCP-tools weergeven",
+        "scope": "Filteren op bereik"
+      },
+      "info": {
+        "description": "Metagegevens voor een MCP-tool weergeven"
+      },
+      "schema": {
+        "description": "JSON-schema voor invoer/uitvoer van een MCP-tool weergeven",
+        "io": "Schematype: invoer|uitvoer (standaard: invoer)"
+      }
+    },
+    "audit": {
+      "description": "MCP-auditlogboek (alias voor audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Beschikbare A2A-vaardigheden van de agentkaart weergeven"
+    },
+    "invoke": {
+      "description": "Een A2A-vaardigheid aanroepen en de taak-ID retourneren",
+      "input": "JSON-invoerobject",
+      "input_file": "Pad naar JSON-invoerbestand",
+      "wait": "Wachten tot de taak is voltooid alvorens terug te keren",
+      "timeout": "Time-out voor wachten op voltooiing in ms (standaard: 60000)"
+    },
+    "tasks": {
+      "description": "A2A-taken beheren",
+      "list": {
+        "status": "Filteren op status",
+        "skill": "Filteren op vaardigheids-ID"
+      },
+      "watch": {
+        "description": "Taakstatus opvragen tot voltooiing"
+      },
+      "stream": {
+        "description": "Taakuitvoeringsgebeurtenissen streamen via SSE"
+      },
+      "logs": {
+        "description": "Taakberichten en artefacten weergeven"
+      }
+    }
+  },
+  "policy": {
+    "description": "OmniRoute-autorisatiebeleid beheren",
+    "list": {
+      "description": "Beleidsregels weergeven",
+      "kind": "Filteren op type (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filteren op bereik (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Beleidsdetails ophalen op basis van ID"
+    },
+    "create": {
+      "description": "Een beleid aanmaken vanuit een JSON-bestand",
+      "file": "Pad naar JSON-beleidsbestand"
+    },
+    "update": {
+      "description": "Een beleid bijwerken vanuit een JSON-bestand",
+      "file": "Pad naar JSON-beleidsbestand"
+    },
+    "delete": {
+      "description": "Een beleid verwijderen op basis van ID",
+      "yes": "Bevestigingsprompt overslaan"
+    },
+    "evaluate": {
+      "description": "Proefuitvoering van beleidsevaluatie (afsluitcode 0=toegestaan, 4=geweigerd)",
+      "api_key": "Te evalueren API-sleutel",
+      "action": "Te controleren actie (bijv. chat, embed, admin)",
+      "resource": "Resourcepad of identificatiecode",
+      "context": "Aanvullende context als JSON-object"
+    },
+    "export": {
+      "description": "Alle beleidsregels exporteren naar een JSON-bestand"
+    },
+    "import": {
+      "description": "Beleidsregels importeren uit een JSON-bestand",
+      "overwrite": "Bestaande beleidsregels met dezelfde ID overschrijven"
+    }
+  },
+  "compression": {
+    "description": "De OmniRoute-compressiepijplijn configureren en inspecteren",
+    "status": {
+      "description": "Huidige compressiestatus en -instellingen weergeven"
+    },
+    "configure": {
+      "description": "Compressie-instellingen configureren",
+      "engine": "Compressie-engine (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Caveman-agressiviteit 0,0–1,0",
+      "rtk_budget": "RTK-tokenbudget",
+      "language_pack": "Te activeren taalpakket"
+    },
+    "engine": {
+      "description": "De actieve compressie-engine ophalen of instellen"
+    },
+    "combos": {
+      "description": "Statistieken voor compressiecombinaties beheren"
+    },
+    "rules": {
+      "description": "Compressieregels beheren",
+      "add": {
+        "pattern": "Zoekpatroon (regex of veld:patroon)",
+        "action": "Actie: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Beschikbare taalpakketten voor compressie weergeven"
+    },
+    "preview": {
+      "description": "Effect van compressie op een verzoek bekijken",
+      "file": "Pad naar JSON-bestand met verzoek"
+    }
+  },
+  "tunnel": {
+    "title": "Tunnels",
+    "listDescription": "Actieve tunnels weergeven",
+    "createDescription": "Een tunnel maken",
+    "created": "Tunnel gemaakt: {url}",
+    "stopped": "Tunnel gestopt.",
+    "confirmStop": "Tunnel {id} stoppen?",
+    "stopDescription": "Een tunnel stoppen",
+    "statusDescription": "Gedetailleerde status van een tunnel weergeven",
+    "logsDescription": "Logboeken van een tunnel weergeven",
+    "infoDescription": "Configuratiedetails van een tunnel weergeven",
+    "rotateDescription": "Een nieuwe tunnel-URL genereren",
+    "tailOpt": "Aantal weer te geven logregels",
+    "typeRequired": "Tunneltype is vereist.",
+    "noLogs": "Geen logboeken beschikbaar.",
+    "notAvailable": "Tunnelinformatie niet beschikbaar.",
+    "noTunnels": "Geen actieve tunnels.",
+    "infoTitle": "Tunnelinformatie: {type}",
+    "rotated": "Tunnel-URL vernieuwd: {url}",
+    "confirmRotate": "Tunnel {type} vernieuwen? (er wordt een nieuwe URL gegenereerd)"
+  },
+  "stop": {
+    "description": "De OmniRoute-server stoppen",
+    "stopping": "Server wordt gestopt (PID {pid})...",
+    "stopped": "Server gestopt.",
+    "notRunning": "Er is geen server actief.",
+    "portFallback": "Geen PID-bestand gevonden, er wordt geprobeerd te stoppen op basis van de poort..."
+  },
+  "restart": {
+    "description": "De OmniRoute-server opnieuw starten",
+    "restarting": "OmniRoute-server wordt opnieuw gestart..."
+  },
+  "dashboard": {
+    "description": "Het OmniRoute-dashboard openen in een browser",
+    "opening": "Dashboard wordt geopend op {url}",
+    "urlOnly": "Dashboard-URL weergeven zonder de browser te openen",
+    "tui": "Interactief TUI-dashboard openen (terminalinterface, 7 tabbladen)"
+  },
+  "models": {
+    "description": "Beschikbare modellen weergeven (server vereist)",
+    "search": "Modellen filteren op id, naam, provider of beschrijving",
+    "noServer": "Server draait niet. Start met: omniroute serve",
+    "noModels": "Geen modellen gevonden."
+  },
+  "audit": {
+    "description": "Toegang tot compliance- en MCP-auditlogboeken",
+    "source": "Logboekbron: all|compliance|mcp (standaard: all)",
+    "since": "Vermeldingen retourneren vanaf dit tijdstip (ISO 8601)",
+    "until": "Vermeldingen retourneren tot dit tijdstip (ISO 8601)",
+    "tail": {
+      "description": "Recente auditlogboekvermeldingen weergeven",
+      "follow": "Nieuwe vermeldingen continu volgen (peiling om de 2 s)",
+      "limit": "Maximumaantal weer te geven vermeldingen (standaard: 100)"
+    },
+    "search": {
+      "description": "Auditlogboekvermeldingen zoeken op trefwoord",
+      "limit": "Maximumaantal resultaten (standaard: 200)",
+      "actor": "Filteren op actor-ID",
+      "action": "Filteren op actienaam"
+    },
+    "export": {
+      "description": "Auditlogboek exporteren naar bestand",
+      "format": "Uitvoerformaat: jsonl|csv (standaard: jsonl)"
+    },
+    "stats": {
+      "description": "Auditlogboekstatistieken weergeven",
+      "period": "Periode: 1d|7d|30d (standaard: 7d)"
+    },
+    "get": {
+      "description": "Eén auditlogboekvermelding ophalen op basis van ID"
+    }
+  },
+  "skills": {
+    "description": "OmniRoute-skills beheren (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Geïnstalleerde skills weergeven",
+      "type": "Filteren op type (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Alleen ingeschakelde skills weergeven",
+      "disabled": "Alleen uitgeschakelde skills weergeven",
+      "api_key": "Filteren op API-sleutel"
+    },
+    "get": {
+      "description": "Details van een skill ophalen op basis van ID"
+    },
+    "install": {
+      "description": "Een skill installeren vanuit een bestand of URL",
+      "from_file": "Pad naar het JSON-definitiebestand van de skill",
+      "from_url": "URL van de externe skilldefinitie",
+      "type": "Skilltype (sandbox|custom|hybrid)",
+      "enable": "Skill inschakelen na installatie"
+    },
+    "enable": {
+      "description": "Een skill inschakelen op basis van ID"
+    },
+    "disable": {
+      "description": "Een skill uitschakelen op basis van ID",
+      "yes": "Bevestigingsprompt overslaan"
+    },
+    "delete": {
+      "description": "Een skill verwijderen op basis van ID",
+      "yes": "Bevestigingsprompt overslaan"
+    },
+    "execute": {
+      "description": "Een skill uitvoeren op basis van ID",
+      "input": "JSON-invoerobject",
+      "input_file": "Pad naar JSON-invoerbestand",
+      "timeout": "Time-out voor uitvoering in ms (standaard: 30000)"
+    },
+    "executions": {
+      "description": "Geschiedenis van skilluitvoeringen weergeven",
+      "skill": "Filteren op skill-ID",
+      "limit": "Maximaal aantal resultaten (standaard: 50)",
+      "status": "Filteren op status (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Via SSH geïnstalleerde skills beheren"
+    },
+    "marketplace": {
+      "description": "Skills bekijken en installeren vanuit de marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Marketplace-pakketten zoeken",
+        "category": "Filteren op categorie",
+        "tag": "Filteren op tag",
+        "limit": "Maximaal aantal resultaten (standaard: 30)",
+        "sort": "Sorteren op: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Pakketdetails en readme weergeven"
+      },
+      "install": {
+        "description": "Een marketplace-pakket installeren",
+        "version": "Pakketversie (standaard: latest)",
+        "enable": "Inschakelen na installatie",
+        "yes": "Bevestigingsprompt overslaan"
+      },
+      "categories": {
+        "description": "Marketplace-categorieën weergeven"
+      },
+      "featured": {
+        "description": "Uitgelichte marketplace-pakketten weergeven"
+      }
+    }
+  },
+  "memory": {
+    "description": "OmniRoute-gespreksgeheugen beheren (FTS5 + vector)",
+    "search": {
+      "description": "Geheugenitems zoeken met een semantische zoekopdracht",
+      "type": "Filteren op geheugentype (user|feedback|project|reference)",
+      "limit": "Maximaal aantal resultaten (standaard: 20)",
+      "api_key": "Filteren op API-sleutel",
+      "token_budget": "Totaal aantal tokens in resultaten beperken"
+    },
+    "add": {
+      "description": "Een nieuw geheugenitem toevoegen",
+      "content": "Tekstinhoud van het geheugen",
+      "file": "Inhoud uit bestand lezen",
+      "type": "Geheugentype (standaard: user)",
+      "metadata": "JSON-metadataobject",
+      "api_key": "Koppelen aan API-sleutel"
+    },
+    "clear": {
+      "description": "Geheugenitems verwijderen die overeenkomen met filters",
+      "type": "Filteren op type",
+      "older": "Items verwijderen die ouder zijn dan de duur (30d, 6m, 1y)",
+      "api_key": "Filteren op API-sleutel",
+      "yes": "Bevestigingsprompt overslaan"
+    },
+    "list": {
+      "description": "Geheugenitems weergeven zonder zoekrangschikking",
+      "type": "Filteren op type",
+      "limit": "Maximaal aantal resultaten (standaard: 100)",
+      "api_key": "Filteren op API-sleutel"
+    },
+    "get": {
+      "description": "Eén geheugenitem ophalen op basis van ID"
+    },
+    "delete": {
+      "description": "Een geheugenitem verwijderen op basis van ID",
+      "yes": "Bevestigingsprompt overslaan"
+    },
+    "health": {
+      "description": "Status van geheugensubsysteem weergeven (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "OAuth-providerverbindingen beheren",
+    "providers": {
+      "description": "Providers met OAuth-ondersteuning en hun flowtypen weergeven"
+    },
+    "start": {
+      "description": "OAuth-autorisatieflow voor een provider starten",
+      "provider": "Provider-ID (gemini, copilot, cursor, …)",
+      "no_browser": "Alleen URL weergeven — browser niet openen",
+      "import_system": "Inloggegevens automatisch importeren uit de lokale systeemconfiguratie",
+      "social": "Provider voor sociale aanmelding (google|github) — vereist voor kiro",
+      "timeout": "Time-out voor wachten op autorisatie in ms (standaard: 300000)"
+    },
+    "status": {
+      "description": "Actieve OAuth-verbindingen weergeven",
+      "provider": "Filteren op provider-ID"
+    },
+    "revoke": {
+      "description": "Een OAuth-verbinding intrekken",
+      "provider": "Provider-ID om in te trekken",
+      "connection_id": "Een specifieke verbinding op ID intrekken",
+      "yes": "Bevestigingsprompt overslaan"
+    }
+  },
+  "cloud": {
+    "description": "Cloud-AI-agenttaken beheren (codex, devin, jules)",
+    "agents": {
+      "description": "Beschikbare cloudagents weergeven"
+    },
+    "agent": {
+      "description": "Cloudagenttaken voor {agent} beheren",
+      "auth": {
+        "description": "{agent} autoriseren via OAuth"
+      }
+    },
+    "task": {
+      "description": "Cloudagenttaken beheren",
+      "create": {
+        "description": "Een nieuwe agenttaak aanmaken",
+        "title": "Taaktitel (standaard de eerste 80 tekens van de prompt)",
+        "prompt": "Tekst van taakprompt",
+        "prompt_file": "Prompt uit bestand lezen",
+        "repo": "Repository-URL om voor de taak te klonen",
+        "branch": "Te gebruiken branchnaam",
+        "metadata": "JSON-metadataobject"
+      },
+      "list": {
+        "description": "Agenttaken weergeven",
+        "status": "Filteren op status (running|completed|failed|cancelled)",
+        "limit": "Maximumaantal resultaten (standaard: 50)"
+      },
+      "get": {
+        "description": "Taakdetails op ID ophalen"
+      },
+      "status": {
+        "description": "Taakstatus weergeven (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Een actieve taak annuleren",
+        "yes": "Bevestigingsprompt overslaan"
+      },
+      "approve": {
+        "description": "Het agentplan goedkeuren om de uitvoering te starten"
+      },
+      "message": {
+        "description": "Een bericht naar een actieve taak sturen"
+      }
+    },
+    "sources": {
+      "description": "Door een taak geproduceerde bronbestanden weergeven"
+    }
+  },
+  "eval": {
+    "description": "Evaluatiesuites en uitvoeringen beheren",
+    "suites": {
+      "description": "Evaluatiesuites beheren",
+      "list": {
+        "description": "Evaluatiesuites weergeven"
+      },
+      "get": {
+        "description": "Details van evaluatiesuite ophalen op ID"
+      },
+      "create": {
+        "description": "Een evaluatiesuite maken vanuit een JSON-bestand",
+        "file": "Pad naar JSON-bestand met suitedefinitie"
+      }
+    },
+    "run": {
+      "description": "Een evaluatierun starten voor een suite",
+      "model": "Te evalueren model-ID (standaard: auto)",
+      "combo": "Een specifieke combinatie afdwingen op naam",
+      "concurrency": "Aantal gelijktijdige samples (standaard: 4)",
+      "tag": "Deze run taggen om later te filteren",
+      "watch": "Voortgang van run volgen tot voltooiing"
+    },
+    "list": {
+      "description": "Evaluatieruns weergeven",
+      "suite": "Filteren op suite-ID",
+      "status": "Filteren op status",
+      "since": "Runs vanaf dit tijdstip retourneren",
+      "limit": "Maximaal aantal resultaten (standaard: 50)"
+    },
+    "get": {
+      "description": "Details van evaluatierun ophalen op ID"
+    },
+    "results": {
+      "description": "Sampleresultaten voor een evaluatierun weergeven",
+      "failed": "Alleen mislukte samples weergeven"
+    },
+    "cancel": {
+      "description": "Een actieve evaluatie annuleren",
+      "yes": "Bevestigingsprompt overslaan"
+    },
+    "scorecard": {
+      "description": "Scorekaart voor een voltooide evaluatierun weergeven"
+    }
+  },
+  "webhooks": {
+    "description": "OmniRoute-webhooks beheren",
+    "events": {
+      "description": "Alle beschikbare webhookgebeurtenistypen weergeven"
+    },
+    "list": {
+      "description": "Geconfigureerde webhooks weergeven"
+    },
+    "get": {
+      "description": "Webhookdetails ophalen op ID"
+    },
+    "add": {
+      "description": "Een nieuwe webhook registreren",
+      "url": "Bestemmings-URL",
+      "events": "Door komma's gescheiden lijst met gebeurtenistypen",
+      "secret": "HMAC-ondertekeningsgeheim",
+      "header": "Extra header in key=value-indeling (herhaalbaar)",
+      "no_enabled": "Webhook in uitgeschakelde status maken"
+    },
+    "update": {
+      "description": "Een bestaande webhook bijwerken",
+      "enabled": "Ingeschakelde status instellen (true|false)"
+    },
+    "remove": {
+      "description": "Een webhook verwijderen",
+      "yes": "Bevestigingsprompt overslaan"
+    },
+    "test": {
+      "description": "Een testgebeurtenis naar een webhook verzenden",
+      "event": "Te simuleren gebeurtenistype (standaard: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Slimme AI-router met automatische fallback",
     "version": "Versie afdrukken en afsluiten",
@@ -26,7 +832,509 @@
     "context": "Servercontext/profiel voor dit commando",
     "lang": "CLI-weergavetaal instellen (overschrijft OMNIROUTE_LANG)"
   },
-  "redis": {
-    "description": "Start een lokale Redis-container met één klik (Podman of Docker) voor OmniRoute-caching en quotumtracking"
+  "files": {
+    "description": "Bestanden beheren (uploaden, weergeven, ophalen, downloaden, verwijderen)",
+    "list": {
+      "purpose": "Filteren op doel",
+      "limit": "Maximaal aantal resultaten"
+    },
+    "get": {
+      "description": "Bestandsmetadata ophalen"
+    },
+    "upload": {
+      "description": "Een bestand uploaden",
+      "purpose": "Bestandsdoel (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Bestandsinhoud downloaden",
+      "out": "Opslaan in pad (standaard: stdout)"
+    },
+    "delete": {
+      "yes": "Bevestiging overslaan"
+    }
+  },
+  "batches": {
+    "description": "OpenAI-compatibele batchtaken beheren",
+    "list": {
+      "status": "Filteren op status",
+      "limit": "Maximumaantal resultaten"
+    },
+    "create": {
+      "description": "Een batchtaak aanmaken",
+      "inputFile": "Invoerbestands-ID",
+      "endpoint": "Doelendpoint",
+      "window": "Voltooiingsvenster",
+      "metadata": "Metagegevens key=value toevoegen"
+    },
+    "submit": {
+      "description": "JSONL-bestand uploaden en batch aanmaken",
+      "jsonl": "Pad naar JSONL-bestand",
+      "endpoint": "Doelendpoint",
+      "wait": "Wachten op voltooiing"
+    },
+    "cancel": {
+      "yes": "Bevestiging overslaan"
+    },
+    "wait": {
+      "timeout": "Time-out in ms"
+    },
+    "output": {
+      "out": "Uitvoer opslaan in pad"
+    },
+    "errors": {
+      "out": "Fouten opslaan in pad"
+    }
+  },
+  "translator": {
+    "description": "Aanvraaginhoud vertalen tussen LLM-indelingen",
+    "detect": {
+      "description": "Indeling van aanvraaginhoud detecteren"
+    },
+    "translate": {
+      "description": "Aanvraaginhoud van de ene indeling naar de andere converteren"
+    },
+    "send": {
+      "description": "Vertalen en doorsturen naar upstream"
+    },
+    "stream": {
+      "description": "Aanvraaginhoud streamend vertalen"
+    },
+    "from": "Bronindeling (openai|anthropic|gemini|cohere)",
+    "to": "Doelindeling (openai|anthropic|gemini|cohere)",
+    "file": "Pad naar JSON-bestand met aanvraaginhoud",
+    "out": "Uitvoer opslaan in bestand",
+    "model": "Model overschrijven",
+    "history": {
+      "limit": "Maximumaantal resultaten"
+    }
+  },
+  "pricing": {
+    "description": "Prijsgegevens voor modellen beheren",
+    "sync": {
+      "description": "Prijzen synchroniseren vanuit upstream-bronnen",
+      "provider": "Filteren op provider",
+      "force": "Hersynchronisatie forceren"
+    },
+    "list": {
+      "provider": "Filteren op provider",
+      "model": "Filteren op model",
+      "limit": "Maximumaantal resultaten"
+    },
+    "defaults": {
+      "description": "Standaardprijzen beheren",
+      "input": "Invoerkosten per 1 miljoen tokens (USD)",
+      "output": "Uitvoerkosten per 1 miljoen tokens (USD)",
+      "cacheRead": "Kosten voor cachelezingen per 1 miljoen tokens (USD)",
+      "cacheWrite": "Kosten voor cacheschrijfbewerkingen per 1 miljoen tokens (USD)"
+    },
+    "diff": {
+      "description": "Afwijking van upstreamprijzen tonen",
+      "model": "Filteren op model"
+    }
+  },
+  "radar": {
+    "description": "Lokale Radar-catalogusfeeds inspecteren en synchroniseren",
+    "status": "Lokale Radar-instellingen en cachestatus van feeds tonen",
+    "sync": "Catalogus, verwijzingen, aanbiedingen en Intel synchroniseren via de lokale server"
+  },
+  "resilience": {
+    "description": "Veerkrachtmechanismen inspecteren en beheren",
+    "status": {
+      "provider": "Filteren op provider"
+    },
+    "breakers": {
+      "provider": "Filteren op provider"
+    },
+    "cooldowns": {
+      "provider": "Filteren op provider",
+      "connectionId": "Filteren op verbindings-ID"
+    },
+    "lockouts": {
+      "provider": "Filteren op provider",
+      "model": "Filteren op model"
+    },
+    "reset": {
+      "description": "Status van stroomonderbreker/cooldown resetten",
+      "provider": "Te resetten provider",
+      "connectionId": "Te resetten verbindings-ID",
+      "model": "Model waarvoor de blokkering moet worden gereset",
+      "allCooldowns": "Alle cooldowns voor provider resetten",
+      "yes": "Bevestiging overslaan"
+    },
+    "profile": {
+      "description": "Veerkrachtprofiel beheren",
+      "name": "Profielnaam"
+    },
+    "config": {
+      "description": "Veerkrachtconfiguratie beheren",
+      "threshold": "Drempelwaarde voor fouten",
+      "resetTimeout": "Resettime-out in ms",
+      "baseCooldown": "Basiscooldown in ms"
+    }
+  },
+  "nodes": {
+    "description": "Providernodes (eindpunten) beheren",
+    "list": {
+      "provider": "Filteren op provider",
+      "enabled": "Alleen ingeschakelde nodes tonen"
+    },
+    "add": {
+      "provider": "Providernaam",
+      "baseUrl": "Basis-URL voor de node",
+      "name": "Nodenaam",
+      "weight": "Gewicht voor taakverdeling",
+      "region": "Regiotag",
+      "authHeader": "Aangepaste authenticatieheader (key=value)"
+    },
+    "update": {
+      "baseUrl": "Nieuwe basis-URL",
+      "name": "Nieuwe naam",
+      "weight": "Nieuw gewicht",
+      "region": "Nieuwe regio",
+      "enabled": "In- of uitschakelen (true|false)"
+    },
+    "remove": {
+      "yes": "Bevestiging overslaan"
+    },
+    "validate": {
+      "baseUrl": "Te valideren URL",
+      "provider": "Provider waartegen moet worden gevalideerd"
+    },
+    "test": {
+      "description": "Testverzoek naar node verzenden"
+    },
+    "metrics": {
+      "description": "Nodemetrieken weergeven",
+      "period": "Tijdsperiode (bijv. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Context-engineeringpipeline configureren (Caveman, RTK)",
+    "analytics": {
+      "period": "Tijdsperiode (bijv. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Caveman-contextcompressor beheren",
+      "config": {
+        "description": "Caveman-configuratie weergeven of bijwerken",
+        "aggressiveness": "Agressiviteit 0.0–1.0",
+        "maxShrinkPct": "Maximaal verkleiningspercentage",
+        "preserveTags": "Door komma's gescheiden tags die behouden moeten blijven"
+      }
+    },
+    "rtk": {
+      "description": "RTK-contextoptimalisator beheren",
+      "config": {
+        "description": "RTK-configuratie weergeven of bijwerken",
+        "tokenBudget": "Tokenbudget voor RTK",
+        "reservePct": "Reservepercentage"
+      },
+      "filters": {
+        "description": "RTK-filters beheren",
+        "pattern": "Filterpatroon (regex)",
+        "priority": "Filterprioriteit (standaard: 100)",
+        "action": "Filteractie: drop|shrink|replace",
+        "yes": "Bevestiging overslaan"
+      },
+      "test": {
+        "file": "Pad naar JSON-bestand met verzoek"
+      }
+    },
+    "combos": {
+      "description": "Contextbewust combinatiebeheer"
+    }
+  },
+  "sessions": {
+    "description": "Actieve sessies bekijken en beheren",
+    "list": {
+      "user": "Filteren op gebruiker",
+      "kind": "Filteren op type (dashboard|api-key|mcp|a2a)",
+      "active": "Alleen actieve sessies weergeven",
+      "limit": "Maximaal aantal resultaten (standaard: 100)"
+    },
+    "expire": {
+      "yes": "Bevestiging overslaan"
+    },
+    "expireAll": {
+      "user": "Gebruiker van wie de sessies moeten verlopen",
+      "yes": "Bevestiging overslaan"
+    }
+  },
+  "tags": {
+    "description": "Resourcetags beheren",
+    "add": {
+      "color": "Tagkleur (hex of naam)",
+      "description": "Tagbeschrijving"
+    },
+    "remove": {
+      "yes": "Bevestiging overslaan"
+    },
+    "assign": {
+      "tag": "Tagnaam",
+      "to": "Doelresource als type:id (bijv. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Tagnaam",
+      "from": "Bronresource als type:id"
+    }
+  },
+  "openapi": {
+    "description": "De OmniRoute OpenAPI-specificatie openen en testen",
+    "dump": {
+      "description": "OpenAPI-specificatie naar stdout of een bestand uitvoeren",
+      "format": "Uitvoerformaat: yaml|json (standaard: yaml)",
+      "out": "Opslaan naar bestandspad"
+    },
+    "validate": {
+      "description": "De OpenAPI-specificatie valideren"
+    },
+    "try": {
+      "description": "Een API-endpoint testen via de specificatie",
+      "method": "HTTP-methode (standaard: GET)",
+      "body": "Pad naar JSON-bestand met aanvraagbody",
+      "query": "Queryparameter als key=value (herhaalbaar)",
+      "header": "Header als key=value (herhaalbaar)"
+    },
+    "endpoints": {
+      "description": "Alle API-endpoints weergeven",
+      "search": "Filteren op pad of samenvatting"
+    },
+    "paths": {
+      "description": "Alle API-paden weergeven"
+    }
+  },
+  "combo": {
+    "title": "Combinaties",
+    "switched": "Actieve combinatie: {name}",
+    "created": "Combinatie aangemaakt: {name}",
+    "deleted": "Combinatie verwijderd: {name}",
+    "noCombos": "Geen combinaties geconfigureerd.",
+    "confirmDelete": "Combinatie {name} verwijderen?",
+    "suggest": {
+      "description": "De beste combinatie voor een taak voorstellen met behulp van AI-scores",
+      "task": "Taakbeschrijving",
+      "maxCost": "Maximale kosten per aanvraag in USD",
+      "maxLatencyMs": "Maximale latentie in milliseconden",
+      "weights": "JSON-scoregewichten, bijv. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Aantal beste kandidaten om weer te geven (standaard: 5)",
+      "explain": "Motivering naar stderr uitvoeren",
+      "switch": "De hoogst gerangschikte combinatie activeren"
+    }
+  },
+  "oneproxy": {
+    "description": "De OneProxy-upstreampool beheren",
+    "stats": {
+      "provider": "Filteren op provider",
+      "period": "Tijdsperiode (standaard: 24h)"
+    },
+    "fetch": {
+      "description": "Proxy's ophalen uit de pool",
+      "count": "Aantal op te halen proxy's (standaard: 1)",
+      "type": "Proxytype: http|socks5 (standaard: http)"
+    },
+    "rotate": {
+      "description": "Proxyrotatie forceren",
+      "provider": "Provider waarvoor moet worden geroteerd",
+      "connectionId": "Specifieke verbindings-ID om te roteren"
+    },
+    "config": {
+      "description": "OneProxy-configuratie weergeven of bijwerken",
+      "enabled": "Proxypool inschakelen (true|false)",
+      "poolSize": "Poolgrootte",
+      "providerSource": "URL voor proxyprovider",
+      "rotationPolicy": "Rotatiebeleid: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Huidige proxypool met statistieken weergeven"
+    }
+  },
+  "open": {
+    "description": "Een specifieke OmniRoute-dashboardpagina in de browser openen",
+    "url": "Alleen URL weergeven, browser niet openen"
+  },
+  "telemetry": {
+    "description": "Toegang tot geaggregeerde telemetriegegevens",
+    "summary": {
+      "description": "Samenvatting van geaggregeerde telemetrie weergeven",
+      "period": "Periode: 24h|7d|30d (standaard: 24h)",
+      "compareTo": "Vergelijken met de vorige periode"
+    },
+    "export": {
+      "description": "Telemetriegebeurtenissen exporteren naar JSONL",
+      "out": "Pad naar uitvoerbestand (standaard: telemetry.jsonl)",
+      "period": "Periode voor export (standaard: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Configuratie synchroniseren tussen OmniRoute-instanties",
+    "push": {
+      "description": "Configuratie naar de cloud of externe instantie pushen",
+      "target": "Doel (cloud of context:name)",
+      "bundle": "Te synchroniseren onderdelen van de bundel",
+      "dryRun": "Voorbeeld bekijken zonder toe te passen"
+    },
+    "pull": {
+      "description": "Configuratie ophalen uit de cloud of externe instantie",
+      "source": "Bron (cloud of context:name)",
+      "merge": "Samenvoegen met bestaande configuratie",
+      "replace": "Bestaande configuratie vervangen",
+      "dryRun": "Voorbeeld bekijken zonder toe te passen"
+    },
+    "diff": {
+      "source": "Broncontext",
+      "target": "Doelcontext"
+    },
+    "bundle": {
+      "description": "Configuratie exporteren als bundelbestand",
+      "include": "Op te nemen onderdelen (komma-gescheiden)"
+    },
+    "import": {
+      "description": "Een bundelbestand importeren",
+      "dryRun": "Valideren zonder toe te passen"
+    },
+    "initialize": {
+      "fromCloud": "Initialiseren vanuit cloudback-up"
+    },
+    "tokens": {
+      "description": "Synchronisatietokens beheren",
+      "create": {
+        "name": "Tokennaam",
+        "scope": "Tokenbereik",
+        "ttl": "TTL van token (bijv. 30d)"
+      },
+      "revoke": {
+        "yes": "Bevestiging overslaan"
+      }
+    },
+    "resolve": {
+      "description": "Synchronisatieconflicten interactief oplossen"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Servercontexten/-profielen beheren (toevoegen, gebruiken, weergeven, tonen, verwijderen, hernoemen, exporteren, importeren)"
+    },
+    "lang": {
+      "description": "Weergavetaal van CLI beheren",
+      "getDescription": "De momenteel actieve taalcode weergeven",
+      "setDescription": "Stel de weergavetaal in en sla deze op in de configuratie",
+      "listDescription": "Alle beschikbare talen weergeven",
+      "listTitle": "Beschikbare talen",
+      "current": "Taal: {code} ({name})",
+      "saved": "Taal ingesteld op {code} ({name}).",
+      "noCode": "Taalcode vereist. Voer 'omniroute config lang list' uit om de beschikbare codes te bekijken.",
+      "unknown": "Onbekende taalcode: {code}. Voer 'omniroute config lang list' uit om de beschikbare codes te bekijken.",
+      "alreadySet": "De taal is al ingesteld op {code}.",
+      "envHint": "Tip: je kunt ook OMNIROUTE_LANG={code} instellen in je omgeving."
+    }
+  },
+  "completion": {
+    "description": "Shell-aanvullingsscripts genereren of installeren",
+    "zsh": "Zsh-aanvullingsscript weergeven",
+    "bash": "Bash-aanvullingsscript weergeven",
+    "fish": "Fish-aanvullingsscript weergeven",
+    "install": "Aanvullingsscript globaal installeren voor de gedetecteerde shell",
+    "refresh": "Cache van combinaties/providers/modellen vernieuwen"
+  },
+  "logs": {
+    "description": "Aanvraaglogboeken streamen of exporteren",
+    "follow": "Logboeken in realtime streamen",
+    "filter": "Filteren op niveau (error,warn,info) — door komma's gescheiden",
+    "lines": "Aantal op te halen regels",
+    "timeout": "Time-out voor verbinding in ms",
+    "baseUrl": "Basis-URL van de OmniRoute-API",
+    "requestId": "Filteren op aanvraag-ID",
+    "apiKey": "Filteren op API-sleutel",
+    "combo": "Filteren op combinatienaam",
+    "status": "Filteren op HTTP-statuscode",
+    "durationMin": "Minimale aanvraagduur in ms",
+    "durationMax": "Maximale aanvraagduur in ms",
+    "export": "Logboeken opslaan in een bestand (json/jsonl/csv)",
+    "exported": "Logboeken opgeslagen in {path}",
+    "stopped": "Logboekstream gestopt.",
+    "streamError": "Fout in logboekstream: {message}"
+  },
+  "tray": {
+    "description": "Het systeemvakpictogram beheren",
+    "show": "Het systeemvakpictogram weergeven (als de server met --tray wordt uitgevoerd)",
+    "hide": "Het systeemvakpictogram verbergen",
+    "quit": "OmniRoute afsluiten via het systeemvak"
+  },
+  "autostart": {
+    "description": "Automatisch opstarten van OmniRoute bij het opstarten beheren (Linux: systemd-gebruikersservice)",
+    "enable": "Automatisch opstarten inschakelen",
+    "disable": "Automatisch opstarten uitschakelen",
+    "toggle": "Automatisch opstarten in- of uitschakelen",
+    "status": "Status van automatisch opstarten weergeven"
+  },
+  "runtime": {
+    "description": "Beheer systeemeigen runtime-afhankelijkheden",
+    "check": "Controleer de status van systeemeigen afhankelijkheden in de runtime-map",
+    "repair": "Installeer systeemeigen afhankelijkheden opnieuw in de runtime-map",
+    "repair_force": "Forceer herinstallatie, zelfs als ze geldig zijn",
+    "clean": "Verwijder de runtime-map (maakt schijfruimte vrij)",
+    "clean_yes": "Sla bevestiging over"
+  },
+  "repl": {
+    "description": "Interactieve REPL met meerdere beurten en een LLM",
+    "model": "Te gebruiken model (standaard: auto)",
+    "combo": "Te gebruiken combinatienaam",
+    "system": "Systeemprompt",
+    "resume": "Hervat een opgeslagen sessie op naam"
+  },
+  "plugin": {
+    "description": "Beheer CLI-plug-ins (omniroute-cmd-*)",
+    "list": "Geef geïnstalleerde plug-ins weer",
+    "install": "Installeer een plug-in vanuit npm of een lokaal pad",
+    "remove": "Verwijder een geïnstalleerde plug-in",
+    "info": "Toon details van een geïnstalleerde plug-in",
+    "search": "Doorzoek het npm-register naar beschikbare plug-ins",
+    "update": "Werk geïnstalleerde plug-in(s) bij",
+    "scaffold": "Genereer de basisstructuur voor een nieuwe plug-in"
+  },
+  "launch": {
+    "description": "Start Claude Code, gericht op OmniRoute (lokaal of extern, met --profile)",
+    "token": "Token die de Claude-client moet verzenden (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute is niet bereikbaar op {port}. Start het met 'omniroute serve'.",
+    "notFound": "De 'claude'-CLI is niet gevonden in PATH."
+  },
+  "run": {
+    "description": "Start een ondersteund CLI-doel via OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Genereer Claude Code-profielen in ~/.claude/profiles vanuit de OmniRoute-modelcatalogus"
+  },
+  "connect": {
+    "description": "Maak verbinding met een externe OmniRoute-server en activeer de externe modus"
+  },
+  "tokens": {
+    "description": "Beheer CLI-toegangstokens met een beperkt bereik (externe modus)"
+  },
+  "configure": {
+    "description": "Kies een provider+model van de actieve server en configureer een ondersteunde lokale CLI"
+  },
+  "launchCodex": {
+    "description": "Start Codex CLI, gericht op OmniRoute (lokale of externe VPS)"
+  },
+  "setupCodex": {
+    "description": "Genereer profielbestanden in ~/.codex vanuit de actuele OmniRoute-modelcatalogus"
+  },
+  "packs": {
+    "description": "Beheer optionele runtimepakketten (ML / browserautomatisering)",
+    "listDescription": "Geef optionele pakketten en hun installatiestatus weer",
+    "installDescription": "Installeer een optioneel pakket in DATA_DIR",
+    "verifyDescription": "Verifieer geïnstalleerde pakketten aan de hand van de meegeleverde checksumindex",
+    "removeDescription": "Verwijder een geïnstalleerd optioneel pakket",
+    "sourceOpt": "Map met de pakketinhoud en de pakketindex",
+    "warnNoIndex": "optional-packs.index.json niet gevonden — installeren/verifiëren is niet beschikbaar in deze checkout (desktopbundels bevatten dit bestand)",
+    "errUnknown": "onbekend pakket: {name}",
+    "errNoIndex": "pakketindex niet gevonden; geef --source <dir> op met de pakketinhoud (desktopbundels bevatten deze naast de app)",
+    "installed": "pakket \"{name}\" is geïnstalleerd en geverifieerd in {dir}",
+    "restartHint": "start de OmniRoute-server (of desktopapp) opnieuw zodat de runtime het pakket oppikt",
+    "removed": "pakket \"{name}\" verwijderd",
+    "notInstalled": "pakket \"{name}\" was niet geïnstalleerd",
+    "verifyOk": "alle geïnstalleerde pakketten zijn geverifieerd",
+    "verifyFailed": "verificatie van {count} pakket(ten) mislukt",
+    "noneInstalled": "geen optionele pakketten geïnstalleerd"
   }
 }

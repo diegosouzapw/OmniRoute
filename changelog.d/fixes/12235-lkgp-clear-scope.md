@@ -1,0 +1,1 @@
+- fix(resilience): only clear the combo-level LKGP pin when it names the target that actually failed, so an unrelated target skip under `auto`/`round-robin` no longer discards a valid pin for a healthy provider (#12235)

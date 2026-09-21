@@ -24,7 +24,7 @@ const testRoots = new Set<string>();
 async function createAuthCookie(): Promise<string> {
   process.env.JWT_SECRET = "test-cli-tools-apply-secret";
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const token = await new SignJWT({ sub: "test-user" })
+  const token = await new SignJWT({ authenticated: true, sub: "test-user" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")

@@ -738,3 +738,52 @@ test("generic client snapshots exclude hard-lease control headers", async () => 
   assert.equal(out.headers["x-omniroute-lease-generation"], undefined);
   assert.equal(out.headers["x-session-id"], "independent-routing-session");
 });
+
+function syntheticReceipt(index: number) {
+  return {
+    index,
+    connectionId: "conn-1",
+    provider: "openai",
+    model: "gpt-4o",
+    startedAt: "2026-01-01T00:00:00.000Z",
+    endedAt: "2026-01-01T00:00:01.000Z",
+    latencyMs: 10 + index,
+    httpStatus: 200,
+    errorType: null,
+    usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+    serviceTier: null,
+    computedCostUsd: 0.001,
+    toolCalls: [{ id: `call-${index}`, name: "memory_search" }],
+    termination: "completed",
+    clientVisible: true,
+  };
+}
+
+test("logToolLoopReceipt keeps first 4 receipts and clones them", async () => {
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  const logger = await createRequestLogger("openai", "openai", "gpt-4o", {
+    enabled: true,
+    captureStreamChunks: false,
+  });
+  for (let i = 0; i < 5; i++) {
+    logger.logToolLoopReceipt(syntheticReceipt(i));
+  }
+  const payloads = logger.getPipelinePayloads();
+  assert.ok(payloads?.toolLoop);
+  assert.equal(payloads.toolLoop.legs.length, 4);
+  assert.deepEqual(
+    payloads.toolLoop.legs.map((leg) => (leg as { index: number }).index),
+    [0, 1, 2, 3]
+  );
+  assert.equal("arguments" in (payloads.toolLoop.legs[0] as object), false);
+});
+
+test("logToolLoopReceipt is a no-op when logger is disabled", async () => {
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  const logger = await createRequestLogger("openai", "openai", "gpt-4o", {
+    enabled: false,
+    captureStreamChunks: false,
+  });
+  logger.logToolLoopReceipt(syntheticReceipt(0));
+  assert.equal(logger.getPipelinePayloads(), null);
+});

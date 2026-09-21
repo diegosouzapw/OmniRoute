@@ -59,11 +59,9 @@ describe("#11489 resolveScoresAs", () => {
     expect(resolveScoresAs("claude-sonnet-5")).toEqual({ base: "claude-sonnet-5", via: null });
   });
 
-  it("resolves the cursor/agy spelling of a Claude model to its canonical id", () => {
-    // `claude-4.6-opus-high` strips to `claude-4.6-opus`, which is not a catalog
-    // id — the canonical spelling is `claude-opus-4-6`. Explicit registry data.
-    expect(resolveScoresAs("claude-4.6-opus-high")).toEqual({
-      base: "claude-opus-4-6",
+  it("resolves curated Cursor Claude variants to their canonical ids", () => {
+    expect(resolveScoresAs("claude-fable-5-1-thinking-high")).toEqual({
+      base: "claude-fable-5-1",
       via: "explicit",
     });
     expect(resolveScoresAs("claude-4.6-sonnet-medium")).toEqual({

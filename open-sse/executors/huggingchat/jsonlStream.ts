@@ -1,5 +1,41 @@
 // Pure JSONL stream translation (HuggingChat NDJSON -> OpenAI SSE). Verbatim from huggingchat.ts.
 
+import { HUGGINGCHAT_MAX_BODY_BYTES } from "../../config/constants.ts";
+
+const MAX_BODY_EXCEEDED_MESSAGE =
+  "HuggingChat response exceeded the maximum supported size before completing";
+
+export class HuggingChatStreamError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "HuggingChatStreamError";
+  }
+}
+
+function cancelReader(reader: ReadableStreamDefaultReader<Uint8Array>): void {
+  try {
+    void reader.cancel().catch(() => undefined);
+  } catch {
+    // The error event is authoritative; transport cleanup is best effort.
+  }
+}
+
+function bindReaderCancellation(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  signal?: AbortSignal | null
+): () => void {
+  if (!signal) return () => undefined;
+
+  const cancel = () => cancelReader(reader);
+  if (signal.aborted) {
+    cancel();
+    return () => undefined;
+  }
+
+  signal.addEventListener("abort", cancel, { once: true });
+  return () => signal.removeEventListener("abort", cancel);
+}
+
 export function sseChunk(data: unknown): string {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
@@ -42,14 +78,24 @@ export async function* streamJsonlToOpenAi(
   model: string,
   id: string,
   created: number,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  cancellationSignal?: AbortSignal | null,
+  maxBytes: number = HUGGINGCHAT_MAX_BODY_BYTES
 ): AsyncGenerator<string> {
   const reader = body.getReader();
+  const unbindReaderCancellation = bindReaderCancellation(reader, cancellationSignal);
+  // Also bind the plain `signal` so an already-in-flight `reader.read()` unblocks the
+  // instant it aborts, instead of only being noticed the next time the loop polls
+  // `signal?.aborted` (#12577 — a stalled upstream can otherwise leave the read
+  // suspended forever even once a caller-supplied timeout signal has fired).
+  const unbindSignalCancellation = bindReaderCancellation(reader, signal);
   const decoder = new TextDecoder();
   let buffer = "";
   let emittedRole = false;
   let fullText = "";
   let finished = false;
+  let totalBytes = 0;
+  let exceededCap = false;
 
   try {
     while (true) {
@@ -57,6 +103,13 @@ export async function* streamJsonlToOpenAi(
 
       const { value, done } = await reader.read();
       if (done) break;
+
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        exceededCap = true;
+        cancelReader(reader);
+        break;
+      }
 
       buffer += decoder.decode(value, { stream: true });
 
@@ -70,16 +123,8 @@ export async function* streamJsonlToOpenAi(
         const parsed = parseJsonlLine(trimmed);
 
         if (parsed.error) {
-          yield sseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
-          });
-          yield "data: [DONE]\n\n";
-          finished = true;
-          return;
+          cancelReader(reader);
+          throw new HuggingChatStreamError(parsed.error);
         }
 
         if (parsed.token) {
@@ -138,8 +183,11 @@ export async function* streamJsonlToOpenAi(
       if (finished) break;
     }
 
-    if (!finished && buffer.trim()) {
+    if (!finished && !exceededCap && buffer.trim()) {
       const parsed = parseJsonlLine(buffer.trim());
+      if (parsed.error) {
+        throw new HuggingChatStreamError(parsed.error);
+      }
       if (parsed.token && !signal?.aborted) {
         if (!emittedRole) {
           emittedRole = true;
@@ -161,10 +209,28 @@ export async function* streamJsonlToOpenAi(
       }
     }
   } finally {
+    unbindReaderCancellation();
+    unbindSignalCancellation();
     reader.releaseLock();
   }
 
-  if (!signal?.aborted) {
+  if (exceededCap) {
+    yield sseChunk({
+      id,
+      object: "chat.completion.chunk",
+      created,
+      model,
+      error: {
+        message: MAX_BODY_EXCEEDED_MESSAGE,
+        type: "upstream_error",
+        code: "huggingchat_payload_too_large",
+      },
+    });
+    yield "data: [DONE]\n\n";
+    return;
+  }
+
+  if (!signal?.aborted && !cancellationSignal?.aborted) {
     yield sseChunk({
       id,
       object: "chat.completion.chunk",
@@ -172,18 +238,27 @@ export async function* streamJsonlToOpenAi(
       model,
       choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
     });
-    yield "data: [DONE]\n\n";
+    if (!signal?.aborted && !cancellationSignal?.aborted) {
+      yield "data: [DONE]\n\n";
+    }
   }
 }
 
 export async function readJsonlResponse(
   body: ReadableStream<Uint8Array>,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  maxBytes: number = HUGGINGCHAT_MAX_BODY_BYTES
 ): Promise<string> {
   const reader = body.getReader();
+  // Bind the signal so an already-in-flight `reader.read()` unblocks the instant it
+  // aborts, instead of only being noticed the next time the loop polls `signal?.aborted`
+  // (#12577 — a stalled upstream can otherwise leave the read suspended forever even
+  // once a caller-supplied timeout signal has fired).
+  const unbindSignalCancellation = bindReaderCancellation(reader, signal);
   const decoder = new TextDecoder();
   let buffer = "";
   let fullText = "";
+  let totalBytes = 0;
 
   try {
     while (true) {
@@ -191,6 +266,12 @@ export async function readJsonlResponse(
 
       const { value, done } = await reader.read();
       if (done) break;
+
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        cancelReader(reader);
+        throw new HuggingChatStreamError(MAX_BODY_EXCEEDED_MESSAGE);
+      }
 
       buffer += decoder.decode(value, { stream: true });
 
@@ -204,7 +285,10 @@ export async function readJsonlResponse(
         const parsed = parseJsonlLine(trimmed);
         if (parsed.token) fullText += parsed.token;
         if (parsed.text) return parsed.text;
-        if (parsed.error) throw new Error(parsed.error);
+        if (parsed.error) {
+          cancelReader(reader);
+          throw new HuggingChatStreamError(parsed.error);
+        }
       }
     }
 
@@ -212,8 +296,10 @@ export async function readJsonlResponse(
       const parsed = parseJsonlLine(buffer.trim());
       if (parsed.text) return parsed.text;
       if (parsed.token) fullText += parsed.token;
+      if (parsed.error) throw new HuggingChatStreamError(parsed.error);
     }
   } finally {
+    unbindSignalCancellation();
     reader.releaseLock();
   }
 

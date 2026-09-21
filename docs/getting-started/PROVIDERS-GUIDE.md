@@ -183,7 +183,7 @@ These providers offer **free access** with no credit card:
 | **LongCat**       | 10M one-time     | LongCat-2.0                              | API key + KYC  |
 | **Cloudflare AI** | 10K neurons/day  | 50+ models                               | No auth needed |
 | **NVIDIA NIM**    | ~40 RPM          | 129 models                               | API key needed |
-| **Cerebras**      | 1M tokens/day    | Qwen3 235B, GPT-OSS 120B                 | API key needed |
+| **Cerebras**      | $5 signup credit | GLM 4.7, GPT-OSS 120B                    | API key + card |
 | **Qoder**         | Unlimited        | Kimi-K2, DeepSeek-R1, Qwen3-coder        | No auth needed |
 
 **Tip**: Connect multiple free providers for **unlimited free AI** with automatic fallback!

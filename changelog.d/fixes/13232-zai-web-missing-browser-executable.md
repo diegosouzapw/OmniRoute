@@ -1,0 +1,1 @@
+- **fix(sse):** classify a missing Playwright Chromium install on the Z.ai web transport as an actionable 503 host/config cooldown instead of a generic 502 that trips the provider circuit breaker (#13232) — thanks @oleksandr1811

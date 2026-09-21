@@ -1,1 +1,0 @@
-- fix(cli): stop prepublish from re-rebuilding the already-built ESM-only opencode-plugin dist (#11787)

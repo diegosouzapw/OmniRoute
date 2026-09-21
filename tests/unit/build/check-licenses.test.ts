@@ -330,3 +330,19 @@ test("integration: classifyLicense denies AGPL-3.0 against real allowlist", () =
   const result = classifyLicense("hypothetical-agpl@1.0.0", "AGPL-3.0", allowlist);
   assert.equal(result.status, "denied");
 });
+
+test("integration: @eloqnt/* UNKNOWN licenses are documented exceptions (next-intl transitive)", () => {
+  const allowlist = loadAllowlist();
+  for (const pkg of [
+    "@eloqnt/config@0.0.2",
+    "@eloqnt/format-json@0.0.3",
+    "@eloqnt/format-po@0.0.3",
+  ]) {
+    const result = classifyLicense(pkg, "UNKNOWN", allowlist);
+    assert.equal(
+      result.status,
+      "exception",
+      `${pkg} ships no license field; must be a documented exception, not allowed/denied`
+    );
+  }
+});

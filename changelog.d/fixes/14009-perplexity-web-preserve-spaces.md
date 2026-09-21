@@ -1,0 +1,1 @@
+- **fix(providers):** Perplexity Web no longer collapses runs of spaces in non-streaming answers (the path tool mode always takes), which flattened code indentation in `write_file` arguments and plain code blocks; citation markers are still removed with single spacing left behind ([#13968](https://github.com/diegosouzapw/OmniRoute/issues/13968))

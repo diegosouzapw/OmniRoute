@@ -11,4 +11,7 @@ export const baiProvider: RegistryEntry = {
   modelsUrl: "https://api.b.ai/v1/models",
   models: [],
   passthroughModels: true,
+  // #13599: bai resells DeepSeek's `deepseek-reasoner` thinking-mode models, which 400
+  // when a prior assistant turn is missing `reasoning_content` on a follow-up request.
+  requiresReasoningContentEcho: true,
 };

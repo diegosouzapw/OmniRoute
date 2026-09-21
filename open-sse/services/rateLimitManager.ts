@@ -11,6 +11,13 @@
 import Bottleneck from "bottleneck";
 import { applyBottleneckDoExpirePatch, applyBottleneckHeartbeatPatch } from "./bottleneckPatch.ts";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
+import {
+  isValidRequestCap,
+  parseRequestCapFromBody,
+  requestCapSettings,
+  type RequestCap,
+  type RequestCapSettings,
+} from "./rateLimitManager/requestCap.ts";
 import { getAntigravityQuotaFamily } from "./antigravityQuotaFamily.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
@@ -31,9 +38,15 @@ import {
   markLocalRateLimitError,
   RATE_LIMIT_EXECUTION_TIMEOUT_CODE,
   RATE_LIMIT_QUEUE_WEDGED_CODE,
+  LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE,
 } from "./rateLimitManager/errors";
 import { LimiterWedgeWatchdog, WATCHDOG_INTERVAL_MS } from "./rateLimitManager/wedgeWatchdog";
 import { toNumber } from "@/shared/utils/numeric";
+import {
+  getExecutorTimeoutMs,
+  resolveConnectionTimeoutMs,
+} from "../handlers/chatCore/upstreamTimeouts.ts";
+import { boundedMap } from "../../src/lib/quota/boundedMap.ts";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -42,6 +55,11 @@ interface LearnedLimitEntry {
   limit?: number;
   remaining?: number;
   minTime?: number;
+  // Hard cap stated in a 429 body ("Maximum N requests within M minutes").
+  // Unlike header-learned values it is applied whenever the limiter is
+  // (re)built, so it survives the eviction every 429 triggers and a restart.
+  capRequests?: number;
+  capWindowMs?: number;
 }
 
 interface LimiterUpdateSettings {
@@ -85,8 +103,12 @@ const enabledConnections = new Set<string>();
 const connectionRateLimitOverrides = new Map<string, Record<string, number>>();
 
 // Store learned limits for persistence (debounced)
-const learnedLimits: Record<string, LearnedLimitEntry> = {};
-const MAX_LEARNED_LIMITS = 200;
+// One learned entry per limiter key (provider:connection[:model]). The previous
+// `MAX_LEARNED_LIMITS = 200` was declared but never enforced; enforcing 200 would
+// start evicting (dropping persisted limits) on deployments with many
+// connection×model limiters, so the enforced cap is set well above that.
+export const MAX_LEARNED_LIMITS = 2048;
+const learnedLimits = boundedMap<LearnedLimitEntry>("learned-limits", MAX_LEARNED_LIMITS, "lru");
 const limiterLastUsed = new Map<string, number>();
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
 const pendingAsyncOperations = new Set<Promise<unknown>>();
@@ -163,6 +185,49 @@ function resolveMinTime(override: number | undefined | null): number {
   return resolveOverride(override, 0);
 }
 
+function hasRpmOverride(connectionId: string): boolean {
+  const rpm = connectionRateLimitOverrides.get(connectionId)?.rpm;
+  return typeof rpm === "number" && rpm > 0;
+}
+
+// A cap learned from a 429 body spaces calls at window/N, but never closer
+// than the operator's global or per-connection minTime floor (#9763).
+function capMinTimeWithFloor(connectionId: string, capMinTime: number): number {
+  return Math.max(
+    resolveMinTime(currentRequestQueueSettings.minTimeBetweenRequestsMs),
+    resolveMinTime(connectionRateLimitOverrides.get(connectionId)?.minTime),
+    capMinTime
+  );
+}
+
+/**
+ * Limiter settings for a request cap, or null when the cap cannot be honoured:
+ * a cap that spaces calls further apart than a request may wait in the queue
+ * would turn every request into a local queue timeout. Every path that applies
+ * a cap (learning it, building a limiter, restoring persistence) goes through
+ * here, so a cap learned under a generous queue budget cannot land after the
+ * budget shrinks. A refused body-stated cap is never learned; a cap already
+ * recorded stays recorded, like one held back by an rpm override, and is
+ * retried the next time the limiter is built.
+ */
+function capSettingsWithinBudget(
+  provider: string,
+  connectionId: string,
+  cap: RequestCap,
+  source: "body-stated" | "learned" | "persisted"
+): RequestCapSettings | null {
+  const settings = requestCapSettings(cap);
+  settings.minTime = capMinTimeWithFloor(connectionId, settings.minTime);
+  const queueBudgetMs = resolveRequestQueueMaxWaitMs(provider, undefined, connectionId);
+  if (settings.minTime > queueBudgetMs) {
+    warnRateLimit(
+      `[RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — ignoring ${source} cap of ${cap.requests} request(s) per ${Math.ceil(cap.windowMs / 1000)}s: ${settings.minTime}ms between requests exceeds the ${queueBudgetMs}ms queue budget (raise the request queue maxWaitMs to honour it)`
+    );
+    return null;
+  }
+  return settings;
+}
+
 // Resolve a maxConcurrent override. 0 or missing means "effectively infinite".
 function resolveMaxConcurrent(override: number | undefined | null): number {
   return resolveOverride(override, EFFECTIVELY_INFINITE_CONCURRENCY);
@@ -193,9 +258,15 @@ export function resolveRequestQueueMaxWaitMs(
  * after a job leaves QUEUED; bounds execution, never queue wait. Kept strictly
  * separate from the queue-wait budget (`maxWaitMs`) so the backstop cannot
  * undercut upstream fetch-start timeouts on non-incremental gateways.
+ * Per-connection `executionMaxWaitMs` in `provider_connections.rateLimitOverrides`
+ * overrides the global setting when present (same precedence as `maxWaitMs`).
  */
-export function resolveExecutionMaxWaitMs(): number {
-  return currentRequestQueueSettings.executionMaxWaitMs;
+export function resolveExecutionMaxWaitMs(connectionId?: string): number {
+  const override = connectionId
+    ? (connectionRateLimitOverrides.get(connectionId) as Record<string, number> | undefined)
+        ?.executionMaxWaitMs
+    : undefined;
+  return resolveOverride(override, currentRequestQueueSettings.executionMaxWaitMs);
 }
 
 function buildLimiterDefaults() {
@@ -468,15 +539,35 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
     connectionRateLimitOverrides.set(connectionId, overrides);
   }
   clearPreservedReplacementSettings(connectionId);
+  // The operator just restated this connection's limits: forget any cap
+  // learned from a 429 body so a bad or stale one cannot outlive the change.
+  let strippedCap = false;
+  for (const [key, entry] of learnedLimits) {
+    if (entry.connectionId === connectionId && entry.capRequests) {
+      const { capRequests: _cap, capWindowMs: _window, ...rest } = entry;
+      learnedLimits.set(key, rest);
+      strippedCap = true;
+    }
+  }
+  if (strippedCap) schedulePersist();
   // Evict limiters referencing this connection so they get recreated on next use
   for (const [key, limiter] of Array.from(limiters)) {
     if (key.includes(connectionId)) {
-      limiters.delete(key);
-      limiterWatchdog.forget(limiter);
-      limiterLastUsed.delete(key);
-      trackAsyncOperation(limiter.disconnect());
+      evictLimiter(key, limiter);
     }
   }
+}
+
+// Drop a limiter from the cache so the next request builds a fresh one. Do NOT
+// call limiter.stop(): it permanently rejects future .schedule() calls.
+// disconnect() releases Bottleneck's heartbeat timer without poisoning the
+// instance for jobs still in flight.
+function evictLimiter(key: string, limiter: Bottleneck): void {
+  limiters.delete(key);
+  limiterWatchdog.forget(limiter);
+  limiterLastUsed.delete(key);
+  preservedReplacementSettings.delete(key);
+  trackAsyncOperation(limiter.disconnect());
 }
 
 /**
@@ -532,6 +623,26 @@ function getLimiter(provider, connectionId, model = null) {
         }
         // TODO: TPM/TPD integration requires separate token and request buckets.
       }
+      const learned = learnedLimits.get(key);
+      if (learned?.capRequests && learned.capWindowMs && !hasRpmOverride(connectionId)) {
+        // A cap learned from a 429 body outranks the global defaults but not an
+        // explicit per-connection override (#13594).
+        const cap = capSettingsWithinBudget(
+          provider,
+          connectionId,
+          { requests: learned.capRequests, windowMs: learned.capWindowMs },
+          "learned"
+        );
+        if (cap) {
+          defaults.minTime = cap.minTime;
+          defaults.reservoir = cap.reservoirRefreshAmount;
+          defaults.reservoirRefreshAmount = cap.reservoirRefreshAmount;
+          defaults.reservoirRefreshInterval = cap.reservoirRefreshInterval;
+          logRateLimit(
+            `📏 [RATE-LIMIT] ${key} — applying learned cap: ${learned.capRequests} request(s) per ${Math.ceil(learned.capWindowMs / 1000)}s`
+          );
+        }
+      }
       options = { ...defaults, id: key };
     }
     const limiter = limiterFactory(options);
@@ -566,7 +677,18 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+export async function withRateLimit(
+  provider,
+  connectionId,
+  model,
+  fn,
+  signal = null,
+  remainingBudgetMs = undefined,
+  correlationId = undefined,
+  opts:
+    | { executor?: { getTimeoutMs?: () => unknown }; providerSpecificData?: unknown }
+    | undefined = undefined
+) {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }
@@ -579,10 +701,36 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     throw err;
   }
 
-  // Proactive sliding-window fallback for header-less providers with a declared cap
-  // (Fase 8.2). No-op unless PROVIDER_DEFAULT_RATE_LIMITS has an entry for `provider`.
-  const maxWaitMs = resolveRequestQueueMaxWaitMs(provider, undefined, connectionId);
-  await awaitProviderDefaultSlot(provider, connectionId, signal, maxWaitMs);
+  const queueBudgetMs = resolveRequestQueueMaxWaitMs(
+    provider,
+    undefined,
+    connectionId ?? undefined
+  );
+  const budgetForSlot =
+    typeof remainingBudgetMs === "number" && Number.isFinite(remainingBudgetMs)
+      ? remainingBudgetMs
+      : queueBudgetMs;
+  if (
+    typeof remainingBudgetMs === "number" &&
+    Number.isFinite(remainingBudgetMs) &&
+    remainingBudgetMs <= 0
+  ) {
+    throw markLocalRateLimitError(
+      new Error(`Queue budget exhausted before rate-limit (remaining=${remainingBudgetMs}ms)`),
+      LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
+    );
+  }
+  const slotStart = Date.now();
+  await awaitProviderDefaultSlot(provider, connectionId, signal, budgetForSlot);
+  const elapsedSlot = Date.now() - slotStart;
+  const remainingForQueue =
+    typeof remainingBudgetMs === "number" && Number.isFinite(remainingBudgetMs)
+      ? Math.max(0, remainingBudgetMs - elapsedSlot)
+      : queueBudgetMs;
+  if (correlationId)
+    logRateLimit(
+      `[RATE-LIMIT] cid=${correlationId} provider=${provider} remainingForQueue=${remainingForQueue}ms`
+    );
 
   const limiter = getLimiter(provider, connectionId, model);
   // Bottleneck's `expiration` starts only after a job leaves QUEUED, so it
@@ -591,7 +739,26 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
   // never by the queue-wait budget: non-incremental gateways legitimately run
   // for minutes before first bytes, and an expiration at the queue budget
   // killed them mid-flight (false 504s on opencode-go/glm-5.3-flash).
-  const executionExpirationMs = resolveExecutionMaxWaitMs();
+  // Per-connection executionMaxWaitMs wins, but never undercuts the upstream
+  // fetch-start timeout — otherwise the backstop kills a healthy mid-flight
+  // response (regression #12025 on GLM/thinking models).
+  const perConnExec = resolveExecutionMaxWaitMs(connectionId ?? undefined);
+  const upstreamMs = opts?.executor
+    ? getExecutorTimeoutMs(
+        opts.executor as unknown,
+        provider,
+        model ?? undefined,
+        resolveConnectionTimeoutMs(
+          opts.providerSpecificData as Record<string, unknown> | null | undefined
+        )
+      )
+    : undefined;
+  const executionExpirationMs = upstreamMs ? Math.max(perConnExec, upstreamMs) : perConnExec;
+  if (upstreamMs && perConnExec < upstreamMs) {
+    logRateLimit(
+      `[RATE-LIMIT] executionMaxWaitMs ${perConnExec}ms clamped to upstream ${upstreamMs}ms for ${provider}/${model ?? ""}`
+    );
+  }
   const scheduleOpts =
     executionExpirationMs && executionExpirationMs > 0 ? { expiration: executionExpirationMs } : {};
 
@@ -609,6 +776,43 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     );
     throw admissionErr;
   }
+
+  const queueRemainingMs = remainingForQueue;
+  let queueTimedOut = false;
+  let delayId: ReturnType<typeof setTimeout> | null = null;
+  const queueTimeoutErr = markLocalRateLimitError(
+    new Error(
+      `Request exceeded queue budget maxWaitMs=${queueRemainingMs}ms for ${provider}/${model ?? ""} — queue budget does not bound execution (executionMaxWaitMs=${executionExpirationMs}ms)`
+    ),
+    LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
+  );
+  if (queueRemainingMs <= 0) throw queueTimeoutErr;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    delayId = setTimeout(() => {
+      queueTimedOut = true;
+      reject(queueTimeoutErr);
+    }, queueRemainingMs);
+  });
+  timeoutPromise.catch(() => {});
+  // Clear the queue-wait timer once the job leaves QUEUED and starts executing.
+  // Without this, the timer would also bound execution (queueRemainingMs ≈ 40ms
+  // would kill a 300ms execution that correctly left the queue immediately).
+  const wrappedFn = () => {
+    if (queueTimedOut) return Promise.reject(queueTimeoutErr);
+    if (delayId) {
+      clearTimeout(delayId);
+      delayId = null;
+    }
+    return (fn as unknown as (s?: AbortSignal) => Promise<unknown>)(signal ?? undefined);
+  };
+  const scheduled = limiter.schedule(scheduleOpts, wrappedFn as unknown as () => Promise<unknown>);
+  scheduled.catch(() => {});
+  // Note: if timeoutPromise wins while the job is still QUEUED (blocked by
+  // maxConcurrent), Bottleneck cannot cancel it — wrappedFn rejects only on
+  // dispatch after the slot frees. Until then counts().QUEUED stays 1 and
+  // maxQueueDepth admission sees an inflated depth transiently; this is
+  // inherent to Bottleneck (no cancelQueuedJob) and does not affect
+  // correctness since fnCalled stays false.
 
   try {
     if (signal) {
@@ -635,23 +839,28 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
         abortListener = onAbort;
         signal.addEventListener("abort", abortListener, { once: true });
       }
+      abortPromise.catch(() => {});
 
       try {
-        // Race the work against the abort signal. When abort wins, fn is still
-        // running inside Bottleneck's limiter — its eventual rejection must not
-        // surface as an unhandledRejection. The .catch(noop) silences only the
-        // orphaned branch; the real rejection comes from abortPromise.
-        const scheduled = limiter.schedule(scheduleOpts, fn);
-        scheduled.catch(() => {}); // prevent unhandledRejection when abort wins
-        abortPromise.catch(() => {}); // prevent unhandledRejection when scheduled wins
-        return await Promise.race([scheduled, abortPromise]);
+        return await Promise.race([scheduled, timeoutPromise, abortPromise]);
       } finally {
+        if (delayId) {
+          clearTimeout(delayId);
+          delayId = null;
+        }
         if (abortListener) {
           signal.removeEventListener("abort", abortListener);
         }
       }
     } else {
-      return await limiter.schedule(scheduleOpts, fn);
+      try {
+        return await Promise.race([scheduled, timeoutPromise]);
+      } finally {
+        if (delayId) {
+          clearTimeout(delayId);
+          delayId = null;
+        }
+      }
     }
   } catch (err) {
     // Only Bottleneck-owned failures are rewritten. Application code can throw
@@ -755,11 +964,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // without permanently poisoning the instance for any remaining in-flight jobs.
     // Without disconnect() here, every 429 leaks a heartbeat timer until GC reclaims
     // the abandoned Bottleneck; under sustained quota pressure that is a real leak.
-    limiters.delete(limiterKey);
-    limiterWatchdog.forget(limiter);
-    limiterLastUsed.delete(limiterKey);
-    preservedReplacementSettings.delete(limiterKey);
-    trackAsyncOperation(limiter.disconnect());
+    evictLimiter(limiterKey, limiter);
     return;
   }
 
@@ -860,7 +1065,7 @@ export function getAllRateLimitStatus() {
  * Get all learned limits (for dashboard display).
  */
 export function getLearnedLimits() {
-  return { ...learnedLimits };
+  return { ...Object.fromEntries(learnedLimits) };
 }
 
 // ─── Persistence ────────────────────────────────────────────────────────────
@@ -868,10 +1073,8 @@ export function getLearnedLimits() {
 async function persistLearnedLimitsNow() {
   try {
     const { updateSettings } = await import("@/lib/db/settings");
-    await updateSettings({ learnedRateLimits: JSON.stringify(learnedLimits) });
-    logRateLimit(
-      `💾 [RATE-LIMIT] Persisted learned limits for ${Object.keys(learnedLimits).length} provider(s)`
-    );
+    await updateSettings({ learnedRateLimits: JSON.stringify(Object.fromEntries(learnedLimits)) });
+    logRateLimit(`💾 [RATE-LIMIT] Persisted learned limits for ${learnedLimits.size} provider(s)`);
   } catch (err) {
     errorRateLimit("[RATE-LIMIT] Failed to persist learned limits:", err.message);
   }
@@ -887,14 +1090,20 @@ function recordLearnedLimit(
   model: string | null = null
 ) {
   const key = getLimiterKey(provider, connectionId, model);
-  learnedLimits[key] = {
+  // Merge so a header-learned update does not drop a body-learned cap (or vice versa).
+  learnedLimits.set(key, {
+    ...learnedLimits.get(key),
     ...limits,
     provider,
     connectionId,
     lastUpdated: Date.now(),
-  };
+  });
 
-  // Debounce: save at most once per PERSIST_DEBOUNCE_MS
+  schedulePersist();
+}
+
+// Debounce: save at most once per PERSIST_DEBOUNCE_MS
+function schedulePersist(): void {
   if (!persistTimer) {
     persistTimer = setTimeout(async () => {
       persistTimer = null;
@@ -945,8 +1154,8 @@ export async function __resetRateLimitManagerForTests() {
   limiterWatchdog.reset();
   shutdownHandlersRegistered = false;
 
-  for (const key of Object.keys(learnedLimits)) {
-    delete learnedLimits[key];
+  for (const key of [...learnedLimits.keys()]) {
+    learnedLimits.delete(key);
   }
 
   if (pendingAsyncOperations.size > 0) {
@@ -998,20 +1207,40 @@ async function loadPersistedLimits() {
       const limit = toNumber(data.limit, 0);
       const remaining = toNumber(data.remaining, 0);
       const minTime = toNumber(data.minTime, 0);
+      const capRequests = toNumber(data.capRequests, 0);
+      const capWindowMs = toNumber(data.capWindowMs, 0);
+      const hasCap = isValidRequestCap({ requests: capRequests, windowMs: capWindowMs });
+      if (!hasCap && (data.capRequests !== undefined || data.capWindowMs !== undefined)) {
+        warnRateLimit(
+          `[RATE-LIMIT] ${key} — dropping persisted cap with invalid shape (${String(data.capRequests)} per ${String(data.capWindowMs)}ms)`
+        );
+      }
 
-      learnedLimits[key] = {
+      learnedLimits.set(key, {
         provider,
         connectionId,
         lastUpdated,
         ...(limit > 0 ? { limit } : {}),
         ...(remaining >= 0 ? { remaining } : {}),
         ...(minTime >= 0 ? { minTime } : {}),
-      };
+        ...(hasCap ? { capRequests, capWindowMs } : {}),
+      });
 
       // Apply to limiter if it exists and has rate limit enabled
       if (connectionId && enabledConnections.has(connectionId)) {
         const limiter = limiters.get(key);
-        if (limiter && limit > 0) {
+        if (limiter && hasCap && !hasRpmOverride(connectionId)) {
+          const cap = capSettingsWithinBudget(
+            provider,
+            connectionId,
+            { requests: capRequests, windowMs: capWindowMs },
+            "persisted"
+          );
+          if (cap) {
+            updateLimiterSettings(limiter, cap);
+            count++;
+          }
+        } else if (limiter && limit > 0) {
           const inferredMinTime = minTime || Math.max(0, Math.floor(60000 / limit) - 10);
           updateLimiterSettings(limiter, { minTime: inferredMinTime });
           count++;
@@ -1055,4 +1284,45 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
       reservoirRefreshInterval: retryAfterMs,
     });
   }
+
+  if (status !== 429) return;
+
+  const cap = parseRequestCapFromBody(responseBody);
+  if (!cap) return;
+
+  // Leave a cap the queue budget cannot honour unlearned.
+  const settings = capSettingsWithinBudget(provider, connectionId, cap, "body-stated");
+  if (!settings) return;
+
+  // The 429 itself means the window is spent. Rebuild the limiter so the cap
+  // is in its constructor options and its reservoir clock starts now (an
+  // updateSettings() alone would refill on the next heartbeat), then empty the
+  // reservoir: it refills `requests` after one window and calls stay spaced.
+  const limiterKey = getLimiterKey(provider, connectionId, model);
+  const existing = limiters.get(limiterKey);
+  if (existing) {
+    evictLimiter(limiterKey, existing);
+  }
+  recordLearnedLimit(
+    provider,
+    connectionId,
+    {
+      limit: Math.max(1, Math.round((cap.requests * 60_000) / cap.windowMs)),
+      minTime: settings.minTime,
+      capRequests: cap.requests,
+      capWindowMs: cap.windowMs,
+    },
+    model
+  );
+  const limiter = getLimiter(provider, connectionId, model);
+  if (hasRpmOverride(connectionId)) {
+    // The operator's rpm override keeps its pacing; the cap stays recorded so
+    // it applies if the override is removed later. The window is still spent.
+    updateLimiterSettings(limiter, { reservoir: 0 });
+    return;
+  }
+  logRateLimit(
+    `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — body-stated cap: ${cap.requests} request(s) per ${Math.ceil(cap.windowMs / 1000)}s, pacing at ${settings.minTime}ms`
+  );
+  updateLimiterSettings(limiter, { reservoir: 0, ...settings });
 }

@@ -1,0 +1,1 @@
+- **fix(db):** drop the duplicated `ERROR_TYPE_CONTRACT` import in `src/lib/db/callLogStats.ts` left by the #13641 merge; the TS2300 duplicate-identifier error failed the API-route and dashboard typecheck gates on every PR ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

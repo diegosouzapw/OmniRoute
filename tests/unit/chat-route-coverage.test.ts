@@ -157,7 +157,7 @@ test("handleChat treats a pure Accept: text/event-stream as stream=true and retu
 
   const raw = await response.text();
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("Content-Type"), "text/event-stream");
+  assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
   assert.match(raw, /Accept header stream/);
   assert.match(raw, /\[DONE\]/);

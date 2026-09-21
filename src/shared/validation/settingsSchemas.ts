@@ -23,6 +23,7 @@ import {
   SPAWN_CAPABLE_PREFIXES,
   SPAWN_CAPABLE_PATTERN_ANCESTORS,
 } from "@/shared/constants/spawnCapablePrefixes";
+import { isHttpUrl } from "@/shared/validation/schemas/misc";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
@@ -128,6 +129,12 @@ export const updateSettingsSchema = z.object({
   blockedProviders: z.array(z.string().max(100)).optional(),
   noAuthFallbackDisabledProviders: z.array(z.string().max(100)).optional(),
   hidePaidModels: z.boolean().optional(),
+  // #9418/#13562: catalog/auto-combo already consume both flags (open-sse
+  // autoCombo + /v1/models catalog), but neither was ever added here — Zod
+  // silently strips unknown keys on a plain z.object, so PATCH /api/settings
+  // answered 200 while dropping both before they reached the DB.
+  hideAutoCombos: z.boolean().optional(),
+  hideNoThinkVariants: z.boolean().optional(),
   // STRICT_ZERO_COST (opt-in, default "off"): stricter than hidePaidModels — a
   // candidate must be keyless (no credential exists, so no request against it
   // can ever be billed) OR pass a live, fresh, hard-stop-guaranteed quota
@@ -493,6 +500,26 @@ export const updateSettingsSchema = z.object({
   // CLIProxyAPI connection settings
   cliproxyapi_fallback_enabled: z.boolean().optional(),
   cliproxyapi_url: z.string().url().max(500).optional(),
+  // #12306: external Headroom proxy URL. Empty = fall back to HEADROOM_URL / localhost:8787.
+  // Status/start already read this key; without the schema field PATCH strips it.
+  // Trim first so a padded URL matches the client (isValidHeadroomUrl trims)
+  // and whitespace-only becomes the empty fallback, not "Invalid URL".
+  // z.string().url() also accepts javascript:/data:/file:. probeProxyRunning
+  // interpolates this into fetch(`${url}/health`), so restrict to http(s).
+  headroomUrl: z
+    .string()
+    .trim()
+    .pipe(
+      z.union([
+        z.literal(""),
+        z
+          .string()
+          .url()
+          .max(500)
+          .refine((value) => isHttpUrl(value), "must be an http(s) URL"),
+      ])
+    )
+    .optional(),
   cliproxyapi_fallback_codes: z.string().max(200).optional(),
   // #7645: dedicated CLIProxyAPI credential. CLIProxyAPI requires its own
   // separately-configured `api-keys:` credential and rejects any other token

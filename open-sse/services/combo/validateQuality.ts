@@ -14,7 +14,62 @@ import {
 } from "../../utils/streamHelpers.ts";
 import { evaluateResponseValidation, type ResponseValidationConfig } from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
+import { REASONING_BUFFER_MIN_TRIGGER } from "../reasoningTokenBuffer.ts";
 import type { ComboRetryAfter } from "./types.ts";
+
+/**
+ * #12659: below this actual `completion_tokens` count, a reasoning-truncated
+ * response is a deliberate tiny-budget capability probe (#10281, e.g. Claude
+ * Code's `/model` check sending `max_tokens: 1`) rather than a genuine
+ * exhaustion of a real reasoning budget -- `completion_tokens` cannot exceed
+ * the caller's `max_tokens`, so a tiny count here proves a tiny budget was
+ * requested without needing to thread the request body through the combo
+ * dispatch call sites. Reuses #10281's own threshold constant instead of
+ * duplicating the magic number; every existing #3587 exhaustion regression
+ * case (512/1024/4096 completion_tokens) sits well above it.
+ */
+function isTinyBudgetTruncation(completionTokens: number): boolean {
+  return completionTokens > 0 && completionTokens < REASONING_BUFFER_MIN_TRIGGER;
+}
+
+/**
+ * Detects tool_calls entries within one assistant message that repeat the
+ * exact same function name + arguments verbatim -- always a bug (no
+ * legitimate use calls one tool twice with identical arguments in the same
+ * turn), and a real observed failure mode of at least one free-tier
+ * streaming model (minimax-m3:free via OpenRouter/GMICloud, 2026-09-02:
+ * duplicated a heartbeat_respond call byte-for-byte, confirmed at the raw
+ * SSE wire level -- an upstream bug, not an OmniRoute reconstruction
+ * artifact). Used two ways: to fail a non-streaming response over to a
+ * sibling combo target (see validateResponseQuality below), and, post-
+ * stream, to flag an already-relayed streaming response as an on-spec
+ * violation despite its clean HTTP 200 (see attemptLogging.ts's
+ * persistAttemptLogs) -- a streaming response can't be retried once real
+ * content has started reaching the client (the quality-gate peek below only
+ * ever validates the START of a stream, by design, to avoid buffering the
+ * whole response and defeating streaming's latency purpose), so flagging it
+ * after the fact is what's actually achievable for that path.
+ */
+export function findToolCallSpecViolation(responseBody: unknown): string | null {
+  const json = isRecord(responseBody) ? responseBody : null;
+  const choices = json?.choices;
+  const firstChoice = Array.isArray(choices) ? choices[0] : null;
+  const message = isRecord(firstChoice) ? firstChoice.message : null;
+  const toolCalls = isRecord(message) ? message.tool_calls : null;
+  if (!Array.isArray(toolCalls) || toolCalls.length < 2) return null;
+
+  const seen = new Set<string>();
+  for (const call of toolCalls) {
+    const fn = isRecord(call) ? call.function : null;
+    if (!isRecord(fn) || typeof fn.name !== "string" || typeof fn.arguments !== "string") {
+      continue;
+    }
+    const signature = `${fn.name}\u0000${fn.arguments}`;
+    if (seen.has(signature)) return `duplicate tool_calls entry for "${fn.name}"`;
+    seen.add(signature);
+  }
+  return null;
+}
 
 export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date {
   if (typeof value !== "number") return value;
@@ -327,9 +382,9 @@ export async function validateResponseQuality(
     function isTerminalUsageOnlyChunk(parsed: Record<string, unknown>, eventType: string): boolean {
       return Boolean(
         parsed.usage &&
-          typeof parsed.usage === "object" &&
-          !Array.isArray(parsed.choices) &&
-          !eventType.startsWith("response.")
+        typeof parsed.usage === "object" &&
+        !Array.isArray(parsed.choices) &&
+        !eventType.startsWith("response.")
       );
     }
 
@@ -734,6 +789,11 @@ export async function validateResponseQuality(
   }
   const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
 
+  const specViolation = findToolCallSpecViolation(json);
+  if (specViolation) {
+    return { valid: false, reason: specViolation };
+  }
+
   if (!hasContent && !hasToolCalls) {
     return { valid: false, reason: "empty content and no tool_calls in response" };
   }
@@ -757,19 +817,26 @@ export async function validateResponseQuality(
     // hasReasoningContent is already false and this branch never runs for them.
     const finishReason =
       typeof firstChoice.finish_reason === "string" ? firstChoice.finish_reason : "";
+    const usage = json?.usage as Record<string, unknown> | undefined;
+    const completionTokens = usage ? Number(usage.completion_tokens) || 0 : 0;
     if (finishReason === "length" || finishReason === "max_tokens") {
+      // #12659: a tiny deliberate capability probe (e.g. `max_tokens: 1`
+      // connectivity/`/model` pings) hits this exact shape on a reasoning
+      // model -- exempt it into the #10281 truncated-200 treatment (pass the
+      // original 200 through unmodified) instead of a genuine quality
+      // failure, so the caller never records a model-lockout for a probe.
+      if (isTinyBudgetTruncation(completionTokens)) return { valid: true };
       return {
         valid: false,
         reason: `reasoning truncated at token limit (finish_reason: ${finishReason}) — no content output`,
       };
     }
-    const usage = json?.usage as Record<string, unknown> | undefined;
     if (usage) {
-      const completionTokens = Number(usage.completion_tokens) || 0;
       const reasoningTokens = getReasoningTokens(usage);
       // If reasoning consumed 90%+ of completion tokens, the model ran out of
       // budget before producing any content output.
       if (completionTokens > 0 && reasoningTokens >= completionTokens * 0.9) {
+        if (isTinyBudgetTruncation(completionTokens)) return { valid: true };
         return {
           valid: false,
           reason: `reasoning consumed ${reasoningTokens}/${completionTokens} tokens — no content output`,

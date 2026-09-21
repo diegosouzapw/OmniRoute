@@ -20,13 +20,25 @@
 
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
 import { fetchNewApiAggregatorQuota } from "./newApiAggregatorQuotaFetcher.ts";
+import {
+  isAntigravityQuotaProvider,
+  selectAntigravityQuotaWindowNames,
+} from "./antigravityQuotaFamily.ts";
 
 export interface PreflightQuotaResult {
   proceed: boolean;
   reason?: string;
   quotaPercent?: number;
   resetAt?: string | null;
+  windowName?: string | null;
+}
+
+export interface QuotaCutoffScope {
+  provider?: string | null;
+  requestedModel?: string | null;
+  providerSpecificData?: unknown;
 }
 
 export interface QuotaWindowInfo {
@@ -156,13 +168,34 @@ function isRemainingAtOrBelowThreshold(
   return remainingPercent <= thresholdPercent + REMAINING_PERCENT_EPSILON;
 }
 
-function exhaustedResult(quotaPercent: number, resetAt: string | null): PreflightQuotaResult {
+function exhaustedResult(
+  quotaPercent: number,
+  resetAt: string | null,
+  windowName?: string | null
+): PreflightQuotaResult {
   return {
     proceed: false,
     reason: "quota_exhausted",
     quotaPercent,
     resetAt,
+    windowName: windowName ?? null,
   };
+}
+
+function windowsForScope(
+  windows: NonNullable<QuotaInfo["windows"]>,
+  scope?: QuotaCutoffScope
+): NonNullable<QuotaInfo["windows"]> {
+  if (!scope?.requestedModel || !isAntigravityQuotaProvider(scope.provider ?? null)) {
+    return windows;
+  }
+  const selected = selectAntigravityQuotaWindowNames(Object.keys(windows), scope.requestedModel);
+  if (selected.length === 0) return windows;
+  const scoped: NonNullable<QuotaInfo["windows"]> = {};
+  for (const name of selected) {
+    if (windows[name]) scoped[name] = windows[name];
+  }
+  return Object.keys(scoped).length > 0 ? scoped : windows;
 }
 
 function limitReachedResult(quota: QuotaInfo): PreflightQuotaResult {
@@ -172,36 +205,89 @@ function limitReachedResult(quota: QuotaInfo): PreflightQuotaResult {
   );
 }
 
+function isEntryExhausted(
+  windowName: string,
+  percentUsed: number,
+  thresholds?: PreflightQuotaThresholds
+): boolean {
+  const minRemainingPercent = resolveOrDefault(
+    thresholds?.resolveMinRemainingPercent,
+    windowName,
+    DEFAULT_MIN_REMAINING_PERCENT
+  );
+  return isRemainingAtOrBelowThreshold(remainingPercentFrom(percentUsed), minRemainingPercent);
+}
+
+function evaluateQuotaGroup(
+  entries: Array<[string, QuotaWindowInfo]>,
+  thresholds?: PreflightQuotaThresholds
+): {
+  exhausted: boolean;
+  worstPercent: number;
+  worstWindow: string | null;
+  worstResetAt: string | null;
+} {
+  let exhausted = true;
+  let worstPercent = -1;
+  let worstWindow: string | null = null;
+  let worstResetAt: string | null = null;
+  for (const [windowName, windowInfo] of entries) {
+    if (!isEntryExhausted(windowName, windowInfo.percentUsed, thresholds)) {
+      exhausted = false;
+    }
+    if (windowInfo.percentUsed > worstPercent) {
+      worstPercent = windowInfo.percentUsed;
+      worstWindow = windowName;
+      worstResetAt = windowInfo.resetAt ?? null;
+    }
+  }
+  return { exhausted, worstPercent: Math.max(0, worstPercent), worstWindow, worstResetAt };
+}
+
+function groupQuotaWindowsByBase(
+  windows: NonNullable<QuotaInfo["windows"]>
+): Map<string, Array<[string, QuotaWindowInfo]>> {
+  const groups = new Map<string, Array<[string, QuotaWindowInfo]>>();
+  for (const [windowName, windowInfo] of Object.entries(windows)) {
+    if (!Number.isFinite(windowInfo.percentUsed)) continue;
+    const base = windowName.endsWith("_freetrial") ? windowName.slice(0, -10) : windowName;
+    const list = groups.get(base);
+    if (list) list.push([windowName, windowInfo]);
+    else groups.set(base, [[windowName, windowInfo]]);
+  }
+  return groups;
+}
+
 function quotaWindowCutoffResult(
   windows: NonNullable<QuotaInfo["windows"]>,
   thresholds?: PreflightQuotaThresholds
 ): PreflightQuotaResult | null {
-  let worstUsedPercent = 0;
-  let worstWindow: string | null = null;
-  let worstResetAt: string | null = null;
+  const groups = groupQuotaWindowsByBase(windows);
+  if (groups.size === 0) return null;
 
-  for (const [windowName, windowInfo] of Object.entries(windows)) {
-    if (!Number.isFinite(windowInfo.percentUsed)) continue;
-    const minRemainingPercent = resolveOrDefault(
-      thresholds?.resolveMinRemainingPercent,
-      windowName,
-      DEFAULT_MIN_REMAINING_PERCENT
+  let worstExhaustedPercent = 0;
+  let worstExhaustedWindow: string | null = null;
+  let worstExhaustedResetAt: string | null = null;
+  let hasExhaustedGroup = false;
+
+  for (const entries of groups.values()) {
+    const { exhausted, worstPercent, worstWindow, worstResetAt } = evaluateQuotaGroup(
+      entries,
+      thresholds
     );
-    if (
-      !isRemainingAtOrBelowThreshold(
-        remainingPercentFrom(windowInfo.percentUsed),
-        minRemainingPercent
-      )
-    ) {
-      continue;
+    if (exhausted) {
+      hasExhaustedGroup = true;
+      if (worstPercent > worstExhaustedPercent || worstExhaustedWindow === null) {
+        worstExhaustedPercent = worstPercent;
+        worstExhaustedWindow = worstWindow;
+        worstExhaustedResetAt = worstResetAt;
+      }
     }
-    if (windowInfo.percentUsed <= worstUsedPercent && worstWindow !== null) continue;
-    worstUsedPercent = windowInfo.percentUsed;
-    worstWindow = windowName;
-    worstResetAt = windowInfo.resetAt ?? null;
   }
 
-  return worstWindow === null ? null : exhaustedResult(worstUsedPercent, worstResetAt);
+  return hasExhaustedGroup
+    ? exhaustedResult(worstExhaustedPercent, worstExhaustedResetAt, worstExhaustedWindow)
+    : null;
 }
 
 function quotaPercentCutoffResult(
@@ -227,21 +313,33 @@ function quotaPercentCutoffResult(
  */
 export function evaluateQuotaCutoff(
   quota: QuotaInfo | null | undefined,
-  thresholds?: PreflightQuotaThresholds
+  thresholds?: PreflightQuotaThresholds,
+  scope?: QuotaCutoffScope
 ): PreflightQuotaResult {
   if (!quota) return { proceed: true };
-  if (quota.limitReached === true) return limitReachedResult(quota);
+  // Operator-enabled Claude extra usage is billed after the 5h session quota
+  // is gone. Pre-dispatch must not skip the account before Anthropic sees the
+  // request; blockExtraUsage=false is the only opt-in.
+  if (isClaudeExtraUsageAllowed(scope?.provider, scope?.providerSpecificData)) {
+    return { proceed: true, quotaPercent: quota.percentUsed };
+  }
 
   const windows = quota.windows;
   if (windows && Object.keys(windows).length > 0) {
-    return (
-      quotaWindowCutoffResult(windows, thresholds) ?? {
-        proceed: true,
-        quotaPercent: quota.percentUsed,
-      }
-    );
+    const scopedWindows = windowsForScope(windows, scope);
+    const cutoff = quotaWindowCutoffResult(scopedWindows, thresholds);
+    if (cutoff) return cutoff;
+    if (isAntigravityQuotaProvider(scope?.provider ?? null) && scope?.requestedModel) {
+      return { proceed: true, quotaPercent: quota.percentUsed };
+    }
+    if (quota.limitReached === true) return limitReachedResult(quota);
+    return {
+      proceed: true,
+      quotaPercent: quota.percentUsed,
+    };
   }
 
+  if (quota.limitReached === true) return limitReachedResult(quota);
   return quotaPercentCutoffResult(quota, thresholds);
 }
 
@@ -297,61 +395,44 @@ export async function preflightQuota(
     return { proceed: true };
   }
 
-  if (quota.limitReached === true) {
-    return limitReachedResult(quota);
-  }
-
-  // Per-window evaluation — only when the fetcher surfaces a windows map.
-  // We block as soon as ANY single window's remaining quota drops to its
-  // configured cutoff or below; warnings are logged independently per window.
-  if (quota.windows && Object.keys(quota.windows).length > 0) {
-    let worstUsedPercent = 0;
-    let worstWindow: string | null = null;
-    let worstResetAt: string | null = null;
-    for (const [windowName, windowInfo] of Object.entries(quota.windows)) {
-      const minRemainingPercent = resolveOrDefault(
-        thresholds?.resolveMinRemainingPercent,
-        windowName,
-        DEFAULT_MIN_REMAINING_PERCENT
-      );
+  const requestedModel =
+    typeof connection.requestedModel === "string" ? connection.requestedModel : null;
+  const scope: QuotaCutoffScope = {
+    provider,
+    requestedModel,
+    providerSpecificData: connection.providerSpecificData,
+  };
+  const windows = quota.windows;
+  if (windows && Object.keys(windows).length > 0) {
+    const scopedWindows = windowsForScope(windows, scope);
+    for (const [windowName, windowInfo] of Object.entries(scopedWindows)) {
       const warnRemainingPercent = resolveOrDefault(
         thresholds?.resolveWarnRemainingPercent,
         windowName,
         DEFAULT_WARN_REMAINING_PERCENT
       );
       const remainingPercent = remainingPercentFrom(windowInfo.percentUsed);
-
-      if (isRemainingAtOrBelowThreshold(remainingPercent, minRemainingPercent)) {
-        // Track the most-depleted blocking window so the response can name it.
-        if (windowInfo.percentUsed > worstUsedPercent) {
-          worstUsedPercent = windowInfo.percentUsed;
-          worstWindow = windowName;
-          worstResetAt = windowInfo.resetAt ?? null;
-        } else if (worstWindow === null) {
-          worstWindow = windowName;
-          worstResetAt = windowInfo.resetAt ?? null;
-        }
-      } else if (isRemainingAtOrBelowThreshold(remainingPercent, warnRemainingPercent)) {
+      if (isRemainingAtOrBelowThreshold(remainingPercent, warnRemainingPercent)) {
         console.warn(
           `[QuotaPreflight] ${provider}/${connectionId} ${windowName}: ${remainingPercent.toFixed(1)}% remaining — approaching cutoff`
         );
       }
     }
+  }
 
-    if (worstWindow !== null) {
-      const worstRemaining = remainingPercentFrom(worstUsedPercent);
-      console.info(
-        `[QuotaPreflight] ${provider}/${connectionId} ${worstWindow}: ${worstRemaining.toFixed(1)}% remaining — switching`
-      );
-      return {
-        proceed: false,
-        reason: "quota_exhausted",
-        quotaPercent: worstUsedPercent,
-        resetAt: worstResetAt,
-      };
-    }
-
-    return { proceed: true, quotaPercent: quota.percentUsed };
+  const decision = evaluateQuotaCutoff(quota, thresholds, scope);
+  if (!decision.proceed) {
+    const windowLabel = decision.windowName ? ` ${decision.windowName}` : "";
+    const remaining = Number.isFinite(decision.quotaPercent)
+      ? remainingPercentFrom(decision.quotaPercent as number).toFixed(1)
+      : "?";
+    console.info(
+      `[QuotaPreflight] ${provider}/${connectionId}${windowLabel}: ${remaining}% remaining - switching`
+    );
+    return decision;
+  }
+  if (windows && Object.keys(windows).length > 0) {
+    return decision;
   }
 
   // Legacy single-signal path for fetchers that don't expose per-window data.

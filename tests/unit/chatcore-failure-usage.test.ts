@@ -64,16 +64,74 @@ test("applies the unknown/undefined fallbacks", () => {
 
 test("combo strategy is included only for combo requests", () => {
   const combo = buildFailureUsageRecord({
-    provider: "x", model: "y", connectionId: null, apiKeyInfo: null,
-    effectiveServiceTier: "standard", isCombo: true, comboStrategy: "round-robin",
-    statusCode: 500, errorCode: "boom", latencyMs: 1,
+    provider: "x",
+    model: "y",
+    connectionId: null,
+    apiKeyInfo: null,
+    effectiveServiceTier: "standard",
+    isCombo: true,
+    comboStrategy: "round-robin",
+    statusCode: 500,
+    errorCode: "boom",
+    latencyMs: 1,
   });
   assert.equal(combo.comboStrategy, "round-robin");
 
   const comboNoStrategy = buildFailureUsageRecord({
-    provider: "x", model: "y", connectionId: null, apiKeyInfo: null,
-    effectiveServiceTier: "standard", isCombo: true, comboStrategy: null,
-    statusCode: 500, errorCode: "boom", latencyMs: 1,
+    provider: "x",
+    model: "y",
+    connectionId: null,
+    apiKeyInfo: null,
+    effectiveServiceTier: "standard",
+    isCombo: true,
+    comboStrategy: null,
+    statusCode: 500,
+    errorCode: "boom",
+    latencyMs: 1,
   });
   assert.equal(comboNoStrategy.comboStrategy, undefined);
+});
+
+test("maps aggregate usage onto failure tokens instead of zeros", () => {
+  const r = buildFailureUsageRecord({
+    provider: "openai",
+    model: "gpt-4o",
+    connectionId: "conn-1",
+    apiKeyInfo: { id: "key-1", name: "My Key" },
+    effectiveServiceTier: "priority",
+    isCombo: false,
+    comboStrategy: null,
+    statusCode: 429,
+    errorCode: "rate_limited",
+    latencyMs: 50,
+    aggregate: {
+      prompt_tokens: 100,
+      completion_tokens: 20,
+      cache_read_input_tokens: 10,
+      reasoning_tokens: 5,
+    },
+  });
+  assert.deepEqual(r.tokens, {
+    input: 100,
+    output: 20,
+    cacheRead: 10,
+    cacheCreation: 0,
+    reasoning: 5,
+  });
+});
+
+test("keeps zeroed tokens when aggregate is absent", () => {
+  const r = buildFailureUsageRecord({
+    provider: "openai",
+    model: "gpt-4o",
+    connectionId: null,
+    apiKeyInfo: null,
+    effectiveServiceTier: "standard",
+    isCombo: false,
+    comboStrategy: null,
+    statusCode: 502,
+    errorCode: null,
+    latencyMs: 7,
+  });
+  assert.deepEqual(r.tokens, { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, reasoning: 0 });
 });

@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { previewToRunModel, type CompressionRunModel, type PreviewResponse } from "@/app/(dashboard)/dashboard/compression/studio/compressionFlowModel";
 export interface PreviewMessage { role: string; content: unknown; }
 export interface Lane { engine: string; run: CompressionRunModel | null; error: string | null; }
-export interface PreviewBatch { lanes: Lane[]; combined: CompressionRunModel | null; diff: PreviewResponse["diff"] | null; riskGate: PreviewResponse["riskGate"] | null; heatmap: PreviewResponse["heatmap"] | null; }
+export interface PreviewBatch { lanes: Lane[]; combined: CompressionRunModel | null; combinedError: string | null; diff: PreviewResponse["diff"] | null; riskGate: PreviewResponse["riskGate"] | null; heatmap: PreviewResponse["heatmap"] | null; }
 export interface RunPreviewArgs { messages: PreviewMessage[]; laneEngines: string[]; activeEngines: string[]; language?: string; fidelityGate?: boolean; fuzzyDedup?: boolean; riskGate?: boolean; quantumLock?: boolean; heatmap?: "ultra" | "universal"; }
 async function postPreview(payload: Record<string, unknown>): Promise<PreviewResponse> {
   const res = await fetch("/api/compression/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -27,14 +27,15 @@ export async function runPreviewBatch(args: RunPreviewArgs): Promise<PreviewBatc
     })
   );
   let combined: CompressionRunModel | null = null;
+  let combinedError: string | null = null;
   let diff: PreviewResponse["diff"] | null = null;
   let riskGateStats: PreviewResponse["riskGate"] | null = null;
   let heatmapResult: PreviewResponse["heatmap"] | null = null;
   if (activeEngines.length > 0) {
     try { const res = await postPreview({ messages, pipeline: activeEngines, ...extra }); combined = previewToRunModel(res, activeEngines.join(" → ")); diff = res.diff; riskGateStats = res.riskGate ?? null; heatmapResult = res.heatmap ?? null; }
-    catch { combined = null; }
+    catch (e) { combined = null; combinedError = e instanceof Error ? e.message : "error"; }
   }
-  return { lanes, combined, diff, riskGate: riskGateStats, heatmap: heatmapResult };
+  return { lanes, combined, combinedError, diff, riskGate: riskGateStats, heatmap: heatmapResult };
 }
 export function usePreviewCompression() {
   const [batch, setBatch] = useState<PreviewBatch | null>(null);

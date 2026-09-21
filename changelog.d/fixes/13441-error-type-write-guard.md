@@ -1,0 +1,1 @@
+- **fix(call-logs):** the call-log write point validates `error_type` against the versioned vocabulary with a Zod schema and stores `unknown` for any value outside it, so a classifier family that drifts from `ERROR_TYPE_CONTRACT` can never persist free text ([#13441](https://github.com/diegosouzapw/OmniRoute/pull/13441)) — thanks @maxmad64bis

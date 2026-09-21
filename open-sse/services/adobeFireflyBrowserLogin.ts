@@ -14,10 +14,11 @@
  */
 import { spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import http from "node:http";
 import { createServer } from "node:net";
 import { join } from "node:path";
+import { ensureSecureDir, writeSecureFile } from "../utils/secureFileWrite.ts";
 import {
   decodeAdobeJwtPayload,
   isAdobeUserAccessToken,
@@ -410,7 +411,7 @@ export function filterAdobeBrowserCookies(cookies: CdpCookie[]): AdobeBrowserCoo
 
 function adobeBrowserCookieJarPath(sessionKey: string): string {
   const dir = join(resolveAdobeFireflyDataRoot(), "adobe-browser-sessions");
-  mkdirSync(dir, { recursive: true });
+  ensureSecureDir(dir);
   return join(dir, `${adobeFireflyBrowserSessionKey(sessionKey)}.json`);
 }
 
@@ -427,10 +428,9 @@ function loadAdobeBrowserCookies(sessionKey: string): AdobeBrowserCookie[] {
 
 function saveAdobeBrowserCookies(sessionKey: string, cookies: CdpCookie[]): void {
   try {
-    writeFileSync(
+    writeSecureFile(
       adobeBrowserCookieJarPath(sessionKey),
-      JSON.stringify(filterAdobeBrowserCookies(cookies)),
-      "utf8"
+      JSON.stringify(filterAdobeBrowserCookies(cookies))
     );
   } catch {
     // Best-effort: login still returns the portable JWT + Firefly risk cookies.

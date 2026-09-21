@@ -7,6 +7,7 @@ import {
   type OrchSnapshot,
   type OrchSource,
   type OrchState,
+  type SourceIssue,
   type SourceStatus,
 } from "./orchestrationTypes";
 
@@ -155,8 +156,9 @@ function capWorkNodesWithOverflow(
 }
 
 /**
- * (1) root — link every present SourceNode, plus failed sources so the UI can show them
- * stale. Returns nodes with the root prepended.
+ * (1) root — link every present SourceNode, flag the failing/offline ones (materializing a
+ * placeholder only when the source has no node at all) so the UI can show them stale.
+ * Returns nodes with the root prepended.
  */
 function buildRootAndSourceEdges(
   nodes: OrchNode[],
@@ -168,22 +170,30 @@ function buildRootAndSourceEdges(
   const nextEdges = [...edges];
   const sourceIds = new Set(nextNodes.filter((n) => n.kind === "source").map((n) => n.id));
   for (const s of sources) {
-    // `!s.ok` covers hard failures; `s.offline` also materializes a placeholder
-    // for a source that reported ok:true but offline:true (e.g. Conductor with
-    // no hub configured) — otherwise that source never gets a SourceNode at all
-    // and its "offline" sublabel can never render.
-    if ((!s.ok || s.offline) && !sourceIds.has(`source:${s.source}`) && s.source !== "routing") {
+    // `!s.ok` covers hard failures; `s.offline` also flags a source that reported
+    // ok:true but offline:true (e.g. Conductor with no hub configured) — otherwise
+    // that source's "offline" sublabel can never render.
+    if ((s.ok && !s.offline) || s.source === "routing") continue;
+    const id = `source:${s.source}`;
+    const issue: SourceIssue = s.offline ? "offline" : "error";
+    const index = nextNodes.findIndex((n) => n.id === id && n.kind === "source");
+    if (index === -1) {
       nextNodes.push({
-        id: `source:${s.source}`,
+        id,
         kind: "source",
         source: s.source,
         label: s.source,
-        sublabel: s.offline ? "offline" : "error",
-        sourceIssue: s.offline ? "offline" : "error",
+        sublabel: issue,
+        sourceIssue: issue,
         staleSince: s.staleSince,
       });
-      sourceIds.add(`source:${s.source}`);
+      sourceIds.add(id);
+      continue;
     }
+    // A source that HAD data and only now started failing keeps its nodes/counts —
+    // it just gains the issue flags. Copy rather than mutate: the original object is
+    // still referenced by `parts.<source>.nodes` and this function's contract is Pure.
+    nextNodes[index] = { ...nextNodes[index], sourceIssue: issue, staleSince: s.staleSince };
   }
   for (const id of sourceIds) {
     nextEdges.push({

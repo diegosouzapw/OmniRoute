@@ -7,8 +7,12 @@ import * as yaml from "js-yaml";
 const ROOT = process.cwd();
 const OPENAPI_PATH = path.join(ROOT, "docs", "openapi.yaml");
 
-const { LOCAL_ONLY_API_PREFIXES, LOCAL_ONLY_API_PATTERNS, ALWAYS_PROTECTED_API_PATHS } =
-  await import("../../src/server/authz/routeGuard.ts");
+const {
+  LOCAL_ONLY_API_PREFIXES,
+  LOCAL_ONLY_API_PATTERNS,
+  ALWAYS_PROTECTED_API_PATHS,
+  ALWAYS_PROTECTED_API_PATTERNS,
+} = await import("../../src/server/authz/routeGuard.ts");
 
 const raw: any = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
 const paths: Record<string, any> = raw.paths || {};
@@ -131,12 +135,22 @@ test("every x-always-protected path matches ALWAYS_PROTECTED_API_PATHS in routeG
     for (const [method, spec] of Object.entries(methods as Record<string, any>)) {
       if (!["get", "post", "put", "patch", "delete"].includes(method)) continue;
       if (spec?.["x-always-protected"] !== true) continue;
-      const matchesPath = (ALWAYS_PROTECTED_API_PATHS as ReadonlyArray<string>).some(
-        (p: string) => pathStr === p || pathStr.startsWith(`${p}/`)
-      );
+      // Routes with a dynamic segment cannot be expressed in the plain
+      // exact/prefix list, so routeGuard also carries ALWAYS_PROTECTED_API_PATTERNS
+      // (GHSA-5926-2w35-7h4q). Substitute a concrete value for the OpenAPI
+      // `{param}` placeholders before testing those.
+      const concretePath = pathStr.replace(/\{[^}]+\}/g, "sample-id");
+      const matchesPath =
+        (ALWAYS_PROTECTED_API_PATHS as ReadonlyArray<string>).some(
+          (p: string) => pathStr === p || pathStr.startsWith(`${p}/`)
+        ) ||
+        (ALWAYS_PROTECTED_API_PATTERNS as ReadonlyArray<RegExp>).some((re) =>
+          re.test(concretePath)
+        );
       assert.ok(
         matchesPath,
-        `YAML path "${pathStr}" ${method.toUpperCase()} has x-always-protected but is NOT in ALWAYS_PROTECTED_API_PATHS. ` +
+        `YAML path "${pathStr}" ${method.toUpperCase()} has x-always-protected but is NOT in ALWAYS_PROTECTED_API_PATHS ` +
+          `nor matched by ALWAYS_PROTECTED_API_PATTERNS. ` +
           `Entries: ${(ALWAYS_PROTECTED_API_PATHS as ReadonlyArray<string>).join(", ")}`
       );
     }

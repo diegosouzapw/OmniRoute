@@ -13,11 +13,15 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import {
   CLAUDE_CODE_CLIENT_VERSION,
   CLAUDE_CODE_SDK_PACKAGE_VERSION,
+  getClaudeCodeClientVersion,
 } from "@/shared/constants/claudeCodeClient";
 
 // ---------- Versions ------------------------------------------------------
 
 export const CLAUDE_CODE_VERSION = CLAUDE_CODE_CLIENT_VERSION;
+export function getClaudeCodeVersion(): string {
+  return getClaudeCodeClientVersion();
+}
 /** Bundled @anthropic-ai/sdk version for the pinned CLI release. */
 export const CLAUDE_CODE_STAINLESS_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
 
@@ -156,7 +160,7 @@ export async function fetchClaudeBootstrap(accessToken: string): Promise<ClaudeB
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
-        "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
+        "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
         "anthropic-beta": "oauth-2025-04-20",
       },
       signal: ctrl.signal,
@@ -305,6 +309,7 @@ const HEAVY_AGENT_BETA_MODEL_PREFIXES = ["claude-opus", "claude-sonnet"];
  */
 const CONTEXT_1M_BETA_MODEL_PREFIXES = ["claude-opus"];
 const CONTEXT_1M_NATIVE_MODEL_PREFIXES = ["claude-opus-5"];
+const MID_CONVERSATION_SYSTEM_MODEL_PREFIXES = ["claude-opus", "claude-fable"];
 
 function matchesModelPrefix(model: unknown, prefixes: string[]): boolean {
   if (typeof model !== "string") return false;
@@ -336,7 +341,9 @@ export function shouldUseMidConversationSystem(
   const effectiveModel = model ?? (typeof payload.model === "string" ? payload.model : "");
 
   return (
-    hasSystem && hasTools && matchesModelPrefix(effectiveModel, CONTEXT_1M_BETA_MODEL_PREFIXES)
+    hasSystem &&
+    hasTools &&
+    matchesModelPrefix(effectiveModel, MID_CONVERSATION_SYSTEM_MODEL_PREFIXES)
   );
 }
 
@@ -459,6 +466,24 @@ export function stripProxyToolPrefix(body: Record<string, unknown>): void {
           if (stripped !== undefined) block.name = stripped;
         }
       }
+    }
+  }
+}
+
+/**
+ * Drop any previously injected billing header / Claude Code sentinel block from a
+ * `system` array, so re-prepending them on a retry stays idempotent instead of stacking
+ * (issue #1712 — stacking breaks prompt-cache prefix matching). Mutates `sysBlocks`.
+ */
+export function stripClaudeSystemPrefixBlocks(
+  sysBlocks: Array<Record<string, unknown>>,
+  sentinel: string
+): void {
+  for (let i = sysBlocks.length - 1; i >= 0; i--) {
+    const text = sysBlocks[i]?.text;
+    if (typeof text !== "string") continue;
+    if (text.startsWith("x-anthropic-billing-header:") || text.startsWith(sentinel)) {
+      sysBlocks.splice(i, 1);
     }
   }
 }

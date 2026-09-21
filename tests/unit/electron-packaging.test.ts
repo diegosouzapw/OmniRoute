@@ -73,6 +73,8 @@ test("electron docs manifest prunes authoring payloads without removing runtime 
     ["docs/guides/CODEX-CLI-CONFIGURATION.md", "# Codex CLI"],
     ["docs/i18n/ko/docs/guides/ELECTRON_GUIDE.md", "# Electron"],
     ["docs/i18n/ko/CHANGELOG.md", "translated release history"],
+    ["docs/i18n/ko/README.md", "translated readme"],
+    ["docs/i18n/ko/llm.txt", "translated llm summary"],
     ["docs/i18n/fr/CHANGELOG.md", "historique traduit"],
     ["docs/research/desktop-notes.md", "authoring notes"],
     ["docs/superpowers/plans/desktop-plan.md", "implementation plan"],
@@ -87,16 +89,23 @@ test("electron docs manifest prunes authoring payloads without removing runtime 
 
     const result = pruneElectronRuntimeDocs(bundleRoot);
 
+    // Only `docs/i18n/<locale>/docs/**` is read at runtime (the in-app docs
+    // route, see src/lib/docsI18nPath.ts); every root-level mirror of a locale
+    // is authoring material and leaves the bundle with the CHANGELOG.
     assert.deepEqual(result.removedPaths, [
       "docs/i18n/fr/CHANGELOG.md",
       "docs/i18n/ko/CHANGELOG.md",
+      "docs/i18n/ko/README.md",
+      "docs/i18n/ko/llm.txt",
       "docs/research",
       "docs/superpowers",
     ]);
-    assert.equal(result.removedFiles, 4);
+    assert.equal(result.removedFiles, 6);
     assert.equal(
       result.removedBytes,
       Buffer.byteLength("translated release history") +
+        Buffer.byteLength("translated readme") +
+        Buffer.byteLength("translated llm summary") +
         Buffer.byteLength("historique traduit") +
         Buffer.byteLength("authoring notes") +
         Buffer.byteLength("implementation plan")
@@ -106,6 +115,8 @@ test("electron docs manifest prunes authoring payloads without removing runtime 
     assert.equal(existsSync(join(bundleRoot, "docs/guides/CODEX-CLI-CONFIGURATION.md")), true);
     assert.equal(existsSync(join(bundleRoot, "docs/i18n/ko/docs/guides/ELECTRON_GUIDE.md")), true);
     assert.equal(existsSync(join(bundleRoot, "docs/i18n/ko/CHANGELOG.md")), false);
+    assert.equal(existsSync(join(bundleRoot, "docs/i18n/ko/README.md")), false);
+    assert.equal(existsSync(join(bundleRoot, "docs/i18n/ko/llm.txt")), false);
     assert.equal(existsSync(join(bundleRoot, "docs/research")), false);
     assert.equal(existsSync(join(bundleRoot, "docs/superpowers")), false);
 

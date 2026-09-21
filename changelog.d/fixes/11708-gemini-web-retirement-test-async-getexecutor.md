@@ -1,1 +1,0 @@
-- **fix(tests):** the new Gemini Web Images retirement test (#11708) called the now-async `getExecutor()` synchronously, throwing `TypeError: getExecutor(...).getProvider is not a function` instead of asserting Gemini Web chat stays available. Awaited to match the R0.3 executor-registry refactor (#11220).

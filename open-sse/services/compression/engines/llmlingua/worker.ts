@@ -234,7 +234,12 @@ function ensureWorker(): Worker {
 
   const { workerFile, execArgv } = resolveWorkerFile();
   const absoluteWorkerFile = path.resolve(workerFile);
-  const w = new Worker(pathToFileURL(absoluteWorkerFile).href, { execArgv });
+  // Pass the URL OBJECT, not `.href`. `new Worker()` treats a plain string as a
+  // filesystem path, so a "file://..." string is looked up literally and throws
+  // ERR_WORKER_PATH (a string arg must start with ./ or ../). Only a URL instance
+  // is interpreted as a file: URL. Spawn failures are swallowed by pump()'s catch,
+  // so getting this wrong silently disables compression instead of erroring.
+  const w = new Worker(pathToFileURL(absoluteWorkerFile), { execArgv });
 
   w.on("message", (reply: WorkerReply) => {
     const entry = pending.get(reply.id);

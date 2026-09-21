@@ -1,0 +1,1 @@
+- **chore(build):** ship `httpClientAbortGuard.mjs` in the published tarball — the #13636 crash guard was a new `server-ws.mjs` import missing from both pack-artifact allowlists (#12732)

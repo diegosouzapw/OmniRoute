@@ -142,7 +142,14 @@ jobs:
       - run: npm run check:known-symbols
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
+      - run: npm run check:radar-sentinels
       - run: npm run check:tracked-artifacts
+      # A test parked in vitest.config.ts's exclude list does not run, and looks like
+      # coverage to whoever reads the tree. 62 files accumulated behind a comment pointing
+      # at #8618 — closed in August while the list grew to 62; 51 of them passed when
+      # finally measured (#13204). This gate requires every exclusion to name a tracker and
+      # to appear in config/quality/vitest-exclusions.json, so the debt stays reviewable.
+      - run: npm run check:vitest-exclusions
       # (gap 30) Also lives in quality.yml's PR-only "Merge integrity" job — because the
       # CHANGELOG half of that job needs a base to diff against. This half does NOT: the
       # generator either reproduces the committed SKILL.md files or it does not.
@@ -446,8 +453,11 @@ jobs:
       # One FS inventory of src/app/api for both anti-hallucination directions.
       - name: API docs refs (openapi + prose → routes)
         run: npm run check:api-docs-refs
-      - name: i18n translation drift (warn)
-        run: node scripts/i18n/check-translation-drift.mjs --warn
+      # Blocking since the 2026-09 docs re-sync: a core doc edited without `npm run i18n:run
+      # --files=<doc>` (or `--adopt` for a mechanical edit) leaves 65 stale mirrors behind;
+      # the run only retranslates the `## ` sections whose text changed, so it is cheap.
+      - name: i18n docs drift (sources changed since their translation)
+        run: node scripts/i18n/check-translation-drift.mjs
 
   docs-lint:
     name: Docs Lint (prose — advisory)
@@ -502,6 +512,13 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
+      # Real-translation ratchet: a leaf copied verbatim from en.json passes key
+      # parity above but is still English to the user (es shipped 55% English).
+      # Blocking since PR-4 retranslated the verbatim-English backlog: the share of
+      # untranslated leaves per locale may only fall (ratchet baseline in
+      # config/quality/i18n-translation-baseline.json; `npm run i18n:check-ratio:update`).
+      - name: i18n real-translation ratio
+        run: node scripts/i18n/check-translation-ratio.mjs
       # #8463: a rewritten English value used to leave its 39 translations behind
       # silently (googleOAuthWarning shipped wrong copy in 39 locales for months).
       # Key parity above cannot see it — a stale translation counts as covered.
@@ -509,6 +526,30 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
         run: node scripts/i18n/check-ui-value-drift.mjs
+      # Sibling of the drift gate above. That one catches an English value that was
+      # REWRITTEN; this one catches an English key that was ADDED while some locales never
+      # got it. The coverage gate at the top of this job cannot: it is a percentage per
+      # locale, and 11 absent keys out of ~13,000 leaves coverage at 99.9%. Incident: the
+      # Phase 3 canvas keys were translated across the 42 locales that existed, then the EU
+      # batch (#13044) took the repo to 51 and the nine newcomers shipped untranslated.
+      - name: i18n new-key coverage (a new key must reach every locale)
+        env:
+          BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
+        run: node scripts/i18n/check-new-key-coverage.mjs
+      # Absolute complement of the two gates above: every locale must carry exactly the key
+      # set of en.json, whatever the age of the key. A locale batch is generated from the
+      # en.json of the day the branch is cut and translates for days while the base keeps
+      # adding keys — the batch PR adds no key itself, so the new-key gate stays silent and
+      # 43 absent keys out of ~13,000 still read 99.7 % coverage. Incident 2026-09-15:
+      # batch 1 (#13044) landed 43 keys short in nine locales, batch 2 (#13660) 10 keys short
+      # in eight. Fix is `sync-ui-keys --locale=<codes> --translate-markers`.
+      - name: i18n key completeness (every locale carries every en.json key)
+        run: node scripts/i18n/check-key-completeness.mjs
+      # Same gate for the CLI catalogs (bin/cli/locales). check:cli-i18n only compares
+      # pt-BR / zh-CN / zh-TW; 38 locales shipped with 1–24 of 830 keys for months
+      # (audit 2026-09-16) and the CLI silently fell back to English for them.
+      - name: i18n key completeness (CLI catalogs)
+        run: node scripts/i18n/check-key-completeness.mjs --catalog=cli
 
   # #8038: cheap glossary/protected-terms consistency gate —
   # complements i18n-ui-coverage (key parity) and the ICU `i18n` job below

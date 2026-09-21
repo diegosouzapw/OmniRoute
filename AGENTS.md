@@ -46,7 +46,7 @@ Repository map and Reference Documentation sections below.
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 355 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 359 LLM providers, auto-fallback.
 
 | Layer         | Location                | Purpose                                                                                                                                                                   |
 | ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,7 +56,7 @@ Repository map and Reference Documentation sections below.
 | Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                                  |
 | Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                                          |
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                                  |
-| Database      | `src/lib/db/`           | SQLite domain modules (168 migrations)                                                                                                                                    |
+| Database      | `src/lib/db/`           | SQLite domain modules (178 migrations)                                                                                                                                    |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                                                 |
 | MCP Server    | `open-sse/mcp-server/`  | 110 tools (45 canonical + memory/skill/GitHub/pool/gamification/plugin/Notion/Obsidian/local-corpus/RTK modules), 3 transports (stdio / SSE / Streamable HTTP), 33 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                                               |
@@ -578,13 +578,30 @@ own dedicated branch, and you MUST confirm the base branch with the operator bef
    # HARD LINKS (`cp -al`), never a symlink: ~5s for the whole tree and near-zero extra
    # disk (the inodes are shared), and unlike a symlink it does not break the dev server.
    cp -al "$(git -C <main_checkout> rev-parse --show-toplevel)/node_modules" node_modules
+   # `.husky/_` is gitignored, so a fresh worktree does NOT have it and
+   # `core.hooksPath=.husky/_` then points at a directory that does not exist —
+   # every pre-commit gate goes silently mute. Copy it too.
+   cp -a "$(git -C <main_checkout> rev-parse --show-toplevel)/.husky/_" .husky/_
    ```
+
+   `scripts/dev/new-worktree.sh <branch> [base]` does all of the above (canonical path,
+   hard-linked `node_modules`, `.husky/_`) and then **verifies** the hook is actually
+   executable, so prefer it over running the steps by hand.
 
    **Never `ln -s` node_modules.** Turbopack rejects a symlink that resolves outside the
    project root, so `npm run dev` dies with a FATAL panic (`Symlink [project]/node_modules
 is invalid, it points out of the filesystem root`) while typecheck, lint and the test
    runners all keep passing — the error names "filesystem root", not the worktree, so it
    reads like a Next/build bug and costs real time to trace (incident 2026-07-31, #9043).
+
+   **A worktree without `.husky/_` runs NO pre-commit gate — and says nothing.** `git`
+   resolves `core.hooksPath` relative to the worktree top; when the directory is missing it
+   simply finds no hook and commits. Nothing is printed, the commit succeeds, and the
+   identity/lint/docs gates never ran. This is how 59 commits carrying a stale identity
+   override (name of a contributor + the maintainer's e-mail) got past
+   `scripts/check/check-git-identity.sh` between 2026-08-29 and 09-02 — they were all made in
+   `cp -al` worktrees. Verify with `ls .husky/_/pre-commit` inside a new worktree, or just use
+   `scripts/dev/new-worktree.sh`, which fails loudly when the hook is not executable.
 
 3. **Work, commit, push, open the PR — all from inside the worktree.** Never `git checkout` a
    different branch inside a worktree another session might share.
@@ -647,7 +664,7 @@ focused checks, and use a Conventional Commit message (for example, `docs: slim 
 ## Environment
 
 - **Runtime**: Node.js ≥22.22.2 <23 || ≥24.0.0 <27, ES Modules. This is the **only supported** runtime for the published `omniroute` CLI, the server, and the test suites (`node:test` + vitest) — `engines.node` is authoritative and end users never need Bun. A **best-effort `bun:sqlite` compatibility path** exists so a global Bun install (`bun install -g omniroute`) can start without `better-sqlite3` (driver adapter + Bun-aware process spawning); it is **not** a supported runtime — no support guarantees — and every Bun-specific runtime change MUST preserve the Node driver/fallback chain and ship a Bun test (`test:bun:db`) or an explicit reason why the path is Node-only.
-- **Bun (build/dev script runner + compatibility smoke only)**: Bun `1.4.0` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression` — plus the focused `test:bun:db` compatibility smoke suite for the best-effort `bun:sqlite` path. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the supported published runtime, or the main test runners — those stay on Node. Any new Bun-invoking gate/generator script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those scripts with `bun: not found`).
+- **Bun (build/dev script runner + compatibility smoke only)**: Bun `1.4.2` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression` — plus the focused `test:bun:db` compatibility smoke suite for the best-effort `bun:sqlite` path. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the supported published runtime, or the main test runners — those stay on Node. Any new Bun-invoking gate/generator script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those scripts with `bun: not found`).
 - **TypeScript**: 6.0+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard on same port)

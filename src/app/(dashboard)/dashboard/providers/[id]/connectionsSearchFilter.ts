@@ -4,7 +4,8 @@
  *
  * Case-insensitive, plain SUBSTRING match (mirrors the semantics of
  * `src/shared/utils/modelCatalogSearch.ts` — do not reimplement a fuzzy
- * matcher here). Matches against id, tag, name, and email.
+ * matcher here). Matches against id, tag, name, email, and
+ * providerSpecificData.baseUrl (#12108).
  */
 import type { ConnectionRowConnection } from "./components/ConnectionRow";
 
@@ -17,6 +18,11 @@ function getConnectionTag(conn: ConnectionRowConnection): string {
   return typeof tag === "string" ? tag : "";
 }
 
+function getConnectionBaseUrl(conn: ConnectionRowConnection): string {
+  const baseUrl = conn.providerSpecificData?.baseUrl;
+  return typeof baseUrl === "string" ? baseUrl : "";
+}
+
 /** True when `conn` matches `query` (empty/whitespace query always matches). */
 export function matchesAccountQuery(query: string, conn: ConnectionRowConnection): boolean {
   const normalizedQuery = normalize(query);
@@ -27,6 +33,7 @@ export function matchesAccountQuery(query: string, conn: ConnectionRowConnection
     normalize(getConnectionTag(conn)),
     normalize(conn.name),
     normalize(conn.email),
+    normalize(getConnectionBaseUrl(conn)),
   ];
   return haystacks.some((haystack) => haystack.includes(normalizedQuery));
 }

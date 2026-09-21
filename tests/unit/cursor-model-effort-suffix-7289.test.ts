@@ -80,3 +80,35 @@ test("resolveRequestedModel splits cursor-grok effort + fast together", () => {
     ],
   });
 });
+
+test("resolveRequestedModel expands Claude 1M catalog ids into complete wire parameters", () => {
+  assert.deepEqual(resolveRequestedModel("claude-opus-5-thinking-max-fast-1m"), {
+    modelId: "claude-opus-5",
+    parameters: [
+      { id: "thinking", value: "true" },
+      { id: "context", value: "1m" },
+      { id: "effort", value: "max" },
+      { id: "fast", value: "true" },
+    ],
+  });
+  assert.deepEqual(resolveRequestedModel("claude-4.6-sonnet-high-thinking-1m"), {
+    modelId: "claude-sonnet-4-6",
+    parameters: [
+      { id: "thinking", value: "true" },
+      { id: "context", value: "1m" },
+      { id: "effort", value: "high" },
+    ],
+  });
+});
+
+test("resolveRequestedModel expands GPT-5.6 1M ids and keeps fast disabled", () => {
+  const id = "gpt-5.6-sol-xhigh-1m";
+  assert.deepEqual(resolveRequestedModel(id, { liveCatalogIds: new Set([id]) }), {
+    modelId: "gpt-5.6-sol",
+    parameters: [
+      { id: "context", value: "1m" },
+      { id: "reasoning", value: "xhigh" },
+      { id: "fast", value: "false" },
+    ],
+  });
+});
