@@ -37,6 +37,16 @@ export const qwen_cloud_token_planProvider: RegistryEntry = {
       maxOutputTokens: 131_072,
     },
     {
+      // https://help.aliyun.com/en/model-studio/qwen3-8-flash (#14232)
+      id: "qwen3.8-flash",
+      name: "Qwen3.8 Flash",
+      supportsReasoning: true,
+      supportsVision: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 131_072,
+    },
+    {
       id: "qwen3.6-flash",
       name: "Qwen3.6 Flash",
       supportsReasoning: true,
@@ -57,6 +67,16 @@ export const qwen_cloud_token_planProvider: RegistryEntry = {
       id: "deepseek-v4-pro",
       name: "DeepSeek V4 Pro",
       supportsReasoning: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 393_216,
+    },
+    {
+      // https://help.aliyun.com/en/model-studio/deepseek-v4-1-flash (#14232)
+      id: "deepseek-v4.1-flash",
+      name: "DeepSeek V4.1 Flash",
+      supportsReasoning: true,
+      supportsVision: true,
       toolCalling: true,
       contextLength: 1_000_000,
       maxOutputTokens: 393_216,

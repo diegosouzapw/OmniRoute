@@ -1,0 +1,1 @@
+- **fix(providers):** register `qwen-cloud-token-plan/qwen3.8-flash` and `deepseek-v4.1-flash` as vision-capable so image requests through a combo can fall through to them instead of stopping on an unavailable vision-flagged leaf ([#14273](https://github.com/diegosouzapw/OmniRoute/pull/14273)) — thanks @costajohnt
