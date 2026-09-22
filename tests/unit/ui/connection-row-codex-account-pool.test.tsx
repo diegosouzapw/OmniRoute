@@ -107,7 +107,7 @@ describe("ConnectionRow Codex account pool", () => {
 
     expect(container.textContent).toContain("Codex quota pools");
     expect(container.textContent).toContain("Codex");
-    expect(container.textContent).toContain("Spark");
+    expect(container.textContent).not.toContain("Spark");
     expect(container.textContent).not.toContain("codex-parent-id");
     expect(container.querySelectorAll("button[title='edit']")).toHaveLength(1);
     expect(container.querySelectorAll("button[title='delete']")).toHaveLength(1);

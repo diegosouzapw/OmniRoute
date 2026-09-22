@@ -1,7 +1,5 @@
-import type { CatalogDraft } from "@opencode-ai/plugin/v2/promise";
-import { type HostContract, detectHostContract, emitsLegacyFields } from "./compat.js";
-import type { Model as LegacyModelV2 } from "@opencode-ai/sdk/v2";
-import type { ModelV2Info, ProviderV2Info } from "@opencode-ai/sdk/v2/types";
+import type { Model, Provider } from "@opencode/plugin";
+import type { LegacyModel } from "./legacy-model.js";
 import {
   isHttpUrl,
   type ApiFormatV2,
@@ -92,52 +90,110 @@ export interface CatalogFetchers {
   onSourceError?: (endpoint: string, reason: string) => void;
 }
 
-// The shared mappers speak the legacy (`Provider.models[id]`) `Model` shape
-// (imported from `@opencode-ai/sdk/v2`, also re-exported by the plugin root
-// as `ModelV2`); the real v2 `CatalogDraft` carries `ModelV2Info` instead.
-// Convert the fields 1:1 at the draft boundary -- NEVER `as unknown as` the
-// whole model.
-//
-// Binary-compat note: the prod binary (beta-17823) reads a top-level
-// `package` field on both Model and Provider structs (`package:a.Package`,
-// gated by `isAISDK = startsWith("aisdk:")`), with a model-to-provider
-// fallback (`package: u.package ?? s.package`). The pinned SDK types
-// (1.18.29) only know the `api` block, so the binary field is published via
-// the typed extensions below (spread/Object.assign, never `any`).
-export const BINARY_AISDK_PREFIX = "aisdk:";
+export type StableModelInfo = Model.Info;
+export type StableProviderInfo = Provider.Info;
 
-/** Top-level `package` as the legacy contract expects it (`aisdk:<npm>`). */
-export interface BinaryCompatPackage {
-  package: string;
+/**
+ * Structural mirror of the stable `ctx.provider.transform` editor, used as
+ * the parameter type where the payload is handed to the host (and in tests
+ * that fake the editor). Kept as documentation of the contract surface even
+ * where only `add` is exercised.
+ */
+export interface StableProviderEditor {
+  add(input: { info: StableProviderInfo; models: readonly StableModelInfo[] }): void;
+  get(providerID: string): { provider: StableProviderInfo } | undefined;
+  list(): readonly { provider: StableProviderInfo }[];
+  update(providerID: string, update: (provider: StableProviderInfo) => void): void;
+  remove(providerID: string): void;
+  readonly models: {
+    set(providerID: string, models: readonly StableModelInfo[]): void;
+    update(providerID: string, modelID: string, update: (model: StableModelInfo) => void): void;
+    remove(providerID: string, modelID: string): void;
+  };
 }
 
 /**
- * The legacy contract keeps on the model/provider itself what the `api` block
- * carries in the pinned types: the aisdk package, the endpoint (as
- * `settings.baseURL`) and the per-request headers. None of these keys collide
- * with a key of `ModelV2Info`/`ProviderV2Info`, so both field sets can be
- * published on the same object.
+ * Project the legacy catalog entry the shared mappers produce onto the
+ * stable `Model.Info` shape. The mapper layer stays untouched; only this
+ * boundary knows both shapes. Extra legacy-only keys (`api`, `options`,
+ * string `release_date`) are dropped, never cast across.
  */
-export interface BinaryCompatFields extends BinaryCompatPackage {
-  settings: Record<string, unknown>;
-  headers: Record<string, string>;
+export function legacyToStable(
+  providerID: string,
+  modelID: string,
+  m: LegacyModel,
+  apiKey: string,
+  baseURL: string
+): StableModelInfo {
+  if (!m.api || typeof m.api.npm !== "string" || m.api.npm.length === 0) {
+    throw new Error(
+      "[omniroute-v2] refusing to publish a model without an api block (missing api.npm)"
+    );
+  }
+  if (!isHttpUrl(m.api.url)) {
+    throw new Error(
+      "[omniroute-v2] refusing to publish a model whose api block carries no http(s) url"
+    );
+  }
+  const stablePackage =
+    m.api.npm === "@ai-sdk/anthropic" ? "@opencode/ai/providers/anthropic" : NPM_OPENAI_COMPAT;
+  const input: string[] = [];
+  if (m.capabilities.input.text) input.push("text");
+  if (m.capabilities.input.audio) input.push("audio");
+  if (m.capabilities.input.image) input.push("image");
+  if (m.capabilities.input.video) input.push("video");
+  if (m.capabilities.input.pdf) input.push("pdf");
+  const output: string[] = [];
+  if (m.capabilities.output.text) output.push("text");
+  if (m.capabilities.output.audio) output.push("audio");
+  if (m.capabilities.output.image) output.push("image");
+  if (m.capabilities.output.video) output.push("video");
+  if (m.capabilities.output.pdf) output.push("pdf");
+  const variants = Object.entries(m.variants ?? {}).map(([id, body]) => ({
+    id,
+    settings: { ...(body as Record<string, unknown>) },
+    headers: {},
+    body: { ...(body as Record<string, unknown>) },
+  }));
+  const parsed = Date.parse(m.release_date);
+  const info = {
+    id: modelID,
+    modelID,
+    providerID,
+    ...(m.family !== undefined ? { family: m.family } : {}),
+    name: m.name,
+    package: stablePackage,
+    settings: { baseURL: ensureV1Suffix(baseURL), apiKey },
+    headers: { ...m.headers },
+    ...(Object.keys(m.options).length > 0 ? { body: { ...m.options } } : {}),
+    capabilities: { tools: m.capabilities.toolcall, input, output },
+    variants,
+    time: { released: Number.isNaN(parsed) ? 0 : parsed },
+    cost: [
+      { input: m.cost.input, output: m.cost.output, cache: { ...m.cost.cache } },
+    ],
+    status: m.status,
+    enabled: true,
+    limit: { ...m.limit },
+  } as unknown;
+  return info as StableModelInfo;
 }
 
-/** Legacy variants read their options from `settings`, not `headers`/`body`. */
-export type BinaryCompatVariant = ModelV2Info["variants"][number] & {
-  settings: Record<string, unknown>;
-};
+const NPM_OPENAI_COMPAT = "@opencode/ai/providers/openai-compatible";
 
-export type BinaryCompatModel = ModelV2Info & BinaryCompatFields;
-export type BinaryCompatProvider = ProviderV2Info &
-  BinaryCompatPackage & {
-    settings: Record<string, unknown>;
-  };
-
-export function toBinaryPackage(npm: string): string {
-  return npm.startsWith(BINARY_AISDK_PREFIX) ? npm : `${BINARY_AISDK_PREFIX}${npm}`;
-}
-export function legacyApiToInfoApi(api: LegacyModelV2["api"]): ModelV2Info["api"] {
+/**
+ * Fail-fast guard for a pre-mapped `api` block: the snapshot filter and the
+ * stale-entry suite assert on it, and the beta-replay adapter relies on the
+ * same refusal for entries that bypass the mapper. New mapper output always
+ * carries a valid block via `resolveApiBlockV2`, so this fires only on stale
+ * snapshots or hand-built entries.
+ */
+export function legacyApiToInfoApi(api: LegacyModel["api"]): {
+  id: string;
+  type: "aisdk";
+  package: string;
+  url: string;
+} {
   if (!api || typeof api.npm !== "string" || api.npm.length === 0) {
     throw new Error(
       "[omniroute-v2] refusing to publish a model without an api block (missing api.npm)"
@@ -155,13 +211,14 @@ export function legacyApiToInfoApi(api: LegacyModelV2["api"]): ModelV2Info["api"
   return { id: api.id, type: "aisdk", package: api.npm, url: api.url };
 }
 
-function legacyCostToInfoCost(cost: LegacyModelV2["cost"]): ModelV2Info["cost"] {
-  return [{ input: cost.input, output: cost.output, cache: cost.cache }];
+function legacyCostToInfoCost(cost: LegacyModel["cost"]): StableModelInfo["cost"] {
+  const c = [{ input: cost.input, output: cost.output, cache: cost.cache }];
+  return c as unknown as StableModelInfo["cost"];
 }
 
 function legacyCapabilitiesToInfoCapabilities(
-  caps: LegacyModelV2["capabilities"]
-): ModelV2Info["capabilities"] {
+  caps: LegacyModel["capabilities"]
+): StableModelInfo["capabilities"] {
   const input: string[] = [];
   if (caps.input.text) input.push("text");
   if (caps.input.audio) input.push("audio");
@@ -177,21 +234,21 @@ function legacyCapabilitiesToInfoCapabilities(
   return { tools: caps.toolcall, input, output };
 }
 
-function legacyToInfo(providerID: string, modelID: string, m: LegacyModelV2): ModelV2Info {
+function legacyToInfo(providerID: string, modelID: string, m: LegacyModel): StableModelInfo {
   const variants = Object.entries(m.variants ?? {}).map(([id, body]) => ({
     id,
     headers: {},
     body: body as Record<string, unknown>,
   }));
   const parsed = Date.parse(m.release_date);
-  return {
+  const out = {
     id: modelID,
+    modelID,
     providerID,
     ...(m.family !== undefined ? { family: m.family } : {}),
     name: m.name,
-    api: legacyApiToInfoApi(m.api),
     capabilities: legacyCapabilitiesToInfoCapabilities(m.capabilities),
-    request: { headers: { ...m.headers }, body: { ...m.options } },
+    headers: { ...m.headers },
     variants,
     time: { released: Number.isNaN(parsed) ? 0 : parsed },
     cost: legacyCostToInfoCost(m.cost),
@@ -199,6 +256,7 @@ function legacyToInfo(providerID: string, modelID: string, m: LegacyModelV2): Mo
     enabled: true,
     limit: { ...m.limit },
   };
+  return out as unknown as StableModelInfo;
 }
 
 export interface PublishCounts {
@@ -265,74 +323,39 @@ export function passesComboAllowlist(combo: OmniRouteRawCombo, visible?: ModelLi
 }
 
 /**
- * Project the `api` block onto the legacy top-level fields. Only the `aisdk`
- * variant of `ModelApi`/`ProviderApi` carries a package, so the caller narrows
- * before calling; a `native` api has no legacy equivalent and publishes
- * nothing (the legacy contract has no native models).
+ * Copy the converted legacy fields onto a stable `Model.Info` target.
+ * Kept for the beta-replay adapter below (`publishCatalog`), which reuses it
+ * per entry; new code calls `legacyToStable` via `buildProviderPayload`.
  */
-function legacyModelFields(info: ModelV2Info): BinaryCompatFields | undefined {
-  if (info.api.type !== "aisdk") return undefined;
-  const settings: Record<string, unknown> = {
-    ...(info.api.settings ?? {}),
-    ...info.request.body,
-  };
-  if (info.api.url !== undefined) settings.baseURL = info.api.url;
-  return {
-    package: toBinaryPackage(info.api.package),
-    settings,
-    headers: { ...info.request.headers },
-  };
-}
-
-/** `{id, headers, body}` (pinned types) plus `{settings}` (legacy contract). */
-function legacyVariants(variants: ModelV2Info["variants"]): BinaryCompatVariant[] {
-  return variants.map((variant) => ({ ...variant, settings: { ...variant.body } }));
-}
-
-function assignModelFields(
-  target: ModelV2Info,
-  source: LegacyModelV2,
-  contract: HostContract
+export function assignModelFields(
+  target: StableModelInfo,
+  source: LegacyModel,
+  apiKey: string,
+  baseURL: string
 ): void {
-  const info = legacyToInfo(target.providerID || source.providerID, target.id || source.id, source);
-  target.name = info.name;
-  target.api = info.api;
-  target.capabilities = info.capabilities;
-  target.request = info.request;
-  target.variants = info.variants;
-  target.time = info.time;
-  target.cost = info.cost;
-  target.status = info.status;
-  target.enabled = info.enabled;
-  target.limit = info.limit;
-  if (info.family !== undefined) {
-    target.family = info.family;
-  }
-  if (!emitsLegacyFields(contract)) return;
-  const legacy = legacyModelFields(info);
-  if (legacy !== undefined) {
-    Object.assign(target, legacy);
-    target.variants = legacyVariants(info.variants);
-  }
+  const info = legacyToStable(
+    (target.providerID as string) || source.providerID,
+    (target.id as string) || source.id,
+    source,
+    apiKey,
+    baseURL
+  );
+  Object.assign(target, info);
 }
 
-function assignProviderFields(
-  target: ProviderV2Info,
-  source: { name: string; api: ProviderV2Info["api"]; integrationID: string },
-  contract: HostContract
+/**
+ * Copy the provider identity fields onto a stable `Provider.Info` target.
+ * Kept for the beta-replay adapter below (`publishCatalog` writes `name` /
+ * `integrationID` through it before adding stable fields); new code builds
+ * the provider object inline in `buildProviderPayload`.
+ */
+export function assignProviderFields(
+  target: StableProviderInfo,
+  source: { name: string; integrationID: string },
+  _contract?: unknown
 ): void {
-  target.name = source.name;
-  target.api = source.api;
-  target.integrationID = source.integrationID;
-  if (!emitsLegacyFields(contract)) return;
-  // The legacy contract defaults `Provider.Info.package` to `""` and model
-  // resolution falls back to it (`package: model.package ?? provider.package`),
-  // so the provider carries the same `aisdk:<npm>` value as its models, and
-  // the endpoint as `settings.baseURL`.
-  if (source.api.type !== "aisdk") return;
-  const settings: Record<string, unknown> = { ...(source.api.settings ?? {}) };
-  if (source.api.url !== undefined) settings.baseURL = source.api.url;
-  Object.assign(target, { package: toBinaryPackage(source.api.package), settings });
+  (target as { name: string }).name = source.name;
+  (target as { integrationID: string }).integrationID = source.integrationID;
 }
 
 /** A widened capability flag (`boolean | { field }`) read back as a plain flag. */
@@ -413,15 +436,14 @@ async function resolveUsableAliases(
   return rawConnections.length > 0 ? usableProviderAliasSet(rawConnections, enrichment) : undefined;
 }
 
-/** Everything the combo publishing pass reads, passed as one value. */
+/** Everything the combo collection pass reads, passed as one value. */
 interface PublishContext {
-  draft: CatalogDraft;
   opts: ResolvedOptions;
   log: Logger;
   providerId: string;
-  hostContract: HostContract;
   enrichment: OmniRouteEnrichmentMap;
   rawModelById: Map<string, OmniRouteRawModelEntry>;
+  collected: Map<string, LegacyModel>;
   publishedKeys: Set<string>;
   publishedModelIds: Map<string, string>;
   visibleFilter: ReturnType<typeof compileModelListFilter>;
@@ -447,13 +469,12 @@ interface PublishContext {
  */
 async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
   const {
-    draft,
     opts,
     log,
     providerId: X,
-    hostContract,
     enrichment,
     rawModelById,
+    collected,
     publishedKeys,
     publishedModelIds,
     visibleFilter,
@@ -493,7 +514,7 @@ async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
     if (hiddenFilter && passesComboAllowlist(combo, hiddenFilter)) return false;
     return true;
   });
-  const resolvedByName = new Map<string, LegacyModelV2>();
+  const resolvedByName = new Map<string, LegacyModel>();
   let unresolved: typeof pending = [];
 
   for (let pass = 0; pass < MAX_COMBO_PASSES && pending.length > 0; pass++) {
@@ -553,9 +574,7 @@ async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
           }
         }
       }
-      draft.model.update(X, mid, (m) => {
-        assignModelFields(m, mapped, hostContract);
-      });
+      collected.set(key, mapped);
       publishedKeys.add(key);
       publishedModelIds.set(key, mapped.id);
       comboCount += 1;
@@ -588,7 +607,7 @@ async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
  * output, modalities, capabilities) instead of only direct raw members.
  * v1 parity (combo member synthesis at nested resolution time).
  */
-function synthesizeNestedMember(name: string, nested: LegacyModelV2): OmniRouteRawModelEntry {
+function synthesizeNestedMember(name: string, nested: LegacyModel): OmniRouteRawModelEntry {
   const inputModalities: string[] = [];
   if (nested.capabilities.input.text) inputModalities.push("text");
   if (nested.capabilities.input.audio) inputModalities.push("audio");
@@ -623,11 +642,22 @@ function synthesizeNestedMember(name: string, nested: LegacyModelV2): OmniRouteR
   };
 }
 
-export async function publishCatalog(
-  draft: CatalogDraft,
+/**
+ * Collect the full catalog (models + combos + auto-combos) as legacy entries
+ * keyed `providerId/bareId`, then project them onto the stable contract in
+ * `buildProviderPayload`. Collect-then-project keeps every fetch/filter/LCD
+ * behavior identical to the beta path while the only host touchpoint is the
+ * single `editor.add` in the payload builder.
+ */
+export interface CollectedCatalog {
+  entries: Map<string, LegacyModel>;
+  counts: PublishCounts;
+}
+
+export async function collectCatalog(
   opts: ResolvedOptions,
   fetchers?: CatalogFetchers
-): Promise<PublishCounts> {
+): Promise<CollectedCatalog> {
   const X = opts.providerId;
   const log = opts.logger ?? createLogger(opts.startupDebug ? "debug" : (opts.logLevel ?? "warn"));
   const modelsTimeout = opts.timeouts?.models ?? opts.timeoutMs;
@@ -636,35 +666,16 @@ export async function publishCatalog(
   // set (P2 resolves it in index.ts; direct publishCatalog callers may only
   // pass timeoutMs).
   const autoCombosTimeout = opts.timeouts?.autoCombos ?? 5_000;
-  // The contract is discovered from the object the host seeds into the
-  // provider draft, which the host fills before any model is published. The
-  // verdict is then reused for every model: the model seed carries no
-  // discriminating key, and a single provider/model pair always speaks one
-  // contract.
-  let hostContract: HostContract = "unknown";
-  draft.provider.update(X, (p) => {
-    hostContract = detectHostContract(p);
-    assignProviderFields(
-      p,
-      {
-        name: opts.displayName ?? "OmniRoute",
-        api: {
-          type: "aisdk",
-          package: "@ai-sdk/openai-compatible",
-          url: ensureV1Suffix(opts.baseURL),
-        },
-        integrationID: X,
-      },
-      hostContract
-    );
-  });
-  log.debug(`[omniroute-v2] host catalog contract detected: ${hostContract}`);
 
   const modelsFetcher = fetchers?.fetcher ?? fetchers?.models;
   const combosFetcher = fetchers?.combosFetcher ?? fetchers?.combos;
   const autoCombosFetcher = fetchers?.autoCombosFetcher ?? fetchers?.autoCombos;
   const providersFetcher = fetchers?.providersFetcher ?? fetchers?.providers;
 
+  const empty: CollectedCatalog = {
+    entries: new Map(),
+    counts: { models: 0, combos: 0, autoCombos: 0 },
+  };
   let rawModels: OmniRouteRawModelEntry[];
   try {
     rawModels = modelsFetcher ? await modelsFetcher(opts.baseURL, opts.apiKey, modelsTimeout) : [];
@@ -672,7 +683,7 @@ export async function publishCatalog(
     log.warn(
       `[omniroute-v2] models fetch failed, publishing empty catalog: ${err instanceof Error ? err.message : String(err)}`
     );
-    return { models: 0, combos: 0, autoCombos: 0 };
+    return empty;
   }
 
   const visibleFilter = compileModelListFilter(opts.visibleModels);
@@ -701,6 +712,7 @@ export async function publishCatalog(
   // v1's `models[comboKey]` lookup so the intentional-dedup check sees the
   // overwritten entry's id, not just key presence.
   const publishedModelIds = new Map<string, string>();
+  const collected = new Map<string, LegacyModel>();
   let modelCount = 0;
   for (const entry of rawModels) {
     if (!entry.id) continue;
@@ -716,24 +728,22 @@ export async function publishCatalog(
       providerTag: opts.providerTag !== false,
     });
     const mid = mapped.id.startsWith(X + "/") ? mapped.id.slice(X.length + 1) : mapped.id;
-    draft.model.update(X, mid, (m) => {
-      assignModelFields(m, mapped, hostContract);
-    });
-    publishedKeys.add(X + "/" + mid);
-    publishedModelIds.set(X + "/" + mid, mapped.id);
+    const key = X + "/" + mid;
+    collected.set(key, mapped);
+    publishedKeys.add(key);
+    publishedModelIds.set(key, mapped.id);
     modelCount += 1;
   }
 
   const warnedCombos = opts.collisionWarned ?? new Set<string>();
   const cacheKey = `${opts.baseURL}::${opts.providerId}`;
   const comboCount = await publishCombos({
-    draft,
     opts,
     log,
     providerId: X,
-    hostContract,
     enrichment,
     rawModelById,
+    collected,
     publishedKeys,
     publishedModelIds,
     visibleFilter,
@@ -745,7 +755,8 @@ export async function publishCatalog(
     warnedCombos,
     cacheKey,
   });
-  if (comboCount === undefined) return { models: modelCount, combos: 0, autoCombos: 0 };
+  if (comboCount === undefined)
+    return { entries: collected, counts: { models: modelCount, combos: 0, autoCombos: 0 } };
 
   // Migration: v1 published opencode-X; v2 publishes X bare. Sessions pinned
   // opencode-X resolve ModelUnavailableError -- see RELEASE.md migration note.
@@ -769,7 +780,7 @@ export async function publishCatalog(
     log.warn(
       `[omniroute-v2] auto combos fetch failed, falling back to models+combos catalog: ${err instanceof Error ? err.message : String(err)}`
     );
-    return { models: modelCount, combos: comboCount, autoCombos: 0 };
+    return { entries: collected, counts: { models: modelCount, combos: comboCount, autoCombos: 0 } };
   }
 
   let autoComboCount = 0;
@@ -796,13 +807,93 @@ export async function publishCatalog(
         );
       }
     }
-    draft.model.update(X, mapped.id, (m) => {
-      assignModelFields(m, mapped, hostContract);
-    });
+    collected.set(key, mapped);
     publishedKeys.add(key);
     publishedModelIds.set(key, mapped.id);
     autoComboCount += 1;
   }
 
-  return { models: modelCount, combos: comboCount, autoCombos: autoComboCount };
+  return { entries: collected, counts: { models: modelCount, combos: comboCount, autoCombos: autoComboCount } };
+}
+
+/**
+ * Project a collected catalog onto the stable contract: one provider `info`
+ * plus one `Model.Info` per entry. The provider carries the endpoint and the
+ * inference key (`settings.baseURL` + `settings.apiKey`, verified live
+ * against 2.0.12) so inference authenticates; each model repeats them because
+ * the host merges model settings over provider settings at request time.
+ */
+export function buildProviderPayload(
+  collected: CollectedCatalog,
+  opts: ResolvedOptions
+): { info: StableProviderInfo; models: StableModelInfo[] } {
+  const X = opts.providerId;
+  const info = {
+    id: X,
+    name: opts.displayName ?? "OmniRoute",
+    activation: "enabled",
+    package: NPM_OPENAI_COMPAT,
+    settings: { baseURL: ensureV1Suffix(opts.baseURL), apiKey: opts.apiKey },
+    integrationID: X,
+  } as unknown as StableProviderInfo;
+  const models: StableModelInfo[] = [];
+  for (const [key, legacy] of collected.entries) {
+    const slash = key.indexOf("/");
+    const bareId = slash > 0 ? key.slice(slash + 1) : legacy.id;
+    models.push(legacyToStable(X, bareId, legacy, opts.apiKey, opts.baseURL));
+  }
+  return { info, models };
+}
+
+/**
+ * Beta-draft publish path: replays a collected catalog into a beta
+ * `CatalogDraft`-shaped editor. The 19 legacy suite files drive it with
+ * injected fetchers and read back `api`/`request` aliases plus counts, so
+ * removing it means rewriting those files to `collectCatalog` +
+ * `buildProviderPayload` (done for host-contract/api-package/smoke; the rest
+ * keep the adapter). New product code uses `collectCatalog` +
+ * `buildProviderPayload` directly; `src/index.ts` never calls this.
+ */
+export async function publishCatalog(
+  draft: {
+    provider: { update: (id: string, fn: (p: Record<string, unknown>) => void) => void };
+    model: {
+      update: (pid: string, mid: string, fn: (m: Record<string, unknown>) => void) => void;
+    };
+  },
+  opts: ResolvedOptions,
+  fetchers?: CatalogFetchers
+): Promise<PublishCounts> {
+  const collected = await collectCatalog(opts, fetchers);
+  const payload = buildProviderPayload(collected, opts);
+  const X = opts.providerId;
+  draft.provider.update(X, (p) => {
+    const info = payload.info as unknown as Record<string, unknown>;
+    for (const [k, v] of Object.entries(info)) p[k] = v;
+    // Beta-shaped aliases the legacy suite reads: `api` block plus
+    // `request` (headers/body). The stable payload carries the same data as
+    // top-level `package`/`settings`/`headers`/`body`.
+    const settings = (info.settings ?? {}) as Record<string, unknown>;
+    const npm = String(info.package ?? "").replace("@opencode/ai/providers/", "@ai-sdk/");
+    p["api"] = { type: "aisdk", package: npm, url: settings["baseURL"] };
+    p["request"] = { headers: (info.headers ?? {}) as Record<string, string>, body: (info.body ?? {}) as Record<string, unknown> };
+  });
+  for (const m of collected.entries.keys()) {
+    const slash = m.indexOf("/");
+    const mid = slash > 0 ? m.slice(slash + 1) : m;
+    const stable = payload.models.find(
+      (s) => (s.id as string) === mid || `${X}/${s.id as string}` === m
+    );
+    if (!stable) continue;
+    draft.model.update(X, mid, (target) => {
+      for (const [k, v] of Object.entries(stable as unknown as Record<string, unknown>))
+        target[k] = v;
+      // Beta-shaped aliases, same projection as the provider above.
+      const s = stable as unknown as Record<string, any>;
+      const npm = String(s.package ?? "").replace("@opencode/ai/providers/", "@ai-sdk/");
+      target["api"] = { type: "aisdk", package: npm, url: s.settings?.baseURL };
+      target["request"] = { headers: s.headers ?? {}, body: s.body ?? {} };
+    });
+  }
+  return collected.counts;
 }

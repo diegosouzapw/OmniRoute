@@ -25,6 +25,7 @@ import {
   effectivePreserveForProtocol,
   effectiveUpstreamHeadersForProtocol,
   formatProviderModelsErrorResponse,
+  parseContextWindowOverrideInput,
   providerText,
   targetFormatBadgeI18nKey,
   type CompatModelRow,
@@ -76,19 +77,6 @@ function endpointLabel(endpoint: ModelSupportedEndpoint, t: (key: string) => str
     "audio-transcriptions": `🎙️ ${t("audioTranscriptions")}`,
   };
   return labels[endpoint] || endpoint;
-}
-
-/**
- * #4125: parse the free-text "Context Window Override" field. Blank → no override
- * (`value: null`, not an error). A non-empty value must be a positive whole number of
- * tokens; anything else is rejected. Pulled out of saveEdit so its own branching stays
- * off that handler's cyclomatic complexity.
- */
-function parseContextWindowOverrideInput(raw: string): { value: number | null; invalid: boolean } {
-  const trimmed = raw.trim();
-  if (!trimmed) return { value: null, invalid: false };
-  if (!/^\d+$/.test(trimmed) || Number(trimmed) <= 0) return { value: null, invalid: true };
-  return { value: Number(trimmed), invalid: false };
 }
 
 // Fetch + parse extracted from the component so errors surface as a return

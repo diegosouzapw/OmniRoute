@@ -50,21 +50,52 @@ function registryDefaultOrigin(provider: string | undefined): string | null {
   return null;
 }
 
-export function resolveMoonshotOrigin(
+function explicitBaseUrl(
   connection: MoonshotOriginConnection,
-  nodeBaseUrl?: string | null,
+  nodeBaseUrl?: string | null
 ): string | null {
   const psd = asRecord(connection.providerSpecificData);
-  const fromPsd = typeof psd.baseUrl === "string" ? parseMoonshotOrigin(psd.baseUrl) : null;
-  if (fromPsd) return fromPsd;
-  const fromNode = parseMoonshotOrigin(nodeBaseUrl);
-  if (fromNode) return fromNode;
+  if (typeof psd.baseUrl === "string" && psd.baseUrl.trim()) return psd.baseUrl.trim();
+  if (typeof nodeBaseUrl === "string" && nodeBaseUrl.trim()) return nodeBaseUrl.trim();
+  return null;
+}
+
+/**
+ * True when the connection (or node) is pointed at Kimi Coding Plan
+ * (`api.kimi.com/coding`), not Moonshot Open Platform prepaid balance.
+ */
+export function isKimiCodingBaseUrl(baseUrl: string | null | undefined): boolean {
+  if (typeof baseUrl !== "string" || baseUrl.trim() === "") return false;
+  let url: URL;
+  try {
+    url = new URL(baseUrl.trim());
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return false;
+  if (url.hostname.toLowerCase() !== "api.kimi.com") return false;
+  return url.pathname === "/coding" || url.pathname.startsWith("/coding/");
+}
+
+export function isKimiCodingConnection(
+  connection: MoonshotOriginConnection,
+  nodeBaseUrl?: string | null
+): boolean {
+  return isKimiCodingBaseUrl(explicitBaseUrl(connection, nodeBaseUrl));
+}
+
+export function resolveMoonshotOrigin(
+  connection: MoonshotOriginConnection,
+  nodeBaseUrl?: string | null
+): string | null {
+  const explicit = explicitBaseUrl(connection, nodeBaseUrl);
+  if (explicit) return parseMoonshotOrigin(explicit);
   return registryDefaultOrigin(connection.provider);
 }
 
 export function isMoonshotOpenPlatformConnection(
   connection: MoonshotOriginConnection,
-  nodeBaseUrl?: string | null,
+  nodeBaseUrl?: string | null
 ): boolean {
   return resolveMoonshotOrigin(connection, nodeBaseUrl) !== null;
 }

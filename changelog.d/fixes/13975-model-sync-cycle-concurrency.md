@@ -1,0 +1,1 @@
+- **fix(startup):** the first model-catalog sync no longer fans out to every autoSync connection at once (112 concurrent catalog JSON parses were enough to OOM a 3 GiB V8 heap); the cycle now keeps at most 4 fetches in flight and waits 90s after boot so it does not overlap the 30s startup cleanup ([#13975](https://github.com/diegosouzapw/OmniRoute/issues/13975))

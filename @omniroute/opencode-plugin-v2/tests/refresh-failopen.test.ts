@@ -2,12 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import plugin from "../src/index.js";
 
-// RED: reproduces the PROD unhandled rejection — combos 403 must not escape
-// the catalog transform. Today `loadSnapshot()` awaits
-// `Promise.all([models, combos])` with no catch, so a 403 combos fetch
-// rejects the snapshot promise and the rejection propagates out of the
-// `ctx.catalog.transform` callback (fail-open in `publishCatalog` is
-// bypassed because injected fetchers return the already-rejected data).
+// Fail-open refresh: a combos 403/500/abort must not escape setup. Setup
+// resolves with a models-only provider payload plus a combos warn.
 describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
   let diskSeq = 0;
   async function isolateDisk(): Promise<() => void> {
@@ -27,31 +23,33 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     combosStatus: number;
     modelsStatus?: number;
     reloads: { count: number };
+    added: unknown[];
   }): {
-    catalogCallbacks: Array<(draft: unknown) => Promise<void>>;
     ctx: Record<string, unknown>;
   } {
-    const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
     const ctx = {
       options: {
         baseURL: "https://gw.example.com",
         providerId: "fo-" + String(opts.combosStatus) + "-" + String(opts.modelsStatus ?? 200),
         apiKey: "k-fo-" + String(opts.combosStatus),
       },
-      catalog: {
-        transform: (cb: (draft: unknown) => Promise<void>) => {
-          catalogCallbacks.push(cb);
+      provider: {
+        transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+          cb({ add: (input: unknown) => opts.added.push(input) });
           return Promise.resolve({ dispose: async () => {} });
         },
         reload: async () => {
           opts.reloads.count += 1;
         },
       },
+      model: {
+        transform: () => Promise.resolve({ dispose: async () => {} }),
+      },
       integration: {
         transform: () => Promise.resolve({ dispose: async () => {} }),
       },
     };
-    return { catalogCallbacks, ctx };
+    return { ctx };
   }
 
   function stubFetch(opts: { combosStatus: number; modelsStatus?: number }): typeof fetch {
@@ -78,24 +76,6 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     }) as typeof fetch;
   }
 
-  function stubDraft(): {
-    draft: unknown;
-    published: Map<string, Record<string, unknown>>;
-  } {
-    const published = new Map<string, Record<string, unknown>>();
-    const draft = {
-      provider: { update: (_id: string, fn: (p: Record<string, unknown>) => void) => fn({}) },
-      model: {
-        update: (pid: string, mid: string, fn: (m: Record<string, unknown>) => void) => {
-          const entry: Record<string, unknown> = { id: mid, providerID: pid };
-          fn(entry);
-          published.set(pid + "/" + mid, entry);
-        },
-      },
-    };
-    return { draft, published };
-  }
-
   async function silenceConsole<T>(fn: () => Promise<T>): Promise<{ result: T; warns: string[] }> {
     const warns: string[] = [];
     const origWarn = console.warn;
@@ -113,23 +93,29 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     }
   }
 
-  it("combos 403: catalog callback resolves (models-only + warn), never rejects", async () => {
+  function modelIds(added: unknown[]): string[] {
+    const out: string[] = [];
+    for (const entry of added) {
+      const models = (entry as { models?: Array<{ id?: unknown }> }).models ?? [];
+      for (const m of models) out.push(String(m.id));
+    }
+    return out;
+  }
+
+  it("combos 403: setup resolves (models-only + warn), never rejects", async () => {
     const restoreDisk = await isolateDisk();
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx({ combosStatus: 403, reloads });
+    const added: unknown[] = [];
+    const { ctx } = setupCtx({ combosStatus: 403, reloads, added });
     const origFetch = globalThis.fetch;
     globalThis.fetch = stubFetch({ combosStatus: 403 });
     try {
       const { warns } = await silenceConsole(async () => {
-        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        assert.equal(catalogCallbacks.length, 1);
-        const { draft, published } = stubDraft();
         // MUST resolve — today it rejects with the 403 error.
-        await catalogCallbacks[0](draft);
-        const key = [...published.keys()].find((k) => k.endsWith("/m1"));
+        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
         assert.ok(
-          key,
-          `models-only fallback must publish m1, got: ${JSON.stringify([...published.keys()])}`
+          modelIds(added).includes("m1"),
+          `models-only fallback must publish m1, got: ${JSON.stringify(modelIds(added))}`
         );
       });
       assert.ok(
@@ -142,21 +128,19 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     }
   });
 
-  it("combos 500: catalog callback resolves (models-only + warn), never rejects", async () => {
+  it("combos 500: setup resolves (models-only + warn), never rejects", async () => {
     const restoreDisk = await isolateDisk();
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx({ combosStatus: 500, reloads });
+    const added: unknown[] = [];
+    const { ctx } = setupCtx({ combosStatus: 500, reloads, added });
     const origFetch = globalThis.fetch;
     globalThis.fetch = stubFetch({ combosStatus: 500 });
     try {
       const { warns } = await silenceConsole(async () => {
         await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        const { draft, published } = stubDraft();
-        await catalogCallbacks[0](draft);
-        const key = [...published.keys()].find((k) => k.endsWith("/m1"));
         assert.ok(
-          key,
-          `models-only fallback must publish m1, got: ${JSON.stringify([...published.keys()])}`
+          modelIds(added).includes("m1"),
+          `models-only fallback must publish m1, got: ${JSON.stringify(modelIds(added))}`
         );
       });
       assert.ok(
@@ -169,10 +153,11 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     }
   });
 
-  it("combos timeout (abort): catalog callback resolves, never rejects", async () => {
+  it("combos timeout (abort): setup resolves, never rejects", async () => {
     const restoreDisk = await isolateDisk();
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx({ combosStatus: 200, reloads });
+    const added: unknown[] = [];
+    const { ctx } = setupCtx({ combosStatus: 200, reloads, added });
     const origFetch = globalThis.fetch;
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
@@ -194,12 +179,9 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     try {
       const { warns } = await silenceConsole(async () => {
         await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        const { draft, published } = stubDraft();
-        await catalogCallbacks[0](draft);
-        const key = [...published.keys()].find((k) => k.endsWith("/m1"));
         assert.ok(
-          key,
-          `models-only fallback must publish m1, got: ${JSON.stringify([...published.keys()])}`
+          modelIds(added).includes("m1"),
+          `models-only fallback must publish m1, got: ${JSON.stringify(modelIds(added))}`
         );
       });
       assert.ok(

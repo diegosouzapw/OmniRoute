@@ -17,6 +17,32 @@ import {
 } from "./openai-to-gemini/helpers.ts";
 
 /**
+ * A Claude `image` block whose source is an HTTPS URL (`{ type: "url", url }`), the shape
+ * Claude accepts next to base64. HTTPS only, as `shared/validation/schemas/apiV1.ts` already
+ * requires of every media URL ("media URLs must use HTTPS") and as Gemini documents for an
+ * external fileUri. Anything else — an empty url, `http:`, a `data:` or `file:` URI — keeps
+ * falling through and being dropped, rather than reaching Gemini as a fileUri it will reject.
+ */
+function isUrlImageBlock(block) {
+  return (
+    block?.type === "image" &&
+    block.source?.type === "url" &&
+    typeof block.source.url === "string" &&
+    /^https:\/\//i.test(block.source.url)
+  );
+}
+
+/**
+ * Gemini cannot take a remote image as inlineData, which is base64-only, but its Part schema
+ * accepts `fileData: { fileUri }` and fetches the asset itself — the same mapping
+ * `helpers/geminiHelper.ts` uses for an OpenAI `image_url` that is a URL (#2807), including its
+ * `image/*` MIME placeholder, since a Claude URL source carries no media type.
+ */
+function urlImagePart(url) {
+  return { fileData: { fileUri: url, mimeType: "image/*" } };
+}
+
+/**
  * Direct Claude → Gemini request translator.
  * Converts Claude Messages API body directly to Gemini format,
  * skipping the OpenAI hub intermediate step.
@@ -197,6 +223,9 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                       inlineData: { mimeType: c.source.media_type, data: c.source.data },
                     });
                     hasImage = true;
+                  } else if (isUrlImageBlock(c)) {
+                    toolResultImageParts.push(urlImagePart(c.source.url));
+                    hasImage = true;
                   } else {
                     textParts.push(c.type === "text" ? c.text : JSON.stringify(c));
                   }
@@ -239,6 +268,8 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                     data: block.source.data,
                   },
                 });
+              } else if (isUrlImageBlock(block)) {
+                parts.push(urlImagePart(block.source.url));
               }
               break;
           }

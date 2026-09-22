@@ -132,6 +132,16 @@ test("invalid JSON is a 400, not a 500", async () => {
   assert.equal(response.status, 400);
 });
 
+test("wrong wire types are a Zod 400 naming the field (Hard Rule #7 / t06)", async () => {
+  const { status, json } = await count({ model: "cx/gpt-5.6-sol", input: 42 });
+  assert.equal(status, 400);
+  assert.equal(json.error.type, "invalid_request_error");
+  assert.match(json.error.message, /^input: /);
+
+  const arrayBody = await POST(post([{ input: "hello" }]));
+  assert.equal(arrayBody.status, 400);
+});
+
 test("OPTIONS preflight is answered", async () => {
   const response = await OPTIONS();
   assert.equal(response.status, 200);

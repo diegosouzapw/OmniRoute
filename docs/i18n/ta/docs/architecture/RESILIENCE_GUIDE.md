@@ -1,6 +1,6 @@
 # Resilience Guide (தமிழ்)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -67,96 +67,155 @@ OmniRoute மூன்று தனித்துவமான, ஆனால் 
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
 பின்னடைவு பாதுகாப்பு: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
-## 2. இணைப்பு காத்திருப்பு காலம்
+## 2. இணைப்பு கூல்டவுன்
 
 **வரம்பு:** ஒற்றை வழங்குநர் இணைப்பு/கணக்கு/விசை.
 
-**நோக்கம்:** அதே வழங்குநருக்கான மற்ற இணைப்புகள் தொடர்ந்து சேவையளிக்கும் நிலையில், ஒரு பழுதான விசையைத் தவிர்த்தல்.
+**நோக்கம்:** அதே வழங்குநரின் மற்ற இணைப்புகள் தொடர்ந்து சேவை வழங்கிக்கொண்டிருக்கும்போது, ஒரு தவறான விசையைத் தவிர்த்தல்.
 
 **செயலாக்கம்:**
 
 - கிடைக்காததாகக் குறித்தல்: `src/sse/services/auth.ts::markAccountUnavailable()`
 - தேர்வு: அதே கோப்பிலுள்ள `getProviderCredentials*`
-- காத்திருப்பு காலக் கணக்கீடு: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- கூல்டவுன் கணக்கீடு: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - அமைப்புகள்: `src/lib/resilience/settings.ts`
 
 **ஒவ்வொரு இணைப்பிற்குமான புலங்கள்:**
 
-- `rateLimitedUntil` — காத்திருப்பு காலம் முடியும் வரையிலான நேரமுத்திரை
+- `rateLimitedUntil` — கூல்டவுன் காலாவதியாகும் வரையிலான நேர முத்திரை
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — அதிவேகப் பின்னடைவுக் கணிப்பான்
+- `backoffLevel` — அதிவேகமாக அதிகரிக்கும் பின்னடைவு எண்ணி
 
-**இயல்புநிலை காத்திருப்பு காலங்கள்:**
+**இயல்புநிலை கூல்டவுன்கள்:**
 
-- OAuth அடிப்படை: 5 வி
-- API-key அடிப்படை: 3 வி
-- API-key 429: மேல்நிலை `Retry-After`/மீட்டமைப்பு தலைப்புகள்/பகுக்கக்கூடிய மீட்டமைப்பு உரைக்கு முன்னுரிமை அளிக்கிறது
+- OAuth அடிப்படை: 5வி
+- API-key அடிப்படை: 3வி
+- API-key 429: மேல்நிலைச் சேவையின் `Retry-After`/மீட்டமைப்பு தலைப்புகள்/பகுக்கக்கூடிய மீட்டமைப்பு உரைக்கு முன்னுரிமை அளிக்கிறது
 - பின்னடைவு: `baseCooldownMs * 2 ** failureIndex`
 
-**ஒரே நேரத் திரள் தாக்குதலைத் தடுக்கும் பாதுகாப்பு:** ஒரே நேரத்தில் ஏற்படும் தோல்விகள் காத்திருப்பு காலத்தை அளவுக்கு மீறி நீட்டிப்பதையோ அல்லது `backoffLevel`-ஐ இருமுறை அதிகரிப்பதையோ தடுக்கிறது.
+**ஒரே நேரத் திரள் கோரிக்கை எதிர்ப்புப் பாதுகாப்பு:** ஒரே நேரத்தில் ஏற்படும் தோல்விகள் கூல்டவுனை அளவுக்கு அதிகமாக நீட்டிப்பதையோ `backoffLevel`-ஐ இருமுறை அதிகரிப்பதையோ தடுக்கிறது.
 
-**இறுதி நிலைகள் (காத்திருப்பு காலங்கள் அல்ல):**
+**இறுதி நிலைகள் (கூல்டவுன்கள் அல்ல):**
 
-- `banned` — தடைசெய்யப்பட்ட-முக்கியச்சொல் / கணக்கு-தடை கண்டறிதலால் அமைக்கப்படுகிறது ([BAN_DETECTION](../security/BAN_DETECTION.md) என்பதைப் பார்க்கவும்); மேலும் தொடர்ச்சியான மூன்று மேல்நிலை ஒவ்வொரு-கோரிக்கைக்குமான மறுப்புகளாலும் (`request_rejected`, எ.கா. Anthropic OAuth 403 "கோரிக்கை அனுமதிக்கப்படவில்லை" — `open-sse/services/requestRejectedStreak.ts`) அமைக்கப்படுகிறது; ஒரே ஒரு மறுப்பு இணைப்பைக் காத்திருப்பு நிலைக்கு மட்டுமே கொண்டுசெல்லும்
-- `expired` (வரையறுக்கப்பட்ட மறுமுயற்சிகளுக்குப் பிறகு இறுதி நிலைக்கு மாறுகிறது — அதிவேகப் பின்னடைவுடன் `EXPIRED_RETRY_MAX = 3` — இதனால் தற்காலிக OAuth பிழைகள் கணக்கு நிரந்தரமாகச் செயலிழக்கச் செய்யப்படுவதற்கு முன்பு தாமாகவே சரியாகலாம்)
+- `banned` — தடைசெய்யப்பட்ட முக்கியச்சொல் / கணக்குத் தடை கண்டறிதலால் அமைக்கப்படுகிறது ([BAN_DETECTION](../security/BAN_DETECTION.md)-ஐப் பார்க்கவும்), மேலும் தொடர்ச்சியாக ஏற்படும் மூன்று மேல்நிலை ஒவ்வொரு-கோரிக்கை மறுப்புகளாலும் (`request_rejected`, எ.கா. Anthropic OAuth 403 "கோரிக்கை அனுமதிக்கப்படவில்லை" — `open-sse/services/requestRejectedStreak.ts`) அமைக்கப்படுகிறது; ஒரு தனிப்பட்ட மறுப்பு இணைப்பைக் கூல்டவுனில் மட்டுமே வைக்கும்
+- `expired` (வரம்பிடப்பட்ட மறுமுயற்சிகளுக்குப் பிறகு இறுதி நிலைக்கு மாறுகிறது — அதிவேகமாக அதிகரிக்கும் பின்னடைவுடன் `EXPIRED_RETRY_MAX = 3` — எனவே தற்காலிக OAuth பிழைகள் கணக்கு நிரந்தரமாகச் செயலிழக்கச் செய்யப்படுவதற்கு முன்பு தானாகச் சரியாகலாம்)
 - `credits_exhausted`
 
-நற்சான்றுகள் மாறும் வரை அல்லது ஒரு நிர்வாகி அவற்றை மீட்டமைக்கும் வரை இவை தொடரும். இறுதி நிலைகளைத் தற்காலிகக் காத்திருப்பு நிலையால் மேலெழுத வேண்டாம்.
+நற்சான்றுகள் மாறும் வரை அல்லது ஓர் இயக்குநர் அவற்றை மீட்டமைக்கும் வரை இவை நீடிக்கும். தற்காலிக கூல்டவுன் நிலையைக் கொண்டு இறுதி நிலைகளை மேலெழுத வேண்டாம்.
 
-**தாமதமான மீட்பு:** `rateLimitedUntil` கடந்துவிட்டால், இணைப்பு மீண்டும் தேர்வுக்குத் தகுதிபெறும். வெற்றிகரமாகப் பயன்படுத்தப்பட்டதும், `clearAccountError()` அனைத்துப் பிழைப் புலங்களையும் அழிக்கிறது.
+**தாமதமான மீட்பு:** `rateLimitedUntil` கடந்துவிட்டால், இணைப்பு மீண்டும் தகுதிபெறும். வெற்றிகரமான பயன்பாட்டின்போது, `clearAccountError()` அனைத்துப் பிழைப் புலங்களையும் அழிக்கிறது.
 
-### அமர்வு இணைப்பு முன்னுரிமை (#7274)
+### Claude OAuth பயன்பாட்டு வரம்புச் சுவர்: குறைந்த-முன்னுரிமைத் தடம் + அமர்வு-வரம்பு மீட்டமைப்பு
 
-**வரம்பு:** **எந்தவொரு** வழங்குநருக்கும், ஒரு இணைப்புடன் பிணைக்கப்பட்டுள்ள ஒரு கிளையன்ட் அமர்வு (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` தலைப்பு).
+**வரம்பு:** ஒரு Claude சந்தா (OAuth) இணைப்பு. இரண்டு அம்சங்களும் **ஒவ்வொரு இணைப்பிற்கும் விருப்பத் தேர்வானவை**
+(இணைப்பைத் திருத்து → Claude பிரிவு → `providerSpecificData`-இல் `lowPriorityMode` / `autoLimitReset`,
+இரண்டும் இயல்பாக முடக்கப்பட்டிருக்கும்) மற்றும் Claude Code-இன் `/low-priority` மற்றும்
+`/limit-reset` கட்டளைகளைப் பிரதிபலிக்கின்றன (Claude Code 2.1.263-இலிருந்து பரிமாற்ற ஒப்பந்தம் பதிவுசெய்யப்பட்டது).
 
-**நோக்கம்:** பல-முறை உரையாடும் முகவரை (Claude Code, aider, தனிப்பயன் முகவர்கள்) கோரிக்கைகள் முழுவதும் அதே கணக்கில் வைத்திருந்து, கணக்குகளுக்கிடையேயான சூழல் இழப்பையும், கணக்கு-வாரியான அமர்வு நிலையைக் கொண்ட வழங்குநர்களில் மீண்டும் மீண்டும் ஏற்படும் தொடக்கநிலை 429 பிழைகளையும் குறைத்தல்.
+**செயலாக்கம்:**
+
+- நிலை இயந்திரம் + பதில் வகைப்பாடு: `open-sse/services/claudeLowPriority.ts`
+- மீட்டமைப்பு நிலை/உரிமைகோரல் கிளையன்ட்: `open-sse/services/claudeLimitReset.ts`
+- நிறைவேற்றிச் செருகி (தலைப்புச் சேர்ப்பு + அதே-கணக்கு மறுமுயற்சி): `open-sse/executors/base.ts::execute()`
+- விருப்பத் தேர்வு நிலைத்தன்மை: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**தூண்டுதல்:** 5-மணி நேரப் பயன்பாட்டு வரம்புச் சுவர் — அதன் தலைப்புகளில்
+`anthropic-ratelimit-unified-status: rejected` மற்றும், கணக்கு தகுதியுடையதாக இருக்கும்போது,
+`anthropic-ratelimit-unified-slow-offer: treatment` ஆகியவற்றைக் கொண்ட ஒரு `429`. அந்த முதல் வரம்புச் சுவர்
+429-க்கு முன் எதுவும் அனுப்பப்படாது; ஒருங்கிணைந்த தலைப்புகள் இல்லாத திடீர் 429 வழக்கமான கூல்டவுன் பாதை வழியாகச் செல்லும்.
+
+**குறைந்த-முன்னுரிமைத் தடம்** (`lowPriorityMode`):
+
+- வரம்புச் சுவர் 429 ஏற்படும்போது, நிறைவேற்றி சலுகையை ஏற்று உடனடியாக **அதே**
+  கணக்கை `anthropic-usage-limit: slow` உடன் மீண்டும் முயற்சிக்கிறது; அறிவிக்கப்பட்ட
+  `anthropic-ratelimit-unified-reset` (+60வி கூடுதல் அவகாசம்) வரை தடம் செயலில் இருக்கும், மேலும் அந்தச் சாளரத்திலுள்ள ஒவ்வொரு கோரிக்கையும்
+  அந்தத் தலைப்பைக் கொண்டிருக்கும். இடைமறிக்கப்பட்ட 429 ஒருபோதும் `handleChatCore`-ஐ அடைவதில்லை, எனவே இணைப்பு
+  கூல்டவுனில் வைக்கப்படுவதில்லை, வேறொன்றுக்கு சுழற்றப்படுவதுமில்லை.
+- பிந்தைய பதில்களிலுள்ள `anthropic-ratelimit-unified-slow-status`: `active` / `not_needed`
+  தடத்தைத் தொடர்கின்றன; `slot_busy` (429) அல்லது ஒரு `529`, சேவையகத்தின்
+  `anthropic-ratelimit-unified-slow-retry-after` காலம் வரை காத்திருந்து (இயல்புநிலை 20வி, 5–600விக்குள் வரம்பிடப்படும், ±30% சீரற்ற மாறுபாடு)
+  மீண்டும் முயற்சிக்கும்; இது `anthropic-ratelimit-unified-slow-max-wait` மூலம் வரம்பிடப்படுகிறது (இயல்புநிலை 20 நிமிடம், 1 நிமிடம்–6 மணி நேரத்திற்குள்
+  வரம்பிடப்படும்) — அதைக் கடந்தால் தடம் முடிவடையும், மேலும் 10-நிமிட இடைநிறுத்தம் மறுஏற்பைத் தடுக்கும். காத்திருப்பு,
+  கோரிக்கையின் சொந்த மேல்நிலை-தொடக்க நேரமுடிவில் மீதமுள்ள நேரத்தாலும் கூடுதலாக வரம்பிடப்படுகிறது
+  (`resolveFetchStartTimeout`, இயல்புநிலையாக 10 நிமிடம்), அதிலிருந்து 5 வி இடைவெளி கழிக்கப்படும்: அந்த வரம்பு இல்லையெனில்,
+  இயல்புநிலை 20-நிமிட அதிகபட்சக் காத்திருப்பு கோரிக்கையைவிட நீண்ட நேரம் நீடிக்கும்; காத்திருப்பின் நடுவில் உறக்கம் இடைநிறுத்தப்பட்டு,
+  முறையான `max_wait` முடிவு + இடைநிறுத்தத்திற்குப் பதிலாக `TimeoutError` வெளிப்படும்.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, ஒரு 5ம-சாளரச் சுழற்சி, அல்லது
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (கட்டண அதிகப்படியான பயன்பாடு இப்போது வரம்புச் சுவரை ஈடுசெய்வதால்,
+  எந்த நிலையிலும் அதை `extra_usage` ஆக முடிக்கிறது) ஆகியவை தடத்தை முடிக்கின்றன; அதன் பின்னர்
+  பதில் வழக்கமான கூல்டவுன் பாதைக்குச் செல்கிறது. அறிவிக்கப்பட்ட நிதிநிலை மீட்டமைப்பு வரை
+  `budget_exhausted` நினைவில் வைக்கப்படும் (≤ 8 நாட்கள்).
+- வரம்புச் சுவர் சரிபார்ப்பு, நிறைவேற்றியின் சொந்த 400-ஆல் இயக்கப்படும் முயற்சிக்குள் மறுமுயற்சிகளுக்குப் பிறகு இயங்குகிறது (சூழல்
+  திருத்தம், சிந்தனை/முயற்சி வரம்பிடல்கள், அளவுரு தானியங்கு-கற்றல்), எனவே அந்த மறுமுயற்சிகளில் ஒன்றில் மட்டுமே வெளிப்படும்
+  வரம்புச் சுவர் 429, கூல்டவுன் பாதையை அடைவதற்குப் பதிலாக இன்னும் இடைமறிக்கப்படும்.
+- நிலை ஒவ்வொரு இணைப்பிற்கும் நினைவகத்தில் வைக்கப்படுகிறது (மறுதொடக்கம், மீண்டும் ஏற்க ஒரு கூடுதல் வரம்புச் சுவர் 429-ஐ ஏற்படுத்தும்).
+
+**அமர்வு-வரம்பு மீட்டமைப்பு** (`autoLimitReset`, இரண்டும் இயக்கப்பட்டிருக்கும்போது தடத்திற்கு முன் முயற்சிக்கப்படும்):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  தொகுதி; `arm: "reset"` மற்றும் `available: true` ஆக இருக்கும்போது,
+  `{ "program": "juniper_tide" }` உடன்
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits`
+  (`providerSpecificData.organizationUUID`-இலிருந்து நிறுவன UUID, தொடக்கநிலை மாற்றுவழி).
+- `result: reset|not_limited` → கோரிக்கை முழு வேகத்தில் மீண்டும் முயற்சிக்கப்படும் (மெதுவாக்கத் தலைப்பு இல்லை).
+  `already_used` / `not_offered` ஆகியவை `next_available_at`-ஐ நினைவில் வைத்துக்கொள்ளும் (இயல்புநிலை ஒரு வாரம்); எந்தத்
+  தோல்வியும் 15 நிமிடங்கள் பின்னடையும். மீட்டமைப்பு வாரத்திற்கு ஒருமுறை மட்டுமே கிடைக்கும், மேலும் அது வாராந்திர வரம்பில் கணக்கிடப்படும்.
+
+பின்னடைவு பாதுகாப்புகள்: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### அமர்வு இணக்கப்பற்று (#7274)
+
+**வரம்பு:** **எந்த** வழங்குநராக இருந்தாலும், ஒரு இணைப்புடன் பிணைக்கப்பட்ட ஒரு கிளையன்ட் அமர்வு (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` தலைப்பு).
+
+**நோக்கம்:** பல கோரிக்கைகளுக்கு இடையே பல-சுற்று agent-ஐ (Claude Code, aider, தனிப்பயன் agents) அதே கணக்கில் வைத்திருந்து, கணக்குகளுக்கு இடையேயான சூழல் இழப்பையும் ஒவ்வொரு கணக்கிற்குமான session state-ஐக் கொண்ட providers-இல் மீண்டும் மீண்டும் ஏற்படும் cold-start 429 பிழைகளையும் குறைப்பது.
 
 **செயலாக்கம்:**
 
 - TTL தீர்மானம்: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- பிணைப்புத் தேர்வு/உருவாக்கம்: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- தலைப்பைப் பிரித்தெடுத்தல் (பொதுவானது, எந்த வழங்குநருக்கும்): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- நிலைநிறுத்தப்பட்ட பிணைப்பு அட்டவணை: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- அமைப்பு: `sessionAffinityTtlMs` (ms-இல் உலகளாவிய TTL, `0` முடக்கும்) — `src/lib/db/settings.ts`. Codex-க்கு மட்டுமான `codexSessionAffinityTtlMs` என்பதிலிருந்து `124_generic_session_affinity_ttl.sql` இடமாற்றத்தால் பெயர் மாற்றப்பட்டது; இது முன்பு உள்ளமைக்கப்பட்ட எந்த Codex TTL-ஐயும் புதிய இயல்புநிலையாக எடுத்துச் செல்கிறது.
+- Pin தேர்வு/உருவாக்கம்: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Header பிரித்தெடுத்தல் (பொதுவானது, எந்த provider-க்கும்): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- நிலையாகச் சேமிக்கப்படும் pin அட்டவணை: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- அமைப்பு: `sessionAffinityTtlMs` (ms-இல் உலகளாவிய TTL, `0` முடக்கும்) — `src/lib/db/settings.ts`. Codex-க்கு மட்டும் உரிய `codexSessionAffinityTtlMs` என்பதிலிருந்து `124_generic_session_affinity_ttl.sql` migration மூலம் மறுபெயரிடப்பட்டது; முன்பு உள்ளமைக்கப்பட்டிருந்த Codex TTL ஏதேனும் இருந்தால், அதை புதிய இயல்புநிலையாக இது எடுத்துச் செல்கிறது.
 
-#7274-க்கு முன்பு, `codex` தவிர ஒவ்வொரு வழங்குநருக்கும் `resolveSessionAffinityTtlMs()` உடனடியாக `0`-ஐத் திருப்பியதால், பிணைப்பு பொறிமுறையும் தலைப்புப் பிரித்தெடுத்தலும் ஏற்கெனவே வழங்குநர்-சார்பற்றவையாக இருந்தபோதிலும், TTL அமைப்பும் (மற்றும் அமர்வுத் தலைப்புகளும்) வேறெங்கும் எந்த விளைவையும் ஏற்படுத்தவில்லை. திருத்தம் அந்த முன்கூட்டிய திருப்புதலை அகற்றியது; மேலே உலகளாவிய அளவில் `0`-ஐ விட அதிகமாக அமைக்கப்பட்டதும், TTL இப்போது ஒவ்வொரு வழங்குநருக்கும் ஒரேமாதிரியாகப் பொருந்துகிறது.
+#7274-க்கு முன்பு, `codex` தவிர மற்ற ஒவ்வொரு provider-க்கும் `resolveSessionAffinityTtlMs()` உடனடியாக `0`-ஐத் திருப்பி நிறுத்திக்கொண்டது. எனவே pinning பொறிமுறையும் header பிரித்தெடுத்தலும் ஏற்கெனவே provider-சார்பற்றவையாக இருந்தபோதிலும், TTL அமைப்பும் session headers-உம் வேறு எங்கும் எந்த விளைவையும் ஏற்படுத்தவில்லை. இந்தத் திருத்தம் அந்த முன்கூட்டிய return-ஐ அகற்றியது; இப்போது TTL உலகளவில் `0`-க்கு மேல் அமைக்கப்பட்டதும் ஒவ்வொரு provider-க்கும் ஒரே மாதிரியாகப் பொருந்துகிறது.
 
-அமர்வு-இணைப்பு முன்னுரிமைக்கான மூன்று தலைப்புகளும் ஒருபோதும் மேல்நிலைக்கு அனுப்பப்படுவதில்லை — கிளையன்ட் தலைப்புகளை அப்படியே அனுப்புவதற்குப் பதிலாக, செயல்படுத்திகள் தங்களுக்கான மேல்நிலைத் தலைப்புகளைப் புதிதாக உருவாக்குகின்றன; எனவே இது உள்நிலை தொடர்புபடுத்தல் ID-ஆக மட்டுமே இருக்கும்.
+இந்த மூன்று session-affinity headers ஒருபோதும் upstream-க்கு அனுப்பப்படுவதில்லை — client headers-ஐ அப்படியே அனுப்புவதற்குப் பதிலாக executors தங்களது upstream headers-ஐ தொடக்கத்திலிருந்து உருவாக்குகின்றன; எனவே இது உள்புற correlation id-ஆக மட்டுமே இருக்கும்.
 
-### பிரத்தியேகமாக நிர்வகிக்கப்படும் அமர்வு இணைப்புக் குத்தகைகள்
+### பிரத்யேக நிர்வகிக்கப்பட்ட session connection leases
 
-**வரம்பு:** செயலிலுள்ள ஒரு நிர்வகிக்கப்பட்ட HTTP கிளையன்ட்/அமர்வு, தகுதியுடைய ஒரு OmniRoute இணைப்பைச் சொந்தமாகக் கொண்டிருக்கும்.
+**வரம்பு:** செயலிலுள்ள ஒரு நிர்வகிக்கப்பட்ட HTTP client/session, தகுதியுள்ள ஒரு OmniRoute connection-ஐச் சொந்தமாகக் கொண்டிருக்கும்.
 
-**நோக்கம்:** கோரிக்கைகள் முழுவதிலும் கடுமையான வழிப்படுத்தல்
-எல்லை தேவைப்படும் கிளையன்ட்களுக்கு, நீடித்த பிரத்தியேக இணைப்பு உரிமையை வழங்குதல். இது மென்மையான தொடர்ச்சி முன்னுரிமையான அமர்வு இணைப்பு முன்னுரிமையிலிருந்து வேறுபடுகிறது:
-ஒரு பிரத்தியேகக் குத்தகை SQLite-இல் வாழ்நிலை நிலையை நிலைநிறுத்தி, உலகளாவிய செயலிலுள்ள-உரிமையாளர் மற்றும்
-செயலிலுள்ள-இணைப்பு தனித்தன்மையைச் செயல்படுத்தி, வழங்குநருக்கு அனுப்பப்படுவதற்கு முன்பே காலாவதியான தலைமுறையை நிராகரிக்கிறது.
+**நோக்கம்:** கோரிக்கைகளுக்கு இடையே உறுதியான routing
+எல்லை தேவைப்படும் clients-க்கு நீடித்த பிரத்யேக connection உரிமையை வழங்குவது. இது மென்மையான தொடர்ச்சி முன்னுரிமையாக இருக்கும் session affinity-யிலிருந்து வேறுபடுகிறது:
+ஒரு பிரத்யேக lease, lifecycle state-ஐ SQLite-இல் நிலையாகச் சேமித்து, உலகளாவிய active-owner மற்றும்
+active-connection தனித்தன்மையை அமல்படுத்தி, provider dispatch-க்கு முன் காலாவதியான generation-ஐ நிராகரிக்கிறது.
 
-இந்த அம்சம் ஒவ்வொரு API விசைக்கும் விருப்பத்தேர்வாகும். நிர்வகிக்கப்பட்ட விசைக்கு `lease:exclusive` வரம்பும்,
-வெளிப்படையான காலியாக-இல்லாத `allowedConnections` பட்டியலும் இருக்க வேண்டும். எந்த HTTP கிளையன்ட்டும் வாழ்நிலை முனைப்புள்ளியைப் பயன்படுத்தலாம்; எந்த
-கிளையன்ட் பெயர், user-agent, வழங்குநர், OAuth முறை அல்லது மாதிரியும் தேவையில்லை. குத்தகை ஒரு இணைப்பைச் சொந்தமாகக் கொள்கிறது,
-மாதிரியை அல்ல; எனவே இணைப்பு வழக்கமான முறையில்
-தகுதிபெற்று இருக்கும் வரை, மாதிரி மாற்றப்பட்டாலும் பிணைப்பு தக்கவைக்கப்படும். இயல்பான மாதிரி, ஒதுக்கீடு, ஆரோக்கியம், காத்திருப்பு காலம் மற்றும் அனுமதிப்பட்டியல் விதிகளே தொடர்ந்து தீர்மானகரமானவை; அவை
-அதே தலைமுறையை மற்றொரு இலவசமான தகுதியுடைய இணைப்புக்கு மாற்றக்கூடும்.
+இந்த அம்சம் ஒவ்வொரு API key-க்கும் தனித்தனியாக விருப்பத் தேர்வாகும். நிர்வகிக்கப்பட்ட key-க்கு `lease:exclusive` scope மற்றும்
+வெளிப்படையாகக் குறிப்பிடப்பட்ட காலியல்லாத `allowedConnections` பட்டியல் இருக்க வேண்டும். எந்த HTTP client-உம் lifecycle endpoint-ஐப் பயன்படுத்தலாம்; எந்த
+client பெயரும், user-agent-உம், provider-உம், OAuth முறையும், model-உம் தேவையில்லை. Lease ஒரு connection-ஐச் சொந்தமாகக் கொள்கிறது,
+model-ஐ அல்ல; ஆகவே connection வழக்கமாகத் தகுதியுடன் இருக்கும் வரை model மாற்றம் binding-ஐத் தக்கவைத்துக்கொள்ளும்.
+வழக்கமான model, quota, health, cooldown மற்றும் allowlist விதிகளே தொடர்ந்து அதிகாரபூர்வமானவை; அவை
+அதே generation-ஐ வேறொரு காலியான தகுதியுள்ள connection-க்கு மாற்றக்கூடும்.
 
-வாழ்நிலைச் சுழற்சியானது `acquire`, `renew` மற்றும் `release` ஆகிய JSON செயல்களுடன் `POST /api/v1/session-leases` ஆகும்.
-நிர்வகிக்கப்பட்ட அனுமானக் கோரிக்கைகள் மறைக்கப்பட்ட `X-OmniRoute-Lease-Owner` மதிப்பையும் துல்லியமான
-`X-OmniRoute-Lease-Generation` மதிப்பையும் வழங்குகின்றன. உரிமையாளர் 43 base64url எழுத்துகளைத் தொடர்ந்து வரும் `vlo_`-ஐப் பயன்படுத்துகிறார்; அதன்
-SHA-256 ஹாஷ் மட்டுமே சேமிக்கப்படுகிறது. ஒவ்வொரு இறுதி அனுப்புகை எல்லையும் அங்கீகரிக்கப்பட்ட API விசை ID மற்றும்
-செயலிலுள்ள இணைப்பு ID ஆகியவற்றையும் பிணைக்கிறது. குத்தகைக் கட்டுப்பாட்டுத் தலைப்புகள் பதிவுகள், தக்கவைக்கப்பட்ட கோரிக்கை நகல்கள் மற்றும்
-மேல்நிலைச் செயல்படுத்தித் தலைப்புகளிலிருந்து அகற்றப்படுகின்றன.
+Lifecycle என்பது `POST /api/v1/session-leases`; இதில் `acquire`, `renew`, மற்றும் `release` என்ற JSON actions பயன்படுத்தப்படுகின்றன.
+நிர்வகிக்கப்பட்ட inference கோரிக்கைகள் opaque `X-OmniRoute-Lease-Owner` மதிப்பையும் துல்லியமான
+`X-OmniRoute-Lease-Generation` மதிப்பையும் வழங்குகின்றன. Owner, `vlo_`-ஐத் தொடர்ந்து 43 base64url எழுத்துகளைப் பயன்படுத்துகிறது; அதன்
+SHA-256 hash மட்டுமே சேமிக்கப்படுகிறது. ஒவ்வொரு இறுதி dispatch fence-உம் அங்கீகரிக்கப்பட்ட API key ID மற்றும்
+செயலில் உள்ள connection ID ஆகியவற்றையும் இணைக்கிறது. Lease control headers, logs, தக்கவைக்கப்பட்ட request snapshots மற்றும்
+upstream executor headers ஆகியவற்றிலிருந்து அகற்றப்படுகின்றன.
 
-வழக்கமான வழிப்படுத்தலில் தகுதியுடைய நிர்வகிக்கப்பட்ட தேர்வுகள் இருந்தாலும், இலவசமான ஒவ்வொரு தேர்வும்
-வேறொரு செயலிலுள்ள குத்தகையால் ஆக்கிரமிக்கப்பட்டிருந்தால், OmniRoute HTTP `429`, குத்தகை-கொள்ளளவு-கிடைக்கவில்லை குறியீடு,
-கொள்ளளவுக்காகக் காத்திருக்கும் நிலை மற்றும் தொடர்புடைய மிக முந்தைய காலாவதியிலிருந்து பெறப்பட்ட வரம்புக்குட்பட்ட `Retry-After` ஆகியவற்றைத் திருப்புகிறது.
-வழக்கமான காலியான தகுதிநிலை குத்தகைப் போட்டியல்ல; அது ஏற்கெனவே உள்ள வழிப்படுத்தல் பிழைப் பொருளியலையே தக்கவைத்துக்கொள்கிறது.
+வழக்கமான routing-இல் தகுதியுள்ள நிர்வகிக்கப்பட்ட candidates இருந்தாலும், ஒவ்வொரு காலியான candidate-உம்
+வேறொருவரின் செயலில் உள்ள lease-ஆல் ஆக்கிரமிக்கப்பட்டிருந்தால், OmniRoute HTTP `429`, lease-capacity-unavailable code, ஒரு
+waiting-for-capacity state மற்றும் தொடர்புடையவற்றில் மிக விரைவாக முடிவடையும் நேரத்திலிருந்து பெறப்பட்ட வரம்பிட்ட `Retry-After` ஆகியவற்றைத் திருப்பியளிக்கிறது.
+வழக்கமான காலியான eligibility என்பது lease contention அல்ல; அது ஏற்கெனவே உள்ள routing error semantics-ஐத் தக்கவைத்துக்கொள்கிறது.
 
-தொடர்புடைய பொறிமுறைகள் தனித்தனியாகவே இருக்கும்:
+தொடர்புடைய பொறிமுறைகள் தனித்தனியாகவே உள்ளன:
 
-- OAuth அமர்வு ஆக்கிரமிப்பு என்பது OAuth கணக்குகளுக்கான செயல்முறை-உள்ளக மென்மையான பகிர்வாகும்.
-- கணக்கு semaphore-கள் கோரிக்கை-ஒரேநேரச் செயலாக்க அனுமதிகளை வழங்குகின்றன; ஒரு கோரிக்கை நிறைவடையும்போது அவை முடிவடைகின்றன.
-- பிரத்தியேகமாக நிர்வகிக்கப்படும் அமர்வு இணைப்புக் குத்தகைகள் என்பவை தலைமுறை எல்லையுடன் கூடிய நீடித்த வாழ்நிலை உரிமையாகும்.
+- OAuth session occupancy என்பது OAuth கணக்குகளுக்கான process-local மென்மையான பகிர்வாகும்.
+- Account semaphores, request-concurrency permits-ஐ வழங்குகின்றன; ஒரு கோரிக்கை முடிவடையும்போது அவையும் முடிவடைகின்றன.
+- பிரத்யேக நிர்வகிக்கப்பட்ட session leases என்பது generation fence-ஐக் கொண்ட நீடித்த lifecycle உரிமையாகும்.
 
 ---
 
@@ -273,31 +332,85 @@ UI: அமைப்புகள் → மாதிரி குளிர்வ�
 
 ## 5. கோரிக்கை வரிசை அனுமதிக் கட்டுப்பாடு (v3.8.49 · issue #6593)
 
-**செயல்பாட்டு வரம்பு**: உள்ளூர் வழங்குநர்+இணைப்பு-வாரியான வீத-வரம்பு வரிசை (`open-sse/services/rateLimitManager.ts`,
-Bottleneck ஆதரவுடன்), மேலேயுள்ள மூன்று இயங்குமுறைகளுக்கும் ஒரு அடுக்கு கீழே உள்ளது.
+**வரம்பு**: மேலே உள்ள மூன்று வழிமுறைகளுக்கும் ஒரு அடுக்கு கீழே அமைந்துள்ள, உள்ளூர் provider+connection-க்கான வீத-வரம்பு வரிசை (`open-sse/services/rateLimitManager.ts`,
+Bottleneck-ஐ அடிப்படையாகக் கொண்டது).
 
-**`maxWaitMs` என்பது செயலாக்கக் காலாவதிக்கான மரபுவழி நிலைத்த பெயராகும்.**
-`resilienceSettings.requestQueue.maxWaitMs`, Bottleneck-க்கு வேலை
-`expiration` ஆக அனுப்பப்படுகிறது; அதன் காலக்கணிப்பான் அனுப்புதலுக்குப் பிறகே தொடங்கும். எனவே இது உள்ளூர் வரிசையில் செலவிட்ட நேரத்தையல்லாமல், வரம்பி நிர்வகிக்கும் செயலாக்கத்தையே கட்டுப்படுத்துகிறது. காலாவதி, நம்பகமான உள்ளூர் `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) ஆக வெளிப்படுத்தப்படுகிறது;
-முந்தைய வரிசை-காலக்கெடு குறியீட்டுப் பெயர், நம்பகமான உள்நிலை பின்னோக்கி இணக்கத்திற்காக மட்டுமே ஏற்கப்படுகிறது. இயல்புநிலை 15000ms; `RATE_LIMIT_MAX_WAIT_MS` (சூழல் மாறி) அல்லது கட்டுப்பாட்டுப் பலகை (**Settings → Resilience**,
-1–30000ms UI உச்சவரம்பு) மூலம் மேலெழுதவும். வரிசையில் தங்குவதற்குக் காலக்கெடு இல்லை; வரிசைப்படுத்தப்பட்ட அழைப்பாளர்களைக் கட்டுப்படுத்த கீழேயுள்ள `maxQueueDepth`-ஐப் பயன்படுத்தவும்.
+**`maxWaitMs` வரிசைக் காத்திருப்பைக் கட்டுப்படுத்துகிறது; `executionMaxWaitMs` செயல்பாட்டைக் கட்டுப்படுத்துகிறது.**
+இவை இரண்டும் திட்டமிட்டே தனித்தனியாக வைக்கப்பட்டுள்ளன; ஒன்று மற்றொன்றின் மீது தாக்கம் செலுத்தாது.
 
-**`maxQueueDepth` — விருப்பத்தேர்வு அடிப்படையிலான அனுமதி உச்சவரம்பு (புதியது).** `resilienceSettings.requestQueue.maxQueueDepth`,
-ஒரு வழங்குநர்+இணைப்பிற்காக ஒரே நேரத்தில் எத்தனை கோரிக்கைகள் வரிசையில் (இன்னும் அனுப்பப்படாமல்) இருக்கலாம் என்பதைக் கட்டுப்படுத்துகிறது. வரிசையில் ஏற்கனவே `maxQueueDepth`
-கோரிக்கைகள் இருக்கும்போது, ஒரு புதிய கோரிக்கை, வகைப்படுத்தப்பட்ட
-`code: "RATE_LIMIT_QUEUE_FULL"` பிழையுடன் `limiter.schedule()`-ஐ அடைவதற்கு **முன்பே** விரைவாக நிராகரிக்கப்படுகிறது — எனவே நிராகரிப்பு குறைந்த செலவிலானது; மேலும் அந்தக் கோரிக்கைக்கான எந்தவொரு கீழ்நிலை prompt-compression / மொழிபெயர்ப்புப் பணிக்கும் முன்பே நிகழ்கிறது. இயல்புநிலை `0` =
-முடக்கப்பட்டது; இது ஏற்கெனவே உள்ள வரம்பற்ற-வரிசை நடத்தையைப் பாதுகாக்கிறது; வரம்பு 0–100000.
-`RATE_LIMIT_MAX_QUEUE_DEPTH` (சூழல் மாறி) அல்லது
-`resilienceSettings.requestQueue.maxQueueDepth` (கட்டுப்பாட்டுப் பலகை/API patch) மூலம் மேலெழுதவும்.
+`resilienceSettings.requestQueue.maxWaitMs` என்பது **வரிசைக் காத்திருப்பு ஒதுக்கீடு**: இது
+provider slot-க்காகக் காத்திருப்பதையும், பின்னர் QUEUED நிலையில் இருப்பதையும்
+உள்ளடக்குகிறது; job QUEUED நிலையிலிருந்து வெளியேறிச் செயல்படத் தொடங்கும்
+தருணத்திலேயே அதன் timer அழிக்கப்படுகிறது
+(`rateLimitManager.ts`, `wrappedFn`). இந்த வரம்பை மீறும் கோரிக்கை
+upstream-ஐ ஒருபோதும் சென்றடையாது. இயல்புநிலை 30000ms; இது
+`src/lib/resilience/settings.ts`-இல் உள்ள `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+மூலம் வழங்கப்பட்டு,
+`tests/unit/ratelimit-admission-control-6593.test.ts` மூலம் நிலைநிறுத்தப்பட்டுள்ளது.
+எனவே, இதை மாற்றினால் இந்தப் பத்தி கவனிக்கப்படாமல் காலாவதியாக விடப்படுவதற்குப்
+பதிலாக அந்த test தோல்வியடையும்.
 
-அனுமதிச் சரிபார்ப்பு தானாகவே ஒரு தூய செயல்பாடாகும்
-(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`); எனவே உண்மையான Bottleneck வரம்பி இல்லாமலேயே அதை அலகுச் சோதனை செய்யலாம்.
+`resilienceSettings.requestQueue.executionMaxWaitMs` என்பதே Bottleneck-க்கு
+job `expiration` ஆக வழங்கப்படுகிறது; அதன் timer dispatch செய்யப்பட்ட பிறகே
+தொடங்குகிறது. தனக்கென upstream timeout இல்லாத executor-களுக்கான இறுதிப்
+பாதுகாப்பாக இது செயல்படுகிறது. executor-ன் சொந்த fetch-start timeout இதைவிட
+நீளமாக இருந்தால், இது அந்த timeout அளவுக்கு உயர்த்தப்படும்; இதனால்
+ஆரோக்கியமாகச் செயல்பட்டுக்கொண்டிருக்கும் response இடையில் துண்டிக்கப்படாது.
+இயல்புநிலை 600000ms (10 நிமிடம்).
+
+வரிசை ஒதுக்கீட்டை `expiration`-க்குள் செலுத்தியதுதான் முன்பு non-incremental
+gateway-களைச் செயல்பாட்டின் நடுவில் நிறுத்தியது — அவை முதல் bytes-ஐ அனுப்புவதற்கு
+முன்பு சட்டபூர்வமாகவே பல நிமிடங்கள் இயங்கக்கூடும் — அதனால்தான் expiration,
+`code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) என வெளிப்படுத்தப்படுகிறது;
+அதேவேளை வரிசை ஒதுக்கீடு queue-timeout code-ஐக் கொண்டிருக்கும்.
+`RATE_LIMIT_MAX_WAIT_MS` / `RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) அல்லது
+dashboard (**Settings → Resilience**) மூலம் ஏதேனும் ஒன்றை override செய்யலாம்.
+normalise செய்யப்படும்போது இரண்டும் 1ms–24h வரம்பிற்குள் கட்டுப்படுத்தப்படும்.
+
+**இரண்டிற்குமான முன்னுரிமை:** env var ஆனது _இயல்புநிலையை_ மட்டுமே வழங்குகிறது.
+`resilienceSettings.requestQueue`-இல் நிலையாகச் சேமிக்கப்பட்ட மதிப்பு
+(dashboard / API patch, `key_value`-இல் சேமிக்கப்பட்டது) அதைவிட முன்னுரிமை
+பெறும்; ஒவ்வொரு connection-க்கும் உரிய `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` அதைவிடவும் முன்னுரிமை பெறும். எனவே ஏற்கனவே நிலையாகச்
+சேமிக்கப்பட்ட மதிப்பைக் கொண்ட deployment-இல் env var-ஐ அமைப்பது எதையும்
+மாற்றாது — அதற்குப் பதிலாக நிலையாகச் சேமிக்கப்பட்ட setting-ஐ அழிக்கவும்
+அல்லது புதுப்பிக்கவும்.
+
+வரிசையில் இருக்கும் காலம் `maxWaitMs` மூலம் கட்டுப்படுத்தப்படுகிறது; கீழே உள்ள
+`maxQueueDepth`, ஒரே நேரத்தில் எத்தனை caller-கள் வரிசையில் இருக்கலாம் என்பதைக்
+கட்டுப்படுத்துகிறது.
+
+**`maxQueueDepth` — விருப்பத் தேர்வான அனுமதி உச்சவரம்பு (புதியது).** `resilienceSettings.requestQueue.maxQueueDepth`
+என்பது ஒரே provider+connection-க்காக ஒரே நேரத்தில் வரிசையில் (இன்னும் dispatch
+செய்யப்படாமல்) இருக்கக்கூடிய கோரிக்கைகளின் எண்ணிக்கையைக் கட்டுப்படுத்துகிறது.
+வரிசையில் ஏற்கனவே `maxQueueDepth` கோரிக்கைகள் இருந்தால், புதிய கோரிக்கை
+`limiter.schedule()`-ஐ அடைவதற்கு **முன்பே**, வகைப்படுத்தப்பட்ட
+`code: "RATE_LIMIT_QUEUE_FULL"` பிழையுடன் உடனடியாக நிராகரிக்கப்படும்
+— எனவே நிராகரிப்பு செலவு குறைந்தது; மேலும் அந்தக் கோரிக்கைக்கான downstream
+prompt-compression / translation வேலைகள் தொடங்குவதற்கு முன்பே அது நிகழும்.
+இயல்புநிலை `0` = முடக்கப்பட்டது; இது ஏற்கனவே உள்ள வரம்பற்ற-வரிசை நடத்தையைப்
+பாதுகாக்கிறது; அனுமதிக்கப்பட்ட வரம்பு 0–100000.
+`RATE_LIMIT_MAX_QUEUE_DEPTH` (env) அல்லது
+`resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch) மூலம்
+override செய்யலாம்.
+
+அனுமதிச் சரிபார்ப்பு தானே ஒரு pure function ஆகும்
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`);
+எனவே உண்மையான Bottleneck limiter இல்லாமலேயே அதை unit-test செய்யலாம்.
 
 > #6593-ஐத் தொடங்கிய RFC, `bypassCompressionOnRateLimit`
-> கொடியையும் முன்மொழிந்தது. இந்த repo-வின் `open-sse/services/compression/` செயலாக்கப் பாதை,
-> வெளியேறும் LLM கோரிக்கையின் prompt/context சுருக்கத்திற்கானது (`chatCore.ts`,
-> `resolveCompressionSettings`/`selectCompressionStrategy` தொகுதியைச் சுற்றி உள்ளது);
-> உருவாக்கப்பட்ட 429 உடல்களின் HTTP மறுமொழிச் சுருக்கத்திற்கானது அல்ல — நேரடியான bypass கொடிக்குப் பொருந்தும் குறியீட்டுப் பாதை எதுவும் இல்லை. அந்த prompt-compression படிநிலையும் தற்போது கோரிக்கைச் செயலாக்கப் பாதையில் `withRateLimit()`-க்கு _முன்பே_ இயங்குகிறது; எனவே வரிசை-நிரம்பிய நிராகரிப்பின்போது அதைத் தவிர்ப்பதற்காக வரிசையை மாற்றுவது, இந்த issue-இன் செயல்பாட்டு வரம்பை விடத் தனியானதும் பெரியதுமான மாற்றமாகும்; அது இங்கு வேண்டுமென்றே செயல்படுத்தப்படவில்லை. CPU சேமிப்பின் பலன், வரிசைமாற்ற அபாயத்திற்கு மதிப்புடையதாக இருந்தால், அது தொடர்ச்சிப் பணியாக விடப்பட்டுள்ளது.
+> flag ஒன்றையும் முன்மொழிந்தது. இந்த repo-வின்
+> `open-sse/services/compression/` pipeline என்பது outbound LLM கோரிக்கையின்
+> prompt/context compression (`chatCore.ts`-இல்,
+> `resolveCompressionSettings`/`selectCompressionStrategy` block-ஐச் சுற்றி)
+> ஆகும்; synthesized 429 body-களுக்கான HTTP response compression அல்ல —
+> நேரடியான bypass flag-க்கு இணையான code path எதுவும் இல்லை. அந்த
+> prompt-compression படிநிலையும் தற்போது request pipeline-இல்
+> `withRateLimit()`-க்கு _முன்பே_ இயங்குகிறது. எனவே queue-full நிராகரிப்பின்போது
+> அதைத் தவிர்ப்பதற்காக வரிசையை மாற்றுவது, இந்த issue-ன் வரம்பைவிடத் தனியானதும்
+> பெரியதுமான மாற்றமாகும்; இது திட்டமிட்டே இங்கு செயல்படுத்தப்படவில்லை. CPU
+> சேமிப்பின் பலன், வரிசைமாற்ற ஆபத்துக்குத் தகுந்ததாக இருந்தால், follow-up ஆக
+> மேற்கொள்ள விடப்பட்டுள்ளது.
 
 ---
 
