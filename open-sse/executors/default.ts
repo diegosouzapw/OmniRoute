@@ -64,6 +64,10 @@ import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { normalizePoolConfig } from "./default/poolConfig.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import {
+  resolveXiaomiTokenPlanAnthropicUrl,
+  resolveXiaomiTokenPlanBaseUrl,
+} from "@/shared/constants/xiaomiProviderRegions";
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 const NVIDIA_TOOL_CALL_ID_PATTERN = /^[A-Za-z0-9]{9}$/;
@@ -263,14 +267,22 @@ export class DefaultExecutor extends BaseExecutor {
       const alternate = this.resolveAlternate(credentials);
       const manualBaseUrl = credentials?.providerSpecificData?.baseUrl;
       const hasManualBaseUrl = typeof manualBaseUrl === "string" && !!manualBaseUrl;
-      if (alternate?.baseUrl && !hasManualBaseUrl) {
-        // Operator's manual override (#6147) keeps its own semantics and falls
-        // through to the provider-specific handling below.
-        const normalized = alternate.baseUrl.replace(/\/$/, "");
-        // A model-scoped alternate (the Gemini protocol: `{base}/{model}:generateContent`)
-        // builds its own URL — chatPath/urlSuffix are constants and cannot carry the model.
-        if (alternate.urlBuilder) return alternate.urlBuilder(normalized, model, stream);
-        return `${normalized}${alternate.chatPath || ""}${alternate.urlSuffix || ""}`;
+      if (alternate?.baseUrl) {
+        if (this.provider === "xiaomi-mimo-token-plan" && alternate.format === "claude") {
+          return resolveXiaomiTokenPlanAnthropicUrl(
+            credentials?.providerSpecificData,
+            alternate.baseUrl
+          );
+        }
+        if (!hasManualBaseUrl) {
+          // Operator's manual override (#6147) keeps its own semantics and falls
+          // through to the provider-specific handling below.
+          const normalized = alternate.baseUrl.replace(/\/$/, "");
+          // A model-scoped alternate (the Gemini protocol: `{base}/{model}:generateContent`)
+          // builds its own URL — chatPath/urlSuffix are constants and cannot carry the model.
+          if (alternate.urlBuilder) return alternate.urlBuilder(normalized, model, stream);
+          return `${normalized}${alternate.chatPath || ""}${alternate.urlSuffix || ""}`;
+        }
       }
     }
     switch (this.provider) {
@@ -358,9 +370,15 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSapChatUrl(baseUrl);
       }
-      case "xiaomi-mimo":
-      case "xiaomi-mimo-token-plan": {
+      case "xiaomi-mimo": {
         const baseUrl = this.resolveBaseUrl(credentials);
+        return normalizeXiaomiMimoChatUrl(baseUrl);
+      }
+      case "xiaomi-mimo-token-plan": {
+        const baseUrl = resolveXiaomiTokenPlanBaseUrl(
+          credentials?.providerSpecificData,
+          this.config.baseUrl
+        );
         return normalizeXiaomiMimoChatUrl(baseUrl);
       }
       case "snowflake": {

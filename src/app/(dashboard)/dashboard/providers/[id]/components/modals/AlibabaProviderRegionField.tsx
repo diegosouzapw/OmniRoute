@@ -8,20 +8,34 @@ import {
   isAlibabaRegionalProvider,
   type AlibabaProviderRegion,
 } from "@/shared/constants/alibabaProviderRegions";
+import {
+  DEFAULT_XIAOMI_MIMO_TOKEN_PLAN_REGION,
+  isXiaomiTokenPlanRegionalProvider,
+  normalizeXiaomiTokenPlanRegion,
+  type XiaomiMimoTokenPlanRegion,
+} from "@/shared/constants/xiaomiProviderRegions";
 import { providerText } from "../../providerPageHelpers";
 
 export function getProviderRegionConfig(provider?: string) {
   const isAlibabaRegional = isAlibabaRegionalProvider(provider);
+  const isXiaomiTokenPlan = isXiaomiTokenPlanRegionalProvider(provider);
   const isBedrock = provider === "bedrock";
   return {
     defaultRegion: isAlibabaRegional
       ? getDefaultAlibabaProviderRegion(provider)
-      : isBedrock
-        ? "eu-west-2"
-        : "us-central1",
+      : isXiaomiTokenPlan
+        ? DEFAULT_XIAOMI_MIMO_TOKEN_PLAN_REGION
+        : isBedrock
+          ? "eu-west-2"
+          : "us-central1",
     isAlibabaRegional,
+    isXiaomiTokenPlan,
     showsRegion:
-      isAlibabaRegional || isBedrock || provider === "vertex" || provider === "vertex-partner",
+      isAlibabaRegional ||
+      isXiaomiTokenPlan ||
+      isBedrock ||
+      provider === "vertex" ||
+      provider === "vertex-partner",
   };
 }
 
@@ -166,6 +180,40 @@ function AlibabaProviderRegionField({
   );
 }
 
+function XiaomiTokenPlanRegionField({
+  value,
+  defaultRegion = DEFAULT_XIAOMI_MIMO_TOKEN_PLAN_REGION,
+  onChange,
+}: {
+  value: string;
+  defaultRegion?: string;
+  onChange: (value: XiaomiMimoTokenPlanRegion) => void;
+}) {
+  const t = useTranslations("providers");
+  const normalizedValue = normalizeXiaomiTokenPlanRegion(value || defaultRegion);
+
+  return (
+    <Select
+      label={providerText(t, "mimoRegionLabel", "Token Plan Region")}
+      value={normalizedValue}
+      placeholder=""
+      options={[
+        { value: "singapore", label: "Singapore (Default)" },
+        { value: "china", label: "China" },
+        { value: "amsterdam", label: "Amsterdam" },
+      ]}
+      onChange={(event) =>
+        onChange(normalizeXiaomiTokenPlanRegion(event.target.value))
+      }
+      hint={providerText(
+        t,
+        "mimoRegionHint",
+        "Select the regional cluster where your Xiaomi Token Plan was issued"
+      )}
+    />
+  );
+}
+
 export function ProviderRegionField({
   provider,
   value,
@@ -178,13 +226,23 @@ export function ProviderRegionField({
   hideAlibaba?: boolean;
 }) {
   const t = useTranslations("providers");
-  const { defaultRegion, isAlibabaRegional, showsRegion } = getProviderRegionConfig(provider);
+  const { defaultRegion, isAlibabaRegional, isXiaomiTokenPlan, showsRegion } =
+    getProviderRegionConfig(provider);
   if (!showsRegion || (hideAlibaba && isAlibabaRegional)) return null;
   if (isAlibabaRegional) {
     return (
       <AlibabaProviderRegionField
         provider={provider}
         value={value as AlibabaProviderRegion}
+        onChange={onChange}
+      />
+    );
+  }
+  if (isXiaomiTokenPlan) {
+    return (
+      <XiaomiTokenPlanRegionField
+        value={value}
+        defaultRegion={defaultRegion}
         onChange={onChange}
       />
     );

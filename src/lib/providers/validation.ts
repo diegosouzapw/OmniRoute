@@ -17,6 +17,10 @@ import {
   isAlibabaRegionalProvider,
   resolveAlibabaProviderBaseUrl,
 } from "@/shared/constants/alibabaProviderRegions";
+import {
+  isXiaomiTokenPlanRegionalProvider,
+  resolveXiaomiTokenPlanBaseUrl,
+} from "@/shared/constants/xiaomiProviderRegions";
 import { buildProviderHeaders, buildProviderUrl } from "@omniroute/open-sse/services/provider.ts";
 
 import {
@@ -426,9 +430,12 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     ? { ...entry, baseUrl: entry.testKeyBaseUrl }
     : entry;
   const usesAlibabaRegionalEndpoint = isAlibabaRegionalProvider(provider);
+  const usesXiaomiTokenPlanRegionalEndpoint = isXiaomiTokenPlanRegionalProvider(provider);
   const baseUrl = usesAlibabaRegionalEndpoint
     ? resolveAlibabaProviderBaseUrl(provider, providerSpecificData, validationEntry.baseUrl)
-    : resolveBaseUrl(validationEntry, providerSpecificData);
+    : usesXiaomiTokenPlanRegionalEndpoint
+      ? resolveXiaomiTokenPlanBaseUrl(providerSpecificData, validationEntry.baseUrl)
+      : resolveBaseUrl(validationEntry, providerSpecificData);
 
   try {
     if (OPENAI_LIKE_FORMATS.has(entry.format)) {
@@ -438,7 +445,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         headers: entry.headers || {},
         providerSpecificData,
         modelId,
-        modelsUrl: usesAlibabaRegionalEndpoint ? "" : entry.testKeyModelsUrl || entry.modelsUrl,
+        modelsUrl:
+          usesAlibabaRegionalEndpoint || usesXiaomiTokenPlanRegionalEndpoint
+            ? ""
+            : entry.testKeyModelsUrl || entry.modelsUrl,
         isLocal,
       });
     }
