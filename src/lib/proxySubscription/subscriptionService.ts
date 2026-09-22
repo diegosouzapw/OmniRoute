@@ -47,7 +47,7 @@ import {
 } from "./fetchGuard";
 import { areLocalProviderUrlsAllowed } from "@/shared/network/outboundUrlGuardPolicy";
 import { withRetry } from "./fetchRetry";
-import { parseSubscription, redactedNodeSummary, type ParsedSubscription } from "./parse";
+import { isUsableSubscriptionContent, parseSubscription, redactedNodeSummary, type ParsedSubscription } from "./parse";
 
 export type ProxySubscriptionMode = "global" | "rule";
 export type ProxySubscriptionStatus = "ok" | "error" | "empty";
@@ -454,7 +454,7 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
       id,
       "error",
       `Fetch failed: ${msg}`,
-      null,
+      sub.lastNodes,
       new Date().toISOString(),
       fetchConsec
     );
@@ -470,6 +470,31 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   }
 
   const parsed: ParsedSubscription = parseSubscription(body);
+
+  // Refuse unrecognized content before any registry write: an invalid or
+  // temporarily broken feed must never empty the pool. Serve the persisted
+  // last-known-good nodes instead and leave every registry row untouched.
+  if (!isUsableSubscriptionContent(parsed)) {
+    const refuseError = subscriptionErrorCode("NO_USABLE_NODES");
+    const invalidConsec = (sub.consecutiveFailures || 0) + 1;
+    await updateSubscriptionStatus(
+      id,
+      "error",
+      refuseError,
+      sub.lastNodes,
+      new Date().toISOString(),
+      invalidConsec
+    );
+    return {
+      subscriptionId: id,
+      nodes: 0,
+      needsCore: 0,
+      boundProxies: 0,
+      status: "error",
+      error: refuseError,
+      applied: false,
+    };
+  }
   const db = getDbInstance();
 
   const keptIds: string[] = [];
@@ -673,7 +698,7 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
       id,
       "error",
       `Sync write failed: ${msg}`,
-      null,
+      sub.lastNodes,
       new Date().toISOString(),
       writeConsec
     );

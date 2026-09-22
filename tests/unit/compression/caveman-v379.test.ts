@@ -38,6 +38,16 @@ describe("Caveman v3.7.9 rule parity", () => {
     assert.match(text, /\bdatabase\b/i);
   });
 
+  it("anchored file-pack rules see the text as earlier rules left it (#12825 prefilter)", () => {
+    // leader_phrases is anchored (^). It only matches once pleasantries has stripped the
+    // leading "Sure, ". The #12825 prefilter tests file-pack rules against a lower-cased
+    // snapshot of the ORIGINAL text, so the anchor never matched and the rule was skipped
+    // before it could run on the transformed text.
+    const text = compress("Sure, I will explain the function.", { intensity: "full" });
+    assert.doesNotMatch(text, /^I will\b/i);
+    assert.match(text, /^explain\b/i);
+  });
+
   it("recapitalizes sentence starts after removals", () => {
     const text = compress("Sure, the database connection fails. of course the fix is simple.");
     assert.match(text, /^Database/);

@@ -1,6 +1,6 @@
 # Resilience Guide (ไทย)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -69,94 +69,138 @@ OmniRoute มีกลไกความยืดหยุ่นที่แต�
 
 ## 2. ช่วงพักการเชื่อมต่อ
 
-**ขอบเขต:** การเชื่อมต่อ/บัญชี/คีย์ของผู้ให้บริการหนึ่งรายการ
+**ขอบเขต:** การเชื่อมต่อ/บัญชี/คีย์ของผู้ให้บริการรายเดียว
 
-**วัตถุประสงค์:** ข้ามคีย์ที่มีปัญหาหนึ่งรายการ ขณะที่การเชื่อมต่ออื่นของผู้ให้บริการรายเดียวกันยังคงให้บริการต่อไป
+**วัตถุประสงค์:** ข้ามคีย์ที่มีปัญหาหนึ่งคีย์ ขณะที่การเชื่อมต่ออื่นของผู้ให้บริการเดียวกันยังคงให้บริการต่อไป
 
 **การนำไปใช้:**
 
-- ทำเครื่องหมายว่าไม่พร้อมใช้งาน: `src/sse/services/auth.ts::markAccountUnavailable()`
+- ทำเครื่องหมายว่าใช้งานไม่ได้: `src/sse/services/auth.ts::markAccountUnavailable()`
 - การเลือก: `getProviderCredentials*` ในไฟล์เดียวกัน
 - การคำนวณช่วงพัก: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - การตั้งค่า: `src/lib/resilience/settings.ts`
 
 **ฟิลด์ต่อการเชื่อมต่อ:**
 
-- `rateLimitedUntil` — ไทม์สแตมป์ที่ระบุเวลาสิ้นสุดช่วงพัก
+- `rateLimitedUntil` — เวลา timestamp ที่ช่วงพักสิ้นสุดลง
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — ตัวนับการถอยกลับแบบเอ็กซ์โพเนนเชียล
+- `backoffLevel` — ตัวนับการหน่วงแบบทวีคูณ
 
 **ช่วงพักเริ่มต้น:**
 
-- ค่าฐานของ OAuth: 5 วินาที
-- ค่าฐานของ API-key: 3 วินาที
-- API-key 429: เลือกใช้ `Retry-After`/ส่วนหัวการรีเซ็ต/ข้อความรีเซ็ตที่แยกวิเคราะห์ได้จากต้นทางก่อน
-- การถอยกลับ: `baseCooldownMs * 2 ** failureIndex`
+- ฐานสำหรับ OAuth: 5 วินาที
+- ฐานสำหรับ API key: 3 วินาที
+- API key ที่ได้รับ 429: เลือกใช้ `Retry-After`/ส่วนหัว reset/ข้อความระบุเวลา reset ที่สามารถแยกวิเคราะห์ได้จาก upstream ก่อน
+- การหน่วง: `baseCooldownMs * 2 ** failureIndex`
 
-**กลไกป้องกัน thundering herd:** ป้องกันไม่ให้ความล้มเหลวที่เกิดขึ้นพร้อมกันยืดช่วงพักมากเกินไปหรือเพิ่ม `backoffLevel` ซ้ำ
+**กลไกป้องกัน thundering herd:** ป้องกันไม่ให้ความล้มเหลวที่เกิดขึ้นพร้อมกันขยายช่วงพักนานเกินไปหรือเพิ่ม `backoffLevel` ซ้ำ
 
-**สถานะปลายทาง (ไม่ใช่ช่วงพัก):**
+**สถานะสิ้นสุด (ไม่ใช่ช่วงพัก):**
 
-- `banned` — กำหนดโดยการตรวจจับคีย์เวิร์ดที่ถูกแบน/การแบนบัญชี (ดู [BAN_DETECTION](../security/BAN_DETECTION.md)) และโดยการปฏิเสธต่อคำขอจากต้นทางสามครั้งติดต่อกัน (`request_rejected` เช่น Anthropic OAuth 403 "ไม่อนุญาตคำขอ" — `open-sse/services/requestRejectedStreak.ts`); การปฏิเสธเพียงครั้งเดียวจะทำให้การเชื่อมต่อเข้าสู่ช่วงพักเท่านั้น
-- `expired` (เปลี่ยนเป็นสถานะปลายทางหลังจากลองใหม่ครบจำนวนครั้งที่จำกัด — `EXPIRED_RETRY_MAX = 3` พร้อมการถอยกลับแบบเอ็กซ์โพเนนเชียล — เพื่อให้ข้อผิดพลาด OAuth ชั่วคราวสามารถฟื้นตัวได้เองก่อนที่บัญชีจะถูกปิดใช้งานอย่างถาวร)
+- `banned` — ตั้งค่าโดยการตรวจจับคีย์เวิร์ดการแบน/การแบนบัญชี (ดู [BAN_DETECTION](../security/BAN_DETECTION.md)) และโดยการที่ upstream ปฏิเสธคำขอรายครั้งติดต่อกันสามครั้ง (`request_rejected` เช่น Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); การปฏิเสธเพียงครั้งเดียวจะทำให้การเชื่อมต่อเข้าสู่ช่วงพักเท่านั้น
+- `expired` (เปลี่ยนเป็นสถานะสิ้นสุดหลังจากลองใหม่ตามจำนวนที่จำกัด — `EXPIRED_RETRY_MAX = 3` พร้อมการหน่วงแบบทวีคูณ — เพื่อให้ข้อผิดพลาด OAuth ชั่วคราวสามารถฟื้นตัวได้เองก่อนที่บัญชีจะถูกปิดใช้งานอย่างถาวร)
 - `credits_exhausted`
 
-สถานะเหล่านี้จะคงอยู่จนกว่าข้อมูลประจำตัวจะเปลี่ยนแปลงหรือผู้ดูแลจะรีเซ็ต อย่าเขียนทับสถานะปลายทางด้วยสถานะช่วงพักชั่วคราว
+สถานะเหล่านี้จะคงอยู่จนกว่าข้อมูลประจำตัวจะเปลี่ยนแปลงหรือผู้ดูแลระบบจะรีเซ็ต อย่าเขียนทับสถานะสิ้นสุดด้วยสถานะช่วงพักชั่วคราว
 
-**การฟื้นตัวแบบหน่วงเวลา:** เมื่อเวลา `rateLimitedUntil` ผ่านไป การเชื่อมต่อจะกลับมามีสิทธิ์ถูกเลือกอีกครั้ง เมื่อใช้งานสำเร็จ `clearAccountError()` จะล้างฟิลด์ข้อผิดพลาดทั้งหมด
+**การฟื้นตัวแบบ lazy:** เมื่อพ้นเวลา `rateLimitedUntil` การเชื่อมต่อจะมีสิทธิ์ถูกเลือกอีกครั้ง เมื่อใช้งานสำเร็จ `clearAccountError()` จะล้างฟิลด์ข้อผิดพลาดทั้งหมด
 
-### ความผูกพันกับเซสชัน (#7274)
+### กำแพงการใช้งาน Claude OAuth: ช่องทางลำดับความสำคัญต่ำกว่า + การรีเซ็ตขีดจำกัดเซสชัน
 
-**ขอบเขต:** เซสชันไคลเอนต์หนึ่งเซสชัน (ส่วนหัว `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) ที่ถูกตรึงไว้กับการเชื่อมต่อหนึ่งรายการ สำหรับผู้ให้บริการ **ทุกราย**
-
-**วัตถุประสงค์:** รักษาให้เอเจนต์แบบหลายรอบ (Claude Code, aider, เอเจนต์แบบกำหนดเอง) ใช้บัญชีเดิมตลอดคำขอต่าง ๆ เพื่อลดการสูญเสียบริบทระหว่างบัญชีและลดข้อผิดพลาด 429 จากการเริ่มต้นแบบเย็นซ้ำ ๆ สำหรับผู้ให้บริการที่มีสถานะเซสชันแยกตามบัญชี
+**ขอบเขต:** การเชื่อมต่อการสมัครสมาชิก Claude (OAuth) หนึ่งรายการ ฟีเจอร์ทั้งสองเป็นแบบ **เลือกเปิดใช้ต่อ
+การเชื่อมต่อ** (แก้ไขการเชื่อมต่อ → ส่วน Claude → `lowPriorityMode` / `autoLimitReset` ใน
+`providerSpecificData` โดยค่าเริ่มต้นทั้งคู่ปิดอยู่) และทำงานสอดคล้องกับคำสั่ง `/low-priority` และ
+`/limit-reset` ของ Claude Code (สัญญาการสื่อสารบันทึกจาก Claude Code 2.1.263)
 
 **การนำไปใช้:**
 
-- การกำหนดค่า TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- การเลือก/สร้างการตรึง: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- การแยกค่าส่วนหัว (แบบทั่วไป สำหรับผู้ให้บริการทุกราย): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- ตารางการตรึงที่จัดเก็บถาวร: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- การตั้งค่า: `sessionAffinityTtlMs` (TTL ส่วนกลางในหน่วยมิลลิวินาที โดย `0` หมายถึงปิดใช้งาน) — `src/lib/db/settings.ts` เปลี่ยนชื่อมาจาก `codexSessionAffinityTtlMs` ซึ่งใช้เฉพาะ Codex โดยการย้ายข้อมูล `124_generic_session_affinity_ttl.sql` ซึ่งนำค่า TTL ของ Codex ที่กำหนดไว้ก่อนหน้านี้มาใช้เป็นค่าเริ่มต้นใหม่
+- กลไกสถานะ + การจำแนกการตอบกลับ: `open-sse/services/claudeLowPriority.ts`
+- ไคลเอนต์สำหรับสถานะ/การขอสิทธิ์รีเซ็ต: `open-sse/services/claudeLimitReset.ts`
+- ฮุกของตัวดำเนินการ (การแทรกส่วนหัว + การลองใหม่ด้วยบัญชีเดิม): `open-sse/executors/base.ts::execute()`
+- การคงค่าการเลือกเปิดใช้: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-ก่อน #7274 ฟังก์ชัน `resolveSessionAffinityTtlMs()` จะยุติการทำงานทันทีและคืนค่า `0` สำหรับผู้ให้บริการทุกรายยกเว้น `codex` ดังนั้นการตั้งค่า TTL (และส่วนหัวของเซสชัน) จึงไม่มีผลกับผู้ให้บริการรายอื่น แม้ว่ากลไกการตรึงและการแยกค่าส่วนหัวจะไม่ผูกกับผู้ให้บริการใดอยู่แล้ว การแก้ไขนี้ได้นำการคืนค่าก่อนกำหนดดังกล่าวออก ตอนนี้ TTL จึงมีผลกับผู้ให้บริการทุกรายอย่างสม่ำเสมอเมื่อกำหนดค่าส่วนกลางให้มากกว่า `0`
+**ตัวกระตุ้น:** กำแพงการใช้งาน 5 ชั่วโมง — การตอบกลับ `429` ซึ่งส่วนหัวมี
+`anthropic-ratelimit-unified-status: rejected` และเมื่อบัญชีมีสิทธิ์
+`anthropic-ratelimit-unified-slow-offer: treatment` ระบบจะไม่ส่งสิ่งใดก่อนพบกำแพง
+429 ครั้งแรกนั้น ส่วนการตอบกลับ 429 แบบพุ่งสูงที่ไม่มีส่วนหัว unified จะเข้าสู่เส้นทางช่วงพักตามปกติ
 
-ส่วนหัวสำหรับความผูกพันกับเซสชันทั้งสามรายการจะไม่ถูกส่งต่อไปยังต้นทาง ตัวดำเนินการจะสร้างส่วนหัวสำหรับต้นทางขึ้นใหม่เองแทนที่จะส่งผ่านส่วนหัวของไคลเอนต์ ดังนั้นค่านี้จึงเป็นเพียง ID สหสัมพันธ์ภายในเท่านั้น
+**ช่องทางลำดับความสำคัญต่ำกว่า** (`lowPriorityMode`):
 
-### สิทธิ์เชื่อมต่อแบบเอกสิทธิ์สำหรับเซสชันที่มีการจัดการ
+- เมื่อพบกำแพง 429 ตัวดำเนินการจะยอมรับข้อเสนอและลองใช้บัญชี **เดิม** อีกครั้งทันที
+  พร้อม `anthropic-usage-limit: slow`; ช่องทางนี้จะยังคงทำงานจนถึงเวลา
+  `anthropic-ratelimit-unified-reset` ที่ประกาศไว้ (+ระยะผ่อนผัน 60 วินาที) และทุกคำขอในช่วงเวลานั้นจะมี
+  ส่วนหัวดังกล่าว การตอบกลับ 429 ที่ถูกดักไว้จะไม่ไปถึง `handleChatCore` ดังนั้นการเชื่อมต่อ
+  **จะไม่** เข้าสู่ช่วงพักและไม่ถูกสลับออก
+- `anthropic-ratelimit-unified-slow-status` ในการตอบกลับภายหลัง: `active` / `not_needed`
+  จะคงช่องทางไว้; `slot_busy` (429) หรือ `529` จะรอตามค่า
+  `anthropic-ratelimit-unified-slow-retry-after` ของเซิร์ฟเวอร์ (ค่าเริ่มต้น 20 วินาที จำกัดให้อยู่ในช่วง 5–600 วินาที พร้อม jitter ±30%)
+  แล้วลองใหม่ โดยจำกัดด้วย `anthropic-ratelimit-unified-slow-max-wait` (ค่าเริ่มต้น 20 นาที จำกัดให้อยู่ในช่วง
+  1 นาที–6 ชั่วโมง) — เมื่อเกินเวลานั้น ช่องทางจะสิ้นสุดและช่วงพัก 10 นาทีจะป้องกันการยอมรับข้อเสนอซ้ำ ระยะ
+  เวลารอยังถูกจำกัดเพิ่มเติมด้วยเวลาที่เหลือจาก timeout การเริ่มต้น upstream ของคำขอนั้นเอง
+  (`resolveFetchStartTimeout` ค่าเริ่มต้น 10 นาที) ลบด้วยระยะเผื่อ 5 วินาที: หากไม่มีขีดจำกัดนี้
+  ค่าสูงสุดเริ่มต้น 20 นาทีจะยาวนานเกินอายุของคำขอ และการพักรอจะถูกยกเลิก
+  กลางคัน ทำให้เกิด `TimeoutError` แทนการสิ้นสุดแบบ `max_wait` อย่างราบรื่นพร้อมช่วงพัก
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, การเปลี่ยนรอบหน้าต่าง 5 ชั่วโมง หรือ
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (ซึ่งจะสิ้นสุดช่องทางในฐานะ
+  `extra_usage` ไม่ว่าสถานะใด เนื่องจากขณะนี้การใช้เกินโควตาแบบชำระเงินครอบคลุมกำแพงแล้ว) จะยุติช่องทาง จากนั้น
+  การตอบกลับจะไหลเข้าสู่เส้นทางช่วงพักตามปกติ ระบบจะจดจำ `budget_exhausted` จนถึง
+  เวลารีเซ็ตงบประมาณที่ประกาศไว้ (≤ 8 วัน)
+- การตรวจสอบกำแพงจะทำงานหลังจากการลองใหม่ภายในรอบของตัวดำเนินการเองที่เกิดจาก 400 (การแก้ไข
+  context, การจำกัด thinking/effort, การเรียนรู้พารามิเตอร์อัตโนมัติ) ดังนั้นกำแพง 429 ที่เพิ่งปรากฏใน
+  การลองใหม่ครั้งใดครั้งหนึ่งเหล่านั้นจะยังคงถูกดักไว้แทนที่จะไปถึงเส้นทางช่วงพัก
+- สถานะถูกเก็บไว้ในหน่วยความจำแยกตามการเชื่อมต่อ (การรีสตาร์ตทำให้ต้องพบกำแพง 429 เพิ่มอีกหนึ่งครั้งเพื่อยอมรับข้อเสนอใหม่)
 
-**ขอบเขต:** ไคลเอนต์/เซสชัน HTTP ที่มีการจัดการและกำลังทำงานหนึ่งรายการเป็นเจ้าของการเชื่อมต่อ OmniRoute ที่มีสิทธิ์หนึ่งรายการ
+**การรีเซ็ตขีดจำกัดเซสชัน** (`autoLimitReset` ซึ่งจะลองก่อนช่องทางเมื่อเปิดใช้ทั้งคู่):
 
-**วัตถุประสงค์:** มอบความเป็นเจ้าของการเชื่อมต่อแบบเอกสิทธิ์ที่คงทนให้แก่ไคลเอนต์ที่ต้องการขอบเขตการกำหนดเส้นทางแบบเข้มงวด
-ระหว่างคำขอต่าง ๆ ซึ่งแตกต่างจากความผูกพันกับเซสชันที่เป็นเพียงการให้ความสำคัญแบบอ่อนเพื่อรักษาความต่อเนื่อง:
-สิทธิ์แบบเอกสิทธิ์จะคงสถานะวงจรชีวิตไว้ใน SQLite บังคับให้เจ้าของที่ทำงานอยู่และ
-การเชื่อมต่อที่ทำงานอยู่ไม่ซ้ำกันในระดับส่วนกลาง และปฏิเสธรุ่นที่ล้าสมัยก่อนส่งต่อไปยังผู้ให้บริการ
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → บล็อก `juniper_tide`;
+  เมื่อ `arm: "reset"` และ `available: true` ให้ส่ง
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` พร้อม
+  `{ "program": "juniper_tide" }` (UUID ขององค์กรจาก
+  `providerSpecificData.organizationUUID` โดยมีค่าที่ได้จาก bootstrap เป็น fallback)
+- `result: reset|not_limited` → คำขอจะถูกลองใหม่ด้วยความเร็วเต็มที่ (ไม่มีส่วนหัว slow)
+  `already_used` / `not_offered` จะจดจำ `next_available_at` (ค่าเริ่มต้นหนึ่งสัปดาห์); ความ
+  ล้มเหลวใดๆ จะหน่วง 15 นาที การรีเซ็ตทำได้สัปดาห์ละครั้งและยังคงถูกนับรวมใน
+  ขีดจำกัดรายสัปดาห์
 
-ฟีเจอร์นี้ต้องเลือกเปิดใช้แยกตาม API key คีย์ที่มีการจัดการต้องมีขอบเขต `lease:exclusive` และมีรายการ
-`allowedConnections` ที่ระบุไว้อย่างชัดเจนและไม่ว่างเปล่า ไคลเอนต์ HTTP ใด ๆ ก็สามารถใช้ปลายทางวงจรชีวิตได้ โดยไม่จำเป็นต้องระบุ
-ชื่อไคลเอนต์, user-agent, ผู้ให้บริการ, วิธี OAuth หรือโมเดล สิทธิ์นี้เป็นเจ้าของการเชื่อมต่อ
-ไม่ใช่โมเดล ดังนั้นการเปลี่ยนโมเดลจะยังคงการผูกไว้ตราบใดที่การเชื่อมต่อยังคง
-มีสิทธิ์ตามปกติ กฎทั่วไปเกี่ยวกับโมเดล โควตา สถานะการทำงาน ช่วงพัก และรายการที่อนุญาตยังคงมีอำนาจสูงสุด และอาจ
-เปลี่ยนรุ่นเดียวกันไปใช้การเชื่อมต่อว่างอื่นที่มีสิทธิ์ได้
+ตัวป้องกันการถดถอย: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`
 
-วงจรชีวิตคือ `POST /api/v1/session-leases` โดยใช้การดำเนินการ JSON ได้แก่ `acquire`, `renew` และ `release`
-คำขออนุมานที่มีการจัดการจะส่งค่าแบบทึบแสง `X-OmniRoute-Lease-Owner` และค่า
-`X-OmniRoute-Lease-Generation` ที่ตรงกันทุกประการ เจ้าของใช้ `vlo_` ตามด้วยอักขระ base64url จำนวน 43 ตัว โดยจะจัดเก็บเฉพาะ
-แฮช SHA-256 ของค่านี้เท่านั้น ขอบเขตตรวจสอบสุดท้ายก่อนส่งต่อทุกครั้งจะผูกกับ ID ของ API key ที่ผ่านการตรวจสอบสิทธิ์และ
-ID ของการเชื่อมต่อที่ทำงานอยู่ด้วย ส่วนหัวควบคุมสิทธิ์จะถูกนำออกจากบันทึก ภาพรวมคำขอที่เก็บรักษาไว้ และ
-ส่วนหัวของตัวดำเนินการต้นทาง
+### การยึดโยงเซสชัน (#7274)
 
-หากการกำหนดเส้นทางตามปกติมีตัวเลือกที่มีการจัดการและมีสิทธิ์ แต่ตัวเลือกว่างทั้งหมดถูกครอบครองโดย
-สิทธิ์ที่ทำงานอยู่ของเจ้าของรายอื่น OmniRoute จะส่งคืน HTTP `429`, รหัส lease-capacity-unavailable,
-สถานะรอความจุ และค่า `Retry-After` ที่มีขอบเขตจำกัดซึ่งคำนวณจากเวลาหมดอายุที่เกี่ยวข้องและเร็วที่สุด
-กรณีที่ไม่มีตัวเลือกที่มีสิทธิ์ตามปกติไม่ถือเป็นการแข่งขันแย่งสิทธิ์ และยังคงใช้ความหมายของข้อผิดพลาดในการกำหนดเส้นทางแบบเดิม
+**ขอบเขต:** เซสชันไคลเอนต์หนึ่งเซสชัน (ส่วนหัว `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) ที่ผูกไว้กับการเชื่อมต่อเดียว สำหรับผู้ให้บริการ **ทุกราย**
+
+**วัตถุประสงค์:** รักษาให้เอเจนต์แบบหลายรอบการสนทนา (Claude Code, aider, เอเจนต์แบบกำหนดเอง) ใช้บัญชีเดิมต่อเนื่องระหว่างคำขอ เพื่อลดการสูญเสียบริบทจากการสลับบัญชีและการเกิด 429 จากการเริ่มต้นใหม่ซ้ำๆ บนผู้ให้บริการที่มีสถานะเซสชันแยกตามบัญชี
+
+**การนำไปใช้:**
+
+- การกำหนด TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- การเลือก/สร้างพิน: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- การดึงค่าจากส่วนหัว (ทั่วไป ใช้ได้กับผู้ให้บริการทุกราย): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- ตารางพินแบบถาวร: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- การตั้งค่า: `sessionAffinityTtlMs` (TTL ส่วนกลางในหน่วย ms โดย `0` หมายถึงปิดใช้งาน) — `src/lib/db/settings.ts` เปลี่ยนชื่อมาจาก `codexSessionAffinityTtlMs` ซึ่งใช้เฉพาะ Codex ผ่านไมเกรชัน `124_generic_session_affinity_ttl.sql` โดยจะนำค่า Codex TTL ที่เคยกำหนดไว้ก่อนหน้านี้มาใช้เป็นค่าเริ่มต้นใหม่
+
+ก่อน #7274 ฟังก์ชัน `resolveSessionAffinityTtlMs()` จะหยุดทำงานทันทีและคืนค่า `0` สำหรับผู้ให้บริการทุกรายยกเว้น `codex` ดังนั้นการตั้งค่า TTL (และส่วนหัวเซสชัน) จึงไม่มีผลกับที่อื่น แม้ว่ากลไกการพินและการดึงค่าจากส่วนหัวจะไม่ขึ้นกับผู้ให้บริการอยู่แล้วก็ตาม การแก้ไขได้นำการคืนค่าก่อนกำหนดดังกล่าวออก ตอนนี้ TTL จึงมีผลอย่างสม่ำเสมอกับผู้ให้บริการทุกราย เมื่อกำหนดค่าส่วนกลางให้มากกว่า `0`
+
+ส่วนหัวสำหรับความสัมพันธ์ของเซสชันทั้งสามรายการจะไม่ถูกส่งต่อไปยังต้นทาง — ตัวดำเนินการจะสร้างส่วนหัวสำหรับต้นทางขึ้นใหม่ทั้งหมด แทนที่จะส่งต่อส่วนหัวของไคลเอนต์ ดังนั้นค่านี้จึงยังคงเป็นเพียงรหัสสหสัมพันธ์ภายในเท่านั้น
+
+### การเชื่อมต่อเซสชันที่มีการจัดการแบบเช่าใช้เฉพาะ
+
+**ขอบเขต:** ไคลเอนต์/เซสชัน HTTP ที่มีการจัดการและกำลังใช้งานหนึ่งรายการ จะครอบครองการเชื่อมต่อ OmniRoute ที่มีสิทธิ์หนึ่งรายการ
+
+**วัตถุประสงค์:** มอบสิทธิ์ครอบครองการเชื่อมต่อแต่เพียงผู้เดียวแบบถาวรให้แก่ไคลเอนต์ที่ต้องการขอบเขตการกำหนดเส้นทางแบบเข้มงวดระหว่างคำขอ กลไกนี้แตกต่างจากความสัมพันธ์ของเซสชัน ซึ่งเป็นเพียงการตั้งค่าแบบอ่อนเพื่อให้เกิดความต่อเนื่อง กล่าวคือ การเช่าใช้เฉพาะจะเก็บสถานะวงจรชีวิตไว้อย่างถาวรใน SQLite บังคับให้เจ้าของที่ใช้งานอยู่และการเชื่อมต่อที่ใช้งานอยู่ไม่ซ้ำกันในระดับส่วนกลาง และปฏิเสธเจเนอเรชันที่ล้าสมัยก่อนส่งคำขอไปยังผู้ให้บริการ
+
+ฟีเจอร์นี้ต้องเลือกเปิดใช้งานแยกตามคีย์ API คีย์ที่มีการจัดการต้องมีขอบเขต `lease:exclusive` และรายการ `allowedConnections` ที่กำหนดไว้อย่างชัดเจนและไม่เป็นค่าว่าง ไคลเอนต์ HTTP ใดๆ ก็สามารถใช้เอนด์พอยต์วงจรชีวิตได้ โดยไม่จำเป็นต้องระบุชื่อไคลเอนต์ user-agent ผู้ให้บริการ วิธี OAuth หรือโมเดล การเช่าจะครอบครองการเชื่อมต่อ ไม่ใช่โมเดล ดังนั้นการเปลี่ยนโมเดลจะยังคงการผูกไว้ ตราบใดที่การเชื่อมต่อนั้นยังคงมีสิทธิ์ตามปกติ กฎปกติเกี่ยวกับโมเดล โควตา สุขภาพ ระยะพัก และรายการที่อนุญาตยังคงมีผลเหนือกว่า และอาจย้ายเจเนอเรชันเดียวกันไปยังการเชื่อมต่อว่างอื่นที่มีสิทธิ์ได้
+
+วงจรชีวิตใช้ `POST /api/v1/session-leases` พร้อมการดำเนินการ JSON ได้แก่ `acquire`, `renew` และ `release` คำขออนุมานที่มีการจัดการจะส่งค่าแบบทึบ `X-OmniRoute-Lease-Owner` และค่า `X-OmniRoute-Lease-Generation` ที่ตรงกันทุกประการ เจ้าของใช้ `vlo_` ตามด้วยอักขระ base64url จำนวน 43 ตัว โดยจะจัดเก็บเฉพาะแฮช SHA-256 ของค่านี้เท่านั้น ขอบเขตป้องกันก่อนการส่งขั้นสุดท้ายทุกครั้งจะผูกกับ ID คีย์ API ที่ผ่านการตรวจสอบสิทธิ์และ ID การเชื่อมต่อที่ใช้งานอยู่ด้วย ส่วนหัวควบคุมการเช่าจะถูกลบออกจากบันทึก สแนปช็อตคำขอที่เก็บรักษาไว้ และส่วนหัวของตัวดำเนินการต้นทาง
+
+หากการกำหนดเส้นทางตามปกติมีตัวเลือกที่มีการจัดการและมีสิทธิ์ แต่ตัวเลือกว่างทั้งหมดถูกครอบครองโดยการเช่าที่ใช้งานอยู่ของผู้อื่น OmniRoute จะส่งคืน HTTP `429` พร้อมรหัส lease-capacity-unavailable สถานะรอความจุ และ `Retry-After` ที่มีขอบเขตจำกัดซึ่งคำนวณจากเวลาหมดอายุที่เกี่ยวข้องซึ่งเร็วที่สุด กรณีไม่มีตัวเลือกที่มีสิทธิ์ตามปกติไม่ถือเป็นการแข่งขันแย่งสิทธิ์การเช่า และจะยังคงใช้ความหมายของข้อผิดพลาดในการกำหนดเส้นทางแบบเดิม
 
 กลไกที่เกี่ยวข้องยังคงแยกจากกัน:
 
-- การครอบครองเซสชัน OAuth เป็นการกระจายแบบอ่อนภายในโพรเซสสำหรับบัญชี OAuth
-- เซมาโฟร์ของบัญชีมอบสิทธิ์สำหรับการทำงานพร้อมกันของคำขอ และสิ้นสุดลงเมื่อคำขอเสร็จสมบูรณ์
-- สิทธิ์เชื่อมต่อแบบเอกสิทธิ์สำหรับเซสชันที่มีการจัดการคือความเป็นเจ้าของตลอดวงจรชีวิตที่คงทน พร้อมขอบเขตตรวจสอบรุ่น
+- การครอบครองเซสชัน OAuth เป็นการกระจายแบบอ่อนภายในโปรเซสสำหรับบัญชี OAuth
+- semaphore ของบัญชีจะให้สิทธิ์การทำงานพร้อมกันของคำขอ และสิ้นสุดเมื่อคำขอเสร็จสมบูรณ์
+- การเชื่อมต่อเซสชันที่มีการจัดการแบบเช่าใช้เฉพาะ เป็นการครอบครองตามวงจรชีวิตแบบถาวรพร้อมขอบเขตป้องกันด้วยเจเนอเรชัน
 
 ---
 
@@ -272,35 +316,70 @@ _สถานะ_ การล็อกที่กำลังทำงาน�
 
 ## 5. การควบคุมการรับคำขอเข้าสู่คิว (v3.8.49 · issue #6593)
 
-**ขอบเขต**: คิวจำกัดอัตราภายในเครื่องต่อผู้ให้บริการ+การเชื่อมต่อ (`open-sse/services/rateLimitManager.ts`
-ซึ่งทำงานอยู่บน Bottleneck) โดยอยู่ต่ำกว่ากลไกสามชั้นข้างต้นหนึ่งระดับ
+**ขอบเขต**: คิวจำกัดอัตราเฉพาะเครื่องแบบต่อ provider+connection (`open-sse/services/rateLimitManager.ts`
+ซึ่งทำงานบน Bottleneck) โดยอยู่ต่ำกว่ากลไกทั้งสามข้างต้นหนึ่งชั้น
 
-**`maxWaitMs` เป็นชื่อเดิมที่คงอยู่สำหรับการหมดเวลาการดำเนินการ**
-`resilienceSettings.requestQueue.maxWaitMs` จะถูกส่งให้ Bottleneck ในฐานะ
-`expiration` ของงาน โดยตัวจับเวลาจะเริ่มต้นหลังจากส่งงานแล้วเท่านั้น ดังนั้นค่านี้จึงจำกัดระยะเวลาการดำเนินการที่จัดการโดย limiter ไม่ใช่เวลาที่ใช้รออยู่ในคิวภายในเครื่อง การหมดเวลาจะแสดงเป็น `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` ภายในที่เชื่อถือได้ (HTTP 504) ส่วนชื่อโค้ดการหมดเวลาของคิวแบบเดิมจะได้รับการยอมรับเฉพาะเพื่อความเข้ากันได้ย้อนหลังภายในที่เชื่อถือได้เท่านั้น ค่าเริ่มต้นคือ 15000ms สามารถแทนที่ผ่าน `RATE_LIMIT_MAX_WAIT_MS` (env) หรือแดชบอร์ด (**Settings → Resilience**,
-เพดานใน UI คือ 1–30000ms) เวลาที่อยู่ในคิวไม่มีเส้นตาย ให้ใช้
-`maxQueueDepth` ด้านล่างเพื่อจำกัดจำนวนผู้เรียกที่รออยู่ในคิว
+**`maxWaitMs` จำกัดเวลารอในคิว ส่วน `executionMaxWaitMs` จำกัดเวลาประมวลผล**
+ทั้งสองส่วนถูกแยกออกจากกันโดยตั้งใจ และไม่มีส่วนใดนำค่าของอีกส่วนมาใช้
 
-**`maxQueueDepth` — ขีดจำกัดการรับเข้าที่ต้องเลือกเปิดใช้ (ใหม่)** `resilienceSettings.requestQueue.maxQueueDepth`
-จำกัดจำนวนคำขอที่สามารถรออยู่ในคิว (ยังไม่ได้ส่งต่อ) สำหรับผู้ให้บริการ+การเชื่อมต่อหนึ่งรายการในเวลาเดียวกัน เมื่อคิวมีคำขออยู่แล้ว `maxQueueDepth` รายการ คำขอใหม่จะถูกปฏิเสธอย่างรวดเร็วด้วยข้อผิดพลาดแบบมีชนิด
+`resilienceSettings.requestQueue.maxWaitMs` คือ **งบเวลารอในคิว**:
+ครอบคลุมทั้งการรอสล็อตของผู้ให้บริการและการอยู่ในสถานะ QUEUED โดยตัวจับเวลา
+จะถูกล้างทันทีที่งานออกจากสถานะ QUEUED และเริ่มประมวลผล
+(`rateLimitManager.ts`, `wrappedFn`) คำขอที่ใช้เวลาเกินค่านี้จะไม่ถูกส่งไปยัง
+ต้นทาง ค่าเริ่มต้นคือ 30000ms ซึ่งกำหนดโดย `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+ใน `src/lib/resilience/settings.ts` และตรึงไว้โดย
+`tests/unit/ratelimit-admission-control-6593.test.ts` ดังนั้นการเปลี่ยนค่านี้จะทำให้
+การทดสอบดังกล่าวล้มเหลว แทนที่จะปล่อยให้ย่อหน้านี้ล้าสมัยโดยไม่มีสัญญาณเตือน
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` คือค่าที่ Bottleneck
+ได้รับเป็น `expiration` ของงาน ซึ่งตัวจับเวลาจะเริ่มหลังจากส่งงานออกไปแล้วเท่านั้น ค่านี้เป็น
+กลไกสำรองสำหรับตัวประมวลผลที่ไม่มีการหมดเวลาของต้นทางเป็นของตนเอง และจะถูก
+เพิ่มให้เท่ากับการหมดเวลาเริ่มต้นการดึงข้อมูลของตัวประมวลผล หากค่านั้นยาวกว่า เพื่อไม่ให้
+ตัดการตอบกลับที่ยังทำงานตามปกติระหว่างดำเนินการ ค่าเริ่มต้นคือ 600000ms (10 นาที)
+
+การนำงบเวลาของคิวไปใช้เป็น `expiration` คือสาเหตุที่เคยทำให้เกตเวย์แบบไม่เพิ่มข้อมูลทีละส่วน
+ถูกยุติกลางคัน — เกตเวย์เหล่านี้ทำงานหลายนาทีก่อนส่งไบต์แรกได้โดยชอบธรรม —
+และนี่คือเหตุผลที่การหมดอายุจะแสดงเป็น `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) ขณะที่งบเวลาของคิวจะใช้
+รหัสการหมดเวลาของคิว กำหนดค่าใดค่าหนึ่งทับได้ผ่าน `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) หรือแดชบอร์ด
+(**Settings → Resilience**) ทั้งสองค่าจะถูกจำกัดให้อยู่ในช่วง 1ms–24h เมื่อทำให้เป็นมาตรฐาน
+
+**ลำดับความสำคัญสำหรับทั้งสองค่า:** ตัวแปร env ใช้กำหนดเพียงค่า _เริ่มต้น_ เท่านั้น ค่าที่
+บันทึกถาวรไว้ใน `resilienceSettings.requestQueue` (แพตช์จากแดชบอร์ด / API ซึ่งจัดเก็บ
+ใน `key_value`) จะมีลำดับความสำคัญสูงกว่า และค่า
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` รายการเชื่อมต่อ
+จะมีลำดับความสำคัญสูงกว่านั้นอีก ดังนั้น การตั้งค่าตัวแปร env ในการปรับใช้งานที่มีค่าบันทึกถาวร
+อยู่แล้วจะไม่ทำให้เกิดการเปลี่ยนแปลง — ให้ล้างหรืออัปเดตค่าที่บันทึกถาวรแทน
+
+ระยะเวลาที่อยู่ในคิวถูกจำกัดด้วย `maxWaitMs` ส่วน `maxQueueDepth` ด้านล่างจำกัดจำนวน
+ผู้เรียกที่สามารถอยู่ในคิวพร้อมกันได้
+
+**`maxQueueDepth` — ขีดจำกัดการรับเข้าแบบเลือกเปิดใช้ (ใหม่)** `resilienceSettings.requestQueue.maxQueueDepth`
+จำกัดจำนวนคำขอที่สามารถอยู่ในคิว (ยังไม่ถูกส่งไปประมวลผล) พร้อมกันสำหรับ
+provider+connection หนึ่งรายการ เมื่อคิวมีคำขออยู่ `maxQueueDepth`
+รายการแล้ว คำขอใหม่จะถูกปฏิเสธทันทีด้วยข้อผิดพลาดแบบมีชนิด
 `code: "RATE_LIMIT_QUEUE_FULL"` **ก่อน**ที่จะไปถึง `limiter.schedule()`
-— ดังนั้นการปฏิเสธจึงใช้ทรัพยากรน้อยและเกิดขึ้นก่อนงานบีบอัดพรอมต์ / แปลภาษาที่อยู่ปลายทางสำหรับคำขอนั้น ค่าเริ่มต้น `0` =
-ปิดใช้งาน ซึ่งคงลักษณะการทำงานเดิมที่ไม่จำกัดคิวไว้ โดยกำหนดค่าได้ในช่วง 0–100000
-สามารถแทนที่ผ่าน `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) หรือ
-`resilienceSettings.requestQueue.maxQueueDepth` (แพตช์ผ่านแดชบอร์ด/API)
+— ดังนั้นการปฏิเสธจึงมีต้นทุนต่ำและเกิดขึ้นก่อนงานบีบอัดพรอมต์ / แปลภาษา
+ในลำดับถัดไปสำหรับคำขอนั้น ค่าเริ่มต้น `0` = ปิดใช้งาน เพื่อคงพฤติกรรมคิวแบบไม่จำกัด
+ที่มีอยู่เดิม โดยจำกัดช่วงไว้ที่ 0–100000 กำหนดค่าทับได้ผ่าน
+`RATE_LIMIT_MAX_QUEUE_DEPTH` (env) หรือ
+`resilienceSettings.requestQueue.maxQueueDepth` (แพตช์จากแดชบอร์ด/API)
 
-การตรวจสอบการรับเข้าเป็น pure function
-(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) ดังนั้น
-จึงสามารถทำ unit test ได้โดยไม่ต้องใช้ Bottleneck limiter จริง
+การตรวจสอบการรับเข้าเป็นฟังก์ชันบริสุทธิ์
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) จึง
+สามารถทดสอบแบบหน่วยได้โดยไม่ต้องใช้ตัวจำกัด Bottleneck จริง
 
 > RFC ที่เปิด #6593 ยังเสนอแฟล็ก `bypassCompressionOnRateLimit`
-> ด้วย pipeline ใน `open-sse/services/compression/` ของ repo นี้เป็นการบีบอัดพรอมต์/บริบทในคำขอ LLM ขาออก (`chatCore.ts`
+> ด้วย ไปป์ไลน์ `open-sse/services/compression/` ของ repo นี้ทำหน้าที่
+> บีบอัดพรอมต์/บริบทในคำขอ LLM ขาออก (`chatCore.ts`
 > บริเวณบล็อก `resolveCompressionSettings`/`selectCompressionStrategy`)
-> ไม่ใช่การบีบอัด HTTP response ของเนื้อหา 429 ที่สังเคราะห์ขึ้น — จึงไม่มี
-> code path ที่ตรงกับแฟล็ก bypass ตามตัวอักษร ขั้นตอนการบีบอัดพรอมต์ดังกล่าว
-> ยังทำงาน _ก่อน_ `withRateLimit()` ใน pipeline ของคำขอในปัจจุบัน ดังนั้น
-> การจัดลำดับใหม่เพื่อข้ามขั้นตอนนี้เมื่อเกิดการปฏิเสธเพราะคิวเต็มจึงเป็นการเปลี่ยนแปลงที่แยกต่างหากและใหญ่กว่าขอบเขตของ issue นี้ โดยตั้งใจว่า **จะไม่** นำไปใช้
-> ในที่นี้ และปล่อยไว้เป็นงานติดตามผลหากประโยชน์ด้านการประหยัด CPU คุ้มค่ากับ
+> ไม่ใช่การบีบอัดการตอบกลับ HTTP สำหรับเนื้อหา 429 ที่สร้างขึ้น — จึงไม่มี
+> เส้นทางโค้ดที่ตรงกับแฟล็กบายพาสดังกล่าวโดยตรง ปัจจุบันขั้นตอนการบีบอัดพรอมต์นั้น
+> ยังทำงาน _ก่อน_ `withRateLimit()` ในไปป์ไลน์คำขอ ดังนั้น
+> การจัดลำดับใหม่เพื่อข้ามขั้นตอนนี้เมื่อถูกปฏิเสธเพราะคิวเต็มจึงเป็นการเปลี่ยนแปลงที่แยกต่างหากและใหญ่กว่า
+> ขอบเขตของ issue นี้ โดยตั้งใจ **ไม่** นำมาปรับใช้
+> ที่นี่ และปล่อยไว้เป็นงานต่อเนื่องหากประโยชน์ด้านการประหยัด CPU คุ้มกับ
 > ความเสี่ยงจากการจัดลำดับใหม่
 
 ---

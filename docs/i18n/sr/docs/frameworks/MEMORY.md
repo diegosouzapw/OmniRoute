@@ -1,6 +1,6 @@
 # Memory System (Српски)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
 
 ---
 
@@ -165,33 +165,36 @@ RRF(d) = Σ  1 / (k + rank_i(d))      где је k = 60 (подесиво пу�
 ## Проширење подешавања
 
 Девет поља за уграђивање и векторе доступно је у `MemorySettingsExtended` у
-`src/shared/schemas/memory.ts`, а трајно се чувају преко `src/lib/db/settings.ts`:
+`src/shared/schemas/memory.ts`, а трајно се чувају путем `src/lib/db/settings.ts`:
 
-| Поље                     | Тип                                                | Подразумевано | Опис                                                                 |
-| ------------------------ | -------------------------------------------------- | ------------- | -------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Који извор уграђивања треба користити                                |
-| `embeddingProviderModel` | `string \| null`                                   | `null`        | Добављач/модел у формату `provider/model`                            |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | Основни URL крајње тачке компатибилне са OpenAI-јем само за меморију |
-| `customModelId`          | `string \| null`                                   | `null`        | ID модела који се шаље прилагођеној крајњој тачки                    |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Пристанак на коришћење Transformers.js (MiniLM, ~400MB)              |
-| `staticEnabled`          | `boolean`                                          | `false`       | Пристанак на коришћење локалног статичког модела potion-base-8M      |
-| `rerankEnabled`          | `boolean`                                          | `false`       | Омогућавање корака поновног рангирања (додаје +200-500ms/req)        |
-| `rerankProviderModel`    | `string \| null`                                   | `null`        | Добављач/модел за поновно рангирање у формату `provider/model`       |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`      | Коју векторску позадину треба користити                              |
+| Поље                     | Тип                                                | Подразумевано | Опис                                                           |
+| ------------------------ | -------------------------------------------------- | ------------- | -------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Који извор уграђивања треба користити                          |
+| `embeddingProviderModel` | `string \| null`                                   | `null`        | Добављач/модел у формату `provider/model`                      |
+| `customBaseUrl`          | `string \| null`                                   | `null`        | Основни URL OpenAI-компатибилне крајње тачке само за Memory    |
+| `customModelId`          | `string \| null`                                   | `null`        | ID модела који се шаље прилагођеној крајњој тачки              |
+| `transformersEnabled`    | `boolean`                                          | `false`       | Добровољно укључивање Transformers.js (MiniLM, ~400MB)         |
+| `staticEnabled`          | `boolean`                                          | `false`       | Добровољно укључивање локалног статичког модела potion-base-8M |
+| `rerankEnabled`          | `boolean`                                          | `false`       | Омогућавање корака поновног рангирања (додаје +200-500ms/req)  |
+| `rerankProviderModel`    | `string \| null`                                   | `null`        | Добављач/модел за поновно рангирање у формату `provider/model` |
 
-Она су изложена преко `GET /PUT /api/settings/memory` (шема `MemorySettingsExtendedSchema`).
+`rerankProviderModel` се разрешава путем `POST /v1/rerank` (позваног преко повратне петље), па прихвата све што прихвата и та рута: одабрани модел у облаку за поновно рангирање (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) или чвор OpenAI-компатибилног добављача у облику `<node-prefix>/<model>` (нпр. `skilled-mini/bge-reranker-v2-m3` за TEI/Infinity систем). Чворови на повратној петљи су увек прихватљиви; чвор на другом хосту (LAN, Tailscale) додатно захтева заставицу функције `RERANK_REMOTE_PROVIDER_NODES` и мора да задовољи политику одлазних URL-ова добављача — погледајте [Заставице функција](../reference/FEATURE_FLAGS.md). Селектор на контролној табли приказује одабране добављаче и локалне чворове; сваки важећи ниска `provider/model` може се директно поставити путем `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Коју векторску позадину треба користити |
 
-За извор `remote`, меморија прихвата и опционална подешавања `customBaseUrl` и
-`customModelId`. Заједно бирају крајњу тачку `/embeddings` компатибилну са OpenAI-јем
+Ова подешавања су доступна путем `GET /PUT /api/settings/memory` (шема `MemorySettingsExtendedSchema`).
+
+За извор `remote`, Memory такође прихвата опционална подешавања `customBaseUrl` и
+`customModelId`. Заједно бирају OpenAI-компатибилну крајњу тачку `/embeddings`
 и модел без измене глобалног регистра уграђивања. Крајња тачка се нормализује
-пре употребе и проверава у складу са политиком добављача за одлазне URL-ове: захтева
-се HTTP(S), уграђени акредитиви и ниске упита се одбијају, а адресе метаподатака
-у облаку остају блокиране. Празне вредности задржавају изабраног добављача из регистра. Грешке
-које се враћају контролној табли су прочишћене, а акредитиви крајње тачке се никада не евидентирају.
+пре употребе и проверава према политици одлазних URL-ова добављача: захтева се
+HTTP(S), уграђени акредитиви и ниске упита се одбацују, а адресе метаподатака
+у облаку остају блокиране. Празне вредности задржавају изабраног добављача из
+регистра. Грешке враћене контролној табли су пречишћене, а акредитиви крајње
+тачке се никада не евидентирају.
 
-> **TODO (D20):** Опсег `global` (дељење меморија између свих API кључева) није
-> имплементиран у овом издању. Захтева измене шеме и глобалну путању
-> преузимања. Пратити засебно.
+> **ЗАДАТАК (D20):** Опсег `global` (дељење меморија између свих API кључева) није
+> имплементиран у овом издању. Захтева измене шеме и глобалну путању за
+> преузимање. Пратити засебно.
 
 ## Слојеви складиштења
 

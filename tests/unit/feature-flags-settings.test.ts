@@ -41,8 +41,9 @@ const {
 // brought it back to 53. UNIVERSAL_CONTEXT_HANDOFF_ENABLED bumped it to 54.
 // #13641 added SEARCH_STATS_HIDE_DELETED_CONNECTIONS, bumping the count to 56.
 // ROTATION_ATTRIBUTION (rotation skipped/served masked ids + proxy-log request
-// correlation, all read-only diagnostics) bumped it from 74 to 75.
-const EXPECTED_FEATURE_FLAG_COUNT = 75;
+// correlation, all read-only diagnostics) is this PR's flag; the release tip
+// added one of its own after the branch forked, so the registry now holds 76.
+const EXPECTED_FEATURE_FLAG_COUNT = 76;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry

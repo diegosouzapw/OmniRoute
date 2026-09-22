@@ -1,1 +1,0 @@
-- **fix(db):** defer `process.exit(0)` on graceful shutdown by one macrotask, avoiding a Windows-only libuv abort when the sql.js fallback driver has a statement in flight (#13306) — thanks @anhtahaylove

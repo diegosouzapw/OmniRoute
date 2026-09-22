@@ -5,7 +5,7 @@
  */
 
 import { getDbInstance } from "./core";
-import { logger } from "../../open-sse/utils/logger";
+import { logger } from "@omniroute/open-sse/utils/logger";
 
 const log = logger("DB_DISCOVERY");
 
@@ -45,21 +45,27 @@ export function insertDiscoveryResult(result: DiscoveryResult): number {
     result.notes ?? null,
     now
   );
-  log.info("discovery_result.inserted", { id: info.lastInsertRowid, providerId: result.providerId });
+  log.info("discovery_result.inserted", {
+    id: info.lastInsertRowid,
+    providerId: result.providerId,
+  });
   return info.lastInsertRowid as number;
 }
 
 export function listDiscoveryResults(status?: string): DiscoveryResult[] {
   const db = getDbInstance();
   const rows = status
-    ? db.prepare("SELECT * FROM discovery_results WHERE status = ? ORDER BY discovered_at DESC").all(status)
+    ? db
+        .prepare("SELECT * FROM discovery_results WHERE status = ? ORDER BY discovered_at DESC")
+        .all(status)
     : db.prepare("SELECT * FROM discovery_results ORDER BY discovered_at DESC").all();
   return (rows as Record<string, unknown>[]).map(rowToResult);
 }
 
 export function getDiscoveryResultById(id: number): DiscoveryResult | null {
   const db = getDbInstance();
-  const row = db.prepare("SELECT * FROM discovery_results WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+  const row = db.prepare("SELECT * FROM discovery_results WHERE id = ?").get(id) as
+    Record<string, unknown> | undefined;
   return row ? rowToResult(row) : null;
 }
 
@@ -67,7 +73,9 @@ export function updateDiscoveryStatus(id: number, status: string, notes?: string
   const db = getDbInstance();
   const now = new Date().toISOString();
   const result = db
-    .prepare("UPDATE discovery_results SET status = ?, notes = COALESCE(?, notes), verified_at = CASE WHEN ? = 'verified' THEN ? ELSE verified_at END, updated_at = ? WHERE id = ?")
+    .prepare(
+      "UPDATE discovery_results SET status = ?, notes = COALESCE(?, notes), verified_at = CASE WHEN ? = 'verified' THEN ? ELSE verified_at END, updated_at = ? WHERE id = ?"
+    )
     .run(status, notes ?? null, status, now, now, id);
   return result.changes > 0;
 }

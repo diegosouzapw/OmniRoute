@@ -706,15 +706,15 @@ export async function withRateLimit(
     undefined,
     connectionId ?? undefined
   );
-  const budgetForSlot =
-    typeof remainingBudgetMs === "number" && Number.isFinite(remainingBudgetMs)
-      ? remainingBudgetMs
+  const hasBudget = typeof remainingBudgetMs === "number" && Number.isFinite(remainingBudgetMs);
+  // #12902: maxWaitMs=0 = no queue-wait deadline; never "0 ms left" for #12715's gate → 503.
+  const queueWaitDisabled = !hasBudget && queueBudgetMs <= 0;
+  const budgetForSlot = hasBudget
+    ? remainingBudgetMs
+    : queueWaitDisabled
+      ? undefined
       : queueBudgetMs;
-  if (
-    typeof remainingBudgetMs === "number" &&
-    Number.isFinite(remainingBudgetMs) &&
-    remainingBudgetMs <= 0
-  ) {
+  if (hasBudget && remainingBudgetMs <= 0) {
     throw markLocalRateLimitError(
       new Error(`Queue budget exhausted before rate-limit (remaining=${remainingBudgetMs}ms)`),
       LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
@@ -723,10 +723,9 @@ export async function withRateLimit(
   const slotStart = Date.now();
   await awaitProviderDefaultSlot(provider, connectionId, signal, budgetForSlot);
   const elapsedSlot = Date.now() - slotStart;
-  const remainingForQueue =
-    typeof remainingBudgetMs === "number" && Number.isFinite(remainingBudgetMs)
-      ? Math.max(0, remainingBudgetMs - elapsedSlot)
-      : queueBudgetMs;
+  const remainingForQueue = hasBudget
+    ? Math.max(0, remainingBudgetMs - elapsedSlot)
+    : queueBudgetMs;
   if (correlationId)
     logRateLimit(
       `[RATE-LIMIT] cid=${correlationId} provider=${provider} remainingForQueue=${remainingForQueue}ms`
@@ -786,8 +785,9 @@ export async function withRateLimit(
     ),
     LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
   );
-  if (queueRemainingMs <= 0) throw queueTimeoutErr;
+  if (!queueWaitDisabled && queueRemainingMs <= 0) throw queueTimeoutErr;
   const timeoutPromise = new Promise<never>((_, reject) => {
+    if (queueWaitDisabled) return; // sentinel: never fires
     delayId = setTimeout(() => {
       queueTimedOut = true;
       reject(queueTimeoutErr);

@@ -1,1 +1,0 @@
-- **fix(sse):** thread the client's thinking intent into the non-streaming translation path so the same request answered with `stream:false` no longer leaks a thinking block that `stream:true` withholds ([#12905](https://github.com/diegosouzapw/OmniRoute/pull/12905)) — thanks @initguru

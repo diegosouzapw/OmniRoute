@@ -1,0 +1,1 @@
+- **fix(api):** `GET /api/logs/export` now settles its HTTP response instead of hanging forever when the DB row source throws mid-stream — the row-iteration loop is wrapped in try/catch, the failure is logged, and the JSON document is closed out cleanly with additive `emitted`/`error` trailer fields so the client always gets a response (#13999).
