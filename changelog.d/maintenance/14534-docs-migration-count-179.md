@@ -1,0 +1,1 @@
+- **docs(counts):** sync the DB migration count to 179 in README, AGENTS and the 66 llm.txt i18n mirrors, clearing the STRICT drift that fails Docs Gates for every PR on the current tip ([#14534](https://github.com/diegosouzapw/OmniRoute/pull/14534)) — thanks @sxh313
