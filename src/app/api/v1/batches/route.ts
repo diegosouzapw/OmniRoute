@@ -8,6 +8,7 @@ import {
   canAccessOwnedRecord,
   resolveListScope,
 } from "@/app/api/v1/_helpers/apiKeyScope";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { formatBatchResponse } from "./formatBatchResponse";
 import { parseBatchListLimit } from "./parseListLimit";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
@@ -19,6 +20,19 @@ export async function OPTIONS() {
 export async function POST(request: Request) {
   const scope = await getApiKeyRequestScope(request);
   if (scope.rejection) return scope.rejection;
+
+  // per-key operator policy (endpoint allowlist, schedule, usage cap, rate
+  // limit) — LEDGER-2 of the omni-code-sec 2026-09-21 run / #14481. Gated on
+  // an already-resolved key: `enforceApiKeyPolicy` re-resolves the key on its
+  // own and its lifecycle check returns 403 for a revoked/expired/banned/
+  // deactivated key — not the 401/404 the ownership checks below already
+  // produce for that case via getApiKeyRequestScope's validateApiKey fold
+  // (#13881). A session-only or anonymous caller has no key to police either way.
+  if (scope.apiKeyId) {
+    const policy = await enforceApiKeyPolicy(request, null);
+    if (policy.rejection) return policy.rejection;
+  }
+
   const apiKeyId = scope.apiKeyId;
 
   try {
@@ -82,6 +96,18 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const scope = await getApiKeyRequestScope(request);
   if (scope.rejection) return scope.rejection;
+
+  // per-key operator policy (endpoint allowlist, schedule, usage cap, rate
+  // limit) — LEDGER-2 of the omni-code-sec 2026-09-21 run / #14481. Gated on
+  // an already-resolved key: `enforceApiKeyPolicy` re-resolves the key on its
+  // own and its lifecycle check returns 403 for a revoked/expired/banned/
+  // deactivated key — not the 401/404 the ownership checks below already
+  // produce for that case via getApiKeyRequestScope's validateApiKey fold
+  // (#13881). A session-only or anonymous caller has no key to police either way.
+  if (scope.apiKeyId) {
+    const policy = await enforceApiKeyPolicy(request, null);
+    if (policy.rejection) return policy.rejection;
+  }
 
   // Key → own batches only; dashboard session without a key → instance-wide;
   // anonymous / unresolvable bearer → 401. `listBatches`/`countBatches` read an
