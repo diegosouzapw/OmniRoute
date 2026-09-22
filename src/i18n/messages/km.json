@@ -11020,6 +11020,9 @@
     "poolEgressObservation": "បានប្រើច្រកចេញ {exits, plural, one {#} other {#}} ដោយការតភ្ជាប់ {connections, plural, one {#} other {#}} · អតិបរមា {max} នៅលើច្រកចេញមួយ · ក្នុងរយៈពេល {hours} ម៉ោងចុងក្រោយ",
     "poolEgressObservationEmpty": "មិនបានសង្កេតឃើញចរាចរណ៍ក្នុងរយៈពេល {hours} ម៉ោងចុងក្រោយទេ",
     "poolEgressObservationHint": "រាប់ពីកំណត់ហេតុប្រូកស៊ីក្នុងអំឡុងពេលកំណត់៖ អាសយដ្ឋាន IP ចេញផ្សេងៗគ្នាដែលបានសង្កេតឃើញសម្រាប់សមាជិកនៃក្រុមនេះ និងការតភ្ជាប់ OmniRoute ដែលបានប្រើពួកវា។ «នៅលើច្រកចេញមួយ» មានន័យថាក្នុងអំឡុងពេលកំណត់ មិនមែននៅពេលតែមួយទេ។ ការចាក់សោ 429 សម្រាប់ IP នីមួយៗ ផ្អាកតែការតភ្ជាប់នៃគ្រួសារអ្នកផ្តល់សេវាដូចគ្នាប៉ុណ្ណោះ។",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "ដកចេញ",
     "poolRemoveFailed": "បានបរាជ័យក្នុងការដកប្រូកស៊ីចេញពីក្រុម",
     "poolAddLabel": "បន្ថែមប្រូកស៊ី",
@@ -11423,6 +11426,7 @@
         "clientResponse": "ការឆ្លើយតបទៅកាន់ Client",
         "pipelineError": "កំហុស Pipeline"
       },
+      "payloadSizeLimitOmitted": "បានលុបខ្លឹមសារ — ផ្នែកនេះលើសដែនកំណត់ទំហំកំណត់ហេតុការហៅ (CALL_LOG_PIPELINE_MAX_SIZE_KB) ហើយមិនត្រូវបានរក្សាទុកទេ។ នេះមិនមែនជាកំហុសពិតពីអ្នកផ្តល់សេវាទេ។",
       "payloadMissing": "ឯកសារ payload លម្អិតលែងមានសម្រាប់ធាតុកំណត់ហេតុនេះទៀតហើយ។",
       "payloadCorrupt": "មិនអាចញែកឯកសារ payload លម្អិតបានទេ។",
       "notAvailable": "មិនមាន",
@@ -11476,8 +11480,7 @@
       "correlationIdValue": "លេខសម្គាល់ទំនាក់ទំនង៖ {id}",
       "detailedPayloadInfo": "សូមបើកការកត់ត្រាលម្អិតជាមុនសិន ប្រសិនបើអ្នកចង់មើល payload បួនដំណាក់កាលរបស់កម្មវិធីអតិថិជន/អ្នកផ្តល់សេវា សម្រាប់សំណើថ្មីៗ។",
       "copyAll": "ចម្លងទាំងអស់",
-      "copiedAll": "បានចម្លងទាំងអស់",
-      "payloadSizeLimitOmitted": "បានលុបខ្លឹមសារ — ផ្នែកនេះលើសដែនកំណត់ទំហំកំណត់ហេតុការហៅ (CALL_LOG_PIPELINE_MAX_SIZE_KB) ហើយមិនត្រូវបានរក្សាទុកទេ។ នេះមិនមែនជាកំហុសពិតពីអ្នកផ្តល់សេវាទេ។"
+      "copiedAll": "បានចម្លងទាំងអស់"
     }
   },
   "proxyLogger": {

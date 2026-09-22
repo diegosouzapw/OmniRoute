@@ -1,0 +1,1 @@
+- **feat(proxies):** show each pool member's last seen egress IP next to the pool totals ([#14364](https://github.com/diegosouzapw/OmniRoute/pull/14364)) — thanks @maxmad64bis

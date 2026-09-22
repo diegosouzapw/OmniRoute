@@ -513,9 +513,8 @@ export default Plugin.define({
         }
       }
     });
-    const integrationHook = (
-      ctx.integration as unknown as { transform?: unknown } | undefined
-    )?.transform;
+    const integrationHook = (ctx.integration as unknown as { transform?: unknown } | undefined)
+      ?.transform;
     // A host that exposes the hook but throws while registering it must cost
     // the plugin nothing but the connect action: the throw happens OUTSIDE
     // any await, so only a call-site guard catches it (an await-guard alone
@@ -561,10 +560,7 @@ export default Plugin.define({
         languageRegistration = (
           languageHook as (
             name: string,
-            cb: (input: {
-              model: { providerID: string; id: string };
-              language?: unknown;
-            }) => void
+            cb: (input: { model: { providerID: string; id: string }; language?: unknown }) => void
           ) => Promise<{ dispose: () => Promise<void> }>
         )("language", (input) => {
           if (input.model.providerID !== X) return;
@@ -577,6 +573,40 @@ export default Plugin.define({
       } catch (err) {
         log.warn(
           `[omniroute-v2] host refused the language-model hook, Gemini tool schemas will not be cleaned: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+    }
+
+    /**
+     * `aisdk.hook("sdk")` carries inference-telemetry options. It is the same
+     * entry point the `"language"` hook above goes through, so a host that
+     * exposes no `aisdk` domain — or refuses this particular name — must still
+     * load the catalog. Strict fallback (no proven options-only marking):
+     * register the hook and record the observation in `options` only — never
+     * wrap fetch, never assign `sdk`. Gated on the opt-in `telemetry` flag
+     * (off by default).
+     */
+    const sdkHook = (ctx.aisdk as unknown as { hook?: unknown } | undefined)?.hook;
+    let sdkRegistration: Promise<{ dispose: () => Promise<void> }> | undefined;
+    if (parsed.telemetry === true && typeof sdkHook === "function") {
+      try {
+        sdkRegistration = (
+          sdkHook as (
+            name: string,
+            cb: (input: {
+              model: { providerID: string; id: string };
+              package: string;
+              options: Record<string, unknown>;
+            }) => void
+          ) => Promise<{ dispose: () => Promise<void> }>
+        )("sdk", (input) => {
+          if (input.model.providerID !== X) return;
+          if (!input.package.includes("@ai-sdk/openai-compatible")) return;
+          input.options.telemetry = true;
+        });
+      } catch (err) {
+        log.warn(
+          `[omniroute-v2] host refused the sdk hook, inference telemetry will not be marked: ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }
@@ -597,6 +627,15 @@ export default Plugin.define({
       } catch (err) {
         log.warn(
           `[omniroute-v2] language-model hook registration failed, Gemini tool schemas will not be cleaned: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+    }
+    if (sdkRegistration !== undefined) {
+      try {
+        await sdkRegistration;
+      } catch (err) {
+        log.warn(
+          `[omniroute-v2] sdk hook registration failed, inference telemetry will not be marked: ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }
