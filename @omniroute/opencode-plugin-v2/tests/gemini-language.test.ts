@@ -148,16 +148,17 @@ describe("Gemini sanitising is wired into the host, and only where it belongs", 
       options["geminiSanitization"] = opts.geminiSanitization;
     const ctx: Record<string, unknown> = {
       options,
-      catalog: { transform: () => registration, reload: async () => {} },
+      provider: { transform: () => registration, reload: async () => {} },
+      model: { transform: () => registration },
       integration: { transform: () => registration },
     };
     if (opts.withAisdk !== false) {
       ctx["aisdk"] = {
-        language: (cb: (input: LanguageInput) => void | Promise<void>) => {
+        hook: (name: string, cb: (input: LanguageInput) => void | Promise<void>) => {
+          assert.equal(name, "language");
           languageCallbacks.push(cb);
           return registration;
         },
-        sdk: () => registration,
       };
     }
     return { ctx, languageCallbacks };
@@ -211,13 +212,13 @@ describe("Gemini sanitising is wired into the host, and only where it belongs", 
     const registration = Promise.resolve({ dispose: async () => {} });
     const ctx: Record<string, unknown> = {
       options: { baseURL: "https://gw.example.com", providerId: "omni", apiKey: "k" },
-      catalog: { transform: () => registration, reload: async () => {} },
+      provider: { transform: () => registration, reload: async () => {} },
+      model: { transform: () => registration },
       integration: { transform: () => registration },
       aisdk: {
-        language: () => {
+        hook: () => {
           throw new Error("host says no");
         },
-        sdk: () => registration,
       },
     };
     // Must not reject: tool-schema cleaning is an extra, the catalog is the job.

@@ -15,6 +15,7 @@ import {
   proxyEgressKey,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
+import { getCachedProxyHealth } from "@/lib/proxyHealth";
 import type { JsonRecord, ProxyScope, ProxyRotationStrategy } from "./types";
 import { PROXY_ROTATION_STRATEGIES, DEFAULT_PROXY_ROTATION_STRATEGY } from "./types";
 import {
@@ -149,6 +150,14 @@ function eligibleMemberIndexes(candidates: unknown[]): number[] | null {
   return isProxySkipRecentlyFailedEnabled() ? eligible : null;
 }
 
+// True once the sticky window elapsed (or never started): the held member is due
+// for rotation. Shared by the pre-rank bypass (held member served untouched) and
+// the sticky branch below (advance on expiry) — same `state`, no extra DB read.
+function isStickyExpired(state: { stickyWindowMinutes: number; rotatedAt: string | null }): boolean {
+  const lastRotated = state.rotatedAt ? Date.parse(state.rotatedAt) : NaN;
+  return !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000;
+}
+
 // First eligible index at or after `start`, going round the pool.
 function firstEligibleFrom(start: number, eligible: number[], size: number): number {
   for (let step = 0; step < size; step++) {
@@ -156,6 +165,73 @@ function firstEligibleFrom(start: number, eligible: number[], size: number): num
     if (eligible.includes(index)) return index;
   }
   return start;
+}
+
+/** Health signals read from short-lived process memory, injectable for tests. */
+export interface PoolRankSignals {
+  isAvoided: (key: string | null) => boolean;
+  probeHealth: (url: string) => boolean | null;
+}
+
+const DEFAULT_POOL_RANK_SIGNALS: PoolRankSignals = {
+  isAvoided: isProxyAvoided,
+  probeHealth: getCachedProxyHealth,
+};
+
+// Relay entries carry the relay URL in `host` and no dispatcher: not rankable.
+const RELAY_TYPES = new Set(["vercel", "deno", "cloudflare"]);
+// Same scheme defaults as proxyConfigToUrl() so the rebuilt URL hits the probe cache key.
+const DEFAULT_PORTS: Record<string, string> = { http: "8080", https: "443", socks5: "1080" };
+
+// Rebuild the probe URL for a pool row the way the dispatcher builds it
+// (`proxyConfigToUrl`, read-only replica): scheme + encoded auth + host + port,
+// with the `?family=` marker when set. Null when the row cannot egress.
+function candidateProbeUrl(row: unknown): string | null {
+  if (!row || typeof row !== "object" || Array.isArray(row)) return null;
+  const record = row as Record<string, unknown>;
+  const host = typeof record.host === "string" ? record.host : "";
+  if (!host) return null;
+  const type = String(record.type || "http").toLowerCase();
+  if (RELAY_TYPES.has(type) || !(type in DEFAULT_PORTS)) return null;
+  const parsed = Number(record.port);
+  const port =
+    record.port && Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535
+      ? String(parsed)
+      : DEFAULT_PORTS[type];
+  const bracketed = host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+  const username = typeof record.username === "string" ? record.username : "";
+  const password = typeof record.password === "string" ? record.password : "";
+  const auth =
+    username || password ? `${encodeURIComponent(username)}:${encodeURIComponent(password)}@` : "";
+  const family = typeof record.family === "string" ? record.family : "";
+  const marker = family === "ipv4" || family === "ipv6" ? `?family=${family}` : "";
+  return `${type}://${auth}${bracketed}:${port}${marker}`;
+}
+
+/**
+ * Order pool candidates by crossed short-memory health signals without removing
+ * anyone: a member just set aside ranks last, then a member whose last cached
+ * probe verdict was negative. Unknown (no signal, unreconstructible URL) keeps
+ * the current position order. Stable: health ties keep their relative order, so
+ * an all-clear or all-set-aside pool returns its input order unchanged.
+ */
+export function rankPoolCandidates<T>(candidates: T[], signals?: Partial<PoolRankSignals>): T[] {
+  if (candidates.length < 2) return [...candidates];
+  const { isAvoided, probeHealth } = {
+    ...DEFAULT_POOL_RANK_SIGNALS,
+    isAvoided: signals?.isAvoided ?? DEFAULT_POOL_RANK_SIGNALS.isAvoided,
+    probeHealth: signals?.probeHealth ?? DEFAULT_POOL_RANK_SIGNALS.probeHealth,
+  };
+  const scored = candidates.map((candidate, index) => {
+    if (isAvoided(proxyEgressKey(candidate))) return { candidate, index, score: 2 };
+    const url = candidateProbeUrl(candidate);
+    if (url !== null && probeHealth(url) === false) return { candidate, index, score: 1 };
+    return { candidate, index, score: 0 };
+  });
+  if (scored.every((entry) => entry.score === scored[0].score)) return [...candidates];
+  return scored
+    .sort((a, b) => a.score - b.score || a.index - b.index)
+    .map((entry) => entry.candidate);
 }
 
 /**
@@ -175,25 +251,47 @@ function pickFromCandidates<T>(
   if (candidates.length === 1) return candidates[0];
 
   const state = getOrCreateRotationRow(db, normalizedScope, rotationScopeId);
-  const eligible = eligibleMemberIndexes(candidates);
+
+  if (state.strategy === "sticky") {
+    const expired = isStickyExpired(state);
+    if (!expired) {
+      const idx = ((state.cursor % candidates.length) + candidates.length) % candidates.length;
+      const eligible = eligibleMemberIndexes(candidates);
+      return candidates[eligible ? firstEligibleFrom(idx, eligible, candidates.length) : idx];
+    }
+  }
+
+  // Order by crossed short-memory health signals (opt-in, PROXY_SKIP_RECENTLY_FAILED):
+  // stops re-serving at the head a proxy that just failed, without removing anyone.
+  // Sticky past its window and every other strategy rank normally; a held sticky
+  // member returns above, untouched. The eligible-skip below still applies on the
+  // ranked list, so a set-aside member stays skipped while another is eligible and
+  // the cursor advances past the member actually served.
+  // NOTE: ranking changes which member the persisted cursor lands on. After a
+  // set-aside, the next pick serves the healthiest member at-or-after the cursor
+  // (not the cursor member itself when it was set aside) — the cursor then
+  // advances past the member served, preserving rotation without re-serving the
+  // failed head first.
+  const ranked = isProxySkipRecentlyFailedEnabled()
+    ? rankPoolCandidates(candidates)
+    : [...candidates];
+  const eligible = eligibleMemberIndexes(ranked);
 
   if (state.strategy === "random") {
     // crypto.randomInt (unbiased, uniform in [0, length)) instead of Math.random —
     // CodeQL js/insecure-randomness flags Math.random flowing into the selected proxy's
     // credentials (a "security context"). Load-balancing selection is not a secret, but
     // crypto.randomInt silences the alert at the source and is unbiased (#6365 follow-up).
-    if (eligible) return candidates[eligible[randomInt(eligible.length)]];
-    return candidates[randomInt(candidates.length)];
+    if (eligible) return ranked[eligible[randomInt(eligible.length)]];
+    return ranked[randomInt(ranked.length)];
   }
 
   if (state.strategy === "latency") {
-    return pickByLatency(db, eligible ? eligible.map((index) => candidates[index]) : candidates);
+    return pickByLatency(db, eligible ? eligible.map((index) => ranked[index]) : ranked);
   }
 
   if (state.strategy === "sticky") {
-    const windowMs = state.stickyWindowMinutes * 60_000;
-    const lastRotated = state.rotatedAt ? Date.parse(state.rotatedAt) : NaN;
-    const expired = !Number.isFinite(lastRotated) || Date.now() - lastRotated >= windowMs;
+    const expired = isStickyExpired(state);
     let cursor = state.cursor;
     if (expired) {
       cursor = state.cursor + 1;
@@ -207,20 +305,20 @@ function pickFromCandidates<T>(
         rotationScopeId
       );
     }
-    const idx = ((cursor % candidates.length) + candidates.length) % candidates.length;
+    const idx = ((cursor % ranked.length) + ranked.length) % ranked.length;
     // A held member set aside is replaced for this pick only: no extra write.
-    return candidates[eligible ? firstEligibleFrom(idx, eligible, candidates.length) : idx];
+    return ranked[eligible ? firstEligibleFrom(idx, eligible, ranked.length) : idx];
   }
 
   // round-robin (default): pick at the current cursor, then advance it monotonically,
   // past any member skipped so the next pick starts after the one actually served.
-  const idx = ((state.cursor % candidates.length) + candidates.length) % candidates.length;
-  const served = eligible ? firstEligibleFrom(idx, eligible, candidates.length) : idx;
-  const skipped = (served - idx + candidates.length) % candidates.length;
+  const idx = ((state.cursor % ranked.length) + ranked.length) % ranked.length;
+  const served = eligible ? firstEligibleFrom(idx, eligible, ranked.length) : idx;
+  const skipped = (served - idx + ranked.length) % ranked.length;
   db.prepare(
     "UPDATE proxy_scope_rotation SET cursor = ?, updated_at = ? WHERE scope = ? AND scope_id IS ?"
   ).run(state.cursor + skipped + 1, new Date().toISOString(), normalizedScope, rotationScopeId);
-  return candidates[served];
+  return ranked[served];
 }
 
 // Fetch the alive, position-ordered candidate rows for a (scope, scope_id) pool.

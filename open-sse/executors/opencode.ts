@@ -29,7 +29,12 @@ import {
   isEmptyUpstreamRejection,
   extractChatcmplId,
 } from "./accountRotation.ts";
-import { markCooldown, markOutcome, markSuccess, noteResponseServed } from "./opencodeAccountHealth.ts";
+import {
+  markCooldown,
+  markOutcome,
+  markSuccess,
+  noteResponseServed,
+} from "./opencodeAccountHealth.ts";
 import {
   isOpencodeFreeTierRefusal,
   isOpencodeGeoBlocked,
@@ -37,18 +42,19 @@ import {
   isOpencodeUserBlocked,
 } from "./opencodeGeoBlock.ts";
 import {
+  attemptFor,
   isGatedFreeTierRequest,
   isPremiumOpencodeModel,
   noteFreeTierOutcome,
   prepareFreeTierRequest,
   rebuildJsonFromForcedStream,
   surfaceFromBaseUrl,
-  type FreeTierContractAttempt,
 } from "./opencodeFreeTierContract.ts";
 import {
   handleLoopFreeTierRefusal,
   retryFreeTierRefusalWithObservedTools,
 } from "./opencodeFreeTierRetry.ts";
+import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
 
 // Re-exported: the free-model catalog moved to the contract module (it decides whether the
 // contract applies), and existing importers keep resolving it from the executor.
@@ -286,20 +292,22 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   _requestFormat: string | null = null;
-  private _contractAttempt: FreeTierContractAttempt | null = null;
   /** Set in buildHeaders, which execute() runs before transformRequest. */
   private _clientSession: string | undefined;
   private _surface = () => surfaceFromBaseUrl(this.config?.baseUrl);
 
   /** Free-tier retry context: the request-scoped contract state the retry helper needs. */
-  private freeTierRetryCtx() {
+  private freeTierRetryCtx(input: ExecuteInput) {
+    // #14148 moved the contract attempt off the executor: it is keyed by the
+    // request body, so read it back from there instead of a shared field.
+    const attempt = attemptFor(input.body);
     return {
       surface: this._surface(),
       provider: this.provider,
       requestFormat: this._requestFormat,
       clientSession: this._clientSession,
-      borrowed: this._contractAttempt?.borrowed,
-      clientToolNames: this._contractAttempt?.clientToolNames ?? [],
+      borrowed: attempt?.borrowed,
+      clientToolNames: attempt?.clientToolNames ?? [],
     };
   }
 
@@ -384,12 +392,12 @@ export class OpencodeExecutor extends BaseExecutor {
     input: ExecuteInput,
     result: ExecutorExecuteResult
   ): ExecutorExecuteResult {
-    noteFreeTierOutcome(this._contractAttempt, "response" in result && !!result.response?.ok);
+    noteFreeTierOutcome(attemptFor(input.body), "response" in result && !!result.response?.ok);
     if (input.stream) return result;
     if (!("response" in result) || !result.response) return result;
     // Non-null exactly when the contract applied: stands in for the old surface/model guard.
-    if (!this._contractAttempt) return result;
-    const model = this._contractAttempt.model;
+    const model = attemptFor(input.body)?.model;
+    if (!model) return result;
     const response = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
     return response === result.response ? result : { ...result, response };
   }
@@ -507,6 +515,10 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
+    return withRequestShapeRetry(input, (i) => this.executeOnce(i));
+  }
+
+  private async executeOnce(input: ExecuteInput) {
     this._requestFormat = resolveOpencodeTargetFormat(this.provider, input.model);
 
     // #8681: Gate premium opencode models behind a usable API key.
@@ -574,17 +586,17 @@ export class OpencodeExecutor extends BaseExecutor {
           await (hasAmbientProxyContext() ? dispatch() : runWithDirectFetchContext(dispatch))
         )) as HttpExecuteResult;
         const retryAfterRefusal = await retryFreeTierRefusalWithObservedTools(
-          this.freeTierRetryCtx(),
+          this.freeTierRetryCtx(input),
           input,
           single,
           log,
           cid,
-          ((retryInput) =>
+          (retryInput) =>
             guardStall(
               hasAmbientProxyContext()
                 ? super.execute(retryInput)
                 : runWithDirectFetchContext(() => super.execute(retryInput))
-            ) as unknown as Promise<HttpExecuteResult>)
+            ) as unknown as Promise<HttpExecuteResult>
         );
         if (retryAfterRefusal) {
           return this.finalizeForcedStream(
@@ -944,13 +956,10 @@ export class OpencodeExecutor extends BaseExecutor {
             if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
               return await handleLoopFreeTierRefusal(
                 (retried) =>
-                  this.finalizeForcedStream(
-                    input,
-                    this.normalizeMuseSparkResponse(input, retried)
-                  ),
+                  this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, retried)),
                 input,
                 result,
-                this.freeTierRetryCtx(),
+                this.freeTierRetryCtx(input),
                 { account, masked, proxyKey: proxyKeyOf(account.proxy) ?? "direct" },
                 log,
                 cid,
@@ -1237,10 +1246,10 @@ export class OpencodeExecutor extends BaseExecutor {
       this._surface(),
       this.provider,
       model,
-      this._clientSession
+      this._clientSession,
+      body
     );
     modifiedBody = prepared.body;
-    this._contractAttempt = prepared.attempt;
     // 9router#1442: OpenCode upstreams (e.g. kimi-k2.6 via opencode-go) return
     // 400 "Extra inputs are not permitted, field: 'client_metadata'" — an
     // OpenAI-Codex/Claude-CLI passthrough field with no equivalent here. The

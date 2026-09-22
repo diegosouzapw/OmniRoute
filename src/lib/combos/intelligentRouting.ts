@@ -228,3 +228,24 @@ export function buildIntelligentProviderScores(combo: {
     factors: weights,
   }));
 }
+
+/** Manual factor edits select custom scoring; unrelated edits preserve the preset. */
+export function applyIntelligentRoutingConfigPatch(
+  config: Record<string, unknown>,
+  patch: Record<string, unknown>
+): Record<string, unknown> & IntelligentRoutingConfig {
+  const normalized = normalizeIntelligentRoutingConfig(config);
+  const editsWeights = isRecord(patch.weights);
+  return {
+    ...config,
+    ...normalized,
+    ...patch,
+    modePack: editsWeights
+      ? "custom"
+      : ((patch.modePack as string | undefined) ?? normalized.modePack),
+    weights: {
+      ...normalized.weights,
+      ...(editsWeights ? patch.weights : {}),
+    },
+  };
+}

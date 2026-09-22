@@ -1,0 +1,1 @@
+- **fix(providers):** stop treating Anthropic `max_tokens` as the context window during model discovery — that field is the output cap, so Claude Opus 5 was advertised as 128K instead of 1M. Discovery now reads `max_input_tokens` for the window and `max_tokens`/`max_output_tokens` for the output limit.

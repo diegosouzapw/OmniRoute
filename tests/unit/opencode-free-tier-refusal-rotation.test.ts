@@ -109,7 +109,14 @@ describe("OpencodeExecutor free-tier refusal", () => {
   async function run(exec: OpencodeExecutor, creds: ProviderCredentials) {
     const result = (await exec.execute({
       model: "muse-spark-1.3-contributor-free",
-      body: { messages: [{ role: "user", content: "hi" }], stream: false },
+      // The client declares its own tool list: the request contract adds nothing, so a refusal
+      // is returned as-is. (When the contract injects the tools itself, the executor replays
+      // the request once in the other shape first: see opencode-request-shape-retry.test.ts.)
+      body: {
+        messages: [{ role: "user", content: "hi" }],
+        tools: [{ type: "function", function: { name: "read", parameters: { type: "object" } } }],
+        stream: false,
+      },
       stream: false,
       signal: null,
       credentials: creds,
@@ -261,9 +268,7 @@ describe("OpencodeExecutor free-tier refusal retry with observed tools", () => {
       const parsed = JSON.parse(String((init as Record<string, unknown>)?.body ?? "{}")) as {
         tools?: unknown[];
       };
-      seenTools.push(
-        Array.isArray(parsed.tools) ? parsed.tools.map(toolNameOf) : null
-      );
+      seenTools.push(Array.isArray(parsed.tools) ? parsed.tools.map(toolNameOf) : null);
       const step = calls[Math.min(call, calls.length - 1)];
       call++;
       return new Response(step.body ?? "{}", {
@@ -297,9 +302,7 @@ describe("OpencodeExecutor free-tier refusal retry with observed tools", () => {
   // Retry refusal: the ORIGINAL 403 is propagated and the store is untouched.
   it("propagates the original refusal when the retry is refused, store untouched", async () => {
     const exec = new OpencodeExecutor("opencode");
-    recordAcceptedToolNames("opencode", "muse-spark-1.3-contributor-free", undefined, [
-      "edit",
-    ]);
+    recordAcceptedToolNames("opencode", "muse-spark-1.3-contributor-free", undefined, ["edit"]);
     globalThis.fetch = (async () => {
       return new Response(REFUSAL_BODY, {
         status: 403,

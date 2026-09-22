@@ -1,16 +1,16 @@
 ---
 title: "Provider Reference"
 version: 3.8.51
-lastUpdated: 2026-09-18
+lastUpdated: 2026-09-20
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-09-18
+> **Last generated:** 2026-09-20
 
-Total providers: **359**. See category breakdown below.
+Total providers: **360**. See category breakdown below.
 
 ## Categories
 
@@ -117,7 +117,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web | Web cookie | [link](https://chat.z.ai) | Copy the "token" value from chat.z.ai → DevTools → Application → Local Storage. Do not copy cookies; OmniRoute handles the per-request CAPTCHA through its browser transport. | — |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
-## API Key Providers (paid / paid-with-free-credits) (242)
+## API Key Providers (paid / paid-with-free-credits) (243)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -243,6 +243,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `llmgateway` | `llmgateway` | LLM Gateway | API key, aggregator | [link](https://llmgateway.io) | Hosted Free plan: free-priced models are limited to 5 requests per 10 minutes when the account has no credits. |
 | `logfare` | `logfare` | Logfare | API key, aggregator | [link](https://logfare.ai) | Create a free account at https://logfare.ai/register (username/password, no email verification) to get an instant API key, then paste it here as a Bearer token. |
 | `longcat` | `lc` | LongCat AI | API key | [link](https://longcat.chat/platform/docs) | Free: one-time 10M-token grant after account signup + KYC verification (LongCat-2.0). One-time only — not a recurring daily/monthly allowance. |
+| `lyceum` | `lyceum` | Lyceum | API key, aggregator | [link](https://lyceum.technology) | Includes monthly free credits toward serverless inference usage. |
 | `magnific` | `freepik` | Magnific | API key, image | [link](https://www.magnific.com) | Get an API key at magnific.com/user/api-keys (header x-magnific-api-key). Legacy Freepik developer keys still work. |
 | `maritalk` | `maritalk` | Maritalk | API key | [link](https://www.maritaca.ai) | — |
 | `meganova-ai` | `meganova-ai` | MegaNova AI | API key, aggregator | [link](https://meganova.ai) | Free signup without a card. Published Tier 1 per-model quotas total 550 requests/day; they are not a shared global pool, and paid overage can apply if enabled. |
@@ -447,7 +448,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 - Catalog: [`src/shared/constants/providers.ts`](../../src/shared/constants/providers.ts)
 - Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)
-- Executors: [`open-sse/executors/`](../../open-sse/executors/) (114 implementations)
+- Executors: [`open-sse/executors/`](../../open-sse/executors/) (121 implementations)
 - Translators: [`open-sse/translator/`](../../open-sse/translator/)
 
 ## See Also

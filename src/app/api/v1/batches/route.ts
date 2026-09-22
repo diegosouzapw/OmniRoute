@@ -10,6 +10,7 @@ import {
 } from "@/app/api/v1/_helpers/apiKeyScope";
 import { formatBatchResponse } from "./formatBatchResponse";
 import { parseBatchListLimit } from "./parseListLimit";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -64,7 +65,12 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: {
-          message: error instanceof Error ? error.message : "Create failed",
+          // Hard Rule #12: never forward a raw Error message to the client —
+          // DB-layer errors can carry file paths, SQL fragments or internal
+          // identifiers (#14089).
+          message:
+            sanitizeErrorMessage(error instanceof Error ? error.message : "Create failed") ||
+            "Create failed",
           type: "invalid_request_error",
         },
       },

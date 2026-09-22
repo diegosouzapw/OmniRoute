@@ -1,0 +1,1 @@
+- **quality:** rebaseline `open-sse/executors/opencode.ts` 1247 → 1251 — drift left by the 2026-09-22 merge wave (#14179 replay-in-other-tool-shape), which turned `check:file-size` red on the release tip.

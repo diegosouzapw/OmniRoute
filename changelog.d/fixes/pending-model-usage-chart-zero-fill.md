@@ -1,0 +1,1 @@
+- **fix(dashboard):** Render model usage over time with explicit zero values for inactive models so stacked chart series remain continuous and accurate ([#14225](https://github.com/diegosouzapw/OmniRoute/issues/14225)) — thanks @yugui923

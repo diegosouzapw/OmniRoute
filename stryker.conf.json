@@ -331,6 +331,7 @@
       "tests/unit/mcp-restart-route-13012.test.ts",
       "tests/unit/antigravityUpstreamError.test.ts",
       "tests/unit/issue-13089-roundrobin-live-ws-events.test.ts",
+      "tests/unit/issue-14110-unknown-root-path-exposed.test.ts",
       "tests/unit/ollama-404-model-lockout-11071.test.ts",
       "tests/unit/noauth-model-lockout.test.ts",
       "tests/unit/non-streaming-client-translate.test.ts",
