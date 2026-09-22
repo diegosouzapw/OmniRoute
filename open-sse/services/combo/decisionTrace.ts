@@ -73,8 +73,6 @@ export interface AutoEvaluationCandidate {
   target: string;
   provider: string;
   model: string;
-  connectionId: string | null;
-  allowedConnectionIds?: string[];
 }
 
 export interface AutoEvaluationTransition {
@@ -152,8 +150,7 @@ export function startAutoEvaluationTrace(invocationId: string): void {
 }
 
 function autoCandidateKey(candidate: AutoEvaluationCandidate): string {
-  const allowed = candidate.allowedConnectionIds ? [...candidate.allowedConnectionIds].sort() : [];
-  return [candidate.target, candidate.connectionId ?? "", ...allowed].join("\u0000");
+  return [candidate.target, candidate.provider, candidate.model].join("\u0000");
 }
 
 export function recordAutoEvaluationCandidate(
@@ -165,12 +162,7 @@ export function recordAutoEvaluationCandidate(
     if (!evaluation) return;
     const key = autoCandidateKey(candidate);
     if (evaluation.candidates.some((existing) => autoCandidateKey(existing) === key)) return;
-    evaluation.candidates.push({
-      ...candidate,
-      ...(candidate.allowedConnectionIds
-        ? { allowedConnectionIds: [...candidate.allowedConnectionIds] }
-        : {}),
-    });
+    evaluation.candidates.push({ ...candidate });
   });
 }
 

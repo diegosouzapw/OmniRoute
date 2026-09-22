@@ -80,3 +80,23 @@ test("forced Auto evaluation trace write failure never propagates into routing",
     assert.deepEqual(result, []);
   });
 });
+
+test("Auto candidate trace omits connection/account identifiers", async () => {
+  const { recordAutoCandidatePool } = await import(
+    "../../../open-sse/services/autoCombo/autoEvaluationTrace.ts"
+  );
+  startComboTrace("combo-auto-privacy", { strategy: "auto", comboName: "auto" });
+  startAutoEvaluationTrace("combo-auto-privacy");
+  const candidateWithAccountMetadata = {
+    provider: "example",
+    model: "model-a",
+    modelStr: "example/model-a",
+    connectionId: "secret-account-id",
+    allowedConnectionIds: ["secret-account-id"],
+  };
+  recordAutoCandidatePool("combo-auto-privacy", [candidateWithAccountMetadata]);
+
+  assert.deepEqual(getComboTrace("combo-auto-privacy")?.autoEvaluation?.candidates, [
+    { target: "example/model-a", provider: "example", model: "model-a" },
+  ]);
+});

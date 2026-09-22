@@ -60,10 +60,13 @@ import {
 } from "./resilienceCandidateFilter";
 import type { ChaosTuning } from "./chaosEngine";
 import {
-  recordAutoEvaluationCandidate,
-  recordAutoEvaluationTransition,
-  type AutoEvaluationStage,
-} from "../combo/decisionTrace.ts";
+  recordAutoCandidatePool,
+  recordAutoDroppedCandidates,
+  recordAutoSurvivors,
+} from "./autoEvaluationTrace";
+import { computeAdvertisedLimits } from "./advertisedLimits";
+
+export { computeAdvertisedLimits };
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -136,6 +139,7 @@ export interface VirtualAutoComboCandidate {
 
 type VirtualAutoCombo = AutoComboConfig & {
   strategy: "auto";
+  traceInvocationId?: string;
   models: Array<{
     id: string;
     kind: "model";
@@ -462,77 +466,7 @@ function getNoAuthCandidates(
   return candidates;
 }
 
-/**
- * Creates a virtual AutoCombo configuration dynamically based on connected providers and a specified variant.
- * This combo is not persisted in the DB.
- */
-/**
- * Aggregate the context window / max output to ADVERTISE for an auto combo.
- *
- * MAX across candidates (not min): the auto-combo context pre-filter
- * (combo.ts::filterTargetsByRequestCompatibility + the estimated-tokens
- * pre-filter) already routes oversized requests away from small-window
- * candidates, so advertising the largest window lets clients (e.g. opencode)
- * keep their smart auto-compaction calibrated to the best candidate instead
- * of compacting prematurely — or, worse, receiving 0 and disabling
- * compaction entirely (the "agent keeps forgetting things" bug).
- *
- * Unknown candidates resolve through getTokenLimit()'s fallback chain, so a
- * non-empty pool always yields a positive contextLength.
- *
- * maxOutputTokens has no such guaranteed fallback in getResolvedModelCapabilities()
- * — registry entries and models.dev sync data are both optional per model, so a
- * candidate pool whose members all lack that specific field (e.g. #6453's
- * provider-family combos, `auto/llama` and friends, over no-auth/free-tier
- * registry entries that were never annotated with maxOutputTokens) would
- * otherwise advertise `null`, which mirrors the `context: 0` bug this module's
- * docstring describes for contextLength (opencode disables smart auto-compaction
- * entirely when a limit is falsy). Fall back to a conservative generic default so
- * a non-empty pool always yields a positive maxOutputTokens too.
- */
-const DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS = 8192;
-
-type AdvertisedLimitCandidate = {
-  provider: string;
-  model: string;
-  resolvedContextLength?: number | null;
-  resolvedMaxOutputTokens?: number | null;
-};
-
-export function computeAdvertisedLimits(candidates: AdvertisedLimitCandidate[]): {
-  contextLength: number | null;
-  maxOutputTokens: number | null;
-} {
-  if (!Array.isArray(candidates) || candidates.length === 0) {
-    return { contextLength: null, maxOutputTokens: null };
-  }
-
-  let contextLength: number | null = null;
-  let maxOutputTokens: number | null = null;
-  for (const candidate of candidates) {
-    const limit =
-      candidate.resolvedContextLength !== undefined
-        ? candidate.resolvedContextLength
-        : getTokenLimit(candidate.provider, candidate.model);
-    if (typeof limit === "number" && Number.isFinite(limit) && limit > 0) {
-      contextLength = contextLength === null ? limit : Math.max(contextLength, limit);
-    }
-    const output =
-      candidate.resolvedMaxOutputTokens !== undefined
-        ? candidate.resolvedMaxOutputTokens
-        : getResolvedModelCapabilities({
-            provider: candidate.provider,
-            model: candidate.model,
-          }).maxOutputTokens;
-    if (typeof output === "number" && Number.isFinite(output) && output > 0) {
-      maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
-    }
-  }
-  if (maxOutputTokens === null) {
-    maxOutputTokens = DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS;
-  }
-  return { contextLength, maxOutputTokens };
-}
+/** Creates a virtual AutoCombo configuration dynamically from connected providers. */
 
 // Catalog-scale pools can contain hundreds of models. Keep both candidate construction
 // and capability preparation cooperative instead of monopolising one event-loop turn.
@@ -775,40 +709,7 @@ export async function prepareVirtualAutoComboInputs(
     ];
 
     const traceInvocationId = options.traceInvocationId;
-    if (traceInvocationId) {
-      for (const candidate of pool) {
-        recordAutoEvaluationCandidate(traceInvocationId, {
-          target: candidate.modelStr,
-          provider: candidate.provider,
-          model: candidate.model,
-          connectionId: candidate.connectionId,
-          ...(candidate.allowedConnectionIds
-            ? { allowedConnectionIds: candidate.allowedConnectionIds }
-            : {}),
-        });
-      }
-    }
-
-    const recordDropped = (
-      before: readonly VirtualAutoComboCandidate[],
-      after: readonly VirtualAutoComboCandidate[],
-      stage: AutoEvaluationStage,
-      detail: string
-    ) => {
-      if (!traceInvocationId || before === after) return;
-      const surviving = new Set(after.map((candidate) => candidate.modelStr));
-      for (const candidate of before) {
-        if (!surviving.has(candidate.modelStr)) {
-          recordAutoEvaluationTransition(traceInvocationId, {
-            target: candidate.modelStr,
-            stage,
-            outcome: "excluded",
-            reason: "auto_constraint_filter",
-            detail,
-          });
-        }
-      }
-    };
+    recordAutoCandidatePool(traceInvocationId, pool);
 
     const resilienceFilteredPool = filterResilienceBlockedCandidates(
       pool,
@@ -822,13 +723,13 @@ export async function prepareVirtualAutoComboInputs(
     // exclude paid-only backends from EVERY `auto/*` candidate pool.
     const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
     warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
-    recordDropped(pool, paid.pool, "paid_only", "hidePaidModels");
+    recordAutoDroppedCandidates(traceInvocationId, pool, paid.pool, "paid_only", "hidePaidModels");
     pool = paid.pool;
 
     const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
     warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
     if (lockout) {
-      recordDropped(pool, lockout.pool, "model_lockout", "model-lockout");
+      recordAutoDroppedCandidates(traceInvocationId, pool, lockout.pool, "model_lockout", "model-lockout");
       pool = lockout.pool;
     }
 
@@ -836,7 +737,7 @@ export async function prepareVirtualAutoComboInputs(
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
     const exposureFilteredPool = filterModelExposureCandidates(pool, settings);
     if (exposureFilteredPool !== pool) {
-      recordDropped(pool, exposureFilteredPool, "model_exposure", "model-exposure");
+      recordAutoDroppedCandidates(traceInvocationId, pool, exposureFilteredPool, "model_exposure", "model-exposure");
       pool = exposureFilteredPool;
     }
 
@@ -895,7 +796,7 @@ export async function prepareVirtualAutoComboInputs(
     // Separate, optional ToS guard — independent of economic safety on purpose.
     const tosFilteredPool = filterTosAvoidCandidates(pool, settings.excludeTosAvoid === true);
     if (tosFilteredPool !== pool) {
-      recordDropped(pool, tosFilteredPool, "tos", "tos-avoid");
+      recordAutoDroppedCandidates(traceInvocationId, pool, tosFilteredPool, "tos", "tos-avoid");
       pool = tosFilteredPool;
     }
 
@@ -1031,20 +932,13 @@ export async function createVirtualAutoComboFromPrepared(
   }
   const overrideFilteredPool = filterExcludedCandidates(candidatePool, excludedConnectionIds);
   if (overrideFilteredPool !== candidatePool) {
-    if (traceInvocationId) {
-      const surviving = new Set(overrideFilteredPool.map((candidate) => candidate.modelStr));
-      for (const candidate of candidatePool) {
-        if (!surviving.has(candidate.modelStr)) {
-          recordAutoEvaluationTransition(traceInvocationId, {
-            target: candidate.modelStr,
-            stage: "candidate_override",
-            outcome: "excluded",
-            reason: "auto_constraint_filter",
-            detail: "candidate-override",
-          });
-        }
-      }
-    }
+    recordAutoDroppedCandidates(
+      traceInvocationId,
+      candidatePool,
+      overrideFilteredPool,
+      "candidate_override",
+      "candidate-override"
+    );
     candidatePool.length = 0;
     candidatePool.push(...overrideFilteredPool);
   }
@@ -1095,20 +989,13 @@ export async function createVirtualAutoComboFromPrepared(
       : null;
   if (candidateFilter) {
     const narrowed = candidatePool.filter((candidate) => candidateFilter(candidate));
-    if (traceInvocationId && narrowed.length !== candidatePool.length) {
-      const surviving = new Set(narrowed.map((candidate) => candidate.modelStr));
-      for (const candidate of candidatePool) {
-        if (!surviving.has(candidate.modelStr)) {
-          recordAutoEvaluationTransition(traceInvocationId, {
-            target: candidate.modelStr,
-            stage: "category_tier",
-            outcome: "excluded",
-            reason: "auto_constraint_filter",
-            detail: "category-tier",
-          });
-        }
-      }
-    }
+    recordAutoDroppedCandidates(
+      traceInvocationId,
+      candidatePool,
+      narrowed,
+      "category_tier",
+      "category-tier"
+    );
     const label = spec?.family
       ? `auto/${spec.family}`
       : `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""}`;
@@ -1149,20 +1036,13 @@ export async function createVirtualAutoComboFromPrepared(
       spec.tier === "subscription"
         ? filterSubscriptionOnlyCandidates(effectivePool, ladderOptions)
         : orderPoolByRung(effectivePool, ladderOptions);
-    if (traceInvocationId && spec.tier === "subscription" && effectivePool !== beforePool) {
-      const surviving = new Set(effectivePool.map((candidate) => candidate.modelStr));
-      for (const candidate of beforePool) {
-        if (!surviving.has(candidate.modelStr)) {
-          recordAutoEvaluationTransition(traceInvocationId, {
-            target: candidate.modelStr,
-            stage: "subscription_ladder",
-            outcome: "excluded",
-            reason: "auto_constraint_filter",
-            detail: "subscription-ladder",
-          });
-        }
-      }
-    }
+    recordAutoDroppedCandidates(
+      spec.tier === "subscription" ? traceInvocationId : undefined,
+      beforePool,
+      effectivePool,
+      "subscription_ladder",
+      "subscription-ladder"
+    );
     if (spec.tier === "subscription" && effectivePool.length === 0 && beforeCount > 0) {
       // Intended, not a defect: the operator asked for plan-included capacity
       // only, and right now there is none with verified headroom. Failing
@@ -1286,15 +1166,7 @@ export async function createVirtualAutoComboFromPrepared(
     chaosModels = models;
   }
 
-  if (traceInvocationId) {
-    for (const candidate of effectivePool) {
-      recordAutoEvaluationTransition(traceInvocationId, {
-        target: candidate.modelStr,
-        stage: "category_tier",
-        outcome: "survived",
-      });
-    }
-  }
+  recordAutoSurvivors(traceInvocationId, effectivePool, "category_tier");
 
   const advertisedLimits = computeAdvertisedLimits(effectivePool);
 

@@ -54,7 +54,7 @@ import {
   grantsFreeAccess,
   type FreeModelBudget,
 } from "@omniroute/open-sse/config/freeModelCatalog.ts";
-import { recordAutoEvaluationTransition } from "../combo/decisionTrace.ts";
+import { recordAutoExclusion } from "./autoEvaluationTrace";
 import { SYNTHETIC_NOAUTH_CONNECTION_ID } from "./resilienceCandidateFilter";
 
 export type FreeAccessStatus = "SAFE" | "EXHAUSTED" | "UNKNOWN";
@@ -300,21 +300,19 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
     );
     if (safeConnectionIds.length === 0) {
       changed = true;
-      if (traceInvocationId) {
-        const verdict = classifyStrictZeroCostCandidate(
-          candidate,
-          budgetEntry,
-          options.resolveFreeAccessState,
-          options
-        );
-        recordAutoEvaluationTransition(traceInvocationId, {
-          target: `${candidate.provider}/${candidate.model}`,
-          stage: "strict_zero_cost",
-          outcome: "excluded",
-          reason: "auto_strict_zero_cost",
-          detail: verdict.outcome,
-        });
-      }
+      recordAutoExclusion(
+        traceInvocationId,
+        candidate,
+        "strict_zero_cost",
+        "auto_strict_zero_cost",
+        () =>
+          classifyStrictZeroCostCandidate(
+            candidate,
+            budgetEntry,
+            options.resolveFreeAccessState,
+            options
+          ).outcome
+      );
       continue;
     }
 

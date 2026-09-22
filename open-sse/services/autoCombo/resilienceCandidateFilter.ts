@@ -8,7 +8,7 @@
  * `paidModelFilter.ts` and `candidateOverrides.ts` in this directory.
  */
 import { isAccountUnavailable, isModelLocked } from "../accountFallback.ts";
-import { recordAutoEvaluationTransition } from "../combo/decisionTrace.ts";
+import { recordAutoExclusion } from "./autoEvaluationTrace";
 
 export const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
@@ -84,15 +84,13 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
     if (candidate.connectionId === SYNTHETIC_NOAUTH_CONNECTION_ID) {
       if (isModelLocked(candidate.provider, SYNTHETIC_NOAUTH_CONNECTION_ID, candidate.model)) {
         changed = true;
-        if (traceInvocationId) {
-          recordAutoEvaluationTransition(traceInvocationId, {
-            target: `${candidate.provider}/${candidate.model}`,
-            stage: "resilience",
-            outcome: "excluded",
-            reason: "auto_resilience_filter",
-            detail: "model-lockout",
-          });
-        }
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "model-lockout"
+        );
         return [];
       }
       return [candidate];
@@ -109,15 +107,13 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
       );
       if (allowedConnectionIds.length === 0) {
         changed = true;
-        if (traceInvocationId) {
-          recordAutoEvaluationTransition(traceInvocationId, {
-            target: `${candidate.provider}/${candidate.model}`,
-            stage: "resilience",
-            outcome: "excluded",
-            reason: "auto_resilience_filter",
-            detail: "all-connections-blocked",
-          });
-        }
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "all-connections-blocked"
+        );
         return [];
       }
       if (allowedConnectionIds.length === candidate.allowedConnectionIds.length) {
@@ -137,15 +133,13 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
         )
       ) {
         changed = true;
-        if (traceInvocationId) {
-          recordAutoEvaluationTransition(traceInvocationId, {
-            target: `${candidate.provider}/${candidate.model}`,
-            stage: "resilience",
-            outcome: "excluded",
-            reason: "auto_resilience_filter",
-            detail: "connection-blocked",
-          });
-        }
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "connection-blocked"
+        );
         return [];
       }
     }
