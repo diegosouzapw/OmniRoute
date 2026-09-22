@@ -34,6 +34,7 @@ import {
   toPlainHeaders,
 } from "./rateLimitManager/headers";
 import { checkQueueAdmission } from "./rateLimitManager/admission";
+import { buildOverrideUpdates, loadOverrideMap } from "./rateLimitManager/overrideUpdates";
 import {
   markLocalRateLimitError,
   RATE_LIMIT_EXECUTION_TIMEOUT_CODE,
@@ -298,6 +299,16 @@ function updateAllLimiterSettings() {
   }
 }
 
+/** Re-apply loaded overrides to pre-existing limiters (never learned limits). */
+function reconcileLimitersWithOverrides(): void {
+  for (const [connectionId, overrides] of connectionRateLimitOverrides) {
+    const updates = buildOverrideUpdates(overrides);
+    if (Object.keys(updates).length === 0) continue;
+    for (const [key, limiter] of limiters)
+      if (key.includes(connectionId)) updateLimiterSettings(limiter, updates);
+  }
+}
+
 function clearPreservedReplacementSettings(connectionId: string): void {
   for (const key of preservedReplacementSettings.keys()) {
     if (key.includes(connectionId)) preservedReplacementSettings.delete(key);
@@ -443,20 +454,13 @@ export async function initializeRateLimits() {
     // budget + concurrency cap (nvidia today). No-op for every provider without
     // an entry in either providerQuotaOverrides or PROVIDER_DEFAULT_RATE_LIMITS.
     setProviderQuotaOverrides(resilience.providerQuotaOverrides);
+    loadOverrideMap(connectionRateLimitOverrides, connections as Array<Record<string, unknown>>);
     const { explicitCount, autoCount } = reconcileEnabledConnections(
       connections as unknown[],
       currentRequestQueueSettings
     );
     updateAllLimiterSettings();
-
-    // Load per-connection rate limit overrides
-    connectionRateLimitOverrides.clear();
-    for (const conn of connections as Array<Record<string, unknown>>) {
-      const overrides = conn.rateLimitOverrides;
-      if (overrides && typeof overrides === "object" && !Array.isArray(overrides)) {
-        connectionRateLimitOverrides.set(String(conn.id), overrides as Record<string, number>);
-      }
-    }
+    reconcileLimitersWithOverrides();
 
     if (explicitCount > 0 || autoCount > 0) {
       logRateLimit(
@@ -606,23 +610,9 @@ function getLimiter(provider, connectionId, model = null) {
     } else {
       const defaults = buildLimiterDefaults();
       const overrides = connectionRateLimitOverrides.get(connectionId);
-      if (overrides) {
-        // 0 (or missing) means "no override — fall through to buildLimiterDefaults()".
-        // Without this guard, an rpm of 0 sets reservoir=0, which Bottleneck treats
-        // as depleted and blocks all requests indefinitely.
-        if (typeof overrides.maxConcurrent === "number" && overrides.maxConcurrent > 0) {
-          defaults.maxConcurrent = overrides.maxConcurrent;
-        }
-        if (typeof overrides.minTime === "number" && overrides.minTime > 0) {
-          defaults.minTime = overrides.minTime;
-        }
-        if (typeof overrides.rpm === "number" && overrides.rpm > 0) {
-          defaults.reservoir = overrides.rpm;
-          defaults.reservoirRefreshAmount = overrides.rpm;
-          defaults.reservoirRefreshInterval = 60 * 1000;
-        }
-        // TODO: TPM/TPD integration requires separate token and request buckets.
-      }
+      // 0/missing overrides fall through to defaults (an rpm of 0 would set
+      // reservoir=0 = depleted forever). TODO: TPM/TPD need own buckets.
+      if (overrides) Object.assign(defaults, buildOverrideUpdates(overrides));
       const learned = learnedLimits.get(key);
       if (learned?.capRequests && learned.capWindowMs && !hasRpmOverride(connectionId)) {
         // A cap learned from a 429 body outranks the global defaults but not an
