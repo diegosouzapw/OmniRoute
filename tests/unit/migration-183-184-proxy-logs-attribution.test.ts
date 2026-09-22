@@ -1,9 +1,9 @@
-// proxy_logs rotation_account + correlation_id ship as migrations 182/183, with
+// proxy_logs rotation_account + correlation_id ship as migrations 183/184, with
 // idempotency checks keyed by version in migrationRunner's switch. The dangerous
 // shape is cross-talk: if a check were registered under a neighbouring version,
 // it would answer for that migration's schema and skip it on any database where
 // ensureProxyLogsColumns had already added the column at boot. Runs the real
-// runner against the real SQL files (179/181/182/183).
+// runner against the real SQL files (179/181/183/184).
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -16,12 +16,12 @@ const repoMigrations = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../src/lib/db/migrations"
 );
-const migrationsDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-migration-182-183-"));
+const migrationsDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-migration-183-184-"));
 for (const file of [
   "179_proxy_logs_upstream_status.sql",
   "181_proxy_logs_proxy_name.sql",
-  "182_proxy_logs_rotation_account.sql",
-  "183_proxy_logs_correlation_id.sql",
+  "183_proxy_logs_rotation_account.sql",
+  "184_proxy_logs_correlation_id.sql",
 ]) {
   fs.copyFileSync(path.join(repoMigrations, file), path.join(migrationsDir, file));
 }
@@ -56,7 +56,7 @@ function legacyDb(withNewColumns: boolean): Database.Database {
   return db;
 }
 
-test("columns already added at boot: 179/181 still run, 182/183 recorded without re-adding", () => {
+test("columns already added at boot: 179/181 still run, 183/184 recorded without re-adding", () => {
   const db = legacyDb(true);
   try {
     runMigrations(db, { isNewDb: true });
@@ -69,15 +69,15 @@ test("columns already added at boot: 179/181 still run, 182/183 recorded without
     assert.deepEqual(ledger(db), [
       { version: "179", name: "proxy_logs_upstream_status" },
       { version: "181", name: "proxy_logs_proxy_name" },
-      { version: "182", name: "proxy_logs_rotation_account" },
-      { version: "183", name: "proxy_logs_correlation_id" },
+      { version: "183", name: "proxy_logs_rotation_account" },
+      { version: "184", name: "proxy_logs_correlation_id" },
     ]);
   } finally {
     db.close();
   }
 });
 
-test("a database without the columns gets rotation_account + correlation_id from 182/183", () => {
+test("a database without the columns gets rotation_account + correlation_id from 183/184", () => {
   const db = legacyDb(false);
   try {
     runMigrations(db, { isNewDb: true });
@@ -88,7 +88,7 @@ test("a database without the columns gets rotation_account + correlation_id from
   }
 });
 
-test("183 creates no index on proxy_logs.correlation_id (join starts from call_logs)", () => {
+test("184 creates no index on proxy_logs.correlation_id (join starts from call_logs)", () => {
   const db = legacyDb(false);
   try {
     runMigrations(db, { isNewDb: true });
