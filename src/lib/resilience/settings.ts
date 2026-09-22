@@ -43,8 +43,8 @@ export type {
 } from "./settings/types";
 
 export const DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS = (() => {
-  const parsed = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || "30000");
-  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 30000;
+  const parsed = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || "120000");
+  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 120000;
 })();
 
 // Limiter-managed execution backstop (Bottleneck `expiration`). Deliberately

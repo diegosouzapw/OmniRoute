@@ -1,0 +1,1 @@
+- **fix(combo):** `ALL_TARGETS_SKIPPED` 503 responses now carry per-target pre-dispatch skip reasons (`skippedTargets`) and the earliest persisted-cooldown reset (`nextRetryAt`) instead of an opaque 503, and API-key allowlist rejections during combo target screening are logged at info with the key name ([#12294](https://github.com/diegosouzapw/OmniRoute/issues/12294))

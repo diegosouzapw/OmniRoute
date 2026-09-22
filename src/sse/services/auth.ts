@@ -2930,8 +2930,16 @@ export async function markAccountUnavailable(
     if (
       status === 429 &&
       egressBucketed &&
-      (fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED ||
-        fallbackResult.reason === RateLimitReason.RATE_LIMIT_EXCEEDED) &&
+      // #fix-egress-cascade (2026-09-18): narrowed from
+      //   (QUOTA_EXHAUSTED || RATE_LIMIT_EXCEEDED)
+      // because opencode account exhaustion ("Monthly usage limit reached.
+      // Resets in 9 days.") is per-workspace, NOT per-IP — see #9611 which
+      // documents the IP-bucketed assumption holds only for the FREE tier.
+      // Per-account caps already encode their own reset hint in the
+      // connection-scoped cooldown path; cascading them to siblings
+      // produces 8-account lockouts from one workspace's monthly cap. Keep
+      // the cascade for the genuinely-IP-bucketed RATE_LIMIT_EXCEEDED only.
+      fallbackResult.reason === RateLimitReason.RATE_LIMIT_EXCEEDED &&
       !fallbackResult.permanent &&
       !fallbackResult.creditsExhausted &&
       !disableCooling
@@ -2946,8 +2954,20 @@ export async function markAccountUnavailable(
       // is ever reached. Without this write, C stays "active" → retried next
       // episode (1 wasted call/episode) and backoffLevel/lastError never set.
       await updateProviderConnection(connectionId, {
-        lastErrorType: fallbackResult.reason || RateLimitReason.QUOTA_EXHAUSTED,
-        lastError: `Shared egress IP quota exhausted (${provider})`,
+        // #fix-egress-cascade (2026-09-18): keep the upstream body so
+        // operators see the real signal ("Monthly usage limit reached.
+        // Resets in 9 days.") instead of an opaque synthetic label.
+        // Falls back to the synthetic label if the upstream body is empty.
+        lastErrorType: RateLimitReason.QUOTA_CASCADE,
+        lastError: (() => {
+          const upstreamBody = errorText?.trim();
+          const suffix = upstreamBody
+            ? `[cascaded to siblings on shared egress IP — original] ${upstreamBody}`
+            : `Shared egress IP quota exhausted (${provider})`;
+          // Truncate to 1 KiB to keep the DB column bounded; opencode's
+          // monthly-limit body is normally < 256 bytes.
+          return suffix.length > 1024 ? suffix.slice(0, 1024) + "..." : suffix;
+        })(),
         lastErrorAt: new Date().toISOString(),
         errorCode: status,
         backoffLevel: fallbackResult.newBackoffLevel ?? backoffLevel,

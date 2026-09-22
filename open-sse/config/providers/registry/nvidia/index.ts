@@ -16,6 +16,23 @@ export const nvidiaProvider: RegistryEntry = {
   // of cooling down the whole connection (see accountFallback.ts
   // hasPerModelQuota doc comment; matches modelscope/synthetic/kilo-gateway).
   passthroughModels: true,
+  // NVIDIA's `GET /v1/models` is a PARTIAL view of what the credential can
+  // route: it lists the media/infra buckets (flux, whisper, tacotron2,
+  // parakeet, embeddings, rerankers) and only the two `nvidia/*` chat models,
+  // while the static registry below also carries the third-party vendors the
+  // same connection fronts (moonshotai/, deepseek-ai/, meta/, poolside/,
+  // openai/). With the default `liveCatalogAuthoritative: true` every one of
+  // those static routes was rejected pre-dispatch with
+  // "Model '<id>' is not available in the active live catalog for provider
+  // 'nvidia'" — observed 159× on 2026-09-12 for `moonshotai/kimi-k3` alone,
+  // which also made the nvidia combo target unusable.
+  //
+  // Opt out so exact-id coverage suppression keeps the omitted static routes
+  // routable (same contract as command-code / oneminai / perplexity-agent,
+  // whose discovery is likewise a partial routing catalog). A model that the
+  // credential genuinely cannot serve still fails upstream with its own 4xx,
+  // and `passthroughModels` above keeps that failure scoped to the one model.
+  liveCatalogAuthoritative: false,
   models: [
     { id: "moonshotai/kimi-k3", name: "Kimi K3" },
     {

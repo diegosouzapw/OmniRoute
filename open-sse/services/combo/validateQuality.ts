@@ -856,6 +856,19 @@ export async function validateResponseQuality(
 }
 
 /**
+ * True when a quality rejection describes the "model burned the whole
+ * max_tokens budget on reasoning and produced no visible content" outcome
+ * (#3587 — the reason string is produced by validateResponseQuality above and
+ * its `reasoning consumed N/M tokens` prefix is load-bearing). Combined with
+ * isTinyBudgetReasoningProbe it identifies a budget-truncated reasoning probe,
+ * which the combo dispatchers answer with a truncated 200 instead of a 502 +
+ * model lockout (#10281 combo-path parity).
+ */
+export function isReasoningConsumedQualityRejection(reason: string | null | undefined): boolean {
+  return !!reason && /^reasoning consumed \d+\/\d+ tokens/.test(reason);
+}
+
+/**
  * Release the peek-and-abandon clone used by {@link validateResponseQuality}.
  *
  * The quality check clones the upstream response, reads the clone only until the

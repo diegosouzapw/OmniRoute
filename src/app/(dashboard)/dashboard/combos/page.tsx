@@ -85,7 +85,7 @@ import {
 import { getComboStepTarget } from "@/lib/combos/steps";
 import { DEAD_COMBO_CONFIG_KEYS } from "@/lib/combos/deadConfigKeys";
 import { modelFamily } from "@/lib/combos/invariants";
-import { resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
+import { resolveCanonicalProviderModel } from "@omniroute/open-sse/services/modelAliases.ts";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
 
@@ -702,7 +702,6 @@ function computeAllowedRestrictionSync(
 
   return result;
 }
-
 
 function getModelString(entry) {
   if (typeof entry === "string") return entry;

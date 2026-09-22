@@ -1,11 +1,28 @@
 // CLI Tools configuration
-import { getClaudeCodeDefaultModels } from "@omniroute/open-sse/config/providerRegistry";
+// NOTE: previously imported `getClaudeCodeDefaultModels` from
+// `@omniroute/open-sse/config/providerRegistry` to seed live claude-code model
+// defaults, but `cliTools.ts` ships to client routes (ToolDetailClient.tsx,
+// CliCodePageClient.tsx) — and `providerRegistry.ts` transitively pulls
+// server-only modules (oauth/constants → cursorAgentCliVersion → node:fs/os/path)
+// via the codebuddy-cn registry entry. Replace the live lookup with the
+// static fallback strings below; the server still renders the canonical
+// values into the active combo / model selection elsewhere.
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
 import { GROK_BUILD_CLI_TOOL } from "@/shared/constants/cliToolsGrokBuild";
 
-const _cc = getClaudeCodeDefaultModels();
 type CliModel = NonNullable<CliCatalogEntry["defaultModels"]>[number];
 const createCliModel = (id: string, name: string): CliModel => ({ id, name, alias: id });
+
+// Display-only defaults for the claude-code tool card. These mirror the static
+// fallback strings used by `getClaudeCodeDefaultModels()` when the registry
+// returns no model id for a slot — kept here so the client bundle does not
+// need to pull providerRegistry.ts.
+const CLAUDE_CODE_DEFAULT_MODELS = {
+  sonnet: "claude-sonnet-4-5-20250929",
+  fable: "claude-fable-5-1",
+  opus: "claude-opus-4-5-20251101",
+  haiku: "claude-haiku-4-5-20251001",
+} as const;
 
 export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   claude: {
@@ -37,7 +54,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
         name: "Default Model",
         alias: "model",
         envKey: "ANTHROPIC_MODEL",
-        defaultValue: _cc.sonnet ? `cc/${_cc.sonnet}` : "cc/claude-sonnet-4-5-20250929",
+        defaultValue: `cc/${CLAUDE_CODE_DEFAULT_MODELS.sonnet}`,
         isTopLevel: true,
       },
       {
@@ -45,7 +62,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
         name: "Claude Fable",
         alias: "fable",
         envKey: "ANTHROPIC_DEFAULT_FABLE_MODEL",
-        defaultValue: _cc.fable ? `cc/${_cc.fable}` : "cc/claude-fable-5-1",
+        defaultValue: `cc/${CLAUDE_CODE_DEFAULT_MODELS.fable}`,
         isTopLevel: true,
       },
       {
@@ -53,21 +70,21 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
         name: "Claude Opus",
         alias: "opus",
         envKey: "ANTHROPIC_DEFAULT_OPUS_MODEL",
-        defaultValue: _cc.opus ? `cc/${_cc.opus}` : "cc/claude-opus-4-5-20251101",
+        defaultValue: `cc/${CLAUDE_CODE_DEFAULT_MODELS.opus}`,
       },
       {
         id: "sonnet",
         name: "Claude Sonnet",
         alias: "sonnet",
         envKey: "ANTHROPIC_DEFAULT_SONNET_MODEL",
-        defaultValue: _cc.sonnet ? `cc/${_cc.sonnet}` : "cc/claude-sonnet-4-5-20250929",
+        defaultValue: `cc/${CLAUDE_CODE_DEFAULT_MODELS.sonnet}`,
       },
       {
         id: "haiku",
         name: "Claude Haiku",
         alias: "haiku",
         envKey: "ANTHROPIC_DEFAULT_HAIKU_MODEL",
-        defaultValue: _cc.haiku ? `cc/${_cc.haiku}` : "cc/claude-haiku-4-5-20251001",
+        defaultValue: `cc/${CLAUDE_CODE_DEFAULT_MODELS.haiku}`,
       },
     ],
   },

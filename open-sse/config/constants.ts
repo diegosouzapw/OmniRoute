@@ -241,6 +241,13 @@ export const RateLimitReason = {
   SERVER_ERROR: "server_error", // 5xx errors
   AUTH_ERROR: "auth_error", // 401, 403
   UNKNOWN: "unknown",
+  // #fix-egress-cascade (2026-09-18): emitted by markAccountUnavailable's
+  // egress-bucketed branch only — marks a per-account cooldown that was
+  // cascaded to IP siblings because the upstream error was an IP-bucketed
+  // rate limit, NOT an account-bucketed quota. Distinct from QUOTA_EXHAUSTED
+  // (per-account, single-connection) and RATE_LIMIT_EXCEEDED (per-IP,
+  // multi-connection) so operators can tell them apart from the DB column.
+  QUOTA_CASCADE: "quota_cascade",
 };
 
 // ─── Provider Resilience Profiles ───────────────────────────────────────────

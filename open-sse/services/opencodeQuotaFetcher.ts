@@ -12,6 +12,7 @@
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
+import { buildOpencodeBackgroundHeaders } from "../utils/opencodeHeaders.ts";
 
 const OPENCODE_QUOTA_URL =
   process.env.OMNIROUTE_OPENCODE_QUOTA_URL ?? "https://opencode.ai/zen/go/v1/usage";
@@ -181,6 +182,11 @@ export async function fetchOpencodeQuota(
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         Accept: "application/json",
+        // OpenCode operator warning: background calls on the bare runtime UA
+        // ("Bun fetch") without x-opencode-session are flagged, with hard
+        // errors announced from 2026-09-06. Send the CLI identity + a stable
+        // per-connection session fingerprint (see buildOpencodeBackgroundHeaders).
+        ...buildOpencodeBackgroundHeaders({ seed: connectionId }),
       },
       signal: AbortSignal.timeout(8_000),
     });

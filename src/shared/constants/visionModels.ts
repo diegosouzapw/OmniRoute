@@ -70,6 +70,12 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   // 2026-09-01 that it answers image prompts over both a public URL and a
   // base64 data URI, while HCX-007 and HCX-DASH-002 reject images.
   "hcx-005",
+  // DeepSeek-V4.1-Flash is natively multimodal (DeepSeek-ViT encoder; HF
+  // pipeline_tag image-text-to-text). DeepSeek retired V4-Flash / V4-Flash-Vision-Exp
+  // into it, so the whole `v4.1-flash` revision sees images. Scoped to the 4.1
+  // revision on purpose: plain `deepseek-v4-flash` is still the text-only model at
+  // other providers, and this list is a global substring match (#4071).
+  "deepseek-v4.1-flash",
   "-vision",
   "multimodal",
 ] as const;

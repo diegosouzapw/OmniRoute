@@ -1,0 +1,1 @@
+- fix(nvidia): opt out of the authoritative live catalog so static-only vendor routes (moonshotai/, deepseek-ai/, meta/, poolside/, openai/) stay routable instead of being rejected pre-dispatch

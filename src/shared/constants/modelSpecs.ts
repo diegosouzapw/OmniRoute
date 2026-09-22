@@ -791,6 +791,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
   },
+  // DeepSeek-V4.1-Flash: 552B MoE, 1M context, continuously controllable
+  // reasoning effort. Natively multimodal (DeepSeek-ViT + 2-layer MLP projector),
+  // so supportsVision is declared here rather than left to the id heuristic.
+  "deepseek-v4.1-flash": {
+    maxOutputTokens: 384000,
+    contextWindow: 1000000,
+    thinkingBudgetCap: 380000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
 
   // ── Tencent Hunyuan 3 Preview ────────────────────────────────────
   "hy3-preview": {

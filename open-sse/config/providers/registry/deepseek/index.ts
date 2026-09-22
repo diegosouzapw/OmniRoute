@@ -38,13 +38,18 @@ export const deepseekProvider: RegistryEntry = {
       toolCalling: true,
     },
     {
-      id: "deepseek-flash",
+      // The multimodal flagship of the Flash line. DeepSeek's current API id is
+      // `deepseek-flash`; `deepseek-v4-flash` and the retired
+      // `deepseek-v4-flash-vision-exp` route here for compatibility.
+      id: "deepseek-v4.1-flash",
+      aliases: ["deepseek-flash"],
       name: "DeepSeek V4.1 Flash",
       contextLength: 1_000_000,
       maxOutputTokens: 384_000,
       supportsReasoning: true,
       supportedThinkingEfforts: ["none", "low", "high", "max"],
       toolCalling: true,
+      supportsVision: true,
     },
   ],
 };

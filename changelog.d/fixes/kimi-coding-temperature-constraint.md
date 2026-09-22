@@ -1,0 +1,1 @@
+- fix(kimi): drop non-1 `temperature` on Kimi Coding so agent clients that default to 0.1 no longer 400 with "invalid temperature: only 1 is allowed for this model"

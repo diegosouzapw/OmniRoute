@@ -134,6 +134,7 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   // open-sse/config/providers/registry/stability-ai/imageModels.ts) — left
   // as-is rather than guessed at; not the same bug shape as the three above.
   stability: ["stability-ai"],
+  typesafe: ["jev"],
 };
 
 // ─── Periodic sync state ─────────────────────────────────

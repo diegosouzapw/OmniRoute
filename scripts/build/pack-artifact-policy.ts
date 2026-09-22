@@ -71,6 +71,9 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   // crashes with ERR_MODULE_NOT_FOUND (regressed in the published 3.8.41 tarball).
   "tls-options.mjs",
   "webdav-handler.mjs",
+  // server-ws.mjs runtime import (self-probe watchdog) — without this bare entry
+  // the prepublish prune deletes it and `omniroute` boots ERR_MODULE_NOT_FOUND.
+  "self-probe-watchdog.mjs",
 ];
 
 export const APP_STAGING_ALLOWED_PATH_PREFIXES: string[] = [
@@ -218,6 +221,10 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   // #7065: regression guard for the HEAD response guard (dist/server-ws.mjs import).
   "dist/head-response-guard.cjs",
   "dist/webdav-handler.mjs",
+  // server-ws.mjs runtime import — regression guard for the self-probe watchdog
+  // (#7065 class; enforced by tests/unit/pack-artifact-server-ws-closure.test.ts).
+  "dist/self-probe-watchdog.mjs",
+
   "bin/cli/program.mjs",
   // Direct imports of bin/omniroute.mjs — bin/cli/ is only an allowlist PREFIX, so a
   // file vanishing from the tarball never fails the unexpected-paths check; only these

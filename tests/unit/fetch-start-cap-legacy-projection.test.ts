@@ -9,7 +9,9 @@ import assert from "node:assert/strict";
 // buffered Console Go gateway sends no bytes until the model finishes
 // thinking, so the headers phase legitimately spans minutes).
 
-const { generateLegacyProviders } = await import("../../open-sse/config/providerRegistry.ts");
+const { generateLegacyProviders } = await import(
+  "../../open-sse/config/providerRegistry.ts"
+);
 
 test("generateLegacyProviders copies fetchStartTimeoutCapMs into the executor config", () => {
   const providers = generateLegacyProviders();

@@ -43,6 +43,7 @@
   "tap": {
     "testFiles": [
       "tests/unit/10085-compatible-generic-vs-uuid-credential.test.ts",
+      "tests/unit/10281-combo-reasoning-probe.test.ts",
       "tests/unit/7993-noauth-proxy-routing.test.ts",
       "tests/unit/8200-perplexity-web-401-cooldown.test.ts",
       "tests/unit/8247-accountfallback-model-unhealthy.test.ts",
@@ -447,6 +448,7 @@
       "tests/unit/tools-filter-anthropic-format.test.ts",
       "tests/unit/tproxy-route.test.ts",
       "tests/unit/trae-publiccred.test.ts",
+      "tests/unit/transport-bounded-abort.test.ts",
       "tests/unit/types-barrel-model-cooldown.test.ts",
       "tests/unit/universal-quota-aware-routing.test.ts",
       "tests/unit/upstream-error-passthrough.test.ts",

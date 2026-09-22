@@ -26,6 +26,25 @@ function asRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
 }
 
+/**
+ * Kimi Coding's models (`kimi-for-coding`, `-highspeed`, `k3`) accept ONLY
+ * `temperature: 1`, or no `temperature` at all. Any other value is rejected
+ * with `[400] invalid temperature: only 1 is allowed for this model`.
+ *
+ * Agent clients routinely send a low default (0.1) and would 400 on every
+ * turn that round-robins onto a Kimi slot, so drop any non-1 value and let
+ * the upstream default apply. An explicit `temperature: 1` is preserved —
+ * it is a valid request and some clients assert it deliberately.
+ *
+ * Mirrors `moonshot.ts`'s `stripFixedTemperature` (same vendor, same class of
+ * constraint) and `azureParamRules.ts`'s non-1 temperature drop.
+ */
+function stripNonUnitTemperature(body: JsonRecord): void {
+  if (body.temperature !== undefined && body.temperature !== 1) {
+    delete body.temperature;
+  }
+}
+
 function resolveKimiProtocol(
   credentials: ProviderCredentials | null | undefined,
   body?: unknown
@@ -182,6 +201,7 @@ function normalizeOpenAIRequest(
   }
   delete next.max_tokens;
 
+  stripNonUnitTemperature(next);
   applyOpenAIThinking(next, policy);
   if (Array.isArray(next.tools)) next.tools = flattenOpenAIToolRootAnyOf(next.tools);
 
@@ -339,6 +359,9 @@ function normalizeAnthropicRequest(body: JsonRecord, policy: KimiThinkingPolicy)
   const effort = resolveAnthropicEffort(next, existingThinking, outputConfig, policy);
   delete next.reasoning_effort;
   delete next.reasoning;
+  // Kimi Coding accepts only temperature 1 (or absent) on both wire formats;
+  // apply before the early returns below so every branch is covered.
+  stripNonUnitTemperature(next);
 
   if (policy.supportsThinking === false) {
     delete next.thinking;

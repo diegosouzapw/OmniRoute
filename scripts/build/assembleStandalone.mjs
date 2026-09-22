@@ -292,6 +292,13 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["tls-options.mjs"],
   },
   {
+    // Self-probe watchdog (server-ws.mjs dependency): detects
+    // self-connect probes that fail to close and watchdog-escapes a stuck server.
+    label: "self-probe watchdog (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "self-probe-watchdog.mjs"],
+    dest: ["self-probe-watchdog.mjs"],
+  },
+  {
     label: "runtime-env script",
     src: ["scripts", "build", "runtime-env.mjs"],
     dest: ["build", "runtime-env.mjs"],

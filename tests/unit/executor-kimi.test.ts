@@ -311,3 +311,63 @@ describe("KimiExecutor", () => {
     assert.deepEqual(transformed.thinking, { type: "disabled" });
   });
 });
+
+describe("KimiExecutor temperature constraint", () => {
+  // Kimi Coding rejects any temperature other than 1 with
+  // "[400] invalid temperature: only 1 is allowed for this model". Agent clients
+  // default to 0.1, so a round-robin turn landing on a Kimi slot would 400 unless
+  // the executor drops the non-1 value.
+  for (const targetFormat of [FORMATS.OPENAI, FORMATS.CLAUDE]) {
+    const wire = targetFormat === FORMATS.CLAUDE ? "Anthropic" : "OpenAI";
+
+    it(`drops a non-1 temperature on the ${wire} wire`, () => {
+      const executor = new KimiExecutor();
+      const transformed = executor.transformRequest(
+        "kimi-for-coding",
+        { temperature: 0.1, messages: [{ role: "user", content: "hi" }] },
+        false,
+        credentials(targetFormat)
+      ) as TransformedBody & { temperature?: unknown };
+
+      assert.equal(transformed.temperature, undefined);
+    });
+
+    it(`preserves an explicit temperature of 1 on the ${wire} wire`, () => {
+      const executor = new KimiExecutor();
+      const transformed = executor.transformRequest(
+        "kimi-for-coding",
+        { temperature: 1, messages: [{ role: "user", content: "hi" }] },
+        false,
+        credentials(targetFormat)
+      ) as TransformedBody & { temperature?: unknown };
+
+      assert.equal(transformed.temperature, 1);
+    });
+  }
+
+  it("leaves a request without temperature untouched", () => {
+    const executor = new KimiExecutor();
+    const transformed = executor.transformRequest(
+      "kimi-for-coding",
+      { messages: [{ role: "user", content: "hi" }] },
+      false,
+      credentials(FORMATS.OPENAI)
+    ) as TransformedBody & { temperature?: unknown };
+
+    assert.equal(transformed.temperature, undefined);
+  });
+
+  it("strips non-1 temperature on the thinking-disabled Anthropic early return", () => {
+    // normalizeAnthropicRequest has three return points; the strip runs before
+    // all of them so this branch is covered too.
+    const executor = new KimiExecutor();
+    const transformed = executor.transformRequest(
+      "kimi-for-coding",
+      { temperature: 0.2, messages: [{ role: "user", content: "hi" }] },
+      false,
+      credentials(FORMATS.CLAUDE, { supportsThinking: false })
+    ) as TransformedBody & { temperature?: unknown };
+
+    assert.equal(transformed.temperature, undefined);
+  });
+});

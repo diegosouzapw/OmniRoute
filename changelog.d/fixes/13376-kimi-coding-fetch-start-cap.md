@@ -1,0 +1,1 @@
+- fix(kimi): raise the fetch-start timeout cap to 600s on kimi-coding-apikey so large cache-miss prefills no longer 504 at the 110s default (#13376)

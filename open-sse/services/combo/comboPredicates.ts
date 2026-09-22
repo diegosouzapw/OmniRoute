@@ -629,6 +629,31 @@ export async function resolvePersistedConnectionCooldownSkipReason(
   return getPersistedConnectionCooldownSkipReason(target, connection, allowRateLimitedConnection);
 }
 
+/**
+ * Transport-class network failure: the egress socket/h2 stream itself broke
+ * (h2 stream reset, socket closed mid-flight, connect/reset/timeout). These
+ * failures are SHARED across every target behind the same egress path — the
+ * 2026-09-04 incident saw opencode h2 resets wedge a full multi-target
+ * fallback fan-out where every subsequent target died identically. Bounded
+ * abort: after N consecutive transport failures, stop the combo instead of
+ * burning the remaining targets (see DEFAULT_TRANSPORT_ABORT_BOUND).
+ */
+const TRANSPORT_NETWORK_ERROR_RE =
+  /ERR_HTTP2_STREAM_ERROR|NGHTTP2_[A-Z_]+|UND_ERR_SOCKET|UND_ERR_CONNECT_TIMEOUT|ECONNRESET|ECONNREFUSED|EPIPE|EADDRNOTAVAIL|EHOSTUNREACH|ENETUNREACH|ETIMEDOUT|socket hang up|other side closed|fetch failed/i;
+
+export function isTransportClassNetworkError(errorText: string | null | undefined): boolean {
+  return TRANSPORT_NETWORK_ERROR_RE.test(String(errorText || ""));
+}
+
+export const DEFAULT_TRANSPORT_ABORT_BOUND = 3;
+
+export function shouldAbortComboForTransportFailures(
+  consecutiveCount: number,
+  bound: number = DEFAULT_TRANSPORT_ABORT_BOUND
+): boolean {
+  return Number.isFinite(consecutiveCount) && bound > 0 && consecutiveCount >= bound;
+}
+
 /** @param {string} errorText */
 export function isContextOverflow400(errorText: string | null | undefined): boolean {
   const text = String(errorText || "");

@@ -127,12 +127,80 @@ test("isClientAbortError matches OmniRoute SSE AbortError shapes (#fix-crash-gua
   //   ⨯ unhandledRejection: Error [AbortError]: request_signal_aborted
   const sseAbort = Object.assign(new Error("request_signal_aborted"), { name: "AbortError" });
   assert.equal(isClientAbortError(sseAbort), true, "SSE teardown AbortError must be absorbed");
+  // undici wraps socket errors as TypeError "fetch failed" with the errno on
+  // `.cause` (observed: EADDRNOTAVAIL read error on opencode-go egress → exit 7).
+  const wrapped = new TypeError("fetch failed", {
+    cause: Object.assign(new Error("read EADDRNOTAVAIL"), { code: "EADDRNOTAVAIL", errno: -49 }),
+  });
+  assert.equal(isClientAbortError(wrapped), true, "cause-chain network code must be absorbed");
+  const wrappedAggregate = new TypeError("fetch failed", {
+    cause: new AggregateError(
+      [Object.assign(new Error("connect ETIMEDOUT"), { code: "ETIMEDOUT" })],
+      "connect"
+    ),
+  });
+  assert.equal(
+    isClientAbortError(wrappedAggregate),
+    true,
+    "cause-chain aggregate must be absorbed"
+  );
+  const wrappedGenuine = new TypeError("fetch failed", {
+    cause: new Error("something exploded in the handler"),
+  });
+  assert.equal(isClientAbortError(wrappedGenuine), false, "non-network cause must NOT be absorbed");
+  // Per-model combo timeout abort (2026-09-01 exit-7 crash): AbortError whose
+  // message is the abort reason, no 'abort' substring in it.
+  const comboTimeout = Object.assign(new Error("combo-per-model-timeout"), {
+    name: "AbortError",
+    cause: "combo-per-model-timeout",
+  });
+  assert.equal(
+    isClientAbortError(comboTimeout),
+    true,
+    "combo per-model timeout AbortError must be absorbed"
+  );
   // fetch / DOMException-style cancellation
   const domAbort = new DOMException("This operation was aborted", "AbortError");
   assert.equal(isClientAbortError(domAbort), true, "DOMException AbortError must be absorbed");
   // A genuine TypeError that merely MENTIONS 'abort' must NOT be absorbed.
   const typo = new TypeError("Cannot read properties of undefined (reading 'abort')");
   assert.equal(isClientAbortError(typo), false);
+});
+test("isClientAbortError absorbs connect aggregates and ProxyFetch timeout signal (#12164)", () => {
+  // Production shapes from the 2026-08-31 exit-7 crash log: opencode.ai via
+  // Cloudflare — IPv6 EHOSTUNREACH + IPv4 ETIMEDOUT aggregated by Node's
+  // autoSelectFamily connect.
+  const agg = new AggregateError(
+    [
+      Object.assign(new Error("connect EHOSTUNREACH 2606:4700:3035::ac43:a717:443"), {
+        code: "EHOSTUNREACH",
+      }),
+      Object.assign(new Error("connect ETIMEDOUT 104.21.49.202:443"), { code: "ETIMEDOUT" }),
+    ],
+    "connect ETIMEDOUT 104.21.49.202:443"
+  );
+  assert.equal(isClientAbortError(agg), true, "pure connect aggregate must be absorbed");
+  // An aggregate containing a non-network member is a genuine bug signal.
+  const mixed = new AggregateError(
+    [
+      Object.assign(new Error("connect ETIMEDOUT"), { code: "ETIMEDOUT" }),
+      new TypeError("bad config"),
+    ],
+    "mixed"
+  );
+  assert.equal(isClientAbortError(mixed), false, "mixed aggregate must not be absorbed");
+  const hostUnreach = Object.assign(new Error("connect EHOSTUNREACH"), { code: "EHOSTUNREACH" });
+  assert.equal(isClientAbortError(hostUnreach), true, "direct EHOSTUNREACH must be absorbed");
+  // ProxyFetch's own retry signal — already handled by its retry path.
+  const directTimeout = Object.assign(new Error("Direct response did not start within 30000ms"), {
+    name: "TimeoutError",
+    code: "DIRECT_RESPONSE_START_TIMEOUT",
+  });
+  assert.equal(
+    isClientAbortError(directTimeout),
+    true,
+    "ProxyFetch timeout signal must be absorbed"
+  );
 });
 
 test("shouldSwallowUncaught absorbs SSE AbortError rejections", () => {
@@ -226,6 +294,27 @@ test("installProcessCrashGuard() with no logger swallows aborts instead of dying
     process.emit(
       "unhandledRejection",
       Object.assign(new Error("request_signal_aborted"), { name: "AbortError" }),
+      Promise.resolve()
+    );
+    process.emit(
+      "uncaughtException",
+      new AggregateError(
+        [
+          Object.assign(new Error("connect EHOSTUNREACH 2606:4700:3035::443"), {
+            code: "EHOSTUNREACH",
+          }),
+          Object.assign(new Error("connect ETIMEDOUT 104.21.49.202:443"), { code: "ETIMEDOUT" }),
+        ],
+        "connect ETIMEDOUT 104.21.49.202:443"
+      ),
+      "uncaughtException"
+    );
+    process.emit(
+      "unhandledRejection",
+      Object.assign(new Error("Direct response did not start within 30000ms"), {
+        name: "TimeoutError",
+        code: "DIRECT_RESPONSE_START_TIMEOUT",
+      }),
       Promise.resolve()
     );
     console.log("ALIVE");

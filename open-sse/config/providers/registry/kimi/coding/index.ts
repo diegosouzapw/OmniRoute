@@ -38,6 +38,13 @@ export const KIMI_CODING_SHARED = {
   headers: {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
   },
+  // #13376: Kimi Coding (api.kimi.com) buffers large cache-miss prefills
+  // server-side before emitting any headers — measured 116s for a 556k-token
+  // cache-miss prefill (2026-09-12), 8h storm of 504s at the 110s ceiling.
+  // The 600s cap matches opencode-go / command-code (also buffered gateways)
+  // and stays well under Codex's ~120s client-abort window for healthy
+  // responses (those are sub-second headers).
+  fetchStartTimeoutCapMs: 600_000,
   models: KIMI_CODING_MODELS,
 };
 
