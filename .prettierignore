@@ -1,3 +1,7 @@
+# wasm-bindgen glue + embedded WASM_BASE64. Prettier rewrites the generated JS
+# (quotes, wrapping) on any touch of this file; format tinycmsDomMocks.ts instead.
+open-sse/executors/tinycmsSigner.ts
+
 # Long reference tables are manually aligned; formatting the whole file causes noisy diffs.
 docs/reference/ENVIRONMENT.md
 

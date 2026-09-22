@@ -146,6 +146,16 @@ async function readResponseBuffer(response: Response, maxBytes: number) {
   return Buffer.concat(chunks, totalBytes);
 }
 
+// #13883: test-only escape hatch for `pinDns: true` callers that have no `fetchImpl` seam
+// of their own (imageGeneration.ts / imageUpscale/shared.ts). `createPinnedFetch` opens a
+// real undici connection, bypassing a test's monkeypatched `globalThis.fetch`; setting this
+// override lets such a test keep exercising its mock instead of a real network attempt.
+// Production callers never call the setter, so `pinDns` still pins for real in production.
+let pinnedFetchTestOverride: typeof fetch | undefined;
+export function setPinnedFetchTestOverride(fetchImpl: typeof fetch | undefined): void {
+  pinnedFetchTestOverride = fetchImpl;
+}
+
 export async function fetchRemoteMedia(
   input: string | URL,
   options: RemoteMediaFetchOptions = {}
@@ -171,6 +181,7 @@ export async function fetchRemoteMedia(
     const addresses = await assertHostnameResolvesPublic(currentUrl, guard, lookup);
     const fetchImpl =
       injectedFetch ??
+      pinnedFetchTestOverride ??
       (pinDns && addresses.length
         ? createPinnedFetch(addresses[0].address, addresses[0].family)
         : fetch);

@@ -24,7 +24,11 @@ import {
   isNamedOpenAIStyleProvider,
 } from "../../src/app/api/providers/[id]/models/discovery/providerSets.ts";
 import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
-import { isCodexDiscoveryModelExcluded as isSharedCodexDiscoveryModelExcluded } from "../../src/shared/services/codexDiscoveryPolicy.ts";
+import {
+  classifyCodexDiscoveryModel,
+  getCodexDiscoveryMode,
+  isCodexDiscoveryModelExcluded as isSharedCodexDiscoveryModelExcluded,
+} from "../../src/shared/services/codexDiscoveryPolicy.ts";
 import {
   applyCodexDiscoveryFilters,
   buildCodexDiscoveryCatalog,
@@ -39,6 +43,7 @@ import {
   mergeCodexLiveModelsWithLocalCatalog,
   normalizeCodexGithubCatalogResponse,
   normalizeCodexModelsResponse,
+  reconcileCodexDiscoveryCatalog,
   reconcileCuratedCodexCatalog,
 } from "../../src/app/api/providers/[id]/models/discovery/codex.ts";
 
@@ -273,6 +278,105 @@ test("codex.normalizeCodexModelsResponse parses the Codex live catalog shape", (
   assert.equal(parsed.find((model) => model.id === "gpt-5.5")?.outputTokenLimit, 64000);
 });
 
+test("codex safe discovery classifies public metadata before activating it", () => {
+  assert.deepEqual(
+    classifyCodexDiscoveryModel(
+      { id: "future-codex", visibility: "list", supportedInApi: true },
+      { source: "github", mode: "safe", implementedClientVersion: "0.153.4" }
+    ),
+    { status: "active" }
+  );
+  assert.deepEqual(
+    classifyCodexDiscoveryModel(
+      { id: "future-codex" },
+      { source: "github", mode: "safe", implementedClientVersion: "0.153.4" }
+    ),
+    { status: "candidate", reason: "missing-explicit-list-visibility" }
+  );
+  assert.deepEqual(
+    classifyCodexDiscoveryModel(
+      { id: "future-codex", minimalClientVersion: "invalid" },
+      { source: "live", mode: "safe", implementedClientVersion: "0.153.4" }
+    ),
+    { status: "candidate", reason: "invalid-minimal-client-version" }
+  );
+  assert.deepEqual(
+    classifyCodexDiscoveryModel(
+      { id: "gpt-5.4-high", visibility: "list", supportedInApi: true },
+      { source: "live", mode: "safe", implementedClientVersion: "0.153.4" }
+    ),
+    { status: "retired", reason: "denylisted" }
+  );
+});
+
+test("codex discovery mode preserves the legacy opt-in", () => {
+  assert.equal(getCodexDiscoveryMode({}), "off");
+  assert.equal(getCodexDiscoveryMode({ autoFetchModels: true }), "safe");
+  assert.equal(getCodexDiscoveryMode({ codexDiscoveryMode: "all" }), "all");
+});
+
+test("codex reconciliation keeps candidates out of the active catalog", () => {
+  const catalog = reconcileCodexDiscoveryCatalog(
+    [
+      {
+        id: "future-codex",
+        name: "Future Codex",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        discoverySource: "github",
+      },
+    ],
+    [],
+    "safe",
+    "0.153.4"
+  );
+  assert.deepEqual(catalog.activeModels, []);
+  assert.deepEqual(
+    catalog.candidateModels.map(({ id, discoveryStatus, compatibilityReason }) => ({
+      id,
+      discoveryStatus,
+      compatibilityReason,
+    })),
+    [
+      {
+        id: "future-codex",
+        discoveryStatus: "candidate",
+        compatibilityReason: "missing-explicit-list-visibility",
+      },
+    ]
+  );
+});
+
+test("codex.normalizeCodexModelsResponse preserves compatibility metadata and reasoning efforts", () => {
+  assert.deepEqual(
+    normalizeCodexGithubCatalogResponse({
+      models: [
+        {
+          slug: "future-codex",
+          visibility: "list",
+          supported_in_api: true,
+          minimal_client_version: "0.153.4",
+          supported_reasoning_levels: ["low", "high", "xhigh"],
+        },
+      ],
+    })[0],
+    {
+      id: "future-codex",
+      name: "future-codex",
+      owned_by: "codex",
+      apiFormat: "responses",
+      supportedEndpoints: ["responses"],
+      discoverySource: "github",
+      visibility: "list",
+      supportedInApi: true,
+      minimalClientVersion: "0.153.4",
+      supportsThinking: true,
+      supportedThinkingEfforts: ["low", "high", "xhigh"],
+    }
+  );
+});
+
 test("codex.normalizeCodexModelsResponse prefers max_context_window over the context_window pricing tier", () => {
   // The live Codex OAuth catalog reports BOTH fields: `context_window` is the
   // first pricing tier (~272K) while `max_context_window` is the real usable
@@ -336,7 +440,7 @@ test("codex.normalizeCodexGithubCatalogResponse parses current client catalog me
 
   assert.deepEqual(
     parsed.map((model) => model.id),
-    ["gpt-5.6-sol"]
+    ["gpt-5.6-sol", "future-model"]
   );
   assert.equal(parsed[0]?.description, "Latest frontier agentic coding model.");
   assert.equal(parsed[0]?.inputTokenLimit, 372000);

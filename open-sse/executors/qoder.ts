@@ -70,9 +70,29 @@ async function unwrapQoderEnvelope(response: Response): Promise<Response> {
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  const peekedChunks: Uint8Array[] = [];
+  let peekedText = "";
+  let peekedBytes = 0;
+  let reachedEnd = false;
 
-  const { done, value } = await reader.read();
-  if (done) {
+  while (peekedBytes < 64 * 1024) {
+    const { done, value } = await reader.read();
+    if (done) {
+      reachedEnd = true;
+      peekedText += decoder.decode();
+      break;
+    }
+
+    peekedChunks.push(value);
+    peekedBytes += value.byteLength;
+    peekedText += decoder.decode(value, { stream: true });
+
+    if (peekedText.includes("\n\n") || peekedText.includes("\r\n\r\n")) {
+      break;
+    }
+  }
+
+  if (peekedChunks.length === 0 && reachedEnd) {
     reader.cancel();
     return new Response(
       JSON.stringify({ error: { message: "[qoder] empty response", type: "provider_error" } }),
@@ -80,11 +100,9 @@ async function unwrapQoderEnvelope(response: Response): Promise<Response> {
     );
   }
 
-  const text = decoder.decode(value, { stream: true });
-
   let errorStatus: number | null = null;
   let errorMsg = "";
-  for (const line of text.split("\n")) {
+  for (const line of peekedText.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed.startsWith("data:")) continue;
     const jsonStr = trimmed.slice(5).trim();
@@ -119,11 +137,13 @@ async function unwrapQoderEnvelope(response: Response): Promise<Response> {
     );
   }
 
-  // Re-create the stream with the first chunk prepended so the success body
-  // passes through unchanged.
+  // Re-create the stream with every peeked chunk prepended so the success body
+  // passes through byte-for-byte unchanged.
   const restStream = new ReadableStream<Uint8Array>({
     start(controller) {
-      controller.enqueue(value);
+      for (const chunk of peekedChunks) {
+        controller.enqueue(chunk);
+      }
     },
     pull(controller) {
       return reader.read().then(({ done, value }) => {

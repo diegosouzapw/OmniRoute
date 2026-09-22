@@ -1,29 +1,20 @@
-# CLI-TOOLS (ଓଡ଼ିଆ)
+# CLI Tools — OmniRoute (ଓଡ଼ିଆ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
----
+ଶେଷ ଅଦ୍ୟତନ: 2026-08-23
 
-ଶିରୋନାମ: "CLI ଟୁଲ୍ସ — OmniRoute"
-ସଂସ୍କରଣ: 3.8.50
-ଅଦ୍ୟତିତ: 2026-08-23
----
+OmniRoute ତିନୋଟି ଉତ୍ସର୍ଗୀକୃତ ଡ୍ୟାଶବୋର୍ଡ ପୃଷ୍ଠାରେ ବିଭକ୍ତ ତିନିଟି ଶ୍ରେଣୀର CLI ଟୁଲ୍ ସହିତ ଏକୀକୃତ ହୁଏ:
 
-# CLI ଟୁଲ୍ସ — OmniRoute
+| ପୃଷ୍ଠା         | ରୁଟ୍                    | ଧାରଣା                                                                                                 | ସଂଖ୍ୟା             |
+| -------------- | ----------------------- | ----------------------------------------------------------------------------------------------------- | ------------------ |
+| **CLI Code's** | `/dashboard/cli-code`   | ଯେଉଁ କୋଡିଂ ଟୁଲ୍ଗୁଡ଼ିକୁ ଆପଣ OmniRoute ଆଡ଼କୁ ନିର୍ଦ୍ଦେଶ କରନ୍ତି (କ୍ଲାଏଣ୍ଟ → CLI → OmniRoute → ପ୍ରଦାନକାରୀ) | 26                 |
+| **CLI Agents** | `/dashboard/cli-agents` | ଯେଉଁ ସ୍ୱୟଂଚାଳିତ ଏଜେଣ୍ଟଗୁଡ଼ିକୁ ଆପଣ OmniRoute ଆଡ଼କୁ ନିର୍ଦ୍ଦେଶ କରନ୍ତି (ସମାନ ପ୍ରବାହ, ଅଧିକ ବ୍ୟାପକ ପରିସର)   | 10                 |
+| **ACP Agents** | `/dashboard/acp-agents` | ଯେଉଁ CLI-ଗୁଡ଼ିକୁ OmniRoute stdio/ACP ମାଧ୍ୟମରେ ବ୍ୟାକେଣ୍ଡ ଭାବେ ଆରମ୍ଭ କରେ (ବିପରୀତ ପ୍ରବାହ)                | ରେଜିଷ୍ଟ୍ରି ଦେଖନ୍ତୁ |
 
-ଅଦ୍ୟତିତ ସମୟ: 2026-08-23
-
-OmniRoute ତିନୋଟି ସମର୍ପିତ ଡ୍ୟାସବୋର୍ଡ ପୃଷ୍ଠାରେ ବିସ୍ତୃତ ତିନୋଟି ବର୍ଗର CLI ଟୁଲ୍ସ ସହ ଏକୀଭୂତ ହୁଏ:
-
-| ପୃଷ୍ଠା         | ରୁଟ                     | ଧାରଣା                                                                                         | ସଂଖ୍ୟା             |
-| -------------- | ----------------------- | --------------------------------------------------------------------------------------------- | ------------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | କୋଡିଂ ଟୁଲ୍ସ ଯାହାକୁ ଆପଣ OmniRoute ଆଡ଼କୁ ନିର୍ଦ୍ଦେଶ କରନ୍ତି (Client → CLI → OmniRoute → Provider) | 26                 |
-| **CLI Agents** | `/dashboard/cli-agents` | ସ୍ୱାୟତ୍ତ ଏଜେଣ୍ଟ ଯାହାକୁ ଆପଣ OmniRoute ଆଡ଼କୁ ନିର୍ଦ୍ଦେଶ କରନ୍ତି (ସମାନ ପ୍ରବାହ, ବ୍ୟାପକ ପରିସର)       | 10                 |
-| **ACP Agents** | `/dashboard/acp-agents` | CLI ଯାହାକୁ OmniRoute stdio/ACP ମାଧ୍ୟମରେ ବ୍ୟାକେଣ୍ଡ ଭାବରେ ସୃଷ୍ଟି କରେ (ବିପରୀତ ପ୍ରବାହ)            | ରେଜିଷ୍ଟ୍ରି ଦେଖନ୍ତୁ |
-
-ପୁରୁଣା ରୁଟଗୁଡିକ 308 ମାଧ୍ୟମରେ ପୁନଃନିର୍ଦ୍ଦେଶିତ ହୁଅନ୍ତି: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+ପୁରୁଣା ରୁଟ୍ଗୁଡ଼ିକ 308 ମାଧ୍ୟମରେ ପୁନଃନିର୍ଦ୍ଦେଶିତ ହୁଏ: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
 ---
 

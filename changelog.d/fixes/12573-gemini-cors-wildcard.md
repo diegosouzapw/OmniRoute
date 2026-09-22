@@ -1,1 +1,0 @@
-- fix(api): remove hardcoded wildcard CORS in openai-to-gemini-sse.ts so the centralized fail-closed CORS gate is the sole source of `Access-Control-Allow-Origin` (#12573)

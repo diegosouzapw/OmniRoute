@@ -23,6 +23,7 @@ import { llamagateProvider } from "./registry/llamagate/index.ts";
 import { glmProvider } from "./registry/glm/index.ts";
 import { glmtProvider } from "./registry/glm/t/index.ts";
 import { glm_cnProvider } from "./registry/glm/cn/index.ts";
+import { agnes_cnProvider } from "./registry/agnes/cn/index.ts";
 import { traeProvider } from "./registry/trae/index.ts";
 import { muse_spark_webProvider } from "./registry/muse-spark-web/index.ts";
 import { lmarenaProvider } from "./registry/lmarena/index.ts";
@@ -88,7 +89,6 @@ import { antigravityProvider } from "./registry/antigravity/index.ts";
 import { openaiProvider } from "./registry/openai/index.ts";
 import { snowflakeProvider } from "./registry/snowflake/index.ts";
 import { huggingfaceProvider } from "./registry/huggingface/index.ts";
-import { chipotleProvider } from "./registry/chipotle/index.ts";
 import { freeaiapikeyProvider } from "./registry/freeaiapikey/index.ts";
 import { qwen_cloudProvider } from "./registry/qwen-cloud/index.ts";
 import { qwen_cloud_token_planProvider } from "./registry/qwen-cloud-token-plan/index.ts";
@@ -231,6 +231,7 @@ import { x5labProvider } from "./registry/x5lab/index.ts";
 import { kenariProvider } from "./registry/kenari/index.ts";
 import { navyProvider } from "./registry/navy/index.ts";
 import { naraProvider } from "./registry/nara/index.ts";
+import { xkiroProvider } from "./registry/xkiro/index.ts";
 import { opperProvider } from "./registry/opper/index.ts";
 import { requestyProvider } from "./registry/requesty/index.ts";
 import { sealionProvider } from "./registry/sealion/index.ts";
@@ -362,7 +363,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   openai: openaiProvider,
   snowflake: snowflakeProvider,
   huggingface: huggingfaceProvider,
-  chipotle: chipotleProvider,
   freeaiapikey: freeaiapikeyProvider,
   "qwen-cloud": qwen_cloudProvider,
   "qwen-cloud-token-plan": qwen_cloud_token_planProvider,
@@ -414,6 +414,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   deepinfra: deepinfraProvider,
   agy: agyProvider,
   agnes: agnesProvider,
+  "agnes-cn": agnes_cnProvider,
   aihorde: aihordeProvider,
   ainative: ainativeProvider,
   aion: aionProvider,
@@ -508,6 +509,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kenari: kenariProvider,
   navy: navyProvider,
   nara: naraProvider,
+  xkiro: xkiroProvider,
   opper: opperProvider,
   requesty: requestyProvider,
   sealion: sealionProvider,

@@ -4,53 +4,55 @@
 
 ---
 
-This guide covers how to cleanly remove OmniRoute from your system.
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/UNINSTALL.md) · 🇪🇹 [am](../../../am/docs/guides/UNINSTALL.md) · 🇸🇦 [ar](../../../ar/docs/guides/UNINSTALL.md) · 🇦🇿 [az](../../../az/docs/guides/UNINSTALL.md) · 🇧🇬 [bg](../../../bg/docs/guides/UNINSTALL.md) · 🇧🇩 [bn](../../../bn/docs/guides/UNINSTALL.md) · 🇨🇿 [cs](../../../cs/docs/guides/UNINSTALL.md) · 🇩🇰 [da](../../../da/docs/guides/UNINSTALL.md) · 🇩🇪 [de](../../../de/docs/guides/UNINSTALL.md) · 🇬🇷 [el](../../../el/docs/guides/UNINSTALL.md) · 🇪🇸 [es](../../../es/docs/guides/UNINSTALL.md) · 🇪🇪 [et](../../../et/docs/guides/UNINSTALL.md) · 🇮🇷 [fa](../../../fa/docs/guides/UNINSTALL.md) · 🇫🇮 [fi](../../../fi/docs/guides/UNINSTALL.md) · 🇮🇪 [ga](../../../ga/docs/guides/UNINSTALL.md) · 🇮🇳 [gu](../../../gu/docs/guides/UNINSTALL.md) · 🇳🇬 [ha](../../../ha/docs/guides/UNINSTALL.md) · 🇮🇱 [he](../../../he/docs/guides/UNINSTALL.md) · 🇮🇳 [hi](../../../hi/docs/guides/UNINSTALL.md) · 🇭🇷 [hr](../../../hr/docs/guides/UNINSTALL.md) · 🇭🇺 [hu](../../../hu/docs/guides/UNINSTALL.md) · 🇦🇲 [hy](../../../hy/docs/guides/UNINSTALL.md) · 🇮🇩 [id](../../../id/docs/guides/UNINSTALL.md) · 🇳🇬 [ig](../../../ig/docs/guides/UNINSTALL.md) · 🇮🇹 [it](../../../it/docs/guides/UNINSTALL.md) · 🇯🇵 [ja](../../../ja/docs/guides/UNINSTALL.md) · 🇬🇪 [ka](../../../ka/docs/guides/UNINSTALL.md) · 🇰🇭 [km](../../../km/docs/guides/UNINSTALL.md) · 🇮🇳 [kn](../../../kn/docs/guides/UNINSTALL.md) · 🇰🇷 [ko](../../../ko/docs/guides/UNINSTALL.md) · 🇱🇹 [lt](../../../lt/docs/guides/UNINSTALL.md) · 🇱🇻 [lv](../../../lv/docs/guides/UNINSTALL.md) · 🇮🇳 [ml](../../../ml/docs/guides/UNINSTALL.md) · 🇮🇳 [mr](../../../mr/docs/guides/UNINSTALL.md) · 🇲🇾 [ms](../../../ms/docs/guides/UNINSTALL.md) · 🇲🇹 [mt](../../../mt/docs/guides/UNINSTALL.md) · 🇲🇲 [my](../../../my/docs/guides/UNINSTALL.md) · 🇳🇵 [ne](../../../ne/docs/guides/UNINSTALL.md) · 🇳🇱 [nl](../../../nl/docs/guides/UNINSTALL.md) · 🇳🇴 [no](../../../no/docs/guides/UNINSTALL.md) · 🇮🇳 [or](../../../or/docs/guides/UNINSTALL.md) · 🇮🇳 [pa](../../../pa/docs/guides/UNINSTALL.md) · 🇵🇭 [phi](../../../phi/docs/guides/UNINSTALL.md) · 🇵🇱 [pl](../../../pl/docs/guides/UNINSTALL.md) · 🇵🇹 [pt](../../../pt/docs/guides/UNINSTALL.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/UNINSTALL.md) · 🇷🇴 [ro](../../../ro/docs/guides/UNINSTALL.md) · 🇷🇺 [ru](../../../ru/docs/guides/UNINSTALL.md) · 🇱🇰 [si](../../../si/docs/guides/UNINSTALL.md) · 🇸🇰 [sk](../../../sk/docs/guides/UNINSTALL.md) · 🇸🇮 [sl](../../../sl/docs/guides/UNINSTALL.md) · 🇷🇸 [sr](../../../sr/docs/guides/UNINSTALL.md) · 🇸🇪 [sv](../../../sv/docs/guides/UNINSTALL.md) · 🇰🇪 [sw](../../../sw/docs/guides/UNINSTALL.md) · 🇮🇳 [ta](../../../ta/docs/guides/UNINSTALL.md) · 🇮🇳 [te](../../../te/docs/guides/UNINSTALL.md) · 🇹🇭 [th](../../../th/docs/guides/UNINSTALL.md) · 🇹🇷 [tr](../../../tr/docs/guides/UNINSTALL.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/UNINSTALL.md) · 🇵🇰 [ur](../../../ur/docs/guides/UNINSTALL.md) · 🇺🇿 [uz](../../../uz/docs/guides/UNINSTALL.md) · 🇻🇳 [vi](../../../vi/docs/guides/UNINSTALL.md) · 🇳🇬 [yo](../../../yo/docs/guides/UNINSTALL.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/UNINSTALL.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/UNINSTALL.md)
+
+Ce guide explique comment supprimer proprement OmniRoute de votre système.
 
 ---
 
-## Quick Uninstall (v3.6.2+)
+## Désinstallation rapide (v3.6.2+)
 
-OmniRoute provides two built-in scripts for clean removal:
+OmniRoute fournit deux scripts intégrés pour une désinstallation propre :
 
-### Keep Your Data
+### Conserver vos données
 
 ```bash
 npm run uninstall
 ```
 
-This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
+Cette commande supprime l’application OmniRoute, mais **conserve** votre base de données, vos configurations, vos clés API et les paramètres de vos fournisseurs dans `~/.omniroute/`. Utilisez-la si vous prévoyez de réinstaller l’application ultérieurement et souhaitez conserver votre configuration.
 
-### Full Removal
+### Suppression complète
 
 ```bash
 npm run uninstall:full
 ```
 
-This removes the application **and permanently erases** all data:
+Cette commande supprime l’application **et efface définitivement** toutes les données :
 
-- Database (`storage.sqlite`)
-- Provider configurations and API keys
-- Backup files
-- Log files
-- All files in the `~/.omniroute/` directory
+- Base de données (`storage.sqlite`)
+- Configurations des fournisseurs et clés API
+- Fichiers de sauvegarde
+- Fichiers journaux
+- Tous les fichiers du répertoire `~/.omniroute/`
 
-> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+> ⚠️ **Avertissement :** `npm run uninstall:full` est irréversible. Toutes vos connexions aux fournisseurs, vos combinaisons, vos clés API et votre historique d’utilisation seront définitivement supprimés.
 
 ---
 
-## Manual Uninstall
+## Désinstallation manuelle
 
-### NPM Global Install
+### Installation globale avec NPM
 
 ```bash
-# Remove the global package
+# Supprimer le package global
 npm uninstall -g omniroute
 
-# (Optional) Remove data directory
+# (Facultatif) Supprimer le répertoire de données
 rm -rf ~/.omniroute
 ```
 
-### pnpm Global Install
+### Installation globale avec pnpm
 
 ```bash
 pnpm uninstall -g omniroute
@@ -60,97 +62,97 @@ rm -rf ~/.omniroute
 ### Docker
 
 ```bash
-# Stop and remove the container
+# Arrêter et supprimer le conteneur
 docker stop omniroute
 docker rm omniroute
 
-# Remove the volume (deletes all data)
+# Supprimer le volume (efface toutes les données)
 docker volume rm omniroute-data
 
-# (Optional) Remove the image
+# (Facultatif) Supprimer l’image
 docker rmi diegosouzapw/omniroute:latest
 ```
 
 ### Docker Compose
 
 ```bash
-# Stop and remove containers
+# Arrêter et supprimer les conteneurs
 docker compose down
 
-# Also remove volumes (deletes all data)
+# Supprimer également les volumes (efface toutes les données)
 docker compose down -v
 ```
 
-### Electron Desktop App
+### Application de bureau Electron
 
-**Windows:**
+**Windows :**
 
-- Open `Settings → Apps → OmniRoute → Uninstall`
-- Or run the NSIS uninstaller from the install directory
+- Ouvrez `Paramètres → Applications → OmniRoute → Désinstaller`
+- Ou exécutez le programme de désinstallation NSIS depuis le répertoire d’installation
 
-**macOS:**
+**macOS :**
 
-- Drag `OmniRoute.app` from `/Applications` to Trash
-- Remove data: `rm -rf ~/Library/Application Support/omniroute`
+- Faites glisser `OmniRoute.app` depuis `/Applications` vers la Corbeille
+- Supprimez les données : `rm -rf ~/Library/Application Support/omniroute`
 
-**Linux:**
+**Linux :**
 
-- Remove the AppImage file
-- Remove data: `rm -rf ~/.omniroute`
+- Supprimez le fichier AppImage
+- Supprimez les données : `rm -rf ~/.omniroute`
 
-### Source Install (git clone)
+### Installation depuis les sources (git clone)
 
 ```bash
-# Remove the cloned directory
+# Supprimer le répertoire cloné
 rm -rf /path/to/omniroute
 
-# (Optional) Remove data directory
+# (Facultatif) Supprimer le répertoire de données
 rm -rf ~/.omniroute
 ```
 
 ---
 
-## Data Directories
+## Répertoires de données
 
-OmniRoute stores data in the following locations by default:
+Par défaut, OmniRoute stocke les données aux emplacements suivants :
 
-| Platform      | Default Path                  | Override                  |
-| ------------- | ----------------------------- | ------------------------- |
-| Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` env var        |
-| Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
-| XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
+| Plateforme     | Chemin par défaut             | Remplacement                               |
+| -------------- | ----------------------------- | ------------------------------------------ |
+| Linux          | `~/.omniroute/`               | Variable d’environnement `DATA_DIR`        |
+| macOS          | `~/.omniroute/`               | Variable d’environnement `DATA_DIR`        |
+| Windows        | `%APPDATA%/omniroute/`        | Variable d’environnement `DATA_DIR`        |
+| Docker         | `/app/data/` (volume monté)   | Variable d’environnement `DATA_DIR`        |
+| Compatible XDG | `$XDG_CONFIG_HOME/omniroute/` | Variable d’environnement `XDG_CONFIG_HOME` |
 
-### Files in the data directory
+### Fichiers du répertoire de données
 
-| File/Directory       | Description                                       |
-| -------------------- | ------------------------------------------------- |
-| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
-| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
-| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
-| `call_logs/`         | Request payload archives                          |
-| `backups/`           | Automatic database backups                        |
-| `log.txt`            | Legacy request log (optional)                     |
+| Fichier/Répertoire   | Description                                                               |
+| -------------------- | ------------------------------------------------------------------------- |
+| `storage.sqlite`     | Base de données principale (fournisseurs, combinaisons, paramètres, clés) |
+| `storage.sqlite-wal` | Journal d’écriture anticipée SQLite (temporaire)                          |
+| `storage.sqlite-shm` | Mémoire partagée SQLite (temporaire)                                      |
+| `call_logs/`         | Archives des charges utiles des requêtes                                  |
+| `backups/`           | Sauvegardes automatiques de la base de données                            |
+| `log.txt`            | Journal des requêtes hérité (facultatif)                                  |
 
 ---
 
-## Verify Complete Removal
+## Vérifier la suppression complète
 
-After uninstalling, verify there are no remaining files:
+Après la désinstallation, vérifiez qu’il ne reste aucun fichier :
 
 ```bash
-# Check for global npm package
+# Vérifier le package npm global
 npm list -g omniroute 2>/dev/null
 
-# Check for data directory
+# Vérifier le répertoire de données
 ls -la ~/.omniroute/ 2>/dev/null
 
-# Check for running processes
+# Vérifier les processus en cours d’exécution
 pgrep -f omniroute
 ```
 
-If any process is still running, stop it:
+Si un processus est toujours en cours d’exécution, arrêtez-le :
 
 ```bash
 pkill -f omniroute

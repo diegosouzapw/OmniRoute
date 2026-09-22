@@ -1,36 +1,44 @@
-# MCP-SERVER (Hausa)
+# OmniRoute MCP Server Documentation (Hausa)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "Takardun Sabar OmniRoute MCP"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# Takardun Sabar OmniRoute MCP
-
-> Sabar Model Context Protocol mai kayan aiki 110 da suka haɗa da ayyukan routing, cache, compression, memory, skills, proxy, pool, Radar, da kuma tushen context.
+> Sabar Model Context Protocol mai kayan aiki 110 da suka shafi sarrafa hanyoyi, cache, matsawa, ƙwaƙwalwa, ƙwarewa, proxy, pool, Radar, da ayyukan tushen mahallin.
 >
-> Tushen gaskiya: `open-sse/mcp-server/server.ts` yana ƙididdige **kayan aiki na musamman guda 110** ta amfani da `countUniqueMcpTools()`: ma’anoni na asali guda 45 (ciki har da kayan aikin zagayowar rayuwar CCR guda shida, rukunin agent-skills guda uku, `omniroute_radar_catalog`, da `omniroute_x_search`), sannan memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), local corpus (3), da kayan aikin compression guda biyu na RTK kaɗai.
+> Madogarar gaskiya: `open-sse/mcp-server/server.ts` yana ƙididdige **kayan aiki na musamman guda 110** ta amfani da `countUniqueMcpTools()`: ma’anoni na asali guda 45 (ciki har da kayan aikin zagayen rayuwar CCR guda shida, rukuni na uku na agent-skills, `omniroute_radar_catalog`, da `omniroute_x_search`), tare da ƙwaƙwalwa (3), ƙwarewa (4), ƙwarewar GitHub (3), pool (6), tsarin mayar da aiki tamkar wasa (8), plugins (8), Notion (6), Obsidian (22), kundin bayanai na gida (3), da kayan aikin matsawa guda biyu na RTK kawai.
 
 ## Shigarwa
 
-OmniRoute MCP yana ciki tun asali. Fara shi da:
+An riga an haɗa OmniRoute MCP a ciki. Fara shi da:
 
 ```bash
 omniroute --mcp
 ```
 
-Ko kuma ta hanyar open-sse transport:
+Ko ta hanyar jigilar open-sse:
 
 ```bash
-# HTTP streamable transport (port 20130)
-omniroute --dev  # MCP yana farawa ta atomatik a /mcp endpoint
+# Jigilar HTTP mai gudana (tashar 20130)
+omniroute --dev  # MCP yana farawa ta atomatik a maƙurar /mcp
 ```
+
+Jigilar HTTP (`sse` / `streamable-http`, waɗanda sabar dashboard ke samarwa a cikin tsari guda) a
+kashe suke ta tsohuwa, kuma a baya ana iya kunna ko kashe su ne kawai daga shafin `/dashboard/mcp`. Tun daga v3.8.51
+CLI yana da daidaitattun fasaloli:
+
+```bash
+omniroute mcp status                                  # an kunna/kan layi, jigila, adadin kayan aiki
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # yana sake saita zaman sse/streamable-http masu aiki
+```
+
+`mcp enable`/`mcp disable` suna aika PATCH ga saitin `mcpEnabled` ɗaya (da kuma `mcpTransport` idan an zaɓa)
+wanda dashboard ke kunnawa ko kashewa ta `/api/settings`. `mcp restart` yana kiran `POST /api/mcp/restart`: yana rufe
+zaman `sse`/`streamable-http` masu aiki domin buƙata ta gaba ta sake farawa cikin tsabta, yana mayar da
+`409` idan an kashe MCP, da kuma `501` don jigilar `stdio` (abokan hulɗar stdio ne ke mallakar
+ƙananan tsarinsu — babu makama a cikin tsari da za a sake farawa).
 
 ## Hanyoyin Sufuri
 

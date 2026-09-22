@@ -348,6 +348,16 @@
     "running": "MCP server running ({transport})",
     "stopped": "MCP server stopped.",
     "restarted": "MCP server restarted.",
+    "stoppedHint": "Run `omniroute mcp enable` to turn it on.",
+    "enabled": "MCP server enabled.",
+    "disabled": "MCP server disabled.",
+    "enable": {
+      "description": "Enable the MCP server",
+      "transport": "Transport to use: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Disable the MCP server"
+    },
     "call": {
       "description": "Invoke an MCP tool directly",
       "args": "JSON arguments object (inline)",

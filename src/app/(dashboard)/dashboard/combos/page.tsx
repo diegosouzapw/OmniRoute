@@ -31,6 +31,7 @@ import { buildAgentFeaturePatch } from "./comboAgentFeatures";
 import { useComboProxyAssignments } from "./useComboProxyAssignments";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
 import ReasoningTokenBufferToggle from "./ReasoningTokenBufferToggle";
+import ComboTimeoutFields from "./ComboTimeoutFields";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -83,6 +84,8 @@ import {
 } from "@/lib/combos/intelligentRouting";
 import { getComboStepTarget } from "@/lib/combos/steps";
 import { DEAD_COMBO_CONFIG_KEYS } from "@/lib/combos/deadConfigKeys";
+import { modelFamily } from "@/lib/combos/invariants";
+import { resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
 
@@ -189,7 +192,8 @@ const STRATEGY_GUIDANCE_FALLBACK = {
   "quota-weighted": {
     when: "Use when several accounts of the same model have quota snapshots and concurrent traffic should land on accounts that still have leftover.",
     avoid: "Avoid when most accounts have no quota snapshots.",
-    example: "Example: 10 Antigravity Gemini accounts with different 5h/weekly resets; skip empty ones and pick among the rest in proportion to leftover.",
+    example:
+      "Example: 10 Antigravity Gemini accounts with different 5h/weekly resets; skip empty ones and pick among the rest in proportion to leftover.",
   },
 };
 
@@ -206,8 +210,6 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
     "Weighted sticky batch size: consecutive successful requests sent to the selected weighted target before drawing again. Empty or 1 keeps the current per-request weighted draw.",
   failoverBeforeRetry:
     "When enabled, a 429 from the upstream triggers immediate target failover instead of retrying the same URL first.",
-  targetTimeoutMs:
-    "Optional combo target timeout. Empty inherits the current request timeout; larger values are capped to that timeout.",
   maxSetRetries:
     "Number of times to retry the full target set when every target fails. 0 = no set-level retry.",
   setRetryDelayMs:
@@ -226,20 +228,6 @@ const NON_PERSISTED_COMBO_CONFIG_KEYS = new Set([
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
 ]);
-const MS_PER_SECOND = 1000;
-
-function msToOptionalSecondsInput(value) {
-  const ms = Number(value);
-  if (!Number.isFinite(ms) || ms <= 0) return "";
-  return String(Math.round(ms / MS_PER_SECOND));
-}
-
-function secondsInputToOptionalMs(value, maxSeconds = 86400) {
-  if (!value) return undefined;
-  const seconds = Number(value);
-  if (!Number.isFinite(seconds) || seconds <= 0) return undefined;
-  return Math.min(maxSeconds, Math.round(seconds)) * MS_PER_SECOND;
-}
 
 function sanitizeComboRuntimeConfig(config) {
   if (!config || typeof config !== "object") return {};
@@ -391,7 +379,8 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
   },
   "quota-weighted": {
     title: "Quota-weighted account spread",
-    description: "Drops exhausted accounts, keeps a 1% soft floor, then picks the first target in proportion to leftover divided by in-flight load. Existing conversations stay pinned.",
+    description:
+      "Drops exhausted accounts, keeps a 1% soft floor, then picks the first target in proportion to leftover divided by in-flight load. Existing conversations stay pinned.",
     tips: [
       "Keep session stickiness on (the default). New conversations spread by leftover and in-flight load; an existing conversation stays on its account until that account is empty, then rebinds.",
       "Needs per-account quota snapshots. Missing snapshots stay eligible but only at the reset-aware missing-quota score (0.5).",
@@ -665,6 +654,55 @@ function normalizeModelEntry(entry) {
     weight: entry.weight || 0,
   };
 }
+
+/**
+ * On an existing-combo edit, work out how the dashboard save should synchronize
+ * `allowedProviders` / `allowedModelFamilies` against the combo's new step list so
+ * adding a step across providers never triggers COMBO_008 (#13951). Both restrictions
+ * are only ever WIDENED or left untouched here — never synthesized from no restriction,
+ * and never wiped just because the combo happens to have one.
+ */
+function computeAllowedRestrictionSync(
+  isEdit: boolean,
+  combo: { allowedProviders?: unknown; allowedModelFamilies?: unknown } | null | undefined,
+  models: Array<{ providerId?: string; model?: string }>
+): { allowedProviders?: string[]; allowedModelFamilies?: null; overrideAllowedProviders?: true } {
+  if (!isEdit) return {};
+  const result: {
+    allowedProviders?: string[];
+    allowedModelFamilies?: null;
+    overrideAllowedProviders?: true;
+  } = { overrideAllowedProviders: true };
+
+  const existingProviders = Array.isArray(combo?.allowedProviders) ? combo.allowedProviders : [];
+  if (existingProviders.length > 0) {
+    const stepProviders = models
+      .map((m) => {
+        if (m.providerId) return m.providerId;
+        if (typeof m.model !== "string" || !m.model.includes("/")) return "";
+        const [aliasOrProvider, ...rest] = m.model.split("/");
+        return resolveCanonicalProviderModel(aliasOrProvider, rest.join("/")).provider || "";
+      })
+      .filter((p): p is string => Boolean(p));
+    result.allowedProviders = Array.from(new Set([...existingProviders, ...stepProviders]));
+  }
+
+  // Only clear the family restriction when a new step actually violates it (#13951).
+  const existingFamilies = Array.isArray(combo?.allowedModelFamilies)
+    ? combo.allowedModelFamilies
+    : [];
+  if (existingFamilies.length > 0) {
+    const allowedFamilies = new Set(existingFamilies);
+    const stepViolatesFamilies = models.some((m) => {
+      const family = typeof m.model === "string" ? modelFamily(m.model) : null;
+      return !family || !allowedFamilies.has(family);
+    });
+    if (stepViolatesFamilies) result.allowedModelFamilies = null;
+  }
+
+  return result;
+}
+
 
 function getModelString(entry) {
   if (typeof entry === "string") return entry;
@@ -3040,6 +3078,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       strategy,
     };
 
+    // When editing an existing combo from the dashboard form, synchronize allowedProviders
+    // and clear legacy family restrictions so adding steps across providers never triggers COMBO_008
+    Object.assign(saveData, computeAllowedRestrictionSync(isEdit, combo, models));
+
     // Per-combo description (#5005). Free-text, optional, persisted in combo data.
     if (description.trim()) {
       saveData.description = description.trim();
@@ -4061,34 +4103,12 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
                       />
                     </div>
-                    <div>
-                      <FieldLabelWithHelp
-                        label={getI18nOrFallback(t, "targetTimeout", "Target timeout (seconds)")}
-                        help={getI18nOrFallback(
-                          t,
-                          "advancedHelp.targetTimeoutMs",
-                          ADVANCED_FIELD_HELP_FALLBACK.targetTimeoutMs
-                        )}
-                        showHelp={!isExpertMode}
-                        htmlFor="combo-target-timeout-ms"
-                      />
-                      <input
-                        id="combo-target-timeout-ms"
-                        type="number"
-                        min="1"
-                        max="86400"
-                        step="1"
-                        value={msToOptionalSecondsInput(config.targetTimeoutMs)}
-                        placeholder={getI18nOrFallback(t, "inheritRequestTimeout", "inherit")}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            targetTimeoutMs: secondsInputToOptionalMs(e.target.value),
-                          })
-                        }
-                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                      />
-                    </div>
+                    <ComboTimeoutFields
+                      config={config}
+                      setConfig={setConfig}
+                      t={t}
+                      showHelp={!isExpertMode}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
                     <div className="col-span-2">

@@ -4,265 +4,335 @@
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+
+Panduan visual untuk setiap bahagian papan pemuka OmniRoute.
+
+> 📅 **Kemas kini terakhir:** 2026-06-28 — **v3.8.40**
 
 ---
 
-## 🔌 Providers
+## ✨ Sorotan v3.8.0
 
-![Providers Dashboard](screenshots/01-providers.png)
+Kitaran v3.7.x → v3.8.0 menambahkan penghalaan automatik tanpa konfigurasi, penyedia baharu, aliran OAuth, ketahanan yang lebih mendalam dan pengalaman CLI yang jauh lebih kaya. Ciri utama disenaraikan di bawah — butiran penuh terdapat selanjutnya dalam dokumen ini dan dalam spesifikasi yang dipautkan.
 
----
+- 🤖 **Kombo Automatik / Penghalaan automatik tanpa konfigurasi** — gunakan awalan `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Disokong oleh enjin pemarkahan 16 faktor dan 6 **pek mod** yang dipilih susun (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- 🆕 **Penyedia Command Code** (#2199) — pendaftaran kelas pertama dengan katalog model dan penjejakan kuota
+- 🆕 **Penyedia Z.AI** — penyedia peringkat percuma baharu dengan label kuota
+- 🎬 **Peluasan media KIE** — katalog diperluas termasuk model penjanaan video
+- 🔐 **Pengesahan Devin** — Desktop mengimport kunci API Devin sedia ada; CLI menggunakan kelayakan `devin auth login` setempat
+- 🆓 **8 penyedia percuma baharu** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Penghalaan peringkat W1–W4 yang peka manifes** — manifes penyedia memacu pemilihan peringkat berwajaran
+- 🎨 **Kesetaraan penuh OpenAI untuk Cursor** — panggilan alat, penstriman dan pengurusan sesi dari hujung ke hujung
+- 📊 **Penggunaan pelan Cursor Pro** — data kuota & kitaran dipaparkan dalam papan pemuka had penyedia
+- ⚡ **Pecahan peringkat perkhidmatan / analitik peringkat pantas Codex** — keterlihatan penggunaan bagi setiap peringkat
+- 📌 **Penghalaan melekat bagi setiap sesi** — sesi Codex dikekalkan pada akaun yang sama antara giliran
+- 🔊 **Penambahbaikan TTS Inworld** — katalog suara, penstriman dan peningkatan kependaman
+- 🔑 **Pengesahan tanpa antara muka Kiro** — log masuk melalui stor SQLite `kiro-cli` setempat, tanpa memerlukan pelayar
+- 📉 **Pemantauan kuota dan had DeepSeek** — penggunaan harian/bulanan dipaparkan melalui papan pemuka
+- 🔄 **Strategi penghalaan yang peka tetapan semula** — kombo kini mengutamakan akaun yang tetingkap kuotanya akan ditetapkan semula paling awal
+- ⏱️ **`fallbackDelayMs`** dan **pengesanan had alat dinamik** — pemasaan sandaran yang lebih terperinci + had bilangan alat bagi setiap penyedia
+- 🔧 **Penurunan taraf mod latar belakang (API Responses)** — beralih kepada mod segerak dengan amaran berstruktur apabila perkhidmatan huluan tidak menyokong peninjauan latar belakang
+- 🚦 **Pengelasan 429 bagi setiap penyedia** + togol `useUpstream429BreakerHints` — gelagat pemutus yang lebih terperinci menggunakan petunjuk had kadar daripada perkhidmatan huluan
+- 🩺 **Papan pemuka tempoh bertenang model** — pantau sekatan setiap model dan dayakan semula secara manual daripada UI
+- 🔒 **Pengesanan sijil Linux dinamik MITM** — berfungsi merentas Debian/Ubuntu, Fedora/RHEL, Arch dan distro lain
+- 💻 **Suite penambahbaikan CLI** — lebih 20 perintah termasuk `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Penemuan model pembenaman Qdrant** — prob model stor vektor secara automatik
+- 🔑 **Kunci API / Kunci Bearer dengan skop `manage`** — lakukan operasi pentadbir secara berprogram melalui API
+- 🏥 **Analitik kesihatan sasaran kombo** + **pembina kombo berstruktur** — kesihatan bagi setiap sasaran & pembina UI untuk menyusun langkah `(provider, model, connection)`
+- 🤝 **Penyedia OAuth GitLab Duo** — log masuk dengan kelayakan GitLab
+- 🧠 **Cache Main Semula Penaakulan** — pengekalan hibrid dalam memori + SQLite untuk jejak penaakulan
 
-## 🎨 Combos
-
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-Recent combo improvements:
-
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
-
-![Combos Dashboard](screenshots/02-combos.png)
-
----
-
-## 📊 Analytics
-
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
-
----
-
-## 🏥 System Health
-
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
-
-![Health Dashboard](screenshots/04-health.png)
+📚 **Dokumen berkaitan:** [Rangka Kerja Kemahiran](../frameworks/SKILLS.md) · [Sistem Memori](../frameworks/MEMORY.md) · [Ejen Awan](../frameworks/CLOUD_AGENT.md) · [Webhook](../frameworks/WEBHOOKS.md) · [Cache Main Semula Penaakulan](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔧 Translator Playground
+## 🔌 Penyedia
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+Urus sambungan penyedia AI: penyedia OAuth (Claude Code, Codex), penyedia kunci API (Groq, DeepSeek, OpenRouter), dan penyedia percuma (Qoder, Kiro). Akaun Kiro menyertakan penjejakan baki kredit — baki kredit, jumlah peruntukan, dan tarikh pembaharuan boleh dilihat dalam Papan Pemuka → Penggunaan.
 
-![Translator Playground](screenshots/05-translator.png)
+Sambungan OpenRouter boleh menyimpan `preset` bagi setiap sambungan dalam Tetapan Lanjutan. Apabila ditetapkan, OmniRoute menghantarnya sebagai medan permintaan peringkat teratas OpenRouter, contohnya `"preset": "email-copywriter"`, melainkan permintaan klien telah membekalkan `preset` sendiri.
 
----
-
-## 🎮 Model Playground _(v2.0.9+)_
-
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+![Papan Pemuka Penyedia](../screenshots/01-providers.png)
 
 ---
 
-## 🎨 Themes _(v2.0.5+)_
+## 🎨 Kombo
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+Cipta kombo penghalaan model dengan 19 strategi awam: priority, weighted, round-robin, context-relay, fill-first, p2c (pilihan kuasa dua), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (penyedia-terakhir-yang-diketahui-baik), context-optimized, cache-optimized, **fusion** (menghantar permintaan kepada sekumpulan model secara selari, kemudian mensintesis satu jawapan melalui penilai), dan **pipeline**. Setiap kombo merantaikan berbilang model dengan sandaran automatik serta menyertakan templat pantas dan semakan kesiapsiagaan.
 
----
+Penambahbaikan kombo terkini:
 
-## ⚙️ Settings
+- **Pembina kombo berstruktur** — cipta setiap langkah dengan memilih penyedia, model, dan akaun/sambungan yang tepat
+- **Sokongan penyedia berulang** — gunakan semula penyedia yang sama berkali-kali dalam satu kombo selagi tupel `(provider, model, connection)` adalah unik
+- **Kesihatan sasaran kombo** — paparan analitik dan kesihatan kini membezakan setiap sasaran/langkah kombo dan bukannya menggabungkan semuanya menjadi rentetan model
+- **Susunan peringkat komposit** — `defaultTier -> fallbackTier` kini mempengaruhi susunan pelaksanaan/sandaran masa jalan untuk langkah kombo peringkat teratas
+- **Templat gesaan sistem** — `system_message` kombo menyokong ruang letak bahagian pelayan
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` dan `{{FINGERPRINT}}`
+  yang dikembangkan daripada sasaran yang benar-benar dihalakan sejurus sebelum penghantaran.
+  Dikawal melalui senarai dibenarkan dan tidak rekursif; ruang letak yang tidak diketahui kekal sebagai teks literal; nilai kosong
+  dikembangkan kepada kosong; gesaan sistem klien tidak pernah ditulis semula. `{{FINGERPRINT}}`
+  hanya diselesaikan untuk penyedia percuma berasaskan cap jari dengan cap jari yang dipinkan atau
+  diputarkan secara automatik — ia dikembangkan kepada kosong di tempat lain (contohnya
+  sambungan cap jari tunggal, penyedia bukan fp). Pengembangan meliputi
+  gelung penghantaran standard, round-robin, dan sesi cache konteks yang dipinkan;
+  strategi fusion, chaos, pipeline dan nested-execute belum lagi mengembangkan
+  ruang letak.
 
-Comprehensive settings panel with tabs:
-
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
-
----
-
-## 🔧 CLI Tools
-
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![Papan Pemuka Kombo](../screenshots/02-combos.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## 📊 Analitik
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Analitik penggunaan yang menyeluruh dengan penggunaan token, anggaran kos, peta haba aktiviti, carta taburan mingguan, dan pecahan mengikut penyedia.
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+![Papan Pemuka Analitik](../screenshots/03-analytics.png)
 
 ---
 
-## 🔗 Context Relay _(v3.5.5+)_
+## 🏥 Kesihatan Sistem
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+Pemantauan masa nyata: masa aktif, memori, versi, persentil kependaman (p50/p95/p99), statistik cache, keadaan pemutus litar penyedia, sesi aktif yang dipantau kuotanya, dan kesihatan sasaran kombo.
 
-Configurable via combo-level or global settings:
-
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
-
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+![Papan Pemuka Kesihatan](../screenshots/04-health.png)
 
 ---
 
-## 🛡️ Proxy Hardening _(v3.5.5+)_
+## 🔧 Ruang Uji Penterjemah
 
-Comprehensive proxy configuration enforcement across the entire request pipeline:
+Empat mod untuk menyahpepijat terjemahan API: **Ruang Uji** (penukar format), **Penguji Sembang** (permintaan langsung), **Bangku Ujian** (ujian berkelompok), dan **Pemantau Langsung** (strim masa nyata).
 
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+![Ruang Uji Penterjemah](../screenshots/05-translator.png)
 
 ---
 
-## 📧 Email Privacy Masking _(v3.5.6+)_
+## 🎮 Ruang Uji Model _(v2.0.9+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
-
----
-
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
-
-The provider page model list now includes:
-
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+Uji mana-mana model secara terus daripada papan pemuka. Pilih penyedia, model dan titik akhir, tulis gesaan dengan Monaco Editor, strim respons dalam masa nyata, hentikan di pertengahan strim dan lihat metrik pemasaan.
 
 ---
 
-## 🔧 OAuth Env Repair _(v3.6.1+)_
+## 🎨 Tema _(v2.0.5+)_
 
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
-
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+Tema warna yang boleh disesuaikan untuk keseluruhan papan pemuka. Pilih daripada 7 warna pratetap (Karang, Biru, Merah, Hijau, Ungu, Jingga, Sian) atau cipta tema tersuai dengan memilih sebarang warna heksadesimal. Menyokong mod cerah, gelap dan sistem.
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## ⚙️ Tetapan
 
-Clean removal scripts for all installation methods:
+Panel tetapan menyeluruh dengan **7 tab**:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+- **Umum** — Storan sistem, pengurusan sandaran (eksport/import pangkalan data)
+- **Penampilan** — Pemilih tema (gelap/cerah/sistem), pratetap tema warna dan warna tersuai, keterlihatan log kesihatan, kawalan keterlihatan item bar sisi dan pemisah kumpulan, kawalan keterlihatan terowong titik akhir
+- **AI** — Ciri pembantu AI, pratetap penghalaan lalai (Gabungan Auto `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), cache main semula penaakulan dan togol kemahiran/memori
+- **Keselamatan** — Perlindungan titik akhir API, penyekatan penyedia tersuai, penapisan IP, maklumat sesi
+- **Penghalaan** — Alias model, penurunan taraf tugas latar belakang, penghalaan peringkat yang mengambil kira manifes (W1–W4), `fallbackDelayMs`, penghalaan kekal bagi setiap sesi
+- **Ketahanan** — Pengekalan had kadar, penalaan pemutus litar, nyahaktif automatik akaun yang dilarang, pemantauan tamat tempoh penyedia, ambang penyerahan **Penyampai Konteks** dan konfigurasi model ringkasan, pengelasan 429 bagi setiap penyedia serta togol `useUpstream429BreakerHints`, tempoh bertenang model
+- **Lanjutan** — Penggantian konfigurasi, jejak audit konfigurasi, mod penurunan taraf sandaran, penurunan taraf mod latar belakang untuk Responses API
+
+![Papan Pemuka Tetapan](../screenshots/06-settings.png)
+
+---
+
+## 🔧 Alat CLI
+
+Konfigurasi satu klik untuk alat pengekodan AI: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor dan Factory Droid. Menampilkan penggunaan/penetapan semula konfigurasi secara automatik, profil sambungan dan pemetaan model.
+
+![Papan Pemuka Alat CLI](../screenshots/07-cli-tools.png)
+
+---
+
+## 🤖 Ejen CLI _(v2.0.11+)_
+
+Papan pemuka untuk menemukan dan mengurus ejen CLI. Memaparkan grid 16 ejen terbina dalam (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) dengan:
+
+- **Status pemasangan** — Dipasang / Tidak Ditemui dengan pengesanan versi
+- **Lencana protokol** — stdio, HTTP dan sebagainya
+- **Ejen tersuai** — Daftarkan sebarang alat CLI melalui borang (nama, binari, perintah versi, argumen pelancaran)
+- **Pemadanan Cap Jari CLI** — Togol bagi setiap penyedia untuk memadankan tandatangan permintaan CLI natif, sekali gus mengurangkan risiko sekatan sambil mengekalkan IP proksi
+- **Pengesahan Devin setempat** — Devin CLI menggunakan `devin auth login`; tiada aliran OAuth pelayar diperlukan
+
+---
+
+## 🔗 Penyampaian Konteks _(v3.5.5+)_
+
+Strategi kombo yang mengekalkan kesinambungan sesi apabila penggiliran akaun berlaku di tengah-tengah perbualan. Sebelum akaun aktif kehabisan kuota, OmniRoute menjana ringkasan penyerahan berstruktur di latar belakang. Selepas permintaan seterusnya dialihkan kepada akaun lain, ringkasan tersebut disuntik sebagai mesej sistem supaya akaun baharu dapat meneruskan perbualan dengan konteks penuh.
+
+Boleh dikonfigurasikan melalui tetapan peringkat kombo atau global:
+
+- **Ambang Penyerahan** — Peratusan penggunaan kuota yang mencetuskan penjanaan ringkasan (lalai 85%)
+- **Mesej Maksimum untuk Ringkasan** — Jumlah sejarah terkini untuk diringkaskan
+- **Model Ringkasan** — Model penggantian pilihan untuk menjana ringkasan penyerahan
+
+Pada masa ini menyokong penggiliran akaun Codex. Lihat [dokumentasi Penyampaian Konteks](../architecture/ARCHITECTURE.md).
+
+---
+
+## 🗜️ Pemampatan Prom _(v3.7.9+)_
+
+Konteks & Cache kini menyediakan halaman khusus untuk Caveman, RTK dan Kombo Pemampatan:
+
+- **Caveman** — pek peraturan peka bahasa, pratonton, kawalan mod output dan analitik
+- **RTK** — pemampatan peka perintah untuk output shell, git, ujian, binaan, pakej, Docker, infrastruktur, JSON dan surih tindanan
+- **Kombo Pemampatan** — saluran paip bernama seperti `rtk -> caveman` yang ditetapkan kepada kombo penghalaan; pengiraan bertindan lalai mencapai purata `~89%` dan penjimatan konteks yang layak sebanyak `78-95%` apabila kedua-dua enjin digunakan
+- **Pemulihan output mentah** — penuding output mentah RTK yang disunting secara pilihan untuk menyahpepijat kegagalan pemampatan
+
+Lihat [Panduan Pemampatan](../compression/COMPRESSION_GUIDE.md), [Pemampatan RTK](../compression/RTK_COMPRESSION.md) dan
+[Enjin Pemampatan](../compression/COMPRESSION_ENGINES.md).
+
+---
+
+## 🛡️ Pengukuhan Proksi _(v3.5.5+)_
+
+Penguatkuasaan konfigurasi proksi yang menyeluruh di seluruh saluran paip permintaan:
+
+- **Pemeriksaan Kesihatan Token** — Penyegaran OAuth di latar belakang kini menentukan konfigurasi proksi bagi setiap sambungan, sekali gus mencegah kegagalan dalam persekitaran yang memerlukan proksi
+- **Pengesahan Kunci API** — Pengesahan kunci penyedia (`POST /api/providers/validate`) dihalakan melalui `runWithProxyContext`, dengan mematuhi tetapan proksi peringkat penyedia dan global
+- **Pembaikan Penghantar undici** — Penghantar proksi menggunakan pelaksanaan fetch milik undici dan bukannya fetch terbina dalam Node, sekali gus menyelesaikan ralat `invalid onRequestStart method` pada Node.js 22
+- **Pengesanan Versi Node.js** — Halaman log masuk mengesan versi Node.js yang tidak serasi (24+) secara proaktif dan memaparkan sepanduk amaran dengan arahan untuk menggunakan Node 22 LTS
+
+---
+
+## 📧 Penyamaran Privasi E-mel _(v3.5.6+)_
+
+E-mel akaun OAuth disamarkan secara lalai (contohnya `di*****@g****.com`) untuk mengelakkan pendedahan tidak sengaja ketika berkongsi tangkap layar atau merakam demo. Gunakan Tetapan → Penampilan → Keterlihatan e-mel akaun untuk mendedahkan atau menyamarkan e-mel akaun penuh secara global merentas skrin penyedia, kombo, log, kuota dan ruang uji.
+
+---
+
+## 👁️ Togol Keterlihatan Model _(v3.5.6+)_
+
+Senarai model pada halaman penyedia kini merangkumi:
+
+- **Bar carian/penapis masa nyata** — Cari model tertentu dengan pantas
+- **Togol keterlihatan bagi setiap model** (ikon 👁) — Model tersembunyi dikelabukan dan dikecualikan daripada katalog `/v1/models`
+- **Lencana kiraan aktif** (`N/M aktif`) — Menunjukkan sepintas lalu bilangan model yang didayakan berbanding jumlah keseluruhan
+
+---
+
+## 🔧 Pembaikan Env OAuth _(v3.6.1+)_
+
+Tindakan "Baiki env" dengan satu klik untuk penyedia OAuth yang memulihkan pemboleh ubah persekitaran yang hilang dan membaiki keadaan pengesahan yang rosak. Boleh diakses melalui `Papan Pemuka → Penyedia → [Penyedia OAuth] → Baiki env`. Mengesan dan membaiki secara automatik:
+
+- Bukti kelayakan klien OAuth yang hilang
+- Entri fail env yang rosak
+- Penormalan laluan sandaran
+
+---
+
+## 🗑️ Nyahpasang / Nyahpasang Sepenuhnya _(v3.6.2+)_
+
+Skrip pembuangan bersih untuk semua kaedah pemasangan:
+
+| Perintah                 | Tindakan                                                                                       |
+| ------------------------ | ---------------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Membuang aplikasi sistem tetapi **mengekalkan DB dan konfigurasi anda** dalam `~/.omniroute`.  |
+| `npm run uninstall:full` | Membuang aplikasi DAN **memadamkan semua konfigurasi, kunci dan pangkalan data** secara kekal. |
 
 ---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+Jana imej, video dan muzik daripada papan pemuka. Menyokong OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open dan MusicGen.
 
 ---
 
-## 📝 Request Logs
+## 📝 Log Permintaan
 
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+Pengelogan permintaan masa nyata dengan penapisan mengikut penyedia, model, akaun dan kunci API. Memaparkan kod status, penggunaan token, kependaman dan butiran respons.
 
-![Usage Logs](screenshots/08-usage.png)
-
----
-
-## 🌐 API Endpoint
-
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
-
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+![Log Penggunaan](../screenshots/08-usage.png)
 
 ---
 
-## 🔑 API Key Management
+## 🌐 Titik Akhir API
 
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+Titik akhir API bersepadu anda dengan pecahan keupayaan: Pelengkapan Sembang, API Respons, Pembenaman, Penjanaan Imej, Penyusunan Semula Kedudukan, Transkripsi Audio, Teks-ke-Pertuturan, Penyederhanaan dan kunci API berdaftar. Sokongan Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel dan proksi awan tersedia untuk akses jauh.
 
----
-
-## 📋 Audit Log
-
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+![Papan Pemuka Titik Akhir](../screenshots/09-endpoint.png)
 
 ---
 
-## 🖥️ Desktop Application
+## 🔑 Pengurusan Kunci API
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
-
-Key features:
-
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
-
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+Cipta, tetapkan skop dan batalkan kunci API. Setiap kunci boleh dihadkan kepada model/penyedia tertentu dengan akses penuh atau kebenaran baca sahaja. Pengurusan kunci secara visual dengan penjejakan penggunaan.
 
 ---
 
-## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
+## 📋 Log Audit
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
-
-Key behaviours:
-
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+Penjejakan tindakan pentadbiran dengan penapisan mengikut jenis tindakan, pelaku, sasaran, alamat IP dan cap masa. Sejarah penuh peristiwa keselamatan.
 
 ---
 
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
+## 🖥️ Aplikasi Desktop
 
-Multi-device and external operator access is now possible via **scoped sync tokens**:
+Aplikasi desktop Electron natif untuk Windows, macOS dan Linux. Jalankan OmniRoute sebagai aplikasi kendiri dengan penyepaduan dulang sistem, sokongan luar talian, kemas kini automatik dan pemasangan satu klik.
 
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+Ciri utama:
 
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+- Peninjauan kesediaan pelayan (tiada skrin kosong semasa permulaan sejuk)
+- Dulang sistem dengan pengurusan port
+- Dasar Keselamatan Kandungan
+- Kunci tika tunggal
+- Kemas kini automatik semasa mula semula
+- UI bersyarat mengikut platform (butang lampu isyarat macOS, bar tajuk lalai Windows/Linux)
+- Pemakejan binaan Electron yang diperkukuh — `node_modules` berpaut simbolik dalam berkas kendiri dikesan dan ditolak sebelum pemakejan, sekali gus menghalang kebergantungan masa jalan pada mesin binaan (v2.5.5+)
+- **Penutupan lancar** — `before-quit` Electron menutup Next.js dengan bersih, sekali gus menghalang kunci pangkalan data SQLite WAL (v3.6.2+)
 
----
-
-## 🧠 GLM Thinking Preset _(v3.6.6+)_
-
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
-
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
-
----
-
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
-
-All provider validation and model discovery calls now go through a two-layer outbound guard:
-
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
-
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+📖 Lihat [`electron/README.md`](../../electron/README.md) untuk dokumentasi penuh.
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## 🌐 Jambatan WebSocket V1 _(v3.6.6+)_
 
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+OmniRoute kini menyokong **klien WebSocket yang serasi dengan OpenAI** melalui titik akhir naik taraf `/v1/ws`. Pelayan tersuai `scripts/dev/v1-ws-bridge.mjs` membungkus Next.js dan menaik taraf sambungan WS kepada sesi penstriman dua hala penuh. Pengesahan menggunakan kunci API atau kuki sesi yang sama seperti permintaan HTTP.
+
+Tingkah laku utama:
+
+- Naik taraf WS disahkan oleh `src/lib/ws/handshake.ts` sebelum sambungan diwujudkan
+- Strim ditamatkan dengan bersih apabila sesi ditutup atau berlaku ralat huluan
+- Berfungsi serentak bersama laluan penstriman HTTP+SSE sedia ada
 
 ---
 
-## 📋 Compliance Audit v2 _(v3.6.6+)_
+## 🔑 Token Penyegerakan & Himpunan Konfigurasi _(v3.6.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+Akses berbilang peranti dan akses pengendali luaran kini boleh dilakukan melalui **token penyegerakan berskop**:
+
+- **`POST /api/sync/tokens`** — Keluarkan token penyegerakan baharu (berskop, dengan tamat tempoh pilihan)
+- **`DELETE /api/sync/tokens/:id`** — Batalkan token
+- **`GET /api/sync/bundle`** — Muat turun petikan JSON berversi dan berkunci ETag bagi semua tetapan tidak sensitif (kata laluan disunting)
+
+Himpunan konfigurasi dibina oleh `src/lib/sync/bundle.ts`. Pengguna membandingkan pengepala respons `ETag` untuk mengesan perubahan tanpa memuat turun semula keseluruhan muatan.
+
+---
+
+## 🧠 Pratetap Pemikiran GLM _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** kini ialah penyedia kelas pertama yang berdaftar: maksimum 65 536 token output, belanjawan pemikiran 24 576, tamat masa lalai 900 s, format API serasi Claude dan penyegerakan penggunaan dikongsi dengan keluarga GLM.
+
+**Pengiraan token hibrid** turut diperkenalkan dalam v3.6.6: apabila penyedia serasi Claude menyediakan `/messages/count_tokens`, OmniRoute akan memanggilnya sebelum permintaan besar, dengan anggaran sandaran secara terkawal.
+
+---
+
+## 🛡️ Pengambilan Keluar Selamat & Perlindungan SSRF _(v3.6.6+)_
+
+Semua panggilan pengesahan penyedia dan penemuan model kini melalui perlindungan keluar dua lapisan:
+
+1. **Perlindungan URL** (`src/shared/network/outboundUrlGuard.ts`) — Menyekat julat IP peribadi/gelung balik/pautan setempat sebelum soket dibuka.
+2. **Pembalut pengambilan selamat** (`src/shared/network/safeOutboundFetch.ts`) — Menggunakan perlindungan URL, menormalkan tamat masa dan mencuba semula ralat sementara dengan undur eksponen.
+
+Pelanggaran perlindungan dipaparkan sebagai HTTP 422 (`URL_GUARD_BLOCKED`) dan ditulis ke dalam log audit pematuhan melalui `providerAudit.ts`.
+
+---
+
+## 🔄 Percubaan Semula Peka Tempoh Bertenang _(v3.6.6+)_
+
+Permintaan sembang kini **dicuba semula secara automatik** apabila penyedia huluan mengembalikan tempoh bertenang berskop model. Boleh dikonfigurasikan melalui `REQUEST_RETRY` (lalai: 2) dan `MAX_RETRY_INTERVAL_SEC` (lalai: 30 s). Pembelajaran pengepala had kadar dipertingkat merentas `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens` dan `Retry-After` — keadaan tempoh bertenang setiap model boleh dilihat dalam papan pemuka Ketahanan.
+
+---
+
+## 📋 Audit Pematuhan v2 _(v3.6.6+)_
+
+Log audit telah diperluas dengan penomboran halaman berasaskan kursor, pengayaan konteks permintaan (ID permintaan, ejen pengguna, IP), peristiwa pengesahan berstruktur, peristiwa CRUD penyedia dengan konteks perbezaan dan pengelogan pengesahan yang disekat SSRF. Peristiwa baharu dipancarkan oleh `src/lib/compliance/providerAudit.ts`.

@@ -34,6 +34,56 @@ export function exportProxyLogsSince(since: string): Record<string, unknown>[] {
   return stmt.all({ since }) as Record<string, unknown>[];
 }
 
+/**
+ * Total number of proxy_logs rows with timestamp >= `since` — a cheap
+ * aggregate query that never materializes the matching rows themselves.
+ * Used by /api/logs/export to report `totalAvailable` without paying the
+ * cost of fetching every row just to count them (#13123).
+ */
+export function countProxyLogsSince(since: string): number {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT COUNT(*) AS count FROM proxy_logs WHERE timestamp >= @since")
+    .get({ since }) as { count: number };
+  return row.count;
+}
+
+const PAGE_SIZE = 500;
+
+/**
+ * Streams proxy_logs rows with timestamp >= `since`, up to `limit` rows,
+ * ordered by timestamp descending — paginated via SQL LIMIT/OFFSET in fixed
+ * batches, never buffering more than `PAGE_SIZE` rows at once (#13123: the
+ * previous `exportProxyLogsSince()` + slice-after-fetch approach still
+ * materialized every matching row before the row cap was even applied). Note:
+ * the `SqliteAdapter` (`./adapters/types.ts`) intentionally exposes only
+ * `run`/`get`/`all` — no `.iterate()` cursor — so LIMIT/OFFSET batching is
+ * the cursor-equivalent available without widening that shared interface
+ * across all 4 driver adapters.
+ */
+export function* iterateProxyLogsSince(
+  since: string,
+  limit: number
+): Generator<Record<string, unknown>, void, void> {
+  const db = getDbInstance();
+  let offset = 0;
+  let yielded = 0;
+  while (yielded < limit) {
+    const pageLimit = Math.min(PAGE_SIZE, limit - yielded);
+    const stmt = db.prepare(
+      "SELECT * FROM proxy_logs WHERE timestamp >= @since ORDER BY timestamp DESC LIMIT @pageLimit OFFSET @offset"
+    );
+    const page = stmt.all({ since, pageLimit, offset }) as Record<string, unknown>[];
+    if (page.length === 0) break;
+    for (const row of page) {
+      yield row;
+      yielded++;
+    }
+    offset += page.length;
+    if (page.length < pageLimit) break;
+  }
+}
+
 // 24h window for "last known egress IP" lookups. This helper answers a
 // different question from proxyEgress.ts (#10677): that module reports which
 // connections share an egress IP *right now*, derived from their proxy config

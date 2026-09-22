@@ -111,6 +111,29 @@
       "stream": "https://apihub.agnes-ai.com/v1/chat/completions"
     }
   },
+  "agnes-cn": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.agnes-ai.cn/v1/chat/completions",
+      "stream": "https://api.agnes-ai.cn/v1/chat/completions"
+    }
+  },
   "agy": {
     "format": "antigravity",
     "headers": {
@@ -955,29 +978,6 @@
     "url": {
       "nonStream": "https://chenzk.top/v1/chat/completions",
       "stream": "https://chenzk.top/v1/chat/completions"
-    }
-  },
-  "chipotle": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://amelia.chipotle.com",
-      "stream": "https://amelia.chipotle.com"
     }
   },
   "chutes": {
@@ -4277,8 +4277,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.nlpcloud.io/v1/chat/completions",
-      "stream": "https://api.nlpcloud.io/v1/chat/completions"
+      "nonStream": "https://api.nlpcloud.io/v1/gpu",
+      "stream": "https://api.nlpcloud.io/v1/gpu"
     }
   },
   "notion-web": {
@@ -6396,6 +6396,29 @@
     "url": {
       "nonStream": "https://token-plan-sgp.xiaomimimo.com/v1",
       "stream": "https://token-plan-sgp.xiaomimimo.com/v1"
+    }
+  },
+  "xkiro": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.xkiro.com/v1/chat/completions",
+      "stream": "https://api.xkiro.com/v1/chat/completions"
     }
   },
   "yi": {

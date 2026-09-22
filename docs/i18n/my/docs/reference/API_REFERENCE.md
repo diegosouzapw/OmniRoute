@@ -1,21 +1,12 @@
-# API_REFERENCE (မြန်မာ)
+# API Reference (မြန်မာ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
----
-
-title: "API ကိုးကားချက်"
-version: 3.8.51
-lastUpdated: 2026-08-31
----
-
-# API ကိုးကားချက်
-
 🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
-OmniRoute API အတွက် အဓိကကိုးကားချက်ဖြစ်သည်။ ၎င်းတွင် အများသုံး `/v1` မျက်နှာပြင်နှင့် အများဆုံးအသုံးပြုသည့် စီမံခန့်ခွဲမှု endpoint များကို ဖော်ပြထားသည်။ စက်ဖြင့်ဖတ်ရှုနိုင်သည့် [`docs/openapi.yaml`](../openapi.yaml) နှင့် `src/app/api/` အောက်ရှိ route tree တို့သည် အပြည့်အစုံပါဝင်သော ရင်းမြစ်များဖြစ်သည်။
+OmniRoute API အတွက် အဓိကကိုးကားချက်ဖြစ်သည်။ ၎င်းတွင် အများပြည်သူအသုံးပြုနိုင်သော `/v1` မျက်နှာပြင်နှင့် အသုံးအများဆုံး စီမံခန့်ခွဲမှု endpoint များကို ဖော်ပြထားသည်။ စက်ဖြင့်ဖတ်ရှုနိုင်သော [`docs/openapi.yaml`](../openapi.yaml) နှင့် `src/app/api/` အောက်ရှိ route tree တို့သည် အပြည့်အစုံပါဝင်သော ကိုးကားရင်းမြစ်များဖြစ်သည်။
 
 ---
 
@@ -424,54 +415,54 @@ Sidecar တစ်ခုသည် out-of-process အနေဖြင့် လည�
 
 ---
 
-## လိုက်ဖက်ညီမှု Endpoint များ
+## ကိုက်ညီမှုရှိသော Endpoint များ
 
-| နည်းလမ်း | လမ်းကြောင်း                               | ဖော်မတ်                                     |
-| -------- | ----------------------------------------- | ------------------------------------------- |
-| POST     | `/v1/chat/completions`                    | OpenAI                                      |
-| POST     | `/v1/messages`                            | Anthropic                                   |
-| POST     | `/v1/responses`                           | OpenAI Responses                            |
-| POST     | `/v1/embeddings`                          | OpenAI                                      |
-| POST     | `/v1/images/generations`                  | OpenAI Images                               |
-| POST     | `/v1/images/edits`                        | OpenAI Images (တည်းဖြတ်ခြင်း/inpaint)       |
-| POST     | `/v1/videos/generations`                  | OpenAI ပုံစံ ဗီဒီယိုဖန်တီးခြင်း             |
-| POST     | `/v1/music/generations`                   | OpenAI ပုံစံ တေးဂီတဖန်တီးခြင်း              |
-| POST     | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                          |
-| POST     | `/v1/audio/speech`                        | OpenAI TTS (audio body ကို ပြန်ပေးသည်)      |
-| POST     | `/v1/rerank`                              | Cohere/Voyage ပုံစံ ပြန်လည်အစီအစဉ်ချခြင်း   |
-| POST     | `/v1/classify`                            | Jina အမျိုးအစားခွဲခြားခြင်း (`api.jina.ai`) |
-| POST     | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)          |
-| POST     | `/v1/moderations`                         | OpenAI Moderations                          |
-| GET      | `/v1/models`                              | OpenAI                                      |
-| POST     | `/v1/messages/count_tokens`               | Anthropic                                   |
-| GET      | `/v1beta/models`                          | Gemini                                      |
-| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                      |
-| POST     | `/v1/api/chat`                            | Ollama                                      |
-| GET      | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias                        |
-| GET      | `/api/v1/vscode/{token}/models`           | OpenAI models alias                         |
-| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias                      |
-| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias            |
-| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias                      |
-| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias                 |
+| နည်းလမ်း | လမ်းကြောင်း                               | ဖော်မတ်                               |
+| -------- | ----------------------------------------- | ------------------------------------- |
+| POST     | `/v1/chat/completions`                    | OpenAI                                |
+| POST     | `/v1/messages`                            | Anthropic                             |
+| POST     | `/v1/responses`                           | OpenAI Responses                      |
+| POST     | `/v1/embeddings`                          | OpenAI                                |
+| POST     | `/v1/images/generations`                  | OpenAI Images                         |
+| POST     | `/v1/images/edits`                        | OpenAI Images (တည်းဖြတ်ခြင်း/inpaint) |
+| POST     | `/v1/videos/generations`                  | OpenAI ပုံစံ ဗီဒီယိုထုတ်လုပ်ခြင်း     |
+| POST     | `/v1/music/generations`                   | OpenAI ပုံစံ တေးဂီတထုတ်လုပ်ခြင်း      |
+| POST     | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
+| POST     | `/v1/audio/speech`                        | OpenAI TTS (အသံ body ကို ပြန်ပေးသည်)  |
+| POST     | `/v1/rerank`                              | Cohere/Voyage ပုံစံ rerank            |
+| POST     | `/v1/classify`                            | Jina classify (`api.jina.ai`)         |
+| POST     | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)    |
+| POST     | `/v1/moderations`                         | OpenAI Moderations                    |
+| GET      | `/v1/models`                              | OpenAI                                |
+| POST     | `/v1/messages/count_tokens`               | Anthropic                             |
+| GET      | `/v1beta/models`                          | Gemini                                |
+| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                |
+| POST     | `/v1/api/chat`                            | Ollama                                |
+| GET      | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias                  |
+| GET      | `/api/v1/vscode/{token}/models`           | OpenAI models alias                   |
+| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias                |
+| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias      |
+| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias                |
+| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias           |
 
-POST route အားလုံးသည် တူညီသော ပုံစံကို လိုက်နာသည်- `Bearer your-api-key` + Zod ဖြင့် စစ်ဆေးအတည်ပြုထားသော JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` စသည်တို့၊ `src/shared/validation/schemas.ts` ကို ကြည့်ပါ)။ Schema စစ်ဆေးမှု မအောင်မြင်ပါက 4xx ကို ပြန်ပေးသည်။
+POST လမ်းကြောင်းအားလုံးသည် တူညီသောပုံစံကို လိုက်နာသည်- `Bearer your-api-key` + Zod ဖြင့် အတည်ပြုထားသော JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` စသည်တို့၊ `src/shared/validation/schemas.ts` ကို ကြည့်ပါ)။ Schema အတည်ပြုမှု မအောင်မြင်ပါက 4xx ကို ပြန်ပေးသည်။
 
-`Authorization: Bearer ...` ကို ပူးတွဲမပေးပို့နိုင်သော client များအတွက် OmniRoute သည် query-string compatibility (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) သို့မဟုတ် အောက်တွင် မှတ်တမ်းတင်ထားသော သီးသန့် `/api/v1/vscode/{token}/...` endpoint များမှတစ်ဆင့် URL အတွင်းရှိ API key များကိုလည်း လက်ခံသည်။
+`Authorization: Bearer ...` ကို ထည့်သွင်းမပေးပို့နိုင်သော client များအတွက် OmniRoute သည် query-string ကိုက်ညီမှု (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) သို့မဟုတ် အောက်တွင် မှတ်တမ်းတင်ထားသော သီးသန့် `/api/v1/vscode/{token}/...` endpoint များမှတစ်ဆင့် URL အတွင်း API key များကိုလည်း လက်ခံသည်။
 
 ```bash
-# ပြန်လည်အစီအစဉ်ချခြင်း
+# Rerank (cloud registry provider သို့မဟုတ် "<prefix>/<model>" အဖြစ် OpenAI နှင့် ကိုက်ညီသော provider node)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina အမျိုးအစားခွဲခြားခြင်း (Foundation API အထောက်အထားများ)
+# Jina classify (Foundation API အထောက်အထားများ)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina ရှာဖွေမှု (s.jina.ai; provider alias များ- jina-search, jina-ai, jina)
+# Jina search (s.jina.ai; provider alias များ- jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderation များ
+# Moderations
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — audio/mpeg (သို့မဟုတ် တောင်းဆိုထားသော ဖော်မတ်) body ကို ပြန်ပေးသည်
@@ -480,10 +471,32 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # ပုံတည်းဖြတ်ခြင်း (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# ဗီဒီယို/တေးဂီတ ဖန်တီးခြင်း (provider prefix ပါသော model id)
+# ဗီဒီယို / တေးဂီတ ထုတ်လုပ်ခြင်း (provider prefix ပါသော model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Rerank provider node များ:** `POST /v1/rerank` သည် `<node-prefix>/<model>` အဖြစ် လိပ်စာသတ်မှတ်ထားသော OpenAI နှင့် ကိုက်ညီသည့် provider node များ
+> (oMLX, vLLM, Infinity, gateway နောက်ကွယ်ရှိ TEI၊ …) သို့လည်း route လုပ်ပေးသည်။ Loopback
+> node များ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ကို အမြဲတမ်း အသုံးပြုနိုင်သည်။ အခြား
+> host တစ်ခုခုရှိ node များ — LAN စက်တစ်လုံး သို့မဟုတ် Tailscale peer — ကို operator က
+> `RERANK_REMOTE_PROVIDER_NODES` feature flag ကို ဖွင့်ထားပြီး node ၏ base URL သည် provider
+> outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ကို ဖြတ်သန်းနိုင်မှသာ အသုံးပြုနိုင်သည်။
+> cloud-metadata host များသို့မူ မည်သည့်အခါမျှ route မလုပ်ပါ။ Memory engine ၏ rerank အဆင့်သည် ဤ route ကို
+> loopback မှတစ်ဆင့် ခေါ်ဆိုသောကြောင့် Memory ဆက်တင်များရှိ `rerankProviderModel` ကိုလည်း တူညီသောစည်းမျဉ်းက ထိန်းချုပ်သည်။
+>
+> **Local server ပုံစံများ:** node ကို `<base>/v1/rerank` တွင် ခေါ်ဆိုပြီး 404 ဖြစ်ပါက `<base>/rerank`
+> (Infinity, TEI) တွင် ခေါ်ဆိုသည်။ Upstream body သည် Cohere/OpenAI စာလုံးပေါင်း (`documents`,
+> `return_documents`) နှင့် TEI စာလုံးပေါင်း (`texts`, `return_text`) နှစ်မျိုးလုံးကို သယ်ဆောင်ပြီး upstream response ကို
+> Cohere envelope သို့ စံညှိပေးသည်- TEI ၏ ရိုးရိုး `[{index, score, text}]`၊ ပါးလွှာသော gateway များမှ
+> `{results: [{index, score}]}` နှင့် Voyage ပုံစံ `{data: [...]}` အားလုံးသည် client ထံသို့
+> `{results: [{index, relevance_score, document?}]}` အဖြစ် ပြန်ရောက်လာပြီး score အလိုက် စီထားကာ `top_n` ဖြင့် အရေအတွက်ကန့်သတ်ထားသည်။
+
+> **Provider-node ရှာဖွေတွေ့ရှိမှု:** OpenAI နှင့် ကိုက်ညီသော provider node ပေါ်ရှိ model များသည် `GET /v1/models`
+> တွင် node prefix အောက်၌ ပေါ်လာသည်။ Endpoint metadata မပါဝင်သော row များ (local `/v1/models` စာရင်းများတွင် တွေ့ရလေ့ရှိသည်)
+> သည် node ၏ `apiType` ကို ဆက်ခံသောကြောင့် `embeddings` node တစ်ခု၏ model များသည် `type: "embedding"` ဖြစ်ပြီး
+> `rerank` node တစ်ခု၏ model များသည် chat အဖြစ် ပုံသေသတ်မှတ်ခံရမည့်အစား `type: "rerank"` ဖြစ်သည်။ Sync လုပ်ထားသော သို့မဟုတ် ကိုယ်တိုင်ထည့်ထားသော row တစ်ခုရှိ
+> အတိအလင်းသတ်မှတ်ထားသည့် `supportedEndpoints` သည် ဆက်လက်၍ ဦးစားပေးခံရသည်။
 
 ### သီးသန့် Provider Route များ
 
@@ -493,39 +506,47 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Provider prefix မရှိပါက အလိုအလျောက် ထည့်ပေးသည်။ မကိုက်ညီသော model များအတွက် `400` ကို ပြန်ပေးသည်။
+Provider prefix မပါရှိပါက အလိုအလျောက် ထည့်သွင်းပေးသည်။ မကိုက်ညီသော model များအတွက် `400` ကို ပြန်ပေးသည်။
 
 ---
 
 ## Files API
 
-Batch အဝင်/အထွက်နှင့် file-purpose upload များအတွက် OpenAI-compatible ဖိုင် endpoint ဖြစ်သည်။
+အစုလိုက် ထည့်သွင်းမှု/ထုတ်ယူမှုနှင့် ဖိုင်ရည်ရွယ်ချက်အလိုက် အပ်လုဒ်များအတွက် OpenAI နှင့် ကိုက်ညီသော files endpoint ဖြစ်သည်။
 
-| Method | Path                     | Description                                                                                                                        |
-| ------ | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/files`              | ဖိုင်တစ်ခုကို upload လုပ်ရန် (multipart: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — အများဆုံး 512 MiB |
-| GET    | `/v1/files`              | အတည်ပြုထားသော API key အတွက် ဖိုင်များကို စာရင်းပြုစုရန်                                                                            |
-| GET    | `/v1/files/[id]`         | ဖိုင်တစ်ခု၏ metadata ကို ရယူရန်                                                                                                    |
-| DELETE | `/v1/files/[id]`         | ဖိုင်တစ်ခုကို ဖျက်ရန်                                                                                                              |
-| GET    | `/v1/files/[id]/content` | မူရင်းဖိုင် body ကို stream ပြုလုပ်၍ ပြန်လည်ရယူရန်                                                                                 |
+| နည်းလမ်း | လမ်းကြောင်း              | ဖော်ပြချက်                                                                                                                         |
+| -------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| POST     | `/v1/files`              | ဖိုင်တစ်ခုကို အပ်လုဒ်လုပ်ရန် (multipart: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — အများဆုံး 512 MiB |
+| GET      | `/v1/files`              | အထောက်အထားစိစစ်ထားသော API key အတွက် ဖိုင်များကို စာရင်းပြုစုရန်                                                                    |
+| GET      | `/v1/files/[id]`         | ဖိုင်တစ်ခု၏ မက်တာဒေတာကို ရယူရန်                                                                                                    |
+| DELETE   | `/v1/files/[id]`         | ဖိုင်တစ်ခုကို ဖျက်ရန်                                                                                                              |
+| GET      | `/v1/files/[id]/content` | မူရင်းဖိုင်အကြောင်းအရာကို stream ဖြင့် ပြန်လည်ပေးပို့ရန်                                                                           |
 
-**Auth:** Bearer API key — ဖိုင်များကို `getApiKeyRequestScope` မှတစ်ဆင့် API key တစ်ခုချင်းအလိုက် scope သတ်မှတ်ထားသည်။
+**အထောက်အထားစိစစ်ခြင်း:** Bearer API key — ဖိုင်များကို `getApiKeyRequestScope` မှတစ်ဆင့် API key တစ်ခုချင်းစီအလိုက် ကန့်သတ်ထားသည်။ Key တစ်ခုသည်
+၎င်း၏ကိုယ်ပိုင်ဖိုင်များကိုသာ မြင်နိုင်၊ ဒေါင်းလုဒ်လုပ်နိုင်ပြီး ဖျက်နိုင်သည်။ Key မပါသော dashboard session တစ်ခုသည်
+instance တစ်ခုလုံးကို ဖတ်နိုင်သည်။ ပိုင်ရှင်မရှိသော ဖိုင်တစ်ခု (အမည်မသိ သို့မဟုတ် dashboard-session မှ အပ်လုဒ်လုပ်ထားသောဖိုင်) ကို session မဟုတ်သော
+ခေါ်ဆိုသူတိုင်းအား ဝင်ရောက်ခွင့်ငြင်းပယ်သည်။ `GET /v1/files` သည် အမည်မသိ ခေါ်ဆိုသူနှင့်
+ဖြေရှင်း၍မရသော တင်ပြထားသည့် key ကို `REQUIRE_API_KEY=false` ဖြစ်နေသည့်အခါ၌ပင် tenant အားလုံး၏
+ဖိုင်များကို စာရင်းပြုစုမည့်အစား `401` ဖြင့် ငြင်းပယ်သည် (GHSA-m3hp-hq9g-fpmv, GHSA-2jm2-mpx8-6523).
 
 ---
 
 ## Batches API
 
-OpenAI-compatible batch processing ဖြစ်သည်။
+OpenAI နှင့် ကိုက်ညီသော batch processing။
 
-| Method | Path                      | Description                                                                                                          |
-| ------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/batches`             | Batch ဖန်တီးရန် — body ကို `v1BatchCreateSchema` ဖြင့် အတည်ပြုသည် (`input_file_id`, `endpoint`, `completion_window`) |
-| GET    | `/v1/batches`             | Batch များကို စာရင်းပြုစုရန်                                                                                         |
-| GET    | `/v1/batches/[id]`        | Batch အခြေအနေ + `request_counts` ကို ရယူရန်                                                                          |
-| DELETE | `/v1/batches/[id]`        | ပြီးဆုံးသွားသော/မအောင်မြင်သော batch တစ်ခုကို ဖျက်ရန်                                                                 |
-| POST   | `/v1/batches/[id]/cancel` | လုပ်ဆောင်နေဆဲ batch တစ်ခုကို ပယ်ဖျက်ရန်                                                                              |
+| နည်းလမ်း | လမ်းကြောင်း               | ဖော်ပြချက်                                                                                                                   |
+| -------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| POST     | `/v1/batches`             | batch ဖန်တီးခြင်း — body ကို `v1BatchCreateSchema` (`input_file_id`, `endpoint`, `completion_window`) ဖြင့် စစ်ဆေးအတည်ပြုသည် |
+| GET      | `/v1/batches`             | batch များကို စာရင်းပြုစုခြင်း                                                                                               |
+| GET      | `/v1/batches/[id]`        | batch အခြေအနေ + `request_counts` ကို ရယူခြင်း                                                                                |
+| DELETE   | `/v1/batches/[id]`        | ပြီးဆုံးသွားသော/မအောင်မြင်သော batch ကို ဖျက်ခြင်း                                                                            |
+| POST     | `/v1/batches/[id]/cancel` | လုပ်ဆောင်နေဆဲ batch ကို ပယ်ဖျက်ခြင်း                                                                                         |
 
-**Auth:** Bearer API key။ Batch များကို API key တစ်ခုချင်းအလိုက် scope သတ်မှတ်ထားသည်။
+**အထောက်အထားစစ်ဆေးခြင်း:** Bearer API key။ Batch များကို ဖိုင်များနှင့် တူညီသော စည်းမျဉ်းသုံးမျိုးအရ API key တစ်ခုချင်းစီအလိုက် ကန့်သတ်ထားသည်-
+ကိုယ်ပိုင် key ဖြင့်သာ အသုံးပြုနိုင်ခြင်း၊ dashboard session မှ instance တစ်ခုလုံးကို အသုံးပြုနိုင်ခြင်း၊ ပိုင်ရှင်မရှိသော record များကို
+session မဟုတ်သည့် ခေါ်ဆိုသူအားလုံးအတွက် ငြင်းပယ်ခြင်း (ရယူခြင်း၊ ဖျက်ခြင်း၊ ပယ်ဖျက်ခြင်းနှင့် ဖန်တီးရာရှိ `input_file_id` စစ်ဆေးမှု)။
+`REQUIRE_API_KEY=false` ဖြစ်နေချိန်တွင်ပင် `GET /v1/batches` သည် အမည်မသိ ခေါ်ဆိုသူကို `401` ဖြင့် ငြင်းပယ်သည်။
 
 ---
 
@@ -1588,21 +1609,21 @@ routing၊ compression နှင့် provider မျိုးစုံကွ�
 
 ## CLI ကိရိယာများ စီမံခန့်ခွဲမှု
 
-OmniRoute နှင့် ပေါင်းစည်းအသုံးပြုသည့် CLI ကိရိယာများ (antigravity, chipotle, commandCode,
-devin-cli စသည်တို့) ကို စီမံခန့်ခွဲရန်။ စာရင်းအပြည့်အစုံအတွက် [Provider ကိုးကားချက်](./PROVIDER_REFERENCE.md) ကို ကြည့်ပါ။
+OmniRoute နှင့် ပေါင်းစပ်အသုံးပြုသော CLI ကိရိယာများ (antigravity, commandCode၊
+devin-cli စသည်) ကို စီမံခန့်ခွဲပါ။ စာရင်းအပြည့်အစုံအတွက် [ပံ့ပိုးသူ ကိုးကားချက်](./PROVIDER_REFERENCE.md) ကို ကြည့်ပါ။
 
-| နည်းလမ်း | လမ်းကြောင်း                             | ဖော်ပြချက်                                                                                                                                                                                                          |
-| -------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET      | `/api/cli-tools/all-statuses`           | CLI ကိရိယာအားလုံး၏ အခြေအနေ (ထည့်သွင်းထားမှု၊ version၊ နောက်ဆုံးတွေ့ရှိချိန်)                                                                                                                                        |
-| GET      | `/api/cli-tools/status`                 | CLI ကိရိယာတစ်ခု၏ အခြေအနေအသေးစိတ် (`?tool=` query)                                                                                                                                                                   |
-| POST     | `/api/cli-tools/apply`                  | ကိရိယာတစ်ခု၏ ထုတ်လုပ်ထားသော config ကို ရေးသားရန် (`dryRun` ဖြင့် အစမ်းကြည့်နိုင်သည်၊ container အတွင်း လုပ်ဆောင်သည့်အခါ `422` + `containerEphemeralTarget`၊ `migration` သည် အဟောင်း Codex YAML ကို မှတ်သားဖော်ပြသည်) |
-| GET      | `/api/cli-tools/backups`                | CLI ကိရိယာ configuration backup များကို စာရင်းပြုစုရန်                                                                                                                                                              |
-| POST     | `/api/cli-tools/backups`                | CLI ကိရိယာ configuration အားလုံး၏ backup တစ်ခု ဖန်တီးရန်                                                                                                                                                            |
-| POST     | `/api/cli-tools/backups`                | ပြန်လည်ရယူရန်- body ထဲတွင် `{tool, backupId}` ထည့်ပြီး တူညီသော endpoint ကို အသုံးပြုပါက ထို backup ကို ပြန်လည်ရယူပေးမည်                                                                                             |
-| GET      | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM proxy အခြေအနေ ("antigravity-mitm" CLI ကိရိယာ)                                                                                                                                                      |
-| POST     | `/api/cli-tools/antigravity-mitm/alias` | antigravity-mitm alias များကို စီစဉ်သတ်မှတ်ရန်                                                                                                                                                                      |
+| နည်းလမ်း | လမ်းကြောင်း                             | ဖော်ပြချက်                                                                                                                                                                                                       |
+| -------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET      | `/api/cli-tools/all-statuses`           | CLI ကိရိယာအားလုံး၏ အခြေအနေ (ထည့်သွင်းထားမှု၊ ဗားရှင်း၊ နောက်ဆုံးတွေ့ရှိချိန်)                                                                                                                                    |
+| GET      | `/api/cli-tools/status`                 | CLI ကိရိယာတစ်ခု၏ အသေးစိတ်အခြေအနေ (`?tool=` query)                                                                                                                                                                |
+| POST     | `/api/cli-tools/apply`                  | ကိရိယာတစ်ခုအတွက် ထုတ်လုပ်ထားသော config ကို ရေးသားသည် (`dryRun` ဖြင့် အကြိုကြည့်နိုင်သည်၊ container အတွင်း လုပ်ဆောင်ပါက `422` + `containerEphemeralTarget`၊ `migration` သည် ယခင် Codex YAML ကို မှတ်သားဖော်ပြသည်) |
+| GET      | `/api/cli-tools/backups`                | CLI ကိရိယာ configuration အရန်သိမ်းဆည်းမှုများကို စာရင်းပြုစုသည်                                                                                                                                                  |
+| POST     | `/api/cli-tools/backups`                | CLI ကိရိယာ configuration အားလုံး၏ အရန်သိမ်းဆည်းမှုတစ်ခုကို ဖန်တီးသည်                                                                                                                                             |
+| POST     | `/api/cli-tools/backups`                | ပြန်လည်ရယူခြင်း- body ထဲတွင် `{tool, backupId}` ပါဝင်သည့် တူညီသော endpoint သည် ထိုအရန်သိမ်းဆည်းမှုကို ပြန်လည်ရယူပေးသည်                                                                                           |
+| GET      | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM proxy အခြေအနေ ("antigravity-mitm" CLI ကိရိယာ)                                                                                                                                                   |
+| POST     | `/api/cli-tools/antigravity-mitm/alias` | antigravity-mitm alias များကို စီစဉ်သတ်မှတ်သည်                                                                                                                                                                   |
 
-**အထောက်အထားစိစစ်ခြင်း:** management session လိုအပ်သည်။
+**အထောက်အထားစိစစ်မှု:** စီမံခန့်ခွဲမှု session လိုအပ်သည်။
 
 ---
 

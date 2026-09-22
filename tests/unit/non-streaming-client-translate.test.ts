@@ -270,6 +270,137 @@ test("Responses API format: sanitizeResponsesApiResponse is applied", () => {
   assert.equal(output[0]?.name, "get_weather", "#7936 restore original name");
 });
 
+test("Responses API format: restores non-stream custom tool calls before namespace identity", () => {
+  const input = baseInput({
+    responsePayloadFormat: FORMATS.OPENAI_RESPONSES,
+    clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    responseBody: {
+      id: "resp_custom",
+      object: "response",
+      status: "completed",
+      output: [
+        {
+          id: "fc_call_1",
+          type: "function_call",
+          call_id: "call_1",
+          name: "functions__exec",
+          arguments: '{"input":"printf \'nonstream-ok\\\\n\'"}',
+        },
+      ],
+      usage: { input_tokens: 10, output_tokens: 5, total_tokens: 15 },
+    },
+    customToolNames: new Set(["functions__exec"]),
+    requestToolIdentityMap: new Map([
+      ["functions__exec", { namespace: "functions", name: "exec" }],
+    ]),
+  });
+
+  const result = translateNonStreamingClientResponse(input);
+  const output = result.response.output as Array<Record<string, unknown>>;
+  assert.deepEqual(output[0], {
+    id: "fc_call_1",
+    type: "custom_tool_call",
+    call_id: "call_1",
+    name: "exec",
+    input: "printf 'nonstream-ok\\n'",
+    status: "completed",
+    namespace: "functions",
+  });
+});
+
+test("Responses API format: classifies custom calls synthesized from Kiro chat output", () => {
+  const input = baseInput({
+    responsePayloadFormat: "kiro",
+    clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    responseBody: {
+      id: "chatcmpl_custom",
+      object: "chat.completion",
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: null,
+            tool_calls: [
+              {
+                id: "call_kiro_1",
+                type: "function",
+                function: {
+                  name: "functions__exec",
+                  arguments: '{"input":"printf \'kiro-nonstream-ok\\\\n\'"}',
+                },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    },
+    customToolNames: new Set(["functions__exec"]),
+    requestToolIdentityMap: new Map([
+      ["functions__exec", { namespace: "functions", name: "exec" }],
+    ]),
+  });
+
+  const result = translateNonStreamingClientResponse(input);
+  const output = result.response.output as Array<Record<string, unknown>>;
+  assert.deepEqual(output[0], {
+    id: "fc_call_kiro_1",
+    type: "custom_tool_call",
+    call_id: "call_kiro_1",
+    name: "exec",
+    input: "printf 'kiro-nonstream-ok\\n'",
+    status: "completed",
+    namespace: "functions",
+  });
+});
+
+test("#12370: alias-shaped requestToolIdentityMap must not blank out function_call name", () => {
+  // extractRequestToolIdentityMap() falls back to the `_toolNameMap` side channel
+  // when no namespace tools are present. For Gemini/Claude pivots that side
+  // channel is a plain Map<string, string> alias table (wire name -> original
+  // name), NOT the {namespace, name} identity shape the #7936 restore loop
+  // expects. A plain function tool like Codex's "shell" round-trips through
+  // this alias map as an identity mapping ("shell" -> "shell"): reproduces the
+  // exact live-VPS shape (tool_choice: auto, one `shell` function tool,
+  // gemini-3-flash-preview) where the non-streaming /v1/responses item lost
+  // its `name` key entirely.
+  const input = baseInput({
+    responsePayloadFormat: FORMATS.GEMINI,
+    clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    provider: "gemini",
+    model: "gemini-3-flash-preview",
+    responseBody: {
+      candidates: [
+        {
+          content: {
+            role: "model",
+            parts: [{ functionCall: { name: "shell", args: { command: ["ls", "memory-bank/"] } } }],
+          },
+          finishReason: "STOP",
+          index: 0,
+        },
+      ],
+    },
+    // Alias-shaped map (string -> string), as published by the openai->gemini
+    // pivot — not a NamespaceIdentity map.
+    requestToolIdentityMap: new Map([["shell", "shell"]]) as unknown as Map<
+      string,
+      { namespace?: string; name: string }
+    >,
+  });
+  const result = translateNonStreamingClientResponse(input);
+  const output = result.response.output as Array<Record<string, unknown>>;
+  const functionCall = output.find((item) => item.type === "function_call");
+  assert.ok(functionCall, "expected a function_call output item");
+  assert.equal(functionCall?.name, "shell", "name must survive the alias-map fallback");
+  assert.equal("name" in (functionCall as object), true, "name key must be present, not stripped");
+});
+
 test("empty content response: passthrough without crash", () => {
   const input = baseInput({
     responseBody: {},

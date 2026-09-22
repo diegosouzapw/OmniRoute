@@ -1,1 +1,0 @@
-- **fix(api):** share the single SOCKS5 flag reader across the settings proxy routes so the dashboard and the dispatcher stay consistent ([#13646](https://github.com/diegosouzapw/OmniRoute/pull/13646)) — thanks @maxmad64bis

@@ -1,4 +1,5 @@
 "use client";
+import { filterUnavailableModelRows } from "@/lib/providers/mergeProviderModelListing";
 /**
  * CompatibleModelsSection — Issue #3501 Phase 1e
  *
@@ -42,6 +43,7 @@ export interface CompatibleModelsSectionProps {
   providerDisplayAlias: string;
   modelAliases: Record<string, string>;
   availableModels?: CompatModelRow[];
+  syncedCatalogAuthoritative?: boolean;
   customModels?: CompatModelRow[];
   fallbackModels?: CompatModelRow[];
   allowImport: boolean;
@@ -86,6 +88,7 @@ export default function CompatibleModelsSection({
   providerDisplayAlias,
   modelAliases,
   availableModels = [],
+  syncedCatalogAuthoritative = false,
   customModels = [],
   fallbackModels = [],
   description,
@@ -223,9 +226,15 @@ export default function CompatibleModelsSection({
       seenModelIds.add(modelId);
     }
 
-    return rows;
+    return filterUnavailableModelRows(
+      rows,
+      availableModels,
+      customModels,
+      syncedCatalogAuthoritative
+    );
   }, [
     availableModels,
+    syncedCatalogAuthoritative,
     customModelMap,
     customModels,
     fallbackModels,

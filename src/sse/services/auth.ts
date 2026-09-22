@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { nodeTypeFromId } from "@/lib/db/providerNodeSelect";
+import { hydrateConnectionProviderSpecificData } from "./compatibleNodeBaseUrl.ts"; // #13452
 import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import { describeUpstreamFailure } from "@/shared/utils/upstreamError";
 import { buildAllExpiredCredentials } from "./authExpiredCredentials.ts";
@@ -71,12 +72,14 @@ import {
   getModelLockoutInfo,
   lockModel,
   hasPerModelQuota,
+  hasPerModelFailureScope,
   getRuntimeProviderProfile,
   recordModelLockoutFailure,
   retryHintBypassesMaxCooldownMs,
   isProviderModelUnsupported400,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isSharedWalletCredits402 } from "@omniroute/open-sse/services/accountFallback/sharedWalletCredits.ts";
+import { isOpencodeFreeTierRefusalForProvider } from "@omniroute/open-sse/executors/opencodeGeoBlock.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS, RateLimitReason } from "@omniroute/open-sse/config/constants.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
@@ -167,6 +170,12 @@ import { loadOptionalNoAuthApiKeyCredentials } from "./noAuthOptionalApiKey";
 import { getResource404Bypass } from "./requestResourceHealth";
 import { isVertexConnectionWidePermissionDenied } from "./vertexErrorClassifier";
 import { maybeAutoDisableBannedAccount } from "./autoDisableBannedAccount";
+import {
+  buildAntigravityRoutingFields,
+  releaseRoutingLeaseFromCredentials,
+  reserveAntigravityLeaseForSelection,
+  type AntigravityLease,
+} from "./antigravityLeaseSelection";
 import * as log from "../utils/logger";
 import {
   fisherYatesShuffle,
@@ -212,6 +221,9 @@ export interface CredentialSelectionOptions {
   _leaseRetryWithLockHeld?: boolean;
   /** Internal: freeze the original policy-valid candidate set across lease race/preflight retry. */
   _leaseCandidateIds?: string[];
+  /** Antigravity account lease (#10011): only the final chat dispatch opts in. */
+  reserveAntigravityLease?: boolean;
+  routingRequestId?: string | null;
 }
 export type ExclusiveLeaseSelectionResult = {
   exclusiveLease: ExclusiveConnectionLease;
@@ -1039,42 +1051,17 @@ function planLastUsedCommit(
   };
 }
 
-/**
- * Resolve Proxy Pool references on a real connection row at the same boundary
- * where credentials become request-ready. The synthetic no-auth fallback above
- * already performs this hydration, but a persisted connection (for example the
- * OpenCode card's `opencode` row selected through the `opencode-zen` alias)
- * bypasses that fallback. Keep inline/legacy entries untouched and only incur a
- * registry lookup when at least one by-id reference is present.
- */
-async function hydrateAccountProxyReferences(
-  providerSpecificData: JsonRecord
-): Promise<JsonRecord> {
-  const entries = providerSpecificData.accountProxies;
-  if (!Array.isArray(entries)) return providerSpecificData;
-
-  const containsProxyReference = entries.some((entry) => {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return false;
-    const proxyId = (entry as Record<string, unknown>).proxyId;
-    return typeof proxyId === "string" && proxyId.trim().length > 0;
-  });
-  if (!containsProxyReference) return providerSpecificData;
-
-  return {
-    ...providerSpecificData,
-    accountProxies: await resolveAccountProxiesFromRegistry(entries),
-  };
-}
-
 async function materializeConnection(
   connection: ProviderConnectionView,
   options: CredentialSelectionOptions,
   extra: DeferredLeaseSelection & {
     exclusiveLease?: ExclusiveConnectionLease;
     reactivatedFromInactive?: boolean;
+    routingLease?: AntigravityLease;
+    requestedModel?: string | null;
   } = {}
 ) {
-  const providerSpecificData = await hydrateAccountProxyReferences(connection.providerSpecificData);
+  const providerSpecificData = await hydrateConnectionProviderSpecificData(connection);
   const apiKeyHealth = providerSpecificData.apiKeyHealth as Record<string, KeyHealth> | undefined;
   if (apiKeyHealth) syncHealthFromDB(connection.id, apiKeyHealth);
   const releaseOAuthSession =
@@ -1107,6 +1094,7 @@ async function materializeConnection(
     maxConcurrent: connection.maxConcurrent,
     quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
     ...(releaseOAuthSession ? { releaseOAuthSession } : {}),
+    ...buildAntigravityRoutingFields(extra.routingLease, connection.id, extra.requestedModel),
     ...extra,
   };
 }
@@ -1415,9 +1403,16 @@ export async function getProviderCredentials(
       let allConnections = (allConnectionsResults.filter(Array.isArray).flat() as unknown[])
         .map(toProviderConnection)
         .filter((conn) => conn.id.length > 0);
+      // #13832: remember how many connections the provider really has BEFORE the
+      // key-policy filter, so an empty pool can say which gate emptied it. Without
+      // this the caller only ever saw "No active credentials for provider: X",
+      // identical to "never configured" — while /test and /sync-models kept working,
+      // because they address a connection by id and never consult the key's scope.
+      const connectionsBeforeKeyPolicy = allConnections.length;
       if (allowedConnections && allowedConnections.length > 0) {
         allConnections = allConnections.filter((conn) => allowedConnections.includes(conn.id));
       }
+      const blockedByKeyPolicyCount = connectionsBeforeKeyPolicy - allConnections.length;
       if (forcedConnectionId) {
         allConnections = allConnections.filter((conn) => conn.id === forcedConnectionId);
       }
@@ -1487,6 +1482,16 @@ export async function getProviderCredentials(
         return geminiEnvCredentials;
       }
       invalidateManagedLease(options, "CONNECTION_INELIGIBLE");
+      if (blockedByKeyPolicyCount > 0) {
+        // #13832: the pool is empty only because the calling key's allowlist /
+        // quota scope removed every connection. Say so instead of returning the
+        // bare null that becomes "No active credentials for provider: X".
+        log.warn(
+          "AUTH",
+          `${provider} | ${blockedByKeyPolicyCount} connection(s) hidden by the API key's allowed_connections/quota scope`
+        );
+        return { blockedByKeyPolicy: true, blockedCount: blockedByKeyPolicyCount };
+      }
       log.debug("AUTH", `No credentials for ${provider}`);
       return null;
     }
@@ -2196,6 +2201,14 @@ export async function getProviderCredentials(
       }
     }
 
+    const reserved = reserveAntigravityLeaseForSelection(
+      provider,
+      connection,
+      requestedModel,
+      options
+    );
+    if (reserved.busy) return reserved.busy;
+
     if (provider === "antigravity" && connection) {
       log.info(
         "AUTH",
@@ -2206,6 +2219,8 @@ export async function getProviderCredentials(
     return materializeConnection(connection, options, {
       exclusiveLease,
       ...probeStamp,
+      routingLease: reserved.lease,
+      requestedModel,
     });
   } finally {
     selectionLock?.release();
@@ -2315,15 +2330,20 @@ export async function getProviderCredentialsWithQuotaPreflight(
       );
       if (claim.kind === "LOST") {
         selectedCredentials.releaseOAuthSession?.();
+        releaseRoutingLeaseFromCredentials(credentials);
         excludedConnectionIds.add(connectionId);
         pendingCredentialSelection =
           await selectedCredentials.selectNextLeaseCandidate?.(connectionId);
         return null;
       }
-      if (claim.kind === "STALE") return { leaseFenceStale: true };
+      if (claim.kind === "STALE") {
+        releaseRoutingLeaseFromCredentials(credentials);
+        return { leaseFenceStale: true };
+      }
       await selectedCredentials.commitSelectionSideEffects?.();
       if (options.materializeCredentials === false) {
         selectedCredentials.releaseOAuthSession?.();
+        releaseRoutingLeaseFromCredentials(credentials);
         return { exclusiveLease: claim.lease, connectionId, provider };
       }
       return { ...credentials, exclusiveLease: claim.lease };
@@ -2422,6 +2442,7 @@ export async function getProviderCredentialsWithQuotaPreflight(
       );
     } catch (error) {
       selectedCredentials.releaseOAuthSession?.();
+      releaseRoutingLeaseFromCredentials(credentials);
       throw error;
     }
     if (preflight.proceed) {
@@ -2431,6 +2452,7 @@ export async function getProviderCredentialsWithQuotaPreflight(
     }
 
     selectedCredentials.releaseOAuthSession?.();
+    releaseRoutingLeaseFromCredentials(credentials);
 
     const unavailableUntil = await markQuotaPreflightAccountUnavailable(
       provider,
@@ -2687,6 +2709,10 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: 0 };
     }
 
+    // Request-scoped refusal: nothing about it belongs on this account or this model.
+    if (isOpencodeFreeTierRefusalForProvider(provider, status, errorText))
+      return { shouldFallback: true, cooldownMs: 0 };
+
     // ─── Anti-Thundering Herd Guard ─────────────────────────────────
     // If this connection was ALREADY marked unavailable by a prior concurrent
     // request (within the mutex window), skip re-marking to avoid resetting
@@ -2805,7 +2831,6 @@ export async function markAccountUnavailable(
     // per-model lockout branches (per-model quota 403/404, codex scope) are left
     // as-is — extending disableCooling to model lockout is a follow-up.
     const disableCooling = connProviderSpecificData.disableCooling === true;
-
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
 
     // #10334 — connection-scope branch: the matched provider rule declared scope
@@ -2980,7 +3005,7 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
     if (
-      isPerModelQuotaProvider &&
+      hasPerModelFailureScope(provider, model, connectionPassthroughModels, status) &&
       provider &&
       provider !== "codex" &&
       model &&

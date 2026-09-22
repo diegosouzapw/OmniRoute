@@ -1,36 +1,44 @@
-# MCP-SERVER (Malti)
+# OmniRoute MCP Server Documentation (Malti)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "Dokumentazzjoni tal-Server OmniRoute MCP"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# Dokumentazzjoni tal-Server OmniRoute MCP
-
-> Protokoll tal-Kuntest tal-Mudell b'110 għodda fost operazzjonijiet ta' rotot, cache, kompressjoni, memorja, ħiliet, prokwi, pool, Radar, u sorsi tal-kuntest.
+> Server tal-Model Context Protocol b’110 għodod għall-operazzjonijiet ta’ routing, cache, kompressjoni, memorja, ħiliet, proxy, pool, Radar, u sorsi tal-kuntest.
 >
-> Is-sors tal-verità: `open-sse/mcp-server/server.ts` jikkalkula **110 għodda unika** b'`countUniqueMcpTools()`: 45 definizzjonijiet kanoniċi (inklużi s-sitt għodod tal-ħajja ta' CCR, il-trio tal-ħiliet tal-ewlieni, `omniroute_radar_catalog`, u `omniroute_x_search`), flimkien mal-memorja (3), ħiliet (4), ħiliet GitHub (3), pool (6), gamifikazzjoni (8), plugins (8), Notion (6), Obsidian (22), corpus lokali (3), u żewġ għodod tal-kompressjoni biss-RTK.
+> Sors awtorevoli: `open-sse/mcp-server/server.ts` jikkalkula **110 għodod uniċi** permezz ta’ `countUniqueMcpTools()`: 45 definizzjoni kanonika (inklużi s-sitt għodod taċ-ċiklu tal-ħajja tas-CCR, it-triju tal-ħiliet tal-aġent, `omniroute_radar_catalog`, u `omniroute_x_search`), flimkien ma’ memorja (3), ħiliet (4), ħiliet ta’ GitHub (3), pool (6), gamifikazzjoni (8), plugins (8), Notion (6), Obsidian (22), corpus lokali (3), u żewġ għodod ta’ kompressjoni esklussivi għal RTK.
 
 ## Installazzjoni
 
-OmniRoute MCP huwa mibni fid-dħul. Beda billi:
+OmniRoute MCP huwa integrat. Ibdieh b’dan:
 
 ```bash
 omniroute --mcp
 ```
 
-Jew permezz tal-ġbir open-sse:
+Jew permezz tat-trasport open-sse:
 
 ```bash
-# Ġbir li jista' jiġi strimjat HTTP (port 20130)
-omniroute --dev  # L-MCP jibda awtomatikament fuq il-ponta /mcp
+# Trasport HTTP li jista’ jiġi streamed (port 20130)
+omniroute --dev  # MCP jibda awtomatikament fuq l-endpoint /mcp
 ```
+
+It-trasporti HTTP (`sse` / `streamable-http`, ipprovduti fl-istess proċess mis-server tad-dashboard) huma
+mitfija b’mod awtomatiku u qabel setgħu jiġu attivati jew diżattivati biss mill-paġna `/dashboard/mcp`. Minn v3.8.51
+’il quddiem, is-CLI għandu l-istess funzjonalità:
+
+```bash
+omniroute mcp status                                  # attivat/online, trasport, għadd ta’ għodod
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # jirrisettja s-sessjonijiet sse/streamable-http attivi
+```
+
+`mcp enable`/`mcp disable` jagħmlu PATCH tal-istess issettjar `mcpEnabled` (u, b’mod fakultattiv, `mcpTransport`)
+li d-dashboard jattiva jew jiddiżattiva permezz ta’ `/api/settings`. `mcp restart` isejjaħ `POST /api/mcp/restart`: jagħlaq
+is-sessjonijiet `sse`/`streamable-http` attivi sabiex it-talba li jmiss terġa’ tinizjalizza kollox b’mod nadif, jirritorna
+`409` jekk MCP ikun diżattivat, u `501` għat-trasport `stdio` (il-klijenti stdio jmexxu s-subproċess tagħhom stess
+— ma hemm l-ebda handle fl-istess proċess li jista’ jerġa’ jinbeda).
 
 ## Ġabriet
 

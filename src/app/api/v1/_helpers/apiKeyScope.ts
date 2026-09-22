@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getApiKeyMetadata } from "@/lib/db/apiKeys";
+import { getApiKeyMetadata, validateApiKey } from "@/lib/db/apiKeys";
 import { extractApiKey } from "@/sse/services/auth";
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { CORS_HEADERS } from "@/shared/utils/cors";
@@ -21,10 +21,19 @@ export async function getApiKeyRequestScope(request: Request): Promise<ApiKeyReq
   }
 
   const apiKeyMetadata = await getApiKeyMetadata(apiKey);
+
+  // Fail closed: `getApiKeyMetadata` resolves the key by row EXISTENCE only —
+  // it applies no lifecycle filter. `validateApiKey` is the one gate that
+  // checks is_active/revoked_at/is_banned/expires_at (CWE-613). A key that
+  // fails that gate is folded into the same `{ apiKeyId: null }` shape as an
+  // unresolved/anonymous caller, so every consumer of this scope (list reads,
+  // per-record ownership checks) treats a revoked/expired/banned key as
+  // invalid without each route re-implementing the check.
+  const isValid = apiKeyMetadata ? await validateApiKey(apiKey) : false;
   return {
     apiKey,
-    apiKeyId: apiKeyMetadata?.id || null,
-    apiKeyMetadata,
+    apiKeyId: isValid ? apiKeyMetadata?.id || null : null,
+    apiKeyMetadata: isValid ? apiKeyMetadata : null,
     rejection: null,
     isSessionAuth,
   };
@@ -48,7 +57,10 @@ export async function getApiKeyRequestScope(request: Request): Promise<ApiKeyReq
  * `getApiKeyRequestScope` never sets `rejection` — with `REQUIRE_API_KEY=false`
  * the central policy admits both a missing and an invalid bearer as anonymous —
  * so `{ apiKeyId: null, isSessionAuth: false }` is exactly the anonymous shape
- * and must never match a record.
+ * and must never match a record. A revoked, expired or banned key (fails
+ * `validateApiKey`) is folded into that same shape by `getApiKeyRequestScope`
+ * itself (#13881) — do not reintroduce a path that trusts `apiKeyId` without
+ * that lifecycle gate.
  */
 export function canAccessOwnedRecord(
   scope: Pick<ApiKeyRequestScope, "isSessionAuth" | "apiKeyId">,

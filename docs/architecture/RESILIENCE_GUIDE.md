@@ -100,13 +100,73 @@ Regression guard: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Terminal states (NOT cooldowns):**
 
-- `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md))
+- `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md)), and by three consecutive upstream per-request refusals (`request_rejected`, e.g. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); a single refusal only cools the connection down
 - `expired` (transitions to terminal after bounded retries — `EXPIRED_RETRY_MAX = 3` with exponential backoff — so transient OAuth errors can self-heal before the account is permanently deactivated)
 - `credits_exhausted`
 
 These persist until credentials change or an operator resets them. Do not overwrite terminal states with transient cooldown state.
 
 **Lazy recovery:** when `rateLimitedUntil` is past, connection becomes eligible again. On successful use, `clearAccountError()` clears all error fields.
+
+### Claude OAuth usage wall: lower-priority lane + session-limit reset
+
+**Scope:** one Claude subscription (OAuth) connection. Both features are **opt-in per
+connection** (Edit connection → Claude section → `lowPriorityMode` / `autoLimitReset` in
+`providerSpecificData`, both default off) and mirror Claude Code's `/low-priority` and
+`/limit-reset` commands (wire contract captured from Claude Code 2.1.263).
+
+**Implementation:**
+
+- State machine + response classification: `open-sse/services/claudeLowPriority.ts`
+- Reset status/claim client: `open-sse/services/claudeLimitReset.ts`
+- Executor hook (header injection + same-account retry): `open-sse/executors/base.ts::execute()`
+- Opt-in persistence: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Trigger:** the 5-hour usage wall — a `429` whose headers carry
+`anthropic-ratelimit-unified-status: rejected` and, when the account is eligible,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Nothing is sent before that first wall
+429; a burst 429 without unified headers goes through the normal cooldown path.
+
+**Lower-priority lane** (`lowPriorityMode`):
+
+- On the wall 429 the executor accepts the offer and immediately retries the **same**
+  account with `anthropic-usage-limit: slow`; the lane stays active until the announced
+  `anthropic-ratelimit-unified-reset` (+60s grace) and every request in that window carries
+  the header. The intercepted 429 never reaches `handleChatCore`, so the connection is
+  **not** put in cooldown and is not rotated away.
+- `anthropic-ratelimit-unified-slow-status` on later responses: `active` / `not_needed`
+  keep the lane; `slot_busy` (429) or a `529` wait the server's
+  `anthropic-ratelimit-unified-slow-retry-after` (default 20s, clamp 5–600s, ±30% jitter)
+  and retry, bounded by `anthropic-ratelimit-unified-slow-max-wait` (default 20 min, clamp
+  1 min–6 h) — past that the lane ends and a 10-minute cool-off blocks re-acceptance. The
+  wait is additionally capped by what is left of the request's own upstream-start timeout
+  (`resolveFetchStartTimeout`, 10 min by default) minus a 5 s margin: without that cap the
+  20-minute default max-wait would outlive the request and the sleep would be aborted
+  mid-wait, surfacing a `TimeoutError` instead of the graceful `max_wait` end + cool-off.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, a 5h-window rollover, or
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (which ends it as
+  `extra_usage` on any status, since paid overage now covers the wall) end the lane; the
+  response then flows to the normal cooldown path. `budget_exhausted` is remembered until
+  the announced budget reset (≤ 8 days).
+- The wall check runs after the executor's own 400-driven intra-attempt retries (context
+  editing, thinking/effort clamps, param auto-learn), so a wall 429 that only surfaces on
+  one of those retries is still intercepted instead of reaching the cooldown path.
+- State is in-memory per connection (a restart costs one extra wall 429 to re-accept).
+
+**Session-limit reset** (`autoLimitReset`, tried before the lane when both are on):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  block; when `arm: "reset"` and `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` with
+  `{ "program": "juniper_tide" }` (organization UUID from
+  `providerSpecificData.organizationUUID`, bootstrap fallback).
+- `result: reset|not_limited` → the request is retried at full speed (no slow header).
+  `already_used` / `not_offered` memoise `next_available_at` (default one week); any
+  failure backs off 15 minutes. The reset is once a week and still counts toward the
+  weekly limit.
+
+Regression guards: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Session affinity (#7274)
 
@@ -166,6 +226,21 @@ Related mechanisms remain separate:
 
 **Scope:** provider + connection + model triple.
 
+**Key scope by status:** the failing status decides which key a lockout writes
+to (`resolveLockoutScope()` in `open-sse/services/accountFallback/exactModelLock.ts`):
+
+- `429` / `403` / `402` — a quota or entitlement signal — lock the **quota family**:
+  for codex the whole `codex` / `spark` scope (every `gpt-5*` model of the
+  connection), for other providers `getQuotaScopedModelForProvider()`.
+- `404` locks the bare model (`getModelLockKey()` narrows `not_found`).
+- Any other status — `5xx` transport/server failures and OmniRoute's own
+  synthesized `502` from quality validation — locks the **exact**
+  provider/connection/model tuple only. A bad stream on one model is not evidence
+  about the account's quota; before this rule one empty response on
+  `codex/gpt-5.6-luna` removed every `gpt-5*` model of that connection from
+  routing for 2–30 min (escalating) while its quota was untouched.
+- A caller's explicit `scope` option always wins (Antigravity passes `"exact"`).
+
 **Purpose:** avoid disabling a whole connection when only one model is unavailable or quota-limited.
 
 **Examples:**
@@ -224,7 +299,8 @@ escalation window. This success-decay is in addition to plain timer expiry —
 either path can re-enable a model.
 
 **State:** lockouts are held **in-memory** (per-process `Map`s of
-`ModelLockoutEntry` keyed by `provider:connectionId:model`), not persisted to
+`ModelLockoutEntry` keyed by `provider:connectionId:model`, exact-scope locks by
+`provider:connectionId:exact:model`), not persisted to
 the DB — they are lost on restart. The _settings_ are persisted; the active
 lockout _state_ is ephemeral.
 
@@ -277,16 +353,41 @@ rate limit. Bounded by `comboCooldownWait` (`enabled`, `maxWaitMs`, `maxAttempts
 **Scope**: the local per-provider+connection rate-limit queue (`open-sse/services/rateLimitManager.ts`,
 backed by Bottleneck), one layer below the three mechanisms above.
 
-**`maxWaitMs` is a legacy persisted name for execution expiration.**
-`resilienceSettings.requestQueue.maxWaitMs` is passed to Bottleneck as a job
-`expiration`, whose timer starts only after dispatch. It therefore bounds
-limiter-managed execution, not time spent in the local queue. Expiration is
-surfaced as trusted local `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-the former queue-timeout code name is accepted only for trusted internal
-backward compatibility. The default is 15000ms; override via
-`RATE_LIMIT_MAX_WAIT_MS` (env) or the dashboard (**Settings → Resilience**,
-1–30000ms UI ceiling). Queue residence has no time deadline; use
-`maxQueueDepth` below to bound queued callers.
+**`maxWaitMs` bounds queue wait; `executionMaxWaitMs` bounds execution.**
+The two are deliberately separate, and neither feeds the other.
+
+`resilienceSettings.requestQueue.maxWaitMs` is the **queue-wait budget**: it
+covers waiting for a provider slot and then sitting QUEUED, and its timer is
+cleared the moment the job leaves QUEUED and starts executing
+(`rateLimitManager.ts`, `wrappedFn`). A request that exceeds it never reaches
+the upstream. Default 30000ms, supplied by `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+in `src/lib/resilience/settings.ts` and pinned by
+`tests/unit/ratelimit-admission-control-6593.test.ts`, so a change to it turns
+that test red rather than leaving this paragraph quietly stale.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` is what Bottleneck
+receives as the job `expiration`, whose timer starts only after dispatch. It is
+a backstop for executors without an upstream timeout of their own, and it is
+raised to the executor's own fetch-start timeout when that is longer, so it
+cannot cut off a healthy in-flight response. Default 600000ms (10 min).
+
+Feeding the queue budget into `expiration` is what used to kill non-incremental
+gateways mid-flight — they legitimately run for minutes before first bytes —
+and it is why an expiration is surfaced as `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) while the queue budget carries the
+queue-timeout code. Override either via `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) or the dashboard
+(**Settings → Resilience**). Both are clamped to 1ms–24h when normalised.
+
+**Precedence, for both:** the env var only supplies the _default_. A value
+persisted in `resilienceSettings.requestQueue` (dashboard / API patch, stored
+in `key_value`) wins over it, and a per-connection
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` wins over that. Setting
+the env var on a deployment that already has a persisted value therefore
+changes nothing — clear or update the persisted setting instead.
+
+Queue residence is bounded by `maxWaitMs`; `maxQueueDepth` below bounds how
+many callers may be queued at once.
 
 **`maxQueueDepth` — opt-in admission cap (new).** `resilienceSettings.requestQueue.maxQueueDepth`
 bounds how many requests may sit queued (not yet dispatched) for one
@@ -618,6 +719,7 @@ rate limit is the same signal as an exhausted quota. Honest limits:
 
 ## Debugging
 
+- Weighted combo answers `503 all_targets_cooling_down` (`Retry-After` set, `diagnostics.excluded` lists every target with `model_lockout` / `circuit_open` / `provider_cooldown` / `unavailable`) → the pool is configured and connected, every target is just excluded by a resilience timer; the `[COMBO] Weighted selection: every target excluded before dispatch — …` warning names the reasons and remaining seconds. A `404 no_executable_targets` from the same combo means no resilience timer was involved (nothing to run, or every account failed the availability probe). Built in `open-sse/services/combo/pinRecovery.ts` from the exclusions collected in `targetResolution.ts`.
 - All keys for a provider skipped → check both circuit breaker state AND each connection's `rateLimitedUntil`/`testStatus`.
 - Provider permanently excluded after reset window → code reading raw `state` instead of `getStatus()`/`canExecute()`.
 - One key fails, others should work → prefer connection cooldown over circuit breaker.

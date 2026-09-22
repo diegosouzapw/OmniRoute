@@ -4,127 +4,133 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇹 [am](../../../am/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../../da/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇭 [km](../../../km/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇲 [my](../../../my/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [or](../../../or/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇰 [si](../../../si/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+دليل شامل لتثبيت OmniRoute وتهيئته على جهاز افتراضي (VPS) مع نطاق مُدار عبر Cloudflare.
 
 ---
 
-## Prerequisites
+## المتطلبات الأساسية
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| العنصر           | الحد الأدنى          | الموصى به        |
+| ---------------- | -------------------- | ---------------- |
+| **المعالج**      | 1 vCPU               | 2 vCPU           |
+| **الذاكرة**      | 1 GB                 | 2 GB             |
+| **القرص**        | 10 GB SSD            | 25 GB SSD        |
+| **نظام التشغيل** | Ubuntu 22.04 LTS     | Ubuntu 24.04 LTS |
+| **النطاق**       | مسجّل على Cloudflare | —                |
+| **Docker**       | Docker Engine 24+    | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**مزوّدو الخدمة المختبَرون**: Akamai (Linode)، وDigitalOcean، وVultr، وHetzner، وAWS Lightsail.
 
 ---
 
-## 1. Configure the VM
+## 1. إعداد الآلة الافتراضية
 
-### 1.1 Create the instance
+### 1.1 إنشاء المثيل
 
-On your preferred VPS provider:
+لدى مزوّد VPS المفضّل لديك:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
+- اختر Ubuntu 24.04 LTS
+- حدّد الخطة الدنيا (1 vCPU / 1 GB RAM)
+- عيّن كلمة مرور قوية للمستخدم الجذر أو اضبط مفتاح SSH
+- دوّن **عنوان IP العام** (مثلًا، `203.0.113.10`)
 
-### 1.2 Connect via SSH
+### 1.2 الاتصال عبر SSH
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 تحديث النظام
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 تثبيت Docker
 
 ```bash
-# Install dependencies
+# تثبيت التبعيات
 apt install -y ca-certificates curl gnupg
 
-# Add official Docker repository
+# إضافة مستودع Docker الرسمي
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 تثبيت nginx
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 إعداد جدار الحماية (UFW)
 
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (redirect)
+ufw allow 80/tcp    # HTTP (إعادة توجيه)
 ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **نصيحة**: لتحقيق أقصى درجات الأمان، اقصر المنفذين 80 و443 على عناوين IP الخاصة بـCloudflare فقط. راجع قسم [الأمان المتقدم](#advanced-security).
 
 ---
 
-## 2. Install OmniRoute
+## 2. تثبيت OmniRoute
 
-### 2.1 Create configuration directory
+### 2.1 إنشاء دليل الإعدادات
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 إنشاء ملف متغيرات البيئة
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
-# === Security ===
+cat > /opt/omniroute/.env << 'EOF'
+# === الأمان ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
 API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # مطلوب في بيئة الإنتاج: يُستخدم بواسطة جسر Codex Responses WS
 
-# === App ===
+# === التطبيق ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === عناوين URL (غيّرها إلى نطاقك) ===
+# عنوان URL الأساسي الداخلي للاتصال من خادم إلى خادم للمهام المجدولة وعمليات الجلب الذاتي.
+BASE_URL=http://127.0.0.1:20128
+# عنوان URL الظاهر للمتصفح والمستخدم لاستدعاءات OAuth وروابط لوحة التحكم وعناوين URL العامة المُنشأة.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# تجاوز اختياري وصريح للأصل العام الخاص بعناوين URL العامة المُنشأة للأصول.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (optional) ===
+# === المزامنة السحابية (اختيارية) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **مهم**: أنشئ مفاتيح سرية فريدة! استخدم `openssl rand -hex 32` لكل مفتاح.
 
-### 2.3 Start the container
+### 2.3 تشغيل الحاوية
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +144,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 التحقق من أنها قيد التشغيل
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+يجب أن يعرض: `[DB] SQLite database ready` و`listening on port 20128`.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. إعداد nginx (الوكيل العكسي)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 إنشاء شهادة SSL (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+في لوحة تحكم Cloudflare:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. انتقل إلى **SSL/TLS → Origin Server**
+2. انقر على **Create Certificate**
+3. احتفظ بالإعدادات الافتراضية (15 سنة، \*.yourdomain.com)
+4. انسخ **Origin Certificate** و**Private Key**
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Paste the certificate
+# الصق الشهادة
 nano /etc/nginx/ssl/origin.crt
 
-# Paste the private key
+# الصق المفتاح الخاص
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 إعداد Nginx
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
-# Default server — blocks direct access via IP
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+# الخادم الافتراضي — يحظر الوصول المباشر عبر عنوان IP
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # Change to your domain
+    server_name llms.yourdomain.com;  # غيّره إلى نطاقك
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -203,16 +209,17 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # WebSocket support
+        # دعم WebSocket
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
-        # SSE (Server-Sent Events) — streaming AI responses
+        # SSE (الأحداث المُرسلة من الخادم) — بث استجابات الذكاء الاصطناعي
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -220,7 +227,7 @@ server {
     }
 }
 
-# HTTP → HTTPS redirect
+# إعادة توجيه HTTP → HTTPS
 server {
     listen 80;
     listen [::]:80;
@@ -230,59 +237,67 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+حافظ على توافق مُهل البث في الوكيل العكسي مع متغيرات بيئة المهلة في OmniRoute. إذا رفعت
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`، فارفع `proxy_read_timeout` / `proxy_send_timeout`
+فوق الحد نفسه.
 
-### 3.3 Enable and Test
+يستخدم OmniRoute المتغير `NEXT_PUBLIC_BASE_URL` بوصفه الأصل الأساسي المواجه للمتصفح لعمليات
+رد الاتصال الخاصة بـ OAuth والروابط العامة المُنشأة. تستخدم عمليات الكتابة المُصادق عليها في لوحة التحكم طلبات من الأصل نفسه
+إضافةً إلى حماية CSRF مرتبطة بالجلسة، ولذلك لا تتطلب عنوان URL أساسيًا عامًا وثابتًا. تظل ترويسات
+`X-Forwarded-*` أعلاه بيانات وصفية مفيدة للتوجيه، لكنها لا تحل محل
+تعيين عنوان URL العام صراحةً عندما تتطلب عمليات OAuth أو روابط المتصفح المُنشأة ذلك. لا تفعّل
+`OMNIROUTE_TRUST_PROXY` إلا إذا كان OmniRoute غير قابل للوصول إليه مباشرةً من قِبل العملاء وكان وكيلك
+يزيل ترويسات إعادة التوجيه الواردة ويعيد إنشاءها.
+
+### 3.3 التفعيل والاختبار
 
 ```bash
-# Remove default configuration
+# إزالة الإعداد الافتراضي
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
+# تفعيل OmniRoute
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Test and reload
+# الاختبار وإعادة التحميل
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. تهيئة DNS في Cloudflare
 
-### 4.1 Add DNS record
+### 4.1 إضافة سجل DNS
 
-In the Cloudflare dashboard → DNS:
+في لوحة تحكم Cloudflare، انتقل إلى DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| النوع | الاسم  | المحتوى                                    | الوكيل        |
+| ----- | ------ | ------------------------------------------ | ------------- |
+| A     | `llms` | `203.0.113.10` (عنوان IP للجهاز الافتراضي) | ✅ عبر الوكيل |
 
-### 4.2 Configure SSL
+### 4.2 تهيئة SSL
 
-Under **SSL/TLS → Overview**:
+ضمن **SSL/TLS → Overview**:
 
-- Mode: **Full (Strict)**
+- الوضع: **Full (Strict)**
 
-Under **SSL/TLS → Edge Certificates**:
+ضمن **SSL/TLS → Edge Certificates**:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- استخدام HTTPS دائمًا: ✅ مفعّل
+- الحد الأدنى لإصدار TLS: TLS 1.2
+- إعادة كتابة HTTPS تلقائيًا: ✅ مفعّلة
 
-### 4.3 Testing
+### 4.3 الاختبار
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Should return HTTP/2 200
+# يجب أن يُرجع HTTP/2 200
 ```
 
 ---
 
-## 5. Operations and Maintenance
+## 5. التشغيل والصيانة
 
-### Upgrade to a new version
+### الترقية إلى إصدار جديد
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,42 +309,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### عرض السجلات
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f omniroute          # بث لحظي
+docker logs omniroute --tail 50   # آخر 50 سطرًا
 ```
 
-### Manual database backup
+### النسخ الاحتياطي اليدوي لقاعدة البيانات
 
 ```bash
-# Copy data from the volume to the host
+# نسخ البيانات من وحدة التخزين إلى المضيف
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Or compress the entire volume
+# أو ضغط وحدة التخزين بالكامل
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### الاستعادة من نسخة احتياطية
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. الأمان المتقدم
 
-### Restrict nginx to Cloudflare IPs
+### تقييد nginx بعناوين IP الخاصة بـ Cloudflare
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
-# Cloudflare IPv4 ranges — update periodically
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
+# نطاقات IPv4 الخاصة بـ Cloudflare — حدّثها دوريًا
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -350,58 +365,69 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+أضف ما يلي إلى `nginx.conf` داخل كتلة `http {}`:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### تثبيت fail2ban
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Check status
+# التحقق من الحالة
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### حظر الوصول المباشر إلى منفذ Docker
 
 ```bash
-# Prevent direct external access to port 20128
+# منع الوصول الخارجي المباشر إلى المنفذ 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persist the rules
+# حفظ القواعد بشكل دائم
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. النشر إلى Cloudflare Workers (اختياري)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+للوصول عن بُعد عبر Cloudflare Workers (من دون كشف الجهاز الافتراضي مباشرةً):
 
 ```bash
-# In the local repository
+# في المستودع المحلي
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+راجع أيضًا [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) للاطلاع على دليل Cloudflare Tunnel المتوفر داخل المستودع. يوجد عامل `omnirouteCloud/` المستقل في مستودع مرافق منفصل.
 
 ---
 
-## Port Summary
+## ملخص المنافذ
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| المنفذ | الخدمة      | الوصول                        |
+| ------ | ----------- | ----------------------------- |
+| 22     | SSH         | عام (مع fail2ban)             |
+| 80     | nginx HTTP  | إعادة توجيه → HTTPS           |
+| 443    | nginx HTTPS | عبر وكيل Cloudflare           |
+| 20128  | OmniRoute   | المضيف المحلي فقط (عبر nginx) |
+
+## تحسين الذاكرة المنخفضة / خادم VPS صغير
+
+لعمليات النشر على مثيلات VPS صغيرة (ذاكرة RAM بسعة 1 GB أو أقل):
+
+- **عطّل خدمات الخلفية** — اضبط `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1` لتخطي المجدول وخادم MCP ومهام الصيانة الدورية. راجع `docs/reference/ENVIRONMENT.md`.
+- **استخدم وضع WAL في SQLite** — مفعّل افتراضيًا، ويقلل ذروة استهلاك الذاكرة أثناء عمليات القراءة المتزامنة.
+- **ضع حدًا لذاكرة كومة V8** — اضبط `OMNIROUTE_MEMORY_MB` (مثلًا `512`) كي لا تضبط بيئة التشغيل حدًا أقصى أكبر من الجهاز الافتراضي. راجع `docs/reference/ENVIRONMENT.md`.
+- **يتوسع قبول الطلبات الثقيلة تلقائيًا وفقًا لحد ذاكرة الكومة** -- بمجرد ضبط `OMNIROUTE_MEMORY_MB` أعلاه، تُشتق ميزانية بايتات الإدخال (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) تلقائيًا من الحد الأقصى نفسه، ولذلك يحصل الجهاز الافتراضي محدود الذاكرة تلقائيًا على ميزانية أصغر للطلبات المتزامنة من دون أي ضبط إضافي؛ وتتلقى الطلبات الزائدة استجابة `503` قابلة لإعادة المحاولة مع `Retry-After` بدلًا من التنافس على الذاكرة. لا تضبط الحد القديم لعدد الطلبات `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` إلا إذا كنت بحاجة إلى حد أقصى صارم إضافي.
+- **تجنب تشغيل `next build` على خادم VPS** — ابنِ محليًا وانشر المخرجات المستقلة (`.next/standalone/`).
+- **راقب باستخدام `top` / `free -m`** — يستهلك OmniRoute عادةً ما بين 200 و400 MB من ذاكرة RSS في حالة الخمول على جهاز افتراضي بسعة 1 GB.

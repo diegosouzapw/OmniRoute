@@ -1,41 +1,27 @@
-# CLI-INTEGRATIONS (ಕನ್ನಡ)
+# CLI Integrations (ಕನ್ನಡ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
----
+OmniRoute ಅನ್ನು ಅದರ ಬ್ಯಾಕೆಂಡ್ ಆಗಿ ಬಳಸುವಂತೆ ಕೋಡಿಂಗ್ CLI (Codex, Claude Code, OpenCode, Cline, …) ಅನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡುವ `setup-*` ಕಮಾಂಡ್ಗಳ ಸಮೂಹವನ್ನು OmniRoute ಒದಗಿಸುತ್ತದೆ — ಇದರಿಂದ
+ಟೂಲ್ **ಒಂದೇ** ಎಂಡ್ಪಾಯಿಂಟ್ನೊಂದಿಗೆ ಸಂವಹನ ನಡೆಸುತ್ತದೆ ಮತ್ತು OmniRoute ಸ್ವಯಂ-ಫಾಲ್ಬ್ಯಾಕ್ನೊಂದಿಗೆ
+ಸರಿಯಾದ ಪ್ರೊವೈಡರ್ಗೆ ರೂಟ್ ಮಾಡುತ್ತದೆ. ಪ್ರತಿಯೊಂದು ಕಮಾಂಡ್ ಚಾಲನೆಯಲ್ಲಿರುವ
+OmniRouteನಿಂದ (ಸ್ಥಳೀಯ ಅಥವಾ ರಿಮೋಟ್) **ಲೈವ್** ಮಾಡೆಲ್ ಕ್ಯಾಟಲಾಗ್ ಅನ್ನು ಓದುತ್ತದೆ ಮತ್ತು **ನಿಮ್ಮ**
+ಯಂತ್ರದಲ್ಲಿ ಟೂಲ್ನ ಸ್ವಂತ ಕಾನ್ಫಿಗ್ ಫೈಲ್ ಅನ್ನು ಬರೆಯುತ್ತದೆ. ಟೂಲ್ ಬೆಂಬಲಿಸುವ ಎಲ್ಲೆಡೆ API ಕೀಯನ್ನು ಎನ್ವಿರಾನ್ಮೆಂಟ್ ವೇರಿಯಬಲ್ ಮೂಲಕ ಉಲ್ಲೇಖಿಸಲಾಗುತ್ತದೆ. ಟೂಲ್ಗೆ ಸ್ಥಳೀಯವಾದ ಎನ್ವಿರಾನ್ಮೆಂಟ್ ಫೈಲ್ ಅನ್ನು ಶಾಶ್ವತವಾಗಿ ಉಳಿಸುವ ಕಮಾಂಡ್ಗಳನ್ನು ಕೆಳಗೆ ಗುರುತಿಸಲಾಗಿದೆ.
 
-title: "CLI ಏಕೀಕರಣಗಳು — ಯಾವುದೇ ಕೋಡಿಂಗ್ CLI ಅನ್ನು OmniRoute ಕಡೆಗೆ ನಿರ್ದೇಶಿಸಿ"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
-
-# CLI ಏಕೀಕರಣಗಳು
-
-OmniRoute ಅನ್ನು ತನ್ನ ಬ್ಯಾಕೆಂಡ್ ಆಗಿ ಬಳಸುವಂತೆ ಕೋಡಿಂಗ್ CLI (Codex, Claude Code,
-OpenCode, Cline, …) ಅನ್ನು ಸಂರಚಿಸುವ `setup-*` ಕಮಾಂಡ್ಗಳ ಸಮೂಹವನ್ನು OmniRoute
-ಒದಗಿಸುತ್ತದೆ — ಹೀಗಾಗಿ ಉಪಕರಣವು **ಒಂದೇ** ಎಂಡ್ಪಾಯಿಂಟ್ನೊಂದಿಗೆ ಸಂವಹನ ನಡೆಸುತ್ತದೆ ಮತ್ತು
-OmniRoute ಸ್ವಯಂ-ಫಾಲ್ಬ್ಯಾಕ್ನೊಂದಿಗೆ ಸರಿಯಾದ ಪೂರೈಕೆದಾರನಿಗೆ ರೂಟ್ ಮಾಡುತ್ತದೆ. ಪ್ರತಿಯೊಂದು
-ಕಮಾಂಡ್ ಚಾಲನೆಯಲ್ಲಿರುವ OmniRoute (ಸ್ಥಳೀಯ ಅಥವಾ ದೂರಸ್ಥ) ನಿಂದ **ಲೈವ್** ಮಾದರಿ
-ಕ್ಯಾಟಲಾಗ್ ಅನ್ನು ಓದುತ್ತದೆ ಮತ್ತು **ನಿಮ್ಮ** ಯಂತ್ರದಲ್ಲಿ ಉಪಕರಣದ ಸ್ವಂತ ಸಂರಚನಾ ಫೈಲ್ ಅನ್ನು
-ಬರೆಯುತ್ತದೆ. ಉಪಕರಣವು ಬೆಂಬಲಿಸುವ ಎಲ್ಲೆಡೆ API ಕೀ ಅನ್ನು ಪರಿಸರ ಚರದ ಮೂಲಕ ಉಲ್ಲೇಖಿಸಲಾಗುತ್ತದೆ.
-ಉಪಕರಣಕ್ಕೆ ಸ್ಥಳೀಯವಾದ ಪರಿಸರ ಫೈಲ್ ಅನ್ನು ಶಾಶ್ವತವಾಗಿ ಉಳಿಸುವ ಕಮಾಂಡ್ಗಳನ್ನು ಕೆಳಗೆ
-ಸೂಚಿಸಲಾಗಿದೆ.
-
-ಯಾವುದೇ ಸಂರಚನೆಯನ್ನು ಬರೆಯದೆ, ಸೂಕ್ತ env ಅನ್ನು ಸೇರಿಸಿ `claude`, `codex`, `aider`,
-`goose`, `opencode`, `qwen` ಅಥವಾ `gemini` ಅನ್ನು ಪ್ರಾರಂಭಿಸುವ ಸಾಮಾನ್ಯ ಲಾಂಚರ್ ಸಹ ಇದೆ —
-`omniroute run <target>`. ಗುರಿಗಳು ಮತ್ತು ಅವುಗಳ ಅಲಿಯಾಸ್ಗಳು ಪ್ರಮಾಣಿತ ಮ್ಯಾನಿಫೆಸ್ಟ್
-`bin/cli/cli-manifest.mjs` ನಿಂದ ಬರುತ್ತವೆ
+ಯಾವುದೇ ಕಾನ್ಫಿಗ್ ಬರೆಯದೆಯೇ ಸರಿಯಾದ ಎನ್ವಿರಾನ್ಮೆಂಟ್ ಅನ್ನು ಇಂಜೆಕ್ಟ್ ಮಾಡಿ
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ಅಥವಾ `gemini` ಅನ್ನು ಪ್ರಾರಂಭಿಸುವ ಸಾಮಾನ್ಯ ಲಾಂಚರ್ — `omniroute run <target>` — ಸಹ ಇದೆ.
+ಟಾರ್ಗೆಟ್ಗಳು ಮತ್ತು ಅವುಗಳ ಅಲಿಯಾಸ್ಗಳು ಅಧಿಕೃತ ಮ್ಯಾನಿಫೆಸ್ಟ್ `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), ಮತ್ತು `omniroute completion` ಅದೇ
-ಮ್ಯಾನಿಫೆಸ್ಟ್ನಿಂದ ಪಡೆದ ಗುರಿ ಪದಗಳನ್ನು ನೀಡುತ್ತದೆ. ಹಳೆಯ ಪ್ರತಿ-ಉಪಕರಣ ಲಾಂಚರ್ಗಳು —
+`open-code`, `qwen-code`, `gemini-cli`) ನಿಂದ ಬರುತ್ತವೆ ಮತ್ತು `omniroute completion` ಅದೇ
+ಮ್ಯಾನಿಫೆಸ್ಟ್ನಿಂದ ಪಡೆದ ಟಾರ್ಗೆಟ್ ಪದಗಳನ್ನು ಒದಗಿಸುತ್ತದೆ. ಹಳೆಯ ಪ್ರತಿ-ಟೂಲ್ ಲಾಂಚರ್ಗಳು —
 `omniroute launch` (Claude Code) ಮತ್ತು `omniroute launch-codex` (Codex) — ಇನ್ನೂ
 ಲಭ್ಯವಿವೆ.
 
-ಅದೇ ಸ್ಥಳೀಯ/ದೂರಸ್ಥ ಸಂದರ್ಭದಿಂದ ಪೂರೈಕೆದಾರರ ಆನ್ಬೋರ್ಡಿಂಗ್ ಲಭ್ಯವಿದೆ. ಕೆಳಗಿನ API-ಪ್ರಥಮ
-ಕಮಾಂಡ್ಗಳು ನಿರ್ವಹಣಾ ದೃಢೀಕರಣವನ್ನು ಪೂರೈಕೆದಾರರ ರುಜುವಾತುಗಳಿಂದ ಪ್ರತ್ಯೇಕವಾಗಿರಿಸುತ್ತವೆ ಮತ್ತು
-ರಚನಾತ್ಮಕ ಔಟ್ಪುಟ್ನಲ್ಲಿ ರುಜುವಾತನ್ನು ಎಂದಿಗೂ ಮುದ್ರಿಸುವುದಿಲ್ಲ:
+ಅದೇ ಸ್ಥಳೀಯ/ರಿಮೋಟ್ ಸಂದರ್ಭದಿಂದ ಪ್ರೊವೈಡರ್ ಆನ್ಬೋರ್ಡಿಂಗ್ ಲಭ್ಯವಿದೆ. ಕೆಳಗಿನ
+API-ಆದ್ಯತೆಯ ಕಮಾಂಡ್ಗಳು ನಿರ್ವಹಣಾ ದೃಢೀಕರಣವನ್ನು ಪ್ರೊವೈಡರ್
+ರುಜುವಾತುಗಳಿಂದ ಪ್ರತ್ಯೇಕವಾಗಿರಿಸುತ್ತವೆ ಮತ್ತು ರಚನಾತ್ಮಕ ಔಟ್ಪುಟ್ನಲ್ಲಿ ಎಂದಿಗೂ ರುಜುವಾತನ್ನು ಮುದ್ರಿಸುವುದಿಲ್ಲ:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -45,18 +31,17 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-ಸ್ಕ್ರಿಪ್ಟ್ಗಳಿಗಾಗಿ `--credential-stdin` ಅಥವಾ `--credential-env` ಬಳಸುವುದು ಉತ್ತಮ;
-ನಿಯಂತ್ರಿತ ಸ್ಥಳೀಯ ಬಳಕೆಗಾಗಿ `--credential` ಅನ್ನು ಉಳಿಸಲಾಗಿದೆ. ಸಂವಾದಾತ್ಮಕವಲ್ಲದ
-ಟರ್ಮಿನಲ್ನಲ್ಲಿ `providers remove` ಗೆ `--yes` ಅಗತ್ಯವಿದೆ, ಮತ್ತು ಎಲ್ಲಾ ಐದು ಕಮಾಂಡ್ಗಳು
-ಸಕ್ರಿಯ ಸಂದರ್ಭ ಅಥವಾ ಜಾಗತಿಕ `--base-url`/`--api-key` ಆಯ್ಕೆಗಳನ್ನು ಗೌರವಿಸುತ್ತವೆ.
+ಸ್ಕ್ರಿಪ್ಟ್ಗಳಿಗಾಗಿ, `--credential-stdin` ಅಥವಾ `--credential-env` ಗೆ ಆದ್ಯತೆ ನೀಡಿ; ನಿಯಂತ್ರಿತ ಸ್ಥಳೀಯ ಬಳಕೆಗಾಗಿ `--credential`
+ಅನ್ನು ಉಳಿಸಿಕೊಳ್ಳಲಾಗಿದೆ. ಸಂವಾದಾತ್ಮಕವಲ್ಲದ ಟರ್ಮಿನಲ್ನಲ್ಲಿ `providers remove` ಗೆ `--yes` ಅಗತ್ಯವಿದೆ ಮತ್ತು ಎಲ್ಲಾ ಐದು ಕಮಾಂಡ್ಗಳು ಸಕ್ರಿಯ ಸಂದರ್ಭ ಅಥವಾ
+ಜಾಗತಿಕ `--base-url`/`--api-key` ಆಯ್ಕೆಗಳನ್ನು ಗೌರವಿಸುತ್ತವೆ.
 
-ಅತ್ಯಂತ ವೈಶಿಷ್ಟ್ಯಸಮೃದ್ಧವಾದ ಎರಡು ಏಕೀಕರಣಗಳ ಒಂದು-ಬಾರಿಯ, ಕೈಯಾರೆ ಬರೆಯುವ ಮೂಲ
-ಸೆಟಪ್ಗಾಗಿ ಪ್ರತಿ-ಉಪಕರಣದ ಆಳವಾದ ಮಾರ್ಗದರ್ಶಿಗಳನ್ನು ನೋಡಿ:
+ಅತ್ಯಂತ ಸಮೃದ್ಧವಾದ ಎರಡು ಇಂಟಿಗ್ರೇಷನ್ಗಳ ಒಂದು-ಬಾರಿಯ, ಕೈಯಾರೆ ಬರೆಯುವ ಮೂಲ ಸೆಟಪ್ಗಾಗಿ,
+ಪ್ರತಿ-ಟೂಲ್ ವಿವರವಾದ ಮಾರ್ಗದರ್ಶಿಗಳನ್ನು ನೋಡಿ:
 
-- [Claude Code ಸಂರಚನೆ](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI ಸಂರಚನೆ](./CODEX-CLI-CONFIGURATION.md)
-- [ದೂರಸ್ಥ ಮೋಡ್](./REMOTE-MODE.md) — ನಿಮ್ಮ ಲ್ಯಾಪ್ಟಾಪ್ನಿಂದ ದೂರಸ್ಥ OmniRoute (VPS / Tailnet) ಅನ್ನು ನಿಯಂತ್ರಿಸಿ
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot ವಿಸ್ತರಣೆ; ಇದು ಎಡಿಟರ್ನ ಒಳಗಿನಿಂದಲೇ ನಿಮಗಾಗಿ ಈ
+- [Claude Code ಕಾನ್ಫಿಗರೇಶನ್](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI ಕಾನ್ಫಿಗರೇಶನ್](./CODEX-CLI-CONFIGURATION.md)
+- [ರಿಮೋಟ್ ಮೋಡ್](./REMOTE-MODE.md) — ನಿಮ್ಮ ಲ್ಯಾಪ್ಟಾಪ್ನಿಂದ ರಿಮೋಟ್ OmniRoute (VPS / Tailnet) ಅನ್ನು ನಿಯಂತ್ರಿಸಿ
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot ಎಕ್ಸ್ಟೆನ್ಶನ್; ಇದು ಎಡಿಟರ್ನ ಒಳಗಿನಿಂದಲೇ ನಿಮಗಾಗಿ ಈ
   `setup-*` ಕಮಾಂಡ್ಗಳನ್ನು ಸಹ ಚಲಾಯಿಸಬಹುದು
 
 ---

@@ -85,33 +85,12 @@ function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
 }
 
-function isGroqTlsFingerprintHost(url: string | null | undefined): boolean {
-  if (!url) return false;
-  try {
-    const host = new URL(url).hostname.toLowerCase();
-    return host === "api.groq.com" || host.endsWith(".groq.com");
-  } catch {
-    return /(?:^|[./])api\.groq\.com(?:[:/?]|$)/i.test(String(url));
-  }
-}
-
-function isGroqTlsFingerprintProvider(
-  provider: string | null | undefined
-): boolean {
-  const normalized = provider?.trim().toLowerCase();
-  return normalized === "groq";
-}
-
 function tlsFingerprintProviderAllowed(
   provider: string | null | undefined,
-  proxied: boolean,
-  url?: string | null
+  proxied: boolean
 ): boolean {
-  if (isGroqTlsFingerprintProvider(provider) || isGroqTlsFingerprintHost(url)) {
-    return false;
-  }
   const configured = process.env.TLS_FINGERPRINT_PROVIDERS?.trim();
-  // Preserve legacy direct-only opt-in. The new proxied transport requires
+  // Preserve the legacy direct-only opt-in. The new proxied transport requires
   // an explicit allowlist so enabling TLS cannot silently change proxy traffic.
   if (!configured) return !proxied;
   if (!provider) return false;
@@ -131,9 +110,8 @@ const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
   maxai: { browser: "firefox_150", os: "windows" },
 };
 
-function tlsProfileForProvider(
-  provider: string | null | undefined
-): { browserProfile?: string; os?: string } {
+type TlsProfileResult = { browserProfile?: string; os?: string };
+function tlsProfileForProvider(provider: string | null | undefined): TlsProfileResult {
   if (!provider) return {};
   const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
   return p ? { browserProfile: p.browser, os: p.os } : {};
@@ -650,7 +628,7 @@ export async function runWithProxyContext(
         );
         return runDirect();
       }
-    } else {
+    } else if (new URL(resolvedProxyUrl).protocol !== "socks5:") {
       // Fire the probe WITHOUT awaiting; dispatch optimistically below.
       unreachableProbe = isProxyReachable(resolvedProxyUrl);
     }
@@ -814,7 +792,7 @@ async function patchedFetchUnrecorded(
     if (
       isTlsFingerprintEnabled() &&
       activeTlsClient.available &&
-      tlsFingerprintProviderAllowed(tlsStore?.provider, false, targetUrl) &&
+      tlsFingerprintProviderAllowed(tlsStore?.provider, false) &&
       isTlsRequestEligible(input, options)
     ) {
       try {
@@ -869,7 +847,8 @@ async function patchedFetchUnrecorded(
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
     let lastDispatcherError: unknown = null;
-    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs();
+    const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
+    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;
@@ -885,7 +864,7 @@ async function patchedFetchUnrecorded(
             dispatcher: attempt === 0 ? getDefaultDispatcher() : getRetryDispatcher(),
           },
           _undiciDirect,
-          directHeadersTimeoutMs
+          resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout, attempt, !!options.signal)
         );
       } catch (dispatcherError) {
         if (isDirectResponseStartTimeout(dispatcherError)) {
@@ -1106,7 +1085,7 @@ async function patchedFetchUnrecorded(
     typeof tlsStore?.sessionScope === "string" &&
     tlsStore.sessionScope.trim().length > 0 &&
     activeTlsClient.available &&
-    tlsFingerprintProviderAllowed(tlsStore?.provider, true, targetUrl) &&
+    tlsFingerprintProviderAllowed(tlsStore?.provider, true) &&
     isTlsRequestEligible(input, options) &&
     isWreqProxySupported(proxyUrl)
   ) {

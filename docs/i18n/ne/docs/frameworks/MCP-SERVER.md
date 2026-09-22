@@ -1,21 +1,12 @@
-# MCP-SERVER (नेपाली)
+# OmniRoute MCP Server Documentation (नेपाली)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "OmniRoute MCP सर्भर दस्तावेज"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# OmniRoute MCP सर्भर दस्तावेज
-
-> राउटिङ, क्यास, कम्प्रेसन, मेमोरी, स्किलहरू, प्रोक्सी, पूल, Radar, र कन्टेक्स्ट स्रोत सञ्चालनहरूमा फैलिएका 110 उपकरणसहितको Model Context Protocol सर्भर।
+> राउटिङ, क्यास, कम्प्रेसन, मेमोरी, स्किल्स, प्रोक्सी, पूल, Radar, र कन्टेक्स्ट स्रोत सञ्चालनहरूमा फैलिएका 110 उपकरणसहितको Model Context Protocol सर्भर।
 >
-> आधिकारिक स्रोत: `open-sse/mcp-server/server.ts` ले `countUniqueMcpTools()` मार्फत **110 अद्वितीय उपकरणहरू** गणना गर्छ: 45 प्रमाणिक परिभाषाहरू (छवटा CCR लाइफसाइकल उपकरण, एजेन्ट-स्किल त्रयी, `omniroute_radar_catalog`, र `omniroute_x_search` सहित), साथै मेमोरी (3), स्किलहरू (4), GitHub स्किलहरू (3), पूल (6), गेमिफिकेसन (8), प्लगइनहरू (8), Notion (6), Obsidian (22), स्थानीय कर्पस (3), र RTK-मात्रका दुई कम्प्रेसन उपकरण।
+> सत्यको आधिकारिक स्रोत: `open-sse/mcp-server/server.ts` ले `countUniqueMcpTools()` मार्फत **110 अद्वितीय उपकरणहरू** गणना गर्छ: 45 आधिकारिक परिभाषाहरू (छवटा CCR जीवनचक्र उपकरणहरू, एजेन्ट-स्किल्सका तीन उपकरण, `omniroute_radar_catalog`, र `omniroute_x_search` सहित), साथै मेमोरी (3), स्किल्स (4), GitHub स्किल्स (3), पूल (6), गेमिफिकेसन (8), प्लगइनहरू (8), Notion (6), Obsidian (22), स्थानीय कर्पस (3), र RTK-मात्रका दुई कम्प्रेसन उपकरणहरू।
 
 ## स्थापना
 
@@ -28,9 +19,26 @@ omniroute --mcp
 वा open-sse ट्रान्सपोर्टमार्फत:
 
 ```bash
-# HTTP स्ट्रिमयोग्य ट्रान्सपोर्ट (पोर्ट 20130)
+# HTTP स्ट्रिम गर्न मिल्ने ट्रान्सपोर्ट (पोर्ट 20130)
 omniroute --dev  # MCP /mcp एन्डपोइन्टमा स्वतः सुरु हुन्छ
 ```
+
+HTTP ट्रान्सपोर्टहरू (`sse` / `streamable-http`, ड्यासबोर्ड सर्भरद्वारा सोही प्रोसेसभित्र सेवा प्रदान गरिने) पूर्वनिर्धारित रूपमा
+बन्द हुन्छन् र पहिले `/dashboard/mcp` पृष्ठबाट मात्र टगल गर्न सकिन्थ्यो। v3.8.51 देखि
+CLI मा पनि समान सुविधा उपलब्ध छ:
+
+```bash
+omniroute mcp status                                  # सक्षम/अनलाइन, ट्रान्सपोर्ट, टुल सङ्ख्या
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # सक्रिय sse/streamable-http सत्रहरू रिसेट गर्छ
+```
+
+`mcp enable`/`mcp disable` ले ड्यासबोर्डले `/api/settings` मार्फत टगल गर्ने उही `mcpEnabled`
+(र वैकल्पिक रूपमा `mcpTransport`) सेटिङलाई PATCH गर्छ। `mcp restart` ले `POST /api/mcp/restart`
+कल गर्छ: यसले सक्रिय `sse`/`streamable-http` सत्रहरू बन्द गर्छ, जसले गर्दा अर्को अनुरोध पुनः सफा रूपमा प्रारम्भ हुन्छ;
+MCP असक्षम भएमा `409`, र `stdio` ट्रान्सपोर्टका लागि `501` फर्काउँछ (stdio क्लाइन्टहरूले आफ्नै
+सबप्रोसेस सञ्चालन गर्छन् — पुनः सुरु गर्नका लागि कुनै इन-प्रोसेस ह्यान्डल हुँदैन)।
 
 ## ट्रान्सपोर्टहरू
 

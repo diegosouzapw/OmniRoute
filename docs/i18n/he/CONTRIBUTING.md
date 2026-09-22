@@ -8,15 +8,21 @@ Thank you for your interest in contributing! This guide covers everything you ne
 
 ---
 
-## Development Setup
+## הגדרת סביבת הפיתוח
 
-### Prerequisites
+### דרישות מקדימות
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **Node.js** `>=22.22.3 <23`, או `>=24.0.0 <27` (מומלץ: 24 LTS)
 - **npm** 10+
+
+> **למשתמשי npm v11+ (עם Node 24+):** לאחר `npm install`, ודאו שהמודולים המקוריים הותקנו:
+> `node -e "require('better-sqlite3')"`. אם הפקודה נכשלת עם `MODULE_NOT_FOUND`,
+> הריצו `npm approve-scripts better-sqlite3 && npm install`. ראו
+> [פתרון בעיות](docs/guides/TROUBLESHOOTING.md#npm-v11-better-sqlite3-not-installed-cannot-find-module).
+
 - **Git**
 
-### Clone & Install
+### שכפול והתקנה
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -24,85 +30,130 @@ cd OmniRoute
 npm install
 ```
 
-### Environment Variables
+### משתני סביבה
 
 ```bash
-# Create your .env from the template
+# צרו את קובץ ה-.env שלכם מהתבנית
 cp .env.example .env
 
-# Generate required secrets
+# צרו את הסודות הנדרשים
 echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+משתנים עיקריים לפיתוח:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| משתנה                  | ברירת מחדל לפיתוח        | תיאור                     |
+| ---------------------- | ------------------------ | ------------------------- |
+| `PORT`                 | `20128`                  | יציאת השרת                |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | כתובת URL בסיסית לממשק    |
+| `JWT_SECRET`           | (יש ליצור לעיל)          | סוד לחתימת JWT            |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | סיסמת ההתחברות הראשונה    |
+| `APP_LOG_LEVEL`        | `info`                   | רמת הפירוט של יומן הרישום |
 
-### Dashboard Settings
+### הגדרות לוח הבקרה
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+לוח הבקרה מספק מתגי ממשק משתמש עבור תכונות שניתן להגדיר גם באמצעות משתני סביבה:
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+| מיקום ההגדרה   | מתג              | תיאור                                  |
+| -------------- | ---------------- | -------------------------------------- |
+| הגדרות ← מתקדם | מצב ניפוי שגיאות | הפעלת יומני בקשות לניפוי שגיאות (ממשק) |
+| הגדרות ← כללי  | נראות סרגל הצד   | הצגה/הסתרה של מקטעים בסרגל הצד         |
 
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+הגדרות אלה נשמרות במסד הנתונים ונשמרות בין הפעלות מחדש, וכאשר הן מוגדרות הן גוברות על ברירות המחדל של משתני הסביבה.
 
-### Running Locally
+### הפעלה מקומית
 
 ```bash
-# Development mode (hot reload)
+# מצב פיתוח (טעינה מחדש בזמן אמת)
 npm run dev
 
-# Production build
-npm run build
+# בניית ייצור
+npm run build    # next build → .build/next/ ולאחר מכן assembleStandalone → dist/
 npm run start
 
-# Common port configuration
+# הידור מהיר של צד השרת/API בלבד עבור שינויים של תורמים
+npm run build:contributor
+
+# בניית הפצה (בנייה נקייה מחדש + סמן HEAD — נדרשת לפריסה)
+npm run build:release   # rm -rf .build dist && build + כותב את dist/BUILD_SHA
+
+# הגדרת יציאה נפוצה
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+בניית התורמים מבצעת אימות הידור בלבד: היא אינה מרכיבה את ההפצה העצמאית
+ואינה בונה נכסי אריזה מקוריים אופציונליים. השתמשו בבניית הייצור הרגילה כאשר
+עליכם לאמת את החבילה המוכנה להפצה.
 
-- **Dashboard**: `http://localhost:20128/dashboard`
+### מבנה פלט הבנייה
+
+| ספרייה    | תוכן                                                                     | במעקב |
+| --------- | ------------------------------------------------------------------------ | ----- |
+| `src/`    | קוד המקור של היישום (TypeScript / TSX)                                   | כן    |
+| `.build/` | קובצי ביניים — פלט `next build` (לא במעקב Git,‏ `distDir = .build/next`) | לא    |
+| `dist/`   | חבילה מוכנה להפצה — מורכבת באמצעות `assembleStandalone` (לא במעקב Git)   | לא    |
+
+צינור הבנייה מתבצע במעבר יחיד:
+
+```
+npm run build
+  └─ next build → .build/next/standalone  (פלט Next.js)
+  └─ assembleStandalone()                 (מעתיק קבצים עצמאיים + סטטיים + ציבוריים + נכסים מקוריים)
+       └─ פלט: dist/                      (server.js, .next/static/, public/, node_modules/)
+```
+
+`npm run build:release` מנקה תחילה גם את שתי הספריות וכותב את
+`dist/BUILD_SHA` (= `git rev-parse --short HEAD`) כסמן תקינות לפריסה.
+
+`npm run build:contributor` משתמש בפרופיל הבנייה של צד השרת בלבד. במהלך הבנייה הוא מחליף זמנית
+את קובצי ממשק המשתמש של לוח הבקרה בקבצי דמה, משאיר את מטפלי נתיבי ה-API ומשחזר את הקבצים המקוריים
+לאחר הבנייה. השתמשו ב-`npm run build` עבור שינויים המשפיעים על ממשק המשתמש של לוח הבקרה או לצורך
+אימות הפצה מלא; פרופיל התורמים אינו תחליף לבניית ההפצה.
+
+> **הערה לפריסה ב-VPS:** ספריית תמונת השרת המרוחק `/usr/lib/node_modules/omniroute/app/`
+> נותרת ללא שינוי. כלי הפריסה מסנכרנים באמצעות rsync את התוכן של `dist/` לתוכה.
+> רק נתיב פלט הבנייה בתוך המאגר השתנה (`app/` ← `dist/`).
+
+כתובות URL המוגדרות כברירת מחדל:
+
+- **לוח הבקרה**: `http://localhost:20128/dashboard`
 - **API**: `http://localhost:20128/v1`
 
 ---
 
-## Git Workflow
+## תהליך עבודה עם Git
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️ **לעולם אין לבצע commit ישירות אל `main`.** יש להשתמש תמיד בענפי פיתוח.
+>
+> **בסיס ה-PR:** יש לבחור כיעד את הענף הפעיל `release/vX.Y.Z` (ולא את `main`). ראו
+> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) למידע על
+> המודל של גרסה לכל ענף + תג בעת ההפצה.
 
 ```bash
-git checkout -b feat/your-feature-name
-# ... make changes ...
+# יצירת ענף מקצה הגרסה הפעילה (לדוגמה: release/v3.8.49)
+git fetch origin
+git checkout -b feat/your-feature-name origin/release/v3.8.49
+# ... ביצוע שינויים ...
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-# Open a Pull Request on GitHub
+# פתיחת Pull Request עם base = release/v3.8.49
 ```
 
-### Branch Naming
+### מתן שמות לענפים
 
-| Prefix      | Purpose                   |
-| ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| קידומת      | מטרה                     |
+| ----------- | ------------------------ |
+| `feat/`     | תכונות חדשות             |
+| `fix/`      | תיקוני באגים             |
+| `refactor/` | ארגון מחדש של הקוד       |
+| `docs/`     | שינויים בתיעוד           |
+| `test/`     | הוספות/תיקונים של בדיקות |
+| `chore/`    | כלי פיתוח, CI, תלויות    |
 
-### Commit Messages
+### הודעות Commit
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+יש לפעול לפי [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 feat: add circuit breaker for provider calls
@@ -112,80 +163,127 @@ test: add observability unit tests
 refactor(db): consolidate rate limit tables
 ```
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+תחומים (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
 
 ---
 
-## Running Tests
+## הרצת בדיקות
 
 ```bash
-# All tests (unit + vitest + ecosystem + e2e)
+# כל הבדיקות (יחידה + vitest + מערכת אקולוגית + e2e)
 npm run test:all
 
-# Single test file (Node.js native test runner — most tests use this)
+# קובץ בדיקה יחיד (מריץ הבדיקות המובנה של Node.js — רוב הבדיקות משתמשות בזה)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# רק בדיקות היחידה המושפעות מהשינוי שלכם (אותו בורר TIA כמו בשער ה-CI, #8084)
+npm run test:scoped            # שינויים ב-commit האחרון (או בעץ העבודה)
+npm run test:scoped:staged     # שינויים שנוספו ל-staging בלבד — משתלב היטב עם הרצה לפני commit
+npm run test:scoped:full       # תחילה בונה מחדש את מפת גרף הייבוא (לאחר הוספה/העברה של קבצים)
+# קוד יציאה 1 + "run the full suite" פירושם שקובץ מרכזי (tsconfig, package.json, …) או קובץ מקור
+# שאינו ממופה השתנה — הבורר נכשל באופן בטוח ולעולם אינו מדלג בשקט.
+
+# Vitest (שרת MCP, autoCombo, מטמון)
 npm run test:vitest
 
-# E2E tests (requires Playwright)
+# בדיקות E2E (דורשות Playwright)
 npm run test:e2e
 
-# Protocol clients E2E (MCP transports, A2A)
+# בדיקות E2E של לקוחות פרוטוקול (תעבורות MCP,‏ A2A)
 npm run test:protocols:e2e
 
-# Ecosystem compatibility tests
+# בדיקות תאימות למערכת האקולוגית
 npm run test:ecosystem
 
-# Coverage (60% min statements/lines/functions/branches)
+# שער כיסוי: 60% מהפקודות/שורות/פונקציות/הסתעפויות
 npm run test:coverage
 npm run coverage:report
 
-# Lint + format check
+# בדיקת lint + עיצוב
 npm run lint
 npm run check
+
+# בדיקת עשן משולבת מול שירותים חיצוניים אמיתיים, המותנית בשער (דורשת גישה ל-VPS + קרדיטים אמיתיים אצל ספקים)
+# פונה לספקים אמיתיים — כרוכה בעלות קטנה. לעולם אינה רצה ב-CI. מדולגת באופן תקין ללא השער.
+# דורשת: גישת ssh root@192.168.0.15 (טוענת תמונת מצב לקריאה בלבד של מסד הנתונים מה-VPS).
+RUN_COMBO_LIVE=1 npm run test:combo:live
+
+# בדיקת עשן חיה של שלב 3 ב-VPS — סקריפטים פשוטים של Node ESM, הפונים ישירות לשרת החי ב-.15.
+# דורשת: גישת ssh root@192.168.0.15 (שילובים נוצרים/מפורקים באמצעות SSH sqlite).
+# פונה לספקים אמיתיים (עלות קטנה). יוצרת/מוחקת רק שילובים מסוג __live_test__*. לעולם אינה רצה ב-CI.
+# ב-.15 מוגדר REQUIRE_API_KEY=false, ולכן אין צורך במפתח API, אך ההגדרות COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY מכובדות אם הוגדרו.
+npm run test:combo:live:vps              # 7 תרחישי HTTP (עדיפות/סבב/משוקלל/עלות/מיזוג/אוטומטי + תקינות)
+npm run test:combo:live:vps:failover     # מוסיף תרחיש מעבר לגיבוי אמיתי בין ספקים (8 בסך הכול)
 ```
 
-Coverage notes:
+הערות לגבי כיסוי:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
-- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` מודד את כיסוי קוד המקור עבור חבילת בדיקות היחידה הראשית, אינו כולל את `tests/**`, וכולל את `open-sse/**`
+- בקשות משיכה חייבות לשמור על שער כיסוי של **60%+** מהפקודות/שורות/פונקציות/הסתעפויות
+- אם PR משנה קוד ייצור ב-`src/`, ב-`open-sse/`, ב-`electron/` או ב-`bin/`, יש להוסיף או לעדכן בדיקות אוטומטיות באותו PR
+- `npm run coverage:report` מדפיס דוח מפורט לפי קבצים מהרצת הכיסוי האחרונה
+- `npm run test:coverage:legacy` משמר את המדד הישן לצורך השוואה היסטורית
+- ראו `docs/ops/COVERAGE_PLAN.md` עבור מפת הדרכים המדורגת לשיפור הכיסוי
 
-### Pull Request Requirements
+### דרישות לבקשת משיכה
 
-Before opening or merging a PR:
+לפני פתיחת PR, השתמשו ב-[נתיב הזהב לתרומה](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) כדי להריץ את הלולאה הממוקדת עבור
+מה ששיניתם. חבילת בדיקות היחידה המלאה (4 פלחי CI),‏ Vitest, שער הכיסוי של **60%+**
+ובניית הייצור הם באחריות ה-CI — הרצתם באופן מקומי אינה מוסיפה מידע שבדיקות ה-PR
+לא יספקו ממילא, ובמחשבים חלשים יותר היא עלולה להעמיס על המארח (#8084):
 
-- Run `npm run test:unit`
-- Run `npm run test:coverage`
-- Ensure the coverage gate stays at **60%+** for all metrics
-- Include the changed or added test files in the PR description when production code changed
-- Check the SonarQube result on the PR when the project secrets are configured in CI
+- הריצו את קובצי הבדיקות המכסים את השינוי שלכם: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- הריצו `npm run lint`
+- בכל שינוי בקוד ייצור, כללו או עדכנו בדיקות אוטומטיות באותו PR
+- כאשר קוד הייצור השתנה, כללו בתיאור ה-PR את קובצי הבדיקות ששונו או נוספו
+- בדקו את תוצאת SonarQube ב-PR כאשר סודות הפרויקט מוגדרים ב-CI
 
-Current test status: **122 unit test files** covering:
+מצב הבדיקות הנוכחי: **122 קובצי בדיקות יחידה** המכסים:
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- מתרגמי ספקים והמרת פורמטים
+- הגבלת קצב, מפסק זרם ועמידות
+- מטמון סמנטי, אידמפוטנטיות ומעקב התקדמות
+- פעולות מסד נתונים וסכימה (21 מודולי DB)
+- תהליכי OAuth ואימות
+- אימות נקודות קצה של API‏ (Zod v4)
+- כלי שרת MCP ואכיפת היקף
+- מערכות זיכרון ומיומנויות
 
 ---
 
-## Code Style
+## סגנון קוד
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+- **ESLint** — יש להריץ `npm run lint` לפני ביצוע commit
+- **Prettier** — העיצוב מתבצע אוטומטית באמצעות `lint-staged` בעת ביצוע commit (2 רווחים, נקודה-פסיק, מירכאות כפולות, רוחב של 100 תווים, פסיקים סופיים בסגנון es5)
+- **TypeScript** — כל הקוד תחת `src/` משתמש ב-`.ts`/`.tsx`;‏ `open-sse/` משתמש ב-`.ts`/`.js`; יש לתעד באמצעות TSDoc (`@param`, `@returns`, `@throws`)
+- **ללא `eval()`** — ‏ESLint אוכף את `no-eval`,‏ `no-implied-eval`,‏ `no-new-func`
+- **אימות באמצעות Zod** — יש להשתמש בסכמות Zod v4 לכל אימות הקלט של ה-API
+- **מתן שמות**: קבצים = camelCase/kebab-case, רכיבים = PascalCase, קבועים = UPPER_SNAKE
+
+### טיפול בשגיאות / בלוקי catch ריקים
+
+לעולם אין להשאיר `catch` ללא הסבר. יש לסווג אותו לאחת משתי קטגוריות (כך מיושם
+הכלל הנוקשה "לעולם אין לבלוע שגיאות בשקט בזרמי SSE"):
+
+- **מכוון (ניקוי/טלמטריה מסוג best-effort שלנו)** — כשל כאן הוא צפוי
+  ואינו מזיק; יש להוסיף הערת נימוק בת שורה אחת, ללא רישום לוגים (רישום לוג בכל בקשה הוא
+  הרעש שמוסכמה זו נועדה למנוע).
+
+  ```ts
+  } catch {} // סגירה של controller שכבר נסגר לאחר ניתוק הלקוח היא צפויה
+  ```
+
+- **יש לתעד בלוג (קוד חיצוני/קוד שסופק על ידי הקורא, או כאשר הבליעה משנה את זרימת הבקרה)** — יש להשאיר
+  את ה-catch (לעולם אין לאפשר לו לשבש את הזרם), אך להפיק `console.debug`/`warn` עם הקשר כדי
+  שניתן יהיה לגלות את הכשל.
+
+  ```ts
+  } catch (e) {
+    console.debug("[STREAM] onFailure callback error:", e);
+  }
+  ```
+
+לדוגמאות יישומיות, ראו `open-sse/utils/stream.ts` ו-`open-sse/utils/streamHandler.ts`.
 
 ---
 
@@ -252,48 +350,58 @@ docs/                       # Documentation
 
 ---
 
-## Adding a New Provider
+## הוספת ספק חדש
 
-### Step 1: Register Provider Constants
+### שלב 1: רישום קבועי הספק
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+הוסיפו אותם אל `src/shared/constants/providers.ts` — עם אימות Zod בעת טעינת המודול.
 
-### Step 2: Add Executor (if custom logic needed)
+### שלב 2: הוספת מבצע (אם נדרשת לוגיקה מותאמת אישית)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+צרו מבצע ב-`open-sse/executors/your-provider.ts` שמרחיב את המבצע הבסיסי.
 
-### Step 3: Add Translator (if non-OpenAI format)
+### שלב 3: הוספת מתרגם (אם הפורמט אינו OpenAI)
 
-Create request/response translators in `open-sse/translator/`.
+צרו מתרגמי בקשה/תגובה ב-`open-sse/translator/`.
 
-### Step 4: Add OAuth Config (if OAuth-based)
+### שלב 4: הוספת תצורת OAuth (אם מבוסס OAuth)
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+הוסיפו אישורי OAuth ב-`src/lib/oauth/constants/oauth.ts` ושירות ב-`src/lib/oauth/services/`.
 
-### Step 5: Register Models
+אם הספק במעלה הזרם מפיץ `client_id`/סוד OAuth ציבורי או מפתח Firebase Web API בתוך ה-CLI הציבורי שלו / חבילת הדפדפן שלו, **אל** תטמיעו אותו כליטרל מחרוזת. השתמשו ב-`resolvePublicCred()` מתוך `open-sse/utils/publicCreds.ts` והוסיפו רשומת בתים ממוסכת אל `EMBEDDED_DEFAULTS`. תהליך העבודה המחייב המלא מתועד ב-[`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-Add model definitions in `open-sse/config/providerRegistry.ts`.
+בתוך מטפלים/מבצעים, הודעות שגיאה המגיעות ללקוח חייבות לעבור דרך `buildErrorBody()` / `sanitizeErrorMessage()` מתוך `open-sse/utils/error.ts` — לעולם אל תכניסו `err.stack` או `err.message` גולמיים לגוף Response. ראו [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-### Step 6: Add Tests
+### שלב 5: רישום מודלים
 
-Write unit tests in `tests/unit/` covering at minimum:
+הוסיפו הגדרות מודלים ב-`open-sse/config/providerRegistry.ts`.
 
-- Provider registration
-- Request/response translation
-- Error handling
+### שלב 6: הוספת בדיקות
+
+כתבו בדיקות יחידה ב-`tests/unit/` המכסות לכל הפחות:
+
+- רישום ספק
+- תרגום בקשה/תגובה
+- טיפול בשגיאות
 
 ---
 
-## Pull Request Checklist
+## רשימת תיוג לבקשת משיכה
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
+- [ ] הבדיקות עוברות (`npm test`)
+- [ ] בדיקת הסגנון עוברת (`npm run lint`)
+- [ ] הבנייה מצליחה (`npm run build`)
+- [ ] נוספו טיפוסי TypeScript עבור פונקציות וממשקים ציבוריים חדשים
+- [ ] אין סודות או ערכי ברירת מחדל המקודדים באופן קשיח
+- [ ] פרטי גישה ציבוריים לשירותי upstream מוטמעים באמצעות `resolvePublicCred()` (ראו [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ולעולם לא כליטרלים
+- [ ] תגובות שגיאה מנותבות דרך `buildErrorBody()` / `sanitizeErrorMessage()` — ללא עקבות מחסנית גולמיים בגופי התגובות (ראו [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] פקודות מעטפת (`exec` / `spawn`) מעבירות ערכי זמן ריצה באמצעות `env`, ולא באמצעות אינטרפולציית מחרוזות
+- [ ] כל הקלטים מאומתים באמצעות סכמות Zod
+- [ ] נוסף **מקטע** יומן שינויים תחת `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` עבור שינויים הנראים למשתמש (ראו [`changelog.d/README.md`](./changelog.d/README.md)) — **אין** לערוך את `CHANGELOG.md` ישירות; המקטעים מאוגדים בזמן ההפצה ולעולם אינם יוצרים התנגשויות בין בקשות משיכה
+- [ ] התיעוד עודכן (אם רלוונטי)
+- [ ] לא נפתחו התראות CodeQL / Secret-Scanning חדשות, או שכל אחת מהן נדחתה בצירוף הצדקה טכנית המפנה למסמך הרלוונטי תחת `docs/security/`
+- [ ] נתיבים שמפעילים תהליכי־בן (`/api/mcp/`, `/api/cli-tools/runtime/`) מסווגים כ־`isLocalOnlyPath()` בתוך `src/server/authz/routeGuard.ts` — ראו [כלל מחייב מס' 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] אין שורות סיום מסוג `Co-Authored-By` בהודעות commit — ה־commits חייבים להופיע אך ורק תחת זהות ה־Git של בעלי המאגר (כלל מחייב מס' 16)
 
 ---
 
@@ -303,9 +411,11 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Getting Help
+## קבלת עזרה
 
-- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+- **ארכיטקטורה**: ראו [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **תיעוד API**: ראו [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **מסמכי אבטחה**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **מסמכי תפעול**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **דיווחים על בעיות**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: ראו `docs/adr/` לרשומות של החלטות ארכיטקטוניות

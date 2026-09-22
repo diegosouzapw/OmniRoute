@@ -28,6 +28,11 @@ export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 // immediate-fail behavior.
 export const STREAM_DISCONNECT_GRACE_PERIOD_MS = upstreamTimeouts.streamDisconnectGracePeriodMs;
 
+// Hard cap for a connected upstream stream. This timer never resets on
+// upstream byte activity and is independent of REQUEST_TIMEOUT_MS. Set
+// STREAM_ACTIVE_TIMEOUT_MS=0 to disable it.
+export const STREAM_ACTIVE_TIMEOUT_MS = upstreamTimeouts.streamActiveTimeoutMs;
+
 // Timeout for the first non-ping SSE event. Inherits REQUEST_TIMEOUT_MS when
 // set, unless STREAM_READINESS_TIMEOUT_MS is specified directly. This must stay
 // conservative for large prompts and slow first-byte reasoning providers.
@@ -182,6 +187,7 @@ export const HTTP_STATUS = {
   UNPROCESSABLE_ENTITY: 422,
   REQUEST_TIMEOUT: 408,
   GONE: 410,
+  PAYLOAD_TOO_LARGE: 413,
   RATE_LIMITED: 429,
   PLAN_LIMIT_EXCEEDED: 432,
   SERVER_ERROR: 500,

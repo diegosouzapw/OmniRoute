@@ -4,10 +4,18 @@
  * @module lib/db/cleanup
  */
 
-import { getDbInstance } from "./core";
-import { getUserDatabaseSettings } from "./databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
+
+import { getDbInstance } from "./core";
+import { getUserDatabaseSettings } from "./databaseSettings";
+import {
+  describeReclaim,
+  reclaimFreedPages,
+  type ReclaimFreedPagesOptions,
+  type ReclaimFreedPagesResult,
+  type ReclaimStopReason,
+} from "./reclaimFreedPages";
 import {
   collectCallLogArtifactsBefore,
   deleteAllFromTable,
@@ -18,6 +26,7 @@ import {
   type DeleteByPeriodTarget,
 } from "./cleanup/usagePurge";
 import { ensureCompressionRunTelemetryTable } from "./compressionRunTelemetry";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 interface CleanupResult {
   deleted: number;
@@ -283,19 +292,6 @@ export async function cleanupMemoryEntries(): Promise<CleanupResult> {
       }
     }
 
-    // optimize only merges segments; it does not drop tombstones from
-    // access-count UPDATEs that already reindexed. rebuild from the
-    // content table on every pass so a bloated index cannot wait for
-    // a memory-row delete that may never happen.
-    if (tableExists("memory_fts")) {
-      try {
-        db.exec("INSERT INTO memory_fts(memory_fts) VALUES('rebuild')");
-      } catch (err: unknown) {
-        console.error("[Cleanup] FTS5 rebuild after memory retention failed:", err);
-        result.errors++;
-      }
-    }
-
     console.log(
       `[Cleanup] Deleted ${result.deleted} memory_entries older than ${retentionDays} days`
     );
@@ -455,29 +451,117 @@ export async function cleanupCcrBlocks(): Promise<CleanupResult> {
   return result;
 }
 
+const BATCH_RETENTION_DAYS_DEFAULT = 30; // matches OpenAI's own Batch API output retention window
+
+function getBatchRetentionDays(): number {
+  const raw = process.env.OMNIROUTE_BATCH_RETENTION_DAYS;
+  if (!raw) return BATCH_RETENTION_DAYS_DEFAULT;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : BATCH_RETENTION_DAYS_DEFAULT;
+}
+
 /**
- * Clean up conversation_turn_nodes older than the call-log retention window (#12453).
+ * Clean up terminal batches (completed/failed/cancelled/expired) older than the
+ * retention window, along with their per-line checkpoints and referenced files.
+ *
+ * batch_item_checkpoints had no cleanup path at all before this: the only
+ * existing sweep (deleteCompletedBatches(), the operator-triggered DELETE
+ * /api/v1/batches/delete-completed route) is scoped to `status = 'completed'`
+ * with no age filter, and is left untouched here -- it's a public API
+ * contract, not the automatic cleanup path. Observed live: 182K checkpoint
+ * rows / 5.25 GB, with no batch ever explicitly deleted by an operator.
+ *
+ * Gated by `BATCH_AND_FILE_AUTO_CLEANUP_ENABLED` (default off, #12999): every
+ * existing install would otherwise start deleting terminal batches (and their
+ * checkpoints) that today are kept forever, on the very next 6-hourly sweep.
+ * Fail closed -- an operator must opt in before this sweep touches anything.
+ */
+export async function cleanupOldBatches(): Promise<CleanupResult> {
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  if (!isFeatureFlagEnabled("BATCH_AND_FILE_AUTO_CLEANUP_ENABLED")) {
+    console.log(
+      "[Cleanup] Batch auto-cleanup disabled (BATCH_AND_FILE_AUTO_CLEANUP_ENABLED=false); skipping."
+    );
+    return result;
+  }
+
+  try {
+    const { deleteTerminalBatchesOlderThan } = await import("./batches");
+    const retentionDays = getBatchRetentionDays();
+    const { deletedBatches, hasMore } = deleteTerminalBatchesOlderThan(retentionDays);
+    result.deleted = deletedBatches;
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} terminal batches older than ${retentionDays} days` +
+        (hasMore ? " (per-run cap reached; the remainder is swept on the next run)" : "")
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning old batches:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Clear the content of files past their own `expires_at`.
+ *
+ * Like ccr_blocks, a file carries its own expiry -- this needs no separate
+ * retention-days setting, just an operator-scheduled sweep, since nothing
+ * previously enforced expires_at at all. Observed live: 1,874 rows / 5.19 GB
+ * of uploaded file content, most long past expiry.
+ *
+ * Gated by `BATCH_AND_FILE_AUTO_CLEANUP_ENABLED` (default off, #12999): every
+ * existing install would otherwise start clearing file content that today is
+ * kept until explicitly deleted. Fail closed -- an operator must opt in.
+ */
+export async function cleanupExpiredFiles(): Promise<CleanupResult> {
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  if (!isFeatureFlagEnabled("BATCH_AND_FILE_AUTO_CLEANUP_ENABLED")) {
+    console.log(
+      "[Cleanup] Expired-file auto-cleanup disabled (BATCH_AND_FILE_AUTO_CLEANUP_ENABLED=false); skipping."
+    );
+    return result;
+  }
+
+  try {
+    const { pruneExpiredFiles } = await import("./files");
+    result.deleted = pruneExpiredFiles(Math.floor(Date.now() / 1000));
+    console.log(`[Cleanup] Deleted ${result.deleted} expired files`);
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning expired files:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Clean up conversation_turn_nodes older than their own retention window (#12453).
  *
  * The nodes are identity-only: the transcript view resolves each turn's display
  * content from the call_logs row `last_correlation_id` points at. Once
- * cleanupCallLogs purges that row the node can never render again, so the two
- * tables share the dashboard database setting `retention.callLogs` instead of
- * a knob of their own; `CALL_LOG_RETENTION_DAYS` configures the separate
- * compliance cleanup path and does not override this window. Deleting an old
- * node only affects reconnect anchors: a conversation resumed after the window
- * mints a new id, which is already the documented anchor-miss behavior of
- * resolveConversationId. `last_seen_at` has no index (migration 156), so
- * each DELETE is a table scan. Bounded batches yield between writes so an
- * existing large table cannot park the event loop for the whole cleanup pass.
+ * cleanupCallLogs purges that row the node can never render again, so this
+ * window should not outlive `retention.callLogs` in practice — but the two
+ * settings are independent knobs (`retention.conversationTurnNodes`, default
+ * 30, matching callLogs' default so upgrading changes nothing until an
+ * operator overrides one of them). `CALL_LOG_RETENTION_DAYS` configures the
+ * separate compliance cleanup path and does not override this window.
+ * Deleting an old node only affects reconnect anchors: a conversation resumed
+ * after the window mints a new id, which is already the documented
+ * anchor-miss behavior of resolveConversationId. `last_seen_at` has no index
+ * (migration 156), so each DELETE is a table scan. Bounded batches yield
+ * between writes so an existing large table cannot park the event loop for
+ * the whole cleanup pass.
  */
 export async function cleanupConversationTurnNodes(): Promise<CleanupResult> {
   const retention = getRetentionSettings();
 
-  const retentionDays = retention.callLogs;
+  const retentionDays = retention.conversationTurnNodes;
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
   const cutoffISO = cutoffDate.toISOString();
-
   const result: CleanupResult = { deleted: 0, errors: 0 };
 
   try {
@@ -485,7 +569,6 @@ export async function cleanupConversationTurnNodes(): Promise<CleanupResult> {
       { table: "conversation_turn_nodes", column: "last_seen_at", cutoff: "iso" },
       cutoffISO
     );
-
     console.log(
       `[Cleanup] Deleted ${result.deleted} conversation_turn_nodes older than ${retentionDays} days`
     );
@@ -509,19 +592,16 @@ export async function cleanupConversationTurnNodes(): Promise<CleanupResult> {
 export async function cleanupAgenticConversations(): Promise<CleanupResult> {
   const db = getDbInstance();
   const retention = getRetentionSettings();
-
-  const retentionDays = retention.callLogs;
+  const retentionDays = retention.conversationTurnNodes;
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
   const cutoffISO = cutoffDate.toISOString();
-
   const result: CleanupResult = { deleted: 0, errors: 0 };
 
   try {
     if (!tableExists("agentic_conversations") || !tableExists("conversation_turn_nodes")) {
       return result;
     }
-
     const stmt = db.prepare(
       `DELETE FROM agentic_conversations
        WHERE rowid IN (
@@ -540,7 +620,6 @@ export async function cleanupAgenticConversations(): Promise<CleanupResult> {
       if (batch < 10_000) break;
       await new Promise<void>((resolve) => setImmediate(resolve));
     }
-
     console.log(
       `[Cleanup] Deleted ${result.deleted} orphaned agentic_conversations older than ${retentionDays} days`
     );
@@ -587,6 +666,8 @@ export async function runAutoCleanup(): Promise<{
     ccrBlocks: await cleanupCcrBlocks(),
     conversationTurnNodes: await cleanupConversationTurnNodes(),
     agenticConversations: await cleanupAgenticConversations(),
+    oldBatches: await cleanupOldBatches(),
+    expiredFiles: await cleanupExpiredFiles(),
   };
 
   const totalDeleted = Object.values(results).reduce((sum, r) => sum + r.deleted, 0);
@@ -907,71 +988,58 @@ export async function cleanupProxyLogs(): Promise<CleanupResult> {
   return result;
 }
 
+// Post-cleanup space reclamation lives in its own module (#12821, kept out of
+// this file to stay under the file-size cap) — re-exported for callers/tests.
+export {
+  reclaimFreedPages,
+  type ReclaimFreedPagesOptions,
+  type ReclaimFreedPagesResult,
+  type ReclaimStopReason,
+};
+
 // ──────────────── Background Cleanup Scheduler ────────────────
 
 const CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 let _cleanupSchedulerTimer: ReturnType<typeof setInterval> | null = null;
 
-const VACUUM_MIN_DELETED_ROWS_DEFAULT = 1000;
-
-export function getVacuumMinDeletedRows(): number {
-  const raw = process.env.OMNIROUTE_VACUUM_MIN_DELETED_ROWS;
-  if (typeof raw === "string" && raw.trim().length > 0) {
-    const parsed = Number(raw);
-    // 0 is valid and means "always VACUUM after a cleanup that freed any rows".
-    if (Number.isFinite(parsed) && parsed >= 0) return Math.floor(parsed);
-  }
-  return VACUUM_MIN_DELETED_ROWS_DEFAULT;
-}
-
 /**
- * VACUUM rewrites the entire database file (a multi-GB DB produces a
- * multi-GB WAL and a matching page-cache/I/O burst on the host). Running it
- * after a cleanup that only freed a handful of rows buys no space and pays
- * the full rewrite cost, so tiny cleanups skip it; the scheduled VACUUM
- * (#4437) and large cleanups still reclaim space.
+ * One scheduled pass: retention cleanup (`runAutoCleanup` already covers
+ * proxy_logs), then incremental space reclamation. Exported so tests can drive
+ * the exact code path the timers run.
  */
-export function shouldVacuumAfterCleanup(
-  totalDeleted: number,
-  minRows: number = getVacuumMinDeletedRows()
-): boolean {
-  return totalDeleted > 0 && totalDeleted >= minRows;
-}
-
-/**
- * Runs the post-cleanup VACUUM only when the cleanup freed enough rows to
- * justify a full-database rewrite. Returns true when VACUUM ran.
- */
-export async function vacuumAfterCleanup(
-  totalDeleted: number,
-  exec: (sql: string) => void,
-  log: (message: string) => void = (m) => console.log(m),
-  logError: (message: string, error: unknown) => void = (m, e) => console.error(m, e)
-): Promise<boolean> {
-  if (totalDeleted <= 0) return false;
-  const minRows = getVacuumMinDeletedRows();
-  if (!shouldVacuumAfterCleanup(totalDeleted, minRows)) {
-    log(`[Cleanup] Freed ${totalDeleted} rows; skipping VACUUM (below ${minRows}-row threshold).`);
-    return false;
+export async function runScheduledCleanupPass(phase: "startup" | "periodic"): Promise<void> {
+  const label = phase === "startup" ? "Startup" : "Periodic";
+  const result = await runAutoCleanup();
+  if (result.totalDeleted > 0) {
+    console.log(`[Cleanup] ${label} cleanup freed ${result.totalDeleted} rows.`);
   }
-  log(`[Cleanup] Running VACUUM to reclaim ${totalDeleted} freed rows...`);
+
+  // Always run: it also drains pages left over from a previous capped pass or
+  // from deletes made outside this scheduler. Costs a few PRAGMA reads when idle.
   try {
-    exec("VACUUM");
-    log("[Cleanup] VACUUM completed after cleanup.");
-    return true;
-  } catch (vacErr) {
-    logError("[Cleanup] VACUUM after cleanup failed:", vacErr);
-    return false;
+    const reclaim = await reclaimFreedPages();
+    if (reclaim.stopReason === "error") {
+      console.error(
+        `[Cleanup] Space reclamation after ${phase} cleanup stopped early ` +
+          `(${describeReclaim(reclaim)}): ${reclaim.error}`
+      );
+    } else if (reclaim.mode !== "skipped") {
+      console.log(
+        `[Cleanup] Space reclamation after ${phase} cleanup: ${describeReclaim(reclaim)}.`
+      );
+    }
+  } catch (reclaimErr) {
+    console.error(`[Cleanup] Space reclamation after ${phase} cleanup failed:`, reclaimErr);
   }
 }
-
 /**
- * Start the background cleanup scheduler. Runs cleanup on startup
- * and then every 6 hours. Runs VACUUM after deletes to reclaim disk space.
+ * Start the background cleanup scheduler. Runs cleanup on startup and then
+ * every 6 hours, then reclaims freed pages incrementally (never a blocking
+ * full VACUUM — see the reclamation section above and #12821).
  *
- * Without this, tables grow unboundedly (compression_analytics 600K+ rows,
- * usage_history 250K+ rows) causing 1.4GB+ SQLite files and 3-8GB RSS
- * from better-sqlite3 memory mapping.
+ * Without the cleanup itself, tables grow unboundedly (compression_analytics
+ * 600K+ rows, usage_history 250K+ rows) causing 1.4GB+ SQLite files and
+ * 3-8GB RSS from better-sqlite3 memory mapping.
  */
 export function startCleanupScheduler(): void {
   if (_cleanupSchedulerTimer) return;
@@ -979,13 +1047,7 @@ export function startCleanupScheduler(): void {
   // Run cleanup 30s after startup (let the server initialize first).
   setTimeout(async () => {
     try {
-      const result = await runAutoCleanup();
-      const proxyResult = await cleanupProxyLogs();
-      const totalDeleted = result.totalDeleted + proxyResult.deleted;
-      if (totalDeleted > 0) {
-        console.log(`[Cleanup] Startup cleanup freed ${totalDeleted} rows.`);
-        await vacuumAfterCleanup(totalDeleted, (sql) => getDbInstance().exec(sql));
-      }
+      await runScheduledCleanupPass("startup");
     } catch (err) {
       console.error("[Cleanup] Startup cleanup failed:", err);
     }
@@ -994,13 +1056,7 @@ export function startCleanupScheduler(): void {
   // Schedule periodic cleanup every 6 hours.
   _cleanupSchedulerTimer = setInterval(async () => {
     try {
-      const result = await runAutoCleanup();
-      const proxyResult = await cleanupProxyLogs();
-      const totalDeleted = result.totalDeleted + proxyResult.deleted;
-      if (totalDeleted > 0) {
-        console.log(`[Cleanup] Periodic cleanup freed ${totalDeleted} rows.`);
-        await vacuumAfterCleanup(totalDeleted, (sql) => getDbInstance().exec(sql));
-      }
+      await runScheduledCleanupPass("periodic");
     } catch (err) {
       console.error("[Cleanup] Periodic cleanup failed:", err);
     }

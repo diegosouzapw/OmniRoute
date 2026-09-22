@@ -1,21 +1,14 @@
-# API_REFERENCE (ଓଡ଼ିଆ)
+# API Reference (ଓଡ଼ିଆ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
----
-
-title: "API ରେଫରେନ୍ସ"
-version: 3.8.51
-lastUpdated: 2026-08-31
----
-
-# API ରେଫରେନ୍ସ
-
 🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
-OmniRoute API ର ମୂଳ ରେଫରେନ୍ସ। ଏହା ପବ୍ଲିକ `/v1` ସରଫେସ୍ ଏବଂ ସବୁଠାରୁ ବେଶୀ ବ୍ୟବହାର କରାଯାଉଥିବା ପ୍ରବନ୍ଧନ ଏଣ୍ଡପଏଣ୍ଟଗୁଡିକୁ ଆଚ୍ଛାଦିତ କରେ; ମେସିନ-ରିଡାବଲ [`docs/openapi.yaml`](../openapi.yaml) ଏବଂ `src/app/api/` ଅଧୀନରେ ଥିବା ରୁଟ ଟ୍ରୀ ହେଉଛି ସମ୍ପୂର୍ଣ୍ଣ ସ୍ରୋତ।
+OmniRoute API ପାଇଁ ମୂଳ ସନ୍ଦର୍ଭ। ଏଥିରେ ସାର୍ବଜନୀନ `/v1` ପୃଷ୍ଠଭାଗ ଏବଂ ସର୍ବାଧିକ ବ୍ୟବହୃତ ପରିଚାଳନା ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକ ଅନ୍ତର୍ଭୁକ୍ତ; ମେସିନ୍-ପଠନୀୟ [`docs/openapi.yaml`](../openapi.yaml) ଏବଂ `src/app/api/` ଅଧୀନରେ ଥିବା ରୁଟ୍ ଟ୍ରି ହେଉଛି ସମ୍ପୂର୍ଣ୍ଣ ଉତ୍ସଗୁଡ଼ିକ।
+
+---
 
 ## ବିଷୟ ସୂଚୀ
 
@@ -390,66 +383,88 @@ Bifrost, CLIProxyAPI ଏବଂ ଭବିଷ୍ୟତର ସାଇଡକାର �
 
 ## ସୁସଙ୍ଗତତା ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକ
 
-| ପଦ୍ଧତି | ପଥ                                        | ଫର୍ମାଟ                             |
-| ------ | ----------------------------------------- | ---------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                             |
-| POST   | `/v1/messages`                            | Anthropic                          |
-| POST   | `/v1/responses`                           | OpenAI Responses                   |
-| POST   | `/v1/embeddings`                          | OpenAI                             |
-| POST   | `/v1/images/generations`                  | OpenAI Images                      |
-| POST   | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)       |
-| POST   | `/v1/videos/generations`                  | OpenAI-ଶୈଳୀ ଭିଡିଓ ଉତ୍ପାଦନ          |
-| POST   | `/v1/music/generations`                   | OpenAI-ଶୈଳୀ ସଙ୍ଗୀତ ଉତ୍ପାଦନ         |
-| POST   | `/v1/audio/transcriptions`                | OpenAI ଅଡିଓ (STT)                  |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (ଅଡିଓ ବଡି ଫେରାଇ ଥାଏ)    |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-ଶୈଳୀ ରିରାଙ୍କ         |
-| POST   | `/v1/classify`                            | Jina ଶ୍ରେଣୀବିଭାଜନ (`api.jina.ai`)  |
-| POST   | `/v1/segment`                             | Jina ସେଗମେଣ୍ଟର (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI ମଡରେସନ୍                     |
-| GET    | `/v1/models`                              | OpenAI                             |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                          |
-| GET    | `/v1beta/models`                          | Gemini                             |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent             |
-| POST   | `/v1/api/chat`                            | Ollama                             |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI କାଟାଲଗ ଉପନାମ                |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI ମଡେଲ ଉପନାମ                  |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI ଟୋକେନାଇଜଡ ଉପନାମ             |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ଟୋକେନାଇଜଡ ଉପନାମ   |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama ଟୋକେନାଇଜଡ ଉପନାମ             |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama ଟ୍ୟାଗ୍ ଟୋକେନାଇଜଡ ଉପନାମ      |
+| ପଦ୍ଧତି | ପଥ                                        | ଫର୍ମାଟ୍                             |
+| ------ | ----------------------------------------- | ----------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                              |
+| POST   | `/v1/messages`                            | Anthropic                           |
+| POST   | `/v1/responses`                           | OpenAI Responses                    |
+| POST   | `/v1/embeddings`                          | OpenAI                              |
+| POST   | `/v1/images/generations`                  | OpenAI Images                       |
+| POST   | `/v1/images/edits`                        | OpenAI Images (ସମ୍ପାଦନା/ଇନ୍ପେଣ୍ଟ)   |
+| POST   | `/v1/videos/generations`                  | OpenAI-ଶୈଳୀର ଭିଡିଓ ଜେନେରେସନ୍        |
+| POST   | `/v1/music/generations`                   | OpenAI-ଶୈଳୀର ସଙ୍ଗୀତ ଜେନେରେସନ୍       |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                  |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (ଅଡିଓ ବଡି ଫେରାଏ)         |
+| POST   | `/v1/rerank`                              | Cohere/Voyage-ଶୈଳୀର ପୁନଃକ୍ରମାଙ୍କନ   |
+| POST   | `/v1/classify`                            | Jina ବର୍ଗୀକରଣ (`api.jina.ai`)       |
+| POST   | `/v1/segment`                             | Jina ସେଗମେଣ୍ଟର୍ (`segment.jina.ai`) |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                  |
+| GET    | `/v1/models`                              | OpenAI                              |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                           |
+| GET    | `/v1beta/models`                          | Gemini                              |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent              |
+| POST   | `/v1/api/chat`                            | Ollama                              |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI କ୍ୟାଟାଲଗ୍ ଉପନାମ              |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI ମଡେଲ୍ ଉପନାମ                  |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI ଟୋକେନ୍ଯୁକ୍ତ ଉପନାମ            |
+| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ଟୋକେନ୍ଯୁକ୍ତ ଉପନାମ  |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama ଟୋକେନ୍ଯୁକ୍ତ ଉପନାମ            |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama ଟ୍ୟାଗ୍ର ଟୋକେନ୍ଯୁକ୍ତ ଉପନାମ    |
 
-ସମସ୍ତ POST ରୁଟ୍ ସମାନ ଆକାର ଅନୁସରଣ କରେ: `Bearer your-api-key` + Zod-ଦ୍ୱାରା ବୈଧ JSON ବଡି (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ଇତ୍ୟାଦି, `src/shared/validation/schemas.ts` ଦେଖନ୍ତୁ)। ସ୍କିମା ବିଫଳ ହେଲେ 4xx ଫେରାଇ ଦିଆଯାଏ।
+ସମସ୍ତ POST ରୁଟ୍ ସମାନ ଗଠନ ଅନୁସରଣ କରେ: `Bearer your-api-key` + Zod-ଦ୍ୱାରା ବୈଧୀକୃତ JSON ବଡି (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ଇତ୍ୟାଦି; `src/shared/validation/schemas.ts` ଦେଖନ୍ତୁ)। ସ୍କିମା ବୈଧୀକରଣ ବିଫଳ ହେଲେ 4xx ଫେରାଯାଏ।
 
-ଯେଉଁ କ୍ଲାଏଣ୍ଟମାନେ `Authorization: Bearer ...` ସଂଲଗ୍ନ କରିପାରନ୍ତି ନାହିଁ, ସେମାନଙ୍କ ପାଇଁ OmniRoute କ୍ୱେରି-ଷ୍ଟ୍ରିଙ୍ଗ ସୁସଙ୍ଗତତା (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ମାଧ୍ୟମରେ କିମ୍ବା ନିମ୍ନରେ ଦଲିଲବଦ୍ଧ ସ୍ୱତନ୍ତ୍ର `/api/v1/vscode/{token}/...` ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକ ମାଧ୍ୟମରେ URL ରେ API କୀ ଗ୍ରହଣ କରେ।
+ଯେଉଁ କ୍ଲାଏଣ୍ଟଗୁଡ଼ିକ `Authorization: Bearer ...` ସଂଲଗ୍ନ କରିପାରନ୍ତି ନାହିଁ, ସେମାନଙ୍କ ପାଇଁ OmniRoute କ୍ୱେରି-ଷ୍ଟ୍ରିଙ୍ଗ୍ ସୁସଙ୍ଗତତା (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) କିମ୍ବା ନିମ୍ନରେ ଦଲିଲଭୁକ୍ତ ଉତ୍ସର୍ଗୀକୃତ `/api/v1/vscode/{token}/...` ଏଣ୍ଡପଏଣ୍ଟ ମାଧ୍ୟମରେ URL ଭିତରେ API କିଗୁଡ଼ିକୁ ମଧ୍ୟ ଗ୍ରହଣ କରେ।
 
 ```bash
-# ରିରାଙ୍କ
+# ପୁନଃକ୍ରମାଙ୍କନ (କ୍ଲାଉଡ୍ ରେଜିଷ୍ଟ୍ରି ପ୍ରଦାନକାରୀ, କିମ୍ବା "<prefix>/<model>" ଭାବରେ ଏକ OpenAI-ସୁସଙ୍ଗତ ପ୍ରଦାନକାରୀ ନୋଡ୍)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina ଶ୍ରେଣୀବିଭାଜନ (Foundation API ପ୍ରମାଣପତ୍ର)
+# Jina ବର୍ଗୀକରଣ (Foundation API ପରିଚୟପତ୍ର)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina ସେଗମେଣ୍ଟର
+# Jina ସେଗମେଣ୍ଟର୍
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina ସନ୍ଧାନ (s.jina.ai; ପ୍ରୋଭାଇଡର ଉପନାମ: jina-search, jina-ai, jina)
+# Jina ସନ୍ଧାନ (s.jina.ai; ପ୍ରଦାନକାରୀ ଉପନାମଗୁଡ଼ିକ: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # ମଡରେସନ୍
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (କିମ୍ବା ଅନୁରୋଧିତ ଫର୍ମାଟ) ବଡି ଫେରାଇ ଥାଏ
+# TTS — audio/mpeg (କିମ୍ବା ଅନୁରୋଧ କରାଯାଇଥିବା ଫର୍ମାଟ୍) ବଡି ଫେରାଏ
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# ଛବି ସମ୍ପାଦନା (ମଲ୍ଟିପାର୍ଟ)
+# ଛବି ସମ୍ପାଦନା (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# ଭିଡିଓ / ସଙ୍ଗୀତ ଉତ୍ପାଦନ (ପ୍ରୋଭାଇଡର-ଉପସର୍ଗ ମଡେଲ id)
+# ଭିଡିଓ / ସଙ୍ଗୀତ ଜେନେରେସନ୍ (ପ୍ରଦାନକାରୀ-ଉପସର୍ଗଯୁକ୍ତ ମଡେଲ୍ ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### ସ୍ୱତନ୍ତ୍ର ପ୍ରୋଭାଇଡର ରୁଟ୍ଗୁଡ଼ିକ
+> **ପୁନଃକ୍ରମାଙ୍କନ ପ୍ରଦାନକାରୀ ନୋଡ୍ଗୁଡ଼ିକ:** `POST /v1/rerank` OpenAI-ସୁସଙ୍ଗତ ପ୍ରଦାନକାରୀ ନୋଡ୍ଗୁଡ଼ିକୁ ମଧ୍ୟ ରୁଟ୍ କରେ
+> (oMLX, vLLM, Infinity, ଏକ ଗେଟୱେ ପଛରେ ଥିବା TEI, …), ଯାହାକୁ `<node-prefix>/<model>` ଭାବରେ ସମ୍ବୋଧନ କରାଯାଏ। ଲୁପ୍ବ୍ୟାକ୍
+> ନୋଡ୍ଗୁଡ଼ିକ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ସର୍ବଦା ଯୋଗ୍ୟ। ଅନ୍ୟ ଯେକୌଣସି
+> ହୋଷ୍ଟରେ ଥିବା ନୋଡ୍—ଏକ LAN ବକ୍ସ କିମ୍ବା Tailscale ପିୟର୍—କେବଳ ଅପରେଟର୍
+> `RERANK_REMOTE_PROVIDER_NODES` ଫିଚର୍ ଫ୍ଲାଗ୍ ସକ୍ଷମ କଲେ **ଏବଂ** ନୋଡ୍ର ମୂଳ URL ପ୍ରଦାନକାରୀଙ୍କ
+> ଆଉଟ୍ବାଉଣ୍ଡ୍ URL ନୀତି (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ପାସ୍ କଲେ ଯୋଗ୍ୟ ହୁଏ;
+> କ୍ଲାଉଡ୍-ମେଟାଡାଟା ହୋଷ୍ଟଗୁଡ଼ିକୁ କେବେ ମଧ୍ୟ ରୁଟ୍ କରାଯାଏ ନାହିଁ। ମେମୋରି ଇଞ୍ଜିନ୍ର ପୁନଃକ୍ରମାଙ୍କନ ପଦକ୍ଷେପ ଲୁପ୍ବ୍ୟାକ୍ ମାଧ୍ୟମରେ
+> ଏହି ରୁଟ୍କୁ କଲ୍ କରେ, ତେଣୁ ସମାନ ନିୟମ ମେମୋରି ସେଟିଂସ୍ର `rerankProviderModel` ପାଇଁ ମଧ୍ୟ ପ୍ରଯୁଜ୍ୟ।
+>
+> **ସ୍ଥାନୀୟ ସର୍ଭର୍ ଗଠନଗୁଡ଼ିକ:** ନୋଡ୍କୁ `<base>/v1/rerank`ରେ ଏବଂ 404 ମିଳିଲେ `<base>/rerank`ରେ
+> (Infinity, TEI) କଲ୍ କରାଯାଏ। ଅପ୍ଷ୍ଟ୍ରିମ୍ ବଡି Cohere/OpenAI ବନାନ (`documents`,
+> `return_documents`) ଏବଂ TEI ବନାନ (`texts`, `return_text`) ଉଭୟକୁ ବହନ କରେ, ଏବଂ ଅପ୍ଷ୍ଟ୍ରିମ୍ ପ୍ରତିକ୍ରିୟାକୁ
+> Cohere ଏନ୍ଭେଲୋପ୍ରେ ସାମାନ୍ୟୀକୃତ କରାଯାଏ: TEIର ଆବରଣବିହୀନ `[{index, score, text}]`, ପତଳା ଗେଟୱେଗୁଡ଼ିକର
+> `{results: [{index, score}]}`, ଏବଂ Voyage-ଶୈଳୀର `{data: [...]}`—ସବୁକିଛି କ୍ଲାଏଣ୍ଟକୁ
+> `{results: [{index, relevance_score, document?}]}` ଭାବରେ ଫେରିଆସେ, ସ୍କୋର୍ ଅନୁସାରେ ସଜାଯାଇ ଏବଂ `top_n`ରେ ସୀମିତ କରାଯାଏ।
+
+> **ପ୍ରଦାନକାରୀ-ନୋଡ୍ ଆବିଷ୍କାର:** ଏକ OpenAI-ସୁସଙ୍ଗତ ପ୍ରଦାନକାରୀ ନୋଡ୍ରେ ଥିବା ମଡେଲ୍ଗୁଡ଼ିକ ନୋଡ୍ ଉପସର୍ଗ ଅଧୀନରେ `GET /v1/models`ରେ
+> ଦେଖାଯାଆନ୍ତି। ଯେଉଁ ଧାଡ଼ିଗୁଡ଼ିକରେ କୌଣସି ଏଣ୍ଡପଏଣ୍ଟ ମେଟାଡାଟା ନଥାଏ (ସ୍ଥାନୀୟ `/v1/models` ତାଲିକା ପାଇଁ ସାଧାରଣ),
+> ସେଗୁଡ଼ିକ ନୋଡ୍ର `apiType` ଉତ୍ତରାଧିକାରରେ ପାଆନ୍ତି, ତେଣୁ ଏକ `embeddings` ନୋଡ୍ର ମଡେଲ୍ଗୁଡ଼ିକ ଚାଟ୍କୁ ଡିଫଲ୍ଟ ହେବା ପରିବର୍ତ୍ତେ `type: "embedding"` ଏବଂ ଏକ
+> `rerank` ନୋଡ୍ର ମଡେଲ୍ଗୁଡ଼ିକ `type: "rerank"` ହୁଅନ୍ତି; ସିଙ୍କ୍ କରାଯାଇଥିବା କିମ୍ବା ମାନୁଆଲ୍ ଭାବରେ ଯୋଡ଼ାଯାଇଥିବା ଧାଡ଼ିରେ ଏକ ସ୍ପଷ୍ଟ
+> `supportedEndpoints` ତଥାପି ପ୍ରାଥମ୍ୟ ପାଏ।
+
+### ଉତ୍ସର୍ଗୀକୃତ ପ୍ରଦାନକାରୀ ରୁଟ୍ଗୁଡ଼ିକ
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -457,21 +472,28 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-ପ୍ରୋଭାଇଡର ଉପସର୍ଗ ନଥିଲେ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଯୋଡ଼ାଯାଏ। ଅସଙ୍ଗତ ମଡେଲଗୁଡ଼ିକ `400` ଫେରାଇ ଥାଏ।
+ପ୍ରଦାତା ପ୍ରିଫିକ୍ସ ନଥିଲେ ଏହା ସ୍ୱୟଂଚାଳିତ ଭାବେ ଯୋଡ଼ାଯାଏ। ମେଳ ଖାଉନଥିବା ମଡେଲ୍ଗୁଡ଼ିକ `400` ଫେରାଇଥାଏ।
 
-## ଫାଇଲ୍ API
+---
 
-ବ୍ୟାଚ୍ ଇନପୁଟ/ଆଉଟପୁଟ୍ ଏବଂ ଫାଇଲ୍-ଉଦ୍ଦେଶ୍ୟ ଅପଲୋଡ୍ ପାଇଁ OpenAI-ସୁସଙ୍ଗତ ଫାଇଲ୍ ଏଣ୍ଡପଏଣ୍ଟ।
+## Files API
 
-| ପଦ୍ଧତି | ପଥ                       | ବର୍ଣ୍ଣନା                                                                                                                  |
-| ------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/files`              | ଏକ ଫାଇଲ୍ ଅପଲୋଡ୍ କରନ୍ତୁ (multipart: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — ଅଧିକତମ 512 MiB |
-| GET    | `/v1/files`              | ପ୍ରାମାଣିକୃତ API କି ପାଇଁ ଫାଇଲ୍ ତାଲିକା କରନ୍ତୁ                                                                               |
-| GET    | `/v1/files/[id]`         | ଏକ ଫାଇଲର ମେଟାଡାଟା ପୁନରୁଦ୍ଧାର କରନ୍ତୁ                                                                                       |
-| DELETE | `/v1/files/[id]`         | ଏକ ଫାଇଲ୍ ଅପସାରଣ କରନ୍ତୁ                                                                                                    |
-| GET    | `/v1/files/[id]/content` | ଫାଇଲର କଞ୍ଚା ବଡି ଷ୍ଟ୍ରିମ୍ କରି ଫେରାନ୍ତୁ                                                                                     |
+ବ୍ୟାଚ୍ ଇନପୁଟ୍/ଆଉଟପୁଟ୍ ଏବଂ ଫାଇଲ୍-ଉଦ୍ଦେଶ୍ୟ ଅପଲୋଡ୍ ପାଇଁ OpenAI-ସୁସଙ୍ଗତ ଫାଇଲ୍ ଏଣ୍ଡପଏଣ୍ଟ।
 
-**ପ୍ରାମାଣିକିକରଣ:** Bearer API କି — ଫାଇଲ୍ ଗୁଡ଼ିକ `getApiKeyRequestScope` ମାଧ୍ୟମରେ ପ୍ରତି API କି ଅନୁଯାୟୀ ସୀମିତ।
+| ପଦ୍ଧତି | ପଥ                       | ବିବରଣୀ                                                                                                                      |
+| ------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/v1/files`              | ଏକ ଫାଇଲ୍ ଅପଲୋଡ୍ କରନ୍ତୁ (multipart: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — ସର୍ବାଧିକ 512 MiB |
+| GET    | `/v1/files`              | ପ୍ରମାଣିତ API କୀ ପାଇଁ ଫାଇଲ୍ଗୁଡ଼ିକର ତାଲିକା ଦେଖାନ୍ତୁ                                                                           |
+| GET    | `/v1/files/[id]`         | ଏକ ଫାଇଲ୍ର ମେଟାଡାଟା ପ୍ରାପ୍ତ କରନ୍ତୁ                                                                                           |
+| DELETE | `/v1/files/[id]`         | ଏକ ଫାଇଲ୍ ବିଲୋପ କରନ୍ତୁ                                                                                                       |
+| GET    | `/v1/files/[id]/content` | କଞ୍ଚା ଫାଇଲ୍ ବଡିକୁ ପୁନଃ ଷ୍ଟ୍ରିମ୍ କରନ୍ତୁ                                                                                      |
+
+**ପ୍ରମାଣୀକରଣ:** Bearer API କୀ — `getApiKeyRequestScope` ମାଧ୍ୟମରେ ଫାଇଲ୍ଗୁଡ଼ିକୁ ପ୍ରତ୍ୟେକ API କୀ ଅନୁସାରେ ସୀମିତ କରାଯାଇଛି। ଗୋଟିଏ କୀ
+କେବଳ ନିଜର ଫାଇଲ୍ଗୁଡ଼ିକୁ ଦେଖିପାରେ, ଡାଉନଲୋଡ୍ ଏବଂ ବିଲୋପ କରିପାରେ; କୀ ବିନା ଗୋଟିଏ ଡ୍ୟାସ୍ବୋର୍ଡ ସେସନ୍ ସମଗ୍ର
+ଇନ୍ଷ୍ଟାନ୍ସକୁ ପଢ଼େ; କୌଣସି ମାଲିକ ନଥିବା ଫାଇଲ୍ (ଅଜ୍ଞାତ କିମ୍ବା ଡ୍ୟାସ୍ବୋର୍ଡ-ସେସନ୍ ଅପଲୋଡ୍) ପ୍ରତ୍ୟେକ
+ଅଣ-ସେସନ୍ କଲର୍ଙ୍କ ପାଇଁ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ। `GET /v1/files` ଏକ ଅଜ୍ଞାତ କଲର୍କୁ — ଏବଂ ଉପସ୍ଥାପିତ କୀର
+ସମାଧାନ ନ ହେଲେ — `REQUIRE_API_KEY=false` ଥିବା ସମୟରେ ମଧ୍ୟ ପ୍ରତ୍ୟେକ ଟେନାଣ୍ଟଙ୍କ
+ଫାଇଲ୍ ତାଲିକାଭୁକ୍ତ କରିବା ପରିବର୍ତ୍ତେ `401` ସହିତ ପ୍ରତ୍ୟାଖ୍ୟାନ କରେ (GHSA-m3hp-hq9g-fpmv, GHSA-2jm2-mpx8-6523)।
 
 ---
 
@@ -479,15 +501,18 @@ POST /v1/providers/{provider}/images/generations
 
 OpenAI-ସୁସଙ୍ଗତ ବ୍ୟାଚ୍ ପ୍ରକ୍ରିୟାକରଣ।
 
-| ପଦ୍ଧତି | ପଥ                        | ବର୍ଣ୍ଣନା                                                                                                                |
-| ------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/batches`             | ବ୍ୟାଚ୍ ସୃଷ୍ଟି କରନ୍ତୁ — ବଡି `v1BatchCreateSchema` ଦ୍ୱାରା ବୈଧ କରାଯାଇଛି (`input_file_id`, `endpoint`, `completion_window`) |
-| GET    | `/v1/batches`             | ବ୍ୟାଚ୍ ତାଲିକା କରନ୍ତୁ                                                                                                    |
-| GET    | `/v1/batches/[id]`        | ବ୍ୟାଚ୍ ସ୍ଥିତି + `request_counts` ପୁନରୁଦ୍ଧାର କରନ୍ତୁ                                                                      |
-| DELETE | `/v1/batches/[id]`        | ଏକ ସମାପ୍ତ/ବିଫଳ ବ୍ୟାଚ୍ ଅପସାରଣ କରନ୍ତୁ                                                                                     |
-| POST   | `/v1/batches/[id]/cancel` | ଏକ ଚାଲୁଥିବା ବ୍ୟାଚ୍ ବାତିଲ୍ କରନ୍ତୁ                                                                                        |
+| ପଦ୍ଧତି | ପଥ                        | ବର୍ଣ୍ଣନା                                                                                                                        |
+| ------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/v1/batches`             | ବ୍ୟାଚ୍ ସୃଷ୍ଟି କରନ୍ତୁ — ବଡିକୁ `v1BatchCreateSchema` (`input_file_id`, `endpoint`, `completion_window`) ଦ୍ୱାରା ବୈଧତା ଯାଞ୍ଚ କରାଯାଏ |
+| GET    | `/v1/batches`             | ବ୍ୟାଚ୍ଗୁଡ଼ିକର ତାଲିକା ଦେଖନ୍ତୁ                                                                                                    |
+| GET    | `/v1/batches/[id]`        | ବ୍ୟାଚ୍ ସ୍ଥିତି + `request_counts` ପ୍ରାପ୍ତ କରନ୍ତୁ                                                                                 |
+| DELETE | `/v1/batches/[id]`        | ସମାପ୍ତ/ବିଫଳ ବ୍ୟାଚ୍ ବିଲୋପ କରନ୍ତୁ                                                                                                 |
+| POST   | `/v1/batches/[id]/cancel` | ପ୍ରକ୍ରିୟାଧୀନ ବ୍ୟାଚ୍ ବାତିଲ କରନ୍ତୁ                                                                                                |
 
-**ପ୍ରାମାଣିକିକରଣ:** Bearer API କି. ବ୍ୟାଚ୍ ଗୁଡ଼ିକ ପ୍ରତି API କି ଅନୁଯାୟୀ ସୀମିତ।
+**ପ୍ରାମାଣିକରଣ:** Bearer API କୀ। ଫାଇଲ୍ଗୁଡ଼ିକ ପରି ସମାନ ତ୍ରିମୁଖୀ ନିୟମ ଅଧୀନରେ ବ୍ୟାଚ୍ଗୁଡ଼ିକ ପ୍ରତ୍ୟେକ API କୀ ପାଇଁ ସୀମିତ:
+କେବଳ ନିଜ କୀ, ଡ୍ୟାସ୍ବୋର୍ଡ ସେସନ୍ ପାଇଁ ଇନ୍ଷ୍ଟାନ୍ସ-ବ୍ୟାପୀ ପ୍ରବେଶ, ଏବଂ null-owner ରେକର୍ଡଗୁଡ଼ିକ ପାଇଁ ପ୍ରତ୍ୟେକ
+ଅଣ-ସେସନ୍ କଲର୍କୁ ପ୍ରବେଶ ନିଷିଦ୍ଧ (ପ୍ରାପ୍ତି, ବିଲୋପ, ବାତିଲ ଏବଂ ସୃଷ୍ଟି ସମୟରେ `input_file_id` ଯାଞ୍ଚ)।
+`REQUIRE_API_KEY=false` ଥିଲେ ମଧ୍ୟ `GET /v1/batches` ଜଣେ ଅଜ୍ଞାତ କଲର୍କୁ `401` ସହିତ ପ୍ରତ୍ୟାଖ୍ୟାନ କରେ।
 
 ---
 
@@ -1003,14 +1028,14 @@ curl -X POST https://your-host.example/api/v1/vscode/YOUR_API_KEY/chat/completio
 
 ---
 
-## ଟେଲିମେଟ୍ରୀ
+## ଟେଲିମେଟ୍ରି
 
 ```bash
-# Get latency telemetry summary (p50/p95/p99 per provider)
+# ଲେଟେନ୍ସି ଟେଲିମେଟ୍ରି ସାରାଂଶ ପ୍ରାପ୍ତ କରନ୍ତୁ (ପ୍ରତ୍ୟେକ ପ୍ରଦାନକାରୀ ପାଇଁ p50/p95/p99)
 GET /api/telemetry/summary
 ```
 
-**ଉତ୍ତର:**
+**ପ୍ରତିକ୍ରିୟା:**
 
 ```json
 {
@@ -1026,10 +1051,10 @@ GET /api/telemetry/summary
 ## ବଜେଟ୍
 
 ```bash
-# Get budget status for all API keys
+# ସମସ୍ତ API କୀ ପାଇଁ ବଜେଟ୍ ସ୍ଥିତି ପ୍ରାପ୍ତ କରନ୍ତୁ
 GET /api/usage/budget
 
-# Set or update a budget
+# ଏକ ବଜେଟ୍ ସେଟ୍ କିମ୍ବା ଅପଡେଟ୍ କରନ୍ତୁ
 POST /api/usage/budget
 Content-Type: application/json
 
@@ -1043,7 +1068,7 @@ Content-Type: application/json
 }
 ```
 
-> **ସ୍କିମା ନୋଟ୍** (`setBudgetSchema`): `apiKeyId` ଆବଶ୍ୟକୀୟ; `dailyLimitUsd`, `weeklyLimitUsd`, କିମ୍ବା `monthlyLimitUsd` ମଧ୍ୟରୁ ଅତିକମ୍ ଗୋଟିଏ ଶୂନ୍ୟ ଅପେକ୍ଷା ବଡ଼ ହେବା ଆବଶ୍ୟକ। ଐଚ୍ଛିକ କ୍ଷେତ୍ରଗୁଡ଼ିକ: `warningThreshold` (0–1), `resetInterval` (`daily` | `weekly` | `monthly`), `resetTime` (`HH:MM`)। ପୁରାତନ `{keyId, limit, period}` ସଂରଚନା `400 Bad Request` ଫେରାଇ ଥାଏ।
+> **ସ୍କିମା ଟିପ୍ପଣୀ** (`setBudgetSchema`): `apiKeyId` ଆବଶ୍ୟକ; `dailyLimitUsd`, `weeklyLimitUsd`, କିମ୍ବା `monthlyLimitUsd` ମଧ୍ୟରୁ ଅତି କମରେ ଗୋଟିଏ ଶୂନ୍ୟଠାରୁ ଅଧିକ ହେବା ଆବଶ୍ୟକ। ଇଚ୍ଛାଧୀନ ଫିଲ୍ଡଗୁଡ଼ିକ: `warningThreshold` (0–1), `resetInterval` (`daily` | `weekly` | `monthly`), `resetTime` (`HH:MM`)। ପୁରୁଣା `{keyId, limit, period}` ଆକୃତି `400 Bad Request` ଫେରାଏ।
 
 ## ଟୋକେନ୍ ସୀମା
 
@@ -1494,20 +1519,21 @@ GET /.well-known/agent.json
 
 ## CLI ଟୁଲ୍ ପରିଚାଳନା
 
-OmniRoute ସହ ଏକୀଭୂତ ହୋଇଥିବା CLI ଟୁଲ୍ ପରିଚାଳନା କରନ୍ତୁ (antigravity, chipotle, commandCode, devin-cli, ଇତ୍ୟାଦି)। ସମ୍ପୂର୍ଣ୍ଣ ତାଲିକା ପାଇଁ [ପ୍ରଦାନକର୍ତ୍ତା ସନ୍ଦର୍ଭ](./PROVIDER_REFERENCE.md) ଦେଖନ୍ତୁ।
+OmniRoute ସହିତ ଏକୀକୃତ ହେଉଥିବା CLI ଟୁଲ୍ଗୁଡ଼ିକୁ (antigravity, commandCode,
+devin-cli ଇତ୍ୟାଦି) ପରିଚାଳନା କରନ୍ତୁ। ସମ୍ପୂର୍ଣ୍ଣ ତାଲିକା ପାଇଁ [ପ୍ରଦାନକାରୀ ସନ୍ଦର୍ଭ](./PROVIDER_REFERENCE.md) ଦେଖନ୍ତୁ।
 
-| ପଦ୍ଧତି | ପଥ                                      | ବିବରଣୀ                                                                                                                                                      |
-| ------ | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/cli-tools/all-statuses`           | ସମସ୍ତ CLI ଟୁଲ୍ ର ସ୍ଥିତି (ସ୍ଥାପିତ, ସଂସ୍କରଣ, ଶେଷ ଦେଖାଗଲା)                                                                                                     |
-| GET    | `/api/cli-tools/status`                 | ଗୋଟିଏ CLI ଟୁଲ୍ ର ସ୍ଥିତି ବିବରଣୀ (`?tool=` ପ୍ରଶ୍ନ)                                                                                                            |
-| POST   | `/api/cli-tools/apply`                  | ଟୁଲ୍ ର ଜନିତ କନଫିଗରେସନ୍ ଲେଖନ୍ତୁ (`dryRun` ପୂର୍ବାଲୋକନ; କଣ୍ଟେନରାଇଜଡ୍ ହୋଇଥିଲେ `422` + `containerEphemeralTarget`; `migration` ଏକ ପୁରାତନ Codex YAML ର ସୂଚନା ଦିଏ) |
-| GET    | `/api/cli-tools/backups`                | CLI ଟୁଲ୍ କନଫିଗରେସନ୍ ବ୍ୟାକଅପ୍ ତାଲିକା                                                                                                                         |
-| POST   | `/api/cli-tools/backups`                | ସମସ୍ତ CLI ଟୁଲ୍ କନଫିଗରେସନ୍ ର ବ୍ୟାକଅପ୍ ସୃଷ୍ଟି କରନ୍ତୁ                                                                                                          |
-| POST   | `/api/cli-tools/backups`                | ପୁନରୁଦ୍ଧାର: ସେହି ଏକା ଏଣ୍ଡପଏଣ୍ଟ୍ ସହ ବଡୀରେ `{tool, backupId}` ସେ ବ୍ୟାକଅପ୍ କୁ ପୁନରୁଦ୍ଧାର କରେ                                                                   |
-| GET    | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM ପ୍ରକ୍ସି ସ୍ଥିତି ("antigravity-mitm" CLI ଟୁଲ୍)                                                                                               |
-| POST   | `/api/cli-tools/antigravity-mitm/alias` | antigravity-mitm ଉପନାମ କନଫିଗର କରନ୍ତୁ                                                                                                                        |
+| ପଦ୍ଧତି | ପଥ                                      | ବର୍ଣ୍ଣନା                                                                                                                                                         |
+| ------ | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/cli-tools/all-statuses`           | ସମସ୍ତ CLI ଟୁଲ୍ର ସ୍ଥିତି (ଇନ୍ଷ୍ଟଲ୍ ହୋଇଛି କି ନାହିଁ, ସଂସ୍କରଣ, ଶେଷ ଥର ଦେଖାଯାଇଥିବା ସମୟ)                                                                                |
+| GET    | `/api/cli-tools/status`                 | ଗୋଟିଏ CLI ଟୁଲ୍ ପାଇଁ ବିସ୍ତୃତ ସ୍ଥିତି (`?tool=` କ୍ୱେରୀ)                                                                                                             |
+| POST   | `/api/cli-tools/apply`                  | ଗୋଟିଏ ଟୁଲ୍ର ସୃଷ୍ଟ କନ୍ଫିଗ୍ ଲେଖେ (`dryRun` ପୂର୍ବାବଲୋକନ କରେ; କଣ୍ଟେନର୍ରେ ଚାଲୁଥିଲେ `422` + `containerEphemeralTarget`; `migration` ଏକ ପୁରୁଣା Codex YAML ବିଷୟରେ ସୂଚାଏ) |
+| GET    | `/api/cli-tools/backups`                | CLI ଟୁଲ୍ କନ୍ଫିଗରେସନ୍ ବ୍ୟାକଅପ୍ଗୁଡ଼ିକର ତାଲିକା                                                                                                                      |
+| POST   | `/api/cli-tools/backups`                | ସମସ୍ତ CLI ଟୁଲ୍ କନ୍ଫିଗରେସନ୍ର ଏକ ବ୍ୟାକଅପ୍ ସୃଷ୍ଟି କରେ                                                                                                               |
+| POST   | `/api/cli-tools/backups`                | ପୁନଃସ୍ଥାପନ: ଅନୁରୋଧ ବଡିରେ `{tool, backupId}` ସହିତ ସେହି ଏଣ୍ଡପଏଣ୍ଟ ଉକ୍ତ ବ୍ୟାକଅପ୍କୁ ପୁନଃସ୍ଥାପନ କରେ                                                                   |
+| GET    | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM ପ୍ରକ୍ସି ସ୍ଥିତି (`antigravity-mitm` CLI ଟୁଲ୍)                                                                                                    |
+| POST   | `/api/cli-tools/antigravity-mitm/alias` | antigravity-mitm ଉପନାମଗୁଡ଼ିକୁ କନ୍ଫିଗର୍ କରେ                                                                                                                       |
 
-**ପ୍ରମାଣୀକରଣ:** ପରିଚାଳନା ସେସନ୍ ଆବଶ୍ୟକ।
+**ପ୍ରାମାଣିକରଣ:** ପରିଚାଳନା ସେସନ୍ ଆବଶ୍ୟକ।
 
 ---
 

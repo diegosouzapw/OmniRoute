@@ -19,6 +19,9 @@ interface ProxyInfo {
   type: string;
   host: string;
   port: number | string;
+  /** Registry name (e.g. `murphy-eu-fr`) — carried by registry resolution so the
+   *  proxy log can identify a leg even when many entries share host:port. */
+  name?: string;
 }
 
 interface ProxyLogEntry {
@@ -81,7 +84,7 @@ function loadFromDb() {
         timestamp: row.timestamp,
         status: row.status || "success",
         proxy: row.proxy_host
-          ? { type: row.proxy_type, host: row.proxy_host, port: row.proxy_port }
+          ? { type: row.proxy_type, host: row.proxy_host, port: row.proxy_port, name: row.proxy_name || undefined }
           : null,
         level: row.level || "direct",
         levelId: row.level_id || null,
@@ -137,6 +140,7 @@ export function formatProxyEgressConsoleLine(params: {
   egressIp: string | null;
   level: string;
   proxyHost: string | null | undefined;
+  proxyName?: string | null | undefined;
   status: string;
   includeDetails?: boolean;
 }): string {
@@ -146,10 +150,11 @@ export function formatProxyEgressConsoleLine(params: {
     return `[ProxyEgress] ${provider} status=${status}`;
   }
   const proxy = params.proxyHost ? `:${params.proxyHost}` : "";
+  const name = params.proxyName ? ` name=${params.proxyName}` : "";
   return (
     `[ProxyEgress] ${provider}/${params.account || "-"} ` +
     `in=${params.clientIp || "?"} out=${params.egressIp || "?"} ` +
-    `proxy=${params.level}${proxy} status=${status}`
+    `proxy=${params.level}${proxy}${name} status=${status}`
   );
 }
 
@@ -191,6 +196,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
         egressIp: log.egressIp,
         level: log.level,
         proxyHost: log.proxy?.host,
+        proxyName: log.proxy?.name,
         status: log.status,
         includeDetails: isProxyLogIncludeIps(),
       })
@@ -265,10 +271,10 @@ export function flushProxyLogsSync() {
   try {
     const db = getDbInstance();
     const insertStmt = db.prepare(
-      `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port,
+      `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port, proxy_name,
         level, level_id, provider, target_url, public_ip, egress_ip, latency_ms, error,
         connection_id, combo_id, account, tls_fingerprint, upstream_status)
-      VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort,
+      VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort, @proxyName,
         @level, @levelId, @provider, @targetUrl, @clientIp, @egressIp, @latencyMs, @error,
         @connectionId, @comboId, @account, @tlsFingerprint, @upstreamStatus)`
     );
@@ -282,6 +288,7 @@ export function flushProxyLogsSync() {
           proxyType: item.proxy?.type || null,
           proxyHost: item.proxy?.host || null,
           proxyPort: item.proxy?.port ? Number(item.proxy.port) : null,
+          proxyName: item.proxy?.name || null,
           level: item.level,
           levelId: item.levelId,
           provider: item.provider,
@@ -342,6 +349,7 @@ export function getProxyLogs(filters: ProxyLogFilters = {}) {
     logs = logs.filter(
       (l) =>
         (l.proxy?.host || "").toLowerCase().includes(q) ||
+        (l.proxy?.name || "").toLowerCase().includes(q) ||
         (l.provider || "").toLowerCase().includes(q) ||
         (l.targetUrl || "").toLowerCase().includes(q) ||
         (l.clientIp || "").toLowerCase().includes(q) ||

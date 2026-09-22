@@ -7,9 +7,8 @@ import {
   echoModelInSseLine,
 } from "../../open-sse/services/responseModelEcho.ts";
 
-const { openaiToOpenAIResponsesResponse } = await import(
-  "../../open-sse/translator/response/openai-responses.ts"
-);
+const { openaiToOpenAIResponsesResponse } =
+  await import("../../open-sse/translator/response/openai-responses.ts");
 const { initState } = await import("../../open-sse/translator/index.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
@@ -80,6 +79,68 @@ test("OpenAI -> Responses translator omits model when the upstream never sent on
   const completed = events.find((e) => e.event === "response.completed");
   assert.equal("model" in (created!.data.response as Record<string, unknown>), false);
   assert.equal("model" in (completed!.data.response as Record<string, unknown>), false);
+});
+
+test("OpenAI -> Responses translator emits response.in_progress with output: [], background: false, error: null", () => {
+  const events = collectResponsesEvents([
+    {
+      id: "chatcmpl-1",
+      model: "gpt-5.5",
+      choices: [{ index: 0, delta: { content: "hi" }, finish_reason: null }],
+    },
+    null,
+  ]);
+
+  const inProgress = events.find((e) => e.event === "response.in_progress");
+  assert.ok(inProgress, "response.in_progress must be emitted");
+  const resp = inProgress!.data.response as Record<string, unknown>;
+  assert.ok(Array.isArray(resp.output), "output must be an array");
+  assert.deepEqual(resp.output, []);
+  assert.equal(resp.background, false);
+  assert.equal(resp.error, null);
+
+  const addedItem = events.find((e) => e.event === "response.output_item.added")?.data
+    .item as Record<string, unknown>;
+  assert.ok(addedItem, "output_item.added must exist");
+  assert.equal(addedItem.status, "in_progress");
+
+  const completed = events.find((e) => e.event === "response.completed")?.data.response as Record<
+    string,
+    unknown
+  >;
+  assert.ok(completed, "response.completed must exist");
+  const completedOutput = completed.output as Array<Record<string, unknown>>;
+  assert.equal(completedOutput[0].status, "completed");
+});
+
+test("OpenAI -> Responses translator always populates input_tokens_details and output_tokens_details", () => {
+  const events = collectResponsesEvents([
+    {
+      id: "chatcmpl-1",
+      model: "gemini-3.8-flash",
+      choices: [{ index: 0, delta: { content: "hi" }, finish_reason: null }],
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    },
+    {
+      id: "chatcmpl-1",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+    },
+    null,
+  ]);
+
+  const completed = events.find((e) => e.event === "response.completed")?.data?.response as Record<
+    string,
+    unknown
+  >;
+  assert.ok(completed.usage, "usage must be present");
+  const usage = completed.usage as Record<string, unknown>;
+  assert.equal(usage.input_tokens, 10);
+  assert.equal(usage.output_tokens, 5);
+  assert.equal(usage.total_tokens, 15);
+  assert.ok(usage.input_tokens_details, "input_tokens_details must be present");
+  assert.ok(usage.output_tokens_details, "output_tokens_details must be present");
+  assert.deepEqual(usage.input_tokens_details, { cached_tokens: 0 });
+  assert.deepEqual(usage.output_tokens_details, { reasoning_tokens: 0 });
 });
 
 test("full shim pipeline: bare upstream model in Responses payloads gets rewritten to the requested effort-suffixed id", () => {

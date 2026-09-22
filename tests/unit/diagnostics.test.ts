@@ -56,6 +56,19 @@ test("synthOpenAIErrorChunk references provider in message", () => {
   );
 });
 
+test("detectMalformedNonStream allows Claude message with (empty response) + stop_reason=length (ollama qwen3)", () => {
+  const resp = {
+    type: "message",
+    content: [{ type: "text", text: "(empty response)" }],
+    stop_reason: "length",
+  };
+  assert.strictEqual(
+    detectMalformedNonStream(resp),
+    null,
+    "ollama reasoning truncation should not be empty_choices"
+  );
+});
+
 // ── (b) synthResponsesFailure matches a response.failed event ────────────────
 
 test("synthResponsesFailure produces a response.failed SSE event", () => {
@@ -126,14 +139,6 @@ test("detectMalformedNonStream returns 'empty_choices' when choice message has n
     choices: [{ message: { content: "", tool_calls: null }, finish_reason: "stop" }],
   };
   assert.equal(detectMalformedNonStream(body), "empty_choices");
-});
-
-test("detectMalformedNonStream returns null when empty content stopped at token limit", () => {
-  const body = {
-    choices: [{ index: 0, message: { role: "assistant", content: "" }, finish_reason: "length" }],
-    usage: { reasoning_tokens: 28 },
-  };
-  assert.equal(detectMalformedNonStream(body), null);
 });
 
 test("detectMalformedNonStream returns null for valid chat completion", () => {

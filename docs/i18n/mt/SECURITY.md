@@ -220,18 +220,38 @@ Dawn ir-regoli jiġu infurzati permezz ta' għodod u rreveduri:
 10. **`exec()` / `spawn()` valuri tal-ħin tal-mewt permezz tal-għażla `env`** — qatt interpolla b'stringu toroq esterni jew valuri mhux fdata fil-kripti mogħtija lill-shell. Referenza: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Ippreferixxi libreriji b'base sigur** — ara [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Waqfas qabel tagħmel tiegħek stess.
 
-## Sorsi ta' ħruġ mill-pipeline tal-provvista (Socket.dev / Snyk / simili)
+## Sejbiet tal-iskaner tal-katina tal-provvista (Socket.dev / Snyk / simili)
 
-L-arti tal-npm `omniroute` ippubblikat fih il-bini tal-Next.js `output: "standalone"`, li jfisser li kull maniġer tal-rotta - inkluż il-funzjonijiet privileġġati deskritti (MITM, importazzjoni Zed, Sema Sincronizzata, superviżur tas-servizz integrated) - jintwera f'biċċiet `.next/server/*.js` minifika. Is-skenners heuristiċi tal-provvista ta' ħruġ spiss jgħaqqdu dik il-kurġata mal-firxat tal-malware.
+> **Nota dwar l-ambitu:** `socket.yml` fl-għerq tar-repożitorju jikkonfigura biss `projectIgnorePaths` għall-iskan ta’ wara l-pubblikazzjoni min-naħa tar-reġistru ta’ Socket.dev tal-artefatt npm ippubblikat — mhuwiex ostaklu obbligatorju għall-inkorporazzjoni f’CI/PR. L-ebda workflow f’`.github/workflows`, l-ebda script ta’ `package.json`, u l-ebda target ta’ `Makefile` ma jinvoka Socket.dev.
 
-Għal kull kategorija ta' ħruġ inżommu attestazzjoni tal-maniġer għal dak l-ħruġ:
+L-artefatt npm `omniroute` ippubblikat jiġbor fih il-build ta’ Next.js b’`output: "standalone"`,
+li jfisser li kull handler tar-rotta — inklużi l-funzjonalitajiet privileġġati
+dokumentati (MITM, importazzjoni minn Zed, Cloud Sync, superviżur tas-servizz integrat) — jispiċċa
+f’partijiet minimizzati `.next/server/*.js`. L-iskaners euristiċi tal-katina tal-provvista
+spiss iqabblu l-mudelli f’dawk il-partijiet ma’ firem ta’ malware.
+
+Il-konfigurazzjoni tal-iskaner li nużaw tinsab f’[`socket.yml`](socket.yml) fl-għerq
+tar-repożitorju (format v2 tal-GitHub App ta’ Socket.dev — ara
+<https://docs.socket.dev/docs/socket-yml>). Din teskludi b’mod espliċitu
+direttorji li ma jiġux distribwiti (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, eċċ.) sabiex l-iskaner jirrapporta biss dwar mogħdijiet tal-kodiċi li
+fil-fatt jaslu għand l-utenti tal-verżjoni ppubblikata — l-iskan innifsu jitħaddem mill-GitHub
+App ta’ Socket billi jaqra dak il-fajl, mhux minn workflow f’dan ir-repożitorju.
+
+Għal kull kategorija ta’ sejba nżommu attestazzjoni mill-manutentur għal kull sejba:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mappa għal kull ħruġ: fajl sors ↔ chunk immarkat ↔ imġiba ↔ mitigazzjoni applikata fil-v3.8.6.
-- Blocchi `SECURITY-AUDITOR-NOTE:` fil-kodiċi stess fi kull funzjoni immarkata jirreferixxu lura għad-dokument l-istess.
+  mappa għal kull sejba: fajl tas-sors ↔ parti mmarkata ↔ imġiba ↔ mitigazzjoni
+  applikata f’v3.8.6.
+- Blokki `SECURITY-AUDITOR-NOTE:` fil-kodiċi tas-sors f’kull punt ta’ funzjoni mmarkat
+  jirreferu lura għall-istess dokument.
 
-Għall-utenti li l-pipeline tagħhom ma jistax ifaqqar l-allert, ibnu bħala profili:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dan jibdel l-erba 'moduli sensittivi bi sinkopaturi li jirritornaw HTTP 530 "feature-disabled" matul ir-runtim, sabiex il-ħġieġ tal-kodiċi privileġġat huma fiżikament assenti mill-kurġata. Ara [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) għar-riċetta tal-pubblikazzjoni.
+Għall-utenti li l-pipeline tagħhom ma jistax jillaxka t-twissija: ibnu b’
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dan jissostitwixxi l-erba’
+moduli sensittivi bi stubs li jirritornaw HTTP 503 `feature-disabled` waqt
+it-tħaddim, sabiex il-mogħdijiet privileġġati tal-kodiċi jkunu fiżikament assenti mill-bundle.
+Ara [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+għar-riċetta tal-pubblikazzjoni.
 
 ## Riferenzi
 

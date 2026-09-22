@@ -1,43 +1,33 @@
-# CLI-INTEGRATIONS (Oʻzbekcha)
+# CLI Integrations (Oʻzbekcha)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
----
+OmniRoute kod yozish CLI vositasini (Codex, Claude Code, OpenCode, Cline, …)
+OmniRouteʼdan server qismi sifatida foydalanishga sozlaydigan `setup-*` buyruqlari
+toʻplamini taqdim etadi — natijada vosita **bitta** endpoint bilan aloqa qiladi,
+OmniRoute esa avtomatik zaxiraga oʻtish orqali soʻrovni mos provayderga yoʻnaltiradi.
+Har bir buyruq ishlayotgan OmniRouteʼdan (mahalliy yoki masofaviy) **joriy** modellar
+katalogini oʻqiydi va vositaning oʻz konfiguratsiya faylini **sizning**
+kompyuteringizga yozadi. Vosita qoʻllab-quvvatlaydigan barcha joylarda API kalitiga
+muhit oʻzgaruvchisi orqali murojaat qilinadi. Vositaning mahalliy muhit faylini
+saqlaydigan buyruqlar quyida qayd etilgan.
 
-title: "CLI integratsiyalari — istalgan dasturlash CLI vositasini OmniRouteʼga yoʻnaltiring"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
+Shuningdek, umumiy ishga tushirgich — `omniroute run <target>` — mavjud boʻlib, u
+hech qanday konfiguratsiya yozmasdan, kerakli muhit kiritilgan holda `claude`,
+`codex`, `aider`, `goose`, `opencode`, `qwen` yoki `gemini` vositasini ishga
+tushiradi. Nishonlar va ularning taxalluslari asosiy `bin/cli/cli-manifest.mjs`
+manifestidan olinadi (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`,
+`goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), `omniroute completion` esa
+shu manifestdan olingan nishon soʻzlarini taklif qiladi. Har bir vosita uchun eski
+ishga tushirgichlar — `omniroute launch` (Claude Code) va `omniroute launch-codex`
+(Codex) — hamon mavjud.
 
-# CLI integratsiyalari
-
-OmniRoute dasturlash CLI vositasini (Codex, Claude Code, OpenCode, Cline, …)
-OmniRouteʼdan backend sifatida foydalanishga sozlaydigan `setup-*` buyruqlari
-toʻplami bilan birga taqdim etiladi — natijada vosita **bitta** endpoint bilan
-bogʻlanadi, OmniRoute esa avtomatik zaxira mexanizmi yordamida soʻrovni kerakli
-provayderga yoʻnaltiradi. Har bir buyruq ishlab turgan OmniRouteʼdan (mahalliy
-yoki masofaviy) **jonli** modellar katalogini oʻqiydi va vositaning oʻz
-konfiguratsiya faylini **sizning** kompyuteringizga yozadi. Vosita qoʻllab-quvvatlagan
-barcha holatlarda API kalitiga muhit oʻzgaruvchisi orqali murojaat qilinadi.
-Vositaning mahalliy muhit faylini doimiy saqlaydigan buyruqlar quyida qayd etilgan.
-
-Shuningdek, umumiy ishga tushirgich — `omniroute run <target>` — mavjud boʻlib,
-u hech qanday konfiguratsiya yozmasdan, kerakli muhit oʻzgaruvchilarini kiritgan
-holda `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` yoki `gemini`ni
-ishga tushiradi. Nishonlar va ularning taxalluslari kanonik
-`bin/cli/cli-manifest.mjs` manifestidan olinadi
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), `omniroute completion` esa shu
-manifestdan olingan nishon soʻzlarini taklif qiladi. Har bir vosita uchun eski
-ishga tushirgichlar — `omniroute launch` (Claude Code) va
-`omniroute launch-codex` (Codex) — hamon mavjud.
-
-Provayderni ulash ham xuddi shu mahalliy/masofaviy kontekstda mavjud. Quyidagi
-API-markazli buyruqlar boshqaruv autentifikatsiyasini provayder hisob
-maʼlumotlaridan alohida saqlaydi va strukturalangan chiqishda hech qachon hisob
-maʼlumotlarini koʻrsatmaydi:
+Provayderni ulash ham xuddi shu mahalliy/masofaviy kontekst orqali amalga
+oshiriladi. Quyidagi APIʼga yoʻnaltirilgan buyruqlar boshqaruv autentifikatsiyasini
+provayder hisob maʼlumotlaridan alohida saqlaydi va tuzilmaviy chiqishda hech
+qachon hisob maʼlumotlarini koʻrsatmaydi:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -47,20 +37,20 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skriptlar uchun `--credential-stdin` yoki `--credential-env`dan foydalanish
-maʼqul; `--credential` nazorat qilinadigan mahalliy foydalanish uchun saqlab
-qolingan. Interaktiv boʻlmagan terminalda `providers remove` buyrugʻi `--yes`ni
-talab qiladi va barcha beshta buyruq faol kontekst yoki global
-`--base-url`/`--api-key` parametrlarini hisobga oladi.
+Skriptlar uchun `--credential-stdin` yoki `--credential-env` variantlarini afzal
+koʻring; `--credential` nazorat qilinadigan mahalliy foydalanish uchun saqlab
+qolingan. `providers remove` interaktiv boʻlmagan terminalda `--yes` parametrini
+talab qiladi va barcha besh buyruq faol kontekst yoki global
+`--base-url`/`--api-key` parametrlariga amal qiladi.
 
-Eng keng imkoniyatlarga ega ikki integratsiyani bir martalik, qoʻlda asosiy
-sozlash uchun har bir vosita boʻyicha batafsil qoʻllanmalarga qarang:
+Eng boy ikkita integratsiyani bir martalik, qoʻlda yoziladigan asosiy sozlash uchun
+har bir vosita boʻyicha batafsil qoʻllanmalarga qarang:
 
 - [Claude Code konfiguratsiyasi](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI konfiguratsiyasi](./CODEX-CLI-CONFIGURATION.md)
 - [Masofaviy rejim](./REMOTE-MODE.md) — noutbukingizdan masofaviy OmniRouteʼni (VPS / Tailnet) boshqaring
 - [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot kengaytmasi; u ushbu
-  `setup-*` buyruqlarini siz uchun bevosita tahrirlagich ichidan ham ishga tushira oladi
+  `setup-*` buyruqlarini muharrir ichidan ham ishga tushira oladi
 
 ---
 

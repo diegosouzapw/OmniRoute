@@ -38,15 +38,10 @@ export default defineConfig({
       "tests/e2e/ecosystem.test.ts",
       "tests/e2e/protocol-clients.test.ts",
       // ── Pre-existing failures tracked by #8618 ───────────────────────────────
-      "tests/unit/ui/request-logger-autorefresh-visibility-3972.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "src/app/(dashboard)/dashboard/webhooks/__tests__/webhook-wizard.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "tests/unit/ui/logs-page-detail-modal-reopen-on-close.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
       "tests/unit/ui/agent-card.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "src/app/(dashboard)/dashboard/endpoint/__tests__/ApiEndpointsTab.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
       "src/app/(dashboard)/dashboard/cache/__tests__/CacheTrends.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
       "src/app/(dashboard)/dashboard/cache/__tests__/IdempotencyLayer.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
       "src/app/(dashboard)/dashboard/cache/__tests__/CachePerformance.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "src/app/(dashboard)/dashboard/discovery/__tests__/DiscoveryPageClient.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
       "tests/unit/ui/combos-page-smoke.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
       "tests/unit/ui/evals-tab-smoke.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
     ],

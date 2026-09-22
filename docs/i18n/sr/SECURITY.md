@@ -220,28 +220,37 @@ docker run -d \
 10. **Runtime вредности за `exec()` / `spawn()` путем опције `env`** — никада не радите string-интерполацију спољних путања или неповерљивих вредности у скриптове који се прослеђују shell-у. Референца: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Дајте приоритет безбедним подразумеваним библиотекама** — погледајте [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Посегните за њима пре него што правите сопствено решење.
 
-## Nalazi skenera lanca snabdevanja (Socket.dev / Snyk / slično)
+## Налази скенера ланца снабдевања (Socket.dev / Snyk / слични)
 
-Objavljeni `omniroute` npm artefakt sadrži Next.js `output: "standalone"`
-build, što znači da svaki route handler — uključujući dokumentovane privilegovane
-funkcionalnosti (MITM, Zed import, Cloud Sync, ugrađeni service supervisor) — završava
-u minifikovanim `.next/server/*.js` chunkovima. Heuristički skeneri lanca snabdevanja
-često pattern-matchuju te chunkove sa signaturama malvera.
+> **Напомена о опсегу:** `socket.yml` у корену репозиторијума само дефинише `projectIgnorePaths` за Socket.dev скенирање објављеног npm артефакта након објављивања, које се обавља на страни регистра — то није обавезна CI/PR контрола за спајање измена. Ниједан ток рада у `.github/workflows`, ниједна `package.json` скрипта и ниједан `Makefile` циљ не покрећу Socket.dev.
 
-Za svaku kategoriju nalaza održavamo atestaciju održavaoca po nalazu:
+Објављени `omniroute` npm артефакт садржи Next.js `output: "standalone"`
+верзију, што значи да сваки обрађивач рута — укључујући документоване привилеговане
+функционалности (MITM, Zed увоз, Cloud Sync, уграђени надзорник услуга) — завршава
+у минификованим `.next/server/*.js` деловима. Хеуристички скенери ланца снабдевања
+често упоређују обрасце из тих делова са потписима злонамерног софтвера.
+
+Конфигурација скенера коју користимо налази се у датотеци [`socket.yml`](socket.yml) у
+корену репозиторијума (формат v2 за Socket.dev GitHub App — погледајте
+<https://docs.socket.dev/docs/socket-yml>). Она изричито изузима
+директоријуме који се не испоручују (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` итд.), тако да скенер пријављује само путање кода које
+заиста стижу до корисника објављеног пакета — само скенирање покреће Socket
+GitHub App читањем те датотеке, а не ток рада у овом репозиторијуму.
+
+За сваку категорију налаза одржавамо потврду одржаваоца за појединачни налаз:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa po nalazu: izvorni fajl ↔ obeleženi chunk ↔ ponašanje ↔ mitigacija
-  primenjena u v3.8.6.
-- Blokovi `SECURITY-AUDITOR-NOTE:` u samom izvornom kodu na svakoj obeleženoj funkciji
-  upućuju na isti dokument.
+  мапа по налазу: изворна датотека ↔ означени део ↔ понашање ↔ мера ублажавања
+  примењена у v3.8.6.
+- Блокови `SECURITY-AUDITOR-NOTE:` у изворном коду код сваке означене функције
+  упућују на исти документ.
 
-Za korisnike čiji pipeline ne može da relaksira upozorenje: build-ujte sa
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. To zamenjuje četiri
-osetljiva modula stubovima koji u runtime-u vraćaju HTTP 503 `feature-disabled`,
-tako da su privilegovane putanje koda fizički odsutne iz bundle-a.
-Pogledajte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-za recept za objavljivanje.
+За кориснике чији процес не дозвољава ублажавање упозорења: направите верзију помоћу
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Тиме се четири
+осетљива модула замењују привременим имплементацијама које током извршавања враћају HTTP 503 `feature-disabled`,
+тако да су привилеговане путање кода физички одсутне из пакета.
+Рецепт за објављивање погледајте у [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Referenca
 

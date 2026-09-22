@@ -1,26 +1,17 @@
-# A2A-SERVER (ಕನ್ನಡ)
+# OmniRoute A2A Server Documentation (ಕನ್ನಡ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/A2A-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/A2A-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/A2A-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/A2A-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/A2A-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/A2A-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/A2A-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/A2A-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/A2A-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/A2A-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/A2A-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/A2A-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/A2A-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/A2A-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/A2A-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/A2A-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/A2A-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/A2A-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/A2A-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/A2A-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/A2A-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/A2A-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/A2A-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/A2A-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/A2A-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/A2A-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/A2A-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/A2A-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/A2A-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/A2A-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/A2A-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/A2A-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/A2A-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/A2A-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/A2A-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/A2A-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/A2A-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/A2A-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/A2A-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/A2A-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/A2A-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/A2A-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/A2A-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/A2A-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/A2A-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/A2A-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/A2A-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/A2A-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/A2A-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/A2A-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/A2A-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/A2A-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/A2A-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/A2A-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/A2A-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/A2A-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/A2A-SERVER.md)
 
 ---
 
----
+> Agent-to-Agent Protocol v0.3 — ಬುದ್ಧಿವಂತ ರೂಟಿಂಗ್ ಏಜೆಂಟ್ ಆಗಿ OmniRoute
 
-title: "OmniRoute A2A ಸರ್ವರ್ ದಸ್ತಾವೇಜು"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+A2A ಇಂಟರ್ಫೇಸ್ ಎರಡು ರೂಪಗಳನ್ನು ಹೊಂದಿದೆ:
 
-# OmniRoute A2A ಸರ್ವರ್ ದಸ್ತಾವೇಜು
+- **JSON-RPC 2.0** — `POST /a2a` ನಲ್ಲಿ (ಪ್ರಮಾಣಿತ ಪ್ರವೇಶ ಬಿಂದು, `src/app/a2a/route.ts` ನಲ್ಲಿ ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿದೆ).
+- **REST** — ಡ್ಯಾಶ್ಬೋರ್ಡ್ಗಳು ಮತ್ತು ಪರಿಕರಗಳಿಗಾಗಿ `/api/a2a/*` ಅಡಿಯಲ್ಲಿ (ಸ್ಥಿತಿ, ಕಾರ್ಯ ಪಟ್ಟಿ, ರದ್ದುಗೊಳಿಸುವಿಕೆ).
 
-> ಏಜೆಂಟ್ನಿಂದ ಏಜೆಂಟ್ಗೆ ಪ್ರೋಟೋಕಾಲ್ v0.3 — ಬುದ್ಧಿವಂತ ರೂಟಿಂಗ್ ಏಜೆಂಟ್ ಆಗಿ OmniRoute
-
-A2A ಮೇಲ್ಮೈಗೆ ಎರಡು ಮುಖಗಳಿವೆ:
-
-- **JSON-RPC 2.0** ಅನ್ನು `POST /a2a` ನಲ್ಲಿ ಒದಗಿಸಲಾಗಿದೆ (ಪ್ರಮಾಣಿತ ಪ್ರವೇಶ ಬಿಂದು, `src/app/a2a/route.ts` ನಲ್ಲಿ ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿದೆ).
-- ಡ್ಯಾಶ್ಬೋರ್ಡ್ಗಳು ಮತ್ತು ಪರಿಕರಗಳಿಗಾಗಿ (ಸ್ಥಿತಿ, ಕಾರ್ಯಗಳ ಪಟ್ಟಿ, ರದ್ದುಗೊಳಿಸುವಿಕೆ) `/api/a2a/*` ಅಡಿಯಲ್ಲಿ **REST** ಅನ್ನು ಒದಗಿಸಲಾಗಿದೆ.
-
-ಕಾರ್ಯಗಳನ್ನು `A2ATaskManager` (`src/lib/a2a/taskManager.ts`, ಡೀಫಾಲ್ಟ್ 5-ನಿಮಿಷಗಳ TTL) ಮೂಲಕ ಟ್ರ್ಯಾಕ್ ಮಾಡಲಾಗುತ್ತದೆ. ಕೌಶಲ್ಯಗಳನ್ನು `src/lib/a2a/taskExecution.ts` ನಲ್ಲಿರುವ `A2A_SKILL_HANDLERS` ಮೂಲಕ ರವಾನಿಸಲಾಗುತ್ತದೆ.
+ಕಾರ್ಯಗಳನ್ನು `A2ATaskManager` ಮೂಲಕ ಟ್ರ್ಯಾಕ್ ಮಾಡಲಾಗುತ್ತದೆ (`src/lib/a2a/taskManager.ts`, ಡೀಫಾಲ್ಟ್ 5-ನಿಮಿಷದ TTL). ಕೌಶಲ್ಯಗಳನ್ನು `src/lib/a2a/taskExecution.ts` ನಲ್ಲಿರುವ `A2A_SKILL_HANDLERS` ಮೂಲಕ ರವಾನಿಸಲಾಗುತ್ತದೆ.
 
 ## ಏಜೆಂಟ್ ಅನ್ವೇಷಣೆ
 

@@ -256,6 +256,7 @@
     "max_restarts": "ਹਾਰ ਮੰਨਣ ਤੋਂ ਪਹਿਲਾਂ 30s ਦੇ ਅੰਦਰ ਕ੍ਰੈਸ਼ ਤੋਂ ਬਾਅਦ ਮੁੜ-ਚਾਲੂ ਕਰਨ ਦੀ ਵੱਧ ਤੋਂ ਵੱਧ ਗਿਣਤੀ (ਡਿਫਾਲਟ: 2)",
     "tray": "ਸਿਸਟਮ ਟਰੇ ਵਿੱਚ ਸ਼ੁਰੂ ਕਰੋ (ਸਿਰਫ਼ ਡੈਸਕਟਾਪ, ਚੋਣਵਾਂ)",
     "no_tray": "ਸਿਸਟਮ ਟਰੇ ਆਈਕਨ ਅਸਮਰੱਥ ਕਰੋ",
+    "ready_timeout": "ਰੈਡੀਨੈੱਸ ਪ੍ਰੋਬ ਦਾ ਟਾਈਮਆਉਟ ਮਿਲੀਸਕਿੰਟਾਂ ਵਿੱਚ (OMNIROUTE_READY_TIMEOUT_MS ਵੀ, ਡਿਫਾਲਟ 60000)",
     "tls_cert": "HTTPS ਸਰਵ ਕਰਨ ਲਈ TLS ਸਰਟੀਫਿਕੇਟ (PEM) ਦਾ ਪਾਥ (OMNIROUTE_TLS_CERT ਵੀ)",
     "tls_key": "HTTPS ਸਰਵ ਕਰਨ ਲਈ TLS ਨਿੱਜੀ ਕੁੰਜੀ (PEM) ਦਾ ਪਾਥ (OMNIROUTE_TLS_KEY ਵੀ)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP ਸਰਵਰ ਚੱਲ ਰਿਹਾ ਹੈ ({transport})",
     "stopped": "MCP ਸਰਵਰ ਰੋਕਿਆ ਗਿਆ।",
     "restarted": "MCP ਸਰਵਰ ਮੁੜ ਚਾਲੂ ਕੀਤਾ ਗਿਆ।",
+    "stoppedHint": "ਇਸਨੂੰ ਚਾਲੂ ਕਰਨ ਲਈ `omniroute mcp enable` ਚਲਾਓ।",
+    "enabled": "MCP ਸਰਵਰ ਚਾਲੂ ਹੈ।",
+    "disabled": "MCP ਸਰਵਰ ਬੰਦ ਹੈ।",
+    "enable": {
+      "description": "MCP ਸਰਵਰ ਚਾਲੂ ਕਰੋ",
+      "transport": "ਵਰਤਣ ਲਈ ਟ੍ਰਾਂਸਪੋਰਟ: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP ਸਰਵਰ ਬੰਦ ਕਰੋ"
+    },
     "call": {
       "description": "ਕਿਸੇ MCP ਟੂਲ ਨੂੰ ਸਿੱਧੇ ਚਲਾਓ",
       "args": "JSON ਆਰਗੂਮੈਂਟ ਆਬਜੈਕਟ (ਇਨਲਾਈਨ)",

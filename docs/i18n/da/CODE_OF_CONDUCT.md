@@ -4,61 +4,61 @@
 
 ---
 
-## Our Pledge
+## Vores løfte
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+Vi som medlemmer, bidragydere og ledere forpligter os til at gøre deltagelse i vores
+fællesskab til en oplevelse uden chikane for alle, uanset alder, kropsstørrelse,
+synligt eller usynligt handicap, etnicitet, kønskarakteristika, kønsidentitet
+og -udtryk, erfaringsniveau, uddannelse, socioøkonomisk status, nationalitet,
+personligt udseende, race, religion eller seksuel identitet
+og orientering.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+Vi forpligter os til at handle og interagere på måder, der bidrager til et åbent,
+imødekommende, mangfoldigt, inkluderende og sundt fællesskab.
 
-## Our Standards
+## Vores standarder
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+Eksempler på adfærd, der bidrager til et positivt miljø for vores
+fællesskab, omfatter:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- At udvise empati og venlighed over for andre mennesker
+- At respektere forskellige meninger, synspunkter og erfaringer
+- At give og imødekommende modtage konstruktiv feedback
+- At tage ansvar og undskylde over for dem, der er berørt af vores fejl,
+  samt at lære af erfaringen
+- At fokusere på, hvad der er bedst, ikke kun for os som enkeltpersoner, men for
+  hele fællesskabet
 
-Examples of unacceptable behavior include:
+Eksempler på uacceptabel adfærd omfatter:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- Brug af seksualiseret sprog eller billedmateriale samt seksuel opmærksomhed eller
+  tilnærmelser af enhver art
+- Trolling, fornærmende eller nedsættende kommentarer samt personlige eller politiske angreb
+- Offentlig eller privat chikane
+- Offentliggørelse af andres private oplysninger, såsom en fysisk adresse eller
+  e-mailadresse, uden deres udtrykkelige tilladelse
+- Anden adfærd, der med rimelighed kan anses for upassende i en
+  professionel sammenhæng
 
-## Enforcement Responsibilities
+## Ansvar for håndhævelse
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+Fællesskabets ledere er ansvarlige for at tydeliggøre og håndhæve vores standarder for
+acceptabel adfærd og vil træffe passende og retfærdige korrigerende foranstaltninger som
+reaktion på enhver adfærd, som de vurderer er upassende, truende, krænkende
+eller skadelig.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+Fællesskabets ledere har ret og pligt til at fjerne, redigere eller afvise
+kommentarer, commits, kode, wiki-redigeringer, issues og andre bidrag, der
+ikke er i overensstemmelse med disse adfærdsregler, og vil oplyse årsagerne til beslutninger
+om moderation, når det er relevant.
 
-## Scope
+## Omfang
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+Dette adfærdskodeks gælder i alle fællesskabets rum og gælder også, når en person
+officielt repræsenterer fællesskabet i offentlige rum.
+Eksempler på at repræsentere vores fællesskab omfatter brug af en officiel e-mailadresse,
+opslag via en officiel konto på sociale medier eller at fungere som udpeget
+repræsentant ved et online- eller offlinearrangement.
 
 ## Enforcement
 
@@ -70,51 +70,33 @@ All complaints will be reviewed and investigated promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-## Enforcement Guidelines
+## Retningslinjer for håndhævelse
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+Fællesskabets ledere vil følge disse retningslinjer for påvirkning af fællesskabet, når de fastlægger konsekvenserne af enhver handling, som de vurderer er i strid med dette adfærdskodeks:
 
-### 1. Correction
+### 1. Korrektion
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**Påvirkning af fællesskabet**: Brug af upassende sprog eller anden adfærd, der anses for uprofessionel eller uønsket i fællesskabet.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**Konsekvens**: En privat, skriftlig advarsel fra fællesskabets ledere, som tydeliggør overtrædelsens karakter og forklarer, hvorfor adfærden var upassende. Der kan blive anmodet om en offentlig undskyldning.
 
-### 2. Warning
+### 2. Advarsel
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**Påvirkning af fællesskabet**: En overtrædelse gennem en enkelt hændelse eller en række handlinger.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**Konsekvens**: En advarsel med konsekvenser ved fortsat adfærd. Ingen kontakt med de involverede personer, herunder uopfordret kontakt med dem, der håndhæver adfærdskodekset, i en nærmere angivet periode. Dette omfatter at undgå interaktioner i fællesskabets fora såvel som via eksterne kanaler såsom sociale medier. Overtrædelse af disse vilkår kan føre til en midlertidig eller permanent udelukkelse.
 
-### 3. Temporary Ban
+### 3. Midlertidig udelukkelse
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**Påvirkning af fællesskabet**: En alvorlig overtrædelse af fællesskabets standarder, herunder vedvarende upassende adfærd.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**Konsekvens**: En midlertidig udelukkelse fra enhver form for interaktion eller offentlig kommunikation med fællesskabet i en nærmere angivet periode. Ingen offentlig eller privat kontakt med de involverede personer, herunder uopfordret kontakt med dem, der håndhæver adfærdskodekset, er tilladt i denne periode. Overtrædelse af disse vilkår kan føre til en permanent udelukkelse.
 
-### 4. Permanent Ban
+### 4. Permanent udelukkelse
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**Påvirkning af fællesskabet**: Udvisning af et mønster af overtrædelser af fællesskabets standarder, herunder vedvarende upassende adfærd, chikane af en person eller aggression mod eller nedgørelse af grupper af personer.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**Konsekvens**: En permanent udelukkelse fra enhver form for offentlig interaktion i fællesskabet.
 
 ## Attribution
 

@@ -156,3 +156,71 @@ export function createLockExactModel(
     if (next) modelLockouts.set(key, next);
   };
 }
+
+/** Which key namespace a lockout writes to — see resolveLockoutScope(). */
+export type LockoutScope = "exact" | "quota_family";
+
+/**
+ * Statuses that are evidence about the account's quota / entitlement and therefore
+ * lock the quota family (codex: the whole `codex` / `spark` scope; other providers:
+ * getQuotaScopedModelForProvider). 404 stays on this side only because
+ * getModelLockKey() already narrows a not_found lock to the bare model.
+ */
+const QUOTA_FAMILY_LOCKOUT_STATUSES: ReadonlySet<number> = new Set([402, 403, 404, 429]);
+
+/**
+ * A 5xx — a transport failure (`terminated`, EHOSTUNREACH, connect timeout), an
+ * upstream server error, or OmniRoute's own synthesized 502 from quality
+ * validation — says something about one model endpoint at that moment, not about
+ * the account's quota family. Locking the family on it let a single empty stream
+ * on one `gpt-5.6-*` model remove every `gpt-5*` model of the codex connection
+ * from routing for 2–30 min (escalating) while its quota was untouched. Such
+ * failures lock the exact provider/connection/model tuple instead. A caller's
+ * explicit `scope` always wins (Antigravity passes "exact" for its own reasons).
+ */
+export function resolveLockoutScope(status: number, explicit?: LockoutScope): LockoutScope {
+  if (explicit) return explicit;
+  return QUOTA_FAMILY_LOCKOUT_STATUSES.has(status) ? "quota_family" : "exact";
+}
+
+/** Split a `provider:connectionId:[exact:]model` key back into the parts the dashboard lists. */
+export function parseModelLockKey(key: string): {
+  provider: string;
+  connectionId: string;
+  model: string;
+  scope: LockoutScope;
+} {
+  const [provider, connectionId, ...modelParts] = key.split(":");
+  const scope: LockoutScope = modelParts[0] === "exact" ? "exact" : "quota_family";
+  const model = (scope === "exact" ? modelParts.slice(1) : modelParts).join(":");
+  return { provider, connectionId, model, scope };
+}
+
+/**
+ * Success-decay across every key shape (quota-family, not_found, exact): halve each
+ * stored failureCount, dropping the entry once it reaches 0. `cleared` is true only
+ * when every entry that existed was dropped; `newFailureCount` is the largest count
+ * still stored.
+ */
+export function decayFailureCounts(
+  modelFailureState: Map<string, ModelFailureState>,
+  keys: string[]
+): { cleared: boolean; newFailureCount: number } {
+  let seen = 0;
+  let dropped = 0;
+  let newFailureCount = 0;
+  for (const key of keys) {
+    const failure = modelFailureState.get(key);
+    if (!failure) continue;
+    seen += 1;
+    const next = Math.floor(failure.failureCount / 2);
+    if (next === 0) {
+      modelFailureState.delete(key);
+      dropped += 1;
+    } else {
+      modelFailureState.set(key, { ...failure, failureCount: next });
+      newFailureCount = Math.max(newFailureCount, next);
+    }
+  }
+  return { cleared: seen > 0 && dropped === seen, newFailureCount };
+}

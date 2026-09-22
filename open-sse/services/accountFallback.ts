@@ -89,17 +89,18 @@ export function retryHintBypassesMaxCooldownMs(
 ): boolean {
   return provenance === "header" || provenance === "google_rpc_retry_info";
 }
-
 import {
   isSubscriptionQuotaText,
   buildSubscriptionQuotaFallback,
   buildWeeklyQuotaFallback,
   buildSessionQuotaFallback,
+  buildRolling24hQuotaFallback,
   SUBSCRIPTION_QUOTA_COOLDOWN_MS,
 } from "./quotaTextCooldowns.ts";
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
 import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
+export { hasPerModelFailureScope } from "./accountFallback/perModelFailureScope.ts";
 import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
 import { resolveApiKeyForbiddenFallback } from "./accountFallback/nonRetryableUpstream.ts";
 import * as exactModelLock from "./accountFallback/exactModelLock.ts";
@@ -260,6 +261,8 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   // marked credits_exhausted and keeps being re-selected on every request.
   "insufficient credits",
   "insufficient credit",
+  // FriendliAI 403 when free tier credits are depleted via adaptive rate limits
+  "exhausted all your credits",
 ];
 
 // T11: Signals that indicate OAuth token is invalid/expired (not permanent deactivation)
@@ -342,6 +345,8 @@ export const CONTEXT_OVERFLOW_PATTERNS = [
   /\bmax.*token/i,
   /\btoken limit/i,
   /\brequest too large\b/i,
+  /\btokens per minute\b/i,
+  /\btpm\b/i,
 ];
 
 // Structured error codes that reliably indicate model access denied
@@ -851,6 +856,7 @@ export function recordModelLockoutFailure(
   options: {
     exactCooldownMs?: number | null;
     maxCooldownMs?: number;
+    /** Explicit override; otherwise resolveLockoutScope(status) — 5xx lock the exact tuple. */
     scope?: "exact" | "quota_family";
     /**
      * #6863 vs #7940: set true only when `exactCooldownMs` came from an actual
@@ -864,8 +870,9 @@ export function recordModelLockoutFailure(
   } = {}
 ) {
   ensureCleanupTimer();
+  const scope = exactModelLock.resolveLockoutScope(status, options.scope);
   const key =
-    options.scope === "exact"
+    scope === "exact"
       ? buildExactKey(getCanonicalLockProvider(provider), connectionId, model)
       : getModelLockKey(provider, connectionId, model, reason, status);
   const now = Date.now();
@@ -917,7 +924,7 @@ export function recordModelLockoutFailure(
     lastCooldownMs: cooldownMs,
   });
 
-  const lockFn = options.scope === "exact" ? lockExactModel : lockModel;
+  const lockFn = scope === "exact" ? lockExactModel : lockModel;
   lockFn(provider, connectionId, model, reason, cooldownMs, {
     failureCount,
     lastFailureAt: now,
@@ -1007,15 +1014,21 @@ export function shouldMarkAccountExhaustedFrom429(
   provider: string | null | undefined,
   model: string | null | undefined = null,
   connectionPassthroughModels?: boolean,
-  failureKind?: FailureKind
+  failureKind?: FailureKind,
+  errorText?: string | null
 ): boolean {
   // A plain 429 means transient rate limiting / high traffic for many OAuth providers.
   // Only connection-poison the quota cache when the upstream body explicitly says
   // the long-window quota is exhausted; otherwise fallback should try another account
   // without making this one look quota-depleted for 5 minutes.
   if (failureKind === "rate_limit" || failureKind === "transient") return false;
+  // `errorText` is what lets an apikey-category provider opt back in: without the
+  // upstream body, `shouldPreserveQuotaSignals` has nothing to match against
+  // `looksLikeQuotaExhausted`, so every apikey 429 reads as plain rate limiting —
+  // including one whose body explicitly says a daily/weekly/monthly cap was hit.
+  // Mirrors the two-argument call in `checkFallbackError` below.
   return (
-    shouldPreserveQuotaSignals(provider) &&
+    shouldPreserveQuotaSignals(provider, errorText) &&
     !hasPerModelQuota(provider, model, connectionPassthroughModels)
   );
 }
@@ -1033,21 +1046,13 @@ export function decayModelFailureCount(
   connectionId: string,
   model: string
 ): DecayResult {
-  const key = getModelLockKey(provider, connectionId, model);
-  const failure = modelFailureState.get(key);
-  if (!failure) return { cleared: false, newFailureCount: 0 };
-
-  const newFailureCount = Math.floor(failure.failureCount / 2);
-  if (newFailureCount === 0) {
-    modelFailureState.delete(key);
-    return { cleared: true, newFailureCount: 0 };
-  } else {
-    modelFailureState.set(key, {
-      ...failure,
-      failureCount: newFailureCount,
-    });
-    return { cleared: false, newFailureCount };
-  }
+  if (!model) return { cleared: false, newFailureCount: 0 };
+  // Every key shape: a 5xx lock lives under the exact key, a quota lock under the
+  // family key — a healthy response must walk back whichever one is escalating.
+  return exactModelLock.decayFailureCounts(
+    modelFailureState,
+    getModelLockKeys(provider, connectionId, model)
+  );
 }
 
 /**
@@ -1119,8 +1124,7 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
     cleanupModelLockKey(key, now);
   }
   for (const [key, entry] of modelLockouts) {
-    const [provider, connectionId, ...modelParts] = key.split(":");
-    const model = modelParts.join(":");
+    const { provider, connectionId, model } = exactModelLock.parseModelLockKey(key);
     active.push({
       provider,
       connectionId,
@@ -1740,6 +1744,7 @@ export function checkFallbackError(
   const retryableStatuses = new Set([
     HTTP_STATUS.REQUEST_TIMEOUT,
     HTTP_STATUS.RATE_LIMITED,
+    HTTP_STATUS.PAYLOAD_TOO_LARGE,
     HTTP_STATUS.SERVER_ERROR,
     HTTP_STATUS.BAD_GATEWAY,
     HTTP_STATUS.SERVICE_UNAVAILABLE,
@@ -2054,7 +2059,8 @@ export function checkFallbackError(
     // runs UNCONDITIONALLY for the same reason: apikey-category providers
     // like ollama-cloud are excluded from the oauth-only shouldUseQuotaSignal
     // gate.
-    const sessionResult = buildSessionQuotaFallback(errorStr);
+    const sessionResult =
+      buildSessionQuotaFallback(errorStr) ?? buildRolling24hQuotaFallback(errorStr);
     if (sessionResult) return sessionResult;
 
     const detectedRetryHint = detectRetryHint();
@@ -2207,6 +2213,10 @@ export function checkFallbackError(
   }
 
   if (status === HTTP_STATUS.NOT_ACCEPTABLE || retryableStatuses.has(status)) {
+    // 413 PAYLOAD_TOO_LARGE (TPM rate limits) should trigger fallback
+    if (status === HTTP_STATUS.PAYLOAD_TOO_LARGE) {
+      return buildRetryableFallback(RateLimitReason.MODEL_CAPACITY);
+    }
     return buildRetryableFallback(RateLimitReason.SERVER_ERROR);
   }
 

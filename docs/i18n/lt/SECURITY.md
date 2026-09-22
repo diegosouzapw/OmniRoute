@@ -220,27 +220,37 @@ docker run -d \
 10. **`exec()` / `spawn()` vykdymo metu naudojamas reikšmes perduokite per `env` parinktį** — niekada neįterpkite išorinių kelių ar nepatikimų reikšmių kaip eilučių į scenarijus, perduodamus apvalkalui. Pavyzdys: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Pirmenybę teikite pagal numatytuosius nustatymus saugioms bibliotekoms** — žr. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Prieš kurdami savo sprendimą, pirmiausia rinkitės jas.
 
-## Tiekimo grandinės skaitytuvo aptiktos problemos (Socket.dev / Snyk / panašūs įrankiai)
+## Tiekimo grandinės skenerio aptiktos problemos (Socket.dev / Snyk / panašūs įrankiai)
+
+> **Aprėpties pastaba:** saugyklos šaknyje esantis `socket.yml` tik nustato `projectIgnorePaths`, skirtus Socket.dev registro pusėje atliekamam paskelbto npm artefakto skenavimui po paskelbimo — tai nėra privalomas CI/PR sujungimo kontrolės etapas. Jokia `.github/workflows` darbo eiga, joks `package.json` scenarijus ir jokia `Makefile` užduotis nepaleidžia Socket.dev.
 
 Paskelbtame `omniroute` npm artefakte yra Next.js `output: "standalone"`
-kompiliacijos rezultatas, todėl kiekvienas maršruto apdorojimo modulis, įskaitant dokumentuotas privilegijuotąsias
-funkcijas (MITM, „Zed“ importavimą, „Cloud Sync“, integruotą paslaugų prižiūrėtoją), patenka
-į `.next/server/*.js` minifikuotus fragmentus. Euristiniai tiekimo grandinės skaitytuvai
-dažnai šiuose fragmentuose ieško atitikmenų kenkėjiškos programinės įrangos signatūroms.
+kompiliuotė, todėl kiekvienas maršruto apdorojimo modulis — įskaitant dokumentuotas privilegijuotas
+funkcijas (MITM, Zed importavimą, Cloud Sync, integruotą paslaugų prižiūryklę) — patenka
+į `.next/server/*.js` minifikuotus fragmentus. Euristiniai tiekimo grandinės skeneriai
+dažnai pagal šablonus lygina šiuos fragmentus su kenkėjiškos programinės įrangos signatūromis.
 
-Kiekvienai aptiktų problemų kategorijai pateikiame atskirą prižiūrėtojų patvirtinimą:
+Mūsų naudojama skenerio konfigūracija yra saugyklos šaknyje esančiame faile [`socket.yml`](socket.yml)
+(Socket.dev GitHub App v2 formatas — žr.
+<https://docs.socket.dev/docs/socket-yml>). Ji aiškiai neįtraukia
+neplatinamų katalogų (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` ir kt.), kad skeneris praneštų tik apie kodo kelius, kurie
+iš tikrųjų pasiekia paskelbto paketo naudotojus — patį skenavimą vykdo Socket
+GitHub App, nuskaitydama šį failą, o ne šios saugyklos darbo eiga.
+
+Kiekvienai aptiktų problemų kategorijai palaikome atskirą prižiūrėtojų patvirtinimą:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  kiekvienos aptiktos problemos schema: šaltinio failas ↔ pažymėtas fragmentas ↔ elgsena ↔ v3.8.6 versijoje
-  pritaikyta rizikos mažinimo priemonė.
-- Šaltinio kode esantys `SECURITY-AUDITOR-NOTE:` blokai prie kiekvienos pažymėtos funkcijos nurodo
-  tą patį dokumentą.
+  atskirų aptiktų problemų žemėlapis: šaltinio failas ↔ pažymėtas fragmentas ↔ elgsena ↔ v3.8.6
+  pritaikytos rizikos mažinimo priemonės.
+- Šaltinio kode esantys `SECURITY-AUDITOR-NOTE:` blokai ties kiekviena pažymėta funkcija
+  nukreipia į tą patį dokumentą.
 
 Naudotojai, kurių konvejeris neleidžia sušvelninti įspėjimo, turėtų kompiliuoti naudodami
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Taip keturi jautrūs moduliai pakeičiami
-ruošiniais, kurie vykdymo metu grąžina HTTP 503 `feature-disabled`, todėl privilegijuotieji
-kodo vykdymo keliai fiziškai nepatenka į paketą.
-Publikavimo instrukcijas rasite [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Taip keturi
+jautrūs moduliai pakeičiami pakaitiniais moduliais, kurie vykdymo metu grąžina HTTP 503
+`feature-disabled`, todėl privilegijuoto kodo kelių fiziškai nebūna rinkinyje.
+Paskelbimo instrukcijas žr. [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Nuorodos
 

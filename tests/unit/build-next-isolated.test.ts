@@ -9,6 +9,7 @@ import {
   movePath,
   pruneStandaloneArtifacts,
   resolveNextBuildEnv,
+  shouldBuildStandalone,
   syncStandaloneExtraModules,
   syncStandaloneNativeAssets,
 } from "../../scripts/build/build-next-isolated.mjs";
@@ -222,4 +223,19 @@ test("syncStandaloneExtraModules copies the complete wreq-js runtime", async () 
     );
     assert.match(logs[0] ?? "", /wreq-js TLS runtime/);
   });
+});
+
+test("shouldBuildStandalone honors OMNIROUTE_SKIP_STANDALONE and contributor profile", () => {
+  assert.equal(shouldBuildStandalone({}), true);
+  assert.equal(shouldBuildStandalone({ OMNIROUTE_SKIP_STANDALONE: "0" }), true);
+  assert.equal(shouldBuildStandalone({ OMNIROUTE_SKIP_STANDALONE: "1" }), false);
+  assert.equal(shouldBuildStandalone({ OMNIROUTE_BUILD_PROFILE: "contributor" }), false);
+  assert.equal(
+    shouldBuildStandalone({
+      OMNIROUTE_SKIP_STANDALONE: "1",
+      OMNIROUTE_BUILD_PROFILE: "minimal",
+    }),
+    false
+  );
+  assert.equal(shouldBuildStandalone({ OMNIROUTE_BUILD_PROFILE: "minimal" }), true);
 });

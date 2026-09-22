@@ -1,21 +1,12 @@
-# MCP-SERVER (ಕನ್ನಡ)
+# OmniRoute MCP Server Documentation (ಕನ್ನಡ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "OmniRoute MCP ಸರ್ವರ್ ದಸ್ತಾವೇಜು"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# OmniRoute MCP ಸರ್ವರ್ ದಸ್ತಾವೇಜು
-
-> ರೂಟಿಂಗ್, ಕ್ಯಾಶ್, ಸಂಕುಚನ, ಮೆಮೊರಿ, ಕೌಶಲ್ಯಗಳು, ಪ್ರಾಕ್ಸಿ, ಪೂಲ್, Radar ಮತ್ತು ಸಂದರ್ಭ ಮೂಲ ಕಾರ್ಯಾಚರಣೆಗಳಾದ್ಯಂತ 110 ಪರಿಕರಗಳನ್ನು ಹೊಂದಿರುವ Model Context Protocol ಸರ್ವರ್.
+> ರೂಟಿಂಗ್, ಕ್ಯಾಶ್, ಕಂಪ್ರೆಷನ್, ಮೆಮೊರಿ, ಸ್ಕಿಲ್ಸ್, ಪ್ರಾಕ್ಸಿ, ಪೂಲ್, Radar ಮತ್ತು ಕಾಂಟೆಕ್ಸ್ಟ್ ಸೋರ್ಸ್ ಕಾರ್ಯಾಚರಣೆಗಳಾದ್ಯಂತ 110 ಪರಿಕರಗಳನ್ನು ಹೊಂದಿರುವ Model Context Protocol ಸರ್ವರ್.
 >
-> ಅಧಿಕೃತ ಮೂಲ: `open-sse/mcp-server/server.ts`, `countUniqueMcpTools()` ಮೂಲಕ **110 ಅನನ್ಯ ಪರಿಕರಗಳನ್ನು** ಲೆಕ್ಕಹಾಕುತ್ತದೆ: 45 ಪ್ರಮಾಣಿತ ವ್ಯಾಖ್ಯಾನಗಳು (ಆರು CCR ಜೀವನಚಕ್ರ ಪರಿಕರಗಳು, ಏಜೆಂಟ್-ಕೌಶಲ್ಯಗಳ ಮೂರು ಪರಿಕರಗಳು, `omniroute_radar_catalog` ಮತ್ತು `omniroute_x_search` ಸೇರಿದಂತೆ), ಜೊತೆಗೆ ಮೆಮೊರಿ (3), ಕೌಶಲ್ಯಗಳು (4), GitHub ಕೌಶಲ್ಯಗಳು (3), ಪೂಲ್ (6), ಗೇಮಿಫಿಕೇಶನ್ (8), ಪ್ಲಗಿನ್ಗಳು (8), Notion (6), Obsidian (22), ಸ್ಥಳೀಯ ಕಾರ್ಪಸ್ (3) ಮತ್ತು ಕೇವಲ RTK-ಗೆ ಸಂಬಂಧಿಸಿದ ಎರಡು ಸಂಕುಚನ ಪರಿಕರಗಳು.
+> ಅಧಿಕೃತ ಮೂಲ: `open-sse/mcp-server/server.ts`, `countUniqueMcpTools()` ಮೂಲಕ **110 ವಿಶಿಷ್ಟ ಪರಿಕರಗಳನ್ನು** ಲೆಕ್ಕಹಾಕುತ್ತದೆ: 45 ಪ್ರಮಾಣಿತ ವ್ಯಾಖ್ಯಾನಗಳು (ಆರು CCR ಲೈಫ್ಸೈಕಲ್ ಪರಿಕರಗಳು, ಏಜೆಂಟ್-ಸ್ಕಿಲ್ಸ್ ತ್ರಯ, `omniroute_radar_catalog` ಮತ್ತು `omniroute_x_search` ಸೇರಿದಂತೆ), ಜೊತೆಗೆ ಮೆಮೊರಿ (3), ಸ್ಕಿಲ್ಸ್ (4), GitHub ಸ್ಕಿಲ್ಸ್ (3), ಪೂಲ್ (6), ಗೇಮಿಫಿಕೇಶನ್ (8), ಪ್ಲಗಿನ್ಗಳು (8), Notion (6), Obsidian (22), ಸ್ಥಳೀಯ ಕಾರ್ಪಸ್ (3), ಮತ್ತು ಎರಡು RTK-ಮಾತ್ರದ ಕಂಪ್ರೆಷನ್ ಪರಿಕರಗಳು.
 
 ## ಸ್ಥಾಪನೆ
 
@@ -25,12 +16,29 @@ OmniRoute MCP ಅಂತರ್ನಿರ್ಮಿತವಾಗಿದೆ. ಇದನ�
 omniroute --mcp
 ```
 
-ಅಥವಾ open-sse ಸಾರಿಗೆಯ ಮೂಲಕ:
+ಅಥವಾ open-sse ಟ್ರಾನ್ಸ್ಪೋರ್ಟ್ ಮೂಲಕ:
 
 ```bash
-# HTTP ಸ್ಟ್ರೀಮ್ ಮಾಡಬಹುದಾದ ಸಾರಿಗೆ (ಪೋರ್ಟ್ 20130)
+# HTTP ಸ್ಟ್ರೀಮ್ ಮಾಡಬಹುದಾದ ಟ್ರಾನ್ಸ್ಪೋರ್ಟ್ (ಪೋರ್ಟ್ 20130)
 omniroute --dev  # /mcp ಎಂಡ್ಪಾಯಿಂಟ್ನಲ್ಲಿ MCP ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ
 ```
+
+HTTP ಟ್ರಾನ್ಸ್ಪೋರ್ಟ್ಗಳು (`sse` / `streamable-http`, ಡ್ಯಾಶ್ಬೋರ್ಡ್ ಸರ್ವರ್ನಿಂದ ಅದೇ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿ ಒದಗಿಸಲಾಗುತ್ತದೆ) ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ
+ನಿಷ್ಕ್ರಿಯವಾಗಿರುತ್ತವೆ ಮತ್ತು ಈ ಹಿಂದೆ `/dashboard/mcp` ಪುಟದಿಂದ ಮಾತ್ರ ಟಾಗಲ್ ಮಾಡಬಹುದಾಗಿತ್ತು. v3.8.51 ರಿಂದ
+CLI ಕೂಡ ಅದಕ್ಕೆ ಸಮಾನವಾದ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ಹೊಂದಿದೆ:
+
+```bash
+omniroute mcp status                                  # ಸಕ್ರಿಯ/ಆನ್ಲೈನ್, ಟ್ರಾನ್ಸ್ಪೋರ್ಟ್, ಟೂಲ್ಗಳ ಸಂಖ್ಯೆ
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # ಸಕ್ರಿಯ sse/streamable-http ಸೆಷನ್ಗಳನ್ನು ಮರುಹೊಂದಿಸುತ್ತದೆ
+```
+
+`mcp enable`/`mcp disable`, `/api/settings` ಮೂಲಕ ಡ್ಯಾಶ್ಬೋರ್ಡ್ ಟಾಗಲ್ ಮಾಡುವ ಅದೇ `mcpEnabled` (ಮತ್ತು ಐಚ್ಛಿಕವಾಗಿ `mcpTransport`) ಸೆಟ್ಟಿಂಗ್ಗೆ
+PATCH ವಿನಂತಿಯನ್ನು ಕಳುಹಿಸುತ್ತವೆ. `mcp restart`, `POST /api/mcp/restart` ಅನ್ನು ಕರೆಮಾಡುತ್ತದೆ: ಇದು ಸಕ್ರಿಯ
+`sse`/`streamable-http` ಸೆಷನ್ಗಳನ್ನು ಸ್ಥಗಿತಗೊಳಿಸುತ್ತದೆ, ಇದರಿಂದ ಮುಂದಿನ ವಿನಂತಿಯು ಸ್ವಚ್ಛವಾಗಿ ಮರುಪ್ರಾರಂಭಗೊಳ್ಳುತ್ತದೆ; MCP ನಿಷ್ಕ್ರಿಯವಾಗಿದ್ದರೆ
+`409` ಅನ್ನು ಮತ್ತು `stdio` ಟ್ರಾನ್ಸ್ಪೋರ್ಟ್ಗಾಗಿ `501` ಅನ್ನು ಹಿಂತಿರುಗಿಸುತ್ತದೆ (stdio ಕ್ಲೈಂಟ್ಗಳು ತಮ್ಮದೇ
+ಉಪಪ್ರಕ್ರಿಯೆಯನ್ನು ನಿರ್ವಹಿಸುತ್ತವೆ — ಮರುಪ್ರಾರಂಭಿಸಲು ಅದೇ ಪ್ರಕ್ರಿಯೆಯೊಳಗಿನ ಯಾವುದೇ ಹ್ಯಾಂಡಲ್ ಇರುವುದಿಲ್ಲ).
 
 ## ಸಾರಿಗೆಗಳು
 

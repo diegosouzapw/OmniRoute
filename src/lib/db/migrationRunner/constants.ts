@@ -211,12 +211,6 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "101",
     toName: "api_key_usage_limits",
   },
-  {
-    fromVersion: "176",
-    fromName: "memory_fts_skip_access_updates",
-    toVersion: "180",
-    toName: "memory_fts_au_conditional_memory_id",
-  },
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [
@@ -263,4 +257,8 @@ export const PHYSICAL_SCHEMA_SENTINELS = [
 ] as const;
 
 export const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"] as const;
-export const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023", "180"]);
+// "178" added by #13717: migration 178 currently hard-fails on sql.js/no-FTS5
+// drivers. If #13331 (adds "180") lands before this, reconcile to the union
+// ({"022","023","178","180"}) and update the assertion in
+// tests/unit/db-migrationrunner-constants-split.test.ts accordingly.
+export const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023", "178"]);

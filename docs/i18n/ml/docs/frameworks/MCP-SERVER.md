@@ -1,25 +1,16 @@
-# MCP-SERVER (മലയാളം)
+# OmniRoute MCP Server Documentation (മലയാളം)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "OmniRoute MCP സെർവർ ഡോക്യുമെന്റേഷൻ"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# OmniRoute MCP സെർവർ ഡോക്യുമെന്റേഷൻ
-
-> റൂട്ടിംഗ്, കാഷ്, കംപ്രഷൻ, മെമ്മറി, സ്കില്ലുകൾ, പ്രോക്സി, പൂൾ, Radar, സന്ദർഭ ഉറവിട പ്രവർത്തനങ്ങൾ എന്നിവയിലായി 110 ടൂളുകളുള്ള Model Context Protocol സെർവർ.
+> റൂട്ടിംഗ്, കാഷ്, കംപ്രഷൻ, മെമ്മറി, സ്കിൽസ്, പ്രോക്സി, പൂൾ, Radar, കോൺടെക്സ്റ്റ് സോഴ്സ് പ്രവർത്തനങ്ങളിലായി 110 ടൂളുകളുള്ള Model Context Protocol സെർവർ.
 >
-> ആധികാരിക ഉറവിടം: `open-sse/mcp-server/server.ts` എന്നത് `countUniqueMcpTools()` ഉപയോഗിച്ച് **110 സവിശേഷ ടൂളുകൾ** കണക്കാക്കുന്നു: 45 പ്രാമാണിക നിർവചനങ്ങൾ (ആറ് CCR ലൈഫ്സൈക്കിൾ ടൂളുകൾ, agent-skills ത്രയം, `omniroute_radar_catalog`, `omniroute_x_search` എന്നിവ ഉൾപ്പെടെ), കൂടാതെ മെമ്മറി (3), സ്കില്ലുകൾ (4), GitHub സ്കില്ലുകൾ (3), പൂൾ (6), ഗെയിമിഫിക്കേഷൻ (8), പ്ലഗിനുകൾ (8), Notion (6), Obsidian (22), ലോക്കൽ കോർപ്പസ് (3), രണ്ട് RTK-മാത്രം കംപ്രഷൻ ടൂളുകൾ എന്നിവയും.
+> ആധികാരിക ഉറവിടം: `open-sse/mcp-server/server.ts` എന്നതിലെ `countUniqueMcpTools()` **110 അതുല്യ ടൂളുകൾ** കണക്കാക്കുന്നു: ആറ് CCR ലൈഫ്സൈക്കിൾ ടൂളുകൾ, ഏജന്റ്-സ്കിൽസ് ട്രിയോ, `omniroute_radar_catalog`, `omniroute_x_search` എന്നിവ ഉൾപ്പെടുന്ന 45 കാനോനിക്കൽ നിർവചനങ്ങൾ, കൂടാതെ മെമ്മറി (3), സ്കിൽസ് (4), GitHub സ്കിൽസ് (3), പൂൾ (6), ഗെയിമിഫിക്കേഷൻ (8), പ്ലഗിനുകൾ (8), Notion (6), Obsidian (22), ലോക്കൽ കോർപ്പസ് (3), രണ്ട് RTK-മാത്രം കംപ്രഷൻ ടൂളുകൾ എന്നിവയും.
 
 ## ഇൻസ്റ്റാളേഷൻ
 
-OmniRoute MCP ഉൾനിർമിതമാണ്. ഇത് ഇങ്ങനെ ആരംഭിക്കുക:
+OmniRoute MCP അന്തർനിർമ്മിതമാണ്. ഇങ്ങനെ ആരംഭിക്കുക:
 
 ```bash
 omniroute --mcp
@@ -31,6 +22,24 @@ omniroute --mcp
 # HTTP സ്ട്രീം ചെയ്യാവുന്ന ട്രാൻസ്പോർട്ട് (പോർട്ട് 20130)
 omniroute --dev  # /mcp എൻഡ്പോയിന്റിൽ MCP സ്വയമേവ ആരംഭിക്കുന്നു
 ```
+
+ഡാഷ്ബോർഡ് സെർവർ അതേ പ്രോസസ്സിൽ നൽകുന്ന HTTP ട്രാൻസ്പോർട്ടുകൾ (`sse` / `streamable-http`) ഡിഫോൾട്ടായി
+ഓഫാണ്; മുമ്പ് അവ `/dashboard/mcp` പേജിൽ നിന്ന് മാത്രമേ ടോഗിൾ ചെയ്യാനാകുമായിരുന്നുള്ളൂ. v3.8.51 മുതൽ
+CLI-യിലും സമാനമായ സൗകര്യമുണ്ട്:
+
+```bash
+omniroute mcp status                                  # പ്രവർത്തനക്ഷമമാണോ/ഓൺലൈനാണോ, ട്രാൻസ്പോർട്ട്, ടൂളുകളുടെ എണ്ണം
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # സജീവമായ sse/streamable-http സെഷനുകൾ പുനഃസജ്ജമാക്കുന്നു
+```
+
+`mcp enable`/`mcp disable`, ഡാഷ്ബോർഡ് `/api/settings` വഴി ടോഗിൾ ചെയ്യുന്ന അതേ `mcpEnabled`
+ക്രമീകരണത്തെയാണ് (ഐച്ഛികമായി `mcpTransport`-നെയും) PATCH ചെയ്യുന്നത്. `mcp restart`, `POST /api/mcp/restart`
+വിളിക്കുന്നു: അത് സജീവമായ `sse`/`streamable-http` സെഷനുകൾ അവസാനിപ്പിക്കുന്നതിനാൽ അടുത്ത അഭ്യർത്ഥന
+വൃത്തിയായി വീണ്ടും ഇനിഷ്യലൈസ് ചെയ്യപ്പെടും; MCP പ്രവർത്തനരഹിതമാണെങ്കിൽ `409`-ഉം `stdio` ട്രാൻസ്പോർട്ടിന്
+`501`-ഉം നൽകും (stdio ക്ലയന്റുകൾ അവരുടെ സ്വന്തം സബ്പ്രോസസ്സ് നിയന്ത്രിക്കുന്നു — പുനരാരംഭിക്കാൻ
+അതേ പ്രോസസ്സിനുള്ളിൽ ഹാൻഡിൽ ഒന്നുമില്ല).
 
 ## ട്രാൻസ്പോർട്ടുകൾ
 

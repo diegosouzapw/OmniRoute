@@ -1,21 +1,12 @@
-# ARCHITECTURE (ಕನ್ನಡ)
+# OmniRoute Architecture (ಕನ್ನಡ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
 
 ---
 
----
-
-title: "OmniRoute ವಾಸ್ತುಶಿಲ್ಪ"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# OmniRoute ವಾಸ್ತುಶಿಲ್ಪ
-
 🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
 
-_ಕೊನೆಯದಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ: 2026-06-28_
+_ಕೊನೆಯದಾಗಿ ನವೀಕರಿಸಿದ್ದು: 2026-06-28_
 
 ## ಕಾರ್ಯನಿರ್ವಾಹಕ ಸಾರಾಂಶ
 
@@ -361,99 +352,98 @@ OmniRoute ಸ್ಥಳೀಯವಾಗಿ ಚಾಲನೆಯಲ್ಲಿರುವ
 
 ### A. ಸ್ವಯಂ ಕಾಂಬೊ ಎಂಜಿನ್
 
-ಸ್ವಯಂ ಕಾಂಬೊ ಸ್ಥಿರ ಕಾಂಬೊ ವ್ಯಾಖ್ಯಾನದ ಮೇಲೆ ಅವಲಂಬಿಸುವ ಬದಲು, ವಿನಂತಿಯ ಸಮಯದಲ್ಲಿ
-ರೂಟಿಂಗ್ ಗುರಿಗಳನ್ನು ಕ್ರಿಯಾತ್ಮಕವಾಗಿ ಸ್ಕೋರ್ ಮಾಡಿ ಆಯ್ಕೆಮಾಡುತ್ತದೆ. ಇದು `auto/*` ಮಾಡೆಲ್ ಪೂರ್ವಪ್ರತ್ಯಯ ಕುಟುಂಬವನ್ನು ಚಾಲಿತಗೊಳಿಸುತ್ತದೆ.
+ಸ್ವಯಂ ಕಾಂಬೊ ಸ್ಥಿರ ಕಾಂಬೊ ವ್ಯಾಖ್ಯಾನವನ್ನು ಅವಲಂಬಿಸುವ ಬದಲು, ವಿನಂತಿಯ ಸಮಯದಲ್ಲಿ ರೂಟಿಂಗ್ ಗುರಿಗಳಿಗೆ ಕ್ರಿಯಾತ್ಮಕವಾಗಿ ಅಂಕ ನೀಡಿ ಅವುಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡುತ್ತದೆ. ಇದು `auto/*` ಮಾದರಿ ಪೂರ್ವಪ್ರತ್ಯಯ ಕುಟುಂಬವನ್ನು ಚಾಲಿತಗೊಳಿಸುತ್ತದೆ.
 
-- ಎಂಜಿನ್ ಪ್ರವೇಶ: `open-sse/services/autoCombo/` (`autoComboEngine.ts`,
+- ಎಂಜಿನ್ ಪ್ರವೇಶ ಬಿಂದು: `open-sse/services/autoCombo/` (`autoComboEngine.ts`,
   `scoringEngine.ts`, `virtualFactory.ts`, `modePacks.ts`)
-- ರಿಸಾಲ್ವರ್: `src/domain/comboResolver.ts` (`auto/` ಪೂರ್ವಪ್ರತ್ಯಯದ ಸ್ವಯಂ-ಪತ್ತೆ)
+- ರಿಸಾಲ್ವರ್: `src/domain/comboResolver.ts` (`auto/` ಪೂರ್ವಪ್ರತ್ಯಯದ ಸ್ವಯಂ ಪತ್ತೆ)
 - ಡ್ಯಾಶ್ಬೋರ್ಡ್: `/dashboard/auto-combo`
-- ಟೆಲಿಮೆಟ್ರಿ: `auto_combo_decisions` SQLite ಟೇಬಲ್
+- ಟೆಲಿಮೆಟ್ರಿ: `auto_combo_decisions` SQLite ಕೋಷ್ಟಕ
 
 ಪ್ರಮುಖ ಸಾಮರ್ಥ್ಯಗಳು:
 
-- **19 ರೂಟಿಂಗ್ ತಂತ್ರಗಳು** (ಆದ್ಯತೆ, ತೂಕಾಧಾರಿತ, ಮೊದಲು-ಭರ್ತಿ, ರೌಂಡ್-ರಾಬಿನ್, P2C, ಯಾದೃಚ್ಛಿಕ,
-  ಕನಿಷ್ಠ-ಬಳಸಿದ, ವೆಚ್ಚ-ಆಪ್ಟಿಮೈಸ್ ಮಾಡಿದ, ರೀಸೆಟ್-ಅರಿವುಳ್ಳ, ರೀಸೆಟ್-ವಿಂಡೋ, ಹೆಡ್ರೂಮ್, ಕಟ್ಟುನಿಟ್ಟಿನ-ಯಾದೃಚ್ಛಿಕ,
-  **ಸ್ವಯಂ**, lkgp, ಸಂದರ್ಭ-ಆಪ್ಟಿಮೈಸ್ ಮಾಡಿದ, ಸಂದರ್ಭ-ರಿಲೇ, **ಫ್ಯೂಷನ್**, ಜೊತೆಗೆ ಫಾಲ್ಬ್ಯಾಕ್ ಮಾರ್ಗ) —
-  ಸ್ವಯಂ ಎಂಬುದು v3.8.0 ರ ಪ್ರಮುಖ ಸೇರ್ಪಡೆಯಾಗಿದೆ; `fusion` (ಪ್ಯಾನೆಲ್ ಫ್ಯಾನ್-ಔಟ್ + ಜಡ್ಜ್ ಸಂಶ್ಲೇಷಣೆ,
-  `open-sse/services/fusion.ts`) v3.8.36 ರಲ್ಲಿ ಹೊಸದು.
-- **16-ಅಂಶದ ಸ್ಕೋರಿಂಗ್**: ಕೋಟಾ, ಆರೋಗ್ಯ, ವಿಲೋಮ ವೆಚ್ಚ, ವಿಲೋಮ ವಿಳಂಬ, ಕಾರ್ಯ ಹೊಂದಾಣಿಕೆ ಮತ್ತು
-  ಇನ್ನೂ ಹತ್ತು. ಅಂಶಗಳು ಮತ್ತು ಅವುಗಳ ಡೀಫಾಲ್ಟ್ ತೂಕಗಳ ಅಧಿಕೃತ ಟೇಬಲ್
-  [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) ನಲ್ಲಿ ಇದೆ — ಅದನ್ನು ಇಲ್ಲಿ ಪುನಃ ಹೇಳುವುದರಿಂದ
-  ಹಳತಾಗಬಹುದಾದ ಎರಡನೇ ಸ್ಥಳವೊಂದು ಸೃಷ್ಟಿಯಾಗುತ್ತದೆ.
-- **ವರ್ಚುವಲ್ ಫ್ಯಾಕ್ಟರಿ** ಹೊಂದಾಣಿಕೆಯಾಗುವ ಹೆಸರಿತ ಕಾಂಬೊ ಇಲ್ಲದಿದ್ದಾಗ ತಾತ್ಕಾಲಿಕ ಕಾಂಬೊಗಳನ್ನು
-  ಸಾಕಾರಗೊಳಿಸುತ್ತದೆ ಮತ್ತು ಆರೋಗ್ಯಕರ ಸಕ್ರಿಯ ಪ್ರೊವೈಡರ್ ಸಂಪರ್ಕಗಳಿಂದ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಪಡೆಯುತ್ತದೆ.
+- **19 ರೂಟಿಂಗ್ ಕಾರ್ಯತಂತ್ರಗಳು** (ಆದ್ಯತೆ, ತೂಕಾಧಾರಿತ, ಮೊದಲು-ತುಂಬಿಸುವಿಕೆ, ರೌಂಡ್-ರಾಬಿನ್, P2C, ಯಾದೃಚ್ಛಿಕ,
+  ಕನಿಷ್ಠ-ಬಳಕೆ, ವೆಚ್ಚ-ಆಪ್ಟಿಮೈಸ್ ಮಾಡಿದ, ಮರುಹೊಂದಿಕೆ-ಅರಿವುಳ್ಳ, ಮರುಹೊಂದಿಕೆ-ವಿಂಡೋ, ಹೆಡ್ರೂಮ್, ಕಟ್ಟುನಿಟ್ಟಾದ-ಯಾದೃಚ್ಛಿಕ,
+  **ಸ್ವಯಂ**, lkgp, ಸಂದರ್ಭ-ಆಪ್ಟಿಮೈಸ್ ಮಾಡಿದ, ಸಂದರ್ಭ-ರಿಲೇ, **ಫ್ಯೂಷನ್**, ಜೊತೆಗೆ ಫಾಲ್ಬ್ಯಾಕ್ ಪಥ) —
+  v3.8.0 ನಲ್ಲಿ ಸ್ವಯಂ ಪ್ರಮುಖ ಸೇರ್ಪಡೆಯಾಗಿದೆ; `fusion` (ಪ್ಯಾನೆಲ್ ಫ್ಯಾನ್-ಔಟ್ + ಜಡ್ಜ್ ಸಂಶ್ಲೇಷಣೆ,
+  `open-sse/services/fusion.ts`) v3.8.36 ನಲ್ಲಿ ಹೊಸದು.
+- **16-ಅಂಶಗಳ ಅಂಕನ**: ಕೋಟಾ, ಸ್ಥಿತಿ, ವಿಲೋಮ ವೆಚ್ಚ, ವಿಲೋಮ ವಿಳಂಬ, ಕಾರ್ಯ ಹೊಂದಾಣಿಕೆ ಮತ್ತು
+  ಇನ್ನೂ ಹತ್ತು. ಅಂಶಗಳು ಮತ್ತು ಅವುಗಳ ಡೀಫಾಲ್ಟ್ ತೂಕಗಳ ಅಧಿಕೃತ ಕೋಷ್ಟಕವು
+  [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) ನಲ್ಲಿದೆ — ಅದನ್ನು ಇಲ್ಲಿ ಪುನರುಚ್ಚರಿಸುವುದರಿಂದ
+  ಅದು ಹಳೆಯದಾಗಲು ಎರಡನೇ ಸ್ಥಳವನ್ನು ಸೃಷ್ಟಿಸಿದಂತಾಗುತ್ತದೆ.
+- **ವರ್ಚುವಲ್ ಫ್ಯಾಕ್ಟರಿ** ಹೊಂದಾಣಿಕೆಯ ಹೆಸರಿನ ಕಾಂಬೊ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲದಾಗ ತಾತ್ಕಾಲಿಕ ಕಾಂಬೊಗಳನ್ನು ರೂಪಿಸುತ್ತದೆ;
+  ಆರೋಗ್ಯಕರ ಸಕ್ರಿಯ ಪೂರೈಕೆದಾರ ಸಂಪರ್ಕಗಳಿಂದ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಪಡೆಯುತ್ತದೆ.
 - **ಸ್ವಯಂ ಪೂರ್ವಪ್ರತ್ಯಯಗಳು**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
-  `auto/smart`, `auto/lkgp` — ಪ್ರತಿಯೊಂದಕ್ಕೂ ಹೊಂದಿಸಿದ ತೂಕ ಪ್ರೊಫೈಲ್ ಬೆಂಬಲವಾಗಿದೆ.
+  `auto/smart`, `auto/lkgp` — ಪ್ರತಿಯೊಂದೂ ಸೂಕ್ಷ್ಮವಾಗಿ ಹೊಂದಿಸಲಾದ ತೂಕದ ಪ್ರೊಫೈಲ್ನಿಂದ ಬೆಂಬಲಿತವಾಗಿದೆ.
 - **6 ಮೋಡ್ ಪ್ಯಾಕ್ಗಳು**: `ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`,
-  `reliability-first` ಮತ್ತು `chaos-mode` — ಡ್ಯಾಶ್ಬೋರ್ಡ್ನಿಂದ ಕರೆಯಬಹುದಾದ ಪೂರ್ವನಿಗದಿತ ತೂಕ ಸಂರಚನೆಗಳು.
-  (ಇವುಗಳನ್ನು ಮೇಲಿನ `auto/*` ಪೂರ್ವಪ್ರತ್ಯಯಗಳೊಂದಿಗೆ ಗೊಂದಲಗೊಳಿಸಬಾರದು; ಅವು ವಿನಂತಿ-ಸಮಯದ ರೂಪಾಂತರಗಳಾಗಿವೆ.)
+  `reliability-first` ಮತ್ತು `chaos-mode` — ಡ್ಯಾಶ್ಬೋರ್ಡ್ನಿಂದ ಕರೆ ಮಾಡಬಹುದಾದ ಪೂರ್ವನಿಗದಿತ ತೂಕದ ಸಂರಚನೆಗಳು.
+  (ವಿನಂತಿಯ ಸಮಯದ ರೂಪಾಂತರಗಳಾದ ಮೇಲಿನ `auto/*` ಪೂರ್ವಪ್ರತ್ಯಯಗಳೊಂದಿಗೆ ಇವುಗಳನ್ನು ಗೊಂದಲಗೊಳಿಸಬಾರದು.)
 
-ಸಂಪೂರ್ಣ ಅಲ್ಗಾರಿದಮಿಕ್ ವಿವರಗಳಿಗಾಗಿ (ಅಂಶ ಸೂತ್ರಗಳು, ತೂಕ ಹೊಂದಿಸುವಿಕೆ), ನೋಡಿ
+ಸಂಪೂರ್ಣ ಅಲ್ಗಾರಿದಮಿಕ್ ವಿವರಗಳಿಗಾಗಿ (ಅಂಶಗಳ ಸೂತ್ರಗಳು, ತೂಕದ ಹೊಂದಾಣಿಕೆ), ನೋಡಿ
 [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
 
 ### B. ಕ್ಲೌಡ್ ಏಜೆಂಟ್ಗಳು
 
-ಕ್ಲೌಡ್ ಏಜೆಂಟ್ಗಳು ತೃತೀಯ-ಪಕ್ಷ ಹೋಸ್ಟ್ ಮಾಡಿದ ಕೋಡ್-ಏಜೆಂಟ್ ಪ್ಲಾಟ್ಫಾರ್ಮ್ಗಳನ್ನು (Codex Cloud, Devin,
-Jules) ಏಕರೂಪದ DB-ಬೆಂಬಲಿತ ಕಾರ್ಯ ಜೀವನಚಕ್ರದ ಹಿಂದೆ ರ್ಯಾಪ್ ಮಾಡುತ್ತದೆ. ಎಲ್ಲ ಕಾರ್ಯ ರಚನೆ/ಪರಿಶೀಲನಾ
-ಎಂಡ್ಪಾಯಿಂಟ್ಗಳಿಗೆ ನಿರ್ವಹಣಾ ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ.
+ಕ್ಲೌಡ್ ಏಜೆಂಟ್ಗಳು ಮೂರನೇ-ಪಕ್ಷದ ಹೋಸ್ಟ್ ಮಾಡಿದ ಕೋಡ್-ಏಜೆಂಟ್ ಪ್ಲಾಟ್ಫಾರ್ಮ್ಗಳನ್ನು (Codex Cloud, Devin,
+Jules) ಏಕರೂಪದ DB-ಬೆಂಬಲಿತ ಕಾರ್ಯ ಜೀವನಚಕ್ರದ ಹಿಂದೆ ಸುತ್ತುವರಿಯುತ್ತದೆ. ಎಲ್ಲಾ ಕಾರ್ಯ ರಚನೆ/ಪರಿಶೀಲನೆ
+ಎಂಡ್ಪಾಯಿಂಟ್ಗಳಿಗೆ ನಿರ್ವಹಣಾ ದೃಢೀಕರಣದ ಅಗತ್ಯವಿದೆ.
 
 - ಮಾಡ್ಯೂಲ್ ರೂಟ್: `src/lib/cloudAgent/` (`baseAgent.ts`, `registry.ts`, `api.ts`,
-  `types.ts`, `db.ts`, ಜೊತೆಗೆ `agents/` ಅಡಿಯಲ್ಲಿ ಪ್ರತಿ-ಏಜೆಂಟ್ ಉಪಡೈರೆಕ್ಟರಿಗಳು)
+  `types.ts`, `db.ts`, ಜೊತೆಗೆ `agents/` ಅಡಿಯಲ್ಲಿನ ಪ್ರತಿ-ಏಜೆಂಟ್ ಉಪಡೈರೆಕ್ಟರಿಗಳು)
 - ಪ್ರತಿ-ಏಜೆಂಟ್ ಅನುಷ್ಠಾನಗಳು: `agents/codex/`, `agents/devin/`, `agents/jules/`
-- ಸಾರ್ವಜನಿಕ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳು: `/api/v1/agents/tasks/*` (ಪಟ್ಟಿಮಾಡು/ರಚಿಸು/ಪಡೆ/ರದ್ದುಮಾಡು)
-- ನಿರ್ವಹಣಾ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳು: `/api/cloud/*` (ಪ್ರೊವಿಷನಿಂಗ್, ಸ್ಥಿತಿ, ಬ್ಯಾಚ್)
+- ಸಾರ್ವಜನಿಕ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳು: `/api/v1/agents/tasks/*` (ಪಟ್ಟಿ/ರಚನೆ/ಪಡೆಯುವಿಕೆ/ರದ್ದತಿ)
+- ನಿರ್ವಹಣಾ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳು: `/api/cloud/*` (ಪ್ರಾವಿಷನಿಂಗ್, ಸ್ಥಿತಿ, ಬ್ಯಾಚ್)
 - ಡ್ಯಾಶ್ಬೋರ್ಡ್: `/dashboard/cloud-agents`
-- ಸಂಗ್ರಹಣೆ: `cloud_agent_tasks` ಟೇಬಲ್
+- ಸಂಗ್ರಹಣೆ: `cloud_agent_tasks` ಕೋಷ್ಟಕ
 
-ಪ್ರತಿ-ಏಜೆಂಟ್ ಪ್ರೊವಿಷನಿಂಗ್ ಮತ್ತು OAuth ನಿರ್ದಿಷ್ಟ ವಿವರಗಳಿಗಾಗಿ, ನೋಡಿ
+ಪ್ರತಿ-ಏಜೆಂಟ್ ಪ್ರಾವಿಷನಿಂಗ್ ಮತ್ತು OAuth ನಿರ್ದಿಷ್ಟ ವಿವರಗಳಿಗಾಗಿ, ನೋಡಿ
 [`docs/frameworks/CLOUD_AGENT.md`](../frameworks/CLOUD_AGENT.md).
 
-### C. ಗಾರ್ಡ್ರೇಲ್ಗಳು
+### C. ರಕ್ಷಣಾ ನಿಯಮಗಳು
 
-ಗಾರ್ಡ್ರೇಲ್ಗಳ ಮಾಡ್ಯೂಲ್ ಹಾಟ್-ರೀಲೋಡ್ ಮಾಡಬಹುದಾದ ಮಿಡಲ್ವೇರ್ ಪದರವಾಗಿದ್ದು, PII, ಪ್ರಾಂಪ್ಟ್ ಇಂಜೆಕ್ಷನ್
-ಮತ್ತು ಅಸುರಕ್ಷಿತ ದೃಶ್ಯ ವಿಷಯಕ್ಕಾಗಿ ವಿನಂತಿಗಳು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆಗಳನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ. ಉಲ್ಲಂಘನೆಗಳು
-ರಚನಾತ್ಮಕ ದೋಷ ಕೋಡ್ ಜೊತೆಗೆ HTTP **503** ಮೂಲಕ ವಿನಂತಿಯನ್ನು ಶಾರ್ಟ್-ಸರ್ಕ್ಯೂಟ್ ಮಾಡುತ್ತವೆ; ಇದರಿಂದ
-ಡೌನ್ಸ್ಟ್ರೀಮ್ ಕಾಲರ್ಗಳು ಮರುಪ್ರಯತ್ನಿಸಲು ಅಥವಾ ಶಾಖೆಗೊಳ್ಳಲು ಸಾಧ್ಯವಾಗುತ್ತದೆ.
+ರಕ್ಷಣಾ ನಿಯಮಗಳ ಮಾಡ್ಯೂಲ್ ಹಾಟ್-ರೀಲೋಡ್ ಮಾಡಬಹುದಾದ ಮಿಡಲ್ವೇರ್ ಪದರವಾಗಿದ್ದು, PII, ಪ್ರಾಂಪ್ಟ್ ಇಂಜೆಕ್ಷನ್
+ಮತ್ತು ಅಸುರಕ್ಷಿತ ದೃಶ್ಯ ವಿಷಯಕ್ಕಾಗಿ ವಿನಂತಿಗಳು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆಗಳನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ. ಉಲ್ಲಂಘನೆಗಳು HTTP
+**503** ಜೊತೆಗೆ ರಚನಾತ್ಮಕ ದೋಷ ಕೋಡ್ ಅನ್ನು ನೀಡಿ ವಿನಂತಿಯನ್ನು ತಕ್ಷಣವೇ ಸ್ಥಗಿತಗೊಳಿಸುತ್ತವೆ; ಇದರಿಂದ
+ಡೌನ್ಸ್ಟ್ರೀಮ್ ಕರೆಗಾರರು ಮರುಪ್ರಯತ್ನಿಸಲು ಅಥವಾ ಬೇರೆ ಶಾಖೆಗೆ ಹೋಗಲು ಸಾಧ್ಯವಾಗುತ್ತದೆ.
 
 - ಮಾಡ್ಯೂಲ್ ರೂಟ್: `src/lib/guardrails/` (`base.ts`, `registry.ts`, `piiMasker.ts`,
   `promptInjection.ts`, `visionBridge.ts`, `visionBridgeHelpers.ts`)
-- ಹಾಟ್ ರೀಲೋಡ್: ರಿಜಿಸ್ಟ್ರಿ ಸಂರಚನಾ ಬದಲಾವಣೆಗಳನ್ನು ಗಮನಿಸಿ, ಚೈನ್ ಅನ್ನು ಅದೇ ಸ್ಥಳದಲ್ಲಿ ಮರುನಿರ್ಮಿಸುತ್ತದೆ
-- ಸಂಪರ್ಕ ಬಿಂದುಗಳು: ಚಾಟ್ ಹ್ಯಾಂಡ್ಲರ್ ಪ್ರವೇಶ, ಚಿತ್ರ ಉತ್ಪಾದನಾ ಹ್ಯಾಂಡ್ಲರ್, ಪ್ರತಿಕ್ರಿಯೆ ಸ್ಯಾನಿಟೈಸರ್
-- HTTP ಒಪ್ಪಂದ: ಉಲ್ಲಂಘನೆಗಳು `error.code = "GUARDRAIL_VIOLATION"` ಜೊತೆಗೆ `503` ಆಗಿ ಗೋಚರಿಸುತ್ತವೆ
+- ಹಾಟ್ ರೀಲೋಡ್: ಸಂರಚನಾ ಬದಲಾವಣೆಗಳನ್ನು ರಿಜಿಸ್ಟ್ರಿ ಗಮನಿಸುತ್ತದೆ ಮತ್ತು ಸರಪಳಿಯನ್ನು ಅದೇ ಸ್ಥಳದಲ್ಲಿ ಮರುನಿರ್ಮಿಸುತ್ತದೆ
+- ಜೋಡಣೆಯ ಬಿಂದುಗಳು: ಚಾಟ್ ಹ್ಯಾಂಡ್ಲರ್ ಪ್ರವೇಶ, ಚಿತ್ರ ರಚನೆ ಹ್ಯಾಂಡ್ಲರ್, ಪ್ರತಿಕ್ರಿಯೆ ಸ್ಯಾನಿಟೈಸರ್
+- HTTP ಒಪ್ಪಂದ: ಉಲ್ಲಂಘನೆಗಳು `error.code = "GUARDRAIL_VIOLATION"` ಜೊತೆಗೆ `503` ಆಗಿ ಪ್ರಕಟವಾಗುತ್ತವೆ
 
-ನಿಯಮಸಮೂಹ ರಚನೆ ಮತ್ತು ಮಿತಿ ಹೊಂದಿಸುವಿಕೆಗಾಗಿ, ನೋಡಿ
+ನಿಯಮಸಮೂಹ ರಚನೆ ಮತ್ತು ಮಿತಿ ಹೊಂದಾಣಿಕೆಗಾಗಿ, ನೋಡಿ
 [`docs/security/GUARDRAILS.md`](../security/GUARDRAILS.md).
 
 ### D. ಡೊಮೇನ್ ಪದರ
 
-`src/domain/` ನೇಮ್ಸ್ಪೇಸ್ ನೀತಿ ನಿರ್ಧಾರಗಳನ್ನು ಕೇಂದ್ರೀಕರಿಸುತ್ತದೆ, ಇದರಿಂದ ರೂಟ್ ಹ್ಯಾಂಡ್ಲರ್ಗಳು
-ಲಾಕ್ಔಟ್/ಬಜೆಟ್/ಫಾಲ್ಬ್ಯಾಕ್ ತರ್ಕವನ್ನು ಸ್ವತಃ ಸಂಯೋಜಿಸಬೇಕಾಗುವುದಿಲ್ಲ.
+`src/domain/` ನೇಮ್ಸ್ಪೇಸ್ ನೀತಿ ನಿರ್ಧಾರಗಳನ್ನು ಕೇಂದ್ರೀಕರಿಸುತ್ತದೆ, ಹೀಗಾಗಿ ರೂಟ್ ಹ್ಯಾಂಡ್ಲರ್ಗಳು
+ಲಾಕ್ಔಟ್/ಬಜೆಟ್/ಫಾಲ್ಬ್ಯಾಕ್ ತರ್ಕವನ್ನು ಸ್ವತಃ ಜೋಡಿಸಬೇಕಾಗಿಲ್ಲ.
 
-- ನೀತಿ ಎಂಜಿನ್: `src/domain/policyEngine.ts` — ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ-ಪೂರ್ವ
+- ನೀತಿ ಎಂಜಿನ್: `src/domain/policyEngine.ts` — ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆಗೆ-ಮುಂಚಿನ
   ಮೌಲ್ಯಮಾಪನಕ್ಕಾಗಿ ಏಕೈಕ ಪ್ರವೇಶ ಬಿಂದು (ಲಾಕ್ಔಟ್ → ಬಜೆಟ್ → ಫಾಲ್ಬ್ಯಾಕ್ ಕ್ರಮ)
-- ವೆಚ್ಚ ನಿಯಮಗಳು: `src/domain/costRules.ts`
+- ವೆಚ್ಚದ ನಿಯಮಗಳು: `src/domain/costRules.ts`
 - ಫಾಲ್ಬ್ಯಾಕ್ ನೀತಿ: `src/domain/fallbackPolicy.ts`
 - ಲಾಕ್ಔಟ್ ನೀತಿ: `src/domain/lockoutPolicy.ts`
 - ಟ್ಯಾಗ್-ಆಧಾರಿತ ರೂಟಿಂಗ್: `src/domain/tagRouter.ts`
 - ಕಾಂಬೊ ರಿಸಾಲ್ವರ್: `src/domain/comboResolver.ts` — ಕಾಂಬೊ ಹೆಸರುಗಳು, auto/\*
-  ಪೂರ್ವಪ್ರತ್ಯಯಗಳು ಮತ್ತು ವೈಲ್ಡ್ಕಾರ್ಡ್ ಮಾಡೆಲ್ ಗುರಿಗಳನ್ನು ನಿರ್ದಿಷ್ಟ ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ ಯೋಜನೆಗಳಾಗಿ ಪರಿಹರಿಸುತ್ತದೆ
-- ಸಂಪರ್ಕ/ಮಾಡೆಲ್ ನಿಯಮ ಜೋಡಕ: `src/domain/connectionModelRules.ts`
-- ಮಾಡೆಲ್ ಲಭ್ಯತೆ ಸ್ನ್ಯಾಪ್ಶಾಟ್ಗಳು: `src/domain/modelAvailability.ts`
-- ಪ್ರೊವೈಡರ್ ಅವಧಿ ಮುಕ್ತಾಯ ಟ್ರ್ಯಾಕಿಂಗ್: `src/domain/providerExpiration.ts`
+  ಪೂರ್ವಪ್ರತ್ಯಯಗಳು ಮತ್ತು ವೈಲ್ಡ್ಕಾರ್ಡ್ ಮಾದರಿ ಗುರಿಗಳನ್ನು ನಿರ್ದಿಷ್ಟ ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ ಯೋಜನೆಗಳಾಗಿ ಪರಿಹರಿಸುತ್ತದೆ
+- ಸಂಪರ್ಕ/ಮಾದರಿ ನಿಯಮ ಜೋಡಕ: `src/domain/connectionModelRules.ts`
+- ಮಾದರಿ ಲಭ್ಯತೆಯ ಸ್ನ್ಯಾಪ್ಶಾಟ್ಗಳು: `src/domain/modelAvailability.ts`
+- ಪೂರೈಕೆದಾರ ಅವಧಿ ಮುಕ್ತಾಯದ ಟ್ರ್ಯಾಕಿಂಗ್: `src/domain/providerExpiration.ts`
 - ಕೋಟಾ ಕ್ಯಾಶ್: `src/domain/quotaCache.ts`
-- ಡಿಗ್ರೇಡೇಶನ್ ಸ್ಥಿತಿ: `src/domain/degradation.ts`
+- ಅಧಃಪತನದ ಸ್ಥಿತಿ: `src/domain/degradation.ts`
 - ಸಂರಚನಾ ಆಡಿಟ್: `src/domain/configAudit.ts`
 - OmniRoute ಪ್ರತಿಕ್ರಿಯೆ ಮೆಟಾಡೇಟಾ ಬಿಲ್ಡರ್: `src/domain/omnirouteResponseMeta.ts`
-- ಮೌಲ್ಯಮಾಪನ ಉಪವ್ಯವಸ್ಥೆ: `src/domain/assessment/` — ನಿಯತಕಾಲಿಕ ಮೌಲ್ಯಮಾಪನ ಕಾರ್ಯಗಳು
+- ಮೌಲ್ಯಮಾಪನ ಉಪವ್ಯವಸ್ಥೆ: `src/domain/assessment/` — ಆವರ್ತಕ ಮೌಲ್ಯಮಾಪನ ಕಾರ್ಯಗಳು
 
 ### E. ದೃಢೀಕರಣ ಪೈಪ್ಲೈನ್
 
-ದೃಢೀಕರಣ ಪೈಪ್ಲೈನ್ ಪ್ರತಿ ಒಳಬರುವ ವಿನಂತಿಯನ್ನು ವರ್ಗೀಕರಿಸಿ, ಡಿಸ್ಪ್ಯಾಚ್ ಮಾಡುವ ಮೊದಲು
-ಸೂಕ್ತ ನೀತಿ ಚೈನ್ ಅನ್ನು ಅನ್ವಯಿಸುತ್ತದೆ.
+ದೃಢೀಕರಣ ಪೈಪ್ಲೈನ್ ಪ್ರತಿಯೊಂದು ಒಳಬರುವ ವಿನಂತಿಯನ್ನು ವರ್ಗೀಕರಿಸುತ್ತದೆ ಮತ್ತು ಡಿಸ್ಪ್ಯಾಚ್ ಮಾಡುವ ಮೊದಲು
+ಸೂಕ್ತ ನೀತಿ ಸರಪಳಿಯನ್ನು ಅನ್ವಯಿಸುತ್ತದೆ.
 
 - ಪೈಪ್ಲೈನ್ ಪ್ರವೇಶ: `src/server/authz/pipeline.ts`
-- ವಿನಂತಿ ವರ್ಗೀಕರಣಕಾರ: `src/server/authz/classify.ts` — ಸಾರ್ವಜನಿಕ
+- ವಿನಂತಿ ವರ್ಗೀಕಾರಕ: `src/server/authz/classify.ts` — ಸಾರ್ವಜನಿಕ
   ಹೊಂದಾಣಿಕೆ ರೂಟ್ಗಳನ್ನು ನಿರ್ವಹಣಾ ರೂಟ್ಗಳಿಂದ ಪ್ರತ್ಯೇಕಿಸುತ್ತದೆ
 - ಸಾರ್ವಜನಿಕ ರೂಟ್ ಇನ್ವೆಂಟರಿ: `src/shared/constants/publicApiRoutes.ts`
 - ನೀತಿಗಳು: `src/server/authz/policies/` — ಸಂಯೋಜಿಸಬಹುದಾದ ಪ್ರೆಡಿಕೇಟ್ಗಳು
@@ -462,62 +452,51 @@ Jules) ಏಕರೂಪದ DB-ಬೆಂಬಲಿತ ಕಾರ್ಯ ಜೀವನ�
 - ಅಸರ್ಟ್ ಸಹಾಯಕ: `src/server/authz/assertAuth.ts`
 - ವಿನಂತಿ ಸಂದರ್ಭ: `src/server/authz/context.ts`
 
-ಸಾರ್ವಜನಿಕ ಮತ್ತು ನಿರ್ವಹಣಾ ರೂಟ್ಗಳ ನಡುವೆ ಕಠಿಣ ಗಡಿ ಇದೆ: ಏಜೆಂಟ್/ಕೂಲ್ಡೌನ್ APIಗಳು ಮತ್ತು
-ಪ್ರೊವೈಡರ್ ಮ್ಯೂಟೇಶನ್ಗಳಿಗೆ ನಿರ್ವಹಣಾ ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ (ಇಲ್ಲದಿದ್ದರೆ HTTP 401).
+ಸಾರ್ವಜನಿಕ ಮತ್ತು ನಿರ್ವಹಣಾ ರೂಟ್ಗಳ ನಡುವಿನ ಗಡಿ ಕಟ್ಟುನಿಟ್ಟಾಗಿದೆ: ಏಜೆಂಟ್/ಕೂಲ್ಡೌನ್ APIಗಳು ಮತ್ತು
+ಪೂರೈಕೆದಾರರ ಬದಲಾವಣೆಗಳಿಗೆ ನಿರ್ವಹಣಾ ದೃಢೀಕರಣದ ಅಗತ್ಯವಿದೆ (ಇಲ್ಲದಿದ್ದರೆ HTTP 401).
 
 ಸಂಪೂರ್ಣ ರೂಟ್ ವರ್ಗೀಕರಣ ನಿಯಮಗಳಿಗಾಗಿ, ನೋಡಿ
 [`docs/architecture/AUTHZ_GUIDE.md`](./AUTHZ_GUIDE.md).
 
 ### F. ವರ್ಕ್ಫ್ಲೋ FSM ಮತ್ತು ಕಾರ್ಯ-ಅರಿವುಳ್ಳ ರೂಟರ್
 
-ಪತ್ತೆಯಾದ ವರ್ಕ್ಫ್ಲೋ ಹಂತ (ಯೋಜನೆ, ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ,
-ಪರಿಶೀಲನೆ) ಮತ್ತು ಹಿನ್ನೆಲೆ-ಕಾರ್ಯ ಅಫಿನಿಟಿಯ ಆಧಾರದಲ್ಲಿ ಟ್ರಾಫಿಕ್ ಅನ್ನು ನಿರ್ದೇಶಿಸಲು ಕಾಂಬೊ ಆಯ್ಕೆಯ ಮೇಲೆ ಪದರವಾಗಿ ಇರಿಸಲಾದ
-ಫೈನೈಟ್-ಸ್ಟೇಟ್-ಮಷೀನ್ ಚಾಲಿತ ರೂಟರ್.
+ಪತ್ತೆಹಚ್ಚಲಾದ ವರ್ಕ್ಫ್ಲೋ ಹಂತ (ಯೋಜನೆ, ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ,
+ಪರಿಶೀಲನೆ) ಮತ್ತು ಹಿನ್ನೆಲೆ-ಕಾರ್ಯ ಹೊಂದಾಣಿಕೆಯ ಆಧಾರದ ಮೇಲೆ ಟ್ರಾಫಿಕ್ ಅನ್ನು ನಿರ್ದೇಶಿಸಲು,
+ಕಾಂಬೊ ಆಯ್ಕೆಯ ಮೇಲಿನ ಪದರವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವ ಫೈನೈಟ್-ಸ್ಟೇಟ್-ಮಷೀನ್ ಚಾಲಿತ ರೂಟರ್.
 
 - ವರ್ಕ್ಫ್ಲೋ FSM: `open-sse/services/workflowFSM.ts`
-- ಕಾರ್ಯ-ಅರಿವುಳ್ಳ ರೂಟರ್: `open-sse/services/taskAwareRouter.ts`
-- ಹಿನ್ನೆಲೆ ಕಾರ್ಯ ಪತ್ತೆಕಾರ: `open-sse/services/backgroundTaskDetector.ts`
-- ಉದ್ದೇಶ ವರ್ಗೀಕರಣಕಾರ: `open-sse/services/intentClassifier.ts`
+- ಕಾರ್ಯ-ಅರಿವಿನ ರೂಟರ್: `open-sse/services/taskAwareRouter.ts`
+- ಹಿನ್ನೆಲೆ ಕಾರ್ಯ ಪತ್ತೆಕಾರಕ: `open-sse/services/backgroundTaskDetector.ts`
+- ಉದ್ದೇಶ ವರ್ಗೀಕಾರಕ: `open-sse/services/intentClassifier.ts`
 
-FSM ಪರಿವರ್ತನೆಗಳು ಸ್ವಯಂ ಕಾಂಬೊದ ಸ್ಕೋರಿಂಗ್ಗೆ ಇನ್ಪುಟ್ ನೀಡುತ್ತವೆ; ಹಿನ್ನೆಲೆ/ಸ್ವಯಂಚಾಲಿತ ಕಾರ್ಯಗಳಿಗೆ
-ಅಗ್ಗದ ಮಾಡೆಲ್ಗಳತ್ತ ಮತ್ತು ಸಂವಾದಾತ್ಮಕ ಯೋಜನೆ/ಪರಿಶೀಲನಾ ಟರ್ನ್ಗಳಿಗೆ ಹೆಚ್ಚು ಶಕ್ತಿಶಾಲಿ
-ಮಾಡೆಲ್ಗಳತ್ತ ಒಲವು ತೋರಿಸುತ್ತವೆ.
+FSM ಸ್ಥಿತಿ ಪರಿವರ್ತನೆಗಳು Auto Comboದ ಸ್ಕೋರಿಂಗ್ಗೆ ಒಳಹರಿವು ನೀಡುತ್ತವೆ; ಹಿನ್ನೆಲೆ/ಸ್ವಯಂಚಾಲಿತ ಕಾರ್ಯಗಳಿಗೆ ಕಡಿಮೆ ವೆಚ್ಚದ ಮಾದರಿಗಳತ್ತ ಮತ್ತು ಸಂವಾದಾತ್ಮಕ ಯೋಜನೆ/ಪರಿಶೀಲನೆ ಹಂತಗಳಿಗೆ ಹೆಚ್ಚು ಸಾಮರ್ಥ್ಯವುಳ್ಳ ಮಾದರಿಗಳತ್ತ ಆದ್ಯತೆ ನೀಡುತ್ತವೆ.
 
-### G. ಪ್ರೊವೈಡರ್-ನಿರ್ದಿಷ್ಟ ಸ್ಥಿತಿಸ್ಥಾಪಕತೆ
+### G. ಪೂರೈಕೆದಾರ-ನಿರ್ದಿಷ್ಟ ಸ್ಥಿತಿಸ್ಥಾಪಕತೆ
 
-ಜಾಗತಿಕ ಸರ್ಕ್ಯೂಟ್ ಬ್ರೇಕರ್ / ಸಂಪರ್ಕ ಕೂಲ್ಡೌನ್ / ಮಾಡೆಲ್ ಲಾಕ್ಔಟ್ ಪದರಗಳ ಮೇಲೆ
-ಪಿಗಿಬ್ಯಾಕ್ ಮಾಡುವ ಮೀಸಲಾದ ಸ್ಥಿತಿಸ್ಥಾಪಕತೆ ಮತ್ತು ಸ್ಟೆಲ್ತ್ ಮಾಡ್ಯೂಲ್ಗಳನ್ನು ಹಲವು ಪ್ರೊವೈಡರ್ಗಳು ಒದಗಿಸುತ್ತವೆ:
+ಹಲವಾರು ಪೂರೈಕೆದಾರರು ಜಾಗತಿಕ ಸರ್ಕ್ಯೂಟ್ ಬ್ರೇಕರ್ / ಸಂಪರ್ಕ ಕೂಲ್ಡೌನ್ / ಮಾದರಿ ಲಾಕ್ಔಟ್ ಪದರಗಳ ಮೇಲೆ ಕಾರ್ಯನಿರ್ವಹಿಸುವ ಮೀಸಲಾದ ಸ್ಥಿತಿಸ್ಥಾಪಕತೆ ಮತ್ತು ಸ್ಟೆಲ್ತ್ ಮಾಡ್ಯೂಲ್ಗಳನ್ನು ಒದಗಿಸುತ್ತಾರೆ:
 
-- Antigravity 429 ಎಂಜಿನ್: `open-sse/services/antigravity429Engine.ts` (ಗುರುತನ್ನು
-  ಪರ್ಯಾಯವಾಗಿ ಬದಲಾಯಿಸುತ್ತದೆ, ಪ್ರತಿಕ್ರಿಯೆ ಹೆಡರ್ಗಳನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸುತ್ತದೆ, ಕ್ರೆಡಿಟ್ಗಳು/ಆವೃತ್ತಿ ಟ್ರ್ಯಾಕಿಂಗ್ ಅನ್ನು
-  `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`,
-  `antigravityIdentity.ts`, `antigravityVersion.ts` ಮೂಲಕ ನಡೆಸುತ್ತದೆ)
+- Antigravity 429 ಎಂಜಿನ್: `open-sse/services/antigravity429Engine.ts` (ಗುರುತನ್ನು ಆವರ್ತಿಸುತ್ತದೆ, ಪ್ರತಿಕ್ರಿಯೆ ಹೆಡರ್ಗಳನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸುತ್ತದೆ ಮತ್ತು `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`, `antigravityIdentity.ts`, `antigravityVersion.ts` ಮೂಲಕ ಕ್ರೆಡಿಟ್ಗಳು/ಆವೃತ್ತಿಯ ಟ್ರ್ಯಾಕಿಂಗ್ ಅನ್ನು ನಿರ್ವಹಿಸುತ್ತದೆ)
 - ModelScope ಕೋಟಾ ನೀತಿ: `open-sse/services/modelscopePolicy.ts`
-- Claude Code CCH (Compatibility Channel Handshake): `open-sse/services/claudeCodeCCH.ts`,
-  ಜೊತೆಗೆ `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
-  `claudeCodeToolRemapper.ts`
+- Claude Code CCH (ಹೊಂದಾಣಿಕೆ ಚಾನೆಲ್ ಹ್ಯಾಂಡ್ಶೇಕ್): `open-sse/services/claudeCodeCCH.ts`, ಜೊತೆಗೆ `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`, `claudeCodeToolRemapper.ts`
 - Claude Code ಫಿಂಗರ್ಪ್ರಿಂಟ್ ರೂಪಿಸುವಿಕೆ: `open-sse/services/claudeCodeFingerprint.ts`
 - Claude Code ಅಸ್ಪಷ್ಟೀಕರಣ: `open-sse/services/claudeCodeObfuscation.ts`
 
-ಸಂಪೂರ್ಣ ಸ್ಟೆಲ್ತ್ ಪ್ಲೇಬುಕ್ ಮತ್ತು ಕಾರ್ಯಾಚರಣಾ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ, ನೋಡಿ
-[`docs/security/STEALTH_GUIDE.md`](../security/STEALTH_GUIDE.md).
+ಸಂಪೂರ್ಣ ಸ್ಟೆಲ್ತ್ ಕಾರ್ಯತಂತ್ರ ಮತ್ತು ಕಾರ್ಯಾಚರಣೆಯ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ, `docs/security/STEALTH_GUIDE.md` ನೋಡಿ (git; `/docs` ಒಳಗೆ ಕಂಪೈಲ್ ಮಾಡಲಾಗಿಲ್ಲ).
 
-### H. ವೆಬ್ಹುಕ್ಗಳು, ರೀಸನಿಂಗ್ ಕ್ಯಾಶ್, ರೀಡ್ ಕ್ಯಾಶ್
+### H. ವೆಬ್ಹುಕ್ಗಳು, ತಾರ್ಕಿಕ ಕ್ಯಾಶ್, ಓದು ಕ್ಯಾಶ್
 
-- **ವೆಬ್ಹುಕ್ಗಳು** — ಪ್ರೊವೈಡರ್/ಖಾತೆ/ಕಾರ್ಯ ಈವೆಂಟ್ಗಳಿಗಾಗಿ ಹೊರಹೋಗುವ ಡಿಸ್ಪ್ಯಾಚ್.
+- **ವೆಬ್ಹುಕ್ಗಳು** — ಪೂರೈಕೆದಾರ/ಖಾತೆ/ಕಾರ್ಯ ಈವೆಂಟ್ಗಳಿಗಾಗಿ ಹೊರಹೋಗುವ ಡಿಸ್ಪ್ಯಾಚ್.
   - ಡಿಸ್ಪ್ಯಾಚರ್: `src/lib/webhookDispatcher.ts`
-  - ಸಂಗ್ರಹಣೆ: `webhooks` SQLite ಟೇಬಲ್ (`src/lib/db/webhooks.ts` ಮೂಲಕ)
-  - ಡ್ಯಾಶ್ಬೋರ್ಡ್: `/dashboard/webhooks` (ಚಂದಾದಾರಿಕೆಗಳು, ಸೀಕ್ರೆಟ್ಗಳು, ಮರುಪ್ರಯತ್ನ ಇತಿಹಾಸ)
-  - ಈವೆಂಟ್ ವರ್ಗೀಕರಣ ಮತ್ತು ಮರುಪ್ರಯತ್ನ ಸೆಮ್ಯಾಂಟಿಕ್ಸ್ಗಾಗಿ, ನೋಡಿ [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md).
-- **ರೀಸನಿಂಗ್ ಕ್ಯಾಶ್** — ಥಿಂಕಿಂಗ್ ಟೋಕನ್ಗಳನ್ನು ಹೊರಸೂಸುವ ಪ್ರೊವೈಡರ್ಗಳಿಗಾಗಿ
-  (Claude, GLMT, ಇತ್ಯಾದಿ) ಮರುಚಲಾಯಿಸಬಹುದಾದ ರೀಸನಿಂಗ್ ಬ್ಲಾಕ್ಗಳು; ಇದರಿಂದ ಅನುಕ್ರಮ ಟರ್ನ್ಗಳು ಮರು-ಚಿಂತನೆಯನ್ನು ಬಿಟ್ಟುಬಿಡಬಹುದು.
+  - ಸಂಗ್ರಹಣೆ: `webhooks` SQLite ಕೋಷ್ಟಕ (`src/lib/db/webhooks.ts` ಮೂಲಕ)
+  - ಡ್ಯಾಶ್ಬೋರ್ಡ್: `/dashboard/webhooks` (ಚಂದಾದಾರಿಕೆಗಳು, ರಹಸ್ಯಗಳು, ಮರುಪ್ರಯತ್ನ ಇತಿಹಾಸ)
+  - ಈವೆಂಟ್ ವರ್ಗೀಕರಣ ಮತ್ತು ಮರುಪ್ರಯತ್ನದ ಅರ್ಥವ್ಯವಸ್ಥೆಗಾಗಿ, [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md) ನೋಡಿ.
+- **ತಾರ್ಕಿಕ ಕ್ಯಾಶ್** — ಯೋಚನಾ ಟೋಕನ್ಗಳನ್ನು ಹೊರಸೂಸುವ ಪೂರೈಕೆದಾರರಿಗಾಗಿ (Claude, GLMT, ಇತ್ಯಾದಿ) ಮರುಪ್ಲೇ ಮಾಡಬಹುದಾದ ತಾರ್ಕಿಕ ಬ್ಲಾಕ್ಗಳು; ಇದರಿಂದ ಅನುಕ್ರಮ ಹಂತಗಳು ಮರು-ಚಿಂತನೆಯನ್ನು ಬಿಟ್ಟುಬಿಡಬಹುದು.
   - DB ಪದರ: `src/lib/db/reasoningCache.ts`
   - ಸೇವಾ ಪದರ: `open-sse/services/reasoningCache.ts`
-  - ಮರುಚಲಾವಣೆ ಸೆಮ್ಯಾಂಟಿಕ್ಸ್ಗಾಗಿ, ನೋಡಿ [`docs/routing/REASONING_REPLAY.md`](../routing/REASONING_REPLAY.md).
-- **ರೀಡ್ ಕ್ಯಾಶ್** — ಸಿಗ್ನೇಚರ್ನಿಂದ ಕೀ ಮಾಡಲಾದ, ಅಲ್ಪಾವಧಿಯ ಪ್ರತಿಕ್ರಿಯೆ ಕ್ಯಾಶ್; ದೋಷಪೂರಿತ ಅಪ್ಸ್ಟ್ರೀಮ್ SDKಗಳಿಂದ
-  ಬರುವ ಒಂದೇ ರೀತಿಯ ಮರುಪ್ರಯತ್ನಗಳನ್ನು ಒಗ್ಗೂಡಿಸಲು ಬಳಸಲಾಗುತ್ತದೆ.
+  - ಮರುಪ್ಲೇ ಅರ್ಥವ್ಯವಸ್ಥೆಗಾಗಿ, [`docs/routing/REASONING_REPLAY.md`](../routing/REASONING_REPLAY.md) ನೋಡಿ.
+- **ಓದು ಕ್ಯಾಶ್** — ಸಿಗ್ನೇಚರ್ ಆಧರಿಸಿ ಕೀ ಮಾಡಲಾದ ಅಲ್ಪಾವಧಿಯ ಪ್ರತಿಕ್ರಿಯೆ ಕ್ಯಾಶ್; ದೋಷಪೂರಿತ ಅಪ್ಸ್ಟ್ರೀಮ್ SDKಗಳಿಂದ ಬರುವ ಒಂದೇ ರೀತಿಯ ಮರುಪ್ರಯತ್ನಗಳನ್ನು ಒಗ್ಗೂಡಿಸಲು ಬಳಸಲಾಗುತ್ತದೆ.
   - DB ಪದರ: `src/lib/db/readCache.ts`
-  - ಅಂಕಿಅಂಶ ಎಂಡ್ಪಾಯಿಂಟ್: `GET /api/cache/stats`, ಡ್ಯಾಶ್ಬೋರ್ಡ್ `/dashboard/cache` ನಲ್ಲಿ ಲಭ್ಯವಿದೆ
+  - ಅಂಕಿಅಂಶಗಳ ಎಂಡ್ಪಾಯಿಂಟ್: `GET /api/cache/stats`, ಡ್ಯಾಶ್ಬೋರ್ಡ್: `/dashboard/cache`
 
 ## 3) ಸ್ಥಿರ ಸಂಗ್ರಹಣಾ ಪದರ
 

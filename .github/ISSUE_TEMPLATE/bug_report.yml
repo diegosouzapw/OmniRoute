@@ -1,12 +1,14 @@
 name: Bug Report
 description: Report a bug or unexpected behavior in OmniRoute
-title: "[BUG] "
+title: "fix(): "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to report a bug. Please fill out the sections below so we can reproduce and fix the issue.
+
+        The title is prefilled as `fix(): ` to match the [Conventional Commits](https://github.com/diegosouzapw/OmniRoute/blob/main/CONTRIBUTING.md#commit-messages) convention — pick a scope from the list documented there (e.g. `providers`, `resilience`, `dashboard`, `api`).
 
   - type: input
     id: version

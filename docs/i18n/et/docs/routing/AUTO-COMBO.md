@@ -1,21 +1,12 @@
-# AUTO-COMBO (Eesti)
+# OmniRoute Auto-Combo Engine (Eesti)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
----
+> **Kasutajatele**: Kas otsite kiiret alustamisjuhendit? Lihtsad selgitused ja näited leiate [Auto-Combo kasutusjuhendist](../getting-started/AUTO-COMBO-GUIDE.md).
 
-title: "OmniRoute Auto-Combo mootor"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# OmniRoute Auto-Combo mootor
-
-> **Kasutajatele**: Otsite kiiret alustamist? Vaadake [Auto-Combo kasutusjuhendit](../getting-started/AUTO-COMBO-GUIDE.md) lihtsate seletuste ja näidete jaoks.
-
-> Enesejuhitavad mudeliahelad kohanduva skoorimisega + null-konfiguratsiooniga auto-suunamine
+> Isehallatavad mudeliahelad adaptiivse hindamise ja seadistamisvaba automaatse marsruutimisega
 
 ## Null-konfiguratsiooniga auto-suunamine (`auto/` eesliide)
 
@@ -176,82 +167,85 @@ Kaks tavalist komistuskivi:
 
 Vaata [#7992](https://github.com/diegosouzapw/OmniRoute/issues/7992) ja [#7111](https://github.com/diegosouzapw/OmniRoute/issues/7111) selle algse segaduse kohta, mida see dokumenteerib.
 
-## Kuidas see töötab (Talletatud Automaatilised Komoodid)
+## Kuidas see töötab (püsivad automaatkombod)
 
-Automaatkomoodi mootor valib iga päringu jaoks dünaamiliselt parima tarnija/mudeli, kasutades **16 teguri skoorifunktsiooni** (määratud failis `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). Vaikimisi kaalud summeeruvad väärtuseni `1.0`; kohandatud kaalud normaliseeritakse funktsiooniga `normalizeScoringWeights()`. Kolmeist kuuestteist tegurist – `cacheAffinity`, `resetWindowAffinity` ja `reliability` – vaikimisi kaal on `0`: neid arvutatakse siiski iga kandidaadi jaoks ning `cacheAffinity` reguleerib kohatäitmise puhvri duplikaatide kõrvaldamist skoorist väljaspool, mistõttu need on deklareeritud tegurid, mis lihtsalt vaikimisi ei osale hääletamisel.
+Auto-Combo mootor valib iga päringu jaoks dünaamiliselt parima teenusepakkuja/mudeli, kasutades **16 teguriga hindamisfunktsiooni** (määratletud failis `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). Vaikekaalude summa on `1.0`; kohandatud kaalud normaliseeritakse uuesti funktsiooniga `normalizeScoringWeights()`. Kuueteistkümnest tegurist kahel — `cacheAffinity` ja `resetWindowAffinity` — on vaikimisi kaal `0`; teguril `reliability` on `DEFAULT_WEIGHTS`-is kaal `0`, kuid üldistes pakettides `0.03` ja paketis `reliability-first` `0.04`, ning teguril `quality` on pakettides kaal `0.02` (paketis `quality-first` `0.03`): need arvutatakse siiski iga kandidaadi jaoks ning `cacheAffinity` juhib väljaspool punktisummat viipade vahemälu duplikaatide eemaldamist, seega nulliga vaikekaaluga tegurid lihtsalt vaikimisi hindamises ei osale, küll aga osalevad paketid.
 
-![Automaatkomoodi 16 teguri skoor](../diagrams/exported/auto-combo-scoring.svg)
+![Auto-Combo 16 teguriga hindamine](../diagrams/exported/auto-combo-scoring.svg)
 
-> Allikas: [diagrams/auto-combo-scoring.mmd](../diagrams/auto-combo-scoring.mmd) (taaslooge käsurealt `npm run docs:render-diagrams`). Failinimi on ajalooline; allika- ja renderdatud skeem näitavad kõiki 16 tegurit, mis on deklareeritud `DEFAULT_WEIGHTS`.
+> Allikas: [diagrams/auto-combo-scoring.mmd](../diagrams/auto-combo-scoring.mmd) (taasloomiseks kasutage käsku `npm run docs:render-diagrams`). Failinimi on ajalooline; lähtefail ja renderdatud diagramm näitavad kõiki 16 tegurit, mis on deklareeritud objektis `DEFAULT_WEIGHTS`.
 
-| Tegur                 | Vaikimisi Kaal | Kirjeldus                                                                                                                                                                                                       |
-| :-------------------- | :------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `quota`               | 0.1429         | Järelejäänud kvoot / piirkiiruse varu [0..1]                                                                                                                                                                    |
-| `health`              | 0.1605         | Terviskoor vooluringi katkestajalt (SULETUD=1.0, POOLAVATUD=0.5, AVATUD=0.0)                                                                                                                                    |
-| `costInv`             | 0.1429         | Pöördväärtuslik **segatud** maksumus (60% sisend + 40% väljundite märgihind, normaliseeritud) — odavam = kõrgem skoor                                                                                           |
-| `latencyInv`          | 0.1143         | Pöördväärtuslik p95 latentsus, normaliseeritud baasi — kiirem = kõrgem skoor                                                                                                                                    |
-| `taskFit`             | 0.0762         | Ülesande tüübi sobivus (programmeerimine, ülevaade, planeerimine, analüüs, silumine, dokumendid)                                                                                                                |
-| `stability`           | 0.0476         | Hälbel põhinev stabiilsus latentsuse standardhälbe alusel — kandidaat, kelle vastuseaja kõikumine on suur, saab madalama skooru                                                                                 |
-| `tierPriority`        | 0.0476         | Kontotaseme prioriteet — Ultra=1.0, Pro=0.67, Standard=0.33, Free=0.0                                                                                                                                           |
-| `tierAffinity`        | 0.0476         | Seos kandidaadi taseme ja manuse-soovitatud taseme vahel                                                                                                                                                        |
-| `specificityMatch`    | 0.0476         | Vastavus päringu spetsiifilisuse (manuse vihje) ja mudeli taseme vahel                                                                                                                                          |
-| `contextAffinity`     | 0.0476         | Seos päringu kontekstiakna vajaduse ja mudeli kontekstiakna vahel                                                                                                                                               |
-| `sessionAvailability` | 0.0476         | Kandidaadi ühenduse OAuth seansi kättesaadavus selle seansi jaoks (`getOAuthSessionAvailability()`; mitte-OAuth ühendused saavad skoori 1.0)                                                                    |
-| `connectionDensity`   | 0.0476         | Jaotab koormust sama tarnija ühenduste vahel (kontsentreerumise vältimine)                                                                                                                                      |
-| `cacheAffinity`       | 0.00           | Rendivuude (rendezvous-hash) seos suunaga selle ühenduse poole, mis tõenäoliselt juba hoiab selle päringu kohatäitmise eelliidet (`open-sse/services/combo/promptCacheAffinity.ts`); vaikimisi keelatud (#8008) |
-| `resetWindowAffinity` | 0.00           | Seos ühenduste poole, kelle kvoodi lähtestamise aken on soodne (vaikimisi keelatud)                                                                                                                             |
-| `quality`             | 0.03           | Tagasisidel põhinev väljundikvaliteedi signaal marsruutimissündmuste kvaliteedijälgijast; kandidaadid, kellel puuduvad vaatlused, saavad neutraalse 0.5                                                         |
-| `reliability`         | 0.00           | Täheldatud eduosa, `1 - tõrkeMäär`, 24 tunni kasutusajaloo alusel, kümne näidise põhja taga (muidu reaalajas mõõdud); kandidaadid, kellel puuduvad vaatlused, loetakse väärtuseks 1.0. Vaikimisi keelatud       |
+| Tegur                 | Vaikekaal | Kirjeldus                                                                                                                                                                                                                  |
+| :-------------------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `quota`               | 0.1429    | Allesjäänud kvoot / kiirusepiirangu varu [0..1]                                                                                                                                                                            |
+| `health`              | 0.1605    | Kaitselüliti seisundiskoor (CLOSED=1.0, HALF_OPEN=0.5, OPEN=0.0)                                                                                                                                                           |
+| `costInv`             | 0.1429    | **Kombineeritud** kulu pöördväärtus (60% sisend- + 40% väljundtokeni hinnast, normaliseeritud) — odavam = kõrgem skoor                                                                                                     |
+| `latencyInv`          | 0.1143    | Kogumi suhtes normaliseeritud p95 latentsuse pöördväärtus — kiirem = kõrgem skoor                                                                                                                                          |
+| `taskFit`             | 0.0762    | Sobivus ülesande tüübiga (programmeerimine, ülevaatus, plaanimine, analüüs, silumine, dokumentatsioon)                                                                                                                     |
+| `stability`           | 0.0476    | Latentsuse standardhälbel põhinev stabiilsus — kandidaadi skoor on madalam, kui tema reageerimisaeg tugevalt kõigub                                                                                                        |
+| `tierPriority`        | 0.0476    | Kontotaseme prioriteet — Ultra=1.0, Pro=0.67, Standard=0.33, Free=0.0                                                                                                                                                      |
+| `tierAffinity`        | 0.0476    | Sobivus kandidaadi taseme ja manifestis soovitatud taseme vahel                                                                                                                                                            |
+| `specificityMatch`    | 0.0476    | Sobivus päringu spetsiifilisuse (manifesti vihje) ja mudeli taseme vahel                                                                                                                                                   |
+| `contextAffinity`     | 0.0476    | Sobivus päringu kontekstiakna vajaduse ja mudeli kontekstiakna vahel                                                                                                                                                       |
+| `sessionAvailability` | 0.0476    | Kandidaatühenduse OAuth-seansi saadavus selle seansi jaoks (`getOAuthSessionAvailability()`; mitte-OAuth-ühenduste skoor on 1.0)                                                                                           |
+| `connectionDensity`   | 0.0476    | Jaotab koormuse sama teenusepakkuja ühenduste vahel (kontsentratsiooni vältimine)                                                                                                                                          |
+| `cacheAffinity`       | 0.00      | Rendezvous-räsi põhine eelistus ühenduse suhtes, mis tõenäoliselt juba sisaldab selle päringu viibavahemälu prefiksit (`open-sse/services/combo/promptCacheAffinity.ts`); vaikimisi keelatud (#8008)                       |
+| `resetWindowAffinity` | 0.00      | Eelistab ühendusi, mille kvoodi lähtestamise ajavahemik on soodne (vaikimisi keelatud)                                                                                                                                     |
+| `quality`             | 0.03      | Marsruutimissündmuste kvaliteedijälgija tagasisidel põhinev väljundkvaliteedi signaal; vaatlusteta kandidaadid saavad neutraalse väärtuse 0.5                                                                              |
+| `reliability`         | 0.00      | Vaadeldud edukate päringute osakaal, `1 - failureRate`, 24 tunni kasutusajaloost vähemalt kümne näidise olemasolul (vastasel juhul reaalajamõõdikud); vaatlusteta kandidaatide väärtuseks loetakse 1.0. Vaikimisi keelatud |
 
-**Summa:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0` nagu deklareeritud `DEFAULT_WEIGHTS`-is; kasutaja kohandatud kaalud normaliseeritakse enne skoorimist funktsiooniga `normalizeScoringWeights()` jaotuseks.
+**Summa:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0`, nagu on deklareeritud objektis `DEFAULT_WEIGHTS`; kasutaja seadistatud kaalud normaliseeritakse enne hindamist funktsiooniga `normalizeScoringWeights()` uuesti jaotuseks.
 
-## Režiimipakid
+## Režiimipaketid
 
-6 eelmääratud kaaluprofiili asuvad failis `open-sse/services/autoCombo/modePaks.ts`. Iga pakend asendab vaikimisi kaalud täielikult, et suunata valikut ühe eesmärgi poole. Iga pakendi summa on juba `1.0` (`0.9999`, nagu neljakohalise täpsusega kuvatud), nii et `normalizeScoringWeights()` ei pea aktiivse pakendi puhul midagi olulist parandama — allolevad väärtused on ümardamisel need, mida hindur kasutab.
+6 eelmääratletud kaaluprofiili failis `open-sse/services/autoCombo/modePacks.ts`. Iga pakett asendab vaikekaalud täielikult, et kallutada valikut ühe eesmärgi poole. Iga paketi summa on juba `1.0` (nelja kümnendkohaga kuvatuna `0.9999`), seega pole funktsioonil `normalizeScoringWeights()` paketi aktiivsuse korral midagi sisulist parandada — alltoodud väärtused on ümardamist arvestades need, mida hindaja rakendab.
 
 | Tegur                 | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
-| `quota`               | 0.1333     | 0.1333     | 0.0952        | **0.3524**       | 0.1333            | 0.0476     |
+| `quota`               | 0.1133     | 0.1133     | 0.0752        | **0.3324**       | 0.1133            | 0.0376     |
 | `health`              | 0.2667     | 0.1810     | 0.1714        | 0.2667           | **0.3524**        | **0.4000** |
-| `costInv`             | 0.0476     | **0.3524** | 0.0476        | 0.0952           | 0.0381            | 0.0190     |
-| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0286     |
+| `costInv`             | 0.0276     | **0.3324** | 0.0276        | 0.0752           | 0.0181            | 0.0140     |
+| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0186     |
 | `taskFit`             | 0.0952     | 0.0952     | **0.3524**    | 0.0000           | 0.0952            | 0.1905     |
 | `stability`           | 0.0000     | 0.0476     | 0.1429        | 0.0952           | 0.1905            | 0.1714     |
-| `tierPriority`        | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0190     |
+| `tierPriority`        | 0.0376     | 0.0376     | 0.0276        | 0.0376           | 0.0276            | 0.0040     |
 | `tierAffinity`        | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
 | `specificityMatch`    | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
-| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0286     |
+| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0186     |
 | `sessionAvailability` | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
 | `resetWindowAffinity` | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
 | `connectionDensity`   | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
+| `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
 
 Märkused:
 
-- **Ükski pakend ei määra `quality` väärtust ja pakend asendab kaalukaardi tervikuna** (`weights = pack`, mitte liitmine). `quality` väärtus on `DEFAULT_WEIGHTS` puhul `0.03`, kuid mis tahes režiimi paki all normaliseerub see `0` väärtuseks — paki valimine vaigistab täielikult täheldatud kvaliteedisignaali. Kui soovite, et kvaliteediteave mõjutaks suunamist, jätke `modePaks` määramata ja häälestage kaalud otse. (`cacheAffinity` jääb samuti iga paki puhul määramata, kuid selle vaikeväärtus on nagunii `0`, nii et seal midagi ei muutu.)
-- `tierAffinity`, `specificityMatch` ja `resetWindowAffinity` on igas pakis selgelt `0`.
-- Iga paki rõhuasetus lühidalt:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (madal latentsus, terved ühendused)
-  - **cost-saver** → costInv 0.3524 (odavaimad märgid võidavad)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 (parim mudel ülesandele, stabiilne)
-  - **offline-friendly** → quota 0.3524 + health 0.2667 (maksimaalne varu kiirusest/kulust sõltumata)
-  - **reliability-first** → health 0.3524 + stability 0.1905 (vähim ebameeldivaid üllatusi)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (rõivastusprofiil)
+- **Paketid sisaldavad väärtusi `quality` ja `reliability`** (`quality 0.02`, paketis `quality-first 0.03`; `reliability 0.03`, paketis `reliability-first 0.04`) ning asendavad kaalude kaardi täielikult (`weights = pack`, mitte liitmine). `DEFAULT_WEIGHTS` sisaldab väärtusi `quality 0.03 / reliability 0`; valiku `balanced`/`default` korral säilivad need vaikeväärtused, paketi valimisel kasutatakse ülaltoodud paketi väärtusi. Külma kogumi korral (vaatlusi pole veel tehtud, seega `quality 0.5` ja `reliability 1`) lisavad need kaks tegurit üldise paketi puhul `+0.04` (`0.03 + 0.01`), paketi `quality-first` puhul `+0.045` ja paketi `reliability-first` puhul `+0.05`.
+- `tierAffinity`, `specificityMatch` ja `resetWindowAffinity` on igas paketis sõnaselgelt määratud väärtusele `0`.
+- Iga paketi rõhuasetus lühidalt:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (väikese latentsusega, heas seisukorras ühendused)
+  - **cost-saver** → costInv 0.3324 (võidavad odavaimad tokenid)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, kõigist pakettidest kõrgeim (ülesande jaoks parim ja järjepidev mudel)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (maksimaalne varu kiirusest/kulust olenemata)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, kõigist pakettidest kõrgeim (kõige vähem üllatusi)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (tõrgete sisestamise profiil)
 
-### Päringutaseme kontrollid (päised) — #6023 / #6024 / #6025 / #3470
+### Päringupõhised juhtseaded (päised) — #6023 / #6024 / #6025 / #3470
 
-`auto` kombot saab juhtida **päringu kohta** kolme päisega, muutmata
-kombo salvestatud konfiguratsiooni. Need kehtivad ainult `auto` strateegia jaoks ja ainult
-päringu jaoks, mis neid kannab; kombo salvestatud `modePaks`/`budgetCap`/`budgetFallback`
-väärtusi kasutatakse siis, kui päist ei ole.
+Kombot `auto` saab **iga päringu puhul eraldi** juhtida kolme päise kaudu, muutmata
+kombo salvestatud konfiguratsiooni. Need rakenduvad ainult strateegiale `auto` ja ainult neid
+sisaldavale päringule; päise puudumisel kasutatakse kombo salvestatud väärtusi
+`modePack`/`budgetCap`/`budgetFallback`.
 
-| Päis                          | Aktsepteerib                                                                                                                                                                                  | Mõju                                                                                                                                                                                                                                                |
-| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | eelmääratud aliase (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) või toores paki nimi (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Käesoleva päringu jaoks katab hindamise kaalud. `balanced`/`default` sunnib kasutama vaikimisi kaale (pakita). Tundmatuid väärtusi eiratakse (konfiguratsioon säilib).                                                                              |
-| `X-OmniRoute-Budget`          | positiivne arv (maks USD päringu kohta)                                                                                                                                                       | Jäik kulupiir: kandidaadid, kelle hinnanguline kulu ületab selle, filtreeritakse enne valikut. Mida juhtub siis, kui **iga** kandidaat seda ületab, kontrollib allolev `X-OmniRoute-Budget-Fallback`.                                               |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (vaikimisi, aliased: `cheapest-viable`, `soft`) või `strict` (aliased: `block`, `hard`)                                                                                            | `cheapest`: taandub kõige odavamale globaalsele kandidaadile, kuigi see ületab siiski piiri (vanem käitumine). `strict`: keeldub valimast — päring nurjub kiiresti `HTTP 402` koodiga, mitte vaikselt üle kulutades. Tundmatuid väärtusi eiratakse. |
+| Päis                          | Aktsepteerib                                                                                                                                                                                        | Mõju                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `X-OmniRoute-Mode`            | eelseadistuse alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) või töötlemata paketinimi (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Alistab selle päringu hindamiskaalud. `balanced`/`default` sunnivad kasutama vaikekaalusid (paketti ei kasutata). Tundmatuid väärtusi eiratakse (konfiguratsioon säilitatakse).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `X-OmniRoute-Budget`          | positiivne arv (maksimaalne USD päringu kohta)                                                                                                                                                      | Range kulupiirang: kandidaadid, mille hinnanguline maksumus seda ületab, filtreeritakse enne valimist välja. Allpool olev `X-OmniRoute-Budget-Fallback` määrab, mis juhtub siis, kui **kõik** kandidaadid seda ületavad.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (vaikeväärtus, aliased: `cheapest-viable`, `soft`) või `strict` (aliased: `block`, `hard`)                                                                                               | `cheapest`: kasutab varuvariandina üldiselt kõige odavamat kandidaati, kuigi ka see ületab piirmäära (pärandkäitumine). `strict`: keeldub valikut tegemast — päring nurjub kohe veaga `HTTP 402`, selle asemel et märkamatult eelarvet ületada. Tundmatuid väärtusi eiratakse.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `X-OmniRoute-Effort`          | `auto` (muud väärtused on reserveeritud)                                                                                                                                                            | Kohanduv mõtlemiseelarve: kui päring ei sisalda **üheski vormis** arutlusvälja (`reasoning_effort`, `reasoning`, `thinking`), tuletab lüüs väärtusest `auto` deterministlike päringustruktuuri signaalide alusel väärtuse `low`/`medium`/`high` (viimase kasutajasõnumi pikkus, konteksti maht kuni viimase kasutajasõnumini, varasemad tööriistatulemused, tööriistatsükli sügavus). Signaalid piirduvad praeguse vooruga — kõike pärast viimast kasutajasõnumit eiratakse — seega tuletatakse tööriistatsükli igale päringule sama tase (olekuta voorupõhine fikseerimine, seansi olek puudub, tsükli keskel ei toimu eskaleerimist, mis lõhuks ülesvoolu viibapuhvri prefiksid). Kliendi selgesõnaliselt määratud arutlusväli on alati ülimuslik. Kehtib päringutele, mille ülesvoolu suunamine kasutab OpenAI Chat Completionsi kuju (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` on OpenAI-kujuline väli, mistõttu ei avalda päis Claude'ile või Geminile suunatud päringule mõju (vt `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Sunni kiireimat profiili, piira käesolevat päringut summaga $0.05 ja keela jäigalt ülekulutamine
+# Sunni kasutama kiireimat profiili, piira selle päringu kulu 0,05 dollariga ja blokeeri rangelt, selle asemel et eelarvet ületada
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -260,10 +254,10 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Lahendus on puhas funktsioon (`open-sse/services/autoCombo/requestControls.ts`); lahendatud
-väärtused toidavad mootori olemasolevaid `config.modePaks` / `config.budgetCap` /
-`config.budgetFallback` sisendeid. Kombo salvestatud `config.budgetFallback` ("strict" |
-"cheapest") määrab püsiva poliitika; päis katab selle ühe päringu jaoks.
+Lahendamine on puhas funktsioon (`open-sse/services/autoCombo/requestControls.ts`);
+lahendatud väärtused edastatakse mootori olemasolevatele sisenditele `config.modePack` / `config.budgetCap` /
+`config.budgetFallback`. Kombinatsiooni salvestatud `config.budgetFallback` ("strict" |
+"cheapest") määrab püsiva poliitika; päis kirjutab selle ühe päringu jaoks üle.
 
 ## Kõik marsruutimisstrateegiad
 

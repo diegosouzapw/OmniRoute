@@ -12,8 +12,10 @@ import {
   isAlibabaRegionalProvider,
   normalizeAlibabaProviderRegion,
   resolveAlibabaProviderBaseUrl,
+  resolveAlibabaProviderEmbeddingUrl,
   resolveAlibabaProviderMediaBaseUrl,
   resolveAlibabaProviderModelsUrl,
+  resolveAlibabaQwen3RerankUrl,
 } from "../../src/shared/constants/alibabaProviderRegions.ts";
 import { APIKEY_PROVIDERS } from "../../src/shared/constants/providers.ts";
 
@@ -75,6 +77,37 @@ test("regional resolver normalizes old region names and preserves genuine custom
     }),
     "https://token-plan.example.internal/compatible-mode/v1",
     "an operator-supplied endpoint must remain authoritative"
+  );
+});
+
+test("#13030 Alibaba specialty endpoints follow the selected workspace connection", () => {
+  const workspace = {
+    region: "china-beijing",
+    baseUrl: "https://workspace-test.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+  };
+  assert.equal(
+    resolveAlibabaProviderEmbeddingUrl("alibaba", workspace),
+    "https://workspace-test.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings"
+  );
+  assert.equal(
+    resolveAlibabaQwen3RerankUrl("alibaba", workspace),
+    "https://workspace-test.cn-beijing.maas.aliyuncs.com/compatible-api/v1/reranks"
+  );
+  assert.equal(
+    resolveAlibabaQwen3RerankUrl("alibaba-cn"),
+    "https://dashscope.aliyuncs.com/compatible-api/v1/reranks"
+  );
+  assert.equal(
+    resolveAlibabaProviderEmbeddingUrl("alibaba", {
+      baseUrl: "https://workspace-test.ap-southeast-1.maas.aliyuncs.com",
+    }),
+    "https://workspace-test.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/embeddings"
+  );
+  assert.equal(
+    resolveAlibabaQwen3RerankUrl("alibaba", {
+      baseUrl: "https://workspace-test.ap-southeast-1.maas.aliyuncs.com/compatible-api/v1/reranks",
+    }),
+    "https://workspace-test.ap-southeast-1.maas.aliyuncs.com/compatible-api/v1/reranks"
   );
 });
 
@@ -332,6 +365,8 @@ test("trailing-slash normalization is linear on pathological slash runs (ReDoS g
   resolveAlibabaProviderModelsUrl("alibaba", pathological);
   resolveAlibabaProviderMediaBaseUrl("alibaba", pathological);
   resolveAlibabaProviderBaseUrl("alibaba", pathological);
+  resolveAlibabaProviderEmbeddingUrl("alibaba", pathological);
+  resolveAlibabaQwen3RerankUrl("alibaba", pathological);
   const elapsed = performance.now() - started;
 
   assert.ok(

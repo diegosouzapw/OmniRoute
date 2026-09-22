@@ -4,53 +4,55 @@
 
 ---
 
-This guide covers how to cleanly remove OmniRoute from your system.
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/UNINSTALL.md) · 🇪🇹 [am](../../../am/docs/guides/UNINSTALL.md) · 🇸🇦 [ar](../../../ar/docs/guides/UNINSTALL.md) · 🇦🇿 [az](../../../az/docs/guides/UNINSTALL.md) · 🇧🇬 [bg](../../../bg/docs/guides/UNINSTALL.md) · 🇨🇿 [cs](../../../cs/docs/guides/UNINSTALL.md) · 🇩🇰 [da](../../../da/docs/guides/UNINSTALL.md) · 🇩🇪 [de](../../../de/docs/guides/UNINSTALL.md) · 🇬🇷 [el](../../../el/docs/guides/UNINSTALL.md) · 🇪🇸 [es](../../../es/docs/guides/UNINSTALL.md) · 🇪🇪 [et](../../../et/docs/guides/UNINSTALL.md) · 🇮🇷 [fa](../../../fa/docs/guides/UNINSTALL.md) · 🇫🇮 [fi](../../../fi/docs/guides/UNINSTALL.md) · 🇫🇷 [fr](../../../fr/docs/guides/UNINSTALL.md) · 🇮🇪 [ga](../../../ga/docs/guides/UNINSTALL.md) · 🇮🇳 [gu](../../../gu/docs/guides/UNINSTALL.md) · 🇳🇬 [ha](../../../ha/docs/guides/UNINSTALL.md) · 🇮🇱 [he](../../../he/docs/guides/UNINSTALL.md) · 🇮🇳 [hi](../../../hi/docs/guides/UNINSTALL.md) · 🇭🇷 [hr](../../../hr/docs/guides/UNINSTALL.md) · 🇭🇺 [hu](../../../hu/docs/guides/UNINSTALL.md) · 🇦🇲 [hy](../../../hy/docs/guides/UNINSTALL.md) · 🇮🇩 [id](../../../id/docs/guides/UNINSTALL.md) · 🇳🇬 [ig](../../../ig/docs/guides/UNINSTALL.md) · 🇮🇹 [it](../../../it/docs/guides/UNINSTALL.md) · 🇯🇵 [ja](../../../ja/docs/guides/UNINSTALL.md) · 🇬🇪 [ka](../../../ka/docs/guides/UNINSTALL.md) · 🇰🇭 [km](../../../km/docs/guides/UNINSTALL.md) · 🇮🇳 [kn](../../../kn/docs/guides/UNINSTALL.md) · 🇰🇷 [ko](../../../ko/docs/guides/UNINSTALL.md) · 🇱🇹 [lt](../../../lt/docs/guides/UNINSTALL.md) · 🇱🇻 [lv](../../../lv/docs/guides/UNINSTALL.md) · 🇮🇳 [ml](../../../ml/docs/guides/UNINSTALL.md) · 🇮🇳 [mr](../../../mr/docs/guides/UNINSTALL.md) · 🇲🇾 [ms](../../../ms/docs/guides/UNINSTALL.md) · 🇲🇹 [mt](../../../mt/docs/guides/UNINSTALL.md) · 🇲🇲 [my](../../../my/docs/guides/UNINSTALL.md) · 🇳🇵 [ne](../../../ne/docs/guides/UNINSTALL.md) · 🇳🇱 [nl](../../../nl/docs/guides/UNINSTALL.md) · 🇳🇴 [no](../../../no/docs/guides/UNINSTALL.md) · 🇮🇳 [or](../../../or/docs/guides/UNINSTALL.md) · 🇮🇳 [pa](../../../pa/docs/guides/UNINSTALL.md) · 🇵🇭 [phi](../../../phi/docs/guides/UNINSTALL.md) · 🇵🇱 [pl](../../../pl/docs/guides/UNINSTALL.md) · 🇵🇹 [pt](../../../pt/docs/guides/UNINSTALL.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/UNINSTALL.md) · 🇷🇴 [ro](../../../ro/docs/guides/UNINSTALL.md) · 🇷🇺 [ru](../../../ru/docs/guides/UNINSTALL.md) · 🇱🇰 [si](../../../si/docs/guides/UNINSTALL.md) · 🇸🇰 [sk](../../../sk/docs/guides/UNINSTALL.md) · 🇸🇮 [sl](../../../sl/docs/guides/UNINSTALL.md) · 🇷🇸 [sr](../../../sr/docs/guides/UNINSTALL.md) · 🇸🇪 [sv](../../../sv/docs/guides/UNINSTALL.md) · 🇰🇪 [sw](../../../sw/docs/guides/UNINSTALL.md) · 🇮🇳 [ta](../../../ta/docs/guides/UNINSTALL.md) · 🇮🇳 [te](../../../te/docs/guides/UNINSTALL.md) · 🇹🇭 [th](../../../th/docs/guides/UNINSTALL.md) · 🇹🇷 [tr](../../../tr/docs/guides/UNINSTALL.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/UNINSTALL.md) · 🇵🇰 [ur](../../../ur/docs/guides/UNINSTALL.md) · 🇺🇿 [uz](../../../uz/docs/guides/UNINSTALL.md) · 🇻🇳 [vi](../../../vi/docs/guides/UNINSTALL.md) · 🇳🇬 [yo](../../../yo/docs/guides/UNINSTALL.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/UNINSTALL.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/UNINSTALL.md)
+
+এই নির্দেশিকায় আপনার সিস্টেম থেকে OmniRoute সম্পূর্ণরূপে অপসারণ করার পদ্ধতি বর্ণনা করা হয়েছে।
 
 ---
 
-## Quick Uninstall (v3.6.2+)
+## দ্রুত আনইনস্টল (v3.6.2+)
 
-OmniRoute provides two built-in scripts for clean removal:
+পরিষ্কারভাবে অপসারণের জন্য OmniRoute দুটি বিল্ট-ইন স্ক্রিপ্ট প্রদান করে:
 
-### Keep Your Data
+### আপনার ডেটা সংরক্ষণ করুন
 
 ```bash
 npm run uninstall
 ```
 
-This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
+এটি OmniRoute অ্যাপ্লিকেশনটি অপসারণ করে, তবে `~/.omniroute/`-এ থাকা আপনার ডেটাবেস, কনফিগারেশন, API কী এবং প্রোভাইডার সেটিংস **সংরক্ষণ করে**। পরে পুনরায় ইনস্টল করার পরিকল্পনা থাকলে এবং আপনার সেটআপ অক্ষুণ্ণ রাখতে চাইলে এটি ব্যবহার করুন।
 
-### Full Removal
+### সম্পূর্ণ অপসারণ
 
 ```bash
 npm run uninstall:full
 ```
 
-This removes the application **and permanently erases** all data:
+এটি অ্যাপ্লিকেশনটি অপসারণ করে এবং সমস্ত ডেটা **স্থায়ীভাবে মুছে দেয়**:
 
-- Database (`storage.sqlite`)
-- Provider configurations and API keys
-- Backup files
-- Log files
-- All files in the `~/.omniroute/` directory
+- ডেটাবেস (`storage.sqlite`)
+- প্রোভাইডার কনফিগারেশন এবং API কী
+- ব্যাকআপ ফাইল
+- লগ ফাইল
+- `~/.omniroute/` ডিরেক্টরির সব ফাইল
 
-> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+> ⚠️ **সতর্কতা:** `npm run uninstall:full` চালানোর পর তা পূর্বাবস্থায় ফেরানো যায় না। আপনার সব প্রোভাইডার সংযোগ, কম্বো, API কী এবং ব্যবহারের ইতিহাস স্থায়ীভাবে মুছে যাবে।
 
 ---
 
-## Manual Uninstall
+## ম্যানুয়াল আনইনস্টল
 
-### NPM Global Install
+### NPM গ্লোবাল ইনস্টল
 
 ```bash
-# Remove the global package
+# গ্লোবাল প্যাকেজটি অপসারণ করুন
 npm uninstall -g omniroute
 
-# (Optional) Remove data directory
+# (ঐচ্ছিক) ডেটা ডিরেক্টরি অপসারণ করুন
 rm -rf ~/.omniroute
 ```
 
-### pnpm Global Install
+### pnpm গ্লোবাল ইনস্টল
 
 ```bash
 pnpm uninstall -g omniroute
@@ -60,97 +62,97 @@ rm -rf ~/.omniroute
 ### Docker
 
 ```bash
-# Stop and remove the container
+# কনটেইনারটি বন্ধ করে অপসারণ করুন
 docker stop omniroute
 docker rm omniroute
 
-# Remove the volume (deletes all data)
+# ভলিউমটি অপসারণ করুন (সমস্ত ডেটা মুছে দেয়)
 docker volume rm omniroute-data
 
-# (Optional) Remove the image
+# (ঐচ্ছিক) ইমেজটি অপসারণ করুন
 docker rmi diegosouzapw/omniroute:latest
 ```
 
 ### Docker Compose
 
 ```bash
-# Stop and remove containers
+# কনটেইনারগুলো বন্ধ করে অপসারণ করুন
 docker compose down
 
-# Also remove volumes (deletes all data)
+# ভলিউমগুলোও অপসারণ করুন (সমস্ত ডেটা মুছে দেয়)
 docker compose down -v
 ```
 
-### Electron Desktop App
+### Electron ডেস্কটপ অ্যাপ
 
 **Windows:**
 
-- Open `Settings → Apps → OmniRoute → Uninstall`
-- Or run the NSIS uninstaller from the install directory
+- `Settings → Apps → OmniRoute → Uninstall` খুলুন
+- অথবা ইনস্টল ডিরেক্টরি থেকে NSIS আনইনস্টলার চালান
 
 **macOS:**
 
-- Drag `OmniRoute.app` from `/Applications` to Trash
-- Remove data: `rm -rf ~/Library/Application Support/omniroute`
+- `/Applications` থেকে `OmniRoute.app` ট্র্যাশে টেনে নিন
+- ডেটা অপসারণ করুন: `rm -rf ~/Library/Application Support/omniroute`
 
 **Linux:**
 
-- Remove the AppImage file
-- Remove data: `rm -rf ~/.omniroute`
+- AppImage ফাইলটি অপসারণ করুন
+- ডেটা অপসারণ করুন: `rm -rf ~/.omniroute`
 
-### Source Install (git clone)
+### সোর্স ইনস্টল (git clone)
 
 ```bash
-# Remove the cloned directory
+# ক্লোন করা ডিরেক্টরিটি অপসারণ করুন
 rm -rf /path/to/omniroute
 
-# (Optional) Remove data directory
+# (ঐচ্ছিক) ডেটা ডিরেক্টরি অপসারণ করুন
 rm -rf ~/.omniroute
 ```
 
 ---
 
-## Data Directories
+## ডেটা ডিরেক্টরি
 
-OmniRoute stores data in the following locations by default:
+ডিফল্টভাবে OmniRoute নিম্নলিখিত লোকেশনগুলোতে ডেটা সংরক্ষণ করে:
 
-| Platform      | Default Path                  | Override                  |
-| ------------- | ----------------------------- | ------------------------- |
-| Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
-| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` env var        |
-| Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
-| XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
+| প্ল্যাটফর্ম | ডিফল্ট পাথ                      | ওভাররাইড                                  |
+| ----------- | ------------------------------- | ----------------------------------------- |
+| Linux       | `~/.omniroute/`                 | `DATA_DIR` এনভায়রনমেন্ট ভেরিয়েবল        |
+| macOS       | `~/.omniroute/`                 | `DATA_DIR` এনভায়রনমেন্ট ভেরিয়েবল        |
+| Windows     | `%APPDATA%/omniroute/`          | `DATA_DIR` এনভায়রনমেন্ট ভেরিয়েবল        |
+| Docker      | `/app/data/` (মাউন্ট করা ভলিউম) | `DATA_DIR` এনভায়রনমেন্ট ভেরিয়েবল        |
+| XDG-সম্মত   | `$XDG_CONFIG_HOME/omniroute/`   | `XDG_CONFIG_HOME` এনভায়রনমেন্ট ভেরিয়েবল |
 
-### Files in the data directory
+### ডেটা ডিরেক্টরির ফাইলসমূহ
 
-| File/Directory       | Description                                       |
-| -------------------- | ------------------------------------------------- |
-| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
-| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
-| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
-| `call_logs/`         | Request payload archives                          |
-| `backups/`           | Automatic database backups                        |
-| `log.txt`            | Legacy request log (optional)                     |
+| ফাইল/ডিরেক্টরি       | বিবরণ                                          |
+| -------------------- | ---------------------------------------------- |
+| `storage.sqlite`     | প্রধান ডেটাবেস (প্রোভাইডার, কম্বো, সেটিংস, কী) |
+| `storage.sqlite-wal` | SQLite রাইট-অ্যাহেড লগ (অস্থায়ী)              |
+| `storage.sqlite-shm` | SQLite শেয়ার্ড মেমোরি (অস্থায়ী)              |
+| `call_logs/`         | রিকোয়েস্ট পেলোড আর্কাইভ                       |
+| `backups/`           | স্বয়ংক্রিয় ডেটাবেস ব্যাকআপ                   |
+| `log.txt`            | লিগ্যাসি রিকোয়েস্ট লগ (ঐচ্ছিক)                |
 
 ---
 
-## Verify Complete Removal
+## সম্পূর্ণ অপসারণ যাচাই করুন
 
-After uninstalling, verify there are no remaining files:
+আনইনস্টল করার পরে, নিশ্চিত করুন যে কোনো অবশিষ্ট ফাইল নেই:
 
 ```bash
-# Check for global npm package
+# গ্লোবাল npm প্যাকেজ পরীক্ষা করুন
 npm list -g omniroute 2>/dev/null
 
-# Check for data directory
+# ডেটা ডিরেক্টরি পরীক্ষা করুন
 ls -la ~/.omniroute/ 2>/dev/null
 
-# Check for running processes
+# চলমান প্রসেস পরীক্ষা করুন
 pgrep -f omniroute
 ```
 
-If any process is still running, stop it:
+যদি কোনো প্রসেস এখনও চলতে থাকে, সেটি বন্ধ করুন:
 
 ```bash
 pkill -f omniroute

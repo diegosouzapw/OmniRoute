@@ -4,167 +4,178 @@
 
 ---
 
-Last updated: 2026-03-28
+Päivitetty viimeksi: 2026-06-28
 
-## Baseline
+> Tila mitattu 2026-05-13: rivit 82.58 %, lauseet 82.58 %, funktiot 84.23 %, haarat 75.22 %. Vaiheet 1–5 ovat valmiit. Nykyinen painopiste on vaiheessa 6 (>=85 %) ja vaiheessa 7 (>=90 %).
 
-There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful.
+## Lähtötaso
 
-| Metric               | Scope                                                 | Statements / Lines | Branches | Functions | Notes                                               |
-| -------------------- | ----------------------------------------------------- | -----------------: | -------: | --------: | --------------------------------------------------- |
-| Legacy               | Old `npm run test:coverage`                           |             79.42% |   75.15% |    67.94% | Inflated: counts test files and excludes `open-sse` |
-| Diagnostic           | Source-only, excluding tests and excluding `open-sse` |             68.16% |   63.55% |    64.06% | Useful only to isolate `src/**`                     |
-| Recommended baseline | Source-only, excluding tests and including `open-sse` |             56.95% |   66.05% |    57.80% | This is the project-wide baseline to improve        |
+Kattavuusluvut vaihtelevat sen mukaan, miten raportti lasketaan. Suunnittelun kannalta vain yksi niistä on hyödyllinen.
 
-The recommended baseline is the number to optimize against.
+| Mittari              | Laajuus                                                          | Lauseet / rivit |  Haarat | Funktiot | Huomautukset                                                           |
+| -------------------- | ---------------------------------------------------------------- | --------------: | ------: | -------: | ---------------------------------------------------------------------- |
+| Vanha                | Vanha `npm run test:coverage`                                    |         79.42 % | 75.15 % |  67.94 % | Liian korkea: laskee testitiedostot mukaan ja jättää `open-sse`:n pois |
+| Diagnostinen         | Vain lähdekoodi, pois lukien testit ja `open-sse`                |         68.16 % | 63.55 % |  64.06 % | Hyödyllinen vain `src/**`:n eristämiseen                               |
+| Suositeltu lähtötaso | Vain lähdekoodi, pois lukien testit mutta sisältäen `open-sse`:n |         82.58 % | 75.22 % |  84.23 % | Tämä on parannettava projektinlaajuinen lähtötaso                      |
 
-## Rules
+Optimointi tulee tehdä suositeltua lähtötasoa vasten.
 
-- Coverage targets apply to source files, not to `tests/**`.
-- `open-sse/**` is part of the product and must remain in scope.
-- New code should not reduce coverage in touched areas.
-- Prefer testing behavior and branch outcomes over implementation details.
-- Prefer temp SQLite databases and small fixtures over broad mocks for `src/lib/db/**`.
+## Säännöt
 
-## Current command set
+- Kattavuustavoitteet koskevat lähdetiedostoja, eivät hakemistoa `tests/**`.
+- `open-sse/**` on osa tuotetta, ja sen on pysyttävä mukana tarkastelussa.
+- Uusi koodi ei saa heikentää kattavuutta muokatuilla alueilla.
+- Suosi toiminnan ja haarautumien lopputulosten testaamista toteutuksen yksityiskohtien sijaan.
+- Suosi väliaikaisia SQLite-tietokantoja ja pieniä testiaineistoja laajojen mock-toteutusten sijaan hakemistossa `src/lib/db/**`.
+
+## Nykyiset komennot
 
 - `npm run test:coverage`
-  - Main source coverage gate for the unit test suite
-  - Generates `text-summary`, `html`, `json-summary`, and `lcov`
+  - Yksikkötestikokonaisuuden pääasiallinen lähdekoodin kattavuusportti
+  - Luo raportit `text-summary`, `html`, `json-summary` ja `lcov`
 - `npm run coverage:report`
-  - Detailed file-by-file report from the latest run
+  - Yksityiskohtainen tiedostokohtainen raportti viimeisimmästä ajosta
 - `npm run test:coverage:legacy`
-  - Historical comparison only
+  - Vain historiallista vertailua varten
 
-## Milestones
+## Välitavoitteet
 
-| Phase   |                 Target | Focus                                             |
-| ------- | ---------------------: | ------------------------------------------------- |
-| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          |
-| Phase 2 | 65% statements / lines | DB and route foundations                          |
-| Phase 3 | 70% statements / lines | Provider validation and usage analytics           |
-| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                |
-| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         |
-| Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites |
-| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          |
+| Vaihe   |                   Tavoite | Painopiste                                                                    | Tila      |
+| ------- | ------------------------: | ----------------------------------------------------------------------------- | --------- |
+| Vaihe 1 | 60 % lauseista / riveistä | Nopeat parannukset ja vähäriskisten apuohjelmien kattavuus                    | ✅ Valmis |
+| Vaihe 2 | 65 % lauseista / riveistä | Tietokannan ja reittien perusteet                                             | ✅ Valmis |
+| Vaihe 3 | 70 % lauseista / riveistä | Palveluntarjoajien validointi ja käyttöanalytiikka                            | ✅ Valmis |
+| Vaihe 4 | 75 % lauseista / riveistä | `open-sse`-muuntimet ja apufunktiot                                           | ✅ Valmis |
+| Vaihe 5 | 80 % lauseista / riveistä | `open-sse`-käsittelijät ja suorittimen haarat                                 | ✅ Valmis |
+| Vaihe 6 | 85 % lauseista / riveistä | Vaikeammat reunatapaukset, haarakattavuusvelka ja regressiotestikokonaisuudet | Työn alla |
+| Vaihe 7 | 90 % lauseista / riveistä | Viimeinen läpikäynti, puutteiden korjaus ja tiukka asteittainen korotus       | Odottaa   |
 
-Branches and functions should ratchet upward with each phase, but the primary hard target is statements / lines.
+Haara- ja funktiokattavuutta tulee nostaa jokaisessa vaiheessa, mutta ensisijainen ehdoton tavoite koskee lauseita / rivejä.
 
-## Priority hotspots
+## Ensisijaiset painopisteet
 
-These files or areas offer the best return for the next phases:
+Näissä tiedostoissa on tällä hetkellä alhaisin rivikattavuus (< 60 %), ja ne tarjoavat parhaan hyödyn vaiheissa 6–7. Luotu tiedostosta `coverage/coverage-summary.json` 2026-05-13:
 
-1. `open-sse/handlers`
-   - `chatCore.ts` at 7.57%
-   - Overall directory at 29.07%
-2. `open-sse/translator/request`
-   - Overall directory at 36.39%
-   - Many translators are still near single-digit coverage
-3. `open-sse/translator/response`
-   - Overall directory at 8.07%
-4. `open-sse/executors`
-   - Overall directory at 36.62%
-5. `src/lib/db`
-   - `models.ts` at 20.66%
-   - `registeredKeys.ts` at 34.46%
-   - `modelComboMappings.ts` at 36.25%
-   - `settings.ts` at 46.40%
-   - `webhooks.ts` at 33.33%
-6. `src/lib/usage`
-   - `usageHistory.ts` at 21.12%
-   - `usageStats.ts` at 9.56%
-   - `costCalculator.ts` at 30.00%
-7. `src/lib/providers`
-   - `validation.ts` at 41.16%
-8. Low-risk utility and API files for early gains
-   - `src/shared/utils/upstreamError.ts`
-   - `src/shared/utils/apiAuth.ts`
-   - `src/lib/api/errorResponse.ts`
-   - `src/app/api/settings/require-login/route.ts`
-   - `src/app/api/providers/[id]/models/route.ts`
+| #   | Tiedosto                                                     | Rivit % |
+| --- | ------------------------------------------------------------ | ------: |
+| 1   | `open-sse/services/compression/validation.ts`                |   7.87% |
+| 2   | `src/app/api/v1/batches/route.ts`                            |   9.67% |
+| 3   | `src/app/docs/components/FeedbackWidget.tsx`                 |   9.80% |
+| 4   | `open-sse/services/compression/toolResultCompressor.ts`      |  10.00% |
+| 5   | `src/app/docs/components/DocCodeBlocks.tsx`                  |  10.63% |
+| 6   | `open-sse/services/compression/engines/rtk/lineFilter.ts`    |  10.96% |
+| 7   | `open-sse/services/specificityRules.ts`                      |  11.28% |
+| 8   | `src/mitm/systemCommands.ts`                                 |  12.19% |
+| 9   | `open-sse/services/compression/aggressive.ts`                |  12.77% |
+| 10  | `src/app/api/v1/batches/[id]/cancel/route.ts`                |  12.98% |
+| 11  | `open-sse/services/compression/progressiveAging.ts`          |  13.26% |
+| 12  | `open-sse/services/compression/engines/rtk/smartTruncate.ts` |  13.43% |
+| 13  | `open-sse/services/compression/engines/rtk/deduplicator.ts`  |  13.51% |
+| 14  | `src/lib/cloudAgent/agents/jules.ts`                         |  13.52% |
+| 15  | `open-sse/services/compression/lite.ts`                      |  14.46% |
+| 16  | `src/app/api/v1/rerank/route.ts`                             |  14.94% |
+| 17  | `open-sse/services/compression/preservation.ts`              |  15.07% |
+| 18  | `src/lib/cloudAgent/agents/codex.ts`                         |  15.54% |
+| 19  | `open-sse/services/tierResolver.ts`                          |  16.66% |
+| 20  | `src/app/docs/components/DocsLazyWrapper.tsx`                |  16.66% |
 
-## Execution checklist
+Vaiheiden 6–7 teemat:
 
-### Phase 1: 56.95% -> 60%
+- `open-sse/services/compression/**` on tihein heikon kattavuuden keskittymä ja muodostaa suurimman osan jäljellä olevasta vajauksesta.
+- Erä- ja uudelleenjärjestely-API-reitit (`src/app/api/v1/batches/**`, `src/app/api/v1/rerank/route.ts`) tarvitsevat käsittelijätason testejä.
+- Pilviagenttisovittimet (`src/lib/cloudAgent/agents/jules.ts`, `codex.ts`) ja `tierResolver.ts` tarvitsevat skenaariotestejä.
+- Dokumentaation käyttöliittymäkomponentit ja `src/mitm/systemCommands.ts` ovat alemman prioriteetin kohteita, mutta niiden haarakattavuutta voidaan parantaa vähällä vaivalla.
 
-- [x] Fix coverage metric so it reflects source code instead of test files
-- [x] Keep a legacy coverage script for comparison
-- [x] Record the baseline and hotspots in-repo
-- [ ] Add focused tests for low-risk utilities:
+## Toteutuksen tarkistuslista
+
+### Vaihe 1: 56.95% -> 60%
+
+- [x] Korjaa kattavuusmittari siten, että se kuvaa lähdekoodia testitiedostojen sijaan
+- [x] Säilytä vanha kattavuusskripti vertailua varten
+- [x] Kirjaa lähtötaso ja painopisteet repositorioon
+- [ ] Lisää kohdennettuja testejä vähäriskisille apuohjelmille:
   - `src/shared/utils/upstreamError.ts`
   - `src/shared/utils/fetchTimeout.ts`
   - `src/lib/api/errorResponse.ts`
   - `src/shared/utils/apiAuth.ts`
   - `src/lib/display/names.ts`
-- [ ] Add route tests for:
+- [ ] Lisää reittitestit seuraaville:
   - `src/app/api/settings/require-login/route.ts`
   - `src/app/api/providers/[id]/models/route.ts`
 
-### Phase 2: 60% -> 65%
+### Vaihe 2: 60% -> 65%
 
-- [ ] Add DB-backed tests for:
+- [ ] Lisää tietokantaan pohjautuvia testejä seuraaville:
   - `src/lib/db/modelComboMappings.ts`
   - `src/lib/db/settings.ts`
   - `src/lib/db/registeredKeys.ts`
-- [ ] Cover branch behavior in:
+- [ ] Kata haarautumiskäyttäytyminen seuraavissa:
   - `src/lib/providers/validation.ts`
   - `src/app/api/v1/embeddings/route.ts`
   - `src/app/api/v1/moderations/route.ts`
 
-### Phase 3: 65% -> 70%
+### Vaihe 3: 65% -> 70%
 
-- [ ] Add usage analytics tests for:
+- [ ] Lisää käytön analytiikkatestit seuraaville:
   - `src/lib/usage/usageHistory.ts`
   - `src/lib/usage/usageStats.ts`
   - `src/lib/usage/costCalculator.ts`
-- [ ] Expand route coverage for proxy management and settings branches
+- [ ] Laajenna välityspalvelimen hallinnan ja asetusten haarojen reittikattavuutta
 
-### Phase 4: 70% -> 75%
+### Vaihe 4: 70% -> 75%
 
-- [ ] Cover translator helpers and central translation paths:
+- [ ] Kata kääntäjän apuohjelmat ja keskeiset käännöspolut:
   - `open-sse/translator/index.ts`
   - `open-sse/translator/helpers/*`
   - `open-sse/translator/request/*`
   - `open-sse/translator/response/*`
 
-### Phase 5: 75% -> 80%
+### Vaihe 5: 75% -> 80%
 
-- [ ] Add handler-level tests for:
+- [ ] Lisää käsittelijätason testit seuraaville:
   - `open-sse/handlers/chatCore.ts`
   - `open-sse/handlers/responsesHandler.js`
   - `open-sse/handlers/imageGeneration.js`
   - `open-sse/handlers/embeddings.js`
-- [ ] Add executor branch coverage for provider-specific auth, retries, and endpoint overrides
+- [ ] Lisää suorittajan haarakattavuutta palveluntarjoajakohtaiselle todennukselle, uudelleenyrityksille ja päätepisteiden ohituksille
 
-### Phase 6: 80% -> 85%
+### Vaihe 6: 80% -> 85%
 
-- [ ] Merge more edge-case suites into the main coverage path
-- [ ] Increase function coverage for DB modules with weak constructor/helper coverage
-- [ ] Close branch gaps in `settings.ts`, `registeredKeys.ts`, `validation.ts`, and translator helpers
+- [ ] Yhdistä lisää reunatapausten testikokonaisuuksia pääasialliseen kattavuuspolkuun
+- [ ] Paranna niiden tietokantamoduulien funktiokattavuutta, joiden konstruktorien tai apufunktioiden kattavuus on heikko
+- [ ] Sulje haarakattavuuden puutteet tiedostoissa `settings.ts`, `registeredKeys.ts`, `validation.ts` ja kääntäjän apuohjelmissa
 
-### Phase 7: 85% -> 90%
+### Vaihe 7: 85% -> 90%
 
-- [ ] Treat the remaining low-coverage files as blockers
-- [ ] Add regression tests for every uncovered production bug fixed during the push to 90%
-- [ ] Raise the coverage gate in CI only after the local baseline is stable for at least two consecutive runs
+- [ ] Käsittele jäljellä olevia heikon kattavuuden tiedostoja estävinä tekijöinä
+- [ ] Lisää regressiotestit jokaiselle kattamattomalle tuotantovirheelle, joka korjataan 90 prosentin tavoittelun aikana
+- [ ] Nosta CI:n kattavuusrajaa vasta, kun paikallinen lähtötaso on pysynyt vakaana vähintään kahdella peräkkäisellä ajokerralla
 
-## Ratchet policy
+## Räikkäkäytäntö
 
-Update `npm run test:coverage` thresholds only after the project actually exceeds the next milestone with a comfortable buffer.
+Päivitä `npm run test:coverage` -kynnysarvoja vasta, kun projekti todella ylittää seuraavan välitavoitteen riittävällä marginaalilla.
 
-Recommended ratchet sequence:
+**Nykyinen raja:** `npm run test:coverage` edellyttää arvoja **60 lauseille / 60 riveille / 60 funktioille / 60 haaroille** (mittari määritettiin uudelleen Quality-Gates-vaiheessa 6A.1 — aiempi 82.58%:n lähtötaso oli liian korkea, koska siinä laskettiin mukaan testitiedostot ja jätettiin `open-sse` pois). `test:coverage:legacy`-komento säilyttää vanhan 50/50/50-mittarin historiallista vertailua varten.
+
+Voit tehdä uusimpaan raporttiin perustuvia yksittäisiä kynnysarvotarkistuksia seuraavasti:
+
+```bash
+node scripts/check/test-report-summary.mjs --threshold 75
+```
+
+Suositeltu räikkäjärjestys (järjestys on `lauseet-rivit / haarat / funktiot`):
 
 1. 55/60/55
 2. 60/62/58
 3. 65/64/62
 4. 70/66/66
-5. 75/70/72
+5. 75/70/72 <-- nykyinen raja (75/70/75)
 6. 80/75/78
 7. 85/80/84
 8. 90/85/88
 
-Order is `statements-lines / branches / functions`.
+Seuraava räikkätavoite on `80/75/78`, kun haarakattavuus pysyy yli 78%:ssa kahdella peräkkäisellä suorituskerralla.
 
-## Known gap
+## Tunnettu puute
 
-The current coverage command measures the main Node unit suite and includes source reached from it, including `open-sse`. It does not yet merge Vitest coverage into a single unified report. That merge is worth doing later, but it is not a blocker for starting the 60% -> 80% climb.
+Nykyinen kattavuuskomento mittaa Noden pääasiallisen yksikkötestikokonaisuuden ja sisällyttää siihen testien suorittaman lähdekoodin, mukaan lukien `open-sse`. Se ei vielä yhdistä Vitest-kattavuutta yhdeksi yhtenäiseksi raportiksi. Tämä yhdistäminen kannattaa tehdä myöhemmin, mutta se ei estä 60% -> 80% -nousun aloittamista.

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SignJWT } from "jose";
+import { cleanupTempDataDir } from "../../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-mgmt-policy-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -34,8 +35,8 @@ test.beforeEach(() => {
   reset();
 });
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
   if (ORIGINAL_JWT === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = ORIGINAL_JWT;
   if (ORIGINAL_INITIAL === undefined) delete process.env.INITIAL_PASSWORD;

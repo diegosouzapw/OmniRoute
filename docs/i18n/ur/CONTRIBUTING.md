@@ -8,15 +8,21 @@ Thank you for your interest in contributing! This guide covers everything you ne
 
 ---
 
-## Development Setup
+## ڈیولپمنٹ سیٹ اپ
 
-### Prerequisites
+### پیشگی ضروریات
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **Node.js** `>=22.22.3 <23`، یا `>=24.0.0 <27` (تجویز کردہ: 24 LTS)
 - **npm** 10+
+
+> **npm v11+ صارفین (Node 24+):** `npm install` کے بعد تصدیق کریں کہ مقامی ماڈیولز انسٹال ہو گئے ہیں:
+> `node -e "require('better-sqlite3')"`. اگر یہ `MODULE_NOT_FOUND` کے ساتھ ناکام ہو جائے،
+> تو `npm approve-scripts better-sqlite3 && npm install` چلائیں۔ ملاحظہ کریں
+> [مسائل کا حل](docs/guides/TROUBLESHOOTING.md#npm-v11-better-sqlite3-not-installed-cannot-find-module)۔
+
 - **Git**
 
-### Clone & Install
+### کلون اور انسٹال کریں
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -24,85 +30,129 @@ cd OmniRoute
 npm install
 ```
 
-### Environment Variables
+### ماحولیاتی متغیرات
 
 ```bash
-# Create your .env from the template
+# ٹیمپلیٹ سے اپنی .env فائل بنائیں
 cp .env.example .env
 
-# Generate required secrets
+# مطلوبہ خفیہ اقدار تیار کریں
 echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+ڈیولپمنٹ کے لیے اہم متغیرات:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| متغیر                  | ڈیولپمنٹ کی طے شدہ قدر   | تفصیل                   |
+| ---------------------- | ------------------------ | ----------------------- |
+| `PORT`                 | `20128`                  | سرور پورٹ               |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | فرنٹ اینڈ کا بنیادی URL |
+| `JWT_SECRET`           | (اوپر تیار کریں)         | JWT دستخطی راز          |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | پہلے لاگ اِن کا پاس ورڈ |
+| `APP_LOG_LEVEL`        | `info`                   | لاگ کی تفصیل کی سطح     |
 
-### Dashboard Settings
+### ڈیش بورڈ کی ترتیبات
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+ڈیش بورڈ ان خصوصیات کے لیے UI ٹوگلز فراہم کرتا ہے جنہیں ماحولیاتی متغیرات کے ذریعے بھی ترتیب دیا جا سکتا ہے:
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+| ترتیب کا مقام            | ٹوگل             | تفصیل                            |
+| ------------------------ | ---------------- | -------------------------------- |
+| ترتیبات → اعلیٰ اختیارات | ڈیبگ موڈ         | ڈیبگ درخواست لاگز فعال کریں (UI) |
+| ترتیبات → عمومی          | سائڈبار کی مرئیت | سائڈبار کے حصے دکھائیں/چھپائیں   |
 
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+یہ ترتیبات ڈیٹابیس میں محفوظ ہوتی ہیں اور دوبارہ شروع ہونے کے بعد بھی برقرار رہتی ہیں، اور مقرر ہونے کی صورت میں env var کی طے شدہ اقدار کو اوور رائیڈ کرتی ہیں۔
 
-### Running Locally
+### مقامی طور پر چلانا
 
 ```bash
-# Development mode (hot reload)
+# ڈیولپمنٹ موڈ (ہاٹ ری لوڈ)
 npm run dev
 
-# Production build
-npm run build
+# پروڈکشن بلڈ
+npm run build    # next build → .build/next/ پھر assembleStandalone → dist/
 npm run start
 
-# Common port configuration
+# کنٹریبیوٹر تبدیلیوں کے لیے تیز رفتار صرف بیک اینڈ/API کمپائلیشن
+npm run build:contributor
+
+# ریلیز بلڈ (صاف دوبارہ بلڈ + HEAD سینٹینل — ڈیپلائے کے لیے ضروری)
+npm run build:release   # rm -rf .build dist && build + dist/BUILD_SHA لکھتا ہے
+
+# عام پورٹ کنفیگریشن
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+کنٹریبیوٹر بلڈ صرف کمپائلیشن کی توثیق انجام دیتا ہے: یہ اسٹینڈ الون
+ڈسٹری بیوشن کو اسمبل یا اختیاری مقامی پیکیجنگ اثاثوں کو بلڈ نہیں کرتا۔ جب
+آپ کو قابلِ ترسیل بنڈل کی توثیق کرنی ہو تو باقاعدہ پروڈکشن بلڈ استعمال کریں۔
 
-- **Dashboard**: `http://localhost:20128/dashboard`
+### بلڈ آؤٹ پٹ کی ساخت
+
+| ڈائریکٹری | مندرجات                                                                    | ٹریک شدہ |
+| --------- | -------------------------------------------------------------------------- | -------- |
+| `src/`    | ایپلیکیشن سورس (TypeScript / TSX)                                          | ہاں      |
+| `.build/` | درمیانی فائلیں — `next build` آؤٹ پٹ (gitignored، `distDir = .build/next`) | نہیں     |
+| `dist/`   | قابلِ ترسیل بنڈل — `assembleStandalone` کے ذریعے اسمبل کردہ (gitignored)   | نہیں     |
+
+بلڈ پائپ لائن ایک ہی پاس پر مشتمل ہے:
+
+```
+npm run build
+  └─ next build → .build/next/standalone  (Next.js آؤٹ پٹ)
+  └─ assembleStandalone()                 (اسٹینڈ الون + static + public + مقامی اثاثے کاپی کرتا ہے)
+       └─ آؤٹ پٹ: dist/                   (server.js, .next/static/, public/, node_modules/)
+```
+
+`npm run build:release` پہلے دونوں ڈائریکٹریز بھی صاف کرتا ہے اور ڈیپلائے کی سالمیت کے سینٹینل کے طور پر
+`dist/BUILD_SHA` (= `git rev-parse --short HEAD`) لکھتا ہے۔
+
+`npm run build:contributor` صرف بیک اینڈ والا بلڈ پروفائل استعمال کرتا ہے۔ یہ بلڈ کے دوران عارضی طور پر
+ڈیش بورڈ UI فائلوں کے اسٹب بناتا ہے، API روٹ ہینڈلرز برقرار رکھتا ہے، اور بلڈ کے بعد اصل فائلیں
+بحال کر دیتا ہے۔ ڈیش بورڈ UI کو متاثر کرنے والی تبدیلیوں یا مکمل ریلیز کی توثیق کے لیے `npm run build`
+استعمال کریں؛ کنٹریبیوٹر پروفائل ریلیز بلڈ کا متبادل نہیں ہے۔
+
+> **VPS ڈیپلائے نوٹ:** ریموٹ امیج ڈائریکٹری `/usr/lib/node_modules/omniroute/app/`
+> میں کوئی تبدیلی نہیں ہوئی۔ ڈیپلائے اسکلز `dist/` کے مندرجات کو rsync کے ذریعے اس میں منتقل کرتی ہیں۔
+> صرف ریپوزٹری کے اندر بلڈ آؤٹ پٹ کا پاتھ تبدیل ہوا (`app/` → `dist/`)۔
+
+طے شدہ URLs:
+
+- **ڈیش بورڈ**: `http://localhost:20128/dashboard`
 - **API**: `http://localhost:20128/v1`
 
 ---
 
-## Git Workflow
+## Git ورک فلو
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️ **کبھی بھی براہِ راست `main` میں commit نہ کریں۔** ہمیشہ feature branches استعمال کریں۔
+>
+> **PR کی بنیاد:** فعال `release/vX.Y.Z` برانچ کو ہدف بنائیں (`main` کو نہیں)۔ ہر ریلیز کے لیے علیحدہ برانچ + شپ کرتے وقت tag کے ماڈل کے لیے
+> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) دیکھیں۔
 
 ```bash
-git checkout -b feat/your-feature-name
-# ... make changes ...
+# فعال ریلیز کے تازہ ترین سرے سے برانچ بنائیں (مثال: release/v3.8.49)
+git fetch origin
+git checkout -b feat/your-feature-name origin/release/v3.8.49
+# ... تبدیلیاں کریں ...
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-# Open a Pull Request on GitHub
+# base = release/v3.8.49 کے ساتھ Pull Request کھولیں
 ```
 
-### Branch Naming
+### برانچ کا نام رکھنا
 
-| Prefix      | Purpose                   |
-| ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| سابقہ       | مقصد                    |
+| ----------- | ----------------------- |
+| `feat/`     | نئی خصوصیات             |
+| `fix/`      | بگ کی اصلاحات           |
+| `refactor/` | کوڈ کی تنظیمِ نو        |
+| `docs/`     | دستاویزات میں تبدیلیاں  |
+| `test/`     | ٹیسٹس میں اضافے/اصلاحات |
+| `chore/`    | ٹولنگ، CI، dependencies |
 
-### Commit Messages
+### Commit پیغامات
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+[Conventional Commits](https://www.conventionalcommits.org/) کی پیروی کریں:
 
 ```
 feat: add circuit breaker for provider calls
@@ -112,80 +162,128 @@ test: add observability unit tests
 refactor(db): consolidate rate limit tables
 ```
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+دائرۂ کار (v3.8): `db`، `sse`، `oauth`، `dashboard`، `api`، `cli`، `docker`، `ci`، `mcp`، `a2a`، `memory`، `skills`، `cloud-agent`، `guardrails`، `compression`، `auto-combo`، `resilience`، `providers`، `executors`، `translator`، `domain`، `authz`۔
 
 ---
 
-## Running Tests
+## ٹیسٹس چلانا
 
 ```bash
-# All tests (unit + vitest + ecosystem + e2e)
+# تمام ٹیسٹس (یونٹ + vitest + ایکوسسٹم + e2e)
 npm run test:all
 
-# Single test file (Node.js native test runner — most tests use this)
+# ایک ٹیسٹ فائل (Node.js کا مقامی ٹیسٹ رنر — زیادہ تر ٹیسٹس یہی استعمال کرتے ہیں)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# صرف وہ یونٹ ٹیسٹس جو آپ کی تبدیلی سے متاثر ہوئے ہیں (CI گیٹ جیسا ہی TIA سلیکٹر، #8084)
+npm run test:scoped            # آخری commit (یا working tree) میں ہونے والی تبدیلیاں
+npm run test:scoped:staged     # صرف staged تبدیلیاں — pre-commit رن کے ساتھ بخوبی کام کرتا ہے
+npm run test:scoped:full       # پہلے import-graph میپ دوبارہ بنائیں (فائلیں شامل یا منتقل کرنے کے بعد)
+# Exit 1 + "مکمل سوٹ چلائیں" کا مطلب ہے کہ کوئی مرکزی فائل (tsconfig، package.json، …) یا کوئی
+# غیر نقشہ شدہ سورس تبدیل ہوا ہے — سلیکٹر محفوظ انداز میں ناکام ہوتا ہے، یہ کبھی خاموشی سے نظر انداز نہیں کرتا۔
+
+# Vitest (MCP سرور، autoCombo، کیش)
 npm run test:vitest
 
-# E2E tests (requires Playwright)
+# E2E ٹیسٹس (Playwright درکار ہے)
 npm run test:e2e
 
-# Protocol clients E2E (MCP transports, A2A)
+# پروٹوکول کلائنٹس E2E (MCP ٹرانسپورٹس، A2A)
 npm run test:protocols:e2e
 
-# Ecosystem compatibility tests
+# ایکوسسٹم مطابقت کے ٹیسٹس
 npm run test:ecosystem
 
-# Coverage (60% min statements/lines/functions/branches)
+# کوریج گیٹ: statements/lines/functions/branches کے لیے 60%
 npm run test:coverage
 npm run coverage:report
 
-# Lint + format check
+# Lint + فارمیٹ کی جانچ
 npm run lint
 npm run check
+
+# گیٹ شدہ حقیقی upstream combo اسموک ٹیسٹ (VPS رسائی + حقیقی provider کریڈٹس درکار ہیں)
+# حقیقی providers کو استعمال کرتا ہے — معمولی لاگت آتی ہے۔ CI میں کبھی نہیں چلتا۔ گیٹ کے بغیر صاف طور پر نظر انداز ہو جاتا ہے۔
+# درکار ہے: ssh root@192.168.0.15 رسائی (VPS سے read-only DB snapshot حاصل کرتا ہے)۔
+RUN_COMBO_LIVE=1 npm run test:combo:live
+
+# Phase-3 VPS لائیو اسموک — سادہ Node ESM اسکرپٹس، براہِ راست لائیو .15 سرور کو استعمال کرتے ہیں۔
+# درکار ہے: ssh root@192.168.0.15 رسائی (combos کو SSH sqlite کے ذریعے بنایا/ختم کیا جاتا ہے)۔
+# حقیقی providers کو استعمال کرتا ہے (معمولی لاگت)۔ صرف __live_test__* combos بناتا/حذف کرتا ہے۔ CI میں کبھی نہیں چلتا۔
+# .15 پر REQUIRE_API_KEY=false ہے، اس لیے API key درکار نہیں، لیکن سیٹ ہونے پر COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY کا احترام کرتا ہے۔
+npm run test:combo:live:vps              # 7 HTTP منظرنامے (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # ایک حقیقی cross-provider failover منظرنامہ شامل کرتا ہے (کل 8)
 ```
 
-Coverage notes:
+کوریج سے متعلق نوٹس:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
-- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` مرکزی یونٹ ٹیسٹ سوٹ کی سورس کوریج ماپتا ہے، `tests/**` کو خارج کرتا ہے، اور `open-sse/**` کو شامل کرتا ہے
+- Pull requests میں statements/lines/functions/branches کے لیے کوریج گیٹ **60%+** برقرار رہنا چاہیے
+- اگر کوئی PR `src/`، `open-sse/`، `electron/`، یا `bin/` میں production code تبدیل کرتا ہے، تو اسی PR میں خودکار ٹیسٹس شامل یا اپ ڈیٹ کرنا ضروری ہے
+- `npm run coverage:report` تازہ ترین کوریج رن کی تفصیلی، فائل بہ فائل رپورٹ دکھاتا ہے
+- `npm run test:coverage:legacy` تاریخی موازنے کے لیے پرانا میٹرک محفوظ رکھتا ہے
+- مرحلہ وار کوریج بہتری کے روڈمیپ کے لیے `docs/ops/COVERAGE_PLAN.md` دیکھیں
 
-### Pull Request Requirements
+### Pull Request کے تقاضے
 
-Before opening or merging a PR:
+PR کھولنے سے پہلے، اپنی تبدیلی کے لیے مرکوز عمل چلانے کی خاطر
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) استعمال کریں۔ مکمل یونٹ سوٹ (4 CI shards)، Vitest، **60%+** کوریج گیٹ، اور
+production build کی ذمہ داری CI کی ہے — انہیں مقامی طور پر چلانے سے ایسی کوئی اضافی مفید معلومات حاصل نہیں ہوتیں جو PR
+کی جانچ پہلے ہی فراہم نہ کرے، اور چھوٹی مشینوں پر یہ host کو مکمل طور پر مصروف کر سکتا ہے (#8084):
 
-- Run `npm run test:unit`
-- Run `npm run test:coverage`
-- Ensure the coverage gate stays at **60%+** for all metrics
-- Include the changed or added test files in the PR description when production code changed
-- Check the SonarQube result on the PR when the project secrets are configured in CI
+- اپنی تبدیلی کا احاطہ کرنے والی ٹیسٹ فائلیں چلائیں: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- `npm run lint` چلائیں
+- جب بھی production code تبدیل ہو، اسی PR میں خودکار ٹیسٹس شامل یا اپ ڈیٹ کریں
+- production code تبدیل ہونے پر PR کی تفصیل میں تبدیل یا شامل کی گئی ٹیسٹ فائلیں درج کریں
+- جب CI میں project secrets ترتیب دیے گئے ہوں تو PR پر SonarQube نتیجہ چیک کریں
 
-Current test status: **122 unit test files** covering:
+موجودہ ٹیسٹ کی صورتِ حال: **122 یونٹ ٹیسٹ فائلیں** جو درج ذیل کا احاطہ کرتی ہیں:
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
+- Provider translators اور فارمیٹ کی تبدیلی
+- Rate limiting، circuit breaker، اور resilience
+- Semantic cache، idempotency، اور progress tracking
+- Database operations اور schema (21 DB ماڈیولز)
+- OAuth flows اور authentication
 - API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- MCP server tools اور scope enforcement
+- Memory اور Skills سسٹمز
 
 ---
 
-## Code Style
+## کوڈ کا انداز
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+- **ESLint** — commit کرنے سے پہلے `npm run lint` چلائیں
+- **Prettier** — commit کے وقت `lint-staged` کے ذریعے خودکار طور پر فارمیٹ کیا جاتا ہے (2 spaces، semicolons، double quotes، 100 حروف کی چوڑائی، es5 trailing commas)
+- **TypeScript** — تمام `src/` کوڈ `.ts`/`.tsx` استعمال کرتا ہے؛ `open-sse/` میں `.ts`/`.js` استعمال ہوتے ہیں؛ TSDoc (`@param`، `@returns`، `@throws`) کے ساتھ دستاویز کریں
+- **`eval()` ممنوع ہے** — ESLint، `no-eval`، `no-implied-eval`، `no-new-func` نافذ کرتا ہے
+- **Zod validation** — تمام API input validation کے لیے Zod v4 schemas استعمال کریں
+- **نام رکھنے کا طریقہ**: فائلیں = camelCase/kebab-case، components = PascalCase، constants = UPPER_SNAKE
+
+### خرابیوں کو سنبھالنا / خالی catch blocks
+
+کبھی بھی کسی `catch` کو بغیر وضاحت کے نہ چھوڑیں۔ اسے درج ذیل دو اقسام میں سے کسی ایک میں
+درجہ بند کریں (یہ سخت اصول "SSE streams میں خرابیوں کو کبھی خاموشی سے نظر انداز نہ کریں"
+کو عملی شکل دیتا ہے):
+
+- **دانستہ (ہماری اپنی best-effort cleanup/telemetry)** — یہاں ناکامی متوقع اور بے ضرر
+  ہے؛ وجہ بتانے کے لیے ایک سطری comment شامل کریں، logging نہ کریں (ہر request پر logging سے پیدا
+  ہونے والے شور سے یہ اصول بچاتا ہے)۔
+
+  ```ts
+  } catch {} // کلائنٹ کے منقطع ہونے کے بعد پہلے سے بند controller کو بند کرنا متوقع ہے
+  ```
+
+- **لاگ ہونا چاہیے (بیرونی/caller کی فراہم کردہ code، یا نظر انداز کرنے سے control flow تبدیل ہوتا ہو)** — `catch`
+  برقرار رکھیں (اسے کبھی stream میں خلل نہ ڈالنے دیں)، لیکن سیاق و سباق کے ساتھ `console.debug`/`warn` جاری کریں تاکہ
+  ناکامی کا پتا چل سکے۔
+
+  ```ts
+  } catch (e) {
+    console.debug("[STREAM] onFailure callback میں خرابی:", e);
+  }
+  ```
+
+عملی مثالوں کے لیے `open-sse/utils/stream.ts` اور `open-sse/utils/streamHandler.ts` دیکھیں۔
 
 ---
 
@@ -252,48 +350,58 @@ docs/                       # Documentation
 
 ---
 
-## Adding a New Provider
+## نیا پرووائیڈر شامل کرنا
 
-### Step 1: Register Provider Constants
+### مرحلہ 1: پرووائیڈر کانسٹینٹس رجسٹر کریں
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+`src/shared/constants/providers.ts` میں شامل کریں — ماڈیول لوڈ ہوتے وقت Zod کے ذریعے توثیق کی جاتی ہے۔
 
-### Step 2: Add Executor (if custom logic needed)
+### مرحلہ 2: ایگزیکیوٹر شامل کریں (اگر حسبِ ضرورت منطق درکار ہو)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+بنیادی ایگزیکیوٹر کو وسعت دیتے ہوئے `open-sse/executors/your-provider.ts` میں ایگزیکیوٹر بنائیں۔
 
-### Step 3: Add Translator (if non-OpenAI format)
+### مرحلہ 3: ٹرانسلیٹر شامل کریں (اگر فارمیٹ OpenAI کا نہ ہو)
 
-Create request/response translators in `open-sse/translator/`.
+`open-sse/translator/` میں درخواست/جواب کے ٹرانسلیٹر بنائیں۔
 
-### Step 4: Add OAuth Config (if OAuth-based)
+### مرحلہ 4: OAuth کنفیگریشن شامل کریں (اگر OAuth پر مبنی ہو)
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+OAuth اسناد `src/lib/oauth/constants/oauth.ts` میں اور سروس `src/lib/oauth/services/` میں شامل کریں۔
 
-### Step 5: Register Models
+اگر اپ اسٹریم پرووائیڈر اپنے عوامی CLI / براؤزر بنڈل میں عوامی OAuth `client_id`/سیکرٹ یا Firebase Web API کلید تقسیم کرتا ہے، تو اسے اسٹرنگ لٹرل کے طور پر **ہرگز** شامل نہ کریں۔ `open-sse/utils/publicCreds.ts` سے `resolvePublicCred()` استعمال کریں اور `EMBEDDED_DEFAULTS` میں ماسک شدہ بائٹ اندراج شامل کریں۔ مکمل لازمی طریقۂ کار کی دستاویز [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) میں موجود ہے۔
 
-Add model definitions in `open-sse/config/providerRegistry.ts`.
+ہینڈلرز/ایگزیکیوٹرز کے اندر، کلائنٹ تک پہنچنے والے خرابی کے پیغامات کو `open-sse/utils/error.ts` سے `buildErrorBody()` / `sanitizeErrorMessage()` کے ذریعے گزارنا لازمی ہے — خام `err.stack` یا `err.message` کو کبھی بھی Response باڈی میں شامل نہ کریں۔ [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) دیکھیں۔
 
-### Step 6: Add Tests
+### مرحلہ 5: ماڈلز رجسٹر کریں
 
-Write unit tests in `tests/unit/` covering at minimum:
+`open-sse/config/providerRegistry.ts` میں ماڈل کی تعریفیں شامل کریں۔
 
-- Provider registration
-- Request/response translation
-- Error handling
+### مرحلہ 6: ٹیسٹس شامل کریں
+
+`tests/unit/` میں یونٹ ٹیسٹس لکھیں جو کم از کم درج ذیل کا احاطہ کریں:
+
+- پرووائیڈر کی رجسٹریشن
+- درخواست/جواب کی ترجمانی
+- خرابیوں سے نمٹنا
 
 ---
 
-## Pull Request Checklist
+## پُل ریکویسٹ چیک لسٹ
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
+- [ ] ٹیسٹ کامیاب ہوں (`npm test`)
+- [ ] لنٹنگ کامیاب ہو (`npm run lint`)
+- [ ] بلڈ کامیاب ہو (`npm run build`)
+- [ ] نئے پبلک فنکشنز اور انٹرفیسز کے لیے TypeScript ٹائپس شامل کی گئی ہوں
+- [ ] کوئی ہارڈ کوڈ کردہ راز یا فال بیک ویلیوز نہ ہوں
+- [ ] پبلک اپ اسٹریم اسناد `resolvePublicCred()` کے ذریعے شامل کی گئی ہوں ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) دیکھیں)، کبھی بھی لٹریلز کی صورت میں نہیں
+- [ ] خرابی کے جوابات `buildErrorBody()` / `sanitizeErrorMessage()` کے ذریعے بھیجے جائیں — جوابی باڈیز میں کوئی خام اسٹیک ٹریس نہ ہو ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) دیکھیں)
+- [ ] شیل کمانڈز (`exec` / `spawn`) رن ٹائم ویلیوز کو اسٹرنگ انٹرپولیشن کے بجائے `env` کے ذریعے پاس کریں
+- [ ] تمام اِن پٹس کی Zod اسکیماؤں کے ذریعے توثیق کی گئی ہو
+- [ ] صارف کو متاثر کرنے والی تبدیلیوں کے لیے `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` کے تحت چینج لاگ **فریگمنٹ** شامل کیا گیا ہو ([`changelog.d/README.md`](./changelog.d/README.md) دیکھیں) — `CHANGELOG.md` میں براہِ راست ترمیم **نہ** کریں؛ فریگمنٹس کو ریلیز کے وقت یکجا کیا جاتا ہے اور ان میں مختلف PRs کے درمیان کبھی تصادم نہیں ہوتا
+- [ ] دستاویزات اپ ڈیٹ کی گئی ہوں (اگر قابلِ اطلاق ہو)
+- [ ] کوئی نیا CodeQL / Secret-Scanning الرٹ نہ کھولا گیا ہو، یا ہر الرٹ کو متعلقہ `docs/security/` دستاویز کا حوالہ دینے والی تکنیکی توجیہ کے ساتھ مسترد کیا گیا ہو
+- [ ] چائلڈ پراسیسز شروع کرنے والے روٹس (`/api/mcp/`، `/api/cli-tools/runtime/`) کو `src/server/authz/routeGuard.ts` میں `isLocalOnlyPath()` کے طور پر درجہ بند کیا گیا ہو — [سخت اصول #15](docs/security/ROUTE_GUARD_TIERS.md) دیکھیں
+- [ ] کمٹ پیغامات میں `Co-Authored-By` ٹریلرز نہ ہوں — کمٹس صرف ریپوزٹری مالک کی Git شناخت کے تحت ظاہر ہونے چاہییں (سخت اصول #16)
 
 ---
 
@@ -303,9 +411,11 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Getting Help
+## مدد حاصل کرنا
 
-- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+- **آرکیٹیکچر**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) دیکھیں
+- **API حوالہ**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) دیکھیں
+- **سیکیورٹی دستاویزات**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)، [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)، [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)، [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **آپریشنز کی دستاویزات**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **مسائل**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: آرکیٹیکچرل فیصلوں کے ریکارڈز کے لیے `docs/adr/` دیکھیں

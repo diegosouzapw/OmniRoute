@@ -1,21 +1,12 @@
-# MCP-SERVER (ქართული)
+# OmniRoute MCP Server Documentation (ქართული)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "OmniRoute MCP სერვერის დოკუმენტაცია"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# OmniRoute MCP სერვერის დოკუმენტაცია
-
 > Model Context Protocol-ის სერვერი 110 ხელსაწყოთი მარშრუტიზაციის, ქეშის, შეკუმშვის, მეხსიერების, უნარების, პროქსის, პულის, Radar-ისა და კონტექსტის წყაროს ოპერაციებისთვის.
 >
-> სანდო პირველწყარო: `open-sse/mcp-server/server.ts` **110 უნიკალურ ხელსაწყოს** ითვლის `countUniqueMcpTools()`-ის მეშვეობით: 45 კანონიკური განსაზღვრება (მათ შორის, CCR-ის სასიცოცხლო ციკლის ექვსი ხელსაწყო, აგენტის უნარების ტრიო, `omniroute_radar_catalog` და `omniroute_x_search`), ასევე მეხსიერება (3), უნარები (4), GitHub-ის უნარები (3), პული (6), გეიმიფიკაცია (8), პლაგინები (8), Notion (6), Obsidian (22), ლოკალური კორპუსი (3) და მხოლოდ RTK-სთვის განკუთვნილი შეკუმშვის ორი ხელსაწყო.
+> ჭეშმარიტების წყარო: `open-sse/mcp-server/server.ts` **110 უნიკალურ ხელსაწყოს** ითვლის `countUniqueMcpTools()`-ის გამოყენებით: 45 კანონიკური განსაზღვრება (მათ შორის, CCR-ის სასიცოცხლო ციკლის ექვსი ხელსაწყო, აგენტის უნარების სამეული, `omniroute_radar_catalog` და `omniroute_x_search`), ასევე მეხსიერება (3), უნარები (4), GitHub-ის უნარები (3), პული (6), გემიფიკაცია (8), მოდულები (8), Notion (6), Obsidian (22), ლოკალური კორპუსი (3) და მხოლოდ RTK-ისთვის განკუთვნილი შეკუმშვის ორი ხელსაწყო.
 
 ## ინსტალაცია
 
@@ -28,9 +19,26 @@ omniroute --mcp
 ან open-sse ტრანსპორტის მეშვეობით:
 
 ```bash
-# HTTP-ის ნაკადური ტრანსპორტი (პორტი 20130)
+# HTTP ნაკადური ტრანსპორტი (პორტი 20130)
 omniroute --dev  # MCP ავტომატურად გაეშვება /mcp საბოლოო წერტილზე
 ```
+
+HTTP ტრანსპორტები (`sse` / `streamable-http`, რომლებსაც dashboard-ის სერვერი იმავე პროცესში ემსახურება)
+ნაგულისხმევად გამორთულია და ადრე მათი გადართვა მხოლოდ `/dashboard/mcp` გვერდიდან იყო შესაძლებელი. v3.8.51-დან
+CLI-საც იგივე შესაძლებლობები აქვს:
+
+```bash
+omniroute mcp status                                  # ჩართულია/ონლაინია, ტრანსპორტი, ხელსაწყოების რაოდენობა
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # აქტიური sse/streamable-http სესიების გადატვირთვა
+```
+
+`mcp enable`/`mcp disable` PATCH მეთოდით ცვლის იმავე `mcpEnabled` პარამეტრს (და სურვილისამებრ `mcpTransport`-საც),
+რომელსაც dashboard `/api/settings`-ის მეშვეობით გადართავს. `mcp restart` იძახებს `POST /api/mcp/restart`-ს: ის
+წყვეტს აქტიურ `sse`/`streamable-http` სესიებს, რათა შემდეგი მოთხოვნისას ინიციალიზაცია სუფთად მოხდეს, აბრუნებს
+`409`-ს, თუ MCP გამორთულია, და `501`-ს `stdio` ტრანსპორტისთვის (`stdio` კლიენტები თავად მართავენ საკუთარ
+ქვეპროცესს — იმავე პროცესში არ არსებობს დესკრიპტორი, რომლის გადატვირთვაც შესაძლებელი იქნებოდა).
 
 ## ტრანსპორტები
 

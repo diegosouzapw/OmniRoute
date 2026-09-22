@@ -165,16 +165,54 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
     }
   }
 
+  // #reasoning-bilingual: DeepSeek-V4 and similar models emit user-facing text in the
+  // user's language (e.g. Korean) then continue with English planning/chain-of-thought
+  // in the same content field instead of using reasoning_content. Same mitigation as
+  // translator/response/openai-to-claude.ts's directivePreambleStripper.ts: when the
+  // operator configured OMNIROUTE_SYSTEM_INSTRUCTION_APPEND, append it here to the
+  // (system) message so the directive reaches the model on the /v1/messages (Claude
+  // Messages -> OpenAI Chat Completions) path too.
+  const systemAppend = process.env.OMNIROUTE_SYSTEM_INSTRUCTION_APPEND?.trim();
+  if (systemAppend) {
+    const sysIndex = result.messages.findIndex((m) => m.role === "system");
+    if (sysIndex >= 0) {
+      const sys = result.messages[sysIndex];
+      if (typeof sys.content === "string") {
+        sys.content = sys.content + "\n\n" + systemAppend;
+      } else if (Array.isArray(sys.content)) {
+        (sys.content as JsonRecord[]).push({ type: "text", text: systemAppend });
+      } else {
+        sys.content = systemAppend;
+      }
+    } else {
+      result.messages.unshift({ role: "system", content: systemAppend });
+    }
+  }
+
   // Convert messages
   if (body.messages && Array.isArray(body.messages)) {
     for (let i = 0; i < body.messages.length; i++) {
       const msg = body.messages[i];
       const converted = convertClaudeMessage(msg, preserveCacheControl);
       if (converted) {
-        // Handle array of messages (multiple tool results)
+        // Claude Code hook contexts (SessionStart/PreToolUse) arrive as
+        // role:"system" mid-array — strictly valid for the Anthropic Messages
+        // API, but OpenAI-compatible upstreams reject a system turn after the
+        // first message (HCP-Vision-Latest vLLM: 400 "System message must be
+        // at the beginning."). Demote every system at index > 0 to "user",
+        // keeping the content byte-identical; the index-0 system (the
+        // translator-made one above, or one the client put first) stays.
+        const demoteMidSystem = (out: JsonRecord) => {
+          if (out.role === "system" && result.messages.length > 0) out.role = "user";
+        };
+        // Array return is tool/user elements only (never role:"system") — a
+        // second system here would skip demotion while result.messages is
+        // still empty and survive as a mid-array system.
         if (Array.isArray(converted)) {
+          converted.forEach(demoteMidSystem);
           result.messages.push(...converted);
         } else {
+          demoteMidSystem(converted);
           result.messages.push(converted);
         }
       }
@@ -541,6 +579,8 @@ function convertToolChoice(choice, hasServerWebSearch = false) {
   switch (choice.type) {
     case "auto":
       return "auto";
+    case "none":
+      return "none";
     case TOOL_CHOICE_ANY:
       return "required";
     case "tool":

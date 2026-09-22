@@ -190,3 +190,48 @@ test("isValidGheUrl accepts https enterprise hosts and rejects malformed or non-
   assert.equal(isValidGheUrl("javascript:alert(1)"), false);
   assert.equal(isValidGheUrl("not a url"), false);
 });
+
+test("GheCopilotExecutor.execute does not trigger identity fallback on 403", async () => {
+  const executor = new GheCopilotExecutor({
+    gheUrl: "https://ghe.company.com",
+    clientId: "test-client",
+    clientSecret: "test-secret",
+  });
+  const originalFetch = globalThis.fetch;
+  let callCount = 0;
+  const seenIntegrationIds: string[] = [];
+
+  globalThis.fetch = async (_url, init: RequestInit = {}) => {
+    callCount++;
+    const headers = init.headers as Record<string, string>;
+    seenIntegrationIds.push(headers["copilot-integration-id"]);
+    return new Response(
+      JSON.stringify({ message: "Access denied: Enterprise Copilot 403 Forbidden" }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    const credentials: ProviderCredentials = {
+      accessToken: "ghe-token",
+      providerSpecificData: {
+        gheUrl: "https://ghe.company.com",
+        copilotToken: "copilot-token",
+      },
+    };
+
+    const result = await executor.execute({
+      model: "gpt-4o",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials,
+    });
+
+    assert.equal(callCount, 1, "GHE Copilot must never retry on 403");
+    assert.deepEqual(seenIntegrationIds, ["copilot-developer-cli"]);
+    const res = result as { response: Response };
+    assert.equal(res.response.status, 403);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

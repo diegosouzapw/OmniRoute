@@ -4,35 +4,50 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+> Itifaki ya Agent-to-Agent v0.3 — OmniRoute kama wakala mahiri wa uelekezaji
 
-## Agent Discovery
+Kiolesura cha A2A kina pande mbili:
+
+- **JSON-RPC 2.0** katika `POST /a2a` (sehemu rasmi ya kuingilia, iliyofafanuliwa katika `src/app/a2a/route.ts`).
+- **REST** chini ya `/api/a2a/*` kwa ajili ya dashibodi na zana (hali, orodha ya kazi, kughairi).
+
+Kazi hufuatiliwa na `A2ATaskManager` (`src/lib/a2a/taskManager.ts`, TTL chaguomsingi ya dakika 5). Ujuzi husambazwa kupitia `A2A_SKILL_HANDLERS` katika `src/lib/a2a/taskExecution.ts`.
+
+## Ugunduzi wa Wakala
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+Hurejesha Kadi ya Wakala inayoeleza uwezo, ujuzi na mahitaji ya uthibitishaji ya OmniRoute.
+
+Sehemu ya `version` ya Kadi ya Wakala hupata thamani kutoka `process.env.npm_package_version` (angalia `src/app/.well-known/agent.json/route.ts:13`), hivyo huendelea kusawazishwa kiotomatiki na `package.json` katika kila toleo.
 
 ---
 
-## Authentication
+## Uthibitishaji
 
-All `/a2a` requests require an API key via the `Authorization` header:
+Maombi yote ya `/a2a` yanahitaji ufunguo wa API kupitia kichwa cha `Authorization`:
 
 ```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
 ```
 
-If no API key is configured on the server, authentication is bypassed.
+Ikiwa hakuna ufunguo wa API uliosanidiwa kwenye seva, uthibitishaji hurukwa.
+
+## Uwezeshaji
+
+A2A inadhibitiwa na kigeuzi cha **Endpoints → A2A** na imezimwa kwa chaguomsingi. Inapokuwa imezimwa,
+`GET /api/a2a/status` huripoti `status: "disabled"` na `online: false`; miito ya JSON-RPC kwenda
+`POST /a2a` hurejesha HTTP 503 ikiwa na msimbo wa hitilafu wa JSON-RPC `-32000`.
 
 ---
 
-## JSON-RPC 2.0 Methods
+## Mbinu za JSON-RPC 2.0
 
-### `message/send` — Synchronous Execution
+### `message/send` — Utekelezaji Sawia
 
-Sends a message to a skill and waits for the complete response.
+Hutuma ujumbe kwa ujuzi na kusubiri jibu kamili.
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -50,7 +65,7 @@ curl -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**Response:**
+**Jibu:**
 
 ```json
 {
@@ -61,19 +76,30 @@ curl -X POST http://localhost:20128/a2a \
     "artifacts": [{ "type": "text", "content": "..." }],
     "metadata": {
       "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+      "cost_envelope": {
+        "estimated": 0.005,
+        "actual": 0.003,
+        "currency": "USD"
+      },
       "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+        {
+          "event": "primary_selected",
+          "provider": "anthropic",
+          "timestamp": "..."
+        }
       ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+      "policy_verdict": {
+        "allowed": true,
+        "reason": "within budget and quota limits"
+      }
     }
   }
 }
 ```
 
-### `message/stream` — SSE Streaming
+### `message/stream` — Utiririshaji wa SSE
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
+Ni sawa na `message/send`, lakini hurejesha Matukio Yanayotumwa na Seva kwa ajili ya utiririshaji wa wakati halisi.
 
 ```bash
 curl -N -X POST http://localhost:20128/a2a \
@@ -90,7 +116,7 @@ curl -N -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**SSE Events:**
+**Matukio ya SSE:**
 
 ```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
@@ -100,7 +126,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
 ```
 
-### `tasks/get` — Query Task Status
+### `tasks/get` — Kuuliza Hali ya Kazi
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -109,7 +135,7 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
 ```
 
-### `tasks/cancel` — Cancel a Task
+### `tasks/cancel` — Kughairi Kazi
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -120,42 +146,123 @@ curl -X POST http://localhost:20128/a2a \
 
 ---
 
-## Available Skills
+## Ujuzi Unaopatikana
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+OmniRoute hutoa ujuzi 6 wa A2A uliounganishwa katika `src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`. Kila moduli ya ujuzi inapatikana katika `src/lib/a2a/skills/`.
 
----
+| Ujuzi                    | ID                   | Maelezo                                                                                                                                                                                   | Lebo                      | Mifano                                      |
+| :----------------------- | :------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------ | :------------------------------------------ |
+| Uelekezaji Mahiri        | `smart-routing`      | Huelekeza kidokezo kupitia mtoa huduma/mchanganyiko bora kwa kutumia injini ya michanganyiko ya OmniRoute pamoja na mfumo wa utoaji alama                                                 | uelekezaji, watoa huduma  | "Elekeza kidokezo hiki kupitia modeli bora" |
+| Usimamizi wa Kiwango     | `quota-management`   | Hutoa ripoti ya hali ya kiwango kwa kila mtoa huduma na huwasaidia waitaji kuamua wakati wa kupunguza kasi/kubadilisha                                                                    | kiwango, watoa huduma     | "Kagua kiwango cha anthropic"               |
+| Ugunduzi wa Watoa Huduma | `provider-discovery` | Huorodhesha watoa huduma waliosakinishwa pamoja na uwezo wao, viashiria vya kiwango kisicholipishwa na hali ya OAuth                                                                      | watoa huduma, ugunduzi    | "Ni watoa huduma gani wanaopatikana?"       |
+| Uchambuzi wa Gharama     | `cost-analysis`      | Hukadiria gharama ya ombi/mazungumzo kwa kuzingatia katalogi pamoja na matumizi ya hivi karibuni                                                                                          | gharama, matumizi         | "Kadiria gharama ya mazungumzo haya"        |
+| Ripoti ya Afya           | `health-report`      | Hukusanya hali ya kivunja mzunguko, kipindi cha kusubiri na kufungiwa kwa kila mtoa huduma                                                                                                | afya, ustahimilivu        | "Onyesha hali ya afya ya watoa huduma wote" |
+| Orodhesha Uwezo          | `list-capabilities`  | Hurejesha katalogi kamili ya Agent Skills yenye vipengee 45 (23 vya API + 21 vya CLI + 1 cha usanidi) kama jedwali la markdown lenye URL ghafi za SKILL.md kwa ajili ya kuingiza muktadha | katalogi, ugunduzi, ujuzi | "Orodhesha uwezo wote wa OmniRoute"         |
 
-## Task Lifecycle
+> Agent Card inapaswa kusawazishwa na katalogi inayotumika ya watoa huduma 352; idadi ya watoa huduma na metadata ya bila malipo/bila uthibitishaji hutolewa kutoka kwenye sajili ya wakati wa utekelezaji.
+
+### Maelezo ya Ujuzi wa `list-capabilities`
+
+Ujuzi wa `list-capabilities` ni muhimu hasa kwa mawakala wa nje wanaohitaji kugundua kile ambacho OmniRoute hutoa kabla ya kutuma miito ya API. Hurejesha artefakti ya jedwali la markdown lililopangwa:
 
 ```
-submitted → working → completed
-                    → failed
-                    → cancelled
+| ID | Jina | Kategoria | Eneo | Vituo/Amri | URL Ghafi |
+| --- | --- | --- | --- | --- | --- |
+| omni-auth | Uthibitishaji na Vipindi | api | auth | POST /api/auth/login, ... | https://raw.githubusercontent.com/... |
+...
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
+Kila safu inajumuisha safu wima ya `rawUrl` ili mawakala waweze kupakua SKILL.md kamili mara moja. Sehemu ya `metadata.totalSkills` huakisi ukubwa wa katalogi (45 kwa sasa). Utekelezaji: `src/lib/a2a/skills/listCapabilities.ts`. Tazama pia [AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
 ---
 
-## Error Codes
+## REST API (saidizi)
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
+Endpointi ya JSON-RPC `/a2a` ndiyo sehemu rasmi ya kuingilia ya A2A. Endpointi za REST zilizo hapa chini hutoa ufikiaji saidizi kwa dashibodi na zana za nje:
+
+| Endpointi                    | Mbinu | Maelezo                                                                   | Uthibitishaji                                      |
+| :--------------------------- | :---- | :------------------------------------------------------------------------ | :------------------------------------------------- |
+| `/api/a2a/status`            | GET   | Hali ya seva, ujuzi uliosajiliwa                                          | (ya umma)                                          |
+| `/api/a2a/tasks`             | GET   | Orodhesha kazi kwa kutumia vichujio                                       | usimamizi                                          |
+| `/api/a2a/tasks/[id]`        | GET   | Pata kazi kwa ID                                                          | usimamizi                                          |
+| `/api/a2a/tasks/[id]/cancel` | POST  | Ghairi kazi inayoendelea                                                  | usimamizi                                          |
+| `/.well-known/agent.json`    | GET   | Kadi ya Wakala (ugunduzi wa A2A)                                          | (ya umma, imehifadhiwa kwa 3600s)                  |
+| `/api/a2a/tasks`             | POST  | Ukabidhi wa kazi unaoingia kwa kundi la OmniConductor (Conductor PRD RF5) | Bearer dhidi ya `OMNIROUTE_API_KEY` + `a2aEnabled` |
+
+**Ukabidhi wa Conductor unaoingia (`POST /api/a2a/tasks`):** mawakala wa nje wa A2A hukabidhi kazi za uandishi wa msimbo kwa kundi la OmniConductor kupitia OmniRoute. Mwili: `{ skill: "conductor" | "conductor-cli-<profile>", messages: [{role, content}], metadata: { conductor: { repo: { url, base_ref? }, mode?, cli?, model? } } }` — ni ujuzi wa kundi la Conductor pekee (ule uliotangazwa kwenye Kadi ya Wakala) unaoweza kukabidhiwa; `metadata.conductor.repo.url` inahitajika (kundi hufanya kazi kwenye hazina za git). Njia hiyo hutafsiriwa kuwa `POST /v1/tasks` ya kitovu kwa kutumia `CONDUCTOR_ORCHESTRATOR_TOKEN` ya upande wa seva (ikitumika `CONDUCTOR_HUB_TOKEN` kama mbadala) na kurejesha `201 { conductor_task_id, state: "submitted" }`; hali za kazi hurudishwa kupitia kioo cha SSE→A2A (RF1) na zinaonekana kupitia `GET /api/a2a/tasks?skill=conductor`.
 
 ---
 
-## Integration Examples
+## Kuongeza Ujuzi Mpya
+
+1. **Unda faili la ujuzi:** `src/lib/a2a/skills/<your-skill>.ts`
+
+   Hamisha nje fungsi ya async `(task: A2ATask) => Promise<{ artifacts, metadata }>`. Fuata muundo wa ujuzi uliopo kama vile `smartRouting.ts`.
+
+2. **Sajili kishughulikiaji:** katika `src/lib/a2a/taskExecution.ts`, ongeza ingizo kwenye `A2A_SKILL_HANDLERS`:
+
+   ```typescript
+   export const A2A_SKILL_HANDLERS = {
+     // ...ujuzi uliopo
+     "your-skill": async (task) => {
+       const skillModule = await import("./skills/yourSkill");
+       return skillModule.executeYourSkill(task);
+     },
+   };
+   ```
+
+3. **Onyesha kwenye Kadi ya Wakala:** katika `src/app/.well-known/agent.json/route.ts`, ongeza kwenye mwisho wa safu ya `skills`:
+
+   ```json
+   {
+     "id": "your-skill",
+     "name": "Your Skill",
+     "description": "Brief, intent-focused description",
+     "tags": ["routing", "quota"],
+     "examples": ["Sample natural-language invocation"]
+   }
+   ```
+
+4. **Andika majaribio:** `tests/unit/a2a-<your-skill>.test.ts`. Jumuisha njia ya mafanikio + njia ya hitilafu.
+
+5. **Andika nyaraka** za ujuzi mpya katika jedwali la `Available Skills` la faili hili.
+
+---
+
+## TTL ya Jukumu
+
+Majukumu huisha baada ya `ttlMinutes` (chaguo-msingi ni dakika 5) — iliyosanidiwa katika kijenzi cha `A2ATaskManager` kwenye `src/lib/a2a/taskManager.ts:82`. Ili kubinafsisha, tengeneza fork ya uanzishaji wa `A2ATaskManager` na upitishe thamani tofauti (kwa mfano, `new A2ATaskManager(15)` kwa TTL ya dakika 15). Kipindi cha chinichini hukagua na kuondoa majukumu yaliyokwisha kila sekunde 60.
+
+---
+
+## Mzunguko wa Maisha wa Jukumu
+
+```
+limewasilishwa → linafanyiwa kazi → limekamilika
+                                     → limeshindwa
+                                     → limeghairiwa
+```
+
+- Majukumu huisha baada ya dakika 5 kwa chaguo-msingi (angalia [TTL ya Jukumu](#task-ttl))
+- Hali za mwisho: `completed`, `failed`, `cancelled`
+- Kumbukumbu ya matukio hufuatilia kila badiliko la hali
+
+---
+
+## Misimbo ya Hitilafu
+
+| Msimbo | Maana                                 |
+| :----- | :------------------------------------ |
+| -32700 | Hitilafu ya uchanganuzi (JSON batili) |
+| -32600 | Ombi batili / Haijaidhinishwa         |
+| -32601 | Mbinu au ujuzi haujapatikana          |
+| -32602 | Vigezo batili                         |
+| -32603 | Hitilafu ya ndani                     |
+| -32000 | Endpoint ya A2A imezimwa              |
+
+---
+
+## Mifano ya Ujumuishaji
 
 ### Python (requests)
 

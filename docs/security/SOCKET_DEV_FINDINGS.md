@@ -5,6 +5,8 @@ description: "Maintainer attestation for the AI-detected potential-malware findi
 
 # Socket.dev / supply-chain finding attestation
 
+> **Scope note:** `socket.yml` configures Socket.dev's registry-side post-publish scan of the npm artifact (ignore-paths for non-shipped content such as `tests/`, `docs/`, and build reports). It does not wire a CI/PR merge gate — no workflow in `.github/workflows`, no `package.json` script, and no `Makefile` target invokes Socket.dev.
+
 This document is the maintainer-authored attestation for the six
 `AI-detected potential malware` findings raised against `omniroute@3.8.5` and
 the mitigations applied in `omniroute@3.8.6`. It exists so:

@@ -453,8 +453,11 @@ jobs:
       # One FS inventory of src/app/api for both anti-hallucination directions.
       - name: API docs refs (openapi + prose → routes)
         run: npm run check:api-docs-refs
-      - name: i18n translation drift (warn)
-        run: node scripts/i18n/check-translation-drift.mjs --warn
+      # Blocking since the 2026-09 docs re-sync: a core doc edited without `npm run i18n:run
+      # --files=<doc>` (or `--adopt` for a mechanical edit) leaves 65 stale mirrors behind;
+      # the run only retranslates the `## ` sections whose text changed, so it is cheap.
+      - name: i18n docs drift (sources changed since their translation)
+        run: node scripts/i18n/check-translation-drift.mjs
 
   docs-lint:
     name: Docs Lint (prose — advisory)
@@ -533,6 +536,20 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
         run: node scripts/i18n/check-new-key-coverage.mjs
+      # Absolute complement of the two gates above: every locale must carry exactly the key
+      # set of en.json, whatever the age of the key. A locale batch is generated from the
+      # en.json of the day the branch is cut and translates for days while the base keeps
+      # adding keys — the batch PR adds no key itself, so the new-key gate stays silent and
+      # 43 absent keys out of ~13,000 still read 99.7 % coverage. Incident 2026-09-15:
+      # batch 1 (#13044) landed 43 keys short in nine locales, batch 2 (#13660) 10 keys short
+      # in eight. Fix is `sync-ui-keys --locale=<codes> --translate-markers`.
+      - name: i18n key completeness (every locale carries every en.json key)
+        run: node scripts/i18n/check-key-completeness.mjs
+      # Same gate for the CLI catalogs (bin/cli/locales). check:cli-i18n only compares
+      # pt-BR / zh-CN / zh-TW; 38 locales shipped with 1–24 of 830 keys for months
+      # (audit 2026-09-16) and the CLI silently fell back to English for them.
+      - name: i18n key completeness (CLI catalogs)
+        run: node scripts/i18n/check-key-completeness.mjs --catalog=cli
 
   # #8038: cheap glossary/protected-terms consistency gate —
   # complements i18n-ui-coverage (key parity) and the ICU `i18n` job below

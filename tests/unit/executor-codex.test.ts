@@ -1030,6 +1030,161 @@ test("CodexExecutor.execute captures the exact websocket request body before sen
   assert.equal(sentBody.model, "gpt-5.5");
 });
 
+test("CodexExecutor.execute emits response.failed when websocket closes before a terminal event", async () => {
+  const executor = new CodexExecutor();
+  const ws: MockCodexWebSocket = {
+    send() {
+      queueMicrotask(() => {
+        ws.onmessage?.({
+          data: JSON.stringify({
+            type: "response.output_text.delta",
+            delta: "partial output",
+          }),
+        });
+        ws.onclose?.();
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { codexTransport: "websocket" },
+    },
+  });
+  const body = await result.response.text();
+
+  assert.match(body, /event: response\.failed/);
+  const terminalEvents = body.match(/event: response\.(?:completed|failed|incomplete)/g) ?? [];
+  assert.deepEqual(terminalEvents, ["event: response.failed"]);
+
+  const dataLine = body.split("\n").find((line) => line.includes('"upstream_websocket_closed"'));
+  assert.ok(dataLine);
+  const payload = JSON.parse(dataLine.slice("data: ".length));
+  assert.equal(payload.type, "response.failed");
+  assert.equal(payload.response.status, "failed");
+  assert.equal(payload.response.error.code, "upstream_websocket_closed");
+});
+
+test("CodexExecutor.execute does not emit a second terminal event after normal websocket close", async () => {
+  const executor = new CodexExecutor();
+  const ws: MockCodexWebSocket = {
+    send() {
+      queueMicrotask(() => {
+        ws.onmessage?.({
+          data: JSON.stringify({
+            type: "response.completed",
+            response: { id: "resp_complete", status: "completed" },
+          }),
+        });
+        ws.onclose?.();
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { codexTransport: "websocket" },
+    },
+  });
+  const body = await result.response.text();
+
+  const terminalEvents = body.match(/event: response\.(?:completed|failed|incomplete)/g) ?? [];
+  assert.deepEqual(terminalEvents, ["event: response.completed"]);
+  assert.doesNotMatch(body, /upstream_websocket_closed/);
+});
+
+test("CodexExecutor.execute emits a single response.failed when onerror precedes onclose", async () => {
+  const executor = new CodexExecutor();
+  const ws: MockCodexWebSocket = {
+    send() {
+      queueMicrotask(() => {
+        ws.onmessage?.({
+          data: JSON.stringify({
+            type: "response.output_text.delta",
+            delta: "partial output",
+          }),
+        });
+        // Real WebSocket implementations fire onerror before onclose on an
+        // abnormal close — the closed latch must keep this to one terminal event.
+        ws.onerror?.({ message: "socket hang up" });
+        ws.onclose?.({ code: 1006 });
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { codexTransport: "websocket" },
+    },
+  });
+  const body = await result.response.text();
+
+  const terminalEvents = body.match(/event: response\.(?:completed|failed|incomplete)/g) ?? [];
+  assert.deepEqual(terminalEvents, ["event: response.failed"]);
+  // The first failure wins: onerror fired before onclose, so the emitted code is
+  // upstream_websocket_error, not upstream_websocket_closed.
+  assert.match(body, /upstream_websocket_error/);
+  assert.doesNotMatch(body, /upstream_websocket_closed/);
+});
+
+test("CodexExecutor.execute emits response.failed when websocket closes with no prior events", async () => {
+  const executor = new CodexExecutor();
+  const ws: MockCodexWebSocket = {
+    send() {
+      queueMicrotask(() => {
+        ws.onclose?.({ code: 1006, reason: "abnormal closure" });
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { codexTransport: "websocket" },
+    },
+  });
+  const body = await result.response.text();
+
+  const terminalEvents = body.match(/event: response\.(?:completed|failed|incomplete)/g) ?? [];
+  assert.deepEqual(terminalEvents, ["event: response.failed"]);
+  assert.match(body, /upstream_websocket_closed/);
+});
+
 test("CodexExecutor.execute adds CLI-like session identity headers without changing response flow", async () => {
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;

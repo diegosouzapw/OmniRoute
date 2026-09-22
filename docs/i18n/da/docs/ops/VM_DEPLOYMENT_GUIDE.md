@@ -4,127 +4,133 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇹 [am](../../../am/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇭 [km](../../../km/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇲 [my](../../../my/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [or](../../../or/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇰 [si](../../../si/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+Komplet vejledning til installation og konfiguration af OmniRoute på en VM (VPS) med et domæne, der administreres via Cloudflare.
 
 ---
 
-## Prerequisites
+## Forudsætninger
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| Element    | Minimum                    | Anbefalet        |
+| ---------- | -------------------------- | ---------------- |
+| **CPU**    | 1 vCPU                     | 2 vCPU           |
+| **RAM**    | 1 GB                       | 2 GB             |
+| **Disk**   | 10 GB SSD                  | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS           | Ubuntu 24.04 LTS |
+| **Domæne** | Registreret hos Cloudflare | —                |
+| **Docker** | Docker Engine 24+          | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**Testede udbydere**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configure the VM
+## 1. Konfigurer VM'en
 
-### 1.1 Create the instance
+### 1.1 Opret instansen
 
-On your preferred VPS provider:
+Hos din foretrukne VPS-udbyder:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
+- Vælg Ubuntu 24.04 LTS
+- Vælg minimumsabonnementet (1 vCPU / 1 GB RAM)
+- Angiv en stærk root-adgangskode, eller konfigurer en SSH-nøgle
+- Notér den **offentlige IP-adresse** (f.eks. `203.0.113.10`)
 
-### 1.2 Connect via SSH
+### 1.2 Opret forbindelse via SSH
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 Opdater systemet
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 Installer Docker
 
 ```bash
-# Install dependencies
+# Installer afhængigheder
 apt install -y ca-certificates curl gnupg
 
-# Add official Docker repository
+# Tilføj det officielle Docker-arkiv
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 Installer nginx
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 Konfigurer firewall (UFW)
 
 ```bash
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (redirect)
+ufw allow 80/tcp    # HTTP (omdirigering)
 ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **Tip**: For maksimal sikkerhed bør du begrænse port 80 og 443 til kun at acceptere Cloudflare-IP-adresser. Se afsnittet [Avanceret sikkerhed](#advanced-security).
 
 ---
 
-## 2. Install OmniRoute
+## 2. Installer OmniRoute
 
-### 2.1 Create configuration directory
+### 2.1 Opret konfigurationsmappen
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 Opret filen med miljøvariabler
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
-# === Security ===
+cat > /opt/omniroute/.env << 'EOF'
+# === Sikkerhed ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
 API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # PÅKRÆVET i produktion: bruges af Codex Responses WS bridge
 
 # === App ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URL'er (skift til dit domæne) ===
+# Intern server-til-server-basis-URL til planlagte job / selvhentninger.
+BASE_URL=http://127.0.0.1:20128
+# Browservendt URL, der bruges til OAuth-callbacks, links til kontrolpanelet og genererede offentlige URL'er.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# Valgfri eksplicit tilsidesættelse af offentlig origin til genererede offentlige aktiv-URL'er.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (optional) ===
+# === Synkronisering med skyen (valgfrit) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **VIGTIGT**: Generér unikke hemmelige nøgler! Brug `openssl rand -hex 32` til hver nøgle.
 
-### 2.3 Start the container
+### 2.3 Start containeren
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +144,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 Bekræft, at den kører
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+Den bør vise: `[DB] SQLite database ready` og `listening on port 20128`.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. Konfigurer nginx (reverse proxy)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 Generer SSL-certifikat (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+I Cloudflare-dashboardet:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. Gå til **SSL/TLS → Origin Server**
+2. Klik på **Create Certificate**
+3. Behold standardindstillingerne (15 år, \*.yourdomain.com)
+4. Kopiér **Origin Certificate** og **Private Key**
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Paste the certificate
+# Indsæt certifikatet
 nano /etc/nginx/ssl/origin.crt
 
-# Paste the private key
+# Indsæt den private nøgle
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 Nginx-konfiguration
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
-# Default server — blocks direct access via IP
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+# Standardserver — blokerer direkte adgang via IP
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # Change to your domain
+    server_name llms.yourdomain.com;  # Skift til dit domæne
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -203,16 +209,17 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # WebSocket support
+        # WebSocket-understøttelse
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
-        # SSE (Server-Sent Events) — streaming AI responses
+        # SSE (Server-Sent Events) — streamede AI-svar
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -220,7 +227,7 @@ server {
     }
 }
 
-# HTTP → HTTPS redirect
+# HTTP → HTTPS-omdirigering
 server {
     listen 80;
     listen [::]:80;
@@ -230,59 +237,67 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+Sørg for, at reverse proxyens streaming-timeouts er afstemt med dine timeout-miljøvariabler for OmniRoute. Hvis du øger
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, skal du øge `proxy_read_timeout` / `proxy_send_timeout`
+til over den samme grænse.
 
-### 3.3 Enable and Test
+OmniRoute bruger `NEXT_PUBLIC_BASE_URL` som den kanoniske browservendte origin til OAuth-
+callbacks og genererede offentlige links. Autentificerede skrivehandlinger i dashboardet bruger anmodninger med samme origin
+samt sessionsbundet CSRF-beskyttelse, så de kræver ikke en statisk offentlig basis-URL. Ovenstående
+`X-Forwarded-*`-headere er stadig nyttige routingmetadata, men de erstatter ikke
+angivelsen af den eksplicitte offentlige URL, når OAuth eller genererede browserlinks kræver en. Aktivér kun
+`OMNIROUTE_TRUST_PROXY`, hvis OmniRoute ikke kan tilgås direkte af klienter, og din proxy
+fjerner/genopbygger indgående forwarded-headere.
+
+### 3.3 Aktivér og test
 
 ```bash
-# Remove default configuration
+# Fjern standardkonfigurationen
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
+# Aktivér OmniRoute
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Test and reload
+# Test og genindlæs
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. Konfigurer Cloudflare DNS
 
-### 4.1 Add DNS record
+### 4.1 Tilføj DNS-post
 
-In the Cloudflare dashboard → DNS:
+I Cloudflare-kontrolpanelet → DNS:
 
-| Type | Name   | Content                | Proxy      |
+| Type | Navn   | Indhold                | Proxy      |
 | ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| A    | `llms` | `203.0.113.10` (VM-IP) | ✅ Proxied |
 
-### 4.2 Configure SSL
+### 4.2 Konfigurer SSL
 
 Under **SSL/TLS → Overview**:
 
-- Mode: **Full (Strict)**
+- Tilstand: **Full (Strict)**
 
 Under **SSL/TLS → Edge Certificates**:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- Brug altid HTTPS: ✅ Til
+- Minimum TLS-version: TLS 1.2
+- Automatiske HTTPS-omskrivninger: ✅ Til
 
-### 4.3 Testing
+### 4.3 Test
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Should return HTTP/2 200
+# Bør returnere HTTP/2 200
 ```
 
 ---
 
-## 5. Operations and Maintenance
+## 5. Drift og vedligeholdelse
 
-### Upgrade to a new version
+### Opgrader til en ny version
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,42 +309,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### Se logfiler
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f omniroute          # Realtidsstream
+docker logs omniroute --tail 50   # Seneste 50 linjer
 ```
 
-### Manual database backup
+### Manuel sikkerhedskopiering af databasen
 
 ```bash
-# Copy data from the volume to the host
+# Kopiér data fra diskenheden til værten
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Or compress the entire volume
+# Eller komprimer hele diskenheden
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### Gendan fra en sikkerhedskopi
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. Avanceret sikkerhed
 
-### Restrict nginx to Cloudflare IPs
+### Begræns nginx til Cloudflare-IP-adresser
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
-# Cloudflare IPv4 ranges — update periodically
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
+# Cloudflare IPv4-intervaller — opdater regelmæssigt
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -350,58 +365,69 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+Tilføj følgende til `nginx.conf` i `http {}`-blokken:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### Installer fail2ban
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Check status
+# Kontrollér status
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### Bloker direkte adgang til Docker-porten
 
 ```bash
-# Prevent direct external access to port 20128
+# Forhindr direkte ekstern adgang til port 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persist the rules
+# Gør reglerne permanente
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. Implementer på Cloudflare Workers (valgfrit)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Til fjernadgang via Cloudflare Workers (uden at eksponere VM'en direkte):
 
 ```bash
-# In the local repository
+# I det lokale repository
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+Se også [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) for en gennemgang af Cloudflare Tunnel i repositoriet. Den selvstændige `omnirouteCloud/`-worker findes i et separat ledsagende repository.
 
 ---
 
-## Port Summary
+## Portoversigt
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| Port  | Tjeneste    | Adgang                    |
+| ----- | ----------- | ------------------------- |
+| 22    | SSH         | Offentlig (med fail2ban)  |
+| 80    | nginx HTTP  | Omdirigering → HTTPS      |
+| 443   | nginx HTTPS | Via Cloudflare Proxy      |
+| 20128 | OmniRoute   | Kun localhost (via nginx) |
+
+## Optimering til lav hukommelse / lille VPS
+
+Til installationer på små VPS-instanser (1 GB RAM eller mindre):
+
+- **Deaktivér baggrundstjenester** — indstil `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1` for at springe planlæggeren, MCP-serveren og periodiske vedligeholdelsesopgaver over. Se `docs/reference/ENVIRONMENT.md`.
+- **Brug SQLite WAL-tilstand** — aktiveret som standard og reducerer det maksimale hukommelsesforbrug under samtidige læsninger.
+- **Begræns V8-heapen** — indstil `OMNIROUTE_MEMORY_MB` (f.eks. `512`), så runtime-miljøet ikke kalibrerer en grænse, der er større end VM'en. Se `docs/reference/ENVIRONMENT.md`.
+- **Adgangskontrol for tunge anmodninger skaleres automatisk med heapgrænsen** -- når `OMNIROUTE_MEMORY_MB` er indstillet som ovenfor, afledes bytebudgettet for indgående data (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) fra den samme grænse. Derfor får en VM med begrænset hukommelse allerede et mindre budget til samtidige anmodninger uden yderligere finjustering. Overskydende anmodninger modtager en `503`, der kan forsøges igen, med `Retry-After` i stedet for at konkurrere om hukommelsen. Indstil kun den ældre grænse for antal anmodninger, `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, hvis du har brug for en fast øvre grænse derudover.
+- **Undgå `next build` på VPS'en** — byg lokalt, og installér det selvstændige output (`.next/standalone/`).
+- **Overvåg med `top` / `free -m`** — OmniRoute bruger typisk 200-400 MB RSS i inaktiv tilstand på en VM med 1 GB.

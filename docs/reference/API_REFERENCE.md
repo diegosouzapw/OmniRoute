@@ -480,7 +480,7 @@ All POST routes follow the same shape: `Bearer your-api-key` + Zod-validated JSO
 For clients that cannot attach `Authorization: Bearer ...`, OmniRoute also accepts API keys in the URL via either query-string compatibility (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) or the dedicated `/api/v1/vscode/{token}/...` endpoints documented below.
 
 ```bash
-# Rerank
+# Rerank (cloud registry provider, or an OpenAI-compatible provider node as "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina classify (Foundation API credentials)
@@ -505,6 +505,28 @@ POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Rerank provider nodes:** `POST /v1/rerank` also routes to OpenAI-compatible provider nodes
+> (oMLX, vLLM, Infinity, TEI behind a gateway, …) addressed as `<node-prefix>/<model>`. Loopback
+> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible. Nodes on any other
+> host — a LAN box or Tailscale peer — are eligible only when the operator enables the
+> `RERANK_REMOTE_PROVIDER_NODES` feature flag **and** the node's base URL passes the provider
+> outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> cloud-metadata hosts are never routed to. The memory engine's rerank step calls this route over
+> loopback, so the same rule governs `rerankProviderModel` in the Memory settings.
+>
+> **Local server shapes:** the node is called at `<base>/v1/rerank` and, on 404, at `<base>/rerank`
+> (Infinity, TEI). The upstream body carries both the Cohere/OpenAI spelling (`documents`,
+> `return_documents`) and the TEI spelling (`texts`, `return_text`), and the upstream response is
+> normalized to the Cohere envelope: TEI's bare `[{index, score, text}]`, `{results: [{index, score}]}`
+> from thin gateways, and Voyage-style `{data: [...]}` all come back to the client as
+> `{results: [{index, relevance_score, document?}]}`, sorted by score and capped at `top_n`.
+
+> **Provider-node discovery:** models on an OpenAI-compatible provider node appear in `GET /v1/models`
+> under the node prefix. Rows that carry no endpoint metadata (typical for local `/v1/models` listings)
+> inherit the node's `apiType`, so an `embeddings` node's models are `type: "embedding"` and a
+> `rerank` node's models are `type: "rerank"` instead of defaulting to chat; an explicit
+> `supportedEndpoints` on a synced or manually added row still takes precedence.
 
 ### Dedicated Provider Routes
 
@@ -1615,7 +1637,7 @@ Admin-only endpoints for operational management.
 
 ## CLI Tools Management
 
-Manage CLI tools that integrate with OmniRoute (antigravity, chipotle, commandCode,
+Manage CLI tools that integrate with OmniRoute (antigravity, commandCode,
 devin-cli, etc.). See [Provider Reference](./PROVIDER_REFERENCE.md) for the full list.
 
 | Method | Path                                    | Description                                                                                                                                       |

@@ -34,3 +34,43 @@ export function warnIfNonLoopbackWithoutApiKey(serverLabel: string, host: string
       "already enforces its own authentication."
   );
 }
+
+/**
+ * Host the Next server that answers `/v1` inference is bound to.
+ *
+ * Two entrypoints bind that server and they do NOT read the same variable:
+ *
+ * - `scripts/dev/run-next.mjs` (`npm run dev` / `npm start`) uses
+ *   `process.env.HOST`, and publishes the resolved value as
+ *   `OMNIROUTE_BOUND_HOST` for exactly this lookup.
+ * - `scripts/dev/run-standalone.mjs` (the Docker entrypoint) delegates to
+ *   Next's generated `server.js`, which uses Next's own `HOSTNAME`
+ *   convention — `Dockerfile` sets `HOSTNAME=0.0.0.0`.
+ *
+ * `HOST` is deliberately NOT in this chain. The only path that honours it is
+ * run-next.mjs, which has already folded it into `OMNIROUTE_BOUND_HOST`; on
+ * the standalone path Next ignores `HOST` and binds `HOSTNAME`, so consulting
+ * it there would name an interface the server is not on. A warning that
+ * fingers the wrong interface is worse than none — an operator who sees one
+ * false warning stops reading the next one.
+ *
+ * Both entrypoints default to every interface, so the fallback does too.
+ */
+export const MAIN_SERVER_DEFAULT_HOST = "0.0.0.0";
+
+export function resolveMainServerHost(): string {
+  return process.env.OMNIROUTE_BOUND_HOST || process.env.HOSTNAME || MAIN_SERVER_DEFAULT_HOST;
+}
+
+/**
+ * Warn when the inference-serving Next server is reachable off-box without an
+ * API key. Separate from the API bridge / live-WS call sites so the log names
+ * the surface an operator actually probes — `/v1/models` answering 401 says
+ * nothing about whether inference is protected (#13695).
+ */
+export function warnIfInferenceServerExposed(): void {
+  warnIfNonLoopbackWithoutApiKey(
+    "Dashboard/API server (serves /v1 inference)",
+    resolveMainServerHost()
+  );
+}

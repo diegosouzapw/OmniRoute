@@ -95,6 +95,7 @@ export async function DELETE(request: Request) {
     apiKeyId: scope.apiKeyId,
     deletedBatches: result.deletedBatches,
     deletedFiles: result.deletedFiles,
+    hasMore: result.hasMore,
   };
   // A bulk delete is an audit event, not routine chatter: an instance-wide sweep
   // and any key-scoped sweep that actually removed rows log at warn so the trail
@@ -109,7 +110,12 @@ export async function DELETE(request: Request) {
   }
 
   return NextResponse.json(
-    { deleted: true, deletedBatches: result.deletedBatches, deletedFiles: result.deletedFiles },
+    {
+      deleted: true,
+      deletedBatches: result.deletedBatches,
+      deletedFiles: result.deletedFiles,
+      hasMore: result.hasMore,
+    },
     { headers: CORS_HEADERS }
   );
 }

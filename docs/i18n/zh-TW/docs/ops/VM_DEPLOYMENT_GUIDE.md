@@ -1,29 +1,27 @@
----
-title: "OmniRoute — VM 部署指南（搭配 Cloudflare）"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# OmniRoute — VM 部署指南（搭配 Cloudflare）
+# OmniRoute — Deployment Guide on VM with Cloudflare (中文 (繁體))
 
 🌐 **Languages:** 🇺🇸 [English](../../../../ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇹 [am](../../../am/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../../da/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇭 [km](../../../km/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇲 [my](../../../my/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [or](../../../or/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇰 [si](../../../si/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md)
 
-在 VM（VPS）上安裝並設定 OmniRoute 的完整指南，搭配經由 Cloudflare 管理的網域。
+---
+
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇹 [am](../../../am/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../../da/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇭 [km](../../../km/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇲 [my](../../../my/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [or](../../../or/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇰 [si](../../../si/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+在透過 Cloudflare 管理網域的虛擬機器（VPS）上安裝及設定 OmniRoute 的完整指南。
 
 ---
 
-## 前置需求
+## 先決條件
 
-| 項目         | 最低規格           | 建議規格         |
-| ------------ | ------------------ | ---------------- |
-| **CPU**      | 1 vCPU             | 2 vCPU           |
-| **RAM**      | 1 GB               | 2 GB             |
-| **硬碟**     | 10 GB SSD          | 25 GB SSD        |
-| **作業系統** | Ubuntu 22.04 LTS   | Ubuntu 24.04 LTS |
-| **網域**     | 在 Cloudflare 註冊 | —                |
-| **Docker**   | Docker Engine 24+  | Docker 27+       |
+| 項目         | 最低需求             | 建議配置         |
+| ------------ | -------------------- | ---------------- |
+| **CPU**      | 1 vCPU               | 2 vCPU           |
+| **RAM**      | 1 GB                 | 2 GB             |
+| **磁碟**     | 10 GB SSD            | 25 GB SSD        |
+| **作業系統** | Ubuntu 22.04 LTS     | Ubuntu 24.04 LTS |
+| **網域**     | 已在 Cloudflare 註冊 | —                |
+| **Docker**   | Docker Engine 24+    | Docker 27+       |
 
-**經測試的提供者**: Akamai (Linode)、DigitalOcean、Vultr、Hetzner、AWS Lightsail。
+**已測試的提供者**：Akamai (Linode)、DigitalOcean、Vultr、Hetzner、AWS Lightsail。
 
 ---
 
@@ -31,12 +29,12 @@ lastUpdated: 2026-06-28
 
 ### 1.1 建立執行個體
 
-在你偏好的 VPS 提供者：
+在您偏好的 VPS 提供者上：
 
 - 選擇 Ubuntu 24.04 LTS
 - 選擇最低方案（1 vCPU / 1 GB RAM）
-- 設定強效 root 密碼或配置 SSH 金鑰
-- 記下**公開 IP**（例如 `203.0.113.10`）
+- 設定高強度的 root 密碼，或設定 SSH 金鑰
+- 記下**公用 IP**（例如 `203.0.113.10`）
 
 ### 1.2 透過 SSH 連線
 
@@ -56,11 +54,11 @@ apt update && apt upgrade -y
 # 安裝相依套件
 apt install -y ca-certificates curl gnupg
 
-# 加入官方 Docker 儲存庫
+# 新增官方 Docker 套件庫
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo \"$VERSION_CODENAME\") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
@@ -71,7 +69,7 @@ apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 apt install -y nginx
 ```
 
-### 1.6 設定防火牆 (UFW)
+### 1.6 設定防火牆（UFW）
 
 ```bash
 ufw default deny incoming
@@ -82,7 +80,7 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **提示**: 為達最高安全性，可將連接埠 80 和 443 限制為僅允許 Cloudflare IP。請參閱[進階安全](#advanced-security)一節。
+> **提示**：為了達到最高安全性，請將連接埠 80 和 443 限制為僅允許 Cloudflare IP。請參閱[進階安全性](#advanced-security)章節。
 
 ---
 
@@ -94,7 +92,7 @@ ufw enable
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 建立環境變數檔
+### 2.2 建立環境變數檔案
 
 ```bash
 cat > /opt/omniroute/.env << 'EOF'
@@ -105,7 +103,7 @@ API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
-OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # 生產環境必填：Codex Responses WS bridge 使用
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # 正式環境中為必要項目：由 Codex Responses WS bridge 使用
 
 # === 應用程式 ===
 PORT=20128
@@ -116,21 +114,21 @@ APP_LOG_TO_FILE=true
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === URLs（請改為你的網域）===
-# 內部伺服器對伺服器的基礎 URL，用於排程任務／自我擷取
+# === URL（請變更為您的網域）===
+# 排程工作／自行擷取所使用的內部伺服器對伺服器基礎 URL。
 BASE_URL=http://127.0.0.1:20128
-# 瀏覽器端使用的 URL，用於 OAuth 回呼、儀表板連結和產生的公開 URL
+# 用於 OAuth 回呼、儀表板連結和所產生公用 URL 的瀏覽器端 URL。
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
-# 選擇性：產生的公開資源 URL 的明確公開來源覆寫
+# 用於產生公用資產 URL 的選用明確公用來源覆寫值。
 # OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud 同步（選擇性）===
+# === 雲端同步（選用）===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **重要**: 請產生唯一的密鑰！使用 `openssl rand -hex 32` 為每個密鑰產生隨機值。
+> ⚠️ **重要**：請產生唯一的祕密金鑰！對每個金鑰使用 `openssl rand -hex 32`。
 
 ### 2.3 啟動容器
 
@@ -146,7 +144,7 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 確認運作中
+### 2.4 確認其正在執行
 
 ```bash
 docker ps | grep omniroute
@@ -161,12 +159,12 @@ docker logs omniroute --tail 20
 
 ### 3.1 產生 SSL 憑證（Cloudflare Origin）
 
-在 Cloudflare 儀表板中：
+在 Cloudflare 控制台中：
 
 1. 前往 **SSL/TLS → Origin Server**
-2. 點擊 **Create Certificate**
-3. 保持預設值（15 年、\\*.yourdomain.com）
-4. 複製 **Origin Certificate** 和 **Private Key**
+2. 按一下 **Create Certificate**
+3. 保留預設值（15 年、\*.yourdomain.com）
+4. 複製 **Origin Certificate** 與 **Private Key**
 
 ```bash
 mkdir -p /etc/nginx/ssl
@@ -174,17 +172,17 @@ mkdir -p /etc/nginx/ssl
 # 貼上憑證
 nano /etc/nginx/ssl/origin.crt
 
-# 貼上私鑰
+# 貼上私密金鑰
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx 設定
+### 3.2 nginx 設定
 
 ```bash
 cat > /etc/nginx/sites-available/omniroute << 'NGINX'
-# 預設伺服器 — 封鎖直接透過 IP 存取
+# 預設伺服器 — 封鎖透過 IP 直接存取
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -200,7 +198,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.yourdomain.com;  # 改為你的網域
+    server_name llms.yourdomain.com;  # 變更為您的網域
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -221,7 +219,7 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
 
-        # SSE（Server-Sent Events）— 串流 AI 回應
+        # SSE（伺服器傳送事件）— 串流 AI 回應
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 600s;
@@ -239,15 +237,15 @@ server {
 NGINX
 ```
 
-請確保反向代理串流超時時間與你的 OmniRoute 超時環境變數保持一致。如果你調高了
-`FETCH_TIMEOUT_MS`／`STREAM_IDLE_TIMEOUT_MS`，請同步調高 `proxy_read_timeout`／`proxy_send_timeout`
-至相同閾值以上。
+請讓反向代理的串流逾時設定與 OmniRoute 的逾時環境變數保持一致。如果您提高
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`，請將 `proxy_read_timeout` / `proxy_send_timeout`
+提高至相同門檻以上。
 
-OmniRoute 使用 `NEXT_PUBLIC_BASE_URL` 作為 OAuth 回呼和產生公開連結的標準瀏覽器端來源。
-已驗證的儀表板寫入操作使用同源請求加上綁定 session 的 CSRF 保護，因此不需要靜態公開基礎 URL。
-上述的 `X-Forwarded-*` 標頭依然是實用的路由後設資料，但在 OAuth 或產生的瀏覽器連結需要公開 URL
-時，它們不能取代明確設定公開 URL。僅在 OmniRoute 無法被用戶端直接存取且你的代理伺服器
-會移除／重建傳入的轉發標頭時，才啟用 `OMNIROUTE_TRUST_PROXY`。
+OmniRoute 使用 `NEXT_PUBLIC_BASE_URL` 作為 OAuth 回呼及所產生公開連結的標準瀏覽器端來源。
+已驗證身分的控制台寫入操作使用同源請求及繫結工作階段的 CSRF 保護，因此不需要靜態公開基礎 URL。
+上述 `X-Forwarded-*` 標頭仍是實用的路由中繼資料，但當 OAuth 或所產生的瀏覽器連結需要明確公開 URL
+時，它們不能取代該 URL 設定。只有在用戶端無法直接連線至 OmniRoute，且您的代理會移除並重建
+傳入的轉送標頭時，才啟用 `OMNIROUTE_TRUST_PROXY`。
 
 ### 3.3 啟用並測試
 
@@ -268,22 +266,22 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 新增 DNS 記錄
 
-在 Cloudflare 儀表板 → DNS：
+在 Cloudflare 控制面板 → DNS 中：
 
-| 類型 | 名稱   | 內容                    | Proxy     |
-| ---- | ------ | ----------------------- | --------- |
-| A    | `llms` | `203.0.113.10`（VM IP） | ✅ 已代理 |
+| 類型 | 名稱   | 內容                         | Proxy     |
+| ---- | ------ | ---------------------------- | --------- |
+| A    | `llms` | `203.0.113.10`（VM IP 位址） | ✅ 已代理 |
 
 ### 4.2 設定 SSL
 
-在 **SSL/TLS → Overview**：
+在 **SSL/TLS → Overview** 下：
 
 - 模式：**Full (Strict)**
 
-在 **SSL/TLS → Edge Certificates**：
+在 **SSL/TLS → Edge Certificates** 下：
 
 - Always Use HTTPS：✅ 開啟
-- Minimum TLS Version：TLS 1.2
+- 最低 TLS 版本：TLS 1.2
 - Automatic HTTPS Rewrites：✅ 開啟
 
 ### 4.3 測試
@@ -316,10 +314,10 @@ docker logs -f omniroute          # 即時串流
 docker logs omniroute --tail 50   # 最後 50 行
 ```
 
-### 手動資料庫備份
+### 手動備份資料庫
 
 ```bash
-# 從容器複製資料到主機
+# 將資料從磁碟區複製到主機
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
 # 或壓縮整個磁碟區
@@ -338,9 +336,9 @@ docker start omniroute
 
 ---
 
-## 6. 進階安全
+## 6. 進階安全性
 
-### 限制 nginx 僅允許 Cloudflare IP
+### 將 nginx 限制為僅允許 Cloudflare IP
 
 ```bash
 cat > /etc/nginx/cloudflare-ips.conf << 'CF'
@@ -365,7 +363,7 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-將以下內容加入 `nginx.conf` 中的 `http {}` 區塊：
+在 `nginx.conf` 的 `http {}` 區塊內加入以下內容：
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
@@ -389,16 +387,16 @@ fail2ban-client status sshd
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# 持續保存規則
+# 永久保存規則
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. 部署至 Cloudflare Workers（選擇性）
+## 7. 部署至 Cloudflare Workers（選用）
 
-用於透過 Cloudflare Workers 進行遠端存取（無需直接暴露 VM）：
+若要透過 Cloudflare Workers 遠端存取（不直接暴露 VM）：
 
 ```bash
 # 在本機儲存庫中
@@ -408,15 +406,26 @@ npx wrangler login
 npx wrangler deploy
 ```
 
-另請參閱 [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) 以了解儲存庫內的 Cloudflare Tunnel 逐步說明。獨立的 `omnirouteCloud/` worker 位於另一個配套儲存庫中。
+另請參閱 [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md)，以取得儲存庫內的 Cloudflare Tunnel 操作指南。獨立的 `omnirouteCloud/` worker 位於另一個配套儲存庫中。
 
 ---
 
 ## 連接埠摘要
 
-| 連接埠 | 服務        | 存取方式               |
-| ------ | ----------- | ---------------------- |
-| 22     | SSH         | 公開（搭配 fail2ban）  |
-| 80     | nginx HTTP  | 重新導向 → HTTPS       |
-| 443    | nginx HTTPS | 經由 Cloudflare Proxy  |
-| 20128  | OmniRoute   | 僅限本機（經由 nginx） |
+| 連接埠 | 服務        | 存取方式                     |
+| ------ | ----------- | ---------------------------- |
+| 22     | SSH         | 公開（使用 fail2ban）        |
+| 80     | nginx HTTP  | 重新導向 → HTTPS             |
+| 443    | nginx HTTPS | 透過 Cloudflare Proxy        |
+| 20128  | OmniRoute   | 僅限 localhost（透過 nginx） |
+
+## 低記憶體／小型 VPS 最佳化
+
+針對小型 VPS 執行個體（1 GB RAM 或更少）的部署：
+
+- **停用背景服務** — 設定 `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1`，以略過排程器、MCP 伺服器及定期維護工作。請參閱 `docs/reference/ENVIRONMENT.md`。
+- **使用 SQLite WAL 模式** — 預設已啟用，可降低並行讀取期間的記憶體峰值。
+- **限制 V8 堆積大小** — 設定 `OMNIROUTE_MEMORY_MB`（例如 `512`），使執行階段不會校準出大於 VM 的上限。請參閱 `docs/reference/ENVIRONMENT.md`。
+- **重量級請求准入會依堆積上限自動調整** -- 設定上述 `OMNIROUTE_MEMORY_MB` 後，擷取位元組預算（`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`）會依同一上限自動推導，因此記憶體受限的 VM 無需額外調校，即可獲得較小的並行請求預算；超額請求會收到可重試的 `503` 及 `Retry-After`，而不會彼此競爭記憶體。僅當您需要在此機制之上設定硬性上限時，才設定舊版的 `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` 請求數量上限。
+- **避免在 VPS 上執行 `next build`** — 請在本機建置，並部署獨立輸出（`.next/standalone/`）。
+- **使用 `top`／`free -m` 監控** — 在 1 GB VM 上閒置時，OmniRoute 通常會使用 200-400 MB RSS。

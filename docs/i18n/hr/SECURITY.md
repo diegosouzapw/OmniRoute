@@ -220,29 +220,37 @@ Ova pravila provode alati i preglednici:
 10. **Vrijednosti za `exec()` / `spawn()` u izvođenju putem opcije `env`** — nikada ne interpolirajte stringovima vanjske putanje ili nepouzdane vrijednosti u skripte proslijeđene ljusci. Referenca: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Preferirajte biblioteke sigurne prema zadanim postavkama** — pogledajte [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Posegnite za njima prije nego što napišete vlastito rješenje.
 
-## Nalazi skenera dobavnog lanca (Socket.dev / Snyk / slični alati)
+## Nalazi skenera opskrbnog lanca (Socket.dev / Snyk / slično)
 
-Objavljeni `omniroute` npm artefakt sadrži Next.js `output: "standalone"`
-izgradnju, što znači da svaki rukovatelj zahtjevima — uključujući dokumentirane
-privilegirane značajke (MITM, Zed uvoz, Cloud Sync, ugrađeni nadzornik usluga) —
-završava u minificiranim dijelovima `.next/server/*.js`. Heuristički skeneri
-dobavnog lanca često prepoznaju uzorke u tim dijelovima i uspoređuju ih s
-potpisima zlonamjernog softvera.
+> **Napomena o opsegu:** `socket.yml` u korijenu repozitorija samo definira `projectIgnorePaths` za Socket.devovo skeniranje objavljenog npm artefakta nakon objave na strani registra — nije obvezna kontrola za spajanje u CI-ju/PR-u. Nijedan tijek rada u `.github/workflows`, nijedna skripta u `package.json` i nijedan cilj u `Makefile` ne pokreću Socket.dev.
 
-Za svaku kategoriju nalaza vodimo pojedinačne potvrde održavatelja:
+Objavljeni npm artefakt `omniroute` sadrži Next.js međuverziju s postavkom `output: "standalone"`,
+što znači da svaki obrađivač ruta — uključujući dokumentirane povlaštene
+funkcionalnosti (MITM, uvoz iz Zeda, Cloud Sync, ugrađeni nadzornik usluga) — završava
+u minificiranim dijelovima `.next/server/*.js`. Heuristički skeneri opskrbnog lanca
+često uspoređuju uzorke iz tih dijelova s potpisima zlonamjernog softvera.
+
+Konfiguracija skenera koju upotrebljavamo nalazi se u datoteci [`socket.yml`](socket.yml) u
+korijenu repozitorija (format v2 za Socket.dev GitHub App — pogledajte
+<https://docs.socket.dev/docs/socket-yml>). Ona izričito izuzima
+direktorije koji se ne isporučuju (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` itd.) kako bi skener izvješćivao samo o putanjama koda koje
+doista dolaze do korisnika objavljenog paketa — samo skeniranje pokreće Socket
+GitHub App čitanjem te datoteke, a ne tijek rada u ovom repozitoriju.
+
+Za svaku kategoriju nalaza održavamo potvrdu održavatelja za pojedinačni nalaz:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa po nalazu: izvorna datoteka ↔ označeni dio ↔ ponašanje ↔ ublažavanje
-  primijenjeno u v3.8.6.
-- Blokovi `SECURITY-AUDITOR-NOTE:` unutar izvornog koda na svakoj označenoj
-  točki funkcije upućuju natrag na isti dokument.
+  karta pojedinačnih nalaza: izvorna datoteka ↔ označeni dio ↔ ponašanje ↔ mjera ublažavanja
+  primijenjena u v3.8.6.
+- Blokovi `SECURITY-AUDITOR-NOTE:` u izvornom kodu uz svaku označenu funkciju
+  upućuju na isti dokument.
 
-Za korisnike čiji cjevovod ne može ublažiti upozorenje: izgradite s
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Time se četiri osjetljiva modula
-zamjenjuju zamjenskim verzijama koje za izvođenja vraćaju HTTP 503 `feature-disabled`,
-pa privilegirani putevi koda fizički ne postoje u paketu.
-Pogledajte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-za recept za objavljivanje.
+Za korisnike čiji proces ne dopušta ublažavanje upozorenja: izradite međuverziju naredbom
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Time se četiri
+osjetljiva modula zamjenjuju zamjenskim implementacijama koje tijekom izvođenja vraćaju HTTP 503 `feature-disabled`,
+pa povlaštene putanje koda fizički nisu prisutne u paketu.
+Recept za objavljivanje potražite u dokumentu [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Reference
 

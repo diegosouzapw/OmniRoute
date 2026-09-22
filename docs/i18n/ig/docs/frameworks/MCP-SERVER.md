@@ -1,25 +1,16 @@
-# MCP-SERVER (Igbo)
+# OmniRoute MCP Server Documentation (Igbo)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "Akwụkwọ Nkọwa Sava MCP OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# Akwụkwọ Nkọwa Sava MCP OmniRoute
-
-> Sava Model Context Protocol nwere ngwaọrụ 110 maka ọrụ ntụgharị-ụzọ, cache, mkpakọ, ebe nchekwa, nka, proxy, pool, Radar, na isi mmalite context.
+> Sava Model Context Protocol nwere ngwaọrụ 110 maka ọrụ ntụgharị ụzọ, cache, mkpakọ, ebe nchekwa, nka, proxy, pool, Radar, na isi mmalite context.
 >
-> Isi mmalite eziokwu: `open-sse/mcp-server/server.ts` na-eji `countUniqueMcpTools()` agbakọ **ngwaọrụ pụrụ iche 110**: nkọwa canonical 45 (gụnyere ngwaọrụ isii maka usoro ndụ CCR, ngwaọrụ atọ nke agent-skills, `omniroute_radar_catalog`, na `omniroute_x_search`), tinyere ebe nchekwa (3), nka (4), nka GitHub (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), corpus mpaghara (3), na ngwaọrụ mkpakọ abụọ bụ naanị maka RTK.
+> Isi iyi nke eziokwu: `open-sse/mcp-server/server.ts` na-eji `countUniqueMcpTools()` gbakọọ **ngwaọrụ pụrụ iche 110**: nkọwa canonical 45 (gụnyere ngwaọrụ isii maka usoro ndụ CCR, ngwaọrụ atọ nke agent-skills, `omniroute_radar_catalog`, na `omniroute_x_search`), tinyere ebe nchekwa (3), nka (4), nka GitHub (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), corpus mpaghara (3), na ngwaọrụ mkpakọ abụọ nke bụ naanị maka RTK.
 
 ## Nwụnye
 
-E wuru OmniRoute MCP n'ime sistemụ. Jiri nke a malite ya:
+E tinyere OmniRoute MCP n’ime ya. Jiri nke a malite ya:
 
 ```bash
 omniroute --mcp
@@ -28,9 +19,26 @@ omniroute --mcp
 Ma ọ bụ site na open-sse transport:
 
 ```bash
-# HTTP transport nwere ike ịgbasa (ọdụ ụgbọ mmiri 20130)
-omniroute --dev  # MCP na-amalite n'onwe ya na endpoint /mcp
+# HTTP transport nwere ike ibufe data n’usoro iyi (ọdụ ụgbọ mmiri 20130)
+omniroute --dev  # MCP na-amalite na-akpaghị aka na /mcp endpoint
 ```
+
+A na-agbanyụ HTTP transports (`sse` / `streamable-http`, nke dashboard server na-enye n’ime otu usoro ahụ)
+na ndabara, ma na mbụ, naanị site na ibe `/dashboard/mcp` ka a pụrụ isi gbanye ma ọ bụ gbanyụọ ha. Malite na v3.8.51,
+CLI nwekwara otu ikike ahụ:
+
+```bash
+omniroute mcp status                                  # agbanyere/online, transport, ọnụ ọgụgụ tools
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # na-atọgharị sessions sse/streamable-http ndị na-arụ ọrụ
+```
+
+`mcp enable`/`mcp disable` na-eji PATCH emelite otu ntọala `mcpEnabled` ahụ (yana `mcpTransport` ma ọ bụrụ na achọrọ)
+nke dashboard na-agbanye ma ọ bụ na-agbanyụ site na `/api/settings`. `mcp restart` na-akpọ `POST /api/mcp/restart`: ọ na-emechi
+sessions `sse`/`streamable-http` ndị na-arụ ọrụ ka arịrịọ na-esote nwee ike ịmalitegharị ha nke ọma, na-eweghachi
+`409` ma ọ bụrụ na agbanyụrụ MCP, yana `501` maka `stdio` transport (ndị ahịa stdio na-achịkwa
+subprocess nke ha — ọ dịghị handle dị n’ime usoro ahụ a ga-amalitegharị).
 
 ## Ụzọ Mbupu
 

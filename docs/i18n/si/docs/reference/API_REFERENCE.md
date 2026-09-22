@@ -1,21 +1,12 @@
-# API_REFERENCE (සිංහල)
+# API Reference (සිංහල)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
----
-
-title: "API යොමුව"
-version: 3.8.51
-lastUpdated: 2026-08-31
----
-
-# API යොමුව
-
 🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
-OmniRoute API සඳහා මූලික යොමුව. මෙය පොදු `/v1` මතුපිට සහ වැඩිපුරම භාවිත වන කළමනාකරණ අන්ත ලක්ෂ්ය ආවරණය කරයි; යන්ත්රයට කියවිය හැකි [`docs/openapi.yaml`](../openapi.yaml) සහ `src/app/api/` යටතේ ඇති මාර්ග වෘක්ෂය සම්පූර්ණ මූලාශ්ර වේ.
+OmniRoute API සඳහා මූලික යොමුව. මෙය පොදු `/v1` පෘෂ්ඨය සහ වැඩිපුරම භාවිත වන කළමනාකරණ අන්ත ලක්ෂ්ය ආවරණය කරයි; යන්ත්රයෙන් කියවිය හැකි [`docs/openapi.yaml`](../openapi.yaml) සහ `src/app/api/` යටතේ ඇති මාර්ග වෘක්ෂය සම්පූර්ණ මූලාශ්ර වේ.
 
 ---
 
@@ -449,7 +440,7 @@ sidecar එකක් ක්රියාවලියෙන් පිටත ධා
 
 ---
 
-## ගැළපුම් Endpoints
+## අනුකූලතා අන්ත ලක්ෂ්ය
 
 | ක්රමය | මාර්ගය                                    | ආකෘතිය                                   |
 | ----- | ----------------------------------------- | ---------------------------------------- |
@@ -472,19 +463,19 @@ sidecar එකක් ක්රියාවලියෙන් පිටත ධා
 | GET   | `/v1beta/models`                          | Gemini                                   |
 | POST  | `/v1beta/models/{...path}`                | Gemini generateContent                   |
 | POST  | `/v1/api/chat`                            | Ollama                                   |
-| GET   | `/api/v1/vscode/{token}/`                 | OpenAI නාමාවලි අන්වර්ථ නාමය              |
-| GET   | `/api/v1/vscode/{token}/models`           | OpenAI ආකෘති අන්වර්ථ නාමය                |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI ටෝකනීකෘත අන්වර්ථ නාමය             |
-| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ටෝකනීකෘත අන්වර්ථ නාමය   |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama ටෝකනීකෘත අන්වර්ථ නාමය             |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama ටැග් ටෝකනීකෘත අන්වර්ථ නාමය        |
+| GET   | `/api/v1/vscode/{token}/`                 | OpenAI නාමාවලි අන්වර්ථය                  |
+| GET   | `/api/v1/vscode/{token}/models`           | OpenAI ආකෘති අන්වර්ථය                    |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI ටෝකනීකෘත අන්වර්ථය                 |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ටෝකනීකෘත අන්වර්ථය       |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama ටෝකනීකෘත අන්වර්ථය                 |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama ටැග් ටෝකනීකෘත අන්වර්ථය            |
 
-සියලුම POST මාර්ග එකම ව්යුහය අනුගමනය කරයි: `Bearer your-api-key` + Zod මඟින් වලංගු කරන ලද JSON අන්තර්ගතය (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ආදිය; `src/shared/validation/schemas.ts` බලන්න). යෝජනා ක්රමය වලංගු කිරීම අසාර්ථක වුවහොත් 4xx ආපසු ලබා දෙයි.
+සියලුම POST මාර්ග එකම ව්යුහය අනුගමනය කරයි: `Bearer your-api-key` + Zod මඟින් වලංගු කරන ලද JSON අන්තර්ගතය (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ආදිය; `src/shared/validation/schemas.ts` බලන්න). යෝජනා ක්රමය වලංගු කිරීම අසමත් වුවහොත් 4xx ආපසු ලබා දෙයි.
 
-`Authorization: Bearer ...` ඇමිණිය නොහැකි සේවාදායකයන් සඳහා, OmniRoute විසින් query-string ගැළපුම (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) හෝ පහත ලේඛනගත කර ඇති වෙන් කළ `/api/v1/vscode/{token}/...` endpoints හරහා URL එක තුළ API යතුරු ද පිළිගනී.
+`Authorization: Bearer ...` ඇමිණිය නොහැකි සේවාලාභීන් සඳහා, OmniRoute විමසුම්-තන්තු අනුකූලතාව (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) හෝ පහත ලේඛනගත කර ඇති විශේෂිත `/api/v1/vscode/{token}/...` අන්ත ලක්ෂ්ය හරහා URL තුළ API යතුරු ද පිළිගනී.
 
 ```bash
-# නැවත ශ්රේණිගත කිරීම
+# නැවත ශ්රේණිගත කිරීම (ක්ලවුඩ් රෙජිස්ට්රි සපයන්නා, හෝ "<prefix>/<model>" ලෙස OpenAI-අනුකූල සපයන්නාගේ නෝඩයක්)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina වර්ගීකරණය (Foundation API අක්තපත්ර)
@@ -493,13 +484,13 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Jina ඛණ්ඩකය
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina සෙවීම (s.jina.ai; සපයන්නාගේ අන්වර්ථ නාම: jina-search, jina-ai, jina)
+# Jina සෙවීම (s.jina.ai; සපයන්නාගේ අන්වර්ථ: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # අන්තර්ගත පාලනය
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg අන්තර්ගතයක් (හෝ ඉල්ලා ඇති ආකෘතිය) ලබා දෙයි
+# TTS — audio/mpeg අන්තර්ගතය (හෝ ඉල්ලා සිටි ආකෘතිය) ආපසු ලබා දෙයි
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # රූප සංස්කරණය (multipart)
@@ -510,7 +501,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### වෙන් කළ සපයන්නා මාර්ග
+> **නැවත ශ්රේණිගත කිරීමේ සපයන්නාගේ නෝඩ:** `POST /v1/rerank` මඟින් `<node-prefix>/<model>` ලෙස යොමු කරන ලද OpenAI-අනුකූල සපයන්නාගේ නෝඩ
+> (oMLX, vLLM, Infinity, ද්වාරයක් පසුපස ඇති TEI, …) වෙත ද මාර්ගගත කරයි. Loopback
+> නෝඩ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) සෑම විටම සුදුසුකම් ලබයි. වෙනත් ඕනෑම
+> සත්කාරකයක ඇති නෝඩයක් — LAN යන්ත්රයක් හෝ Tailscale සමකක්ෂයක් — සුදුසුකම් ලබන්නේ ක්රියාකරු
+> `RERANK_REMOTE_PROVIDER_NODES` විශේෂාංග ධජය සක්රීය කර ඇති **සහ** නෝඩයේ මූලික URL එක සපයන්නාගේ
+> පිටතට යන URL ප්රතිපත්තිය (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)
+> සමත් වන අවස්ථාවක පමණි; ක්ලවුඩ්-පාරදත්ත සත්කාරක වෙත කිසිවිටෙක මාර්ගගත නොකෙරේ. මතක එන්ජිමේ නැවත ශ්රේණිගත කිරීමේ පියවර මෙම මාර්ගය
+> loopback හරහා කැඳවන බැවින්, මතක සැකසුම්වල `rerankProviderModel` සඳහා ද එම රීතියම අදාළ වේ.
+>
+> **දේශීය සේවාදායක ව්යුහ:** නෝඩය `<base>/v1/rerank` හිදී කැඳවනු ලබන අතර, 404 ලැබුණහොත් `<base>/rerank`
+> (Infinity, TEI) හිදී කැඳවනු ලැබේ. ඉහළ ධාරාවේ අන්තර්ගතය Cohere/OpenAI අක්ෂර වින්යාසය (`documents`,
+> `return_documents`) සහ TEI අක්ෂර වින්යාසය (`texts`, `return_text`) යන දෙකම රැගෙන යන අතර, ඉහළ ධාරාවේ ප්රතිචාරය
+> Cohere ආවරණයට සාමාන්යකරණය කෙරේ: TEI හි සරල `[{index, score, text}]`, සැහැල්ලු ද්වාරවලින් ලැබෙන
+> `{results: [{index, score}]}`, සහ Voyage-ශෛලියේ `{data: [...]}` යන සියල්ල සේවාලාභියා වෙත
+> `{results: [{index, relevance_score, document?}]}` ලෙස, ලකුණු අනුව අනුපිළිවෙළට සකසා `top_n` දක්වා සීමා කර ආපසු පැමිණේ.
+
+> **සපයන්නාගේ නෝඩ සොයාගැනීම:** OpenAI-අනුකූල සපයන්නාගේ නෝඩයක ආකෘති, නෝඩ උපසර්ගය යටතේ `GET /v1/models`
+> තුළ දිස්වේ. අන්ත ලක්ෂ්ය පාරදත්ත නොමැති පේළි (දේශීය `/v1/models` ලැයිස්තුගත කිරීම් සඳහා සාමාන්යය)
+> නෝඩයේ `apiType` උරුම කර ගනී; එබැවින් `embeddings` නෝඩයක ආකෘති පෙරනිමියෙන් කතාබස් ලෙස සැලකීම වෙනුවට
+> `type: "embedding"` වන අතර `rerank` නෝඩයක ආකෘති `type: "rerank"` වේ; සමමුහුර්ත කළ හෝ අතින් එක් කළ
+> පේළියක පැහැදිලි `supportedEndpoints` අගයක් තවමත් ප්රමුඛත්වය ගනී.
+
+### විශේෂිත සපයන්නාගේ මාර්ග
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -518,13 +531,13 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-සපයන්නාගේ උපසර්ගය නොමැති නම් එය ස්වයංක්රීයව එකතු කෙරේ. නොගැළපෙන ආකෘති සඳහා `400` ආපසු ලබා දෙයි.
+සපයන්නාගේ උපසර්ගය නොමැති නම් එය ස්වයංක්රීයව එක් කෙරේ. නොගැළපෙන ආකෘති සඳහා `400` ආපසු ලබා දෙයි.
 
 ---
 
-## Files API
+## ගොනු API
 
-කණ්ඩායම් ආදාන/ප්රතිදාන සහ ගොනු-අරමුණු උඩුගත කිරීම් සඳහා OpenAI-අනුකූල ගොනු අන්ත ලක්ෂ්යය.
+කාණ්ඩ ආදානය/ප්රතිදානය සහ ගොනු-අරමුණු උඩුගත කිරීම් සඳහා OpenAI-අනුකූල ගොනු අන්ත ලක්ෂ්යය.
 
 | ක්රමය  | මාර්ගය                   | විස්තරය                                                                                                                |
 | ------ | ------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
@@ -534,23 +547,31 @@ POST /v1/providers/{provider}/images/generations
 | DELETE | `/v1/files/[id]`         | ගොනුවක් මකන්න                                                                                                          |
 | GET    | `/v1/files/[id]/content` | අමු ගොනු අන්තර්ගතය ප්රවාහයක් ලෙස ආපසු ලබාදෙන්න                                                                         |
 
-**සත්යාපනය:** Bearer API යතුර — ගොනු `getApiKeyRequestScope` හරහා එක් එක් API යතුරට සීමා කර ඇත.
+**සත්යාපනය:** Bearer API යතුර — `getApiKeyRequestScope` හරහා ගොනු එක් එක් API යතුරට සීමා කෙරේ. යතුරකට
+දැකිය හැක්කේ, බාගත කළ හැක්කේ සහ මකා දැමිය හැක්කේ එයටම අයත් ගොනු පමණි; යතුරක් නොමැති උපකරණ පුවරු සැසියකට
+සම්පූර්ණ අවස්ථාව කියවිය හැක; හිමිකරුවෙකු නොමැති ගොනුවකට (නිර්නාමික හෝ උපකරණ පුවරු සැසි උඩුගත කිරීමක්)
+සැසියකින් නොපැමිණෙන සෑම ඇමතුම්කරුවෙකුටම ප්රවේශය ප්රතික්ෂේප කෙරේ. `GET /v1/files` නිර්නාමික ඇමතුම්කරුවෙකු —
+සහ ඉදිරිපත් කළ නමුත් නිරාකරණය නොවන යතුරක් — `REQUIRE_API_KEY=false` වන විට පවා, සෑම කුලීකරුවෙකුගේම
+ගොනු ලැයිස්තුගත කිරීම වෙනුවට `401` සමඟ ප්රතික්ෂේප කරයි (GHSA-m3hp-hq9g-fpmv, GHSA-2jm2-mpx8-6523).
 
 ---
 
 ## Batches API
 
-OpenAI-අනුකූල කණ්ඩායම් සැකසීම.
+OpenAI-අනුකූල කාණ්ඩ සැකසීම.
 
-| ක්රමය  | මාර්ගය                    | විස්තරය                                                                                                                |
-| ------ | ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/batches`             | කණ්ඩායමක් සාදන්න — අන්තර්ගතය `v1BatchCreateSchema` මඟින් වලංගු කෙරේ (`input_file_id`, `endpoint`, `completion_window`) |
-| GET    | `/v1/batches`             | කණ්ඩායම් ලැයිස්තුගත කරන්න                                                                                              |
-| GET    | `/v1/batches/[id]`        | කණ්ඩායම් තත්ත්වය + `request_counts` ලබාගන්න                                                                            |
-| DELETE | `/v1/batches/[id]`        | අවසන් වූ/අසාර්ථක වූ කණ්ඩායමක් මකන්න                                                                                    |
-| POST   | `/v1/batches/[id]/cancel` | ක්රියාත්මක වෙමින් පවතින කණ්ඩායමක් අවලංගු කරන්න                                                                         |
+| ක්රමය  | මාර්ගය                    | විස්තරය                                                                                                                       |
+| ------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/v1/batches`             | කාණ්ඩයක් සාදන්න — ඉල්ලීම් අන්තර්ගතය `v1BatchCreateSchema` මඟින් වලංගු කෙරේ (`input_file_id`, `endpoint`, `completion_window`) |
+| GET    | `/v1/batches`             | කාණ්ඩ ලැයිස්තුගත කරන්න                                                                                                        |
+| GET    | `/v1/batches/[id]`        | කාණ්ඩයේ තත්ත්වය + `request_counts` ලබාගන්න                                                                                    |
+| DELETE | `/v1/batches/[id]`        | සම්පූර්ණ වූ/අසාර්ථක වූ කාණ්ඩයක් මකන්න                                                                                         |
+| POST   | `/v1/batches/[id]/cancel` | ක්රියාත්මක වෙමින් පවතින කාණ්ඩයක් අවලංගු කරන්න                                                                                 |
 
-**සත්යාපනය:** Bearer API යතුර. කණ්ඩායම් එක් එක් API යතුරට සීමා කර ඇත.
+**සත්යාපනය:** Bearer API යතුර. ගොනු සඳහා භාවිත වන එම තුන්-ආකාර රීතිය යටතේ කාණ්ඩ එක් එක් API යතුරට සීමා වේ:
+තමන්ගේම යතුරට පමණක් ප්රවේශය ඇත, උපකරණ පුවරු සැසියට සමස්ත instance එක පුරා ප්රවේශය ඇත, සහ හිමිකරු-රහිත වාර්තා සඳහා සැසි නොවන සෑම
+ඇමතුම්කරුවෙකුටම ප්රවේශය ප්රතික්ෂේප වේ (ලබාගැනීම, මැකීම, අවලංගු කිරීම සහ සෑදීමේදී සිදුකරන `input_file_id` පරීක්ෂාව).
+`REQUIRE_API_KEY=false` වූ විට පවා `GET /v1/batches` නිර්නාමික ඇමතුම්කරුවෙකු `401` සමඟ ප්රතික්ෂේප කරයි.
 
 ---
 
@@ -1607,19 +1628,19 @@ GET /.well-known/agent.json
 
 ## CLI මෙවලම් කළමනාකරණය
 
-OmniRoute සමඟ ඒකාබද්ධ වන CLI මෙවලම් (antigravity, chipotle, commandCode,
-devin-cli, ආදිය) කළමනාකරණය කරන්න. සම්පූර්ණ ලැයිස්තුව සඳහා [සපයන්නන් පිළිබඳ යොමුව](./PROVIDER_REFERENCE.md) බලන්න.
+OmniRoute සමඟ ඒකාබද්ධ වන CLI මෙවලම් (antigravity, commandCode,
+devin-cli ආදිය) කළමනාකරණය කරන්න. සම්පූර්ණ ලැයිස්තුව සඳහා [සපයන්නාගේ යොමුව](./PROVIDER_REFERENCE.md) බලන්න.
 
-| ක්රමය | මාර්ගය                                  | විස්තරය                                                                                                                                                                                |
-| ----- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET   | `/api/cli-tools/all-statuses`           | සියලුම CLI මෙවලම්වල තත්ත්වය (ස්ථාපනය කර තිබේද, අනුවාදය, අවසන් වරට දුටු වේලාව)                                                                                                          |
-| GET   | `/api/cli-tools/status`                 | එක් CLI මෙවලමක් සඳහා සවිස්තරාත්මක තත්ත්වය (`?tool=` විමසුම)                                                                                                                            |
-| POST  | `/api/cli-tools/apply`                  | මෙවලමක් මඟින් ජනනය කළ වින්යාසය ලියන්න (`dryRun` මඟින් පෙරදසුනක් පෙන්වයි; බහාලුම්ගත කර ඇති විට `422` + `containerEphemeralTarget`; පැරණි Codex YAML එකක් පිළිබඳ `migration` සටහන් කරයි) |
-| GET   | `/api/cli-tools/backups`                | CLI මෙවලම් වින්යාස උපස්ථ ලැයිස්තුගත කරන්න                                                                                                                                              |
-| POST  | `/api/cli-tools/backups`                | සියලුම CLI මෙවලම් වින්යාසවල උපස්ථයක් සාදන්න                                                                                                                                            |
-| POST  | `/api/cli-tools/backups`                | ප්රතිසාධනය: ඉල්ලීම් අන්තර්ගතය තුළ `{tool, backupId}` සමඟ එම අන්ත ලක්ෂ්යයම භාවිත කිරීමෙන් අදාළ උපස්ථය ප්රතිසාධනය කරයි                                                                   |
-| GET   | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM ප්රොක්සි තත්ත්වය ("antigravity-mitm" CLI මෙවලම)                                                                                                                       |
-| POST  | `/api/cli-tools/antigravity-mitm/alias` | antigravity-mitm අන්වර්ථ නාම වින්යාස කරන්න                                                                                                                                             |
+| ක්රමය | මාර්ගය                                  | විස්තරය                                                                                                                                                                                 |
+| ----- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET   | `/api/cli-tools/all-statuses`           | සියලු CLI මෙවලම්වල තත්ත්වය (ස්ථාපනය කර තිබේද, අනුවාදය, අවසන් වරට දුටු වේලාව)                                                                                                            |
+| GET   | `/api/cli-tools/status`                 | එක් CLI මෙවලමක් සඳහා තත්ත්ව විස්තර (`?tool=` විමසුම)                                                                                                                                    |
+| POST  | `/api/cli-tools/apply`                  | මෙවලමක ජනනය කළ වින්යාසය ලියයි (`dryRun` මඟින් පෙරදසුනක් පෙන්වයි; බහාලුම්ගත කර ඇති විට `422` + `containerEphemeralTarget`; `migration` මඟින් පැරණි Codex YAML එකක් පිළිබඳ සටහනක් දක්වයි) |
+| GET   | `/api/cli-tools/backups`                | CLI මෙවලම් වින්යාස උපස්ථ ලැයිස්තුගත කරයි                                                                                                                                                |
+| POST  | `/api/cli-tools/backups`                | සියලු CLI මෙවලම් වින්යාසවල උපස්ථයක් සාදයි                                                                                                                                               |
+| POST  | `/api/cli-tools/backups`                | ප්රතිසාධනය: ඉල්ලීම් අන්තර්ගතයේ `{tool, backupId}` සමඟ එකම අන්ත ලක්ෂ්යය භාවිත කිරීමෙන් එම උපස්ථය ප්රතිසාධනය කරයි                                                                         |
+| GET   | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM ප්රොක්සි තත්ත්වය ("antigravity-mitm" CLI මෙවලම)                                                                                                                        |
+| POST  | `/api/cli-tools/antigravity-mitm/alias` | antigravity-mitm අන්වර්ථ නාම වින්යාස කරයි                                                                                                                                               |
 
 **සත්යාපනය:** කළමනාකරණ සැසියක් අවශ්ය වේ.
 

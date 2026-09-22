@@ -256,6 +256,7 @@
     "max_restarts": "Maksimalan broj ponovnih pokretanja pri padu u toku 30s pre odustajanja (podrazumevano: 2)",
     "tray": "Покретање у системској траци (само десктоп, опционо)",
     "no_tray": "Онемогући икону у системској траци",
+    "ready_timeout": "Временско ограничење провере спремности у ms (такође OMNIROUTE_READY_TIMEOUT_MS, подразумевано 60000)",
     "tls_cert": "Путања до TLS сертификата (PEM) за HTTPS (такође OMNIROUTE_TLS_CERT)",
     "tls_key": "Путања до TLS приватног кључа (PEM) за HTTPS (такође OMNIROUTE_TLS_KEY)"
   },
@@ -300,7 +301,7 @@
     "description": "Провери здравље сервера и статус компоненти",
     "noServer": "Сервер није покренут. Покрените са: omniroute serve",
     "title": "Здравље",
-    "status": "Status: {status}",
+    "status": "Статус: {status}",
     "uptime": "Vreme rada: {uptime}",
     "requests": "Zahtevi (24h): {count}",
     "cost": "Trošak (24h): ${cost}"
@@ -347,6 +348,16 @@
     "running": "MCP server je pokrenut ({transport})",
     "stopped": "MCP server je zaustavljen.",
     "restarted": "MCP server je ponovo pokrenut.",
+    "stoppedHint": "Покрените `omniroute mcp enable` да бисте га укључили.",
+    "enabled": "MCP сервер је омогућен.",
+    "disabled": "MCP сервер је онемогућен.",
+    "enable": {
+      "description": "Омогући MCP сервер",
+      "transport": "Протокол за пренос: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Онемогући MCP сервер"
+    },
     "call": {
       "description": "Direktno pozovi MCP alat",
       "args": "JSON objekat argumenata (inline)",
@@ -810,7 +821,7 @@
     }
   },
   "program": {
-    "description": "OmniRoute — Smart AI Router with Auto Fallback",
+    "description": "OmniRoute — паметни AI рутер са аутоматским пребацивањем на резервну опцију",
     "version": "Прикажи верзију и изађи",
     "output": "Формат излаза (table, json, jsonl, csv)",
     "quiet": "Сакрий небитан излаз",

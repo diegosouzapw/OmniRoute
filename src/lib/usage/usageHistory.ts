@@ -466,9 +466,11 @@ function finalizePendingDetailAt(
     completedAt,
     durationMs: Math.max(0, completedAt - details[index].startedAt),
   };
-  storeCompletedDetail(updated);
-  maybeEnrichCompletedDetail(updated, connectionId);
-  scheduleCompletedDetailCleanup(updated.id);
+  const storedCompletedDetail = storeCompletedDetail(updated);
+  if (storedCompletedDetail) {
+    maybeEnrichCompletedDetail(updated, connectionId);
+    scheduleCompletedDetailCleanup(updated.id);
+  }
 
   details.splice(index, 1);
   pendingById.delete(updated.id);

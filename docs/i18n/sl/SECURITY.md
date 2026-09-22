@@ -220,27 +220,37 @@ Ta pravila uveljavljajo orodja in pregledovalci:
 10. **Izvajalne vrednosti za `exec()` / `spawn()` posredujte prek možnosti `env`** — zunanjih poti ali nezaupanja vrednih vrednosti nikoli ne vstavljajte z interpolacijo nizov v skripte, posredovane lupini. Referenca: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Dajte prednost knjižnicam z varnimi privzetimi nastavitvami** — glejte [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Uporabite jih, preden razvijete lastno rešitev.
 
-## Ugotovitve pregledovalnikov dobavne verige (Socket.dev / Snyk / podobni)
+## Ugotovitve pregledovalnika dobavne verige (Socket.dev / Snyk / podobni)
 
-Objavljeni artefakt npm `omniroute` vključuje gradnjo Next.js `output: "standalone"`,
-kar pomeni, da se vsak obravnavalnik poti — vključno z dokumentiranimi privilegiranimi
-funkcijami (MITM, uvoz Zed, Cloud Sync, vgrajeni nadzornik storitev) — znajde
+> **Opomba o obsegu:** `socket.yml` v korenu repozitorija določa samo `projectIgnorePaths` za pregled objavljenega artefakta npm, ki ga Socket.dev izvede na strani registra po objavi — ne predstavlja obvezne kontrolne točke za združevanje CI/PR. Noben delovni tok v `.github/workflows`, noben skript v `package.json` in noben cilj v `Makefile` ne prikliče Socket.dev.
+
+Objavljeni artefakt npm `omniroute` vključuje gradnjo Next.js z nastavitvijo `output: "standalone"`,
+kar pomeni, da vsak obravnavalnik poti — vključno z dokumentiranimi privilegiranimi
+funkcionalnostmi (MITM, uvoz Zed, Cloud Sync, vgrajeni nadzornik storitev) — konča
 v pomanjšanih delih `.next/server/*.js`. Hevristični pregledovalniki dobavne verige
 te dele pogosto primerjajo z vzorci podpisov zlonamerne programske opreme.
+
+Konfiguracija pregledovalnika, ki jo uporabljamo, je v datoteki [`socket.yml`](socket.yml) v
+korenu repozitorija (oblika v2 za aplikacijo Socket.dev GitHub App — glejte
+<https://docs.socket.dev/docs/socket-yml>). Izrecno izključuje
+imenike, ki niso vključeni v distribucijo (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` itd.), zato pregledovalnik poroča samo o poteh kode, ki
+dejansko dosežejo uporabnike objavljenega paketa — sam pregled sproži aplikacija
+Socket GitHub App, ki prebere to datoteko, in ne delovni tok v tem repozitoriju.
 
 Za vsako kategorijo ugotovitev vzdržujemo potrdilo vzdrževalca za posamezno ugotovitev:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  zemljevid posameznih ugotovitev: izvorna datoteka ↔ označeni del ↔ vedenje ↔ omilitveni ukrep,
-  uporabljen v v3.8.6.
+  preslikava po ugotovitvah: izvorna datoteka ↔ označeni del ↔ vedenje ↔ omilitev,
+  uporabljena v v3.8.6.
 - Bloki `SECURITY-AUDITOR-NOTE:` v izvorni kodi pri vsaki označeni funkciji
   kažejo nazaj na isti dokument.
 
-Uporabniki, katerih cevovod ne more omiliti opozorila, naj gradijo z
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. To štiri občutljive module
-nadomesti z nadomestki, ki med izvajanjem vrnejo HTTP 503 `feature-disabled`,
-zato privilegirane kodne poti fizično niso prisotne v paketu.
-Postopek objave je opisan v dokumentu [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+Uporabniki, katerih cevovod ne omogoča omilitve opozorila, naj izvedejo gradnjo z
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. To štiri
+občutljive module nadomesti z nadomestnimi izvedbami, ki med izvajanjem vrnejo HTTP 503
+`feature-disabled`, zato privilegirane poti kode fizično niso prisotne v paketu.
+Za postopek objave glejte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Viri
 

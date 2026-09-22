@@ -59,9 +59,80 @@ export function isPidRunning(pid) {
   }
 }
 
+// A port that is already owned must be reported, not spawned into. `omniroute
+// serve` used to hand the conflict to the child, which died with EADDRINUSE
+// twice on the supervisor's restart budget and printed three raw Node stack
+// traces without ever saying another instance owned the port. It did that
+// AFTER writing the pid files, so the doomed second instance de-registered the
+// healthy running one (supervisor/.pid left pointing at the dead starter,
+// server/.pid deleted outright).
+//
+// Discovery mirrors killByPort() in bin/cli/commands/stop.mjs (netstat on
+// win32, lsof elsewhere); the two are worth consolidating next time stop.mjs
+// is touched.
+export async function findListeningPids(port, deps = {}) {
+  const platform = deps.platform || process.platform;
+  let exec = deps.execFileAsync;
+  if (!exec) {
+    const { execFile } = await import("node:child_process");
+    const { promisify } = await import("node:util");
+    exec = promisify(execFile);
+  }
+  try {
+    if (platform === "win32") {
+      const { stdout } = await exec("netstat", ["-ano"]);
+      return parseNetstatListeningPids(stdout, port);
+    }
+    const { stdout } = await exec("lsof", ["-ti", `:${port}`]);
+    return stdout
+      .trim()
+      .split("\n")
+      .map((entry) => parseInt(entry, 10))
+      .filter((entry) => Number.isFinite(entry) && entry > 0);
+  } catch {
+    // No netstat/lsof available, or simply no listener. Report "free": a false
+    // "busy" would block a legitimate start, the worse failure of the two.
+    return [];
+  }
+}
+
+function parseNetstatListeningPids(stdout, port) {
+  const portCol = `:${port}`;
+  const pids = [];
+  for (const line of stdout.split(/\r?\n/)) {
+    const cols = line.trim().split(/\s+/);
+    // Proto  LocalAddress  ForeignAddress  State  PID
+    if (cols.length < 5) continue;
+    if (cols[0] !== "TCP" && cols[0] !== "TCPv6") continue;
+    if (!(cols[1] || "").endsWith(portCol)) continue;
+    if ((cols[cols.length - 2] || "").toUpperCase() !== "LISTENING") continue;
+    const pid = parseInt(cols[cols.length - 1], 10);
+    if (Number.isFinite(pid) && pid > 0 && !pids.includes(pid)) pids.push(pid);
+  }
+  return pids;
+}
+
 export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+// A probe that times out is classified "hanging" and never counts toward
+// readiness (#6800), so a FIXED per-probe timeout puts a hard ceiling on how
+// slow a healthy first response is allowed to be. On a cold Windows boot the
+// health route resolves ~10 dynamic imports and reads the DB before it can
+// answer; when that first response lands past the ceiling the poll can never
+// succeed, because each abort discards the in-flight request before the route
+// finishes (its own 1s payload cache is never populated either) and the next
+// probe restarts the same work into the same ceiling — for the whole budget.
+// The CLI then printed "⚠ Server did not respond within 60s" over a server
+// that went on to serve traffic normally. Escalating the timeout keeps #6800's
+// guarantee (a socket that never answers still yields "hanging" forever) while
+// letting a slow-but-real response actually be observed.
+const INITIAL_PROBE_TIMEOUT_MS = 2000;
+const MAX_PROBE_TIMEOUT_MS = 15000;
+// Floor for the last probe of a budget that is nearly spent — long enough for a
+// loopback round-trip, short enough not to overrun the caller's timeout.
+const MIN_PROBE_TIMEOUT_MS = 250;
 
 // #2460: Default raised from 15s to 60s so Windows users (slower Next.js
 // cold start due to filesystem watchers, antivirus, etc.) get a working
@@ -83,18 +154,24 @@ export function resolveReadyTimeoutMs(overrides = {}) {
   if (typeof overrides.timeoutMs === "number" && overrides.timeoutMs > 0) {
     return overrides.timeoutMs;
   }
-  const envValue = Number.parseInt(
-    process.env.OMNIROUTE_READY_TIMEOUT_MS || "",
-    10
-  );
+  const envValue = Number.parseInt(process.env.OMNIROUTE_READY_TIMEOUT_MS || "", 10);
   return Number.isFinite(envValue) && envValue > 0 ? envValue : DEFAULT_READY_TIMEOUT_MS;
 }
 
-export async function waitForServer(port, timeout = 60000) {
+// `onOutcome` receives every probe classification so a caller can tell a
+// "nothing ever bound the port" timeout apart from a "port is up, the health
+// route is just still warming" one when it reports the failure.
+export async function waitForServer(port, timeout = 60000, { onOutcome } = {}) {
   const start = Date.now();
   let tcpListeningSince = null;
+  let probeTimeout = INITIAL_PROBE_TIMEOUT_MS;
   while (Date.now() - start < timeout) {
-    const outcome = await pollHealthOnce(port);
+    const remaining = timeout - (Date.now() - start);
+    const outcome = await pollHealthOnce(
+      port,
+      Math.max(MIN_PROBE_TIMEOUT_MS, Math.min(probeTimeout, remaining))
+    );
+    onOutcome?.(outcome);
     if (outcome === "ready") return true;
     if (outcome === "fast-reject") {
       if (tcpListeningSince === null) tcpListeningSince = Date.now();
@@ -103,6 +180,11 @@ export async function waitForServer(port, timeout = 60000) {
       // "hanging" (request timed out with no response at all) or
       // "not-listening" — neither counts toward the grace window.
       tcpListeningSince = null;
+      // Only a hang says "this server may simply need longer to answer";
+      // widen the next probe instead of aborting into the same ceiling again.
+      if (outcome === "hanging") {
+        probeTimeout = Math.min(probeTimeout * 2, MAX_PROBE_TIMEOUT_MS);
+      }
     }
     await sleep(500);
   }
@@ -115,11 +197,13 @@ export async function waitForServer(port, timeout = 60000) {
 //   actively refused/reset (not a timeout) — the HTTP server is alive and
 //   answering quickly, just not routing this endpoint yet (#2460).
 // - "hanging": the request timed out waiting for any response — the
-//   process accepted the TCP connection but never answered (#6800).
+//   process accepted the TCP connection but never answered (#6800). The
+//   caller widens `probeTimeoutMs` after a hang so a merely slow (rather
+//   than dead) server is not aborted into the same ceiling on every probe.
 // - "not-listening": nothing is accepting connections on the port at all.
 // #11766: probe both IPv4 and IPv6 loopback to handle servers listening on
 // either family (or both).
-async function pollHealthOnce(port) {
+async function pollHealthOnce(port, probeTimeoutMs = INITIAL_PROBE_TIMEOUT_MS) {
   const hosts = ["127.0.0.1", "::1"];
   const outcomes = [];
 
@@ -128,7 +212,7 @@ async function pollHealthOnce(port) {
     hosts.map(async (host) => {
       try {
         const res = await fetch(`http://${host}:${port}/api/monitoring/health`, {
-          signal: AbortSignal.timeout(2000),
+          signal: AbortSignal.timeout(probeTimeoutMs),
         });
         return { host, outcome: res.ok ? "ready" : "fast-reject" };
       } catch (err) {

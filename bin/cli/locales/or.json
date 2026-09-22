@@ -256,6 +256,7 @@
     "max_restarts": "ହାର ମାନିବା ପୂର୍ବରୁ 30s ମଧ୍ୟରେ ସର୍ବାଧିକ କ୍ରାଶ୍ ପୁନଃଆରମ୍ଭ ସଂଖ୍ୟା (ଡିଫଲ୍ଟ: 2)",
     "tray": "ସିଷ୍ଟମ୍ ଟ୍ରେରେ ଆରମ୍ଭ କରନ୍ତୁ (କେବଳ ଡେସ୍କଟପ୍, ଇଚ୍ଛାଧୀନ)",
     "no_tray": "ସିଷ୍ଟମ୍ ଟ୍ରେ ଆଇକନ୍ ଅକ୍ଷମ କରନ୍ତୁ",
+    "ready_timeout": "ମିଲିସେକେଣ୍ଡରେ ପ୍ରସ୍ତୁତି ପ୍ରୋବ୍ର ସମୟସୀମା (OMNIROUTE_READY_TIMEOUT_MS ମଧ୍ୟ, ଡିଫଲ୍ଟ 60000)",
     "tls_cert": "HTTPS ପରିବେଷଣ ପାଇଁ TLS ସର୍ଟିଫିକେଟ୍ (PEM)ର ପଥ (OMNIROUTE_TLS_CERT ମଧ୍ୟ)",
     "tls_key": "HTTPS ପରିବେଷଣ ପାଇଁ TLS ବ୍ୟକ୍ତିଗତ କୀ (PEM)ର ପଥ (OMNIROUTE_TLS_KEY ମଧ୍ୟ)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP ସର୍ଭର ଚାଲୁଛି ({transport})",
     "stopped": "MCP ସର୍ଭର ବନ୍ଦ ହୋଇଛି।",
     "restarted": "MCP ସର୍ଭର ପୁନଃଚାଲୁ ହୋଇଛି।",
+    "stoppedHint": "ଏହାକୁ ସକ୍ରିୟ କରିବା ପାଇଁ `omniroute mcp enable` ଚଲାନ୍ତୁ।",
+    "enabled": "MCP ସର୍ଭର୍ ସକ୍ରିୟ ହୋଇଛି।",
+    "disabled": "MCP ସର୍ଭର୍ ନିଷ୍କ୍ରିୟ ହୋଇଛି।",
+    "enable": {
+      "description": "MCP ସର୍ଭର୍କୁ ସକ୍ରିୟ କରନ୍ତୁ",
+      "transport": "ବ୍ୟବହାର କରିବାକୁ ଥିବା ପରିବହନ: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP ସର୍ଭର୍କୁ ନିଷ୍କ୍ରିୟ କରନ୍ତୁ"
+    },
     "call": {
       "description": "ସିଧାସଳଖ ଏକ MCP ଟୁଲ୍ ଆହ୍ୱାନ କରନ୍ତୁ",
       "args": "JSON ଆର୍ଗୁମେଣ୍ଟ ଅବଜେକ୍ଟ (ଇନ୍‌ଲାଇନ୍)",

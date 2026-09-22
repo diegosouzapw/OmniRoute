@@ -1,1 +1,0 @@
-- Restore the API-route typecheck gate: the non-streaming leg result lost its discriminated-union narrowing after the server-owned tool loop reassignment, producing 13 new TS2339 diagnostics in `chatCore.ts`.

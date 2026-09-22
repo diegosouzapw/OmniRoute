@@ -1,21 +1,12 @@
-# MCP-SERVER (ਪੰਜਾਬੀ)
+# OmniRoute MCP Server Documentation (ਪੰਜਾਬੀ)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "OmniRoute MCP ਸਰਵਰ ਦਸਤਾਵੇਜ਼"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# OmniRoute MCP ਸਰਵਰ ਦਸਤਾਵੇਜ਼
-
-> ਰਾਊਟਿੰਗ, ਕੈਸ਼, ਕੰਪ੍ਰੈਸ਼ਨ, ਮੈਮੋਰੀ, ਸਕਿਲਜ਼, ਪ੍ਰਾਕਸੀ, ਪੂਲ, Radar ਅਤੇ ਸੰਦਰਭ ਸਰੋਤ ਕਾਰਵਾਈਆਂ ਵਿੱਚ 110 ਟੂਲਾਂ ਵਾਲਾ Model Context Protocol ਸਰਵਰ।
+> ਰਾਊਟਿੰਗ, ਕੈਸ਼, ਕੰਪ੍ਰੈਸ਼ਨ, ਮੈਮੋਰੀ, ਸਕਿਲਾਂ, ਪ੍ਰੌਕਸੀ, ਪੂਲ, Radar ਅਤੇ ਸੰਦਰਭ ਸਰੋਤ ਕਾਰਵਾਈਆਂ ਵਿੱਚ 110 ਟੂਲਾਂ ਵਾਲਾ Model Context Protocol ਸਰਵਰ।
 >
-> ਪ੍ਰਮਾਣਿਕ ਸਰੋਤ: `open-sse/mcp-server/server.ts` ਦਾ `countUniqueMcpTools()` **110 ਵਿਲੱਖਣ ਟੂਲਾਂ** ਦੀ ਗਿਣਤੀ ਕਰਦਾ ਹੈ: 45 ਪ੍ਰਮਾਣਿਕ ਪਰਿਭਾਸ਼ਾਵਾਂ (ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਛੇ CCR ਜੀਵਨ-ਚੱਕਰ ਟੂਲ, agent-skills ਤਿਕੜੀ, `omniroute_radar_catalog` ਅਤੇ `omniroute_x_search` ਸ਼ਾਮਲ ਹਨ), ਨਾਲ ਹੀ ਮੈਮੋਰੀ (3), ਸਕਿਲਜ਼ (4), GitHub ਸਕਿਲਜ਼ (3), ਪੂਲ (6), ਗੇਮੀਫਿਕੇਸ਼ਨ (8), ਪਲੱਗਇਨ (8), Notion (6), Obsidian (22), ਲੋਕਲ ਕੋਰਪਸ (3), ਅਤੇ ਸਿਰਫ਼ RTK ਲਈ ਦੋ ਕੰਪ੍ਰੈਸ਼ਨ ਟੂਲ।
+> ਪ੍ਰਮਾਣਿਕ ਸਰੋਤ: `open-sse/mcp-server/server.ts`, `countUniqueMcpTools()` ਨਾਲ **110 ਵਿਲੱਖਣ ਟੂਲਾਂ** ਦੀ ਗਿਣਤੀ ਕਰਦਾ ਹੈ: 45 ਕੈਨੋਨਿਕਲ ਪਰਿਭਾਸ਼ਾਵਾਂ (ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਛੇ CCR ਲਾਈਫਸਾਈਕਲ ਟੂਲ, agent-skills ਤਿਕੜੀ, `omniroute_radar_catalog`, ਅਤੇ `omniroute_x_search` ਸ਼ਾਮਲ ਹਨ), ਨਾਲ ਹੀ ਮੈਮੋਰੀ (3), ਸਕਿਲਾਂ (4), GitHub ਸਕਿਲਾਂ (3), ਪੂਲ (6), ਗੇਮੀਫਿਕੇਸ਼ਨ (8), ਪਲੱਗਇਨ (8), Notion (6), Obsidian (22), ਲੋਕਲ ਕਾਰਪਸ (3), ਅਤੇ ਸਿਰਫ਼ RTK ਲਈ ਦੋ ਕੰਪ੍ਰੈਸ਼ਨ ਟੂਲ।
 
 ## ਇੰਸਟਾਲੇਸ਼ਨ
 
@@ -29,8 +20,25 @@ omniroute --mcp
 
 ```bash
 # HTTP ਸਟ੍ਰੀਮਯੋਗ ਟ੍ਰਾਂਸਪੋਰਟ (ਪੋਰਟ 20130)
-omniroute --dev  # MCP /mcp ਐਂਡਪੌਇੰਟ ਉੱਤੇ ਆਪਣੇ-ਆਪ ਸ਼ੁਰੂ ਹੁੰਦਾ ਹੈ
+omniroute --dev  # MCP /mcp ਐਂਡਪੌਇੰਟ 'ਤੇ ਆਪਣੇ ਆਪ ਸ਼ੁਰੂ ਹੁੰਦਾ ਹੈ
 ```
+
+HTTP ਟ੍ਰਾਂਸਪੋਰਟ (`sse` / `streamable-http`, ਜੋ ਡੈਸ਼ਬੋਰਡ ਸਰਵਰ ਦੁਆਰਾ ਉਸੇ ਪ੍ਰੋਸੈੱਸ ਵਿੱਚ ਸਰਵ ਕੀਤੇ ਜਾਂਦੇ ਹਨ)
+ਮੂਲ ਰੂਪ ਵਿੱਚ ਬੰਦ ਹੁੰਦੇ ਹਨ ਅਤੇ ਪਹਿਲਾਂ ਸਿਰਫ਼ `/dashboard/mcp` ਪੰਨੇ ਤੋਂ ਹੀ ਚਾਲੂ ਜਾਂ ਬੰਦ ਕੀਤੇ ਜਾ ਸਕਦੇ ਸਨ। v3.8.51
+ਤੋਂ CLI ਵਿੱਚ ਵੀ ਬਰਾਬਰ ਦੀ ਕਾਰਜਸ਼ੀਲਤਾ ਹੈ:
+
+```bash
+omniroute mcp status                                  # ਸਮਰੱਥ/ਔਨਲਾਈਨ, ਟ੍ਰਾਂਸਪੋਰਟ, ਟੂਲਾਂ ਦੀ ਗਿਣਤੀ
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # ਸਰਗਰਮ sse/streamable-http ਸੈਸ਼ਨਾਂ ਨੂੰ ਰੀਸੈੱਟ ਕਰਦਾ ਹੈ
+```
+
+`mcp enable`/`mcp disable`, `/api/settings` ਰਾਹੀਂ ਉਸੇ `mcpEnabled` (ਅਤੇ ਵਿਕਲਪਿਕ ਤੌਰ 'ਤੇ `mcpTransport`) ਸੈਟਿੰਗ ਨੂੰ
+PATCH ਕਰਦੇ ਹਨ ਜਿਸਨੂੰ ਡੈਸ਼ਬੋਰਡ ਚਾਲੂ ਜਾਂ ਬੰਦ ਕਰਦਾ ਹੈ। `mcp restart`, `POST /api/mcp/restart` ਨੂੰ ਕਾਲ ਕਰਦਾ ਹੈ: ਇਹ
+ਸਰਗਰਮ `sse`/`streamable-http` ਸੈਸ਼ਨਾਂ ਨੂੰ ਬੰਦ ਕਰ ਦਿੰਦਾ ਹੈ ਤਾਂ ਜੋ ਅਗਲੀ ਬੇਨਤੀ ਸਾਫ਼ ਢੰਗ ਨਾਲ ਮੁੜ ਸ਼ੁਰੂ ਹੋਵੇ, MCP ਅਸਮਰੱਥ ਹੋਣ 'ਤੇ
+`409`, ਅਤੇ `stdio` ਟ੍ਰਾਂਸਪੋਰਟ ਲਈ `501` ਵਾਪਸ ਕਰਦਾ ਹੈ (stdio ਕਲਾਇੰਟ ਆਪਣੇ ਸਬਪ੍ਰੋਸੈੱਸ ਦੇ ਖੁਦ ਮਾਲਕ ਹੁੰਦੇ ਹਨ —
+ਮੁੜ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਉਸੇ ਪ੍ਰੋਸੈੱਸ ਵਿੱਚ ਕੋਈ ਹੈਂਡਲ ਉਪਲਬਧ ਨਹੀਂ ਹੁੰਦਾ)।
 
 ## ਟ੍ਰਾਂਸਪੋਰਟ
 

@@ -1,413 +1,610 @@
----
-title: Odniesienie do bramek jakości
----
+# Quality Gates Reference (Polski)
 
-# Odniesienie do bramek jakości
-
-Ten dokument jest autorytatywnym odniesieniem dla wszystkich bramek jakości CI w OmniRoute.
-Opisuje każdą bramkę, co waliduje, w którym jobie CI działa, czy używa
-baseline ratchet albo polityki pass/fail, oraz czy blokuje build, czy jest advisory.
-
-Krótkie podsumowanie i politykę allowlist znajdziesz w sekcji „Quality Gates & Ratchets”
-w `CLAUDE.md`.
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/QUALITY_GATES.md) · 🇪🇹 [am](../../../am/docs/architecture/QUALITY_GATES.md) · 🇸🇦 [ar](../../../ar/docs/architecture/QUALITY_GATES.md) · 🇦🇿 [az](../../../az/docs/architecture/QUALITY_GATES.md) · 🇧🇬 [bg](../../../bg/docs/architecture/QUALITY_GATES.md) · 🇧🇩 [bn](../../../bn/docs/architecture/QUALITY_GATES.md) · 🇨🇿 [cs](../../../cs/docs/architecture/QUALITY_GATES.md) · 🇩🇰 [da](../../../da/docs/architecture/QUALITY_GATES.md) · 🇩🇪 [de](../../../de/docs/architecture/QUALITY_GATES.md) · 🇬🇷 [el](../../../el/docs/architecture/QUALITY_GATES.md) · 🇪🇸 [es](../../../es/docs/architecture/QUALITY_GATES.md) · 🇪🇪 [et](../../../et/docs/architecture/QUALITY_GATES.md) · 🇮🇷 [fa](../../../fa/docs/architecture/QUALITY_GATES.md) · 🇫🇮 [fi](../../../fi/docs/architecture/QUALITY_GATES.md) · 🇫🇷 [fr](../../../fr/docs/architecture/QUALITY_GATES.md) · 🇮🇪 [ga](../../../ga/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [gu](../../../gu/docs/architecture/QUALITY_GATES.md) · 🇳🇬 [ha](../../../ha/docs/architecture/QUALITY_GATES.md) · 🇮🇱 [he](../../../he/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [hi](../../../hi/docs/architecture/QUALITY_GATES.md) · 🇭🇷 [hr](../../../hr/docs/architecture/QUALITY_GATES.md) · 🇭🇺 [hu](../../../hu/docs/architecture/QUALITY_GATES.md) · 🇦🇲 [hy](../../../hy/docs/architecture/QUALITY_GATES.md) · 🇮🇩 [id](../../../id/docs/architecture/QUALITY_GATES.md) · 🇳🇬 [ig](../../../ig/docs/architecture/QUALITY_GATES.md) · 🇮🇹 [it](../../../it/docs/architecture/QUALITY_GATES.md) · 🇯🇵 [ja](../../../ja/docs/architecture/QUALITY_GATES.md) · 🇬🇪 [ka](../../../ka/docs/architecture/QUALITY_GATES.md) · 🇰🇭 [km](../../../km/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [kn](../../../kn/docs/architecture/QUALITY_GATES.md) · 🇰🇷 [ko](../../../ko/docs/architecture/QUALITY_GATES.md) · 🇱🇹 [lt](../../../lt/docs/architecture/QUALITY_GATES.md) · 🇱🇻 [lv](../../../lv/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [ml](../../../ml/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [mr](../../../mr/docs/architecture/QUALITY_GATES.md) · 🇲🇾 [ms](../../../ms/docs/architecture/QUALITY_GATES.md) · 🇲🇹 [mt](../../../mt/docs/architecture/QUALITY_GATES.md) · 🇲🇲 [my](../../../my/docs/architecture/QUALITY_GATES.md) · 🇳🇵 [ne](../../../ne/docs/architecture/QUALITY_GATES.md) · 🇳🇱 [nl](../../../nl/docs/architecture/QUALITY_GATES.md) · 🇳🇴 [no](../../../no/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [or](../../../or/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [pa](../../../pa/docs/architecture/QUALITY_GATES.md) · 🇵🇭 [phi](../../../phi/docs/architecture/QUALITY_GATES.md) · 🇵🇹 [pt](../../../pt/docs/architecture/QUALITY_GATES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/QUALITY_GATES.md) · 🇷🇴 [ro](../../../ro/docs/architecture/QUALITY_GATES.md) · 🇷🇺 [ru](../../../ru/docs/architecture/QUALITY_GATES.md) · 🇱🇰 [si](../../../si/docs/architecture/QUALITY_GATES.md) · 🇸🇰 [sk](../../../sk/docs/architecture/QUALITY_GATES.md) · 🇸🇮 [sl](../../../sl/docs/architecture/QUALITY_GATES.md) · 🇷🇸 [sr](../../../sr/docs/architecture/QUALITY_GATES.md) · 🇸🇪 [sv](../../../sv/docs/architecture/QUALITY_GATES.md) · 🇰🇪 [sw](../../../sw/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [ta](../../../ta/docs/architecture/QUALITY_GATES.md) · 🇮🇳 [te](../../../te/docs/architecture/QUALITY_GATES.md) · 🇹🇭 [th](../../../th/docs/architecture/QUALITY_GATES.md) · 🇹🇷 [tr](../../../tr/docs/architecture/QUALITY_GATES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/QUALITY_GATES.md) · 🇵🇰 [ur](../../../ur/docs/architecture/QUALITY_GATES.md) · 🇺🇿 [uz](../../../uz/docs/architecture/QUALITY_GATES.md) · 🇻🇳 [vi](../../../vi/docs/architecture/QUALITY_GATES.md) · 🇳🇬 [yo](../../../yo/docs/architecture/QUALITY_GATES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/QUALITY_GATES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/QUALITY_GATES.md)
 
 ---
 
-## Inwentarz bramek (~50 skryptów)
+Ten dokument stanowi wiążący materiał referencyjny dla wszystkich bramek jakości CI w OmniRoute.
+Opisuje każdą bramkę, zakres jej weryfikacji, zadanie CI, w którym jest uruchamiana, to, czy
+wykorzystuje bazową wartość mechanizmu zapadkowego, czy zasady zaliczenia/niezaliczenia, oraz to,
+czy blokuje kompilację, czy ma charakter doradczy.
 
-Skrypty leżą w `scripts/check/` (bramki polityk) oraz `scripts/quality/` (silnik ratchet).
-Źródłem prawdy CI jest `.github/workflows/ci.yml`.
+Krótkie podsumowanie i zasady listy dozwolonych wyjątków znajdują się w sekcji „Quality Gates & Ratchets”
+w pliku `AGENTS.md`. Krytyczną ocenę, klasyfikację dojrzałości oraz niezależny od narzędzi
+plan odtworzenia tego samego systemu zawiera
+[Podręcznik bramek jakości](../ops/QUALITY_GATE_PLAYBOOK.md).
 
-### Szybka ścieżka PR do release (`quality.yml`)
+---
 
-`.github/workflows/quality.yml` działa na PR-ach celujących w `release/**`. Utrzymuje ruch
-gałęzi kontrybutorów dzięki szybkim bramkom filtrowanym po ścieżkach, plus jeden advisory sygnał production-build dla
-zmian w kodzie:
+## Inwentarz bramek (~90 skryptów)
 
-| Job                                              | Zakres                                                                                                                                                                                                                   | Blokująca                                                                              |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| `Build (advisory)`                               | Non-draft PR-y kodowe i gałęzie kolejki Mergify; Node 24, `npm-ci-retry`, `check:node-runtime`, `npm run build` z `OMNIROUTE_USE_TURBOPACK=1`; bez uploadu artefaktów, bo żaden downstream quality job ich nie konsumuje | **Advisory** (`continue-on-error: true`; usuń po tygodniu stabilnych runów release-PR) |
-| `Docs Gates (fast-path)`                         | PR-y docs/kod; API docs refs i docs-all                                                                                                                                                                                  | Tak                                                                                    |
-| `Fast Quality Gates`                             | PR-y kodowe; static checks, typecheck, dashboard typecheck, impacted unit tests                                                                                                                                          | Tak                                                                                    |
-| `Vitest (fast-path)`                             | PR-y kodowe; szybki suite vitest                                                                                                                                                                                         | Tak                                                                                    |
-| `Unit Tests fast-path`                           | PR-y kodowe; 4-shard suite unit                                                                                                                                                                                          | Tak                                                                                    |
-| `No new ESLint warnings`                         | PR-y kodowe; strażnik lint świadomy suppressions                                                                                                                                                                         | Tak dla own-origin, advisory dla forków                                                |
-| `Merge integrity (changelog + generated skills)` | Non-draft PR-y; sync changelog i wygenerowanych skills                                                                                                                                                                   | Tak dla own-origin, advisory dla forków                                                |
+Skrypty znajdują się w `scripts/check/` (bramki zasad) oraz `scripts/quality/` (mechanizm zapadkowy).
+Źródłem prawdy dla CI jest `.github/workflows/ci.yml`.
 
-### Job: `lint`
+### Szybka ścieżka dla PR-ów wydania (`quality.yml`)
 
-Działa na każdym PR do `main`. Blokuje merge przy failure.
+`.github/workflows/quality.yml` jest uruchamiany dla PR-ów kierowanych do `release/**`. Umożliwia sprawną pracę
+na gałęziach współtwórców dzięki szybkim bramkom filtrowanym według ścieżek oraz jednemu doradczemu sygnałowi z kompilacji produkcyjnej dla zmian
+w kodzie:
 
-| Skrypt (`npm run ...`)         | Waliduje                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Blokująca                                |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `check:node-runtime`           | Wersja Node.js mieści się w wspieranym zakresie                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Tak                                      |
-| `check:cycles`                 | Circular imports — wszystkie moduły `src/` + `open-sse/`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Tak                                      |
-| `check:route-validation:t06`   | Schematy Zod obecne na wszystkich trasach (polityka Tier 6)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Tak                                      |
-| `check:any-budget:t11`         | Liczba `@ts-expect-error // any` nie przekracza budżetu (Tier 11 catraca)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Tak                                      |
-| `check:provider-consistency`   | Każdy provider w `providers.ts` ma pasujący wpis w `providerRegistry.ts` (i odwrotnie, w ramach allowlist)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Tak                                      |
-| `check:fetch-targets`          | Każdy `fetch("/api/...")` w client-side `src/` resolve’uje się do prawdziwego `route.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Tak                                      |
-| `check:deps`                   | Wszystkie zależności instalowalne przez `npm install` we wszystkich `package.json` w repo są w `dependency-allowlist.json`; nowe unpinned lub slopsquatted pakiety flagowane                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Tak                                      |
-| `audit:deps`                   | `npm audit` (root + electron) — brak high/critical advisories (nakłada się z osv `check:vuln-ratchet`; zob. Backlog racjonalizacji)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Tak                                      |
-| `check:lockfile`               | Integralność `package-lock.json` — rejestr https, hashe integrity, brak host overrides                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Tak                                      |
-| `check:licenses`               | Allowlist licencji SPDX dla zależności produkcyjnych                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Tak                                      |
-| `check:tracked-artifacts`      | Brak artefaktów build / zcommitowanych symlinków `node_modules` (też w husky pre-commit; pre-push celowo lekki — #6716)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Tak                                      |
-| `check:file-size`              | Żaden plik źródłowy nie przekracza capu per-extension (ratchet: frozen large files na liście `frozen`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Tak                                      |
-| `check:error-helper`           | Odpowiedzi błędów w executorach/handlerach używają `buildErrorBody()` / `sanitizeErrorMessage()` (Hard Rule #12)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Tak                                      |
-| `check:migration-numbering`    | Pliki migracji SQL numerowane sekwencyjnie, bez luk i duplikatów                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Tak                                      |
-| `check:public-creds`           | Brak literalnych OAuth `client_id`/`client_secret` ani kluczy Firebase Web poza `publicCreds.ts` (Hard Rule #11)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Tak                                      |
-| `check:db-rules`               | Brak raw SQL poza modułami `src/lib/db/`; brak barrel-importów z `localDb.ts` (Hard Rules #2/#5)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Tak                                      |
-| `check:known-symbols`          | Executory providerów, strategie routingu i translatory zarejestrowane w swoich dispatch tables odpowiadają plikom na dysku — brak orphaned lub undeclared symbols                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Tak                                      |
-| `check:route-guard-membership` | Każda trasa spawnująca child process jest sklasyfikowana przez `isLocalOnlyPath()` (Hard Rules #15/#17)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Tak                                      |
-| `check:test-discovery`         | Każdy plik `*.test.ts` / `*.spec.ts` w repo jest zbierany przez co najmniej jeden test runner (ratchet: lista orphan w `test-discovery-baseline.json` może tylko maleć)                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Tak                                      |
-| `check:docs-sync`              | Wersja CHANGELOG, wersja OpenAPI i `llm.txt` są zsynchronizowane                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Tak                                      |
-| `typecheck:core`               | Kompilacja TypeScript bez błędów (tylko advisory warnings)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Tak                                      |
-| `typecheck:noimplicit:core`    | Strict `noImplicitAny` — forward-looking; wiele istniejących call sites wciąż wymaga adnotacji                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | **Advisory** (`continue-on-error: true`) |
-| `check:dashboard-typecheck`    | `tsc` scoped do `src/app/(dashboard)/**` (#7033) — curated 27-plikowa allowlist `typecheck:core` nie obejmuje żadnego dashboard TSX, a `next build` też tego nie type-checkuje (`next.config.mjs` ustawia `ignoreBuildErrors: true`), więc regresje orphaned-identifier tam (#6625/#6909) były niewidoczne dla CI. Diff względem frozen baseline liczby per-file/per-TS-code (`config/quality/dashboard-typecheck-baseline.json`, ten sam wzorzec stale-enforcement co `check:known-symbols`) — tylko NOWE błędy ponad baselined count failują bramkę; ratchet down przez `--update`, gdy pre-existing error jest naprawiony. | Tak                                      |
+| Zadanie                                          | Zakres                                                                                                                                                                                                                                                     | Blokowanie                                                                                           |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `Build (advisory)`                               | PR-y z kodem niebędące wersjami roboczymi oraz gałęzie kolejki Mergify; Node 24, `npm-ci-retry`, `check:node-runtime`, `npm run build` z `OMNIROUTE_USE_TURBOPACK=1`; bez przesyłania artefaktów, ponieważ żadne późniejsze zadanie jakości ich nie używa  | **Doradcze** (`continue-on-error: true`; usunąć po tygodniu stabilnych uruchomień dla PR-ów wydania) |
+| `Docs Gates (fast-path)`                         | PR-y z dokumentacją/kodem; odwołania w dokumentacji API oraz docs-all                                                                                                                                                                                      | Tak                                                                                                  |
+| `Fast Quality Gates`                             | PR-y z kodem; kontrole statyczne, kontrola typów, kontrola typów dashboardu, testy jednostkowe objęte zmianami                                                                                                                                             | Tak                                                                                                  |
+| `Forgotten sibling tests`                        | PR-y z kodem; śledzenie zmienionych modułów do statycznych konsumentów i potencjalnych testów równorzędnych; ścieżki przez moduły zbiorcze i importy dynamiczne są raportowane jako diagnostyka doradcza wraz z przywołanymi wyjątkami z listy dozwolonych | **Doradcze**                                                                                         |
+| `Vitest (fast-path)`                             | PR-y z kodem; szybki zestaw testów vitest                                                                                                                                                                                                                  | Tak                                                                                                  |
+| `Unit Tests fast-path`                           | PR-y z kodem; zestaw testów jednostkowych podzielony na 4 fragmenty                                                                                                                                                                                        | Tak                                                                                                  |
+| `No new ESLint warnings`                         | PR-y z kodem; kontrola lintowania uwzględniająca wyciszenia                                                                                                                                                                                                | Tak dla własnego źródła, doradcze dla forków                                                         |
+| `Merge integrity (changelog + generated skills)` | PR-y niebędące wersjami roboczymi; synchronizacja dziennika zmian i wygenerowanych umiejętności                                                                                                                                                            | Tak dla własnego źródła, doradcze dla forków                                                         |
 
-### Job: `quality-gate`
+#### Raport zapomnianych testów równorzędnych
 
-Działa po `test-coverage`. Blokuje merge przy failure.
+`npm run check:forgotten-sibling-tests` ponownie wykorzystuje mechanizm rozwiązywania importów używany przez mapę wpływu testów.
+Dla każdego zmienionego modułu produkcyjnego raportuje deterministyczne łańcuchy
+`zmieniony moduł/symbol -> statyczny konsument -> potencjalny test równorzędny`, gdy potencjalnego
+testu nie ma w różnicy zmian pull requestu. Podsumowanie w formacie Markdown i wynik JSON są zachowywane jako
+artefakt przepływu pracy `forgotten-sibling-tests` na potrzeby kalibracji przed wdrożeniem trybu blokującego.
 
-| Skrypt                       | Waliduje                                                                                                                   | Blokująca                 |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| `quality:collect`            | Emits `quality-metrics.json` (liczba ESLint warnings, coverage ze scalanego raportu shardów)                               | Tak (upstream of ratchet) |
-| `quality:ratchet`            | Każda metryka w `quality-baseline.json` nie zregresowała (ESLint warnings ≤ baseline; coverage ≥ baseline)                 | Tak                       |
-| `check:duplication`          | Duplikacja kodu (jscpd@4) nie przekracza baseline w `quality-baseline.json`                                                | Tak                       |
-| `check:complexity`           | File-level cyclomatic complexity nie przekracza capu (core ESLint `complexity` + `max-lines-per-function`)                 | Tak                       |
-| `check:cognitive-complexity` | Ratchet cognitive complexity (`eslint-plugin-sonarjs`) — osobny pass ESLint; mergeable z `check:complexity` (zob. Backlog) | Tak                       |
-| `check:dead-code`            | Ratchet unused exports / files (knip) nie regresie względem baseline                                                       | Tak                       |
-| `check:type-coverage`        | Ratchet percent-typed (`type-coverage`) nie regresie; w dużej mierze subsumuje `typecheck:noimplicit:core`                 | Tak                       |
-| `check:codeql-ratchet`       | Liczba otwartych alertów CodeQL nie regresie (odczyt przez `gh api`; graceful-skip bez tokenu)                             | Tak                       |
+Ponowne eksporty przez moduły zbiorcze i importy dynamiczne stanowią wyłącznie diagnostykę rozwiązywania; nigdy nie tworzą
+wyniku blokującego. Zatwierdzone wyjątki znajdują się w
+`config/quality/forgotten-sibling-allowlist.json`. Każdy wpis musi wskazywać konsumenta i potencjalny
+test, zawierać konkretne uzasadnienie oraz link do zgłoszenia lub pull requestu w serwisie GitHub. Nieprawidłowo sformułowane wpisy powodują
+odrzucenie. Wyjątki nie mogą pomijać usuniętego potencjalnego testu ani różnicy zmian dodającej `.skip`/`.todo`;
+osłabianie asercji i inne formy maskowania pozostają w zakresie niezależnie blokującej
+bramki `check:test-masking`.
 
-### Job: `quality-extended`
+### Zadanie: `lint`
 
-Cały job jest advisory (`continue-on-error: true`). Ratchety oparte o npm działają
-na serio; zewnętrzne skanery instalują się przez `gh release download` i same się pomijają (exit 0),
-gdy binarka wciąż jest nieobecna.
+Uruchamiane dla każdego PR-u do `main`. W przypadku niepowodzenia blokuje scalenie.
 
-| Skrypt                   | Waliduje                                                                                                                                                                            | Blokująca    |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| `check:circular-deps`    | Brak circular dependencies (dpdm)                                                                                                                                                   | **Advisory** |
-| `check:bundle-size`      | Rozmiar bundle nie przekracza capu                                                                                                                                                  | **Advisory** |
-| `check:secrets`          | Skanowanie sekretów (gitleaks) — pomija, gdy brak binarki                                                                                                                           | **Advisory** |
-| `check:vuln-ratchet`     | Podatności zależności (osv-scanner) nie regresują — pomija, gdy brak binarki                                                                                                        | **Advisory** |
-| `check:workflows`        | Lint workflowów (actionlint + zizmor) — pomija, gdy brak binarek                                                                                                                    | **Advisory** |
-| `check:openapi-breaking` | Breaking changes w publicznym kontrakcie API (`openapi.yaml`) względem base branch (oasdiff) — emituje `openapiBreaking=N`; pomija, gdy brak oasdiff lub base spec nierozwiązywalny | **Advisory** |
+| Skrypt (`npm run ...`)            | Sprawdza                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Blokujący                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `check:node-runtime`              | Czy wersja Node.js mieści się w obsługiwanym zakresie                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Tak                                          |
+| `check:cycles`                    | Importy cykliczne — wszystkie moduły `src/` + `open-sse/`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Tak                                          |
+| `check:route-validation:t06`      | Obecność schematów Zod we wszystkich trasach (zasady poziomu 6)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Tak                                          |
+| `check:any-budget:t11`            | Liczba wystąpień `@ts-expect-error // any` nie przekracza limitu (zapadka poziomu 11)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Tak                                          |
+| `check:provider-consistency`      | Każdy dostawca w `providers.ts` ma odpowiadający mu wpis w `providerRegistry.ts` (i odwrotnie, w ramach listy dozwolonych)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Tak                                          |
+| `check:model-lifecycle`           | Trzy ręcznie utrzymywane tabele routingu pozostają spójne z migawką cyklu życia znajdującą się w repozytorium (#11503): `FITNESS_TABLE` (`taskFitness.ts`) nie przypisuje punktacji żadnemu wycofanemu identyfikatorowi, do którego `REGISTRY` może kierować; każdy cel `BUILT_IN_ALIASES` jest obecny w `REGISTRY` i nie występuje w migawce wycofanych identyfikatorów; każdy wycofany identyfikator nadal obecny w `REGISTRY` jest przekierowywany lub wymieniony w `allowedRetiredInCatalog`; a żadne źródło ani cel `DEFAULT_DEGRADATION_MAP` nie figuruje w tej migawce jako wycofane. Nie dowodzi to, że model jest obecnie obsługiwany przez działającą usługę nadrzędną. W trybie offline — porównuje z `config/quality/model-lifecycle.json`, odświeżanym ręcznie za pomocą `npm run quality:refresh-model-lifecycle` (wymaga sieci; nie jest podłączone do CI). `allowedRetiredInCatalog` jest mechanizmem stopniowego ograniczania: wpis należy dodać wyłącznie wraz ze zgłoszeniem umożliwiającym śledzenie. | Tak                                          |
+| `check:fetch-targets`             | Każde `fetch("/api/...")` w klienckiej części `src/` prowadzi do rzeczywistego pliku `route.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Tak                                          |
+| `check:deps`                      | Wszystkie zależności możliwe do zainstalowania za pomocą `npm install` ze wszystkich plików `package.json` w repozytorium znajdują się w `dependency-allowlist.json`; nowe pakiety bez przypiętej wersji lub wykorzystujące literówki w nazwach są oznaczane                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Tak                                          |
+| `audit:deps`                      | `npm audit` (katalog główny + electron) — brak ostrzeżeń o wysokim/krytycznym poziomie zagrożenia (częściowo pokrywa się z osv `check:vuln-ratchet`; zobacz Rejestr zadań racjonalizacyjnych)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Tak                                          |
+| `check:lockfile`                  | Integralność `package-lock.json` — rejestr https, skróty integralności, brak nadpisań hosta                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Tak                                          |
+| `check:licenses`                  | Lista dozwolonych licencji SPDX dla zależności produkcyjnych                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Tak                                          |
+| `check:tracked-artifacts`         | Brak artefaktów kompilacji / zatwierdzonych dowiązań symbolicznych `node_modules` (uruchamiane również przez husky przed zatwierdzeniem; kontrola przed wypchnięciem jest celowo ograniczona — #6716)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Tak                                          |
+| `check:vitest-exclusions`         | Każde wykluczenie Vitest wskazuje zgłoszenie śledzące i znajduje się w `config/quality/vitest-exclusions.json` (#13204)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Tak                                          |
+| `check:file-size`                 | Żaden plik źródłowy nie przekracza limitu dla danego rozszerzenia (mechanizm zapadkowy: zamrożone duże pliki na liście `frozen`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Tak                                          |
+| `check:error-helper`              | Odpowiedzi błędów w executorach/procedurach obsługi używają `buildErrorBody()` / `sanitizeErrorMessage()` (Reguła bezwzględna nr 12)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Tak                                          |
+| `check:migration-numbering`       | Pliki SQL migracji są numerowane kolejno, bez luk ani duplikatów                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Tak                                          |
+| `check:public-creds`              | Brak literałów OAuth `client_id`/`client_secret` ani kluczy Firebase Web poza `publicCreds.ts` (Twarda reguła nr 11)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Tak                                          |
+| `check:db-rules`                  | Brak surowego SQL poza modułami `src/lib/db/`; brak importów zbiorczych z `localDb.ts` (Twarde reguły nr 2/5)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Tak                                          |
+| `check:known-symbols`             | Wykonawcy dostawców, strategie routingu i translatory zarejestrowane w odpowiednich tabelach dyspozytorskich odpowiadają plikom na dysku — brak osieroconych lub niezadeklarowanych symboli                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Tak                                          |
+| `check:route-guard-membership`    | Każda trasa uruchamiająca proces potomny jest sklasyfikowana przez `isLocalOnlyPath()` (Twarde reguły nr 15/17)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Tak                                          |
+| `check:test-discovery`            | Każdy plik `*.test.ts` / `*.spec.ts` w repozytorium jest wykrywany przez co najmniej jeden mechanizm uruchamiania testów (mechanizm zapadkowy: lista osieroconych plików w `test-discovery-baseline.json` może się tylko zmniejszać)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Tak                                          |
+| `check:agent-skills-sync`         | Wygenerowane artefakty umiejętności agentów są zgodne z ich katalogiem źródłowym (brak rozbieżności)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `check:provider-asset-provenance` | Logotypy/zasoby dostawców mają zarejestrowany wpis dotyczący pochodzenia                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `lint:json`                       | Pliki konfiguracyjne JSON są poprawnie analizowane i spełniają reguły lintowania repozytorium                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `typecheck:core`                  | Kompilacja TypeScript bez błędów (tylko ostrzeżenia informacyjne)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Tak                                          |
+| `typecheck:noimplicit:core`       | Rygorystyczne `noImplicitAny` — ukierunkowane na przyszłość; wiele istniejących miejsc wywołań nadal wymaga adnotacji                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | **Informacyjne** (`continue-on-error: true`) |
+| `check:dashboard-typecheck`       | `tsc` ograniczone do `src/app/(dashboard)/**` (#7033) — starannie wyselekcjonowana lista 27 plików w `typecheck:core` nie obejmuje żadnych plików TSX panelu, a `next build` również nigdy nie sprawdza ich typów (`next.config.mjs` ustawia `ignoreBuildErrors: true`), dlatego regresje dotyczące osieroconych identyfikatorów (#6625/#6909) pozostawały niewidoczne dla CI. Różnice są porównywane z zamrożoną bazą liczby błędów dla każdego pliku i kodu TS (`config/quality/dashboard-typecheck-baseline.json`, ten sam wzorzec wymuszania aktualności co w `check:known-symbols`) — tylko NOWE błędy przekraczające liczbę zapisaną w bazie powodują niepowodzenie kontroli; gdy istniejący wcześniej błąd zostanie naprawiony, obniż bazę za pomocą `--update`.                                                                                                                                                                                                                                                   | Tak                                          |
 
-### Job: `docs-sync-strict`
+### Zadanie: `quality-gate`
 
-Działa na każdym PR do `main`. Blokuje merge przy failure.
+Uruchamiane po `test-coverage`. W przypadku niepowodzenia blokuje scalenie.
 
-| Skrypt                         | Waliduje                                                                                                                                          | Blokująca                   |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `check:docs-all`               | Meta-bramka uruchamiająca sekwencyjnie 6 sub-bramek poniżej                                                                                       | Tak                         |
-| ↳ `check:docs-sync`            | Spójność wersji CHANGELOG / OpenAPI / llm.txt                                                                                                     | Tak                         |
-| ↳ `check:docs-counts`          | Liczniki w prozie (provider count, migration count itd.) mieszczą się w oknie ratchet rzeczywistych liczb                                         | Tak                         |
-| ↳ `check:env-doc-sync`         | Każda env var w `.env.example` jest udokumentowana w tabeli docs i odwrotnie                                                                      | Tak                         |
-| ↳ `check:deprecated-versions`  | Brak deprecated version strings w docs                                                                                                            | Tak                         |
-| ↳ `check:doc-links`            | Wewnętrzne linki markdown w docs resolve’ują się do prawdziwych plików (forma `[text]`/`(path)`)                                                  | Tak                         |
-| ↳ `check:fabricated-docs`      | Trasy, env vars, komendy CLI, nazwy hooków i ścieżki plików cytowane w docs istnieją w codebase. Hard gate przez `--strict`; soft-fail bez flagi. | Tak (przez `--strict` w CI) |
-| `check:cli-i18n`               | Stringi komend CLI są obecne we wszystkich plikach locale i18n                                                                                    | Tak                         |
-| `check:openapi-coverage`       | Spec OpenAPI pokrywa co najmniej ratcheted floor prawdziwych tras                                                                                 | Tak                         |
-| `check:openapi-security-tiers` | Adnotacje security tier w `openapi.yaml` są spójne z klasyfikacjami `routeGuard.ts`                                                               | **Advisory**                |
-| `check:openapi-routes`         | Każda ścieżka w `openapi.yaml` resolve’uje się do prawdziwego `route.ts` (anti-hallucination)                                                     | Tak                         |
-| `check:docs-symbols`           | Każde odniesienie `/api/...` w `docs/**/*.md` resolve’uje się do prawdziwego `route.ts` (anti-hallucination)                                      | Tak                         |
-| `i18n translation drift`       | Nieprzetłumaczone klucze w plikach locale i18n — tylko warn                                                                                       | **Advisory**                |
+| Skrypt                       | Sprawdza                                                                                                                                                                                          | Blokujące                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `quality:collect`            | Generuje `quality-metrics.json` (liczba ostrzeżeń ESLint, pokrycie ze scalonego raportu fragmentów)                                                                                               | Tak (przed mechanizmem zapadkowym) |
+| `quality:ratchet`            | Żadna metryka w `quality-baseline.json`` nie uległa pogorszeniu (ostrzeżenia ESLint ≤ wartość bazowa; pokrycie ≥ wartość bazowa)                                                                  | Tak                                |
+| `check:duplication`          | Duplikacja kodu (jscpd@4) nie przekracza wartości bazowej w `quality-baseline.json`                                                                                                               | Tak                                |
+| `check:complexity`           | Złożoność cyklomatyczna na poziomie pliku nie przekracza limitu (podstawowe reguły ESLint `complexity` + `max-lines-per-function`)                                                                | Tak                                |
+| `check:cognitive-complexity` | Mechanizm zapadkowy złożoności poznawczej (`eslint-plugin-sonarjs`) — osobne uruchomienie ESLint; CI uruchamia oba razem jako pojedynczy krok `check:complexity-ratchets`                         | Tak                                |
+| `check:dead-code`            | Mechanizm zapadkowy nieużywanych eksportów / plików (knip) nie pogarsza się względem wartości bazowej                                                                                             | Tak                                |
+| `check:compression-budget`   | Budżet testu wydajności kompresji — minimalne oszczędności tokenów dla poszczególnych silników nie mogą się pogorszyć                                                                             | Tak                                |
+| `check:type-coverage`        | Mechanizm zapadkowy procentowego pokrycia typami (`type-coverage`) nie ulega pogorszeniu; w dużej mierze zastępuje `typecheck:noimplicit:core`                                                    | Tak                                |
+| `check:codeql-ratchet`       | Liczba otwartych alertów CodeQL nie wzrasta (odczyt przez `gh api`; łagodne pominięcie bez tokenu) — częstotliwość odświeżania i ręczne uruchamianie: zobacz „Mechanizm zapadkowy CodeQL” poniżej | Tak                                |
 
-### Job: `i18n-ui-coverage`
+### Zadanie: `quality-extended`
 
-| Skrypt                            | Waliduje                                                      | Blokująca |
-| --------------------------------- | ------------------------------------------------------------- | --------- |
-| `check-ui-keys-coverage` (inline) | Pokrycie kluczy UI i18n jest ≥ 65%                            | Tak       |
-| `check-ui-value-drift` (inline)   | Przepisana angielska **value** nie zostawia stale translation | Tak       |
+Całe zadanie ma charakter doradczy (`continue-on-error: true`). Mechanizmy zapadkowe oparte na npm są uruchamiane
+faktycznie; zewnętrzne skanery są instalowane za pomocą `gh release download` i samoczynnie się pomijają (kod wyjścia 0),
+gdy plik binarny nadal nie jest dostępny.
 
-Wymaga `fetch-depth: 0` — bramka value-drift diffuje `en.json` względem merge base.
+| Skrypt                   | Sprawdza poprawność                                                                                                                                                                                                 | Blokowanie   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| `check:circular-deps`    | Brak zależności cyklicznych (dpdm)                                                                                                                                                                                  | **Doradcze** |
+| `check:bundle-size`      | Rozmiar pakietu nie przekracza limitu                                                                                                                                                                               | **Doradcze** |
+| `check:secrets`          | Skanowanie pod kątem sekretów (gitleaks) — pomijane, jeśli brak pliku binarnego                                                                                                                                     | **Doradcze** |
+| `check:vuln-ratchet`     | Podatności zależności (osv-scanner) nie ulegają regresji — pomijane, jeśli brak pliku binarnego                                                                                                                     | **Doradcze** |
+| `check:workflows`        | Lintowanie przepływów pracy (actionlint + zizmor) — pomijane, jeśli brak plików binarnych                                                                                                                           | **Doradcze** |
+| `check:openapi-breaking` | Zmiany niezgodne wstecznie w publicznym kontrakcie API (`openapi.yaml`) względem gałęzi bazowej (oasdiff) — generuje `openapiBreaking=N`; pomijane, jeśli brak oasdiff lub nie można rozpoznać specyfikacji bazowej | **Doradcze** |
 
-#### `check-ui-value-drift` — bramka stale-translation
+### Zadanie: `docs-sync-strict`
 
-Łapie jedną regresję i18n, której inne bramki strukturalnie nie widzą: angielska wartość
-jest przepisana, a tłumaczenia wyprowadzone z _poprzedniego_ angielskiego zostają w tyle, więc
-nieangielscy użytkownicy nadal czytają pewnie sformułowany, już błędny tekst.
+Uruchamiane dla każdego PR do `main`. W przypadku niepowodzenia blokuje scalanie.
 
-To się wydarzyło na serio. `oauthModal.googleOAuthWarning` zostało przepisane, gdy helper logowania Antigravity
-wylądował (#5203); **39 z 43 locale** zachowało tekst mówiący operatorom, by „skopiować
-pełny URL i wkleić go poniżej” — flow, którego dla tego providera nie da się dokończyć. Przeszło
-niezauważone aż do #8463, bo:
+| Skrypt                         | Sprawdza poprawność                                                                                                                                                                        | Blokowanie                  |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- |
+| `check:docs-all`               | Metabrama uruchamiająca kolejno 6 poniższych bram podrzędnych                                                                                                                              | Tak                         |
+| ↳ `check:docs-sync`            | Spójność wersji w CHANGELOG / OpenAPI / llm.txt                                                                                                                                            | Tak                         |
+| ↳ `check:docs-counts`          | Liczby w tekście (liczba dostawców, liczba migracji itp.) mieszczą się w oknie mechanizmu zapadkowego względem rzeczywistych wartości                                                      | Tak                         |
+| ↳ `check:env-doc-sync`         | Każda zmienna środowiskowa z `.env.example` jest udokumentowana w tabeli dokumentacji i odwrotnie                                                                                          | Tak                         |
+| ↳ `check:deprecated-versions`  | Brak ciągów znaków przestarzałych wersji w dokumentacji                                                                                                                                    | Tak                         |
+| ↳ `check:doc-links`            | Wewnętrzne łącza markdown w dokumentacji wskazują na istniejące pliki (format `[text]`/`(path)`)                                                                                           | Tak                         |
+| ↳ `check:fabricated-docs`      | Trasy, zmienne środowiskowe, polecenia CLI, nazwy hooków i ścieżki plików przywołane w dokumentacji istnieją w bazie kodu. Twarda brama z `--strict`; łagodne niepowodzenie bez tej flagi. | Tak (przez `--strict` w CI) |
+| `check:cli-i18n`               | Ciągi znaków poleceń CLI są obecne we wszystkich plikach ustawień regionalnych i18n                                                                                                        | Tak                         |
+| `check:openapi-coverage`       | Specyfikacja OpenAPI obejmuje co najmniej ustalony mechanizmem zapadkowym minimalny poziom rzeczywistych tras                                                                              | Tak                         |
+| `check:openapi-security-tiers` | Adnotacje poziomów zabezpieczeń w `openapi.yaml` są spójne z klasyfikacjami w `routeGuard.ts`                                                                                              | **Doradcze**                |
+| `check:openapi-routes`         | Każda ścieżka w `openapi.yaml` odpowiada rzeczywistemu plikowi `route.ts` (ochrona przed halucynacjami)                                                                                    | Tak                         |
+| `check:docs-symbols`           | Każde odwołanie `/api/...` w `docs/**/*.md` odpowiada rzeczywistemu plikowi `route.ts` (ochrona przed halucynacjami)                                                                       | Tak                         |
+| `i18n translation drift`       | Nieprzetłumaczone klucze w plikach ustawień regionalnych i18n — tylko ostrzeżenie                                                                                                          | **Doradcze**                |
 
-- `sync-ui-keys` uzupełnia tylko klucze, które są **nieobecne**, nigdy te, które są **stale**;
-- `check-ui-keys-coverage` liczy _obecność_ kluczy, więc stale translation liczy się jako covered;
-- `check-translation-drift` śledzi lustra dokumentacji `docs/i18n/<locale>/**.md` —
-  nigdy nie czyta `src/i18n/messages/*.json`.
+### Zadanie: `i18n-ui-coverage`
 
-**Diff-aware, nie oparte o baseline.** Porównuje `en.json` na merge base z
-working tree; dla każdego klucza, którego angielska wartość się zmieniła, każdy locale wciąż trzymający
-nietknięte tłumaczenie jest stale. To celowo **zamraża istniejący dług** — diff
-nie ujawni, z którego starego angielskiego pochodzi długotrwałe tłumaczenie, więc bramka ocenia
-tylko to, czego dotyczy bieżąca zmiana. Alternatywa (baseline hash per klucz) kosztowałaby
-wygenerowany plik ~600 KB, 3× największy istniejący baseline, churnujący przy każdym i18n PR.
+| Skrypt                            | Sprawdza                                                                                                                                                                                                                                      | Blokuje      |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| `check-ui-keys-coverage` (inline) | Pokrycie kluczy i18n interfejsu użytkownika wynosi ≥ 65%                                                                                                                                                                                      | Tak          |
+| `check-ui-value-drift` (inline)   | Zmieniona angielska **wartość** nie pozostawia nieaktualnego tłumaczenia                                                                                                                                                                      | Tak          |
+| `check-new-key-coverage` (inline) | **Nowy** angielski klucz jest przetłumaczony w każdym języku — znacznik `__MISSING__:` jest odrzucany                                                                                                                                         | Tak          |
+| `check-translation-ratio`         | Udział rzeczywistych tłumaczeń w każdym języku (wartości identyczne z angielskimi / symbole zastępcze / brakujące liście spoza listy dozwolonych) nie może przekraczać wartości z `config/quality/i18n-translation-baseline.json` + marginesu | **Doradcze** |
 
-Dwa sposoby, by ją spełnić:
+Wymaga `fetch-depth: 0` — bramka rozbieżności wartości porównuje `en.json` z bazą scalania.
 
-1. zaktualizować dotknięte tłumaczenia, albo
-2. ustawić je na `__MISSING__:<new english>` — runtime serwuje wtedy poprawiony angielski
-   (`src/i18n/request.ts::deepMergeFallback`, #7258), a klucz trafia do kolejki tłumaczeń.
+#### `check-ui-value-drift` — bramka nieaktualnych tłumaczeń
 
-Jeśli **znaczenie** stringa się zmieniło, preferuj **rename klucza**: nowy klucz nie może odziedziczyć
-stale translation. To wzorzec użyty w #8463.
+Wykrywa jedną regresję i18n, której pozostałe bramki nie są w stanie wykryć strukturalnie:
+angielska wartość zostaje zmieniona, a tłumaczenia utworzone na podstawie _poprzedniej_
+angielskiej wersji pozostają bez zmian, przez co użytkownicy innych wersji językowych nadal
+czytają jednoznacznie sformułowaną, lecz już nieprawidłową treść.
+
+Taka sytuacja rzeczywiście trafiła do wydania. Wartość `oauthModal.googleOAuthWarning`
+została zmieniona po dodaniu pomocnika logowania Antigravity (#5203); **39 z 43 wersji
+językowych** zachowało tekst nakazujący operatorom „skopiować pełny adres URL i wkleić go
+poniżej” — przepływ, którego nie da się ukończyć dla tego dostawcy. Problem pozostał
+niezauważony aż do #8463, ponieważ:
+
+- `sync-ui-keys` uzupełnia wyłącznie **nieobecne** klucze, nigdy **nieaktualne**;
+- `check-ui-keys-coverage` zlicza _obecność_ kluczy, więc nieaktualne tłumaczenie jest uznawane za pokryte;
+- `check-translation-drift` śledzi kopie dokumentacji `docs/i18n/<locale>/**.md` —
+  nigdy nie odczytuje `src/i18n/messages/*.json`. Blokuje w zadaniu `docs-sync-strict` od
+  ponownej synchronizacji 2026-09: edytuj główny dokument → `npm run i18n:run -- --files=<doc>` (na poziomie sekcji, niski koszt).
+
+**Uwzględnia różnice, nie opiera się na wartości bazowej.** Porównuje `en.json` z bazy
+scalania z drzewem roboczym; dla każdego klucza, którego angielska wartość uległa zmianie,
+każda wersja językowa nadal zawierająca niezmienione tłumaczenie jest nieaktualna. Celowo
+**zamraża to istniejący wcześniej dług** — różnica nie pozwala ustalić, z której starej
+angielskiej wersji pochodzi istniejące od dawna tłumaczenie, dlatego bramka ocenia wyłącznie
+to, czego dotyczy bieżąca zmiana. Alternatywa (wartość bazowa skrótów dla poszczególnych
+kluczy) wymagałaby wygenerowanego pliku o rozmiarze około 600 KB, trzykrotnie większego od
+największej istniejącej wartości bazowej, zmieniającego się przy każdym PR dotyczącym i18n.
+
+Można spełnić ten warunek na dwa sposoby:
+
+1. zaktualizować odpowiednie tłumaczenia albo
+2. ustawić je na `__MISSING__:<new english>` — środowisko uruchomieniowe wyświetli wtedy
+   poprawiony tekst angielski (`src/i18n/request.ts::deepMergeFallback`, #7258), a klucz
+   trafi do kolejki tłumaczeń.
+
+Jeśli zmieniło się **znaczenie** ciągu, najlepiej **zmienić nazwę klucza**: nowy klucz nie
+może odziedziczyć nieaktualnego tłumaczenia. Ten wzorzec zastosowano w #8463.
 
 ```bash
-npm run i18n:check-value-drift          # strict (what CI runs)
-npm run i18n:check-value-drift:warn     # report only
+npm run i18n:check-value-drift          # tryb ścisły (uruchamiany przez CI)
+npm run i18n:check-value-drift:warn     # tylko raport
 BASE_REF=origin/release/vX.Y.Z npm run i18n:check-value-drift
 ```
 
-Wychodzi z 0 z `SKIP reason=base-unresolved`, gdy katalog bazowy nie da się odczytać (shallow
-clone bez base ref), lustrzanie `check-openapi-breaking`.
+Kończy działanie kodem 0 i komunikatem `SKIP reason=base-unresolved`, gdy nie można odczytać
+katalogu bazowego (płytki klon bez referencji bazowej), analogicznie do
+`check-openapi-breaking`.
 
-### Job: `i18n`
+### Zadanie: `i18n`
 
-Pełna macierz walidacji i18n (jeden job na locale). Cały job jest advisory.
+Pełna macierz walidacji i18n (jedno zadanie na wersję językową). Całe zadanie ma charakter doradczy.
 
-| Skrypt                          | Waliduje                         | Blokująca                                               |
-| ------------------------------- | -------------------------------- | ------------------------------------------------------- |
-| `validate_translation.py quick` | Kompletność tłumaczeń per locale | **Advisory** (`continue-on-error: true` na całym jobie) |
+| Skrypt                          | Sprawdza                                            | Blokuje                                                     |
+| ------------------------------- | --------------------------------------------------- | ----------------------------------------------------------- |
+| `validate_translation.py quick` | Kompletność tłumaczenia dla każdej wersji językowej | **Doradcze** (`continue-on-error: true` dla całego zadania) |
 
-### Job: `pr-test-policy`
+### Zadanie: `pr-test-policy`
 
-Działa tylko na pull requestach.
+Uruchamiane wyłącznie dla pull requestów.
 
-| Skrypt                 | Waliduje                                                                                                                            | Blokująca |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| `check:pr-test-policy` | PR-y zmieniające production code w `src/`, `open-sse/`, `electron/` lub `bin/` muszą zawierać lub aktualizować testy (Hard Rule #8) | Tak       |
-| `check:test-masking`   | Zmienione pliki testów nie zmniejszają net assert count ani nie dodają tautologii `assert.ok(true)`                                 | Tak       |
-| `check:pr-evidence`    | Treść PR cytuje evidence test/VPS dla zmiany (mechanizuje Hard Rule #18 przez grepping prozy PR — kruche, zob. Backlog)             | Tak       |
+| Skrypt                 | Sprawdza                                                                                                                                                           | Blokuje |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `check:pr-test-policy` | PR-y zmieniające kod produkcyjny w `src/`, `open-sse/`, `electron/` lub `bin/` muszą zawierać nowe lub zaktualizowane testy (Twarda reguła nr 8)                   | Tak     |
+| `check:test-masking`   | Zmienione pliki testowe nie zmniejszają łącznej liczby asercji ani nie dodają tautologii `assert.ok(true)`                                                         | Tak     |
+| `check:pr-evidence`    | Opis PR-a przytacza dowody z testów/VPS dotyczące zmiany (automatyzuje Twardą regułę nr 18 przez przeszukiwanie treści PR-a — rozwiązanie kruche, zob. zaległości) | Tak     |
 
-### Job: `test-vitest`
+### Zadanie: `test-vitest`
 
-Działa po `build`. Blokuje merge przy failure.
+Uruchamiane po `build`. W przypadku niepowodzenia blokuje scalanie.
 
-| Suite            | Waliduje                                                | Blokująca                                                                  |
-| ---------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `test:vitest`    | MCP server (107 tools), autoCombo, cache — vitest runner | Tak                                                                        |
-| `test:vitest:ui` | Testy komponentów UI — vitest runner                    | **Advisory** (`continue-on-error: true`) — failing aż do triage UI Fase 6A |
+| Zestaw           | Sprawdza                                                               | Blokujący                                                                                                                                       |
+| ---------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test:vitest`    | Serwer MCP (110 narzędzi), autoCombo, pamięć podręczna — runner vitest | Tak                                                                                                                                             |
+| `test:vitest:ui` | Testy komponentów interfejsu użytkownika — runner vitest               | **Blokujący** — istniejące wcześniej niepowodzenia są jawnie wykluczone w `vitest.config.ts`; nowe niepowodzenia powodują niepowodzenie zadania |
 
-### Workflowy nightly (harmonogram, advisory)
+### Nocne przepływy pracy (zaplanowane, informacyjne)
 
-Te działają na cronie (oraz `workflow_dispatch`), nigdy na PR-ach. Wszystkie są advisory.
+Są uruchamiane zgodnie z harmonogramem cron (oraz przez `workflow_dispatch`), nigdy dla PR-ów. Wszystkie mają charakter informacyjny.
 
-| Workflow               | Waliduje                                                                                                                                                   | Blokująca    |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| `nightly-property`     | Testy property fast-check z losowym seedem + wysokim run count                                                                                             | **Advisory** |
-| `nightly-resilience`   | Bramka heap-growth, chaos fault-injection, k6 load/soak                                                                                                    | **Advisory** |
-| `nightly-llm-security` | promptfoo injection guard (block mode) + probe garak (pomijane bez provider secret)                                                                        | **Advisory** |
-| `nightly-schemathesis` | Fuzzing kontraktu OpenAPI (schemathesis) względem żywego OmniRoute z użyciem `docs/openapi.yaml` — ujawnia naruszenia spec / nieobsłużone 500 (Fase 8 B.4) | **Advisory** |
+| Przepływ pracy         | Sprawdza                                                                                                                                                                         | Blokujący        |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `nightly-property`     | Testy właściwości fast-check z losowym ziarnem i dużą liczbą uruchomień                                                                                                          | **Informacyjny** |
+| `nightly-resilience`   | Kontrola przyrostu sterty, wstrzykiwanie błędów typu chaos, testy obciążeniowe/długotrwałe k6                                                                                    | **Informacyjny** |
+| `nightly-llm-security` | Ochrona przed wstrzyknięciami promptfoo (tryb blokowania) i sondy garak (pomijane bez sekretu dostawcy)                                                                          | **Informacyjny** |
+| `nightly-schemathesis` | Fuzzing kontraktu OpenAPI (schemathesis) względem działającego OmniRoute przy użyciu `docs/openapi.yaml` — ujawnia naruszenia specyfikacji / nieobsłużone błędy 500 (Faza 8 B.4) | **Informacyjny** |
+| `nightly-mutation`     | Wynik testów mutacyjnych Stryker dla szybkiej ścieżki testów jednostkowych — mutacje, które przetrwały, ujawniają słabe asercje                                                  | **Informacyjny** |
+| `nightly-compat`       | Macierz zgodności silnika Node dla obsługiwanych zakresów `engines.node`                                                                                                         | **Informacyjny** |
 
 ---
 
-## Baseline ratchet (`quality-baseline.json`)
+## Faza szybkości (2026-08-30 → v4.0 LTS): każdy poziom bazowy poluzowany o 20%
 
-Silnik ratchet (`scripts/quality/check-quality-ratchet.mjs`) czyta `quality-baseline.json`
-i porównuje go ze świeżo zebranym `quality-metrics.json`. Każda metryka, która regresie
-poza swoje epsilon, failuje build.
+Decyzja właściciela (2026-08-30): do czasu modularyzacji w v4.0 szybkość dostarczania jest ważniejsza
+niż utrzymywanie długu na dotychczasowym poziomie. Każdy **liczbowy** bazowy próg zapadkowy został
+poluzowany o 20% w ramach jednej audytowalnej operacji, a faza jest zadeklarowana w
+`config/quality/quality-baseline.json`:
 
-Aktualnie śledzone metryki:
+```json
+"_policy": { "phase": "velocity", "since": "2026-08-30", "until": "4.0.0",
+             "relaxPct": 20, "requireTighten": false }
+```
 
-| Metryka               | Kierunek | Znaczenie                              |
-| --------------------- | -------- | -------------------------------------- |
-| `eslintWarnings`      | `down`   | Liczba ESLint warnings nie może rosnąć |
-| `coverage.statements` | `up`     | Statement coverage nie może spadać     |
-| `coverage.lines`      | `up`     | Line coverage nie może spadać          |
-| `coverage.functions`  | `up`     | Function coverage nie może spadać      |
-| `coverage.branches`   | `up`     | Branch coverage nie może spadać        |
+| Co się zmieniło                                                                                                                                                                                                                                                  | Gdzie                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `metrics.*.value` — liczby, dla których mniej znaczy lepiej, ×1.2; wartości procentowe, dla których więcej znaczy lepiej, ÷1.2 (minimalne pokrycie pozostaje na poziomie 60, `eslintErrors` nadal wynosi 0, `eslintWarnings` 0 → 20% zamrożonej liczby wyciszeń) | `quality-baseline.json` (uwaga `_relax_velocity_2026_08_30` zawiera wszystkie zmiany przed → po)       |
+| `count` ×1.2 / `percentage` ×1.2                                                                                                                                                                                                                                 | `complexity-baseline.json`, `duplication-baseline.json`                                                |
+| `cap`, `testCap`, każdy limit wierszy `frozen[*]` / `testFrozen[*]` ×1.2                                                                                                                                                                                         | `file-size-baseline.json`                                                                              |
+| liczby dla poszczególnych plików / kodu TS ×1.2                                                                                                                                                                                                                  | `api-typecheck-baseline.json`, `dashboard-typecheck-baseline.json`, `open-sse-typecheck-baseline.json` |
+| `THRESHOLD` 36 → 30                                                                                                                                                                                                                                              | `scripts/check/check-openapi-coverage.mjs`                                                             |
+| `--require-tighten` ma charakter doradczy, gdy `_policy.requireTighten === false`                                                                                                                                                                                | `scripts/quality/check-quality-ratchet.mjs`                                                            |
+| nocne zadanie `bank-ratchet-shrinks` zostaje wstrzymane (zapisałoby zmierzony spadek i zniwelowało zapas)                                                                                                                                                        | `.github/workflows/nightly-release-green.yml`                                                          |
 
-Aby zaktualizować baseline po genuine improvement:
+Listy dozwolonych wyjątków (`eslint-suppressions.json`, `test-masking-allowlist.json`, `test-discovery-baseline.json`,
+…) **nie** są budżetami i nie zostały zmienione. Bramy zasad typu zaliczone/niezaliczone (sekrety, reguły SQL,
+zgodność dokumentacji ze środowiskiem, spójność i18n, testy jednostkowe) pozostają bez zmian — niezaliczony test nadal oznacza niezaliczony test.
+
+**Narzędzia**
+
+- `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — jednorazowe
+  poluzowanie (`scripts/quality/relax-baselines.mjs`); odmawia ponownego uruchomienia z tą samą
+  notatką.
+- `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
+  mierzy każdą bramę liczbową w taki sam sposób jak CI i wyświetla pozostały zapas dla każdej bramy
+  (`scripts/quality/baseline-headroom.mjs`). Nocne zadanie `baseline-headroom` publikuje
+  tabelę w aktualizowanym zgłoszeniu **📈 Zapas poziomów bazowych (faza szybkości)** i dodaje etykietę
+  `headroom-alert`, gdy dowolna brama znajduje się w granicach 10% swojego limitu lub już go przekracza. To zgłoszenie
+  stanowi wczesne ostrzeżenie: budżet wyczerpujący się w ciągu kilku dni oznacza, że poluzowanie jest zużywane przez
+  kilka PR-ów, a nie przez cały zespół — sprawdź uwagi `_rebaseline_*` dotyczące problematycznej bramy.
+
+**Tryb nowego kodu (Clean-as-You-Code) — od 2026-08-30, tylko szybka ścieżka PR**
+
+Przy zdarzeniach `pull_request` plik `quality.yml` przekazuje `--base-ref <PR base SHA>` do `check:file-size`,
+`check:complexity-ratchets` i `check:dead-code`. W tym trybie brama porównuje HEAD z bazą
+scalania **wyłącznie w odniesieniu do plików zmodyfikowanych przez PR** (`scripts/check/newCodeMode.mjs`:
+baza scalania jest materializowana w tymczasowym `git worktree`, ESLint/knip są uruchamiane w nim oraz na HEAD,
+a liczby dla poszczególnych plików są porównywane):
+
+- **blokujące** — PR dodał naruszenia złożoności cyklomatycznej/kognitywnej lub martwe eksporty w zmienionych plikach
+  (`complexityNewCode=`, `cognitiveComplexityNewCode=`, `deadExportsNewCode=` w dzienniku);
+- **doradcze** — globalna suma względem zamrożonego poziomu bazowego. Odziedziczone odchylenia nigdy nie powodują
+  niezaliczenia niewinnego PR-u; odchylenia są ponownie zamrażane podczas uzgadniania wydania i monitorowane przez zadanie sprawdzające zapas.
+
+Uruchomienia `workflow_dispatch`, kontrola release-green oraz nocne zadanie sprawdzające zapas nie mają bazy PR
+i zachowują porównanie bezwzględne (globalne). Pokrycie, duplikacja i pokrycie typami pozostają na razie globalne
+(ich narzędzia nie generują tanio różnic dla poszczególnych plików) — są kandydatami do takiego samego podejścia.
+
+**Zamknięcie fazy w v4.0 (LTS = bardziej rygorystyczne niż wcześniej, a nie „powrót do normy”)**
+
+1. Na czystym wierzchołku `release/v4.0.0`: uruchom `npm run quality:headroom --json` w celach ewidencyjnych, a następnie
+   `npm run quality:ratchet -- --update`, `check:file-size --update`,
+   `check:complexity-ratchets --update`, `check:dead-code --update` oraz
+   `--update` dla każdej bramki kontroli typów — każda wartość bazowa zostanie obniżona do wartości zmierzonej.
+2. Usuń `_policy` z `quality-baseline.json` (ponownie aktywuje `--require-tighten` i nocne
+   akumulowanie), przywróć `THRESHOLD = 36` (lub wyższy) w `check-openapi-coverage.mjs`.
+3. Zaostrz limity poniżej zmierzonych wartości tam, gdzie modularyzacja przyniosła efekty: przywróć `cap` rozmiaru pliku do 1000
+   (lub 800), zwiększ minima pokrycia o 5, ustaw liczbę martwych eksportów na 0 dla zmodularyzowanych pakietów.
+
+## Bazowy poziom mechanizmu zapadkowego (`quality-baseline.json`)
+
+Mechanizm zapadkowy (`scripts/quality/check-quality-ratchet.mjs`) odczytuje plik `quality-baseline.json`
+i porównuje go ze świeżo zebranym plikiem `quality-metrics.json`. Każda metryka, która pogorszy się
+o wartość większą niż jej epsilon, powoduje niepowodzenie kompilacji.
+
+Obecnie śledzone metryki:
+
+| Metryka               | Kierunek | Znaczenie                                 |
+| --------------------- | -------- | ----------------------------------------- |
+| `eslintWarnings`      | `down`   | Liczba ostrzeżeń ESLint nie może wzrosnąć |
+| `coverage.statements` | `up`     | Pokrycie instrukcji nie może spaść        |
+| `coverage.lines`      | `up`     | Pokrycie wierszy nie może spaść           |
+| `coverage.functions`  | `up`     | Pokrycie funkcji nie może spaść           |
+| `coverage.branches`   | `up`     | Pokrycie gałęzi nie może spaść            |
+
+Aby zaktualizować poziom bazowy po rzeczywistej poprawie:
 
 ```bash
 npm run quality:ratchet -- --update
 git add quality-baseline.json
 ```
 
-Flaga `--update` zapisuje bieżące zmierzone wartości do `quality-baseline.json`.
-Commituj ten plik wraz ze zmianą, która poprawiła metrykę. PR, który poprawia
-metrykę bez aktualizacji baseline, złapie `--require-tighten` (Fase 6A.5,
-oczekuje implementacji).
+Flaga `--update` zapisuje bieżące zmierzone wartości w pliku `quality-baseline.json`.
+Zatwierdź ten plik razem ze zmianą, która poprawiła metrykę. PR, który poprawia
+metrykę bez aktualizacji poziomu bazowego, zostanie wykryty przez `--require-tighten` (Faza 6A.5,
+oczekuje na implementację).
+
+### Mechanizm zapadkowy CodeQL: częstotliwość odświeżania i ręczne wyzwalanie
+
+`check:codeql-ratchet` odczytuje **stan repozytorium, odświeżany zgodnie z harmonogramem — nie dla każdego PR.**
+`gh api repos/diegosouzapw/OmniRoute/code-scanning/default-setup` raportuje
+`state: configured`, `schedule: weekly`: jest to skan domyślnej konfiguracji GitHub, a nie analiza
+wykonywana przy każdym wysłaniu zmian. Konsekwencja: po scaleniu PR, który NAPRAWIA alerty, mechanizm zapadkowy nadal odczytuje
+starą, wyższą liczbę aż do uruchomienia następnego zaplanowanego skanowania — dlatego raportuje regresję
+dla każdego otwartego PR, w tym dla kolejnych zmian dotyczących naprawiającego PR, dopóki wyniki skanowania nie zostaną zaktualizowane.
+
+**Ręczne odświeżenie**: `gh workflow run codeql.yml --ref release/vX.Y.Z` ponownie uruchamia
+analizę i w ciągu kilku minut ponownie publikuje alerty. Najpierw przeczytaj `.github/workflows/codeql.yml`
+— jego nagłówek wyjaśnia, że używa wyłącznie `workflow_dispatch` **ponieważ powoduje konflikt z
+„konfiguracją domyślną” GitHub** (`CodeQL analyses from advanced configurations cannot be
+processed when the default setup is enabled`). Przywrócenie wyzwalaczy `push`/`pull_request`/
+`schedule` wymaga najpierw **działania właściciela**: Settings → Code security →
+CodeQL: Default → Advanced. Nie dodawaj wyzwalacza `schedule:` bez tego przełączenia — będzie
+on jedynie powodował nieudane uruchomienia.
+
+**Zaostrz poziom bazowy po spadku liczby** — `node scripts/check/check-codeql-ratchet.mjs
+--update` zapisuje nową zmierzoną liczbę w `quality-baseline.json` →
+`metrics.codeqlAlerts.value`, dzięki czemu mechanizm zapadkowy nie dopuści po cichu do regresji z powrotem
+do starego limitu. Przykład (2026-09-02/03): PR #12502 naprawił 7 rzeczywistych alertów
+(13 → 6 zmierzonych otwartych alertów); PR #12530 zaostrzył zamrożony poziom bazowy z 11 → 6, aby był zgodny z wynikiem; pozostałe
+6 alertów zostało następnie odrzuconych z indywidualnym uzasadnieniem, co zmniejszyło ich liczbę do 0 otwartych alertów.
+
+**Decyzja o odrzuceniu alertów należy do operatora (Twarda reguła #14)** — nigdy nie odrzucaj alertu CodeQL
+bez zapisania technicznego uzasadnienia w komentarzu odrzucenia: `won't fix` w przypadku
+wymagania protokołu nadrzędnego, `used in tests` w przypadku danych testowych, `false positive`
+w przypadku mechanizmu oczyszczania danych, którego CodeQL nie potrafi wykryć (precedens: `docs/security/ERROR_SANITIZATION.md`).
 
 ---
 
-## Polityka retry testów (WS5.4, v3.8.49)
+## Zasady ponawiania testów (WS5.4, v3.8.49)
 
-Retry jest per-runner, nigdy globalny blanket — blanket retry zamienia prawdziwe regresje
-w niewidoczne flake:
+Ponawianie jest konfigurowane osobno dla każdego runnera, nigdy globalnie — globalne ponawianie zamienia rzeczywiste regresje
+w niewidoczne niestabilności:
 
-| Runner           | Polityka                                                                                                        | Dlaczego                                                                                                                 |
-| ---------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Playwright (e2e) | `retries: 1` tylko w CI, z `trace: on-first-retry`                                                              | Timing przeglądarki/sieci jest naprawdę niedeterministyczny; jeden retry z trace zamienia flake w diagnozowalny artefakt |
-| Vitest           | BEZ globalnego retry. Udowodniony flaky test dostaje jawny per-test retry (widoczny w diffie, reviewowany w PR) | Trzyma listę quarantine w repo, nigdy opaque                                                                             |
-| node:test (unit) | NIGDY żadnego retry                                                                                             | Flaky unit test to bug w teście — napraw go, nie re-rolluj                                                               |
+| Runner           | Zasada                                                                                                                                            | Dlaczego                                                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Playwright (e2e) | `retries: 1` wyłącznie w CI, z `trace: on-first-retry`                                                                                            | Czas wykonania operacji przeglądarki/sieci jest rzeczywiście niedeterministyczny; jedno ponowienie ze śladem zamienia niestabilność w artefakt możliwy do zdiagnozowania |
+| Vitest           | BEZ globalnego ponawiania. Test o potwierdzonej niestabilności otrzymuje jawne ponawianie na poziomie testu (widoczne w diffie i sprawdzane w PR) | Utrzymuje listę kwarantanny w repozytorium, nigdy jako nieprzejrzystą konfigurację                                                                                       |
+| node:test (unit) | BEZ ponawiania, bez wyjątków                                                                                                                      | Niestabilny test jednostkowy oznacza błąd w teście — napraw go, zamiast uruchamiać ponownie                                                                              |
 
-Docelowe SLO, gdy wyląduje telemetria flake (WS5.2/5.3): <1% flake rate na test
-(próg „fix now”), ≥95% pass rate na pipeline. Wartości referencyjne branży —
-rekalibruj względem własnych pomiarów.
+Docelowe SLO po wdrożeniu telemetrii niestabilności (WS5.2/5.3): współczynnik niestabilności <1% na test
+(próg „napraw teraz”), współczynnik powodzenia ≥95% na potok. Wartości referencyjne z branży —
+należy je ponownie skalibrować na podstawie własnych pomiarów.
 
-## Drift ratchet na poziomie release (WS5.5, v3.8.49)
+## Dryf limitów zapadkowych na poziomie wydania (WS5.5, v3.8.49)
 
-Gdy ratchet (file-size, complexity, eslint warnings) regresie na CZYSTYM tipie release
-— tzn. KOMBINACJA merge’y go zregresowała, a żaden pojedynczy PR nie reprodukuje
-regresji na własnej gałęzi — fix należy do **release captain, raz, na
-gałęzi release**: preferuj extraction/refactor; rebaseline tylko z udokumentowanym
-wpisem justification. Nigdy nie spychaj combination drift na PR kontrybutora i nigdy
-nie rebaselinuj per-PR (to ukrywa prawdziwe regresje). Najpierw dyskryminuj: zreprodukuj
-czerwień względem pure tip w probe worktree, zanim założysz, że spowodował ją Twój PR.
+Gdy limit zapadkowy (rozmiar pliku, złożoność, ostrzeżenia eslint) ulega regresji na CZYSTYM końcu
+gałęzi wydania — tj. regresję spowodowała KOMBINACJA scaleń, a żaden pojedynczy PR nie odtwarza jej
+na własnej gałęzi — za poprawkę odpowiada **release captain, jednorazowo, na gałęzi
+wydania**: preferuj wydzielenie/refaktoryzację; ponownie ustaw wartość bazową tylko wraz z udokumentowanym
+uzasadnieniem. Nigdy nie przenoś dryfu kombinacji na PR kontrybutora i nigdy
+nie ustawiaj ponownie wartości bazowej dla każdego PR (ukrywa to rzeczywiste regresje). Najpierw rozstrzygnij przyczynę: odtwórz
+błąd na czystym końcu gałęzi w roboczym worktree kontrolnym, zanim uznasz, że spowodował go Twój PR.
 
-## Banking ratchet shrinks — kierunek w dół (#8584)
+## Utrwalanie obniżeń limitów zapadkowych — kierunek w dół (#8584)
 
-Ratchet jest tylko w połowie automatyczny i to w złej połowie. **Podniesienie** capu to
-ręczna edycja JSON, która zajmuje dziesięć sekund i jest najszybszym sposobem odblokowania czerwonego PR.
-**Obniżenie** wymaga, by ktoś uruchomił `--update` i zcommitował wynik — a aż do
-wylądowania joba `bank-ratchet-shrinks` żaden workflow tego nie robił. Zmierzona konsekwencja
-(2026-07-25): 18 frozen files już na lub poniżej 800-liniowego capu new-file, najgorszy
-przy 132× (`src/shared/validation/schemas.ts`, 19 linii niosących cap 2,523);
-ceiling complexity szedł `1794 → 2169` przez ~37 rebaseline notes z dokładnie jednym
-spadkiem (−1); oraz „tighten via `--update` next cycle” napisane 31 razy i honorowane
-raz. Cap, który przeżywa kod, który go wypracował, po cichu zamienia każdą ukończoną
-dekompozycję w growth allowance dla kogoś, kto edytuje plik jako następny.
+Mechanizm zapadkowy jest automatyczny tylko w połowie — i to w niewłaściwej połowie. **Podniesienie** limitu to
+ręczna edycja JSON, która zajmuje dziesięć sekund i jest najszybszym sposobem na odblokowanie PR z błędem.
+**Obniżenie** limitu wymaga uruchomienia `--update` i zatwierdzenia wyniku przez kogoś — a do czasu
+wdrożenia zadania `bank-ratchet-shrinks` żaden workflow tego nie wykonywał. Zmierzony skutek
+(2026-07-25): 18 zamrożonych plików miało już nie więcej niż limit 800 wierszy dla nowych plików, przy czym najgorszy
+przypadek wynosił 132× (`src/shared/validation/schemas.ts`, 19 wierszy z limitem 2 523); pułap
+złożoności wzrósł z `1794 → 2169` w około 37 notatkach o ponownym ustawieniu wartości bazowej, przy dokładnie jednym
+obniżeniu (−1); a zapis „zaostrz przez `--update` w następnym cyklu” pojawił się 31 razy i został
+zrealizowany raz. Limit, który pozostaje po usunięciu kodu będącego jego przyczyną, po cichu zamienia każdy ukończony
+podział kodu w przyzwolenie na jego rozrost dla kolejnej osoby edytującej dany plik.
 
-`nightly-release-green.yml` → job **`bank-ratchet-shrinks`** zamyka tę pętlę:
+`nightly-release-green.yml` → zadanie **`bank-ratchet-shrinks`** zamyka tę pętlę:
 
-|             |                                                                                                     |
-| ----------- | --------------------------------------------------------------------------------------------------- |
-| Uruchamiany | `schedule` (3×/dzień) + `workflow_dispatch` — celowo **nie** `push`                                 |
-| Mierzy      | najwyższy `release/vX.Y.Z`, ta sama resolution + injection guard co `release-green`                 |
-| Zapisuje    | `check:file-size --update` i `check:complexity-ratchets --update` (oba shrink-only by construction) |
-| Weryfikuje  | `npm run check:ratchet-bank` (`scripts/quality/verify-ratchet-bank.mjs`)                            |
-| Dostarcza   | jeden always-current PR względem gałęzi release — force-updated, nigdy spamowany                    |
+|              |                                                                                                                       |
+| ------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Uruchamianie | `schedule` (3× dziennie) + `workflow_dispatch` — celowo **bez** `push`                                                |
+| Pomiar       | najwyższa gałąź `release/vX.Y.Z`, z taką samą metodą rozstrzygania i ochroną przed wstrzyknięciem jak `release-green` |
+| Zapis        | `check:file-size --update` i `check:complexity-ratchets --update` (oba z założenia mogą wyłącznie obniżać wartości)   |
+| Weryfikacja  | `npm run check:ratchet-bank` (`scripts/quality/verify-ratchet-bank.mjs`)                                              |
+| Dostarczanie | jeden zawsze aktualny PR kierowany do gałęzi wydania — aktualizowany wymuszeniem, bez tworzenia spamu                 |
 
-Banking jest batchowany, a nie per-push, bo nie ma wymogu latency (shrink
-zbankowany w ciągu 8h jest OK), podczas gdy run per-merge przebudowywałby gałąź PR wielokrotnie
-podczas kampanii merge i płacił za pełny ESLint walk za każdym razem. Detection zostaje
-na push (`release-green`); tylko banking jest batchowany.
+Utrwalanie odbywa się partiami, a nie przy każdym pushu, ponieważ nie ma wymagań dotyczących opóźnienia (obniżenie
+utrwalone w ciągu 8 godzin jest wystarczające), natomiast uruchamianie po każdym scaleniu wielokrotnie przebudowywałoby gałąź PR
+podczas serii scaleń i za każdym razem ponosiłoby koszt pełnego przebiegu ESLint. Wykrywanie nadal odbywa się
+przy pushu (`release-green`); partiami wykonywane jest wyłącznie utrwalanie.
 
 ### Weryfikator bezpieczeństwa
 
-Job zapisuje do baseline’ów bez nadzoru, więc `verify-ratchet-bank.mjs` sprawia,
-że to jest akceptowalne. Diffuje drzewo po `--update` względem `HEAD` i **przerywa job
-zanim powstanie jakikolwiek commit** — nie otwierając PR — chyba że każda zmiana to jedno z:
+Zadanie zapisuje zmiany w wartościach bazowych bez nadzoru, dlatego `verify-ratchet-bank.mjs` zapewnia
+bezpieczeństwo tego procesu. Porównuje drzewo po wykonaniu `--update` z `HEAD` i **przerywa zadanie
+przed utworzeniem jakiegokolwiek commita** — bez otwierania PR — chyba że każda zmiana jest jednym z poniższych przypadków:
 
-- wpis numeryczny `frozen` / `testFrozen` **obniżony** lub **usunięty**
-- `complexity-baseline.json` → `count` **obniżony**
-- `quality-baseline.json` → `metrics.cognitiveComplexity.value` **obniżone**
+- wartość liczbowa `frozen` / `testFrozen` została **obniżona** lub **usunięta**
+- `complexity-baseline.json` → `count` została **obniżona**
+- `quality-baseline.json` → `metrics.cognitiveComplexity.value` została **obniżona**
 
-Wszystko inne failuje: podniesienie liczby, dodanie wpisu, zmiana `cap`/`testCap`, albo
-usunięcie/przepisanie notatki `_rebaseline_*` (te notatki to audit trail dlaczego każdy
-ceiling istnieje i są przechowywane w tym samym obiekcie `frozen` co wpisy plików).
-Bot, który mógłby podnieść cap, byłby ściśle gorszy niż status quo. Guard regresji:
+Wszystko inne powoduje błąd: podniesienie liczby, dodanie wpisu, zmiana `cap`/`testCap` lub
+usunięcie/przepisanie notatki `_rebaseline_*` (notatki te stanowią ślad audytowy wyjaśniający, dlaczego każdy
+pułap istnieje, i są przechowywane w tym samym obiekcie `frozen` co wpisy plików).
+Bot, który mógłby podnieść limit, byłby zdecydowanie gorszy niż obecny stan. Zabezpieczenie przed regresją:
 `tests/unit/verify-ratchet-bank.test.ts`.
 
-Job nigdy nie pushuje do `release/*` — człowiek merge’uje PR, więc zły pomiar
-nie może wylądować bez review.
+Zadanie nigdy nie wykonuje pushu do `release/*` — PR scala człowiek, więc błędny pomiar
+nie może zostać wdrożony bez przeglądu.
 
-## Polityka allowlist
+## Zasady listy dozwolonych elementów
 
-Każda bramka, która nie może failować na istniejących wcześniej naruszeniach, używa frozen allowlist
-(np. `KNOWN_STALE_DOC_REFS`, `KNOWN_MISSING`, `KNOWN_RAW_SQL`). Polityka brzmi:
+Każda bramka, która nie może zakończyć się niepowodzeniem z powodu wcześniej istniejących naruszeń, korzysta z zamrożonej listy dozwolonych elementów
+(np. `KNOWN_STALE_DOC_REFS`, `KNOWN_MISSING`, `KNOWN_RAW_SQL`). Obowiązuje następująca zasada:
 
-**Napraw root cause; używaj allowlist tylko gdy naruszenie jest pre-existing i
-nie da się go naprawić w tym samym PR.**
+**Napraw główną przyczynę; używaj listy dozwolonych elementów tylko wtedy, gdy naruszenie istniało wcześniej i
+nie można go naprawić w tym samym PR.**
 
-Przy dodawaniu wpisu do allowlist:
+Podczas dodawania wpisu do listy dozwolonych elementów:
 
-1. Dołącz komentarz z justification.
-2. Odnieś się do tracking issue (np. `// #3498 — Phase 2 feature, not yet implemented`).
-3. Usuń wpis w tym samym PR, który naprawia naruszenie — stale entry, które już nie
-   tłumi aktywnego naruszenia, samo jest defektem (6A.3 stale-enforcement
-   failuje bramkę na orphaned allowlist entry, gdy zostanie zaimplementowane).
+1. Dołącz komentarz z uzasadnieniem.
+2. Podaj odwołanie do zgłoszenia śledzącego (np. `// #3498 — Funkcja z fazy 2, jeszcze niezaimplementowana`).
+3. Usuń wpis w tym samym PR, który naprawia naruszenie — nieaktualny wpis, który nie
+   wycisza już aktywnego naruszenia, sam jest defektem (mechanizm wykrywania nieaktualnych reguł 6A.3
+   spowoduje niepowodzenie bramki z powodu osieroconego wpisu na liście dozwolonych elementów, gdy zostanie zaimplementowany).
 
-**Nie** dodawaj wpisów allowlist, by testy szybciej przechodziły. Zielona bramka z rosnącą
-allowlist to fałszywe poczucie jakości.
+**Nie** dodawaj wpisów do listy dozwolonych elementów po to, aby testy przechodziły szybciej. Zielona bramka przy rosnącej
+liście dozwolonych elementów daje fałszywe poczucie jakości.
 
-### Gdy bramka failuje na Twoim PR
+### Gdy bramka nie przechodzi dla Twojego PR
 
-1. **Przeczytaj output bramki uważnie** — mówi dokładnie, który plik lub symbol naruszył
+1. **Uważnie przeczytaj dane wyjściowe bramki** — wskazują one dokładnie, który plik lub symbol naruszył
    regułę.
-2. **Napraw naruszenie** — większość bramek to deterministyczne checki filesystem, które przechodzą,
-   gdy tylko kod jest poprawny.
-3. **Jeśli naruszenie jest pre-existing** (tzn. nie Ty je wprowadziłeś, ale bramka teraz
-   je obejmuje): dodaj wpis allowlist z komentarzem justification i tracking issue.
-4. **Jeśli bramka to ratchet** (coverage, ESLint warnings, duplication, complexity):
-   Twoja zmiana pogorszyła metrykę. Napraw underlying issue, albo (rzadko) uruchom
-   `npm run quality:ratchet -- --update`, jeśli zmiana jest celowa i degradacja
-   metryki jest akceptowalna — ale udokumentuj dlaczego w opisie PR.
-5. **Bramki advisory** (`continue-on-error: true`) są informacyjne — nie blokują
-   merge, ale pojawiają się w podsumowaniu CI. I tak je naprawiaj.
+2. **Napraw naruszenie** — większość bramek to deterministyczne kontrole systemu plików, które przechodzą, gdy tylko
+   kod jest poprawny.
+3. **Jeśli naruszenie istniało wcześniej** (tj. nie zostało wprowadzone przez Ciebie, ale bramka zaczęła je teraz
+   obejmować): dodaj wpis do listy dozwolonych elementów wraz z komentarzem uzasadniającym i odwołaniem do zgłoszenia śledzącego.
+4. **Jeśli bramka działa jako mechanizm zapadkowy** (pokrycie, ostrzeżenia ESLint, duplikacja, złożoność):
+   Twoja zmiana pogorszyła wskaźnik. Napraw problem będący jego przyczyną albo (w rzadkich przypadkach) uruchom
+   `npm run quality:ratchet -- --update`, jeśli zmiana jest celowa, a pogorszenie
+   wskaźnika jest akceptowalne — wyjaśnij jednak przyczynę w opisie PR.
+5. **Bramki doradcze** (`continue-on-error: true`) mają charakter informacyjny — nie blokują
+   scalania, ale pojawiają się w podsumowaniu CI. Mimo to je napraw.
 
 ---
 
 ## Dodawanie nowej bramki
 
-1. Utwórz `scripts/check/check-<name>.mjs` (lub `.ts`). Bramki polityk wychodzą z 0/1.
-   Bramki w stylu ratchet emitują metrykę do `quality-metrics.json` przez `collect-metrics.mjs`.
+1. Utwórz `scripts/check/check-<name>.mjs` (lub `.ts`). Bramki zasad zwracają kod wyjścia 0/1.
+   Bramki typu zapadkowego zapisują wskaźnik w `quality-metrics.json` za pośrednictwem `collect-metrics.mjs`.
 2. Dodaj `"check:<name>": "node scripts/check/check-<name>.mjs"` do `package.json`.
-3. Podłącz w `.github/workflows/ci.yml` pod odpowiednim jobem
-   (policy → `lint` lub `docs-sync-strict`; ratchet → `quality-gate`).
-4. Jeśli ma allowlist, zastosuj `reportStaleEntries()` z
-   `scripts/check/lib/allowlist.mjs`, by stale entries były wykrywane automatycznie.
-5. Napisz test w `tests/unit/build/` pokrywający logikę detekcji bramki.
-6. Zaktualizuj ten dokument (dodaj wiersz do tabeli odpowiedniego joba).
+3. Podłącz ją w `.github/workflows/ci.yml` w odpowiednim zadaniu
+   (zasady → `lint` lub `docs-sync-strict`; zapadka → `quality-gate`).
+4. Jeśli korzysta z listy dozwolonych elementów, zastosuj `reportStaleEntries()` z
+   `scripts/check/lib/allowlist.mjs`, aby nieaktualne wpisy były wykrywane automatycznie.
+5. Napisz test w `tests/unit/build/` obejmujący logikę wykrywania bramki.
+6. Zaktualizuj ten dokument (dodaj wiersz do tabeli odpowiedniego zadania).
 
 ---
 
-## Tooling agentów: LSP-in-the-loop (opt-in)
+## Narzędzia dla agentów: LSP w pętli (opcjonalne)
 
-Poza bramkami CI OmniRoute dostarcza **opt-in** scaffold `agent-lsp`
-(projektowy `.mcp.json`, Fase 7 Task 15). Utwórz `.mcp.json`,
-by wystawić TypeScript language server agentom kodującym, żeby resolve’owały symbole /
-diagnostics **zanim** napiszą kod — companion compile-before-claim do
-`typecheck:core`, który tnie błędy „invented symbol” u źródła. Celowo
-nie jest auto-ładowany (Ty wybierasz i weryfikujesz most MCP↔LSP); zepsuty wpis tylko loguje
-błąd połączenia i nigdy nie psuje sesji.
+Poza bramkami CI OmniRoute udostępnia **opcjonalny** szkielet `agent-lsp`
+(plik `.mcp.json` na poziomie projektu, faza 7, zadanie 15). Utwórz `.mcp.json`,
+aby udostępnić agentom programistycznym serwer języka TypeScript, dzięki czemu będą rozwiązywać symbole /
+diagnostykę **przed** napisaniem kodu — jest to działające według zasady „najpierw kompilacja, potem deklaracja” uzupełnienie
+`typecheck:core`, które eliminuje błędy „wymyślonych symboli” u źródła. Celowo
+nie jest ładowany automatycznie (to Ty wybierasz i weryfikujesz most MCP↔LSP); nieprawidłowy wpis jedynie rejestruje
+błąd połączenia i nigdy nie zakłóca sesji.
 
 ---
 
-## Backlog racjonalizacji (przegląd ROI — Fase 9 Onda 3)
+## Rejestr racjonalizacji (przegląd ROI — Etap 9, Fala 3)
 
-Ten inwentarz został uzgodniony z `ci.yml` 2026-06-17 (poprzednia wersja pomijała
+Ten wykaz uzgodniono z `ci.yml` w dniu 2026-06-17 (w poprzedniej wersji pominięto
 `audit:deps`, `check:tracked-artifacts`, `check:lockfile`, `check:licenses`,
 `check:dead-code`, `check:cognitive-complexity`, `check:type-coverage`,
-`check:codeql-ratchet`, `check:pr-evidence`). Przegląd ROI uzgodnionego zbioru
-zidentyfikował poniższych kandydatów racjonalizacji. **Merge’e to mechaniczne zmiany CI;
-flip/drop to decyzje polityczne zarezerwowane dla operatora.** Nic poniżej
-nie jest jeszcze zastosowane.
+`check:codeql-ratchet`, `check:pr-evidence`). Przegląd ROI uzgodnionego zestawu
+wskazał następujących kandydatów do racjonalizacji. **Scalenia są mechanicznymi zmianami
+CI; przełączenia/usunięcia są decyzjami dotyczącymi zasad, zastrzeżonymi dla operatora.** Żadna
+z poniższych zmian nie została jeszcze zastosowana.
 
-**Także nieudokumentowane powyżej** (advisory, niski sygnał): job `docs-lint`
-(markdownlint + Vale, cały job `continue-on-error`) oraz standalone workflowy skanerów
-`semgrep.yml` / `codeql.yml` / `scorecard.yml`. `semgrepFindings: 0` jest w
-`quality-baseline.json`, ale nie jest podpięty do blocking ratchet w `ci.yml` — metryka jest
-obecnie orphaned.
+**Pominięte również powyżej** (doradcze, słaby sygnał): zadanie `docs-lint`
+(markdownlint + Vale, całe zadanie z `continue-on-error`) oraz samodzielne przepływy pracy skanerów
+`semgrep.yml` / `codeql.yml` / `scorecard.yml`. Wartość `semgrepFindings: 0` znajduje się w
+`quality-baseline.json`, ale nie jest powiązana z blokującym mechanizmem zapadkowym w `ci.yml` — ta metryka
+jest obecnie osierocona.
 
-### Merge / dedup (mechaniczne, niższe ryzyko)
+### Scalanie / deduplikacja (mechaniczne, niższe ryzyko)
 
-Każdy kandydat został zwalidowany względem żywego stanu bramek 2026-06-17 (trust-but-verify);
-kilka „oczywistych” merge’y okazało się ukrywać dług i **nie** jest czystymi drop-in.
+Każdego kandydata zweryfikowano względem bieżącego stanu bramek w dniu 2026-06-17 (ufaj, ale sprawdzaj);
+okazało się, że kilka „oczywistych” scaleń ukrywa dług i **nie** nadaje się do bezpośredniego zastosowania.
 
-- **`check:docs-sync` uruchamia się dwa razy** — standalone w jobie `lint` i ponownie wewnątrz `check:docs-all` (`docs-sync-strict`) oraz hooka husky pre-commit. ✅ **DONE** — standalone wywołanie `lint` usunięte.
-- **Skanowanie CVE** — ❌ **NIE jest czystym merge.** `audit:deps` hard-failuje na każdym high/critical CVE; `check:vuln-ratchet` (osv) failuje tylko na _regresji_ względem baseline (obecnie 1 MODERATE). Inna semantyka — usunięcie `audit:deps` straciłoby absolutną bramkę high/critical. Zostaw obie.
-- **Wykrywanie cykli** — ❌ **NIE jest czystym merge.** `check:circular-deps` (dpdm) raportuje **91 cykli** (dlatego jest advisory); nie da się go wypromować do blocking bez wcześniejszego ich rozwiązania, i ma szerszy scope niż zielony, curated `check:cycles`. Zostaw `check:cycles` jako blocking; rozwiązanie 91 cykli dpdm to osobny backlog.
-- **Complexity** — ✅ **DONE** (`check:complexity-ratchets` / `eslint.complexity-ratchets.config.mjs`): jeden ESLint walk, liczniki po ruleId, więc baseline’y cyclomatic+max-lines i cognitive zostają niezależne; indywidualne `check:complexity` / `check:cognitive-complexity` zostają do lokalnego `--update`.
-- **`/api` anti-hallucination** — ✅ **DONE** (`check:api-docs-refs` + `scripts/check/lib/apiRoutes.mjs`): jeden inventarz FS `src/app/api`, openapi-routes + docs-symbols nadal raportują niezależnie; individuals zostają do lokalnych runów.
-- **`check:node-runtime` działa w 11 jobach** — ⚠️ **niski ROI.** Każdy to osobny runner, a check trwa <1s; łączne oszczędności ~10s, kosztem utraty taniego guarda per-job. Nie warte churnu.
-- **`typecheck:noimplicit:core` na CI lint** — ✅ **usunięty z joba lint** (był advisory `continue-on-error`); blocking type surface to `typecheck:core` + `check:type-coverage`. Lokalny skrypt zachowany.
+- **`check:docs-sync` uruchamia się dwukrotnie** — samodzielnie w zadaniu `lint` oraz ponownie wewnątrz `check:docs-all` (`docs-sync-strict`) i haka husky pre-commit. ✅ **GOTOWE** — usunięto samodzielne wywołanie w `lint`.
+- **Skanowanie CVE** — ❌ **NIE jest to proste scalenie.** `audit:deps` kończy się twardym błędem przy każdej luce CVE o wysokiej/krytycznej wadze; `check:vuln-ratchet` (osv) kończy się błędem tylko w przypadku _regresji_ względem poziomu bazowego (obecnie 1 MODERATE). Odmienna semantyka — usunięcie `audit:deps` oznaczałoby utratę bezwzględnej bramki dla luk o wysokiej/krytycznej wadze. Zachować oba.
+- **Wykrywanie cykli** — ❌ **NIE jest to proste scalenie.** `check:circular-deps` (dpdm) zgłasza **91 cykli** (dlatego ma charakter doradczy); nie można nadać mu statusu blokującego bez ich uprzedniego rozwiązania, a jego zakres jest szerszy niż w przypadku zielonego, starannie dobranego `check:cycles`. Zachować `check:cycles` jako blokujące; rozwiązanie 91 cykli dpdm stanowi osobną pozycję rejestru.
+- **Złożoność** — ✅ **GOTOWE** (`check:complexity-ratchets` / `eslint.complexity-ratchets.config.mjs`): jedno przejście ESLint, zliczanie według ruleId, dzięki czemu bazowe wartości złożoności cyklomatycznej+max-lines oraz złożoności poznawczej pozostają niezależne; poszczególne `check:complexity` / `check:cognitive-complexity` pozostają dostępne do lokalnego użycia z `--update`.
+- **Ochrona `/api` przed halucynacjami** — ✅ **GOTOWE** (`check:api-docs-refs` + `scripts/check/lib/apiRoutes.mjs`): jedna inwentaryzacja FS katalogu `src/app/api`, openapi-routes + docs-symbols nadal raportują niezależnie; poszczególne polecenia pozostają dostępne do lokalnych uruchomień.
+- **`check:node-runtime` uruchamia się w 11 zadaniach** — ⚠️ **niski ROI.** Każde działa na osobnym runnerze, a kontrola trwa <1s; łączna oszczędność wyniosłaby ~10s kosztem utraty niedrogiej ochrony dla każdego zadania. Nie warto powodować zamieszania.
+- **`typecheck:noimplicit:core` w lintowaniu CI** — ✅ **usunięto z zadania lint** (miało charakter doradczy z `continue-on-error`); blokujący zakres kontroli typów zapewniają `typecheck:core` + `check:type-coverage`. Zachowano skrypt lokalny.
 
-### Flip / decide (polityka operatora)
+### Przełączenie / decyzja (zasady operatora)
 
-- `check:openapi-security-tiers` (advisory) — ❌ **NIE da się czysto przełączyć.** Wychodzi z 0, ale ostrzega, że kilka tras `traffic-inspector` pod `LOCAL_ONLY_API_PREFIXES` nie ma adnotacji `x-loopback-only: true`. Wymuszenie wymaga najpierw dodania tych adnotacji do `openapi.yaml`.
-- `typecheck:noimplicit:core` (advisory) — w dużej mierze subsumowany przez blocking ratchet `check:type-coverage`. Przełącz na ratchet albo usuń zbędny drugi pass `tsc`.
-- `test:vitest:ui` (advisory, 14 parked fails) — fix-and-block albo usuń; nie zostawiaj gnić.
-- `check:secrets` (gitleaks, blocking ratchet zamrożony na 3 udokumentowanych false-positives) — allowlist tych 3 do 0, albo zdegraduj do advisory. Nakłada się z natywnym secret-scanning GitHub + `check:public-creds`.
-- `check:pr-evidence` (blocking, greps prozę body PR) — wysokie ryzyko false-positive; osłabia egzekucję Hard Rule #18 przy usunięciu, więc to prawdziwa decyzja polityczna.
-- `semgrep` (advisory standalone) — nakłada się z CodeQL dla rodzin OWASP; podepnij jego baseline do ratchet albo usuń.
+- `check:openapi-security-tiers` (doradcze) — ❌ **NIE można go bezpośrednio przełączyć.** Kończy się kodem 0, ale ostrzega, że kilka tras `traffic-inspector` w ramach `LOCAL_ONLY_API_PREFIXES` nie ma adnotacji `x-loopback-only: true`. Wymuszenie tej kontroli wymaga najpierw dodania tych adnotacji do `openapi.yaml`.
+- `typecheck:noimplicit:core` (doradcze) — w dużej mierze zastąpione przez blokujący mechanizm zapadkowy `check:type-coverage`. Przełączyć na mechanizm zapadkowy albo usunąć redundantne drugie przejście `tsc`.
+- `test:vitest:ui` (obecnie **blokujące**) — wcześniej istniejące błędy są jawnie wykluczone w `vitest.config.ts` za pomocą komentarzy śledzących `// #8618`; nowe błędy powodują niepowodzenie zadania.
+- `check:secrets` (gitleaks, blokujący mechanizm zapadkowy zamrożony na poziomie 3 udokumentowanych wyników fałszywie dodatnich) — dodać te 3 przypadki do listy dozwolonych, aby osiągnąć 0, albo obniżyć status do doradczego. Pokrywa się z natywnym skanowaniem sekretów GitHub + `check:public-creds`.
+- `check:pr-evidence` (blokujące, przeszukuje tekst opisu PR) — wysokie ryzyko wyników fałszywie dodatnich; usunięcie osłabi egzekwowanie Twardej Reguły nr 18, więc jest to rzeczywista decyzja dotycząca zasad.
+- `semgrep` (samodzielne, doradcze) — pokrywa się z CodeQL w zakresie kategorii OWASP; powiązać jego poziom bazowy z mechanizmem zapadkowym albo usunąć.
 
 ---
 
 ## Powiązana dokumentacja
 
-- Supply-chain (provenance, SBOM, Trivy, Scorecard): [`docs/security/SUPPLY_CHAIN.md`](../security/SUPPLY_CHAIN.md)
+- Łańcuch dostaw (pochodzenie, SBOM, Trivy, Scorecard): [`docs/security/SUPPLY_CHAIN.md`](../security/SUPPLY_CHAIN.md)
+
+#### `check-key-completeness` — bramka zgodności zestawów kluczy
+
+`scripts/i18n/check-key-completeness.mjs` (`npm run i18n:check-keys`, zadanie `i18n-ui-coverage`).
+Porównuje zestaw kluczy-liści każdego pliku `src/i18n/messages/<locale>.json` z `en.json` i zgłasza
+błąd w przypadku każdego brakującego lub nadmiarowego liścia, niezależnie od tego, kiedy klucz został dodany. Symbole zastępcze
+`__MISSING__:` liczą się jako obecne (ich zawartość należy do zakresu odpowiedzialności bramki proporcji). Jest to bezwzględne uzupełnienie
+dwóch bramek opartych na różnicach/procentach: `check-ui-keys-coverage` wymusza próg 80% dla każdej
+lokalizacji (43 brakujące klucze spośród ~13 000 nadal daje wynik 99,7%), a `check-new-key-coverage` ocenia
+wyłącznie klucze dodane przez PR do `en.json`. Partia lokalizacji jest generowana na podstawie `en.json` z dnia
+utworzenia jej gałęzi i tłumaczona przez wiele dni, podczas gdy baza nadal otrzymuje nowe klucze; PR z partią sam
+nie dodaje żadnego klucza, dlatego obie siostrzane bramki milczały, gdy partia 1 (#13044) została scalona z niedoborem 43 kluczy w dziewięciu
+lokalizacjach, a partia 2 (#13660) z niedoborem 10 kluczy w ośmiu (2026-09-15). Błąd bramki można naprawić za pomocą
+`node scripts/i18n/sync-ui-keys.mjs --locale=<codes> --translate-markers`; liść `extra`
+oznacza, że usunięto go ze źródła — należy usunąć go również z lokalizacji. `--warn` raportuje bez zgłaszania błędu.
+`--catalog=cli` wykonuje to samo porównanie dla `bin/cli/locales` (`npm run i18n:check-keys:cli`);
+oba kroki znajdują się w zadaniu `i18n-ui-coverage`.
+
+#### `check-new-key-coverage` — bramka i18n dla nowych kluczy
+
+Siostrzana bramka `check-ui-value-drift`. Tamta wykrywa angielską wartość, która została **przepisana**,
+podczas gdy jej tłumaczenia pozostawiono bez zmian; ta wykrywa angielski klucz, który został **dodany**,
+ale nigdy nie trafił do niektórych lokalizacji.
+
+`check-ui-keys-coverage` nie potrafi wykryć tej klasy problemów: wymusza próg procentowy dla każdej lokalizacji, a
+jedenaście brakujących kluczy spośród ~13 000 pozostawia pokrycie na poziomie 99,9%. Procent dla danego języka nie może
+wyrazić stwierdzenia „ta funkcja została wydana bez tłumaczenia” — cała funkcja może trafić do nowej lokalizacji bez żadnego
+tekstu i nigdy nie zmienić tej wartości.
+
+Incydent, który koduje ta bramka: faza 3 Orchestration Canvas przetłumaczyła jedenaście swoich kluczy na
+42 lokalizacje, które istniały w tamtym czasie. Kilka godzin później partia języków UE (#13044) zwiększyła liczbę lokalizacji
+w repozytorium do 51, a dziewięć nowych (`el`, `et`, `ga`, `hr`, `lt`, `lv`, `mt`, `sl`, `sr`) nigdy
+ich nie otrzymało. `deepMergeFallback` zastępuje brakujący klucz tekstem angielskim, więc efektem był
+nieprzetłumaczony interfejs, a nie pusty interfejs — rzeczywisty problem, z założenia niewidoczny.
+
+Podobnie jak siostrzana bramka jest ona **świadoma różnic** i porównuje angielską wersję w bazie scalania z drzewem
+roboczym, dzięki czemu istniejące wcześniej braki pozostają zamrożone, a włączenie bramki nie wymagało migracji.
+
+**Znacznik `__MISSING__:<english>` nie spełnia wymagań tej bramki (od 2026-09-17).** Wcześniej stanowił on
+udokumentowany sposób odroczenia — środowisko wykonawcze używa prawidłowego tekstu angielskiego jako wartości zastępczej — dopóki osiem PR-ów z funkcjami z
+2026-09-16 nie dodało 61 kluczy i nie umieściło znacznika we wszystkich 65 lokalizacjach zamiast ich przetłumaczenia: ta
+bramka zaakceptowała każdy z nich, nic nie blokowało PR-ów, a blokująca bramka proporcji rzeczywistych tłumaczeń
+zaczęła następnie zgłaszać błąd na końcu gałęzi wydania dla wszystkich (pt-BR 3,2% > 2,5% + 0,5). Znacznik jest teraz traktowany
+jak brakujące tłumaczenie. Błąd bramki można naprawić za pomocą
+`node scripts/i18n/sync-ui-keys.mjs --locale=<codes> --translate-markers --batch-size=40` albo
+dla wszystkich lokalizacji równolegle za pomocą `npm run i18n:translate-new-keys` (`scripts/i18n/translate-new-keys.sh`,
+bezpieczny po odłączeniu, odmawia uruchomienia bez zmiennych środowiskowych `OMNIROUTE_TRANSLATION_*`). Klucz, który musi pozostać
+w języku angielskim (przypięta nazwa produktu/silnika/flagi), powinien znaleźć się w `scripts/i18n/untranslatable-keys.json`,
+nigdy za znacznikiem. `vi` całkowicie zabrania znaczników (`tests/unit/i18n-vi-completeness.test.ts`).
+
+#### `check-vitest-exclusions` — bramka odłożonych testów
+
+Plik znajdujący się na liście `exclude` w `vitest.config.ts` jest testem, który nie jest uruchamiany, a dla osoby
+przeglądającej drzewo wygląda jak element pokrycia. Za komentarzem
+`// #8618 — istniejący wcześniej błąd; usuń to wykluczenie po jego naprawieniu` zgromadziły się sześćdziesiąt dwa pliki. Zgłoszenie #8618 zamknięto
+2026-08-11, podczas gdy śledzona przez nie lista rozrosła się z 45 do 62 wpisów, z których każdy nowy dziedziczył komentarz
+wskazujący na nieaktywne zgłoszenie. Gdy w końcu sprawdzono listę plik po pliku (#13204), **51 z 62
+przechodziło pomyślnie względem bieżącego drzewa bez żadnych zmian w kodzie źródłowym**.
+
+Bramka wymaga, aby każde wykluczenie wskazujące na rzeczywisty plik (a) wymieniało zgłoszenie śledzące oraz
+(b) znajdowało się w `config/quality/vitest-exclusions.json` wraz ze zmierzonym stanem, dzięki czemu dodanie takiego wpisu jest
+różnicą podlegającą przeglądowi w dedykowanym pliku, a nie kolejnym wierszem w tablicy zawierającej 60 wpisów. Bramka celowo
+nie uruchamia ponownie wykluczonych testów — kosztuje to ~10 minut i należy do zadania okresowego;
+inwentarz rejestruje datę ostatniego pomiaru każdego z nich.

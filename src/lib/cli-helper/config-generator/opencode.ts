@@ -40,6 +40,8 @@ export function assertSafeCatalogUrl(rawUrl: string): URL {
 interface CatalogModelEntry {
   id: string;
   owned_by?: string;
+  name?: string;
+  display_name?: string;
   /** OpenAI-compatible field name; some upstreams return this. */
   context_length?: number;
   max_context_window_tokens?: number;
@@ -254,8 +256,22 @@ function buildModelEntry(
   catalog: CatalogModelEntry | undefined,
   existing: ExistingModelEntry | undefined
 ): ExistingModelEntry {
-  // Carry over user-set "name" first; fall back to id when absent.
-  const name = (typeof existing?.name === "string" && existing.name.trim()) || id;
+  // Carry over user-set names first, then native catalog display metadata.
+  // Technical ids remain map keys; names are presentation only.
+  const catalogName = catalog?.display_name ?? catalog?.name;
+  const nativeName = typeof catalogName === "string" ? catalogName.trim() : "";
+  const providerPrefix = catalog?.owned_by ? `${catalog.owned_by}/` : "";
+  const modelName = nativeName.startsWith(providerPrefix)
+    ? nativeName.slice(providerPrefix.length)
+    : nativeName;
+  const autoName = id.startsWith("auto/")
+    ? `Auto ${id.slice("auto/".length).replace(/(^|[-_])([a-z])/g, (_, separator, letter) => `${separator === "" ? "" : " "}${letter.toUpperCase()}`)}`
+    : "";
+  const name =
+    (typeof existing?.name === "string" && existing.name.trim() !== id && existing.name.trim()) ||
+    autoName ||
+    modelName ||
+    id;
 
   const entry: ExistingModelEntry = { name };
 

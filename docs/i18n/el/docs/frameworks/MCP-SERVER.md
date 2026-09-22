@@ -1,21 +1,12 @@
-# MCP-SERVER (Ελληνικά)
+# OmniRoute MCP Server Documentation (Ελληνικά)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
----
-
-title: "OmniRoute MCP Server Documentation"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# Τεκμηρίωση OmniRoute MCP Server
-
-> Διακομιστής Model Context Protocol με 110 εργαλεία που καλύπτουν λειτουργίες δρομολόγησης, cache, συμπίεσης, μνήμης, δεξιοτήτων, proxy, pool, Radar και πηγών περιεχομένου.
+> Διακομιστής Model Context Protocol με 110 εργαλεία για λειτουργίες δρομολόγησης, προσωρινής μνήμης, συμπίεσης, μνήμης, δεξιοτήτων, διακομιστή μεσολάβησης, pool, Radar και πηγών περιβάλλοντος.
 >
-> Πηγή αλήθειας: το `open-sse/mcp-server/server.ts` υπολογίζει **110 μοναδικά εργαλεία** με την `countUniqueMcpTools()`: 45 κανονικοί ορισμοί (συμπεριλαμβανομένων των έξι εργαλείων κύκλου ζωής CCR, της τριάδας agent-skills, των `omniroute_radar_catalog` και `omniroute_x_search`), συν μνήμη (3), δεξιότητες (4), δεξιότητες GitHub (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), τοπικό corpus (3) και δύο εργαλεία συμπίεσης αποκλειστικά για RTK.
+> Πηγή αλήθειας: το `open-sse/mcp-server/server.ts` υπολογίζει **110 μοναδικά εργαλεία** με το `countUniqueMcpTools()`: 45 κανονικούς ορισμούς (συμπεριλαμβανομένων των έξι εργαλείων κύκλου ζωής CCR, της τριάδας agent-skills, των `omniroute_radar_catalog` και `omniroute_x_search`), καθώς και εργαλεία μνήμης (3), δεξιοτήτων (4), δεξιοτήτων GitHub (3), pool (6), παιχνιδοποίησης (8), προσθηκών (8), Notion (6), Obsidian (22), τοπικού σώματος κειμένων (3) και δύο εργαλείων συμπίεσης αποκλειστικά για RTK.
 
 ## Εγκατάσταση
 
@@ -25,12 +16,29 @@ lastUpdated: 2026-08-08
 omniroute --mcp
 ```
 
-Ή μέσω του μεταφορέα open-sse:
+Ή μέσω της μεταφοράς open-sse:
 
 ```bash
-# Μεταφορέας HTTP streamable (θύρα 20130)
-omniroute --dev  # Το MCP εκκινεί αυτόματα στο endpoint /mcp
+# Μεταφορά HTTP με δυνατότητα ροής (θύρα 20130)
+omniroute --dev  # Το MCP εκκινείται αυτόματα στο τελικό σημείο /mcp
 ```
+
+Οι μεταφορές HTTP (`sse` / `streamable-http`, οι οποίες εξυπηρετούνται εντός της διεργασίας από τον διακομιστή του dashboard) είναι
+απενεργοποιημένες από προεπιλογή και προηγουμένως μπορούσαν να ενεργοποιηθούν ή να απενεργοποιηθούν μόνο από τη σελίδα `/dashboard/mcp`. Από την έκδοση v3.8.51
+και μετά, το CLI προσφέρει ισοδύναμες δυνατότητες:
+
+```bash
+omniroute mcp status                                  # κατάσταση ενεργοποίησης/σύνδεσης, μεταφορά, πλήθος εργαλείων
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # επαναφέρει τις ενεργές συνεδρίες sse/streamable-http
+```
+
+Τα `mcp enable`/`mcp disable` εκτελούν PATCH στην ίδια ρύθμιση `mcpEnabled` (και προαιρετικά στη ρύθμιση `mcpTransport`)
+που εναλλάσσει το dashboard μέσω του `/api/settings`. Το `mcp restart` καλεί το `POST /api/mcp/restart`: τερματίζει
+τις ενεργές συνεδρίες `sse`/`streamable-http`, ώστε το επόμενο αίτημα να εκτελέσει εκ νέου την αρχικοποίηση χωρίς προβλήματα, επιστρέφει
+`409` εάν το MCP είναι απενεργοποιημένο και `501` για τη μεταφορά `stdio` (οι πελάτες stdio διαχειρίζονται τη δική τους
+υποδιεργασία — δεν υπάρχει χειριστήριο εντός της διεργασίας για επανεκκίνηση).
 
 ## Μεταφορείς
 

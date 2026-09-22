@@ -8,6 +8,12 @@
 // untouched when the feature is off — this generic strip covers that case.
 export const KNOWN_OFFENDING_FIELDS: readonly string[] = [
   "reasoning_budget",
+  // OpenAI's reasoning-effort knob, sent top-level on Chat Completions.
+  // Strict OpenAI-compatible gateways that don't implement it 400 with
+  // "Unsupported parameter: reasoning_effort" — findOffendingField() must
+  // recognize it so the reactive strip-and-retry in base.ts fires instead
+  // of surfacing the 400 to the client.
+  "reasoning_effort",
   "chat_template",
   "reasoning_content",
   "context_management",
@@ -73,4 +79,3 @@ export function stripGroqUnsupportedFields<T extends Record<string, unknown>>(bo
   }
   return next as T;
 }
-

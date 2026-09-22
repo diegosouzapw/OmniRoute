@@ -62,9 +62,10 @@ function createTestFile(
 
 // ── Auth tests ─────────────────────────────────────────────────────────────
 
-test("GET /api/files/{id}/content — auth not required (default) → file content returned", async () => {
-  // By default (no INITIAL_PASSWORD, no password set) auth is skipped,
-  // so a plain unauthenticated request should still work.
+test("GET /api/files/{id}/content — null-owner file, no session/key → anonymous caller denied (#13882)", async () => {
+  // A null-owner file is unattributable and MUST be denied to any non-session
+  // caller, even when auth is not required at the instance level — an
+  // anonymous pass-through here was GHSA-2jm2-mpx8-6523's exact shape.
   const content = makeFileContent("hello batch");
   const file = createTestFile({ filename: "hello.jsonl", content });
 
@@ -73,9 +74,9 @@ test("GET /api/files/{id}/content — auth not required (default) → file conte
     { params: Promise.resolve({ id: file.id }) }
   );
 
-  assert.equal(res.status, 200);
-  const buf = Buffer.from(await res.arrayBuffer());
-  assert.equal(buf.toString(), "hello batch");
+  assert.equal(res.status, 404);
+  const body = await res.json();
+  assert.equal(body.error.message, "File not found");
 });
 
 test("GET /api/files/{id}/content — with management session → 200 and file content", async () => {
@@ -210,7 +211,12 @@ test("GET /api/files/{id}/content — unauthenticated request is rejected when a
       { params: Promise.resolve({ id: file.id }) }
     );
     assert.notEqual(res.status, 200, "Unauthenticated request should not return 200");
-    assert.ok(res.status === 401 || res.status === 403, `Expected 401/403, got ${res.status}`);
+    // Fails closed via ownership scoping (404, "not found" — never leaking
+    // existence) rather than the old management-auth 401/403 (#13882).
+    assert.ok(
+      res.status === 401 || res.status === 403 || res.status === 404,
+      `Expected 401/403/404, got ${res.status}`
+    );
   } finally {
     delete process.env.INITIAL_PASSWORD;
   }

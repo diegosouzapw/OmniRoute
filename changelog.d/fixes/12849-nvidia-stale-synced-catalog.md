@@ -1,1 +1,0 @@
-- fix(nvidia): fail open when a synced model catalog goes stale instead of gating forever (#12849)

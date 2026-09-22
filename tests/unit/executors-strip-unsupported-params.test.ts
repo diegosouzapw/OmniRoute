@@ -57,6 +57,25 @@ test("stripUnsupportedParams: github + gpt-5 (non-5.4) keeps temperature", () =>
   assert.equal(body.temperature, 1);
 });
 
+test("stripUnsupportedParams: codex strips temperature and top_p (Responses 400)", () => {
+  const body: Record<string, unknown> = {
+    temperature: 0.7,
+    top_p: 0.9,
+    model: "gpt-5.6-luna-max",
+    input: [],
+  };
+  stripUnsupportedParams("codex", "gpt-5.6-sol-xhigh", body);
+  assert.equal(body.temperature, undefined, "Codex /responses rejects temperature");
+  assert.equal(body.top_p, undefined, "Codex /responses rejects top_p");
+  assert.equal(body.model, "gpt-5.6-luna-max", "other params must survive");
+});
+
+test("stripUnsupportedParams: non-codex provider keeps temperature for gpt-5.6-luna-max", () => {
+  const body: Record<string, unknown> = { temperature: 0.7 };
+  stripUnsupportedParams("openai", "gpt-5.6-luna-max", body);
+  assert.equal(body.temperature, 0.7, "codex sampling strip is provider-scoped");
+});
+
 test("stripUnsupportedParams: github + Claude strips thinking + reasoning_effort", () => {
   const body: Record<string, unknown> = {
     thinking: { type: "enabled" },
@@ -158,12 +177,19 @@ test("stripUnsupportedParams: nvidia non-glm-5 model keeps reasoning", () => {
   assert.ok(body.reasoning !== undefined, "reasoning must survive for non-glm-5 nvidia model");
 });
 
-test("STRIP_RULES is non-empty and every rule has a drop list or a clamp mechanism", () => {
+test("STRIP_RULES is non-empty and every rule has a drop list, a clamp mechanism, or a thinking-type map", () => {
   assert.ok(__STRIP_RULES_FOR_TEST.length > 0);
   for (const rule of __STRIP_RULES_FOR_TEST) {
     const hasDrop = Array.isArray(rule.drop) && rule.drop.length > 0;
     const hasClamp = rule.clampToModelMaxOutput === true || Number.isFinite(rule.maxOutputCap);
-    assert.ok(hasDrop || hasClamp, "rule must either drop params or clamp max output");
+    const hasThinkingMap =
+      typeof rule.mapThinkingType === "object" &&
+      rule.mapThinkingType !== null &&
+      Object.keys(rule.mapThinkingType).length > 0;
+    assert.ok(
+      hasDrop || hasClamp || hasThinkingMap,
+      "rule must either drop params, clamp max output, or map a thinking type"
+    );
     assert.ok(typeof rule.match === "function" || rule.match instanceof RegExp);
   }
 });
@@ -193,11 +219,19 @@ test("stripUnsupportedParams: volcengine kimi-k2-5-260127 also clamps max_comple
 test("stripUnsupportedParams: volcengine non-kimi model (glm-4-7-251222) is NOT clamped by the kimi rule", () => {
   const body: Record<string, unknown> = { max_tokens: 65536 };
   stripUnsupportedParams("volcengine", "glm-4-7-251222", body);
-  assert.equal(body.max_tokens, 65536, "kimi-specific cap must not apply to other volcengine models");
+  assert.equal(
+    body.max_tokens,
+    65536,
+    "kimi-specific cap must not apply to other volcengine models"
+  );
 });
 
 test("stripUnsupportedParams: kimi rule is provider-scoped (no-op for non-volcengine providers)", () => {
   const body: Record<string, unknown> = { max_tokens: 65536 };
   stripUnsupportedParams("kimi", "kimi-k2-5-260127", body);
-  assert.equal(body.max_tokens, 65536, "the Ark-specific cap must not leak to other kimi-hosting providers");
+  assert.equal(
+    body.max_tokens,
+    65536,
+    "the Ark-specific cap must not leak to other kimi-hosting providers"
+  );
 });

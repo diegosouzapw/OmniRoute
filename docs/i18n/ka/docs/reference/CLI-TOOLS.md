@@ -1,27 +1,18 @@
-# CLI-TOOLS (ქართული)
+# CLI Tools — OmniRoute (ქართული)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
----
-
-title: "CLI ინსტრუმენტები — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-23
----
-
-# CLI ინსტრუმენტები — OmniRoute
-
 ბოლო განახლება: 2026-08-23
 
-OmniRoute ინტეგრირდება CLI ინსტრუმენტების სამ კატეგორიასთან, რომლებიც დაფის სამ ცალკეულ გვერდზეა განაწილებული:
+OmniRoute ინტეგრირდება სამი კატეგორიის CLI ხელსაწყოებთან, რომლებიც განაწილებულია დაფის სამ სპეციალურ გვერდზე:
 
-| გვერდი         | მარშრუტი                | კონცეფცია                                                                                              | რაოდენობა      |
-| -------------- | ----------------------- | ------------------------------------------------------------------------------------------------------ | -------------- |
-| **CLI Code's** | `/dashboard/cli-code`   | პროგრამირების ინსტრუმენტები, რომლებსაც OmniRoute-ზე მიუთითებთ (კლიენტი → CLI → OmniRoute → პროვაიდერი) | 26             |
-| **CLI Agents** | `/dashboard/cli-agents` | ავტონომიური აგენტები, რომლებსაც OmniRoute-ზე მიუთითებთ (იგივე ნაკადი, უფრო ფართო მოქმედების სფერო)     | 10             |
-| **ACP Agents** | `/dashboard/acp-agents` | CLI-ები, რომლებსაც OmniRoute stdio/ACP-ის მეშვეობით ბექენდად უშვებს (შებრუნებული ნაკადი)               | იხილეთ რეესტრი |
+| გვერდი           | მარშრუტი                | კონცეფცია                                                                                          | რაოდენობა      |
+| ---------------- | ----------------------- | -------------------------------------------------------------------------------------------------- | -------------- |
+| **CLI კოდები**   | `/dashboard/cli-code`   | კოდირების ხელსაწყოები, რომლებსაც OmniRoute-ზე მიუთითებთ (კლიენტი → CLI → OmniRoute → პროვაიდერი)   | 26             |
+| **CLI აგენტები** | `/dashboard/cli-agents` | ავტონომიური აგენტები, რომლებსაც OmniRoute-ზე მიუთითებთ (იგივე ნაკადი, უფრო ფართო მოქმედების სფერო) | 10             |
+| **ACP აგენტები** | `/dashboard/acp-agents` | CLI-ები, რომლებსაც OmniRoute უშვებს backend-ის სახით stdio/ACP-ის მეშვეობით (შებრუნებული ნაკადი)   | იხილეთ რეესტრი |
 
 მოძველებული მარშრუტები 308-ის მეშვეობით გადამისამართდება: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 

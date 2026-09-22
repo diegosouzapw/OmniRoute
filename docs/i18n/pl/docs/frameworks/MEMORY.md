@@ -1,606 +1,634 @@
+# Memory System (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
+
 ---
-title: "System Memory"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
 
-# System Memory
+> **Źródło prawdy:** `src/lib/memory/` i `src/app/api/memory/`
+> **Ostatnia aktualizacja:** 2026-06-28 — v3.8.40 (domyślnie wyłączona + uzupełnienie kwantyzacji int8)
 
-> **Source of truth:** `src/lib/memory/` and `src/app/api/memory/`
-> **Last updated:** 2026-06-28 — v3.8.40 (off-by-default + int8 quantization catch-up)
+OmniRoute zapewnia trwałą pamięć konwersacji powiązaną z kluczem API (oraz
+opcjonalnie identyfikatorem sesji). Wspomnienia są automatycznie wyodrębniane
+z odpowiedzi LLM za pomocą lekkiego dopasowywania wzorców opartego na
+wyrażeniach regularnych i ponownie wstrzykiwane do kolejnych żądań jako
+początkowa wiadomość systemowa (lub pierwsza wiadomość użytkownika w przypadku
+dostawców, którzy odrzucają rolę systemową).
 
-OmniRoute zapewnia trwałą pamięć konwersacyjną powiązaną z kluczem API (oraz
-opcjonalnie z identyfikatorem sesji). Wspomnienia są wyodrębniane automatycznie
-z odpowiedzi LLM poprzez lekkie dopasowanie wzorców regex i wstrzykiwane z powrotem
-do kolejnych żądań jako wiodąca wiadomość systemowa (albo pierwsza wiadomość
-użytkownika dla dostawców, którzy odrzucają rolę system).
-
-> **Memory jest WYŁĄCZONE domyślnie (v3.8.30+).** `DEFAULT_MEMORY_SETTINGS.enabled`
-> ma teraz wartość `false` (`src/lib/memory/settings.ts`). Włączenie pamięci wstrzykuje
-> do `maxTokens` (~2k) pobranego kontekstu do **każdego** żądania chat, co jest
-> rozliczane — zaskakujący koszt przy nowych instalacjach i dla klientów, które
-> same zarządzają swoim kontekstem. Włącz jawnie w **Settings → Memory**
-> (`MemorySkillsTab` pokazuje ostrzeżenie o koszcie tokenów, gdy pamięć jest włączona).
-> Klient może wyłączyć pamięć dla pojedynczego żądania nagłówkiem `x-omniroute-no-memory`
+> **Pamięć jest domyślnie WYŁĄCZONA (v3.8.30+).** Wartość
+> `DEFAULT_MEMORY_SETTINGS.enabled` wynosi teraz `false`
+> (`src/lib/memory/settings.ts`). Włączenie pamięci powoduje wstrzykiwanie do
+> **każdego** żądania czatu maksymalnie `maxTokens` (~2k) pobranego kontekstu,
+> co podlega opłacie — jest to nieoczekiwany koszt w przypadku nowych instalacji
+> oraz klientów zarządzających własnym kontekstem. Włącz ją jawnie w sekcji
+> **Ustawienia → Pamięć** (`MemorySkillsTab` wyświetla ostrzeżenie o kosztach
+> tokenów, gdy pamięć jest włączona). Klient może zrezygnować z użycia pamięci
+> dla pojedynczego żądania za pomocą nagłówka `x-omniroute-no-memory`
 > (`true`/`1`/`yes`) — zobacz tabelę nagłówków żądań w
-> [API_REFERENCE.md](../reference/API_REFERENCE.md). Żądanie no-memory ustawia
-> `memoryOwnerId = null`, co wyłącza **zarówno** wstrzykiwanie pamięci, jak i skilli
-> dla tego żądania (`open-sse/handlers/chatCore/headers.ts::isNoMemoryRequested`).
+> [API_REFERENCE.md](../reference/API_REFERENCE.md). Żądanie bez pamięci ustawia
+> `memoryOwnerId = null`, co wyłącza **zarówno** wstrzykiwanie pamięci, jak
+> i umiejętności dla tego żądania
+> (`open-sse/handlers/chatCore/headers.ts::isNoMemoryRequested`).
 
-Pamięć jest **zakresowana per klucz API**, nie per użytkownik — każde żądanie
-uwierzytelnione tym samym kluczem API dzieli ten sam pulę pamięci, z opcjonalnym
-dalszym zakresowaniem przez `sessionId`.
+Pamięć jest **ograniczona do konkretnego klucza API**, a nie użytkownika —
+każde żądanie uwierzytelnione przy użyciu tego samego klucza API korzysta
+z tej samej puli pamięci, z opcjonalnym dodatkowym zakresem określonym przez
+`sessionId`.
 
 ## Architektura
 
 ```
-Client → /v1/chat/completions (apiKeyInfo resolved upstream)
+Klient → /v1/chat/completions (apiKeyInfo rozwiązane wcześniej)
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → resolveMemoryOwnerId(apiKeyInfo)        # extracts id
-    → getMemorySettings()                     # cached settings
-    → shouldInjectMemory(body, {enabled})     # gate
-    → retrieveMemories(apiKeyId, config)      # SQL + FTS5 + optional vector
-    → injectMemory(body, memories, provider)  # system or user message
-  → upstream provider call
-  → on response: extractFacts(text, apiKeyId, sessionId)  # non-blocking
-    → setImmediate → createMemory(fact) per match
+    → resolveMemoryOwnerId(apiKeyInfo)        # wyodrębnia id
+    → getMemorySettings()                     # ustawienia z pamięci podręcznej
+    → shouldInjectMemory(body, {enabled})     # bramka
+    → retrieveMemories(apiKeyId, config)      # SQL + FTS5 + opcjonalny wektor
+    → injectMemory(body, memories, provider)  # wiadomość systemowa lub użytkownika
+  → wywołanie dostawcy nadrzędnego
+  → po odpowiedzi: extractFacts(text, apiKeyId, sessionId)  # nieblokujące
+    → setImmediate → createMemory(fact) dla każdego dopasowania
                    → embed(content) + upsertVector(id, vec)
 ```
 
-Miejsca wywołań wstrzykiwania i ekstrakcji są podpięte w
-`open-sse/handlers/chatCore.ts` (szukaj `retrieveMemories`, `injectMemory`
+Miejsca wywołań odpowiedzialne za wstrzykiwanie i wyodrębnianie są podłączone
+w `open-sse/handlers/chatCore.ts` (wyszukaj `retrieveMemories`, `injectMemory`
 oraz `extractFacts`).
 
-## Architektura silnika (rozstrzyganie 3-poziomowe)
+## Architektura silnika (3-poziomowe rozstrzyganie)
 
-Memory Engine rozstrzyga ścieżkę retrieval w runtime na podstawie dostępnej
-infrastruktury i ustawień. Istnieją trzy poziomy, stosowane w kolejności priorytetu:
+Silnik pamięci wybiera ścieżkę pobierania w czasie działania na podstawie
+dostępnej infrastruktury i ustawień. Istnieją trzy poziomy stosowane zgodnie
+z kolejnością priorytetów:
 
 ```
   ┌─────────────────────────────────────────────────────────────┐
-  │  TIER 0 — Keyword (FTS5)                                     │
-  │  Always available. SQLite FTS5 full-text search over         │
-  │  content + key. Used when strategy = "exact" or as fallback. │
+  │  POZIOM 0 — Słowa kluczowe (FTS5)                            │
+  │  Dostępność określana przez test: FTS5, gdy kompilacja       │
+  │  SQLite go obsługuje (better-sqlite3 / node:sqlite /         │
+  │  bun:sqlite); niedostępny w kompilacjach bez FTS5 (np.       │
+  │  sql.js/WASM — "no such module: fts5"). Używany, gdy         │
+  │  strategy = "exact", lub jako rozwiązanie awaryjne; stan     │
+  │  keyword silnika odzwierciedla wynik testu.                  │
   └──────────────────────────────────┬──────────────────────────┘
                                      │ strategy = semantic|hybrid?
                                      ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │  TIER 1 — Embedded Vector (sqlite-vec)                       │
-  │  sqlite-vec v0.1.9 loaded via db.loadExtension().            │
-  │  KNN brute-force over Float32 vectors. Active when:          │
-  │   • sqlite-vec loadExtension succeeds                        │
-  │   • An embedding source is available (remote | static |      │
-  │     transformers) that can produce a Float32Array            │
-  │   • vec_memories table exists (created on first ready())     │
+  │  POZIOM 1 — Wbudowane wektory (sqlite-vec)                   │
+  │  sqlite-vec v0.1.9 ładowany przez db.loadExtension().        │
+  │  KNN metodą siłową na wektorach Float32. Aktywny, gdy:       │
+  │   • sqlite-vec loadExtension zakończy się powodzeniem        │
+  │   • Dostępne jest źródło osadzeń (remote | static |          │
+  │     transformers), które może utworzyć Float32Array          │
+  │   • Istnieje tabela vec_memories (tworzona przy pierwszym    │
+  │     wywołaniu ready())                                       │
   └──────────────────────────────────┬──────────────────────────┘
                                      │ qdrant.enabled?
                                      ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │  TIER 2 — Qdrant (opt-in external vector database)           │
-  │  When enabled, replaces sqlite-vec for semantic/hybrid.      │
-  │  Requires running Qdrant instance + configured host/port.    │
+  │  POZIOM 2 — Qdrant (opcjonalna zewnętrzna baza wektorowa)    │
+  │  Po włączeniu zastępuje sqlite-vec dla semantic/hybrid.      │
+  │  Wymaga działającej instancji Qdrant oraz skonfigurowanego   │
+  │  hosta/portu.                                                │
   └─────────────────────────────────────────────────────────────┘
 ```
 
-Degradacja jest automatyczna i przezroczysta:
+Degradacja odbywa się automatycznie i w sposób przezroczysty:
 
-- Jeśli sqlite-vec nie załaduje się, tier 1 jest niedostępny → fallback do tier 0.
-- Jeśli źródło embeddingów zwróci błąd, tier 1 spada do tier 0.
-- Jeśli Qdrant jest niezdrowy, tier 2 spada do tier 1 (lub tier 0, jeśli tier 1
-  też jest niedostępny).
+- Jeśli nie uda się załadować sqlite-vec, poziom 1 jest niedostępny → następuje
+  przełączenie awaryjne na poziom 0.
+- Jeśli źródło osadzeń zwróci błąd, poziom 1 przełącza się awaryjnie na poziom 0.
+- Jeśli Qdrant nie działa prawidłowo, poziom 2 przełącza się awaryjnie na poziom
+  1 (lub poziom 0, jeśli poziom 1 również jest niedostępny).
 
-## Źródła embeddingów
+## Źródła osadzeń
 
-Warstwa embeddingów (`src/lib/memory/embedding/`) rozstrzyga, którego źródła użyć
+Warstwa osadzeń (`src/lib/memory/embedding/`) określa, którego źródła użyć,
 na podstawie `MemorySettingsExtended.embeddingSource`:
 
-| Source         | Description                                                                      | Key required | Cold start       |
-| -------------- | -------------------------------------------------------------------------------- | ------------ | ---------------- |
-| `remote`       | Używa API embeddingów skonfigurowanego dostawcy (OpenAI, Cohere itd.)            | Yes          | None             |
-| `static`       | Lokalny embedding lookup-table przez `potion-base-8M` (WordPiece + mean pooling) | No           | ~200ms           |
-| `transformers` | Lokalna inferencja ONNX przez `@huggingface/transformers` v4, `all-MiniLM-L6-v2` | No           | ~3s + ~400MB RAM |
-| `auto`         | Rozstrzyganie runtime: remote (jeśli jest klucz) → static → transformers → null  | Depends      | Depends          |
+| Źródło         | Opis                                                                                                  | Wymagany klucz | Zimny start      |
+| -------------- | ----------------------------------------------------------------------------------------------------- | -------------- | ---------------- |
+| `remote`       | Używa API osadzeń skonfigurowanego dostawcy (OpenAI, Cohere itp.)                                     | Tak            | Brak             |
+| `static`       | Lokalne osadzanie oparte na tablicy wyszukiwania za pomocą `potion-base-8M` (WordPiece + uśrednianie) | Nie            | ~200ms           |
+| `transformers` | Lokalne wnioskowanie ONNX za pomocą `@huggingface/transformers` v4, `all-MiniLM-L6-v2`                | Nie            | ~3s + ~400MB RAM |
+| `auto`         | Wybór w czasie działania: zdalne (jeśli istnieje klucz) → statyczne → transformers → null             | To zależy      | To zależy        |
 
-**Kolejność rozstrzygania dla `auto`:**
+**Kolejność wyboru dla `auto`:**
 
-1. Znajdź pierwszego dostawcę w `listEmbeddingProviders()` z `hasKey === true` → `remote`.
+1. Znajdź pierwszego dostawcę w `listEmbeddingProviders()`, dla którego `hasKey === true` → `remote`.
 2. Jeśli `settings.staticEnabled === true` → `static`.
 3. Jeśli `settings.transformersEnabled === true` → `transformers`.
-4. W przeciwnym razie → `null` (degradacja do wyszukiwania słów kluczowych FTS5).
+4. W przeciwnym razie → `null` (przejście awaryjne na wyszukiwanie słów kluczowych FTS5).
 
-Cache embeddingów (`src/lib/memory/embedding/cache.ts`) używa mapy LRU w pamięci
-kluczowanej przez `${source}:${model}:${dim}:${sha256(text)}`, ograniczonej do
-`MEMORY_EMBEDDING_CACHE_MAX` wpisów (domyślnie 1000) z TTL
-`MEMORY_EMBEDDING_CACHE_TTL_MS` (domyślnie 5 min). Współdzielony między wszystkimi
-wywołującymi w cyklu życia procesu.
+Pamięć podręczna osadzeń (`src/lib/memory/embedding/cache.ts`) używa przechowywanej w pamięci
+mapy LRU z kluczami `${source}:${model}:${dim}:${sha256(text)}`, ograniczonej do
+`MEMORY_EMBEDDING_CACHE_MAX` wpisów (domyślnie 1000) z czasem TTL wynoszącym
+`MEMORY_EMBEDDING_CACHE_TTL_MS` (domyślnie 5 min). Jest współdzielona przez wszystkich wywołujących
+w całym cyklu życia procesu.
 
-## Hybrid RRF (k=60)
+## Hybrydowy RRF (k=60)
 
-Gdy `strategy = "hybrid"` i magazyn wektorowy jest dostępny, retrieval używa
-Reciprocal Rank Fusion do scalenia wyników FTS5 i wektorowych:
+Gdy `strategy = "hybrid"` i magazyn wektorowy jest dostępny, pobieranie używa
+metody Reciprocal Rank Fusion do łączenia wyników FTS5 i wyników wektorowych:
 
 ```
-RRF(d) = Σ  1 / (k + rank_i(d))      where k = 60 (configurable via MEMORY_RRF_K)
+RRF(d) = Σ  1 / (k + rank_i(d))      gdzie k = 60 (konfigurowalne za pomocą MEMORY_RRF_K)
           i
 ```
 
-Konkretnie:
+W praktyce:
 
-1. Uruchom wyszukiwanie FTS5 → ranking `R_fts` (pozycja 1..N).
-2. Uruchom wyszukiwanie wektorowe KNN → ranking `R_vec` (pozycja 1..M).
-3. Dla każdego unikalnego `memoryId`:
-   `rrf_score = 1/(60 + fts_rank)` + `1/(60 + vec_rank)` (0 jeśli nie ma na liście).
-4. Sortuj po `rrf_score` DESC, zastosuj przejście budżetu tokenów.
+1. Wykonaj wyszukiwanie FTS5 → uporządkowana lista `R_fts` (pozycje 1..N).
+2. Wykonaj wyszukiwanie wektorowe KNN → uporządkowana lista `R_vec` (pozycje 1..M).
+3. Dla każdego unikatowego `memoryId`:  
+   `rrf_score = 1/(60 + fts_rank)` + `1/(60 + vec_rank)` (0, jeśli nie znajduje się na liście).
+4. Posortuj według `rrf_score` DESC i zastosuj iterowanie z uwzględnieniem budżetu tokenów.
 
-RRF jest znany z skuteczności bez normalizacji score'ów między
-heterogenicznymi systemami retrieval. Domyślne `k=60` pochodzi z oryginalnego
-artykułu Cormack et al. i dobrze działa dla małych korpusów (<10k memories).
+RRF jest dobrze znaną metodą, która działa skutecznie bez konieczności normalizacji wyników między
+heterogenicznymi systemami wyszukiwania. Domyślna wartość `k=60` pochodzi z oryginalnej
+pracy Cormacka i in. i sprawdza się dobrze w przypadku małych korpusów (<10 tys. wspomnień).
 
-## Backfill (leniwy + reindex)
+## Uzupełnianie wsteczne (leniwe + ponowne indeksowanie)
 
-Gdy model embeddingów się zmienia (wykrywane przez `embedding_signature`),
-magazyn wektorowy jest przebudowywany, a wszystkie istniejące memories dostają
-`needs_reindex = 1` w tabeli `memories`.
+Gdy model osadzeń ulegnie zmianie (co jest wykrywane za pomocą `embedding_signature`),
+magazyn wektorowy jest przebudowywany, a wszystkie istniejące wspomnienia są oznaczane
+wartością `needs_reindex = 1` w tabeli `memories`.
 
-**Lazy backfill**: Przy następnym retrieval każde memory bez wpisu wektorowego jest
-embedowane i wstawiane do `vec_memories` przed uruchomieniem wyszukiwania. To
-amortyzuje koszt backfillu na realnych żądaniach bez blokowania startu.
+**Leniwe uzupełnianie wsteczne**: Podczas następnego pobierania każde wspomnienie bez wpisu wektorowego
+jest osadzane i wstawiane do `vec_memories` przed rozpoczęciem wyszukiwania. Pozwala to
+rozłożyć koszt uzupełniania na rzeczywiste żądania bez blokowania uruchamiania.
 
-**Explicit reindex**: Zakładka Engine w `/dashboard/memory` udostępnia przycisk
-"Reindex Now", który wywołuje `POST /api/memory/reindex`. Handler woła
-`runReindexBatch()` z `src/lib/memory/reindex.ts`, które przetwarza do
-`limit` oczekujących wpisów na żądanie. Postęp można odpytywać przez
+**Jawne ponowne indeksowanie**: Karta Engine w `/dashboard/memory` udostępnia
+przycisk „Indeksuj ponownie teraz”, który wywołuje `POST /api/memory/reindex`. Procedura obsługi wywołuje
+`runReindexBatch()` z `src/lib/memory/reindex.ts`, która przetwarza do
+`limit` oczekujących wpisów na żądanie. Postęp można cyklicznie sprawdzać za pomocą
 `GET /api/memory/engine-status` (`vectorStore.needsReindex`).
 
-Tabela `memory_vec_meta` (migracja `073_memory_vec.sql`) przechowuje:
+Tabela `memory_vec_meta` (migracja `083_memory_vec.sql`) przechowuje:
 
-- `active_dim` — bieżący wymiar wektora (null = jeszcze nie skalibrowany).
+- `active_dim` — bieżący wymiar wektora (null = jeszcze nieskalibrowany).
 - `embedding_signature` — `${source}:${model}:${dim}` używany do wykrywania zmian.
-- `last_reset_at` — znacznik czasu ostatniego pełnego resetu.
-- `vec_loaded` — flaga 0/1, czy sqlite-vec załadował się pomyślnie.
+- `last_reset_at` — znacznik czasu ostatniego pełnego resetowania.
+- `vec_loaded` — flaga 0/1 określająca, czy sqlite-vec został pomyślnie załadowany.
 
 ## Rozszerzenie ustawień
 
-Do `MemorySettingsExtended` (plan 21, D9) w
-`src/shared/schemas/memory.ts` dodano siedem nowych pól, utrwalanych przez
-`src/lib/db/settings.ts`:
+Dziewięć pól osadzania i wektorów jest dostępnych w `MemorySettingsExtended` w
+`src/shared/schemas/memory.ts` i utrwalanych za pośrednictwem `src/lib/db/settings.ts`:
 
-| Field                    | Type                                               | Default  | Description                                       |
-| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Którego źródła embeddingów użyć                   |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Provider/model w formacie `provider/model`        |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Opt-in dla Transformers.js (MiniLM, ~400MB)       |
-| `staticEnabled`          | `boolean`                                          | `false`  | Opt-in dla lokalnego modelu static potion-base-8M |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Włącz krok rerankingu (+200–500 ms/req)           |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Provider/model rerank w formacie `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Którego backendu wektorowego użyć                 |
+| Pole                     | Typ                                                | Wartość domyślna | Opis                                                                            |
+| ------------------------ | -------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`         | Źródło osadzania, którego należy użyć                                           |
+| `embeddingProviderModel` | `string \| null`                                   | `null`           | Dostawca/model w formacie `provider/model`                                      |
+| `customBaseUrl`          | `string \| null`                                   | `null`           | Bazowy adres URL punktu końcowego zgodnego z OpenAI, używany tylko przez pamięć |
+| `customModelId`          | `string \| null`                                   | `null`           | Identyfikator modelu wysyłany do niestandardowego punktu końcowego              |
+| `transformersEnabled`    | `boolean`                                          | `false`          | Opcjonalne włączenie Transformers.js (MiniLM, ~400 MB)                          |
+| `staticEnabled`          | `boolean`                                          | `false`          | Opcjonalne włączenie lokalnego statycznego modelu potion-base-8M                |
+| `rerankEnabled`          | `boolean`                                          | `false`          | Włącza etap ponownego rankingowania (dodaje +200–500 ms/żądanie)                |
+| `rerankProviderModel`    | `string \| null`                                   | `null`           | Dostawca/model ponownego rankingowania w formacie `provider/model`              |
 
-Są one wystawione przez `GET /PUT /api/settings/memory` (schemat `MemorySettingsExtendedSchema`).
+`rerankProviderModel` jest rozpoznawany przez `POST /v1/rerank` (wywoływane przez interfejs pętli zwrotnej), dlatego akceptuje wszystko, co akceptuje ta trasa: wyselekcjonowany model ponownego rankingowania w chmurze (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) lub węzeł dostawcy zgodny z OpenAI w postaci `<node-prefix>/<model>` (np. `skilled-mini/bge-reranker-v2-m3` dla serwera TEI/Infinity). Węzły pętli zwrotnej są zawsze dopuszczalne; węzeł na innym hoście (LAN, Tailscale) wymaga dodatkowo flagi funkcji `RERANK_REMOTE_PROVIDER_NODES` i musi spełniać zasady dotyczące wychodzących adresów URL dostawcy — zobacz [Flagi funkcji](../reference/FEATURE_FLAGS.md). Selektor w panelu wymienia wyselekcjonowanych dostawców oraz węzły lokalne; dowolny prawidłowy ciąg `provider/model` można ustawić bezpośrednio za pomocą `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Zaplecze wektorowe, którego należy użyć |
 
-> **TODO (D20):** Scope `global` (współdzielenie memories między wszystkimi kluczami API)
-> nie jest zaimplementowany w tym wydaniu. Wymaga zmian schematu i globalnej ścieżki
-> retrieval. Śledź osobno.
+Ustawienia te są udostępniane przez `GET /PUT /api/settings/memory` (schemat `MemorySettingsExtendedSchema`).
+
+W przypadku źródła `remote` pamięć akceptuje również opcjonalne ustawienia `customBaseUrl` i
+`customModelId`. Razem wskazują zgodny z OpenAI punkt końcowy `/embeddings`
+oraz model bez zmieniania globalnego rejestru osadzania. Punkt końcowy jest
+normalizowany przed użyciem i sprawdzany zgodnie z zasadami dotyczącymi wychodzących adresów URL dostawcy: wymagany jest protokół HTTP(S), osadzone dane uwierzytelniające i ciągi zapytania są odrzucane, a adresy metadanych
+chmurowych pozostają blokowane. Puste wartości zachowują wybranego dostawcę z rejestru. Błędy
+zwracane do panelu są oczyszczane, a dane uwierzytelniające punktu końcowego nigdy nie są zapisywane w dziennikach.
+
+> **TODO (D20):** Zakres `global` (współdzielenie pamięci pomiędzy wszystkimi kluczami API) nie jest
+> zaimplementowany w tej wersji. Wymaga zmian schematu oraz globalnej ścieżki
+> pobierania. Należy śledzić to oddzielnie.
 
 ## Warstwy przechowywania
 
-### Primary: SQLite (tabela `memories`)
+### Podstawowa: SQLite (tabela `memories`)
 
 Utworzona przez migrację `015_create_memories.sql`:
 
-| Column                      | Type               | Notes                                                                        |
-| --------------------------- | ------------------ | ---------------------------------------------------------------------------- |
-| `id`                        | `TEXT PRIMARY KEY` | UUID generowany przez `crypto.randomUUID()`                                  |
-| `api_key_id`                | `TEXT NOT NULL`    | Właścicielski klucz API                                                      |
-| `session_id`                | `TEXT`             | Opcjonalny zakres per-rozmowa                                                |
-| `type`                      | `TEXT NOT NULL`    | Jedno z: `factual`, `episodic`, `procedural`, `semantic`                     |
-| `key`                       | `TEXT`             | Stabilny klucz upsert, np. `preference:i_prefer_python`                      |
-| `content`                   | `TEXT NOT NULL`    | Właściwy tekst faktu                                                         |
-| `metadata`                  | `TEXT`             | Blob JSON (category, extractedAt, source, ...)                               |
-| `created_at` / `updated_at` | `TEXT`             | Ciągi ISO 8601                                                               |
-| `expires_at`                | `TEXT`             | Opcjonalne wygaśnięcie; `NULL` oznacza trwałe                                |
-| `memory_id`                 | `INTEGER UNIQUE`   | Dodane przez `023_fix_memory_fts_uuid.sql` do mostkowania UUID ↔ FTS5 rowids |
+| Kolumna                     | Typ                | Uwagi                                                                                     |
+| --------------------------- | ------------------ | ----------------------------------------------------------------------------------------- |
+| `id`                        | `TEXT PRIMARY KEY` | UUID generowany za pomocą `crypto.randomUUID()`                                           |
+| `api_key_id`                | `TEXT NOT NULL`    | Klucz API będący właścicielem                                                             |
+| `session_id`                | `TEXT`             | Opcjonalny zakres dla poszczególnych konwersacji                                          |
+| `type`                      | `TEXT NOT NULL`    | Jedna z wartości `factual`, `episodic`, `procedural`, `semantic`                          |
+| `key`                       | `TEXT`             | Stabilny klucz operacji upsert, np. `preference:i_prefer_python`                          |
+| `content`                   | `TEXT NOT NULL`    | Właściwy tekst faktu                                                                      |
+| `metadata`                  | `TEXT`             | Obiekt JSON (category, extractedAt, source, ...)                                          |
+| `created_at` / `updated_at` | `TEXT`             | Ciągi znaków w formacie ISO 8601                                                          |
+| `expires_at`                | `TEXT`             | Opcjonalna data wygaśnięcia; `NULL` oznacza brak wygaśnięcia                              |
+| `memory_id`                 | `INTEGER UNIQUE`   | Dodane przez `023_fix_memory_fts_uuid.sql`, aby połączyć UUID ↔ identyfikatory rowid FTS5 |
 
-Indeksy: `api_key_id`, `session_id`, `type`, `expires_at`, plus unikalny
+Indeksy: `api_key_id`, `session_id`, `type`, `expires_at` oraz unikatowy
 indeks `memory_id`.
 
-**Semantyka upsert**: `createMemory()` szuka istniejącego wiersza z tym samym
-`(api_key_id, key)` i aktualizuje go w miejscu, gdy znajdzie (scalając `metadata`
-przez płytki spread). Dzięki temu tabela nie rośnie bez ograniczeń przy
-powtarzanych stwierdzeniach preferencji.
+**Semantyka operacji upsert**: `createMemory()` wyszukuje istniejący wiersz z taką samą
+parą `(api_key_id, key)` i, jeśli go znajdzie, aktualizuje go w miejscu (scalając `metadata`
+za pomocą płytkiego rozwinięcia). Zapobiega to nieograniczonemu rozrastaniu się tabeli
+w przypadku powtarzających się deklaracji preferencji.
 
-### Full-text Search (wirtualna tabela `memory_fts`)
+### Wyszukiwanie pełnotekstowe (tabela wirtualna `memory_fts`)
 
-`022_add_memory_fts5.sql` tworzy wirtualną tabelę FTS5 nad `content` i
-`key`. `023_fix_memory_fts_uuid.sql` naprawia rzeczywisty bug, w którym UUID
-klucza głównego nie łączył się z integer rowid FTS5 — migracja dodaje kolumnę
-`memory_id`, odtwarza tabelę FTS i podpina triggery
-(`memory_fts_ai`, `memory_fts_ad`, `memory_fts_au`), które utrzymują FTS w synchronizacji przy
+`022_add_memory_fts5.sql` tworzy tabelę wirtualną FTS5 obejmującą `content` i
+`key`. `023_fix_memory_fts_uuid.sql` naprawia błąd występujący w praktyce, w którym klucz
+główny UUID nie łączył się z całkowitoliczbowym identyfikatorem rowid FTS5 — migracja dodaje
+kolumnę `memory_id`, ponownie tworzy tabelę FTS i konfiguruje wyzwalacze
+(`memory_fts_ai`, `memory_fts_ad`, `memory_fts_au`), które synchronizują FTS podczas operacji
 INSERT, DELETE i UPDATE.
 
-Używane przez `retrieval.ts` dla strategii `semantic` i `hybrid` (patrz poniżej).
-Kod retrieval pilnuje `hasTable("memory_fts")` i spada do
-kolejności chronologicznej, jeśli tabela FTS nie istnieje lub zapytanie FTS rzuci wyjątek.
+Używane przez `retrieval.ts` dla strategii `semantic` i `hybrid` (zobacz poniżej).
+Kod pobierania stosuje zabezpieczenie `hasTable("memory_fts")` i powraca do
+porządku chronologicznego, jeśli brakuje tabeli FTS lub zapytanie FTS zgłosi błąd.
 
-### Opcjonalnie: Qdrant (vector store tier 2)
+### Opcjonalna: Qdrant (magazyn wektorowy warstwy 2)
 
-`src/lib/memory/qdrant.ts` implementuje opcjonalną integrację Qdrant jako tier 2
-magazynu wektorowego. Retrieval kieruje do Qdrant tylko gdy selektor silnika
-`memoryVectorStore === "qdrant"` — domyślne `"auto"` (oraz `"sqlite-vec"`)
-**nigdy** nie wybierają Qdrant. Przełącznik w zakładce Engine ustawia **oba**
-`qdrantEnabled` i `memoryVectorStore` razem: włączenie czyni Qdrant magazynem
-głównym, wyłączenie resetuje do `"auto"` (#5597 — przed tą poprawką włączenie
-było martwe, bo nic nie zapisywało selektora silnika). Jeśli Qdrant jest
-nieosiągalny lub nic nie zwróci, retrieval spada do sqlite-vec → FTS5.
+`src/lib/memory/qdrant.ts` implementuje opcjonalną integrację z Qdrant jako magazyn
+wektorowy warstwy 2. Pobieranie jest kierowane do Qdrant tylko wtedy, gdy selektor silnika
+`memoryVectorStore === "qdrant"` — domyślna wartość `"auto"` (oraz `"sqlite-vec"`)
+**nigdy** nie wybiera Qdrant. Przełącznik na karcie Engine ustawia **jednocześnie**
+`qdrantEnabled` i `memoryVectorStore`: włączenie powoduje ustawienie Qdrant jako
+magazynu podstawowego, a wyłączenie przywraca wartość `"auto"` (#5597 — przed tą poprawką
+włączenie nie przynosiło efektu, ponieważ nic nie zapisywało selektora silnika). Jeśli Qdrant
+jest nieosiągalny lub niczego nie zwraca, pobieranie powraca do sqlite-vec → FTS5.
 
-- `upsertSemanticMemoryPoint()` — embeduje `key + content` skonfigurowanym
-  modelem embeddingów, zapewnia istnienie kolekcji (tworzy wektory
-  cosine-distance przy pierwszym użyciu) i upsertuje punkt z payloadem
-  `{memoryId, apiKeyId, sessionId, key, content, metadata, createdAtUnix, expiresAtUnix}`.
-- `searchSemanticMemory(query, topK, scope)` — embeduje zapytanie, przeszukuje
-  kolekcję filtrowaną po `kind = "omniroute_memory"` oraz opcjonalnie po
-  `apiKeyId` / `sessionId`. Ogranicza `topK` do `[1, 20]`.
-- `deleteSemanticMemoryPoint(id)` — usunięcie pojedynczego punktu. Wołane przez
+- `upsertSemanticMemoryPoint()` — tworzy osadzenie `key + content` za pomocą skonfigurowanego
+  modelu osadzania, upewnia się, że kolekcja istnieje (przy pierwszym użyciu tworzy
+  wektory z odległością cosinusową), i wstawia lub aktualizuje punkt z ładunkiem `{memoryId,
+apiKeyId, sessionId, key, content, metadata, createdAtUnix, expiresAtUnix}`.
+- `searchSemanticMemory(query, topK, scope)` — tworzy osadzenie zapytania, przeszukuje
+  kolekcję filtrowaną według `kind = "omniroute_memory"` oraz opcjonalnie według
+  `apiKeyId` / `sessionId`. Ogranicza `topK` do zakresu `[1, 20]`.
+- `deleteSemanticMemoryPoint(id)` — usuwa pojedynczy punkt. Wywoływana przez
   `deleteMemory()` po usunięciu wiersza SQLite (D15).
-- `cleanupSemanticMemoryPoints({retentionDays})` — masowe usuwanie punktów, których
-  `expiresAtUnix` jest w przeszłości lub `createdAtUnix` jest starszy niż
-  próg retencji. Najpierw liczy, żeby dashboard mógł pokazać rzeczywiste liczby.
-- `checkQdrantHealth()` — sonda zdrowia `GET /readyz` z latencją.
+- `cleanupSemanticMemoryPoints({retentionDays})` — zbiorczo usuwa punkty, których
+  `expiresAtUnix` wskazuje przeszłość lub których `createdAtUnix` jest starsze niż
+  granica okresu przechowywania. Najpierw je zlicza, aby panel mógł wyświetlać rzeczywiste liczby.
+- `checkQdrantHealth()` — test kondycji `GET /readyz` wraz z pomiarem opóźnienia.
 
-UI ustawień udostępnia konfigurację Qdrant, health check, test wyszukiwania
-semantycznego i cleanup w **zakładce Engine** `/dashboard/memory`. Odpowiadające
-trasy pod `src/app/api/settings/qdrant/` są w pełni podpięte od v3.8.6:
+Interfejs ustawień udostępnia konfigurację Qdrant, kontrolę kondycji, test wyszukiwania semantycznego
+oraz czyszczenie na karcie **Engine** strony `/dashboard/memory`. Od wersji v3.8.6
+wszystkie odpowiadające im trasy w `src/app/api/settings/qdrant/` są podłączone:
 
-| Route                                   | Method        | Description                           |
-| --------------------------------------- | ------------- | ------------------------------------- |
-| `/api/settings/qdrant`                  | `GET` / `PUT` | Odczyt / aktualizacja ustawień Qdrant |
-| `/api/settings/qdrant/health`           | `GET`         | Sonda liveness + latencja             |
-| `/api/settings/qdrant/search`           | `POST`        | Test wyszukiwania semantycznego       |
-| `/api/settings/qdrant/cleanup`          | `POST`        | Usuń wygasłe / stare punkty           |
-| `/api/settings/qdrant/embedding-models` | `GET`         | Lista dostępnych modeli embeddingów   |
+| Trasa                                   | Metoda        | Opis                                |
+| --------------------------------------- | ------------- | ----------------------------------- |
+| `/api/settings/qdrant`                  | `GET` / `PUT` | Odczyt/aktualizacja ustawień Qdrant |
+| `/api/settings/qdrant/health`           | `GET`         | Test dostępności + opóźnienie       |
+| `/api/settings/qdrant/search`           | `POST`        | Test wyszukiwania semantycznego     |
+| `/api/settings/qdrant/cleanup`          | `POST`        | Usuwanie wygasłych/starych punktów  |
+| `/api/settings/qdrant/embedding-models` | `GET`         | Lista dostępnych modeli osadzania   |
 
-**Uwagi behawioralne (czego się spodziewać):**
+**Uwagi dotyczące działania (czego się spodziewać):**
 
-- **Wybór silnika** — włączenie Qdrant w zakładce Engine czyni go magazynem głównym
-  (ustawia `memoryVectorStore="qdrant"`); wyłączenie resetuje do `"auto"` (#5597).
-- **Brak back-fill** — do Qdrant trafiają tylko memories utworzone/zaktualizowane
-  **po** włączeniu (dual-write fire-and-forget). Istniejące memories SQLite **nie**
-  są migrowane; "Reindex Now" przebudowuje tylko indeks sqlite-vec, nie Qdrant.
-- **Wymiar wektora jest wykrywany automatycznie** z rzeczywistego embeddinga przy
-  pierwszym użyciu — nie ma pola wymiaru do wypełnienia. Zmiana modelu embeddingów
-  po utworzeniu kolekcji **nie** jest obsługiwana automatycznie: istniejąca kolekcja
-  zostaje nietknięta, zapisy/wyszukiwania z niezgodnym wymiarem kończą się błędem
-  i spadają do sqlite-vec. Odtwórz kolekcję (nowa nazwa albo usuń w Qdrant),
-  aby zmienić embedder.
-- **Metryka odległości** — zawsze **Cosine** (zahardkodowana przy tworzeniu kolekcji;
-  niekonfigurowalna).
-- **Auth** — tylko klucz API (wysyłany jako nagłówek `api-key`; opcjonalny dla
-  lokalnego Dockera bez auth). JWT/RBAC nie są używane.
-- **Pola konfiguracji** — UI udostępnia `host`, `port`, `collection`, `embeddingModel`,
-  `apiKey`. `vectorSize` / `hnswEfConstruct` są tylko env/DB, a `vectorSize` nie jest
-  używane przy tworzeniu kolekcji (wymiar pochodzi z embeddinga).
+- **Wybór silnika** — włączenie Qdrant na karcie Engine ustawia go jako główny
+  magazyn (ustawia `memoryVectorStore="qdrant"`); wyłączenie przywraca wartość `"auto"` (#5597).
+- **Brak uzupełniania danych historycznych** — do Qdrant zapisywane są tylko wspomnienia utworzone/zaktualizowane
+  **po** jego włączeniu (podwójny zapis typu „uruchom i nie czekaj”). Istniejące wcześniej wspomnienia SQLite **nie są**
+  migrowane; opcja „Reindex Now” przebudowuje wyłącznie indeks sqlite-vec, a nie Qdrant.
+- **Wymiar wektora jest wykrywany automatycznie** na podstawie rzeczywistego osadzenia przy pierwszym użyciu —
+  nie ma pola wymiaru do uzupełnienia. Zmiana modelu osadzania po utworzeniu kolekcji
+  **nie** jest obsługiwana automatycznie: istniejąca kolekcja pozostaje niezmieniona, a operacje zapisu/wyszukiwania
+  z niezgodnym wymiarem kończą się niepowodzeniem i przełączają się awaryjnie na sqlite-vec. Aby zmienić model osadzania,
+  utwórz kolekcję ponownie (pod nową nazwą albo usuń ją w Qdrant).
+- **Metryka odległości** — zawsze **Cosine** (zakodowana na stałe podczas tworzenia kolekcji;
+  nie można jej konfigurować).
+- **Uwierzytelnianie** — wyłącznie klucz API (wysyłany w nagłówku `api-key`; opcjonalny w przypadku nieuwierzytelnionego
+  lokalnego Dockera). JWT/RBAC nie są używane.
+- **Pola konfiguracji** — interfejs udostępnia `host`, `port`, `collection`, `embeddingModel`,
+  `apiKey`. `vectorSize` / `hnswEfConstruct` są dostępne wyłącznie przez zmienne środowiskowe/bazę danych, a `vectorSize` nie jest
+  używane podczas tworzenia kolekcji (wymiar pochodzi z osadzenia).
 
-### Kwantyzacja wektorów (int8 — opt-in, oba backendy)
+### Kwantyzacja wektorów (int8 — opcjonalna, oba backendy)
 
-Oba backendy wektorowe wspierają **opcjonalną kwantyzację int8**, aby zmniejszyć
-zużycie pamięci przechowywanych wektorów (~4× mniejsze niż Float32) przy niewielkim
-koszcie recall. Domyślnie **wyłączone** na obu — wektory pozostają pełnej precyzji,
-dopóki nie włączysz jawnie.
+Oba backendy wektorowe obsługują **opcjonalną kwantyzację int8**, która zmniejsza zajętość pamięci
+przez przechowywane wektory (około 4× mniej niż Float32) kosztem niewielkiego spadku trafności.
+Domyślnie jest ona **wyłączona** w obu przypadkach — wektory zachowują pełną precyzję, chyba że zostanie
+jawnie włączona.
 
-| Backend    | Setting                         | Type                           | Default  | Where read                                                  |
-| ---------- | ------------------------------- | ------------------------------ | -------- | ----------------------------------------------------------- |
-| Qdrant     | `qdrantQuantization` (DB key)   | `"none" \| "int8" \| "binary"` | `"none"` | `src/lib/memory/qdrant.ts::normalizeQdrantConfig()`         |
-| sqlite-vec | `MEMORY_VEC_QUANTIZATION` (env) | `"none" \| "int8"`             | `"none"` | `src/lib/memory/vectorStore.ts::requestedVecQuantization()` |
+| Backend    | Ustawienie                                       | Typ                            | Domyślnie | Miejsce odczytu                                             |
+| ---------- | ------------------------------------------------ | ------------------------------ | --------- | ----------------------------------------------------------- |
+| Qdrant     | `qdrantQuantization` (klucz DB)                  | `"none" \| "int8" \| "binary"` | `"none"`  | `src/lib/memory/qdrant.ts::normalizeQdrantConfig()`         |
+| sqlite-vec | `MEMORY_VEC_QUANTIZATION` (zmienna środowiskowa) | `"none" \| "int8"`             | `"none"`  | `src/lib/memory/vectorStore.ts::requestedVecQuantization()` |
 
-- **Qdrant** konfiguruje się per-instancja przez klucz ustawień `qdrantQuantization`
-  (wystawiony jako pole `quantization` na `PUT /api/settings/qdrant`). Przy
-  `"int8"` `buildQuantizationConfig()` żąda scalar quantization
-  (`always_ram`, quantile `0.99`), a wyszukiwania włączają `rescore: true`, żeby
-  wektory pełnej precyzji doprecyzowały zbiór kandydatów int8.
-- **sqlite-vec** kwantyzacja jest **tylko środowiskowa** (nie ustawienie DB): ustaw
-  `MEMORY_VEC_QUANTIZATION=int8`, aby przechowywać lokalne wektory jako kolumnę
-  `int8[dim]` przez `vec_quantize_int8(?, 'unit')`. Wybrany tryb jest włączany do
-  `embedding_signature` (sufiks `:int8`), więc zmiana trybu wymusza pełny
-  reindex tabeli `vec_memories` — ta sama ścieżka lazy-backfill co przy
-  zmianie modelu embeddingów.
+- **Qdrant** jest konfigurowany osobno dla każdej instancji za pomocą klucza ustawienia
+  `qdrantQuantization` (udostępnionego jako pole `quantization` w `PUT /api/settings/qdrant`). W przypadku
+  wartości `"int8"` funkcja `buildQuantizationConfig()` żąda kwantyzacji skalarnej
+  (`always_ram`, kwantyl `0.99`), a wyszukiwania włączają `rescore: true`, dzięki czemu
+  wektory o pełnej precyzji doprecyzowują zbiór kandydatów int8.
+- Kwantyzacja **sqlite-vec** jest konfigurowana **wyłącznie za pomocą zmiennej środowiskowej** (nie jest ustawieniem DB): ustaw
+  `MEMORY_VEC_QUANTIZATION=int8`, aby przechowywać lokalne wektory jako kolumnę `int8[dim]`
+  za pomocą `vec_quantize_int8(?, 'unit')`. Wybrany tryb jest uwzględniany w
+  `embedding_signature` (sufiks `:int8`), dlatego przełączenie trybu powoduje pełne
+  ponowne indeksowanie tabeli `vec_memories` — przy użyciu tej samej ścieżki leniwego uzupełniania danych co
+  przy zmianie modelu osadzania.
 
-## Typy Memory
+## Typy pamięci
 
 `MemoryType` (`src/lib/memory/types.ts`):
 
-| Type         | Used for                                                       |
-| ------------ | -------------------------------------------------------------- |
-| `factual`    | Preferencje, stabilne fakty użytkownika, wzorce behawioralne   |
-| `episodic`   | Decyzje powiązane z konkretnym momentem („I chose Postgres”)   |
-| `procedural` | Pamięć workflow / how-to (zarezerwowane; brak auto-extractora) |
-| `semantic`   | Zarezerwowane dla wpisów magazynu wektorowego                  |
+| Typ          | Zastosowanie                                                                          |
+| ------------ | ------------------------------------------------------------------------------------- |
+| `factual`    | Preferencje, trwałe fakty o użytkowniku, wzorce zachowań                              |
+| `episodic`   | Decyzje związane z konkretnym momentem („Wybrałem Postgres”)                          |
+| `procedural` | Pamięć procedur i instrukcji (zarezerwowana; obecnie brak automatycznego ekstraktora) |
+| `semantic`   | Zarezerwowana dla wpisów w magazynie wektorowym                                       |
 
-Strategia retrieval w `MemoryConfig` to jedno z: `exact`, `semantic` lub `hybrid`,
-a scope to jedno z: `session`, `apiKey` lub `global`. Domyślny scope z
-`getMemorySettings()` to `apiKey`.
+Strategia pobierania `MemoryConfig` to jedna z wartości `exact`, `semantic` lub `hybrid`,
+a zakres to jedna z wartości `session`, `apiKey` lub `global`. Domyślnym zakresem z
+`getMemorySettings()` jest `apiKey`.
 
 ## Ekstrakcja faktów (`extraction.ts`)
 
-Ekstrakcja jest **oparta na regex**, nie na LLM — działa in-process z
-`setImmediate()`, więc nigdy nie blokuje strumienia odpowiedzi:
+Ekstrakcja jest oparta na **wyrażeniach regularnych**, a nie na LLM — działa w ramach procesu za pomocą
+`setImmediate()`, dzięki czemu nigdy nie blokuje strumienia odpowiedzi:
 
 - **Wzorce preferencji** → `MemoryType.FACTUAL`
   (np. `I prefer …`, `I really like …`, `my favorite is …`, `I hate …`)
 - **Wzorce decyzji** → `MemoryType.EPISODIC`
   (np. `I'll use …`, `I chose …`, `I went with …`, `I'm going to adopt …`)
-- **Wzorce wzorców** → `MemoryType.FACTUAL`
+- **Wzorce zachowań** → `MemoryType.FACTUAL`
   (np. `I usually …`, `I always …`, `I tend to …`)
 
-Każde dopasowanie jest sanityzowane (`trim`, zwinięcie białych znaków, limit 500 znaków),
-deduplikowane w batchu przez stabilny `factKey(category, content)` i
-przechowywane przez `createMemory()` z metadanymi
+Każde dopasowanie jest oczyszczane (`trim`, zwijanie białych znaków, ograniczenie do 500 znaków),
+deduplikowane w obrębie partii za pomocą stabilnego `factKey(category, content)` i
+zapisywane przez `createMemory()` z metadanymi
 `{category, extractedAt, source: "llm_response"}`. Tekst wejściowy jest ograniczony do
-64 KiB (`MAX_EXTRACTION_TEXT_LENGTH`) — gdy dłuższy, używany jest **ogon** tekstu,
-żeby najnowsza treść asystenta zawsze brała udział.
+64 KiB (`MAX_EXTRACTION_TEXT_LENGTH`) — jeśli jest dłuższy, używany jest **koniec** tekstu,
+aby najnowsza treść odpowiedzi asystenta zawsze uczestniczyła w ekstrakcji.
 
-`extractFactsFromText(text)` jest eksportowane do testów i zwraca ustrukturyzowane
+`extractFactsFromText(text)` jest eksportowana na potrzeby testów i zwraca ustrukturyzowane
 fakty bez ich zapisywania.
 
-## Retrieval (`retrieval.ts`)
+## Pobieranie (`retrieval.ts`)
 
-`retrieveMemories(apiKeyId, config)` to główny punkt wejścia. Robi:
+`retrieveMemories(apiKeyId, config)` jest głównym punktem wejścia. Funkcja ta:
 
-1. Normalizuje i waliduje config przez `MemoryConfigSchema`.
-2. Zwraca `[]` natychmiast, gdy `enabled` jest false lub `maxTokens <= 0`.
-3. Ogranicza `maxTokens` do `[1, 8000]`.
-4. Wykrywa, czy istnieje nowoczesna tabela `memories` (vs legacy `memory`),
-   żeby starsze bazy nadal działały.
-5. Buduje bazowe zapytanie z ochroną wygaśnięcia
+1. Normalizuje i weryfikuje konfigurację za pomocą `MemoryConfigSchema`.
+2. Natychmiast zwraca `[]`, gdy `enabled` ma wartość false lub `maxTokens <= 0`.
+3. Ogranicza `maxTokens` do zakresu `[1, 8000]`.
+4. Wykrywa, czy istnieje nowoczesna tabela `memories` (zamiast starszej tabeli `memory`),
+   dzięki czemu starsze bazy danych nadal działają.
+5. Buduje zapytanie bazowe z warunkiem wygaśnięcia
    (`expires_at IS NULL OR datetime(expires_at) > datetime('now')`), opcjonalnym
-   zakresem sesji i opcjonalnym progiem `retentionDays`.
-6. Rozgałęzia się po strategii:
+   zakresem sesji i opcjonalną wartością graniczną `retentionDays`.
+6. Rozgałęzia działanie zależnie od strategii:
    - **`exact`** (domyślna): chronologiczne `ORDER BY created_at DESC LIMIT 100`.
-   - **`semantic`**: jeśli jest `config.query` i istnieje `memory_fts`, JOIN
-     `memory_fts MATCH ?` i sortowanie po rankingu FTS; fallback do chronologicznego,
+   - **`semantic`**: jeśli istnieją `config.query` i `memory_fts`, wykonuje JOIN
+     `memory_fts MATCH ?` i sortuje według rangi FTS; wraca do kolejności chronologicznej,
      gdy FTS zwróci 0 wierszy.
-   - **`hybrid`**: unia wyników FTS (wyższa relevantność) i zbioru
-     chronologicznego, deduplikowana po id.
-7. Liczy keyword relevance score (`getRelevanceScore`) po
-   `content`, `key` i JSON `metadata`, gdy podano query. Wiersze z
-   zerowym score są odfiltrowywane.
-8. Sortuje po score desc, potem `createdAt` desc.
-9. Przechodzi ranking i akceptuje wpisy, dopóki bieżący
-   `estimateTokens(content)` (≈ `length / 4`) mieści się w budżecie. Zawsze
-   zwraca co najmniej jeden wpis, gdy cokolwiek pasowało.
+   - **`hybrid`**: suma wyników FTS (o wyższej trafności) i zbioru
+     chronologicznego, z deduplikacją według id.
+7. Oblicza wynik trafności słów kluczowych (`getRelevanceScore`) na podstawie
+   `content`, `key` i kodu JSON `metadata`, gdy podano zapytanie. Wiersze z
+   wynikiem równym zero są odfiltrowywane.
+8. Sortuje malejąco według wyniku, a następnie malejąco według `createdAt`.
+9. Przechodzi przez listę uporządkowaną według trafności i przyjmuje wpisy, dopóki sumaryczna
+   wartość `estimateTokens(content)` (≈ `length / 4`) mieści się w budżecie. Zawsze
+   zwraca co najmniej jeden wpis, jeśli istnieje jakiekolwiek dopasowanie.
 
-`estimateTokens` jest eksportowane i używane przez retrieval, summarisation oraz narzędzie MCP
+`estimateTokens` jest eksportowana i używana przez mechanizmy pobierania i podsumowywania oraz narzędzie MCP
 `omniroute_memory_search`.
 
-## Injection (`injection.ts`)
+## Wstrzykiwanie (`injection.ts`)
 
 `injectMemory(request, memories, provider)`:
 
-1. Łączy wszystkie treści memories w jeden ciąg `Memory context: …`.
-2. Wybiera strategię według nazwy providera:
-   - **Wiadomość system** (domyślnie dla OpenAI, Anthropic, Gemini, …) — wstawia
-     `{role: "system", content: memoryText}` przed istniejącymi wiadomościami
-     system, żeby system prompy użytkownika nadal miały pierwszeństwo.
-   - **Wiadomość user** (fallback) — dla providerów w
+1. Łączy zawartość wszystkich wspomnień w jeden ciąg `Memory context: …`.
+2. Wybiera strategię na podstawie nazwy dostawcy:
+   - **Wiadomość systemowa** (domyślna dla OpenAI, Anthropic, Gemini, …) — dodaje
+     `{role: "system", content: memoryText}` przed wszystkimi istniejącymi
+     wiadomościami systemowymi, dzięki czemu systemowe monity użytkownika nadal mają pierwszeństwo.
+   - **Wiadomość użytkownika** (strategia rezerwowa) — dla dostawców z
      `PROVIDERS_WITHOUT_SYSTEM_MESSAGE`: `o1`, `o1-mini`, `o1-preview`,
-     `glm`, `glmt`, `glm-cn`, `zai`, `qianfan`. Te odrzucają rolę system
-     i w przeciwnym razie zwróciłyby 400 (por. issue #1701 dla GLM/Zhipu).
-3. Loguje count, strategię i model pod `memory.injection.injected`.
+     `glm`, `glmt`, `glm-cn`, `zai`, `qianfan`. Odrzucają oni rolę systemową,
+     co w przeciwnym razie skutkowałoby błędem 400 (zob. zgłoszenie #1701 dotyczące GLM/Zhipu).
+3. Rejestruje liczbę, strategię i model pod kluczem `memory.injection.injected`.
 
-`providerSupportsSystemMessage(provider)` jest eksportowane dla wywołujących, którzy
-chcą sami podejmować decyzje routingu. Nieznani providerzy domyślnie dostają `true`
-(rola system dozwolona) dla bezpieczeństwa.
+`providerSupportsSystemMessage(provider)` jest eksportowana dla kodu wywołującego, który musi
+samodzielnie podejmować decyzje dotyczące routingu. Nieznani dostawcy domyślnie zwracają `true`
+(rola systemowa jest dozwolona) ze względów bezpieczeństwa.
 
 ## Ustawienia (`settings.ts`)
 
-Konfiguracja Memory jest **przechowywana w tabeli settings DB**, nie w zmiennych env.
-`getMemorySettings()` czyta z `getSettings()` i cache'uje wynik
-in-process; `invalidateMemorySettingsCache()` jest wołane przez trasę settings PUT
-po zapisach.
+Konfiguracja pamięci jest **przechowywana w tabeli ustawień bazy danych**, a nie w zmiennych środowiskowych.
+`getMemorySettings()` odczytuje dane z `getSettings()` i buforuje wynik
+w obrębie procesu; `invalidateMemorySettingsCache()` jest wywoływana przez trasę PUT
+ustawień po zapisaniu zmian.
 
-### Pola legacy (wszystkie wersje)
+### Starsze pola (wszystkie wersje)
 
-| DB key                | Type    | Default                                             | UI control                                          |
-| --------------------- | ------- | --------------------------------------------------- | --------------------------------------------------- |
-| `memoryEnabled`       | boolean | `false` (wyłączone domyślnie od v3.8.30)            | Memory on/off                                       |
-| `memoryMaxTokens`     | integer | `2000` (zakres `0–16000`)                           | Budżet tokenów na injection                         |
-| `memoryRetentionDays` | integer | `30` (zakres `1–365`)                               | Okno retencji                                       |
-| `memoryStrategy`      | enum    | `"hybrid"` (jedno z `recent`, `semantic`, `hybrid`) | Strategia retrieval                                 |
-| `skillsEnabled`       | boolean | `false`                                             | Przełącza injection skilli per-key (zob. SKILLS.md) |
+| Klucz DB              | Typ     | Wartość domyślna                                     | Element sterujący interfejsu                                                    |
+| --------------------- | ------- | ---------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `memoryEnabled`       | boolean | `false` (domyślnie wyłączone od v3.8.30)             | Włączanie/wyłączanie pamięci                                                    |
+| `memoryMaxTokens`     | integer | `2000` (zakres `0–16000`)                            | Budżet tokenów na wstrzykiwanie                                                 |
+| `memoryRetentionDays` | integer | `30` (zakres `1–365`)                                | Okres przechowywania                                                            |
+| `memoryStrategy`      | enum    | `"hybrid"` (jedna z: `recent`, `semantic`, `hybrid`) | Strategia pobierania                                                            |
+| `skillsEnabled`       | boolean | `false`                                              | Przełącza wstrzykiwanie umiejętności dla poszczególnych kluczy (zob. SKILLS.md) |
 
-Uwaga: strategia UI `"recent"` mapuje się na wewnętrzną strategię retrieval `"exact"`
-przez `toMemoryRetrievalConfig()` (kolejność chronologiczna).
+Uwaga: strategia interfejsu `"recent"` jest mapowana na wewnętrzną strategię pobierania
+`"exact"` przez `toMemoryRetrievalConfig()` (kolejność chronologiczna).
 
 ### Nowe pola (v3.8.6, plan 21 D9)
 
-Zobacz też sekcję „Rozszerzenie ustawień” powyżej dla opisów pól.
+Opisy pól znajdują się również w sekcji „Rozszerzenie ustawień” powyżej.
 
-| DB key                      | API field                | Default  |
-| --------------------------- | ------------------------ | -------- |
-| `memoryEmbeddingSource`     | `embeddingSource`        | `"auto"` |
-| `memoryEmbeddingModel`      | `embeddingProviderModel` | `null`   |
-| `memoryTransformersEnabled` | `transformersEnabled`    | `false`  |
-| `memoryStaticEnabled`       | `staticEnabled`          | `false`  |
-| `memoryRerankEnabled`       | `rerankEnabled`          | `false`  |
-| `memoryRerankModel`         | `rerankProviderModel`    | `null`   |
-| `memoryVectorStore`         | `vectorStore`            | `"auto"` |
+| Klucz DB                    | Pole API                 | Wartość domyślna |
+| --------------------------- | ------------------------ | ---------------- |
+| `memoryEmbeddingSource`     | `embeddingSource`        | `"auto"`         |
+| `memoryEmbeddingModel`      | `embeddingProviderModel` | `null`           |
+| `memoryTransformersEnabled` | `transformersEnabled`    | `false`          |
+| `memoryStaticEnabled`       | `staticEnabled`          | `false`          |
+| `memoryRerankEnabled`       | `rerankEnabled`          | `false`          |
+| `memoryRerankModel`         | `rerankProviderModel`    | `null`           |
+| `memoryVectorStore`         | `vectorStore`            | `"auto"`         |
 
 Klucze DB związane z Qdrant (`qdrantEnabled`, `qdrantHost`, `qdrantPort`,
-`qdrantApiKey`, `qdrantCollection` domyślnie `"omniroute_memory"`,
-`qdrantEmbeddingModel` domyślnie `"openai/text-embedding-3-small"`) czyta
-`normalizeQdrantConfig()` w `qdrant.ts`.
+`qdrantApiKey`, `qdrantCollection` z wartością domyślną `"omniroute_memory"`,
+`qdrantEmbeddingModel` z wartością domyślną `"openai/text-embedding-3-small"`) są odczytywane przez
+`normalizeQdrantConfig()` w pliku `qdrant.ts`.
 
 ### Zmienne środowiskowe (v3.8.6)
 
-Sześć opcjonalnych zmiennych env dostraja zachowanie runtime silnika (udokumentowane w `.env.example`):
+Sześć opcjonalnych zmiennych środowiskowych dostosowuje zachowanie silnika podczas działania (opisano je w `.env.example`):
 
-| Variable                        | Default                    | Description                                                                                                                   |
-| ------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `MEMORY_EMBEDDING_CACHE_TTL_MS` | `300000`                   | TTL cache embeddingów (5 min)                                                                                                 |
-| `MEMORY_EMBEDDING_CACHE_MAX`    | `1000`                     | Maks. wpisów w LRU cache embeddingów                                                                                          |
-| `MEMORY_TRANSFORMERS_MODEL`     | `Xenova/all-MiniLM-L6-v2`  | Repo HF dla modelu Transformers.js                                                                                            |
-| `MEMORY_STATIC_MODEL`           | `minishlab/potion-base-8M` | Repo HF dla modelu static potion                                                                                              |
-| `MEMORY_STATIC_CACHE_DIR`       | `<DATA_DIR>/embeddings`    | Gdzie przechowywać pobrane modele                                                                                             |
-| `MEMORY_VEC_TOP_K`              | `20`                       | Domyślne top-K dla wyszukiwania wektorowego                                                                                   |
-| `MEMORY_RRF_K`                  | `60`                       | Stała k RRF dla hybrid search                                                                                                 |
-| `MEMORY_VEC_QUANTIZATION`       | `none`                     | Ustaw `int8`, aby przechowywać lokalne wektory sqlite-vec skwantyzowane (~4× mniejsze; opt-in). Zmiana trybu wymusza reindex. |
+| Zmienna                         | Wartość domyślna           | Opis                                                                                                                                                              |
+| ------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MEMORY_EMBEDDING_CACHE_TTL_MS` | `300000`                   | Czas TTL pamięci podręcznej osadzeń (5 min)                                                                                                                       |
+| `MEMORY_EMBEDDING_CACHE_MAX`    | `1000`                     | Maksymalna liczba wpisów w pamięci podręcznej LRU osadzeń                                                                                                         |
+| `MEMORY_TRANSFORMERS_MODEL`     | `Xenova/all-MiniLM-L6-v2`  | Repozytorium HF modelu Transformers.js                                                                                                                            |
+| `MEMORY_STATIC_MODEL`           | `minishlab/potion-base-8M` | Repozytorium HF statycznego modelu potion                                                                                                                         |
+| `MEMORY_STATIC_CACHE_DIR`       | `<DATA_DIR>/embeddings`    | Miejsce przechowywania pobranych modeli                                                                                                                           |
+| `MEMORY_VEC_TOP_K`              | `20`                       | Domyślna wartość top-K dla wyszukiwania wektorowego                                                                                                               |
+| `MEMORY_RRF_K`                  | `60`                       | Stała k algorytmu RRF dla wyszukiwania hybrydowego                                                                                                                |
+| `MEMORY_VEC_QUANTIZATION`       | `none`                     | Ustaw na `int8`, aby przechowywać lokalne wektory sqlite-vec w postaci skwantyzowanej (około 4× mniejsze; opcjonalne). Zmiana trybu wymusza ponowne indeksowanie. |
 
-## Summarisation (`summarization.ts`)
+## Podsumowywanie (`summarization.ts`)
 
-`summarizeMemories(apiKeyId, sessionId?, maxTokens = 4000)` kompaktuje starszą
-treść, gdy bieżąca suma tokenów nad memories klucza przekracza
-budżet. Iteruje wiersze DESC po `created_at`, zachowuje te, które mieszczą się,
-a dla reszty zastępuje `content` w miejscu pierwszymi trzema zdaniami
-oryginału. `tokensSaved` to różnica `estimateTokens` między starą a
-nową treścią.
+`summarizeMemories(apiKeyId, sessionId?, maxTokens = 4000)` kompresuje starszą
+zawartość, gdy bieżąca łączna liczba tokenów w pamięciach klucza przekracza
+budżet. Funkcja iteruje po wierszach malejąco według `created_at`, zachowuje
+wiersze mieszczące się w limicie, a w pozostałych zastępuje `content`
+pierwszymi trzema zdaniami oryginału. `tokensSaved` to różnica wartości
+`estimateTokens` między starą a nową zawartością.
 
-Ta procedura jest **dostępna, ale nie wywoływana automatycznie** w bieżącym
-pipeline chatu — wołaj ją z crona, akcji admina albo
-kleju `MemoryConfig.autoSummarize`, jeśli potrzebujesz ciągłej kompakcji. Utrata
-danych jest jednokierunkowa: oryginalny tekst jest nadpisywany.
+Ta procedura jest **dostępna, ale nie jest wywoływana automatycznie** w bieżącym
+potoku czatu — jeśli potrzebujesz ciągłej kompresji, wywołuj ją z zadania cron,
+akcji administratora lub kodu integrującego `MemoryConfig.autoSummarize.`
+Utrata danych jest nieodwracalna: oryginalny tekst zostaje nadpisany.
 
 ## REST API
 
-Wszystkie endpointy wymagają management auth (`requireManagementAuth`).
+Wszystkie punkty końcowe wymagają uwierzytelniania zarządczego (`requireManagementAuth`).
 
-### Główne endpointy memory (istniejące + zaktualizowane)
+### Główne punkty końcowe pamięci (istniejące i zaktualizowane)
 
-| Method   | Path                 | Description                                                                                                                                                                        |
-| -------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`    | `/api/memory`        | Lista stronicowana z filtrami: `apiKeyId`, `type`, `sessionId`, `q`, `limit`, `page`, `offset`. Odpowiedź zawiera `stats.total`, `stats.tokensUsed`, `stats.hitRate`, `cacheStats` |
-| `POST`   | `/api/memory`        | Utwórz wpis (walidacja Zod: `content`, `key`, opcjonalnie `type`, `sessionId`, `apiKeyId`, `metadata`, `expiresAt`). Woła `createMemory()`, które upsertuje po `(apiKeyId, key)`   |
-| `GET`    | `/api/memory/[id]`   | Pobierz pojedynczy wpis po UUID                                                                                                                                                    |
-| `PUT`    | `/api/memory/[id]`   | Aktualizuj pola wpisu (`type`, `key`, `content`, `metadata`). Body: `MemoryUpdatePutSchema`. Synchronizuje też wektor, jeśli źródło embeddingów jest dostępne.                     |
-| `DELETE` | `/api/memory/[id]`   | Usuń wpis; usuwa też z `vec_memories` (D15) i Qdrant best-effort. Zwraca 404, gdy brak.                                                                                            |
-| `GET`    | `/api/memory/health` | Uruchamia `verifyExtractionPipeline("health-check")` — round-trip create→list→delete. Zwraca `{working, latencyMs, error?}`                                                        |
+| Metoda   | Ścieżka              | Opis                                                                                                                                                                                                  |
+| -------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/memory`        | Stronicowana lista z filtrami: `apiKeyId`, `type`, `sessionId`, `q`, `limit`, `page`, `offset`. Odpowiedź zawiera `stats.total`, `stats.tokensUsed`, `stats.hitRate`, `cacheStats`                    |
+| `POST`   | `/api/memory`        | Tworzy wpis (walidowany przez Zod: `content`, `key`, opcjonalnie `type`, `sessionId`, `apiKeyId`, `metadata`, `expiresAt`). Wywołuje `createMemory()`, które wykonuje upsert według `(apiKeyId, key)` |
+| `GET`    | `/api/memory/[id]`   | Pobiera pojedynczy wpis według UUID                                                                                                                                                                   |
+| `PUT`    | `/api/memory/[id]`   | Aktualizuje pola wpisu (`type`, `key`, `content`, `metadata`). Treść żądania: `MemoryUpdatePutSchema`. Synchronizuje również wektor, jeśli dostępne jest źródło osadzenia.                            |
+| `DELETE` | `/api/memory/[id]`   | Usuwa wpis; usuwa go również z `vec_memories` (D15) oraz, w miarę możliwości, z Qdrant. Zwraca 404, gdy wpis nie istnieje.                                                                            |
+| `GET`    | `/api/memory/health` | Uruchamia `verifyExtractionPipeline("health-check")` — pełny cykl utworzenie→lista→usunięcie. Zwraca `{working, latencyMs, error?}`                                                                   |
 
-### Nowe endpointy memory engine (plan 21)
+### Nowe punkty końcowe silnika pamięci (plan 21)
 
-| Method | Path                              | Description                                                                                                                                                   |
-| ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST` | `/api/memory/retrieve-preview`    | Dry-run `retrieveMemories` — zwraca ranking z score, tier, tokens. Body: `RetrievePreviewSchema`. NIE wstrzykuje ani nie modyfikuje memories.                 |
-| `GET`  | `/api/memory/embedding-providers` | Lista providerów z modelami embeddingów, ze wskazaniem które mają skonfigurowany klucz API.                                                                   |
-| `GET`  | `/api/memory/engine-status`       | Pełny status silnika: keyword tier, rozstrzygnięcie embeddingów, stats magazynu wektorowego, health Qdrant, config rerank. Shape: `MemoryEngineStatusSchema`. |
-| `POST` | `/api/memory/summarize`           | Ręczne uruchomienie kompakcji pamięci. Body: `MemorySummarizeSchema` (`olderThanDays`, `apiKeyId?`, `dryRun`). Zwraca `{candidates, tokensSaved}`.            |
-| `POST` | `/api/memory/reindex`             | Wyzwól reindex wektorowy dla memories z `needs_reindex=1`. Body: `MemoryReindexSchema` (`force`). Zwraca `{started, pending}`.                                |
+| Metoda | Ścieżka                           | Opis                                                                                                                                                                                              |
+| ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/memory/retrieve-preview`    | Próbne uruchomienie `retrieveMemories` — zwraca uszeregowane wyniki z punktacją, warstwą i tokenami. Treść żądania: `RetrievePreviewSchema`. NIE wstrzykuje ani nie modyfikuje pamięci.           |
+| `GET`  | `/api/memory/embedding-providers` | Wyświetla dostawców wraz z modelami osadzania, wskazując, którzy mają skonfigurowany klucz API.                                                                                                   |
+| `GET`  | `/api/memory/engine-status`       | Zwraca pełny stan silnika: warstwę słów kluczowych, konfigurację osadzania, statystyki magazynu wektorów, stan Qdrant i konfigurację ponownego szeregowania. Schemat: `MemoryEngineStatusSchema`. |
+| `POST` | `/api/memory/summarize`           | Ręcznie uruchamia kompresję pamięci. Treść żądania: `MemorySummarizeSchema` (`olderThanDays`, `apiKeyId?`, `dryRun`). Zwraca `{candidates, tokensSaved}`.                                         |
+| `POST` | `/api/memory/reindex`             | Uruchamia ponowne indeksowanie wektorów pamięci z `needs_reindex=1`. Treść żądania: `MemoryReindexSchema` (`force`). Zwraca `{started, pending}`.                                                 |
 
-### Endpointy ustawień
+### Punkty końcowe ustawień
 
-| Method | Path                                    | Description                                                                                            |
-| ------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `GET`  | `/api/settings/memory`                  | Bieżące znormalizowane `MemorySettingsExtended` (7 nowych pól + legacy)                                |
-| `PUT`  | `/api/settings/memory`                  | Aktualizuj dowolne pole z `MemorySettingsExtendedSchema` (12 pól łącznie)                              |
-| `GET`  | `/api/settings/qdrant`                  | Bieżące ustawienia Qdrant (`QdrantSettingsSchema`)                                                     |
-| `PUT`  | `/api/settings/qdrant`                  | Aktualizuj ustawienia Qdrant. Body: `QdrantSettingsUpdateSchema`. `apiKey` = pusty string usuwa klucz. |
-| `GET`  | `/api/settings/qdrant/health`           | Sonda liveness wobec skonfigurowanej instancji Qdrant. Zwraca `QdrantHealthResultSchema`.              |
-| `POST` | `/api/settings/qdrant/search`           | Test wyszukiwania semantycznego wobec Qdrant. Body: `QdrantSearchSchema` (`query`, `topK`).            |
-| `POST` | `/api/settings/qdrant/cleanup`          | Usuń punkty Qdrant dla wygasłych / starych memories.                                                   |
-| `GET`  | `/api/settings/qdrant/embedding-models` | Lista modeli embeddingów dostępnych dla Qdrant.                                                        |
+| Metoda | Ścieżka                                 | Opis                                                                                                                  |
+| ------ | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/settings/memory`                  | Bieżący znormalizowany `MemorySettingsExtended` (7 nowych pól i pola starszego typu)                                  |
+| `PUT`  | `/api/settings/memory`                  | Aktualizuje dowolne pole z `MemorySettingsExtendedSchema` (łącznie 12 pól)                                            |
+| `GET`  | `/api/settings/qdrant`                  | Bieżące ustawienia Qdrant (`QdrantSettingsSchema`)                                                                    |
+| `PUT`  | `/api/settings/qdrant`                  | Aktualizuje ustawienia Qdrant. Treść żądania: `QdrantSettingsUpdateSchema`. `apiKey` = pusty ciąg znaków usuwa klucz. |
+| `GET`  | `/api/settings/qdrant/health`           | Sprawdza dostępność skonfigurowanej instancji Qdrant. Zwraca `QdrantHealthResultSchema`.                              |
+| `POST` | `/api/settings/qdrant/search`           | Test wyszukiwania semantycznego w Qdrant. Treść żądania: `QdrantSearchSchema` (`query`, `topK`).                      |
+| `POST` | `/api/settings/qdrant/cleanup`          | Usuwa z Qdrant punkty odpowiadające wygasłym lub starym pamięciom.                                                    |
+| `GET`  | `/api/settings/qdrant/embedding-models` | Wyświetla modele osadzania dostępne dla Qdrant.                                                                       |
 
-Query listy `/api/memory` obsługuje albo paginację opartą o `page`
-(`parsePaginationParams`) **albo** surowy `offset` — gdy `offset` jest obecny,
-ma pierwszeństwo, a wyprowadzone `page` jest liczone pod kształt odpowiedzi.
+Zapytanie listy `/api/memory` obsługuje stronicowanie oparte na `page`
+(`parsePaginationParams`) **lub** bezpośrednią wartość `offset` — gdy podano
+`offset`, ma ona pierwszeństwo, a na potrzeby struktury odpowiedzi obliczana
+jest wynikowa wartość `page`.
 
 ## Narzędzia MCP (`open-sse/mcp-server/tools/memoryTools.ts`)
 
-Gdy serwer MCP jest włączony, rejestrowane są trzy narzędzia memory:
+Gdy serwer MCP jest włączony, rejestrowane są trzy narzędzia pamięci:
 
 - `omniroute_memory_search` — `{apiKeyId, query?, type?, maxTokens?, limit?}`
-  → opakowuje `retrieveMemories()`. Od v3.8.6 (D16) `strategy` jest czytane
-  z `getMemorySettings()` zamiast być zahardkodowane na `"exact"`. Jeśli
-  podano `query` i `strategy` to `semantic` lub `hybrid`, używany jest magazyn
-  wektorowy, gdy dostępny.
+  → opakowuje `retrieveMemories()`. Od wersji v3.8.6 (D16) wartość `strategy`
+  jest odczytywana z `getMemorySettings()`, zamiast być zakodowana na stałe
+  jako `"exact"`. Jeśli podano `query`, a `strategy` ma wartość `semantic` lub
+  `hybrid`, używany jest magazyn wektorowy, o ile jest dostępny.
 - `omniroute_memory_add` — `{apiKeyId, sessionId?, type, key, content,
-metadata?}` → opakowuje `createMemory()`. Przyjmuje tylko 4 kanoniczne typy:
+metadata?}` → opakowuje `createMemory()`. Akceptuje tylko 4 kanoniczne typy:
   `factual`, `episodic`, `procedural`, `semantic` (D17).
-- `omniroute_memory_clear` — `{apiKeyId, type?, olderThan?}` → listuje pasujące
-  wpisy, opcjonalnie filtruje po znaczniku created-before, potem usuwa każdy
-  przez `deleteMemory()` (co usuwa też wektory z sqlite-vec + Qdrant).
+- `omniroute_memory_clear` — `{apiKeyId, type?, olderThan?}` → wyświetla pasujące
+  wpisy, opcjonalnie filtruje je według znacznika czasu utworzenia wcześniejszego
+  niż wskazany, a następnie usuwa każdy z nich za pomocą `deleteMemory()` (co
+  usuwa również wektory z sqlite-vec i Qdrant).
 
-Zobacz [MCP-SERVER.md](./MCP-SERVER.md) po szczegóły transportu i scope'ów.
+Szczegóły dotyczące transportu i zakresu znajdują się w pliku [MCP-SERVER.md](./MCP-SERVER.md).
 
-## Dashboard (Memory Studio)
+## Panel (Studio pamięci)
 
-`src/app/(dashboard)/dashboard/memory/page.tsx` to teraz **Studio 3-zakładkowe**:
+`src/app/(dashboard)/dashboard/memory/page.tsx` jest teraz **Studiem z 3 kartami**:
 
-### Zakładka: Memories
+### Karta: Pamięci
 
-- Karta koncepcji (zwijany explainer „How it works”).
-- Lista w czasie rzeczywistym, wyszukiwanie i paginacja (debounce 300 ms).
-- Filtr typu (`factual` / `episodic` / `procedural` / `semantic` / all).
-- Modal dodawania memory (key, content, type).
-- Inline edit (przycisk ołówka → `PUT /api/memory/[id]`).
-- Usuwanie per wiersz (z dialogiem potwierdzenia).
-- Eksport JSON bieżącej strony; import JSON przez file picker.
+- Karta koncepcyjna (zwijane objaśnienie „Jak to działa”).
+- Lista w czasie rzeczywistym, wyszukiwanie i paginacja (opóźnienie 300 ms).
+- Filtr typów (`factual` / `episodic` / `procedural` / `semantic` / wszystkie).
+- Okno modalne dodawania pamięci (klucz, zawartość, typ).
+- Edycja w wierszu (przycisk ołówka → `PUT /api/memory/[id]`).
+- Usuwanie poszczególnych wierszy (z oknem dialogowym potwierdzenia).
+- Eksport bieżącej strony do JSON; import JSON za pomocą selektora plików.
 - Karty statystyk: `totalEntries`, `tokensUsed`, `hitRate`.
-- Przycisk „Compact old” → `POST /api/memory/summarize` (najpierw dry-run pokazuje
-  liczbę kandydatów, potem potwierdzenie).
-- Zielona/czerwona kropka health napędzana przez `GET /api/memory/health`.
+- Przycisk „Kompaktuj stare” → `POST /api/memory/summarize` (najpierw próbne
+  uruchomienie pokazuje liczbę kandydatów, a następnie prosi o potwierdzenie).
+- Zielony/czerwony wskaźnik kondycji sterowany przez `GET /api/memory/health`.
 
-### Zakładka: Playground
+### Karta: Plac zabaw
 
-- Input zapytania + selektor strategii (Exact / Semantic / Hybrid) + budżet tokenów.
-- „Simulate” → `POST /api/memory/retrieve-preview` — pokazuje ranking z
-  `score`, `tier`, `tokens`, `vecScore`, `ftsScore`.
-- Panel rozstrzygnięcia pokazujący, które źródło embeddingów / magazyn wektorowy
-  zostało użyte i czy nastąpił fallback.
+- Pole zapytania + selektor strategii (Dokładna / Semantyczna / Hybrydowa) +
+  budżet tokenów.
+- „Symuluj” → `POST /api/memory/retrieve-preview` — wyświetla uszeregowane wyniki
+  z wartościami `score`, `tier`, `tokens`, `vecScore`, `ftsScore`.
+- Panel rozstrzygnięcia pokazujący, które źródło osadzania / magazyn wektorowy
+  zostały użyte oraz czy nastąpiło przełączenie awaryjne.
 
-### Zakładka: Engine
+### Karta: Silnik
 
-- Panel statusu silnika (chip keyword FTS5, chip embedding, chip vector store,
-  chip health Qdrant, chip rerank).
-- Przycisk „Reindex Now” → `POST /api/memory/reindex`.
-- Selektor źródła embeddingów (auto / remote / static / transformers + przełączniki).
-- Karta config Qdrant (toggle enable, host/port/collection/key, test połączenia,
-  test wyszukiwania semantycznego, cleanup).
-- Karta config rerank (toggle enable, selektor provider/model).
+- Panel stanu silnika (znacznik słów kluczowych FTS5, znacznik osadzania,
+  znacznik magazynu wektorowego, znacznik kondycji Qdrant, znacznik ponownego
+  szeregowania).
+- Przycisk „Reindeksuj teraz” → `POST /api/memory/reindex`.
+- Selektor źródła osadzania (automatyczne / zdalne / statyczne / transformers +
+  przełączniki).
+- Karta konfiguracji Qdrant (przełącznik włączenia, host/port/kolekcja/klucz,
+  test połączenia, test wyszukiwania semantycznego, czyszczenie).
+- Karta konfiguracji ponownego szeregowania (przełącznik włączenia, selektor
+  dostawcy/modelu).
 
-Ustawienia Memory i Qdrant żyją też pod
-`/dashboard/settings → Memory & Skills` (`MemorySkillsTab.tsx`) jako
-legacy/globalna powierzchnia ustawień.
+Ustawienia pamięci i Qdrant są również dostępne w sekcji
+`/dashboard/settings → Pamięć i umiejętności` (`MemorySkillsTab.tsx`) jako
+starszy/globalny interfejs ustawień.
 
-## Caching
+## Buforowanie
 
-`src/lib/memory/store.ts` trzyma in-process cache w stylu LRU
-(`MEMORY_CACHE_TTL = 5 min`, `MEMORY_MAX_CACHE_SIZE = 10 000`, z 20%
-ewikcją najstarszych) dla odczytów `getMemory(id)`, plus generyczną warstwę
-key/value `memoryCache` (`src/lib/memory/cache.ts`) z metodami `get`/`set`/`invalidate`
-używanymi przez wywołujących, którzy chcą własny scoped cache (LRU 1000 wpisów,
-domyślny TTL 5 min).
+`src/lib/memory/store.ts` utrzymuje działającą w ramach procesu pamięć podręczną
+zbliżoną do LRU (`MEMORY_CACHE_TTL = 1 min`, `MEMORY_MAX_CACHE_SIZE = 500`, z
+usuwaniem 20 % najstarszych wpisów) dla odczytów `getMemory(id)`, a także ogólną
+warstwę pamięci podręcznej klucz/wartość `memoryCache`
+(`src/lib/memory/cache.ts`) z metodami `get`/`set`/`invalidate`, używaną przez
+wywołujących, którzy potrzebują własnej pamięci podręcznej o określonym zakresie
+(LRU mieszczące 1 000 wpisów, domyślny TTL wynosi 5 min).
 
 ## Prywatność i cykl życia
 
-- Własność memory to id klucza API (`resolveMemoryOwnerId` w
-  `chatCore.ts`). Bez `apiKeyInfo.id` nie działa ani retrieval, ani injection,
-  ani extraction.
-- Wpisy z przyszłym `expires_at` są odfiltrowywane z retrieval; stare
-  wpisy poza `retentionDays` są wykluczane przez klauzulę
+- Właścicielem pamięci jest identyfikator klucza API (`resolveMemoryOwnerId` w
+  `chatCore.ts`). Bez `apiKeyInfo.id` nie jest wykonywane ani pobieranie, ani
+  wstrzykiwanie, ani ekstrakcja.
+- Wpisy z wartością `expires_at` wskazującą przyszłość są odfiltrowywane podczas pobierania;
+  stare wpisy wykraczające poza `retentionDays` są wykluczane przez warunek
   `created_at >= cutoff` w `retrieveMemories`.
-- Do twardego usunięcia użyj `DELETE /api/memory/[id]` lub `omniroute_memory_clear`.
-- Extraction jest fire-and-forget przez `setImmediate`; błędy logowane są pod
-  `memory.extraction.background.failed` i nigdy nie wychodzą do wywołującego.
-- Round-tripy weryfikacji (`verifyExtractionPipeline`) sprzątają własne
+- Aby trwale usunąć dane, użyj `DELETE /api/memory/[id]` lub `omniroute_memory_clear`.
+- Ekstrakcja jest wykonywana asynchronicznie bez oczekiwania na wynik za pomocą `setImmediate`;
+  błędy są rejestrowane pod kluczem `memory.extraction.background.failed` i nigdy nie są
+  przekazywane wywołującemu.
+- Przebiegi weryfikacyjne (`verifyExtractionPipeline`) usuwają własne
   wpisy testowe w bloku `finally`.
 
-## Zobacz też
+## Zobacz także
 
 - [SKILLS.md](./SKILLS.md) — ustawienie `skillsEnabled` wstrzykuje definicje
-  narzędzi obok memory.
-- [MCP-SERVER.md](./MCP-SERVER.md) — transport / scope'y MCP.
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — szersza powierzchnia API.
+  narzędzi wraz z pamięcią.
+- [MCP-SERVER.md](./MCP-SERVER.md) — transport MCP / zakresy uprawnień.
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — szerszy zakres interfejsu API.
 - Moduły źródłowe:
   - `src/lib/memory/types.ts`, `schemas.ts`
   - `src/lib/memory/store.ts`, `retrieval.ts`, `injection.ts`, `reindex.ts`
   - `src/lib/memory/extraction.ts`, `summarization.ts`, `verify.ts`
   - `src/lib/memory/settings.ts`, `qdrant.ts`, `cache.ts`
-  - `src/lib/memory/vectorStore.ts` — sqlite-vec + hybrid RRF
+  - `src/lib/memory/vectorStore.ts` — sqlite-vec + hybrydowe RRF
   - `src/lib/memory/embedding/index.ts` — wieloźródłowa warstwa embeddingów
   - `src/lib/memory/embedding/types.ts`, `remote.ts`, `staticPotion.ts`,
     `transformersLocal.ts`, `cache.ts`
-  - `src/shared/schemas/memory.ts` — schematy Zod dla wszystkich body API memory
-  - `src/shared/schemas/qdrant.ts` — schematy Zod dla ustawień/ops Qdrant
-  - `src/lib/db/memoryVec.ts` — CRUD dla `memory_vec_meta`
+  - `src/shared/schemas/memory.ts` — schematy Zod dla wszystkich treści żądań interfejsu API pamięci
+  - `src/shared/schemas/qdrant.ts` — schematy Zod dla ustawień/operacji Qdrant
+  - `src/lib/db/memoryVec.ts` — operacje CRUD dla `memory_vec_meta`
   - `src/lib/db/migrations/015_create_memories.sql`,
     `022_add_memory_fts5.sql`, `023_fix_memory_fts_uuid.sql`,
-    `073_memory_vec.sql`
+    `083_memory_vec.sql`
   - `src/app/api/memory/route.ts`, `[id]/route.ts`, `health/route.ts`
   - `src/app/api/memory/retrieve-preview/route.ts`
   - `src/app/api/memory/engine-status/route.ts`
@@ -608,106 +636,107 @@ domyślny TTL 5 min).
   - `src/app/api/memory/summarize/route.ts`
   - `src/app/api/memory/reindex/route.ts`
   - `src/app/api/settings/memory/route.ts`
-  - `src/app/api/settings/qdrant/route.ts` + sub-routes
-  - `src/app/(dashboard)/dashboard/memory/` — UI Studio (page + components +
-    tabs + hooks)
-  - `open-sse/handlers/chatCore.ts` (wiring injection / extraction)
+  - `src/app/api/settings/qdrant/route.ts` + podtrasy
+  - `src/app/(dashboard)/dashboard/memory/` — interfejs użytkownika Studio (strona + komponenty +
+    karty + hooki)
+  - `open-sse/handlers/chatCore.ts` (integracja wstrzykiwania / ekstrakcji)
   - `open-sse/mcp-server/tools/memoryTools.ts`
 
 ---
 
-## Wybór providera embeddingów (v3.8.16+)
+## Wybór dostawcy embeddingów (v3.8.16+)
 
-Silnik memory OmniRoute wspiera **cztery źródła embeddingów** (`src/lib/memory/embedding/`). Każde ma inne kompromisy w **latencji, koszcie, jakości modelu i złożoności setupu**.
+Silnik pamięci OmniRoute obsługuje **cztery źródła embeddingów** (`src/lib/memory/embedding/`). Każde z nich wiąże się z innymi kompromisami w zakresie **opóźnień, kosztów, jakości modelu i złożoności konfiguracji**.
 
-### Cztery providery
+### Źródła embeddingów
 
-| Provider       | Source                                       | Latency                           | Cost                 | Quality                   | Setup               |
-| -------------- | -------------------------------------------- | --------------------------------- | -------------------- | ------------------------- | ------------------- |
-| `transformers` | Lokalny model ONNX (Xenova/all-MiniLM-L6-v2) | ~50-150ms (CPU)                   | Free                 | Good                      | tylko `npm install` |
-| `static`       | Wstępnie wyliczone wektory (cache)           | <1ms                              | Free                 | N/A (zależy od cache hit) | None                |
-| `remote`       | API OpenAI / Cohere / Voyage                 | ~100-300ms                        | $0.02-0.10/1M tokens | Excellent                 | API key             |
-| `cache`        | Warstwa LRU in-memory nad dowolnym źródłem   | <1ms (hit), pełna latencja (miss) | Free                 | Taka jak underlying       | None                |
+| Dostawca       | Źródło                                                 | Opóźnienie                                          | Koszt                 | Jakość                                                 | Konfiguracja                                 |
+| -------------- | ------------------------------------------------------ | --------------------------------------------------- | --------------------- | ------------------------------------------------------ | -------------------------------------------- |
+| `transformers` | Lokalny model ONNX (Xenova/all-MiniLM-L6-v2)           | ~50-150ms (CPU)                                     | Bezpłatnie            | Dobra                                                  | Tylko `npm install`                          |
+| `static`       | Wstępnie obliczone wektory (w pamięci podręcznej)      | <1ms                                                | Bezpłatnie            | Nie dotyczy (zależy od trafienia w pamięci podręcznej) | Brak                                         |
+| `remote`       | API OpenAI / Cohere / Voyage                           | ~100-300ms                                          | $0.02-0.10/1M tokenów | Doskonała                                              | Klucz API                                    |
+| `auto`         | Wybiera najlepsze dostępne źródło w czasie wykonywania | Jak dla wybranego źródła                            | Bezpłatnie            | Jak dla wybranego źródła                               | Brak                                         |
+| _(cache)_      | Warstwa LRU w pamięci nad dowolnym źródłem             | <1ms (trafienie), pełne opóźnienie (brak trafienia) | Bezpłatnie            | Jak dla źródła bazowego                                | Zawsze włączona (nie jest źródłem do wyboru) |
 
 ### Drzewo decyzyjne
 
 ```
-                  What's your deployment context?
+                  Jaki jest kontekst wdrożenia?
                   │
       ┌───────────┼───────────┬──────────────┐
       │           │           │              │
-  DEV/TEST    SMALL PROD   LARGE PROD    EDGE / OFFLINE
+  DEV/TEST    MAŁA PROD.   DUŻA PROD.    EDGE / OFFLINE
       │           │           │              │
       ▼           ▼           ▼              ▼
   transformers transformers remote (Qdrant) transformers
-  (free, no API)            (best quality)   (no internet)
+  (bezpłatne, bez API)      (najlepsza jakość) (bez internetu)
       │           │           │              │
       └────────┬──┴───────────┴──────────────┘
                │
                ▼
-            ALWAYS add `cache` layer on top
-            (LruCache wraps any provider)
+            ZAWSZE dodawaj warstwę `cache`
+            (LruCache opakowuje dowolnego dostawcę)
 ```
 
-### Konfiguracja Database & API
+### Konfiguracja bazy danych i API
 
-Opcje embeddingów memory konfiguruje się przez Settings API/UI, nie zmienne środowiskowe. Istotne klucze ustawień w DB pod Settings (`normalizeMemorySettings` w `src/lib/memory/settings.ts`) to:
+Opcje embeddingów pamięci konfiguruje się za pośrednictwem API/interfejsu ustawień, a nie zmiennych środowiskowych. Odpowiednie klucze ustawień bazy danych w sekcji Ustawienia (`normalizeMemorySettings` w `src/lib/memory/settings.ts`) to:
 
-- `memoryEmbeddingSource`: `"transformers"` (lokalne), `"remote"` (API, np. OpenAI), `"static"` (zewnętrzny store) lub `"auto"`
-- `memoryEmbeddingProviderModel`: Identyfikator modelu dla źródeł remote/static (np. `"text-embedding-3-small"`)
+- `memoryEmbeddingSource`: `"transformers"` (lokalne), `"remote"` (oparte na API, np. OpenAI), `"static"` (zewnętrzny magazyn) lub `"auto"`
+- `memoryEmbeddingProviderModel`: identyfikator modelu dla źródeł zdalnych/statycznych (np. `"text-embedding-3-small"`)
 - `memoryTransformersEnabled`: `true` | `false`
 - `memoryStaticEnabled`: `true` | `false`
 - `memoryVectorStore`: `"sqlite-vec"`, `"qdrant"` lub `"auto"`
 
 #### Model lokalny (`transformers`)
 
-Używa transformers.js wewnętrznie do uruchamiania lokalnych modeli:
+Wewnętrznie używa transformers.js do uruchamiania modeli lokalnych:
 
 ```bash
-# Env vars read in code (src/lib/memory/embedding/index.ts):
-MEMORY_TRANSFORMERS_MODEL=Xenova/all-MiniLM-L6-v2  # HF model repo
-MEMORY_STATIC_MODEL=minishlab/potion-base-8M       # HF static potion model
-MEMORY_STATIC_CACHE_DIR=<DATA_DIR>/embeddings      # Cache directory
+# Zmienne środowiskowe odczytywane w kodzie (src/lib/memory/embedding/index.ts):
+MEMORY_TRANSFORMERS_MODEL=Xenova/all-MiniLM-L6-v2  # Repozytorium modelu HF
+MEMORY_STATIC_MODEL=minishlab/potion-base-8M       # Statyczny model potion z HF
+MEMORY_STATIC_CACHE_DIR=<DATA_DIR>/embeddings      # Katalog pamięci podręcznej
 ```
 
-#### LRU Embedding Cache
+#### Pamięć podręczna LRU embeddingów
 
-Cache jest domyślnie zawsze włączony i konfigurowany przez zmienne env:
+Pamięć podręczna jest domyślnie zawsze włączona i konfigurowana za pomocą zmiennych środowiskowych:
 
 ```bash
-MEMORY_EMBEDDING_CACHE_MAX=1000                    # Max cached items
+MEMORY_EMBEDDING_CACHE_MAX=1000                    # Maksymalna liczba elementów w pamięci podręcznej
 MEMORY_EMBEDDING_CACHE_TTL_MS=300000               # TTL (5 min)
 ```
 
-### Liczby wydajnościowe
+### Dane dotyczące wydajności
 
-Benchmark na typowym serwerze 4-core x86 (teksty ~100 tokenów każdy):
+Test wydajności na typowym 4-rdzeniowym serwerze x86 (teksty po ~100 tokenów każdy):
 
-| Provider             | p50   | p95   | p99   | Cost / 1M embeddings               |
+| Dostawca             | p50   | p95   | p99   | Koszt / 1 mln embeddingów          |
 | -------------------- | ----- | ----- | ----- | ---------------------------------- |
-| `transformers` (CPU) | 80ms  | 180ms | 350ms | Free                               |
+| `transformers` (CPU) | 80ms  | 180ms | 350ms | Bezpłatnie                         |
 | `remote` (OpenAI)    | 120ms | 220ms | 400ms | ~$0.02 (ada-002) / $0.13 (3-large) |
-| `static` (Qdrant)    | 15ms  | 30ms  | 60ms  | Depends on Qdrant hosting          |
-| `cache` (hit)        | <1ms  | <1ms  | 2ms   | Free                               |
+| `static` (Qdrant)    | 15ms  | 30ms  | 60ms  | Zależy od hostingu Qdrant          |
+| `cache` (trafienie)  | <1ms  | <1ms  | 2ms   | Bezpłatnie                         |
 
 ---
 
-## Wzorce ekstrakcji faktów (v3.8.16+)
+## Wzorce wyodrębniania faktów (v3.8.16+)
 
-Moduł `extraction.ts` (`src/lib/memory/extraction.ts`) używa **dopasowania wzorców regex** do wyodrębniania ustrukturyzowanych faktów z wiadomości rozmowy. Zrozumienie tych wzorców pomaga dostroić jakość ekstrakcji do Twojego przypadku użycia.
+Moduł `extraction.ts` (`src/lib/memory/extraction.ts`) wykorzystuje **dopasowywanie wzorców za pomocą wyrażeń regularnych**, aby wyodrębniać ustrukturyzowane fakty z wiadomości w konwersacji. Zrozumienie tych wzorców pomaga dostosować jakość wyodrębniania do konkretnego przypadku użycia.
 
 ### Domyślne kategorie wzorców
 
-| Category            | Example pattern                                             | Captures                       |
-| ------------------- | ----------------------------------------------------------- | ------------------------------ |
-| PREFERENCE_PATTERNS | `"I prefer <X>"`, `"I like <X>"`, `"I hate <X>"`            | Preferencje użytkownika        |
-| DECISION_PATTERNS   | `"I'll use <X>"`, `"I decided to <X>"`, `"I went with <X>"` | Decyzje użytkownika (episodic) |
-| PATTERN_PATTERNS    | `"I usually <X>"`, `"I always <X>"`, `"I never <X>"`        | Trwałe wzorce behawioralne     |
+| Kategoria           | Przykładowy wzorzec                                         | Przechwytywane dane               |
+| ------------------- | ----------------------------------------------------------- | --------------------------------- |
+| PREFERENCE_PATTERNS | `"I prefer <X>"`, `"I like <X>"`, `"I hate <X>"`            | Preferencje użytkownika           |
+| DECISION_PATTERNS   | `"I'll use <X>"`, `"I decided to <X>"`, `"I went with <X>"` | Decyzje użytkownika (epizodyczne) |
+| PATTERN_PATTERNS    | `"I usually <X>"`, `"I always <X>"`, `"I never <X>"`        | Trwałe wzorce zachowań            |
 
 ### Przykładowe wzorce (uproszczone)
 
 ```ts
-// From src/lib/memory/extraction.ts
+// Z pliku src/lib/memory/extraction.ts
 const PREFERENCE_PATTERNS = [
   /\bI\s+(?:really\s+)?prefer\s+([^.,\n]+)/gi,
   /\bI\s+(?:really\s+)?like\s+([^.,\n]+)/gi,
@@ -725,41 +754,41 @@ const PATTERN_PATTERNS = [/\bI\s+usually\s+([^.,\n]+)/gi, /\bI\s+always\s+([^.,\
 Gdy użytkownik mówi:
 
 > "I prefer TypeScript. I'll use Postgres for this project. I always commit before pushing. I don't like Python."
-> Ekstrakcja produkuje 4 memories:
+> W wyniku wyodrębniania powstają 4 wspomnienia:
 >
-> | Key                                  | Category   | Type     | Content                     |
+> | Klucz                                | Kategoria  | Typ      | Treść                       |
 > | ------------------------------------ | ---------- | -------- | --------------------------- |
 > | `preference:typescript`              | preference | factual  | "TypeScript"                |
 > | `decision:postgres_for_this_project` | decision   | episodic | "Postgres for this project" |
 > | `pattern:commit_before_pushing`      | pattern    | factual  | "commit before pushing"     |
 > | `preference:python`                  | preference | factual  | "Python"                    |
 
-### Limity ekstrakcji
+### Limity wyodrębniania
 
-Aby zapobiec niekontrolowanej ekstrakcji, obowiązują następujące limity:
+Aby zapobiec niekontrolowanemu wyodrębnianiu, obowiązują następujące limity:
 
-| Min content length | 3 chars |
-| Max content length | 500 chars |
+| Minimalna długość treści | 3 znaki |
+| Maksymalna długość treści | 500 znaków |
 
-### Kiedy wyłączyć ekstrakcję
+### Kiedy wyłączyć wyodrębnianie
 
-Ekstrakcja działa automatycznie, gdy memory jest włączone; nie ma osobnego
-przełącznika tylko-ekstrakcja. Aby ją wyłączyć, wyłącz całkowicie memory (`enabled: false`
-przez `PUT /api/settings/memory`). Rozważ to, gdy:
+Wyodrębnianie jest uruchamiane automatycznie zawsze, gdy pamięć jest włączona; nie ma osobnego
+przełącznika wyłącznie dla wyodrębniania. Aby je wyłączyć, należy całkowicie wyłączyć pamięć (`enabled: false`
+za pomocą `PUT /api/settings/memory`). Warto to rozważyć, gdy:
 
-- Masz duży wolumen wiadomości i koszt ekstrakcji jest niebanalny
-- Twoje rozmowy są głównie efemeryczne (chat, debugging) bez długoterminowej wartości
-- Już przechwytujesz kontekst przez własne pluginy
+- Liczba wiadomości jest duża, a koszt wyodrębniania nie jest pomijalny
+- Konwersacje mają głównie charakter tymczasowy (czat, debugowanie) i nie mają wartości długoterminowej
+- Kontekst jest już przechwytywany za pomocą niestandardowych wtyczek
 
 ---
 
-## Dostrajanie Hybrid RRF (v3.8.16+)
+## Dostrajanie hybrydowego RRF (v3.8.16+)
 
-Algorytm **Reciprocal Rank Fusion (RRF)** łączy wyniki FTS5 (słowa kluczowe) i wektorowe (semantyczne). Parametr `k` kontroluje, ile wagi dostają niżej rankingowane wyniki.
+Algorytm **Reciprocal Rank Fusion (RRF)** łączy wyniki FTS5 (wyszukiwanie według słów kluczowych) oraz wyniki wektorowe (semantyczne). Parametr `k` określa, jak dużą wagę otrzymują wyniki znajdujące się niżej w rankingu.
 
-### Formuła
+### Wzór
 
-Dla każdego kandydata memory score RRF wynosi:
+Dla każdego kandydującego wspomnienia wynik RRF wynosi:
 
 ```
 RRF(d) = Σ  1 / (k + rank_i(d))
@@ -767,116 +796,342 @@ RRF(d) = Σ  1 / (k + rank_i(d))
 
 Gdzie:
 
-- `k` to stała (domyślnie 60)
-- `rank_i(d)` to ranga dokumentu `d` w i-tym systemie retrieval (FTS, vector)
-- Suma biegnie po wszystkich systemach retrieval
+- `k` jest stałą (domyślnie 60)
+- `rank_i(d)` jest pozycją dokumentu `d` w i-tym systemie wyszukiwania (FTS, wektorowym)
+- Suma obejmuje wszystkie systemy wyszukiwania
 
-### Jak `k` wpływa na wyniki
+### Wpływ parametru `k` na wyniki
 
-| `k` value            | Effect                                                                          | Best for                              |
-| -------------------- | ------------------------------------------------------------------------------- | ------------------------------------- |
-| `k=0`                | Czysta fuzja rang (bez wygładzania)                                             | Teoretyczna baza                      |
-| `k=10-30`            | Silnie waży top wyniki, niski rank prawie nie wnosi                             | Gdy top-3 zwykle jest poprawne        |
-| **`k=60`** (default) | Zbalansowane — top-10 wyniki wszystkie wnoszą sensownie                         | Retrieval ogólnego przeznaczenia      |
-| `k=100+`             | Płaskiej — nawet niski rank może dominować, jeśli pojawia się w wielu systemach | Gdy recall > precision jest krytyczne |
+| Wartość `k`            | Efekt                                                                                               | Najlepsze zastosowanie                      |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `k=0`                  | Czysta fuzja rankingów (bez wygładzania)                                                            | Teoretyczna wartość bazowa                  |
+| `k=10-30`              | Silnie premiuje najlepsze wyniki, niskie pozycje mają minimalny wkład                               | Gdy pierwsze 3 wyniki są zazwyczaj poprawne |
+| **`k=60`** (domyślnie) | Zrównoważone — wszystkie wyniki z pierwszej dziesiątki mają istotny wkład                           | Wyszukiwanie ogólnego przeznaczenia         |
+| `k=100+`               | Bardziej płaskie — nawet wyniki z niskich pozycji mogą dominować, jeśli występują w wielu systemach | Gdy kompletność > precyzja jest kluczowa    |
 
 ### Dostrajanie `k` w praktyce
 
 ```bash
-# Default
+# Wartość domyślna
 MEMORY_RRF_K=60
 
-# Aggressive precision (small memory, few docs)
+# Agresywna precyzja (mała pamięć, niewiele dokumentów)
 MEMORY_RRF_K=20
 
-# Maximum recall (large memory, varied queries)
+# Maksymalna kompletność (duża pamięć, zróżnicowane zapytania)
 MEMORY_RRF_K=120
 ```
 
 **Przykład z `k=20`:**
 
-- FTS rank 1 → wkład `1/21 = 0.048`
-- FTS rank 10 → wkład `1/30 = 0.033`
-- Vector rank 1 → wkład `0.048`
-- Combined max: `0.096`
+- Pozycja FTS 1 → wkład `1/21 = 0.048`
+- Pozycja FTS 10 → wkład `1/30 = 0.033`
+- Pozycja wektorowa 1 → wkład `0.048`
+- Maksymalny wynik łączny: `0.096`
 
 **Przykład z `k=60`:**
 
-- FTS rank 1 → wkład `1/61 = 0.016`
-- FTS rank 10 → wkład `1/70 = 0.014`
-- Vector rank 1 → wkład `0.016`
-- Combined max: `0.033`
+- Pozycja FTS 1 → wkład `1/61 = 0.016`
+- Pozycja FTS 10 → wkład `1/70 = 0.014`
+- Pozycja wektorowa 1 → wkład `0.016`
+- Maksymalny wynik łączny: `0.033`
 
-Przy wyższym `k` **względna różnica** między top-1 a rank-10 jest mniejsza, więc algorytm bardziej polega na **konsensusie między systemami retrieval** niż na pewności top-rank.
+Przy wyższej wartości `k` **względna różnica** między pierwszym wynikiem a wynikiem na pozycji 10 jest mniejsza, dlatego algorytm w większym stopniu opiera się na **zgodności między systemami wyszukiwania** niż na pewności najlepszego wyniku.
 
-### Kiedy zmieniać `k`
+### Kiedy zmienić `k`
 
-| Symptom                                  | Try                                                          |
-| ---------------------------------------- | ------------------------------------------------------------ |
-| Top wynik zawsze wygrywa, ale jest zły   | **Obniż** k (np. 20) — pewność top-rank ma większe znaczenie |
-| Dobra odpowiedź jest w top-5, nie top-1  | **Podnieś** k (np. 100) — płaskie scoring nagradza konsensus |
-| Recall wysoki, precision niska           | **Obniż** k — wyostrz ranking                                |
-| Recall niski (brakuje relevantnych docs) | **Podnieś** k — daj szansę niżej rankingowanym docs          |
+| Objaw                                                                            | Co wypróbować                                                           |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Najlepszy wynik zawsze wygrywa, ale jest błędny                                  | **Niższe** k (np. 20) — pewność najwyższej pozycji ma większe znaczenie |
+| Poprawna odpowiedź znajduje się w pierwszej piątce, ale nie na pierwszym miejscu | **Wyższe** k (np. 100) — bardziej płaska punktacja premiuje zgodność    |
+| Kompletność jest wysoka, ale precyzja niska                                      | **Niższe** k — wyostrz ranking                                          |
+| Kompletność jest niska (brakuje trafnych dokumentów)                             | **Wyższe** k — daj szansę dokumentom z niższych pozycji                 |
 
-### Wagi RRF
+### Ważenie RRF
 
-Reciprocal rank fusion używa równych wag dla rangi wektorowej semantycznej i rangi full-text search:
+Fuzja oparta na odwrotności pozycji wykorzystuje równe wagi dla semantycznego rankingu wektorowego i rankingu wyszukiwania pełnotekstowego:
 
 ```
 RRF(d) = 1/(k + rank_vector) + 1/(k + rank_fts)
 ```
 
-Nie ma zmiennych środowiskowych do regulacji wag indywidualnych (`MEMORY_RRF_VECTOR_WEIGHT`/`MEMORY_RRF_FTS_WEIGHT` nie istnieją).
+Nie istnieją zmienne środowiskowe umożliwiające dostosowanie poszczególnych wag (`MEMORY_RRF_VECTOR_WEIGHT`/`MEMORY_RRF_FTS_WEIGHT` nie istnieją).
 
 ---
 
-## Strategia summarization (v3.8.16+)
+## Strategia podsumowywania (v3.8.16+)
 
-Moduł `summarization.ts` (`src/lib/memory/summarization.ts`) kompresuje starsze memories, żeby aktywny zbiór był mały przy zachowaniu recall.
+Moduł `summarization.ts` (`src/lib/memory/summarization.ts`) kompresuje starsze wspomnienia, aby utrzymać mały aktywny zestaw przy jednoczesnym zachowaniu możliwości ich przywoływania.
 
-### Kiedy wyzwala się summarization
+### Kiedy uruchamiane jest podsumowywanie
 
-| Trigger                | Threshold (default) |
-| ---------------------- | ------------------- |
-| Manual trigger via API | n/a                 |
+| Wyzwalacz                  | Próg (domyślny) |
+| -------------------------- | --------------- |
+| Ręczne wywołanie przez API | nie dotyczy     |
 
-### Co jest summarizowane
+### Co jest podsumowywane
 
-Dwa punkty wejścia eksportowane z `summarization.ts`:
+Z pliku `summarization.ts` eksportowane są dwa punkty wejścia:
 
 - **`summarizeMemories(apiKeyId, sessionId?, maxTokens = 4000)`** — kondensuje
-  memories sesji do pojedynczego tekstu podsumowania ograniczonego budżetem tokenów.
-- **`summarizeMemoriesOlderThan(apiKeyId, days, dryRun)`** — kompakcja oparta o wiek
-  używana przez API: wybiera każde memory starsze niż `days`, buduje
-  jedno skondensowane summary memory i (gdy `dryRun` jest `false`) usuwa
-  oryginały. Podaj `dryRun: true`, aby podejrzeć zbiór kandydatów i sumę tokenów
-  bez modyfikacji.
+  wspomnienia z sesji do pojedynczego tekstu podsumowania ograniczonego budżetem tokenów.
+- **`summarizeMemoriesOlderThan(apiKeyId, days, dryRun)`** — kompresja oparta na wieku,
+  używana przez API: wybiera każde wspomnienie starsze niż `days`, tworzy z nich jedno
+  skondensowane wspomnienie podsumowujące i (gdy `dryRun` ma wartość `false`) usuwa
+  oryginały. Przekaż `dryRun: true`, aby wyświetlić podgląd zestawu kandydatów i łącznej
+  liczby tokenów bez wprowadzania żadnych zmian.
 
-Nie ma przejścia klastrowania tag/key ani scoringu per-memory „core vs summarizable” —
-selekcja to czysto próg wieku, a tekst summary to skondensowana,
-prefiksowana typem linia na kandydata.
+Nie ma etapu grupowania według tagów/kluczy ani oceny poszczególnych wspomnień jako
+„kluczowe lub możliwe do podsumowania” — wybór opiera się wyłącznie na granicy wieku,
+a tekst podsumowania składa się ze skondensowanych wierszy dla każdego kandydata,
+poprzedzonych jego typem.
 
-### Wyzwalanie summarization
+### Uruchamianie podsumowywania
 
-Summarization jest **ręczne / opt-in** — ustawienie `autoSummarize` jest `false` domyślnie,
-więc nic nie jest kompaktowane automatycznie. Wyzwól przez API:
+Podsumowywanie jest **ręczne / opcjonalne** — ustawienie `autoSummarize` ma domyślnie
+wartość `false`, dlatego nic nie jest automatycznie kompresowane. Uruchom je przez API:
 
 ```bash
 curl -X POST http://localhost:20128/api/memory/summarize \
   -H "Authorization: Bearer $OMNIROUTE_KEY"
 ```
 
-Aby zostawić wyłączone, po prostu trzymaj `autoSummarize` na domyślnym (`false`).
+Aby pozostawić tę funkcję wyłączoną, zachowaj domyślną wartość `autoSummarize` (`false`).
 
-### Wskazówki jakości summarization
+### Wskazówki dotyczące jakości podsumowywania
 
-- **Najpierw podgląd z `dryRun`** — `summarizeMemoriesOlderThan(..., true)` zwraca
-  listę kandydatów i całkowitą liczbę tokenów, żeby potwierdzić, co zostałoby scalone
-  przed usunięciem oryginałów.
-- **Uruchamiaj summarization w godzinach niskiego ruchu**, jeśli masz duży korpus memory — wywołanie LLM to wolna część
+- **Najpierw wyświetl podgląd za pomocą `dryRun`** — `summarizeMemoriesOlderThan(..., true)`
+  zwraca listę kandydatów i łączną liczbę tokenów, dzięki czemu można sprawdzić, co
+  zostanie połączone przed usunięciem oryginałów.
+- **Uruchamiaj podsumowywanie w godzinach małego ruchu**, jeśli masz duży korpus wspomnień — wywołanie LLM jest najwolniejszym etapem
 
 ```bash
-# Cron-style: summarize at 3am daily
+# W stylu Cron: podsumowuj codziennie o 3:00
 0 3 * * * curl -X POST http://localhost:20128/api/memory/summarize \
   -H "Authorization: Bearer $OMNIROUTE_KEY"
 ```
+
+---
+
+## Wzorzec dostawcy MemoryBackend
+
+> **Źródło prawdy:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Testy:** `src/lib/memory/__tests__/generic-backend.test.ts`
+
+Wzorzec dostawcy MemoryBackend wprowadza **wymienną warstwę abstrakcji backendu** nad istniejącym silnikiem pamięci. Zamiast być powiązanym z jedną implementacją pamięci masowej, system pamięci obsługuje teraz wiele backendów (SQLite, Obsidian, Notion, niestandardowe backendy HTTP) z konfigurowalnym routingiem podstawowym i rezerwowym.
+
+### Architektura
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    Trasy API                              │
+│            (src/app/api/memory/route.ts)                  │
+└──────────────────────┬───────────────────────────────────┘
+                       │
+┌──────────────────────▼───────────────────────────────────┐
+│                   MemoryManager                           │
+│       Orkiestrator singletonowy (manager.ts)              │
+│                                                          │
+│  Podstawowy ──► Backend A  (np. SQLite)                  │
+│  Rezerwowy  ──► Backend B  (np. Obsidian)                │
+│                 Backend C  (np. Notion przez GenericBackend)│
+└──────────────────────┬───────────────────────────────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+┌────────────┐ ┌────────────┐ ┌──────────────────┐
+│ Backend    │ │ Backend    │ │ GenericMemory    │
+│ SQLite     │ │ Obsidian   │ │ Backend (HTTP)   │
+└────────────┘ └────────────┘ └──────────────────┘
+```
+
+#### Główny interfejs (`backend.ts`)
+
+Każdy backend musi implementować interfejs `MemoryBackend`:
+
+```typescript
+interface MemoryBackend {
+  readonly id: string;
+  readonly displayName: string;
+
+  // Operacje CRUD
+  create(input: CreateMemoryInput): Promise<Memory>;
+  get(id: string): Promise<Memory | null>;
+  update(id: string, updates: Partial<...>): Promise<boolean>;
+  delete(id: string): Promise<boolean>;
+  list(filter: MemoryFilter): Promise<{ data: Memory[]; total: number; byType: Record<string, number> }>;
+
+  // Wyszukiwanie
+  search(config: SearchConfig): Promise<Memory[]>;
+
+  // Stan
+  health(): Promise<HealthCheckResult>;
+
+  // Cykl życia (opcjonalnie)
+  initialize?(): Promise<void>;
+  shutdown?(): Promise<void>;
+}
+```
+
+#### MemoryManager (`manager.ts`)
+
+Orkiestrator singletonowy, który:
+
+- **Rejestruje** backendy za pomocą `register(backend)` — wywoływane podczas uruchamiania z `index.ts`
+- **Konfiguruje** backend podstawowy i rezerwowe za pomocą `configure(primary, fallbacks)`
+- **Kieruje** operacje CRUD/wyszukiwania do backendu podstawowego, korzystając z łańcucha backendów rezerwowych w przypadku awarii
+- **Sprawdza stan** wszystkich backendów w regularnych odstępach czasu
+
+**Zachowanie mechanizmu rezerwowego:**
+
+| Operacja | Backend podstawowy             | Backendy rezerwowe                         |
+| -------- | ------------------------------ | ------------------------------------------ |
+| `create` | ✅ Tylko backend podstawowy    | ❌                                         |
+| `get`    | ✅ Najpierw backend podstawowy | ✅ Rezerwowy, jeśli wynik to null          |
+| `update` | ✅ Tylko backend podstawowy    | ✅ Synchronizacja bez oczekiwania na wynik |
+| `delete` | ✅ Tylko backend podstawowy    | ✅ Synchronizacja bez oczekiwania na wynik |
+| `list`   | ✅ Tylko backend podstawowy    | ❌                                         |
+| `search` | ✅ Najpierw backend podstawowy | ✅ Rezerwowy w przypadku błędu             |
+
+#### GenericMemoryBackend (`genericBackend.ts`)
+
+Ogólny konektor HTTP, który dostosowuje dowolne REST API do interfejsu MemoryBackend. Przydatny w przypadku:
+
+- **Notion** — połączenie przez Notion API
+- **Obsidian** — połączenie przez Obsidian Local REST API
+- **Niestandardowych backendów** — dowolnej usługi udostępniającej RESTful API pamięci
+
+**Konfiguracja:**
+
+```typescript
+interface GenericBackendConfig {
+  baseUrl: string;           // Bazowy adres URL interfejsu API backendu
+  apiKey?: string;           // Token Bearer do uwierzytelniania
+  headers?: Record<string, string>;  // Niestandardowe nagłówki HTTP
+  timeout?: number;          // Limit czasu żądania (domyślnie: 30000ms)
+  backendType?: string;      // Do rejestrowania zdarzeń
+
+  // Nadpisania endpointów (wartości domyślne używają konwencji REST)
+  endpoints?: {
+    search?: string;   // domyślnie: "/memories/search"
+    create?: string;   // domyślnie: "/memories"
+    list?: string;     // domyślnie: "/memories"
+    get?: string;      // domyślnie: "/memories/{id}"
+    update?: string;   // domyślnie: "/memories/{id}"
+    delete?: string;   // domyślnie: "/memories/{id}"
+    health?: string;   // domyślnie: "/health"
+  };
+
+  // Mapowania nazw parametrów zapytania
+  queryParams?: {
+    query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
+  };
+
+  // Mapowania nazw parametrów ścieżki
+  pathParams?: {
+    id?/memoryId?
+  };
+}
+```
+
+**Znane backendy** są wstępnie skonfigurowane w `KNOWN_BACKENDS`:
+
+```typescript
+createKnownBackend("obsidian"); // → GenericMemoryBackend wskazujący na localhost:27123
+createKnownBackend("notion"); // → GenericMemoryBackend wskazujący na api.notion.com/v1
+```
+
+#### Wbudowane backendy
+
+##### SQLiteBackend (`sqliteBackend.ts`)
+
+Domyślny backend główny. Opakowuje istniejący magazyn pamięci oparty na SQLite, używając `src/lib/memory/store.ts`. Jest automatycznie rejestrowany podczas uruchamiania.
+
+```typescript
+import { sqliteBackend } from "./sqliteBackend";
+memoryManager.register(sqliteBackend);
+```
+
+##### ObsidianBackend (`obsidianBackend.ts`)
+
+Opakowuje istniejącą integrację z Obsidianem (`src/lib/memory/obsidianBackend.ts`). Łączy się z magazynem Obsidian za pośrednictwem lokalnego interfejsu REST API Obsidiana.
+
+### Ustawienia
+
+Ustawienia backendu pamięci są przechowywane w tabeli ustawień aplikacji i zarządzane za pośrednictwem `src/lib/memory/settings.ts`:
+
+| Ustawienie             | Klucz środowiska/konfiguracji | Domyślnie  | Opis                                                 |
+| ---------------------- | ----------------------------- | ---------- | ---------------------------------------------------- |
+| Backend główny         | `memoryPrimaryBackend`        | `"sqlite"` | Identyfikator głównego backendu                      |
+| Backendy rezerwowe     | `memoryFallbackBackends`      | `[]`       | Uporządkowane identyfikatory backendów rezerwowych   |
+| Konfiguracje backendów | `memoryBackendConfigs`        | `{}`       | Nadpisania konfiguracji dla poszczególnych backendów |
+
+Ustawienia są normalizowane za pomocą `normalizeMemorySettings()` i buforowane w `getMemorySettings()`.
+
+### Przebieg inicjalizacji
+
+```
+Uruchomienie aplikacji
+  → importy index.ts (efekt uboczny): rejestrują SQLiteBackend
+  → initMemoryBackends() wywoływane z cyklu życia aplikacji:
+      1. Wczytanie ustawień (getMemorySettings)
+      2. Skonfigurowanie backendu głównego i rezerwowych
+      3. Zainicjalizowanie wszystkich backendów (kontrola stanu)
+      4. Gotowość do obsługi żądań
+```
+
+### Dodawanie nowego backendu
+
+1. **Zaimplementuj interfejs `MemoryBackend`** w `src/lib/memory/<name>Backend.ts`
+2. **Wyeksportuj** z `src/lib/memory/index.ts`
+3. **Zarejestruj** za pomocą `memoryManager.register(yourBackend)` podczas uruchamiania
+4. **Skonfiguruj** za pomocą ustawień: ustaw `memoryPrimaryBackend` na identyfikator swojego backendu
+5. **Przetestuj**, używając `src/lib/memory/__tests__/generic-backend.test.ts` jako punktu odniesienia
+
+#### Przykład: backend Brain
+
+```typescript
+import { createGenericMemoryBackend } from "./genericBackend";
+
+const brainBackend = createGenericMemoryBackend("brain", "BK-Brain", {
+  baseUrl: process.env.BRAIN_API_URL || "http://localhost:9099",
+  apiKey: process.env.BRAIN_API_KEY,
+  endpoints: {
+    search: "/api/memory/search",
+    create: "/api/memory",
+    health: "/api/health",
+  },
+});
+
+memoryManager.register(brainBackend);
+```
+
+### Weryfikacja
+
+#### Testy jednostkowe
+
+```bash
+npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
+```
+
+Oczekiwany wynik: **35 testów, wszystkie zakończone powodzeniem**, obejmujących:
+
+- Konstruktor (2)
+- Kontrolę stanu (4) — powodzenie, błąd 500, błąd sieci, opóźnienie
+- Inicjalizację (2) — powodzenie, niepowodzenie
+- Tworzenie (2) — domyślny endpoint, niestandardowy endpoint
+- Pobieranie (4) — powodzenie, 404 → null, zgłoszenie wyjątku dla kodu innego niż 404, niestandardowe parametry ścieżki
+- Aktualizację (2) — powodzenie, 404 → false
+- Usuwanie (2) — powodzenie, 404 → false
+- Wyświetlanie listy (2) — parametry zapytania, niestandardowe nazwy parametrów
+- Wyszukiwanie (3) — parametry zapytania, niestandardowy endpoint, serializacja opcji
+- Nagłówki uwierzytelniania (2) — token Bearer, niestandardowe nagłówki
+- Fabrykę (1)
+
+#### Sprawdzanie typów
+
+```bash
+npm run typecheck:core
+```
+
+Oczekiwany wynik: **0 błędów**.

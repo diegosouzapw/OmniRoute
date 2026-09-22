@@ -4,35 +4,50 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+> Протокол Agent-to-Agent v0.3 — OmniRoute как интеллектуальный агент маршрутизации
 
-## Agent Discovery
+Интерфейс A2A представлен в двух вариантах:
+
+- **JSON-RPC 2.0** по адресу `POST /a2a` (каноническая точка входа, определённая в `src/app/a2a/route.ts`).
+- **REST** по адресам `/api/a2a/*` для панелей мониторинга и инструментов (состояние, список задач, отмена).
+
+Задачи отслеживаются с помощью `A2ATaskManager` (`src/lib/a2a/taskManager.ts`, TTL по умолчанию — 5 минут). Навыки направляются соответствующим обработчикам через `A2A_SKILL_HANDLERS` в `src/lib/a2a/taskExecution.ts`.
+
+## Обнаружение агента
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+Возвращает карточку агента с описанием возможностей, навыков и требований к аутентификации OmniRoute.
+
+Поле `version` карточки агента берётся из `process.env.npm_package_version` (см. `src/app/.well-known/agent.json/route.ts:13`), поэтому при каждом выпуске оно автоматически синхронизируется с `package.json`.
 
 ---
 
-## Authentication
+## Аутентификация
 
-All `/a2a` requests require an API key via the `Authorization` header:
+Для всех запросов к `/a2a` требуется API-ключ, передаваемый через заголовок `Authorization`:
 
 ```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
 ```
 
-If no API key is configured on the server, authentication is bypassed.
+Если на сервере не настроен API-ключ, аутентификация пропускается.
+
+## Включение
+
+A2A управляется переключателем **Endpoints → A2A** и по умолчанию отключён. Когда A2A отключён,
+`GET /api/a2a/status` сообщает `status: "disabled"` и `online: false`; вызовы JSON-RPC к
+`POST /a2a` возвращают HTTP 503 с кодом ошибки JSON-RPC `-32000`.
 
 ---
 
-## JSON-RPC 2.0 Methods
+## Методы JSON-RPC 2.0
 
-### `message/send` — Synchronous Execution
+### `message/send` — Синхронное выполнение
 
-Sends a message to a skill and waits for the complete response.
+Отправляет сообщение навыку и ожидает полного ответа.
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -50,7 +65,7 @@ curl -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**Response:**
+**Ответ:**
 
 ```json
 {
@@ -61,19 +76,30 @@ curl -X POST http://localhost:20128/a2a \
     "artifacts": [{ "type": "text", "content": "..." }],
     "metadata": {
       "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+      "cost_envelope": {
+        "estimated": 0.005,
+        "actual": 0.003,
+        "currency": "USD"
+      },
       "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+        {
+          "event": "primary_selected",
+          "provider": "anthropic",
+          "timestamp": "..."
+        }
       ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+      "policy_verdict": {
+        "allowed": true,
+        "reason": "within budget and quota limits"
+      }
     }
   }
 }
 ```
 
-### `message/stream` — SSE Streaming
+### `message/stream` — Потоковая передача через SSE
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
+Аналогичен `message/send`, но возвращает события Server-Sent Events для потоковой передачи в реальном времени.
 
 ```bash
 curl -N -X POST http://localhost:20128/a2a \
@@ -90,7 +116,7 @@ curl -N -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**SSE Events:**
+**События SSE:**
 
 ```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
@@ -100,7 +126,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
 ```
 
-### `tasks/get` — Query Task Status
+### `tasks/get` — Запрос состояния задачи
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -109,7 +135,7 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
 ```
 
-### `tasks/cancel` — Cancel a Task
+### `tasks/cancel` — Отмена задачи
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -120,42 +146,123 @@ curl -X POST http://localhost:20128/a2a \
 
 ---
 
-## Available Skills
+## Доступные навыки
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+OmniRoute предоставляет 6 навыков A2A, подключённых в `src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`. Модуль каждого навыка находится в `src/lib/a2a/skills/`.
 
----
+| Навык                   | ID                   | Описание                                                                                                                                                                        | Теги                          | Примеры                               |
+| :---------------------- | :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------- | :------------------------------------ |
+| Умная маршрутизация     | `smart-routing`      | Направляет запрос оптимальному провайдеру или комбинации, используя механизм комбинаций и систему оценки OmniRoute                                                              | маршрутизация, провайдеры     | "Направь этот запрос лучшей модели"   |
+| Управление квотами      | `quota-management`   | Сообщает состояние квоты для каждого провайдера и помогает вызывающим сторонам определить, когда следует ограничить запросы или переключить провайдера                          | квота, провайдеры             | "Проверь квоту для anthropic"         |
+| Обнаружение провайдеров | `provider-discovery` | Выводит список установленных провайдеров с их возможностями, признаками бесплатного уровня и статусом OAuth                                                                     | провайдеры, обнаружение       | "Какие провайдеры доступны?"          |
+| Анализ стоимости        | `cost-analysis`      | Оценивает стоимость запроса или диалога на основе каталога и недавнего использования                                                                                            | стоимость, использование      | "Оцени стоимость этого диалога"       |
+| Отчёт о состоянии       | `health-report`      | Объединяет данные об автоматическом выключателе, периоде ожидания и состоянии блокировки для каждого провайдера                                                                 | состояние, отказоустойчивость | "Покажи состояние всех провайдеров"   |
+| Список возможностей     | `list-capabilities`  | Возвращает полный каталог Agent Skills из 45 записей (23 API + 21 CLI + 1 конфигурация) в виде таблицы markdown с необработанными URL-адресами SKILL.md для внедрения контекста | каталог, обнаружение, навыки  | "Перечисли все возможности OmniRoute" |
 
-## Task Lifecycle
+> Карточку агента следует поддерживать в соответствии с актуальным каталогом из 352 провайдеров; количество провайдеров и метаданные о бесплатном доступе и отсутствии необходимости аутентификации берутся из реестра среды выполнения.
+
+### Подробности навыка `list-capabilities`
+
+Навык `list-capabilities` особенно полезен внешним агентам, которым необходимо узнать, какие возможности предоставляет OmniRoute, прежде чем отправлять вызовы API. Он возвращает структурированный артефакт в виде таблицы markdown:
 
 ```
-submitted → working → completed
-                    → failed
-                    → cancelled
+| ID | Название | Категория | Область | Конечные точки/Команды | Необработанный URL |
+| --- | --- | --- | --- | --- | --- |
+| omni-auth | Аутентификация и сеансы | api | auth | POST /api/auth/login, ... | https://raw.githubusercontent.com/... |
+...
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
+Каждая строка содержит столбец `rawUrl`, поэтому агенты могут немедленно получить полный файл SKILL.md. Поле `metadata.totalSkills` отражает размер каталога (на сегодняшний день — 45). Реализация: `src/lib/a2a/skills/listCapabilities.ts`. См. также [AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
 ---
 
-## Error Codes
+## REST API (вспомогательный)
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
+Конечная точка JSON-RPC `/a2a` является канонической точкой входа A2A. Приведённые ниже конечные точки REST обеспечивают вспомогательный доступ для панелей мониторинга и внешних инструментов:
+
+| Конечная точка               | Метод | Описание                                                       | Аутентификация                              |
+| :--------------------------- | :---- | :------------------------------------------------------------- | :------------------------------------------ |
+| `/api/a2a/status`            | GET   | Состояние сервера, зарегистрированные навыки                   | (публичный доступ)                          |
+| `/api/a2a/tasks`             | GET   | Список задач с фильтрами                                       | управление                                  |
+| `/api/a2a/tasks/[id]`        | GET   | Получение задачи по ID                                         | управление                                  |
+| `/api/a2a/tasks/[id]/cancel` | POST  | Отмена выполняющейся задачи                                    | управление                                  |
+| `/.well-known/agent.json`    | GET   | Карточка агента (обнаружение A2A)                              | (публичный доступ, кэширование 3600 с)      |
+| `/api/a2a/tasks`             | POST  | Входящее делегирование флоту OmniConductor (Conductor PRD RF5) | Bearer и `OMNIROUTE_API_KEY` + `a2aEnabled` |
+
+**Входящее делегирование Conductor (`POST /api/a2a/tasks`):** внешние агенты A2A делегируют работу с кодом флоту OmniConductor через OmniRoute. Тело запроса: `{ skill: "conductor" | "conductor-cli-<profile>", messages: [{role, content}], metadata: { conductor: { repo: { url, base_ref? }, mode?, cli?, model? } } }` — делегировать можно только навыки флота Conductor (объявленные в карточке агента); поле `metadata.conductor.repo.url` является обязательным (флот работает с репозиториями git). Маршрут преобразуется в запрос `POST /v1/tasks` к хабу с использованием серверного токена `CONDUCTOR_ORCHESTRATOR_TOKEN` (с резервным использованием `CONDUCTOR_HUB_TOKEN`) и возвращает `201 { conductor_task_id, state: "submitted" }`; состояния задач передаются обратно через зеркало SSE→A2A (RF1) и доступны через `GET /api/a2a/tasks?skill=conductor`.
 
 ---
 
-## Integration Examples
+## Добавление нового навыка
+
+1. **Создайте файл навыка:** `src/lib/a2a/skills/<your-skill>.ts`
+
+   Экспортируйте асинхронную функцию `(task: A2ATask) => Promise<{ artifacts, metadata }>`. Следуйте структуре существующих навыков, таких как `smartRouting.ts`.
+
+2. **Зарегистрируйте обработчик:** в `src/lib/a2a/taskExecution.ts` добавьте запись в `A2A_SKILL_HANDLERS`:
+
+   ```typescript
+   export const A2A_SKILL_HANDLERS = {
+     // ...существующие навыки
+     "your-skill": async (task) => {
+       const skillModule = await import("./skills/yourSkill");
+       return skillModule.executeYourSkill(task);
+     },
+   };
+   ```
+
+3. **Добавьте в карточку агента:** в `src/app/.well-known/agent.json/route.ts` добавьте элемент в массив `skills`:
+
+   ```json
+   {
+     "id": "your-skill",
+     "name": "Ваш навык",
+     "description": "Краткое описание, ориентированное на назначение",
+     "tags": ["routing", "quota"],
+     "examples": ["Пример вызова на естественном языке"]
+   }
+   ```
+
+4. **Напишите тесты:** `tests/unit/a2a-<your-skill>.test.ts`. Покройте успешный сценарий и сценарий с ошибкой.
+
+5. **Задокументируйте** новый навык в таблице `Available Skills` этого файла.
+
+---
+
+## TTL задачи
+
+Срок действия задач истекает через `ttlMinutes` (по умолчанию 5 минут) — этот параметр задаётся в конструкторе `A2ATaskManager` в `src/lib/a2a/taskManager.ts:82`. Чтобы изменить его, создайте собственный экземпляр `A2ATaskManager` и передайте другое значение (например, `new A2ATaskManager(15)` для TTL длительностью 15 минут). Фоновый процесс удаляет задачи с истёкшим сроком действия каждые 60 секунд.
+
+---
+
+## Жизненный цикл задачи
+
+```
+отправлена → выполняется → завершена
+                        → завершена с ошибкой
+                        → отменена
+```
+
+- По умолчанию срок действия задач истекает через 5 минут (см. [TTL задачи](#task-ttl))
+- Терминальные состояния: `completed`, `failed`, `cancelled`
+- Журнал событий отслеживает каждый переход между состояниями
+
+---
+
+## Коды ошибок
+
+| Код    | Значение                              |
+| :----- | :------------------------------------ |
+| -32700 | Ошибка разбора (недопустимый JSON)    |
+| -32600 | Недопустимый запрос / Нет авторизации |
+| -32601 | Метод или навык не найден             |
+| -32602 | Недопустимые параметры                |
+| -32603 | Внутренняя ошибка                     |
+| -32000 | Конечная точка A2A отключена          |
+
+---
+
+## Примеры интеграции
 
 ### Python (requests)
 

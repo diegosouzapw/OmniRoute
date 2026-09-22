@@ -1,0 +1,4 @@
+{
+  "description": "CLI keys that must stay in English (brand names, command names, protocol identifiers). Same shape as untranslatable-keys.json; consumed by sync-ui-keys --catalog=cli --retranslate-identical and check-translation-ratio --catalog=cli.",
+  "keys": []
+}

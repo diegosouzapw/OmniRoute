@@ -10,6 +10,7 @@ import {
 } from "../services/auth";
 import { maybeReactivateAfterExplicitProbe } from "../services/explicitInactiveProbe";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { clearRequestRejectedStreak } from "@omniroute/open-sse/services/requestRejectedStreak.ts";
 import { createBuiltinAutoCombo } from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
@@ -349,6 +350,7 @@ export async function resolveModelOrError(
     customModelTargetFormat,
     extendedContext,
     apiFormat,
+    resolvedThinkingEffort: modelInfo.resolvedThinkingEffort,
   };
 }
 
@@ -443,6 +445,7 @@ export async function executeChatWithBreaker({
   extendedContext,
   modelApiFormat,
   modelTargetFormat,
+  resolvedThinkingEffort,
   providerProfile,
   cachedSettings,
   skipUpstreamRetry = false,
@@ -496,6 +499,7 @@ export async function executeChatWithBreaker({
               extendedContext,
               apiFormat: modelApiFormat,
               targetFormat: modelTargetFormat,
+              resolvedThinkingEffort,
             },
             credentials: refreshedCredentials,
             log: handlerLog,
@@ -537,6 +541,9 @@ export async function executeChatWithBreaker({
             },
             onRequestSuccess: async () => {
               if (isShadowTraffic) return;
+              // A healthy response ends any run of per-request refusals
+              // (#12859) — only a real success does, not an elapsed cooldown.
+              if (credentials.connectionId) clearRequestRejectedStreak(credentials.connectionId);
               await clearAccountError(credentials.connectionId, credentials);
               await maybeReactivateAfterExplicitProbe({
                 connectionId: credentials.connectionId,
@@ -825,6 +832,23 @@ export function handleNoCredentials(
       status === "credits_exhausted" ? HTTP_STATUS.PAYMENT_REQUIRED : HTTP_STATUS.UNAUTHORIZED;
     return errorResponse(httpStatus, message);
   }
+  if (credentials?.blockedByKeyPolicy) {
+    // #13832: the provider HAS active connections — they were filtered out by the
+    // gateway API key's connection allowlist (`allowed_connections`) or its quota
+    // scope, so the pool arrived empty and the generic "No active credentials"
+    // below was indistinguishable from "this provider was never configured". That
+    // cost the reporter a full investigation: their key passed `/test` and synced
+    // 82 models (both address the connection by id and never consult the key's
+    // scope), while chat kept failing. The classic shape is a key minted before
+    // the provider existed, which is why older providers keep working on it.
+    // 403, not 401: the credential is fine, this principal is not allowed to use it.
+    const count = credentials.blockedCount || 1;
+    const message =
+      `[${provider}] ${count} connection(s) exist but are excluded by this API key's ` +
+      `connection allowlist / quota scope — add them to the key in the dashboard, or use a key without that scope`;
+    log.warn("AUTH", message);
+    return errorResponse(HTTP_STATUS.FORBIDDEN, message);
+  }
   if (!excludeConnectionId) {
     // Ported from upstream decolua/9router#336 (Ibrahim Ryan): surface as 404
     // NOT_FOUND instead of 400 BAD_REQUEST so combo routing can fall through to
@@ -920,11 +944,25 @@ export function handleNoCredentials(
  */
 export const STREAM_EARLY_EOF_MAX_RETRIES = 1;
 
+// A genuine 0-byte upstream empty response (emitClaudeEmptyStreamErrorAndAbort,
+// code "empty_response" — call logs 1788132529140-96ef4a / 1788142914004-062cf6)
+// is the same class of transient upstream glitch as STREAM_EARLY_EOF: the
+// upstream sent HTTP 200 then closed with zero useful frames. Treat it the
+// same — ONE bounded same-connection re-attempt, never a loop.
+const RETRYABLE_STREAM_EMPTY_CODES: ReadonlySet<string> = new Set([
+  "STREAM_EARLY_EOF",
+  "empty_response",
+]);
+
 export function shouldRetryStreamEarlyEof(
   errorCode: string | null | undefined,
   attempt: number
 ): boolean {
-  return errorCode === "STREAM_EARLY_EOF" && attempt < STREAM_EARLY_EOF_MAX_RETRIES;
+  return (
+    typeof errorCode === "string" &&
+    RETRYABLE_STREAM_EMPTY_CODES.has(errorCode) &&
+    attempt < STREAM_EARLY_EOF_MAX_RETRIES
+  );
 }
 
 // The sibling hop widens the terminal/failover boundary, so it ships off
@@ -960,7 +998,8 @@ export function decideProxyResolutionFailure(
 export async function safeResolveProxy(
   connectionId: string,
   apiKeyId?: string,
-  providerId?: string
+  providerId?: string,
+  comboName?: string | null
 ) {
   try {
     const resolved = await resolveProxyForConnection(connectionId, apiKeyId, providerId);
@@ -970,7 +1009,7 @@ export async function safeResolveProxy(
     // opts back into direct). Explicit "proxy off" is not a leak (see the guard).
     if (
       !(resolved as { proxy?: unknown } | null)?.proxy &&
-      hasBlockingProxyAssignment(connectionId, providerId)
+      hasBlockingProxyAssignment(connectionId, providerId, comboName)
     ) {
       return decideProxyResolutionFailure(
         Object.assign(

@@ -8,6 +8,17 @@ type ReadTimeoutOptions = {
 
 export const DEFAULT_FETCH_TIMEOUT_MS = 600_000;
 export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 600_000;
+// Hard cap on a connected stream's TOTAL lifetime (it never resets on bytes,
+// unlike STREAM_IDLE_TIMEOUT_MS). It must therefore stay ABOVE the largest
+// per-model `timeoutMs` any provider registers, or a model that is allowed to
+// run for its full budget would be killed mid-answer by this watchdog. The
+// current maximum registered budget is 1_200_000ms (20 min, the Codex models
+// in open-sse/config/providers/registry/codex), so the default is that value
+// plus a one-minute margin. tests/unit/stream-active-timeout-covers-model-budgets.test.ts
+// re-derives the maximum from the registry and fails if this constant ever
+// falls below it again (#12913).
+export const MAX_REGISTERED_MODEL_TIMEOUT_MARGIN_MS = 60_000;
+export const DEFAULT_STREAM_ACTIVE_TIMEOUT_MS = 1_260_000;
 export const MAX_TIMER_TIMEOUT_MS = 2_147_483_647;
 export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 export const DEFAULT_STREAM_READINESS_TIMEOUT_MS = 80_000;
@@ -57,6 +68,7 @@ function hasEnvValue(env: EnvSource, name: string): boolean {
 export type UpstreamTimeoutConfig = {
   fetchTimeoutMs: number;
   streamIdleTimeoutMs: number;
+  streamActiveTimeoutMs: number;
   sseHeartbeatIntervalMs: number;
   streamReadinessTimeoutMs: number;
   streamReadinessMaxTimeoutMs: number;
@@ -131,6 +143,15 @@ export function getUpstreamTimeoutConfig(
       logger,
     }
   );
+  const streamActiveTimeoutMs = readTimeoutMs(
+    env,
+    "STREAM_ACTIVE_TIMEOUT_MS",
+    DEFAULT_STREAM_ACTIVE_TIMEOUT_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
   const streamReadinessTimeoutMs = readTimeoutMs(
     env,
     "STREAM_READINESS_TIMEOUT_MS",
@@ -171,6 +192,7 @@ export function getUpstreamTimeoutConfig(
   return {
     fetchTimeoutMs,
     streamIdleTimeoutMs,
+    streamActiveTimeoutMs,
     streamReadinessTimeoutMs,
     streamReadinessMaxTimeoutMs,
     sseHeartbeatIntervalMs,
