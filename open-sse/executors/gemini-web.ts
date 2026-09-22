@@ -185,13 +185,19 @@ export function buildGeminiToolPrompt(
   const lastUserMsg = lastUserIdx >= 0 ? effectiveMessages[lastUserIdx] : undefined;
   const userText = typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
 
-  // Everything before the current ask has to be rendered too: an assistant turn
-  // that called a tool and the `role: "tool"` result for it are the only evidence
+  // Everything except the current ask has to be rendered: an assistant turn that
+  // called a tool and the `role: "tool"` result for it are the only evidence
   // Gemini Web gets that the tool already ran. Dropping them (this function used
   // to keep only system + last user) made the model re-issue the same call with a
   // fresh id, looping until the client's tool limit stopped it (#14368).
+  //
+  // The boundary must be the current ask itself, not "everything before it": a
+  // tool round usually arrives as `system, user, assistant(tool_calls), tool`
+  // with NO message after the result, so slicing at `lastUserIdx` threw away the
+  // very turns the fix was for (#14374 review).
   const prior: string[] = [];
-  for (const m of effectiveMessages.slice(0, lastUserIdx)) {
+  for (const [index, m] of effectiveMessages.entries()) {
+    if (index === lastUserIdx) continue; // rendered below as the current ask
     if (typeof m.content === "string" && m.content.trim()) {
       if (m.role === "user") prior.push(`User: ${m.content}`);
       else if (m.role === "assistant") prior.push(`Assistant: ${m.content}`);

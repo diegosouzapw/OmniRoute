@@ -45,6 +45,40 @@ test("#14368: a post-tool turn carries the assistant tool call and the tool resu
   assert.ok(prompt.includes("call_1"), "tool_call_id must tie the result to the call");
 });
 
+/**
+ * The shape a tool round actually arrives in: the client sends the completed
+ * call and its result and asks nothing new, so the LAST `user` message sits
+ * BEFORE them. Rendering only what precedes that index dropped both (#14374
+ * review) and reproduced the same re-issued-call loop for real.
+ */
+test("#14368: a tool continuation with no trailing user turn is still rendered", () => {
+  const prompt = buildGeminiToolPrompt([
+    { role: "system", content: "TOOL CONTRACT" },
+    { role: "user", content: "What is in the catalog?" },
+    {
+      role: "assistant",
+      content: null,
+      tool_calls: [
+        { id: "call_1", type: "function", function: { name: "lookup_catalog", arguments: "{}" } },
+      ],
+    },
+    { role: "tool", tool_call_id: "call_1", content: '["Item A","Item B"]' },
+  ]);
+
+  assert.match(prompt, /TOOL CONTRACT/);
+  assert.match(prompt, /lookup_catalog\(\{\}\)/);
+  assert.match(prompt, /\["Item A","Item B"\]/);
+  assert.ok(prompt.includes("Tool result [call_1]"), "the result stays tied to its call id");
+
+  const callAt = prompt.indexOf("lookup_catalog({})");
+  const resultAt = prompt.indexOf('["Item A","Item B"]');
+  assert.ok(callAt < resultAt, "the call is shown before the result that answers it");
+  assert.ok(
+    prompt.endsWith("Current user message:\nWhat is in the catalog?"),
+    "the ask itself is not duplicated into the transcript: " + prompt
+  );
+});
+
 test("#14368: single-turn tool prompts keep their exact previous shape", () => {
   assert.equal(
     buildGeminiToolPrompt([
