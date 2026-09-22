@@ -145,6 +145,8 @@
     "test:security": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test tests/unit/security-fase01.test.ts",
     "test:property": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test --test-force-exit tests/unit/correctness/*.property.test.ts",
     "check:cycles": "node scripts/check/check-cycles.mjs",
+    "vendor:chatgpt-web:status": "node scripts/dev/vendor-chatgpt-web.mjs status",
+    "vendor:chatgpt-web:diff": "node scripts/dev/vendor-chatgpt-web.mjs diff",
     "check:route-validation:t06": "node scripts/check/check-route-validation.mjs",
     "check:any-budget:t11": "node scripts/check/check-t11-any-budget.mjs",
     "check:docs-sync": "node scripts/check/check-docs-sync.mjs",
