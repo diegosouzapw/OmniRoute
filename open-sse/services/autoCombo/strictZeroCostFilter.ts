@@ -305,14 +305,7 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
         traceInvocationId,
         candidate,
         "strict_zero_cost",
-        "auto_strict_zero_cost",
-        () =>
-          classifyStrictZeroCostCandidate(
-            candidate,
-            budgetEntry,
-            options.resolveFreeAccessState,
-            options
-          ).outcome
+        "auto_strict_zero_cost"
       );
       continue;
     }
