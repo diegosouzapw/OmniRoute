@@ -1,1 +1,0 @@
-- **docs(resilience):** correct `requestQueue.maxWaitMs` in the resilience guide and the environment reference — it bounds **queue wait**, not limiter-managed execution (that is `executionMaxWaitMs`), and the env vars only supply defaults that a persisted or per-connection value overrides (#13624)

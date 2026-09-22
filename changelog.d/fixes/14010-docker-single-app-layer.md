@@ -1,1 +1,0 @@
-- **fix(docker):** copy the app into the runtime image with `--chown=node:node` instead of a second `chown -R` layer, so the image no longer stores the ~2 GB standalone build twice ([#13990](https://github.com/diegosouzapw/OmniRoute/issues/13990))

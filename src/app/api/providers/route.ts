@@ -1,3 +1,4 @@
+import { getAllProviderLimitsCache } from "@/lib/db/providerLimits";
 import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
@@ -62,9 +63,10 @@ import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWe
 
 function projectCodexAccountPoolWithRoutingQuota(
   connection: Parameters<typeof projectCodexAccountPool>[0],
-  now: number
+  now: number,
+  cachedUsage?: Parameters<typeof projectCodexAccountPool>[2]
 ) {
-  const projection = projectCodexAccountPool(connection, now);
+  const projection = projectCodexAccountPool(connection, now, cachedUsage);
   const children = projection.children.map((child) => {
     const fiveHourWindow = child.key.scope === "spark" ? CODEX_SPARK_QUOTA_SESSION : "session";
     const weeklyWindow = child.key.scope === "spark" ? CODEX_SPARK_QUOTA_WEEKLY : "weekly";
@@ -124,6 +126,10 @@ export async function GET(request: Request) {
     const total = getProviderConnectionsCount(filter);
     const revealKeys = isApiKeyRevealEnabled();
 
+    const quotaCache = connections.some((c) => c.provider === "codex")
+      ? getAllProviderLimitsCache()
+      : {};
+
     // Hide or mask sensitive fields
     const safeConnections = connections.map((c) => {
       const providerSpecificData = c.providerSpecificData
@@ -144,7 +150,8 @@ export async function GET(request: Request) {
                   provider: c.provider,
                   providerSpecificData: c.providerSpecificData ?? {},
                 },
-                Date.now()
+                Date.now(),
+                quotaCache[String(c.id)]
               ),
             }
           : {}),

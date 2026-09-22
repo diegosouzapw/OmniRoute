@@ -16,6 +16,7 @@ import {
   getModelContextOverrideRecord,
   setModelContextOverride,
   removeModelContextOverride,
+  listModelContextOverrides,
 } from "@/lib/db/modelContextOverrides";
 import {
   deleteManagedAvailableModelAliases,
@@ -93,9 +94,25 @@ export async function GET(request) {
       }
     }
 
+    // #14337: the block above attaches the override to CUSTOM-model rows only.
+    // A synced/imported model has no `customModels` row, so its override — which
+    // the PUT compatOnly branch has always accepted — was never readable, and the
+    // UI had no value to show or edit. Return the provider's overrides directly
+    // so a row without a custom entry can still carry one.
+    const modelContextOverrides = provider
+      ? listModelContextOverrides()
+          .filter((override) => override.provider === provider)
+          .map((override) => ({
+            modelId: override.modelId,
+            contextWindowOverride: override.realContext,
+            contextWindowOverrideSource: override.source,
+          }))
+      : [];
+
     return Response.json({
       models: modelsWithContextOverride,
       modelCompatOverrides,
+      modelContextOverrides,
       hiddenModelsByProvider,
     });
   } catch {

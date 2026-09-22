@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Lokale Sperre aufheben",
+    "codexReleaseCooldownHint": "Diesen Codex-Account erneut zulassen. Verbraucht keinen Reset-Credit und ändert keine Limits beim Anbieter.",
+    "codexReleasingCooldown": "Wird aufgehoben…",
+    "codexCooldownReleased": "Lokale Sperre aufgehoben.",
+    "codexCooldownReleaseFailed": "Die Sperre konnte nicht aufgehoben werden. Bitte erneut versuchen.",
     "title": "Anbieter",
     "Account Deactivated": "Konto deaktiviert",
     "allProviders": "Alle Anbieter",

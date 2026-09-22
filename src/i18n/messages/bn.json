@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "প্রোভাইডারসমূহ",
     "Account Deactivated": "অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে",
     "allProviders": "সমস্ত প্রদানকারী",
