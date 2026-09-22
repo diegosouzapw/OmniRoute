@@ -65,7 +65,7 @@ import {
   type AutoEvaluationStage,
 } from "../combo/decisionTrace.ts";
 
-type AutoEvaluationContext = {
+export type AutoEvaluationContext = {
   invocationId: string;
   familyPool: boolean;
 };
