@@ -656,7 +656,7 @@ Uobičajene naredbe:
 
 ## 8. `scripts/`
 
-Organizirano u 6 podmapa prema namjeni.
+Organizirano u 6 poddirektorija prema namjeni.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
   `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,

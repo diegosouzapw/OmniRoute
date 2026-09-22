@@ -27,6 +27,12 @@
 
 ## Hızlı Çalıştırma
 
+> **Tek komutla kendi sunucunuzda barındırmak mı istiyorsunuz?** Şu belgeye bakın:
+> [Kendi Sunucunuzda Barındırma Kılavuzu](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (yayımlanmış imaj +
+> Redis, yalnızca geri döngü, profil seçimi yok). Aşağıdaki Hızlı Çalıştırma,
+> Redis'i zaten başka bir yerde çalıştıran kullanıcılar için tek konteynerli yöntemdir.
+
 ```bash
 docker run -d \
   --name omniroute \

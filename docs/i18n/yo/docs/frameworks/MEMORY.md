@@ -160,38 +160,39 @@ Tábìlì `memory_vec_meta` (migration `083_memory_vec.sql`) ń tọ́jú:
 - `last_reset_at` — àmì-àkókò àtúnṣètò kíkún tó ṣẹ̀ṣẹ̀ wáyé.
 - `vec_loaded` — àsíá 0/1 tó ń fi hàn bóyá sqlite-vec ti ṣíṣe ìrùsókè ní àṣeyọrí.
 
-## Ìmúgbòòrò àwọn ètò
+## Ìfẹ̀sí àwọn ààtò
 
-Àwọn pápá embedding àti vector mẹ́sàn-án wà nínú `MemorySettingsExtended` ní
-`src/shared/schemas/memory.ts`, a sì ń tọ́jú wọn nípasẹ̀ `src/lib/db/settings.ts`:
+Àwọn pápá ìṣàmúlò embedding àti vector mẹ́sàn-án wà nínú `MemorySettingsExtended` ní
+`src/shared/schemas/memory.ts`, tí a sì ń tọ́jú wọn nípasẹ̀ `src/lib/db/settings.ts`:
 
-| Pápá                     | Irú                                                | Àìyípadà | Àpèjúwe                                                |
+| Pápá                     | Irú                                                | Àiyípadà | Àpèjúwe                                                |
 | ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------ |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Orísun embedding tí a ó lò                             |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Olùpèsè/model ní ìlànà `provider/model`                |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Olùpèsè/mọ́dẹ́lì ní ìlànà `provider/model`               |
 | `customBaseUrl`          | `string \| null`                                   | `null`   | URL ìpìlẹ̀ endpoint tó bá OpenAI mu fún Memory nìkan    |
-| `customModelId`          | `string \| null`                                   | `null`   | ID model tí a fi ránṣẹ́ sí endpoint àdáni               |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Yíyàn láti lo Transformers.js (MiniLM, ~400MB)         |
-| `staticEnabled`          | `boolean`                                          | `false`  | Yíyàn láti lo model àdúgbò static potion-base-8M       |
+| `customModelId`          | `string \| null`                                   | `null`   | ID mọ́dẹ́lì tí a fi ránṣẹ́ sí endpoint àkànṣe             |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Yíyan Transformers.js wọlé (MiniLM, ~400MB)            |
+| `staticEnabled`          | `boolean`                                          | `false`  | Yíyan mọ́dẹ́lì agbègbè static potion-base-8M wọlé        |
 | `rerankEnabled`          | `boolean`                                          | `false`  | Mú ìgbésẹ̀ àtúntò ipò ṣiṣẹ́ (ó fi +200-500ms/req kún un) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Olùpèsè/model àtúntò ipò ní ìlànà `provider/model`     |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Ẹ̀yìn-iṣẹ́ vector tí a ó lò                              |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Olùpèsè/mọ́dẹ́lì àtúntò ipò ní ìlànà `provider/model`    |
 
-A mú àwọn wọ̀nyí hàn nípasẹ̀ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` ni `POST /v1/rerank` ń yanjú (tí a ń pè lórí loopback), nítorí náà ó gba ohunkóhun tí route náà bá gba: mọ́dẹ́lì àtúntò ipò cloud tí a ti fara balẹ̀ yàn (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) tàbí node olùpèsè tó bá OpenAI mu gẹ́gẹ́ bí `<node-prefix>/<model>` (fún àpẹẹrẹ, `skilled-mini/bge-reranker-v2-m3` fún àpótí TEI/Infinity). Àwọn node loopback yẹ ní gbogbo ìgbà; node kan lórí host mìíràn (LAN, Tailscale) tún nílò àsìá ẹ̀yà `RERANK_REMOTE_PROVIDER_NODES`, ó sì gbọ́dọ̀ kọjá ìlànà URL àbájáde olùpèsè — wo [Àwọn Àsìá Ẹ̀yà](../reference/FEATURE_FLAGS.md). Olùyàn dashboard ṣe àkójọ àwọn olùpèsè tí a ti fara balẹ̀ yàn pẹ̀lú àwọn node agbègbè; a lè ṣètò okùn `provider/model` èyíkéyìí tó fẹsẹ̀ múlẹ̀ ní tààràtà nípasẹ̀ `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Ẹ̀yìn vector tí a ó lò |
 
-Fún orísun `remote`, Memory tún gba àwọn ètò `customBaseUrl` àti
+A ṣí àwọn wọ̀nyí síta nípasẹ̀ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+
+Fún orísun `remote`, Memory tún gba àwọn ààtò `customBaseUrl` àti
 `customModelId` tí kò pọn dandan. Ní àpapọ̀, wọ́n yan endpoint `/embeddings`
-tó bá OpenAI mu àti model kan láìyí ìforúkọsílẹ̀ embedding àgbáyé padà. A máa ń
-ṣe endpoint náà sí ọ̀nà ìṣọ̀kan kí a tó lò ó, a sì ń ṣàyẹ̀wò rẹ̀ pẹ̀lú ìlànà URL
-àjùmọ̀ṣe jáde ti olùpèsè: HTTP(S) jẹ́ dandan, a kò gba àwọn ẹ̀rí ìdánimọ̀ tí a fi
-sínú rẹ̀ tàbí àwọn query string, àwọn àdírẹ́sì metadata awọsánmà sì ṣì jẹ́ dídènà.
-Àwọn iye òfo máa ń jẹ́ kí olùpèsè ìforúkọsílẹ̀ tí a yàn wà bí ó ti rí. A máa ń
-wẹ àwọn àṣìṣe tí a dá padà sí dashboard mọ́, a kò sì ní kọ àwọn ẹ̀rí ìdánimọ̀
-endpoint sínú log láé.
+àti mọ́dẹ́lì tó bá OpenAI mu láìyí àkọsílẹ̀ embedding àgbáyé padà. A máa ń
+ṣe endpoint náà déédé kí a tó lò ó, a sì máa ń yẹ̀ ẹ́ wò pẹ̀lú ìlànà URL
+àbájáde olùpèsè: HTTP(S) jẹ́ dandan, a kọ àwọn ẹ̀rí ìdánimọ̀ tí a fi sínú rẹ̀
+àti àwọn okùn query, àwọn àdírẹ́sì metadata cloud sì ṣì jẹ́ dídènà. Àwọn iye
+òfo ń pa olùpèsè àkọsílẹ̀ tí a yàn mọ́. A máa ń sọ àwọn àṣìṣe tí a dá padà sí
+dashboard di mímọ́, a kì í sì í kọ àwọn ẹ̀rí ìdánimọ̀ endpoint sínú log láéláé.
 
-> **TODO (D20):** Scope `global` (pípín àwọn ìrántí káàkiri gbogbo àwọn API key) kò tíì
-> jẹ́ mímúṣẹ nínú ìtújáde yìí. Ó nílò àwọn àyípadà schema àti ọ̀nà ìgbàpadà
-> àgbáyé kan. Tọpinpin rẹ̀ lọ́tọ̀.
+> **TODO (D20):** Scope `global` (píńpín àwọn memory káàkiri gbogbo àwọn API key) kò tíì
+> ṣiṣẹ́ nínú ìtújáde yìí. Ó nílò àwọn ìyípadà schema àti ọ̀nà ìgbàpadà àgbáyé.
+> Tọpinpin rẹ̀ lọ́tọ̀.
 
 ## Àwọn Ìpele Ìtọ́jú
 

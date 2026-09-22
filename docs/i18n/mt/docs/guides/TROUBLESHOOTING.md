@@ -68,16 +68,24 @@ Issettja dawn fl-ambjent tal-proċess ta' OmniRoute (id-daemon, eż. permezz tal
 
 ## Twissijiet ta’ npm install (ERESOLVE / peer / deprecated)
 
-Meta tħaddem `npm install -g omniroute`, tista’ tara għadd kbir ta’ twissijiet bħal `npm warn ERESOLVE`, avviżi dwar dipendenzi peer, u messaġġi `deprecated`. **Dawn huma mistennija u ma jagħmlux ħsara.** L-installazzjoni tkun irnexxiet jekk fl-output tara `added <N> packages`.
+Meta tħaddem `npm install -g omniroute`, tista’ tara għadd kbir ta’ twissijiet bħal `npm warn ERESOLVE`, avviżi dwar dipendenzi peer, u messaġġi `deprecated`. **Dawn huma mistennija u ma jagħmlux ħsara.** L-installazzjoni tiegħek irnexxiet jekk fl-output tara `added <N> packages`.
 
-It-twissijiet ġejjin minn meded skaduti ta’ dipendenzi peer f’pakketti ta’ partijiet terzi li OmniRoute ma jikkontrollax:
+Biex trażżan it-twissijiet dwar ir-riżoluzzjoni tad-dipendenzi peer, uża l-forma ta’ installazzjoni appoġġjata minn OmniRoute:
 
-1. **`marked-terminal` jeħtieġ `marked >=1 <16`, iżda nstab `marked@18`** — fil-prattika jaħdem tajjeb; il-medda peer upstream hija sempliċement skaduta.
-2. **`deprecated prebuild-install@7.1.3`** — għodda tranżittiva ta’ għajnuna biex jinġabru binarji nattivi. Din ma tintużax
-   biex tinstalla l-binding tat-trasport `wreq-js` iffissat u ma tindikax li l-konfigurazzjoni tat-trasport
-   tal-fornitur tal-web-cookies falliet.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Mhi meħtieġa l-ebda azzjoni** — it-twissijiet ma jistgħux jitneħħew kompletament mingħajr ma jinħolqu forks tal-pakketti upstream.
+`--legacy-peer-deps` trażżan biss `ERESOLVE` u l-avviżi dwar id-dipendenzi peer. L-avviżi ta’ deprekazzjoni jibqgħu viżibbli għax ġejjin minn pakketti tranżittivi ta’ partijiet terzi; dawn ma jindikawx li l-installazzjoni falliet.
+
+It-twissijiet ġejjin minn firxiet skaduti ta’ dipendenzi peer f’pakketti ta’ partijiet terzi li OmniRoute ma jikkontrollax:
+
+1. **`marked-terminal` jeħtieġ `marked >=1 <16`, iżda nstab `marked@18`** — fil-prattika jaħdem tajjeb; il-firxa peer upstream hija sempliċement skaduta.
+2. **`deprecated prebuild-install@7.1.3`** — għodda awżiljarja tranżittiva għall-kisba ta’ binarji nattivi. Din ma
+   tintużax biex tinstalla l-binding tat-trasport `wreq-js` iffissat u ma tindikax li l-konfigurazzjoni
+   tat-trasport tal-fornitur tal-web-cookie falliet.
+
+**Mhi meħtieġa l-ebda azzjoni** — it-twissijiet ma jistgħux jiġu kompletament moħbija mingħajr ma jinħolqu forks tal-pakketti upstream.
 
 ---
 

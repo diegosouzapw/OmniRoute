@@ -1,10 +1,8 @@
-# PLUGIN_SDK (Bosanski)
+# OmniRoute Plugin SDK (Bosanski)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/PLUGIN_SDK.md) · 🇪🇹 [am](../../../am/docs/frameworks/PLUGIN_SDK.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/PLUGIN_SDK.md) · 🇦🇿 [az](../../../az/docs/frameworks/PLUGIN_SDK.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/PLUGIN_SDK.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/PLUGIN_SDK.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/PLUGIN_SDK.md) · 🇩🇰 [da](../../../da/docs/frameworks/PLUGIN_SDK.md) · 🇩🇪 [de](../../../de/docs/frameworks/PLUGIN_SDK.md) · 🇬🇷 [el](../../../el/docs/frameworks/PLUGIN_SDK.md) · 🇪🇸 [es](../../../es/docs/frameworks/PLUGIN_SDK.md) · 🇪🇪 [et](../../../et/docs/frameworks/PLUGIN_SDK.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/PLUGIN_SDK.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/PLUGIN_SDK.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/PLUGIN_SDK.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/PLUGIN_SDK.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/PLUGIN_SDK.md) · 🇮🇱 [he](../../../he/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/PLUGIN_SDK.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/PLUGIN_SDK.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/PLUGIN_SDK.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/PLUGIN_SDK.md) · 🇮🇩 [id](../../../id/docs/frameworks/PLUGIN_SDK.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/PLUGIN_SDK.md) · 🇮🇹 [it](../../../it/docs/frameworks/PLUGIN_SDK.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/PLUGIN_SDK.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/PLUGIN_SDK.md) · 🇰🇭 [km](../../../km/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/PLUGIN_SDK.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/PLUGIN_SDK.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/PLUGIN_SDK.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/PLUGIN_SDK.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/PLUGIN_SDK.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/PLUGIN_SDK.md) · 🇲🇲 [my](../../../my/docs/frameworks/PLUGIN_SDK.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/PLUGIN_SDK.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/PLUGIN_SDK.md) · 🇳🇴 [no](../../../no/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [or](../../../or/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/PLUGIN_SDK.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/PLUGIN_SDK.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/PLUGIN_SDK.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/PLUGIN_SDK.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/PLUGIN_SDK.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/PLUGIN_SDK.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/PLUGIN_SDK.md) · 🇱🇰 [si](../../../si/docs/frameworks/PLUGIN_SDK.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/PLUGIN_SDK.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/PLUGIN_SDK.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/PLUGIN_SDK.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/PLUGIN_SDK.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/PLUGIN_SDK.md) · 🇮🇳 [te](../../../te/docs/frameworks/PLUGIN_SDK.md) · 🇹🇭 [th](../../../th/docs/frameworks/PLUGIN_SDK.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/PLUGIN_SDK.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/PLUGIN_SDK.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/PLUGIN_SDK.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/PLUGIN_SDK.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/PLUGIN_SDK.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/PLUGIN_SDK.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/PLUGIN_SDK.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/PLUGIN_SDK.md)
 
 ---
-
-# OmniRoute Plugin SDK
 
 ## Brzi početak
 
@@ -31,20 +29,20 @@ export default definePlugin({
 
 ### `definePlugin(def: PluginDefinition): Plugin`
 
-Fabrička funkcija koja kreira Plugin objekat sa podrazumevanim vrednostima.
+Tvornička funkcija koja kreira Plugin objekt sa zadanim vrijednostima.
 
 **Parametri:**
 
-- `name` (string, obavezno) — Ime plugina u kebab-case formatu
-- `priority` (number, opciono, podrazumevano: 100) — Niža vrednost se izvršava prva
-- `enabled` (boolean, opciono, podrazumevano: true) — Pokrenuti omogućeno?
-- `onRequest` (funkcija, opciono) — Pokreće se pre chat hendlera
-- `onResponse` (funkcija, opciono) — Pokreće se nakon chat hendlera
-- `onError` (funkcija, opciono) — Pokreće se pri grešci hendlera
+- `name` (string, obavezno) — Naziv dodatka u kebab-case formatu
+- `priority` (number, opcionalno, zadano: 100) — Niža vrijednost se izvršava prva
+- `enabled` (boolean, opcionalno, zadano: true) — Da li je omogućeno pri pokretanju?
+- `onRequest` (function, opcionalno) — Izvršava se prije obrađivača razgovora
+- `onResponse` (function, opcionalno) — Izvršava se nakon obrađivača razgovora
+- `onError` (function, opcionalno) — Izvršava se pri grešci obrađivača
 
 ### `blockRequest(response?): BlockingHookResult`
 
-Blokirajte zahtev i opciono vratite prilagođeni odgovor.
+Blokira zahtjev i opcionalno vraća prilagođeni odgovor.
 
 ```ts
 onRequest: (ctx) => {
@@ -56,7 +54,7 @@ onRequest: (ctx) => {
 
 ### `modifyBody(body): PluginResult`
 
-Izmenite telo zahteva pre nego što stigne do provajdera.
+Mijenja tijelo zahtjeva prije nego što stigne do pružaoca usluge.
 
 ```ts
 onRequest: (ctx) => {
@@ -66,7 +64,7 @@ onRequest: (ctx) => {
 
 ### `addMetadata(metadata): PluginResult`
 
-Priložite metapodatke kontekstu zahteva.
+Dodaje metapodatke kontekstu zahtjeva.
 
 ```ts
 onRequest: (ctx) => {
@@ -76,15 +74,15 @@ onRequest: (ctx) => {
 
 ## Kontekst dodatka (`PluginContext`)
 
-| Polje       | Tip                       | Opis                              |
-| ----------- | ------------------------- | --------------------------------- |
-| `requestId` | `string`                  | Jedinstveni identifikator zahteva |
-| `model`     | `string`                  | Ime traženog modela               |
-| `provider`  | `string`                  | ID ciljnog provajdera             |
-| `body`      | `Record<string, unknown>` | Telo zahteva                      |
-| `headers`   | `Record<string, string>`  | Zaglavlja zahteva                 |
-| `metadata`  | `Record<string, unknown>` | Promenljivi metapodaci            |
-| `timestamp` | `number`                  | Vremenska oznaka zahteva          |
+| Polje       | Tip                       | Opis                               |
+| ----------- | ------------------------- | ---------------------------------- |
+| `requestId` | `string`                  | Jedinstveni identifikator zahtjeva |
+| `model`     | `string`                  | Naziv zahtijevanog modela          |
+| `provider`  | `string`                  | ID ciljnog pružaoca usluge         |
+| `body`      | `Record<string, unknown>` | Tijelo zahtjeva                    |
+| `headers`   | `Record<string, string>`  | Zaglavlja zahtjeva                 |
+| `metadata`  | `Record<string, unknown>` | Promjenjivi metapodaci             |
+| `timestamp` | `number`                  | Vremenska oznaka zahtjeva          |
 
 ## Manifest (`plugin.json`)
 
@@ -92,7 +90,7 @@ onRequest: (ctx) => {
 {
   "name": "my-plugin",
   "version": "1.0.0",
-  "description": "Primer dodatka",
+  "description": "A sample plugin",
   "author": "your-name",
   "main": "index.js",
   "hooks": {
@@ -107,7 +105,7 @@ onRequest: (ctx) => {
   "configSchema": {
     "apiKey": {
       "type": "string",
-      "description": "API ključ za spoljni servis"
+      "description": "API key for external service"
     },
     "maxRetries": { "type": "number", "min": 1, "max": 10, "default": 3 },
     "debug": { "type": "boolean", "default": false },
@@ -116,9 +114,9 @@ onRequest: (ctx) => {
 }
 ```
 
-### Prioritet hook-a
+### Prioritet hook funkcija
 
-Hook-ovi se mogu konfigurisati sa prioritetom (niža vrednost = izvršava se prvi):
+Hook funkcije mogu se konfigurirati pomoću prioriteta (niža vrijednost = izvršava se prva):
 
 ```json
 {
@@ -129,7 +127,7 @@ Hook-ovi se mogu konfigurisati sa prioritetom (niža vrednost = izvršava se prv
 }
 ```
 
-Ili kao jednostavni booleani (podrazumevani prioritet 100):
+Ili kao jednostavne boolean vrijednosti (zadani prioritet je 100):
 
 ```json
 {
@@ -142,26 +140,26 @@ Ili kao jednostavni booleani (podrazumevani prioritet 100):
 
 ## Sistem dozvola
 
-Dodaci se izvršavaju u izolovanom (sandboxed) VM kontekstu. Pristup vanjskim resursima zahtijeva eksplicitne dozvole:
+Dodaci se pokreću u izoliranom kontekstu virtuelne mašine. Pristup vanjskim resursima zahtijeva izričite dozvole:
 
-| Dozvola      | Odobrava                                                     |
+| Dozvola      | Omogućava                                                    |
 | ------------ | ------------------------------------------------------------ |
 | `network`    | `fetch`, `AbortController`, `Headers`, `Request`, `Response` |
 | `file-read`  | `fs.readFile`, `fs.readdir`, `fs.stat`                       |
 | `file-write` | `fs.writeFile`, `fs.mkdir`, `fs.rm`                          |
-| `env`        | Read-only `process.env` proxy                                |
+| `env`        | Proxy za `process.env` samo za čitanje                       |
 | `exec`       | `child_process.exec`, `child_process.execSync`               |
 
-Bez dozvole, odgovarajući globalni objekti jednostavno nisu dostupni u sandboxu.
+Bez dozvole, odgovarajući globalni objekti jednostavno nisu dostupni u izoliranom okruženju.
 
-## Šema konfiguracije
+## Konfiguracijska shema
 
-Definišite konfigurabilne postavke u `configSchema`:
+Definirajte postavke koje se mogu konfigurirati u `configSchema`:
 
 ```json
 {
   "configSchema": {
-    "apiKey": { "type": "string", "description": "Ključ vanjskog API-ja" },
+    "apiKey": { "type": "string", "description": "External API key" },
     "maxRetries": { "type": "number", "min": 1, "max": 10, "default": 3 },
     "debug": { "type": "boolean", "default": false },
     "mode": { "type": "string", "enum": ["fast", "slow"], "default": "fast" }
@@ -173,22 +171,22 @@ Tipovi polja: `string`, `number`, `boolean`, `select`
 
 Opcije polja: `default`, `min`, `max`, `enum`, `description`
 
-Konfiguracijske vrijednosti se čuvaju u bazi podataka i dostupne su putem stranice za konfiguraciju na kontrolnoj tabli.
+Konfiguracijske vrijednosti pohranjuju se u bazi podataka i dostupne su putem stranice za konfiguraciju na kontrolnoj ploči.
 
 ## Ugrađeni događaji
 
-| Događaj           | Kada                                           | Payload                       |
+| Događaj           | Kada                                           | Sadržaj                       |
 | ----------------- | ---------------------------------------------- | ----------------------------- |
-| `onRequest`       | Prije rukovaoca chatom                         | Kontekst zahtjeva             |
-| `onResponse`      | Nakon rukovaoca chatom                         | Podaci odgovora               |
-| `onError`         | Pri grešci rukovaoca                           | Objekat greške                |
-| `onModelSelect`   | Model odabran za rutiranje                     | Informacije o modelu          |
-| `onComboResolve`  | Combo rutiranje razriješeno                    | Combo ciljevi                 |
-| `onRateLimit`     | Dostignuto ograničenje stope (rate limit)      | Informacije o ograničenju     |
-| `onQuotaExhaust`  | Kvote iscrpljene                               | Informacije o kvoti           |
-| `onProviderError` | Provajder vratio grešku                        | Detalji greške                |
-| `onStreamStart`   | SSE stream pokrenut                            | Informacije o streamu         |
-| `onStreamEnd`     | SSE stream završen                             | Statistika streama            |
+| `onRequest`       | Prije obrađivača razgovora                     | Kontekst zahtjeva             |
+| `onResponse`      | Nakon obrađivača razgovora                     | Podaci odgovora               |
+| `onError`         | Pri grešci obrađivača                          | Objekt greške                 |
+| `onModelSelect`   | Model odabran za usmjeravanje                  | Informacije o modelu          |
+| `onComboResolve`  | Kombinirano usmjeravanje razriješeno           | Kombinirana odredišta         |
+| `onRateLimit`     | Dosegnuto ograničenje učestalosti              | Informacije o ograničenju     |
+| `onQuotaExhaust`  | Kvota iscrpljena                               | Informacije o kvoti           |
+| `onProviderError` | Pružalac usluge vratio grešku                  | Detji greške                  |
+| `onStreamStart`   | SSE tok pokrenut                               | Informacije o toku            |
+| `onStreamEnd`     | SSE tok završen                                | Statistika toka               |
 | `onInstall`       | Dodatak instaliran                             | `{ name, version, manifest }` |
 | `onActivate`      | Dodatak aktiviran                              | `{ name, version, manifest }` |
 | `onDeactivate`    | Dodatak deaktiviran                            | `{ name, version, manifest }` |
@@ -196,7 +194,7 @@ Konfiguracijske vrijednosti se čuvaju u bazi podataka i dostupne su putem stran
 
 ## Primjeri
 
-### Request Logger
+### Zapisivač zahtjeva
 
 ```ts
 import { definePlugin } from "omniroute/plugins/sdk";
@@ -209,7 +207,7 @@ export default definePlugin({
 });
 ```
 
-### Rate Limiter
+### Ograničivač učestalosti
 
 ```ts
 import { definePlugin, blockRequest } from "omniroute/plugins/sdk";
@@ -236,7 +234,7 @@ export default definePlugin({
 });
 ```
 
-### Response Transformer
+### Transformator odgovora
 
 ```ts
 import { definePlugin } from "omniroute/plugins/sdk";

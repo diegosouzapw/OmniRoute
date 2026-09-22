@@ -399,66 +399,90 @@ Bifrost、CLIProxyAPI、および将来のサイドカールーターで使用�
 
 ## 互換性エンドポイント
 
-| メソッド | パス                                      | 形式                                    |
-| -------- | ----------------------------------------- | --------------------------------------- |
-| POST     | `/v1/chat/completions`                    | OpenAI                                  |
-| POST     | `/v1/messages`                            | Anthropic                               |
-| POST     | `/v1/responses`                           | OpenAI Responses                        |
-| POST     | `/v1/embeddings`                          | OpenAI                                  |
-| POST     | `/v1/images/generations`                  | OpenAI Images                           |
-| POST     | `/v1/images/edits`                        | OpenAI Images（編集／インペイント）     |
-| POST     | `/v1/videos/generations`                  | OpenAI 形式の動画生成                   |
-| POST     | `/v1/music/generations`                   | OpenAI 形式の音楽生成                   |
-| POST     | `/v1/audio/transcriptions`                | OpenAI Audio（STT）                     |
-| POST     | `/v1/audio/speech`                        | OpenAI TTS（音声本文を返す）            |
-| POST     | `/v1/rerank`                              | Cohere/Voyage 形式の再ランキング        |
-| POST     | `/v1/classify`                            | Jina 分類（`api.jina.ai`）              |
-| POST     | `/v1/segment`                             | Jina セグメンター（`segment.jina.ai`）  |
-| POST     | `/v1/moderations`                         | OpenAI Moderations                      |
-| GET      | `/v1/models`                              | OpenAI                                  |
-| POST     | `/v1/messages/count_tokens`               | Anthropic                               |
-| GET      | `/v1beta/models`                          | Gemini                                  |
-| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                  |
-| POST     | `/v1/api/chat`                            | Ollama                                  |
-| GET      | `/api/v1/vscode/{token}/`                 | OpenAI カタログエイリアス               |
-| GET      | `/api/v1/vscode/{token}/models`           | OpenAI モデルエイリアス                 |
-| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAI トークン付きエイリアス           |
-| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responses トークン付きエイリアス |
-| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollama トークン付きエイリアス           |
-| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama タグのトークン付きエイリアス     |
+| メソッド | パス                                      | 形式                                     |
+| -------- | ----------------------------------------- | ---------------------------------------- |
+| POST     | `/v1/chat/completions`                    | OpenAI                                   |
+| POST     | `/v1/messages`                            | Anthropic                                |
+| POST     | `/v1/responses`                           | OpenAI Responses                         |
+| POST     | `/v1/embeddings`                          | OpenAI                                   |
+| POST     | `/v1/images/generations`                  | OpenAI Images                            |
+| POST     | `/v1/images/edits`                        | OpenAI Images（編集/インペイント）       |
+| POST     | `/v1/videos/generations`                  | OpenAI形式の動画生成                     |
+| POST     | `/v1/music/generations`                   | OpenAI形式の音楽生成                     |
+| POST     | `/v1/audio/transcriptions`                | OpenAI Audio（STT）                      |
+| POST     | `/v1/audio/speech`                        | OpenAI TTS（音声ボディを返す）           |
+| POST     | `/v1/rerank`                              | Cohere/Voyage形式のリランキング          |
+| POST     | `/v1/classify`                            | Jina分類（`api.jina.ai`）                |
+| POST     | `/v1/segment`                             | Jinaセグメンター（`segment.jina.ai`）    |
+| POST     | `/v1/moderations`                         | OpenAI Moderations                       |
+| GET      | `/v1/models`                              | OpenAI                                   |
+| POST     | `/v1/messages/count_tokens`               | Anthropic                                |
+| GET      | `/v1beta/models`                          | Gemini                                   |
+| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                   |
+| POST     | `/v1/api/chat`                            | Ollama                                   |
+| GET      | `/api/v1/vscode/{token}/`                 | OpenAIカタログのエイリアス               |
+| GET      | `/api/v1/vscode/{token}/models`           | OpenAIモデルのエイリアス                 |
+| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAIトークン付きエイリアス             |
+| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responsesのトークン付きエイリアス |
+| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollamaトークン付きエイリアス             |
+| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollamaタグのトークン付きエイリアス       |
 
-すべての POST ルートは同じ形式に従います。`Bearer your-api-key` と、Zod で検証された JSON 本文（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` など。`src/shared/validation/schemas.ts` を参照）を使用します。スキーマ検証に失敗すると 4xx が返されます。
+すべてのPOSTルートは同じ形式に従います：`Bearer your-api-key` + Zodで検証されたJSONボディ（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema`など。`src/shared/validation/schemas.ts`を参照）。スキーマ検証に失敗した場合は4xxが返されます。
 
-`Authorization: Bearer ...` を付与できないクライアント向けに、OmniRoute は、クエリ文字列による互換方式（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`）または以下で説明する専用の `/api/v1/vscode/{token}/...` エンドポイントを介して、URL 内の API キーも受け付けます。
+`Authorization: Bearer ...`を付加できないクライアント向けに、OmniRouteはクエリ文字列による互換方式（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`）、または以下に記載する専用の`/api/v1/vscode/{token}/...`エンドポイントを介して、URL内のAPIキーも受け付けます。
 
 ```bash
-# 再ランキング
+# リランキング（クラウドレジストリプロバイダー、または「<prefix>/<model>」形式のOpenAI互換プロバイダーノード）
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina 分類（Foundation API 認証情報）
+# Jina分類（Foundation API認証情報）
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina セグメンター
+# Jinaセグメンター
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina 検索（s.jina.ai、プロバイダーエイリアス：jina-search、jina-ai、jina）
+# Jina検索（s.jina.ai、プロバイダーエイリアス：jina-search、jina-ai、jina）
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # モデレーション
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg（または指定された形式）の本文を返す
+# TTS — audio/mpeg（または指定された形式）のボディを返す
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # 画像編集（multipart）
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# 動画／音楽生成（プロバイダー接頭辞付きモデル ID）
+# 動画/音楽生成（プロバイダープレフィックス付きモデルID）
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### プロバイダー専用ルート
+> **リランキングプロバイダーノード：** `POST /v1/rerank`は、`<node-prefix>/<model>`として指定された
+> OpenAI互換プロバイダーノード（oMLX、vLLM、Infinity、ゲートウェイ背後のTEIなど）にもルーティングします。
+> ループバックノード（`localhost`、`127.0.0.1`、`172.16.0.0/12`）は常に利用可能です。それ以外のホスト上の
+> ノード（LAN上のマシンやTailscaleピア）は、運用者が`RERANK_REMOTE_PROVIDER_NODES`
+> 機能フラグを有効にし、かつノードのベースURLがプロバイダーの送信URLポリシー
+> （`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`）を満たす場合にのみ利用できます。
+> クラウドメタデータホストには決してルーティングされません。メモリエンジンのリランキングステップは、
+> ループバック経由でこのルートを呼び出すため、Memory設定の`rerankProviderModel`にも同じルールが適用されます。
+>
+> **ローカルサーバーの形式：** ノードは`<base>/v1/rerank`で呼び出され、404の場合は`<base>/rerank`
+> （Infinity、TEI）で呼び出されます。アップストリームのボディには、Cohere/OpenAI形式
+> （`documents`、`return_documents`）とTEI形式（`texts`、`return_text`）の両方が含まれ、
+> アップストリームのレスポンスはCohereエンベロープに正規化されます。TEIのそのままの
+> `[{index, score, text}]`、簡易ゲートウェイからの`{results: [{index, score}]}`、
+> Voyage形式の`{data: [...]}`はいずれも、スコア順に並べられ、`top_n`を上限として、
+> `{results: [{index, relevance_score, document?}]}`の形式でクライアントに返されます。
+
+> **プロバイダーノードの検出：** OpenAI互換プロバイダーノード上のモデルは、ノードのプレフィックス付きで
+> `GET /v1/models`に表示されます。エンドポイントのメタデータを持たない行（ローカルの`/v1/models`
+> リストで一般的）はノードの`apiType`を継承するため、デフォルトでchatになるのではなく、
+> `embeddings`ノードのモデルは`type: "embedding"`に、`rerank`ノードのモデルは
+> `type: "rerank"`になります。同期された行または手動で追加された行に明示的な
+> `supportedEndpoints`がある場合は、引き続きそちらが優先されます。
+
+### 専用プロバイダールート
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -466,7 +490,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-プロバイダー接頭辞がない場合は、自動的に追加されます。モデルが一致しない場合は `400` が返されます。
+プロバイダーのプレフィックスがない場合は自動的に追加されます。モデルが一致しない場合は `400` が返されます。
 
 ---
 
@@ -1109,7 +1133,7 @@ Content-Type: application/json
 }
 ```
 
-> **スキーマに関する注意事項** (`setBudgetSchema`): `apiKeyId` は必須です。`dailyLimitUsd`、`weeklyLimitUsd`、`monthlyLimitUsd` のうち、少なくとも1つはゼロより大きい値である必要があります。オプションのフィールド: `warningThreshold`（0～1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。従来の `{keyId, limit, period}` 形式を使用すると、`400 Bad Request` が返されます。
+> **スキーマに関する注記** (`setBudgetSchema`): `apiKeyId` は必須です。`dailyLimitUsd`、`weeklyLimitUsd`、`monthlyLimitUsd` のうち少なくとも 1 つはゼロより大きい値でなければなりません。省略可能なフィールド: `warningThreshold`（0～1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。従来の `{keyId, limit, period}` 形式を使用すると、`400 Bad Request` が返されます。
 
 ## トークン制限
 

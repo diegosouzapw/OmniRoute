@@ -220,19 +220,38 @@ Disse reglene håndheves av verktøy og kodegjennomgang:
 10. **Kjøretidsverdier for `exec()` / `spawn()` via alternativet `env`** — interpoler aldri eksterne stier eller ikke-klarerte verdier som strenger i skript som sendes til skallet. Referanse: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Foretrekk biblioteker med sikre standardinnstillinger** — se [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Bruk disse før du lager din egen løsning.
 
-## Funn fra forsyningskjedeskannere (Socket.dev / Snyk / lignende)
+## Funn fra skannere for forsyningskjeden (Socket.dev / Snyk / lignende)
 
-Den publiserte npm-artefakten `omniroute` inkluderer Next.js-bygget med `output: "standalone"`, noe som betyr at hver rutebehandler — inkludert dokumenterte privilegerte funksjoner (MITM, Zed-import, Cloud Sync, innebygd tjenesteovervåker) — ender opp i minifiserte `.next/server/*.js`-segmenter. Heuristiske forsyningskjedeskannere sammenligner ofte disse segmentene med mønstre i skadevaresignaturer.
+> **Merknad om omfang:** `socket.yml` i rotkatalogen til repositoriet angir bare `projectIgnorePaths` for Socket.devs registerbaserte skanning etter publisering av den publiserte npm-artefakten — den er ikke en obligatorisk kontroll for sammenslåing i CI/PR. Ingen arbeidsflyt i `.github/workflows`, ingen skript i `package.json` og ingen mål i `Makefile` kjører Socket.dev.
 
-Skannerkonfigurasjonen vi bruker, ligger i [`socket.yml`](socket.yml) i rotmappen til repositoriet (Socket.dev GitHub App-format v2 — se <https://docs.socket.dev/docs/socket-yml>). Den ekskluderer eksplisitt kataloger som ikke distribueres (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` osv.), slik at skanneren bare rapporterer om kodebaner som faktisk når publiserte brukere — selve skanningen utføres ved at Socket GitHub App leser denne filen, ikke av en arbeidsflyt i dette repositoriet.
+Den publiserte npm-artefakten `omniroute` inkluderer Next.js-bygget med `output: "standalone"`,
+noe som betyr at hver rutebehandler — inkludert dokumenterte privilegerte
+funksjoner (MITM, Zed-import, Cloud Sync, innebygd tjenesteovervåker) — havner
+i minifiserte blokker i `.next/server/*.js`. Heuristiske skannere for
+forsyningskjeden samsvarer ofte disse blokkene med signaturer for skadevare.
 
-For hver funnkategori vedlikeholder vi en attestasjon fra vedlikeholderen for hvert enkelt funn:
+Skannerkonfigurasjonen vi bruker, ligger i [`socket.yml`](socket.yml) i
+rotkatalogen til repositoriet (Socket.dev GitHub App-format v2 — se
+<https://docs.socket.dev/docs/socket-yml>). Den ekskluderer eksplisitt
+kataloger som ikke distribueres (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` osv.), slik at skanneren bare rapporterer om kodebaner som
+faktisk når publiserte brukere — selve skanningen drives av at Socket
+GitHub App leser denne filen, ikke av en arbeidsflyt i dette repositoriet.
+
+For hver funnkategori vedlikeholder vi en attestasjon fra vedlikeholderne for hvert enkelt funn:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  kartlegging per funn: kildefil ↔ flagget segment ↔ virkemåte ↔ risikoreduserende tiltak anvendt i v3.8.6.
-- `SECURITY-AUDITOR-NOTE:`-blokker i kildekoden ved hver flaggede funksjon peker tilbake til det samme dokumentet.
+  oversikt per funn: kildefil ↔ flagget blokk ↔ virkemåte ↔ skadebegrensning
+  anvendt i v3.8.6.
+- `SECURITY-AUDITOR-NOTE:`-blokker i kildekoden ved hver flaggede funksjon peker
+  tilbake til det samme dokumentet.
 
-For brukere med en behandlingskjede som ikke kan lempe på varselet: bygg med `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dette erstatter de fire sensitive modulene med stubber som returnerer HTTP 503 `feature-disabled` under kjøring, slik at de privilegerte kodebanene er fysisk fraværende fra pakken. Se [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) for publiseringsoppskriften.
+For brukere med en pipeline som ikke kan lempe på varselet: bygg med
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dette erstatter de fire
+sensitive modulene med stubber som returnerer HTTP 503 `feature-disabled` under
+kjøring, slik at de privilegerte kodebanene fysisk ikke finnes i pakken.
+Se [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+for publiseringsoppskriften.
 
 ## Referanser
 

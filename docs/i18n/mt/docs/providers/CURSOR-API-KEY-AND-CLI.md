@@ -4,29 +4,32 @@
 
 ---
 
-Żewġ modi kif tqiegħed Cursor wara OmniRoute mingħajr sessjoni tal-IDE:
+Żewġ modi kif tqiegħed lil Cursor wara OmniRoute mingħajr sessjoni tal-IDE:
 
-1. **Fornitur `cursor-api`** (kard "Cursor API", alias `cua`): fornitur b’API key
-   li jżomm API key tal-utent ta’ Cursor (`crsr_…`, iġġenerata fuq
-   `https://cursor.com/dashboard/api`). Kwalunkwe klijent ta’ OmniRoute imbagħad jaċċessa
-   l-mudelli ta’ Cursor permezz ta’ `/v1/chat/completions` bħala `cursor-api/<model>` jew
-   `cua/<model>`, bis-saffi tas-soltu tal-kwota, tal-fallback u tal-logging. Il-fornitur
-   tal-IDE (`cursor`, OAuth/sessjoni tal-IDE) jibqa’ l-istess.
-2. **Passthrough tas-CLI ta’ Cursor**: ipponta s-CLI ta’ Cursor (`agent`) lejn OmniRoute sabiex
-   kull RPC li tagħmel is-CLI jiġi awtentikat b’API key ta’ OmniRoute, jintbagħat
-   lil Cursor bil-kredenzjali ta’ konnessjoni `cursor-api`, u jiġi rreġistrat fil-paġna
-   Logs.
+1. **Fornitur `cursor-api`** (kard "Cursor API", alias `cua`): fornitur b'API key
+   li jżomm API key ta' utent ta' Cursor (`crsr_…`, iġġenerata minn
+   `https://cursor.com/dashboard/api`). Kwalunkwe klijent ta' OmniRoute mbagħad
+   jaċċessa l-mudelli ta' Cursor permezz ta' `/v1/chat/completions` bħala
+   `cursor-api/<model>` jew `cua/<model>`, bis-saffi tas-soltu għall-kwota,
+   il-fallback u l-logging. Il-fornitur tal-IDE (`cursor`, sessjoni OAuth/IDE)
+   jibqa' l-istess.
+2. **Passthrough tas-CLI ta' Cursor**: ipponta s-CLI ta' Cursor (`agent`) lejn
+   OmniRoute sabiex kull RPC li tagħmel is-CLI tiġi awtentikata b'API key ta'
+   OmniRoute, mgħoddija lil Cursor bil-kredenzjali ta' konnessjoni `cursor-api`,
+   u rreġistrata fil-paġna Logs.
 
 ## Għaliex issir il-bidla tal-key
 
-`api2.cursor.sh` jirrifjuta key `crsr_…` mhux ipproċessata bħala token Bearer (401). Is-CLI ta’
-Cursor l-ewwel tibgħat POST bil-key lil `/auth/exchange_user_api_key` u tirċievi JWT
-tas-sessjoni li jiskadi wara siegħa; ir-`refreshToken` ritornat ikollu l-istess
-`exp`, għalhekk l-aġġornament ifisser li terġa’ ssir il-bidla tal-key.
-`open-sse/services/cursorApiKeyAuth.ts` jagħmel dik il-bidla, iżomm fil-cache token
-wieħed tas-sessjoni għal kull key, jerġa’ jagħmel il-bidla ħames minuti qabel l-iskadenza u jneħħi t-token
-mill-cache meta Cursor iwieġeb b’401. `CursorExecutor` isejjaħlu eżatt qabel ma jiftaħ
-l-istream upstream għal konnessjonijiet `cursor-api`.
+`api2.cursor.sh` jirrifjuta key `crsr_…` mhux ipproċessata bħala token Bearer
+(401). Is-CLI ta' Cursor l-ewwel tibgħat POST bil-key lejn
+`/auth/exchange_user_api_key` u tirċievi JWT tas-sessjoni li jiskadi wara siegħa;
+ir-`refreshToken` ritornat ikollu l-istess `exp`, għalhekk l-aġġornament ifisser
+li l-key terġa' tiġi skambjata.
+`open-sse/services/cursorApiKeyAuth.ts` iwettaq dak l-iskambju, iżomm fil-cache
+token wieħed tas-sessjoni għal kull key, jerġa' jiskambjah ħames minuti qabel
+l-iskadenza u jneħħi t-token mill-cache meta Cursor jirrispondi b'401.
+`CursorExecutor` isejjaħlu eżatt qabel jiftaħ l-istream upstream għal
+konnessjonijiet `cursor-api`.
 
 ## Il-fornitur `cursor-api`
 
@@ -53,47 +56,60 @@ Imbagħad:
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Authorization: Bearer <omniroute-api-key>" \
   -H "Content-Type: application/json" \
-  -d '{"model":"cursor-api/auto","messages":[{"role":"user","content":"say PONG"}]}'
+  -d '{"model":"cursor-api/auto","messages":[{"role":"user","content":"għid PONG"}]}'
 ```
 
 Noti:
 
-- Il-lista tal-mudelli għal `cursor-api` tiġi mir-reġistru statiku ta’ Cursor (l-istess
-  lista li l-fornitur tal-IDE juża bħala fallback); l-ebda installazzjoni ta’ `cursor-agent` ma hija
-  meħtieġa fuq il-host ta’ OmniRoute.
+- Il-lista tal-mudelli għal `cursor-api` tiġi mir-reġistru statiku ta' Cursor
+  (l-istess lista li juża l-fornitur tal-IDE bħala fallback); l-ebda installazzjoni
+  ta' `cursor-agent` mhi meħtieġa fuq il-host ta' OmniRoute.
 - `POST /api/providers/{id}/refresh-cursor` huwa għall-fornitur `cursor` tal-IDE
-  biss; il-konnessjonijiet `cursor-api` ma għandhom l-ebda sessjoni tal-IDE x’ġeddu.
+  biss; il-konnessjonijiet `cursor-api` m'għandhomx sessjoni tal-IDE x'ġedded.
 
-## Passthrough tas-CLI ta’ Cursor
+## IDs nattivi tal-mudelli u effort
 
-Route: `src/app/api/cursor-cli/[...path]/route.ts` →
+Għal `cursor` / `cu` u `cursor-api` / `cua`, in-normalizzatur kondiviż
+tal-effort ta' Claude jħalli l-ID tal-mudell mitlub intatt. Cursor jista'
+jirreklama suffiss bħal `-low` bħala parti minn ID reali ta' mudell, minflok
+bħala alias tal-effort ta' OmniRoute. L-executor ta' Cursor jippreserva qbil
+eżatt mal-katalgu live; meta ma jkunx hemm qbil, ir-resolver eżistenti
+tal-mudelli tiegħu jieħu ħsieb il-fallback minn suffiss għal parametru.
+
+Dan ma jbiddilx in-normalizzazzjoni tal-effort għal rotot diretti ta' Claude,
+rotot kompatibbli ma' Claude, jew rotot ta' Vertex. Id-disponibbiltà xorta
+tiddependi fuq il-katalgu u l-intitolament tal-kont ta' Cursor magħżul.
+
+## Passaġġ dirett tas-CLI ta' Cursor
+
+Rotta: `src/app/api/cursor-cli/[...path]/route.ts` →
 `open-sse/handlers/cursorCliProxy.ts`. Il-prefiss `/api/cursor-cli/` huwa
-rreġistrat f’`src/shared/constants/publicApiRoutes.ts` minħabba li l-handler
+rreġistrat f'`src/shared/constants/publicApiRoutes.ts` għax il-handler
 jinforza l-awtentikazzjoni tiegħu stess:
 
-| Path                                                                                                                        | Awtentikazzjoni mistennija mis-CLI | X’jagħmel OmniRoute                                                                                                                                                                          |
-| --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                          | `Bearer <OmniRoute API key>`       | Jivvalida l-key, joħloq JWT HS256 ta’ siegħa (iffirmat b’`JWT_SECRET`) u jirritornah                                                                                                         |
-| kull path ieħor (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                | Jivverifika l-issuer/audience/expiry, jagħżel konnessjoni `cursor-api` attiva, jibdel il-header Authorization bit-token ta’ Cursor miksub mill-bidla u jibgħat ir-risposta lura bħala stream |
+| Mogħdija                                                                                                                       | Awtentikazzjoni mistennija mis-CLI | X'jagħmel OmniRoute                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                             | `Bearer <OmniRoute API key>`       | Jivvalida ċ-ċavetta, joħloq JWT HS256 ta' siegħa (iffirmat b'`JWT_SECRET`) u jirritornah                                                                                               |
+| kull mogħdija oħra (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                | Jivverifika l-emittent/l-udjenza/l-iskadenza, jagħżel konnessjoni `cursor-api` attiva, jissostitwixxi l-header Authorization bit-token ta' Cursor skambjat u jistrimja r-risposta lura |
 
-Is-CLI tiddekodifika `exp` minn kwalunkwe token li tirċievi, għalhekk jekk tingħata token
-opaku terġa’ tagħmel il-bidla qabel kważi kull talba; il-JWT maħluq jevita
-dan. Tweġiba 401 minn OmniRoute ġġiegħel lis-CLI terġa’ tagħmel il-bidla.
+Is-CLI jiddekodifika `exp` minn kwalunkwe token li jirċievi, għalhekk jekk jingħata
+token opak jerġa' jiskambjah qabel kważi kull talba; il-JWT maħluq jevita
+dan. Risposta 401 minn OmniRoute ġġiegħel lis-CLI jerġa' jagħmel l-iskambju.
 
 ### Konfigurazzjoni
 
-1. Oħloq API key ta’ OmniRoute (Dashboard → API keys) u konnessjoni
+1. Oħloq ċavetta API ta' OmniRoute (Dashboard → API keys) u konnessjoni
    `cursor-api`.
-2. Għid lis-CLI tuża HTTP/1.1 għall-istream tal-agent. F’
+2. Għid lis-CLI juża HTTP/1.1 għall-istrim tal-aġent. F'
    `~/.cursor/cli-config.json`:
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Mingħajr dan, is-CLI tiftaħ it-turn tal-agent permezz ta’ HTTP/2 ma’ host tal-agent
-   ikkonfigurat separatament u l-RPCs tal-control plane biss jgħaddu mill-
-   endpoint.
+   Mingħajr dan, is-CLI jiftaħ it-turn tal-aġent fuq HTTP/2 lejn host tal-aġent
+   ikkonfigurat separatament, u l-RPCs tal-pjan ta' kontroll biss jgħaddu
+   mill-endpoint.
 
 3. Ħaddem is-CLI kontra OmniRoute:
 
@@ -103,18 +119,18 @@ dan. Tweġiba 401 minn OmniRoute ġġiegħel lis-CLI terġa’ tagħmel il-bidla
    agent -p --trust "Reply with exactly OK"
    ```
 
-Kull hop jasal f’Logs bil-fornitur `cursor-api`, bit-tip ta’ talba `cursor-cli`,
-bil-path `/api/cursor-cli/<rpc>`, attribwit lill-API key ta’ OmniRoute u lill-
-konnessjoni li servietu.
+Kull qabża tidher f'Logs bħala l-fornitur `cursor-api`, bit-tip ta' talba
+`cursor-cli`, bil-mogħdija `/api/cursor-cli/<rpc>`, attribwita liċ-ċavetta API
+ta' OmniRoute u lill-konnessjoni li qdietha.
 
-### Modi ta’ falliment
+### Modi ta' falliment
 
-| Sitwazzjoni                                              | Rispons lis-CLI                                       |
+| Sitwazzjoni                                              | Risposta lis-CLI                                      |
 | -------------------------------------------------------- | ----------------------------------------------------- |
 | Ċavetta OmniRoute mhux magħrufa u `REQUIRE_API_KEY=true` | 401 `unauthenticated` waqt l-iskambju                 |
-| `REQUIRE_API_KEY=false`                                  | sessjoni anonima (tirrifletti l-imġiba ta’ `/v1/*`)   |
-| JWT tas-sessjoni skadut / barrani / manipulat            | 401, is-CLI jerġa’ jwettaq l-iskambju                 |
-| Ċavetta tal-API ta’ OmniRoute revokata wara l-iskambju   | 401 fl-RPC li jmiss                                   |
+| `REQUIRE_API_KEY=false`                                  | sessjoni anonima (tirrifletti l-imġiba ta' `/v1/*`)   |
+| JWT tas-sessjoni skadut / barrani / imbabas              | 401, is-CLI jerġa' jagħmel l-iskambju                 |
+| Ċavetta API ta' OmniRoute revokata wara l-iskambju       | 401 fuq l-RPC li jmiss                                |
 | Ebda konnessjoni `cursor-api` attiva                     | 503 `unavailable`                                     |
 | Cursor jirrifjuta ċ-ċavetta tal-konnessjoni              | 401 `unauthenticated`, is-sessjoni fil-cache titneħħa |
 | Is-servizz upstream ma jistax jintlaħaq                  | 502 `unavailable` (messaġġ sanitizzat)                |

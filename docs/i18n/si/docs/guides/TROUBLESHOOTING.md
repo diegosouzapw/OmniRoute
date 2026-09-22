@@ -68,16 +68,24 @@ OmniRoute ක්රියාවලියේ පරිසරය තුළ මේ�
 
 ## npm install අනතුරු ඇඟවීම් (ERESOLVE / peer / deprecated)
 
-ඔබ `npm install -g omniroute` ධාවනය කරන විට, `npm warn ERESOLVE`, peer-dependency දැනුම්දීම් සහ `deprecated` පණිවිඩ වැනි අනතුරු ඇඟවීම් විශාල ප්රමාණයක් දැකිය හැක. **මේවා අපේක්ෂිත අතර හානිකර නොවේ.** ප්රතිදානයේ `added <N> packages` දිස්වන්නේ නම් ඔබේ ස්ථාපනය සාර්ථක වී ඇත.
+ඔබ `npm install -g omniroute` ධාවනය කරන විට, `npm warn ERESOLVE`, peer-dependency දැනුම්දීම් සහ `deprecated` පණිවිඩ වැනි අනතුරු ඇඟවීම් රැසක් දැකිය හැක. **මේවා අපේක්ෂිත සහ හානිකර නොවන අනතුරු ඇඟවීම් වේ.** ප්රතිදානයේ `added <N> packages` දැක්වෙන්නේ නම්, ඔබගේ ස්ථාපනය සාර්ථක වී ඇත.
 
-මෙම අනතුරු ඇඟවීම් පැමිණෙන්නේ OmniRoute විසින් පාලනය නොකරන තෙවන පාර්ශ්ව පැකේජවල යල් පැන ගිය peer-dependency පරාසවලිනි:
+peer-dependency විසඳීමේ අනතුරු ඇඟවීම් යටපත් කිරීමට, OmniRoute සහාය දක්වන පහත ස්ථාපන ආකාරය භාවිත කරන්න:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` මඟින් යටපත් කරන්නේ `ERESOLVE` සහ peer-dependency දැනුම්දීම් පමණි. අත්හැර දැමීම පිළිබඳ දැනුම්දීම් සංක්රාමී තෙවන පාර්ශ්වීය පැකේජවලින් පැමිණෙන බැවින් ඒවා දිගටම දෘශ්යමාන වේ; ඒවා ස්ථාපනය අසාර්ථක වූ බව නොපෙන්වයි.
+
+OmniRoute විසින් පාලනය නොකරන තෙවන පාර්ශ්වීය පැකේජවල යල් පැන ගිය peer-dependency පරාසවලින් මෙම අනතුරු ඇඟවීම් පැමිණේ:
 
 1. **`marked-terminal` සඳහා `marked >=1 <16` අවශ්ය නමුත් `marked@18` හමු විය** — ප්රායෝගිකව නිසි ලෙස ක්රියා කරයි; upstream peer පරාසය යල් පැන ගොස් ඇත.
-2. **`deprecated prebuild-install@7.1.3`** — transitive native-binary ලබාගැනීමේ උපකාරකයකි. එය pin කර ඇති `wreq-js` transport binding එක ස්ථාපනය කිරීමට
-   භාවිත නොකරන අතර web-cookie provider transport සැකසුම අසාර්ථක වූ බවක්
-   එයින් නොපෙන්වයි.
+2. **`deprecated prebuild-install@7.1.3`** — සංක්රාමී native-binary ලබාගැනීමේ උපකාරකයකි. එය pin කර ඇති `wreq-js` transport binding එක ස්ථාපනය කිරීමට
+   භාවිත නොකරන අතර, web-cookie provider transport සැකසුම අසාර්ථක වූ බවක්ද
+   නොපෙන්වයි.
 
-**කිසිදු ක්රියාමාර්ගයක් අවශ්ය නොවේ** — upstream පැකේජ fork කිරීමකින් තොරව මෙම අනතුරු ඇඟවීම් සම්පූර්ණයෙන් නිහඬ කළ නොහැක.
+**කිසිදු ක්රියාමාර්ගයක් අවශ්ය නොවේ** — upstream පැකේජ fork කිරීමකින් තොරව මෙම අනතුරු ඇඟවීම් සම්පූර්ණයෙන්ම නිහඬ කළ නොහැක.
 
 ---
 

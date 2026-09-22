@@ -4,21 +4,23 @@
 
 ---
 
-Tento dokument predstavuje potvrdenie autora a správcu k šiestim zisteniam
-`AI-detected potential malware` nahláseným pre `omniroute@3.8.5` a
-k zmierneniam implementovaným v `omniroute@3.8.6`. Existuje preto, aby:
+> **Poznámka k rozsahu:** `socket.yml` konfiguruje skenovanie artefaktu npm po publikovaní na strane registra službou Socket.dev (ignorované cesty pre obsah, ktorý nie je súčasťou distribuovaného balíka, napríklad `tests/`, `docs/` a zostavy o zostavení). Nenastavuje blokovanie zlúčenia v CI/PR — Socket.dev nevyvoláva žiadny pracovný postup v `.github/workflows`, žiadny skript v `package.json` ani žiadny cieľ v `Makefile`.
 
-1. Prevádzkovatelia bezpečnostných pipeline mali jednotný referenčný dokument,
-   na ktorý sa môžu odvolať pri vyhodnocovaní zistení voči skutočnému zdrojovému kódu.
-2. Budúce AI skenery mohli zachytiť správcom podpísané vyhlásenie, že každá
-   označená cesta je zámerná, voliteľná a zdokumentovaná.
+Tento dokument je potvrdením vypracovaným správcom pre šesť zistení
+`AI-detected potential malware` nahlásených pre `omniroute@3.8.5` a
+opatrenia zavedené vo verzii `omniroute@3.8.6`. Existuje preto, aby:
+
+1. Prevádzkovatelia bezpečnostných procesov mali jediný referenčný dokument,
+   na ktorý sa môžu odvolať pri posudzovaní zistení voči skutočnému zdrojovému kódu.
+2. Budúce skenery využívajúce AI mohli zachytiť správcom podpísané vyhlásenie,
+   že každá označená cesta je zámerná, voliteľná a zdokumentovaná.
 3. Sme mali písomný záznam o tom, _prečo_ má každé miesto volania danú podobu —
-   aby budúci refaktoring náhodou znovu nezaviedol odtlačok, ktorý bol
-   zámerne odstránený.
+   aby budúca refaktorizácia náhodou znovu nezaviedla charakteristický vzor,
+   ktorý bol zámerne odstránený.
 
-Ak prevádzkujete skener, ktorý po vydaní zmiernení vo v3.8.6 opätovne označí
-ktorékoľvek z nižšie uvedených miest volania, otvorte problém so záznamom
-skenovania a toto potvrdenie doplníme.
+Ak prevádzkujete skener, ktorý po vydaní zmierňujúcich opatrení vo verzii
+v3.8.6 znovu označí ktorékoľvek z nižšie uvedených miest volania, vytvorte
+hlásenie problému so záznamom skenovania a toto potvrdenie tu rozšírime.
 
 ---
 

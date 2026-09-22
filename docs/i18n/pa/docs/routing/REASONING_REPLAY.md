@@ -22,22 +22,24 @@ OmniRoute ਸੋਚਣ-ਮੋਡ ਵਾਲੇ ਮਾਡਲਾਂ ਦੁਆਰਾ
 ## ਆਰਕੀਟੈਕਚਰ
 
 ```
-ਵਾਰੀ N (ਸਹਾਇਕ ਤਿਆਰ ਕਰਦਾ ਹੈ):
-  → ਜਵਾਬ ਵਿੱਚ reasoning_content + tool_calls ਸ਼ਾਮਲ ਹਨ
+ਵਾਰੀ N (ਸਹਾਇਕ ਜਨਰੇਟ ਕਰਦਾ ਹੈ):
+  → ਜਵਾਬ ਵਿੱਚ reasoning_content + tool_calls ਸ਼ਾਮਲ ਹੁੰਦੇ ਹਨ
   → ਜੇ requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      ਹਰ tool_call.id ਦੁਆਰਾ ਕੁੰਜੀਬੱਧ ਕਰਕੇ (ਮੈਮੋਰੀ + DB) ਵਿੱਚ ਲਿਖਦਾ ਹੈ
-  → ਜਵਾਬ ਕਲਾਇੰਟ ਨੂੰ ਅੱਗੇ ਭੇਜੋ (ਜੋ ਤਰਕ ਨੂੰ ਰੱਖ ਵੀ ਸਕਦਾ ਹੈ ਜਾਂ ਨਹੀਂ ਵੀ)
+      ਲਿਖਦਾ ਹੈ (ਮੈਮੋਰੀ + DB), ਹਰ tool_call.id ਦੁਆਰਾ ਕੁੰਜੀਬੱਧ
+  → ਜਵਾਬ ਕਲਾਇੰਟ ਨੂੰ ਅੱਗੇ ਭੇਜਦਾ ਹੈ (ਜੋ reasoning ਨੂੰ ਸੰਭਾਲ ਕੇ ਰੱਖ ਵੀ ਸਕਦਾ ਹੈ ਜਾਂ ਨਹੀਂ ਵੀ)
 
-ਵਾਰੀ N+1 (ਕਲਾਇੰਟ ਅਗਲੀ ਬੇਨਤੀ ਭੇਜਦਾ ਹੈ):
+ਵਾਰੀ N+1 (ਕਲਾਇੰਟ ਫ਼ਾਲੋ-ਅੱਪ ਭੇਜਦਾ ਹੈ):
   → ਅਨੁਵਾਦਕ ਪਤਾ ਲਗਾਉਂਦਾ ਹੈ: requiresReasoningReplay(provider, model) === true
   → tool_calls ਵਾਲੇ ਅਤੇ reasoning_content ਤੋਂ ਬਿਨਾਂ ਹਰ ਸਹਾਇਕ ਸੁਨੇਹੇ ਲਈ:
       lookupReasoning(toolCalls[0].id) → ਮੈਮੋਰੀ → DB
       ਮਿਲਿਆ  → msg.reasoning_content = cached; recordReplay()
-      ਨਾ ਮਿਲਿਆ → msg.reasoning_content = "" (ਪੁਰਾਣੇ DeepSeek ਲਈ ਵਿਰਾਸਤੀ ਫਾਲਬੈਕ)
-  → ਅੱਪਸਟ੍ਰੀਮ ਨੂੰ ਇਕਸਾਰ ਇਤਿਹਾਸ ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ → ਕੋਈ 400 ਨਹੀਂ
+      ਨਾ ਮਿਲਿਆ → msg.reasoning_content = "" (ਪੁਰਾਣੇ DeepSeek ਲਈ ਲੈਗੇਸੀ ਫ਼ਾਲਬੈਕ)
+  → ਅੱਪਸਟ੍ਰੀਮ ਨੂੰ ਇਕਸਾਰ ਇਤਿਹਾਸ ਦਿਸਦਾ ਹੈ → ਕੋਈ 400 ਨਹੀਂ
 ```
 
-ਕੈਪਚਰ `open-sse/handlers/chatCore.ts` ਵਿੱਚ ਹੁੰਦਾ ਹੈ (ਦੋ ਥਾਵਾਂ 'ਤੇ, ਦੋ `cacheReasoningFromAssistantMessage` ਕਾਲ ਸਥਾਨਾਂ 'ਤੇ)। ਮੁੜ ਚਲਾਉਣਾ `open-sse/translator/index.ts` ਵਿੱਚ ਸਕੀਮਾ ਕੋਅਰਸ਼ਨ ਤੋਂ ਬਾਅਦ, ਪਰ ਡਿਸਪੈਚ ਤੋਂ ਪਹਿਲਾਂ ਹੁੰਦਾ ਹੈ।
+ਕੈਪਚਰ `open-sse/handlers/chatCore.ts` ਵਿੱਚ ਹੁੰਦਾ ਹੈ (ਦੋ ਥਾਵਾਂ ਉੱਤੇ, ਦੋ `cacheReasoningFromAssistantMessage` ਕਾਲ ਸਾਈਟਾਂ ਉੱਤੇ)। ਰੀਪਲੇਅ ਸਕੀਮਾ ਕੋਅਰਸ਼ਨ ਤੋਂ ਬਾਅਦ ਪਰ ਡਿਸਪੈਚ ਤੋਂ ਪਹਿਲਾਂ `open-sse/translator/index.ts` ਵਿੱਚ ਹੁੰਦਾ ਹੈ।
+
+ਸਧਾਰਨ (ਬਿਨਾਂ ਟੂਲ-ਕਾਲ ਵਾਲੀਆਂ) ਸਹਾਇਕ ਵਾਰੀਆਂ ਨੂੰ ਵੱਖਰੇ ਢੰਗ ਨਾਲ ਕੁੰਜੀਬੱਧ ਕੀਤਾ ਜਾਂਦਾ ਹੈ: `buildAssistantMessageCacheKey()` ਸੈਸ਼ਨ ਸਕੋਪ ਅਤੇ ਉਸ ਵਾਰੀ ਤੱਕ ਦੀ ਨਾਰਮਲਾਈਜ਼ ਕੀਤੀ OpenAI-ਫਾਰਮੈਟ ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ ਦਾ ਡਾਈਜੈਸਟ ਬਣਾਉਂਦਾ ਹੈ, ਕਿਉਂਕਿ `tools` ਮੌਜੂਦ ਹੋਣ ਉੱਤੇ DeepSeek ਨੂੰ _ਹਰ_ ਪਿਛਲੀ ਵਾਰੀ ਦੀ ਰੀਜ਼ਨਿੰਗ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ। Responses-API ਟਾਰਗੇਟਾਂ ਲਈ (ਉਦਾਹਰਨ ਵਜੋਂ `opencode-go/deepseek-v4-flash`, ਜੋ `/responses` ਵੱਲ ਰੂਟ ਕੀਤਾ ਜਾਂਦਾ ਹੈ) ਅੱਪਸਟ੍ਰੀਮ ਬਾਡੀ ਵਿੱਚ `messages` ਦੀ ਬਜਾਏ `input` ਹੁੰਦਾ ਹੈ, ਇਸ ਲਈ `translateRequest()` (`open-sse/translator/index.ts`) ਇੱਕ ਕਾਲਬੈਕ ਵਿਕਲਪ ਰਾਹੀਂ ਉਸ ਪਿਵਟ ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ ਦੀ ਰਿਪੋਰਟ ਕਰਦਾ ਹੈ ਜਿਸਦਾ ਇਸ ਨੇ ਡਾਈਜੈਸਟ ਬਣਾਇਆ ਸੀ, ਅਤੇ ਕੈਪਚਰ ਸਾਈਟਾਂ ਉਸੇ ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ ਦਾ ਡਾਈਜੈਸਟ ਬਣਾਉਂਦੀਆਂ ਹਨ। Responses ਰੀਪਲੇਅ ਪਾਸ ਹਰ ਸਰੋਤ ਫਾਰਮੈਟ ਲਈ OpenAI ਪਿਵਟ ਉੱਤੇ ਚੱਲਦਾ ਹੈ, ਇਸ ਲਈ Anthropic Messages ਕਲਾਇੰਟਾਂ (Claude → OpenAI → Responses) ਨੂੰ ਵੀ ਰੀਪਲੇਅ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।
 
 ## ਸਟੋਰੇਜ — ਹਾਈਬ੍ਰਿਡ ਮੈਮੋਰੀ + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-ਇੰਡੈਕਸ: `expires_at`, `provider`, `model`, `created_at`। `expires_at` ਨੂੰ Unix epoch ਸਕਿੰਟਾਂ ਵਜੋਂ ਸਟੋਰ ਕੀਤਾ ਜਾਂਦਾ ਹੈ; SELECT ਪਰਤ `EXPIRES_AT_EPOCH_SQL` ਰਾਹੀਂ ਵਿਰਾਸਤੀ ਟੈਕਸਟ ਮੁੱਲਾਂ ਨੂੰ ਨਾਰਮਲਾਈਜ਼ ਕਰਦੀ ਹੈ।
+ਇੰਡੈਕਸ: `expires_at`, `provider`, `model`, `created_at`। `expires_at` ਨੂੰ Unix epoch ਸਕਿੰਟਾਂ ਵਜੋਂ ਸਟੋਰ ਕੀਤਾ ਜਾਂਦਾ ਹੈ; SELECT ਪਰਤ ਪੁਰਾਣੀਆਂ ਟੈਕਸਟ ਵੈਲਿਊਆਂ ਨੂੰ `EXPIRES_AT_EPOCH_SQL` ਰਾਹੀਂ ਨਾਰਮਲਾਈਜ਼ ਕਰਦੀ ਹੈ।
 
 ## ਪ੍ਰਦਾਤਾ / ਮਾਡਲ ਪਛਾਣ
 

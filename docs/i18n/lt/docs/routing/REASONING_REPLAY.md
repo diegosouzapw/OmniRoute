@@ -22,22 +22,24 @@ Tačiau įprasti klientai (Cursor, Cline, Roo Code, OpenAI SDK) pašalina `reaso
 ## Architektūra
 
 ```
-N žingsnis (asistentas generuoja):
+N ciklas (asistentas generuoja):
   → atsakyme yra reasoning_content + tool_calls
   → jei requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      įrašo (į atmintį + DB), naudodama kiekvieną tool_call.id kaip raktą
-  → persiunčia atsakymą klientui (kuris gali išsaugoti samprotavimą arba jo neišsaugoti)
+      įrašo (į atmintį + DB), susiedama su kiekvienu tool_call.id
+  → persiunčia atsakymą klientui (kuris gali išsaugoti arba neišsaugoti samprotavimo)
 
-N+1 žingsnis (klientas siunčia tolesnę užklausą):
-  → vertyklė aptinka: requiresReasoningReplay(provider, model) === true
-  → kiekvienam asistento pranešimui, turinčiam tool_calls, bet neturinčiam reasoning_content:
+N+1 ciklas (klientas siunčia tolesnę užklausą):
+  → vertiklis aptinka: requiresReasoningReplay(provider, model) === true
+  → kiekvienam asistento pranešimui, kuriame yra tool_calls, bet nėra reasoning_content:
       lookupReasoning(toolCalls[0].id) → atmintis → DB
       rasta   → msg.reasoning_content = cached; recordReplay()
-      nerasta → msg.reasoning_content = "" (senasis atsarginis variantas, skirtas ankstesnei DeepSeek versijai)
-  → aukštesnio lygio paslauga gauna nuoseklią istoriją → nėra 400 klaidos
+      nerasta → msg.reasoning_content = "" (senasis atsarginis sprendimas, skirtas ankstesniam DeepSeek)
+  → išorinė sistema gauna nuoseklią istoriją → nėra 400
 ```
 
-Fiksavimas vyksta faile `open-sse/handlers/chatCore.ts` (dviejose vietose, ties dviem `cacheReasoningFromAssistantMessage` iškvietimo vietomis). Atkūrimas vyksta faile `open-sse/translator/index.ts` po schemos konvertavimo, bet prieš išsiuntimą.
+Fiksavimas atliekamas faile `open-sse/handlers/chatCore.ts` (dviejose vietose, ties dviem `cacheReasoningFromAssistantMessage` iškvietimais). Pakartotinis atkūrimas atliekamas faile `open-sse/translator/index.ts` po schemos pritaikymo, bet prieš išsiuntimą.
+
+Įprasti asistento ciklai (be įrankių iškvietimų) susiejami kitaip: `buildAssistantMessageCacheKey()` apskaičiuoja maišą iš sesijos aprėpties ir normalizuotos OpenAI formato transkripcijos iki to ciklo, nes DeepSeek reikalauja kiekvieno ankstesnio ciklo samprotavimo, kai tik yra `tools`. Responses-API paskirties sistemose (pavyzdžiui, `opencode-go/deepseek-v4-flash`, nukreipiamoje į `/responses`) išorinės sistemos užklausos turinyje perduodamas `input`, o ne `messages`, todėl `translateRequest()` (`open-sse/translator/index.ts`) per atgalinio iškvietimo parinktį pateikia tarpinę transkripciją, iš kurios apskaičiavo maišą, o fiksavimo vietos apskaičiuoja maišą iš tos pačios transkripcijos. Responses pakartotinio atkūrimo etapas vykdomas naudojant tarpinį OpenAI formatą kiekvienam šaltinio formatui, todėl atkuriamos ir Anthropic Messages klientų užklausos (Claude → OpenAI → Responses).
 
 ## Saugykla — Hibridinė Atmintis + SQLite
 

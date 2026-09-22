@@ -169,34 +169,35 @@ Tabulā `memory_vec_meta` (migrācija `083_memory_vec.sql`) tiek glabāts:
 
 ## Iestatījumu paplašinājums
 
-Deviņi iegulumu un vektoru lauki ir pieejami `MemorySettingsExtended` shēmā
-`src/shared/schemas/memory.ts` un tiek pastāvīgi glabāti, izmantojot `src/lib/db/settings.ts`:
+Deviņi iegulšanas un vektoru lauki ir pieejami `MemorySettingsExtended` failā
+`src/shared/schemas/memory.ts` un tiek saglabāti, izmantojot `src/lib/db/settings.ts`:
 
-| Lauks                    | Tips                                               | Noklusējums | Apraksts                                                        |
-| ------------------------ | -------------------------------------------------- | ----------- | --------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | Izmantojamais iegulumu avots                                    |
-| `embeddingProviderModel` | `string \| null`                                   | `null`      | Nodrošinātājs/modelis `provider/model` formātā                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`      | Tikai Memory paredzētā OpenAI saderīgā galapunkta bāzes URL     |
-| `customModelId`          | `string \| null`                                   | `null`      | Pielāgotajam galapunktam nosūtāmais modeļa ID                   |
-| `transformersEnabled`    | `boolean`                                          | `false`     | Izvēles Transformers.js aktivizēšana (MiniLM, ~400MB)           |
-| `staticEnabled`          | `boolean`                                          | `false`     | Izvēles lokālā statiskā potion-base-8M modeļa aktivizēšana      |
-| `rerankEnabled`          | `boolean`                                          | `false`     | Iespējot pārkārtošanas soli (pievieno +200-500ms/pieprasījumam) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`      | Pārkārtošanas nodrošinātājs/modelis `provider/model` formātā    |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`    | Izmantojamā vektoru aizmugursistēma                             |
+| Lauks                    | Tips                                               | Noklusējums | Apraksts                                                          |
+| ------------------------ | -------------------------------------------------- | ----------- | ----------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | Izmantojamais iegulšanas avots                                    |
+| `embeddingProviderModel` | `string \| null`                                   | `null`      | Nodrošinātājs/modelis formātā `provider/model`                    |
+| `customBaseUrl`          | `string \| null`                                   | `null`      | Tikai atmiņai paredzētā, ar OpenAI saderīgā galapunkta pamata URL |
+| `customModelId`          | `string \| null`                                   | `null`      | Pielāgotajam galapunktam nosūtītais modeļa ID                     |
+| `transformersEnabled`    | `boolean`                                          | `false`     | Transformers.js izvēles iespēja (MiniLM, ~400MB)                  |
+| `staticEnabled`          | `boolean`                                          | `false`     | Statiskā lokālā potion-base-8M modeļa izvēles iespēja             |
+| `rerankEnabled`          | `boolean`                                          | `false`     | Iespējot pārkārtošanas soli (pievieno +200-500ms/pieprasījumam)   |
+| `rerankProviderModel`    | `string \| null`                                   | `null`      | Pārkārtošanas nodrošinātājs/modelis formātā `provider/model`      |
+
+`rerankProviderModel` tiek atrisināts ar `POST /v1/rerank` (izsaucot atgriezeniskās cilpas savienojumā), tādēļ tas pieņem visu, ko pieņem šis maršruts: atlasītu mākoņa pārkārtošanas modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) vai ar OpenAI saderīgu nodrošinātāja mezglu formātā `<node-prefix>/<model>` (piemēram, `skilled-mini/bge-reranker-v2-m3` TEI/Infinity serverim). Atgriezeniskās cilpas mezgli vienmēr ir pieejami; mezglam citā resursdatorā (LAN, Tailscale) papildus ir nepieciešams `RERANK_REMOTE_PROVIDER_NODES` funkcijas karodziņš, un tam jāatbilst nodrošinātāja izejošo URL politikai — skatiet [Funkciju karodziņi](../reference/FEATURE_FLAGS.md). Informācijas paneļa atlasītājā ir uzskaitīti atlasītie nodrošinātāji un lokālie mezgli; jebkuru derīgu `provider/model` virkni var iestatīt tieši, izmantojot `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Izmantojamā vektoru aizmugursistēma |
 
 Tie ir pieejami, izmantojot `GET /PUT /api/settings/memory` (shēma `MemorySettingsExtendedSchema`).
 
 Avotam `remote` Memory pieņem arī neobligātos iestatījumus `customBaseUrl` un
-`customModelId`. Kopā tie atlasa OpenAI saderīgu `/embeddings` galapunktu un
-modeli, nemainot globālo iegulumu reģistru. Pirms izmantošanas galapunkts tiek
-normalizēts un pārbaudīts saskaņā ar nodrošinātāja izejošo URL politiku: ir
-nepieciešams HTTP(S), iegulti akreditācijas dati un vaicājuma virknes tiek
-noraidītas, un mākoņa metadatu adreses joprojām ir bloķētas. Tukšas vērtības
-saglabā atlasīto reģistra nodrošinātāju. Informācijas panelim atgrieztās kļūdas
-tiek sanitizētas, un galapunkta akreditācijas dati nekad netiek reģistrēti žurnālā.
+`customModelId`. Kopā tie atlasa ar OpenAI saderīgu `/embeddings`
+galapunktu un modeli, nemainot globālo iegulšanas reģistru. Pirms lietošanas galapunkts tiek
+normalizēts un pārbaudīts saskaņā ar nodrošinātāja izejošo URL politiku: ir nepieciešams
+HTTP(S), iegulti akreditācijas dati un vaicājumu virknes tiek noraidītas, un mākoņa metadatu
+adreses joprojām ir bloķētas. Tukšas vērtības saglabā atlasīto reģistra nodrošinātāju. Informācijas
+panelim atgrieztās kļūdas tiek attīrītas, un galapunkta akreditācijas dati nekad netiek reģistrēti žurnālā.
 
 > **TODO (D20):** Tvērums `global` (atmiņu kopīgošana starp visām API atslēgām) šajā
-> laidienā nav ieviests. Tam nepieciešamas shēmas izmaiņas un globāls izgūšanas
+> laidienā nav ieviests. Tam nepieciešamas shēmas izmaiņas un globāls izguves
 > ceļš. Izsekot atsevišķi.
 
 ## Glabāšanas slāņi

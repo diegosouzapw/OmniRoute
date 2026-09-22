@@ -7,49 +7,52 @@
 OmniRoute មានប្រព័ន្ធ lane មូលដ្ឋានតាមដំណើរការ (process-local) ចំនួន **ពីរ** ដែលមានវិសាលភាពខុសគ្នា។ ប្រព័ន្ធទាំងនេះ
 បំពេញគ្នាទៅវិញទៅមក ហើយអ្នកប្រតិបត្តិការគួរដឹងថាពួកគេកំពុងពិនិត្យមើលប្រព័ន្ធមួយណា។
 
-## 1. ការអនុញ្ញាតកម្រិត byte ទូទាំងដំណើរការ (`chatBodyAdmission.ts`)
+## 1. ការគ្រប់គ្រងការអនុញ្ញាតទទួលចូលកម្រិតបៃទូទាំងដំណើរការ (`chatBodyAdmission.ts`)
 
 - **វិសាលភាព៖** ផ្លូវ buffered-body/heap សម្រាប់ `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` និង route ផ្សេងទៀតដែលមានទម្រង់ដូច chat។ វាការពារ
-  ប្រឆាំងនឹងការកើនឡើងខ្លាំងនៃការប្រើ heap ដែលបណ្តាលមកពី body ទំហំធំរបស់ coding-agent (#4380)។
-- **controller សកលមួយសម្រាប់ដំណើរការ មិនមែន lane ដាច់ដោយឡែកសម្រាប់ key នីមួយៗទេ (#10110)។** API key
-  នីមួយៗ (ដែលបាន hash) ឬ session `anonymous` នីមួយៗ ស្នើសុំការអនុញ្ញាតដោយប្រើ budget រួម
-  **តែមួយ** ដូចគ្នា — session id ដែលបាន hash ត្រូវបានប្រើសម្រាប់តែជា key កំណត់កាលវិភាគដោយស្មើភាពប៉ុណ្ណោះ (ការបញ្ជូនបែប round-robin
-  រវាងអ្នករង់ចាំ) ហើយមិនដែលត្រូវបានប្រើជា shard សមត្ថភាពឡើយ។ កំណែមុននៃឯកសារនេះ
-  បានពិពណ៌នាអំពី lane ដាច់ដោយឡែកសម្រាប់ key នីមួយៗដែលមានសមត្ថភាពឯករាជ្យ ប៉ុន្តែ model នោះត្រូវបាន
-  លុបចេញនៅក្នុង #10110 ព្រោះវាអនុញ្ញាតឱ្យ credential ក្លែងក្លាយដែលមិនបានផ្ទៀងផ្ទាត់
-  បង្កើនដែនកំណត់ទូទាំងដំណើរការជាច្រើនដង។
-- **Gate (#503-fanout)៖ budget BYTE សម្រាប់ ingest ដែលគណនាដោយស្វ័យប្រវត្តិ មិនមែនជាចំនួន request
-  ថេរទេ។** ដែនកំណត់ចំនួន request ចាស់ `CHAT_MAX_HEAVY_IN_FLIGHT` (លំនាំដើម `1`
-  មុនពេលការកែតម្រូវនេះ) បានបង្រួម fan-out របស់ coding-agent (subagent/CLI ច្រើន,
-  body ដែលជាទូទៅមានទំហំ > 256 KB) ឱ្យនៅសល់ concurrency មានប្រសិទ្ធភាពប្រហែល ~1 ដែលបណ្តាលឱ្យទទួល
-  503 ក្រោមបន្ទុកធម្មតាទាំងស្រុង។ ឥឡូវនេះ វាមានប្រសិទ្ធភាពកំណត់តែនៅពេលដែលអ្នកប្រតិបត្តិការកំណត់
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ដោយជាក់លាក់ប៉ុណ្ណោះ។ ប្រសិនបើមិនកំណត់ ការអនុញ្ញាតនឹងត្រូវបាន
-  គ្រប់គ្រងជំនួសដោយ `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — ជា budget ដែលគណនាដោយស្វ័យប្រវត្តិពី
-  ដែនកំណត់ memory ពិតប្រាកដរបស់ដំណើរការ (`src/shared/middleware/admissionBudget.ts`)៖
-  25% នៃតម្លៃដែលតឹងរ៉ឹងជាងរវាងដែនកំណត់ V8 heap និងដែនកំណត់ cgroup/container ណាមួយ
-  ចែកនឹងកត្តាពង្រីកបណ្តោះអាសន្ន 8x ហើយត្រូវបានកម្រិតឱ្យនៅចន្លោះ 8 MiB និង
-  2 GiB។ override ដែលកំណត់ជាក់លាក់ក៏ប្រើដែនកំណត់ដូចគ្នា។ វាធ្វើមាត្រដ្ឋានដោយខ្លួនឯងចាប់ពី
-  container ទំហំ 512 MB ដល់ desktop ទំហំ 32 GB ដោយមិនចាំបាច់កែសម្រួល env។ Body ដែលមិនអាច
-  ដាក់ក្នុង budget មានប្រសិទ្ធភាពបាន នឹងបរាជ័យភ្លាមៗជាមួយ `413 body_exceeds_budget`;
-  មានតែការប្រជែងគ្នារវាង body ដែលអាចផ្តល់សេវាបានរៀងៗខ្លួនប៉ុណ្ណោះ ដែលចូលទៅក្នុង queue ស្មើភាព
-  មានដែនកំណត់។ កម្មវិធីតាមដានសម្ពាធធនធានដោយសញ្ញាច្រើនបែប real-time (សមាមាត្រ V8 heap,
-  cgroup, PSI, OOM events — `open-sse/utils/resourcePressurePolicy.ts`) កាត់បន្ថយ
-  ពេលរង់ចាំមានដែនកំណត់នៅពេលសម្ពាធ `high` និងបោះបង់ការទទួលភ្លាមៗជាមួយ
-  `503 resource_pressure` នៅពេលសម្ពាធ `critical` មុនពេល byte ណាមួយត្រូវបាន
-  ingest។
-- **ការកែសម្រួល៖**
+  ពីការកើនឡើងខ្លាំងនៃការប្រើ heap ដែលបង្កដោយ body ទំហំធំរបស់ coding-agent (#4380)។
+- **ឧបករណ៍បញ្ជារួមតែមួយសម្រាប់ដំណើរការទាំងមូល មិនមែន lane ដាច់ដោយឡែកតាម key ទេ (#10110)។** API key
+  នីមួយៗ (ដែលបាន hash) ឬ session `anonymous` ស្នើសុំការអនុញ្ញាតទទួលចូលដោយប្រើ budget រួម
+  **តែមួយដូចគ្នា** — session id ដែលបាន hash ត្រូវបានប្រើតែជាខ្សែសោសម្រាប់ការកំណត់កាលវិភាគដោយយុត្តិធម៌ប៉ុណ្ណោះ
+  (ការបញ្ជូនតាម round-robin រវាងអ្នករង់ចាំ) ហើយមិនដែលត្រូវបានប្រើជាការបែងចែក capacity ឡើយ។ កំណែមុននៃ
+  ឯកសារនេះបានពិពណ៌នាអំពី lane តាម key ដែលមាន capacity ដាច់ដោយឡែកពីគ្នា។ model នោះត្រូវបាន
+  ដកចេញនៅក្នុង #10110 ព្រោះវាអនុញ្ញាតឱ្យ credential ក្លែងក្លាយដែលមិនបានផ្ទៀងផ្ទាត់អាចបង្កើន
+  ដែនកំណត់ទូទាំងដំណើរការបានច្រើនដង។
+- **Gate (#503-fanout)៖ budget ជា BYTE សម្រាប់ការទទួលចូល ដែលគណនាដោយស្វ័យប្រវត្តិ មិនមែនជា
+  ចំនួន request ថេរទេ។** ដែនកំណត់តាមចំនួន request ចាស់ `CHAT_MAX_HEAVY_IN_FLIGHT` (តម្លៃលំនាំដើម `1`
+  មុនការកែសម្រួលនេះ) បានធ្វើឱ្យ fan-out របស់ coding-agent (subagent/CLI ច្រើន,
+  body ជាប្រចាំមានទំហំ > 256 KB) ធ្លាក់មកត្រឹម concurrency ជាក់ស្តែងប្រហែល 1 ដែលបណ្តាលឱ្យទទួល
+  503 ក្រោមបន្ទុកធម្មតាទាំងស្រុង។ ឥឡូវនេះ វាដាក់កម្រិតតែនៅពេល operator កំណត់
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ដោយជាក់លាក់ប៉ុណ្ណោះ។ ប្រសិនបើមិនកំណត់ ការអនុញ្ញាតទទួលចូលត្រូវបាន
+  គ្រប់គ្រងដោយ `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ជំនួសវិញ — ជា budget ដែលគណនាដោយស្វ័យប្រវត្តិពី
+  ពិដាន memory ពិតប្រាកដរបស់ដំណើរការ (`src/shared/middleware/admissionBudget.ts`)៖
+  25% នៃតម្លៃដែលតឹងជាងរវាងដែនកំណត់ V8 heap និងដែនកំណត់ cgroup/container ណាមួយ
+  ចែកនឹងកត្តាកើនឡើងបណ្តោះអាសន្ន 8x ហើយកំណត់ឱ្យស្ថិតនៅចន្លោះ 8 MiB និង
+  2 GiB។ តម្លៃ override ដែលបានកំណត់ជាក់លាក់ប្រើដែនកំណត់ដូចគ្នា។ វាធ្វើមាត្រដ្ឋានដោយខ្លួនឯងចាប់ពី
+  container ទំហំ 512 MB រហូតដល់ desktop ទំហំ 32 GB ដោយមិនចាំបាច់កែតម្រូវ env។ body ដែលមិនអាច
+  សមក្នុង budget ជាក់ស្តែង នឹងបរាជ័យភ្លាមៗជាមួយ `413 body_exceeds_budget`;
+  មានតែការប្រជែងគ្នារវាង body ដែលអាចបម្រើបានដោយឡែកពីគ្នាប៉ុណ្ណោះដែលចូលទៅក្នុង
+  queue យុត្តិធម៌ដែលមានដែនកំណត់។ ឧបករណ៍តាមដានសម្ពាធធនធានពហុសញ្ញាបែបផ្ទាល់ (អនុបាត V8 heap,
+  cgroup, PSI, ព្រឹត្តិការណ៍ OOM — `open-sse/utils/resourcePressurePolicy.ts`) កាត់បន្ថយ
+  ពេលរង់ចាំដែលមានដែនកំណត់ នៅក្រោមសម្ពាធ `high` និងបដិសេធភ្លាមៗជាមួយ
+  `503 resource_pressure` នៅក្រោមសម្ពាធ `critical` មុនពេលទទួលចូល byte ណាមួយ។
+  PSI ត្រូវបានអានពី `memory.pressure` នៃ cgroup របស់ unit នេះ នៅពេលមាន
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` គឺសម្រាប់
+  host ទាំងមូល ហើយត្រូវបានប្រើតែជា fallback លើ bare metal / cgroup v1 ប៉ុណ្ណោះ ដូច្នេះ host ដែលកំពុង
+  swap មិនអាចធ្វើឱ្យ container ដែលទំនេរទទួល 503 បានទេ។
+- **ការកែតម្រូវ៖**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override សម្រាប់ byte budget ដែលគណនាដោយស្វ័យប្រវត្តិ
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — ដែនកំណត់ចំនួន request ចាស់ ដែលប្រើបានតាមការជ្រើសរើសប៉ុណ្ណោះ
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — រយៈពេលរង់ចាំក្នុង queue មុនពេលទទួល 503 (លំនាំដើម 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — សន្ទះ heap សម្រាប់ byte ក្នុង queue (លំនាំដើម 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — ត្រូវបានបញ្ឈប់ការណែនាំឱ្យប្រើ
-    ហើយគ្មានប្រតិបត្តិការចាប់តាំងពី #10110 (នៅតែទទួលយកសម្រាប់ភាពត្រូវគ្នានៃ config ប៉ុន្តែមិនអើពើ)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — ដែនកំណត់តាមចំនួន request ចាស់ ដែលប្រើតែនៅពេលជ្រើសរើសបើកប៉ុណ្ណោះ
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — ពេលរង់ចាំក្នុង queue មុនពេលទទួល 503 (លំនាំដើម 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — សន្ទះគ្រប់គ្រង heap តាម queued-bytes (លំនាំដើម 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — ត្រូវបានឈប់ណែនាំឱ្យប្រើ
+    និងលែងមានប្រតិបត្តិការចាប់តាំងពី #10110 (ទទួលយកសម្រាប់ភាពត្រូវគ្នាជាមួយ config ប៉ុន្តែមិនយកមកប្រើ)
 - **របាយការណ៍៖** `GET /api/monitoring/health` → `chatAdmission` (#11244) — រួមទាំង
-  ធាតុបន្ថែមពី #503-fanout គឺ `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  ធាតុដែលបានបន្ថែមក្នុង #503-fanout គឺ `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` និង `countCapEnabled`
-  (false នៅលើ deployment លំនាំដើម — បញ្ជាក់ថា byte budget មិនមែនដែនកំណត់ចំនួនចាស់ទេ
-  គឺជាអ្វីដែលកំពុងកំណត់ជាក់ស្តែង)។
+  (false នៅលើ deployment លំនាំដើម — បញ្ជាក់ថា byte budget មិនមែនដែនកំណត់តាមចំនួនចាស់ទេ
+  គឺជាអ្វីដែលកំពុងដាក់កម្រិតជាក់ស្តែង)។
 
 ## 2. ឡេននិម្មិតពេលដំណើរការដែលសម្របខ្លួនបាន (`open-sse/services/admission`)
 

@@ -22,22 +22,24 @@ OmniRoute перехоплює `reasoning_content` асистента, ство�
 ## Архітектура
 
 ```
-Раунд N (асистент генерує):
+Хід N (асистент генерує):
   → відповідь містить reasoning_content + tool_calls
   → якщо requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      записує (у пам’ять + БД), із ключем за кожним tool_call.id
-  → пересилає відповідь клієнту (який може зберігати або не зберігати міркування)
+      записує (у пам’ять + БД), з ключем за кожним tool_call.id
+  → пересилає відповідь клієнту (який може зберегти або не зберегти міркування)
 
-Раунд N+1 (клієнт надсилає наступний запит):
+Хід N+1 (клієнт надсилає наступний запит):
   → транслятор виявляє: requiresReasoningReplay(provider, model) === true
   → для кожного повідомлення асистента з tool_calls і без reasoning_content:
       lookupReasoning(toolCalls[0].id) → пам’ять → БД
-      збіг    → msg.reasoning_content = cached; recordReplay()
-      промах  → msg.reasoning_content = "" (застарілий резервний варіант для старіших версій DeepSeek)
-  → висхідний сервіс отримує узгоджену історію → помилки 400 немає
+      збіг   → msg.reasoning_content = cached; recordReplay()
+      немає → msg.reasoning_content = "" (застарілий резервний варіант для старіших версій DeepSeek)
+  → вищий рівень отримує узгоджену історію → немає помилки 400
 ```
 
-Перехоплення відбувається в `open-sse/handlers/chatCore.ts` (у двох місцях виклику `cacheReasoningFromAssistantMessage`). Відтворення відбувається в `open-sse/translator/index.ts` після приведення до схеми, але до відправлення.
+Захоплення відбувається в `open-sse/handlers/chatCore.ts` (у двох місцях виклику `cacheReasoningFromAssistantMessage`). Відтворення відбувається в `open-sse/translator/index.ts` після приведення схеми, але перед відправленням.
+
+Звичайні ходи асистента (без викликів інструментів) отримують ключі інакше: `buildAssistantMessageCacheKey()` створює дайджест області сеансу разом із нормалізованою історією діалогу у форматі OpenAI до цього ходу включно, оскільки DeepSeek вимагає міркування для _кожного_ попереднього ходу, щойно присутнє `tools`. Для цільових систем Responses API (наприклад, `opencode-go/deepseek-v4-flash`, що маршрутизується до `/responses`) тіло висхідного запиту містить `input`, а не `messages`, тому `translateRequest()` (`open-sse/translator/index.ts`) через параметр зворотного виклику повідомляє проміжну історію діалогу, для якої було створено дайджест, а місця захоплення створюють дайджест тієї самої історії. Прохід відтворення Responses виконується на проміжному представленні OpenAI для кожного вихідного формату, тому відтворення також виконується для клієнтів Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Сховище — гібрид пам’яті та SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Індекси: `expires_at`, `provider`, `model`, `created_at`. Значення `expires_at` зберігається як кількість секунд епохи Unix; рівень SELECT нормалізує застарілі текстові значення за допомогою `EXPIRES_AT_EPOCH_SQL`.
+Індекси: `expires_at`, `provider`, `model`, `created_at`. `expires_at` зберігається як кількість секунд від початку епохи Unix; рівень SELECT нормалізує застарілі текстові значення за допомогою `EXPIRES_AT_EPOCH_SQL`.
 
 ## Виявлення провайдера / моделі
 

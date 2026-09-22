@@ -25,19 +25,21 @@ No entanto, os clientes habituais (Cursor, Cline, Roo Code, OpenAI SDK) removem 
 Turno N (o assistente gera):
   → a resposta contém reasoning_content + tool_calls
   → se requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      escreve (memória + BD), com uma chave para cada tool_call.id
-  → encaminha a resposta para o cliente (que pode ou não conservar o raciocínio)
+      escreve (memória + BD), indexado por cada tool_call.id
+  → encaminha a resposta para o cliente (que pode ou não reter o raciocínio)
 
-Turno N+1 (o cliente envia um pedido subsequente):
+Turno N+1 (o cliente envia um pedido de seguimento):
   → o tradutor deteta: requiresReasoningReplay(provider, model) === true
   → para cada mensagem do assistente com tool_calls e sem reasoning_content:
       lookupReasoning(toolCalls[0].id) → memória → BD
       encontrado     → msg.reasoning_content = cached; recordReplay()
-      não encontrado → msg.reasoning_content = "" (alternativa legada para versões anteriores do DeepSeek)
-  → o serviço a montante recebe um histórico consistente → sem erro 400
+      não encontrado → msg.reasoning_content = "" (mecanismo de contingência legado para versões anteriores do DeepSeek)
+  → o serviço a montante vê um histórico consistente → sem erro 400
 ```
 
-A captura ocorre em `open-sse/handlers/chatCore.ts` (em dois locais, nos dois pontos de chamada de `cacheReasoningFromAssistantMessage`). A reprodução ocorre em `open-sse/translator/index.ts` após a coerção do esquema, mas antes do envio.
+A captura ocorre em `open-sse/handlers/chatCore.ts` (em dois locais, nos dois pontos de chamada de `cacheReasoningFromAssistantMessage`). A repetição ocorre em `open-sse/translator/index.ts`, após a coerção do esquema, mas antes do envio.
+
+Os turnos simples do assistente (sem chamadas de ferramentas) são indexados de forma diferente: `buildAssistantMessageCacheKey()` calcula um resumo criptográfico do âmbito da sessão juntamente com a transcrição normalizada no formato OpenAI até esse turno, porque o DeepSeek exige o raciocínio de _todos_ os turnos anteriores assim que `tools` está presente. Para destinos da Responses API (por exemplo, `opencode-go/deepseek-v4-flash`, encaminhado para `/responses`), o corpo enviado ao serviço a montante contém `input`, e não `messages`, pelo que `translateRequest()` (`open-sse/translator/index.ts`) comunica, através de uma opção de callback, a transcrição intermédia usada para calcular o resumo criptográfico, e os pontos de captura calculam o resumo dessa mesma transcrição. A passagem de repetição de Responses é executada sobre a representação intermédia OpenAI para todos os formatos de origem, pelo que os clientes de Anthropic Messages (Claude → OpenAI → Responses) também são abrangidos pela repetição.
 
 ## Armazenamento — Memória Híbrida + SQLite
 

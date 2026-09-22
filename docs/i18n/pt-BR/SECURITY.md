@@ -220,35 +220,36 @@ Estas regras são aplicadas pelas ferramentas e pelos revisores:
 10. **Valores de tempo de execução de `exec()` / `spawn()` por meio da opção `env`** — nunca interpole como string caminhos externos ou valores não confiáveis em scripts passados ao shell. Referência: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Prefira bibliotecas seguras por padrão** — consulte [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Recorra a elas antes de desenvolver sua própria solução.
 
-## Achados de scanners da cadeia de suprimentos (Socket.dev / Snyk / similares)
+## Descobertas do scanner de cadeia de suprimentos (Socket.dev / Snyk / similares)
+
+> **Nota de escopo:** o `socket.yml` na raiz do repositório apenas configura `projectIgnorePaths` para a análise pós-publicação, no lado do registro, realizada pelo Socket.dev sobre o artefato npm publicado — ele não é um bloqueio obrigatório para integração contínua/mesclagem de PRs. Nenhum fluxo de trabalho em `.github/workflows`, nenhum script de `package.json` e nenhum alvo de `Makefile` invoca o Socket.dev.
 
 O artefato npm publicado do `omniroute` inclui o build do Next.js com `output: "standalone"`,
 o que significa que cada manipulador de rota — incluindo recursos privilegiados
 documentados (MITM, importação do Zed, Cloud Sync, supervisor de serviço integrado) — acaba
-em trechos minificados `.next/server/*.js`. Scanners heurísticos da cadeia de suprimentos
-frequentemente comparam esses trechos a assinaturas de malware.
+em chunks minificados em `.next/server/*.js`. Scanners heurísticos de cadeia de suprimentos
+frequentemente comparam esses chunks com padrões de assinaturas de malware.
 
-A configuração do scanner que usamos está em [`socket.yml`](socket.yml), na raiz do
-repositório (formato v2 do aplicativo GitHub do Socket.dev — consulte
+A configuração do scanner que usamos fica em [`socket.yml`](socket.yml) na
+raiz do repositório (formato v2 do GitHub App do Socket.dev — consulte
 <https://docs.socket.dev/docs/socket-yml>). Ela exclui explicitamente
-diretórios que não são distribuídos (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` etc.), de modo que o scanner reporte apenas caminhos de código que
-realmente chegam aos usuários da versão publicada — a própria varredura é conduzida pelo
-aplicativo GitHub do Socket, que lê esse arquivo, e não por um fluxo de trabalho neste
-repositório.
+diretórios não distribuídos (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` etc.), para que o scanner reporte apenas caminhos de código que
+realmente chegam aos usuários do pacote publicado — a própria análise é acionada pelo GitHub
+App do Socket ao ler esse arquivo, e não por um fluxo de trabalho deste repositório.
 
-Para cada categoria de achado, mantemos uma declaração do mantenedor específica para cada achado:
+Para cada categoria de descoberta, mantemos uma declaração por descoberta feita pelos mantenedores:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa por achado: arquivo-fonte ↔ trecho sinalizado ↔ comportamento ↔ mitigação
+  mapa por descoberta: arquivo-fonte ↔ chunk sinalizado ↔ comportamento ↔ mitigação
   aplicada na v3.8.6.
 - Blocos `SECURITY-AUDITOR-NOTE:` no código-fonte, em cada função sinalizada,
-  apontam para o mesmo documento.
+  remetem ao mesmo documento.
 
 Para usuários cujo pipeline não permite flexibilizar o alerta: compile com
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Isso substitui os quatro
 módulos sensíveis por stubs que retornam HTTP 503 `feature-disabled` em
-tempo de execução, de modo que os caminhos de código privilegiados fiquem fisicamente ausentes do pacote.
+tempo de execução, de modo que os caminhos de código privilegiados ficam fisicamente ausentes do bundle.
 Consulte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 para ver o procedimento de publicação.
 

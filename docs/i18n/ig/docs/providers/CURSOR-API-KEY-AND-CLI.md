@@ -7,26 +7,25 @@
 Ụzọ abụọ e si etinye Cursor n’azụ OmniRoute na-enweghị nnọkọ IDE:
 
 1. **Onye na-eweta `cursor-api`** (kaadị "Cursor API", aha ọzọ `cua`): onye na-eweta
-   na-eji igodo API nke na-echekwa igodo API onye ọrụ Cursor (`crsr_…`, nke a na-emepụta na
-   `https://cursor.com/dashboard/api`). Onye ahịa OmniRoute ọ bụla ga-eruzi
+   na-eji API key nke na-edobe API key onye ọrụ Cursor (`crsr_…`, nke e mepụtara na
+   `https://cursor.com/dashboard/api`). Onye ahịa OmniRoute ọ bụla nwere ike iru
    ụdịdị Cursor site na `/v1/chat/completions` dịka `cursor-api/<model>` ma ọ bụ
-   `cua/<model>`, tinyere usoro oke ojiji, ndabere na ndekọ ndị a na-ejikarị. Agbanweghị onye
-   na-eweta IDE (`cursor`, OAuth/nnọkọ IDE).
-2. **Mbufe Cursor CLI ozugbo**: tụọ Cursor CLI (`agent`) aka na OmniRoute ka
-   RPC ọ bụla CLI na-eme jiri igodo API OmniRoute nweta nkwenye njirimara, zigara ya
-   Cursor site na nzere njikọ `cursor-api`, ma dekọọ ya na
-   ibe Ndekọ.
+   `cua/<model>`, yana usoro oke ojiji, fallback na ndekọ ndị a na-emebu. Onye
+   na-eweta IDE (`cursor`, OAuth/nnọkọ IDE) agbanweghị.
+2. **Mbugharị Cursor CLI ozugbo**: duzie Cursor CLI (`agent`) na OmniRoute ka
+   RPC ọ bụla CLI na-eme jiri OmniRoute API key nweta nkwenye, jiri ozi nzere
+   njikọ `cursor-api` ziga ya na Cursor, ma dekọọ ya na ibe Logs.
 
-## Ihe mere e ji agbanwere igodo ahụ
+## Ihe mere eji agbanwere key ahụ
 
-`api2.cursor.sh` anaghị anabata igodo `crsr_…` nkịtị dịka token Bearer (401). Cursor
-CLI na-ebu ụzọ zipụ igodo ahụ site na POST gaa `/auth/exchange_user_api_key` wee nweta JWT
-nnọkọ nke ga-emebi mgbe otu awa gachara; `refreshToken` e weghachiri nwere otu
-`exp` ahụ, ya mere imelite ya pụtara ịgbanwe igodo ahụ ọzọ.
-`open-sse/services/cursorApiKeyAuth.ts` na-eme mgbanwe ahụ, na-echekwa otu token
-nnọkọ maka igodo ọ bụla, na-agbanwe ya ọzọ nkeji ise tupu oge ya agwụ, ma na-ewepụ token
-e chekwara mgbe Cursor zara 401. `CursorExecutor` na-akpọ ya ozugbo tupu imepe
-stream upstream maka njikọ `cursor-api`.
+`api2.cursor.sh` na-ajụ key `crsr_…` nkịtị dịka token Bearer (401). Cursor
+CLI na-ebu ụzọ zipụ key ahụ site na POST gaa `/auth/exchange_user_api_key` wee nata JWT
+nnọkọ nke na-agwụ mgbe otu awa gachara; `refreshToken` eweghachiri nwere otu
+`exp` ahụ, ya mere ime refresh pụtara ịgbanwere key ahụ ọzọ.
+`open-sse/services/cursorApiKeyAuth.ts` na-eme mgbanwe ahụ, na-edobe otu token
+nnọkọ n’ebe nchekwa nwa oge maka key ọ bụla, na-agbanwe ya ọzọ nkeji ise tupu oge ya
+agwụ, ma na-ewepụ token ahụ e debere mgbe Cursor zara 401. `CursorExecutor` na-akpọ
+ya ozugbo tupu imepe stream upstream maka njikọ `cursor-api`.
 
 ## Onye na-eweta `cursor-api`
 
@@ -37,7 +36,7 @@ Ndebanye aha: `open-sse/config/providers/registry/cursor/index.ts`
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
 
-Dashboard: Ndị na-eweta → Cursor API → Tinye igodo API.
+Dashboard: Providers → Cursor API → Tinye API key.
 
 REST:
 
@@ -56,45 +55,56 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"cursor-api/auto","messages":[{"role":"user","content":"say PONG"}]}'
 ```
 
-Ndetu:
+Ihe ndị e kwesịrị ịma:
 
-- Ndepụta ụdịdị maka `cursor-api` sitere na ndebanye Cursor kwụ ọtọ (otu
-  ndepụta ahụ onye na-eweta IDE na-eji dịka ndabere); ọ dịghị mkpa ịwụnye `cursor-agent`
-  na host OmniRoute.
-- `POST /api/providers/{id}/refresh-cursor` bụ naanị maka onye na-eweta IDE `cursor`;
-  njikọ `cursor-api` enweghị nnọkọ IDE a ga-emegharị.
+- Ndepụta model maka `cursor-api` sitere na ndebanye Cursor kwụ ọtọ (otu
+  ndepụta ahụ onye na-eweta IDE na-eji dịka fallback); ọ dịghị mkpa ịwụnye
+  `cursor-agent` na host OmniRoute.
+- `POST /api/providers/{id}/refresh-cursor` bụ naanị maka onye na-eweta IDE
+  `cursor`; njikọ `cursor-api` enweghị nnọkọ IDE a ga-emegharị.
 
-## Mbufe Cursor CLI ozugbo
+## ID model izizi na effort
+
+Maka `cursor` / `cu` na `cursor-api` / `cua`, onye nhazi Claude-effort a na-ekekọrịta
+na-ahapụ ID model a rịọrọ dịka ọ dị. Cursor nwere ike igosi suffix dịka
+`-low` dịka akụkụ nke ezigbo ID model, kama ịbụ aha ọzọ effort nke OmniRoute.
+Executor Cursor na-echekwa ndakọrịta ziri ezi sitere na katalọgụ dị ugbu a; mgbe
+ndakọrịta adịghị, model resolver ya dịbu na-ahụ maka fallback site na suffix gaa na parameter.
+
+Nke a anaghị agbanwe nhazi effort maka ụzọ Claude kpọmkwem, ụzọ dakọtara na Claude,
+ma ọ bụ ụzọ Vertex. Ịdị adị ka dabere na katalọgụ na ikike nke akaụntụ Cursor
+ahọpụtara.
+
+## Nyefee Cursor CLI ozugbo
 
 Ụzọ: `src/app/api/cursor-cli/[...path]/route.ts` →
-`open-sse/handlers/cursorCliProxy.ts`. Edebanyere prefix `/api/cursor-cli/` na
+`open-sse/handlers/cursorCliProxy.ts`. E debanyere prefix `/api/cursor-cli/` na
 `src/shared/constants/publicApiRoutes.ts` n’ihi na handler ahụ
-na-amanye nkwenye njirimara nke ya:
+na-ahụ maka nyocha njirimara nke ya:
 
-| Ụzọ                                                                                                                           | Nkwenye njirimara a na-atụ anya n'aka CLI | Ihe OmniRoute na-eme                                                                                                                                                               |
-| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                            | `Bearer <OmniRoute API key>`              | Na-enyocha igodo ahụ, na-emepụta JWT HS256 nke ga-adịru 1h (e ji `JWT_SECRET` bịanye aka) ma weghachite ya                                                                         |
-| ụzọ ndị ọzọ niile (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                       | Na-enyocha onye nyere ya/ndị a na-ezubere/oge mmebi, họrọ njikọ `cursor-api` na-arụ ọrụ, dochie header Authorization na token Cursor a gbanwere, ma zighachi nzaghachi dịka stream |
+| Ụzọ                                                                                                                           | Nnyocha njirimara CLI na-atụ anya | Ihe OmniRoute na-eme                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                            | `Bearer <OmniRoute API key>`      | Na-enyocha key ahụ, mepụta JWT HS256 ga-adị otu elekere (nke ejiri `JWT_SECRET` bịanye aka na ya), ma weghachite ya                                                          |
+| ụzọ ndị ọzọ niile (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`               | Na-enyocha issuer/audience/expiry, họrọ njikọ `cursor-api` na-arụ ọrụ, jiri token Cursor a gbanwere dochie Authorization header ahụ, ma zighachite nzaghachi ahụ dịka stream |
 
-CLI na-agụ `exp` site na token ọ bụla ọ natara, ya mere inye ya token
-na-enweghị nkọwa na-eme ka ọ gbanwee ya ọzọ tupu ihe fọrọ nke nta ka ọ bụrụ arịrịọ ọ bụla; JWT e mepụtara na-egbochi
-nke ahụ. Nzaghachi 401 sitere na OmniRoute na-eme ka CLI gbanwee ya ọzọ.
+CLI na-agụpụta `exp` n’ime token ọ bụla ọ natara, ya mere, inye ya token
+na-enweghị ozi a na-ahụ anya na-eme ka ọ gbanwee ya ọzọ tupu ihe fọrọ nke nta ka ọ bụrụ request ọ bụla;
+JWT e mepụtara na-egbochi nke ahụ. Nzaghachi 401 sitere na OmniRoute na-eme ka CLI gbanwee token ọzọ.
 
 ### Nhazi
 
-1. Mepụta igodo API OmniRoute (Dashboard → Igodo API) na njikọ `cursor-api`.
-2. Gwa CLI ka o jiri HTTP/1.1 maka stream agent. N'ime
+1. Mepụta OmniRoute API key (Dashboard → API keys) na njikọ `cursor-api`.
+2. Gwa CLI ka o jiri HTTP/1.1 maka agent stream. N’ime
    `~/.cursor/cli-config.json`:
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Na-enweghị nke a, CLI na-emepe ntụgharị agent site na HTTP/2 gaa na host agent
-   ahaziri iche, naanị RPC ndị control-plane na-agafe
-   endpoint ahụ.
+   Na-enweghị nke a, CLI na-emepe agent turn site na HTTP/2 gaa na agent host
+   ahaziri iche, naanị control-plane RPCs ga-esikwa na endpoint ahụ.
 
-3. Gbaa CLI megide OmniRoute:
+3. Mee ka CLI rụọ ọrụ site na OmniRoute:
 
    ```bash
    export CURSOR_API_ENDPOINT=http://localhost:20128/api/cursor-cli
@@ -102,19 +112,19 @@ nke ahụ. Nzaghachi 401 sitere na OmniRoute na-eme ka CLI gbanwee ya ọzọ.
    agent -p --trust "Reply with exactly OK"
    ```
 
-Nzọụkwụ ọ bụla na-abanye na Ndekọ dịka onye na-eweta `cursor-api`, ụdị arịrịọ `cursor-cli`,
-ụzọ `/api/cursor-cli/<rpc>`, nke e kenyere igodo API OmniRoute na
-njikọ nyere ya ọrụ.
+Hop ọ bụla na-abanye na Logs dị ka provider `cursor-api`, ụdị request `cursor-cli`,
+ụzọ `/api/cursor-cli/<rpc>`, ma jikọta ya na OmniRoute API key na
+njikọ zara ya.
 
 ### Ụdị ọdịda
 
-| Ọnọdụ                                                       | Nzaghachi nye CLI                                    |
-| ----------------------------------------------------------- | ---------------------------------------------------- |
-| Igodo OmniRoute amaghi ama na `REQUIRE_API_KEY=true`        | 401 `unauthenticated` mgbe a na-eme mgbanwe          |
-| `REQUIRE_API_KEY=false`                                     | nnọkọ amaghị onye ọrụ (na-eṅomi omume `/v1/*`)       |
-| JWT nnọkọ kubie ume / si ebe ọzọ / agbanweela n'ụzọ aghụghọ | 401, CLI na-eme mgbanwe ọzọ                          |
-| A kagbuola igodo API OmniRoute mgbe mgbanwe gasịrị          | 401 na RPC na-esote                                  |
-| Enweghị njikọ `cursor-api` na-arụ ọrụ                       | 503 `unavailable`                                    |
-| Cursor jụrụ igodo njikọ ahụ                                 | 401 `unauthenticated`, a na-ehichapụ nnọkọ echekwara |
-| Enweghị ike iru ọrụ dị n'elu                                | 502 `unavailable` (ozi e sachara)                    |
-| Edoghị `JWT_SECRET`                                         | 503 mgbe a na-eme mgbanwe                            |
+| Ọnọdụ                                              | Nzaghachi nye CLI                                      |
+| -------------------------------------------------- | ------------------------------------------------------ |
+| OmniRoute key amaghi ama na `REQUIRE_API_KEY=true` | 401 `unauthenticated` mgbe a na-agbanwe token          |
+| `REQUIRE_API_KEY=false`                            | session amaghị aha (dị ka omume `/v1/*`)               |
+| Session JWT kubie ume / si ebe ọzọ / agbanweela    | 401, CLI na-agbanwe token ọzọ                          |
+| A kagburu OmniRoute API key mgbe mgbanwe gasịrị    | 401 na RPC na-esote                                    |
+| Enweghị njikọ `cursor-api` na-arụ ọrụ              | 503 `unavailable`                                      |
+| Cursor jụrụ key nke njikọ ahụ                      | 401 `unauthenticated`, a na-ehichapụ session echekwara |
+| Enweghị ike iru upstream                           | 502 `unavailable` (ozi ehichapụrụ ihe nzuzo)           |
+| Ahazighị `JWT_SECRET`                              | 503 mgbe a na-agbanwe token                            |

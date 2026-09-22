@@ -25,7 +25,13 @@
 
 ---
 
-## Snel uitvoeren
+## Snel starten
+
+> **Zelf hosten met één opdracht?** Raadpleeg de
+> [handleiding voor zelf hosten](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (gepubliceerde image +
+> Redis, alleen loopback, geen profielkeuze). Snel starten hieronder is het
+> pad met één container voor gebruikers die Redis al elders uitvoeren.
 
 ```bash
 docker run -d \

@@ -173,32 +173,34 @@ De tabel `memory_vec_meta` (migratie `083_memory_vec.sql`) slaat het volgende op
 Negen velden voor embeddings en vectoren zijn beschikbaar in `MemorySettingsExtended` in
 `src/shared/schemas/memory.ts` en worden opgeslagen via `src/lib/db/settings.ts`:
 
-| Veld                     | Type                                               | Standaard | Beschrijving                                                                |
-| ------------------------ | -------------------------------------------------- | --------- | --------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`  | Welke embeddingbron moet worden gebruikt                                    |
-| `embeddingProviderModel` | `string \| null`                                   | `null`    | Provider/model in de notatie `provider/model`                               |
-| `customBaseUrl`          | `string \| null`                                   | `null`    | Alleen voor geheugen bestemde OpenAI-compatibele basis-URL van het endpoint |
-| `customModelId`          | `string \| null`                                   | `null`    | Model-ID dat naar het aangepaste endpoint wordt verzonden                   |
-| `transformersEnabled`    | `boolean`                                          | `false`   | Opt-in voor Transformers.js (MiniLM, ~400 MB)                               |
-| `staticEnabled`          | `boolean`                                          | `false`   | Opt-in voor het lokale statische model potion-base-8M                       |
-| `rerankEnabled`          | `boolean`                                          | `false`   | Herrangschikkingsstap inschakelen (voegt +200-500 ms/verzoek toe)           |
-| `rerankProviderModel`    | `string \| null`                                   | `null`    | Provider/model voor herrangschikking in de notatie `provider/model`         |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`  | Welke vectorbackend moet worden gebruikt                                    |
+| Veld                     | Type                                               | Standaard | Beschrijving                                                               |
+| ------------------------ | -------------------------------------------------- | --------- | -------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`  | Welke embeddingbron moet worden gebruikt                                   |
+| `embeddingProviderModel` | `string \| null`                                   | `null`    | Provider/model in de indeling `provider/model`                             |
+| `customBaseUrl`          | `string \| null`                                   | `null`    | Alleen voor Memory gebruikte OpenAI-compatibele basis-URL van het eindpunt |
+| `customModelId`          | `string \| null`                                   | `null`    | Model-ID die naar het aangepaste eindpunt wordt verzonden                  |
+| `transformersEnabled`    | `boolean`                                          | `false`   | Opt-in voor Transformers.js (MiniLM, ~400 MB)                              |
+| `staticEnabled`          | `boolean`                                          | `false`   | Opt-in voor het lokale statische model potion-base-8M                      |
+| `rerankEnabled`          | `boolean`                                          | `false`   | Herrangschikkingsstap inschakelen (voegt +200-500 ms/verzoek toe)          |
+| `rerankProviderModel`    | `string \| null`                                   | `null`    | Provider/model voor herrangschikking in de indeling `provider/model`       |
+
+`rerankProviderModel` wordt omgezet door `POST /v1/rerank` (aangeroepen via loopback) en accepteert daarom alles wat die route accepteert: een beheerd cloudmodel voor herrangschikking (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) of een OpenAI-compatibele providernode als `<node-prefix>/<model>` (bijvoorbeeld `skilled-mini/bge-reranker-v2-m3` voor een TEI/Infinity-server). Loopbacknodes komen altijd in aanmerking; voor een node op een andere host (LAN, Tailscale) is daarnaast de featureflag `RERANK_REMOTE_PROVIDER_NODES` vereist en moet de node voldoen aan het beleid voor uitgaande provider-URL's — zie [Featureflags](../reference/FEATURE_FLAGS.md). De dashboardselector toont beheerde providers plus lokale nodes; elke geldige `provider/model`-tekenreeks kan rechtstreeks worden ingesteld via `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Welke vectorbackend moet worden gebruikt |
 
 Deze zijn beschikbaar via `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Voor de bron `remote` accepteert Memory ook de optionele instellingen `customBaseUrl` en
-`customModelId`. Samen selecteren ze een OpenAI-compatibel `/embeddings`-endpoint
-en model zonder het globale embeddingregister te wijzigen. Het endpoint wordt vóór
-gebruik genormaliseerd en gecontroleerd aan de hand van het beleid van de provider
-voor uitgaande URL's: HTTP(S) is vereist, ingesloten aanmeldgegevens en querystrings
-worden geweigerd en cloudmetadata-adressen blijven geblokkeerd. Lege waarden behouden
-de geselecteerde registerprovider. Fouten die aan het dashboard worden geretourneerd,
-worden opgeschoond en endpointaanmeldgegevens worden nooit gelogd.
+`customModelId`. Samen selecteren ze een OpenAI-compatibel `/embeddings`-eindpunt
+en model zonder het globale embeddingregister te wijzigen. Het eindpunt wordt vóór
+gebruik genormaliseerd en gecontroleerd aan de hand van het beleid voor uitgaande
+provider-URL's: HTTP(S) is vereist, ingesloten aanmeldgegevens en queryreeksen worden
+geweigerd en cloudmetadata-adressen blijven geblokkeerd. Lege waarden behouden de
+geselecteerde registerprovider. Fouten die aan het dashboard worden geretourneerd,
+worden opgeschoond en aanmeldgegevens van eindpunten worden nooit vastgelegd.
 
-> **TODO (D20):** Het bereik `global` (geheugens delen tussen alle API-sleutels) is
+> **TODO (D20):** Het bereik `global` (voor het delen van herinneringen tussen alle API-sleutels) is
 > niet geïmplementeerd in deze release. Hiervoor zijn schemawijzigingen en een globaal
-> ophaalpad vereist. Houd dit afzonderlijk bij.
+> ophaalpad vereist. Volg dit afzonderlijk.
 
 ## Opslaglagen
 

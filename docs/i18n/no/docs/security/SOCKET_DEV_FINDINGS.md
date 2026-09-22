@@ -4,21 +4,23 @@
 
 ---
 
-Dette dokumentet er den vedlikeholderforfattede attestasjonen for de seks
-`AI-detected potential malware`-funnene rapportert for `omniroute@3.8.5` og
-risikoreduserende tiltakene som er implementert i `omniroute@3.8.6`. Det finnes for at:
+> **Merknad om omfang:** `socket.yml` konfigurerer Socket.devs registerbaserte skanning av npm-artefakten etter publisering (ignorerte stier for innhold som ikke distribueres, for eksempel `tests/`, `docs/` og byggingsrapporter). Den setter ikke opp en CI/PR-port for sammenslåing — ingen arbeidsflyt i `.github/workflows`, intet `package.json`-skript og intet `Makefile`-mål kjører Socket.dev.
+
+Dette dokumentet er vedlikeholderens attestasjon for de seks
+`AI-detected potential malware`-funnene som ble rapportert for `omniroute@3.8.5`, og
+tiltakene som ble implementert i `omniroute@3.8.6`. Det finnes for at:
 
 1. Operatører av sikkerhetspipeliner skal ha én enkelt referanse å vise til når de må
-   evaluere funnene opp mot den faktiske kildekoden.
+   vurdere funnene opp mot den faktiske kildekoden.
 2. Fremtidige AI-skannere skal kunne fange opp den vedlikeholdersignerte erklæringen om at hver
-   flaggede bane er tilsiktet, valgfri og dokumentert.
+   flaggede sti er tilsiktet, aktivert ved eksplisitt valg og dokumentert.
 3. Vi skal ha en skriftlig oversikt over _hvorfor_ hvert kallsted er utformet slik det er —
    slik at en fremtidig refaktorering ikke utilsiktet gjeninnfører et fingeravtrykk som
-   med hensikt ble fjernet.
+   bevisst ble fjernet.
 
 Hvis du drifter en skanner som flagger noen av kallstedene nedenfor på nytt etter at
-risikoreduseringene i v3.8.6 er utgitt, ber vi deg opprette en sak med skannesporingen,
-så utvider vi attestasjonen her.
+tiltakene i v3.8.6 er publisert, ber vi deg opprette en sak med skanningssporet, så
+utvider vi attestasjonen her.
 
 ---
 

@@ -4,21 +4,23 @@
 
 ---
 
-Dit document is de door de maintainer opgestelde attestatie voor de zes
-bevindingen met `AI-detected potential malware` die zijn gemeld voor `omniroute@3.8.5` en
-de mitigerende maatregelen die zijn toegepast in `omniroute@3.8.6`. Het bestaat zodat:
+> **Opmerking over de reikwijdte:** `socket.yml` configureert de registry-side scan van Socket.dev na publicatie van het npm-artifact (ignore-paths voor niet-meegeleverde inhoud, zoals `tests/`, `docs/` en buildrapporten). Hiermee wordt geen CI/PR-samenvoegingsblokkade ingesteld — geen workflow in `.github/workflows`, geen script in `package.json` en geen target in `Makefile` roept Socket.dev aan.
 
-1. Beheerders van beveiligingspipelines één referentie hebben om aan te halen wanneer zij
+Dit document is de door de maintainer opgestelde verklaring voor de zes
+bevindingen met de melding `AI-detected potential malware` voor `omniroute@3.8.5` en
+de toegepaste mitigerende maatregelen in `omniroute@3.8.6`. Het bestaat zodat:
+
+1. Beheerders van beveiligingspipelines één referentie hebben die ze kunnen aanhalen wanneer ze
    de bevindingen aan de daadwerkelijke broncode moeten toetsen.
-2. Toekomstige AI-scanners de door de maintainer ondertekende verklaring kunnen detecteren dat elk
+2. Toekomstige AI-scanners de door de maintainer ondertekende verklaring kunnen oppikken dat elk
    gemarkeerd pad opzettelijk, opt-in en gedocumenteerd is.
 3. We een schriftelijk verslag hebben van _waarom_ elke aanroeplocatie is vormgegeven zoals die is —
-   zodat een toekomstige refactor niet per ongeluk opnieuw een patroon introduceert dat
-   bewust is verwijderd.
+   zodat bij een toekomstige refactor niet per ongeluk opnieuw een vingerafdruk wordt geïntroduceerd die
+   bewust was verwijderd.
 
-Als u een scanner beheert die een van de onderstaande aanroeplocaties opnieuw markeert nadat de
-mitigerende maatregelen van v3.8.6 zijn uitgebracht, open dan een issue met de scantrace; dan
-breiden we de attestatie hier uit.
+Als u een scanner beheert die een van de onderstaande aanroeplocaties na het
+uitbrengen van de mitigerende maatregelen in v3.8.6 opnieuw markeert, open dan een issue met de scantrace; dan
+zullen we de verklaring hier uitbreiden.
 
 ---
 

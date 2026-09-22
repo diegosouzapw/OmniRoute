@@ -1,1 +1,0 @@
-- **fix(providers):** MiniMax-M3's inline `<think>...</think>` reasoning no longer leaks into `message.content`/`delta.content` on the `minimax`/`minimax-cn` routes — it is now stripped and surfaced as `reasoning_content`, in both streaming and non-streaming responses (#13558) — thanks @pan17

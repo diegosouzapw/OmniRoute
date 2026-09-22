@@ -27,6 +27,12 @@
 
 ## 빠른 실행
 
+> **명령어 하나로 셀프 호스팅하시겠습니까?**  
+> [셀프 호스팅 가이드](../getting-started/SELF_HOST_GUIDE.md)를 참조하세요 —
+> `docker compose -f docker-compose.selfhost.yml up -d`(게시된 이미지 +
+> Redis, 루프백 전용, 프로필 선택 없음). 아래의 빠른 실행은 이미 다른 곳에서
+> Redis를 실행 중인 사용자를 위한 단일 컨테이너 방식입니다.
+
 ```bash
 docker run -d \
   --name omniroute \

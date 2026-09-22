@@ -7,53 +7,58 @@
 OmniRoute, farklı kapsamlara sahip, süreç içinde yerel **iki** şerit sistemine sahiptir. Bunlar
 birbirini tamamlar; operatörler hangisine baktıklarını bilmelidir.
 
-## 1. Bayt düzeyinde, süreç genelinde kabul denetimi (`chatBodyAdmission.ts`)
+## 1. Bayt düzeyinde süreç genelinde kabul (`chatBodyAdmission.ts`)
 
-- **Kapsam:** `POST /v1/chat/completions`, `/v1/messages`, `/v1/responses`
-  ve sohbet biçimindeki diğer rotalar için arabelleğe alınmış gövde/heap yolu.
-  Büyük kodlama aracısı gövdelerinden kaynaklanan heap büyümesine karşı koruma
-  sağlar (#4380).
-- **Anahtar başına şeritler değil, süreç genelinde tek bir denetleyici (#10110).**
-  Her API anahtarı (hash'lenmiş) veya `anonymous` oturumu, **aynı** paylaşılan
-  bütçeye göre kabul edilir — hash'lenmiş oturum kimliği yalnızca bir adil
-  zamanlama anahtarı olarak kullanılır (bekleyenler arasında round-robin
-  dağıtım); hiçbir zaman kapasite bölümü olarak kullanılmaz. Bu belgenin önceki
-  bir sürümünde bağımsız kapasiteye sahip, anahtar başına şeritler açıklanıyordu;
-  kimliği doğrulanmamış sahte kimlik bilgilerinin süreç genelindeki sınırı
-  katlamasına olanak tanıdığı için bu model #10110 kapsamında kaldırıldı.
-- **Geçit (#503-fanout): sabit bir istek sayısı değil, otomatik türetilen bir alım
-  BAYT bütçesi.** Eski `CHAT_MAX_HEAVY_IN_FLIGHT` istek sayısı üst sınırı (bu
-  düzeltmeden önce varsayılan `1`), kodlama aracısı fan-out işlemlerini (birden
-  fazla alt aracı/CLI, gövdeler rutin olarak > 256 KB) yaklaşık 1'lik etkin
-  eşzamanlılığa düşürüyor ve tamamen normal yük altında 503 hatalarına neden
-  oluyordu. Artık yalnızca bir operatör `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`
-  değerini açıkça ayarladığında sınırlama uygular. Ayarlanmadığında kabul işlemi
-  bunun yerine `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` tarafından denetlenir —
-  sürecin gerçek bellek tavanından otomatik türetilen bir bütçe
-  (`src/shared/middleware/admissionBudget.ts`): V8 heap sınırı ile herhangi bir
-  cgroup/container sınırından daha düşük olanın %25'i, 8x geçici büyütme
-  katsayısına bölünür ve 8 MiB ile 2 GiB arasında sınırlandırılır. Açık geçersiz
-  kılma değerleri de aynı sınırları kullanır. Bu, herhangi bir env ayarı
+- **Kapsam:** `POST /v1/chat/completions`, `/v1/messages`,
+  `/v1/responses` ve diğer sohbet biçimli rotalar için tamponlanan gövde/yığın
+  yolu. Büyük kodlama ajanı gövdelerinden kaynaklanan yığın büyütmesine karşı
+  koruma sağlar (#4380).
+- **Anahtar başına hatlar değil, süreç genelinde tek bir denetleyici (#10110).**
+  Her API anahtarı (karma değeri alınmış) veya `anonymous` oturumu **aynı**
+  paylaşılan bütçeye göre kabul edilir — karma değeri alınmış oturum kimliği,
+  kapasite bölümü olarak asla kullanılmadan YALNIZCA adil zamanlama anahtarı
+  (bekleyenler arasında sıralı döngüyle dağıtım) olarak kullanılır. Bu belgenin
+  önceki bir sürümü, bağımsız kapasiteye sahip anahtar başına hatları
+  açıklıyordu; bu model, kimliği doğrulanmamış sahte kimlik bilgilerinin süreç
+  genelindeki sınırı katlamasına izin verdiği için #10110 kapsamında kaldırıldı.
+- **Geçit (#503-fanout): sabit bir istek sayısı değil, otomatik türetilen bir
+  alım BAYT bütçesi.** Eski `CHAT_MAX_HEAVY_IN_FLIGHT` istek sayısı üst sınırı
+  (bu düzeltmeden önce varsayılan `1`), kodlama ajanlarının dışa yayılımını
+  (birden fazla alt ajan/CLI, gövdeler rutin olarak > 256 KB) yaklaşık `1`
+  etkin eşzamanlılığa düşürüyor ve tamamen normal yük altında 503 hatalarına
+  neden oluyordu. Artık yalnızca bir operatör açıkça
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ayarladığında bağlayıcıdır. Ayarlanmadığında
+  kabul, bunun yerine `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` tarafından, yani
+  sürecin gerçek bellek tavanından (`src/shared/middleware/admissionBudget.ts`)
+  otomatik türetilen bir bütçe tarafından sınırlandırılır: V8 yığın sınırı ile
+  herhangi bir cgroup/container sınırından daha düşük olanın %25'i, 8x geçici
+  büyütme faktörüne bölünür ve 8 MiB ile 2 GiB arasında sınırlandırılır. Açık
+  geçersiz kılmalar aynı sınırları kullanır. Bu, ortam değişkeni ayarı
   gerektirmeden 512 MB'lık bir container'dan 32 GB'lık bir masaüstüne kadar
-  kendiliğinden ölçeklenir. Etkin bütçeye sığamayan bir gövde,
-  `413 body_exceeds_budget` ile hemen başarısız olur; yalnızca tek tek işlenebilir
-  gövdeler arasındaki çekişme, sınırlı adalet kuyruğuna girer. Canlı ve çok
-  sinyalli bir kaynak baskısı izleyicisi (V8 heap oranı, cgroup, PSI, OOM
+  kendini ölçeklendirir. Etkin bütçeye sığamayan bir gövde hemen
+  `413 body_exceeds_budget` ile başarısız olur; yalnızca tek tek işlenebilir
+  gövdeler arasındaki çekişme, sınırlandırılmış adalet kuyruğuna girer. Canlı,
+  çok sinyalli bir kaynak baskısı izleyicisi (V8 yığın oranı, cgroup, PSI, OOM
   olayları — `open-sse/utils/resourcePressurePolicy.ts`), `high` baskı altında
-  sınırlı bekleme süresini kısaltır ve daha herhangi bir bayt alınmadan
-  `critical` baskı altında `503 resource_pressure` ile yükü hemen reddeder.
+  sınırlandırılmış bekleme süresini kısaltır ve herhangi bir bayt alınmadan önce
+  `critical` baskı altında yükü hemen `503 resource_pressure` ile reddeder. PSI,
+  mevcut olduğunda bu birimin cgroup `memory.pressure` dosyasından okunur
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` sistem
+  genelini kapsar ve yalnızca fiziksel makinede / cgroup v1'de geri dönüş
+  seçeneğidir; böylece takas alanı kullanan bir ana makine, boşta olan bir
+  container'ın 503 döndürmesine neden olamaz.
 - **Ayarlama:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — otomatik türetilen bayt bütçesini geçersiz kılma
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — eski istek sayısı üst sınırı, yalnızca açıkça etkinleştirilir
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 öncesi kuyrukta bekleme süresi (varsayılan 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — kuyruktaki baytlar için heap emniyet valfi (varsayılan 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110'dan
-    beri kullanımdan kaldırılmış etkisiz ayarlar (yapılandırma uyumluluğu için kabul edilir, yok sayılır)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — otomatik türetilen bayt bütçesi için geçersiz kılma
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — eski istek sayısı üst sınırı, yalnızca isteğe bağlı
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503'ten önce kuyrukta bekleme süresi (varsayılan 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — kuyruktaki baytlar için yığın valfi (varsayılan 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110'dan beri kullanım dışı
+    işlemsiz seçenekler (yapılandırma uyumluluğu için kabul edilir, yok sayılır)
 - **Raporlar:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — #503-fanout
-  ile eklenen `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  eklemeleri `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` ve `countCapEnabled`
-  dâhil (varsayılan bir dağıtımda false — gerçekte sınırlamayı eski sayı üst
-  sınırının değil, bayt bütçesinin uyguladığını doğrular).
+  dâhil (varsayılan bir dağıtımda false — gerçekte bağlayıcı olanın eski sayı
+  üst sınırı değil, bayt bütçesi olduğunu doğrular).
 
 ## 2. Uyarlanabilir çalışma zamanı sanal şeritleri (`open-sse/services/admission`)
 

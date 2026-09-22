@@ -27,6 +27,13 @@
 
 ## ඉක්මන් ධාවනය
 
+> **එක් විධානයකින් ස්වයං-සත්කාරක කරන්නද?**
+> [ස්වයං-සත්කාරක මාර්ගෝපදේශය](../getting-started/SELF_HOST_GUIDE.md) බලන්න —
+> `docker compose -f docker-compose.selfhost.yml up -d` (ප්රකාශිත image එක +
+> Redis, loopback සඳහා පමණි, profile තේරීමක් නැත). පහත ඉක්මන් ධාවනය,
+> දැනටමත් වෙනත් ස්ථානයක Redis ධාවනය කරන පරිශීලකයන් සඳහා වන
+> තනි-container ක්රමයයි.
+
 ```bash
 docker run -d \
   --name omniroute \

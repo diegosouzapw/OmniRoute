@@ -27,6 +27,12 @@
 
 ## Hurtigkjøring
 
+> **Selvdrift med én kommando?** Se
+> [veiledningen for selvdrift](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (publisert image +
+> Redis, kun loopback, uten profilvalg). Hurtigkjøringen nedenfor er
+> alternativet med én container for brukere som allerede kjører Redis et annet sted.
+
 ```bash
 docker run -d \
   --name omniroute \

@@ -142,27 +142,27 @@ RRF(d) = Σ  1 / (k + rank_i(d))      ഇവിടെ k = 60 (MEMORY_RRF_K വ�
 
 ## ക്രമീകരണ വിപുലീകരണം
 
-`src/shared/schemas/memory.ts`-ലെ `MemorySettingsExtended`-ൽ ഒമ്പത് എംബെഡ്ഡിംഗ്, വെക്റ്റർ ഫീൽഡുകൾ ലഭ്യമാണ്; അവ `src/lib/db/settings.ts` വഴി നിലനിർത്തുന്നു:
+`src/shared/schemas/memory.ts`-ലെ `MemorySettingsExtended`-ൽ എട്ട് embedding, vector ഫീൽഡുകൾ ലഭ്യമാണ്; അവ `src/lib/db/settings.ts` വഴി സ്ഥിരമായി സംഭരിക്കപ്പെടുന്നു:
 
-| ഫീൽഡ്                    | തരം                                                | ഡിഫോൾട്ട് | വിവരണം                                                                        |
-| ------------------------ | -------------------------------------------------- | --------- | ----------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`  | ഉപയോഗിക്കേണ്ട എംബെഡ്ഡിംഗ് ഉറവിടം                                              |
-| `embeddingProviderModel` | `string \| null`                                   | `null`    | `provider/model` ഫോർമാറ്റിലുള്ള പ്രൊവൈഡർ/മോഡൽ                                 |
-| `customBaseUrl`          | `string \| null`                                   | `null`    | മെമ്മറിക്ക് മാത്രമുള്ള OpenAI-അനുയോജ്യമായ എൻഡ്പോയിന്റിന്റെ അടിസ്ഥാന URL       |
-| `customModelId`          | `string \| null`                                   | `null`    | ഇഷ്ടാനുസൃത എൻഡ്പോയിന്റിലേക്ക് അയയ്ക്കുന്ന മോഡൽ ID                             |
-| `transformersEnabled`    | `boolean`                                          | `false`   | Transformers.js-നുള്ള സമ്മതാധിഷ്ഠിത സജീവമാക്കൽ (MiniLM, ~400MB)               |
-| `staticEnabled`          | `boolean`                                          | `false`   | സ്റ്റാറ്റിക് potion-base-8M ലോക്കൽ മോഡലിനുള്ള സമ്മതാധിഷ്ഠിത സജീവമാക്കൽ        |
-| `rerankEnabled`          | `boolean`                                          | `false`   | പുനഃറാങ്കിംഗ് ഘട്ടം സജീവമാക്കുക (ഓരോ അഭ്യർത്ഥനയ്ക്കും +200-500ms ചേർക്കുന്നു) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`    | `provider/model` ഫോർമാറ്റിലുള്ള പുനഃറാങ്കിംഗ് പ്രൊവൈഡർ/മോഡൽ                   |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`  | ഉപയോഗിക്കേണ്ട വെക്റ്റർ ബാക്കെൻഡ്                                              |
+| ഫീൽഡ്                    | തരം                                                | ഡിഫോൾട്ട് | വിവരണം                                                                                 |
+| ------------------------ | -------------------------------------------------- | --------- | -------------------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`  | ഉപയോഗിക്കേണ്ട embedding ഉറവിടം                                                         |
+| `embeddingProviderModel` | `string \| null`                                   | `null`    | `provider/model` ഫോർമാറ്റിലുള്ള provider/model                                         |
+| `customBaseUrl`          | `string \| null`                                   | `null`    | Memory-ക്ക് മാത്രമുള്ള OpenAI-അനുയോജ്യ endpoint-ന്റെ അടിസ്ഥാന URL                      |
+| `customModelId`          | `string \| null`                                   | `null`    | ഇഷ്ടാനുസൃത endpoint-ലേക്ക് അയയ്ക്കുന്ന മോഡൽ ID                                         |
+| `transformersEnabled`    | `boolean`                                          | `false`   | Transformers.js-നുള്ള സമ്മതാധിഷ്ഠിത സജ്ജീകരണം (MiniLM, ~400MB)                         |
+| `staticEnabled`          | `boolean`                                          | `false`   | സ്റ്റാറ്റിക് potion-base-8M ലോക്കൽ മോഡലിനുള്ള സമ്മതാധിഷ്ഠിത സജ്ജീകരണം                  |
+| `rerankEnabled`          | `boolean`                                          | `false`   | പുനഃറാങ്കിംഗ് ഘട്ടം പ്രവർത്തനക്ഷമമാക്കുക (ഓരോ അഭ്യർത്ഥനയ്ക്കും +200-500ms ചേർക്കുന്നു) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`    | `provider/model` ഫോർമാറ്റിലുള്ള പുനഃറാങ്കിംഗ് provider/model                           |
 
-ഇവ `GET /PUT /api/settings/memory` വഴി ലഭ്യമാക്കുന്നു (`MemorySettingsExtendedSchema` സ്കീമ).
+`rerankProviderModel`, `POST /v1/rerank` വഴിയാണ് പരിഹരിക്കപ്പെടുന്നത് (loopback വഴി വിളിക്കുന്നു), അതിനാൽ ആ route സ്വീകരിക്കുന്ന എന്തും ഇതും സ്വീകരിക്കും: ക്രമീകരിച്ച cloud rerank മോഡൽ (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) അല്ലെങ്കിൽ `<node-prefix>/<model>` രൂപത്തിലുള്ള OpenAI-അനുയോജ്യ provider node (ഉദാ. TEI/Infinity ബോക്സിനായി `skilled-mini/bge-reranker-v2-m3`). Loopback node-ുകൾക്ക് എല്ലായ്പ്പോഴും അർഹതയുണ്ട്; മറ്റൊരു host-ലുള്ള (LAN, Tailscale) node-ന് അധികമായി `RERANK_REMOTE_PROVIDER_NODES` feature flag ആവശ്യമാണ്, കൂടാതെ provider outbound URL നയം പാലിക്കുകയും വേണം — [Feature Flags](../reference/FEATURE_FLAGS.md) കാണുക. Dashboard selector ക്രമീകരിച്ച provider-കളെയും local node-ുകളെയും പട്ടികപ്പെടുത്തുന്നു; സാധുവായ ഏത് `provider/model` string-ഉം `PUT /api/settings/memory` വഴി നേരിട്ട് സജ്ജീകരിക്കാം.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | ഉപയോഗിക്കേണ്ട vector backend |
 
-`remote` ഉറവിടത്തിനായി, Memory ഐച്ഛികമായ `customBaseUrl`, `customModelId` ക്രമീകരണങ്ങളും സ്വീകരിക്കുന്നു. ആഗോള എംബെഡ്ഡിംഗ് രജിസ്ട്രിയിൽ മാറ്റം വരുത്താതെ, ഇവ ഒരുമിച്ച് OpenAI-അനുയോജ്യമായ `/embeddings` എൻഡ്പോയിന്റും മോഡലും തിരഞ്ഞെടുക്കുന്നു. ഉപയോഗിക്കുന്നതിന് മുമ്പ് എൻഡ്പോയിന്റ് നോർമലൈസ് ചെയ്യുകയും പ്രൊവൈഡറിന്റെ ഔട്ട്ബൗണ്ട് URL നയം ഉപയോഗിച്ച് പരിശോധിക്കുകയും ചെയ്യുന്നു: HTTP(S) നിർബന്ധമാണ്, ഉൾച്ചേർത്ത ക്രെഡൻഷ്യലുകളും ക്വറി സ്ട്രിങ്ങുകളും നിരസിക്കുന്നു, ക്ലൗഡ്-മെറ്റാഡാറ്റ വിലാസങ്ങൾ തുടർന്നും ബ്ലോക്ക് ചെയ്യപ്പെടുന്നു. ശൂന്യമായ മൂല്യങ്ങൾ തിരഞ്ഞെടുത്ത രജിസ്ട്രി പ്രൊവൈഡറെ നിലനിർത്തുന്നു. ഡാഷ്ബോർഡിലേക്ക് തിരികെ നൽകുന്ന പിശകുകൾ ശുദ്ധീകരിക്കുന്നു; എൻഡ്പോയിന്റ് ക്രെഡൻഷ്യലുകൾ ഒരിക്കലും ലോഗ് ചെയ്യുകയുമില്ല.
+ഇവ `GET /PUT /api/settings/memory` വഴി ലഭ്യമാക്കുന്നു (schema `MemorySettingsExtendedSchema`).
 
-> **TODO (D20):** എല്ലാ API കീകൾക്കുമിടയിൽ മെമ്മറികൾ പങ്കിടുന്ന `global` സ്കോപ്പ് ഈ റിലീസിൽ
-> നടപ്പിലാക്കിയിട്ടില്ല. അതിന് സ്കീമ മാറ്റങ്ങളും ഒരു ആഗോള റിട്രീവൽ
-> പാതയും ആവശ്യമാണ്. ഇത് പ്രത്യേകം ട്രാക്ക് ചെയ്യുക.
+`remote` ഉറവിടത്തിനായി, ഐച്ഛികമായ `customBaseUrl`, `customModelId` ക്രമീകരണങ്ങളും Memory സ്വീകരിക്കുന്നു. ആഗോള embedding registry മാറ്റാതെതന്നെ, ഇവ രണ്ടും ചേർന്ന് OpenAI-അനുയോജ്യമായ `/embeddings` endpoint-ഉം മോഡലും തിരഞ്ഞെടുക്കുന്നു. ഉപയോഗിക്കുന്നതിന് മുമ്പ് endpoint സാധാരണവത്കരിക്കുകയും provider outbound URL നയം ഉപയോഗിച്ച് പരിശോധിക്കുകയും ചെയ്യുന്നു: HTTP(S) നിർബന്ധമാണ്, ഉൾച്ചേർത്ത credentials-ഉം query string-ുകളും നിരസിക്കപ്പെടുന്നു, കൂടാതെ cloud-metadata വിലാസങ്ങൾ തടയപ്പെട്ട നിലയിൽ തുടരും. ശൂന്യമായ മൂല്യങ്ങൾ തിരഞ്ഞെടുത്ത registry provider-നെ നിലനിർത്തുന്നു. Dashboard-ലേക്ക് മടക്കി നൽകുന്ന പിശകുകൾ സുരക്ഷിതമാക്കപ്പെടുന്നു; endpoint credentials ഒരിക്കലും log ചെയ്യപ്പെടുന്നില്ല.
+
+> **TODO (D20):** എല്ലാ API key-കളിലുമായി memories പങ്കിടുന്നതിനുള്ള `global` scope ഈ release-ൽ നടപ്പാക്കിയിട്ടില്ല. ഇതിന് schema മാറ്റങ്ങളും global retrieval path-ഉം ആവശ്യമാണ്. പ്രത്യേകം ട്രാക്ക് ചെയ്യുക.
 
 ## സംഭരണ പാളികൾ
 

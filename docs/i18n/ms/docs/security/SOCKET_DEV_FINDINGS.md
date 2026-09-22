@@ -4,20 +4,22 @@
 
 ---
 
-Dokumen ini ialah pengesahan yang ditulis oleh penyelenggara bagi enam penemuan
-`AI-detected potential malware` yang dibangkitkan terhadap `omniroute@3.8.5` dan
-langkah mitigasi yang diterapkan dalam `omniroute@3.8.6`. Dokumen ini diwujudkan supaya:
+> **Nota skop:** `socket.yml` mengkonfigurasikan imbasan pascapenerbitan pada bahagian pendaftaran Socket.dev terhadap artifak npm (laluan yang diabaikan untuk kandungan yang tidak diedarkan seperti `tests/`, `docs/`, dan laporan binaan). Ia tidak menyediakan get penggabungan CI/PR — tiada aliran kerja dalam `.github/workflows`, tiada skrip `package.json`, dan tiada sasaran `Makefile` yang memanggil Socket.dev.
+
+Dokumen ini ialah pengesahan yang ditulis oleh penyelenggara bagi enam
+penemuan `AI-detected potential malware` yang dibangkitkan terhadap `omniroute@3.8.5` dan
+langkah mitigasi yang dilaksanakan dalam `omniroute@3.8.6`. Dokumen ini diwujudkan supaya:
 
 1. Pengendali saluran keselamatan mempunyai satu rujukan untuk dipetik apabila mereka perlu
    menilai penemuan tersebut berdasarkan sumber sebenar.
 2. Pengimbas AI pada masa hadapan dapat mengesan dakwaan yang ditandatangani oleh penyelenggara bahawa setiap
-   laluan yang ditandai adalah disengajakan, memerlukan persetujuan, dan didokumenkan.
+   laluan yang ditandai adalah disengajakan, atas pilihan pengguna, dan didokumenkan.
 3. Kami mempunyai rekod bertulis tentang _sebab_ setiap tapak panggilan dibentuk sedemikian —
-   supaya pemfaktoran semula pada masa hadapan tidak memperkenalkan semula cap jari yang
-   telah dialih keluar secara sengaja.
+   agar pemfaktoran semula pada masa hadapan tidak secara tidak sengaja memperkenalkan semula cap jari yang
+   telah disingkirkan dengan sengaja.
 
 Jika anda mengendalikan pengimbas yang menandai semula mana-mana tapak panggilan di bawah selepas
-mitigasi v3.8.6 dikeluarkan, sila buka isu dengan surih imbasan tersebut dan
+mitigasi v3.8.6 telah diterbitkan, sila buka isu dengan surih imbasan tersebut dan
 kami akan melanjutkan pengesahan di sini.
 
 ---

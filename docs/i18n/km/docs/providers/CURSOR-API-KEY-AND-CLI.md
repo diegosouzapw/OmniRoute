@@ -8,36 +8,36 @@
 
 1. **អ្នកផ្តល់សេវា `cursor-api`** (កាត "Cursor API", ឈ្មោះកាត់ `cua`)៖ អ្នកផ្តល់សេវាដែលប្រើ API key
    និងរក្សាទុក Cursor user API key (`crsr_…` ដែលបង្កើតនៅ
-   `https://cursor.com/dashboard/api`)។ បន្ទាប់មក ម៉ាស៊ីនភ្ញៀវ OmniRoute ណាមួយអាចចូលប្រើ
+   `https://cursor.com/dashboard/api`)។ បន្ទាប់មក OmniRoute client ណាមួយអាចចូលប្រើ
    ម៉ូដែល Cursor តាមរយៈ `/v1/chat/completions` ជា `cursor-api/<model>` ឬ
-   `cua/<model>` ដោយមានស្រទាប់កូតា ការបម្រុងជំនួស និងការកត់ត្រាធម្មតា។ អ្នកផ្តល់សេវា IDE
-   (`cursor`, សម័យ OAuth/IDE) នៅតែមិនផ្លាស់ប្តូរ។
-2. **ការបញ្ជូនបន្ត Cursor CLI**៖ កំណត់ Cursor CLI (`agent`) ឱ្យចង្អុលទៅ OmniRoute ដើម្បីឱ្យ
+   `cua/<model>` ដោយមានស្រទាប់កូតា ការបម្រុងជំនួស និងការកត់ត្រាទិន្នន័យដូចធម្មតា។ អ្នកផ្តល់សេវា IDE
+   (`cursor`, OAuth/សម័យ IDE) មិនមានការផ្លាស់ប្តូរទេ។
+2. **ការបញ្ជូនបន្ត Cursor CLI**៖ កំណត់ Cursor CLI (`agent`) ឱ្យភ្ជាប់ទៅ OmniRoute ដើម្បីឱ្យ
    រាល់ RPC ដែល CLI បង្កើត ត្រូវបានផ្ទៀងផ្ទាត់ដោយ OmniRoute API key បញ្ជូនបន្ត
-   ទៅ Cursor ដោយប្រើព័ត៌មានសម្គាល់អត្តសញ្ញាណរបស់ការតភ្ជាប់ `cursor-api` ហើយកត់ត្រានៅក្នុង
+   ទៅ Cursor ដោយប្រើព័ត៌មានសម្ងាត់នៃការតភ្ជាប់ `cursor-api` ហើយត្រូវបានកត់ត្រានៅក្នុង
    ទំព័រ Logs។
 
-## ហេតុអ្វីបានជា key ត្រូវបានផ្លាស់ប្តូរ
+## មូលហេតុដែល key ត្រូវបានផ្លាស់ប្តូរ
 
-`api2.cursor.sh` បដិសេធ key `crsr_…` ដើមជាថូខឹន Bearer (401)។ Cursor
-CLI ដំបូងផ្ញើ POST ជាមួយ key ទៅ `/auth/exchange_user_api_key` ហើយទទួលបាន JWT សម្រាប់សម័យ
-ដែលផុតកំណត់ក្រោយមួយម៉ោង។ `refreshToken` ដែលត្រូវបានត្រឡប់មកវិញមាន
-`exp` ដូចគ្នា ដូច្នេះការធ្វើឱ្យស្រស់មានន័យថាត្រូវផ្លាស់ប្តូរ key ម្តងទៀត។
-`open-sse/services/cursorApiKeyAuth.ts` អនុវត្តការផ្លាស់ប្តូរនោះ រក្សាទុកក្នុងឃ្លាំងសម្ងាត់នូវថូខឹនសម័យមួយ
-សម្រាប់ key នីមួយៗ ផ្លាស់ប្តូរឡើងវិញប្រាំនាទីមុនពេលផុតកំណត់ និងលុបថូខឹន
-ដែលបានរក្សាទុកក្នុងឃ្លាំងសម្ងាត់ នៅពេល Cursor ឆ្លើយតប 401។ `CursorExecutor` ហៅវាមុនពេលបើក
-ស្ទ្រីម upstream សម្រាប់ការតភ្ជាប់ `cursor-api`។
+`api2.cursor.sh` បដិសេធ key `crsr_…` ដើម នៅពេលប្រើជា Bearer token (401)។ Cursor
+CLI ដំបូងធ្វើ POST key ទៅ `/auth/exchange_user_api_key` ហើយទទួលបាន JWT សម្រាប់សម័យ
+ដែលផុតកំណត់ក្រោយមួយម៉ោង; `refreshToken` ដែលបានត្រឡប់មកវិញមាន `exp` ដូចគ្នា
+ដូច្នេះ ការធ្វើឱ្យស្រស់មានន័យថាត្រូវផ្លាស់ប្តូរ key ម្តងទៀត។
+`open-sse/services/cursorApiKeyAuth.ts` អនុវត្តការផ្លាស់ប្តូរនោះ រក្សាទុក session
+token មួយក្នុង cache សម្រាប់ key នីមួយៗ ផ្លាស់ប្តូរម្តងទៀតនៅប្រាំនាទីមុនពេលផុតកំណត់ និងលុប
+token ដែលបានរក្សាទុកក្នុង cache នៅពេល Cursor ឆ្លើយតប 401។ `CursorExecutor` ហៅវាភ្លាមៗមុនពេលបើក
+upstream stream សម្រាប់ការតភ្ជាប់ `cursor-api`។
 
 ## អ្នកផ្តល់សេវា `cursor-api`
 
-បញ្ជីចុះឈ្មោះ៖ `open-sse/config/providers/registry/cursor/index.ts`
-(`cursor_apiProvider`, `authType: "apikey"` និងមាន `format`, `baseUrl` និង
-`models` ដូច `cursor`)។ កាតកាតាឡុក៖
-`src/shared/constants/providers/apikey/specialty-media.ts`។ ផែនទី executor៖
+Registry៖ `open-sse/config/providers/registry/cursor/index.ts`
+(`cursor_apiProvider`, `authType: "apikey"` ដែលមាន `format`, `baseUrl` និង
+`models` ដូច `cursor`)។ កាត Catalog៖
+`src/shared/constants/providers/apikey/specialty-media.ts`។ ផែនទី Executor៖
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`)។
 
-ផ្ទាំងគ្រប់គ្រង៖ Providers → Cursor API → Add API key។
+Dashboard៖ Providers → Cursor API → Add API key។
 
 REST៖
 
@@ -58,44 +58,56 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 កំណត់សម្គាល់៖
 
-- បញ្ជីម៉ូដែលសម្រាប់ `cursor-api` មកពីបញ្ជីចុះឈ្មោះ Cursor ថេរ (ដែលជាបញ្ជី
-  ដូចគ្នានឹងបញ្ជីដែលអ្នកផ្តល់សេវា IDE ប្រើជាជម្រើសបម្រុង)។ មិនចាំបាច់ដំឡើង `cursor-agent`
-  នៅលើម៉ាស៊ីនមេ OmniRoute ទេ។
+- បញ្ជីម៉ូដែលសម្រាប់ `cursor-api` មកពី Cursor registry ថេរ (ជាបញ្ជីដូចគ្នា
+  ដែលអ្នកផ្តល់សេវា IDE ប្រើជាជម្រើសបម្រុង); មិនចាំបាច់ដំឡើង `cursor-agent`
+  នៅលើម៉ាស៊ីន host របស់ OmniRoute ទេ។
 - `POST /api/providers/{id}/refresh-cursor` គឺសម្រាប់តែអ្នកផ្តល់សេវា `cursor` IDE
-  ប៉ុណ្ណោះ។ ការតភ្ជាប់ `cursor-api` មិនមានសម័យ IDE សម្រាប់បន្តសុពលភាពទេ។
+  ប៉ុណ្ណោះ; ការតភ្ជាប់ `cursor-api` មិនមានសម័យ IDE សម្រាប់ធ្វើឱ្យស្រស់ទេ។
 
-## ការបញ្ជូនបន្ត Cursor CLI
+## លេខសម្គាល់ម៉ូដែលដើម និងកម្រិត effort
+
+សម្រាប់ `cursor` / `cu` និង `cursor-api` / `cua` កម្មវិធីសម្របសម្រួល Claude-effort ដែលប្រើរួមគ្នា
+រក្សាលេខសម្គាល់ម៉ូដែលដែលបានស្នើសុំឱ្យនៅដដែល។ Cursor អាចប្រកាស suffix ដូចជា
+`-low` ជាផ្នែកមួយនៃលេខសម្គាល់ម៉ូដែលពិតប្រាកដ ជំនួសឱ្យ alias សម្រាប់ effort របស់ OmniRoute។
+Cursor executor រក្សាទុកការផ្គូផ្គងជាក់លាក់ពី live catalog; នៅពេលមិនមាន
+ការផ្គូផ្គង កម្មវិធីដោះស្រាយម៉ូដែលដែលមានស្រាប់របស់វានឹងគ្រប់គ្រងការបម្លែង suffix ទៅជាប៉ារ៉ាម៉ែត្រ។
+
+វាមិនផ្លាស់ប្តូរការធ្វើ normalization នៃ effort សម្រាប់ route ទៅ Claude ដោយផ្ទាល់
+Claude-compatible ឬ Vertex ទេ។ ភាពអាចប្រើបាននៅតែអាស្រ័យលើ catalog និងសិទ្ធិប្រើប្រាស់
+របស់គណនី Cursor ដែលបានជ្រើសរើស។
+
+## ការបញ្ជូនបន្តរបស់ Cursor CLI
 
 ផ្លូវ៖ `src/app/api/cursor-cli/[...path]/route.ts` →
 `open-sse/handlers/cursorCliProxy.ts`។ បុព្វបទ `/api/cursor-cli/` ត្រូវបាន
-ចុះឈ្មោះក្នុង `src/shared/constants/publicApiRoutes.ts` ពីព្រោះ handler
+ចុះបញ្ជីនៅក្នុង `src/shared/constants/publicApiRoutes.ts` ព្រោះ handler
 អនុវត្តការផ្ទៀងផ្ទាត់អត្តសញ្ញាណដោយខ្លួនឯង៖
 
-| ផ្លូវ                                                                                                                         | ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណដែលរំពឹងពី CLI | អ្វីដែល OmniRoute ធ្វើ                                                                                                                                                                |
-| ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                            | `Bearer <OmniRoute API key>`           | ផ្ទៀងផ្ទាត់ key បង្កើត JWT HS256 ដែលមានសុពលភាព 1 ម៉ោង (ចុះហត្ថលេខាដោយ `JWT_SECRET`) ហើយត្រឡប់វាទៅវិញ                                                                                  |
-| រាល់ផ្លូវផ្សេងទៀត (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                    | ផ្ទៀងផ្ទាត់អ្នកចេញផ្សាយ/ទស្សនិកជន/ពេលផុតកំណត់ ជ្រើសរើសការតភ្ជាប់ `cursor-api` ដែលសកម្ម ប្តូរ header Authorization ជាមួយថូខឹន Cursor ដែលបានផ្លាស់ប្តូរ ហើយស្ទ្រីមការឆ្លើយតបត្រឡប់ទៅវិញ |
+| ផ្លូវ                                                                                                                         | ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណដែលរំពឹងពី CLI | អ្វីដែល OmniRoute ធ្វើ                                                                                                                                                       |
+| ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                            | `Bearer <OmniRoute API key>`           | ផ្ទៀងផ្ទាត់ key បង្កើត HS256 JWT ដែលមានសុពលភាព 1 ម៉ោង (ចុះហត្ថលេខាដោយ `JWT_SECRET`) ហើយត្រឡប់វាវិញ                                                                           |
+| រាល់ផ្លូវផ្សេងទៀត (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                    | ផ្ទៀងផ្ទាត់ issuer/audience/expiry ជ្រើសរើសការតភ្ជាប់ `cursor-api` ដែលសកម្ម ប្ដូរ header Authorization ជាមួយ Cursor token ដែលបានផ្លាស់ប្ដូរ ហើយ stream ការឆ្លើយតបត្រឡប់ទៅវិញ |
 
-CLI ឌិកូដ `exp` ពីថូខឹនណាមួយដែលវាទទួលបាន ដូច្នេះការផ្តល់ថូខឹន
-ដែលមិនអាចអានខ្លឹមសារបាន ធ្វើឱ្យវាផ្លាស់ប្តូរឡើងវិញមុនស្ទើរតែរាល់សំណើ។ JWT ដែលបានបង្កើតជៀសវាង
-បញ្ហានោះ។ ការឆ្លើយតប 401 ពី OmniRoute ធ្វើឱ្យ CLI ផ្លាស់ប្តូរម្តងទៀត។
+CLI ឌិកូដ `exp` ពី token ណាក៏ដោយដែលវាទទួលបាន ដូច្នេះការផ្ដល់ opaque
+token ឱ្យវានឹងធ្វើឱ្យវាផ្លាស់ប្ដូរ token ឡើងវិញមុនស្ទើរតែរាល់ request; JWT ដែលបានបង្កើត
+ជៀសវាងបញ្ហានេះ។ ការឆ្លើយតប 401 ពី OmniRoute ធ្វើឱ្យ CLI ផ្លាស់ប្ដូរ token ម្ដងទៀត។
 
 ### ការដំឡើង
 
-1. បង្កើត OmniRoute API key (ផ្ទាំងគ្រប់គ្រង → API keys) និងការតភ្ជាប់ `cursor-api`
+1. បង្កើត OmniRoute API key មួយ (Dashboard → API keys) និងការតភ្ជាប់ `cursor-api`
    មួយ។
-2. ប្រាប់ CLI ឱ្យប្រើ HTTP/1.1 សម្រាប់ស្ទ្រីម agent។ នៅក្នុង
+2. កំណត់ឱ្យ CLI ប្រើ HTTP/1.1 សម្រាប់ agent stream។ នៅក្នុង
    `~/.cursor/cli-config.json`៖
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   បើគ្មានការកំណត់នេះ CLI នឹងបើកវគ្គ agent តាម HTTP/2 ទៅកាន់
-   ម៉ាស៊ីនមេ agent ដែលបានកំណត់រចនាសម្ព័ន្ធដោយឡែក ហើយមានតែ RPC នៃ control-plane ប៉ុណ្ណោះដែលឆ្លងកាត់
+   បើគ្មានការកំណត់នេះ CLI នឹងបើក agent turn តាមរយៈ HTTP/2 ទៅកាន់
+   agent host ដែលបានកំណត់រចនាសម្ព័ន្ធដាច់ដោយឡែក ហើយមានតែ control-plane RPCs ប៉ុណ្ណោះដែលឆ្លងកាត់
    endpoint នេះ។
 
-3. ដំណើរការ CLI ទល់នឹង OmniRoute៖
+3. ដំណើរការ CLI ជាមួយ OmniRoute៖
 
    ```bash
    export CURSOR_API_ENDPOINT=http://localhost:20128/api/cursor-cli
@@ -103,19 +115,19 @@ CLI ឌិកូដ `exp` ពីថូខឹនណាមួយដែលវាទ
    agent -p --trust "Reply with exactly OK"
    ```
 
-រាល់ជំហានបញ្ជូននីមួយៗត្រូវបានកត់ត្រាក្នុង Logs ជាអ្នកផ្តល់សេវា `cursor-api` ប្រភេទសំណើ `cursor-cli`
-ផ្លូវ `/api/cursor-cli/<rpc>` ដែលភ្ជាប់ទៅនឹង OmniRoute API key និង
+រាល់ដំណាក់កាលបញ្ជូននីមួយៗត្រូវបានកត់ត្រានៅក្នុង Logs ដោយមាន provider ជា `cursor-api`, request type ជា `cursor-cli`,
+ផ្លូវ `/api/cursor-cli/<rpc>` ហើយត្រូវបានភ្ជាប់ទៅនឹង OmniRoute API key និង
 ការតភ្ជាប់ដែលបានបម្រើវា។
 
-### របៀបដែលអាចបរាជ័យ
+### ស្ថានភាពបរាជ័យ
 
-| ស្ថានភាព                                                      | ការឆ្លើយតបទៅកាន់ CLI                                                   |
-| ------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| កូនសោ OmniRoute មិនស្គាល់ និង `REQUIRE_API_KEY=true`          | 401 `unauthenticated` នៅពេលផ្លាស់ប្តូរ                                 |
-| `REQUIRE_API_KEY=false`                                       | សម័យអនាមិក (ដូចឥរិយាបថរបស់ `/v1/*`)                                    |
-| JWT របស់សម័យផុតកំណត់ / មកពីប្រភពផ្សេង / ត្រូវបានកែប្រែ        | 401, CLI ធ្វើការផ្លាស់ប្តូរឡើងវិញ                                      |
-| កូនសោ API របស់ OmniRoute ត្រូវបានដកហូតបន្ទាប់ពីការផ្លាស់ប្តូរ | 401 នៅ RPC បន្ទាប់                                                     |
-| មិនមានការតភ្ជាប់ `cursor-api` ដែលសកម្ម                        | 503 `unavailable`                                                      |
-| Cursor បដិសេធកូនសោរបស់ការតភ្ជាប់                              | 401 `unauthenticated`, សម័យដែលបានរក្សាទុកក្នុងឃ្លាំងសម្ងាត់ត្រូវបានលុប |
-| មិនអាចភ្ជាប់ទៅ upstream បាន                                   | 502 `unavailable` (សារដែលបានសម្អាតព័ត៌មានរសើប)                         |
-| មិនបានកំណត់ `JWT_SECRET`                                      | 503 នៅពេលផ្លាស់ប្តូរ                                                   |
+| ស្ថានភាព                                               | ការឆ្លើយតបទៅ CLI                                           |
+| ------------------------------------------------------ | ---------------------------------------------------------- |
+| OmniRoute key មិនស្គាល់ និង `REQUIRE_API_KEY=true`     | 401 `unauthenticated` នៅពេលផ្លាស់ប្ដូរ                     |
+| `REQUIRE_API_KEY=false`                                | session អនាមិក (ដំណើរការដូច `/v1/*`)                       |
+| session JWT ផុតកំណត់ / មកពីប្រភពផ្សេង / ត្រូវបានកែប្រែ | 401 ហើយ CLI ផ្លាស់ប្ដូរ token ឡើងវិញ                       |
+| OmniRoute API key ត្រូវបានដកហូតបន្ទាប់ពីផ្លាស់ប្ដូរ    | 401 នៅ RPC បន្ទាប់                                         |
+| គ្មានការតភ្ជាប់ `cursor-api` ដែលសកម្ម                  | 503 `unavailable`                                          |
+| Cursor បដិសេធ key របស់ការតភ្ជាប់                       | 401 `unauthenticated` ហើយ session ដែលបាន cache ត្រូវបានលុប |
+| មិនអាចភ្ជាប់ទៅ upstream បាន                            | 502 `unavailable` (សារដែលបានសម្អាត)                        |
+| មិនបានកំណត់ `JWT_SECRET`                               | 503 នៅពេលផ្លាស់ប្ដូរ                                       |

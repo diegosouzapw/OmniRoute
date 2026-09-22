@@ -4,38 +4,21 @@
 
 ---
 
-Cursor'ı bir IDE oturumu olmadan OmniRoute'un arkasına yerleştirmenin iki yolu:
+IDE oturumu olmadan Cursor'ı OmniRoute arkasına yerleştirmenin iki yolu:
 
-1. **`cursor-api` sağlayıcısı** ("Cursor API" kartı, `cua` diğer adı): Cursor
-   kullanıcı API anahtarını (`crsr_…`, `https://cursor.com/dashboard/api`
-   adresinde oluşturulur) tutan bir API anahtarı sağlayıcısıdır. Böylece herhangi
-   bir OmniRoute istemcisi, standart kota, yedek sağlayıcı ve günlük kaydı
-   katmanlarıyla birlikte `/v1/chat/completions` üzerinden `cursor-api/<model>`
-   veya `cua/<model>` olarak Cursor modellerine erişir. IDE sağlayıcısı
-   (`cursor`, OAuth/IDE oturumu) değişmeden kalır.
-2. **Cursor CLI doğrudan geçişi**: Cursor CLI'ı (`agent`) OmniRoute'a yönlendirin;
-   böylece CLI'ın yaptığı her RPC, bir OmniRoute API anahtarıyla doğrulanır,
-   bir `cursor-api` bağlantısının kimlik bilgisiyle Cursor'a iletilir ve
-   Günlükler sayfasına kaydedilir.
+1. **`cursor-api` sağlayıcısı** ("Cursor API" kartı, `cua` diğer adı): Cursor kullanıcı API anahtarını (`crsr_…`, `https://cursor.com/dashboard/api` adresinde oluşturulur) saklayan bir API anahtarı sağlayıcısıdır. Böylece herhangi bir OmniRoute istemcisi, standart kota, yedek sağlayıcı ve günlükleme katmanlarıyla Cursor modellerine `/v1/chat/completions` üzerinden `cursor-api/<model>` veya `cua/<model>` olarak erişebilir. IDE sağlayıcısı (`cursor`, OAuth/IDE oturumu) değişmemiştir.
+2. **Cursor CLI doğrudan geçişi**: Cursor CLI'ı (`agent`) OmniRoute'a yönlendirin; böylece CLI'ın yaptığı her RPC çağrısı bir OmniRoute API anahtarıyla doğrulanır, bir `cursor-api` bağlantısının kimlik bilgileriyle Cursor'a iletilir ve Günlükler sayfasına kaydedilir.
 
-## Anahtar neden değiştirilir?
+## Anahtar neden takas edilir?
 
-`api2.cursor.sh`, ham bir `crsr_…` anahtarını Bearer belirteci olarak reddeder
-(401). Cursor CLI önce anahtarı `/auth/exchange_user_api_key` adresine POST eder
-ve bir saat sonra süresi dolan bir oturum JWT'si alır; döndürülen
-`refreshToken` aynı `exp` değerini taşıdığından yenileme işlemi, anahtarın
-yeniden değiştirilmesi anlamına gelir.
-`open-sse/services/cursorApiKeyAuth.ts` bu değiştirme işlemini yapar, anahtar
-başına bir oturum belirtecini önbelleğe alır, süre dolmadan beş dakika önce
-yeniden değiştirir ve Cursor 401 yanıtı verdiğinde önbelleğe alınmış belirteci
-siler. `CursorExecutor`, `cursor-api` bağlantıları için yukarı akış yayınını
-açmadan hemen önce bunu çağırır.
+`api2.cursor.sh`, ham bir `crsr_…` anahtarını Bearer belirteci olarak reddeder (401). Cursor CLI, anahtarı önce `/auth/exchange_user_api_key` uç noktasına POST eder ve bir saat sonra süresi dolan bir oturum JWT'si alır; döndürülen `refreshToken` aynı `exp` değerini taşıdığından yenileme işlemi, anahtarın yeniden takas edilmesi anlamına gelir.
+`open-sse/services/cursorApiKeyAuth.ts` bu takası gerçekleştirir, anahtar başına bir oturum belirtecini önbelleğe alır, sona erme süresinden beş dakika önce yeniden takas eder ve Cursor 401 yanıtı verdiğinde önbelleğe alınmış belirteci siler. `CursorExecutor`, `cursor-api` bağlantıları için üst akış akışını açmadan hemen önce bunu çağırır.
 
 ## `cursor-api` sağlayıcısı
 
 Kayıt defteri: `open-sse/config/providers/registry/cursor/index.ts`
-(`cursor_apiProvider`, `authType: "apikey"`, `cursor` ile aynı `format`,
-`baseUrl` ve `models`). Katalog kartı:
+(`cursor_apiProvider`, `authType: "apikey"`, `cursor` ile aynı `format`, `baseUrl` ve
+`models`). Katalog kartı:
 `src/shared/constants/providers/apikey/specialty-media.ts`. Yürütücü eşlemesi:
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
@@ -61,43 +44,47 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Notlar:
 
-- `cursor-api` için model listelemesi statik Cursor kayıt defterinden gelir
-  (IDE sağlayıcısının yedek olarak kullandığı listeyle aynıdır); OmniRoute
-  ana makinesinde `cursor-agent` kurulumuna gerek yoktur.
-- `POST /api/providers/{id}/refresh-cursor` yalnızca `cursor` IDE sağlayıcısı
-  içindir; `cursor-api` bağlantılarının yenilenecek bir IDE oturumu yoktur.
+- `cursor-api` için model listesi, statik Cursor kayıt defterinden gelir (IDE sağlayıcısının yedek olarak kullandığı listeyle aynıdır); OmniRoute ana makinesine `cursor-agent` kurulması gerekmez.
+- `POST /api/providers/{id}/refresh-cursor` yalnızca `cursor` IDE sağlayıcısı içindir; `cursor-api` bağlantılarının yenilenecek bir IDE oturumu yoktur.
+
+## Yerel model kimlikleri ve efor
+
+`cursor` / `cu` ve `cursor-api` / `cua` için paylaşılan Claude efor normalleştiricisi, istenen model kimliğini olduğu gibi bırakır. Cursor, `-low` gibi bir son eki OmniRoute efor diğer adı olarak değil, gerçek bir model kimliğinin parçası olarak yayımlayabilir.
+Cursor yürütücüsü, canlı katalogdaki tam eşleşmeyi korur; eşleşme olmadığında, mevcut model çözümleyicisi son ekten parametreye geri dönüş işlemini yönetir.
+
+Bu, doğrudan Claude, Claude uyumlu veya Vertex rotaları için efor normalleştirmesini değiştirmez. Kullanılabilirlik yine de seçilen Cursor hesabının kataloğuna ve yetkilerine bağlıdır.
 
 ## Cursor CLI doğrudan geçişi
 
 Rota: `src/app/api/cursor-cli/[...path]/route.ts` →
-`open-sse/handlers/cursorCliProxy.ts`. İşleyici kendi kimlik doğrulamasını
-uyguladığı için `/api/cursor-cli/` öneki
+`open-sse/handlers/cursorCliProxy.ts`. `/api/cursor-cli/` öneki,
+işleyici kendi kimlik doğrulamasını uyguladığı için
 `src/shared/constants/publicApiRoutes.ts` içinde kayıtlıdır:
 
-| Yol                                                                                                                          | CLI'dan beklenen kimlik doğrulaması | OmniRoute'un yaptığı                                                                                                                                                                            |
-| ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                           | `Bearer <OmniRoute API key>`        | Anahtarı doğrular, 1 saatlik bir HS256 JWT'si (`JWT_SECRET` ile imzalanmış) oluşturur ve döndürür                                                                                               |
-| diğer tüm yollar (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                 | Veren kuruluşu/hedef kitleyi/sona erme süresini doğrular, etkin bir `cursor-api` bağlantısı seçer, Authorization başlığını değiştirilmiş Cursor belirteciyle değiştirir ve yanıtı geri yayınlar |
+| Yol                                                                                                                          | CLI'dan beklenen kimlik doğrulaması | OmniRoute'un yaptığı                                                                                                                                                                         |
+| ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                           | `Bearer <OmniRoute API key>`        | Anahtarı doğrular, 1 saatlik bir HS256 JWT (`JWT_SECRET` ile imzalanmış) oluşturur ve döndürür                                                                                               |
+| diğer tüm yollar (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                 | Veren/hedef kitle/süre sonu bilgilerini doğrular, etkin bir `cursor-api` bağlantısı seçer, Authorization başlığını takas edilmiş Cursor belirteciyle değiştirir ve yanıtı akışla geri iletir |
 
-CLI, aldığı herhangi bir belirteçten `exp` değerini çözer; bu nedenle ona opak
-bir belirteç vermek, neredeyse her istekten önce yeniden değiştirme yapmasına
-neden olur. Oluşturulan JWT bunu önler. OmniRoute'tan gelen bir 401, CLI'ın
-yeniden değiştirme yapmasını sağlar.
+CLI, aldığı herhangi bir belirteçten `exp` değerini çözümler; bu nedenle ona opak
+bir belirteç vermek, neredeyse her istekten önce yeniden takas yapmasına neden
+olur. Oluşturulan JWT bunu önler. OmniRoute'tan gelen bir 401 yanıtı, CLI'ın
+yeniden takas yapmasını sağlar.
 
 ### Kurulum
 
-1. Bir OmniRoute API anahtarı (Kontrol Paneli → API anahtarları) ve bir
-   `cursor-api` bağlantısı oluşturun.
-2. CLI'a aracı yayını için HTTP/1.1 kullanmasını söyleyin.
+1. Bir OmniRoute API anahtarı (Dashboard → API keys) ve bir `cursor-api`
+   bağlantısı oluşturun.
+2. CLI'a agent akışı için HTTP/1.1 kullanmasını söyleyin.
    `~/.cursor/cli-config.json` içinde:
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Bu ayar olmadan CLI, aracı turunu ayrı olarak yapılandırılmış bir aracı
-   ana makinesine HTTP/2 üzerinden açar ve yalnızca kontrol düzlemi RPC'leri
-   uç noktadan geçer.
+   Bu ayar olmadan CLI, agent etkileşimini ayrı olarak yapılandırılmış bir agent
+   sunucusuna HTTP/2 üzerinden açar ve yalnızca kontrol düzlemi RPC'leri uç nokta
+   üzerinden geçer.
 
 3. CLI'ı OmniRoute'a karşı çalıştırın:
 
@@ -107,19 +94,19 @@ yeniden değiştirme yapmasını sağlar.
    agent -p --trust "Reply with exactly OK"
    ```
 
-Her adım Günlükler'e sağlayıcı `cursor-api`, istek türü `cursor-cli` ve
-`/api/cursor-cli/<rpc>` yolu olarak kaydedilir; OmniRoute API anahtarıyla ve
-isteği sunan bağlantıyla ilişkilendirilir.
+Her geçiş Logs bölümünde sağlayıcı `cursor-api`, istek türü `cursor-cli`,
+yol `/api/cursor-cli/<rpc>` olarak görünür ve ilgili OmniRoute API anahtarı ile
+isteği sunan bağlantıya atfedilir.
 
 ### Hata durumları
 
-| Durum                                                          | CLI'ye verilen yanıt                                    |
-| -------------------------------------------------------------- | ------------------------------------------------------- |
-| Bilinmeyen OmniRoute anahtarı ve `REQUIRE_API_KEY=true`        | Anahtar değişiminde 401 `unauthenticated`               |
-| `REQUIRE_API_KEY=false`                                        | Anonim oturum (`/v1/*` davranışını yansıtır)            |
-| Süresi dolmuş / yabancı / değiştirilmiş oturum JWT'si          | 401, CLI anahtar değişimini yeniden gerçekleştirir      |
-| Anahtar değişiminden sonra iptal edilen OmniRoute API anahtarı | Sonraki RPC'de 401                                      |
-| Etkin `cursor-api` bağlantısı yok                              | 503 `unavailable`                                       |
-| Cursor bağlantının anahtarını reddeder                         | 401 `unauthenticated`, önbelleğe alınmış oturum silinir |
-| Üst hizmete erişilemiyor                                       | 502 `unavailable` (arındırılmış mesaj)                  |
-| `JWT_SECRET` ayarlanmamış                                      | Anahtar değişiminde 503                                 |
+| Durum                                                   | CLI'a verilen yanıt                                     |
+| ------------------------------------------------------- | ------------------------------------------------------- |
+| Bilinmeyen OmniRoute anahtarı ve `REQUIRE_API_KEY=true` | Takas sırasında 401 `unauthenticated`                   |
+| `REQUIRE_API_KEY=false`                                 | anonim oturum (`/v1/*` davranışını yansıtır)            |
+| Süresi dolmuş / yabancı / değiştirilmiş oturum JWT'si   | 401, CLI yeniden takas yapar                            |
+| OmniRoute API anahtarının takastan sonra iptal edilmesi | Sonraki RPC'de 401                                      |
+| Etkin `cursor-api` bağlantısının olmaması               | 503 `unavailable`                                       |
+| Cursor'ın bağlantının anahtarını reddetmesi             | 401 `unauthenticated`, önbelleğe alınmış oturum silinir |
+| Yukarı akışa erişilememesi                              | 502 `unavailable` (arındırılmış ileti)                  |
+| `JWT_SECRET` ayarlanmamış                               | Takas sırasında 503                                     |

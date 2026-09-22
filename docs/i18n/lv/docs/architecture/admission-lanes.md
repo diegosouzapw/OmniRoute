@@ -7,56 +7,52 @@
 OmniRoute ir **divas** procesa lokālas plūsmu sistēmas ar atšķirīgu tvērumu. Tās ir
 savstarpēji papildinošas; operatoriem jāzina, kuru no tām viņi aplūko.
 
-## 1. Baitu līmeņa uzņemšanas kontrole visam procesam (`chatBodyAdmission.ts`)
+## 1. Baitu līmeņa procesa mēroga ielaišanas kontrole (`chatBodyAdmission.ts`)
 
-- **Tvērums:** buferētā pieprasījuma ķermeņa/kaudzes ceļš maršrutiem
-  `POST /v1/chat/completions`, `/v1/messages`, `/v1/responses` un citiem
-  tērzēšanas formas maršrutiem. Aizsargā pret kaudzes patēriņa pastiprināšanos,
-  ko izraisa lieli programmēšanas aģentu pieprasījumu ķermeņi (#4380).
-- **Viens globāls kontrolieris visam procesam, nevis atsevišķas plūsmas katrai atslēgai (#10110).**
-  Katra API atslēga (jaucējkodēta) vai `anonymous` sesija tiek uzņemta, izmantojot
-  **vienu un to pašu** kopīgo budžetu — jaucējkodētais sesijas ID tiek izmantots
-  TIKAI kā taisnīgas plānošanas atslēga (gaidītāju apkalpošana cikliskā secībā),
-  nekad kā jaudas nodalījums. Iepriekšējā šī dokumenta versijā bija aprakstītas
-  katrai atslēgai atsevišķas plūsmas ar neatkarīgu jaudu; šis modelis tika
-  noņemts versijā #10110, jo tas ļāva neautentificētiem viltotiem akreditācijas
-  datiem daudzkārt palielināt visa procesa ierobežojumu.
-- **Vārteja (#503-fanout): automātiski atvasināts ienākošo BAITU budžets, nevis
-  fiksēts pieprasījumu skaits.** Mantotais `CHAT_MAX_HEAVY_IN_FLIGHT`
-  pieprasījumu skaita ierobežojums (pirms šī labojuma noklusējuma vērtība bija
-  `1`) samazināja programmēšanas aģentu paralēlo sazarošanos (vairāki
-  apakšaģenti/CLI, pieprasījumu ķermeņi parasti > 256 KB) līdz faktiskai
-  paralēlībai ~1, pilnīgi normālas slodzes apstākļos izraisot 503 kļūdas. Tagad
-  tas tiek piemērots tikai tad, ja operators nepārprotami iestata
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ja tas nav iestatīts, uzņemšanu tā vietā
-  ierobežo `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — budžets, kas tiek automātiski
-  atvasināts no procesa faktiskā atmiņas ierobežojuma
-  (`src/shared/middleware/admissionBudget.ts`): 25% no stingrākā ierobežojuma
-  starp V8 kaudzes limitu un jebkuru cgroup/konteinera limitu, dalot ar 8x
-  pārejošās pastiprināšanās koeficientu un ierobežojot diapazonā no 8 MiB līdz
-  2 GiB. Nepārprotami norādītām vērtībām tiek izmantoti tie paši ierobežojumi.
-  Tas automātiski mērogojas no 512 MB konteinera līdz 32 GB galddatoram bez
-  vides mainīgo pielāgošanas. Pieprasījuma ķermenis, kas neietilpst faktiskajā
-  budžetā, nekavējoties tiek noraidīts ar `413 body_exceeds_budget`; ierobežotajā
-  taisnīguma rindā nonāk tikai konkurējoši pieprasījumu ķermeņi, kurus katru
-  atsevišķi ir iespējams apkalpot. Reāllaika vairāku signālu resursu noslodzes
-  izsekotājs (V8 kaudzes attiecība, cgroup, PSI, OOM notikumi —
-  `open-sse/utils/resourcePressurePolicy.ts`) saīsina ierobežoto gaidīšanas laiku
-  `high` noslodzes apstākļos un, sasniedzot `critical` noslodzi, nekavējoties
-  noraida pieprasījumus ar `503 resource_pressure`, vēl pirms tiek saņemts kaut
-  viens baits.
+- **Tvērums:** buferētā ķermeņa/kaudzes ceļš maršrutiem `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` un citiem tērzēšanas formāta maršrutiem. Aizsargā
+  pret kaudzes izmantojuma pastiprināšanos lielu kodēšanas aģentu pieprasījumu ķermeņu dēļ (#4380).
+- **Viens globāls kontrolieris visam procesam, nevis atsevišķas joslas katrai atslēgai (#10110).** Katra API atslēga
+  (jaukta) vai `anonymous` sesija tiek ielaista, izmantojot **vienu un to pašu** kopīgo budžetu —
+  jauktais sesijas ID tiek izmantots TIKAI kā godīgas plānošanas atslēga (cikliska
+  gaidītāju apkalpošana), nekad kā kapacitātes nodalījums. Iepriekšējā šī
+  dokumenta versijā tika aprakstītas atsevišķas joslas katrai atslēgai ar neatkarīgu kapacitāti; šis modelis tika
+  noņemts izmaiņā #10110, jo tas ļāva neautentificētiem viltotiem akreditācijas datiem vairākkārt palielināt
+  procesa mēroga ierobežojumu.
+- **Vārteja (#503-fanout): automātiski atvasināts uzņemšanas BAITU budžets, nevis fiksēts pieprasījumu
+  skaits.** Vēsturiskais `CHAT_MAX_HEAVY_IN_FLIGHT` pieprasījumu skaita ierobežojums (pirms
+  šī labojuma noklusējuma vērtība bija `1`) samazināja kodēšanas aģentu paralēlo izvēršanu (vairāki apakšaģenti/CLI,
+  ķermeņi parasti > 256 KB) līdz faktiskajai vienlaicībai ~1, tādēļ pilnīgi normālas
+  slodzes apstākļos tika atgriezts 503. Tagad tas ir saistošs tikai tad, ja operators skaidri
+  iestata `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ja tas nav iestatīts, ielaišanu
+  tā vietā ierobežo `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — budžets, kas automātiski atvasināts no
+  procesa reālā atmiņas ierobežojuma (`src/shared/middleware/admissionBudget.ts`):
+  25% no mazākā starp V8 kaudzes ierobežojumu un jebkuru cgroup/konteinera ierobežojumu,
+  dalīti ar īslaicīgā pastiprinājuma koeficientu 8x un ierobežoti diapazonā no 8 MiB līdz
+  2 GiB. Tieši norādītām vērtībām tiek piemēroti tie paši ierobežojumi. Tas automātiski mērogojas no
+  512 MB konteinera līdz 32 GB galddatoram bez vides mainīgo pielāgošanas. Ķermenim, kas nevar
+  ietilpt faktiskajā budžetā, nekavējoties tiek atgriezts `413 body_exceeds_budget`;
+  ierobežotajā godīguma rindā nonāk tikai savstarpēji konkurējoši ķermeņi, kurus katru atsevišķi būtu iespējams apkalpot.
+  Aktīvs vairāku signālu resursu noslodzes izsekotājs (V8 kaudzes attiecība,
+  cgroup, PSI, OOM notikumi — `open-sse/utils/resourcePressurePolicy.ts`) saīsina
+  ierobežoto gaidīšanas laiku `high` noslodzes gadījumā un nekavējoties noraida pieprasījumus ar
+  `503 resource_pressure` `critical` noslodzes gadījumā, vēl pirms ir uzņemts kaut viens baits.
+  Ja pieejams, PSI tiek nolasīts no šīs vienības cgroup faila `memory.pressure`
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` attiecas
+  uz visu resursdatoru un tiek izmantots tikai kā rezerves variants fiziskā serverī / cgroup v1, tādēļ resursdators,
+  kas izmanto mijmaiņas atmiņu, nevar izraisīt 503 dīkstāvē esošā konteinerā.
 - **Pielāgošana:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — automātiski atvasinātā baitu budžeta pārrakstīšana
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — mantotais pieprasījumu skaita ierobežojums, tikai pēc izvēles
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — gaidīšanas laiks rindā pirms 503 (noklusējums 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — rindā esošo baitu kaudzes drošības vārsts (noklusējums 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — kopš #10110 novecojušas
-    opcijas bez darbības (tiek pieņemtas konfigurācijas saderībai, bet ignorētas)
-- **Pārskati:** `GET /api/monitoring/health` → `chatAdmission` (#11244), tostarp
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — vēsturiskais pieprasījumu skaita ierobežojums, tikai pēc izvēles
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — gaidīšanas laiks rindā pirms 503 (noklusējums: 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — rindā esošo baitu kaudzes drošības vārsts (noklusējums: 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — novecojuši
+    bezdarbības iestatījumi kopš #10110 (tiek pieņemti konfigurācijas saderībai, bet ignorēti)
+- **Pārskati:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — tostarp
   #503-fanout papildinājumi `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` un `countCapEnabled`
-  (noklusējuma izvietojumā false — apliecina, ka faktiski ierobežo baitu budžets,
-  nevis mantotais skaita ierobežojums).
+  (noklusējuma izvietojumā `false` — apstiprina, ka faktiski saistošs ir baitu budžets, nevis vēsturiskais
+  skaita ierobežojums).
 
 ## 2. Adaptīvas izpildlaika virtuālās joslas (`open-sse/services/admission`)
 

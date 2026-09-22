@@ -25,7 +25,13 @@
 
 ---
 
-## Ịgba Ọsọ Ngwa Ngwa
+## Mgbapụ Ngwa Ngwa
+
+> **Ịchọrọ iji otu iwu kwado ya n'onwe gị?** Lee
+> [Ntuziaka Nkwado Onwe](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (image e bipụtara +
+> Redis, naanị loopback, enweghị nhọrọ profaịlụ). Mgbapụ Ngwa Ngwa dị n'okpuru bụ
+> ụzọ otu container maka ndị ọrụ na-agba Redis n'ebe ọzọ ugbua.
 
 ```bash
 docker run -d \

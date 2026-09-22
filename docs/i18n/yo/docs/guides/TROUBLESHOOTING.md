@@ -66,18 +66,26 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ìdúró olókùn tó gùn sí i
 
 ---
 
-## Àwọn Ìkìlọ̀ npm install (ERESOLVE / peer / deprecated)
+## Àwọn Ìkìlọ̀ nígbà `npm install` (ERESOLVE / peer / deprecated)
 
-Nígbà tí o bá ṣiṣẹ́ `npm install -g omniroute`, o lè rí ọ̀pọ̀lọpọ̀ ìkìlọ̀ bíi `npm warn ERESOLVE`, àwọn àkíyèsí nípa peer-dependency, àti àwọn ìfiránṣẹ́ `deprecated`. **Àwọn wọ̀nyí jẹ́ ohun tí a retí, wọn kò sì léwu.** Ìfìmọ́lẹ̀ rẹ ṣàṣeyọrí bí o bá rí `added <N> packages` nínú àbájáde náà.
+Nígbà tí o bá ṣiṣẹ́ `npm install -g omniroute`, o lè rí ọ̀pọ̀lọpọ̀ ìkìlọ̀ bíi `npm warn ERESOLVE`, àwọn ìfitónilétí nípa peer-dependency, àti àwọn ìfiránṣẹ́ `deprecated`. **Àwọn wọ̀nyí jẹ́ ohun tí a retí, wọn kò sì léwu.** Fífìmọ́ rẹ ṣàṣeyọrí tí o bá rí `added <N> packages` nínú àbájáde náà.
 
-Àwọn ìkìlọ̀ náà wá láti inú àwọn ìwọ̀n peer-dependency tí kò bá àkókò mu nínú àwọn package ẹni-kẹta tí OmniRoute kò ṣàkóso:
+Láti fi àwọn ìkìlọ̀ nípa yíyanjú peer-dependency pamọ́, lo ọ̀nà fífìmọ́ tí OmniRoute ṣe àtìlẹ́yìn fún:
 
-1. **`marked-terminal` fẹ́ `marked >=1 <16`, ṣùgbọ́n ó rí `marked@18`** — ó ń ṣiṣẹ́ dáadáa ní ìṣe; ìwọ̀n peer ti upstream náà ti kàn pé.
-2. **`deprecated prebuild-install@7.1.3`** — olùrànlọ́wọ́ ìgbàjáde native-binary tí a jogún. A kò
-   lò ó láti fi binding transport `wreq-js` tí a ti ṣètò sí version kan pàtó sílẹ̀, kò sì túmọ̀ sí pé ìṣètò transport
-   ti olùpèsè web-cookie kùnà.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Kò sí ìgbésẹ̀ kankan tí o nílò láti gbé** — a kò lè pa gbogbo àwọn ìkìlọ̀ náà lẹ́nu mọ́ láì ṣe fork àwọn package upstream.
+`--legacy-peer-deps` máa ń fi `ERESOLVE` àti àwọn ìfitónilétí peer-dependency nìkan pamọ́. Àwọn ìfitónilétí pé ohun kan ti di àtijọ́ ṣì máa hàn nítorí pé wọ́n wá láti inú àwọn package ẹnikẹ́ta aláṣekágbá; wọn kò túmọ̀ sí pé fífìmọ́ náà kùnà.
+
+Àwọn ìkìlọ̀ náà wá láti àwọn ìwọ̀n peer-dependency tí kò ṣe déédé mọ́ nínú àwọn package ẹnikẹ́ta tí OmniRoute kò darí:
+
+1. **`marked-terminal` fẹ́ `marked >=1 <16`, ṣùgbọ́n a rí `marked@18`** — ó ń ṣiṣẹ́ dáadáa ní ti gidi; ìwọ̀n peer ti upstream náà ti di àtijọ́ lásán.
+2. **`deprecated prebuild-install@7.1.3`** — olùrànlọ́wọ́ ìgbàárí native-binary aláṣekágbá kan. A kò
+   lò ó láti fi binding ìgbékalẹ̀ `wreq-js` tí a ti so mọ́ ẹ̀yà kan pàtó sí, kò sì túmọ̀ sí pé ìṣètò ìgbékalẹ̀
+   olùpèsè web-cookie kùnà.
+
+**Kò sí ìgbésẹ̀ kankan tí a nílò** — a kò lè pa àwọn ìkìlọ̀ náà mọ́ pátápátá láì ṣe fork àwọn package upstream.
 
 ---
 

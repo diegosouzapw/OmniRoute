@@ -66,17 +66,25 @@ OmniRoute 프로세스 환경(예: LaunchAgent plist 또는 `systemctl edit`을 
 
 ---
 
-## npm install 경고 (ERESOLVE / peer / deprecated)
+## npm install 경고(ERESOLVE / peer / deprecated)
 
-`npm install -g omniroute`를 실행하면 `npm warn ERESOLVE`, 피어 종속성 알림 및 `deprecated` 메시지와 같은 수많은 경고가 표시될 수 있습니다. **이는 예상된 동작이며 문제가 없습니다.** 출력에 `added <N> packages`가 표시되면 설치가 성공한 것입니다.
+`npm install -g omniroute`를 실행하면 `npm warn ERESOLVE`, 피어 종속성 알림, `deprecated` 메시지와 같은 경고가 대량으로 표시될 수 있습니다. **이는 예상된 현상이며 무해합니다.** 출력에 `added <N> packages`가 표시되면 설치가 성공한 것입니다.
 
-이러한 경고는 OmniRoute에서 제어할 수 없는 서드파티 패키지의 오래된 피어 종속성 범위로 인해 발생합니다.
+피어 종속성 해결 경고를 숨기려면 OmniRoute에서 지원하는 다음 설치 형식을 사용하세요.
 
-1. **`marked-terminal`은 `marked >=1 <16`을 요구하지만 `marked@18`이 발견됨** — 실제로는 정상적으로 작동하며, 업스트림 피어 범위가 오래되었을 뿐입니다.
-2. **`deprecated prebuild-install@7.1.3`** — 전이적으로 사용되는 네이티브 바이너리 가져오기 도우미입니다. 이는 고정된 버전의 `wreq-js` 전송 바인딩을 설치하는 데
-   사용되지 않으며, 웹 쿠키 공급자 전송 설정이 실패했음을 의미하지도 않습니다.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**별도의 조치는 필요하지 않습니다** — 업스트림 패키지를 포크하지 않고는 이러한 경고를 완전히 숨길 수 없습니다.
+`--legacy-peer-deps`는 `ERESOLVE`와 피어 종속성 알림만 숨깁니다. 지원 중단 알림은 전이적 타사 패키지에서 발생하므로 계속 표시됩니다. 이러한 알림은 설치 실패를 의미하지 않습니다.
+
+이러한 경고는 OmniRoute가 제어하지 않는 타사 패키지의 오래된 피어 종속성 범위로 인해 발생합니다.
+
+1. **`marked-terminal`은 `marked >=1 <16`을 요구하지만 `marked@18`이 감지됨** — 실제로는 정상적으로 작동하며, 업스트림 피어 범위가 오래되었을 뿐입니다.
+2. **`deprecated prebuild-install@7.1.3`** — 전이적 네이티브 바이너리 가져오기 도우미입니다. 고정된 `wreq-js` 전송 바인딩을 설치하는 데
+   사용되지 않으며, 웹 쿠키 제공자 전송 설정이 실패했다는 의미도 아닙니다.
+
+**별도의 조치는 필요하지 않습니다** — 업스트림 패키지를 포크하지 않는 한 이러한 경고를 완전히 숨길 수 없습니다.
 
 ---
 

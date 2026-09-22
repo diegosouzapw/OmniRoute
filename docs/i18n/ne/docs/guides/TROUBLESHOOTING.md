@@ -68,15 +68,24 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # तत्काल पुनः 
 
 ## npm install चेतावनीहरू (ERESOLVE / peer / deprecated)
 
-तपाईंले `npm install -g omniroute` चलाउँदा `npm warn ERESOLVE`, peer-dependency सूचनाहरू र `deprecated` सन्देशहरूजस्ता चेतावनीहरूको लामो सूची देख्न सक्नुहुन्छ। **यी अपेक्षित र हानिरहित हुन्।** आउटपुटमा `added <N> packages` देखिएमा तपाईंको स्थापना सफल भएको हो।
+तपाईंले `npm install -g omniroute` चलाउँदा `npm warn ERESOLVE`, peer-dependency सूचनाहरू, र `deprecated` सन्देशहरूजस्ता धेरै चेतावनीहरू देख्न सक्नुहुन्छ। **यी अपेक्षित र हानिरहित हुन्।** आउटपुटमा `added <N> packages` देखिएमा तपाईंको स्थापना सफल भएको हो।
 
-यी चेतावनीहरू OmniRoute ले नियन्त्रण नगर्ने तेस्रो-पक्ष प्याकेजहरूमा रहेका पुराना peer-dependency दायराहरूका कारण आउँछन्:
+peer-dependency समाधानसम्बन्धी चेतावनीहरू दबाउन OmniRoute को समर्थित स्थापना ढाँचा प्रयोग गर्नुहोस्:
 
-1. **`marked-terminal` लाई `marked >=1 <16` चाहिन्छ, तर `marked@18` फेला परेको छ** — व्यवहारमा यसले ठीकसँग काम गर्छ; upstream peer दायरा मात्र पुरानो हो।
-2. **`deprecated prebuild-install@7.1.3`** — यो एउटा transitive native-binary fetch helper हो। यसलाई pinned `wreq-js` transport binding स्थापना गर्न
-   प्रयोग गरिँदैन र यसले web-cookie provider transport सेटअप असफल भएको जनाउँदैन।
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**कुनै कार्य आवश्यक छैन** — upstream प्याकेजहरूलाई fork नगरी यी चेतावनीहरू पूर्ण रूपमा बन्द गर्न सकिँदैन।
+`--legacy-peer-deps` ले `ERESOLVE` र peer-dependency सूचनाहरू मात्र दबाउँछ। Deprecation सूचनाहरू देखिइरहन्छन् किनभने ती अप्रत्यक्ष तेस्रो-पक्ष प्याकेजहरूबाट आउँछन्; तिनले स्थापना असफल भएको जनाउँदैनन्।
+
+यी चेतावनीहरू OmniRoute को नियन्त्रणबाहिरका तेस्रो-पक्ष प्याकेजहरूमा रहेका पुराना peer-dependency दायराहरूका कारण आउँछन्:
+
+1. **`marked-terminal` लाई `marked >=1 <16` चाहिन्छ, तर `marked@18` फेला पर्यो** — व्यवहारमा यसले राम्ररी काम गर्छ; upstream peer दायरा केवल पुरानो भएको हो।
+2. **`deprecated prebuild-install@7.1.3`** — अप्रत्यक्ष native-binary ल्याउने सहायक। यसलाई निश्चित गरिएको `wreq-js` transport binding स्थापना गर्न
+   प्रयोग गरिँदैन र यसले web-cookie provider transport सेटअप असफल भएको
+   जनाउँदैन।
+
+**कुनै कदम चाल्न आवश्यक छैन** — upstream प्याकेजहरूलाई fork नगरी यी चेतावनीहरू पूर्ण रूपमा दबाउन सकिँदैन।
 
 ---
 

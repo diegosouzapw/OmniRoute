@@ -22,22 +22,24 @@ Parametru incorect: reasoning_content din modul de gândire trebuie retransmis c
 ## Arhitectură
 
 ```
-Tura N (asistentul generează):
+Pasul N (asistentul generează):
   → răspunsul conține reasoning_content + tool_calls
   → dacă requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      scrie (în memorie + DB), folosind fiecare tool_call.id drept cheie
-  → transmite răspunsul clientului (care poate păstra sau nu raționamentul)
+      scrie (în memorie + BD), indexat după fiecare tool_call.id
+  → redirecționează răspunsul către client (care poate păstra sau nu raționamentul)
 
-Tura N+1 (clientul trimite o solicitare ulterioară):
+Pasul N+1 (clientul trimite un mesaj ulterior):
   → translatorul detectează: requiresReasoningReplay(provider, model) === true
   → pentru fiecare mesaj al asistentului cu tool_calls și fără reasoning_content:
-      lookupReasoning(toolCalls[0].id) → memorie → DB
+      lookupReasoning(toolCalls[0].id) → memorie → BD
       găsit   → msg.reasoning_content = cached; recordReplay()
-      negăsit → msg.reasoning_content = "" (variantă de rezervă moștenită pentru versiunile DeepSeek mai vechi)
-  → serviciul din amonte vede un istoric consecvent → nicio eroare 400
+      negăsit → msg.reasoning_content = "" (variantă de rezervă pentru versiunile DeepSeek mai vechi)
+  → serviciul din amonte vede un istoric coerent → nicio eroare 400
 ```
 
-Capturarea are loc în `open-sse/handlers/chatCore.ts` (în două locuri, la cele două apeluri `cacheReasoningFromAssistantMessage`). Redarea are loc în `open-sse/translator/index.ts`, după conversia schemei, dar înainte de expediere.
+Capturarea are loc în `open-sse/handlers/chatCore.ts` (în două locuri, la cele două apeluri `cacheReasoningFromAssistantMessage`). Reluarea are loc în `open-sse/translator/index.ts`, după conversia schemei, dar înainte de trimitere.
+
+Răspunsurile simple ale asistentului (fără apeluri de instrumente) sunt indexate diferit: `buildAssistantMessageCacheKey()` calculează un rezumat criptografic al domeniului sesiunii împreună cu transcrierea normalizată în format OpenAI până la acel răspuns, deoarece DeepSeek necesită raționamentul pentru _fiecare_ răspuns anterior odată ce este prezent `tools`. Pentru țintele Responses API (de exemplu, `opencode-go/deepseek-v4-flash`, direcționat către `/responses`), corpul cererii din amonte conține `input`, nu `messages`, astfel încât `translateRequest()` (`open-sse/translator/index.ts`) raportează, printr-o opțiune de callback, transcrierea intermediară pentru care a calculat rezumatul criptografic, iar locurile de capturare calculează rezumatul aceleiași transcrieri. Etapa de reluare Responses rulează pe reprezentarea intermediară OpenAI pentru fiecare format sursă, astfel încât sunt reluate și cererile clienților Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Stocare — memorie hibridă + SQLite
 

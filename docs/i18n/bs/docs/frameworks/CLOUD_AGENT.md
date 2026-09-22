@@ -1,4 +1,4 @@
-# CLOUD_AGENT (Bosanski)
+# Cloud Agents (Bosanski)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
 
@@ -59,7 +59,7 @@ Interakcije:
 
 Sinhronizacija je **lijena** (lazy): status se osvježava sa upstream-a pri svakom `GET /tasks/[id]`. Ne postoji pozadinski poller. Dashboardi kojima je potrebno svježe stanje trebaju pollati GET endpoint u razumnom intervalu.
 
-## `CloudAgentBase` Interfejs
+## Interfejs `CloudAgentBase`
 
 Izvor: `src/lib/cloudAgent/baseAgent.ts`
 
@@ -103,15 +103,24 @@ export abstract class CloudAgentBase {
     c: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]>;
 
-  protected mapStatus(raw: string): CloudAgentStatus; // heuristika upstream-string → enum
+  protected mapStatus(raw: string): CloudAgentStatus; // heuristički upstream string → enum
   protected generateTaskId(): string; // `task_<ts>_<rand>`
   protected generateActivityId(): string; // `act_<ts>_<rand>`
 }
 ```
 
-`CodexCloudAgent.approvePlan` namjerno baca izuzetak — Codex Cloud automatski planira i nema kapiju za odobrenje. `CodexCloudAgent.listSources` vraća `[]`.
+`CodexCloudAgent.approvePlan` namjerno generira izuzetak — Codex Cloud automatski izrađuje planove i
+nema korak odobravanja. `CodexCloudAgent.listSources` vraća `[]`.
 
-`CursorCloudAgent` pokreće Cursorove pozadinske / Cloud agente putem njihovog zvaničnog REST API-ja (`api.cursor.com/v0`) sa **API ključem korisnika ili servisnog naloga** — sigurnija, "first-party" alternativa ponovnoj upotrebi OAuth sesije Cursor IDE-a (provajder `cursor`, koji nosi upozorenje o riziku od zabrane). To je običan REST adapter (bez izvorne `@cursor/sdk` zavisnosti). `approvePlan` baca izuzetak (Cursor agenti rade autonomno); `listSources` navodi repozitorijume dostupne putem ključa. Cursor vraća statusne enume velikim slovima (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), eksplicitno mapirane na zajednički `CloudAgentStatus`. `baseUrl` se može nadjačati po akreditivu tako da se verzija/putanja API-ja može ispraviti bez promjene koda.
+`CursorCloudAgent` upravlja Cursorovim pozadinskim agentima / agentima u oblaku putem njegovog zvaničnog REST
+API-ja (`api.cursor.com/v0`) uz **API ključ korisnika ili servisnog računa** — sigurnije,
+vlastito rješenje umjesto ponovnog korištenja OAuth sesije Cursor IDE-a (pružalac `cursor`,
+koji sadrži upozorenje o riziku od zabrane). To je obični REST adapter (bez izvorne
+ovisnosti `@cursor/sdk`). `approvePlan` generira izuzetak (Cursor agenti rade autonomno); `listSources` izlistava
+repozitorije kojima ključ može pristupiti. Cursor vraća statuse napisane velikim slovima
+(`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), koji se eksplicitno mapiraju na zajednički
+`CloudAgentStatus`. `baseUrl` se može nadjačati za svaku vjerodajnicu, tako da se verzija/putanja API-ja može
+ispraviti bez izmjene koda.
 
 ## Domenski tipovi
 

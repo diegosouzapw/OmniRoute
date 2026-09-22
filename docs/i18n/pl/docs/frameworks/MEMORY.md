@@ -175,32 +175,31 @@ Tabela `memory_vec_meta` (migracja `083_memory_vec.sql`) przechowuje:
 Dziewięć pól osadzania i wektorów jest dostępnych w `MemorySettingsExtended` w
 `src/shared/schemas/memory.ts` i utrwalanych za pośrednictwem `src/lib/db/settings.ts`:
 
-| Pole                     | Typ                                                | Wartość domyślna | Opis                                                                        |
-| ------------------------ | -------------------------------------------------- | ---------------- | --------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`         | Określa używane źródło osadzania                                            |
-| `embeddingProviderModel` | `string \| null`                                   | `null`           | Dostawca/model w formacie `provider/model`                                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`           | Bazowy URL punktu końcowego zgodnego z OpenAI, używanego tylko przez pamięć |
-| `customModelId`          | `string \| null`                                   | `null`           | Identyfikator modelu wysyłany do niestandardowego punktu końcowego          |
-| `transformersEnabled`    | `boolean`                                          | `false`          | Opcjonalne włączenie Transformers.js (MiniLM, ~400MB)                       |
-| `staticEnabled`          | `boolean`                                          | `false`          | Opcjonalne włączenie lokalnego, statycznego modelu potion-base-8M           |
-| `rerankEnabled`          | `boolean`                                          | `false`          | Włącza etap ponownego szeregowania (dodaje +200-500ms/żądanie)              |
-| `rerankProviderModel`    | `string \| null`                                   | `null`           | Dostawca/model ponownego szeregowania w formacie `provider/model`           |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`         | Określa używany backend wektorowy                                           |
+| Pole                     | Typ                                                | Wartość domyślna | Opis                                                                            |
+| ------------------------ | -------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`         | Źródło osadzania, którego należy użyć                                           |
+| `embeddingProviderModel` | `string \| null`                                   | `null`           | Dostawca/model w formacie `provider/model`                                      |
+| `customBaseUrl`          | `string \| null`                                   | `null`           | Bazowy adres URL punktu końcowego zgodnego z OpenAI, używany tylko przez pamięć |
+| `customModelId`          | `string \| null`                                   | `null`           | Identyfikator modelu wysyłany do niestandardowego punktu końcowego              |
+| `transformersEnabled`    | `boolean`                                          | `false`          | Opcjonalne włączenie Transformers.js (MiniLM, ~400 MB)                          |
+| `staticEnabled`          | `boolean`                                          | `false`          | Opcjonalne włączenie lokalnego statycznego modelu potion-base-8M                |
+| `rerankEnabled`          | `boolean`                                          | `false`          | Włącza etap ponownego rankingowania (dodaje +200–500 ms/żądanie)                |
+| `rerankProviderModel`    | `string \| null`                                   | `null`           | Dostawca/model ponownego rankingowania w formacie `provider/model`              |
 
-Są one udostępniane za pośrednictwem `GET /PUT /api/settings/memory` (schemat `MemorySettingsExtendedSchema`).
+`rerankProviderModel` jest rozpoznawany przez `POST /v1/rerank` (wywoływane przez interfejs pętli zwrotnej), dlatego akceptuje wszystko, co akceptuje ta trasa: wyselekcjonowany model ponownego rankingowania w chmurze (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) lub węzeł dostawcy zgodny z OpenAI w postaci `<node-prefix>/<model>` (np. `skilled-mini/bge-reranker-v2-m3` dla serwera TEI/Infinity). Węzły pętli zwrotnej są zawsze dopuszczalne; węzeł na innym hoście (LAN, Tailscale) wymaga dodatkowo flagi funkcji `RERANK_REMOTE_PROVIDER_NODES` i musi spełniać zasady dotyczące wychodzących adresów URL dostawcy — zobacz [Flagi funkcji](../reference/FEATURE_FLAGS.md). Selektor w panelu wymienia wyselekcjonowanych dostawców oraz węzły lokalne; dowolny prawidłowy ciąg `provider/model` można ustawić bezpośrednio za pomocą `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Zaplecze wektorowe, którego należy użyć |
 
-Dla źródła `remote` pamięć akceptuje również opcjonalne ustawienia `customBaseUrl` i
-`customModelId`. Razem wybierają one zgodny z OpenAI punkt końcowy `/embeddings`
-oraz model bez zmiany globalnego rejestru osadzania. Punkt końcowy jest
-normalizowany przed użyciem i sprawdzany zgodnie z zasadami dostawcy dotyczącymi
-wychodzących adresów URL: wymagany jest protokół HTTP(S), osadzone dane
-uwierzytelniające i ciągi zapytania są odrzucane, a adresy metadanych chmurowych
-pozostają zablokowane. Puste wartości zachowują dostawcę wybranego w rejestrze. Błędy
-zwracane do panelu są oczyszczane, a dane uwierzytelniające punktu końcowego nigdy
-nie są rejestrowane w logach.
+Ustawienia te są udostępniane przez `GET /PUT /api/settings/memory` (schemat `MemorySettingsExtendedSchema`).
 
-> **TODO (D20):** Zakres `global` (współdzielenie pamięci między wszystkimi kluczami API) nie jest
-> zaimplementowany w tym wydaniu. Wymaga zmian schematu i globalnej ścieżki
+W przypadku źródła `remote` pamięć akceptuje również opcjonalne ustawienia `customBaseUrl` i
+`customModelId`. Razem wskazują zgodny z OpenAI punkt końcowy `/embeddings`
+oraz model bez zmieniania globalnego rejestru osadzania. Punkt końcowy jest
+normalizowany przed użyciem i sprawdzany zgodnie z zasadami dotyczącymi wychodzących adresów URL dostawcy: wymagany jest protokół HTTP(S), osadzone dane uwierzytelniające i ciągi zapytania są odrzucane, a adresy metadanych
+chmurowych pozostają blokowane. Puste wartości zachowują wybranego dostawcę z rejestru. Błędy
+zwracane do panelu są oczyszczane, a dane uwierzytelniające punktu końcowego nigdy nie są zapisywane w dziennikach.
+
+> **TODO (D20):** Zakres `global` (współdzielenie pamięci pomiędzy wszystkimi kluczami API) nie jest
+> zaimplementowany w tej wersji. Wymaga zmian schematu oraz globalnej ścieżki
 > pobierania. Należy śledzić to oddzielnie.
 
 ## Warstwy przechowywania

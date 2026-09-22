@@ -4,21 +4,23 @@
 
 ---
 
+> **Kapsam notu:** `socket.yml`, Socket.dev'in npm artefaktı üzerinde kayıt defteri tarafında gerçekleştirdiği yayın sonrası taramayı yapılandırır (ör. `tests/`, `docs/` ve derleme raporları gibi yayımlanmayan içerikler için yok sayılacak yollar). Bir CI/PR birleştirme geçidi oluşturmaz — `.github/workflows` içinde hiçbir iş akışı, hiçbir `package.json` betiği ve hiçbir `Makefile` hedefi Socket.dev'i çağırmaz.
+
 Bu belge, `omniroute@3.8.5` için bildirilen altı
-`AI-detected potential malware` bulgusuna ve `omniroute@3.8.6` sürümünde
-uygulanan azaltımlara ilişkin, bakım sorumlusu tarafından hazırlanmış beyandır. Şu amaçlarla mevcuttur:
+`AI tarafından algılanan potansiyel kötü amaçlı yazılım` bulgusuna ve
+`omniroute@3.8.6` sürümünde uygulanan azaltıcı önlemlere ilişkin, bakım sorumluları tarafından hazırlanmış tasdiktir. Şu amaçlarla mevcuttur:
 
-1. Güvenlik işlem hattı operatörlerinin, bulguları gerçek kaynakla
-   karşılaştırarak değerlendirmeleri gerektiğinde atıfta bulunabilecekleri tek bir kaynağa sahip olması.
+1. Güvenlik işlem hattı operatörlerinin, bulguları gerçek kaynak kodla
+   karşılaştırarak değerlendirmeleri gerektiğinde başvurabilecekleri tek bir referans sunmak.
 2. Gelecekteki yapay zekâ tarayıcılarının, işaretlenen her yolun kasıtlı,
-   isteğe bağlı ve belgelenmiş olduğuna dair bakım sorumlusu imzalı beyanı algılayabilmesi.
-3. Her çağrı noktasının _neden_ mevcut biçimde yapılandırıldığına ilişkin yazılı bir kaydımızın olması —
-   böylece gelecekte yapılacak bir yeniden düzenleme, kasıtlı olarak kaldırılmış bir parmak izini
-   yanlışlıkla yeniden ortaya çıkarmaz.
+   isteğe bağlı ve belgelenmiş olduğuna dair bakım sorumlusu imzalı beyanı algılayabilmesini sağlamak.
+3. Her çağrı noktasının _neden_ bu şekilde yapılandırıldığına dair yazılı bir kayıt
+   tutmak — böylece gelecekte yapılacak bir yeniden düzenleme, kasıtlı olarak
+   kaldırılmış bir parmak izini yanlışlıkla yeniden ortaya çıkarmaz.
 
-v3.8.6 azaltımları yayımlandıktan sonra aşağıdaki çağrı noktalarından herhangi
-birini yeniden işaretleyen bir tarayıcı işletiyorsanız lütfen tarama iziyle birlikte bir sorun kaydı açın;
-beyanı burada genişleteceğiz.
+v3.8.6 azaltıcı önlemleri yayımlandıktan sonra aşağıdaki çağrı noktalarından
+herhangi birini yeniden işaretleyen bir tarayıcı işletiyorsanız, lütfen tarama iziyle birlikte bir konu açın;
+tasdiki burada genişleteceğiz.
 
 ---
 

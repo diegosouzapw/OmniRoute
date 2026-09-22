@@ -220,19 +220,21 @@ Deze regels worden door tooling en reviewers afgedwongen:
 10. **Runtimewaarden voor `exec()` / `spawn()` via de optie `env`** — interpoleer externe paden of niet-vertrouwde waarden nooit als tekenreeks in scripts die via de shell worden uitgevoerd. Referentie: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Geef de voorkeur aan standaard beveiligde bibliotheken** — zie [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Gebruik deze voordat je zelf een oplossing ontwikkelt.
 
-## Bevindingen van supplychainscanners (Socket.dev / Snyk / vergelijkbaar)
+## Bevindingen van de supplychainscanner (Socket.dev / Snyk / vergelijkbaar)
 
-Het gepubliceerde npm-artefact `omniroute` bevat de Next.js-build met `output: "standalone"`, wat betekent dat elke routehandler — inclusief gedocumenteerde bevoorrechte functies (MITM, Zed-import, Cloud Sync, ingebedde servicesupervisor) — terechtkomt in geminificeerde chunks onder `.next/server/*.js`. Heuristische supplychainscanners vergelijken patronen in die chunks vaak met malwaresignaturen.
+> **Opmerking over het bereik:** `socket.yml` in de hoofdmap van de repository bepaalt alleen `projectIgnorePaths` voor de registryscan van Socket.dev die na publicatie wordt uitgevoerd op het gepubliceerde npm-artifact — het is geen afgedwongen blokkade voor CI/PR-merges. Geen enkele workflow in `.github/workflows`, geen enkel `package.json`-script en geen enkel `Makefile`-target roept Socket.dev aan.
 
-De scannerconfiguratie die we gebruiken, bevindt zich in [`socket.yml`](socket.yml) in de hoofdmap van de repository (Socket.dev GitHub App-indeling v2 — zie <https://docs.socket.dev/docs/socket-yml>). Deze configuratie sluit expliciet mappen uit die niet worden gedistribueerd (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/`, enz.), zodat de scanner alleen rapporteert over codepaden die daadwerkelijk bij gebruikers van de gepubliceerde versie terechtkomen — de scan zelf wordt uitgevoerd doordat de Socket GitHub App dit bestand leest, niet door een workflow in deze repository.
+Het gepubliceerde npm-artifact `omniroute` bevat de Next.js-build met `output: "standalone"`, wat betekent dat elke routehandler — inclusief gedocumenteerde functies met verhoogde bevoegdheden (MITM, Zed-import, Cloud Sync, geïntegreerde servicesupervisor) — terechtkomt in geminificeerde chunks onder `.next/server/*.js`. Heuristische supplychainscanners vergelijken die chunks vaak op basis van patronen met malwaresignaturen.
 
-Voor elke bevindingscategorie onderhouden we een verklaring van de beheerders per bevinding:
+De scannerconfiguratie die we gebruiken, bevindt zich in [`socket.yml`](socket.yml) in de hoofdmap van de repository (Socket.dev GitHub App-indeling v2 — zie <https://docs.socket.dev/docs/socket-yml>). Deze configuratie sluit expliciet mappen uit die niet worden gedistribueerd (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/`, enz.), zodat de scanner alleen rapporteert over codepaden die daadwerkelijk bij gebruikers van het gepubliceerde pakket terechtkomen — de scan zelf wordt aangestuurd doordat de Socket GitHub App dit bestand leest, niet door een workflow in deze repository.
+
+Voor elke bevindingcategorie onderhouden we een verklaring van de beheerders per bevinding:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  overzicht per bevinding: bronbestand ↔ gemarkeerde chunk ↔ gedrag ↔ in v3.8.6 toegepaste beperking.
-- `SECURITY-AUDITOR-NOTE:`-blokken in de broncode bij elke gemarkeerde functie verwijzen terug naar hetzelfde document.
+  overzicht per bevinding: bronbestand ↔ gemarkeerde chunk ↔ gedrag ↔ toegepaste risicobeperking in v3.8.6.
+- `SECURITY-AUDITOR-NOTE:`-blokken in de broncode verwijzen bij elke gemarkeerde functie terug naar hetzelfde document.
 
-Voor gebruikers van wie de pipeline de waarschuwing niet kan versoepelen: bouw met `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Hierdoor worden de vier gevoelige modules vervangen door stubs die tijdens runtime HTTP 503 `feature-disabled` retourneren, zodat de bevoorrechte codepaden fysiek niet in de bundel aanwezig zijn. Zie [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) voor de publicatieprocedure.
+Voor gebruikers van wie de pipeline de waarschuwing niet kan versoepelen: bouw met `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Hiermee worden de vier gevoelige modules vervangen door stubs die tijdens runtime HTTP 503 `feature-disabled` retourneren, zodat de codepaden met verhoogde bevoegdheden fysiek niet in de bundel aanwezig zijn. Zie [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) voor de publicatieprocedure.
 
 ## Referenties
 

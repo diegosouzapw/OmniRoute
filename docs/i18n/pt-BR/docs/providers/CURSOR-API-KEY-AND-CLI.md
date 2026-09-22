@@ -4,37 +4,38 @@
 
 ---
 
-Duas maneiras de colocar o Cursor atrás do OmniRoute sem uma sessão de IDE:
+Duas formas de colocar o Cursor atrás do OmniRoute sem uma sessão da IDE:
 
-1. **Provedor `cursor-api`** (cartão "Cursor API", alias `cua`): um provedor de
-   chave de API que armazena uma chave de API de usuário do Cursor (`crsr_…`,
-   gerada em `https://cursor.com/dashboard/api`). Qualquer cliente OmniRoute
+1. **Provedor `cursor-api`** (cartão "Cursor API", alias `cua`): um provedor
+   de chave de API que armazena uma chave de API de usuário do Cursor (`crsr_…`,
+   gerada em `https://cursor.com/dashboard/api`). Qualquer cliente do OmniRoute
    pode então acessar os modelos do Cursor por meio de `/v1/chat/completions`
-   como `cursor-api/<model>` ou `cua/<model>`, com as camadas habituais de cota,
-   fallback e registro. O provedor da IDE (`cursor`, sessão OAuth/IDE) permanece
-   inalterado.
-2. **Passagem direta da CLI do Cursor**: aponte a CLI do Cursor (`agent`) para o
-   OmniRoute para que cada RPC feito pela CLI seja autenticado com uma chave de
-   API do OmniRoute, encaminhado ao Cursor com a credencial de uma conexão
-   `cursor-api` e registrado na página Logs.
+   como `cursor-api/<model>` ou `cua/<model>`, com as camadas usuais de cota,
+   fallback e registro de logs. O provedor da IDE (`cursor`, sessão OAuth/IDE)
+   permanece inalterado.
+2. **Passthrough da CLI do Cursor**: aponte a CLI do Cursor (`agent`) para o
+   OmniRoute para que cada RPC feita pela CLI seja autenticada com uma chave de
+   API do OmniRoute, encaminhada ao Cursor com a credencial de uma conexão
+   `cursor-api` e registrada na página de Logs.
 
 ## Por que a chave é trocada
 
 `api2.cursor.sh` rejeita uma chave `crsr_…` bruta como token Bearer (401). A CLI
 do Cursor primeiro envia a chave via POST para `/auth/exchange_user_api_key` e
 recebe um JWT de sessão que expira após uma hora; o `refreshToken` retornado
-contém o mesmo `exp`, portanto, atualizar significa trocar novamente a chave.
+contém o mesmo `exp`, portanto, atualizar significa realizar novamente a troca
+da chave.
 `open-sse/services/cursorApiKeyAuth.ts` realiza essa troca, armazena em cache um
-token de sessão por chave, faz uma nova troca cinco minutos antes da expiração e
-remove o token armazenado em cache quando o Cursor responde com 401.
-`CursorExecutor` o chama imediatamente antes de abrir o fluxo upstream para
+token de sessão por chave, realiza novamente a troca cinco minutos antes da
+expiração e descarta o token em cache quando o Cursor responde com 401.
+`CursorExecutor` o chama imediatamente antes de abrir o stream upstream para
 conexões `cursor-api`.
 
 ## O provedor `cursor-api`
 
 Registro: `open-sse/config/providers/registry/cursor/index.ts`
 (`cursor_apiProvider`, `authType: "apikey"`, mesmos `format`, `baseUrl` e
-`models` de `cursor`). Cartão do catálogo:
+`models` que `cursor`). Cartão do catálogo:
 `src/shared/constants/providers/apikey/specialty-media.ts`. Mapa de executores:
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
@@ -61,42 +62,55 @@ curl -sS http://localhost:20128/v1/chat/completions \
 Observações:
 
 - A listagem de modelos para `cursor-api` vem do registro estático do Cursor (a
-  mesma lista usada como fallback pelo provedor da IDE); não é necessário
-  instalar `cursor-agent` no host do OmniRoute.
+  mesma lista usada como fallback pelo provedor da IDE); nenhuma instalação de
+  `cursor-agent` é necessária no host do OmniRoute.
 - `POST /api/providers/{id}/refresh-cursor` destina-se somente ao provedor
   `cursor` da IDE; as conexões `cursor-api` não têm uma sessão da IDE para
   renovar.
 
-## Passagem direta da CLI do Cursor
+## IDs de modelo nativos e esforço
+
+Para `cursor` / `cu` e `cursor-api` / `cua`, o normalizador compartilhado de
+esforço do Claude mantém intacto o ID do modelo solicitado. O Cursor pode
+anunciar um sufixo como `-low` como parte de um ID de modelo real, em vez de
+como um alias de esforço do OmniRoute. O executor do Cursor preserva uma
+correspondência exata com o catálogo ativo; quando não há correspondência, seu
+resolvedor de modelos existente controla o fallback de sufixo para parâmetro.
+
+Isso não altera a normalização de esforço para rotas diretas do Claude,
+compatíveis com o Claude ou do Vertex. A disponibilidade ainda depende do
+catálogo e dos direitos da conta do Cursor selecionada.
+
+## Encaminhamento da CLI do Cursor
 
 Rota: `src/app/api/cursor-cli/[...path]/route.ts` →
 `open-sse/handlers/cursorCliProxy.ts`. O prefixo `/api/cursor-cli/` está
 registrado em `src/shared/constants/publicApiRoutes.ts` porque o manipulador
 aplica sua própria autenticação:
 
-| Caminho                                                                                                                              | Autenticação esperada da CLI | O que o OmniRoute faz                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                                   | `Bearer <OmniRoute API key>` | Valida a chave, emite um JWT HS256 de 1 h (assinado com `JWT_SECRET`) e o retorna                                                                                            |
-| todos os outros caminhos (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`          | Verifica emissor/público-alvo/expiração, seleciona uma conexão `cursor-api` ativa, substitui o cabeçalho Authorization pelo token trocado do Cursor e retransmite a resposta |
+| Caminho                                                                                                                              | Autenticação esperada da CLI | O que o OmniRoute faz                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                                   | `Bearer <OmniRoute API key>` | Valida a chave, gera um JWT HS256 com duração de 1 h (assinado com `JWT_SECRET`) e o retorna                                                                                        |
+| todos os outros caminhos (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`          | Verifica emissor/público-alvo/expiração, seleciona uma conexão `cursor-api` ativa, substitui o cabeçalho Authorization pelo token trocado do Cursor e transmite a resposta de volta |
 
-A CLI decodifica `exp` de qualquer token recebido; portanto, fornecer a ela um
-token opaco faz com que realize uma nova troca antes de quase todas as
-solicitações. O JWT emitido evita isso. Uma resposta 401 do OmniRoute faz a CLI
-realizar a troca novamente.
+A CLI decodifica `exp` de qualquer token que recebe; portanto, fornecer a ela
+um token opaco faz com que realize uma nova troca antes de quase todas as
+solicitações. O JWT gerado evita isso. Uma resposta 401 do OmniRoute faz com
+que a CLI realize a troca novamente.
 
 ### Configuração
 
-1. Crie uma chave de API do OmniRoute (Dashboard → API keys) e uma conexão
+1. Crie uma chave de API do OmniRoute (Painel → Chaves de API) e uma conexão
    `cursor-api`.
-2. Configure a CLI para usar HTTP/1.1 no fluxo do agente. Em
+2. Instrua a CLI a usar HTTP/1.1 para o fluxo do agente. Em
    `~/.cursor/cli-config.json`:
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Sem isso, a CLI abre a interação do agente via HTTP/2 em um host de agente
-   configurado separadamente, e apenas os RPCs do plano de controle passam pelo
+   Sem isso, a CLI abre a interação do agente por HTTP/2 em um host de agente
+   configurado separadamente, e apenas as RPCs do plano de controle passam pelo
    endpoint.
 
 3. Execute a CLI apontando para o OmniRoute:
@@ -107,19 +121,19 @@ realizar a troca novamente.
    agent -p --trust "Reply with exactly OK"
    ```
 
-Cada salto aparece em Logs com o provedor `cursor-api`, tipo de solicitação
-`cursor-cli`, caminho `/api/cursor-cli/<rpc>`, atribuído à chave de API do
-OmniRoute e à conexão que o atendeu.
+Cada salto aparece nos Registros com o provedor `cursor-api`, o tipo de
+solicitação `cursor-cli` e o caminho `/api/cursor-cli/<rpc>`, atribuído à chave
+de API do OmniRoute e à conexão que o atendeu.
 
 ### Modos de falha
 
-| Situação                                              | Resposta à CLI                                      |
-| ----------------------------------------------------- | --------------------------------------------------- |
-| Chave OmniRoute desconhecida e `REQUIRE_API_KEY=true` | 401 `unauthenticated` na troca                      |
-| `REQUIRE_API_KEY=false`                               | sessão anônima (reflete o comportamento de `/v1/*`) |
-| JWT de sessão expirado / externo / adulterado         | 401, a CLI realiza uma nova troca                   |
-| Chave de API da OmniRoute revogada após a troca       | 401 na próxima RPC                                  |
-| Nenhuma conexão `cursor-api` ativa                    | 503 `unavailable`                                   |
-| O Cursor rejeita a chave da conexão                   | 401 `unauthenticated`, sessão em cache descartada   |
-| Serviço upstream inacessível                          | 502 `unavailable` (mensagem sanitizada)             |
-| `JWT_SECRET` não definida                             | 503 na troca                                        |
+| Situação                                                 | Resposta para a CLI                                 |
+| -------------------------------------------------------- | --------------------------------------------------- |
+| Chave desconhecida do OmniRoute e `REQUIRE_API_KEY=true` | 401 `unauthenticated` durante a troca               |
+| `REQUIRE_API_KEY=false`                                  | sessão anônima (replica o comportamento de `/v1/*`) |
+| JWT de sessão expirado / externo / adulterado            | 401, a CLI realiza a troca novamente                |
+| Chave de API do OmniRoute revogada após a troca          | 401 na próxima RPC                                  |
+| Nenhuma conexão `cursor-api` ativa                       | 503 `unavailable`                                   |
+| O Cursor rejeita a chave da conexão                      | 401 `unauthenticated`, sessão em cache descartada   |
+| Serviço upstream inacessível                             | 502 `unavailable` (mensagem sanitizada)             |
+| `JWT_SECRET` não definido                                | 503 durante a troca                                 |

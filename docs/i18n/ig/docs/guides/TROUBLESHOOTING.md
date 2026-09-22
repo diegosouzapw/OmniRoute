@@ -66,18 +66,26 @@ Tọọ ihe ndị a n'ebe mgbanwe gburugburu ebe obibi nke usoro OmniRoute dị 
 
 ---
 
-## Ịdọ aka ná ntị npm install (ERESOLVE / peer / deprecated)
+## Ịdọ aka ná ntị nke npm install (ERESOLVE / peer / deprecated)
 
-Mgbe ị na-agba `npm install -g omniroute`, ị nwere ike ịhụ ọtụtụ ịdọ aka ná ntị dịka `npm warn ERESOLVE`, ọkwa gbasara peer-dependency, na ozi `deprecated`. **A na-atụ anya ha, ha enweghịkwa nsogbu.** Nwụnye gị gara nke ọma ma ọ bụrụ na ị hụ `added <N> packages` na nsonaazụ ahụ.
+Mgbe ị na-agba `npm install -g omniroute`, ị nwere ike ịhụ ọtụtụ ịdọ aka ná ntị dịka `npm warn ERESOLVE`, ọkwa gbasara peer-dependency, na ozi `deprecated`. **A na-atụ anya ndị a, ha enweghịkwa nsogbu ọ bụla.** Nrụnye gị gara nke ọma ma ọ bụrụ na ị hụ `added <N> packages` na nsonaazụ ahụ.
 
-Ịdọ aka ná ntị ndị a sitere na peer-dependency ranges ochie dị na third-party packages ndị OmniRoute anaghị achịkwa:
+Iji gbochie ịdọ aka ná ntị gbasara mkpebi peer-dependency, jiri usoro nrụnye OmniRoute kwadoro:
 
-1. **`marked-terminal` chọrọ `marked >=1 <16`, mana achọpụtara `marked@18`** — ọ na-arụ ọrụ nke ọma n'ezie; upstream peer range ahụ emeela ochie.
-2. **`deprecated prebuild-install@7.1.3`** — ihe enyemaka transitive maka ibudata native-binary. A naghị
-   eji ya wụnye transport binding `wreq-js` ahụ a kpọgidere na ụdị a kapịrị ọnụ, ọ pụtaghịkwa na nhazi transport nke web-cookie
-   provider dara.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Ọ dịghị ihe ị ga-eme** — a pụghị iwepụ ịdọ aka ná ntị ndị a kpamkpam ma e wezụga ime fork nke upstream packages.
+`--legacy-peer-deps` na-egbochi naanị ọkwa `ERESOLVE` na nke peer-dependency. Ọkwa gbasara ihe ndị a kwụsịrị ịkwado ka na-apụta n’ihi na ha sitere na ngwugwu ndị ọzọ a na-adabere na ha n’ụzọ na-apụtaghị ìhè; ha apụtaghị na nrụnye ahụ dara.
+
+Ịdọ aka ná ntị ndị ahụ sitere na oke peer-dependency ndị merela ochie n’ime ngwugwu ndị ọzọ OmniRoute anaghị achịkwa:
+
+1. **`marked-terminal` chọrọ `marked >=1 <16`, ma achọpụtara `marked@18`** — ọ na-arụ ọrụ nke ọma n’ezie; naanị ihe bụ na oke peer dị n’ebe e si nweta ya emela ochie.
+2. **`deprecated prebuild-install@7.1.3`** — ihe enyemaka maka iweta native-binary nke a na-adabere na ya n’ụzọ na-apụtaghị ìhè. A naghị
+   eji ya arụnye binding njem `wreq-js` ahụ nke e kpọgidere n’ụdị a kapịrị ọnụ, ọ naghịkwa egosi na nhazi njem nke
+   onye na-eweta web-cookie dara.
+
+**Ọ dịghị ihe ị ga-eme** — a pụghị igbochi ịdọ aka ná ntị ndị ahụ kpamkpam ma e wezụga ma e kewapụta ma gbanwee ngwugwu ndị dị n’ebe e si nweta ha.
 
 ---
 

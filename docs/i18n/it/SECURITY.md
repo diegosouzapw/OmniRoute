@@ -220,39 +220,37 @@ Queste regole vengono applicate dagli strumenti e dai revisori:
 10. **Valori di runtime di `exec()` / `spawn()` tramite l'opzione `env`** — non interpolare mai come stringhe percorsi esterni o valori non attendibili negli script passati alla shell. Riferimento: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Preferire librerie sicure per impostazione predefinita** — consultare [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Utilizzarle prima di implementare una soluzione personalizzata.
 
-## Risultati degli scanner della supply chain (Socket.dev / Snyk / simili)
+## Risultati dello scanner della supply chain (Socket.dev / Snyk / strumenti simili)
+
+> **Nota sull'ambito:** `socket.yml` nella radice del repository definisce esclusivamente `projectIgnorePaths` per la scansione post-pubblicazione lato registry di Socket.dev dell'artefatto npm pubblicato — non costituisce un controllo CI/PR obbligatorio per il merge. Nessun workflow in `.github/workflows`, nessuno script di `package.json` e nessun target di `Makefile` invoca Socket.dev.
 
 L'artefatto npm `omniroute` pubblicato include la build Next.js `output: "standalone"`,
-il che significa che ogni gestore di route — comprese le funzionalità privilegiate
-documentate (MITM, importazione da Zed, Cloud Sync, supervisore di servizi integrato) —
-finisce nei chunk minimizzati `.next/server/*.js`. Gli scanner euristici della supply
-chain spesso confrontano tali chunk con firme malware alla ricerca di corrispondenze.
+il che significa che ogni gestore di route — incluse le funzionalità privilegiate
+documentate (MITM, importazione da Zed, Cloud Sync, supervisore del servizio integrato) —
+finisce nei chunk minificati `.next/server/*.js`. Gli scanner euristici della supply chain
+spesso confrontano tali chunk con firme di malware.
 
-La configurazione dello scanner che utilizziamo si trova in [`socket.yml`](socket.yml)
-nella radice del repository (formato v2 della GitHub App di Socket.dev — vedere
-<https://docs.socket.dev/docs/socket-yml>). Esclude esplicitamente le directory non
-distribuite (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`,
-`docs/`, ecc.), affinché lo scanner segnali solo i percorsi di codice che
-raggiungono effettivamente gli utenti del pacchetto pubblicato. La scansione stessa
-viene eseguita dalla GitHub App di Socket, che legge tale file, e non da un workflow
-in questo repository.
+La configurazione dello scanner che utilizziamo si trova in [`socket.yml`](socket.yml) nella
+radice del repository (formato v2 della GitHub App di Socket.dev — vedere
+<https://docs.socket.dev/docs/socket-yml>). Esclude esplicitamente le directory
+non distribuite (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, ecc.), affinché lo scanner segnali esclusivamente i percorsi di codice che
+raggiungono effettivamente gli utenti dell'artefatto pubblicato — la scansione stessa è eseguita dalla GitHub
+App di Socket, che legge tale file, e non da un workflow di questo repository.
 
-Per ogni categoria di risultato manteniamo un'attestazione dei manutentori specifica
-per ciascun risultato:
+Per ogni categoria di risultato manteniamo un'attestazione dei responsabili della manutenzione relativa a ciascun risultato:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
   mappa per ciascun risultato: file sorgente ↔ chunk segnalato ↔ comportamento ↔ mitigazione
   applicata nella v3.8.6.
-- I blocchi `SECURITY-AUDITOR-NOTE:` nel codice sorgente, presenti in corrispondenza
-  di ogni funzione segnalata, rimandano allo stesso documento.
+- I blocchi `SECURITY-AUDITOR-NOTE:` nel codice sorgente, presenti in corrispondenza di ogni funzione segnalata,
+  rimandano allo stesso documento.
 
-Per gli utenti la cui pipeline non consente di attenuare l'avviso: compilare con
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. In questo modo, i quattro moduli
-sensibili vengono sostituiti con stub che, in fase di esecuzione, restituiscono
-HTTP 503 `feature-disabled`; pertanto, i percorsi di codice privilegiati sono
-fisicamente assenti dal bundle. Consultare
-[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-per la procedura di pubblicazione.
+Per gli utenti la cui pipeline non consente di attenuare l'avviso: eseguire la build con
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Questa impostazione sostituisce i quattro
+moduli sensibili con stub che restituiscono HTTP 503 `feature-disabled` durante
+l'esecuzione, così i percorsi di codice privilegiati sono fisicamente assenti dal bundle.
+Per la procedura di pubblicazione, vedere [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Riferimenti
 

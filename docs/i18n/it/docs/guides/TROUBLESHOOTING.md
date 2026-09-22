@@ -68,16 +68,24 @@ Imposta queste variabili nell'ambiente del processo OmniRoute (il daemon, ad es.
 
 ## Avvisi di npm install (ERESOLVE / peer / deprecated)
 
-Quando esegui `npm install -g omniroute`, potresti visualizzare numerosi avvisi come `npm warn ERESOLVE`, notifiche relative alle dipendenze peer e messaggi `deprecated`. **Questi avvisi sono previsti e innocui.** L'installazione è riuscita se nell'output compare `added <N> packages`.
+Quando esegui `npm install -g omniroute`, potresti visualizzare una lunga serie di avvisi come `npm warn ERESOLVE`, notifiche relative alle dipendenze peer e messaggi `deprecated`. **Sono previsti e innocui.** L'installazione è riuscita se nell'output compare `added <N> packages`.
 
-Gli avvisi derivano da intervalli obsoleti delle dipendenze peer in pacchetti di terze parti non controllati da OmniRoute:
+Per sopprimere gli avvisi relativi alla risoluzione delle dipendenze peer, usa la modalità di installazione supportata da OmniRoute:
 
-1. **`marked-terminal` richiede `marked >=1 <16`, ma è stato trovato `marked@18`** — in pratica funziona correttamente; l'intervallo peer upstream è semplicemente obsoleto.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` sopprime solo `ERESOLVE` e le notifiche relative alle dipendenze peer. Le notifiche di deprecazione rimangono visibili perché provengono da pacchetti transitivi di terze parti; non indicano che l'installazione sia fallita.
+
+Gli avvisi sono dovuti a intervalli obsoleti delle dipendenze peer nei pacchetti di terze parti che OmniRoute non controlla:
+
+1. **`marked-terminal` richiede `marked >=1 <16`, ma è stato trovato `marked@18`** — in pratica funziona correttamente; è semplicemente obsoleto l'intervallo peer del pacchetto upstream.
 2. **`deprecated prebuild-install@7.1.3`** — un helper transitivo per il recupero di binari nativi. Non viene
-   utilizzato per installare il binding di trasporto `wreq-js` bloccato a una versione specifica e non indica che la configurazione
-   del trasporto del provider web-cookie non sia riuscita.
+   utilizzato per installare il binding di trasporto `wreq-js` con versione bloccata e non indica che la configurazione
+   del trasporto del provider web-cookie sia fallita.
 
-**Non è necessario alcun intervento** — gli avvisi non possono essere eliminati completamente senza creare fork dei pacchetti upstream.
+**Non è necessaria alcuna azione** — gli avvisi non possono essere completamente silenziati senza creare un fork dei pacchetti upstream.
 
 ---
 

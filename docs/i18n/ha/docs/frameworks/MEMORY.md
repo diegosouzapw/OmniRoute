@@ -5,125 +5,121 @@
 ---
 
 > **Tushen gaskiya:** `src/lib/memory/` da `src/app/api/memory/`
-> **Sabuntawa ta ƙarshe:** 2026-06-28 — v3.8.40 (a kashe ta tsohuwa + cim ma ƙididdigar int8)
+> **Sabuntawa ta ƙarshe:** 2026-06-28 — v3.8.40 (a kashe ta tsohuwa + cike gibin quantization na int8)
 
 OmniRoute yana samar da ma’adanar tattaunawa mai ɗorewa wadda aka ware bisa API key (da
-session id idan ana so). Ana fitar da abubuwan tunawa kai tsaye daga amsoshin LLM
-ta hanyar daidaita tsarin regex mai sauƙi, sannan a sake saka su cikin buƙatu na gaba
-a matsayin saƙon system na farko (ko saƙon user na farko ga masu samar da sabis waɗanda
-ba sa karɓar matsayin system).
+session id idan ana so). Ana cire abubuwan tunawa kai tsaye daga amsoshin LLM
+ta hanyar daidaita tsarin regex mai sauƙi, sannan a sake saka su cikin buƙatu
+na gaba a matsayin saƙon system na farko (ko saƙon user na farko ga masu samarwa waɗanda
+ba sa karɓar rawar system).
 
 > **Memory tana KASHE ta tsohuwa (v3.8.30+).** `DEFAULT_MEMORY_SETTINGS.enabled`
-> yanzu `false` ne (`src/lib/memory/settings.ts`). Kunna memory yana saka har zuwa
-> `maxTokens` (~2k) na bayanan mahallin da aka dawo da su cikin **kowace** buƙatar chat,
-> kuma ana cajin hakan — kuɗin da ba a zata ba ga sabbin girkawa da kuma abokan ciniki
-> waɗanda suke sarrafa mahallinsu da kansu. Yi zaɓin kunnawa a sarari ƙarƙashin
-> **Settings → Memory** (`MemorySkillsTab` yana nuna sanarwar gargaɗin kuɗin token
-> lokacin da aka kunna memory). Abokin ciniki zai iya cire buƙata guda ɗaya daga wannan
-> ta amfani da request header na `x-omniroute-no-memory` (`true`/`1`/`yes`) — duba
-> teburin request-header a [API_REFERENCE.md](../reference/API_REFERENCE.md). Buƙatar
-> no-memory tana saita `memoryOwnerId = null`, wanda ke kashe **duka** saka memory da
-> skill ga wannan buƙatar (`open-sse/handlers/chatCore/headers.ts::isNoMemoryRequested`).
+> yanzu `false` ce (`src/lib/memory/settings.ts`). Kunna memory yana saka har zuwa
+> `maxTokens` (~2k) na mahallin da aka dawo da shi cikin **kowace** buƙatar chat, wanda
+> ake cajinsa — kuɗin da ba a zata ba ga sabbin shigarwa da abokan ciniki waɗanda ke sarrafa
+> nasu mahallin. Yi zaɓin shiga a sarari ƙarƙashin **Settings → Memory** (`MemorySkillsTab`
+> yana nuna gargaɗin kuɗin token lokacin da aka kunna memory).
+> Abokin ciniki zai iya cire buƙata guda daga memory ta amfani da header ɗin buƙata
+> `x-omniroute-no-memory` (`true`/`1`/`yes`) — duba teburin header na buƙata a
+> [API_REFERENCE.md](../reference/API_REFERENCE.md). Buƙatar no-memory tana saita
+> `memoryOwnerId = null`, wanda ke kashe **duka biyun** saka memory da skill ga
+> wannan buƙatar (`open-sse/handlers/chatCore/headers.ts::isNoMemoryRequested`).
 
-An **ware memory ga kowane API key**, ba ga kowane mai amfani ba — kowace buƙatar da aka
-tantance da API key iri ɗaya tana amfani da rumbun memory iri ɗaya, tare da ƙarin
-iyaka ta `sessionId` idan ana so.
+An **keɓance memory ga kowane API key**, ba ga kowane mai amfani ba — duk buƙatar da aka tantance
+da API key iri ɗaya tana amfani da tafkin memory iri ɗaya, tare da ƙarin
+keɓancewa ta `sessionId` idan ana so.
 
 ## Tsarin gine-gine
 
 ```
-Client → /v1/chat/completions (an warware apiKeyInfo a matakin sama)
+Abokin ciniki → /v1/chat/completions (an warware apiKeyInfo a sama)
   → handleChatCore() [open-sse/handlers/chatCore.ts]
     → resolveMemoryOwnerId(apiKeyInfo)        # yana fitar da id
     → getMemorySettings()                     # saituna da aka adana a cache
     → shouldInjectMemory(body, {enabled})     # ƙofar sarrafawa
     → retrieveMemories(apiKeyId, config)      # SQL + FTS5 + vector na zaɓi
     → injectMemory(body, memories, provider)  # saƙon system ko user
-  → kira zuwa mai samar da sabis na upstream
-  → yayin amsa: extractFacts(text, apiKeyId, sessionId)  # ba ya toshewa
-    → setImmediate → createMemory(fact) ga kowane sakamakon da ya dace
+  → kira zuwa mai samarwa na waje
+  → kan amsa: extractFacts(text, apiKeyId, sessionId)  # ba ya toshewa
+    → setImmediate → createMemory(fact) ga kowane abin da ya dace
                    → embed(content) + upsertVector(id, vec)
 ```
 
-An haɗa wuraren kiran saka bayanai da fitar da bayanai a cikin
-`open-sse/handlers/chatCore.ts` (nemi `retrieveMemories`, `injectMemory`,
+An haɗa wuraren kiran sakawa da cirewa a cikin
+`open-sse/handlers/chatCore.ts` (nemo `retrieveMemories`, `injectMemory`,
 da `extractFacts`).
 
 ## Tsarin injin (warwarewa mai matakai 3)
 
-Memory Engine yana tantance hanyar dawo da bayanai yayin aiki bisa kayayyakin
-more rayuwa da saitunan da ake da su. Akwai matakai uku, waɗanda ake amfani da su
-bisa wannan jerin fifiko:
+Memory Engine yana tantance hanyar dawo da bayanai a lokacin aiki bisa ababen more rayuwa
+da saitunan da ake da su. Akwai matakai uku, waɗanda ake amfani da su bisa jerin fifiko:
 
 ```
   ┌─────────────────────────────────────────────────────────────┐
-  │  MATAKI 0 — Kalmar nema (FTS5)                              │
-  │  Samuwa bisa gwaji: FTS5 lokacin da sigar SQLite ke          │
-  │  goyon bayansa (better-sqlite3 / node:sqlite / bun:sqlite); │
-  │  ba ya samuwa a sifofin da ba su da FTS5 (misali            │
-  │  sql.js/WASM — "no such module: fts5"). Ana amfani da shi   │
-  │  lokacin strategy = "exact" ko a matsayin madadin; matsayin │
-  │  keyword na engine-status yana nuna sakamakon gwajin.       │
+  │  MATAKI 0 — Kalma mai muhimmanci (FTS5)                     │
+  │  Samuwa bisa gwaji: FTS5 idan tsarin SQLite                  │
+  │  yana goyon bayansa (better-sqlite3 / node:sqlite / bun:sqlite);│
+  │  ba ya samuwa a tsarin da ba shi da FTS5 (misali sql.js/WASM —│
+  │  "no such module: fts5"). Ana amfani da shi idan strategy =  │
+  │  "exact" ko a matsayin madadin; keyword na engine-status     │
+  │  yana nuna sakamakon gwajin.                                 │
   └──────────────────────────────────┬──────────────────────────┘
                                      │ strategy = semantic|hybrid?
                                      ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │  MATAKI 1 — Vector na Ciki (sqlite-vec)                      │
+  │  MATAKI 1 — Embedded Vector (sqlite-vec)                     │
   │  Ana loda sqlite-vec v0.1.9 ta db.loadExtension().           │
-  │  Binciken KNN na brute-force a kan vector na Float32. Yana   │
-  │  aiki lokacin da:                                            │
-  │   • sqlite-vec loadExtension ya yi nasara                    │
+  │  Binciken KNN kai tsaye a kan vector na Float32. Yana aiki idan:│
+  │   • loda sqlite-vec ta loadExtension ya yi nasara            │
   │   • Akwai tushen embedding (remote | static |                │
   │     transformers) da zai iya samar da Float32Array           │
-  │   • Akwai teburin vec_memories (ana ƙirƙirarsa a ready()     │
-  │     na farko)                                                │
+  │   • teburin vec_memories yana nan (ana ƙirƙirarsa a ready()  │
+  │     na farko)                                                 │
   └──────────────────────────────────┬──────────────────────────┘
                                      │ qdrant.enabled?
                                      ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │  MATAKI 2 — Qdrant (ma’ajiyar vector ta waje ta zaɓi)        │
-  │  Idan an kunna shi, yana maye gurbin sqlite-vec don          │
-  │  semantic/hybrid.                                           │
-  │  Yana buƙatar Qdrant instance mai aiki + host/port da aka    │
-  │  saita.                                                      │
+  │  MATAKI 2 — Qdrant (ma’ajiyar bayanan vector ta waje ta zaɓi)│
+  │  Idan an kunna, yana maye gurbin sqlite-vec don semantic/hybrid.│
+  │  Yana buƙatar Qdrant mai aiki + host/port da aka saita.      │
   └─────────────────────────────────────────────────────────────┘
 ```
 
-Saukar da mataki yana faruwa kai tsaye kuma ba tare da tangarda ba:
+Rage mataki yana faruwa kai tsaye kuma ba tare da ɓoyayyen tasiri ba:
 
-- Idan sqlite-vec ya kasa lodawa, mataki na 1 ba zai samu ba → sai a koma mataki na 0.
+- Idan sqlite-vec ya kasa loduwa, mataki na 1 ba zai samu ba → sai a koma mataki na 0.
 - Idan tushen embedding ya dawo da kuskure, mataki na 1 zai koma mataki na 0.
 - Idan Qdrant ba ya cikin ƙoshin lafiya, mataki na 2 zai koma mataki na 1 (ko mataki na 0 idan mataki na 1
-  ma ba ya samuwa).
+  shi ma ba ya samuwa).
 
 ## Tushen embedding
 
 Layer ɗin embedding (`src/lib/memory/embedding/`) yana tantance tushen da za a yi amfani da shi
 bisa `MemorySettingsExtended.embeddingSource`:
 
-| Tushe          | Bayani                                                                                     | Ana buƙatar maɓalli | Farawa daga sanyi |
-| -------------- | ------------------------------------------------------------------------------------------ | ------------------- | ----------------- |
-| `remote`       | Yana amfani da API na embedding na mai bayarwa da aka saita (OpenAI, Cohere, da sauransu.) | Eh                  | Babu              |
-| `static`       | Embedding na gida ta hanyar lookup-table da `potion-base-8M` (WordPiece + mean pooling)    | A'a                 | ~200ms            |
-| `transformers` | Gudanar da ONNX a gida ta `@huggingface/transformers` v4, `all-MiniLM-L6-v2`               | A'a                 | ~3s + ~400MB RAM  |
-| `auto`         | Tantancewa yayin gudana: remote (idan akwai maɓalli) → static → transformers → null        | Ya danganta         | Ya danganta       |
+| Tushe          | Bayani                                                                                       | Ana buƙatar maɓalli | Farawa daga sanyi |
+| -------------- | -------------------------------------------------------------------------------------------- | ------------------- | ----------------- |
+| `remote`       | Yana amfani da API na embedding na mai samarwa da aka saita (OpenAI, Cohere, da sauransu)    | Eh                  | Babu              |
+| `static`       | Embedding na gida ta hanyar jadawalin bincike na `potion-base-8M` (WordPiece + mean pooling) | A'a                 | ~200ms            |
+| `transformers` | Gudanar da inference na ONNX a gida ta `@huggingface/transformers` v4, `all-MiniLM-L6-v2`    | A'a                 | ~3s + ~400MB RAM  |
+| `auto`         | Tantancewa lokacin gudana: remote (idan akwai maɓalli) → static → transformers → null        | Ya danganta         | Ya danganta       |
 
-**Jerin tantancewa don `auto`:**
+**Tsarin tantancewa na `auto`:**
 
-1. Nemo mai bayarwa na farko a cikin `listEmbeddingProviders()` mai `hasKey === true` → `remote`.
+1. Nemo mai samarwa na farko a cikin `listEmbeddingProviders()` mai `hasKey === true` → `remote`.
 2. Idan `settings.staticEnabled === true` → `static`.
 3. Idan `settings.transformersEnabled === true` → `transformers`.
 4. In ba haka ba → `null` (yana koma wa binciken kalmomi na FTS5).
 
-Ma'ajiyar wucin gadi ta embedding (`src/lib/memory/embedding/cache.ts`) tana amfani da taswirar
-LRU ta cikin ƙwaƙwalwa wadda maɓallinta shi ne `${source}:${model}:${dim}:${sha256(text)}`, kuma iyakarta ita ce
+Ma'ajiyar wucin-gadi ta embedding (`src/lib/memory/embedding/cache.ts`) tana amfani da taswirar
+LRU da ke cikin ƙwaƙwalwar aiki, wadda maɓallinta shi ne `${source}:${model}:${dim}:${sha256(text)}`, kuma aka iyakance ta zuwa
 shigarwar `MEMORY_EMBEDDING_CACHE_MAX` (tsoho 1000) tare da TTL na
 `MEMORY_EMBEDDING_CACHE_TTL_MS` (tsoho mintuna 5). Ana raba ta tsakanin duk masu kira
 a tsawon rayuwar kowace process.
 
-## Hybrid RRF (k=60)
+## RRF Haɗaɗɗe (k=60)
 
-Lokacin da `strategy = "hybrid"` kuma vector store yana samuwa, maidowa tana amfani da
+Lokacin da `strategy = "hybrid"` kuma akwai ma'ajiyar vector, aikin dawo da bayanai yana amfani da
 Reciprocal Rank Fusion don haɗa sakamakon FTS5 da na vector:
 
 ```
@@ -133,305 +129,309 @@ RRF(d) = Σ  1 / (k + rank_i(d))      inda k = 60 (ana iya saita shi ta MEMORY_R
 
 A zahiri:
 
-1. Gudanar da binciken FTS5 → jeri mai darajoji `R_fts` (matsayi 1..N).
-2. Gudanar da binciken vector na KNN → jeri mai darajoji `R_vec` (matsayi 1..M).
+1. Gudanar da binciken FTS5 → jerin da aka jera `R_fts` (matsayi 1..N).
+2. Gudanar da binciken vector na KNN → jerin da aka jera `R_vec` (matsayi 1..M).
 3. Ga kowane `memoryId` na musamman:  
    `rrf_score = 1/(60 + fts_rank)` + `1/(60 + vec_rank)` (0 idan ba ya cikin jerin).
-4. Jera bisa `rrf_score` DESC, sannan a yi amfani da kewayar iyakar token.
+4. Jera bisa `rrf_score` DESC, sannan a yi amfani da zagayen kasafin token.
 
-An san RRF da yin aiki yadda ya kamata ba tare da buƙatar daidaita maki tsakanin
-tsarukan maidowa masu bambancin hali ba. Tsohon ƙimar `k=60` ta fito ne daga ainihin
-takardar Cormack et al. kuma tana aiki da kyau ga ƙananan tarin bayanai (<10k memories).
+An san RRF da yin aiki yadda ya kamata ba tare da buƙatar daidaita makin tsakanin
+tsarukan dawo da bayanai masu bambanci ba. Tsohon ƙimar `k=60` ta fito ne daga ainihin
+takardar Cormack et al. kuma tana aiki sosai ga ƙananan kundin bayanai (<10k memories).
 
-## Cike bayanan baya (lazy + reindex)
+## Cike gibin baya (lazy + reindex)
 
-Lokacin da samfurin embedding ya canza (wanda ake ganowa ta `embedding_signature`), ana
-sake gina vector store kuma ana yi wa duk memories da ke akwai alamar
+Lokacin da samfurin embedding ya canza (wanda ake ganowa ta `embedding_signature`),
+ana sake gina ma'ajiyar vector kuma ana yi wa duk memories da ke akwai alamar
 `needs_reindex = 1` a cikin teburin `memories`.
 
-**Lazy backfill**: A maidowa ta gaba, duk memory da ba ta da shigarwar vector za a
-yi mata embedding kuma a saka ta cikin `vec_memories` kafin binciken ya gudana. Wannan
-yana rarraba kuɗin backfill a kan buƙatu na ainihi ba tare da hana farawa ba.
+**Cike gibin baya na lazy**: A aikin dawo da bayanai na gaba, duk wani memory da ba shi da shigarwar vector
+za a yi masa embedding kuma a saka shi cikin `vec_memories` kafin a fara binciken. Wannan
+yana rarraba kuɗin cike gibin baya a kan buƙatu na ainihi ba tare da toshe farawa ba.
 
-**Explicit reindex**: Shafin Engine da ke `/dashboard/memory` yana samar da maɓallin
-"Yi Reindex Yanzu" wanda ke kiran `POST /api/memory/reindex`. Handler ɗin yana kiran
+**Sake yin fihirisa kai tsaye**: Shafin Engine da ke `/dashboard/memory` yana samar da
+maɓallin "Sake Yin Fihirisa Yanzu" wanda ke kiran `POST /api/memory/reindex`. Handler ɗin yana kiran
 `runReindexBatch()` daga `src/lib/memory/reindex.ts`, wanda ke sarrafa har zuwa
-shigarwar `limit` masu jiran aiki a kowace buƙata. Ana iya duba ci gaba lokaci-lokaci ta
+shigarwar da ke jira guda `limit` a kowace buƙata. Ana iya duba ci gaban lokaci-lokaci ta
 `GET /api/memory/engine-status` (`vectorStore.needsReindex`).
 
 Teburin `memory_vec_meta` (migration `083_memory_vec.sql`) yana adana:
 
 - `active_dim` — girman vector na yanzu (null = ba a daidaita ba tukuna).
-- `embedding_signature` — `${source}:${model}:${dim}` da ake amfani da shi don gano sauye-sauye.
-- `last_reset_at` — timestamp na cikakken reset na ƙarshe.
-- `vec_loaded` — alamar 0/1 da ke nuna ko sqlite-vec ya loda cikin nasara.
+- `embedding_signature` — `${source}:${model}:${dim}` da ake amfani da shi don gano canje-canje.
+- `last_reset_at` — timestamp na sake saitawa gaba ɗaya na ƙarshe.
+- `vec_loaded` — tutar 0/1 da ke nuna ko an loda sqlite-vec cikin nasara.
 
 ## Faɗaɗa saituna
 
-Ana samun filayen embedding da vector guda tara a cikin `MemorySettingsExtended` a
-`src/shared/schemas/memory.ts`, kuma ana adana su ta hanyar `src/lib/db/settings.ts`:
+Akwai filayen embedding da vector guda tara a cikin `MemorySettingsExtended` da ke
+`src/shared/schemas/memory.ts`, waɗanda ake adanawa ta hanyar `src/lib/db/settings.ts`:
 
-| Fili                     | Nau'i                                              | Tsoho    | Bayani                                                        |
-| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Tushen embedding da za a yi amfani da shi                     |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Mai bayarwa/samfuri a tsarin `provider/model`                 |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL na asalin endpoint mai dacewa da OpenAI don Memory kawai  |
-| `customModelId`          | `string \| null`                                   | `null`   | ID na samfurin da ake aika wa endpoint na musamman            |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Zaɓin shiga don Transformers.js (MiniLM, ~400MB)              |
-| `staticEnabled`          | `boolean`                                          | `false`  | Zaɓin shiga don samfurin gida na static potion-base-8M        |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Kunna matakin sake jerantawa (yana ƙara +200-500ms/req)       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Mai bayarwa/samfurin sake jerantawa a tsarin `provider/model` |
+| Fili                     | Nau'i                                              | Na asali | Bayani                                                            |
+| ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Tushen embedding da za a yi amfani da shi                         |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Mai samarwa/model a tsarin `provider/model`                       |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL na asalin endpoint mai dacewa da OpenAI don Memory kawai      |
+| `customModelId`          | `string \| null`                                   | `null`   | ID na model da ake aikawa zuwa endpoint na musamman               |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Zaɓin shiga don Transformers.js (MiniLM, ~400MB)                  |
+| `staticEnabled`          | `boolean`                                          | `false`  | Zaɓin shiga don model na cikin gida static potion-base-8M         |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Kunna matakin sake tsara matsayi (yana ƙara +200-500ms/req)       |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Mai samarwa/model na sake tsara matsayi a tsarin `provider/model` |
 
-Ana tantance `rerankProviderModel` ta `POST /v1/rerank` (wanda ake kira ta loopback), saboda haka yana karɓar duk abin da wannan route ɗin ke karɓa: samfurin sake jerantawa na cloud da aka zaɓa (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ko node na mai bayarwa mai dacewa da OpenAI a matsayin `<node-prefix>/<model>` (misali `skilled-mini/bge-reranker-v2-m3` don akwatin TEI/Infinity). Node na loopback koyaushe sun cancanta; node da ke kan wani host (LAN, Tailscale) yana kuma buƙatar feature flag na `RERANK_REMOTE_PROVIDER_NODES` kuma dole ne ya cika ƙa'idar URL mai fita ta mai bayarwa — duba [Feature Flags](../reference/FEATURE_FLAGS.md). Mai zaɓin dashboard yana jera zaɓaɓɓun masu bayarwa tare da node na gida; ana iya saita kowace ingantacciyar ƙimar `provider/model` kai tsaye ta `PUT /api/settings/memory`.
+Ana tantance `rerankProviderModel` ta hanyar `POST /v1/rerank` (ana kiransa ta loopback), don haka yana karɓar duk abin da wannan route ɗin ke karɓa: zaɓaɓɓen model na sake tsara matsayi na cloud (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ko node na mai samarwa mai dacewa da OpenAI a matsayin `<node-prefix>/<model>` (misali `skilled-mini/bge-reranker-v2-m3` don akwatin TEI/Infinity). Nodes na loopback koyaushe sun cancanta; node da ke kan wani host (LAN, Tailscale) kuma yana buƙatar feature flag na `RERANK_REMOTE_PROVIDER_NODES` kuma dole ne ya bi ƙa'idar URL mai fita ta mai samarwa — duba [Feature Flags](../reference/FEATURE_FLAGS.md). Mai zaɓen dashboard yana jera zaɓaɓɓun masu samarwa tare da nodes na cikin gida; ana iya saita kowane ingantaccen string na `provider/model` kai tsaye ta hanyar `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend na vector da za a yi amfani da shi |
 
-Ana samar da waɗannan ta `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+Ana samar da waɗannan ta hanyar `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
-Ga tushen `remote`, Memory kuma yana karɓar saitunan `customBaseUrl` da
-`customModelId` na zaɓi. Tare, suna zaɓar endpoint na `/embeddings` mai dacewa da
-OpenAI da kuma samfurinsa ba tare da canza rajistar embedding ta duniya ba. Ana
-daidaita endpoint kafin amfani sannan a duba shi da ƙa'idar URL mai fita ta mai bayarwa:
-ana buƙatar HTTP(S), ana ƙin bayanan shaidar shiga da query strings da aka saka a ciki,
-kuma adireshin cloud-metadata suna ci gaba da kasancewa a katange. Ƙimomin da babu
-komai a cikinsu suna kiyaye zaɓaɓɓen mai bayarwa na rajista. Ana tsabtace kurakuran da
-ake mayarwa zuwa dashboard, kuma ba a taɓa rubuta bayanan shaidar endpoint a log ba.
+Don tushen `remote`, Memory kuma yana karɓar saitunan `customBaseUrl` da
+`customModelId` na zaɓi. Tare suna zaɓar endpoint na `/embeddings` mai dacewa da
+OpenAI da kuma model ba tare da canza rajistar embedding ta duniya ba. Ana daidaita
+endpoint kafin amfani kuma ana bincikarsa ta ƙa'idar URL mai fita ta mai samarwa:
+ana buƙatar HTTP(S), ana ƙin bayanan shiga da aka saka a ciki da query strings,
+kuma ana ci gaba da toshe adiresoshin metadata na cloud. Ƙimomin da babu komai suna
+barin zaɓaɓɓen mai samarwa na rajista yadda yake. Ana tsabtace kurakuran da ake
+mayarwa dashboard, kuma ba a taɓa rubuta bayanan shiga na endpoint a log ba.
 
 > **TODO (D20):** Ba a aiwatar da scope na `global` (raba memories tsakanin dukkan
-> API keys) a wannan sakin ba. Yana buƙatar sauye-sauyen schema da hanyar retrieval
-> ta duniya. A bi diddiginsa daban.
+> API keys) a wannan sakin ba. Yana buƙatar canje-canjen schema da hanyar retrieval
+> ta duniya. A bibiyi wannan daban.
 
-## Matakan ma'ajiyar bayanai
+## Matakan Ma'ajiya
 
-### Na farko: SQLite (jadawalin `memories`)
+### Na Farko: SQLite (teburin `memories`)
 
-Migration `015_create_memories.sql` ne ya ƙirƙire shi:
+Hijirar `015_create_memories.sql` ce ta ƙirƙire shi:
 
-| Shafi                       | Nau'i              | Bayanan kula                                                              |
-| --------------------------- | ------------------ | ------------------------------------------------------------------------- |
-| `id`                        | `TEXT PRIMARY KEY` | UUID da aka samar ta hanyar `crypto.randomUUID()`                         |
-| `api_key_id`                | `TEXT NOT NULL`    | API key mai mallaka                                                       |
-| `session_id`                | `TEXT`             | Scope na kowace tattaunawa na zaɓi                                        |
-| `type`                      | `TEXT NOT NULL`    | Ɗaya daga cikin `factual`, `episodic`, `procedural`, `semantic`           |
-| `key`                       | `TEXT`             | Tsayayyen maɓallin upsert, misali `preference:i_prefer_python`            |
-| `content`                   | `TEXT NOT NULL`    | Ainihin rubutun bayanin gaskiya                                           |
-| `metadata`                  | `TEXT`             | Tarin JSON (category, extractedAt, source, ...)                           |
-| `created_at` / `updated_at` | `TEXT`             | Strings na ISO 8601                                                       |
-| `expires_at`                | `TEXT`             | Ƙarewar lokaci ta zaɓi; `NULL` na nufin dindindin                         |
-| `memory_id`                 | `INTEGER UNIQUE`   | `023_fix_memory_fts_uuid.sql` ne ya ƙara shi don haɗa UUIDs ↔ FTS5 rowids |
+| Ginshiƙi                    | Nau'i              | Bayanan kula                                                           |
+| --------------------------- | ------------------ | ---------------------------------------------------------------------- |
+| `id`                        | `TEXT PRIMARY KEY` | UUID da aka samar ta hanyar `crypto.randomUUID()`                      |
+| `api_key_id`                | `TEXT NOT NULL`    | Maɓallin API mai mallaka                                               |
+| `session_id`                | `TEXT`             | Iyakokin kowace tattaunawa na zaɓi                                     |
+| `type`                      | `TEXT NOT NULL`    | Ɗaya daga cikin `factual`, `episodic`, `procedural`, `semantic`        |
+| `key`                       | `TEXT`             | Tsayayyen maɓallin upsert, misali `preference:i_prefer_python`         |
+| `content`                   | `TEXT NOT NULL`    | Ainihin rubutun bayani                                                 |
+| `metadata`                  | `TEXT`             | Tarin JSON (category, extractedAt, source, ...)                        |
+| `created_at` / `updated_at` | `TEXT`             | Kirtanin ISO 8601                                                      |
+| `expires_at`                | `TEXT`             | Ƙarewar wa'adi ta zaɓi; `NULL` na nufin dindindin                      |
+| `memory_id`                 | `INTEGER UNIQUE`   | `023_fix_memory_fts_uuid.sql` ya ƙara shi don haɗa UUIDs ↔ FTS5 rowids |
 
-Indexes: `api_key_id`, `session_id`, `type`, `expires_at`, tare da index na musamman
-na `memory_id`.
+Fihirisa: `api_key_id`, `session_id`, `type`, `expires_at`, tare da fihirisar
+`memory_id` ta musamman.
 
-**Ma'anar upsert**: `createMemory()` yana neman row da ke akwai mai
-`(api_key_id, key)` iri ɗaya, kuma yana sabunta shi a wurinsa idan an same shi (yana haɗa
-`metadata` ta shallow spread). Wannan yana hana jadawalin girma ba tare da iyaka ba saboda
-maimaita maganganun fifiko.
+**Ma'anar Upsert**: `createMemory()` yana neman layin da ke akwai mai
+`(api_key_id, key)` iri ɗaya, sannan ya sabunta shi a wurinsa idan an same shi
+(yana haɗa `metadata` ta hanyar shallow spread). Wannan yana hana teburin ci gaba
+da girma ba tare da iyaka ba saboda maimaita bayanan zaɓi.
 
-### Binciken cikakken rubutu (virtual table na `memory_fts`)
+### Binciken Cikakken Rubutu (teburin kama-da-wane na `memory_fts`)
 
-`022_add_memory_fts5.sql` yana ƙirƙirar virtual table na FTS5 a kan `content` da
-`key`. `023_fix_memory_fts_uuid.sql` yana gyara wata matsala ta ainihin amfani inda UUID
-primary key bai haɗu da integer rowid na FTS5 ba — migration ɗin yana ƙara shafin
-`memory_id`, yana sake ƙirƙirar jadawalin FTS, sannan yana haɗa triggers
-(`memory_fts_ai`, `memory_fts_ad`, `memory_fts_au`) waɗanda ke kiyaye daidaituwar FTS yayin
-INSERT, DELETE, da UPDATE.
+`022_add_memory_fts5.sql` yana ƙirƙirar teburin kama-da-wane na FTS5 bisa
+`content` da `key`. `023_fix_memory_fts_uuid.sql` yana gyara wata matsala ta
+ainihin amfani inda UUID na maɓallin farko bai haɗu da integer rowid na FTS5 ba
+— hijirar tana ƙara ginshiƙin `memory_id`, tana sake ƙirƙirar teburin FTS, sannan
+tana haɗa triggers (`memory_fts_ai`, `memory_fts_ad`, `memory_fts_au`) waɗanda
+ke daidaita FTS yayin INSERT, DELETE, da UPDATE.
 
 `retrieval.ts` yana amfani da shi don dabarun `semantic` da `hybrid` (duba ƙasa).
-Lambar retrieval tana kare kanta da `hasTable("memory_fts")`, sannan tana koma wa
-jeri bisa tsarin lokaci idan jadawalin FTS ya ɓace ko query na FTS ya jefa kuskure.
+Lambar dawo da bayanai tana yin kariya da `hasTable("memory_fts")`, sannan tana
+komawa ga jerin lokaci idan teburin FTS bai wanzu ba ko kuma tambayar FTS ta
+jawo kuskure.
 
-### Na zaɓi: Qdrant (mataki na 2 na ma'ajiyar vector)
+### Na Zaɓi: Qdrant (mataki na 2 na ma'ajiyar vector)
 
-`src/lib/memory/qdrant.ts` yana aiwatar da haɗin Qdrant na zaɓi a matsayin mataki na 2
-na ma'ajiyar vector. Retrieval yana turawa zuwa Qdrant ne kawai lokacin da mai zaɓin engine
-`memoryVectorStore === "qdrant"` — tsohon zaɓin `"auto"` (da `"sqlite-vec"`)
-**ba sa taɓa** zaɓar Qdrant. Toggle na shafin Engine yana saita **duka biyun** `qdrantEnabled` da
-`memoryVectorStore` tare: kunna shi yana mai da Qdrant babban ma'aji, kashe shi kuma
-yana mayar da saitin zuwa `"auto"` (#5597 — kafin wannan gyaran, kunnawa ba ya yin tasiri saboda babu abin da
-ke rubuta mai zaɓin engine). Idan ba za a iya isa Qdrant ba ko bai dawo da komai ba, retrieval
-yana koma wa sqlite-vec → FTS5.
+`src/lib/memory/qdrant.ts` yana aiwatar da haɗin Qdrant na zaɓi a matsayin mataki
+na 2 na ma'ajiyar vector. Dawo da bayanai yana karkata zuwa Qdrant ne kawai idan
+mai zaɓin injin `memoryVectorStore === "qdrant"` — tsohon saitin `"auto"` (da
+`"sqlite-vec"`) **ba sa taɓa** zaɓar Qdrant. Maɓallin kunnawa/kashewa na shafin
+Engine yana saita **duka** `qdrantEnabled` da `memoryVectorStore` tare: kunnawa
+yana sanya Qdrant ya zama ma'ajiya ta farko, yayin da kashewa ke mayar da shi zuwa
+`"auto"` (#5597 — kafin wannan gyaran, kunnawa ba ya yin tasiri domin babu abin
+da ke rubutawa zuwa mai zaɓin injin). Idan ba a iya isa ga Qdrant ba ko bai dawo
+da komai ba, dawo da bayanai yana komawa ga sqlite-vec → FTS5.
 
-- `upsertSemanticMemoryPoint()` — haɗa `key + content` zuwa embedding ta amfani da
-  embedding model da aka saita, tabbatar cewa collection ɗin yana wanzuwa (yana ƙirƙirar vectors masu
-  cosine-distance a amfani na farko), sannan ya saka ko sabunta point mai payload `{memoryId,
+- `upsertSemanticMemoryPoint()` — saka `key + content` cikin embedding ta amfani
+  da samfurin embedding da aka saita, tabbatar da cewa collection ɗin yana nan
+  (yana ƙirƙirar vectors masu cosine-distance a amfani na farko), sannan a yi
+  upsert na point mai payload `{memoryId,
 apiKeyId, sessionId, key, content, metadata, createdAtUnix, expiresAtUnix}`.
-- `searchSemanticMemory(query, topK, scope)` — haɗa query zuwa embedding, bincika
-  collection ɗin da aka tace ta `kind = "omniroute_memory"` sannan, idan ana so, ta
-  `apiKeyId` / `sessionId`. Yana iyakance `topK` zuwa `[1, 20]`.
-- `deleteSemanticMemoryPoint(id)` — share point guda ɗaya. Ana kiransa daga
-  `deleteMemory()` bayan an cire row ɗin SQLite (D15).
+- `searchSemanticMemory(query, topK, scope)` — saka query cikin embedding, bincika
+  collection ɗin da aka tace da `kind = "omniroute_memory"` kuma, idan an zaɓa,
+  da `apiKeyId` / `sessionId`. Yana iyakance `topK` zuwa `[1, 20]`.
+- `deleteSemanticMemoryPoint(id)` — share point guda ɗaya. `deleteMemory()` ne
+  ke kiransa bayan an cire layin SQLite (D15).
 - `cleanupSemanticMemoryPoints({retentionDays})` — share points da yawa waɗanda
-  `expiresAtUnix` nasu ya wuce ko kuma `createdAtUnix` nasu ya girmi iyakar lokacin
-  riƙewa. Yana fara ƙirga su domin dashboard ya iya nuna ainihin lambobi.
+  `expiresAtUnix` ɗinsu ya wuce ko kuma `createdAtUnix` ɗinsu ya girmi iyakar
+  lokacin riƙewa. Yana fara ƙidayawa domin dashboard ya iya nuna ainihin lambobi.
 - `checkQdrantHealth()` — gwajin lafiya na `GET /readyz` tare da latency.
 
-UI na saituna yana nuna saitunan Qdrant, gwajin lafiya, gwajin binciken semantic,
-da tsaftacewa a **shafin Engine** na `/dashboard/memory`. Duk routes masu alaƙa
-da ke ƙarƙashin `src/app/api/settings/qdrant/` an haɗa su tun daga v3.8.6:
+UI na saituna yana samar da tsarin Qdrant, gwajin lafiya, gwajin binciken
+semantic, da tsaftacewa a cikin **shafin Engine** na `/dashboard/memory`.
+Dukkan routes masu alaƙa da ke ƙarƙashin `src/app/api/settings/qdrant/` an haɗa
+su tun daga v3.8.6:
 
-| Route                                   | Hanya         | Bayani                                |
-| --------------------------------------- | ------------- | ------------------------------------- |
-| `/api/settings/qdrant`                  | `GET` / `PUT` | Karanta / sabunta saitunan Qdrant     |
-| `/api/settings/qdrant/health`           | `GET`         | Gwajin liveness + latency             |
-| `/api/settings/qdrant/search`           | `POST`        | Gwajin binciken semantic              |
-| `/api/settings/qdrant/cleanup`          | `POST`        | Cire points da suka ƙare / tsufa      |
-| `/api/settings/qdrant/embedding-models` | `GET`         | Jeranta embedding models da ake da su |
+| Route                                   | Hanya         | Bayani                               |
+| --------------------------------------- | ------------- | ------------------------------------ |
+| `/api/settings/qdrant`                  | `GET` / `PUT` | Karanta / sabunta saitunan Qdrant    |
+| `/api/settings/qdrant/health`           | `GET`         | Gwajin kasancewa a raye + latency    |
+| `/api/settings/qdrant/search`           | `POST`        | Gwajin binciken semantic             |
+| `/api/settings/qdrant/cleanup`          | `POST`        | Cire points da suka ƙare / tsufa     |
+| `/api/settings/qdrant/embedding-models` | `GET`         | Jera samfuran embedding da ake da su |
 
-**Bayanan halayya (abin da za a sa ran gani):**
+**Bayanan halayya (abin da za a yi tsammani):**
 
-- **Zaɓin engine** — kunna Qdrant a shafin Engine yana mai da shi babban
-  ma'ajiya (yana saita `memoryVectorStore="qdrant"`); kashe shi yana mayarwa zuwa `"auto"` (#5597).
-- **Babu cike bayan nan** — memories da aka ƙirƙira/sabunta **bayan** an kunna Qdrant ne kawai
-  ake rubutawa a cikinsa (dual-write na fire-and-forget). Memories na SQLite da suka riga suka wanzu **ba a**
-  ƙaura da su; "Reindex Now" yana sake gina index na sqlite-vec kawai, ba Qdrant ba.
-- **Ana gano girman vector ta atomatik** daga ainihin embedding a amfani na farko — babu
-  filin dimension da za a cike. Canza embedding model bayan collection ya riga
-  ya wanzu **ba a** sarrafa shi ta atomatik: ana barin collection ɗin da yake akwai ba tare da sauyi ba, rubutu/bincike
-  masu dimension marar dacewa suna gaza sannan su koma sqlite-vec. Sake ƙirƙirar collection ɗin
-  (sabon suna, ko share shi a Qdrant) domin sauya embedders.
-- **Ma'aunin tazara** — koyaushe **Cosine** ne (an hardcode shi lokacin ƙirƙirar collection; ba
-  za a iya saita shi ba).
-- **Auth** — API key kawai (ana aika shi a matsayin header na `api-key`; ba dole ba ne ga local Docker
-  marar tantancewa). Ba a amfani da JWT/RBAC.
+- **Zaɓin engine** — kunna Qdrant a shafin Engine yana sanya shi babban
+  ma'ajiyar bayanai (yana saita `memoryVectorStore="qdrant"`); kashe shi yana mayar da saitin zuwa `"auto"` (#5597).
+- **Babu cike bayanan baya** — ƙwaƙwalwar da aka ƙirƙira/sabunta **bayan** an kunna Qdrant kaɗai ake
+  rubutawa a cikinsa (rubutu biyu na fire-and-forget). Ƙwaƙwalwar SQLite da ta riga ta kasance **ba a**
+  ƙaura da ita; "Sake Gina Fihirisa Yanzu" yana sake gina fihirisar sqlite-vec kaɗai, ba ta Qdrant ba.
+- **Ana gano girman vector ta atomatik** daga embedding na ainihi a amfani na farko — babu
+  filin girma da za a cike. Sauya samfurin embedding bayan an riga an ƙirƙiri collection
+  **ba a** sarrafa shi ta atomatik: ana barin collection ɗin da yake akwai yadda yake, rubuce-rubuce/bincike
+  masu rashin daidaiton girma suna gaza kuma su koma sqlite-vec. Sake ƙirƙirar collection ɗin
+  (sabon suna, ko share shi a Qdrant) don sauya embedder.
+- **Ma'aunin tazara** — koyaushe **Cosine** ne (an kayyade shi kai-tsaye lokacin ƙirƙirar collection; ba
+  za a iya daidaita shi ba).
+- **Tabbatar da izini** — maɓallin API kawai (ana aika shi a matsayin header na `api-key`; ba dole ba ne ga
+  Docker na gida wanda ba ya buƙatar tabbatar da izini). Ba a amfani da JWT/RBAC.
 - **Filayen saiti** — UI yana nuna `host`, `port`, `collection`, `embeddingModel`,
-  `apiKey`. `vectorSize` / `hnswEfConstruct` na env/DB ne kawai kuma ba a amfani da `vectorSize`
-  wajen ƙirƙirar collection (dimension yana fitowa daga embedding).
+  `apiKey`. `vectorSize` / `hnswEfConstruct` na env/DB ne kawai, kuma ba a amfani da `vectorSize`
+  wajen ƙirƙirar collection (ana samo girman daga embedding).
 
-### Quantization na vector (int8 — sai an zaɓa, duka backends)
+### Ƙididdigar vector (int8 — sai an zaɓa, a duka backend)
 
-Dukkan vector backends suna goyon bayan **int8 quantization na zaɓi** domin rage girman
-memory da vectors da aka adana ke amfani da shi (~ƙarami sau 4 fiye da Float32) tare da ɗan raguwar recall.
-Ta tsohuwa **a kashe** yake a dukansu — vectors suna ci gaba da kasancewa da cikakkiyar precision sai an
-kunna shi a sarari.
+Duka backend na vector suna goyon bayan **ƙididdigar int8 da sai an zaɓa** don rage yawan
+ƙwaƙwalwar da vector da aka adana ke amfani da ita (~sau 4 ƙasa da Float32), tare da ɗan raguwar ingancin dawo da sakamako.
+Tsohon saiti shi ne **a kashe** a duka biyun — vector suna ci gaba da kasancewa da cikakken daidaito sai an
+kunna shi kai-tsaye.
 
-| Backend    | Saiti                           | Nau'i                          | Na tsohuwa | Inda ake karantawa                                          |
-| ---------- | ------------------------------- | ------------------------------ | ---------- | ----------------------------------------------------------- |
-| Qdrant     | `qdrantQuantization` (DB key)   | `"none" \| "int8" \| "binary"` | `"none"`   | `src/lib/memory/qdrant.ts::normalizeQdrantConfig()`         |
-| sqlite-vec | `MEMORY_VEC_QUANTIZATION` (env) | `"none" \| "int8"`             | `"none"`   | `src/lib/memory/vectorStore.ts::requestedVecQuantization()` |
+| Backend    | Saiti                              | Nau'i                          | Tsohon saiti | Inda ake karantawa                                          |
+| ---------- | ---------------------------------- | ------------------------------ | ------------ | ----------------------------------------------------------- |
+| Qdrant     | `qdrantQuantization` (maɓallin DB) | `"none" \| "int8" \| "binary"` | `"none"`     | `src/lib/memory/qdrant.ts::normalizeQdrantConfig()`         |
+| sqlite-vec | `MEMORY_VEC_QUANTIZATION` (env)    | `"none" \| "int8"`             | `"none"`     | `src/lib/memory/vectorStore.ts::requestedVecQuantization()` |
 
-- Ana saita **Qdrant** ga kowane instance ta hanyar setting key na `qdrantQuantization`
-  (wanda ake nunawa a matsayin filin `quantization` a `PUT /api/settings/qdrant`). Lokacin da yake
-  `"int8"`, `buildQuantizationConfig()` yana buƙatar scalar quantization
-  (`always_ram`, quantile `0.99`) sannan bincike yana kunna `rescore: true` domin
-  vectors masu cikakkiyar precision su inganta jerin candidates na int8.
-- Quantization na **sqlite-vec** na **environment kawai** ne (ba saitin DB ba): saita
-  `MEMORY_VEC_QUANTIZATION=int8` domin adana local vectors a matsayin column na `int8[dim]`
-  ta hanyar `vec_quantize_int8(?, 'unit')`. Ana haɗa mode ɗin da aka zaɓa cikin
-  `embedding_signature` (suffix na `:int8`), don haka sauya modes yana jawo cikakken
-  sake yin index na table na `vec_memories` — irin lazy-backfill path ɗin da ake amfani da shi lokacin da
-  embedding model ya sauya.
+- Ana saita **Qdrant** ga kowane instance ta hanyar maɓallin saitin `qdrantQuantization`
+  (wanda ake nunawa a matsayin filin `quantization` a `PUT /api/settings/qdrant`). Lokacin da
+  yake `"int8"`, `buildQuantizationConfig()` yana neman ƙididdigar scalar
+  (`always_ram`, quantile `0.99`), kuma bincike yana kunna `rescore: true` domin
+  vector masu cikakken daidaito su tace jerin candidates na int8.
+- Ƙididdigar **sqlite-vec** ta **muhalli kawai** ce (ba saitin DB ba): saita
+  `MEMORY_VEC_QUANTIZATION=int8` don adana vector na gida a matsayin column na `int8[dim]`
+  ta hanyar `vec_quantize_int8(?, 'unit')`. Ana haɗa yanayin da aka zaɓa cikin
+  `embedding_signature` (suffix na `:int8`), don haka sauya yanayi yana jawo cikakken
+  sake gina fihirisar table na `vec_memories` — hanyar lazy-backfill iri ɗaya da ake amfani da ita lokacin da
+  samfurin embedding ya sauya.
 
 ## Nau’ikan Ƙwaƙwalwa
 
 `MemoryType` (`src/lib/memory/types.ts`):
 
-| Nau’i        | Abin da ake amfani da shi                                                                    |
-| ------------ | -------------------------------------------------------------------------------------------- |
-| `factual`    | Zaɓuɓɓuka, tabbatattun bayanan mai amfani, salon ɗabi’a                                      |
-| `episodic`   | Shawarwarin da ke da alaƙa da wani takamaiman lokaci ("Na zaɓi Postgres")                    |
-| `procedural` | Ƙwaƙwalwar tsarin aiki / yadda ake yi (an tanada; babu mai cire bayanai ta atomatik a yanzu) |
-| `semantic`   | An tanada don shigarwar vector-store                                                         |
+| Nau’i        | Abin da ake amfani da shi don                                                        |
+| ------------ | ------------------------------------------------------------------------------------ |
+| `factual`    | Zaɓuɓɓuka, tabbatattun bayanan mai amfani, tsarin ɗabi’a                             |
+| `episodic`   | Shawarwarin da ke da alaƙa da wani takamaiman lokaci ("Na zaɓi Postgres")            |
+| `procedural` | Ƙwaƙwalwar tsarin aiki / yadda ake yi (an keɓe; babu mai cirewa ta atomatik a yanzu) |
+| `semantic`   | An keɓe don shigarwar vector-store                                                   |
 
 Dabarar dawo da bayanai ta `MemoryConfig` tana ɗaya daga cikin `exact`, `semantic`, ko `hybrid`,
 kuma iyakarta tana ɗaya daga cikin `session`, `apiKey`, ko `global`. Tsohuwar iyakar da ake samu daga
 `getMemorySettings()` ita ce `apiKey`.
 
-## Ciro Bayanai (`extraction.ts`)
+## Cire Bayanai (`extraction.ts`)
 
-Ana yin ciro bayanai ne bisa **regex**, ba bisa LLM ba — yana gudana a cikin tsarin aikin
-ta amfani da `setImmediate()` don kada ya taɓa toshe rafin amsa:
+Ana yin cire bayanai ne bisa **regex**, ba bisa LLM ba — yana gudana a cikin tsari ta amfani da
+`setImmediate()` don haka ba ya taɓa tare rafin amsa:
 
 - **Tsarin zaɓi** → `MemoryType.FACTUAL`
-  (misali `Na fi son …`, `Ina matuƙar son …`, `abin da na fi so shi ne …`, `Na ƙi …`)
+  (misali `Na fi son …`, `Ina matuƙar son …`, `wanda na fi so shi ne …`, `Na ƙi …`)
 - **Tsarin shawara** → `MemoryType.EPISODIC`
   (misali `Zan yi amfani da …`, `Na zaɓi …`, `Na ɗauki …`, `Zan fara amfani da …`)
 - **Tsarin ɗabi’a** → `MemoryType.FACTUAL`
-  (misali `Na saba …`, `Kullum ina …`, `Nakan …`)
+  (misali `Yawanci ina …`, `Kullum ina …`, `Na saba …`)
 
-Ana tsaftace kowace dacewa (`trim`, haɗa sararin rubutu, iyakancewa zuwa haruffa 500),
-ana cire maimaituwa a cikin rukunin ta hanyar tabbataccen `factKey(category, content)`, sannan
-a adana ta ta amfani da `createMemory()` tare da metadata
-`{category, extractedAt, source: "llm_response"}`. An iyakance rubutun shigarwa zuwa
+Ana tsabtace kowace daidaituwa (`trim`, haɗa sararin-fari, iyakancewa zuwa haruffa 500),
+ana cire maimaituwa a cikin rukuni ta amfani da tabbataccen `factKey(category, content)`, sannan
+a adana ta ta hanyar `createMemory()` tare da metadata
+`{category, extractedAt, source: "llm_response"}`. Ana iyakance rubutun shigarwa zuwa
 64 KiB (`MAX_EXTRACTION_TEXT_LENGTH`) — idan ya fi haka tsawo, ana amfani da **ƙarshen** rubutun
-domin tabbatar da cewa sabon abun da mataimaki ya rubuta koyaushe yana cikin aikin.
+domin tabbatar da cewa sabon abun cikin mataimaki koyaushe yana shiga.
 
-Ana fitar da `extractFactsFromText(text)` don gwaje-gwaje, kuma yana dawo da bayanan da aka tsara
+Ana fitar da `extractFactsFromText(text)` don gwaje-gwaje, kuma yana mayar da bayanan da aka tsara
 ba tare da adana su ba.
 
 ## Dawo da Bayanai (`retrieval.ts`)
 
-`retrieveMemories(apiKeyId, config)` ita ce babbar hanyar shiga. Tana:
+`retrieveMemories(apiKeyId, config)` ita ce babbar mashigar aiki. Tana:
 
-1. Daidaita tare da tabbatar da ingancin config ta hanyar `MemoryConfigSchema`.
-2. Dawo da `[]` nan take idan `enabled` ya kasance false ko `maxTokens <= 0`.
-3. Iyakance `maxTokens` zuwa `[1, 8000]`.
-4. Gano ko teburin zamani na `memories` yana nan (maimakon tsohon teburin `memory`)
+1. Daidaitawa da tabbatar da config ta hanyar `MemoryConfigSchema`.
+2. Mayar da `[]` nan take idan `enabled` ƙarya ne ko `maxTokens <= 0`.
+3. Takaita `maxTokens` zuwa `[1, 8000]`.
+4. Gano ko teburin zamani na `memories` yana nan (saɓanin tsohon teburin `memory`)
    domin tsofaffin ma’ajin bayanai su ci gaba da aiki.
-5. Gina ainihin query tare da kariyar ƙarewar lokaci
+5. Gina ainihin query tare da kariyar ƙarewar wa’adi
    (`expires_at IS NULL OR datetime(expires_at) > datetime('now')`), iyakar
-   session idan an bayar, da kuma iyakar `retentionDays` idan an bayar.
-6. Rarraba aiki bisa dabara:
-   - **`exact`** (tsohuwar dabi’a): jerin lokaci `ORDER BY created_at DESC LIMIT 100`.
+   session ta zaɓi, da ranar yankewar `retentionDays` ta zaɓi.
+6. Rarrabewa bisa dabara:
+   - **`exact`** (tsoho): jerin lokaci `ORDER BY created_at DESC LIMIT 100`.
    - **`semantic`**: idan `config.query` da `memory_fts` suna nan, a yi JOIN da
-     `memory_fts MATCH ?` sannan a jera bisa matsayin FTS; a koma jerin lokaci
-     idan FTS ya dawo da layuka 0.
-   - **`hybrid`**: haɗin sakamakon FTS (mafi girman dacewa) da saitin
+     `memory_fts MATCH ?` sannan a tsara bisa matsayin FTS; a koma ga jerin lokaci
+     idan FTS ya mayar da layuka 0.
+   - **`hybrid`**: haɗin sakamakon FTS (mafi muhimmanci) da
      jerin lokaci, tare da cire maimaituwa bisa id.
-7. Lissafa makin dacewar kalmomin maɓalli (`getRelevanceScore`) a kan
-   `content`, `key`, da metadata JSON idan an bayar da query. Ana tace layukan
-   da makinsu ya zama sifili.
-8. Jera bisa score daga mafi girma zuwa ƙasa, sannan `createdAt` daga sabo zuwa tsoho.
-9. Bi jerin da aka jera sannan a karɓi shigarwa muddin jimillar
+7. Ƙididdige makin dacewar kalmomi (`getRelevanceScore`) a kan
+   `content`, `key`, da JSON na `metadata` idan an bayar da query. Ana tace layukan
+   da makinsu sifili ne.
+8. Tsarawa bisa score daga mafi girma, sannan `createdAt` daga mafi sabo.
+9. Bi cikin jerin da aka tsara bisa matsayi tare da karɓar shigarwa muddin jimillar
    `estimateTokens(content)` (≈ `length / 4`) ba ta wuce kasafin ba. Koyaushe
-   yana dawo da aƙalla shigarwa guda idan an sami kowace dacewa.
+   yana mayar da aƙalla shigarwa ɗaya idan an sami wata da ta dace.
 
-Ana fitar da `estimateTokens`, kuma tsarin dawo da bayanai, taƙaitawa, da kayan aikin MCP
-na `omniroute_memory_search` suna amfani da shi.
+Ana fitar da `estimateTokens`, kuma dawo da bayanai, taƙaitawa, da kayan aikin MCP
+`omniroute_memory_search` suna amfani da shi.
 
 ## Shigarwa (`injection.ts`)
 
 `injectMemory(request, memories, provider)`:
 
-1. Yana haɗa duk abubuwan da ke cikin ƙwaƙwalwar ajiya zuwa rubutu guda ɗaya na `Memory context: …`.
+1. Yana haɗa duk abubuwan da ke cikin ƙwaƙwalwa zuwa zaren `Memory context: …` guda ɗaya.
 2. Yana zaɓar dabara bisa sunan mai samarwa:
-   - **Saƙon tsarin** (tsoho ga OpenAI, Anthropic, Gemini, …) — yana saka
-     `{role: "system", content: memoryText}` a gaba da duk wani saƙon tsarin
-     da yake akwai domin umarnin tsarin mai amfani su ci gaba da kasancewa mafi fifiko.
+   - **Saƙon tsarin** (tsoho ga OpenAI, Anthropic, Gemini, …) — yana ƙara
+     `{role: "system", content: memoryText}` a gaban duk wani saƙon tsarin da
+     yake akwai domin har yanzu umarnin tsarin mai amfani ya kasance da fifiko.
    - **Saƙon mai amfani** (madadin) — ga masu samarwa da ke cikin
      `PROVIDERS_WITHOUT_SYSTEM_MESSAGE`: `o1`, `o1-mini`, `o1-preview`,
      `glm`, `glmt`, `glm-cn`, `zai`, `qianfan`. Waɗannan suna ƙin rawar tsarin
      kuma in ba haka ba za su mayar da 400 (duba matsala #1701 don GLM/Zhipu).
 3. Yana rubuta adadi, dabara, da samfurin a ƙarƙashin `memory.injection.injected`.
 
-Ana fitar da `providerSupportsSystemMessage(provider)` domin masu kira da ke buƙatar
-yanke nasu shawarar zaɓin hanya. Masu samarwa da ba a sani ba suna amfani da `true`
-(ana yarda da rawar tsarin) a matsayin tsoho don aminci.
+Ana fitar da `providerSupportsSystemMessage(provider)` don masu kira da ke buƙatar
+yanke nasu shawarar zaɓin hanya. Masu samarwa da ba a sani ba suna komawa zuwa `true`
+(an yarda da rawar tsarin) don aminci.
 
 ## Saituna (`settings.ts`)
 
-Ana **adana tsarin ƙwaƙwalwar ajiya a cikin jadawalin saitunan DB**, ba a cikin sauye-sauyen muhalli ba.
-`getMemorySettings()` yana karantawa daga `getSettings()` kuma yana adana sakamakon
-na ɗan lokaci a cikin tsarin aiki; hanyar PUT ta saituna tana kiran
+Ana **adana saitunan ƙwaƙwalwa a cikin jadawalin saitunan DB**, ba a cikin masu canjin muhalli ba.
+`getMemorySettings()` yana karantawa daga `getSettings()` kuma yana ma'ajiyar sakamakon
+a cikin tsari mai gudana; hanyar PUT ta saituna tana kiran
 `invalidateMemorySettingsCache()` bayan rubutawa.
 
 ### Filayen gado (duk nau'ikan)
 
-| Maɓallin DB           | Nau'i   | Tsoho                                                 | Ikon UI                                                                 |
-| --------------------- | ------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
-| `memoryEnabled`       | boolean | `false` (a kashe ta tsohuwa tun daga v3.8.30)         | Kunna/kashe ƙwaƙwalwar ajiya                                            |
-| `memoryMaxTokens`     | integer | `2000` (kewayo `0–16000`)                             | Kasafin token don shigarwa                                              |
-| `memoryRetentionDays` | integer | `30` (kewayo `1–365`)                                 | Tsawon lokacin riƙewa                                                   |
-| `memoryStrategy`      | enum    | `"hybrid"` (ɗaya daga `recent`, `semantic`, `hybrid`) | Dabarar dawo da bayanai                                                 |
-| `skillsEnabled`       | boolean | `false`                                               | Yana kunna/kashe shigar da ƙwarewa bisa kowane maɓalli (duba SKILLS.md) |
+| Mabuɗin DB            | Nau'i   | Tsoho                                                 | Ikon UI                                                              |
+| --------------------- | ------- | ----------------------------------------------------- | -------------------------------------------------------------------- |
+| `memoryEnabled`       | boolean | `false` (a kashe ta tsohuwa tun daga v3.8.30)         | Kunna/kashe ƙwaƙwalwa                                                |
+| `memoryMaxTokens`     | integer | `2000` (kewayo `0–16000`)                             | Kasafin token don shigarwa                                           |
+| `memoryRetentionDays` | integer | `30` (kewayo `1–365`)                                 | Tsawon lokacin riƙewa                                                |
+| `memoryStrategy`      | enum    | `"hybrid"` (ɗaya daga `recent`, `semantic`, `hybrid`) | Dabarar dawo da bayanai                                              |
+| `skillsEnabled`       | boolean | `false`                                               | Yana kunna/kashe shigar da ƙwarewa ga kowane mabuɗi (duba SKILLS.md) |
 
-Lura: Dabarar UI ta `"recent"` tana daidaita da dabarar dawo da bayanai ta ciki
-mai suna `"exact"` ta hanyar `toMemoryRetrievalConfig()` (tsarin lokaci).
+Lura: dabarar UI `"recent"` tana dacewa da dabarar dawo da bayanai ta ciki
+`"exact"` ta hanyar `toMemoryRetrievalConfig()` (tsari bisa lokaci).
 
 ### Sabbin filaye (v3.8.6, tsari 21 D9)
 
 Duba kuma sashen "Faɗaɗa saituna" da ke sama don bayanin filayen.
 
-| Maɓallin DB                 | Filin API                | Tsoho    |
+| Mabuɗin DB                  | Filin API                | Tsoho    |
 | --------------------------- | ------------------------ | -------- |
 | `memoryEmbeddingSource`     | `embeddingSource`        | `"auto"` |
 | `memoryEmbeddingModel`      | `embeddingProviderModel` | `null`   |
@@ -441,182 +441,181 @@ Duba kuma sashen "Faɗaɗa saituna" da ke sama don bayanin filayen.
 | `memoryRerankModel`         | `rerankProviderModel`    | `null`   |
 | `memoryVectorStore`         | `vectorStore`            | `"auto"` |
 
-Maɓallan DB masu alaƙa da Qdrant (`qdrantEnabled`, `qdrantHost`, `qdrantPort`,
+`normalizeQdrantConfig()` da ke cikin `qdrant.ts` yana karanta mabuɗan DB masu alaƙa da
+Qdrant (`qdrantEnabled`, `qdrantHost`, `qdrantPort`,
 `qdrantApiKey`, `qdrantCollection` mai tsohon ƙima `"omniroute_memory"`,
-`qdrantEmbeddingModel` mai tsohon ƙima `"openai/text-embedding-3-small"`) ana karanta su ta
-`normalizeQdrantConfig()` a cikin `qdrant.ts`.
+`qdrantEmbeddingModel` mai tsohon ƙima `"openai/text-embedding-3-small"`).
 
-### Sauye-sauyen muhalli (v3.8.6)
+### Masu canjin muhalli (v3.8.6)
 
-Sauye-sauyen muhalli na zaɓi guda shida suna daidaita halayen injin yayin aiki (an rubuta bayaninsu a cikin `.env.example`):
+Masu canjin muhalli na zaɓi guda shida suna daidaita halayen injin yayin aiki (an rubuta bayaninsu a cikin `.env.example`):
 
-| Sauyi                           | Tsoho                      | Bayani                                                                                                                                      |
-| ------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MEMORY_EMBEDDING_CACHE_TTL_MS` | `300000`                   | TTL na ma'ajiyar embedding (minti 5)                                                                                                        |
-| `MEMORY_EMBEDDING_CACHE_MAX`    | `1000`                     | Matsakaicin adadin abubuwa a ma'ajiyar embedding ta LRU                                                                                     |
-| `MEMORY_TRANSFORMERS_MODEL`     | `Xenova/all-MiniLM-L6-v2`  | Ma'ajiyar HF don samfurin Transformers.js                                                                                                   |
-| `MEMORY_STATIC_MODEL`           | `minishlab/potion-base-8M` | Ma'ajiyar HF don samfurin potion na dindindin                                                                                               |
-| `MEMORY_STATIC_CACHE_DIR`       | `<DATA_DIR>/embeddings`    | Inda za a adana samfuran da aka sauke                                                                                                       |
-| `MEMORY_VEC_TOP_K`              | `20`                       | Tsohon top-K don binciken vector                                                                                                            |
-| `MEMORY_RRF_K`                  | `60`                       | Ƙimar dindindin ta RRF k don binciken hybrid                                                                                                |
-| `MEMORY_VEC_QUANTIZATION`       | `none`                     | Saita zuwa `int8` don adana vector na sqlite-vec na gida a matse (~4× ƙanƙanta; sai an zaɓa). Canjin yanayi yana tilasta sake yin fihirisa. |
+| Mai canji                       | Tsoho                      | Bayani                                                                                                                                                      |
+| ------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MEMORY_EMBEDDING_CACHE_TTL_MS` | `300000`                   | TTL na ma'ajiyar embedding (minti 5)                                                                                                                        |
+| `MEMORY_EMBEDDING_CACHE_MAX`    | `1000`                     | Matsakaicin adadin shigarwar da ke cikin ma'ajiyar embedding ta LRU                                                                                         |
+| `MEMORY_TRANSFORMERS_MODEL`     | `Xenova/all-MiniLM-L6-v2`  | Ma'ajiyar HF don samfurin Transformers.js                                                                                                                   |
+| `MEMORY_STATIC_MODEL`           | `minishlab/potion-base-8M` | Ma'ajiyar HF don samfurin potion na tsayayyen nau'i                                                                                                         |
+| `MEMORY_STATIC_CACHE_DIR`       | `<DATA_DIR>/embeddings`    | Inda za a adana samfuran da aka sauke                                                                                                                       |
+| `MEMORY_VEC_TOP_K`              | `20`                       | Tsohon top-K don binciken vector                                                                                                                            |
+| `MEMORY_RRF_K`                  | `60`                       | Ƙimar k ta RRF don binciken hybrid                                                                                                                          |
+| `MEMORY_VEC_QUANTIZATION`       | `none`                     | Saita zuwa `int8` don adana vector na sqlite-vec na gida da aka rage daidaitonsu (~sau 4 ƙanana; sai an zaɓa). Sauya yanayi yana tilasta sake yin fihirisa. |
 
 ## Taƙaitawa (`summarization.ts`)
 
 `summarizeMemories(apiKeyId, sessionId?, maxTokens = 4000)` yana taƙaita tsohon
-abun ciki lokacin da jimillar token da ake amfani da ita a memories na wani key ta zarce
-kasafin. Yana bi ta rows a tsarin DESC bisa `created_at`, yana riƙe rows da suka dace, sannan ga
-sauran yana maye gurbin `content` a wurin da jimloli uku na farko na
-ainihin rubutun. `tokensSaved` shi ne bambancin `estimateTokens` tsakanin tsohon
-da sabon abun ciki.
+abun ciki idan jimillar tokens da ke gudana a cikin memories na wani key ta wuce
+kasafin da aka ware. Yana bi ta rows a tsarin DESC bisa `created_at`, yana riƙe rows
+da suka dace da kasafin, sannan ga sauran yana maye gurbin `content` a wurinsa da
+jimloli uku na farko na asalin abun ciki. `tokensSaved` shi ne bambancin
+`estimateTokens` tsakanin tsohon da sabon abun ciki.
 
-Wannan aikin yana **samuwa amma ba a kiran sa kai tsaye** a cikin tsarin
-chat na yanzu — kira shi daga cron, wani aikin admin, ko
-hanyar haɗin `MemoryConfig.autoSummarize` idan kana buƙatar ci gaba da taƙaitawa. Asarar
-bayanan hanya ɗaya ce: ana rubuta sabon rubutu a kan ainihin rubutun.
+Wannan routine ɗin **yana samuwa amma ba a kiransa ta atomatik** a cikin chat
+pipeline na yanzu — kira shi daga cron, admin action, ko haɗin
+`MemoryConfig.autoSummarize` idan kana buƙatar ci gaba da taƙaitawa. Asarar bayanan
+ta hanya ɗaya ce: ana sake rubuta asalin rubutun.
 
 ## REST API
 
-Dukkan endpoints suna buƙatar authentication na gudanarwa (`requireManagementAuth`).
+Duk endpoints suna buƙatar management auth (`requireManagementAuth`).
 
-### Muhimman endpoints na memory (na yanzu + waɗanda aka sabunta)
+### Muhimman memory endpoints (na yanzu + waɗanda aka sabunta)
 
-| Method   | Path                 | Bayani                                                                                                                                                                                              |
-| -------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`    | `/api/memory`        | Jerin da aka raba shafuka tare da matatu: `apiKeyId`, `type`, `sessionId`, `q`, `limit`, `page`, `offset`. Amsa ta ƙunshi `stats.total`, `stats.tokensUsed`, `stats.hitRate`, `cacheStats`          |
-| `POST`   | `/api/memory`        | Ƙirƙiri entry (an inganta ta da Zod: `content`, `key`, da `type`, `sessionId`, `apiKeyId`, `metadata`, `expiresAt` na zaɓi). Yana kiran `createMemory()` wanda ke yin upsert bisa `(apiKeyId, key)` |
-| `GET`    | `/api/memory/[id]`   | Ɗauko entry guda ta UUID                                                                                                                                                                            |
-| `PUT`    | `/api/memory/[id]`   | Sabunta fields na entry (`type`, `key`, `content`, `metadata`). Body: `MemoryUpdatePutSchema`. Haka kuma yana daidaita vector idan akwai tushen embedding.                                          |
-| `DELETE` | `/api/memory/[id]`   | Share entry; haka kuma yana sharewa daga `vec_memories` (D15) da Qdrant gwargwadon iko. Yana mayar da 404 idan babu shi.                                                                            |
-| `GET`    | `/api/memory/health` | Yana gudanar da `verifyExtractionPipeline("health-check")` — zagayen ƙirƙira→jera→sharewa. Yana mayar da `{working, latencyMs, error?}`                                                             |
+| Method   | Path                 | Bayani                                                                                                                                                                                            |
+| -------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/memory`        | Jerin da aka raba shafuka tare da filters: `apiKeyId`, `type`, `sessionId`, `q`, `limit`, `page`, `offset`. Response ya haɗa da `stats.total`, `stats.tokensUsed`, `stats.hitRate`, `cacheStats`  |
+| `POST`   | `/api/memory`        | Ƙirƙiri entry (wanda Zod ya tantance: `content`, `key`, `type` na zaɓi, `sessionId`, `apiKeyId`, `metadata`, `expiresAt`). Yana kiran `createMemory()` wanda ke yin upsert bisa `(apiKeyId, key)` |
+| `GET`    | `/api/memory/[id]`   | Ɗauko entry guda ta UUID                                                                                                                                                                          |
+| `PUT`    | `/api/memory/[id]`   | Sabunta fields na entry (`type`, `key`, `content`, `metadata`). Body: `MemoryUpdatePutSchema`. Haka kuma yana daidaita vector idan embedding source yana samuwa.                                  |
+| `DELETE` | `/api/memory/[id]`   | Goge entry; haka kuma yana gogewa daga `vec_memories` (D15) da Qdrant gwargwadon iko. Yana mayar da 404 idan babu entry ɗin.                                                                      |
+| `GET`    | `/api/memory/health` | Yana gudanar da `verifyExtractionPipeline("health-check")` — ƙirƙira→jera→gogewa na zagaye cikakke. Yana mayar da `{working, latencyMs, error?}`                                                  |
 
-### Sabbin endpoints na memory engine (tsari na 21)
+### Sabbin memory engine endpoints (tsari na 21)
 
-| Method | Path                              | Bayani                                                                                                                                                                    |
-| ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST` | `/api/memory/retrieve-preview`    | Gwajin bushe na `retrieveMemories` — yana mayar da sakamakon da aka jera tare da score, tier, tokens. Body: `RetrievePreviewSchema`. BA YA shigarwa ko sauya memories.    |
-| `GET`  | `/api/memory/embedding-providers` | Yana jera providers tare da embedding models, yana nuna waɗanda aka saita musu API key.                                                                                   |
-| `GET`  | `/api/memory/engine-status`       | Yana mayar da cikakken matsayin engine: keyword tier, embedding resolution, ƙididdigar vector store, lafiyar Qdrant, da saitin rerank. Tsari: `MemoryEngineStatusSchema`. |
-| `POST` | `/api/memory/summarize`           | Ƙaddamar da taƙaita memory da hannu. Body: `MemorySummarizeSchema` (`olderThanDays`, `apiKeyId?`, `dryRun`). Yana mayar da `{candidates, tokensSaved}`.                   |
-| `POST` | `/api/memory/reindex`             | Ƙaddamar da sake yin vector index ga memories masu `needs_reindex=1`. Body: `MemoryReindexSchema` (`force`). Yana mayar da `{started, pending}`.                          |
+| Method | Path                              | Bayani                                                                                                                                                                                   |
+| ------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/memory/retrieve-preview`    | Gwajin da ba ya aiwatar da canji na `retrieveMemories` — yana mayar da sakamakon da aka jera tare da score, tier, tokens. Body: `RetrievePreviewSchema`. BA ya inject ko gyara memories. |
+| `GET`  | `/api/memory/embedding-providers` | Yana jera providers tare da embedding models, yana nuna waɗanda suke da API key da aka saita.                                                                                            |
+| `GET`  | `/api/memory/engine-status`       | Yana mayar da cikakken matsayin engine: keyword tier, embedding resolution, vector store stats, lafiyar Qdrant, rerank config. Tsari: `MemoryEngineStatusSchema`.                        |
+| `POST` | `/api/memory/summarize`           | Fara taƙaita memory da hannu. Body: `MemorySummarizeSchema` (`olderThanDays`, `apiKeyId?`, `dryRun`). Yana mayar da `{candidates, tokensSaved}`.                                         |
+| `POST` | `/api/memory/reindex`             | Fara sake yin vector index ga memories masu `needs_reindex=1`. Body: `MemoryReindexSchema` (`force`). Yana mayar da `{started, pending}`.                                                |
 
-### Endpoints na saituna
+### Settings endpoints
 
-| Method | Path                                    | Bayani                                                                                              |
-| ------ | --------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `GET`  | `/api/settings/memory`                  | `MemorySettingsExtended` na yanzu da aka daidaita (sabbin fields 7 + tsofaffi)                      |
-| `PUT`  | `/api/settings/memory`                  | Sabunta kowane field daga `MemorySettingsExtendedSchema` (jimillar fields 12)                       |
-| `GET`  | `/api/settings/qdrant`                  | Saitunan Qdrant na yanzu (`QdrantSettingsSchema`)                                                   |
-| `PUT`  | `/api/settings/qdrant`                  | Sabunta saitunan Qdrant. Body: `QdrantSettingsUpdateSchema`. `apiKey` = empty string yana cire key. |
-| `GET`  | `/api/settings/qdrant/health`           | Gwajin liveness a kan Qdrant instance da aka saita. Yana mayar da `QdrantHealthResultSchema`.       |
-| `POST` | `/api/settings/qdrant/search`           | Gwajin semantic search a kan Qdrant. Body: `QdrantSearchSchema` (`query`, `topK`).                  |
-| `POST` | `/api/settings/qdrant/cleanup`          | Cire Qdrant points na memories da wa'adinsu ya ƙare / suka tsufa.                                   |
-| `GET`  | `/api/settings/qdrant/embedding-models` | Jera embedding models da ake da su don Qdrant.                                                      |
+| Method | Path                                    | Bayani                                                                                                 |
+| ------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `GET`  | `/api/settings/memory`                  | `MemorySettingsExtended` na yanzu da aka daidaita (sabbin fields 7 + legacy)                           |
+| `PUT`  | `/api/settings/memory`                  | Sabunta kowane field daga `MemorySettingsExtendedSchema` (fields 12 gaba ɗaya)                         |
+| `GET`  | `/api/settings/qdrant`                  | Settings na Qdrant na yanzu (`QdrantSettingsSchema`)                                                   |
+| `PUT`  | `/api/settings/qdrant`                  | Sabunta settings na Qdrant. Body: `QdrantSettingsUpdateSchema`. `apiKey` = empty string yana cire key. |
+| `GET`  | `/api/settings/qdrant/health`           | Liveness probe kan Qdrant instance da aka saita. Yana mayar da `QdrantHealthResultSchema`.             |
+| `POST` | `/api/settings/qdrant/search`           | Gwajin semantic search kan Qdrant. Body: `QdrantSearchSchema` (`query`, `topK`).                       |
+| `POST` | `/api/settings/qdrant/cleanup`          | Cire Qdrant points na memories da wa'adinsu ya ƙare / tsofaffi.                                        |
+| `GET`  | `/api/settings/qdrant/embedding-models` | Jera embedding models da suke samuwa ga Qdrant.                                                        |
 
-Query na jerin `/api/memory` yana goyon bayan ko dai pagination bisa `page`
-(`parsePaginationParams`) **ko** `offset` kai tsaye — idan `offset` yana nan shi
-ne ke da fifiko, sannan a ƙirƙiri `page` daga gare shi don tsarin amsar.
+Query na jerin `/api/memory` yana goyon bayan pagination bisa `page`
+(`parsePaginationParams`) **ko** `offset` kai tsaye — idan `offset` yana nan, shi
+ne yake da fifiko sannan a ƙididdige `page` daga gare shi don tsarin response.
 
 ## Kayan Aikin MCP (`open-sse/mcp-server/tools/memoryTools.ts`)
 
-Lokacin da aka kunna uwar garken MCP, ana rijistar kayan aikin ƙwaƙwalwa guda uku:
+Lokacin da aka kunna uwar garken MCP, ana rajistar kayan aikin ƙwaƙwalwa guda uku:
 
 - `omniroute_memory_search` — `{apiKeyId, query?, type?, maxTokens?, limit?}`
-  → yana kunshe da `retrieveMemories()`. Tun daga v3.8.6 (D16), ana karanta
-  `strategy` daga `getMemorySettings()` maimakon a ƙayyade shi kai tsaye zuwa
-  `"exact"`. Idan an samar da `query` kuma `strategy` ya kasance `semantic` ko
-  `hybrid`, ana amfani da ma'ajiyar vector idan tana samuwa.
+  → yana naɗe `retrieveMemories()`. Tun daga v3.8.6 (D16), ana karanta `strategy`
+  daga `getMemorySettings()` maimakon a ƙayyade shi kai tsaye zuwa `"exact"`. Idan
+  an samar da `query` kuma `strategy` ya kasance `semantic` ko `hybrid`, ana
+  amfani da ma'ajiyar vector idan tana samuwa.
 - `omniroute_memory_add` — `{apiKeyId, sessionId?, type, key, content,
-metadata?}` → yana kunshe da `createMemory()`. Yana karɓar nau'ikan hukuma guda 4
-  kawai: `factual`, `episodic`, `procedural`, `semantic` (D17).
+metadata?}` → yana naɗe `createMemory()`. Yana karɓar nau'ukan hukuma guda 4 kawai:
+  `factual`, `episodic`, `procedural`, `semantic` (D17).
 - `omniroute_memory_clear` — `{apiKeyId, type?, olderThan?}` → yana jera
-  shigarwar da suka dace, yana tace su bisa tambarin lokacin da aka ƙirƙira kafin
-  wani lokaci idan an buƙata, sannan yana share kowacce ta hanyar
-  `deleteMemory()` (wanda kuma yake cire vector daga sqlite-vec + Qdrant).
+  shigarwar da suka dace, yana tace su bisa tambarin lokaci na kafin-ƙirƙira idan
+  an zaɓa, sannan yana share kowannensu ta hanyar `deleteMemory()` (wanda kuma
+  yake cire vectors daga sqlite-vec + Qdrant).
 
-Duba [MCP-SERVER.md](./MCP-SERVER.md) don cikakkun bayanai game da jigilar bayanai da iyakar aiki.
+Duba [MCP-SERVER.md](./MCP-SERVER.md) don cikakkun bayanan jigilar bayanai da iyaka.
 
 ## Dashboard (Memory Studio)
 
-`src/app/(dashboard)/dashboard/memory/page.tsx` yanzu **Studio ne mai shafuka 3**:
+`src/app/(dashboard)/dashboard/memory/page.tsx` yanzu **Studio mai shafuka 3** ne:
 
-### Shafi: Ƙwaƙwalwa
+### Shafi: Memories
 
 - Katin bayani (mai iya naɗewa na bayanin "Yadda yake aiki").
-- Jerin lokaci-ainihi, bincike, da rarraba shafuka (jinkirin 300 ms).
+- Jeri na ainihin lokaci, bincike, da rarraba shafuka (an jinkirta daƙiƙa 300 ms).
 - Tace nau'i (`factual` / `episodic` / `procedural` / `semantic` / duka).
-- Tagar ƙara ƙwaƙwalwa (maɓalli, abun ciki, nau'i).
-- Gyara a layi (maɓallin fensir → `PUT /api/memory/[id]`).
+- Modal na ƙara ƙwaƙwalwa (maɓalli, abun ciki, nau'i).
+- Gyara kai tsaye (maɓallin fensir → `PUT /api/memory/[id]`).
 - Share kowane layi (tare da akwatin tabbatarwa).
-- Fitar da JSON na shafin yanzu; shigo da JSON ta hanyar mai zaɓar fayil.
+- Fitar da JSON na shafin da ake kai; shigo da JSON ta hanyar mai zaɓar fayil.
 - Katunan ƙididdiga: `totalEntries`, `tokensUsed`, `hitRate`.
 - Maɓallin "Taƙaita tsofaffi" → `POST /api/memory/summarize` (gwajin farko
-  yana nuna adadin 'yan takara, sannan a tabbatar).
-- Alamar lafiya kore/ja wadda `GET /api/memory/health` ke sarrafawa.
+  yana nuna adadin waɗanda suka cancanta, sannan ya nemi tabbaci).
+- Koriyar/jajayen ɗigon lafiya wanda `GET /api/memory/health` ke sarrafawa.
 
 ### Shafi: Playground
 
-- Filin tambaya + mai zaɓar dabara (Exact / Semantic / Hybrid) + kasafin token.
-- "Gwada kwaikwayo" → `POST /api/memory/retrieve-preview` — yana nuna sakamakon
-  da aka jera tare da `score`, `tier`, `tokens`, `vecScore`, `ftsScore`.
+- Filin tambaya + mai zaɓar dabarar (Exact / Semantic / Hybrid) + kasafin token.
+- "Kwaikwaya" → `POST /api/memory/retrieve-preview` — yana nuna sakamakon da
+  aka jera tare da `score`, `tier`, `tokens`, `vecScore`, `ftsScore`.
 - Kwamitin tantancewa da ke nuna tushen embedding / ma'ajiyar vector da aka yi
-  amfani da su da kuma ko an koma ga madadin.
+  amfani da su da kuma ko an koma madadin.
 
 ### Shafi: Engine
 
-- Kwamitin matsayin engine (alamar keyword FTS5, alamar embedding, alamar
-  ma'ajiyar vector, alamar lafiyar Qdrant, alamar rerank).
-- Maɓallin "Sake Fihirisa Yanzu" → `POST /api/memory/reindex`.
+- Kwamitin matsayin injin (alamar keyword FTS5, alamar embedding, alamar ma'ajiyar
+  vector, alamar lafiyar Qdrant, alamar rerank).
+- Maɓallin "Sake Gina Index Yanzu" → `POST /api/memory/reindex`.
 - Mai zaɓar tushen embedding (auto / remote / static / transformers + maɓallan kunnawa).
-- Katin saitin Qdrant (maɓallin kunnawa, host/port/collection/key, gwajin
-  haɗi, gwajin binciken semantic, tsaftacewa).
-- Katin saitin rerank (maɓallin kunnawa, mai zaɓar provider/model).
+- Katin saitunan Qdrant (maɓallin kunnawa, host/port/collection/key, gwada haɗi,
+  gwajin binciken semantic, tsaftacewa).
+- Katin saitunan rerank (maɓallin kunnawa, mai zaɓar provider/model).
 
 Saitunan Memory da Qdrant kuma suna ƙarƙashin
 `/dashboard/settings → Memory & Skills` (`MemorySkillsTab.tsx`) don
 tsohuwar fuskar saituna ta gama-gari.
 
-## Adana Bayanai na Wucin Gadi
+## Adana Bayanai na Ɗan Lokaci
 
-`src/lib/memory/store.ts` yana riƙe da cache irin na LRU a cikin tsari
-(`MEMORY_CACHE_TTL = 1 min`, `MEMORY_MAX_CACHE_SIZE = 500`, tare da korar tsofaffin
-kashi 20 %) don karatun `getMemory(id)`, tare da matakin `memoryCache` na
-maɓalli/ƙima na gama-gari (`src/lib/memory/cache.ts`) mai hanyoyin
-`get`/`set`/`invalidate`, wanda masu kira masu son nasu cache mai keɓantacciyar
-iyaka suke amfani da shi (LRU mai shigarwa 1 000, TTL na asali minti 5).
+`src/lib/memory/store.ts` yana riƙe da cache mai kama da LRU a cikin tsari
+(`MEMORY_CACHE_TTL = 1 min`, `MEMORY_MAX_CACHE_SIZE = 500`, tare da korar
+tsofaffin kashi 20 %) don karatun `getMemory(id)`, tare da shimfiɗar
+`memoryCache` ta maɓalli/ƙima ta gama-gari (`src/lib/memory/cache.ts`) mai
+hanyoyin `get`/`set`/`invalidate` waɗanda masu kira da ke son nasu cache mai
+iyakantaccen fanni ke amfani da su (LRU mai shigarwa 1 000, tsohuwar TTL 5 min).
 
 ## Sirri & Zagayowar Rayuwa
 
 - Mallakar ƙwaƙwalwa tana amfani da id na maɓallin API (`resolveMemoryOwnerId` a cikin
-  `chatCore.ts`). Idan babu `apiKeyInfo.id`, ba za a gudanar da dawo da bayanai,
-  shigarwa, ko fitarwa ba.
-- Ana tace shigarwar da ke da `expires_at` na nan gaba daga sakamakon dawo da
-  bayanai; ana cire tsofaffin shigarwar da suka wuce `retentionDays` ta hanyar
-  sharadin `created_at >= cutoff` a cikin `retrieveMemories`.
+  `chatCore.ts`). Idan babu `apiKeyInfo.id`, dawo da bayanai ko shigarwa
+  ko cire bayanai ba za su gudana ba.
+- Ana tace bayanan da ke da `expires_at` na nan gaba daga sakamakon dawo da bayanai; tsofaffin
+  bayanan da suka wuce `retentionDays` ana cire su ta hanyar sharadin
+  `created_at >= cutoff` a cikin `retrieveMemories`.
 - Don gogewa ta dindindin, yi amfani da `DELETE /api/memory/[id]` ko `omniroute_memory_clear`.
-- Ana gudanar da fitarwa ba tare da jiran sakamako ba ta hanyar `setImmediate`;
-  ana rubuta gazawarta ƙarƙashin `memory.extraction.background.failed` kuma ba a
-  taɓa nuna ta ga mai kiran ba.
-- Zagayen tabbatarwa (`verifyExtractionPipeline`) suna share nasu shigarwar
-  gwaji a cikin tubalin `finally`.
+- Cire bayanai yana gudana a bango ba tare da jira ba ta hanyar `setImmediate`; ana rubuta gazawarsa ƙarƙashin
+  `memory.extraction.background.failed` kuma ba a taɓa nuna ta ga mai kira.
+- Zagayen tabbatarwa (`verifyExtractionPipeline`) suna share nasu
+  bayanan gwaji a cikin bulon `finally`.
 
 ## Duba Kuma
 
-- [SKILLS.md](./SKILLS.md) — saitin `skillsEnabled` yana shigar da
-  ma’anonin kayan aiki tare da ƙwaƙwalwa.
+- [SKILLS.md](./SKILLS.md) — saitin `skillsEnabled` yana shigar da ma’anonin kayan aiki
+  tare da ƙwaƙwalwa.
 - [MCP-SERVER.md](./MCP-SERVER.md) — jigilar MCP / iyakokin izini.
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — cikakken faɗin API.
-- Modulan tushe:
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — faɗaɗɗen tsarin API.
+- Manhajojin tushe:
   - `src/lib/memory/types.ts`, `schemas.ts`
   - `src/lib/memory/store.ts`, `retrieval.ts`, `injection.ts`, `reindex.ts`
   - `src/lib/memory/extraction.ts`, `summarization.ts`, `verify.ts`
   - `src/lib/memory/settings.ts`, `qdrant.ts`, `cache.ts`
-  - `src/lib/memory/vectorStore.ts` — sqlite-vec + gaurayayyen RRF
-  - `src/lib/memory/embedding/index.ts` — shimfiɗar embedding mai tushe da yawa
+  - `src/lib/memory/vectorStore.ts` — sqlite-vec + haɗaɗɗen RRF
+  - `src/lib/memory/embedding/index.ts` — matakin embedding mai tushe da yawa
   - `src/lib/memory/embedding/types.ts`, `remote.ts`, `staticPotion.ts`,
     `transformersLocal.ts`, `cache.ts`
-  - `src/shared/schemas/memory.ts` — tsarin Zod ga dukkan jikin API na ƙwaƙwalwa
-  - `src/shared/schemas/qdrant.ts` — tsarin Zod don saituna/ayyukan Qdrant
+  - `src/shared/schemas/memory.ts` — tsare-tsaren Zod ga dukkan jikin buƙatun API na ƙwaƙwalwa
+  - `src/shared/schemas/qdrant.ts` — tsare-tsaren Zod don saituna/ayyukan Qdrant
   - `src/lib/db/memoryVec.ts` — CRUD don `memory_vec_meta`
   - `src/lib/db/migrations/015_create_memories.sql`,
     `022_add_memory_fts5.sql`, `023_fix_memory_fts_uuid.sql`,
@@ -631,79 +630,79 @@ iyaka suke amfani da shi (LRU mai shigarwa 1 000, TTL na asali minti 5).
   - `src/app/api/settings/qdrant/route.ts` + ƙananan hanyoyi
   - `src/app/(dashboard)/dashboard/memory/` — UI na Studio (shafi + ɓangarori +
     shafuka + hooks)
-  - `open-sse/handlers/chatCore.ts` (haɗin shigarwa / fitarwa)
+  - `open-sse/handlers/chatCore.ts` (haɗa shigarwa / cire bayanai)
   - `open-sse/mcp-server/tools/memoryTools.ts`
 
 ---
 
-## Zaɓar Mai Samar da Embedding (v3.8.16+)
+## Zaɓar Mai Bayar da Embedding (v3.8.16+)
 
-Injin ƙwaƙwalwar OmniRoute yana goyon bayan **tushen embedding guda huɗu** (`src/lib/memory/embedding/`). Kowannensu yana da bambancin fa’ida da rashin fa’ida dangane da **jinkiri, kuɗi, ingancin samfuri, da sarƙaƙƙiyar saiti**.
+Injin ƙwaƙwalwar OmniRoute yana goyon bayan **tushen embedding guda huɗu** (`src/lib/memory/embedding/`). Kowannensu yana da bambance-bambancen fifiko a **jinkiri, kuɗi, ingancin samfuri, da rikitarwar saiti**.
 
 ### Tushen Embedding
 
-| Mai samarwa    | Tushe                                                 | Jinkiri                             | Kuɗi                 | Inganci                                 | Saiti                                            |
-| -------------- | ----------------------------------------------------- | ----------------------------------- | -------------------- | --------------------------------------- | ------------------------------------------------ |
-| `transformers` | Samfurin ONNX na gida (Xenova/all-MiniLM-L6-v2)       | ~50-150ms (CPU)                     | Kyauta               | Mai kyau                                | `npm install` kawai                              |
-| `static`       | Vectors da aka riga aka lissafa (cached)              | <1ms                                | Kyauta               | Bai shafa ba (ya danganta da cache hit) | Babu                                             |
-| `remote`       | API na OpenAI / Cohere / Voyage                       | ~100-300ms                          | $0.02-0.10/1M tokens | Madalla                                 | Maɓallin API                                     |
-| `auto`         | Yana zaɓar mafi kyawun tushe da ake da shi yayin aiki | Daidai da tushen da aka zaɓa        | Kyauta               | Daidai da tushen da aka zaɓa            | Babu                                             |
-| _(cache)_      | Shimfiɗar LRU ta cikin ƙwaƙwalwa a kan kowane tushe   | <1ms (hit), cikakken jinkiri (miss) | Kyauta               | Daidai da tushen da ke ƙasa             | Kullum a kunne (ba tushe ne da za a iya zaɓa ba) |
+| Mai bayarwa    | Tushe                                                   | Jinkiri                                         | Kuɗi                 | Inganci                                 | Saiti                                            |
+| -------------- | ------------------------------------------------------- | ----------------------------------------------- | -------------------- | --------------------------------------- | ------------------------------------------------ |
+| `transformers` | Samfurin ONNX na cikin gida (Xenova/all-MiniLM-L6-v2)   | ~50-150ms (CPU)                                 | Kyauta               | Mai kyau                                | `npm install` kawai                              |
+| `static`       | Vectors da aka riga aka lissafa (an cache)              | <1ms                                            | Kyauta               | Bai shafa ba (ya dogara da samun cache) | Babu                                             |
+| `remote`       | API na OpenAI / Cohere / Voyage                         | ~100-300ms                                      | $0.02-0.10/1M tokens | Madalla                                 | Maɓallin API                                     |
+| `auto`         | Yana zaɓar mafi kyawun tushe da ake samu lokacin gudana | Daidai da tushen da aka zaɓa                    | Kyauta               | Daidai da tushen da aka zaɓa            | Babu                                             |
+| _(cache)_      | Matakin LRU na cikin ƙwaƙwalwa a kan kowane tushe       | <1ms (an samu), cikakken jinkiri (ba a samu ba) | Kyauta               | Daidai da tushen asali                  | Kullum a kunne (ba tushe ne da za a iya zaɓa ba) |
 
 ### Bishiyar Yanke Shawara
 
 ```
-                  Mene ne yanayin turawar tsarin ku?
+                  Mene ne mahallin turawar tsarin ku?
                   │
       ┌───────────┼───────────┬──────────────┐
       │           │           │              │
-  HAƁAKAWA/    ƘARAMIN PROD  BABBAN PROD   EDGE / BA TARE
+  HAƁAKAWA/    ƘARAMIN PROD  BABBAN PROD    EDGE / BA TARE
   GWAJI                                      DA INTANET BA
       │           │           │              │
       ▼           ▼           ▼              ▼
   transformers transformers remote (Qdrant) transformers
-  (kyauta, babu API)        (mafi inganci)   (babu intanet)
+  (kyauta, babu API)         (mafi inganci)  (babu intanet)
       │           │           │              │
       └────────┬──┴───────────┴──────────────┘
                │
                ▼
-            KULLUM ƙara shimfiɗar `cache` a sama
-            (`LruCache` yana naɗe kowane mai samarwa)
+            KULLUM ƙara matakin `cache` a sama
+            (`LruCache` yana naɗe kowane mai bayarwa)
 ```
 
-### Tsarin Bayanan Bayanai & Saitin API
+### Tsarin Bayanai & Saitin API
 
-Ana saita zaɓuɓɓukan embedding na ƙwaƙwalwa ta hanyar API/UI na Saituna, ba ta hanyar environment variables ba. Maɓallan da suka dace na bayanan saituna ƙarƙashin Saituna (`normalizeMemorySettings` a cikin `src/lib/memory/settings.ts`) su ne:
+Ana saita zaɓuɓɓukan embedding na ƙwaƙwalwa ta API/UI na Saituna, ba ta environment variables ba. Maɓallan da suka dace na tsarin bayanan saituna ƙarƙashin Saituna (`normalizeMemorySettings` a cikin `src/lib/memory/settings.ts`) su ne:
 
-- `memoryEmbeddingSource`: `"transformers"` (na gida), `"remote"` (mai amfani da API, misali OpenAI), `"static"` (ma’ajiyar waje), ko `"auto"`
+- `memoryEmbeddingSource`: `"transformers"` (na cikin gida), `"remote"` (mai amfani da API, misali OpenAI), `"static"` (ma’ajiyar waje), ko `"auto"`
 - `memoryEmbeddingProviderModel`: Mai gano samfuri don tushen remote/static (misali, `"text-embedding-3-small"`)
 - `memoryTransformersEnabled`: `true` | `false`
 - `memoryStaticEnabled`: `true` | `false`
 - `memoryVectorStore`: `"sqlite-vec"`, `"qdrant"`, ko `"auto"`
 
-#### Samfurin Gida (`transformers`)
+#### Samfurin Cikin Gida (`transformers`)
 
-Yana amfani da transformers.js a ciki don gudanar da samfuran gida:
+Yana amfani da transformers.js a ciki don gudanar da samfuran cikin gida:
 
 ```bash
 # Environment variables da ake karantawa a cikin lamba (src/lib/memory/embedding/index.ts):
 MEMORY_TRANSFORMERS_MODEL=Xenova/all-MiniLM-L6-v2  # Ma'ajiyar samfurin HF
 MEMORY_STATIC_MODEL=minishlab/potion-base-8M       # Samfurin static potion na HF
-MEMORY_STATIC_CACHE_DIR=<DATA_DIR>/embeddings      # Kundin cache
+MEMORY_STATIC_CACHE_DIR=<DATA_DIR>/embeddings      # Kundin adireshin cache
 ```
 
 #### Cache na LRU Embedding
 
-Cache yana kunne ta tsohuwa koyaushe kuma ana saita shi ta hanyar environment variables:
+Cache yana kunne koyaushe ta tsohuwa kuma ana saita shi ta environment variables:
 
 ```bash
-MEMORY_EMBEDDING_CACHE_MAX=1000                    # Matsakaicin abubuwan da aka adana a cache
-MEMORY_EMBEDDING_CACHE_TTL_MS=300000               # TTL (mintuna 5)
+MEMORY_EMBEDDING_CACHE_MAX=1000                    # Matsakaicin abubuwan da aka cache
+MEMORY_EMBEDDING_CACHE_TTL_MS=300000               # TTL (minti 5)
 ```
 
 ### Alƙaluman Aiki
 
-Gwajin ma'auni a kan sabar x86 mai ƙwayoyi 4 da aka saba amfani da ita (rubutu ~tokens 100 kowanne):
+Gwajin ƙima a kan sabar x86 mai cibiya 4 ta yau da kullum (rubutu masu kusan token 100 kowanne):
 
 | Mai samarwa          | p50   | p95   | p99   | Kuɗi / embeddings miliyan 1        |
 | -------------------- | ----- | ----- | ----- | ---------------------------------- |
@@ -714,9 +713,9 @@ Gwajin ma'auni a kan sabar x86 mai ƙwayoyi 4 da aka saba amfani da ita (rubutu 
 
 ---
 
-## Tsarin Ciro Bayanai (v3.8.16+)
+## Tsarukan Ciro Bayanai (v3.8.16+)
 
-Modulin `extraction.ts` (`src/lib/memory/extraction.ts`) yana amfani da **daidaita tsarin regex** don ciro bayanai masu tsari daga saƙonnin tattaunawa. Fahimtar waɗannan tsare-tsare yana taimaka maka daidaita ingancin ciro bayanai gwargwadon yanayin amfaninka.
+Modulin `extraction.ts` (`src/lib/memory/extraction.ts`) yana amfani da **daidaita tsarin regex** don ciro bayanai masu tsari daga saƙonnin tattaunawa. Fahimtar waɗannan tsarukan yana taimaka maka daidaita ingancin ciro bayanai bisa ga yanayin amfaninka.
 
 ### Rukunonin Tsari na Asali
 
@@ -724,9 +723,9 @@ Modulin `extraction.ts` (`src/lib/memory/extraction.ts`) yana amfani da **daidai
 | ------------------- | -------------------------------------------------------------------- | ---------------------------------- |
 | PREFERENCE_PATTERNS | `"Na fi son <X>"`, `"Ina son <X>"`, `"Na ƙi <X>"`                    | Abubuwan da mai amfani ya fi so    |
 | DECISION_PATTERNS   | `"Zan yi amfani da <X>"`, `"Na yanke shawarar <X>"`, `"Na zaɓi <X>"` | Shawarwarin mai amfani (na aukuwa) |
-| PATTERN_PATTERNS    | `"Yawanci ina <X>"`, `"Koyaushe ina <X>"`, `"Ban taɓa <X>"`          | Tsarukan ɗabi'a masu ɗorewa        |
+| PATTERN_PATTERNS    | `"Yawanci ina <X>"`, `"Kullum ina <X>"`, `"Ban taɓa <X> ba"`         | Tsarukan ɗabi'a masu ɗorewa        |
 
-### Misalan Tsare-tsare (An Sauƙaƙa)
+### Misalan Tsaruka (An Sauƙaƙa)
 
 ```ts
 // Daga src/lib/memory/extraction.ts
@@ -746,42 +745,42 @@ const PATTERN_PATTERNS = [/\bI\s+usually\s+([^.,\n]+)/gi, /\bI\s+always\s+([^.,\
 
 Lokacin da mai amfani ya ce:
 
-> "Na fi son TypeScript. Zan yi amfani da Postgres don wannan aikin. Koyaushe ina yin commit kafin pushing. Ba na son Python."
-> Ciro bayanan yana samar da abubuwan ƙwaƙwalwa guda 4:
+> "Na fi son TypeScript. Zan yi amfani da Postgres don wannan aikin. Kullum ina yin commit kafin pushing. Ba na son Python."
+> Ciro bayanan yana samar da ƙwaƙwalwa guda 4:
 >
-> | Maɓalli                              | Rukuni            | Nau'i      | Abun ciki                   |
-> | ------------------------------------ | ----------------- | ---------- | --------------------------- |
-> | `preference:typescript`              | abin da aka fi so | na gaskiya | "TypeScript"                |
-> | `decision:postgres_for_this_project` | shawara           | na aukuwa  | "Postgres don wannan aikin" |
-> | `pattern:commit_before_pushing`      | tsari             | na gaskiya | "yin commit kafin pushing"  |
-> | `preference:python`                  | abin da aka fi so | na gaskiya | "Python"                    |
+> | Maɓalli                              | Rukuni  | Nau'i      | Abun ciki                   |
+> | ------------------------------------ | ------- | ---------- | --------------------------- |
+> | `preference:typescript`              | fifiko  | na gaskiya | "TypeScript"                |
+> | `decision:postgres_for_this_project` | shawara | na aukuwa  | "Postgres don wannan aikin" |
+> | `pattern:commit_before_pushing`      | tsari   | na gaskiya | "yin commit kafin pushing"  |
+> | `preference:python`                  | fifiko  | na gaskiya | "Python"                    |
 
 ### Iyakokin Ciro Bayanai
 
-Don hana ciro bayanai fiye da kima, ana amfani da iyakoki masu zuwa:
+Don hana ciro bayanai fiye da kima, ana amfani da waɗannan iyakoki:
 
 | Mafi ƙarancin tsawon abun ciki | haruffa 3 |
 | Mafi girman tsawon abun ciki | haruffa 500 |
 
 ### Lokacin da Ya Kamata a Kashe Ciro Bayanai
 
-Ciro bayanai yana gudana ta atomatik a duk lokacin da aka kunna ƙwaƙwalwa; babu wani maɓalli na musamman
+Ciro bayanai yana gudana ta atomatik duk lokacin da aka kunna ƙwaƙwalwa; babu wani maɓalli na musamman
 don ciro bayanai kaɗai. Don kashe shi, kashe ƙwaƙwalwa gaba ɗaya (`enabled: false`
-ta hanyar `PUT /api/settings/memory`). Ka yi la'akari da yin hakan idan:
+ta hanyar `PUT /api/settings/memory`). Yi la'akari da yin hakan idan:
 
 - Kana da saƙonni masu yawa kuma kuɗin ciro bayanan ba ƙarami ba ne
-- Yawancin tattaunawoyinka na ɗan lokaci ne kawai (hira, gyaran kurakurai) ba tare da amfanin dogon lokaci ba
-- Tuni kana tattara mahallin bayanai ta hanyar keɓaɓɓun plugins
+- Yawancin tattaunawarka na ɗan lokaci ne kawai (hira, gyaran kurakurai) ba tare da wata ƙima ta dogon lokaci ba
+- Tuni kana tattara mahallin bayanai ta hanyar plugins na musamman
 
 ---
 
 ## Daidaita Hybrid RRF (v3.8.16+)
 
-Algoritim ɗin **Reciprocal Rank Fusion (RRF)** yana haɗa sakamakon FTS5 (kalmar bincike) da vector (na ma'ana). Ma'aunin `k` yana sarrafa yawan nauyin da ake bai wa sakamakon da ke ƙananan matsayi.
+Algoritim ɗin **Reciprocal Rank Fusion (RRF)** yana haɗa sakamakon FTS5 (kalmar maɓalli) da vector (na ma'ana). Ma'aunin `k` yana sarrafa irin nauyin da ake bai wa sakamakon da ke ƙananan matsayi.
 
-### Tsarin Lissafi
+### Ƙa'idar Lissafi
 
-Ga kowane abin ƙwaƙwalwa da ake tantancewa, makin RRF shi ne:
+Ga kowace ƙwaƙwalwar da za a iya zaɓa, makin RRF shi ne:
 
 ```
 RRF(d) = Σ  1 / (k + rank_i(d))
@@ -789,130 +788,130 @@ RRF(d) = Σ  1 / (k + rank_i(d))
 
 Inda:
 
-- `k` shi ne ƙayyadadden adadi (asali 60)
-- `rank_i(d)` shi ne matsayin takardar `d` a tsarin dawo da bayanai na i-th (FTS, vector)
-- Ana yin jimillar a kan dukkan tsarin dawo da bayanai
+- `k` shi ne ƙayyadadden adadi (na asali 60)
+- `rank_i(d)` shi ne matsayin takardar `d` a cikin tsarin dawo da bayanai na i-th (FTS, vector)
+- Ana yin jimillar ne a kan dukkan tsarin dawo da bayanai
 
 ### Yadda `k` Ke Shafar Sakamako
 
-| Ƙimar `k`          | Tasiri                                                                                              | Ya fi dacewa da                                          |
-| ------------------ | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `k=0`              | Haɗa matsayi kai tsaye (ba tare da sassautawa ba)                                                   | Ma'aunin tushe na ƙa'ida                                 |
-| `k=10-30`          | Yana bai wa sakamakon farko nauyi sosai, ƙananan matsayi ba sa ba da gudummawa sosai                | Lokacin da sakamakon farko guda 3 yawanci daidai ne      |
-| **`k=60`** (asali) | Daidaitacce — duk sakamakon farko guda 10 suna ba da gudummawa mai ma'ana                           | Dawo da bayanai na gaba ɗaya                             |
-| `k=100+`           | Ya fi shimfiɗa — har sakamakon ƙananan matsayi na iya rinjaye idan ya bayyana a tsare-tsare da yawa | Lokacin da recall > precision yake da matuƙar muhimmanci |
+| Ƙimar `k`             | Tasiri                                                                                         | Ya fi dacewa da                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `k=0`                 | Haɗa matsayi kai tsaye (ba tare da sassautawa ba)                                              | Ma'aunin tushe na ka'ida                               |
+| `k=10-30`             | Yana bai wa sakamakon sama nauyi sosai, ƙananan matsayi ba sa bayar da gudummawa sosai         | Lokacin da sakamakon top-3 yawanci daidai ne           |
+| **`k=60`** (na asali) | Daidaitacce — duk sakamakon top-10 suna bayar da gudummawa mai ma'ana                          | Dawo da bayanai na gama-gari                           |
+| `k=100+`              | Ya fi shimfiɗa — ko sakamakon ƙananan matsayi na iya rinjaye idan ya bayyana a tsaruka da yawa | Lokacin da recall > precision ke da matuƙar muhimmanci |
 
-### Daidaita `k` a Aiki
+### Daidaita `k` a Aikace
 
 ```bash
 # Na asali
 MEMORY_RRF_K=60
 
-# Tsauraran precision (ƙaramin ƙwaƙwalwa, takardu kaɗan)
+# Tsauraran precision (ƙaramar ƙwaƙwalwa, takardu kaɗan)
 MEMORY_RRF_K=20
 
-# Matsakaicin recall (babban ƙwaƙwalwa, tambayoyi iri-iri)
+# Matsakaicin recall (babbar ƙwaƙwalwa, tambayoyi iri-iri)
 MEMORY_RRF_K=120
 ```
 
 **Misali da `k=20`:**
 
-- Matsayin FTS na 1 → gudummawa `1/21 = 0.048`
-- Matsayin FTS na 10 → gudummawa `1/30 = 0.033`
-- Matsayin vector na 1 → gudummawa `0.048`
-- Matsakaicin haɗaɗɗen maki: `0.096`
+- Matsayin FTS 1 → gudummawa `1/21 = 0.048`
+- Matsayin FTS 10 → gudummawa `1/30 = 0.033`
+- Matsayin vector 1 → gudummawa `0.048`
+- Matsakaicin haɗe: `0.096`
 
 **Misali da `k=60`:**
 
-- Matsayin FTS na 1 → gudummawa `1/61 = 0.016`
-- Matsayin FTS na 10 → gudummawa `1/70 = 0.014`
-- Matsayin vector na 1 → gudummawa `0.016`
-- Matsakaicin haɗaɗɗen maki: `0.033`
+- Matsayin FTS 1 → gudummawa `1/61 = 0.016`
+- Matsayin FTS 10 → gudummawa `1/70 = 0.014`
+- Matsayin vector 1 → gudummawa `0.016`
+- Matsakaicin haɗe: `0.033`
 
-Idan `k` ya fi girma, **bambancin dangantaka** tsakanin na farko da na matsayi na 10 yana raguwa, don haka algoritim ɗin yana ƙara dogaro da **yarjejeniya tsakanin tsarin dawo da bayanai** maimakon amincewa da matsayi na farko.
+Idan `k` ya fi girma, **bambancin dangi** tsakanin top-1 da rank-10 yana raguwa, don haka algoritim ɗin yana ƙara dogaro da **yarjejeniya tsakanin tsarin dawo da bayanai** fiye da ƙarfin amincewar matsayi na sama.
 
 ### Lokacin da Ya Kamata a Canza `k`
 
-| Alama                                                           | Gwada                                                                   |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Sakamakon farko kullum yana yin nasara, amma kuskure ne         | **Rage** k (misali, 20) — amincewa da matsayi na farko ta fi muhimmanci |
-| Amsar daidai tana cikin sakamako 5 na farko amma ba ta farko ba | **Ƙara** k (misali, 100) — shimfiɗa makin yana ƙarfafa yarjejeniya      |
-| Recall yana da yawa amma precision yana da ƙasa                 | **Rage** k — ƙara kaifin jerin matsayi                                  |
-| Recall yana da ƙasa (ana rasa takardun da suka dace)            | **Ƙara** k — bai wa takardu masu ƙananan matsayi dama                   |
+| Alama                                                       | Abin da za a gwada                                                          |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Sakamakon sama kullum yana yin nasara, amma ba daidai ba ne | **Rage** k (misali, 20) — amincewar matsayi na sama ta fi muhimmanci        |
+| Amsar daidai tana cikin top-5 amma ba top-1 ba              | **Ƙara** k (misali, 100) — makin da ya fi shimfiɗa yana ba yarjejeniya lada |
+| Recall yana da yawa amma precision yana da ƙasa             | **Rage** k — ƙara kaifin jeri                                               |
+| Recall yana da ƙasa (ana rasa takardun da suka dace)        | **Ƙara** k — bai wa takardun ƙananan matsayi dama                           |
 
 ### Nauyin RRF
 
-Haɗa matsayi ta hanyar reciprocal rank fusion yana amfani da nauyi iri ɗaya ga matsayin semantic vector da matsayin binciken cikakken rubutu:
+Haɗa matsayi ta hanyar reciprocal rank yana amfani da nauyi iri ɗaya ga matsayin semantic vector da matsayin binciken cikakken rubutu:
 
 ```
 RRF(d) = 1/(k + rank_vector) + 1/(k + rank_fts)
 ```
 
-Babu environment variables don daidaita kowane nauyi daban-daban (`MEMORY_RRF_VECTOR_WEIGHT`/`MEMORY_RRF_FTS_WEIGHT` babu su).
+Babu environment variables da za a yi amfani da su don daidaita nauyin kowannensu (`MEMORY_RRF_VECTOR_WEIGHT`/`MEMORY_RRF_FTS_WEIGHT` ba su wanzu).
 
 ---
 
 ## Dabarar Taƙaitawa (v3.8.16+)
 
-Manhajar `summarization.ts` (`src/lib/memory/summarization.ts`) tana matse tsofaffin bayanai domin kiyaye saitin da ake amfani da shi ƙarami tare da riƙe damar tuno su.
+Manhajar `summarization.ts` (`src/lib/memory/summarization.ts`) tana matse tsofaffin abubuwan ƙwaƙwalwa domin kiyaye saitin da ake amfani da shi ya kasance ƙarami tare da adana damar tuna bayanai.
 
 ### Lokacin da Taƙaitawa ke Farawa
 
-| Abin da ke Farawa      | Iyaka (na asali) |
-| ---------------------- | ---------------- |
-| Farawa da hannu ta API | bai shafa ba     |
+| Abin da ke farawa      | Iyaka (tsoho) |
+| ---------------------- | ------------- |
+| Farawa da hannu ta API | babu          |
 
 ### Abin da Ake Taƙaitawa
 
-Ana fitar da wuraren shiga guda biyu daga `summarization.ts`:
+Ana fitar da hanyoyin shiga guda biyu daga `summarization.ts`:
 
-- **`summarizeMemories(apiKeyId, sessionId?, maxTokens = 4000)`** — yana taƙaita
-  bayanan zaman zuwa rubutun taƙaitawa guda ɗaya wanda aka iyakance da kasafin token.
+- **`summarizeMemories(apiKeyId, sessionId?, maxTokens = 4000)`** — tana taƙaita
+  abubuwan ƙwaƙwalwar zama zuwa rubutaccen taƙaitawa guda ɗaya wanda kasafin token ya iyakance.
 - **`summarizeMemoriesOlderThan(apiKeyId, days, dryRun)`** — matsewa bisa shekaru
-  da API ke amfani da shi: yana zaɓar kowane bayani da ya girmi `days`, ya gina
-  taƙaitaccen bayani guda ɗaya daga cikinsu, sannan (idan `dryRun` ya kasance `false`) ya goge
-  na asali. Shigar da `dryRun: true` domin ganin samfotin saitin da za a zaɓa da jimillar token
-  ba tare da sauya komai ba.
+  da API ke amfani da shi: tana zaɓar kowane abin ƙwaƙwalwa da ya girmi `days`, ta gina
+  taƙaitaccen abin ƙwaƙwalwa guda ɗaya daga gare su, sannan (idan `dryRun` ya kasance `false`) ta share
+  na asali. Tura `dryRun: true` domin duba saitin da za a zaɓa da jimillar token
+  ba tare da gyara komai ba.
 
-Babu matakin haɗa bayanai bisa tag/key ko ƙididdigar "core vs summarizable" ga kowane bayani —
-zaɓin ya dogara ne kawai da iyakar shekaru, kuma rubutun taƙaitawar layi ne da aka matse,
-wanda aka fara da nau'i, ga kowane ɗan takara.
+Babu matakin tara bayanai bisa alama/maɓalli ko ƙididdigar "ainihin vs mai yiwuwa a taƙaita" ga kowane abin ƙwaƙwalwa —
+zaɓin yana dogara ne kawai kan iyakar shekaru, kuma rubutun taƙaitawar
+layi ne da aka taƙaita tare da gabatar da nau'i ga kowane abin da aka zaɓa.
 
 ### Fara Taƙaitawa
 
-Taƙaitawa **ta hannu ce / sai an zaɓa** — saitin `autoSummarize` yana kasancewa `false` ta
-asali, don haka ba a matse komai kai-tsaye. Fara shi ta API:
+Taƙaitawa **ta hannu ce / sai an zaɓa** — saitin `autoSummarize` yana kasancewa `false`
+ta tsohuwa, saboda haka ba a matse komai kai tsaye. Fara shi ta API:
 
 ```bash
 curl -X POST http://localhost:20128/api/memory/summarize \
   -H "Authorization: Bearer $OMNIROUTE_KEY"
 ```
 
-Domin barin sa a kashe, kawai riƙe `autoSummarize` a ƙimarsa ta asali (`false`).
+Domin barin sa a kashe, kawai ka bar `autoSummarize` a ƙimarsa ta tsohuwa (`false`).
 
-### Shawarwari Don Ingancin Taƙaitawa
+### Shawarwari don Ingancin Taƙaitawa
 
-- **Fara da samfoti ta amfani da `dryRun`** — `summarizeMemoriesOlderThan(..., true)` yana dawo da
-  jerin waɗanda za a zaɓa da jimillar adadin token domin ka tabbatar da abin da za a haɗa
-  kafin a goge na asali.
-- **Gudanar da taƙaitawa a lokutan da cunkoso ya yi ƙasa** idan kana da tarin bayanai mai yawa — kiran LLM shi ne ɓangaren da ke ɗaukar lokaci
+- **Fara da samfoti ta amfani da `dryRun`** — `summarizeMemoriesOlderThan(..., true)` tana dawo da
+  jerin abubuwan da za a zaɓa da jimillar adadin token domin ka tabbatar da abin da za a haɗa
+  kafin a share na asali.
+- **Gudanar da taƙaitawa a lokutan ƙarancin zirga-zirga** idan kana da tarin abubuwan ƙwaƙwalwa masu yawa — kiran LLM shi ne ɓangaren da ya fi jinkiri
 
 ```bash
-# Salon Cron: yi taƙaitawa kowace rana da ƙarfe 3 na safe
+# Salon Cron: yi taƙaitawa kullum da ƙarfe 3 na safe
 0 3 * * * curl -X POST http://localhost:20128/api/memory/summarize \
   -H "Authorization: Bearer $OMNIROUTE_KEY"
 ```
 
 ---
 
-## Tsarin Mai Bayar da MemoryBackend
+## Tsarin Mai Samar da MemoryBackend
 
 > **Tushen gaskiya:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Gwaje-gwaje:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Tsarin mai bayar da MemoryBackend yana gabatar da **matakin keɓantawa na backend mai sauƙin sauyawa** a saman injin bayanai da ake da shi. Maimakon a ɗaure shi da aiwatarwar ma'ajiya guda ɗaya, tsarin bayanai yanzu yana goyon bayan backend da yawa (SQLite, Obsidian, Notion, backend na HTTP na musamman) tare da zaɓuɓɓukan daidaita turawar primary/fallback.
+Tsarin mai samar da MemoryBackend yana gabatar da **shimfiɗar abstraction ta backend mai sauƙin sauyawa** a saman injin ƙwaƙwalwar da ake da shi. Maimakon a ɗaure shi ga aiwatarwar ma'ajiya guda ɗaya, tsarin ƙwaƙwalwar yanzu yana goyon bayan backend da yawa (SQLite, Obsidian, Notion, backend na HTTP na musamman) tare da hanyar tura buƙatu zuwa primary/fallback mai iya daidaitawa.
 
-### Tsarin Gina
+### Tsari
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -922,11 +921,11 @@ Tsarin mai bayar da MemoryBackend yana gabatar da **matakin keɓantawa na backen
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│        Mai tsara aiki na Singleton (manager.ts)           │
+│           Mai tsara aiki na Singleton (manager.ts)        │
 │                                                          │
-│  Na Farko ──► Backend A  (misali SQLite)                 │
-│  Madadin  ──► Backend B  (misali Obsidian)               │
-│               Backend C  (misali Notion ta GenericBackend)│
+│  Primary ──► Backend A  (misali SQLite)                  │
+│  Fallback ─► Backend B  (misali Obsidian)                │
+│             Backend C  (misali Notion ta GenericBackend)  │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -956,7 +955,7 @@ interface MemoryBackend {
   // Bincike
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // Lafiya
+  // Lafiyar tsari
   health(): Promise<HealthCheckResult>;
 
   // Zagayowar rayuwa (na zaɓi)
@@ -967,40 +966,40 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Mai tsara aiki na Singleton wanda:
+Mai tsara aiki na Singleton wanda yake:
 
-- Yana **rajistar** backend ta `register(backend)` — ana kiransa lokacin farawa daga `index.ts`
-- Yana **daidaita** primary + fallback ta `configure(primary, fallbacks)`
-- Yana **tura** CRUD/bincike zuwa primary, tare da jerin fallback idan an samu gazawa
-- Yana yin **duba lafiyar** dukkan backend lokaci-lokaci
+- **Rijistar** backend ta hanyar `register(backend)` — ana kiransa lokacin farawa daga `index.ts`
+- **Daidaita** primary + fallback ta hanyar `configure(primary, fallbacks)`
+- **Tura** CRUD/bincike zuwa primary, tare da jerin fallback idan aka samu gazawa
+- **Duba lafiyar** dukkan backend lokaci-lokaci
 
-**Halin fallback:**
+**Halayen fallback:**
 
 | Aiki     | Primary               | Fallbacks                        |
 | -------- | --------------------- | -------------------------------- |
 | `create` | ✅ Primary kawai      | ❌                               |
 | `get`    | ✅ Fara gwada primary | ✅ Fallback idan null            |
-| `update` | ✅ Primary kawai      | ✅ Daidaitawa ba tare da jira ba |
-| `delete` | ✅ Primary kawai      | ✅ Daidaitawa ba tare da jira ba |
+| `update` | ✅ Primary kawai      | ✅ Aiki tare ba tare da jira ba  |
+| `delete` | ✅ Primary kawai      | ✅ Aiki tare ba tare da jira ba  |
 | `list`   | ✅ Primary kawai      | ❌                               |
 | `search` | ✅ Primary da farko   | ✅ Fallback idan an samu kuskure |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Mai haɗin HTTP na gama-gari wanda yake daidaita kowace REST API ta zama MemoryBackend. Yana da amfani ga:
+Haɗin HTTP na gama-gari wanda yake daidaita kowane REST API zuwa MemoryBackend. Yana da amfani ga:
 
 - **Notion** — haɗa ta Notion API
 - **Obsidian** — haɗa ta Obsidian Local REST API
-- **Backend na musamman** — duk wata sabis da ke samar da RESTful memory API
+- **Backend na musamman** — duk wani sabis da ke samar da RESTful memory API
 
 **Daidaitawa:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Tushen URL na API ɗin backend
-  apiKey?: string;           // Alamar Bearer don tantancewa
-  headers?: Record<string, string>;  // Keɓaɓɓun taken HTTP
-  timeout?: number;          // Lokacin ƙarewar buƙata (tsoho: 30000ms)
+  baseUrl: string;           // Tushen URL na backend API
+  apiKey?: string;           // Bearer token don tantancewa
+  headers?: Record<string, string>;  // Keɓaɓɓun HTTP headers
+  timeout?: number;          // Wa'adin ƙarewar buƙata (tsoho: 30000ms)
   backendType?: string;      // Don yin rajista
 
   // Sauya endpoints (tsoffin ƙimomi suna amfani da ƙa'idojin REST)
@@ -1014,30 +1013,30 @@ interface GenericBackendConfig {
     health?: string;   // tsoho: "/health"
   };
 
-  // Daidaita sunayen sigogin tambaya
+  // Taswirar sunayen sigogin query
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // Daidaita sunayen sigogin hanya
+  // Taswirar sunayen sigogin path
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-**Sanannun backends** an riga an saita su a cikin `KNOWN_BACKENDS`:
+An riga an saita **sanannun backends** a cikin `KNOWN_BACKENDS`:
 
 ```typescript
-createKnownBackend("obsidian"); // → GenericMemoryBackend da aka nuna zuwa localhost:27123
-createKnownBackend("notion"); // → GenericMemoryBackend da aka nuna zuwa api.notion.com/v1
+createKnownBackend("obsidian"); // → GenericMemoryBackend wanda aka nuna wa localhost:27123
+createKnownBackend("notion"); // → GenericMemoryBackend wanda aka nuna wa api.notion.com/v1
 ```
 
-#### Backends da Aka Gina a Ciki
+#### Ginannun Backends
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Tsohon babban backend. Yana naɗe ma'ajiyar ƙwaƙwalwar da ke amfani da SQLite ta hanyar `src/lib/memory/store.ts`. Ana yi masa rajista ta atomatik yayin farawa.
+Tsohon babban backend. Yana naɗe ma'ajiyar ƙwaƙwalwa da ke amfani da SQLite ta hanyar `src/lib/memory/store.ts`. Ana yi masa rajista ta atomatik lokacin farawa.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1050,35 +1049,35 @@ Yana naɗe haɗin Obsidian da ake da shi (`src/lib/memory/obsidianBackend.ts`). 
 
 ### Saituna
 
-Ana adana saitunan backend na ƙwaƙwalwa a teburin saitunan manhaja kuma ana sarrafa su ta hanyar `src/lib/memory/settings.ts`:
+Ana adana saitunan backend na ƙwaƙwalwa a cikin teburin saitunan manhaja kuma ana sarrafa su ta hanyar `src/lib/memory/settings.ts`:
 
-| Saiti               | Maɓallin Muhalli/Saiti   | Tsoho      | Bayani                               |
+| Saiti               | Maɓallin Env/Config      | Tsoho      | Bayani                               |
 | ------------------- | ------------------------ | ---------- | ------------------------------------ |
 | Babban backend      | `memoryPrimaryBackend`   | `"sqlite"` | ID na babban backend                 |
-| Backends na madadin | `memoryFallbackBackends` | `[]`       | ID na backends na madadin bisa jeri  |
-| Saitunan backend    | `memoryBackendConfigs`   | `{}`       | Sauye-sauyen saiti na kowane backend |
+| Backends na madadin | `memoryFallbackBackends` | `[]`       | IDs na backends na madadin a jere    |
+| Saitunan backends   | `memoryBackendConfigs`   | `{}`       | Sauye-sauyen saiti ga kowane backend |
 
-Ana daidaita saituna ta hanyar `normalizeMemorySettings()` kuma ana adana su a cache a `getMemorySettings()`.
+Ana daidaita saitunan ta hanyar `normalizeMemorySettings()` kuma ana adana su a cache a `getMemorySettings()`.
 
 ### Tsarin Farawa
 
 ```
 Fara manhaja
-  → shigo da index.ts (sakamako na gefe): yana yi wa SQLiteBackend rajista
-  → ana kiran initMemoryBackends() daga zagayowar rayuwar manhaja:
+  → shigarwar index.ts (sakamakon gefe): tana yi wa SQLiteBackend rajista
+  → ana kiran initMemoryBackends() daga tsarin rayuwar manhaja:
       1. Loda saituna (getMemorySettings)
       2. Saita babban backend + na madadin
       3. Fara dukkan backends (duba lafiya)
-      4. Shirye don karɓar buƙatu
+      4. A shirye don buƙatu
 ```
 
 ### Ƙara Sabon Backend
 
-1. **Aiwatar da interface ɗin `MemoryBackend`** a cikin `src/lib/memory/<name>Backend.ts`
+1. **Aiwatar da interface na `MemoryBackend`** a cikin `src/lib/memory/<name>Backend.ts`
 2. **Fitar da shi** daga `src/lib/memory/index.ts`
-3. **Yi rajista** da `memoryManager.register(yourBackend)` yayin farawa
-4. **Saita shi** ta cikin saituna: saita `memoryPrimaryBackend` zuwa ID na backend ɗinka
-5. **Gwada shi** ta amfani da `src/lib/memory/__tests__/generic-backend.test.ts` a matsayin abin dubawa
+3. **Yi rajista** da `memoryManager.register(yourBackend)` lokacin farawa
+4. **Saita shi** ta saituna: saita `memoryPrimaryBackend` zuwa ID na backend ɗinka
+5. **Gwada shi** ta amfani da `src/lib/memory/__tests__/generic-backend.test.ts` a matsayin madogara
 
 #### Misali: Brain Backend
 
@@ -1100,24 +1099,24 @@ memoryManager.register(brainBackend);
 
 ### Tabbatarwa
 
-#### Gwaje-gwajen sashe
+#### Gwaje-gwajen ɓangare
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Fitowar da ake tsammani: **gwaje-gwaje 35, duk sun yi nasara** waɗanda suka ƙunshi:
+Sakamakon da ake sa ran samu: **gwaje-gwaje 35, duk sun yi nasara**, waɗanda suka haɗa da:
 
 - Constructor (2)
 - Duba lafiya (4) — nasara, gazawar 500, kuskuren hanyar sadarwa, jinkiri
-- Initialize (2) — nasara, gazawa
-- Create (2) — tsohon endpoint, keɓaɓɓen endpoint
-- Get (4) — nasara, 404 → null, jefa kuskure idan ba 404 ba, keɓaɓɓun sigogin hanya
-- Update (2) — nasara, 404 → false
-- Delete (2) — nasara, 404 → false
-- List (2) — sigogin tambaya, keɓaɓɓun sunayen sigogi
-- Search (3) — sigogin tambaya, keɓaɓɓen endpoint, jera options
-- Taken tantancewa (2) — alamar Bearer, keɓaɓɓun taken
+- Farawa (2) — nasara, gazawa
+- Ƙirƙira (2) — tsohon endpoint, keɓaɓɓen endpoint
+- Samu (4) — nasara, 404 → null, jefa kuskure idan ba 404 ba, keɓaɓɓun sigogin path
+- Sabuntawa (2) — nasara, 404 → false
+- Sharewa (2) — nasara, 404 → false
+- Jerantawa (2) — sigogin query, keɓaɓɓun sunayen sigogi
+- Bincike (3) — sigogin query, keɓaɓɓen endpoint, mayar da options zuwa tsari
+- Auth headers (2) — Bearer token, keɓaɓɓun headers
 - Factory (1)
 
 #### Duba nau'i
@@ -1126,4 +1125,4 @@ Fitowar da ake tsammani: **gwaje-gwaje 35, duk sun yi nasara** waɗanda suka ƙu
 npm run typecheck:core
 ```
 
-Abin da ake tsammani: **kurakurai 0**.
+Abin da ake sa ran samu: **kurakurai 0**.

@@ -4,21 +4,23 @@
 
 ---
 
-Ìwé yìí ni ìjẹ́rìísí tí olùtọ́jú kọ fún àwọn àbájáde mẹ́fà ti
-`malware tó ṣeé ṣe tí AI ṣàwárí` tí a gbé kalẹ̀ lòdì sí `omniroute@3.8.5` àti
-àwọn ìgbésẹ̀ ìdènà tí a lò nínú `omniroute@3.8.6`. Ó wà kí:
+> **Àkíyèsí ààlà:** `socket.yml` ń ṣètò àyẹ̀wò Socket.dev lẹ́yìn ìtẹ̀jáde ní ẹ̀gbẹ́ registry lórí artifact npm (àwọn ipa-ọ̀nà tí a máa foju kọ fún àkóónú tí a kò fi ránṣẹ́, bíi `tests/`, `docs/`, àti àwọn ìròyìn build). Kì í ṣe ohun tó ń so ẹnu-ọ̀nà ìdapọ̀ CI/PR pọ̀ — kò sí workflow kankan nínú `.github/workflows`, kò sí script `package.json` kankan, bẹ́ẹ̀ ni kò sí target `Makefile` kankan tó ń pe Socket.dev.
 
-1. Àwọn olùṣàkóso ọ̀nà-àbáwọlé ààbò lè ní ìtọ́kasí kan ṣoṣo láti tọ́ka sí nígbà tí wọ́n bá nílò
-   láti ṣe àyẹ̀wò àwọn àbájáde náà ní ìfiwéra pẹ̀lú kóòdù orísun gangan.
-2. Àwọn ẹ̀rọ àyẹ̀wò AI ọjọ́ iwájú lè rí ìjẹ́rìísí tí olùtọ́jú fọwọ́ sí pé ọ̀kọ̀ọ̀kan
-   àwọn ipa-ọ̀nà tí a sàmì sí jẹ́ èrò inú, ó nílò ìyọ̀ǹda láti ṣiṣẹ́, a sì ti ṣe àkọsílẹ̀ rẹ̀.
-3. A ní àkọsílẹ̀ tí a kọ sílẹ̀ nípa _ìdí_ tí ọ̀kọ̀ọ̀kan àwọn ibi ìpè fi ní ìrísí tó ní —
-   kí àtúnṣètò ọjọ́ iwájú má bàa ṣàìmọ̀ tún àpẹẹrẹ ìdánimọ̀ kan padà
-   tí a mọ̀ọ́mọ̀ yọ kúrò.
+Ìwé yìí ni ìjẹ́rìísí tí olùtọ́jú kọ fún àwọn àbájáde mẹ́fà
+`malware tó ṣeé ṣe tí AI ṣàwárí` tí a gbé dìde sí `omniroute@3.8.5`, àti
+àwọn ìgbésẹ̀ ìdínkù-ewu tí a lò nínú `omniroute@3.8.6`. Ó wà kí:
 
-Tí o bá ń ṣiṣẹ́ ẹ̀rọ àyẹ̀wò kan tí ó tún sàmì sí èyíkéyìí lára àwọn ibi ìpè tó wà nísàlẹ̀ lẹ́yìn tí
-a bá ti tú àwọn ìgbésẹ̀ ìdènà v3.8.6 jáde, jọ̀wọ́ ṣí issue kan pẹ̀lú àtẹ̀lé àyẹ̀wò náà,
-a ó sì fa ìjẹ́rìísí tó wà níbí gùn sí i.
+1. Àwọn olùṣiṣẹ́ pipeline ààbò lè ní ìtọ́kasí kan ṣoṣo láti tọ́ka sí nígbà tí wọ́n bá nílò
+   láti ṣe àyẹ̀wò àwọn àbájáde náà pẹ̀lú source gangan.
+2. Àwọn scanner AI ọjọ́ iwájú lè rí ìkéde tí olùtọ́jú fọwọ́ sí pé ọ̀kọ̀ọ̀kan
+   ipa-ọ̀nà tí a sàmì sí jẹ́ èyí tí a mọ̀ọ́mọ̀ ṣe, tí olùlò gbọ́dọ̀ yàn láti lo, tí a sì ṣàkọsílẹ̀ rẹ̀.
+3. Kí a ní àkọsílẹ̀ ní kíkọ nípa _ìdí_ tí a fi ṣe ọ̀kọ̀ọ̀kan call site ní ọ̀nà tó rí —
+   kí refactor ọjọ́ iwájú má bàa tún fingerprint kan padà láìmọ̀ọ́mọ̀,
+   èyí tí a ti mọ̀ọ́mọ̀ yọ kúrò.
+
+Tí ẹ bá ń ṣiṣẹ́ scanner kan tó tún sàmì sí èyíkéyìí nínú àwọn call site tó wà nísàlẹ̀ lẹ́yìn tí
+àwọn ìgbésẹ̀ ìdínkù-ewu v3.8.6 bá ti jáde, ẹ jọ̀wọ́ ṣí issue kan pẹ̀lú trace àyẹ̀wò náà,
+àwa yóò sì fa ìjẹ́rìísí tó wà níbí gùn sí i.
 
 ---
 

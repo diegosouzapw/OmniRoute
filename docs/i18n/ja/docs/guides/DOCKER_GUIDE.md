@@ -27,6 +27,12 @@
 
 ## クイック実行
 
+> **1つのコマンドでセルフホストしますか？**
+> [セルフホストガイド](../getting-started/SELF_HOST_GUIDE.md)を参照してください —
+> `docker compose -f docker-compose.selfhost.yml up -d`（公開済みイメージ +
+> Redis、ループバック限定、プロファイル選択なし）。以下のクイック実行は、
+> すでに別の場所でRedisを実行しているユーザー向けのシングルコンテナ構成です。
+
 ```bash
 docker run -d \
   --name omniroute \
@@ -37,7 +43,7 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-## 環境ファイルを使用する
+## 環境ファイルを使用する場合
 
 ```bash
 # 最初に .env をコピーして編集

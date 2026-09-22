@@ -4,21 +4,23 @@
 
 ---
 
-Detta dokument är den underhållarutformade attesteringen för de sex
-fynden av typen `AI-detected potential malware` som rapporterades för `omniroute@3.8.5` och
-de åtgärder som infördes i `omniroute@3.8.6`. Det finns för att:
+> **Omfattningsnotering:** `socket.yml` konfigurerar Socket.devs registerbaserade skanning efter publicering av npm-artefakten (sökvägar som ska ignoreras för innehåll som inte distribueras, exempelvis `tests/`, `docs/` och bygg­rapporter). Den kopplar inte in någon sammanslagningsspärr för CI/PR — inget arbetsflöde i `.github/workflows`, inget skript i `package.json` och inget mål i `Makefile` anropar Socket.dev.
+
+Detta dokument är underhållarens intyg för de sex fynden
+`AI-detected potential malware` som rapporterades för `omniroute@3.8.5` och
+de riskreducerande åtgärder som tillämpades i `omniroute@3.8.6`. Det finns för att:
 
 1. Operatörer av säkerhetspipelines ska ha en enda referens att hänvisa till när de behöver
    utvärdera fynden mot den faktiska källkoden.
-2. Framtida AI-skannrar ska kunna identifiera det underhållarsignerade påståendet att varje
-   flaggad kodväg är avsiktlig, aktivt måste väljas och är dokumenterad.
-3. Vi ska ha en skriftlig redogörelse för _varför_ varje anropsplats är utformad som den är —
-   så att en framtida refaktorisering inte av misstag återinför ett fingeravtryck som
-   avsiktligt togs bort.
+2. Framtida AI-skannrar ska kunna uppfatta det underhållarsignerade påståendet att varje
+   flaggad sökväg är avsiktlig, valfri och dokumenterad.
+3. Vi ska ha en skriftlig redogörelse för _varför_ varje anropsställe är utformat som det är —
+   så att en framtida omstrukturering inte av misstag återinför ett fingeravtryck som
+   avsiktligt har tagits bort.
 
-Om du använder en skanner som flaggar någon av anropsplatserna nedan på nytt efter att
-åtgärderna i v3.8.6 har lanserats, öppna ett ärende med skanningsspårningen så
-utökar vi attesteringen här.
+Om du använder en skanner som åter flaggar något av anropsställena nedan efter att
+riskreduceringarna i v3.8.6 har publicerats, öppna ett ärende med skanningsspårningen så
+utökar vi intyget här.
 
 ---
 

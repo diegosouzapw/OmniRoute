@@ -25,7 +25,13 @@
 
 ---
 
-## Greitas paleidimas
+## Greitasis paleidimas
+
+> **Savarankiškas talpinimas viena komanda?** Žr.
+> [savarankiško talpinimo vadovą](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (publikuotas atvaizdas +
+> Redis, pasiekiamas tik per loopback sąsają, be profilio pasirinkimo). Toliau pateiktas greitasis paleidimas yra
+> vieno konteinerio būdas naudotojams, kurie Redis jau naudoja kitur.
 
 ```bash
 docker run -d \

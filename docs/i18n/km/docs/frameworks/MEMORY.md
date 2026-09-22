@@ -162,33 +162,35 @@ vector store ត្រូវបានបង្កើតឡើងវិញ ហើ
 
 ## ផ្នែកបន្ថែមនៃការកំណត់
 
-មានវាល embedding និង vector ចំនួនប្រាំបួននៅក្នុង `MemorySettingsExtended` ក្នុង
-`src/shared/schemas/memory.ts` ដែលត្រូវបានរក្សាទុកតាមរយៈ `src/lib/db/settings.ts`៖
+វាល embedding និង vector ចំនួនប្រាំបួនមាននៅក្នុង `MemorySettingsExtended` ក្នុង
+`src/shared/schemas/memory.ts` ហើយត្រូវបានរក្សាទុកតាមរយៈ `src/lib/db/settings.ts`៖
 
-| វាល                      | ប្រភេទ                                             | លំនាំដើម | សេចក្ដីពិពណ៌នា                                                        |
-| ------------------------ | -------------------------------------------------- | -------- | --------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | ប្រភព embedding ដែលត្រូវប្រើ                                          |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | អ្នកផ្ដល់សេវា/ម៉ូដែលក្នុងទម្រង់ `provider/model`                      |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL មូលដ្ឋានរបស់ endpoint ដែលឆបគ្នាជាមួយ OpenAI និងសម្រាប់តែ Memory   |
-| `customModelId`          | `string \| null`                                   | `null`   | ID ម៉ូដែលដែលត្រូវផ្ញើទៅ endpoint ផ្ទាល់ខ្លួន                          |
-| `transformersEnabled`    | `boolean`                                          | `false`  | អនុញ្ញាតឱ្យប្រើ Transformers.js (MiniLM, ~400MB)                      |
-| `staticEnabled`          | `boolean`                                          | `false`  | អនុញ្ញាតឱ្យប្រើម៉ូដែលមូលដ្ឋាន static potion-base-8M                   |
-| `rerankEnabled`          | `boolean`                                          | `false`  | បើកជំហានរៀបចំណាត់ថ្នាក់ឡើងវិញ (បន្ថែម +200-500ms/req)                 |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | អ្នកផ្ដល់សេវា/ម៉ូដែលរៀបចំណាត់ថ្នាក់ឡើងវិញក្នុងទម្រង់ `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | backend vector ដែលត្រូវប្រើ                                           |
+| វាល                      | ប្រភេទ                                             | តម្លៃលំនាំដើម | ការពិពណ៌នា                                                                 |
+| ------------------------ | -------------------------------------------------- | ------------- | -------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | ប្រភព embedding ដែលត្រូវប្រើ                                               |
+| `embeddingProviderModel` | `string \| null`                                   | `null`        | អ្នកផ្តល់សេវា/ម៉ូដែលក្នុងទម្រង់ `provider/model`                           |
+| `customBaseUrl`          | `string \| null`                                   | `null`        | URL មូលដ្ឋានរបស់ endpoint ដែលត្រូវគ្នាជាមួយ OpenAI សម្រាប់ Memory ប៉ុណ្ណោះ |
+| `customModelId`          | `string \| null`                                   | `null`        | លេខសម្គាល់ម៉ូដែលដែលត្រូវផ្ញើទៅ endpoint ផ្ទាល់ខ្លួន                        |
+| `transformersEnabled`    | `boolean`                                          | `false`       | ការជ្រើសរើសប្រើ Transformers.js (MiniLM, ~400MB)                           |
+| `staticEnabled`          | `boolean`                                          | `false`       | ការជ្រើសរើសប្រើម៉ូដែលមូលដ្ឋាន static potion-base-8M                        |
+| `rerankEnabled`          | `boolean`                                          | `false`       | បើកជំហានរៀបលំដាប់ឡើងវិញ (បន្ថែម +200-500ms/req)                            |
+| `rerankProviderModel`    | `string \| null`                                   | `null`        | អ្នកផ្តល់សេវា/ម៉ូដែលសម្រាប់រៀបលំដាប់ឡើងវិញក្នុងទម្រង់ `provider/model`     |
 
-វាលទាំងនេះត្រូវបានបង្ហាញតាមរយៈ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`)។
+`rerankProviderModel` ត្រូវបានដោះស្រាយដោយ `POST /v1/rerank` (ហៅតាម loopback) ដូច្នេះវាទទួលយកអ្វីក៏ដោយដែល route នោះទទួលយក៖ ម៉ូដែល cloud សម្រាប់រៀបលំដាប់ឡើងវិញដែលបានជ្រើសសម្រិតសម្រាំង (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ឬ node របស់អ្នកផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI ក្នុងទម្រង់ `<node-prefix>/<model>` (ឧ. `skilled-mini/bge-reranker-v2-m3` សម្រាប់ម៉ាស៊ីន TEI/Infinity)។ Node ប្រភេទ loopback តែងតែមានសិទ្ធិប្រើប្រាស់។ Node នៅលើ host ផ្សេងទៀត (LAN, Tailscale) ត្រូវការបន្ថែមនូវ feature flag `RERANK_REMOTE_PROVIDER_NODES` ហើយត្រូវតែឆ្លងកាត់គោលការណ៍ URL ចេញក្រៅរបស់អ្នកផ្តល់សេវា — សូមមើល [Feature Flags](../reference/FEATURE_FLAGS.md)។ កម្មវិធីជ្រើសរើសលើ dashboard បង្ហាញអ្នកផ្តល់សេវាដែលបានជ្រើសសម្រិតសម្រាំង រួមជាមួយ node មូលដ្ឋាន។ string `provider/model` ដែលត្រឹមត្រូវណាមួយអាចត្រូវបានកំណត់ដោយផ្ទាល់តាមរយៈ `PUT /api/settings/memory`។
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | backend សម្រាប់ vector ដែលត្រូវប្រើ |
 
-សម្រាប់ប្រភព `remote` Memory ក៏ទទួលយកការកំណត់ `customBaseUrl` និង
-`customModelId` ដែលជាជម្រើសផងដែរ។ រួមគ្នា វាជ្រើសរើស endpoint `/embeddings`
-និងម៉ូដែលដែលឆបគ្នាជាមួយ OpenAI ដោយមិនផ្លាស់ប្ដូរបញ្ជីឈ្មោះ embedding សកល។ Endpoint ត្រូវបាន
-ធ្វើឱ្យមានទម្រង់ស្តង់ដារមុនពេលប្រើ និងត្រូវបានត្រួតពិនិត្យដោយគោលការណ៍ URL ចេញក្រៅរបស់អ្នកផ្ដល់សេវា៖ តម្រូវឱ្យប្រើ HTTP(S)
-មិនអនុញ្ញាតព័ត៌មានសម្ងាត់ដែលបង្កប់ និង query string ហើយអាសយដ្ឋាន cloud-metadata
-នៅតែត្រូវបានរារាំង។ តម្លៃទទេរក្សាអ្នកផ្ដល់សេវាក្នុងបញ្ជីឈ្មោះដែលបានជ្រើស។ កំហុស
+ការកំណត់ទាំងនេះត្រូវបានបង្ហាញឱ្យប្រើតាមរយៈ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`)។
+
+សម្រាប់ប្រភព `remote` Memory ក៏ទទួលយកការកំណត់ជាជម្រើស `customBaseUrl` និង
+`customModelId` ផងដែរ។ នៅពេលប្រើរួមគ្នា ពួកវាជ្រើសរើស endpoint `/embeddings`
+និងម៉ូដែលដែលត្រូវគ្នាជាមួយ OpenAI ដោយមិនផ្លាស់ប្តូរ registry សកលរបស់ embedding។ Endpoint ត្រូវបាន
+ធ្វើឱ្យមានទម្រង់ស្តង់ដារមុនពេលប្រើ និងត្រូវបានត្រួតពិនិត្យដោយគោលការណ៍ URL ចេញក្រៅរបស់អ្នកផ្តល់សេវា៖ តម្រូវឱ្យប្រើ HTTP(S)
+ព័ត៌មានសម្ងាត់ដែលបានបង្កប់ និង query string ត្រូវបានបដិសេធ ហើយអាសយដ្ឋាន cloud-metadata
+នៅតែត្រូវបានទប់ស្កាត់។ តម្លៃទទេរក្សាទុកអ្នកផ្តល់សេវា registry ដែលបានជ្រើស។ កំហុស
 ដែលបញ្ជូនត្រឡប់ទៅ dashboard ត្រូវបានសម្អាត ហើយព័ត៌មានសម្ងាត់របស់ endpoint មិនត្រូវបានកត់ត្រាក្នុង log ឡើយ។
 
-> **TODO (D20):** Scope `global` (ការចែករំលែក memories រវាង API key ទាំងអស់) មិនទាន់ត្រូវបាន
-> អនុវត្តនៅក្នុងកំណែនេះទេ។ វាតម្រូវឱ្យមានការផ្លាស់ប្ដូរ schema និងផ្លូវ retrieval
+> **TODO (D20)៖** Scope `global` (ការចែករំលែក memory នៅទូទាំង API key ទាំងអស់) មិនទាន់ត្រូវបាន
+> អនុវត្តនៅក្នុងការចេញផ្សាយនេះទេ។ វាតម្រូវឱ្យមានការផ្លាស់ប្តូរ schema និងផ្លូវ retrieval
 > សកល។ តាមដានវាដោយឡែក។
 
 ## ស្រទាប់ផ្ទុកទិន្នន័យ

@@ -27,6 +27,12 @@
 
 ## Rýchle spustenie
 
+> **Vlastný hosting jediným príkazom?** Pozrite si
+> [Sprievodcu vlastným hostingom](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (publikovaný obraz +
+> Redis, prístupný iba cez loopback, bez výberu profilu). Nižšie uvedené Rýchle spustenie
+> predstavuje postup s jedným kontajnerom pre používateľov, ktorí už používajú Redis inde.
+
 ```bash
 docker run -d \
   --name omniroute \

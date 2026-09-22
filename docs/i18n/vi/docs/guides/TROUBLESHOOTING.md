@@ -68,16 +68,24 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # chờ có giới hạn lâu hơn
 
 ## Cảnh báo khi npm install (ERESOLVE / peer / deprecated)
 
-Khi chạy `npm install -g omniroute`, bạn có thể thấy hàng loạt cảnh báo như `npm warn ERESOLVE`, thông báo về peer dependency và các thông báo `deprecated`. **Đây là điều bình thường và vô hại.** Quá trình cài đặt đã thành công nếu đầu ra hiển thị `added <N> packages`.
+Khi chạy `npm install -g omniroute`, bạn có thể thấy hàng loạt cảnh báo như `npm warn ERESOLVE`, thông báo về peer dependency và thông báo `deprecated`. **Đây là các cảnh báo dự kiến và không gây hại.** Quá trình cài đặt đã thành công nếu bạn thấy `added <N> packages` trong đầu ra.
 
-Các cảnh báo này xuất phát từ phạm vi peer dependency đã lỗi thời trong những gói của bên thứ ba mà OmniRoute không kiểm soát:
+Để ẩn các cảnh báo phân giải peer dependency, hãy sử dụng dạng lệnh cài đặt được OmniRoute hỗ trợ:
 
-1. **`marked-terminal` yêu cầu `marked >=1 <16`, nhưng tìm thấy `marked@18`** — trên thực tế vẫn hoạt động bình thường; chỉ có phạm vi peer dependency của dự án thượng nguồn là đã lỗi thời.
-2. **`deprecated prebuild-install@7.1.3`** — một tiện ích bắc cầu dùng để tải tệp nhị phân gốc. Tiện ích này không
-   được sử dụng để cài đặt binding truyền tải `wreq-js` đã được cố định phiên bản và không có nghĩa là quá trình
-   thiết lập phương thức truyền tải của nhà cung cấp web-cookie đã thất bại.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Không cần thực hiện hành động nào** — không thể tắt hoàn toàn các cảnh báo này nếu không fork các gói thượng nguồn.
+`--legacy-peer-deps` chỉ ẩn `ERESOLVE` và các thông báo về peer dependency. Các thông báo ngừng hỗ trợ vẫn hiển thị vì chúng đến từ các package bên thứ ba có tính bắc cầu; chúng không cho biết quá trình cài đặt đã thất bại.
+
+Các cảnh báo xuất phát từ phạm vi peer dependency lỗi thời trong những package bên thứ ba mà OmniRoute không kiểm soát:
+
+1. **`marked-terminal` yêu cầu `marked >=1 <16`, nhưng tìm thấy `marked@18`** — trên thực tế vẫn hoạt động bình thường; chỉ có phạm vi peer dependency ở thượng nguồn là lỗi thời.
+2. **`deprecated prebuild-install@7.1.3`** — một trình trợ giúp tìm nạp tệp nhị phân gốc có tính bắc cầu. Package này không
+   được sử dụng để cài đặt binding truyền tải `wreq-js` đã được ghim phiên bản và không cho thấy quá trình thiết lập cơ chế truyền tải
+   của trình cung cấp web-cookie đã thất bại.
+
+**Không cần thực hiện hành động nào** — không thể ẩn hoàn toàn các cảnh báo nếu không fork các package thượng nguồn.
 
 ---
 

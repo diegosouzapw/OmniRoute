@@ -23,21 +23,23 @@ Param Incorrect: The reasoning_content in the thinking mode must be passed back 
 
 ```
 ടേൺ N (അസിസ്റ്റന്റ് സൃഷ്ടിക്കുന്നു):
-  → പ്രതികരണത്തിൽ reasoning_content + tool_calls ഉൾപ്പെടുന്നു
+  → പ്രതികരണത്തിൽ reasoning_content + tool_calls അടങ്ങിയിരിക്കുന്നു
   → requiresReasoningReplay(provider, model) ആണെങ്കിൽ: cacheReasoningFromAssistantMessage()
-      ഓരോ tool_call.id-ഉം കീയാക്കി (മെമ്മറി + DB)-യിലേക്ക് എഴുതുന്നു
-  → പ്രതികരണം ക്ലയന്റിലേക്ക് കൈമാറുന്നു (ക്ലയന്റ് റീസണിംഗ് നിലനിർത്തുകയോ നിലനിർത്താതിരിക്കുകയോ ചെയ്യാം)
+      ഓരോ tool_call.id-ഉം കീ ആയി ഉപയോഗിച്ച് (മെമ്മറി + DB)-യിൽ എഴുതുന്നു
+  → പ്രതികരണം ക്ലയന്റിലേക്ക് കൈമാറുന്നു (അത് റീസണിംഗ് നിലനിർത്തുകയോ നിലനിർത്താതിരിക്കുകയോ ചെയ്യാം)
 
-ടേൺ N+1 (ക്ലയന്റ് തുടർ അഭ്യർത്ഥന അയയ്ക്കുന്നു):
+ടേൺ N+1 (ക്ലയന്റ് തുടർസന്ദേശം അയയ്ക്കുന്നു):
   → ട്രാൻസ്ലേറ്റർ കണ്ടെത്തുന്നു: requiresReasoningReplay(provider, model) === true
   → tool_calls ഉള്ളതും reasoning_content ഇല്ലാത്തതുമായ ഓരോ അസിസ്റ്റന്റ് സന്ദേശത്തിനും:
       lookupReasoning(toolCalls[0].id) → മെമ്മറി → DB
       ഹിറ്റ്  → msg.reasoning_content = cached; recordReplay()
-      മിസ് → msg.reasoning_content = "" (പഴയ DeepSeek പതിപ്പുകൾക്കുള്ള ലെഗസി ഫാൾബാക്ക്)
-  → അപ്സ്ട്രീം സ്ഥിരതയുള്ള ചരിത്രം കാണുന്നു → 400 ഇല്ല
+      മിസ് → msg.reasoning_content = "" (പഴയ DeepSeek പതിപ്പുകൾക്കായുള്ള ലെഗസി ഫാൾബാക്ക്)
+  → അപ്സ്ട്രീമിന് സ്ഥിരതയുള്ള ഹിസ്റ്ററി ലഭിക്കുന്നു → 400 ഇല്ല
 ```
 
-ക്യാപ്ചർ `open-sse/handlers/chatCore.ts`-ൽ നടക്കുന്നു (`cacheReasoningFromAssistantMessage` വിളിക്കുന്ന രണ്ട് സ്ഥലങ്ങളിൽ). സ്കീമ കോർഷന് ശേഷവും ഡിസ്പാച്ചിന് മുമ്പുമായി `open-sse/translator/index.ts`-ൽ റീപ്ലേ നടക്കുന്നു.
+ക്യാപ്ചർ നടക്കുന്നത് `open-sse/handlers/chatCore.ts`-ലാണ് (`cacheReasoningFromAssistantMessage` വിളിക്കുന്ന രണ്ട് സ്ഥലങ്ങളിൽ). സ്കീമ കോർഷനുശേഷവും ഡിസ്പാച്ചിന് മുമ്പുമായി `open-sse/translator/index.ts`-ലാണ് റീപ്ലേ നടക്കുന്നത്.
+
+സാധാരണ (ടൂൾ-കോൾ ഇല്ലാത്ത) അസിസ്റ്റന്റ് ടേണുകൾക്ക് വ്യത്യസ്തമായാണ് കീ നൽകുന്നത്: `buildAssistantMessageCacheKey()` സെഷൻ സ്കോപ്പിനെയും ആ ടേൺ വരെയുള്ള നോർമലൈസ് ചെയ്ത OpenAI-ഫോർമാറ്റ് ട്രാൻസ്ക്രിപ്റ്റിനെയും ഡൈജസ്റ്റ് ചെയ്യുന്നു, കാരണം `tools` ഉണ്ടായാൽ മുമ്പത്തെ _ഓരോ_ ടേണിന്റെയും റീസണിംഗ് DeepSeek-ന് ആവശ്യമാണ്. Responses-API ടാർഗെറ്റുകൾക്കായി (ഉദാഹരണത്തിന്, `/responses`-ലേക്ക് റൂട്ട് ചെയ്യുന്ന `opencode-go/deepseek-v4-flash`) അപ്സ്ട്രീം ബോഡിയിൽ `messages` അല്ല, `input` ആണ് ഉള്ളത്; അതിനാൽ `translateRequest()` (`open-sse/translator/index.ts`) ഒരു കോൾബാക്ക് ഓപ്ഷനിലൂടെ താൻ ഡൈജസ്റ്റ് ചെയ്ത പിവറ്റ് ട്രാൻസ്ക്രിപ്റ്റ് റിപ്പോർട്ട് ചെയ്യുകയും ക്യാപ്ചർ സൈറ്റുകൾ അതേ ട്രാൻസ്ക്രിപ്റ്റ് ഡൈജസ്റ്റ് ചെയ്യുകയും ചെയ്യുന്നു. എല്ലാ സോഴ്സ് ഫോർമാറ്റുകൾക്കുമായി OpenAI പിവറ്റിലാണ് Responses റീപ്ലേ പാസ് പ്രവർത്തിക്കുന്നത്; അതിനാൽ Anthropic Messages ക്ലയന്റുകളും (Claude → OpenAI → Responses) റീപ്ലേ ചെയ്യപ്പെടുന്നു.
 
 ## സംഭരണം — ഹൈബ്രിഡ് മെമ്മറി + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-ഇൻഡക്സുകൾ: `expires_at`, `provider`, `model`, `created_at`. `expires_at` Unix epoch സെക്കൻഡുകളായാണ് സംഭരിക്കുന്നത്; SELECT ലെയർ ലെഗസി ടെക്സ്റ്റ് മൂല്യങ്ങളെ `EXPIRES_AT_EPOCH_SQL` വഴി നോർമലൈസ് ചെയ്യുന്നു.
+ഇൻഡെക്സുകൾ: `expires_at`, `provider`, `model`, `created_at`. `expires_at` Unix epoch സെക്കൻഡുകളായി സംഭരിക്കുന്നു; SELECT ലെയർ `EXPIRES_AT_EPOCH_SQL` വഴി പഴയ ടെക്സ്റ്റ് മൂല്യങ്ങളെ നോർമലൈസ് ചെയ്യുന്നു.
 
 ## പ്രൊവൈഡർ / മോഡൽ കണ്ടെത്തൽ
 

@@ -220,26 +220,38 @@ docker run -d \
 10. **បញ្ជូនតម្លៃ runtime របស់ `exec()` / `spawn()` តាមរយៈ option `env`** — កុំប្រើ string interpolation ដើម្បីបញ្ចូល path ខាងក្រៅ ឬតម្លៃដែលមិនគួរឱ្យទុកចិត្តទៅក្នុង script ដែលបញ្ជូនទៅ shell ជាដាច់ខាត។ ឯកសារយោង៖ `src/mitm/cert/install.ts::updateNssDatabases`។
 11. **ផ្ដល់អាទិភាពដល់បណ្ណាល័យដែលមានសុវត្ថិភាពតាមលំនាំដើម** — សូមមើល [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink)។ គួរប្រើវាមុននឹងបង្កើតដំណោះស្រាយដោយខ្លួនឯង។
 
-## លទ្ធផលរកឃើញពីម៉ាស៊ីនស្កេនខ្សែសង្វាក់ផ្គត់ផ្គង់ (Socket.dev / Snyk / ឧបករណ៍ស្រដៀងគ្នា)
+## ការរកឃើញរបស់កម្មវិធីស្កេនខ្សែសង្វាក់ផ្គត់ផ្គង់ (Socket.dev / Snyk / ឧបករណ៍ស្រដៀងគ្នា)
 
-អាតេហ្វាក់ត៍ npm `omniroute` ដែលបានបោះពុម្ព រួមបញ្ចូល build របស់ Next.js ដែលមាន `output: "standalone"` ដែលមានន័យថា route handler ទាំងអស់ — រួមទាំងមុខងារដែលមានសិទ្ធិពិសេស និងបានចងក្រងជាឯកសារ (MITM, ការនាំចូល Zed, Cloud Sync, កម្មវិធីគ្រប់គ្រងសេវាកម្មដែលបានបង្កប់) — ត្រូវបានបញ្ចូលទៅក្នុង chunk `.next/server/*.js` ដែលបានបង្រួម។ ម៉ាស៊ីនស្កេនខ្សែសង្វាក់ផ្គត់ផ្គង់បែប heuristic តែងតែផ្គូផ្គងលំនាំរបស់ chunk ទាំងនោះជាមួយហត្ថលេខាមេរោគ។
+> **កំណត់សម្គាល់អំពីវិសាលភាព៖** `socket.yml` នៅ root របស់ repository កំណត់តែ `projectIgnorePaths` សម្រាប់ការស្កេនក្រោយពេល publish នៅផ្នែក registry របស់ Socket.dev លើ npm artifact ដែលបាន publish ប៉ុណ្ណោះ — វាមិនមែនជាច្រកត្រួតពិនិត្យសម្រាប់ការបញ្ចូល CI/PR ដែលត្រូវបានអនុវត្តជាកំហិតនោះទេ។ គ្មាន workflow ណាមួយនៅក្នុង `.github/workflows` គ្មាន script នៅក្នុង `package.json` និងគ្មាន target នៅក្នុង `Makefile` ដែលហៅប្រើ Socket.dev ទេ។
 
-ការកំណត់រចនាសម្ព័ន្ធម៉ាស៊ីនស្កេនដែលយើងប្រើ ស្ថិតនៅក្នុង [`socket.yml`](socket.yml) នៅ root របស់ repo (ទម្រង់ Socket.dev GitHub App v2 — សូមមើល
-<https://docs.socket.dev/docs/socket-yml>)។ វាដកចេញយ៉ាងច្បាស់នូវថតដែលមិនត្រូវបានចែកចាយ (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` ជាដើម) ដូច្នេះម៉ាស៊ីនស្កេនរាយការណ៍តែលើ code path ដែលទៅដល់អ្នកប្រើប្រាស់នៃកញ្ចប់ដែលបានបោះពុម្ពពិតប្រាកដប៉ុណ្ណោះ — ការស្កេនខ្លួនវាត្រូវបានដំណើរការដោយ Socket GitHub App ដែលអានឯកសារនោះ មិនមែនដោយ workflow នៅក្នុង repository នេះទេ។
+npm artifact `omniroute` ដែលបាន publish រួមបញ្ចូល build របស់ Next.js ដែលមាន `output: "standalone"`
+ដែលមានន័យថា route handler ទាំងអស់ — រួមទាំងមុខងារដែលមានសិទ្ធិខ្ពស់ និងបានចងក្រងជាឯកសារ
+(MITM, ការនាំចូល Zed, Cloud Sync, embedded service supervisor) — ត្រូវបានដាក់បញ្ចូល
+ក្នុង minified chunks នៅ `.next/server/*.js`។ កម្មវិធីស្កេនខ្សែសង្វាក់ផ្គត់ផ្គង់បែប heuristic
+ជាញឹកញាប់ផ្គូផ្គងលំនាំនៃ chunks ទាំងនោះទៅនឹង malware signatures។
 
-សម្រាប់ប្រភេទលទ្ធផលរកឃើញនីមួយៗ យើងរក្សាទុកការបញ្ជាក់របស់អ្នកថែទាំសម្រាប់លទ្ធផលរកឃើញនីមួយៗ៖
+ការកំណត់រចនាសម្ព័ន្ធកម្មវិធីស្កេនដែលយើងប្រើមាននៅ [`socket.yml`](socket.yml) ក្នុង
+root របស់ repo (ទម្រង់ Socket.dev GitHub App v2 — សូមមើល
+<https://docs.socket.dev/docs/socket-yml>)។ វាមិនរាប់បញ្ចូលយ៉ាងច្បាស់នូវ
+directory ដែលមិនត្រូវបានចែកចាយ (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` ជាដើម) ដើម្បីឱ្យកម្មវិធីស្កេនរាយការណ៍តែលើ code paths ដែល
+ពិតជាទៅដល់អ្នកប្រើប្រាស់នៃកំណែដែលបាន publish — ការស្កេនខ្លួនវាត្រូវបានដំណើរការដោយ Socket
+GitHub App ដែលអានឯកសារនោះ មិនមែនដោយ workflow នៅក្នុង repository នេះទេ។
+
+សម្រាប់ប្រភេទការរកឃើញនីមួយៗ យើងរក្សាទុកការបញ្ជាក់របស់អ្នកថែទាំសម្រាប់ការរកឃើញនីមួយៗ៖
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  ផែនទីតាមលទ្ធផលរកឃើញនីមួយៗ៖ ឯកសារប្រភព ↔ chunk ដែលត្រូវបានដាក់ទង់ ↔ ឥរិយាបថ ↔ វិធានការកាត់បន្ថយហានិភ័យ
+  ផែនទីសម្រាប់ការរកឃើញនីមួយៗ៖ source file ↔ flagged chunk ↔ ឥរិយាបថ ↔ ការកាត់បន្ថយហានិភ័យ
   ដែលបានអនុវត្តក្នុង v3.8.6។
-- ប្លុក `SECURITY-AUDITOR-NOTE:` នៅក្នុងប្រភព ត្រង់ចំណុច function នីមួយៗដែលត្រូវបានដាក់ទង់
-  តភ្ជាប់ត្រឡប់ទៅឯកសារដដែល។
+- block `SECURITY-AUDITOR-NOTE:` នៅក្នុង source ត្រង់ function នីមួយៗដែលត្រូវបានដាក់ទង់
+  ចង្អុលត្រឡប់ទៅឯកសារដដែល។
 
-សម្រាប់អ្នកប្រើប្រាស់ដែល pipeline របស់ពួកគេមិនអាចបន្ធូរបន្ថយការជូនដំណឹងបាន៖ build ដោយប្រើ
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`។ វាជំនួស module រសើបទាំងបួនដោយ stub ដែលត្រឡប់ HTTP 503 `feature-disabled` នៅពេល runtime ដូច្នេះ code path ដែលមានសិទ្ធិពិសេសនឹងមិនមាននៅក្នុង bundle នោះទេ។
+សម្រាប់អ្នកប្រើប្រាស់ដែល pipeline របស់ពួកគេមិនអាចបន្ធូរបន្ថយ alert បាន៖ សូម build ដោយប្រើ
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`។ វាជំនួស module រសើបទាំងបួន
+ដោយ stubs ដែលត្រឡប់ HTTP 503 `feature-disabled` នៅពេល runtime
+ដូច្នេះ code paths ដែលមានសិទ្ធិខ្ពស់មិនមាននៅក្នុង bundle នោះទេ។
 សូមមើល [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-សម្រាប់វិធីសាស្ត្របោះពុម្ព។
+សម្រាប់ដំណើរការនៃការ publish។
 
 ## ឯកសារយោង
 

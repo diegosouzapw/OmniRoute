@@ -7,38 +7,37 @@
 Ọ̀nà méjì láti fi Cursor sí ẹ̀yìn OmniRoute láìsí sáẹ́ṣọ̀nù IDE:
 
 1. **Olùpèsè `cursor-api`** (káàdì "Cursor API", orúkọ àpèjúwe `cua`): olùpèsè kọ́kọ́rọ́ API
-   tí ó ń tọ́jú kọ́kọ́rọ́ API olumulo Cursor (`crsr_…`, tí a ṣẹ̀dá ní
+   kan tí ó ń tọ́jú kọ́kọ́rọ́ API olumulo Cursor (`crsr_…`, tí a ṣẹ̀dá ní
    `https://cursor.com/dashboard/api`). Lẹ́yìn náà, oníbàárà OmniRoute èyíkéyìí lè ráyè sí
    àwọn àwòṣe Cursor nípasẹ̀ `/v1/chat/completions` gẹ́gẹ́ bí `cursor-api/<model>` tàbí
-   `cua/<model>`, pẹ̀lú àwọn ìpele ìpín, àṣàyàn ìpadà àti àkọsílẹ̀ déédéé. Olùpèsè IDE
+   `cua/<model>`, pẹ̀lú àwọn ìpele ìwọ̀n-lílò, ìyípadà-àfẹ́yìntì, àti ìkọ̀sílẹ̀ àkọsílẹ̀ tí ó wọ́pọ̀. Olùpèsè IDE
    (`cursor`, OAuth/sáẹ́ṣọ̀nù IDE) kò yí padà.
-2. **Ìfiránṣẹ́ Cursor CLI taara**: tọ́ka Cursor CLI (`agent`) sí OmniRoute kí
-   gbogbo RPC tí CLI bá ṣe lè jẹ́rìísí pẹ̀lú kọ́kọ́rọ́ API OmniRoute, kí a sì firánṣẹ́ rẹ̀
-   sí Cursor pẹ̀lú ẹ̀rí ìdánimọ̀ àsopọ̀ `cursor-api`, kí a sì gbà á sílẹ̀ ní
+2. **Ìfiránṣẹ́-taara Cursor CLI**: tọ́ka Cursor CLI (`agent`) sí OmniRoute kí
+   gbogbo RPC tí CLI bá ṣe lè jẹ́rìísí pẹ̀lú kọ́kọ́rọ́ API OmniRoute, kí a sì darí rẹ̀
+   sí Cursor pẹ̀lú ẹ̀rí ìdánimọ̀ àsopọ̀ `cursor-api`, kí a sì kọ ọ́ sílẹ̀ ní
    ojú-ewé Logs.
 
-## Ìdí tí a fi ń pààrọ̀ kọ́kọ́rọ́ náà
+## Ìdí tí a fi ń pàṣípààrọ̀ kọ́kọ́rọ́ náà
 
-`api2.cursor.sh` kọ kọ́kọ́rọ́ `crsr_…` aláìyípadà gẹ́gẹ́ bí àmì Bearer (401). Cursor
-CLI kọ́kọ́ POST kọ́kọ́rọ́ náà sí `/auth/exchange_user_api_key`, ó sì gba JWT
-sáẹ́ṣọ̀nù kan tí yóò dópin lẹ́yìn wákàtí kan; `refreshToken` tí a dá padà ní
-`exp` kan náà, nítorí náà ìsọdọ̀tun túmọ̀ sí ṣíṣàpàrọ̀ kọ́kọ́rọ́ náà lẹ́ẹ̀kan sí i.
-`open-sse/services/cursorApiKeyAuth.ts` ń ṣe pàṣípààrọ̀ náà, ó ń pa àmì sáẹ́ṣọ̀nù
-kan mọ́ fún kọ́kọ́rọ́ kọ̀ọ̀kan, ó ń ṣe pàṣípààrọ̀ lẹ́ẹ̀kan sí i ní ìṣẹ́jú márùn-ún
-ṣáájú ìparí rẹ̀, ó sì ń yọ àmì tí a pa mọ́ kúrò nígbà tí Cursor bá dáhùn 401.
-`CursorExecutor` ń pè é lẹ́sẹ̀kẹsẹ̀ ṣáájú ṣíṣí ìṣàn òkè fún àwọn àsopọ̀
-`cursor-api`.
+`api2.cursor.sh` kọ kọ́kọ́rọ́ `crsr_…` àìṣe-àtúnṣe gẹ́gẹ́ bí tọ́kìnì Bearer (401). Cursor
+CLI kọ́kọ́ fi kọ́kọ́rọ́ náà ránṣẹ́ pẹ̀lú POST sí `/auth/exchange_user_api_key`, ó sì gba JWT
+sáẹ́ṣọ̀nù kan tí yóò dópin lẹ́yìn wákàtí kan; `refreshToken` tí a dá padà ní `exp`
+kan náà, nítorí náà ìsọdọ̀tun túmọ̀ sí ṣíṣe pàṣípààrọ̀ kọ́kọ́rọ́ náà lẹ́ẹ̀kan sí i.
+`open-sse/services/cursorApiKeyAuth.ts` ló ń ṣe pàṣípààrọ̀ yẹn, ó ń tọ́jú tọ́kìnì sáẹ́ṣọ̀nù
+kan fún kọ́kọ́rọ́ kọ̀ọ̀kan sínú cache, ó tún ń pàṣípààrọ̀ rẹ̀ ní ìṣẹ́jú márùn-ún ṣáájú kí ó tó dópin, ó sì ń yọ
+tọ́kìnì tí a tọ́jú sínú cache kúrò nígbà tí Cursor bá dáhùn pẹ̀lú 401. `CursorExecutor` ń pè é lẹ́sẹ̀kẹsẹ̀ ṣáájú
+ṣíṣí ìṣàn upstream fún àwọn àsopọ̀ `cursor-api`.
 
 ## Olùpèsè `cursor-api`
 
-Ìforúkọsílẹ̀: `open-sse/config/providers/registry/cursor/index.ts`
-(`cursor_apiProvider`, `authType: "apikey"`, `format`, `baseUrl` àti
-`models` kan náà bí `cursor`). Káàdì àkójọ:
-`src/shared/constants/providers/apikey/specialty-media.ts`. Máàpù olùmúṣẹ:
+Àkọsílẹ̀: `open-sse/config/providers/registry/cursor/index.ts`
+(`cursor_apiProvider`, `authType: "apikey"`, `format`, `baseUrl`, àti
+`models` kan náà bí `cursor`). Káàdì katalogi:
+`src/shared/constants/providers/apikey/specialty-media.ts`. Máàpù executor:
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
 
-Páànù ìṣàkóso: Providers → Cursor API → Add API key.
+Pánẹ́ẹ̀lì ìṣàkóso: Providers → Cursor API → Add API key.
 
 REST:
 
@@ -59,45 +58,55 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Àwọn àkíyèsí:
 
-- Àkójọ àwòṣe fún `cursor-api` wá láti ìforúkọsílẹ̀ Cursor tí kò yí padà
-  (àkójọ kan náà tí olùpèsè IDE máa ń lò gẹ́gẹ́ bí àṣàyàn ìpadà); kò sí ìgbéwọlé
-  `cursor-agent` tí a nílò lórí olùgbàlejò OmniRoute.
+- Àtòjọ àwòṣe fún `cursor-api` wá láti inú àkọsílẹ̀ Cursor aláìyípadà (àtòjọ
+  kan náà tí olùpèsè IDE máa ń yípadà padà sí); kò pọn dandan láti fi `cursor-agent`
+  sori host OmniRoute.
 - `POST /api/providers/{id}/refresh-cursor` jẹ́ fún olùpèsè IDE `cursor`
-  nìkan; àwọn àsopọ̀ `cursor-api` kò ní sáẹ́ṣọ̀nù IDE láti sọ di tuntun.
+  nìkan; àwọn àsopọ̀ `cursor-api` kò ní sáẹ́ṣọ̀nù IDE láti sọ di ọ̀tun.
 
-## Ìfiránṣẹ́ Cursor CLI taara
+## Àwọn ID àwòṣe abinibi àti ìpele ìsapá
+
+Fún `cursor` / `cu` àti `cursor-api` / `cua`, olùṣe-àtúnṣe ìsapá Claude tí wọ́n pín pọ̀
+fi ID àwòṣe tí a béèrè sílẹ̀ láìyípadà. Cursor lè polówó suffix bíi
+`-low` gẹ́gẹ́ bí apá kan ti ID àwòṣe gidi, dípò bí orúkọ àpèjúwe ìsapá OmniRoute.
+Cursor executor ń pa ìbámu pípé pẹ̀lú katalogi tó wà láàyè mọ́; nígbà tí kò bá sí
+ìbámu, model resolver tó ti wà tẹ́lẹ̀ ló ń ṣàkóso ìyípadà suffix-sí-parameter.
+
+Èyí kò yí ìṣe àtúnṣe ìsapá padà fún Claude tààrà, àwọn ipa-ọ̀nà tó bá Claude mu,
+tàbí Vertex. Wíwà lárọwọ́tó ṣì sinmi lórí katalogi àti ẹ̀tọ́
+àkọọ́lẹ̀ Cursor tí a yàn.
+
+## Ìfiránṣẹ́-taara Cursor CLI
 
 Ọ̀nà: `src/app/api/cursor-cli/[...path]/route.ts` →
-`open-sse/handlers/cursorCliProxy.ts`. A forúkọsílẹ̀ ìpele ìbẹ̀rẹ̀ `/api/cursor-cli/`
+`open-sse/handlers/cursorCliProxy.ts`. A forúkọsílẹ̀ àfikún-ọ̀nà `/api/cursor-cli/`
 nínú `src/shared/constants/publicApiRoutes.ts` nítorí pé olùmúlò náà
-ń fipá mú ìfàṣẹ̀sí tirẹ̀:
+ń fipá mú ìfàṣẹsí tirẹ̀:
 
-| Ọ̀nà                                                                                                                           | Ìfàṣẹ̀sí tí a retí láti ọ̀dọ̀ CLI | Ohun tí OmniRoute ń ṣe                                                                                                                                      |
-| ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                            | `Bearer <OmniRoute API key>`   | Ń fìdí kọ́kọ́rọ́ náà múlẹ̀, ó ń ṣẹ̀dá JWT HS256 oníwákàtí 1 (tí a fọwọ́ sí pẹ̀lú `JWT_SECRET`), ó sì ń dá a padà                                                   |
-| gbogbo ọ̀nà mìíràn (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`            | Ń ṣàyẹ̀wò olùfúnni/olùgbà/ìparí, ó ń yan àsopọ̀ `cursor-api` tí ń ṣiṣẹ́, ó ń pààrọ̀ akọsori Authorization fún àmì Cursor tí a ti pààrọ̀, ó sì ń san èsì náà padà |
+| Ọ̀nà                                                                                                                           | Ìfàṣẹsí tí a ń retí láti CLI | Ohun tí OmniRoute ń ṣe                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                            | `Bearer <OmniRoute API key>` | Ó ń fìdí kọ́kọ́rọ́ náà múlẹ̀, ó ń ṣẹ̀dá JWT HS256 ọlọ́wọ́ wákàtí 1 (tí a fọwọ́ sí pẹ̀lú `JWT_SECRET`), ó sì ń dá a padà                                                    |
+| gbogbo ọ̀nà mìíràn (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`          | Ó ń ṣàyẹ̀wò olùfúnni/olùgbà/àsìkò ìparí, ó ń yan àsopọ̀ `cursor-api` tó ń ṣiṣẹ́, ó ń fi token Cursor tí a pààrọ̀ sípò àkọlé Authorization, ó sì ń san ìdáhùn náà padà |
 
-CLI ń tú `exp` láti inú àmì èyíkéyìí tí ó bá gbà, nítorí náà fífún un ní àmì
-tí kò ṣe kedere máa ń jẹ́ kí ó tún ṣe pàṣípààrọ̀ ṣáájú ó fẹ́rẹ̀ẹ́ jẹ́ gbogbo ìbéèrè;
-JWT tí a ṣẹ̀dá náà ń dènà ìyẹn. 401 láti OmniRoute máa ń jẹ́ kí CLI tún ṣe
-pàṣípààrọ̀.
+CLI ń tú `exp` jáde láti inú èyíkéyìí token tí ó bá gbà, nítorí náà fífi token
+àìhàn sí i ń mú kí ó tún ṣe pàṣípààrọ̀ ṣáájú ó fẹ́rẹ̀ẹ́ jẹ́ gbogbo ìbéèrè; JWT tí
+a ṣẹ̀dá yìí ń dènà èyí. 401 láti OmniRoute ń mú kí CLI tún ṣe pàṣípààrọ̀.
 
 ### Ìṣètò
 
-1. Ṣẹ̀dá kọ́kọ́rọ́ API OmniRoute kan (Dashboard → API keys) àti àsopọ̀
-   `cursor-api` kan.
-2. Sọ fún CLI pé kí ó lo HTTP/1.1 fún ìṣàn aṣojú náà. Nínú
+1. Ṣẹ̀dá kọ́kọ́rọ́ API OmniRoute kan (Dashboard → API keys) àti àsopọ̀ `cursor-api`
+   kan.
+2. Sọ fún CLI láti lo HTTP/1.1 fún ìṣàn agent náà. Nínú
    `~/.cursor/cli-config.json`:
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Láìsí èyí, CLI máa ń ṣí ìyípo aṣojú náà lórí HTTP/2 sí olùgbàlejò aṣojú
-   tí a ṣètò lọ́tọ̀, àwọn RPC ìpele-ìṣàkóso nìkan sì ni yóò kọjá nípasẹ̀
-   ibi ìparí náà.
+   Láìsí èyí, CLI yóò ṣí ìbánisọ̀rọ̀ agent náà lórí HTTP/2 sí host agent tí a
+   ṣètò lọ́tọ̀, àwọn RPC pẹ̀tẹ́lẹ̀-ìṣàkóso nìkan ni yóò sì gba endpoint náà kọjá.
 
-3. Ṣiṣẹ́ CLI sí OmniRoute:
+3. Ṣiṣẹ́ CLI pẹ̀lú OmniRoute:
 
    ```bash
    export CURSOR_API_ENDPOINT=http://localhost:20128/api/cursor-cli
@@ -105,19 +114,19 @@ pàṣípààrọ̀.
    agent -p --trust "Reply with exactly OK"
    ```
 
-Gbogbo ìgbésẹ̀ máa ń wọ Logs gẹ́gẹ́ bí olùpèsè `cursor-api`, irú ìbéèrè
-`cursor-cli`, ọ̀nà `/api/cursor-cli/<rpc>`, tí a so mọ́ kọ́kọ́rọ́ API OmniRoute
-àti àsopọ̀ tí ó ṣiṣẹ́ fún un.
+Gbogbo ìgbésẹ̀ ń dé inú Logs gẹ́gẹ́ bí olupèsè `cursor-api`, irú ìbéèrè
+`cursor-cli`, ọ̀nà `/api/cursor-cli/<rpc>`, tí a sì dá mọ́ kọ́kọ́rọ́ API OmniRoute
+àti àsopọ̀ tó ṣiṣẹ́ fún un.
 
 ### Àwọn ipò ìkùnà
 
-| Ipo                                              | Ìdáhùn sí CLI                                     |
-| ------------------------------------------------ | ------------------------------------------------- |
-| Kọ́kọ́rọ́ OmniRoute àìmọ̀ àti `REQUIRE_API_KEY=true` | 401 `unauthenticated` nígbà pàṣípààrọ̀             |
-| `REQUIRE_API_KEY=false`                          | sáà aláìlórúkọ (ó ṣe bí ìhùwàsí `/v1/*`)          |
-| JWT sáà tó ti parí / ti òkèèrè / tí a ti yí padà | 401, CLI tún ṣe pàṣípààrọ̀                         |
-| Kọ́kọ́rọ́ API OmniRoute tí a fagilé lẹ́yìn pàṣípààrọ̀ | 401 lórí RPC tó tẹ̀lé                              |
-| Kò sí àsopọ̀ `cursor-api` tó ń ṣiṣẹ́               | 503 `unavailable`                                 |
-| Cursor kọ kọ́kọ́rọ́ àsopọ̀ náà                       | 401 `unauthenticated`, a pa sáà tó wà ní cache rẹ́ |
-| A kò lè dé upstream                              | 502 `unavailable` (ifiranṣẹ́ tí a ti sọ di mímọ́)   |
-| A kò ṣètò `JWT_SECRET`                           | 503 nígbà pàṣípààrọ̀                               |
+| Ipò                                                  | Ìdáhùn sí CLI                                   |
+| ---------------------------------------------------- | ----------------------------------------------- |
+| Kọ́kọ́rọ́ OmniRoute àìmọ̀ àti `REQUIRE_API_KEY=true`     | 401 `unauthenticated` nígbà pàṣípààrọ̀           |
+| `REQUIRE_API_KEY=false`                              | session aláìlórúkọ (bí ìhùwàsí `/v1/*`)         |
+| JWT session tó ti parí / ti òkèèrè / tí a ti yí padà | 401, CLI yóò tún ṣe pàṣípààrọ̀                   |
+| A fagilé kọ́kọ́rọ́ API OmniRoute lẹ́yìn pàṣípààrọ̀        | 401 lórí RPC tó kàn                             |
+| Kò sí àsopọ̀ `cursor-api` tó ń ṣiṣẹ́                   | 503 `unavailable`                               |
+| Cursor kọ kọ́kọ́rọ́ àsopọ̀ náà                           | 401 `unauthenticated`, a yọ session inú cache   |
+| A kò lè dé upstream                                  | 502 `unavailable` (ìfiránṣẹ́ tí a ti sọ di mímọ́) |
+| A kò ṣètò `JWT_SECRET`                               | 503 nígbà pàṣípààrọ̀                             |

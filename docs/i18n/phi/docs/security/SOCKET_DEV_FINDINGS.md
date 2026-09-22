@@ -4,21 +4,23 @@
 
 ---
 
-Ang dokumentong ito ang pagpapatunay na isinulat ng maintainer para sa anim na
+> **Tala sa saklaw:** Kino-configure ng `socket.yml` ang registry-side post-publish scan ng Socket.dev sa npm artifact (mga ignore-path para sa content na hindi kasama sa ipinapadalang package gaya ng `tests/`, `docs/`, at mga ulat sa build). Hindi ito nagse-set up ng CI/PR merge gate — walang workflow sa `.github/workflows`, script sa `package.json`, o target sa `Makefile` na tumatawag sa Socket.dev.
+
+Ang dokumentong ito ay ang attestation na isinulat ng maintainer para sa anim na
 natuklasang `AI-detected potential malware` laban sa `omniroute@3.8.5` at
-sa mga mitigasyong inilapat sa `omniroute@3.8.6`. Umiiral ito upang:
+sa mga mitigation na inilapat sa `omniroute@3.8.6`. Narito ito upang:
 
 1. Magkaroon ang mga operator ng security pipeline ng iisang sanggunian na mababanggit kapag kailangan nilang
-   suriin ang mga natuklasan laban sa aktuwal na source.
+   suriin ang mga natuklasan batay sa aktuwal na source.
 2. Matukoy ng mga AI scanner sa hinaharap ang claim na nilagdaan ng maintainer na ang bawat
    na-flag na path ay sinadya, opt-in, at dokumentado.
 3. Magkaroon tayo ng nakasulat na tala kung _bakit_ ganito ang pagkakabuo ng bawat call site —
-   upang hindi aksidenteng maibalik ng isang refactor sa hinaharap ang isang fingerprint na
+   upang hindi aksidenteng maibalik ng refactor sa hinaharap ang isang fingerprint na
    sadyang inalis.
 
-Kung nagpapatakbo ka ng scanner na muling nagfa-flag sa alinman sa mga call site sa ibaba pagkatapos
-mailabas ang mga mitigasyon ng v3.8.6, mangyaring magbukas ng issue kasama ang scan trace at
-palalawakin namin ang pagpapatunay dito.
+Kung nagpapatakbo kayo ng scanner na muling nagfa-flag sa alinman sa mga call site sa ibaba matapos
+mailabas ang mga mitigation sa v3.8.6, mangyaring magbukas ng issue kasama ang scan trace at
+palalawakin namin dito ang attestation.
 
 ---
 

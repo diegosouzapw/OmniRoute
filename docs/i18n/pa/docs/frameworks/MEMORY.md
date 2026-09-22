@@ -152,33 +152,35 @@ RRF ਨੂੰ ਵਿਭਿੰਨ ਪ੍ਰਾਪਤੀ ਸਿਸਟਮਾਂ ਵ
 
 ## ਸੈਟਿੰਗਾਂ ਦਾ ਵਿਸਤਾਰ
 
-`MemorySettingsExtended` ਵਿੱਚ ਨੌਂ embedding ਅਤੇ vector ਫੀਲਡ ਉਪਲਬਧ ਹਨ, ਜੋ
-`src/shared/schemas/memory.ts` ਵਿੱਚ ਹਨ ਅਤੇ `src/lib/db/settings.ts` ਰਾਹੀਂ ਸਥਾਈ ਤੌਰ 'ਤੇ ਸੰਭਾਲੇ ਜਾਂਦੇ ਹਨ:
+`MemorySettingsExtended` ਵਿੱਚ ਨੌਂ ਐਮਬੈਡਿੰਗ ਅਤੇ ਵੈਕਟਰ ਫ਼ੀਲਡ ਉਪਲਬਧ ਹਨ, ਜੋ
+`src/shared/schemas/memory.ts` ਵਿੱਚ ਪਰਿਭਾਸ਼ਿਤ ਹਨ ਅਤੇ `src/lib/db/settings.ts` ਰਾਹੀਂ ਸਥਾਈ ਤੌਰ 'ਤੇ ਸੰਭਾਲੇ ਜਾਂਦੇ ਹਨ:
 
-| ਫੀਲਡ                     | ਕਿਸਮ                                               | ਡਿਫਾਲਟ   | ਵੇਰਵਾ                                                          |
-| ------------------------ | -------------------------------------------------- | -------- | -------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | ਵਰਤਿਆ ਜਾਣ ਵਾਲਾ embedding ਸਰੋਤ                                  |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ਫਾਰਮੈਟ ਵਿੱਚ ਪ੍ਰਦਾਤਾ/ਮਾਡਲ                      |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | ਸਿਰਫ਼ Memory ਲਈ OpenAI-ਅਨੁਕੂਲ endpoint ਦਾ ਬੇਸ URL              |
-| `customModelId`          | `string \| null`                                   | `null`   | ਕਸਟਮ endpoint ਨੂੰ ਭੇਜੀ ਜਾਣ ਵਾਲੀ ਮਾਡਲ ID                        |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js (MiniLM, ~400MB) ਲਈ ਚੋਣਵੀਂ ਸਹਿਮਤੀ              |
-| `staticEnabled`          | `boolean`                                          | `false`  | static potion-base-8M ਲੋਕਲ ਮਾਡਲ ਲਈ ਚੋਣਵੀਂ ਸਹਿਮਤੀ               |
-| `rerankEnabled`          | `boolean`                                          | `false`  | ਮੁੜ-ਰੈਂਕਿੰਗ ਪੜਾਅ ਸਮਰੱਥ ਕਰੋ (ਹਰ ਬੇਨਤੀ ਵਿੱਚ +200-500ms ਜੋੜਦਾ ਹੈ) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ਫਾਰਮੈਟ ਵਿੱਚ ਮੁੜ-ਰੈਂਕ ਪ੍ਰਦਾਤਾ/ਮਾਡਲ             |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | ਵਰਤਿਆ ਜਾਣ ਵਾਲਾ vector backend                                  |
+| ਫ਼ੀਲਡ                    | ਕਿਸਮ                                               | ਡਿਫੌਲਟ   | ਵੇਰਵਾ                                                 |
+| ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | ਵਰਤਿਆ ਜਾਣ ਵਾਲਾ ਐਮਬੈਡਿੰਗ ਸਰੋਤ                          |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ਫਾਰਮੈਟ ਵਿੱਚ ਪ੍ਰਦਾਤਾ/ਮਾਡਲ             |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | ਸਿਰਫ਼ ਮੈਮਰੀ ਲਈ OpenAI-ਅਨੁਕੂਲ ਐਂਡਪੌਇੰਟ ਦਾ ਮੂਲ URL      |
+| `customModelId`          | `string \| null`                                   | `null`   | ਕਸਟਮ ਐਂਡਪੌਇੰਟ ਨੂੰ ਭੇਜੀ ਜਾਣ ਵਾਲੀ ਮਾਡਲ ID               |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js (MiniLM, ~400MB) ਲਈ ਚੋਣਵੀਂ ਸਹਿਮਤੀ     |
+| `staticEnabled`          | `boolean`                                          | `false`  | ਸਥਿਰ potion-base-8M ਲੋਕਲ ਮਾਡਲ ਲਈ ਚੋਣਵੀਂ ਸਹਿਮਤੀ        |
+| `rerankEnabled`          | `boolean`                                          | `false`  | ਮੁੜ-ਰੈਂਕਿੰਗ ਪੜਾਅ ਸਮਰੱਥ ਕਰੋ (+200-500ms/req ਜੋੜਦਾ ਹੈ)  |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ਫਾਰਮੈਟ ਵਿੱਚ ਮੁੜ-ਰੈਂਕਿੰਗ ਪ੍ਰਦਾਤਾ/ਮਾਡਲ |
 
-ਇਨ੍ਹਾਂ ਨੂੰ `GET /PUT /api/settings/memory` (ਸਕੀਮਾ `MemorySettingsExtendedSchema`) ਰਾਹੀਂ ਉਪਲਬਧ ਕਰਵਾਇਆ ਗਿਆ ਹੈ।
+`rerankProviderModel` ਨੂੰ `POST /v1/rerank` ਦੁਆਰਾ ਹੱਲ ਕੀਤਾ ਜਾਂਦਾ ਹੈ (ਲੂਪਬੈਕ ਰਾਹੀਂ ਕਾਲ ਕੀਤਾ ਜਾਂਦਾ ਹੈ), ਇਸ ਲਈ ਇਹ ਉਸ ਰੂਟ ਦੁਆਰਾ ਸਵੀਕਾਰ ਕੀਤੀ ਜਾਣ ਵਾਲੀ ਹਰ ਚੀਜ਼ ਨੂੰ ਸਵੀਕਾਰ ਕਰਦਾ ਹੈ: ਇੱਕ ਚੁਣਿਆ ਹੋਇਆ ਕਲਾਉਡ ਮੁੜ-ਰੈਂਕਿੰਗ ਮਾਡਲ (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ਜਾਂ `<node-prefix>/<model>` ਦੇ ਰੂਪ ਵਿੱਚ ਇੱਕ OpenAI-ਅਨੁਕੂਲ ਪ੍ਰਦਾਤਾ ਨੋਡ (ਉਦਾਹਰਨ ਲਈ, ਕਿਸੇ TEI/Infinity ਬਾਕਸ ਵਾਸਤੇ `skilled-mini/bge-reranker-v2-m3`)। ਲੂਪਬੈਕ ਨੋਡ ਹਮੇਸ਼ਾ ਯੋਗ ਹੁੰਦੇ ਹਨ; ਕਿਸੇ ਹੋਰ ਹੋਸਟ (LAN, Tailscale) 'ਤੇ ਮੌਜੂਦ ਨੋਡ ਲਈ ਇਸ ਤੋਂ ਇਲਾਵਾ `RERANK_REMOTE_PROVIDER_NODES` ਫੀਚਰ ਫਲੈਗ ਲੋੜੀਂਦਾ ਹੈ ਅਤੇ ਉਸ ਨੂੰ ਪ੍ਰਦਾਤਾ ਦੀ ਆਉਟਬਾਊਂਡ URL ਨੀਤੀ ਪਾਸ ਕਰਨੀ ਲਾਜ਼ਮੀ ਹੈ — [ਫੀਚਰ ਫਲੈਗ](../reference/FEATURE_FLAGS.md) ਵੇਖੋ। ਡੈਸ਼ਬੋਰਡ ਚੋਣਕਾਰ ਚੁਣੇ ਹੋਏ ਪ੍ਰਦਾਤਾਵਾਂ ਦੇ ਨਾਲ ਲੋਕਲ ਨੋਡ ਵੀ ਸੂਚੀਬੱਧ ਕਰਦਾ ਹੈ; ਕੋਈ ਵੀ ਵੈਧ `provider/model` ਸਟਰਿੰਗ ਸਿੱਧੇ `PUT /api/settings/memory` ਰਾਹੀਂ ਸੈੱਟ ਕੀਤੀ ਜਾ ਸਕਦੀ ਹੈ।
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | ਵਰਤਿਆ ਜਾਣ ਵਾਲਾ ਵੈਕਟਰ ਬੈਕਐਂਡ |
 
-`remote` ਸਰੋਤ ਲਈ, Memory ਚੋਣਵੀਆਂ `customBaseUrl` ਅਤੇ
-`customModelId` ਸੈਟਿੰਗਾਂ ਵੀ ਸਵੀਕਾਰ ਕਰਦੀ ਹੈ। ਇਕੱਠਿਆਂ ਇਹ ਗਲੋਬਲ embedding ਰਜਿਸਟਰੀ ਨੂੰ ਬਦਲੇ ਬਿਨਾਂ
-ਇੱਕ OpenAI-ਅਨੁਕੂਲ `/embeddings` endpoint ਅਤੇ ਮਾਡਲ ਚੁਣਦੀਆਂ ਹਨ। ਵਰਤੋਂ ਤੋਂ ਪਹਿਲਾਂ endpoint ਨੂੰ
-ਸਧਾਰਣ ਰੂਪ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ ਅਤੇ ਪ੍ਰਦਾਤਾ ਦੀ outbound URL ਨੀਤੀ ਦੁਆਰਾ ਜਾਂਚਿਆ ਜਾਂਦਾ ਹੈ: HTTP(S)
-ਲਾਜ਼ਮੀ ਹੈ, ਸ਼ਾਮਲ ਕੀਤੇ credentials ਅਤੇ query strings ਰੱਦ ਕਰ ਦਿੱਤੇ ਜਾਂਦੇ ਹਨ, ਅਤੇ cloud-metadata
-ਪਤੇ ਬਲਾਕ ਰਹਿੰਦੇ ਹਨ। ਖਾਲੀ ਮੁੱਲ ਚੁਣੇ ਹੋਏ ਰਜਿਸਟਰੀ ਪ੍ਰਦਾਤਾ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਦੇ ਹਨ। ਡੈਸ਼ਬੋਰਡ ਨੂੰ
-ਵਾਪਸ ਕੀਤੀਆਂ ਗਲਤੀਆਂ ਨੂੰ ਸੁਰੱਖਿਅਤ ਬਣਾਇਆ ਜਾਂਦਾ ਹੈ ਅਤੇ endpoint credentials ਨੂੰ ਕਦੇ ਵੀ ਲੌਗ ਨਹੀਂ ਕੀਤਾ ਜਾਂਦਾ।
+ਇਹ `GET /PUT /api/settings/memory` (ਸਕੀਮਾ `MemorySettingsExtendedSchema`) ਰਾਹੀਂ ਉਪਲਬਧ ਕਰਵਾਏ ਜਾਂਦੇ ਹਨ।
 
-> **TODO (D20):** `global` ਸਕੋਪ (ਸਾਰੀਆਂ API keys ਵਿੱਚ memories ਸਾਂਝੀਆਂ ਕਰਨਾ) ਇਸ
-> ਰਿਲੀਜ਼ ਵਿੱਚ ਲਾਗੂ ਨਹੀਂ ਕੀਤਾ ਗਿਆ। ਇਸ ਲਈ ਸਕੀਮਾ ਬਦਲਾਅ ਅਤੇ ਇੱਕ ਗਲੋਬਲ retrieval
+`remote` ਸਰੋਤ ਲਈ, ਮੈਮਰੀ ਵਿਕਲਪਿਕ `customBaseUrl` ਅਤੇ
+`customModelId` ਸੈਟਿੰਗਾਂ ਨੂੰ ਵੀ ਸਵੀਕਾਰ ਕਰਦੀ ਹੈ। ਇਕੱਠੇ ਮਿਲ ਕੇ, ਇਹ ਗਲੋਬਲ ਐਮਬੈਡਿੰਗ ਰਜਿਸਟਰੀ ਨੂੰ ਬਦਲੇ ਬਿਨਾਂ ਇੱਕ OpenAI-ਅਨੁਕੂਲ `/embeddings`
+ਐਂਡਪੌਇੰਟ ਅਤੇ ਮਾਡਲ ਦੀ ਚੋਣ ਕਰਦੇ ਹਨ। ਵਰਤੋਂ ਤੋਂ ਪਹਿਲਾਂ ਐਂਡਪੌਇੰਟ ਨੂੰ
+ਨਾਰਮਲਾਈਜ਼ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਅਤੇ ਪ੍ਰਦਾਤਾ ਦੀ ਆਉਟਬਾਊਂਡ URL ਨੀਤੀ ਦੁਆਰਾ ਜਾਂਚਿਆ ਜਾਂਦਾ ਹੈ: HTTP(S)
+ਲੋੜੀਂਦਾ ਹੈ, ਸ਼ਾਮਲ ਕੀਤੇ ਗਏ ਪ੍ਰਮਾਣ-ਪੱਤਰ ਅਤੇ ਕਵੇਰੀ ਸਟਰਿੰਗਾਂ ਨੂੰ ਰੱਦ ਕੀਤਾ ਜਾਂਦਾ ਹੈ, ਅਤੇ ਕਲਾਉਡ-ਮੈਟਾਡਾਟਾ
+ਪਤੇ ਬਲੌਕ ਹੀ ਰਹਿੰਦੇ ਹਨ। ਖਾਲੀ ਮੁੱਲ ਚੁਣੇ ਹੋਏ ਰਜਿਸਟਰੀ ਪ੍ਰਦਾਤਾ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਦੇ ਹਨ। ਡੈਸ਼ਬੋਰਡ ਨੂੰ
+ਵਾਪਸ ਕੀਤੀਆਂ ਗਲਤੀਆਂ ਨੂੰ ਸੁਰੱਖਿਅਤ ਬਣਾਇਆ ਜਾਂਦਾ ਹੈ ਅਤੇ ਐਂਡਪੌਇੰਟ ਪ੍ਰਮਾਣ-ਪੱਤਰ ਕਦੇ ਵੀ ਲੌਗ ਨਹੀਂ ਕੀਤੇ ਜਾਂਦੇ।
+
+> **TODO (D20):** `global` ਸਕੋਪ (ਸਾਰੀਆਂ API ਕੁੰਜੀਆਂ ਵਿਚਕਾਰ ਮੈਮਰੀਆਂ ਸਾਂਝੀਆਂ ਕਰਨਾ) ਇਸ
+> ਰਿਲੀਜ਼ ਵਿੱਚ ਲਾਗੂ ਨਹੀਂ ਕੀਤਾ ਗਿਆ। ਇਸ ਲਈ ਸਕੀਮਾ ਵਿੱਚ ਤਬਦੀਲੀਆਂ ਅਤੇ ਇੱਕ ਗਲੋਬਲ ਪ੍ਰਾਪਤੀ
 > ਪਾਥ ਦੀ ਲੋੜ ਹੈ। ਇਸਨੂੰ ਵੱਖਰੇ ਤੌਰ 'ਤੇ ਟਰੈਕ ਕਰੋ।
 
 ## ਸਟੋਰੇਜ ਪਰਤਾਂ

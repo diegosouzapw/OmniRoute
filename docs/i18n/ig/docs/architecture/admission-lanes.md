@@ -6,48 +6,56 @@
 
 OmniRoute nwere usoro lane abụọ dị n'ime process, nke ọ bụla nwere oke ọrụ dị iche. Ha na-arụkọ ọrụ ọnụ; ndị na-ahụ maka sistemụ kwesịrị ịma nke ha na-ele anya na ya.
 
-## 1. Nnabata n'ogo byte n'ofe process (`chatBodyAdmission.ts`)
+## 1. Nnabata n'ogo byte maka usoro niile (`chatBodyAdmission.ts`)
 
 - **Oke ọrụ:** ụzọ buffered-body/heap maka `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses`, na route ndị ọzọ yiri chat. Ọ na-echebe
-  megide mmụba heap nke body buru ibu sitere na coding-agent (#4380).
-- **Otu controller zuru process niile, ọ bụghị lane dị iche maka key ọ bụla (#10110).** API key
-  ọ bụla (nke e mere hash) ma ọ bụ session `anonymous` na-arịọ nnabata site na budget
-  **otu** a na-ekekọrịta — a na-eji session id e mere hash NANA dịka key maka ịhazi
-  izi ezi (round-robin dispatch n'etiti ndị na-echere), ọ bụghị dịka shard capacity.
-  Ụdị doc a gara aga kọwara lane dị iche maka key ọ bụla nwere capacity nke onwe ya;
-  e wepụrụ model ahụ na #10110 n'ihi na ọ na-enye ohere ka credential adịgboroja
-  ndị na-enweghị authentication mụbaa oke zuru process niile.
-- **Gate (#503-fanout): budget BYTE ingest a na-enweta na-akpaghị aka, ọ bụghị ọnụ ọgụgụ request
-  edoziri.** Oke ochie nke `CHAT_MAX_HEAVY_IN_FLIGHT` dabere n'ọnụ ọgụgụ request (default `1`
-  tupu ndozi a) mere ka fan-out coding-agent (ọtụtụ subagent/CLI,
-  body ndị na-abụkarị > 256 KB) daa ruo effective concurrency nke ~1, nke kpatara
-  503 n'okpuru load nkịtị kpamkpam. Ugbu a, ọ na-amalite ịchịkwa naanị mgbe operator
-  setịpụrụ `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` kpọmkwem. Ọ bụrụ na ahapụghị ya ka e setịpụ,
-  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ga-abụzi ihe na-achịkwa nnabata — budget a na-enweta
-  na-akpaghị aka site na oke memory n'ezie nke process (`src/shared/middleware/admissionBudget.ts`):
-  25% nke nke kacha nta n'etiti oke V8 heap na oke cgroup/container ọ bụla,
-  kewara ya site na factor mmụba nwa oge nke 8x, ma kpachie ya n'etiti 8 MiB na
-  2 GiB. Override akọwapụtara kpọmkwem na-eji otu oke ndị ahụ. Nke a na-agbanwe nha ya
-  n'onwe ya site na container 512 MB ruo desktop 32 GB na-enweghị env tuning. Body nke
-  na-enweghị ike ịbanye n'ime effective budget ga-ada ozugbo na `413 body_exceeds_budget`;
-  naanị esemokwu n'etiti body ndị nke ọ bụla nwere ike ijere ozi na-abanye na queue
-  izi ezi nwere oke. Tracker nrụgide resource nwere ọtụtụ signal nke na-arụ ọrụ ozugbo
-  (V8 heap ratio, cgroup, PSI, OOM events — `open-sse/utils/resourcePressurePolicy.ts`)
-  na-ebelata oge nchere nwere oke mgbe nrụgide bụ `high`, ma na-ewepụ request ozugbo site na
-  `503 resource_pressure` mgbe nrụgide bụ `critical`, tupu etinye ọbụna byte ọ bụla.
+  `/v1/messages`, `/v1/responses`, na ụzọ ndị ọzọ nwere nhazi nkata. Ọ na-echebe
+  megide mmụba heap sitere na body buru ibu nke coding-agent (#4380).
+- **Otu njikwa zuru ụwa ọnụ maka process, ọ bụghị lane dị iche maka key ọ bụla (#10110).** API key
+  ọ bụla (nke e mere hash) ma ọ bụ nnọkọ `anonymous` na-enweta nnabata site na
+  **otu** budget a na-ekekọrịta — a na-eji id nnọkọ e mere hash NANA dị ka key
+  maka ịhazi n'ụzọ ziri ezi (nkesa round-robin n'etiti ndị na-eche), ọ bụghị
+  mgbe ọ bụla dị ka shard capacity. Ụdị akwụkwọ a gara aga kọwara lane dị iche
+  maka key ọ bụla nwere capacity nke ya; ewepụrụ usoro ahụ na #10110 n'ihi na
+  ọ na-enye credential adịgboroja na-enweghị nyocha njirimara ohere ịba ụba
+  oke process niile.
+- **Ọnụ ụzọ (#503-fanout): budget BYTE ingest a na-enweta na-akpaghị aka, ọ bụghị
+  ọnụ ọgụgụ request edobere.** Oke ochie nke `CHAT_MAX_HEAVY_IN_FLIGHT` dabere
+  n'ọnụ ọgụgụ request (ndabara `1` tupu ndozi a) wedatara fan-out nke
+  coding-agent (ọtụtụ subagent/CLI, body na-adịkarị > 256 KB) ruo concurrency
+  dị irè nke ~1, nke mere ka e weghachi 503 n'okpuru ibu nkịtị kpamkpam.
+  Ugbu a, ọ na-amachi naanị mgbe onye na-ahụ maka sistemụ doro anya na-esetịpụ
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ọ bụrụ na a hapụ ya n'esetịpụghị,
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ga-achịkwa nnabata kama — budget a
+  na-enweta na-akpaghị aka site na oke memory n'ezie nke process
+  (`src/shared/middleware/admissionBudget.ts`): 25% nke nke kacha nta n'etiti
+  oke V8 heap na oke cgroup/container ọ bụla, kewara site na factor mmụba nwa
+  oge nke 8x, ma kpachie ya n'etiti 8 MiB na 2 GiB. Override ndị e nyere doro
+  anya na-eji otu oke ndị ahụ. Nke a na-agbanwe nha ya n'onwe ya site na
+  container 512 MB ruo desktop 32 GB na-enweghị nhazi env. Body na-enweghị ike
+  ịbanye n'ime budget dị irè ga-ada ozugbo na `413 body_exceeds_budget`;
+  naanị asọmpi n'etiti body ndị a pụrụ ijikwa n'otu n'otu na-abanye n'ahịrị
+  nchere ziri ezi nwere oke. Tracker nrụgide resource dị ndụ nke na-eji ọtụtụ
+  signal (oke V8 heap, cgroup, PSI, ihe omume OOM —
+  `open-sse/utils/resourcePressurePolicy.ts`) na-ebelata oge nchere nwere oke
+  n'okpuru nrụgide `high` ma na-ajụ request ozugbo site na
+  `503 resource_pressure` n'okpuru nrụgide `critical`, tupu a nata ọbụna byte
+  ọ bụla. A na-agụ PSI site na `memory.pressure` nke cgroup unit a mgbe ọ dị
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory`
+  metụtara host niile ma bụrụ naanị fallback na bare metal / cgroup v1, ya mere
+  host na-eme swapping enweghị ike ime ka container na-enweghị ọrụ weghachi 503.
 - **Nhazi:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override maka byte budget a na-enweta na-akpaghị aka
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — oke ochie dabere n'ọnụ ọgụgụ request, opt-in naanị
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — oge ichere na queue tupu 503 (default 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — valvụ heap maka byte ndị nọ na queue (default 4 MB)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override maka budget byte a na-enweta na-akpaghị aka
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — oke ochie dabere n'ọnụ ọgụgụ request, naanị site na opt-in
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — oge ichere n'ahịrị tupu 503 (ndabara 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — valvụ heap maka byte ndị nọ n'ahịrị (ndabara 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — anaghịzi akwado ha,
-    ha anaghị arụ ọrụ kemgbe #10110 (a na-anabata ha maka ndakọrịta config, mana a na-eleghara ha anya)
+    ha anaghị eme ihe kemgbe #10110 (a na-anabata ha maka ndakọrịta config, mana a na-eleghara ha anya)
 - **Akụkọ:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — gụnyere
   mgbakwunye #503-fanout ndị a: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, na `countCapEnabled`
-  (false na deployment default — nke a na-akwado na ọ bụ byte budget, ọ bụghị oke ochie
-  dabere n'ọnụ ọgụgụ, bụ ihe na-achịkwa n'ezie).
+  (false na deployment ndabara — na-akwado na budget byte, ọ bụghị oke ochie
+  dabere n'ọnụ ọgụgụ, bụ ihe na-amachi n'ezie).
 
 ## 2. Ahịrị ụzọ mebere nke runtime na-emegharị onwe ya (`open-sse/services/admission`)
 

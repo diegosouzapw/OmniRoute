@@ -66,18 +66,26 @@ Iestatiet tos OmniRoute procesa vidē (dēmonam, piemēram, izmantojot LaunchAge
 
 ---
 
-## `npm install` brīdinājumi (ERESOLVE / vienādranga atkarības / novecojušas pakotnes)
+## `npm install` brīdinājumi (`ERESOLVE` / vienādranga atkarības / novecojušas pakotnes)
 
-Palaižot `npm install -g omniroute`, var tikt parādīts liels skaits brīdinājumu, piemēram, `npm warn ERESOLVE`, paziņojumi par vienādranga atkarībām un ziņojumi `deprecated`. **Tie ir sagaidāmi un nekaitīgi.** Instalēšana ir izdevusies, ja izvadē redzat `added <N> packages`.
+Palaižot `npm install -g omniroute`, var tikt parādīts liels skaits brīdinājumu, piemēram, `npm warn ERESOLVE`, paziņojumi par vienādranga atkarībām un `deprecated` ziņojumi. **Tie ir sagaidāmi un nekaitīgi.** Instalēšana ir izdevusies, ja izvadē redzat `added <N> packages`.
 
-Brīdinājumus izraisa novecojuši vienādranga atkarību diapazoni trešo pušu pakotnēs, kuras OmniRoute nekontrolē:
+Lai nerādītu vienādranga atkarību atrisināšanas brīdinājumus, izmantojiet OmniRoute atbalstīto instalēšanas komandu:
 
-1. **`marked-terminal` pieprasa `marked >=1 <16`, bet atrasts `marked@18`** — praksē tas darbojas bez problēmām; augšupējā projekta vienādranga atkarības diapazons vienkārši ir novecojis.
-2. **`deprecated prebuild-install@7.1.3`** — tranzitīvs palīgrīks platformai specifisku bināro failu iegūšanai. Tas netiek
-   izmantots, lai instalētu fiksētās versijas `wreq-js` transporta saistījumu, un nenorāda, ka tīmekļa sīkfailu
-   nodrošinātāja transporta iestatīšana būtu neizdevusies.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Nekādas darbības nav nepieciešamas** — brīdinājumus nevar pilnībā apklusināt, neveidojot augšupējo pakotņu atzarus.
+`--legacy-peer-deps` nerāda tikai `ERESOLVE` un paziņojumus par vienādranga atkarībām. Paziņojumi par novecojušām pakotnēm joprojām ir redzami, jo tos rada tranzitīvās trešo pušu pakotnes; tie nenozīmē, ka instalēšana neizdevās.
+
+Brīdinājumus rada novecojuši vienādranga atkarību diapazoni trešo pušu pakotnēs, kuras OmniRoute nekontrolē:
+
+1. **`marked-terminal` pieprasa `marked >=1 <16`, bet atrasts `marked@18`** — praksē darbojas bez problēmām; augšupstraumes vienādranga atkarības diapazons vienkārši ir novecojis.
+2. **`deprecated prebuild-install@7.1.3`** — tranzitīvs palīgrīks vietējo bināro failu iegūšanai. Tas netiek
+   izmantots, lai instalētu fiksētās versijas `wreq-js` transporta saistījumu, un nenozīmē, ka tīmekļa sīkfailu
+   nodrošinātāja transporta iestatīšana neizdevās.
+
+**Nekāda darbība nav nepieciešama** — brīdinājumus nevar pilnībā izslēgt, neveidojot augšupstraumes pakotņu atzarus.
 
 ---
 

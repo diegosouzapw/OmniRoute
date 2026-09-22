@@ -4,22 +4,23 @@
 
 ---
 
-Ta dokument je potrdilo avtorja in vzdrževalca za šest ugotovitev
-`AI-detected potential malware`, zaznanih pri `omniroute@3.8.5`, ter za
-omilitvene ukrepe, izvedene v `omniroute@3.8.6`. Njegov namen je:
+> **Opomba glede obsega:** `socket.yml` konfigurira pregled artefakta npm po objavi na strani registra Socket.dev (poti za prezrtje vsebine, ki ni vključena v distribucijo, kot so `tests/`, `docs/` in poročila o gradnji). Ne vzpostavlja kontrolne točke za združevanje v CI/PR — noben delovni tok v `.github/workflows`, noben skript v `package.json` in noben cilj v `Makefile` ne kliče Socket.dev.
 
-1. Upravljavcem varnostnih cevovodov zagotoviti enoten vir, na katerega se
-   lahko sklicujejo pri presoji ugotovitev glede na dejansko izvorno kodo.
-2. Prihodnjim pregledovalnikom z umetno inteligenco omogočiti, da zaznajo
-   trditev, podpisano s strani vzdrževalca, da je vsaka označena pot namerna,
-   izbirna in dokumentirana.
-3. Zagotoviti pisni zapis o tem, _zakaj_ je vsako mesto klica oblikovano tako,
-   kot je — da prihodnja predelava kode ne bi pomotoma znova uvedla prstnega
-   odtisa, ki je bil namerno odstranjen.
+Ta dokument je potrdilo vzdrževalca za šest ugotovitev
+`AI-detected potential malware`, zaznanih pri `omniroute@3.8.5`, in
+omilitvene ukrepe, izvedene v `omniroute@3.8.6`. Njegovi nameni so:
 
-Če upravljate pregledovalnik, ki po izdaji omilitvenih ukrepov v v3.8.6 znova
-označi katero koli spodaj navedeno mesto klica, odprite težavo s sledjo
-pregleda in tukaj bomo razširili potrdilo.
+1. Upravljavcem varnostnega cevovoda zagotoviti enoten referenčni dokument, ki ga lahko navedejo, ko morajo
+   ugotovitve ovrednotiti glede na dejansko izvorno kodo.
+2. Prihodnjim pregledovalnikom z umetno inteligenco omogočiti, da zaznajo s strani vzdrževalca podpisano izjavo, da je vsaka
+   označena pot namerna, izbirna in dokumentirana.
+3. Zagotoviti pisni zapis o tem, _zakaj_ je vsako mesto klica oblikovano tako, kot je —
+   da prihodnje preoblikovanje kode nenamerno ne uvede znova vzorca, ki
+   je bil namenoma odstranjen.
+
+Če upravljate pregledovalnik, ki po izdaji omilitvenih ukrepov v
+v3.8.6 znova označi katero koli od spodnjih mest klica, odprite težavo s sledjo pregleda in
+tukaj bomo razširili potrdilo.
 
 ---
 

@@ -66,18 +66,26 @@ Setați aceste variabile în mediul procesului OmniRoute (daemonul, de exemplu p
 
 ---
 
-## Avertismente la npm install (ERESOLVE / peer / deprecated)
+## Avertismente npm install (ERESOLVE / peer / deprecated)
 
-Când rulați `npm install -g omniroute`, este posibil să vedeți o mulțime de avertismente precum `npm warn ERESOLVE`, notificări privind dependențele peer și mesaje `deprecated`. **Acestea sunt normale și inofensive.** Instalarea a reușit dacă vedeți `added <N> packages` în rezultatul afișat.
+Când rulați `npm install -g omniroute`, este posibil să vedeți numeroase avertismente precum `npm warn ERESOLVE`, notificări privind dependențele peer și mesaje `deprecated`. **Acestea sunt de așteptat și nu prezintă niciun risc.** Instalarea a reușit dacă vedeți `added <N> packages` în rezultatul comenzii.
 
-Avertismentele provin din intervale de versiuni învechite pentru dependențele peer din pachete terțe pe care OmniRoute nu le controlează:
+Pentru a suprima avertismentele privind rezolvarea dependențelor peer, utilizați forma de instalare acceptată de OmniRoute:
 
-1. **`marked-terminal` necesită `marked >=1 <16`, dar a fost găsit `marked@18`** — în practică funcționează fără probleme; intervalul peer din proiectul sursă este doar învechit.
-2. **`deprecated prebuild-install@7.1.3`** — un utilitar tranzitiv pentru preluarea binarelor native. Acesta nu este
-   utilizat pentru instalarea bindingului de transport fixat `wreq-js` și nu indică faptul că configurarea transportului
-   furnizorului de cookie-uri web a eșuat.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Nu este necesară nicio acțiune** — avertismentele nu pot fi eliminate complet fără a crea fork-uri ale pachetelor sursă.
+`--legacy-peer-deps` suprimă numai `ERESOLVE` și notificările privind dependențele peer. Notificările de perimare rămân vizibile deoarece provin din pachete terțe tranzitive; acestea nu indică faptul că instalarea a eșuat.
+
+Avertismentele provin din intervale învechite ale dependențelor peer din pachete terțe pe care OmniRoute nu le controlează:
+
+1. **`marked-terminal` necesită `marked >=1 <16`, dar a fost găsit `marked@18`** — în practică, funcționează fără probleme; intervalul peer din pachetul upstream este pur și simplu învechit.
+2. **`deprecated prebuild-install@7.1.3`** — un instrument auxiliar tranzitiv pentru preluarea binarelor native. Acesta nu este
+   utilizat pentru a instala bindingul de transport `wreq-js` fixat la o anumită versiune și nu indică faptul că configurarea transportului
+   furnizorului web-cookie a eșuat.
+
+**Nu este necesară nicio acțiune** — avertismentele nu pot fi suprimate complet fără a crea fork-uri ale pachetelor upstream.
 
 ---
 

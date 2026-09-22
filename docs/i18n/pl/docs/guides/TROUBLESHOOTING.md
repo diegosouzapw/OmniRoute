@@ -68,16 +68,24 @@ Ustaw je w środowisku procesu OmniRoute (demona, np. za pomocą pliku plist Lau
 
 ## Ostrzeżenia podczas npm install (ERESOLVE / peer / deprecated)
 
-Po uruchomieniu `npm install -g omniroute` możesz zobaczyć mnóstwo ostrzeżeń, takich jak `npm warn ERESOLVE`, komunikaty dotyczące zależności równorzędnych oraz komunikaty `deprecated`. **Są one oczekiwane i nieszkodliwe.** Instalacja zakończyła się powodzeniem, jeśli w danych wyjściowych widzisz komunikat `added <N> packages`.
+Po uruchomieniu `npm install -g omniroute` możesz zobaczyć wiele ostrzeżeń, takich jak `npm warn ERESOLVE`, komunikaty dotyczące zależności peer oraz komunikaty `deprecated`. **Są one oczekiwane i niegroźne.** Instalacja zakończyła się pomyślnie, jeśli w danych wyjściowych widzisz komunikat `added <N> packages`.
 
-Ostrzeżenia wynikają z nieaktualnych zakresów zależności równorzędnych w pakietach zewnętrznych, nad którymi OmniRoute nie ma kontroli:
+Aby ukryć ostrzeżenia dotyczące rozwiązywania zależności peer, użyj obsługiwanej formy instalacji OmniRoute:
 
-1. **`marked-terminal` wymaga `marked >=1 <16`, ale znaleziono `marked@18`** — w praktyce działa prawidłowo; zakres zależności równorzędnej w pakiecie źródłowym jest po prostu nieaktualny.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` ukrywa tylko komunikaty `ERESOLVE` oraz powiadomienia dotyczące zależności peer. Powiadomienia o przestarzałych pakietach pozostają widoczne, ponieważ pochodzą z przechodnich pakietów innych firm; nie oznaczają one, że instalacja się nie powiodła.
+
+Ostrzeżenia wynikają z nieaktualnych zakresów zależności peer w pakietach innych firm, nad którymi OmniRoute nie ma kontroli:
+
+1. **`marked-terminal` wymaga `marked >=1 <16`, znaleziono `marked@18`** — w praktyce działa prawidłowo; zakres peer w pakiecie źródłowym jest po prostu nieaktualny.
 2. **`deprecated prebuild-install@7.1.3`** — przechodnie narzędzie pomocnicze do pobierania natywnych plików binarnych. Nie jest
    używane do instalowania przypiętego powiązania transportowego `wreq-js` i nie oznacza, że konfiguracja transportu
-   dostawcy plików cookie sieci Web zakończyła się niepowodzeniem.
+   dostawcy plików cookie sieci Web nie powiodła się.
 
-**Nie są wymagane żadne działania** — tych ostrzeżeń nie można całkowicie wyciszyć bez utworzenia forków pakietów źródłowych.
+**Nie musisz nic robić** — ostrzeżeń nie można całkowicie wyciszyć bez utworzenia forków pakietów źródłowych.
 
 ---
 

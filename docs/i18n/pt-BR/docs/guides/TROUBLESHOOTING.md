@@ -68,16 +68,24 @@ Defina essas variáveis no ambiente do processo do OmniRoute (o daemon, por exem
 
 ## Avisos do npm install (ERESOLVE / peer / deprecated)
 
-Ao executar `npm install -g omniroute`, você poderá ver uma grande quantidade de avisos, como `npm warn ERESOLVE`, notificações sobre dependências peer e mensagens `deprecated`. **Isso é esperado e não causa problemas.** A instalação foi concluída com êxito se você vir `added <N> packages` na saída.
+Ao executar `npm install -g omniroute`, você poderá ver uma enxurrada de avisos, como `npm warn ERESOLVE`, notificações de dependências peer e mensagens `deprecated`. **Isso é esperado e não causa problemas.** A instalação foi bem-sucedida se você vir `added <N> packages` na saída.
 
-Os avisos são provenientes de intervalos desatualizados de dependências peer em pacotes de terceiros que o OmniRoute não controla:
+Para suprimir os avisos de resolução de dependências peer, use a forma de instalação compatível com o OmniRoute:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` suprime apenas os avisos de `ERESOLVE` e de dependências peer. As notificações de descontinuação permanecem visíveis porque vêm de pacotes transitivos de terceiros; elas não indicam que a instalação falhou.
+
+Os avisos vêm de intervalos desatualizados de dependências peer em pacotes de terceiros que o OmniRoute não controla:
 
 1. **`marked-terminal` requer `marked >=1 <16`, mas foi encontrado `marked@18`** — na prática, funciona normalmente; o intervalo peer do projeto upstream está apenas desatualizado.
 2. **`deprecated prebuild-install@7.1.3`** — um utilitário transitivo para obtenção de binários nativos. Ele não é
-   usado para instalar o binding de transporte `wreq-js` fixado e não indica que a configuração de transporte
-   do provedor de cookies da web tenha falhado.
+   usado para instalar o binding de transporte fixado `wreq-js` e não indica que a configuração de
+   transporte do provedor de cookies da web falhou.
 
-**Nenhuma ação é necessária** — os avisos não podem ser completamente silenciados sem criar forks dos pacotes upstream.
+**Nenhuma ação é necessária** — os avisos não podem ser totalmente silenciados sem criar forks dos pacotes upstream.
 
 ---
 

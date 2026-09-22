@@ -68,16 +68,24 @@ Bularni OmniRoute jarayoni muhitida (demon uchun, masalan, LaunchAgent plist yok
 
 ## npm install ogohlantirishlari (ERESOLVE / peer / deprecated)
 
-`npm install -g omniroute` buyrugʻini ishga tushirganingizda `npm warn ERESOLVE`, peer-bogʻliqlik bildirishnomalari va `deprecated` xabarlari kabi koʻplab ogohlantirishlarni koʻrishingiz mumkin. **Bular kutilgan va zararsiz ogohlantirishlardir.** Agar natijada `added <N> packages` yozuvini koʻrsangiz, oʻrnatish muvaffaqiyatli yakunlangan.
+`npm install -g omniroute` buyrugʻini ishga tushirganingizda, `npm warn ERESOLVE`, peer-bogʻliqlik bildirishnomalari va `deprecated` xabarlari kabi koʻplab ogohlantirishlarni koʻrishingiz mumkin. **Bular kutilgan va zararsizdir.** Agar chiqishda `added <N> packages` yozuvini koʻrsangiz, oʻrnatish muvaffaqiyatli yakunlangan.
 
-Ogohlantirishlar OmniRoute nazorat qilmaydigan uchinchi tomon paketlaridagi eskirgan peer-bogʻliqlik diapazonlari sababli paydo boʻladi:
+Peer-bogʻliqliklarni aniqlashga oid ogohlantirishlarni yashirish uchun OmniRoute qoʻllab-quvvatlaydigan quyidagi oʻrnatish shaklidan foydalaning:
 
-1. **`marked-terminal` uchun `marked >=1 <16` kerak, ammo `marked@18` topildi** — amalda muammosiz ishlaydi; upstream peer diapazoni shunchaki eskirgan.
-2. **`deprecated prebuild-install@7.1.3`** — bilvosita bogʻliqlik sifatidagi mahalliy ikkilik fayllarni yuklab olish yordamchisi. U mahkamlangan `wreq-js` transport bogʻlamasini oʻrnatish uchun
-   ishlatilmaydi va web-cookie provayderining transport sozlamasi muvaffaqiyatsiz tugaganini
-   anglatmaydi.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Hech qanday amal talab qilinmaydi** — upstream paketlarini fork qilmasdan bu ogohlantirishlarni toʻliq oʻchirib boʻlmaydi.
+`--legacy-peer-deps` faqat `ERESOLVE` va peer-bogʻliqlik bildirishnomalarini yashiradi. Eskirganlik haqidagi bildirishnomalar koʻrinishda davom etadi, chunki ular tranzitiv uchinchi tomon paketlaridan kelib chiqadi; ular oʻrnatish muvaffaqiyatsiz tugaganini anglatmaydi.
+
+Ogohlantirishlar OmniRoute nazorat qilmaydigan uchinchi tomon paketlaridagi eskirgan peer-bogʻliqlik diapazonlaridan kelib chiqadi:
+
+1. **`marked-terminal` uchun `marked >=1 <16` kerak, ammo `marked@18` topildi** — amalda muammosiz ishlaydi; yuqori oqimdagi peer diapazoni shunchaki eskirgan.
+2. **`deprecated prebuild-install@7.1.3`** — tranzitiv mahalliy ikkilik faylni yuklab olish yordamchisi. U mahkamlangan `wreq-js` transport bogʻlanishini oʻrnatish uchun
+   ishlatilmaydi va web-cookie provayderining transport sozlamasi muvaffaqiyatsiz
+   tugaganini anglatmaydi.
+
+**Hech qanday amal talab qilinmaydi** — yuqori oqimdagi paketlarni fork qilmasdan ogohlantirishlarni toʻliq yashirib boʻlmaydi.
 
 ---
 

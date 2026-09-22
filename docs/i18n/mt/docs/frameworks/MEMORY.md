@@ -165,35 +165,36 @@ It-tabella `memory_vec_meta` (migrazzjoni `083_memory_vec.sql`) taħżen:
 
 ## Estensjoni tas-settings
 
-Disa' oqsma tal-embedding u tal-vetturi huma disponibbli f'`MemorySettingsExtended` fi
-`src/shared/schemas/memory.ts`, u jinżammu permezz ta' `src/lib/db/settings.ts`:
+Disa’ oqsma għall-embeddings u l-vetturi huma disponibbli f’`MemorySettingsExtended` fi
+`src/shared/schemas/memory.ts`, u jiġu ppersistiti permezz ta’ `src/lib/db/settings.ts`:
 
-| Qasam                    | Tip                                                | Valur default | Deskrizzjoni                                                                 |
-| ------------------------ | -------------------------------------------------- | ------------- | ---------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Liema sors tal-embedding għandu jintuża                                      |
-| `embeddingProviderModel` | `string \| null`                                   | `null`        | Fornitur/mudell fil-format `provider/model`                                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | URL bażi ta' endpoint kompatibbli ma' OpenAI għall-memorja biss              |
-| `customModelId`          | `string \| null`                                   | `null`        | ID tal-mudell mibgħut lill-endpoint personalizzat                            |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Għażla espliċita għal Transformers.js (MiniLM, ~400MB)                       |
-| `staticEnabled`          | `boolean`                                          | `false`       | Għażla espliċita għall-mudell lokali statiku potion-base-8M                  |
-| `rerankEnabled`          | `boolean`                                          | `false`       | Ippermetti l-pass ta' klassifikazzjoni mill-ġdid (iżid +200-500ms/req)       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`        | Fornitur/mudell għall-klassifikazzjoni mill-ġdid fil-format `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`      | Liema backend tal-vetturi għandu jintuża                                     |
+| Qasam                    | Tip                                                | Valur predefinit | Deskrizzjoni                                                                 |
+| ------------------------ | -------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`         | Liema sors tal-embeddings għandu jintuża                                     |
+| `embeddingProviderModel` | `string \| null`                                   | `null`           | Fornitur/mudell fil-format `provider/model`                                  |
+| `customBaseUrl`          | `string \| null`                                   | `null`           | URL bażi ta’ endpoint kompatibbli ma’ OpenAI għall-Memory biss               |
+| `customModelId`          | `string \| null`                                   | `null`           | ID tal-mudell mibgħut lill-endpoint personalizzat                            |
+| `transformersEnabled`    | `boolean`                                          | `false`          | Attivazzjoni fakultattiva ta’ Transformers.js (MiniLM, ~400MB)               |
+| `staticEnabled`          | `boolean`                                          | `false`          | Attivazzjoni fakultattiva tal-mudell lokali statiku potion-base-8M           |
+| `rerankEnabled`          | `boolean`                                          | `false`          | Jattiva l-pass ta’ klassifikazzjoni mill-ġdid (iżid +200-500ms/talba)        |
+| `rerankProviderModel`    | `string \| null`                                   | `null`           | Fornitur/mudell għall-klassifikazzjoni mill-ġdid fil-format `provider/model` |
 
-Dawn huma esposti permezz ta' `GET /PUT /api/settings/memory` (skema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` jiġi riżolt minn `POST /v1/rerank` (imsejjaħ permezz tal-loopback), għalhekk jaċċetta kull ħaġa li taċċetta dik ir-rotta: mudell cloud ikkurat għall-klassifikazzjoni mill-ġdid (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) jew node ta’ fornitur kompatibbli ma’ OpenAI bħala `<node-prefix>/<model>` (eż. `skilled-mini/bge-reranker-v2-m3` għal magna TEI/Infinity). In-nodes tal-loopback huma dejjem eliġibbli; node fuq host ieħor (LAN, Tailscale) jeħtieġ ukoll il-feature flag `RERANK_REMOTE_PROVIDER_NODES` u jrid jgħaddi mill-politika tal-URLs ’il barra tal-fornitur — ara [Feature Flags](../reference/FEATURE_FLAGS.md). Is-selettur tad-dashboard jelenka l-fornituri kkurati flimkien man-nodes lokali; kwalunkwe string valida `provider/model` tista’ tiġi ssettjata direttament permezz ta’ `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Liema backend tal-vetturi għandu jintuża |
+
+Dawn huma esposti permezz ta’ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Għas-sors `remote`, Memory jaċċetta wkoll is-settings fakultattivi `customBaseUrl` u
-`customModelId`. Flimkien dawn jagħżlu endpoint `/embeddings` u mudell kompatibbli
-ma' OpenAI mingħajr ma jibdlu r-reġistru globali tal-embeddings. L-endpoint jiġi
-normalizzat qabel l-użu u ċċekkjat mill-politika tal-URL outbound tal-fornitur: HTTP(S)
-huwa meħtieġ, il-kredenzjali inkorporati u s-strings tal-query jiġu rrifjutati, u
-l-indirizzi tal-metadata tal-cloud jibqgħu mblukkati. Il-valuri vojta jżommu l-fornitur
-magħżul mir-reġistru. L-iżbalji mibgħuta lura lid-dashboard jiġu sanitizzati u
-l-kredenzjali tal-endpoint qatt ma jiġu rreġistrati fil-logs.
+`customModelId`. Flimkien, dawn jagħżlu endpoint `/embeddings` kompatibbli ma’ OpenAI
+u mudell mingħajr ma jibdlu r-reġistru globali tal-embeddings. L-endpoint jiġi
+normalizzat qabel l-użu u ċċekkjat mill-politika tal-URLs ’il barra tal-fornitur: HTTP(S)
+huwa meħtieġ, il-kredenzjali inkorporati u l-query strings jiġu rrifjutati, u l-indirizzi
+tal-cloud metadata jibqgħu mblukkati. Valuri vojta jżommu l-fornitur tar-reġistru magħżul. L-iżbalji
+rritornati lid-dashboard jiġu ssanitizzati u l-kredenzjali tal-endpoint qatt ma jiġu rreġistrati fil-logs.
 
-> **TODO (D20):** L-ambitu `global` (il-kondiviżjoni tal-memorji bejn l-API keys kollha)
-> mhuwiex implimentat f'din ir-rilaxx. Dan jeħtieġ bidliet fl-iskema u perkors globali
-> għall-irkupru. Għandu jiġi segwit separatament.
+> **TODO (D20):** L-ambitu `global` (il-kondiviżjoni tal-memorji bejn l-API keys kollha) mhuwiex
+> implimentat f’din ir-rilaxx. Dan jeħtieġ bidliet fl-schema u mogħdija globali għall-irkupru.
+> Għandu jiġi ttraċċat separatament.
 
 ## Saffi tal-ħażna
 

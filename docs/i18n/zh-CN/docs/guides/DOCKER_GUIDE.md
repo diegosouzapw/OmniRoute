@@ -27,6 +27,12 @@
 
 ## 快速运行
 
+> **想用一条命令自行托管？** 请参阅
+> [自行托管指南](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d`（已发布的镜像 +
+> Redis、仅限环回地址、无需选择配置文件）。下面的快速运行方式适用于
+> 已在其他位置运行 Redis 的用户，是单容器运行方案。
+
 ```bash
 docker run -d \
   --name omniroute \

@@ -22,22 +22,24 @@ OmniRoute は、思考モードのモデルによって生成されたアシス�
 ## アーキテクチャ
 
 ```
-ターン N（アシスタントが生成）:
+ターン N（assistant が生成）:
   → レスポンスに reasoning_content + tool_calls が含まれる
   → requiresReasoningReplay(provider, model) の場合: cacheReasoningFromAssistantMessage()
       すべての tool_call.id をキーとして（メモリ + DB）に書き込む
-  → レスポンスをクライアントに転送する（クライアントは推論を保持する場合もあれば、保持しない場合もある）
+  → レスポンスをクライアントへ転送（クライアントが reasoning を保持する場合もしない場合もある）
 
-ターン N+1（クライアントが後続リクエストを送信）:
-  → トランスレーターが検出: requiresReasoningReplay(provider, model) === true
-  → tool_calls があり、reasoning_content がない各アシスタントメッセージについて:
+ターン N+1（クライアントがフォローアップを送信）:
+  → translator が requiresReasoningReplay(provider, model) === true を検出
+  → tool_calls があり reasoning_content がない各 assistant メッセージについて:
       lookupReasoning(toolCalls[0].id) → メモリ → DB
       ヒット  → msg.reasoning_content = cached; recordReplay()
-      ミス → msg.reasoning_content = ""（古い DeepSeek 向けの従来のフォールバック）
-  → アップストリームから見た履歴の整合性が保たれる → 400 が発生しない
+      ミス → msg.reasoning_content = ""（古い DeepSeek 向けのレガシーフォールバック）
+  → upstream に一貫した履歴が渡される → 400 エラーを回避
 ```
 
-取得処理は `open-sse/handlers/chatCore.ts` 内の 2 か所（2 つの `cacheReasoningFromAssistantMessage` 呼び出し箇所）で行われます。再利用処理は `open-sse/translator/index.ts` 内で、スキーマの型強制後、ディスパッチ前に行われます。
+キャプチャは `open-sse/handlers/chatCore.ts` 内の 2 か所（2 つの `cacheReasoningFromAssistantMessage` 呼び出し箇所）で行われます。リプレイは、スキーマ強制変換後かつディスパッチ前に、`open-sse/translator/index.ts` で行われます。
+
+通常の（ツール呼び出しではない）assistant ターンには、異なるキーが使用されます。`buildAssistantMessageCacheKey()` は、セッションスコープと、そのターンまでの正規化された OpenAI 形式のトランスクリプトをダイジェストします。これは、`tools` が存在すると、DeepSeek が過去の _すべての_ ターンの reasoning を必要とするためです。Responses API ターゲット（たとえば `/responses` にルーティングされる `opencode-go/deepseek-v4-flash`）では、upstream のボディは `messages` ではなく `input` を保持するため、`translateRequest()`（`open-sse/translator/index.ts`）は、コールバックオプションを通じて、ダイジェストしたピボットトランスクリプトを報告し、キャプチャ箇所も同じトランスクリプトをダイジェストします。Responses のリプレイ処理は、すべてのソース形式に対して OpenAI ピボット上で実行されるため、Anthropic Messages クライアント（Claude → OpenAI → Responses）もリプレイされます。
 
 ## ストレージ — メモリ + SQLite のハイブリッド
 

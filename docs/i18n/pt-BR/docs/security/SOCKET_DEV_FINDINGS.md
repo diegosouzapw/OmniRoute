@@ -4,21 +4,23 @@
 
 ---
 
-Este documento é a declaração redigida pelo mantenedor referente às seis
-detecções de `AI-detected potential malware` apontadas em `omniroute@3.8.5` e
-às mitigações aplicadas em `omniroute@3.8.6`. Ele existe para que:
+> **Nota de escopo:** `socket.yml` configura a verificação pós-publicação do artefato npm realizada pelo Socket.dev no lado do registro (ignorando caminhos de conteúdo não distribuído, como `tests/`, `docs/` e relatórios de build). Ele não configura um bloqueio de merge de CI/PR — nenhum workflow em `.github/workflows`, nenhum script de `package.json` e nenhum alvo de `Makefile` invoca o Socket.dev.
 
-1. Os operadores de pipelines de segurança tenham uma única referência para
-   citar quando precisarem avaliar as detecções em relação ao código-fonte real.
-2. Futuros scanners de IA possam identificar a declaração assinada pelo
-   mantenedor de que cada caminho sinalizado é intencional, opcional e documentado.
-3. Tenhamos um registro escrito de _por que_ cada local de chamada está
-   estruturado dessa forma — para que uma refatoração futura não reintroduza
-   acidentalmente uma assinatura que foi removida de forma deliberada.
+Este documento é a declaração elaborada pelos mantenedores para as seis
+ocorrências de `AI-detected potential malware` reportadas contra `omniroute@3.8.5` e
+as mitigações aplicadas em `omniroute@3.8.6`. Ele existe para que:
 
-Se você opera um scanner que volte a sinalizar qualquer um dos locais de
-chamada abaixo após o lançamento das mitigações da v3.8.6, abra uma issue com
-o rastreamento da análise, e ampliaremos esta declaração aqui.
+1. Os operadores do pipeline de segurança tenham uma única referência para citar quando precisarem
+   avaliar as ocorrências em relação ao código-fonte real.
+2. Futuros scanners de IA possam identificar a declaração assinada pelos mantenedores de que cada
+   caminho sinalizado é intencional, opcional e documentado.
+3. Tenhamos um registro escrito do _motivo_ pelo qual cada ponto de chamada tem a forma que tem —
+   para que uma refatoração futura não reintroduza acidentalmente uma assinatura que
+   foi removida deliberadamente.
+
+Se você opera um scanner que sinalize novamente qualquer um dos pontos de chamada abaixo depois que as
+mitigações da v3.8.6 tiverem sido publicadas, abra uma issue com o rastreamento da verificação e
+estenderemos a declaração aqui.
 
 ---
 

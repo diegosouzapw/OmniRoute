@@ -27,6 +27,12 @@
 
 ## 快速執行
 
+> **想用一個指令自行託管嗎？** 請參閱
+> [自行託管指南](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d`（已發布的映像檔 +
+> Redis、僅限迴路位址、不需選擇設定檔）。下方的快速執行方式是
+> 供已在其他位置執行 Redis 的使用者採用的單一容器方案。
+
 ```bash
 docker run -d \
   --name omniroute \

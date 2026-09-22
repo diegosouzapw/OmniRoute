@@ -22,22 +22,24 @@ Ngunit karaniwang inaalis ng mga client (Cursor, Cline, Roo Code, OpenAI SDK) an
 ## Arkitektura
 
 ```
-Turn N (lumilikha ang assistant):
-  → naglalaman ang response ng reasoning_content + tool_calls
+Yugto N (bumubuo ang assistant):
+  → naglalaman ang tugon ng reasoning_content + tool_calls
   → kung requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      nagsusulat sa (memory + DB), na naka-key ayon sa bawat tool_call.id
-  → ipinapasa ang response sa client (na maaaring panatilihin o hindi ang reasoning)
+      nagsusulat sa (memory + DB), na may key batay sa bawat tool_call.id
+  → ipinapasa ang tugon sa client (na maaaring panatilihin o hindi ang reasoning)
 
-Turn N+1 (nagpapadala ang client ng follow-up):
-  → natutukoy ng translator: requiresReasoningReplay(provider, model) === true
-  → para sa bawat assistant message na may tool_calls at walang reasoning_content:
+Yugto N+1 (nagpapadala ang client ng kasunod na mensahe):
+  → natutukoy ng translator na: requiresReasoningReplay(provider, model) === true
+  → para sa bawat mensahe ng assistant na may tool_calls at walang reasoning_content:
       lookupReasoning(toolCalls[0].id) → memory → DB
-      hit  → msg.reasoning_content = cached; recordReplay()
-      miss → msg.reasoning_content = "" (legacy fallback para sa mas lumang DeepSeek)
+      may nahanap  → msg.reasoning_content = cached; recordReplay()
+      walang nahanap → msg.reasoning_content = "" (legacy na fallback para sa mas lumang DeepSeek)
   → nakakakita ang upstream ng pare-parehong history → walang 400
 ```
 
-Nagaganap ang pagkuha sa `open-sse/handlers/chatCore.ts` (dalawang lokasyon, sa dalawang call site ng `cacheReasoningFromAssistantMessage`). Nagaganap ang replay sa `open-sse/translator/index.ts` pagkatapos ng schema coercion ngunit bago ang dispatch.
+Nagaganap ang pag-capture sa `open-sse/handlers/chatCore.ts` (sa dalawang lokasyon, sa dalawang call site ng `cacheReasoningFromAssistantMessage`). Nagaganap ang replay sa `open-sse/translator/index.ts` pagkatapos ng schema coercion ngunit bago ang dispatch.
+
+Iba ang paraan ng pag-key sa mga plain (walang tool call) na yugto ng assistant: dini-digest ng `buildAssistantMessageCacheKey()` ang session scope kasama ang normalized na transcript sa OpenAI format hanggang sa yugtong iyon, dahil kinakailangan ng DeepSeek ang reasoning ng _bawat_ naunang yugto kapag naroon ang `tools`. Para sa mga target ng Responses API (halimbawa, `opencode-go/deepseek-v4-flash`, na niru-route sa `/responses`), `input` ang nilalaman ng upstream body, hindi `messages`, kaya iniuulat ng `translateRequest()` (`open-sse/translator/index.ts`) sa pamamagitan ng callback option ang pivot transcript na na-digest nito, at dini-digest din ng mga capture site ang parehong transcript. Tumatakbo ang Responses replay pass sa OpenAI pivot para sa bawat source format, kaya nare-replay rin ang mga Anthropic Messages client (Claude → OpenAI → Responses).
 
 ## Storage — Hybrid Memory + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Mga index: `expires_at`, `provider`, `model`, `created_at`. Iniimbak ang `expires_at` bilang mga segundo ng Unix epoch; ginagawang normal ng SELECT layer ang mga legacy text value sa pamamagitan ng `EXPIRES_AT_EPOCH_SQL`.
+Mga index: `expires_at`, `provider`, `model`, `created_at`. Iniimbak ang `expires_at` bilang mga segundo ng Unix epoch; ginagawang pamantayan ng SELECT layer ang mga legacy na text value sa pamamagitan ng `EXPIRES_AT_EPOCH_SQL`.
 
 ## Pag-detect ng Provider / Model
 

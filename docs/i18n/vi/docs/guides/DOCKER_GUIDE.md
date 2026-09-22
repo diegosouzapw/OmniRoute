@@ -27,6 +27,12 @@
 
 ## Chạy nhanh
 
+> **Tự lưu trữ chỉ với một lệnh?** Xem
+> [Hướng dẫn tự lưu trữ](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (image đã được phát hành +
+> Redis, chỉ truy cập qua loopback, không cần chọn profile). Phần Chạy nhanh bên dưới là
+> cách chạy bằng một container dành cho người dùng đã chạy Redis ở nơi khác.
+
 ```bash
 docker run -d \
   --name omniroute \

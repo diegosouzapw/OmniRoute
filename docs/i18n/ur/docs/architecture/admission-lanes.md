@@ -7,48 +7,52 @@
 OmniRoute میں مختلف دائروں والے **دو** عمل-مقامی لین نظام ہیں۔ یہ ایک دوسرے کی
 تکمیل کرتے ہیں؛ آپریٹرز کو معلوم ہونا چاہیے کہ وہ کس نظام کو دیکھ رہے ہیں۔
 
-## 1. بائٹ-سطحی، پورے عمل پر لاگو داخلہ (`chatBodyAdmission.ts`)
+## 1. بائٹ کی سطح پر پورے پراسیس کا داخلہ (`chatBodyAdmission.ts`)
 
 - **دائرۂ کار:** `POST /v1/chat/completions`، `/v1/messages`،
-  `/v1/responses`، اور چیٹ کی طرز کے دیگر روٹس کے لیے بفر شدہ باڈی/ہیپ کا راستہ۔ یہ
-  بڑی کوڈنگ-ایجنٹ باڈیز سے ہونے والی ہیپ افزائش کے خلاف تحفظ فراہم کرتا ہے (#4380)۔
-- **ایک پورے عمل کے لیے عالمی کنٹرولر، نہ کہ ہر کلید کے لیے الگ لینز (#10110)۔** ہر API کلید
-  (ہیش شدہ) یا `anonymous` سیشن **اسی** مشترکہ بجٹ کے تحت داخل ہوتا ہے —
-  ہیش شدہ سیشن id صرف منصفانہ شیڈیولنگ کلید کے طور پر استعمال ہوتی ہے (منتظر درخواستوں کے درمیان
-  راؤنڈ-رابن ترسیل)، صلاحیت کے حصے کے طور پر کبھی نہیں۔ اس دستاویز کے ایک سابقہ ورژن میں
-  آزاد صلاحیت رکھنے والی فی کلید لینز بیان کی گئی تھیں؛ اس ماڈل کو
-  #10110 میں ہٹا دیا گیا، کیونکہ اس کی وجہ سے غیر توثیق شدہ جعلی اسناد
-  پورے عمل کی حد کو کئی گنا بڑھا سکتی تھیں۔
-- **گیٹ (#503-fanout): خود اخذ کردہ وصولی کا BYTE بجٹ، نہ کہ درخواستوں کی مقررہ
-  تعداد۔** پرانی `CHAT_MAX_HEAVY_IN_FLIGHT` درخواست-تعداد کی حد (اس اصلاح سے پہلے
-  طے شدہ قدر `1`) نے کوڈنگ-ایجنٹ کے فین آؤٹ (متعدد ذیلی ایجنٹس/CLIs،
-  اور معمول کے مطابق > 256 KB باڈیز) کو تقریباً 1 کی مؤثر ہم وقتی تک محدود کر دیا تھا، جس سے
-  مکمل طور پر معمول کے بوجھ کے تحت 503 پیدا ہوتا تھا۔ اب یہ صرف اس وقت حد عائد کرتی ہے جب کوئی آپریٹر واضح طور پر
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` مقرر کرے۔ اسے غیر مقرر چھوڑنے پر، داخلہ اس کے بجائے
-  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` کے ذریعے محدود کیا جاتا ہے — ایک ایسا بجٹ جو
-  عمل کی حقیقی میموری حد (`src/shared/middleware/admissionBudget.ts`) سے خودکار طور پر اخذ ہوتا ہے:
-  V8 ہیپ حد اور کسی بھی cgroup/کنٹینر حد میں سے سخت تر حد کا 25%،
-  جسے 8x عارضی افزائشی عامل سے تقسیم کیا جاتا ہے، اور 8 MiB سے
-  2 GiB کے درمیان محدود رکھا جاتا ہے۔ واضح اووررائیڈز بھی انہی حدود کا استعمال کرتی ہیں۔ یہ کسی
-  env ٹیوننگ کے بغیر خود کو 512 MB کنٹینر سے 32 GB ڈیسک ٹاپ تک کے مطابق ڈھال لیتا ہے۔ ایسی باڈی جو
+  `/v1/responses`، اور دیگر چیٹ طرز کے روٹس کے لیے buffered-body/heap راستہ۔ بڑے
+  coding-agent باڈیز سے ہونے والی heap amplification کے خلاف تحفظ دیتا ہے (#4380)۔
+- **پورے پراسیس کے لیے ایک عالمی کنٹرولر، نہ کہ ہر کلید کے لیے الگ lanes (#10110)۔** ہر API کلید
+  (hashed) یا `anonymous` سیشن **اسی** مشترکہ بجٹ کے مقابل داخل ہوتا ہے —
+  hashed session id صرف fairness scheduling key کے طور پر استعمال ہوتی ہے (منتظر درخواستوں
+  میں round-robin dispatch)، کبھی بھی capacity shard کے طور پر نہیں۔ اس
+  دستاویز کے ایک سابقہ ورژن میں آزاد گنجائش والی per-key lanes بیان کی گئی تھیں؛
+  وہ ماڈل #10110 میں ہٹا دیا گیا، کیونکہ اس سے غیر توثیق شدہ جعلی credentials
+  پورے پراسیس کی حد کو کئی گنا بڑھا سکتے تھے۔
+- **گیٹ (#503-fanout): خودکار طور پر اخذ کردہ ingest BYTE بجٹ، نہ کہ درخواستوں
+  کی مقررہ تعداد۔** پرانی `CHAT_MAX_HEAVY_IN_FLIGHT` درخواست-تعداد حد (اس
+  اصلاح سے پہلے طے شدہ قدر `1`) نے coding-agent fan-out (متعدد subagents/CLIs،
+  باڈیز معمول کے مطابق > 256 KB) کو تقریباً 1 کی مؤثر concurrency تک محدود کر دیا تھا، جس کے باعث
+  مکمل طور پر معمول کے لوڈ میں 503 آتا تھا۔ اب یہ صرف اس وقت لاگو ہوتی ہے جب آپریٹر واضح طور پر
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` سیٹ کرے۔ اسے غیر سیٹ چھوڑنے پر، داخلہ اس کے بجائے
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` کے ذریعے محدود ہوتا ہے — ایک ایسا بجٹ جو
+  پراسیس کی حقیقی میموری حد (`src/shared/middleware/admissionBudget.ts`) سے خودکار طور پر اخذ ہوتا ہے:
+  V8 heap limit اور کسی بھی cgroup/container limit میں سے زیادہ سخت حد کا 25%،
+  جسے 8x عارضی amplification factor سے تقسیم کیا جاتا ہے، اور 8 MiB سے
+  2 GiB کے درمیان محدود رکھا جاتا ہے۔ واضح overrides پر بھی یہی حدود لاگو ہوتی ہیں۔ یہ کسی
+  env tuning کے بغیر خود کو 512 MB container سے 32 GB desktop تک موزوں بنا لیتا ہے۔ ایسی body جو
   مؤثر بجٹ میں سما نہ سکے، فوراً `413 body_exceeds_budget` کے ساتھ ناکام ہو جاتی ہے؛
-  صرف انفرادی طور پر قابلِ خدمت باڈیز کے درمیان تنازع محدود
-  منصفانہ قطار میں داخل ہوتا ہے۔ ایک براہِ راست کثیر-اشاریہ وسائل-دباؤ ٹریکر (V8 ہیپ تناسب،
-  cgroup، PSI، OOM واقعات — `open-sse/utils/resourcePressurePolicy.ts`) `high`
-  دباؤ کے تحت محدود انتظار کو مختصر کر دیتا ہے اور `critical` دباؤ کے تحت
-  `503 resource_pressure` کے ساتھ فوراً بوجھ کم کرتا ہے، حتیٰ کہ کوئی بائٹ وصول ہونے سے بھی پہلے۔
+  صرف ان باڈیز کے درمیان تنازع جو انفرادی طور پر قابلِ خدمت ہوں، محدود
+  fairness queue میں داخل ہوتا ہے۔ ایک براہِ راست multi-signal resource-pressure tracker (V8 heap ratio،
+  cgroup، PSI، OOM events — `open-sse/utils/resourcePressurePolicy.ts`) `high`
+  دباؤ میں محدود انتظار کو مختصر کرتا ہے اور `critical` دباؤ میں
+  `503 resource_pressure` کے ساتھ فوراً لوڈ مسترد کر دیتا ہے، حتیٰ کہ کسی بائٹ کے ingest
+  ہونے سے بھی پہلے۔ دستیاب ہونے پر PSI اسی unit کے cgroup `memory.pressure` سے پڑھا جاتا ہے
+  (`open-sse/utils/resourcePressureSampler.ts`)؛ `/proc/pressure/memory`
+  پورے host کے لیے ہے اور صرف bare metal / cgroup v1 پر fallback کے طور پر استعمال ہوتا ہے، تاکہ swapping
+  host کسی idle container کو 503 نہ کر سکے۔
 - **ٹیوننگ:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — خود اخذ کردہ بائٹ بجٹ کے لیے اووررائیڈ
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — پرانی درخواست-تعداد کی حد، صرف رضاکارانہ انتخاب پر
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 سے پہلے قطار میں انتظار (طے شدہ 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — قطار شدہ بائٹس کے لیے ہیپ والو (طے شدہ 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110
-    کے بعد سے متروک بے اثر اختیارات (کنفیگریشن مطابقت کے لیے قبول کیے جاتے ہیں، مگر نظر انداز ہوتے ہیں)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — خودکار طور پر اخذ کردہ بائٹ بجٹ کے لیے override
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — پرانی درخواست-تعداد حد، صرف opt-in
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 سے پہلے queue میں انتظار (طے شدہ 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queued-bytes heap valve (طے شدہ 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 سے متروک
+    no-ops (config compatibility کے لیے قبول کیے جاتے ہیں، مگر نظر انداز ہوتے ہیں)
 - **رپورٹس:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — جس میں
   #503-fanout کے اضافے `inflightBytes`، `maxInflightBytes`، `budgetSource`
   (`v8_heap` | `cgroup` | `override`)، `pressureSeverity`، اور `countCapEnabled`
-  شامل ہیں (طے شدہ تعیناتی پر false — یہ تصدیق کرتا ہے کہ حقیقتاً بائٹ بجٹ حد عائد کر رہا ہے،
-  نہ کہ پرانی تعداد کی حد)۔
+  شامل ہیں (طے شدہ deployment پر false — یہ تصدیق کرتا ہے کہ حقیقتاً بائٹ بجٹ لاگو ہے،
+  نہ کہ پرانی count cap)۔
 
 ## 2. موافق پذیر رن ٹائم ورچوئل لینز (`open-sse/services/admission`)
 

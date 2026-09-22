@@ -1,1 +1,0 @@
-- **fix(api):** `PATCH /api/settings` now persists `hideAutoCombos` and `hideNoThinkVariants` instead of silently dropping them (#13562) — thanks @texastoland

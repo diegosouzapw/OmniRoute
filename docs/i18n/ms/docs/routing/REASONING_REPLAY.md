@@ -22,22 +22,24 @@ Namun, klien biasa (Cursor, Cline, Roo Code, OpenAI SDK) membuang `reasoning_con
 ## Seni Bina
 
 ```
-Giliran N (pembantu menjana):
+Pusingan N (pembantu menjana):
   → respons mengandungi reasoning_content + tool_calls
   → jika requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      menulis (memori + DB), dikunci mengikut setiap tool_call.id
-  → majukan respons kepada klien (yang mungkin mengekalkan penaakulan atau mungkin tidak)
+      menulis ke (memori + DB), dengan setiap tool_call.id sebagai kunci
+  → majukan respons kepada klien (yang mungkin mengekalkan atau tidak mengekalkan penaakulan)
 
-Giliran N+1 (klien menghantar susulan):
+Pusingan N+1 (klien menghantar susulan):
   → penterjemah mengesan: requiresReasoningReplay(provider, model) === true
   → bagi setiap mesej pembantu dengan tool_calls dan tanpa reasoning_content:
       lookupReasoning(toolCalls[0].id) → memori → DB
-      padanan ditemui → msg.reasoning_content = cached; recordReplay()
-      tiada padanan     → msg.reasoning_content = "" (sandaran legasi untuk DeepSeek lama)
-  → penyedia huluan menerima sejarah yang konsisten → tiada ralat 400
+      ditemui      → msg.reasoning_content = cached; recordReplay()
+      tidak ditemui → msg.reasoning_content = "" (sandaran legasi untuk DeepSeek yang lebih lama)
+  → sistem huluan melihat sejarah yang konsisten → tiada 400
 ```
 
-Penangkapan berlaku dalam `open-sse/handlers/chatCore.ts` (di dua lokasi, iaitu dua lokasi panggilan `cacheReasoningFromAssistantMessage`). Main semula berlaku dalam `open-sse/translator/index.ts` selepas pemaksaan skema tetapi sebelum penghantaran.
+Penangkapan berlaku dalam `open-sse/handlers/chatCore.ts` (di dua lokasi, iaitu dua tapak panggilan `cacheReasoningFromAssistantMessage`). Main semula berlaku dalam `open-sse/translator/index.ts` selepas pemaksaan skema tetapi sebelum penghantaran.
+
+Pusingan pembantu biasa (tanpa panggilan alat) menggunakan kunci yang berbeza: `buildAssistantMessageCacheKey()` menghasilkan ringkasan skop sesi bersama transkrip berformat OpenAI yang telah dinormalkan sehingga pusingan tersebut, kerana DeepSeek memerlukan penaakulan bagi _setiap_ pusingan terdahulu sebaik sahaja `tools` disertakan. Untuk sasaran Responses-API (contohnya `opencode-go/deepseek-v4-flash`, yang dihalakan ke `/responses`), kandungan permintaan huluan membawa `input`, bukannya `messages`, maka `translateRequest()` (`open-sse/translator/index.ts`) melaporkan transkrip pangsi yang diringkaskannya melalui pilihan panggil balik dan tapak penangkapan menghasilkan ringkasan bagi transkrip yang sama. Proses main semula Responses dijalankan pada pangsi OpenAI untuk setiap format sumber, maka klien Anthropic Messages (Claude → OpenAI → Responses) turut dimainkan semula.
 
 ## Storan — Memori Hibrid + SQLite
 

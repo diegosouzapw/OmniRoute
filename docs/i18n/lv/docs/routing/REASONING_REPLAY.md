@@ -22,22 +22,24 @@ Taču tipiski klienti (Cursor, Cline, Roo Code, OpenAI SDK) izņem `reasoning_co
 ## Arhitektūra
 
 ```
-Solis N (asistents ģenerē):
+Gājiens N (asistents ģenerē):
   → atbilde satur reasoning_content + tool_calls
   → ja requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
       ieraksta (atmiņā + DB), izmantojot katru tool_call.id kā atslēgu
-  → pārsūta atbildi klientam (kurš spriešanas saturu var saglabāt vai nesaglabāt)
+  → pārsūta atbildi klientam (kurš var saglabāt vai nesaglabāt spriešanas saturu)
 
-Solis N+1 (klients nosūta nākamo pieprasījumu):
+Gājiens N+1 (klients nosūta turpinājumu):
   → tulkotājs konstatē: requiresReasoningReplay(provider, model) === true
   → katram asistenta ziņojumam ar tool_calls un bez reasoning_content:
       lookupReasoning(toolCalls[0].id) → atmiņa → DB
       atrasts  → msg.reasoning_content = cached; recordReplay()
-      nav atrasts → msg.reasoning_content = "" (mantotā atkāpšanās vecākām DeepSeek versijām)
-  → augšupējais pakalpojums redz konsekventu vēsturi → nav 400 kļūdas
+      nav atrasts → msg.reasoning_content = "" (mantotais atkāpšanās risinājums vecākām DeepSeek versijām)
+  → augšupstraume saņem konsekventu vēsturi → nav 400
 ```
 
-Tveršana notiek failā `open-sse/handlers/chatCore.ts` (divās vietās, abās `cacheReasoningFromAssistantMessage` izsaukuma vietās). Atkārtotā izmantošana notiek failā `open-sse/translator/index.ts` pēc shēmas piespiedu pārveidošanas, bet pirms nosūtīšanas.
+Tveršana notiek failā `open-sse/handlers/chatCore.ts` (divās vietās — abās `cacheReasoningFromAssistantMessage` izsaukuma vietās). Atkārtota atskaņošana notiek failā `open-sse/translator/index.ts` pēc shēmas piespiedu pārveidošanas, bet pirms nosūtīšanas.
+
+Parastajiem asistenta gājieniem (bez rīku izsaukumiem) atslēgas tiek veidotas citādi: `buildAssistantMessageCacheKey()` izveido sesijas tvēruma un līdz attiecīgajam gājienam normalizētā OpenAI formāta transkripta jaucējvērtību, jo DeepSeek pieprasa _katra_ iepriekšējā gājiena spriešanas saturu, tiklīdz ir norādīts `tools`. Responses API mērķiem (piemēram, `opencode-go/deepseek-v4-flash`, kas tiek maršrutēts uz `/responses`) augšupstraumes ķermenis satur `input`, nevis `messages`, tāpēc `translateRequest()` (`open-sse/translator/index.ts`) ar atzvanīšanas opciju paziņo apstrādāto starpformāta transkriptu, un tveršanas vietas izveido tā paša transkripta jaucējvērtību. Responses atkārtotās atskaņošanas posms visiem avota formātiem darbojas ar OpenAI starpformātu, tāpēc atkārtoti tiek atskaņoti arī Anthropic Messages klienti (Claude → OpenAI → Responses).
 
 ## Glabāšana — hibrīda atmiņa + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indeksi: `expires_at`, `provider`, `model`, `created_at`. `expires_at` tiek glabāts kā Unix laikmeta sekunžu vērtība; SELECT slānis normalizē mantotās teksta vērtības, izmantojot `EXPIRES_AT_EPOCH_SQL`.
+Indeksi: `expires_at`, `provider`, `model`, `created_at`. `expires_at` tiek glabāts kā Unix laikmeta sekundes; SELECT slānis normalizē mantotās teksta vērtības, izmantojot `EXPIRES_AT_EPOCH_SQL`.
 
 ## Nodrošinātāja / modeļa noteikšana
 

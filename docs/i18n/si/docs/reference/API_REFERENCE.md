@@ -440,7 +440,7 @@ sidecar එකක් ක්රියාවලියෙන් පිටත ධා
 
 ---
 
-## ගැළපුම් Endpoints
+## අනුකූලතා අන්ත ලක්ෂ්ය
 
 | ක්රමය | මාර්ගය                                    | ආකෘතිය                                   |
 | ----- | ----------------------------------------- | ---------------------------------------- |
@@ -463,19 +463,19 @@ sidecar එකක් ක්රියාවලියෙන් පිටත ධා
 | GET   | `/v1beta/models`                          | Gemini                                   |
 | POST  | `/v1beta/models/{...path}`                | Gemini generateContent                   |
 | POST  | `/v1/api/chat`                            | Ollama                                   |
-| GET   | `/api/v1/vscode/{token}/`                 | OpenAI නාමාවලි අන්වර්ථ නාමය              |
-| GET   | `/api/v1/vscode/{token}/models`           | OpenAI ආකෘති අන්වර්ථ නාමය                |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI ටෝකනීකෘත අන්වර්ථ නාමය             |
-| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ටෝකනීකෘත අන්වර්ථ නාමය   |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama ටෝකනීකෘත අන්වර්ථ නාමය             |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama ටැග් ටෝකනීකෘත අන්වර්ථ නාමය        |
+| GET   | `/api/v1/vscode/{token}/`                 | OpenAI නාමාවලි අන්වර්ථය                  |
+| GET   | `/api/v1/vscode/{token}/models`           | OpenAI ආකෘති අන්වර්ථය                    |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI ටෝකනීකෘත අන්වර්ථය                 |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ටෝකනීකෘත අන්වර්ථය       |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama ටෝකනීකෘත අන්වර්ථය                 |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama ටැග් ටෝකනීකෘත අන්වර්ථය            |
 
-සියලුම POST මාර්ග එකම ව්යුහය අනුගමනය කරයි: `Bearer your-api-key` + Zod මඟින් වලංගු කරන ලද JSON අන්තර්ගතය (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ආදිය; `src/shared/validation/schemas.ts` බලන්න). යෝජනා ක්රමය වලංගු කිරීම අසාර්ථක වුවහොත් 4xx ආපසු ලබා දෙයි.
+සියලුම POST මාර්ග එකම ව්යුහය අනුගමනය කරයි: `Bearer your-api-key` + Zod මඟින් වලංගු කරන ලද JSON අන්තර්ගතය (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ආදිය; `src/shared/validation/schemas.ts` බලන්න). යෝජනා ක්රමය වලංගු කිරීම අසමත් වුවහොත් 4xx ආපසු ලබා දෙයි.
 
-`Authorization: Bearer ...` ඇමිණිය නොහැකි සේවාදායකයන් සඳහා, OmniRoute විසින් query-string ගැළපුම (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) හෝ පහත ලේඛනගත කර ඇති වෙන් කළ `/api/v1/vscode/{token}/...` endpoints හරහා URL එක තුළ API යතුරු ද පිළිගනී.
+`Authorization: Bearer ...` ඇමිණිය නොහැකි සේවාලාභීන් සඳහා, OmniRoute විමසුම්-තන්තු අනුකූලතාව (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) හෝ පහත ලේඛනගත කර ඇති විශේෂිත `/api/v1/vscode/{token}/...` අන්ත ලක්ෂ්ය හරහා URL තුළ API යතුරු ද පිළිගනී.
 
 ```bash
-# නැවත ශ්රේණිගත කිරීම
+# නැවත ශ්රේණිගත කිරීම (ක්ලවුඩ් රෙජිස්ට්රි සපයන්නා, හෝ "<prefix>/<model>" ලෙස OpenAI-අනුකූල සපයන්නාගේ නෝඩයක්)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina වර්ගීකරණය (Foundation API අක්තපත්ර)
@@ -484,13 +484,13 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Jina ඛණ්ඩකය
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina සෙවීම (s.jina.ai; සපයන්නාගේ අන්වර්ථ නාම: jina-search, jina-ai, jina)
+# Jina සෙවීම (s.jina.ai; සපයන්නාගේ අන්වර්ථ: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # අන්තර්ගත පාලනය
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg අන්තර්ගතයක් (හෝ ඉල්ලා ඇති ආකෘතිය) ලබා දෙයි
+# TTS — audio/mpeg අන්තර්ගතය (හෝ ඉල්ලා සිටි ආකෘතිය) ආපසු ලබා දෙයි
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # රූප සංස්කරණය (multipart)
@@ -501,7 +501,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### වෙන් කළ සපයන්නා මාර්ග
+> **නැවත ශ්රේණිගත කිරීමේ සපයන්නාගේ නෝඩ:** `POST /v1/rerank` මඟින් `<node-prefix>/<model>` ලෙස යොමු කරන ලද OpenAI-අනුකූල සපයන්නාගේ නෝඩ
+> (oMLX, vLLM, Infinity, ද්වාරයක් පසුපස ඇති TEI, …) වෙත ද මාර්ගගත කරයි. Loopback
+> නෝඩ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) සෑම විටම සුදුසුකම් ලබයි. වෙනත් ඕනෑම
+> සත්කාරකයක ඇති නෝඩයක් — LAN යන්ත්රයක් හෝ Tailscale සමකක්ෂයක් — සුදුසුකම් ලබන්නේ ක්රියාකරු
+> `RERANK_REMOTE_PROVIDER_NODES` විශේෂාංග ධජය සක්රීය කර ඇති **සහ** නෝඩයේ මූලික URL එක සපයන්නාගේ
+> පිටතට යන URL ප්රතිපත්තිය (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)
+> සමත් වන අවස්ථාවක පමණි; ක්ලවුඩ්-පාරදත්ත සත්කාරක වෙත කිසිවිටෙක මාර්ගගත නොකෙරේ. මතක එන්ජිමේ නැවත ශ්රේණිගත කිරීමේ පියවර මෙම මාර්ගය
+> loopback හරහා කැඳවන බැවින්, මතක සැකසුම්වල `rerankProviderModel` සඳහා ද එම රීතියම අදාළ වේ.
+>
+> **දේශීය සේවාදායක ව්යුහ:** නෝඩය `<base>/v1/rerank` හිදී කැඳවනු ලබන අතර, 404 ලැබුණහොත් `<base>/rerank`
+> (Infinity, TEI) හිදී කැඳවනු ලැබේ. ඉහළ ධාරාවේ අන්තර්ගතය Cohere/OpenAI අක්ෂර වින්යාසය (`documents`,
+> `return_documents`) සහ TEI අක්ෂර වින්යාසය (`texts`, `return_text`) යන දෙකම රැගෙන යන අතර, ඉහළ ධාරාවේ ප්රතිචාරය
+> Cohere ආවරණයට සාමාන්යකරණය කෙරේ: TEI හි සරල `[{index, score, text}]`, සැහැල්ලු ද්වාරවලින් ලැබෙන
+> `{results: [{index, score}]}`, සහ Voyage-ශෛලියේ `{data: [...]}` යන සියල්ල සේවාලාභියා වෙත
+> `{results: [{index, relevance_score, document?}]}` ලෙස, ලකුණු අනුව අනුපිළිවෙළට සකසා `top_n` දක්වා සීමා කර ආපසු පැමිණේ.
+
+> **සපයන්නාගේ නෝඩ සොයාගැනීම:** OpenAI-අනුකූල සපයන්නාගේ නෝඩයක ආකෘති, නෝඩ උපසර්ගය යටතේ `GET /v1/models`
+> තුළ දිස්වේ. අන්ත ලක්ෂ්ය පාරදත්ත නොමැති පේළි (දේශීය `/v1/models` ලැයිස්තුගත කිරීම් සඳහා සාමාන්යය)
+> නෝඩයේ `apiType` උරුම කර ගනී; එබැවින් `embeddings` නෝඩයක ආකෘති පෙරනිමියෙන් කතාබස් ලෙස සැලකීම වෙනුවට
+> `type: "embedding"` වන අතර `rerank` නෝඩයක ආකෘති `type: "rerank"` වේ; සමමුහුර්ත කළ හෝ අතින් එක් කළ
+> පේළියක පැහැදිලි `supportedEndpoints` අගයක් තවමත් ප්රමුඛත්වය ගනී.
+
+### විශේෂිත සපයන්නාගේ මාර්ග
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -509,7 +531,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-සපයන්නාගේ උපසර්ගය නොමැති නම් එය ස්වයංක්රීයව එකතු කෙරේ. නොගැළපෙන ආකෘති සඳහා `400` ආපසු ලබා දෙයි.
+සපයන්නාගේ උපසර්ගය නොමැති නම් එය ස්වයංක්රීයව එක් කෙරේ. නොගැළපෙන ආකෘති සඳහා `400` ආපසු ලබා දෙයි.
 
 ---
 

@@ -171,32 +171,34 @@ Tabelul `memory_vec_meta` (migrarea `083_memory_vec.sql`) stochează:
 Nouă câmpuri pentru embeddings și vectori sunt disponibile în `MemorySettingsExtended` din
 `src/shared/schemas/memory.ts` și sunt persistate prin `src/lib/db/settings.ts`:
 
-| Câmp                     | Tip                                                | Valoare implicită | Descriere                                                         |
-| ------------------------ | -------------------------------------------------- | ----------------- | ----------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`          | Sursa de embeddings care va fi utilizată                          |
-| `embeddingProviderModel` | `string \| null`                                   | `null`            | Furnizor/model în formatul `provider/model`                       |
-| `customBaseUrl`          | `string \| null`                                   | `null`            | URL de bază al endpointului compatibil OpenAI, doar pentru Memory |
-| `customModelId`          | `string \| null`                                   | `null`            | ID-ul modelului trimis către endpointul personalizat              |
-| `transformersEnabled`    | `boolean`                                          | `false`           | Activare explicită pentru Transformers.js (MiniLM, ~400MB)        |
-| `staticEnabled`          | `boolean`                                          | `false`           | Activare explicită pentru modelul local static potion-base-8M     |
-| `rerankEnabled`          | `boolean`                                          | `false`           | Activează etapa de reclasificare (adaugă +200-500ms/cerere)       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`            | Furnizor/model de reclasificare în formatul `provider/model`      |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`          | Backendul vectorial care va fi utilizat                           |
+| Câmp                     | Tip                                                | Valoare implicită | Descriere                                                                |
+| ------------------------ | -------------------------------------------------- | ----------------- | ------------------------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`          | Sursa de embeddings care trebuie utilizată                               |
+| `embeddingProviderModel` | `string \| null`                                   | `null`            | Furnizor/model în formatul `provider/model`                              |
+| `customBaseUrl`          | `string \| null`                                   | `null`            | URL de bază al endpointului compatibil cu OpenAI, exclusiv pentru Memory |
+| `customModelId`          | `string \| null`                                   | `null`            | ID-ul modelului trimis către endpointul personalizat                     |
+| `transformersEnabled`    | `boolean`                                          | `false`           | Activare opțională pentru Transformers.js (MiniLM, ~400MB)               |
+| `staticEnabled`          | `boolean`                                          | `false`           | Activare opțională pentru modelul local static potion-base-8M            |
+| `rerankEnabled`          | `boolean`                                          | `false`           | Activează etapa de reclasificare (adaugă +200-500ms/cerere)              |
+| `rerankProviderModel`    | `string \| null`                                   | `null`            | Furnizor/model de reclasificare în formatul `provider/model`             |
+
+`rerankProviderModel` este rezolvat prin `POST /v1/rerank` (apelat prin interfața loopback), astfel încât acceptă orice acceptă ruta respectivă: un model cloud de reclasificare din lista selectată (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) sau un nod furnizor compatibil cu OpenAI sub forma `<node-prefix>/<model>` (de exemplu, `skilled-mini/bge-reranker-v2-m3` pentru un server TEI/Infinity). Nodurile loopback sunt întotdeauna eligibile; un nod de pe altă gazdă (LAN, Tailscale) necesită suplimentar indicatorul de funcționalitate `RERANK_REMOTE_PROVIDER_NODES` și trebuie să respecte politica pentru URL-urile de ieșire ale furnizorului — consultați [Indicatori de funcționalitate](../reference/FEATURE_FLAGS.md). Selectorul din panoul de control afișează furnizorii selectați și nodurile locale; orice șir valid `provider/model` poate fi setat direct prin `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backendul vectorial care trebuie utilizat |
 
 Acestea sunt expuse prin `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Pentru sursa `remote`, Memory acceptă și setările opționale `customBaseUrl` și
 `customModelId`. Împreună, acestea selectează un endpoint `/embeddings` compatibil
-OpenAI și un model, fără a modifica registrul global de embeddings. Endpointul este
-normalizat înainte de utilizare și verificat prin politica furnizorului privind URL-urile
-de ieșire: este necesar HTTP(S), acreditările încorporate și șirurile de interogare sunt
-respinse, iar adresele de metadate cloud rămân blocate. Valorile goale păstrează
-furnizorul selectat din registru. Erorile returnate către tabloul de bord sunt
-sanitizate, iar acreditările endpointului nu sunt înregistrate niciodată în jurnale.
+cu OpenAI și un model, fără a modifica registrul global de embeddings. Endpointul este
+normalizat înainte de utilizare și verificat conform politicii pentru URL-urile de ieșire
+ale furnizorului: este necesar HTTP(S), credențialele încorporate și șirurile de interogare
+sunt respinse, iar adresele de metadate cloud rămân blocate. Valorile necompletate păstrează
+furnizorul selectat din registru. Erorile returnate panoului de control sunt igienizate, iar
+credențialele endpointului nu sunt înregistrate niciodată în jurnale.
 
-> **TODO (D20):** Domeniul `global` (partajarea memoriilor între toate cheile API) nu este
-> implementat în această versiune. Necesită modificări ale schemei și o cale globală
-> de recuperare. Urmăriți separat.
+> **DE FĂCUT (D20):** Domeniul `global` (partajarea memoriilor între toate cheile API) nu este
+> implementat în această versiune. Acesta necesită modificări ale schemei și o cale globală
+> de recuperare. Trebuie urmărit separat.
 
 ## Straturi de stocare
 

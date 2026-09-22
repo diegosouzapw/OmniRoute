@@ -6,21 +6,51 @@
 
 OmniRoute வெவ்வேறு வரம்புகளைக் கொண்ட, செயல்முறை-உள்ளகமான **இரண்டு** lane அமைப்புகளைக் கொண்டுள்ளது. அவை ஒன்றுக்கொன்று துணைபுரிபவை; இயக்குநர்கள் தாங்கள் எதைப் பார்க்கிறார்கள் என்பதை அறிந்திருக்க வேண்டும்.
 
-## 1. பைட்-நிலை, செயல்முறை முழுவதற்குமான அனுமதி (`chatBodyAdmission.ts`)
+## 1. பைட்-அளவிலான செயல்முறை-முழுவதுமான அனுமதி (`chatBodyAdmission.ts`)
 
-- **வரம்பு:** `POST /v1/chat/completions`, `/v1/messages`, `/v1/responses` மற்றும் அரட்டை வடிவிலான பிற வழித்தடங்களுக்கான buffered-body/heap பாதை. பெரிய coding-agent body-களால் ஏற்படும் heap பெருக்கத்திலிருந்து பாதுகாக்கிறது (#4380).
-- **ஒவ்வொரு key-க்கும் தனித்தனி lane-கள் அல்ல; செயல்முறை முழுவதற்கும் ஒரே controller (#10110).** ஒவ்வொரு API key-யும் (hash செய்யப்பட்டவை) அல்லது `anonymous` session-உம் **ஒரே** பகிரப்பட்ட budget-க்கு எதிராக அனுமதிக்கப்படுகின்றன — hash செய்யப்பட்ட session id, நியாயமான திட்டமிடலுக்கான key-ஆக மட்டுமே பயன்படுத்தப்படுகிறது (காத்திருப்பவர்களிடையே round-robin dispatch); capacity shard-ஆக ஒருபோதும் பயன்படுத்தப்படுவதில்லை. இந்த ஆவணத்தின் முந்தைய பதிப்பு, சுயாதீனமான capacity கொண்ட ஒவ்வொரு key-க்குமான lane-களை விவரித்தது; அங்கீகரிக்கப்படாத போலி credentials செயல்முறை-முழுவதுமான வரம்பைப் பெருக்க அனுமதித்ததால், அந்த மாதிரி #10110-இல் அகற்றப்பட்டது.
-- **Gate (#503-fanout): நிலையான request எண்ணிக்கை அல்ல; தானாகப் பெறப்படும் ingest BYTE budget.** மரபுவழி `CHAT_MAX_HEAVY_IN_FLIGHT` request-எண்ணிக்கை உச்சவரம்பு (இந்தச் சரிசெய்தலுக்கு முன்பு இயல்புநிலை `1`) coding-agent fan-out-ஐ (பல subagent-கள்/CLI-கள், வழக்கமாக > 256 KB அளவுள்ள body-கள்) நடைமுறையில் ~1 என்ற concurrency-க்குச் சுருக்கியது; இதனால் முற்றிலும் இயல்பான சுமையிலும் 503 ஏற்பட்டது. இப்போது இயக்குநர் ஒருவர் `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`-ஐ வெளிப்படையாக அமைத்தால் மட்டுமே அது கட்டுப்படுத்தும். அதை அமைக்காமல் விட்டால், அனுமதி `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` மூலம் கட்டுப்படுத்தப்படும் — இது செயல்முறையின் உண்மையான memory ceiling-இலிருந்து தானாகப் பெறப்படும் budget (`src/shared/middleware/admissionBudget.ts`): V8 heap limit மற்றும் ஏதேனும் cgroup/container limit ஆகியவற்றில் இறுக்கமான வரம்பின் 25%, 8x transient-amplification factor-ஆல் வகுக்கப்பட்டு, 8 MiB முதல் 2 GiB வரை கட்டுப்படுத்தப்படும். வெளிப்படையான override-களும் இதே வரம்புக் கட்டுப்பாடுகளைப் பயன்படுத்துகின்றன. எந்த env tuning-உம் இல்லாமல், இது 512 MB container முதல் 32 GB desktop வரை தானாக அளவிடப்படுகிறது. நடைமுறையிலுள்ள budget-க்குள் பொருந்த முடியாத body உடனடியாக `413 body_exceeds_budget` உடன் தோல்வியடையும்; தனித்தனியாகச் சேவை செய்யக்கூடிய body-களுக்கிடையேயான போட்டி மட்டுமே வரம்பிடப்பட்ட நியாயமான queue-க்குள் நுழையும். நேரடியாக இயங்கும் பல-signal resource-pressure tracker (V8 heap ratio, cgroup, PSI, OOM events — `open-sse/utils/resourcePressurePolicy.ts`) `high` அழுத்தத்தின் கீழ் வரம்பிடப்பட்ட காத்திருப்பு நேரத்தைக் குறைத்து, எந்த byte-களும் ingest செய்யப்படுவதற்கு முன்பே `critical` அழுத்தத்தின் கீழ் `503 resource_pressure` உடன் உடனடியாகச் சுமையைக் கைவிடுகிறது.
+- **வரம்பு:** `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` மற்றும் பிற அரட்டை-வடிவ வழித்தடங்களுக்கான இடையகப்படுத்தப்பட்ட-body/heap பாதை.
+  பெரிய coding-agent body-களால் ஏற்படும் heap பெருக்கத்திலிருந்து பாதுகாக்கிறது (#4380).
+- **ஒவ்வொரு key-க்கும் தனித்தனி lane-கள் அல்ல, செயல்முறை முழுவதற்கும் ஒரே controller (#10110).** ஒவ்வொரு API key-யும்
+  (hash செய்யப்பட்டவை) அல்லது `anonymous` session-உம் **அதே** பகிரப்பட்ட budget-க்கு எதிராகவே அனுமதிக்கப்படுகிறது —
+  hash செய்யப்பட்ட session id, நியாயமான திட்டமிடல் key-ஆக மட்டுமே பயன்படுத்தப்படுகிறது (காத்திருப்பவர்களிடையே round-robin
+  dispatch); திறன் shard-ஆக ஒருபோதும் பயன்படுத்தப்படுவதில்லை. இந்த ஆவணத்தின் முந்தைய பதிப்பு,
+  சுயாதீனத் திறனுடன் ஒவ்வொரு key-க்கும் தனித்தனி lane-கள் இருப்பதாக விவரித்தது; அங்கீகரிக்கப்படாத போலி credentials,
+  செயல்முறை-முழுவதுமான வரம்பைப் பல மடங்காக்க அனுமதித்ததால் அந்த மாதிரி #10110-ல் அகற்றப்பட்டது.
+- **Gate (#503-fanout): நிலையான request எண்ணிக்கை அல்ல, தானாகப் பெறப்படும் ingest BYTE budget.**
+  மரபுவழி `CHAT_MAX_HEAVY_IN_FLIGHT` request-எண்ணிக்கை உச்சவரம்பு (இந்தத் திருத்தத்திற்கு முன் இயல்புநிலை `1`)
+  coding-agent fan-out-ஐ (பல subagent-கள்/CLI-கள், வழக்கமாக > 256 KB அளவுள்ள body-கள்)
+  நடைமுறையில் ~1 concurrency-க்கு சுருக்கியதால், முற்றிலும் இயல்பான load-இலேயே 503 பதில் ஏற்பட்டது.
+  இப்போது operator ஒருவர் `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`-ஐ வெளிப்படையாக அமைத்தால் மட்டுமே அது
+  கட்டுப்படுத்தும். அமைக்காமல் விட்டால், அனுமதி அதற்குப் பதிலாக `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` மூலம்
+  கட்டுப்படுத்தப்படுகிறது — இது செயல்முறையின் உண்மையான memory ceiling-இலிருந்து
+  (`src/shared/middleware/admissionBudget.ts`) தானாகப் பெறப்படும் budget:
+  V8 heap வரம்பு மற்றும் ஏதேனும் cgroup/container வரம்பு ஆகியவற்றில் குறைவானதன் 25%,
+  8x தற்காலிகப் பெருக்கக் காரணியால் வகுக்கப்பட்டு, 8 MiB முதல் 2 GiB வரை கட்டுப்படுத்தப்படுகிறது.
+  வெளிப்படையான override-களும் இதே வரம்புகளைப் பயன்படுத்துகின்றன. env tuning எதுவுமின்றி,
+  இது 512 MB container முதல் 32 GB desktop வரை தானாக அளவுமாறுகிறது. பயனுள்ள budget-க்குள்
+  பொருந்த முடியாத body உடனடியாக `413 body_exceeds_budget` உடன் தோல்வியடைகிறது;
+  தனித்தனியாகச் செயல்படுத்தக்கூடிய body-களுக்கிடையேயான போட்டி மட்டுமே வரம்பிடப்பட்ட
+  fairness queue-க்குள் நுழைகிறது. நேரடி பல-signal resource-pressure tracker (V8 heap விகிதம்,
+  cgroup, PSI, OOM நிகழ்வுகள் — `open-sse/utils/resourcePressurePolicy.ts`) `high` pressure-இன் கீழ்
+  வரம்பிடப்பட்ட காத்திருப்பு நேரத்தைக் குறைக்கிறது; மேலும் எந்த byte-களும் ingest செய்யப்படுவதற்கு
+  முன்பே `critical` pressure-இன் கீழ் `503 resource_pressure` மூலம் உடனடியாக load-ஐ நிராகரிக்கிறது.
+  கிடைக்கும்போது, இந்த unit-இன் cgroup `memory.pressure`-இலிருந்து PSI படிக்கப்படுகிறது
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` என்பது host முழுவதற்குமானது,
+  மேலும் bare metal / cgroup v1-இல் மட்டுமே fallback ஆகப் பயன்படுத்தப்படுகிறது; இதனால் swapping
+  நடைபெறும் host ஒன்று செயலற்ற container-க்கு 503 ஏற்படுத்த முடியாது.
 - **அமைவுச் சீரமைப்பு:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — தானாகப் பெறப்படும் byte budget-க்கான override
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — மரபுவழி request-எண்ணிக்கை உச்சவரம்பு; தேர்வுசெய்தால் மட்டுமே செயல்படும்
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503-க்கு முன்பான queue காத்திருப்பு (இயல்புநிலை 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queue செய்யப்பட்ட byte-களுக்கான heap valve (இயல்புநிலை 4 MB)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — மரபுவழி request-எண்ணிக்கை உச்சவரம்பு; opt-in மட்டும்
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503-க்கு முன் queue-இல் காத்திருக்கும் நேரம் (இயல்புநிலை 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queued-bytes heap valve (இயல்புநிலை 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 முதல் வழக்கொழிந்த
     no-op-கள் (config இணக்கத்தன்மைக்காக ஏற்கப்படுகின்றன, ஆனால் புறக்கணிக்கப்படுகின்றன)
-- **அறிக்கைகள்:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — #503-fanout சேர்க்கைகளான `inflightBytes`, `maxInflightBytes`, `budgetSource`
+- **அறிக்கைகள்:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — #503-fanout சேர்ப்புகளான
+  `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` மற்றும் `countCapEnabled`
-  ஆகியவை உட்பட (இயல்புநிலை deployment-இல் false — மரபுவழி count cap அல்ல, byte budget-தான் உண்மையில் கட்டுப்படுத்துகிறது என்பதை உறுதிப்படுத்துகிறது).
+  ஆகியவையும் உட்பட (இயல்புநிலை deployment-இல் false — உண்மையில் கட்டுப்படுத்துவது மரபுவழி
+  count cap அல்ல, byte budget என்பதைக் உறுதிப்படுத்துகிறது).
 
 ## 2. தகவமைப்பு இயக்கநேர மெய்நிகர் தடங்கள் (`open-sse/services/admission`)
 

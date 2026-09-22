@@ -155,23 +155,32 @@ RRF(d) = Σ  1 / (k + rank_i(d))      其中 k = 60（可透過 MEMORY_RRF_K 設
 
 `src/shared/schemas/memory.ts` 中的 `MemorySettingsExtended` 提供九個嵌入與向量欄位，並透過 `src/lib/db/settings.ts` 持久化：
 
-| 欄位                     | 類型                                               | 預設值   | 說明                                            |
-| ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | 要使用的嵌入來源                                |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | 採用 `provider/model` 格式的提供者/模型         |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | 僅供記憶體使用、與 OpenAI 相容的端點基底 URL    |
-| `customModelId`          | `string \| null`                                   | `null`   | 傳送至自訂端點的模型 ID                         |
-| `transformersEnabled`    | `boolean`                                          | `false`  | 選擇啟用 Transformers.js（MiniLM，約 400MB）    |
-| `staticEnabled`          | `boolean`                                          | `false`  | 選擇啟用本機靜態 potion-base-8M 模型            |
-| `rerankEnabled`          | `boolean`                                          | `false`  | 啟用重新排序步驟（每個要求增加 200–500 毫秒）   |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | 採用 `provider/model` 格式的重新排序提供者/模型 |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | 要使用的向量後端                                |
+| 欄位                     | 類型                                               | 預設值   | 說明                                             |
+| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | 要使用的嵌入來源                                 |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | 採用 `provider/model` 格式的提供者／模型         |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | 僅供 Memory 使用的 OpenAI 相容端點基礎 URL       |
+| `customModelId`          | `string \| null`                                   | `null`   | 傳送至自訂端點的模型 ID                          |
+| `transformersEnabled`    | `boolean`                                          | `false`  | 選擇啟用 Transformers.js（MiniLM，約 400MB）     |
+| `staticEnabled`          | `boolean`                                          | `false`  | 選擇啟用靜態 potion-base-8M 本機模型             |
+| `rerankEnabled`          | `boolean`                                          | `false`  | 啟用重新排序步驟（每個請求增加 200–500ms）       |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | 採用 `provider/model` 格式的重新排序提供者／模型 |
 
-這些設定透過 `GET /PUT /api/settings/memory` 公開（結構描述為 `MemorySettingsExtendedSchema`）。
+`rerankProviderModel` 由 `POST /v1/rerank` 解析（透過回送介面呼叫），因此它接受該路由所接受的任何內容：精選的雲端重新排序模型（`cohere/rerank-v3.5`、`jina-ai/jina-reranker-v3.5`……），或採用 `<node-prefix>/<model>` 格式的 OpenAI 相容提供者節點（例如，對於 TEI/Infinity 主機，可使用 `skilled-mini/bge-reranker-v2-m3`）。回送節點一律符合資格；位於其他主機（LAN、Tailscale）上的節點還需要 `RERANK_REMOTE_PROVIDER_NODES` 功能旗標，且必須通過提供者的傳出 URL 政策——請參閱[功能旗標](../reference/FEATURE_FLAGS.md)。儀表板選擇器會列出精選提供者與本機節點；任何有效的 `provider/model` 字串都可以透過 `PUT /api/settings/memory` 直接設定。
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | 要使用的向量後端 |
 
-對於 `remote` 來源，Memory 也接受選用的 `customBaseUrl` 與 `customModelId` 設定。兩者搭配使用時，可在不變更全域嵌入登錄的情況下，選取與 OpenAI 相容的 `/embeddings` 端點與模型。端點在使用前會進行正規化，並由提供者的輸出 URL 政策檢查：必須使用 HTTP(S)、拒絕內嵌認證資訊與查詢字串，而且仍會封鎖雲端中繼資料位址。空值會保留所選的登錄提供者。傳回儀表板的錯誤會經過清理，而且永遠不會記錄端點認證資訊。
+這些設定會透過 `GET /PUT /api/settings/memory` 公開（結構描述為 `MemorySettingsExtendedSchema`）。
 
-> **TODO (D20)：** 本版本尚未實作 `global` 範圍（跨所有 API 金鑰共享記憶）。這需要結構描述變更及全域擷取路徑。請另行追蹤。
+對於 `remote` 來源，Memory 也接受選用的 `customBaseUrl` 和
+`customModelId` 設定。兩者可共同選取 OpenAI 相容的 `/embeddings`
+端點與模型，而不變更全域嵌入登錄表。端點在使用前會先正規化，
+並由提供者的傳出 URL 政策檢查：必須使用 HTTP(S)、不允許內嵌認證資訊
+與查詢字串，且雲端中繼資料位址仍會被封鎖。空值會保留所選的登錄表提供者。
+傳回儀表板的錯誤會經過清理，且端點認證資訊永遠不會記錄至日誌。
+
+> **TODO (D20)：** 此版本尚未實作 `global` 範圍（在所有 API 金鑰之間共用記憶）。
+> 這需要結構描述變更與全域擷取路徑。
+> 請另行追蹤。
 
 ## 儲存層
 

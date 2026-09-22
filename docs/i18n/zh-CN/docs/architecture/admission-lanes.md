@@ -6,18 +6,18 @@
 
 OmniRoute 有**两套**作用域不同的进程本地通道系统。二者相辅相成；运维人员应清楚自己正在查看的是哪一套系统。
 
-## 1. 字节级、进程范围的准入控制（`chatBodyAdmission.ts`）
+## 1. 字节级进程全局准入控制（`chatBodyAdmission.ts`）
 
-- **作用域：**适用于 `POST /v1/chat/completions`、`/v1/messages`、`/v1/responses` 及其他聊天形式路由的缓冲请求体/堆内存路径。用于防止大型编码智能体请求体导致堆内存放大（#4380）。
-- **每个进程使用一个全局控制器，而不是按密钥划分通道（#10110）。** 每个 API 密钥（经哈希处理）或 `anonymous` 会话都使用**同一个**共享预算进行准入——经过哈希处理的会话 ID 仅用作公平调度键（在等待者之间进行轮询分派），绝不会用作容量分片。本文档之前的版本描述了具有独立容量的按密钥通道；该模型已在 #10110 中移除，因为它会让未经身份验证的伪造凭据成倍扩大进程范围的上限。
-- **门控（#503-fanout）：自动推导的摄取字节预算，而非固定的请求数。** 旧版 `CHAT_MAX_HEAVY_IN_FLIGHT` 请求数上限（此修复前默认为 `1`）会将编码智能体的扇出（多个子智能体/CLI，请求体通常 > 256 KB）压缩到约为 1 的有效并发度，从而在完全正常的负载下返回 503。现在，只有运维人员显式设置 `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` 时，该上限才会生效。如果未设置，则改为由 `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` 控制准入——该预算根据进程的实际内存上限自动推导（`src/shared/middleware/admissionBudget.ts`）：取 V8 堆上限与任何 cgroup/容器上限中较严格者的 25%，再除以 8 倍的瞬时放大系数，并限制在 8 MiB 到 2 GiB 之间。显式覆盖值也使用相同的限制范围。这样一来，从 512 MB 容器到 32 GB 桌面环境，它都能自动扩缩，无需调整环境变量。无法装入有效预算的请求体会立即以 `413 body_exceeds_budget` 失败；只有各自可处理的请求体之间发生资源争用时，才会进入有界公平队列。实时多信号资源压力跟踪器（V8 堆占用率、cgroup、PSI、OOM 事件——`open-sse/utils/resourcePressurePolicy.ts`）会在 `high` 压力下缩短有界等待时间，并在 `critical` 压力下立即以 `503 resource_pressure` 拒绝请求，此时甚至尚未摄取任何字节。
+- **范围：**适用于 `POST /v1/chat/completions`、`/v1/messages`、`/v1/responses` 以及其他聊天类路由的缓冲请求体/堆内存路径。防止大型编码智能体请求体导致堆内存放大（#4380）。
+- **使用单个进程全局控制器，而非按密钥划分通道（#10110）。**每个 API 密钥（经哈希处理）或 `anonymous` 会话都针对**同一个**共享预算进行准入——哈希会话 ID 仅用作公平调度键（在等待者之间进行轮询调度），绝不会用作容量分片。本文档的早期版本描述了具有独立容量的按密钥通道；该模型已在 #10110 中移除，因为它会导致未经身份验证的伪造凭据成倍扩大进程全局上限。
+- **门控（#503-fanout）：使用自动推导的摄取字节预算，而非固定请求数。**旧版 `CHAT_MAX_HEAVY_IN_FLIGHT` 请求数上限（此次修复前默认为 `1`）会将编码智能体的扇出（多个子智能体/CLI，请求体通常 > 256 KB）的实际并发数压缩至约 1，从而在完全正常的负载下返回 503。现在，仅当操作人员显式设置 `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` 时，该上限才会生效。若未设置，准入将改由 `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` 门控——该预算根据进程的实际内存上限自动推导（`src/shared/middleware/admissionBudget.ts`）：取 V8 堆上限与任何 cgroup/容器上限中较严格者的 25%，除以 8 倍瞬时放大系数，再限制在 8 MiB 到 2 GiB 之间。显式覆盖值也使用相同的限制范围。这样无需调整环境变量，即可从 512 MB 容器自动扩展到 32 GB 桌面环境。无法容纳在有效预算内的请求体会立即以 `413 body_exceeds_budget` 失败；只有可单独处理的请求体之间发生资源争用时，才会进入有界公平队列。实时多信号资源压力跟踪器（V8 堆占用率、cgroup、PSI、OOM 事件——`open-sse/utils/resourcePressurePolicy.ts`）会在 `high` 压力下缩短有界等待时间，并在 `critical` 压力下、甚至尚未摄取任何字节之前，立即以 `503 resource_pressure` 拒绝请求。在存在本单元 cgroup 的 `memory.pressure` 时，将从中读取 PSI（`open-sse/utils/resourcePressureSampler.ts`）；`/proc/pressure/memory` 是主机范围的指标，仅在裸机/cgroup v1 环境中作为后备，因此发生交换的主机不会导致空闲容器返回 503。
 - **调优：**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — 覆盖自动推导的字节预算
   - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — 旧版请求数上限，仅在显式启用时生效
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 返回 503 前的队列等待时间（默认值为 2000）
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — 排队字节数的堆内存安全阀（默认值为 4 MB）
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 返回 503 前的队列等待时间（默认 2000）
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — 排队字节数的堆内存阀值（默认 4 MB）
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — 自 #10110 起已弃用且不执行任何操作（为保持配置兼容性而接受，但会被忽略）
-- **报告：**`GET /api/monitoring/health` → `chatAdmission`（#11244）——包括 #503-fanout 新增的 `inflightBytes`、`maxInflightBytes`、`budgetSource`（`v8_heap` | `cgroup` | `override`）、`pressureSeverity` 和 `countCapEnabled`（在默认部署中为 false——这可确认实际生效的是字节预算，而非旧版请求数上限）。
+- **报告：**`GET /api/monitoring/health` → `chatAdmission`（#11244）——包括 #503-fanout 新增的 `inflightBytes`、`maxInflightBytes`、`budgetSource`（`v8_heap` | `cgroup` | `override`）、`pressureSeverity` 和 `countCapEnabled`（默认部署中为 false——用于确认实际生效的是字节预算，而不是旧版请求数上限）。
 
 ## 2. 自适应运行时虚拟通道（`open-sse/services/admission`）
 

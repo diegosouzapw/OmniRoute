@@ -22,22 +22,24 @@ OmniRoute იღებს აზროვნების რეჟიმის �
 ## არქიტექტურა
 
 ```
-სვლა N (ასისტენტი აგენერირებს):
-  → პასუხი შეიცავს reasoning_content-სა და tool_calls-ს
+რაუნდი N (ასისტენტი აგენერირებს):
+  → პასუხი შეიცავს reasoning_content-ს + tool_calls-ს
   → თუ requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      წერს (მეხსიერება + DB), გასაღებად იყენებს თითოეულ tool_call.id-ს
-  → პასუხს გადასცემს კლიენტს (რომელმაც მსჯელობა შეიძლება შეინარჩუნოს ან არ შეინარჩუნოს)
+      ინახავს (მეხსიერებაში + DB-ში), გასაღებად ყოველი tool_call.id-ის გამოყენებით
+  → პასუხს გადასცემს კლიენტს (რომელმაც reasoning შეიძლება შეინარჩუნოს ან არ შეინარჩუნოს)
 
-სვლა N+1 (კლიენტი აგზავნის მომდევნო მოთხოვნას):
-  → მთარგმნელი ადგენს: requiresReasoningReplay(provider, model) === true
-  → ასისტენტის თითოეული შეტყობინებისთვის, რომელსაც აქვს tool_calls და არ აქვს reasoning_content:
+რაუნდი N+1 (კლიენტი აგზავნის შემდგომ მოთხოვნას):
+  → მთარგმნელი ამოიცნობს: requiresReasoningReplay(provider, model) === true
+  → თითოეული ასისტენტის შეტყობინებისთვის, რომელსაც აქვს tool_calls და არ აქვს reasoning_content:
       lookupReasoning(toolCalls[0].id) → მეხსიერება → DB
-      ნაპოვნია  → msg.reasoning_content = cached; recordReplay()
-      ვერ მოიძებნა → msg.reasoning_content = "" (მემკვიდრეობითი სარეზერვო ქცევა ძველი DeepSeek-ისთვის)
-  → ზედა დონის სერვისი იღებს თანმიმდევრულ ისტორიას → 400 შეცდომა აღარ არის
+      დამთხვევა  → msg.reasoning_content = cached; recordReplay()
+      აცდენა → msg.reasoning_content = "" (ძველი DeepSeek-ისთვის მემკვიდრეობითი სათადარიგო ვარიანტი)
+  → ზედა დონის სერვერი ხედავს თანმიმდევრულ ისტორიას → 400 არ წარმოიქმნება
 ```
 
-მიღება ხდება `open-sse/handlers/chatCore.ts`-ში (ორ ადგილას, `cacheReasoningFromAssistantMessage`-ის გამოძახების ორ წერტილში). ხელახლა გადაცემა ხდება `open-sse/translator/index.ts`-ში, სქემის იძულებითი გარდაქმნის შემდეგ, მაგრამ გაგზავნამდე.
+ჩაწერა ხდება `open-sse/handlers/chatCore.ts`-ში (ორ ადგილას, `cacheReasoningFromAssistantMessage`-ის გამოძახების ორ წერტილში). ხელახალი ჩასმა ხდება `open-sse/translator/index.ts`-ში, სქემის იძულებითი გარდაქმნის შემდეგ, მაგრამ გადაგზავნამდე.
+
+ასისტენტის ჩვეულებრივი (tool-call-ის არმქონე) რაუნდებისთვის გასაღები სხვაგვარად იქმნება: `buildAssistantMessageCacheKey()` ქმნის სესიის ფარგლებისა და ამ რაუნდამდე ნორმალიზებული OpenAI-ფორმატის ტრანსკრიპტის დაიჯესტს, რადგან `tools`-ის არსებობისას DeepSeek-ს _ყოველი_ წინა რაუნდის reasoning სჭირდება. Responses-API-ის სამიზნეებისთვის (მაგალითად, `opencode-go/deepseek-v4-flash`, რომელიც მარშრუტიზდება `/responses`-ზე) ზედა დონის მოთხოვნის სხეული შეიცავს `input`-ს და არა `messages`-ს, ამიტომ `translateRequest()` (`open-sse/translator/index.ts`) callback-პარამეტრის მეშვეობით ატყობინებს მის მიერ დამუშავებულ შუალედურ ტრანსკრიპტს, ხოლო ჩაწერის წერტილები იმავე ტრანსკრიპტის დაიჯესტს ქმნიან. Responses-ის ხელახალი ჩასმის ეტაპი ყველა საწყისი ფორმატისთვის OpenAI-ის შუალედურ წარმოდგენაზე სრულდება, ამიტომ Anthropic Messages-ის კლიენტებისთვისაც (Claude → OpenAI → Responses) ხდება ხელახალი ჩასმა.
 
 ## საცავი — მეხსიერებისა და SQLite-ის ჰიბრიდი
 

@@ -22,22 +22,24 @@ OmniRoute हे विचार-मोड मॉडेल्सद्वार�
 ## आर्किटेक्चर
 
 ```
-टर्न N (सहाय्यक तयार करतो):
+टर्न N (असिस्टंट जनरेट करतो):
   → प्रतिसादामध्ये reasoning_content + tool_calls असतात
-  → requiresReasoningReplay(provider, model) असल्यास: cacheReasoningFromAssistantMessage()
-      प्रत्येक tool_call.id द्वारे की केलेले (मेमरी + DB) लिहिते
-  → प्रतिसाद क्लायंटकडे फॉरवर्ड करते (जो रीझनिंग जतन करू शकतो किंवा करू शकत नाही)
+  → जर requiresReasoningReplay(provider, model) असेल: cacheReasoningFromAssistantMessage()
+      प्रत्येक tool_call.id नुसार की केलेले (मेमरी + DB मध्ये) लिहिते
+  → प्रतिसाद क्लायंटकडे फॉरवर्ड केला जातो (जो reasoning राखून ठेवू शकतो किंवा ठेवू शकत नाही)
 
-टर्न N+1 (क्लायंट पुढील विनंती पाठवतो):
-  → ट्रान्सलेटर हे शोधतो: requiresReasoningReplay(provider, model) === true
-  → tool_calls असलेल्या आणि reasoning_content नसलेल्या प्रत्येक सहाय्यक संदेशासाठी:
+टर्न N+1 (क्लायंट फॉलो-अप पाठवतो):
+  → ट्रान्सलेटर शोधतो: requiresReasoningReplay(provider, model) === true
+  → tool_calls असलेल्या आणि reasoning_content नसलेल्या प्रत्येक असिस्टंट मेसेजसाठी:
       lookupReasoning(toolCalls[0].id) → मेमरी → DB
       हिट  → msg.reasoning_content = cached; recordReplay()
       मिस → msg.reasoning_content = "" (जुन्या DeepSeek साठी लेगसी फॉलबॅक)
-  → अपस्ट्रीमला सुसंगत इतिहास दिसतो → 400 नाही
+  → अपस्ट्रीमला सुसंगत हिस्टरी दिसते → 400 त्रुटी नाही
 ```
 
-संकलन `open-sse/handlers/chatCore.ts` मध्ये होते (`cacheReasoningFromAssistantMessage` कॉल असलेल्या दोन ठिकाणी). स्कीमा कोअर्शननंतर, परंतु डिस्पॅचपूर्वी, पुनर्वापर `open-sse/translator/index.ts` मध्ये होतो.
+कॅप्चर `open-sse/handlers/chatCore.ts` मध्ये होते (दोन ठिकाणी, दोन `cacheReasoningFromAssistantMessage` कॉल साइट्सवर). रिप्ले `open-sse/translator/index.ts` मध्ये स्कीमा कोअर्शननंतर, परंतु डिस्पॅचपूर्वी होते.
+
+साध्या (टूल-कॉल नसलेल्या) असिस्टंट टर्न्सना वेगळ्या प्रकारे की केले जाते: `buildAssistantMessageCacheKey()` सेशन स्कोप आणि त्या टर्नपर्यंतच्या नॉर्मलाइझ केलेल्या OpenAI-फॉरमॅट ट्रान्सक्रिप्टचा डायजेस्ट तयार करते, कारण `tools` उपस्थित झाल्यानंतर DeepSeek ला _प्रत्येक_ आधीच्या टर्नचे रिझनिंग आवश्यक असते. Responses-API टार्गेट्ससाठी (उदाहरणार्थ `opencode-go/deepseek-v4-flash`, जे `/responses` कडे रूट केले जाते) अपस्ट्रीम बॉडीमध्ये `messages` ऐवजी `input` असते, त्यामुळे `translateRequest()` (`open-sse/translator/index.ts`) कॉलबॅक पर्यायाद्वारे त्याने डायजेस्ट केलेल्या पिव्हट ट्रान्सक्रिप्टची माहिती देते आणि कॅप्चर साइट्स त्याच ट्रान्सक्रिप्टचा डायजेस्ट तयार करतात. Responses रिप्ले पास प्रत्येक सोर्स फॉरमॅटसाठी OpenAI पिव्हटवर चालतो, त्यामुळे Anthropic Messages क्लायंट्सचाही (Claude → OpenAI → Responses) रिप्ले केला जातो.
 
 ## स्टोरेज — हायब्रिड मेमरी + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-इंडेक्सेस: `expires_at`, `provider`, `model`, `created_at`. `expires_at` हे Unix epoch सेकंद म्हणून संग्रहित केले जाते; SELECT स्तर `EXPIRES_AT_EPOCH_SQL` द्वारे लेगसी टेक्स्ट मूल्ये सामान्यीकृत करतो.
+इंडेक्सेस: `expires_at`, `provider`, `model`, `created_at`. `expires_at` हे Unix epoch सेकंदांमध्ये संग्रहित केले जाते; SELECT स्तर `EXPIRES_AT_EPOCH_SQL` द्वारे जुन्या मजकूर मूल्यांचे सामान्यीकरण करतो.
 
 ## प्रदाता / मॉडेल शोध
 

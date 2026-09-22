@@ -22,22 +22,24 @@ OmniRoute 會擷取由思考模式模型產生的助理 `reasoning_content`，�
 ## 架構
 
 ```
-第 N 輪（助理產生內容）：
+第 N 輪（assistant 產生）：
   → 回應包含 reasoning_content + tool_calls
   → 若 requiresReasoningReplay(provider, model)：cacheReasoningFromAssistantMessage()
-      寫入（記憶體 + DB），以每個 tool_call.id 作為索引鍵
-  → 將回應轉送給用戶端（用戶端可能保留或不保留推理內容）
+      寫入（記憶體 + DB），並以每個 tool_call.id 作為索引鍵
+  → 將回應轉送給用戶端（其可能保留，也可能不保留推理內容）
 
-第 N+1 輪（用戶端傳送後續請求）：
-  → 轉譯器偵測到：requiresReasoningReplay(provider, model) === true
-  → 對每一則包含 tool_calls 但沒有 reasoning_content 的助理訊息：
+第 N+1 輪（用戶端傳送後續訊息）：
+  → 轉換器偵測：requiresReasoningReplay(provider, model) === true
+  → 對每個具有 tool_calls 但沒有 reasoning_content 的 assistant 訊息：
       lookupReasoning(toolCalls[0].id) → 記憶體 → DB
-      命中  → msg.reasoning_content = cached; recordReplay()
-      未命中 → msg.reasoning_content = ""（適用於舊版 DeepSeek 的舊式後備處理）
-  → 上游看到一致的歷史記錄 → 不會出現 400
+      命中  → msg.reasoning_content = cached；recordReplay()
+      未命中 → msg.reasoning_content = ""（適用於舊版 DeepSeek 的向後相容備援）
+  → 上游取得一致的歷史記錄 → 不會出現 400
 ```
 
-擷取作業發生於 `open-sse/handlers/chatCore.ts`（兩個位置，即兩個 `cacheReasoningFromAssistantMessage` 呼叫點）。重新帶入作業發生於 `open-sse/translator/index.ts`，位於結構描述強制轉換之後、分派之前。
+擷取發生於 `open-sse/handlers/chatCore.ts`（共兩處，即兩個 `cacheReasoningFromAssistantMessage` 呼叫位置）。重播發生於 `open-sse/translator/index.ts`，位於結構描述強制轉換之後、分派之前。
+
+純文字（非工具呼叫）assistant 輪次採用不同的索引鍵：`buildAssistantMessageCacheKey()` 會對工作階段範圍，以及截至該輪為止經正規化的 OpenAI 格式對話記錄進行摘要，因為只要存在 `tools`，DeepSeek 就會要求提供_每一個_先前輪次的推理內容。對於 Responses API 目標（例如 `opencode-go/deepseek-v4-flash`，路由至 `/responses`），上游請求本文攜帶的是 `input`，而非 `messages`，因此 `translateRequest()`（`open-sse/translator/index.ts`）會透過回呼選項回報其進行摘要的樞紐對話記錄，而擷取位置也會對相同的對話記錄進行摘要。Responses 重播流程會針對每種來源格式在 OpenAI 樞紐上執行，因此 Anthropic Messages 用戶端（Claude → OpenAI → Responses）也會被重播。
 
 ## 儲存 — 記憶體 + SQLite 混合模式
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-索引：`expires_at`、`provider`、`model`、`created_at`。`expires_at` 會儲存為 Unix Epoch 秒數；SELECT 層會透過 `EXPIRES_AT_EPOCH_SQL` 正規化舊有文字值。
+索引：`expires_at`、`provider`、`model`、`created_at`。`expires_at` 以 Unix 紀元秒數儲存；SELECT 層透過 `EXPIRES_AT_EPOCH_SQL` 將舊版文字值正規化。
 
 ## 提供者 / 模型偵測
 

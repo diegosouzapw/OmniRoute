@@ -27,6 +27,12 @@
 
 ## Avvio rapido
 
+> **Self-hosting con un solo comando?** Consulta la
+> [Guida al self-hosting](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (immagine pubblicata +
+> Redis, accessibile solo tramite loopback, senza scelta del profilo). L'avvio rapido qui sotto è il
+> percorso con singolo container per gli utenti che eseguono già Redis altrove.
+
 ```bash
 docker run -d \
   --name omniroute \

@@ -19,25 +19,27 @@ Param ezighi ezi: A ga-ezigaghachi reasoning_content dị na ọnọdụ iche ec
 
 Mana ndị ahịa a na-ahụkarị (Cursor, Cline, Roo Code, OpenAI SDK) na-ewepụ `reasoning_content` n'akụkọ ha na-akpọghachi. OmniRoute na-eweghachi ya site na cache dị n'akụkụ sava ka arịrịọ upstream na-ahụ wee bụrụ nke kwekọrọ. Issue #1628 webatara nchekwa ngwakọ memory/SQLite ka cache wee dịgide mgbe usoro malitegharịrị.
 
-## Nhazi Usoro
+## Nhazi
 
 ```
-Ntụgharị N (onye enyemaka na-emepụta):
+Ntughari N (assistant na-emepụta):
   → nzaghachi nwere reasoning_content + tool_calls
-  → ọ bụrụ requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      na-ede (memory + DB), jiri tool_call.id ọ bụla dịka igodo
-  → zigara onye ahịa nzaghachi (nke nwere ike idowe echiche ahụ ma ọ bụ ghara idowe ya)
+  → ọ bụrụ na requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
+      na-ede (ebe nchekwa + DB), jiri tool_call.id ọ bụla dịka igodo
+  → ziga nzaghachi ahụ n'ihu nye onye ahịa (onye nwere ike idowe reasoning ma ọ bụ ghara idowe ya)
 
-Ntụgharị N+1 (onye ahịa na-eziga arịrịọ na-esote):
+Ntughari N+1 (onye ahịa na-eziga ozi mgbakwunye):
   → onye ntụgharị na-achọpụta: requiresReasoningReplay(provider, model) === true
-  → maka ozi onye enyemaka ọ bụla nwere tool_calls ma enweghị reasoning_content:
-      lookupReasoning(toolCalls[0].id) → memory → DB
-      achọtara → msg.reasoning_content = cached; recordReplay()
-      ahụghị → msg.reasoning_content = "" (usoro ndabere ochie maka DeepSeek ochie)
-  → upstream na-ahụ akụkọ kwekọrọ ekwekọ → enweghị 400
+  → maka ozi assistant ọ bụla nwere tool_calls ma na-enweghị reasoning_content:
+      lookupReasoning(toolCalls[0].id) → ebe nchekwa → DB
+      achọtara  → msg.reasoning_content = cached; recordReplay()
+      ahụghị ya → msg.reasoning_content = "" (usoro ndabere ochie maka DeepSeek ochie)
+  → usoro dị n'elu na-ahụ akụkọ kwekọrọ ekwekọ → enweghị 400
 ```
 
-Njide ahụ na-eme na `open-sse/handlers/chatCore.ts` (ebe abụọ, n'ebe abụọ a na-akpọ `cacheReasoningFromAssistantMessage`). Mkpọghachi ahụ na-eme na `open-sse/translator/index.ts` mgbe emechara mmanye schema mana tupu izipụ ya.
+Njide ahụ na-eme na `open-sse/handlers/chatCore.ts` (n'ebe abụọ ahụ a na-akpọ `cacheReasoningFromAssistantMessage`). Mweghachi na-eme na `open-sse/translator/index.ts` mgbe mmanye schema gasịrị, mana tupu iziga ya.
+
+A na-eji usoro ọzọ emepụta igodo maka ntughari assistant nkịtị (nke na-enweghị oku ngwaọrụ): `buildAssistantMessageCacheKey()` na-achịkọta mpaghara nnọkọ yana transcript e haziri ka ọ bụrụ usoro OpenAI ruo na ntughari ahụ, n'ihi na DeepSeek chọrọ reasoning nke ntughari _ọ bụla_ gara aga ozugbo `tools` dị. Maka ebe a na-eziga arịrịọ Responses-API (dịka ọmụmaatụ `opencode-go/deepseek-v4-flash`, nke a na-ebuga na `/responses`), ahụ arịrịọ dị n'elu na-ebu `input`, ọ bụghị `messages`, ya mere `translateRequest()` (`open-sse/translator/index.ts`) na-akọ transcript etiti ọ chịkọtara site na nhọrọ callback, ebe ebe njide ndị ahụ na-achịkọtakwa otu transcript ahụ. Usoro mweghachi Responses na-arụ ọrụ na pivot OpenAI maka usoro isi mmalite ọ bụla, ya mere a na-emegharịkwa nke ndị ahịa Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Nchekwa — Ngwakọ Memory + SQLite
 

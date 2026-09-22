@@ -4,20 +4,22 @@
 
 ---
 
+> **Dokezo la upeo:** `socket.yml` husanidi ukaguzi wa baada ya uchapishaji unaofanywa na Socket.dev upande wa sajili kwenye artefakti ya npm (njia za kupuuzwa kwa maudhui yasiyosambazwa kama vile `tests/`, `docs/`, na ripoti za ujenzi). Haiweki kizuizi cha kuunganisha mabadiliko katika CI/PR — hakuna mtiririko wa kazi katika `.github/workflows`, hakuna hati ya `package.json`, wala lengo la `Makefile` linaloendesha Socket.dev.
+
 Hati hii ni uthibitisho ulioandikwa na mtunzaji kuhusu matokeo sita ya
 `AI-detected potential malware` yaliyoripotiwa dhidi ya `omniroute@3.8.5` na
 hatua za kupunguza hatari zilizotekelezwa katika `omniroute@3.8.6`. Ipo ili:
 
 1. Waendeshaji wa mifumo ya usalama wawe na rejeleo moja la kunukuu wanapohitaji
-   kutathmini matokeo hayo dhidi ya msimbo chanzo halisi.
-2. Vichanganuzi vya AI vya siku zijazo viweze kutambua dai lililotiwa saini na mtunzaji kwamba kila
-   njia iliyoripotiwa ni ya kukusudia, huwashwa kwa hiari, na imeandikwa katika nyaraka.
-3. Tuwe na rekodi iliyoandikwa ya _kwa nini_ kila eneo la wito limeundwa kwa namna hiyo —
-   ili urekebishaji wa msimbo wa siku zijazo usirejeshe kimakosa alama bainifu ambayo
+   kutathmini matokeo hayo dhidi ya msimbo halisi wa chanzo.
+2. Vikagua vya AI vya siku zijazo viweze kutambua dai lililotiwa saini na mtunzaji kwamba kila
+   njia iliyoalamishwa imekusudiwa, hutumiwa kwa hiari, na imeandikwa katika nyaraka.
+3. Tuwe na rekodi iliyoandikwa ya _kwa nini_ kila eneo la mwito limeundwa jinsi lilivyo —
+   ili urekebishaji wa baadaye wa msimbo usirejeshe bila kukusudia alama bainifu ambayo
    iliondolewa kimakusudi.
 
-Ikiwa unaendesha kichanganuzi kinachoripoti tena eneo lolote la wito lililo hapa chini baada ya
-hatua za kupunguza hatari za v3.8.6 kutolewa, tafadhali fungua suala ukiambatisha ufuatiliaji wa uchanganuzi na
+Ikiwa unaendesha kikagua ambacho kitaalamisha tena eneo lolote la mwito lililo hapa chini baada ya
+hatua za kupunguza hatari za v3.8.6 kusambazwa, tafadhali fungua suala ukiambatisha rekodi ya ukaguzi na
 tutapanua uthibitisho huu hapa.
 
 ---

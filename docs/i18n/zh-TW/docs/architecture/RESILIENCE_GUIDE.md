@@ -70,18 +70,18 @@ OmniRoute 有三種彼此獨立但相關的韌性機制。每種機制都有不�
 
 **範圍：** 單一提供者連線／帳戶／金鑰。
 
-**目的：** 略過一個有問題的金鑰，同時讓相同提供者的其他連線繼續提供服務。
+**目的：** 略過單一有問題的金鑰，同時讓相同提供者的其他連線繼續提供服務。
 
 **實作：**
 
 - 標記為不可用：`src/sse/services/auth.ts::markAccountUnavailable()`
-- 選擇：同一檔案中的 `getProviderCredentials*`
+- 選擇：相同檔案中的 `getProviderCredentials*`
 - 冷卻計算：`open-sse/services/accountFallback.ts::checkFallbackError()`
 - 設定：`src/lib/resilience/settings.ts`
 
 **每個連線的欄位：**
 
-- `rateLimitedUntil` — 冷卻結束時間戳記
+- `rateLimitedUntil` — 冷卻到期時間戳記
 - `testStatus: "unavailable"`
 - `lastError`、`lastErrorType`、`errorCode`
 - `backoffLevel` — 指數退避計數器
@@ -90,71 +90,116 @@ OmniRoute 有三種彼此獨立但相關的韌性機制。每種機制都有不�
 
 - OAuth 基準：5 秒
 - API 金鑰基準：3 秒
-- API 金鑰遇到 429：優先採用上游的 `Retry-After`／重設標頭／可剖析的重設時間文字
+- API 金鑰 429：優先採用上游的 `Retry-After`／重設標頭／可解析的重設文字
 - 退避：`baseCooldownMs * 2 ** failureIndex`
 
-**防止驚群效應的保護機制：** 避免並行失敗過度延長冷卻時間，或重複遞增 `backoffLevel`。
+**防驚群保護機制：** 防止並行失敗過度延長冷卻時間，或重複遞增 `backoffLevel`。
 
 **終止狀態（不是冷卻）：**
 
-- `banned` — 由禁用關鍵字／帳戶封禁偵測設定（請參閱 [BAN_DETECTION](../security/BAN_DETECTION.md)），也會在上游連續三次拒絕個別請求時設定（`request_rejected`，例如 Anthropic OAuth 403「Request not allowed」— `open-sse/services/requestRejectedStreak.ts`）；單次拒絕只會使連線進入冷卻
-- `expired`（經過有限次重試後轉為終止狀態 — `EXPIRED_RETRY_MAX = 3`，並採用指數退避 — 因此暫時性的 OAuth 錯誤可在帳戶永久停用前自行恢復）
+- `banned` — 由封禁關鍵字／帳戶封禁偵測設定（請參閱 [BAN_DETECTION](../security/BAN_DETECTION.md)），也會由連續三次上游的逐請求拒絕觸發（`request_rejected`，例如 Anthropic OAuth 403「Request not allowed」— `open-sse/services/requestRejectedStreak.ts`）；單次拒絕只會讓連線進入冷卻
+- `expired`（在有限次數的重試後轉為終止狀態 — `EXPIRED_RETRY_MAX = 3`，並使用指數退避 — 因此暫時性的 OAuth 錯誤可在帳戶永久停用前自行恢復）
 - `credits_exhausted`
 
-這些狀態會持續存在，直到憑證變更或操作人員將其重設。請勿以暫時性冷卻狀態覆寫終止狀態。
+這些狀態會持續存在，直到憑證變更或操作人員將其重設為止。請勿以暫時性冷卻狀態覆寫終止狀態。
 
-**延遲恢復：** 當 `rateLimitedUntil` 已過期，連線會再次符合使用資格。成功使用後，`clearAccountError()` 會清除所有錯誤欄位。
+**延遲恢復：** 當 `rateLimitedUntil` 已過，連線會再次成為可選用狀態。成功使用後，`clearAccountError()` 會清除所有錯誤欄位。
 
-### 工作階段親和性（#7274）
+### Claude OAuth 使用量牆：較低優先順序通道 + 工作階段限制重設
 
-**範圍：** 將一個用戶端工作階段（`X-Session-Id`／`x-codex-session-id`／`x-omniroute-session` 標頭）固定至一個連線，適用於**任何**提供者。
+**範圍：** 單一 Claude 訂閱（OAuth）連線。兩項功能都必須**針對每個連線選擇啟用**
+（編輯連線 → Claude 區段 → `providerSpecificData` 中的 `lowPriorityMode`／`autoLimitReset`，
+兩者預設皆為關閉），並對應 Claude Code 的 `/low-priority` 與
+`/limit-reset` 命令（線路協定擷取自 Claude Code 2.1.263）。
 
-**目的：** 讓多輪代理程式（Claude Code、aider、自訂代理程式）在各次請求之間持續使用同一帳戶，減少跨帳戶的上下文遺失，以及在具有每帳戶工作階段狀態的提供者上反覆發生冷啟動 429。
+**實作：**
+
+- 狀態機 + 回應分類：`open-sse/services/claudeLowPriority.ts`
+- 重設狀態／認領用戶端：`open-sse/services/claudeLimitReset.ts`
+- 執行器掛鉤（標頭注入 + 相同帳戶重試）：`open-sse/executors/base.ts::execute()`
+- 選擇啟用持久化：`src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**觸發條件：** 5 小時使用量牆 — 一個標頭包含
+`anthropic-ratelimit-unified-status: rejected`，且當帳戶符合資格時還包含
+`anthropic-ratelimit-unified-slow-offer: treatment` 的 `429`。在首次遇到使用量牆
+429 之前不會傳送任何內容；不含統一限制標頭的突發 429 會走一般冷卻路徑。
+
+**較低優先順序通道**（`lowPriorityMode`）：
+
+- 遇到使用量牆 429 時，執行器會接受提議，並立即使用 `anthropic-usage-limit: slow`
+  重試**相同**帳戶；通道會持續啟用至公告的
+  `anthropic-ratelimit-unified-reset`（另加 60 秒寬限期），且該時間範圍內的每個請求都會攜帶
+  此標頭。被攔截的 429 永遠不會到達 `handleChatCore`，因此連線
+  **不會**進入冷卻，也不會被輪替掉。
+- 後續回應中的 `anthropic-ratelimit-unified-slow-status`：`active`／`not_needed`
+  會維持通道；`slot_busy`（429）或 `529` 會依伺服器的
+  `anthropic-ratelimit-unified-slow-retry-after` 等待（預設 20 秒，限制在 5–600 秒，±30% 抖動）
+  並重試，且受 `anthropic-ratelimit-unified-slow-max-wait` 限制（預設 20 分鐘，限制在
+  1 分鐘至 6 小時）— 超過後通道會結束，並進入 10 分鐘的冷卻期以阻止再次接受提議。
+  等待時間還會受請求本身剩餘的上游啟動逾時所限制
+  （`resolveFetchStartTimeout`，預設為 10 分鐘）並扣除 5 秒緩衝：若沒有此上限，
+  預設 20 分鐘的最大等待時間將超過請求生命週期，睡眠會在等待途中中止，
+  進而呈現 `TimeoutError`，而非正常的 `max_wait` 結束 + 冷卻期。
+- `weekly_limit`／`budget_exhausted`／`off`／`ineligible`、5 小時時間窗輪替，或
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true`（由於付費超額用量此時已涵蓋使用量牆，
+  因此無論狀態為何都會以 `extra_usage` 結束）都會終止通道；接著回應會流向
+  一般冷卻路徑。`budget_exhausted` 會記憶至公告的預算重設時間
+  （≤ 8 天）。
+- 使用量牆檢查會在執行器自身由 400 驅動的嘗試內重試之後執行（上下文
+  編輯、思考／投入程度限制、參數自動學習），因此只在其中一次重試中出現的使用量牆 429，
+  仍會被攔截，而不會到達冷卻路徑。
+- 狀態依連線儲存於記憶體中（重新啟動會多產生一次使用量牆 429，才能重新接受提議）。
+
+**工作階段限制重設**（`autoLimitReset`；兩者皆啟用時，會優先於通道嘗試）：
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  區塊；當 `arm: "reset"` 且 `available: true` 時，
+  使用 `{ "program": "juniper_tide" }` 對
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits`
+  發出請求（組織 UUID 來自 `providerSpecificData.organizationUUID`，並有啟動程序備援值）。
+- `result: reset|not_limited` → 以完整速度重試請求（不含慢速標頭）。
+  `already_used`／`not_offered` 會記憶 `next_available_at`（預設為一週）；任何
+  失敗都會退避 15 分鐘。重設每週僅可使用一次，且仍會計入
+  每週限制。
+
+迴歸防護：`tests/unit/claude-low-priority-mode.test.ts`、
+`tests/unit/claude-limit-reset.test.ts`、`tests/unit/claude-low-priority-executor.test.ts`。
+
+### 工作階段親和性 (#7274)
+
+**範圍：** 將單一用戶端工作階段（`X-Session-Id`／`x-codex-session-id`／`x-omniroute-session` 標頭）固定至單一連線，適用於**任何**提供者。
+
+**目的：**讓多輪代理程式（Claude Code、aider、自訂代理程式）在多次請求之間持續使用相同帳戶，減少跨帳戶造成的上下文遺失，以及在具有每帳戶工作階段狀態的提供者上重複發生冷啟動 429。
 
 **實作：**
 
 - TTL 解析：`src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- 固定連線的選擇／建立：`src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- 釘選選取／建立：`src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - 標頭擷取（通用，適用於任何提供者）：`src/sse/services/auth.ts::extractSessionAffinityKey()`
-- 持久化固定關聯資料表：`sessionAccountAffinity`（`src/lib/db/sessionAccountAffinity.ts`）
-- 設定：`sessionAffinityTtlMs`（全域 TTL，以毫秒為單位，`0` 表示停用）— `src/lib/db/settings.ts`。此設定由遷移 `124_generic_session_affinity_ttl.sql` 從僅限 Codex 的 `codexSessionAffinityTtlMs` 重新命名，並將先前設定的任何 Codex TTL 沿用為新的預設值。
+- 持久化釘選資料表：`sessionAccountAffinity`（`src/lib/db/sessionAccountAffinity.ts`）
+- 設定：`sessionAffinityTtlMs`（全域 TTL，以毫秒為單位，`0` 表示停用）— `src/lib/db/settings.ts`。此設定透過遷移 `124_generic_session_affinity_ttl.sql`，從僅限 Codex 的 `codexSessionAffinityTtlMs` 重新命名而來；該遷移會將任何先前設定的 Codex TTL 沿用為新的預設值。
 
-在 #7274 之前，除 `codex` 之外，`resolveSessionAffinityTtlMs()` 對所有提供者都會直接提前傳回 `0`，因此即使固定機制和標頭擷取原本就不限定提供者，TTL 設定（以及工作階段標頭）在其他任何地方都不會生效。此修正移除了該提前傳回；現在只要將全域 TTL 設為大於 `0`，它就會一致套用至所有提供者。
+在 #7274 之前，`resolveSessionAffinityTtlMs()` 對 `codex` 以外的所有提供者都會直接提前返回 `0`，因此即使釘選機制和標頭擷取早已與提供者無關，TTL 設定（以及工作階段標頭）在其他任何地方都不會生效。此修正移除了該提前返回；現在只要將全域 TTL 設定為大於 `0`，它就會一致套用至所有提供者。
 
-這三個工作階段親和性標頭絕不會轉送至上游 — 執行器會從頭建立自己的上游標頭，而不是直接傳遞用戶端標頭，因此它們只會作為內部關聯 ID 使用。
+這三個工作階段親和性標頭絕不會轉送至上游——執行器會從頭建立自己的上游標頭，而不是直接傳遞用戶端標頭，因此它只會作為內部關聯 ID。
 
 ### 獨佔式受管理工作階段連線租約
 
-**範圍：** 一個作用中的受管理 HTTP 用戶端／工作階段擁有一個符合資格的 OmniRoute 連線。
+**範圍：**一個作用中的受管理 HTTP 用戶端／工作階段會獨佔一個符合資格的 OmniRoute 連線。
 
-**目的：** 為需要在多個請求之間建立嚴格路由
-界線的用戶端，提供持久且獨佔的連線所有權。這與作為軟性連續性偏好的工作階段親和性不同：
-獨佔租約會將生命週期狀態持久化於 SQLite 中、強制執行全域作用中擁有者與
-作用中連線的唯一性，並在分派至提供者之前拒絕過時的世代。
+**目的：**為需要在多次請求之間建立嚴格路由界線的用戶端，提供持久且獨佔的連線所有權。這與作為軟性連續性偏好的工作階段親和性不同：獨佔租約會將生命週期狀態持久化至 SQLite、強制確保全域作用中擁有者與作用中連線的唯一性，並在分派至提供者之前拒絕過期的世代。
 
-此功能可針對每個 API 金鑰選擇啟用。受管理金鑰必須具有 `lease:exclusive` 範圍，以及
-明確且非空的 `allowedConnections` 清單。任何 HTTP 用戶端都能使用生命週期端點；不需要
-用戶端名稱、使用者代理、提供者、OAuth 方法或模型。租約擁有的是連線，
-而非模型，因此只要連線仍正常符合資格，變更模型也會保留繫結。一般的模型、配額、
-健康狀態、冷卻和允許清單規則仍具最終決定權，並可能將相同世代轉移至另一個可用且符合資格的連線。
+此功能需針對每個 API 金鑰選擇性啟用。受管理金鑰必須具有 `lease:exclusive` 範圍，以及明確且非空的 `allowedConnections` 清單。任何 HTTP 用戶端皆可使用生命週期端點；不需要指定用戶端名稱、使用者代理、提供者、OAuth 方法或模型。租約擁有的是連線，而不是模型，因此在連線仍正常符合資格時，變更模型仍會保留該繫結。一般的模型、配額、健康狀態、冷卻時間及允許清單規則仍具有最終決定權，並可能將同一世代轉移至另一個可用且符合資格的連線。
 
-生命週期使用 `POST /api/v1/session-leases`，並搭配 JSON 動作 `acquire`、`renew` 和 `release`。
-受管理的推論請求會提供不透明的 `X-OmniRoute-Lease-Owner` 值，以及完全相符的
-`X-OmniRoute-Lease-Generation`。擁有者值以 `vlo_` 開頭，後接 43 個 base64url 字元；系統僅
-儲存其 SHA-256 雜湊。每個最終分派界線也會繫結已驗證的 API 金鑰 ID 與
-作用中連線 ID。租約控制標頭會從日誌、保留的請求快照及
-上游執行器標頭中移除。
+生命週期端點為 `POST /api/v1/session-leases`，並使用 JSON 動作 `acquire`、`renew` 和 `release`。受管理的推論請求會提供不透明的 `X-OmniRoute-Lease-Owner` 值，以及完全相符的 `X-OmniRoute-Lease-Generation`。擁有者值由 `vlo_` 後接 43 個 base64url 字元組成；系統只會儲存其 SHA-256 雜湊。每個最終分派界線也會繫結已驗證的 API 金鑰 ID 和作用中連線 ID。租約控制標頭會從記錄、保留的請求快照及上游執行器標頭中移除。
 
-如果一般路由具有符合資格的受管理候選連線，但每個可用候選連線都已被
-其他作用中的租約占用，OmniRoute 會傳回 HTTP `429`、lease-capacity-unavailable 代碼、
-等待容量狀態，以及根據最早相關到期時間得出的、有上限的 `Retry-After`。
-一般的無符合資格連線情況不屬於租約爭用，並會維持其既有的路由錯誤語意。
+如果一般路由具有符合資格的受管理候選項目，但每個可用候選項目皆由其他作用中的租約佔用，OmniRoute 會返回 HTTP `429`、租約容量不可用代碼、等待容量的狀態，以及根據最早相關到期時間得出的有界 `Retry-After`。一般的無符合資格項目並不屬於租約爭用，並會維持其既有的路由錯誤語意。
 
 相關機制仍彼此獨立：
 
-- OAuth 工作階段占用是程序本機層級的 OAuth 帳戶軟性分配。
+- OAuth 工作階段佔用是一種程序本機的軟性分配機制，用於 OAuth 帳戶。
 - 帳戶號誌會授予請求並行處理許可，並在請求完成時結束。
-- 獨佔式受管理工作階段租約是具有世代界線的持久生命週期所有權。
+- 獨佔式受管理工作階段連線租約是一種具有世代界線的持久生命週期所有權機制。
 
 ---
 
@@ -269,45 +314,65 @@ Gemini 類 TPM/RPM 時間窗（`retry-after` 約 60 秒），例如雙模型組�
 
 ---
 
-## 5. 請求佇列准入控制 (v3.8.49 · issue #6593)
+## 5. 請求佇列准入控制（v3.8.49 · issue #6593）
 
-**範圍**：本機各提供者＋連線的速率限制佇列（`open-sse/services/rateLimitManager.ts`，
-由 Bottleneck 支援），位於上述三種機制的下一層。
+**範圍**：本機每個提供者+連線的速率限制佇列（`open-sse/services/rateLimitManager.ts`，
+由 Bottleneck 支援），位於上述三種機制之下的一層。
 
-**`maxWaitMs` 是執行逾期設定在持久化資料中的舊名稱。**
-`resilienceSettings.requestQueue.maxWaitMs` 會作為作業的 `expiration`
-傳遞給 Bottleneck，其計時器僅在分派後才會啟動。因此，它限制的是由限制器管理的執行時間，
-而非在本機佇列中等待的時間。執行逾期會呈現為受信任的本機
-`code: "RATE_LIMIT_EXECUTION_TIMEOUT"`（HTTP 504）；先前的佇列逾時代碼名稱
-僅基於受信任的內部向後相容性而接受。預設值為 15000ms；可透過
-`RATE_LIMIT_MAX_WAIT_MS`（環境變數）或儀表板（**設定 → 韌性**，UI 上限為
-1–30000ms）覆寫。佇列停留時間沒有期限；請使用下方的 `maxQueueDepth`
-限制排隊中的呼叫者數量。
+**`maxWaitMs` 限制佇列等待時間；`executionMaxWaitMs` 限制執行時間。**
+兩者刻意分開，且彼此互不影響。
 
-**`maxQueueDepth`——選擇性啟用的准入上限（新增）。**
-`resilienceSettings.requestQueue.maxQueueDepth`
-會限制同一個提供者＋連線可同時有多少個請求處於排隊狀態（尚未分派）。
-當佇列中已有 `maxQueueDepth` 個請求時，新請求會在到達
-`limiter.schedule()` **之前**，以帶有類型的
-`code: "RATE_LIMIT_QUEUE_FULL"` 錯誤快速拒絕——因此拒絕成本很低，
-且會在該請求進行任何下游提示詞壓縮／翻譯工作之前發生。預設值 `0` =
-停用，以保留現有的無界佇列行為；有效範圍為 0–100000。
+`resilienceSettings.requestQueue.maxWaitMs` 是**佇列等待預算**：它涵蓋等待提供者可用名額，
+以及之後處於 QUEUED 狀態的時間；一旦工作離開 QUEUED 並開始執行，其計時器便會立即清除
+（`rateLimitManager.ts`、`wrappedFn`）。超出此預算的請求永遠不會送達上游。
+預設值為 30000ms，由 `src/lib/resilience/settings.ts` 中的
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` 提供，並由
+`tests/unit/ratelimit-admission-control-6593.test.ts` 固定驗證，因此若變更此值，
+該測試會失敗，而不會讓這段說明在不知不覺間過時。
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` 是 Bottleneck
+作為工作 `expiration` 接收的值，其計時器僅在派送後開始。它是針對本身沒有上游逾時機制的
+執行器所設的最後保障；當執行器本身的 fetch-start 逾時時間更長時，此值會提高至該逾時時間，
+因此不會中斷正常進行中的回應。預設值為 600000ms（10 分鐘）。
+
+過去，將佇列預算傳入 `expiration` 會在非增量式閘道仍在處理時將其中止——它們在傳回首批位元組前
+合理地可能執行數分鐘——這也是為什麼 expiration 會以 `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"`（HTTP 504）呈現，而佇列預算則帶有
+佇列逾時代碼。可透過 `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS`（環境變數）或儀表板
+（**設定 → 韌性**）覆寫任一值。正規化時，兩者都會限制在 1ms–24h 範圍內。
+
+**兩者的優先順序：**環境變數只提供_預設值_。保存在
+`resilienceSettings.requestQueue` 中的值（儀表板 / API 修補，儲存於
+`key_value`）優先於環境變數，而每個連線的
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` 又優先於前者。因此，
+在已有持久化值的部署中設定環境變數不會產生任何變化——請改為清除或更新該持久化設定。
+
+佇列中的停留時間受 `maxWaitMs` 限制；下方的 `maxQueueDepth` 則限制
+同時可排入佇列的呼叫者數量。
+
+**`maxQueueDepth` — 選用的准入上限（新增）。** `resilienceSettings.requestQueue.maxQueueDepth`
+限制一個提供者+連線可同時有多少個請求處於佇列中（尚未派送）。當佇列已包含
+`maxQueueDepth` 個請求時，新請求會在到達 `limiter.schedule()` **之前**
+快速遭拒，並回傳具類型的 `code: "RATE_LIMIT_QUEUE_FULL"` 錯誤——因此拒絕成本低廉，
+且會在該請求進行任何下游提示詞壓縮 / 翻譯工作之前發生。預設值 `0` =
+停用，以保留現有的無界佇列行為；範圍限制為 0–100000。
 可透過 `RATE_LIMIT_MAX_QUEUE_DEPTH`（環境變數）或
-`resilienceSettings.requestQueue.maxQueueDepth`（儀表板／API 修補）覆寫。
+`resilienceSettings.requestQueue.maxQueueDepth`（儀表板/API 修補）覆寫。
 
-准入檢查本身是純函式
-（`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`），
-因此無需真正的 Bottleneck 限制器即可進行單元測試。
+准入檢查本身是一個純函式
+（`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`），因此
+無須實際的 Bottleneck 限制器即可進行單元測試。
 
-> 提出 #6593 的 RFC 也建議加入 `bypassCompressionOnRateLimit`
-> 旗標。此儲存庫的 `open-sse/services/compression/` 管線是針對外送 LLM 請求
-> 進行提示詞／上下文壓縮（位於 `chatCore.ts` 中
-> `resolveCompressionSettings`／`selectCompressionStrategy` 區塊附近），
-> 而不是對合成的 429 回應本文進行 HTTP 回應壓縮——不存在與字面意義上的略過旗標
-> 相符的程式碼路徑。此外，該提示詞壓縮步驟目前在請求管線中會先於
-> `withRateLimit()` 執行，因此若要重新排序，以便在佇列已滿而拒絕請求時略過此步驟，
-> 會是超出本議題範圍的另一項更大型變更；此處刻意**未**實作此功能，
-> 若節省 CPU 的效益值得承擔重新排序的風險，則留待後續處理。
+> 建立 #6593 的 RFC 也提出了 `bypassCompressionOnRateLimit`
+> 旗標。此儲存庫的 `open-sse/services/compression/` 管線是針對傳出 LLM 請求的
+> 提示詞/上下文壓縮（`chatCore.ts`，
+> 約在 `resolveCompressionSettings`/`selectCompressionStrategy` 區塊附近），
+> 而不是針對合成 429 回應本文的 HTTP 回應壓縮——不存在與字面意義上的略過旗標相符的
+> 程式碼路徑。該提示詞壓縮步驟目前也會在請求管線中的 `withRateLimit()` _之前_執行，
+> 因此若要重新排序，使其在因佇列已滿而遭拒時略過壓縮，會是超出此 issue 範圍、
+> 規模更大的獨立變更；此處刻意**未**實作，若節省 CPU 的效益值得承擔重新排序的風險，
+> 則留待後續處理。
 
 ---
 

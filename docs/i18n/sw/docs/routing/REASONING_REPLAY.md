@@ -26,18 +26,20 @@ Zamu N (msaidizi anazalisha):
   → jibu lina reasoning_content + tool_calls
   → ikiwa requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
       huandika (kumbukumbu + DB), kwa kutumia kila tool_call.id kama ufunguo
-  → sambaza jibu kwa mteja (ambaye anaweza kuhifadhi au kutohifadhi maudhui ya kufikiri)
+  → hutuma jibu kwa mteja (ambaye anaweza kuhifadhi au kutohifadhi reasoning)
 
-Zamu N+1 (mteja anatuma ombi linalofuata):
-  → kitafsiri hugundua: requiresReasoningReplay(provider, model) === true
+Zamu N+1 (mteja anatuma ufuatiliaji):
+  → mtafsiri anatambua: requiresReasoningReplay(provider, model) === true
   → kwa kila ujumbe wa msaidizi wenye tool_calls na usio na reasoning_content:
       lookupReasoning(toolCalls[0].id) → kumbukumbu → DB
       imepatikana  → msg.reasoning_content = cached; recordReplay()
-      haijapatikana → msg.reasoning_content = "" (njia mbadala ya zamani kwa DeepSeek ya zamani)
-  → mfumo wa upande wa juu huona historia thabiti → hakuna 400
+      haijapatikana → msg.reasoning_content = "" (mbinu ya zamani ya akiba kwa DeepSeek ya zamani)
+  → mfumo wa juu unapokea historia thabiti → hakuna 400
 ```
 
-Unasaji hufanyika katika `open-sse/handlers/chatCore.ts` (sehemu mbili, kwenye sehemu mbili ambazo `cacheReasoningFromAssistantMessage` huitwa). Uchezaji upya hufanyika katika `open-sse/translator/index.ts` baada ya ulazimishaji wa skema lakini kabla ya utumaji.
+Unasaji hutokea katika `open-sse/handlers/chatCore.ts` (sehemu mbili, katika sehemu mbili za kuitia `cacheReasoningFromAssistantMessage`). Uchezaji upya hutokea katika `open-sse/translator/index.ts` baada ya ulazimishaji wa skimu lakini kabla ya utumaji.
+
+Zamu za kawaida za msaidizi (zisizo za mwito wa zana) hupewa funguo kwa njia tofauti: `buildAssistantMessageCacheKey()` hutengeneza muhtasari wa upeo wa kipindi pamoja na nakala ya mazungumzo iliyosawazishwa katika umbizo la OpenAI hadi zamu hiyo, kwa sababu DeepSeek inahitaji reasoning ya _kila_ zamu iliyotangulia mara tu `tools` inapokuwapo. Kwa malengo ya Responses-API (kwa mfano `opencode-go/deepseek-v4-flash`, iliyoelekezwa kwenye `/responses`), mwili unaotumwa kwa mfumo wa juu hubeba `input`, si `messages`, kwa hivyo `translateRequest()` (`open-sse/translator/index.ts`) huripoti nakala ya mazungumzo ya kati iliyotengenezea muhtasari kupitia chaguo la callback, na sehemu za unasaji hutengeneza muhtasari wa nakala hiyo hiyo. Hatua ya uchezaji upya wa Responses huendeshwa kwenye nakala ya kati ya OpenAI kwa kila umbizo chanzo, kwa hivyo wateja wa Anthropic Messages (Claude → OpenAI → Responses) huchezwa upya pia.
 
 ## Hifadhi — Kumbukumbu Mseto + SQLite
 

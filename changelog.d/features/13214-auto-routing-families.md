@@ -1,1 +1,0 @@
-- **feat(providers):** Add `auto/kimi`, `auto/qwen`, `auto/deepseek`, `auto/gpt`, and the `auto/claude-haiku` fast variant to the built-in routing catalog, including bare `k3` models on Kimi coding and web backends (issue #13214).

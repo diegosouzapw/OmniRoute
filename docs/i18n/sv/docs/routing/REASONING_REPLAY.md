@@ -22,22 +22,24 @@ Men vanliga klienter (Cursor, Cline, Roo Code, OpenAI SDK) tar bort `reasoning_c
 ## Arkitektur
 
 ```
-Vända N (assistenten genererar):
+Omgång N (assistenten genererar):
   → svaret innehåller reasoning_content + tool_calls
   → om requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
       skriver (minne + DB), med varje tool_call.id som nyckel
-  → vidarebefordra svaret till klienten (som kan behålla resonemanget eller inte)
+  → vidarebefordra svaret till klienten (som kanske behåller resonemanget, kanske inte)
 
-Vända N+1 (klienten skickar en uppföljning):
-  → översättaren upptäcker: requiresReasoningReplay(provider, model) === true
+Omgång N+1 (klienten skickar en uppföljning):
+  → översättaren identifierar: requiresReasoningReplay(provider, model) === true
   → för varje assistentmeddelande med tool_calls och utan reasoning_content:
       lookupReasoning(toolCalls[0].id) → minne → DB
-      träff  → msg.reasoning_content = cached; recordReplay()
-      miss → msg.reasoning_content = "" (äldre reservlösning för tidigare DeepSeek)
-  → uppströmsleverantören ser konsekvent historik → inget 400-fel
+      träff    → msg.reasoning_content = cached; recordReplay()
+      miss     → msg.reasoning_content = "" (äldre reservlösning för tidigare DeepSeek-versioner)
+  → uppströmstjänsten ser en konsekvent historik → inget 400-fel
 ```
 
-Insamlingen sker i `open-sse/handlers/chatCore.ts` (på två ställen, vid de två anropsplatserna för `cacheReasoningFromAssistantMessage`). Återgivningen sker i `open-sse/translator/index.ts` efter schematvingning men före dirigering.
+Insamling sker i `open-sse/handlers/chatCore.ts` (på två ställen, vid de två anropsplatserna för `cacheReasoningFromAssistantMessage`). Återuppspelning sker i `open-sse/translator/index.ts` efter schematvingning men före dirigering.
+
+Vanliga assistentomgångar (utan verktygsanrop) tilldelas nycklar på ett annat sätt: `buildAssistantMessageCacheKey()` skapar ett sammandrag av sessionsomfånget plus den normaliserade utskriften i OpenAI-format fram till den omgången, eftersom DeepSeek kräver resonemanget från _varje_ föregående omgång när `tools` finns med. För mål som använder Responses-API (till exempel `opencode-go/deepseek-v4-flash`, dirigerad till `/responses`) innehåller den uppströms skickade nyttolasten `input`, inte `messages`, så `translateRequest()` (`open-sse/translator/index.ts`) rapporterar den pivotutskrift som funktionen skapade ett sammandrag av via ett återanropsalternativ, och insamlingsplatserna skapar ett sammandrag av samma utskrift. Återuppspelningspasset för Responses körs på OpenAI-pivotformatet för varje källformat, så klienter som använder Anthropic Messages (Claude → OpenAI → Responses) återuppspelas också.
 
 ## Lagring — hybrid med minne + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Index: `expires_at`, `provider`, `model`, `created_at`. `expires_at` lagras som Unix-epoksekunder; SELECT-lagret normaliserar äldre textvärden via `EXPIRES_AT_EPOCH_SQL`.
+Index: `expires_at`, `provider`, `model`, `created_at`. `expires_at` lagras som Unix-epoksekunder. SELECT-lagret normaliserar äldre textvärden via `EXPIRES_AT_EPOCH_SQL`.
 
 ## Identifiering av leverantör/modell
 

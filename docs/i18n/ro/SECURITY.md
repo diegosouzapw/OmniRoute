@@ -220,39 +220,38 @@ Aceste reguli sunt impuse prin instrumente și verificări efectuate de recenzor
 10. **Valorile de execuție `exec()` / `spawn()` prin opțiunea `env`** — nu interpolați niciodată în șiruri căi externe sau valori care nu sunt de încredere în scripturile transmise shell-ului. Referință: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Preferați bibliotecile securizate în mod implicit** — consultați [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Apelați la acestea înainte de a implementa propria soluție.
 
-## Constatările scanerelor pentru lanțul de aprovizionare (Socket.dev / Snyk / similare)
+## Constatările scanerului pentru lanțul de aprovizionare (Socket.dev / Snyk / similar)
 
-Artefactul npm `omniroute` publicat include versiunea Next.js cu `output: "standalone"`,
-ceea ce înseamnă că fiecare handler de rută — inclusiv funcționalitățile privilegiate
+> **Notă privind domeniul de aplicare:** `socket.yml` din rădăcina depozitului configurează doar `projectIgnorePaths` pentru scanarea post-publicare, efectuată de Socket.dev în registru, a artefactului npm publicat — aceasta nu reprezintă un criteriu obligatoriu de validare pentru integrarea CI/PR. Niciun flux de lucru din `.github/workflows`, niciun script din `package.json` și nicio țintă din `Makefile` nu invocă Socket.dev.
+
+Artefactul npm `omniroute` publicat include compilarea Next.js cu `output: "standalone"`,
+ceea ce înseamnă că fiecare gestionar de rută — inclusiv funcționalitățile privilegiate
 documentate (MITM, import Zed, Cloud Sync, supervizorul de servicii încorporat) — ajunge
-în fragmentele minificate `.next/server/*.js`. Scanerele euristice pentru lanțul de
-aprovizionare compară frecvent aceste fragmente cu tipare din semnăturile programelor
-malware.
+în fragmentele minificate `.next/server/*.js`. Scanerele euristice pentru lanțul de aprovizionare
+compară frecvent aceste fragmente cu tipare din semnăturile programelor malware.
 
 Configurația scanerului pe care o utilizăm se află în [`socket.yml`](socket.yml), în
 rădăcina depozitului (formatul v2 al aplicației GitHub Socket.dev — consultați
 <https://docs.socket.dev/docs/socket-yml>). Aceasta exclude în mod explicit
 directoarele care nu sunt distribuite (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` etc.), astfel încât scanerul raportează numai căile de cod care
-ajung efectiv la utilizatorii versiunii publicate — scanarea propriu-zisă este inițiată
-de aplicația GitHub Socket, care citește fișierul respectiv, nu de un flux de lucru din
-acest depozit.
+`_mono_repo/`, `docs/` etc.), astfel încât scanerul să raporteze numai căile de cod care
+ajung efectiv la utilizatorii versiunii publicate — scanarea propriu-zisă este inițiată de aplicația
+GitHub Socket, care citește acest fișier, nu de un flux de lucru din acest depozit.
 
-Pentru fiecare categorie de constatări menținem o atestare individuală din partea
-responsabililor de mentenanță:
+Pentru fiecare categorie de constatări, menținem o atestare individuală din partea responsabililor:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  corespondență pentru fiecare constatare: fișier sursă ↔ fragment semnalat ↔ comportament ↔ măsură de atenuare
+  hartă pentru fiecare constatare: fișier sursă ↔ fragment semnalat ↔ comportament ↔ măsură de reducere a riscului
   aplicată în v3.8.6.
-- Blocurile `SECURITY-AUDITOR-NOTE:` din codul sursă, aflate la nivelul fiecărei funcții
-  semnalate, fac trimitere la același document.
+- Blocurile `SECURITY-AUDITOR-NOTE:` din codul sursă, aflate la fiecare funcție semnalată,
+  fac trimitere la același document.
 
-Pentru utilizatorii al căror pipeline nu permite relaxarea alertei: construiți cu
+Pentru utilizatorii al căror flux de lucru nu permite ignorarea alertei: compilați folosind
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Această comandă înlocuiește cele patru
-module sensibile cu stuburi care returnează HTTP 503 `feature-disabled` în timpul
-execuției, astfel încât respectivele căi de cod privilegiat lipsesc fizic din pachet.
+module sensibile cu substituenți care returnează HTTP 503 `feature-disabled` în
+timpul execuției, astfel încât acele căi de cod privilegiate să fie absente fizic din pachet.
 Consultați [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-pentru instrucțiunile de publicare.
+pentru procedura de publicare.
 
 ## Referințe
 

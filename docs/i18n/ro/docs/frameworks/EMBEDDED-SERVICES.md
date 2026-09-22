@@ -5,10 +5,10 @@
 ---
 
 > **Versiune:** v3.8.44
-> **Ultima actualizare:** 2026-07-03
-> **Public-țintă:** Ingineri care adaugă, întrețin sau depanează servicii încorporate (9Router, CLIProxyAPI, Mux, Bifrost).
+> **Ultima actualizare:** 2026-09-09
+> **Public-țintă:** Ingineri care adaugă, întrețin sau depanează servicii încorporate (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
 
-Serviciile încorporate sunt instrumente auxiliare de tip sidecar, instalate local, pe care OmniRoute le instalează, le supraveghează și
+Serviciile încorporate sunt instrumente auxiliare de proces instalate local, pe care OmniRoute le instalează, le monitorizează și
 le expune drept ținte de rutare de prim rang. Spre deosebire de furnizorii externi (care sunt accesați prin internet
 folosind chei API), serviciile încorporate rulează pe aceeași mașină ca OmniRoute și comunică prin interfața loopback.
 
@@ -31,33 +31,34 @@ folosind chei API), serviciile încorporate rulează pe aceeași mașină ca Omn
 
 ### De ce servicii încorporate?
 
-Sunt încorporate cinci servicii:
+Sunt încorporate șase servicii:
 
-| Serviciu        | Pachet npm                                  | Port implicit | Scop                                                                                                                                                                                                                  |
-| --------------- | ------------------------------------------- | :-----------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                                   |     20130     | Router AI pe care OmniRoute îl poate utiliza ca subfurnizor. Modelele sunt expuse sub forma `9router/{sub}/{model}`                                                                                                   |
-| **CLIProxyAPI** | Binar dintr-o versiune GitHub (`cliproxy`)  |     8317      | Adaptor proxy local pentru fluxurile de autentificare Anthropic CLI. Oferă rutare de rezervă atunci când tokenurile OAuth expiră                                                                                      |
-| **Mux**         | `mux` (`mux server` fără interfață grafică) |     8322      | Daemon local de orchestrare a agenților (coder/mux). Este doar gestionat pe durata ciclului de viață — nu reprezintă o țintă de rutare (fără proxy LLM).                                                              |
-| **Bifrost**     | `@maximhq/bifrost`                          |     8080      | Backend de retransmisie pentru gateway-ul AI Go. Atunci când rulează, este selectat automat de ruta de retransmisie (`/v1/relay/`)                                                                                    |
-| **Dario**       | `@askalf/dario`                             |     3456      | Proxy pentru abonamente Claude — alternativă/soluție de rezervă la CLIProxyAPI pentru trafic cu structura Claude Code; cheia injectată devine `DARIO_ADMIN_TOKEN`, care protejează planul de control OAuth `/admin/*` |
+| Serviciu        | Pachet npm                                  | Port implicit | Scop                                                                                                                                                                                                       |
+| --------------- | ------------------------------------------- | :-----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                                   |     20130     | Router AI pe care OmniRoute îl poate utiliza ca subfurnizor. Modelele sunt expuse ca `9router/{sub}/{model}`                                                                                               |
+| **CLIProxyAPI** | Binar din versiunea GitHub (`cliproxy`)     |     8317      | Adaptor proxy local pentru fluxurile de autentificare Anthropic CLI. Oferă rutare de rezervă atunci când tokenurile OAuth expiră                                                                           |
+| **Mux**         | `mux` (`mux server` fără interfață grafică) |     8322      | Daemon local de orchestrare a agenților (coder/mux). Doar cu ciclu de viață gestionat — nu este o țintă de rutare (fără proxy LLM).                                                                        |
+| **Bifrost**     | `@maximhq/bifrost`                          |     8080      | Backend releu pentru gateway AI scris în Go. Când rulează, este selectat automat de ruta releului (`/v1/relay/`)                                                                                           |
+| **Dario**       | `@askalf/dario`                             |     3456      | Proxy pentru abonamentul Claude — alternativă/rezervă la CLIProxyAPI pentru traficul în format Claude Code; cheia injectată devine `DARIO_ADMIN_TOKEN`, care protejează planul de control OAuth `/admin/*` |
+| **open-wa**     | `@open-wa/wa-automate`                      |     8323      | Automatizare WhatsApp Web (Chromium fără interfață grafică prin Puppeteer). Doar cu ciclu de viață gestionat — nu este o țintă de rutare.                                                                  |
 
-Toate cele cinci urmează același model de supraveghere:
+Toate cele șase urmează același model de supervizare:
 
-- OmniRoute le instalează în `DATA_DIR/services/{name}/` (izolat de propriul fișier `package.json` al OmniRoute)
+- OmniRoute le instalează în `DATA_DIR/services/{name}/` (izolate de propriul fișier `package.json` al OmniRoute)
 - OmniRoute le pornește și le monitorizează ca procese copil
-- OmniRoute injectează o cheie API efemeră în mediul procesului copil și o rotește fără întreruperi (acolo unde este cazul)
-- Toate rutele de administrare (`/api/services/*`) sunt **LOCAL_ONLY** — accesibile numai prin interfața loopback (regula strictă nr. 17)
+- OmniRoute injectează o cheie API efemeră în mediul procesului copil și o rotește fără întreruperea funcționării (acolo unde este cazul)
+- Toate rutele de administrare (`/api/services/*`) sunt **LOCAL_ONLY** — accesibile numai din interfața loopback (regula strictă nr. 17)
 
 ### Decizii-cheie (din planul de proiectare)
 
-| Decizie                                                   | Valoare                                                                                               |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Accesul din panoul de control la interfața nativă 9Router | Proxy invers la `/dashboard/providers/services/9router/embed/*`                                       |
-| Mecanism de instalare                                     | `npm install {package}` prin `execFile` (fără interpolare în shell)                                   |
-| Mod de utilizare                                          | Furnizor înregistrat ca `9router/{sub}/{model}` în motorul de rutare                                  |
-| Gestionarea cheilor API                                   | OmniRoute le generează, le criptează în repaus (AES-256-GCM) și le injectează prin variabile de mediu |
-| Locația în panoul de control                              | `/dashboard/providers/services` (trei file)                                                           |
-| Pornire automată                                          | Comutator pentru fiecare serviciu, dezactivat implicit                                                |
+| Decizie                                                 | Valoare                                                                       |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Accesul panoului de control la interfața nativă 9Router | Proxy invers la `/dashboard/providers/services/9router/embed/*`               |
+| Mecanism de instalare                                   | `npm install {package}` prin `execFile` (fără interpolare shell)              |
+| Mod de utilizare                                        | Furnizor înregistrat ca `9router/{sub}/{model}` în motorul de rutare          |
+| Gestionarea cheilor API                                 | OmniRoute generează, criptează în repaus (AES-256-GCM) și injectează prin env |
+| Locația în panoul de control                            | `/dashboard/providers/services` (trei file)                                   |
+| Pornire automată                                        | Comutator pentru fiecare serviciu, implicit DEZACTIVAT                        |
 
 ---
 
@@ -65,12 +66,12 @@ Toate cele cinci urmează același model de supraveghere:
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  Stratul 1 — Interfață utilizator                                  │
+│  Stratul 1 — UI                                                    │
 │  /dashboard/providers/services  (file: CLIProxyAPI | 9Router | Mux)│
 │  Jurnale live (SSE), Pornire/Oprire/Repornire/Actualizare, Setări, Instalare│
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               Cadru + rutare file prin ?tab=       │
+│    ├── page.tsx               Cadru + rutarea filelor prin ?tab=   │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -87,10 +88,10 @@ Toate cele cinci urmează același model de supraveghere:
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (proxy invers HTTP + WebSocket → sursa 9Router)                 │
+│    (proxy invers HTTP + WebSocket → upstream 9Router)              │
 │                                                                    │
-│  Protecție: LOCAL_ONLY_API_PREFIXES include "/api/services/" și    │
-│        "/dashboard/providers/services/*/embed/"                    │
+│  Filtru: LOCAL_ONLY_API_PREFIXES include "/api/services/" și       │
+│          "/dashboard/providers/services/*/embed/"                  │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ apeluri în cadrul procesului
 ┌──────────────────────▼─────────────────────────────────────────────┐
@@ -110,18 +111,18 @@ Toate cele cinci urmează același model de supraveghere:
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
 │  modelSync.ts       GET /v1/models periodic → tabelul service_models│
 │  ringBuffer.ts      Buffer circular de jurnale (5 MB per serviciu) │
-│  healthCheck.ts     Sondă HTTP periodică pentru starea de sănătate │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
+│  healthCheck.ts     Verificare periodică a stării prin HTTP        │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (adaptoare de instalare)                      │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ HTTP compatibil cu OpenAI (loopback)
+                       │ HTTP compatibil OpenAI (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  Stratul 4 — Furnizor / Rutare                                     │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    Reobține portul și cheia API la fiecare solicitare (fără cache).│
+│    Reobține portul și cheia API pentru fiecare cerere (fără cache).│
 │    Elimină prefixul "9router/" din ID-ul modelului înainte de proxy.│
-│    Returnează 503 service_not_running dacă supervizorul nu este în "running".│
+│    Returnează 503 service_not_running dacă supervizorul nu este în starea "running".│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    Intrare pentru "9router": isEmbeddedService: true               │
@@ -130,10 +131,9 @@ Toate cele cinci urmează același model de supraveghere:
 │    Modele stocate ca "9router/{sub}/{model}" (cu prefix).          │
 │    Sincronizate la fiecare 5 min de modelSync.ts.                  │
 │                                                                    │
-│  Mux are gestionat NUMAI ciclul de viață (Straturile 1-3) — este un│
-│  daemon de orchestrare a agenților, nu un proxy LLM, deci nu are o │
-│  intrare de executor/furnizor în Stratul 4 și nu este niciodată o  │
-│  țintă de rutare.                                                  │
+│  Mux este gestionat NUMAI pe durata ciclului de viață (Straturile 1-3) — este un daemon│
+│  de orchestrare a agenților, nu un proxy LLM, deci nu are executor │
+│  sau intrare de furnizor în Stratul 4 și nu este niciodată o țintă de rutare.│
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -143,17 +143,18 @@ Toate cele cinci urmează același model de supraveghere:
 | ------------------------------------------- | ----------------------------------------------------------------- |
 | `src/lib/services/ServiceSupervisor.ts`     | Clasa principală: ciclu de viață, blocare, stare, buffer circular |
 | `src/lib/services/bootstrap.ts`             | Înregistrare la nivel de proces și pornire automată               |
-| `src/lib/services/registry.ts`              | Mapă singleton `instrument → supervizor`                          |
-| `src/lib/services/apiKey.ts`                | Generarea cheilor, criptare AES-256-GCM în repaus                 |
+| `src/lib/services/registry.ts`              | Hartă singleton `tool → supervisor`                               |
+| `src/lib/services/apiKey.ts`                | Generarea cheilor, criptare AES-256-GCM pentru datele stocate     |
 | `src/lib/services/modelSync.ts`             | Sincronizare periodică a modelelor (5 min) + la cerere            |
-| `src/lib/services/ringBuffer.ts`            | Buffer circular de jurnale de 5 MB cu abonare SSE                 |
-| `src/lib/services/healthCheck.ts`           | Verificare HTTP a stării (interval configurabil)                  |
+| `src/lib/services/ringBuffer.ts`            | Buffer circular de jurnal de 5 MB, cu abonare SSE                 |
+| `src/lib/services/healthCheck.ts`           | Sondă HTTP de stare (interval configurabil)                       |
 | `src/lib/services/installers/ninerouter.ts` | Instalare/actualizare/dezinstalare npm pentru 9Router             |
 | `src/lib/services/installers/cliproxy.ts`   | Instalare/actualizare/dezinstalare npm pentru CLIProxyAPI         |
 | `src/lib/services/installers/mux.ts`        | Instalare/actualizare/dezinstalare npm pentru Mux                 |
+| `src/lib/services/installers/openwa.ts`     | Instalare/actualizare/dezinstalare npm pentru open-wa             |
 | `src/app/api/services/9router/_lib.ts`      | Funcție auxiliară `getOrInitSupervisor()`                         |
-| `src/app/api/services/[name]/logs/route.ts` | Endpoint partajat pentru jurnale SSE                              |
-| `open-sse/executors/ninerouter.ts`          | Executor pentru furnizor (stratul 4)                              |
+| `src/app/api/services/[name]/logs/route.ts` | Endpoint comun pentru jurnale SSE                                 |
+| `open-sse/executors/ninerouter.ts`          | Executor pentru furnizor (Stratul 4)                              |
 
 ---
 
@@ -209,8 +210,8 @@ condițiile de cursă atunci când, de exemplu, pornirea automată și un buton 
 
 ## 4. Referință API
 
-Toate rutele de sub `/api/services/` sunt **LOCAL_ONLY** (numai loopback, regula strictă #17).
-Solicitările care nu provin de la loopback primesc `403 LOCAL_ONLY`, indiferent de tokenul de autentificare.
+Toate rutele de sub `/api/services/` sunt **LOCAL_ONLY** (doar interfața loopback, regula strictă #17).
+Solicitările care nu provin de la interfața loopback primesc `403 LOCAL_ONLY`, indiferent de tokenul de autentificare.
 
 ### 4.1 Endpointuri 9Router (11 rute)
 
@@ -231,12 +232,12 @@ Instalează 9Router din npm. Creează `DATA_DIR/services/9router/` cu propriile 
 
 **Răspunsuri:**
 
-| Stare | Descriere                                                                     |
-| ----- | ----------------------------------------------------------------------------- |
-| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                        |
-| `400` | Corp de solicitare nevalid (validarea Zod a eșuat)                            |
-| `409` | Instalare deja în curs (blocare deținută)                                     |
-| `500` | Instalarea npm a eșuat — consultați `message` pentru o eroare ușor de înțeles |
+| Stare | Descriere                                                                               |
+| ----- | --------------------------------------------------------------------------------------- |
+| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                                  |
+| `400` | Corp de solicitare nevalid (validarea Zod a eșuat)                                      |
+| `409` | Instalare deja în curs (blocare deținută)                                               |
+| `500` | Instalarea npm a eșuat — consultați `message` pentru un mesaj de eroare ușor de înțeles |
 
 **Note:** Utilizează `execFile('npm', [...])` — fără shell, fără interpolare (regula strictă #13).
 Erorile EACCES sunt prezentate sub forma unor mesaje ușor de înțeles.
@@ -245,7 +246,7 @@ Erorile EACCES sunt prezentate sub forma unor mesaje ușor de înțeles.
 
 #### `POST /api/services/9router/start`
 
-Pornește 9Router. Înregistrează un supervisor dacă nu este deja înregistrat, apoi apelează
+Pornește 9Router. Înregistrează un supervizor dacă nu este deja înregistrat, apoi apelează
 `supervisor.start()`. Este idempotent dacă serviciul rulează deja.
 
 **Corpul solicitării:** niciunul
@@ -276,7 +277,7 @@ Pornește 9Router. Înregistrează un supervisor dacă nu este deja înregistrat
 
 #### `POST /api/services/9router/stop`
 
-Oprește controlat 9Router. Trimite SIGTERM, așteaptă 15 s, apoi trimite SIGKILL dacă procesul încă rulează.
+Oprește 9Router în mod controlat. Trimite SIGTERM, așteaptă 15 s, apoi trimite SIGKILL dacă procesul este încă activ.
 Este idempotent dacă serviciul este deja oprit.
 
 **Corpul solicitării:** niciunul
@@ -292,18 +293,18 @@ Este idempotent dacă serviciul este deja oprit.
 
 #### `POST /api/services/9router/restart`
 
-Echivalent cu `stop()` urmat de `start()` sub blocarea operațiilor.
+Echivalent cu `stop()` urmat de `start()` sub blocarea operației.
 
 **Corpul solicitării:** niciunul
 
-**Răspunsuri:** aceleași ca pentru `start` (returnează valoarea finală `ServiceStatus`).
+**Răspunsuri:** identice cu `start` (returnează obiectul `ServiceStatus` final).
 
 ---
 
 #### `POST /api/services/9router/update`
 
 Actualizează 9Router la o versiune npm mai nouă. Dacă serviciul rulează, acesta este oprit
-mai întâi, este executată instalarea npm (instalând versiunea mai nouă în aceeași locație), iar apoi
+mai întâi, se execută instalarea npm (instalând versiunea mai nouă în aceeași locație), iar apoi
 serviciul este repornit.
 
 **Corpul solicitării** (toate câmpurile sunt opționale):
@@ -324,11 +325,11 @@ serviciul este repornit.
 
 #### `POST /api/services/9router/rotate-key`
 
-Generează o nouă cheie API pentru 9Router, o criptează pentru stocare și repornește serviciul
-(dacă rulează), astfel încât acesta să preia noua cheie din mediul său. Cheia veche este
+Generează o cheie API nouă pentru 9Router, o criptează la stocare și repornește serviciul
+(dacă rulează), astfel încât acesta să preia cheia nouă din mediul său. Cheia veche este
 invalidată imediat.
 
-**Corpul cererii:** niciunul
+**Corpul solicitării:** niciunul
 
 **Răspunsuri:**
 
@@ -337,14 +338,14 @@ invalidată imediat.
 | `200` | `{ keyRotated: true, restarted: boolean }` |
 | `500` | Rotirea a eșuat                            |
 
-**Securitate:** Noua cheie nu este returnată niciodată în răspuns (fără scurgeri de credențiale).
-Aceasta este stocată în formă criptată (AES-256-GCM) în tabelul `version_manager`.
+**Securitate:** Cheia nouă nu este returnată niciodată în răspuns (fără scurgeri de date de autentificare).
+Aceasta este stocată criptat (AES-256-GCM) în tabelul `version_manager`.
 
 ---
 
 #### `GET /api/services/9router/status`
 
-Returnează starea combinată în timp real + din baza de date, inclusiv metadatele versiunii și previzualizarea cheii API.
+Returnează starea combinată în timp real + DB, inclusiv metadatele versiunii și o previzualizare a cheii API.
 
 **Răspunsuri:**
 
@@ -378,9 +379,9 @@ Returnează starea combinată în timp real + din baza de date, inclusiv metadat
 #### `POST /api/services/9router/auto-start`
 
 Comută indicatorul de pornire automată. Când `enabled: true`, serviciul pornește automat
-data viitoare când pornește OmniRoute (dacă serviciul este instalat).
+la următoarea pornire a OmniRoute (dacă serviciul este instalat).
 
-**Corpul cererii:**
+**Corpul solicitării:**
 
 ```json
 { "enabled": true }
@@ -397,22 +398,22 @@ data viitoare când pornește OmniRoute (dacă serviciul este instalat).
 
 #### `GET /api/services/9router/logs`
 
-Flux SSE de jurnale în timp real din memoria tampon circulară stdout/stderr a 9Router.
+Flux SSE de jurnale în timp real din bufferul circular stdout/stderr al 9Router.
 
 **Parametri de interogare:**
 
-| Parametru | Tip       | Implicit | Descriere                                                                              |
-| --------- | --------- | -------- | -------------------------------------------------------------------------------------- |
-| `tail`    | `integer` | 200      | Numărul de linii istorice trimise inițial (maximum 1000)                               |
-| `filter`  | `string`  | niciunul | Filtru de subșir fără a ține cont de majuscule (fără regex — protejat împotriva ReDoS) |
+| Parametru | Tip       | Valoare implicită | Descriere                                                                                               |
+| --------- | --------- | ----------------- | ------------------------------------------------------------------------------------------------------- |
+| `tail`    | `integer` | 200               | Numărul de linii istorice de trimis inițial (maximum 1000)                                              |
+| `filter`  | `string`  | niciuna           | Filtru de subșir fără diferențiere între majuscule și minuscule (fără regex — protejat împotriva ReDoS) |
 
 **Evenimente SSE:**
 
-| Eveniment   | Date        | Descriere                             |
-| ----------- | ----------- | ------------------------------------- |
-| `snapshot`  | `LogLine[]` | Secțiunea istorică inițială           |
-| `log`       | `LogLine`   | Linie de jurnal în timp real          |
-| `heartbeat` | `{}`        | Menținerea conexiunii la fiecare 15 s |
+| Eveniment   | Date        | Descriere                           |
+| ----------- | ----------- | ----------------------------------- |
+| `snapshot`  | `LogLine[]` | Secțiunea istorică inițială         |
+| `log`       | `LogLine`   | Linie de jurnal în timp real        |
+| `heartbeat` | `{}`        | Semnal de menținere la fiecare 15 s |
 
 **Schema LogLine:**
 
@@ -429,88 +430,122 @@ Flux SSE de jurnale în timp real din memoria tampon circulară stdout/stderr a 
 | Stare | Descriere                                                    |
 | ----- | ------------------------------------------------------------ |
 | `200` | `text/event-stream`                                          |
-| `400` | Parametrul `filter` este prea lung (> 200 caractere)         |
+| `400` | Parametrul `filter` este prea lung (> 200 de caractere)      |
 | `404` | Serviciul nu a fost găsit (supervizorul nu este înregistrat) |
 
 ---
 
-### 4.2 Endpointuri CLIProxyAPI (10 rute)
+### 4.2 Endpoint-uri CLIProxyAPI (10 rute)
 
-CLIProxyAPI are aceeași structură de endpointuri ca 9Router, fără `rotate-key`, dar cu
+CLIProxyAPI are aceeași structură de endpoint-uri ca 9Router, mai puțin `rotate-key`, la care se adaugă
 `accounts`, `provider-expose` și `auto-restart-adopted`. Acum primește o
-cheie API dedicată pentru planul de date, injectată la lansare (`needsApiKey: true` în
+cheie API dedicată planului de date, injectată la pornire (`needsApiKey: true` în
 `bootstrap.ts`, utilizată pentru sincronizarea modelelor); `status` include mai puține câmpuri.
 
-| Metodă | Cale                                | Descriere                                         |
-| ------ | ----------------------------------- | ------------------------------------------------- |
-| `POST` | `/api/services/cliproxy/install`    | Instalează CLIProxyAPI din npm                    |
-| `POST` | `/api/services/cliproxy/start`      | Pornește CLIProxyAPI                              |
-| `POST` | `/api/services/cliproxy/stop`       | Oprește CLIProxyAPI                               |
-| `POST` | `/api/services/cliproxy/restart`    | Repornește CLIProxyAPI                            |
-| `POST` | `/api/services/cliproxy/update`     | Actualizează la o versiune mai nouă               |
-| `GET`  | `/api/services/cliproxy/status`     | Stare în timp real + din BD (fără `apiKeyMasked`) |
-| `POST` | `/api/services/cliproxy/auto-start` | Comută pornirea automată                          |
+| Metodă | Cale                                | Descriere                                     |
+| ------ | ----------------------------------- | --------------------------------------------- |
+| `POST` | `/api/services/cliproxy/install`    | Instalează CLIProxyAPI din npm                |
+| `POST` | `/api/services/cliproxy/start`      | Pornește CLIProxyAPI                          |
+| `POST` | `/api/services/cliproxy/stop`       | Oprește CLIProxyAPI                           |
+| `POST` | `/api/services/cliproxy/restart`    | Repornește CLIProxyAPI                        |
+| `POST` | `/api/services/cliproxy/update`     | Actualizează la o versiune mai nouă           |
+| `GET`  | `/api/services/cliproxy/status`     | Stare în timp real + BD (fără `apiKeyMasked`) |
+| `POST` | `/api/services/cliproxy/auto-start` | Activează/dezactivează pornirea automată      |
 
-Endpointul comun `GET /api/services/{name}/logs` (consultați §4.1) funcționează pentru toate
-cele patru servicii utilizând segmentul dinamic `[name]`.
-
----
-
-### 4.3 Endpointuri Mux (8 rute)
-
-Mux are aceeași structură de endpointuri ca CLIProxyAPI — fără ruta `rotate-key` în suprafața
-API (tokenul bearer este generat în același mod ca al 9Router prin
-`getOrCreateApiKey("mux")` și injectat prin variabila de mediu `MUX_SERVER_AUTH_TOKEN`, dar
-încă nu există un endpoint dedicat pentru rotire). Mux este gestionat doar din punctul de vedere al ciclului de viață: spre deosebire de
-9Router, nu are un executor Layer 4 și nu este înregistrat niciodată ca furnizor de rutare.
-
-| Metodă | Cale                           | Descriere                               |
-| ------ | ------------------------------ | --------------------------------------- |
-| `POST` | `/api/services/mux/install`    | Instalează Mux din npm (`npm i mux`)    |
-| `POST` | `/api/services/mux/start`      | Pornește Mux (`mux server`)             |
-| `POST` | `/api/services/mux/stop`       | Oprește Mux                             |
-| `POST` | `/api/services/mux/restart`    | Repornește Mux                          |
-| `POST` | `/api/services/mux/update`     | Actualizează la o versiune npm mai nouă |
-| `GET`  | `/api/services/mux/status`     | Stare în timp real + din BD             |
-| `POST` | `/api/services/mux/auto-start` | Comută pornirea automată                |
+Endpoint-ul comun `GET /api/services/{name}/logs` (consultați §4.1) funcționează pentru toate
+cele patru servicii folosind segmentul dinamic `[name]`.
 
 ---
 
-### 4.4 Endpointuri Bifrost (8 rute)
+### 4.3 Endpoint-uri Mux (8 rute)
 
-Bifrost este un backend releu de tip gateway AI scris în Go (`@maximhq/bifrost`). Utilizează aceeași
-structură de endpointuri ca CLIProxyAPI (fără `rotate-key` — Bifrost își gestionează propriile chei
+Mux are aceeași structură de endpoint-uri ca CLIProxyAPI — fără ruta `rotate-key` în
+suprafața API (tokenul bearer este generat în același mod ca cel al 9Router, prin
+`getOrCreateApiKey("mux")`, și injectat prin variabila de mediu `MUX_SERVER_AUTH_TOKEN`, însă
+nu există încă un endpoint dedicat pentru rotație). Mux este gestionat numai din punctul de vedere al ciclului de viață: spre deosebire de
+9Router, nu are niciun executor de Nivel 4 și nu este înregistrat niciodată ca furnizor de rutare.
+
+| Metodă | Cale                           | Descriere                                |
+| ------ | ------------------------------ | ---------------------------------------- |
+| `POST` | `/api/services/mux/install`    | Instalează Mux din npm (`npm i mux`)     |
+| `POST` | `/api/services/mux/start`      | Pornește Mux (`mux server`)              |
+| `POST` | `/api/services/mux/stop`       | Oprește Mux                              |
+| `POST` | `/api/services/mux/restart`    | Repornește Mux                           |
+| `POST` | `/api/services/mux/update`     | Actualizează la o versiune npm mai nouă  |
+| `GET`  | `/api/services/mux/status`     | Stare în timp real + BD                  |
+| `POST` | `/api/services/mux/auto-start` | Activează/dezactivează pornirea automată |
+
+---
+
+### 4.4 Endpoint-uri Bifrost (8 rute)
+
+Bifrost este un backend releu de tip gateway AI scris în Go (`@maximhq/bifrost`). Folosește aceeași
+structură de endpoint-uri ca CLIProxyAPI (fără `rotate-key` — Bifrost își gestionează propriile chei
 de furnizor în `config.json`, în directorul său `-app-dir`).
 
-| Metodă | Cale                               | Descriere                                                                      |
-| ------ | ---------------------------------- | ------------------------------------------------------------------------------ |
-| `POST` | `/api/services/bifrost/install`    | Instalează Bifrost din npm (`@maximhq/bifrost`)                                |
-| `POST` | `/api/services/bifrost/start`      | Pornește Bifrost pe portul 8080 (implicit)                                     |
-| `POST` | `/api/services/bifrost/stop`       | Oprește Bifrost                                                                |
-| `POST` | `/api/services/bifrost/restart`    | Repornește Bifrost                                                             |
-| `POST` | `/api/services/bifrost/update`     | Actualizează la o versiune mai nouă                                            |
-| `GET`  | `/api/services/bifrost/status`     | Stare în timp real + BD                                                        |
-| `POST` | `/api/services/bifrost/auto-start` | Activează/dezactivează pornirea automată                                       |
-| `GET`  | `/api/services/bifrost/logs`       | Flux SSE de la finalul jurnalului (prin ruta dinamică partajată `[name]/logs`) |
+| Metodă | Cale                               | Descriere                                                        |
+| ------ | ---------------------------------- | ---------------------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | Instalează Bifrost din npm (`@maximhq/bifrost`)                  |
+| `POST` | `/api/services/bifrost/start`      | Pornește Bifrost pe portul 8080 (implicit)                       |
+| `POST` | `/api/services/bifrost/stop`       | Oprește Bifrost                                                  |
+| `POST` | `/api/services/bifrost/restart`    | Repornește Bifrost                                               |
+| `POST` | `/api/services/bifrost/update`     | Actualizează la o versiune mai nouă                              |
+| `GET`  | `/api/services/bifrost/status`     | Stare în timp real + BD                                          |
+| `POST` | `/api/services/bifrost/auto-start` | Activează/dezactivează pornirea automată                         |
+| `GET`  | `/api/services/bifrost/logs`       | Flux SSE al jurnalului (prin ruta dinamică comună `[name]/logs`) |
 
 **Configurarea rutării:** Când `BIFROST_BASE_URL` nu este setată, iar instanța Bifrost
-supravegheată rulează, `getBifrostRoutingConfig()` (din `routingBackend.ts`) utilizează automat
-`http://127.0.0.1:{port}` drept URL de bază pentru retransmitere. Variabila de mediu `BIFROST_BASE_URL`
-setată explicit are întotdeauna prioritate.
+supervizată rulează, `getBifrostRoutingConfig()` (din `routingBackend.ts`) utilizează automat
+`http://127.0.0.1:{port}` ca URL de bază al releului. Variabila de mediu `BIFROST_BASE_URL` setată
+explicit are întotdeauna prioritate.
 
 ---
 
-### 4.5 Endpointuri Dario (12 rute)
+### 4.5 Endpoint-uri Dario (12 rute)
 
 Aceeași structură a ciclului de viață ca pentru celelalte servicii (`install`, `start`, `stop`, `restart`,
 `update`, `status`, `auto-start`, `auto-restart-adopted`), plus un plan de control OAuth
 protejat prin token sub `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
 `admin/login-start`, `admin/login-complete` (toate protejate prin `DARIO_ADMIN_TOKEN`).
 
-### 4.6 Proxy invers (încorporarea panoului de control 9Router)
+### 4.6 Endpoint-uri open-wa (7 rute)
 
-Panoul de control încorporează interfața web 9Router într-un iframe prin intermediul unui proxy
-invers intern la:
+open-wa (`@open-wa/wa-automate`) controlează o instanță Chromium fără interfață grafică (prin
+Puppeteer) pentru a automatiza WhatsApp Web. Folosește aceeași structură de endpoint-uri ca Mux (încă fără
+ruta `rotate-key`). Este gestionat numai din punctul de vedere al ciclului de viață — nu este o țintă de rutare
+și nu are nicio intrare de executor/furnizor de Nivel 4.
+
+| Metodă | Cale                              | Descriere                                                                   |
+| ------ | --------------------------------- | --------------------------------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Instalează open-wa din npm (`@open-wa/wa-automate`)                         |
+| `POST` | `/api/services/openwa/start`      | Pornește open-wa pe portul 8323 (implicit)                                  |
+| `POST` | `/api/services/openwa/stop`       | Oprește open-wa                                                             |
+| `POST` | `/api/services/openwa/restart`    | Repornește open-wa                                                          |
+| `POST` | `/api/services/openwa/update`     | Actualizează la o versiune mai nouă                                         |
+| `GET`  | `/api/services/openwa/status`     | Stare live + DB                                                             |
+| `POST` | `/api/services/openwa/auto-start` | Activează/dezactivează pornirea automată                                    |
+| `GET`  | `/api/services/openwa/logs`       | Urmărire a jurnalului prin SSE (prin ruta dinamică partajată `[name]/logs`) |
+
+**Cheie API:** injectată ca `WA_KEY` — substituirea generică a variabilelor de mediu cu prefixul `WA_*` din open-wa o mapează la opțiunea CLI `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, verificat în raport cu pachetul instalat 4.76.0).
+Are prefixul `ow_` atunci când este generată de `generateServiceApiKey()`. open-wa
+citește cheia dintr-un antet HTTP `key`/`api_key` (nu `Authorization:
+Bearer`); `/api-docs*` este exceptat în mod explicit de la verificare
+(`setupAuthenticationLayer` din `dist/cli/server.js`), astfel încât verificarea stării
+nu necesită niciun antet de autentificare.
+
+**Asociere:** open-wa este neoficial și nu este afiliat cu WhatsApp — numărul
+conectat prezintă un risc de blocare din cauza mecanismului propriu WhatsApp de detectare a automatizării.
+La prima pornire, codul QR pentru asociere este afișat în stdout și expus prin
+panoul existent de jurnale/fluxul SSE — încă nu există un endpoint dedicat pentru imaginea QR
+în această integrare.
+
+---
+
+### 4.7 Proxy invers (încorporarea panoului de control 9Router)
+
+Panoul de control încorporează interfața web 9Router într-un iframe printr-un proxy invers
+intern la:
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -518,18 +553,18 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 
 Acest proxy:
 
-- Redirecționează cererea către `http://127.0.0.1:{port}/{path}` (doar prin interfața loopback)
-- Elimină anteturile `cookie` și `authorization` din cererea primită (fără divulgarea sesiunii OmniRoute)
+- Redirecționează cererea către `http://127.0.0.1:{port}/{path}` (doar prin loopback)
+- Elimină antetele primite `cookie` și `authorization` (fără expunerea sesiunii OmniRoute)
 - Injectează `Authorization: Bearer {apiKey}` pentru autentificarea 9Router
-- Elimină din răspuns `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*`
+- Elimină `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` din răspuns
 - Rescrie răspunsurile HTML pentru a injecta `<base href>` și a normaliza căile absolute (`/foo` → `/dashboard/.../embed/foo`)
 
-Actualizările WebSocket pentru panoul de control încorporat sunt gestionate de un server asociat pe un
+Upgrade-urile WebSocket pentru panoul de control încorporat sunt gestionate de un server auxiliar pe un
 port dedicat (consultați `src/lib/services/embedWsProxy.ts`).
 
 **Securitate:** Rutele proxy-ului de încorporare sunt clasificate sub `LOCAL_ONLY_API_PREFIXES`
-și pot fi accesate numai prin interfața loopback. Un atacator care obține un JWT printr-un
-tunel Cloudflare/Ngrok nu poate folosi proxy-ul pentru a accesa serviciile încorporate.
+și pot fi accesate numai prin loopback. Un atacator care obține un JWT printr-un tunel
+Cloudflare/Ngrok nu poate folosi proxy-ul pentru a accesa serviciile încorporate.
 
 ---
 

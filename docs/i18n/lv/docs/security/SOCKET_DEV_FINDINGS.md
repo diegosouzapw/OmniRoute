@@ -4,21 +4,23 @@
 
 ---
 
-Šis dokuments ir uzturētāja sagatavots apliecinājums par sešiem
-`AI-detected potential malware` konstatējumiem, kas izvirzīti pret `omniroute@3.8.5`, un
-`omniroute@3.8.6` ieviestajiem mazināšanas pasākumiem. Tas pastāv, lai:
+> **Tvēruma piezīme:** `socket.yml` konfigurē Socket.dev reģistra pusē veikto npm artefakta pēcpublikācijas skenēšanu (ignorēšanas ceļus saturam, kas netiek iekļauts publicētajā pakotnē, piemēram, `tests/`, `docs/` un būvējuma pārskatiem). Tas neiestata CI/PR sapludināšanas vārteju — neviena darbplūsma mapē `.github/workflows`, neviens `package.json` skripts un neviens `Makefile` mērķis neizsauc Socket.dev.
 
-1. Drošības konveijera operatoriem būtu viena atsauce, ko citēt, kad tiem nepieciešams
-   izvērtēt konstatējumus salīdzinājumā ar faktisko pirmkodu.
+Šis dokuments ir uzturētāja sagatavots apliecinājums par sešiem
+`AI-detected potential malware` konstatējumiem attiecībā uz `omniroute@3.8.5` un
+versijā `omniroute@3.8.6` ieviestajiem riska mazināšanas pasākumiem. Tas pastāv, lai:
+
+1. Drošības konveijera operatoriem būtu viena atsauce, uz kuru norādīt, kad viņiem
+   jāizvērtē konstatējumi salīdzinājumā ar faktisko pirmkodu.
 2. Turpmākie MI skeneri varētu uztvert uzturētāja parakstīto apliecinājumu, ka katrs
-   atzīmētais ceļš ir apzināts, brīvprātīgi aktivizējams un dokumentēts.
+   atzīmētais ceļš ir paredzēts, izmantojams pēc izvēles un dokumentēts.
 3. Mums būtu rakstisks ieraksts par to, _kāpēc_ katra izsaukuma vieta ir veidota tieši šādi —
-   lai turpmāka pārstrukturēšana nejauši no jauna neieviestu pazīmi, kas
+   lai turpmāka refaktorēšana nejauši no jauna neieviestu pazīmi, kas
    tika apzināti noņemta.
 
-Ja uzturat skeneri, kas pēc v3.8.6 mazināšanas pasākumu
-izlaišanas atkārtoti atzīmē kādu no tālāk norādītajām izsaukuma vietām, lūdzu, atveriet problēmas pieteikumu ar skenēšanas izsekojumu, un
-mēs šeit paplašināsim apliecinājumu.
+Ja uzturat skeneri, kas pēc v3.8.6 riska mazināšanas pasākumu publicēšanas atkārtoti
+atzīmē kādu no tālāk norādītajām izsaukuma vietām, lūdzu, izveidojiet problēmas pieteikumu ar skenēšanas izsekojumu, un
+mēs papildināsim šo apliecinājumu.
 
 ---
 

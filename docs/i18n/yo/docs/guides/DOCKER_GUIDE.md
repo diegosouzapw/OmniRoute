@@ -25,7 +25,13 @@
 
 ---
 
-## Ìmúṣiṣẹ́ Kíákíá
+## Ìṣiṣẹ́ Kíákíá
+
+> **Ṣe o fẹ́ gbàlejò fúnra rẹ pẹ̀lú àṣẹ kan ṣoṣo?** Wo
+> [Ìtọ́sọ́nà Ìgbàlejò Ara-ẹni](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (àwòrán tí a tẹ̀jáde +
+> Redis, loopback-nìkan, kò sí yíyan prófáìlì). Ìṣiṣẹ́ Kíákíá tó wà nísàlẹ̀ ni
+> ọ̀nà container kan ṣoṣo fún àwọn olùlò tí wọ́n ti ń ṣiṣẹ́ Redis níbòmíràn.
 
 ```bash
 docker run -d \
