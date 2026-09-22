@@ -28,7 +28,7 @@ import { resolveQuotaExhaustionCutoffForTarget } from "./quotaExhaustionCutoff.t
 import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 import type { AttemptLoopDeps, AttemptLoopState, GateDecision } from "./attemptLoopTypes.ts";
-import type { ResolvedComboTarget } from "./types.ts";
+import { modelAvailabilitySkipReason, type ResolvedComboTarget } from "./types.ts";
 
 /**
  * Cached vs fresh connection read for the persisted-cooldown gate.
@@ -289,10 +289,13 @@ export async function evaluateExecuteTargetGates(opts: {
 
   if (deps.isModelAvailable) {
     const available = await deps.isModelAvailable(modelStr, targetForAttempt);
-    if (!available) {
+    const skipReason = modelAvailabilitySkipReason(available);
+    if (skipReason) {
       deps.log.debug?.(
         "COMBO",
-        `Skipping ${modelStr} — no credentials available or model excluded`
+        skipReason === "model_not_in_catalog"
+          ? `Skipping ${modelStr} — model is not in the live catalog`
+          : `Skipping ${modelStr} — no credentials available or model excluded`
       );
       deps.clearStaleLKGP(
         deps.combo.name,
@@ -307,7 +310,7 @@ export async function evaluateExecuteTargetGates(opts: {
         step: target.executionKey,
         target: modelStr,
         decision: "skipped_before_dispatch",
-        reason: "availability",
+        reason: skipReason,
       });
       bumpFallback();
       return {
