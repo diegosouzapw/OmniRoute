@@ -66,28 +66,32 @@ docker run -d \
 # මූලික පැතිකඩ (CLI මෙවලම් නොමැත)
 docker compose --profile base up -d
 
-# CLI පැතිකඩ (Claude Code, Codex, OpenClaw ඇතුළත් කර ඇත)
+# CLI පැතිකඩ (Claude Code, Codex, OpenClaw අන්තර්ගතයි)
 docker compose --profile cli up -d
 
-# සත්කාරක පැතිකඩ (ප්රධාන වශයෙන් Linux සඳහා; සත්කාරක CLI ද්විමය ගොනු කියවීමට පමණක් හැකි ලෙස සවිකරයි)
+# සත්කාරක පැතිකඩ (Linux-ප්රමුඛ; සත්කාරක CLI ද්විමය ගොනු කියවීමට පමණක් සවිකරයි)
 docker compose --profile host up -d
 
-# CLI + CLIProxyAPI sidecar ඒකාබද්ධ කරන්න
+# වෙබ් පැතිකඩ (වෙබ්-සැසි සැපයුම්කරුවන් සඳහා Chromium/Playwright)
+docker compose --profile web up -d
+
+# CLI + CLIProxyAPI අතුරු බහාලුම ඒකාබද්ධ කරන්න
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
-## ලබාගත හැකි පැතිකඩ
+## පවතින Profiles
 
-OmniRoute සමඟ Compose පැතිකඩ හතරක් සපයනු ලැබේ. ඔබේ පරිසරයට ගැළපෙන එක තෝරන්න.
+OmniRoute ප්රධාන යෙදවුම් ආකාර සඳහා Compose profiles සමඟ නිකුත් වේ. ඔබේ පරිසරයට ගැළපෙන එක තෝරන්න.
 
-| පැතිකඩ           | සේවාව            | භාවිත කළ යුතු අවස්ථාව                                                                                                                             | විධානය                                       |
-| ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (පෙරනිමි) | `omniroute-base` | Headless සේවාදායකය / අවම ධාවන පරිසරය, සැපයුම්කරු CLI ඇතුළත් කර නැත                                                                                | `docker compose --profile base up -d`        |
-| `cli`            | `omniroute-cli`  | `omniroute providers/setup/doctor` සහ ඇතුළත් කර ඇති CLI (Codex, Claude Code, Droid, OpenClaw) කැඳවන නියෝජිත-මූලික කාර්ය ප්රවාහ                    | `docker compose --profile cli up -d`         |
-| `host`           | `omniroute-host` | `~/.local/bin`, `~/.codex`, `~/.claude` ආදිය කියවීමට පමණක් හැකි ලෙස සවිකිරීමෙන් සත්කාරක CLI වෙත `network_mode`-සමාන ප්රවේශයක් අවශ්ය Linux සත්කාරක | `docker compose --profile host up -d`        |
-| `cliproxyapi`    | `cliproxyapi`    | ඉහළ ප්රවාහ CLI ප්රොක්සි කිරීම සඳහා [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar එක `8317` පෝට් එකේ ධාවනය කරන්න             | `docker compose --profile cliproxyapi up -d` |
+| Profile          | Service          | භාවිත කළ යුතු අවස්ථාව                                                                                                                        | Command                                      |
+| ---------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (පෙරනිමි) | `omniroute-base` | Headless server / අවම runtime, provider CLIs අන්තර්ගත කර නොමැත                                                                               | `docker compose --profile base up -d`        |
+| `cli`            | `omniroute-cli`  | `omniroute providers/setup/doctor` සහ අන්තර්ගත CLIs (Codex, Claude Code, Droid, OpenClaw) කැඳවන agentic workflows සඳහා                       | `docker compose --profile cli up -d`         |
+| `host`           | `omniroute-host` | `~/.local/bin`, `~/.codex`, `~/.claude` ආදිය read-only ලෙස mount කිරීමෙන් host CLIs වෙත `network_mode`-වැනි ප්රවේශයක් අවශ්ය Linux hosts සඳහා | `docker compose --profile host up -d`        |
+| `cliproxyapi`    | `cliproxyapi`    | upstream CLI proxying සඳහා `8317` port එකේ [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar එක ධාවනය කරන්න                | `docker compose --profile cliproxyapi up -d` |
+| `web`            | `omniroute-web`  | browser එකක් අවශ්ය web-session providers සඳහා: `gemini-web`, `claude-web`, `claude-turnstile` (`runner-web` build කරයි, Chromium අන්තර්ගතයි) | `docker compose --profile web up -d`         |
 
-> පැතිකඩ කිහිපයක් ඒකාබද්ධ කළ හැක: `docker compose --profile cli --profile cliproxyapi up -d`.
+> Profiles කිහිපයක් ඒකාබද්ධ කළ හැක: `docker compose --profile cli --profile cliproxyapi up -d`.
 
 ## OmniRoute Docker තුළ ධාවනය වන විට සත්කාරක CLI මෙවලම් වින්යාස කිරීම
 
@@ -234,37 +238,40 @@ prod stack එක dev compose එකට සමාන්තරව ක්රිය
 
 ## Dockerfile අදියර
 
-ගබඩාව බහු-අදියර Dockerfile එකක් (`Dockerfile`) සමඟ නිකුත් වේ. අදියර තුනක් නිරාවරණය කර ඇත; ඔබේ භාවිත අවස්ථාව සඳහා නිවැරදි `target` එක තෝරන්න.
+ගබඩාව සමඟ බහු-අදියර Dockerfile එකක් (`Dockerfile`) සපයනු ලැබේ. අදියර හතරක් නිරාවරණය කර ඇත; ඔබේ භාවිත අවස්ථාව සඳහා නිවැරදි `target` එක තෝරන්න.
 
-| අදියර         | මූලික image එක        | අරමුණ                                                                                                                                                                           |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | dependencies ස්ථාපනය කරයි (`npm ci --legacy-peer-deps`) සහ `npm run build` ධාවනය කරයි (පෙරනිමියෙන් Turbopack — පහත ගොඩනැගීම්-කාලීන සම්පත් බලන්න)                                |
-| `runner-base` | `node:26-trixie-slim` | Next.js standalone ප්රතිදානය සහිත නිෂ්පාදන ධාවන පරිසරය. **කිසිදු provider CLI එකක් ඇතුළත් කර නැත.**                                                                             |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` සහ ගෝලීය CLI එක් කරයි: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **ස්වයංක්රීය නියෝජිත workflow සඳහා මෙය තෝරන්න.** |
+| අදියර         | මූලික image එක        | අරමුණ                                                                                                                                                                                                                                                                                |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `builder`     | `node:26-trixie-slim` | පරායත්තතා ස්ථාපනය කරයි (`npm ci --legacy-peer-deps`) සහ `npm run build` ධාවනය කරයි (පෙරනිමියෙන් Turbopack — පහත ගොඩනැගීම්-කාලීන සම්පත් බලන්න)                                                                                                                                        |
+| `runner-base` | `node:26-trixie-slim` | Next.js ස්වාධීන ප්රතිදානය සහිත නිෂ්පාදන ධාවන පරිසරය. **සපයන්නන්ගේ CLI කිසිවක් ඇතුළත් කර නැත.**                                                                                                                                                                                       |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` සහ ගෝලීය CLI එක් කරයි: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **නියෝජිත-පාදක කාර්ය ප්රවාහ සඳහා මෙය තෝරන්න.**                                                                                                        |
+| `runner-web`  | `runner-base`         | වෙබ්-සැසි සපයන්නන් සඳහා Playwright + Chromium බ්රවුසරයක් (`--with-deps`) එක් කරයි: `gemini-web`, `claude-web`, `claude-turnstile`. **ඔබ එම සපයන්නන් භාවිත කරන විට මෙය තෝරන්න** — මෙය නොමැති සාමාන්ය image එක ඉල්ලීම් අවස්ථාවේ අසාර්ථක වේ (නිකුතු නාලිකා යටතේ ඇති `-web` සටහන බලන්න). |
 
 නිශ්චිත target එකක් අතින් ගොඩනඟන්න:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### ගොඩනැගීම්-කාලීන සම්පත්
 
-`builder` අදියරේ සම්පත් පිරිවැය build args තුනකින් පාලනය වේ. ඒවා ගොඩනැගීම් කාලයට පමණක් අදාළ වේ —
+`builder` අදියරේ සම්පත් පිරිවැය පාලනය කරන්නේ build args තුනකි. ඒවා ගොඩනැගීම් කාලයට පමණක් අදාළ වේ —
 `OMNIROUTE_MEMORY_MB` (පහත) යනු වෙනම ධාවන-කාලීන පාලකයකි.
 
 | Build arg                   | පෙරනිමිය | බලපෑම                                                                                                       |
 | --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` මඟින් ඒ වෙනුවට webpack භාවිතයෙන් ගොඩනඟයි. උපරිම මතක භාවිතය අඩු නමුත් මන්දගාමීය.                         |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | ආරම්භ කරන ලද `next build` සඳහා V8 heap උපරිම සීමාව (`--max-old-space-size`).                                |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` නම් ඒ වෙනුවට webpack සමඟ ගොඩනඟයි. උපරිම මතක භාවිතය අඩු නමුත් මන්දගාමී වේ.                               |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | ආරම්භ කරන `next build` සඳහා V8 heap සීමාව (`--max-old-space-size`).                                         |
 | `OMNIROUTE_BUILD_WORKERS`   | `2`      | `CIRCLE_NODE_TOTAL` වෙත අගය සපයයි; පිටු-දත්ත රැස් කිරීම සඳහා Next විසින් `workers = N - 1` ව්යුත්පන්න කරයි. |
 
-විශාල builder එකකදී වැඩි කළ යුතු පාලකය `OMNIROUTE_BUILD_WORKERS` වන අතර, සම්පත් සීමා සහිත ගොඩනැගීමක් `✓ Compiled successfully` පසු **අසාර්ථක වන්නේ** නම් සැක කළ යුත්තේද එයයි. එක් එක් පිටු-දත්ත worker එක වෙනම process එකක් වන අතර, මව් `next build` එකද එසේම වේ;
-සජීවී VPS ප්රතිනිෂ්පාදනයකදී (issue #7518), `NODE_OPTIONS` heap flag එකෙන් ස්වාධීනව එක් එක් process එකේ උපරිම RSS අගය ~4.5 GB ලෙස මනින ලදී (Turbopack, V8 heap එකෙන් පිටත native/Rust memory තුළ සම්පාදනය කරයි). පෙරනිමි `2` අගය (→ worker 1ක්, සමස්ත process 2ක්) publish pipeline එක භාවිත කරන 16 GB / 4 vCPU GitHub-hosted runners සඳහා ප්රමාණගත කර ඇත. `8` දී (→ workers 7ක්), එම runner එකේ මතකය අවසන් වූ අතර buildkit විසින් `ResourceExhausted: ... cannot allocate memory` සමඟ එම පියවර අසාර්ථක කරන ලදී;
-එක් එක් process එකේ RSS අගය අනුමාන කිරීම වෙනුවට සෘජුවම මැනීමෙන් පසුව `3` (→ workers 2ක්) පවා ගැළපුණේ නැත. `tests/unit/docker-build-memory-budget.test.ts` මනින ලද අගය මත ගණනය කිරීම් සිදු කර, පාලක දෙකෙන් එකක් හෝ runner එකේ ධාරිතාව ඉක්මවන්නේ නම් අසාර්ථක වේ.
+විශාල builder එකකදී වැඩි කළ යුතු සහ සම්පත් සීමිත ගොඩනැගීමක් `✓ Compiled successfully` **පසු** නතර වුවහොත් සැක කළ යුතු අගය වන්නේ `OMNIROUTE_BUILD_WORKERS` ය.
+සෑම පිටු-දත්ත worker එකක්ම වෙනම ක්රියාවලියක් වන අතර, මව් `next build` එකද වෙනම ක්රියාවලියකි;
+සජීවී VPS ප්රතිනිෂ්පාදනයකදී (issue #7518), `NODE_OPTIONS` heap flag එකෙන් ස්වාධීනව සෑම ක්රියාවලියකම උපරිම RSS අගය ~4.5 GB ලෙස මනින ලදී (Turbopack, V8 heap එකෙන් පිටත native/Rust මතකයේ compile කරයි). `2` පෙරනිමිය (→ worker 1ක්, සමස්ත ක්රියාවලි 2ක්) ප්රකාශන pipeline එක භාවිත කරන 16 GB / 4 vCPU GitHub-hosted runner සඳහා සකසා ඇත. `8` දී (→ workers 7ක්) එම runner එකේ මතකය අවසන් වූ අතර buildkit විසින් `ResourceExhausted: ... cannot allocate memory` සමඟ පියවර අසාර්ථක කරන ලදී;
+එක් එක් ක්රියාවලියේ RSS අගය අනුමාන කිරීම වෙනුවට සෘජුව මැනීමෙන් පසුව `3` (→ workers 2ක්) පවා ප්රමාණවත් නොවීය. `tests/unit/docker-build-memory-budget.test.ts` මනින ලද අගයට එරෙහිව ගණනය කිරීම් සිදු කරන අතර, ඕනෑම පාලකයක් runner එකේ ධාරිතාව ඉක්මවන්නේ නම් අසාර්ථක වේ.
 
-Turbopack, V8 heap එකෙන් **පිටත** පවතින native Rust memory තුළ සම්පාදනය කරන බැවින් `OMNIROUTE_BUILD_MEMORY_MB` මඟින් එය සීමා නොවේ. මතක සීමාවක් ඇති host එකකදී, කිසිදු දෝෂ පෙළක් නොමැතිව OOM killer මඟින් build එක SIGKILL කරනු ලැබේ — එය `Creating an optimized production build` අතරමඟ නතර වන අතර, එබැවින් මතකය අවසන් වීමකට වඩා සිරවීමක් ලෙස පෙනේ. build host එක සම්පත් සීමා සහිත නම්, bundler එක මාරු කරන්න:
+Turbopack, V8 heap එකෙන් **පිටත** පවතින native Rust මතකයේ compile කරන බැවින් `OMNIROUTE_BUILD_MEMORY_MB` මඟින් එය සීමා නොවේ. මතක සීමාවක් සහිත host එකකදී OOM killer විසින් කිසිදු දෝෂ පෙළක් නොමැතිව ගොඩනැගීම SIGKILL කරනු ලැබේ — එය `Creating an optimized production build` අතරමැද සරලව නවතින බැවින්, මතකය අවසන් වීමක් වෙනුවට සිරවීමක් මෙන් පෙනේ. ගොඩනැගීම් host එක සම්පත් සීමිත නම්, bundler එක මාරු කරන්න:
 
 ```bash
 docker build --target runner-base \
@@ -272,15 +279,15 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` සක්රීය කර ඇති බැවින්, `next build` මව් process එකක් **සහ** worker process එකක් ධාවනය කරන අතර, ඒ සෑම එකක්ම `OMNIROUTE_BUILD_MEMORY_MB` වෙන වෙනම අනුගමනය කරයි. container සීමාව එම අගය මෙන් එක් ගුණයකට නොව, ආසන්න වශයෙන් දෙගුණයකට වඩා ඉහළින් ප්රමාණගත කරන්න.
+`webpackBuildWorker` සක්රීය කර ඇති බැවින්, `next build` මව් ක්රියාවලියක් **සහ** worker ක්රියාවලියක් ධාවනය කරන අතර ඒ සෑම එකක්ම `OMNIROUTE_BUILD_MEMORY_MB` සඳහා වෙන වෙනම අනුගත වේ. Container සීමාව එම අගයේ එක් ගුණයකට නොව, දළ වශයෙන් දෙගුණයකට වඩා ඉහළින් සකසන්න.
 
 මෙම tree එක මත මනින ලදී (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Container සීමාව | ප්රතිඵලය                        |
-| --------- | --------------- | ------------------------------- |
-| Turbopack | 8 GiB / 16 GiB  | දෙකේදීම නිහඬව OOM-kill විය      |
-| webpack   | 8 GiB           | build worker එක SIGKILL විය     |
-| webpack   | 12 GiB          | සාර්ථක විය, උපරිමය 11.1 GiB විය |
+| Bundler   | Container සීමාව | ප්රතිඵලය                           |
+| --------- | --------------- | ---------------------------------- |
+| Turbopack | 8 GiB / 16 GiB  | දෙකේදීම නිහඬව OOM-killed විය       |
+| webpack   | 8 GiB           | build worker එක SIGKILL කරන ලදී    |
+| webpack   | 12 GiB          | සාර්ථක විය, උපරිම අගය 11.1 GiB විය |
 
 ### ධාවන-කාලීන පෙරනිමි
 
@@ -288,25 +295,25 @@ docker build --target runner-base \
 
 Docker තුළ මතක හැසිරීම:
 
-- image එක `OMNIROUTE_MEMORY_MB=1024` ලෙස සකසා, එයින් `NODE_OPTIONS=--max-old-space-size=1024` ව්යුත්පන්න කරයි.
-- සැබෑ server process එක standalone launcher මඟින් ආරම්භ කරන අතර, එය `OMNIROUTE_MEMORY_MB` කියවා `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` එක් කරයි.
-- නැවත නැවත ලබා දෙන `--max-old-space-size` අගයන්ගෙන් අවසාන අගය Node භාවිත කරන බැවින්, `OMNIROUTE_MEMORY_MB` සැකසීම මඟින් ක්රියාත්මක Docker heap සීමාව පාලනය වේ.
-- image එක සෑම විටම එය සකසන බැවින්, launcher එකේම RAM අනුව සකස් වන fallback එක Docker යටතේ කිසිවිටෙක යෙදෙන්නේ නැත. workload එක සඳහා එය පැහැදිලිව වැඩි කරන්න (පහත වගුව). coding-agent `/v1/responses` සඳහා `2048` තවමත් ප්රමාණවත් නොවේ.
+- රූපය `OMNIROUTE_MEMORY_MB=1024` ලෙස සකසා, එයින් `NODE_OPTIONS=--max-old-space-size=1024` ව්යුත්පන්න කරයි.
+- සැබෑ සේවාදායක ක්රියාවලිය standalone launcher මඟින් ආරම්භ කරන අතර, එය `OMNIROUTE_MEMORY_MB` කියවා `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` එක් කරයි.
+- නැවත නැවත සඳහන් කළ `--max-old-space-size` අගයන්ගෙන් අවසාන අගය Node භාවිත කරන බැවින්, `OMNIROUTE_MEMORY_MB` සැකසීමෙන් සත්ය වශයෙන් ක්රියාත්මක වන Docker heap සීමාව පාලනය වේ.
+- රූපය සැමවිටම එය සකසන බැවින්, launcher සතු RAM අනුව ක්රමාංකනය කළ fallback අගය Docker යටතේ කිසිවිටෙක යෙදෙන්නේ නැත. කාර්යභාරයට ගැළපෙන පරිදි එය පැහැදිලිව වැඩි කරන්න (පහත වගුව බලන්න). coding-agent `/v1/responses` සඳහා `2048` තවමත් ඉතා කුඩාය.
 
-### Coding agents සඳහා ධාවන-කාලීන RAM
+### coding agents සඳහා runtime RAM
 
-1 GiB Docker පෙරනිමිය dashboard/සැහැල්ලු-chat සඳහා අවම සීමාවක් මිස නිෂ්පාදන ප්රමාණයක් නොවේ. දිගු `POST /v1/responses` body (පණිවිඩ සිය ගණනක්, tools දස ගණනක්) compression අතරතුර memory තුළ graphs කිහිපයක් රඳවා ගනී. එකිනෙක මත අතිච්ඡාදනය වන ~3 MiB / ~750k-token ඉල්ලීම් දෙකක් **12 GiB** old-space එකකදී V8 නතර කර ඇත (`FATAL ERROR: Reached heap limit`) සහ 16 GiB cgroup OOM එකකටද ළඟා වී ඇත. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) බලන්න.
+1 GiB Docker පෙරනිමිය යනු dashboard/සැහැල්ලු chat සඳහා අවම මට්ටමක් මිස නිෂ්පාදන භාවිතයට සුදුසු ප්රමාණයක් නොවේ. දිගු `POST /v1/responses` body (පණිවිඩ සිය ගණනක් සහ මෙවලම් දස ගණනක්) compression අතරතුර මතකය තුළ graphs කිහිපයක් රඳවා තබයි. එකිනෙක අතිච්ඡාදනය වන ~3 MiB / ~750k-token ඉල්ලීම් දෙකක් **12 GiB** old-space එකකදී V8 නවතා දමා ඇත (`FATAL ERROR: Reached heap limit`), එමෙන්ම 16 GiB cgroup OOM සීමාවටද ළඟා වී ඇත. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) බලන්න.
 
-**cgroup `--memory` අගය heap එකට වඩා ඉහළින්** ප්රමාණගත කරන්න — native buffers, SQLite සහ compression අතරමැදි දත්ත V8 එකෙන් පිටත පවතී.
+cgroup `--memory` ප්රමාණය **heap එකට වඩා වැඩිව** සකසන්න — native buffers, SQLite සහ compression අතරමැදි දත්ත V8 පිටත පවතී.
 
-| කාර්ය භාරය                              | `OMNIROUTE_MEMORY_MB`            | කන්ටේනරය / cgroup                      | සටහන්                                                                                                      |
-| --------------------------------------- | -------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Dashboard, සැහැල්ලු chat එකක්           | `1024` (image පෙරනිමිය)          | ≥2 GiB                                 |                                                                                                            |
-| coding agent එකක් (Claude/Codex/Grok)   | `8192`                           | ≥10 GiB                                | සාමාන්ය තනි-session `/v1/responses`                                                                        |
-| සමගාමී දිගු `/v1/responses` දෙකක්       | `10240`–`12288`                  | ≥12–16 GiB                             | ~12 GiB heap එකකදී මනින ලද V8 abort වීම                                                                    |
-| සමගාමී දිගු context තුනක් හෝ වැඩි ගණනක් | එක් process එකක් මත සිදු නොකරන්න | අනුක්රමිකව ක්රියාත්මක කරන්න / වැඩි RAM | පෙරනිමි heavyweight admission එකෙහි in-flight ගණන 1කි; RAM වැඩි නොකර එය ඉහළ නැංවීමෙන් abort වීම යළි ඇති වේ |
+| කාර්යභාරය                                 | `OMNIROUTE_MEMORY_MB`   | Container / cgroup                     | සටහන්                                                                                                           |
+| ----------------------------------------- | ----------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Dashboard, එක් සැහැල්ලු chat එකක්         | `1024` (රූපයේ පෙරනිමිය) | ≥2 GiB                                 |                                                                                                                 |
+| එක් coding agent එකක් (Claude/Codex/Grok) | `8192`                  | ≥10 GiB                                | සාමාන්ය single-session `/v1/responses`                                                                          |
+| සමගාමී දිගු `/v1/responses` දෙකක්         | `10240`–`12288`         | ≥12–16 GiB                             | ~12 GiB heap එකකදී V8 නවතා දැමීම මැන ඇත                                                                         |
+| සමගාමී දිගු contexts තුනක් හෝ වැඩි ගණනක්  | එක් ක්රියාවලියක නොකරන්න | අනුක්රමිකව ක්රියාත්මක කරන්න / වැඩි RAM | පෙරනිමි heavyweight admission අගය එකවර ක්රියාත්මක වන 1කි; RAM වැඩි නොකර එය ඉහළ දැමීමෙන් නැවත නවතා දැමීම සිදු වේ |
 
-bare metal මත `omniroute serve`, `OMNIROUTE_MEMORY_MB` **සකසා නොමැති** විට RAM ප්රමාණයෙන් ~35%ක් (`[512, 4096]` පරාසයට සීමා කර) ක්රමාංකනය කරයි. Docker සැමවිටම `1024` සකසන බැවින්, නිල image එක තුළ එම ක්රමාංකනය කිසිවිටෙක ක්රියාත්මක නොවේ.
+`OMNIROUTE_MEMORY_MB` **සකසා නොමැති** විට, bare metal මත `omniroute serve` RAM ප්රමාණයෙන් ~35%කට ක්රමාංකනය කරයි (`[512, 4096]` පරාසයට සීමා කරයි). Docker සැමවිටම `1024` සකසන බැවින්, නිල රූපය තුළ එම ක්රමාංකනය කිසිවිටෙක ක්රියාත්මක නොවේ.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -314,26 +321,26 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
   -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
 ```
 
-## අත්යවශ්ය පරිසර විචල්ය
+## තීරණාත්මක පරිසර විචල්ය
 
-[ENVIRONMENT.md](../reference/ENVIRONMENT.md) හි ලේඛනගත කර ඇති පෙරනිමි අගයන්ට අමතරව, Docker යටතේ ධාවනය කිරීමේදී පහත විචල්යයන් වඩාත් වැදගත් වේ:
+[ENVIRONMENT.md](../reference/ENVIRONMENT.md) හි ලේඛනගත කර ඇති පෙරනිමි අගයන්ට අමතරව, Docker යටතේ ධාවනය කිරීමේදී පහත විචල්ය වඩාත් වැදගත් වේ:
 
-| විචල්යය                       | අරමුණ                                                                                                                                                                                                                                                                                            | පෙරනිමිය                |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket බ්රිජය සඳහා හවුල් රහස. **නිෂ්පාදන පරිසරයේ අනිවාර්යයි** — ප්රබල අහඹු තන්තුවකට සකසන්න.                                                                                                                                                                                                   | සකසා නැත (සැපයිය යුතුය) |
-| `REDIS_URL`                   | වේග සීමාකාරකය / හැඹිලි පසුඅන්තය සඳහා සම්බන්ධතා තන්තුව                                                                                                                                                                                                                                            | `redis://redis:6379`    |
-| `REDIS_PORT`                  | ඇතුළත් කර ඇති Redis කන්ටේනරය සඳහා ධාරක පාර්ශ්වයේ පෝර්ට් එක                                                                                                                                                                                                                                       | `6379`                  |
-| `REDIS_BIND_HOST`             | ඇතුළත් කර ඇති Redis පෝර්ට් එක ප්රකාශයට පත් කරන ධාරක අතුරුමුහුණත (ඔබ AUTH එක් නොකරන්නේ නම් loopback)                                                                                                                                                                                              | `127.0.0.1`             |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | ස්වයං-යාවත්කාලීන කාර්ය ප්රවාහ සඳහා `cli` පැතිකඩ තුළ `/workspace/omniroute` වෙත සවිකරන ධාරක මාර්ගය                                                                                                                                                                                                | `.` (වත්මන් නාමාවලිය)   |
-| `OMNIROUTE_MEMORY_MB`         | Docker ස්වාධීන සේවාදායකය සඳහා ධාවනකාල Node heap උපරිම සීමාව; ඉහත image පෙරනිමිය අභිබවා යයි. කේතකරණ නියෝජිතයන්: `8192`+ ([ධාවනකාල RAM](#runtime-ram-for-coding-agents) බලන්න).                                                                                                                    | `1024`                  |
-| `DASHBOARD_PORT` / `API_PORT` | උපකරණ පුවරුව (20128) සහ API (20129) සඳහා නිරාවරණය කළ පෝර්ට් අභිබවා යන්න                                                                                                                                                                                                                          | `20128` / `20129`       |
-| `APP_BIND_HOST`               | docker-compose මඟින් උපකරණ පුවරුව/API/live-WS පෝර්ට් ප්රකාශයට පත් කරන ධාරක අතුරුමුහුණත. `REQUIRE_API_KEY=false` (පෙරනිමිය) සමඟින්, `0.0.0.0` විසින් නිර්නාමික `/v1` ප්රොක්සිය LAN වෙත නිරාවරණය කරයි — `REQUIRE_API_KEY=true` සමඟ හෝ ඉදිරියෙන් reverse proxy එකක් ඇති විට පමණක් මෙය පුළුල් කරන්න. | `127.0.0.1`             |
-| `CLIPROXY_BIND_HOST`          | docker-compose මඟින් `cliproxyapi` sidecar එක ප්රකාශයට පත් කරන ධාරක අතුරුමුහුණත — එහි දත්ත volume එකේ සැපයුම්කරුගේ අක්තපත්ර අඩංගු වේ.                                                                                                                                                            | `127.0.0.1`             |
-| `OMNIROUTE_PLUGINS_DIR`       | ධාවනකාල plugin scanner එක කියවා ස්ථාපනය කරන නාමාවලිය. plugins bind-mount කර ඇති විට එය සකසන්න: පෙරනිමිය `HOME` අනුගමනය කරන අතර image එකක් එය export කිරීම අනිවාර්ය නොවේ.                                                                                                                         | `~/.omniroute/plugins`  |
-| `OMNIROUTE_BASE_PATH`         | යෙදුම reverse proxy එකක් පිටුපස ප්රකාශයට පත් කර ඇති විට භාවිත වන URL උපමාර්ගය (උදා. `/omniroute`)                                                                                                                                                                                                | _(හිස් = මූලය)_         |
-| `NEXT_PUBLIC_BASE_URL`        | උපමාර්ගයද ඇතුළත් පොදු බ්රවුසර මූලාරම්භය (උදා. `https://host/omniroute`)                                                                                                                                                                                                                          | සකසා නැත                |
-| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml` සඳහා ධාරක පාර්ශ්වයේ උපකරණ පුවරු පෝර්ට් එක                                                                                                                                                                                                                              | `20130`                 |
-| `CLIPROXYAPI_PORT`            | `cliproxyapi` sidecar එක සඳහා ධාරක පාර්ශ්වයේ පෝර්ට් එක                                                                                                                                                                                                                                           | `8317`                  |
+| විචල්යය                       | අරමුණ                                                                                                                                                                                                                                                                                   | පෙරනිමිය                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket bridge සඳහා හවුල් රහස් අගය. **නිෂ්පාදන පරිසරයේදී අවශ්යයි** — ප්රබල අහඹු අක්ෂර මාලාවකට සකසන්න.                                                                                                                                                                                 | සකසා නැත (සැපයිය යුතුය) |
+| `REDIS_URL`                   | rate limiter / cache backend සඳහා සම්බන්ධතා අක්ෂර මාලාව                                                                                                                                                                                                                                 | `redis://redis:6379`    |
+| `REDIS_PORT`                  | ඇතුළත් Redis container එක සඳහා host පාර්ශ්වයේ port එක                                                                                                                                                                                                                                   | `6379`                  |
+| `REDIS_BIND_HOST`             | ඇතුළත් Redis port එක ප්රකාශයට පත් කරන host interface එක (ඔබ AUTH එක් නොකරන්නේ නම් loopback)                                                                                                                                                                                             | `127.0.0.1`             |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | ස්වයං-යාවත්කාලීන කාර්ය ප්රවාහ සඳහා `cli` profile එක තුළ `/workspace/omniroute` වෙත mount කරන host path එක                                                                                                                                                                               | `.` (වත්මන් නාමාවලිය)   |
+| `OMNIROUTE_MEMORY_MB`         | Docker standalone server එක සඳහා runtime Node heap උපරිම සීමාව; ඉහත image පෙරනිමිය අභිබවා යයි. Coding agents: `8192`+ ([runtime RAM](#runtime-ram-for-coding-agents) බලන්න).                                                                                                            | `1024`                  |
+| `DASHBOARD_PORT` / `API_PORT` | dashboard (20128) සහ API (20129) සඳහා නිරාවරණය කරන ports අභිබවා සකසයි                                                                                                                                                                                                                   | `20128` / `20129`       |
+| `APP_BIND_HOST`               | docker-compose මඟින් dashboard/API/live-WS ports ප්රකාශයට පත් කරන host interface එක. `REQUIRE_API_KEY=false` (පෙරනිමිය) සමඟ, `0.0.0.0` මඟින් නිර්නාමික `/v1` proxy එක LAN වෙත නිරාවරණය කරයි — එය පුළුල් කරන්නෙ `REQUIRE_API_KEY=true` සමඟ හෝ ඉදිරියෙන් reverse proxy එකක් ඇති විට පමණි. | `127.0.0.1`             |
+| `CLIPROXY_BIND_HOST`          | docker-compose මඟින් `cliproxyapi` sidecar එක ප්රකාශයට පත් කරන host interface එක — එහි data volume එක තුළ provider credentials රඳවා ඇත.                                                                                                                                                 | `127.0.0.1`             |
+| `OMNIROUTE_PLUGINS_DIR`       | runtime plugin scanner එක කියවා ස්ථාපනය කරන නාමාවලිය. plugins bind-mount කර ඇති විට මෙය සකසන්න: පෙරනිමිය `HOME` අනුව සැකසෙන අතර, image එකක් එය export නොකර තිබිය හැක.                                                                                                                   | `~/.omniroute/plugins`  |
+| `OMNIROUTE_BASE_PATH`         | app එක reverse proxy එකක් පසුපස ප්රකාශයට පත් කරන විට භාවිත වන URL උපමාර්ගය (උදා. `/omniroute`)                                                                                                                                                                                          | _(හිස් = මූලය)_         |
+| `NEXT_PUBLIC_BASE_URL`        | උපමාර්ගය ඇතුළත් පොදු browser origin එක (උදා. `https://host/omniroute`)                                                                                                                                                                                                                  | සකසා නැත                |
+| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml` සඳහා host පාර්ශ්වයේ dashboard port එක                                                                                                                                                                                                                         | `20130`                 |
+| `CLIPROXYAPI_PORT`            | `cliproxyapi` sidecar එක සඳහා host පාර්ශ්වයේ port එක                                                                                                                                                                                                                                    | `8317`                  |
 
 ## උපමාර්ගයක ප්රතිලෝම ප්රොක්සිය (Traefik / nginx)
 
@@ -436,36 +443,49 @@ Docker යෙදවීම් සඳහා වන උපකරණ පුවරු
 - Docker රූප පද්ධති CA මූලයන් ඇතුළත් කර ඒවා කළමනාකරණය කළ `cloudflared` වෙත ලබා දෙයි. එමඟින් උමඟ කන්ටේනරය තුළ ආරම්භ වන විට TLS විශ්වාස අසාර්ථක වීම් වළක්වයි.
 - OmniRoute විසින් එකක් බාගත කිරීම වෙනුවට පවතින ද්විමය ගොනුවක් භාවිත කිරීමට ඔබට අවශ්ය නම් `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` සකසන්න.
 
-## රූප ටැග්
+## Image ටැග්
 
-| රූපය                     | ටැගය     | ප්රමාණය | විස්තරය                                       |
-| ------------------------ | -------- | ------- | --------------------------------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB  | ඉහළම **ප්රකාශිත** ස්ථාවර SemVer (`main` නොවේ) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB  | GitOps සඳහා මෙම ටැග් පන්තිය ස්ථිර කරන්න       |
+| Image                    | Tag      | ප්රමාණය | විස්තරය                                                 |
+| ------------------------ | -------- | ------- | ------------------------------------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB  | ඉහළම **ප්රකාශිත** ස්ථාවර SemVer (`main` git ශාඛාව නොවේ) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB  | GitOps සඳහා මෙම ටැග් පන්තිය ස්ථිර කරන්න                 |
 
-බහු-වේදිකා මැනිෆෙස්ටය: `linux/amd64` + `linux/arm64` ස්වදේශීය (Apple Silicon, AWS Graviton, Raspberry Pi). Docker විසින් ගැළපෙන ගෘහනිර්මාණ ශිල්පය ස්වයංක්රීයව තෝරයි; ARM සත්කාරක මත AMD64 අනුකරණය බල කිරීමට අවශ්ය නම් `--platform linux/amd64` ලබා දෙන්න.
+බහු-වේදිකා manifest එක: ස්වදේශීය `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker ස්වයංක්රීයව ගැළපෙන architecture එක තෝරයි; ARM host මත AMD64 emulation බලයෙන් යෙදීමට අවශ්ය නම් `--platform linux/amd64` ලබා දෙන්න.
 
 ### නිකුතු නාලිකා
 
-OmniRoute ස්ථාවර නිකුතු, සක්රිය නිකුතු-ශාඛා පරීක්ෂණ සහ සංවර්ධන ගොඩනැගීම් සඳහා වෙන වෙනම Docker නාලිකා ප්රකාශයට පත් කරයි.
+OmniRoute ස්ථාවර නිකුතු, සක්රිය නිකුතු-ශාඛා පරීක්ෂණ සහ සංවර්ධන build සඳහා වෙන වෙනම Docker නාලිකා ප්රකාශයට පත් කරයි.
 
-| නාලිකාව                         | මූලාශ්රය                          | වෙනස් කළ හැකි බව                 | නිර්දේශිත භාවිතය                                                                                                           |
-| ------------------------------- | --------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | අත්සන් කළ/අනුවාදිත නිකුතුව        | වෙනස් කළ නොහැකි                  | නිශ්චිත නිකුතුවක් ස්ථිර කරන නිෂ්පාදන යෙදවීම්                                                                               |
-| `:latest` / `:latest-web`       | ඉහළම **ප්රකාශිත** ස්ථාවර SemVer   | වෙනස් කළ හැකි ස්ථාවර යොමුව       | SemVer ප්රකාශන කාර්යයකට **පසුව** ස්ථාවර නිකුතු අනුගමනය කරයි — `main` හෝ නිකුත් නොකළ `release/v*` commit අනුගමනය **නොකරයි** |
-| `:next` / `:next-web`           | වත්මන් පෙරනිමි `release/v*` ශාඛාව | වෙනස් කළ හැකි පූර්ව-නිකුතු යොමුව | සක්රිය නිකුතු ශාඛාවට එක් කර ඇති නමුත් තවමත් ස්ථාවර නිකුතුවක නොමැති නිවැරදි කිරීම් පරීක්ෂා කිරීම                            |
-| `:main` / `:main-web`           | `main` ශාඛාව                      | වෙනස් කළ හැකි සංවර්ධන යොමුව      | සංවර්ධන සහ ඒකාබද්ධතා පරීක්ෂණ සඳහා පමණි                                                                                     |
+| නාලිකාව                         | මූලාශ්රය                          | වෙනස් කළ හැකි බව               | නිර්දේශිත භාවිතය                                                                                                           |
+| ------------------------------- | --------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | අත්සන් කළ/අනුවාදගත නිකුතුව        | වෙනස් කළ නොහැක                 | නිශ්චිත නිකුතුවකට ස්ථිර කළ නිෂ්පාදන deployment                                                                             |
+| `:latest` / `:latest-web`       | ඉහළම **ප්රකාශිත** ස්ථාවර SemVer   | වෙනස් කළ හැකි ස්ථාවර යොමුව     | SemVer publish job එකකට **පසුව** ස්ථාවර නිකුතු අනුගමනය කරයි — `main` හෝ නිකුත් නොකළ `release/v*` commit අනුගමනය **නොකරයි** |
+| `:next` / `:next-web`           | වත්මන් පෙරනිමි `release/v*` ශාඛාව | වෙනස් කළ හැකි පෙර-නිකුතු යොමුව | සක්රිය නිකුතු ශාඛාවට එක් කර ඇති නමුත් තවමත් ස්ථාවර නිකුතුවක නොමැති නිවැරදි කිරීම් පරීක්ෂා කිරීම                            |
+| `:main` / `:main-web`           | `main` ශාඛාව                      | වෙනස් කළ හැකි සංවර්ධන යොමුව    | සංවර්ධන සහ ඒකාබද්ධතා පරීක්ෂණ සඳහා පමණි                                                                                     |
 
-#### පූර්ව-නිකුතු නාලිකාව භාවිත කිරීම
+#### වෙබ්-සැසි providers: `-web` images
 
-වත්මන් පෙරනිමි `release/v*` ශාඛාව වෙත කරන සෑම push එකකදීම `next` නාලිකාව නැවත ගොඩනඟන අතර AMD64 සහ ARM64 යන දෙකටම ප්රකාශයට පත් කරයි. පැරණි නඩත්තු ශාඛාවලට එය උඩින් ලිවිය නොහැක. ඊළඟ ස්ථාවර ටැගය සෑදීමට පෙර සක්රිය නිකුතු ශාඛාවට ඒකාබද්ධ කළ නිවැරදි කිරීම් සඳහා මෙම නාලිකාව pull කළ හැකි රූපයක් සපයයි.
+ඉහත සෑම නාලිකාවකටම `-web` ටැගයක් (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`) ඇත; එය `runner-web` stage එකෙන් build කරනු ලබයි — එනම් එම image එකටම Playwright සහ Chromium browser එකක් එක් කළ ආකාරයයි. සාමාන්ය image එක Chromium **නොමැතිව** සපයනු ලැබේ; `gemini-web`, `claude-web` සහ `claude-turnstile` සඳහා එය අවශ්ය වේ.
+
+අසාර්ථක වීම startup අවස්ථාවේ සිදු නොවී පසුවට කල් යයි: එම providers තම models ලැයිස්තුගත කර dashboard එකේ සම්බන්ධ වී ඇති ලෙස පෙන්වන අතර, පහත දෝෂය සමඟ අසාර්ථක වන්නේ පළමු request එක පමණි:
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+ඔබ එම providers භාවිත කරන්නේ නම්, ඔබ දැනටමත් භාවිත කරන නාලිකාවේ `-web` ටැගය pull කරන්න — වෙනත් කිසිවක් වෙනස් නොවේ. npm/CLI ස්ථාපනයකදී (Docker image එකක් නොමැතිව), ඊට සමානව අස්ථානගත කොටස වන්නේ browser binary එකයි: host එක මත `npx playwright install chromium` ධාවනය කරන්න.
+
+#### පෙර-නිකුතු නාලිකාව භාවිත කිරීම
+
+වත්මන් පෙරනිමි `release/v*` ශාඛාවට සිදු කරන සෑම push එකකදීම `next` නාලිකාව නැවත build කෙරෙන අතර, එය AMD64 සහ ARM64 යන දෙකටම ප්රකාශයට පත් කෙරේ. පැරණි maintenance ශාඛාවලට එය උඩින් ලිවිය නොහැක. ඊළඟ ස්ථාවර ටැගය නිර්මාණය කිරීමට පෙර සක්රිය නිකුතු ශාඛාවට merge කර ඇති නිවැරදි කිරීම් සඳහා මෙම නාලිකාව pull කළ හැකි image එකක් සපයයි.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Docker Compose සඳහා, තෝරාගත් පැතිකඩ විසින් භාවිත කරන රූප ටැගය අතික්රමණය කර, ඉන්පසු සේවාව pull කර නැවත සාදන්න:
+Docker Compose සඳහා, තෝරාගත් profile එක භාවිත කරන image ටැගය override කර, පසුව service එක pull කර නැවත සාදන්න:
 
 ```yaml
 services:
@@ -478,32 +498,32 @@ docker compose pull
 docker compose up -d
 ```
 
-#### ආරක්ෂාව සහ ආපසු හැරවීම
+#### ආරක්ෂාව සහ rollback කිරීම
 
-`next` යනු පාවෙන පූර්ව-නිකුතු නාලිකාවකි. සක්රිය නිකුතු ශාඛාව වෙත කරන ඕනෑම push එකකදී එය වෙනස් විය හැකි අතර **නිෂ්පාදන භාවිතය සඳහා සහාය නොදක්වයි**. නිශ්චිත ගොඩනැගීමක් ඇගයීමේදී රූප digest එක ස්ථිර කරන්න:
+`next` යනු වෙනස් වෙමින් පවතින පෙර-නිකුතු නාලිකාවකි. සක්රිය නිකුතු ශාඛාවට සිදු කරන ඕනෑම push එකකදී එය වෙනස් විය හැකි අතර, එය **නිෂ්පාදන භාවිතය සඳහා සහාය නොදක්වයි**. නිශ්චිත build එකක් ඇගයීමේදී image digest එක ස්ථිර කරන්න:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-පරීක්ෂා කිරීමට පෙර, OmniRoute දත්ත volume එක හෝ bind-mounted දත්ත directory එක උපස්ථ කරන්න. පෙර තත්ත්වයට ආපසු යාමට, කලින් භාවිත කළ ස්ථායී version එක හෝ digest එක ප්රතිස්ථාපනය කර container එක නැවත සාදන්න:
+පරීක්ෂා කිරීමට පෙර, OmniRoute data volume එක හෝ bind-mount කළ data directory එක backup කරන්න. rollback කිරීමට, පෙර භාවිත කළ ස්ථාවර අනුවාදය හෝ digest එක ප්රතිස්ථාපනය කර container එක නැවත සාදන්න:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-release-branch build එකකට කිසිවිටෙකත් `latest` ගෙන යා නොහැක; ස්ථායී pointer එක ඉදිරියට ගෙන යා හැක්කේ සුදුසුකම් ලත් ස්ථායී semantic version එකකට පමණි. `next` images, release image පරීක්ෂාව සහ CRITICAL අවදානම් සඳහා වන අවහිර කිරීමේ gate එක රඳවා ගනී.
+නිකුතු-ශාඛා build එකකට කිසිවිටෙක `latest` ගෙන යා නොහැක; ස්ථාවර යොමුව promote කළ හැක්කේ සුදුසුකම් ලබන ස්ථාවර semantic version එකකට පමණි. `next` images නිකුතු image පරීක්ෂාව සහ අවහිර කරන CRITICAL-vulnerability gate එක තබා ගනී.
 
-**`latest` යනු git සඳහා නවතම බව පිළිබඳ සහතිකයක් නොවේ.** `main` හෝ සක්රිය `release/v*` branch එක මත merge කරන ලද fixes, ස්ථායී SemVer image එකක් publish කර publish job එක මඟින් `:latest` ප්රවර්ධනය කරන තුරු **`:latest` තුළ නොමැත** (එම SemVer එකට සමාන digest එක). GitHub හි fix එක දැනටමත් පෙන්වන අතර `latest` යාවත්කාලීන නොවූ බව පෙනේ නම්, release branch එක පරීක්ෂා කිරීමට `:next` pull කරන්න, නැතහොත් SemVer tag එක එන තුරු රැඳී සිටින්න.
+**`latest` යනු git සඳහා අලුත්ම තත්ත්වය පිළිබඳ සහතිකයක් නොවේ.** ස්ථාවර SemVer image එකක් ප්රකාශයට පත් කර publish job එක විසින් `:latest` promote කරන තෙක් (එම SemVer එකට සමාන digest එක සමඟ), `main` වෙත හෝ සක්රිය `release/v*` ශාඛාව වෙත merge කළ නිවැරදි කිරීම් `:latest` තුළ **අඩංගු නොවේ**. GitHub දැනටමත් නිවැරදි කිරීම පෙන්වන නමුත් `latest` වෙනස් නොවී ඇති බව පෙනේ නම්, නිකුතු ශාඛාව පරීක්ෂා කිරීමට `:next` pull කරන්න, නැතහොත් SemVer ටැගය නිකුත් වන තෙක් රැඳී සිටින්න.
 
-| ඔබට අවශ්ය දේ                                                            | භාවිත කරන්න                                  |
-| ----------------------------------------------------------------------- | -------------------------------------------- |
-| වෙනස් නොවිය යුතු GitOps / production                                    | `:X.Y.Z` වෙත pin කරන්න (හෝ image digest එකට) |
-| publish කළ stables අනුගමනය කර එක් එක් release එකේදී නැවත සෑදීම පිළිගන්න | `:latest`                                    |
-| release නොකළ `release/v*` commits පරීක්ෂා කරන්න                         | `:next` (production සඳහා නොවේ)               |
-| `main` පරීක්ෂා කරන්න                                                    | `:main` (production සඳහා නොවේ)               |
+| ඔබට අවශ්ය දේ                                                           | භාවිත කරන්න                               |
+| ---------------------------------------------------------------------- | ----------------------------------------- |
+| වෙනස් නොවිය යුතු GitOps / නිෂ්පාදන පරිසරය                              | `:X.Y.Z` (හෝ image digest එක) ස්ථිර කරන්න |
+| ප්රකාශිත ස්ථාවර නිකුතු අනුගමනය කර සෑම නිකුතුවකදීම නැවත සෑදීම පිළිගැනීම | `:latest`                                 |
+| නිකුත් නොකළ `release/v*` commit පරීක්ෂා කිරීම                          | `:next` (නිෂ්පාදනය සඳහා නොවේ)             |
+| `main` පරීක්ෂා කිරීම                                                   | `:main` (නිෂ්පාදනය සඳහා නොවේ)             |
 
 ## ලබාගත හැකි බව: පෙරනිමි SQLite තනි-ප්රතිරූපයකි
 

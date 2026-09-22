@@ -65,11 +65,14 @@ docker run -d \
 # ਬੇਸ ਪ੍ਰੋਫ਼ਾਈਲ (ਕੋਈ CLI ਟੂਲ ਨਹੀਂ)
 docker compose --profile base up -d
 
-# CLI ਪ੍ਰੋਫ਼ਾਈਲ (Claude Code, Codex, OpenClaw ਪਹਿਲਾਂ ਤੋਂ ਸ਼ਾਮਲ)
+# CLI ਪ੍ਰੋਫ਼ਾਈਲ (Claude Code, Codex, OpenClaw ਬਿਲਟ-ਇਨ)
 docker compose --profile cli up -d
 
-# ਹੋਸਟ ਪ੍ਰੋਫ਼ਾਈਲ (ਮੁੱਖ ਤੌਰ 'ਤੇ Linux ਲਈ; ਹੋਸਟ CLI ਬਾਈਨਰੀਆਂ ਨੂੰ ਸਿਰਫ਼ ਪੜ੍ਹਨਯੋਗ ਰੂਪ ਵਿੱਚ ਮਾਊਂਟ ਕਰਦਾ ਹੈ)
+# ਹੋਸਟ ਪ੍ਰੋਫ਼ਾਈਲ (Linux-ਪਹਿਲਾਂ; ਹੋਸਟ CLI ਬਾਈਨਰੀਆਂ ਨੂੰ ਸਿਰਫ਼-ਪੜ੍ਹਨਯੋਗ ਢੰਗ ਨਾਲ ਮਾਊਂਟ ਕਰਦਾ ਹੈ)
 docker compose --profile host up -d
+
+# ਵੈੱਬ ਪ੍ਰੋਫ਼ਾਈਲ (ਵੈੱਬ-ਸੈਸ਼ਨ ਪ੍ਰਦਾਤਾਵਾਂ ਲਈ Chromium/Playwright)
+docker compose --profile web up -d
 
 # CLI + CLIProxyAPI ਸਾਈਡਕਾਰ ਨੂੰ ਜੋੜੋ
 docker compose --profile cli --profile cliproxyapi up -d
@@ -77,14 +80,15 @@ docker compose --profile cli --profile cliproxyapi up -d
 
 ## ਉਪਲਬਧ ਪ੍ਰੋਫ਼ਾਈਲ
 
-OmniRoute ਚਾਰ Compose ਪ੍ਰੋਫ਼ਾਈਲਾਂ ਨਾਲ ਆਉਂਦਾ ਹੈ। ਆਪਣੇ ਵਾਤਾਵਰਣ ਨਾਲ ਮੇਲ ਖਾਂਦਾ ਪ੍ਰੋਫ਼ਾਈਲ ਚੁਣੋ।
+OmniRoute ਮੁੱਖ ਡਿਪਲੌਇਮੈਂਟ ਰੂਪਾਂ ਲਈ Compose ਪ੍ਰੋਫ਼ਾਈਲਾਂ ਦੇ ਨਾਲ ਆਉਂਦਾ ਹੈ। ਆਪਣੇ ਵਾਤਾਵਰਣ ਨਾਲ ਮੇਲ ਖਾਂਦਾ ਪ੍ਰੋਫ਼ਾਈਲ ਚੁਣੋ।
 
-| ਪ੍ਰੋਫ਼ਾਈਲ     | ਸੇਵਾ             | ਕਦੋਂ ਵਰਤਣਾ ਹੈ                                                                                                                                          | ਕਮਾਂਡ                                        |
-| ------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| `base` (ਮੂਲ)  | `omniroute-base` | ਹੈੱਡਲੈੱਸ ਸਰਵਰ / ਘੱਟੋ-ਘੱਟ ਰਨਟਾਈਮ, ਕੋਈ ਪ੍ਰੋਵਾਈਡਰ CLI ਸ਼ਾਮਲ ਨਹੀਂ                                                                                          | `docker compose --profile base up -d`        |
-| `cli`         | `omniroute-cli`  | ਏਜੈਂਟ-ਅਧਾਰਿਤ ਵਰਕਫ਼ਲੋ ਜੋ `omniroute providers/setup/doctor` ਅਤੇ ਸ਼ਾਮਲ CLI (Codex, Claude Code, Droid, OpenClaw) ਨੂੰ ਕਾਲ ਕਰਦੇ ਹਨ                         | `docker compose --profile cli up -d`         |
-| `host`        | `omniroute-host` | ਉਹ Linux ਹੋਸਟ ਜੋ `~/.local/bin`, `~/.codex`, `~/.claude`, ਆਦਿ ਨੂੰ ਸਿਰਫ਼ ਪੜ੍ਹਨਯੋਗ ਰੂਪ ਵਿੱਚ ਮਾਊਂਟ ਕਰਕੇ ਹੋਸਟ CLI ਤੱਕ `network_mode`-ਵਰਗੀ ਪਹੁੰਚ ਚਾਹੁੰਦੇ ਹਨ | `docker compose --profile host up -d`        |
-| `cliproxyapi` | `cliproxyapi`    | ਅੱਪਸਟ੍ਰੀਮ CLI ਪ੍ਰਾਕਸੀਕਰਨ ਲਈ ਪੋਰਟ `8317` ਉੱਤੇ [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) ਸਾਈਡਕਾਰ ਚਲਾਓ                                  | `docker compose --profile cliproxyapi up -d` |
+| ਪ੍ਰੋਫ਼ਾਈਲ       | ਸੇਵਾ             | ਕਦੋਂ ਵਰਤਣਾ ਹੈ                                                                                                                                        | ਕਮਾਂਡ                                        |
+| --------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (ਡਿਫੌਲਟ) | `omniroute-base` | ਹੈੱਡਲੈੱਸ ਸਰਵਰ / ਨਿਊਨਤਮ ਰਨਟਾਈਮ, ਕੋਈ ਪ੍ਰਦਾਤਾ CLI ਸ਼ਾਮਲ ਨਹੀਂ                                                                                            | `docker compose --profile base up -d`        |
+| `cli`           | `omniroute-cli`  | ਏਜੰਟ-ਅਧਾਰਿਤ ਵਰਕਫ਼ਲੋ ਜੋ `omniroute providers/setup/doctor` ਅਤੇ ਸ਼ਾਮਲ CLI (Codex, Claude Code, Droid, OpenClaw) ਨੂੰ ਕਾਲ ਕਰਦੇ ਹਨ                        | `docker compose --profile cli up -d`         |
+| `host`          | `omniroute-host` | ਉਹ Linux ਹੋਸਟ ਜੋ `~/.local/bin`, `~/.codex`, `~/.claude` ਆਦਿ ਨੂੰ ਸਿਰਫ਼-ਪੜ੍ਹਨਯੋਗ ਢੰਗ ਨਾਲ ਮਾਊਂਟ ਕਰਕੇ ਹੋਸਟ CLI ਤੱਕ `network_mode`-ਵਰਗੀ ਪਹੁੰਚ ਚਾਹੁੰਦੇ ਹਨ | `docker compose --profile host up -d`        |
+| `cliproxyapi`   | `cliproxyapi`    | ਅੱਪਸਟ੍ਰੀਮ CLI ਪ੍ਰੌਕਸੀ ਲਈ ਪੋਰਟ `8317` ਉੱਤੇ [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) ਸਾਈਡਕਾਰ ਚਲਾਓ                                   | `docker compose --profile cliproxyapi up -d` |
+| `web`           | `omniroute-web`  | ਉਹ ਵੈੱਬ-ਸੈਸ਼ਨ ਪ੍ਰਦਾਤਾ ਜਿਨ੍ਹਾਂ ਨੂੰ ਬ੍ਰਾਊਜ਼ਰ ਦੀ ਲੋੜ ਹੈ: `gemini-web`, `claude-web`, `claude-turnstile` (`runner-web` ਬਿਲਡ ਕਰਦਾ ਹੈ, Chromium ਸ਼ਾਮਲ ਹੈ)  | `docker compose --profile web up -d`         |
 
 > ਕਈ ਪ੍ਰੋਫ਼ਾਈਲਾਂ ਨੂੰ ਇਕੱਠੇ ਵਰਤਿਆ ਜਾ ਸਕਦਾ ਹੈ: `docker compose --profile cli --profile cliproxyapi up -d`।
 
@@ -233,51 +237,37 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile ਪੜਾਅ
 
-ਰਿਪੋਜ਼ਟਰੀ ਇੱਕ ਬਹੁ-ਪੜਾਅ Dockerfile (`Dockerfile`) ਨਾਲ ਆਉਂਦੀ ਹੈ। ਤਿੰਨ ਪੜਾਅ ਉਪਲਬਧ ਹਨ; ਆਪਣੇ ਵਰਤੋਂ-ਮਾਮਲੇ ਲਈ ਸਹੀ `target` ਚੁਣੋ।
+ਰਿਪੋਜ਼ਟਰੀ ਇੱਕ ਬਹੁ-ਪੜਾਵੀ Dockerfile (`Dockerfile`) ਨਾਲ ਆਉਂਦੀ ਹੈ। ਚਾਰ ਪੜਾਅ ਉਪਲਬਧ ਹਨ; ਆਪਣੀ ਵਰਤੋਂ ਦੇ ਮਾਮਲੇ ਲਈ ਸਹੀ `target` ਚੁਣੋ।
 
-| ਪੜਾਅ          | ਬੇਸ ਇਮੇਜ              | ਉਦੇਸ਼                                                                                                                                                               |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | ਡਿਪੈਂਡੈਂਸੀਆਂ ਇੰਸਟਾਲ ਕਰਦਾ ਹੈ (`npm ci --legacy-peer-deps`) ਅਤੇ `npm run build` ਚਲਾਉਂਦਾ ਹੈ (ਮੂਲ ਰੂਪ ਵਿੱਚ Turbopack — ਹੇਠਾਂ ਬਿਲਡ-ਸਮੇਂ ਦੇ ਸਰੋਤ ਵੇਖੋ)                    |
-| `runner-base` | `node:26-trixie-slim` | Next.js ਦੇ standalone ਆਉਟਪੁੱਟ ਨਾਲ ਪ੍ਰੋਡਕਸ਼ਨ ਰਨਟਾਈਮ। **ਕੋਈ provider CLI ਸ਼ਾਮਲ ਨਹੀਂ ਹੈ।**                                                                             |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` ਅਤੇ ਗਲੋਬਲ CLI ਜੋੜਦਾ ਹੈ: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`। **ਏਜੰਟ-ਅਧਾਰਿਤ ਵਰਕਫ਼ਲੋ ਲਈ ਇਹ ਚੁਣੋ।** |
+| ਪੜਾਅ          | ਬੇਸ ਇਮੇਜ              | ਉਦੇਸ਼                                                                                                                                                                                                                                                                                            |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `builder`     | `node:26-trixie-slim` | ਡਿਪੈਂਡੈਂਸੀਆਂ ਇੰਸਟਾਲ ਕਰਦਾ ਹੈ (`npm ci --legacy-peer-deps`) ਅਤੇ `npm run build` ਚਲਾਉਂਦਾ ਹੈ (ਮੂਲ ਰੂਪ ਵਿੱਚ Turbopack — ਹੇਠਾਂ ਬਿਲਡ-ਸਮੇਂ ਦੇ ਸਰੋਤ ਵੇਖੋ)                                                                                                                                                 |
+| `runner-base` | `node:26-trixie-slim` | Next.js ਦੇ ਸਟੈਂਡਅਲੋਨ ਆਉਟਪੁੱਟ ਵਾਲਾ ਪ੍ਰੋਡਕਸ਼ਨ ਰਨਟਾਈਮ। **ਕੋਈ ਪ੍ਰੋਵਾਈਡਰ CLI ਸ਼ਾਮਲ ਨਹੀਂ ਹੈ।**                                                                                                                                                                                                         |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` ਅਤੇ ਗਲੋਬਲ CLI ਜੋੜਦਾ ਹੈ: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`। **ਏਜੰਟ-ਅਧਾਰਿਤ ਵਰਕਫ਼ਲੋਜ਼ ਲਈ ਇਹ ਚੁਣੋ।**                                                                                                                            |
+| `runner-web`  | `runner-base`         | ਵੈੱਬ-ਸੈਸ਼ਨ ਪ੍ਰੋਵਾਈਡਰਾਂ ਲਈ Playwright + ਇੱਕ Chromium ਬ੍ਰਾਊਜ਼ਰ (`--with-deps`) ਜੋੜਦਾ ਹੈ: `gemini-web`, `claude-web`, `claude-turnstile`। **ਜਦੋਂ ਤੁਸੀਂ ਇਹ ਪ੍ਰੋਵਾਈਡਰ ਵਰਤਦੇ ਹੋ ਤਾਂ ਇਹ ਚੁਣੋ** — ਇਸ ਤੋਂ ਬਿਨਾਂ ਸਧਾਰਨ ਇਮੇਜ ਬੇਨਤੀ ਦੇ ਸਮੇਂ ਅਸਫਲ ਹੋ ਜਾਂਦੀ ਹੈ (Release Channels ਹੇਠਾਂ ਦਿੱਤਾ `-web` ਨੋਟ ਵੇਖੋ)। |
 
 ਕਿਸੇ ਖ਼ਾਸ ਟਾਰਗੇਟ ਨੂੰ ਹੱਥੀਂ ਬਿਲਡ ਕਰੋ:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### ਬਿਲਡ-ਸਮੇਂ ਦੇ ਸਰੋਤ
 
 ਤਿੰਨ ਬਿਲਡ ਆਰਗੂਮੈਂਟ ਨਿਯੰਤਰਿਤ ਕਰਦੇ ਹਨ ਕਿ `builder` ਪੜਾਅ ਕਿੰਨੇ ਸਰੋਤ ਵਰਤਦਾ ਹੈ। ਇਹ ਸਿਰਫ਼ ਬਿਲਡ ਸਮੇਂ ਲਈ ਹਨ —
-`OMNIROUTE_MEMORY_MB` (ਹੇਠਾਂ) ਇੱਕ ਵੱਖਰੀ ਰਨਟਾਈਮ ਸੈਟਿੰਗ ਹੈ।
+`OMNIROUTE_MEMORY_MB` (ਹੇਠਾਂ) ਇੱਕ ਵੱਖਰਾ ਰਨਟਾਈਮ ਨਿਯੰਤਰਣ ਹੈ।
 
-| ਬਿਲਡ ਆਰਗੂਮੈਂਟ               | ਡਿਫਾਲਟ | ਪ੍ਰਭਾਵ                                                                                               |
-| --------------------------- | ------ | ---------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | `0` ਹੋਣ 'ਤੇ ਇਸ ਦੀ ਬਜਾਏ webpack ਨਾਲ ਬਿਲਡ ਕਰਦਾ ਹੈ। ਪੀਕ ਮੈਮੋਰੀ ਘੱਟ, ਪਰ ਹੌਲੀ।                            |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | ਸ਼ੁਰੂ ਕੀਤੇ ਗਏ `next build` ਲਈ V8 ਹੀਪ ਸੀਮਾ (`--max-old-space-size`)।                                  |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | `CIRCLE_NODE_TOTAL` ਨੂੰ ਮੁੱਲ ਦਿੰਦਾ ਹੈ; Next ਪੇਜ-ਡਾਟਾ ਇਕੱਤਰ ਕਰਨ ਲਈ `workers = N - 1` ਨਿਰਧਾਰਤ ਕਰਦਾ ਹੈ। |
+| ਬਿਲਡ ਆਰਗੂਮੈਂਟ               | ਮੂਲ ਮੁੱਲ | ਪ੍ਰਭਾਵ                                                                                               |
+| --------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` ਇਸ ਦੀ ਬਜਾਏ webpack ਨਾਲ ਬਿਲਡ ਕਰਦਾ ਹੈ। ਅਧਿਕਤਮ ਮੈਮੋਰੀ ਘੱਟ, ਪਰ ਹੌਲੀ।                                 |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | ਸ਼ੁਰੂ ਕੀਤੇ ਗਏ `next build` ਲਈ V8 ਹੀਪ ਸੀਮਾ (`--max-old-space-size`)।                                  |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | `CIRCLE_NODE_TOTAL` ਨੂੰ ਮੁੱਲ ਦਿੰਦਾ ਹੈ; Next ਪੇਜ-ਡਾਟਾ ਇਕੱਤਰ ਕਰਨ ਲਈ `workers = N - 1` ਨਿਰਧਾਰਤ ਕਰਦਾ ਹੈ। |
 
-ਵੱਡੇ ਬਿਲਡਰ 'ਤੇ `OMNIROUTE_BUILD_WORKERS` ਨੂੰ ਵਧਾਉਣਾ ਚਾਹੀਦਾ ਹੈ ਅਤੇ ਜਦੋਂ ਸੀਮਤ ਸਰੋਤਾਂ ਵਾਲਾ ਬਿਲਡ
-`✓ Compiled successfully` **ਤੋਂ ਬਾਅਦ** ਬੰਦ ਹੋ ਜਾਂਦਾ ਹੈ, ਤਾਂ ਸਭ ਤੋਂ ਪਹਿਲਾਂ ਇਸੇ 'ਤੇ ਸ਼ੱਕ ਕਰਨਾ ਚਾਹੀਦਾ ਹੈ। ਹਰੇਕ
-ਪੇਜ-ਡਾਟਾ ਵਰਕਰ ਆਪਣੀ ਵੱਖਰੀ ਪ੍ਰਕਿਰਿਆ ਹੈ, ਅਤੇ ਮੂਲ `next build` ਵੀ ਵੱਖਰੀ ਪ੍ਰਕਿਰਿਆ ਹੈ;
-ਇੱਕ ਲਾਈਵ VPS ਪੁਨਰੁਤਪਾਦਨ (issue #7518) ਵਿੱਚ ਹਰੇਕ ਪ੍ਰਕਿਰਿਆ ਦਾ ਪੀਕ RSS
-`NODE_OPTIONS` ਹੀਪ ਫਲੈਗ ਤੋਂ ਸੁਤੰਤਰ ਤੌਰ 'ਤੇ ~4.5 GB ਮਾਪਿਆ ਗਿਆ ਸੀ (Turbopack, V8 ਹੀਪ ਤੋਂ
-ਬਾਹਰ native/Rust ਮੈਮੋਰੀ ਵਿੱਚ ਕੰਪਾਇਲ ਕਰਦਾ ਹੈ)। `2` ਦਾ ਡਿਫਾਲਟ (→ 1 ਵਰਕਰ, ਕੁੱਲ 2
-ਪ੍ਰਕਿਰਿਆਵਾਂ) ਉਹਨਾਂ 16 GB / 4 vCPU GitHub-ਹੋਸਟ ਕੀਤੇ ਰਨਰਾਂ ਅਨੁਸਾਰ ਰੱਖਿਆ ਗਿਆ ਹੈ ਜਿਨ੍ਹਾਂ ਨੂੰ
-ਪਬਲਿਸ਼ ਪਾਈਪਲਾਈਨ ਵਰਤਦੀ ਹੈ। `8` (→ 7 ਵਰਕਰ) 'ਤੇ ਉਸ ਰਨਰ ਦੀ ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋ ਗਈ ਅਤੇ
-buildkit ਨੇ `ResourceExhausted: ... cannot allocate memory` ਨਾਲ ਪੜਾਅ ਫੇਲ੍ਹ ਕਰ ਦਿੱਤਾ;
-`3` (→ 2 ਵਰਕਰ) ਵੀ ਫਿੱਟ ਨਹੀਂ ਹੋਇਆ, ਜਦੋਂ ਪ੍ਰਤੀ-ਪ੍ਰਕਿਰਿਆ RSS ਨੂੰ ਅਨੁਮਾਨ ਲਗਾਉਣ ਦੀ ਬਜਾਏ
-ਸਿੱਧਾ ਮਾਪਿਆ ਗਿਆ। `tests/unit/docker-build-memory-budget.test.ts`
-ਮਾਪੇ ਗਏ ਅੰਕੜੇ ਦੇ ਆਧਾਰ 'ਤੇ ਗਣਨਾ ਕਰਦਾ ਹੈ ਅਤੇ ਜੇ ਕੋਈ ਵੀ ਸੈਟਿੰਗ
-ਰਨਰ ਦੀ ਸਮਰੱਥਾ ਤੋਂ ਵੱਧ ਜਾਂਦੀ ਹੈ ਤਾਂ ਫੇਲ੍ਹ ਹੋ ਜਾਂਦਾ ਹੈ।
+ਵੱਡੇ ਬਿਲਡਰ ਉੱਤੇ `OMNIROUTE_BUILD_WORKERS` ਨੂੰ ਵਧਾਉਣਾ ਚਾਹੀਦਾ ਹੈ ਅਤੇ ਸੀਮਤ ਸਰੋਤਾਂ ਵਾਲਾ ਬਿਲਡ `✓ Compiled successfully` **ਤੋਂ ਬਾਅਦ** ਬੰਦ ਹੋ ਜਾਵੇ ਤਾਂ ਸਭ ਤੋਂ ਪਹਿਲਾਂ ਇਸੇ ਉੱਤੇ ਸ਼ੱਕ ਕਰਨਾ ਚਾਹੀਦਾ ਹੈ। ਹਰ ਪੇਜ-ਡਾਟਾ ਵਰਕਰ ਆਪਣੀ ਵੱਖਰੀ ਪ੍ਰਕਿਰਿਆ ਹੈ, ਅਤੇ ਪੇਰੈਂਟ `next build` ਵੀ ਵੱਖਰੀ ਪ੍ਰਕਿਰਿਆ ਹੈ; ਇੱਕ ਲਾਈਵ VPS ਪੁਨਰੁਤਪਾਦਨ (issue #7518) ਵਿੱਚ ਹਰ ਪ੍ਰਕਿਰਿਆ ਦਾ ਅਧਿਕਤਮ RSS `NODE_OPTIONS` ਹੀਪ ਫਲੈਗ ਤੋਂ ਸੁਤੰਤਰ ਤੌਰ 'ਤੇ ~4.5 GB ਮਾਪਿਆ ਗਿਆ ਸੀ (Turbopack, V8 ਹੀਪ ਤੋਂ ਬਾਹਰ ਨੇਟਿਵ/Rust ਮੈਮੋਰੀ ਵਿੱਚ ਕੰਪਾਇਲ ਕਰਦਾ ਹੈ)। `2` ਦਾ ਮੂਲ ਮੁੱਲ (→ 1 ਵਰਕਰ, ਕੁੱਲ 2 ਪ੍ਰਕਿਰਿਆਵਾਂ) ਉਹਨਾਂ 16 GB / 4 vCPU GitHub-ਹੋਸਟ ਕੀਤੇ ਰਨਰਾਂ ਲਈ ਨਿਰਧਾਰਤ ਹੈ ਜੋ ਪਬਲਿਸ਼ ਪਾਈਪਲਾਈਨ ਵਰਤਦੀ ਹੈ। `8` ਉੱਤੇ (→ 7 ਵਰਕਰ) ਉਸ ਰਨਰ ਦੀ ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋ ਗਈ ਅਤੇ buildkit ਨੇ `ResourceExhausted: ... cannot allocate memory` ਨਾਲ ਪੜਾਅ ਅਸਫਲ ਕਰ ਦਿੱਤਾ; ਪ੍ਰਤੀ-ਪ੍ਰਕਿਰਿਆ RSS ਦਾ ਅਨੁਮਾਨ ਲਗਾਉਣ ਦੀ ਬਜਾਏ ਸਿੱਧਾ ਮਾਪਣ ਤੋਂ ਬਾਅਦ `3` (→ 2 ਵਰਕਰ) ਵੀ ਫਿੱਟ ਨਹੀਂ ਹੋਇਆ। `tests/unit/docker-build-memory-budget.test.ts` ਮਾਪੇ ਗਏ ਅੰਕੜੇ ਦੇ ਆਧਾਰ 'ਤੇ ਗਣਨਾ ਕਰਦਾ ਹੈ ਅਤੇ ਜੇ ਕੋਈ ਵੀ ਨਿਯੰਤਰਣ ਰਨਰ ਦੀ ਸਮਰੱਥਾ ਤੋਂ ਵੱਧ ਜਾਂਦਾ ਹੈ ਤਾਂ ਅਸਫਲ ਹੋ ਜਾਂਦਾ ਹੈ।
 
-Turbopack ਉਸ native Rust ਮੈਮੋਰੀ ਵਿੱਚ ਕੰਪਾਇਲ ਕਰਦਾ ਹੈ ਜੋ V8 ਹੀਪ ਤੋਂ **ਬਾਹਰ** ਰਹਿੰਦੀ ਹੈ, ਇਸ ਲਈ
-`OMNIROUTE_BUILD_MEMORY_MB` ਇਸ ਨੂੰ ਸੀਮਿਤ ਨਹੀਂ ਕਰਦਾ। ਮੈਮੋਰੀ ਸੀਮਾ ਵਾਲੇ ਹੋਸਟ 'ਤੇ
-ਬਿਲਡ ਨੂੰ OOM killer ਬਿਨਾਂ ਕਿਸੇ ਤਰੁੱਟੀ ਸੁਨੇਹੇ ਦੇ SIGKILL ਕਰ ਦਿੰਦਾ ਹੈ — ਇਹ
-`Creating an optimized production build` ਦੇ ਵਿਚਕਾਰ ਹੀ ਰੁਕ ਜਾਂਦਾ ਹੈ, ਜੋ
-ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਣ ਦੀ ਬਜਾਏ ਅਟਕਣ ਵਰਗਾ ਲੱਗਦਾ ਹੈ। ਜੇ ਬਿਲਡ ਹੋਸਟ ਦੇ ਸਰੋਤ ਸੀਮਤ ਹਨ, ਤਾਂ bundler ਬਦਲੋ:
+Turbopack, V8 ਹੀਪ ਤੋਂ **ਬਾਹਰ** ਸਥਿਤ ਨੇਟਿਵ Rust ਮੈਮੋਰੀ ਵਿੱਚ ਕੰਪਾਇਲ ਕਰਦਾ ਹੈ, ਇਸ ਲਈ `OMNIROUTE_BUILD_MEMORY_MB` ਇਸ ਨੂੰ ਸੀਮਿਤ ਨਹੀਂ ਕਰਦਾ। ਮੈਮੋਰੀ ਸੀਮਾ ਵਾਲੇ ਹੋਸਟ ਉੱਤੇ OOM ਕਿਲਰ ਬਿਨਾਂ ਕਿਸੇ ਗਲਤੀ ਸੁਨੇਹੇ ਦੇ ਬਿਲਡ ਨੂੰ SIGKILL ਕਰ ਦਿੰਦਾ ਹੈ — ਇਹ `Creating an optimized production build` ਦੇ ਵਿਚਕਾਰ ਹੀ ਰੁਕ ਜਾਂਦਾ ਹੈ, ਜੋ ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਣ ਦੀ ਬਜਾਏ ਅਟਕਣ ਵਰਗਾ ਲੱਗਦਾ ਹੈ। ਜੇ ਬਿਲਡ ਹੋਸਟ ਦੇ ਸਰੋਤ ਸੀਮਤ ਹਨ, ਤਾਂ ਬੰਡਲਰ ਬਦਲੋ:
 
 ```bash
 docker build --target runner-base \
@@ -285,43 +275,41 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` ਸਮਰੱਥ ਹੈ, ਇਸ ਲਈ `next build` ਇੱਕ ਮੂਲ **ਅਤੇ** ਇੱਕ ਵਰਕਰ
-ਪ੍ਰਕਿਰਿਆ ਚਲਾਉਂਦਾ ਹੈ ਅਤੇ ਹਰੇਕ ਵੱਖਰੇ ਤੌਰ 'ਤੇ `OMNIROUTE_BUILD_MEMORY_MB` ਦੀ ਪਾਲਣਾ ਕਰਦੀ ਹੈ। ਕੰਟੇਨਰ ਦੀ
-ਸੀਮਾ ਇਸ ਮੁੱਲ ਤੋਂ ਇੱਕ ਗੁਣਾ ਨਹੀਂ, ਸਗੋਂ ਲਗਭਗ ਦੋ ਗੁਣਾ ਵੱਧ ਰੱਖੋ।
+`webpackBuildWorker` ਸਮਰੱਥ ਹੈ, ਇਸ ਲਈ `next build` ਇੱਕ ਪੇਰੈਂਟ **ਅਤੇ** ਇੱਕ ਵਰਕਰ ਪ੍ਰਕਿਰਿਆ ਚਲਾਉਂਦਾ ਹੈ ਅਤੇ ਹਰ ਇੱਕ ਵੱਖਰੇ ਤੌਰ 'ਤੇ `OMNIROUTE_BUILD_MEMORY_MB` ਦੀ ਪਾਲਣਾ ਕਰਦੀ ਹੈ। ਕੰਟੇਨਰ ਦੀ ਸੀਮਾ ਇਸ ਮੁੱਲ ਦੇ ਲਗਭਗ ਦੁੱਗਣੇ ਤੋਂ ਉੱਪਰ ਰੱਖੋ, ਸਿਰਫ਼ ਇੱਕ ਗੁਣਾ ਨਹੀਂ।
 
-ਇਸ ਟ੍ਰੀ 'ਤੇ ਮਾਪਿਆ ਗਿਆ (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+ਇਸ ਟ੍ਰੀ ਉੱਤੇ ਮਾਪਿਆ ਗਿਆ (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | ਕੰਟੇਨਰ ਸੀਮਾ    | ਨਤੀਜਾ                             |
-| --------- | -------------- | --------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | ਦੋਵਾਂ 'ਤੇ ਬਿਨਾਂ ਸੁਨੇਹੇ OOM-killed |
-| webpack   | 8 GiB          | ਬਿਲਡ ਵਰਕਰ SIGKILLed ਹੋਇਆ          |
-| webpack   | 12 GiB         | ਸਫਲ, ਪੀਕ 11.1 GiB ਰਿਹਾ            |
+| ਬੰਡਲਰ     | ਕੰਟੇਨਰ ਸੀਮਾ    | ਨਤੀਜਾ                         |
+| --------- | -------------- | ----------------------------- |
+| Turbopack | 8 GiB / 16 GiB | ਦੋਵਾਂ ਉੱਤੇ ਚੁੱਪਚਾਪ OOM-killed |
+| webpack   | 8 GiB          | ਬਿਲਡ ਵਰਕਰ SIGKILLed           |
+| webpack   | 12 GiB         | ਸਫਲ, ਅਧਿਕਤਮ ਵਰਤੋਂ 11.1 GiB ਸੀ |
 
-### ਰਨਟਾਈਮ ਡਿਫਾਲਟ
+### ਰਨਟਾਈਮ ਦੇ ਮੂਲ ਮੁੱਲ
 
-`runner-base` ਵੱਲੋਂ export ਕੀਤੇ ਡਿਫਾਲਟ: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`।
+`runner-base` ਵੱਲੋਂ ਐਕਸਪੋਰਟ ਕੀਤੇ ਮੂਲ ਮੁੱਲ: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`।
 
-Docker ਵਿੱਚ ਮੈਮੋਰੀ ਵਿਹਾਰ:
+Docker ਵਿੱਚ ਮੈਮੋਰੀ ਦਾ ਵਿਹਾਰ:
 
-- ਇਮੇਜ `OMNIROUTE_MEMORY_MB=1024` ਸੈੱਟ ਕਰਦੀ ਹੈ ਅਤੇ ਇਸ ਤੋਂ `NODE_OPTIONS=--max-old-space-size=1024` ਬਣਾਉਂਦੀ ਹੈ।
-- ਅਸਲ ਸਰਵਰ ਪ੍ਰਕਿਰਿਆ standalone launcher ਵੱਲੋਂ ਸ਼ੁਰੂ ਕੀਤੀ ਜਾਂਦੀ ਹੈ, ਜੋ `OMNIROUTE_MEMORY_MB` ਪੜ੍ਹਦਾ ਹੈ ਅਤੇ `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` ਜੋੜਦਾ ਹੈ।
-- Node ਦੁਹਰਾਏ ਗਏ `--max-old-space-size` ਮੁੱਲਾਂ ਵਿੱਚੋਂ ਆਖ਼ਰੀ ਮੁੱਲ ਵਰਤਦਾ ਹੈ, ਇਸ ਲਈ `OMNIROUTE_MEMORY_MB` ਸੈੱਟ ਕਰਨਾ ਪ੍ਰਭਾਵਸ਼ਾਲੀ Docker ਹੀਪ ਸੀਮਾ ਨੂੰ ਨਿਯੰਤਰਿਤ ਕਰਦਾ ਹੈ।
-- ਕਿਉਂਕਿ ਇਮੇਜ ਇਸ ਨੂੰ ਹਮੇਸ਼ਾਂ ਸੈੱਟ ਕਰਦੀ ਹੈ, launcher ਦਾ ਆਪਣਾ RAM-ਅਨੁਕੂਲ fallback Docker ਅਧੀਨ ਕਦੇ ਲਾਗੂ ਨਹੀਂ ਹੁੰਦਾ। ਵਰਕਲੋਡ ਲਈ ਇਸ ਨੂੰ ਸਪਸ਼ਟ ਤੌਰ 'ਤੇ ਵਧਾਓ (ਹੇਠਾਂ ਦਿੱਤੀ ਸਾਰਣੀ)। ਕੋਡਿੰਗ-ਏਜੰਟ `/v1/responses` ਲਈ `2048` ਹਾਲੇ ਵੀ ਬਹੁਤ ਘੱਟ ਹੈ।
+- ਇਮੇਜ `OMNIROUTE_MEMORY_MB=1024` ਸੈੱਟ ਕਰਦੀ ਹੈ ਅਤੇ ਇਸ ਤੋਂ `NODE_OPTIONS=--max-old-space-size=1024` ਪ੍ਰਾਪਤ ਕਰਦੀ ਹੈ।
+- ਅਸਲ ਸਰਵਰ ਪ੍ਰਕਿਰਿਆ standalone launcher ਦੁਆਰਾ ਸ਼ੁਰੂ ਕੀਤੀ ਜਾਂਦੀ ਹੈ, ਜੋ `OMNIROUTE_MEMORY_MB` ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ ਅਤੇ `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` ਜੋੜਦਾ ਹੈ।
+- Node ਆਖਰੀ ਦੁਹਰਾਏ ਗਏ `--max-old-space-size` ਮੁੱਲ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ, ਇਸ ਲਈ `OMNIROUTE_MEMORY_MB` ਸੈੱਟ ਕਰਨ ਨਾਲ ਪ੍ਰਭਾਵੀ Docker heap ਸੀਮਾ ਨਿਯੰਤਰਿਤ ਹੁੰਦੀ ਹੈ।
+- ਕਿਉਂਕਿ ਇਮੇਜ ਇਸਨੂੰ ਹਮੇਸ਼ਾ ਸੈੱਟ ਕਰਦੀ ਹੈ, launcher ਦਾ ਆਪਣਾ RAM-ਅਨੁਸਾਰ ਕੈਲੀਬਰੇਟ ਕੀਤਾ fallback Docker ਅਧੀਨ ਕਦੇ ਲਾਗੂ ਨਹੀਂ ਹੁੰਦਾ। workload ਲਈ ਇਸਨੂੰ ਸਪਸ਼ਟ ਤੌਰ 'ਤੇ ਵਧਾਓ (ਹੇਠਾਂ ਦਿੱਤੀ ਸਾਰਣੀ)। coding-agent `/v1/responses` ਲਈ `2048` ਫਿਰ ਵੀ ਬਹੁਤ ਘੱਟ ਹੈ।
 
-### ਕੋਡਿੰਗ ਏਜੰਟਾਂ ਲਈ ਰਨਟਾਈਮ RAM
+### coding agents ਲਈ runtime RAM
 
-1 GiB Docker ਡਿਫਾਲਟ ਡੈਸ਼ਬੋਰਡ/ਹਲਕੀ-ਚੈਟ ਲਈ ਘੱਟੋ-ਘੱਟ ਸੀਮਾ ਹੈ, ਪ੍ਰੋਡਕਸ਼ਨ ਆਕਾਰ ਨਹੀਂ। ਲੰਬੀਆਂ `POST /v1/responses` ਬਾਡੀਆਂ (ਸੈਂਕੜੇ ਸੁਨੇਹੇ, ਦਰਜਨਾਂ ਟੂਲ) ਕੰਪ੍ਰੈਸ਼ਨ ਦੌਰਾਨ ਕਈ ਇਨ-ਮੈਮੋਰੀ ਗ੍ਰਾਫ਼ ਸੰਭਾਲ ਕੇ ਰੱਖਦੀਆਂ ਹਨ। ਇੱਕੋ ਸਮੇਂ ਚੱਲ ਰਹੀਆਂ ਦੋ ~3 MiB / ~750k-token ਬੇਨਤੀਆਂ ਨੇ **12 GiB** old-space 'ਤੇ V8 ਨੂੰ ਬੰਦ ਕਰ ਦਿੱਤਾ ਹੈ (`FATAL ERROR: Reached heap limit`) ਅਤੇ 16 GiB cgroup OOM ਤੱਕ ਵੀ ਪਹੁੰਚੀਆਂ ਹਨ। [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) ਵੇਖੋ।
+1 GiB Docker default ਇੱਕ dashboard/light-chat ਲਈ ਘੱਟੋ-ਘੱਟ ਸੀਮਾ ਹੈ, production ਆਕਾਰ ਨਹੀਂ। ਲੰਬੀਆਂ `POST /v1/responses` bodies (ਸੈਂਕੜੇ messages, ਦਰਜਨਾਂ tools) compression ਦੌਰਾਨ ਕਈ in-memory graphs ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਦੀਆਂ ਹਨ। ਇੱਕੋ ਸਮੇਂ ਚੱਲ ਰਹੀਆਂ ਦੋ ~3 MiB / ~750k-token requests ਨੇ **12 GiB** old-space 'ਤੇ V8 ਨੂੰ abort ਕੀਤਾ ਹੈ (`FATAL ERROR: Reached heap limit`) ਅਤੇ 16 GiB cgroup OOM ਵੀ ਵਾਪਰਿਆ ਹੈ। [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) ਵੇਖੋ।
 
-cgroup `--memory` ਦਾ ਆਕਾਰ **ਹੀਪ ਤੋਂ ਵੱਧ** ਰੱਖੋ — native buffers, SQLite ਅਤੇ ਕੰਪ੍ਰੈਸ਼ਨ ਦੇ ਦਰਮਿਆਨੇ ਡਾਟੇ V8 ਤੋਂ ਬਾਹਰ ਰਹਿੰਦੇ ਹਨ।
+cgroup `--memory` ਦਾ ਆਕਾਰ **heap ਤੋਂ ਵੱਧ ਰੱਖੋ** — native buffers, SQLite, ਅਤੇ compression intermediates V8 ਤੋਂ ਬਾਹਰ ਰਹਿੰਦੇ ਹਨ।
 
-| ਵਰਕਲੋਡ                              | `OMNIROUTE_MEMORY_MB`  | ਕੰਟੇਨਰ / cgroup        | ਨੋਟਸ                                                                                  |
-| ----------------------------------- | ---------------------- | ---------------------- | ------------------------------------------------------------------------------------- |
-| ਡੈਸ਼ਬੋਰਡ, ਇੱਕ ਹਲਕੀ ਚੈਟ              | `1024` (ਇਮੇਜ ਡਿਫੌਲਟ)   | ≥2 GiB                 |                                                                                       |
-| ਇੱਕ ਕੋਡਿੰਗ ਏਜੰਟ (Claude/Codex/Grok) | `8192`                 | ≥10 GiB                | ਆਮ ਸਿੰਗਲ-ਸੈਸ਼ਨ `/v1/responses`                                                        |
-| ਦੋ ਸਮਕਾਲੀ ਲੰਬੇ `/v1/responses`      | `10240`–`12288`        | ≥12–16 GiB             | ਲਗਭਗ 12 GiB ਹੀਪ 'ਤੇ ਮਾਪਿਆ ਗਿਆ V8 ਅਬੋਰਟ                                                |
-| ਤਿੰਨ+ ਸਮਕਾਲੀ ਲੰਬੇ ਕਾਂਟੈਕਸਟ          | ਇੱਕ ਪ੍ਰੋਸੈਸ 'ਤੇ ਨਾ ਕਰੋ | ਕ੍ਰਮਵਾਰ ਚਲਾਓ / ਹੋਰ RAM | ਡਿਫੌਲਟ ਹੈਵੀਵੇਟ ਦਾਖਲਾ 1 ਇਨ-ਫਲਾਈਟ ਹੈ; RAM ਤੋਂ ਬਿਨਾਂ ਇਸਨੂੰ ਵਧਾਉਣ ਨਾਲ ਅਬੋਰਟ ਮੁੜ ਵਾਪਰਦਾ ਹੈ |
+| workload                             | `OMNIROUTE_MEMORY_MB`  | Container / cgroup     | ਟਿੱਪਣੀਆਂ                                                                                                |
+| ------------------------------------ | ---------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------- |
+| Dashboard, ਇੱਕ ਹਲਕੀ chat             | `1024` (ਇਮੇਜ default)  | ≥2 GiB                 |                                                                                                         |
+| ਇੱਕ coding agent (Claude/Codex/Grok) | `8192`                 | ≥10 GiB                | ਆਮ single-session `/v1/responses`                                                                       |
+| ਇੱਕੋ ਸਮੇਂ ਦੋ ਲੰਬੀਆਂ `/v1/responses`  | `10240`–`12288`        | ≥12–16 GiB             | ~12 GiB heap 'ਤੇ ਮਾਪਿਆ ਗਿਆ V8 abort                                                                     |
+| ਇੱਕੋ ਸਮੇਂ ਤਿੰਨ+ ਲੰਬੇ contexts        | ਇੱਕ process 'ਤੇ ਨਾ ਕਰੋ | ਕ੍ਰਮਵਾਰ ਚਲਾਓ / ਹੋਰ RAM | default heavyweight admission ਵਿੱਚ 1 in-flight ਹੈ; RAM ਤੋਂ ਬਿਨਾਂ ਇਸਨੂੰ ਵਧਾਉਣ ਨਾਲ abort ਦੁਬਾਰਾ ਵਾਪਰਦਾ ਹੈ |
 
-ਬੇਅਰ ਮੈਟਲ 'ਤੇ `omniroute serve`, ਜਦੋਂ `OMNIROUTE_MEMORY_MB` **ਸੈੱਟ ਨਹੀਂ ਹੁੰਦਾ**, ਤਾਂ RAM ਦੇ ਲਗਭਗ 35% ਅਨੁਸਾਰ ਕੈਲੀਬਰੇਟ ਕਰਦਾ ਹੈ (ਸੀਮਾ `[512, 4096]`)। Docker ਹਮੇਸ਼ਾ `1024` ਸੈੱਟ ਕਰਦਾ ਹੈ, ਇਸ ਲਈ ਅਧਿਕਾਰਤ ਇਮੇਜ ਵਿੱਚ ਇਹ ਕੈਲੀਬ੍ਰੇਸ਼ਨ ਕਦੇ ਨਹੀਂ ਚੱਲਦੀ।
+bare metal ਉੱਤੇ `omniroute serve`, ਜਦੋਂ `OMNIROUTE_MEMORY_MB` **unset** ਹੁੰਦਾ ਹੈ, RAM ਦੇ ~35% ਨੂੰ ਕੈਲੀਬਰੇਟ ਕਰਦਾ ਹੈ (`[512, 4096]` ਤੱਕ ਸੀਮਿਤ)। Docker ਹਮੇਸ਼ਾ `1024` ਸੈੱਟ ਕਰਦਾ ਹੈ, ਇਸ ਲਈ official image ਵਿੱਚ ਉਹ calibration ਕਦੇ ਨਹੀਂ ਚੱਲਦੀ।
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -329,26 +317,26 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
   -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
 ```
 
-## ਨਾਜ਼ੁਕ ਵਾਤਾਵਰਣ ਵੇਰੀਏਬਲ
+## ਮਹੱਤਵਪੂਰਨ Environment Variables
 
-[ENVIRONMENT.md](../reference/ENVIRONMENT.md) ਵਿੱਚ ਦਸਤਾਵੇਜ਼ਬੱਧ ਡਿਫਾਲਟਾਂ ਤੋਂ ਇਲਾਵਾ, Docker ਅਧੀਨ ਚਲਾਉਂਦੇ ਸਮੇਂ ਹੇਠਾਂ ਦਿੱਤੇ ਵੇਰੀਏਬਲ ਸਭ ਤੋਂ ਮਹੱਤਵਪੂਰਨ ਹਨ:
+[ENVIRONMENT.md](../reference/ENVIRONMENT.md) ਵਿੱਚ ਦਰਜ ਡਿਫੌਲਟਾਂ ਤੋਂ ਇਲਾਵਾ, Docker ਅਧੀਨ ਚਲਾਉਂਦੇ ਸਮੇਂ ਹੇਠ ਲਿਖੇ variables ਸਭ ਤੋਂ ਮਹੱਤਵਪੂਰਨ ਹਨ:
 
-| ਵੇਰੀਏਬਲ                       | ਉਦੇਸ਼                                                                                                                                                                                                                                                             | ਡਿਫਾਲਟ                     |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket ਬ੍ਰਿਜ ਲਈ ਸਾਂਝਾ ਗੁਪਤ ਮੁੱਲ। **ਪ੍ਰੋਡਕਸ਼ਨ ਵਿੱਚ ਲਾਜ਼ਮੀ** — ਇਸਨੂੰ ਇੱਕ ਮਜ਼ਬੂਤ ਬੇਤਰਤੀਬ ਸਟ੍ਰਿੰਗ ਵਜੋਂ ਸੈੱਟ ਕਰੋ।                                                                                                                                                   | ਸੈੱਟ ਨਹੀਂ (ਦੇਣਾ ਲਾਜ਼ਮੀ ਹੈ) |
-| `REDIS_URL`                   | ਰੇਟ ਲਿਮਿਟਰ / ਕੈਸ਼ ਬੈਕਐਂਡ ਲਈ ਕਨੈਕਸ਼ਨ ਸਟ੍ਰਿੰਗ                                                                                                                                                                                                                       | `redis://redis:6379`       |
-| `REDIS_PORT`                  | ਬੰਡਲ ਕੀਤੇ Redis ਕੰਟੇਨਰ ਲਈ ਹੋਸਟ-ਸਾਈਡ ਪੋਰਟ                                                                                                                                                                                                                          | `6379`                     |
-| `REDIS_BIND_HOST`             | ਉਹ ਹੋਸਟ ਇੰਟਰਫੇਸ ਜਿਸ 'ਤੇ ਬੰਡਲ ਕੀਤਾ Redis ਪੋਰਟ ਪ੍ਰਕਾਸ਼ਿਤ ਹੁੰਦਾ ਹੈ (ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ AUTH ਸ਼ਾਮਲ ਨਹੀਂ ਕਰਦੇ, ਲੂਪਬੈਕ)                                                                                                                                                     | `127.0.0.1`                |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | ਸਵੈ-ਅੱਪਡੇਟ ਵਰਕਫ਼ਲੋ ਲਈ `cli` ਪ੍ਰੋਫ਼ਾਈਲ ਵਿੱਚ `/workspace/omniroute` ਉੱਤੇ ਮਾਊਂਟ ਕੀਤਾ ਹੋਸਟ ਪਾਥ                                                                                                                                                                        | `.` (ਮੌਜੂਦਾ ਡਾਇਰੈਕਟਰੀ)     |
-| `OMNIROUTE_MEMORY_MB`         | Docker ਸਟੈਂਡਅਲੋਨ ਸਰਵਰ ਲਈ ਰਨਟਾਈਮ Node ਹੀਪ ਸੀਮਾ; ਉੱਪਰ ਦਿੱਤੇ ਇਮੇਜ ਡਿਫਾਲਟ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰਦੀ ਹੈ। ਕੋਡਿੰਗ ਏਜੰਟ: `8192`+ ([ਰਨਟਾਈਮ RAM](#runtime-ram-for-coding-agents) ਵੇਖੋ)।                                                                                              | `1024`                     |
-| `DASHBOARD_PORT` / `API_PORT` | ਡੈਸ਼ਬੋਰਡ (20128) ਅਤੇ API (20129) ਲਈ ਉਘਾੜੇ ਗਏ ਪੋਰਟਾਂ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ                                                                                                                                                                                               | `20128` / `20129`          |
-| `APP_BIND_HOST`               | ਉਹ ਹੋਸਟ ਇੰਟਰਫੇਸ ਜਿਸ 'ਤੇ docker-compose ਡੈਸ਼ਬੋਰਡ/API/live-WS ਪੋਰਟ ਪ੍ਰਕਾਸ਼ਿਤ ਕਰਦਾ ਹੈ। `REQUIRE_API_KEY=false` (ਡਿਫਾਲਟ) ਨਾਲ, `0.0.0.0` ਅਗਿਆਤ `/v1` ਪ੍ਰਾਕਸੀ ਨੂੰ LAN ਲਈ ਉਘਾੜਦਾ ਹੈ — ਇਸਨੂੰ ਕੇਵਲ `REQUIRE_API_KEY=true` ਨਾਲ ਜਾਂ ਅੱਗੇ ਰਿਵਰਸ ਪ੍ਰਾਕਸੀ ਹੋਣ 'ਤੇ ਹੀ ਵਿਆਪਕ ਕਰੋ। | `127.0.0.1`                |
-| `CLIPROXY_BIND_HOST`          | ਉਹ ਹੋਸਟ ਇੰਟਰਫੇਸ ਜਿਸ 'ਤੇ docker-compose `cliproxyapi` ਸਾਈਡਕਾਰ ਪ੍ਰਕਾਸ਼ਿਤ ਕਰਦਾ ਹੈ — ਇਸਦਾ ਡਾਟਾ ਵਾਲੀਅਮ ਪ੍ਰਦਾਤਾ ਦੇ ਪ੍ਰਮਾਣ-ਪੱਤਰ ਰੱਖਦਾ ਹੈ।                                                                                                                                | `127.0.0.1`                |
-| `OMNIROUTE_PLUGINS_DIR`       | ਉਹ ਡਾਇਰੈਕਟਰੀ ਜਿਸਨੂੰ ਰਨਟਾਈਮ ਪਲੱਗਇਨ ਸਕੈਨਰ ਪੜ੍ਹਦਾ ਹੈ ਅਤੇ ਜਿਸ ਵਿੱਚ ਇੰਸਟਾਲ ਕਰਦਾ ਹੈ। ਜਦੋਂ ਪਲੱਗਇਨ ਬਾਈਂਡ-ਮਾਊਂਟ ਕੀਤੇ ਹੋਣ ਤਾਂ ਇਸਨੂੰ ਸੈੱਟ ਕਰੋ: ਡਿਫਾਲਟ `HOME` ਦੀ ਪਾਲਣਾ ਕਰਦਾ ਹੈ, ਜਿਸਨੂੰ ਕਿਸੇ ਇਮੇਜ ਵੱਲੋਂ ਐਕਸਪੋਰਟ ਕਰਨਾ ਲਾਜ਼ਮੀ ਨਹੀਂ।                                              | `~/.omniroute/plugins`     |
-| `OMNIROUTE_BASE_PATH`         | ਜਦੋਂ ਐਪ ਨੂੰ ਰਿਵਰਸ ਪ੍ਰਾਕਸੀ ਦੇ ਪਿੱਛੇ ਪ੍ਰਕਾਸ਼ਿਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਤਾਂ URL ਸਬਪਾਥ (ਉਦਾਹਰਨ ਲਈ `/omniroute`)                                                                                                                                                                 | _(ਖਾਲੀ = ਰੂਟ)_             |
-| `NEXT_PUBLIC_BASE_URL`        | ਸਬਪਾਥ ਸਮੇਤ ਜਨਤਕ ਬ੍ਰਾਊਜ਼ਰ ਓਰਿਜਿਨ (ਉਦਾਹਰਨ ਲਈ `https://host/omniroute`)                                                                                                                                                                                              | ਸੈੱਟ ਨਹੀਂ                  |
-| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml` ਲਈ ਹੋਸਟ-ਸਾਈਡ ਡੈਸ਼ਬੋਰਡ ਪੋਰਟ                                                                                                                                                                                                              | `20130`                    |
-| `CLIPROXYAPI_PORT`            | `cliproxyapi` ਸਾਈਡਕਾਰ ਲਈ ਹੋਸਟ-ਸਾਈਡ ਪੋਰਟ                                                                                                                                                                                                                           | `8317`                     |
+| Variable                      | ਉਦੇਸ਼                                                                                                                                                                                                                                                                        | ਡਿਫੌਲਟ                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket bridge ਲਈ ਸਾਂਝਾ secret। **Production ਵਿੱਚ ਲਾਜ਼ਮੀ** — ਇਸਨੂੰ ਇੱਕ ਮਜ਼ਬੂਤ ਬੇਤਰਤੀਬ string 'ਤੇ ਸੈੱਟ ਕਰੋ।                                                                                                                                                                 | ਸੈੱਟ ਨਹੀਂ (ਦੇਣਾ ਲਾਜ਼ਮੀ ਹੈ) |
+| `REDIS_URL`                   | rate limiter / cache backend ਲਈ connection string                                                                                                                                                                                                                            | `redis://redis:6379`       |
+| `REDIS_PORT`                  | ਸ਼ਾਮਲ ਕੀਤੇ Redis container ਲਈ host-side port                                                                                                                                                                                                                                 | `6379`                     |
+| `REDIS_BIND_HOST`             | ਉਹ host interface ਜਿਸ 'ਤੇ ਸ਼ਾਮਲ ਕੀਤਾ Redis port publish ਹੁੰਦਾ ਹੈ (ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ AUTH ਨਹੀਂ ਜੋੜਦੇ, loopback)                                                                                                                                                                  | `127.0.0.1`                |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | self-update workflows ਲਈ `/workspace/omniroute` 'ਤੇ `cli` profile ਵਿੱਚ mount ਕੀਤਾ host path                                                                                                                                                                                  | `.` (ਮੌਜੂਦਾ directory)     |
+| `OMNIROUTE_MEMORY_MB`         | Docker standalone server ਲਈ runtime Node heap ਦੀ ਅਧਿਕਤਮ ਸੀਮਾ; ਉੱਪਰ ਦਿੱਤੇ image default ਨੂੰ override ਕਰਦਾ ਹੈ। Coding agents: `8192`+ ([runtime RAM](#runtime-ram-for-coding-agents) ਵੇਖੋ)।                                                                                    | `1024`                     |
+| `DASHBOARD_PORT` / `API_PORT` | dashboard (20128) ਅਤੇ API (20129) ਲਈ exposed ports ਨੂੰ override ਕਰੋ                                                                                                                                                                                                          | `20128` / `20129`          |
+| `APP_BIND_HOST`               | ਉਹ host interface ਜਿਸ 'ਤੇ docker-compose dashboard/API/live-WS ports publish ਕਰਦਾ ਹੈ। `REQUIRE_API_KEY=false` (ਡਿਫੌਲਟ) ਨਾਲ, `0.0.0.0` anonymous `/v1` proxy ਨੂੰ LAN ਲਈ expose ਕਰਦਾ ਹੈ — ਇਸਨੂੰ ਸਿਰਫ਼ `REQUIRE_API_KEY=true` ਨਾਲ ਜਾਂ ਅੱਗੇ reverse proxy ਹੋਣ 'ਤੇ ਹੀ ਵਿਸਤਾਰ ਦਿਓ। | `127.0.0.1`                |
+| `CLIPROXY_BIND_HOST`          | ਉਹ host interface ਜਿਸ 'ਤੇ docker-compose `cliproxyapi` sidecar ਨੂੰ publish ਕਰਦਾ ਹੈ — ਇਸਦੇ data volume ਵਿੱਚ provider credentials ਸਟੋਰ ਹੁੰਦੇ ਹਨ।                                                                                                                               | `127.0.0.1`                |
+| `OMNIROUTE_PLUGINS_DIR`       | ਉਹ directory ਜਿਸਨੂੰ runtime plugin scanner ਪੜ੍ਹਦਾ ਹੈ ਅਤੇ ਜਿਸ ਵਿੱਚ install ਕਰਦਾ ਹੈ। ਜਦੋਂ plugins bind-mounted ਹੋਣ ਤਾਂ ਇਸਨੂੰ ਸੈੱਟ ਕਰੋ: ਡਿਫੌਲਟ `HOME` ਦੀ ਪਾਲਣਾ ਕਰਦਾ ਹੈ, ਜਿਸਨੂੰ image ਵੱਲੋਂ export ਕਰਨਾ ਲਾਜ਼ਮੀ ਨਹੀਂ।                                                             | `~/.omniroute/plugins`     |
+| `OMNIROUTE_BASE_PATH`         | ਜਦੋਂ app ਨੂੰ reverse proxy ਦੇ ਪਿੱਛੇ publish ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਤਾਂ URL subpath (ਉਦਾਹਰਨ ਲਈ `/omniroute`)                                                                                                                                                                           | _(ਖਾਲੀ = root)_            |
+| `NEXT_PUBLIC_BASE_URL`        | subpath ਸਮੇਤ public browser origin (ਉਦਾਹਰਨ ਲਈ `https://host/omniroute`)                                                                                                                                                                                                      | ਸੈੱਟ ਨਹੀਂ                  |
+| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml` ਲਈ host-side dashboard port                                                                                                                                                                                                                        | `20130`                    |
+| `CLIPROXYAPI_PORT`            | `cliproxyapi` sidecar ਲਈ host-side port                                                                                                                                                                                                                                      | `8317`                     |
 
 ## ਸਬਪਾਥ ਉੱਤੇ ਰਿਵਰਸ ਪ੍ਰਾਕਸੀ (Traefik / nginx)
 
@@ -453,31 +441,44 @@ Docker ਡਿਪਲੌਇਮੈਂਟਾਂ ਲਈ ਡੈਸ਼ਬੋਰਡ ਸ�
 | ਇਮੇਜ                     | ਟੈਗ      | ਆਕਾਰ   | ਵੇਰਵਾ                                                   |
 | ------------------------ | -------- | ------ | ------------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | ਸਭ ਤੋਂ ਉੱਚਾ **ਪ੍ਰਕਾਸ਼ਿਤ** ਸਥਿਰ SemVer (git `main` ਨਹੀਂ) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps ਲਈ ਇਸ ਕਿਸਮ ਦੇ ਟੈਗ ਨੂੰ ਪਿੰਨ ਕਰੋ                   |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps ਲਈ ਇਸ ਕਿਸਮ ਦੇ ਟੈਗ ਨੂੰ ਪਿਨ ਕਰੋ                    |
 
-ਮਲਟੀ-ਪਲੇਟਫਾਰਮ ਮੈਨੀਫੈਸਟ: `linux/amd64` + `linux/arm64` ਨੇਟਿਵ (Apple Silicon, AWS Graviton, Raspberry Pi)। Docker ਆਪਣੇ-ਆਪ ਮੇਲ ਖਾਂਦਾ ਆਰਕੀਟੈਕਚਰ ਚੁਣਦਾ ਹੈ; ਜੇਕਰ ਤੁਹਾਨੂੰ ARM ਹੋਸਟਾਂ ਉੱਤੇ AMD64 ਇਮੂਲੇਸ਼ਨ ਲਾਜ਼ਮੀ ਕਰਨੀ ਹੋਵੇ ਤਾਂ `--platform linux/amd64` ਪਾਸ ਕਰੋ।
+ਮਲਟੀ-ਪਲੇਟਫਾਰਮ ਮੈਨਿਫੈਸਟ: ਮੂਲ `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi)। Docker ਆਪਣੇ ਆਪ ਮੇਲ ਖਾਂਦਾ ਆਰਕੀਟੈਕਚਰ ਚੁਣਦਾ ਹੈ; ਜੇ ਤੁਹਾਨੂੰ ARM ਹੋਸਟਾਂ ਉੱਤੇ AMD64 ਇਮੂਲੇਸ਼ਨ ਲਈ ਮਜਬੂਰ ਕਰਨ ਦੀ ਲੋੜ ਹੈ ਤਾਂ `--platform linux/amd64` ਪਾਸ ਕਰੋ।
 
 ### ਰਿਲੀਜ਼ ਚੈਨਲ
 
 OmniRoute ਸਥਿਰ ਰਿਲੀਜ਼ਾਂ, ਸਰਗਰਮ ਰਿਲੀਜ਼-ਬ੍ਰਾਂਚ ਟੈਸਟਿੰਗ ਅਤੇ ਡਿਵੈਲਪਮੈਂਟ ਬਿਲਡਾਂ ਲਈ ਵੱਖਰੇ Docker ਚੈਨਲ ਪ੍ਰਕਾਸ਼ਿਤ ਕਰਦਾ ਹੈ।
 
-| ਚੈਨਲ                            | ਸਰੋਤ                                  | ਬਦਲਣਯੋਗਤਾ                   | ਸਿਫ਼ਾਰਸ਼ੀ ਵਰਤੋਂ                                                                                                                              |
-| ------------------------------- | ------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | ਦਸਤਖ਼ਤ ਕੀਤੀ/ਵਰਜਨਬੱਧ ਰਿਲੀਜ਼            | ਨਾ-ਬਦਲਣਯੋਗ                  | ਉਹ ਪ੍ਰੋਡਕਸ਼ਨ ਡਿਪਲੌਇਮੈਂਟ ਜੋ ਕਿਸੇ ਸਟੀਕ ਰਿਲੀਜ਼ ਨੂੰ ਪਿੰਨ ਕਰਦੇ ਹਨ                                                                                 |
-| `:latest` / `:latest-web`       | ਸਭ ਤੋਂ ਉੱਚਾ **ਪ੍ਰਕਾਸ਼ਿਤ** ਸਥਿਰ SemVer | ਬਦਲਣਯੋਗ ਸਥਿਰ ਪੁਆਇੰਟਰ        | ਇੱਕ SemVer ਪ੍ਰਕਾਸ਼ਨ ਜੌਬ **ਤੋਂ ਬਾਅਦ** ਸਥਿਰ ਰਿਲੀਜ਼ਾਂ ਦੀ ਪਾਲਣਾ ਕਰਦਾ ਹੈ — `main` ਜਾਂ ਅਣ-ਰਿਲੀਜ਼ ਕੀਤੀਆਂ `release/v*` ਕਮਿਟਾਂ ਨੂੰ ਟਰੈਕ **ਨਹੀਂ** ਕਰਦਾ |
-| `:next` / `:next-web`           | ਮੌਜੂਦਾ ਡਿਫੌਲਟ `release/v*` ਬ੍ਰਾਂਚ     | ਬਦਲਣਯੋਗ ਪ੍ਰੀ-ਰਿਲੀਜ਼ ਪੁਆਇੰਟਰ | ਉਹਨਾਂ ਸੁਧਾਰਾਂ ਦੀ ਜਾਂਚ ਜੋ ਸਰਗਰਮ ਰਿਲੀਜ਼ ਬ੍ਰਾਂਚ ਵਿੱਚ ਸ਼ਾਮਲ ਹੋ ਚੁੱਕੇ ਹਨ ਪਰ ਅਜੇ ਸਥਿਰ ਰਿਲੀਜ਼ ਵਿੱਚ ਨਹੀਂ ਹਨ                                          |
-| `:main` / `:main-web`           | `main` ਬ੍ਰਾਂਚ                         | ਬਦਲਣਯੋਗ ਡਿਵੈਲਪਮੈਂਟ ਪੁਆਇੰਟਰ  | ਸਿਰਫ਼ ਡਿਵੈਲਪਮੈਂਟ ਅਤੇ ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਟੈਸਟਿੰਗ ਲਈ                                                                                                  |
+| ਚੈਨਲ                            | ਸਰੋਤ                                  | ਬਦਲਣਯੋਗਤਾ                   | ਸਿਫ਼ਾਰਸ਼ੀ ਵਰਤੋਂ                                                                                                                  |
+| ------------------------------- | ------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | ਦਸਤਖ਼ਤਸ਼ੁਦਾ/ਵਰਜਨਬੱਧ ਰਿਲੀਜ਼            | ਅਬਦਲਣਯੋਗ                    | ਪ੍ਰੋਡਕਸ਼ਨ ਡਿਪਲੌਇਮੈਂਟ ਜੋ ਕਿਸੇ ਸਟੀਕ ਰਿਲੀਜ਼ ਨੂੰ ਪਿਨ ਕਰਦੇ ਹਨ                                                                         |
+| `:latest` / `:latest-web`       | ਸਭ ਤੋਂ ਉੱਚਾ **ਪ੍ਰਕਾਸ਼ਿਤ** ਸਥਿਰ SemVer | ਬਦਲਣਯੋਗ ਸਥਿਰ ਪੁਆਇੰਟਰ        | SemVer ਪ੍ਰਕਾਸ਼ਨ ਜੌਬ **ਤੋਂ ਬਾਅਦ** ਸਥਿਰ ਰਿਲੀਜ਼ਾਂ ਦੀ ਪਾਲਣਾ ਕਰਦਾ ਹੈ — `main` ਜਾਂ ਅਣਰਿਲੀਜ਼ `release/v*` ਕਮਿਟਾਂ ਨੂੰ ਟਰੈਕ **ਨਹੀਂ** ਕਰਦਾ |
+| `:next` / `:next-web`           | ਮੌਜੂਦਾ ਡਿਫਾਲਟ `release/v*` ਬ੍ਰਾਂਚ     | ਬਦਲਣਯੋਗ ਪ੍ਰੀ-ਰਿਲੀਜ਼ ਪੁਆਇੰਟਰ | ਉਹਨਾਂ ਸੁਧਾਰਾਂ ਦੀ ਜਾਂਚ ਜੋ ਸਰਗਰਮ ਰਿਲੀਜ਼ ਬ੍ਰਾਂਚ ਵਿੱਚ ਆ ਚੁੱਕੇ ਹਨ ਪਰ ਹਾਲੇ ਕਿਸੇ ਸਥਿਰ ਰਿਲੀਜ਼ ਵਿੱਚ ਨਹੀਂ ਹਨ                               |
+| `:main` / `:main-web`           | `main` ਬ੍ਰਾਂਚ                         | ਬਦਲਣਯੋਗ ਡਿਵੈਲਪਮੈਂਟ ਪੁਆਇੰਟਰ  | ਸਿਰਫ਼ ਡਿਵੈਲਪਮੈਂਟ ਅਤੇ ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਟੈਸਟਿੰਗ ਲਈ                                                                                      |
+
+#### ਵੈੱਬ-ਸੈਸ਼ਨ ਪ੍ਰਦਾਤਾ: `-web` ਇਮੇਜ
+
+ਉਪਰੋਕਤ ਹਰ ਚੈਨਲ ਦਾ ਇੱਕ `-web` ਟੈਗ ਵੀ ਹੁੰਦਾ ਹੈ (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), ਜੋ `runner-web` ਸਟੇਜ ਤੋਂ ਬਣਾਇਆ ਜਾਂਦਾ ਹੈ — ਉਹੀ ਇਮੇਜ, ਨਾਲ Playwright ਅਤੇ ਇੱਕ Chromium ਬ੍ਰਾਊਜ਼ਰ। ਸਧਾਰਨ ਇਮੇਜ Chromium **ਤੋਂ ਬਿਨਾਂ** ਮਿਲਦਾ ਹੈ; `gemini-web`, `claude-web` ਅਤੇ `claude-turnstile` ਨੂੰ ਇਸਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ।
+
+ਅਸਫਲਤਾ ਸਟਾਰਟਅੱਪ ਵੇਲੇ ਨਹੀਂ, ਸਗੋਂ ਬਾਅਦ ਲਈ ਟਲ ਜਾਂਦੀ ਹੈ: ਉਹ ਪ੍ਰਦਾਤਾ ਆਪਣੇ ਮਾਡਲ ਸੂਚੀਬੱਧ ਕਰਦੇ ਹਨ ਅਤੇ ਡੈਸ਼ਬੋਰਡ ਵਿੱਚ ਕਨੈਕਟ ਹੋਏ ਦਿਖਾਈ ਦਿੰਦੇ ਹਨ, ਅਤੇ ਸਿਰਫ਼ ਪਹਿਲੀ ਬੇਨਤੀ ਇਸ ਸੁਨੇਹੇ ਨਾਲ ਅਸਫਲ ਹੁੰਦੀ ਹੈ
+
+```
+[500]: ਬਾਹਰੀ ਮੋਡੀਊਲ playwright ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ: ਗਲਤੀ: ਮੋਡੀਊਲ ਨਹੀਂ ਲੱਭਿਆ
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+ਜੇ ਤੁਸੀਂ ਉਹ ਪ੍ਰਦਾਤਾ ਵਰਤਦੇ ਹੋ, ਤਾਂ ਉਸੇ ਚੈਨਲ ਦਾ `-web` ਟੈਗ ਪੁੱਲ ਕਰੋ ਜਿਸ ਉੱਤੇ ਤੁਸੀਂ ਪਹਿਲਾਂ ਹੀ ਹੋ — ਹੋਰ ਕੁਝ ਨਹੀਂ ਬਦਲਦਾ। npm/CLI ਇੰਸਟਾਲੇਸ਼ਨ (ਕੋਈ Docker ਇਮੇਜ ਨਹੀਂ) ਉੱਤੇ, ਇਸਦੇ ਬਰਾਬਰ ਗੁੰਮ ਹਿੱਸਾ ਬ੍ਰਾਊਜ਼ਰ ਬਾਈਨਰੀ ਹੈ: ਹੋਸਟ ਉੱਤੇ `npx playwright install chromium` ਚਲਾਓ।
 
 #### ਪ੍ਰੀ-ਰਿਲੀਜ਼ ਚੈਨਲ ਦੀ ਵਰਤੋਂ
 
-`next` ਚੈਨਲ ਨੂੰ ਮੌਜੂਦਾ ਡਿਫੌਲਟ `release/v*` ਬ੍ਰਾਂਚ ਉੱਤੇ ਹਰ ਪੁਸ਼ ਨਾਲ ਮੁੜ ਬਿਲਡ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਅਤੇ AMD64 ਤੇ ARM64 ਦੋਵਾਂ ਲਈ ਪ੍ਰਕਾਸ਼ਿਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ। ਪੁਰਾਣੀਆਂ ਮੇਨਟੇਨੈਂਸ ਬ੍ਰਾਂਚਾਂ ਇਸਨੂੰ ਓਵਰਰਾਈਟ ਨਹੀਂ ਕਰ ਸਕਦੀਆਂ। ਇਹ ਚੈਨਲ ਉਹਨਾਂ ਸੁਧਾਰਾਂ ਲਈ ਪੁੱਲ ਕੀਤੀ ਜਾ ਸਕਣ ਵਾਲੀ ਇਮੇਜ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ ਜੋ ਅਗਲਾ ਸਥਿਰ ਟੈਗ ਬਣਾਏ ਜਾਣ ਤੋਂ ਪਹਿਲਾਂ ਸਰਗਰਮ ਰਿਲੀਜ਼ ਬ੍ਰਾਂਚ ਵਿੱਚ ਮਰਜ ਹੋ ਚੁੱਕੇ ਹਨ।
+`next` ਚੈਨਲ ਮੌਜੂਦਾ ਡਿਫਾਲਟ `release/v*` ਬ੍ਰਾਂਚ ਉੱਤੇ ਹਰ ਪੁਸ਼ ਨਾਲ ਮੁੜ ਬਣਾਇਆ ਜਾਂਦਾ ਹੈ ਅਤੇ AMD64 ਅਤੇ ARM64 ਦੋਵਾਂ ਲਈ ਪ੍ਰਕਾਸ਼ਿਤ ਹੁੰਦਾ ਹੈ। ਪੁਰਾਣੀਆਂ ਮੇਨਟੇਨੈਂਸ ਬ੍ਰਾਂਚਾਂ ਇਸਨੂੰ ਓਵਰਰਾਈਟ ਨਹੀਂ ਕਰ ਸਕਦੀਆਂ। ਇਹ ਚੈਨਲ ਉਹਨਾਂ ਸੁਧਾਰਾਂ ਲਈ ਇੱਕ ਪੁੱਲ ਕਰਨਯੋਗ ਇਮੇਜ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ ਜੋ ਅਗਲਾ ਸਥਿਰ ਟੈਗ ਬਣਾਏ ਜਾਣ ਤੋਂ ਪਹਿਲਾਂ ਸਰਗਰਮ ਰਿਲੀਜ਼ ਬ੍ਰਾਂਚ ਵਿੱਚ ਮਰਜ ਹੋ ਚੁੱਕੇ ਹਨ।
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Docker Compose ਲਈ, ਚੁਣੇ ਗਏ ਪ੍ਰੋਫ਼ਾਈਲ ਦੁਆਰਾ ਵਰਤੇ ਜਾਣ ਵਾਲੇ ਇਮੇਜ ਟੈਗ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ, ਫਿਰ ਸਰਵਿਸ ਨੂੰ ਪੁੱਲ ਕਰਕੇ ਮੁੜ ਬਣਾਓ:
+Docker Compose ਲਈ, ਚੁਣੇ ਹੋਏ ਪ੍ਰੋਫ਼ਾਈਲ ਦੁਆਰਾ ਵਰਤੇ ਜਾਂਦੇ ਇਮੇਜ ਟੈਗ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ, ਫਿਰ ਸਰਵਿਸ ਨੂੰ ਪੁੱਲ ਕਰਕੇ ਦੁਬਾਰਾ ਬਣਾਓ:
 
 ```yaml
 services:
@@ -492,30 +493,30 @@ docker compose up -d
 
 #### ਸੁਰੱਖਿਆ ਅਤੇ ਰੋਲਬੈਕ
 
-`next` ਇੱਕ ਫਲੋਟਿੰਗ ਪ੍ਰੀ-ਰਿਲੀਜ਼ ਚੈਨਲ ਹੈ। ਇਹ ਸਰਗਰਮ ਰਿਲੀਜ਼ ਬ੍ਰਾਂਚ ਉੱਤੇ ਕਿਸੇ ਵੀ ਪੁਸ਼ ਨਾਲ ਬਦਲ ਸਕਦਾ ਹੈ ਅਤੇ **ਪ੍ਰੋਡਕਸ਼ਨ ਵਰਤੋਂ ਲਈ ਸਮਰਥਿਤ ਨਹੀਂ ਹੈ**। ਕਿਸੇ ਖ਼ਾਸ ਬਿਲਡ ਦਾ ਮੁਲਾਂਕਣ ਕਰਦੇ ਸਮੇਂ ਇਮੇਜ ਡਾਈਜੈਸਟ ਨੂੰ ਪਿੰਨ ਕਰੋ:
+`next` ਇੱਕ ਫਲੋਟਿੰਗ ਪ੍ਰੀ-ਰਿਲੀਜ਼ ਚੈਨਲ ਹੈ। ਇਹ ਸਰਗਰਮ ਰਿਲੀਜ਼ ਬ੍ਰਾਂਚ ਉੱਤੇ ਕਿਸੇ ਵੀ ਪੁਸ਼ ਨਾਲ ਬਦਲ ਸਕਦਾ ਹੈ ਅਤੇ **ਪ੍ਰੋਡਕਸ਼ਨ ਵਰਤੋਂ ਲਈ ਸਮਰਥਿਤ ਨਹੀਂ ਹੈ**। ਕਿਸੇ ਖ਼ਾਸ ਬਿਲਡ ਦਾ ਮੁਲਾਂਕਣ ਕਰਦੇ ਸਮੇਂ ਇਮੇਜ ਡਾਈਜੈਸਟ ਨੂੰ ਪਿਨ ਕਰੋ:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-ਟੈਸਟ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ, OmniRoute ਡਾਟਾ ਵਾਲਿਊਮ ਜਾਂ bind-mounted ਡਾਟਾ ਡਾਇਰੈਕਟਰੀ ਦਾ ਬੈਕਅੱਪ ਲਓ। ਪਿਛਲੇ ਸੰਸਕਰਣ ’ਤੇ ਵਾਪਸ ਜਾਣ ਲਈ, ਪਹਿਲਾਂ ਵਰਤੇ ਗਏ ਸਥਿਰ ਸੰਸਕਰਣ ਜਾਂ digest ਨੂੰ ਮੁੜ-ਸਥਾਪਿਤ ਕਰੋ ਅਤੇ ਕੰਟੇਨਰ ਨੂੰ ਦੁਬਾਰਾ ਬਣਾਓ:
+ਟੈਸਟਿੰਗ ਤੋਂ ਪਹਿਲਾਂ, OmniRoute ਡਾਟਾ ਵਾਲਿਊਮ ਜਾਂ ਬਾਈਂਡ-ਮਾਊਂਟ ਕੀਤੀ ਡਾਟਾ ਡਾਇਰੈਕਟਰੀ ਦਾ ਬੈਕਅੱਪ ਲਓ। ਰੋਲਬੈਕ ਕਰਨ ਲਈ, ਪਹਿਲਾਂ ਵਰਤੇ ਗਏ ਸਥਿਰ ਵਰਜਨ ਜਾਂ ਡਾਈਜੈਸਟ ਨੂੰ ਬਹਾਲ ਕਰੋ ਅਤੇ ਕੰਟੇਨਰ ਨੂੰ ਦੁਬਾਰਾ ਬਣਾਓ:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-ਇੱਕ release-branch ਬਿਲਡ ਕਦੇ ਵੀ `latest` ਨੂੰ ਅੱਗੇ ਨਹੀਂ ਵਧਾ ਸਕਦਾ; ਸਿਰਫ਼ ਇੱਕ ਯੋਗ ਸਥਿਰ semantic version ਹੀ ਸਥਿਰ ਪੁਆਇੰਟਰ ਨੂੰ ਪ੍ਰਮੋਟ ਕਰ ਸਕਦਾ ਹੈ। `next` ਇਮੇਜ release image ਜਾਂਚ ਅਤੇ CRITICAL ਕਮਜ਼ੋਰੀਆਂ ਨੂੰ ਰੋਕਣ ਵਾਲਾ ਗੇਟ ਬਰਕਰਾਰ ਰੱਖਦੇ ਹਨ।
+ਕੋਈ ਰਿਲੀਜ਼-ਬ੍ਰਾਂਚ ਬਿਲਡ ਕਦੇ ਵੀ `latest` ਨੂੰ ਅੱਗੇ ਨਹੀਂ ਵਧਾ ਸਕਦਾ; ਸਿਰਫ਼ ਇੱਕ ਯੋਗ ਸਥਿਰ ਸਿਮੈਂਟਿਕ ਵਰਜਨ ਹੀ ਸਥਿਰ ਪੁਆਇੰਟਰ ਨੂੰ ਪ੍ਰਮੋਟ ਕਰ ਸਕਦਾ ਹੈ। `next` ਇਮੇਜ ਰਿਲੀਜ਼ ਇਮੇਜ ਦੀ ਜਾਂਚ ਅਤੇ CRITICAL ਕਮਜ਼ੋਰੀਆਂ ਨੂੰ ਬਲੌਕ ਕਰਨ ਵਾਲਾ ਗੇਟ ਕਾਇਮ ਰੱਖਦੇ ਹਨ।
 
-**`latest`, git ਲਈ ਨਵੀਨਤਾ ਦੀ ਗਾਰੰਟੀ ਨਹੀਂ ਹੈ।** `main` ਜਾਂ ਸਰਗਰਮ `release/v*` ਬ੍ਰਾਂਚ ਵਿੱਚ merge ਕੀਤੇ ਸੁਧਾਰ `:latest` ਵਿੱਚ ਉਦੋਂ ਤੱਕ **ਨਹੀਂ** ਹੁੰਦੇ, ਜਦੋਂ ਤੱਕ ਇੱਕ ਸਥਿਰ SemVer ਇਮੇਜ ਪ੍ਰਕਾਸ਼ਿਤ ਨਹੀਂ ਹੁੰਦਾ ਅਤੇ publish job `:latest` ਨੂੰ ਪ੍ਰਮੋਟ ਨਹੀਂ ਕਰਦਾ (ਉਸ SemVer ਵਾਲਾ ਹੀ digest)। ਜੇ GitHub ’ਤੇ ਸੁਧਾਰ ਪਹਿਲਾਂ ਹੀ ਦਿਖਾਈ ਦੇ ਰਿਹਾ ਹੈ ਪਰ `latest` ਸਥਿਰ ਜਾਪਦਾ ਹੈ, ਤਾਂ release branch ਨੂੰ ਟੈਸਟ ਕਰਨ ਲਈ `:next` pull ਕਰੋ ਜਾਂ SemVer ਟੈਗ ਦੀ ਉਡੀਕ ਕਰੋ।
+**`latest` git ਦੀ ਨਵੀਨਤਾ ਦੀ ਗਾਰੰਟੀ ਨਹੀਂ ਹੈ।** `main` ਜਾਂ ਸਰਗਰਮ `release/v*` ਬ੍ਰਾਂਚ ਉੱਤੇ ਮਰਜ ਕੀਤੇ ਸੁਧਾਰ `:latest` ਵਿੱਚ ਉਦੋਂ ਤੱਕ **ਨਹੀਂ** ਹੁੰਦੇ ਜਦੋਂ ਤੱਕ ਕੋਈ ਸਥਿਰ SemVer ਇਮੇਜ ਪ੍ਰਕਾਸ਼ਿਤ ਨਹੀਂ ਹੁੰਦਾ ਅਤੇ ਪ੍ਰਕਾਸ਼ਨ ਜੌਬ `:latest` ਨੂੰ ਪ੍ਰਮੋਟ ਨਹੀਂ ਕਰਦੀ (ਉਸ SemVer ਵਾਲਾ ਹੀ ਡਾਈਜੈਸਟ)। ਜੇ GitHub ਉੱਤੇ ਸੁਧਾਰ ਪਹਿਲਾਂ ਹੀ ਦਿਖਾਈ ਦੇ ਰਿਹਾ ਹੈ ਪਰ `latest` ਰੁਕਿਆ ਹੋਇਆ ਲੱਗਦਾ ਹੈ, ਤਾਂ ਰਿਲੀਜ਼ ਬ੍ਰਾਂਚ ਦੀ ਜਾਂਚ ਕਰਨ ਲਈ `:next` ਪੁੱਲ ਕਰੋ ਜਾਂ SemVer ਟੈਗ ਦੀ ਉਡੀਕ ਕਰੋ।
 
-| ਤੁਸੀਂ ਕੀ ਚਾਹੁੰਦੇ ਹੋ                                                               | ਵਰਤੋਂ                                   |
-| --------------------------------------------------------------------------------- | --------------------------------------- |
-| GitOps / production ਜਿਸ ਵਿੱਚ ਬਦਲਾਅ ਨਹੀਂ ਆਉਣਾ ਚਾਹੀਦਾ                               | `:X.Y.Z` (ਜਾਂ image digest) ਨੂੰ pin ਕਰੋ |
-| ਪ੍ਰਕਾਸ਼ਿਤ ਸਥਿਰ ਰਿਲੀਜ਼ਾਂ ਦੀ ਪਾਲਣਾ ਕਰਨੀ ਅਤੇ ਹਰ ਰਿਲੀਜ਼ ’ਤੇ ਦੁਬਾਰਾ ਬਣਾਉਣਾ ਸਵੀਕਾਰ ਕਰਨਾ | `:latest`                               |
-| ਜਾਰੀ ਨਾ ਕੀਤੇ `release/v*` commits ਨੂੰ ਟੈਸਟ ਕਰਨਾ                                   | `:next` (production ਲਈ ਨਹੀਂ)            |
-| `main` ਨੂੰ ਟੈਸਟ ਕਰਨਾ                                                              | `:main` (production ਲਈ ਨਹੀਂ)            |
+| ਤੁਸੀਂ ਕੀ ਚਾਹੁੰਦੇ ਹੋ                                                             | ਵਰਤੋਂ                               |
+| ------------------------------------------------------------------------------- | ----------------------------------- |
+| GitOps / ਪ੍ਰੋਡਕਸ਼ਨ ਜਿਸ ਵਿੱਚ ਬਦਲਾਅ ਨਹੀਂ ਹੋਣਾ ਚਾਹੀਦਾ                              | `:X.Y.Z` (ਜਾਂ ਇਮੇਜ ਡਾਈਜੈਸਟ) ਪਿਨ ਕਰੋ |
+| ਪ੍ਰਕਾਸ਼ਿਤ ਸਥਿਰ ਰਿਲੀਜ਼ਾਂ ਦੀ ਪਾਲਣਾ ਕਰਨੀ ਅਤੇ ਹਰ ਰਿਲੀਜ਼ ਉੱਤੇ ਮੁੜ-ਨਿਰਮਾਣ ਸਵੀਕਾਰ ਕਰਨਾ | `:latest`                           |
+| ਅਣਰਿਲੀਜ਼ `release/v*` ਕਮਿਟਾਂ ਦੀ ਜਾਂਚ ਕਰਨੀ                                       | `:next` (ਪ੍ਰੋਡਕਸ਼ਨ ਲਈ ਨਹੀਂ)         |
+| `main` ਦੀ ਜਾਂਚ ਕਰਨੀ                                                             | `:main` (ਪ੍ਰੋਡਕਸ਼ਨ ਲਈ ਨਹੀਂ)         |
 
 ## ਉਪਲਬਧਤਾ: ਡਿਫਾਲਟ SQLite ਸਿਰਫ਼ ਇੱਕ ਰੈਪਲਿਕਾ ਵਾਲਾ ਹੈ
 

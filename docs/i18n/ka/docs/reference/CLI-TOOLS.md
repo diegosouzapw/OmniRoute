@@ -149,56 +149,56 @@ OmniRoute-ის კონტეინერის შიგნით შეს�
 
 ## 1. CLI Code-ის კატალოგი (26 ხელსაწყო)
 
-ყველა ხელსაწყო, რომელიც `/dashboard/cli-code`-ში გამოჩნდება. `baseUrlSupport: none`-ის მქონე ხელსაწყოები მორგებული საბაზისო URL-ის ნაცვლად MITM-ის ან სახელმძღვანელოს მეშვეობით არის დაკავშირებული:
+ყველა ხელსაწყო, რომელიც `/dashboard/cli-code`-შია წარმოდგენილი. ხელსაწყოები, რომლებსაც `baseUrlSupport: none` აქვთ, მორგებული საბაზისო URL-ის ნაცვლად MITM-ის ან სახელმძღვანელოს მეშვეობით არის დაკავშირებული:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | name                    | vendor                  | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | ----------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic               | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                  | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                    | none           | custom         | false        |
+| cline        | Cline                   | OSS (ყოფილი Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org                | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)               | full           | guide          | false        |
+| continue     | Continue                | continue.dev            | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)       | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ             | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)          | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)       | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)            | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (ყოფილი SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI              | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS               | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere               | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)       | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)        | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                     | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)             | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba                 | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere               | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                  | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research           | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                  | none           | mitm           | false        |
+| custom       | Custom CLI              | —                       | full           | custom-builder | false        |
 
-`baseUrlSupport: "partial"`-ის მქონე ხელსაწყოების საინფორმაციო ბარათზე ნაჩვენებია სამკერდე ნიშანი „⚠ ნაწილობრივი საბაზისო URL“.
+ხელსაწყოებისთვის, რომლებსაც `baseUrlSupport: "partial"` აქვთ, დაფის ბარათზე ნაჩვენებია სამკერდე ნიშანი „⚠ ნაწილობრივი საბაზისო URL“.
 ---
 
-## 2. CLI აგენტების კატალოგი (10 ხელსაწყო)
+## 2. CLI აგენტების კატალოგი (10 ინსტრუმენტი)
 
-ავტონომიური აგენტები, რომლებიც ნაჩვენებია `/dashboard/cli-agents`-ში:
+ავტონომიური აგენტები, რომლებიც `/dashboard/cli-agents`-შია წარმოდგენილი:
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
+| id           | სახელი           | მომწოდებელი              | baseUrlSupport | acpSpawnable |
 | ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| hermes-agent | Hermes Agent     | Nous Research            | სრული          | false        |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | სრული          | true         |
+| goose        | Goose            | Block / Linux Foundation | სრული          | true         |
+| interpreter  | Open Interpreter | OSS                      | სრული          | true         |
+| warp         | Warp AI          | Warp Inc.                | ნაწილობრივი    | true         |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | სრული          | false        |
+| omp          | Oh My Pi         | OSS                      | სრული          | true         |
+| letta        | Letta CLI        | Letta                    | სრული          | false        |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | სრული          | false        |
+| 5dive        | 5dive            | OSS (5dive-ai)           | სრული          | false        |
 
 ---
 
@@ -608,7 +608,7 @@ kiro-cli status
 
 ## 10. შიდა OmniRoute CLI
 
-`omniroute` შესრულებადი ფაილი უზრუნველყოფს ბრძანებებს სერვერის სასიცოცხლო ციკლის, გამართვის, დიაგნოსტიკისა და პროვაიდერების მართვისთვის. შესვლის წერტილი: `bin/omniroute.mjs`.
+`omniroute` ბინარული ფაილი უზრუნველყოფს ბრძანებებს სერვერის სასიცოცხლო ციკლის, გამართვის, დიაგნოსტიკისა და პროვაიდერების მართვისთვის. შესვლის წერტილი: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # სერვერის გაშვება (ნაგულისხმევი პორტი 20128)
@@ -617,8 +617,8 @@ omniroute doctor                       # კონფიგურაციის
 omniroute providers list               # კონფიგურირებული პროვაიდერების კავშირები
 omniroute providers test-all           # ყველა აქტიური კავშირის შემოწმება
 omniroute reset-password               # ადმინისტრატორის პაროლის ჩამოყრა
-omniroute logs                         # მოთხოვნების ჟურნალის ნაკადურად ჩვენება
-omniroute health                       # ჯანმრთელობის დეტალური სტატუსი (ამომრთველები, კეში, მეხსიერება)
+omniroute logs                         # მოთხოვნების ჟურნალების ნაკადის ჩვენება
+omniroute health                       # ჯანმრთელობის დეტალური მდგომარეობა (ამომრთველები, კეში, მეხსიერება)
 omniroute --version                    # ვერსიის გამოტანა
 omniroute --help                       # ყველა ბრძანების ჩვენება
 ```
@@ -637,36 +637,36 @@ omniroute setup --add-provider \
 
 არაინტერაქტიული გამართვისთვის ამოცნობილი გარემოს ცვლადები:
 
-| ცვლადი              | დანიშნულება                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | პროვაიდერის API-გასაღები (Commander-ის `.env()`-ის მეშვეობით მიბმულია `--api-key`-ზე) |
-| `DATA_DIR`          | OmniRoute-ის მონაცემთა დირექტორიის ჩანაცვლება                                         |
+| ცვლადი              | დანიშნულება                                                                                  |
+| ------------------- | -------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | პროვაიდერის API გასაღები (დაკავშირებულია `--api-key`-თან Commander-ის `.env()`-ის მეშვეობით) |
+| `DATA_DIR`          | OmniRoute-ის მონაცემთა დირექტორიის ჩანაცვლება                                                |
 
-ყველა სხვა არაინტერაქტიული შესატანი მნიშვნელობა გადაიცემა ალმების და არა გარემოს ცვლადების სახით:
+ყველა სხვა არაინტერაქტიული შეყვანა გადაიცემა ალმების და არა გარემოს ცვლადების სახით:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (იხილეთ `omniroute setup`-ის პარამეტრები ზემოთ).
 
 ### დიაგნოსტიკა
 
 ```bash
-omniroute doctor                       # კონფიგურაციის, DB-ის, პორტების, გაშვების გარემოს, მეხსიერებისა და ხელმისაწვდომობის შემოწმება
-omniroute doctor --json                # მანქანურად წაკითხვადი JSON
-omniroute doctor --no-liveness         # HTTP-ჯანმრთელობის შემოწმების გამოტოვება
-omniroute doctor --host 0.0.0.0        # ხელმისაწვდომობის შემოწმების ჰოსტის ჩანაცვლება
+omniroute doctor                       # კონფიგურაციის, DB-ის, პორტების, გაშვების გარემოს, მეხსიერებისა და სიცოცხლისუნარიანობის შემოწმება
+omniroute doctor --json                # მანქანისთვის წაკითხვადი JSON
+omniroute doctor --no-liveness         # HTTP ჯანმრთელობის შემოწმების გამოტოვება
+omniroute doctor --host 0.0.0.0        # სიცოცხლისუნარიანობის ჰოსტის ჩანაცვლება
 omniroute doctor --liveness-url <url>  # ჯანმრთელობის საბოლოო წერტილის სრული URL-ის ჩანაცვლება
 ```
 
 doctor ასრულებს შემდეგ შემოწმებებს: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` და `Server liveness`. თუ რომელიმე შემოწმების შედეგია `fail`, პროცესი ნულზე განსხვავებული კოდით სრულდება.
+`Memory` და `Server liveness`. თუ რომელიმე შემოწმების შედეგია `fail`, ის მუშაობას არანულოვანი კოდით ასრულებს.
 
 ### პროვაიდერების მართვა
 
 ```bash
 omniroute providers available                       # OmniRoute-ის პროვაიდერების კატალოგი
-omniroute providers available --search openai       # კატალოგის გაფილტვრა იდენტიფიკატორის/სახელის/ფსევდონიმის/კატეგორიის მიხედვით
+omniroute providers available --search openai       # კატალოგის გაფილტვრა id-ის/სახელის/ფსევდონიმის/კატეგორიის მიხედვით
 omniroute providers available --category api-key    # კატეგორიის მიხედვით გაფილტვრა (api-key, oauth, free, ...)
-omniroute providers available --json                # მანქანურად წაკითხვადი JSON
+omniroute providers available --json                # მანქანისთვის წაკითხვადი JSON
 
 omniroute providers list                            # კონფიგურირებული პროვაიდერების კავშირები
 omniroute providers list --json
@@ -676,88 +676,88 @@ omniroute providers test-all                        # ყველა აქტ�
 omniroute providers validate                        # მხოლოდ ლოკალური სტრუქტურული ვალიდაცია
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # არსებული OAuth-ნაკადი
+omniroute providers auth <provider>                 # არსებული OAuth ნაკადი
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` უპირველესად API-ზეა დაფუძნებული და, შესაბამისად, აქტიურ
-ლოკალურ ან დისტანციურ კონტექსტთან მუშაობს. ავტორიზაციის მონაცემების შესატანად გამოიყენეთ
+`providers add/import/auth/edit/remove` უპირველესად API-ზეა დაფუძნებული და ამიტომ მუშაობს
+აქტიური ლოკალური ან დისტანციური კონტექსტის მიმართ. ავტორიზაციის მონაცემების შეყვანისთვის უნდა გამოიყენოთ
 `--credential-stdin` ან `--credential-env`; `--dry-run --json` მხოლოდ
-დაფარულ ინფორმაციას მათი არსებობის/სტრუქტურის შესახებ აჩვენებს. `providers available` კითხულობს OmniRoute-ის კატალოგს;
-`providers list/test/test-all/validate` ინარჩუნებს ლოკალურ SQLite-ზე დაფუძნებულ ქცევას და
-არ მოითხოვს სერვერის გაშვებულ მდგომარეობაში ყოფნას.
+დაფარულ არსებობას/ფორმას აჩვენებს. `providers available` კითხულობს OmniRoute-ის კატალოგს;
+`providers list/test/test-all/validate` ინარჩუნებს ლოკალურ SQLite ქცევას და
+არ საჭიროებს სერვერის გაშვებულ მდგომარეობას.
 
 ### აღდგენა და ჩამოყრა
 
 ```bash
 omniroute reset-password                # ადმინისტრატორის პაროლის ჩამოყრა (ასევე: omniroute-reset-password)
-omniroute reset-encrypted-columns       # გაფრთხილებისა და საცდელი გაშვების ჩვენება დაშიფრული ავტორიზაციის მონაცემების ჩამოყრისთვის
-omniroute reset-encrypted-columns --force  # SQLite-ში დაშიფრული ავტორიზაციის მონაცემების რეალურად განულება
+omniroute reset-encrypted-columns       # დაშიფრული ავტორიზაციის მონაცემების ჩამოყრისთვის გაფრთხილებისა და საცდელი გაშვების ჩვენება
+omniroute reset-encrypted-columns --force  # SQLite-ში დაშიფრული ავტორიზაციის მონაცემების რეალურად null-ად ქცევა
 ```
 
-### ავტორიზაციის მონაცემების ექსპორტი (⚠ მოეპყარით სიფრთხილით)
+### ავტორიზაციის მონაცემების ექსპორტი (⚠ სიფრთხილით მოეპყარით)
 
 ```bash
 omniroute auth export                                 # გაფრთხილებისა და დადასტურების ეტაპის ჩვენება — DB-ზე წვდომის გარეშე
-omniroute auth export --force                          # ყველა კავშირის გაშიფრული ავტორიზაციის მონაცემების JSON-ის სახით stdout-ში ექსპორტი
+omniroute auth export --force                          # ყველა კავშირის გაშიფრული ავტორიზაციის მონაცემების stdout-ში JSON-ის სახით ექსპორტი
 omniroute auth export --force --id <id>                 # მხოლოდ შესაბამისი კავშირის ექსპორტი
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> ფორმატის სტრიქონების გამოტანა
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> სტრიქონების გამოტანა
 omniroute auth export --force --out creds.json           # ფაილში ჩაწერა (იქმნება 0600 ნებართვებით)
 ```
 
-`auth export` მუშაობს **მხოლოდ ლოკალურად** (SQLite-იდან პირდაპირი წაკითხვა, HTTP-მარშრუტის გარეშე) და განზრახ ბეჭდავს/წერს
+`auth export` **მხოლოდ ლოკალურია** (SQLite-ის პირდაპირი წაკითხვა, HTTP მარშრუტის გარეშე) და განზრახ ბეჭდავს/წერს
 `apiKey`/`accessToken`/`refreshToken`/`idToken` მნიშვნელობებს **ღია ტექსტის** სახით — ეს ფუნქციაა და არა
-შეცდომა. `--force`-ის გარეშე მონაცემთა ბაზიდან არაფერი იკითხება და არაფერი იშიფრება. ნებისმიერ ღია ტექსტის გამოტანამდე
-stderr-ში ყოველთვის იბეჭდება გამაფრთხილებელი ბანერი. აუცილებელია `STORAGE_ENCRYPTION_KEY`-ის
-დაყენება. ველი, რომლის გაშიფვრაც ვერ ხერხდება (მოძველებული გასაღები, დაზიანებული შიფროტექსტი), მთელი ექსპორტის შეწყვეტის ან ძირითადი შეცდომის გამჟღავნების ნაცვლად აღინიშნება, როგორც
-`<field>DecryptFailed: true`.
+შეცდომა. `--force`-ის გარეშე მონაცემთა ბაზიდან არაფერი იკითხება და არაფერი იშიფრება. ნებისმიერი ღია ტექსტის
+გამოტანამდე stderr-ში ყოველთვის იბეჭდება გამაფრთხილებელი ბანერი. აუცილებელია `STORAGE_ENCRYPTION_KEY`-ის
+დაყენება. ველი, რომლის გაშიფვრაც ვერ ხერხდება (მოძველებული გასაღები, დაზიანებული შიფრტექსტი), აღინიშნება როგორც
+`<field>DecryptFailed: true`, ნაცვლად იმისა, რომ მთელი ექსპორტი შეწყდეს ან გამომწვევი შეცდომის დეტალები გამჟღავნდეს.
 
-### სხვა ქვეკომანდები
+### სხვა ქვე-ბრძანებები
 
-თუ სხვაგვარად არ არის მითითებული, ისინი მოითხოვენ გაშვებულ OmniRoute სერვერს:
+თუ სხვაგვარად არ არის მითითებული, ისინი საჭიროებენ გაშვებულ OmniRoute სერვერს:
 
 ```bash
 omniroute status                       # შესრულების გარემოს სრული სტატუსი
-omniroute logs                         # მოთხოვნების ჟურნალის ნაკადური ჩვენება (--json, --search, --follow)
-omniroute config show                  # მიმდინარე კონფიგურაციის ჩვენება
+omniroute logs                         # მოთხოვნების ჟურნალის ნაკადის ჩვენება (--json, --search, --follow)
+omniroute config list                  # კონფიგურირებული CLI ხელსაწყოების ჩვენება
 
-omniroute provider list                # ხელმისაწვდომი პროვაიდერების სია (providers list-ის ალიასი)
+omniroute provider list                # ხელმისაწვდომი პროვაიდერების ჩამონათვალი (providers list-ის ფსევდონიმი)
 omniroute provider add                 # OmniRoute-ის პროვაიდერად რეგისტრაცია ხელსაწყოში
 omniroute keys add | list | remove     # API გასაღებების მართვა
-omniroute models [provider]            # მოდელების სია (--json, --search)
+omniroute models [provider]            # მოდელების ჩამონათვალი (--json, --search)
 omniroute combo list | switch | create | delete
 
 omniroute backup                       # კონფიგურაციისა და DB-ის სარეზერვო ასლის შექმნა
 omniroute restore                      # წინა სარეზერვო ასლიდან აღდგენა
 
-omniroute health                       # მდგომარეობის დეტალური ინფორმაცია (ამომრთველები, კეში, მეხსიერება)
+omniroute health                       # მდგომარეობის დეტალები (ამომრთველები, კეში, მეხსიერება)
 omniroute quota                        # პროვაიდერის კვოტის გამოყენება
 omniroute cache                        # კეშის სტატუსი
-omniroute cache clear                  # სემანტიკური და ხელმოწერის კეშების გასუფთავება
+omniroute cache clear                  # სემანტიკური და სიგნატურების კეშების გასუფთავება
 
 omniroute mcp status | restart         # MCP სერვერის სტატუსი / გადატვირთვა
 omniroute a2a status | card            # A2A სერვერის სტატუსი / აგენტის ბარათი
 
 omniroute tunnel list | create | stop  # გვირაბების მართვა (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # გარემოს ცვლადების შემოწმება / დაყენება (დროებით)
+omniroute env show | get <k> | set <k> <v>  # გარემოს ცვლადების ნახვა / დაყენება (დროებით)
 
 omniroute test                         # პროვაიდერთან კავშირის სწრაფი ტესტი
 omniroute update                       # განახლებების შემოწმება
-omniroute completion                   # გარსის ავტომატური შევსების გენერირება
+omniroute completion                   # გარსისთვის ავტოდასრულების გენერირება
 ```
 
-### საერთო ალმები
+### გავრცელებული ალმები
 
-| ალამი               | აღწერა                                                               |
-| ------------------- | -------------------------------------------------------------------- |
-| `--no-open`         | გაშვებისას ბრაუზერი ავტომატურად არ გაიხსნას                          |
-| `--port <n>`        | API პორტის ჩანაცვლება (ნაგულისხმევად 20128)                          |
-| `--mcp`             | MCP სერვერის სახით გაშვება stdio-ს მეშვეობით (IDE-ებისთვის)          |
-| `--non-interactive` | CI რეჟიმი (მოთხოვნების გარეშე; კითხულობს გარემოდან/ალმებიდან)        |
-| `--json`            | მანქანის მიერ წაკითხვადი JSON გამომავალი (doctor, providers და ა.შ.) |
-| `--help`, `-h`      | კონკრეტული ბრძანების დახმარების ჩვენება                              |
-| `--version`, `-v`   | დაყენებული ვერსიის გამოტანა                                          |
+| ალამი               | აღწერა                                                            |
+| ------------------- | ----------------------------------------------------------------- |
+| `--no-open`         | გაშვებისას ბრაუზერი ავტომატურად არ გაიხსნას                       |
+| `--port <n>`        | API პორტის ჩანაცვლება (ნაგულისხმევია 20128)                       |
+| `--mcp`             | MCP სერვერად გაშვება stdio-ს მეშვეობით (IDE-ებისთვის)             |
+| `--non-interactive` | CI რეჟიმი (მინიშნებების გარეშე; კითხულობს env/flags-დან)          |
+| `--json`            | მანქანურად წაკითხვადი JSON გამომავალი (doctor, providers და ა.შ.) |
+| `--help`, `-h`      | კონკრეტული ბრძანების დახმარების ჩვენება                           |
+| `--version`, `-v`   | დაყენებული ვერსიის გამოტანა                                       |
 
 ---
 

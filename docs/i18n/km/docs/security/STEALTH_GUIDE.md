@@ -245,14 +245,14 @@ MITM endpoint ទាំងអស់តម្រូវឱ្យមានការ
 | អថេរ                     | តម្លៃលំនាំដើម                                                   |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-ត្រូវបានប្រើប្រាស់ដោយ `open-sse/executors/base.ts::buildHeaders()` តាមរយៈការស្វែងរកបែបថាមវន្ត។ **ដំឡើងកំណែទាំងនេះ នៅពេលអ្នកផ្តល់សេវាចេញផ្សាយកំណែ CLI ថ្មី** — ខ្សែអក្សរ UA ដែលហួសសម័យនឹងចាប់ផ្តើមត្រូវបានបដិសេធថាជាកម្មវិធីអតិថិជនចាស់។
+ត្រូវបានប្រើប្រាស់ដោយ `open-sse/executors/base.ts::buildHeaders()` តាមរយៈការស្វែងរកបែបឌីណាមិក។ **ធ្វើបច្ចុប្បន្នភាពតម្លៃទាំងនេះ នៅពេលអ្នកផ្តល់សេវាចេញផ្សាយកំណែ CLI ថ្មី** — ខ្សែអក្សរ UA ដែលហួសសម័យនឹងចាប់ផ្តើមត្រូវបានបដិសេធថាជាកម្មវិធីភ្ញៀវហួសសម័យ។
 
 ## កុងតាក់របៀបភាពត្រូវគ្នាជាមួយ CLI (`.env.example` ផ្នែកទី 13)
 

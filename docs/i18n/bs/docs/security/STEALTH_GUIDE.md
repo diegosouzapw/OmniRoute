@@ -238,19 +238,19 @@ Svi MITM endpointi zahtijevaju administratorsku autentifikaciju (`requireCliTool
 
 ---
 
-## User-Agent Override-ovi — env varijable (`.env.example` sekcija 12)
+## Zamjene User-Agent vrijednosti — varijable okruženja (`.env.example` odjeljak 12)
 
-| Varijabla                | Podrazumijevano                                                 |
+| Varijabla                | Zadana vrijednost                                               |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-Koristi `open-sse/executors/base.ts::buildHeaders()` putem dinamičkog pretraživanja. **Ažurirajte ove vrijednosti kada provajderi objave nove CLI verzije** — zastarjeli UA stringovi počinju biti odbijeni kao zastarjeli klijenti.
+Koristi ih `open-sse/executors/base.ts::buildHeaders()` putem dinamičkog pronalaženja. **Ažurirajte ih kada pružaoci objave nove verzije CLI-ja** — zastarjeli UA nizovi počinju se odbijati kao zastarjeli klijenti.
 
 ## CLI Compatibility Mode Prekidači (`.env.example` sekcija 13)
 

@@ -240,19 +240,19 @@ Aha faịlụ cert: `omniroute-mitm.crt`. A na-eji `getCertFingerprint()` tụny
 
 Endpoint MITM niile chọrọ nyocha ikike njikwa (`requireCliToolsAuth`). A na-edobe okwuntughe sudo na cache n'ime scope nke modulu (ọ bụghị `globalThis` ma ọlị), a na-ehichapụkwa ya na `stopMitm()`.
 
-## Mgbanwe User-Agent — env vars (ngalaba 12 nke `.env.example`)
+## Ndochi User-Agent — mgbanwe env (ngalaba 12 nke `.env.example`)
 
-| Ngbanwe                  | Ndabara                                                         |
+| Mgbanwe                  | Ndabara                                                         |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-`open-sse/executors/base.ts::buildHeaders()` na-eji ha site na nchọgharị na-agbanwe agbanwe. **Bulie ndị a mgbe ndị na-eweta ọrụ wepụtara ụdị CLI ọhụrụ** — a na-amalite ịjụ eriri UA ochie dị ka ndị ahịa merela ochie.
+`open-sse/executors/base.ts::buildHeaders()` na-eji ha site na nchọgharị dinamiki. **Bulie ụdị ndị a mgbe ndị na-eweta ọrụ wepụtara ụdị CLI ọhụrụ** — a na-amalite ịjụ eriri UA ndị merela ochie dịka klayenti ndị ochie.
 
 ## Ihe Mgbanwe Ọnọdụ Ndakọrịta CLI (`.env.example` ngalaba 13)
 

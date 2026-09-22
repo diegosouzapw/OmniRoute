@@ -216,12 +216,12 @@ Zaidi ya hayo, `updateNssDatabases()` husakinisha kwenye hifadhidata za NSS za k
 
 Vituo vyote vya ufikiaji vya MITM vinahitaji uthibitishaji wa usimamizi (`requireCliToolsAuth`). Nenosiri la sudo huhifadhiwa kwenye akiba ndani ya upeo wa moduli (kamwe si `globalThis`) na huondolewa wakati wa `stopMitm()`.
 
-## Ubatilishaji wa User-Agent — vigezo vya mazingira (`.env.example` sehemu ya 12)
+## Ubatilishaji wa User-Agent — vibadala vya mazingira (`.env.example` sehemu ya 12)
 
-| Kigezo                   | Chaguo-msingi                                                   |
+| Kibadala                 | Chaguo-msingi                                                   |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
