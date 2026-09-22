@@ -59,6 +59,60 @@ import {
   SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID,
 } from "./resilienceCandidateFilter";
 import type { ChaosTuning } from "./chaosEngine";
+import {
+  recordAutoEvaluationTransition,
+  startAutoEvaluationTrace,
+  type AutoEvaluationStage,
+} from "../combo/decisionTrace.ts";
+
+type AutoEvaluationContext = {
+  invocationId: string;
+  familyPool: boolean;
+};
+
+function traceCandidateScope(candidate: VirtualAutoComboCandidate) {
+  if (candidate.connectionId === RESILIENCE_NOAUTH_CONNECTION_ID) return "noauth" as const;
+  if (candidate.connectionId) return "single" as const;
+  const count = candidate.allowedConnectionIds?.length ?? 0;
+  if (count > 1) return "multiple" as const;
+  if (count === 1) return "single" as const;
+  return "none" as const;
+}
+
+function tracePoolDelta(
+  invocationId: string | undefined,
+  stage: AutoEvaluationStage,
+  before: VirtualAutoComboCandidate[],
+  after: VirtualAutoComboCandidate[],
+  detail: string
+): void {
+  if (!invocationId || before === after) return;
+  const afterByTarget = new Map(after.map((candidate) => [candidate.modelStr, candidate]));
+  for (const candidate of before) {
+    const kept = afterByTarget.get(candidate.modelStr);
+    if (!kept) {
+      recordAutoEvaluationTransition(invocationId, {
+        target: candidate.modelStr,
+        stage,
+        outcome: "rejected",
+        reason: "auto_candidate_filter",
+        detail,
+      });
+      continue;
+    }
+    const beforeCount = candidate.allowedConnectionIds?.length ?? (candidate.connectionId ? 1 : 0);
+    const afterCount = kept.allowedConnectionIds?.length ?? (kept.connectionId ? 1 : 0);
+    if (afterCount < beforeCount) {
+      recordAutoEvaluationTransition(invocationId, {
+        target: candidate.modelStr,
+        stage,
+        outcome: "narrowed",
+        reason: "auto_candidate_filter",
+        detail,
+      });
+    }
+  }
+}
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -613,6 +667,7 @@ export async function prepareVirtualAutoComboInputs(
   options: {
     includeResolvedCapabilities?: boolean;
     resolutionSnapshot?: ModelCapabilityResolutionSnapshot;
+    evaluation?: AutoEvaluationContext;
   } = {},
   skip = false // #9133 — inspector opt-out, see filterResilienceBlockedCandidates
 ): Promise<PreparedVirtualAutoComboInputs> {
@@ -768,23 +823,69 @@ export async function prepareVirtualAutoComboInputs(
       ),
     ];
 
-    const resilienceFilteredPool = filterResilienceBlockedCandidates(pool, connectionsById, skip);
+    const traceInvocationId =
+      options.evaluation && options.evaluation.familyPool === bypassNoAuthAllowlist
+        ? options.evaluation.invocationId
+        : undefined;
+    if (traceInvocationId) {
+      startAutoEvaluationTrace(traceInvocationId, {
+        stages: [
+          "candidate_construction",
+          "resilience",
+          "paid_model",
+          "lockout",
+          "model_exposure",
+          "strict_zero_cost",
+          "tos",
+          "candidate_override",
+          "category_tier",
+          "subscription_ladder",
+        ],
+        candidates: pool.map((candidate) => ({
+          target: candidate.modelStr,
+          connectionScope: traceCandidateScope(candidate),
+        })),
+      });
+    }
+
+    const resilienceFilteredPool = filterResilienceBlockedCandidates(
+      pool,
+      connectionsById,
+      skip,
+      traceInvocationId
+        ? ({ candidate, outcome, detail }) =>
+            recordAutoEvaluationTransition(traceInvocationId, {
+              target: `${candidate.provider}/${candidate.model}`,
+              stage: "resilience",
+              outcome,
+              reason: "auto_resilience",
+              detail,
+            })
+        : undefined
+    );
     if (resilienceFilteredPool !== pool) pool = resilienceFilteredPool;
 
     // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
     // exclude paid-only backends from EVERY `auto/*` candidate pool.
     const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
     warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
+    tracePoolDelta(traceInvocationId, "paid_model", pool, paid.pool, "paid_model");
     pool = paid.pool;
 
     const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
     warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
-    if (lockout) pool = lockout.pool;
+    if (lockout) {
+      tracePoolDelta(traceInvocationId, "lockout", pool, lockout.pool, "model_lockout");
+      pool = lockout.pool;
+    }
 
     // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
     const exposureFilteredPool = filterModelExposureCandidates(pool, settings);
-    if (exposureFilteredPool !== pool) pool = exposureFilteredPool;
+    if (exposureFilteredPool !== pool) {
+      tracePoolDelta(traceInvocationId, "model_exposure", pool, exposureFilteredPool, "model_exposure");
+      pool = exposureFilteredPool;
+    }
 
     // STRICT_ZERO_COST: opt-in, off by default (`settings.freeAccessPolicy !== "strict"`
     // leaves `pool` byte-identical, same contract as `hidePaidModels`). See
@@ -809,7 +910,20 @@ export async function prepareVirtualAutoComboInputs(
       resolveFreeAccessState,
       ...strictZeroCostThresholds,
     };
-    const strictFilteredPool = filterStrictZeroCostCandidates(pool, strictOptions);
+    const strictFilteredPool = filterStrictZeroCostCandidates(
+      pool,
+      strictOptions,
+      traceInvocationId
+        ? ({ candidate, outcome, detail }) =>
+            recordAutoEvaluationTransition(traceInvocationId, {
+              target: `${candidate.provider}/${candidate.model}`,
+              stage: "strict_zero_cost",
+              outcome,
+              reason: "strict_zero_cost",
+              detail,
+            })
+        : undefined
+    );
     if (strictFilteredPool !== pool) {
       const s = countStrictExclusions(pool, strictOptions);
       warnPoolDrop(log, "STRICT", s.excluded, pool.length, ` (no-hard-stop ${s.noHardStop})`);
@@ -836,7 +950,10 @@ export async function prepareVirtualAutoComboInputs(
 
     // Separate, optional ToS guard — independent of economic safety on purpose.
     const tosFilteredPool = filterTosAvoidCandidates(pool, settings.excludeTosAvoid === true);
-    if (tosFilteredPool !== pool) pool = tosFilteredPool;
+    if (tosFilteredPool !== pool) {
+      tracePoolDelta(traceInvocationId, "tos", pool, tosFilteredPool, "tos_avoid");
+      pool = tosFilteredPool;
+    }
 
     return pool;
   };
@@ -949,7 +1066,8 @@ export async function createVirtualAutoComboFromPrepared(
   variant: AutoVariant | undefined,
   spec?: AutoComboSpec,
   apiKeyId?: string,
-  autoChannel?: string
+  autoChannel?: string,
+  traceInvocationId?: string
 ): Promise<VirtualAutoCombo> {
   let candidatePool = clonePreparedCandidates(
     spec?.family ? prepared.familyCandidates : prepared.regularCandidates
@@ -969,6 +1087,7 @@ export async function createVirtualAutoComboFromPrepared(
   }
   const overrideFilteredPool = filterExcludedCandidates(candidatePool, excludedConnectionIds);
   if (overrideFilteredPool !== candidatePool) {
+    tracePoolDelta(traceInvocationId, "candidate_override", candidatePool, overrideFilteredPool, "candidate_override");
     candidatePool.length = 0;
     candidatePool.push(...overrideFilteredPool);
   }
@@ -1023,6 +1142,7 @@ export async function createVirtualAutoComboFromPrepared(
       ? `auto/${spec.family}`
       : `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""}`;
     if (narrowed.length > 0) {
+      tracePoolDelta(traceInvocationId, "category_tier", candidatePool, narrowed, "category_tier");
       effectivePool = narrowed;
     } else if (
       !spec?.family &&
@@ -1042,6 +1162,7 @@ export async function createVirtualAutoComboFromPrepared(
         label,
         `${label} matched no connected models; returning an empty pool.${spec?.family ? "" : ' Set OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true to restore the legacy "use full pool" behavior.'}`
       );
+      tracePoolDelta(traceInvocationId, "category_tier", candidatePool, [], "category_tier");
       effectivePool = [];
     }
   }
@@ -1054,10 +1175,14 @@ export async function createVirtualAutoComboFromPrepared(
   if (spec?.tier === "subscription" || spec?.tier === "thrifty") {
     const ladderOptions = buildLadderOptions(prepared, spec.tier);
     const beforeCount = effectivePool.length;
+    const beforeLadder = effectivePool;
     effectivePool =
       spec.tier === "subscription"
         ? filterSubscriptionOnlyCandidates(effectivePool, ladderOptions)
         : orderPoolByRung(effectivePool, ladderOptions);
+    if (spec.tier === "subscription") {
+      tracePoolDelta(traceInvocationId, "subscription_ladder", beforeLadder, effectivePool, "subscription_ladder");
+    }
     if (spec.tier === "subscription" && effectivePool.length === 0 && beforeCount > 0) {
       // Intended, not a defect: the operator asked for plan-included capacity
       // only, and right now there is none with verified headroom. Failing
@@ -1222,8 +1347,13 @@ export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined,
   spec?: AutoComboSpec,
   apiKeyId?: string,
-  autoChannel?: string
+  autoChannel?: string,
+  traceInvocationId?: string
 ): Promise<VirtualAutoCombo> {
-  const prepared = await prepareVirtualAutoComboInputs();
-  return createVirtualAutoComboFromPrepared(prepared, variant, spec, apiKeyId, autoChannel);
+  const prepared = await prepareVirtualAutoComboInputs({
+    ...(traceInvocationId
+      ? { evaluation: { invocationId: traceInvocationId, familyPool: Boolean(spec?.family) } }
+      : {}),
+  });
+  return createVirtualAutoComboFromPrepared(prepared, variant, spec, apiKeyId, autoChannel, traceInvocationId);
 }
