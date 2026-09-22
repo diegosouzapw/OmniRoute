@@ -6,20 +6,20 @@
  * - [2026-07-28] [Cursor Grok 4.5] - Brand-neutral default OpenAI keepalive id/model
  */
 const HEARTBEAT_ENCODER = new TextEncoder();
-const OPENAI_RESPONSES_IN_PROGRESS_PAYLOAD = 'data: {"type":"response.in_progress"}\n\n';
+const OPENAI_RESPONSES_KEEPALIVE_PAYLOAD = ": keepalive\n\n";
 
 export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 
-/** Shared Responses API heartbeat frame for early and mid-stream keepalives. */
-export const OPENAI_RESPONSES_IN_PROGRESS_FRAME = HEARTBEAT_ENCODER.encode(
-  OPENAI_RESPONSES_IN_PROGRESS_PAYLOAD
+/** Shared Responses API comment frame for early and mid-stream keepalives. */
+export const OPENAI_RESPONSES_KEEPALIVE_FRAME = HEARTBEAT_ENCODER.encode(
+  OPENAI_RESPONSES_KEEPALIVE_PAYLOAD
 );
 
 export const HEARTBEAT_SHAPES = {
   COMMENT: "comment",
   ANTHROPIC_PING: "anthropic-ping",
   OPENAI_CHUNK: "openai-chunk",
-  OPENAI_RESPONSES_IN_PROGRESS: "openai-responses-in-progress",
+  OPENAI_RESPONSES_KEEPALIVE: "openai-responses-keepalive",
 } as const;
 
 export type HeartbeatShape = (typeof HEARTBEAT_SHAPES)[keyof typeof HEARTBEAT_SHAPES];
@@ -35,7 +35,7 @@ export function shapeForClientFormat(
     case "openai":
       return HEARTBEAT_SHAPES.OPENAI_CHUNK;
     case "openai-responses":
-      return HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS;
+      return HEARTBEAT_SHAPES.OPENAI_RESPONSES_KEEPALIVE;
     default:
       return HEARTBEAT_SHAPES.COMMENT;
   }
@@ -48,8 +48,8 @@ function buildHeartbeatPayload(
   switch (shape) {
     case HEARTBEAT_SHAPES.ANTHROPIC_PING:
       return 'event: ping\ndata: {"type":"ping"}\n\n';
-    case HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS:
-      return OPENAI_RESPONSES_IN_PROGRESS_PAYLOAD;
+    case HEARTBEAT_SHAPES.OPENAI_RESPONSES_KEEPALIVE:
+      return OPENAI_RESPONSES_KEEPALIVE_PAYLOAD;
     case HEARTBEAT_SHAPES.OPENAI_CHUNK: {
       const payload = {
         id: opts.chunkId ?? "chatcmpl-keepalive",

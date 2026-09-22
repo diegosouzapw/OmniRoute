@@ -151,11 +151,11 @@ test("shape: openai-chunk emits valid chat.completion.chunk with empty delta", a
   });
 });
 
-test("shape: openai-responses-in-progress emits response.in_progress data event", async () => {
+test("shape: openai-responses-keepalive emits a transport comment", async () => {
   await withFakeIntervals(async (intervals) => {
     const transform = createSseHeartbeatTransform({
       intervalMs: 100,
-      shape: "openai-responses-in-progress",
+      shape: "openai-responses-keepalive",
     });
     const writer = transform.writable.getWriter();
     const reader = transform.readable.getReader();
@@ -172,7 +172,7 @@ test("shape: openai-responses-in-progress emits response.in_progress data event"
     await writer.close();
     await pump;
 
-    assert.equal(emitted[0], 'data: {"type":"response.in_progress"}\n\n');
+    assert.equal(emitted[0], ": keepalive\n\n");
   });
 });
 
@@ -226,14 +226,14 @@ test("intervalMs <= 0 returns passthrough (no setInterval, no heartbeat)", async
 test("shapeForClientFormat maps formats correctly", () => {
   assert.equal(shapeForClientFormat("claude"), "anthropic-ping");
   assert.equal(shapeForClientFormat("openai"), "openai-chunk");
-  assert.equal(shapeForClientFormat("openai-responses"), "openai-responses-in-progress");
+  assert.equal(shapeForClientFormat("openai-responses"), "openai-responses-keepalive");
   assert.equal(shapeForClientFormat("gemini"), "comment");
   assert.equal(shapeForClientFormat(undefined), "comment");
   assert.equal(shapeForClientFormat(null), "comment");
 });
 
 test("no shape collides with stream.ts event: keepalive strip regex", async () => {
-  const shapes = ["comment", "anthropic-ping", "openai-chunk", "openai-responses-in-progress"];
+  const shapes = ["comment", "anthropic-ping", "openai-chunk", "openai-responses-keepalive"];
   for (const shape of shapes) {
     await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
       const transform = createSseHeartbeatTransform({

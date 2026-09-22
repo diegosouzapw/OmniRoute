@@ -13,7 +13,6 @@ import {
   releaseChatAdmissionWhenDone,
   resolveSessionId,
 } from "@/shared/middleware/chatBodyAdmission";
-import { SSE_HEARTBEAT_INTERVAL_MS } from "@omniroute/open-sse/config/constants";
 import { resolveStreamFlag } from "@omniroute/open-sse/utils/aiSdkCompat";
 import { errorResponse } from "@omniroute/open-sse/utils/error";
 import {
@@ -21,7 +20,7 @@ import {
   OPENAI_RESPONSES_ERROR_FRAME,
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
-import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "@omniroute/open-sse/utils/sseHeartbeat";
+import { OPENAI_RESPONSES_KEEPALIVE_FRAME } from "@omniroute/open-sse/utils/sseHeartbeat";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
 // bootstrapped at module level inside open-sse/translator/index.ts when it
@@ -193,11 +192,7 @@ async function postHandler(request: any) {
       return await withEarlyStreamKeepalive(handlerResponse, {
         signal: request.signal,
         thresholdMs,
-        startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
-        applicationKeepalive: {
-          frame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
-          intervalMs: SSE_HEARTBEAT_INTERVAL_MS,
-        },
+        startupFrame: OPENAI_RESPONSES_KEEPALIVE_FRAME,
         errorFrame: OPENAI_RESPONSES_ERROR_FRAME,
         correlationId,
       });

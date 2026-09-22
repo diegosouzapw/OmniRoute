@@ -73,7 +73,7 @@ test("shapeForClientFormat maps known client formats", () => {
   assert.equal(shapeForClientFormat("openai"), HEARTBEAT_SHAPES.OPENAI_CHUNK);
   assert.equal(
     shapeForClientFormat("openai-responses"),
-    HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS
+    HEARTBEAT_SHAPES.OPENAI_RESPONSES_KEEPALIVE
   );
   assert.equal(shapeForClientFormat(undefined), HEARTBEAT_SHAPES.COMMENT);
 });
@@ -90,7 +90,8 @@ test("comment opt-out suppresses only COMMENT heartbeats, not data-event heartbe
     const anthropic = await collectHeartbeatOutput(HEARTBEAT_SHAPES.ANTHROPIC_PING);
     assert.match(anthropic, /event: ping\ndata: \{"type":"ping"\}/);
 
-    const responses = await collectHeartbeatOutput(HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS);
-    assert.match(responses, /data: \{"type":"response\.in_progress"\}/);
+    const responses = await collectHeartbeatOutput(HEARTBEAT_SHAPES.OPENAI_RESPONSES_KEEPALIVE);
+    assert.match(responses, /: keepalive/);
+    assert.doesNotMatch(responses, /data: \{"type":"response\.in_progress"\}/);
   });
 });

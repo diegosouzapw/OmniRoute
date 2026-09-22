@@ -2,8 +2,6 @@
  * @file early-stream-keepalive.test.ts
  * @description Unit tests for withEarlyStreamKeepalive (fast/slow path, frames, abort).
  *
- * @changes
- * - [2026-08-16] - Assert Responses startup and recurring keepalives are neutral JSON events
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -17,7 +15,7 @@ import {
   OPENAI_RESPONSES_ERROR_FRAME,
 } from "../../open-sse/utils/earlyStreamKeepalive.ts";
 import { takeEarlyKeepaliveBytes } from "../../open-sse/utils/earlyKeepaliveByteBuffer.ts";
-import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "../../open-sse/utils/sseHeartbeat.ts";
+import { OPENAI_RESPONSES_KEEPALIVE_FRAME } from "../../open-sse/utils/sseHeartbeat.ts";
 
 async function readAll(response: Response): Promise<string> {
   const reader = response.body!.getReader();
@@ -174,11 +172,7 @@ test("startupFrame defaults to keepaliveFrame when omitted (no behavior change)"
   );
 });
 
-// Responses clients need both frequent raw bytes and occasional parsed events while
-// upstream readiness is pending. Keep those cadences separate: comments cover the
-// short idle-read timeout, while sparse response.in_progress events reset parsers that
-// ignore comments without flooding the application event stream.
-test("slow Responses handler uses comments plus sparse in_progress events", async () => {
+test("slow Responses handler emits comments without fake lifecycle events", async () => {
   const slow = new Promise<Response>((resolve) => {
     setTimeout(() => resolve(sseResponse('data: {"type":"response.completed"}\n\n')), 900);
   });
@@ -186,33 +180,19 @@ test("slow Responses handler uses comments plus sparse in_progress events", asyn
   const result = await withEarlyStreamKeepalive(slow, {
     thresholdMs: 20,
     intervalMs: 250,
-    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
-    applicationKeepalive: {
-      frame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
-      intervalMs: 500,
-    },
+    startupFrame: OPENAI_RESPONSES_KEEPALIVE_FRAME,
   });
 
   const body = await readAll(result);
   const frames = body.split("\n\n").filter(Boolean);
   const earlyFrames = frames.slice(0, -1);
-  assert.equal(earlyFrames[0], 'data: {"type":"response.in_progress"}');
+  assert.equal(earlyFrames[0], ": keepalive");
+  assert.ok(earlyFrames.length >= 3, "expected startup and recurring keepalives");
   assert.ok(
-    earlyFrames.some((frame) => frame === ": keepalive"),
-    "transport ticks must remain lightweight SSE comments"
+    earlyFrames.every((frame) => frame === ": keepalive"),
+    "keepalives must remain transport-only comments"
   );
-  const applicationFrames = earlyFrames.filter((frame) => frame.startsWith("data: "));
-  assert.ok(applicationFrames.length >= 2, "expected startup and sparse application keepalives");
-  for (const frame of applicationFrames) {
-    assert.deepEqual(JSON.parse(frame.slice("data: ".length)), {
-      type: "response.in_progress",
-    });
-    assert.doesNotMatch(frame, /output_item|reasoning|✨/);
-  }
-  assert.ok(
-    applicationFrames.length < earlyFrames.length,
-    "application events must be sparser than transport heartbeats"
-  );
+  assert.doesNotMatch(body, /response\.in_progress|output_item|reasoning|✨/);
   assert.match(body, /data: {"type":"response.completed"}/, "real upstream body forwarded");
 });
 
@@ -228,22 +208,15 @@ test("a correlationId records the startup frame and keepalive ticks, but not the
   const result = await withEarlyStreamKeepalive(slow, {
     thresholdMs: 25,
     intervalMs: 250,
-    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
-    applicationKeepalive: {
-      frame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
-      intervalMs: 500,
-    },
+    startupFrame: OPENAI_RESPONSES_KEEPALIVE_FRAME,
+
     correlationId,
   });
   await readAll(result);
 
   const recorded = takeEarlyKeepaliveBytes(correlationId).join("");
-  assert.match(
-    recorded,
-    /data: {"type":"response\.in_progress"}/,
-    "startup frame must be recorded"
-  );
   assert.match(recorded, /: keepalive/, "transport heartbeat must be recorded");
+  assert.doesNotMatch(recorded, /response\.in_progress/);
   assert.doesNotMatch(
     recorded,
     /event: response\.created/,
@@ -260,8 +233,8 @@ test("omitting correlationId leaves the buffer untouched (today's behavior, unch
   const result = await withEarlyStreamKeepalive(slow, {
     thresholdMs: 25,
     intervalMs: 20,
-    keepaliveFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
-    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+    keepaliveFrame: OPENAI_RESPONSES_KEEPALIVE_FRAME,
+    startupFrame: OPENAI_RESPONSES_KEEPALIVE_FRAME,
   });
   await readAll(result);
 

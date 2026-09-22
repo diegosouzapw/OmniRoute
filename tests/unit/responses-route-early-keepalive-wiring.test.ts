@@ -11,22 +11,10 @@ process.env.DATA_DIR = dataDir;
 process.env.REQUIRE_API_KEY = "false";
 after(async () => await cleanupTempDataDir(dataDir));
 
-test("Responses route wires dual-cadence neutral keepalives", () => {
-  assert.match(
-    routeSource,
-    /startupFrame:\s*OPENAI_RESPONSES_IN_PROGRESS_FRAME/,
-    "the immediate frame must not create a synthetic reasoning item"
-  );
-  assert.match(
-    routeSource,
-    /applicationKeepalive:\s*\{[\s\S]*frame:\s*OPENAI_RESPONSES_IN_PROGRESS_FRAME,[\s\S]*intervalMs:\s*SSE_HEARTBEAT_INTERVAL_MS/,
-    "parser-visible events must use the configured mid-stream heartbeat cadence"
-  );
-  assert.doesNotMatch(
-    routeSource,
-    /keepaliveFrame:\s*OPENAI_RESPONSES_IN_PROGRESS_FRAME/,
-    "frequent transport ticks must not all become application events"
-  );
+test("Responses route wires transport-only keepalives", () => {
+  assert.match(routeSource, /startupFrame:\s*OPENAI_RESPONSES_KEEPALIVE_FRAME/);
+  assert.doesNotMatch(routeSource, /applicationKeepalive/);
+  assert.doesNotMatch(routeSource, /OPENAI_RESPONSES_IN_PROGRESS_FRAME/);
   assert.doesNotMatch(routeSource, /RESPONSES_STARTUP_THINKING_FRAME/);
 });
 
