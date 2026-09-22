@@ -192,7 +192,8 @@ export async function prepareBuiltinAutoComboInputs(
 export async function createBuiltinAutoCombo(
   modelStr: string,
   suffix: string,
-  prepared?: PreparedVirtualAutoComboInputs
+  prepared?: PreparedVirtualAutoComboInputs,
+  traceInvocationId?: string
 ) {
   const { createVirtualAutoCombo, createVirtualAutoComboFromPrepared } =
     await import("./virtualFactory.ts");
@@ -201,8 +202,15 @@ export async function createBuiltinAutoCombo(
     spec?: Parameters<typeof createVirtualAutoCombo>[1]
   ) =>
     prepared
-      ? createVirtualAutoComboFromPrepared(prepared, variant, spec)
-      : createVirtualAutoCombo(variant, spec);
+      ? createVirtualAutoComboFromPrepared(
+          prepared,
+          variant,
+          spec,
+          undefined,
+          undefined,
+          traceInvocationId
+        )
+      : createVirtualAutoCombo(variant, spec, undefined, undefined, traceInvocationId);
 
   const spec = resolveBuiltinAutoSpec(modelStr, suffix);
 
