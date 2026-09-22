@@ -11020,6 +11020,9 @@
     "poolEgressObservation": "{connections, plural, one {# ግንኙነት} other {# ግንኙነቶች}} {exits, plural, one {# መውጫን} other {# መውጫዎችን}} ተጠቅመዋል · በአንድ መውጫ ላይ እስከ {max} · የመጨረሻዎቹ {hours} ሰዓታት",
     "poolEgressObservationEmpty": "ባለፉት {hours} ሰዓታት ውስጥ ምንም ትራፊክ አልታየም",
     "poolEgressObservationHint": "በተወሰነው የጊዜ ክልል ውስጥ ከፕሮክሲ ምዝግብ የተቆጠሩት፦ ለዚህ ፑል አባላት የታዩ የተለያዩ የወጪ IPዎች እና እነሱን የተጠቀሙ OmniRoute ግንኙነቶች። \"በአንድ መውጫ ላይ\" ማለት በተወሰነው የጊዜ ክልል ውስጥ ማለት ነው፤ በተመሳሳይ ጊዜ ማለት አይደለም። የእያንዳንዱ IP የ429 እገዳ የሚያቆመው የተመሳሳይ የአቅራቢ ቤተሰብ ግንኙነቶችን ብቻ ነው።",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "አስወግድ",
     "poolRemoveFailed": "ፕሮክሲውን ከፑሉ ማስወገድ አልተሳካም",
     "poolAddLabel": "ፕሮክሲ ጨምር",
@@ -11423,6 +11426,7 @@
         "clientResponse": "የደንበኛ ምላሽ",
         "pipelineError": "የፓይፕላይን ስህተት"
       },
+      "payloadSizeLimitOmitted": "ጭነት ተትቷል — ይህ ክፍል የጥሪ ምዝግብ መጠን ገደብን (CALL_LOG_PIPELINE_MAX_SIZE_KB) አልፏል እና አልተቀመጠም፤ እውነተኛ የላይኛው ስህተት አይደለም።",
       "payloadMissing": "ዝርዝር የውሂብ አርቲፋክቱ ለዚህ የምዝግብ ግቤት ከእንግዲህ አይገኝም።",
       "payloadCorrupt": "ዝርዝር የውሂብ አርቲፋክቱን መተንተን አልተቻለም።",
       "notAvailable": "አይመለከትም",
@@ -11476,8 +11480,7 @@
       "correlationIdValue": "የትስስር መታወቂያ፦ {id}",
       "detailedPayloadInfo": "ለአዳዲስ ጥያቄዎች ባለአራት-ደረጃ የደንበኛ/አቅራቢ ውሂብ እይታን ከፈለጉ፣ መጀመሪያ ዝርዝር ምዝገባን ያንቁ።",
       "copyAll": "ሁሉንም ቅዳ",
-      "copiedAll": "ሁሉም ተቀድቷል",
-      "payloadSizeLimitOmitted": "ጭነት ተትቷል — ይህ ክፍል የጥሪ ምዝግብ መጠን ገደብን (CALL_LOG_PIPELINE_MAX_SIZE_KB) አልፏል እና አልተቀመጠም፤ እውነተኛ የላይኛው ስህተት አይደለም።"
+      "copiedAll": "ሁሉም ተቀድቷል"
     }
   },
   "proxyLogger": {

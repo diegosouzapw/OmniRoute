@@ -11,6 +11,24 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitizatio
 import { getDbInstance, isCloud, isBuildPhase } from "./db/core";
 import { ensureProxyLogsColumns } from "./db/schemaColumns";
 
+/**
+ * Canonical host normalization for proxy log writes and (host, port) lookups:
+ * trim, strip exactly one pair of surrounding brackets from IPv6 literals
+ * ("[2001:db8::1]"), re-trim, lowercase. Anything that is not a non-empty
+ * string normalizes to null so readers can fall back to today's behavior.
+ */
+export function normalizeProxyHostForLog(host: unknown): string | null {
+  if (typeof host !== "string") return null;
+  const trimmed = host.trim();
+  if (!trimmed) return null;
+  const unbracketed =
+    trimmed.startsWith("[") && trimmed.endsWith("]") && trimmed.length > 2
+      ? trimmed.slice(1, -1).trim()
+      : trimmed;
+  if (!unbracketed) return null;
+  return unbracketed.toLowerCase();
+}
+
 const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
 const MAX_IN_MEMORY_ENTRIES = 200;
@@ -84,7 +102,12 @@ function loadFromDb() {
         timestamp: row.timestamp,
         status: row.status || "success",
         proxy: row.proxy_host
-          ? { type: row.proxy_type, host: row.proxy_host, port: row.proxy_port, name: row.proxy_name || undefined }
+          ? {
+              type: row.proxy_type,
+              host: row.proxy_host,
+              port: row.proxy_port,
+              name: row.proxy_name || undefined,
+            }
           : null,
         level: row.level || "direct",
         levelId: row.level_id || null,
@@ -169,7 +192,12 @@ export function logProxyEvent(entry: ProxyLogInput) {
     id: uuidv4(),
     timestamp: new Date().toISOString(),
     status: entry.status || "success",
-    proxy: entry.proxy || null,
+    proxy: entry.proxy
+      ? {
+          ...entry.proxy,
+          host: normalizeProxyHostForLog(entry.proxy.host) ?? entry.proxy.host,
+        }
+      : null,
     level: entry.level || "direct",
     levelId: entry.levelId || null,
     provider: entry.provider || null,

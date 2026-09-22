@@ -79,6 +79,8 @@ export type PendingRequestDetail = {
   stageUpdatedAt?: number | null;
   correlationId?: string | null;
   sessionTag?: string | null;
+  stale?: boolean;
+  sweptAt?: number | null;
   streamChunks?: {
     provider?: string[];
     openai?: string[];
@@ -228,9 +230,11 @@ function ensurePendingSweepTimer(): void {
 }
 
 /**
- * Evicts orphaned pending-request details older than `maxAgeMs` and enforces a hard size
- * cap. Mirrors the normal removal path (decrement counters + cleanup detail buckets) so the
- * dashboard's pending counts self-heal. Exported for deterministic testing.
+ * Marks over-age pending-request details so a stuck request stays visible on the
+ * dashboard, and enforces a hard size cap. Marked entries keep their map, detail
+ * bucket and counters; only the cap path removes entries (marked first, oldest
+ * first), mirroring the normal removal path so the dashboard's pending counts
+ * self-heal. Exported for deterministic testing.
  * @returns number of entries removed.
  */
 export function sweepStalePendingRequests(
@@ -255,7 +259,11 @@ export function sweepStalePendingRequests(
   };
 
   for (const detail of pendingById.values()) {
-    if (now - detail.startedAt > maxAgeMs) remove(detail);
+    if (detail.stale) continue;
+    if (now - detail.startedAt > maxAgeMs) {
+      detail.stale = true;
+      detail.sweptAt = now;
+    }
   }
 
   // Hard backstop: if entries are still piling up faster than they age out, drop the oldest
@@ -263,7 +271,10 @@ export function sweepStalePendingRequests(
   if (pendingById.size > MAX_PENDING_DETAILS) {
     const overflow = pendingById.size - MAX_PENDING_DETAILS;
     const oldest = [...pendingById.values()]
-      .sort((a, b) => a.startedAt - b.startedAt)
+      .sort((a, b) => {
+        if (Boolean(a.stale) !== Boolean(b.stale)) return a.stale ? -1 : 1;
+        return a.startedAt - b.startedAt;
+      })
       .slice(0, overflow);
     for (const detail of oldest) remove(detail);
   }
