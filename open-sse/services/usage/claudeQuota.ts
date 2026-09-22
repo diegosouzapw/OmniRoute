@@ -119,6 +119,11 @@ function normalizeCurrentLimits(limits: unknown[]): NormalizedClaudeWindow[] {
     const { modelId, modelDisplayName } = currentLimitModel(limit);
     const scopeLabel = modelDisplayName ?? modelId;
     const scopeToken = scopeLabel ? normalizedTokenKey(scopeLabel) : "";
+    // Keep unresolved upstream scopes distinct without changing known model labels.
+    const displayKey =
+      kind === "weekly_scoped" && !scopeToken
+        ? `${quotaKey(kind, null)} #${index + 1}`
+        : quotaKey(kind, scopeLabel);
     const metadata: ClaudeQuotaMetadata = {
       kind,
       active: currentLimitActive(limit),
@@ -136,7 +141,7 @@ function normalizeCurrentLimits(limits: unknown[]): NormalizedClaudeWindow[] {
           : kind === "weekly_all"
             ? "weekly_all"
             : (metadata.scopeKey ?? `weekly_scoped:unknown:${index}`),
-      displayKey: quotaKey(kind, modelDisplayName ?? modelId),
+      displayKey,
       quota: quotaObject(percent, currentLimitReset(limit), metadata),
     });
   }
@@ -274,6 +279,10 @@ function normalizedRequestedModel(model: string): string {
   return normalizedTokenKey(stripDeclaredEffort(withoutRouteDecoration));
 }
 
+function numericVersionTokens(value: string): string[] {
+  return normalizedTokens(value).filter((token) => /^\d+$/.test(token));
+}
+
 export function claudeQuotaMatchesModel(
   metadata: ClaudeQuotaMetadata,
   requestedModel: string
@@ -287,6 +296,16 @@ export function claudeQuotaMatchesModel(
   }
 
   if (!metadata.modelDisplayName) return false;
+  const displayVersions = numericVersionTokens(metadata.modelDisplayName);
+  const requestedVersions = numericVersionTokens(requestedKey.replace(/-\d{8}$/, ""));
+  // Family-only labels remain broad, but explicit versions must match exactly and in order.
+  if (
+    displayVersions.length > 0 &&
+    (displayVersions.length !== requestedVersions.length ||
+      displayVersions.some((version, index) => version !== requestedVersions[index]))
+  ) {
+    return false;
+  }
   const requestedTokens = new Set(normalizedTokens(requestedKey));
   const displayTokens = normalizedTokens(metadata.modelDisplayName);
   return displayTokens.length > 0 && displayTokens.every((token) => requestedTokens.has(token));

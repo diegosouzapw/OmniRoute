@@ -178,3 +178,42 @@ test("empty or invalid current limits retain valid previous windows", () => {
     assert.equal(modelQuotas["weekly sonnet (7d)"].used, 25);
   }
 });
+
+for (const { label, scope } of [
+  { label: "model-less", scope: null },
+  { label: "non-tokenizable", scope: { model: { displayName: "???" } } },
+]) {
+  for (const activeFirst of [true, false]) {
+    test(`preserves duplicate ${label} current scopes when the active limit is ${activeFirst ? "first" : "last"}`, () => {
+      const activeReset = new Date(Date.now() + 60_000).toISOString();
+      const inactiveReset = new Date(Date.now() + 120_000).toISOString();
+      const active = {
+        kind: "weekly_scoped",
+        percent: 100,
+        resetsAt: activeReset,
+        isActive: true,
+        severity: "critical",
+        scope,
+      };
+      const inactive = {
+        kind: "weekly_scoped",
+        percent: 20,
+        resetsAt: inactiveReset,
+        isActive: false,
+        severity: "normal",
+        scope,
+      };
+
+      const { modelQuotas } = normalizeClaudeUsageQuotas({
+        limits: activeFirst ? [active, inactive] : [inactive, active],
+      });
+
+      assert.deepEqual(Object.keys(modelQuotas), [
+        "weekly scoped (7d) #1",
+        "weekly scoped (7d) #2",
+      ]);
+      const activeQuota = Object.values(modelQuotas).find((quota) => quota.claudeQuota?.active);
+      assert.equal(activeQuota?.resetAt, activeReset);
+    });
+  }
+}
