@@ -1,1 +1,0 @@
-- **fix(sse):** recognize `reasoning_effort` in the reactive 400 field-strip retry — strict OpenAI-compatible upstreams that reject the field are retried once without it instead of surfacing the 400 ([#13642](https://github.com/diegosouzapw/OmniRoute/pull/13642)) — thanks @Moseyuh333
