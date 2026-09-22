@@ -30,7 +30,10 @@ test("a proxy failure still opens the provider-wide breaker", () => {
 });
 
 test("Koosha's shared model-scope source still advances wrapped model 400s", () => {
-  assert.equal(isModelScoped400("invalid_request_error: model claude-fable-5 is not supported"), true);
+  assert.equal(
+    isModelScoped400("invalid_request_error: model claude-fable-5 is not supported"),
+    true
+  );
   assert.equal(isModelScoped400("Bad Request: The model is not supported"), true);
   assert.equal(isModelScoped400("Invalid message format: the request body is malformed."), false);
 });

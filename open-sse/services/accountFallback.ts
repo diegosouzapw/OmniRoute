@@ -36,10 +36,7 @@ import {
   getAllCircuitBreakerStatuses,
   getCircuitBreaker,
 } from "../../src/shared/utils/circuitBreaker";
-import {
-  MODEL_ACCESS_DENIED_PATTERNS,
-  isModelScoped400,
-} from "./modelAccessDenied.ts";
+import { MODEL_ACCESS_DENIED_PATTERNS, isModelScoped400 } from "./modelAccessDenied.ts";
 import {
   connectionCircuitBreakerName,
   failureCircuitBreakerName,
