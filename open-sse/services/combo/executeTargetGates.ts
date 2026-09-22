@@ -86,7 +86,7 @@ export async function evaluateExecuteTargetGates(opts: {
   const providerBreaker = getCircuitBreaker(provider);
   const scopedConnectionId = target.connectionId ?? undefined;
   const connectionBreaker = scopedConnectionId
-    ? getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId))
+    ? getCircuitBreaker(connectionCircuitBreakerName(provider, scopedConnectionId))
     : null;
   const providerOpen = providerBreaker.getStatus().state === "OPEN";
   const connectionOpen = connectionBreaker?.getStatus().state === "OPEN";
