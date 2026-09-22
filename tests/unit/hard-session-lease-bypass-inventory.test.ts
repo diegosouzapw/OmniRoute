@@ -20,6 +20,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // call), so the two sites are inventoried at their new home — see the
     // property-access branch in countCalls().
     "open-sse/handlers/chatCore/providerExecutionPipeline.ts": 2,
+    "open-sse/handlers/chatCore.ts": 1,
     "open-sse/services/imageCombo.ts": 1,
     "open-sse/services/speechCombo.ts": 1,
     "open-sse/services/videoCombo.ts": 2,
@@ -31,6 +32,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/search/providers/route.ts": 3,
     "src/app/api/v1/_shared/elevenLabsProxy.ts": 1,
     "src/app/api/v1/_shared/fishAudioProxy.ts": 1,
+    "src/app/api/v1/_shared/typesafeRoutes.ts": 2,
     "src/app/api/v1/audio/speech/route.ts": 1,
     "src/app/api/v1/_shared/videoModelResolution.ts": 1,
     "src/app/api/v1/audio/transcriptions/route.ts": 2,

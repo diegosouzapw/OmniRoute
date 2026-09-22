@@ -43,6 +43,8 @@ tags:
     description: Content moderation
   - name: Rerank
     description: Document reranking
+  - name: System One
+    description: TypeSafe Jev structured evaluation
   - name: Search
     description: Unified web, news, and X search
   - name: Models
@@ -2053,6 +2055,64 @@ paths:
             cost-telemetry headers (see `POST /api/v1/chat/completions`); rerank
             cost is computed per search-unit when pricing is available,
             otherwise `0` (fail-open).
+
+  /api/v1/systemone:
+    post:
+      tags: [System One]
+      summary: Evaluate state with TypeSafe Jev
+      description: >-
+        TypeSafe System One passthrough. OmniRoute accepts provider-scoped model ids such as
+        `typesafe/jev-latest`, removes the `typesafe/` prefix before forwarding, and preserves
+        TypeSafe's response and error wire formats. The same operation is available at the
+        SDK-compatible public path `/typesafe/v1/systemone`; SDK model discovery is available at
+        `/typesafe/v1/models`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state, model, questions]
+              additionalProperties: true
+              properties:
+                state:
+                  oneOf:
+                    - type: string
+                    - type: object
+                      additionalProperties: true
+                    - type: array
+                      items: {}
+                    - type: "null"
+                model:
+                  type: string
+                  examples: [typesafe/jev-latest, jev-1.13.0]
+                questions:
+                  type: object
+                  minProperties: 1
+                  additionalProperties:
+                    oneOf:
+                      - $ref: "#/components/schemas/SystemOneNoulQuestion"
+                      - $ref: "#/components/schemas/SystemOneChoiceQuestion"
+                      - $ref: "#/components/schemas/SystemOneScoreQuestion"
+      responses:
+        "200":
+          description: >-
+            TypeSafe answers keyed by question id, with model and token usage. Success responses
+            also carry OmniRoute cost telemetry and preserve `x-typesafe-request-id`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemOneResponse"
+        "401":
+          description: OmniRoute or TypeSafe authentication failed
+        "422":
+          description: Request validation failed
+        "429":
+          description: TypeSafe or all configured credentials are rate limited
+        "529":
+          description: TypeSafe is temporarily overloaded
 
   /api/v1:
     get:
@@ -13495,6 +13555,71 @@ components:
             requestId: 0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
 
   schemas:
+    SystemOneEntry:
+      description: Text or structured JSON accepted by TypeSafe; null is valid in the SDK contract.
+      oneOf:
+        - type: string
+        - type: object
+          additionalProperties: true
+        - type: array
+          items: {}
+        - type: "null"
+    SystemOneNoulQuestion:
+      type: object
+      required: [type, instructions]
+      additionalProperties: true
+      properties:
+        type: { type: string, const: noul }
+        instructions: { $ref: "#/components/schemas/SystemOneEntry" }
+        criteria:
+          type: object
+          additionalProperties: true
+          properties:
+            "true": { $ref: "#/components/schemas/SystemOneEntry" }
+            "false": { $ref: "#/components/schemas/SystemOneEntry" }
+    SystemOneChoiceQuestion:
+      type: object
+      required: [type, instructions, criteria]
+      additionalProperties: true
+      properties:
+        type: { type: string, const: choice }
+        instructions: { $ref: "#/components/schemas/SystemOneEntry" }
+        criteria:
+          type: object
+          minProperties: 1
+          maxProperties: 255
+          additionalProperties:
+            $ref: "#/components/schemas/SystemOneEntry"
+    SystemOneScoreQuestion:
+      type: object
+      required: [type, instructions, criteria]
+      additionalProperties: true
+      properties:
+        type: { type: string, const: score }
+        instructions: { $ref: "#/components/schemas/SystemOneEntry" }
+        criteria:
+          type: array
+          minItems: 2
+          maxItems: 10
+          items:
+            $ref: "#/components/schemas/SystemOneEntry"
+    SystemOneResponse:
+      type: object
+      required: [model, answers, usage]
+      additionalProperties: true
+      properties:
+        model: { type: string, example: jev-1.13.0 }
+        answers:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: true
+        usage:
+          type: object
+          required: [input_tokens, output_tokens]
+          properties:
+            input_tokens: { type: integer, minimum: 0 }
+            output_tokens: { type: integer, minimum: 0 }
     ExclusiveConnectionLeaseLifecycle:
       type: object
       description: >-

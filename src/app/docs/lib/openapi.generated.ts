@@ -1000,6 +1000,16 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     hasRequestBody: true,
   },
   {
+    path: "/api/v1/systemone",
+    method: "POST",
+    summary: "Evaluate state with TypeSafe Jev",
+    description: "TypeSafe System One passthrough. OmniRoute accepts provider-scoped model ids such as `typesafe/jev-latest`, removes the `typesafe/` prefix before forwarding, and preserves TypeSafe's response and error wire formats. The same operation is available at the SDK-compatible public path `/typesafe/v1/systemone`; SDK model discovery is available at `/typesafe/v1/models`.",
+    tag: "System One",
+    tags: ["System One"],
+    requiresAuth: true,
+    hasRequestBody: true,
+  },
+  {
     path: "/api/v1/text-to-speech/{voiceId}",
     method: "POST",
     summary: "ElevenLabs text-to-speech",

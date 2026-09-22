@@ -84,7 +84,7 @@ Content-Type: application/json
 
 > Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
 
-> **Cost telemetry headers:** non-streaming success responses also carry the `X-OmniRoute-*` cost-telemetry set — `X-OmniRoute-Response-Cost` (USD, fixed 10 decimals; `0.0000000000` for free/unpriced), `X-OmniRoute-Tokens-In` / `X-OmniRoute-Tokens-Out`, `X-OmniRoute-Model`, `X-OmniRoute-Provider`, `X-OmniRoute-Latency-Ms`, `X-OmniRoute-Cache-Hit`, and `X-OmniRoute-Fallback-Attempts` (only when > 0), plus `X-OmniRoute-Request-Id` and `X-OmniRoute-Version`. These are emitted by chat completions, `/v1/responses`, `/v1/messages`, **and the media endpoints** — `/v1/embeddings`, `/v1/images/generations`, `/v1/audio/speech`, `/v1/audio/transcriptions`, `/v1/rerank`, `/v1/videos/generations`, `/v1/music/generations`, and `/v1/moderations` (always cost `0`). Media cost is computed per modality (per-image, per-second, per-character, per search-unit) when pricing is available, otherwise `0` (fail-open).
+> **Cost telemetry headers:** non-streaming success responses also carry the `X-OmniRoute-*` cost-telemetry set — `X-OmniRoute-Response-Cost` (USD, fixed 10 decimals; `0.0000000000` for free/unpriced), `X-OmniRoute-Tokens-In` / `X-OmniRoute-Tokens-Out`, `X-OmniRoute-Model`, `X-OmniRoute-Provider`, `X-OmniRoute-Latency-Ms`, `X-OmniRoute-Cache-Hit`, and `X-OmniRoute-Fallback-Attempts` (only when > 0), plus `X-OmniRoute-Request-Id` and `X-OmniRoute-Version`. These are emitted by chat completions, `/v1/responses`, `/v1/messages`, `/v1/systemone`, **and the media endpoints** — `/v1/embeddings`, `/v1/images/generations`, `/v1/audio/speech`, `/v1/audio/transcriptions`, `/v1/rerank`, `/v1/videos/generations`, `/v1/music/generations`, and `/v1/moderations` (always cost `0`). Media cost is computed per modality (per-image, per-second, per-character, per search-unit) when pricing is available, otherwise `0` (fail-open); Jev cost uses TypeSafe's input-token price and free output tokens.
 
 > **Cache-hit cost semantics:** on a semantic-cache HIT (`X-OmniRoute-Cache-Hit: true`) no upstream call is made, so `X-OmniRoute-Response-Cost` is `0.0000000000` (the **incremental** cost of serving the hit). The original/would-have-been cost is reported separately in `X-OmniRoute-Cost-Saved`. Billing consumers should sum `X-OmniRoute-Response-Cost` (hits cost nothing); cache analytics can aggregate `X-OmniRoute-Cost-Saved`.
 
@@ -462,6 +462,7 @@ Use this endpoint when a sidecar runs out-of-process and cannot import
 | POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
 | POST   | `/v1/audio/speech`                        | OpenAI TTS (returns audio body)    |
 | POST   | `/v1/rerank`                              | Cohere/Voyage-style rerank         |
+| POST   | `/v1/systemone`                           | TypeSafe Jev structured evaluation |
 | POST   | `/v1/classify`                            | Jina classify (`api.jina.ai`)      |
 | POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
 | POST   | `/v1/moderations`                         | OpenAI Moderations                 |
@@ -485,6 +486,9 @@ For clients that cannot attach `Authorization: Bearer ...`, OmniRoute also accep
 # Rerank (cloud registry provider, or an OpenAI-compatible provider node as "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
+# TypeSafe System One (OmniRoute model ids are stripped before forwarding)
+POST /v1/systemone   { "state": "Help!", "model": "typesafe/jev-latest", "questions": { "urgent": { "type": "noul", "instructions": "Is this urgent?" } } }
+
 # Jina classify (Foundation API credentials)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
@@ -507,6 +511,13 @@ POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+TypeSafe's official SDK can use OmniRoute without changing its wire contract by setting its base
+URL to `http://localhost:20128/typesafe`. The SDK then calls `POST /typesafe/v1/systemone` and
+`GET /typesafe/v1/models`; OmniRoute preserves the `{ models: [...] }` discovery shape,
+`x-typesafe-request-id`, `retry-after[-ms]`, and rate-limit headers. Raw `/v1/systemone` callers may
+use either `typesafe/jev-latest` or the upstream `jev-latest`; only the upstream model name is sent
+to TypeSafe. Jev is deliberately excluded from chat/combo routing.
 
 > **Rerank provider nodes:** `POST /v1/rerank` also routes to OpenAI-compatible provider nodes
 > (oMLX, vLLM, Infinity, TEI behind a gateway, …) addressed as `<node-prefix>/<model>`. Loopback

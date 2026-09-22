@@ -501,6 +501,73 @@ export const v1RerankSchema = z
   })
   .catchall(z.unknown());
 
+const systemOneStructuredTextSchema = z.union([
+  z.string(),
+  z.record(z.string(), z.unknown()),
+  z.array(z.unknown()),
+  z.null(),
+]);
+
+const systemOneNoulQuestionSchema = z
+  .object({
+    type: z.literal("noul"),
+    instructions: systemOneStructuredTextSchema,
+    criteria: z
+      .object({
+        true: systemOneStructuredTextSchema.optional(),
+        false: systemOneStructuredTextSchema.optional(),
+      })
+      .catchall(z.unknown())
+      .optional(),
+  })
+  .catchall(z.unknown());
+
+const systemOneChoiceCriterionSchema = z.union([
+  z.string(),
+  z.record(z.string(), z.unknown()),
+  z.array(z.unknown()),
+  z.null(),
+]);
+
+const systemOneChoiceQuestionSchema = z
+  .object({
+    type: z.literal("choice"),
+    instructions: systemOneStructuredTextSchema,
+    criteria: z
+      .record(z.string().trim().min(1), systemOneChoiceCriterionSchema)
+      .refine((criteria) => Object.keys(criteria).length > 0, "criteria must not be empty")
+      .refine(
+        (criteria) => Object.keys(criteria).length <= 255,
+        "criteria must contain no more than 255 options"
+      ),
+  })
+  .catchall(z.unknown());
+
+const systemOneScoreQuestionSchema = z
+  .object({
+    type: z.literal("score"),
+    instructions: systemOneStructuredTextSchema,
+    criteria: z.array(systemOneStructuredTextSchema).min(2).max(10),
+  })
+  .catchall(z.unknown());
+
+export const systemOneQuestionSchema = z.discriminatedUnion("type", [
+  systemOneNoulQuestionSchema,
+  systemOneChoiceQuestionSchema,
+  systemOneScoreQuestionSchema,
+]);
+
+/** POST /v1/systemone — TypeSafe System One evaluation. */
+export const v1SystemOneSchema = z
+  .object({
+    state: systemOneStructuredTextSchema,
+    model: modelIdSchema,
+    questions: z
+      .record(z.string().trim().min(1), systemOneQuestionSchema)
+      .refine((questions) => Object.keys(questions).length > 0, "questions must not be empty"),
+  })
+  .catchall(z.unknown());
+
 // POST /v1/classify — Jina zero/few-shot classification (api.jina.ai).
 export const v1ClassifySchema = z
   .object({

@@ -21,6 +21,10 @@ export type LocalCatalogModel = {
 };
 
 const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: string }>> = {
+  typesafe: () => [
+    { id: "jev-latest", name: "Jev (latest stable)" },
+    { id: "jev-preview", name: "Jev (preview)" },
+  ],
   deepgram: () => [
     { id: "nova-3", name: "Nova 3 (Transcription)" },
     { id: "nova-2", name: "Nova 2 (Transcription)" },

@@ -110,6 +110,7 @@ import { validateAiHordeProvider } from "./validation/aihorde";
 import { validateDifyProvider } from "./validation/dify";
 import { validateZyloApiProvider } from "./validation/zylo";
 import { validateAdobeFireflyProvider } from "./validation/adobeFirefly";
+import { validateTypeSafeProvider } from "./validation/typesafe";
 import {
   validateV0VercelProvider,
   validateAuggieProvider,
@@ -215,6 +216,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
+    typesafe: validateTypeSafeProvider,
     "v0-vercel": ({ apiKey, providerSpecificData }: any) =>
       validateV0VercelProvider({ apiKey, providerSpecificData, isLocal }),
     jules: validateJulesProvider,

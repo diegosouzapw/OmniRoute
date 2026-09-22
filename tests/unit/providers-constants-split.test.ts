@@ -40,12 +40,13 @@
 // Lyceum (pay-per-use OpenAI-compatible gateway, 2026-09-20) adds one apikey entry — 243.
 // Muse Code device OAuth dual-auth moves `muse-code` from frontier-labs into
 // OAUTH_PROVIDERS (same pattern as clinepass/codebuddy-cn) — 242.
+// TypeSafe AI adds the Jev System One API-key provider — 243.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
 
-const APIKEY_PROVIDER_COUNT = 242;
+const APIKEY_PROVIDER_COUNT = 243;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [
