@@ -796,25 +796,9 @@ export async function prepareVirtualAutoComboInputs(
       detail: string
     ) => {
       if (!traceInvocationId || before === after) return;
-      const surviving = new Set(
-        after.map(
-          (candidate) =>
-            `${candidate.modelStr}\u0000${candidate.connectionId ?? ""}\u0000${(
-              candidate.allowedConnectionIds ?? []
-            )
-              .slice()
-              .sort()
-              .join(",")}`
-        )
-      );
+      const surviving = new Set(after.map((candidate) => candidate.modelStr));
       for (const candidate of before) {
-        const key = `${candidate.modelStr}\u0000${candidate.connectionId ?? ""}\u0000${(
-          candidate.allowedConnectionIds ?? []
-        )
-          .slice()
-          .sort()
-          .join(",")}`;
-        if (!surviving.has(key)) {
+        if (!surviving.has(candidate.modelStr)) {
           recordAutoEvaluationTransition(traceInvocationId, {
             target: candidate.modelStr,
             stage,
