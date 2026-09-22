@@ -491,6 +491,21 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Use browser sign-in, or paste the full Cookie header from conol.ai. The __Secure-better-auth.session_token cookie is required.",
   },
+  twinmind: {
+    id: "twinmind",
+    serviceKinds: ["llm"],
+    alias: "tm",
+    name: "Twinmind (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#4F46E5",
+    textIcon: "TM",
+    website: "https://app.twinmind.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    toolCalling: "emulated",
+    authHint:
+      "Paste the stsTokenManager JSON from app.twinmind.com IndexedDB (accessToken + refreshToken). Chat uses accessToken; refreshToken mints a new JWT when it expires.",
+  },
   maxai: {
     id: "maxai",
     serviceKinds: ["llm"],

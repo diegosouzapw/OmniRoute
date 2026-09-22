@@ -1,0 +1,1 @@
+- **feat(providers):** add Twinmind (`twinmind` / `tm`) unofficial web chat provider — Firebase refresh, grouped model discovery, SSE `text_delta` → OpenAI chunks, emulated tool calling for OpenCode/Claude Code ([#14131](https://github.com/diegosouzapw/OmniRoute/pull/14131))

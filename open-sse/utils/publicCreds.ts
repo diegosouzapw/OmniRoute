@@ -189,6 +189,14 @@ const EMBEDDED_DEFAULTS = {
   // Firefly credits balance endpoint public x-api-key (`SunbreakWebUI1`) from
   // GET firefly.adobe.io/v1/credits/balance browser traffic.
   adobe_firefly_balance_api_key: [60, 24, 0, 11, 0, 10, 20, 31, 50, 72, 18, 32, 43, 93],
+  // Twinmind web (app.twinmind.com) — public Firebase Web API key used only to
+  // exchange a user refresh token for a short-lived ID token. Firebase Web API
+  // keys are public client identifiers, not secrets.
+  // https://firebase.google.com/docs/projects/api-keys
+  twinmind_fb: [
+    46, 36, 20, 8, 33, 22, 49, 70, 54, 73, 47, 59, 50, 95, 31, 34, 25, 4, 70, 25, 2, 28, 6, 57, 30,
+    49, 17, 3, 93, 40, 47, 7, 47, 36, 39, 117, 21, 120, 62,
+  ],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;
