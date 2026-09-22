@@ -227,6 +227,28 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Sign in with the same Kimi account used by Kimi Code CLI. OmniRoute uses the CLI OAuth flow and Kimi Coding Plan endpoints.",
   },
+  "muse-code": {
+    id: "muse-code",
+    serviceKinds: ["llm"],
+    alias: "mc",
+    name: "Muse Code (Subscription)",
+    icon: "psychology",
+    color: "#0064E0",
+    textIcon: "MC",
+    website: "https://www.meta.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with the Meta account holding your Muse Code subscription via the device flow. OmniRoute exchanges the grant for a subscription inference key; Contributor models may use prompts for training.",
+  },
+  // Canonical-metadata note: "muse-code" intentionally exists in both the
+  // OAuth catalog (this entry, owning connection/auth metadata) and the
+  // API-key catalog (existing META_API_KEY entry), because the registry,
+  // executor, and stored connections all key on the shared id. Static
+  // catalog resolution and getProviderById() both prefer the OAuth entry,
+  // so page-level consumers see subscription metadata; API-key connections
+  // keep working through the dual-auth affordances (DUAL_AUTH_PROVIDER_IDS,
+  // OAuth-card counting, wizard allowlist).
   kilocode: {
     id: "kilocode",
     serviceKinds: ["llm"],

@@ -37,6 +37,7 @@ const {
   GROK_BUILD_OAUTH_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
+  MUSE_CODE_CONFIG,
   KIRO_CONFIG,
   OAUTH_TIMEOUT,
   PROVIDERS: OAUTH_PROVIDER_IDS,
@@ -57,6 +58,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "agy",
   "qoder",
   "kimi-coding",
+  "muse-code",
   "github",
   "ghe-copilot",
   "gitlab-duo",
@@ -91,6 +93,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   agy: AGY_CONFIG,
   qoder: QODER_CONFIG,
   "kimi-coding": KIMI_CODING_CONFIG,
+  "muse-code": MUSE_CODE_CONFIG,
   github: GITHUB_CONFIG,
   "ghe-copilot": GHE_COPILOT_CONFIG,
   "gitlab-duo": GITLAB_DUO_CONFIG,
@@ -128,6 +131,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   agy: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   qoder: ["extraParams"],
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],
+  "muse-code": ["deviceCodeUrl", "tokenUrl", "keyUrl", "clientId"],
   github: ["deviceCodeUrl", "tokenUrl", "userInfoUrl", "copilotTokenUrl", "clientId"],
   // GHE Copilot derives its URLs at runtime from the per-connection gheUrl — only static fields.
   "ghe-copilot": ["clientId", "scopes", "apiVersion", "userAgent"],
@@ -265,7 +269,21 @@ test("every registered OAuth provider has a valid config object, flow type and t
     assert.ok(allowedFlowTypes.has(provider.flowType), `${providerId} has unsupported flowType`);
     assert.equal(typeof provider.mapTokens, "function", `${providerId} must expose mapTokens`);
 
-    const mapped = provider.mapTokens({});
+    // muse-code rejects incomplete exchanges (no usable credential exists
+    // without the key-exchange step), so it gets a completed fixture while
+    // every other provider keeps the empty-input contract.
+    const mapped =
+      providerId === "muse-code"
+        ? provider.mapTokens(
+            { access_token: "test-device-token" },
+            {
+              apiKey: "test-subscription-key",
+              accountId: "test-account",
+              email: null,
+              isSubsActive: true,
+            }
+          )
+        : provider.mapTokens({});
     assert.ok(
       mapped && typeof mapped === "object",
       `${providerId} mapTokens must return an object`

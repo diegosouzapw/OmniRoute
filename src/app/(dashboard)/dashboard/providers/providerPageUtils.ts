@@ -203,7 +203,12 @@ export function shouldShowProviderSection(
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
 
-const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set(["kiro", "amazon-q", "kimi-coding"]);
+const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set([
+  "kiro",
+  "amazon-q",
+  "kimi-coding",
+  "muse-code",
+]);
 
 export function getProviderConnectionsRequestUrl(providerId: string): string {
   const hasAliases = getProviderConnectionFamilyIds(providerId).length > 1;
@@ -500,9 +505,7 @@ export function filterConfiguredProviderEntries<TProvider>(
       return connections.some(
         (conn) =>
           connectionBelongsToProviderPage(conn.provider, entry.providerId) &&
-          connectionSearchHaystacks(conn).some((haystack) =>
-            matchesAnyToken(haystack, searchQuery)
-          )
+          connectionSearchHaystacks(conn).some((haystack) => matchesAnyToken(haystack, searchQuery))
       );
     });
   }

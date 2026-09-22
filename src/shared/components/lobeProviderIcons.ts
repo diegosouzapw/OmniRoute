@@ -407,6 +407,7 @@ const LOBE_PROVIDER_ALIASES = {
   moonshot: "Moonshot",
   morph: "Morph",
   "muse-spark-web": "MetaAI",
+  "muse-code": "MetaAI",
   nanobanana: "NanoBanana",
   nebius: "Nebius",
   "nous-research": "NousResearch",

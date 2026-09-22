@@ -16,6 +16,7 @@ import { antigravity } from "./antigravity";
 import { agy } from "./agy";
 import { qoder } from "./qoder";
 import { kimiCoding } from "./kimi-coding";
+import { museCode } from "./muse-code";
 import { github } from "./github";
 import { gheCopilot } from "./ghe-copilot";
 import { gitlabDuo } from "./gitlab-duo";
@@ -39,6 +40,7 @@ export const PROVIDERS = {
   agy,
   qoder,
   "kimi-coding": kimiCoding,
+  "muse-code": museCode,
   github,
   "ghe-copilot": gheCopilot,
   "gitlab-duo": gitlabDuo,

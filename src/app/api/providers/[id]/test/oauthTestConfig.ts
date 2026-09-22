@@ -246,6 +246,13 @@ export const OAUTH_TEST_CONFIG: Record<string, OAuthTestConfigEntry> = {
     checkExpiry: true,
     refreshable: true,
   },
+  "muse-code": {
+    // Muse Code subscription has no refresh-token grant and no stable
+    // user-info endpoint: the exchanged inference key is validated by
+    // presence/expiry, and live connectivity is exercised by real
+    // /v1/responses traffic. Reconnect replaces the stored key.
+    checkExpiry: true,
+  },
   kilocode: {
     // Kilo OAuth does not expose a stable user-info endpoint in all environments.
     // Validate using token presence/expiry as a lightweight auth check.

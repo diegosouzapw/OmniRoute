@@ -83,13 +83,30 @@ function isSameClaudeAccount(
 }
 
 /**
+ * Does this existing Muse Code connection represent the SAME subscription
+ * account as the incoming login? The key exchange returns `user_id` and only
+ * sometimes `user_email`, so an email match cannot be required: agreement on
+ * the persisted `accountId` decides, mirroring the Codex chatgptUserId rule
+ * (#7737). Without this, every reconnect of a user_id-only account would fork
+ * a duplicate connection instead of replacing the stored key.
+ */
+function isSameMuseAccount(
+  existingProviderData: Record<string, any> | null | undefined,
+  incomingProviderData: Record<string, any> | null | undefined
+): boolean {
+  const incomingAccountId = incomingProviderData?.accountId;
+  const existingAccountId = existingProviderData?.accountId;
+  return Boolean(incomingAccountId) && safeEqual(existingAccountId, incomingAccountId);
+}
+/**
  * Find the existing OAuth connection (if any) that an incoming token payload
  * should be merged into, shared by every OAuth-completion call site
  * (persistOAuthConnection, and the exchange/poll/poll-callback branches in
  * `src/app/api/oauth/[provider]/[action]/route.ts`). Matches by explicit
  * connectionId first, then by same email + auth type — with Codex requiring
- * workspaceId/chatgptUserId agreement (#7737) and Claude requiring
- * organizationUUID agreement, to avoid silently overwriting a different
+ * workspaceId/chatgptUserId agreement (#7737), Claude requiring
+ * organizationUUID agreement, and Muse Code requiring accountId agreement,
+ * to avoid silently overwriting a different
  * account that merely shares an email.
  */
 export function findExistingOAuthConnectionMatch(
@@ -100,6 +117,12 @@ export function findExistingOAuthConnectionMatch(
 ): Record<string, any> | undefined {
   return existing.find((c) => {
     if (c.id && safeEqual(connectionId, c.id)) return true;
+    if (provider === "muse-code") {
+      return (
+        c.authType === "oauth" &&
+        isSameMuseAccount(c.providerSpecificData, tokenData.providerSpecificData)
+      );
+    }
     // Email dedup only when the payload actually carries an email. Without this
     // guard `safeEqual(undefined, undefined)` is true, so an email-less payload
     // would false-match the first email-less connection of the provider.
@@ -180,8 +203,9 @@ export async function persistOAuthConnection(
   // / re-auth of a known connection); honor it even when the payload has no
   // top-level email. Some providers (e.g. GitHub Copilot) keep identity under
   // providerSpecificData, so gating dedup on tokenData.email alone created a
-  // duplicate connection on every refresh (#8059).
-  if (connectionId || tokenData.email) {
+  // duplicate connection on every refresh (#8059). Muse Code likewise keys
+  // identity on providerSpecificData.accountId, so it enters dedup too.
+  if (connectionId || tokenData.email || provider === "muse-code") {
     const existing = await getProviderConnections({ provider });
     const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
     const matchId = typeof match?.id === "string" ? match.id : null;

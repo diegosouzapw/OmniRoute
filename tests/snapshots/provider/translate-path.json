@@ -4115,7 +4115,10 @@
         "Content-Type": "application/json"
       }
     },
-    "url": {}
+    "url": {
+      "nonStream": "https://api.meta.ai/v1/responses",
+      "stream": "https://api.meta.ai/v1/responses"
+    }
   },
   "muse-spark-web": {
     "format": "openai",

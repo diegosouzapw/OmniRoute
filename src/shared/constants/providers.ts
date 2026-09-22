@@ -43,7 +43,7 @@ export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
 
 // Providers presented as one dashboard card with OAuth as the primary action
 // and a direct API-key alternative. Keep these out of FREE_APIKEY_PROVIDER_IDS.
-const DUAL_AUTH_PROVIDER_IDS = new Set(["clinepass", "codebuddy-cn", "xai"]);
+const DUAL_AUTH_PROVIDER_IDS = new Set(["clinepass", "codebuddy-cn", "xai", "muse-code"]);
 
 export function supportsDualAuthProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && DUAL_AUTH_PROVIDER_IDS.has(providerId);
@@ -341,8 +341,15 @@ function getOrCreateAiProviders(): Record<string, any> {
     ensureProvidersValidated();
     _aiProviders = {};
     for (const section of _PROVIDER_SECTIONS) {
+      // Skip the OAuth section here: it is applied last so OAuth entries win
+      // on id overlap, matching getProviderById(), getProviderByAlias(), and
+      // the static catalog resolution order. Today the only overlap is
+      // "muse-code" (subscription OAuth + META_API_KEY), whose
+      // connection/auth metadata must be the subscription variant everywhere.
+      if (section === OAUTH_PROVIDERS) continue;
       Object.assign(_aiProviders, section);
     }
+    Object.assign(_aiProviders, OAUTH_PROVIDERS);
   }
   return _aiProviders;
 }

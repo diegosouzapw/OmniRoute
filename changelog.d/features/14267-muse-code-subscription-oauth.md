@@ -1,0 +1,1 @@
+- **feat(oauth):** Muse Code subscription login via device flow — approve in the browser and OmniRoute exchanges the grant for a subscription inference key ([#14267](https://github.com/diegosouzapw/OmniRoute/pull/14267)) — thanks @caniko

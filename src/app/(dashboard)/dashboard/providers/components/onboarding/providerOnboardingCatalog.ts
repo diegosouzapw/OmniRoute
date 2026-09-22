@@ -47,6 +47,7 @@ export const SUPPORTED_WIZARD_OAUTH_PROVIDER_IDS = new Set([
   "cursor",
   "kilocode",
   "cline",
+  "muse-code",
 ]);
 
 function toProviderOption(

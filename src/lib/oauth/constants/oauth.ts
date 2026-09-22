@@ -179,6 +179,19 @@ export const KIMI_CODING_CONFIG = {
   tokenUrl: "https://auth.kimi.com/api/oauth/token",
 };
 
+// Muse Code Subscription OAuth Configuration (Device Code Flow + key exchange)
+// Device authorization follows the standard device grant; the granted device
+// token is then exchanged for a subscription inference key at the key
+// endpoint (onboard: true). There is no refresh-token grant: a revoked or
+// replaced key requires reconnecting. Inference authenticates with the
+// exchanged subscription key, never the device token.
+export const MUSE_CODE_CONFIG = {
+  clientId: resolvePublicCred("muse_id", "MUSE_CODE_OAUTH_CLIENT_ID"),
+  deviceCodeUrl: "https://auth.meta.com/oidc/device/authorization/",
+  tokenUrl: "https://auth.meta.com/oidc/device/token/",
+  keyUrl: "https://api.meta.ai/muse-code/key",
+};
+
 // KiloCode OAuth Configuration (Custom Device Auth Flow)
 export const KILOCODE_CONFIG = {
   apiBaseUrl: "https://api.kilo.ai",
@@ -497,6 +510,7 @@ export const PROVIDERS = {
   ANTIGRAVITY: "antigravity",
   AGY: "agy",
   KIMI_CODING: "kimi-coding",
+  MUSE_CODE: "muse-code",
   OPENAI: "openai",
   GITHUB: "github",
   GHE_COPILOT: "ghe-copilot",

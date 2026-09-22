@@ -45,6 +45,7 @@ const DEVICE_CODE_PROVIDERS = new Set([
   "kiro",
   "amazon-q",
   "kimi-coding",
+  "muse-code",
   "kilocode",
   "codebuddy-cn",
   "ghe-copilot",
