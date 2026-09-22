@@ -197,6 +197,13 @@ const featuresSchema = z
     visibleModels: z.array(z.string().min(1)).optional(),
     hiddenModels: z.array(z.string().min(1)).optional(),
     diskCache: z.boolean().optional(),
+    /**
+     * Opt-in max age for a disk-cache fallback snapshot, in milliseconds.
+     * Unset or `0` keeps the historical unbounded default: a stale snapshot
+     * is still served. A positive bound does not refuse the snapshot; the
+     * fallback log escalates from warn to error once the snapshot is older.
+     */
+    diskCacheMaxAgeMs: z.number().nonnegative().optional(),
     providerTag: z.boolean().optional(),
     debugLog: z.boolean().optional(),
     startupDebug: z.boolean().optional(),
@@ -5560,13 +5567,20 @@ export function createOmniRouteConfigHook(
             // "stale" alone reads as a transient blip, so a week-old catalog
             // is indistinguishable from a five-minute-old one.
             const snapshotAge = snapshot.writtenAt;
+            const ageMs = typeof snapshotAge === "number" ? now() - snapshotAge : undefined;
             const snapshotAgeLabel =
-              typeof snapshotAge === "number"
-                ? `${Math.round((Date.now() - snapshotAge) / 3_600_000)}h`
-                : "unknown";
+              typeof ageMs === "number" ? `${Math.round(ageMs / 3_600_000)}h` : "unknown";
+            const maxAgeMs = features.diskCacheMaxAgeMs;
+            const pastMaxAge =
+              typeof maxAgeMs === "number" &&
+              maxAgeMs > 0 &&
+              typeof ageMs === "number" &&
+              ageMs > maxAgeMs;
             logAt(
-              "warn",
-              `config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models, age ${snapshotAgeLabel})`
+              pastMaxAge ? "error" : "warn",
+              `config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models, age ${snapshotAgeLabel}${
+                pastMaxAge ? `, past diskCacheMaxAgeMs=${maxAgeMs}` : ""
+              })`
             );
             localRawModels = snapshot.rawModels;
             localRawCombos = snapshot.rawCombos;

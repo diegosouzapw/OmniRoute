@@ -1356,6 +1356,63 @@ test('config: stale-fallback warning falls back to "unknown" age without written
   );
 });
 
+test("config: diskCacheMaxAgeMs escalates the fallback log but still serves the snapshot", async () => {
+  const readAuthJson = stubReadAuthJson({
+    "opencode-omniroute": { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = throwingModelsFetcher();
+  const combosFetcher = stubCombosFetcher([]);
+  const levels: string[] = [];
+  const logger = {
+    warn: (message: string) => {
+      levels.push(`warn:${message}`);
+    },
+    error: (message: string) => {
+      levels.push(`error:${message}`);
+    },
+  };
+  const writtenAt = 1_700_000_000_000;
+  const maxAgeMs = 24 * 3_600_000;
+  const diskSnapshotReader = emptyThenSnapshotReader({
+    rawModels: [MODEL_CLAUDE],
+    rawCombos: [],
+    rawEnrichment: new Map([["claude-sonnet-4-6", { name: "Claude Sonnet 4.6 (cached)" }]]),
+    rawCompressionCombos: [],
+    rawConnections: [],
+    writtenAt,
+  });
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", features: { diskCache: true, diskCacheMaxAgeMs: maxAgeMs } },
+    {
+      readAuthJson,
+      fetcher,
+      combosFetcher,
+      diskSnapshotReader,
+      logger,
+      now: () => writtenAt + 48 * 3_600_000,
+    }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider[
+    "opencode-omniroute"
+  ];
+  assert.ok(entry.models["claude-sonnet-4-6"], "snapshot past the bound is still served");
+  assert.ok(
+    levels.some(
+      (line) => line.startsWith("error:") && line.includes(`past diskCacheMaxAgeMs=${maxAgeMs}`)
+    ),
+    "past-bound fallback escalates to error"
+  );
+  assert.equal(
+    levels.some((line) => line.startsWith("warn:") && line.includes("using stale disk cache")),
+    false,
+    "past-bound fallback is not only a warning"
+  );
+});
+
 test("config: cached rawEnrichment from earlier provider hook is reused (no refetch)", async () => {
   const readAuthJson = stubReadAuthJson({
     "opencode-omniroute": { type: "api", key: "sk-shared", baseURL: "https://or.example/v1" },
