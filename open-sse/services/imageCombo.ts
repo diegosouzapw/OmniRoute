@@ -287,7 +287,9 @@ async function runImageGenerationTargets(
         log,
         signal: auth.request?.signal || null,
       })) as ImageGenerationResult,
-    onSuccess: async (credentials) => clearRecoveredProviderState(credentials as never),
+    onSuccess: async (credentials) => {
+      await clearRecoveredProviderState(credentials as never);
+    },
     failureLabel: "Image generation failed",
   });
 }

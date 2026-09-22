@@ -940,7 +940,7 @@ async function loadAutoCandidateExclusions(
 
 function applyAutoCandidateExclusions(
   candidates: VirtualAutoComboCandidate[],
-  excludedConnectionIds: ReadonlySet<string>
+  excludedConnectionIds: Set<string>
 ): VirtualAutoComboCandidate[] {
   const filtered = filterExcludedCandidates(candidates, excludedConnectionIds);
   if (filtered === candidates) return candidates;
