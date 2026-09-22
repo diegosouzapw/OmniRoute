@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Ukloni lokalno vrijeme čekanja",
+    "codexReleaseCooldownHint": "Dozvoli ponovni pokušaj korištenja ovog Codex računa. Ovo ne koristi kredit za resetovanje niti mijenja ograničenja nadređenog sistema.",
+    "codexReleasingCooldown": "Uklanjanje…",
+    "codexCooldownReleased": "Lokalno vrijeme čekanja je uklonjeno.",
+    "codexCooldownReleaseFailed": "Nije moguće ukloniti vrijeme čekanja. Pokušajte ponovo.",
     "title": "Pružaoci usluga",
     "Account Deactivated": "Račun deaktiviran",
     "allProviders": "Svi pružaoci",

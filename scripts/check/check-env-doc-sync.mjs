@@ -25,7 +25,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { execSync } from "node:child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -454,6 +454,24 @@ function main() {
   process.exit(1);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+/**
+ * True when this module was launched directly as the Node entry point.
+ *
+ * `process.argv[1]` is an absolute filesystem path while `import.meta.url` is a
+ * file URL, so the two only match when encoded through `pathToFileURL`. A raw
+ * `file://${argv[1]}` comparison silently never matches when the checkout path
+ * contains characters the URL form percent-encodes (e.g. a space), which made
+ * the CLI exit 0 without running anything.
+ */
+export function isMainEntry(argv1, moduleUrl) {
+  if (!argv1) return false;
+  try {
+    return pathToFileURL(argv1).href === moduleUrl;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainEntry(process.argv[1], import.meta.url)) {
   main();
 }

@@ -104,7 +104,14 @@ describe("OpencodeExecutor free-tier refusal", () => {
   async function run(exec: OpencodeExecutor, creds: ProviderCredentials) {
     const result = (await exec.execute({
       model: "muse-spark-1.3-contributor-free",
-      body: { messages: [{ role: "user", content: "hi" }], stream: false },
+      // The client declares its own tool list: the request contract adds nothing, so a refusal
+      // is returned as-is. (When the contract injects the tools itself, the executor replays
+      // the request once in the other shape first: see opencode-request-shape-retry.test.ts.)
+      body: {
+        messages: [{ role: "user", content: "hi" }],
+        tools: [{ type: "function", function: { name: "read", parameters: { type: "object" } } }],
+        stream: false,
+      },
       stream: false,
       signal: null,
       credentials: creds,

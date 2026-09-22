@@ -969,7 +969,10 @@ export async function runNonStreamingProviderLeg(
   responseBody = unwrapClineNonStreamingEnvelope(provider, responseBody) as typeof responseBody;
 
   // -- Empty content -> family fallback (initial only) -------------------------
-  if (isEmptyContentResponse(responseBody)) {
+  // #14160: pass the provider so first-party APIs (antigravity) keep empty
+  // completions with a normal stop reason as valid 200s instead of synthetic
+  // 502s feeding model lockout.
+  if (isEmptyContentResponse(responseBody, { provider })) {
     const errMsg = "Provider returned empty content";
     if (allowModelFallback) {
       const triedModels = new Set<string>([currentModel]);

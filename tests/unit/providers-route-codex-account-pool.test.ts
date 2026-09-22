@@ -54,6 +54,13 @@ test("GET keeps one parent row and projects raw Codex state without exposing cre
     apiKey: "openai-api-secret",
   });
 
+  const { setProviderLimitsCache } = await import("../../src/lib/db/providerLimits.ts");
+  setProviderLimitsCache(codex.id, {
+    quotas: { session: { used: 25, total: 100 }, weekly: { used: 60, total: 100 } },
+    plan: null,
+    message: null,
+    fetchedAt: new Date().toISOString(),
+  });
   const response = await providersRoute.GET(
     await makeManagementSessionRequest("http://localhost/api/providers")
   );
@@ -83,6 +90,11 @@ test("GET keeps one parent row and projects raw Codex state without exposing cre
   };
   assert.equal(pool.parentConnectionId, codex.id);
   assert.equal(pool.children.length, 2);
+  const quota = pool.children[0].quota as {
+    windows: { "5h": { usedPercentage: number }; "7d": { usedPercentage: number } };
+  };
+  assert.equal(quota.windows["5h"].usedPercentage, 25);
+  assert.equal(quota.windows["7d"].usedPercentage, 60);
   assert.deepEqual(
     pool.children.map((child) => child.key),
     [

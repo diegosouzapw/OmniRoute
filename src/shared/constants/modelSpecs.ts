@@ -576,6 +576,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
     aliases: ["qwen3.7-max", "qwen3-max-2026-01-23"],
   },
+  // #14181: the GA `qwen3.8-max` is a distinct model served by opencode-go (and
+  // listed bare by alibaba/qwen-cloud/kilocode/clinepass/xkiro) — it gets its own
+  // spec row instead of aliasing to the preview, which remains a separate model.
+  "qwen3.8-max": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
   "qwen3.8-max-preview": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
@@ -583,7 +594,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["qwen3.8-max"],
   },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,
