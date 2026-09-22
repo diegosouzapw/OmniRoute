@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET ?? "auto-evaluation-trace-test-secret";
 
 const {
+  createInvocationId,
   getComboTrace,
   resetComboTraceStore,
   setAutoEvaluationWriteFailureForTests,
@@ -218,4 +219,24 @@ test("resilience narrowing records cardinality without connection ids", () => {
   const serialized = JSON.stringify(evaluation);
   assert.equal(serialized.includes("blocked-account-id"), false);
   assert.equal(serialized.includes("healthy-account-id"), false);
+});
+
+test("Auto evaluation trace id stays compatible with the existing combo-trace lookup contract", () => {
+  const invocationId = createInvocationId();
+  assert.match(invocationId, /^combo-/);
+  startTrace(invocationId);
+
+  recordAutoCandidatePool(invocationId, [
+    {
+      provider: "example",
+      model: "model-a",
+      modelStr: "example/model-a",
+      connectionId: null,
+      allowedConnectionIds: ["candidate-a", "candidate-b"],
+    },
+  ]);
+
+  const trace = getComboTrace(invocationId);
+  assert.equal(trace?.invocationId, invocationId);
+  assert.equal(trace?.autoEvaluation?.schemaVersion, 1);
 });
