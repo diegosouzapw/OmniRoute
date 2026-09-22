@@ -1,1 +1,0 @@
-- **docs(authz):** document that API-key management scopes, MCP tool scopes, and `read`/`write`/`admin` access tokens are three independent namespaces ([#13391](https://github.com/diegosouzapw/OmniRoute/issues/13391)) — thanks @RaviTharuma
