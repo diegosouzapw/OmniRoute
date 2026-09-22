@@ -146,7 +146,7 @@ jednu površinu bez ostalih uzrokovat će pad testnog seta umjesto da tiho odstu
 
 Svi alati koji se pojavljuju u `/dashboard/cli-code`. Oni s vrijednošću `baseUrlSupport: none` povezani su putem MITM-a ili ručnog vodiča umjesto prilagođenog osnovnog URL-a:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
+| id           | naziv                   | dobavljač           | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
 | claude       | Claude Code             | Anthropic           | full           | env            | true         |
 | codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
@@ -173,9 +173,9 @@ Svi alati koji se pojavljuju u `/dashboard/cli-code`. Oni s vrijednošću `baseU
 | antigravity  | Antigravity             | Google              | none           | mitm           | false        |
 | hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| custom       | Prilagođeni CLI         | —                   | full           | custom-builder | false        |
 
-Alati s vrijednošću `baseUrlSupport: "partial"` prikazuju značku "⚠ Djelimični osnovni URL" na kartici kontrolne ploče.
+Alati s vrijednošću `baseUrlSupport: "partial"` prikazuju oznaku „⚠ Djelimični osnovni URL“ na kartici kontrolne ploče.
 ---
 
 ## 2. Katalog CLI agenata (10 alata)
@@ -604,155 +604,155 @@ pod `/dashboard/cli-tools → Kiro`.
 
 ## 10. Interni OmniRoute CLI
 
-`omniroute` binarni fajl pruža komande za životni ciklus servera, podešavanje, dijagnostiku i upravljanje provajderima. Ulazna tačka: `bin/omniroute.mjs`.
+Binarna datoteka `omniroute` pruža naredbe za životni ciklus servera, postavljanje, dijagnostiku i upravljanje pružaocima usluga. Ulazna tačka: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Pokreni server (podrazumijevani port 20128)
-omniroute setup                        # Interaktivni čarobnjak za podešavanje
-omniroute doctor                       # Provjera konfiguracije, DB-a, portova, runtime-a
-omniroute providers list               # Konfigurisane konekcije provajdera
-omniroute providers test-all           # Testiraj svaku aktivnu konekciju
-omniroute reset-password               # Resetuj administratorsku lozinku
-omniroute logs                         # Stream logova zahtjeva
-omniroute health                       # Detaljno zdravlje (breakers, cache, memory)
-omniroute --version                    # Ispiši verziju
-omniroute --help                       # Prikaži sve komande
+omniroute                              # Pokreni server (zadani port 20128)
+omniroute setup                        # Interaktivni čarobnjak za postavljanje
+omniroute doctor                       # Provjeri konfiguraciju, bazu podataka, portove i izvršno okruženje
+omniroute providers list               # Konfigurirane veze s pružaocima usluga
+omniroute providers test-all           # Testiraj svaku aktivnu vezu
+omniroute reset-password               # Ponovo postavi administratorsku lozinku
+omniroute logs                         # Prati zapisnike zahtjeva
+omniroute health                       # Detaljno zdravstveno stanje (prekidači, keš, memorija)
+omniroute --version                    # Prikaži verziju
+omniroute --help                       # Prikaži sve naredbe
 ```
 
-### Podešavanje i inicijalizacija
+### Postavljanje i inicijalizacija
 
 ```bash
-omniroute setup                        # Interaktivni čarobnjak za podešavanje
-omniroute setup --non-interactive      # CI/automatizacijski režim (čita env varijable + flagove)
-omniroute setup --password '<value>'   # Postavi administratorsku lozinku direktno
+omniroute setup                        # Interaktivni čarobnjak za postavljanje
+omniroute setup --non-interactive      # CI/automatizirani režim (čita varijable okruženja + zastavice)
+omniroute setup --password '<value>'   # Direktno postavi administratorsku lozinku
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Dodaj i testiraj provajdera u jednom koraku
+  --test-provider                      # Dodaj i testiraj pružaoca usluga u jednom koraku
 ```
 
-Prepoznate environment varijable za ne-interaktivno podešavanje:
+Prepoznate varijable okruženja za neinteraktivno postavljanje:
 
-| Var                 | Svrha                                                                  |
-| ------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | API ključ provajdera (povezan sa `--api-key` putem Commander `.env()`) |
-| `DATA_DIR`          | Nadjađaj (override) OmniRoute direktorij za podatke                    |
+| Var                 | Namjena                                                                    |
+| ------------------- | -------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API ključ pružaoca usluga (povezan s `--api-key` putem Commander `.env()`) |
+| `DATA_DIR`          | Nadjačava OmniRoute direktorij podataka                                    |
 
-Svi ostali ne-interaktivni inputi se proslijeđuju kao flagovi, a ne kao environment varijable:
+Svi ostali neinteraktivni ulazni podaci prosljeđuju se kao zastavice, a ne kao varijable okruženja:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(vidi opcije za `omniroute setup` iznad).
+(pogledajte opcije za `omniroute setup` iznad).
 
 ### Dijagnostika
 
 ```bash
-omniroute doctor                       # Provjera konfiguracije, DB-a, portova, runtime-a, memorije, liveness-a
-omniroute doctor --json                # JSON čitljiv za mašine
-omniroute doctor --no-liveness         # Preskoči HTTP health probu
-omniroute doctor --host 0.0.0.0        # Nadjađaj liveness host
-omniroute doctor --liveness-url <url>  # Nadjađaj puni URL health endpoint-a
+omniroute doctor                       # Provjeri konfiguraciju, bazu podataka, portove, izvršno okruženje, memoriju i dostupnost
+omniroute doctor --json                # Mašinski čitljiv JSON
+omniroute doctor --no-liveness         # Preskoči HTTP provjeru zdravstvenog stanja
+omniroute doctor --host 0.0.0.0        # Nadjačaj host za provjeru dostupnosti
+omniroute doctor --liveness-url <url>  # Nadjačaj puni URL krajnje tačke zdravstvenog stanja
 ```
 
-`doctor` pokreće sljedeće provjere: `Config`, `Database`, `Storage/encryption`,
+Doctor izvršava sljedeće provjere: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, i `Server liveness`. Izlazi sa non-zero statusom ako bilo koja provjera završi sa `fail`.
+`Memory` i `Server liveness`. Završava s izlaznim kodom različitim od nule ako bilo koja provjera ima rezultat `fail`.
 
-### Upravljanje provajderima
+### Upravljanje pružaocima usluga
 
 ```bash
-omniroute providers available                       # Katalog OmniRoute provajdera
-omniroute providers available --search openai       # Filtriraj katalog po id/ime/alias/kategoriji
-omniroute providers available --category api-key    # Filtriraj po kategoriji (api-key, oauth, free, ...)
-omniroute providers available --json                # JSON čitljiv za mašine
+omniroute providers available                       # OmniRoute katalog pružalaca usluga
+omniroute providers available --search openai       # Filtriraj katalog prema ID-u/nazivu/aliasu/kategoriji
+omniroute providers available --category api-key    # Filtriraj prema kategoriji (api-key, oauth, free, ...)
+omniroute providers available --json                # Mašinski čitljiv JSON
 
-omniroute providers list                            # Konfigurisane konekcije provajdera
+omniroute providers list                            # Konfigurirane veze s pružaocima usluga
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Testiraj jednu konfigurisnu konekciju
-omniroute providers test-all                        # Testiraj svaku aktivnu konekciju
-omniroute providers validate                        # Lokalna strukturna validacija
+omniroute providers test <id|name>                  # Testiraj jednu konfiguriranu vezu
+omniroute providers test-all                        # Testiraj svaku aktivnu vezu
+omniroute providers validate                        # Strukturna validacija samo lokalno
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Postojeći OAuth flow
+omniroute providers auth <provider>                 # Postojeći OAuth tok
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` su API-first i stoga rade protiv
-aktivnog lokalnog ili udaljenog konteksta. Unos kredencijala treba koristiti
-`--credential-stdin` ili `--credential-env`; `--dry-run --json` izvještava samo
-o prisutnosti/obliku (redacted). `providers available` čita OmniRoute katalog;
+`providers add/import/auth/edit/remove` prvenstveno koriste API i stoga rade s
+aktivnim lokalnim ili udaljenim kontekstom. Za unos vjerodajnica treba koristiti
+`--credential-stdin` ili `--credential-env`; `--dry-run --json` prijavljuje samo
+redigirano prisustvo/strukturu. `providers available` čita OmniRoute katalog;
 `providers list/test/test-all/validate` zadržavaju svoje lokalno SQLite ponašanje i
-ne zahtijevaju da server bude pokrenut.
+ne zahtijevaju pokrenut server.
 
-### Oporavak i resetovanje
+### Oporavak i ponovno postavljanje
 
 ```bash
-omniroute reset-password                # Resetuj administratorsku lozinku (također: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Prikaži upozorenje + dry-run za resetovanje enkriptovanih kredencijala
-omniroute reset-encrypted-columns --force  # Zapravo postavi enkriptovane kredencijale na null u SQLite-u
+omniroute reset-password                # Ponovo postavi administratorsku lozinku (također: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Prikaži upozorenje + probno pokretanje za resetiranje šifriranih vjerodajnica
+omniroute reset-encrypted-columns --force  # Zaista postavi šifrirane vjerodajnice u SQLite-u na null
 ```
 
-### Izvoz kredencijala (⚠ rukovati s oprezom)
+### Izvoz vjerodajnica (⚠ postupajte oprezno)
 
 ```bash
-omniroute auth export                                 # Prikaži upozorenje + potvrdu — bez pristupa DB-u
-omniroute auth export --force                          # Izvozi SVE DEKRIPTovane kredencijale konekcija u stdout kao JSON
-omniroute auth export --force --id <id>                 # Izvozi samo podudarajuću konekciju
-omniroute auth export --force --format env               # Emituj OMNIROUTE_<PROVIDER>_<FIELD>=<value> linije
-omniroute auth export --force --out creds.json           # Zapiši u fajl (kreiran sa 0600 dozvolama)
+omniroute auth export                                 # Prikaži upozorenje + zahtjev za potvrdu — bez pristupa bazi podataka
+omniroute auth export --force                          # Izvezi DEŠIFRIRANE vjerodajnice SVIH veza na standardni izlaz kao JSON
+omniroute auth export --force --id <id>                 # Izvezi samo odgovarajuću vezu
+omniroute auth export --force --format env               # Ispiši redove OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Zapiši u datoteku (kreiranu s dozvolama 0600)
 ```
 
-`auth export` je **isključivo lokalni** (direktno čitanje iz SQLite-a, bez HTTP rute) i namjerno ispisuje/zapisuje
-**plaintext** `apiKey`/`accessToken`/`refreshToken`/`idToken` vrijednosti — to je funkcionalnost, a ne
-bug. Ništa se ne čita iz baze podataka i ništa se ne dekriptuje bez `--force`. Upozorenje u stderr-u
-se uvijek ispisuje prije emitovanja bilo kojeg plaintext-a. Zahtijeva da `STORAGE_ENCRYPTION_KEY`
-bude postavljen. Polje koje nije moguće dekriptovati (zastarjeli ključ, korumpiran ciphertext)
-prijavljuje se kao `<field>DecryptFailed: true` umjesto prekida cijelog izvoza ili curenja osnovne greške.
+`auth export` radi **samo lokalno** (direktno čitanje iz SQLite-a, bez HTTP rute) i namjerno ispisuje/zapisuje
+vrijednosti `apiKey`/`accessToken`/`refreshToken`/`idToken` kao **običan tekst** — to je funkcionalnost, a ne
+greška. Bez `--force` ništa se ne čita iz baze podataka i ništa se ne dešifrira. Baner upozorenja se uvijek
+ispisuje na stderr prije emitiranja bilo kakvog običnog teksta. Zahtijeva da
+`STORAGE_ENCRYPTION_KEY` bude postavljen. Polje čije dešifriranje ne uspije (zastarjeli ključ, oštećeni šifrirani tekst) prijavljuje se kao
+`<field>DecryptFailed: true` umjesto prekidanja cijelog izvoza ili otkrivanja osnovne greške.
 
-### Ostale podkomande
+### Ostale podnaredbe
 
-Ove komande pretpostavljaju pokrenut OmniRoute server, osim ako nije drugačije navedeno:
+One podrazumijevaju pokrenut OmniRoute server, osim ako nije drugačije navedeno:
 
 ```bash
-omniroute status                       # Sveobuhvatni status izvršavanja
-omniroute logs                         # Stream logova zahtjeva (--json, --search, --follow)
-omniroute config show                  # Prikaži trenutnu konfiguraciju
+omniroute status                       # Sveobuhvatan status izvršavanja
+omniroute logs                         # Prati zapisnike zahtjeva (--json, --search, --follow)
+omniroute config list                  # Prikaži konfigurirane CLI alate
 
-omniroute provider list                # Lista dostupnih providera (alias za providers list)
-omniroute provider add                 # Registruj OmniRoute kao provider na alat
-omniroute keys add | list | remove     # Upravljanje API ključevima
-omniroute models [provider]            # Lista modela (--json, --search)
+omniroute provider list                # Prikaži dostupne pružaoce (alias za providers list)
+omniroute provider add                 # Registriraj OmniRoute kao pružaoca u alatu
+omniroute keys add | list | remove     # Upravljaj API ključevima
+omniroute models [provider]            # Prikaži modele (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Snapshot konfiguracije + DB
-omniroute restore                      # Vrati podatke iz prethodnog snapshot-a
+omniroute backup                       # Napravi snimak konfiguracije + baze podataka
+omniroute restore                      # Vrati stanje iz prethodnog snimka
 
-omniroute health                       # Detaljno zdravlje (breakers, cache, memory)
-omniroute quota                        # Korištenje kvote providera
+omniroute health                       # Detaljno stanje (prekidači, keš, memorija)
+omniroute quota                        # Iskorištenost kvote pružaoca
 omniroute cache                        # Status keša
-omniroute cache clear                  # Obriši semantički + signature keš
+omniroute cache clear                  # Očisti semantički keš i keš potpisa
 
-omniroute mcp status | restart         # Status / restart MCP servera
-omniroute a2a status | card            # Status A2A servera / agent kartica
+omniroute mcp status | restart         # Status / ponovno pokretanje MCP servera
+omniroute a2a status | card            # Status A2A servera / kartica agenta
 
-omniroute tunnel list | create | stop  # Upravljanje tunelima (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Pregled / postavljanje env varijabli (privremeno)
+omniroute tunnel list | create | stop  # Upravljaj tunelima (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Pregledaj / postavi varijable okruženja (privremeno)
 
-omniroute test                         # Smoke test povezanosti providera
-omniroute update                       # Provjeri ažuriranja
-omniroute completion                   # Generiši shell completion
+omniroute test                         # Brzi test povezivosti s pružaocem
+omniroute update                       # Provjeri postoje li ažuriranja
+omniroute completion                   # Generiraj automatsko dovršavanje za ljusku
 ```
 
-### Uobičajeni flagovi
+### Uobičajene zastavice
 
-| Flag                | Opis                                                   |
+| Zastavica           | Opis                                                   |
 | ------------------- | ------------------------------------------------------ |
-| `--no-open`         | Nemoj automatski otvarati browser pri pokretanju       |
-| `--port <n>`        | Nadjaži API port (podrazumijevano 20128)               |
-| `--mcp`             | Pokreni kao MCP server preko stdio (za IDE-ove)        |
-| `--non-interactive` | CI način (bez promptova; čita iz env/flagova)          |
-| `--json`            | JSON izlaz čitljiv za mašine (doctor, providers, itd.) |
-| `--help`, `-h`      | Prikaži pomoć specifičnu za komandu                    |
+| `--no-open`         | Ne otvaraj automatski preglednik pri pokretanju        |
+| `--port <n>`        | Zamijeni API port (zadani je 20128)                    |
+| `--mcp`             | Pokreni kao MCP server putem stdio (za IDE-ove)        |
+| `--non-interactive` | CI način rada (bez upita; čita iz okruženja/zastavica) |
+| `--json`            | Mašinski čitljiv JSON izlaz (doctor, providers itd.)   |
+| `--help`, `-h`      | Prikaži pomoć specifičnu za naredbu                    |
 | `--version`, `-v`   | Ispiši instaliranu verziju                             |
 
 ---

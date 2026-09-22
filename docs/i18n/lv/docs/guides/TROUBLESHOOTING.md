@@ -14,21 +14,22 @@ Biežāk sastopamās OmniRoute problēmas un to risinājumi.
 
 ## Ātrā uzziņa
 
-**Vai OmniRoute lietojat pirmoreiz?** Sāciet šeit — šie risinājumi novērš 90% problēmu:
+**Pirmoreiz izmantojat OmniRoute?** Sāciet šeit — šie risinājumi novērš 90% problēmu:
 
-| Redzamais ziņojums                          | Ko tas nozīmē                                         | Kā rīkoties                                                                                                     |
-| ------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| "Nevar izveidot savienojumu"                | OmniRoute nedarbojas                                  | Palaidiet `omniroute` vai `docker restart omniroute`                                                            |
-| "Nederīga API atslēga"                      | Jūsu atslēga ir nepareiza vai tās termiņš ir beidzies | Vēlreiz nokopējiet atslēgu no pakalpojuma sniedzēja vietnes                                                     |
-| "Pārsniegts pieprasījumu limits"            | Jūs sūtāt pārāk daudz pieprasījumu                    | Uzgaidiet 1 minūti vai izmantojiet `model: "auto"` automātiskai pārslēgšanai                                    |
-| "Pārsniegta kvota"                          | Jūs esat iztērējis savu bezmaksas/maksas kvotu        | Pievienojiet vairāk pakalpojumu sniedzēju vai izmantojiet bezmaksas pakalpojumu sniedzējus (Kiro, Pollinations) |
-| "Lēnas atbildes"                            | Pakalpojuma sniedzējs ir noslogots vai atrodas tālu   | Izmantojiet `model: "auto/fast"` vai pievienojiet ātrāku pakalpojuma sniedzēju (Groq, Cerebras)                 |
-| "Izmantots nepareizs pakalpojuma sniedzējs" | `auto` izvēlējās citu pakalpojuma sniedzēju           | Tas ir normāli! `auto` izvēlas labāko. Norādiet konkrētu pakalpojuma sniedzēju ar `model: "openai/gpt-4o"`      |
-| "502 Bad Gateway"                           | Pakalpojuma sniedzējs nedarbojas                      | Uzgaidiet un mēģiniet vēlreiz vai izmantojiet `model: "auto"`, lai pārslēgtu pakalpojuma sniedzējus             |
-| "401 Unauthorized"                          | Jūsu akreditācijas dati ir nepareizi                  | Pārbaudiet savu API atslēgu vai atkārtoti autentificējieties, izmantojot OAuth                                  |
-| "429 Too Many Requests"                     | Sasniegts pieprasījumu biežuma ierobežojums           | Uzgaidiet 1 minūti vai pievienojiet vairāk pakalpojumu sniedzēju                                                |
+| Es redzu šo                                 | Ko tas nozīmē                                       | Ko darīt                                                                                                        |
+| ------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| "Nevar izveidot savienojumu"                | OmniRoute nedarbojas                                | Palaidiet `omniroute` vai `docker restart omniroute`                                                            |
+| "Nederīga API atslēga"                      | Jūsu atslēga ir nepareiza vai tai beidzies termiņš  | Vēlreiz nokopējiet atslēgu no pakalpojumu sniedzēja vietnes                                                     |
+| "Pārsniegts ātruma ierobežojums"            | Jūs sūtāt pārāk daudz pieprasījumu                  | Uzgaidiet 1 minūti vai izmantojiet `model: "auto"` automātiskai pārslēgšanai                                    |
+| "Pārsniegta kvota"                          | Esat izlietojis savu bezmaksas/maksas kvotu         | Pievienojiet vairāk pakalpojumu sniedzēju vai izmantojiet bezmaksas pakalpojumu sniedzējus (Kiro, Pollinations) |
+| "Lēnas atbildes"                            | Pakalpojumu sniedzējs ir noslogots vai atrodas tālu | Izmantojiet `model: "auto/fast"` vai pievienojiet ātrāku pakalpojumu sniedzēju (Groq, Cerebras)                 |
+| "Izmantots nepareizs pakalpojumu sniedzējs" | `auto` izvēlējās citu pakalpojumu sniedzēju         | Tas ir normāli! `auto` izvēlas labāko. Norādiet konkrētu pakalpojumu sniedzēju ar `model: "openai/gpt-4o"`      |
+| "502 Nederīga vārteja"                      | Pakalpojumu sniedzējs nedarbojas                    | Uzgaidiet un mēģiniet vēlreiz vai izmantojiet `model: "auto"`, lai pārslēgtos uz citu pakalpojumu sniedzēju     |
+| "401 Nav autorizācijas"                     | Jūsu akreditācijas dati ir nepareizi                | Pārbaudiet savu API atslēgu vai atkārtoti autentificējieties, izmantojot OAuth                                  |
+| "omniroute netiek atpazīts"                 | Windows PATH nav iekļauti globālie node moduļi      | Pievienojiet savu npm globālo prefiksu Windows PATH. Atrodiet to ar `npm config get prefix`.                    |
+| "429 Pārāk daudz pieprasījumu"              | Piemērots ātruma ierobežojums                       | Uzgaidiet 1 minūti vai pievienojiet vairāk pakalpojumu sniedzēju                                                |
 
-**Joprojām neizdodas?** Skatiet tālāk sniegto [detalizēto problēmu novēršanas aprakstu](#detailed-troubleshooting) vai jautājiet [Discord](https://discord.gg/U47eFqAXCn).
+**Joprojām neizdodas?** Skatiet tālāk [detalizēto problēmu novēršanu](#detailed-troubleshooting) vai jautājiet [Discord](https://discord.gg/U47eFqAXCn).
 
 ---
 
@@ -36,74 +37,96 @@ Biežāk sastopamās OmniRoute problēmas un to risinājumi.
 
 ---
 
-### Pieprasījumu biežuma ierobežošana bezmaksas pakalpojumu sniedzējiem (429 / 400 / 401)
+### Ātruma ierobežošana bezmaksas pakalpojumu sniedzējiem (429 / 400 / 401)
 
-**Simptoms**: Izmantojot `model: "auto"` ar bezmaksas pakalpojumu sniedzējiem vai tādiem, kuriem nav nepieciešama autentifikācija (opencode, auggie u.c.), atbilžu vietā periodiski saņemat `HTTP 429`, `400` vai `401`. Atkārtoti nosūtot to pašu uzvedni pēc neilga brīža, pieprasījumi izdodas, taču automatizācija (cron uzdevumi, aģenti, skripti) pārtrauc darbību pēc pirmās kļūmes.
+**Simptoms**: Izmantojot `model: "auto"` ar bezmaksas pakalpojumu sniedzējiem vai tādiem, kuriem nav nepieciešama autentifikācija (opencode, auggie u.c.), atbilžu vietā periodiski saņemat `HTTP 429`, `400` vai `401`. Atkārtoti nosūtot to pašu uzvedni pēc īsa brīža, pieprasījumi izdodas, taču automatizācija (cron uzdevumi, aģenti, skripti) pārstāj darboties pēc pirmās kļūmes.
 
-**Pamatcēlonis**: Vienlaikus rodas trīs neatkarīgi kļūmju režīmi:
+**Pamatcēlonis**: Vienlaikus summējas trīs neatkarīgi kļūmju režīmi:
 
-1. **Pakalpojuma sniedzēja pieprasījumu biežuma ierobežojums (`429`)**: Bezmaksas līmeņos var būt noteikta kvota katram laika periodam. Paralēlu izsaukumu vilnis to izsmeļ, tāpēc nākamais pieprasījums tiek noraidīts, līdz laika periods tiek atiestatīts.
-2. **Nedarbojošs modelis tiešās pārsūtīšanas režīmā (`400`/`401`)**: `auto/*` kopās var būt ietverti tiešās pārsūtīšanas modeļi no `opencode`, kas ir reģistrēti katalogā, bet kuriem nav derīgu akreditācijas datu (piemēram, `oc/north-mini-code-free` → `401`). Automātiskais maršrutētājs izmēģina vienu modeli, saņem kļūmi, un kļūda tiek nodota tālāk, pirms sāk darboties rezerves variants.
-3. **Vienlaicīguma pastiprinājums (`429` slodzes laikā)**: Kad vairākas aģentu/cron sesijas vienlaikus izmanto `auto`, kopējais pieprasījumu ātrums pārsniedz bezmaksas pakalpojumu sniedzēju pieļaujamo līmeni, tāpēc derīgi izsaukumi tiek atzīmēti kā ļaunprātīgi.
+1. **Pakalpojumu sniedzēja ātruma ierobežojums (`429`)**: Bezmaksas līmeņi var noteikt kvotu katram laika periodam. Paralēlu izsaukumu vilnis to izsmeļ, tādēļ nākamais pieprasījums tiek noraidīts, līdz tiek atiestatīts laika periods.
+2. **Nedarbojošs modelis tiešās pārsūtīšanas režīmā (`400`/`401`)**: `auto/*` pūlos var būt iekļauti `opencode` tiešās pārsūtīšanas modeļi, kuri ir reģistrēti katalogā, bet kuriem nav derīgu akreditācijas datu (piem., `oc/north-mini-code-free` → `401`). Automātiskais maršrutētājs izmēģina kādu no tiem, tas neizdodas, un kļūda tiek nodota tālāk, pirms nostrādā atkāpšanās mehānisms.
+3. **Vienlaicīguma pastiprinājums (`429` slodzes laikā)**: Kad vairākas aģentu/cron sesijas vienlaikus izmanto `auto`, kopējais pieprasījumu ātrums pārsniedz bezmaksas pakalpojumu sniedzēju pieļaujamo līmeni, tādēļ derīgi izsaukumi tiek atzīmēti kā ļaunprātīgi.
 
-**Pārbaudīts risinājums (kopienas ziņojums, 2026-08-10)**: pielāgojiet trīs vides mainīgos, lai rotācija, vienlaicīguma pārvaldība un rezerves mehānisms absorbētu bezmaksas līmeņa svārstības, nevis to dēļ pārtrauktu darbību:
+**Pārbaudīts risinājums (kopienas ziņots, 2026-08-10)**: pielāgojiet trīs vides mainīgos, lai rotācija, vienlaicīgums un atkāpšanās mehānisms absorbētu bezmaksas līmeņa svārstības, nevis to dēļ pārtrauktu darbību:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # 400/401 gadījumā pāriet uz citu modeli/pakalpojuma sniedzēju (izlaiž nedarbojošos tiešās pārsūtīšanas modeļus)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # nepārprotams smago pieprasījumu pieņemšanas ierobežojums (pēc noklusējuma nav iestatīts: pieprasījumu skaita ierobežojuma nav; skatiet piezīmi tālāk)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ilgāka ierobežota gaidīšana uz smago pieprasījumu apstrādes jaudu tūlītējas atkārtojamas 503 kļūdas vietā
+export OMNIROUTE_ROTATE_ON_400=true           # pāriet uz citu modeli/pakalpojumu sniedzēju pēc 400/401 (izlaiž nedarbojošos tiešās pārsūtīšanas modeļus)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # precīzi noteikts smagsvara pieprasījumu pieņemšanas maksimums (pēc noklusējuma nav iestatīts: pieprasījumu skaita ierobežojuma nav; skatiet piezīmi tālāk)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ilgāka ierobežota gaidīšana uz smagsvara pieprasījumu apstrādes jaudu, nevis tūlītēja atkārtojama 503 kļūda
 ```
 
-Iestatiet tos OmniRoute procesa vidē (dēmonam, piemēram, izmantojot LaunchAgent plist vai `systemctl edit`) un pēc tam restartējiet OmniRoute. Rotācijas karodziņš ir visefektīvākais līdzeklis: tas pārvērš neatgriezenisku kļūmi pārskatāmā atkārtotā mēģinājumā, izmantojot kādu no kopā esošajiem darbspējīgajiem pakalpojumu sniedzējiem.
+Iestatiet tos OmniRoute procesa vidē (dēmonam, piem., izmantojot LaunchAgent plist vai `systemctl edit`) un pēc tam restartējiet OmniRoute. Rotācijas karogs ir viens pats visefektīvākais iestatījums: tas pārveido neatgriezenisku kļūmi par nemanāmu atkārtotu mēģinājumu, izmantojot veselīgu pakalpojumu sniedzēju no pūla.
 
-**Piezīme**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ierobežo vienlaikus izpildāmo smago — gara konteksta — pieprasījumu skaitu; šis ierobežojums ir pieņemšanas vārteja, nevis pakalpojuma sniedzēja pieprasījumu biežuma ierobežotājs. **#503-fanout atjauninājums:** šis mainīgais vairs netiek iestatīts pēc noklusējuma (tagad tas stājas spēkā tikai tad, ja ir nepārprotami konfigurēts, kā iepriekš) — tā vietā smago pieprasījumu pieņemšanu ierobežo automātiski aprēķināts baitu budžets (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kas pielāgojas resursdatora faktiskajam atmiņas ierobežojumam, tāpēc jaunā izvietojumā vajadzētu būt daudz mazāk `503 chat_admission_busy` noraidījumu, pat ja šis mainīgais vispār nav iestatīts; tā nepārprotama iestatīšana šeit joprojām darbojas tieši tā, kā dokumentēts. Nepārprotami norādītas baitu budžeta vērtības tiek ierobežotas diapazonā no 8 MiB līdz 2 GiB. `413 body_exceeds_budget` nav pārejoša kļūme: palieliniet šo baitu budžetu, samaziniet `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` vai palieliniet procesa atmiņas ierobežojumu. `inflight_bytes_budget` izraisīta slodzes nomešana ir īslaicīga resursu konkurence, un šādu pieprasījumu joprojām var atkārtot. Katra pakalpojuma sniedzēja pieprasījumu biežuma ierobežošanu (`open-sse/services/rateLimitManager.ts`) atsevišķi pārvalda `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` un `RATE_LIMIT_AUTO_ENABLE` — skatiet `.env.example`.
+**Piezīme**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ierobežo vienlaikus izpildāmo smagsvara — gara konteksta — pieprasījumu skaitu; šis ierobežojums ir pieņemšanas vārteja, nevis pakalpojumu sniedzēja ātruma ierobežotājs. **#503-fanout atjauninājums:** šis mainīgais pēc noklusējuma vairs netiek iestatīts (tagad tas ir saistošs tikai tad, ja ir skaidri konfigurēts, kā norādīts iepriekš) — tā vietā smagsvara pieprasījumu pieņemšanu ierobežo automātiski atvasināts baitu budžets (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kas pielāgojas resursdatora faktiskajam atmiņas ierobežojumam, tādēļ jaunā izvietojumā vajadzētu būt ievērojami mazāk `503 chat_admission_busy` noraidījumu, pat vispār neiestatot šo mainīgo; skaidri iestatot to šeit, tas joprojām darbojas tieši tā, kā dokumentēts. Skaidri norādītām baitu budžeta vērtībām tiek piemērotas 8 MiB–2 GiB robežas. `413 body_exceeds_budget` nav pārejoša kļūda: palieliniet šo baitu budžetu, samaziniet `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` vai palieliniet procesa atmiņas ierobežojumu. `inflight_bytes_budget` izraisīta slodzes nomešana ir īslaicīga resursu konkurence, un pieprasījumu joprojām var atkārtot. Katra pakalpojumu sniedzēja ātruma ierobežošanu (`open-sse/services/rateLimitManager.ts`) atsevišķi pārvalda `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` un `RATE_LIMIT_AUTO_ENABLE` — skatiet `.env.example`.
 
-**Kā pārbaudīt, vai risinājums darbojas**: divreiz īsā intervālā palaidiet savu aģentu/cron un pārliecinieties, ka abas izpildes ir veiksmīgas. Pirms labojuma otrajā izpildē parasti tiek parādīta `429`/`401` kļūda. Pēc labojuma kļūmju gadījumā atkārtoti mēģinājumi tiek veikti pārskatāmi, un izsaukums tiek pabeigts. Varat arī izpildīt `curl /monitoring/health` un pakalpojumu sniedzēju savienojumos vērot lauku `rateLimitedUntil`, kā arī attiecīgajiem pakalpojumu sniedzējiem vērot `circuitBreakers.providerBreakers[].state` — stāvoklis ir viens no `CLOSED`, `DEGRADED`, `OPEN` vai `HALF_OPEN` (skatiet `src/shared/utils/circuitBreaker.ts`), un pakalpojuma sniedzējs, kura darbība atkārtoti neizdodas, pārslēgsies `CLOSED → DEGRADED → OPEN`, pirms atiestatīšanas logs ļaus veikt pārbaudes pieprasījumu (`HALF_OPEN`).
+**Kā pārbaudīt, vai labojums darbojas**: divreiz īsā laika intervālā palaidiet savu aģentu/cron uzdevumu un pārliecinieties, ka abas izpildes ir veiksmīgas. Pirms labojuma otrā izpilde parasti rada `429`/`401` kļūdu. Pēc labojuma kļūmju gadījumā (ja tādas rodas) atkārtotie mēģinājumi notiek nemanāmi, un izsaukums tiek pabeigts. Varat arī izpildīt `curl /monitoring/health` un pakalpojumu sniedzēju savienojumos novērot lauku `rateLimitedUntil`, kā arī `circuitBreakers.providerBreakers[].state` ietekmētajiem pakalpojumu sniedzējiem — stāvoklis var būt `CLOSED`, `DEGRADED`, `OPEN` vai `HALF_OPEN` (skatiet `src/shared/utils/circuitBreaker.ts`), un pakalpojumu sniedzējs, kura izsaukumi turpina neizdoties, pārslēgsies no `CLOSED → DEGRADED → OPEN`, pirms atiestatīšanas intervāls ļaus veikt pārbaudes izsaukumu (`HALF_OPEN`).
 
-**Ja joprojām redzat 429**: šī pakalpojumu sniedzēja aktīvais konts patiešām ir izsmēlis savu _kvotu_ (nevis tikai pieprasījumu biežuma ierobežojumu). Pievienojiet otru tā paša pakalpojumu sniedzēja kontu OmniRoute informācijas panelī → Providers → Accounts vai izmantojiet arī citu bezmaksas pakalpojumu sniedzēju (piemēram, `routeway`, `auggie`). Rotācija palīdz tikai īslaicīgu pieprasījumu biežuma ierobežojumu un 400/401 kļūdu gadījumā; pilnībā izsmeltas kvotas gadījumā ir nepieciešami otra konta akreditācijas dati vai cits pakalpojumu sniedzējs.
+**Ja joprojām redzat 429**: šī pakalpojumu sniedzēja aktīvais konts patiešām ir izsmēlis savu _kvotu_ (nevis tikai sasniedzis pieprasījumu biežuma ierobežojumu). Pievienojiet otru tā paša pakalpojumu sniedzēja kontu OmniRoute vadības panelī → Providers → Accounts vai iekļaujiet citu bezmaksas pakalpojumu sniedzēju (piemēram, `routeway`, `auggie`). Rotācija palīdz tikai pārejošu pieprasījumu biežuma ierobežojumu un 400/401 kļūdu gadījumā; pilnīgai kvotas izsmelšanai ir nepieciešami citi akreditācijas dati vai cits pakalpojumu sniedzējs.
 
-**Ja redzat 403 redzes modeļiem (`auto/vision`, `bazaarlink/*`)**: piesaistītajam kontam nav maksas plāna, kas ietver redzes funkcionalitāti, vai API atslēgai nav pietiekamu atļauju. Pakalpojumu sniedzēja informācijas panelī pārbaudiet, vai atslēgas tvērumā ir iekļauta redzes/vairākmodalitāšu funkcionalitāte, vai piesaistiet maksas līmeņa kontu un saglabājiet to kā redzes pieprasījumu mērķi.
+**Ja redzes modeļiem (`auto/vision`, `bazaarlink/*`) redzat 403**: piesaistītajam kontam nav maksas plāna, kas ietver redzes funkcionalitāti, vai arī API atslēgai nav pietiekamu atļauju. Pakalpojumu sniedzēja vadības panelī pārbaudiet, vai atslēgas tvērums ietver redzes/multimodālo funkcionalitāti, vai piesaistiet maksas līmeņa kontu un saglabājiet to kā redzes pieprasījumu mērķi.
 
 ---
 
-## `npm install` brīdinājumi (`ERESOLVE` / vienādranga atkarības / novecojušas pakotnes)
+## `npm install` brīdinājumi (ERESOLVE / peer / deprecated)
 
-Palaižot `npm install -g omniroute`, var tikt parādīts liels skaits brīdinājumu, piemēram, `npm warn ERESOLVE`, paziņojumi par vienādranga atkarībām un `deprecated` ziņojumi. **Tie ir sagaidāmi un nekaitīgi.** Instalēšana ir izdevusies, ja izvadē redzat `added <N> packages`.
+Palaižot `npm install -g omniroute`, var tikt parādīts liels daudzums brīdinājumu, piemēram, `npm warn ERESOLVE`, paziņojumi par vienādranga atkarībām un `deprecated` ziņojumi. **Tie ir sagaidāmi un nekaitīgi.** Instalēšana ir izdevusies, ja izvadē redzat `added <N> packages`.
 
-Lai nerādītu vienādranga atkarību atrisināšanas brīdinājumus, izmantojiet OmniRoute atbalstīto instalēšanas komandu:
+Lai nerādītu vienādranga atkarību atrisināšanas brīdinājumus, izmantojiet OmniRoute atbalstīto instalēšanas veidu:
 
 ```bash
 npm install -g omniroute --legacy-peer-deps
 ```
 
-`--legacy-peer-deps` nerāda tikai `ERESOLVE` un paziņojumus par vienādranga atkarībām. Paziņojumi par novecojušām pakotnēm joprojām ir redzami, jo tos rada tranzitīvās trešo pušu pakotnes; tie nenozīmē, ka instalēšana neizdevās.
+`--legacy-peer-deps` nerāda tikai `ERESOLVE` un paziņojumus par vienādranga atkarībām. Novecojušu pakotņu paziņojumi joprojām būs redzami, jo tos rada netiešās trešo pušu pakotnes; tie nenozīmē, ka instalēšana neizdevās.
 
 Brīdinājumus rada novecojuši vienādranga atkarību diapazoni trešo pušu pakotnēs, kuras OmniRoute nekontrolē:
 
 1. **`marked-terminal` pieprasa `marked >=1 <16`, bet atrasts `marked@18`** — praksē darbojas bez problēmām; augšupstraumes vienādranga atkarības diapazons vienkārši ir novecojis.
-2. **`deprecated prebuild-install@7.1.3`** — tranzitīvs palīgrīks vietējo bināro failu iegūšanai. Tas netiek
-   izmantots, lai instalētu fiksētās versijas `wreq-js` transporta saistījumu, un nenozīmē, ka tīmekļa sīkfailu
+2. **`deprecated prebuild-install@7.1.3`** — netiešs palīgrīks vietējo bināro failu iegūšanai. Tas netiek
+   izmantots piesaistītā `wreq-js` transporta saistījuma instalēšanai un nenozīmē, ka tīmekļa sīkfailu
    nodrošinātāja transporta iestatīšana neizdevās.
 
-**Nekāda darbība nav nepieciešama** — brīdinājumus nevar pilnībā izslēgt, neveidojot augšupstraumes pakotņu atzarus.
+**Nekādas darbības nav nepieciešamas** — šos brīdinājumus nevar pilnībā paslēpt, neveidojot augšupstraumes pakotņu atzarus.
+
+---
+
+## Gemini Web un Playwright Chromium
+
+Ja Gemini Web pieprasījums atgriež `503` ar ziņojumu, ka Playwright Chromium
+nav instalēts, npm pakotne ir pieejama, taču trūkst pārlūkprogrammas binārā faila.
+Playwright ar nolūku pārlūkprogrammu lejupielādes nodala no npm pakotnes
+instalēšanas, tādēļ šāda atbilde ir sagaidāma, līdz pārlūkprogramma tiek instalēta.
+
+Globālas npm instalācijas gadījumā instalējiet Chromium no OmniRoute pakotnes
+direktorija, lai pārlūkprogrammas kešatmiņa piederētu tai pašai Playwright instalācijai:
+
+```bash
+cd "$(npm root -g)/omniroute"
+npx playwright install chromium
+```
+
+Pēc instalēšanas restartējiet OmniRoute un pēc tam atkārtojiet Gemini Web pieprasījumu. Ja
+palaižat OmniRoute no Docker attēla, izmantojiet `-web` attēlu (vai `runner-web`
+būvējuma mērķi), kurā ir iekļauts Chromium un tā atkarības; pamata attēlā to
+nav.
 
 ---
 
 ## Ātrie risinājumi
 
-| Problēma                                                   | Risinājums                                                                                                                                                                                                                |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pirmā pieteikšanās nedarbojas                              | Iestatiet `INITIAL_PASSWORD` failā `.env` (nav kodā fiksētas noklusējuma vērtības)                                                                                                                                        |
-| Informācijas panelis tiek atvērts nepareizajā portā        | Iestatiet `PORT=20128` un `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                                                   |
-| Žurnāli netiek ierakstīti diskā                            | Iestatiet `APP_LOG_TO_FILE=true` un pārbaudiet, vai ir iespējota izsaukumu žurnālu tveršana                                                                                                                               |
-| EACCES: piekļuve liegta                                    | Iestatiet `DATA_DIR=/path/to/writable/dir`, lai aizstātu `~/.omniroute`                                                                                                                                                   |
-| Maršrutēšanas stratēģija netiek saglabāta                  | Atjauniniet uz jaunāko v3.x laidienu (Zod shēmas labojums iestatījumu pastāvīgai saglabāšanai tika iekļauts agrākās versijās)                                                                                             |
-| Pieteikšanās avārija / tukša lapa                          | Pārbaudiet Node.js versiju — skatiet tālāk sadaļu [Node.js saderība](#nodejs-compatibility)                                                                                                                               |
-| `dlopen` / `slice is not valid mach-o file` (macOS)        | Palaidiet `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — skatiet tālāk sadaļu [macOS vietējā moduļa pārkompilēšana](#macos-native-module-rebuild)                                         |
-| Starpniekservera kļūda "fetch failed"                      | Pārliecinieties, ka starpniekservera konfigurācija ir iestatīta pareizajā līmenī — skatiet tālāk sadaļu [Starpniekservera problēmas](#proxy-issues)                                                                       |
-| Docker `curl: (56) Recv failure: Connection reset by peer` | Jūsu Docker porta piesaiste, iespējams, tiek novirzīta uz IPv6. Izmantojiet `-p 127.0.0.1:20128:20128`, lai piespiedu kārtā izmantotu IPv4, vai pārbaudiet ar `curl -4`. Skatiet tālāk sadaļu [Docker IPv6](#docker-ipv6) |
-| Pretvīrusu programma ievieto `README.md` karantīnā         | Kļūdaini pozitīvs rezultāts — skatiet tālāk sadaļu [Pretvīrusu programmu kļūdaini pozitīvie rezultāti](#antivirus-false-positives)                                                                                        |
-| Kaspersky atzīmē darbvirsmas lietotni kā Trojas zirgu      | Uzvedībā balstīts kļūdaini pozitīvs rezultāts neparakstītajā instalētājā — skatiet tālāk sadaļu [Pretvīrusu programmu kļūdaini pozitīvie rezultāti](#antivirus-false-positives)                                           |
+| Problēma                                                   | Risinājums                                                                                                                                                                                             |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Pirmā pieteikšanās nedarbojas                              | Iestatiet `INITIAL_PASSWORD` failā `.env` (nav kodā ierakstītas noklusējuma vērtības)                                                                                                                  |
+| Informācijas panelis tiek atvērts nepareizajā portā        | Iestatiet `PORT=20128` un `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                                |
+| Žurnāli netiek ierakstīti diskā                            | Iestatiet `APP_LOG_TO_FILE=true` un pārbaudiet, vai ir iespējota zvanu žurnālu tveršana                                                                                                                |
+| EACCES: piekļuve liegta                                    | Iestatiet `DATA_DIR=/path/to/writable/dir`, lai aizstātu `~/.omniroute`                                                                                                                                |
+| Maršrutēšanas stratēģija netiek saglabāta                  | Atjauniniet uz jaunāko v3.x laidienu (Zod shēmas labojums iestatījumu saglabāšanai tika iekļauts iepriekšējās versijās)                                                                                |
+| Pieteikšanās avārija / tukša lapa                          | Pārbaudiet Node.js versiju — skatiet tālāk sadaļu [Node.js saderība](#nodejs-compatibility)                                                                                                            |
+| `dlopen` / `slice is not valid mach-o file` (macOS)        | Palaidiet `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — skatiet tālāk sadaļu [macOS vietējā moduļa pārbūvēšana](#macos-native-module-rebuild)                         |
+| Starpniekservera kļūda "fetch failed"                      | Pārliecinieties, ka starpniekservera konfigurācija ir iestatīta pareizajā līmenī — skatiet tālāk sadaļu [Starpniekservera problēmas](#proxy-issues)                                                    |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | Iespējams, Docker porta piesaiste izmanto IPv6. Izmantojiet `-p 127.0.0.1:20128:20128`, lai piespiedu kārtā lietotu IPv4, vai testējiet ar `curl -4`. Skatiet tālāk sadaļu [Docker IPv6](#docker-ipv6) |
+| Antivīruss ievieto `README.md` karantīnā                   | Kļūdaini pozitīvs rezultāts — skatiet tālāk sadaļu [Antivīrusa kļūdaini pozitīvie rezultāti](#antivirus-false-positives)                                                                               |
+| Kaspersky atzīmē darbvirsmas lietotni kā Trojas zirgu      | Uzvedībā balstīts kļūdaini pozitīvs rezultāts neparakstītam instalētājam — skatiet tālāk sadaļu [Antivīrusa kļūdaini pozitīvie rezultāti](#antivirus-false-positives)                                  |
 
 ---
 
@@ -113,70 +136,66 @@ Brīdinājumus rada novecojuši vienādranga atkarību diapazoni trešo pušu pa
 
 ### Avast/AVG ievieto `README.md` karantīnā ar `MD:HttpRequest-inf[Susp]`
 
-**Tas ir kļūdaini pozitīvs rezultāts. Nekas nav inficēts, un nekāda rīcība nav nepieciešama.**
+**Tas ir kļūdaini pozitīvs rezultāts. Nekas nav inficēts, un nekādas darbības nav jāveic.**
 
-Avast un AVG izmanto heiristiku, kas atzīmē vienkārša teksta/Markdown failus, kuros ir daudz
-HTTP pieprasījumiem līdzīgu saišu. OmniRoute `README.md` tiek iekļauts npm pakotnē (tas ir
+Avast un AVG izmanto heiristisku pārbaudi, kas atzīmē vienkārša teksta/Markdown failus, kuros ir daudz
+HTTP pieprasījumiem līdzīgu saišu. OmniRoute `README.md` ir iekļauts npm pakotnē (tas ir
 norādīts `package.json` → `files`), tāpēc globālas instalēšanas laikā tas nonāk
-`node_modules/omniroute/README.md` — un tajā ir aptuveni 15 `http://localhost:20128/...`
-piemēri (MCP HTTP/SSE galapunkti, A2A `.well-known` URL un `curl` fragmenti). Šāds saišu
-blīvums ir pietiekams, lai aktivizētu heiristiku.
+`node_modules/omniroute/README.md` — un tajā ir aptuveni 15 `http://localhost:20128/...` piemēri (MCP
+HTTP/SSE galapunkti, A2A `.well-known` URL un `curl` fragmenti). Ar šādu saišu blīvumu
+pietiek, lai nostrādātu heiristiskā pārbaude.
 
-Ja tas sākās tikai nesen: faila būtība nav mainījusies. README tika papildināts ar
-galapunktu tabulu (tika pievienoti MCP HTTP + SSE + A2A) un vairākiem `curl` piemēriem,
-tādējādi pārsniedzot slieksni.
+Ja tas sākās tikai nesen: faila veids nav mainījies. README tika paplašināta
+galapunktu tabula (tika pievienoti MCP HTTP + SSE + A2A) un vairāk `curl` piemēru, tādējādi
+pārsniedzot slieksni.
 
-Šis fails ir neaktīva dokumentācija bez jebkāda izpildāma satura. Varat to droši atjaunot
+Fails ir neaktīva dokumentācija bez jebkāda izpildāma satura. To var droši atjaunot
 no karantīnas.
 
 **Ko darīt:**
 
-1. **Apturiet paziņojumus** — pievienojiet instalācijas direktoriju antivīrusa
-   izņēmumiem (Avast: Settings → Exceptions), norādot savu globālo `node_modules` ceļu
-   un/vai OmniRoute datu direktoriju (`~/.omniroute/`).
+1. **Apturiet paziņojumus** — pievienojiet instalācijas direktoriju sava antivīrusa
+   izņēmumiem (Avast: Settings → Exceptions), norādot globālo `node_modules` ceļu un/vai
+   OmniRoute datu direktoriju (`~/.omniroute/`).
 2. **Ziņojiet par kļūdaini pozitīvo rezultātu** — <https://www.avast.com/false-positive-file-form.php>,
-   pievienojot karantīnā ievietoto `README.md`. Šis ir risinājums, kas palīdz ikvienam, jo
-   piegādātāja heiristika pārmērīgi reaģē uz teksta failu.
+   pievienojot karantīnā ievietoto `README.md`. Šis ir risinājums, kas palīdz visiem, jo
+   ražotāja heiristika pārmērīgi reaģē uz teksta failu.
 
-**Kāpēc mēs to „nelabojam” savā pusē:** visos piemēros tiek izmantots `http://localhost`,
-un localhost nevar izmantot `https` bez pašparakstītu sertifikātu radītām neērtībām.
-Dokumentācijas sagrozīšana, lai apietu viena piegādātāja heiristiku, kaitētu visiem
-lasītājiem tikai tādēļ, lai pielāgotos skenera kļūdai.
+**Kāpēc mēs to „nelabojam” savā pusē:** visi piemēri izmanto `http://localhost`, un
+localhost nevar izmantot `https` bez neērtībām, ko rada pašparakstīts sertifikāts. Dokumentācijas
+sakropļošana, lai apietu viena ražotāja heiristiku, kaitētu visiem lasītājiem tikai tādēļ, lai
+izdabātu skenera kļūdai.
 
 ### Kaspersky atzīmē darbvirsmas lietotni kā `PDM:Trojan.Win32.Generic`
 
-**Tas ir uzvedības heiristikas izraisīts kļūdaini pozitīvs rezultāts. Nekas nav inficēts.**
-Kaspersky prefikss `PDM:` nozīmē, ka spriedumu pieņēmis tā Proactive Defense Module
-(System Watcher), kas vērtē instalētāja _darbības_, nevis salīdzina to ar zināmu
-ļaunprogrammatūru. Kad tas tiek aktivizēts, Kaspersky „atceļ” visu instalāciju — dzēšot
-jau ierakstītos failus —, tāpēc lietotne beigās ir bojāta vai tās nav vispār.
+**Tas ir uzvedības heiristikas izraisīts kļūdaini pozitīvs rezultāts. Nekas nav inficēts.** Kaspersky
+prefikss `PDM:` nozīmē, ka spriedumu sniedz tā Proactive Defense Module (System Watcher),
+kas vērtē instalētāja _darbības_, nevis salīdzina to ar zināmu ļaunprogrammatūru. Kad
+tas nostrādā, Kaspersky „atritina” visu instalāciju — dzēšot jau ierakstītos
+failus —, tāpēc lietotne kļūst bojāta vai pazūd.
 
 Atzīmētie faili ir standarta daļas no deklarētām atvērtā pirmkoda atkarībām, kas iekļautas
-darbvirsmas lietotnes komplektācijā, piemēram:
+darbvirsmas lietotnē, piemēram:
 
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` un
-  `workerProcessEntry.js` — [Playwright](https://playwright.dev), pārlūkprogrammas
-  automatizācijas bibliotēka, ko izmanto pakalpojumu sniedzēju pieteikšanās procesam
-  lietotnē un pārlūkprogrammas nodrošinātai tērzēšanai.
+  `workerProcessEntry.js` — [Playwright](https://playwright.dev), pārlūkprogrammas automatizācijas
+  bibliotēka, ko izmanto lietotnē veiktai pakalpojumu sniedzēja pieteikšanās procedūrai un pārlūkprogrammas nodrošinātai tērzēšanai.
 - `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
-  — fiksētā `wreq-js` vietējā saistne, ko izmanto pārlūkprogrammas digitālā nospieduma
-  HTTP pieprasījumiem tīmekļa sīkdatņu pakalpojumu sniedzējiem (`<arch>` ir `x64` vai
-  `arm64`).
+  — fiksētās versijas `wreq-js` vietējais saistījums, ko izmanto pārlūkprogrammas pirkstu nospiedumu atdarinošiem HTTP pieprasījumiem tīmekļa sīkdatņu
+  pakalpojumu sniedzējiem (`<arch>` ir `x64` vai `arm64`).
 
-**Kāpēc tas tiek aktivizēts:** Windows instalētājs **vēl nav parakstīts ar kodu**, tāpēc
-neparakstītam NSIS instalētājam nav nekādas reputācijas un uzvedības heiristika darbojas
-ar maksimālu agresivitāti. Apvienojumā ar komplektācijā iekļautu vietējo DLL un simtiem
-`.js` failu, kas tiek ierakstīti zem `%LOCALAPPDATA%\Programs\OmniRoute` (tostarp Next.js
-savrupā būvējuma pakotņu direktorijiem ar pievienotiem jaucējkodiem), ar to pietiek, lai
-aktivizētu heiristiku. Koda parakstīšana ir plānota; līdz tās ieviešanai tas var atkārtoties
-jaunos laidienos.
+**Kāpēc tas nostrādā:** Windows instalētājs **vēl nav parakstīts ar kodparaksta sertifikātu**, tāpēc neparakstītam NSIS
+instalētājam nav nekādas reputācijas un uzvedības heiristikas darbojas ar maksimālu agresivitāti. Apvienojumā
+ar komplektācijā iekļautu vietējo DLL un simtiem `.js` failu, kas tiek ierakstīti
+`%LOCALAPPDATA%\Programs\OmniRoute` (tostarp Next.js savrupā būvējuma pakotņu direktorijiem ar
+pievienotu jaucējvērtību), ar to pietiek, lai nostrādātu heiristiskā pārbaude. Kodparakstīšana ir plānota;
+līdz tās ieviešanai šī problēma var atkārtoties ar jauniem laidieniem.
 
 **Ko darīt:**
 
-1. **Vispirms pārbaudiet lejupielādi** (tas izslēdz manipulācijas ar failu). Katram laidienam
-   tiek publicēts `latest.yml`, kura lauks `sha512` (base64) attiecas uz
-   `OmniRoute.Setup.<version>.exe` instalētāju. PowerShell konsolē no mapes, kurā atrodas
-   instalētājs:
+1. **Vispirms pārbaudiet lejupielādēto failu** (tas izslēdz faila modificēšanas iespēju). Katram laidienam tiek publicēts
+   `latest.yml`, kura lauks `sha512` (base64) attiecas uz instalētāju `OmniRoute.Setup.<version>.exe`.
+   PowerShell konsolē no mapes, kurā atrodas instalētājs:
    ```powershell
    $b = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
      [System.IO.File]::ReadAllBytes("$PWD\OmniRoute.Setup.<version>.exe"))
@@ -184,12 +203,11 @@ jaunos laidienos.
    ```
    Izvadei jāsakrīt ar `latest.yml` → `sha512`. Ja tā nesakrīt, izdzēsiet failu un
    lejupielādējiet to atkārtoti tikai no [GitHub laidienu lapas](https://github.com/diegosouzapw/OmniRoute/releases).
-2. **Atjaunojiet un pievienojiet izņēmumu** — atjaunojiet atceltos vienumus no karantīnas
-   un pievienojiet izņēmumu direktorijam `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky →
-   Settings → Threats and Exclusions), pēc tam instalējiet vēlreiz.
-3. **Ziņojiet par kļūdaini pozitīvo rezultātu** — <https://opentip.kaspersky.com/>.
-   Lietotāju iesniegtie ziņojumi par kļūdaini pozitīviem rezultātiem patiešām paātrina
-   pievienošanu atļauto vienumu sarakstam.
+2. **Atjaunojiet un pievienojiet izņēmumu** — atjaunojiet karantīnā ievietotos un atritināšanas laikā noņemtos vienumus un pievienojiet izņēmumu
+   ceļam `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Settings → Threats and Exclusions),
+   pēc tam instalējiet atkārtoti.
+3. **Ziņojiet par kļūdaini pozitīvo rezultātu** — <https://opentip.kaspersky.com/>. Lietotāju iesniegtie ziņojumi par kļūdaini pozitīviem rezultātiem
+   patiešām paātrina pievienošanu atļauto vienumu sarakstam.
 
 ---
 
@@ -199,12 +217,12 @@ jaunos laidienos.
 
 ### Pieteikšanās lapa avarē vai parāda kļūdu "Module self-registration"
 
-**Iemesls:** Jūs izmantojat Node.js versiju, kas neatbilst OmniRoute apstiprinātajām drošās izpildvides minimālajām prasībām. Visbiežāk tas notiek, ja tiek izmantota vecāka Node 22 vai 24 ielāpa versija, kas ir zemāka par OmniRoute pieprasīto drošības labojumu minimumu.
+**Cēlonis:** Jūs izmantojat Node.js versiju, kas neatbilst OmniRoute apstiprinātajam drošās izpildvides minimālajam līmenim. Visbiežāk tas notiek, ja tiek izmantots vecāks Node 22 vai 24 ielāpa līmenis, kas ir zemāks par OmniRoute pieprasīto drošības labojumu minimumu.
 
 **Simptomi:**
 
 - Pieteikšanās lapā tiek parādīts tukšs ekrāns vai servera kļūda
-- Konsolē tiek parādīts `Error: Module did not self-register` vai līdzīgas vietējā saistījuma kļūdas
+- Konsolē tiek parādīts `Error: Module did not self-register` vai līdzīgas vietējās saistīšanas kļūdas
 - Ja izpildvide neatbilst atbalstītajai drošības politikai, pieteikšanās lapā tiek parādīts **oranžs brīdinājuma reklāmkarogs** ar jūsu Node versiju
 
 **Risinājums:**
@@ -214,19 +232,19 @@ jaunos laidienos.
    nvm install 24
    nvm use 24
    ```
-2. Pārbaudiet savu versiju: komandai `node --version` ir jāparāda `v24.0.0` vai jaunāka 24.x LTS līnijas versija
+2. Pārbaudiet savu versiju: `node --version` jāparāda `v24.0.0` vai jaunāka 24.x LTS līnijas versija
 3. Pārinstalējiet OmniRoute: `npm install -g omniroute`
 4. Restartējiet: `omniroute`
 
-> **Atbalstītās drošās versijas:** `>=22.22.2 <23` vai `>=24.0.0 <27`. Node.js 24.x LTS (Krypton) un Node.js 26 tiek pilnībā atbalstītas.
+> **Atbalstītās drošās versijas:** `>=22.22.2 <23` vai `>=24.0.0 <27`. Node.js 24.x LTS (Krypton) un Node.js 26 tiek pilnībā atbalstīti.
 
-### npm v11+: `better-sqlite3` nav instalēts (moduli nevar atrast)
+### npm v11+: `better-sqlite3` nav instalēts (Cannot find module)
 
 <a name="npm-v11-better-sqlite3-not-installed-cannot-find-module"></a>
 
-**Iemesls:** npm v11 (iekļauts Node.js 24+) pēc noklusējuma bloķē neobligāto
+**Cēlonis:** npm v11 (iekļauts Node.js 24+) pēc noklusējuma bloķē neobligāto
 atkarību instalēšanas skriptus. Tā kā `better-sqlite3` ir norādīts sadaļā `optionalDependencies`
-un tam ir nepieciešama vietējā kompilēšana (`node-gyp rebuild`), npm to klusējot izlaiž.
+un tam ir nepieciešama vietējā kompilēšana (`node-gyp rebuild`), npm to izlaiž bez brīdinājuma.
 
 **Simptomi:**
 
@@ -236,37 +254,37 @@ un tam ir nepieciešama vietējā kompilēšana (`node-gyp rebuild`), npm to klu
 
 **Risinājums:**
 
-1. Apstipriniet instalēšanas skriptus un veiciet atkārtotu instalēšanu:
+1. Apstipriniet instalēšanas skriptus un pārinstalējiet:
    ```bash
    npm approve-scripts better-sqlite3
    npm install
    ```
-2. Vai arī manuāli instalējiet iepriekš kompilēto pakotni:
+2. Vai instalējiet iepriekš kompilēto pakotni manuāli:
    ```bash
    npm pack better-sqlite3@13.0.1
    tar -xzf better-sqlite3-*.tgz -C node_modules
    mv node_modules/package node_modules/better-sqlite3
    rm better-sqlite3-*.tgz
    ```
-3. Pārbaudiet, vai tā darbojas: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
+3. Pārbaudiet, vai tas darbojas: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
 
 ### macOS: `dlopen` / "slice is not valid mach-o file"
 
 <a name="macos-native-module-rebuild"></a>
 
-**Iemesls:** Pēc globālas `npm install -g omniroute` izpildes pakotnē esošais `better-sqlite3` vietējais binārais fails, iespējams, ir kompilēts citai arhitektūrai vai Node.js ABI, nevis tai, kas darbojas lokāli. Tas bieži notiek macOS vidē (gan Apple Silicon, gan Intel), ja iepriekš kompilētais binārais fails neatbilst jūsu videi.
+**Cēlonis:** Pēc globālas `npm install -g omniroute` instalēšanas pakotnē iekļautais `better-sqlite3` vietējais binārais fails var būt kompilēts citai arhitektūrai vai Node.js ABI nekā lokāli izmantotā. Tas bieži notiek macOS vidē (gan Apple Silicon, gan Intel), ja iepriekš kompilētais binārais fails neatbilst jūsu videi.
 
 **Simptomi:**
 
 - Serveris uzreiz pēc startēšanas avarē ar `dlopen` kļūdu
-- Kļūda ietver tekstu `slice is not valid mach-o file`
+- Kļūda satur `slice is not valid mach-o file`
 - Pilns piemērs:
 
 ```
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**Risinājums — veiciet atkārtotu kompilēšanu savai lokālajai videi (Node.js versijas pazemināšana nav nepieciešama):**
+**Risinājums — pārkompilējiet savai lokālajai videi (Node.js versijas pazemināšana nav nepieciešama):**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -274,7 +292,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Piezīme:** Tādējādi vietējais saistījums tiek atkārtoti kompilēts atbilstoši jūsu lokālajai Node.js versijai un CPU arhitektūrai, novēršot bināro failu neatbilstību. Oficiāli atbalstītais izpildvides diapazons ir **`>=22.22.2 <23` vai `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` failā `src/shared/utils/nodeRuntimeSupport.ts`, saskaņots ar `package.json` lauku `engines`). Node.js 24.x LTS (Krypton) un Node.js 26 tiek pilnībā atbalstītas ar `better-sqlite3` v12.x.
+> **Piezīme:** Tādējādi vietējā saistne tiek pārkompilēta atbilstoši jūsu lokālajai Node.js versijai un procesora arhitektūrai, novēršot bināro failu neatbilstību. Oficiāli atbalstītais izpildvides diapazons ir **`>=22.22.2 <23` vai `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` failā `src/shared/utils/nodeRuntimeSupport.ts`, saskaņots ar `package.json` lauku `engines`). Node.js 24.x LTS (Krypton) un Node.js 26 tiek pilnībā atbalstīti ar `better-sqlite3` v12.x.
 
 ---
 
@@ -282,17 +300,17 @@ omniroute
 
 <a name="proxy-issues"></a>
 
-### Pakalpojuma sniedzēja validācijā tiek parādīts "fetch failed"
+### Pakalpojuma sniedzēja validācija rāda "fetch failed"
 
-**Cēlonis:** API atslēgas validācijas galapunkts (`POST /api/providers/validate`) iepriekš neizmantoja starpniekservera konfigurāciju, izraisot kļūmes vidēs, kurās nepieciešama maršrutēšana caur starpniekserveri.
+**Cēlonis:** API atslēgas validācijas galapunkts (`POST /api/providers/validate`) iepriekš apgāja starpniekservera konfigurāciju, izraisot kļūmes vidēs, kurās nepieciešama maršrutēšana caur starpniekserveri.
 
-**Labojums (v3.5.5+):** Tagad tas ir izlabots. Pakalpojuma sniedzēja validācija tiek veikta, izmantojot `runWithProxyContext`, un automātiski ievēro pakalpojuma sniedzēja līmeņa un globālos starpniekservera iestatījumus.
+**Labojums (v3.5.5+):** Šī problēma tagad ir novērsta. Pakalpojuma sniedzēja validācija tiek maršrutēta caur `runWithProxyContext`, automātiski ievērojot pakalpojuma sniedzēja līmeņa un globālos starpniekservera iestatījumus.
 
-### Pilnvaras marķiera darbspējas pārbaude neizdodas ar kļūdu "fetch failed"
+### Pilnvaras veselības pārbaude neizdodas ar kļūdu "fetch failed"
 
-**Cēlonis:** Fona OAuth pilnvaras marķiera atsvaidzināšana neatrisināja starpniekservera konfigurāciju katram savienojumam atsevišķi.
+**Cēlonis:** Fona OAuth pilnvaras atsvaidzināšana nenoteica starpniekservera konfigurāciju katram savienojumam.
 
-**Labojums (v3.5.5+):** Pilnvaras marķiera darbspējas pārbaudes plānotājs tagad pirms atsvaidzināšanas mēģinājuma nosaka starpniekservera konfigurāciju katram savienojumam. Atjauniniet uz v3.5.5+.
+**Labojums (v3.5.5+):** Pilnvaru veselības pārbaudes plānotājs tagad nosaka starpniekservera konfigurāciju katram savienojumam pirms atsvaidzināšanas mēģinājuma. Atjauniniet uz v3.5.5+.
 
 ### SOCKS5 starpniekserveris atgriež kļūdu "invalid onRequestStart method"
 
@@ -302,13 +320,13 @@ omniroute
 
 ### MITM starpniekserveris WSL vidē: darbvirsmas lietotnes Windows resursdatorā netiek pārtvertas
 
-**Cēlonis:** MITM starpniekserveris un tā CA sertifikāts tiek instalēti vidē, kurā darbojas OmniRoute. WSL gadījumā šī vide ir Linux viessistēma, savukārt MI darbvirsmas lietotnes (Kiro, Trae, Copilot, Zed, …) darbojas Windows resursdatorā. Resursdatora lietotnes neuzticas viesistēmas sertifikātu krātuvei un nemaršrutē datplūsmu caur viesistēmas sistēmas starpniekserveri, tāpēc darbvirsmas datplūsmas pārtveršana netiek aktivizēta.
+**Cēlonis:** MITM starpniekserveris un tā CA sertifikāts tiek instalēti vidē, kurā darbojas OmniRoute. WSL gadījumā šī vide ir Linux viessistēma, savukārt AI darbvirsmas lietotnes (Kiro, Trae, Copilot, Zed, …) darbojas Windows resursdatorā. Resursdatora lietotnes neuzticas vies sistēmas sertifikātu krātuvei un nemaršrutē datplūsmu caur vies sistēmas sistēmas starpniekserveri, tāpēc darbvirsmas datplūsmas pārtveršana nenotiek.
 
-**Ieteikums:** Darbiniet OmniRoute tieši tajā pašā operētājsistēmā, kurā darbojas pārtveramās darbvirsmas lietotnes (Windows — Windows lietotnēm; attiecīgi macOS/Linux). Ja OmniRoute tiek darbināts WSL vidē, bet mērķis ir resursdatora lietotnes, ģenerētais CA sertifikāts ir manuāli jāatzīmē kā uzticams Windows resursdatorā un katras resursdatora lietotnes tīkla/starpniekservera iestatījumos jānorāda WSL starpniekservera galapunkts — šāda konfigurācija netiek atbalstīta un ir nestabila.
+**Ieteikums:** Darbiniet OmniRoute tieši tajā pašā operētājsistēmā, kurā darbojas pārtveramās darbvirsmas lietotnes (Windows — Windows lietotnēm; analogi macOS/Linux). Ja OmniRoute tiek paturēts WSL vidē, bet mērķis ir resursdatora lietotnes, Windows resursdatorā ir manuāli jāuzticas ģenerētajam CA sertifikātam un katras resursdatora lietotnes tīkla/starpniekservera iestatījumi jānovirza uz WSL starpniekservera galapunktu — šāda konfigurācija netiek atbalstīta un ir trausla.
 
 ---
 
-## Pakalpojuma sniedzēja problēmas
+## Pakalpojuma sniedzēju problēmas
 
 ### "Language model did not provide messages"
 
@@ -316,7 +334,7 @@ omniroute
 
 **Labojums:**
 
-1. Pārbaudiet kvotas izsekotāju informācijas panelī
+1. Pārbaudiet kvotas uzskaiti informācijas panelī
 2. Izmantojiet kombināciju ar rezerves līmeņiem
 3. Pārslēdzieties uz lētāku/bezmaksas līmeni
 
@@ -329,32 +347,32 @@ omniroute
 - Pievienojiet rezerves variantus: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
 - Izmantojiet GLM/MiniMax kā lētu rezerves variantu
 
-### OAuth pilnvaras marķiera derīguma termiņš ir beidzies
+### OAuth pilnvarai beidzies derīguma termiņš
 
-OmniRoute automātiski atsvaidzina pilnvaras marķierus. Ja problēmas saglabājas:
+OmniRoute automātiski atsvaidzina pilnvaras. Ja problēmas saglabājas:
 
-1. Informācijas panelis → Pakalpojuma sniedzējs → Atkārtoti izveidot savienojumu
-2. Dzēsiet pakalpojuma sniedzēja savienojumu un pievienojiet to no jauna
+1. Informācijas panelis → Pakalpojuma sniedzējs → Izveidot savienojumu no jauna
+2. Dzēsiet un atkārtoti pievienojiet pakalpojuma sniedzēja savienojumu
 
 ### Vairāki Kiro konti: otrais konts padara pirmo nederīgu
 
 **Cēlonis:** Kiro aizmugursistēma katrai OIDC klienta reģistrācijai atļauj tikai vienu aktīvu sesiju.
-Ja divi konti izmanto vienu un to pašu reģistrēto klientu (savienojumiem, kas importēti pirms v3.8.0),
-viena konta pilnvaras marķiera atsvaidzināšana padara otra konta atsvaidzināšanas pilnvaras marķieri nederīgu.
+Ja divi konti izmanto vienu un to pašu reģistrēto klientu (savienojumi importēti pirms v3.8.0),
+viena konta pilnvaras atsvaidzināšana padara nederīgu otra konta atsvaidzināšanas pilnvaru.
 
 **Labojums (v3.8.0+):** Atkārtoti importējiet ietekmētos savienojumus.
-Sākot ar v3.8.0, katrs jaunais Kiro savienojums, kas izveidots, izmantojot **Pilnvaras marķiera importēšanu**,
+Sākot ar v3.8.0, katrs jauns Kiro savienojums, kas izveidots, izmantojot **Pilnvaras importēšanu**,
 **Google/GitHub sociālo pieteikšanos** vai **Automātisko importēšanu**, automātiski reģistrē savu
-atsevišķo OIDC klientu. Tādējādi savienojums ir pilnībā izolēts, un viena
-konta atsvaidzināšana neietekmē nevienu citu kontu.
+atsevišķu OIDC klientu. Tādējādi savienojums ir pilnībā izolēts, un viena konta
+atsvaidzināšana neietekmē nevienu citu kontu.
 
-Savienojumiem, kas importēti _pirms_ v3.8.0, nav katram savienojumam atsevišķas klienta
-reģistrācijas. Šie savienojumi turpina izmantot koplietoto sociālās autentifikācijas atsvaidzināšanas galapunktu.
-Lai iegūtu izolāciju, dzēsiet veco savienojumu sadaļā Informācijas panelis → Pakalpojumu sniedzēji un pievienojiet to atkārtoti,
+Savienojumiem, kas tika importēti _pirms_ v3.8.0, nav katram savienojumam atsevišķas klienta
+reģistrācijas. Šie savienojumi turpina izmantot kopīgo sociālās autentifikācijas atsvaidzināšanas galapunktu.
+Lai iegūtu izolāciju, izdzēsiet veco savienojumu sadaļā Informācijas panelis → Pakalpojumu sniedzēji un pievienojiet to no jauna,
 izmantojot jebkuru no trim importēšanas plūsmām.
 
-Pilnīgu informāciju un secīgas instrukcijas divu Kiro kontu paralēlai pievienošanai
-skatiet failā [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
+Pilnīgu informāciju un detalizētus norādījumus par divu Kiro kontu pievienošanu vienlaikus
+skatiet [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ---
 
@@ -362,23 +380,23 @@ skatiet failā [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ### Mākoņa sinhronizācijas kļūdas
 
-1. Pārbaudiet, vai `BASE_URL` norāda uz jūsu palaisto instanci (piem., `http://localhost:20128`)
+1. Pārbaudiet, vai `BASE_URL` norāda uz jūsu darbojošos instanci (piem., `http://localhost:20128`)
 2. Pārbaudiet, vai `CLOUD_URL` norāda uz jūsu mākoņa galapunktu (piem., `https://omniroute.dev`)
 3. Nodrošiniet, lai `NEXT_PUBLIC_*` vērtības atbilstu servera puses vērtībām
 
 ### Mākoņa `stream=false` atgriež 500
 
-**Simptoms:** `Unexpected token 'd'...` mākoņa galapunktā nestraumēšanas izsaukumiem.
+**Simptoms:** `Unexpected token 'd'...` mākoņa galapunktā nestraumētiem izsaukumiem.
 
-**Cēlonis:** Augšupējais pakalpojums atgriež SSE lietderīgo slodzi, kamēr klients sagaida JSON.
+**Cēlonis:** Augšupstraumes pakalpojums atgriež SSE datu slodzi, kamēr klients sagaida JSON.
 
-**Risinājums:** Tiešajiem mākoņa izsaukumiem izmantojiet `stream=true`. Lokālā izpildvide ietver SSE→JSON atkāpšanās mehānismu.
+**Pagaidu risinājums:** Tiešiem mākoņa izsaukumiem izmantojiet `stream=true`. Lokālajā izpildvidē ir iekļauts SSE→JSON rezerves mehānisms.
 
-### Mākonis rāda, ka savienojums ir izveidots, bet ziņo "Invalid API key"
+### Mākonis rāda, ka savienojums ir izveidots, bet ziņo „Nederīga API atslēga”
 
 1. Izveidojiet jaunu atslēgu lokālajā informācijas panelī (`/api/keys`)
 2. Palaidiet mākoņa sinhronizāciju: Iespējot mākoni → Sinhronizēt tagad
-3. Vecas/nesinhronizētas atslēgas mākonī joprojām var atgriezt `401`
+3. Vecas vai nesinhronizētas atslēgas mākonī joprojām var atgriezt `401`
 
 ---
 
@@ -388,27 +406,27 @@ skatiet failā [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 <a name="docker-ipv6"></a>
 
-**Simptomi:** `curl http://localhost:20128/v1/models` atgriež `curl: (56) Recv failure: Connection reset by peer`. Informācijas panelis un galapunkti, kuriem nav nepieciešama autentifikācija, darbojas, bet autentificētie galapunkti nedarbojas — tas izskatās pēc autentifikācijas problēmas, lai gan tā nav.
+**Simptomi:** `curl http://localhost:20128/v1/models` atgriež `curl: (56) Recv failure: Connection reset by peer`. Informācijas panelis un galapunkti bez autentifikācijas darbojas, bet autentificētie galapunkti nedarbojas — tas izskatās pēc autentifikācijas problēmas, taču tā nav.
 
-**Cēlonis:** `docker run -p 20128:20128` publicē portu gan adresē `0.0.0.0` (IPv4), gan `::` (IPv6), taču process konteinerā klausās tikai IPv4. Resursdatoros, kuros `localhost` vispirms tiek atrisināts kā `::1`, savienojums nonāk publicētajā IPv6 portā, aiz kura nav klausītāja → savienojums tiek atiestatīts.
+**Cēlonis:** `docker run -p 20128:20128` publicē portu gan uz `0.0.0.0` (IPv4), gan uz `::` (IPv6), taču process konteinerā klausās tikai IPv4. Resursdatoros, kuros `localhost` vispirms tiek atrisināts kā `::1`, savienojums nonāk publicētajā IPv6 portā, aiz kura nav klausītāja → savienojums tiek atiestatīts.
 
-**Labojums:**
+**Risinājums:**
 
-1. **Ātra diagnostika:** Palaidiet `curl -4 http://localhost:20128/v1/models`. Ja tas darbojas ar `-4`, bet bez tā nedarbojas, pastāv IPv6 piesaistes neatbilstība.
-2. **Pastāvīgs labojums:** Veiciet tiešu piesaisti IPv4, savā `docker run` komandā izmantojot `-p 127.0.0.1:20128:20128`:
+1. **Ātrā diagnostika:** Palaidiet `curl -4 http://localhost:20128/v1/models`. Ja tas darbojas ar `-4`, bet nedarbojas bez tā, pastāv IPv6 piesaistes neatbilstība.
+2. **Pastāvīgais risinājums:** Skaidri piesaistiet IPv4, savā `docker run` komandā izmantojot `-p 127.0.0.1:20128:20128`:
    ```bash
    docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
      -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
    ```
-   Tas piespiež izmantot IPv4 piesaisti un arī novērš starpniekservera pieejamību visās resursdatora saskarnēs.
+   Tas uzspiež IPv4 piesaisti un arī novērš starpniekservera atklāšanu visās resursdatora saskarnēs.
 
 ---
 
 ### CLI rīks tiek rādīts kā neinstalēts
 
 1. Pārbaudiet izpildvides laukus: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. Portatīvajam režīmam izmantojiet attēla mērķi `runner-cli` (CLI rīki ir iekļauti)
-3. Resursdatora montēšanas režīmam iestatiet `CLI_EXTRA_PATHS` un montējiet resursdatora bināro failu direktoriju tikai lasīšanas režīmā
+2. Portatīvajam režīmam: izmantojiet attēla mērķi `runner-cli` (CLI rīki ir iekļauti komplektā)
+3. Resursdatora montēšanas režīmam: iestatiet `CLI_EXTRA_PATHS` un montējiet resursdatora bināro failu direktoriju tikai lasīšanas režīmā
 4. Ja `installed=true` un `runnable=false`: binārais fails tika atrasts, bet darbspējas pārbaude neizdevās
 
 ### Ātra izpildvides pārbaude
@@ -426,9 +444,9 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 ### Augstas izmaksas
 
 1. Pārbaudiet lietojuma statistiku sadaļā Informācijas panelis → Lietojums
-2. Pārslēdziet primāro modeli uz GLM/MiniMax
-3. Nekritiskiem uzdevumiem izmantojiet bezmaksas līmeni (Qoder, Kiro)
-4. Iestatiet izmaksu budžetu katrai API atslēgai: Informācijas panelis → API atslēgas → Budžets
+2. Nomainiet primāro modeli uz GLM/MiniMax
+3. Mazāk svarīgiem uzdevumiem izmantojiet bezmaksas līmeni (Qoder, Kiro)
+4. Iestatiet izmaksu budžetus katrai API atslēgai: Informācijas panelis → API atslēgas → Budžets
 
 ---
 
@@ -436,11 +454,11 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### Žurnālfailu iespējošana
 
-Iestatiet `APP_LOG_TO_FILE=true` savā `.env` failā. Lietotnes žurnāli tiek ierakstīti direktorijā `logs/`.
-Pieprasījumu artefakti tiek glabāti direktorijā `${DATA_DIR}/call_logs/`, ja iestatījumos ir
+Iestatiet `APP_LOG_TO_FILE=true` savā `.env` failā. Lietojumprogrammas žurnāli tiek ierakstīti direktorijā `logs/`.
+Pieprasījumu artefakti tiek glabāti direktorijā `${DATA_DIR}/call_logs/`, kad iestatījumos ir
 iespējots izsaukumu žurnālu konveijers.
-Kad konveijera tveršana ir iespējota, iestatiet `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false`, lai izlaistu
-straumes fragmentu lietderīgās slodzes, vai pielāgojiet `CALL_LOG_PIPELINE_MAX_SIZE_KB`, lai mainītu artefaktu ierobežojumu KB.
+Kad ir iespējota konveijera tveršana, iestatiet `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false`, lai izlaistu
+straumes fragmentu datu slodzes, vai pielāgojiet `CALL_LOG_PIPELINE_MAX_SIZE_KB`, lai mainītu artefaktu ierobežojumu KB.
 
 ### Pakalpojumu sniedzēja darbspējas pārbaude
 
@@ -456,10 +474,10 @@ curl http://localhost:20128/api/monitoring/health
 
 - Galvenais stāvoklis: `${DATA_DIR}/storage.sqlite` (pakalpojumu sniedzēji, kombinācijas, aizstājvārdi, atslēgas, iestatījumi)
 - Lietojums: SQLite tabulas failā `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + neobligāti `${DATA_DIR}/call_logs/`
-- Lietotnes žurnāli: `<repo>/logs/...` (kad `APP_LOG_TO_FILE=true`)
-- Izsaukumu žurnālu artefakti: `${DATA_DIR}/call_logs/YYYY-MM-DD/...`, kad izsaukumu žurnālu konveijers ir iespējots
+- Lietojumprogrammas žurnāli: `<repo>/logs/...` (kad `APP_LOG_TO_FILE=true`)
+- Izsaukumu žurnālu artefakti: `${DATA_DIR}/call_logs/YYYY-MM-DD/...`, kad ir iespējots izsaukumu žurnālu konveijers
 
-Pieprasījumu žurnālu lapas darbība **Notīrīt vēsturi** notīra `call_logs`, mantotos
+Pieprasījumu žurnālu lapas darbība **Notīrīt vēsturi** notīra `call_logs`, mantoto
 `request_detail_logs` un lokālo `${DATA_DIR}/call_logs/` artefaktu direktoriju.
 
 ---
@@ -468,70 +486,70 @@ Pieprasījumu žurnālu lapas darbība **Notīrīt vēsturi** notīra `call_logs
 
 ### Pakalpojumu sniedzējs iestrēdzis OPEN stāvoklī
 
-Kad pakalpojumu sniedzēja ķēdes pārtraucējs ir OPEN stāvoklī, pieprasījumi tiek bloķēti līdz nogaidīšanas perioda beigām.
+Kad pakalpojumu sniedzēja ķēdes pārtraucējs ir OPEN stāvoklī, pieprasījumi tiek bloķēti līdz atdzišanas perioda beigām.
 
 **Risinājums:**
 
 1. Dodieties uz **Informācijas panelis → Iestatījumi → Noturība**
 2. Pārbaudiet ietekmētā pakalpojumu sniedzēja ķēdes pārtraucēja kartīti
-3. Noklikšķiniet uz **Atiestatīt visu**, lai atiestatītu visus pārtraucējus, vai gaidiet, līdz beidzas nogaidīšanas periods
-4. Pirms atiestatīšanas pārliecinieties, ka pakalpojumu sniedzējs patiešām ir pieejams
+3. Noklikšķiniet uz **Atiestatīt visus**, lai atiestatītu visus pārtraucējus, vai gaidiet, līdz beidzas atdzišanas periods
+4. Pirms atiestatīšanas pārbaudiet, vai pakalpojumu sniedzējs patiešām ir pieejams
 
 ### Pakalpojumu sniedzējs atkārtoti aktivizē ķēdes pārtraucēju
 
-Ja pakalpojumu sniedzējs atkārtoti pāriet OPEN stāvoklī:
+Ja pakalpojumu sniedzējs atkārtoti nonāk OPEN stāvoklī:
 
-1. Sadaļā **Informācijas panelis → Darbspēja → Pakalpojumu sniedzēju darbspēja** pārbaudiet kļūmju raksturu
+1. Sadaļā **Informācijas panelis → Stāvoklis → Pakalpojumu sniedzēju stāvoklis** pārbaudiet kļūmju modeli
 2. Dodieties uz **Iestatījumi → Noturība → Pakalpojumu sniedzēju profili** un palieliniet kļūmju slieksni
-3. Pārbaudiet, vai pakalpojumu sniedzējs nav mainījis API ierobežojumus vai nepieprasa atkārtotu autentifikāciju
-4. Pārskatiet latentuma telemetriju — liels latentums var izraisīt noildzes kļūmes
+3. Pārbaudiet, vai pakalpojumu sniedzējs nav mainījis API ierobežojumus un vai nav nepieciešama atkārtota autentifikācija
+4. Pārskatiet latentuma telemetriju — liels latentums var izraisīt taimauta kļūmes
 
 ---
 
 ## Audio transkripcijas problēmas
 
-### Kļūda "Neatbalstīts modelis"
+### Kļūda „Neatbalstīts modelis”
 
-- Izmantojiet modeļa identifikatoru, kura pirmais segments ir pakalpojumu sniedzējs, kuram jums ir piekļuves dati (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Vienkāršam `deepgram/nova-3` ir nepieciešama vietējā Deepgram atslēga.
+- Izmantojiet modeļa ID, kura pirmais segments ir pakalpojumu sniedzējs, kam jums ir akreditācijas dati (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Lai izmantotu tikai `deepgram/nova-3`, ir nepieciešama vietējā Deepgram atslēga.
 - Pārbaudiet, vai pakalpojumu sniedzējs ir savienots sadaļā **Informācijas panelis → Pakalpojumu sniedzēji**
 
 ### Transkripcija ir tukša vai neizdodas
 
 - Pārbaudiet atbalstītos audio formātus: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Pārliecinieties, ka faila lielums nepārsniedz pakalpojumu sniedzēja ierobežojumus (parasti < 25MB)
+- Pārbaudiet, vai faila lielums nepārsniedz pakalpojumu sniedzēja ierobežojumus (parasti < 25MB)
 - Pakalpojumu sniedzēja kartītē pārbaudiet pakalpojumu sniedzēja API atslēgas derīgumu
 
 ---
 
 ## Tulkotāja atkļūdošana
 
-Izmantojiet sadaļu **Informācijas panelis → Tulkotājs**, lai atkļūdotu formātu pārveidošanas problēmas:
+Izmantojiet sadaļu **Informācijas panelis → Tulkotājs**, lai atkļūdotu formātu tulkošanas problēmas:
 
-| Režīms                   | Kad izmantot                                                                                                           |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| **Izmēģinājumu vide**    | Salīdziniet ievades/izvades formātus līdzās — ielīmējiet neveiksmīgu pieprasījumu, lai redzētu, kā tas tiek pārveidots |
-| **Tērzēšanas testētājs** | Sūtiet ziņojumus reāllaikā un pārbaudiet pilnu pieprasījuma/atbildes datu saturu, tostarp galvenes                     |
-| **Testēšanas vide**      | Palaidiet pakeštestus dažādām formātu kombinācijām, lai atrastu bojātos pārveidojumus                                  |
-| **Tiešraides pārraugs**  | Vērojiet pieprasījumu plūsmu reāllaikā, lai konstatētu periodiskas pārveidošanas problēmas                             |
+| Režīms                   | Kad izmantot                                                                                                      |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| **Izmēģinājumu vide**    | Salīdziniet ievades/izvades formātus blakus — ielīmējiet nesekmīgu pieprasījumu, lai redzētu, kā tas tiek tulkots |
+| **Tērzēšanas testētājs** | Sūtiet ziņojumus reāllaikā un pārbaudiet pilnu pieprasījuma/atbildes datu kopu, tostarp galvenes                  |
+| **Testēšanas vide**      | Palaidiet pakešu testus dažādām formātu kombinācijām, lai noteiktu, kuri tulkojumi nedarbojas                     |
+| **Tiešraides pārraugs**  | Vērojiet pieprasījumu plūsmu reāllaikā, lai atklātu periodiskas tulkošanas problēmas                              |
 
 ### Biežākās formātu problēmas
 
-- **Domāšanas tagi netiek parādīti** — pārbaudiet, vai mērķa pakalpojumu sniedzējs atbalsta domāšanu, kā arī domāšanas budžeta iestatījumu
-- **Rīku izsaukumi pazūd** — daži formātu pārveidojumi var noņemt neatbalstītus laukus; pārbaudiet to Izmēģinājumu vides režīmā
-- **Trūkst sistēmas uzvednes** — Claude un Gemini sistēmas uzvednes apstrādā atšķirīgi; pārbaudiet pārveidošanas izvadi
-- **SDK atgriež neapstrādātu virkni, nevis objektu** — atrisināts versijā v1.x; atbildes sanitizētājs noņem nestandarta laukus (`x_groq`, `usage_breakdown` u.c.), kas izraisa OpenAI SDK Pydantic validācijas kļūmes. Ja to joprojām novērojat versijā v3.x+, lūdzu, ziņojiet par problēmu.
-- **GLM/ERNIE noraida `system` lomu** — atrisināts versijā v1.x; lomu normalizētājs nesaderīgiem modeļiem automātiski apvieno sistēmas ziņojumus ar lietotāja ziņojumiem. Ja to joprojām novērojat versijā v3.x+, lūdzu, ziņojiet par problēmu.
-- **`developer` loma netiek atpazīta** — atrisināts versijā v1.x; pakalpojumu sniedzējiem, kas nav OpenAI, tā tiek automātiski pārveidota par `system`. Ja to joprojām novērojat versijā v3.x+, lūdzu, ziņojiet par problēmu.
-- **`json_schema` nedarbojas ar Gemini** — atrisināts versijā v1.x; `response_format` tagad tiek pārveidots par Gemini `responseMimeType` + `responseSchema`. Ja to joprojām novērojat versijā v3.x+, lūdzu, ziņojiet par problēmu.
+- **Domāšanas tagi neparādās** — pārbaudiet, vai mērķa pakalpojumu sniedzējs atbalsta domāšanu, kā arī domāšanas budžeta iestatījumu
+- **Rīku izsaukumi pazūd** — daži formātu tulkojumi var noņemt neatbalstītus laukus; pārbaudiet to režīmā Izmēģinājumu vide
+- **Trūkst sistēmas uzvednes** — Claude un Gemini sistēmas uzvednes apstrādā atšķirīgi; pārbaudiet tulkojuma izvadi
+- **SDK objekta vietā atgriež neapstrādātu virkni** — atrisināts versijā v1.x; atbilžu sanitizētājs noņem nestandarta laukus (`x_groq`, `usage_breakdown` utt.), kas izraisa OpenAI SDK Pydantic validācijas kļūmes. Ja joprojām to novērojat versijā v3.x+, lūdzu, iesniedziet problēmas ziņojumu.
+- **GLM/ERNIE noraida `system` lomu** — atrisināts versijā v1.x; lomu normalizētājs nesaderīgiem modeļiem automātiski apvieno sistēmas ziņojumus ar lietotāja ziņojumiem. Ja joprojām to novērojat versijā v3.x+, lūdzu, iesniedziet problēmas ziņojumu.
+- **`developer` loma netiek atpazīta** — atrisināts versijā v1.x; pakalpojumu sniedzējiem, kas nav OpenAI, tā tiek automātiski pārveidota par `system`. Ja joprojām to novērojat versijā v3.x+, lūdzu, iesniedziet problēmas ziņojumu.
+- **`json_schema` nedarbojas ar Gemini** — atrisināts versijā v1.x; `response_format` tagad tiek pārveidots par Gemini `responseMimeType` + `responseSchema`. Ja joprojām to novērojat versijā v3.x+, lūdzu, iesniedziet problēmas ziņojumu.
 
 ---
 
 ## Noturības iestatījumi
 
-### Automātiskā ātruma ierobežošana netiek aktivizēta
+### Automātiskā pieprasījumu biežuma ierobežošana netiek aktivizēta
 
-- Automātiskā ātruma ierobežošana attiecas tikai uz API atslēgu nodrošinātājiem (nevis OAuth/abonementiem)
-- Pārbaudiet, vai sadaļā **Iestatījumi → Noturība → Nodrošinātāju profili** ir iespējota automātiskā ātruma ierobežošana
+- Automātiskā pieprasījumu biežuma ierobežošana attiecas tikai uz API atslēgu nodrošinātājiem (nevis OAuth/abonementiem)
+- Pārbaudiet, vai sadaļā **Iestatījumi → Noturība → Nodrošinātāju profili** ir iespējota automātiskā pieprasījumu biežuma ierobežošana
 - Pārbaudiet, vai nodrošinātājs atgriež statusa kodus `429` vai galvenes `Retry-After`
 
 ### Eksponenciālās atkāpšanās pielāgošana
@@ -540,11 +558,11 @@ Nodrošinātāju profili atbalsta šādus iestatījumus:
 
 - **Pamata aizkave** — sākotnējais gaidīšanas laiks pēc pirmās kļūmes (noklusējums: 1s)
 - **Maksimālā aizkave** — maksimālā gaidīšanas laika robeža (noklusējums: 30s)
-- **Reizinātājs** — aizkaves palielinājums pēc katras secīgās kļūmes (noklusējums: 2x)
+- **Reizinātājs** — cik lielā mērā palielināt aizkavi pēc katras secīgās kļūmes (noklusējums: 2x)
 
-### Pieprasījumu lavīnas novēršana
+### Vienlaicīgu pieprasījumu pārslodzes novēršana
 
-Kad daudzi vienlaicīgi pieprasījumi sasniedz nodrošinātāju ar ātruma ierobežojumu, OmniRoute izmanto mutex un automātisku ātruma ierobežošanu, lai pieprasījumus izpildītu secīgi un novērstu kaskādes kļūmes. API atslēgu nodrošinātājiem tas notiek automātiski.
+Kad daudzi vienlaicīgi pieprasījumi sasniedz nodrošinātāju ar ierobežotu pieprasījumu biežumu, OmniRoute izmanto mutex un automātisku pieprasījumu biežuma ierobežošanu, lai pieprasījumus apstrādātu secīgi un novērstu ķēdveida kļūmes. API atslēgu nodrošinātājiem tas notiek automātiski.
 
 ### Tērzēšanas pieprasījumi neizdodas ar 503 / chat_admission_busy
 
@@ -552,16 +570,16 @@ Kad daudzi vienlaicīgi pieprasījumi sasniedz nodrošinātāju ar ātruma ierob
 
 - Tērzēšanas pabeigšanas galapunkts atgriež atkārtojamu `503` atbildi, kuras kļūdas kods ir
   `chat_admission_busy`.
-- Atbildē ir iekļauts `Retry-After`. Kopš #12135 vērtība tiek iegūta no novērotā
-  noslogojuma — tiek izmantots lielākais no `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` loga, kuru pieprasījums jau
-  ir gaidījis, un laika, cik ilgi tiek turētas pašreizējās smagsvara nomas — to noapaļo uz augšu līdz veselām
-  sekundēm un ierobežo līdz 60. Kad ieejas kontrole ir brīva, tiek saglabātas vēsturiskās minimālās vērtības: 2 sekundes
-  baitu ceļam, 1 sekunde struktūras ceļam (kas ietver arī
+- Atbildē ir iekļauta galvene `Retry-After`. Kopš #12135 tās vērtība tiek noteikta pēc novērotās
+  noslodzes — izvēloties lielāko no `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` loga, kuru pieprasījums jau
+  ir gaidījis, un laika, cik ilgi pašreizējās smagsvara nomas ir bijušas aizņemtas, — noapaļojot uz augšu līdz veselām
+  sekundēm un ierobežojot līdz 60. Kad vārteja nav noslogota, tiek saglabātas vēsturiskās minimālās vērtības: 2 sekundes
+  uz baitos balstītajā ceļā un 1 sekunde uz struktūrā balstītajā ceļā (kurā ir iekļauts arī
   `reason: "structure_limit"`).
-- Tas var notikt, kamēr joprojām tiek izpildīta cita smagsvara tērzēšana vai ilgstoša straumēšanas
+- Tas var notikt, kamēr vēl tiek apstrādāta cita smagsvara tērzēšanas vai ilgstošas straumēšanas
   atbilde.
 
-Uz baitiem balstītās atbildes pamatteksts ir:
+Baitos balstītās atbildes pamatteksts ir:
 
 ```json
 {
@@ -573,66 +591,66 @@ Uz baitiem balstītās atbildes pamatteksts ir:
 }
 ```
 
-Uz struktūru balstītajā atbildē tiek izmantots tas pats tips un kods ar ziņojumu
+Struktūrā balstītā atbilde izmanto to pašu tipu un kodu ar ziņojumu
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 un `reason: "structure_limit"`.
-Izmantojot noklusējuma sliekšņus, pieprasījums tiek uzskatīts par strukturāli smagu, ja tajā ir vismaz `200` ziņojumu,
+Ar noklusējuma sliekšņiem pieprasījums tiek uzskatīts par strukturāli smagu, ja tajā ir vismaz `200` ziņojumu,
 vismaz `64` rīki vai vismaz `32,000` aplēsto marķieru, vai arī ja ierobežotā struktūras aplēse
 sasniedz savas robežas — `10,000` apmeklētu mezglu vai dziļumu `12`.
 
-**Cēlonis:** Tā ir apzināta slodzes samazināšana OmniRoute iekšienē, nevis augšupstraumes nodrošinātāja kļūme.
-Katrs process izmanto procesam lokālu aizsargmehānismu, lai rezervētu ierobežotu smagsvara pieprasījumu apstrādes jaudu pirms liela
-pieprasījuma pamatteksta paturēšanas un parsēšanas. Smagsvara noma tiek turēta visu SSE
+**Cēlonis:** Tā ir apzināta slodzes samazināšana OmniRoute iekšienē, nevis augšupējā nodrošinātāja kļūme.
+Katrs process izmanto lokālu procesa aizsargmehānismu, lai rezervētu ierobežotu smagsvara kapacitāti pirms liela
+pieprasījuma pamatteksta paturēšanas un parsēšanas. Smagsvara noma paliek aizņemta visu SSE
 atbildes darbības laiku.
 
-**#503-lavīna:** pirms šī labojuma aizsargmehānisms ierobežoja vienlaicīgumu līdz fiksētam pieprasījumu SKAITAM
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, noklusējums `1`) neatkarīgi no resursdatora atmiņas, tādēļ programmēšanas aģentu
+**#503-fanout:** pirms šī labojuma aizsargmehānisms ierobežoja vienlaicīgumu līdz fiksētam pieprasījumu SKAITAM
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, noklusējums `1`) neatkarīgi no resursdatora atmiņas, tādēļ kodēšanas aģentu
 izvēršana (vairāki apakšaģenti/CLI, pamatteksti parasti > 256 KB) samazināja faktisko
-vienlaicīgumu līdz ~1 un pilnīgi normālas slodzes apstākļos izraisīja 503 kļūdas. Tagad aizsargmehānisms pielāgojas pats: tā darbību nosaka
-automātiski atvasināts uzņemšanas BAITU budžets (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kura lielums tiek noteikts pēc
-procesa faktiskā atmiņas ierobežojuma, un tas arī ņem vērā reāllaika resursu noslodzes signālu — tādēļ
-pieprasījumi tiek noraidīti tikai tad, kad resursdators patiešām saskaras ar atmiņas trūkumu, nevis tikai tāpēc, ka vienlaikus
-ir saņemts vairāk nekā viens smags pieprasījums. Vecais skaita ierobežojums (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) joprojām
+vienlaicīgumu līdz aptuveni 1 un pilnīgi normālas slodzes apstākļos izraisīja 503 kļūdas. Tagad aizsargmehānisms pielāgojas
+automātiski: to kontrolē automātiski noteikts uzņemšanas BAITU budžets (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kas aprēķināts pēc
+procesa faktiskā atmiņas ierobežojuma, un tas ņem vērā arī aktuālu resursu noslodzes signālu, tāpēc
+slodze tiek samazināta tikai tad, kad resursdators patiešām izjūt atmiņas trūkumu, nevis tikai tāpēc, ka vienlaikus
+ieradās vairāk nekā viens smags pieprasījums. Vecais skaita ierobežojums (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) joprojām
 tiek ievērots, taču tikai tad, ja to iestatāt tieši.
 
-Kad jauda ir aizņemta, smagsvara pieprasījums vispirms gaida līdz
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (noklusējums `2000`, `0` atspējo gaidīšanu), līdz atbrīvojas vieta,
-pirms tiek atgriezta atkārtojamā `503` atbilde. Ierobežotais gaidīšanas laiks pastāv tādēļ, lai aģentu tipa klienti
-(OpenCode, Claude Code, Cursor), kas vienlaikus izvērš smagus apakšpieprasījumus, apstrādātu pieprasījumu uzplūdu secīgi,
-nevis iztērētu visu atkārtošanas budžetu tūlītējiem noraidījumiem un pārtrauktu darbu uzdevuma vidū.
-Pašreizējais smagsvara nomu noslogojums, noteiktais baitu budžets un reāllaika noslodzes smaguma pakāpe ir
-pieejami sadaļā `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — pārbaudiet tos, pirms maināt kādu vides mainīgo.
+Kad kapacitāte ir aizņemta, smagsvara pieprasījums vispirms gaida līdz
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (noklusējums `2000`; `0` atspējo gaidīšanu), lai atbrīvotos vieta,
+un tikai pēc tam atgriež atkārtojamu `503`. Ierobežotais gaidīšanas laiks pastāv tādēļ, lai aģentu tipa klienti
+(OpenCode, Claude Code, Cursor), kas vienlaicīgi izvērš smagus apakšpieprasījumus, apstrādātu šo pieprasījumu vilni secīgi,
+nevis iztērētu visu savu atkārtošanas budžetu tūlītējiem noraidījumiem un pārtrauktu darbu uzdevuma vidū.
+Pašreizējais smagsvara nomu noslogojums, noteiktais baitu budžets un aktuālais noslodzes smagums
+ir pieejami sadaļā `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — pārbaudiet tos pirms jebkura vides mainīgā maiņas.
 Iestatījumi → Noturība → Pieprasījumu rinda → Vienlaicīgie pieprasījumi to nekontrolē; šis iestatījums
 pārvalda atsevišķu nodrošinātāja pieprasījumu rindas mehānismu.
 
-**Labojums:**
+**Risinājums:**
 
-1. Vispirms mēģiniet vēlreiz. Klientiem ir jāievēro `Retry-After` un jāizmanto atkāpšanās, nevis nekavējoties
+1. Vispirms atkārtojiet pieprasījumu. Klientiem jāievēro `Retry-After` un jāizmanto atkāpšanās, nevis nekavējoties
    jāatkārto pieprasījums.
 2. Pirms jebkādas pielāgošanas pārbaudiet `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
-false` un pietiekami liela `maxInflightBytes` vērtība nozīmē, ka automātiski atvasinātais budžets jau darbojas
+false` un pietiekami liela `maxInflightBytes` vērtība nozīmē, ka automātiski noteiktais budžets jau darbojas
    pareizi; `pressureSeverity` vērtība `high`/`critical` nozīmē, ka resursdatoram patiešām trūkst atmiņas —
-   to nevar novērst ar ieejas kontroles vides mainīgo; ir nepieciešams vairāk RAM vai mazāka darba slodze.
-3. Tikai tad, ja `/api/monitoring/health` rāda, ka automātiski atvasinātais budžets jūsu resursdatoram patiešām ir pārāk mazs
-   (tas notiek reti — tas jau mērogojas no konteinera līdz fiziskam serverim), pārrakstiet to tieši ar
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, nevis atgriezieties pie novecojušā pieprasījumu skaita ierobežojuma.
+   to nevar novērst ar uzņemšanas vides mainīgo; nepieciešams vairāk RAM vai mazāka darba slodze.
+3. Tikai tad, ja `/api/monitoring/health` rāda, ka automātiski noteiktais budžets jūsu resursdatoram patiešām ir pārāk mazs
+   (tas notiek reti — budžets jau mērogojas no konteineriem līdz fiziskajiem serveriem), pārrakstiet to tieši ar
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, nevis atgriezieties pie mantotā pieprasījumu skaita ierobežojuma.
 
-Autoritatīvos ieejas kontroles iestatījumus skatiet [vides mainīgo atsaucē](../reference/ENVIRONMENT.md#4-security--authentication).
+Autoritatīvos uzņemšanas iestatījumus skatiet [vides mainīgo atsaucē](../reference/ENVIRONMENT.md#4-security--authentication).
 
 ---
 
 ## Izvēles RAG / LLM kļūmju taksonomija (16 problēmas)
 
-Daži OmniRoute lietotāji izvieto vārteju RAG vai aģentu steku priekšā. Šādās konfigurācijās bieži novērojama dīvaina situācija: OmniRoute šķiet darbojoties korekti (pakalpojumu sniedzēji ir pieejami, maršrutēšanas profili ir kārtībā, nav ātruma ierobežojumu brīdinājumu), taču gala atbilde joprojām ir nepareiza.
+Daži OmniRoute lietotāji izvieto vārteju pirms RAG vai aģentu stekiem. Šādos iestatījumos bieži novērojama dīvaina situācija: OmniRoute šķiet darba kārtībā (pakalpojumu sniedzēji ir pieejami, maršrutēšanas profili darbojas, nav ātruma ierobežojumu brīdinājumu), taču gala atbilde joprojām ir nepareiza.
 
-Praksē šādus incidentus parasti izraisa lejupējais RAG konveijers, nevis pati vārteja.
+Praksē šos incidentus parasti izraisa pakārtotais RAG konveijers, nevis pati vārteja.
 
-Ja vēlaties izmantot kopīgu terminoloģiju šo kļūmju aprakstīšanai, varat izmantot WFGY ProblemMap — ārēju teksta resursu ar MIT licenci, kurā definēti sešpadsmit periodiski sastopami RAG / LLM kļūmju modeļi. Augstā līmenī tas aptver:
+Ja vēlaties kopīgu terminoloģiju šo kļūmju aprakstīšanai, varat izmantot WFGY ProblemMap — ārēju teksta resursu ar MIT licenci, kurā definēti sešpadsmit regulāri sastopami RAG / LLM kļūmju modeļi. Augstā līmenī tas aptver:
 
 - izguves novirzi un bojātas konteksta robežas
 - tukšus vai novecojušus indeksus un vektoru krātuves
-- neatbilstību starp iegultņiem un semantiku
+- iegulumu un semantikas neatbilstību
 - uzvedņu izveides un konteksta loga problēmas
 - loģikas sabrukumu un pārlieku pašpārliecinātas atbildes
 - garu ķēžu un aģentu koordinācijas kļūmes
@@ -641,31 +659,31 @@ Ja vēlaties izmantot kopīgu terminoloģiju šo kļūmju aprakstīšanai, varat
 
 Ideja ir vienkārša:
 
-1. Izmeklējot nepareizu atbildi, saglabājiet:
+1. Izmeklējot nepareizu atbildi, fiksējiet:
    - lietotāja uzdevumu un pieprasījumu
    - OmniRoute maršruta vai pakalpojumu sniedzēju kombināciju
-   - jebkādu lejupēji izmantoto RAG kontekstu (izgūtos dokumentus, rīku izsaukumus utt.)
+   - jebkādu pakārtoti izmantoto RAG kontekstu (izgūtos dokumentus, rīku izsaukumus utt.)
 2. Piesaistiet incidentu vienam vai diviem WFGY ProblemMap numuriem (`No.1` … `No.16`).
-3. Saglabājiet numuru savā informācijas panelī, procedūru rokasgrāmatā vai incidentu uzskaites sistēmā blakus OmniRoute žurnāliem.
-4. Izmantojiet atbilstošo WFGY lapu, lai izlemtu, vai jāmaina RAG steks, izgūšanas komponents vai maršrutēšanas stratēģija.
+3. Saglabājiet numuru savā informācijas panelī, darbību rokasgrāmatā vai incidentu uzskaites sistēmā blakus OmniRoute žurnāliem.
+4. Izmantojiet atbilstošo WFGY lapu, lai izlemtu, vai jāmaina RAG steks, izguves komponents vai maršrutēšanas stratēģija.
 
-Pilns teksts un konkrētas receptes ir pieejamas šeit (MIT licence, tikai teksts):
+Pilns teksts un konkrēti risinājumi ir pieejami šeit (MIT licence, tikai teksts):
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Varat ignorēt šo sadaļu, ja aiz OmniRoute nedarbināt RAG vai aģentu konveijerus.
+Varat ignorēt šo sadaļu, ja aiz OmniRoute neizmantojat RAG vai aģentu konveijerus.
 
 ---
 
 ## v3.8.0 zināmās problēmas
 
-Problēmas, kas raksturīgas laidienam v3.8.0, un to pašreizējie apiešanas risinājumi. Ja labojums tiks iekļauts vēlākā ielāpa versijā, ieraksts tiks atjaunināts vai noņemts.
+Problēmas, kas attiecas tieši uz v3.8.0 laidienu, un to pašreizējie pagaidu risinājumi. Ja labojums tiks iekļauts kādā vēlākā ielāpa laidienā, ieraksts tiks atjaunināts vai noņemts.
 
 ### Devin CLI autentifikācijas kļūmes
 
 **Simptomi:**
 
-- "Devin CLI not found" vai "auth failed", izsaucot Devin nodrošinātos rīkus
+- Izsaucot rīkus, kuru pamatā ir Devin, tiek parādīts "Devin CLI not found" vai "auth failed"
 - CLI izpildlaika pārbaude ziņo `installed=false`
 
 **Cēloņi:**
@@ -677,42 +695,42 @@ Problēmas, kas raksturīgas laidienam v3.8.0, un to pašreizējie apiešanas ri
 
 1. Instalējiet Devin CLI savai platformai
 2. Failā `.env` iestatiet `CLI_DEVIN_BIN=/usr/local/bin/devin` (vai faktisko ceļu)
-3. Restartējiet OmniRoute un atkārtojiet pārbaudi sadaļā **Informācijas panelis → CLI rīki**
+3. Restartējiet OmniRoute un atkārtoti pārbaudiet sadaļā **Informācijas panelis → CLI rīki**
 
-### Modeļa atdzišanas periods iestrēdzis (manuāla atiestatīšana)
+### Modeļa gaidstāves režīms ir iestrēdzis (manuāla atiestatīšana)
 
 **Simptomi:**
 
-- Modelis joprojām tiek rādīts atdzišanas periodā pat pēc tā beigu laika
-- Kombinētā maršrutēšana joprojām izlaiž modeli, lai gan laika zīmogs ir pagātnē
+- Modelis joprojām tiek rādīts gaidstāves režīmā pat pēc tā beigu laika
+- Kombinētā maršrutēšana joprojām izlaiž modeli, lai gan laikspiedols ir pagātnē
 
 **Manuāla atiestatīšana:**
 
-- **Informācijas panelis:** **Iestatījumi → Modeļu atdzišanas periodi** → attiecīgajā kartītē noklikšķiniet uz **Atkārtoti iespējot**
+- **Informācijas panelis:** **Iestatījumi → Modeļu gaidstāves režīmi** → attiecīgajā kartītē noklikšķiniet uz **Atkārtoti iespējot**
 - **API:** `DELETE /api/resilience/model-cooldowns` ar pārvaldības autentifikācijas galvenēm
 
-### Savienojums ar Command Code pakalpojumu sniedzēju neizdodas ar 403
+### Command Code pakalpojumu sniedzēja savienojuma izveide neizdodas ar 403
 
 **Simptomi:**
 
-- 403, pārbaudot savienojumu ar Command Code pakalpojumu sniedzēju
+- Pārbaudot savienojumu ar Command Code pakalpojumu sniedzēju, tiek saņemts 403
 - Pēc pakalpojumu sniedzēja atkārtotas pievienošanas tā kartītē tiek rādīts "unauthorized"
 
-**Cēlonis:** OAuth plūsma netika pabeigta (atbildes izsaukums netika saņemts vai pilnvara netika saglabāta).
+**Cēlonis:** OAuth plūsma netika pabeigta (atpakaļizsaukums netika saņemts vai marķieris netika saglabāts).
 
 **Labojums:**
 
 - Palaidiet `omniroute providers` no CLI, lai atkārtoti aktivizētu OAuth plūsmu, vai
-- Atkārtoti palaidiet OAuth sadaļā **Informācijas panelis → Pakalpojumu sniedzēji → Command Code → Atkārtoti savienot**
+- Atkārtoti palaidiet OAuth sadaļā **Informācijas panelis → Pakalpojumu sniedzēji → Command Code → Atkārtoti izveidot savienojumu**
 
-### ModelScope atgriež agresīvus 429 atdzišanas periodus
+### ModelScope atgriež agresīvus 429 gaidstāves režīmus
 
 **Simptomi:**
 
-- Ļoti īsi vai tūlītēji ModelScope atdzišanas periodi pēc neliela pieprasījumu pieplūduma
+- Pēc neliela pieprasījumu uzplūda ModelScope tiek noteikti ļoti īsi vai tūlītēji gaidstāves režīmi
 - Kombinētā maršrutēšana izlaiž ModelScope agrāk, nekā paredzēts
 
-**Cēlonis:** ModelScope izvada pakalpojumu sniedzējam specifiskas `Retry-After` galvenes. Versijā v3.8.0 ir iekļauta īpaša šo galveņu apstrāde, tāpēc vecākas versijas tās kļūdaini interpretē kā vispārīgas ātruma ierobežojuma norādes.
+**Cēlonis:** ModelScope nosūta pakalpojumu sniedzējam specifiskas `Retry-After` galvenes. Versijā v3.8.0 ir iekļauta īpaša šo galveņu apstrāde, tādēļ vecākas versijas tās kļūdaini interpretē kā vispārīgas ātruma ierobežojuma norādes.
 
 **Labojums:**
 
@@ -723,7 +741,7 @@ Problēmas, kas raksturīgas laidienam v3.8.0, un to pašreizējie apiešanas ri
 
 **Simptomi:**
 
-- 401 katram Codex/Responses WebSocket tilta pieprasījumam, darbinot attālā ražošanas resursdatorā
+- Darbinot attālā ražošanas resursdatorā, katrs Codex/Responses WebSocket tilta pieprasījums saņem 401
 - WebSocket tilta rokasspiediens tiek aizvērts uzreiz pēc savienojuma izveides
 
 **Cēlonis:** Ražošanas vidē trūkst vides mainīgā `OMNIROUTE_WS_BRIDGE_SECRET`.
@@ -731,31 +749,31 @@ Problēmas, kas raksturīgas laidienam v3.8.0, un to pašreizējie apiešanas ri
 **Labojums:**
 
 1. Ģenerējiet nejaušu noslēpumu: `openssl rand -hex 32`
-2. Ražošanas servera vidē (un ikvienā klientā, kas sazinās ar tiltu) iestatiet `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>`
+2. Ražošanas servera vidē iestatiet `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` (un arī jebkurā klientā, kas sazinās ar tiltu)
 3. Restartējiet OmniRoute
 
-### Responses API: fona režīms pazemināts līdz sinhronam režīmam
+### Responses API: fona režīms pazemināts uz sinhronu režīmu
 
 **Simptomi:**
 
-- Žurnālā reģistrēts brīdinājums: `background mode degraded to synchronous`
-- Pieprasījums ar `background: true` atgriež parastu sinhronu atbildi, nevis fona uzdevuma turi
+- Žurnālā tiek reģistrēts brīdinājums: `background mode degraded to synchronous`
+- `background: true` pieprasījums atgriež parastu sinhronu atbildi, nevis fona darba turi
 
-**Cēlonis:** Versijā v3.8.0 `background: true` Responses API saskarnē apzināti tiek pazemināts līdz sinhronai izpildei, vienlaikus izvadot brīdinājumu. Pilnīga asinhrona izpilde fonā ir plānota nākotnē.
+**Cēlonis:** Versijā v3.8.0 Responses API parametrs `background: true` apzināti tiek pazemināts uz sinhronu izpildi, vienlaikus izvadot brīdinājumu. Pilna asinhrona izpilde fonā ir plānota nākotnē.
 
 **Labojums:**
 
 - Pielāgojiet klientu, lai tas veiktu izsaukumu bez `background`, vai
-- Gaidiet vēlāku laidienu, kurā būs iekļauts pilnīgs asinhronais fona režīms (sekojiet izmaiņu žurnālam)
+- Gaidiet vēlāku laidienu, kurā būs iekļauts pilns asinhronais fona režīms (sekojiet izmaiņu žurnālam)
 
 ---
 
 ## Lēna palaišana / gatavības taimauts
 
 Ja CLI izvada `⚠ Server did not respond within 60s`, bet serveris faktiski
-darbojas, gatavības pārbaudei atvēlētais laiks jūsu videi ir pārāk īss.
+darbojas, gatavības pārbaudei atvēlētais laiks jūsu vidē ir pārāk īss.
 
-Tas bieži notiek Windows vidē (pretvīrusu programmatūras, failu sistēmas pārraugu dēļ) vai konteineros
+Tas bieži notiek Windows vidē (pretvīrusu programmatūras, failu sistēmas pārraugi) vai konteineros
 ar lielu palaišanas darba slodzi.
 
 **Risinājums — palieliniet atvēlēto laiku:**
@@ -772,7 +790,7 @@ omniroute serve --ready-timeout 180000
 Noklusējuma vērtība ir 60 000 ms (60 s). Brīdinājumam ir tikai informatīvs raksturs; serveris
 turpina palaišanu fonā un būs sasniedzams, tiklīdz palaišana būs pabeigta.
 
-Pilnu informāciju par `OMNIROUTE_READY_TIMEOUT_MS` skatiet
+Pilnu informāciju par `OMNIROUTE_READY_TIMEOUT_MS` skatiet failā
 [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md).
 
 ---
@@ -780,7 +798,7 @@ Pilnu informāciju par `OMNIROUTE_READY_TIMEOUT_MS` skatiet
 ## Joprojām neizdodas?
 
 - **GitHub problēmas**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arhitektūra**: Iekšējo informāciju skatiet [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md)
-- **API atsauce**: Visus galapunktus skatiet [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md)
-- **Veselības informācijas panelis**: Lai skatītu sistēmas statusu reāllaikā, atveriet **Informācijas panelis → Veselība**
-- **Tulkotājs**: Lai atkļūdotu formāta problēmas, izmantojiet **Informācijas panelis → Tulkotājs**
+- **Arhitektūra**: Iekšējo informāciju skatiet failā [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md)
+- **API atsauce**: Visus galapunktus skatiet failā [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md)
+- **Veselības informācijas panelis**: Sistēmas statusu reāllaikā skatiet sadaļā **Informācijas panelis → Veselība**
+- **Tulkotājs**: Lai atkļūdotu formāta problēmas, izmantojiet sadaļu **Informācijas panelis → Tulkotājs**

@@ -1,12 +1,10 @@
-# TROUBLESHOOTING (Bosanski)
+# Troubleshooting (Bosanski)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 ---
 
-# Rješavanje problema
-
-> **Za korisnike**: Tražite brza rješenja? Pogledajte [Kratki vodič](#quick-reference) u nastavku.
+> **Za korisnike**: Tražite brza rješenja? Pogledajte [Brzi pregled](#quick-reference) u nastavku.
 
 🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
@@ -14,70 +12,103 @@ Uobičajeni problemi i rješenja za OmniRoute.
 
 ---
 
-## Brzi vodič
+## Brzi pregled
 
-**Novi u OmniRoute-u?** Počnite ovdje — ovo rješava 90% problema:
+**Novi ste u OmniRouteu?** Počnite ovdje — ovo rješava 90% problema:
 
-| Vidim ovo               | Što to znači                          | Što učiniti                                                                                             |
-| ----------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| "Can't connect"         | OmniRoute nije pokrenut               | Pokrenite `omniroute` ili `docker restart omniroute`                                                    |
-| "Invalid API key"       | Vaš ključ je pogrešan ili istekao     | Ponovo kopirajte ključ sa web stranice pružatelja usluga                                                |
-| "Rate limit exceeded"   | Šaljete previše zahtjeva              | Pričekajte 1 minutu ili koristite `model: "auto"` za automatski fallback                                |
-| "Quota exceeded"        | Potrošili ste besplatnu/plaćenu kvotu | Povežite više pružatelja ili koristite besplatne pružatelje (Kiro, Pollinations)                        |
-| "Slow responses"        | Pružatelj je zauzet ili udaljen       | Koristite `model: "auto/fast"` ili povežite bržeg pružatelja (Groq, Cerebras)                           |
-| "Wrong provider used"   | `auto` je odabrao drugog pružatelja   | To je normalno! `auto` bira najboljeg. Prisilite specifičnog pružatelja pomoću `model: "openai/gpt-4o"` |
-| "502 Bad Gateway"       | Pružatelj je nedostupan               | Pričekajte i pokušajte ponovo ili koristite `model: "auto"` za promjenu pružatelja                      |
-| "401 Unauthorized"      | Vaši vjerodajniki su pogrešni         | Provjerite svoj API ključ ili se ponovo autentificirajte putem OAuth                                    |
-| "429 Too Many Requests" | Rate limit (ograničenje brzine)       | Pričekajte 1 minutu ili povežite više pružatelja                                                        |
+| Vidim ovo                              | Šta to znači                                     | Šta uraditi                                                                                         |
+| -------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| "Nije moguće povezivanje"              | OmniRoute nije pokrenut                          | Pokrenite `omniroute` ili `docker restart omniroute`                                                |
+| "Nevažeći API ključ"                   | Vaš ključ je pogrešan ili je istekao             | Ponovo kopirajte ključ s web-stranice pružaoca usluge                                               |
+| "Ograničenje brzine premašeno"         | Šaljete previše zahtjeva                         | Sačekajte 1 minutu ili koristite `model: "auto"` za automatski prelazak na rezervnu opciju          |
+| "Kvota premašena"                      | Iskoristili ste svoju besplatnu/plaćenu kvotu    | Povežite više pružalaca usluga ili koristite besplatne pružaoce (Kiro, Pollinations)                |
+| "Spori odgovori"                       | Pružalac usluge je zauzet ili geografski udaljen | Koristite `model: "auto/fast"` ili povežite bržeg pružaoca usluge (Groq, Cerebras)                  |
+| "Korišten je pogrešan pružalac usluge" | `auto` je odabrao drugog pružaoca usluge         | To je normalno! `auto` bira najboljeg. Nametnite određenog pružaoca pomoću `model: "openai/gpt-4o"` |
+| "502 Bad Gateway"                      | Pružalac usluge nije dostupan                    | Sačekajte i pokušajte ponovo ili koristite `model: "auto"` za promjenu pružaoca usluge              |
+| "401 Unauthorized"                     | Vaši pristupni podaci su pogrešni                | Provjerite svoj API ključ ili se ponovo autentificirajte putem OAutha                               |
+| "omniroute nije prepoznat"             | U Windows PATH-u nedostaju globalni node moduli  | Dodajte svoj npm globalni prefiks u Windows PATH. Pronađite ga pomoću `npm config get prefix`.      |
+| "429 Too Many Requests"                | Brzina zahtjeva je ograničena                    | Sačekajte 1 minutu ili povežite više pružalaca usluga                                               |
 
-**I dalje zapeli?** Pogledajte [detaljno rješavanje problema](#detailed-troubleshooting) u nastavku ili pitajte na [Discordu](https://discord.gg/U47eFqAXCn).
-
----
-
-## Detaljno rješavanje problema
+**I dalje imate problem?** Pogledajte [detaljno otklanjanje poteškoća](#detaljno-otklanjanje-poteškoća) u nastavku ili pitajte na [Discordu](https://discord.gg/U47eFqAXCn).
 
 ---
 
-### Rate Limiting kod besplatnih pružatelja (429 / 400 / 401)
+## Detaljno otklanjanje poteškoća
 
-**Simptom**: Prilikom korištenja `model: "auto"` sa besplatnim pružateljima/pružateljima bez autentifikacije (opencode, auggie, itd.), povremeno dobijate `HTTP 429`, `400` ili `401` umjesto odgovora. Zahtjevi uspiju kada ponovite isti prompt nekoliko trenutaka kasnije, ali automatizacija (cron poslovi, agenti, skripte) puca pri prvom neuspjehu.
+---
 
-**Koreni uzrok**: Tri nezavisna načina kvara se preklapaju:
+### Ograničavanje brzine kod besplatnih pružalaca usluga (429 / 400 / 401)
 
-1. **Rate-limit pružatelja (`429`)**: Besplatni nivoi mogu nametnuti kvotu po vremenskom prozoru. Naleti paralelnih poziva iscrpljuju je, pa se sljedeći zahtjev odbija dok se prozor ne resetira.
-2. **Neispravan model u passthrough-u (`400`/`401`)**: `auto/*` poolovi mogu uključivati passthrough modele iz `opencode` koji su registrirani u katalogu, ali nemaju aktivne vjerodajnike (npr. `oc/north-mini-code-free` → `401`). Auto-router pokuša jedan, ne uspije, i greška se propagira prije nego što fallback stupi na snagu.
-3. **Pojačanje konkurentnosti (`429` pod opterećenjem)**: Kada više agent/cron sesija istovremeno pogodi `auto`, agregirani stopen zahtjeva premašuje ono što besplatni pružatelji toleriraju, pa se legitimni pozivi označavaju kao zloupotreba.
+**Simptom**: Kada koristite `model: "auto"` s besplatnim pružaocima usluga ili onima bez autentifikacije (opencode, auggie itd.), povremeno dobijate `HTTP 429`, `400` ili `401` umjesto odgovora. Zahtjevi uspijevaju kada nekoliko trenutaka kasnije ponovo pošaljete isti upit, ali automatizacija (cron poslovi, agenti, skripte) prekida se pri prvom neuspjehu.
 
-**Provjereno rješenje (prijavljeno od strane zajednice, 2026-08-10)**: podesite tri varijable okruženja tako da rotacija, konkurentnost i fallback apsorbuju nestabilnost besplatnog nivoa umjesto da zbog nje prekinu rad:
+**Osnovni uzrok**: Tri nezavisna načina neuspjeha međusobno se nadovezuju:
+
+1. **Ograničenje brzine pružaoca usluge (`429`)**: Besplatni nivoi mogu nametnuti kvotu po vremenskom intervalu. Nagli porast paralelnih poziva je iscrpljuje, pa se sljedeći zahtjev odbija dok se vremenski interval ne resetuje.
+2. **Neispravan model u direktnom prosljeđivanju (`400`/`401`)**: `auto/*` skupovi mogu uključivati modele za direktno prosljeđivanje iz `opencode` koji su registrovani u katalogu, ali nemaju aktivne pristupne podatke (npr. `oc/north-mini-code-free` → `401`). Automatski usmjerivač pokušava koristiti jedan od njih, ne uspijeva, a greška se prosljeđuje prije nego što se aktivira rezervna opcija.
+3. **Pojačavanje zbog konkurentnosti (`429` pod opterećenjem)**: Kada više agentskih/cron sesija istovremeno pristupi opciji `auto`, ukupna stopa zahtjeva premašuje ono što besplatni pružaoci usluga mogu podnijeti, pa se legitimni pozivi označavaju kao zloupotreba.
+
+**Provjereno rješenje (prema izvještaju zajednice, 2026-08-10)**: podesite tri varijable okruženja tako da rotacija, konkurentnost i rezervne opcije apsorbuju promjenjivost besplatnog nivoa umjesto da zbog nje prestanu raditi:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # pređi na drugi model/pružatelja pri 400/401 (preskače neispravne passthrough modele)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # eksplicitni plafon za prijem teških zahtjeva (podrazumijevano nije postavljeno: nema ograničenja broja zahtjeva, vidi napomenu ispod)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # duže ograničeno čekanje za kapacitet teških zahtjeva umjesto trenutnog 503 koji se može ponoviti
+export OMNIROUTE_ROTATE_ON_400=true           # pređi na drugi model/pružaoca usluge pri 400/401 (preskače neispravne modele za direktno prosljeđivanje)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # izričito ograničenje prihvatanja zahtjevnih zadataka (zadano nije postavljeno: nema ograničenja broja zahtjeva, pogledajte napomenu ispod)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # duže ograničeno čekanje na kapacitet za zahtjevne zadatke umjesto trenutnog 503 koji omogućava ponovni pokušaj
 ```
 
-Postavite ove vrijednosti u okruženje OmniRoute procesa (daemon, npr. putem LaunchAgent plist-a ili `systemctl edit`), zatim ponovo pokrenite OmniRoute. Zastava za rotaciju je najefikasniji alat: ona pretvara kritični neuspjeh u transparentan ponovni pokušaj kod zdravog pružatelja u poolu.
+Postavite ih u okruženju OmniRoute procesa (daemon, npr. putem LaunchAgent plist datoteke ili `systemctl edit`), a zatim ponovo pokrenite OmniRoute. Oznaka za rotaciju je pojedinačna postavka s najvećim učinkom: pretvara potpuni neuspjeh u transparentan ponovni pokušaj kod ispravnog pružaoca usluge u skupu.
 
-**Napomena**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ograničava koliko teških zahtjeva — sa dugim kontekstom — može raditi odjednom; granica je kapija za prijem, a ne rate limiter pružatelja. **#503-fanout ažuriranje:** ova varijabla više nije postavljena po defaultu (sada se veže samo kada je eksplicitno konfigurisana, kao gore) — prijem teških zahtjeva je sada regulisan automatski izvedenim budžetom bajtova (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) koji se skalira prema stvarnom plafonu memorije hosta, tako da bi nova implementacija trebala imati daleko manje `503 chat_admission_busy` odbijanja bez postavljanja ove varijable; eksplicitno postavljanje ovdje i dalje radi tačno kao što je dokumentovano. Eksplicitna nadjačavanja budžeta bajtova su ograničena na 8 MiB–2 GiB. Greška `413 body_exceeds_budget` nije prolazna: povećajte taj budžet bajtova, smanjite `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ili povećajte plafon memorije procesa. Odbijanje zbog `inflight_bytes_budget` je privremeni sukob i može se ponoviti. Rate limiting po pružatelju (`open-sse/services/rateLimitManager.ts`) upravlja se odvojeno putem `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` i `RATE_LIMIT_AUTO_ENABLE` — pogledajte `.env.example`.
+**Napomena**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ograničava broj zahtjevnih zahtjeva — onih s dugim kontekstom — koji se izvršavaju istovremeno; ovo ograničenje predstavlja ulaznu kontrolu, a ne ograničivač brzine pružaoca usluge. **Ažuriranje #503-fanout:** ova varijabla više nije zadano postavljena (sada se primjenjuje samo kada je izričito konfigurirana, kao iznad) — prihvatanje zahtjevnih zahtjeva umjesto toga kontroliše automatski izveden budžet bajtova (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) koji se samostalno prilagođava stvarnom memorijskom ograničenju hosta, tako da bi nova implementacija trebala imati znatno manje odbijanja `503 chat_admission_busy` bez ikakvog postavljanja ove varijable; njeno izričito postavljanje ovdje i dalje radi tačno onako kako je dokumentirano. Izričito zadana ograničenja budžeta bajtova svode se na raspon od 8 MiB do 2 GiB. Greška `413 body_exceeds_budget` nije privremena: povećajte taj budžet bajtova, smanjite `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ili povećajte memorijsko ograničenje procesa. Odbacivanje `inflight_bytes_budget` predstavlja privremeno nadmetanje za resurse i i dalje dopušta ponovni pokušaj. Ograničavanjem brzine po pružaocu usluge (`open-sse/services/rateLimitManager.ts`) zasebno upravljaju `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` i `RATE_LIMIT_AUTO_ENABLE` — pogledajte `.env.example`.
 
-**Kako provjeriti da li je uspjelo**: pokrenite svog agenta/cron dva puta brzo jedno za drugim i potvrdite da oba uspiju. Prije popravka, drugi krug obično izbacuje `429`/`401`. Nakon popravka, neuspjesi (ako ih ima) se transparentno ponavljaju i poziv se završava. Također možete koristiti `curl /monitoring/health` i pratiti polje `rateLimitedUntil` na vezama pružatelja i `circuitBreakers.providerBreakers[].state` za pogođene pružatelje — stanje je jedno od `CLOSED`, `DEGRADED`, `OPEN` ili `HALF_OPEN` (vidi `src/shared/utils/circuitBreaker.ts`), a pružatelj koji stalno ne uspijeva promijenit će stanje `CLOSED → DEGRADED → OPEN` prije nego što prozor za reset dopusti probni zahtjev (`HALF_OPEN`).
+**Kako provjeriti da li radi**: pokrenite svoj agent/cron dvaput u kratkom vremenskom razmaku i potvrdite da su oba pokretanja uspješna. Prije ispravke, drugo pokretanje obično vraća `429`/`401`. Nakon ispravke, neuspjeli pokušaji (ako ih ima) automatski se ponavljaju i poziv se dovršava. Također možete pokrenuti `curl /monitoring/health` i pratiti polje `rateLimitedUntil` na konekcijama pružalaca usluga te `circuitBreakers.providerBreakers[].state` za pogođene pružaoce usluga — stanje je jedno od `CLOSED`, `DEGRADED`, `OPEN` ili `HALF_OPEN` (pogledajte `src/shared/utils/circuitBreaker.ts`), a pružalac usluga kod kojeg se greške nastavljaju preći će iz `CLOSED → DEGRADED → OPEN` prije nego što period za resetiranje omogući probni zahtjev (`HALF_OPEN`).
 
-**Ako i dalje vidite 429**: aktivni račun za tog provajdera je zaista iscrpio svoju _kvotu_ (ne samo brzinu zahtjeva). Dodajte drugi račun za istog provajdera u OmniRoute dashboard → Providers → Accounts, ili uključite drugog besplatnog provajdera (npr. `routeway`, `auggie`). Rotacija pomaže samo kod prolaznih rate/400/401 grešaka; potpuno iscrpljivanje kvote zahtijeva drugi kredencijal ili drugog provajdera.
+**Ako i dalje vidite 429**: aktivni račun za tog pružaoca usluga zaista je iscrpio svoju _kvotu_ (ne samo ograničenje brzine zahtjeva). Dodajte drugi račun za istog pružaoca usluga na OmniRoute kontrolnoj ploči → Providers → Accounts ili uključite drugog besplatnog pružaoca usluga (npr. `routeway`, `auggie`). Rotacija pomaže samo kod privremenih grešaka vezanih za ograničenje brzine zahtjeva/400/401; potpuno iscrpljena kvota zahtijeva druge pristupne podatke ili drugog pružaoca usluga.
 
-**Ako vidite 403 na vision modelima (`auto/vision`, `bazaarlink/*`)**: povezani račun nema plaćeni plan koji uključuje vision, ili API ključ nema dovoljno dozvola. Provjerite u dashboardu provajdera da li opseg ključa uključuje vision/multimodal, ili povežite račun sa plaćenim nivoom i postavite ga kao vision cilj.
+**Ako vidite 403 na vision modelima (`auto/vision`, `bazaarlink/*`)**: povezani račun nema plaćeni paket koji uključuje vision mogućnosti ili API ključ nema dovoljna ovlaštenja. Na kontrolnoj ploči pružaoca usluga provjerite uključuje li opseg ključa vision/multimodal mogućnosti ili povežite račun s plaćenim paketom i zadržite ga kao cilj za vision modele.
 
 ---
 
-## npm install upozorenja (ERESOLVE / peer / deprecated)
+## Upozorenja pri npm instalaciji (ERESOLVE / peer / deprecated)
 
-Kada pokrenete `npm install -g omniroute`, možda ćete vidjeti niz upozorenja kao što su `npm warn ERESOLVE`, obavijesti o peer-zavisnostima i `deprecated` poruke. **Ovo je očekivano i bezopasno.** Instalacija je uspjela ako u izlazu vidite `added <N> packages`.
+Kada pokrenete `npm install -g omniroute`, možete vidjeti veliki broj upozorenja poput `npm warn ERESOLVE`, obavijesti o peer zavisnostima i poruke `deprecated`. **Ona su očekivana i bezopasna.** Instalacija je uspješna ako u izlazu vidite `added <N> packages`.
 
-Upozorenja dolaze iz zastarjelih peer-dependency opsega u paketima trećih strana koje OmniRoute ne kontroliše:
+Da biste potisnuli upozorenja o razrješavanju peer zavisnosti, koristite podržani način instalacije za OmniRoute:
 
-1. **`marked-terminal` želi `marked >=1 <16`, pronađen `marked@18`** — u praksi radi normalno; upstream peer opseg je jednostavno zastario.
-2. **`deprecated prebuild-install@7.1.3`** — tranzitivni pomoćnik za preuzimanje nativnih binarnih datoteka. On se ne koristi za instalaciju fiksiranog `wreq-js` transport binding-a i ne ukazuje na to da je postavka web-cookie provider transporta propala.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Nije potrebna nikakva akcija** — upozorenja se ne mogu potpuno utišati bez forkinga upstream paketa.
+`--legacy-peer-deps` potiskuje samo `ERESOLVE` i obavijesti o peer zavisnostima. Obavijesti o zastarjelosti ostaju vidljive jer dolaze iz tranzitivnih paketa trećih strana; one ne znače da instalacija nije uspjela.
+
+Upozorenja potiču od zastarjelih raspona peer zavisnosti u paketima trećih strana koje OmniRoute ne kontroliše:
+
+1. **`marked-terminal` zahtijeva `marked >=1 <16`, pronađen je `marked@18`** — u praksi radi bez problema; uzvodni peer raspon je samo zastario.
+2. **`deprecated prebuild-install@7.1.3`** — tranzitivni pomoćni alat za preuzimanje nativnih binarnih datoteka. Ne koristi se
+   za instalaciju fiksirane transportne sprege `wreq-js` i ne znači da postavljanje transporta pružaoca
+   web kolačića nije uspjelo.
+
+**Nije potrebna nikakva radnja** — upozorenja se ne mogu u potpunosti utišati bez račvanja uzvodnih paketa.
+
+---
+
+## Gemini Web i Playwright Chromium
+
+Ako Gemini Web zahtjev vrati `503` s porukom da Playwright Chromium
+nije instaliran, npm paket je prisutan, ali binarna datoteka preglednika nedostaje.
+Playwright namjerno drži preuzimanja preglednika odvojena od instalacije npm
+paketa, pa je ovaj odgovor očekivan dok se preglednik ne instalira.
+
+Za globalnu npm instalaciju instalirajte Chromium iz direktorija OmniRoute paketa
+kako bi predmemorija preglednika pripadala istoj Playwright instalaciji:
+
+```bash
+cd "$(npm root -g)/omniroute"
+npx playwright install chromium
+```
+
+Ponovo pokrenite OmniRoute nakon instalacije, a zatim ponovite Gemini Web zahtjev. Ako
+pokrećete OmniRoute iz Docker slike, koristite `-web` sliku (ili cilj izgradnje `runner-web`),
+koja uključuje Chromium i njegove zavisnosti; osnovna slika ih
+ne uključuje.
 
 ---
 
@@ -85,105 +116,115 @@ Upozorenja dolaze iz zastarjelih peer-dependency opsega u paketima trećih stran
 
 | Problem                                                    | Rješenje                                                                                                                                                                              |
 | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Prva prijava ne radi                                       | Postavite `INITIAL_PASSWORD` u `.env` (nema hardkodirane zadane vrijednosti)                                                                                                          |
-| Dashboard se otvara na pogrešnom portu                     | Postavite `PORT=20128` i `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                |
-| Logovi se ne zapisuju na disk                              | Postavite `APP_LOG_TO_FILE=true` i provjerite je li snimanje zapisa poziva omogućeno                                                                                                  |
-| EACCES: permission denied                                  | Postavite `DATA_DIR=/path/to/writable/dir` kako biste nadjačali `~/.omniroute`                                                                                                        |
-| Strategija rutiranja se ne sprema                          | Ažurirajte na najnovije v3.x izdanje (Zod schema popravak za perzistenciju postavki isporučen u ranijim verzijama)                                                                    |
-| Crash pri prijavi / prazna stranica                        | Provjerite verziju Node.js-a — pogledajte [Node.js Compatibility](#nodejs-compatibility) ispod                                                                                        |
-| `dlopen` / `slice is not valid mach-o file` (macOS)        | Pokrenite `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — pogledajte [macOS native module rebuild](#macos-native-module-rebuild) ispod                 |
-| Proxy "fetch failed"                                       | Osigurajte da je proxy konfiguracija postavljena na ispravnom nivou — pogledajte [Proxy Issues](#proxy-issues) ispod                                                                  |
-| Docker `curl: (56) Recv failure: Connection reset by peer` | Vaše Docker port povezivanje možda završava na IPv6. Koristite `-p 127.0.0.1:20128:20128` za prisilni IPv4, ili testirajte sa `curl -4`. Pogledajte [Docker IPv6](#docker-ipv6) ispod |
-| Antivirus stavlja `README.md` u karantin                   | Lažni pozitivac — pogledajte [Antivirus false positives](#antivirus-false-positives) ispod                                                                                            |
-| Kaspersky označava Desktop aplikaciju kao Trojan           | Bihevioralni lažni pozitivac na nepotpisanom instalateru — pogledajte [Antivirus false positives](#antivirus-false-positives) ispod                                                   |
+| Prva prijava ne radi                                       | Postavite `INITIAL_PASSWORD` u `.env` (nema tvrdo kodirane zadane vrijednosti)                                                                                                        |
+| Kontrolna tabla se otvara na pogrešnom portu               | Postavite `PORT=20128` i `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                |
+| Dnevnici se ne zapisuju na disk                            | Postavite `APP_LOG_TO_FILE=true` i provjerite je li omogućeno bilježenje dnevnika poziva                                                                                              |
+| EACCES: pristup odbijen                                    | Postavite `DATA_DIR=/path/to/writable/dir` da biste nadjačali `~/.omniroute`                                                                                                          |
+| Strategija usmjeravanja se ne čuva                         | Ažurirajte na najnovije izdanje v3.x (ispravka Zod sheme za trajno čuvanje postavki isporučena je u ranijim verzijama)                                                                |
+| Pad pri prijavi / prazna stranica                          | Provjerite verziju Node.js — pogledajte [Kompatibilnost s Node.js](#nodejs-compatibility) ispod                                                                                       |
+| `dlopen` / `slice is not valid mach-o file` (macOS)        | Pokrenite `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — pogledajte [ponovnu izgradnju nativnog modula za macOS](#macos-native-module-rebuild) ispod  |
+| Proxy „fetch failed“                                       | Provjerite je li konfiguracija proxyja postavljena na ispravnom nivou — pogledajte [Probleme s proxyjem](#proxy-issues) ispod                                                         |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | Povezivanje Docker porta možda završava na IPv6. Koristite `-p 127.0.0.1:20128:20128` da prisilite IPv4 ili testirajte pomoću `curl -4`. Pogledajte [Docker IPv6](#docker-ipv6) ispod |
+| Antivirus stavlja `README.md` u karantin                   | Lažno pozitivan rezultat — pogledajte [Lažno pozitivne rezultate antivirusa](#antivirus-false-positives) ispod                                                                        |
+| Kaspersky označava Desktop aplikaciju kao trojanca         | Bihevioralno lažno pozitivan rezultat na nepotpisanom instalacijskom programu — pogledajte [Lažno pozitivne rezultate antivirusa](#antivirus-false-positives) ispod                   |
 
 ---
 
-## Antivirus False Positives (Lažna pozitivna detekcija)
+## Lažno pozitivni rezultati antivirusa
 
 <a name="antivirus-false-positives"></a>
 
-### Avast/AVG stavlja `README.md` u karantin sa oznakom `MD:HttpRequest-inf[Susp]`
+### Avast/AVG stavlja `README.md` u karantin zbog `MD:HttpRequest-inf[Susp]`
 
-**Ovo je lažna pozitivna detekcija. Ništa nije zaraženo i nije potrebna nikakva akcija.**
+**Ovo je lažno pozitivan rezultat. Ništa nije zaraženo i nije potrebno ništa poduzimati.**
 
-Avast i AVG koriste heuristiku koja označava obične tekstualne/Markdown datoteke koje sadrže mnogo linkova koji izgledaju kao HTTP zahtjevi. OmniRoute `README.md` dolazi unutar npm paketa (naveden je u `package.json` → `files`), tako da završi na putanji `node_modules/omniroute/README.md` prilikom globalne instalacije — a sadrži oko 15 primjera `http://localhost:20128/...` (MCP HTTP/SSE endpointi, A2A `.well-known` URL i `curl` isječci). Ta gustoća linkova je dovoljna da aktivira heuristiku.
+Avast i AVG koriste heuristiku koja označava obične tekstualne/Markdown datoteke koje sadrže mnogo
+linkova nalik HTTP zahtjevima. OmniRouteov `README.md` isporučuje se unutar npm paketa (naveden je
+u `package.json` → `files`), pa se pri globalnoj instalaciji smješta u `node_modules/omniroute/README.md`
+— a sadrži oko 15 primjera `http://localhost:20128/...` (MCP HTTP/SSE krajnje tačke, A2A
+`.well-known` URL i `curl` isječke). Ta gustoća linkova dovoljna je da aktivira heuristiku.
 
-Ako se ovo pojavilo tek nedavno: datoteka se nije promijenila po prirodi. README je proširio svoju tablicu endpointa (dodani su MCP HTTP + SSE + A2A) i više `curl` primjera, što ga je gurnulo preko praga.
+Ako se ovo počelo dešavati tek nedavno: vrsta datoteke se nije promijenila. README je proširen
+tabelom krajnjih tačaka (dodani su MCP HTTP + SSE + A2A) i dodatnim `curl` primjerima, zbog čega
+je premašen prag.
 
-Datoteka je inertna dokumentacija bez ikakvog izvršnog sadržaja. Možete je sigurno vratiti iz karantina.
+Datoteka je neaktivna dokumentacija bez ikakvog izvršnog sadržaja. Možete je sigurno vratiti
+iz karantina.
 
-**Šta uraditi:**
+**Šta učiniti:**
 
-1. **Zaustavite obavještenja** — isključite direktorij instalacije u vašem antivirusu
-   (Avast: Settings → Exceptions), dodajući vašu globalnu `node_modules` putanju i/ili
-   OmniRoute podatkovni direktor (`~/.omniroute/`).
-2. **Prijavite lažnu pozitivnu detekciju** — <https://www.avast.com/false-positive-file-form.php>,
-   priloživši karantiniranu `README.md` datoteku. Ovo je rješenje koje pomaže svima, jer se radi o
-   pregađenoj heuristici dobavljača prema tekstualnoj datoteci.
+1. **Zaustavite obavještenja** — izuzmite instalacijski direktorij u svom antivirusnom programu
+   (Avast: Postavke → Izuzeci), dodajući putanju do globalnog `node_modules` i/ili
+   OmniRoute direktorij podataka (`~/.omniroute/`).
+2. **Prijavite lažno pozitivan rezultat** — <https://www.avast.com/false-positive-file-form.php>,
+   prilažući `README.md` iz karantina. Ovo je rješenje koje pomaže svima jer je riječ o
+   heuristici proizvođača koja pretjerano reaguje na tekstualnu datoteku.
 
-**Zašto ovo ne "popravljamo" s naše strane:** svi primjeri su `http://localhost`, a
-localhost ne može biti `https` bez komplikacija s samopotpisanim certifikatima. Izmjena dokumentacije
-kako bi se izbjegla heuristika jednog dobavljača naškodila bi svakom čitaocu samo da bi se zadovoljio bug u skeneru.
+**Zašto ovo ne „popravljamo“ s naše strane:** svi primjeri koriste `http://localhost`, a
+localhost ne može koristiti `https` bez poteškoća sa samopotpisanim certifikatima. Narušavanje
+dokumentacije radi zaobilaženja heuristike jednog proizvođača štetilo bi svakom čitaocu samo
+da bi se udovoljilo grešci skenera.
 
-### Kaspersky označava Desktop aplikaciju kao `PDM:Trojan.Win32.Generic`
+### Kaspersky označava aplikaciju za radnu površinu kao `PDM:Trojan.Win32.Generic`
 
-**Ovo je lažna pozitivna detekcija iz bihevioralne heuristike. Ništa nije zaraženo.** Kaspersky-jev
-`PDM:` prefiks znači da presuda dolazi iz njegovog Modula za proaktivnu odbranu (System Watcher),
-koji procjenjuje šta instalater _radi_ umjesto da ga upoređuje s poznatim zlonamjernim softverom. Kada
-se to aktivira, Kaspersky "vraća" (roll back) cijelu instalaciju — brišući datoteke koje je već
-zapisao — tako da aplikacija završi pokvarena ili nedostaje.
+**Ovo je lažno pozitivan rezultat bihevioralne heuristike. Ništa nije zaraženo.** Kasperskyjev
+prefiks `PDM:` znači da procjena dolazi iz njegovog modula Proactive Defense Module (System Watcher),
+koji procjenjuje šta instalacijski program _radi_ umjesto da ga poredi s poznatim zlonamjernim
+softverom. Kada se aktivira, Kaspersky „vraća unazad“ cijelu instalaciju — brišući datoteke koje
+je već zapisao — pa aplikacija na kraju bude neispravna ili nedostaje.
 
-Datoteke koje označava su standardni dijelovi deklarisanih, open-source zavisnosti uključenih u
-desktop aplikaciju, na primjer:
+Datoteke koje označava standardni su dijelovi deklariranih zavisnosti otvorenog koda koje se
+isporučuju s aplikacijom za radnu površinu, na primjer:
 
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` i
   `workerProcessEntry.js` — [Playwright](https://playwright.dev), biblioteka za automatizaciju
-  pretraživača koja se koristi za prijavu provajdera unutar aplikacije i chat zasnovan na pretraživaču.
+  preglednika koja se koristi za prijavu kod pružaoca usluga unutar aplikacije i razgovor
+  koji se izvršava putem preglednika.
 - `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
-  — fiksni `wreq-js` native binding koji se koristi za HTTP sa otiskom pretraživača na web-cookie
-  provajderima (`<arch>` je `x64` ili `arm64`).
+  — fiksirana nativna `wreq-js` veza koja se koristi za HTTP s otiskom preglednika kod pružalaca
+  usluga zasnovanih na web-kolačićima (`<arch>` je `x64` ili `arm64`).
 
-**Zašto se to aktivira:** Windows instalater **još uvijek nije digitalno potpisan**, tako da nepotpisani NSIS
-instalater ima nultu reputaciju, a bihevioralne heuristike rade s maksimalnom agresivnošću. Kombinovano
-sa uključenim native DLL-om i stotinama `.js` datoteka zapisanih pod
-`%LOCALAPPDATA%\Programs\OmniRoute` (uključujući direktorije paketa sa sufiksom hasha iz
-Next.js standalone build-a), to je dovoljno da aktivira heuristiku. Digitalno potpisivanje je planirano;
-do tada, nova izdanja mogu ponoviti ovo.
+**Zašto se aktivira:** Windows instalacijski program **još nije digitalno potpisan**, pa
+nepotpisani NSIS instalacijski program nema nikakvu reputaciju i bihevioralne heuristike rade
+s maksimalnom agresivnošću. U kombinaciji s uključenim nativnim DLL-om i stotinama `.js`
+datoteka zapisanih u `%LOCALAPPDATA%\Programs\OmniRoute` (uključujući direktorije paketa sa
+sufiksima heševa iz samostalne Next.js verzije), to je dovoljno da aktivira heuristiku.
+Potpisivanje koda je planirano; dok se ne uvede, ovo se može ponavljati s novim izdanjima.
 
-**Šta uraditi:**
+**Šta učiniti:**
 
-1. **Prvo provjerite svoju preuzetu datoteku** (isključuje mogućnost manipulacije datotekom). Svako izdanje objavljuje
-   `latest.yml`, čije `sha512` polje (base64) pokriva `OmniRoute.Setup.<version>.exe`
-   instalater. U PowerShell-u, iz foldera koji sadrži instalater:
+1. **Prvo provjerite preuzetu datoteku** (time se isključuje mogućnost neovlašteno izmijenjene
+   datoteke). Svako izdanje objavljuje `latest.yml`, čije polje `sha512` (base64) obuhvata
+   instalacijski program `OmniRoute.Setup.<version>.exe`. U PowerShellu, iz direktorija koji
+   sadrži instalacijski program:
    ```powershell
    $b = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
      [System.IO.File]::ReadAllBytes("$PWD\OmniRoute.Setup.<version>.exe"))
    [Convert]::ToBase64String($b)
    ```
-   Izlaz mora odgovarati `latest.yml` → `sha512`. Ako ne odgovara, obrišite datoteku i
-   ponovo je preuzmite isključivo sa [GitHub releases stranice](https://github.com/diegosouzapw/OmniRoute/releases).
-2. **Vratite + isključite** — vratite stavke koje su povučene iz karantina i dodajte izuzeće
-   za `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Settings → Threats and Exclusions),
-   zatim ponovo instalirajte.
-3. **Prijavite lažnu pozitivnu detekciju** — <https://opentip.kaspersky.com/>. Izvještaji korisnika o
-   lažnim pozitivnim detekcijama zaista ubrzavaju proces dodavanja na listu dozvoljenih.
+   Izlaz se mora podudarati s `latest.yml` → `sha512`. Ako se ne podudara, izbrišite datoteku
+   i ponovo je preuzmite isključivo sa [stranice GitHub izdanja](https://github.com/diegosouzapw/OmniRoute/releases).
+2. **Vratite + izuzmite** — vratite poništene stavke iz karantina i dodajte izuzetak za
+   `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Postavke → Prijetnje i izuzeci), a zatim
+   ponovo instalirajte.
+3. **Prijavite lažno pozitivan rezultat** — <https://opentip.kaspersky.com/>. FP prijave
+   koje pošalju korisnici zaista ubrzavaju dodavanje na listu dozvoljenih.
 
 ---
 
-## Kompatibilnost sa Node.js
+## Kompatibilnost s Node.js-om
 
 <a name="nodejs-compatibility"></a>
 
-### Stranica za prijavu puca ili prikazuje grešku "Module self-registration"
+### Stranica za prijavu se ruši ili prikazuje grešku "Module self-registration"
 
-**Uzrok:** Pokrećete verziju Node.js koja se nalazi izvan odobrenog sigurnosnog runtime praga OmniRoute-a. Najčešći slučaj je pokretanje starijeg Node 22 ili 24 patch nivoa koji je ispod sigurnosnog praga koji OmniRoute zahtijeva.
+**Uzrok:** Koristite verziju Node.js-a koja nije unutar sigurnog raspona izvršnog okruženja koji je odobrio OmniRoute. Najčešći slučaj je korištenje starije revizije Node.js-a 22 ili 24 koja je ispod minimalne sigurnosne revizije koju OmniRoute zahtijeva.
 
 **Simptomi:**
 
 - Stranica za prijavu prikazuje prazan ekran ili serversku grešku
-- Konzola prikazuje `Error: Module did not self-register` ili slične greške native binding-a
-- Stranica za prijavu prikazuje **narandžasti warning banner** sa vašom Node verzijom ako je runtime izvan podržane sigurnosne polise
+- Konzola prikazuje `Error: Module did not self-register` ili slične greške izvornog povezivanja
+- Stranica za prijavu prikazuje **narandžasti baner upozorenja** s vašom verzijom Node.js-a ako je izvršno okruženje izvan podržane sigurnosne politike
 
 **Rješenje:**
 
@@ -192,57 +233,59 @@ do tada, nova izdanja mogu ponoviti ovo.
    nvm install 24
    nvm use 24
    ```
-2. Provjerite svoju verziju: `node --version` trebao bi prikazati `v24.0.0` ili noviju na 24.x LTS liniji
+2. Provjerite svoju verziju: `node --version` treba prikazati `v24.0.0` ili noviju verziju u okviru 24.x LTS linije
 3. Ponovo instalirajte OmniRoute: `npm install -g omniroute`
 4. Ponovo pokrenite: `omniroute`
 
-> **Podržane sigurne verzije:** `>=22.22.2 <23` ili `>=24.0.0 <27`. Node.js 24.x LTS (Krypton) i Node.js 26 su potpuno podržani.
+> **Podržane sigurne verzije:** `>=22.22.2 <23` ili `>=24.0.0 <27`. Node.js 24.x LTS (Krypton) i Node.js 26 su u potpunosti podržani.
 
 ### npm v11+: `better-sqlite3` nije instaliran (Cannot find module)
 
 <a name="npm-v11-better-sqlite3-not-installed-cannot-find-module"></a>
 
-**Uzrok:** npm v11 (isporučen sa Node.js 24+) po defaultu blokira install skripte za opcionalne zavisnosti. Pošto je `better-sqlite3` naveden u `optionalDependencies` i zahtijeva native kompilaciju (`node-gyp rebuild`), npm ga tiho preskače.
+**Uzrok:** npm v11 (isporučuje se uz Node.js 24+) prema zadanim postavkama blokira instalacijske skripte za opcionalne
+zavisnosti. Budući da je `better-sqlite3` naveden u `optionalDependencies`
+i zahtijeva izvornu kompilaciju (`node-gyp rebuild`), npm ga prešutno preskače.
 
 **Simptomi:**
 
-- Server puca pri pokretanju sa `Cannot find module 'better-sqlite3'`
+- Server se ruši pri pokretanju uz poruku `Cannot find module 'better-sqlite3'`
 - `ls node_modules/better-sqlite3` prikazuje "No such file or directory"
 - `npm ls better-sqlite3` prikazuje `(empty)`
 
 **Rješenje:**
 
-1. Odobrite install skripte i ponovo instalirajte:
+1. Odobrite instalacijske skripte i ponovo instalirajte:
    ```bash
    npm approve-scripts better-sqlite3
    npm install
    ```
-2. Ili ručno instalirajte prebuilt verziju:
+2. Ili ručno instalirajte unaprijed kompajliranu verziju:
    ```bash
    npm pack better-sqlite3@13.0.1
    tar -xzf better-sqlite3-*.tgz -C node_modules
    mv node_modules/package node_modules/better-sqlite3
    rm better-sqlite3-*.tgz
    ```
-3. Provjerite da li radi: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
+3. Provjerite radi li: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
 
 ### macOS: `dlopen` / "slice is not valid mach-o file"
 
 <a name="macos-native-module-rebuild"></a>
 
-**Uzrok:** Nakon globalnog `npm install -g omniroute`, `better-sqlite3` native binarni fajl unutar paketa može biti kompajliran za drugu arhitekturu ili Node.js ABI od onoga što se pokreće lokalno. Ovo je uobičajeno na macOS-u (i za Apple Silicon i Intel) kada pre-built binarni fajl ne odgovara vašem okruženju.
+**Uzrok:** Nakon globalne instalacije pomoću `npm install -g omniroute`, izvorna binarna datoteka `better-sqlite3` unutar paketa možda je kompajlirana za arhitekturu ili Node.js ABI koji se razlikuje od onoga koji se lokalno izvršava. Ovo je uobičajeno na macOS-u (i na Apple Silicon i na Intel platformama) kada se unaprijed kompajlirana binarna datoteka ne podudara s vašim okruženjem.
 
 **Simptomi:**
 
-- Server odmah ne uspije pokrenuti sa `dlopen` greškom
+- Server se odmah ruši pri pokretanju uz grešku `dlopen`
 - Greška sadrži `slice is not valid mach-o file`
-- Potpun primjer:
+- Potpuni primjer:
 
 ```
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**Rješenje — ponovni build za vaše lokalno okruženje (nije potreban downgrade Node.js-a):**
+**Rješenje — ponovo kompajlirajte za svoje lokalno okruženje (nije potrebno preći na stariju verziju Node.js-a):**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -250,144 +293,144 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Napomena:** Ovo ponovo kompajlira native binding protiv vaše lokalne Node.js verzije i CPU arhitekture, rješavajući binarni mismatch. Zvanično podržani runtime opseg je **`>=22.22.2 <23` ili `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` u `src/shared/utils/nodeRuntimeSupport.ts`, usklađeno sa `package.json` `engines` poljem). Node.js 24.x LTS (Krypton) i Node.js 26 su potpuno podržani sa `better-sqlite3` v12.x.
+> **Napomena:** Ovo ponovo kompajlira izvorno povezivanje za vašu lokalnu verziju Node.js-a i CPU arhitekturu, čime se rješava nepodudaranje binarnih datoteka. Zvanično podržani raspon izvršnog okruženja je **`>=22.22.2 <23` ili `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` u `src/shared/utils/nodeRuntimeSupport.ts`, usklađen s poljem `engines` u datoteci `package.json`). Node.js 24.x LTS (Krypton) i Node.js 26 u potpunosti su podržani uz `better-sqlite3` v12.x.
 
 ---
 
-## Problemi sa proxy-jem
+## Problemi s proxyjem
 
 <a name="proxy-issues"></a>
 
-### Validacija provajdera prikazuje "fetch failed"
+### Validacija pružatelja prikazuje "fetch failed"
 
-**Uzrok:** Endpoint za validaciju API ključa (`POST /api/providers/validate`) je prethodno zaobilazio proxy konfiguraciju, što je dovodilo do grešaka u okruženjima koja zahtijevaju proxy rutiranje.
+**Uzrok:** Krajnja tačka za validaciju API ključa (`POST /api/providers/validate`) ranije je zaobilazila konfiguraciju proxyja, što je uzrokovalo greške u okruženjima koja zahtijevaju usmjeravanje putem proxyja.
 
-**Popravak (v3.5.5+):** Ovo je sada ispravljeno. Validacija provajdera sada prolazi kroz `runWithProxyContext`, automatski poštujući postavke proxy-ja na nivou provajdera i globalne postavke.
+**Rješenje (v3.5.5+):** Ovo je sada ispravljeno. Validacija pružatelja usmjerava se kroz `runWithProxyContext`, automatski poštujući postavke proxyja na nivou pružatelja i globalne postavke proxyja.
 
-### Provjera zdravlja tokena ne uspijeva sa "fetch failed"
+### Provjera ispravnosti tokena ne uspijeva uz poruku "fetch failed"
 
-**Uzrok:** Pozadinsko osvježavanje OAuth tokena nije razrješavalo proxy konfiguraciju po konekciji.
+**Uzrok:** Pozadinsko osvježavanje OAuth tokena nije određivalo konfiguraciju proxyja za svaku vezu.
 
-**Popravak (v3.5.5+):** Planer za provjeru zdravlja tokena sada razrješava proxy konfiguraciju po konekciji prije pokušaja osvježavanja. Ažurirajte na v3.5.5+.
+**Rješenje (v3.5.5+):** Planer provjere ispravnosti tokena sada određuje konfiguraciju proxyja za svaku vezu prije pokušaja osvježavanja. Ažurirajte na v3.5.5+.
 
 ### SOCKS5 proxy vraća "invalid onRequestStart method"
 
-**Uzrok:** Na Node.js 22, undici@8 dispatcher nije kompatibilan sa ugrađenom `fetch()` implementacijom Node-a.
+**Uzrok:** Na Node.js 22, dispečer iz undici@8 nije kompatibilan s ugrađenom Nodeovom implementacijom funkcije `fetch()`.
 
-**Popravak (v3.5.5+):** OmniRoute sada koristi vlastitu `fetch()` funkciju iz undici-ja kada je proxy dispatcher aktivan, osiguravajući konzistentno ponašanje. Ažurirajte na v3.5.5+.
+**Rješenje (v3.5.5+):** OmniRoute sada koristi vlastitu funkciju `fetch()` paketa undici kada je aktivan proxy dispečer, čime se osigurava dosljedno ponašanje. Ažurirajte na v3.5.5+.
 
 ### MITM proxy pod WSL-om: desktop aplikacije na Windows hostu nisu presretnute
 
-**Uzrok:** MITM proxy i njegov CA certifikat se instaliraju u okruženje gdje OmniRoute radi. Pod WSL-om to okruženje je Linux gost, dok AI desktop aplikacije (Kiro, Trae, Copilot, Zed, …) rade na Windows hostu. Host aplikacije ne vjeruju spremi certifikata gosta i ne rutiraju kroz sistemski proxy gosta, tako da presretanje desktop aplikacija tamo nije aktivno.
+**Uzrok:** MITM proxy i njegov CA certifikat instaliraju se u okruženje u kojem se OmniRoute izvršava. Pod WSL-om to okruženje je Linux gost, dok se AI desktop aplikacije (Kiro, Trae, Copilot, Zed, …) izvršavaju na Windows hostu. Aplikacije na hostu ne vjeruju spremištu certifikata gosta i ne usmjeravaju se kroz sistemski proxy gosta, pa presretanje desktop aplikacija tamo nije aktivno.
 
-**Preporuka:** Pokrenite OmniRoute izvorno na istom OS-u kao i desktop aplikacije koje želite presresti (Windows za Windows aplikacije; isto tako za macOS/Linux). Zadržavanje OmniRoute-a unutar WSL-a dok ciljate host aplikacije zahtijeva ručno povjerenje generisanog CA certifikata na Windows hostu i usmjeravanje mrežnih/proxy postavki svake host aplikacije na WSL proxy endpoint — što je nepodržana i nestabilna konfiguracija.
+**Preporuka:** Pokrenite OmniRoute izvorno na istom operativnom sistemu kao i desktop aplikacije koje želite presretati (Windows za Windows aplikacije; analogno tome macOS/Linux). Zadržavanje OmniRoutea unutar WSL-a uz ciljanje aplikacija na hostu zahtijeva ručno dodavanje generiranog CA certifikata kao pouzdanog na Windows hostu i usmjeravanje mrežnih/proxy postavki svake aplikacije na hostu prema WSL proxy krajnjoj tački — takva konfiguracija nije podržana i nepouzdana je.
 
 ---
 
-## Problemi sa provajderima
+## Problemi s pružateljima
 
 ### "Language model did not provide messages"
 
-**Uzrok:** Kvote provajdera su iscrpljene.
+**Uzrok:** Kvota pružatelja je iscrpljena.
 
-**Popravak:**
+**Rješenje:**
 
-1. Provjerite tracker kvote na dashboard-u
-2. Koristite kombinaciju sa fallback nivoima
+1. Provjerite praćenje kvote na kontrolnoj ploči
+2. Koristite kombinaciju s rezervnim nivoima
 3. Prebacite se na jeftiniji/besplatni nivo
 
-### Rate Limiting (Ograničenje brzine)
+### Ograničavanje brzine zahtjeva
 
-**Uzrok:** Kvota pretplate je iscrpljena.
+**Uzrok:** Pretplatnička kvota je iscrpljena.
 
-**Popravak:**
+**Rješenje:**
 
-- Dodajte fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
-- Koristite GLM/MiniMax kao jeftinu rezervu
+- Dodajte rezervnu opciju: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
+- Koristite GLM/MiniMax kao jeftinu rezervnu opciju
 
-### OAuth Token je istekao
+### OAuth token je istekao
 
-OmniRoute automatski osvježava tokene. Ako problemi potraju:
+OmniRoute automatski osvježava tokene. Ako problemi i dalje postoje:
 
-1. Dashboard → Provider → Reconnect
-2. Obrišite i ponovo dodajte konekciju provajdera
+1. Kontrolna ploča → Pružatelj → Ponovo poveži
+2. Izbrišite i ponovo dodajte vezu s pružateljem
 
-### Kiro multi-account: drugi račun poništava prvi
+### Više Kiro računa: drugi račun poništava prvi
 
-**Uzrok:** Kiro-v backend nameće jednu aktivnu sesiju po OIDC registraciji klijenta.
-Kada dva računa dijele istog registrovanog klijenta (konekcije uvežene prije v3.8.0),
-osvježavanje tokena jednog računa poništava refresh token drugog.
+**Uzrok:** Kirova pozadinska usluga dozvoljava samo jednu aktivnu sesiju po registraciji OIDC klijenta.
+Kada dva računa dijele isti registrirani klijent (veze uvezene prije v3.8.0),
+osvježavanje tokena jednog računa poništava token za osvježavanje drugog računa.
 
-**Popravak (v3.8.0+):** Ponovo uvezite pogođene konekcije.
-Počevši od v3.8.0, svaka nova Kiro konekcija kreirana putem **Import Token**,
-**Google/GitHub social login**, ili **Auto-Import** automatski registruje vlastitog
-namjenskog OIDC klijenta. Konekcija je stoga potpuno izolovana i osvježavanje jednog
-računa nema efekta na bilo koji drugi račun.
+**Rješenje (v3.8.0+):** Ponovo uvezite pogođene veze.
+Počevši od v3.8.0, svaka nova Kiro veza kreirana putem opcije **Uvezi token**,
+**Društvena prijava putem Googlea/GitHuba** ili **Automatski uvoz** automatski registrira vlastiti
+namjenski OIDC klijent. Veza je stoga potpuno izolirana i osvježavanje jednog
+računa ne utječe ni na jedan drugi račun.
 
-Konekcije koje su uvežene _prije_ v3.8.0 nemaju registraciju klijenta po konekciji.
-Te konekcije nastavljaju koristiti zajednički social-auth refresh endpoint.
-Da biste dobili izolaciju, obrišite staru konekciju iz Dashboard → Providers i ponovo je
-dodajte putem bilo kojeg od tri toka uvoza.
+Veze koje su uvezene _prije_ v3.8.0 nemaju registraciju klijenta po vezi.
+Te veze i dalje koriste zajedničku krajnju tačku za osvježavanje društvene autentifikacije.
+Da biste omogućili izolaciju, izbrišite staru vezu putem Kontrolna ploča → Pružatelji i ponovo je dodajte
+putem bilo kojeg od tri toka uvoza.
 
-Za kompletne detalje i uputstva korak-po-korak za dodavanje dva Kiro računa jednovremeno,
+Za potpune detalje i detaljna uputstva za dodavanje dva Kiro računa jednog pored drugog,
 pogledajte [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ---
 
-## Cloud Problemi
+## Problemi s oblakom
 
-### Greške pri Cloud Sync-u
+### Greške pri sinhronizaciji s oblakom
 
-1. Provjerite da li `BASE_URL` pokazuje na vašu pokrenutu instancu (npr. `http://localhost:20128`)
-2. Provjerite da li `CLOUD_URL` pokazuje na vaš cloud endpoint (npr. `https://omniroute.dev`)
-3. Održavajte `NEXT_PUBLIC_*` vrijednosti usklađenim sa vrijednostima na strani servera
+1. Provjerite da `BASE_URL` upućuje na vašu pokrenutu instancu (npr. `http://localhost:20128`)
+2. Provjerite da `CLOUD_URL` upućuje na vašu krajnju tačku u oblaku (npr. `https://omniroute.dev`)
+3. Održavajte vrijednosti `NEXT_PUBLIC_*` usklađenim s vrijednostima na strani servera
 
 ### Cloud `stream=false` vraća 500
 
-**Simptom:** `Unexpected token 'd'...` na cloud endpointu za pozive koji nisu streaming.
+**Simptom:** `Unexpected token 'd'...` na krajnjoj tački u oblaku za pozive bez streaminga.
 
-**Uzrok:** Upstream vraća SSE payload dok klijent očekuje JSON.
+**Uzrok:** Uzvodni servis vraća SSE sadržaj, dok klijent očekuje JSON.
 
-**Zaobilazno rješenje:** Koristite `stream=true` za direktne cloud pozive. Lokalno runtime uključuje SSE→JSON fallback.
+**Zaobilazno rješenje:** Koristite `stream=true` za direktne pozive prema oblaku. Lokalno izvršno okruženje uključuje rezervni SSE→JSON mehanizam.
 
-### Cloud kaže "Connected" ali "Invalid API key"
+### Cloud prikazuje da je povezan, ali javlja "Invalid API key"
 
-1. Kreirajte novi ključ iz lokalne kontrolne ploče (`/api/keys`)
-2. Pokrenite cloud sync: Enable Cloud → Sync Now
-3. Stari/nesinkronizovani ključevi i dalje mogu vraćati `401` na cloudu
+1. Kreirajte novi ključ na lokalnoj nadzornoj ploči (`/api/keys`)
+2. Pokrenite sinhronizaciju s oblakom: Omogućite Cloud → Sync Now
+3. Stari/nesinhronizovani ključevi i dalje mogu vratiti `401` u oblaku
 
 ---
 
-## Docker Problemi
+## Problemi s Dockerom
 
-### Docker IPv6 / Connection Reset
+### Docker IPv6 / resetovanje veze
 
 <a name="docker-ipv6"></a>
 
-**Simptomi:** `curl http://localhost:20128/v1/models` vraća `curl: (56) Recv failure: Connection reset by peer`. Kontrolna ploča i neautentifikovani endpointi rade, ali autentifikovani endpointi ne rade — izgleda kao problem s autentifikacijom, ali nije.
+**Simptomi:** `curl http://localhost:20128/v1/models` vraća `curl: (56) Recv failure: Connection reset by peer`. Nadzorna ploča i krajnje tačke bez autentifikacije rade, ali autentifikovane krajnje tačke ne rade — izgleda kao problem s autentifikacijom, ali nije.
 
-**Uzrok:** `docker run -p 20128:20128` objavljuje port na `0.0.0.0` (IPv4) i `::` (IPv6), ali proces unutar kontejnera sluša samo na IPv4. Na hostovima gdje se `localhost` prvo razrešava na `::1`, veza završava na IPv6 objavljenom portu bez slušača iza njega → connection reset.
+**Uzrok:** `docker run -p 20128:20128` objavljuje port i na `0.0.0.0` (IPv4) i na `::` (IPv6), ali proces unutar kontejnera sluša samo na IPv4. Na hostovima gdje se `localhost` prvo razrješava kao `::1`, veza dolazi na objavljeni IPv6 port iza kojeg nema procesa koji sluša → veza se resetuje.
 
-**Popravak:**
+**Rješenje:**
 
-1. **Brza dijagnostika:** Pokrenite `curl -4 http://localhost:20128/v1/models`. Ako radi sa `-4` ali ne radi bez toga, imate IPv6 bind neslaganje.
-2. **Trajni popravak:** Eksplicitno se povežite na IPv4 koristeći `-p 127.0.0.1:20128:20128` u vašoj `docker run` komandi:
+1. **Brza dijagnostika:** Pokrenite `curl -4 http://localhost:20128/v1/models`. Ako radi s `-4`, ali ne radi bez toga, imate nepodudaranje IPv6 povezivanja.
+2. **Trajno rješenje:** Eksplicitno se povežite na IPv4 korištenjem `-p 127.0.0.1:20128:20128` u vašoj naredbi `docker run`:
    ```bash
    docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
      -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
    ```
-   Ovo forsira IPv4 bind i također izbjegava izlaganje proxy-ja na svim host interfejsima.
+   Ovo prisiljava povezivanje na IPv4 i također sprječava izlaganje proxyja na svim mrežnim interfejsima hosta.
 
 ---
 
-### CLI Tool pokazuje "Not Installed"
+### CLI alat prikazuje da nije instaliran
 
-1. Provjerite runtime polja: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. Za portable mode: koristite image target `runner-cli` (bundlovani CLI-ji)
-3. Za host mount mode: postavite `CLI_EXTRA_PATHS` i mount-ujte host bin direktorij kao read-only
-4. Ako je `installed=true` i `runnable=false`: binarni fajl je pronađen, ali je healthcheck propao
+1. Provjerite polja izvršnog okruženja: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. Za prijenosni način rada: koristite cilj slike `runner-cli` (uključeni CLI alati)
+3. Za način rada s montiranjem hosta: postavite `CLI_EXTRA_PATHS` i montirajte direktorij binarnih datoteka hosta samo za čitanje
+4. Ako je `installed=true` i `runnable=false`: binarna datoteka je pronađena, ali nije prošla provjeru ispravnosti
 
-### Brza validacija runtime-a
+### Brza provjera izvršnog okruženja
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -397,137 +440,147 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ---
 
-## Problemi s Troškovima
+## Problemi s troškovima
 
 ### Visoki troškovi
 
 1. Provjerite statistiku korištenja u Dashboard → Usage
 2. Promijenite primarni model na GLM/MiniMax
-3. Koristite besplatni tier (Qoder, Kiro) za nekritične zadatke
-4. Postavite budžete troškova po API ključu: Dashboard → API Keys → Budget
+3. Koristite besplatni nivo (Qoder, Kiro) za zadatke koji nisu kritični
+4. Postavite budžete troškova za svaki API ključ: Dashboard → API Keys → Budget
 
 ---
 
-## Debugging
+## Otklanjanje grešaka
 
-### Omogućite datoteke dnevnika (Log Files)
+### Omogućavanje datoteka dnevnika
 
-Postavite `APP_LOG_TO_FILE=true` u vašoj `.env` datoteci. Dnevnici aplikacije zapisuju se pod `logs/`.
-Artefakti zahtjeva pohranjuju se pod `${DATA_DIR}/call_logs/` kada je pipeline za dnevnike poziva omogućen u postavkama.
-Kada je snimanje pipeline-a omogućeno, postavite `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` kako biste izostavili payload-ove stream chunk-ova, ili prilagodite `CALL_LOG_PIPELINE_MAX_SIZE_KB` da biste promijenili ograničenje artefakata u KB.
+Postavite `APP_LOG_TO_FILE=true` u vašoj `.env` datoteci. Dnevnici aplikacije zapisuju se u `logs/`.
+Artefakti zahtjeva pohranjuju se u `${DATA_DIR}/call_logs/` kada je cjevovod dnevnika poziva
+omogućen u postavkama.
+Kada je bilježenje cjevovoda omogućeno, postavite `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` da izostavite
+sadržaj dijelova streama ili prilagodite `CALL_LOG_PIPELINE_MAX_SIZE_KB` da promijenite ograničenje veličine artefakta u KB.
 
-### Provjera zdravlja provajdera (Provider Health)
+### Provjera ispravnosti pružaoca usluga
 
 ```bash
-# Dashboard zdravlja
+# Nadzorna ploča stanja
 http://localhost:20128/dashboard/health
 
-# API provjera zdravlja
+# Provjera stanja API-ja
 curl http://localhost:20128/api/monitoring/health
 ```
 
-### Skladište u runtime-u
+### Pohrana izvršnog okruženja
 
-- Glavno stanje: `${DATA_DIR}/storage.sqlite` (provajderi, kombinacije, aliasi, ključevi, postavke)
-- Upotreba: SQLite tabele u `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + opcionalno `${DATA_DIR}/call_logs/`
+- Glavno stanje: `${DATA_DIR}/storage.sqlite` (pružaoci usluga, kombinacije, aliasi, ključevi, postavke)
+- Korištenje: SQLite tabele u `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + opcionalno `${DATA_DIR}/call_logs/`
 - Dnevnici aplikacije: `<repo>/logs/...` (kada je `APP_LOG_TO_FILE=true`)
-- Artefakti dnevnika poziva: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` kada je pipeline za dnevnike poziva omogućen
+- Artefakti dnevnika poziva: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` kada je cjevovod dnevnika poziva omogućen
 
-Akcija **Clean history** na stranici Request Logs briše `call_logs`, zastarjele `request_detail_logs` i lokalni direktorij artefakata `${DATA_DIR}/call_logs/`.
+Radnja **Clean history** na stranici Request Logs briše `call_logs`, zastarjele
+`request_detail_logs` i lokalni direktorij artefakata `${DATA_DIR}/call_logs/`.
 
 ---
 
-## Problemi sa Circuit Breaker-om
+## Problemi s prekidačem kola
 
-### Provajder zaglavljen u OPEN stanju
+### Pružalac usluge zaglavljen u stanju OPEN
 
-Kada je circuit breaker provajdera u OPEN stanju, zahtjevi su blokirani dok period hlađenja (cooldown) ne istekne.
+Kada je prekidač kola pružaoca usluge u stanju OPEN, zahtjevi su blokirani dok ne istekne period hlađenja.
 
 **Rješenje:**
 
-1. Idite na **Dashboard → Settings → Resilience**
-2. Provjerite circuit breaker karticu za pogođenog provajdera
-3. Kliknite **Reset All** da očistite sve breakere, ili pričekajte da cooldown istekne
-4. Provjerite je li provajder zapravo dostupan prije resetiranja
+1. Idite na **Kontrolna tabla → Postavke → Otpornost**
+2. Provjerite karticu prekidača kola za pogođenog pružaoca usluge
+3. Kliknite na **Resetuj sve** da biste poništili sve prekidače ili sačekajte da period hlađenja istekne
+4. Prije poništavanja provjerite da li je pružalac usluge zaista dostupan
 
-### Provajder stalno aktivira circuit breaker
+### Pružalac usluge stalno aktivira prekidač kola
 
-Ako provajder više puta ulazi u OPEN stanje:
+Ako pružalac usluge više puta uđe u stanje OPEN:
 
-1. Provjerite **Dashboard → Health → Provider Health** za obrazac neuspjeha
-2. Idite na **Settings → Resilience → Provider Profiles** i povećajte prag neuspjeha (failure threshold)
-3. Provjerite je li provajder promijenio API limite ili zahtijeva ponovnu autentifikaciju
-4. Pregledajte telemetriju latencije — visoka latencija može uzrokovati neuspjehe zasnovane na timeout-u
-
----
-
-## Problemi sa transkripcijom audia
-
-### Greška "Unsupported model"
-
-- Koristite model id čiji je prvi segment provajder za kojeg imate vjerodajnice (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Samostalni `deepgram/nova-3` zahtijeva izvorni Deepgram ključ.
-- Provjerite je li provajder povezan u **Dashboard → Providers**
-
-### Transkripcija vraća prazan rezultat ili ne uspijeva
-
-- Provjerite podržane audio formate: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Provjerite je li veličina datoteke unutar limita provajdera (obično < 25MB)
-- Provjerite valjanost API ključa provajdera u kartici provajdera
+1. Provjerite obrazac grešaka u odjeljku **Kontrolna tabla → Stanje → Stanje pružaoca usluge**
+2. Idite na **Postavke → Otpornost → Profili pružalaca usluga** i povećajte prag grešaka
+3. Provjerite da li je pružalac usluge promijenio ograničenja API-ja ili zahtijeva ponovnu autentifikaciju
+4. Pregledajte telemetriju kašnjenja — veliko kašnjenje može uzrokovati greške zbog isteka vremena
 
 ---
 
-## Debugging prevodioca (Translator)
+## Problemi s transkripcijom zvuka
 
-Koristite **Dashboard → Translator** za debugging problema sa prevodom formata:
+### Greška „Nepodržan model“
 
-| Mod              | Kada koristiti                                                                                                 |
-| ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Playground**   | Uporedite ulazne/izlazne formate jednim pored drugog — zalijepite neuspješan zahtjev da vidite kako se prevodi |
-| **Chat Tester**  | Šaljite poruke uživo i pregledajte cijeli payload zahtjeva/odgovora uključujući zaglavlja                      |
-| **Test Bench**   | Pokrenite batch testove kroz kombinacije formata kako biste pronašli koji prevodi ne rade                      |
-| **Live Monitor** | Pratite protok zahtjeva u stvarnom vremenu kako biste uhvatili povremene probleme s prevodom                   |
+- Koristite ID modela čiji je prvi segment pružalac usluge za kojeg imate pristupne podatke (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Samostalni `deepgram/nova-3` zahtijeva izvorni Deepgram ključ.
+- Provjerite je li pružalac usluge povezan u odjeljku **Kontrolna tabla → Pružaoci usluga**
+
+### Transkripcija je prazna ili ne uspijeva
+
+- Provjerite podržane formate zvuka: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Provjerite je li veličina datoteke unutar ograničenja pružaoca usluge (obično < 25MB)
+- Provjerite valjanost API ključa pružaoca usluge na kartici pružaoca usluge
+
+---
+
+## Otklanjanje grešaka prevodioca
+
+Koristite **Kontrolna tabla → Prevodilac** za otklanjanje problema s prevođenjem formata:
+
+| Način rada           | Kada koristiti                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Igralište**        | Uporedite ulazne/izlazne formate jedan pored drugog — zalijepite neuspjeli zahtjev da vidite kako se prevodi |
+| **Tester razgovora** | Šaljite poruke uživo i pregledajte kompletan sadržaj zahtjeva/odgovora, uključujući zaglavlja                |
+| **Testna platforma** | Pokrenite grupne testove nad kombinacijama formata da biste pronašli neispravne prijevode                    |
+| **Praćenje uživo**   | Pratite tok zahtjeva u stvarnom vremenu da biste otkrili povremene probleme s prevođenjem                    |
 
 ### Uobičajeni problemi s formatom
 
-- **Thinking tagovi se ne pojavljuju** — Provjerite podržava li ciljni provajder "thinking" i postavku budžeta za razmišljanje (thinking budget)
-- **Tool pozivi nestaju** — Neki prevodi formata mogu ukloniti nepodržana polja; provjerite u Playground modu
-- **Nedostaje System prompt** — Claude i Gemini različito rukuju system promptovima; provjerite izlaz prevoda
-- **SDK vraća raw string umjesto objekta** — Riješeno u v1.x; sanitizer odgovora uklanja nestandardna polja (`x_groq`, `usage_breakdown`, itd.) koja uzrokuju Pydantic validacijske greške u OpenAI SDK-u. Ako ovo i dalje vidite na v3.x+, molimo otvorite issue.
-- **GLM/ERNIE odbija `system` ulogu** — Riješeno u v1.x; normalizator uloga automatski spaja system poruke u user poruke za nekompatibilne modele. Ako ovo i dalje vidite na v3.x+, molimo otvorite issue.
-- **`developer` uloga nije prepoznata** — Riješeno u v1.x; automatski konvertovano u `system` za non-OpenAI provajdere. Ako ovo i dalje vidite na v3.x+, molimo otvorite issue.
-- **`json_schema` ne radi sa Gemini-jem** — Riješeno u v1.x; `response_format` se sada konvertuje u Gemini-jev `responseMimeType` + `responseSchema`. Ako ovo i dalje vidite na v3.x+, molimo otvorite issue.
+- **Oznake razmišljanja se ne pojavljuju** — Provjerite podržava li ciljni pružalac usluge razmišljanje i postavku budžeta za razmišljanje
+- **Pozivi alata nestaju** — Neki prijevodi formata mogu ukloniti nepodržana polja; provjerite u načinu rada Igralište
+- **Nedostaje sistemski prompt** — Claude i Gemini različito obrađuju sistemske promptove; provjerite izlaz prijevoda
+- **SDK vraća sirovi niz znakova umjesto objekta** — Riješeno u v1.x; alat za pročišćavanje odgovora uklanja nestandardna polja (`x_groq`, `usage_breakdown` itd.) koja uzrokuju greške pri Pydantic validaciji u OpenAI SDK-u. Ako ovo i dalje vidite na v3.x+, prijavite problem.
+- **GLM/ERNIE odbija ulogu `system`** — Riješeno u v1.x; normalizator uloga automatski spaja sistemske poruke s korisničkim porukama za nekompatibilne modele. Ako ovo i dalje vidite na v3.x+, prijavite problem.
+- **Uloga `developer` nije prepoznata** — Riješeno u v1.x; automatski se pretvara u `system` za pružaoce usluga koji nisu OpenAI. Ako ovo i dalje vidite na v3.x+, prijavite problem.
+- **`json_schema` ne radi s Gemini modelom** — Riješeno u v1.x; `response_format` se sada pretvara u Gemini parametre `responseMimeType` + `responseSchema`. Ako ovo i dalje vidite na v3.x+, prijavite problem.
 
 ---
 
-## Postavke otpornosti (Resilience Settings)
+## Postavke otpornosti
 
-### Automatsko ograničavanje brzine (rate-limit) se ne aktivira
+### Automatsko ograničavanje brzine se ne aktivira
 
-- Automatsko ograničavanje brzine primjenjuje se samo na pružatelje API ključeva (ne na OAuth/pretplate)
-- Provjerite da li je u **Settings → Resilience → Provider Profiles** omogućeno auto-rate-limit
-- Provjerite vraća li pružatelj statusne kodove `429` ili `Retry-After` zaglavlja
+- Automatsko ograničavanje brzine primjenjuje se samo na pružaoce usluga s API ključem (ne na OAuth/pretplatu)
+- Provjerite je li automatsko ograničavanje brzine omogućeno u **Settings → Resilience → Provider Profiles**
+- Provjerite vraća li pružalac usluge statusne kodove `429` ili zaglavlja `Retry-After`
 
-### Podešavanje eksponencijalnog povlačenja (exponential backoff)
+### Podešavanje eksponencijalnog odgađanja
 
-Profili pružatelja podržavaju sljedeće postavke:
+Profili pružalaca usluga podržavaju sljedeće postavke:
 
-- **Base delay** — Početno vrijeme čekanja nakon prvog neuspjeha (podrazumijevano: 1s)
-- **Max delay** — Maksimalno ograničenje vremena čekanja (podrazumijevano: 30s)
-- **Multiplier** — Koliko povećati vrijeme čekanja po svakom uzastopnom neuspjehu (podrazumijevano: 2x)
+- **Osnovna odgoda** — Početno vrijeme čekanja nakon prvog neuspjeha (zadano: 1s)
+- **Maksimalna odgoda** — Gornja granica vremena čekanja (zadano: 30s)
+- **Množilac** — Koliko povećati odgodu po svakom uzastopnom neuspjehu (zadano: 2x)
 
-### Anti-thundering herd
+### Sprečavanje efekta stampeda
 
-Kada veliki broj konkurentnih zahtjeva pogodi pružatelja s ograničenom brzinom, OmniRoute koristi mutex + automatsko ograničavanje brzine kako bi serijalizirao zahtjeve i spriječio kaskadne neuspjehe. Ovo je automatski za pružatelje API ključeva.
+Kada mnogo istovremenih zahtjeva pristupi pružaocu usluge s ograničenom brzinom, OmniRoute koristi mutex + automatsko ograničavanje brzine kako bi serijalizirao zahtjeve i spriječio lančane neuspjehe. Ovo se automatski primjenjuje na pružaoce usluga s API ključem.
 
-### Zahtjevi za ćaskanje (chat) ne uspijevaju s 503 / chat_admission_busy
+### Zahtjevi za razgovor ne uspijevaju uz 503 / chat_admission_busy
 
 **Simptomi:**
 
-- Endpoint za ćaskanje (chat completions) vraća ponovljiv `503` odgovor čiji je kod greške `chat_admission_busy`.
-- Odgovor uključuje `Retry-After`. Od verzije #12135 vrijednost je izvedena iz opažene zauzetosti — veća vrijednost između prozora `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` u kojem je zahtjev već čekao i vremena tokom kojeg su trenutni "teški" (heavyweight) zakupi držani — zaokruženo na cijele sekunde i ograničeno na 60. Na neaktivnom prolazu zadržavaju se historijski minimumi: 2 sekunde na putanji zasnovanoj na bajtovima, 1 sekunda na putanji zasnovanoj na strukturi (koja također uključuje `reason: "structure_limit"`).
-- Ovo se može dogoditi dok je drugi "teški" chat ili streaming odgovor koji dugo traje još uvijek u procesu slanja.
+- Krajnja tačka za dovršavanje razgovora vraća ponovljivi odgovor `503` čiji je kod greške
+  `chat_admission_busy`.
+- Odgovor uključuje `Retry-After`. Od verzije #12135 vrijednost se izvodi iz uočene
+  zauzetosti — uzima se veća vrijednost između perioda `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` tokom kojeg je zahtjev već
+  čekao i vremena tokom kojeg se drže trenutni zahtjevni najmovi — zaokružena naviše na cijele
+  sekunde i ograničena na 60. Kada je kontrolni mehanizam neaktivan, zadržavaju se historijske minimalne vrijednosti: 2 sekunde na
+  putanji zasnovanoj na bajtovima i 1 sekunda na putanji zasnovanoj na strukturi (koja također uključuje
+  `reason: "structure_limit"`).
+- To se može dogoditi dok je drugi zahtjevni razgovor ili dugotrajni streaming odgovor još uvijek
+  u toku.
 
-Tijelo odgovora zasnovano na bajtovima je:
+Tijelo odgovora zasnovanog na bajtovima je:
 
 ```json
 {
@@ -539,184 +592,211 @@ Tijelo odgovora zasnovano na bajtovima je:
 }
 ```
 
-Odgovor zasnovan na strukturi koristi isti tip i kod, s porukom `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.` i `reason: "structure_limit"`.
-Pri podrazumijevanim pragovima, zahtjev je strukturalno težak kada ima najmanje `200` poruka, najmanje `64` alata, ili najmanje `32,000` procijenjenih tokena, ili kada procjena ograničene strukture iscrpi svoje granice od `10,000` posjećenih čvorova ili dubine `12`.
+Odgovor zasnovan na strukturi koristi isti tip i kod, uz poruku
+`Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
+i `reason: "structure_limit"`.
+Uz zadane pragove, zahtjev je strukturno zahtjevan kada ima najmanje `200` poruka,
+najmanje `64` alata ili najmanje `32,000` procijenjenih tokena, odnosno kada ograničena procjena strukture
+iscrpi svoja ograničenja od `10,000` posjećenih čvorova ili dubine `12`.
 
-**Uzrok:** Ovo je namjerno odbacivanje opterećenja (load shedding) unutar OmniRoute-a, a ne neuspjeh pružatelja usluge. Svaki proces koristi lokalni zaštitnik (guard) kako bi rezervirao ograničeni kapacitet za teške zahtjeve prije zadržavanja i parsiranja velikog tijela zahtjeva. Zakup za teški zahtjev ostaje zauzet tokom cijelog trajanja SSE odgovora.
+**Uzrok:** Ovo je namjerno odbacivanje opterećenja unutar OmniRoutea, a ne greška uzvodnog pružaoca usluge.
+Svaki proces koristi lokalni zaštitni mehanizam procesa kako bi rezervirao ograničeni kapacitet za zahtjevne zahtjeve prije zadržavanja
+i raščlanjivanja velikog tijela zahtjeva. Zahtjevni najam ostaje zadržan tokom cijelog životnog vijeka SSE
+odgovora.
 
-**#503-fanout:** prije ovog popravka, zaštitnik je ograničavao konkurentnost na fiksni BROJ zahtjeva (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, podrazumijevano `1`) bez obzira na memoriju hosta, tako da je fan-out kod agenata za kodiranje (više pod-agenata/CLI-ja, tijela rutinski > 256 KB) kolapsirao na efektivnu konkurentnost od ~1 i vraćao 503 pod potpuno normalnim opterećenjem. Zaštitnik se sada sam podešava: ograničen je automatski izvedenim budžetom BAJTOVA za unos (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dimenzioniranim prema stvarnom memorijskom plafonu procesa, a također konzultira signal pritiska resursa u stvarnom vremenu — tako da odbacuje zahtjeve samo kada je host zaista pod memorijskim pritiskom, a ne samo zato što je više od jednog teškog zahtjeva stiglo odjednom. Staro ograničenje broja (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) se i dalje poštuje, ali samo ako ga eksplicitno postavite.
+**#503-fanout:** prije ove ispravke, zaštitni mehanizam ograničavao je istovremenost na fiksni BROJ zahtjeva
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, zadano `1`) bez obzira na memoriju hosta, pa je
+grananje agenta za programiranje (više podagenata/CLI-jeva, tijela rutinski > 256 KB) smanjivalo efektivnu
+istovremenost na približno 1 i uzrokovalo odgovore 503 pri potpuno normalnom opterećenju. Zaštitni mehanizam sada se samostalno podešava: njime upravlja
+automatski izveden BAJTNI budžet za unos (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), dimenzioniran prema
+stvarnom memorijskom ograničenju procesa, a također provjerava signal pritiska na resurse uživo — tako da
+odbacuje opterećenje samo kada je host zaista pod memorijskim pritiskom, a ne samo zato što je istovremeno
+stiglo više zahtjevnih zahtjeva. Staro ograničenje broja (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) i dalje se
+poštuje, ali samo ako ga izričito postavite.
 
-Kada je kapacitet zauzet, teški zahtjev prvo čeka do `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (podrazumijevano `2000`, `0` onemogućuje čekanje) da se slot oslobodi prije odgovora ponovljivim `503`. Ograničeno čekanje postoji kako bi klijenti u stilu agenata (OpenCode, Claude Code, Cursor) koji konkurentno šalju teške pod-zahtjeve serijalizirali taj nalet umjesto da potroše cijeli budžet ponovnih pokušaja na trenutna odbijanja i prekinu zadatak na pola.
-Trenutna zauzetost teških zakupa, razriješen budžet bajtova i ozbiljnost pritiska u stvarnom vremenu dostupni su na `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`, `budgetSource`, `pressureSeverity`, `countCapEnabled`) — provjerite ovo prije mijenjanja bilo koje env varijable.
-Postavka Settings → Resilience → Request Queue → Concurrent Requests ne kontroliše ovo; ta postavka upravlja zasebnim mehanizmom reda čekanja zahtjeva pružatelja.
+Kada je kapacitet zauzet, zahtjevan zahtjev prvo čeka do
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (zadano `2000`, `0` onemogućava čekanje) da se oslobodi mjesto
+prije nego što odgovori ponovljivim odgovorom `503`. Ograničeno čekanje postoji kako bi klijenti agentskog tipa
+(OpenCode, Claude Code, Cursor), koji istovremeno granaju zahtjevne podzahtjeve, serijalizirali nalet
+umjesto da potroše cijeli budžet za ponovne pokušaje na trenutna odbijanja i prekinu rad usred zadatka.
+Trenutna zauzetost zahtjevnih najmova, utvrđeni bajtni budžet i ozbiljnost pritiska uživo
+prikazuju se na `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — provjerite ih prije izmjene bilo koje varijable okruženja.
+Settings → Resilience → Request Queue → Concurrent Requests ne upravlja ovim; ta postavka
+upravlja zasebnim mehanizmom reda zahtjeva pružaoca usluge.
 
-**Popravak:**
+**Rješenje:**
 
-1. Prvo pokušajte ponovo. Klijenti trebaju poštovati `Retry-After` i koristiti povlačenje (backoff) umjesto trenutnog ponavljanja zahtjeva.
-2. Provjerite `/api/monitoring/health` → `chatAdmission` prije bilo kakvog podešavanja. `countCapEnabled: false` i velik `maxInflightBytes` znače da automatski izvedeni budžet već radi svoj posao; `pressureSeverity` od `high`/`critical` znači da hostu zaista nedostaje memorije — to se ne može popraviti env varijablom za prijem, već je potrebno više RAM-a ili manji obim posla.
-3. Samo ako `/api/monitoring/health` pokazuje da je automatski izvedeni budžet zaista previše mali za vaš host (rijetko — on se već skalira od kontejnera do bare-metal servera), nadjačajte ga direktno pomoću `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` umjesto povratka na zastarjelo ograničenje broja zahtjeva.
+1. Prvo pokušajte ponovo. Klijenti trebaju poštovati `Retry-After` i koristiti odgađanje umjesto trenutnog
+   ponavljanja zahtjeva.
+2. Provjerite `/api/monitoring/health` → `chatAdmission` prije bilo kakvog podešavanja. `countCapEnabled:
+false` i velikodušan `maxInflightBytes` znače da automatski izveden budžet već ispravno obavlja svoj
+   posao; `pressureSeverity` vrijednosti `high`/`critical` znači da hostu zaista nedostaje memorije —
+   to se ne može riješiti varijablom okruženja za prihvat zahtjeva, već je potrebno više RAM-a ili manje radno opterećenje.
+3. Samo ako `/api/monitoring/health` pokaže da je automatski izveden budžet zaista premalen za
+   vaš host (rijetko — već se prilagođava okruženjima od kontejnera do fizičkog servera), direktno ga nadjačajte pomoću
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` umjesto vraćanja na zastarjelo ograničenje broja zahtjeva.
 
-Pogledajte [referencu za environment-varijable](../reference/ENVIRONMENT.md#4-security--authentication) za ovlaštene postavke prijema.
+Pogledajte [referencu varijabli okruženja](../reference/ENVIRONMENT.md#4-security--authentication)
+za mjerodavne postavke prihvata zahtjeva.
 
 ---
 
-## Opcionalna taksonomija RAG / LLM kvara (16 problema)
+## Opcionalna taksonomija grešaka RAG-a / LLM-a (16 problema)
 
-Neki korisnici OmniRoute-a postavljaju gateway ispred RAG ili agent stack-ova. U takvim postavkama je uobičajeno vidjeti čudan obrazac: OmniRoute izgleda zdravo (provajderi su aktivni, routing profili su u redu, nema upozorenja o rate limitu), ali je konačni odgovor i dalje pogrešan.
+Neki korisnici OmniRoutea postavljaju pristupnik ispred RAG ili agentskih sistema. U takvim postavkama često se pojavljuje neobičan obrazac: OmniRoute izgleda ispravno (pružaoci usluga su dostupni, profili usmjeravanja su ispravni, nema upozorenja o ograničenju broja zahtjeva), ali je konačni odgovor ipak pogrešan.
 
-U praksi, ovi incidenti obično potječu iz downstream RAG pipeline-a, a ne iz samog gateway-a.
+U praksi ovi incidenti obično potiču iz nizvodnog RAG procesa, a ne iz samog pristupnika.
 
-Ako želite zajednički vokabular za opisivanje tih kvarova, možete koristiti WFGY ProblemMap, eksterni tekstualni resurs pod MIT licencom koji definiše šesnaest ponavljajućih obrazaca RAG / LLM kvarova. Na visokom nivou, on pokriva:
+Ako želite zajednički rječnik za opisivanje tih grešaka, možete koristiti WFGY ProblemMap, vanjski tekstualni resurs s MIT licencom koji definiše šesnaest obrazaca grešaka koje se ponavljaju u RAG / LLM sistemima. Na visokom nivou obuhvata:
 
-- retrieval drift i prekinute granice konteksta
-- prazne ili zastarjele indekse i vector store-ove
-- neslaganje embedding-a i semantike
-- probleme sa sastavljanjem prompta i prozorom konteksta
-- kolaps logike i previše samouvjerene odgovore
-- kvarove u dugim lancima i koordinaciji agenata
-- multi-agent memoriju i role drift
-- probleme sa redoslijedom deployment-a i bootstrap-a
+- odstupanje pri dohvaćanju i narušene granice konteksta
+- prazne ili zastarjele indekse i vektorske baze
+- nepodudaranje ugrađivanja i semantike
+- probleme sa sastavljanjem upita i prozorom konteksta
+- kolaps logike i pretjerano samouvjerene odgovore
+- greške u dugim lancima i koordinaciji agenata
+- odstupanje memorije i uloga u sistemima s više agenata
+- probleme s redoslijedom implementacije i pokretanja
 
 Ideja je jednostavna:
 
 1. Kada istražujete loš odgovor, zabilježite:
+   - korisnički zadatak i zahtjev
+   - kombinaciju rute ili pružaoca usluga u OmniRouteu
+   - sav RAG kontekst korišten nizvodno (dohvaćeni dokumenti, pozivi alata itd.)
+2. Povežite incident s jednim ili dva broja iz WFGY ProblemMapa (`No.1` … `No.16`).
+3. Pohranite broj na vlastitu nadzornu ploču, u operativni priručnik ili sistem za praćenje incidenata, uz OmniRoute zapise.
+4. Upotrijebite odgovarajuću WFGY stranicu da biste odlučili trebate li promijeniti svoj RAG sistem, mehanizam za dohvaćanje ili strategiju usmjeravanja.
 
-- korisnički zadatak i zahtjev
-- kombinaciju route-a ili provajdera u OmniRoute-u
-- bilo koji RAG kontekst korišten downstream (preuzeti dokumenti, pozivi alata, itd.)
+Kompletan tekst i konkretna uputstva dostupni su ovdje (MIT licenca, samo tekst):
 
-2. Mapirajte incident na jedan ili dva WFGY ProblemMap broja (`No.1` … `No.16`).
-3. Spremite broj u vaš vlastiti dashboard, runbook ili incident tracker pored OmniRoute logova.
-4. Koristite odgovarajuću WFGY stranicu kako biste odlučili trebate li promijeniti svoj RAG stack, retriever ili routing strategiju.
+[README za WFGY ProblemMap](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Potpun tekst i konkretni recepti se nalaze ovdje (MIT licenca, samo tekst):
-
-[WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
-
-Ovaj odjeljak možete ignorisati ako ne pokrećete RAG ili agent pipeline-ove iza OmniRoute-a.
+Ovaj odjeljak možete zanemariti ako iza OmniRoutea ne pokrećete RAG ili agentske procese.
 
 ---
 
-## v3.8.0 Poznati problemi
+## Poznati problemi u v3.8.0
 
-Problemi specifični za v3.8.0 verziju i njihova trenutna rješenja. Ako popravak stigne u kasnijem patch-u, unos će biti ažuriran ili uklonjen.
+Problemi specifični za izdanje v3.8.0 i njihova trenutna zaobilazna rješenja. Ako ispravka bude dostupna u kasnijoj zakrpi, unos će biti ažuriran ili uklonjen.
 
-### Devin CLI auth neuspjesi
+### Greške autentifikacije Devin CLI-ja
 
 **Simptomi:**
 
-- "Devin CLI not found" ili "auth failed" prilikom pozivanja alata zasnovanih na Devin-u
-- CLI runtime provjera prijavljuje `installed=false`
+- „Devin CLI nije pronađen“ ili „autentifikacija nije uspjela“ prilikom pozivanja alata koji koriste Devin
+- Provjera CLI-ja tokom izvršavanja prijavljuje `installed=false`
 
 **Uzroci:**
 
-- `CLI_DEVIN_BIN` pokazuje na putanju koja ne postoji
+- `CLI_DEVIN_BIN` upućuje na putanju koja ne postoji
 - Devin CLI nije instaliran na hostu
 
-**Popravak:**
+**Rješenje:**
 
-1. Instalirajte Devin CLI za vašu platformu
+1. Instalirajte Devin CLI za svoju platformu
 2. Postavite `CLI_DEVIN_BIN=/usr/local/bin/devin` (ili stvarnu putanju) u `.env`
-3. Ponovo pokrenite OmniRoute i ponovite test preko **Dashboard → CLI Tools**
+3. Ponovo pokrenite OmniRoute i ponovite testiranje putem **Nadzorna ploča → CLI alati**
 
-### Model cooldown zaglavljen (ručni reset)
-
-**Simptomi:**
-
-- Model ostaje naveden u cooldown-u čak i nakon što je vrijeme isteka prošlo
-- Zahtjevi i dalje preskaču model u combo routing-u uprkos tome što je timestamp u prošlosti
-
-**Ručni reset:**
-
-- **Dashboard:** **Settings → Model Cooldowns** → kliknite **Re-enable** na Affected kartici
-- **API:** `DELETE /api/resilience/model-cooldowns` sa management auth headerima
-
-### Command Code provider konekcija ne uspijeva sa 403
+### Model je zaglavljen u periodu hlađenja (ručno poništavanje)
 
 **Simptomi:**
 
-- 403 prilikom testiranja Command Code provider konekcije
-- Provider kartica prikazuje "unauthorized" nakon novog dodavanja
+- Model ostaje naveden kao da je u periodu hlađenja čak i nakon isteka vremena
+- Zahtjevi i dalje preskaču model pri kombinovanom usmjeravanju iako je vremenska oznaka u prošlosti
 
-**Uzrok:** OAuth tok nije završen (callback nije primljen ili token nije sačuvan).
+**Ručno poništavanje:**
 
-**Popravak:**
+- **Nadzorna ploča:** **Postavke → Periodi hlađenja modela** → kliknite **Ponovo omogući** na kartici na koju problem utiče
+- **API:** `DELETE /api/resilience/model-cooldowns` sa zaglavljima za upravljačku autentifikaciju
 
-- Pokrenite `omniroute providers` iz CLI-ja kako biste ponovo pokrenuli OAuth tok, ili
-- Ponovo pokrenite OAuth preko **Dashboard → Providers → Command Code → Reconnect**
-
-### ModelScope vraća agresivne 429 cooldown-ove
+### Povezivanje s pružaocem usluga Command Code ne uspijeva uz grešku 403
 
 **Simptomi:**
 
-- kratki ili trenutni cooldown-ovi na ModelScope-u nakon malog naleta zahtjeva
-- Combo routing preskače ModelScope ranije nego što je očekivano
+- Greška 403 prilikom testiranja veze s pružaocem usluga Command Code
+- Kartica pružaoca usluga prikazuje „neovlašteno“ nakon novog dodavanja
 
-**Uzrok:** ModelScope emituje specifične `Retry-After` headere za provajdere. V3.8.0 donosi namjensko rukovanje tim headerima, dok su ih starije verzije pogrešno čitale kao generičke rate-limit naznake.
+**Uzrok:** OAuth proces nije završen (povratni poziv nije primljen ili token nije sačuvan).
 
-**Popravak:**
+**Rješenje:**
 
-- Provjerite da li koristite v3.8.0 ili noviju verziju
-- Provjerite da li je `useUpstream429BreakerHints` toggle omogućen pod **Settings → Resilience**
+- Pokrenite `omniroute providers` iz CLI-ja da biste ponovo pokrenuli OAuth proces ili
+- Ponovo pokrenite OAuth putem **Nadzorna ploča → Pružaoci usluga → Command Code → Ponovo poveži**
+
+### ModelScope vraća agresivne periode hlađenja za greške 429
+
+**Simptomi:**
+
+- Veoma kratki ili trenutni periodi hlađenja u ModelScopeu nakon malog naleta zahtjeva
+- Kombinovano usmjeravanje preskače ModelScope ranije nego što je očekivano
+
+**Uzrok:** ModelScope šalje zaglavlja `Retry-After` specifična za pružaoca usluga. v3.8.0 sadrži namjensku obradu tih zaglavlja, pa ih starije verzije pogrešno tumače kao generičke naznake ograničenja broja zahtjeva.
+
+**Rješenje:**
+
+- Provjerite koristite li v3.8.0 ili noviju verziju
+- Provjerite je li opcija `useUpstream429BreakerHints` omogućena u odjeljku **Postavke → Otpornost**
 
 ### OMNIROUTE_WS_BRIDGE_SECRET nedostaje u produkciji
 
 **Simptomi:**
 
-- 401 na svakom Codex/Responses WebSocket bridge zahtjevu kada se pokreće na udaljenom produkcijskom hostu
-- WebSocket bridge handshake se zatvara odmah nakon povezivanja
+- Greška 401 za svaki zahtjev prema Codex/Responses WebSocket mostu prilikom pokretanja na udaljenom produkcijskom hostu
+- WebSocket most prekida uspostavljanje veze odmah nakon povezivanja
 
-**Uzrok:** `OMNIROUTE_WS_BRIDGE_SECRET` env varijabla nedostaje u produkcijskom okruženju.
+**Uzrok:** Varijabla okruženja `OMNIROUTE_WS_BRIDGE_SECRET` nedostaje u produkcijskom okruženju.
 
-**Popravak:**
+**Rješenje:**
 
-1. Generišite nasumični secret: `openssl rand -hex 32`
-2. Postavite `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` u produkcijskom server env-u (i svakom klijentu koji komunicira sa bridge-om)
+1. Generišite nasumičnu tajnu: `openssl rand -hex 32`
+2. Postavite `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` u okruženju produkcijskog servera (i svakog klijenta koji komunicira s mostom)
 3. Ponovo pokrenite OmniRoute
 
-### Responses API: background mode degradiran na sinhroni
+### Responses API: pozadinski način rada degradiran je na sinhroni
 
 **Simptomi:**
 
-- Zabilježeno upozorenje: `background mode degraded to synchronous`
-- Zahtjev sa `background: true` vraća normalan sinhroni odgovor umjesto handle-a za background job
+- Zabilježeno je upozorenje: `background mode degraded to synchronous`
+- Zahtjev s `background: true` vraća uobičajeni sinhroni odgovor umjesto identifikatora pozadinskog zadatka
 
-**Uzrok:** v3.8.0 namjerno degradira `background: true` na Responses API-ju na sinhrono izvršavanje uz emitovanje upozorenja. Potpuno asinhrono background izvršavanje je budući isporuka.
+**Uzrok:** v3.8.0 namjerno degradira `background: true` u Responses API-ju na sinhrono izvršavanje uz prikazivanje upozorenja. Potpuno asinhrono izvršavanje u pozadini planirano je za buduću isporuku.
 
-**Popravak:**
+**Rješenje:**
 
-- Prilagodite klijenta da poziva bez `background`, ili
-- Sačekajte kasniju verziju koja donosi potpuni async background mode (pratite changelog)
+- Prilagodite klijent tako da poziva bez opcije `background` ili
+- Sačekajte kasnije izdanje koje donosi potpuno asinhroni pozadinski način rada (pratite dnevnik promjena)
 
 ---
 
-## Spori start / Timeout spremnosti
+## Sporo pokretanje / Istek vremena za provjeru spremnosti
 
-Ako CLI ispiše `⚠ Server did not respond within 60s` ali server zapravo radi, budžet probe spremnosti je previše kratak za vaše okruženje.
+Ako CLI ispiše `⚠ Server did not respond within 60s`, ali server zapravo radi, vremenski okvir za provjeru spremnosti prekratak je za vaše okruženje.
 
-Ovo se često dešava na Windows-u (antivirus, filesystem watcher-i) ili kontejnerima sa zahtjevnim procesima pri pokretanju.
+Ovo se često događa na Windowsu (antivirusni programi, alati za praćenje sistema datoteka) ili u kontejnerima s velikim radnim opterećenjem pri pokretanju.
 
-**Rješenje — povećajte budžet:**
+**Rješenje — povećajte vremenski okvir:**
 
 ```bash
-# Putem env varijable (trajno):
+# Putem varijable okruženja (ostaje primijenjeno nakon ponovnih pokretanja):
 export OMNIROUTE_READY_TIMEOUT_MS=180000   # 3 minute
 omniroute serve
 
-# Putem CLI zastavice (jednokratno):
+# Putem CLI opcije (jednokratno):
 omniroute serve --ready-timeout 180000
 ```
 
-Zadana vrijednost je 60 000 ms (60 s). Upozorenje je samo informativnog karaktera; server nastavlja sa pokretanjem u pozadini i bit će dostupan čim se boot završi.
+Zadana vrijednost je 60 000 ms (60 s). Upozorenje je samo informativno; server se nastavlja pokretati u pozadini i bit će dostupan kada se pokretanje završi.
 
-Pogledajte [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) za kompletne detalje o `OMNIROUTE_READY_TIMEOUT_MS`.
+Za sve detalje o `OMNIROUTE_READY_TIMEOUT_MS` pogledajte [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md).
 
 ---
 
-## I dalje imate problema?
+## Još uvijek ne radi?
 
-- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arhitektura**: Pogledajte [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) za interne detalje
-- **API Referenca**: Pogledajte [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md) za sve endpoint-e
-- **Health Dashboard**: Provjerite **Dashboard → Health** za status sistema u realnom vremenu
-- **Translator**: Koristite **Dashboard → Translator** za otklanjanje problema sa formatom
+- **GitHub problemi**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Arhitektura**: Za interne detalje pogledajte [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md)
+- **API referenca**: Za sve krajnje tačke pogledajte [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md)
+- **Kontrolna ploča stanja**: Provjerite **Kontrolna ploča → Stanje** za status sistema u stvarnom vremenu
+- **Prevodilac**: Koristite **Kontrolna ploča → Prevodilac** za otklanjanje problema s formatom

@@ -142,38 +142,38 @@ catalog၊ UI catalog နှင့် အသုံးပြုသည့် inter
 
 ## 1. CLI Code ၏ ကတ်တလောက် (ကိရိယာ 26 ခု)
 
-`/dashboard/cli-code` တွင် ပေါ်လာသည့် ကိရိယာအားလုံး။ `baseUrlSupport: none` ဖြစ်သည့် ကိရိယာများကို စိတ်ကြိုက် base URL အစား MITM သို့မဟုတ် ကိုယ်တိုင်ဆောင်ရွက်ရသည့် လမ်းညွှန်မှတစ်ဆင့် ချိတ်ဆက်ထားသည်-
+`/dashboard/cli-code` တွင် ပေါ်လာသည့် ကိရိယာအားလုံး။ `baseUrlSupport: none` ဖြစ်သည့် ကိရိယာများကို စိတ်ကြိုက် base URL အစား MITM သို့မဟုတ် ကိုယ်တိုင်လုပ်ဆောင်ရန် လမ်းညွှန်မှတစ်ဆင့် ချိတ်ဆက်ထားသည်-
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | အမည်                    | ထုတ်လုပ်သူ            | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | --------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic             | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                  | none           | custom         | false        |
+| cline        | Cline                   | OSS (ယခင် Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org              | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)             | full           | guide          | false        |
+| continue     | Continue                | continue.dev          | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)     | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ           | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)        | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)     | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)          | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (ယခင် SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI            | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS             | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere             | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)     | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)      | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                   | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)           | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba               | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere             | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research         | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                | none           | mitm           | false        |
+| custom       | Custom CLI              | —                     | full           | custom-builder | false        |
 
-`baseUrlSupport: "partial"` ဖြစ်သည့် ကိရိယာများ၏ dashboard ကတ်တွင် "⚠ Base URL တစ်စိတ်တစ်ပိုင်းသာ ပံ့ပိုးသည်" badge ကို ပြသသည်။
+`baseUrlSupport: "partial"` ဖြစ်သည့် ကိရိယာများ၏ dashboard ကတ်တွင် "⚠ Base URL တစ်စိတ်တစ်ပိုင်းသာ ပံ့ပိုးသည်" တံဆိပ်ကို ပြသသည်။
 ---
 
 ## 2. CLI Agent များ၏ ကတ်တလောက် (ကိရိယာ 10 ခု)
@@ -602,72 +602,72 @@ kiro-cli status
 
 ## 10. အတွင်းပိုင်း OmniRoute CLI
 
-`omniroute` binary သည် ဆာဗာသက်တမ်းစက်ဝန်း၊ ကနဦးသတ်မှတ်မှု၊ ပြဿနာရှာဖွေစစ်ဆေးမှုနှင့် provider စီမံခန့်ခွဲမှုအတွက် command များကို ပံ့ပိုးပေးသည်။ စတင်ဝင်ရောက်ရာနေရာ- `bin/omniroute.mjs`။
+`omniroute` binary သည် ဆာဗာ lifecycle၊ စတင်ပြင်ဆင်ခြင်း၊ ရောဂါရှာဖွေခြင်းနှင့် provider စီမံခန့်ခွဲခြင်းအတွက် command များကို ပံ့ပိုးပေးသည်။ Entry point: `bin/omniroute.mjs`။
 
 ```bash
-omniroute                              # ဆာဗာကို စတင်ပါ (မူလ port 20128)
-omniroute setup                        # အပြန်အလှန်ဆောင်ရွက်နိုင်သော setup wizard
-omniroute doctor                       # config၊ DB၊ port များနှင့် runtime ကို စစ်ဆေးပါ
-omniroute providers list               # ပြင်ဆင်သတ်မှတ်ထားသော provider ချိတ်ဆက်မှုများ
-omniroute providers test-all           # အသုံးပြုနေသော ချိတ်ဆက်မှုတိုင်းကို စမ်းသပ်ပါ
-omniroute reset-password               # admin စကားဝှက်ကို ပြန်လည်သတ်မှတ်ပါ
-omniroute logs                         # request log များကို တိုက်ရိုက်ကြည့်ရှုပါ
+omniroute                              # ဆာဗာကို စတင်ရန် (မူလ port 20128)
+omniroute setup                        # အပြန်အလှန်တုံ့ပြန်နိုင်သော setup wizard
+omniroute doctor                       # config၊ DB၊ port များနှင့် runtime ကို စစ်ဆေးရန်
+omniroute providers list               # ပြင်ဆင်ထားသော provider ချိတ်ဆက်မှုများ
+omniroute providers test-all           # အသုံးပြုနေသော ချိတ်ဆက်မှုတိုင်းကို စမ်းသပ်ရန်
+omniroute reset-password               # admin password ကို ပြန်လည်သတ်မှတ်ရန်
+omniroute logs                         # request log များကို တိုက်ရိုက်ကြည့်ရှုရန်
 omniroute health                       # အသေးစိတ် health အခြေအနေ (breaker များ၊ cache၊ memory)
-omniroute --version                    # version ကို ဖော်ပြပါ
-omniroute --help                       # command အားလုံးကို ပြပါ
+omniroute --version                    # version ကို ဖော်ပြရန်
+omniroute --help                       # command အားလုံးကို ပြသရန်
 ```
 
-### Setup နှင့် ကနဦးပြင်ဆင်ခြင်း
+### စတင်ပြင်ဆင်ခြင်းနှင့် ကနဦးသတ်မှတ်ခြင်း
 
 ```bash
-omniroute setup                        # အပြန်အလှန်ဆောင်ရွက်နိုင်သော setup wizard
+omniroute setup                        # အပြန်အလှန်တုံ့ပြန်နိုင်သော setup wizard
 omniroute setup --non-interactive      # CI/အလိုအလျောက်လုပ်ဆောင်မှု mode (env var များနှင့် flag များကို ဖတ်သည်)
-omniroute setup --password '<value>'   # admin စကားဝှက်ကို တိုက်ရိုက်သတ်မှတ်ပါ
+omniroute setup --password '<value>'   # admin password ကို တိုက်ရိုက်သတ်မှတ်ရန်
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # provider တစ်ခုကို တစ်ကြိမ်တည်းဖြင့် ထည့်ပြီး စမ်းသပ်ပါ
+  --test-provider                      # provider တစ်ခုကို တစ်ကြိမ်တည်းဖြင့် ထည့်သွင်းပြီး စမ်းသပ်ရန်
 ```
 
-အပြန်အလှန်ဆောင်ရွက်မှုမရှိသော setup အတွက် အသိအမှတ်ပြုထားသည့် environment variable များ-
+အပြန်အလှန်တုံ့ပြန်မှုမရှိသော setup အတွက် အသိအမှတ်ပြုထားသည့် environment variable များမှာ-
 
 | Var                 | ရည်ရွယ်ချက်                                                                      |
 | ------------------- | -------------------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | Provider API key (Commander `.env()` မှတစ်ဆင့် `--api-key` နှင့် ချိတ်ဆက်ထားသည်) |
-| `DATA_DIR`          | OmniRoute data directory ကို အစားထိုးသတ်မှတ်သည်                                  |
+| `DATA_DIR`          | OmniRoute data directory ကို အစားထိုးသတ်မှတ်ရန်                                  |
 
-အခြား အပြန်အလှန်ဆောင်ရွက်မှုမရှိသော input အားလုံးကို environment variable များအဖြစ်မဟုတ်ဘဲ flag များအဖြစ် ပေးပို့သည်-
+အခြား အပြန်အလှန်တုံ့ပြန်မှုမရှိသော input အားလုံးကို environment variable များအဖြစ် မဟုတ်ဘဲ flag များအဖြစ် ပေးပို့သည်-
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(အထက်ပါ `omniroute setup` option များကို ကြည့်ပါ)။
+(အထက်ရှိ `omniroute setup` option များကို ကြည့်ပါ)။
 
-### ပြဿနာရှာဖွေစစ်ဆေးခြင်း
+### ရောဂါရှာဖွေခြင်း
 
 ```bash
-omniroute doctor                       # config၊ DB၊ port များ၊ runtime၊ memory နှင့် liveness ကို စစ်ဆေးပါ
+omniroute doctor                       # config၊ DB၊ port များ၊ runtime၊ memory နှင့် liveness ကို စစ်ဆေးရန်
 omniroute doctor --json                # စက်ဖြင့်ဖတ်ရှုနိုင်သော JSON
-omniroute doctor --no-liveness         # HTTP health probe ကို ကျော်ပါ
-omniroute doctor --host 0.0.0.0        # liveness host ကို အစားထိုးသတ်မှတ်ပါ
-omniroute doctor --liveness-url <url>  # health endpoint URL အပြည့်အစုံကို အစားထိုးသတ်မှတ်ပါ
+omniroute doctor --no-liveness         # HTTP health probe ကို ကျော်ရန်
+omniroute doctor --host 0.0.0.0        # liveness host ကို အစားထိုးသတ်မှတ်ရန်
+omniroute doctor --liveness-url <url>  # health endpoint URL အပြည့်အစုံကို အစားထိုးသတ်မှတ်ရန်
 ```
 
-doctor သည် ဤစစ်ဆေးမှုများကို လုပ်ဆောင်သည်- `Config`, `Database`, `Storage/encryption`,
-`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` နှင့် `Server liveness`။ စစ်ဆေးမှုတစ်ခုခုသည် `fail` ဖြစ်ပါက non-zero ဖြင့် ထွက်သည်။
+doctor သည် အောက်ပါစစ်ဆေးမှုများကို လုပ်ဆောင်သည်- `Config`၊ `Database`၊ `Storage/encryption`၊
+`Port availability`၊ `Node runtime`၊ `Native binary` (better-sqlite3)၊
+`Memory` နှင့် `Server liveness`။ စစ်ဆေးမှုတစ်ခုခုသည် `fail` ဖြစ်ပါက non-zero ဖြင့် ပိတ်သွားမည်။
 
-### Provider စီမံခန့်ခွဲမှု
+### Provider စီမံခန့်ခွဲခြင်း
 
 ```bash
 omniroute providers available                       # OmniRoute provider catalog
-omniroute providers available --search openai       # id/name/alias/category ဖြင့် catalog ကို စစ်ထုတ်ပါ
-omniroute providers available --category api-key    # category ဖြင့် စစ်ထုတ်ပါ (api-key, oauth, free, ...)
+omniroute providers available --search openai       # catalog ကို id/name/alias/category အလိုက် စစ်ထုတ်ရန်
+omniroute providers available --category api-key    # category အလိုက် စစ်ထုတ်ရန် (api-key, oauth, free, ...)
 omniroute providers available --json                # စက်ဖြင့်ဖတ်ရှုနိုင်သော JSON
 
-omniroute providers list                            # ပြင်ဆင်သတ်မှတ်ထားသော provider ချိတ်ဆက်မှုများ
+omniroute providers list                            # ပြင်ဆင်ထားသော provider ချိတ်ဆက်မှုများ
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # ပြင်ဆင်သတ်မှတ်ထားသော ချိတ်ဆက်မှုတစ်ခုကို စမ်းသပ်ပါ
-omniroute providers test-all                        # အသုံးပြုနေသော ချိတ်ဆက်မှုတိုင်းကို စမ်းသပ်ပါ
-omniroute providers validate                        # local သီးသန့် ဖွဲ့စည်းပုံဆိုင်ရာ အတည်ပြုစစ်ဆေးမှု
+omniroute providers test <id|name>                  # ပြင်ဆင်ထားသော ချိတ်ဆက်မှုတစ်ခုကို စမ်းသပ်ရန်
+omniroute providers test-all                        # အသုံးပြုနေသော ချိတ်ဆက်မှုတိုင်းကို စမ်းသပ်ရန်
+omniroute providers validate                        # local အတွင်း၌သာ ဖွဲ့စည်းပုံမှန်ကန်မှုကို စစ်ဆေးရန်
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # ရှိပြီးသား OAuth flow
@@ -676,83 +676,83 @@ omniroute providers remove <id|name> --yes
 ```
 
 `providers add/import/auth/edit/remove` များသည် API-first ဖြစ်သောကြောင့်
-လက်ရှိအသုံးပြုနေသော local သို့မဟုတ် remote context နှင့် အလုပ်လုပ်သည်။ Credential input အတွက်
+အသုံးပြုနေသည့် local သို့မဟုတ် remote context နှင့် အလုပ်လုပ်သည်။ Credential input အတွက်
 `--credential-stdin` သို့မဟုတ် `--credential-env` ကို အသုံးပြုသင့်သည်။ `--dry-run --json` သည်
-ဖုံးကွယ်ထားသော ပါဝင်မှု/ပုံသဏ္ဌာန်ကိုသာ အစီရင်ခံသည်။ `providers available` သည် OmniRoute catalog ကို ဖတ်သည်။
+ဖုံးကွယ်ထားသော တည်ရှိမှု/ပုံသဏ္ဌာန်ကိုသာ အစီရင်ခံသည်။ `providers available` သည် OmniRoute catalog ကို ဖတ်သည်။
 `providers list/test/test-all/validate` သည် ၎င်းတို့၏ local SQLite လုပ်ဆောင်ပုံကို ဆက်လက်ထိန်းသိမ်းထားပြီး
 ဆာဗာ လည်ပတ်နေရန် မလိုအပ်ပါ။
 
 ### ပြန်လည်ရယူခြင်းနှင့် ပြန်လည်သတ်မှတ်ခြင်း
 
 ```bash
-omniroute reset-password                # admin စကားဝှက်ကို ပြန်လည်သတ်မှတ်ပါ (ထို့အပြင်- omniroute-reset-password)
-omniroute reset-encrypted-columns       # encrypted credential reset အတွက် သတိပေးချက် + dry-run ကို ပြပါ
-omniroute reset-encrypted-columns --force  # SQLite ရှိ encrypted credential များကို အမှန်တကယ် null ပြောင်းပါ
+omniroute reset-password                # admin password ကို ပြန်လည်သတ်မှတ်ရန် (ထို့အပြင်- omniroute-reset-password)
+omniroute reset-encrypted-columns       # encrypted credential reset အတွက် သတိပေးချက်နှင့် dry-run ကို ပြသရန်
+omniroute reset-encrypted-columns --force  # SQLite ရှိ encrypted credential များကို အမှန်တကယ် null ပြုလုပ်ရန်
 ```
 
-### Credential ထုတ်ယူခြင်း (⚠ သတိထား၍ ကိုင်တွယ်ပါ)
+### Credential ထုတ်ယူခြင်း (⚠ သတိဖြင့် ကိုင်တွယ်ပါ)
 
 ```bash
-omniroute auth export                                 # သတိပေးချက် + အတည်ပြုမှုအဆင့်ကို ပြပါ — DB ကို အသုံးမပြုပါ
-omniroute auth export --force                          # ချိတ်ဆက်မှုအားလုံး၏ DECRYPTED credential များကို JSON အဖြစ် stdout သို့ ထုတ်ပါ
-omniroute auth export --force --id <id>                 # ကိုက်ညီသော ချိတ်ဆက်မှုကိုသာ ထုတ်ပါ
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> စာကြောင်းများကို ထုတ်ပေးပါ
-omniroute auth export --force --out creds.json           # ဖိုင်တစ်ခုသို့ ရေးပါ (0600 permission များဖြင့် ဖန်တီးသည်)
+omniroute auth export                                 # သတိပေးချက်နှင့် အတည်ပြုမှုအဆင့်ကို ပြသရန် — DB ကို အသုံးမပြုပါ
+omniroute auth export --force                          # ချိတ်ဆက်မှုအားလုံး၏ DECRYPTED credential များကို JSON အဖြစ် stdout သို့ ထုတ်ရန်
+omniroute auth export --force --id <id>                 # ကိုက်ညီသော ချိတ်ဆက်မှုကိုသာ ထုတ်ရန်
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> စာကြောင်းများကို ထုတ်ရန်
+omniroute auth export --force --out creds.json           # ဖိုင်တစ်ခုသို့ ရေးရန် (0600 permission များဖြင့် ဖန်တီးသည်)
 ```
 
-`auth export` သည် **local-only** ဖြစ်ပြီး (SQLite ကို တိုက်ရိုက်ဖတ်ခြင်း၊ HTTP route မရှိခြင်း) ရည်ရွယ်ချက်ရှိရှိ
-**plaintext** `apiKey`/`accessToken`/`refreshToken`/`idToken` တန်ဖိုးများကို ဖော်ပြ/ရေးသားသည် — ၎င်းသည်
-bug မဟုတ်ဘဲ feature ဖြစ်သည်။ `--force` မပါဘဲ database မှ မည်သည့်အရာကိုမျှ မဖတ်သလို မည်သည့်အရာကိုမျှ
-decrypt မလုပ်ပါ။ plaintext တစ်ခုခုကို မထုတ်မီ stderr တွင် သတိပေး banner ကို အမြဲဖော်ပြသည်။
-`STORAGE_ENCRYPTION_KEY` ကို သတ်မှတ်ထားရန် လိုအပ်သည်။ decrypt မလုပ်နိုင်သော field တစ်ခုကို (key အဟောင်း၊
-ပျက်စီးနေသော ciphertext) export တစ်ခုလုံးကို ရပ်ဆိုင်းခြင်း သို့မဟုတ် အရင်းခံ error ကို ပေါက်ကြားစေခြင်းအစား
+`auth export` သည် **local-only** ဖြစ်ပြီး (SQLite ကို တိုက်ရိုက်ဖတ်ကာ HTTP route မသုံးပါ) ရည်ရွယ်ချက်ရှိရှိ
+**plaintext** `apiKey`/`accessToken`/`refreshToken`/`idToken` တန်ဖိုးများကို ပရင့်ထုတ်/ရေးသားသည် — ၎င်းသည်
+bug မဟုတ်ဘဲ feature ဖြစ်သည်။ `--force` မပါဘဲ database မှ မည်သည့်အရာကိုမျှ မဖတ်သကဲ့သို့ မည်သည့်အရာကိုမျှ
+decrypt မလုပ်ပါ။ plaintext တစ်ခုခု မထုတ်မီ stderr သို့ သတိပေး banner ကို အမြဲပရင့်ထုတ်သည်။
+`STORAGE_ENCRYPTION_KEY` ကို သတ်မှတ်ထားရန် လိုအပ်သည်။ decrypt မလုပ်နိုင်သော field တစ်ခု (key အဟောင်း၊ ပျက်စီးနေသော ciphertext) ကို
+export တစ်ခုလုံး ရပ်တန့်ခြင်း သို့မဟုတ် မူလ error ကို ဖော်ထုတ်ခြင်းမပြုဘဲ
 `<field>DecryptFailed: true` အဖြစ် အစီရင်ခံသည်။
 
 ### အခြား subcommand များ
 
-အခြားနည်းဖြင့် မှတ်ချက်မပေးထားပါက ၎င်းတို့သည် OmniRoute ဆာဗာတစ်ခု လည်ပတ်နေသည်ဟု ယူဆသည်-
+အခြားနည်းဖြင့် မှတ်သားထားခြင်းမရှိပါက ၎င်းတို့သည် OmniRoute ဆာဗာ လည်ပတ်နေသည်ဟု ယူဆသည်-
 
 ```bash
-omniroute status                       # လက်ရှိလုပ်ဆောင်နေမှု အခြေအနေ အပြည့်အစုံ
-omniroute logs                         # တောင်းဆိုမှုမှတ်တမ်းများကို တိုက်ရိုက်ကြည့်ရန် (--json, --search, --follow)
-omniroute config show                  # လက်ရှိဖွဲ့စည်းပုံကို ပြသရန်
+omniroute status                       # လက်ရှိလုပ်ဆောင်နေမှု အခြေအနေအပြည့်အစုံ
+omniroute logs                         # တောင်းဆိုမှုမှတ်တမ်းများကို တိုက်ရိုက်ကြည့်ရှုရန် (--json, --search, --follow)
+omniroute config list                  # စီစဉ်သတ်မှတ်ထားသော CLI ကိရိယာများကို ပြသရန်
 
-omniroute provider list                # ရရှိနိုင်သော ပံ့ပိုးသူများကို စာရင်းပြုစုရန် (providers list ၏ အမည်ကွဲ)
-omniroute provider add                 # ကိရိယာတစ်ခုတွင် OmniRoute ကို ပံ့ပိုးသူအဖြစ် မှတ်ပုံတင်ရန်
-omniroute keys add | list | remove     # API သော့များကို စီမံရန်
-omniroute models [provider]            # မော်ဒယ်များကို စာရင်းပြုစုရန် (--json, --search)
+omniroute provider list                # အသုံးပြုနိုင်သော ပံ့ပိုးသူများကို စာရင်းပြုရန် (providers list ၏ အမည်ကွဲ)
+omniroute provider add                 # OmniRoute ကို ကိရိယာတစ်ခုတွင် ပံ့ပိုးသူအဖြစ် မှတ်ပုံတင်ရန်
+omniroute keys add | list | remove     # API ကီးများကို စီမံရန်
+omniroute models [provider]            # မော်ဒယ်များကို စာရင်းပြုရန် (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # ဖွဲ့စည်းပုံ + DB တို့၏ လက်ရှိပုံတူကို သိမ်းရန်
-omniroute restore                      # ယခင်သိမ်းဆည်းထားသော ပုံတူမှ ပြန်လည်ရယူရန်
+omniroute backup                       # စီစဉ်သတ်မှတ်ချက်နှင့် DB ကို လက်ရှိအခြေအနေ မိတ္တူပြုလုပ်ရန်
+omniroute restore                      # ယခင်အခြေအနေမိတ္တူမှ ပြန်လည်ရယူရန်
 
-omniroute health                       # အသေးစိတ် ကျန်းမာရေးအခြေအနေ (ဖြတ်တောက်ကိရိယာများ၊ ကက်ရှ်၊ မှတ်ဉာဏ်)
-omniroute quota                        # ပံ့ပိုးသူ ခွဲတမ်းအသုံးပြုမှု
+omniroute health                       # အသေးစိတ်စနစ်အခြေအနေ (ဖြတ်တောက်ကိရိယာများ၊ ကက်ရှ်၊ မှတ်ဉာဏ်)
+omniroute quota                        # ပံ့ပိုးသူ၏ သုံးစွဲခွင့်ပမာဏ အသုံးပြုမှု
 omniroute cache                        # ကက်ရှ်အခြေအနေ
-omniroute cache clear                  # အဓိပ္ပာယ်ဆိုင်ရာ + လက်မှတ် ကက်ရှ်များကို ရှင်းလင်းရန်
+omniroute cache clear                  # အဓိပ္ပာယ်ဆိုင်ရာနှင့် signature ကက်ရှ်များကို ရှင်းလင်းရန်
 
 omniroute mcp status | restart         # MCP ဆာဗာအခြေအနေ / ပြန်လည်စတင်ရန်
 omniroute a2a status | card            # A2A ဆာဗာအခြေအနေ / အေးဂျင့်ကတ်
 
-omniroute tunnel list | create | stop  # တန်နယ်များကို စီမံရန် (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # ပတ်ဝန်းကျင် ပြောင်းလဲကိန်းများကို စစ်ဆေးရန် / သတ်မှတ်ရန် (ယာယီ)
+omniroute tunnel list | create | stop  # tunnel များကို စီမံရန် (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # ပတ်ဝန်းကျင်ကိန်းရှင်များကို စစ်ဆေးရန် / သတ်မှတ်ရန် (ယာယီ)
 
 omniroute test                         # ပံ့ပိုးသူချိတ်ဆက်မှု အခြေခံစမ်းသပ်ချက်
-omniroute update                       # အပ်ဒိတ်များ ရှိမရှိ စစ်ဆေးရန်
-omniroute completion                   # shell အလိုအလျောက်ဖြည့်စွက်မှုကို ထုတ်လုပ်ရန်
+omniroute update                       # အပ်ဒိတ်များကို စစ်ဆေးရန်
+omniroute completion                   # shell အလိုအလျောက်ဖြည့်စွက်မှုကို ဖန်တီးရန်
 ```
 
-### အသုံးများသော အလံများ
+### အသုံးများသော flag များ
 
-| အလံ                 | ဖော်ပြချက်                                                 |
-| ------------------- | ---------------------------------------------------------- |
-| `--no-open`         | စတင်ချိန်တွင် ဘရောက်ဇာကို အလိုအလျောက် မဖွင့်ရန်            |
-| `--port <n>`        | API ပေါက်ကို အစားထိုးသတ်မှတ်ရန် (မူလတန်ဖိုး 20128)         |
-| `--mcp`             | stdio မှတစ်ဆင့် MCP ဆာဗာအဖြစ် လုပ်ဆောင်ရန် (IDE များအတွက်) |
-| `--non-interactive` | CI စနစ် (မေးမြန်းချက်များမရှိ၊ env/အလံများမှ ဖတ်ယူသည်)     |
-| `--json`            | စက်ဖြင့်ဖတ်ရှုနိုင်သော JSON အထွက် (doctor၊ providers စသည်) |
-| `--help`, `-h`      | သီးခြား command အတွက် အကူအညီကို ပြသရန်                     |
-| `--version`, `-v`   | ထည့်သွင်းထားသော ဗားရှင်းကို ပုံနှိပ်ရန်                    |
+| Flag                | ဖော်ပြချက်                                                     |
+| ------------------- | -------------------------------------------------------------- |
+| `--no-open`         | စတင်ချိန်တွင် ဘရောက်ဇာကို အလိုအလျောက် မဖွင့်ရန်                |
+| `--port <n>`        | API port ကို အစားထိုးသတ်မှတ်ရန် (မူလတန်ဖိုး 20128)             |
+| `--mcp`             | stdio မှတစ်ဆင့် MCP ဆာဗာအဖြစ် လုပ်ဆောင်ရန် (IDE များအတွက်)     |
+| `--non-interactive` | CI မုဒ် (မေးမြန်းချက်များမရှိဘဲ env/flag များမှ ဖတ်ယူသည်)      |
+| `--json`            | စက်ဖြင့်ဖတ်ရှုနိုင်သော JSON အထွက် (doctor, providers စသည်တို့) |
+| `--help`, `-h`      | သက်ဆိုင်ရာ command အတွက် အကူအညီကို ပြသရန်                      |
+| `--version`, `-v`   | ထည့်သွင်းထားသော ဗားရှင်းကို ဖော်ပြရန်                          |
 
 ---
 

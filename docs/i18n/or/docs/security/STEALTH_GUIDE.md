@@ -241,19 +241,19 @@ interface CliFingerprint {
 
 ---
 
-## User-Agent ଓଭରରାଇଡ୍ଗୁଡ଼ିକ — env ଭେରିଏବଲ୍ଗୁଡ଼ିକ (`.env.example` ଅନୁଚ୍ଛେଦ 12)
+## User-Agent ଓଭର୍ରାଇଡ୍ — env vars (`.env.example` ଅନୁଚ୍ଛେଦ 12)
 
 | ଭେରିଏବଲ୍                 | ଡିଫଲ୍ଟ                                                          |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-ଡାଇନାମିକ୍ ଲୁକ୍ଅପ୍ ମାଧ୍ୟମରେ `open-sse/executors/base.ts::buildHeaders()` ଦ୍ୱାରା ବ୍ୟବହୃତ ହୁଏ। **ପ୍ରଦାନକାରୀମାନେ ନୂଆ CLI ସଂସ୍କରଣ ରିଲିଜ୍ କଲେ ଏଗୁଡ଼ିକୁ ଅପଡେଟ୍ କରନ୍ତୁ** — ପୁରୁଣା UA ଷ୍ଟ୍ରିଙ୍ଗ୍ଗୁଡ଼ିକ ପୁରୁଣା କ୍ଲାଏଣ୍ଟ ଭାବେ ପ୍ରତ୍ୟାଖ୍ୟାନ ହେବା ଆରମ୍ଭ କରେ।
+ଡାଇନାମିକ୍ ଲୁକ୍ଅପ୍ ମାଧ୍ୟମରେ `open-sse/executors/base.ts::buildHeaders()` ଦ୍ୱାରା ବ୍ୟବହୃତ ହୁଏ। **ପ୍ରଦାନକାରୀମାନେ ନୂଆ CLI ସଂସ୍କରଣ ପ୍ରକାଶ କଲେ ଏଗୁଡ଼ିକୁ ଅଦ୍ୟତନ କରନ୍ତୁ** — ପୁରୁଣା UA ଷ୍ଟ୍ରିଙ୍ଗ୍ଗୁଡ଼ିକ ପୁରୁଣା କ୍ଲାଏଣ୍ଟ୍ ଭାବେ ପ୍ରତ୍ୟାଖ୍ୟାନ ହେବା ଆରମ୍ଭ କରେ।
 
 ## CLI ସୁସଙ୍ଗତତା ମୋଡ୍ ଟଗଲ୍ଗୁଡ଼ିକ (`.env.example` ଅନୁଚ୍ଛେଦ 13)
 
