@@ -372,6 +372,7 @@ test.describe("provider journey — in-process contract (#8330)", () => {
 const LIVE_ENABLED = process.env.RUN_CONTRACT_INT === "1";
 const LIVE_SKIP_REASON = "Set RUN_CONTRACT_INT=1 to run the live over-the-wire contract journey";
 const LIVE_BASE_URL = process.env.OMNIROUTE_TEST_URL ?? "http://localhost:20128";
+const LIVE_API_KEY = process.env.OMNIROUTE_API_KEY ?? process.env.ROUTER_API_KEY;
 
 function liveMaybeSkip(t: { skip: (reason?: string) => void }): boolean {
   if (!LIVE_ENABLED) {
@@ -390,6 +391,9 @@ async function liveFetch(
     method,
     headers: {
       ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...(LIVE_API_KEY
+        ? { Authorization: `Bearer ${LIVE_API_KEY}`, "x-api-key": LIVE_API_KEY }
+        : {}),
       ...(init.headers ?? {}),
     },
     body: init.body !== undefined ? JSON.stringify(init.body) : undefined,

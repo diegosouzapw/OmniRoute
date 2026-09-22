@@ -4,6 +4,8 @@ import { type OpenAIToolCall } from "../translator/webTools.ts";
 import {
   serializeDeepSeekToolPrompt,
   parseDeepSeekToolCalls,
+  hasMalformedDeepSeekToolIntent,
+  hasMalformedDeepSeekToolMarkup,
   buildToolConversationPrompt,
 } from "../translator/deepseekWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -947,7 +949,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       );
 
       // One completion attempt against a given session id (fresh PoW per attempt).
-      const performCompletion = async (sid: string) => {
+      const performCompletion = async (sid: string, completionPrompt = prompt) => {
         const powChallenge = await getPowChallenge(accessToken, signal);
         const powAnswer = await solvePow(powChallenge, signal);
         const reqHeaders: Record<string, string> = {
@@ -962,7 +964,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
           chat_session_id: sid,
           parent_message_id: null,
           model_type: modelType,
-          prompt,
+          prompt: completionPrompt,
           ref_file_ids: refFileIds,
           thinking_enabled: thinkingEnabled,
           search_enabled: searchEnabled,
@@ -1099,55 +1101,57 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       // OpenAI tool_calls. Buffering (even for stream clients) is acceptable because
       // tool invocations are short and need the complete block to parse. (#2820)
       if (hasTools) {
-        // The scraped web session occasionally returns a malformed reply where DeepSeek
-        // clearly attempted a tool call (a literal <tool...> tag is present) but the block
-        // could not be parsed even with salvageLeadingJsonObject's recovery (genuinely
-        // truncated JSON, garbled beyond repair, etc). Unlike a real API, this upstream is
-        // non-deterministic enough that simply asking again with a fresh session usually
-        // succeeds — so retry a bounded number of times before giving up and surfacing the
-        // raw (still-tagged) text to the caller.
-        const MAX_TOOL_PARSE_ATTEMPTS = 2;
-        let content = "";
-        let reasoningContent = "";
-        let cleanedContent = "";
-        let toolCalls: ReturnType<typeof parseDeepSeekToolCalls>["toolCalls"] = null;
+        let { content, reasoningContent } = await collectSSEContent(resp.body!, clientModel);
+        let parsed = parseDeepSeekToolCalls(content, `call-${Date.now()}`, requestedTools);
 
-        for (let attempt = 1; attempt <= MAX_TOOL_PARSE_ATTEMPTS; attempt += 1) {
-          ({ content, reasoningContent } = await collectSSEContent(resp.body!, clientModel));
-          ({ content: cleanedContent, toolCalls } = parseDeepSeekToolCalls(
-            content,
-            `call-${Date.now()}`,
-            requestedTools
-          ));
-
-          const unparsedToolTagRemains =
-            !toolCalls && /<tool(?:_call)?[\s:>]/i.test(cleanedContent);
-          if (!unparsedToolTagRemains || attempt === MAX_TOOL_PARSE_ATTEMPTS) break;
-
-          log?.warn?.(
-            "DEEPSEEK-WEB",
-            `Malformed tool-call reply on attempt ${attempt}/${MAX_TOOL_PARSE_ATTEMPTS} — retrying with a fresh session`
-          );
-          if (persistSession) sessionCache.delete(userToken);
+        // DSML / malformed envelopes are explicit tool intent, not genuine plain answers.
+        // Retry once in a fresh upstream session with an untrusted-output-free repair prompt.
+        // Parsing still requires the original nonce, requested name, and argument schema.
+        if (hasMalformedDeepSeekToolIntent(parsed.content, requestedTools)) {
+          log?.warn?.("DEEPSEEK-WEB", "Malformed tool envelope — retrying once with nonce binding");
+          sessionCache.delete(userToken);
+          await deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
           sessionId = await createSession(accessToken, signal);
           if (persistSession) {
             evictOldest(sessionCache);
             sessionCache.set(userToken, { sessionId, createdAt: Date.now() });
           }
-          const retried = await performCompletion(sessionId);
-          resp = retried.resp;
-          reqHeaders = retried.reqHeaders;
-          requestPayload = retried.requestPayload;
-          if (!resp.ok) break; // fall through — final content/toolCalls stay from the last successful attempt
+          const repairPrompt = [
+            prompt,
+            "Your previous response used an invalid tool envelope and was rejected.",
+            "Retry the requested next action from scratch. Follow the client tool contract exactly, " +
+              "including its _nonce binding and argument schema. Do not emit bare JSON or unbound DSML.",
+          ].join("\n\n");
+          ({ resp, reqHeaders, requestPayload } = await performCompletion(sessionId, repairPrompt));
+          if (!resp.ok) {
+            await cleanupFn();
+            return {
+              response: errorResponse(502, "DeepSeek tool-call repair request failed."),
+              url: COMPLETION_URL,
+              headers: reqHeaders,
+              transformedBody: requestPayload,
+            };
+          }
+          ({ content, reasoningContent } = await collectSSEContent(resp.body!, clientModel));
+          parsed = parseDeepSeekToolCalls(content, `call-${Date.now()}`, requestedTools);
+          if (hasMalformedDeepSeekToolMarkup(parsed.content)) {
+            await cleanupFn();
+            return {
+              response: errorResponse(502, "DeepSeek emitted an invalid tool call after repair."),
+              url: COMPLETION_URL,
+              headers: reqHeaders,
+              transformedBody: requestPayload,
+            };
+          }
         }
 
         await cleanupFn();
         return buildToolAwareResult({
           stream: stream !== false,
           clientModel,
-          content: cleanedContent,
+          content: parsed.content,
           reasoningContent,
-          toolCalls,
+          toolCalls: parsed.toolCalls,
           reqHeaders,
           requestPayload,
         });

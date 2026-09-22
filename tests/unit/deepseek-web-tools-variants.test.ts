@@ -4,7 +4,9 @@ import {
   parseDeepSeekToolCalls,
   serializeDeepSeekToolPrompt,
   buildToolConversationPrompt,
+  hasMalformedDeepSeekToolIntent,
 } from "../../open-sse/translator/deepseekWebTools.ts";
+import { getToolNonce } from "../../open-sse/translator/webTools.ts";
 
 // chat.deepseek.com emits tool invocations in many ad-hoc shapes. The deepseek-specific
 // parser must recognize all of them, recover the real tool name/arguments, and preserve
@@ -30,6 +32,60 @@ function firstCall(text: string) {
 }
 
 describe("deepseekWebTools — variants", () => {
+  test("full-width DeepSeek DSML preserves multiple parallel invocations", () => {
+    const nonce = getToolNonce(TOOLS);
+    const text = `<｜｜DSML｜｜ calls><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}<｜｜DSML｜｜ parameter><｜｜DSML｜｜ parameter name="command" string="true">pwd<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}<｜｜DSML｜｜ parameter><｜｜DSML｜｜ parameter name="command" string="true">whoami<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke></｜｜DSML｜｜ calls>`;
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", TOOLS);
+    assert.equal(content, "");
+    assert.equal(toolCalls?.length, 2);
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), { command: "pwd" });
+    assert.deepEqual(JSON.parse(toolCalls![1].function.arguments), { command: "whoami" });
+  });
+
+  test("full-width DeepSeek DSML preserves three calls and JSON arguments", () => {
+    const nonce = getToolNonce(TOOLS);
+    const text = `<｜｜DSML｜｜ calls><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}<｜｜DSML｜｜ parameter><｜｜DSML｜｜ parameter name="command" string="true">pwd<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}<｜｜DSML｜｜ parameter><｜｜DSML｜｜ parameter name="command" string="true">whoami<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}<｜｜DSML｜｜ parameter><｜｜DSML｜｜ parameter name="command" string="true">printf TOOL_OK<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke></｜｜DSML｜｜ calls>`;
+    const { toolCalls } = parseDeepSeekToolCalls(text, "call", TOOLS);
+    assert.equal(toolCalls?.length, 3);
+    assert.deepEqual(
+      toolCalls?.map((call) => JSON.parse(call.function.arguments)),
+      [{ command: "pwd" }, { command: "whoami" }, { command: "printf TOOL_OK" }]
+    );
+  });
+
+  test("DSML tool call with string attributes works for any requested tool", () => {
+    const tools = [{ type: "function", function: { name: "browser" } }];
+    const nonce = getToolNonce(tools);
+    const text = `<|DSML|calls><|DSML|invoke name="browser"><|DSML|parameter name="_nonce" string="true">${nonce}<|DSML|parameter><|DSML|parameter name="action" string="true">act<|DSML|parameter><|DSML|parameter name="kind" string="false">click<|DSML|parameter></|DSML|invoke></|DSML|calls>`;
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", tools);
+    assert.equal(toolCalls?.length, 1);
+    assert.equal(toolCalls![0].function.name, "browser");
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), {
+      action: "act",
+      kind: "click",
+    });
+    assert.equal(content, "");
+  });
+
+  test("WMAdapter native token fixture", () => {
+    const text = `<｜tool▁call▁begin｜>browser<｜tool▁call▁argument▁begin｜>{"action":"screenshot"}<｜tool▁call▁argument▁end｜><｜tool▁call▁end｜>`;
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", [
+      { type: "function", function: { name: "browser" } },
+    ]);
+    assert.equal(toolCalls?.length, 1);
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), { action: "screenshot" });
+    assert.equal(content, "");
+  });
+
+  test("malformed or unknown native markers remain content", () => {
+    const text = `<|DSML|calls><|DSML|invoke name="unknown"><|DSML|parameter name="x">1<|DSML|parameter></|DSML|invoke></|DSML|calls>`;
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", [
+      { type: "function", function: { name: "browser" } },
+    ]);
+    assert.equal(toolCalls, null);
+    assert.equal(content, text);
+  });
+
   test("Ex1: <tool:todowrite>{json} </tool> — name in tag suffix, body is the arguments", () => {
     const text = `I'll write a script.\n\n<tool:todowrite>\n{"todos": [{"content": "a", "status": "in_progress", "priority": "high"}]}\n</tool>`;
     const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", TOOLS);
@@ -108,6 +164,16 @@ describe("deepseekWebTools — variants", () => {
     assert.deepEqual(JSON.parse(call.function.arguments), { city: "Paris" });
   });
 
+  test("canonical nested nonce is verified, stripped, and schema validated", () => {
+    const nonce = getToolNonce(TOOLS);
+    const valid = `<tool>{"name":"get_weather","arguments":{"city":"Paris","_nonce":"${nonce}"}}</tool>`;
+    const call = firstCall(valid);
+    assert.deepEqual(JSON.parse(call.function.arguments), { city: "Paris" });
+
+    const invalid = `<tool>{"name":"get_weather","arguments":{"city":42,"_nonce":"${nonce}"}}</tool>`;
+    assert.equal(parseDeepSeekToolCalls(invalid, "call", TOOLS).toolCalls, null);
+  });
+
   test("bare JSON (no tags) is NOT promoted to tool_calls (#9343)", () => {
     const text = `{"name":"getWeather","arguments":{"city":"Paris"}}`;
     const { toolCalls, content } = parseDeepSeekToolCalls(text, "call", TOOLS);
@@ -156,13 +222,122 @@ describe("deepseekWebTools — pure-text (no tool) replies", () => {
   }
 });
 
+describe("deepseekWebTools — native DSML", () => {
+  const DSML_TOOLS = [
+    {
+      type: "function",
+      function: {
+        name: "bash",
+        parameters: {
+          type: "object",
+          properties: { command: { type: "string" } },
+          required: ["command"],
+          additionalProperties: false,
+        },
+      },
+    },
+  ];
+
+  test("parses nonce-bound direct parameters into OpenAI tool_calls", () => {
+    const nonce = getToolNonce(DSML_TOOLS);
+    const text = [
+      "Checking the workspace.",
+      "<｜｜DSML｜｜ calls>",
+      '<｜｜DSML｜｜ invoke name="bash">',
+      `<｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}</｜｜DSML｜｜ parameter>`,
+      '<｜｜DSML｜｜ parameter name="command" string="true">ls -la</｜｜DSML｜｜ parameter>',
+      "</｜｜DSML｜｜ invoke>",
+      "</｜｜DSML｜｜ calls>",
+    ].join("\n");
+
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "dsml", DSML_TOOLS);
+    assert.equal(toolCalls?.length, 1);
+    assert.equal(toolCalls![0].function.name, "bash");
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), { command: "ls -la" });
+    assert.equal(content, "Checking the workspace.");
+  });
+
+  test("validates OpenCode's Draft 2020-12 tool schema", () => {
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "bash",
+          parameters: {
+            $schema: "https://json-schema.org/draft/2020-12/schema",
+            type: "object",
+            properties: { command: { type: "string" } },
+            required: ["command"],
+          },
+        },
+      },
+    ];
+    const nonce = getToolNonce(tools);
+    const text = [
+      "<｜｜DSML｜｜ calls>",
+      '<｜｜DSML｜｜ invoke name="bash">',
+      '<｜｜DSML｜｜ parameter name="command" string="true">ls</｜｜DSML｜｜ parameter>',
+      `<｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}</｜｜DSML｜｜ parameter>`,
+      "</｜｜DSML｜｜ invoke>",
+      "</｜｜DSML｜｜ calls>",
+    ].join("\n");
+
+    const { toolCalls } = parseDeepSeekToolCalls(text, "opencode", tools);
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), { command: "ls" });
+  });
+
+  test("parses nonce-bound arguments-object DSML variant", () => {
+    const nonce = getToolNonce(DSML_TOOLS);
+    const text = [
+      "<｜｜DSML｜｜ calls>",
+      '<｜｜DSML｜｜ invoke name="bash">',
+      `<｜｜DSML｜｜ parameter name="arguments" string="false">{"command":"pwd","_nonce":"${nonce}"}</｜｜DSML｜｜ parameter>`,
+      '<｜｜DSML｜｜ parameter name="name" string="true">bash</｜｜DSML｜｜ parameter>',
+      "</｜｜DSML｜｜ invoke>",
+      "</｜｜DSML｜｜ calls>",
+    ].join("\n");
+
+    const { toolCalls } = parseDeepSeekToolCalls(text, "dsml", DSML_TOOLS);
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), { command: "pwd" });
+  });
+
+  test("observed unbound DSML is rejected and marked for repair", () => {
+    const text = [
+      "<｜｜DSML｜｜ calls>",
+      '<｜｜DSML｜｜ invoke name="bash">',
+      '<｜｜DSML｜｜ parameter name="command" string="true">ls -la</｜｜DSML｜｜ parameter>',
+      "</｜｜DSML｜｜ invoke>",
+      "</｜｜DSML｜｜ calls>",
+    ].join("\n");
+
+    const result = parseDeepSeekToolCalls(text, "dsml", DSML_TOOLS);
+    assert.equal(result.toolCalls, null, "missing nonce must fail closed");
+    assert.equal(result.content, text, "rejected DSML remains available to the repair detector");
+    assert.equal(hasMalformedDeepSeekToolIntent(text, DSML_TOOLS), true);
+  });
+
+  test("wrong nonce, unknown tools, and schema-invalid arguments reject the whole batch", () => {
+    const nonce = getToolNonce(DSML_TOOLS);
+    for (const invoke of [
+      '<｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="_nonce" string="true">wrong</｜｜DSML｜｜ parameter><｜｜DSML｜｜ parameter name="command" string="true">pwd</｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke>',
+      `<｜｜DSML｜｜ invoke name="unknown"><｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}</｜｜DSML｜｜ parameter><｜｜DSML｜｜ parameter name="command" string="true">pwd</｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke>`,
+      `<｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}</｜｜DSML｜｜ parameter><｜｜DSML｜｜ parameter name="command" string="false">42</｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke>`,
+    ]) {
+      const text = `<｜｜DSML｜｜ calls>${invoke}</｜｜DSML｜｜ calls>`;
+      assert.equal(parseDeepSeekToolCalls(text, "dsml", DSML_TOOLS).toolCalls, null);
+    }
+  });
+});
+
 describe("deepseekWebTools — strict prompt", () => {
   test("lists tools and mandates the exact <tool> JSON format with nonce binding", () => {
     const prompt = serializeDeepSeekToolPrompt(TOOLS);
     assert.ok(prompt.includes("todowrite"));
     assert.ok(prompt.includes("get_weather"));
-    assert.ok(prompt.includes('_nonce'), "includes nonce binding");
+    assert.ok(prompt.includes("_nonce"), "includes nonce binding");
     assert.ok(prompt.includes('<tool>{"name"'), "shows the canonical format");
+    assert.match(prompt, /"_nonce":\{"type":"string","const":"[a-z0-9]+"\}/);
+    assert.match(prompt, /"required":\["_nonce"\]/);
     assert.ok(/never|not|do not/i.test(prompt), "warns against alternative formats");
   });
 

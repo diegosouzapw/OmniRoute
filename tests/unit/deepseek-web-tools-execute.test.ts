@@ -11,6 +11,7 @@ import assert from "node:assert/strict";
 
 const dsMod = await import("../../open-sse/executors/deepseek-web.ts");
 const { DeepSeekWebExecutor } = dsMod;
+const { getToolNonce } = await import("../../open-sse/translator/webTools.ts");
 
 const POW_CHALLENGE = {
   algorithm: "DeepSeekHashV1",
@@ -40,6 +41,8 @@ function sseWithContent(text) {
 function installMock(completionText) {
   const original = globalThis.fetch;
   const calls = { completionBodies: [] };
+  const completionTexts = Array.isArray(completionText) ? completionText : [completionText];
+  let completionIndex = 0;
   dsMod.tokenCache?.clear();
   dsMod.sessionCache?.clear();
   globalThis.fetch = async (url, opts = {}) => {
@@ -70,7 +73,9 @@ function installMock(completionText) {
       } catch {
         calls.completionBodies.push(null);
       }
-      return new Response(new TextEncoder().encode(sseWithContent(completionText)), {
+      const text = completionTexts[Math.min(completionIndex, completionTexts.length - 1)];
+      completionIndex += 1;
+      return new Response(new TextEncoder().encode(sseWithContent(text)), {
         status: 200,
         headers: { "Content-Type": "text/event-stream" },
       });
@@ -137,6 +142,92 @@ test("stream: SSE carries the text delta AND the tool_calls delta", async () => 
     assert.ok(text.includes("echo hi"), "stream carries the arguments");
     assert.ok(text.includes('"finish_reason":"tool_calls"'));
     assert.ok(text.includes("[DONE]"));
+  } finally {
+    mock.restore();
+  }
+});
+
+test("unbound DSML is retried once and repaired into structured tool_calls", async () => {
+  const nonce = getToolNonce(TOOLS);
+  const malformed = [
+    "<｜｜DSML｜｜ calls>",
+    '<｜｜DSML｜｜ invoke name="bash">',
+    '<｜｜DSML｜｜ parameter name="command" string="true">pwd</｜｜DSML｜｜ parameter>',
+    "</｜｜DSML｜｜ invoke>",
+    "</｜｜DSML｜｜ calls>",
+  ].join("\n");
+  const repaired = `<tool>{"name":"bash","arguments":{"command":"pwd"},"_nonce":"${nonce}"}</tool>`;
+  const mock = installMock([malformed, repaired]);
+  try {
+    const result = await new DeepSeekWebExecutor().execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "run pwd" }], tools: TOOLS },
+      stream: false,
+      credentials: { apiKey: "tkn-dsml-repair" },
+      signal: AbortSignal.timeout(10000),
+    });
+    const choice = JSON.parse(await result.response.text()).choices[0];
+    assert.equal(choice.finish_reason, "tool_calls");
+    assert.equal(choice.message.tool_calls[0].function.name, "bash");
+    assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+      command: "pwd",
+    });
+    assert.equal(mock.calls.completionBodies.length, 2, "exactly one repair retry");
+    assert.match(mock.calls.completionBodies[1].prompt, /previous response used an invalid/i);
+    assert.ok(!String(choice.message.content || "").includes("DSML"));
+  } finally {
+    mock.restore();
+  }
+});
+
+test("a second malformed DSML response fails closed instead of leaking pseudo-tools", async () => {
+  const malformed = [
+    "<｜｜DSML｜｜ calls>",
+    '<｜｜DSML｜｜ invoke name="bash">',
+    '<｜｜DSML｜｜ parameter name="command" string="true">pwd</｜｜DSML｜｜ parameter>',
+    "</｜｜DSML｜｜ invoke>",
+    "</｜｜DSML｜｜ calls>",
+  ].join("\n");
+  const mock = installMock([malformed, malformed]);
+  try {
+    const result = await new DeepSeekWebExecutor().execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "run pwd" }], tools: TOOLS },
+      stream: false,
+      credentials: { apiKey: "tkn-dsml-reject" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.equal(result.response.status, 502);
+    assert.doesNotMatch(await result.response.text(), /<｜｜DSML/);
+    assert.equal(mock.calls.completionBodies.length, 2, "repair is bounded to one retry");
+  } finally {
+    mock.restore();
+  }
+});
+
+test("a valid call plus a malformed DSML sibling retries the whole batch", async () => {
+  const nonce = getToolNonce(TOOLS);
+  const mixed = [
+    `<tool>{"name":"bash","arguments":{"command":"pwd"},"_nonce":"${nonce}"}</tool>`,
+    '{"name":"bash","arguments":{"command":"date"}}</｜｜DSML｜｜ parameter>',
+    "</｜｜DSML｜｜ invoke>",
+    "</｜｜DSML｜｜ calls>",
+  ].join("\n");
+  const repaired = `<tool>{"name":"bash","arguments":{"command":"pwd"},"_nonce":"${nonce}"}</tool>`;
+  const mock = installMock([mixed, repaired]);
+  try {
+    const result = await new DeepSeekWebExecutor().execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "run pwd" }], tools: TOOLS },
+      stream: false,
+      credentials: { apiKey: "tkn-dsml-mixed" },
+      signal: AbortSignal.timeout(10000),
+    });
+    const choice = JSON.parse(await result.response.text()).choices[0];
+    assert.equal(choice.finish_reason, "tool_calls");
+    assert.equal(choice.message.tool_calls.length, 1);
+    assert.doesNotMatch(String(choice.message.content || ""), /DSML/);
+    assert.equal(mock.calls.completionBodies.length, 2);
   } finally {
     mock.restore();
   }

@@ -20,6 +20,8 @@
 // proven JSON-normalization / fuzzy-name-matching / range-stripping helpers from webTools.ts
 // rather than duplicating them.
 
+import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
+
 import {
   parseToolCallsFromText,
   parseLooseJsonObject,
@@ -35,6 +37,98 @@ import {
 interface OpenAIToolDef {
   type?: string;
   function?: { name?: string; description?: string; parameters?: unknown };
+}
+
+const ajv = new Ajv2020({ strict: false, allErrors: false, validateFormats: false });
+const toolValidatorCache = new WeakMap<object, Map<string, ValidateFunction | null>>();
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function requestedToolDefinition(requestedTools: unknown, name: string): OpenAIToolDef | null {
+  if (!Array.isArray(requestedTools)) return null;
+  return (requestedTools as OpenAIToolDef[]).find((tool) => tool?.function?.name === name) ?? null;
+}
+
+function validateToolArguments(
+  requestedTools: unknown,
+  name: string,
+  args: Record<string, unknown>
+): boolean {
+  const definition = requestedToolDefinition(requestedTools, name);
+  if (!definition) return false;
+  const schema = definition.function?.parameters;
+  if (schema === undefined) return true;
+  if ((typeof schema !== "object" || schema === null) && typeof schema !== "boolean") return false;
+
+  let validators = toolValidatorCache.get(requestedTools as object);
+  if (!validators) {
+    validators = new Map();
+    toolValidatorCache.set(requestedTools as object, validators);
+  }
+  let validate = validators.get(name);
+  if (validate === undefined) {
+    try {
+      validate = ajv.compile(schema as object | boolean);
+    } catch {
+      validate = null;
+    }
+    validators.set(name, validate);
+  }
+  return validate ? validate(args) === true : false;
+}
+
+function finalizeParsedToolCalls(
+  rawText: string,
+  parsed: { content: string; toolCalls: OpenAIToolCall[] | null },
+  requestedTools: unknown
+): { content: string; toolCalls: OpenAIToolCall[] | null } {
+  if (!parsed.toolCalls) return parsed;
+  const nonce = getToolNonce(requestedTools);
+  const cleaned: OpenAIToolCall[] = [];
+
+  for (const call of parsed.toolCalls) {
+    const args = parseLooseJsonObject(call.function.arguments);
+    if (!args) return { content: rawText, toolCalls: null };
+    const nestedNonce = args._nonce;
+    if (nestedNonce !== undefined && nestedNonce !== nonce) {
+      return { content: rawText, toolCalls: null };
+    }
+    const { _nonce: _boundNonce, ...cleanArgs } = args;
+    if (!validateToolArguments(requestedTools, call.function.name, cleanArgs)) {
+      return { content: rawText, toolCalls: null };
+    }
+    cleaned.push({
+      ...call,
+      function: { ...call.function, arguments: JSON.stringify(cleanArgs) },
+    });
+  }
+
+  return { content: parsed.content, toolCalls: cleaned };
+}
+
+export function hasMalformedDeepSeekToolMarkup(text: string): boolean {
+  if (typeof text !== "string" || !text.trim()) return false;
+  if (/<\/?(?:｜｜|\|\|?)DSML(?:｜｜|\|\|?)\s+(?:calls|invoke|parameter)\b/i.test(text)) {
+    return true;
+  }
+  return /<\/?(?:tool|tool_call)(?::|\s|>)/i.test(text);
+}
+
+/** True only for output shapes that express tool intent but failed safe parsing. */
+export function hasMalformedDeepSeekToolIntent(text: string, requestedTools: unknown): boolean {
+  if (hasMalformedDeepSeekToolMarkup(text)) return true;
+  if (typeof text !== "string" || !text.trim()) return false;
+
+  const parsed = parseLooseJsonObject(text);
+  if (!parsed || parsed.arguments === undefined) return false;
+  const emittedName = asString(parsed.name) ?? asString(parsed.command);
+  return (
+    !!emittedName && !!resolveRequestedToolName(emittedName, getRequestedToolNames(requestedTools))
+  );
 }
 
 // ── Stricter, compact tool-use prompt ───────────────────────────────────────
@@ -63,7 +157,22 @@ export function serializeDeepSeekToolPrompt(tools: unknown): string {
     const desc = typeof fn.description === "string" && fn.description ? fn.description : "";
     let params = "";
     try {
-      params = fn.parameters ? JSON.stringify(fn.parameters) : "";
+      const schema = asRecord(fn.parameters);
+      const properties = asRecord(schema?.properties);
+      const required = Array.isArray(schema?.required)
+        ? schema.required.filter((value): value is string => typeof value === "string")
+        : [];
+      const nonceBoundSchema = schema
+        ? {
+            ...schema,
+            properties: {
+              ...(properties ?? {}),
+              _nonce: { type: "string", const: nonce },
+            },
+            required: [...new Set([...required, "_nonce"])],
+          }
+        : fn.parameters;
+      params = nonceBoundSchema ? JSON.stringify(nonceBoundSchema) : "";
     } catch {
       params = "";
     }
@@ -82,6 +191,9 @@ export function serializeDeepSeekToolPrompt(tools: unknown): string {
     '- "name" must be one of the tools below; "arguments" must be a JSON object.',
     "- When a tool is needed, emit the <tool> block instead of only describing the plan.",
     "- Emit one <tool> block per call; you may put several blocks back to back.",
+    "- If your runtime forces DSML instead, every DSML invoke MUST include this exact binding:",
+    `<｜｜DSML｜｜ parameter name="_nonce" string="true">${nonce}</｜｜DSML｜｜ parameter>`,
+    "  A DSML invoke without that binding is invalid and will be rejected.",
     "- If no tool is needed, just answer normally without any <tool> block.",
     "",
     "Available tools:",
@@ -470,6 +582,169 @@ function extractCall(
   return { name, arguments: toArgumentsString(argsValue) };
 }
 
+// WMAdapter-compatible native DeepSeek output.  DeepSeek has emitted both the
+// printable ASCII token spelling and the full-width tokenizer spelling.  Keep
+// this parser separate from the generic XML-like parser.  It is applied to
+// every DeepSeek request carrying OpenAI-compatible tools[], regardless of
+// which client/agent initiated the request. Malformed or unknown native output
+// must remain visible and must never be promoted by a fallback.
+const DSML_INVOKE_RE =
+  /<(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))invoke\b([^>]*)>([\s\S]*?)<\/(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))invoke\s*>/gi;
+const DSML_PARAMETER_RE =
+  /<(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))parameter\b([^>]*)>([\s\S]*?)(?:<\/(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))parameter\s*>|<(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))parameter\s*>)/gi;
+const DSML_TOKEN_RE =
+  /<(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))(?:calls|call|invoke|parameter)\b[^>]*>[^]*?<\/(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))(?:calls|call|invoke|parameter)\s*>/i;
+
+type DsmlRange = { start: number; end: number };
+
+const NATIVE_TOOL_CALL_TOKEN_RE =
+  /(?:<\|tool_call_begin\|>|<｜tool▁call▁begin｜>)[\s\n]*([^<\s]+)[\s\n]*(?:<\|tool_call_argument_begin\|>|<｜tool▁call▁argument▁begin｜>)([\s\S]*?)(?:<\|tool_call_argument_end\|>|<｜tool▁call▁argument▁end｜>)[\s\n]*(?:<\|tool_call_end\|>|<｜tool▁call▁end｜>)/g;
+
+/**
+ * Parse the printable-ASCII / full-width `<|tool_call_begin|>...` native token
+ * shape, appending any recognized calls (and their source ranges) in place.
+ */
+function collectNativeToolCallTokens(
+  text: string,
+  idSeed: string,
+  requested: RequestedToolName[],
+  requestedTools: unknown,
+  calls: OpenAIToolCall[],
+  ranges: DsmlRange[]
+): void {
+  NATIVE_TOOL_CALL_TOKEN_RE.lastIndex = 0;
+  let nativeMatch: RegExpExecArray | null;
+  while ((nativeMatch = NATIVE_TOOL_CALL_TOKEN_RE.exec(text)) !== null) {
+    const resolved = resolveRequestedToolName(nativeMatch[1], requested);
+    const parsed = parseJsonOrNull(nativeMatch[2].trim());
+    if (!resolved || !parsed || typeof parsed !== "object" || Array.isArray(parsed)) continue;
+    const normalized = _normalizeDeepSeekNativeArguments(
+      parsed as Record<string, unknown>,
+      resolved,
+      requestedTools
+    );
+    calls.push({
+      id: `${idSeed}_${calls.length}`,
+      type: "function",
+      function: { name: resolved, arguments: JSON.stringify(normalized) },
+    });
+    ranges.push({ start: nativeMatch.index, end: nativeMatch.index + nativeMatch[0].length });
+  }
+}
+
+function parseJsonOrNull(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+/** Parse one `<invoke name="x"><parameter name="y">...</parameter></invoke>` block's args. */
+function collectDsmlInvokeParameters(body: string): {
+  args: Record<string, unknown>;
+  found: boolean;
+} {
+  const args: Record<string, unknown> = {};
+  let found = false;
+  DSML_PARAMETER_RE.lastIndex = 0;
+  let parameterMatch: RegExpExecArray | null;
+  while ((parameterMatch = DSML_PARAMETER_RE.exec(body)) !== null) {
+    const parameterName = getAttr(parameterMatch[1] || "", "name");
+    if (!parameterName) continue;
+    const raw = parameterMatch[2].trim();
+    args[parameterName] = parseJsonOrNull(raw) ?? raw;
+    found = true;
+  }
+  return { args, found };
+}
+
+/**
+ * Parse the `<DSML|invoke name="x">...</DSML|invoke>` shape, appending any
+ * recognized calls (and their source ranges) in place.
+ */
+function collectDsmlInvokeCalls(
+  text: string,
+  idSeed: string,
+  requested: RequestedToolName[],
+  requestedTools: unknown,
+  calls: OpenAIToolCall[],
+  ranges: DsmlRange[]
+): void {
+  DSML_INVOKE_RE.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = DSML_INVOKE_RE.exec(text)) !== null) {
+    const name = getAttr(match[1] || "", "name");
+    const resolved = name ? resolveRequestedToolName(name, requested) : null;
+    if (!resolved) continue;
+    const { args, found } = collectDsmlInvokeParameters(match[2]);
+    // An invoke with no parameters is valid; a malformed body is not.
+    if (!found && match[2].trim()) continue;
+    const normalized = _normalizeDeepSeekNativeArguments(args, resolved, requestedTools);
+    calls.push({
+      id: `${idSeed}_${calls.length}`,
+      type: "function",
+      function: { name: resolved, arguments: JSON.stringify(normalized) },
+    });
+    ranges.push({ start: match.index, end: match.index + match[0].length });
+  }
+}
+
+/** Extend a recognized call's stripped range to cover its enclosing `<DSML|calls>` wrapper. */
+function extendRangesForDsmlWrapper(text: string, ranges: DsmlRange[]): void {
+  const wrapperRe =
+    /<(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))calls\s*>[\s\S]*?<\/(?:(?:\|DSML\|)|(?:｜｜DSML｜｜))calls\s*>/gi;
+  let wrapper: RegExpExecArray | null;
+  while ((wrapper = wrapperRe.exec(text)) !== null) {
+    const start = wrapper.index;
+    const end = start + wrapper[0].length;
+    if (ranges.some((range) => range.start >= start && range.end <= end))
+      ranges.push({ start, end });
+  }
+}
+
+function parseNativeDeepSeekCalls(
+  text: string,
+  idSeed: string,
+  requestedTools: unknown
+): { content: string; toolCalls: OpenAIToolCall[] | null; recognized: boolean } {
+  const requested = getRequestedToolNames(requestedTools);
+  const calls: OpenAIToolCall[] = [];
+  const ranges: DsmlRange[] = [];
+  collectNativeToolCallTokens(text, idSeed, requested, requestedTools, calls, ranges);
+  collectDsmlInvokeCalls(text, idSeed, requested, requestedTools, calls, ranges);
+  if (calls.length > 0) extendRangesForDsmlWrapper(text, ranges);
+  const recognized =
+    DSML_TOKEN_RE.test(text) || /<(?:(?:\|tool_call_)|(?:｜tool▁call▁))/.test(text);
+  if (calls.length === 0) return { content: text, toolCalls: null, recognized };
+  return { content: stripRanges(text, ranges), toolCalls: calls, recognized };
+}
+
+function _normalizeDeepSeekNativeArguments(
+  args: Record<string, unknown>,
+  name: string,
+  tools: unknown
+): Record<string, unknown> {
+  // Match WMAdapter's schema-guided string coercion locally, without changing
+  // the generic web-tools behavior.
+  const tool = Array.isArray(tools)
+    ? (tools as OpenAIToolDef[]).find((t) => t?.function?.name === name)
+    : undefined;
+  const properties = (
+    tool?.function?.parameters as
+      | {
+          properties?: Record<string, { type?: string }>;
+        }
+      | undefined
+  )?.properties;
+  if (!properties || typeof properties !== "object") return args;
+  for (const [key, value] of Object.entries(args)) {
+    if (properties[key]?.type === "string" && typeof value !== "string")
+      args[key] = JSON.stringify(value);
+  }
+  return args;
+}
+
 // ── Public parser ─────────────────────────────────────────────────────────────
 
 /**
@@ -488,10 +763,20 @@ export function parseDeepSeekToolCalls(
     return { content: text ?? "", toolCalls: null };
   }
 
+  const dsml = parseFullWidthDsmlCalls(text, idSeed, requestedTools);
+  if (dsml.recognized) return dsml;
+
+  const native = parseNativeDeepSeekCalls(text, idSeed, requestedTools);
+  if (native.recognized) return finalizeParsedToolCalls(text, native, requestedTools);
+
   const tokens = tokenizeToolTags(text);
   if (tokens.length === 0) {
     // No DeepSeek-specific tags — defer to the proven canonical parser (bare JSON, etc.).
-    return parseToolCallsFromText(text, idSeed, requestedTools);
+    return finalizeParsedToolCalls(
+      text,
+      parseToolCallsFromText(text, idSeed, requestedTools),
+      requestedTools
+    );
   }
 
   const requested = getRequestedToolNames(requestedTools);
@@ -560,5 +845,101 @@ export function parseDeepSeekToolCalls(
     ...tokens.filter((t) => !within(t)).map((t) => ({ start: t.start, end: t.end })),
   ];
 
-  return { content: stripRanges(text, ranges), toolCalls };
+  return finalizeParsedToolCalls(
+    text,
+    { content: stripRanges(text, ranges), toolCalls },
+    requestedTools
+  );
+}
+
+/**
+ * DeepSeek Web sometimes emits its internal full-width DSML envelope instead of the
+ * requested `<tool>{json}</tool>` contract. Convert every invocation in the envelope to
+ * an OpenAI tool call. This is deliberately separate from the generic tag parser because
+ * the DSML delimiters contain full-width Unicode characters and may contain several calls
+ * in one response.
+ */
+/** Parse a full-width-DSML invoke body's `<parameter>` children, falling back to bare JSON. */
+function extractFullWidthDsmlArgs(body: string): Record<string, unknown> {
+  const args: Record<string, unknown> = {};
+  const paramRe =
+    /<(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s+name=["']([^"']+)["'][^>]*>([\s\S]*?)(?:<\/?(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s*>|(?=<(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s+name=|<\/(?:｜｜DSML｜｜|\|DSML\|)\s*invoke\s*>))/g;
+  let param: RegExpExecArray | null;
+  while ((param = paramRe.exec(body)) !== null) {
+    const raw = param[2].trim();
+    args[param[1]] = parseJsonOrNull(raw) ?? raw;
+  }
+  if (Object.keys(args).length > 0) return args;
+
+  // No <parameter> children: the whole body may itself be a bare JSON object.
+  const parsed = parseJsonOrNull(body.trim() || "{}");
+  if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) Object.assign(args, parsed);
+  return args;
+}
+
+function parseFullWidthDsmlCalls(
+  text: string,
+  idSeed: string,
+  requestedTools?: unknown
+): { content: string; toolCalls: OpenAIToolCall[] | null; recognized: boolean } {
+  const marker = /<(?:(?:｜｜DSML｜｜)|(?:\|DSML\|))/;
+  if (!marker.test(text)) return { content: text, toolCalls: null, recognized: false };
+
+  const requested = getRequestedToolNames(requestedTools);
+  const nonce = getToolNonce(requestedTools);
+  const calls: OpenAIToolCall[] = [];
+  const ranges: DsmlRange[] = [];
+  const invokeRe =
+    /<(?<dsml>｜｜DSML｜｜|\|DSML\|)\s*invoke\s+name=["']([^"']+)["']\s*>([\s\S]*?)<\/\k<dsml>\s*invoke\s*>/g;
+  let match: RegExpExecArray | null;
+  // A well-formed `invoke name="...">...</invoke>` pair marks the response as a genuine
+  // (if possibly unresolved) DSML tool call, distinct from stray/corrupted DSML delimiter
+  // debris trailing an unrelated block (#14103 salvage regression) — only the former should
+  // block the canonical `<tool>`/salvage fallback below.
+  let sawInvokeTag = false;
+  let rejectedInvoke = false;
+  while ((match = invokeRe.exec(text)) !== null) {
+    sawInvokeTag = true;
+    const resolvedName = resolveRequestedToolName(match[2], requested);
+    if (!nonce || !resolvedName) {
+      rejectedInvoke = true;
+      continue;
+    }
+    const parsedArgs = extractFullWidthDsmlArgs(match[3]);
+    const nestedArgs = asRecord(parsedArgs.arguments);
+    const emittedNonce = parsedArgs._nonce ?? nestedArgs?._nonce;
+    if (emittedNonce !== nonce) {
+      rejectedInvoke = true;
+      continue;
+    }
+    let args: Record<string, unknown>;
+    if (nestedArgs) {
+      const { _nonce: _boundNonce, ...rest } = nestedArgs;
+      args = rest;
+    } else {
+      const { _nonce: _boundNonce, name: _redundantName, ...rest } = parsedArgs;
+      args = rest;
+    }
+    if (!validateToolArguments(requestedTools, resolvedName, args)) {
+      rejectedInvoke = true;
+      continue;
+    }
+    calls.push({
+      id: `${idSeed}_${calls.length}`,
+      type: "function",
+      function: { name: resolvedName, arguments: JSON.stringify(args) },
+    });
+    ranges.push({ start: match.index, end: invokeRe.lastIndex });
+  }
+
+  if (rejectedInvoke || calls.length === 0) {
+    return { content: text, toolCalls: null, recognized: sawInvokeTag };
+  }
+
+  const callsEnvelope = /<\/?(?:｜｜DSML｜｜|\|DSML\|)\s*calls\s*>/g;
+  let envelope: RegExpExecArray | null;
+  while ((envelope = callsEnvelope.exec(text)) !== null) {
+    ranges.push({ start: envelope.index, end: callsEnvelope.lastIndex });
+  }
+  return { content: stripRanges(text, ranges), toolCalls: calls, recognized: true };
 }

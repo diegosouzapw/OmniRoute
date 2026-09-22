@@ -6,9 +6,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { serializeToolsToPrompt, parseToolCallsFromText } = await import(
-  "../../open-sse/translator/webTools.ts"
-);
+const { serializeToolsToPrompt, parseToolCallsFromText } =
+  await import("../../open-sse/translator/webTools.ts");
 
 const TOOLS = [
   {
@@ -75,7 +74,8 @@ test("parseToolCallsFromText does not parse bare JSON without requested tools", 
 });
 
 test("parseToolCallsFromText does NOT promote Python-dict-ish bare JSON (#9343)", () => {
-  const text = "{'command': 'get_weather', 'arguments': {'city': 'Paris', 'units': 'metric', 'fresh': True}}";
+  const text =
+    "{'command': 'get_weather', 'arguments': {'city': 'Paris', 'units': 'metric', 'fresh': True}}";
   const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
 
   assert.equal(toolCalls, null, "bare JSON must not be promoted");
@@ -101,7 +101,8 @@ test("parseToolCallsFromText does NOT promote fuzzy-matched bare JSON (#9343)", 
 });
 
 test("parseToolCallsFromText does NOT strip bare JSON from surrounding text (#9343)", () => {
-  const text = 'I will check now.\n{"name":"get_weather","arguments":"{\\"city\\":\\"Paris\\"}"}\nDone.';
+  const text =
+    'I will check now.\n{"name":"get_weather","arguments":"{\\"city\\":\\"Paris\\"}"}\nDone.';
   const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
 
   assert.equal(toolCalls, null, "bare JSON must not be promoted");
@@ -123,6 +124,17 @@ test("parseToolCallsFromText parses multiple tool calls", () => {
   assert.equal(toolCalls?.length, 2);
   assert.equal(toolCalls[0].function.name, "a");
   assert.equal(toolCalls[1].function.name, "b");
+});
+
+test("parseToolCallsFromText converts full-width DSML parallel calls", () => {
+  const text =
+    '<｜｜DSML｜｜ calls><｜｜DSML｜｜ invoke name="get_weather">{"city":"東京\\n中心"}</｜｜DSML｜｜ invoke>' +
+    '<｜｜DSML｜｜ invoke name="get_weather">{"city":"München — ✓"}</｜｜DSML｜｜ invoke></｜｜DSML｜｜ calls>';
+  const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+  assert.equal(toolCalls?.length, 2);
+  assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), { city: "東京\n中心" });
+  assert.deepEqual(JSON.parse(toolCalls![1].function.arguments), { city: "München — ✓" });
+  assert.equal(content, "");
 });
 
 test("parseToolCallsFromText tolerates a tool block with no arguments", () => {

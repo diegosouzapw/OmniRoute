@@ -10,6 +10,9 @@ lastUpdated: 2026-08-31
 
 Core reference for the OmniRoute API. It covers the public `/v1` surface and the most-used management endpoints; the machine-readable [`docs/openapi.yaml`](../openapi.yaml) and the route tree under `src/app/api/` are the exhaustive sources.
 
+For the focused OpenAI-compatible protocol and provider capability matrix, see
+[`OPENAI_COMPATIBILITY.md`](./OPENAI_COMPATIBILITY.md).
+
 ---
 
 ## Table of Contents

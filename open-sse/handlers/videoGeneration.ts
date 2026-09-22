@@ -61,7 +61,8 @@ import { handleFalVideoGeneration } from "./mediaGeneration/fal.ts";
 export function resolveVideoBaseUrl(
   credentials:
     { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
-  fallback: string
+  fallback: string,
+  failClosed = false
 ): string {
   const psd = credentials?.providerSpecificData;
   const psdBaseUrl =
@@ -74,7 +75,7 @@ export function resolveVideoBaseUrl(
       : null;
   const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
 
-  if (!nodeBaseUrl) return fallback;
+  if (!nodeBaseUrl) return failClosed ? "" : fallback;
 
   // Trim trailing slashes
   let normalized = nodeBaseUrl;
@@ -178,14 +179,19 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
       log.info("VIDEO", `Custom model ${provider}/${model} — using OpenAI-compatible handler`);
     const syntheticConfig = {
       id: provider,
-      baseUrl: resolveVideoBaseUrl(
-        credentials,
-        "http://generative.language.googleapis.com/v1beta/openai/videos/generations"
-      ),
+      baseUrl: resolveVideoBaseUrl(credentials, "", true),
       authType: "apikey",
       authHeader: "bearer",
       format: "openai-video",
     };
+    if (!syntheticConfig.baseUrl) {
+      return {
+        success: false,
+        status: 501,
+        error: `Video generation is not configured for custom provider: ${provider}`,
+      };
+    }
+
     return handleOpenAIVideoGeneration({
       model,
       body,
