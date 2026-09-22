@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "প্রোভাইডারসমূহ",
     "Account Deactivated": "অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে",
     "allProviders": "সমস্ত প্রদানকারী",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{connections, plural, one {#টি সংযোগ} other {#টি সংযোগ}} দ্বারা {exits, plural, one {#টি এক্সিট} other {#টি এক্সিট}} ব্যবহৃত · একটি এক্সিটে সর্বোচ্চ {max}টি · গত {hours} ঘণ্টা",
     "poolEgressObservationEmpty": "গত {hours} ঘণ্টায় কোনো ট্রাফিক দেখা যায়নি",
     "poolEgressObservationHint": "নির্ধারিত সময়সীমায় প্রক্সি লগ থেকে গণনা করা হয়েছে: এই পুলের সদস্যদের জন্য পর্যবেক্ষণ করা স্বতন্ত্র ইগ্রেস IP এবং সেগুলো ব্যবহার করা OmniRoute সংযোগ। \"একটি এক্সিটে\" বলতে নির্ধারিত সময়সীমার মধ্যে বোঝায়, একই সময়ে নয়। প্রতি-IP 429 লকআউট শুধু একই প্রোভাইডার পরিবারের সংযোগগুলোকে বিরতি দেয়।",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "সরান",
     "poolRemoveFailed": "পুল থেকে প্রক্সি সরাতে ব্যর্থ হয়েছে",
     "poolAddLabel": "একটি প্রক্সি যোগ করুন",

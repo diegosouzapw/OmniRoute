@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Մատակարարներ",
     "Account Deactivated": "Հաշիվն ապաակտիվացված է",
     "allProviders": "Բոլոր մատակարարները",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "Օգտագործվել է {exits, plural, one {# ելք} other {# ելք}}՝ {connections, plural, one {# կապի} other {# կապերի}} կողմից · մինչև {max}՝ մեկ ելքի վրա · վերջին {hours} ժ",
     "poolEgressObservationEmpty": "Վերջին {hours} ժ ընթացքում տրաֆիկ չի դիտարկվել",
     "poolEgressObservationHint": "Հաշվարկված է պրոքսիի մատյանից տվյալ ժամանակահատվածի համար՝ այս պուլի անդամների համար դիտարկված տարբեր ելքային IP-ները և դրանք օգտագործած OmniRoute կապերը։ «Մեկ ելքի վրա» նշանակում է տվյալ ժամանակահատվածի ընթացքում, ոչ թե միաժամանակ։ Յուրաքանչյուր IP-ի համար 429 արգելափակումը դադարեցնում է միայն նույն մատակարարի ընտանիքի կապերը։",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Հեռացնել",
     "poolRemoveFailed": "Չհաջողվեց պրոքսին հեռացնել պուլից",
     "poolAddLabel": "Ավելացնել պրոքսի",
@@ -11418,6 +11426,7 @@
         "clientResponse": "Հաճախորդի պատասխան",
         "pipelineError": "Մշակման շղթայի սխալ"
       },
+      "payloadSizeLimitOmitted": "Բովանդակությունը բաց է թողնվել — այս բաժինը գերազանցել է կանչերի մատյանի չափի սահմանը (CALL_LOG_PIPELINE_MAX_SIZE_KB) և չի պահպանվել. սա իրական վերին հոսքի սխալ չէ։",
       "payloadMissing": "Այս գրառման մանրամասն բեռնվածքը պարունակող արտեֆակտն այլևս հասանելի չէ։",
       "payloadCorrupt": "Չհաջողվեց վերլուծել մանրամասն բեռնվածքը պարունակող արտեֆակտը։",
       "notAvailable": "Կիրառելի չէ",
@@ -11471,8 +11480,7 @@
       "correlationIdValue": "Կապակցման ID՝ {id}",
       "detailedPayloadInfo": "Նոր հարցումների համար հաճախորդի/մատակարարի օգտակար բեռների քառափուլ տեսքը դիտելու նպատակով նախ միացրեք մանրամասն գրանցումը։",
       "copyAll": "Պատճենել ամբողջը",
-      "copiedAll": "Ամբողջը պատճենված է",
-      "payloadSizeLimitOmitted": "Բովանդակությունը բաց է թողնվել — այս բաժինը գերազանցել է կանչերի մատյանի չափի սահմանը (CALL_LOG_PIPELINE_MAX_SIZE_KB) և չի պահպանվել. սա իրական վերին հոսքի սխալ չէ։"
+      "copiedAll": "Ամբողջը պատճենված է"
     }
   },
   "proxyLogger": {

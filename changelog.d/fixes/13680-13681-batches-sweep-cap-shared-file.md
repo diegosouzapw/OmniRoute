@@ -1,1 +1,0 @@
-- **fix(db):** `DELETE /v1/batches/delete-completed` now caps the work it does per request and reports `hasMore` so a caller can resume, and the sweep no longer deletes a file that another batch still references (#13680, #13681)

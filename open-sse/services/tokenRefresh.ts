@@ -46,7 +46,10 @@ import { refreshGitLabDuoToken } from "./tokenRefresh/providers/gitlabDuo.ts";
 import { refreshClaudeOAuthToken } from "./tokenRefresh/providers/claudeOAuth.ts";
 import { refreshGoogleToken } from "./tokenRefresh/providers/google.ts";
 import { selectGoogleRefreshClient } from "./tokenRefresh/googleClientBinding.ts";
-import { ensureAntigravityProjectAssigned } from "./antigravityProjectBootstrap.ts";
+import {
+  ensureAntigravityProjectAssigned,
+  isUsableAntigravityProjectId,
+} from "./antigravityProjectBootstrap.ts";
 import { persistDiscoveredAntigravityProjectId } from "./antigravityProjectPersist.ts";
 import { refreshCodexToken } from "./tokenRefresh/providers/codex.ts";
 import { refreshCursorToken } from "./tokenRefresh/providers/cursor.ts";
@@ -356,11 +359,14 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
         result?.accessToken &&
         (provider === "antigravity" || provider === "agy") &&
         !credentials.providerSpecificData?.isProjectIdManual &&
-        !(credentials.projectId || credentials.providerSpecificData?.projectId)
+        !(
+          isUsableAntigravityProjectId(credentials.projectId) ||
+          isUsableAntigravityProjectId(credentials.providerSpecificData?.projectId)
+        )
       ) {
         try {
           const discovered = await ensureAntigravityProjectAssigned(result.accessToken, fetch);
-          if (discovered) {
+          if (isUsableAntigravityProjectId(discovered)) {
             result.projectId = discovered;
             result.providerSpecificData = {
               ...(credentials.providerSpecificData || {}),

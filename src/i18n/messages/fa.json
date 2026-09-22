@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "ارائهدهندگان",
     "Account Deactivated": "حساب غیرفعال شد",
     "allProviders": "همه ارائه دهندگان",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# خروجی} other {# خروجی}} استفادهشده توسط {connections, plural, one {# اتصال} other {# اتصال}} · حداکثر {max} روی یک خروجی · در {hours} ساعت گذشته",
     "poolEgressObservationEmpty": "در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolEgressObservationHint": "محاسبهشده از گزارش پراکسی در بازهٔ زمانی: آدرسهای IP خروجی متمایز مشاهدهشده برای اعضای این مخزن و اتصالهای OmniRoute که از آنها استفاده کردهاند. «روی یک خروجی» به معنای کل بازهٔ زمانی است، نه بهطور همزمان. قفل موقت 429 برای هر IP فقط اتصالهای همان خانوادهٔ ارائهدهنده را متوقف میکند.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "حذف",
     "poolRemoveFailed": "حذف پروکسی از استخر ناموفق بود",
     "poolAddLabel": "افزودن یک پروکسی",

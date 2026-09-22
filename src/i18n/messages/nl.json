@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Aanbieders",
     "Account Deactivated": "Account gedeactiveerd",
     "allProviders": "Alle aanbieders",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# uitgang} other {# uitgangen}} gebruikt door {connections, plural, one {# verbinding} other {# verbindingen}} · maximaal {max} op één uitgang · laatste {hours} u",
     "poolEgressObservationEmpty": "Geen verkeer waargenomen in de afgelopen {hours} u",
     "poolEgressObservationHint": "Geteld op basis van het proxylogboek binnen dit tijdsvenster: afzonderlijke uitgaande IP-adressen die zijn waargenomen voor de leden van deze pool, en de OmniRoute-verbindingen die deze hebben gebruikt. ‘Op één uitgang’ heeft betrekking op het tijdsvenster, niet op hetzelfde moment. De 429-blokkering per IP pauzeert alleen verbindingen van dezelfde providerfamilie.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Verwijderen",
     "poolRemoveFailed": "Kan de proxy niet uit de pool verwijderen",
     "poolAddLabel": "Een proxy toevoegen",

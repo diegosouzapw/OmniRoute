@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Πάροχοι",
     "Account Deactivated": "Ο λογαριασμός απενεργοποιήθηκε",
     "allProviders": "Όλοι οι πάροχοι",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "Χρήση {exits, plural, one {# εξόδου} other {# εξόδων}} από {connections, plural, one {# σύνδεση} other {# συνδέσεις}} · έως {max} σε μία έξοδο · τελευταίες {hours} ώρες",
     "poolEgressObservationEmpty": "Δεν παρατηρήθηκε κίνηση τις τελευταίες {hours} ώρες",
     "poolEgressObservationHint": "Υπολογίζεται από το αρχείο καταγραφής του διακομιστή μεσολάβησης για το συγκεκριμένο χρονικό διάστημα: οι διακριτές διευθύνσεις IP εξόδου που παρατηρήθηκαν για τα μέλη αυτής της ομάδας και οι συνδέσεις OmniRoute που τις χρησιμοποίησαν. Η ένδειξη «Σε μία έξοδο» αφορά ολόκληρο το χρονικό διάστημα και όχι την ίδια χρονική στιγμή. Ο αποκλεισμός 429 ανά IP θέτει σε παύση μόνο τις συνδέσεις της ίδιας οικογένειας παρόχων.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Αφαίρεση",
     "poolRemoveFailed": "Αποτυχία αφαίρεσης του διακομιστή μεσολάβησης από την ομάδα",
     "poolAddLabel": "Προσθήκη διαμεσολαβητή",
@@ -11418,6 +11426,7 @@
         "clientResponse": "Απόκριση Πελάτη",
         "pipelineError": "Σφάλμα ροής επεξεργασίας"
       },
+      "payloadSizeLimitOmitted": "Το φορτίο παραλείφθηκε — αυτή η ενότητα υπέρβη το όριο μεγέθους του αρχείου κλήσεων (CALL_LOG_PIPELINE_MAX_SIZE_KB) και δεν αποθηκεύτηκε· δεν πρόκειται για πραγματικό σφάλμα του παρόχου.",
       "payloadMissing": "Το λεπτομερές payload δεν είναι πλέον διαθέσιμο για αυτήν την καταχώριση αρχείου καταγραφής.",
       "payloadCorrupt": "Δεν ήταν δυνατή η ανάλυση του λεπτομερούς payload.",
       "notAvailable": "Δ/Υ",
@@ -11471,8 +11480,7 @@
       "correlationIdValue": "Αναγνωριστικό συσχέτισης: {id}",
       "detailedPayloadInfo": "Ενεργοποιήστε πρώτα τη λεπτομερή καταγραφή εάν θέλετε την προβολή ωφέλιμου φορτίου τεσσάρων σταδίων πελάτη/παρόχου για νέα αιτήματα.",
       "copyAll": "Αντιγραφή όλων",
-      "copiedAll": "Αντιγράφηκαν όλα",
-      "payloadSizeLimitOmitted": "Το φορτίο παραλείφθηκε — αυτή η ενότητα υπέρβη το όριο μεγέθους του αρχείου κλήσεων (CALL_LOG_PIPELINE_MAX_SIZE_KB) και δεν αποθηκεύτηκε· δεν πρόκειται για πραγματικό σφάλμα του παρόχου."
+      "copiedAll": "Αντιγράφηκαν όλα"
     }
   },
   "proxyLogger": {

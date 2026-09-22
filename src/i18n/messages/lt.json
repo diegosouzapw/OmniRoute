@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Teikėjai",
     "Account Deactivated": "Paskyra išaktyvinta",
     "allProviders": "Visi teikėjai",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "Užfiksuotų išėjimo IP adresų: {exits, plural, one {#} few {#} other {#}} · juos naudojusių ryšių: {connections, plural, one {#} few {#} other {#}} · daugiausia {max} vienam išėjimo IP adresui · per pastarąsias {hours} val.",
     "poolEgressObservationEmpty": "Per pastarąsias {hours} val. srauto nepastebėta",
     "poolEgressObservationHint": "Apskaičiuota pagal tarpinio serverio žurnalą per nurodytą laikotarpį: atskiri šio telkinio nariams užfiksuoti išėjimo IP adresai ir juos naudoję OmniRoute ryšiai. „Viename išėjimo IP“ reiškia per visą laikotarpį, o ne tuo pačiu metu. Atskiro IP adreso blokavimas gavus 429 atsakymą pristabdo tik tos pačios teikėjų grupės ryšius.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Pašalinti",
     "poolRemoveFailed": "Nepavyko pašalinti tarpinio serverio iš telkinio",
     "poolAddLabel": "Pridėti tarpinį serverį",

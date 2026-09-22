@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Teenusepakkujad",
     "Account Deactivated": "Konto on deaktiveeritud",
     "allProviders": "Kõik teenusepakkujad",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# väljumine} other {# väljumist}}, mida kasutas {connections, plural, one {# ühendus} other {# ühendust}} · kuni {max} ühel väljumisel · viimase {hours} h jooksul",
     "poolEgressObservationEmpty": "Viimase {hours} h jooksul ei täheldatud liiklust",
     "poolEgressObservationHint": "Arvutatud puhverserveri logist antud ajavahemiku kohta: selle kogumi liikmete puhul täheldatud erinevad väljaminevad IP-aadressid ja neid kasutanud OmniRoute’i ühendused. „Ühel väljumisel“ tähendab kogu ajavahemiku jooksul, mitte samal ajal. IP-põhine 429-lukustus peatab ainult sama teenusepakkuja rühma kuuluvad ühendused.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Eemalda",
     "poolRemoveFailed": "Puhverserveri eemaldamine kogumist nurjus",
     "poolAddLabel": "Lisa puhverserver",

@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Leverantörer",
     "Account Deactivated": "Konto inaktiverat",
     "allProviders": "Alla leverantörer",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# utgång} other {# utgångar}} används av {connections, plural, one {# anslutning} other {# anslutningar}} · upp till {max} på en utgång · senaste {hours} h",
     "poolEgressObservationEmpty": "Ingen trafik observerades under de senaste {hours} h",
     "poolEgressObservationHint": "Räknat från proxyloggen under tidsfönstret: unika utgående IP-adresser som observerats för medlemmarna i denna pool samt de OmniRoute-anslutningar som använde dem. ”På en utgång” avser hela tidsfönstret, inte samma tidpunkt. 429-spärren per IP pausar endast anslutningar inom samma leverantörsfamilj.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Ta bort",
     "poolRemoveFailed": "Misslyckades med att ta bort proxyn från poolen",
     "poolAddLabel": "Lägg till en proxy",

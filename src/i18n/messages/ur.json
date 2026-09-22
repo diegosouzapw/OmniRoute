@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "فراہم کنندگان",
     "Account Deactivated": "اکاؤنٹ غیر فعال کر دیا گیا",
     "allProviders": "تمام فراہم کنندگان",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{connections, plural, one {# کنکشن} other {# کنکشنز}} کے زیرِ استعمال {exits, plural, one {# اخراج} other {# اخراج}} · ایک اخراج پر زیادہ سے زیادہ {max} · گزشتہ {hours} گھنٹے",
     "poolEgressObservationEmpty": "گزشتہ {hours} گھنٹوں میں کوئی ٹریفک نہیں دیکھی گئی",
     "poolEgressObservationHint": "اس دورانیے کے لیے پراکسی لاگ سے شمار کیا گیا: اس پول کے اراکین کے لیے دیکھے گئے منفرد اخراجی IPs، اور انہیں استعمال کرنے والے OmniRoute کنکشنز۔ \"ایک اخراج پر\" سے مراد پورا دورانیہ ہے، ایک ہی وقت نہیں۔ فی IP 429 لاک آؤٹ صرف فراہم کنندگان کے اسی گروپ کے کنکشنز کو عارضی طور پر روکتا ہے۔",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "ہٹائیں",
     "poolRemoveFailed": "پول سے پروکسی کو ہٹانے میں ناکامی",
     "poolAddLabel": "ایک پروکسی شامل کریں",

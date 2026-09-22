@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "ผู้ให้บริการ",
     "Account Deactivated": "บัญชีถูกปิดใช้งาน",
     "allProviders": "ผู้ให้บริการทั้งหมด",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "ทางออก {exits, plural, one {# ทางออก} other {# ทางออก}} ถูกใช้โดยการเชื่อมต่อ {connections, plural, one {# รายการ} other {# รายการ}} · สูงสุด {max} รายการในทางออกเดียว · ในช่วง {hours} ชม. ที่ผ่านมา",
     "poolEgressObservationEmpty": "ไม่พบทราฟฟิกในช่วง {hours} ชม. ที่ผ่านมา",
     "poolEgressObservationHint": "นับจากบันทึกพร็อกซีในช่วงเวลาที่กำหนด: IP ขาออกที่ไม่ซ้ำกันซึ่งตรวจพบสำหรับสมาชิกของพูลนี้ และการเชื่อมต่อ OmniRoute ที่ใช้ IP เหล่านั้น \"ในทางออกเดียว\" หมายถึงตลอดช่วงเวลาที่กำหนด ไม่ใช่ในเวลาเดียวกัน การล็อกเอาต์ 429 ต่อ IP จะหยุดชั่วคราวเฉพาะการเชื่อมต่อของตระกูลผู้ให้บริการเดียวกันเท่านั้น",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "ลบออก",
     "poolRemoveFailed": "ลบพร็อกซีออกจากพูลไม่สำเร็จ",
     "poolAddLabel": "เพิ่มพร็อกซี",

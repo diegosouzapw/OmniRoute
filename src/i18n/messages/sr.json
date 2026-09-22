@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Провајдери",
     "Account Deactivated": "Налог деактивиран",
     "allProviders": "Сви провајдери",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# излаз} other {# излаза}} користи {connections, plural, one {# веза} other {# веза}} · до {max} на једном излазу · последњих {hours} ч",
     "poolEgressObservationEmpty": "Није забележен саобраћај у последњих {hours} ч",
     "poolEgressObservationHint": "Израчунато на основу евиденције проксија током периода: различите одлазне IP адресе забележене за чланове ове групе и OmniRoute везе које су их користиле. „На једном излазу“ односи се на цео период, а не на исти тренутак. Закључавање по IP адреси услед грешке 429 паузира само везе исте породице провајдера.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Уклони",
     "poolRemoveFailed": "Уклањање проксија из групе није успело",
     "poolAddLabel": "Додај прокси",

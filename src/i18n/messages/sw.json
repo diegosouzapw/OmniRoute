@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Watoa Huduma",
     "Account Deactivated": "Akaunti Imelemazwa",
     "allProviders": "Watoa huduma wote",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {njia # ya kutoka} other {njia # za kutoka}} zilitumiwa na {connections, plural, one {muunganisho #} other {miunganisho #}} · hadi {max} kwenye njia moja ya kutoka · saa {hours} zilizopita",
     "poolEgressObservationEmpty": "Hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
     "poolEgressObservationHint": "Imehesabiwa kutoka kwenye kumbukumbu ya proksi katika kipindi hiki: IP tofauti za kutoka zilizoonekana kwa wanachama wa kundi hili, na miunganisho ya OmniRoute iliyozitumia. \"Kwenye njia moja ya kutoka\" humaanisha katika kipindi hicho, si kwa wakati mmoja. Uzuiaji wa 429 kwa kila IP husitisha tu miunganisho ya familia moja ya watoa huduma.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Ondoa",
     "poolRemoveFailed": "Imeshindwa kuondoa proksi kwenye dimbwi",
     "poolAddLabel": "Ongeza proksi",

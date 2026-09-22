@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Ndị na-eweta ọrụ",
     "Account Deactivated": "Agbanyụrụ Akaụntụ",
     "allProviders": "Ndị Na-eweta Ọrụ Niile",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# ụzọ ọpụpụ} other {# ụzọ ọpụpụ}} nke {connections, plural, one {# njikọ} other {# njikọ}} jiri · ruo {max} n'otu ụzọ ọpụpụ · n'ime awa {hours} gara aga",
     "poolEgressObservationEmpty": "Ahụghị ngagharị data ọ bụla n'ime awa {hours} gara aga",
     "poolEgressObservationHint": "A gụrụ ya site na ndekọ proxy n'ime oge ahụ: IP ọpụpụ dị iche iche a hụrụ maka ndị otu pool a, yana njikọ OmniRoute ndị jiri ha. \"N'otu ụzọ ọpụpụ\" pụtara n'ime oge ahụ, ọ bụghị n'otu oge. Mkpọchi 429 nke IP ọ bụla na-akwụsịtụ naanị njikọ ndị sitere n'otu ezinụlọ provider.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Wepụ",
     "poolRemoveFailed": "Enweghị ike iwepụ proksi na pool",
     "poolAddLabel": "Tinye proksi",

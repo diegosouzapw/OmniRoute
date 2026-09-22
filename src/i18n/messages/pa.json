@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "ਪ੍ਰਦਾਤਾ",
     "Account Deactivated": "ਖਾਤਾ ਅਕਿਰਿਆਸ਼ੀਲ ਕੀਤਾ ਗਿਆ",
     "allProviders": "ਸਾਰੇ ਪ੍ਰਦਾਤਾ",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{connections, plural, one {# ਕਨੈਕਸ਼ਨ} other {# ਕਨੈਕਸ਼ਨਾਂ}} ਵੱਲੋਂ ਵਰਤੇ ਗਏ {exits, plural, one {# ਨਿਕਾਸ} other {# ਨਿਕਾਸ}} · ਇੱਕ ਨਿਕਾਸ 'ਤੇ ਵੱਧ ਤੋਂ ਵੱਧ {max} · ਪਿਛਲੇ {hours} ਘੰਟੇ",
     "poolEgressObservationEmpty": "ਪਿਛਲੇ {hours} ਘੰਟਿਆਂ ਵਿੱਚ ਕੋਈ ਟ੍ਰੈਫ਼ਿਕ ਨਹੀਂ ਦੇਖਿਆ ਗਿਆ",
     "poolEgressObservationHint": "ਇਸ ਸਮਾਂ-ਵਿੰਡੋ ਦੌਰਾਨ ਪ੍ਰੌਕਸੀ ਲੌਗ ਤੋਂ ਗਿਣਤੀ ਕੀਤੀ ਗਈ ਹੈ: ਇਸ ਪੂਲ ਦੇ ਮੈਂਬਰਾਂ ਲਈ ਦੇਖੇ ਗਏ ਵੱਖ-ਵੱਖ ਈਗ੍ਰੈੱਸ IP ਅਤੇ ਉਹਨਾਂ ਨੂੰ ਵਰਤਣ ਵਾਲੇ OmniRoute ਕਨੈਕਸ਼ਨ। \"ਇੱਕ ਨਿਕਾਸ 'ਤੇ\" ਦਾ ਮਤਲਬ ਇਸ ਸਮਾਂ-ਵਿੰਡੋ ਦੌਰਾਨ ਹੈ, ਇੱਕੋ ਸਮੇਂ ਨਹੀਂ। ਪ੍ਰਤੀ-IP 429 ਲੌਕਆਉਟ ਸਿਰਫ਼ ਉਸੇ ਪ੍ਰਦਾਤਾ ਪਰਿਵਾਰ ਦੇ ਕਨੈਕਸ਼ਨਾਂ ਨੂੰ ਰੋਕਦਾ ਹੈ।",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "ਹਟਾਓ",
     "poolRemoveFailed": "ਪੂਲ ਵਿੱਚੋਂ ਪ੍ਰੌਕਸੀ ਹਟਾਉਣ ਵਿੱਚ ਅਸਫਲ",
     "poolAddLabel": "ਇੱਕ ਪ੍ਰੌਕਸੀ ਜੋੜੋ",

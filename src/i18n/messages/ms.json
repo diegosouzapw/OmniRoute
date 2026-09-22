@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Pembekal",
     "Account Deactivated": "Akaun Dinyahaktifkan",
     "allProviders": "Semua Penyedia",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# laluan keluar} other {# laluan keluar}} digunakan oleh {connections, plural, one {# sambungan} other {# sambungan}} · sehingga {max} pada satu laluan keluar · {hours} j terakhir",
     "poolEgressObservationEmpty": "Tiada trafik dikesan dalam tempoh {hours} j terakhir",
     "poolEgressObservationHint": "Dikira daripada log proksi sepanjang tempoh tersebut: IP egress berbeza yang dikesan untuk ahli kumpulan ini dan sambungan OmniRoute yang menggunakannya. \"Pada satu laluan keluar\" bermaksud sepanjang tempoh tersebut, bukan pada masa yang sama. Sekatan 429 bagi setiap IP hanya menjeda sambungan daripada keluarga penyedia yang sama.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Alih keluar",
     "poolRemoveFailed": "Gagal mengalih keluar proksi daripada kolam",
     "poolAddLabel": "Tambah proksi",

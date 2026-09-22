@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "提供者",
     "Account Deactivated": "账户已停用",
     "allProviders": "所有提供者",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# 个出口} other {# 个出口}}，由 {connections, plural, one {# 个连接} other {# 个连接}}使用 · 单个出口最多 {max} 个连接 · 过去 {hours} 小时",
     "poolEgressObservationEmpty": "过去 {hours} 小时内未观察到流量",
     "poolEgressObservationHint": "根据此时间窗口内的代理日志统计：观察到此池成员使用的不同出口 IP，以及使用这些 IP 的 OmniRoute 连接。“单个出口”是指整个时间窗口内，而不是同一时刻。每个 IP 的 429 锁定仅会暂停同一提供者系列的连接。",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "移除",
     "poolRemoveFailed": "从池中移除代理失败",
     "poolAddLabel": "添加代理",

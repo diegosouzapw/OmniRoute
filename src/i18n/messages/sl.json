@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Ponudniki",
     "Account Deactivated": "Račun je deaktiviran",
     "allProviders": "Vsi ponudniki",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{connections, plural, one {# povezava} two {# povezavi} few {# povezave} other {# povezav}} prek {exits, plural, one {# izhoda} two {# izhodov} few {# izhodov} other {# izhodov}} · do {max} na enem izhodu · zadnjih {hours} h",
     "poolEgressObservationEmpty": "V zadnjih {hours} h ni bil zaznan noben promet",
     "poolEgressObservationHint": "Izračunano iz dnevnika posredniškega strežnika v tem časovnem obdobju: različni zaznani izhodni naslovi IP za člane te skupine in povezave OmniRoute, ki so jih uporabljale. »Na enem izhodu« pomeni v tem časovnem obdobju, ne nujno sočasno. Blokada 429 za posamezen naslov IP začasno ustavi samo povezave iste družine ponudnikov.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Odstrani",
     "poolRemoveFailed": "Posredniškega strežnika ni bilo mogoče odstraniti iz skupine",
     "poolAddLabel": "Dodaj posredniški strežnik",
