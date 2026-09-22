@@ -218,19 +218,19 @@ interface CliFingerprint {
 
 ---
 
-## User-Agent අභිබවා යෙදීම් — env vars (`.env.example` කොටස 12)
+## User-Agent අභිබවා යෙදීම් — env vars (`.env.example` හි 12 වන කොටස)
 
 | විචල්යය                  | පෙරනිමිය                                                        |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-ගතික සෙවීමක් හරහා `open-sse/executors/base.ts::buildHeaders()` මඟින් භාවිත කෙරේ. **සපයන්නන් නව CLI අනුවාද නිකුත් කරන විට මේවා වැඩි කරන්න** — යල්පැන ගිය UA තන්තු, කල් ඉකුත් වූ සේවාලාභීන් ලෙස ප්රතික්ෂේප වීමට පටන් ගනී.
+ගතික සෙවීම හරහා `open-sse/executors/base.ts::buildHeaders()` විසින් භාවිත කරයි. **සපයන්නන් නව CLI අනුවාද නිකුත් කරන විට මේවා යාවත්කාලීන කරන්න** — කල් ඉකුත් වූ UA තන්තු යල් පැන ගිය සේවාලාභීන් ලෙස ප්රතික්ෂේප වීමට පටන් ගනී.
 
 ## CLI අනුකූලතා මාදිලියේ ටොගල (`.env.example` කොටස 13)
 

@@ -68,23 +68,27 @@ docker compose --profile base up -d
 # Profil CLI (Claude Code, Codex et OpenClaw intégrés)
 docker compose --profile cli up -d
 
-# Profil hôte (principalement pour Linux ; monte les binaires CLI de l’hôte en lecture seule)
+# Profil hôte (priorité à Linux ; monte les binaires CLI de l’hôte en lecture seule)
 docker compose --profile host up -d
 
-# Combiner le profil CLI et le conteneur auxiliaire CLIProxyAPI
+# Profil Web (Chromium/Playwright pour les fournisseurs de sessions Web)
+docker compose --profile web up -d
+
+# Combiner la CLI et le service auxiliaire CLIProxyAPI
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Profils disponibles
 
-OmniRoute fournit quatre profils Compose. Choisissez celui qui correspond à votre environnement.
+OmniRoute fournit des profils Compose pour les principaux types de déploiement. Choisissez celui qui correspond à votre environnement.
 
-| Profil          | Service          | Cas d’utilisation                                                                                                                                  | Commande                                     |
-| --------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (défaut) | `omniroute-base` | Serveur sans interface graphique / environnement d’exécution minimal, sans CLI de fournisseurs incluses                                            | `docker compose --profile base up -d`        |
-| `cli`           | `omniroute-cli`  | Flux de travail agentiques qui appellent `omniroute providers/setup/doctor` et les CLI incluses (Codex, Claude Code, Droid, OpenClaw)              | `docker compose --profile cli up -d`         |
-| `host`          | `omniroute-host` | Hôtes Linux souhaitant un accès de type `network_mode` aux CLI de l’hôte en montant `~/.local/bin`, `~/.codex`, `~/.claude`, etc. en lecture seule | `docker compose --profile host up -d`        |
-| `cliproxyapi`   | `cliproxyapi`    | Exécuter le conteneur auxiliaire [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sur le port `8317` pour relayer les CLI en amont      | `docker compose --profile cliproxyapi up -d` |
+| Profil              | Service          | Quand l’utiliser                                                                                                                                             | Commande                                     |
+| ------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| `base` (par défaut) | `omniroute-base` | Serveur sans interface graphique / environnement d’exécution minimal, sans CLI de fournisseurs intégrées                                                     | `docker compose --profile base up -d`        |
+| `cli`               | `omniroute-cli`  | Workflows agentiques qui appellent `omniroute providers/setup/doctor` et les CLI intégrées (Codex, Claude Code, Droid, OpenClaw)                             | `docker compose --profile cli up -d`         |
+| `host`              | `omniroute-host` | Hôtes Linux nécessitant un accès de type `network_mode` aux CLI de l’hôte via le montage en lecture seule de `~/.local/bin`, `~/.codex`, `~/.claude`, etc.   | `docker compose --profile host up -d`        |
+| `cliproxyapi`       | `cliproxyapi`    | Exécuter le side-car [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sur le port `8317` pour le proxy en amont des CLI                           | `docker compose --profile cliproxyapi up -d` |
+| `web`               | `omniroute-web`  | Fournisseurs basés sur des sessions Web nécessitant un navigateur : `gemini-web`, `claude-web`, `claude-turnstile` (construit `runner-web`, Chromium inclus) | `docker compose --profile web up -d`         |
 
 > Plusieurs profils peuvent être combinés : `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -233,51 +237,53 @@ La pile de production s’exécute parallèlement à la configuration Compose de
 
 ## Étapes du Dockerfile
 
-Le dépôt fournit un Dockerfile multi-étapes (`Dockerfile`). Trois étapes sont exposées ; choisissez la bonne valeur de `target` pour votre cas d’utilisation.
+Le dépôt fournit un Dockerfile multi-étapes (`Dockerfile`). Quatre étapes sont exposées ; choisissez la bonne `target` selon votre cas d’utilisation.
 
-| Étape         | Image de base         | Objectif                                                                                                                                                                                       |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Installe les dépendances (`npm ci --legacy-peer-deps`) et exécute `npm run build` (Turbopack par défaut — voir Ressources de compilation ci-dessous)                                           |
-| `runner-base` | `node:26-trixie-slim` | Environnement d’exécution de production avec la sortie autonome de Next.js. **Aucune CLI de fournisseur incluse.**                                                                             |
-| `runner-cli`  | `runner-base`         | Ajoute `git`, `docker.io`, `docker-compose` et les CLI globales : `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Choisissez cette étape pour les workflows agentiques.** |
+| Étape         | Image de base         | Objectif                                                                                                                                                                                                                                                                                                                               |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Installe les dépendances (`npm ci --legacy-peer-deps`) et exécute `npm run build` (Turbopack par défaut — voir Ressources de compilation ci-dessous)                                                                                                                                                                                   |
+| `runner-base` | `node:26-trixie-slim` | Environnement d’exécution de production avec la sortie autonome de Next.js. **Aucun CLI de fournisseur inclus.**                                                                                                                                                                                                                       |
+| `runner-cli`  | `runner-base`         | Ajoute `git`, `docker.io`, `docker-compose` et les CLI globaux : `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Choisissez cette option pour les workflows agentiques.**                                                                                                                                         |
+| `runner-web`  | `runner-base`         | Ajoute Playwright et un navigateur Chromium (`--with-deps`) pour les fournisseurs de sessions web : `gemini-web`, `claude-web`, `claude-turnstile`. **Choisissez cette option lorsque vous utilisez ces fournisseurs** — l’image standard échoue lors des requêtes sans cela (voir la remarque sur `-web` dans Canaux de publication). |
 
 Construisez manuellement une cible spécifique :
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Ressources de compilation
 
 Trois arguments de compilation contrôlent les ressources consommées par l’étape `builder`. Ils s’appliquent uniquement à la compilation —
-`OMNIROUTE_MEMORY_MB` (ci-dessous) est un réglage d’exécution distinct.
+`OMNIROUTE_MEMORY_MB` (ci-dessous) est un paramètre d’exécution distinct.
 
-| Argument de compilation     | Valeur par défaut | Effet                                                                                               |
-| --------------------------- | ----------------- | --------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`               | `0` compile avec webpack à la place. Pic de mémoire plus faible, mais plus lent.                    |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`            | Plafond du tas V8 (`--max-old-space-size`) pour le processus `next build` lancé.                    |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`               | Alimente `CIRCLE_NODE_TOTAL` ; Next déduit `workers = N - 1` pour la collecte des données de pages. |
+| Argument de compilation     | Valeur par défaut | Effet                                                                                                 |
+| --------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`               | Avec `0`, utilise webpack pour la compilation. Pic de mémoire plus faible, mais plus lent.            |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`            | Plafond du tas V8 (`--max-old-space-size`) pour le processus `next build` lancé.                      |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`               | Alimente `CIRCLE_NODE_TOTAL` ; Next en déduit `workers = N - 1` pour la collecte des données de page. |
 
 `OMNIROUTE_BUILD_WORKERS` est le paramètre à augmenter sur une machine de compilation puissante et celui à
-suspecter lorsqu’une compilation aux ressources limitées échoue **après** `✓ Compiled successfully`. Chaque
-worker de données de pages constitue son propre processus, tout comme le processus parent `next build` ;
+suspecter lorsqu’une compilation contrainte échoue **après** `✓ Compiled successfully`. Chaque
+worker de données de page est un processus distinct, tout comme le processus parent `next build` ;
 une reproduction sur un VPS actif (problème #7518) a mesuré le pic de RSS de chaque processus à
-~4,5 Go, indépendamment de l’option de tas `NODE_OPTIONS` (Turbopack compile dans de la
-mémoire native/Rust située hors du tas V8). La valeur par défaut de `2` (→ 1 worker, 2
-processus au total) est dimensionnée pour les runners hébergés par GitHub disposant de 16 Go / 4 vCPU et utilisés par le
-pipeline de publication. Avec `8` (→ 7 workers), ce runner a manqué de mémoire et
+environ 4,5 Go, indépendamment de l’option de tas `NODE_OPTIONS` (Turbopack compile dans de la
+mémoire native/Rust en dehors du tas V8). La valeur par défaut de `2` (→ 1 worker, 2
+processus au total) est dimensionnée pour les runners hébergés par GitHub dotés de 16 Go / 4 vCPU
+qu’utilise le pipeline de publication. Avec `8` (→ 7 workers), ce runner a épuisé sa mémoire et
 buildkit a fait échouer l’étape avec `ResourceExhausted: ... cannot allocate memory` ;
-`3` (→ 2 workers) ne tenait toujours pas une fois la RSS par processus mesurée
-directement plutôt que déduite. `tests/unit/docker-build-memory-budget.test.ts`
-effectue le calcul à partir de la valeur mesurée et échoue si l’un des deux réglages
+`3` (→ 2 workers) ne tenait toujours pas une fois le RSS par processus mesuré
+directement plutôt que déduit. `tests/unit/docker-build-memory-budget.test.ts`
+effectue le calcul à partir de la valeur mesurée et échoue si l’un des deux paramètres
 dépasse les capacités du runner.
 
-Turbopack compile dans de la mémoire Rust native qui se trouve **hors** du tas V8, de sorte que
-`OMNIROUTE_BUILD_MEMORY_MB` ne la limite pas. Sur un hôte doté d’un plafond de mémoire, la
-compilation est alors interrompue par SIGKILL par le mécanisme OOM sans aucun message d’erreur — elle
-s’arrête simplement au milieu de `Creating an optimized production build`, ce qui ressemble davantage
-à un blocage qu’à un manque de mémoire. Si l’hôte de compilation dispose de ressources limitées, changez d’outil de regroupement :
+Turbopack compile dans de la mémoire Rust native située **en dehors** du tas V8, donc
+`OMNIROUTE_BUILD_MEMORY_MB` ne la limite pas. Sur un hôte disposant d’un plafond de mémoire, la
+compilation est alors interrompue par SIGKILL par le mécanisme OOM killer, sans aucun message d’erreur — elle
+s’arrête simplement au milieu de `Creating an optimized production build`, ce qui ressemble davantage à un blocage
+qu’à un manque de mémoire. Si les ressources de l’hôte de compilation sont limitées, changez de bundler :
 
 ```bash
 docker build --target runner-base \
@@ -285,17 +291,17 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` est activé, de sorte que `next build` exécute un processus parent **et** un processus
-worker, chacun respectant séparément `OMNIROUTE_BUILD_MEMORY_MB`. Dimensionnez le plafond du conteneur
-à environ plus de deux fois cette valeur, et non à une seule fois.
+`webpackBuildWorker` est activé, donc `next build` exécute un processus parent **et** un processus
+worker, chacun respectant séparément `OMNIROUTE_BUILD_MEMORY_MB`. Dimensionnez le plafond
+du conteneur à environ deux fois cette valeur, et non une seule fois.
 
 Mesures effectuées sur cette arborescence (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`) :
 
-| Outil de regroupement | Plafond du conteneur | Résultat                                            |
-| --------------------- | -------------------- | --------------------------------------------------- |
-| Turbopack             | 8 Gio / 16 Gio       | Arrêté par l’OOM dans les deux cas, silencieusement |
-| webpack               | 8 Gio                | Worker de compilation arrêté par SIGKILL            |
-| webpack               | 12 Gio               | Réussite, avec un pic à 11,1 Gio                    |
+| Bundler   | Plafond du conteneur | Résultat                                                |
+| --------- | -------------------- | ------------------------------------------------------- |
+| Turbopack | 8 Gio / 16 Gio       | Interrompu par l’OOM dans les deux cas, silencieusement |
+| webpack   | 8 Gio                | Worker de compilation interrompu par SIGKILL            |
+| webpack   | 12 Gio               | Réussi, avec un pic à 11,1 Gio                          |
 
 ### Valeurs d’exécution par défaut
 
@@ -303,25 +309,25 @@ Valeurs par défaut exportées par `runner-base` : `PORT=20128`, `HOSTNAME=0.0.0
 
 Comportement de la mémoire dans Docker :
 
-- L’image définit `OMNIROUTE_MEMORY_MB=1024` et en déduit `NODE_OPTIONS=--max-old-space-size=1024`.
-- Le processus serveur réel est lancé par le lanceur autonome, qui lit `OMNIROUTE_MEMORY_MB` et ajoute `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node utilise la dernière valeur répétée de `--max-old-space-size` ; définir `OMNIROUTE_MEMORY_MB` contrôle donc la limite effective du tas Docker.
-- Comme l’image la définit toujours, la valeur de secours du lanceur, calibrée en fonction de la RAM, ne s’applique jamais sous Docker. Augmentez-la explicitement selon la charge de travail (tableau ci-dessous). `2048` reste insuffisant pour les requêtes `/v1/responses` des agents de programmation.
+- L’image définit `OMNIROUTE_MEMORY_MB=1024` et en dérive `NODE_OPTIONS=--max-old-space-size=1024`.
+- Le processus serveur réel est démarré par le lanceur autonome, qui lit `OMNIROUTE_MEMORY_MB` et ajoute `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node utilise la dernière valeur répétée de `--max-old-space-size` ; définir `OMNIROUTE_MEMORY_MB` permet donc de contrôler la limite effective du tas dans Docker.
+- Comme l’image définit toujours cette variable, la valeur de secours du lanceur, calibrée en fonction de la RAM, ne s’applique jamais sous Docker. Augmentez-la explicitement en fonction de la charge de travail (tableau ci-dessous). `2048` reste insuffisant pour les requêtes `/v1/responses` des agents de programmation.
 
 ### RAM d’exécution pour les agents de programmation
 
-La valeur Docker par défaut de 1 Gio constitue un minimum pour le tableau de bord et les conversations légères, pas une configuration de production. Les longs corps de requêtes `POST /v1/responses` (des centaines de messages, des dizaines d’outils) conservent plusieurs graphes en mémoire pendant la compression. Deux requêtes simultanées d’environ 3 Mio / 750 000 jetons ont provoqué l’arrêt de V8 avec un espace ancien de **12 Gio** (`FATAL ERROR: Reached heap limit`) et ont également déclenché un OOM du cgroup à 16 Gio. Voir [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+La valeur Docker par défaut de 1 Gio constitue un minimum pour le tableau de bord et les conversations légères, et non une configuration de production. Les corps volumineux de requêtes `POST /v1/responses` (des centaines de messages, des dizaines d’outils) conservent plusieurs graphes en mémoire pendant la compression. Deux requêtes simultanées d’environ 3 Mio / 750 000 jetons ont provoqué l’arrêt de V8 avec un espace ancien de **12 Gio** (`FATAL ERROR: Reached heap limit`) et ont également déclenché une erreur OOM du cgroup avec 16 Gio. Voir [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Dimensionnez la **mémoire du cgroup `--memory` au-dessus du tas** — les tampons natifs, SQLite et les données intermédiaires de compression se trouvent hors de V8.
+Dimensionnez la **valeur cgroup `--memory` au-dessus de la taille du tas** — les tampons natifs, SQLite et les données intermédiaires de compression résident en dehors de V8.
 
-| Charge de travail                                 | `OMNIROUTE_MEMORY_MB`                    | Conteneur / cgroup       | Remarques                                                                                                                                                    |
-| ------------------------------------------------- | ---------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Tableau de bord, une conversation légère          | `1024` (valeur par défaut de l’image)    | ≥2 GiB                   |                                                                                                                                                              |
-| Un agent de codage (Claude/Codex/Grok)            | `8192`                                   | ≥10 GiB                  | Session unique `/v1/responses` typique                                                                                                                       |
-| Deux longues requêtes `/v1/responses` simultanées | `10240`–`12288`                          | ≥12–16 GiB               | Interruption de V8 mesurée avec un tas d’environ 12 GiB                                                                                                      |
-| Trois contextes longs simultanés ou plus          | à ne pas exécuter dans un seul processus | sérialiser / plus de RAM | Par défaut, l’admission des charges lourdes est limitée à 1 requête en cours ; augmenter cette limite sans ajouter de RAM provoque de nouveau l’interruption |
+| Charge de travail                                 | `OMNIROUTE_MEMORY_MB`                 | Conteneur / cgroup             | Remarques                                                                                                                                             |
+| ------------------------------------------------- | ------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tableau de bord, une conversation légère          | `1024` (valeur par défaut de l’image) | ≥2 Gio                         |                                                                                                                                                       |
+| Un agent de programmation (Claude/Codex/Grok)     | `8192`                                | ≥10 Gio                        | Session `/v1/responses` unique typique                                                                                                                |
+| Deux longues requêtes `/v1/responses` simultanées | `10240`–`12288`                       | ≥12–16 Gio                     | Arrêt de V8 mesuré avec un tas d’environ 12 Gio                                                                                                       |
+| Trois longs contextes simultanés ou plus          | à éviter dans un seul processus       | sérialiser / ajouter de la RAM | Par défaut, l’admission des charges lourdes est limitée à 1 requête en cours ; augmenter cette limite sans ajouter de RAM provoque de nouveau l’arrêt |
 
-Sur une machine physique, `omniroute serve` se calibre sur environ 35 % de la RAM (dans les limites `[512, 4096]`) lorsque `OMNIROUTE_MEMORY_MB` n’est **pas défini**. Docker définit toujours `1024`, ce calibrage ne s’exécute donc jamais dans l’image officielle.
+Sur une machine physique, `omniroute serve` calibre la limite à environ 35 % de la RAM (bornée à `[512, 4096]`) lorsque `OMNIROUTE_MEMORY_MB` n’est **pas définie**. Docker définit toujours cette variable sur `1024` ; ce calibrage n’est donc jamais exécuté dans l’image officielle.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -331,24 +337,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Variables d’environnement critiques
 
-Au-delà des valeurs par défaut documentées dans [ENVIRONMENT.md](../reference/ENVIRONMENT.md), les variables suivantes sont les plus importantes lors d’une exécution sous Docker :
+Au-delà des valeurs par défaut documentées dans [ENVIRONMENT.md](../reference/ENVIRONMENT.md), les variables suivantes sont les plus importantes lors de l’exécution sous Docker :
 
-| Variable                      | Rôle                                                                                                                                                                                                                                                                                                                | Valeur par défaut               |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Secret partagé pour le pont WebSocket. **Obligatoire en production** — définissez-le sur une chaîne aléatoire robuste.                                                                                                                                                                                              | non définie (doit être fournie) |
-| `REDIS_URL`                   | Chaîne de connexion pour le limiteur de débit / système de cache                                                                                                                                                                                                                                                    | `redis://redis:6379`            |
-| `REDIS_PORT`                  | Port côté hôte pour le conteneur Redis fourni                                                                                                                                                                                                                                                                       | `6379`                          |
-| `REDIS_BIND_HOST`             | Interface hôte sur laquelle le port Redis fourni est publié (interface de bouclage, sauf si vous ajoutez AUTH)                                                                                                                                                                                                      | `127.0.0.1`                     |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Chemin de l’hôte monté dans le profil `cli` à l’emplacement `/workspace/omniroute` pour les processus d’auto-mise à jour                                                                                                                                                                                            | `.` (répertoire actuel)         |
-| `OMNIROUTE_MEMORY_MB`         | Plafond du tas Node à l’exécution pour le serveur Docker autonome ; remplace la valeur par défaut de l’image indiquée ci-dessus. Agents de codage : `8192`+ (voir [RAM d’exécution](#runtime-ram-for-coding-agents)).                                                                                               | `1024`                          |
-| `DASHBOARD_PORT` / `API_PORT` | Remplace les ports exposés pour le tableau de bord (20128) et l’API (20129)                                                                                                                                                                                                                                         | `20128` / `20129`               |
-| `APP_BIND_HOST`               | Interface hôte sur laquelle docker-compose publie les ports du tableau de bord, de l’API et du WS en direct. Avec `REQUIRE_API_KEY=false` (valeur par défaut), `0.0.0.0` expose le proxy `/v1` anonyme au réseau local — n’élargissez l’accès qu’avec `REQUIRE_API_KEY=true` ou en plaçant un proxy inverse devant. | `127.0.0.1`                     |
-| `CLIPROXY_BIND_HOST`          | Interface hôte sur laquelle docker-compose publie le side-car `cliproxyapi` — son volume de données contient les identifiants des fournisseurs.                                                                                                                                                                     | `127.0.0.1`                     |
-| `OMNIROUTE_PLUGINS_DIR`       | Répertoire lu par l’analyseur d’extensions à l’exécution et dans lequel il effectue les installations. Définissez-le lorsque les extensions sont montées par liaison : la valeur par défaut dépend de `HOME`, qu’une image n’est pas tenue d’exporter.                                                              | `~/.omniroute/plugins`          |
-| `OMNIROUTE_BASE_PATH`         | Sous-chemin d’URL lorsque l’application est publiée derrière un proxy inverse (p. ex. `/omniroute`)                                                                                                                                                                                                                 | _(vide = racine)_               |
-| `NEXT_PUBLIC_BASE_URL`        | Origine publique du navigateur incluant le sous-chemin (p. ex. `https://host/omniroute`)                                                                                                                                                                                                                            | non définie                     |
-| `PROD_DASHBOARD_PORT`         | Port du tableau de bord côté hôte pour `docker-compose.prod.yml`                                                                                                                                                                                                                                                    | `20130`                         |
-| `CLIPROXYAPI_PORT`            | Port côté hôte pour le side-car `cliproxyapi`                                                                                                                                                                                                                                                                       | `8317`                          |
+| Variable                      | Rôle                                                                                                                                                                                                                                                                                                                   | Valeur par défaut               |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Secret partagé pour le pont WebSocket. **Obligatoire en production** — définissez-le sur une chaîne aléatoire robuste.                                                                                                                                                                                                 | non définie (doit être fournie) |
+| `REDIS_URL`                   | Chaîne de connexion pour le mécanisme de limitation du débit / le backend de cache                                                                                                                                                                                                                                     | `redis://redis:6379`            |
+| `REDIS_PORT`                  | Port côté hôte pour le conteneur Redis inclus                                                                                                                                                                                                                                                                          | `6379`                          |
+| `REDIS_BIND_HOST`             | Interface de l’hôte sur laquelle le port Redis inclus est publié (interface de bouclage, sauf si vous ajoutez AUTH)                                                                                                                                                                                                    | `127.0.0.1`                     |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Chemin sur l’hôte monté dans le profil `cli` à l’emplacement `/workspace/omniroute` pour les workflows de mise à jour automatique                                                                                                                                                                                      | `.` (répertoire actuel)         |
+| `OMNIROUTE_MEMORY_MB`         | Plafond du tas Node à l’exécution pour le serveur Docker autonome ; remplace la valeur par défaut de l’image indiquée ci-dessus. Agents de codage : `8192` ou plus (voir la [RAM d’exécution](#runtime-ram-for-coding-agents)).                                                                                        | `1024`                          |
+| `DASHBOARD_PORT` / `API_PORT` | Remplace les ports exposés du tableau de bord (20128) et de l’API (20129)                                                                                                                                                                                                                                              | `20128` / `20129`               |
+| `APP_BIND_HOST`               | Interface de l’hôte sur laquelle docker-compose publie les ports du tableau de bord, de l’API et du WebSocket en direct. Avec `REQUIRE_API_KEY=false` (valeur par défaut), `0.0.0.0` expose le proxy `/v1` anonyme au réseau local — n’élargissez l’accès qu’avec `REQUIRE_API_KEY=true` ou un proxy inverse en amont. | `127.0.0.1`                     |
+| `CLIPROXY_BIND_HOST`          | Interface de l’hôte sur laquelle docker-compose publie le service auxiliaire `cliproxyapi` — son volume de données contient les identifiants des fournisseurs.                                                                                                                                                         | `127.0.0.1`                     |
+| `OMNIROUTE_PLUGINS_DIR`       | Répertoire lu par l’analyseur de plugins à l’exécution et dans lequel il les installe. Définissez-le lorsque les plugins sont montés avec une liaison : la valeur par défaut suit `HOME`, qu’une image n’exporte pas nécessairement.                                                                                   | `~/.omniroute/plugins`          |
+| `OMNIROUTE_BASE_PATH`         | Sous-chemin d’URL lorsque l’application est publiée derrière un proxy inverse (par ex. `/omniroute`)                                                                                                                                                                                                                   | _(vide = racine)_               |
+| `NEXT_PUBLIC_BASE_URL`        | Origine publique du navigateur incluant le sous-chemin (par ex. `https://host/omniroute`)                                                                                                                                                                                                                              | non définie                     |
+| `PROD_DASHBOARD_PORT`         | Port du tableau de bord côté hôte pour `docker-compose.prod.yml`                                                                                                                                                                                                                                                       | `20130`                         |
+| `CLIPROXYAPI_PORT`            | Port côté hôte pour le service auxiliaire `cliproxyapi`                                                                                                                                                                                                                                                                | `8317`                          |
 
 ## Proxy inverse sur un sous-chemin (Traefik / nginx)
 
@@ -484,36 +490,49 @@ Les panneaux de tunnel des points de terminaison (Cloudflare, Tailscale, ngrok) 
 - Les images Docker incluent les autorités de certification racines du système et les transmettent à l’instance gérée de `cloudflared`, ce qui évite les échecs de validation TLS lorsque le tunnel s’initialise à l’intérieur du conteneur.
 - Définissez `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` si vous souhaitez qu’OmniRoute utilise un binaire existant au lieu d’en télécharger un.
 
-## Étiquettes d’image
+## Tags d’image
 
-| Image                    | Étiquette | Taille | Description                                                       |
-| ------------------------ | --------- | ------ | ----------------------------------------------------------------- |
-| `diegosouzapw/omniroute` | `latest`  | ~250MB | Version stable SemVer **publiée** la plus élevée (pas git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`   | ~250MB | Épinglez cette catégorie d’étiquette pour GitOps                  |
+| Image                    | Tag      | Taille | Description                                                       |
+| ------------------------ | -------- | ------ | ----------------------------------------------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | Version SemVer stable **publiée** la plus élevée (pas git `main`) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Épinglez ce type de tag pour GitOps                               |
 
-Manifeste multiplateforme : versions natives `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker sélectionne automatiquement l’architecture correspondante ; transmettez `--platform linux/amd64` si vous devez forcer l’émulation AMD64 sur des hôtes ARM.
+Manifeste multiplateforme : `linux/amd64` + `linux/arm64` natifs (Apple Silicon, AWS Graviton, Raspberry Pi). Docker sélectionne automatiquement l’architecture correspondante ; passez `--platform linux/amd64` si vous devez forcer l’émulation AMD64 sur des hôtes ARM.
 
 ### Canaux de publication
 
-OmniRoute publie des canaux Docker distincts pour les versions stables, les tests de la branche de publication active et les versions de développement.
+OmniRoute publie des canaux Docker distincts pour les versions stables, les tests de la branche de publication active et les builds de développement.
 
 | Canal                           | Source                                           | Mutabilité                        | Utilisation recommandée                                                                                                              |
 | ------------------------------- | ------------------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `:<version>` / `:<version>-web` | Version signée/versionnée                        | Immuable                          | Déploiements de production épinglant une version précise                                                                             |
-| `:latest` / `:latest-web`       | Version stable SemVer **publiée** la plus élevée | Pointeur stable mutable           | Suit les versions stables **après** une tâche de publication SemVer — ne suit **pas** `main` ni les commits `release/v*` non publiés |
+| `:<version>` / `:<version>-web` | Version signée/versionnée                        | Immuable                          | Déploiements en production épinglant une version précise                                                                             |
+| `:latest` / `:latest-web`       | Version SemVer stable **publiée** la plus élevée | Pointeur stable mutable           | Suit les versions stables **après** une tâche de publication SemVer — ne suit **pas** `main` ni les commits `release/v*` non publiés |
 | `:next` / `:next-web`           | Branche `release/v*` par défaut actuelle         | Pointeur de préversion mutable    | Test des correctifs intégrés à la branche de publication active, mais pas encore inclus dans une version stable                      |
 | `:main` / `:main-web`           | Branche `main`                                   | Pointeur de développement mutable | Uniquement pour les tests de développement et d’intégration                                                                          |
 
+#### Fournisseurs de sessions web : les images `-web`
+
+Chaque canal ci-dessus est également disponible sous forme de tag `-web` (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), construit à partir de l’étape `runner-web` — la même image, avec Playwright et un navigateur Chromium en plus. L’image standard est fournie **sans** Chromium ; `gemini-web`, `claude-web` et `claude-turnstile` en ont besoin.
+
+L’échec est différé et ne se produit pas au démarrage : ces fournisseurs répertorient leurs modèles et apparaissent comme connectés dans le tableau de bord, et seule la première requête échoue avec
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Si vous utilisez ces fournisseurs, récupérez le tag `-web` du canal que vous utilisez déjà — rien d’autre ne change. Pour une installation npm/CLI (sans image Docker), l’élément manquant équivalent est le binaire du navigateur : exécutez `npx playwright install chromium` sur l’hôte.
+
 #### Utilisation du canal de préversion
 
-Le canal `next` est reconstruit à chaque envoi vers la branche `release/v*` par défaut actuelle et est publié pour AMD64 et ARM64. Les anciennes branches de maintenance ne peuvent pas le remplacer. Le canal fournit une image pouvant être téléchargée pour les correctifs fusionnés dans la branche de publication active avant la création de la prochaine étiquette stable.
+Le canal `next` est reconstruit à chaque push vers la branche `release/v*` par défaut actuelle et est publié pour AMD64 et ARM64. Les anciennes branches de maintenance ne peuvent pas l’écraser. Ce canal fournit une image récupérable contenant les correctifs fusionnés dans la branche de publication active avant la création du prochain tag stable.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Pour Docker Compose, remplacez l’étiquette d’image utilisée par le profil sélectionné, puis téléchargez l’image et recréez le service :
+Pour Docker Compose, remplacez le tag d’image utilisé par le profil sélectionné, puis récupérez l’image et recréez le service :
 
 ```yaml
 services:
@@ -526,29 +545,29 @@ docker compose pull
 docker compose up -d
 ```
 
-#### Sécurité et retour arrière
+#### Sécurité et restauration
 
-`next` est un canal de préversion flottant. Il peut changer à chaque envoi vers la branche de publication active et n’est **pas pris en charge pour une utilisation en production**. Épinglez le condensat de l’image lors de l’évaluation d’une version spécifique :
+`next` est un canal de préversion flottant. Il peut changer à chaque push vers la branche de publication active et n’est **pas pris en charge pour une utilisation en production**. Épinglez le digest de l’image lors de l’évaluation d’un build spécifique :
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Avant d’effectuer les tests, sauvegardez le volume de données OmniRoute ou le répertoire de données monté avec un montage bind. Pour revenir à la version précédente, restaurez la version stable ou le digest précédemment utilisé, puis recréez le conteneur :
+Avant d’effectuer les tests, sauvegardez le volume de données OmniRoute ou le répertoire de données monté par liaison. Pour revenir à la version précédente, restaurez la version stable ou le digest précédemment utilisé, puis recréez le conteneur :
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Une build de branche de publication ne peut jamais déplacer `latest` ; seule une version sémantique stable admissible peut promouvoir le pointeur stable. Les images `next` conservent l’inspection des images de publication ainsi que le contrôle bloquant des vulnérabilités CRITICAL.
+Un build de branche de publication ne peut jamais déplacer `latest` ; seule une version sémantique stable admissible peut promouvoir le pointeur stable. Les images `next` conservent l’inspection des images de publication et le contrôle bloquant des vulnérabilités CRITICAL.
 
-**`latest` ne garantit pas l’actualité par rapport à git.** Les correctifs fusionnés dans `main` ou dans la branche `release/v*` active ne sont **pas** inclus dans `:latest` tant qu’une image SemVer stable n’a pas été publiée et que la tâche de publication n’a pas promu `:latest` (avec le même digest que cette version SemVer). Si `latest` semble figée alors que GitHub affiche déjà le correctif, récupérez `:next` pour tester la branche de publication ou attendez le tag SemVer.
+**`latest` ne garantit pas l’actualité par rapport à git.** Les correctifs fusionnés dans `main` ou dans la branche `release/v*` active ne sont **pas** inclus dans `:latest` tant qu’une image SemVer stable n’a pas été publiée et que la tâche de publication n’a pas promu `:latest` (avec le même digest que cette version SemVer). Si `latest` semble figé alors que GitHub affiche déjà le correctif, récupérez `:next` pour tester la branche de publication ou attendez le tag SemVer.
 
-| Votre objectif                                                                       | À utiliser                                  |
+| Votre objectif                                                                       | Utilisez                                    |
 | ------------------------------------------------------------------------------------ | ------------------------------------------- |
-| GitOps / production ne devant subir aucune dérive                                    | Épingler `:X.Y.Z` (ou le digest de l’image) |
+| GitOps / production ne devant subir aucune dérive                                    | Épinglez `:X.Y.Z` (ou le digest de l’image) |
 | Suivre les versions stables publiées et accepter une recréation à chaque publication | `:latest`                                   |
 | Tester les commits `release/v*` non publiés                                          | `:next` (pas en production)                 |
 | Tester `main`                                                                        | `:main` (pas en production)                 |

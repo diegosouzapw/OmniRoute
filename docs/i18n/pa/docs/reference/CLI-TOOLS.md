@@ -573,72 +573,72 @@ kiro-cli status
 
 ## 10. ਅੰਦਰੂਨੀ OmniRoute CLI
 
-`omniroute` ਬਾਈਨਰੀ ਸਰਵਰ ਜੀਵਨ-ਚੱਕਰ, ਸੈੱਟਅੱਪ, ਡਾਇਗਨੋਸਟਿਕਸ ਅਤੇ ਪ੍ਰਦਾਤਾ ਪ੍ਰਬੰਧਨ ਲਈ ਕਮਾਂਡਾਂ ਪ੍ਰਦਾਨ ਕਰਦੀ ਹੈ। ਐਂਟਰੀ ਪੁਆਇੰਟ: `bin/omniroute.mjs`।
+`omniroute` ਬਾਈਨਰੀ ਸਰਵਰ ਜੀਵਨ-ਚੱਕਰ, ਸੈਟਅੱਪ, ਨਿਦਾਨ ਅਤੇ ਪ੍ਰਦਾਤਾ ਪ੍ਰਬੰਧਨ ਲਈ ਕਮਾਂਡਾਂ ਮੁਹੱਈਆ ਕਰਦੀ ਹੈ। ਐਂਟਰੀ ਪੁਆਇੰਟ: `bin/omniroute.mjs`।
 
 ```bash
-omniroute                              # ਸਰਵਰ ਸ਼ੁਰੂ ਕਰੋ (ਡਿਫੌਲਟ ਪੋਰਟ 20128)
-omniroute setup                        # ਇੰਟਰਐਕਟਿਵ ਸੈੱਟਅੱਪ ਵਿਜ਼ਾਰਡ
-omniroute doctor                       # ਕੌਂਫਿਗ, DB, ਪੋਰਟਾਂ ਅਤੇ ਰਨਟਾਈਮ ਦੀ ਜਾਂਚ ਕਰੋ
-omniroute providers list               # ਕੌਂਫਿਗਰ ਕੀਤੇ ਪ੍ਰਦਾਤਾ ਕਨੈਕਸ਼ਨ
+omniroute                              # ਸਰਵਰ ਸ਼ੁਰੂ ਕਰੋ (ਡਿਫਾਲਟ ਪੋਰਟ 20128)
+omniroute setup                        # ਇੰਟਰਐਕਟਿਵ ਸੈਟਅੱਪ ਵਿਜ਼ਾਰਡ
+omniroute doctor                       # ਕਨਫਿਗ, DB, ਪੋਰਟਾਂ ਅਤੇ ਰਨਟਾਈਮ ਦੀ ਜਾਂਚ ਕਰੋ
+omniroute providers list               # ਕਨਫਿਗਰ ਕੀਤੇ ਪ੍ਰਦਾਤਾ ਕਨੈਕਸ਼ਨ
 omniroute providers test-all           # ਹਰੇਕ ਸਰਗਰਮ ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
 omniroute reset-password               # ਐਡਮਿਨ ਪਾਸਵਰਡ ਰੀਸੈੱਟ ਕਰੋ
-omniroute logs                         # ਬੇਨਤੀ ਲੌਗ ਸਟ੍ਰੀਮ ਕਰੋ
-omniroute health                       # ਵਿਸਤ੍ਰਿਤ ਸਿਹਤ-ਸਥਿਤੀ (ਬ੍ਰੇਕਰ, ਕੈਸ਼, ਮੈਮੋਰੀ)
+omniroute logs                         # ਬੇਨਤੀ ਲੌਗਾਂ ਨੂੰ ਸਟ੍ਰੀਮ ਕਰੋ
+omniroute health                       # ਵਿਸਤ੍ਰਿਤ ਸਿਹਤ ਜਾਣਕਾਰੀ (ਬ੍ਰੇਕਰ, ਕੈਸ਼, ਮੈਮੋਰੀ)
 omniroute --version                    # ਵਰਜਨ ਪ੍ਰਿੰਟ ਕਰੋ
 omniroute --help                       # ਸਾਰੀਆਂ ਕਮਾਂਡਾਂ ਦਿਖਾਓ
 ```
 
-### ਸੈੱਟਅੱਪ ਅਤੇ ਸ਼ੁਰੂਆਤੀਕਰਨ
+### ਸੈਟਅੱਪ ਅਤੇ ਸ਼ੁਰੂਆਤੀਕਰਨ
 
 ```bash
-omniroute setup                        # ਇੰਟਰਐਕਟਿਵ ਸੈੱਟਅੱਪ ਵਿਜ਼ਾਰਡ
-omniroute setup --non-interactive      # CI/ਆਟੋਮੇਸ਼ਨ ਮੋਡ (env ਵੇਰੀਏਬਲਾਂ + ਫਲੈਗਾਂ ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ)
+omniroute setup                        # ਇੰਟਰਐਕਟਿਵ ਸੈਟਅੱਪ ਵਿਜ਼ਾਰਡ
+omniroute setup --non-interactive      # CI/ਆਟੋਮੇਸ਼ਨ ਮੋਡ (env vars + ਫਲੈਗ ਪੜ੍ਹਦਾ ਹੈ)
 omniroute setup --password '<value>'   # ਐਡਮਿਨ ਪਾਸਵਰਡ ਸਿੱਧਾ ਸੈੱਟ ਕਰੋ
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # ਇੱਕੋ ਵਾਰ ਵਿੱਚ ਪ੍ਰਦਾਤਾ ਸ਼ਾਮਲ ਕਰੋ ਅਤੇ ਉਸਦੀ ਜਾਂਚ ਕਰੋ
+  --test-provider                      # ਇੱਕੋ ਵਾਰ ਵਿੱਚ ਪ੍ਰਦਾਤਾ ਜੋੜੋ ਅਤੇ ਜਾਂਚੋ
 ```
 
-ਗੈਰ-ਇੰਟਰਐਕਟਿਵ ਸੈੱਟਅੱਪ ਲਈ ਪਛਾਣੇ ਗਏ ਇਨਵਾਇਰਨਮੈਂਟ ਵੇਰੀਏਬਲ:
+ਗੈਰ-ਇੰਟਰਐਕਟਿਵ ਸੈਟਅੱਪ ਲਈ ਪਛਾਣੇ ਜਾਂਦੇ ਇਨਵਾਇਰਨਮੈਂਟ ਵੇਰੀਏਬਲ:
 
 | ਵੇਰੀਏਬਲ             | ਉਦੇਸ਼                                                            |
 | ------------------- | ---------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | ਪ੍ਰਦਾਤਾ API ਕੁੰਜੀ (Commander `.env()` ਰਾਹੀਂ `--api-key` ਨਾਲ ਬੱਧ) |
 | `DATA_DIR`          | OmniRoute ਡਾਟਾ ਡਾਇਰੈਕਟਰੀ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ                         |
 
-ਹੋਰ ਸਾਰੇ ਗੈਰ-ਇੰਟਰਐਕਟਿਵ ਇਨਪੁੱਟ ਇਨਵਾਇਰਨਮੈਂਟ ਵੇਰੀਏਬਲਾਂ ਦੀ ਬਜਾਏ ਫਲੈਗਾਂ ਵਜੋਂ ਪਾਸ ਕੀਤੇ ਜਾਂਦੇ ਹਨ:
+ਹੋਰ ਸਾਰੇ ਗੈਰ-ਇੰਟਰਐਕਟਿਵ ਇਨਪੁੱਟ ਇਨਵਾਇਰਨਮੈਂਟ ਵੇਰੀਏਬਲਾਂ ਵਜੋਂ ਨਹੀਂ, ਸਗੋਂ ਫਲੈਗਾਂ ਵਜੋਂ ਪਾਸ ਕੀਤੇ ਜਾਂਦੇ ਹਨ:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (ਉੱਪਰ ਦਿੱਤੇ `omniroute setup` ਵਿਕਲਪ ਵੇਖੋ)।
 
-### ਡਾਇਗਨੋਸਟਿਕਸ
+### ਨਿਦਾਨ
 
 ```bash
-omniroute doctor                       # ਕੌਂਫਿਗ, DB, ਪੋਰਟਾਂ, ਰਨਟਾਈਮ, ਮੈਮੋਰੀ ਅਤੇ ਲਾਈਵਨੈੱਸ ਦੀ ਜਾਂਚ ਕਰੋ
-omniroute doctor --json                # ਮਸ਼ੀਨ-ਪਾਠਯੋਗ JSON
-omniroute doctor --no-liveness         # HTTP ਸਿਹਤ-ਸਥਿਤੀ ਪ੍ਰੋਬ ਛੱਡੋ
-omniroute doctor --host 0.0.0.0        # ਲਾਈਵਨੈੱਸ ਹੋਸਟ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ
-omniroute doctor --liveness-url <url>  # ਪੂਰੇ ਸਿਹਤ-ਸਥਿਤੀ ਐਂਡਪੁਆਇੰਟ URL ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ
+omniroute doctor                       # ਕਨਫਿਗ, DB, ਪੋਰਟਾਂ, ਰਨਟਾਈਮ, ਮੈਮੋਰੀ ਅਤੇ ਸਰਗਰਮੀ ਦੀ ਜਾਂਚ ਕਰੋ
+omniroute doctor --json                # ਮਸ਼ੀਨ ਦੁਆਰਾ ਪੜ੍ਹਨਯੋਗ JSON
+omniroute doctor --no-liveness         # HTTP ਸਿਹਤ ਜਾਂਚ ਛੱਡੋ
+omniroute doctor --host 0.0.0.0        # ਸਰਗਰਮੀ ਹੋਸਟ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ
+omniroute doctor --liveness-url <url>  # ਪੂਰੇ ਸਿਹਤ ਐਂਡਪੁਆਇੰਟ URL ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ
 ```
 
 doctor ਇਹ ਜਾਂਚਾਂ ਚਲਾਉਂਦਾ ਹੈ: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, ਅਤੇ `Server liveness`। ਜੇ ਕੋਈ ਵੀ ਜਾਂਚ `fail` ਹੁੰਦੀ ਹੈ, ਤਾਂ ਇਹ ਗੈਰ-ਸਿਫ਼ਰ ਕੋਡ ਨਾਲ ਬੰਦ ਹੁੰਦਾ ਹੈ।
+`Memory`, ਅਤੇ `Server liveness`। ਜੇ ਕੋਈ ਵੀ ਜਾਂਚ `fail` ਹੁੰਦੀ ਹੈ ਤਾਂ ਇਹ ਗੈਰ-ਜ਼ੀਰੋ ਕੋਡ ਨਾਲ ਬੰਦ ਹੁੰਦਾ ਹੈ।
 
 ### ਪ੍ਰਦਾਤਾ ਪ੍ਰਬੰਧਨ
 
 ```bash
-omniroute providers available                       # OmniRoute ਪ੍ਰਦਾਤਾ ਕੈਟਾਲੌਗ
-omniroute providers available --search openai       # ਕੈਟਾਲੌਗ ਨੂੰ id/ਨਾਮ/ਉਪਨਾਮ/ਸ਼੍ਰੇਣੀ ਅਨੁਸਾਰ ਫਿਲਟਰ ਕਰੋ
-omniroute providers available --category api-key    # ਸ਼੍ਰੇਣੀ ਅਨੁਸਾਰ ਫਿਲਟਰ ਕਰੋ (api-key, oauth, free, ...)
-omniroute providers available --json                # ਮਸ਼ੀਨ-ਪਾਠਯੋਗ JSON
+omniroute providers available                       # OmniRoute ਪ੍ਰਦਾਤਾ ਕੈਟਾਲਾਗ
+omniroute providers available --search openai       # id/ਨਾਮ/ਉਪਨਾਮ/ਸ਼੍ਰੇਣੀ ਮੁਤਾਬਕ ਕੈਟਾਲਾਗ ਫਿਲਟਰ ਕਰੋ
+omniroute providers available --category api-key    # ਸ਼੍ਰੇਣੀ ਮੁਤਾਬਕ ਫਿਲਟਰ ਕਰੋ (api-key, oauth, free, ...)
+omniroute providers available --json                # ਮਸ਼ੀਨ ਦੁਆਰਾ ਪੜ੍ਹਨਯੋਗ JSON
 
-omniroute providers list                            # ਕੌਂਫਿਗਰ ਕੀਤੇ ਪ੍ਰਦਾਤਾ ਕਨੈਕਸ਼ਨ
+omniroute providers list                            # ਕਨਫਿਗਰ ਕੀਤੇ ਪ੍ਰਦਾਤਾ ਕਨੈਕਸ਼ਨ
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # ਇੱਕ ਕੌਂਫਿਗਰ ਕੀਤੇ ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
+omniroute providers test <id|name>                  # ਇੱਕ ਕਨਫਿਗਰ ਕੀਤੇ ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
 omniroute providers test-all                        # ਹਰੇਕ ਸਰਗਰਮ ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
-omniroute providers validate                        # ਸਿਰਫ਼-ਸਥਾਨਕ ਢਾਂਚਾਗਤ ਪ੍ਰਮਾਣਿਕਤਾ
+omniroute providers validate                        # ਕੇਵਲ-ਲੋਕਲ ਸੰਰਚਨਾਤਮਕ ਪ੍ਰਮਾਣਿਕਤਾ
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # ਮੌਜੂਦਾ OAuth ਪ੍ਰਵਾਹ
@@ -646,54 +646,53 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-ਪਹਿਲਾਂ ਹਨ ਅਤੇ ਇਸ ਲਈ
-ਸਰਗਰਮ ਸਥਾਨਕ ਜਾਂ ਰਿਮੋਟ ਸੰਦਰਭ ਦੇ ਵਿਰੁੱਧ ਕੰਮ ਕਰਦੇ ਹਨ। ਕਰੈਡੈਂਸ਼ੀਅਲ ਇਨਪੁੱਟ ਲਈ
+`providers add/import/auth/edit/remove` API-ਪਹਿਲਾਂ ਹਨ ਅਤੇ ਇਸ ਲਈ ਸਰਗਰਮ ਲੋਕਲ ਜਾਂ ਰਿਮੋਟ ਸੰਦਰਭ ਨਾਲ ਕੰਮ ਕਰਦੇ ਹਨ। ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ ਇਨਪੁੱਟ ਲਈ
 `--credential-stdin` ਜਾਂ `--credential-env` ਵਰਤਣਾ ਚਾਹੀਦਾ ਹੈ; `--dry-run --json` ਸਿਰਫ਼
-ਸੰਸ਼ੋਧਿਤ ਮੌਜੂਦਗੀ/ਰੂਪ ਦੀ ਰਿਪੋਰਟ ਕਰਦਾ ਹੈ। `providers available` OmniRoute ਕੈਟਾਲੌਗ ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ;
-`providers list/test/test-all/validate` ਆਪਣਾ ਸਥਾਨਕ SQLite ਵਿਹਾਰ ਬਰਕਰਾਰ ਰੱਖਦੇ ਹਨ ਅਤੇ
-ਇਨ੍ਹਾਂ ਲਈ ਸਰਵਰ ਦਾ ਚੱਲਣਾ ਲਾਜ਼ਮੀ ਨਹੀਂ ਹੈ।
+ਸੰਪਾਦਿਤ ਮੌਜੂਦਗੀ/ਆਕਾਰ ਦੀ ਰਿਪੋਰਟ ਕਰਦਾ ਹੈ। `providers available` OmniRoute ਕੈਟਾਲਾਗ ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ;
+`providers list/test/test-all/validate` ਆਪਣਾ ਲੋਕਲ SQLite ਵਿਹਾਰ ਕਾਇਮ ਰੱਖਦੇ ਹਨ ਅਤੇ
+ਸਰਵਰ ਚੱਲ ਰਿਹਾ ਹੋਣਾ ਲਾਜ਼ਮੀ ਨਹੀਂ ਹੈ।
 
 ### ਰਿਕਵਰੀ ਅਤੇ ਰੀਸੈੱਟ
 
 ```bash
 omniroute reset-password                # ਐਡਮਿਨ ਪਾਸਵਰਡ ਰੀਸੈੱਟ ਕਰੋ (ਇਹ ਵੀ: omniroute-reset-password)
-omniroute reset-encrypted-columns       # ਇਨਕ੍ਰਿਪਟ ਕੀਤੇ ਕਰੈਡੈਂਸ਼ੀਅਲ ਰੀਸੈੱਟ ਲਈ ਚੇਤਾਵਨੀ + ਡ੍ਰਾਈ-ਰਨ ਦਿਖਾਓ
-omniroute reset-encrypted-columns --force  # SQLite ਵਿੱਚ ਇਨਕ੍ਰਿਪਟ ਕੀਤੇ ਕਰੈਡੈਂਸ਼ੀਅਲਾਂ ਨੂੰ ਅਸਲ ਵਿੱਚ null ਕਰੋ
+omniroute reset-encrypted-columns       # ਇਨਕ੍ਰਿਪਟ ਕੀਤੇ ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ ਰੀਸੈੱਟ ਲਈ ਚੇਤਾਵਨੀ + ਡਰਾਈ-ਰਨ ਦਿਖਾਓ
+omniroute reset-encrypted-columns --force  # SQLite ਵਿੱਚ ਇਨਕ੍ਰਿਪਟ ਕੀਤੇ ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ ਵਾਸਤਵ ਵਿੱਚ null ਕਰੋ
 ```
 
-### ਕਰੈਡੈਂਸ਼ੀਅਲ ਐਕਸਪੋਰਟ (⚠ ਸਾਵਧਾਨੀ ਨਾਲ ਸੰਭਾਲੋ)
+### ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ ਐਕਸਪੋਰਟ (⚠ ਸਾਵਧਾਨੀ ਨਾਲ ਸੰਭਾਲੋ)
 
 ```bash
 omniroute auth export                                 # ਚੇਤਾਵਨੀ + ਪੁਸ਼ਟੀ ਗੇਟ ਦਿਖਾਓ — ਕੋਈ DB ਪਹੁੰਚ ਨਹੀਂ
-omniroute auth export --force                          # ਸਾਰੇ ਕਨੈਕਸ਼ਨਾਂ ਦੇ ਡਿਕ੍ਰਿਪਟ ਕੀਤੇ ਕਰੈਡੈਂਸ਼ੀਅਲ JSON ਵਜੋਂ stdout ਉੱਤੇ ਐਕਸਪੋਰਟ ਕਰੋ
+omniroute auth export --force                          # ਸਾਰੇ ਕਨੈਕਸ਼ਨਾਂ ਦੇ ਡਿਕ੍ਰਿਪਟ ਕੀਤੇ ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ JSON ਵਜੋਂ stdout ਉੱਤੇ ਐਕਸਪੋਰਟ ਕਰੋ
 omniroute auth export --force --id <id>                 # ਸਿਰਫ਼ ਮੇਲ ਖਾਂਦਾ ਕਨੈਕਸ਼ਨ ਐਕਸਪੋਰਟ ਕਰੋ
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> ਲਾਈਨਾਂ ਜਾਰੀ ਕਰੋ
-omniroute auth export --force --out creds.json           # ਇੱਕ ਫ਼ਾਈਲ ਵਿੱਚ ਲਿਖੋ (0600 ਅਨੁਮਤੀਆਂ ਨਾਲ ਬਣਾਈ ਜਾਂਦੀ ਹੈ)
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> ਲਾਈਨਾਂ ਨਿਕਾਸ ਕਰੋ
+omniroute auth export --force --out creds.json           # ਫਾਈਲ ਵਿੱਚ ਲਿਖੋ (0600 ਅਨੁਮਤੀਆਂ ਨਾਲ ਬਣਾਈ ਜਾਂਦੀ ਹੈ)
 ```
 
-`auth export` **ਸਿਰਫ਼-ਸਥਾਨਕ** ਹੈ (ਸਿੱਧਾ SQLite ਪੜ੍ਹਨਾ, ਕੋਈ HTTP ਰੂਟ ਨਹੀਂ) ਅਤੇ ਜਾਣਬੁੱਝ ਕੇ
+`auth export` **ਕੇਵਲ-ਲੋਕਲ** ਹੈ (ਸਿੱਧਾ SQLite ਪੜ੍ਹਨਾ, ਕੋਈ HTTP ਰੂਟ ਨਹੀਂ) ਅਤੇ ਜਾਣ-ਬੁੱਝ ਕੇ
 **ਪਲੇਨਟੈਕਸਟ** `apiKey`/`accessToken`/`refreshToken`/`idToken` ਮੁੱਲ ਪ੍ਰਿੰਟ/ਲਿਖਦਾ ਹੈ — ਇਹ ਇੱਕ ਵਿਸ਼ੇਸ਼ਤਾ ਹੈ, ਕੋਈ
-ਬੱਗ ਨਹੀਂ। `--force` ਤੋਂ ਬਿਨਾਂ ਡਾਟਾਬੇਸ ਤੋਂ ਕੁਝ ਵੀ ਨਹੀਂ ਪੜ੍ਹਿਆ ਜਾਂਦਾ ਅਤੇ ਕੁਝ ਵੀ ਡਿਕ੍ਰਿਪਟ ਨਹੀਂ ਕੀਤਾ ਜਾਂਦਾ। ਕੋਈ ਵੀ ਪਲੇਨਟੈਕਸਟ ਜਾਰੀ ਹੋਣ ਤੋਂ ਪਹਿਲਾਂ
-stderr ਉੱਤੇ ਹਮੇਸ਼ਾ ਇੱਕ ਚੇਤਾਵਨੀ ਬੈਨਰ ਪ੍ਰਿੰਟ ਹੁੰਦਾ ਹੈ। `STORAGE_ENCRYPTION_KEY` ਦਾ
-ਸੈੱਟ ਹੋਣਾ ਲਾਜ਼ਮੀ ਹੈ। ਜੇ ਕੋਈ ਫ਼ੀਲਡ ਡਿਕ੍ਰਿਪਟ ਹੋਣ ਵਿੱਚ ਅਸਫਲ ਰਹਿੰਦੀ ਹੈ (ਪੁਰਾਣੀ ਕੁੰਜੀ, ਖਰਾਬ ਸਾਈਫਰਟੈਕਸਟ), ਤਾਂ ਪੂਰੇ ਐਕਸਪੋਰਟ ਨੂੰ ਰੋਕਣ ਜਾਂ ਅਧਾਰਭੂਤ ਗਲਤੀ ਨੂੰ ਲੀਕ ਕਰਨ ਦੀ ਬਜਾਏ ਇਸਦੀ ਰਿਪੋਰਟ
-`<field>DecryptFailed: true` ਵਜੋਂ ਕੀਤੀ ਜਾਂਦੀ ਹੈ।
+ਬੱਗ ਨਹੀਂ। `--force` ਤੋਂ ਬਿਨਾਂ ਡਾਟਾਬੇਸ ਵਿੱਚੋਂ ਕੁਝ ਵੀ ਨਹੀਂ ਪੜ੍ਹਿਆ ਜਾਂਦਾ ਅਤੇ ਕੁਝ ਵੀ ਡਿਕ੍ਰਿਪਟ ਨਹੀਂ ਕੀਤਾ ਜਾਂਦਾ। ਕੋਈ ਵੀ ਪਲੇਨਟੈਕਸਟ ਨਿਕਾਸ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ stderr ਉੱਤੇ
+ਹਮੇਸ਼ਾ ਇੱਕ ਚੇਤਾਵਨੀ ਬੈਨਰ ਪ੍ਰਿੰਟ ਹੁੰਦਾ ਹੈ। `STORAGE_ENCRYPTION_KEY` ਦਾ ਸੈੱਟ ਹੋਣਾ ਲਾਜ਼ਮੀ ਹੈ।
+ਜਿਹੜੀ ਫੀਲਡ ਡਿਕ੍ਰਿਪਟ ਹੋਣ ਵਿੱਚ ਅਸਫਲ ਰਹਿੰਦੀ ਹੈ (ਪੁਰਾਣੀ ਕੁੰਜੀ, ਖਰਾਬ ਸਾਈਫਰਟੈਕਸਟ), ਉਸ ਨੂੰ ਪੂਰਾ ਐਕਸਪੋਰਟ ਰੋਕਣ ਜਾਂ ਅੰਦਰੂਨੀ ਗਲਤੀ ਲੀਕ ਕਰਨ ਦੀ ਬਜਾਏ
+`<field>DecryptFailed: true` ਵਜੋਂ ਰਿਪੋਰਟ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।
 
 ### ਹੋਰ ਸਬਕਮਾਂਡਾਂ
 
-ਜਦੋਂ ਤੱਕ ਹੋਰ ਨਾ ਦੱਸਿਆ ਗਿਆ ਹੋਵੇ, ਇਹ ਚੱਲ ਰਹੇ OmniRoute ਸਰਵਰ ਨੂੰ ਮੰਨਦੀਆਂ ਹਨ:
+ਜਦੋਂ ਤੱਕ ਵੱਖਰੇ ਤੌਰ 'ਤੇ ਨਾ ਦੱਸਿਆ ਗਿਆ ਹੋਵੇ, ਇਹ ਚੱਲ ਰਹੇ OmniRoute ਸਰਵਰ ਦੀ ਉਮੀਦ ਕਰਦੀਆਂ ਹਨ:
 
 ```bash
 omniroute status                       # ਰਨਟਾਈਮ ਦੀ ਵਿਆਪਕ ਸਥਿਤੀ
 omniroute logs                         # ਬੇਨਤੀ ਲੌਗ ਸਟ੍ਰੀਮ ਕਰੋ (--json, --search, --follow)
-omniroute config show                  # ਮੌਜੂਦਾ ਸੰਰਚਨਾ ਦਿਖਾਓ
+omniroute config list                  # ਸੰਰਚਿਤ CLI ਟੂਲ ਦਿਖਾਓ
 
-omniroute provider list                # ਉਪਲਬਧ ਪ੍ਰਦਾਤਾਵਾਂ ਦੀ ਸੂਚੀ ਦਿਖਾਓ (providers list ਦਾ ਉਪਨਾਮ)
+omniroute provider list                # ਉਪਲਬਧ ਪ੍ਰਦਾਤਿਆਂ ਦੀ ਸੂਚੀ ਬਣਾਓ (providers list ਦਾ ਉਪਨਾਮ)
 omniroute provider add                 # ਕਿਸੇ ਟੂਲ ਉੱਤੇ OmniRoute ਨੂੰ ਪ੍ਰਦਾਤਾ ਵਜੋਂ ਰਜਿਸਟਰ ਕਰੋ
 omniroute keys add | list | remove     # API ਕੁੰਜੀਆਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ
-omniroute models [provider]            # ਮਾਡਲਾਂ ਦੀ ਸੂਚੀ ਦਿਖਾਓ (--json, --search)
+omniroute models [provider]            # ਮਾਡਲਾਂ ਦੀ ਸੂਚੀ ਬਣਾਓ (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # ਸੰਰਚਨਾ + DB ਦਾ ਸਨੈਪਸ਼ਾਟ
+omniroute backup                       # ਸੰਰਚਨਾ + DB ਦਾ ਸਨੈਪਸ਼ਾਟ ਲਓ
 omniroute restore                      # ਪਿਛਲੇ ਸਨੈਪਸ਼ਾਟ ਤੋਂ ਮੁੜ-ਬਹਾਲ ਕਰੋ
 
 omniroute health                       # ਵਿਸਤ੍ਰਿਤ ਸਿਹਤ ਸਥਿਤੀ (ਬ੍ਰੇਕਰ, ਕੈਸ਼, ਮੈਮੋਰੀ)
@@ -705,9 +704,9 @@ omniroute mcp status | restart         # MCP ਸਰਵਰ ਦੀ ਸਥਿਤੀ
 omniroute a2a status | card            # A2A ਸਰਵਰ ਦੀ ਸਥਿਤੀ / ਏਜੰਟ ਕਾਰਡ
 
 omniroute tunnel list | create | stop  # ਟਨਲਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # ਵਾਤਾਵਰਣ ਵੇਰੀਏਬਲਾਂ ਦੀ ਜਾਂਚ ਕਰੋ / ਸੈੱਟ ਕਰੋ (ਆਰਜ਼ੀ)
+omniroute env show | get <k> | set <k> <v>  # ਵਾਤਾਵਰਣ ਵੇਰੀਏਬਲਾਂ ਦੀ ਜਾਂਚ ਕਰੋ / ਸੈੱਟ ਕਰੋ (ਅਸਥਾਈ)
 
-omniroute test                         # ਪ੍ਰਦਾਤਾ ਕਨੈਕਟੀਵਿਟੀ ਸਮੋਕ ਟੈਸਟ
+omniroute test                         # ਪ੍ਰਦਾਤਾ ਕਨੈਕਟੀਵਿਟੀ ਦਾ ਮੁੱਢਲਾ ਟੈਸਟ
 omniroute update                       # ਅੱਪਡੇਟਾਂ ਦੀ ਜਾਂਚ ਕਰੋ
 omniroute completion                   # ਸ਼ੈੱਲ ਕੰਪਲੀਸ਼ਨ ਤਿਆਰ ਕਰੋ
 ```
@@ -717,12 +716,12 @@ omniroute completion                   # ਸ਼ੈੱਲ ਕੰਪਲੀਸ਼�
 | ਫਲੈਗ                | ਵੇਰਵਾ                                                      |
 | ------------------- | ---------------------------------------------------------- |
 | `--no-open`         | ਸ਼ੁਰੂ ਹੋਣ ਵੇਲੇ ਬ੍ਰਾਊਜ਼ਰ ਆਪਣੇ-ਆਪ ਨਾ ਖੋਲ੍ਹੋ                  |
-| `--port <n>`        | API ਪੋਰਟ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ (ਡਿਫਾਲਟ 20128)                    |
-| `--mcp`             | stdio ਰਾਹੀਂ MCP ਸਰਵਰ ਵਜੋਂ ਚਲਾਓ (IDEs ਲਈ)                   |
-| `--non-interactive` | CI ਮੋਡ (ਕੋਈ ਪ੍ਰੌਂਪਟ ਨਹੀਂ; env/ਫਲੈਗਾਂ ਤੋਂ ਪੜ੍ਹਦਾ ਹੈ)        |
+| `--port <n>`        | API ਪੋਰਟ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰੋ (ਡਿਫੌਲਟ 20128)                    |
+| `--mcp`             | stdio ਉੱਤੇ MCP ਸਰਵਰ ਵਜੋਂ ਚਲਾਓ (IDEs ਲਈ)                    |
+| `--non-interactive` | CI ਮੋਡ (ਕੋਈ ਪ੍ਰੌਮਪਟ ਨਹੀਂ; env/ਫਲੈਗਾਂ ਤੋਂ ਪੜ੍ਹਦਾ ਹੈ)        |
 | `--json`            | ਮਸ਼ੀਨ ਦੁਆਰਾ ਪੜ੍ਹਨਯੋਗ JSON ਆਉਟਪੁੱਟ (doctor, providers, ਆਦਿ) |
 | `--help`, `-h`      | ਕਮਾਂਡ-ਵਿਸ਼ੇਸ਼ ਮਦਦ ਦਿਖਾਓ                                    |
-| `--version`, `-v`   | ਇੰਸਟਾਲ ਕੀਤਾ ਵਰਜਨ ਪ੍ਰਿੰਟ ਕਰੋ                                |
+| `--version`, `-v`   | ਇੰਸਟਾਲ ਕੀਤਾ ਸੰਸਕਰਣ ਪ੍ਰਿੰਟ ਕਰੋ                              |
 
 ---
 

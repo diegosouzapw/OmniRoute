@@ -126,7 +126,10 @@ describe("the route passes the caller's key through", () => {
     );
     assert.ok(
       /deleteCompletedBatches\(\s*sweepScope\s*\)/.test(src) &&
-        /sweepScope = \{ apiKeyId: scope\.apiKeyId \}/.test(src),
+        // The caller's own key id — raw `scope.apiKeyId`, or the LEDGER-27
+        // `effectiveApiKeyId` that falls back to the id the policy resolved on
+        // the x-api-key transport. Never a bare/instance-wide value.
+        /sweepScope = \{ apiKeyId: (scope\.apiKeyId|effectiveApiKeyId) \}/.test(src),
       "the route must pass the caller's scope into the helper"
     );
   });

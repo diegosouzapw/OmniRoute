@@ -245,14 +245,14 @@ env द्वारे प्रत्येक प्रदात्यास�
 | व्हेरिएबल                | डीफॉल्ट                                                         |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-डायनॅमिक लुकअपद्वारे `open-sse/executors/base.ts::buildHeaders()` यांचा वापर करते. **प्रदाते नवीन CLI आवृत्त्या जारी करतात तेव्हा हे अपडेट करा** — जुने UA स्ट्रिंग कालबाह्य क्लायंट म्हणून नाकारले जाऊ लागतात.
+डायनॅमिक लुकअपद्वारे `open-sse/executors/base.ts::buildHeaders()` कडून वापरले जाते. **प्रदाते नवीन CLI आवृत्त्या प्रकाशित करतात तेव्हा यांची आवृत्ती वाढवा** — जुने UA स्ट्रिंग कालबाह्य क्लायंट म्हणून नाकारले जाऊ लागतात.
 
 ## CLI सुसंगतता मोड टॉगल्स (`.env.example` विभाग 13)
 

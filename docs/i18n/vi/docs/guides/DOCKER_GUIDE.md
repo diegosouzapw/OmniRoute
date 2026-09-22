@@ -62,29 +62,33 @@ docker run -d \
 ## Docker Compose
 
 ```bash
-# Profile cơ sở (không có công cụ CLI)
+# Hồ sơ cơ bản (không có công cụ CLI)
 docker compose --profile base up -d
 
-# Profile CLI (tích hợp sẵn Claude Code, Codex, OpenClaw)
+# Hồ sơ CLI (tích hợp sẵn Claude Code, Codex, OpenClaw)
 docker compose --profile cli up -d
 
-# Profile máy chủ (ưu tiên Linux; gắn các tệp nhị phân CLI của máy chủ ở chế độ chỉ đọc)
+# Hồ sơ máy chủ (ưu tiên Linux; gắn các tệp nhị phân CLI của máy chủ ở chế độ chỉ đọc)
 docker compose --profile host up -d
+
+# Hồ sơ web (Chromium/Playwright dành cho các nhà cung cấp phiên web)
+docker compose --profile web up -d
 
 # Kết hợp CLI + sidecar CLIProxyAPI
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
-## Các profile khả dụng
+## Các profile có sẵn
 
-OmniRoute cung cấp bốn profile Compose. Hãy chọn profile phù hợp với môi trường của bạn.
+OmniRoute cung cấp các profile Compose cho những mô hình triển khai chính. Hãy chọn profile phù hợp với môi trường của bạn.
 
 | Profile           | Dịch vụ          | Khi nào nên sử dụng                                                                                                                                            | Lệnh                                         |
 | ----------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (mặc định) | `omniroute-base` | Máy chủ headless / môi trường runtime tối thiểu, không kèm theo CLI của nhà cung cấp                                                                           | `docker compose --profile base up -d`        |
-| `cli`             | `omniroute-cli`  | Quy trình làm việc theo tác tử gọi `omniroute providers/setup/doctor` và các CLI đi kèm (Codex, Claude Code, Droid, OpenClaw)                                  | `docker compose --profile cli up -d`         |
+| `base` (mặc định) | `omniroute-base` | Máy chủ không giao diện / môi trường chạy tối thiểu, không tích hợp sẵn CLI của nhà cung cấp                                                                   | `docker compose --profile base up -d`        |
+| `cli`             | `omniroute-cli`  | Quy trình tác tử gọi `omniroute providers/setup/doctor` và các CLI được tích hợp sẵn (Codex, Claude Code, Droid, OpenClaw)                                     | `docker compose --profile cli up -d`         |
 | `host`            | `omniroute-host` | Máy chủ Linux cần quyền truy cập tương tự `network_mode` vào các CLI trên máy chủ bằng cách gắn `~/.local/bin`, `~/.codex`, `~/.claude`, v.v. ở chế độ chỉ đọc | `docker compose --profile host up -d`        |
-| `cliproxyapi`     | `cliproxyapi`    | Chạy sidecar [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) trên cổng `8317` để proxy CLI thượng nguồn                                            | `docker compose --profile cliproxyapi up -d` |
+| `cliproxyapi`     | `cliproxyapi`    | Chạy sidecar [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) trên cổng `8317` để proxy CLI ngược dòng                                              | `docker compose --profile cliproxyapi up -d` |
+| `web`             | `omniroute-web`  | Các nhà cung cấp phiên web cần trình duyệt: `gemini-web`, `claude-web`, `claude-turnstile` (xây dựng `runner-web`, bao gồm Chromium)                           | `docker compose --profile web up -d`         |
 
 > Có thể kết hợp nhiều profile: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -233,50 +237,52 @@ Stack production chạy song song với compose dev (sử dụng tên container,
 
 ## Các giai đoạn Dockerfile
 
-Kho lưu trữ cung cấp một Dockerfile nhiều giai đoạn (`Dockerfile`). Có ba giai đoạn được công khai; hãy chọn `target` phù hợp với trường hợp sử dụng của bạn.
+Kho lưu trữ cung cấp một Dockerfile đa giai đoạn (`Dockerfile`). Có bốn giai đoạn được cung cấp; hãy chọn `target` phù hợp với trường hợp sử dụng của bạn.
 
-| Giai đoạn     | Ảnh cơ sở             | Mục đích                                                                                                                                                                                            |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Cài đặt các dependency (`npm ci --legacy-peer-deps`) và chạy `npm run build` (mặc định dùng Turbopack — xem phần Tài nguyên khi build bên dưới)                                                     |
-| `runner-base` | `node:26-trixie-slim` | Môi trường runtime production với đầu ra standalone của Next.js. **Không tích hợp CLI của nhà cung cấp.**                                                                                           |
-| `runner-cli`  | `runner-base`         | Thêm `git`, `docker.io`, `docker-compose` và các CLI toàn cục: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Hãy chọn giai đoạn này cho các quy trình làm việc dùng agent.** |
+| Giai đoạn     | Image cơ sở           | Mục đích                                                                                                                                                                                                                                                                                                                                |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Cài đặt các phần phụ thuộc (`npm ci --legacy-peer-deps`) và chạy `npm run build` (mặc định dùng Turbopack — xem phần Tài nguyên khi build bên dưới)                                                                                                                                                                                     |
+| `runner-base` | `node:26-trixie-slim` | Môi trường chạy production với đầu ra standalone của Next.js. **Không tích hợp CLI của nhà cung cấp nào.**                                                                                                                                                                                                                              |
+| `runner-cli`  | `runner-base`         | Bổ sung `git`, `docker.io`, `docker-compose` và các CLI toàn cục: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Hãy chọn giai đoạn này cho các quy trình tác nhân.**                                                                                                                                             |
+| `runner-web`  | `runner-base`         | Bổ sung Playwright + trình duyệt Chromium (`--with-deps`) cho các nhà cung cấp phiên web: `gemini-web`, `claude-web`, `claude-turnstile`. **Hãy chọn giai đoạn này khi bạn sử dụng các nhà cung cấp đó** — image thông thường sẽ thất bại khi xử lý yêu cầu nếu không có thành phần này (xem ghi chú `-web` trong phần Kênh phát hành). |
 
-Build thủ công một target cụ thể:
+Build một target cụ thể theo cách thủ công:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Tài nguyên khi build
 
-Ba đối số build kiểm soát mức tài nguyên mà giai đoạn `builder` tiêu thụ. Chúng chỉ áp dụng tại thời điểm build —
+Ba đối số build kiểm soát mức tài nguyên mà giai đoạn `builder` tiêu tốn. Chúng chỉ áp dụng tại thời điểm build —
 `OMNIROUTE_MEMORY_MB` (bên dưới) là một tham số runtime riêng biệt.
 
-| Đối số build                | Mặc định | Tác dụng                                                                                           |
-| --------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | Giá trị `0` sẽ build bằng webpack. Bộ nhớ đỉnh thấp hơn nhưng chậm hơn.                            |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | Giới hạn heap V8 (`--max-old-space-size`) cho tiến trình `next build` được khởi chạy.              |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Cung cấp giá trị cho `CIRCLE_NODE_TOTAL`; Next suy ra `workers = N - 1` để thu thập dữ liệu trang. |
+| Đối số build                | Mặc định | Tác dụng                                                                                      |
+| --------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` sẽ build bằng webpack. Bộ nhớ đỉnh thấp hơn nhưng chậm hơn.                               |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | Giới hạn heap V8 (`--max-old-space-size`) cho tiến trình `next build` được khởi tạo.          |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Cấp giá trị cho `CIRCLE_NODE_TOTAL`; Next suy ra `workers = N - 1` để thu thập dữ liệu trang. |
 
-`OMNIROUTE_BUILD_WORKERS` là tham số cần tăng trên một máy build lớn và là tham số
-cần xem xét khi một bản build bị giới hạn tài nguyên gặp lỗi **sau khi** `✓ Compiled successfully`. Mỗi
+`OMNIROUTE_BUILD_WORKERS` là tham số cần tăng trên máy build lớn và là tham số
+cần xem xét khi một quá trình build bị giới hạn tài nguyên dừng **sau khi** hiển thị `✓ Compiled successfully`. Mỗi
 worker xử lý dữ liệu trang là một tiến trình riêng, và bản thân tiến trình cha `next build` cũng vậy;
 một lần tái hiện trực tiếp trên VPS (issue #7518) đã đo RSS đỉnh của mỗi tiến trình ở mức
 ~4.5 GB, không phụ thuộc vào cờ heap `NODE_OPTIONS` (Turbopack biên dịch trong
 bộ nhớ native/Rust nằm ngoài heap V8). Giá trị mặc định `2` (→ 1 worker, tổng cộng 2
-tiến trình) được định cỡ cho các runner do GitHub cung cấp có 16 GB / 4 vCPU mà
+tiến trình) được thiết lập phù hợp với các runner do GitHub lưu trữ có 16 GB / 4 vCPU mà
 pipeline phát hành sử dụng. Với `8` (→ 7 worker), runner đó đã hết bộ nhớ và
 buildkit làm bước này thất bại với `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ 2 worker) vẫn không đủ sau khi RSS trên mỗi tiến trình được đo
+`3` (→ 2 worker) vẫn không vừa sau khi RSS trên mỗi tiến trình được đo
 trực tiếp thay vì suy luận. `tests/unit/docker-build-memory-budget.test.ts`
 thực hiện phép tính dựa trên số liệu đã đo và sẽ thất bại nếu một trong hai tham số
 vượt quá khả năng của runner.
 
 Turbopack biên dịch trong bộ nhớ Rust native nằm **ngoài** heap V8, vì vậy
-`OMNIROUTE_BUILD_MEMORY_MB` không giới hạn bộ nhớ đó. Trên máy chủ có giới hạn bộ nhớ,
-bản build sau đó sẽ bị OOM killer gửi SIGKILL mà hoàn toàn không có thông báo lỗi — nó chỉ đơn giản
-dừng giữa chừng tại `Creating an optimized production build`, trông giống như bị treo thay
+`OMNIROUTE_BUILD_MEMORY_MB` không giới hạn được bộ nhớ này. Trên máy chủ có giới hạn bộ nhớ,
+quá trình build sau đó bị OOM killer kết thúc bằng SIGKILL mà hoàn toàn không có thông báo lỗi — nó chỉ
+dừng giữa chừng tại `Creating an optimized production build`, khiến hiện tượng này trông giống như bị treo thay
 vì hết bộ nhớ. Nếu máy chủ build bị giới hạn tài nguyên, hãy chuyển bundler:
 
 ```bash
@@ -286,10 +292,10 @@ docker build --target runner-base \
 ```
 
 `webpackBuildWorker` được bật, vì vậy `next build` chạy một tiến trình cha **và** một tiến trình
-worker, trong đó mỗi tiến trình đều tuân theo `OMNIROUTE_BUILD_MEMORY_MB` một cách độc lập. Hãy đặt giới hạn
-container cao hơn khoảng hai lần giá trị đó, không phải một lần.
+worker, và mỗi tiến trình tuân theo `OMNIROUTE_BUILD_MEMORY_MB` riêng biệt. Hãy đặt giới hạn
+bộ nhớ của container cao hơn khoảng hai lần giá trị đó, không phải một lần.
 
-Kết quả đo trên cây mã nguồn này (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Số liệu đo trên cây mã nguồn này (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
 | Bundler   | Giới hạn container | Kết quả                                      |
 | --------- | ------------------ | -------------------------------------------- |
@@ -297,31 +303,31 @@ Kết quả đo trên cây mã nguồn này (`--target runner-base`, `OMNIROUTE_
 | webpack   | 8 GiB              | Worker build bị SIGKILL                      |
 | webpack   | 12 GiB             | Thành công, đạt đỉnh ở 11.1 GiB              |
 
-### Giá trị mặc định khi runtime
+### Giá trị mặc định khi chạy
 
-Các giá trị mặc định được `runner-base` export: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Các giá trị mặc định do `runner-base` xuất ra: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Hành vi bộ nhớ trong Docker:
 
-- Image đặt `OMNIROUTE_MEMORY_MB=1024` và suy ra `NODE_OPTIONS=--max-old-space-size=1024` từ giá trị này.
-- Tiến trình máy chủ thực tế được khởi chạy bởi standalone launcher, launcher này đọc `OMNIROUTE_MEMORY_MB` và nối thêm `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node sử dụng giá trị `--max-old-space-size` cuối cùng khi cờ này được lặp lại, vì vậy việc đặt `OMNIROUTE_MEMORY_MB` sẽ kiểm soát giới hạn heap Docker có hiệu lực.
-- Vì image luôn đặt giá trị này, cơ chế dự phòng tự hiệu chỉnh theo RAM của launcher không bao giờ được áp dụng trong Docker. Hãy tăng giá trị này một cách tường minh cho workload (bảng bên dưới). `2048` vẫn quá nhỏ cho `/v1/responses` của coding agent.
+- Image đặt `OMNIROUTE_MEMORY_MB=1024` và suy ra `NODE_OPTIONS=--max-old-space-size=1024` từ biến này.
+- Tiến trình máy chủ thực tế được khởi chạy bởi trình khởi chạy độc lập; trình này đọc `OMNIROUTE_MEMORY_MB` và thêm `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node sử dụng giá trị `--max-old-space-size` được lặp lại sau cùng, vì vậy việc đặt `OMNIROUTE_MEMORY_MB` sẽ kiểm soát giới hạn heap Docker thực tế.
+- Vì image luôn đặt biến này, cơ chế dự phòng tự hiệu chỉnh theo RAM của trình khởi chạy sẽ không bao giờ được áp dụng trong Docker. Hãy tăng biến này một cách rõ ràng cho khối lượng công việc (bảng bên dưới). `2048` vẫn quá nhỏ đối với `/v1/responses` của tác nhân lập trình.
 
-### RAM runtime cho coding agent
+### RAM thời gian chạy cho các tác nhân lập trình
 
-Giá trị mặc định 1 GiB của Docker là mức tối thiểu cho dashboard/trò chuyện nhẹ, không phải mức dành cho production. Các body dài của `POST /v1/responses` (hàng trăm thông điệp, hàng chục công cụ) giữ lại nhiều đồ thị trong bộ nhớ trong quá trình nén. Hai request chồng lấp có kích thước ~3 MiB / ~750k token đã khiến V8 dừng ở old-space **12 GiB** (`FATAL ERROR: Reached heap limit`) và cũng chạm lỗi OOM của cgroup 16 GiB. Xem [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Mức mặc định 1 GiB của Docker là ngưỡng tối thiểu dành cho bảng điều khiển/trò chuyện nhẹ, không phải mức dành cho môi trường production. Các phần thân `POST /v1/responses` dài (hàng trăm tin nhắn, hàng chục công cụ) giữ lại nhiều đồ thị trong bộ nhớ trong quá trình nén. Hai yêu cầu chồng lấn có kích thước khoảng 3 MiB / khoảng 750k token đã khiến V8 dừng đột ngột với old-space **12 GiB** (`FATAL ERROR: Reached heap limit`) và cũng gặp lỗi OOM của cgroup 16 GiB. Xem [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Hãy đặt **`--memory` của cgroup cao hơn heap** — các buffer native, SQLite và dữ liệu trung gian của quá trình nén nằm ngoài V8.
+Hãy đặt kích thước **cgroup `--memory` cao hơn heap** — các bộ đệm native, SQLite và dữ liệu trung gian trong quá trình nén nằm ngoài V8.
 
-| Khối lượng công việc                       | `OMNIROUTE_MEMORY_MB`           | Container / cgroup     | Ghi chú                                                                                                            |
-| ------------------------------------------ | ------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Bảng điều khiển, một cuộc trò chuyện nhẹ   | `1024` (mặc định của image)     | ≥2 GiB                 |                                                                                                                    |
-| Một tác nhân lập trình (Claude/Codex/Grok) | `8192`                          | ≥10 GiB                | Một phiên `/v1/responses` điển hình                                                                                |
-| Hai `/v1/responses` dài đồng thời          | `10240`–`12288`                 | ≥12–16 GiB             | Đã ghi nhận V8 bị hủy ở heap khoảng 12 GiB                                                                         |
-| Ba ngữ cảnh dài đồng thời trở lên          | không chạy trong một tiến trình | tuần tự hóa / thêm RAM | Mặc định chỉ cho phép 1 tác vụ nặng đang xử lý; việc tăng giới hạn này mà không thêm RAM sẽ khiến lỗi hủy tái diễn |
+| Khối lượng công việc                       | `OMNIROUTE_MEMORY_MB`          | Container / cgroup     | Ghi chú                                                                                                                                  |
+| ------------------------------------------ | ------------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Bảng điều khiển, một phiên trò chuyện nhẹ  | `1024` (mặc định của image)    | ≥2 GiB                 |                                                                                                                                          |
+| Một tác nhân lập trình (Claude/Codex/Grok) | `8192`                         | ≥10 GiB                | Một phiên `/v1/responses` điển hình                                                                                                      |
+| Hai `/v1/responses` dài đồng thời          | `10240`–`12288`                | ≥12–16 GiB             | Đã đo được việc V8 dừng đột ngột ở heap khoảng 12 GiB                                                                                    |
+| Ba ngữ cảnh dài đồng thời trở lên          | không chạy trên một tiến trình | tuần tự hóa / thêm RAM | Giới hạn tiếp nhận mặc định cho tác vụ nặng là 1 yêu cầu đang xử lý; tăng giới hạn mà không tăng RAM sẽ khiến lỗi dừng đột ngột tái diễn |
 
-Khi `OMNIROUTE_MEMORY_MB` **chưa được đặt**, `omniroute serve` trên máy vật lý sẽ hiệu chỉnh ở mức khoảng 35% RAM (giới hạn trong `[512, 4096]`). Docker luôn đặt thành `1024`, vì vậy quá trình hiệu chỉnh này không bao giờ chạy trong image chính thức.
+`omniroute serve` trên bare metal hiệu chỉnh ở mức khoảng 35% RAM (được giới hạn trong `[512, 4096]`) khi `OMNIROUTE_MEMORY_MB` **chưa được đặt**. Docker luôn đặt biến này thành `1024`, vì vậy quá trình hiệu chỉnh đó không bao giờ chạy trong image chính thức.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -331,24 +337,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Các biến môi trường quan trọng
 
-Ngoài các giá trị mặc định được ghi lại trong [ENVIRONMENT.md](../reference/ENVIRONMENT.md), những biến sau đây là quan trọng nhất khi chạy trong Docker:
+Ngoài các giá trị mặc định được ghi lại trong [ENVIRONMENT.md](../reference/ENVIRONMENT.md), các biến sau đây là quan trọng nhất khi chạy trong Docker:
 
-| Biến                          | Mục đích                                                                                                                                                                                                                                                                                 | Mặc định                 |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Khóa bí mật dùng chung cho cầu nối WebSocket. **Bắt buộc trong môi trường production** — hãy đặt thành một chuỗi ngẫu nhiên mạnh.                                                                                                                                                        | chưa đặt (phải cung cấp) |
-| `REDIS_URL`                   | Chuỗi kết nối cho backend giới hạn tốc độ / bộ nhớ đệm                                                                                                                                                                                                                                   | `redis://redis:6379`     |
-| `REDIS_PORT`                  | Cổng phía máy chủ cho container Redis đi kèm                                                                                                                                                                                                                                             | `6379`                   |
-| `REDIS_BIND_HOST`             | Giao diện mạng của máy chủ mà cổng Redis đi kèm được công khai trên đó (loopback trừ khi bạn thêm AUTH)                                                                                                                                                                                  | `127.0.0.1`              |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Đường dẫn trên máy chủ được gắn vào profile `cli` tại `/workspace/omniroute` cho các quy trình tự cập nhật                                                                                                                                                                               | `.` (thư mục hiện tại)   |
-| `OMNIROUTE_MEMORY_MB`         | Giới hạn heap Node khi chạy cho máy chủ Docker độc lập; ghi đè giá trị mặc định của image ở trên. Các tác nhân lập trình: `8192`+ (xem [RAM khi chạy](#runtime-ram-for-coding-agents)).                                                                                                  | `1024`                   |
-| `DASHBOARD_PORT` / `API_PORT` | Ghi đè các cổng được công khai cho dashboard (20128) và API (20129)                                                                                                                                                                                                                      | `20128` / `20129`        |
-| `APP_BIND_HOST`               | Giao diện mạng của máy chủ mà docker-compose công khai các cổng dashboard/API/live-WS trên đó. Với `REQUIRE_API_KEY=false` (mặc định), `0.0.0.0` sẽ công khai proxy `/v1` ẩn danh cho mạng LAN — chỉ mở rộng phạm vi khi dùng `REQUIRE_API_KEY=true` hoặc có reverse proxy ở phía trước. | `127.0.0.1`              |
-| `CLIPROXY_BIND_HOST`          | Giao diện mạng của máy chủ mà docker-compose công khai sidecar `cliproxyapi` trên đó — volume dữ liệu của sidecar này lưu thông tin xác thực của nhà cung cấp.                                                                                                                           | `127.0.0.1`              |
-| `OMNIROUTE_PLUGINS_DIR`       | Thư mục mà trình quét plugin khi chạy đọc và cài đặt vào. Hãy đặt biến này khi các plugin được bind-mount: giá trị mặc định phụ thuộc vào `HOME`, nhưng image không nhất thiết phải export biến này.                                                                                     | `~/.omniroute/plugins`   |
-| `OMNIROUTE_BASE_PATH`         | Đường dẫn con URL khi ứng dụng được công khai phía sau reverse proxy (ví dụ: `/omniroute`)                                                                                                                                                                                               | _(trống = thư mục gốc)_  |
-| `NEXT_PUBLIC_BASE_URL`        | Origin công khai trên trình duyệt, bao gồm đường dẫn con (ví dụ: `https://host/omniroute`)                                                                                                                                                                                               | chưa đặt                 |
-| `PROD_DASHBOARD_PORT`         | Cổng dashboard phía máy chủ cho `docker-compose.prod.yml`                                                                                                                                                                                                                                | `20130`                  |
-| `CLIPROXYAPI_PORT`            | Cổng phía máy chủ cho sidecar `cliproxyapi`                                                                                                                                                                                                                                              | `8317`                   |
+| Biến                          | Mục đích                                                                                                                                                                                                                                                          | Mặc định                      |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Bí mật dùng chung cho cầu nối WebSocket. **Bắt buộc trong môi trường production** — hãy đặt thành một chuỗi ngẫu nhiên mạnh.                                                                                                                                      | chưa đặt (phải được cung cấp) |
+| `REDIS_URL`                   | Chuỗi kết nối cho bộ giới hạn tốc độ / backend bộ nhớ đệm                                                                                                                                                                                                         | `redis://redis:6379`          |
+| `REDIS_PORT`                  | Cổng phía máy chủ cho container Redis đi kèm                                                                                                                                                                                                                      | `6379`                        |
+| `REDIS_BIND_HOST`             | Giao diện máy chủ mà cổng Redis đi kèm được công bố trên đó (loopback trừ khi bạn thêm AUTH)                                                                                                                                                                      | `127.0.0.1`                   |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Đường dẫn máy chủ được gắn vào profile `cli` tại `/workspace/omniroute` cho các quy trình tự cập nhật                                                                                                                                                             | `.` (thư mục hiện tại)        |
+| `OMNIROUTE_MEMORY_MB`         | Giới hạn heap Node khi chạy cho máy chủ Docker độc lập; ghi đè giá trị mặc định của image ở trên. Các agent lập trình: `8192`+ (xem [RAM khi chạy](#runtime-ram-for-coding-agents)).                                                                              | `1024`                        |
+| `DASHBOARD_PORT` / `API_PORT` | Ghi đè các cổng được công bố cho dashboard (20128) và API (20129)                                                                                                                                                                                                 | `20128` / `20129`             |
+| `APP_BIND_HOST`               | Giao diện máy chủ mà docker-compose công bố các cổng dashboard/API/live-WS trên đó. Với `REQUIRE_API_KEY=false` (mặc định), `0.0.0.0` sẽ đưa proxy `/v1` ẩn danh ra LAN — chỉ mở rộng phạm vi khi dùng `REQUIRE_API_KEY=true` hoặc có reverse proxy ở phía trước. | `127.0.0.1`                   |
+| `CLIPROXY_BIND_HOST`          | Giao diện máy chủ mà docker-compose công bố sidecar `cliproxyapi` trên đó — volume dữ liệu của nó chứa thông tin xác thực của nhà cung cấp.                                                                                                                       | `127.0.0.1`                   |
+| `OMNIROUTE_PLUGINS_DIR`       | Thư mục mà trình quét plugin khi chạy sẽ đọc và cài đặt vào. Hãy đặt biến này khi các plugin được bind-mount: giá trị mặc định phụ thuộc vào `HOME`, nhưng image không nhất thiết phải export biến này.                                                           | `~/.omniroute/plugins`        |
+| `OMNIROUTE_BASE_PATH`         | Đường dẫn con URL khi ứng dụng được công bố phía sau reverse proxy (ví dụ: `/omniroute`)                                                                                                                                                                          | _(trống = thư mục gốc)_       |
+| `NEXT_PUBLIC_BASE_URL`        | Origin công khai của trình duyệt, bao gồm cả đường dẫn con (ví dụ: `https://host/omniroute`)                                                                                                                                                                      | chưa đặt                      |
+| `PROD_DASHBOARD_PORT`         | Cổng dashboard phía máy chủ cho `docker-compose.prod.yml`                                                                                                                                                                                                         | `20130`                       |
+| `CLIPROXYAPI_PORT`            | Cổng phía máy chủ cho sidecar `cliproxyapi`                                                                                                                                                                                                                       | `8317`                        |
 
 ## Reverse Proxy trên đường dẫn con (Traefik / nginx)
 
@@ -485,29 +491,42 @@ Các bảng tunnel của endpoint (Cloudflare, Tailscale, ngrok) có thể đư�
 | `diegosouzapw/omniroute` | `latest` | ~250MB     | SemVer ổn định **đã phát hành** cao nhất (không phải git `main`) |
 | `diegosouzapw/omniroute` | `3.8.0`  | ~250MB     | Ghim loại thẻ này cho GitOps                                     |
 
-Manifest đa nền tảng: `linux/amd64` + `linux/arm64` nguyên bản (Apple Silicon, AWS Graviton, Raspberry Pi). Docker tự động chọn kiến trúc phù hợp; truyền `--platform linux/amd64` nếu bạn cần buộc giả lập AMD64 trên máy chủ ARM.
+Manifest đa nền tảng: `linux/amd64` + `linux/arm64` nguyên bản (Apple Silicon, AWS Graviton, Raspberry Pi). Docker tự động chọn kiến trúc phù hợp; truyền `--platform linux/amd64` nếu bạn cần buộc mô phỏng AMD64 trên các máy chủ ARM.
 
 ### Kênh phát hành
 
-OmniRoute phát hành các kênh Docker riêng biệt dành cho bản phát hành ổn định, việc kiểm thử nhánh phát hành đang hoạt động và các bản dựng phát triển.
+OmniRoute phát hành các kênh Docker riêng biệt dành cho bản phát hành ổn định, kiểm thử nhánh phát hành đang hoạt động và các bản dựng phát triển.
 
-| Kênh                            | Nguồn                                    | Khả năng thay đổi                      | Mục đích sử dụng được khuyến nghị                                                                                                          |
-| ------------------------------- | ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `:<version>` / `:<version>-web` | Bản phát hành đã ký/có phiên bản         | Không thể thay đổi                     | Các bản triển khai sản xuất ghim vào một bản phát hành chính xác                                                                           |
-| `:latest` / `:latest-web`       | SemVer ổn định **đã phát hành** cao nhất | Con trỏ ổn định có thể thay đổi        | Theo dõi các bản phát hành ổn định **sau** tác vụ phát hành SemVer — **không** theo dõi `main` hoặc các commit `release/v*` chưa phát hành |
-| `:next` / `:next-web`           | Nhánh `release/v*` mặc định hiện tại     | Con trỏ tiền phát hành có thể thay đổi | Kiểm thử các bản sửa lỗi đã được đưa vào nhánh phát hành đang hoạt động nhưng chưa có trong bản phát hành ổn định                          |
-| `:main` / `:main-web`           | Nhánh `main`                             | Con trỏ phát triển có thể thay đổi     | Chỉ dành cho phát triển và kiểm thử tích hợp                                                                                               |
+| Kênh                            | Nguồn                                    | Khả năng thay đổi                      | Mục đích sử dụng được khuyến nghị                                                                                                                       |
+| ------------------------------- | ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Bản phát hành đã ký/có phiên bản         | Bất biến                               | Triển khai production có ghim chính xác một bản phát hành                                                                                               |
+| `:latest` / `:latest-web`       | SemVer ổn định **đã phát hành** cao nhất | Con trỏ ổn định có thể thay đổi        | Theo dõi các bản phát hành ổn định **sau khi** tác vụ phát hành SemVer hoàn tất — **không** theo dõi `main` hoặc các commit `release/v*` chưa phát hành |
+| `:next` / `:next-web`           | Nhánh `release/v*` mặc định hiện tại     | Con trỏ tiền phát hành có thể thay đổi | Kiểm thử các bản sửa lỗi đã được hợp nhất vào nhánh phát hành đang hoạt động nhưng chưa có trong bản phát hành ổn định                                  |
+| `:main` / `:main-web`           | Nhánh `main`                             | Con trỏ phát triển có thể thay đổi     | Chỉ dành cho phát triển và kiểm thử tích hợp                                                                                                            |
+
+#### Nhà cung cấp phiên web: các image `-web`
+
+Mỗi kênh ở trên đều có thêm thẻ `-web` (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), được dựng từ stage `runner-web` — cùng một image nhưng có thêm Playwright và trình duyệt Chromium. Image thông thường được cung cấp **không kèm** Chromium; `gemini-web`, `claude-web` và `claude-turnstile` cần thành phần này.
+
+Lỗi không xảy ra khi khởi động mà được trì hoãn: các nhà cung cấp đó vẫn liệt kê mô hình và hiển thị là đã kết nối trong bảng điều khiển, và chỉ yêu cầu đầu tiên mới thất bại với lỗi
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Nếu sử dụng các nhà cung cấp đó, hãy kéo thẻ `-web` của kênh bạn đang dùng — không có gì khác thay đổi. Với bản cài đặt npm/CLI (không dùng image Docker), thành phần tương đương còn thiếu là tệp nhị phân của trình duyệt: chạy `npx playwright install chromium` trên máy chủ.
 
 #### Sử dụng kênh tiền phát hành
 
-Kênh `next` được dựng lại sau mỗi lần push lên nhánh `release/v*` mặc định hiện tại và được phát hành cho cả AMD64 lẫn ARM64. Các nhánh bảo trì cũ hơn không thể ghi đè kênh này. Kênh cung cấp một image có thể pull dành cho các bản sửa lỗi đã được merge vào nhánh phát hành đang hoạt động trước khi thẻ ổn định tiếp theo được tạo.
+Kênh `next` được dựng lại sau mỗi lần push lên nhánh `release/v*` mặc định hiện tại và được phát hành cho cả AMD64 lẫn ARM64. Các nhánh bảo trì cũ hơn không thể ghi đè lên kênh này. Kênh này cung cấp một image có thể kéo về dành cho các bản sửa lỗi đã được hợp nhất vào nhánh phát hành đang hoạt động trước khi thẻ ổn định tiếp theo được tạo.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Đối với Docker Compose, hãy ghi đè thẻ image được profile đã chọn sử dụng, sau đó pull và tạo lại dịch vụ:
+Đối với Docker Compose, hãy ghi đè thẻ image được hồ sơ đã chọn sử dụng, sau đó kéo image và tạo lại dịch vụ:
 
 ```yaml
 services:
@@ -522,30 +541,30 @@ docker compose up -d
 
 #### An toàn và khôi phục phiên bản trước
 
-`next` là một kênh tiền phát hành linh động. Kênh này có thể thay đổi sau bất kỳ lần push nào lên nhánh phát hành đang hoạt động và **không được hỗ trợ để sử dụng trong môi trường sản xuất**. Hãy ghim digest của image trong khi đánh giá một bản dựng cụ thể:
+`next` là một kênh tiền phát hành linh động. Kênh này có thể thay đổi sau bất kỳ lần push nào lên nhánh phát hành đang hoạt động và **không được hỗ trợ để sử dụng trong production**. Hãy ghim digest của image khi đánh giá một bản dựng cụ thể:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Trước khi kiểm thử, hãy sao lưu volume dữ liệu OmniRoute hoặc thư mục dữ liệu được bind mount. Để quay lui, hãy khôi phục phiên bản ổn định hoặc digest đã dùng trước đó rồi tạo lại container:
+Trước khi kiểm thử, hãy sao lưu volume dữ liệu OmniRoute hoặc thư mục dữ liệu được bind mount. Để khôi phục phiên bản trước, hãy khôi phục phiên bản ổn định hoặc digest đã sử dụng trước đó rồi tạo lại container:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Bản dựng từ nhánh phát hành không bao giờ có thể cập nhật `latest`; chỉ phiên bản ngữ nghĩa ổn định đủ điều kiện mới có thể cập nhật con trỏ ổn định. Các image `next` vẫn được kiểm tra image phát hành và chịu cổng chặn đối với lỗ hổng ở mức CRITICAL.
+Bản dựng từ nhánh phát hành không bao giờ có thể di chuyển `latest`; chỉ phiên bản ngữ nghĩa ổn định đủ điều kiện mới có thể cập nhật con trỏ ổn định. Các image `next` vẫn duy trì quy trình kiểm tra image phát hành và cổng chặn lỗ hổng CRITICAL.
 
-**`latest` không đảm bảo tính cập nhật so với git.** Các bản sửa lỗi đã được hợp nhất vào `main` hoặc nhánh `release/v*` đang hoạt động **không** có trong `:latest` cho đến khi một image SemVer ổn định được phát hành và tác vụ phát hành cập nhật `:latest` (cùng digest với SemVer đó). Nếu `latest` có vẻ không thay đổi trong khi GitHub đã hiển thị bản sửa lỗi, hãy kéo `:next` để kiểm thử nhánh phát hành hoặc chờ thẻ SemVer.
+**`latest` không đảm bảo luôn chứa nội dung git mới nhất.** Các bản sửa lỗi đã được hợp nhất vào `main` hoặc nhánh `release/v*` đang hoạt động sẽ **không** có trong `:latest` cho đến khi một image SemVer ổn định được phát hành và tác vụ phát hành cập nhật `:latest` (cùng digest với SemVer đó). Nếu `latest` có vẻ không thay đổi trong khi GitHub đã hiển thị bản sửa lỗi, hãy kéo `:next` để kiểm thử nhánh phát hành hoặc chờ thẻ SemVer.
 
-| Nhu cầu của bạn                                                                            | Sử dụng                               |
-| ------------------------------------------------------------------------------------------ | ------------------------------------- |
-| GitOps / môi trường production không được phép sai lệch                                    | Ghim `:X.Y.Z` (hoặc digest của image) |
-| Theo dõi các bản ổn định đã phát hành và chấp nhận tạo lại container sau mỗi bản phát hành | `:latest`                             |
-| Kiểm thử các commit `release/v*` chưa phát hành                                            | `:next` (không dành cho production)   |
-| Kiểm thử `main`                                                                            | `:main` (không dành cho production)   |
+| Bạn muốn                                                                         | Hãy dùng                              |
+| -------------------------------------------------------------------------------- | ------------------------------------- |
+| GitOps / production không được phép thay đổi ngoài dự kiến                       | Ghim `:X.Y.Z` (hoặc digest của image) |
+| Theo dõi các bản ổn định đã phát hành và chấp nhận tạo lại sau mỗi bản phát hành | `:latest`                             |
+| Kiểm thử các commit `release/v*` chưa phát hành                                  | `:next` (không dùng cho production)   |
+| Kiểm thử `main`                                                                  | `:main` (không dùng cho production)   |
 
 ## Tính sẵn sàng: SQLite mặc định chỉ có một bản sao
 

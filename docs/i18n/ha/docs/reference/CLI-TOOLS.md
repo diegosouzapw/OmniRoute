@@ -147,56 +147,56 @@ mu'amala ɗaya ba tare da sauran ba yana sa suite ɗin gwaji ya gaza maimakon ya
 
 ## 1. Kundin CLI Code (kayan aiki 26)
 
-Duk kayan aikin da suke bayyana a `/dashboard/cli-code`. Waɗanda suke da `baseUrlSupport: none` ana haɗa su ta MITM ko jagorar hannu maimakon URL na tushe na musamman:
+Duk kayan aikin da ke bayyana a `/dashboard/cli-code`. Waɗanda ke da `baseUrlSupport: none` ana haɗa su ta MITM ko jagorar hannu maimakon URL na tushe na musamman:
 
-| id           | suna                    | mai samarwa         | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | suna                    | mai samarwa             | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | ----------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic               | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                  | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                    | none           | custom         | false        |
+| cline        | Cline                   | OSS (tsohon Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org                | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)               | full           | guide          | false        |
+| continue     | Continue                | continue.dev            | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)       | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ             | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)          | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)       | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)            | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (tsohon SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI              | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS               | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere               | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)       | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)        | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                     | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)             | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba                 | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere               | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                  | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research           | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                  | none           | mitm           | false        |
+| custom       | CLI na Musamman         | —                       | full           | custom-builder | false        |
 
-Kayan aikin da suke da `baseUrlSupport: "partial"` suna nuna lamba mai cewa "⚠ URL na tushe na wani ɓangare" a katin dashboard.
+Kayan aikin da ke da `baseUrlSupport: "partial"` suna nuna lamba "⚠ URL na tushe na ɓangare" a katin dashboard.
 ---
 
 ## 2. Kundin Wakilan CLI (kayan aiki 10)
 
-Wakilai masu cin gashin kansu da ke bayyana a `/dashboard/cli-agents`:
+Wakilai masu cin gashin kansu da suke bayyana a `/dashboard/cli-agents`:
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
-| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| id           | suna             | mai samarwa              | goyon bayan baseUrl | ana iya ƙaddamarwa ta ACP |
+| ------------ | ---------------- | ------------------------ | ------------------- | ------------------------- |
+| hermes-agent | Hermes Agent     | Nous Research            | cikakke             | a'a                       |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | cikakke             | eh                        |
+| goose        | Goose            | Block / Linux Foundation | cikakke             | eh                        |
+| interpreter  | Open Interpreter | OSS                      | cikakke             | eh                        |
+| warp         | Warp AI          | Warp Inc.                | na wani ɓangare     | eh                        |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | cikakke             | a'a                       |
+| omp          | Oh My Pi         | OSS                      | cikakke             | eh                        |
+| letta        | Letta CLI        | Letta                    | cikakke             | a'a                       |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | cikakke             | a'a                       |
+| 5dive        | 5dive            | OSS (5dive-ai)           | cikakke             | a'a                       |
 
 ---
 
@@ -607,72 +607,72 @@ a ƙarƙashin `/dashboard/cli-tools → Kiro`.
 
 ## 10. CLI na Cikin Gida na OmniRoute
 
-Fayil ɗin binary na `omniroute` yana samar da umarni don zagayowar rayuwar sabar, saiti, binciken matsaloli, da sarrafa masu samarwa. Wurin farawa: `bin/omniroute.mjs`.
+Binary ɗin `omniroute` yana samar da umarni don tafiyar da zagayen rayuwar sabar, saitawa, binciken matsaloli, da sarrafa masu samarwa. Mahadar farawa: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Fara sabar (tsohon tashar jiragen ruwa 20128)
-omniroute setup                        # Jagoran saiti mai mu'amala
-omniroute doctor                       # Duba saituna, DB, tashoshin jiragen ruwa, runtime
-omniroute providers list               # Haɗin masu samarwa da aka saita
+omniroute                              # Fara sabar (tsohuwar tashar jiragen ruwa ita ce 20128)
+omniroute setup                        # Mayen saitawa mai hulɗa
+omniroute doctor                       # Duba tsari, DB, tashoshin jiragen ruwa, da lokacin gudanarwa
+omniroute providers list               # Haɗin masu samarwa da aka tsara
 omniroute providers test-all           # Gwada kowane haɗi mai aiki
 omniroute reset-password               # Sake saita kalmar sirrin mai gudanarwa
 omniroute logs                         # Yaɗa rajistan buƙatu kai tsaye
 omniroute health                       # Cikakken bayani kan lafiya (breakers, cache, ƙwaƙwalwa)
-omniroute --version                    # Buga sigar
+omniroute --version                    # Nuna sigar
 omniroute --help                       # Nuna duk umarni
 ```
 
-### Saiti & Farawa
+### Saitawa da Farawa
 
 ```bash
-omniroute setup                        # Jagoran saiti mai mu'amala
+omniroute setup                        # Mayen saitawa mai hulɗa
 omniroute setup --non-interactive      # Yanayin CI/aiki ta atomatik (yana karanta env vars + flags)
 omniroute setup --password '<value>'   # Saita kalmar sirrin mai gudanarwa kai tsaye
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Ƙara kuma gwada mai samarwa a lokaci guda
+  --test-provider                      # Ƙara kuma gwada mai samarwa a mataki ɗaya
 ```
 
-Sauye-sauyen muhalli da ake gane su don saiti mara mu'amala:
+Sauye-sauyen mahalli da ake ganewa don saitawa marar hulɗa:
 
-| Var                 | Manufa                                                                          |
-| ------------------- | ------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Maɓallin API na mai samarwa (an ɗaura shi da `--api-key` ta Commander `.env()`) |
-| `DATA_DIR`          | Sauya kundin bayanan OmniRoute                                                  |
+| Sauyi               | Manufa                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Maɓallin API na mai samarwa (an ɗaura shi da `--api-key` ta hanyar Commander `.env()`) |
+| `DATA_DIR`          | Sauya kundin bayanan OmniRoute                                                         |
 
-Duk sauran bayanan shigarwa marasa mu'amala ana wuce su a matsayin flags, ba sauye-sauyen muhalli ba:
+Duk sauran bayanan shigarwa marasa hulɗa ana wuce su a matsayin flags, ba sauye-sauyen mahalli ba:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (duba zaɓuɓɓukan `omniroute setup` da ke sama).
 
 ### Binciken Matsaloli
 
 ```bash
-omniroute doctor                       # Duba saituna, DB, tashoshin jiragen ruwa, runtime, ƙwaƙwalwa, da kasancewa a raye
+omniroute doctor                       # Duba tsari, DB, tashoshin jiragen ruwa, lokacin gudanarwa, ƙwaƙwalwa, da kasancewar sabar a raye
 omniroute doctor --json                # JSON da na'ura za ta iya karantawa
-omniroute doctor --no-liveness         # Tsallake gwajin lafiyar HTTP
-omniroute doctor --host 0.0.0.0        # Sauya host na gwajin kasancewa a raye
-omniroute doctor --liveness-url <url>  # Sauya cikakken URL na endpoint ɗin lafiya
+omniroute doctor --no-liveness         # Tsallake binciken lafiyar HTTP
+omniroute doctor --host 0.0.0.0        # Sauya host na binciken kasancewa a raye
+omniroute doctor --liveness-url <url>  # Sauya cikakken URL na endpoint na lafiya
 ```
 
-Doctor yana gudanar da waɗannan gwaje-gwaje: `Config`, `Database`, `Storage/encryption`,
+Doctor yana gudanar da waɗannan bincike: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, da `Server liveness`. Yana fita da lamba marar sifili idan wani gwaji ya kasance `fail`.
+`Memory`, da `Server liveness`. Yana fita da lamba marar sifili idan wani bincike ya kasance `fail`.
 
 ### Sarrafa Masu Samarwa
 
 ```bash
 omniroute providers available                       # Kundin masu samarwa na OmniRoute
-omniroute providers available --search openai       # Tace kundin bisa id/suna/alias/category
-omniroute providers available --category api-key    # Tace bisa rukuni (api-key, oauth, free, ...)
+omniroute providers available --search openai       # Tace kundin bisa id/name/alias/category
+omniroute providers available --category api-key    # Tace bisa category (api-key, oauth, free, ...)
 omniroute providers available --json                # JSON da na'ura za ta iya karantawa
 
-omniroute providers list                            # Haɗin masu samarwa da aka saita
+omniroute providers list                            # Haɗin masu samarwa da aka tsara
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Gwada haɗi guda ɗaya da aka saita
+omniroute providers test <id|name>                  # Gwada haɗi ɗaya da aka tsara
 omniroute providers test-all                        # Gwada kowane haɗi mai aiki
-omniroute providers validate                        # Tabbatar da tsari a cikin gida kawai
+omniroute providers validate                        # Tantance tsarin da ake yi a gida kawai
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Tsarin OAuth da yake akwai
@@ -680,37 +680,37 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` suna amfani da API a matsayin hanya ta farko, saboda haka suna aiki da
-mahallin cikin gida ko na nesa da yake aiki. Ya kamata a shigar da bayanan shaidar shiga ta amfani da
+`providers add/import/auth/edit/remove` suna fara aiki ta API, saboda haka suna aiki da
+mahallin gida ko na nesa da ke aiki. Ya kamata a shigar da bayanan shaidarka ta amfani da
 `--credential-stdin` ko `--credential-env`; `--dry-run --json` yana bayar da rahoton
-kasancewa/siffa da aka ɓoye kawai. `providers available` yana karanta kundin OmniRoute;
-`providers list/test/test-all/validate` suna ci gaba da amfani da halayensu na SQLite na cikin gida kuma
+kasancewa/tsari da aka ɓoye kawai. `providers available` yana karanta kundin OmniRoute;
+`providers list/test/test-all/validate` suna ci gaba da amfani da halayensu na SQLite na gida kuma
 ba sa buƙatar sabar ta kasance tana aiki.
 
-### Maidowa & Sake Saiti
+### Maidowa da Sake Saitawa
 
 ```bash
-omniroute reset-password                # Sake saita kalmar sirrin mai gudanarwa (haka kuma: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Nuna gargadi + dry-run don sake saitin bayanan shaidar shiga da aka ɓoye
-omniroute reset-encrypted-columns --force  # A zahiri mayar da bayanan shaidar shiga da aka ɓoye zuwa null a cikin SQLite
+omniroute reset-password                # Sake saita kalmar sirrin mai gudanarwa (kuma: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Nuna gargaɗi + dry-run don sake saitin bayanan shaidarka masu ɓoyewa
+omniroute reset-encrypted-columns --force  # A zahiri mayar da bayanan shaidarka masu ɓoyewa zuwa null a cikin SQLite
 ```
 
-### Fitar da Bayanan Shaidar Shiga (⚠ yi mu'amala da hankali)
+### Fitar da Bayanan Shaidarka (⚠ a kula sosai)
 
 ```bash
-omniroute auth export                                 # Nuna gargadi + matakin tabbatarwa — babu samun damar DB
-omniroute auth export --force                          # Fitar da bayanan shaidar shiga na DUK haɗin da aka WARWARE ƁOYENSU zuwa stdout a matsayin JSON
+omniroute auth export                                 # Nuna gargaɗi + matakin tabbatarwa — babu shiga DB
+omniroute auth export --force                          # Fitar da bayanan shaidarka da aka CIRE ƁOYUWAR duk haɗin zuwa stdout a matsayin JSON
 omniroute auth export --force --id <id>                 # Fitar da haɗin da ya dace kawai
 omniroute auth export --force --format env               # Fitar da layukan OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Rubuta zuwa fayil (wanda aka ƙirƙira da izinin 0600)
 ```
 
-`auth export` na **cikin gida kawai** ne (karatun SQLite kai tsaye, babu hanyar HTTP) kuma da gangan yake bugawa/rubuta
-ƙimomin **rubutu bayyananne** na `apiKey`/`accessToken`/`refreshToken`/`idToken` — wannan fasalin ne, ba
-matsala ba. Ba a karanta komai daga ma'ajiyar bayanai, kuma ba a warware ɓoyayyen komai, ba tare da `--force` ba. Ana
-buga tutar gargadi a stderr koyaushe kafin a fitar da kowane rubutu bayyananne. Yana buƙatar a saita `STORAGE_ENCRYPTION_KEY`.
-Filin da aka kasa warware ɓoyewarsa (tsohon maɓalli, ciphertext da ya lalace) ana bayar da rahotonsa a matsayin
-`<field>DecryptFailed: true` maimakon dakatar da dukkan aikin fitarwa ko tona kuskuren da ke ƙarƙashinsa.
+`auth export` na **gida-kawai** ne (karatun SQLite kai tsaye, babu hanyar HTTP) kuma da gangan yake bugawa/rubuta
+ƙimomin **rubutu bayyananne** na `apiKey`/`accessToken`/`refreshToken`/`idToken` — wannan ita ce manufar fasalin, ba
+bug ba ne. Ba a karanta komai daga ma'ajiyar bayanai, kuma ba a cire ɓoyuwar komai, ba tare da `--force` ba. Kullum ana
+buga tutar gargaɗi zuwa stderr kafin a fitar da kowane rubutu bayyananne. Yana buƙatar a saita `STORAGE_ENCRYPTION_KEY`.
+Filin da aka kasa cire ɓoyuwarsa (tsohon maɓalli, rubutun ɓoyewa da ya lalace) ana bayar da rahotonsa a matsayin
+`<field>DecryptFailed: true` maimakon dakatar da duk aikin fitarwa ko fallasa kuskuren da ya jawo matsalar.
 
 ### Sauran ƙananan umarni
 
@@ -718,45 +718,45 @@ Waɗannan suna ɗauka cewa sabar OmniRoute tana aiki, sai dai idan an bayyana ak
 
 ```bash
 omniroute status                       # Cikakken matsayin lokacin aiki
-omniroute logs                         # Watsa rajistan buƙatu kai tsaye (--json, --search, --follow)
-omniroute config show                  # Nuna saitunan yanzu
+omniroute logs                         # Nuna rajistan buƙatu kai tsaye (--json, --search, --follow)
+omniroute config list                  # Nuna kayan aikin CLI da aka saita
 
-omniroute provider list                # Jera masu samarwa da ake da su (laƙabin providers list)
+omniroute provider list                # Jera masu samarwa da ake da su (wani suna na providers list)
 omniroute provider add                 # Yi rajistar OmniRoute a matsayin mai samarwa a kan wani kayan aiki
 omniroute keys add | list | remove     # Sarrafa maɓallan API
 omniroute models [provider]            # Jera samfura (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Ɗauki hoton saituna + DB
-omniroute restore                      # Maido daga hoton da aka ɗauka a baya
+omniroute backup                       # Ɗauki hoton config + DB
+omniroute restore                      # Mayar daga hoton da aka ɗauka a baya
 
-omniroute health                       # Cikakken bayani kan lafiya (breakers, cache, ƙwaƙwalwa)
-omniroute quota                        # Amfani da ƙason mai samarwa
+omniroute health                       # Cikakken bayanin lafiya (breakers, cache, memory)
+omniroute quota                        # Amfanin ƙason mai samarwa
 omniroute cache                        # Matsayin cache
-omniroute cache clear                  # Share semantic + signature caches
+omniroute cache clear                  # Goge semantic + signature caches
 
-omniroute mcp status | restart         # Matsayin uwar garken MCP / sake kunnawa
+omniroute mcp status | restart         # Matsayin uwar garken MCP / sake farawa
 omniroute a2a status | card            # Matsayin uwar garken A2A / katin wakili
 
 omniroute tunnel list | create | stop  # Sarrafa tunnels (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Duba / saita sauye-sauyen env (na ɗan lokaci)
+omniroute env show | get <k> | set <k> <v>  # Duba / saita env vars (na ɗan lokaci)
 
-omniroute test                         # Gwajin gaggawa na haɗin mai samarwa
+omniroute test                         # Gwajin haɗin mai samarwa na gaggawa
 omniroute update                       # Bincika sabuntawa
-omniroute completion                   # Samar da cikawar shell
+omniroute completion                   # Samar da cikar umarnin shell
 ```
 
 ### Tutoci na gama gari
 
 | Tuta                | Bayani                                                                      |
 | ------------------- | --------------------------------------------------------------------------- |
-| `--no-open`         | Kada a buɗe burauza ta atomatik yayin farawa                                |
+| `--no-open`         | Kada a buɗe burauza ta atomatik lokacin farawa                              |
 | `--port <n>`        | Sauya tashar API (tsoho 20128)                                              |
 | `--mcp`             | Gudanar a matsayin uwar garken MCP ta stdio (don IDEs)                      |
-| `--non-interactive` | Yanayin CI (babu tambayoyi; yana karantawa daga env/tutoci)                 |
+| `--non-interactive` | Yanayin CI (babu tambayoyi; yana karantawa daga env/flags)                  |
 | `--json`            | Fitowar JSON da na'ura za ta iya karantawa (doctor, providers, da sauransu) |
 | `--help`, `-h`      | Nuna taimako na musamman ga umarni                                          |
-| `--version`, `-v`   | Fitar da sigar da aka girka                                                 |
+| `--version`, `-v`   | Buga sigar da aka shigar                                                    |
 
 ---
 

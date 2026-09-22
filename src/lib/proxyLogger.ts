@@ -60,7 +60,15 @@ interface ProxyLogEntry {
   error: string | null;
   connectionId: string | null;
   comboId: string | null;
+  // `account` is the configured connection id prefix (connectionId slice);
+  // `rotationAccount` is the masked id of the rotation account that served the
+  // request (multi-account anonymous rotation only, null otherwise). Both stay
+  // masked prefixes — never a full account id.
   account: string | null;
+  /** Masked serving-account id of the rotation executor (null unless set). */
+  rotationAccount: string | null;
+  /** Request correlation id shared with call_logs (null unless set). */
+  correlationId: string | null;
   tlsFingerprint: boolean;
   /** HTTP status the provider actually returned; null when no response was received. */
   upstreamStatus: number | null;
@@ -120,6 +128,8 @@ function loadFromDb() {
         connectionId: row.connection_id || null,
         comboId: row.combo_id || null,
         account: row.account || null,
+        rotationAccount: row.rotation_account || null,
+        correlationId: row.correlation_id || null,
         tlsFingerprint: row.tls_fingerprint === 1,
         upstreamStatus: typeof row.upstream_status === "number" ? row.upstream_status : null,
       });
@@ -209,6 +219,8 @@ export function logProxyEvent(entry: ProxyLogInput) {
     connectionId: entry.connectionId || null,
     comboId: entry.comboId || null,
     account: entry.account || null,
+    rotationAccount: entry.rotationAccount || null,
+    correlationId: entry.correlationId || null,
     tlsFingerprint: entry.tlsFingerprint || false,
     upstreamStatus: entry.upstreamStatus ?? null,
   };
@@ -301,10 +313,10 @@ export function flushProxyLogsSync() {
     const insertStmt = db.prepare(
       `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port, proxy_name,
         level, level_id, provider, target_url, public_ip, egress_ip, latency_ms, error,
-        connection_id, combo_id, account, tls_fingerprint, upstream_status)
+        connection_id, combo_id, account, rotation_account, correlation_id, tls_fingerprint, upstream_status)
       VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort, @proxyName,
         @level, @levelId, @provider, @targetUrl, @clientIp, @egressIp, @latencyMs, @error,
-        @connectionId, @comboId, @account, @tlsFingerprint, @upstreamStatus)`
+        @connectionId, @comboId, @account, @rotationAccount, @correlationId, @tlsFingerprint, @upstreamStatus)`
     );
 
     const transaction = db.transaction((entries: ProxyLogEntry[]) => {
@@ -328,6 +340,8 @@ export function flushProxyLogsSync() {
           connectionId: item.connectionId,
           comboId: item.comboId,
           account: item.account,
+          rotationAccount: item.rotationAccount,
+          correlationId: item.correlationId,
           tlsFingerprint: item.tlsFingerprint ? 1 : 0,
           upstreamStatus: item.upstreamStatus,
         });
