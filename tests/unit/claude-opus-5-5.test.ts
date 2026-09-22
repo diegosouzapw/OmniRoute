@@ -16,7 +16,7 @@ import { modelSupportsContext1mBeta } from "../../open-sse/config/context1m.ts";
 import { normalizeClaudeAdaptiveThinking } from "../../open-sse/services/claudeAdaptiveThinking.ts";
 import { getNextFamilyFallback } from "../../open-sse/services/modelFamilyFallback.ts";
 import { getModelPricing } from "../../open-sse/services/providerCostData.ts";
-import { CLAUDE_FAST_MODE_DEFAULT_MODELS } from "../../src/lib/providers/claudeFastMode.ts";
+import { shouldRequestClaudeFastMode } from "../../src/lib/providers/claudeFastMode.ts";
 import { getStaticModelsForProvider } from "../../src/lib/providers/staticModels.ts";
 import { getDefaultPricing } from "../../src/shared/constants/pricing.ts";
 import {
@@ -27,6 +27,7 @@ import {
 
 const MODEL_ID = "claude-opus-5-5";
 const BEDROCK_MODEL_ID = "anthropic.claude-opus-5-5";
+const DOT_MODEL_ID = "claude-opus-5.5";
 const EFFORTS = ["low", "medium", "high", "xhigh", "max"];
 
 test("Claude Opus 5.5 is registered only on verified launch surfaces", () => {
@@ -70,6 +71,7 @@ test("Claude Opus 5.5 is registered only on verified launch surfaces", () => {
 test("Claude Opus 5.5 has native 1M context and always-on adaptive thinking", () => {
   assert.equal(modelHasNativeContext1m(MODEL_ID), true);
   assert.equal(modelHasNativeContext1m(BEDROCK_MODEL_ID), true);
+  assert.equal(modelHasNativeContext1m(DOT_MODEL_ID), true);
   assert.equal(modelSupportsContext1mBeta(MODEL_ID), false);
 
   const spec = getModelSpec(MODEL_ID);
@@ -85,15 +87,20 @@ test("Claude Opus 5.5 has native 1M context and always-on adaptive thinking", ()
   assert.equal(spec?.maxEffortWhenThinkingDisabled, undefined);
 
   assert.equal(getModelSpec(`global.${BEDROCK_MODEL_ID}`), spec);
+  assert.equal(getModelSpec(DOT_MODEL_ID), spec, "dot notation must not prefix-match Opus 5");
   assert.equal(supportsXHighEffort("claude", MODEL_ID), true);
   assert.equal(supportsClaudeMaxEffort(MODEL_ID), true);
 });
 
 test("Claude Opus 5.5 strips unsupported sampling parameters", () => {
-  for (const providerId of ["anthropic", "claude"] as const) {
-    const unsupported = getUnsupportedParams(providerId, MODEL_ID);
+  for (const [providerId, modelId] of [
+    ["anthropic", MODEL_ID],
+    ["claude", MODEL_ID],
+    ["bedrock", BEDROCK_MODEL_ID],
+  ] as const) {
+    const unsupported = getUnsupportedParams(providerId, modelId);
     for (const param of ["temperature", "top_p", "top_k"]) {
-      assert.ok(unsupported.includes(param), `${providerId}/${MODEL_ID} must strip ${param}`);
+      assert.ok(unsupported.includes(param), `${providerId}/${modelId} must strip ${param}`);
     }
   }
 });
@@ -105,6 +112,12 @@ test("Claude Opus 5.5 drops disabled thinking and collapses manual budgets to ad
   );
   assert.equal("thinking" in withoutDisabled, false);
   assert.deepEqual(withoutDisabled.output_config, { effort: "low" });
+
+  const dotWithoutDisabled = normalizeThinkingForModel(
+    { model: DOT_MODEL_ID, thinking: { type: "disabled" } },
+    DOT_MODEL_ID
+  );
+  assert.equal("thinking" in dotWithoutDisabled, false);
 
   const adaptive = normalizeClaudeAdaptiveThinking(
     { model: MODEL_ID, thinking: { type: "enabled", budget_tokens: 64_000 } },
@@ -133,8 +146,19 @@ test("Claude Opus 5.5 relaxes forced tool choices without removing tools", () =>
   assert.equal(normalizeForcedToolChoiceForModel(opus5, "claude-opus-5"), opus5);
 });
 
-test("Claude Opus 5.5 is a Fast Mode default model", () => {
-  assert.ok((CLAUDE_FAST_MODE_DEFAULT_MODELS as readonly string[]).includes(MODEL_ID));
+test("Claude Opus 5.5 requests Fast Mode when the toggle is on", () => {
+  assert.equal(shouldRequestClaudeFastMode({ claudeFastMode: { enabled: true } }, MODEL_ID), true);
+  assert.equal(
+    shouldRequestClaudeFastMode({ claudeFastMode: { enabled: false } }, MODEL_ID),
+    false
+  );
+  assert.equal(
+    shouldRequestClaudeFastMode(
+      { claudeFastMode: { enabled: true, supportedModels: [MODEL_ID] } },
+      "claude-opus-5"
+    ),
+    false
+  );
 });
 
 test("Claude Opus 5.5 pricing matches Anthropic's published rates", () => {

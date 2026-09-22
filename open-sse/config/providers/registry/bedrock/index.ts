@@ -30,6 +30,7 @@ export const bedrockProvider: RegistryEntry = {
       supportsVision: true,
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
       id: "anthropic.claude-sonnet-4-6",

@@ -480,7 +480,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     rejectsThinkingDisabled: true,
     adaptiveThinkingOnly: true,
     rejectsForcedToolChoice: true,
-    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-5-5"),
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-5-5", "claude-opus-5.5"),
   },
 
   // ── Claude Opus 5 ───────────────────────────────────────────────

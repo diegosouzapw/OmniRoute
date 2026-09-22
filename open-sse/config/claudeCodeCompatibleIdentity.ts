@@ -22,6 +22,7 @@ export function modelHasNativeContext1m(model: string | null | undefined): boole
     .trim()
     .toLowerCase()
     .replace(/^.*?(?=claude-)/, "")
+    .replace(/(\d)\.(\d)/g, "$1-$2")
     .replace(/-\d{8}$/, "");
 
   return CONTEXT_1M_NATIVE_MODELS.some(
