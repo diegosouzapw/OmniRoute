@@ -729,39 +729,21 @@ export async function prepareVirtualAutoComboInputs(
     const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
     warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
     if (settings.hidePaidModels === true) {
-      recordAutoDroppedCandidates(
-        traceInvocationId,
-        pool,
-        paid.pool,
-        "paid_only",
-        "hidePaidModels"
-      );
+      recordAutoDroppedCandidates(traceInvocationId, pool, paid.pool, "paid_only");
     }
     pool = paid.pool;
 
     const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
     warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
     if (lockout) {
-      recordAutoDroppedCandidates(
-        traceInvocationId,
-        pool,
-        lockout.pool,
-        "model_lockout",
-        "model-lockout"
-      );
+      recordAutoDroppedCandidates(traceInvocationId, pool, lockout.pool, "model_lockout");
       pool = lockout.pool;
     }
 
     // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
     const exposureFilteredPool = filterModelExposureCandidates(pool, settings);
-    recordAutoDroppedCandidates(
-      traceInvocationId,
-      pool,
-      exposureFilteredPool,
-      "model_exposure",
-      "model-exposure"
-    );
+    recordAutoDroppedCandidates(traceInvocationId, pool, exposureFilteredPool, "model_exposure");
     if (exposureFilteredPool !== pool) pool = exposureFilteredPool;
 
     // STRICT_ZERO_COST: opt-in, off by default (`settings.freeAccessPolicy !== "strict"`
@@ -819,7 +801,7 @@ export async function prepareVirtualAutoComboInputs(
     // Separate, optional ToS guard — independent of economic safety on purpose.
     const tosFilteredPool = filterTosAvoidCandidates(pool, settings.excludeTosAvoid === true);
     if (settings.excludeTosAvoid === true) {
-      recordAutoDroppedCandidates(traceInvocationId, pool, tosFilteredPool, "tos", "tos-avoid");
+      recordAutoDroppedCandidates(traceInvocationId, pool, tosFilteredPool, "tos");
     }
     if (tosFilteredPool !== pool) pool = tosFilteredPool;
 
@@ -959,8 +941,7 @@ export async function createVirtualAutoComboFromPrepared(
       traceInvocationId,
       candidatePool,
       overrideFilteredPool,
-      "candidate_override",
-      "candidate-override"
+      "candidate_override"
     );
   }
   if (overrideFilteredPool !== candidatePool) {
@@ -1039,13 +1020,7 @@ export async function createVirtualAutoComboFromPrepared(
       );
       effectivePool = [];
     }
-    recordAutoDroppedCandidates(
-      traceInvocationId,
-      candidatePool,
-      effectivePool,
-      "category_tier",
-      spec?.family ? "model-family" : "category-tier"
-    );
+    recordAutoDroppedCandidates(traceInvocationId, candidatePool, effectivePool, "category_tier");
   }
 
   // Subscription-first routing (`auto/subscription`, `auto/thrifty`). Applied
@@ -1065,8 +1040,7 @@ export async function createVirtualAutoComboFromPrepared(
       traceInvocationId,
       beforePool,
       effectivePool,
-      "subscription_ladder",
-      "subscription-ladder"
+      "subscription_ladder"
     );
     if (spec.tier === "subscription" && effectivePool.length === 0 && beforeCount > 0) {
       // Intended, not a defect: the operator asked for plan-included capacity
