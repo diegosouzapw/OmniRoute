@@ -773,14 +773,16 @@ OPENAI_API_KEY: "{{apiKey}}"`,
     name: "Oh My Pi",
     image: "/providers/cli-generic.svg",
     color: "#111111",
-    docsUrl: "https://github.com/can1357/oh-my-pi",
     description: "Oh My Pi terminal coding agent via OmniRoute",
-    configType: "custom",
+    docsUrl: "https://github.com/can1357/oh-my-pi",
+    configType: "guide",
     category: "agent",
     vendor: "OSS",
     acpSpawnable: true,
     baseUrlSupport: "full",
     defaultCommand: "omp",
+    modelSelectionMode: "multiple",
+    hideComboModels: true,
     notes: [
       {
         type: "info",
@@ -788,9 +790,49 @@ OPENAI_API_KEY: "{{apiKey}}"`,
       },
       {
         type: "warning",
-        text: "Config path: Linux/macOS ~/.omp/agent/models.yml • Windows %USERPROFILE%\\.omp\\.omp\\agent\\models.yml",
+        text: "Config paths: ~/.omp/agent/models.yml (providers) and ~/.omp/agent/config.yml (model roles) on all platforms (Windows: %USERPROFILE%\\.omp\\agent\\models.yml and %USERPROFILE%\\.omp\\agent\\config.yml)",
+      },
+      {
+        type: "info",
+        text: "omp's /model picker mirrors OmniRoute's /v1/models one-to-one (combos and image/free-tier catalogs included). Narrow it with `omp models find <pattern>` or pin roles with `omniroute setup-omp --role <role>=<id>`.",
       },
     ],
+    guideSteps: [
+      {
+        step: 1,
+        title: "Install Oh My Pi",
+        desc: "Install via curl: curl -fsSL https://omp.sh/install | sh (or via bun: bun install -g @oh-my-pi/pi-coding-agent)",
+      },
+      { step: 2, title: "API Key", type: "apiKeySelector" },
+      {
+        step: 3,
+        title: "Configure OmniRoute",
+        desc: "Run: omniroute setup-omp — writes the omniroute provider into ~/.omp/agent/models.yml and model roles into ~/.omp/agent/config.yml.",
+      },
+      { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Verify Setup",
+        desc: "List the models Oh My Pi discovered from OmniRoute: omp models omniroute",
+      },
+      {
+        step: 6,
+        title: "Run",
+        value: 'omniroute run omp --model <model> -- -p "reply with the single word OK"',
+        copyable: true,
+      },
+    ],
+    codeBlock: {
+      language: "yaml",
+      code: `providers:
+  omniroute:
+    baseUrl: {{baseUrl}}
+    api: openai-completions
+    apiKey: OMNIROUTE_API_KEY
+    authHeader: true
+    discovery:
+      type: openai-models-list`,
+    },
   },
 
   letta: {

@@ -156,6 +156,17 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".config/opencode/opencode.json",
     },
   },
+  omp: {
+    defaultCommand: "omp",
+    envBinKey: "CLI_OMP_BIN",
+    requiresBinary: true,
+    // Oh My Pi may take several seconds on cold start (mirrors opencode).
+    healthcheckTimeoutMs: 15000,
+    paths: {
+      models: ".omp/agent/models.yml",
+      settings: ".omp/agent/config.yml",
+    },
+  },
   hermes: {
     // Original / legacy simple Hermes entry (recovered from origin/main)
     defaultCommand: "hermes",
@@ -266,15 +277,6 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".config/deepseek-tui/config.toml",
     },
   },
-  omp: {
-    defaultCommand: "omp",
-    envBinKey: "CLI_OMP_BIN",
-    requiresBinary: true,
-    healthcheckTimeoutMs: 8000,
-    paths: {
-      config: ".omp/agent/models.yml",
-    },
-  },
   letta: {
     defaultCommand: "letta",
     envBinKey: "CLI_LETTA_BIN",
@@ -367,6 +369,8 @@ export const CLI_TOOL_ALIASES: Readonly<Record<string, string>> = {
   "codex-app-server": "codex",
   cn: "continue",
   qodercli: "qoder",
+  "oh-my-pi": "omp",
+  ohmypi: "omp",
 };
 
 /** Resolve a user-facing or legacy id to the canonical runtime id. */
@@ -648,6 +652,7 @@ export const getKnownToolPaths = (toolId: string): string[] => {
     kilo: [["kilocode.cmd", "kilocode"]],
     continue: [["cn.cmd", "cn"]],
     opencode: [["opencode.cmd", "opencode"]],
+    omp: [["omp.cmd", "omp"]],
     qoder: [
       ["qodercli.cmd", "qodercli"],
       ["qodercli.exe", "qodercli"],
@@ -1136,6 +1141,14 @@ export const getCliConfigPaths = (toolId: string) => {
   if (toolId === "opencode") {
     return {
       config: getOpenCodeConfigPath(),
+    };
+  }
+
+  if (toolId === "omp") {
+    const home = getCliConfigHome();
+    return {
+      models: path.join(home, ".omp", "agent", "models.yml"),
+      settings: path.join(home, ".omp", "agent", "config.yml"),
     };
   }
 
