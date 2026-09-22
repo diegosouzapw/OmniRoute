@@ -4,36 +4,48 @@
   "excluded": [
     {
       "file": "tests/unit/ui/agent-card.test.tsx",
+      "owner": "diegosouzapw",
+      "expires": "2026-09-24",
       "issue": "#13204",
       "measured": "2026-09-10",
       "status": "Tests 3 failed | 1 passed (4)"
     },
     {
       "file": "src/app/(dashboard)/dashboard/cache/__tests__/CacheTrends.test.tsx",
+      "owner": "diegosouzapw",
+      "expires": "2026-09-24",
       "issue": "#13204",
       "measured": "2026-09-10",
       "status": "Tests 7 failed | 6 passed (13)"
     },
     {
       "file": "src/app/(dashboard)/dashboard/cache/__tests__/IdempotencyLayer.test.tsx",
+      "owner": "diegosouzapw",
+      "expires": "2026-09-24",
       "issue": "#13204",
       "measured": "2026-09-10",
       "status": "Tests 9 failed | 4 passed (13)"
     },
     {
       "file": "src/app/(dashboard)/dashboard/cache/__tests__/CachePerformance.test.tsx",
+      "owner": "diegosouzapw",
+      "expires": "2026-09-24",
       "issue": "#13204",
       "measured": "2026-09-10",
       "status": "Tests 10 failed | 4 passed (14)"
     },
     {
       "file": "tests/unit/ui/combos-page-smoke.test.tsx",
+      "owner": "diegosouzapw",
+      "expires": "2026-09-24",
       "issue": "#13204",
       "measured": "2026-09-10",
       "status": "Tests 1 failed (1)"
     },
     {
       "file": "tests/unit/ui/evals-tab-smoke.test.tsx",
+      "owner": "diegosouzapw",
+      "expires": "2026-09-24",
       "issue": "#13204",
       "measured": "2026-09-10",
       "status": "Tests 1 failed (1)"

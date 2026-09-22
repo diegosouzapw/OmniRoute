@@ -24,11 +24,10 @@
  *      reviewable diff in a dedicated file instead of one more line lost in a 60-entry
  *      array.
  *
- * What it deliberately does NOT do: re-run the excluded tests to see whether they pass
- * again. That costs ~10 minutes and belongs in a periodic job, not in a per-PR gate. The
- * inventory records the measured status and the date so a reader knows how stale it is.
+ * Owner, measured result and bounded expiry are mandatory. The separate quarantine
+ * workflow re-runs the inventory and verifies tracking issues against live GitHub.
  *
- * Standard tooling exclusions (`node_modules/**`, glob patterns, the live-server E2E specs
+ * Standard tooling exclusions (`node_modules/**`, the live-server E2E specs
  * that have their own runner) are exempt — they are configuration, not debt.
  *
  * Usage:
@@ -40,6 +39,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { validateQuarantine } from "../quality/quarantine-contract.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, "..", "..");
@@ -91,7 +91,12 @@ export function findViolations(entries, exists, inventory) {
   const seen = new Set();
 
   for (const { pattern, comment } of entries) {
-    if (EXEMPT.has(pattern) || pattern.includes("*")) continue;
+    if (EXEMPT.has(pattern)) continue;
+    // An arbitrary glob could hide hundreds of tests without an inventory entry.
+    if (/[*?\[\]{}]/.test(pattern)) {
+      untracked.push(pattern);
+      continue;
+    }
     if (!exists(pattern)) continue; // a stale path excludes nothing
     seen.add(pattern);
     if (!/#\d+/.test(comment)) unreferenced.push(pattern);
@@ -105,9 +110,14 @@ export function findViolations(entries, exists, inventory) {
 function main() {
   const json = process.argv.includes("--json");
   const entries = parseExclusions(fs.readFileSync(CONFIG, "utf8"));
-  const inventory = fs.existsSync(INVENTORY)
-    ? JSON.parse(fs.readFileSync(INVENTORY, "utf8")).excluded.map((e) => e.file)
-    : [];
+  const recorded = fs.existsSync(INVENTORY)
+    ? JSON.parse(fs.readFileSync(INVENTORY, "utf8")).excluded
+    : undefined;
+  const inventory = (recorded ?? []).map((e) => e.file);
+  const issueArg = process.argv.indexOf("--issue-states");
+  const issueStates =
+    issueArg === -1 ? undefined : JSON.parse(fs.readFileSync(process.argv[issueArg + 1], "utf8"));
+  const metadataErrors = validateQuarantine(recorded, { issueStates });
 
   const { unreferenced, untracked, orphaned } = findViolations(
     entries,
@@ -116,13 +126,16 @@ function main() {
   );
 
   if (json) {
-    console.log(JSON.stringify({ unreferenced, untracked, orphaned }, null, 2));
+    console.log(JSON.stringify({ unreferenced, untracked, orphaned, metadataErrors }, null, 2));
+    process.exitCode =
+      unreferenced.length + untracked.length + orphaned.length + metadataErrors.length ? 1 : 0;
+    return;
   }
 
-  const failed = unreferenced.length + untracked.length + orphaned.length;
+  const failed = unreferenced.length + untracked.length + orphaned.length + metadataErrors.length;
   if (!failed) {
     console.log(
-      `[vitest-exclusions] OK — ${inventory.length} excluded file(s), each tracked and referenced.`
+      `[vitest-exclusions] OK — ${inventory.length} excluded file(s), owned, tracked and unexpired; live issue state ${issueStates ? "verified" : "not checked (periodic workflow)"}.`
     );
     return;
   }
@@ -150,6 +163,7 @@ function main() {
     for (const p of orphaned) console.error(`  ✗ ${p}`);
     console.error("  The test runs again — drop it from the inventory.");
   }
+  for (const error of metadataErrors) console.error(`[vitest-exclusions] FAIL — ${error}`);
   process.exit(1);
 }
 

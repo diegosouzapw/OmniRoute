@@ -1,0 +1,60 @@
+name: Quarantined Tests (debt, not admission)
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: quarantine-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  quarantine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - name: Read current tracking issue states
+        id: inventory
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, mkdirSync, writeFileSync, appendFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const inventory = JSON.parse(readFileSync('config/quality/vitest-exclusions.json', 'utf8'));
+          const states = {};
+          for (const issue of new Set(inventory.excluded.map(entry => entry.issue))) {
+            if (!/^#[1-9]\d*$/.test(issue)) throw new Error('Invalid issue reference');
+            const value = JSON.parse(execFileSync('gh', ['api', `repos/${process.env.GITHUB_REPOSITORY}/issues/${issue.slice(1)}`], { encoding: 'utf8' }));
+            states[issue] = value.state;
+          }
+          mkdirSync('.artifacts/quarantine', { recursive: true });
+          writeFileSync('.artifacts/quarantine/issue-states.json', JSON.stringify(states, null, 2));
+          appendFileSync(process.env.GITHUB_OUTPUT, `count=${inventory.excluded.length}\n`);
+          JS
+      - name: Validate inventory lifetime and tracker
+        run: node scripts/check/check-vitest-exclusions.mjs --issue-states .artifacts/quarantine/issue-states.json
+      - name: Execute quarantined tests
+        if: ${{ !cancelled() && steps.inventory.outputs.count != '' && steps.inventory.outputs.count != '0' }}
+        run: npx --no-install vitest run --config vitest.quarantine.config.ts --reporter=default --reporter=json --outputFile.json=.artifacts/quarantine/results.json
+      - name: Preserve measured failures and issue evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quarantine-${{ github.sha }}-${{ github.run_attempt }}
+          path: .artifacts/quarantine/
+          if-no-files-found: error
+          retention-days: 14

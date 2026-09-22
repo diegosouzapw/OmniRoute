@@ -50,6 +50,13 @@ test("findOrphans: múltiplos collectors — basta UM casar", () => {
   assert.deepEqual(findOrphans(files, globs), []);
 });
 
+test("findOrphans: exclude wins within its collector, but not over another runner", () => {
+  const file = "tests/unit/ui/parked.test.tsx";
+  const ui = { glob: "tests/unit/**/*.test.tsx", exclude: ["tests/unit/ui/**"] };
+  assert.deepEqual(findOrphans([file], [ui]), [file]);
+  assert.deepEqual(findOrphans([file], [ui, { glob: file, exclude: [] }]), []);
+});
+
 test("evaluateAgainstBaseline: órfão novo é flagado; órfão congelado passa", () => {
   const { newOrphans, stale } = evaluateAgainstBaseline(
     ["tests/unit/novo/a.test.ts", "tests/unit/velho/b.test.ts"],
@@ -60,10 +67,7 @@ test("evaluateAgainstBaseline: órfão novo é flagado; órfão congelado passa"
 });
 
 test("evaluateAgainstBaseline: entrada congelada que deixou de ser órfã é STALE (remova)", () => {
-  const { newOrphans, stale } = evaluateAgainstBaseline(
-    [],
-    ["tests/unit/religado/c.test.ts"]
-  );
+  const { newOrphans, stale } = evaluateAgainstBaseline([], ["tests/unit/religado/c.test.ts"]);
   assert.deepEqual(newOrphans, []);
   assert.deepEqual(stale, ["tests/unit/religado/c.test.ts"]);
 });
