@@ -1029,6 +1029,55 @@ curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 
 You should see your connected models listed. 🎉 That's it — start coding, and OmniRoute auto-routes & falls back for you.
 
+### Solana token monitor (Phase A, alerts only)
+
+The optional monitor polls GeckoTerminal's Solana `new_pools` feed and considers
+only pools created inside a configurable window (30 minutes by default) with
+market cap of at least `$30,000`. Before sending an alert it asks Rugcheck for
+**explicit liquidity-lock evidence** (`lpLocked=true` or a positive locked
+percentage); tags and non-zero liquidity are not treated as proof. Alerts are
+sent through the existing Telegram Bot API integration, deduplicated by pool,
+and include Dexscreener, GeckoTerminal, and Solscan links. The monitor retries
+transient source failures and `429` responses with exponential backoff, honoring
+`Retry-After`; the seen-pool set is persisted under `DATA_DIR` by default so a
+restart does not duplicate recent alerts. It never submits trades.
+
+Set `TELEGRAM_BOT_TOKEN`, `SOLANA_TOKEN_MONITOR_TELEGRAM_CHAT_ID`, and the
+`SOLANA_TOKEN_MONITOR_*` variables in `.env`, then run:
+
+```bash
+SOLANA_TOKEN_MONITOR_ENABLED=true npm run monitor:solana
+```
+
+The public Rugcheck endpoint may require a provider-issued API key depending on
+deployment or quota. Set `SOLANA_TOKEN_MONITOR_RUGCHECK_API_KEY` if required;
+without an explicit lock response the monitor fails closed and sends no alert.
+`SOLANA_TOKEN_MONITOR_MAX_RETRIES`, `SOLANA_TOKEN_MONITOR_RETRY_BASE_DELAY_MS`,
+`SOLANA_TOKEN_MONITOR_RETRY_MAX_DELAY_MS`, and
+`SOLANA_TOKEN_MONITOR_DEDUPE_PATH` tune retry and durable deduplication behavior.
+No `requirements.txt` is needed: this phase uses the repository's Node/TypeScript
+runtime and existing Telegram client.
+
+#### Permanent deployment (Render or Railway)
+
+The monitor has a dedicated long-running container in
+`Dockerfile.solana-monitor`. It exposes `/healthz` for liveness and `/readyz`
+for readiness after the first successful poll, handles `SIGTERM`/`SIGINT`, and
+stores durable deduplication state in `/app/data`. The image contains no `.env`
+file or secret.
+
+For Render, create the service from `render.yaml` (the Telegram token,
+destination chat id, and optional Rugcheck key are marked `sync: false` and
+must be entered as dashboard secrets). A persistent disk is required if
+deduplication must survive restarts.
+
+For Railway, deploy the repository with `Dockerfile.solana-monitor` selected as
+the Dockerfile, set `PORT` to the public port, and add the same
+`SOLANA_TOKEN_MONITOR_*` and `TELEGRAM_BOT_TOKEN` variables as Railway secrets.
+Configure the healthcheck path as `/readyz` and attach a persistent volume at
+`/app/data`. Do not put credentials in `render.yaml`, Dockerfiles, or source
+control. The service is alert-only and has no buy/sell integration.
+
 If your client cannot send custom headers, OmniRoute also exposes tokenized compatibility aliases:
 
 ```txt

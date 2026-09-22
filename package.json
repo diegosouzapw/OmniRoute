@@ -97,6 +97,7 @@
     "bench:heap-body": "node --expose-gc --import tsx/esm scripts/perf/request-body-heap.ts",
     "bench:routing-events": "node --import tsx/esm scripts/perf/routing-events-bench.ts",
     "bench:highwatermark": "node --import tsx/esm scripts/perf/benchmark-highwatermark.ts",
+    "monitor:solana": "node --import tsx/esm scripts/solana/tokenMonitor.ts",
     "eval:compression": "node --import tsx scripts/compression-eval/index.ts",
     "eval:router": "node --import tsx scripts/router-eval/index.ts",
     "eval:router:compare": "node --import tsx scripts/router-eval/compare.ts",

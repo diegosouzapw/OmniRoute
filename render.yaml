@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: omniroute-solana-token-monitor
+    runtime: docker
+    dockerfilePath: ./Dockerfile.solana-monitor
+    dockerContext: .
+    healthCheckPath: /readyz
+    plan: starter
+    autoDeploy: false
+    disk:
+      name: solana-monitor-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: SOLANA_TOKEN_MONITOR_ENABLED
+        value: "true"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: SOLANA_TOKEN_MONITOR_TELEGRAM_CHAT_ID
+        sync: false
+      - key: SOLANA_TOKEN_MONITOR_RUGCHECK_API_KEY
+        sync: false
+      - key: DATA_DIR
+        value: /app/data
+      - key: SOLANA_TOKEN_MONITOR_HEALTH_PORT
+        value: "10000"

@@ -1,0 +1,22 @@
+# Use this file with a builder that supports --ignorefile when building the
+# dedicated monitor image. The repository's root .dockerignore already excludes
+# these paths for standard Docker builds.
+.git
+.github
+.claude
+.agents
+node_modules
+**/node_modules
+.env*
+data
+logs
+tests
+docs
+coverage
+.next
+.build
+dist
+Dockerfile*
+docker-compose*.yml
+*.sqlite*
+*.log

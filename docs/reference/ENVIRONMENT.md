@@ -1675,6 +1675,20 @@ These settings were introduced after the previous environment-contract snapshot.
 | `TELEGRAM_DEFAULT_MODEL` | `auto/chat` | `src/lib/telegram/chatProxy.ts` | Model used for Telegram chat replies. |
 | `TELEGRAM_BOT_API_BASE` | `https://api.telegram.org` | `src/lib/telegram/config.ts` | Bot API base URL override for proxies or self-hosted Bot API servers. |
 | `TELEGRAM_WEBHOOK_TIMEOUT_MS` | `60000` | `src/lib/telegram/config.ts` | Timeout in milliseconds for outbound Bot API calls. |
+| `SOLANA_TOKEN_MONITOR_ENABLED` | `false` | `scripts/solana/tokenMonitor.ts` | Opt-in Phase A informational monitor; it never executes trades. |
+| `SOLANA_TOKEN_MONITOR_TELEGRAM_CHAT_ID` | _(unset)_ | `scripts/solana/tokenMonitor.ts` | Telegram destination for alerts; required when the monitor is enabled. |
+| `SOLANA_TOKEN_MONITOR_WINDOW_MINUTES` | `30` | `scripts/solana/tokenMonitor.ts` | Age window for new Solana pools. |
+| `SOLANA_TOKEN_MONITOR_MIN_MARKET_CAP_USD` | `30000` | `scripts/solana/tokenMonitor.ts` | Minimum provider-reported market cap in USD; FDV is not substituted. |
+| `SOLANA_TOKEN_MONITOR_POLL_INTERVAL_MS` | `60000` | `scripts/solana/tokenMonitor.ts` | Poll interval for GeckoTerminal's public new-pools feed. |
+| `SOLANA_TOKEN_MONITOR_REQUEST_TIMEOUT_MS` | `10000` | `scripts/solana/tokenMonitor.ts` | Timeout for source and liquidity-verifier requests. |
+| `SOLANA_TOKEN_MONITOR_MAX_RETRIES` | `3` | `scripts/solana/tokenMonitor.ts` | Maximum retries for transient failures and HTTP 429 responses. |
+| `SOLANA_TOKEN_MONITOR_RETRY_BASE_DELAY_MS` | `500` | `scripts/solana/tokenMonitor.ts` | Initial exponential-backoff delay; `Retry-After` is honored when supplied. |
+| `SOLANA_TOKEN_MONITOR_RETRY_MAX_DELAY_MS` | `10000` | `scripts/solana/tokenMonitor.ts` | Upper bound for one retry delay. |
+| `SOLANA_TOKEN_MONITOR_DEDUPE_PATH` | `DATA_DIR/solana-token-monitor-seen.json` | `scripts/solana/tokenMonitor.ts` | Durable JSON state for recent confirmed pool alerts; writes are atomic rename operations. |
+| `SOLANA_TOKEN_MONITOR_GECKO_API_BASE` | `https://api.geckoterminal.com/api/v2` | `scripts/solana/tokenMonitor.ts` | GeckoTerminal API base URL. |
+| `SOLANA_TOKEN_MONITOR_RUGCHECK_API_BASE` | `https://api.rugcheck.xyz/v1` | `scripts/solana/tokenMonitor.ts` | Rugcheck API base URL used to verify explicit LP-lock evidence. |
+| `SOLANA_TOKEN_MONITOR_RUGCHECK_API_KEY` | _(unset)_ | `scripts/solana/tokenMonitor.ts` | Optional provider-issued Rugcheck credential; without explicit verifier evidence no alert is sent. |
+| `SOLANA_TOKEN_MONITOR_HEALTH_PORT` | `PORT` or `8080` | `scripts/solana/tokenMonitor.ts` | HTTP liveness/readiness port for container platforms; `/healthz` is liveness and `/readyz` requires a successful poll. |
 | `OMNIROUTE_OPTIONAL_PACK_TAR` | `1` (enabled) | `scripts/build/optionalPackStaging.mjs` | Set `0` to skip emitting `.tar.gz` tarballs while staging optional ML/browser packs for the Electron standalone tree (pack directories and `optional-packs.index.json` are still produced). Used by the desktop release workflow to trim artifact upload size. |
 ### ChatGPT Web (Codex)
 

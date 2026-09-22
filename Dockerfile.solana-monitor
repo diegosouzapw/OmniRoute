@@ -1,0 +1,27 @@
+FROM node:24-bookworm-slim
+
+ENV NODE_ENV=production
+ENV DATA_DIR=/app/data
+ENV PORT=8080
+WORKDIR /app
+
+# Install only from the committed lockfile. No .env or credential is copied
+# into the image; Railway/Render inject secrets at runtime.
+COPY package.json package-lock.json ./
+RUN mkdir -p open-sse
+COPY open-sse/package.json ./open-sse/package.json
+RUN npm ci --include=dev --omit=optional --ignore-scripts --no-audit --no-fund \
+  && npm cache clean --force
+
+COPY scripts/solana ./scripts/solana
+COPY src/lib/telegram ./src/lib/telegram
+
+RUN mkdir -p /app/data \
+  && chown -R node:node /app
+USER node
+
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8080)+'/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+CMD ["node", "--import", "tsx/esm", "scripts/solana/tokenMonitor.ts"]
