@@ -31,7 +31,14 @@ const REQUEST_TOO_LARGE_PATTERNS: (string | RegExp)[] = [
 ];
 
 export type CursorErrorKind =
-  "rate_limit" | "auth" | "invalid" | "overload" | "timeout" | "connection" | "upstream";
+  | "rate_limit"
+  | "model_unavailable"
+  | "auth"
+  | "invalid"
+  | "overload"
+  | "timeout"
+  | "connection"
+  | "upstream";
 
 export type ClassifiedCursorError = {
   kind: CursorErrorKind;
@@ -84,6 +91,16 @@ export function isCursorBenignCancelError(value: unknown): boolean {
 
 export function classifyCursorErrorKind(rawMessage: string): CursorErrorKind {
   const lower = rawMessage.toLowerCase();
+
+  // Cursor returns these account-entitlement failures inside a
+  // RESOURCE_EXHAUSTED envelope, but they are not exhausted request quota.
+  // Retrying the same named model cannot succeed; Cursor Auto remains usable.
+  if (
+    lower.includes("named models unavailable") ||
+    lower.includes("free plans can only use auto")
+  ) {
+    return "model_unavailable";
+  }
 
   if (lower.includes("resource_exhausted") || lower.includes("resource exhausted")) {
     return isCursorRequestTooLargeDetail(lower) ? "invalid" : "rate_limit";
@@ -161,6 +178,8 @@ function kindToStatus(kind: CursorErrorKind): number {
   switch (kind) {
     case "rate_limit":
       return 429;
+    case "model_unavailable":
+      return 404;
     case "auth":
       return 401;
     case "invalid":
@@ -178,6 +197,8 @@ function kindToType(kind: CursorErrorKind): string {
   switch (kind) {
     case "rate_limit":
       return "rate_limit_error";
+    case "model_unavailable":
+      return "invalid_request_error";
     case "auth":
       return "authentication_error";
     case "invalid":
@@ -191,6 +212,8 @@ function kindPrefix(kind: CursorErrorKind): string {
   switch (kind) {
     case "rate_limit":
       return "Cursor rate limit / usage exceeded";
+    case "model_unavailable":
+      return "Cursor named model unavailable for this account";
     case "auth":
       return "Cursor authentication failed";
     case "invalid":

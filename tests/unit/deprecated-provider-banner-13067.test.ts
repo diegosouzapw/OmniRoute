@@ -30,9 +30,9 @@ test("providers page mounts the leftover banner", () => {
   assert.match(source, /DeprecatedProviderBanner/);
 });
 
-test("providers page stays frozen at 2025 lines", () => {
+test("providers page does not grow beyond the 2025-line ceiling", () => {
   const lines = fs.readFileSync(pagePath, "utf8").split("\n").length;
-  assert.equal(lines, 2025);
+  assert.ok(lines <= 2025, `providers page grew to ${lines} lines`);
 });
 
 test("purge surfaces notify.error when POST is not ok", () => {

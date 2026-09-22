@@ -118,6 +118,34 @@ test("fetchCodexQuota parses dual-window usage, forwards workspace headers, and 
   invalidateCodexQuotaCache(connectionId);
 });
 
+test("fetchCodexQuota treats a lone seven-day primary window as weekly", async () => {
+  const connectionId = `codex-weekly-primary-${Date.now()}`;
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        rate_limit: {
+          primary_window: {
+            used_percent: 91,
+            limit_window_seconds: 604_800,
+            reset_after_seconds: 300,
+          },
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+
+  const quota = await fetchCodexQuota(connectionId, { accessToken: "weekly-only-token" });
+
+  assert.equal(quota?.windows?.session, undefined);
+  assert.equal(quota?.windows?.weekly.percentUsed, 0.91);
+  assert.equal(quota?.window5h.percentUsed, 0);
+  assert.equal(quota?.window7d.percentUsed, 0.91);
+  assert.equal(quota?.percentUsed, 0.91);
+
+  invalidateCodexQuotaCache(connectionId);
+});
+
 test("fetchCodexQuota evaluates normal and Spark windows independently by requested model", async () => {
   const connectionId = `codex-spark-scope-${Date.now()}`;
   let calls = 0;

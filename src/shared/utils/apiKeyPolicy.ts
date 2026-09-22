@@ -473,7 +473,7 @@ function validateKeyStatus(context: PolicyContext): Response | null {
 }
 
 async function validateKeyScheduleAndUsage(context: PolicyContext): Promise<Response | null> {
-  const { request, apiKey, apiKeyInfo } = context;
+  const { request, apiKeyInfo } = context;
   if (apiKeyInfo.accessSchedule?.enabled && !isWithinSchedule(apiKeyInfo.accessSchedule)) {
     const { from, until, tz } = apiKeyInfo.accessSchedule;
     return errorResponse(
@@ -522,7 +522,7 @@ function validateEndpointAccess(context: PolicyContext): Response | null {
 }
 
 async function validateQuotaAccess(context: PolicyContext): Promise<Response | null> {
-  const { apiKey, apiKeyInfo, modelStr } = context;
+  const { apiKeyInfo, modelStr } = context;
   if (!modelStr) return null;
   const allowedQuotas = Array.isArray(apiKeyInfo.allowedQuotas) ? apiKeyInfo.allowedQuotas : [];
   if (isQuotaModelName(modelStr) && allowedQuotas.length === 0) {
@@ -553,9 +553,9 @@ async function validateQuotaAccess(context: PolicyContext): Promise<Response | n
 }
 
 /**
- * Whether this key is barred from the built-in `auto/*` combos.
+ * Whether this key is barred from the built-in `auto` / `auto/*` combos.
  *
- * `auto/*` ids are virtual, so they resolve to no stored combo and
+ * Built-in auto ids are virtual, so they resolve to no stored combo and
  * `isComboAllowedForKey()` fails open on them; `validateModelAccess()` then
  * returns before the allow/deny model lists are consulted. This flag is the
  * only per-key gate that reaches them. It defaults to allowed (undefined) so
@@ -563,44 +563,87 @@ async function validateQuotaAccess(context: PolicyContext): Promise<Response | n
  */
 export function isAutoComboDeniedForKey(
   apiKeyInfo: { allowAutoCombos?: boolean } | null | undefined,
-  modelStr: string | null | undefined
+  modelStr: string | null | undefined,
+  resolvedComboName: string | null = null
 ): boolean {
-  if (!modelStr || !modelStr.startsWith("auto/")) return false;
+  if (!modelStr || (modelStr !== "auto" && !modelStr.startsWith("auto/"))) return false;
+  if (modelStr === "auto" && resolvedComboName === "auto") return false;
   return apiKeyInfo?.allowAutoCombos === false;
+}
+
+function autoComboPolicyRejection(request: Request, modelStr: string): Response {
+  return policyErrorResponse(
+    request,
+    HTTP_STATUS.FORBIDDEN,
+    `Auto combo "${modelStr}" is not allowed for this API key`,
+    `Auto combos are not enabled for this API key. Choose an explicit model or combo.`,
+    "invalid_request_error",
+    HTTP_STATUS.BAD_REQUEST
+  );
+}
+
+async function resolveBareAutoComboName(
+  modelStr: string,
+  shouldResolve: boolean
+): Promise<{ comboName: string | null; rejection: Response | null }> {
+  if (!shouldResolve) return { comboName: null, rejection: null };
+  try {
+    return { comboName: await resolveRequestedComboName(modelStr), rejection: null };
+  } catch (error) {
+    log.error("API_POLICY", "Bare auto combo resolution failed. Request blocked.", { error });
+    return {
+      comboName: null,
+      rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key combo policy unavailable"),
+    };
+  }
+}
+
+function hasModelAccessRestrictions(apiKeyInfo: ApiKeyMetadata): boolean {
+  return (
+    apiKeyInfo.modelAccessMode === "restricted" ||
+    Boolean(apiKeyInfo.allowedModels?.length) ||
+    Boolean(apiKeyInfo.blockedModels?.length) ||
+    apiKeyInfo.disableNonPublicModels === true
+  );
+}
+
+async function resolveRestrictedModelComboName(modelStr: string): Promise<string | null> {
+  if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) return modelStr;
+  try {
+    return await resolveRequestedComboName(modelStr);
+  } catch {
+    return null;
+  }
 }
 
 async function validateModelAccess(context: PolicyContext): Promise<Response | null> {
   const { request, apiKey, apiKeyInfo, modelStr } = context;
   if (!modelStr || apiKeyInfo.allowedQuotas?.length) return null;
-  if (isAutoComboDeniedForKey(apiKeyInfo, modelStr)) {
-    return policyErrorResponse(
-      request,
-      HTTP_STATUS.FORBIDDEN,
-      `Auto combo "${modelStr}" is not allowed for this API key`,
-      `Auto combos are not enabled for this API key. Choose an explicit model or combo.`,
-      "invalid_request_error",
-      HTTP_STATUS.BAD_REQUEST
-    );
+  const autoComboDenied = isAutoComboDeniedForKey(apiKeyInfo, modelStr);
+  // `auto/*` always denotes the built-in virtual router. Bare `auto` is
+  // different: a persisted combo literally named "auto" takes precedence, so
+  // resolve ordinary combo access before deciding whether it fell through to
+  // the built-in route.
+  if (autoComboDenied && modelStr !== "auto") {
+    return autoComboPolicyRejection(request, modelStr);
   }
   const comboAccess = await validateComboAccess(apiKeyInfo.allowedCombos, modelStr);
   if (comboAccess.rejection) return comboAccess.rejection;
   let requestedComboName = comboAccess.comboName;
 
-  const hasModelRestrictions =
-    apiKeyInfo.modelAccessMode === "restricted" ||
-    Boolean(apiKeyInfo.allowedModels?.length) ||
-    Boolean(apiKeyInfo.blockedModels?.length) ||
-    apiKeyInfo.disableNonPublicModels === true;
+  const bareAutoResolution = await resolveBareAutoComboName(
+    modelStr,
+    autoComboDenied && !requestedComboName
+  );
+  if (bareAutoResolution.rejection) return bareAutoResolution.rejection;
+  requestedComboName ??= bareAutoResolution.comboName;
+  if (isAutoComboDeniedForKey(apiKeyInfo, modelStr, requestedComboName)) {
+    return autoComboPolicyRejection(request, modelStr);
+  }
+
+  const hasModelRestrictions = hasModelAccessRestrictions(apiKeyInfo);
   if (!requestedComboName && hasModelRestrictions) {
-    if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
-      requestedComboName = modelStr;
-    } else {
-      try {
-        requestedComboName = await resolveRequestedComboName(modelStr);
-      } catch {
-        requestedComboName = null;
-      }
-    }
+    requestedComboName = await resolveRestrictedModelComboName(modelStr);
   }
   if (requestedComboName || !hasModelRestrictions) return null;
   if (await isModelAllowedForKey(apiKey, modelStr)) return null;

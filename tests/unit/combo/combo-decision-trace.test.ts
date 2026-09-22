@@ -70,7 +70,7 @@ test("skip reasons are allowlisted (unknown reason is rejected)", () => {
   assert.equal(getComboTrace("combo-t")!.decisions.length, COMBO_SKIP_REASONS.length);
 });
 
-test("finalize marks never-iterated targets as not_reached", () => {
+test("finalize summarizes never-iterated targets without allocating detail rows", () => {
   startComboTrace("combo-t", { strategy: "priority", comboName: "x" });
   recordComboDecision("combo-t", { step: "s1", target: "p/a", decision: "dispatched" });
   recordComboDecision("combo-t", {
@@ -86,8 +86,75 @@ test("finalize marks never-iterated targets as not_reached", () => {
   ])!;
   assert.deepEqual(
     trace.decisions.map((d) => d.decision),
-    ["dispatched", "skipped_before_dispatch", "not_reached"]
+    ["dispatched", "skipped_before_dispatch"]
   );
+  assert.deepEqual(trace.coverage, {
+    orderedTargetCount: 3,
+    decidedTargetCount: 2,
+    notReachedCount: 1,
+    notReachedFirstIndex: 2,
+    notReachedSamples: [{ index: 2, step: "s3", target: "p/c" }],
+    samplesTruncated: false,
+  });
+});
+
+test("finalize bounds a 4,290-target untouched tail and is idempotent", () => {
+  startComboTrace("combo-wide", { strategy: "auto", comboName: "auto" });
+  recordComboDecision("combo-wide", {
+    step: "s0",
+    target: "provider-0/model-0",
+    decision: "dispatched",
+  });
+  const orderedTargets = Array.from({ length: 4290 }, (_, index) => ({
+    executionKey: `s${index}`,
+    modelStr: `provider-${index}/model-${index}`,
+  }));
+
+  const first = finalizeComboTrace("combo-wide", orderedTargets)!;
+  const serializedLength = JSON.stringify(first).length;
+  const second = finalizeComboTrace("combo-wide", orderedTargets)!;
+
+  assert.equal(second.decisions.length, 1);
+  assert.deepEqual(second.coverage, first.coverage);
+  assert.equal(second.coverage?.orderedTargetCount, 4290);
+  assert.equal(second.coverage?.decidedTargetCount, 1);
+  assert.equal(second.coverage?.notReachedCount, 4289);
+  assert.equal(second.coverage?.notReachedFirstIndex, 1);
+  assert.equal(second.coverage?.notReachedSamples.length, 16);
+  assert.equal(second.coverage?.notReachedSamples[0]?.index, 1);
+  assert.equal(second.coverage?.notReachedSamples.at(-1)?.index, 4289);
+  assert.equal(second.coverage?.samplesTruncated, true);
+  assert.ok(serializedLength < 10_000, `trace must stay bounded, got ${serializedLength} bytes`);
+});
+
+test("finalize reports complete coverage when every target is skipped", () => {
+  startComboTrace("combo-all-skipped", { strategy: "priority", comboName: "all-skipped" });
+  for (let index = 0; index < 3; index += 1) {
+    recordComboDecision("combo-all-skipped", {
+      step: `s${index}`,
+      target: `provider/model-${index}`,
+      decision: "skipped_before_dispatch",
+      reason: "availability",
+    });
+  }
+
+  const trace = finalizeComboTrace(
+    "combo-all-skipped",
+    Array.from({ length: 3 }, (_, index) => ({
+      executionKey: `s${index}`,
+      modelStr: `provider/model-${index}`,
+    }))
+  )!;
+
+  assert.equal(trace.decisions.length, 3);
+  assert.deepEqual(trace.coverage, {
+    orderedTargetCount: 3,
+    decidedTargetCount: 3,
+    notReachedCount: 0,
+    notReachedFirstIndex: null,
+    notReachedSamples: [],
+    samplesTruncated: false,
+  });
 });
 
 test("handleComboChat: mixed fallback produces an ordered decision trace", async () => {
@@ -123,9 +190,16 @@ test("handleComboChat: mixed fallback produces an ordered decision trace", async
     [
       { target: "openai/a", decision: "dispatched" },
       { target: "openai/b", decision: "dispatched" },
-      { target: "openai/c", decision: "not_reached" },
     ]
   );
+  assert.deepEqual(trace.coverage, {
+    orderedTargetCount: 3,
+    decidedTargetCount: 2,
+    notReachedCount: 1,
+    notReachedFirstIndex: 2,
+    notReachedSamples: [{ index: 2, step: "trace-std-model-3-openai-c", target: "openai/c" }],
+    samplesTruncated: false,
+  });
   assert.equal(trace.terminal?.status, 200);
 });
 
@@ -187,7 +261,7 @@ test("handleComboChat: predictive-TTFT skip records skipped_before_dispatch/pred
   );
 });
 
-test("handleComboChat: pre-dispatch skip records allowlisted reason", async () => {
+test("handleComboChat: failure, skip, and success all count as reached decisions", async () => {
   const invocationId = createInvocationId();
   const res = await handleComboChat({
     invocationId,
@@ -220,6 +294,14 @@ test("handleComboChat: pre-dispatch skip records allowlisted reason", async () =
       { target: "openai/c", decision: "dispatched", reason: null },
     ]
   );
+  assert.deepEqual(trace.coverage, {
+    orderedTargetCount: 3,
+    decidedTargetCount: 3,
+    notReachedCount: 0,
+    notReachedFirstIndex: null,
+    notReachedSamples: [],
+    samplesTruncated: false,
+  });
 });
 
 test("egress: every response carries X-OmniRoute-Combo-Trace (success path)", async () => {
@@ -292,6 +374,7 @@ test("egress: finalized trace is emitted as one metadata-only log line", async (
   const line = infoCalls.find((m) => m.includes("combo trace") && m.includes(invocationId));
   assert.ok(line, "finalized trace log line expected");
   assert.ok(line!.includes('"status":200'), "log line must carry the terminal status");
+  assert.ok(line!.includes("targets=2 decided=1 notReached=1"));
   assert.ok(!line!.includes("messages"), "log line must not carry request content");
 });
 

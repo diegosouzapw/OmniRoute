@@ -15,6 +15,7 @@ import {
   evaluateMachineTokenAuth,
   evaluateSqlJsRoundTrip,
   evaluateRestartPersistence,
+  buildPackagedCliTokenEnv,
 } from "../../scripts/check/check-pack-boot.mjs";
 
 // WS1.2 (T1, v3.8.49 quality plan) — pure-function guards for the tarball boot-smoke
@@ -137,6 +138,18 @@ test("machine-token smoke requires no/invalid credentials to fail and the packag
   ]) {
     assert.equal(evaluateMachineTokenAuth(candidate).ok, false);
   }
+});
+
+test("packaged CLI token derivation uses the server's isolated DATA_DIR", () => {
+  const env = buildPackagedCliTokenEnv("/tmp/pack-boot-data", {
+    DATA_DIR: "/operator/data",
+    PATH: "/usr/bin",
+  });
+
+  assert.deepEqual(env, {
+    DATA_DIR: "/tmp/pack-boot-data",
+    PATH: "/usr/bin",
+  });
 });
 
 test("sql.js round trip requires the forced-driver marker plus PATCH and GET persistence", () => {

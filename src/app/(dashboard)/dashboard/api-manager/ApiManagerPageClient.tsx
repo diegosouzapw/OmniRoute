@@ -32,6 +32,7 @@ import { ChaosModeAccessToggle } from "./components/ChaosModeAccessToggle";
 import { BypassProviderQuotaToggle } from "./components/BypassProviderQuotaToggle";
 import { ApiKeyCompressionToggle } from "./components/ApiKeyCompressionToggle";
 import { ApiKeyAutoCombosToggle } from "./components/ApiKeyAutoCombosToggle";
+import { ApiKeyCcDiscoveryAliasesToggle } from "./components/ApiKeyCcDiscoveryAliasesToggle";
 import { ApiKeyCatalogScopeSelect } from "./components/ApiKeyCatalogScopeSelect";
 import type { CatalogScope } from "./components/ApiKeyCatalogScopeSelect";
 import { AllowedCombosSection } from "./components/AllowedCombosSection";
@@ -140,6 +141,7 @@ interface ApiKey {
   streamDefaultMode?: StreamDefaultMode;
   compressionEnabled?: boolean;
   allowAutoCombos?: boolean;
+  allowCcDiscoveryAliases?: boolean;
   catalogScope?: CatalogScope;
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
@@ -817,6 +819,7 @@ export default function ApiManagerPageClient() {
     streamDefaultMode: StreamDefaultMode,
     compressionEnabled: boolean,
     allowAutoCombos: boolean,
+    allowCcDiscoveryAliases: boolean,
     catalogScope: CatalogScope,
     disableNonPublicModels: boolean,
     allowUsageCommand: boolean,
@@ -896,6 +899,7 @@ export default function ApiManagerPageClient() {
           streamDefaultMode,
           compressionEnabled,
           allowAutoCombos,
+          allowCcDiscoveryAliases,
           catalogScope,
           disableNonPublicModels,
           allowUsageCommand,
@@ -1748,6 +1752,7 @@ const PermissionsModal = memo(function PermissionsModal({
     streamDefaultMode: StreamDefaultMode,
     compressionEnabled: boolean,
     allowAutoCombos: boolean,
+    allowCcDiscoveryAliases: boolean,
     catalogScope: CatalogScope,
     disableNonPublicModels: boolean,
     allowUsageCommand: boolean,
@@ -1839,6 +1844,9 @@ const PermissionsModal = memo(function PermissionsModal({
     apiKey?.compressionEnabled !== false
   );
   const [allowAutoCombos, setAllowAutoCombos] = useState(apiKey?.allowAutoCombos !== false);
+  const [allowCcDiscoveryAliases, setAllowCcDiscoveryAliases] = useState(
+    apiKey?.allowCcDiscoveryAliases !== false
+  );
   const [catalogScope, setCatalogScope] = useState<CatalogScope>(apiKey?.catalogScope ?? "all");
   const [nameError, setNameError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -2058,6 +2066,7 @@ const PermissionsModal = memo(function PermissionsModal({
       streamDefaultMode,
       compressionEnabled,
       allowAutoCombos,
+      allowCcDiscoveryAliases,
       catalogScope,
       disableNonPublicModels,
       usageCommandEnabled,
@@ -2100,6 +2109,7 @@ const PermissionsModal = memo(function PermissionsModal({
     streamDefaultMode,
     compressionEnabled,
     allowAutoCombos,
+    allowCcDiscoveryAliases,
     catalogScope,
     disableNonPublicModels,
     usageCommandEnabled,
@@ -2574,6 +2584,11 @@ const PermissionsModal = memo(function PermissionsModal({
         <ApiKeyAutoCombosToggle
           enabled={allowAutoCombos}
           onToggle={() => setAllowAutoCombos((prev) => !prev)}
+        />
+
+        <ApiKeyCcDiscoveryAliasesToggle
+          enabled={allowCcDiscoveryAliases}
+          onToggle={() => setAllowCcDiscoveryAliases((prev) => !prev)}
         />
 
         <ApiKeyCatalogScopeSelect value={catalogScope} onChange={setCatalogScope} />

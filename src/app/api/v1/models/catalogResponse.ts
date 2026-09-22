@@ -59,6 +59,7 @@ export async function applyCatalogPostFilters(
     prefixMode: string;
     aliasToProviderId: Record<string, string>;
     hideNoThinkVariants?: boolean;
+    allowCcDiscoveryAliases?: boolean;
   }
 ): Promise<Array<Record<string, any>>> {
   const yieldTurn = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
@@ -109,18 +110,22 @@ export async function applyCatalogPostFilters(
   // see ccDiscoveryAliases.ts) and default-off. Deliberately NOT filtered by model
   // `type` here — non-chat entries (embedding/image/etc.) get a mirror too; the
   // gate itself (default-off + explicit opt-in) is the operator's filter, not a
-  // hardcoded type allowlist.
-  const ccAliasGlobal = isCcAliasGlobalEnabled();
-  const ccAliasSettings = getCcAliasSettingsBulk();
-  if (ccAliasGlobal || ccAliasSettings.providers.size > 0 || ccAliasSettings.models.size > 0) {
-    finalModels = appendCcDiscoveryAliases(
-      finalModels,
-      buildCcAliasPredicate({
-        global: ccAliasGlobal,
-        providers: ccAliasSettings.providers,
-        models: ccAliasSettings.models,
-      })
-    );
+  // hardcoded type allowlist. The per-key flag is an outer listing gate and defaults
+  // on for backward compatibility. This pass receives the already-authorized rows,
+  // so enabling aliases can never introduce a model/combo the key could not see.
+  if (ctx.allowCcDiscoveryAliases !== false) {
+    const ccAliasGlobal = isCcAliasGlobalEnabled();
+    const ccAliasSettings = getCcAliasSettingsBulk();
+    if (ccAliasGlobal || ccAliasSettings.providers.size > 0 || ccAliasSettings.models.size > 0) {
+      finalModels = appendCcDiscoveryAliases(
+        finalModels,
+        buildCcAliasPredicate({
+          global: ccAliasGlobal,
+          providers: ccAliasSettings.providers,
+          models: ccAliasSettings.models,
+        })
+      );
+    }
   }
 
   // Advertise `<gateway-alias>/<id>` functional-gateway mirrors so discovery

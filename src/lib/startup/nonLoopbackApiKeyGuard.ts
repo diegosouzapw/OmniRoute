@@ -12,19 +12,20 @@ function isLoopbackHost(host: string): boolean {
   return LOOPBACK_HOSTS.has(host.trim().toLowerCase());
 }
 
-function isRequireApiKeyDisabled(): boolean {
-  const raw = (process.env.REQUIRE_API_KEY || "").trim().toLowerCase();
-  // Matches the feature-flag default: unset/empty falls back to "false".
-  return raw !== "true" && raw !== "1" && raw !== "yes";
-}
-
 /**
  * Logs a warning when `host` resolves to a non-loopback interface while
- * REQUIRE_API_KEY is disabled. Never throws and never blocks startup.
+ * the effective REQUIRE_API_KEY feature flag is disabled. The caller must
+ * resolve that flag after the feature-flag database is ready so a persisted
+ * override is not mistaken for a blank environment value. Never throws and
+ * never blocks startup.
  */
-export function warnIfNonLoopbackWithoutApiKey(serverLabel: string, host: string): void {
+export function warnIfNonLoopbackWithoutApiKey(
+  serverLabel: string,
+  host: string,
+  effectiveRequireApiKeyEnabled: boolean
+): void {
   if (isLoopbackHost(host)) return;
-  if (!isRequireApiKeyDisabled()) return;
+  if (effectiveRequireApiKeyEnabled) return;
 
   console.warn(
     `[startup] ${serverLabel} is bound to non-loopback host "${host}" while ` +
@@ -68,9 +69,10 @@ export function resolveMainServerHost(): string {
  * the surface an operator actually probes — `/v1/models` answering 401 says
  * nothing about whether inference is protected (#13695).
  */
-export function warnIfInferenceServerExposed(): void {
+export function warnIfInferenceServerExposed(effectiveRequireApiKeyEnabled: boolean): void {
   warnIfNonLoopbackWithoutApiKey(
     "Dashboard/API server (serves /v1 inference)",
-    resolveMainServerHost()
+    resolveMainServerHost(),
+    effectiveRequireApiKeyEnabled
   );
 }

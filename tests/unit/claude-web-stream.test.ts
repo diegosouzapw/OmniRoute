@@ -40,6 +40,11 @@ function validEvents(): Array<Record<string, unknown>> {
     {
       type: "content_block_delta",
       index: 0,
+      delta: { type: "signature_delta", signature: "opaque-signature" },
+    },
+    {
+      type: "content_block_delta",
+      index: 0,
       delta: {
         type: "thinking_summary_delta",
         summary: { summary: "summary" },
@@ -147,6 +152,64 @@ describe("Claude Web strict stream protocol", () => {
     assert.match(raw, /tool_approval/);
     assert.match(raw, /required/);
     assert.doesNotMatch(raw, /private prompt|private-conversation|private_tool|private-hash/);
+  });
+
+  it("accepts signature deltas and redacted-thinking block metadata without exposing it", async () => {
+    const errors: string[] = [];
+    const events = [
+      { type: "message_start" },
+      {
+        type: "content_block_start",
+        index: 0,
+        content_block: {
+          type: "redacted_thinking",
+          data: "opaque-redacted-payload",
+          signature: "opaque-start-signature",
+          metadata: { prompt: "private-current-block-metadata" },
+        },
+      },
+      { type: "content_block_stop", index: 0 },
+      { type: "content_block_start", index: 1, content_block: { type: "thinking" } },
+      {
+        type: "content_block_delta",
+        index: 1,
+        delta: { type: "thinking_delta", thinking: "safe reasoning" },
+      },
+      {
+        type: "content_block_delta",
+        index: 1,
+        delta: { type: "signature_delta", signature: "opaque-delta-signature" },
+      },
+      { type: "content_block_stop", index: 1 },
+      { type: "content_block_start", index: 2, content_block: { type: "text" } },
+      {
+        type: "content_block_delta",
+        index: 2,
+        delta: { type: "text_delta", text: "hello" },
+      },
+      { type: "content_block_stop", index: 2 },
+      { type: "message_delta", delta: { stop_reason: "end_turn" } },
+      { type: "message_stop" },
+    ];
+    const response = await createClaudeWebResponse(byteStream(frames(events)), {
+      model: "claude-sonnet-5",
+      stream: false,
+      endpointSuffix: "completion",
+      responseMetadata: {},
+      onComplete() {},
+      onFailure() {},
+      log: { error: (tag, message) => errors.push(`${tag} ${message}`) },
+    });
+
+    assert.equal(response.status, 200);
+    const output = await response.text();
+    assert.match(output, /safe reasoning/);
+    assert.match(output, /hello/);
+    assert.doesNotMatch(
+      output,
+      /opaque-redacted-payload|opaque-start-signature|private-current-block-metadata|opaque-delta-signature/
+    );
+    assert.deepEqual(errors, []);
   });
 
   it("finishes and cancels upstream immediately after message_stop", async () => {
@@ -324,5 +387,160 @@ describe("Claude Web strict stream protocol", () => {
       assert.deepEqual(completions, []);
       assert.equal(failures, 1);
     }
+  });
+
+  it("keeps public errors generic while logging safe protocol categories", async () => {
+    const cases: Array<{
+      name: string;
+      source: string;
+      expected: Record<string, unknown>;
+      forbidden?: RegExp;
+    }> = [
+      {
+        name: "unknown event",
+        source: frames([
+          { type: "message_start" },
+          { type: "future_event_private_prompt", content: "do not log me" },
+        ]),
+        expected: { category: "unknown_event", eventKind: "unrecognized" },
+        forbidden: /future_event_private_prompt|do not log me/,
+      },
+      {
+        name: "unsupported block",
+        source: frames([
+          { type: "message_start" },
+          {
+            type: "content_block_start",
+            index: 7,
+            content_block: { type: "future_private_block", text: "do not log me" },
+          },
+        ]),
+        expected: {
+          category: "unsupported_block",
+          eventKind: "content_block_start",
+          blockKind: "unrecognized",
+          index: 7,
+        },
+        forbidden: /future_private_block|do not log me/,
+      },
+      {
+        name: "unsupported delta",
+        source: frames([
+          { type: "message_start" },
+          { type: "content_block_start", index: 3, content_block: { type: "text" } },
+          {
+            type: "content_block_delta",
+            index: 3,
+            delta: { type: "future_private_delta", text: "do not log me" },
+          },
+        ]),
+        expected: {
+          category: "unsupported_delta",
+          eventKind: "content_block_delta",
+          blockKind: "text",
+          deltaKind: "unrecognized",
+          index: 3,
+        },
+        forbidden: /future_private_delta|do not log me/,
+      },
+      {
+        name: "upstream error",
+        source: frames([
+          { type: "message_start" },
+          {
+            type: "error",
+            error: {
+              type: "overloaded_error",
+              code: "overloaded",
+              message: "secret at C:\\Users\\private\\source.ts:10",
+            },
+          },
+        ]),
+        expected: {
+          category: "upstream_error",
+          eventKind: "error",
+          upstreamErrorType: "overloaded_error",
+          upstreamErrorCode: "overloaded",
+        },
+        forbidden: /secret|C:\\Users|private|source\.ts/,
+      },
+      {
+        name: "premature done",
+        source: frames([{ type: "message_start" }]) + "data: [DONE]\n\n",
+        expected: { category: "premature_done", phase: "stream_terminal" },
+      },
+      {
+        name: "premature eof",
+        source: frames([{ type: "message_start" }]),
+        expected: { category: "premature_eof", phase: "stream_terminal" },
+      },
+    ];
+
+    for (const testCase of cases) {
+      const errors: string[] = [];
+      const response = await createClaudeWebResponse(byteStream(testCase.source), {
+        model: "claude-sonnet-5",
+        stream: false,
+        endpointSuffix: "retry_completion",
+        responseMetadata: {},
+        onComplete() {},
+        onFailure() {},
+        log: { error: (tag, message) => errors.push(`${tag} ${message}`) },
+      });
+      const publicBody = await response.text();
+      assert.equal(response.status, 502, testCase.name);
+      assert.match(publicBody, /Claude Web stream protocol error/, testCase.name);
+      assert.doesNotMatch(
+        publicBody,
+        /unknown_event|unsupported_|upstreamError|premature_/,
+        testCase.name
+      );
+      assert.equal(errors.length, 1, testCase.name);
+      const diagnosticText = errors[0].slice(errors[0].indexOf("{"));
+      const diagnostic = JSON.parse(diagnosticText) as Record<string, unknown>;
+      assert.equal(diagnostic.endpointSuffix, "retry_completion", testCase.name);
+      for (const [key, value] of Object.entries(testCase.expected)) {
+        assert.equal(diagnostic[key], value, `${testCase.name}: ${key}`);
+      }
+      assert.equal(typeof diagnostic.parserState, "object", testCase.name);
+      if (testCase.forbidden) assert.doesNotMatch(errors[0], testCase.forbidden, testCase.name);
+    }
+  });
+
+  it("preserves the structured parser diagnostic on the streaming failure path", async () => {
+    const errors: string[] = [];
+    const response = await createClaudeWebResponse(
+      byteStream(
+        frames([
+          { type: "message_start" },
+          { type: "content_block_start", index: 4, content_block: { type: "text" } },
+          {
+            type: "content_block_delta",
+            index: 4,
+            delta: { type: "signature_delta", signature: "never-log-this-signature" },
+          },
+        ])
+      ),
+      {
+        model: "claude-sonnet-5",
+        stream: true,
+        endpointSuffix: "completion",
+        responseMetadata: {},
+        onComplete() {},
+        onFailure() {},
+        log: { error: (tag, message) => errors.push(`${tag} ${message}`) },
+      }
+    );
+
+    const publicBody = await response.text();
+    assert.match(publicBody, /Claude Web stream protocol error/);
+    assert.doesNotMatch(publicBody, /unsupported_delta|signature_delta|never-log/);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /"category":"unsupported_delta"/);
+    assert.match(errors[0], /"blockKind":"text"/);
+    assert.match(errors[0], /"deltaKind":"signature_delta"/);
+    assert.match(errors[0], /"index":4/);
+    assert.match(errors[0], /"endpointSuffix":"completion"/);
+    assert.doesNotMatch(errors[0], /never-log-this-signature/);
   });
 });

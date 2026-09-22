@@ -414,6 +414,27 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     models: [{ id: "grok-imagine-video", name: "Grok Imagine Video" }],
   },
 
+  openrouter: {
+    id: "openrouter",
+    // OpenRouter video is a native async API, not an OpenAI-compatible
+    // `/videos/generations` endpoint. The dedicated handler submits here,
+    // polls statusUrl/:jobId and retrieves statusUrl/:jobId/content.
+    baseUrl: "https://openrouter.ai/api/v1/videos",
+    statusUrl: "https://openrouter.ai/api/v1/videos",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openrouter-video",
+    // Startup/offline fallback. The unified catalog also merges the live
+    // /api/v1/videos/models response so newly published slugs do not require a
+    // code release before they can be discovered or routed.
+    models: [
+      { id: "google/veo-3.1", name: "Google Veo 3.1 (OpenRouter)" },
+      { id: "bytedance/seedance-2.0", name: "ByteDance Seedance 2.0 (OpenRouter)" },
+      { id: "alibaba/wan-3.0-prime", name: "Alibaba Wan 3.0 Prime (OpenRouter)" },
+      { id: "minimax/hailuo-3", name: "MiniMax Hailuo 3 (OpenRouter)" },
+    ],
+  },
+
   // UC (uncensored.com) video generation. One handler (handleUcVideoGeneration)
   // serves BOTH surfaces, picking by credential: PERSONA web (un-metered, Clerk
   // JWT -> internal.chatuncensored.ai/{text,image}_to_video + moveinwater result

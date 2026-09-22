@@ -135,18 +135,48 @@ function isLatentWindow(window: JsonRecord): boolean {
  * e.g. a 7-day `primary_window` is labeled "Weekly" rather than "Session".
  * Returns undefined for durations that don't clearly map to either bucket.
  */
-function windowDurationLabel(window: JsonRecord): "Session" | "Weekly" | "Monthly" | undefined {
+export function inferCodexWindowFamily(
+  window: JsonRecord
+): "session" | "weekly" | "monthly" | undefined {
   const limitWindow = toNumber(
     getFieldValue(window, "limit_window_seconds", "limitWindowSeconds"),
     0
   );
   if (limitWindow <= 0) return undefined;
   const inferred = inferWindowFamilyLabel(limitWindow);
-  if (inferred === "Monthly" || inferred === "Weekly" || inferred === "Session") return inferred;
-  if (limitWindow >= MONTHLY_MIN_WINDOW_SECONDS) return "Monthly";
-  if (limitWindow >= WEEKLY_MIN_WINDOW_SECONDS) return "Weekly";
-  if (limitWindow <= SESSION_MAX_WINDOW_SECONDS) return "Session";
+  if (inferred === "Monthly" || inferred === "Weekly" || inferred === "Session") {
+    return inferred.toLowerCase() as "session" | "weekly" | "monthly";
+  }
+  if (limitWindow >= MONTHLY_MIN_WINDOW_SECONDS) return "monthly";
+  if (limitWindow >= WEEKLY_MIN_WINDOW_SECONDS) return "weekly";
+  if (limitWindow <= SESSION_MAX_WINDOW_SECONDS) return "session";
   return undefined;
+}
+
+type CodexBaseWindowKey = "session" | "weekly";
+
+/**
+ * Normalize ChatGPT's positional rate-limit fields to the semantic keys used by
+ * routing. Some plans expose their only seven-day limit as `primary_window`;
+ * treating that field name as a session window makes weekly exhaustion invisible
+ * to a `weekly` limit policy. Duration is authoritative when present, while the
+ * positional key remains the compatibility fallback for older payloads that do
+ * not report a duration.
+ */
+function normalizeBaseWindow(
+  quotas: Record<string, CodexUsageQuota>,
+  window: JsonRecord,
+  positionalKey: CodexBaseWindowKey
+): void {
+  if (Object.keys(window).length === 0) return;
+
+  const family = inferCodexWindowFamily(window);
+  const semanticKey = family || positionalKey;
+  const displayName =
+    family && semanticKey !== positionalKey
+      ? `${family.charAt(0).toUpperCase()}${family.slice(1)}`
+      : undefined;
+  quotas[semanticKey] = buildPercentageQuota(window, displayName);
 }
 
 function findCodexSparkRateLimit(data: JsonRecord): {
@@ -277,26 +307,15 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
   const rateLimitReachedType = parseRateLimitReachedType(data);
 
   // The `session`/`weekly` keys carry routing semantics (combo quota scoring,
-  // preflight, cooldowns) and stay position-based. Only the display label is
-  // corrected from the real window duration, so a `primary_window` that is
-  // actually a 7-day window shows "Weekly" instead of "Session".
+  // preflight, cooldowns), so normalize them from the actual duration rather
+  // than assuming primary=session / secondary=weekly. A plan may expose only a
+  // seven-day `primary_window`; that is a weekly quota and must not fabricate a
+  // missing session window.
   const primaryWindow = toRecord(getFieldValue(rateLimit, "primary_window", "primaryWindow"));
-  if (Object.keys(primaryWindow).length > 0) {
-    const primaryLabel = windowDurationLabel(primaryWindow);
-    quotas.session = buildPercentageQuota(
-      primaryWindow,
-      primaryLabel === "Weekly" || primaryLabel === "Monthly" ? primaryLabel : undefined
-    );
-  }
+  normalizeBaseWindow(quotas, primaryWindow, "session");
 
   const secondaryWindow = toRecord(getFieldValue(rateLimit, "secondary_window", "secondaryWindow"));
-  if (Object.keys(secondaryWindow).length > 0) {
-    const secondaryLabel = windowDurationLabel(secondaryWindow);
-    quotas.weekly = buildPercentageQuota(
-      secondaryWindow,
-      secondaryLabel === "Session" ? secondaryLabel : undefined
-    );
-  }
+  normalizeBaseWindow(quotas, secondaryWindow, "weekly");
 
   // Resolve the code-review rate limit block. ChatGPT Codex exposes the same
   // information under two different shapes depending on the plan tier

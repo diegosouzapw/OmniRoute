@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import bcrypt from "bcryptjs";
 import Database from "better-sqlite3";
 
 import { bootstrapEnv } from "../../scripts/build/bootstrap-env.mjs";
@@ -50,6 +51,57 @@ function withTempEnv(fn) {
     }
     fs.rmSync(tempRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
+}
+
+function captureBootstrapStderr(run: () => void): string {
+  let output = "";
+  const originalWrite = process.stderr.write;
+  process.stderr.write = ((chunk: string | Uint8Array) => {
+    output += typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
+    return true;
+  }) as typeof process.stderr.write;
+  try {
+    run();
+  } finally {
+    process.stderr.write = originalWrite;
+  }
+  return output;
+}
+
+function seedBootstrapDatabase(dataDir: string, passwordValue?: string): void {
+  fs.mkdirSync(dataDir, { recursive: true });
+  const db = new Database(path.join(dataDir, "storage.sqlite"));
+  try {
+    db.exec(`
+      CREATE TABLE provider_connections (
+        access_token TEXT,
+        refresh_token TEXT,
+        api_key TEXT,
+        id_token TEXT
+      );
+      CREATE TABLE key_value (
+        namespace TEXT NOT NULL,
+        key TEXT NOT NULL,
+        value TEXT NOT NULL,
+        PRIMARY KEY (namespace, key)
+      );
+    `);
+    if (passwordValue !== undefined) {
+      db.prepare(
+        "INSERT INTO key_value (namespace, key, value) VALUES ('settings', 'password', ?)"
+      ).run(JSON.stringify(passwordValue));
+    }
+  } finally {
+    db.close();
+  }
+}
+
+function seedBootstrapSecrets(dataDir: string): void {
+  fs.writeFileSync(
+    path.join(dataDir, "server.env"),
+    "JWT_SECRET=test-jwt\nSTORAGE_ENCRYPTION_KEY=test-storage-key\nAPI_KEY_SECRET=test-api-key\n",
+    "utf8"
+  );
 }
 
 test("bootstrapEnv prefers ~/.omniroute/.env over server.env", () => {
@@ -163,5 +215,89 @@ test("bootstrapEnv ignores blank dataDirOverride values", () => {
     const env = bootstrapEnv({ dataDirOverride: "   ", quiet: true });
 
     assert.equal(env.JWT_SECRET, "jwt-from-dot-env");
+  });
+});
+
+test("bootstrapEnv suppresses the default-password warning when a bcrypt password is persisted", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    seedBootstrapDatabase(dataDir, bcrypt.hashSync("rotated-password", 4));
+    seedBootstrapSecrets(dataDir);
+
+    const output = captureBootstrapStderr(() => {
+      bootstrapEnv();
+    });
+
+    assert.doesNotMatch(output, /INITIAL_PASSWORD is not set/);
+  });
+});
+
+test("bootstrapEnv lets a persisted bcrypt password override a stale CHANGEME bootstrap value", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    process.env.INITIAL_PASSWORD = "CHANGEME";
+    seedBootstrapDatabase(dataDir, bcrypt.hashSync("rotated-password", 4));
+    seedBootstrapSecrets(dataDir);
+
+    const output = captureBootstrapStderr(() => {
+      bootstrapEnv();
+    });
+
+    assert.doesNotMatch(output, /INITIAL_PASSWORD is not set/);
+  });
+});
+
+test("bootstrapEnv keeps the default-password warning when no persisted bcrypt hash exists", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    seedBootstrapDatabase(dataDir, "legacy-plaintext-password");
+    seedBootstrapSecrets(dataDir);
+
+    const output = captureBootstrapStderr(() => {
+      bootstrapEnv();
+    });
+
+    assert.match(output, /INITIAL_PASSWORD is not set/);
+  });
+});
+
+test("bootstrapEnv keeps the default-password warning when the persisted hash is CHANGEME", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    seedBootstrapDatabase(dataDir, bcrypt.hashSync("CHANGEME", 4));
+    seedBootstrapSecrets(dataDir);
+
+    const output = captureBootstrapStderr(() => {
+      bootstrapEnv();
+    });
+
+    assert.match(output, /INITIAL_PASSWORD is not set/);
+  });
+});
+
+test("bootstrapEnv keeps the default-password warning when the settings table cannot be read", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    fs.mkdirSync(dataDir, { recursive: true });
+    const db = new Database(path.join(dataDir, "storage.sqlite"));
+    try {
+      db.exec(`
+        CREATE TABLE provider_connections (
+          access_token TEXT,
+          refresh_token TEXT,
+          api_key TEXT,
+          id_token TEXT
+        );
+      `);
+    } finally {
+      db.close();
+    }
+    seedBootstrapSecrets(dataDir);
+
+    const output = captureBootstrapStderr(() => {
+      bootstrapEnv();
+    });
+
+    assert.match(output, /INITIAL_PASSWORD is not set/);
   });
 });

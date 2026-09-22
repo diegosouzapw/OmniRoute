@@ -11,11 +11,20 @@ import {
 } from "@/lib/providerModels/cursorAgent";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { resolveCursorBearerToken } from "@omniroute/open-sse/services/cursorApiKeyAuth.ts";
 
 export { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 
 export type FetchCursorAvailableModelsOptions = {
   accessToken: string;
+  machineId?: string | null;
+  fetchImpl?: typeof fetch;
+  signal?: AbortSignal;
+};
+
+export type FetchCursorConnectionAvailableModelsOptions = {
+  apiKey?: string | null;
+  accessToken?: string | null;
   machineId?: string | null;
   fetchImpl?: typeof fetch;
   signal?: AbortSignal;
@@ -146,4 +155,28 @@ export async function fetchCursorAvailableModels(
     throw new Error("Cursor AvailableModels returned no models");
   }
   return models;
+}
+
+/**
+ * Resolve either Cursor credential shape, then probe the account-scoped live
+ * AvailableModels endpoint. In particular, a `crsr_` API key must first be
+ * exchanged for a session JWT; the static Cursor registry is not evidence that
+ * the key's plan can use named models.
+ */
+export async function fetchCursorConnectionAvailableModels(
+  options: FetchCursorConnectionAvailableModelsOptions
+): Promise<CursorAgentModelEntry[]> {
+  const accessToken = await resolveCursorBearerToken(
+    { apiKey: options.apiKey, accessToken: options.accessToken },
+    {
+      fetchImpl: options.fetchImpl,
+      signal: options.signal,
+    }
+  );
+  return fetchCursorAvailableModels({
+    accessToken,
+    machineId: options.machineId,
+    fetchImpl: options.fetchImpl,
+    signal: options.signal,
+  });
 }

@@ -87,11 +87,14 @@ export async function loadRerankProviderNodes(): Promise<DynamicRerankProvider[]
   let nodes: RerankProviderNodeRow[] = [];
   try {
     const rows = await getCachedProviderNodes();
-    // The cached row type is not assignable to RerankProviderNodeRow, so a predicate
-    // on it is a TS2677 (#13866). Narrow to a non-null object first, then project.
     nodes = (Array.isArray(rows) ? rows : [])
-      .filter((n): n is NonNullable<typeof n> => n !== null && typeof n === "object")
-      .map((n) => n as unknown as RerankProviderNodeRow);
+      .filter((n): n is Record<string, unknown> => n !== null && typeof n === "object")
+      .map((n) => ({
+        id: typeof n.id === "string" ? n.id : undefined,
+        prefix: typeof n.prefix === "string" ? n.prefix : null,
+        baseUrl: typeof n.baseUrl === "string" ? n.baseUrl : null,
+        apiType: typeof n.apiType === "string" ? n.apiType : null,
+      }));
   } catch {
     // Non-critical — continue with cloud providers only
     return [];

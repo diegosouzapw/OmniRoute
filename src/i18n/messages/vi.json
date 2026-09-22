@@ -7500,6 +7500,8 @@
     "compressionDesc": "Giảm mức sử dụng token bằng cách nén các prompt trước khi gửi đến các nhà cung cấp",
     "autoCombosTitle": "Combo tự động",
     "autoCombosDesc": "Cho phép khóa này sử dụng các combo auto/* tích hợp sẵn, vốn tự động chọn mô hình từ mọi nhà cung cấp đã cấu hình",
+    "ccDiscoveryAliasesTitle": "Bí danh khám phá Claude Code",
+    "ccDiscoveryAliasesDesc": "Hiển thị các bí danh tương thích claude/... cho những mô hình và combo mà khóa này đã có quyền truy cập",
     "compressionGuidanceFullGuideLink": "Hướng dẫn nén đầy đủ",
     "compressionGuidanceShow": "Chi tiết",
     "compressionGuidanceHide": "Ẩn chi tiết",

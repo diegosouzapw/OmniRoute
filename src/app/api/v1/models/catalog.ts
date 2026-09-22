@@ -61,6 +61,10 @@ import {
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { mergeCustomModelMetadata } from "@/lib/providers/modelMetadataPrecedence";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
+import {
+  getOpenRouterVideoCatalog,
+  mergeOpenRouterVideoCatalogModels,
+} from "@/lib/catalog/openrouterVideoCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
   INTERNAL_PROXY_ERROR,
@@ -119,6 +123,7 @@ import {
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import {
   buildAliasMaps,
+  createProviderActivePredicate,
   prefixRoutesToProvider,
   resolveCanonicalProviderId as resolveCanonicalProviderIdFromMaps,
   getProviderPrefixes as getProviderPrefixesFromMaps,
@@ -471,7 +476,7 @@ async function buildUnifiedModelsResponseCore(
     }
 
     // Build set of active provider aliases
-    const activeAliases = new Set();
+    const activeAliases = new Set<string>();
     const connectionsByProvider = new Map<string, typeof connections>();
     const registerConnectionKey = (
       key: string | null | undefined,
@@ -834,6 +839,7 @@ async function buildUnifiedModelsResponseCore(
           prefixMode,
           aliasToProviderId,
           hideNoThinkVariants: settings.hideNoThinkVariants === true,
+          allowCcDiscoveryAliases: earlyKeyMeta?.allowCcDiscoveryAliases !== false,
         });
         return finalizeCatalogResponse(request, quotaFinal, () => undefined, {
           ...corsHeaders,
@@ -1369,7 +1375,10 @@ async function buildUnifiedModelsResponseCore(
       !providersWithSyncedModels.has("openrouter")
     ) {
       try {
-        const openRouterCatalog = await getOpenRouterCatalog();
+        const [openRouterCatalog, openRouterVideoCatalog] = await Promise.all([
+          getOpenRouterCatalog(),
+          getOpenRouterVideoCatalog(),
+        ]);
         const openRouterCaps: Record<string, ModelCapabilityEntry> = {};
         for (const openRouterModel of openRouterCatalog.data || []) {
           if (!openRouterModel?.id || typeof openRouterModel.id !== "string") continue;
@@ -1438,28 +1447,26 @@ async function buildUnifiedModelsResponseCore(
           await maybeYieldCatalogBuild();
         }
         upsertSyncedCapabilities("openrouter", openRouterCaps);
+        await mergeOpenRouterVideoCatalogModels({
+          models,
+          videoModels: openRouterVideoCatalog.data || [],
+          timestamp,
+          isHidden: isModelHiddenBulk,
+          shouldHideByExposure,
+          qualifyModelId: qualifyOpenRouterModelId,
+          yieldAfterModel: maybeYieldCatalogBuild,
+        });
       } catch (err) {
         console.error("[catalog] Error loading OpenRouter catalog:", err);
       }
     }
 
-    // Helper: check if a provider is active (by provider id or alias)
-    const isProviderActive = (provider: string) => {
-      if (activeAliases.size === 0) return false; // No active connections = show nothing
-      const alias = providerIdToAlias[provider] || provider;
-      const canonicalProviderId = resolveCanonicalProviderId(alias, provider);
-
-      // FIX #1752: Ensure blocked providers are not returned for non-chat models
-      if (
-        blockedProviders.has(alias) ||
-        blockedProviders.has(canonicalProviderId) ||
-        blockedProviders.has(provider)
-      ) {
-        return false;
-      }
-
-      return activeAliases.has(alias) || activeAliases.has(provider);
-    };
+    const isProviderActive = createProviderActivePredicate({
+      activeAliases,
+      blockedProviders,
+      providerIdToAlias,
+      resolveCanonicalProviderId,
+    });
 
     const findEquivalentSpecialtyModel = (
       providerId: string,
@@ -1610,6 +1617,9 @@ async function buildUnifiedModelsResponseCore(
     // Add video models (filtered by active providers)
     for (const videoModel of getAllVideoModels()) {
       if (!isProviderActive(videoModel.provider)) continue;
+      // A dynamic catalog (currently OpenRouter's authoritative
+      // /api/v1/videos/models feed) may already have inserted this exact id.
+      if (models.some((existingModel: any) => existingModel?.id === videoModel.id)) continue;
       const rawModelId = getSpecialtyModelRelativeId(videoModel.id, videoModel.provider);
       if (!providerSupportsModel(videoModel.provider, rawModelId)) continue;
       if (isModelHiddenBulk(videoModel.provider, rawModelId, null, "videos")) continue;
@@ -2043,6 +2053,7 @@ async function buildUnifiedModelsResponseCore(
       prefixMode,
       aliasToProviderId,
       hideNoThinkVariants: settings.hideNoThinkVariants === true,
+      allowCcDiscoveryAliases: earlyKeyMeta?.allowCcDiscoveryAliases !== false,
     });
 
     const getDefaultContextFallback = (model: any): number | undefined => {

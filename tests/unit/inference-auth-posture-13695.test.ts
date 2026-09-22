@@ -59,9 +59,9 @@ function captureWarn(fn: () => void): string[] {
   return messages;
 }
 
-test("inference server warns on its default bind with REQUIRE_API_KEY unset", () => {
+test("inference server warns on its default bind when effective auth is disabled", () => {
   withEnv({ ...CLEAR_HOST, REQUIRE_API_KEY: undefined }, () => {
-    const messages = captureWarn(warnIfInferenceServerExposed);
+    const messages = captureWarn(() => warnIfInferenceServerExposed(false));
     assert.equal(messages.length, 1);
     assert.match(messages[0], /\/v1 inference/);
     assert.match(messages[0], /non-loopback host "0\.0\.0\.0"/);
@@ -69,9 +69,9 @@ test("inference server warns on its default bind with REQUIRE_API_KEY unset", ()
   });
 });
 
-test("inference server warns on an explicit LAN bind with REQUIRE_API_KEY=false", () => {
+test("inference server warns on an explicit LAN bind when effective auth is disabled", () => {
   withEnv({ ...CLEAR_HOST, REQUIRE_API_KEY: "false", OMNIROUTE_BOUND_HOST: "192.168.1.5" }, () => {
-    const messages = captureWarn(warnIfInferenceServerExposed);
+    const messages = captureWarn(() => warnIfInferenceServerExposed(false));
     assert.equal(messages.length, 1);
     assert.match(messages[0], /non-loopback host "192\.168\.1\.5"/);
   });
@@ -79,13 +79,22 @@ test("inference server warns on an explicit LAN bind with REQUIRE_API_KEY=false"
 
 test("inference server stays silent on loopback, and on 0.0.0.0 with the key required", () => {
   withEnv({ ...CLEAR_HOST, REQUIRE_API_KEY: "false", OMNIROUTE_BOUND_HOST: "127.0.0.1" }, () => {
-    assert.deepEqual(captureWarn(warnIfInferenceServerExposed), []);
+    assert.deepEqual(
+      captureWarn(() => warnIfInferenceServerExposed(false)),
+      []
+    );
   });
   withEnv({ ...CLEAR_HOST, REQUIRE_API_KEY: "false", OMNIROUTE_BOUND_HOST: "::1" }, () => {
-    assert.deepEqual(captureWarn(warnIfInferenceServerExposed), []);
+    assert.deepEqual(
+      captureWarn(() => warnIfInferenceServerExposed(false)),
+      []
+    );
   });
   withEnv({ ...CLEAR_HOST, REQUIRE_API_KEY: "true" }, () => {
-    assert.deepEqual(captureWarn(warnIfInferenceServerExposed), []);
+    assert.deepEqual(
+      captureWarn(() => warnIfInferenceServerExposed(true)),
+      []
+    );
   });
 });
 
@@ -141,15 +150,25 @@ test("a loopback-bound Docker instance does not get a false warning", () => {
   // fall through to "0.0.0.0" and warn about an instance that is in fact
   // bound to loopback.
   withEnv({ ...CLEAR_HOST, REQUIRE_API_KEY: "false", HOSTNAME: "127.0.0.1" }, () => {
-    assert.deepEqual(captureWarn(warnIfInferenceServerExposed), []);
+    assert.deepEqual(
+      captureWarn(() => warnIfInferenceServerExposed(false)),
+      []
+    );
   });
 });
 
-test("the Next boot hook actually invokes the inference exposure guard", () => {
+test("the Next boot hook resolves effective auth after DB init and shares it with both listeners", () => {
   // A guard nobody calls is what #13695 is reporting: the module existed and
   // was tested, but the inference server never reached it.
   const boot = fs.readFileSync(path.join(REPO_ROOT, "src/instrumentation-node.ts"), "utf8");
-  assert.match(boot, /warnIfInferenceServerExposed\(\)/);
+  const dbReadyIndex = boot.indexOf("await ensureDbReadyForBoot()");
+  const resolveIndex = boot.indexOf("const effectiveRequireApiKey = isRequireApiKeyEnabled()");
+  const warningIndex = boot.indexOf("warnIfInferenceServerExposed(effectiveRequireApiKey)");
+  const bridgeIndex = boot.indexOf("initApiBridgeServer(effectiveRequireApiKey)");
+  assert.ok(dbReadyIndex >= 0, "boot must initialize the DB");
+  assert.ok(resolveIndex > dbReadyIndex, "effective auth must resolve after DB initialization");
+  assert.ok(warningIndex > resolveIndex, "inference warning must use the resolved effective flag");
+  assert.ok(bridgeIndex > resolveIndex, "API bridge must use the same resolved effective flag");
 });
 
 test("docs state which setting gates /v1/models and which gates inference", () => {

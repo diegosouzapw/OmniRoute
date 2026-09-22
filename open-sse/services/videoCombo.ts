@@ -9,8 +9,8 @@
  * the last failure.
  *
  * Terminal-vs-retryable classification matches the image strategy: 400/401/403
- * stop the walk (a bad model or a banned key will not get better on the next
- * target), everything else advances. A missing prompt against a
+ * can advance only to a distinct provider/account (the failing target may have
+ * a bad model or expired key), while same-account retries stop. A missing prompt against a
  * prompt-required target is an exception to that rule: it is per-target (some
  * combo targets may be prompt-optional I2V models), so it is treated as a
  * retryable skip rather than a terminal failure.
@@ -41,6 +41,11 @@ import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import * as logger from "@/sse/utils/logger";
+import {
+  hasDistinctMediaFallback,
+  isTargetLocalMediaStatus,
+  pinnedConnectionIds,
+} from "./mediaComboFallback.ts";
 
 /**
  * Execute a full combo strategy for a video generation request.
@@ -71,12 +76,16 @@ export async function executeVideoCombo(
   // and filter to video-capable ones. Resolving up front (rather than in the
   // execution loop below) lets prompt validation run against the real
   // expanded target set instead of the unresolved combo name.
-  const videoTargets: Array<{ modelStr: string; resolved: VideoModelTarget }> = [];
+  const videoTargets: Array<{
+    target: (typeof targets)[number];
+    modelStr: string;
+    resolved: VideoModelTarget;
+  }> = [];
   for (const t of targets) {
     if (!t.modelStr) continue;
     const resolved = await resolveVideoModelTarget(t.modelStr);
     if (resolved.provider) {
-      videoTargets.push({ modelStr: t.modelStr, resolved });
+      videoTargets.push({ target: t, modelStr: t.modelStr, resolved });
     }
   }
 
@@ -90,7 +99,8 @@ export async function executeVideoCombo(
   let lastError: { status: number; error: string } | null = null;
   let fallbackCount = 0;
 
-  for (const { modelStr, resolved } of videoTargets) {
+  for (let targetIndex = 0; targetIndex < videoTargets.length; targetIndex += 1) {
+    const { target, modelStr, resolved } = videoTargets[targetIndex];
     const { provider: targetProvider, model: targetModel, isCustomModel } = resolved;
     if (!targetProvider) {
       lastError = { status: 400, error: `Invalid video model: ${modelStr}` };
@@ -118,7 +128,10 @@ export async function executeVideoCombo(
     if (providerConfig && providerConfig.authType !== "none") {
       try {
         credentials = await getProviderCredentialsWithQuotaPreflight(
-          resolveVideoCredentialProvider(targetProvider)
+          resolveVideoCredentialProvider(targetProvider),
+          null,
+          pinnedConnectionIds(target),
+          targetModel
         );
       } catch {
         lastError = { status: 502, error: `Failed to resolve credentials for ${targetProvider}` };
@@ -142,7 +155,7 @@ export async function executeVideoCombo(
         credentials = await getProviderCredentialsWithQuotaPreflight(
           targetProvider,
           null,
-          null,
+          pinnedConnectionIds(target),
           targetModel
         );
       } catch {
@@ -196,8 +209,23 @@ export async function executeVideoCombo(
         ? (result as { error: string }).error
         : "Video generation failed";
 
-    if (status === 400 || status === 401 || status === 403) {
-      return errorResponse(status, `[${targetProvider}] ${error}`);
+    if (isTargetLocalMediaStatus(status)) {
+      const credentialConnectionId =
+        credentials && typeof credentials === "object" && "connectionId" in credentials
+          ? String((credentials as { connectionId?: unknown }).connectionId || "") || null
+          : null;
+      const connectionId = credentialConnectionId || target.connectionId || null;
+      const hasDistinctFallback = hasDistinctMediaFallback({
+        currentProvider: targetProvider,
+        currentConnectionId: connectionId,
+        remaining: videoTargets.slice(targetIndex + 1).map((candidate) => ({
+          target: candidate.target,
+          provider: candidate.resolved.provider,
+        })),
+      });
+      if (!hasDistinctFallback) {
+        return errorResponse(status, `[${targetProvider}] ${error}`);
+      }
     }
 
     lastError = { status, error: `[${targetProvider}] ${error}` };

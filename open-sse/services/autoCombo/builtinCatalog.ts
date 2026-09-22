@@ -2,7 +2,7 @@ import type { ModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilities"
 
 import type { AutoVariant } from "./autoPrefix";
 import { VALID_VARIANTS } from "./autoPrefix";
-import type { PreparedVirtualAutoComboInputs } from "./virtualFactory";
+import type { AutoComboSpec, PreparedVirtualAutoComboInputs } from "./virtualFactory";
 import { parseAutoSuffix, type AutoCategory, type AutoTier } from "./suffixComposition";
 import { isValidModelFamily, AUTO_FAMILY_IDS } from "./modelFamily";
 
@@ -179,6 +179,56 @@ export function resolveBuiltinAutoSpec(modelStr: string, suffix: string): Builti
   return { variant: undefined };
 }
 
+export interface BuiltinAutoMaterialization {
+  variant: AutoVariant | undefined;
+  spec?: AutoComboSpec;
+}
+
+/** Single authoritative built-in-id → selection inputs mapping. */
+export function resolveBuiltinAutoMaterialization(
+  modelStr: string,
+  suffix: string
+): BuiltinAutoMaterialization | null {
+  const resolvedSpec = resolveBuiltinAutoSpec(modelStr, suffix);
+
+  if ("category" in resolvedSpec) {
+    return {
+      variant: undefined,
+      spec: {
+        category: resolvedSpec.category,
+        ...(resolvedSpec.tier ? { tier: resolvedSpec.tier } : {}),
+      },
+    };
+  }
+
+  if ("variant" in resolvedSpec && resolvedSpec.variant !== undefined) {
+    const overlayTier = FLAT_TIER_OVERLAY_IDS[modelStr];
+    return {
+      variant: resolvedSpec.variant,
+      spec: overlayTier ? { tier: overlayTier } : undefined,
+    };
+  }
+
+  if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, modelStr)) {
+    const overlayTier = FLAT_TIER_OVERLAY_IDS[modelStr];
+    return { variant: undefined, spec: overlayTier ? { tier: overlayTier } : undefined };
+  }
+
+  const parsed = parseAutoSuffix(suffix);
+  if (parsed.valid) {
+    return {
+      variant: undefined,
+      spec: { category: parsed.category, tier: parsed.tier },
+    };
+  }
+
+  if (isValidModelFamily(suffix)) {
+    return { variant: undefined, spec: { family: suffix } };
+  }
+
+  return null;
+}
+
 export async function prepareBuiltinAutoComboInputs(
   resolutionSnapshot?: ModelCapabilityResolutionSnapshot
 ): Promise<PreparedVirtualAutoComboInputs> {
@@ -204,64 +254,22 @@ export async function createBuiltinAutoCombo(
       ? createVirtualAutoComboFromPrepared(prepared, variant, spec)
       : createVirtualAutoCombo(variant, spec);
 
-  const spec = resolveBuiltinAutoSpec(modelStr, suffix);
+  const request = resolveBuiltinAutoMaterialization(modelStr, suffix);
+  if (!request) throw new Error(`Unknown built-in auto combo: ${modelStr}`);
 
-  if ("category" in spec) {
-    // #4235 Phase B category/tier path (incl. vision ids like auto/best-vision).
-    const virtualCombo = await materialize(undefined, {
-      category: spec.category,
-      ...(spec.tier ? { tier: spec.tier } : {}),
-    });
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
+  const virtualCombo = await materialize(request.variant, request.spec);
+  virtualCombo.name = modelStr;
+  virtualCombo.id = modelStr;
+  return virtualCombo;
+}
 
-  if ("variant" in spec && spec.variant !== undefined) {
-    const overlayTier = FLAT_TIER_OVERLAY_IDS[modelStr];
-    const virtualCombo = await materialize(spec.variant, {
-      ...(overlayTier ? { tier: overlayTier } : {}),
-    });
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  // Advertised `auto/*` ids whose template maps to no variant (auto/chat,
-  // auto/best-chat, auto/pro-chat) still materialize via the default
-  // (unconstrained) virtual combo rather than throwing "Unknown built-in".
-  if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, modelStr)) {
-    const overlayTier = FLAT_TIER_OVERLAY_IDS[modelStr];
-    const virtualCombo = await materialize(
-      undefined,
-      overlayTier ? { tier: overlayTier } : undefined
-    );
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  // #4235 Phase B: `auto/<category>[:<tier>]` (e.g. auto/coding:fast, auto/vision).
-  const parsed = parseAutoSuffix(suffix);
-  if (parsed.valid) {
-    const virtualCombo = await materialize(undefined, {
-      category: parsed.category,
-      tier: parsed.tier,
-    });
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  // #6453: `auto/<family>` (e.g. auto/glm, auto/minimax, auto/zai, auto/mimo,
-  // auto/gemma, auto/llama, auto/gemini) — spans whatever installed backends
-  // currently expose that model family, degrading gracefully as backends rotate.
-  if (isValidModelFamily(suffix)) {
-    const virtualCombo = await materialize(undefined, { family: suffix });
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  throw new Error(`Unknown built-in auto combo: ${modelStr}`);
+export async function projectBuiltinAutoCandidates(
+  modelStr: string,
+  suffix: string,
+  prepared: PreparedVirtualAutoComboInputs
+) {
+  const request = resolveBuiltinAutoMaterialization(modelStr, suffix);
+  if (!request) throw new Error(`Unknown built-in auto combo: ${modelStr}`);
+  const { projectVirtualAutoCandidatesFromPrepared } = await import("./candidateProjection.ts");
+  return projectVirtualAutoCandidatesFromPrepared(prepared, request.variant, request.spec);
 }

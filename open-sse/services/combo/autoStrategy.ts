@@ -55,6 +55,13 @@ import {
   matchesRoutingTags,
   resolveRequestRoutingTags,
 } from "../../../src/domain/tagRouter.ts";
+import {
+  expandTargetsWithinConnectionScope,
+  groupConnectionsByProvider,
+  normalizeAutoConnectionScope,
+  permittedActiveConnections,
+  type ActiveConnectionRecord,
+} from "./autoConnectionScope.ts";
 
 // Quota Share soft-policy deprioritization factor (B17).
 // When a candidate has quotaSoftPenalty === true, its auto-combo score is
@@ -435,8 +442,14 @@ export function scoreAutoTargets(
  */
 export async function expandAutoComboCandidatePool(
   eligibleTargets: ResolvedComboTarget[],
-  combo: { autoConfig?: unknown; config?: unknown } | null | undefined
+  combo: { autoConfig?: unknown; config?: unknown } | null | undefined,
+  apiKeyAllowedConnectionIds: string[] | null = null
 ): Promise<ResolvedComboTarget[]> {
+  const connectionScope = normalizeAutoConnectionScope(apiKeyAllowedConnectionIds);
+  if (connectionScope) {
+    return expandRestrictedAutoComboCandidatePool(eligibleTargets, combo, connectionScope);
+  }
+
   for (let index = eligibleTargets.length - 1; index >= 0; index -= 1) {
     const target = eligibleTargets[index];
     if (isCommonChatGptWebRetiredProviderId(target.providerId || target.provider)) {
@@ -539,6 +552,166 @@ export async function expandAutoComboCandidatePool(
   }
 
   return eligibleTargets;
+}
+
+type AutoComboPoolConfig = { autoConfig?: unknown; config?: unknown } | null | undefined;
+
+function isRetiredAutoProvider(providerId: string): boolean {
+  return (
+    isMicrosoftDesignerWebRetiredProviderId(providerId) ||
+    isRuntimeRetiredProviderId(providerId) ||
+    isCommonChatGptWebRetiredProviderId(providerId)
+  );
+}
+
+async function loadActiveConnectionsForRestrictedPool(): Promise<Array<
+  Record<string, unknown>
+> | null> {
+  try {
+    return (await getCachedProviderConnections({
+      isActive: true,
+    })) as Array<Record<string, unknown>>;
+  } catch {
+    return null;
+  }
+}
+
+function comboHasExplicitCandidatePool(combo: AutoComboPoolConfig): boolean {
+  const config = combo?.config as Record<string, unknown> | undefined;
+  const localAutoConfig =
+    (combo?.autoConfig as Record<string, unknown> | undefined) ||
+    (isRecord(config?.auto) ? (config.auto as Record<string, unknown>) : null) ||
+    config ||
+    {};
+  const candidatePool = localAutoConfig.candidatePool;
+  if (Array.isArray(candidatePool) && candidatePool.length > 0) return true;
+  const explicitModels = (combo as Record<string, unknown> | null | undefined)?.models;
+  return Array.isArray(explicitModels) && explicitModels.length > 0;
+}
+
+function isCustomChatModel(model: unknown): model is { id: string; supportedEndpoints?: string[] } {
+  return isRecord(model) && typeof model.id === "string" && model.id.length > 0;
+}
+
+function visibleModelIds(
+  models: readonly { id?: string }[],
+  hiddenModels?: ReadonlySet<string>
+): Set<string> {
+  const ids = new Set<string>();
+  for (const model of models) {
+    if (model.id && !hiddenModels?.has(model.id)) ids.add(model.id);
+  }
+  return ids;
+}
+
+async function getRestrictedProviderModelIds(
+  providerId: string,
+  hiddenModels?: ReadonlySet<string>
+): Promise<string[]> {
+  const [syncedModelsRaw, customModelsRaw] = await Promise.all([
+    getSyncedAvailableModels(providerId),
+    getCustomModels(providerId),
+  ]);
+  const syncedModels = filterChatSelectableModels(providerId, syncedModelsRaw);
+  const customModels = filterChatSelectableModels(
+    providerId,
+    Array.isArray(customModelsRaw) ? customModelsRaw.filter(isCustomChatModel) : []
+  );
+  const userVisibleIds = visibleModelIds([...syncedModels, ...customModels], hiddenModels);
+  if (userVisibleIds.size > 0) return Array.from(userVisibleIds);
+  return filterChatSelectableModels(providerId, getProviderModels(providerId))
+    .map((model) => model.id)
+    .filter((modelId) => !hiddenModels?.has(modelId));
+}
+
+function appendRestrictedProviderTargets(
+  targets: ResolvedComboTarget[],
+  seenTargets: Set<string>,
+  providerId: string,
+  providerConnections: readonly ActiveConnectionRecord[],
+  modelIds: readonly string[]
+): void {
+  for (const modelId of modelIds) {
+    const modelStr = `${providerId}/${modelId}`;
+    for (const connection of providerConnections) {
+      const identity = `${modelStr}\0${connection.id}`;
+      if (seenTargets.has(identity)) continue;
+      seenTargets.add(identity);
+      targets.push({
+        kind: "model",
+        stepId: modelStr,
+        executionKey: `${modelStr}@${connection.id}`,
+        provider: providerId,
+        providerId,
+        modelStr,
+        weight: 1,
+        connectionId: connection.id,
+        allowedConnectionIds: [connection.id],
+        authType: typeof connection.authType === "string" ? connection.authType : null,
+        label: null,
+      });
+    }
+  }
+}
+
+async function expandRestrictedProviderInventory(
+  targets: ResolvedComboTarget[],
+  seenTargets: Set<string>,
+  providerId: string,
+  providerConnections: readonly ActiveConnectionRecord[],
+  hiddenModels?: ReadonlySet<string>
+): Promise<void> {
+  try {
+    const modelIds = await getRestrictedProviderModelIds(providerId, hiddenModels);
+    appendRestrictedProviderTargets(
+      targets,
+      seenTargets,
+      providerId,
+      providerConnections,
+      modelIds
+    );
+  } catch {
+    // One provider's inventory is best-effort; other scoped providers remain usable.
+  }
+}
+
+async function expandRestrictedAutoComboCandidatePool(
+  eligibleTargets: ResolvedComboTarget[],
+  combo: AutoComboPoolConfig,
+  connectionScope: ReadonlySet<string>
+): Promise<ResolvedComboTarget[]> {
+  const allConnections = await loadActiveConnectionsForRestrictedPool();
+  // Authorization scope is fail-closed when active permitted rows are unavailable.
+  if (!allConnections) return [];
+
+  const permittedConnections = permittedActiveConnections(allConnections, connectionScope).filter(
+    (connection) => !isRetiredAutoProvider(connection.provider)
+  );
+  const connectionsByProvider = groupConnectionsByProvider(permittedConnections);
+  const nonRetiredTargets = eligibleTargets.filter(
+    (target) => !isRetiredAutoProvider(target.providerId || target.provider)
+  );
+  const scopedTargets = expandTargetsWithinConnectionScope(
+    nonRetiredTargets,
+    connectionsByProvider,
+    connectionScope
+  );
+  if (comboHasExplicitCandidatePool(combo)) return scopedTargets;
+
+  const seenTargets = new Set(
+    scopedTargets.map((target) => `${target.modelStr}\0${target.connectionId ?? ""}`)
+  );
+  const hiddenModelsMap = getHiddenModelsByProvider();
+  for (const [providerId, providerConnections] of connectionsByProvider) {
+    await expandRestrictedProviderInventory(
+      scopedTargets,
+      seenTargets,
+      providerId,
+      providerConnections,
+      hiddenModelsMap.get(providerId)
+    );
+  }
+  return scopedTargets;
 }
 
 /**

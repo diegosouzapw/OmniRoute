@@ -13,6 +13,7 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
 const originalFetch = globalThis.fetch;
 const core = await import("../../src/lib/db/core.ts");
+const modelSyncScheduler = await import("../../src/shared/services/modelSyncScheduler.ts");
 const providersRoute = await import("../../src/app/api/providers/route.ts");
 
 const modelSyncUrls: string[] = [];
@@ -27,6 +28,10 @@ globalThis.fetch = (async (input: string | URL | Request) => {
     headers: { "Content-Type": "application/json" },
   });
 }) as typeof fetch;
+modelSyncScheduler.__setModelSyncInternalTransportForTests(async (input, init) => {
+  const { dispatcher: _dispatcher, ...fetchInit } = init;
+  return globalThis.fetch(input, fetchInit);
+});
 
 type CreateOptions = {
   autoFetchModels?: boolean;
@@ -64,6 +69,7 @@ test.beforeEach(() => {
 });
 
 test.after(() => {
+  modelSyncScheduler.__setModelSyncInternalTransportForTests(null);
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });

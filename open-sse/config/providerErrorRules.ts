@@ -243,6 +243,35 @@ function buildOpenrouterRules(): ProviderErrorRule[] {
   ];
 }
 
+// ─── Cursor ─────────────────────────────────────────────────────────────────
+// Free Cursor plans can continue to use Auto while rejecting every explicitly
+// named model. Cursor wraps this entitlement result as RESOURCE_EXHAUSTED, so a
+// generic classifier mistakes it for request quota and cools the whole account.
+// Keep the suppression model-scoped and long-lived; Auto is a different model
+// id and remains routable on the same connection.
+function buildCursorRules(): ProviderErrorRule[] {
+  return [
+    {
+      id: "cursor-named-model-entitlement",
+      match: ({ status, body }) => {
+        if (status !== 400 && status !== 404 && status !== 429 && status !== 502) return null;
+        const text = JSON.stringify(body ?? "").toLowerCase();
+        if (
+          !text.includes("named models unavailable") &&
+          !text.includes("free plans can only use auto")
+        ) {
+          return null;
+        }
+        return {
+          reason: "model_capacity",
+          scope: "model",
+          cooldownMs: 24 * 60 * 60 * 1000,
+        };
+      },
+    },
+  ];
+}
+
 // ─── AgentRouter ────────────────────────────────────────────────────────────
 // agentrouter.org misstates temporary quota exhaustion as 403/400 with a
 // Chinese body. upstreamStatusRestatement.ts rewrites the status to 429
@@ -317,6 +346,8 @@ export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
   ["minimax-passthrough", buildMinimaxRules()],
   ["cloudflare-ai", buildCloudflareAiRules()],
   ["openrouter", buildOpenrouterRules()],
+  ["cursor", buildCursorRules()],
+  ["cursor-api", buildCursorRules()],
   ["agentrouter", buildAgentrouterRules()],
 ]);
 
@@ -337,7 +368,12 @@ export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
  * mechanism (#11104) silently inert for every provider except the ones listed
  * below. See `hasOperatorRuleForProvider`.
  */
-const HONORS_RULE_LOCK_SCOPE_PROVIDERS = new Set(["agentrouter", ...OPENCODE_RULE_FAMILY]);
+const HONORS_RULE_LOCK_SCOPE_PROVIDERS = new Set([
+  "agentrouter",
+  "cursor",
+  "cursor-api",
+  ...OPENCODE_RULE_FAMILY,
+]);
 
 export function honorsRuleLockScope(provider: string | null | undefined): boolean {
   if (!provider) return false;
@@ -390,7 +426,7 @@ export function egressBucketedLockProviders(): string[] {
  * of the error body by construction, so a rule that never sees body text could
  * never match anything, defeating the point of declaring it.
  */
-const FULL_TEXT_RULE_PROVIDERS = new Set(["agentrouter"]);
+const FULL_TEXT_RULE_PROVIDERS = new Set(["agentrouter", "cursor", "cursor-api"]);
 
 /**
  * True when an operator has declared at least one rule for this provider via

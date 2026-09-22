@@ -173,7 +173,7 @@ declare global {
   var __omnirouteApiBridgeStarted: boolean | undefined;
 }
 
-export function initApiBridgeServer(): void {
+export function initApiBridgeServer(effectiveRequireApiKeyEnabled: boolean): void {
   // Safety net: a client aborting a connection can emit `Error: aborted`/
   // ECONNRESET on the request stream; without this the single missed listener
   // becomes an uncaughtException that kills the server. Benign aborts are
@@ -185,7 +185,7 @@ export function initApiBridgeServer(): void {
   if (apiPort === dashboardPort) return;
 
   const host = process.env.API_HOST || "127.0.0.1";
-  warnIfNonLoopbackWithoutApiKey("API bridge", host);
+  warnIfNonLoopbackWithoutApiKey("API bridge", host, effectiveRequireApiKeyEnabled);
 
   const server = http.createServer((req, res) => {
     // Absorb client-abort errors (browser closes the socket during navigation/

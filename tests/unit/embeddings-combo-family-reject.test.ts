@@ -53,6 +53,27 @@ test("createEmbeddingResponse rejects a mixed-dimension embedding combo without 
   }
 });
 
+test("createEmbeddingResponse resolves the canonical combo/<name> embedding form", async () => {
+  await createCombo({
+    name: "prefixed-mixed-embeds-combo",
+    strategy: "priority",
+    models: [
+      "openai/text-embedding-3-small", // 1536
+      "nebius/Qwen/Qwen3-Embedding-8B", // 4096
+    ],
+  });
+
+  const res = await createEmbeddingResponse({
+    model: "combo/prefixed-mixed-embeds-combo",
+    input: "hello world",
+  });
+  const body = JSON.stringify(await res.json());
+
+  assert.equal(res.status, 400);
+  assert.match(body, /incompatible vector dimensions/);
+  assert.doesNotMatch(body, /Unknown embedding provider/);
+});
+
 test("createEmbeddingResponse allows a uniform-dimension embedding combo to proceed", async () => {
   await createCombo({
     name: "uniform-embeds-combo",

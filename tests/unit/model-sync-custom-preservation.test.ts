@@ -17,8 +17,10 @@ const modelSyncRoute = await import("../../src/app/api/providers/[id]/sync-model
 const scheduler = await import("../../src/shared/services/modelSyncScheduler.ts");
 
 const originalFetch = globalThis.fetch;
+scheduler.__setModelSyncInternalTransportForTests((input, init) => globalThis.fetch(input, init));
 
 test.after(() => {
+  scheduler.__setModelSyncInternalTransportForTests(null);
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
