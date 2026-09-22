@@ -8,8 +8,8 @@
  */
 
 import { saveCallLog } from "@/lib/usageDb";
-import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
-import { stringifyImageErrorForLog } from "../imageErrorLog";
+import { fetchUntrustedRemoteImage } from "@/shared/network/remoteImageFetch";
+import { stringifyImageErrorForLog } from "../imageErrorLog.ts";
 
 export const UPSCALE_CALL_LOG_PATH = "/v1/images/upscale";
 
@@ -164,15 +164,9 @@ export async function resolveUpscaleImageSource(source: string): Promise<Upscale
   }
 
   if (/^https?:\/\//i.test(trimmed)) {
-    // GHSA-34rg-3pqj-35g9 / #13883: `source` is caller input (14 body aliases,
-    // `provider_options.*`, message parts) — pin `public-only` explicitly (string check +
-    // DNS validation of every resolved answer). Never let it fall back to the operator
-    // outbound policy (`block-metadata` on a local-first default install), which would let
-    // a request body make the server fetch loopback/LAN URLs and upload the bytes to the
-    // upscale provider. `pinDns: true` closes the DNS-rebinding TOCTOU: without it, a
-    // second, un-pinned resolution at connect time could answer differently than the
-    // validated lookup and bypass the public-only guard.
-    const remote = await fetchRemoteImage(trimmed, { guard: "public-only", pinDns: true });
+    // `source` is caller input (14 body aliases, `provider_options.*`, message parts) — the
+    // public-only + DNS-pinned policy lives in `fetchUntrustedRemoteImage` (GHSA-34rg-3pqj-35g9).
+    const remote = await fetchUntrustedRemoteImage(trimmed);
     assertSourceBytes(remote.buffer);
     // fetchRemoteImage falls back to application/octet-stream; sniff whenever the
     // server did not send a usable image/* type so multipart uploads stay correct.

@@ -23,7 +23,7 @@
  * per sink (omni-code-review LEDGER-22 / LEDGER-37).
  */
 
-import { redactSensitiveErrorText } from "../utils/error";
+import { redactSensitiveErrorText } from "../utils/error.ts";
 
 export function stringifyImageErrorForLog(value: unknown): string {
   return redactSensitiveErrorText(renderImageErrorForLog(value));
@@ -31,7 +31,7 @@ export function stringifyImageErrorForLog(value: unknown): string {
 
 function renderImageErrorForLog(value: unknown): string {
   if (typeof value === "string") return value;
-  if (value instanceof Error) return `${value.name}: ${value.message}`;
+  if (value instanceof Error) return renderErrorInstanceForLog(value);
   if (value !== null && typeof value === "object") {
     try {
       const serialized = JSON.stringify(value);
@@ -44,5 +44,28 @@ function renderImageErrorForLog(value: unknown): string {
     return String(value);
   } catch {
     return "[unserializable error]";
+  }
+}
+
+/**
+ * The `Error` branch has to be as total as the others: `name`/`message` are ordinary
+ * (re)assignable properties, so an Error can carry a null-prototype object or a throwing
+ * getter in either slot, and a bare `${value.name}: ${value.message}` would throw the very
+ * `TypeError` this module exists to prevent (omni-code-review LEDGER-56).
+ */
+function renderErrorInstanceForLog(error: Error): string {
+  return `${readErrorPart(error, "name", "Error")}: ${readErrorPart(
+    error,
+    "message",
+    "[unserializable message]"
+  )}`;
+}
+
+function readErrorPart(error: Error, key: "name" | "message", fallback: string): string {
+  try {
+    const part: unknown = error[key];
+    return typeof part === "string" ? part : fallback;
+  } catch {
+    return fallback;
   }
 }

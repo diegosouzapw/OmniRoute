@@ -35,7 +35,7 @@ import {
   extractComfyOutputFiles,
   resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
-import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { fetchUntrustedRemoteImage } from "@/shared/network/remoteImageFetch";
 import {
   FetchTimeoutError,
   fetchWithTimeout,
@@ -184,17 +184,6 @@ const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
 const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
 
 /**
- * `fetchRemoteImage` options for any URL that did not originate from an OmniRoute-controlled
- * host (caller-supplied `image_url`, upstream-returned result URLs).
- *
- * GHSA-34rg-3pqj-35g9 / #13883: pin `public-only` (never the operator outbound policy, which
- * would let a request body reach loopback/LAN) and `pinDns: true` to close the DNS-rebinding
- * TOCTOU where a second, un-pinned resolution at connect time could answer differently than
- * the validated lookup and bypass the guard.
- */
-const UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS = { guard: "public-only", pinDns: true } as const;
-
-/**
  * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
  * provider node (#3205).
  *
@@ -256,16 +245,23 @@ function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): strin
 /**
  * Normalize the caller's `image_size` for Antigravity's `imageConfig.imageSize`.
  *
- * This is the output-resolution axis (`1K` | `2K` | `4K`, the values Gemini image models
- * accept), distinct from the `size`/`aspect_ratio` axis handled by `normalizeImageAspectRatio`.
- * Returns `undefined` when the caller sent nothing usable (absent or non-string), so the key
- * is left out and the upstream default applies; a string that is not one of the accepted
- * values is clamped to `1K` because upstream rejects anything else.
+ * This is the output-resolution axis (`1K` | `2K` | `4K` — the values #11952 observed
+ * Antigravity accepting; not a documented upstream enum), distinct from the `size`/`aspect_ratio`
+ * axis handled by `normalizeImageAspectRatio`. Returns `value: undefined` when the caller sent
+ * nothing usable (absent or non-string), so the key is left out and the upstream default
+ * applies. A string outside that set is clamped to `1K` rather than forwarded because we have
+ * not confirmed what upstream does with an unrecognised value; the clamp is reported through
+ * `clamped: true` so the caller can warn and the call log can record the raw request next to
+ * what was actually sent (omni-code-review LEDGER-6 / LEDGER-48 / LEDGER-57).
  */
-function normalizeImageGenerationSize(value: unknown): string | undefined {
-  if (typeof value !== "string") return undefined;
+function normalizeImageGenerationSize(value: unknown): {
+  value: string | undefined;
+  clamped: boolean;
+} {
+  if (typeof value !== "string") return { value: undefined, clamped: false };
   const normalized = value.trim().toUpperCase();
-  return IMAGE_SIZE_PATTERN.test(normalized) ? normalized : "1K";
+  if (IMAGE_SIZE_PATTERN.test(normalized)) return { value: normalized, clamped: false };
+  return { value: "1K", clamped: true };
 }
 
 function parseJsonOrNull(value: string): unknown | null {
@@ -1053,15 +1049,26 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     typeof body.n === "number" && Number.isFinite(body.n) && body.n > 0 ? Math.floor(body.n) : 1;
   const promptText = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
   const aspectRatio = normalizeImageAspectRatio(body.aspect_ratio, body.size);
-  const imageSize = normalizeImageGenerationSize(body.image_size);
+  const { value: imageSize, clamped: imageSizeClamped } = normalizeImageGenerationSize(
+    body.image_size
+  );
+  if (imageSizeClamped && log && typeof log.warn === "function") {
+    log.warn(
+      "IMAGE",
+      `antigravity/${model}: unsupported image_size ${JSON.stringify(body.image_size)} — clamped to 1K (accepted: 1K|2K|4K)`
+    );
+  }
 
-  // Summarized request for call log
+  // Summarized request for call log. Both axes are recorded so the log never hides what the
+  // client asked for: `image_size` is the raw caller value (null when absent) and
+  // `image_size_applied` is what went upstream ("default" when the key was omitted).
   const logRequestBody = {
     model: body.model,
     prompt: promptText.slice(0, 200),
     size: body.size || "default",
     aspect_ratio: aspectRatio,
-    image_size: imageSize,
+    image_size: body.image_size ?? null,
+    image_size_applied: imageSize ?? "default",
     n: candidateCount,
   };
 
@@ -2266,8 +2273,8 @@ export async function resolveImageSource(source) {
   }
 
   if (isHttpUrl(trimmed)) {
-    // Caller-input URL — see UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS.
-    const remoteImage = await fetchRemoteImage(trimmed, UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS);
+    // Caller-input URL — public-only + DNS-pinned policy lives in fetchUntrustedRemoteImage.
+    const remoteImage = await fetchUntrustedRemoteImage(trimmed);
     return {
       buffer: remoteImage.buffer,
       base64: remoteImage.buffer.toString("base64"),
@@ -3262,9 +3269,9 @@ export async function normalizeNanoBananaTaskResult(taskData, body, log) {
 
     if (urlCandidates.length > 0) {
       const firstUrl = urlCandidates[0];
-      // Upstream-supplied result URL, not an OmniRoute-controlled host — see
-      // UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS.
-      const remoteImage = await fetchRemoteImage(firstUrl, UNTRUSTED_REMOTE_IMAGE_FETCH_OPTIONS);
+      // Upstream-supplied result URL, not an OmniRoute-controlled host — public-only +
+      // DNS-pinned policy lives in fetchUntrustedRemoteImage.
+      const remoteImage = await fetchUntrustedRemoteImage(firstUrl);
       const base64 = remoteImage.buffer.toString("base64");
       return [{ b64_json: base64, revised_prompt: body.prompt }];
     }

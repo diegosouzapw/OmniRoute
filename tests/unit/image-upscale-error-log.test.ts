@@ -83,6 +83,58 @@ test("stringifyImageErrorForLog serializes a null-prototype object instead of th
   );
 });
 
+// omni-code-review 2026-09-21_release-v3.8.51_vs_main_e2e-areas LEDGER-49: the object branch is
+// the one `sanitizeUpstreamDetails()` payloads and raw upstream JSON take, so its redaction
+// must be pinned on a credential-bearing key — not only on the string/Error branches.
+test("stringifyImageErrorForLog redacts a credential inside a null-prototype object payload", () => {
+  const payload = Object.create(null) as Record<string, unknown>;
+  payload.code = "upstream_error";
+  payload.message = "provider rejected the upscale";
+  payload.authorization = `Bearer ${SECRET}`;
+
+  const rendered = stringifyImageErrorForLog(payload);
+  assert.ok(!rendered.includes(SECRET), `credential leaked into log string: ${rendered}`);
+  assert.ok(rendered.includes("[REDACTED]"), `expected a redaction marker, got ${rendered}`);
+  assert.ok(rendered.includes('"code":"upstream_error"'), `structure lost: ${rendered}`);
+  assert.ok(
+    rendered.includes('"message":"provider rejected the upscale"'),
+    `structure lost: ${rendered}`
+  );
+});
+
+// omni-code-review 2026-09-21_release-v3.8.51_vs_main_e2e-areas LEDGER-56: the Error branch
+// must be as total as the other three — a throwing or non-string `message`/`name` must never
+// turn a handled provider failure back into an unhandled throw.
+test("stringifyImageErrorForLog does not throw on an Error whose message getter throws", () => {
+  const hostile = new Error("placeholder");
+  Object.defineProperty(hostile, "message", {
+    get() {
+      throw new TypeError("message getter exploded");
+    },
+  });
+  assert.throws(() => `${hostile.message}`, TypeError, "precondition: reading message throws");
+
+  let rendered: string | undefined;
+  assert.doesNotThrow(() => {
+    rendered = stringifyImageErrorForLog(hostile);
+  });
+  assert.equal(typeof rendered, "string");
+  assert.ok(rendered!.startsWith("Error:"), `expected "Error: …" prefix, got ${rendered}`);
+  assert.ok(rendered!.length > "Error:".length, "message part must not be empty");
+});
+
+test("stringifyImageErrorForLog renders an Error carrying non-string name/message without throwing", () => {
+  const hostile = new Error("placeholder");
+  const nullProto = Object.create(null) as Record<string, unknown>;
+  (hostile as { name: unknown }).name = nullProto;
+  (hostile as { message: unknown }).message = nullProto;
+  assert.throws(() => `${hostile.name}: ${hostile.message}`, TypeError, "precondition");
+
+  const rendered = stringifyImageErrorForLog(hostile);
+  assert.equal(typeof rendered, "string");
+  assert.ok(rendered.startsWith("Error:"), `expected the "Error" fallback name, got ${rendered}`);
+});
+
 test("stringifyImageErrorForLog keeps String() semantics for primitives and falls back on cycles", () => {
   assert.equal(stringifyImageErrorForLog(42), "42");
   assert.equal(stringifyImageErrorForLog(null), "null");
