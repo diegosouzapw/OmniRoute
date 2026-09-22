@@ -15,6 +15,10 @@ import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLease
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
 export const DEFAULT_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+/** Cycle-wide in-flight cap. Heap cost is total catalog JSON, not one upstream. */
+export const MODEL_SYNC_CYCLE_CONCURRENCY = 4;
+/** First cycle after boot. Past cleanup's 30s so the two jobs do not overlap. */
+export const MODEL_SYNC_STARTUP_DELAY_MS = 90_000;
 const MODEL_SYNC_SETTING_KEY = "model_sync_last_run";
 const MODEL_SYNC_INTERNAL_AUTH_HEADER = "x-model-sync-internal-auth";
 
@@ -224,6 +228,29 @@ export async function syncConnectionModels(
   }
 }
 
+async function mapWithConcurrencySettled<T, R>(
+  values: T[],
+  concurrency: number,
+  mapper: (value: T) => Promise<R>
+): Promise<PromiseSettledResult<R>[]> {
+  const results = new Array<PromiseSettledResult<R>>(values.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, concurrency), values.length);
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (nextIndex < values.length) {
+      const index = nextIndex++;
+      try {
+        const value = await mapper(values[index]);
+        results[index] = { status: "fulfilled", value };
+      } catch (reason) {
+        results[index] = { status: "rejected", reason };
+      }
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
 /**
  * Run one full model-sync cycle across all auto-sync connections.
  */
@@ -245,10 +272,10 @@ async function runSyncCycle(apiBaseUrl: string): Promise<void> {
 
     console.log(`[ModelSync] Starting model sync cycle — ${connections.length} connection(s)`);
 
-    const results = await Promise.allSettled(
-      connections.map((conn) =>
-        syncConnectionModels(conn.id, conn.name || conn.provider, apiBaseUrl)
-      )
+    const results = await mapWithConcurrencySettled(
+      connections,
+      MODEL_SYNC_CYCLE_CONCURRENCY,
+      (conn) => syncConnectionModels(conn.id, conn.name || conn.provider, apiBaseUrl)
     );
 
     const succeeded = results.filter((r) => r.status === "fulfilled" && r.value === true).length;
@@ -289,8 +316,11 @@ export function startModelSyncScheduler(
 
   console.log(`[ModelSync] Scheduler started — interval: ${effectiveIntervalMs / 3_600_000}h`);
 
-  // Run immediately on startup (staggered by 5s to avoid startup congestion)
-  const startupDelay = setTimeout(() => runSyncCycle(trustedApiBaseUrl), 5_000);
+  // Serve traffic first; cleanup's first pass is +30s, so stay past that window.
+  const startupDelay = setTimeout(
+    () => runSyncCycle(trustedApiBaseUrl),
+    MODEL_SYNC_STARTUP_DELAY_MS
+  );
   startupDelay.unref?.();
 
   // Codex-only: revalidate catalog only on first-start or app upgrade (not every boot).

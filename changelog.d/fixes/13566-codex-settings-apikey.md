@@ -1,1 +1,0 @@
-- fix(api): resolve the codex-settings `apiKey` through the canonical key resolver instead of an inline 400 guard, so the dashboard Apply flow no longer fails with `baseUrl, apiKey and model are required` in cloud mode when no management key is selected (#13563)

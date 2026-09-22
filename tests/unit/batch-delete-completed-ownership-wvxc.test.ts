@@ -28,6 +28,17 @@ import { createBatch, getBatch, deleteCompletedBatches } from "@/lib/db/batches"
 const KEY_A = "key-wvxc-aaaa";
 const KEY_B = "key-wvxc-bbbb";
 
+// Source-text guard for the LEDGER-3/9 invariant. Comments are stripped BEFORE matching
+// (LEDGER-51/61): the route's own comment says "it runs `validateApiKey` (is_active, …" and
+// a reflow that drops the backticks — or a `@see validateApiKey(key)` — is prose, not a
+// second lookup. The assertion is about code.
+const STRIP_COMMENTS_RE = /\/\*[\s\S]*?\*\/|\/\/.*$/gm;
+const VALIDATE_API_KEY_CALL_RE = /import\s*\{[^}]*\bvalidateApiKey\b|\bvalidateApiKey\s*\(/;
+
+function routeReRunsValidateApiKey(src: string): boolean {
+  return VALIDATE_API_KEY_CALL_RE.test(src.replace(STRIP_COMMENTS_RE, ""));
+}
+
 function seedCompletedBatch(apiKeyId: string | null, tag: string) {
   // The file carries the batch's owner, as an upload through that key does in production.
   // #13374 (SEC-C) scopes the file half of a key sweep to files the caller owns, so an
@@ -118,5 +129,52 @@ describe("the route passes the caller's key through", () => {
         /sweepScope = \{ apiKeyId: scope\.apiKeyId \}/.test(src),
       "the route must pass the caller's scope into the helper"
     );
+  });
+
+  it("does not re-run validateApiKey: getApiKeyRequestScope is the single lifecycle gate and the audit reason is its keyState (omni-code-review LEDGER-3/9)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { fileURLToPath } = await import("node:url");
+    const src = readFileSync(
+      fileURLToPath(
+        new URL("../../src/app/api/v1/batches/delete-completed/route.ts", import.meta.url)
+      ),
+      "utf8"
+    );
+    assert.ok(
+      !routeReRunsValidateApiKey(src),
+      "the route re-checks a lifecycle the helper already folded into apiKeyId: null — a redundant second lookup on every keyed request"
+    );
+    assert.ok(
+      /reason:\s*scope\.keyState/.test(src),
+      "the audit reason must come from the helper's keyState, not be re-derived from apiKeyId"
+    );
+  });
+
+  it("the validateApiKey guard ignores prose: a comment mentioning `validateApiKey (` must not trip it (LEDGER-51/61)", () => {
+    const proseOnly = [
+      "// getApiKeyRequestScope is the single gate: it runs validateApiKey (is_active,",
+      "// revoked_at, is_banned, expires_at) itself and folds failures into apiKeyId: null.",
+      "/** @see validateApiKey(key) for the lifecycle checks this route relies on. */",
+      "const scope = await getApiKeyRequestScope(request);",
+      "logger.info({ reason: scope.keyState });",
+    ].join("\n");
+    assert.equal(
+      routeReRunsValidateApiKey(proseOnly),
+      false,
+      "a comment reflow must not be reported as a redundant second lookup"
+    );
+  });
+
+  it("the validateApiKey guard still catches a real re-run in code (mutation check)", () => {
+    const importAgain = [
+      'import { validateApiKey } from "@/lib/db/apiKeys";',
+      "const scope = await getApiKeyRequestScope(request);",
+    ].join("\n");
+    const callAgain = [
+      "const scope = await getApiKeyRequestScope(request);",
+      "const record = validateApiKey(scope.apiKey);",
+    ].join("\n");
+    assert.equal(routeReRunsValidateApiKey(importAgain), true, "an import must still trip it");
+    assert.equal(routeReRunsValidateApiKey(callAgain), true, "a call must still trip it");
   });
 });

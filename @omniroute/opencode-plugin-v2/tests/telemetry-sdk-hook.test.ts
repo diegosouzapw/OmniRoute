@@ -3,17 +3,22 @@ import assert from "node:assert/strict";
 import plugin from "../src/index.js";
 
 /**
- * Strict fallback (re-anchored): the pinned host sources cited in the plan
- * (`packages/plugin/...`, `packages/core/...`) do not exist in this repo
- * (`ls packages` → `browser-pool` only), and no `includeUsage` marking is
- * proven anywhere outside node_modules. The repo-verifiable facts are:
- * (a) the host mock in `gemini-language.test.ts` mounts a callable `sdk`
- *     domain next to `language` — the `sdk` domain exists on the host;
- * (b) `@opencode-ai/plugin 1.18.29` is the pinned contract reference
+ * Strict fallback (re-anchored): no `includeUsage` marking is proven anywhere
+ * outside node_modules. The repo-verifiable facts are:
+ * (a) the host mock in `gemini-language.test.ts` mounts a callable `aisdk`
+ *     domain the plugin reaches through `hook(name, cb)` — the domain exists
+ *     on the host and routes by name;
+ * (b) `@opencode/plugin 2.0.12` is the pinned contract reference
  *     (`package.json`), its `sdk`-event option shape is UNKNOWN here.
  * Consequence: no options-only marking is proven → strict fallback: register
  * the hook (domain exists, probed at runtime) and record the observation in
  * `options` only; the pure telemetry core stays unported and unimported.
+ *
+ * Host shape: the stable `@opencode/plugin` contract publishes the catalog
+ * through `ctx.provider.transform` (`assertContext` requires the provider and
+ * model transforms) and exposes one named `ctx.aisdk.hook(name, cb)` entry
+ * point instead of a callable domain per event. The fake below mirrors that;
+ * the five properties it asserts are unchanged.
  */
 
 interface SdkInput {
@@ -25,8 +30,13 @@ interface SdkInput {
 function hostCtx(opts: {
   telemetry?: boolean;
   withAisdk?: boolean;
-  sdkImpl?: (cb: (input: SdkInput) => void | Promise<void>) => Promise<{ dispose: () => Promise<void> }>;
-}): { ctx: Record<string, unknown>; sdkCallbacks: Array<(input: SdkInput) => void | Promise<void>> } {
+  sdkImpl?: (
+    cb: (input: SdkInput) => void | Promise<void>
+  ) => Promise<{ dispose: () => Promise<void> }>;
+}): {
+  ctx: Record<string, unknown>;
+  sdkCallbacks: Array<(input: SdkInput) => void | Promise<void>>;
+} {
   const sdkCallbacks: Array<(input: SdkInput) => void | Promise<void>> = [];
   const registration = Promise.resolve({ dispose: async () => {} });
   const options: Record<string, unknown> = {
@@ -37,18 +47,20 @@ function hostCtx(opts: {
   if (opts.telemetry !== undefined) options["telemetry"] = opts.telemetry;
   const ctx: Record<string, unknown> = {
     options,
-    catalog: { transform: () => registration, reload: async () => {} },
+    provider: { transform: () => registration, reload: async () => {} },
+    model: { transform: () => registration },
     integration: { transform: () => registration },
   };
   if (opts.withAisdk !== false) {
     ctx["aisdk"] = {
-      language: () => registration,
-      sdk:
-        opts.sdkImpl ??
-        ((cb: (input: SdkInput) => void | Promise<void>) => {
-          sdkCallbacks.push(cb);
-          return registration;
-        }),
+      hook: (name: string, cb: (input: SdkInput) => void | Promise<void>) => {
+        // The stable host routes every aisdk event through one entry point;
+        // "language" is the Gemini sanitiser, only "sdk" is this test's subject.
+        if (name !== "sdk") return registration;
+        if (opts.sdkImpl !== undefined) return opts.sdkImpl(cb);
+        sdkCallbacks.push(cb);
+        return registration;
+      },
     };
   }
   return { ctx, sdkCallbacks };

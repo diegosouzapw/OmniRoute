@@ -161,6 +161,13 @@ export function buildCallLogListRows({
       error: null,
       correlationId: detail.correlationId || null,
       active: true,
+      ...(detail.stale
+        ? {
+            stale: true,
+            sweptAt:
+              typeof detail.sweptAt === "number" ? new Date(detail.sweptAt).toISOString() : null,
+          }
+        : {}),
     });
   }
 
