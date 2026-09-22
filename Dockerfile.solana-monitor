@@ -10,7 +10,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN mkdir -p open-sse
 COPY open-sse/package.json ./open-sse/package.json
-RUN npm ci --include=dev --omit=optional --ignore-scripts --no-audit --no-fund \
+# The repository lockfile intentionally retains legacy peer ranges (for example
+# marked@18 with marked-terminal@7 and ESLint 10 plugin ranges). This image only
+# runs the monitor and does not alter those dependencies; legacy peer resolution
+# makes the committed lockfile installable without changing application manifests.
+RUN npm ci --legacy-peer-deps --include=dev --omit=optional --ignore-scripts --no-audit --no-fund \
   && npm cache clean --force
 
 COPY scripts/solana ./scripts/solana

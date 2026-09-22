@@ -1064,7 +1064,10 @@ The monitor has a dedicated long-running container in
 `Dockerfile.solana-monitor`. It exposes `/healthz` for liveness and `/readyz`
 for readiness after the first successful poll, handles `SIGTERM`/`SIGINT`, and
 stores durable deduplication state in `/app/data`. The image contains no `.env`
-file or secret.
+file or secret. Its install uses `npm ci --legacy-peer-deps` because the
+committed application lockfile contains existing peer-range conflicts (including
+`marked@18`/`marked-terminal@7` and ESLint 10 plugin ranges); this avoids changing
+application dependencies solely for the isolated alert runtime.
 
 For Render, create the service from `render.yaml` (the Telegram token,
 destination chat id, and optional Rugcheck key are marked `sync: false` and
