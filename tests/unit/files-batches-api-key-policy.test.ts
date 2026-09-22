@@ -238,6 +238,19 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
     );
   });
 
+  it("POST /v1/files: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-files-post-xkey-a", "machine-policy-fpx", []);
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await uploadFileVia({ "x-api-key": keyA.key });
+    assertPolicyRejection403(restricted.res, restricted.body, "POST /v1/files (x-api-key)");
+    assert.strictEqual(
+      countFiles({ apiKeyId: keyA.id }),
+      0,
+      "no file is created via x-api-key when the policy rejects"
+    );
+  });
+
   it("GET /v1/files: a restricted key is rejected and sees no listing; the same key allowed still works; a session-only caller is untouched", async () => {
     const keyA = await createApiKey("policy-files-get-a", "machine-policy-fg", []);
     seedFile(keyA.id, "policy-files-get-owned");
@@ -269,6 +282,20 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
     );
   });
 
+  it("GET /v1/files: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-files-get-xkey-a", "machine-policy-fgx", []);
+    seedFile(keyA.id, "policy-files-get-xkey-owned");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await listFilesVia({ "x-api-key": keyA.key });
+    assertPolicyRejection403(restricted.res, restricted.body, "GET /v1/files (x-api-key)");
+    assert.strictEqual(
+      restricted.body.data,
+      undefined,
+      "no file rows leaked via x-api-key when the policy rejects"
+    );
+  });
+
   it("GET /v1/files/{id}: a restricted key is rejected and gets no metadata; the same key allowed still works; a session-only caller is untouched", async () => {
     const keyA = await createApiKey("policy-files-byid-a", "machine-policy-fbi", []);
     const file = seedFile(keyA.id, "policy-files-byid-owned");
@@ -296,6 +323,20 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
       sessionOnly.res.status,
       200,
       "a session-only caller passes the policy step untouched"
+    );
+  });
+
+  it("GET /v1/files/{id}: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-files-byid-xkey-a", "machine-policy-fbix", []);
+    const file = seedFile(keyA.id, "policy-files-byid-xkey-owned");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await getFileVia({ "x-api-key": keyA.key }, file.id);
+    assertPolicyRejection403(restricted.res, restricted.body, "GET /v1/files/{id} (x-api-key)");
+    assert.strictEqual(
+      restricted.body.id,
+      undefined,
+      "no file metadata leaked via x-api-key when the policy rejects"
     );
   });
 
@@ -334,6 +375,16 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
     );
   });
 
+  it("DELETE /v1/files/{id}: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-files-del-xkey-a", "machine-policy-fdx", []);
+    const target = seedFile(keyA.id, "policy-files-del-xkey-restricted");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await deleteFileVia({ "x-api-key": keyA.key }, target.id);
+    assertPolicyRejection403(restricted.res, restricted.body, "DELETE /v1/files/{id} (x-api-key)");
+    assert.ok(getFile(target.id), "the file must survive via x-api-key when the policy rejects");
+  });
+
   it("GET /v1/files/{id}/content: a restricted key is rejected and reads nothing; the same key allowed still works; a session-only caller is untouched", async () => {
     const keyA = await createApiKey("policy-files-content-a", "machine-policy-fc", []);
     const file = seedFile(keyA.id, "policy-files-content-owned");
@@ -354,6 +405,16 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
       200,
       "a session-only caller passes the policy step untouched"
     );
+  });
+
+  it("GET /v1/files/{id}/content: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-files-content-xkey-a", "machine-policy-fcx", []);
+    const file = seedFile(keyA.id, "policy-files-content-xkey-owned");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await getFileContentVia({ "x-api-key": keyA.key }, file.id);
+    const restrictedBody = (await restricted.json()) as ErrorBody;
+    assertPolicyRejection403(restricted, restrictedBody, "GET /v1/files/{id}/content (x-api-key)");
   });
 
   it("POST /v1/batches: a restricted key is rejected and creates nothing; the same key allowed still works; a session-only caller is untouched", async () => {
@@ -381,6 +442,20 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
       sessionOnly.res.status,
       200,
       "a session-only caller passes the policy step untouched"
+    );
+  });
+
+  it("POST /v1/batches: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-batches-post-xkey-a", "machine-policy-bpx", []);
+    const inputFile = seedFile(keyA.id, "policy-batches-post-xkey-input");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await createBatchVia({ "x-api-key": keyA.key }, inputFile.id);
+    assertPolicyRejection403(restricted.res, restricted.body, "POST /v1/batches (x-api-key)");
+    assert.strictEqual(
+      countBatches(keyA.id),
+      0,
+      "no batch is created via x-api-key when the policy rejects"
     );
   });
 
@@ -414,6 +489,20 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
     );
   });
 
+  it("GET /v1/batches: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-batches-get-xkey-a", "machine-policy-bgx", []);
+    seedBatch(keyA.id, "policy-batches-get-xkey-owned");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await listBatchesVia({ "x-api-key": keyA.key });
+    assertPolicyRejection403(restricted.res, restricted.body, "GET /v1/batches (x-api-key)");
+    assert.strictEqual(
+      restricted.body.data,
+      undefined,
+      "no batch rows leaked via x-api-key when the policy rejects"
+    );
+  });
+
   it("GET /v1/batches/{id}: a restricted key is rejected and gets no metadata; the same key allowed still works; a session-only caller is untouched", async () => {
     const keyA = await createApiKey("policy-batches-byid-a", "machine-policy-bbi", []);
     const { batch } = seedBatch(keyA.id, "policy-batches-byid-owned");
@@ -441,6 +530,20 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
       sessionOnly.res.status,
       200,
       "a session-only caller passes the policy step untouched"
+    );
+  });
+
+  it("GET /v1/batches/{id}: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-batches-byid-xkey-a", "machine-policy-bbix", []);
+    const { batch } = seedBatch(keyA.id, "policy-batches-byid-xkey-owned");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await getBatchVia({ "x-api-key": keyA.key }, batch.id);
+    assertPolicyRejection403(restricted.res, restricted.body, "GET /v1/batches/{id} (x-api-key)");
+    assert.strictEqual(
+      restricted.body.id,
+      undefined,
+      "no batch metadata leaked via x-api-key when the policy rejects"
     );
   });
 
@@ -488,6 +591,23 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
     );
   });
 
+  it("DELETE /v1/batches/{id}: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-batches-del-xkey-a", "machine-policy-bdx", []);
+    const target = seedBatch(keyA.id, "policy-batches-del-xkey-restricted", "completed");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await deleteBatchVia({ "x-api-key": keyA.key }, target.batch.id);
+    assertPolicyRejection403(
+      restricted.res,
+      restricted.body,
+      "DELETE /v1/batches/{id} (x-api-key)"
+    );
+    assert.ok(
+      getBatch(target.batch.id),
+      "the batch must survive via x-api-key when the policy rejects"
+    );
+  });
+
   it("POST /v1/batches/{id}/cancel: a restricted key is rejected and cancels nothing; the same key allowed still works; a session-only caller is untouched", async () => {
     const keyA = await createApiKey("policy-batches-cancel-a", "machine-policy-bc", []);
     const restrictedTarget = seedBatch(keyA.id, "policy-batches-cancel-restricted", "validating");
@@ -526,6 +646,24 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
       sessionOnly.res.status,
       200,
       "a session-only caller passes the policy step untouched"
+    );
+  });
+
+  it("POST /v1/batches/{id}/cancel: a restricted key presented via x-api-key (no anthropic-version, plain UA) does not bypass the endpoint-allowlist policy (round-2 PoC against e543b64)", async () => {
+    const keyA = await createApiKey("policy-batches-cancel-xkey-a", "machine-policy-bcx", []);
+    const target = seedBatch(keyA.id, "policy-batches-cancel-xkey-restricted", "validating");
+    await updateApiKeyPermissions(keyA.id, { allowedEndpoints: ["chat"] });
+
+    const restricted = await cancelBatchVia({ "x-api-key": keyA.key }, target.batch.id);
+    assertPolicyRejection403(
+      restricted.res,
+      restricted.body,
+      "POST /v1/batches/{id}/cancel (x-api-key)"
+    );
+    assert.strictEqual(
+      getBatch(target.batch.id)?.status,
+      "validating",
+      "the batch is not cancelled via x-api-key when the policy rejects"
     );
   });
 });
