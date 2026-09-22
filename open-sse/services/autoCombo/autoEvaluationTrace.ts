@@ -79,8 +79,7 @@ export function recordAutoDroppedCandidates(
   invocationId: string | undefined,
   before: readonly AutoTraceCandidate[],
   after: readonly AutoTraceCandidate[],
-  stage: AutoEvaluationStage,
-  detail: string
+  stage: AutoEvaluationStage
 ): void {
   bestEffortTrace(invocationId, (traceInvocationId) => {
     recordAutoEvaluationStage(traceInvocationId, stage);
@@ -93,7 +92,6 @@ export function recordAutoDroppedCandidates(
           stage,
           outcome: "excluded",
           reason: "auto_candidate_filter",
-          detail,
         });
       }
     }
