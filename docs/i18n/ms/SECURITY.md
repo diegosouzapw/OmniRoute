@@ -222,17 +222,19 @@ Peraturan ini dikuatkuasakan oleh peralatan dan penyemak:
 
 ## Penemuan pengimbas rantaian bekalan (Socket.dev / Snyk / yang serupa)
 
-Artifak npm `omniroute` yang diterbitkan merangkum binaan Next.js `output: "standalone"`, yang bermaksud setiap pengendali laluan — termasuk ciri istimewa yang didokumentasikan (MITM, import Zed, Cloud Sync, penyelia perkhidmatan terbenam) — dimasukkan ke dalam cebisan `.next/server/*.js` yang telah diminimumkan. Pengimbas rantaian bekalan berasaskan heuristik kerap memadankan corak cebisan tersebut dengan tandatangan perisian hasad.
+> **Nota skop:** `socket.yml` di akar repositori hanya membentuk `projectIgnorePaths` untuk imbasan pascapenerbitan sebelah pendaftaran Socket.dev terhadap artifak npm yang diterbitkan — ia bukan gerbang gabungan CI/PR yang dikuatkuasakan. Tiada aliran kerja dalam `.github/workflows`, tiada skrip `package.json`, dan tiada sasaran `Makefile` yang menjalankan Socket.dev.
 
-Konfigurasi pengimbas yang kami gunakan terletak di [`socket.yml`](socket.yml) pada akar repositori (format v2 GitHub App Socket.dev — lihat <https://docs.socket.dev/docs/socket-yml>). Konfigurasi ini secara eksplisit mengecualikan direktori yang tidak diedarkan (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/`, dan sebagainya) supaya pengimbas hanya melaporkan laluan kod yang benar-benar sampai kepada pengguna keluaran terbitan — imbasan itu sendiri dijalankan oleh GitHub App Socket yang membaca fail tersebut, bukannya oleh aliran kerja dalam repositori ini.
+Artifak npm `omniroute` yang diterbitkan menyertakan binaan Next.js `output: "standalone"`, yang bermaksud setiap pengendali laluan — termasuk ciri istimewa yang didokumentasikan (MITM, import Zed, Cloud Sync, penyelia perkhidmatan terbenam) — dimasukkan ke dalam cebisan `.next/server/*.js` yang diminimumkan. Pengimbas rantaian bekalan berasaskan heuristik kerap memadankan pola cebisan tersebut dengan tandatangan perisian hasad.
 
-Bagi setiap kategori penemuan, kami menyelenggara perakuan penyelenggara untuk setiap penemuan:
+Konfigurasi pengimbas yang kami gunakan terletak di [`socket.yml`](socket.yml) pada akar repositori (format v2 Aplikasi GitHub Socket.dev — lihat <https://docs.socket.dev/docs/socket-yml>). Ia secara eksplisit mengecualikan direktori yang tidak diedarkan (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/`, dan sebagainya) supaya pengimbas hanya melaporkan laluan kod yang benar-benar sampai kepada pengguna pakej yang diterbitkan — imbasan itu sendiri dijalankan oleh Aplikasi GitHub Socket yang membaca fail tersebut, bukan oleh aliran kerja dalam repositori ini.
+
+Bagi setiap kategori penemuan, kami mengekalkan perakuan penyelenggara untuk setiap penemuan:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  peta setiap penemuan: fail sumber ↔ cebisan yang ditandai ↔ tingkah laku ↔ mitigasi yang digunakan dalam v3.8.6.
+  peta bagi setiap penemuan: fail sumber ↔ cebisan yang ditandai ↔ tingkah laku ↔ langkah pengurangan risiko yang digunakan dalam v3.8.6.
 - Blok `SECURITY-AUDITOR-NOTE:` dalam sumber pada setiap fungsi yang ditandai merujuk kembali kepada dokumen yang sama.
 
-Bagi pengguna yang saluran paipnya tidak dapat melonggarkan amaran tersebut: bina dengan `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tindakan ini menggantikan empat modul sensitif dengan stub yang mengembalikan HTTP 503 `feature-disabled` semasa masa jalan, supaya laluan kod istimewa tidak wujud secara fizikal dalam berkas. Lihat [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) untuk tatacara penerbitan.
+Bagi pengguna yang saluran paipnya tidak membenarkan kelonggaran terhadap amaran tersebut: bina dengan `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Ini menggantikan empat modul sensitif dengan stub yang mengembalikan HTTP 503 `feature-disabled` semasa masa jalan, supaya laluan kod istimewa secara fizikal tidak wujud dalam berkas. Lihat [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) untuk tatacara penerbitan.
 
 ## Rujukan
 

@@ -22,22 +22,24 @@ OmniRoute บันทึก `reasoning_content` ของผู้ช่วย�
 ## สถาปัตยกรรม
 
 ```
-รอบ N (ผู้ช่วยสร้างการตอบกลับ):
-  → การตอบกลับมี reasoning_content + tool_calls
+รอบที่ N (ผู้ช่วยสร้างการตอบกลับ):
+  → การตอบกลับประกอบด้วย reasoning_content + tool_calls
   → หาก requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      เขียนข้อมูลลง (หน่วยความจำ + DB) โดยใช้ทุก tool_call.id เป็นคีย์
-  → ส่งต่อการตอบกลับไปยังไคลเอนต์ (ซึ่งอาจเก็บหรือไม่เก็บข้อมูลการให้เหตุผลไว้)
+      เขียนลงใน (หน่วยความจำ + DB) โดยใช้ tool_call.id แต่ละรายการเป็นคีย์
+  → ส่งต่อการตอบกลับไปยังไคลเอนต์ (ซึ่งอาจเก็บหรือไม่เก็บ reasoning ไว้)
 
-รอบ N+1 (ไคลเอนต์ส่งคำขอต่อเนื่อง):
+รอบที่ N+1 (ไคลเอนต์ส่งข้อความติดตาม):
   → ตัวแปลตรวจพบว่า: requiresReasoningReplay(provider, model) === true
   → สำหรับแต่ละข้อความของผู้ช่วยที่มี tool_calls แต่ไม่มี reasoning_content:
       lookupReasoning(toolCalls[0].id) → หน่วยความจำ → DB
-      พบ     → msg.reasoning_content = cached; recordReplay()
-      ไม่พบ  → msg.reasoning_content = "" (วิธีสำรองแบบเดิมสำหรับ DeepSeek รุ่นเก่า)
-  → ต้นทางได้รับประวัติที่สอดคล้องกัน → ไม่มีข้อผิดพลาด 400
+      พบ    → msg.reasoning_content = cached; recordReplay()
+      ไม่พบ → msg.reasoning_content = "" (วิธีสำรองแบบเดิมสำหรับ DeepSeek รุ่นเก่า)
+  → ต้นทางเห็นประวัติที่สอดคล้องกัน → ไม่มี 400
 ```
 
-การบันทึกเกิดขึ้นใน `open-sse/handlers/chatCore.ts` (สองตำแหน่ง ณ จุดที่เรียก `cacheReasoningFromAssistantMessage` ทั้งสองจุด) ส่วนการนำกลับมาใช้ซ้ำเกิดขึ้นใน `open-sse/translator/index.ts` หลังจากปรับรูปแบบตามสคีมา แต่ก่อนส่งต่อคำขอ
+การบันทึกเกิดขึ้นใน `open-sse/handlers/chatCore.ts` (สองตำแหน่ง ณ จุดเรียก `cacheReasoningFromAssistantMessage` ทั้งสองจุด) ส่วนการเล่นซ้ำเกิดขึ้นใน `open-sse/translator/index.ts` หลังการบังคับใช้สคีมา แต่ก่อนส่งต่อคำขอ
+
+รอบการตอบของผู้ช่วยแบบธรรมดา (ที่ไม่มีการเรียกใช้เครื่องมือ) ใช้วิธีกำหนดคีย์ที่ต่างออกไป: `buildAssistantMessageCacheKey()` จะสร้างไดเจสต์จากขอบเขตเซสชันร่วมกับทรานสคริปต์รูปแบบ OpenAI ที่ผ่านการทำให้เป็นมาตรฐานจนถึงรอบนั้น เนื่องจาก DeepSeek ต้องการ reasoning ของรอบก่อนหน้า_ทุกรอบ_เมื่อมี `tools` สำหรับปลายทาง Responses-API (ตัวอย่างเช่น `opencode-go/deepseek-v4-flash` ซึ่งกำหนดเส้นทางไปยัง `/responses`) เนื้อหาคำขอที่ส่งไปยังต้นทางจะมี `input` ไม่ใช่ `messages` ดังนั้น `translateRequest()` (`open-sse/translator/index.ts`) จะรายงานทรานสคริปต์แกนกลางที่นำไปสร้างไดเจสต์ผ่านตัวเลือก callback และตำแหน่งบันทึกจะสร้างไดเจสต์จากทรานสคริปต์เดียวกัน กระบวนการเล่นซ้ำของ Responses จะทำงานบนแกนกลาง OpenAI สำหรับรูปแบบต้นทางทุกแบบ ดังนั้นไคลเอนต์ Anthropic Messages (Claude → OpenAI → Responses) จึงได้รับการเล่นซ้ำด้วย
 
 ## การจัดเก็บ — หน่วยความจำ + SQLite แบบผสมผสาน
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-ดัชนี: `expires_at`, `provider`, `model`, `created_at` โดย `expires_at` จะถูกจัดเก็บเป็น Unix epoch ในหน่วยวินาที และชั้น SELECT จะปรับค่าข้อความแบบเดิมให้เป็นรูปแบบมาตรฐานผ่าน `EXPIRES_AT_EPOCH_SQL`
+ดัชนี: `expires_at`, `provider`, `model`, `created_at` โดย `expires_at` จะถูกจัดเก็บเป็นวินาทีตามเวลา Unix epoch ส่วนเลเยอร์ SELECT จะปรับค่าข้อความแบบเดิมให้อยู่ในรูปแบบมาตรฐานผ่าน `EXPIRES_AT_EPOCH_SQL`
 
 ## การตรวจจับผู้ให้บริการ / โมเดล
 

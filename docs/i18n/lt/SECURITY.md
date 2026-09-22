@@ -220,35 +220,37 @@ docker run -d \
 10. **`exec()` / `spawn()` vykdymo metu naudojamas reikšmes perduokite per `env` parinktį** — niekada neįterpkite išorinių kelių ar nepatikimų reikšmių kaip eilučių į scenarijus, perduodamus apvalkalui. Pavyzdys: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Pirmenybę teikite pagal numatytuosius nustatymus saugioms bibliotekoms** — žr. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Prieš kurdami savo sprendimą, pirmiausia rinkitės jas.
 
-## Tiekimo grandinės skaitytuvo radiniai (Socket.dev / Snyk / panašūs įrankiai)
+## Tiekimo grandinės skenerio aptiktos problemos (Socket.dev / Snyk / panašūs įrankiai)
 
-Paskelbtame `omniroute` npm artefakte yra įtraukta Next.js `output: "standalone"`
-kompiliacija, todėl kiekviena maršruto apdorojimo funkcija, įskaitant dokumentuotas privilegijuotas
-funkcijas (MITM, Zed importavimą, Cloud Sync, integruotą paslaugų prižiūrėtoją), patenka
-į minimizuotus `.next/server/*.js` fragmentus. Euristiniai tiekimo grandinės skaitytuvai
-dažnai palygina šiuos fragmentus su kenkėjiškos programinės įrangos parašais.
+> **Aprėpties pastaba:** saugyklos šaknyje esantis `socket.yml` tik nustato `projectIgnorePaths`, skirtus Socket.dev registro pusėje atliekamam paskelbto npm artefakto skenavimui po paskelbimo — tai nėra privalomas CI/PR sujungimo kontrolės etapas. Jokia `.github/workflows` darbo eiga, joks `package.json` scenarijus ir jokia `Makefile` užduotis nepaleidžia Socket.dev.
 
-Mūsų naudojama skaitytuvo konfigūracija yra saugyklos šaknyje esančiame
-[`socket.yml`](socket.yml) faile (Socket.dev GitHub App v2 formatas — žr.
-<https://docs.socket.dev/docs/socket-yml>). Joje aiškiai neįtraukiami
-neplatinami katalogai (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` ir kt.), todėl skaitytuvas pateikia ataskaitas tik apie kodo kelius, kurie
-iš tiesų pasiekia paskelbto paketo naudotojus — patį nuskaitymą atlieka Socket
-GitHub App, perskaitanti šį failą, o ne šios saugyklos darbo eiga.
+Paskelbtame `omniroute` npm artefakte yra Next.js `output: "standalone"`
+kompiliuotė, todėl kiekvienas maršruto apdorojimo modulis — įskaitant dokumentuotas privilegijuotas
+funkcijas (MITM, Zed importavimą, Cloud Sync, integruotą paslaugų prižiūryklę) — patenka
+į `.next/server/*.js` minifikuotus fragmentus. Euristiniai tiekimo grandinės skeneriai
+dažnai pagal šablonus lygina šiuos fragmentus su kenkėjiškos programinės įrangos signatūromis.
 
-Kiekvienai radinių kategorijai palaikome atskirą prižiūrėtojų patvirtinimą:
+Mūsų naudojama skenerio konfigūracija yra saugyklos šaknyje esančiame faile [`socket.yml`](socket.yml)
+(Socket.dev GitHub App v2 formatas — žr.
+<https://docs.socket.dev/docs/socket-yml>). Ji aiškiai neįtraukia
+neplatinamų katalogų (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` ir kt.), kad skeneris praneštų tik apie kodo kelius, kurie
+iš tikrųjų pasiekia paskelbto paketo naudotojus — patį skenavimą vykdo Socket
+GitHub App, nuskaitydama šį failą, o ne šios saugyklos darbo eiga.
+
+Kiekvienai aptiktų problemų kategorijai palaikome atskirą prižiūrėtojų patvirtinimą:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  kiekvieno radinio schema: šaltinio failas ↔ pažymėtas fragmentas ↔ veikimas ↔
-  v3.8.6 pritaikyta rizikos mažinimo priemonė.
-- Šaltinio kode esantys `SECURITY-AUDITOR-NOTE:` blokai prie kiekvienos pažymėtos funkcijos nurodo
-  tą patį dokumentą.
+  atskirų aptiktų problemų žemėlapis: šaltinio failas ↔ pažymėtas fragmentas ↔ elgsena ↔ v3.8.6
+  pritaikytos rizikos mažinimo priemonės.
+- Šaltinio kode esantys `SECURITY-AUDITOR-NOTE:` blokai ties kiekviena pažymėta funkcija
+  nukreipia į tą patį dokumentą.
 
-Naudotojams, kurių procesas neleidžia sušvelninti įspėjimo: kompiliuokite naudodami
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Taip keturi jautrūs
-moduliai pakeičiami imitaciniais moduliais, kurie vykdymo metu grąžina HTTP 503 `feature-disabled`,
-todėl privilegijuotų kodo kelių fiziškai nėra pakete.
-Publikavimo instrukcijas žr. [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+Naudotojai, kurių konvejeris neleidžia sušvelninti įspėjimo, turėtų kompiliuoti naudodami
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Taip keturi
+jautrūs moduliai pakeičiami pakaitiniais moduliais, kurie vykdymo metu grąžina HTTP 503
+`feature-disabled`, todėl privilegijuoto kodo kelių fiziškai nebūna rinkinyje.
+Paskelbimo instrukcijas žr. [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Nuorodos
 

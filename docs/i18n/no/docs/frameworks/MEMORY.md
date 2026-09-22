@@ -162,35 +162,36 @@ Tabellen `memory_vec_meta` (migrering `083_memory_vec.sql`) lagrer:
 
 ## Innstillingsutvidelse
 
-Ni innebyggings- og vektorfelt er tilgjengelige i `MemorySettingsExtended` i
+Ni innebyggings- og vektorfelter er tilgjengelige i `MemorySettingsExtended` i
 `src/shared/schemas/memory.ts`, og lagres via `src/lib/db/settings.ts`:
 
 | Felt                     | Type                                               | Standardverdi | Beskrivelse                                                     |
 | ------------------------ | -------------------------------------------------- | ------------- | --------------------------------------------------------------- |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Hvilken innebyggingskilde som skal brukes                       |
 | `embeddingProviderModel` | `string \| null`                                   | `null`        | Leverandør/modell i formatet `provider/model`                   |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | OpenAI-kompatibel basis-URL kun for minneendepunktet            |
-| `customModelId`          | `string \| null`                                   | `null`        | Modell-ID som sendes til det egendefinerte endepunktet          |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Aktivt valg for Transformers.js (MiniLM, ~400 MB)               |
-| `staticEnabled`          | `boolean`                                          | `false`       | Aktivt valg for den lokale statiske potion-base-8M-modellen     |
-| `rerankEnabled`          | `boolean`                                          | `false`       | Aktiver omrangeringssteget (legger til +200–500 ms/forespørsel) |
+| `customBaseUrl`          | `string \| null`                                   | `null`        | Basis-URL for et OpenAI-kompatibelt endepunkt kun for Memory    |
+| `customModelId`          | `string \| null`                                   | `null`        | Modell-ID sendt til det egendefinerte endepunktet               |
+| `transformersEnabled`    | `boolean`                                          | `false`       | Aktivt tilvalg for Transformers.js (MiniLM, ~400MB)             |
+| `staticEnabled`          | `boolean`                                          | `false`       | Aktivt tilvalg for den lokale statiske modellen potion-base-8M  |
+| `rerankEnabled`          | `boolean`                                          | `false`       | Aktiver omrangeringstrinnet (legger til +200-500ms/forespørsel) |
 | `rerankProviderModel`    | `string \| null`                                   | `null`        | Leverandør/modell for omrangering i formatet `provider/model`   |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`      | Hvilken vektorbakende som skal brukes                           |
 
-Disse eksponeres via `GET /PUT /api/settings/memory` (skjemaet `MemorySettingsExtendedSchema`).
+`rerankProviderModel` løses av `POST /v1/rerank` (kalt via loopback), så det godtar alt denne ruten godtar: en kuratert omrangeringsmodell i skyen (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) eller en OpenAI-kompatibel leverandørnode som `<node-prefix>/<model>` (f.eks. `skilled-mini/bge-reranker-v2-m3` for en TEI/Infinity-instans). Loopback-noder er alltid kvalifisert; en node på en annen vert (LAN, Tailscale) krever i tillegg funksjonsflagget `RERANK_REMOTE_PROVIDER_NODES` og må bestå leverandørens policy for utgående URL-er — se [Funksjonsflagg](../reference/FEATURE_FLAGS.md). Velgeren i kontrollpanelet viser kuraterte leverandører samt lokale noder; enhver gyldig `provider/model`-streng kan angis direkte via `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Hvilken vektorbackend som skal brukes |
+
+Disse eksponeres via `GET /PUT /api/settings/memory` (skjema `MemorySettingsExtendedSchema`).
 
 For kilden `remote` godtar Memory også de valgfrie innstillingene `customBaseUrl` og
 `customModelId`. Sammen velger de et OpenAI-kompatibelt `/embeddings`-endepunkt
 og en modell uten å endre det globale innebyggingsregisteret. Endepunktet
-normaliseres før bruk og kontrolleres av leverandørens policy for utgående URL-er:
-HTTP(S) er påkrevd, innebygd legitimasjon og spørringsstrenger avvises, og
-skymetadataadresser forblir blokkert. Tomme verdier beholder den valgte
-registerleverandøren. Feil som returneres til kontrollpanelet, renses, og
-endepunktlegitimasjon logges aldri.
+normaliseres før bruk og kontrolleres av leverandørens policy for utgående URL-er: HTTP(S)
+er påkrevd, innebygd påloggingsinformasjon og spørringsstrenger avvises, og adresser
+for skymetadata forblir blokkert. Tomme verdier beholder den valgte registerleverandøren. Feil
+som returneres til kontrollpanelet, renses, og påloggingsinformasjon for endepunktet logges aldri.
 
-> **TODO (D20):** Omfanget `global` (deling av minner på tvers av alle API-nøkler) er
-> ikke implementert i denne versjonen. Det krever skjemaendringer og en global
-> gjenfinningsbane. Spor dette separat.
+> **TODO (D20):** Omfanget `global` (deling av minner på tvers av alle API-nøkler) er ikke
+> implementert i denne utgaven. Det krever skjemaendringer og en global innhentingsbane.
+> Spor dette separat.
 
 ## Lagringslag
 

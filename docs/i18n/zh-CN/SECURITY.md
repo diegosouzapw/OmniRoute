@@ -212,34 +212,36 @@ docker run -d \
 10. **`exec()` / `spawn()` 的运行时值通过 `env` 选项传递** — 严禁将外部路径或不可信值通过字符串插值传入 Shell 脚本。参考：`src/mitm/cert/install.ts::updateNssDatabases`。
 11. **优先使用安全默认的库** — 参见 [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)（Helmet.js、DOMPurify、ssrf-req-filter、safe-regex、Google Tink）。在自行实现之前先查找这些现有方案。
 
-## 供应链扫描器发现（Socket.dev / Snyk / 类似工具）
+## 供应链扫描器发现项（Socket.dev / Snyk / 类似工具）
+
+> **范围说明：** 仓库根目录中的 `socket.yml` 仅用于配置 Socket.dev 对已发布 npm 构件执行的注册表侧发布后扫描中的 `projectIgnorePaths`，它并不是强制执行的 CI/PR 合并门禁。`.github/workflows` 中没有任何工作流、`package.json` 中没有任何脚本，并且没有任何 `Makefile` 目标会调用 Socket.dev。
 
 已发布的 `omniroute` npm 构件包含 Next.js `output: "standalone"`
-构建，这意味着每个路由处理程序——包括文档中说明的特权功能
-（MITM、Zed 导入、Cloud Sync、嵌入式服务监管器）——最终都会进入
-`.next/server/*.js` 的压缩代码块中。启发式供应链扫描器经常会将这些代码块
-与恶意软件特征进行模式匹配。
+构建，这意味着每个路由处理程序——包括已有文档说明的特权
+功能（MITM、Zed 导入、Cloud Sync、嵌入式服务监管器）——最终都会
+进入 `.next/server/*.js` 的压缩代码块中。启发式供应链扫描器
+经常会通过模式匹配将这些代码块与恶意软件签名进行比对。
 
-我们使用的扫描器配置位于仓库根目录下的
-[`socket.yml`](socket.yml)（Socket.dev GitHub App 格式 v2——参见
-<https://docs.socket.dev/docs/socket-yml>）。该配置明确排除了
-不会发布的目录（`tests/`、`_tasks/`、`_references/`、`_ideia/`、
-`_mono_repo/`、`docs/` 等），因此扫描器只会报告实际会到达已发布版本用户的
-代码路径——扫描本身由 Socket GitHub App 读取该文件来执行，而不是由此仓库中的
-工作流驱动。
+我们使用的扫描器配置位于仓库根目录的 [`socket.yml`](socket.yml)
+（Socket.dev GitHub App 格式 v2——参见
+<https://docs.socket.dev/docs/socket-yml>）。它明确排除了
+未随构件发布的目录（`tests/`、`_tasks/`、`_references/`、`_ideia/`、
+`_mono_repo/`、`docs/` 等），因此扫描器仅报告实际会触达已发布版本
+用户的代码路径——扫描本身由读取该文件的 Socket GitHub App 驱动，
+而不是由此仓库中的工作流驱动。
 
-对于每一类发现，我们都维护一份由维护者针对具体发现提供的证明：
+对于每一类发现项，我们都维护了逐项的维护者确认说明：
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  按发现逐项列出的映射：源文件 ↔ 被标记的代码块 ↔ 行为 ↔
+  逐项映射：源文件 ↔ 被标记的代码块 ↔ 行为 ↔
   v3.8.6 中应用的缓解措施。
-- 每个被标记函数处的源代码内 `SECURITY-AUDITOR-NOTE:` 块都会指向
-  同一文档。
+- 每个被标记函数处的源码内 `SECURITY-AUDITOR-NOTE:` 块都会
+  指向同一文档。
 
-对于其流水线无法放宽此警报的用户，请使用
+对于流水线无法放宽该警报的用户，请使用
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build` 进行构建。这会将四个
-敏感模块替换为存根，这些存根在运行时返回 HTTP 503 `feature-disabled`，
-因此特权代码路径实际上不会出现在构建包中。
+敏感模块替换为存根，这些存根在运行时返回 HTTP 503
+`feature-disabled`，从而使特权代码路径从构建产物中物理移除。
 有关发布流程，请参阅
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)。
 

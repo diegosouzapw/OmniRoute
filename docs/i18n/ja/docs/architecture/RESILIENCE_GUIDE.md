@@ -72,7 +72,7 @@ OmniRoute には、互いに関連しつつも異なる 3 つのレジリエン�
 
 **スコープ:** 単一のプロバイダー接続／アカウント／キー。
 
-**目的:** 同じプロバイダーの他の接続でサービスを継続しながら、問題のあるキーを1つスキップする。
+**目的:** 同じプロバイダーの他の接続によるサービス提供を継続しながら、問題のあるキーを1つだけスキップする。
 
 **実装:**
 
@@ -92,56 +92,114 @@ OmniRoute には、互いに関連しつつも異なる 3 つのレジリエン�
 
 - OAuthの基本値: 5秒
 - APIキーの基本値: 3秒
-- APIキーの429: アップストリームの`Retry-After`／リセットヘッダー／解析可能なリセット時刻テキストを優先
+- APIキーの429: 上流の`Retry-After`／リセットヘッダー／解析可能なリセット時刻テキストを優先
 - バックオフ: `baseCooldownMs * 2 ** failureIndex`
 
-**サンダリングハード防止ガード:** 同時発生した失敗によってクールダウンが過度に延長されたり、`backoffLevel`が二重にインクリメントされたりすることを防ぐ。
+**サンダリングハード防止ガード:** 同時発生したエラーによってクールダウンが過度に延長されたり、`backoffLevel`が二重にインクリメントされたりすることを防ぐ。
 
 **終端状態（クールダウンではない）:**
 
-- `banned` — 禁止キーワード／アカウントBAN検出（[BAN_DETECTION](../security/BAN_DETECTION.md)を参照）、およびアップストリームによるリクエスト単位の拒否が3回連続した場合（`request_rejected`、例: Anthropic OAuthの403「Request not allowed」— `open-sse/services/requestRejectedStreak.ts`）に設定される。1回の拒否では接続がクールダウンされるだけである
-- `expired`（回数制限付きの再試行後に終端状態へ移行する。`EXPIRED_RETRY_MAX = 3`で指数バックオフを使用するため、一時的なOAuthエラーはアカウントが恒久的に無効化される前に自己回復できる）
+- `banned` — 禁止キーワード／アカウントBANの検出（[BAN_DETECTION](../security/BAN_DETECTION.md)を参照）、および上流によるリクエスト単位の拒否が3回連続した場合（`request_rejected`。例: Anthropic OAuthの403「Request not allowed」— `open-sse/services/requestRejectedStreak.ts`）に設定される。拒否が1回だけの場合は、接続がクールダウンされるだけ
+- `expired`（回数制限付きの再試行後に終端状態へ移行する。`EXPIRED_RETRY_MAX = 3`で指数バックオフを使用するため、一時的なOAuthエラーは、アカウントが恒久的に無効化される前に自己回復できる）
 - `credits_exhausted`
 
-これらは、認証情報が変更されるか、運用者がリセットするまで保持される。終端状態を一時的なクールダウン状態で上書きしてはならない。
+これらは、認証情報が変更されるか、オペレーターによってリセットされるまで維持される。終端状態を一時的なクールダウン状態で上書きしてはならない。
 
-**遅延回復:** `rateLimitedUntil`を過ぎると、接続は再び利用可能になる。使用に成功すると、`clearAccountError()`がすべてのエラーフィールドをクリアする。
+**遅延回復:** `rateLimitedUntil`を過ぎると、接続は再び選択対象となる。正常に使用できた場合、`clearAccountError()`がすべてのエラーフィールドをクリアする。
 
-### セッションアフィニティ（#7274）
+### Claude OAuth使用量上限: 低優先度レーン + セッション上限リセット
 
-**スコープ:** **任意の**プロバイダーについて、1つの接続に固定された1つのクライアントセッション（`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`ヘッダー）。
-
-**目的:** マルチターンエージェント（Claude Code、aider、カスタムエージェント）をリクエスト間で同じアカウントに維持し、アカウント単位のセッション状態を持つプロバイダーにおける、アカウント間のコンテキスト損失とコールドスタート時の429の繰り返しを軽減する。
+**スコープ:** 1つのClaudeサブスクリプション（OAuth）接続。どちらの機能も**接続ごとのオプトイン**
+（接続を編集 → Claudeセクション → `providerSpecificData`内の`lowPriorityMode`／`autoLimitReset`。
+どちらもデフォルトはオフ）であり、Claude Codeの`/low-priority`コマンドと
+`/limit-reset`コマンドを再現する（通信仕様はClaude Code 2.1.263から取得）。
 
 **実装:**
 
-- TTLの解決: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- 固定先の選択／作成: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- ヘッダー抽出（汎用、任意のプロバイダー）: `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- 永続化された固定先テーブル: `sessionAccountAffinity`（`src/lib/db/sessionAccountAffinity.ts`）
-- 設定: `sessionAffinityTtlMs`（ミリ秒単位のグローバルTTL。`0`で無効化）— `src/lib/db/settings.ts`。マイグレーション`124_generic_session_affinity_ttl.sql`により、Codex専用だった`codexSessionAffinityTtlMs`から名前が変更され、以前に設定されたCodexのTTLが新しいデフォルトとして引き継がれる。
+- ステートマシン + レスポンス分類: `open-sse/services/claudeLowPriority.ts`
+- リセット状態／要求クライアント: `open-sse/services/claudeLimitReset.ts`
+- エグゼキュターフック（ヘッダー挿入 + 同一アカウントでの再試行）: `open-sse/executors/base.ts::execute()`
+- オプトインの永続化: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-#7274より前は、`resolveSessionAffinityTtlMs()`が`codex`以外のすべてのプロバイダーで即座に`0`を返していたため、固定メカニズムとヘッダー抽出がすでにプロバイダー非依存であったにもかかわらず、TTL設定（およびセッションヘッダー）は他では一切効果がなかった。この修正により、その早期リターンが削除された。TTLをグローバルに`0`より大きい値へ設定すると、すべてのプロバイダーに一律に適用されるようになった。
+**トリガー:** 5時間の使用量上限。ヘッダーに
+`anthropic-ratelimit-unified-status: rejected`が含まれ、アカウントが対象となる場合は
+`anthropic-ratelimit-unified-slow-offer: treatment`も含まれる`429`。最初にこの上限による
+429が発生するまでは何も送信されない。統合ヘッダーのないバースト429は、通常のクールダウン処理に進む。
 
-3つのセッションアフィニティヘッダーがアップストリームへ転送されることはない。エグゼキューターはクライアントヘッダーをそのまま渡すのではなく、独自のアップストリームヘッダーをゼロから構築するため、これは内部相関IDとしてのみ使用される。
+**低優先度レーン**（`lowPriorityMode`）:
 
-### 排他的なマネージドセッション接続リース
+- 上限による429が発生すると、エグゼキューターはオファーを受け入れ、**同じ**
+  アカウントで`anthropic-usage-limit: slow`を付けて直ちに再試行する。このレーンは、通知された
+  `anthropic-ratelimit-unified-reset`（+60秒の猶予）まで有効であり、その期間中のすべてのリクエストに
+  このヘッダーが付与される。捕捉された429は`handleChatCore`には到達しないため、接続は
+  クールダウン状態にならず、別の接続にもローテーションされない。
+- 後続レスポンスの`anthropic-ratelimit-unified-slow-status`: `active`／`not_needed`
+  の場合はレーンを維持する。`slot_busy`（429）または`529`の場合は、サーバーの
+  `anthropic-ratelimit-unified-slow-retry-after`（デフォルト20秒、5～600秒に制限、±30%のジッター）
+  に従って待機して再試行する。待機時間は`anthropic-ratelimit-unified-slow-max-wait`（デフォルト20分、
+  1分～6時間に制限）で上限が設定される。この上限を超えるとレーンは終了し、10分間のクールオフによって
+  再受諾がブロックされる。さらに待機時間は、リクエスト自体の上流開始タイムアウトの残り時間
+  （`resolveFetchStartTimeout`、デフォルト10分）から5秒のマージンを引いた値で制限される。この制限がないと、
+  デフォルトの最大待機時間20分がリクエストの寿命を超え、待機の途中でスリープが中断され、
+  正常な`max_wait`終了 + クールオフではなく`TimeoutError`が表面化する。
+- `weekly_limit`／`budget_exhausted`／`off`／`ineligible`、5時間ウィンドウの切り替わり、または
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true`（有料の超過利用が上限を補うようになったため、
+  ステータスにかかわらず`extra_usage`として終了する）によってレーンは終了する。その後、レスポンスは
+  通常のクールダウン処理に進む。`budget_exhausted`は、通知された予算リセット時刻（≤ 8日）まで記憶される。
+- 上限チェックは、エグゼキューター自身による400起点の試行内再試行（コンテキスト編集、
+  thinking／effortの制限、パラメーターの自動学習）の後に実行されるため、それらの再試行のいずれかでのみ
+  表面化した上限429も、クールダウン処理に到達することなく捕捉される。
+- 状態は接続ごとにメモリ内で保持される（再起動すると、再受諾のために上限429がもう1回必要になる）。
 
-**スコープ:** 1つのアクティブなマネージドHTTPクライアント／セッションが、適格なOmniRoute接続を1つ所有する。
+**セッション上限リセット**（`autoLimitReset`。両方がオンの場合はレーンより先に試行）:
 
-**目的:** リクエスト間で厳格なルーティング境界を必要とするクライアントに、永続的かつ排他的な接続所有権を提供する。これは、ソフトな継続性の優先設定であるセッションアフィニティとは異なる。排他的リースはライフサイクル状態をSQLiteに永続化し、アクティブな所有者およびアクティブな接続のグローバルな一意性を強制し、プロバイダーへのディスパッチ前に古い世代を拒否する。
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  ブロック。`arm: "reset"`かつ`available: true`の場合、
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits`を
+  `{ "program": "juniper_tide" }`とともに送信する（組織UUIDは
+  `providerSpecificData.organizationUUID`から取得し、ブートストラップにフォールバックする）。
+- `result: reset|not_limited` → リクエストを通常速度で再試行する（低速ヘッダーなし）。
+  `already_used`／`not_offered`の場合は`next_available_at`（デフォルト1週間）を記憶する。
+  失敗した場合は15分間バックオフする。リセットは週に1回であり、引き続き週間上限にカウントされる。
 
-この機能はAPIキーごとのオプトインである。マネージドキーには`lease:exclusive`スコープと、明示的で空ではない`allowedConnections`リストが必要である。どのHTTPクライアントでもライフサイクルエンドポイントを使用できる。クライアント名、ユーザーエージェント、プロバイダー、OAuth方式、モデルはいずれも必要ない。リースが所有するのはモデルではなく接続であるため、接続が通常どおり適格である限り、モデルを変更してもバインディングは維持される。通常のモデル、クォータ、ヘルス、クールダウン、許可リストのルールは引き続き優先され、同じ世代を別の空いている適格な接続へ移行させる場合がある。
+回帰防止テスト: `tests/unit/claude-low-priority-mode.test.ts`、
+`tests/unit/claude-limit-reset.test.ts`、`tests/unit/claude-low-priority-executor.test.ts`。
 
-ライフサイクルは`POST /api/v1/session-leases`で、JSONアクションとして`acquire`、`renew`、`release`を使用する。マネージド推論リクエストでは、不透明な`X-OmniRoute-Lease-Owner`値と、正確な`X-OmniRoute-Lease-Generation`を提示する。所有者の値は`vlo_`に43文字のbase64url文字列を続けた形式であり、そのSHA-256ハッシュのみが保存される。最終的な各ディスパッチ境界では、認証済みAPIキーIDとアクティブ接続IDも紐付けられる。リース制御ヘッダーは、ログ、保持されたリクエストスナップショット、アップストリームのエグゼキューターヘッダーから削除される。
+### セッションアフィニティ（#7274）
 
-通常のルーティングに適格なマネージド候補が存在するものの、空いている候補がすべて他者のアクティブなリースによって占有されている場合、OmniRouteはHTTP `429`、リース容量利用不可コード、容量待機状態、および関連する最短の有効期限から算出した上限付き`Retry-After`を返す。通常の適格候補なしはリース競合ではなく、既存のルーティングエラーのセマンティクスが維持される。
+**スコープ:** **任意の**プロバイダーについて、1つの接続に固定された1つのクライアントセッション（`X-Session-Id`／`x-codex-session-id`／`x-omniroute-session`ヘッダー）。
 
-関連するメカニズムは引き続き別個のものとして扱われる:
+**目的:** マルチターンエージェント（Claude Code、aider、カスタムエージェント）がリクエスト間で同じアカウントを使用し続けられるようにし、アカウントをまたいだコンテキストの喪失と、アカウント単位のセッション状態を持つプロバイダーで繰り返し発生するコールドスタート時の 429 を軽減します。
 
-- OAuthセッション占有は、OAuthアカウントを対象としたプロセスローカルなソフト分散である。
-- アカウントセマフォはリクエスト同時実行の許可を付与し、リクエストの完了時に終了する。
-- 排他的なマネージドセッションリースは、世代境界を伴う永続的なライフサイクル所有権である。
+**実装:**
+
+- TTL の解決: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- ピンの選択/作成: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- ヘッダーの抽出（汎用、任意のプロバイダー）: `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- 永続化されるピンテーブル: `sessionAccountAffinity`（`src/lib/db/sessionAccountAffinity.ts`）
+- 設定: `sessionAffinityTtlMs`（ミリ秒単位のグローバル TTL。`0` で無効）— `src/lib/db/settings.ts`。Codex 専用だった `codexSessionAffinityTtlMs` から、マイグレーション `124_generic_session_affinity_ttl.sql` によって名称変更されました。このマイグレーションでは、以前に設定されていた Codex TTL が新しいデフォルト値として引き継がれます。
+
+#7274 より前は、`resolveSessionAffinityTtlMs()` が `codex` 以外のすべてのプロバイダーに対して即座に `0` を返していたため、ピン留め機構とヘッダー抽出がすでにプロバイダー非依存であったにもかかわらず、TTL 設定（およびセッションヘッダー）は他のプロバイダーでは一切効果がありませんでした。この修正でその早期リターンが削除され、グローバル設定が `0` より大きい値に設定されると、TTL がすべてのプロバイダーに一律に適用されるようになりました。
+
+3 つのセッションアフィニティヘッダーがアップストリームへ転送されることはありません。エグゼキューターはクライアントのヘッダーをそのまま渡すのではなく、独自のアップストリームヘッダーを一から構築するため、これらは内部相関 ID としてのみ使用されます。
+
+### 排他的な管理対象セッション接続リース
+
+**スコープ:** 1 つのアクティブな管理対象 HTTP クライアント/セッションが、適格な OmniRoute 接続を 1 つ所有します。
+
+**目的:** リクエスト間で厳格なルーティング境界を必要とするクライアントに、永続的かつ排他的な接続所有権を提供します。これはソフトな継続性の優先設定であるセッションアフィニティとは異なります。排他的リースはライフサイクル状態を SQLite に永続化し、アクティブな所有者およびアクティブな接続のグローバルな一意性を強制し、プロバイダーへのディスパッチ前に古い世代を拒否します。
+
+この機能は API キーごとにオプトインします。管理対象キーには `lease:exclusive` スコープと、明示的かつ空でない `allowedConnections` リストが必要です。任意の HTTP クライアントがライフサイクルエンドポイントを使用できます。クライアント名、ユーザーエージェント、プロバイダー、OAuth メソッド、モデルはいずれも必須ではありません。リースが所有するのはモデルではなく接続であるため、接続が通常どおり適格である限り、モデルを変更してもバインディングは維持されます。通常のモデル、クォータ、健全性、クールダウン、許可リストのルールは引き続き優先され、同じ世代を別の空いている適格な接続へ移行させる場合があります。
+
+ライフサイクルは `POST /api/v1/session-leases` で管理され、JSON アクションとして `acquire`、`renew`、`release` を使用します。管理対象の推論リクエストでは、不透明な `X-OmniRoute-Lease-Owner` 値と、正確な `X-OmniRoute-Lease-Generation` を提示します。所有者の値は `vlo_` に続く 43 文字の base64url 文字列で構成され、保存されるのはその SHA-256 ハッシュのみです。すべての最終ディスパッチフェンスでは、認証済み API キー ID とアクティブな接続 ID も紐付けられます。リース制御ヘッダーは、ログ、保持されるリクエストスナップショット、およびアップストリームエグゼキューターのヘッダーから削除されます。
+
+通常のルーティングに適格な管理対象候補が存在していても、空いている候補がすべて外部のアクティブなリースによって占有されている場合、OmniRoute は HTTP `429`、リース容量利用不可コード、容量待機状態、および関連する最も早い有効期限から算出された上限付きの `Retry-After` を返します。通常の適格候補なしの状態はリース競合ではなく、既存のルーティングエラーのセマンティクスが維持されます。
+
+関連する仕組みは、それぞれ独立したままです。
+
+- OAuth セッション占有は、OAuth アカウントを対象としたプロセスローカルなソフト分散です。
+- アカウントセマフォはリクエスト同時実行許可を付与し、リクエストの完了時に終了します。
+- 排他的な管理対象セッション接続リースは、世代フェンスを備えた永続的なライフサイクル所有権です。
 
 ---
 
@@ -247,47 +305,42 @@ UI: 設定 → モデルクールダウン（`src/app/(dashboard)/dashboard/sett
 
 ## 5. リクエストキューのアドミッション制御 (v3.8.49 · issue #6593)
 
-**対象範囲**: プロバイダー+接続単位のローカルなレート制限キュー
-（`open-sse/services/rateLimitManager.ts`、Bottleneck を使用）。
-上記3つのメカニズムの1つ下に位置するレイヤーです。
+**対象範囲**: 上記3つの仕組みの1層下にある、ローカルのプロバイダー＋接続単位のレート制限キュー（`open-sse/services/rateLimitManager.ts`、Bottleneckを使用）。
 
-**`maxWaitMs` は、実行期限を表す従来の永続化名です。**
-`resilienceSettings.requestQueue.maxWaitMs` は、ジョブの `expiration` として
-Bottleneck に渡され、そのタイマーはディスパッチ後にのみ開始されます。したがって、
-ローカルキュー内での待機時間ではなく、リミッターが管理する実行時間を制限します。
-期限切れは、信頼されたローカルの `code: "RATE_LIMIT_EXECUTION_TIMEOUT"`
-（HTTP 504）として公開されます。以前のキュータイムアウトのコード名は、信頼された内部処理での
-後方互換性のためにのみ受け付けられます。デフォルトは15000msです。
-`RATE_LIMIT_MAX_WAIT_MS`（環境変数）またはダッシュボード
-（**設定 → レジリエンス**、UI上限は1～30000ms）でオーバーライドできます。
-キュー内の滞在時間に期限はありません。キュー内で待機する呼び出し数を制限するには、
-後述の `maxQueueDepth` を使用してください。
+**`maxWaitMs` はキュー待機時間を制限し、`executionMaxWaitMs` は実行時間を制限します。**
+この2つは意図的に分離されており、どちらも他方には影響しません。
 
-**`maxQueueDepth` — オプトイン方式のアドミッション上限（新規）。**
-`resilienceSettings.requestQueue.maxQueueDepth` は、1つのプロバイダー+接続について、
-同時にキュー内で待機できる（まだディスパッチされていない）リクエスト数を制限します。
-キューにすでに `maxQueueDepth` 件のリクエストがある場合、新しいリクエストは
-`limiter.schedule()` に到達する**前に**、型付きの
-`code: "RATE_LIMIT_QUEUE_FULL"` エラーで即座に拒否されます。そのため拒否処理のコストは低く、
-そのリクエストに対する後続のプロンプト圧縮 / 翻訳処理よりも前に発生します。
-デフォルトの `0` は無効を意味し、既存の無制限キュー動作を維持します。設定範囲は0～100000です。
-`RATE_LIMIT_MAX_QUEUE_DEPTH`（環境変数）または
-`resilienceSettings.requestQueue.maxQueueDepth`（ダッシュボード / APIパッチ）でオーバーライドできます。
+`resilienceSettings.requestQueue.maxWaitMs` は**キュー待機の時間枠**です。プロバイダーのスロットを待つ時間と、その後QUEUED状態で待機する時間が対象になり、ジョブがQUEUED状態を離れて実行を開始した時点でタイマーが解除されます（`rateLimitManager.ts`、`wrappedFn`）。この時間を超えたリクエストがアップストリームに到達することはありません。デフォルトは30000msで、`src/lib/resilience/settings.ts` の `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` によって指定され、`tests/unit/ratelimit-admission-control-6593.test.ts` によって固定されています。そのため、この値を変更すると、この段落だけが気付かれないまま古くなるのではなく、テストが失敗します。
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` は、ジョブの `expiration` としてBottleneckに渡される値で、そのタイマーはディスパッチ後にのみ開始されます。これは、独自のアップストリームタイムアウトを持たないエグゼキューター向けの安全策であり、エグゼキューター自身のフェッチ開始タイムアウトの方が長い場合は、その値まで引き上げられます。そのため、正常に進行中のレスポンスを途中で打ち切ることはありません。デフォルトは600000ms（10分）です。
+
+キューの時間枠を `expiration` に使用していたことが、以前、非インクリメンタルゲートウェイを処理途中で終了させていた原因です。このようなゲートウェイでは、最初のバイトが返るまでに数分かかることが正当であるためです。このため、expirationは `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"`（HTTP 504）として公開される一方、キューの時間枠にはキュータイムアウトのコードが付与されます。それぞれ `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS`（環境変数）またはダッシュボード
+（**設定 → レジリエンス**）で上書きできます。どちらも正規化時に1ms～24hの範囲に制限されます。
+
+**両方に共通する優先順位:** 環境変数は_デフォルト_のみを指定します。`resilienceSettings.requestQueue` に永続化された値（ダッシュボード／APIパッチによって設定され、`key_value` に保存）が環境変数より優先され、接続単位の `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` はさらにそれより優先されます。したがって、永続化された値がすでに存在するデプロイメントで環境変数を設定しても、何も変わりません。代わりに、永続化された設定を削除または更新してください。
+
+キュー内の滞留時間は `maxWaitMs` によって制限されます。以下の `maxQueueDepth` は、同時にキューへ入れられる呼び出し元の数を制限します。
+
+**`maxQueueDepth` — オプトインのアドミッション上限（新規）。** `resilienceSettings.requestQueue.maxQueueDepth`
+は、1つのプロバイダー＋接続について、キュー内（まだディスパッチされていない状態）で待機できるリクエスト数を制限します。キューにすでに `maxQueueDepth` 件のリクエストがある場合、新しいリクエストは `limiter.schedule()` に到達する**前に**、型付きの
+`code: "RATE_LIMIT_QUEUE_FULL"` エラーで即座に拒否されます。そのため、拒否処理のコストは低く、そのリクエストに対する後続のプロンプト圧縮／翻訳処理より前に実行されます。デフォルトの `0` は無効を意味し、既存の無制限キューの動作を維持します。範囲は0～100000に制限されます。`RATE_LIMIT_MAX_QUEUE_DEPTH`（環境変数）または
+`resilienceSettings.requestQueue.maxQueueDepth`（ダッシュボード／APIパッチ）で上書きできます。
 
 アドミッションチェック自体は純粋関数
-（`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`）であるため、
-実際のBottleneckリミッターがなくてもユニットテストできます。
+（`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`）であるため、実際のBottleneckリミッターを使用せずにユニットテストできます。
 
-> #6593 を作成したRFCでは、`bypassCompressionOnRateLimit`
-> フラグも提案されていました。このリポジトリの `open-sse/services/compression/`
-> パイプラインは、合成された429レスポンス本文に対するHTTPレスポンス圧縮ではなく、
-> 送信LLMリクエストに対するプロンプト / コンテキスト圧縮です（`chatCore.ts` 内の
-> `resolveCompressionSettings` / `selectCompressionStrategy` ブロック付近）。
-> そのため、文字どおりのバイパスフラグに対応するコードパスはありません。
-> また、このプロンプト圧縮ステップは現在、リクエストパイプライン内の `withRateLimit()` より
-> _前に_実行されます。そのため、キュー満杯による拒否時にこの処理をスキップするための並べ替えは、
-> このissueの対象範囲よりも大きな別の変更になります。ここでは意図的に**実装されておらず**、
-> CPU節約の効果が並べ替えのリスクに見合う場合のフォローアップとして残されています。
+> #6593を開始したRFCでは、`bypassCompressionOnRateLimit`
+> フラグも提案されていました。このリポジトリの `open-sse/services/compression/` パイプラインは、
+> 送信されるLLMリクエストに対するプロンプト／コンテキスト圧縮です（`chatCore.ts` の
+> `resolveCompressionSettings`／`selectCompressionStrategy` ブロック付近）。
+> これは、生成された429レスポンス本文に対するHTTPレスポンス圧縮ではありません。そのため、文字どおりのバイパスフラグに対応する
+> コードパスは存在しません。また、そのプロンプト圧縮ステップは現在、リクエストパイプライン内の
+> `withRateLimit()` よりも_前に_実行されます。そのため、キュー満杯による拒否時にこの処理をスキップできるよう順序を変更することは、
+> このissueの対象範囲を超える、より大きな変更です。ここでは意図的に実装されておらず、
+> CPU使用量削減の効果が順序変更のリスクに見合う場合のフォローアップとして残されています。
 
 ---
 

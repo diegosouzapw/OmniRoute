@@ -141,28 +141,33 @@ RRF は、異種の検索システム間でスコアを正規化する必要な�
 
 ## 設定の拡張
 
-`src/shared/schemas/memory.ts` の `MemorySettingsExtended` では、9つの埋め込みおよびベクトル関連フィールドを利用でき、`src/lib/db/settings.ts` を介して永続化されます。
+`src/shared/schemas/memory.ts` の `MemorySettingsExtended` では、9つの埋め込みおよびベクトルフィールドを利用でき、`src/lib/db/settings.ts` を介して永続化されます。
 
 | フィールド               | 型                                                 | デフォルト | 説明                                                       |
 | ------------------------ | -------------------------------------------------- | ---------- | ---------------------------------------------------------- |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | 使用する埋め込みソース                                     |
 | `embeddingProviderModel` | `string \| null`                                   | `null`     | `provider/model` 形式のプロバイダー／モデル                |
 | `customBaseUrl`          | `string \| null`                                   | `null`     | Memory 専用の OpenAI 互換エンドポイントのベース URL        |
-| `customModelId`          | `string \| null`                                   | `null`     | カスタムエンドポイントへ送信されるモデル ID                |
+| `customModelId`          | `string \| null`                                   | `null`     | カスタムエンドポイントへ送信するモデル ID                  |
 | `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js（MiniLM、約400MB）のオプトイン             |
-| `staticEnabled`          | `boolean`                                          | `false`    | 静的なローカルモデル potion-base-8M のオプトイン           |
-| `rerankEnabled`          | `boolean`                                          | `false`    | 再ランキング手順を有効化（リクエストごとに200～500ms追加） |
+| `staticEnabled`          | `boolean`                                          | `false`    | 静的な potion-base-8M ローカルモデルのオプトイン           |
+| `rerankEnabled`          | `boolean`                                          | `false`    | 再ランキング手順を有効化（リクエストあたり200～500ms追加） |
 | `rerankProviderModel`    | `string \| null`                                   | `null`     | `provider/model` 形式の再ランキング用プロバイダー／モデル  |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`   | 使用するベクトルバックエンド                               |
 
-これらは `GET /PUT /api/settings/memory`（スキーマ `MemorySettingsExtendedSchema`）を介して公開されます。
+`rerankProviderModel` は（ループバック経由で呼び出される）`POST /v1/rerank` によって解決されるため、そのルートが受け付ける任意の値を指定できます。これには、厳選されたクラウド再ランキングモデル（`cohere/rerank-v3.5`、`jina-ai/jina-reranker-v3.5` など）、または `<node-prefix>/<model>` 形式の OpenAI 互換プロバイダーノード（例：TEI/Infinity 環境用の `skilled-mini/bge-reranker-v2-m3`）が含まれます。ループバックノードは常に利用できます。別のホスト（LAN、Tailscale）上にあるノードを使用するには、追加で `RERANK_REMOTE_PROVIDER_NODES` 機能フラグが必要であり、プロバイダーの外向き URL ポリシーを満たす必要があります。詳しくは[機能フラグ](../reference/FEATURE_FLAGS.md)を参照してください。ダッシュボードのセレクターには、厳選されたプロバイダーとローカルノードが一覧表示されます。有効な任意の `provider/model` 文字列は、`PUT /api/settings/memory` を介して直接設定できます。
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | 使用するベクトルバックエンド |
 
-`remote` ソースでは、Memory はオプションの `customBaseUrl` および
+これらは `GET /PUT /api/settings/memory`（スキーマ：`MemorySettingsExtendedSchema`）を介して公開されます。
+
+`remote` ソースの場合、Memory はオプションの `customBaseUrl` および
 `customModelId` 設定も受け付けます。これらを組み合わせることで、グローバルな埋め込みレジストリを変更せずに、OpenAI 互換の `/embeddings`
-エンドポイントとモデルを選択できます。エンドポイントは使用前に正規化され、プロバイダーの送信先 URL ポリシーによって検査されます。HTTP(S) が必須であり、埋め込み認証情報とクエリ文字列は拒否され、クラウドメタデータアドレスも引き続きブロックされます。空の値の場合、選択済みのレジストリプロバイダーが維持されます。ダッシュボードへ返されるエラーはサニタイズされ、エンドポイントの認証情報がログに記録されることはありません。
+エンドポイントとモデルを選択できます。エンドポイントは使用前に正規化され、プロバイダーの外向き URL ポリシーによって検査されます。HTTP(S) が
+必須であり、埋め込まれた認証情報とクエリ文字列は拒否され、クラウドメタデータ
+アドレスは引き続きブロックされます。空の値を指定した場合、選択済みのレジストリプロバイダーが維持されます。ダッシュボードへ
+返されるエラーはサニタイズされ、エンドポイントの認証情報がログに記録されることはありません。
 
-> **TODO (D20):** スコープ `global`（すべての API キー間でメモリを共有）は、
-> このリリースでは実装されていません。スキーマの変更とグローバル取得
+> **TODO (D20)：** `global` スコープ（すべての API キー間でメモリを共有）は、このリリースでは
+> 実装されていません。これにはスキーマの変更とグローバルな取得
 > パスが必要です。個別に追跡してください。
 
 ## ストレージ層

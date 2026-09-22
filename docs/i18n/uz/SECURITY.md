@@ -222,36 +222,37 @@ Ushbu qoidalarga rioya qilish vositalar va tekshiruvchilar tomonidan ta’minlan
 
 ## Taʼminot zanjiri skaneri aniqlagan holatlar (Socket.dev / Snyk / oʻxshash vositalar)
 
-Eʼlon qilingan `omniroute` npm artefakti Next.jsʼning `output: "standalone"`
-yigʻilmasini oʻz ichiga oladi, yaʼni har bir marshrut ishlov beruvchisi — jumladan,
-hujjatlashtirilgan imtiyozli funksiyalar (MITM, Zed importi, Cloud Sync,
-oʻrnatilgan xizmat supervizori) — `.next/server/*.js` ichidagi minimallashtirilgan
-fragmentlarga kiritiladi. Evristik taʼminot zanjiri skanerlari ushbu
-fragmentlarni zararli dastur imzolari bilan tez-tez andoza asosida solishtiradi.
+> **Qamrov eslatmasi:** Repozitoriy ildizidagi `socket.yml` faqat eʼlon qilingan npm artefaktining Socket.dev registri tomonida nashrdan keyin bajariladigan skanerlashi uchun `projectIgnorePaths` sozlamasini shakllantiradi — u majburiy CI/PR birlashtirish toʻsigʻi emas. `.github/workflows` ichidagi hech bir ish jarayoni, hech bir `package.json` skripti va hech bir `Makefile` maqsadi Socket.dev vositasini ishga tushirmaydi.
 
-Biz foydalanadigan skaner konfiguratsiyasi repozitoriy ildizidagi
+Eʼlon qilingan `omniroute` npm artefakti Next.js `output: "standalone"`
+qurilmasini paketga qoʻshadi, bu esa har bir marshrut ishlov beruvchisi — jumladan,
+hujjatlashtirilgan imtiyozli funksiyalar (MITM, Zed importi, Cloud Sync,
+oʻrnatilgan xizmat supervizori) — `.next/server/*.js` ichidagi minifikatsiya
+qilingan qismlarga kirishini anglatadi. Evristik taʼminot zanjiri skanerlari
+koʻpincha bu qismlarni zararli dastur imzolari bilan andoza asosida solishtiradi.
+
+Biz foydalanadigan skaner konfiguratsiyasi repo ildizidagi
 [`socket.yml`](socket.yml) faylida joylashgan (Socket.dev GitHub App formati v2 —
 <https://docs.socket.dev/docs/socket-yml> sahifasiga qarang). U tarqatilmaydigan
 kataloglarni (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`,
-`docs/` va hokazo) ochiq tarzda istisno qiladi, shu sababli skaner faqat
-amalda eʼlon qilingan versiya foydalanuvchilariga yetib boradigan kod yoʻllari
-haqida xabar beradi — skanerlashning oʻzi ushbu repozitoriydagi ish jarayoni
-orqali emas, balki shu faylni oʻqiydigan Socket GitHub App orqali bajariladi.
+`docs/` va boshqalar) aniq istisno qiladi, shunda skaner faqat amalda eʼlon
+qilingan versiya foydalanuvchilariga yetib boradigan kod yoʻllari haqida xabar
+beradi — skanerlashning oʻzi ushbu repozitoriydagi ish jarayoni tomonidan emas,
+balki shu faylni oʻqiydigan Socket GitHub App tomonidan boshqariladi.
 
-Har bir aniqlangan holat toifasi uchun qoʻllab-quvvatlovchining alohida tasdigʻini
-yuritib boramiz:
+Har bir aniqlangan holat toifasi uchun masʼul qoʻllab-quvvatlovchining alohida tasdigʻini yuritamiz:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  har bir aniqlangan holat xaritasi: manba fayli ↔ belgilangan fragment ↔ xatti-harakat ↔
-  v3.8.6 versiyasida qoʻllangan xavfni kamaytirish chorasi.
-- Har bir belgilangan funksiya yonidagi manba ichidagi `SECURITY-AUDITOR-NOTE:`
-  bloklari ayni hujjatga havola qiladi.
+  har bir aniqlangan holat xaritasi: manba fayli ↔ belgilangan qism ↔ xatti-harakat ↔
+  v3.8.6 da qoʻllangan xavfni kamaytirish chorasi.
+- Har bir belgilangan funksiya ichidagi `SECURITY-AUDITOR-NOTE:` bloklari
+  ayni hujjatga havola qiladi.
 
-Konveyeri ogohlantirish talablarini yumshata olmaydigan foydalanuvchilar uchun:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` orqali yigʻing. Bu toʻrtta
-sezgir modulni ish vaqtida HTTP 503 `feature-disabled` javobini qaytaradigan
-oʻrinbosarlar bilan almashtiradi, natijada imtiyozli kod yoʻllari yigʻilmada
-jismonan mavjud boʻlmaydi. Eʼlon qilish tartibi uchun
+Quvuri ushbu ogohlantirishni yumshata olmaydigan foydalanuvchilar quyidagicha
+qurishlari mumkin: `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Bu toʻrtta
+sezgir modulni ish vaqtida HTTP 503 `feature-disabled` qaytaradigan zaglushkalar
+bilan almashtiradi, natijada imtiyozli kod yoʻllari paketdan jismonan chiqarib
+tashlanadi. Nashr qilish retsepti uchun
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 hujjatiga qarang.
 

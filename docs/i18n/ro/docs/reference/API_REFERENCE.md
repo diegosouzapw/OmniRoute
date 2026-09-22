@@ -427,15 +427,15 @@ Utilizați acest endpoint atunci când un sidecar rulează în afara procesului 
 | ------ | ----------------------------------------- | --------------------------------------- |
 | POST   | `/v1/chat/completions`                    | OpenAI                                  |
 | POST   | `/v1/messages`                            | Anthropic                               |
-| POST   | `/v1/responses`                           | Răspunsuri OpenAI                       |
+| POST   | `/v1/responses`                           | OpenAI Responses                        |
 | POST   | `/v1/embeddings`                          | OpenAI                                  |
-| POST   | `/v1/images/generations`                  | Imagini OpenAI                          |
-| POST   | `/v1/images/edits`                        | Imagini OpenAI (editare/inpainting)     |
+| POST   | `/v1/images/generations`                  | OpenAI Images                           |
+| POST   | `/v1/images/edits`                        | OpenAI Images (editare/inpainting)      |
 | POST   | `/v1/videos/generations`                  | Generare video în stil OpenAI           |
-| POST   | `/v1/music/generations`                   | Generare muzicală în stil OpenAI        |
-| POST   | `/v1/audio/transcriptions`                | Audio OpenAI (STT)                      |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (returnează corpul audio)    |
-| POST   | `/v1/rerank`                              | Reclasificare în stil Cohere/Voyage     |
+| POST   | `/v1/music/generations`                   | Generare muzică în stil OpenAI          |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (returnează corp audio)      |
+| POST   | `/v1/rerank`                              | Rerank în stil Cohere/Voyage            |
 | POST   | `/v1/classify`                            | Clasificare Jina (`api.jina.ai`)        |
 | POST   | `/v1/segment`                             | Segmentator Jina (`segment.jina.ai`)    |
 | POST   | `/v1/moderations`                         | Moderări OpenAI                         |
@@ -451,15 +451,15 @@ Utilizați acest endpoint atunci când un sidecar rulează în afara procesului 
 | POST   | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama cu token                   |
 | GET    | `/api/v1/vscode/{token}/api/tags`         | Alias pentru etichetele Ollama cu token |
 
-Toate rutele POST urmează aceeași structură: `Bearer your-api-key` + corp JSON validat prin Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` etc.; consultați `src/shared/validation/schemas.ts`). În cazul eșuării validării schemei, este returnat un răspuns 4xx.
+Toate rutele POST urmează aceeași structură: `Bearer your-api-key` + un corp JSON validat cu Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` etc.; consultați `src/shared/validation/schemas.ts`). La eșuarea validării schemei se returnează 4xx.
 
-Pentru clienții care nu pot atașa `Authorization: Bearer ...`, OmniRoute acceptă și chei API în URL, fie prin compatibilitatea cu șirul de interogare (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), fie prin endpointurile dedicate `/api/v1/vscode/{token}/...` documentate mai jos.
+Pentru clienții care nu pot atașa `Authorization: Bearer ...`, OmniRoute acceptă, de asemenea, chei API în URL, fie prin compatibilitate cu șirul de interogare (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), fie prin endpointurile dedicate `/api/v1/vscode/{token}/...` documentate mai jos.
 
 ```bash
-# Reclasificare
+# Rerank (furnizor din registrul cloud sau un nod de furnizor compatibil cu OpenAI, sub forma „<prefix>/<model>”)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Clasificare Jina (date de autentificare Foundation API)
+# Clasificare Jina (credențiale Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Segmentator Jina
@@ -477,10 +477,32 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # Editare imagine (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generare video/muzicală (ID de model prefixat cu furnizorul)
+# Generare video/muzică (ID de model prefixat cu furnizorul)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Noduri de furnizor pentru rerank:** `POST /v1/rerank` direcționează și către noduri de furnizor compatibile cu OpenAI
+> (oMLX, vLLM, Infinity, TEI în spatele unui gateway, …), adresate sub forma `<node-prefix>/<model>`. Nodurile
+> loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sunt întotdeauna eligibile. Nodurile de pe orice altă
+> gazdă — un dispozitiv din LAN sau un peer Tailscale — sunt eligibile numai atunci când operatorul activează
+> fanionul de funcționalitate `RERANK_REMOTE_PROVIDER_NODES` **și** URL-ul de bază al nodului respectă politica furnizorului
+> privind URL-urile de ieșire (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> cererile nu sunt direcționate niciodată către gazdele de metadate cloud. Pasul de rerank al motorului de memorie apelează această rută prin
+> loopback, astfel încât aceeași regulă se aplică pentru `rerankProviderModel` din setările Memory.
+>
+> **Structuri ale serverelor locale:** nodul este apelat la `<base>/v1/rerank` și, în cazul unui răspuns 404, la `<base>/rerank`
+> (Infinity, TEI). Corpul transmis în amonte conține atât denumirile Cohere/OpenAI (`documents`,
+> `return_documents`), cât și denumirile TEI (`texts`, `return_text`), iar răspunsul din amonte este
+> normalizat la anvelopa Cohere: lista simplă TEI `[{index, score, text}]`, `{results: [{index, score}]}`
+> de la gateway-uri minimale și structura în stil Voyage `{data: [...]}` sunt toate returnate clientului sub forma
+> `{results: [{index, relevance_score, document?}]}`, sortate după scor și limitate la `top_n`.
+
+> **Descoperirea nodurilor de furnizor:** modelele de pe un nod de furnizor compatibil cu OpenAI apar în `GET /v1/models`
+> sub prefixul nodului. Rândurile care nu conțin metadate despre endpointuri (situație tipică pentru listările locale `/v1/models`)
+> moștenesc proprietatea `apiType` a nodului, astfel încât modelele unui nod `embeddings` au `type: "embedding"`, iar modelele
+> unui nod `rerank` au `type: "rerank"` în loc să folosească implicit chatul; un câmp explicit
+> `supportedEndpoints` dintr-un rând sincronizat sau adăugat manual are în continuare prioritate.
 
 ### Rute dedicate furnizorilor
 
@@ -490,7 +512,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Prefixul furnizorului este adăugat automat dacă lipsește. Modelele incompatibile returnează `400`.
+Prefixul furnizorului este adăugat automat dacă lipsește. Modelele care nu corespund returnează `400`.
 
 ---
 

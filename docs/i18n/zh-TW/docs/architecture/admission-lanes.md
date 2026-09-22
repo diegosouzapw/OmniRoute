@@ -8,16 +8,48 @@ OmniRoute 有**兩套**不同作用範圍的程序區域通道系統。兩者互
 
 ## 1. 位元組層級的全程序准入控制（`chatBodyAdmission.ts`）
 
-- **作用範圍：**適用於 `POST /v1/chat/completions`、`/v1/messages`、`/v1/responses` 及其他聊天形式路由的緩衝主體／堆積路徑。防止大型程式開發代理程式的請求主體造成堆積放大（#4380）。
-- **每個程序使用一個全域控制器，而非每個金鑰各自擁有通道（#10110）。**每個 API 金鑰（雜湊後）或 `anonymous` 工作階段，都會依據**同一個**共用預算進行准入——雜湊後的工作階段 ID **僅**用作公平排程金鑰（在等待者之間以輪詢方式分派），絕不會作為容量分片。此文件的先前版本曾描述每個金鑰各自擁有獨立容量的通道；該模型已於 #10110 中移除，因為它會讓未經驗證的偽造憑證成倍擴大全程序限制。
-- **閘門（#503-fanout）：自動推導的輸入位元組預算，而非固定的請求數量。**舊版 `CHAT_MAX_HEAVY_IN_FLIGHT` 請求數量上限（此修正前的預設值為 `1`）會將程式開發代理程式的扇出（多個子代理程式／CLI，請求主體通常 > 256 KB）壓縮至約 1 的有效並行數，導致在完全正常的負載下傳回 503。現在，只有在維運人員明確設定 `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` 時，此限制才會生效。若未設定，准入控制會改由 `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` 限制——此預算會根據程序的實際記憶體上限自動推導（`src/shared/middleware/admissionBudget.ts`）：取 V8 堆積限制與任何 cgroup／容器限制中較嚴格者的 25%，再除以 8 倍的暫時性放大係數，並限制在 8 MiB 至 2 GiB 之間。明確覆寫的值也使用相同的上下限。如此一來，從 512 MB 容器到 32 GB 桌上型電腦，都能自行調整，無須調校環境變數。若請求主體無法容納於有效預算內，會立即以 `413 body_exceeds_budget` 失敗；只有可個別處理的請求主體之間發生資源競爭時，才會進入有界公平佇列。即時多訊號資源壓力追蹤器（V8 堆積比率、cgroup、PSI、OOM 事件——`open-sse/utils/resourcePressurePolicy.ts`）會在 `high` 壓力下縮短有界等待時間，並在 `critical` 壓力下、甚至尚未輸入任何位元組之前，立即以 `503 resource_pressure` 卸載流量。
+- **範圍：**適用於 `POST /v1/chat/completions`、
+  `/v1/messages`、`/v1/responses` 與其他聊天型路由的緩衝本文／堆積路徑。防止大型程式設計代理本文造成堆積放大（#4380）。
+- **使用單一程序全域控制器，而非每個金鑰各自的通道（#10110）。**每個 API 金鑰
+  （經雜湊）或 `anonymous` 工作階段都依據**同一個**共享預算進行准入——
+  經雜湊的工作階段 ID 僅用作公平排程金鑰（在等待者之間輪詢分派），
+  絕不作為容量分片。此文件的先前版本描述了具備獨立容量的每金鑰通道；
+  該模型已於 #10110 中移除，因為它會讓未經驗證的偽造憑證
+  成倍擴大程序範圍的上限。
+- **閘門（#503-fanout）：自動衍生的擷取位元組預算，而非固定的請求
+  數量。**舊有的 `CHAT_MAX_HEAVY_IN_FLIGHT` 請求數量上限（此修正前預設為 `1`）
+  會將程式設計代理的扇出（多個子代理／CLI，
+  本文通常 > 256 KB）壓縮至約 1 的有效並行度，導致在完全正常的負載下
+  回傳 503。現在，只有在操作人員明確設定
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` 時，該上限才會生效。若未設定，准入會改由
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` 控制——此預算會根據程序的實際記憶體上限
+  自動衍生（`src/shared/middleware/admissionBudget.ts`）：
+  取 V8 堆積上限與任何 cgroup／容器上限中較嚴格者的 25%，
+  再除以 8 倍的暫時性放大係數，並限制於 8 MiB 至
+  2 GiB 之間。明確的覆寫值也使用相同的限制範圍。如此無須調整環境變數，
+  即可自行因應從 512 MB 容器到 32 GB 桌上型電腦的環境。無法容納於有效預算內的本文
+  會立即以 `413 body_exceeds_budget` 失敗；
+  只有可個別處理的本文之間發生資源競爭時，才會進入有界的公平性佇列。
+  即時多訊號資源壓力追蹤器（V8 堆積比例、
+  cgroup、PSI、OOM 事件——`open-sse/utils/resourcePressurePolicy.ts`）會在
+  `high` 壓力下縮短有界等待時間，並在 `critical` 壓力下，
+  甚至尚未擷取任何位元組之前，就立即以
+  `503 resource_pressure` 卸除負載。若此單元的 cgroup `memory.pressure` 存在，
+  PSI 會從該處讀取（`open-sse/utils/resourcePressureSampler.ts`）；
+  `/proc/pressure/memory` 涵蓋整台主機，僅在裸機／cgroup v1 上作為後備來源，
+  因此正在進行交換的主機不會讓閒置容器回傳 503。
 - **調校：**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — 覆寫自動推導的位元組預算
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — 舊版請求數量上限，僅在選擇啟用時生效
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 傳回 503 前的佇列等待時間（預設為 2000）
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — 佇列位元組數的堆積安全閥（預設為 4 MB）
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — 自 #10110 起已棄用且不執行任何操作（為了設定相容性仍接受，但會忽略）
-- **報告：**`GET /api/monitoring/health` → `chatAdmission`（#11244）——包括 #503-fanout 新增的 `inflightBytes`、`maxInflightBytes`、`budgetSource`（`v8_heap` | `cgroup` | `override`）、`pressureSeverity` 及 `countCapEnabled`（在預設部署中為 false——確認實際生效的是位元組預算，而非舊版數量上限）。
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — 覆寫自動衍生的位元組預算
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — 舊有的請求數量上限，僅在選擇啟用時生效
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 回傳 503 前的佇列等待時間（預設為 2000）
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — 佇列位元組的堆積安全閥（預設為 4 MB）
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — 自 #10110 起已棄用且
+    不執行任何操作（為了設定相容性而接受，但會忽略）
+- **報告：**`GET /api/monitoring/health` → `chatAdmission`（#11244）——包括
+  #503-fanout 新增的 `inflightBytes`、`maxInflightBytes`、`budgetSource`
+  （`v8_heap` | `cgroup` | `override`）、`pressureSeverity` 與 `countCapEnabled`
+  （預設部署中為 false——確認實際生效的是位元組預算，而非舊有的
+  數量上限）。
 
 ## 2. 自適應執行階段虛擬通道（`open-sse/services/admission`）
 

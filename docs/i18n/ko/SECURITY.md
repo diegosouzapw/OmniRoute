@@ -220,33 +220,37 @@ docker run -d \
 10. **`exec()` / `spawn()` 런타임 값은 `env` 옵션을 통해 전달합니다** — 외부 경로나 신뢰할 수 없는 값을 셸로 전달되는 스크립트에 문자열 보간하지 않습니다. 참조: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **기본적으로 안전한 라이브러리를 우선 사용합니다** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)를 참조하세요(Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). 직접 구현하기 전에 이러한 라이브러리를 먼저 사용하세요.
 
-## 공급망 스캐너 탐지 결과(Socket.dev / Snyk / 유사 도구)
+## 공급망 스캐너 탐지 결과 (Socket.dev / Snyk / 유사 도구)
+
+> **범위 참고:** 저장소 루트의 `socket.yml`은 게시된 npm 아티팩트에 대한 Socket.dev의 레지스트리 측 게시 후 검사에서 `projectIgnorePaths`만 지정합니다. 이는 강제 적용되는 CI/PR 병합 게이트가 아닙니다. `.github/workflows`의 어떤 워크플로도, `package.json`의 어떤 스크립트도, `Makefile`의 어떤 대상도 Socket.dev를 호출하지 않습니다.
 
 게시된 `omniroute` npm 아티팩트에는 Next.js `output: "standalone"`
-빌드가 번들로 포함됩니다. 즉, 문서화된 권한 기능(MITM, Zed 가져오기, Cloud Sync, 내장 서비스 감독자)을 포함한 모든 라우트 핸들러가
-`.next/server/*.js`의 난독화된 청크에 포함됩니다. 휴리스틱 기반 공급망 스캐너는 이러한 청크를
-악성 코드 시그니처와 비교하여 패턴이 일치하는지 확인하는 경우가 많습니다.
+빌드가 번들로 포함됩니다. 즉, 문서화된 권한 기능(MITM, Zed 가져오기,
+Cloud Sync, 내장 서비스 감독자)을 포함한 모든 라우트 핸들러가
+`.next/server/*.js`의 축소된 청크에 포함됩니다. 휴리스틱 기반 공급망
+스캐너는 이러한 청크를 악성코드 시그니처와 일치하는지 자주 패턴 매칭합니다.
 
-저희가 사용하는 스캐너 구성은 저장소 루트의 [`socket.yml`](socket.yml)에
-있습니다(Socket.dev GitHub App 형식 v2 —
+사용 중인 스캐너 구성은 저장소 루트의
+[`socket.yml`](socket.yml)에 있습니다(Socket.dev GitHub App 형식 v2 —
 <https://docs.socket.dev/docs/socket-yml> 참조). 이 구성은 배포되지 않는
 디렉터리(`tests/`, `_tasks/`, `_references/`, `_ideia/`,
 `_mono_repo/`, `docs/` 등)를 명시적으로 제외하므로, 스캐너는 실제로
-게시된 사용자에게 도달하는 코드 경로만 보고합니다. 스캔 자체는 이 저장소의 워크플로가 아니라,
-해당 파일을 읽는 Socket GitHub App에 의해 실행됩니다.
+게시된 사용자에게 전달되는 코드 경로만 보고합니다. 검사 자체는 이 저장소의
+워크플로가 아니라, 해당 파일을 읽는 Socket GitHub App에 의해 실행됩니다.
 
-각 탐지 결과 범주에 대해 개별 탐지 결과별 관리자 확인서를 유지합니다.
+각 탐지 결과 범주에 대해 탐지 항목별 유지관리자 확인 문서를 관리합니다.
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  탐지 결과별 매핑: 소스 파일 ↔ 플래그가 지정된 청크 ↔ 동작 ↔
-  v3.8.6에 적용된 완화 조치.
-- 플래그가 지정된 각 함수의 소스 내 `SECURITY-AUDITOR-NOTE:` 블록은
-  동일한 문서를 참조합니다.
+  탐지 항목별 매핑: 소스 파일 ↔ 탐지된 청크 ↔ 동작 ↔ v3.8.6에 적용된 완화 조치.
+- 탐지된 각 함수에 있는 소스 내 `SECURITY-AUDITOR-NOTE:` 블록은 동일한
+  문서를 참조합니다.
 
 파이프라인에서 경고를 완화할 수 없는 사용자는
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`로 빌드하십시오. 이렇게 하면 민감한 모듈 4개가 런타임에 HTTP 503 `feature-disabled`를
-반환하는 스텁으로 대체되므로, 권한 코드 경로가 번들에 물리적으로 포함되지 않습니다.
-게시 절차는 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)를
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`로 빌드하십시오. 그러면
+민감한 모듈 4개가 런타임에 HTTP 503 `feature-disabled`를 반환하는
+스텁으로 대체되므로, 권한이 필요한 코드 경로가 번들에서 물리적으로
+제거됩니다. 게시 절차는
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)를
 참조하십시오.
 
 ## 참고 자료

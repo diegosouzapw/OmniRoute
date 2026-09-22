@@ -349,15 +349,20 @@ export default function Sidebar({
 
   const homeIndex = visibleSections.findIndex((s) => s.id === "home");
   const insertIndex = homeIndex >= 0 ? homeIndex + 1 : 0;
+  // Same element type as visibleSections so the union keeps `showTitle` and the
+  // other resolved-section fields the renderer reads below.
+  const pinnedSection: (typeof visibleSections)[number] = {
+    id: "pinned" as SidebarSectionId,
+    titleKey: "pinnedSection",
+    titleFallback: "Pinned",
+    title: getSidebarLabel("pinnedSection", "Pinned"),
+    children: pinnedItemList,
+  };
   const sectionsWithPinned =
     pinnedItemList.length > 0
       ? [
           ...visibleSections.slice(0, insertIndex),
-          {
-            id: "pinned" as SidebarSectionId,
-            title: getSidebarLabel("pinnedSection", "Pinned"),
-            children: pinnedItemList,
-          },
+          pinnedSection,
           ...visibleSections.slice(insertIndex),
         ]
       : visibleSections;

@@ -68,16 +68,24 @@ Stel deze in de procesomgeving van OmniRoute in (de daemon, bijvoorbeeld via de 
 
 ## Waarschuwingen bij npm install (ERESOLVE / peer / deprecated)
 
-Wanneer u `npm install -g omniroute` uitvoert, ziet u mogelijk een hele reeks waarschuwingen, zoals `npm warn ERESOLVE`, meldingen over peer-dependencies en `deprecated`-berichten. **Deze zijn te verwachten en onschadelijk.** De installatie is geslaagd als u `added <N> packages` in de uitvoer ziet.
+Wanneer u `npm install -g omniroute` uitvoert, ziet u mogelijk een hele reeks waarschuwingen, zoals `npm warn ERESOLVE`, meldingen over peerafhankelijkheden en `deprecated`-berichten. **Deze zijn te verwachten en onschadelijk.** De installatie is geslaagd als u `added <N> packages` in de uitvoer ziet.
 
-De waarschuwingen zijn afkomstig van verouderde peer-dependency-versiebereiken in pakketten van derden waarover OmniRoute geen controle heeft:
+Gebruik de ondersteunde installatievorm van OmniRoute om de waarschuwingen over het oplossen van peerafhankelijkheden te onderdrukken:
 
-1. **`marked-terminal` vereist `marked >=1 <16`, maar `marked@18` is gevonden** — werkt in de praktijk prima; het upstream peer-versiebereik is gewoon verouderd.
-2. **`deprecated prebuild-install@7.1.3`** — een transitieve helper voor het ophalen van native binaries. Deze wordt niet
-   gebruikt om de vastgezette `wreq-js`-transportbinding te installeren en betekent niet dat het instellen van het transport voor de web-cookieprovider
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` onderdrukt alleen `ERESOLVE` en meldingen over peerafhankelijkheden. Meldingen over verouderde onderdelen blijven zichtbaar omdat ze afkomstig zijn van transitieve pakketten van derden; ze betekenen niet dat de installatie is mislukt.
+
+De waarschuwingen worden veroorzaakt door verouderde bereiken voor peerafhankelijkheden in pakketten van derden waarover OmniRoute geen controle heeft:
+
+1. **`marked-terminal` vereist `marked >=1 <16`, maar `marked@18` is aangetroffen** — werkt in de praktijk prima; het upstream peerbereik is alleen verouderd.
+2. **`deprecated prebuild-install@7.1.3`** — een transitief hulpprogramma voor het ophalen van native binaries. Het wordt niet
+   gebruikt om de vastgezette `wreq-js`-transportbinding te installeren en betekent niet dat het instellen van het transport van de webcookieprovider
    is mislukt.
 
-**Geen actie nodig** — de waarschuwingen kunnen niet volledig worden onderdrukt zonder upstream pakketten te forken.
+**Geen actie vereist** — de waarschuwingen kunnen niet volledig worden onderdrukt zonder upstream pakketten te forken.
 
 ---
 

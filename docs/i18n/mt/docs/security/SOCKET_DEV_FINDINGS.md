@@ -4,20 +4,22 @@
 
 ---
 
-Dan id-dokument huwa l-attestazzjoni miktuba mill-mantenitur għas-sitt sejbiet
-`AI-detected potential malware` irrappurtati kontra `omniroute@3.8.5` u
+> **Nota dwar l-ambitu:** `socket.yml` jikkonfigura l-iskannjar ta’ wara l-pubblikazzjoni min-naħa tar-reġistru ta’ Socket.dev tal-artefatt npm (mogħdijiet injorati għal kontenut mhux inkluż fid-distribuzzjoni bħal `tests/`, `docs/`, u rapporti tal-build). Dan ma jistabbilixxix punt ta’ kontroll għall-merge f’CI/PR — l-ebda workflow f’`.github/workflows`, l-ebda script f’`package.json`, u l-ebda target f’`Makefile` ma jinvoka Socket.dev.
+
+Dan id-dokument huwa l-attestazzjoni miktuba mill-mantenitur għas-sitt
+sejbiet ta’ `AI-detected potential malware` irrappurtati kontra `omniroute@3.8.5` u
 l-miżuri ta’ mitigazzjoni applikati f’`omniroute@3.8.6`. Jeżisti sabiex:
 
-1. L-operaturi tal-pipeline tas-sigurtà jkollhom referenza waħda x’jiċċitaw meta jkollhom
-   bżonn jevalwaw is-sejbiet fil-konfront tal-kodiċi sors effettiv.
-2. Skaners tal-AI futuri jkunu jistgħu jidentifikaw id-dikjarazzjoni ffirmata mill-mantenitur li kull
-   mogħdija mmarkata hija intenzjonata, fakultattiva, u ddokumentata.
-3. Ikollna rekord bil-miktub ta’ _għaliex_ kull sit ta’ sejħa huwa strutturat kif inhu —
-   sabiex refactoring futur ma jerġax jintroduċi aċċidentalment marka distintiva li
+1. L-operaturi tal-pipeline tas-sigurtà jkollhom referenza waħda x’jiċċitaw meta jkollhom bżonn
+   jevalwaw is-sejbiet fid-dawl tal-kodiċi sors reali.
+2. Skaners tal-IA futuri jkunu jistgħu jagħrfu d-dikjarazzjoni ffirmata mill-mantenitur li kull
+   mogħdija mmarkata hija intenzjonata, tintuża biss b’għażla espliċita, u hija ddokumentata.
+3. Ikollna rekord bil-miktub ta’ _għaliex_ kull post tas-sejħa huwa strutturat kif inhu —
+   sabiex refactoring futur ma jerġax jintroduċi bi żball marka distintiva li
    tneħħiet apposta.
 
-Jekk tħaddem skaner li jerġa’ jimmarka xi wieħed mis-siti ta’ sejħa hawn taħt wara li
-jkunu ġew rilaxxati l-mitigazzjonijiet ta’ v3.8.6, jekk jogħġbok iftaħ issue bit-traċċa tal-iskan u
+Jekk tħaddem skaner li jerġa’ jimmarka xi wieħed mill-postijiet tas-sejħiet hawn taħt wara li
+l-mitigazzjonijiet ta’ v3.8.6 ikunu ġew rilaxxati, jekk jogħġbok iftaħ issue bit-traċċa tal-iskan u
 aħna nestendu l-attestazzjoni hawnhekk.
 
 ---

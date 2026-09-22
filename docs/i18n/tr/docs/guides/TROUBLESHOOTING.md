@@ -66,18 +66,26 @@ Bunları OmniRoute işleminin ortamında (daemon için, ör. LaunchAgent plist v
 
 ---
 
-## npm install Uyarıları (ERESOLVE / peer / deprecated)
+## npm install Uyarıları (ERESOLVE / eş bağımlılık / kullanımdan kaldırılmış)
 
 `npm install -g omniroute` komutunu çalıştırdığınızda `npm warn ERESOLVE`, eş bağımlılık bildirimleri ve `deprecated` mesajları gibi çok sayıda uyarı görebilirsiniz. **Bunlar beklenen ve zararsız uyarılardır.** Çıktıda `added <N> packages` ifadesini görüyorsanız kurulumunuz başarıyla tamamlanmıştır.
 
-Uyarılar, OmniRoute'un denetiminde olmayan üçüncü taraf paketlerdeki güncelliğini yitirmiş eş bağımlılık aralıklarından kaynaklanır:
+Eş bağımlılık çözümleme uyarılarını gizlemek için OmniRoute'un desteklediği kurulum biçimini kullanın:
 
-1. **`marked-terminal`, `marked >=1 <16` istiyor ancak `marked@18` bulundu** — pratikte sorunsuz çalışır; üst kaynaklı eş bağımlılık aralığı yalnızca güncelliğini yitirmiştir.
-2. **`deprecated prebuild-install@7.1.3`** — geçişli bir yerel ikili dosya indirme yardımcısıdır. Sabitlenmiş `wreq-js` aktarım bağlamasını yüklemek için
-   kullanılmaz ve web çerezi sağlayıcısının aktarım kurulumunun başarısız olduğunu
-   göstermez.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Herhangi bir işlem gerekmez** — üst kaynaklı paketler çatallanmadan bu uyarılar tamamen susturulamaz.
+`--legacy-peer-deps` yalnızca `ERESOLVE` ve eş bağımlılık bildirimlerini gizler. Kullanımdan kaldırma bildirimleri, geçişli üçüncü taraf paketlerinden geldikleri için görünmeye devam eder; bunlar kurulumun başarısız olduğu anlamına gelmez.
+
+Uyarılar, OmniRoute'un denetiminde olmayan üçüncü taraf paketlerindeki güncelliğini yitirmiş eş bağımlılık aralıklarından kaynaklanır:
+
+1. **`marked-terminal`, `marked >=1 <16` istiyor ancak `marked@18` bulundu** — pratikte sorunsuz çalışır; üst kaynakta belirtilen eş bağımlılık aralığı yalnızca güncelliğini yitirmiştir.
+2. **`deprecated prebuild-install@7.1.3`** — geçişli bir yerel ikili dosya getirme yardımcısıdır. Sabitlenmiş `wreq-js` aktarım bağlamasını
+   kurmak için kullanılmaz ve web çerezi sağlayıcısının aktarım kurulumunun başarısız olduğu
+   anlamına gelmez.
+
+**Herhangi bir işlem gerekmez** — üst kaynak paketleri çatallanmadan uyarılar tamamen susturulamaz.
 
 ---
 

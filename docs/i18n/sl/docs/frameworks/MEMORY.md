@@ -166,34 +166,35 @@ Tabela `memory_vec_meta` (migracija `083_memory_vec.sql`) hrani:
 
 ## Razširitev nastavitev
 
-V `MemorySettingsExtended` v
-`src/shared/schemas/memory.ts` je na voljo devet polj za vdelave in vektorje, ki se trajno shranjujejo prek `src/lib/db/settings.ts`:
+V `MemorySettingsExtended` v datoteki `src/shared/schemas/memory.ts` je na voljo devet polj za vdelave in vektorje, ki se trajno shranjujejo prek `src/lib/db/settings.ts`:
 
-| Polje                    | Vrsta                                              | Privzeto | Opis                                                            |
-| ------------------------ | -------------------------------------------------- | -------- | --------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Kateri vir vdelav naj se uporabi                                |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Ponudnik/model v obliki `provider/model`                        |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | Osnovni URL pomnilniške končne točke, združljive z OpenAI       |
-| `customModelId`          | `string \| null`                                   | `null`   | ID modela, poslan končni točki po meri                          |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Izbirna vključitev Transformers.js (MiniLM, ~400 MB)            |
-| `staticEnabled`          | `boolean`                                          | `false`  | Izbirna vključitev lokalnega statičnega modela potion-base-8M   |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Omogoči korak ponovnega razvrščanja (doda +200–500 ms/zahtevo)  |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Ponudnik/model za ponovno razvrščanje v obliki `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Katero vektorsko zaledje naj se uporabi                         |
+| Polje                    | Vrsta                                              | Privzeto | Opis                                                             |
+| ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Kateri vir vdelav naj se uporabi                                 |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Ponudnik/model v obliki `provider/model`                         |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | Osnovni URL končne točke, združljive z OpenAI, samo za pomnilnik |
+| `customModelId`          | `string \| null`                                   | `null`   | ID modela, poslan končni točki po meri                           |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Izrecna vključitev Transformers.js (MiniLM, ~400 MB)             |
+| `staticEnabled`          | `boolean`                                          | `false`  | Izrecna vključitev lokalnega statičnega modela potion-base-8M    |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Omogoči korak ponovnega razvrščanja (doda +200–500 ms/zahtevo)   |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Ponudnik/model za ponovno razvrščanje v obliki `provider/model`  |
 
-Ta polja so dostopna prek `GET /PUT /api/settings/memory` (shema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` razreši `POST /v1/rerank` (klican prek povratne zanke), zato sprejema vse, kar sprejema ta pot: izbran model za ponovno razvrščanje v oblaku (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ali vozlišče ponudnika, združljivo z OpenAI, v obliki `<node-prefix>/<model>` (npr. `skilled-mini/bge-reranker-v2-m3` za strežnik TEI/Infinity). Vozlišča povratne zanke so vedno upravičena; vozlišče na drugem gostitelju (LAN, Tailscale) dodatno zahteva funkcijsko zastavico `RERANK_REMOTE_PROVIDER_NODES` in mora prestati pravilnik ponudnika za odhodne URL-je — glejte [Funkcijske zastavice](../reference/FEATURE_FLAGS.md). Izbirnik na nadzorni plošči prikaže izbrane ponudnike in lokalna vozlišča; kateri koli veljaven niz `provider/model` je mogoče nastaviti neposredno prek `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Katero vektorsko zaledje naj se uporabi |
 
-Za vir `remote` Memory sprejema tudi izbirni nastavitvi `customBaseUrl` in
+Ta polja so na voljo prek `GET /PUT /api/settings/memory` (shema `MemorySettingsExtendedSchema`).
+
+Za vir `remote` pomnilnik sprejema tudi neobvezni nastavitvi `customBaseUrl` in
 `customModelId`. Skupaj izbereta končno točko `/embeddings`, združljivo z OpenAI,
-in model, ne da bi spremenili globalni register vdelav. Končna točka se pred uporabo
+in model, ne da bi spremenila globalni register vdelav. Končna točka se pred uporabo
 normalizira in preveri s pravilnikom ponudnika za odhodne URL-je: zahtevan je HTTP(S),
 vdelane poverilnice in poizvedbeni nizi so zavrnjeni, naslovi metapodatkov v oblaku
 pa ostanejo blokirani. Prazne vrednosti ohranijo izbranega ponudnika iz registra. Napake,
 vrnjene nadzorni plošči, so prečiščene, poverilnice končne točke pa se nikoli ne beležijo.
 
-> **TODO (D20):** Obseg `global` (deljenje pomnilnikov med vsemi ključi API) v tej
+> **TODO (D20):** Obseg `global` (souporaba spominov med vsemi ključi API) v tej
 > izdaji ni implementiran. Zahteva spremembe sheme in globalno pot pridobivanja.
-> Obravnavajte ga ločeno.
+> Spremljajte ločeno.
 
 ## Plasti shranjevanja
 

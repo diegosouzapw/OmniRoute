@@ -68,15 +68,23 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ତତ୍କ୍ଷଣାତ୍ �
 
 ## npm install ଚେତାବନୀଗୁଡ଼ିକ (ERESOLVE / peer / deprecated)
 
-ଆପଣ `npm install -g omniroute` ଚଲାଇବାବେଳେ, `npm warn ERESOLVE`, peer-dependency ସୂଚନା ଏବଂ `deprecated` ବାର୍ତ୍ତା ପରି ଅନେକ ଚେତାବନୀ ଦେଖିପାରନ୍ତି। **ଏଗୁଡ଼ିକ ଆଶାକରାଯାଏ ଏବଂ କ୍ଷତିହୀନ।** ଆଉଟପୁଟ୍ରେ `added <N> packages` ଦେଖାଗଲେ ଆପଣଙ୍କ ଇନ୍ଷ୍ଟଲେସନ୍ ସଫଳ ହୋଇଛି।
+ଆପଣ `npm install -g omniroute` ଚଲାଇବାବେଳେ `npm warn ERESOLVE`, peer-dependency ସୂଚନା ଏବଂ `deprecated` ବାର୍ତ୍ତା ପରି ବହୁତ ଚେତାବନୀ ଦେଖିପାରନ୍ତି। **ଏଗୁଡ଼ିକ ଆଶାକରାଯାଇଥିବା ଏବଂ କ୍ଷତିହୀନ।** ଆଉଟପୁଟ୍ରେ `added <N> packages` ଦେଖାଗଲେ ଆପଣଙ୍କ ଇନ୍ଷ୍ଟଲେସନ୍ ସଫଳ ହୋଇଛି।
+
+peer-dependency ସମାଧାନ ସମ୍ବନ୍ଧୀୟ ଚେତାବନୀଗୁଡ଼ିକୁ ଦମନ କରିବା ପାଇଁ OmniRoute ଦ୍ୱାରା ସମର୍ଥିତ ଏହି ଇନ୍ଷ୍ଟଲେସନ୍ ରୂପ ବ୍ୟବହାର କରନ୍ତୁ:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` କେବଳ `ERESOLVE` ଏବଂ peer-dependency ସୂଚନାଗୁଡ଼ିକୁ ଦମନ କରେ। ଅପ୍ରଚଳନ ସୂଚନାଗୁଡ଼ିକ ଦୃଶ୍ୟମାନ ରହେ, କାରଣ ସେଗୁଡ଼ିକ ପରୋକ୍ଷ ତୃତୀୟ-ପକ୍ଷ ପ୍ୟାକେଜ୍ଗୁଡ଼ିକରୁ ଆସେ; ସେଗୁଡ଼ିକ ଇନ୍ଷ୍ଟଲେସନ୍ ବିଫଳ ହୋଇଥିବା ସୂଚାଏ ନାହିଁ।
 
 ଏହି ଚେତାବନୀଗୁଡ଼ିକ OmniRoute ନିୟନ୍ତ୍ରଣ କରୁନଥିବା ତୃତୀୟ-ପକ୍ଷ ପ୍ୟାକେଜ୍ଗୁଡ଼ିକର ପୁରୁଣା peer-dependency ରେଞ୍ଜ୍ରୁ ଆସେ:
 
-1. **`marked-terminal` ପାଇଁ `marked >=1 <16` ଆବଶ୍ୟକ, କିନ୍ତୁ `marked@18` ମିଳିଛି** — ବ୍ୟବହାରରେ ଏହା ଠିକ୍ ଭାବେ କାମ କରେ; upstream peer ରେଞ୍ଜ୍ଟି କେବଳ ପୁରୁଣା।
-2. **`deprecated prebuild-install@7.1.3`** — ଏକ ପରୋକ୍ଷ native-binary ଫେଚ୍ ସହାୟକ। ଏହାକୁ pinned `wreq-js` transport binding ଇନ୍ଷ୍ଟଲ୍ କରିବା ପାଇଁ
-   ବ୍ୟବହାର କରାଯାଏ ନାହିଁ ଏବଂ ଏହା web-cookie provider transport ସେଟଅପ୍ ବିଫଳ ହୋଇଥିବା ସୂଚାଏ ନାହିଁ।
+1. **`marked-terminal` ପାଇଁ `marked >=1 <16` ଆବଶ୍ୟକ, କିନ୍ତୁ `marked@18` ମିଳିଛି** — ବାସ୍ତବ ବ୍ୟବହାରରେ ଏହା ଠିକ୍ ଭାବରେ କାମ କରେ; upstream peer ରେଞ୍ଜ୍ଟି କେବଳ ପୁରୁଣା।
+2. **`deprecated prebuild-install@7.1.3`** — ଏକ ପରୋକ୍ଷ native-binary ଆହରଣ ସହାୟକ। ପିନ୍ କରାଯାଇଥିବା `wreq-js` transport binding ଇନ୍ଷ୍ଟଲ୍ କରିବା ପାଇଁ ଏହା
+   ବ୍ୟବହୃତ ହୁଏ ନାହିଁ ଏବଂ web-cookie provider transport ସେଟ୍ଅପ୍ ବିଫଳ ହୋଇଛି ବୋଲି ସୂଚାଏ ନାହିଁ।
 
-**କୌଣସି ପଦକ୍ଷେପ ଆବଶ୍ୟକ ନାହିଁ** — upstream ପ୍ୟାକେଜ୍ଗୁଡ଼ିକୁ fork ନକରି ଏହି ଚେତାବନୀଗୁଡ଼ିକୁ ସମ୍ପୂର୍ଣ୍ଣ ନିରବ କରାଯାଇପାରିବ ନାହିଁ।
+**କୌଣସି ପଦକ୍ଷେପ ଆବଶ୍ୟକ ନାହିଁ** — upstream ପ୍ୟାକେଜ୍ଗୁଡ଼ିକୁ fork ନକରି ଚେତାବନୀଗୁଡ଼ିକୁ ସମ୍ପୂର୍ଣ୍ଣ ଭାବେ ନିରବ କରାଯାଇପାରିବ ନାହିଁ।
 
 ---
 

@@ -1,1 +1,0 @@
-- **fix(i18n):** translate the 3,719 `__MISSING__` markers (61 keys × 61 locales) that eight base PRs stamped into the catalogs on 2026-09-16, restoring the real-translation ratio gate on the release tip. (#13974)

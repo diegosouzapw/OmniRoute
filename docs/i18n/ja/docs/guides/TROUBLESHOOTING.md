@@ -68,14 +68,22 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # 即座に再試行可能な 503 
 
 ## npm install の警告（ERESOLVE / peer / deprecated）
 
-`npm install -g omniroute` を実行すると、`npm warn ERESOLVE`、peer dependency に関する通知、`deprecated` メッセージなど、大量の警告が表示される場合があります。**これらは想定内であり、問題ありません。** 出力に `added <N> packages` と表示されていれば、インストールは成功しています。
+`npm install -g omniroute` を実行すると、`npm warn ERESOLVE`、peer dependency に関する通知、`deprecated` メッセージなど、大量の警告が表示される場合があります。**これらは想定されている無害な警告です。** 出力に `added <N> packages` と表示されていれば、インストールは成功しています。
 
-これらの警告は、OmniRoute が管理していないサードパーティパッケージの古い peer dependency 範囲が原因です。
+peer dependency の解決に関する警告を抑制するには、OmniRoute がサポートする次の形式でインストールしてください。
 
-1. **`marked-terminal` は `marked >=1 <16` を要求しているが、`marked@18` が検出された** — 実際には問題なく動作します。アップストリームの peer dependency 範囲が古いだけです。
-2. **`deprecated prebuild-install@7.1.3`** — 推移的依存関係にある、ネイティブバイナリ取得用のヘルパーです。これは固定された `wreq-js` トランスポートバインディングのインストールには
-   使用されておらず、Web Cookie プロバイダーのトランスポート設定が失敗したことを示すものでも
-   ありません。
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` で抑制されるのは、`ERESOLVE` と peer dependency に関する通知のみです。非推奨の通知は推移的なサードパーティパッケージから発生するため、引き続き表示されます。これらはインストールの失敗を示すものではありません。
+
+これらの警告は、OmniRoute が管理していないサードパーティパッケージの古い peer dependency 範囲に起因します。
+
+1. **`marked-terminal` は `marked >=1 <16` を要求しているものの、`marked@18` が検出される** — 実際には問題なく動作します。アップストリームの peer dependency 範囲が古いだけです。
+2. **`deprecated prebuild-install@7.1.3`** — 推移的に依存している、ネイティブバイナリ取得用のヘルパーです。固定バージョンの `wreq-js` トランスポートバインディングのインストールには
+   使用されておらず、Web Cookie プロバイダーのトランスポート設定が失敗したことを
+   示すものでもありません。
 
 **対応は不要です** — アップストリームパッケージをフォークしない限り、これらの警告を完全に非表示にすることはできません。
 

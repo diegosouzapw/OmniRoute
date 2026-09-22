@@ -446,7 +446,7 @@ Użyj tego punktu końcowego, gdy sidecar działa poza procesem i nie może bezp
 | POST   | `/v1/responses`                           | OpenAI Responses                            |
 | POST   | `/v1/embeddings`                          | OpenAI                                      |
 | POST   | `/v1/images/generations`                  | OpenAI Images                               |
-| POST   | `/v1/images/edits`                        | OpenAI Images (edycja/uzupełnianie)         |
+| POST   | `/v1/images/edits`                        | OpenAI Images (edycja/inpainting)           |
 | POST   | `/v1/videos/generations`                  | Generowanie wideo w stylu OpenAI            |
 | POST   | `/v1/music/generations`                   | Generowanie muzyki w stylu OpenAI           |
 | POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                          |
@@ -462,17 +462,17 @@ Użyj tego punktu końcowego, gdy sidecar działa poza procesem i nie może bezp
 | POST   | `/v1/api/chat`                            | Ollama                                      |
 | GET    | `/api/v1/vscode/{token}/`                 | Alias katalogu OpenAI                       |
 | GET    | `/api/v1/vscode/{token}/models`           | Alias modeli OpenAI                         |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenizowany alias OpenAI                   |
-| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizowany alias OpenAI Responses         |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenizowany alias Ollama                   |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenizowany alias tagów Ollama             |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias OpenAI z tokenem                      |
+| POST   | `/api/v1/vscode/{token}/responses`        | Alias OpenAI Responses z tokenem            |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama z tokenem                      |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tagów Ollama z tokenem                |
 
-Wszystkie trasy POST mają taką samą strukturę: `Bearer your-api-key` + treść JSON zweryfikowana przez Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` itd.; zobacz `src/shared/validation/schemas.ts`). W przypadku niepowodzenia walidacji schematu zwracany jest kod 4xx.
+Wszystkie trasy POST mają tę samą postać: `Bearer your-api-key` + treść JSON zweryfikowana za pomocą Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` itd.; zobacz `src/shared/validation/schemas.ts`). W przypadku niepowodzenia walidacji schematu zwracany jest kod 4xx.
 
-W przypadku klientów, które nie mogą dołączyć nagłówka `Authorization: Bearer ...`, OmniRoute akceptuje również klucze API w adresie URL — za pośrednictwem parametrów zapytania zapewniających zgodność (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) lub dedykowanych punktów końcowych `/api/v1/vscode/{token}/...` opisanych poniżej.
+W przypadku klientów, które nie mogą dołączyć nagłówka `Authorization: Bearer ...`, OmniRoute akceptuje również klucze API w adresie URL — za pośrednictwem parametrów zapytania zapewniających zgodność (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) albo opisanych poniżej dedykowanych punktów końcowych `/api/v1/vscode/{token}/...`.
 
 ```bash
-# Ponowne rankingowanie
+# Ponowne rankingowanie (dostawca z rejestru chmurowego lub węzeł dostawcy zgodny z OpenAI jako „<prefix>/<model>”)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Klasyfikacja Jina (dane uwierzytelniające Foundation API)
@@ -493,10 +493,37 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # Edycja obrazu (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generowanie wideo / muzyki (identyfikator modelu z prefiksem dostawcy)
+# Generowanie wideo/muzyki (identyfikator modelu z prefiksem dostawcy)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Węzły dostawców ponownego rankingowania:** `POST /v1/rerank` kieruje również żądania do węzłów
+> dostawców zgodnych z OpenAI (oMLX, vLLM, Infinity, TEI za bramą, …), adresowanych jako
+> `<node-prefix>/<model>`. Węzły loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) zawsze
+> kwalifikują się do użycia. Węzły na dowolnym innym hoście — urządzeniu w sieci LAN lub równorzędnym
+> urządzeniu Tailscale — kwalifikują się tylko wtedy, gdy operator włączy flagę funkcji
+> `RERANK_REMOTE_PROVIDER_NODES` **oraz** bazowy adres URL węzła przejdzie kontrolę zasad wychodzących
+> adresów URL dostawcy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> żądania nigdy nie są kierowane do hostów metadanych chmurowych. Etap ponownego rankingowania silnika
+> pamięci wywołuje tę trasę przez interfejs loopback, więc ta sama reguła dotyczy `rerankProviderModel`
+> w ustawieniach pamięci.
+>
+> **Postacie interfejsów lokalnych serwerów:** węzeł jest wywoływany pod adresem `<base>/v1/rerank`,
+> a po otrzymaniu kodu 404 — pod adresem `<base>/rerank` (Infinity, TEI). Treść żądania wysyłanego
+> do usługi nadrzędnej zawiera zarówno nazewnictwo Cohere/OpenAI (`documents`, `return_documents`),
+> jak i nazewnictwo TEI (`texts`, `return_text`), a odpowiedź usługi nadrzędnej jest normalizowana
+> do formatu koperty Cohere: nieopakowane `[{index, score, text}]` z TEI,
+> `{results: [{index, score}]}` z prostych bram oraz `{data: [...]}` w stylu Voyage są zwracane klientowi
+> jako `{results: [{index, relevance_score, document?}]}`, posortowane według wyniku i ograniczone
+> do `top_n`.
+
+> **Wykrywanie węzłów dostawców:** modele dostępne w węźle dostawcy zgodnym z OpenAI pojawiają się
+> w `GET /v1/models` pod prefiksem węzła. Wiersze bez metadanych punktu końcowego (typowe dla lokalnych
+> listingów `/v1/models`) dziedziczą `apiType` węzła, dzięki czemu modele węzła `embeddings` mają
+> `type: "embedding"`, a modele węzła `rerank` mają `type: "rerank"` zamiast domyślnego typu czatu;
+> jawnie określone `supportedEndpoints` w zsynchronizowanym lub ręcznie dodanym wierszu nadal ma
+> pierwszeństwo.
 
 ### Dedykowane trasy dostawców
 
@@ -506,7 +533,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Prefiks dostawcy jest dodawany automatycznie, jeśli go brakuje. Niezgodne modele powodują zwrócenie kodu `400`.
+Prefiks dostawcy jest dodawany automatycznie, jeśli go brakuje. Niedopasowane modele zwracają kod `400`.
 
 ---
 

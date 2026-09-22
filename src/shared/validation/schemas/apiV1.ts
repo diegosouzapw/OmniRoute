@@ -558,6 +558,26 @@ export const v1CountTokensSchema = z
   })
   .catchall(z.unknown());
 
+/**
+ * POST /v1/responses/input_tokens (#13167) — local Responses token count. The
+ * counter tolerates every Responses item shape (it only tokenizes what it can
+ * read), so the schema pins the wire types the route relies on and lets the
+ * rest through: `input` is a string or an item array, `instructions` a string,
+ * `tools` an array. Anything else is a 400 instead of a silently ignored key
+ * (Hard Rule #7 / t06 gate).
+ */
+export const v1ResponsesInputTokensSchema = z
+  .object({
+    model: z.string().optional(),
+    instructions: z.string().optional(),
+    input: z.union([z.string(), z.array(z.unknown())]).optional(),
+    tools: z.array(z.unknown()).optional(),
+    tool_choice: z.unknown().optional(),
+    text: z.unknown().optional(),
+    reasoning: z.unknown().optional(),
+  })
+  .catchall(z.unknown());
+
 // ── Search Schemas ─────────────────────────────────────────────────────
 // Unified search request/response schemas. Final contract — all fields optional
 // with defaults. New features add implementations, not new fields.

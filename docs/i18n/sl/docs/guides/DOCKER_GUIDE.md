@@ -27,6 +27,12 @@
 
 ## Hiter zagon
 
+> **Samostojno gostovanje z enim ukazom?** Oglejte si
+> [vodnik za samostojno gostovanje](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (objavljena slika +
+> Redis, dostop samo prek povratne zanke, brez izbire profila). Spodnji hitri zagon je
+> način z enim vsebnikom za uporabnike, ki Redis že izvajajo drugje.
+
 ```bash
 docker run -d \
   --name omniroute \

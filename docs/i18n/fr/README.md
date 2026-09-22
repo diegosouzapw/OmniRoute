@@ -722,7 +722,7 @@ que les secrets figurent dans l’historique de votre shell. → [Intégrations 
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Aucune clé requise</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Plus de 50 modèles<br/>10 000 neurones/jour</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM gratuitement</sub></td>
-    <td align="center" width="150"><img src="./public/openference.svg" width="42" alt="Openference"/><br/><b>Openference</b><br/><sub>Qwen3.8 27B, Llama 3.2<br/>Offre gratuite</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>1M de jetons/jour</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Modèles :free<br/>+10 $ → RPM plus élevé</sub></td>
   </tr>
 </table>

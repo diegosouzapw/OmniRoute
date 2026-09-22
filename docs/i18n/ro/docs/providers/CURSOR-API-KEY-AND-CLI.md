@@ -4,18 +4,18 @@
 
 ---
 
-Două moduri de a plasa Cursor în spatele OmniRoute fără o sesiune IDE:
+Două modalități de a plasa Cursor în spatele OmniRoute fără o sesiune IDE:
 
 1. **Furnizorul `cursor-api`** (cardul „Cursor API”, alias `cua`): un furnizor
-   bazat pe cheie API, care deține o cheie API de utilizator Cursor (`crsr_…`,
+   bazat pe cheie API care deține o cheie API de utilizator Cursor (`crsr_…`,
    generată la `https://cursor.com/dashboard/api`). Orice client OmniRoute poate
-   accesa apoi modelele Cursor prin `/v1/chat/completions` ca
-   `cursor-api/<model>` sau `cua/<model>`, beneficiind de nivelurile obișnuite
+   apoi accesa modelele Cursor prin `/v1/chat/completions` ca
+   `cursor-api/<model>` sau `cua/<model>`, beneficiind de straturile obișnuite
    pentru cote, fallback și jurnalizare. Furnizorul IDE (`cursor`, sesiune
    OAuth/IDE) rămâne neschimbat.
-2. **Passthrough pentru Cursor CLI**: configurați Cursor CLI (`agent`) să
-   utilizeze OmniRoute, astfel încât fiecare RPC efectuat de CLI să fie
-   autentificat cu o cheie API OmniRoute, redirecționat către Cursor folosind
+2. **Redirecționare transparentă pentru Cursor CLI**: configurați Cursor CLI
+   (`agent`) să utilizeze OmniRoute, astfel încât fiecare RPC efectuat de CLI să
+   fie autentificat cu o cheie API OmniRoute, redirecționat către Cursor folosind
    acreditările unei conexiuni `cursor-api` și înregistrat în pagina Logs.
 
 ## De ce este schimbată cheia
@@ -23,13 +23,13 @@ Două moduri de a plasa Cursor în spatele OmniRoute fără o sesiune IDE:
 `api2.cursor.sh` respinge o cheie `crsr_…` brută ca token Bearer (401). Cursor
 CLI trimite mai întâi cheia prin POST la `/auth/exchange_user_api_key` și
 primește un JWT de sesiune care expiră după o oră; valoarea `refreshToken`
-returnată are același `exp`, așadar reîmprospătarea presupune repetarea schimbului
-cheii.
-`open-sse/services/cursorApiKeyAuth.ts` efectuează acest schimb, păstrează în
+returnată are același `exp`, astfel încât reîmprospătarea înseamnă efectuarea din
+nou a schimbului cheii.
+`open-sse/services/cursorApiKeyAuth.ts` efectuează acest schimb, stochează în
 cache câte un token de sesiune pentru fiecare cheie, repetă schimbul cu cinci
 minute înainte de expirare și elimină tokenul din cache atunci când Cursor
-răspunde cu 401. `CursorExecutor` îl apelează chiar înainte de a deschide fluxul
-upstream pentru conexiunile `cursor-api`.
+răspunde cu 401. `CursorExecutor` îl apelează chiar înainte de deschiderea
+fluxului upstream pentru conexiunile `cursor-api`.
 
 ## Furnizorul `cursor-api`
 
@@ -40,7 +40,7 @@ Registru: `open-sse/config/providers/registry/cursor/index.ts`
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
 
-Tablou de bord: Providers → Cursor API → Add API key.
+Panou de control: Providers → Cursor API → Add API key.
 
 REST:
 
@@ -61,32 +61,45 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Note:
 
-- Listarea modelelor pentru `cursor-api` provine din registrul static Cursor
-  (aceeași listă la care recurge furnizorul IDE ca fallback); nu este necesară
-  instalarea `cursor-agent` pe gazda OmniRoute.
+- Lista de modele pentru `cursor-api` provine din registrul Cursor static
+  (aceeași listă pe care furnizorul IDE o folosește ca fallback); instalarea
+  `cursor-agent` pe gazda OmniRoute nu este necesară.
 - `POST /api/providers/{id}/refresh-cursor` este destinat exclusiv furnizorului
   IDE `cursor`; conexiunile `cursor-api` nu au nicio sesiune IDE de reînnoit.
 
-## Passthrough pentru Cursor CLI
+## ID-uri native de model și nivelul de efort
+
+Pentru `cursor` / `cu` și `cursor-api` / `cua`, normalizatorul comun pentru
+nivelul de efort Claude păstrează intact ID-ul modelului solicitat. Cursor poate
+publica un sufix precum `-low` ca parte a unui ID real de model, nu ca alias
+OmniRoute pentru nivelul de efort. Executorul Cursor păstrează o potrivire exactă
+cu catalogul activ; atunci când nu există nicio potrivire, resolverul său de
+modele existent gestionează fallback-ul de la sufix la parametru.
+
+Aceasta nu modifică normalizarea nivelului de efort pentru rutele Claude
+directe, compatibile cu Claude sau Vertex. Disponibilitatea depinde în continuare
+de catalogul și drepturile contului Cursor selectat.
+
+## Redirecționare transparentă pentru Cursor CLI
 
 Rută: `src/app/api/cursor-cli/[...path]/route.ts` →
 `open-sse/handlers/cursorCliProxy.ts`. Prefixul `/api/cursor-cli/` este
-înregistrat în `src/shared/constants/publicApiRoutes.ts`, deoarece handlerul
-aplică propriul mecanism de autentificare:
+înregistrat în `src/shared/constants/publicApiRoutes.ts`, deoarece gestionarul
+aplică propria autentificare:
 
-| Cale                                                                                                                        | Autentificare așteptată de la CLI | Ce face OmniRoute                                                                                                                                                                                |
-| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `POST /auth/exchange_user_api_key`                                                                                          | `Bearer <OmniRoute API key>`      | Validează cheia, generează un JWT HS256 cu valabilitate de 1 oră (semnat cu `JWT_SECRET`) și îl returnează                                                                                       |
-| orice altă cale (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`               | Verifică emitentul/publicul/expirarea, selectează o conexiune `cursor-api` activă, înlocuiește antetul Authorization cu tokenul Cursor obținut prin schimb și transmite răspunsul în flux înapoi |
+| Cale                                                                                                                        | Autentificare așteptată de la CLI | Ce face OmniRoute                                                                                                                                                                            |
+| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                          | `Bearer <cheie API OmniRoute>`    | Validează cheia, emite un JWT HS256 valabil 1 h (semnat cu `JWT_SECRET`) și îl returnează                                                                                                    |
+| orice altă cale (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <acel JWT>`               | Verifică emitentul/publicul-țintă/expirarea, alege o conexiune `cursor-api` activă, înlocuiește antetul Authorization cu tokenul Cursor obținut prin schimb și retransmite răspunsul în flux |
 
-CLI-ul decodifică `exp` din orice token primit, astfel încât furnizarea unui
-token opac îl determină să repete schimbul înaintea aproape fiecărei cereri;
-JWT-ul generat evită acest lucru. Un răspuns 401 de la OmniRoute determină CLI-ul
+CLI-ul decodează `exp` din orice token pe care îl primește, astfel încât furnizarea
+unui token opac îl determină să efectueze din nou schimbul înainte de aproape fiecare
+cerere; JWT-ul emis evită acest lucru. Un răspuns 401 de la OmniRoute determină CLI-ul
 să efectueze din nou schimbul.
 
 ### Configurare
 
-1. Creați o cheie API OmniRoute (Dashboard → API keys) și o conexiune
+1. Creați o cheie API OmniRoute (Panou de control → Chei API) și o conexiune
    `cursor-api`.
 2. Configurați CLI-ul să utilizeze HTTP/1.1 pentru fluxul agentului. În
    `~/.cursor/cli-config.json`:
@@ -95,19 +108,19 @@ să efectueze din nou schimbul.
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Fără această setare, CLI-ul deschide interacțiunea agentului prin HTTP/2
-   către o gazdă de agent configurată separat și doar RPC-urile planului de
-   control trec prin endpoint.
+   Fără această setare, CLI-ul deschide interacțiunea agentului prin HTTP/2 către
+   o gazdă de agent configurată separat și numai apelurile RPC ale planului de
+   control trec prin punctul final.
 
 3. Rulați CLI-ul prin OmniRoute:
 
    ```bash
    export CURSOR_API_ENDPOINT=http://localhost:20128/api/cursor-cli
-   export CURSOR_API_KEY=<omniroute-api-key>
-   agent -p --trust "Reply with exactly OK"
+   export CURSOR_API_KEY=<cheie-api-omniroute>
+   agent -p --trust "Răspunde exact cu OK"
    ```
 
-Fiecare etapă ajunge în Logs cu furnizorul `cursor-api`, tipul de cerere
+Fiecare etapă apare în Jurnale cu furnizorul `cursor-api`, tipul cererii
 `cursor-cli`, calea `/api/cursor-cli/<rpc>`, fiind atribuită cheii API OmniRoute
 și conexiunii care a deservit-o.
 
@@ -117,9 +130,9 @@ Fiecare etapă ajunge în Logs cu furnizorul `cursor-api`, tipul de cerere
 | ----------------------------------------------------- | -------------------------------------------------------- |
 | Cheie OmniRoute necunoscută și `REQUIRE_API_KEY=true` | 401 `unauthenticated` la efectuarea schimbului           |
 | `REQUIRE_API_KEY=false`                               | sesiune anonimă (reflectă comportamentul `/v1/*`)        |
-| JWT de sesiune expirat / străin / falsificat          | 401, CLI-ul efectuează din nou schimbul                  |
+| JWT de sesiune expirat / străin / modificat           | 401, CLI-ul efectuează din nou schimbul                  |
 | Cheie API OmniRoute revocată după schimb              | 401 la următorul RPC                                     |
 | Nicio conexiune `cursor-api` activă                   | 503 `unavailable`                                        |
 | Cursor respinge cheia conexiunii                      | 401 `unauthenticated`, sesiunea din cache este eliminată |
-| Serviciul upstream este inaccesibil                   | 502 `unavailable` (mesaj igienizat)                      |
-| `JWT_SECRET` nu este setat                            | 503 la efectuarea schimbului                             |
+| Serviciul din amonte nu poate fi accesat              | 502 `unavailable` (mesaj igienizat)                      |
+| `JWT_SECRET` nu este setată                           | 503 la efectuarea schimbului                             |

@@ -11,50 +11,55 @@ complementair; operators moeten weten naar welk systeem ze kijken.
 
 - **Bereik:** het pad voor gebufferde bodies/heap voor `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` en de andere chatachtige routes. Beschermt
-  tegen heapversterking door grote bodies van coding agents (#4380).
+  tegen heap-amplificatie door grote bodies van coding-agents (#4380).
 - **Eén procesglobale controller, geen lanes per sleutel (#10110).** Elke API-sleutel
-  (gehasht) of `anonymous`-sessie wordt toegelaten op basis van **hetzelfde**
-  gedeelde budget — de gehashte sessie-ID wordt ALLEEN gebruikt als sleutel voor
-  eerlijke planning (round-robin-verwerking van wachtenden), nooit als
-  capaciteitsshard. Een eerdere versie van dit document beschreef lanes per
-  sleutel met onafhankelijke capaciteit; dat model is in #10110 verwijderd,
-  omdat niet-geverifieerde nepaanmeldgegevens daarmee de procesbrede limiet
-  konden vermenigvuldigen.
-- **Poort (#503-fanout): een automatisch afgeleid ingest-BYTEbudget, geen vast
-  aantal verzoeken.** De verouderde limiet op het aantal verzoeken
-  `CHAT_MAX_HEAVY_IN_FLIGHT` (standaard `1` vóór deze correctie) reduceerde de
-  fan-out van coding agents (meerdere subagents/CLI's, bodies standaard
-  > 256 KB) tot een effectieve gelijktijdigheid van ~1, wat onder volkomen
-  > normale belasting tot 503-fouten leidde. Deze limiet is nu alleen van
-  > toepassing wanneer een operator `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`
-  > expliciet instelt. Als deze niet is ingesteld, wordt toelating in plaats
-  > daarvan begrensd door `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — een budget dat
-  > automatisch wordt afgeleid van de werkelijke geheugenlimiet van het proces
-  > (`src/shared/middleware/admissionBudget.ts`): 25% van de laagste waarde van
-  > de V8-heaplimiet en een eventuele cgroup-/containerlimiet, gedeeld door een
-  > tijdelijke versterkingsfactor van 8x en begrensd tussen 8 MiB en 2 GiB.
-  > Expliciete overschrijvingen gebruiken dezelfde grenzen. Dit schaalt zichzelf
-  > van een container van 512 MB tot een desktop met 32 GB, zonder afstemming
-  > via omgevingsvariabelen. Een body die niet binnen het effectieve budget past,
-  > mislukt onmiddellijk met `413 body_exceeds_budget`; alleen onderlinge
-  > concurrentie tussen afzonderlijk verwerkbare bodies komt in de begrensde
-  > wachtrij voor eerlijke verwerking terecht. Een live tracker voor resourcedruk
-  > op basis van meerdere signalen (V8-heapratio, cgroup, PSI, OOM-gebeurtenissen —
-  > `open-sse/utils/resourcePressurePolicy.ts`) verkort de begrensde wachttijd bij
-  > `high` druk en weigert bij `critical` druk onmiddellijk verzoeken met
-  > `503 resource_pressure`, nog voordat er bytes worden ingelezen.
+  (gehasht) of `anonymous`-sessie wordt toegelaten op basis van hetzelfde
+  gedeelde budget — de gehashte sessie-id wordt ALLEEN gebruikt als sleutel voor
+  eerlijke planning (round-robinverwerking van wachtenden), nooit als capaciteitsshard.
+  Een eerdere versie van dit document beschreef lanes per sleutel met onafhankelijke
+  capaciteit; dat model is in #10110 verwijderd omdat niet-geverifieerde
+  nepcredentials daarmee de procesbrede limiet konden vermenigvuldigen.
+- **Poort (#503-fanout): een automatisch afgeleid BYTE-budget voor ingestie, geen vast
+  aantal requests.** De verouderde limiet voor het aantal requests
+  `CHAT_MAX_HEAVY_IN_FLIGHT` (standaard `1` vóór deze correctie) reduceerde
+  fan-out van coding-agents (meerdere subagents/CLI's, bodies doorgaans > 256 KB)
+  tot een effectieve gelijktijdigheid van ~1, wat bij volkomen normale belasting
+  tot 503-responses leidde. Deze limiet is nu alleen van toepassing wanneer een
+  operator `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` expliciet instelt. Als deze niet
+  is ingesteld, wordt toelating in plaats daarvan begrensd door
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — een budget dat automatisch wordt afgeleid
+  van de werkelijke geheugenlimiet van het proces
+  (`src/shared/middleware/admissionBudget.ts`): 25% van de laagste waarde van de
+  V8-heaplimiet en een eventuele cgroup-/containerlimiet, gedeeld door een
+  factor 8 voor tijdelijke amplificatie en begrensd tussen 8 MiB en 2 GiB.
+  Expliciete overrides gebruiken dezelfde begrenzingen. Dit schaalt zichzelf van
+  een container van 512 MB tot een desktop met 32 GB, zonder afstemming via
+  omgevingsvariabelen. Een body die niet binnen het effectieve budget past,
+  mislukt onmiddellijk met `413 body_exceeds_budget`; alleen concurrentie tussen
+  bodies die afzonderlijk verwerkt kunnen worden, komt in de begrensde wachtrij
+  met eerlijke planning terecht. Een live tracker voor resourcebelasting op basis
+  van meerdere signalen (V8-heapverhouding, cgroup, PSI, OOM-events —
+  `open-sse/utils/resourcePressurePolicy.ts`) verkort de begrensde wachttijd bij
+  `high` belasting en weigert onmiddellijk met `503 resource_pressure` bij
+  `critical` belasting, nog voordat er bytes worden ingelezen. PSI wordt, indien
+  aanwezig, uit `memory.pressure` van de cgroup van deze unit gelezen
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` geldt
+  voor de hele host en wordt alleen als fallback gebruikt op bare metal / cgroup
+  v1, zodat een host die aan het swappen is geen 503 kan veroorzaken voor een
+  inactieve container.
 - **Afstemming:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — overschrijving voor het automatisch afgeleide bytebudget
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — verouderde limiet op het aantal verzoeken, alleen opt-in
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override voor het automatisch afgeleide bytebudget
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — verouderde limiet voor het aantal requests, uitsluitend opt-in
   - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — wachttijd in de wachtrij vóór 503 (standaard 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heapbeveiliging voor bytes in de wachtrij (standaard 4 MB)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heapklep voor bytes in de wachtrij (standaard 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — verouderde
     no-ops sinds #10110 (geaccepteerd voor configuratiecompatibiliteit, genegeerd)
 - **Rapportage:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — inclusief
-  de toevoegingen van #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  de toevoegingen uit #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` en `countCapEnabled`
   (false bij een standaardimplementatie — bevestigt dat het bytebudget, en niet
-  de verouderde tellimiet, daadwerkelijk de begrenzende factor is).
+  de verouderde limiet op het aantal requests, daadwerkelijk de begrenzende
+  factor is).
 
 ## 2. Adaptieve virtuele runtimelanes (`open-sse/services/admission`)
 

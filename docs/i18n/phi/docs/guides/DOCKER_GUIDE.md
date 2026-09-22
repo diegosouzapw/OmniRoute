@@ -27,6 +27,12 @@
 
 ## Mabilisang Pagpapatakbo
 
+> **Mag-self-host gamit ang iisang command?** Tingnan ang
+> [Gabay sa Self-Host](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (na-publish na image +
+> Redis, loopback-only, walang pagpili ng profile). Ang Mabilisang Pagpapatakbo sa ibaba ay ang
+> paraang gumagamit ng iisang container para sa mga user na nagpapatakbo na ng Redis sa ibang lugar.
+
 ```bash
 docker run -d \
   --name omniroute \

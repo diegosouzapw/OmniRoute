@@ -469,11 +469,6 @@
       "count": 5
     }
   },
-  "open-sse/services/compression/caveman.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/compression/engines/cavemanAdapter.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -5088,7 +5083,7 @@
   },
   "tests/unit/translator-openai-to-gemini.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 74
+      "count": 65
     }
   },
   "tests/unit/translator-openai-to-kiro.test.ts": {

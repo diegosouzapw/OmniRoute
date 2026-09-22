@@ -22,24 +22,24 @@ OmniRoute-ը գրանցում է մտածողության ռեժիմով մոդ�
 ## Ճարտարապետություն
 
 ```
-Turn N (assistant generates):
-  → response contains reasoning_content + tool_calls
-  → if requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      writes (memory + DB), keyed by every tool_call.id
-  → forward response to client (which may or may not retain reasoning)
+Քայլ N (օգնականը գեներացնում է).
+  → պատասխանը պարունակում է reasoning_content + tool_calls
+  → եթե requiresReasoningReplay(provider, model)՝ cacheReasoningFromAssistantMessage()
+      գրանցում է (հիշողություն + DB)՝ որպես բանալի օգտագործելով յուրաքանչյուր tool_call.id
+  → պատասխանը փոխանցվում է հաճախորդին (որը կարող է պահպանել կամ չպահպանել reasoning-ը)
 
-Turn N+1 (client sends follow-up):
-  → translator detects: requiresReasoningReplay(provider, model) === true
-  → for each assistant message with tool_calls and no reasoning_content:
-      lookupReasoning(toolCalls[0].id) → memory → DB
-      hit  → msg.reasoning_content = cached; recordReplay()
-      miss → msg.reasoning_content = "" (legacy fallback for older DeepSeek)
-  → upstream sees consistent history → no 400
+Քայլ N+1 (հաճախորդն ուղարկում է հաջորդ հարցումը).
+  → թարգմանիչը հայտնաբերում է՝ requiresReasoningReplay(provider, model) === true
+  → tool_calls ունեցող և reasoning_content չունեցող յուրաքանչյուր օգնականի հաղորդագրության համար.
+      lookupReasoning(toolCalls[0].id) → հիշողություն → DB
+      գտնվել է  → msg.reasoning_content = cached; recordReplay()
+      չի գտնվել → msg.reasoning_content = "" (հետադարձ համատեղելիության տարբերակ հին DeepSeek-ի համար)
+  → վերին մակարդակի ծառայությունը ստանում է համահունչ պատմություն → 400 սխալ չի առաջանում
 ```
 
-Ֆիքսումը (Capture) կատարվում է `open-sse/handlers/chatCore.ts`-ում (երկու տեղում՝ `cacheReasoningFromAssistantMessage`-ի կանչի երկու կետերում): Վերարտադրումը (Replay) կատարվում է `open-sse/translator/index.ts`-ում՝ սխեմայի ձևափոխումից հետո, բայց մինչև ուղարկելը (dispatch):
+Կլանումը կատարվում է `open-sse/handlers/chatCore.ts`-ում (երկու տեղում՝ `cacheReasoningFromAssistantMessage`-ի կանչի երկու կետերում)։ Վերարտադրումը կատարվում է `open-sse/translator/index.ts`-ում՝ սխեմայի փոխակերպումից հետո, բայց ուղարկումից առաջ։
 
-Պարզ (առանց գործիքի կանչի) ասիստենտի քայլերը (turns) նույնականացվում են այլ կերպ. `buildAssistantMessageCacheKey()`-ը մշակում է սեսիայի շրջանակը գումարած OpenAI ձևաչափով նորմալացված տեքստը (transcript) մինչև այդ քայլը, քանի որ DeepSeek-ը պահանջում է _բոլոր_ նախորդ քայլերի տրամաբանությունը (reasoning), հենց որ առկա են `tools`-ները: Responses-API թիրախների համար (օրինակ՝ `opencode-go/deepseek-v4-flash`, որը ուղղորդվում է դեպի `/responses`), վերին հոսքի (upstream) մարմինը պարունակում է `input`, այլ ոչ թե `messages`, ուստի `translateRequest()`-ը (`open-sse/translator/index.ts`) հաղորդում է հենակետային (pivot) տեքստը, որը մշակել է հետկանչի (callback) տարբերակի միջոցով, և ֆիքսման կետերը մշակում են նույն տեքստը: Responses-ի վերարտադրման փուլն աշխատում է OpenAI-ի հենակետի վրա յուրաքանչյուր ելնային ձևաչափի համար, այնպես որ Anthropic Messages հաճախորդները նույնպես (Claude → OpenAI → Responses) վերարտադրվում են:
+Սովորական (առանց գործիքի կանչի) օգնականի քայլերի համար բանալիներն այլ կերպ են ստեղծվում. `buildAssistantMessageCacheKey()`-ը դայջեստ է հաշվարկում՝ օգտագործելով աշխատաշրջանի տիրույթը և մինչև տվյալ քայլը OpenAI ձևաչափով նորմալացված երկխոսության սղագրությունը, քանի որ DeepSeek-ը պահանջում է _յուրաքանչյուր_ նախորդ քայլի reasoning-ը, երբ առկա է `tools`-ը։ Responses-API թիրախների համար (օրինակ՝ `opencode-go/deepseek-v4-flash`, որը երթուղավորվում է դեպի `/responses`) վերին մակարդակի հարցման մարմինը պարունակում է `input`, այլ ոչ թե `messages`, ուստի `translateRequest()`-ը (`open-sse/translator/index.ts`) հետադարձ կանչի ընտրանքի միջոցով հաղորդում է այն առանցքային սղագրությունը, որի դայջեստը հաշվարկել է, իսկ կլանման կետերը հաշվարկում են նույն սղագրության դայջեստը։ Responses-ի վերարտադրման փուլը յուրաքանչյուր սկզբնական ձևաչափի համար կատարվում է OpenAI առանցքային ներկայացման վրա, ուստի Anthropic Messages-ի հաճախորդների տվյալները (Claude → OpenAI → Responses) նույնպես վերարտադրվում են։
 
 ## Պահեստավորում — Հիբրիդային հիշողություն + SQLite
 
