@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { apiFetch, isServerUp } from "../api.mjs";
+import { MCP_ACCEPT } from "../mcpClient.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
@@ -129,9 +130,13 @@ async function mcpJsonRpcCall(tool, args, { stream = false, globalOpts = {} } = 
   const apiKey = globalOpts.apiKey ?? "";
   const streamUrl = `${baseUrl}/api/mcp/stream`;
 
+  // Both media types on every POST, streaming or not — the Streamable HTTP
+  // transport rejects a single-type Accept with 406 before any handler runs
+  // (#14435). The server, not the client, decides whether this particular
+  // reply comes back as JSON or as an event stream.
   const hdrs = {
     "Content-Type": "application/json",
-    Accept: stream ? "text/event-stream" : "application/json",
+    Accept: MCP_ACCEPT,
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
   };
 
