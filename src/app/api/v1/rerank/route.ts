@@ -136,7 +136,8 @@ export async function handleValidatedRerankRequestBody(
               {
                 ...meta,
                 requestedModel,
-                comboName: meta.comboName || combo.name,
+                comboName:
+                  meta.comboName || (typeof combo.name === "string" ? combo.name : modelStr),
               }
             ),
           isModelAvailable: undefined,

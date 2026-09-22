@@ -15,6 +15,7 @@ import { isModelAdvertisedByConnection } from "@/domain/connectionModelRules";
 import { isSelfHostedChatProvider } from "@/shared/constants/providers";
 import { getComboMetrics } from "@omniroute/open-sse/services/comboMetrics.ts";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
+import type { ComboLike } from "@omniroute/open-sse/services/combo/types.ts";
 import type {
   ComboRecord,
   ComboHealthMetrics,
@@ -70,6 +71,23 @@ type TargetHealthWithEligibility = NonNullable<ComboHealthMetrics["targetHealth"
   /** null means eligibility could not be proven and consumers must fail conservative. */
   eligibleConnectionIds: string[] | null;
 };
+
+function toRuntimeRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function toRuntimeCombo(combo: ComboRecord): ComboLike {
+  return {
+    ...combo,
+    name: typeof combo.name === "string" ? combo.name : "",
+    models: Array.isArray(combo.models) ? combo.models : [],
+    strategy: typeof combo.strategy === "string" ? combo.strategy : null,
+    config: toRuntimeRecord(combo.config),
+    autoConfig: toRuntimeRecord(combo.autoConfig),
+  };
+}
 
 type RuntimeTargetMetricView = {
   requests?: number;
@@ -570,7 +588,7 @@ async function buildTargetHealth(
 async function buildComboHealth(
   combo: ComboRecord,
   since: string,
-  allCombos: ComboRecord[],
+  runtimeCombos: ComboLike[],
   activeConnectionsByProvider: Map<string, ProviderConnectionView[]> | null,
   syncedModelsByProvider: Map<string, SyncedAvailableModelsByConnection>,
   now: number
@@ -579,7 +597,10 @@ async function buildComboHealth(
   const comboName = typeof combo.name === "string" ? combo.name : "";
   if (!comboId || !comboName) return null;
 
-  const targets = resolveNestedComboTargets(combo, allCombos) as ResolvedComboTargetView[];
+  const targets = resolveNestedComboTargets(
+    toRuntimeCombo(combo),
+    runtimeCombos
+  ) as ResolvedComboTargetView[];
   const models = targets.map((target) => target.modelStr);
   const providers = Array.from(new Set(targets.map((target) => target.provider)));
 
@@ -614,6 +635,7 @@ export async function buildComboHealthResponse(opts: {
   const now = opts.now ?? Date.now();
   const since = getRangeStartIso(opts.range, now);
   const allCombos = opts.combos ?? ((await getCombos()) as ComboRecord[]);
+  const runtimeCombos = allCombos.map(toRuntimeCombo);
   let combos: ComboRecord[] = [];
 
   if (opts.comboId) {
@@ -643,7 +665,10 @@ export async function buildComboHealthResponse(opts: {
 
   const targetProviders = new Set<string>();
   for (const combo of combos) {
-    for (const target of resolveNestedComboTargets(combo, allCombos) as ResolvedComboTargetView[]) {
+    for (const target of resolveNestedComboTargets(
+      toRuntimeCombo(combo),
+      runtimeCombos
+    ) as ResolvedComboTargetView[]) {
       if (isSelfHostedChatProvider(target.provider)) targetProviders.add(target.provider);
     }
   }
@@ -663,7 +688,7 @@ export async function buildComboHealthResponse(opts: {
       buildComboHealth(
         combo,
         since,
-        allCombos,
+        runtimeCombos,
         activeConnectionsByProvider,
         syncedModelsByProvider,
         now
