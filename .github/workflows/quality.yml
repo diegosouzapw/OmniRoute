@@ -1,9 +1,13 @@
 name: Quality Gates
 
 on:
+  push:
+    branches: [main, "release/**"]
   pull_request:
-    branches: ["release/**"]
-    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, "release/**"]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 concurrency:
@@ -31,6 +35,7 @@ jobs:
       docs: ${{ steps.classify.outputs.docs }}
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
+      testsOnly: ${{ steps.classify.outputs.testsOnly }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -38,6 +43,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Validate gate inventory
         run: npm run check:gate-manifest
@@ -53,88 +59,14 @@ jobs:
               echo "docs=true"
               echo "i18n=true"
               echo "workflow=true"
+              echo "testsOnly=false"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
           node scripts/quality/classify-pr-changes.mjs changed-files.txt >> "$GITHUB_OUTPUT"
 
-  build:
-    name: Build (advisory)
-    needs: changes
-    # FORK PRs ONLY. build.yml's `Fast Production Build` triggers on `push: branches: ["**"]`
-    # (#11946, 2026-08-29: build.yml is now workflow_dispatch-only — the hosted runner cannot
-    # build this tree in any profile, 8/8 recent fork PRs included — so own-origin PRs rely on
-    # ci.yml `Build` after merge to main and on nightly-release-green for release/**.)
-    # and runs `build:release` — a superset of this job — so for an own-origin branch this job
-    # was building the same tree twice. A fork contributor pushes to THEIR repo, so that push
-    # never fires here, and this is the only pre-merge build signal they get. Measured
-    # 2026-08-14: 72 of the last 100 PRs into release/** came from forks, so the fork case is
-    # the majority of the traffic, not the exception — this job earns its place, it just should
-    # not duplicate build.yml for the own-origin 28%.
-    # Disabled 2026-08-29 (#11976 follow-up). `continue-on-error: true` still
-    # reports a GitHub check FAILURE, so every fork PR into release/** was born
-    # with a red "Build (advisory)" even when every required gate was green
-    # (sweep-reds, 41 PRs). Hosted ubuntu-latest cannot finish `npm run build`
-    # on this tree — VM shutdown ~6 min in, same class as build.yml going
-    # workflow_dispatch-only in #11962. Pre-merge build signal for release/**
-    # is nightly-release-green (omni-build); for main it is ci.yml `Build`.
-    # Restore this job when a runner that actually fits the tree is wired here.
-    # Bare `false` (not `${{ false }}`) — zizmor obfuscation flags the expression form.
-    if: false
-    # PINNED to hosted — this was the last job in THIS workflow still on the USE_VPS_RUNNER
-    # switch (ci.yml's Build, nightly-release-green and npm-publish keep it, so the variable
-    # stays meaningful), and with USE_VPS_RUNNER=true it produced NO signal at all here.
-    # Measured 2026-08-14 over the last 25
-    # quality.yml runs: not one Build (advisory) reached a conclusion. Every sample was either
-    # queued on the self-hosted pool (2 runners, `omniroute-113-6/7`, both permanently busy — one
-    # job sat queued 2h+ and was still unclaimed) or, when it did land, killed mid-build by this
-    # workflow's own `cancel-in-progress` concurrency. 6/6 sampled "failures" are exit 143 /
-    # "The runner has received a shutdown signal" at ~3.5 min into `npm run build` — zero OOM,
-    # zero build errors. So the job burned a scarce runner that the gates actually need while
-    # reporting a permanent red on every PR.
-    #
-    # Gap 19 left USE_VPS_RUNNER governing build-like jobs on the premise that "the build needs
-    # the .113's RAM". That premise no longer holds: `Fast Production Build` (build.yml) runs
-    # `build:release` — a SUPERSET of this job's `npm run build`, plus the CLI bundle — on plain
-    # ubuntu-latest and passed 24/25 of its last runs in ~15 min. What it has and this job did
-    # not is memory PROVISIONING: a 10 GB swapfile plus a 12 GB V8 heap. That matters because
-    # --max-old-space-size only bounds V8's JS heap, never Turbopack's native (Rust) allocation
-    # (#6409) — swap is what absorbs the native peak. Both are mirrored below.
-    runs-on: ubuntu-latest
-    # #7307: advisory for the first week of release-PR runs; remove
-    # continue-on-error after the production-build signal is stable.
-    continue-on-error: true
-    steps:
-      # Mirrors build.yml: Turbopack's native peak is not bounded by --max-old-space-size, so
-      # the hosted runner needs swap headroom before the build starts.
-      - name: Expand virtual memory (10 GB swap)
-        run: |
-          sudo swapoff -a || true
-          sudo rm -f /mnt/swapfile /swapfile
-          sudo fallocate -l 10G /mnt/swapfile || sudo dd if=/dev/zero of=/mnt/swapfile bs=1M count=10240
-          sudo chmod 600 /mnt/swapfile
-          sudo mkswap /mnt/swapfile
-          sudo swapon /mnt/swapfile
-          free -h
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: npm run build
-        env:
-          OMNIROUTE_USE_TURBOPACK: "1"
-          # Same heap build.yml proves sufficient. build-next-isolated.mjs defaults to 8192 and
-          # honours OMNIROUTE_BUILD_MEMORY_MB; NODE_OPTIONS is set for parity with build.yml.
-          NODE_OPTIONS: "--max-old-space-size=12288"
-          OMNIROUTE_BUILD_MEMORY_MB: "12288"
-      # No artifact upload here: the PR-to-release quality workflow has no
-      # downstream package/e2e jobs that consume the Next.js build output.
+  # Full build/package/boot authority lives in CI; no permanently skipped duplicate.
 
   # Docs/OpenAPI contract gates only — existence reason is doc accuracy + route refs.
   # Split out of fast-gates so pure-docs PRs skip typecheck/unit while still validating docs.
@@ -149,9 +81,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       # One walk of src/app/api for openapi-routes + docs-symbols (both still fail independently).
       - run: npm run check:api-docs-refs
       - name: Docs accuracy (fabricated-docs + i18n mirrors, strict)
@@ -193,11 +128,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: Restore ESLint file cache
-        uses: actions/cache@v6
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             .eslintcache
@@ -450,9 +389,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       # WS5.2/5.3: JUnit feeds Trunk Flaky Tests — the fast-path runs on EVERY PR,
       # which is where flaky-detection volume actually comes from (ci.yml's heavy
       # jobs only run on the release PR). Advisory upload, own-origin only.
@@ -502,9 +444,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       # QW-d: fonte única — o mesmo npm script do CI pesado/local. Fecha dois drifts do
       # comando inline antigo: os dirs `memory` e `usage` estavam FORA do glob (testes
       # silenciosamente não rodavam no fast path) e o setupPolyfill não era importado.
@@ -520,19 +465,16 @@ jobs:
   # ser rebaselinado às cegas na release. Aperto do baseline (na reconciliação da
   # release): npx eslint . --prune-suppressions --suppressions-location config/quality/eslint-suppressions.json
   #
-  # Princípio Zero: bloqueante SÓ para branches internas (as campanhas/sessões são a
-  # origem do drift). PR de FORK roda em modo report (continue-on-error → o job fica
-  # verde com anotação; a campanha /green-prs aplica o fix via co-autoria — o
-  # contribuidor NUNCA é bloqueado nem cobrado).
+  # Forks use hosted runners and the same required code-quality result. A base-red
+  # is maintainer work, but must not be reported as a passing candidate.
   lint-guard:
     name: No new ESLint warnings
     needs: changes
     if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-light"]')) || 'ubuntu-latest' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted","omni-light"]')) || 'ubuntu-latest' }}
     # 2026-08-30: a cold full lint with the eslint-plugin-react-hooks 7 compiler rules is
     # killed on the 7 GB hosted runner without a message (status null → exit 1, the
     # JSON never written); the box lints it in ~12 min with the heap below.
-    continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     # G0 (trilho .50): security-events:read lets the CodeQL ratchet below read open
     # code-scanning alerts via `gh api .../code-scanning/alerts` (same as ci.yml's
     # quality-gate job). contents: read keeps checkout working.
@@ -545,11 +487,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: Restore ESLint file cache
-        uses: actions/cache@v6
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             .eslintcache
@@ -597,15 +543,12 @@ jobs:
   # agent-skills (#6186 mergeou um id de catálogo sem rodar o gerador → 8 reds de
   # integration invisíveis até a release).
   #
-  # Princípio Zero: bloqueante SÓ para branches internas; PR de FORK roda em modo
-  # report (continue-on-error) — a campanha corrige via co-autoria, o contribuidor
-  # nunca é bloqueado.
+  # Merge integrity is required regardless of who owns the PR branch.
   merge-integrity:
     name: Merge integrity (changelog + generated skills)
     # Always on non-draft PRs — CHANGELOG/skills can break on docs-only merges too.
     if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) }}
     runs-on: ubuntu-latest
-    continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     env:
       JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-lint-api-key-secret-long
@@ -617,10 +560,48 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: CHANGELOG integrity (nenhum bullet da base pode sumir no merge-result)
         run: npm run check:changelog-integrity
       - name: Agent-skills generator sync (SKILL.md gerado ≡ catálogo)
         run: npm run check:agent-skills-sync
+
+  admission-verdict:
+    name: Gate / Quality
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - changes
+      - docs-gates
+      - fast-gates
+      - fast-vitest
+      - fast-unit
+      - lint-guard
+      - merge-integrity
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          package-manager-cache: false
+          node-version: ${{ env.CI_NODE_VERSION }}
+      - name: Evaluate exact-candidate admission
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: node scripts/quality/admission-verdict.mjs quality
+      - name: Retain admission receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: quality-admission-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .artifacts/quality-admission.json
+          if-no-files-found: error
+          retention-days: 14

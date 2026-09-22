@@ -2,10 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "release/**"]
   pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, "release/**"]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 concurrency:
@@ -41,6 +43,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Validate gate inventory
         run: npm run check:gate-manifest
@@ -71,6 +74,7 @@ jobs:
               echo "docs=true"
               echo "i18n=true"
               echo "workflow=true"
+              echo "testsOnly=false"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -100,13 +104,17 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - run: npm run audit:deps
       - name: Restore ESLint file cache
-        uses: actions/cache@v6
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             .eslintcache
@@ -200,7 +208,7 @@ jobs:
     # The coverage.* metrics degrade gracefully: the download is continue-on-error and
     # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
     # Path filter: code-only — pure docs/i18n PRs have nothing for these ratchets to guard.
-    if: ${{ !cancelled() && !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -212,11 +220,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: Restore ESLint file cache
-        uses: actions/cache@v6
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             .eslintcache
@@ -313,7 +325,7 @@ jobs:
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
     # Path filter: code-only (scanners/ratchets target production surface).
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true')) }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
@@ -324,9 +336,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
       # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
       - name: Circular deps (dpdm; advisory)
@@ -440,9 +455,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:docs-all
       # Previously-orphaned contract gates (existed as files, never wired anywhere).
       # All exit 0 today: cli-i18n is a hard gate, openapi-coverage is a ratchet
@@ -479,8 +497,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - name: markdownlint (docs + root, advisory)
         run: npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research" || true
       - name: Vale prose lint (Microsoft style, advisory)
@@ -511,9 +529,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
       # Real-translation ratchet: a leaf copied verbatim from en.json passes key
       # parity above but is still English to the user (es shipped 55% English).
@@ -570,9 +591,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-CN
       - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-TW
 
@@ -634,6 +658,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Fetch base branch
         run: git fetch --no-tags origin "${GITHUB_BASE_REF}"
@@ -664,7 +689,7 @@ jobs:
     # back to ubuntu-latest unless the PR head repo is this repository (push /
     # dispatch events are own-origin by definition). Any failure path (VM down,
     # var unset/false) also falls back to ubuntu-latest.
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-latest' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-latest' }}
     needs: changes
     # Capacity is owned by the ONE omni-build runner slot (#12048), also used by
     # Docker amd64. Do not add another worker with that label on the same host
@@ -683,9 +708,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       # NOTE: the webpack `.build/next/cache` actions/cache step was removed with the
       # Turbopack switch below — Turbopack does not read/write the webpack cache dir
@@ -731,9 +759,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
         uses: actions/download-artifact@v8
@@ -826,9 +857,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
         uses: actions/download-artifact@v8
@@ -897,9 +931,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
       # setupPolyfill que o comando inline omitia; o glob canônico vive só no package.json).
@@ -957,9 +994,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: Install Bun (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -995,9 +1035,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
       # WS5.2/5.3 (v3.8.49 plan): JUnit output feeds Trunk Flaky Tests (advisory upload
@@ -1034,7 +1077,7 @@ jobs:
     # blocking job was green. The upload step now has its own ceiling; this is headroom.
     timeout-minutes: 30
     needs: test-unit
-    if: ${{ !cancelled() && needs.test-unit.result == 'success' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
+    if: ${{ !cancelled() && needs.test-unit.result == 'success' }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -1044,9 +1087,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: Download all shard coverage
         uses: actions/download-artifact@v8
         with:
@@ -1274,11 +1320,9 @@ jobs:
     # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
     timeout-minutes: 45
     needs: [build, changes]
-    # WS3.1 hotfix fast-lane: the 9-shard E2E matrix is the CI critical path (~25min).
-    # It skips for (a) PRs labeled `hotfix` (entry policy in docs/ops/RELEASE_CHECKLIST.md:
-    # production-broken only, full-suite evidence from the previous green run linked in the
-    # PR) and (b) tests-only diffs outside tests/e2e/ (cannot change the served app).
-    if: ${{ needs.changes.outputs.testsOnly != 'true' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
+    # Tests-only diffs outside tests/e2e/ cannot change the served app. A hotfix
+    # label is not evidence for this candidate and cannot waive required tests.
+    if: ${{ needs.changes.outputs.testsOnly != 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -1294,12 +1338,16 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -1369,9 +1417,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - name: Integration tests (shard ${{ matrix.shard }}/2)
         env:
@@ -1394,9 +1445,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - run: npm run test:security
 
@@ -1422,9 +1476,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - run: npm run test:ecosystem
 
@@ -1451,11 +1508,66 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - run: npm run test:protocols:e2e
+
+  admission-verdict:
+    name: Gate / CI
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - changes
+      - lint
+      - quality-gate
+      - quality-extended
+      - docs-sync-strict
+      - docs-lint
+      - i18n-ui-coverage
+      - i18n-glossary-zhcn
+      - i18n
+      - pr-test-policy
+      - build
+      - package-artifact
+      - electron-package-smoke
+      - test-unit
+      - test-bun-sqlite
+      - test-vitest
+      - test-coverage
+      - test-e2e
+      - test-integration
+      - test-security
+      - test-ecosystem
+      - test-protocols-e2e
+      - sonarqube
+      - coverage-pr-comment
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          package-manager-cache: false
+          node-version: ${{ env.CI_NODE_VERSION }}
+      - name: Evaluate exact-candidate admission
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: node scripts/quality/admission-verdict.mjs ci
+      - name: Retain admission receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ci-admission-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .artifacts/ci-admission.json
+          if-no-files-found: error
+          retention-days: 14
 
   ci-summary:
     name: CI Dashboard

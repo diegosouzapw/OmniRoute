@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "admissionPolicy": "config/quality/admission-policy.json",
   "scope": "Validation-related npm aliases, not workflow jobs or matrix instances. Profiles list static scans only; no profile here proves release acceptance.",
   "aliases": [
     {

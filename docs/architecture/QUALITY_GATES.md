@@ -17,6 +17,29 @@ replication plan of the same system, see the
 
 ## Gate inventory and execution profiles
 
+### Candidate admission
+
+The CI and Quality Gates workflows each emit a stable verdict: `Gate / CI` and
+`Gate / Quality`. Their versioned admission policy enumerates every upstream job
+as required or advisory. An applicable required job must succeed: missing,
+cancelled, skipped, pending and unknown results cannot establish PASS. A valid
+docs-only or catalog-only classification can make a code lane inapplicable;
+a draft PR is not an accepted candidate. A `hotfix` label does not waive evidence.
+
+Both workflows cover PRs and pushes to main/release branches, manual dispatch and
+merge-group events. Push, dispatch and merge-group run the full selection. Forks
+and merge groups use hosted runners for jobs that otherwise select self-hosted
+runners; sufficient hosted capacity must be verified before rollout.
+
+Each JSON receipt identifies the checked-out SHA, workflow run and attempt.
+The CLI rejects a checkout/event SHA mismatch. Workflow tests bind policy membership
+to the verdict job's `needs` list so a new or removed lane cannot silently disappear.
+The receipts cover their own workflow, not publication, deployment, or the internals
+of an existing advisory scanner. Activating both check names in branch rules is a
+separate administrative change; adding these jobs does not itself protect a branch.
+
+### Static scan inventory
+
 The versioned npm-alias inventory and static-scan membership live in
 `config/quality/gate-manifest.json`. Run `npm run check:gate-manifest` to validate
 script names and exact commands against `package.json`; additions, removals and
@@ -32,8 +55,9 @@ maintenance commands are forbidden in read-only scan profiles.
 
 These profiles cover the static scan only. They do not certify product tests,
 coverage, packaging, external checks or a candidate's full release acceptance.
-Workflow admission and release-observer profiles have not yet migrated to this
-manifest; inspect their applicable jobs and receipts separately. The prose
+Workflow admission uses the linked `config/quality/admission-policy.json` and
+`scripts/quality/admission-verdict.mjs`. Release-observer profiles remain separate;
+inspect their applicable checks and receipts independently. The prose
 inventory below is a reference, not proof that a gate actually ran.
 
 Scripts live under `scripts/check/` (policy gates) and `scripts/quality/` (ratchet engine).
@@ -41,20 +65,19 @@ The CI source of truth is `.github/workflows/ci.yml`.
 
 ### Release PR fast-path (`quality.yml`)
 
-`.github/workflows/quality.yml` runs on PRs targeting `release/**`. It keeps contributor
-branches moving with path-filtered fast gates, plus one advisory production-build signal for code
-changes:
+`.github/workflows/quality.yml` complements CI on main/release PRs, protected-branch
+pushes, dispatch and merge groups. PRs use path-filtered fast checks. The permanently
+disabled duplicate build was removed; the real build/package/boot checks remain in CI.
 
-| Job                                              | Scope                                                                                                                                                                                                            | Blocking                                                                                  |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `Build (advisory)`                               | Non-draft code PRs and Mergify queue branches; Node 24, `npm-ci-retry`, `check:node-runtime`, `npm run build` with `OMNIROUTE_USE_TURBOPACK=1`; no artifact upload because no downstream quality job consumes it | **Advisory** (`continue-on-error: true`; remove after one week of stable release-PR runs) |
-| `Docs Gates (fast-path)`                         | Docs/code PRs; API docs refs and docs-all                                                                                                                                                                        | Yes                                                                                       |
-| `Fast Quality Gates`                             | Code PRs; static checks, typecheck, dashboard typecheck, impacted unit tests                                                                                                                                     | Yes                                                                                       |
-| `Forgotten sibling tests`                        | Code PRs; changed modules traced to static consumers and candidate sibling tests; barrel and dynamic-import paths are reported as advisory diagnostics, with referenced allowlist exceptions                     | **Advisory**                                                                              |
-| `Vitest (fast-path)`                             | Code PRs; fast vitest suite                                                                                                                                                                                      | Yes                                                                                       |
-| `Unit Tests fast-path`                           | Code PRs; 4-shard unit suite                                                                                                                                                                                     | Yes                                                                                       |
-| `No new ESLint warnings`                         | Code PRs; suppressions-aware lint guard                                                                                                                                                                          | Yes for own-origin, advisory for forks                                                    |
-| `Merge integrity (changelog + generated skills)` | Non-draft PRs; changelog and generated skill sync                                                                                                                                                                | Yes for own-origin, advisory for forks                                                    |
+| Job                                              | Scope                                                                                                                                                                                        | Blocking             |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `Docs Gates (fast-path)`                         | Docs/code PRs; API docs refs and docs-all                                                                                                                                                    | Yes                  |
+| `Fast Quality Gates`                             | Code PRs; static checks, typecheck, dashboard typecheck, impacted unit tests                                                                                                                 | Yes                  |
+| `Forgotten sibling tests`                        | Code PRs; changed modules traced to static consumers and candidate sibling tests; barrel and dynamic-import paths are reported as advisory diagnostics, with referenced allowlist exceptions | **Advisory**         |
+| `Vitest (fast-path)`                             | Code PRs; fast vitest suite                                                                                                                                                                  | Yes                  |
+| `Unit Tests fast-path`                           | Code PRs; 4-shard unit suite                                                                                                                                                                 | Yes                  |
+| `No new ESLint warnings`                         | Code PRs; suppressions-aware lint guard                                                                                                                                                      | Yes, including forks |
+| `Merge integrity (changelog + generated skills)` | Non-draft PRs; changelog and generated skill sync                                                                                                                                            | Yes, including forks |
 
 #### Forgotten sibling tests report
 
