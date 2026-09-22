@@ -9,7 +9,7 @@
 
 import { getDbInstance } from "../db/core";
 import { resolveProviderId } from "@/shared/constants/providers";
-import { protectPayloadForLog } from "../logPayloads";
+import { normalizePayloadForLog, protectPayloadForLog } from "../logPayloads";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import {
   resolveOrphanedUsageAccountIdentity,
@@ -88,6 +88,16 @@ export type PendingRequestDetail = {
   } | null;
 };
 
+// The preview is bounded (MAX_PREVIEW_*), the payload is not: chatCore pushes
+// the full provider body through here at every stage of a request, and
+// protecting a multi-megabyte agentic body four times per request was a large
+// synchronous cost on the event loop. Truncate first, then protect the preview,
+// the same order the call log uses for its own bounded copies. Normalizing
+// first keeps a JSON string payload parsed the way it was before.
+function protectPendingPreview(payload: unknown): unknown {
+  return protectPayloadForLog(truncatePendingPreview(normalizePayloadForLog(payload)));
+}
+
 function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingRequestMetadata {
   if (!metadata) return {};
 
@@ -110,22 +120,16 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
         : null;
   }
   if (metadata.clientRequest !== undefined) {
-    normalized.clientRequest = truncatePendingPreview(protectPayloadForLog(metadata.clientRequest));
+    normalized.clientRequest = protectPendingPreview(metadata.clientRequest);
   }
   if (metadata.providerRequest !== undefined) {
-    normalized.providerRequest = truncatePendingPreview(
-      protectPayloadForLog(metadata.providerRequest)
-    );
+    normalized.providerRequest = protectPendingPreview(metadata.providerRequest);
   }
   if (metadata.providerResponse !== undefined) {
-    normalized.providerResponse = truncatePendingPreview(
-      protectPayloadForLog(metadata.providerResponse)
-    );
+    normalized.providerResponse = protectPendingPreview(metadata.providerResponse);
   }
   if (metadata.clientResponse !== undefined) {
-    normalized.clientResponse = truncatePendingPreview(
-      protectPayloadForLog(metadata.clientResponse)
-    );
+    normalized.clientResponse = protectPendingPreview(metadata.clientResponse);
   }
   if (metadata.status !== undefined) {
     const status = Number(metadata.status);
@@ -378,7 +382,10 @@ export function trackPendingRequest(
       pendingRequests.details[connectionId][modelKey].push(newDetail);
       pendingById.set(newDetail.id, newDetail);
       if (normalizedMetadata.correlationId) {
-        pendingIdByCorrelation.set(normalizedMetadata.correlationId, { id: newDetail.id, touchedAt: now });
+        pendingIdByCorrelation.set(normalizedMetadata.correlationId, {
+          id: newDetail.id,
+          touchedAt: now,
+        });
       }
       return newDetail.id;
     } else if (!started && nextCount >= 0) {
@@ -742,7 +749,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         )
         .get(
           timestamp,
-          (entry.provider ? resolveProviderId(entry.provider) : null),
+          entry.provider ? resolveProviderId(entry.provider) : null,
           entry.model || null,
           entry.connectionId || null,
           entry.apiKeyId || null,
@@ -770,7 +777,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
-        (entry.provider ? resolveProviderId(entry.provider) : null),
+        entry.provider ? resolveProviderId(entry.provider) : null,
         entry.model || null,
         entry.connectionId || null,
         accountIdentity.accountKey,
