@@ -1021,7 +1021,6 @@ export async function selectVirtualAutoCandidatePool(
     spec?.family ? prepared.familyCandidates : prepared.regularCandidates
   );
 
-  // #7819: per-key exclusions fail open when lookup context or storage is unavailable.
   applyAutoCandidateExclusions(
     candidatePool,
     await loadAutoCandidateExclusions(apiKeyId, autoChannel)
