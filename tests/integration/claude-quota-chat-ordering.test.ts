@@ -235,3 +235,28 @@ test("chat treats a display-only Claude Opus 4 scope as unresolved for Opus 4.5"
   assert.equal(updated.rateLimitedUntil, resetAt);
   assert.equal(accountFallback.isModelLocked("claude", connection.id, requestedModel), false);
 });
+
+test("chat keeps a surface-labeled Claude scope connection-scoped", async () => {
+  const resetAt = new Date(Date.now() + 10 * 60_000).toISOString();
+  const requestedModel = "claude-fable-5-1";
+  const { connection, response, updated } = await runNormalizedQuota429(
+    "surface-labeled",
+    `claude/${requestedModel}`,
+    {
+      limits: [
+        {
+          kind: "weekly_scoped",
+          percent: 100,
+          resetsAt: resetAt,
+          isActive: true,
+          severity: "critical",
+          scope: { model: null, surface: { display_name: "surface-a" } },
+        },
+      ],
+    }
+  );
+
+  assert.equal(response.status, 429);
+  assert.equal(updated.rateLimitedUntil, resetAt);
+  assert.equal(accountFallback.isModelLocked("claude", connection.id, requestedModel), false);
+});

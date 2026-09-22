@@ -91,6 +91,12 @@ function currentLimitModel(limit: Record<string, unknown>): {
   };
 }
 
+function currentLimitSurfaceDisplayName(limit: Record<string, unknown>): string | null {
+  const scope = toRecord(limit.scope);
+  const surface = toRecord(scope.surface);
+  return nonEmptyString(surface.display_name);
+}
+
 function quotaKey(kind: ClaudeQuotaKind, displayName: string | null): string {
   if (kind === "session") return "session (5h)";
   if (kind === "weekly_all") return "weekly (7d)";
@@ -110,6 +116,7 @@ interface NormalizedClaudeWindow {
 
 function normalizeCurrentLimits(limits: unknown[]): NormalizedClaudeWindow[] {
   const windows: NormalizedClaudeWindow[] = [];
+  const surfaceOccurrences = new Map<string, number>();
   for (const [index, value] of limits.entries()) {
     const limit = toRecord(value);
     const kind = nonEmptyString(limit.kind);
@@ -119,10 +126,23 @@ function normalizeCurrentLimits(limits: unknown[]): NormalizedClaudeWindow[] {
     const { modelId, modelDisplayName } = currentLimitModel(limit);
     const scopeLabel = modelDisplayName ?? modelId;
     const scopeToken = scopeLabel ? normalizedTokenKey(scopeLabel) : "";
+    const surfaceDisplayName =
+      kind === "weekly_scoped" && !scopeToken ? currentLimitSurfaceDisplayName(limit) : null;
+    const surfaceOccurrence = surfaceDisplayName
+      ? (surfaceOccurrences.get(surfaceDisplayName) ?? 0) + 1
+      : null;
+    if (surfaceDisplayName && surfaceOccurrence) {
+      surfaceOccurrences.set(surfaceDisplayName, surfaceOccurrence);
+    }
+    const surfaceKey = surfaceDisplayName
+      ? `weekly scoped (7d) [surface:${JSON.stringify(surfaceDisplayName)}]${
+          surfaceOccurrence === 1 ? "" : ` #${surfaceOccurrence}`
+        }`
+      : null;
     // Keep unresolved upstream scopes distinct without changing known model labels.
     const displayKey =
       kind === "weekly_scoped" && !scopeToken
-        ? `${quotaKey(kind, null)} #${index + 1}`
+        ? (surfaceKey ?? `${quotaKey(kind, null)} #${index + 1}`)
         : quotaKey(kind, scopeLabel);
     const metadata: ClaudeQuotaMetadata = {
       kind,
@@ -134,15 +154,20 @@ function normalizeCurrentLimits(limits: unknown[]): NormalizedClaudeWindow[] {
     };
     // Current payload percentages are display metadata. Upstream `isActive`
     // and severity decide whether the window blocks routing.
+    const quota = quotaObject(percent, currentLimitReset(limit), metadata);
+    if (surfaceDisplayName) quota.displayName = `weekly scoped ${surfaceDisplayName} (7d)`;
     windows.push({
       semanticKey:
         kind === "session"
           ? "session"
           : kind === "weekly_all"
             ? "weekly_all"
-            : (metadata.scopeKey ?? `weekly_scoped:unknown:${index}`),
+            : (metadata.scopeKey ??
+              (surfaceKey
+                ? `weekly_scoped:surface:${surfaceKey}`
+                : `weekly_scoped:unknown:${index}`)),
       displayKey,
-      quota: quotaObject(percent, currentLimitReset(limit), metadata),
+      quota,
     });
   }
   return windows;
