@@ -1153,20 +1153,31 @@ export async function admitChatRequest(
 /** Release a lease if a handler rejects; otherwise bind it to the returned response lifecycle. */
 export async function releaseChatAdmissionAfterHandler(
   responsePromise: Promise<Response>,
-  lease: ChatAdmissionLease | null
+  lease: ChatAdmissionLease | null,
+  options: ReleaseChatAdmissionOptions = {}
 ): Promise<Response> {
   try {
-    return releaseChatAdmissionWhenDone(await responsePromise, lease);
+    return releaseChatAdmissionWhenDone(await responsePromise, lease, options);
   } catch (error) {
     lease?.release();
     throw error;
   }
 }
 
+export interface ReleaseChatAdmissionOptions {
+  /**
+   * The inbound request signal. A disconnecting client may simply stop pulling
+   * the wrapped stream without ever cancelling it, in which case none of the
+   * consumer-driven release paths below run. Aborting releases the slot.
+   */
+  readonly signal?: AbortSignal;
+}
+
 /** Hold a heavyweight lease through an SSE response without buffering the response body. */
 export function releaseChatAdmissionWhenDone(
   response: Response,
-  lease: ChatAdmissionLease | null
+  lease: ChatAdmissionLease | null,
+  options: ReleaseChatAdmissionOptions = {}
 ): Response {
   if (!lease) return response;
   const isStreaming = response.headers.get("content-type")?.includes("text/event-stream");
@@ -1176,23 +1187,48 @@ export function releaseChatAdmissionWhenDone(
   }
 
   const reader = response.body.getReader();
+
+  // Release paths below are all driven by the consumer. If the client vanishes
+  // mid-stream the runtime may never pull again and never cancel, so the slot
+  // would be held until the process restarts. The request signal is the only
+  // event that still fires in that case.
+  const { signal } = options;
+  let detachAbortListener = (): void => undefined;
+  const releaseOnce = (): void => {
+    detachAbortListener();
+    if (!lease.released) lease.release();
+  };
+
+  if (signal) {
+    const onAbort = (): void => {
+      releaseOnce();
+      void reader.cancel("client disconnected").catch(() => undefined);
+    };
+    if (signal.aborted) {
+      onAbort();
+    } else {
+      signal.addEventListener("abort", onAbort, { once: true });
+      detachAbortListener = () => signal.removeEventListener("abort", onAbort);
+    }
+  }
+
   const body = new ReadableStream<Uint8Array>({
     async pull(controller) {
       try {
         const { done, value } = await reader.read();
         if (done) {
-          lease.release();
+          releaseOnce();
           controller.close();
         } else {
           controller.enqueue(value);
         }
       } catch (error) {
-        lease.release();
+        releaseOnce();
         controller.error(error);
       }
     },
     async cancel(reason) {
-      lease.release();
+      releaseOnce();
       await reader.cancel(reason).catch(() => undefined);
     },
   });
