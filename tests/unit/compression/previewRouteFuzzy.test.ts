@@ -33,6 +33,10 @@ test("fuzzyDedup flag drives the session-dedup lane to produce a CCR marker", as
       ],
       engineId: "session-dedup",
       fuzzyDedup: { enabled: true },
+      // The fuzzy lane leaves retrieve markers, which only exist for callers
+      // that can resolve them (MCP-capable) — preview must advertise the tool
+      // to show the compressed output.
+      tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }],
     })
   );
   assert.equal(res.status, 200);

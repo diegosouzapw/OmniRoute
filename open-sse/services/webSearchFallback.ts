@@ -130,6 +130,14 @@ function buildFallbackTool(tool: JsonRecord, targetFormat?: string | null): Json
     return { type: "function", name, description, parameters };
   }
 
+  // Anthropic Messages targets expect FLAT Anthropic tools ({ name, input_schema }).
+  // The nested Chat Completions shape reaches the upstream as tools[0] = { type,
+  // function } with no top-level `name`/`input_schema`, and strict Anthropic-compatible
+  // upstreams (e.g. a vLLM /v1/messages) reject it with "tools.0.name missing".
+  if (targetFormat === FORMATS.CLAUDE) {
+    return { name, description, input_schema: parameters };
+  }
+
   return {
     type: "function",
     function: { name, description, parameters },

@@ -272,7 +272,9 @@ services:
     environment:
       - QDRANT__SERVICE__GRPC_PORT=6334
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:6333/readyz"]
+      # The qdrant image ships without wget/curl — probe the TCP port via bash's
+      # /dev/tcp instead (an HTTP GET to /readyz is not possible without curl).
+      test: ["CMD-SHELL", "bash -c ':< /dev/tcp/127.0.0.1/6333'"]
       interval: 15s
       timeout: 5s
       retries: 3

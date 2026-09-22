@@ -52,6 +52,34 @@ test("Codex catalog exposes the GPT-5.6 lineup in configured priority order", ()
   );
 });
 
+test("Codex catalog exposes the GPT-6 Astra lineup with 5.6-family Codex limits", () => {
+  const models = getModelsByProviderId("codex");
+  const astraIds = [
+    "gpt-6-astra",
+    "gpt-6-astra-ultra",
+    "gpt-6-astra-max",
+    "gpt-6-astra-xhigh",
+    "gpt-6-astra-high",
+    "gpt-6-astra-medium",
+    "gpt-6-astra-low",
+  ];
+
+  for (const modelId of astraIds) {
+    const model = models.find((entry) => entry.id === modelId);
+    assert.ok(model, `codex must expose ${modelId}`);
+    assert.equal(model.contextLength, 872000);
+    assert.equal(model.maxInputTokens, 872000);
+    assert.equal(model.maxOutputTokens, 128000);
+    assert.equal(model.targetFormat, "openai-responses");
+    assert.equal(model.supportsVision, true);
+    assert.equal(model.supportsXHighEffort, true);
+  }
+  // reasoning-heavy tiers get the extended #6354 header-wait timeout
+  assert.equal(models.find((m) => m.id === "gpt-6-astra-xhigh")?.timeoutMs, 1200000);
+  assert.equal(models.find((m) => m.id === "gpt-6-astra-high")?.timeoutMs, 1200000);
+  assert.equal(models.find((m) => m.id === "gpt-6-astra")?.timeoutMs, undefined);
+});
+
 test("Codex catalog no longer exposes GPT-5.4 models", () => {
   const models = getModelsByProviderId("codex");
 

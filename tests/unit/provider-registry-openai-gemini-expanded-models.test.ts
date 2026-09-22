@@ -46,6 +46,21 @@ test("gemini registry exposes the flash-lite variants present in sibling subsyst
   }
 });
 
+test("openai registry exposes gpt-6-astra with the GPT-5.6 Sol API capability set", () => {
+  // GPT-6 Astra (released 2026-09-03) inherits the GPT-5.6 family API limits:
+  // 1.05M context, 922K input, 128K output, responses-only target format.
+  const astra = openaiProvider.models.find((m) => m.id === "gpt-6-astra");
+  assert.ok(astra, "gpt-6-astra entry must exist in the openai registry");
+  assert.equal(astra.targetFormat, "openai-responses");
+  assert.equal(astra.contextLength, 1050000);
+  assert.equal(astra.maxInputTokens, 922000);
+  assert.equal(astra.maxOutputTokens, 128000);
+  assert.equal(astra.supportsVision, true);
+  assert.equal(astra.supportsReasoning, true);
+  assert.equal(astra.supportsXHighEffort, true);
+  assert.equal(astra.toolCalling, true);
+});
+
 test("port did not regress previously curated openai/gemini ids", () => {
   // Sanity guard: anchor models that must keep existing.
   const openaiIds = new Set(openaiProvider.models.map((m) => m.id));

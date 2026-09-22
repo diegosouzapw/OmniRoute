@@ -31,6 +31,8 @@
  *
  * Conservative guards:
  *   - Never touch `role: "system"`.
+ *   - Only replace when the caller advertises `omniroute_ccr_retrieve` (MCP);
+ *     any other caller could never resolve the marker back to text.
  *   - Only replace if it shrinks (marker shorter than original).
  *   - Only replace blocks ≥ minChars (default 600).
  *   - `stackable: true`, `stackPriority: 4` (runs just after session-dedup(3)).

@@ -58,6 +58,26 @@ test("#2390 web_search fallback stays NESTED for Chat Completions target", () =>
   );
 });
 
+test("web_search fallback is FLAT Anthropic shape for Claude target", () => {
+  const { body, fallback } = prepareWebSearchFallbackBody(makeBody(), {
+    targetFormat: "claude",
+    nativeCodexPassthrough: false,
+  });
+  assert.equal(fallback.enabled, true);
+  const injected = body.tools[0] as Record<string, unknown>;
+  assert.equal(injected.name, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.ok(injected.input_schema, "Anthropic tool must carry input_schema");
+  assert.equal(
+    injected.function,
+    undefined,
+    "Anthropic tool must not use the Chat Completions nested .function shape"
+  );
+  assert.equal(
+    injected.type,
+    undefined,
+    "Anthropic tool must not use the OpenAI 'function' type tag"
+  );
+});
 test("#2390 tool_choice matches the injected tool shape per target format", () => {
   const responses = prepareWebSearchFallbackBody(
     { ...makeBody(), tool_choice: { type: "web_search" } },

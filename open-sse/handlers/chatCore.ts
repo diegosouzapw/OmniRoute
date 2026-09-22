@@ -138,6 +138,7 @@ import { withReasoningRuleContext } from "../utils/reasoningRuleContext.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { collectCustomToolNamesForSourceFormat } from "../translator/request/openai-responses/additionalTools.ts";
 import { sanitizeKiroTools } from "../utils/kiroSanitizer.ts";
+import { sanitizeBase64Sources } from "../utils/base64SourceSanitize.ts";
 import { splitMisplacedToolResults } from "../translator/helpers/claudeHelper.ts";
 import { ensureCacheControlOnLastUserMessage } from "../services/claudeCodeConstraints.ts";
 import {
@@ -605,6 +606,10 @@ export async function handleChatCore({
     };
   };
   let tokensCompressed: number | null = null;
+  // Local 3.8.51 port: strict upstreams 500 ("Non-base64 digit found") on image/
+  // document payloads carrying a data-URL prefix or wrapped whitespace; normalize
+  // before any downstream stage (cache hash, translation, dispatch) sees the body.
+  sanitizeBase64Sources(body);
   // ── Per-endpoint custom system prompt (port of upstream #2063) ──
   // Reads from cachedSettings if available (passed in from combo/chat layer)
   // to avoid an extra DB read on the hot path. Falls through to getCachedSettings()

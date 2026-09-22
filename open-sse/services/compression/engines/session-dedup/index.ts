@@ -30,6 +30,7 @@
 
 import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
+import { callerSupportsCcrRetrieve } from "../ccr/protocolInstruction.ts";
 import { runFuzzyPass } from "./fuzzy.ts";
 import type {
   CompressionEngine,
@@ -139,7 +140,9 @@ function dedupeWithinMessage(
 
   for (const { block } of sortedBlocks) {
     // Only dedup blocks that appear 2+ times in the text.
-    const occurrences = (result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+    const occurrences = (
+      result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []
+    ).length;
     if (occurrences < 2) continue;
 
     const sha = hashBlock(block);
@@ -364,7 +367,8 @@ function validateSessionDedupConfig(config: Record<string, unknown>): EngineVali
     const f = config["fuzzy"];
     if (typeof f === "object" && f !== null) {
       const fe = (f as Record<string, unknown>)["enabled"];
-      if (fe !== undefined && typeof fe !== "boolean") errors.push("fuzzy.enabled must be a boolean");
+      if (fe !== undefined && typeof fe !== "boolean")
+        errors.push("fuzzy.enabled must be a boolean");
     } else if (typeof f !== "boolean") {
       errors.push("fuzzy must be an object { enabled } or a boolean");
     }
@@ -420,12 +424,12 @@ export const sessionDedupEngine: CompressionEngine = {
       minBlockChars
     );
 
-    const { messages: finalMessages, fuzzyCount } = runFuzzyPass(
-      exactMessages,
-      stepConfig,
-      minBlockChars,
-      options?.principalId
-    );
+    // The fuzzy pass replaces whole messages with bare `[CCR retrieve ...]`
+    // markers — only meaningful when the caller can resolve them (#7746
+    // sibling: same unrecoverable-marker trap as the CCR engine itself).
+    const { messages: finalMessages, fuzzyCount } = callerSupportsCcrRetrieve(body)
+      ? runFuzzyPass(exactMessages, stepConfig, minBlockChars, options?.principalId)
+      : { messages: exactMessages, fuzzyCount: 0 };
 
     if (dedupCount + fuzzyCount === 0) {
       return { body, compressed: false, stats: null };
