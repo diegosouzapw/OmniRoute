@@ -32,6 +32,7 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
         baseURL: "https://gw.example.com",
         providerId: "fo-" + String(opts.combosStatus) + "-" + String(opts.modelsStatus ?? 200),
         apiKey: "k-fo-" + String(opts.combosStatus),
+        toolsOnly: false,
       },
       provider: {
         transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {

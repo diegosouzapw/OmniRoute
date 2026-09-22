@@ -44,7 +44,7 @@ describe("warm snapshot is read under the credential actually in use", () => {
       const added: unknown[] = [];
       const registration = Promise.resolve({ dispose: async () => {} });
       const ctx = {
-        options: { baseURL, providerId: "warmid", apiKey: "key-written-in-the-config" },
+        options: { baseURL, providerId: "warmid", apiKey: "key-written-in-the-config", toolsOnly: false },
         provider: {
           transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
             cb({ add: (input: unknown) => added.push(input) });

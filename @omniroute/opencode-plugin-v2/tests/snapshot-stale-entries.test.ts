@@ -35,6 +35,7 @@ function setupCtx(providerId: string): {
       providerId,
       baseURL: "https://gw.example.com",
       apiKey: "k-snapfix",
+      toolsOnly: false,
     },
     provider: {
       transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {

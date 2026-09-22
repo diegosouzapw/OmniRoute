@@ -113,6 +113,7 @@ catalog is never a mystery.
 | `providerTag`                    | `true`                                                     | Prefix a display name with the upstream provider it routes to                                                         |
 | `geminiSanitization`             | `true`                                                     | Strip `$schema`/`additionalProperties` from tool schemas sent to Gemini models (`$ref` tools are forwarded untouched) |
 | `usableOnly`                     | `false`                                                    | Filter to healthy provisioned providers (`/api/providers`)                                                            |
+| `freeOnly` / `toolsOnly` / `visionOnly` | `false` / `true` / `false`                      | Filter to free-tier / tool-calling / image-input models; combos with a filtered member are dropped, never partial |
 | `visibleModels` / `hiddenModels` | `[]`                                                       | Exact-or-suffix allowlists, deny wins                                                                                 |
 | `apiFormat.allowAnthropic`       | `false`                                                    | Route allowlisted ids to the Anthropic API block                                                                      |
 | `apiFormat.anthropicModels`      | `[]`                                                       | Full model ids routed to Anthropic                                                                                    |

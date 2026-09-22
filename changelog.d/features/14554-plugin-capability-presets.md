@@ -1,0 +1,1 @@
+- **feat(plugin):** filter the published catalog by capability — `freeOnly`, `toolsOnly`, `visionOnly` ([#14554](https://github.com/diegosouzapw/OmniRoute/pull/14554)) — thanks @maxmad64bis

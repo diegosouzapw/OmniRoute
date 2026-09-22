@@ -34,7 +34,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
   } {
     const added: unknown[] = [];
     const ctx = {
-      options: { baseURL: "https://gw.example.com", providerId, apiKey: "k-" + providerId },
+      options: { baseURL: "https://gw.example.com", providerId, apiKey: "k-" + providerId, toolsOnly: false },
       provider: {
         transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
           cb({ add: (input: unknown) => added.push(input) });
@@ -411,7 +411,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     globalThis.fetch = stubFetch({ autoCombosHangs: false });
     const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
     const ctx = {
-      options: { baseURL: "https://gw.example.com", providerId: "staged-integ", apiKey: "k" },
+      options: { baseURL: "https://gw.example.com", providerId: "staged-integ", apiKey: "k", toolsOnly: false },
       provider: {
         transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
           catalogCallbacks.push(async () => {

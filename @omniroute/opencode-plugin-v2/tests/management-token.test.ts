@@ -86,6 +86,7 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
         providerId: "omniroute",
         apiKey: "chat-key",
         managementReadToken: "mgmt-key",
+        toolsOnly: false,
       });
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
       const ids = (added as Array<{ models: Array<{ id: string }> }>).flatMap((a) => a.models.map((m) => m.id));
@@ -123,6 +124,7 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
         baseURL: "https://gw.example.com",
         providerId: "omniroute",
         apiKey: "chat-key",
+        toolsOnly: false,
       });
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
       assert.equal(seen.get(COMBOS_URL), "Bearer chat-key");
@@ -202,6 +204,7 @@ describe("plugin-v2 fail-closed models (F2)", () => {
           providerId: "f2-keep",
           apiKey: "k-f2",
           modelCacheTtlMs: 1,
+          toolsOnly: false,
         },
         provider: {
           transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
@@ -225,6 +228,7 @@ describe("plugin-v2 fail-closed models (F2)", () => {
           providerId: "f2-keep",
           apiKey: "k-f2",
           modelCacheTtlMs: 1,
+          toolsOnly: false,
         },
         provider: {
           transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {

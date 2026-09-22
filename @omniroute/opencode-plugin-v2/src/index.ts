@@ -83,6 +83,9 @@ function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
     visibleModels: parsed.visibleModels,
     hiddenModels: parsed.hiddenModels,
     usableOnly: parsed.usableOnly,
+    freeOnly: parsed.freeOnly,
+    toolsOnly: parsed.toolsOnly,
+    visionOnly: parsed.visionOnly,
     enrichment: parsed.enrichment,
   };
 }

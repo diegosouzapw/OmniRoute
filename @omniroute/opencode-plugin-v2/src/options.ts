@@ -45,6 +45,9 @@ const pluginOptionsSchema = z
     visibleModels: z.array(z.string()).optional(),
     hiddenModels: z.array(z.string()).optional(),
     usableOnly: z.boolean().default(false),
+    freeOnly: z.boolean().default(false),
+    toolsOnly: z.boolean().default(true),
+    visionOnly: z.boolean().default(false),
     // v1 parity: enrichment overlay on by default (names + pricing).
     enrichment: z.boolean().default(true),
     // v1 parity: strip the JSON-Schema keywords Gemini rejects from tool
