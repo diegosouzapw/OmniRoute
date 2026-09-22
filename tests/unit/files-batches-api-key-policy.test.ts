@@ -51,7 +51,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "files-batches-policy
 process.env.JWT_SECRET = "files-batches-policy-14481-jwt-secret";
 
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
-const { createApiKey, updateApiKeyPermissions } = await import("../../src/lib/db/apiKeys.ts");
+const { createApiKey, updateApiKeyPermissions, revokeApiKey } =
+  await import("../../src/lib/db/apiKeys.ts");
 const { createFile, getFile, countFiles } = await import("../../src/lib/db/files.ts");
 const { createBatch, getBatch, countBatches } = await import("../../src/lib/db/batches.ts");
 
@@ -665,5 +666,109 @@ describe("LEDGER-2 (#14481) — /v1/files and /v1/batches apply the caller's API
       "validating",
       "the batch is not cancelled via x-api-key when the policy rejects"
     );
+  });
+});
+
+describe("LEDGER-27 (omni-code-sec round 3) — x-api-key uploads are attributed to the key the policy resolved", () => {
+  it("POST /v1/files: an ALLOWED key presented via x-api-key persists apiKeyId === key.id, not null", async () => {
+    const keyA = await createApiKey("ledger27-files-post-a", "machine-ledger27-fp", []);
+
+    const uploaded = await uploadFileVia({ "x-api-key": keyA.key });
+    assert.strictEqual(uploaded.res.status, 200, "an unrestricted key via x-api-key still works");
+    assert.ok(uploaded.body.id, "a file was created");
+
+    const stored = getFile(uploaded.body.id!);
+    assert.strictEqual(
+      stored?.apiKeyId,
+      keyA.id,
+      "the stored file must be attributed to the key the policy resolved via x-api-key, not left ownerless"
+    );
+  });
+
+  it("POST /v1/batches: an ALLOWED key presented via x-api-key persists apiKeyId === key.id, not null", async () => {
+    const keyA = await createApiKey("ledger27-batches-post-a", "machine-ledger27-bp", []);
+    const inputFile = seedFile(keyA.id, "ledger27-batches-post-input");
+
+    const created = await createBatchVia({ "x-api-key": keyA.key }, inputFile.id);
+    assert.strictEqual(created.res.status, 200, "an unrestricted key via x-api-key still works");
+    assert.ok(created.body.id, "a batch was created");
+
+    const stored = getBatch(created.body.id!);
+    assert.strictEqual(
+      stored?.apiKeyId,
+      keyA.id,
+      "the stored batch must be attributed to the key the policy resolved via x-api-key, not left ownerless"
+    );
+  });
+
+  it("GET /v1/files/{id}: the owning key can read its own x-api-key upload; a different key gets 404", async () => {
+    const keyA = await createApiKey("ledger27-files-owner-a", "machine-ledger27-fo-a", []);
+    const keyB = await createApiKey("ledger27-files-owner-b", "machine-ledger27-fo-b", []);
+
+    const uploaded = await uploadFileVia({ "x-api-key": keyA.key });
+    assert.strictEqual(uploaded.res.status, 200);
+    const fileId = uploaded.body.id!;
+
+    const ownRead = await getFileVia({ "x-api-key": keyA.key }, fileId);
+    assert.strictEqual(
+      ownRead.res.status,
+      200,
+      "the key that uploaded via x-api-key must be able to read it back via x-api-key"
+    );
+    assert.strictEqual(ownRead.body.id, fileId);
+
+    const foreignRead = await getFileVia({ "x-api-key": keyB.key }, fileId);
+    assert.strictEqual(
+      foreignRead.res.status,
+      404,
+      "a different key must not be able to read a row it does not own"
+    );
+  });
+});
+
+describe("LEDGER-28 (omni-code-sec round 3) — direct coverage of the 401 fold on the files/batches handlers", () => {
+  it("POST /v1/files: a revoked key via Authorization Bearer returns 401 authentication_error and creates nothing", async () => {
+    const keyA = await createApiKey("ledger28-files-post-revoked", "machine-ledger28-fpr", []);
+    await revokeApiKey(keyA.id);
+    const before = countFiles({});
+
+    const { res, body } = await uploadFileVia({ Authorization: `Bearer ${keyA.key}` });
+
+    assert.strictEqual(res.status, 401);
+    assert.strictEqual(body.error?.type, "authentication_error", "buildErrorBody(401, …) shape");
+    assert.strictEqual(countFiles({}), before, "no file is created for a revoked key");
+  });
+
+  it("POST /v1/files: an unresolvable bearer token returns 401 authentication_error and creates nothing", async () => {
+    const before = countFiles({});
+
+    const { res, body } = await uploadFileVia({ Authorization: "Bearer sk-not-a-key" });
+
+    assert.strictEqual(res.status, 401);
+    assert.strictEqual(body.error?.type, "authentication_error", "buildErrorBody(401, …) shape");
+    assert.strictEqual(countFiles({}), before, "no file is created for an unresolvable bearer");
+  });
+
+  it("GET /v1/files/{id}: a revoked key via Authorization Bearer returns 401 authentication_error", async () => {
+    const keyA = await createApiKey("ledger28-files-get-revoked", "machine-ledger28-fgr", []);
+    const file = seedFile(keyA.id, "ledger28-files-get-revoked-owned");
+    await revokeApiKey(keyA.id);
+
+    const { res, body } = await getFileVia({ Authorization: `Bearer ${keyA.key}` }, file.id);
+
+    assert.strictEqual(res.status, 401);
+    assert.strictEqual(body.error?.type, "authentication_error", "buildErrorBody(401, …) shape");
+    assert.strictEqual(body.id, undefined, "no file metadata leaked for a revoked key");
+  });
+
+  it("GET /v1/files/{id}: an unresolvable bearer token returns 401 authentication_error", async () => {
+    const keyA = await createApiKey("ledger28-files-get-unresolvable", "machine-ledger28-fgu", []);
+    const file = seedFile(keyA.id, "ledger28-files-get-unresolvable-owned");
+
+    const { res, body } = await getFileVia({ Authorization: "Bearer sk-not-a-key" }, file.id);
+
+    assert.strictEqual(res.status, 401);
+    assert.strictEqual(body.error?.type, "authentication_error", "buildErrorBody(401, …) shape");
+    assert.strictEqual(body.id, undefined, "no file metadata leaked for an unresolvable bearer");
   });
 });

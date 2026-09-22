@@ -1,7 +1,11 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getBatch, deleteBatch } from "@/lib/db/batches";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope, canAccessOwnedRecord } from "@/app/api/v1/_helpers/apiKeyScope";
+import {
+  getApiKeyRequestScope,
+  canAccessOwnedRecord,
+  resolveEffectiveApiKeyId,
+} from "@/app/api/v1/_helpers/apiKeyScope";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { formatBatchResponse } from "../formatBatchResponse";
@@ -42,10 +46,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const batch = getBatch(id);
 
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId — fall back to the id enforceApiKeyPolicy()
+  // independently resolved, so that key can still reach its own rows
+  // (LEDGER-27, omni-code-sec round 3).
+  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+
   // Session = operator, key = own rows only, null owner = denied
   // (GHSA-2jm2-mpx8-6523): the previous local check let ANY caller read or
   // delete an unowned batch by id.
-  if (!batch || !canAccessOwnedRecord(scope, batch.apiKeyId)) {
+  if (!batch || !canAccessOwnedRecord({ ...scope, apiKeyId: effectiveApiKeyId }, batch.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "Batch not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }
@@ -87,7 +97,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const { id } = await params;
   const batch = getBatch(id);
 
-  if (!batch || !canAccessOwnedRecord(scope, batch.apiKeyId)) {
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId — fall back to the id enforceApiKeyPolicy()
+  // independently resolved, so that key can still delete its own rows
+  // (LEDGER-27, omni-code-sec round 3).
+  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+
+  if (!batch || !canAccessOwnedRecord({ ...scope, apiKeyId: effectiveApiKeyId }, batch.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "Batch not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }

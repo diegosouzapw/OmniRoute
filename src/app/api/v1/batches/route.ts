@@ -7,6 +7,7 @@ import {
   getApiKeyRequestScope,
   canAccessOwnedRecord,
   resolveListScope,
+  resolveEffectiveApiKeyId,
 } from "@/app/api/v1/_helpers/apiKeyScope";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { formatBatchResponse } from "./formatBatchResponse";
@@ -46,7 +47,12 @@ export async function POST(request: Request) {
   const policy = await enforceApiKeyPolicy(request, null);
   if (policy.rejection) return policy.rejection;
 
-  const apiKeyId = scope.apiKeyId;
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId (see the comment above) — fall back to the id
+  // enforceApiKeyPolicy() independently resolved, so the batch is not
+  // attributed to nobody, and its ownership check below still recognizes the
+  // key's own input file (LEDGER-27, omni-code-sec round 3).
+  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
 
   try {
     const body = await request.json();
@@ -69,7 +75,10 @@ export async function POST(request: Request) {
     // null-owner input file is denied to a foreign key and to an anonymous
     // caller alike (GHSA-2jm2-mpx8-6523).
     const inputFile = getFile(validated.input_file_id);
-    if (!inputFile || !canAccessOwnedRecord(scope, inputFile.apiKeyId)) {
+    if (
+      !inputFile ||
+      !canAccessOwnedRecord({ ...scope, apiKeyId: effectiveApiKeyId }, inputFile.apiKeyId)
+    ) {
       return NextResponse.json(
         { error: { message: "Input file not found", type: "invalid_request_error" } },
         { status: 400, headers: CORS_HEADERS }
@@ -81,7 +90,7 @@ export async function POST(request: Request) {
       completionWindow: validated.completion_window,
       inputFileId: validated.input_file_id,
       metadata: validated.metadata,
-      apiKeyId,
+      apiKeyId: effectiveApiKeyId,
       outputExpiresAfterSeconds: validated.output_expires_after?.seconds || null,
       outputExpiresAfterAnchor: validated.output_expires_after?.anchor || null,
     });

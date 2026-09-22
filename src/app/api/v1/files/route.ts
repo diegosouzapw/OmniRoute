@@ -1,7 +1,11 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createFile, listFiles, formatFileResponse, countFiles } from "@/lib/db/files";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope, resolveListScope } from "@/app/api/v1/_helpers/apiKeyScope";
+import {
+  getApiKeyRequestScope,
+  resolveListScope,
+  resolveEffectiveApiKeyId,
+} from "@/app/api/v1/_helpers/apiKeyScope";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
@@ -93,7 +97,11 @@ export async function POST(request: Request) {
   const policy = await enforceApiKeyPolicy(request, null);
   if (policy.rejection) return policy.rejection;
 
-  const apiKeyId = scope.apiKeyId;
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId (see the comment above) — fall back to the id
+  // enforceApiKeyPolicy() independently resolved, so the upload is not
+  // attributed to nobody (LEDGER-27, omni-code-sec round 3).
+  const apiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
 
   try {
     const formData = await request.formData();

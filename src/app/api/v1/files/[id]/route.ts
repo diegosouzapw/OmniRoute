@@ -1,7 +1,11 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getFile, deleteFile, formatFileResponse } from "@/lib/db/files";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope, canAccessOwnedRecord } from "@/app/api/v1/_helpers/apiKeyScope";
+import {
+  getApiKeyRequestScope,
+  canAccessOwnedRecord,
+  resolveEffectiveApiKeyId,
+} from "@/app/api/v1/_helpers/apiKeyScope";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
@@ -41,10 +45,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const file = getFile(id);
 
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId — fall back to the id enforceApiKeyPolicy()
+  // independently resolved, so that key can still reach its own rows
+  // (LEDGER-27, omni-code-sec round 3).
+  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+
   // Session = operator, key = own rows only, null owner = denied
   // (GHSA-2jm2-mpx8-6523). A foreign or anonymous caller gets the same 404 as
   // a missing id so the id space cannot be probed.
-  if (!file || !canAccessOwnedRecord(scope, file.apiKeyId)) {
+  if (!file || !canAccessOwnedRecord({ ...scope, apiKeyId: effectiveApiKeyId }, file.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "File not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }
@@ -86,7 +96,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const { id } = await params;
   const file = getFile(id);
 
-  if (!file || !canAccessOwnedRecord(scope, file.apiKeyId)) {
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId — fall back to the id enforceApiKeyPolicy()
+  // independently resolved, so that key can still delete its own rows
+  // (LEDGER-27, omni-code-sec round 3).
+  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+
+  if (!file || !canAccessOwnedRecord({ ...scope, apiKeyId: effectiveApiKeyId }, file.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "File not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }

@@ -1,7 +1,11 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getFile, getFileContent } from "@/lib/db/files";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope, canAccessOwnedRecord } from "@/app/api/v1/_helpers/apiKeyScope";
+import {
+  getApiKeyRequestScope,
+  canAccessOwnedRecord,
+  resolveEffectiveApiKeyId,
+} from "@/app/api/v1/_helpers/apiKeyScope";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
@@ -41,9 +45,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const file = getFile(id);
 
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId — fall back to the id enforceApiKeyPolicy()
+  // independently resolved, so that key can still read its own file content
+  // (LEDGER-27, omni-code-sec round 3).
+  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+
   // `getFileContent` has no ownership check of its own — this guard is the only
   // thing between a caller and the raw bytes (GHSA-2jm2-mpx8-6523).
-  if (!file || !canAccessOwnedRecord(scope, file.apiKeyId)) {
+  if (!file || !canAccessOwnedRecord({ ...scope, apiKeyId: effectiveApiKeyId }, file.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "File not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }

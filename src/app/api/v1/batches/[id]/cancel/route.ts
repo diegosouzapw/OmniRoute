@@ -1,7 +1,11 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getBatch, updateBatch } from "@/lib/db/batches";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope, canAccessOwnedRecord } from "@/app/api/v1/_helpers/apiKeyScope";
+import {
+  getApiKeyRequestScope,
+  canAccessOwnedRecord,
+  resolveEffectiveApiKeyId,
+} from "@/app/api/v1/_helpers/apiKeyScope";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { formatBatchResponse } from "../../formatBatchResponse";
@@ -42,11 +46,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const batch = getBatch(id);
 
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId — fall back to the id enforceApiKeyPolicy()
+  // independently resolved, so that key can still cancel its own batch
+  // (LEDGER-27, omni-code-sec round 3).
+  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+
   // The shared 3-way rule: the operator's dashboard (session auth) may cancel
   // ANY batch — the old inline check 404'd every dashboard cancel of a
   // key-owned batch (#13683) — a key cancels its own, and a null-owner batch
   // is denied to a foreign key and to an anonymous caller (GHSA-2jm2-mpx8-6523).
-  if (!batch || !canAccessOwnedRecord(scope, batch.apiKeyId)) {
+  if (!batch || !canAccessOwnedRecord({ ...scope, apiKeyId: effectiveApiKeyId }, batch.apiKeyId)) {
     return NextResponse.json(
       { error: { message: "Batch not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }
