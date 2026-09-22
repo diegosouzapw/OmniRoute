@@ -80,6 +80,13 @@ export async function fetchWithSearchProxy(
 /**
  * Emit a sanitized proxy event for a search provider attempt.
  * Never includes query, API key, proxy username, or proxy password.
+ *
+ * `upstreamStatus` carries the HTTP status the provider actually returned for
+ * this attempt (null when no response arrived). The other proxy-log writers
+ * correctly keep null: the history websocket writer derives its status
+ * post-hoc (fallbacks instead of a received response), and the provider-test
+ * writer sometimes synthesizes its status code (network failure, refresh
+ * failure) — copying either number would fabricate a status.
  */
 export async function emitSearchProxyEvent(
   provider: string,
@@ -88,7 +95,8 @@ export async function emitSearchProxyEvent(
   proxyLevel: string,
   targetUrl: string,
   startTime: number,
-  status: string
+  status: string,
+  upstreamStatus: number | null = null
 ): Promise<void> {
   try {
     const { logProxyEvent } = await import("@/lib/proxyLogger");
@@ -112,6 +120,7 @@ export async function emitSearchProxyEvent(
       : null;
     logProxyEvent({
       status,
+      upstreamStatus,
       proxy: proxyInfo,
       level: proxyLevel,
       levelId: connectionId || null,
@@ -187,8 +196,17 @@ export async function executeProviderFetch(
 ): Promise<ProviderFetchResult> {
   const { config, url, init, controller, timer, query, searchType, maxResults, startTime } = p;
   const { connectionId, proxy, proxyLevel, log, normalize } = p;
-  const emitEvent = (status: string) =>
-    emitSearchProxyEvent(config.id, connectionId, proxy, proxyLevel, url, startTime, status);
+  const emitEvent = (status: string, upstreamStatus: number | null = null) =>
+    emitSearchProxyEvent(
+      config.id,
+      connectionId,
+      proxy,
+      proxyLevel,
+      url,
+      startTime,
+      status,
+      upstreamStatus
+    );
   const logCall = (fields: Record<string, unknown>) =>
     saveCallLog({
       method: config.method,
@@ -227,7 +245,7 @@ export async function executeProviderFetch(
         duration: Date.now() - startTime,
         error: errorText.slice(0, 500),
       });
-      await emitEvent("error");
+      await emitEvent("error", response.status);
       return {
         success: false,
         status: response.status,
@@ -246,7 +264,7 @@ export async function executeProviderFetch(
       tokens: { prompt_tokens: 0, completion_tokens: 0 },
       responseBody: { results_count: results.length, cached: false },
     });
-    await emitEvent("success");
+    await emitEvent("success", response.status);
 
     return {
       success: true,

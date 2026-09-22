@@ -1,6 +1,6 @@
 # Memory System (Malti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
 
 ---
 
@@ -165,35 +165,36 @@ It-tabella `memory_vec_meta` (migrazzjoni `083_memory_vec.sql`) taħżen:
 
 ## Estensjoni tas-settings
 
-Disa' oqsma tal-embedding u tal-vetturi huma disponibbli f'`MemorySettingsExtended` fi
-`src/shared/schemas/memory.ts`, u jinżammu permezz ta' `src/lib/db/settings.ts`:
+Disa’ oqsma għall-embeddings u l-vetturi huma disponibbli f’`MemorySettingsExtended` fi
+`src/shared/schemas/memory.ts`, u jiġu ppersistiti permezz ta’ `src/lib/db/settings.ts`:
 
-| Qasam                    | Tip                                                | Valur default | Deskrizzjoni                                                                 |
-| ------------------------ | -------------------------------------------------- | ------------- | ---------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Liema sors tal-embedding għandu jintuża                                      |
-| `embeddingProviderModel` | `string \| null`                                   | `null`        | Fornitur/mudell fil-format `provider/model`                                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | URL bażi ta' endpoint kompatibbli ma' OpenAI għall-memorja biss              |
-| `customModelId`          | `string \| null`                                   | `null`        | ID tal-mudell mibgħut lill-endpoint personalizzat                            |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Għażla espliċita għal Transformers.js (MiniLM, ~400MB)                       |
-| `staticEnabled`          | `boolean`                                          | `false`       | Għażla espliċita għall-mudell lokali statiku potion-base-8M                  |
-| `rerankEnabled`          | `boolean`                                          | `false`       | Ippermetti l-pass ta' klassifikazzjoni mill-ġdid (iżid +200-500ms/req)       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`        | Fornitur/mudell għall-klassifikazzjoni mill-ġdid fil-format `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`      | Liema backend tal-vetturi għandu jintuża                                     |
+| Qasam                    | Tip                                                | Valur predefinit | Deskrizzjoni                                                                 |
+| ------------------------ | -------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`         | Liema sors tal-embeddings għandu jintuża                                     |
+| `embeddingProviderModel` | `string \| null`                                   | `null`           | Fornitur/mudell fil-format `provider/model`                                  |
+| `customBaseUrl`          | `string \| null`                                   | `null`           | URL bażi ta’ endpoint kompatibbli ma’ OpenAI għall-Memory biss               |
+| `customModelId`          | `string \| null`                                   | `null`           | ID tal-mudell mibgħut lill-endpoint personalizzat                            |
+| `transformersEnabled`    | `boolean`                                          | `false`          | Attivazzjoni fakultattiva ta’ Transformers.js (MiniLM, ~400MB)               |
+| `staticEnabled`          | `boolean`                                          | `false`          | Attivazzjoni fakultattiva tal-mudell lokali statiku potion-base-8M           |
+| `rerankEnabled`          | `boolean`                                          | `false`          | Jattiva l-pass ta’ klassifikazzjoni mill-ġdid (iżid +200-500ms/talba)        |
+| `rerankProviderModel`    | `string \| null`                                   | `null`           | Fornitur/mudell għall-klassifikazzjoni mill-ġdid fil-format `provider/model` |
 
-Dawn huma esposti permezz ta' `GET /PUT /api/settings/memory` (skema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` jiġi riżolt minn `POST /v1/rerank` (imsejjaħ permezz tal-loopback), għalhekk jaċċetta kull ħaġa li taċċetta dik ir-rotta: mudell cloud ikkurat għall-klassifikazzjoni mill-ġdid (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) jew node ta’ fornitur kompatibbli ma’ OpenAI bħala `<node-prefix>/<model>` (eż. `skilled-mini/bge-reranker-v2-m3` għal magna TEI/Infinity). In-nodes tal-loopback huma dejjem eliġibbli; node fuq host ieħor (LAN, Tailscale) jeħtieġ ukoll il-feature flag `RERANK_REMOTE_PROVIDER_NODES` u jrid jgħaddi mill-politika tal-URLs ’il barra tal-fornitur — ara [Feature Flags](../reference/FEATURE_FLAGS.md). Is-selettur tad-dashboard jelenka l-fornituri kkurati flimkien man-nodes lokali; kwalunkwe string valida `provider/model` tista’ tiġi ssettjata direttament permezz ta’ `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Liema backend tal-vetturi għandu jintuża |
+
+Dawn huma esposti permezz ta’ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Għas-sors `remote`, Memory jaċċetta wkoll is-settings fakultattivi `customBaseUrl` u
-`customModelId`. Flimkien dawn jagħżlu endpoint `/embeddings` u mudell kompatibbli
-ma' OpenAI mingħajr ma jibdlu r-reġistru globali tal-embeddings. L-endpoint jiġi
-normalizzat qabel l-użu u ċċekkjat mill-politika tal-URL outbound tal-fornitur: HTTP(S)
-huwa meħtieġ, il-kredenzjali inkorporati u s-strings tal-query jiġu rrifjutati, u
-l-indirizzi tal-metadata tal-cloud jibqgħu mblukkati. Il-valuri vojta jżommu l-fornitur
-magħżul mir-reġistru. L-iżbalji mibgħuta lura lid-dashboard jiġu sanitizzati u
-l-kredenzjali tal-endpoint qatt ma jiġu rreġistrati fil-logs.
+`customModelId`. Flimkien, dawn jagħżlu endpoint `/embeddings` kompatibbli ma’ OpenAI
+u mudell mingħajr ma jibdlu r-reġistru globali tal-embeddings. L-endpoint jiġi
+normalizzat qabel l-użu u ċċekkjat mill-politika tal-URLs ’il barra tal-fornitur: HTTP(S)
+huwa meħtieġ, il-kredenzjali inkorporati u l-query strings jiġu rrifjutati, u l-indirizzi
+tal-cloud metadata jibqgħu mblukkati. Valuri vojta jżommu l-fornitur tar-reġistru magħżul. L-iżbalji
+rritornati lid-dashboard jiġu ssanitizzati u l-kredenzjali tal-endpoint qatt ma jiġu rreġistrati fil-logs.
 
-> **TODO (D20):** L-ambitu `global` (il-kondiviżjoni tal-memorji bejn l-API keys kollha)
-> mhuwiex implimentat f'din ir-rilaxx. Dan jeħtieġ bidliet fl-iskema u perkors globali
-> għall-irkupru. Għandu jiġi segwit separatament.
+> **TODO (D20):** L-ambitu `global` (il-kondiviżjoni tal-memorji bejn l-API keys kollha) mhuwiex
+> implimentat f’din ir-rilaxx. Dan jeħtieġ bidliet fl-schema u mogħdija globali għall-irkupru.
+> Għandu jiġi ttraċċat separatament.
 
 ## Saffi tal-ħażna
 

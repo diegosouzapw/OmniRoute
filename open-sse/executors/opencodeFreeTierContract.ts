@@ -27,6 +27,14 @@ import {
   recordAcceptedToolNames,
   resolvePlaceholderNames,
 } from "./opencodeToolObservation.ts";
+import {
+  forgetAttempt,
+  planShape,
+  recallAttempt,
+  recordInjection,
+  rememberAttempt,
+  shapeKeyOf,
+} from "./opencodeRequestShape.ts";
 
 /**
  * What one gated request declared, kept until its outcome is known.
@@ -41,6 +49,8 @@ export interface FreeTierContractAttempt {
   readonly session: string | undefined;
   readonly borrowed: boolean;
   readonly clientToolNames: readonly string[];
+  /** A refusal may still be replayed in the other shape: its outcome is noted afterwards. */
+  readonly probe?: boolean;
 }
 
 /**
@@ -260,22 +270,71 @@ function clientToolNamesOf(body: unknown): string[] {
  * surface and model, resolves the placeholder names, applies the body changes, and hands
  * back the attempt so the outcome can be fed to `noteFreeTierOutcome`.
  */
+/**
+ * The attempt of the request being served, found by the identity of the body the executor was
+ * handed. It cannot live on the executor: that instance is shared, and two requests in flight
+ * would read each other's attempt when they finish. It is released when the request is over.
+ */
+export function attemptFor(origin: unknown): FreeTierContractAttempt | null {
+  return recallAttempt<FreeTierContractAttempt>(origin);
+}
+
+function isTrackable(value: unknown): value is object {
+  return typeof value === "object" && value !== null;
+}
+
 export function prepareFreeTierRequest<T>(
   body: T,
   requestFormat: string | null,
   surface: OpencodeSurface,
   provider: string,
   model: string,
-  session?: string
+  session?: string,
+  origin?: object
 ): { body: T; attempt: FreeTierContractAttempt | null } {
   const clientToolNames = clientToolNamesOf(body);
-  if (!requiresFreeTierRequestContract(surface, provider, model)) return { body, attempt: null };
+  if (!requiresFreeTierRequestContract(surface, provider, model)) {
+    if (isTrackable(origin)) forgetAttempt(origin);
+    return { body, attempt: null };
+  }
+  const eligible = isTrackable(origin) && clientToolNames.length === 0;
+  const key = eligible ? shapeKeyOf(provider, model, body) : "";
+  const plan =
+    isTrackable(origin) && eligible
+      ? planShape(origin, key)
+      : { shape: "tools" as const, probe: false };
+  const chosen = plan.shape;
   const names = resolvePlaceholderNames(provider, model, session, configuredPlaceholderToolNames());
-  const borrowed = clientToolNames.length === 0 && names.length > 0;
-  return {
-    body: applyFreeTierRequestContract(body, requestFormat, names),
-    attempt: { provider, model, session, borrowed, clientToolNames },
+  const borrowed = clientToolNames.length === 0 && names.length > 0 && chosen === "tools";
+  const attempt: FreeTierContractAttempt = {
+    provider,
+    model,
+    session,
+    borrowed,
+    clientToolNames,
+    probe: plan.probe,
   };
+  if (isTrackable(origin)) rememberAttempt(origin, attempt);
+  if (isTrackable(origin) && eligible) {
+    recordInjection(origin, {
+      shape: chosen,
+      key,
+      probe: plan.probe,
+      replayNote: () => noteFreeTierOutcome({ ...attempt, probe: false }, false),
+    });
+  }
+  return {
+    body:
+      chosen === "bare"
+        ? withStreaming(body)
+        : applyFreeTierRequestContract(body, requestFormat, names),
+    attempt,
+  };
+}
+
+function withStreaming<T>(body: T): T {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+  return { ...(body as Record<string, unknown>), stream: true } as T;
 }
 
 /**
@@ -297,6 +356,7 @@ export function noteFreeTierOutcome(attempt: FreeTierContractAttempt | null, ok:
     }
     return;
   }
+  if (attempt.probe) return;
   if (attempt.borrowed) {
     noteRefusedBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
   }

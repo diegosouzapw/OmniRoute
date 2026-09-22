@@ -1,6 +1,6 @@
 # Security Policy (Tiếng Việt)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -222,22 +222,23 @@ Các quy tắc này được thực thi bằng công cụ và bởi người đ�
 
 ## Các phát hiện của trình quét chuỗi cung ứng (Socket.dev / Snyk / công cụ tương tự)
 
-Artifact npm `omniroute` đã phát hành đóng gói bản dựng Next.js `output: "standalone"`,
-điều này có nghĩa là mọi trình xử lý route — bao gồm các tính năng đặc quyền đã được
-tài liệu hóa (MITM, nhập Zed, Cloud Sync, trình giám sát dịch vụ nhúng) — đều được
-đưa vào các chunk rút gọn `.next/server/*.js`. Các trình quét chuỗi cung ứng dựa trên
-phương pháp heuristic thường xuyên đối sánh mẫu các chunk đó với chữ ký phần mềm độc hại.
+> **Lưu ý về phạm vi:** `socket.yml` tại thư mục gốc của kho lưu trữ chỉ định hình `projectIgnorePaths` cho quy trình quét sau khi phát hành ở phía registry của Socket.dev đối với gói npm đã phát hành — đây không phải là cổng kiểm soát bắt buộc để hợp nhất CI/PR. Không có workflow nào trong `.github/workflows`, không có script nào trong `package.json` và không có target nào trong `Makefile` gọi Socket.dev.
 
-Cấu hình trình quét mà chúng tôi sử dụng nằm tại [`socket.yml`](socket.yml) ở thư mục
-gốc của repo (định dạng Socket.dev GitHub App v2 — xem
-<https://docs.socket.dev/docs/socket-yml>). Cấu hình này loại trừ rõ ràng các thư mục
-không được phân phối (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/`, v.v.) để trình quét chỉ báo cáo những đường dẫn mã thực sự
-đến được người dùng của bản phát hành — chính quá trình quét được vận hành bởi Socket
-GitHub App khi đọc tệp đó, chứ không phải bởi một workflow trong repository này.
+Gói npm `omniroute` đã phát hành bao gồm bản dựng Next.js với `output: "standalone"`,
+điều này có nghĩa là mọi trình xử lý route — bao gồm cả các tính năng đặc quyền
+đã được ghi lại trong tài liệu (MITM, nhập Zed, Cloud Sync, trình giám sát dịch vụ nhúng) — đều
+nằm trong các chunk rút gọn `.next/server/*.js`. Các trình quét chuỗi cung ứng dựa trên phương pháp heuristic
+thường xuyên đối chiếu mẫu của các chunk đó với các chữ ký phần mềm độc hại.
 
-Đối với mỗi hạng mục phát hiện, chúng tôi duy trì một bản xác nhận của người bảo trì
-cho từng phát hiện:
+Cấu hình trình quét mà chúng tôi sử dụng nằm tại [`socket.yml`](socket.yml) ở
+thư mục gốc của kho lưu trữ (định dạng Socket.dev GitHub App v2 — xem
+<https://docs.socket.dev/docs/socket-yml>). Cấu hình này loại trừ rõ ràng
+các thư mục không được phân phối (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, v.v.) để trình quét chỉ báo cáo các đường dẫn mã
+thực sự đến được người dùng của gói đã phát hành — bản thân quy trình quét được thực hiện bởi Socket
+GitHub App khi đọc tệp đó, chứ không phải bởi một workflow trong kho lưu trữ này.
+
+Đối với mỗi danh mục phát hiện, chúng tôi duy trì một bản xác nhận của người bảo trì cho từng phát hiện:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
   ánh xạ theo từng phát hiện: tệp nguồn ↔ chunk bị gắn cờ ↔ hành vi ↔ biện pháp giảm thiểu
@@ -245,10 +246,10 @@ cho từng phát hiện:
 - Các khối `SECURITY-AUDITOR-NOTE:` trong mã nguồn tại mỗi hàm bị gắn cờ
   đều trỏ về cùng tài liệu đó.
 
-Đối với người dùng có pipeline không thể nới lỏng cảnh báo: hãy xây dựng bằng
+Đối với những người dùng có pipeline không thể nới lỏng cảnh báo: hãy xây dựng bằng
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Thao tác này thay thế bốn
 mô-đun nhạy cảm bằng các stub trả về HTTP 503 `feature-disabled` trong
-thời gian chạy, nhờ đó các đường dẫn mã đặc quyền hoàn toàn không xuất hiện trong bundle.
+thời gian chạy, nhờ đó các đường dẫn mã đặc quyền hoàn toàn không xuất hiện trong gói.
 Xem [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 để biết quy trình phát hành.
 

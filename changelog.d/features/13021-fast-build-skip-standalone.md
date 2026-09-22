@@ -1,1 +1,0 @@
-- **feat(build):** add build:fast and start:fast to bypass standalone tracing ([#13021](https://github.com/diegosouzapw/OmniRoute/pull/13021)) — thanks @tuandinh0801

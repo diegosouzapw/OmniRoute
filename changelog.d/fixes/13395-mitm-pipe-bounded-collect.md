@@ -1,1 +1,0 @@
-- **fix(mitm):** bound per-request SSE transcript retention to 1 MiB and stop the upstream read when the downstream disconnects — handler-side `collected` strings grew without bound before the inspector clamp, and abandoned streams kept the reader alive for the full upstream lifetime ([#13395](https://github.com/diegosouzapw/OmniRoute/issues/13395))

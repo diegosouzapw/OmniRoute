@@ -73,6 +73,19 @@ const onboardLocks = new Map<string, Promise<void>>();
 export const ANTIGRAVITY_REQUIRES_MANUAL_PROJECT = "__REQUIRES_GCP_PROJECT__";
 
 /**
+ * True only for a real GCP project id. Empty values and the
+ * ANTIGRAVITY_REQUIRES_MANUAL_PROJECT sentinel are NOT usable: the sentinel is a
+ * control signal, never a project — persisting or sending it upstream makes the
+ * account look configured (it then wins account selection) while every request
+ * fails with `Project 'projects/__REQUIRES_GCP_PROJECT__' not found`.
+ */
+export function isUsableAntigravityProjectId(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  return trimmed !== "" && trimmed !== ANTIGRAVITY_REQUIRES_MANUAL_PROJECT;
+}
+
+/**
  * Per-token cache of accounts Google told us to Bring Your Own Project.
  * Permanent for the process lifetime (LRU-capped): re-running onboardUser
  * for such an account is a pointless ~18s quota-check round-trip that

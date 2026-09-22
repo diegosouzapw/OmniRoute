@@ -5,18 +5,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { errorResponseWithComboDiagnostics } from "../../../open-sse/utils/error.ts";
-import type { ComboDiagnostics, RecoveryAction } from "../../../open-sse/utils/error.ts";
+import type { ComboDiagnostics, ComboRecoveryAction } from "../../../open-sse/utils/error.ts";
 
 type JsonBody = { diagnostics?: { recovery?: Record<string, unknown> } };
 
 function emptyDiag(overrides?: Partial<ComboDiagnostics>): ComboDiagnostics {
   return {
-    combo_name: "my-combo",
-    strategy: "priority",
-    targets_tried: [],
-    last_status: 503,
-    last_error: "all targets failed",
-    terminal_reason: "max_attempts_exceeded",
+    poolSize: 3,
+    attempted: 2,
+    excluded: [],
+    attemptOrder: [],
+    terminalReason: "max_attempts_exceeded",
     ...overrides,
   };
 }
@@ -24,7 +23,7 @@ function emptyDiag(overrides?: Partial<ComboDiagnostics>): ComboDiagnostics {
 test("recovery with try-auto action is present in response body", async () => {
   const diag = emptyDiag({
     recovery: {
-      action: "try-auto" as RecoveryAction,
+      action: "try-auto" as ComboRecoveryAction,
       next_step: "All exhausted. Use model: auto.",
     },
   });
@@ -38,7 +37,7 @@ test("recovery with try-auto action is present in response body", async () => {
 test("recovery with wait action and retry_after_seconds", async () => {
   const diag = emptyDiag({
     recovery: {
-      action: "wait" as RecoveryAction,
+      action: "wait" as ComboRecoveryAction,
       next_step: "Rate limited.",
       retry_after_seconds: 30,
     },
@@ -51,7 +50,7 @@ test("recovery with wait action and retry_after_seconds", async () => {
 
 test("recovery with switch-combo action", async () => {
   const diag = emptyDiag({
-    recovery: { action: "switch-combo" as RecoveryAction, next_step: "No healthy targets." },
+    recovery: { action: "switch-combo" as ComboRecoveryAction, next_step: "No healthy targets." },
   });
   const res = errorResponseWithComboDiagnostics(503, "no targets", diag);
   const body = (await res.json()) as JsonBody;
@@ -68,7 +67,7 @@ test("recovery hint omitted when recovery is undefined", async () => {
 test("x-omniroute-recovery-action header emitted when recovery present", async () => {
   const diag = emptyDiag({
     recovery: {
-      action: "try-auto" as RecoveryAction,
+      action: "try-auto" as ComboRecoveryAction,
       next_step: "Auto-select available providers.",
     },
   });
@@ -82,7 +81,7 @@ test("x-omniroute-recovery-action header emitted when recovery present", async (
 
 test("x-omniroute-retry-after-seconds header emitted when retry_after_seconds set", async () => {
   const diag = emptyDiag({
-    recovery: { action: "wait" as RecoveryAction, next_step: "wait", retry_after_seconds: 45 },
+    recovery: { action: "wait" as ComboRecoveryAction, next_step: "wait", retry_after_seconds: 45 },
   });
   const res = errorResponseWithComboDiagnostics(429, "rate limited", diag);
   assert.equal(res.headers.get("x-omniroute-retry-after-seconds"), "45");
@@ -90,7 +89,11 @@ test("x-omniroute-retry-after-seconds header emitted when retry_after_seconds se
 
 test("x-omniroute-retry-after-seconds omitted when retry_after_seconds is 0", async () => {
   const diag = emptyDiag({
-    recovery: { action: "retry" as RecoveryAction, next_step: "retry", retry_after_seconds: 0 },
+    recovery: {
+      action: "retry" as ComboRecoveryAction,
+      next_step: "retry",
+      retry_after_seconds: 0,
+    },
   });
   const res = errorResponseWithComboDiagnostics(503, "transient", diag);
   assert.equal(res.headers.get("x-omniroute-retry-after-seconds"), null);
@@ -106,7 +109,7 @@ test("x-omniroute-recovery-* headers omitted when recovery is undefined", async 
 test("next_step sanitized (newlines → spaces, max 128 chars)", async () => {
   const longStep = "A".repeat(200) + "\nwith\nnewlines";
   const diag = emptyDiag({
-    recovery: { action: "try-auto" as RecoveryAction, next_step: longStep },
+    recovery: { action: "try-auto" as ComboRecoveryAction, next_step: longStep },
   });
   const res = errorResponseWithComboDiagnostics(503, "exhausted", diag);
   const sanitized = res.headers.get("x-omniroute-recovery-next-step")!;
@@ -115,7 +118,9 @@ test("next_step sanitized (newlines → spaces, max 128 chars)", async () => {
 });
 
 test("drops recovery when next_step is whitespace-only", async () => {
-  const diag = emptyDiag({ recovery: { action: "try-auto" as RecoveryAction, next_step: "   " } });
+  const diag = emptyDiag({
+    recovery: { action: "try-auto" as ComboRecoveryAction, next_step: "   " },
+  });
   const res = errorResponseWithComboDiagnostics(503, "exhausted", diag);
   const body = (await res.json()) as JsonBody;
   assert.equal(body.diagnostics?.recovery, undefined);
@@ -124,7 +129,7 @@ test("drops recovery when next_step is whitespace-only", async () => {
 
 test("invalid action causes recovery to be dropped", async () => {
   const diag = emptyDiag({
-    recovery: { action: "garbage" as RecoveryAction, next_step: "something" },
+    recovery: { action: "garbage" as ComboRecoveryAction, next_step: "something" },
   });
   const res = errorResponseWithComboDiagnostics(503, "exhausted", diag);
   const body = (await res.json()) as JsonBody;

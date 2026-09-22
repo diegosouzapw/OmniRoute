@@ -15,6 +15,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
+import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
@@ -338,20 +339,6 @@ function isWreqProxySupported(proxyUrl: string): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Redact proxy URLs (and any bare `user:pass@host` credential tokens) from an
- * upstream transport-error message before it is surfaced. #10032 keeps the
- * underlying failure reason in the propagated error for diagnosability, but
- * the raw message can embed the full proxy URL — including userinfo
- * credentials — which must never bubble into response bodies (#9837, Hard
- * Rule #12).
- */
-function redactProxyDetailsInMessage(message: string): string {
-  return message
-    .replace(/\b(?:https?|socks[45][ah]?|socks):\/\/\S+/gi, "[redacted-proxy]")
-    .replace(/\b[^\s:@/]+:[^\s@/]*@\S+/g, "[redacted-proxy]");
 }
 
 function sanitizeTransportError(
@@ -908,7 +895,10 @@ async function patchedFetchUnrecorded(
             continue;
           }
           if (hasNonReplayableBody) {
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[skipped: non-replayable request body]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              "skipped: non-replayable request body"
+            );
             console.warn(
               `[ProxyFetch] skipping native fetch fallback for non-replayable body: ${detail}`
             );
@@ -952,7 +942,10 @@ async function patchedFetchUnrecorded(
             return await _nativeFallback(input, options);
           } catch (nativeError) {
             // Surface both dispatcher and native causes immediately.
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[${describeFetchCause(nativeError)}]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              describeFetchCause(nativeError)
+            );
             console.warn(`[ProxyFetch] native fetch fallback ALSO failed: ${detail}`);
             if (nativeError instanceof Error) {
               (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;

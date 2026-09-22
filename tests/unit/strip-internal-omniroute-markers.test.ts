@@ -165,3 +165,75 @@ test("DefaultExecutor.execute never serializes _omniroute* markers into the upst
     assert.ok(raw.includes("claude-opus-5"), "real payload must survive the strip");
   }
 });
+
+// Cross-layer production regression: universal-handoff itself must reach the common
+// executor egress boundary before serialization. Its internal control markers are
+// deliberately present while the dispatcher runs, but must be absent from fetch.
+test("universal-handoff dispatch never serializes _omniroute markers upstream", async () => {
+  const { maybeGenerateUniversalHandoff, DEFAULT_UNIVERSAL_HANDOFF_CONFIG } =
+    await import("../../open-sse/services/contextHandoff.ts");
+  const { prepareUpstreamBody } = await import("../../open-sse/handlers/chatCore/upstreamBody.ts");
+
+  const sentBodies: string[] = [];
+
+  let resolveDispatch: (() => void) | undefined;
+  const dispatched = new Promise<void>((resolve) => {
+    resolveDispatch = resolve;
+  });
+
+  maybeGenerateUniversalHandoff({
+    sessionId: "universal-handoff-marker-leak",
+    comboName: "universal-handoff-marker-leak",
+    messages: [{ role: "user", content: "Retain this context." }],
+    prevModel: "anthropic/claude-opus-5",
+    currModel: "anthropic/claude-sonnet-5",
+    universalConfig: {
+      ...DEFAULT_UNIVERSAL_HANDOFF_CONFIG,
+      enabled: true,
+      handoffModel: "anthropic/claude-sonnet-5",
+    },
+    handleSingleModel: async (body, model) => {
+      // Model a custom executor that serializes its payload itself instead of
+      // inheriting BaseExecutor's serializer. The shared boundary must remove
+      // the markers before such an executor receives its body.
+      const prepared = await prepareUpstreamBody({
+        translatedBody: body,
+        modelToCall: model,
+        provider: "custom-provider",
+        targetFormat: "openai",
+        credentials: {},
+      });
+      sentBodies.push(JSON.stringify(prepared));
+      resolveDispatch?.();
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  summary: "A valid handoff summary.",
+                  keyDecisions: [],
+                  taskProgress: "",
+                  activeEntities: [],
+                }),
+              },
+            },
+          ],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    },
+  });
+
+  await dispatched;
+
+  assert.ok(sentBodies.length > 0, "universal handoff must dispatch an upstream request");
+  for (const raw of sentBodies) {
+    const payload = JSON.parse(raw) as Record<string, unknown>;
+    for (const key of Object.keys(payload)) {
+      assert.ok(!key.startsWith("_omniroute"), `internal marker leaked upstream: ${key}`);
+    }
+    assert.equal(payload.model, "anthropic/claude-sonnet-5");
+    assert.ok(Array.isArray(payload.messages), "the summary request must retain its messages");
+  }
+});

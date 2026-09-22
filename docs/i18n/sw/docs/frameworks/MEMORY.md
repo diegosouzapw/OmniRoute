@@ -1,6 +1,6 @@
 # Memory System (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
 
 ---
 
@@ -169,35 +169,37 @@ Jedwali la `memory_vec_meta` (uhamishaji `083_memory_vec.sql`) huhifadhi:
 
 ## Kiendelezi cha mipangilio
 
-Sehemu tisa za embedding na vekta zinapatikana katika `MemorySettingsExtended` ndani ya
+Sehemu tisa za upachikaji na vekta zinapatikana katika `MemorySettingsExtended` ndani ya
 `src/shared/schemas/memory.ts`, na huhifadhiwa kupitia `src/lib/db/settings.ts`:
 
 | Sehemu                   | Aina                                               | Chaguo-msingi | Maelezo                                                               |
 | ------------------------ | -------------------------------------------------- | ------------- | --------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Chanzo cha embedding kitakachotumika                                  |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Chanzo cha upachikaji cha kutumia                                     |
 | `embeddingProviderModel` | `string \| null`                                   | `null`        | Mtoa huduma/modeli katika muundo wa `provider/model`                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | URL msingi ya endpoint inayooana na OpenAI kwa Kumbukumbu pekee       |
-| `customModelId`          | `string \| null`                                   | `null`        | Kitambulisho cha modeli kinachotumwa kwenye endpoint maalum           |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Hiari ya kutumia Transformers.js (MiniLM, ~400MB)                     |
-| `staticEnabled`          | `boolean`                                          | `false`       | Hiari ya kutumia modeli tuli ya ndani ya potion-base-8M               |
-| `rerankEnabled`          | `boolean`                                          | `false`       | Washa hatua ya kupanga upya (huongeza +200-500ms/ombi)                |
+| `customBaseUrl`          | `string \| null`                                   | `null`        | URL msingi ya endpoint inayooana na OpenAI kwa Memory pekee           |
+| `customModelId`          | `string \| null`                                   | `null`        | Kitambulisho cha modeli kinachotumwa kwa endpoint maalum              |
+| `transformersEnabled`    | `boolean`                                          | `false`       | Kujijumuisha katika Transformers.js (MiniLM, ~400MB)                  |
+| `staticEnabled`          | `boolean`                                          | `false`       | Kujijumuisha katika modeli tuli ya ndani ya potion-base-8M            |
+| `rerankEnabled`          | `boolean`                                          | `false`       | Washa hatua ya upangaji upya (huongeza +200-500ms/req)                |
 | `rerankProviderModel`    | `string \| null`                                   | `null`        | Mtoa huduma/modeli ya upangaji upya katika muundo wa `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`      | Mfumo wa nyuma wa vekta utakaotumika                                  |
+
+`rerankProviderModel` hutatuliwa na `POST /v1/rerank` (inayoitwa kupitia loopback), kwa hivyo inakubali chochote ambacho route hiyo inakubali: modeli ya upangaji upya ya wingu iliyochaguliwa (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) au nodi ya mtoa huduma inayooana na OpenAI kama `<node-prefix>/<model>` (kwa mfano `skilled-mini/bge-reranker-v2-m3` kwa TEI/Infinity box). Nodi za loopback zinastahiki kila wakati; nodi iliyo kwenye host nyingine (LAN, Tailscale) pia inahitaji feature flag ya `RERANK_REMOTE_PROVIDER_NODES` na lazima ipitishe sera ya URL zinazotoka ya mtoa huduma — tazama [Feature Flags](../reference/FEATURE_FLAGS.md). Kiteuzi cha dashibodi huorodhesha watoa huduma waliochaguliwa pamoja na nodi za ndani; string yoyote halali ya `provider/model` inaweza kuwekwa moja kwa moja kupitia `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend ya vekta ya kutumia |
 
 Hizi zinapatikana kupitia `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
-Kwa chanzo cha `remote`, Kumbukumbu pia hukubali mipangilio ya hiari ya `customBaseUrl` na
+Kwa chanzo cha `remote`, Memory pia hukubali mipangilio ya hiari ya `customBaseUrl` na
 `customModelId`. Kwa pamoja, huchagua endpoint ya `/embeddings` inayooana na OpenAI
-na modeli bila kubadilisha sajili ya kimataifa ya embedding. Endpoint husawazishwa
-kabla ya kutumiwa na hukaguliwa na sera ya URL ya nje ya mtoa huduma: HTTP(S)
-inahitajika, vitambulisho vilivyopachikwa na mifuatano ya hoja hukataliwa, na anwani
-za metadata za wingu huendelea kuzuiwa. Thamani tupu huhifadhi mtoa huduma wa sajili
-aliyechaguliwa. Hitilafu zinazorejeshwa kwenye dashibodi husafishwa na vitambulisho
-vya endpoint haviwekwi kamwe kwenye kumbukumbu za matukio.
+na modeli bila kubadilisha sajili ya kimataifa ya upachikaji. Endpoint husawazishwa
+kabla ya kutumiwa na hukaguliwa na sera ya URL zinazotoka ya mtoa huduma: HTTP(S)
+inahitajika, taarifa za uthibitishaji zilizopachikwa na query string hukataliwa, na
+anwani za metadata za wingu huendelea kuzuiwa. Thamani tupu huhifadhi mtoa huduma
+wa sajili aliyechaguliwa. Hitilafu zinazorejeshwa kwenye dashibodi husafishwa na
+taarifa za uthibitishaji za endpoint kamwe haziwekwi kwenye kumbukumbu.
 
-> **TODO (D20):** Upeo wa `global` (kushiriki kumbukumbu kwenye funguo zote za API)
-> haujatekelezwa katika toleo hili. Unahitaji mabadiliko ya schema na njia ya
-> urejeshaji ya kimataifa. Ufuatilie kando.
+> **TODO (D20):** Upeo wa `global` (kushiriki kumbukumbu katika API key zote)
+> haujatekelezwa katika toleo hili. Unahitaji mabadiliko ya schema na njia ya kimataifa
+> ya urejeshaji. Ufuatilie kando.
 
 ## Tabaka za Hifadhi
 
