@@ -150,58 +150,159 @@ export function startAutoEvaluationTrace(invocationId: string): void {
   });
 }
 
-export function recordAutoEvaluationStage(
-  invocationId: string,
-  stage: AutoEvaluationStage
+type AutoTraceCandidate = {
+  provider: string;
+  model: string;
+  modelStr?: string;
+  connectionId?: string | null;
+  allowedConnectionIds?: string[];
+};
+
+function autoTarget(candidate: AutoTraceCandidate): string {
+  return candidate.modelStr ?? `${candidate.provider}/${candidate.model}`;
+}
+
+function autoScope(
+  candidate: AutoTraceCandidate
+): AutoEvaluationCandidate["connectionScope"] {
+  if (candidate.connectionId === "noauth") return "noauth";
+  if (candidate.connectionId) return "single";
+  const count = candidate.allowedConnectionIds?.length ?? 0;
+  return count > 1 ? "multiple" : count === 1 ? "single" : "none";
+}
+
+function withAutoEvaluation(
+  invocationId: string | undefined,
+  write: (evaluation: AutoEvaluationTrace) => void
 ): void {
+  if (!invocationId) return;
   bestEffortAutoEvaluationWrite(() => {
     const evaluation = traces.get(invocationId)?.autoEvaluation;
-    if (!evaluation || evaluation.stages.includes(stage)) return;
-    evaluation.stages.push(stage);
+    if (evaluation) write(evaluation);
   });
 }
 
-function autoCandidateKey(candidate: AutoEvaluationCandidate): string {
-  return [
-    candidate.target,
-    candidate.provider,
-    candidate.model,
-    candidate.connectionScope,
-  ].join("\u0000");
+function markAutoStage(evaluation: AutoEvaluationTrace, stage: AutoEvaluationStage): void {
+  if (!evaluation.stages.includes(stage)) evaluation.stages.push(stage);
 }
 
-export function recordAutoEvaluationCandidate(
-  invocationId: string,
-  candidate: AutoEvaluationCandidate
-): void {
-  bestEffortAutoEvaluationWrite(() => {
-    const evaluation = traces.get(invocationId)?.autoEvaluation;
-    if (!evaluation) return;
-    const key = autoCandidateKey(candidate);
-    if (evaluation.candidates.some((existing) => autoCandidateKey(existing) === key)) return;
-    evaluation.candidates.push({ ...candidate });
-  });
-}
-
-export function recordAutoEvaluationTransition(
-  invocationId: string,
+function pushAutoTransition(
+  evaluation: AutoEvaluationTrace,
   transition: Omit<AutoEvaluationTransition, "ts">
 ): void {
-  bestEffortAutoEvaluationWrite(() => {
-    const evaluation = traces.get(invocationId)?.autoEvaluation;
-    if (!evaluation) return;
-    if (transition.reason !== undefined && !isComboSkipReason(transition.reason)) return;
-    if (
-      evaluation.transitions.some(
-        (existing) =>
-          existing.target === transition.target &&
-          existing.stage === transition.stage &&
-          existing.outcome === transition.outcome
-      )
-    ) {
-      return;
+  if (
+    evaluation.transitions.some(
+      (existing) =>
+        existing.target === transition.target &&
+        existing.stage === transition.stage &&
+        existing.outcome === transition.outcome
+    )
+  ) return;
+  evaluation.transitions.push({ ...transition, ts: Date.now() });
+}
+
+export function recordAutoCandidatePool(
+  invocationId: string | undefined,
+  pool: readonly AutoTraceCandidate[]
+): void {
+  withAutoEvaluation(invocationId, (evaluation) => {
+    for (const candidate of pool) {
+      const entry: AutoEvaluationCandidate = {
+        target: autoTarget(candidate),
+        provider: candidate.provider,
+        model: candidate.model,
+        connectionScope: autoScope(candidate),
+      };
+      if (!evaluation.candidates.some((existing) =>
+        existing.target === entry.target &&
+        existing.provider === entry.provider &&
+        existing.model === entry.model &&
+        existing.connectionScope === entry.connectionScope
+      )) evaluation.candidates.push(entry);
     }
-    evaluation.transitions.push({ ...transition, ts: Date.now() });
+  });
+}
+
+export function recordAutoStage(
+  invocationId: string | undefined,
+  stage: AutoEvaluationStage
+): void {
+  withAutoEvaluation(invocationId, (evaluation) => markAutoStage(evaluation, stage));
+}
+
+export function recordAutoExclusion(
+  invocationId: string | undefined,
+  candidate: AutoTraceCandidate,
+  stage: AutoEvaluationStage,
+  reason: ComboSkipReason,
+  detail?: string
+): void {
+  withAutoEvaluation(invocationId, (evaluation) => {
+    markAutoStage(evaluation, stage);
+    pushAutoTransition(evaluation, {
+      target: autoTarget(candidate),
+      stage,
+      outcome: "excluded",
+      reason,
+      ...(detail ? { detail } : {}),
+    });
+  });
+}
+
+export function recordAutoNarrowing(
+  invocationId: string | undefined,
+  candidate: AutoTraceCandidate,
+  stage: AutoEvaluationStage,
+  reason: ComboSkipReason,
+  detail?: string
+): void {
+  withAutoEvaluation(invocationId, (evaluation) => {
+    markAutoStage(evaluation, stage);
+    pushAutoTransition(evaluation, {
+      target: autoTarget(candidate),
+      stage,
+      outcome: "narrowed",
+      reason,
+      ...(detail ? { detail } : {}),
+    });
+  });
+}
+
+export function recordAutoDroppedCandidates(
+  invocationId: string | undefined,
+  before: readonly AutoTraceCandidate[],
+  after: readonly AutoTraceCandidate[],
+  stage: AutoEvaluationStage
+): void {
+  withAutoEvaluation(invocationId, (evaluation) => {
+    markAutoStage(evaluation, stage);
+    if (before === after) return;
+    const surviving = new Set(after.map(autoTarget));
+    for (const candidate of before) {
+      if (!surviving.has(autoTarget(candidate))) {
+        pushAutoTransition(evaluation, {
+          target: autoTarget(candidate),
+          stage,
+          outcome: "excluded",
+          reason: "auto_candidate_filter",
+        });
+      }
+    }
+  });
+}
+
+export function recordAutoSurvivors(
+  invocationId: string | undefined,
+  pool: readonly AutoTraceCandidate[]
+): void {
+  withAutoEvaluation(invocationId, (evaluation) => {
+    for (const candidate of pool) {
+      pushAutoTransition(evaluation, {
+        target: autoTarget(candidate),
+        stage: "dispatch",
+        outcome: "retained",
+      });
+    }
   });
 }
 

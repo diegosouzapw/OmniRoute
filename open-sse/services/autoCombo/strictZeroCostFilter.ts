@@ -59,7 +59,7 @@ import {
   recordAutoExclusion,
   recordAutoNarrowing,
   recordAutoStage,
-} from "./autoEvaluationTrace";
+} from "../combo/decisionTrace.ts";
 
 export type FreeAccessStatus = "SAFE" | "EXHAUSTED" | "UNKNOWN";
 

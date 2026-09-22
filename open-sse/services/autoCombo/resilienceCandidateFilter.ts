@@ -12,7 +12,7 @@ import {
   recordAutoExclusion,
   recordAutoNarrowing,
   recordAutoStage,
-} from "./autoEvaluationTrace.ts";
+} from "../combo/decisionTrace.ts";
 
 export const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 

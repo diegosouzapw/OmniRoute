@@ -63,7 +63,7 @@ import {
   recordAutoCandidatePool,
   recordAutoDroppedCandidates,
   recordAutoSurvivors,
-} from "./autoEvaluationTrace";
+} from "../combo/decisionTrace.ts";
 import { computeAdvertisedLimits } from "./advertisedLimits";
 
 export { computeAdvertisedLimits };
