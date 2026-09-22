@@ -220,35 +220,40 @@ docker run -d \
 10. **`env` விருப்பத்தின் வழியாக `exec()` / `spawn()` இயக்கநேர மதிப்புகள்** — வெளிப்புறப் பாதைகள் அல்லது நம்பகமற்ற மதிப்புகளை shell வழியாக அனுப்பப்படும் scripts-க்குள் string interpolation செய்ய வேண்டாம். மேற்கோள்: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **இயல்பாகவே பாதுகாப்பான நூலகங்களுக்கு முன்னுரிமை அளிக்கவும்** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)-ஐப் பார்க்கவும் (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). சொந்தமாக உருவாக்குவதற்கு முன் அவற்றைப் பயன்படுத்த முயலவும்.
 
-## மென்பொருள் விநியோகச் சங்கிலி ஸ்கேனர் கண்டறிதல்கள் (Socket.dev / Snyk / இதுபோன்றவை)
+## விநியோகச் சங்கிலி ஸ்கேனர் கண்டுபிடிப்புகள் (Socket.dev / Snyk / அதைப் போன்றவை)
 
-வெளியிடப்பட்ட `omniroute` npm கலைப்பொருள், Next.js `output: "standalone"`
-உருவாக்கத்தைத் தொகுப்பாகக் கொண்டுள்ளது. இதன் பொருள், ஆவணப்படுத்தப்பட்ட சிறப்புரிமை அம்சங்கள்
-(MITM, Zed இறக்குமதி, Cloud Sync, உட்பொதிக்கப்பட்ட சேவை மேற்பார்வையாளர்) உட்பட ஒவ்வொரு route handler-உம்
-`.next/server/*.js` சிறிதாக்கப்பட்ட துண்டுகளில் சேர்க்கப்படுகிறது. அனுமான விதிகளைக் கொண்ட மென்பொருள் விநியோகச் சங்கிலி ஸ்கேனர்கள்
-அந்தத் துண்டுகளைத் தீம்பொருள் கையொப்பங்களுடன் அடிக்கடி வடிவப் பொருத்தம் செய்கின்றன.
+> **வரம்புக் குறிப்பு:** repository மூலத்தில் உள்ள `socket.yml`, வெளியிடப்பட்ட npm artifact மீது Socket.dev மேற்கொள்ளும் registry-side வெளியீட்டுக்குப் பிந்தைய ஸ்கேனுக்கான `projectIgnorePaths`-ஐ மட்டுமே வரையறுக்கிறது — இது கட்டாயப்படுத்தப்பட்ட CI/PR merge gate அல்ல. `.github/workflows`-இல் உள்ள எந்த workflow-வும், எந்த `package.json` script-உம், எந்த `Makefile` target-உம் Socket.dev-ஐ இயக்குவதில்லை.
 
-நாங்கள் பயன்படுத்தும் ஸ்கேனர் உள்ளமைவு, repo மூலத்தில் உள்ள [`socket.yml`](socket.yml)-இல் உள்ளது
-(Socket.dev GitHub App வடிவம் v2 — பார்க்கவும்
-<https://docs.socket.dev/docs/socket-yml>). இது வெளியிடப்படாத
-கோப்பகங்களை (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` போன்றவை) வெளிப்படையாக விலக்குகிறது; எனவே, உண்மையில்
-வெளியிடப்பட்ட பயனர்களைச் சென்றடையும் குறியீட்டுப் பாதைகள் குறித்து மட்டுமே ஸ்கேனர் அறிக்கையிடுகிறது — ஸ்கேன் செயல்முறையே இந்தக் கோப்பைப் படிக்கும் Socket
-GitHub App மூலம் இயக்கப்படுகிறது; இந்தக் களஞ்சியத்திலுள்ள workflow மூலம் அல்ல.
+வெளியிடப்பட்ட `omniroute` npm artifact, Next.js `output: "standalone"`
+build-ஐத் தொகுப்பில் உள்ளடக்குகிறது; அதாவது ஆவணப்படுத்தப்பட்ட சிறப்பு உரிமை கொண்ட
+அம்சங்கள் (MITM, Zed import, Cloud Sync, உட்பொதிக்கப்பட்ட service supervisor) உட்பட
+ஒவ்வொரு route handler-உம் `.next/server/*.js` minified chunk-களில்
+இடம்பெறுகிறது. Heuristic விநியோகச் சங்கிலி ஸ்கேனர்கள், அந்த chunk-களை
+malware signature-களுடன் அடிக்கடி pattern-match செய்கின்றன.
 
-ஒவ்வொரு கண்டறிதல் வகைக்கும், ஒவ்வொரு கண்டறிதலுக்குமான பராமரிப்பாளர் சான்றுறுதியை நாங்கள் பராமரிக்கிறோம்:
+நாங்கள் பயன்படுத்தும் ஸ்கேனர் உள்ளமைவு, repo மூலத்தில் உள்ள
+[`socket.yml`](socket.yml)-இல் உள்ளது (Socket.dev GitHub App format v2 — பார்க்கவும்
+<https://docs.socket.dev/docs/socket-yml>). இது விநியோகிக்கப்படாத
+அடைவுகளை (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` போன்றவை) வெளிப்படையாக விலக்குகிறது; இதனால் வெளியிடப்பட்ட
+பயனர்களை உண்மையில் சென்றடையும் code path-களை மட்டுமே ஸ்கேனர் அறிக்கையிடும் —
+ஸ்கேன், இந்த repository-இல் உள்ள workflow ஒன்றால் அல்லாமல், அந்தக் கோப்பைப்
+படிக்கும் Socket GitHub App மூலம் இயக்கப்படுகிறது.
+
+ஒவ்வொரு கண்டுபிடிப்பு வகைக்கும், ஒவ்வொரு கண்டுபிடிப்புக்குமான maintainer சான்றுறுதியைப் பராமரிக்கிறோம்:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  ஒவ்வொரு கண்டறிதலுக்குமான வரைபடம்: மூலக் கோப்பு ↔ குறியிடப்பட்ட துண்டு ↔ நடத்தை ↔
+  ஒவ்வொரு கண்டுபிடிப்புக்குமான வரைபடம்: source file ↔ flag செய்யப்பட்ட chunk ↔ செயல்பாடு ↔
   v3.8.6-இல் பயன்படுத்தப்பட்ட தணிப்பு.
-- குறியிடப்பட்ட ஒவ்வொரு function இடத்திலுமுள்ள மூலக் குறியீட்டு `SECURITY-AUDITOR-NOTE:` தொகுதிகள்
-  அதே ஆவணத்தைச் சுட்டுகின்றன.
+- flag செய்யப்பட்ட ஒவ்வொரு function-இலும் உள்ள source `SECURITY-AUDITOR-NOTE:` block-கள்,
+  அதே ஆவணத்திற்குத் திரும்பச் சுட்டுகின்றன.
 
-எச்சரிக்கையைத் தளர்த்த முடியாத pipeline-களைக் கொண்ட பயனர்கள்:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` மூலம் உருவாக்கவும். இது நான்கு
-உணர்திறன் வாய்ந்த modules-ஐ, runtime-இல் HTTP 503 `feature-disabled`-ஐத் திருப்பி அனுப்பும் stubs-ஆல்
-மாற்றுகிறது; எனவே சிறப்புரிமை பெற்ற குறியீட்டுப் பாதைகள் bundle-இல் இருந்து உடல்ரீதியாக அகற்றப்படுகின்றன.
-வெளியீட்டு செய்முறைக்கு [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)-ஐப்
+alert-ஐத் தளர்த்த முடியாத pipeline-ஐக் கொண்ட பயனர்கள்:
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` மூலம் build செய்யவும். இது நான்கு
+உணர்திறன் மிக்க module-களையும், runtime-இல் HTTP 503 `feature-disabled`-ஐத்
+திருப்பித் தரும் stub-களால் மாற்றுகிறது; எனவே சிறப்பு உரிமை கொண்ட code path-கள் bundle-இல்
+நேரடியாகவே இடம்பெறாது. வெளியீட்டு செய்முறைக்கு
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)-ஐப்
 பார்க்கவும்.
 
 ## மேற்கோள்கள்

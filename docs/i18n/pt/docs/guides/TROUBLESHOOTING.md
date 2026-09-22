@@ -68,16 +68,24 @@ Defina estas variáveis no ambiente do processo do OmniRoute (o daemon, por exem
 
 ## Avisos do npm install (ERESOLVE / peer / deprecated)
 
-Ao executar `npm install -g omniroute`, poderá ver uma série de avisos como `npm warn ERESOLVE`, notificações sobre dependências peer e mensagens `deprecated`. **Estes avisos são esperados e inofensivos.** A instalação foi bem-sucedida se vir `added <N> packages` no resultado.
+Ao executar `npm install -g omniroute`, poderá ver uma grande quantidade de avisos, como `npm warn ERESOLVE`, notificações de dependências peer e mensagens `deprecated`. **Estes avisos são esperados e inofensivos.** A instalação foi concluída com êxito se vir `added <N> packages` no output.
 
-Os avisos são causados por intervalos desatualizados de dependências peer em pacotes de terceiros que a OmniRoute não controla:
+Para suprimir os avisos de resolução de dependências peer, utilize a forma de instalação suportada pelo OmniRoute:
 
-1. **`marked-terminal` requer `marked >=1 <16`, mas foi encontrado `marked@18`** — na prática, funciona sem problemas; o intervalo peer do projeto upstream está apenas desatualizado.
-2. **`deprecated prebuild-install@7.1.3`** — um utilitário transitivo para obter binários nativos. Não é
-   utilizado para instalar a ligação de transporte `wreq-js` fixada e não indica que a configuração
-   do transporte do fornecedor de cookies Web tenha falhado.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Não é necessária qualquer ação** — os avisos não podem ser totalmente ocultados sem criar forks dos pacotes upstream.
+`--legacy-peer-deps` suprime apenas o `ERESOLVE` e as notificações de dependências peer. As notificações de descontinuação permanecem visíveis porque são provenientes de pacotes transitivos de terceiros; não indicam que a instalação falhou.
+
+Os avisos resultam de intervalos de dependências peer desatualizados em pacotes de terceiros que o OmniRoute não controla:
+
+1. **`marked-terminal` requer `marked >=1 <16`, mas foi encontrado `marked@18`** — na prática, funciona corretamente; o intervalo peer do projeto upstream está apenas desatualizado.
+2. **`deprecated prebuild-install@7.1.3`** — um auxiliar transitivo para obter binários nativos. Não é
+   utilizado para instalar o binding de transporte `wreq-js` fixado e não indica que a configuração
+   do transporte do fornecedor de cookies da Web tenha falhado.
+
+**Não é necessária qualquer ação** — os avisos não podem ser totalmente silenciados sem criar forks dos pacotes upstream.
 
 ---
 

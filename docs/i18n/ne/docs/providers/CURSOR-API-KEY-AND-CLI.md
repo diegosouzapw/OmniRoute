@@ -4,22 +4,36 @@
 
 ---
 
-IDE सत्रबिना Cursor लाई OmniRoute पछाडि राख्ने दुई तरिका:
+IDE सत्रबिना OmniRoute पछाडि Cursor राख्ने दुई तरिका:
 
-1. **`cursor-api` प्रदायक** (कार्ड "Cursor API", उपनाम `cua`): Cursor प्रयोगकर्ता API कुञ्जी (`crsr_…`, `https://cursor.com/dashboard/api` मा सिर्जना गरिएको) राख्ने API-कुञ्जी प्रदायक। त्यसपछि कुनै पनि OmniRoute क्लाइन्टले सामान्य कोटा, fallback र लगिङ तहहरूसहित `/v1/chat/completions` मार्फत `cursor-api/<model>` वा `cua/<model>` को रूपमा Cursor मोडेलहरूमा पहुँच गर्छ। IDE प्रदायक (`cursor`, OAuth/IDE सत्र) अपरिवर्तित रहन्छ।
-2. **Cursor CLI passthrough**: Cursor CLI (`agent`) लाई OmniRoute तर्फ निर्देशित गर्नुहोस्, जसले गर्दा CLI ले गर्ने प्रत्येक RPC OmniRoute API कुञ्जीबाट प्रमाणीकरण हुन्छ, `cursor-api` जडानको प्रमाण-पत्र प्रयोग गरेर Cursor तर्फ फर्वार्ड हुन्छ, र Logs पृष्ठमा रेकर्ड हुन्छ।
+1. **`cursor-api` प्रदायक** (कार्ड "Cursor API", उपनाम `cua`): Cursor प्रयोगकर्ता API कुञ्जी (`crsr_…`,
+   `https://cursor.com/dashboard/api` मा सिर्जना गरिने) राख्ने API-कुञ्जी
+   प्रदायक। त्यसपछि कुनै पनि OmniRoute क्लाइन्टले सामान्य कोटा, फलब्याक र लगिङ
+   तहहरूसहित `/v1/chat/completions` मार्फत `cursor-api/<model>` वा
+   `cua/<model>` का रूपमा Cursor मोडेलहरू पहुँच गर्छ। IDE
+   प्रदायक (`cursor`, OAuth/IDE सत्र) अपरिवर्तित रहन्छ।
+2. **Cursor CLI पासथ्रु**: Cursor CLI (`agent`) लाई OmniRoute तर्फ निर्देशित गर्नुहोस्, जसले गर्दा
+   CLI ले गर्ने हरेक RPC OmniRoute API कुञ्जीमार्फत प्रमाणीकरण हुन्छ,
+   `cursor-api` जडानको क्रेडेन्सियल प्रयोग गरेर Cursor तर्फ फर्वार्ड हुन्छ र
+   Logs पृष्ठमा रेकर्ड हुन्छ।
 
 ## कुञ्जी किन साटिन्छ
 
-`api2.cursor.sh` ले कच्चा `crsr_…` कुञ्जीलाई Bearer टोकनका रूपमा अस्वीकार गर्छ (401)। Cursor CLI ले पहिले कुञ्जीलाई `/auth/exchange_user_api_key` मा POST गर्छ र एक घण्टापछि म्याद सकिने सत्र JWT प्राप्त गर्छ; फर्काइएको `refreshToken` मा पनि उही `exp` हुन्छ, त्यसैले रिफ्रेस गर्नु भनेको कुञ्जीलाई पुनः साट्नु हो।
-`open-sse/services/cursorApiKeyAuth.ts` ले उक्त साटफेर गर्छ, प्रत्येक कुञ्जीका लागि एउटा सत्र टोकन क्यास गर्छ, म्याद सकिनुभन्दा पाँच मिनेटअघि पुनः साट्छ र Cursor ले 401 जवाफ दिँदा क्यास गरिएको टोकन हटाउँछ। `CursorExecutor` ले `cursor-api` जडानहरूका लागि upstream स्ट्रिम खोल्नुभन्दा ठीकअघि यसलाई कल गर्छ।
+`api2.cursor.sh` ले कच्चा `crsr_…` कुञ्जीलाई Bearer टोकनका रूपमा अस्वीकार गर्छ (401)। Cursor
+CLI ले पहिले कुञ्जीलाई `/auth/exchange_user_api_key` मा POST गर्छ र एक घण्टापछि
+म्याद सकिने सत्र JWT प्राप्त गर्छ; फर्काइएको `refreshToken` मा पनि उही
+`exp` हुन्छ, त्यसैले रिफ्रेस गर्नु भनेको कुञ्जीलाई पुनः साट्नु हो।
+`open-sse/services/cursorApiKeyAuth.ts` ले उक्त साटफेर गर्छ, प्रत्येक कुञ्जीका लागि एउटा सत्र
+टोकन क्यास गर्छ, म्याद सकिनुभन्दा पाँच मिनेटअघि पुनः साट्छ र Cursor ले 401
+जवाफ दिँदा क्यास गरिएको टोकन हटाउँछ। `CursorExecutor` ले `cursor-api`
+जडानहरूका लागि अपस्ट्रिम स्ट्रिम खोल्नुअघि यसलाई कल गर्छ।
 
 ## `cursor-api` प्रदायक
 
 रजिस्ट्री: `open-sse/config/providers/registry/cursor/index.ts`
 (`cursor_apiProvider`, `authType: "apikey"`, `cursor` कै समान `format`, `baseUrl` र
 `models`)। क्याटलग कार्ड:
-`src/shared/constants/providers/apikey/specialty-media.ts`। Executor म्याप:
+`src/shared/constants/providers/apikey/specialty-media.ts`। एक्जिक्युटर म्याप:
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`)।
 
@@ -44,32 +58,53 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 टिप्पणीहरू:
 
-- `cursor-api` का लागि मोडेल सूची स्थिर Cursor रजिस्ट्रीबाट आउँछ (IDE प्रदायक fallback हुने उही सूची); OmniRoute होस्टमा `cursor-agent` स्थापना गर्न आवश्यक छैन।
-- `POST /api/providers/{id}/refresh-cursor` केवल `cursor` IDE प्रदायकका लागि हो; `cursor-api` जडानहरूमा नवीकरण गर्नुपर्ने IDE सत्र हुँदैन।
+- `cursor-api` का लागि मोडेल सूची स्थिर Cursor रजिस्ट्रीबाट आउँछ (IDE
+  प्रदायकले फलब्याक गर्ने उही सूची); OmniRoute होस्टमा `cursor-agent`
+  इन्स्टल गर्नु आवश्यक छैन।
+- `POST /api/providers/{id}/refresh-cursor` केवल `cursor` IDE प्रदायकका
+  लागि हो; `cursor-api` जडानहरूमा नवीकरण गर्नुपर्ने IDE सत्र हुँदैन।
 
-## Cursor CLI passthrough
+## नेटिभ मोडेल ID र प्रयास
+
+`cursor` / `cu` र `cursor-api` / `cua` का लागि, साझा Claude-प्रयास नर्मलाइजरले
+अनुरोध गरिएको मोडेल ID लाई यथावत् राख्छ। Cursor ले वास्तविक मोडेल ID को भागका रूपमा
+`-low` जस्तो प्रत्यय विज्ञापन गर्न सक्छ, OmniRoute प्रयास उपनामका रूपमा होइन।
+Cursor एक्जिक्युटरले लाइभ-क्याटलगको ठ्याक्कै मिल्दो परिणाम सुरक्षित राख्छ; कुनै
+मिलान नभएमा, यसको विद्यमान मोडेल रिजोल्भरले प्रत्ययबाट-प्यारामिटर फलब्याक सम्हाल्छ।
+
+यसले प्रत्यक्ष Claude, Claude-सङ्गत वा Vertex रुटहरूका लागि प्रयास नर्मलाइजेसन
+परिवर्तन गर्दैन। उपलब्धता अझै पनि चयन गरिएको Cursor खाताको क्याटलग र
+अधिकारमा निर्भर हुन्छ।
+
+## Cursor CLI पासथ्रु
 
 रुट: `src/app/api/cursor-cli/[...path]/route.ts` →
-`open-sse/handlers/cursorCliProxy.ts`। उपसर्ग `/api/cursor-cli/` लाई
-`src/shared/constants/publicApiRoutes.ts` मा दर्ता गरिएको छ, किनकि ह्यान्डलरले आफ्नै प्रमाणीकरण लागू गर्छ:
+`open-sse/handlers/cursorCliProxy.ts`। उपसर्ग `/api/cursor-cli/`
+`src/shared/constants/publicApiRoutes.ts` मा दर्ता गरिएको छ, किनकि ह्यान्डलरले
+आफ्नै प्रमाणीकरण लागू गर्छ:
 
-| पाथ                                                                                                                           | CLI बाट अपेक्षित प्रमाणीकरण  | OmniRoute ले गर्ने कार्य                                                                                                                                          |
-| ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                            | `Bearer <OmniRoute API key>` | कुञ्जी मान्य गर्छ, 1h HS256 JWT (`JWT_SECRET` बाट हस्ताक्षर गरिएको) सिर्जना गर्छ र त्यसलाई फर्काउँछ                                                               |
-| अन्य प्रत्येक पाथ (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`          | issuer/audience/expiry प्रमाणित गर्छ, सक्रिय `cursor-api` जडान छान्छ, Authorization हेडरलाई साटिएको Cursor टोकनले प्रतिस्थापन गर्छ र जवाफलाई फर्काएर स्ट्रिम गर्छ |
+| पथ                                                                                                                      | CLI बाट अपेक्षित प्रमाणीकरण  | OmniRoute ले गर्ने कार्य                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `POST /auth/exchange_user_api_key`                                                                                      | `Bearer <OmniRoute API key>` | कुञ्जी प्रमाणित गर्छ, 1 घण्टाको HS256 JWT (`JWT_SECRET` द्वारा हस्ताक्षरित) जारी गर्छ र त्यसलाई फिर्ता गर्छ                                                                          |
+| अन्य सबै पथ (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`          | जारीकर्ता/अडियन्स/म्याद समाप्ति प्रमाणित गर्छ, सक्रिय `cursor-api` जडान छान्छ, Authorization हेडरलाई साटिएको Cursor टोकनले प्रतिस्थापन गर्छ र प्रतिक्रिया स्ट्रिम गरेर फिर्ता पठाउँछ |
 
-CLI ले आफूले प्राप्त गर्ने जुनसुकै टोकनबाट `exp` डिकोड गर्छ, त्यसैले यसलाई अपारदर्शी टोकन दिँदा यसले लगभग प्रत्येक अनुरोधअघि पुनः साटफेर गर्छ; सिर्जना गरिएको JWT ले त्यसबाट जोगाउँछ। OmniRoute बाट आएको 401 ले CLI लाई पुनः साटफेर गराउँछ।
+CLI ले प्राप्त गर्ने जुनसुकै टोकनबाट `exp` डिकोड गर्छ, त्यसैले यसलाई अपारदर्शी
+टोकन दिँदा लगभग हरेक अनुरोधअघि पुनः एक्सचेन्ज गर्छ; जारी गरिएको JWT ले
+त्यसलाई रोक्छ। OmniRoute बाट आएको 401 ले CLI लाई फेरि एक्सचेन्ज गराउँछ।
 
 ### सेटअप
 
-1. एउटा OmniRoute API कुञ्जी (Dashboard → API keys) र `cursor-api` जडान सिर्जना गर्नुहोस्।
-2. CLI लाई agent स्ट्रिमका लागि HTTP/1.1 प्रयोग गर्न भन्नुहोस्। `~/.cursor/cli-config.json` मा:
+1. OmniRoute API कुञ्जी (Dashboard → API keys) र एउटा `cursor-api`
+   जडान सिर्जना गर्नुहोस्।
+2. CLI लाई एजेन्ट स्ट्रिमका लागि HTTP/1.1 प्रयोग गर्न भन्नुहोस्।
+   `~/.cursor/cli-config.json` मा:
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   यसबिना CLI ले छुट्टै कन्फिगर गरिएको agent होस्टमा HTTP/2 मार्फत agent टर्न खोल्छ र control-plane RPC हरू मात्र endpoint मार्फत जान्छन्।
+   यसबिना CLI ले छुट्टै कन्फिगर गरिएको एजेन्ट होस्टमा HTTP/2 मार्फत एजेन्ट
+   टर्न खोल्छ र केवल कन्ट्रोल-प्लेन RPC हरू मात्र एन्डपोइन्ट हुँदै जान्छन्।
 
 3. OmniRoute विरुद्ध CLI चलाउनुहोस्:
 
@@ -79,18 +114,19 @@ CLI ले आफूले प्राप्त गर्ने जुनसु
    agent -p --trust "Reply with exactly OK"
    ```
 
-प्रत्येक hop Logs मा प्रदायक `cursor-api`, अनुरोध प्रकार `cursor-cli`,
-पाथ `/api/cursor-cli/<rpc>` का रूपमा पुग्छ, र त्यसलाई OmniRoute API कुञ्जी तथा सेवा दिने जडानसँग सम्बद्ध गरिन्छ।
+हरेक हप Logs मा प्रदायक `cursor-api`, अनुरोध प्रकार `cursor-cli`,
+पथ `/api/cursor-cli/<rpc>` का रूपमा पुग्छ र त्यसलाई सेवा दिने OmniRoute API
+कुञ्जी तथा जडानसँग सम्बद्ध गरिन्छ।
 
 ### विफलताका अवस्थाहरू
 
-| अवस्था                                           | CLI लाई प्रतिक्रिया                                |
+| अवस्था                                           | CLI लाई दिइने प्रतिक्रिया                          |
 | ------------------------------------------------ | -------------------------------------------------- |
-| अज्ञात OmniRoute कुञ्जी र `REQUIRE_API_KEY=true` | एक्सचेन्ज गर्दा 401 `unauthenticated`              |
-| `REQUIRE_API_KEY=false`                          | बेनामी सत्र (`/v1/*` को व्यवहारसँग मेल खाने)       |
-| म्याद सकिएको / बाह्य / छेडछाड गरिएको सत्र JWT    | 401, CLI ले पुनः एक्सचेन्ज गर्छ                    |
+| अज्ञात OmniRoute कुञ्जी र `REQUIRE_API_KEY=true` | एक्सचेन्जमा 401 `unauthenticated`                  |
+| `REQUIRE_API_KEY=false`                          | बेनामी सत्र (`/v1/*` को व्यवहार प्रतिबिम्बित गर्छ) |
+| म्याद सकिएको / विदेशी / छेडछाड गरिएको सत्र JWT   | 401, CLI ले पुनः एक्सचेन्ज गर्छ                    |
 | एक्सचेन्जपछि OmniRoute API कुञ्जी रद्द गरिएको    | अर्को RPC मा 401                                   |
 | सक्रिय `cursor-api` जडान छैन                     | 503 `unavailable`                                  |
 | Cursor ले जडानको कुञ्जी अस्वीकार गर्छ            | 401 `unauthenticated`, क्यास गरिएको सत्र हटाइन्छ   |
-| अपस्ट्रिम पहुँचबाहिर                             | 502 `unavailable` (संवेदनशील विवरण हटाइएको सन्देश) |
-| `JWT_SECRET` सेट नगरिएको                         | एक्सचेन्ज गर्दा 503                                |
+| अपस्ट्रिम पहुँचयोग्य छैन                         | 502 `unavailable` (सफा पारिएको सन्देश)             |
+| `JWT_SECRET` सेट गरिएको छैन                      | एक्सचेन्जमा 503                                    |

@@ -70,76 +70,136 @@ Regressiebeveiliging: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Bereik:** één providerverbinding/account/sleutel.
 
-**Doel:** één ongeldige sleutel overslaan terwijl andere verbindingen voor dezelfde provider verzoeken blijven verwerken.
+**Doel:** één onbruikbare sleutel overslaan terwijl andere verbindingen voor dezelfde provider verzoeken blijven verwerken.
 
 **Implementatie:**
 
-- Als niet beschikbaar markeren: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Als niet-beschikbaar markeren: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Selectie: `getProviderCredentials*` in hetzelfde bestand
 - Berekening van afkoelperiode: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Instellingen: `src/lib/resilience/settings.ts`
 
 **Velden per verbinding:**
 
-- `rateLimitedUntil` — tijdstempel waarop de afkoelperiode afloopt
+- `rateLimitedUntil` — tijdstempel tot wanneer de afkoelperiode duurt
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — teller voor exponentiële back-off
 
 **Standaardafkoelperioden:**
 
-- OAuth-basis: 5s
-- API-sleutelbasis: 3s
-- API-sleutel 429: geeft de voorkeur aan upstream `Retry-After`-/resetheaders/parseerbare resettekst
+- OAuth-basis: 5 s
+- API-sleutelbasis: 3 s
+- API-sleutel 429: geeft de voorkeur aan upstream-headers `Retry-After`/resetheaders/parseerbare resettekst
 - Back-off: `baseCooldownMs * 2 ** failureIndex`
 
-**Beveiliging tegen een thundering herd:** voorkomt dat gelijktijdige fouten de afkoelperiode overmatig verlengen of `backoffLevel` dubbel verhogen.
+**Beveiliging tegen een thundering herd:** voorkomt dat gelijktijdige fouten de afkoelperiode buitensporig verlengen of `backoffLevel` dubbel verhogen.
 
-**Terminale statussen (GEEN afkoelperioden):**
+**Eindstatussen (GEEN afkoelperioden):**
 
-- `banned` — ingesteld door detectie van verboden trefwoorden/accountblokkeringen (zie [BAN_DETECTION](../security/BAN_DETECTION.md)) en door drie opeenvolgende upstreamweigeringen per verzoek (`request_rejected`, bijvoorbeeld Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); één weigering activeert alleen een afkoelperiode voor de verbinding
-- `expired` (gaat na een beperkt aantal nieuwe pogingen over naar een terminale status — `EXPIRED_RETRY_MAX = 3` met exponentiële back-off — zodat tijdelijke OAuth-fouten zichzelf kunnen herstellen voordat het account permanent wordt gedeactiveerd)
+- `banned` — ingesteld door detectie van verboden trefwoorden/accountblokkeringen (zie [BAN_DETECTION](../security/BAN_DETECTION.md)), en door drie opeenvolgende upstreamweigeringen per verzoek (`request_rejected`, bijvoorbeeld Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); één weigering activeert alleen een afkoelperiode voor de verbinding
+- `expired` (gaat na een beperkt aantal nieuwe pogingen over naar een eindstatus — `EXPIRED_RETRY_MAX = 3` met exponentiële back-off — zodat tijdelijke OAuth-fouten zichzelf kunnen herstellen voordat het account permanent wordt gedeactiveerd)
 - `credits_exhausted`
 
-Deze blijven bestaan totdat de referenties wijzigen of een beheerder ze opnieuw instelt. Overschrijf terminale statussen niet met een tijdelijke afkoelstatus.
+Deze blijven bestaan totdat de inloggegevens veranderen of een beheerder ze reset. Overschrijf eindstatussen niet met een tijdelijke afkoelstatus.
 
-**Luie herstelprocedure:** wanneer `rateLimitedUntil` verstreken is, komt de verbinding opnieuw in aanmerking. Na succesvol gebruik wist `clearAccountError()` alle foutvelden.
+**Uitgesteld herstel:** zodra `rateLimitedUntil` is verstreken, komt de verbinding weer in aanmerking. Na succesvol gebruik wist `clearAccountError()` alle foutvelden.
 
-### Sessietoewijzing (#7274)
+### Claude OAuth-gebruikslimiet: baan met lagere prioriteit + reset van sessielimiet
 
-**Bereik:** één clientsessie (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`-header) die voor **elke** provider aan één verbinding is gekoppeld.
-
-**Doel:** een agent met meerdere interactierondes (Claude Code, aider, aangepaste agents) voor opeenvolgende verzoeken op hetzelfde account houden, waardoor contextverlies tussen accounts en herhaalde 429-fouten door een koude start worden verminderd bij providers met een sessiestatus per account.
+**Bereik:** één Claude-abonnementsverbinding (OAuth). Beide functies zijn **per verbinding
+optioneel** (Verbinding bewerken → Claude-sectie → `lowPriorityMode` / `autoLimitReset` in
+`providerSpecificData`, beide standaard uitgeschakeld) en komen overeen met de opdrachten
+`/low-priority` en `/limit-reset` van Claude Code (wire-contract vastgelegd vanuit Claude Code 2.1.263).
 
 **Implementatie:**
 
-- TTL-bepaling: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Toestandsmachine + responsclassificatie: `open-sse/services/claudeLowPriority.ts`
+- Client voor resetstatus/-claim: `open-sse/services/claudeLimitReset.ts`
+- Executor-hook (headerinjectie + nieuwe poging met hetzelfde account): `open-sse/executors/base.ts::execute()`
+- Persistentie van opt-in: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Trigger:** de gebruikslimiet van 5 uur — een `429` waarvan de headers
+`anthropic-ratelimit-unified-status: rejected` bevatten en, wanneer het account in aanmerking komt,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Vóór die eerste 429 vanwege de limiet
+wordt niets verzonden; een plotselinge reeks 429-responsen zonder uniforme headers doorloopt het normale afkoelpad.
+
+**Baan met lagere prioriteit** (`lowPriorityMode`):
+
+- Bij de 429 vanwege de limiet accepteert de executor het aanbod en probeert deze onmiddellijk opnieuw met **hetzelfde**
+  account en `anthropic-usage-limit: slow`; de baan blijft actief tot de aangekondigde
+  `anthropic-ratelimit-unified-reset` (+60 s respijtperiode) en elk verzoek binnen dat venster bevat
+  de header. De onderschepte 429 bereikt `handleChatCore` nooit, zodat voor de verbinding
+  **geen** afkoelperiode wordt ingesteld en er niet naar een andere verbinding wordt overgeschakeld.
+- `anthropic-ratelimit-unified-slow-status` bij latere responsen: `active` / `not_needed`
+  behouden de baan; bij `slot_busy` (429) of een `529` wordt gedurende de door de server opgegeven
+  `anthropic-ratelimit-unified-slow-retry-after` gewacht (standaard 20 s, begrensd op 5–600 s, ±30% jitter)
+  en wordt het verzoek opnieuw geprobeerd, begrensd door `anthropic-ratelimit-unified-slow-max-wait` (standaard 20 min, begrensd op
+  1 min–6 u) — daarna eindigt de baan en blokkeert een afkoelperiode van 10 minuten het opnieuw accepteren. De
+  wachttijd wordt bovendien begrensd door de resterende tijd van de eigen time-out van het verzoek voor het starten van de upstream
+  (`resolveFetchStartTimeout`, standaard 10 min) minus een marge van 5 s: zonder die grens zou de
+  standaard maximale wachttijd van 20 minuten langer duren dan het verzoek en zou het wachten halverwege worden afgebroken,
+  waardoor een `TimeoutError` zichtbaar wordt in plaats van de normale beëindiging met `max_wait` + afkoelperiode.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, het omslaan van een venster van 5 uur, of
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (waardoor de baan bij
+  elke status eindigt als `extra_usage`, omdat betaald overgebruik de limiet nu afdekt) beëindigen de baan; de
+  respons doorloopt vervolgens het normale afkoelpad. `budget_exhausted` wordt onthouden tot
+  de aangekondigde budgetreset (≤ 8 dagen).
+- De limietcontrole wordt uitgevoerd na de eigen, door 400-responsen aangestuurde nieuwe pogingen binnen dezelfde poging van de executor (contextbewerking,
+  begrenzing van denken/inspanning, automatisch leren van parameters), zodat een 429 vanwege de limiet die pas bij
+  een van die nieuwe pogingen verschijnt nog steeds wordt onderschept in plaats van het afkoelpad te bereiken.
+- De status wordt per verbinding in het geheugen bewaard (na een herstart is één extra 429 vanwege de limiet nodig om opnieuw te accepteren).
+
+**Reset van sessielimiet** (`autoLimitReset`, wordt vóór de baan geprobeerd wanneer beide zijn ingeschakeld):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → blok `juniper_tide`;
+  wanneer `arm: "reset"` en `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` met
+  `{ "program": "juniper_tide" }` (organisatie-UUID uit
+  `providerSpecificData.organizationUUID`, met bootstrap als fallback).
+- `result: reset|not_limited` → het verzoek wordt opnieuw op volle snelheid geprobeerd (zonder slow-header).
+  `already_used` / `not_offered` slaan `next_available_at` op (standaard één week);
+  elke fout activeert een back-off van 15 minuten. De reset is eenmaal per week beschikbaar en telt nog steeds mee voor de
+  wekelijkse limiet.
+
+Regressiebeveiligingen: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### Sessietoewijzing (#7274)
+
+**Bereik:** één clientsessie (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`-header) die aan één verbinding is gekoppeld, voor **elke** provider.
+
+**Doel:** een agent met meerdere beurten (Claude Code, aider, aangepaste agents) voor opeenvolgende aanvragen aan hetzelfde account koppelen, zodat contextverlies door wisselen tussen accounts en herhaalde 429-fouten door koude starts bij providers met sessiestatus per account worden beperkt.
+
+**Implementatie:**
+
+- TTL-resolutie: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Selectie/aanmaak van koppeling: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Headerextractie (generiek, elke provider): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Persistente koppelingstabel: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Instelling: `sessionAffinityTtlMs` (globale TTL in ms, `0` schakelt deze uit) — `src/lib/db/settings.ts`. Hernoemd van de uitsluitend voor Codex bedoelde `codexSessionAffinityTtlMs` door migratie `124_generic_session_affinity_ttl.sql`, die een eerder geconfigureerde Codex-TTL overneemt als de nieuwe standaardwaarde.
+- Extractie van headers (generiek, voor elke provider): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Permanente koppelingstabel: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Instelling: `sessionAffinityTtlMs` (globale TTL in ms, `0` schakelt deze uit) — `src/lib/db/settings.ts`. Hernoemd van de uitsluitend voor Codex bestemde `codexSessionAffinityTtlMs` door migratie `124_generic_session_affinity_ttl.sql`, die een eerder geconfigureerde Codex-TTL als de nieuwe standaardwaarde overneemt.
 
-Vóór #7274 stopte `resolveSessionAffinityTtlMs()` voor elke provider behalve `codex` direct met `0`, waardoor de TTL-instelling (en de sessieheaders) nergens anders effect hadden, hoewel het koppelingsmechanisme en de headerextractie al provideronafhankelijk waren. De oplossing verwijderde die voortijdige return; de TTL geldt nu uniform voor elke provider zodra deze globaal op een waarde hoger dan `0` is ingesteld.
+Vóór #7274 stopte `resolveSessionAffinityTtlMs()` voortijdig met waarde `0` voor elke provider behalve `codex`. Daardoor hadden de TTL-instelling (en de sessieheaders) nergens anders effect, hoewel het koppelingsmechanisme en de headerextractie al provideronafhankelijk waren. De oplossing heeft die voortijdige return verwijderd; zodra de TTL globaal op een waarde hoger dan `0` is ingesteld, wordt deze nu uniform op elke provider toegepast.
 
-De drie headers voor sessietoewijzing worden nooit upstream doorgestuurd — uitvoerders bouwen hun eigen upstreamheaders volledig opnieuw op in plaats van clientheaders door te geven, zodat dit uitsluitend een interne correlatie-ID blijft.
+De drie headers voor sessieaffiniteit worden nooit upstream doorgestuurd — executors stellen hun eigen upstreamheaders volledig opnieuw samen in plaats van clientheaders door te geven. Hierdoor blijft dit uitsluitend een interne correlatie-ID.
 
-### Exclusieve leases voor verbindingen van beheerde sessies
+### Exclusieve leases voor beheerde sessieverbindingen
 
-**Bereik:** één actieve beheerde HTTP-client/sessie is eigenaar van één in aanmerking komende OmniRoute-verbinding.
+**Bereik:** één actieve beheerde HTTP-client/sessie is eigenaar van één geschikte OmniRoute-verbinding.
 
-**Doel:** duurzaam exclusief eigendom van een verbinding bieden aan clients die een harde routeringsgrens tussen verzoeken nodig hebben. Dit verschilt van sessietoewijzing, die een zachte voorkeur voor continuïteit is: een exclusieve lease bewaart de levenscyclusstatus in SQLite, dwingt globale uniciteit van de actieve eigenaar en actieve verbinding af en weigert een verouderde generatie voordat verzending naar de provider plaatsvindt.
+**Doel:** duurzaam exclusief eigenaarschap van verbindingen bieden aan clients die een harde routeringsgrens tussen aanvragen nodig hebben. Dit verschilt van sessieaffiniteit, die een zachte continuïteitsvoorkeur is: een exclusieve lease bewaart de levenscyclusstatus permanent in SQLite, dwingt globale uniciteit van de actieve eigenaar en actieve verbinding af en weigert een verouderde generatie vóór verzending naar de provider.
 
-De functie kan per API-sleutel worden ingeschakeld. Een beheerde sleutel moet het bereik `lease:exclusive` en een expliciete, niet-lege lijst `allowedConnections` hebben. Elke HTTP-client kan het levenscycluseindpunt gebruiken; er is geen clientnaam, user-agent, provider, OAuth-methode of model vereist. De lease is eigenaar van een verbinding, niet van een model, zodat bij een modelwijziging de koppeling behouden blijft zolang de verbinding normaal gesproken in aanmerking blijft komen. De normale regels voor modellen, quota, status, afkoelperioden en toelatingslijsten blijven leidend en kunnen dezelfde generatie overzetten naar een andere vrije, in aanmerking komende verbinding.
+De functie is per API-sleutel opt-in. Een beheerde sleutel moet het bereik `lease:exclusive` en een expliciete, niet-lege lijst `allowedConnections` hebben. Elke HTTP-client kan het levenscycluseindpunt gebruiken; er zijn geen clientnaam, user-agent, provider, OAuth-methode of model vereist. De lease is eigenaar van een verbinding, niet van een model. Daardoor blijft de koppeling behouden wanneer van model wordt gewisseld, zolang de verbinding op de gebruikelijke wijze geschikt blijft. De normale regels voor model, quotum, status, afkoelperiode en acceptatielijst blijven leidend en kunnen dezelfde generatie naar een andere vrije, geschikte verbinding overzetten.
 
-De levenscyclus gebruikt `POST /api/v1/session-leases` met de JSON-acties `acquire`, `renew` en `release`. Beheerde inferentieverzoeken bevatten de ondoorzichtige waarde `X-OmniRoute-Lease-Owner` en de exacte `X-OmniRoute-Lease-Generation`. De eigenaar gebruikt `vlo_`, gevolgd door 43 base64url-tekens; alleen de SHA-256-hash ervan wordt opgeslagen. Elke definitieve verzendingscontrole wordt ook gekoppeld aan de ID van de geauthenticeerde API-sleutel en de ID van de actieve verbinding. Headers voor leasebeheer worden verwijderd uit logboeken, bewaarde momentopnamen van verzoeken en headers van upstreamuitvoerders.
+De levenscyclus verloopt via `POST /api/v1/session-leases` met de JSON-acties `acquire`, `renew` en `release`. Beheerde inferentieaanvragen leveren de niet-transparante waarde `X-OmniRoute-Lease-Owner` en de exacte `X-OmniRoute-Lease-Generation` aan. De eigenaar gebruikt `vlo_`, gevolgd door 43 base64url-tekens; alleen de SHA-256-hash ervan wordt opgeslagen. Elke definitieve verzendingscontrole bindt ook de ID van de geauthenticeerde API-sleutel en de ID van de actieve verbinding. Headers voor leasebeheer worden verwijderd uit logboeken, bewaarde momentopnamen van aanvragen en upstreamheaders van executors.
 
-Als de normale routering in aanmerking komende beheerde kandidaten heeft, maar elke vrije kandidaat bezet is door een externe actieve lease, retourneert OmniRoute HTTP `429`, de code voor niet-beschikbare leasecapaciteit, een status die aangeeft dat op capaciteit wordt gewacht en een begrensde `Retry-After` die is afgeleid van het vroegste relevante vervaltijdstip. Normale lege geschiktheid is geen leaseconflict en behoudt de bestaande semantiek voor routeringsfouten.
+Als de reguliere routering geschikte beheerde kandidaten heeft, maar elke vrije kandidaat door een externe actieve lease bezet is, retourneert OmniRoute HTTP `429`, de code lease-capacity-unavailable, de status waiting-for-capacity en een begrensde `Retry-After` die is afgeleid van het eerstvolgende relevante vervaltijdstip. Reguliere lege geschiktheid geldt niet als leaseconflict en behoudt de bestaande foutsemantiek voor routering.
 
 Gerelateerde mechanismen blijven gescheiden:
 
-- Bezetting van OAuth-sessies is een proceslokale, zachte verdeling voor OAuth-accounts.
-- Accountsemaforen verlenen toestemmingen voor gelijktijdige verzoeken en eindigen wanneer een verzoek is voltooid.
-- Exclusieve leases voor verbindingen van beheerde sessies bieden duurzaam eigendom gedurende de levenscyclus, met een generatiecontrole.
+- OAuth-sessiebezetting is proceslokale zachte distributie voor OAuth-accounts.
+- Accountsemaforen verlenen machtigingen voor gelijktijdige aanvragen en eindigen wanneer een aanvraag is voltooid.
+- Exclusieve leases voor beheerde sessieverbindingen bieden duurzaam eigenaarschap gedurende de levenscyclus, met een generatiecontrole.
 
 ---
 
@@ -269,47 +329,72 @@ een frequentielimiet per model bereiken. Begrensd door `comboCooldownWait` (`ena
 
 ---
 
-## 5. Toegangsbeheer voor de verzoekwachtrij (v3.8.49 · issue #6593)
+## 5. Toelatingscontrole voor de aanvraagwachtrij (v3.8.49 · issue #6593)
 
-**Bereik**: de lokale wachtrij voor frequentielimieten per provider+verbinding (`open-sse/services/rateLimitManager.ts`,
+**Bereik**: de lokale wachtrij per provider+verbinding voor snelheidsbegrenzing (`open-sse/services/rateLimitManager.ts`,
 ondersteund door Bottleneck), één laag onder de drie bovenstaande mechanismen.
 
-**`maxWaitMs` is een verouderde, opgeslagen naam voor de vervaltijd van de uitvoering.**
-`resilienceSettings.requestQueue.maxWaitMs` wordt als `expiration` van een taak
-doorgegeven aan Bottleneck, waarvan de timer pas na de dispatch start. Deze instelling begrenst daarom
-de door de limiter beheerde uitvoering, niet de tijd die in de lokale wachtrij wordt doorgebracht. Het verstrijken van de tijd
-wordt weergegeven als de vertrouwde lokale `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-de voormalige codenaam voor een wachtrijtime-out wordt uitsluitend geaccepteerd voor vertrouwde interne
-achterwaartse compatibiliteit. De standaardwaarde is 15000ms; overschrijf deze via
-`RATE_LIMIT_MAX_WAIT_MS` (omgevingsvariabele) of het dashboard (**Instellingen → Veerkracht**,
-UI-bovengrens van 1–30000ms). De verblijfsduur in de wachtrij heeft geen tijdslimiet; gebruik
-`maxQueueDepth` hieronder om het aantal wachtende aanroepers te begrenzen.
+**`maxWaitMs` begrenst de wachttijd in de wachtrij; `executionMaxWaitMs` begrenst de uitvoering.**
+De twee zijn bewust van elkaar gescheiden en geen van beide beïnvloedt de andere.
 
-**`maxQueueDepth` — optionele toegangslimiet (nieuw).** `resilienceSettings.requestQueue.maxQueueDepth`
-begrenst hoeveel verzoeken tegelijkertijd in de wachtrij mogen staan (nog niet verzonden) voor één
-provider+verbinding. Wanneer de wachtrij al `maxQueueDepth`
-verzoeken bevat, wordt een nieuw verzoek direct afgewezen met een getypeerde
-`code: "RATE_LIMIT_QUEUE_FULL"`-fout **voordat** het ooit `limiter.schedule()` bereikt
-— daardoor is de afwijzing goedkoop en vindt deze plaats vóór eventuele downstreamverwerking voor
-promptcompressie / vertaling voor dat verzoek. Standaard `0` =
-uitgeschakeld, waardoor het bestaande gedrag met een onbegrensde wachtrij behouden blijft; begrensd op 0–100000.
+`resilienceSettings.requestQueue.maxWaitMs` is het **wachttijdbudget voor de wachtrij**: dit
+omvat het wachten op een providerslot en vervolgens het wachten met de status QUEUED, en de timer
+wordt gewist zodra de taak de status QUEUED verlaat en wordt uitgevoerd
+(`rateLimitManager.ts`, `wrappedFn`). Een aanvraag die dit budget overschrijdt, bereikt
+de upstream nooit. De standaardwaarde is 30000ms, geleverd door `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+in `src/lib/resilience/settings.ts` en vastgelegd door
+`tests/unit/ratelimit-admission-control-6593.test.ts`, zodat een wijziging ervan
+die test laat mislukken in plaats van dat deze alinea ongemerkt verouderd raakt.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` is wat Bottleneck
+ontvangt als de `expiration` van de taak, waarvan de timer pas na verzending start. Dit is
+een vangnet voor uitvoerders zonder een eigen upstream-time-out en wordt
+verhoogd tot de eigen time-out van de uitvoerder voor het starten van de fetch als die langer is, zodat
+een gezonde actieve respons niet voortijdig kan worden afgebroken. De standaardwaarde is 600000ms (10 min).
+
+Het doorgeven van het wachtrijbudget aan `expiration` zorgde er voorheen voor dat niet-incrementele
+gateways tijdens de uitvoering werden afgebroken — het is legitiem dat deze minutenlang draaien voordat de eerste bytes arriveren —
+en daarom wordt een verlopen uitvoering weergegeven als `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), terwijl het wachtrijbudget de
+code voor een wachtrijtime-out gebruikt. Overschrijf een van beide via `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (omgevingsvariabele) of het dashboard
+(**Instellingen → Veerkracht**). Beide worden tijdens normalisatie begrensd tot 1ms–24h.
+
+**Prioriteit, voor beide:** de omgevingsvariabele levert alleen de _standaardwaarde_. Een waarde
+die is opgeslagen in `resilienceSettings.requestQueue` (dashboard / API-patch, opgeslagen
+in `key_value`) heeft voorrang, en een `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` per verbinding heeft daar weer voorrang op. Het instellen
+van de omgevingsvariabele voor een implementatie die al een opgeslagen waarde heeft,
+verandert daarom niets — wis of wijzig in plaats daarvan de opgeslagen instelling.
+
+De verblijfsduur in de wachtrij wordt begrensd door `maxWaitMs`; `maxQueueDepth` hieronder begrenst hoeveel
+aanvragers tegelijkertijd in de wachtrij mogen staan.
+
+**`maxQueueDepth` — optionele toelatingslimiet (nieuw).** `resilienceSettings.requestQueue.maxQueueDepth`
+begrenst hoeveel aanvragen tegelijkertijd in de wachtrij mogen staan (nog niet verzonden)
+voor één provider+verbinding. Wanneer de wachtrij al `maxQueueDepth`
+aanvragen bevat, wordt een nieuwe aanvraag onmiddellijk geweigerd met een getypeerde
+`code: "RATE_LIMIT_QUEUE_FULL"`-fout **voordat** deze ooit `limiter.schedule()` bereikt
+— de weigering is dus goedkoop en vindt plaats vóór eventuele verdere
+promptcompressie / vertaling voor die aanvraag. De standaardwaarde `0` =
+uitgeschakeld, waarmee het bestaande gedrag met een onbeperkte wachtrij behouden blijft; begrensd op 0–100000.
 Overschrijf dit via `RATE_LIMIT_MAX_QUEUE_DEPTH` (omgevingsvariabele) of
 `resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API-patch).
 
-De toegangscontrole zelf is een zuivere functie
+De toelatingscontrole zelf is een zuivere functie
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), zodat
-deze met unit-tests kan worden getest zonder een echte Bottleneck-limiter.
+deze zonder een echte Bottleneck-limiter unitgetest kan worden.
 
 > De RFC waarmee #6593 werd geopend, stelde ook een `bypassCompressionOnRateLimit`-
-> vlag voor. De `open-sse/services/compression/`-pijplijn van deze repository verzorgt
-> prompt-/contextcompressie voor het uitgaande LLM-verzoek (`chatCore.ts`,
+> vlag voor. De pipeline `open-sse/services/compression/` van deze repository is
+> bedoeld voor prompt-/contextcompressie van de uitgaande LLM-aanvraag (`chatCore.ts`,
 > rond het blok `resolveCompressionSettings`/`selectCompressionStrategy`),
-> niet de compressie van HTTP-responsen voor gegenereerde 429-responslichamen — er is geen
+> niet voor HTTP-responscompressie van gegenereerde 429-responslichamen — er is geen
 > overeenkomend codepad voor een letterlijke omzeilingsvlag. Die stap voor promptcompressie
-> wordt momenteel bovendien _vóór_ `withRateLimit()` uitgevoerd in de verzoekpijplijn, dus
-> het wijzigen van de volgorde om deze stap over te slaan bij een afwijzing wegens een volle wachtrij is een afzonderlijke, grotere
-> wijziging dan binnen het bereik van dit issue valt; dit is hier bewust **niet** geïmplementeerd
-> en wordt overgelaten als vervolgtaak als de CPU-besparing het
+> wordt momenteel ook _vóór_ `withRateLimit()` in de aanvraagpipeline uitgevoerd, dus
+> het wijzigen van de volgorde om deze stap over te slaan bij een weigering wegens een volle wachtrij is een afzonderlijke, grotere
+> wijziging dan het bereik van dit issue; dit is hier bewust **niet** geïmplementeerd
+> en wordt als vervolgactie overgelaten als de CPU-besparing het
 > risico van de gewijzigde volgorde waard is.
 
 ---

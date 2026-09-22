@@ -4,21 +4,23 @@
 
 ---
 
-Tài liệu này là bản chứng thực do người bảo trì soạn thảo cho sáu phát hiện
+> **Lưu ý về phạm vi:** `socket.yml` cấu hình quy trình quét sau khi phát hành ở phía registry của Socket.dev đối với gói tạo tác npm (các đường dẫn bị bỏ qua dành cho nội dung không được phân phối như `tests/`, `docs/` và báo cáo build). Tệp này không thiết lập cổng kiểm soát hợp nhất CI/PR — không có workflow nào trong `.github/workflows`, không có script nào trong `package.json`, và không có target nào trong `Makefile` gọi Socket.dev.
+
+Tài liệu này là bản xác nhận do người bảo trì biên soạn cho sáu phát hiện
 `AI-detected potential malware` được đưa ra đối với `omniroute@3.8.5` và
 các biện pháp giảm thiểu được áp dụng trong `omniroute@3.8.6`. Tài liệu này tồn tại để:
 
-1. Những người vận hành quy trình bảo mật có một tài liệu tham chiếu duy nhất để trích dẫn khi họ cần
+1. Những người vận hành pipeline bảo mật có một tài liệu tham chiếu duy nhất để trích dẫn khi cần
    đánh giá các phát hiện dựa trên mã nguồn thực tế.
-2. Các trình quét AI trong tương lai có thể nhận diện tuyên bố có chữ ký của người bảo trì rằng mỗi
-   đường dẫn bị gắn cờ đều là có chủ đích, yêu cầu người dùng chủ động bật và đã được ghi chép.
-3. Chúng tôi có hồ sơ bằng văn bản về _lý do_ mỗi vị trí gọi được xây dựng theo cách hiện tại —
-   để một lần tái cấu trúc trong tương lai không vô tình đưa trở lại một dấu hiệu nhận dạng
+2. Các trình quét AI trong tương lai có thể nhận biết tuyên bố có chữ ký của người bảo trì rằng mỗi
+   đường dẫn bị gắn cờ đều là có chủ đích, cần được chủ động bật và đã được ghi lại trong tài liệu.
+3. Chúng ta có một hồ sơ bằng văn bản về _lý do_ mỗi vị trí gọi có cấu trúc như hiện tại —
+   để một lần tái cấu trúc trong tương lai không vô tình đưa trở lại một dấu hiệu đặc trưng
    đã được chủ ý loại bỏ.
 
-Nếu bạn vận hành một trình quét gắn cờ lại bất kỳ vị trí gọi nào bên dưới sau khi
+Nếu bạn vận hành một trình quét tiếp tục gắn cờ bất kỳ vị trí gọi nào bên dưới sau khi
 các biện pháp giảm thiểu của v3.8.6 đã được phát hành, vui lòng mở một issue kèm theo dấu vết quét và
-chúng tôi sẽ mở rộng bản chứng thực tại đây.
+chúng tôi sẽ bổ sung nội dung xác nhận tại đây.
 
 ---
 

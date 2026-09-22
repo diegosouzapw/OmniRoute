@@ -4,21 +4,23 @@
 
 ---
 
-Akwụkwọ a bụ nkwenye nke ndị na-elekọta ọrụ dere maka nchọpụta isii nke
+> **Nkọwa gbasara oke:** `socket.yml` na-ahazi nyocha Socket.dev na-eme n'akụkụ registry mgbe ebipụtasịrị npm artifact (ụzọ ndị a ga-eleghara anya maka ọdịnaya anaghị eso na mbupu dịka `tests/`, `docs/`, na akụkọ build). Ọ naghị ejikọ ọnụ ụzọ mgbochi njikọta CI/PR — ọ dịghị workflow dị na `.github/workflows`, ọ dịghị script `package.json`, ọ dịghịkwa target `Makefile` na-akpọ Socket.dev.
+
+Akwụkwọ a bụ nkwenye nke ndị na-elekọta ọrụ dere maka nchọpụta isii
 `AI-detected potential malware` e mere megide `omniroute@3.8.5` na
-usoro mbelata ihe ize ndụ etinyere na `omniroute@3.8.6`. E mere ya ka:
+usoro mbelata ihe ize ndụ etinyere na `omniroute@3.8.6`. Ihe mere o ji dị bụ ka:
 
-1. Ndị na-ahụ maka usoro nchekwa nwee otu ebe ntụaka ha ga-ehota mgbe ha
-   chọrọ inyocha nchọpụta ndị ahụ megide koodu isi mmalite n'ezie.
-2. Ngwa nyocha AI n'ọdịnihu nwee ike ịchọpụta nkwupụta nke onye na-elekọta ọrụ bịanyere aka na ya na ụzọ
-   ọ bụla e kara akara bụ nke e bu n'uche, nke onye ọrụ ga-ahọrọ iji, ma bụrụkwa nke e dere nkọwa ya.
-3. Anyị nwee ndekọ e dere ede banyere _ihe mere_ e ji hazie ebe ọ bụla a na-akpọ ọrụ n'ụzọ ahụ —
-   ka nhazigharị koodu n'ọdịnihu ghara iweghachite akara njirimara
-   e kpachapụrụ anya wepụ.
+1. Ndị na-ahụ maka usoro nchekwa nwee otu ebe ntụaka ha ga-ehota mgbe ha chọrọ
+   inyocha nchọpụta ndị ahụ site n'iji ezigbo source tụnyere ha.
+2. Ndị nyocha AI n'ọdịnihu nwee ike ịchọpụta nkwupụta onye na-elekọta ọrụ bịanyere aka na ya na
+   ụzọ ọ bụla e gosipụtara bụ nke e mere n'ebumnuche, a na-ahọrọ ịgbalite ya, ma dekọọ ya n'akwụkwọ.
+3. Anyị nwee ndekọ edere ede gbasara _ihe mere_ e ji hazie call site ọ bụla otu ahụ —
+   ka refactor n'ọdịnihu ghara iweghachite fingerprint e kpachapụrụ anya
+   wepụ na mberede.
 
-Ọ bụrụ na ị na-arụ ngwa nyocha nke ga-aka akara ọzọ n'ebe ọ bụla a na-akpọ ọrụ n'okpuru ebe a mgbe e
-wepụtasịrị usoro mbelata ihe ize ndụ nke v3.8.6, biko mepee otu issue tinyere ndekọ nyocha ahụ,
-anyị ga-agbatị nkwenye a ebe a.
+Ọ bụrụ na ị na-arụ ọrụ scanner nke gosipụtara call site ọ bụla dị n'okpuru ọzọ mgbe
+ebupụchara usoro mbelata ihe ize ndụ nke v3.8.6, biko mepee issue tinyere scan trace ahụ,
+anyị ga-agbatịkwa nkwenye a n'ebe a.
 
 ---
 

@@ -1,1 +1,0 @@
-- **fix(sse):** fail over once to a sibling connection on stream early EOF (the original `STREAM_EARLY_EOF` 502 is kept when no sibling can serve the request), gated behind `STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED` (default off) ([#13153](https://github.com/diegosouzapw/OmniRoute/pull/13153)) — thanks @maxmad64bis

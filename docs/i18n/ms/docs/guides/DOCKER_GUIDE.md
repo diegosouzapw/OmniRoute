@@ -25,7 +25,13 @@
 
 ---
 
-## Jalankan dengan Pantas
+## Jalankan Pantas
+
+> **Hos sendiri dengan satu perintah?** Lihat
+> [Panduan Hos Sendiri](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (imej yang diterbitkan +
+> Redis, gelung balik sahaja, tiada pilihan profil). Jalankan Pantas di bawah ialah
+> laluan bekas tunggal untuk pengguna yang telah menjalankan Redis di tempat lain.
 
 ```bash
 docker run -d \

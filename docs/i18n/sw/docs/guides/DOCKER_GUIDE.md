@@ -27,6 +27,12 @@
 
 ## Uendeshaji wa Haraka
 
+> **Unataka kujiendeshea kwa amri moja?** Tazama
+> [Mwongozo wa Kujiendeshea](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (image iliyochapishwa +
+> Redis, loopback pekee, bila chaguo la wasifu). Uendeshaji wa Haraka hapa chini ni
+> njia ya kontena moja kwa watumiaji ambao tayari wanaendesha Redis kwingine.
+
 ```bash
 docker run -d \
   --name omniroute \

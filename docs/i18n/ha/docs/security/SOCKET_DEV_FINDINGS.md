@@ -4,23 +4,23 @@
 
 ---
 
-> **Bayanin iyaka:** `socket.yml` yana saita binciken bayan-wallafa na ɓangaren registry na Socket.dev kan npm artifact (ignore-paths don abubuwan da ba a tura su tare da kunshin ba kamar `tests/`, `docs/`, da rahotannin build). Ba ya kafa wata CI/PR merge gate — babu workflow a cikin `.github/workflows`, babu script na `package.json`, kuma babu target na `Makefile` da ke kiran Socket.dev.
+> **Bayanin iyaka:** `socket.yml` yana saita binciken bayan-wallafawa na Socket.dev a ɓangaren rajista kan npm artifact (ignore-paths don abubuwan da ba a turawa kamar `tests/`, `docs/`, da rahotannin ginawa). Ba ya haɗa wata ƙofar haɗewar CI/PR — babu workflow a cikin `.github/workflows`, babu script na `package.json`, kuma babu target na `Makefile` da ke kiran Socket.dev.
 
-Wannan takarda ita ce shaidar da mai kula da aikin ya rubuta game da sakamakon bincike guda shida na
-`AI-detected potential malware` da aka nuna a kan `omniroute@3.8.5`, da kuma
-matakan rage haɗarin da aka aiwatar a cikin `omniroute@3.8.6`. An ƙirƙire ta domin:
+Wannan takarda ita ce shaidar da mai kula ya rubuta game da sakamakon bincike guda shida na
+`AI-detected potential malware` da aka gabatar kan `omniroute@3.8.5` da kuma
+matakan rage haɗarin da aka aiwatar a `omniroute@3.8.6`. An samar da ita ne domin:
 
 1. Masu gudanar da tsarin tsaro su sami madogara guda ɗaya da za su ambata lokacin da suke buƙatar
-   tantance sakamakon binciken bisa ainihin source.
-2. Na’urorin binciken AI na gaba su iya gano ikirarin da mai kula da aikin ya sanya wa hannu cewa kowace
-   path da aka yi wa alama an yi ta ne da gangan, sai an zaɓi amfani da ita, kuma an rubuta bayaninta.
-3. Mu kasance da rubutaccen tarihin _dalilin da ya sa_ aka tsara kowane call site ta wannan hanya —
-   domin kada wani refactor na gaba ya sake shigar da fingerprint da
-   aka cire da gangan bisa kuskure.
+   tantance sakamakon binciken ta hanyar kwatanta shi da ainihin lambar tushe.
+2. Na'urorin binciken AI na gaba su iya gano iƙirarin da mai kula ya sanya wa hannu cewa kowace
+   hanya da aka yi wa alama an yi ta ne da gangan, sai an zaɓi kunna ta, kuma an rubuta bayaninta.
+3. Mu sami rubutaccen tarihin _dalilin da ya sa_ aka tsara kowace wurin kira yadda take —
+   domin gyaran tsari na gaba kada ya sake shigar da wani sawun da
+   aka cire da gangan.
 
-Idan kuna gudanar da na’urar bincike wadda ta sake yi wa ɗaya daga cikin call sites da ke ƙasa alama bayan an
-fitar da matakan rage haɗarin na v3.8.6, da fatan za ku buɗe issue tare da scan trace ɗin, kuma
-za mu faɗaɗa shaidar a nan.
+Idan kuna gudanar da na'urar bincike da ta sake yi wa ɗaya daga cikin wuraren kiran da ke ƙasa alama bayan an
+fitar da matakan rage haɗarin na v3.8.6, da fatan za a buɗe issue tare da bayanan sawun binciken kuma
+za mu faɗaɗa wannan shaidar a nan.
 
 ---
 
@@ -29,16 +29,16 @@ za mu faɗaɗa shaidar a nan.
 **Fayilolin tushe**:
 
 - `src/mitm/cert/install.ts` — `installCert()` / `uninstallCert()` na jama'a,
-  da `installCertWindows/Mac/Linux` na kowane dandali.
+  da `installCertWindows/Mac/Linux` na kowane dandamali.
 - `src/mitm/systemCommands.ts` — mataimakan `execFile` / `spawn` / PowerShell
-  na bai ɗaya waɗanda hanyoyin shigarwa ke amfani da su.
+  da hanyoyin shigarwa suke amfani da su tare.
 
-**Abin da ke tayar da aiki**: mai amfani ya danna "Kunna wakilin MITM" a cikin dashboard na cikin gida a
-`/dashboard/cli-tools/mitm`. Hanyar loopback kaɗai ce — duba ƙa'ida mai tsauri #17 a
+**Abin da ke tayar da aiki**: mai amfani ya danna "Enable MITM proxy" a cikin dashboard na gida a
+`/dashboard/cli-tools/mitm`. Hanyar loopback ce kawai — duba ƙa'ida mai tsauri #17 a cikin
 `CLAUDE.md` da `src/server/authz/routeGuard.ts::isLocalOnlyPath()`. JWT da ya fallasa
-ta hanyar tunnel **ba zai iya** tayar da wannan hanyar lambar ba.
+ta hanyar tunnel **ba zai iya** tayar da wannan hanyar lamba ba.
 
-**Ayyukan da ke buƙatar izini na musamman da ake aiwatarwa (ga kowane dandali)**:
+**Ayyukan da ke buƙatar gata da ake aiwatarwa (ga kowane dandamali)**:
 
 | OS                     | Umurni                                                                                                            |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -48,23 +48,23 @@ ta hanyar tunnel **ba zai iya** tayar da wannan hanyar lambar ba.
 | Linux+Firefox/Chromium | sabunta NSS DB na kowane profile ta hanyar `certutil -d sql:<profile>`                                            |
 
 Waɗannan su ne umurnai iri ɗaya da `mitmproxy`, Charles Proxy, Fiddler, da
-Caddy suke amfani da su. An rubuta bayani game da kasancewarsu a cikin OmniRoute a
+Caddy suke amfani da su. An rubuta bayanin kasancewarsu a cikin OmniRoute a
 `docs/security/STEALTH_GUIDE.md`.
 
-**Matakin kariya na v3.8.6**:
+**Matakin rage haɗari na v3.8.6**:
 
 - `runElevatedPowerShell()` ba ya ƙara amfani da `-EncodedCommand <base64utf16le>`.
-  Ana rubuta payload ɗin da aka ɗaukaka izininsa zuwa fayil `.ps1` na wucin gadi na kowane kira (yanayin 0o600,
-  a cikin kundin adireshin `mkdtempSync` mai zaman kansa) sannan a ambace shi ta hanyar `-File`. Ana
-  cire fayil ɗin a cikin `finally`. Wannan yana cire sananniyar
-  alamar ganewar ɗaukaka izini ta PowerShell ta amfani da base64 wadda na'urar rarrabewa ta AI
-  ta Socket.dev ta yi wa alama.
-- `installCertWindows` yana ɗauke da tubalin `SECURITY-AUDITOR-NOTE:` a cikin lambar
+  Ana rubuta payload ɗin da aka ɗaukaka zuwa fayil `.ps1` na wucin gadi na kowane kira (mode 0o600,
+  a cikin directory mai zaman kansa na `mkdtempSync`) sannan a kira shi ta hanyar `-File`. Ana
+  unlink ɗin fayil ɗin a cikin `finally`. Wannan yana kawar da sawun da aka saba gani na
+  ɗaukaka-gata-ta-PowerShell-da-base64 wanda mai rarrabewar AI na Socket.dev ya yi wa
+  alama.
+- `installCertWindows` yana ɗauke da block na `SECURITY-AUDITOR-NOTE:` a cikin lambar
   wanda ke nuni zuwa nan.
 
-**Dalilin da ya sa muke riƙe da shi**: wakilin MITM fasali ne da aka rubuta bayaninsa wanda
+**Dalilin da ya sa muke riƙe shi**: MITM proxy wani fasali ne da aka rubuta bayaninsa wanda
 `docs/security/STEALTH_GUIDE.md` da `docs/frameworks/MITM-PROXY.md` suke amfani da shi. Cire
-shi zai lalata jerin fasalolin agent-bridge.
+shi zai lalata tarin fasalolin agent-bridge.
 
 ---
 
@@ -77,63 +77,61 @@ shi zai lalata jerin fasalolin agent-bridge.
 - `src/lib/zed-oauth/keychain-reader.ts`
 - `src/lib/zed-oauth/credentialFingerprint.ts` _(sabo a v3.8.6)_
 
-**Mai kunnawa**: mai amfani yana danna "Shigo daga Zed" a shafin Providers na
-dashboard na gida. Ana kare endpoint ɗin da `requireManagementAuth`. Editan Zed
-da kansa ne yake rubuta maɓallan API na provider dinsa zuwa keychain na OS a
-ƙarƙashin sunayen service da aka rubuta a takardu — duba
-https://zed.dev/docs/ai/llm-providers.
+**Abin da ke tayar da aiki**: mai amfani ya danna "Shigo daga Zed" a shafin Providers
+na dashboard na cikin gida. Ana kare endpoint ɗin da `requireManagementAuth`. Editan Zed da kansa
+yana rubuta maɓallan API na provider ɗinsa zuwa keychain na OS ƙarƙashin sunayen service
+da aka rubuta a takardu — duba https://zed.dev/docs/ai/llm-providers.
 
 **Halin v3.8.5 (wanda Socket.dev ya yi wa alama)**:
 
 `POST /import` yana gano bayanan shaida sannan ya adana su kai tsaye a ma'ajiyar
-SQLite ta gida a cikin zagaye guda. Babu tabbatarwa ga kowane account, babu
+SQLite ta cikin gida a zagaye guda. Babu tabbatarwa ga kowane account, babu
 fingerprint, kawai "an sami token N, an shigo da su duka."
 
-**Rage haɗarin v3.8.6 — tabbatarwa mai matakai 2**:
+**Matakin kariya na v3.8.6 — tabbatarwa mai matakai 2**:
 
 1. **`POST /api/providers/zed/discover`** yana mayar da
-   `{ candidates: [{ provider, service, account, fingerprint }] }`. **Ba a taɓa**
-   aika ainihin token ɗin. Fingerprint ɗin shi ne
+   `{ candidates: [{ provider, service, account, fingerprint }] }`. Ba a **taɓa**
+   aika ainihin token ɗin ba. Fingerprint ɗin shi ne
    `sha256(service|account|token).slice(0,16)`.
-2. Dashboard ɗin yana nuna jerin candidates, mai gudanarwa ya zaɓi waɗanda za a
+2. Dashboard yana nuna jerin candidate, operator ya zaɓi waɗanda za a
    shigo da su, sannan ya aika `{ confirmedAccounts: [{ service, account, fingerprint }] }`
    zuwa **`POST /api/providers/zed/import`**.
-3. Endpoint na import ɗin yana **sake karanta keychain a kan server** sannan ya tace bisa
-   `(service, account, fingerprint)`. Ba za a iya amfani da amsar discover da
-   aka sauya ko aka sake kunnawa don yaudarar endpoint na import ya adana wani token
-   marar alaƙa ba — idan token mai aiki ya canza tun bayan discover, fingerprint
-   ba zai ƙara dacewa ba kuma za a tsallake bayanan shaidar.
+3. Endpoint na shigo da bayanai yana **sake karanta keychain a kan server** sannan ya tace ta
+   `(service, account, fingerprint)`. Response na discover da aka sauya ko aka sake amfani da shi
+   ba zai iya yaudarar endpoint na import ya adana token mara alaƙa ba —
+   idan live token ya canza tun lokacin discover, fingerprint ba zai ƙara
+   dacewa ba kuma za a tsallake wannan credential.
 
-Alamar env ta `OMNIROUTE_ZED_IMPORT_LEGACY_ONE_STEP=true` tana kiyaye halin v3.8.5
-ga masu gudanarwa waɗanda ba su sabunta automation ɗinsu ba tukuna. Za a cire ta
-a v3.9.
+Alamar env ta `OMNIROUTE_ZED_IMPORT_LEGACY_ONE_STEP=true` tana riƙe halin v3.8.5
+ga operators waɗanda ba su sabunta automation ɗinsu ba tukuna. Za a
+cire ta a v3.9.
 
-**Dalilin da ya sa muke riƙe da shi**: Shigo da bayanai daga Zed ita ce hanya mafi
-sauƙi ta fara amfani ga masu amfani da suke amfani da Zed tuni kuma suke son kwafin
-maɓallan provider ɗinsu zuwa OmniRoute ba tare da sake liƙa su ba.
+**Dalilin da ya sa muke riƙe shi**: shigo da bayanai daga Zed ita ce hanya mafi sauƙi ta farawa ga masu amfani
+waɗanda suke amfani da Zed tuni kuma suke son kwafe maɓallan provider ɗinsu zuwa OmniRoute
+ba tare da sake liƙa su ba.
 
 ---
 
-## §3 — `execFile` / `spawn` / PowerShell mai ɗaukaka izini (`21843.js`)
+## §3 — `execFile` / `spawn` / PowerShell mai ƙarin izini (`21843.js`)
 
 **Fayilolin tushe**: `src/mitm/systemCommands.ts`.
 
-**Dalilin yi masa alama**: chunk ɗin yana sake fitar da `execFileWithPassword`,
-`runElevatedPowerShell`, da helper na gama-gari `quotePowerShell`. Mai rarrabewar AI
-na Socket.dev yana ganinsu a matsayin kayan aiki na gama-gari na "aiwatarwa a
-host + ɗaukaka izini." A cikin OmniRoute ana amfani da su ne kawai ta hanyar
-sanya cert na MITM (§1), da kuma ta `execFileWithPassword` don aiwatar da umarnin
-`sudo`.
+**Dalilin da ya sa aka yi masa alama**: chunk ɗin yana sake fitar da `execFileWithPassword`,
+`runElevatedPowerShell`, da helper na gama-gari `quotePowerShell`. Mai rarrabewar AI na
+Socket.dev yana kallonsu a matsayin kayan aiki na gama-gari na "aiwatarwa a host + ɗaga
+izini." A cikin OmniRoute ana amfani da su ne kawai ta hanyar shigar da takardar shaidar MITM
+(§1) da kuma ta `execFileWithPassword` don aiwatar da umarnin `sudo`.
 
-**Rage haɗarin v3.8.6**:
+**Matakin kariya na v3.8.6**:
 
 - Sake fasalin `runElevatedPowerShell` (duba §1).
-- Block na `SECURITY-AUDITOR-NOTE:` da aka saka kai tsaye a wuraren
-  `runElevatedPowerShell` da `execFileWithPassword` yana bayyana callers da aka
-  amince da su da kuma jerin executable da aka ƙayyade.
-- Kiran `spawn()` na `execFileWithPassword` yana ɗauke da alamar `nosemgrep` tare
-  da jerin executable da aka amince helper ɗin ya karɓa — **babu wata hanya daga
-  shigarwar mai amfani zuwa `finalCommand`/`finalArgs`**.
+- Block na `SECURITY-AUDITOR-NOTE:` da aka saka a cikin lamba a wuraren
+  `runElevatedPowerShell` da `execFileWithPassword` yana bayyana callers da aka amince da su
+  da kuma jerin executable da aka ƙayyade.
+- Kiran `spawn()` na `execFileWithPassword` yana ɗauke da alamar `nosemgrep` tare da
+  jerin executable da helper ɗin ke da izinin karɓa — **babu wata hanya daga bayanan
+  da mai amfani ya shigar zuwa `finalCommand`/`finalArgs`**.
 
 ---
 
@@ -145,78 +143,75 @@ sanya cert na MITM (§1), da kuma ta `execFileWithPassword` don aiwatar da umarn
 - `src/app/api/services/9router/{start,stop,restart,status,install,update,auto-start}/route.ts`.
 - `src/lib/services/ServiceSupervisor.ts` — spawn / health-poll / log-buffer na gama-gari.
 
-**Mai kunnawa**: mai amfani yana danna "Sanya" / "Fara" a shafin services da aka
-haɗa a cikin dashboard na gida.
+**Abin da ke tayar da aiki**: mai amfani ya danna "Shigar" / "Fara" a shafin services da aka
+haɗa a cikin dashboard na cikin gida.
 
-**Kariyar da ake da ita tuni**:
+**Kariyoyin da suke akwai tun farko**:
 
-- Duk routes na `/api/services/*` suna da matsayin LOCAL_ONLY bisa ga
-  `src/server/authz/routeGuard.ts` (ƙa'ida mai tsauri #17). Ana tilasta amfani da
-  loopback kafin duk wani binciken auth — JWT da ya fallasa ba zai iya isa gare
-  su ba.
-- Ana fara row na DB na 9router da `status='not_installed', auto_start=0` (duba
-  `src/lib/db/migrations/071_services.sql:19`). Service ɗin **ba ya** farawa a
-  lokacin ƙaddamarwa ta farko.
-- Ana kiran `spawn()` tare da path na binary da
+- Duk routes na `/api/services/*` LOCAL_ONLY ne bisa ga
+  `src/server/authz/routeGuard.ts` (ƙa'ida mai tsauri #17). Ana tabbatar da loopback
+  kafin duk wani binciken auth — JWT da ya fallasa ba zai iya isa gare su ba.
+- Ana fara cika row na DB na 9router da `status='not_installed', auto_start=0` (duba
+  `src/lib/db/migrations/071_services.sql:19`). Service ɗin **ba ya** farawa
+  a ƙaddamarwa ta farko.
+- Ana kiran `spawn()` da path na binary da
   `resolveSpawnArgs(apiKey, PORT)` ke mayarwa a cikin `src/lib/services/installers/ninerouter.ts`,
-  wanda ke amfani da tsayayyen jerin binaries da ake tallafawa.
-- Ana ajiye Stdout/stderr a ƙwaƙwalwa na ɗan lokaci (iyakar 5 MB, duba `_lib.ts`)
-  — ba a rubuta komai a kan disk sai idan mai amfani ya kunna logging daga
-  dashboard.
+  wanda yake tsayayyen jerin binaries masu goyon baya da aka amince da su.
+- Ana adana Stdout/stderr a buffer na memory (iyakar 5 MB, duba `_lib.ts`) — babu rubutawa
+  a kan faifai sai idan mai amfani ya kunna logging daga dashboard.
 
-**Rage haɗarin v3.8.6**: babu canjin aiki. Minimal build profile
+**Matakin kariya na v3.8.6**: babu canjin aiki. Minimal build profile
 (`OMNIROUTE_BUILD_PROFILE=minimal`) yana maye gurbin
-`src/lib/services/installers/ninerouter.ts` da stub ga masu amfani da suke son a
-cire hanyoyin masu manyan izini gaba ɗaya daga bundle.
+`src/lib/services/installers/ninerouter.ts` da stub ga masu amfani waɗanda suke son
+a cire hanyoyin masu ƙarin izini gaba ɗaya daga bundle.
 
-**Dalilin da ya sa muke riƙe da shi**: 9router wani companion service ne na
-zaɓi da za a iya sanyawa a gida (kamar: plugin irin na WordPress) — sai an zaɓa
-kai tsaye kafin a kunna shi.
+**Dalilin da ya sa muke riƙe shi**: 9router service ne na ƙarin zaɓi da za a iya shigarwa a cikin gida
+(ka ɗauke shi kamar: plugin irin na WordPress) — ana amfani da shi ne kawai idan an zaɓa kai tsaye.
 
 ---
 
-## §5 — Mayar da rubutattun bayanan sirri na OmniRoute Cloud Sync (`api/keys/[id]/route.js`)
+## §5 — Mayar da bayanan shaida na OmniRoute Cloud Sync (`api/keys/[id]/route.js`)
 
 **Fayilolin tushe**:
 
 - `src/lib/cloudSync.ts` — `syncToCloud()` / `updateLocalTokens()`.
 - `src/app/api/keys/[id]/route.ts` — yana kiran `syncKeysToCloudIfEnabled()`.
 
-**Abin da ke kunna shi**: `isCloudEnabled()` ya dawo da `true` (wanda aka saita daga dashboard) **kuma**
-an saita `CLOUD_URL`. Idan dukansu a kashe suke, ba a yin kiran hanyar sadarwa mai fita zuwa
+**Abin da ke kunna shi**: `isCloudEnabled()` yana mayar da `true` (an saita shi daga dashboard) **kuma**
+an saita `CLOUD_URL`. Idan duka biyun a kashe suke, ba a yin kiran hanyar sadarwa mai fita zuwa
 Cloud endpoint.
 
-**Halin v3.8.5 (matsalar da Socket.dev ya gano daidai)**:
+**Halin v3.8.5 (matsalar da Socket.dev ya gano ta hanyar da ta dace)**:
 
 `updateLocalTokens()` yana sake rubuta `accessToken`, `refreshToken`, da
-`providerSpecificData` daga martanin Cloud idan
+`providerSpecificData` daga amsar Cloud idan
 `cloudUpdatedAt > localUpdatedAt`. Babu HMAC, babu sa hannu, babu checksum. Wani
-`CLOUD_URL` da aka saita ba daidai ba ko mai cutarwa (ko MITM a kan tashar) zai iya sauya
-OAuth tokens na provider cikin ɓoye.
+`CLOUD_URL` da aka saita ba daidai ba ko mai cutarwa (ko MITM a tashar sadarwar) zai iya musanya
+OAuth tokens na provider a ɓoye.
 
 **Matakin kariya na v3.8.6**:
 
 1. **Tabbatar da HMAC**: `verifyCloudSignature(rawBody, sigHeader)` yana bincika
    header na `X-Cloud-Sig` (`HMAC-SHA256(OMNIROUTE_CLOUD_SYNC_SECRET,
-rawBody)`) kafin sarrafa JSON. Idan an saita sirrin, dole ne a sami sa hannun.
+rawBody)`) kafin ya fassara JSON. Idan an saita secret ɗin, dole ne a sami sa hannun.
    Idan ba a saita shi ba (yanayin legacy), ana rubuta gargaɗi kuma ana
-   karɓar martanin — sirrin zai zama tilas a v3.9.
-2. **Amincewa ta musamman don filayen sirri**: Ana sake rubuta `accessToken` / `refreshToken` /
+   karɓar amsar — secret ɗin zai zama wajibi a v3.9.
+2. **Ba da izini ga filayen sirri**: Ana sake rubuta `accessToken` / `refreshToken` /
    `providerSpecificData` **kawai** idan
    `OMNIROUTE_CLOUD_SYNC_SECRETS=true`. Yanayin tsoho yana daidaita
-   metadata marar bayanan sirri kawai (`expiresAt`, `status`, `lastError*`,
-   `rateLimitedUntil`, `updatedAt`). Wannan **canji ne da ke karya dacewar baya** ga masu amfani
-   da suka dogara da daidaita token daga nesa — dole ne su amince da shi a sarari.
+   metadata marasa bayanan shaida ne kawai (`expiresAt`, `status`, `lastError*`,
+   `rateLimitedUntil`, `updatedAt`). Wannan **canji ne da ke karya dacewa** ga masu amfani
+   waɗanda suka dogara da daidaita token daga nesa — dole ne su ba da izini a sarari.
 
-**Dalilin da ya sa muke riƙe shi**: Cloud Sync ce kaɗai hanyar da tenant na OmniRoute Cloud
-zai iya tattara bayanan sirrin ƙungiya a wuri guda. Gyaran yana bayyana tsarin barazanar yadda yake:
-"server yana sa hannu, client yana tabbatarwa, operator yana amincewa."
+**Dalilin da ya sa muke riƙe da shi**: Cloud Sync ita ce kaɗai hanyar da tenant na OmniRoute Cloud
+zai iya tattara bayanan shaidar ƙungiya wuri guda. Gyaran yana fayyace samfurin barazanar:
+"server yana sa hannu, client yana tabbatarwa, operator yana ba da izini."
 
 ---
 
-## Bayanin gini: `minimal`
+## Bayanan gini: `minimal`
 
-Ga masu amfani da ke buƙatar artifact da ya dace da Socket, ku yi gini da:
+Ga masu amfani da ke buƙatar artifact mai dacewa da Socket, yi gini da:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -231,18 +226,16 @@ Webpack `NormalModuleReplacementPlugin` yana maye gurbin modules huɗu da stubs:
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Kowane stub yana fitar da surface iri ɗaya, amma kowace function tana jefa
-`featureDisabledError(name)` a runtime. Routes da suka dogara da module da aka kashe
+Kowane stub yana fitar da interface iri ɗaya, amma kowace function tana jefa
+`featureDisabledError(name)` a lokacin aiki. Routes da suka dogara da module da aka kashe
 suna mayar da HTTP 503 tare da saƙo bayyananne maimakon kunna
 hanyar code mai haɗari.
 
-An yi nufin wallafa bundle ɗin da aka samar a matsayin `omniroute-secure`. Duba
-`docs/ops/PUBLISHING_SECURE.md` don tsarin wallafawa.
+An yi nufin buga bundle ɗin da aka samar a matsayin `omniroute-secure`. Duba
+`docs/ops/PUBLISHING_SECURE.md` don matakan bugawa.
 
 ---
 
 ## Rarraba plugin (ana bibiyarsa don v4)
 
-A cikin dogon lokaci, muna niyyar rarraba kunshin npm zuwa modules waɗanda za a iya
-bincika kowannensu dabam. Duba muhimmin matakin v4 a cikin na'urar bin diddigin matsalolin GitHub don ganin
-matsalar da ake bibiyarta.
+A cikin dogon lokaci, muna da niyyar rarraba npm package zuwa modules masu zaman kansu waɗanda za a iya tantancewa daban-daban. Duba milestone na v4 a cikin GitHub issue tracker don issue ɗin bibiyar aikin.

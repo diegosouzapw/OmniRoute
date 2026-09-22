@@ -170,32 +170,33 @@ Lentelėje `memory_vec_meta` (migracija `083_memory_vec.sql`) saugoma:
 Devyni įterpinių ir vektorių laukai pasiekiami `MemorySettingsExtended`, esančiame
 `src/shared/schemas/memory.ts`, ir išsaugomi per `src/lib/db/settings.ts`:
 
-| Laukas                   | Tipas                                              | Numatytoji reikšmė | Aprašymas                                                             |
-| ------------------------ | -------------------------------------------------- | ------------------ | --------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`           | Kurį įterpinių šaltinį naudoti                                        |
-| `embeddingProviderModel` | `string \| null`                                   | `null`             | Teikėjas / modelis `provider/model` formatu                           |
-| `customBaseUrl`          | `string \| null`                                   | `null`             | Tik atminčiai skirtas su OpenAI suderinamo galinio taško bazinis URL  |
-| `customModelId`          | `string \| null`                                   | `null`             | Pasirinktiniam galiniam taškui siunčiamas modelio ID                  |
-| `transformersEnabled`    | `boolean`                                          | `false`            | Pasirinktinis Transformers.js naudojimas (MiniLM, ~400MB)             |
-| `staticEnabled`          | `boolean`                                          | `false`            | Pasirinktinis vietinio statinio potion-base-8M modelio naudojimas     |
-| `rerankEnabled`          | `boolean`                                          | `false`            | Įjungti pakartotinio reitingavimo veiksmą (prideda +200-500ms/req)    |
-| `rerankProviderModel`    | `string \| null`                                   | `null`             | Pakartotinio reitingavimo teikėjas / modelis `provider/model` formatu |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`           | Kurią vektorių posistemę naudoti                                      |
+| Laukas                   | Tipas                                              | Numatytoji reikšmė | Aprašymas                                                                |
+| ------------------------ | -------------------------------------------------- | ------------------ | ------------------------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`           | Kurį įterpinių šaltinį naudoti                                           |
+| `embeddingProviderModel` | `string \| null`                                   | `null`             | Teikėjas / modelis `provider/model` formatu                              |
+| `customBaseUrl`          | `string \| null`                                   | `null`             | Tik atminčiai skirtas su OpenAI suderinamo galinio taško bazinis URL     |
+| `customModelId`          | `string \| null`                                   | `null`             | Pasirinktiniam galiniam taškui siunčiamas modelio ID                     |
+| `transformersEnabled`    | `boolean`                                          | `false`            | Pasirenkamasis Transformers.js naudojimas (MiniLM, ~400MB)               |
+| `staticEnabled`          | `boolean`                                          | `false`            | Pasirenkamasis vietinio statinio potion-base-8M modelio naudojimas       |
+| `rerankEnabled`          | `boolean`                                          | `false`            | Įjungti pakartotinio reitingavimo veiksmą (prideda +200-500ms/užklausai) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`             | Pakartotinio reitingavimo teikėjas / modelis `provider/model` formatu    |
 
-Jie pasiekiami per `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` nustatomas per `POST /v1/rerank` (iškviečiamą per vietinį grįžtamąjį ryšį), todėl priima bet ką, ką priima šis maršrutas: atrinktą debesijos pakartotinio reitingavimo modelį (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) arba su OpenAI suderinamo teikėjo mazgą `<node-prefix>/<model>` formatu (pvz., `skilled-mini/bge-reranker-v2-m3`, skirtą TEI/Infinity serveriui). Vietinio grįžtamojo ryšio mazgai visada tinkami; kitame pagrindiniame kompiuteryje (LAN, Tailscale) esančiam mazgui papildomai būtina `RERANK_REMOTE_PROVIDER_NODES` funkcijos žyma, be to, jis turi atitikti teikėjo išeinančių URL politiką — žr. [Funkcijų žymos](../reference/FEATURE_FLAGS.md). Valdymo skydelio parinkiklyje pateikiami atrinkti teikėjai ir vietiniai mazgai; bet kurią tinkamą `provider/model` eilutę galima nustatyti tiesiogiai per `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Kurią vektorių saugyklos posistemę naudoti |
 
-Naudojant `remote` šaltinį, Memory taip pat priima pasirinktinius `customBaseUrl` ir
+Šie nustatymai pasiekiami per `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+
+Naudojant `remote` šaltinį, Atmintis taip pat priima pasirenkamus `customBaseUrl` ir
 `customModelId` nustatymus. Kartu jie parenka su OpenAI suderinamą `/embeddings`
-galinį tašką ir modelį nekeičiant visuotinio įterpinių registro. Prieš naudojimą
-galinis taškas normalizuojamas ir patikrinamas pagal teikėjo išeinančių URL politiką:
-būtinas HTTP(S), įterptieji prisijungimo duomenys ir užklausų eilutės atmetami, o
-debesijos metaduomenų adresai lieka blokuojami. Tuščios reikšmės išsaugo pasirinktą
-registro teikėją. Valdymo skydui grąžinamos klaidos yra išvalomos, o galinio taško
-prisijungimo duomenys niekada neregistruojami žurnaluose.
+galinį tašką ir modelį, nekeisdami visuotinio įterpinių registro. Prieš naudojimą galinis taškas
+normalizuojamas ir patikrinamas pagal teikėjo išeinančių URL politiką: būtinas HTTP(S),
+įterptieji prisijungimo duomenys ir užklausos eilutės atmetami, o debesijos metaduomenų
+adresai lieka užblokuoti. Valdymo skydeliui grąžinamos klaidos yra išvalomos, o galinio
+taško prisijungimo duomenys niekada neregistruojami žurnaluose.
 
-> **TODO (D20):** `global` aprėptis (atminčių bendrinimas tarp visų API raktų)
-> šiame leidime neįgyvendinta. Tam reikalingi schemos pakeitimai ir visuotinis
-> paieškos kelias. Sekti atskirai.
+> **TODO (D20):** `global` aprėptis (leidžianti bendrinti prisiminimus tarp visų API raktų)
+> šiame leidime neįgyvendinta. Tam reikia schemos pakeitimų ir visuotinio paieškos
+> kelio. Sekite atskirai.
 
 ## Saugojimo sluoksniai
 

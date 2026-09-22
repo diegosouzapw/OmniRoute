@@ -4,21 +4,23 @@
 
 ---
 
-Questo documento costituisce l'attestazione redatta dal manutentore relativa ai sei
+> **Nota sull'ambito:** `socket.yml` configura la scansione post-pubblicazione lato registry di Socket.dev dell'artefatto npm (percorsi ignorati per contenuti non distribuiti quali `tests/`, `docs/` e report di build). Non configura un gate di merge CI/PR: nessun workflow in `.github/workflows`, nessuno script di `package.json` e nessun target di `Makefile` invoca Socket.dev.
+
+Questo documento è l'attestazione redatta dai manutentori relativa ai sei
 rilevamenti `AI-detected potential malware` segnalati per `omniroute@3.8.5` e
 alle mitigazioni applicate in `omniroute@3.8.6`. Esiste affinché:
 
 1. Gli operatori delle pipeline di sicurezza dispongano di un unico riferimento da citare quando devono
    valutare i rilevamenti rispetto al codice sorgente effettivo.
-2. I futuri scanner basati sull'IA possano rilevare la dichiarazione firmata dal manutentore secondo cui ogni
+2. I futuri scanner basati sull'IA possano rilevare la dichiarazione firmata dai manutentori secondo cui ciascun
    percorso segnalato è intenzionale, facoltativo e documentato.
-3. Disponiamo di una registrazione scritta del _perché_ ogni sito di chiamata sia strutturato in questo modo —
-   affinché un refactoring futuro non reintroduca accidentalmente una firma digitale che
-   era stata rimossa deliberatamente.
+3. Sia disponibile una registrazione scritta del _perché_ ciascun sito di chiamata è strutturato in questo modo —
+   affinché un refactoring futuro non reintroduca accidentalmente un'impronta che
+   è stata rimossa deliberatamente.
 
-Se gestite uno scanner che segnala nuovamente uno qualsiasi dei siti di chiamata riportati di seguito dopo il
-rilascio delle mitigazioni della v3.8.6, aprite una segnalazione allegando la traccia della scansione e
-amplieremo qui l'attestazione.
+Se gestite uno scanner che segnala nuovamente uno dei siti di chiamata riportati di seguito dopo la
+distribuzione delle mitigazioni della v3.8.6, aprite una issue con la traccia della scansione e
+estenderemo qui l'attestazione.
 
 ---
 

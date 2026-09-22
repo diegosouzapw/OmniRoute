@@ -27,6 +27,13 @@
 
 ## Tezkor ishga tushirish
 
+> **Bitta buyruq bilan o‘z serveringizda ishga tushirmoqchimisiz?**
+> [O‘z serveringizda joylashtirish qo‘llanmasi](../getting-started/SELF_HOST_GUIDE.md) bilan tanishing —
+> `docker compose -f docker-compose.selfhost.yml up -d` (e’lon qilingan tasvir +
+> Redis, faqat loopback, profil tanlash talab etilmaydi). Quyidagi tezkor ishga tushirish usuli
+> Redis’ni boshqa joyda allaqachon ishga tushirgan foydalanuvchilar uchun
+> yagona konteynerli variantdir.
+
 ```bash
 docker run -d \
   --name omniroute \

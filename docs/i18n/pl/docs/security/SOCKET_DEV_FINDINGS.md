@@ -1,25 +1,26 @@
+# Socket.dev / supply-chain finding attestation (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../security/SOCKET_DEV_FINDINGS.md) · 🇪🇹 [am](../../../am/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇦 [ar](../../../ar/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇿 [az](../../../az/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇬 [bg](../../../bg/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇩 [bn](../../../bn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇨🇿 [cs](../../../cs/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇰 [da](../../../da/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇪 [de](../../../de/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇷 [el](../../../el/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇸 [es](../../../es/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇪 [et](../../../et/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇷 [fa](../../../fa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇮 [fi](../../../fi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇷 [fr](../../../fr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇪 [ga](../../../ga/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [gu](../../../gu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ha](../../../ha/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇱 [he](../../../he/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [hi](../../../hi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇷 [hr](../../../hr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇺 [hu](../../../hu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇲 [hy](../../../hy/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇩 [id](../../../id/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ig](../../../ig/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇹 [it](../../../it/docs/security/SOCKET_DEV_FINDINGS.md) · 🇯🇵 [ja](../../../ja/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇪 [ka](../../../ka/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇭 [km](../../../km/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [kn](../../../kn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇷 [ko](../../../ko/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇹 [lt](../../../lt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇻 [lv](../../../lv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ml](../../../ml/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [mr](../../../mr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇾 [ms](../../../ms/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇹 [mt](../../../mt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇲 [my](../../../my/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇵 [ne](../../../ne/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇱 [nl](../../../nl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇴 [no](../../../no/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [or](../../../or/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [pa](../../../pa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇭 [phi](../../../phi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇹 [pt](../../../pt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇴 [ro](../../../ro/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇺 [ru](../../../ru/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇰 [si](../../../si/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇰 [sk](../../../sk/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇮 [sl](../../../sl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇸 [sr](../../../sr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇪 [sv](../../../sv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇪 [sw](../../../sw/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ta](../../../ta/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [te](../../../te/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇭 [th](../../../th/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇷 [tr](../../../tr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇰 [ur](../../../ur/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇿 [uz](../../../uz/docs/security/SOCKET_DEV_FINDINGS.md) · 🇻🇳 [vi](../../../vi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [yo](../../../yo/docs/security/SOCKET_DEV_FINDINGS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/SOCKET_DEV_FINDINGS.md)
+
 ---
-title: "Atestacja znalezisk supply-chain Socket.dev"
-description: "Atestacja maintainerów dla znalezisk AI-detected potential-malware zgłoszonych wobec omniroute oraz mitigacji z v3.8.6 zastosowanych w każdym oznaczonym call site."
----
 
-# Socket.dev / atestacja znalezisk supply-chain
+> **Uwaga dotycząca zakresu:** plik `socket.yml` konfiguruje wykonywane przez Socket.dev skanowanie artefaktu npm po publikacji po stronie rejestru (ścieżki ignorowane dla treści niedostarczanych w pakiecie, takich jak `tests/`, `docs/` i raporty z kompilacji). Nie konfiguruje mechanizmu blokującego scalanie w CI/PR — żaden przepływ pracy w `.github/workflows`, skrypt w `package.json` ani cel w pliku `Makefile` nie wywołuje Socket.dev.
 
-Ten dokument to atestacja napisana przez maintainerów dla sześciu
-znalezisk `AI-detected potential malware` zgłoszonych wobec `omniroute@3.8.5` oraz
-mitigacji wprowadzonych w `omniroute@3.8.6`. Istnieje po to, aby:
+Niniejszy dokument jest sporządzonym przez opiekuna poświadczeniem dotyczącym sześciu
+ustaleń `AI-detected potential malware` zgłoszonych dla `omniroute@3.8.5` oraz
+środków zaradczych zastosowanych w `omniroute@3.8.6`. Dokument ten istnieje, aby:
 
-1. Operatorzy pipeline'ów bezpieczeństwa mieli jedno źródło do cytowania, gdy muszą
-   ocenić znaleziska względem rzeczywistego kodu źródłowego.
-2. Przyszłe skanery AI mogły podjąć podpisane przez maintainerów twierdzenie, że każda
-   oznaczona ścieżka jest zamierzona, opt-in i udokumentowana.
-3. Mieć pisemny zapis _dlaczego_ każdy call site ma taki kształt —
-   żeby przyszły refaktor przypadkiem nie przywrócił fingerprintu, który
-   celowo usunięto.
+1. Operatorzy potoku bezpieczeństwa mieli jedno źródło, na które mogą się powołać,
+   gdy muszą ocenić ustalenia w odniesieniu do rzeczywistego kodu źródłowego.
+2. Przyszłe skanery AI mogły wykryć podpisane przez opiekuna oświadczenie, że każda
+   oznaczona ścieżka jest zamierzona, opcjonalna i udokumentowana.
+3. Istniał pisemny zapis wyjaśniający, _dlaczego_ każde miejsce wywołania ma właśnie
+   taką postać — aby przyszła refaktoryzacja nie przywróciła przypadkowo sygnatury,
+   która została celowo usunięta.
 
-Jeśli prowadzisz skaner, który ponownie oznacza którykolwiek z poniższych call site'ów
-po wdrożeniu mitigacji z v3.8.6, otwórz issue ze śladem skanu, a
-rozszerzymy tę atestację.
+Jeśli obsługujesz skaner, który po wydaniu środków zaradczych z wersji
+v3.8.6 ponownie oznaczy którekolwiek z poniższych miejsc wywołania, otwórz zgłoszenie
+ze śladem skanowania, a rozszerzymy niniejsze poświadczenie.
 
 ---
 

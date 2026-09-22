@@ -68,16 +68,24 @@ Ange dessa i OmniRoute-processens miljö (demonen, t.ex. via LaunchAgent-plist-f
 
 ## Varningar vid npm install (ERESOLVE / peer / deprecated)
 
-När du kör `npm install -g omniroute` kan du få en mängd varningar, exempelvis `npm warn ERESOLVE`, meddelanden om peer-beroenden och `deprecated`-meddelanden. **Dessa är förväntade och ofarliga.** Installationen lyckades om du ser `added <N> packages` i utdata.
+När du kör `npm install -g omniroute` kan du få en mängd varningar, till exempel `npm warn ERESOLVE`, meddelanden om peer-beroenden och `deprecated`. **Dessa är förväntade och ofarliga.** Installationen lyckades om du ser `added <N> packages` i utdata.
 
-Varningarna kommer från inaktuella intervall för peer-beroenden i tredjepartspaket som OmniRoute inte styr över:
+Använd OmniRoutes rekommenderade installationskommando för att dölja varningar om matchning av peer-beroenden:
 
-1. **`marked-terminal` kräver `marked >=1 <16`, men `marked@18` hittades** — fungerar bra i praktiken; intervallet för peer-beroendet uppströms är bara inaktuellt.
-2. **`deprecated prebuild-install@7.1.3`** — ett transitivt hjälpprogram för hämtning av plattformsspecifika binärfiler. Det används inte
-   för att installera den låsta transportbindningen `wreq-js` och innebär inte att konfigurationen av
-   transporten för webbcookie-leverantören misslyckades.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Ingen åtgärd krävs** — varningarna kan inte tystas helt utan att skapa egna avgreningar av uppströmspaketen.
+`--legacy-peer-deps` döljer endast `ERESOLVE` och meddelanden om peer-beroenden. Utfasningsmeddelanden visas fortfarande eftersom de kommer från transitiva tredjepaket. De innebär inte att installationen misslyckades.
+
+Varningarna beror på inaktuella versionsintervall för peer-beroenden i tredjepaket som OmniRoute inte styr över:
+
+1. **`marked-terminal` kräver `marked >=1 <16`, men `marked@18` hittades** – fungerar bra i praktiken; versionsintervallet för peer-beroendet i uppströmspaketet är bara inaktuellt.
+2. **`deprecated prebuild-install@7.1.3`** – ett transitivt hjälppaket för hämtning av plattformsspecifika binärfiler. Det
+   används inte för att installera den låsta transportbindningen `wreq-js` och innebär inte att konfigurationen av
+   transporten för web-cookie-leverantören misslyckades.
+
+**Ingen åtgärd krävs** – varningarna kan inte döljas helt utan att skapa egna avgreningar av uppströmspaketen.
 
 ---
 

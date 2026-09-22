@@ -27,6 +27,12 @@
 
 ## Szybkie uruchomienie
 
+> **Samodzielny hosting za pomocą jednego polecenia?** Zobacz
+> [Przewodnik samodzielnego hostingu](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (opublikowany obraz +
+> Redis, dostęp wyłącznie przez interfejs pętli zwrotnej, bez wyboru profilu). Poniższa sekcja Szybkie uruchomienie opisuje
+> wariant z pojedynczym kontenerem dla użytkowników, którzy korzystają już z Redis w innym miejscu.
+
 ```bash
 docker run -d \
   --name omniroute \

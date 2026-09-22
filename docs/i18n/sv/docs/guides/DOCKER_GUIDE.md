@@ -25,7 +25,13 @@
 
 ---
 
-## Snabbkörning
+## Snabbstart
+
+> **Drifta själv med ett enda kommando?** Se
+> [guiden för egen drift](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (publicerad avbildning +
+> Redis, endast loopback, inget profilval). Snabbstarten nedan är
+> alternativet med en enda container för användare som redan kör Redis på annat håll.
 
 ```bash
 docker run -d \

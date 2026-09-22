@@ -25,7 +25,13 @@
 
 ---
 
-## فوری اجرا
+## فوری آغاز
+
+> **ایک کمانڈ سے اپنی میزبانی کرنا چاہتے ہیں؟** ملاحظہ کریں
+> [اپنی میزبانی کی رہنمائی](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (شائع شدہ امیج +
+> Redis، صرف loopback، پروفائل منتخب کرنے کی ضرورت نہیں)۔ ذیل میں دیا گیا فوری آغاز
+> ان صارفین کے لیے single-container طریقہ ہے جو پہلے ہی کسی دوسری جگہ Redis چلا رہے ہیں۔
 
 ```bash
 docker run -d \

@@ -68,16 +68,24 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ਤੁਰੰਤ ਦੁਬਾਰ�
 
 ## npm install ਚੇਤਾਵਨੀਆਂ (ERESOLVE / peer / deprecated)
 
-ਜਦੋਂ ਤੁਸੀਂ `npm install -g omniroute` ਚਲਾਉਂਦੇ ਹੋ, ਤਾਂ ਤੁਹਾਨੂੰ `npm warn ERESOLVE`, peer-dependency ਸੂਚਨਾਵਾਂ ਅਤੇ `deprecated` ਸੁਨੇਹਿਆਂ ਵਰਗੀਆਂ ਬਹੁਤ ਸਾਰੀਆਂ ਚੇਤਾਵਨੀਆਂ ਦਿਖਾਈ ਦੇ ਸਕਦੀਆਂ ਹਨ। **ਇਹ ਉਮੀਦ ਕੀਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ ਅਤੇ ਨੁਕਸਾਨ ਰਹਿਤ ਹਨ।** ਜੇ ਆਉਟਪੁੱਟ ਵਿੱਚ `added <N> packages` ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ, ਤਾਂ ਤੁਹਾਡੀ ਇੰਸਟਾਲੇਸ਼ਨ ਸਫਲ ਰਹੀ ਹੈ।
+ਜਦੋਂ ਤੁਸੀਂ `npm install -g omniroute` ਚਲਾਉਂਦੇ ਹੋ, ਤਾਂ ਤੁਹਾਨੂੰ `npm warn ERESOLVE`, peer-dependency ਸੂਚਨਾਵਾਂ ਅਤੇ `deprecated` ਸੁਨੇਹਿਆਂ ਵਰਗੀਆਂ ਬਹੁਤ ਸਾਰੀਆਂ ਚੇਤਾਵਨੀਆਂ ਦਿਖਾਈ ਦੇ ਸਕਦੀਆਂ ਹਨ। **ਇਹ ਉਮੀਦ ਕੀਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ ਅਤੇ ਨੁਕਸਾਨ ਰਹਿਤ ਹਨ।** ਜੇ ਆਉਟਪੁੱਟ ਵਿੱਚ `added <N> packages` ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ, ਤਾਂ ਤੁਹਾਡੀ ਇੰਸਟਾਲੇਸ਼ਨ ਸਫਲ ਹੋਈ ਹੈ।
 
-ਇਹ ਚੇਤਾਵਨੀਆਂ ਤੀਜੀ-ਧਿਰ ਦੇ ਪੈਕੇਜਾਂ ਵਿੱਚ ਪੁਰਾਣੀਆਂ peer-dependency ਰੇਂਜਾਂ ਕਾਰਨ ਆਉਂਦੀਆਂ ਹਨ, ਜਿਨ੍ਹਾਂ ਨੂੰ OmniRoute ਨਿਯੰਤਰਿਤ ਨਹੀਂ ਕਰਦਾ:
+peer-dependency resolution ਚੇਤਾਵਨੀਆਂ ਨੂੰ ਦਬਾਉਣ ਲਈ, OmniRoute ਦਾ ਸਮਰਥਿਤ ਇੰਸਟਾਲੇਸ਼ਨ ਰੂਪ ਵਰਤੋ:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` ਸਿਰਫ਼ `ERESOLVE` ਅਤੇ peer-dependency ਸੂਚਨਾਵਾਂ ਨੂੰ ਦਬਾਉਂਦਾ ਹੈ। Deprecation ਸੂਚਨਾਵਾਂ ਦਿਖਾਈ ਦਿੰਦੀਆਂ ਰਹਿੰਦੀਆਂ ਹਨ ਕਿਉਂਕਿ ਉਹ transitive ਤੀਜੀ-ਧਿਰ ਦੇ ਪੈਕੇਜਾਂ ਤੋਂ ਆਉਂਦੀਆਂ ਹਨ; ਉਹ ਇਹ ਸੰਕੇਤ ਨਹੀਂ ਦਿੰਦੀਆਂ ਕਿ ਇੰਸਟਾਲੇਸ਼ਨ ਅਸਫਲ ਹੋਈ ਹੈ।
+
+ਇਹ ਚੇਤਾਵਨੀਆਂ ਤੀਜੀ-ਧਿਰ ਦੇ ਉਹਨਾਂ ਪੈਕੇਜਾਂ ਵਿੱਚ ਪੁਰਾਣੀਆਂ peer-dependency ਰੇਂਜਾਂ ਕਾਰਨ ਆਉਂਦੀਆਂ ਹਨ, ਜਿਨ੍ਹਾਂ ਨੂੰ OmniRoute ਨਿਯੰਤਰਿਤ ਨਹੀਂ ਕਰਦਾ:
 
 1. **`marked-terminal` ਨੂੰ `marked >=1 <16` ਚਾਹੀਦਾ ਹੈ, ਪਰ `marked@18` ਮਿਲਿਆ** — ਅਮਲ ਵਿੱਚ ਇਹ ਠੀਕ ਕੰਮ ਕਰਦਾ ਹੈ; upstream peer ਰੇਂਜ ਸਿਰਫ਼ ਪੁਰਾਣੀ ਹੈ।
-2. **`deprecated prebuild-install@7.1.3`** — ਇੱਕ transitive native-binary ਪ੍ਰਾਪਤੀ ਸਹਾਇਕ। ਇਸਦੀ ਵਰਤੋਂ
-   pin ਕੀਤੀ `wreq-js` transport binding ਨੂੰ ਇੰਸਟਾਲ ਕਰਨ ਲਈ ਨਹੀਂ ਹੁੰਦੀ ਅਤੇ ਇਹ ਨਹੀਂ ਦਰਸਾਉਂਦਾ ਕਿ web-cookie
+2. **`deprecated prebuild-install@7.1.3`** — ਇੱਕ transitive native-binary ਪ੍ਰਾਪਤੀ ਸਹਾਇਕ। ਇਸਨੂੰ pinned `wreq-js` transport binding ਇੰਸਟਾਲ ਕਰਨ ਲਈ ਨਹੀਂ
+   ਵਰਤਿਆ ਜਾਂਦਾ ਅਤੇ ਇਹ ਸੰਕੇਤ ਨਹੀਂ ਦਿੰਦਾ ਕਿ web-cookie
    provider transport ਸੈੱਟਅੱਪ ਅਸਫਲ ਹੋਇਆ ਹੈ।
 
-**ਕਿਸੇ ਕਾਰਵਾਈ ਦੀ ਲੋੜ ਨਹੀਂ ਹੈ** — upstream ਪੈਕੇਜਾਂ ਨੂੰ fork ਕੀਤੇ ਬਿਨਾਂ ਇਨ੍ਹਾਂ ਚੇਤਾਵਨੀਆਂ ਨੂੰ ਪੂਰੀ ਤਰ੍ਹਾਂ ਚੁੱਪ ਨਹੀਂ ਕਰਵਾਇਆ ਜਾ ਸਕਦਾ।
+**ਕਿਸੇ ਕਾਰਵਾਈ ਦੀ ਲੋੜ ਨਹੀਂ ਹੈ** — upstream ਪੈਕੇਜਾਂ ਨੂੰ fork ਕੀਤੇ ਬਿਨਾਂ ਇਨ੍ਹਾਂ ਚੇਤਾਵਨੀਆਂ ਨੂੰ ਪੂਰੀ ਤਰ੍ਹਾਂ ਦਬਾਇਆ ਨਹੀਂ ਜਾ ਸਕਦਾ।
 
 ---
 

@@ -169,31 +169,32 @@ Iniimbak ng table na `memory_vec_meta` (migration na `083_memory_vec.sql`) ang:
 Siyam na field para sa embedding at vector ang available sa `MemorySettingsExtended` sa
 `src/shared/schemas/memory.ts`, at pinapanatili sa pamamagitan ng `src/lib/db/settings.ts`:
 
-| Field                    | Type                                               | Default  | Paglalarawan                                                      |
+| Field                    | Uri                                                | Default  | Paglalarawan                                                      |
 | ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------- |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Aling source ng embedding ang gagamitin                           |
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | Provider/model sa format na `provider/model`                      |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | Base URL ng OpenAI-compatible endpoint para lamang sa Memory      |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | Base URL ng OpenAI-compatible endpoint na para lamang sa Memory   |
 | `customModelId`          | `string \| null`                                   | `null`   | Model ID na ipinapadala sa custom endpoint                        |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Kusang pag-enable sa Transformers.js (MiniLM, ~400MB)             |
-| `staticEnabled`          | `boolean`                                          | `false`  | Kusang pag-enable sa lokal na static potion-base-8M model         |
-| `rerankEnabled`          | `boolean`                                          | `false`  | I-enable ang hakbang ng reranking (nagdaragdag ng +200-500ms/req) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Provider/model para sa rerank sa format na `provider/model`       |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Aling vector backend ang gagamitin                                |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Opsiyonal na pag-enable sa Transformers.js (MiniLM, ~400MB)       |
+| `staticEnabled`          | `boolean`                                          | `false`  | Opsiyonal na pag-enable sa lokal na static potion-base-8M model   |
+| `rerankEnabled`          | `boolean`                                          | `false`  | I-enable ang hakbang sa reranking (nagdaragdag ng +200-500ms/req) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Rerank provider/model sa format na `provider/model`               |
+
+Nire-resolve ang `rerankProviderModel` ng `POST /v1/rerank` (tinatawag sa pamamagitan ng loopback), kaya tinatanggap nito ang anumang tinatanggap ng route na iyon: isang piniling cloud rerank model (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) o isang OpenAI-compatible provider node bilang `<node-prefix>/<model>` (hal. `skilled-mini/bge-reranker-v2-m3` para sa isang TEI/Infinity box). Palaging maaaring gamitin ang mga loopback node; para sa isang node sa ibang host (LAN, Tailscale), kailangan din ang feature flag na `RERANK_REMOTE_PROVIDER_NODES` at dapat itong pumasa sa patakaran sa outbound URL ng provider — tingnan ang [Mga Feature Flag](../reference/FEATURE_FLAGS.md). Inililista ng selector sa dashboard ang mga piniling provider kasama ang mga lokal na node; maaaring direktang itakda ang anumang valid na string na `provider/model` sa pamamagitan ng `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Aling vector backend ang gagamitin |
 
 Inilalantad ang mga ito sa pamamagitan ng `GET /PUT /api/settings/memory` (schema na `MemorySettingsExtendedSchema`).
 
 Para sa source na `remote`, tinatanggap din ng Memory ang mga opsiyonal na setting na `customBaseUrl` at
-`customModelId`. Kapag pinagsama, pinipili ng mga ito ang isang OpenAI-compatible na `/embeddings`
-endpoint at model nang hindi binabago ang pandaigdigang registry ng embedding. Isinasailalim sa
-normalization ang endpoint bago gamitin at sinusuri ito ayon sa patakaran ng provider para sa outbound URL:
-kinakailangan ang HTTP(S), tinatanggihan ang mga naka-embed na credential at query string, at nananatiling
-naka-block ang mga address ng cloud metadata. Pinapanatili ng mga walang-lamang value ang napiling registry
-provider. Sinasala ang mga error na ibinabalik sa dashboard at hindi kailanman nila-log ang mga credential
-ng endpoint.
+`customModelId`. Kapag magkasama, pumipili ang mga ito ng OpenAI-compatible na `/embeddings`
+endpoint at model nang hindi binabago ang global embedding registry. Nino-normalize ang endpoint
+bago gamitin at sinusuri ito ng patakaran sa outbound URL ng provider: kinakailangan ang HTTP(S),
+tinatanggihan ang mga naka-embed na credential at query string, at nananatiling naka-block ang mga
+address ng cloud metadata. Pinapanatili ng mga value na walang laman ang napiling registry provider. Nililinis
+ang mga error na ibinabalik sa dashboard, at hindi kailanman nila-log ang mga credential ng endpoint.
 
-> **TODO (D20):** Ang scope na `global` (pagbabahagi ng mga memory sa lahat ng API key) ay hindi
-> ipinatupad sa release na ito. Nangangailangan ito ng mga pagbabago sa schema at ng pandaigdigang retrieval
+> **TODO (D20):** Hindi ipinapatupad sa release na ito ang scope na `global` (pagbabahagi ng mga memory sa lahat ng API key).
+> Nangangailangan ito ng mga pagbabago sa schema at ng global na retrieval
 > path. Subaybayan ito nang hiwalay.
 
 ## Mga Layer ng Storage

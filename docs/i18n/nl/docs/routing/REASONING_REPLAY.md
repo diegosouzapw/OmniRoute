@@ -22,22 +22,24 @@ Gebruikelijke clients (Cursor, Cline, Roo Code, OpenAI SDK) verwijderen `reasoni
 ## Architectuur
 
 ```
-Beurt N (assistent genereert):
+Beurt N (assistant genereert):
   → respons bevat reasoning_content + tool_calls
   → als requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      schrijft (geheugen + DB), met elke tool_call.id als sleutel
-  → stuur respons door naar client (die de redenering mogelijk wel of niet bewaart)
+      schrijft (geheugen + DB), geïndexeerd op elke tool_call.id
+  → stuur respons door naar client (die de redenering al dan niet bewaart)
 
-Beurt N+1 (client verzendt vervolgverzoek):
+Beurt N+1 (client stuurt vervolg):
   → vertaler detecteert: requiresReasoningReplay(provider, model) === true
-  → voor elk assistentbericht met tool_calls en zonder reasoning_content:
+  → voor elk assistant-bericht met tool_calls en zonder reasoning_content:
       lookupReasoning(toolCalls[0].id) → geheugen → DB
       treffer  → msg.reasoning_content = cached; recordReplay()
-      gemist → msg.reasoning_content = "" (legacy-terugvaloptie voor oudere DeepSeek)
+      gemist   → msg.reasoning_content = "" (legacy-terugvaloptie voor oudere DeepSeek)
   → upstream ontvangt consistente geschiedenis → geen 400
 ```
 
-Het vastleggen vindt plaats in `open-sse/handlers/chatCore.ts` (op twee locaties, bij de twee aanroepen van `cacheReasoningFromAssistantMessage`). Het opnieuw afspelen vindt plaats in `open-sse/translator/index.ts`, na schemacoërcie maar vóór verzending.
+Vastlegging vindt plaats in `open-sse/handlers/chatCore.ts` (op twee plaatsen, bij de twee aanroepen van `cacheReasoningFromAssistantMessage`). Opnieuw afspelen vindt plaats in `open-sse/translator/index.ts`, na schemacoërcie maar vóór verzending.
+
+Gewone assistant-beurten (zonder tool-call) worden anders geïndexeerd: `buildAssistantMessageCacheKey()` maakt een digest van het sessiebereik plus het genormaliseerde transcript in OpenAI-indeling tot en met die beurt, omdat DeepSeek de redenering van _elke_ eerdere beurt vereist zodra `tools` aanwezig is. Voor Responses-API-doelen (bijvoorbeeld `opencode-go/deepseek-v4-flash`, gerouteerd naar `/responses`) bevat de upstream-body `input`, niet `messages`. Daarom rapporteert `translateRequest()` (`open-sse/translator/index.ts`) via een callbackoptie het pivottranscript waarvan een digest is gemaakt, waarna de vastleggingslocaties een digest van datzelfde transcript maken. De Responses-herhalingsstap wordt voor elke bronindeling uitgevoerd op de OpenAI-pivot, zodat ook Anthropic Messages-clients (Claude → OpenAI → Responses) opnieuw worden afgespeeld.
 
 ## Opslag — Hybride Geheugen + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indexen: `expires_at`, `provider`, `model`, `created_at`. `expires_at` wordt opgeslagen als Unix-epochtijd in seconden; de SELECT-laag normaliseert oudere tekstwaarden via `EXPIRES_AT_EPOCH_SQL`.
+Indexen: `expires_at`, `provider`, `model`, `created_at`. `expires_at` wordt opgeslagen als Unix-epochtijd in seconden; de SELECT-laag normaliseert verouderde tekstwaarden via `EXPIRES_AT_EPOCH_SQL`.
 
 ## Detectie van provider/model
 

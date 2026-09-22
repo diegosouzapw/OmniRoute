@@ -222,32 +222,34 @@ Dawn ir-regoli jiġu infurzati permezz ta' għodod u rreveduri:
 
 ## Sejbiet tal-iskaner tal-katina tal-provvista (Socket.dev / Snyk / simili)
 
-L-artefatt npm ippubblikat `omniroute` jinkludi l-build ta’ Next.js b’`output: "standalone"`,
-li jfisser li kull route handler — inklużi l-funzjonalitajiet privileġġati
-ddokumentati (MITM, importazzjoni minn Zed, Cloud Sync, superviżur tas-servizz inkorporat) — jispiċċa
-f’biċċiet minimizzati `.next/server/*.js`. Skaners ewristiċi tal-katina tal-provvista
-spiss iqabblu l-mudelli ta’ dawk il-biċċiet ma’ firem ta’ malware.
+> **Nota dwar l-ambitu:** `socket.yml` fl-għerq tar-repożitorju jikkonfigura biss `projectIgnorePaths` għall-iskan ta’ wara l-pubblikazzjoni min-naħa tar-reġistru ta’ Socket.dev tal-artefatt npm ippubblikat — mhuwiex ostaklu obbligatorju għall-inkorporazzjoni f’CI/PR. L-ebda workflow f’`.github/workflows`, l-ebda script ta’ `package.json`, u l-ebda target ta’ `Makefile` ma jinvoka Socket.dev.
+
+L-artefatt npm `omniroute` ippubblikat jiġbor fih il-build ta’ Next.js b’`output: "standalone"`,
+li jfisser li kull handler tar-rotta — inklużi l-funzjonalitajiet privileġġati
+dokumentati (MITM, importazzjoni minn Zed, Cloud Sync, superviżur tas-servizz integrat) — jispiċċa
+f’partijiet minimizzati `.next/server/*.js`. L-iskaners euristiċi tal-katina tal-provvista
+spiss iqabblu l-mudelli f’dawk il-partijiet ma’ firem ta’ malware.
 
 Il-konfigurazzjoni tal-iskaner li nużaw tinsab f’[`socket.yml`](socket.yml) fl-għerq
 tar-repożitorju (format v2 tal-GitHub App ta’ Socket.dev — ara
 <https://docs.socket.dev/docs/socket-yml>). Din teskludi b’mod espliċitu
 direttorji li ma jiġux distribwiti (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
 `_mono_repo/`, `docs/`, eċċ.) sabiex l-iskaner jirrapporta biss dwar mogħdijiet tal-kodiċi li
-fil-fatt jaslu għand l-utenti tal-verżjoni ppubblikata — l-iskan innifsu jitwettaq mill-GitHub
-App ta’ Socket billi taqra dak il-fajl, mhux minn workflow f’dan ir-repożitorju.
+fil-fatt jaslu għand l-utenti tal-verżjoni ppubblikata — l-iskan innifsu jitħaddem mill-GitHub
+App ta’ Socket billi jaqra dak il-fajl, mhux minn workflow f’dan ir-repożitorju.
 
-Għal kull kategorija ta’ sejba nżommu attestazzjoni mill-mantenitur għal kull sejba:
+Għal kull kategorija ta’ sejba nżommu attestazzjoni mill-manutentur għal kull sejba:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mappa għal kull sejba: fajl tas-sors ↔ biċċa mmarkata ↔ imġiba ↔ mitigazzjoni
+  mappa għal kull sejba: fajl tas-sors ↔ parti mmarkata ↔ imġiba ↔ mitigazzjoni
   applikata f’v3.8.6.
-- Blokok `SECURITY-AUDITOR-NOTE:` fil-kodiċi tas-sors, f’kull funzjoni mmarkata,
+- Blokki `SECURITY-AUDITOR-NOTE:` fil-kodiċi tas-sors f’kull punt ta’ funzjoni mmarkat
   jirreferu lura għall-istess dokument.
 
-Għall-utenti li l-pipeline tagħhom ma jistax itaffi t-twissija: ibnu b’
+Għall-utenti li l-pipeline tagħhom ma jistax jillaxka t-twissija: ibnu b’
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dan jissostitwixxi l-erba’
-moduli sensittivi bi stubs li waqt it-tħaddim jirritornaw HTTP 503 `feature-disabled`,
-sabiex il-mogħdijiet tal-kodiċi privileġġati jkunu fiżikament assenti mill-bundle.
+moduli sensittivi bi stubs li jirritornaw HTTP 503 `feature-disabled` waqt
+it-tħaddim, sabiex il-mogħdijiet privileġġati tal-kodiċi jkunu fiżikament assenti mill-bundle.
 Ara [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 għar-riċetta tal-pubblikazzjoni.
 

@@ -22,22 +22,24 @@ Ammo odatiy mijozlar (Cursor, Cline, Roo Code, OpenAI SDK) qayta uzatadigan tari
 ## Arxitektura
 
 ```
-N-bosqich (yordamchi yaratadi):
-  → javob reasoning_content + tool_calls maʼlumotlarini o‘z ichiga oladi
-  → agar requiresReasoningReplay(provider, model) bo‘lsa: cacheReasoningFromAssistantMessage()
-      har bir tool_call.id bo‘yicha kalitlangan holda yozadi (xotira + DB)
-  → javobni mijozga uzatadi (u mulohazani saqlashi ham, saqlamasligi ham mumkin)
+N-burilish (assistant yaratadi):
+  → javob reasoning_content + tool_calls ni oʻz ichiga oladi
+  → agar requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
+      har bir tool_call.id boʻyicha kalitlangan holda (xotira + DB) ga yozadi
+  → javobni klientga uzatadi (u reasoning maʼlumotini saqlashi ham, saqlamasligi ham mumkin)
 
-N+1-bosqich (mijoz keyingi so‘rovni yuboradi):
+N+1-burilish (klient keyingi soʻrovni yuboradi):
   → tarjimon aniqlaydi: requiresReasoningReplay(provider, model) === true
-  → tool_calls mavjud va reasoning_content mavjud bo‘lmagan har bir yordamchi xabari uchun:
+  → tool_calls mavjud, ammo reasoning_content boʻlmagan har bir assistant xabari uchun:
       lookupReasoning(toolCalls[0].id) → xotira → DB
       topildi  → msg.reasoning_content = cached; recordReplay()
-      topilmadi → msg.reasoning_content = "" (eski DeepSeek uchun avvalgi zaxira usuli)
-  → yuqori oqim izchil tarixni ko‘radi → 400 xatosi yo‘q
+      topilmadi → msg.reasoning_content = "" (eski DeepSeek versiyalari uchun avvalgi zaxira mexanizmi)
+  → yuqori oqim izchil tarixni koʻradi → 400 xatosi yoʻq
 ```
 
-Yozib olish `open-sse/handlers/chatCore.ts` faylida (ikki joyda, ikkita `cacheReasoningFromAssistantMessage` chaqiruv nuqtasida) amalga oshiriladi. Qayta uzatish `open-sse/translator/index.ts` faylida sxemani majburiy moslashtirishdan keyin, ammo jo‘natishdan oldin amalga oshiriladi.
+Qamrab olish `open-sse/handlers/chatCore.ts` ichida (ikki joyda, yaʼni `cacheReasoningFromAssistantMessage` chaqiriladigan ikkala joyda) amalga oshiriladi. Qayta ijro etish `open-sse/translator/index.ts` ichida sxemaga moslashtirishdan keyin, ammo yuborishdan oldin amalga oshiriladi.
+
+Oddiy (`tool_call` mavjud boʻlmagan) assistant burilishlari boshqacha kalitlanadi: `buildAssistantMessageCacheKey()` sessiya doirasini hamda shu burilishgacha boʻlgan, OpenAI formatiga normallashtirilgan transkriptni xeshlaydi, chunki `tools` mavjud boʻlganda DeepSeek _har bir_ oldingi burilishning reasoning maʼlumotini talab qiladi. Responses-API maqsadlari uchun (masalan, `/responses` manziliga yoʻnaltiriladigan `opencode-go/deepseek-v4-flash`) yuqori oqim tanasi `messages` emas, `input` ni tashiydi, shuning uchun `translateRequest()` (`open-sse/translator/index.ts`) callback opsiyasi orqali oʻzi xeshlagan oraliq transkriptni bildiradi va qamrab olish joylari aynan shu transkriptni xeshlaydi. Responses qayta ijro etish bosqichi har bir manba formati uchun OpenAI oraliq formatida ishlaydi, shu sababli Anthropic Messages klientlari (Claude → OpenAI → Responses) ham qayta ijro etiladi.
 
 ## Saqlash — gibrid xotira + SQLite
 

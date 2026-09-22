@@ -222,32 +222,36 @@ docker run -d \
 
 ## سپلائی چین اسکینر کے نتائج (Socket.dev / Snyk / مماثل)
 
-شائع شدہ `omniroute` npm آرٹیفیکٹ میں Next.js کی `output: "standalone"`
-بلڈ شامل ہے، جس کا مطلب ہے کہ ہر روٹ ہینڈلر — بشمول دستاویزی مراعات یافتہ
-خصوصیات (MITM، Zed امپورٹ، Cloud Sync، ایمبیڈڈ سروس سپروائزر) — بالآخر
-`.next/server/*.js` کی منیفائیڈ چنکس میں شامل ہو جاتا ہے۔ ہیورسٹک سپلائی چین اسکینرز
-اکثر ان چنکس کے پیٹرنز کو میل ویئر سگنیچرز سے مماثل قرار دیتے ہیں۔
+> **دائرۂ کار کا نوٹ:** ریپوزٹری کی روٹ پر موجود `socket.yml` صرف شائع شدہ npm آرٹیفیکٹ کے لیے Socket.dev کے رجسٹری-سائیڈ، اشاعت کے بعد ہونے والے اسکین کے `projectIgnorePaths` کو متعین کرتی ہے — یہ نافذ شدہ CI/PR مرج گیٹ نہیں ہے۔ `.github/workflows` میں کوئی workflow، `package.json` میں کوئی اسکرپٹ، اور `Makefile` میں کوئی ٹارگٹ Socket.dev کو نہیں چلاتا۔
 
-ہماری استعمال کردہ اسکینر کنفیگریشن ریپوزٹری کی روٹ میں
-[`socket.yml`](socket.yml) پر موجود ہے (Socket.dev GitHub App فارمیٹ v2 — دیکھیے
-<https://docs.socket.dev/docs/socket-yml>)۔ یہ واضح طور پر ان ڈائریکٹریز کو خارج کرتی ہے
-جو شائع شدہ پیکیج کا حصہ نہیں ہیں (`tests/`، `_tasks/`، `_references/`، `_ideia/`،
-`_mono_repo/`، `docs/` وغیرہ)، تاکہ اسکینر صرف ان کوڈ پاتھس پر رپورٹ کرے جو
-حقیقتاً شائع شدہ ورژن کے صارفین تک پہنچتے ہیں — اسکین خود اس فائل کو پڑھنے والی Socket
-GitHub App کے ذریعے چلایا جاتا ہے، نہ کہ اس ریپوزٹری میں موجود کسی ورک فلو کے ذریعے۔
+شائع شدہ `omniroute` npm آرٹیفیکٹ Next.js کی `output: "standalone"`
+بلڈ کو بنڈل کرتا ہے، جس کا مطلب ہے کہ ہر route handler — بشمول دستاویزی مراعات یافتہ
+خصوصیات (MITM، Zed import، Cloud Sync، embedded service supervisor) — بالآخر
+`.next/server/*.js` کی minified chunks میں شامل ہو جاتا ہے۔ ہیورسٹک سپلائی چین اسکینرز
+اکثر ان chunks کو میلویئر signatures کے ساتھ pattern-match کرتے ہیں۔
 
-نتائج کے ہر زمرے کے لیے ہم فی نتیجہ مینٹینر کی تصدیق برقرار رکھتے ہیں:
+ہمارے زیرِ استعمال اسکینر کی کنفیگریشن ریپو روٹ میں موجود
+[`socket.yml`](socket.yml) میں ہے (Socket.dev GitHub App فارمیٹ v2 — دیکھیے
+<https://docs.socket.dev/docs/socket-yml>)۔ یہ واضح طور پر
+غیر تقسیم شدہ ڈائریکٹریز (`tests/`، `_tasks/`، `_references/`، `_ideia/`،
+`_mono_repo/`، `docs/`، وغیرہ) کو خارج کرتی ہے تاکہ اسکینر صرف ان code paths
+کی رپورٹ دے جو حقیقتاً شائع شدہ صارفین تک پہنچتے ہیں — اسکین خود Socket
+GitHub App کے ذریعے اس فائل کو پڑھنے سے چلتا ہے، نہ کہ اس ریپوزٹری میں موجود
+کسی workflow کے ذریعے۔
+
+نتائج کی ہر زمرہ بندی کے لیے ہم ہر نتیجے کی سطح پر maintainer attestation برقرار رکھتے ہیں:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  فی نتیجہ نقشہ: سورس فائل ↔ نشان زدہ چنک ↔ طرزِ عمل ↔ v3.8.6 میں لاگو کی گئی تخفیف
-- ہر نشان زدہ فنکشن پر موجود اِن سورس `SECURITY-AUDITOR-NOTE:` بلاکس
-  اسی دستاویز کی طرف حوالہ دیتے ہیں۔
+  ہر نتیجے کا نقشہ: source file ↔ نشان زدہ chunk ↔ رویہ ↔ v3.8.6 میں
+  لاگو کردہ تخفیف۔
+- ہر نشان زدہ function پر سورس کے اندر موجود `SECURITY-AUDITOR-NOTE:` بلاکس
+  اسی دستاویز کی جانب واپس حوالہ دیتے ہیں۔
 
-جن صارفین کی پائپ لائن اس الرٹ میں نرمی نہیں کر سکتی، وہ
+ان صارفین کے لیے جن کی pipeline اس alert میں نرمی نہیں کر سکتی:
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build` کے ساتھ بلڈ کریں۔ یہ چار
-حساس ماڈیولز کو ایسے اسٹبز سے بدل دیتا ہے جو رن ٹائم پر HTTP 503
-`feature-disabled` واپس کرتے ہیں، یوں مراعات یافتہ کوڈ پاتھس بنڈل میں مادی طور پر
-موجود نہیں رہتے۔ پبلشنگ کی ترکیب کے لیے
+حساس modules کو ایسے stubs سے بدل دیتا ہے جو runtime پر HTTP 503
+`feature-disabled` واپس کرتے ہیں، لہٰذا مراعات یافتہ code paths بنڈل میں
+طبعی طور پر موجود نہیں رہتے۔ اشاعت کے طریقۂ کار کے لیے
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 دیکھیے۔
 

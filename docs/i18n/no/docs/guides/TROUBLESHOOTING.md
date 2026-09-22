@@ -66,18 +66,26 @@ Angi disse i miljøet til OmniRoute-prosessen (daemonen, f.eks. via LaunchAgent-
 
 ---
 
-## Advarsler ved npm install (ERESOLVE / peer / deprecated)
+## npm install-advarsler (ERESOLVE / peer / deprecated)
 
-Når du kjører `npm install -g omniroute`, kan du se en mengde advarsler som `npm warn ERESOLVE`, varsler om peer-avhengigheter og `deprecated`-meldinger. **Disse er forventede og ufarlige.** Installasjonen var vellykket hvis du ser `added <N> packages` i utdataene.
+Når du kjører `npm install -g omniroute`, kan du se en mengde advarsler som `npm warn ERESOLVE`, varsler om peer-avhengigheter og `deprecated`-meldinger. **Disse er forventet og ufarlige.** Installasjonen var vellykket hvis du ser `added <N> packages` i utdataene.
 
-Advarslene kommer fra utdaterte versjonsintervaller for peer-avhengigheter i tredjepartspakker som OmniRoute ikke kontrollerer:
+Bruk OmniRoutes støttede installasjonsform for å undertrykke advarslene om løsning av peer-avhengigheter:
 
-1. **`marked-terminal` krever `marked >=1 <16`, men fant `marked@18`** — fungerer fint i praksis; versjonsintervallet for peer-avhengigheten oppstrøms er bare utdatert.
-2. **`deprecated prebuild-install@7.1.3`** — et transitivt hjelpeverktøy for henting av innebygde binærfiler. Det brukes ikke
-   til å installere den fastlåste `wreq-js`-transportbindingen og betyr ikke at transportoppsettet for web-cookie-
-   leverandøren mislyktes.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Ingen handling er nødvendig** — advarslene kan ikke fjernes fullstendig uten å forke oppstrømspakkene.
+`--legacy-peer-deps` undertrykker bare `ERESOLVE` og varsler om peer-avhengigheter. Varsler om avvikling forblir synlige fordi de kommer fra transitive tredjepartspakker. De betyr ikke at installasjonen mislyktes.
+
+Advarslene skyldes utdaterte intervaller for peer-avhengigheter i tredjepartspakker som OmniRoute ikke kontrollerer:
+
+1. **`marked-terminal` krever `marked >=1 <16`, men fant `marked@18`** — fungerer fint i praksis. Peer-intervallet oppstrøms er bare utdatert.
+2. **`deprecated prebuild-install@7.1.3`** — et transitivt hjelpeverktøy for henting av plattformspesifikke binærfiler. Det brukes ikke
+   til å installere den fastlåste transportbindingen `wreq-js` og betyr ikke at transportoppsettet for
+   leverandøren av web-informasjonskapsler mislyktes.
+
+**Ingen handling er nødvendig** — advarslene kan ikke undertrykkes fullstendig uten å forke oppstrømspakkene.
 
 ---
 
