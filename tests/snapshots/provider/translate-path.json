@@ -4092,7 +4092,33 @@
         "Content-Type": "application/json"
       }
     },
-    "url": {}
+    "url": {
+      "nonStream": "https://api.meta.ai/v1/responses",
+      "stream": "https://api.meta.ai/v1/responses"
+    }
+  },
+  "muse-code-oauth": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.meta.ai/v1/responses",
+      "stream": "https://api.meta.ai/v1/responses"
+    }
   },
   "muse-spark-web": {
     "format": "openai",

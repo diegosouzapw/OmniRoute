@@ -160,6 +160,8 @@ const EMBEDDED_DEFAULTS = {
     94, 90, 11, 92, 20, 89, 66, 69, 72, 73, 65, 76, 86, 65, 93, 7, 75, 20, 28, 86, 90, 94, 95, 95,
     90, 64, 69, 83, 78, 18, 65, 90, 15, 89, 90, 21,
   ],
+  // Meta Muse Code CLI — meta oauth client (public, device flow)
+  muse_id: [94, 93, 93, 88, 68, 93, 64, 77, 80, 31, 71, 65, 90, 85, 93, 85],
   // GitHub Copilot CLI — github oauth app id (public, device flow)
   github_copilot_id: [38, 27, 95, 71, 16, 90, 69, 67, 4, 29, 72, 22, 90, 91, 12, 0, 75, 19, 8, 87],
   // Grok Build CLI (xAI) — public oauth client id (import-token flow)

@@ -246,6 +246,14 @@ export const OAUTH_TEST_CONFIG: Record<string, OAuthTestConfigEntry> = {
     checkExpiry: true,
     refreshable: true,
   },
+  "muse-code-oauth": {
+    // Meta Muse Code OIDC device-code flow (client_id from MUSE_CODE_OAUTH_CLIENT_ID,
+    // tokenUrl https://auth.meta.com/oidc/device/token/). No stable lightweight
+    // userinfo probe — validate token presence/expiry plus the refresh path; live
+    // connectivity is exercised by real api.meta.ai traffic.
+    checkExpiry: true,
+    refreshable: true,
+  },
   kilocode: {
     // Kilo OAuth does not expose a stable user-info endpoint in all environments.
     // Validate using token presence/expiry as a lightweight auth check.

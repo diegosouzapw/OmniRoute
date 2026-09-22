@@ -69,6 +69,7 @@ const NO_PKCE_DEVICE_CODE_PROVIDERS = new Set([
   "codebuddy-cn",
   "grok-cli",
   "ghe-copilot",
+  "muse-code-oauth",
 ]);
 
 /**

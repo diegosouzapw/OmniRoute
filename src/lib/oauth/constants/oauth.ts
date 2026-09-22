@@ -179,6 +179,16 @@ export const KIMI_CODING_CONFIG = {
   tokenUrl: "https://auth.kimi.com/api/oauth/token",
 };
 
+// Meta Muse Code OAuth Configuration (Device Code Flow)
+export const MUSE_CODE_CONFIG = {
+  clientId: resolvePublicCred("muse_id", "MUSE_CODE_OAUTH_CLIENT_ID"),
+  deviceCodeUrl: "https://auth.meta.com/oidc/device/authorization/",
+  tokenUrl: "https://auth.meta.com/oidc/device/token/",
+  mintUrl: "https://api.meta.ai/muse-code/key",
+  apiVersion: "1.0.0",
+  baseUrl: "https://api.meta.ai/v1/responses",
+};
+
 // KiloCode OAuth Configuration (Custom Device Auth Flow)
 export const KILOCODE_CONFIG = {
   apiBaseUrl: "https://api.kilo.ai",
@@ -497,6 +507,7 @@ export const PROVIDERS = {
   ANTIGRAVITY: "antigravity",
   AGY: "agy",
   KIMI_CODING: "kimi-coding",
+  MUSE_CODE: "muse-code-oauth",
   OPENAI: "openai",
   GITHUB: "github",
   GHE_COPILOT: "ghe-copilot",

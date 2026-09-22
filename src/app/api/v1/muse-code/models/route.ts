@@ -34,11 +34,7 @@ function buildModelCatalog(): MuseCodeModel[] {
   const data: MuseCodeModel[] = [];
 
   for (const model of muse_codeProvider.models) {
-    let family = "llama";
-    if (model.id.includes("llama-4")) family = "llama-4";
-    else if (model.id.includes("llama-3.3")) family = "llama-3.3";
-    else if (model.id.includes("llama-3.2")) family = "llama-3.2";
-    else if (model.id.includes("llama-3.1")) family = "llama-3.1";
+    const family = model.id.startsWith("muse-spark") ? "muse-spark" : "meta";
 
     const modalities: string[] = ["text"];
     if (model.supportsVision) modalities.push("image");
@@ -54,8 +50,8 @@ function buildModelCatalog(): MuseCodeModel[] {
         reasoning: !!model.supportsReasoning,
         tool_call: !!model.toolCalling,
         modalities,
-        limit: model.contextLength ?? 200_000,
-        cost: model.id.includes("maverick") || model.id.includes("405b") ? 3 : 1,
+        limit: model.contextLength ?? 1_048_576,
+        cost: 1,
       },
     });
   }

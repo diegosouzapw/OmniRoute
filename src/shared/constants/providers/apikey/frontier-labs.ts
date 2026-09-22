@@ -350,11 +350,14 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     color: "#0866FF",
     textIcon: "MC",
     website: "https://github.com/meta-llama/llama-stack",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
     authHint:
-      "Use your META_API_KEY env var as a Bearer token. Muse Code CLI uses the OpenAI Responses API wire format (POST /responses).",
+      "Use your META_API_KEY env var as a Bearer token, or sign in with Meta. ⚠️ Routing a personal Muse Code subscription through a third-party gateway may violate Meta's terms and risk account suspension — use at your own risk. Muse Code CLI uses the OpenAI Responses API wire format (POST /responses).",
     apiHint:
       "Muse Code is OpenAI-compatible. OmniRoute routes chat traffic through the Responses API and exposes the proprietary model catalog at /v1/muse-code/models.",
     passthroughModels: true,
     hasFree: false,
+    oauthProviderId: "muse-code-oauth",
   },
 };

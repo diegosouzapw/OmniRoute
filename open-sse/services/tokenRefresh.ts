@@ -55,6 +55,7 @@ import { refreshKiroToken } from "./tokenRefresh/providers/kiro.ts";
 import { refreshQoderToken } from "./tokenRefresh/providers/qoder.ts";
 import { refreshGitHubToken } from "./tokenRefresh/providers/github.ts";
 import { refreshCopilotToken } from "./tokenRefresh/providers/copilot.ts";
+import { refreshMuseCodeToken } from "./tokenRefresh/providers/museCode.ts";
 
 export {
   refreshCodebuddyCnToken,
@@ -70,6 +71,7 @@ export {
   refreshQoderToken,
   refreshGitHubToken,
   refreshCopilotToken,
+  refreshMuseCodeToken,
   extractOAuthErrorCode,
   isUnrecoverableRefreshError,
   isProviderBlocked,
@@ -441,6 +443,11 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
     case "codebuddy-cn":
       return await refreshCodebuddyCnToken(credentials.refreshToken, log, proxyConfig);
 
+    // OAuth connections are stored under the registry backend id
+    // "muse-code-oauth" (see open-sse/config/providers/registry/muse/code).
+    case "muse-code-oauth":
+      return await refreshMuseCodeToken(credentials.refreshToken, log, proxyConfig);
+
     default:
       // Fallback to generic OAuth refresh for unknown providers
       return refreshAccessToken(provider, credentials.refreshToken, credentials, log, proxyConfig);
@@ -472,6 +479,7 @@ export function supportsTokenRefresh(provider) {
     "gitlab-duo",
     "codebuddy-cn",
     "cursor",
+    "muse-code-oauth",
   ]);
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];

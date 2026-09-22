@@ -2,106 +2,83 @@ import type { RegistryEntry } from "../../shared.ts";
 import { buildOpenAiCompatibleRegistryEntry } from "../../shared.ts";
 
 /**
- * Muse Code CLI — Meta's agentic coding tool.
+ * Muse Code CLI — Meta's agentic coding tool (API-key / pay-as-you-go path).
  *
  * Wire format: OpenAI Responses API (POST /responses).
- * Auth: Bearer token from META_API_KEY env var.
+ *
+ * The `default` executor returns `config.baseUrl` verbatim and does not consult
+ * `responsesBaseUrl`, so `baseUrl` points at the Responses endpoint itself —
+ * every model below is tagged `targetFormat: "openai-responses"`. This mirrors
+ * the responses-only providers `deepseek` and `perplexity-agent`.
+ *
+ * Auth: Bearer API key created at https://dev.meta.ai/ → API keys tab
+ * (https://dev.meta.ai/docs/authentication).
  * Reasoning efforts: xhigh/ultra -> high (handled generically).
  *
- * @see https://github.com/joymadhu49/muse-openrouter-shim
+ * @see https://dev.meta.ai/docs/authentication
  */
 export const muse_codeProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry({
   id: "muse-code",
   alias: "mc",
   passthroughModels: true,
+  baseUrl: "https://api.meta.ai/v1/responses",
   reasoningTransport: "opaque",
-  defaultContextLength: 200000,
+  defaultContextLength: 1048576,
   models: [
     {
-      id: "llama-4-maverick",
-      name: "Llama 4 Maverick",
+      id: "muse-spark-1.3",
+      name: "Muse Spark 1.3",
       contextLength: 1048576,
       maxOutputTokens: 131072,
       supportsReasoning: true,
       supportsXHighEffort: true,
       toolCalling: true,
-      supportsVision: true,
       targetFormat: "openai-responses",
       unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
     {
-      id: "llama-4-scout",
-      name: "Llama 4 Scout",
+      id: "muse-spark-1.2",
+      name: "Muse Spark 1.2",
       contextLength: 1048576,
       maxOutputTokens: 131072,
       supportsReasoning: true,
       supportsXHighEffort: true,
       toolCalling: true,
-      supportsVision: true,
       targetFormat: "openai-responses",
       unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
     {
-      id: "llama-3.3-70b",
-      name: "Llama 3.3 70B",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
+      id: "muse-spark-1.1",
+      name: "Muse Spark 1.1",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsXHighEffort: true,
       toolCalling: true,
       targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
+      unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
     {
-      id: "llama-3.1-405b",
-      name: "Llama 3.1 405B",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
+      id: "muse-spark-1.3-contributor",
+      name: "Muse Spark 1.3 Contributor",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsXHighEffort: true,
       toolCalling: true,
       targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
+      unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
     {
-      id: "llama-3.1-70b",
-      name: "Llama 3.1 70B",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
+      id: "muse-spark-1.2-contributor",
+      name: "Muse Spark 1.2 Contributor",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+      supportsReasoning: true,
+      supportsXHighEffort: true,
       toolCalling: true,
       targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
-    },
-    {
-      id: "llama-3.1-8b",
-      name: "Llama 3.1 8B",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
-      toolCalling: true,
-      targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
-    },
-    {
-      id: "llama-3.2-90b-vision",
-      name: "Llama 3.2 90B Vision",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
-      toolCalling: true,
-      supportsVision: true,
-      targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
-    },
-    {
-      id: "llama-3.2-11b-vision",
-      name: "Llama 3.2 11B Vision",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
-      toolCalling: true,
-      supportsVision: true,
-      targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
+      unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
   ],
 });

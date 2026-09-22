@@ -1,13 +1,22 @@
 /**
- * Tests for Muse Code CLI model catalog endpoint.
+ * Tests for Muse Code CLI model catalog.
  *
- * Verifies GET /v1/muse-code/models returns the proprietary Muse format.
+ * Verifies the API-key muse-code registry advertises the real Meta Muse Spark
+ * catalog over the Responses endpoint, not the obsolete llama-* ids.
  */
 
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import { muse_codeProvider } from "../../open-sse/config/providers/registry/muse-code/index.ts";
+
+const EXPECTED_IDS = [
+  "muse-spark-1.1",
+  "muse-spark-1.2",
+  "muse-spark-1.2-contributor",
+  "muse-spark-1.3",
+  "muse-spark-1.3-contributor",
+];
 
 // ── Model catalog shape ─────────────────────────────────────────────────────
 
@@ -21,61 +30,30 @@ test("muse-code models have unique ids", () => {
   assert.equal(unique.size, ids.length, "model IDs must be unique");
 });
 
-test("muse-code models include llama-4-maverick", () => {
-  const ids = muse_codeProvider.models.map((m) => m.id);
-  assert.ok(ids.includes("llama-4-maverick"), "must include llama-4-maverick");
+test("muse-code advertises the muse-spark catalog", () => {
+  const ids = muse_codeProvider.models.map((m) => m.id).sort();
+  assert.deepEqual(ids, EXPECTED_IDS);
 });
 
-test("muse-code models include llama-4-scout", () => {
-  const ids = muse_codeProvider.models.map((m) => m.id);
-  assert.ok(ids.includes("llama-4-scout"), "must include llama-4-scout");
-});
-
-test("muse-code models include llama-3.3-70b", () => {
-  const ids = muse_codeProvider.models.map((m) => m.id);
-  assert.ok(ids.includes("llama-3.3-70b"), "must include llama-3.3-70b");
-});
-
-test("llama-4 models have supportsXHighEffort", () => {
-  const maverick = muse_codeProvider.models.find((m) => m.id === "llama-4-maverick");
-  assert.ok(maverick, "llama-4-maverick must exist");
-  assert.equal(maverick.supportsXHighEffort, true);
-
-  const scout = muse_codeProvider.models.find((m) => m.id === "llama-4-scout");
-  assert.ok(scout, "llama-4-scout must exist");
-  assert.equal(scout.supportsXHighEffort, true);
-});
-
-test("llama-3.3-70b does not support reasoning", () => {
-  const model = muse_codeProvider.models.find((m) => m.id === "llama-3.3-70b");
-  assert.ok(model, "llama-3.3-70b must exist");
-  assert.equal(model.supportsReasoning, false);
-});
-
-test("non-reasoning models do not declare supportsXHighEffort", () => {
+test("muse-code advertises no obsolete llama-* ids", () => {
   for (const model of muse_codeProvider.models) {
-    if (!model.supportsReasoning) {
-      assert.equal(
-        model.supportsXHighEffort,
-        undefined,
-        `${model.id} is not a reasoning model but has supportsXHighEffort`
-      );
-    }
+    assert.ok(!model.id.startsWith("llama-"), `${model.id} must not be a llama id`);
   }
 });
 
-// ── Vision models ───────────────────────────────────────────────────────────
+// ── Upstream wiring ─────────────────────────────────────────────────────────
 
-test("vision models have supportsVision: true", () => {
-  const expectedVision = [
-    "llama-4-maverick",
-    "llama-4-scout",
-    "llama-3.2-90b-vision",
-    "llama-3.2-11b-vision",
-  ];
+test("muse-code baseUrl points at the Responses endpoint", () => {
+  assert.equal(muse_codeProvider.baseUrl, "https://api.meta.ai/v1/responses");
+});
+
+test("every muse-spark model uses the Responses wire format at 1M context", () => {
   for (const model of muse_codeProvider.models) {
-    if (expectedVision.includes(model.id)) {
-      assert.equal(model.supportsVision, true, `${model.id} should have supportsVision`);
-    }
+    assert.equal(model.targetFormat, "openai-responses", `${model.id} targetFormat`);
+    assert.equal(model.contextLength, 1048576, `${model.id} contextLength`);
   }
+});
+
+test("defaultContextLength matches the real 1M window", () => {
+  assert.equal(muse_codeProvider.defaultContextLength, 1048576);
 });

@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 
 import { muse_codeProvider } from "../../open-sse/config/providers/registry/muse-code/index.ts";
 import { getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
+import { AI_PROVIDERS } from "../../src/shared/constants/providers.ts";
 
 // ── Registry entry structure ────────────────────────────────────────────────
 
@@ -88,4 +89,26 @@ test("muse-code is discoverable via alias", () => {
   const entry = getRegistryEntry("mc");
   assert.ok(entry, "getRegistryEntry must find muse-code by alias mc");
   assert.equal(entry.id, "muse-code");
+});
+
+// ── Subscription-risk warning ───────────────────────────────────────────────
+
+test("muse-code and muse-code-oauth carry the subscription-risk warning", () => {
+  // The dashboard renders the RiskNoticeModal from the *visible* card. The OAuth
+  // entry is hiddenFromDashboard, so the dual-auth API-key card must carry the
+  // flags too (same shape as the xai / xai-oauth pair).
+  const apikey = AI_PROVIDERS["muse-code"];
+  assert.ok(apikey, "AI_PROVIDERS['muse-code'] must exist");
+  assert.equal(apikey.subscriptionRisk, true);
+  assert.equal(apikey.riskNoticeVariant, "oauth");
+  assert.equal(apikey.oauthProviderId, "muse-code-oauth");
+
+  const oauth = AI_PROVIDERS["muse-code-oauth"];
+  assert.ok(oauth, "AI_PROVIDERS['muse-code-oauth'] must exist");
+  assert.equal(oauth.subscriptionRisk, true);
+  assert.equal(oauth.riskNoticeVariant, "oauth");
+
+  // Meta-specific ToS caveat must live on the visible card's authHint.
+  assert.match(apikey.authHint ?? "", /Meta's terms/);
+  assert.match(apikey.authHint ?? "", /account suspension/);
 });

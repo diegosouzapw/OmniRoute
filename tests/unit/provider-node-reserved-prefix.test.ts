@@ -189,7 +189,9 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // alias "pepper" from the REGISTRY walk (414 -> 412) — the two land back on the same total.
   // #12648 registers xKiro: id "xkiro" with no separate alias — a single REGISTRY
   // member (412 -> 413).
-  assert.equal(RESERVED_PREFIX_COUNT, 413);
+  // Muse Code OAuth registers id "muse-code-oauth" + alias "mco" (413 -> 415).
+  // The API-key sibling "muse-code"/"mc" predates this branch and is already counted.
+  assert.equal(RESERVED_PREFIX_COUNT, 415);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {
