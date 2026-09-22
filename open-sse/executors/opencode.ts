@@ -45,6 +45,10 @@ import {
   surfaceFromBaseUrl,
   type FreeTierContractAttempt,
 } from "./opencodeFreeTierContract.ts";
+import {
+  handleLoopFreeTierRefusal,
+  retryFreeTierRefusalWithObservedTools,
+} from "./opencodeFreeTierRetry.ts";
 
 // Re-exported: the free-model catalog moved to the contract module (it decides whether the
 // contract applies), and existing importers keep resolving it from the executor.
@@ -286,6 +290,18 @@ export class OpencodeExecutor extends BaseExecutor {
   /** Set in buildHeaders, which execute() runs before transformRequest. */
   private _clientSession: string | undefined;
   private _surface = () => surfaceFromBaseUrl(this.config?.baseUrl);
+
+  /** Free-tier retry context: the request-scoped contract state the retry helper needs. */
+  private freeTierRetryCtx() {
+    return {
+      surface: this._surface(),
+      provider: this.provider,
+      requestFormat: this._requestFormat,
+      clientSession: this._clientSession,
+      borrowed: this._contractAttempt?.borrowed,
+      clientToolNames: this._contractAttempt?.clientToolNames ?? [],
+    };
+  }
 
   /**
    * Per-account rotation state, rebuilt from credentials on each request. The
@@ -557,6 +573,25 @@ export class OpencodeExecutor extends BaseExecutor {
         const single = (await guardStall(
           await (hasAmbientProxyContext() ? dispatch() : runWithDirectFetchContext(dispatch))
         )) as HttpExecuteResult;
+        const retryAfterRefusal = await retryFreeTierRefusalWithObservedTools(
+          this.freeTierRetryCtx(),
+          input,
+          single,
+          log,
+          cid,
+          ((retryInput) =>
+            guardStall(
+              hasAmbientProxyContext()
+                ? super.execute(retryInput)
+                : runWithDirectFetchContext(() => super.execute(retryInput))
+            ) as unknown as Promise<HttpExecuteResult>)
+        );
+        if (retryAfterRefusal) {
+          return this.finalizeForcedStream(
+            input,
+            this.normalizeMuseSparkResponse(input, retryAfterRefusal)
+          );
+        }
         if (single.response.status === 400) {
           let bodyText: string | null = null;
           try {
@@ -904,17 +939,29 @@ export class OpencodeExecutor extends BaseExecutor {
               continue;
             }
             // Free-tier refusal: upstream rejected the REQUEST (client identity or
-            // request shape), not this account. Every sibling account gets the same
-            // verdict from the same request, so rotating only adds latency; and the
-            // refusal must not touch account health — markSuccess would revive an
-            // evicted account. Return it untouched, health and cooldown unchanged.
+            // request shape), not this account. Handled in opencodeFreeTierRetry.ts
+            // (one bounded retry with observed tools appended, then unchanged return).
             if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
-              log?.warn?.(
-                "OPENCODE",
-                `${cid}free-tier refusal ${status} on account ${masked} (proxy ${proxyKeyOf(account.proxy) ?? "direct"}), returning it unchanged (request-scoped, no rotation)`
+              return await handleLoopFreeTierRefusal(
+                (retried) =>
+                  this.finalizeForcedStream(
+                    input,
+                    this.normalizeMuseSparkResponse(input, retried)
+                  ),
+                input,
+                result,
+                this.freeTierRetryCtx(),
+                { account, masked, proxyKey: proxyKeyOf(account.proxy) ?? "direct" },
+                log,
+                cid,
+                {
+                  dispatch: (retryInput) =>
+                    runWithProxyContext(account.proxy, () =>
+                      super.execute({ ...retryInput, skipUpstreamRetry: true })
+                    ) as Promise<HttpExecuteResult>,
+                  noteServed: (a) => noteResponseServed(a as typeof account),
+                }
               );
-              noteResponseServed(account);
-              return result;
             }
           }
 
