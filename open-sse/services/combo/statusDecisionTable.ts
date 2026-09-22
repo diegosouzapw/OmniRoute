@@ -3,9 +3,10 @@ import { isContextOverflow400, isModelScoped400, isParamValidation400 } from "./
 export type ComboTargetDecision = "advance" | "stop";
 
 /**
- * Body-specific 400s that are bad on every combo target. New shapes are rows
- * here. A blanket `includes("invalid")` or `includes("bad request")` is not a
- * row: those wrappers also carry model-availability failures, which advance.
+ * KooshaPari's #8251 plan: one table of `(status, envelope) → advance | stop`,
+ * so a new 400 shape is a row. HouMinXi made the same point: model-scoped
+ * wrappers advance, and a blanket `includes("invalid")` is not the stop rule.
+ * These rows are the body-specific stops. Model-scoped wrappers advance.
  */
 export const COMBO_400_STOP_ROWS: ReadonlyArray<{ id: string; pattern: RegExp }> = [
   { id: "invalid-message-format", pattern: /invalid message format/i },

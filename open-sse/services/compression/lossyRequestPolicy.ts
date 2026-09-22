@@ -2,8 +2,9 @@ import { isSafeDefault } from "./engineCatalog.ts";
 import type { DerivedPlan } from "./deriveDefaultPlan.ts";
 
 /**
- * Engines that rewrite or drop prompt text. Dedup and whitespace folding stay
- * on the default path. These run only when the request opts in.
+ * HouMinXi's plan for the default path: dedup and whitespace folding stay on.
+ * Summaries, relevance filters, and style rewrites run only when the request
+ * opts in.
  */
 const LOSSY_SINGLE_MODES = new Set([
   "standard",
