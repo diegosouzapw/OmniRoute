@@ -115,7 +115,11 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   // classifier misclassifies them as rate_limit (6–60s retry loop) instead
   // of quota_exhausted (long cooldown + failover).
 
-  // GLM/z.ai: "已达到 5 小时的使用上限。您的限额将在 2026-09-10 19:01:19 重置。"
+  // GLM/z.ai: "[1308][Usage limit reached for 5 hour...]" or "[1310][Weekly/Monthly Limit Exhausted...]"
+  // and CJK: "已达到 5 小时的使用上限。您的限额将在 2026-09-10 19:01:19 重置。"
+  /\[1308\]/,
+  /\[1310\]/,
+  /usage limit reached for \d+\s*hour/i,
   /使用上限/,
   /限额将在/,
   /已达?到.*上限/,
