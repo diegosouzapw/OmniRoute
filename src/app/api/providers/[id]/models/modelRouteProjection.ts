@@ -108,5 +108,10 @@ export async function buildNoAuthModelsResponse(
     connectionId,
     models: visible,
     source: "local_catalog",
+    // A no-auth provider with no advertised /models endpoint is deliberately
+    // registry-backed (for example Veo AI Free's two video models). A provider
+    // that *does* advertise modelsUrl only reaches this branch after failed live
+    // discovery, so it must remain degraded and unflagged.
+    ...(!modelsUrl && catalog.length > 0 ? { intentional: true } : {}),
   });
 }

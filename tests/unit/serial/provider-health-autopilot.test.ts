@@ -23,6 +23,7 @@ const reportRoute = await import("../../../src/app/api/providers/health-autopilo
 const routeGuard = await import("../../../src/server/authz/routeGuard.ts");
 const authzPipeline = await import("../../../src/server/authz/pipeline.ts");
 const accountFallback = await import("@omniroute/open-sse/services/accountFallback");
+const quotaMonitor = await import("@omniroute/open-sse/services/quotaMonitor.ts");
 
 const PROVIDER = "autopilot-test-provider";
 
@@ -64,11 +65,13 @@ function findAction(report: autopilot.ProviderAutopilotReport, type: string) {
 
 test.beforeEach(async () => {
   accountFallback.clearProviderFailure(PROVIDER);
+  quotaMonitor.clearQuotaMonitors();
   await resetStorage();
 });
 
 test.after(async () => {
   accountFallback.clearProviderFailure(PROVIDER);
+  quotaMonitor.clearQuotaMonitors();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
@@ -112,6 +115,159 @@ test("provider health autopilot reports actionable cooldown and model lockout is
   } finally {
     accountFallback.clearModelLock(PROVIDER, String(connection.id), "locked-model");
   }
+});
+
+test("provider health autopilot keeps disabled-only inventory visible without degrading routing", async () => {
+  const baseline = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
+  await providersDb.createProviderConnection({
+    provider: "disabled-clean-provider",
+    authType: "apikey",
+    name: "disabled-clean",
+    apiKey: "test-key",
+    isActive: false,
+    testStatus: "active",
+  });
+  await providersDb.createProviderConnection({
+    provider: "disabled-terminal-provider",
+    authType: "apikey",
+    name: "disabled-terminal",
+    apiKey: "test-key",
+    isActive: false,
+    testStatus: "banned",
+    lastError: "forbidden",
+    lastErrorType: "forbidden",
+    errorCode: "403",
+  });
+
+  const report = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
+
+  assert.equal(report.status, "healthy");
+  assert.equal(report.summary.providerCount, baseline.summary.providerCount + 2);
+  assert.equal(report.summary.healthyCount, baseline.summary.healthyCount + 2);
+  assert.equal(report.summary.issueCount, baseline.summary.issueCount + 2);
+
+  const clean = report.providers.find((entry) => entry.provider === "disabled-clean-provider");
+  assert.ok(clean);
+  assert.equal(clean.state, "healthy");
+  assert.equal(clean.score, 1);
+  assert.deepEqual(
+    clean.issues.map((issue) => issue.kind),
+    ["inactive_connection"]
+  );
+
+  const terminal = report.providers.find(
+    (entry) => entry.provider === "disabled-terminal-provider"
+  );
+  assert.ok(terminal);
+  assert.equal(terminal.state, "healthy");
+  assert.equal(terminal.score, 1);
+  assert.deepEqual(
+    terminal.issues.map((issue) => issue.kind),
+    ["terminal_connection_error"]
+  );
+  assert.equal(terminal.issues[0].severity, "critical");
+});
+
+test("provider health autopilot keeps active info-only diagnostics healthy", async () => {
+  const providerId = "active-info-only-provider";
+  await providersDb.createProviderConnection({
+    provider: providerId,
+    authType: "apikey",
+    name: "active-with-stale-error",
+    apiKey: "test-key",
+    isActive: true,
+    testStatus: "unavailable",
+    lastError: "historical upstream error",
+    lastErrorType: "upstream_error",
+    errorCode: "503",
+  });
+
+  const report = await autopilot.buildProviderHealthAutopilotReport({
+    provider: providerId,
+    includeHealthy: false,
+  });
+
+  assert.equal(report.status, "healthy");
+  assert.equal(report.summary.providerCount, 1);
+  assert.equal(report.summary.healthyCount, 1);
+  assert.equal(report.summary.issueCount, 1);
+  assert.equal(report.providers.length, 1);
+  assert.equal(report.providers[0].state, "healthy");
+  assert.equal(report.providers[0].issues[0].kind, "stale_connection_error");
+  assert.equal(report.providers[0].issues[0].severity, "info");
+});
+
+test("provider health autopilot exposes quota monitor account ids without credentials", async () => {
+  const providerId = "account-scoped-monitor-provider";
+  const monitored = (await providersDb.createProviderConnection({
+    provider: providerId,
+    authType: "apikey",
+    name: "monitored-account",
+    apiKey: "monitored-secret",
+    isActive: true,
+    testStatus: "active",
+  })) as Record<string, unknown>;
+  const unmonitored = (await providersDb.createProviderConnection({
+    provider: providerId,
+    authType: "apikey",
+    name: "unmonitored-account",
+    apiKey: "unmonitored-secret",
+    isActive: true,
+    testStatus: "active",
+  })) as Record<string, unknown>;
+  quotaMonitor.startQuotaMonitor("account-scope-session", providerId, String(monitored.id), {
+    providerSpecificData: { quotaMonitorEnabled: true },
+  });
+
+  const report = await autopilot.buildProviderHealthAutopilotReport({
+    provider: providerId,
+    includeHealthy: true,
+  });
+  const provider = report.providers[0];
+  const signal = provider.signals.quotaMonitor as Record<string, unknown>;
+
+  assert.deepEqual(signal.monitoredConnectionIds, [String(monitored.id)]);
+  assert.equal((signal.monitoredConnectionIds as string[]).includes(String(unmonitored.id)), false);
+  assert.equal(JSON.stringify(signal).includes("monitored-secret"), false);
+  assert.equal(JSON.stringify(signal).includes("unmonitored-secret"), false);
+});
+
+test("provider health autopilot summary and status do not depend on healthy-row filtering", async () => {
+  const baseline = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
+  await providersDb.createProviderConnection({
+    provider: "active-healthy-provider",
+    authType: "apikey",
+    name: "active-healthy",
+    apiKey: "test-key",
+    isActive: true,
+    testStatus: "active",
+  });
+  await providersDb.createProviderConnection({
+    provider: "disabled-inventory-provider",
+    authType: "apikey",
+    name: "disabled-inventory",
+    apiKey: "test-key",
+    isActive: false,
+    testStatus: "active",
+  });
+
+  const full = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: true });
+  const filtered = await autopilot.buildProviderHealthAutopilotReport({ includeHealthy: false });
+
+  assert.equal(full.status, "healthy");
+  assert.equal(filtered.status, full.status);
+  assert.deepEqual(filtered.summary, full.summary);
+  assert.equal(full.providers.length, baseline.providers.length + 2);
+  const disabled = filtered.providers.find(
+    (entry) => entry.provider === "disabled-inventory-provider"
+  );
+  assert.ok(disabled);
+  assert.equal(disabled.state, "healthy");
+  assert.equal(disabled.issues[0].kind, "inactive_connection");
+  assert.equal(
+    filtered.providers.some((entry) => entry.provider === "active-healthy-provider"),
+    false
+  );
 });
 
 test("provider health autopilot canonicalizes alias-keyed signals while preserving raw breaker actions", async () => {

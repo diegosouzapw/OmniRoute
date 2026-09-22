@@ -334,14 +334,6 @@ export async function registerNodejs(): Promise<void> {
   // of the generic "next-server" standalone server name.
   process.title = renameProcessTitle(process.title);
 
-  // #13695: the inference API and `/v1/models` follow DIFFERENT auth settings,
-  // so `GET /v1/models` answering 401 does not mean inference is protected.
-  // #12568 added this warning for the API bridge and live-WS servers, but not
-  // for the Next server that actually answers `/v1/chat/completions` and
-  // `/v1/responses` — and that one binds every interface by default. Runs
-  // before the DB work below so it is not buried under the boot log.
-  (await import("@/lib/startup/nonLoopbackApiKeyGuard")).warnIfInferenceServerExposed();
-
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/utils/proxyFetch.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
@@ -362,6 +354,17 @@ export async function registerNodejs(): Promise<void> {
   // caches the singleton, so every later getDbInstance() call below is a
   // free no-op re-read of the same connection — no double-init cost.
   await ensureDbReadyForBoot();
+
+  // #13695: resolve the same effective feature flag used by request auth only
+  // after the DB is ready. A persisted override wins over a blank/conflicting
+  // environment value; reading process.env directly here produced false
+  // exposure warnings for correctly protected deployments.
+  const [{ isRequireApiKeyEnabled }, { warnIfInferenceServerExposed }] = await Promise.all([
+    import("@/shared/utils/featureFlags"),
+    import("@/lib/startup/nonLoopbackApiKeyGuard"),
+  ]);
+  const effectiveRequireApiKey = isRequireApiKeyEnabled();
+  warnIfInferenceServerExposed(effectiveRequireApiKey);
 
   await ensureSecrets();
   await Promise.all([
@@ -433,7 +436,7 @@ export async function registerNodejs(): Promise<void> {
   await import("@/lib/freeProxyProviders/scheduler");
 
   initGracefulShutdown();
-  initApiBridgeServer();
+  initApiBridgeServer(effectiveRequireApiKey);
   startSpendBatchWriter();
   registerDefaultGuardrails();
   registerBuiltinSkills(skillExecutor);

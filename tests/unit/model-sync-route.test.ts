@@ -22,6 +22,7 @@ const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const modelSyncRoute = await import("../../src/app/api/providers/[id]/sync-models/route.ts");
 const scheduler = await import("../../src/shared/services/modelSyncScheduler.ts");
 const originalFetch = globalThis.fetch;
+scheduler.__setModelSyncInternalTransportForTests((input, init) => globalThis.fetch(input, init));
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
@@ -41,6 +42,7 @@ async function resetStorage() {
 }
 
 test.after(() => {
+  scheduler.__setModelSyncInternalTransportForTests(null);
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();

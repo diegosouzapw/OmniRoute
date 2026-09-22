@@ -73,6 +73,32 @@ export function buildAliasMaps() {
 
 export type AliasMaps = ReturnType<typeof buildAliasMaps>;
 
+export function createProviderActivePredicate({
+  activeAliases,
+  blockedProviders,
+  providerIdToAlias,
+  resolveCanonicalProviderId,
+}: {
+  activeAliases: ReadonlySet<string>;
+  blockedProviders: ReadonlySet<string>;
+  providerIdToAlias: Record<string, string>;
+  resolveCanonicalProviderId: (alias: string, provider: string) => string;
+}) {
+  return (provider: string): boolean => {
+    if (activeAliases.size === 0) return false;
+    const alias = providerIdToAlias[provider] || provider;
+    const canonicalProviderId = resolveCanonicalProviderId(alias, provider);
+    if (
+      blockedProviders.has(alias) ||
+      blockedProviders.has(canonicalProviderId) ||
+      blockedProviders.has(provider)
+    ) {
+      return false;
+    }
+    return activeAliases.has(alias) || activeAliases.has(provider);
+  };
+}
+
 /** A minimal combo target shape — just enough to resolve a provider+model pair. */
 export type ProviderPrefixedTarget = {
   modelStr?: string;

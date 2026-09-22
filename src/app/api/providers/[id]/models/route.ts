@@ -96,7 +96,7 @@ import { getAdobeModels } from "./adobeFireflyDiscovery";
 import { getSyncedAvailableModels, getCustomModels, getModelIsHidden } from "@/lib/db/models";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
-import { fetchCursorAvailableModels } from "@/lib/providerModels/cursorAvailableModels";
+import { fetchCursorConnectionAvailableModels } from "@/lib/providerModels/cursorAvailableModels";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { resolveCopilotDiscoveryToken } from "@/lib/providerModels/copilotDiscoveryToken";
 import {
@@ -316,16 +316,24 @@ export async function GET(
       }));
     };
 
-    const buildCachedDiscoveryResponse = (warning?: string) =>
+    const buildCachedDiscoveryResponse = (
+      warning?: string,
+      extraPayload: Record<string, unknown> = {}
+    ) =>
       buildResponse({
         provider,
         connectionId,
         models: cachedDiscoveryModels,
         source: "cache",
         ...(warning ? { warning } : {}),
+        ...extraPayload,
       });
 
-    const buildLocalCatalogResponse = (warning?: string, intentional = false) => {
+    const buildLocalCatalogResponse = (
+      warning?: string,
+      intentional = false,
+      extraPayload: Record<string, unknown> = {}
+    ) => {
       const localModels = toLocalCatalogModels();
       if (localModels.length === 0) return null;
       return buildResponse({
@@ -338,6 +346,7 @@ export async function GET(
         // of treating them as a degraded remote-fetch failure (502).
         ...(intentional ? { intentional: true } : {}),
         ...(warning ? { warning } : {}),
+        ...extraPayload,
       });
     };
 
@@ -345,15 +354,17 @@ export async function GET(
       cacheWarning = "API unavailable — using cached catalog",
       localWarning = "API unavailable — using local catalog",
       localIntentional = false,
+      extraPayload = {},
     }: {
       cacheWarning?: string;
       localWarning?: string;
       localIntentional?: boolean;
+      extraPayload?: Record<string, unknown>;
     } = {}) => {
       if (cachedDiscoveryModels.length > 0) {
-        return buildCachedDiscoveryResponse(cacheWarning);
+        return buildCachedDiscoveryResponse(cacheWarning, extraPayload);
       }
-      return buildLocalCatalogResponse(localWarning, localIntentional);
+      return buildLocalCatalogResponse(localWarning, localIntentional, extraPayload);
     };
 
     const buildDiscoveryErrorFallbackResponse = (
@@ -1351,7 +1362,7 @@ export async function GET(
       return buildApiDiscoveryResponse(normalizeSapModelsResponse(await response.json()));
     }
 
-    if (provider === "cursor") {
+    if (provider === "cursor" || provider === "cursor-api") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
@@ -1369,8 +1380,9 @@ export async function GET(
 
       if (token) {
         try {
-          const models = await fetchCursorAvailableModels({
-            accessToken: token,
+          const models = await fetchCursorConnectionAvailableModels({
+            apiKey,
+            accessToken,
             machineId,
           });
           return buildApiDiscoveryResponse(models);
@@ -1381,6 +1393,22 @@ export async function GET(
         }
       } else {
         warnings.push("no Cursor access token on connection");
+      }
+
+      // cursor-agent is authenticated to the host's IDE account, not to this
+      // connection's `crsr_` API key. Falling back to it for cursor-api would
+      // falsely certify named models that the API-key account cannot use.
+      if (provider === "cursor-api") {
+        const detail = warnings.join("; ");
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `${detail} — using cached catalog`,
+          localWarning: `${detail} — using non-authoritative local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch Cursor API-key models: ${detail}` },
+          { status: 502 }
+        );
       }
 
       try {
@@ -1682,6 +1710,7 @@ export async function GET(
       const fallback = buildDiscoveryFallbackResponse({
         cacheWarning: "Copilot models API unavailable — using cached catalog",
         localWarning: "Copilot models API unavailable — using local catalog",
+        extraPayload: discovery.failure ? { discoveryFailure: discovery.failure } : {},
       });
       if (fallback) return fallback;
       return buildResponse({
@@ -1690,6 +1719,7 @@ export async function GET(
         models: discovery.models,
         source: "local_catalog",
         warning: "Copilot models API unavailable — using local catalog",
+        ...(discovery.failure ? { discoveryFailure: discovery.failure } : {}),
       });
     }
 

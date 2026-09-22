@@ -43,6 +43,7 @@ import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 import { countUniqueMcpTools } from "./toolCount.ts";
 import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
+import { withMcpAuditCallerId } from "./auditCallerContext.ts";
 import {
   evaluateToolScopes,
   resolveCallerScopeContext,
@@ -95,7 +96,7 @@ import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 import { toSafeMcpErrorMessage } from "./errorMessage.ts";
 import { mcpFetchTimeoutSignal } from "./fetchTimeout.ts";
-import { getMcpModelsCatalog } from "./catalog.ts";
+import { handleListModelsCatalog } from "./catalogTool.ts";
 import { registerRadarCatalogTool } from "./radarCatalog.ts";
 import type { TextToolResult } from "./toolResult.ts";
 export { getMcpModelsCatalog } from "./catalog.ts";
@@ -227,52 +228,54 @@ export async function omniRouteFetch(path: string, options: RequestInit = {}): P
   return response.json();
 }
 
-function withScopeEnforcement(
+export function withScopeEnforcement(
   toolName: string,
   handler: (args: unknown, extra?: McpToolExtraLike) => Promise<TextToolResult>,
   toolScopes?: readonly string[]
 ) {
   return async (args: unknown, extra?: McpToolExtraLike): Promise<TextToolResult> => {
-    const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
-    const scopeCheck = evaluateToolScopes(
-      toolName,
-      scopeContext.scopes,
-      MCP_ENFORCE_SCOPES,
-      toolScopes
-    );
-    if (!scopeCheck.allowed) {
-      const missingScopes =
-        scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
-      const reason = scopeCheck.reason || "scope_check_failed";
-      const msg =
-        `Insufficient MCP scopes for ${toolName}. ` +
-        `Missing: ${missingScopes}. ` +
-        `Caller=${scopeContext.callerId}, source=${scopeContext.source}.`;
-      const safeArgs = args && typeof args === "object" ? toRecord(args) : { rawArgs: args };
-      await logToolCall(
+    return withMcpAuditCallerId(extra?.authInfo?.clientId, async () => {
+      const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
+      const scopeCheck = evaluateToolScopes(
         toolName,
-        {
-          ...safeArgs,
-          _scopeCheck: {
-            callerId: scopeContext.callerId,
-            source: scopeContext.source,
-            required: scopeCheck.required,
-            provided: scopeCheck.provided,
-            missing: scopeCheck.missing,
-          },
-        },
-        null,
-        0,
-        false,
-        `scope_denied:${reason}`
+        scopeContext.scopes,
+        MCP_ENFORCE_SCOPES,
+        toolScopes
       );
-      return {
-        content: [{ type: "text" as const, text: `Error: ${msg}` }],
-        isError: true,
-      };
-    }
+      if (!scopeCheck.allowed) {
+        const missingScopes =
+          scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
+        const reason = scopeCheck.reason || "scope_check_failed";
+        const msg =
+          `Insufficient MCP scopes for ${toolName}. ` +
+          `Missing: ${missingScopes}. ` +
+          `Caller=${scopeContext.callerId}, source=${scopeContext.source}.`;
+        const safeArgs = args && typeof args === "object" ? toRecord(args) : { rawArgs: args };
+        await logToolCall(
+          toolName,
+          {
+            ...safeArgs,
+            _scopeCheck: {
+              callerId: scopeContext.callerId,
+              source: scopeContext.source,
+              required: scopeCheck.required,
+              provided: scopeCheck.provided,
+              missing: scopeCheck.missing,
+            },
+          },
+          null,
+          0,
+          false,
+          `scope_denied:${reason}`
+        );
+        return {
+          content: [{ type: "text" as const, text: `Error: ${msg}` }],
+          isError: true,
+        };
+      }
 
-    return handler(args, extra);
+      return handler(args, extra);
+    });
   };
 }
 
@@ -615,26 +618,6 @@ async function handleCostReport(args: { period?: string }) {
   }
 }
 
-async function handleListModelsCatalog(args: { provider?: string; capability?: string }) {
-  const start = Date.now();
-  try {
-    const result = await getMcpModelsCatalog(args);
-
-    await logToolCall(
-      "omniroute_list_models_catalog",
-      args,
-      { modelCount: result.models.length },
-      Date.now() - start,
-      true
-    );
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_list_models_catalog", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
 async function handleWebSearch(args: {
   query: string;
   max_results?: number;
@@ -913,7 +896,8 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
   server.registerTool(
     "omniroute_list_models_catalog",
     {
-      description: "Lists all available AI models across providers with capabilities and pricing",
+      description:
+        "Lists a bounded, paginated AI model catalog with search, filters, and summary mode. Returns 50 models by default (100 maximum); follow nextCursor until null.",
       inputSchema: listModelsCatalogInput,
     },
     withScopeEnforcement("omniroute_list_models_catalog", (args) =>

@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { getVersionManagerStatus } from "@/lib/db/versionManager";
 import { getSupervisor } from "@/lib/services/registry";
+import { projectStateWithoutSupervisor } from "@/lib/services/persistedState";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
@@ -16,8 +17,16 @@ export async function GET(request: Request) {
     // Merge live supervisor state into DB rows so callers see consistent data
     // whether they started the service via the legacy or the new UI.
     const enriched = rows.map((row) => {
-      const sup = getSupervisor(row.tool);
-      if (!sup) return row;
+      const supervisorTool = row.tool === "cliproxyapi" ? "cliproxy" : row.tool;
+      const sup = getSupervisor(supervisorTool);
+      if (!sup) {
+        return {
+          ...row,
+          status: projectStateWithoutSupervisor(row.status),
+          pid: null,
+          healthStatus: "unknown",
+        };
+      }
 
       const live = sup.getStatus();
       return {

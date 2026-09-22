@@ -52,17 +52,36 @@ export interface ComboTraceEntry {
   detail?: string;
 }
 
+export interface ComboTraceNotReachedSample {
+  /** Zero-based position in the resolved target order. */
+  index: number;
+  step: string;
+  target: string;
+}
+
+export interface ComboTraceCoverage {
+  orderedTargetCount: number;
+  decidedTargetCount: number;
+  notReachedCount: number;
+  notReachedFirstIndex: number | null;
+  /** Bounded head/tail sample; never the full untouched candidate pool. */
+  notReachedSamples: ComboTraceNotReachedSample[];
+  samplesTruncated: boolean;
+}
+
 export interface ComboTrace {
   invocationId: string;
   createdAt: number;
   strategy: string | null;
   comboName: string | null;
   decisions: ComboTraceEntry[];
+  coverage: ComboTraceCoverage | null;
   terminal: { status: number | null; errorClass: string | null } | null;
 }
 
 const TRACE_TTL_MS = 30 * 60 * 1000;
 const MAX_TRACES = 2000;
+const NOT_REACHED_SAMPLE_EDGE_COUNT = 8;
 const traces = new Map<string, ComboTrace>();
 
 export function createInvocationId(): string {
@@ -106,6 +125,7 @@ export function startComboTrace(
       strategy: meta.strategy ?? null,
       comboName: meta.comboName ?? null,
       decisions: [],
+      coverage: null,
       terminal: null,
     });
   }
@@ -175,8 +195,15 @@ export function finishComboTrace(
 }
 
 /**
- * Mark every target that received no decision as not_reached and return the
- * trace. Safe to call on success and failure paths; idempotent.
+ * Summarize every target that received no decision without allocating one
+ * `not_reached` decision object per untouched target. Actual dispatch/skip
+ * decisions stay detailed and ordered; the untouched tail is represented by
+ * exact counts plus a bounded head/tail sample. Safe to call on success and
+ * failure paths; idempotent.
+ *
+ * `orderedTargets` is the deduplicated runtime target order produced by combo
+ * resolution. Decision membership is intentionally keyed by `executionKey`,
+ * the same stable identity used by the attempt loop.
  */
 export function finalizeComboTrace(
   invocationId: string,
@@ -185,16 +212,34 @@ export function finalizeComboTrace(
   const trace = traces.get(invocationId);
   if (!trace) return null;
   const decided = new Set(trace.decisions.map((d) => d.step));
-  for (const t of orderedTargets) {
-    if (!decided.has(t.executionKey)) {
-      trace.decisions.push({
-        step: t.executionKey,
-        target: t.modelStr,
-        decision: "not_reached",
-        ts: Date.now(),
-      });
+  const firstSamples: ComboTraceNotReachedSample[] = [];
+  const lastSamples: ComboTraceNotReachedSample[] = [];
+  let notReachedCount = 0;
+  let notReachedFirstIndex: number | null = null;
+  for (let index = 0; index < orderedTargets.length; index += 1) {
+    const target = orderedTargets[index];
+    if (decided.has(target.executionKey)) continue;
+    const sample = { index, step: target.executionKey, target: target.modelStr };
+    notReachedCount += 1;
+    notReachedFirstIndex ??= index;
+    if (firstSamples.length < NOT_REACHED_SAMPLE_EDGE_COUNT) {
+      firstSamples.push(sample);
+    } else {
+      lastSamples.push(sample);
+      if (lastSamples.length > NOT_REACHED_SAMPLE_EDGE_COUNT) lastSamples.shift();
     }
   }
+
+  const sampleLimit = NOT_REACHED_SAMPLE_EDGE_COUNT * 2;
+  const notReachedSamples = [...firstSamples, ...lastSamples];
+  trace.coverage = {
+    orderedTargetCount: orderedTargets.length,
+    decidedTargetCount: orderedTargets.length - notReachedCount,
+    notReachedCount,
+    notReachedFirstIndex,
+    notReachedSamples,
+    samplesTruncated: notReachedCount > sampleLimit,
+  };
   return trace;
 }
 

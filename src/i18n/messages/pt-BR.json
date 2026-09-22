@@ -7500,6 +7500,8 @@
     "compressionDesc": "Reduza o uso de tokens compactando os prompts antes de enviá-los aos provedores",
     "autoCombosTitle": "Combos automáticos",
     "autoCombosDesc": "Permitir que esta chave use os combos auto/* integrados, que selecionam automaticamente um modelo de cada provedor configurado",
+    "ccDiscoveryAliasesTitle": "Aliases de descoberta do Claude Code",
+    "ccDiscoveryAliasesDesc": "Divulgar espelhos de compatibilidade claude/... para os modelos e combos que esta chave já pode acessar",
     "compressionGuidanceFullGuideLink": "Guia completo de compressão",
     "compressionGuidanceShow": "Detalhes",
     "compressionGuidanceHide": "Ocultar detalhes",

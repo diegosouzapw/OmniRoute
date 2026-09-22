@@ -38,7 +38,7 @@ export function providerUsesCuratedModelsOnly(providerId: string): boolean {
  */
 export function providerUsesExclusiveSyncedListing(providerId: string): boolean {
   const id = providerId.trim().toLowerCase();
-  return id === "cursor" || id === "cu";
+  return id === "cursor" || id === "cu" || id === "cursor-api" || id === "cua";
 }
 
 /**

@@ -8,13 +8,19 @@ import {
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
 import {
+  AGGREGATOR_PROVIDER_IDS,
+  EMBEDDING_RERANK_PROVIDER_IDS,
+  ENTERPRISE_CLOUD_PROVIDER_IDS,
   getProviderConnectionFamilyIds,
+  IMAGE_ONLY_PROVIDER_IDS,
   isClaudeCodeCompatibleProvider,
   supportsApiKeyOnFreeProvider,
   supportsDualAuthProvider,
+  VIDEO_PROVIDER_IDS,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
-import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
+import { getProviderServiceKinds, providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
+import { providerLacksModelListing } from "@/lib/providers/modelListingCapability";
 import { compareTr, matchesAnyToken, matchesSearch } from "@/shared/utils/turkishText";
 import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
 import {
@@ -195,10 +201,47 @@ export function shouldShowProviderSection(
   if (showFreeOnly) return category === "free";
   if (activeCategory) return activeCategory === category;
 
-  // Free and Web Fetch are cross-cutting views assembled from providers that
-  // already belong to a primary section. Rendering them in the default view
-  // duplicates cards; they remain available through their summary filters.
-  return category !== "free" && category !== "webfetch";
+  // Free is a cross-cutting view assembled from providers that already belong
+  // to primary sections. Web Fetch has dedicated fetch-only providers, so its
+  // section remains visible in the default view.
+  return category !== "free";
+}
+
+export function providerEntryIsToolOnly<TProvider>(entry: ProviderEntry<TProvider>): boolean {
+  const declared = (entry.provider as { serviceKinds?: string[] }).serviceKinds;
+  return providerLacksModelListing(
+    entry.providerId,
+    getProviderServiceKinds(entry.providerId, declared)
+  );
+}
+
+export function providerEntryIsWebFetchOnly<TProvider>(entry: ProviderEntry<TProvider>): boolean {
+  const declared = (entry.provider as { serviceKinds?: string[] }).serviceKinds;
+  const kinds = getProviderServiceKinds(entry.providerId, declared);
+  return (
+    kinds.includes("webFetch") &&
+    !kinds.includes("webSearch") &&
+    providerLacksModelListing(entry.providerId, kinds)
+  );
+}
+
+export function isPrimaryLlmProviderEntry<TProvider>(entry: ProviderEntry<TProvider>): boolean {
+  return (
+    !IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId) &&
+    !AGGREGATOR_PROVIDER_IDS.has(entry.providerId) &&
+    !ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId) &&
+    !VIDEO_PROVIDER_IDS.has(entry.providerId) &&
+    !EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId) &&
+    !providerEntryIsToolOnly(entry)
+  );
+}
+
+export function resolveVisibleWebFetchEntries<TProvider>(
+  webFetchEntries: ProviderEntry<TProvider>[],
+  activeCategory: string | null
+): ProviderEntry<TProvider>[] {
+  if (activeCategory === "webfetch") return webFetchEntries;
+  return webFetchEntries.filter(providerEntryIsWebFetchOnly);
 }
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
@@ -500,9 +543,7 @@ export function filterConfiguredProviderEntries<TProvider>(
       return connections.some(
         (conn) =>
           connectionBelongsToProviderPage(conn.provider, entry.providerId) &&
-          connectionSearchHaystacks(conn).some((haystack) =>
-            matchesAnyToken(haystack, searchQuery)
-          )
+          connectionSearchHaystacks(conn).some((haystack) => matchesAnyToken(haystack, searchQuery))
       );
     });
   }

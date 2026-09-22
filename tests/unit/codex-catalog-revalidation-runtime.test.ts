@@ -9,6 +9,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const modelSyncScheduler = await import("../../src/shared/services/modelSyncScheduler.ts");
 const revalidation = await import("../../src/shared/services/codexCatalogRevalidation.ts");
 
 const originalFetch = globalThis.fetch;
@@ -24,6 +25,10 @@ const originalEnv = {
 
 async function resetStorage() {
   globalThis.fetch = originalFetch;
+  modelSyncScheduler.__setModelSyncInternalTransportForTests(async (input, init) => {
+    const { dispatcher: _dispatcher, ...fetchInit } = init;
+    return globalThis.fetch(input, fetchInit);
+  });
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -41,6 +46,7 @@ test.beforeEach(async () => {
 });
 
 test.after(() => {
+  modelSyncScheduler.__setModelSyncInternalTransportForTests(null);
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });

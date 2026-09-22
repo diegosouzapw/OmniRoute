@@ -488,40 +488,22 @@ test.describe("Combos flow", () => {
     expect(state.lastPayload?.config?.setRetryDelayMs).toBe(1500);
   });
 
-  test("allows dragging combo cards to persist manual order", async ({ page }) => {
+  test("paginates a large inventory and reorders the full list only in reorder-all mode", async ({
+    page,
+  }) => {
     const state: {
       combos: ComboStub[];
       reorderRequests: number;
     } = {
-      combos: [
-        {
-          id: "combo-1",
-          name: "alpha-combo",
-          strategy: "priority",
-          models: ["openai/alpha"],
-          config: {},
-          isActive: true,
-          sortOrder: 1,
-        },
-        {
-          id: "combo-2",
-          name: "bravo-combo",
-          strategy: "priority",
-          models: ["openai/bravo"],
-          config: {},
-          isActive: true,
-          sortOrder: 2,
-        },
-        {
-          id: "combo-3",
-          name: "charlie-combo",
-          strategy: "priority",
-          models: ["openai/charlie"],
-          config: {},
-          isActive: true,
-          sortOrder: 3,
-        },
-      ],
+      combos: Array.from({ length: 30 }, (_, index) => ({
+        id: `combo-${index + 1}`,
+        name: `combo-${String(index + 1).padStart(2, "0")}`,
+        strategy: "priority",
+        models: [`openai/model-${index + 1}`],
+        config: {},
+        isActive: true,
+        sortOrder: index + 1,
+      })),
       reorderRequests: 0,
     };
 
@@ -598,32 +580,39 @@ test.describe("Combos flow", () => {
     await expect(page.getByTestId("combo-card-combo-1")).toBeVisible();
 
     const comboCards = page.locator('[data-testid^="combo-card-"]');
-    await expect
-      .poll(async () =>
-        comboCards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")))
-      )
-      .toEqual(["combo-card-combo-1", "combo-card-combo-2", "combo-card-combo-3"]);
+    await expect(comboCards).toHaveCount(24);
+    await expect(page.locator('[data-testid^="combo-drag-handle-"]')).toHaveCount(0);
+
+    await page.getByTestId("combo-pagination-next").click();
+    await expect(page.getByTestId("combo-card-combo-25")).toBeVisible();
+    await expect(page.getByTestId("combo-card-combo-30")).toBeVisible();
+    await expect(comboCards).toHaveCount(6);
+
+    await page.getByTestId("combo-reorder-all-toggle").click();
+    await expect(page.getByTestId("combo-reorder-all-toggle")).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    await expect(comboCards).toHaveCount(30);
+    await expect(page.locator('[data-testid^="combo-drag-handle-"]')).toHaveCount(30);
 
     await dispatchHtml5DragAndDrop(
       page,
-      page.getByTestId("combo-drag-handle-combo-3"),
+      page.getByTestId("combo-drag-handle-combo-30"),
       page.getByTestId("combo-card-combo-1")
     );
 
     await expect.poll(() => state.reorderRequests).toBe(1);
-    await expect
-      .poll(async () =>
-        comboCards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")))
-      )
-      .toEqual(["combo-card-combo-3", "combo-card-combo-1", "combo-card-combo-2"]);
+    await expect(comboCards.first()).toHaveAttribute("data-testid", "combo-card-combo-30");
+    expect(state.combos.map((combo) => combo.id)).toEqual([
+      "combo-30",
+      ...Array.from({ length: 29 }, (_, index) => `combo-${index + 1}`),
+    ]);
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.getByTestId("combo-card-combo-3")).toBeVisible();
-
-    await expect
-      .poll(async () =>
-        comboCards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")))
-      )
-      .toEqual(["combo-card-combo-3", "combo-card-combo-1", "combo-card-combo-2"]);
+    await expect(page.getByTestId("combo-card-combo-30")).toBeVisible();
+    await expect(comboCards).toHaveCount(24);
+    await expect(comboCards.first()).toHaveAttribute("data-testid", "combo-card-combo-30");
+    await expect(page.locator('[data-testid^="combo-drag-handle-"]')).toHaveCount(0);
   });
 });

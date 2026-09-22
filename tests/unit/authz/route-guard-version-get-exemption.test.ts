@@ -102,8 +102,17 @@ describe("isLocalOnlyPath — GET exemption for /api/system/version (#5083)", ()
   //   /api/tunnels/cloudflared — GET is tunnel status; POST still spawns cloudflared
   //                              and stays local-only (#11531, and see
   //                              route-guard-tunnel-processes-local-only.test.ts)
+  //   /api/services/{bifrost,cliproxy,dario,mux,openwa}/status — GET returns
+  //                              sanitized lifecycle/version metadata only;
+  //                              mutations remain local-only. 9router is omitted
+  //                              because its status route can reveal a credential.
   test("LOCAL_ONLY_API_GET_EXEMPTIONS holds exactly the reviewed paths", () => {
     assert.deepEqual([...LOCAL_ONLY_API_GET_EXEMPTIONS].sort(), [
+      "/api/services/bifrost/status",
+      "/api/services/cliproxy/status",
+      "/api/services/dario/status",
+      "/api/services/mux/status",
+      "/api/services/openwa/status",
       "/api/system/version",
       "/api/tunnels/cloudflared",
     ]);

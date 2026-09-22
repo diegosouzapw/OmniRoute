@@ -88,45 +88,75 @@ function toNonEmptyString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function supportedEndpoints(item: RawRecord, capabilities: RawRecord): unknown[] {
+  if (Array.isArray(item.supported_endpoints)) return item.supported_endpoints;
+  return Array.isArray(capabilities.supported_endpoints)
+    ? (capabilities.supported_endpoints as unknown[])
+    : [];
+}
+
+function isChatEndpoint(value: unknown): boolean {
+  const endpoint = toNonEmptyString(value) || "";
+  return ["/chat/completions", "/responses", "/v1/messages"].some((path) =>
+    endpoint.includes(path)
+  );
+}
+
+function isPositiveFiniteNumber(value: unknown): boolean {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function hasUsableChatShape(capabilities: RawRecord): boolean {
+  const limits = asRecord(capabilities.limits);
+  const supports = asRecord(capabilities.supports);
+  return (
+    isPositiveFiniteNumber(limits.max_output_tokens) &&
+    isPositiveFiniteNumber(limits.max_prompt_tokens) &&
+    typeof supports.tool_calls === "boolean"
+  );
+}
+
+function isLegacyChatModel(item: RawRecord): boolean {
+  const id = (toNonEmptyString(item.id) || toNonEmptyString(item.model) || "").toLowerCase();
+  return Boolean(id) && !id.includes("embedding") && id !== "gpt-41-copilot";
+}
+
 // Decide whether a live /models row is a routable chat model. Capability-driven
 // (rename-robust) rather than an id allowlist: any model the account is entitled
 // to whose capabilities.type is "chat" (or that carries a chat-shaped
 // supported_endpoints) is kept, so a newly-entitled model shows up with no code
-// change. Also filters out rows when policy.state is set and != "enabled", or
-// when model_picker_enabled=false. Explicitly non-chat rows (embeddings /
-// completion) are dropped as well.
+// change. `model_picker_enabled` is intentionally NOT a routing gate: GitHub
+// currently reports it as false even for policy-enabled models that accept chat
+// requests. Policy-disabled and explicitly non-chat rows are still rejected.
 function isRoutableChatModel(item: RawRecord): boolean {
   const policy = asRecord(item.policy);
-  const policyState = toNonEmptyString(policy.state);
-  if (policyState && policyState !== "enabled") return false;
-  if (item.model_picker_enabled === false) return false;
+  const policyState = toNonEmptyString(policy.state)?.toLowerCase();
+  if (policyState === "disabled") return false;
 
   const capabilities = asRecord(item.capabilities);
-  const capType = toNonEmptyString(capabilities.type);
+  const capType = toNonEmptyString(capabilities.type)?.toLowerCase();
   if (capType) return capType === "chat";
 
   // No capabilities.type present — fall back to supported_endpoints shape. A
   // chat model exposes /chat/completions, /responses, or /v1/messages.
-  const endpoints = Array.isArray(item.supported_endpoints)
-    ? (item.supported_endpoints as unknown[])
-    : Array.isArray((asRecord(item.capabilities) as RawRecord).supported_endpoints)
-      ? ((asRecord(item.capabilities) as RawRecord).supported_endpoints as unknown[])
-      : [];
-  if (endpoints.length > 0) {
-    return endpoints.some((e) => {
-      const s = toNonEmptyString(e) || "";
-      return (
-        s.includes("/chat/completions") || s.includes("/responses") || s.includes("/v1/messages")
-      );
-    });
-  }
+  const endpoints = supportedEndpoints(item, capabilities);
+  if (endpoints.length > 0) return endpoints.some(isChatEndpoint);
 
-  // Neither signal present: keep it unless its id looks like a known non-chat
-  // utility (embedding / completion sentinels). This keeps discovery permissive
-  // without re-introducing a brittle positive allowlist.
-  const id = (toNonEmptyString(item.id) || toNonEmptyString(item.model) || "").toLowerCase();
-  if (!id) return false;
-  return !(id.includes("embedding") || id === "gpt-41-copilot");
+  // Current Copilot catalogs do not always provide capabilities.type or an
+  // endpoint list. In that shape, the same signals required by Copilot clients
+  // establish that the row is a usable chat model: bounded prompt/output
+  // limits and an explicit tool-calling capability (true OR false). Requiring
+  // the full shape keeps internal/utility rows with partial metadata out.
+  if (hasUsableChatShape(capabilities)) return true;
+
+  // A row with structured capability metadata that did not match any chat
+  // signal is not safe to route as chat. This rejects utility rows without
+  // relying on a continually stale model-id denylist.
+  if (Object.keys(capabilities).length > 0) return false;
+
+  // Legacy/sparse catalogs may omit capabilities entirely. Preserve the prior
+  // compatibility fallback unless the id is a known non-chat utility.
+  return isLegacyChatModel(item);
 }
 
 /**
@@ -174,10 +204,53 @@ export type GitHubCopilotModelsResult = {
   models: GitHubCopilotModel[];
   /** "api" = live discovery; "fallback" = static catalog (offline/unauthed/error). */
   source: "api" | "fallback";
+  /** Safe, structured reason why live discovery fell back. Never carries credentials/body text. */
+  failure?: GitHubCopilotDiscoveryFailure;
 };
 
+export type GitHubCopilotDiscoveryFailureKind =
+  "missing_token" | "http_status" | "invalid_json" | "empty_catalog" | "network";
+
+export type GitHubCopilotDiscoveryFailure = {
+  kind: GitHubCopilotDiscoveryFailureKind;
+  upstreamStatus?: number;
+  contentType?: string;
+  bodyShape?: string;
+};
+
+function safeContentType(response: Response): string | undefined {
+  const mediaType = (response.headers.get("content-type") || "")
+    .split(";", 1)[0]!
+    .trim()
+    .toLowerCase();
+  // Content-Type is upstream-controlled. Preserve only a normal media type and
+  // cap its size so diagnostics cannot become a header/body-text exfiltration path.
+  if (mediaType.length > 128) return undefined;
+  return /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/.test(mediaType) ? mediaType : undefined;
+}
+
+function bodyShapeFromHeaders(response: Response, contentType?: string): string | undefined {
+  if (response.headers.get("content-length")?.trim() === "0") return "empty";
+  if (contentType?.endsWith("/json") || contentType?.endsWith("+json")) return "json";
+  if (contentType?.startsWith("text/")) return "text";
+  if (contentType) return "binary";
+  return undefined;
+}
+
+function jsonBodyShape(data: unknown): string {
+  if (Array.isArray(data)) return "array";
+  if (data === null) return "null";
+  if (typeof data !== "object") return typeof data;
+  const payload = data as RawRecord;
+  if (Array.isArray(payload.data)) return "object.data_array";
+  if (Array.isArray(payload.models)) return "object.models_array";
+  if ("data" in payload || "models" in payload) return "object.catalog_non_array";
+  return "object";
+}
+
 function toFallbackResult(
-  fallbackModels: Array<{ id: string; name?: string }> | undefined
+  fallbackModels: Array<{ id: string; name?: string }> | undefined,
+  failure: GitHubCopilotDiscoveryFailure
 ): GitHubCopilotModelsResult {
   const models = (fallbackModels || [])
     .map((model) => {
@@ -187,7 +260,7 @@ function toFallbackResult(
       return { id, name: toNonEmptyString(model.name) || id, owned_by: "github" };
     })
     .filter((model): model is GitHubCopilotModel => Boolean(model));
-  return { models, source: "fallback" };
+  return { models, source: "fallback", failure };
 }
 
 /**
@@ -200,32 +273,55 @@ export async function fetchGitHubCopilotModels(
   const { token, fetchImpl = fetch, fallbackModels } = options;
 
   if (!toNonEmptyString(token)) {
-    return toFallbackResult(fallbackModels);
+    return toFallbackResult(fallbackModels, { kind: "missing_token" });
   }
 
+  let response: Response;
   try {
-    const response = await fetchImpl(GITHUB_COPILOT_MODELS_URL, {
+    response = await fetchImpl(GITHUB_COPILOT_MODELS_URL, {
       method: "GET",
       headers: {
         ...getGitHubCopilotChatHeaders("application/json"),
         Authorization: `Bearer ${token}`,
       },
     });
-
-    if (!response.ok) {
-      return toFallbackResult(fallbackModels);
-    }
-
-    const data = await response.json();
-    const models = parseGitHubCopilotModels(data);
-    if (models.length === 0) {
-      return toFallbackResult(fallbackModels);
-    }
-    return { models, source: "api" };
   } catch {
-    // Network/parse failure — never break the import flow.
-    return toFallbackResult(fallbackModels);
+    return toFallbackResult(fallbackModels, { kind: "network" });
   }
+
+  const contentType = safeContentType(response);
+  if (!response.ok) {
+    const bodyShape = bodyShapeFromHeaders(response, contentType);
+    return toFallbackResult(fallbackModels, {
+      kind: "http_status",
+      upstreamStatus: response.status,
+      ...(contentType ? { contentType } : {}),
+      ...(bodyShape ? { bodyShape } : {}),
+    });
+  }
+
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    return toFallbackResult(fallbackModels, {
+      kind: "invalid_json",
+      upstreamStatus: response.status,
+      ...(contentType ? { contentType } : {}),
+      bodyShape: "unparseable",
+    });
+  }
+
+  const models = parseGitHubCopilotModels(data);
+  if (models.length === 0) {
+    return toFallbackResult(fallbackModels, {
+      kind: "empty_catalog",
+      upstreamStatus: response.status,
+      ...(contentType ? { contentType } : {}),
+      bodyShape: jsonBodyShape(data),
+    });
+  }
+  return { models, source: "api" };
 }
 
 /**

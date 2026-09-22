@@ -87,7 +87,6 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/services/quotaAutoPing.ts": 1,
   },
   connection: {
-    "open-sse/handlers/autoComboCandidates.ts": 1,
     "open-sse/handlers/chatCore.ts": 3,
     "open-sse/handlers/cursorCliProxy.ts": 1,
     "open-sse/services/alibabaFreeTier.ts": 1,
@@ -198,6 +197,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/tokenHealthCheckCopilot.ts": 1,
     "src/lib/usage/callLogs.ts": 1,
     "src/lib/usage/codexResetCredits.ts": 1,
+    // Homelab combo-health eligibility evidence performs one read-only active-
+    // connection inventory. It does not select or dispatch a request, so the
+    // derived classification remains class C.
+    "src/lib/usage/comboHealth.ts": 1,
     "src/lib/usage/comboScoringInspector.ts": 1,
     "src/lib/usage/glmResetCards.ts": 1,
     // v3.8.51 #12805 (c042a5188): grok-cli sibling of codexResetCredits.ts, same
@@ -240,7 +243,6 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
     Object.keys(EXPECTED.connection).map((file) => [
       file,
       [
-        "open-sse/handlers/autoComboCandidates.ts",
         "open-sse/handlers/chatCore.ts",
         "open-sse/services/alibabaFreeTier.ts",
         "open-sse/services/alibabaFreeTierQuotaFetcher.ts",

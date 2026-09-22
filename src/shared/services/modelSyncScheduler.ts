@@ -69,23 +69,46 @@ export function createPinnedModelSyncTlsConnector(
     );
 }
 
+let modelSyncHttpDispatcher: Dispatcher | null = null;
 let pinnedModelSyncTlsDispatcher: Dispatcher | null = null;
+
+function getModelSyncHttpDispatcher(): Dispatcher {
+  if (!modelSyncHttpDispatcher) {
+    // Internal model-sync requests are re-entrant: a scheduled POST to the
+    // sync route performs a nested GET against the same loopback listener.
+    // Keep them off ProxyFetch's bounded public dispatcher entirely. Leaving
+    // `connections` unset uses undici's private Agent default rather than
+    // creating another finite pool that can deadlock when every connection is
+    // occupied by an outer request waiting for its nested request.
+    modelSyncHttpDispatcher = new Agent({ pipelining: 0 });
+  }
+  return modelSyncHttpDispatcher;
+}
 
 function getPinnedModelSyncTlsDispatcher(): Dispatcher {
   if (!pinnedModelSyncTlsDispatcher) {
     pinnedModelSyncTlsDispatcher = new Agent({
       connect: createPinnedModelSyncTlsConnector(),
-      connections: 8,
       pipelining: 0,
     });
   }
   return pinnedModelSyncTlsDispatcher;
 }
 
-const fetchWithDispatcher = undiciFetch as unknown as (
+type ModelSyncInternalTransport = (
   input: RequestInfo | URL,
   init: RequestInit & { dispatcher: Dispatcher }
 ) => Promise<Response>;
+
+const defaultModelSyncInternalTransport = undiciFetch as unknown as ModelSyncInternalTransport;
+let modelSyncInternalTransport = defaultModelSyncInternalTransport;
+
+/** Test seam for proving internal requests bypass the globally patched fetch. */
+export function __setModelSyncInternalTransportForTests(
+  transport: ModelSyncInternalTransport | null
+): void {
+  modelSyncInternalTransport = transport ?? defaultModelSyncInternalTransport;
+}
 
 export const fetchModelSyncInternal: typeof fetch = async (input, init = {}) => {
   const inputUrl =
@@ -107,13 +130,13 @@ export const fetchModelSyncInternal: typeof fetch = async (input, init = {}) => 
   }
 
   const requestInit = { ...init, redirect: "error" as const };
-  if (inputUrl.protocol === "https:") {
-    return fetchWithDispatcher(inputUrl, {
-      ...requestInit,
-      dispatcher: getPinnedModelSyncTlsDispatcher(),
-    });
-  }
-  return globalThis.fetch(inputUrl.href, requestInit);
+  return modelSyncInternalTransport(inputUrl, {
+    ...requestInit,
+    dispatcher:
+      inputUrl.protocol === "https:"
+        ? getPinnedModelSyncTlsDispatcher()
+        : getModelSyncHttpDispatcher(),
+  });
 };
 
 const globalState = globalThis as typeof globalThis & {

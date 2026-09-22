@@ -1,4 +1,5 @@
 import { getSupervisor } from "@/lib/services/registry";
+import { projectStateWithoutSupervisor } from "@/lib/services/persistedState";
 import { getServiceRow } from "@/lib/db/versionManager";
 import {
   getInstalledVersion,
@@ -16,12 +17,13 @@ export async function GET(): Promise<Response> {
     const row = await getServiceRow(TOOL);
 
     const liveStatus = sup?.getStatus() ?? null;
+    const persistedState = projectStateWithoutSupervisor(row?.status);
     const installedVersion = await getInstalledVersion();
     const latestVersion = await getLatestVersion();
 
     return Response.json({
       tool: TOOL,
-      state: liveStatus?.state ?? row?.status ?? "unknown",
+      state: liveStatus?.state ?? persistedState,
       pid: liveStatus?.pid ?? null,
       port: liveStatus?.port ?? row?.port ?? CLIPROXY_DEFAULT_PORT,
       health: liveStatus?.health ?? "unknown",

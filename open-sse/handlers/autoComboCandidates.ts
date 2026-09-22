@@ -31,7 +31,7 @@ import { getCircuitBreaker } from "@/shared/utils/circuitBreaker";
 import { isModelLocked } from "@omniroute/open-sse/services/accountFallback.ts";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import type { StrictZeroCostExclusionReason } from "@omniroute/open-sse/services/autoCombo/strictZeroCostFilter.ts";
-import { getProviderConnectionById } from "@/lib/db/providers";
+import { getRawProviderConnections } from "@/lib/db/providers";
 import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
 
 /**
@@ -72,30 +72,71 @@ function hasFutureRateLimit(value: unknown): boolean {
   return Number.isFinite(time) && time > Date.now();
 }
 
-async function decorateCandidate(candidate: {
-  provider: string;
-  connectionId: string;
-  model: string;
-  modelStr: string;
-  freeAccessExclusion?: StrictZeroCostExclusionReason | null;
-}): Promise<AutoComboCandidateView> {
-  const breaker = getCircuitBreaker(candidate.provider);
-  const breakerStatus = breaker.getStatus();
-  const breakerReachable = breaker.canExecute();
+interface BreakerInspectionState {
+  state: string;
+  reachable: boolean;
+}
+
+export interface ProviderConnectionReachabilityMetadata {
+  id: string;
+  rateLimitedUntil: string | null;
+  testStatus: string | null;
+}
+
+export interface AutoComboCandidateInspectionDependencies {
+  loadConnectionStates?: (
+    connectionIds: readonly string[]
+  ) => Promise<ProviderConnectionReachabilityMetadata[]>;
+  readBreakerState?: (provider: string) => BreakerInspectionState;
+}
+
+function readLiveBreakerState(provider: string): BreakerInspectionState {
+  const breaker = getCircuitBreaker(provider);
+  return { state: String(breaker.getStatus().state), reachable: breaker.canExecute() };
+}
+
+export async function loadLiveConnectionStates(
+  connectionIds: readonly string[]
+): Promise<ProviderConnectionReachabilityMetadata[]> {
+  if (connectionIds.length === 0) return [];
+  const wanted = new Set(connectionIds);
+  const rows = await getRawProviderConnections({}, undefined, undefined, [
+    "id",
+    "rate_limited_until",
+    "test_status",
+  ]);
+  return rows.flatMap((row) => {
+    const id = typeof row.id === "string" ? row.id : "";
+    if (!wanted.has(id)) return [];
+    return {
+      id,
+      rateLimitedUntil: typeof row.rateLimitedUntil === "string" ? row.rateLimitedUntil : null,
+      testStatus: typeof row.testStatus === "string" ? row.testStatus : null,
+    };
+  });
+}
+
+function decorateCandidate(
+  candidate: {
+    provider: string;
+    connectionId: string;
+    model: string;
+    modelStr: string;
+    freeAccessExclusion?: StrictZeroCostExclusionReason | null;
+  },
+  connectionById: ReadonlyMap<string, ProviderConnectionReachabilityMetadata>,
+  breakerByProvider: ReadonlyMap<string, BreakerInspectionState>
+): AutoComboCandidateView {
+  const breaker = breakerByProvider.get(candidate.provider) ?? {
+    state: "CLOSED",
+    reachable: true,
+  };
 
   let connectionCooldown = false;
   if (candidate.connectionId && candidate.connectionId !== "noauth") {
-    try {
-      const connection = await getProviderConnectionById(candidate.connectionId);
-      connectionCooldown =
-        hasFutureRateLimit((connection as Record<string, unknown> | null)?.rateLimitedUntil) ||
-        (connection as Record<string, unknown> | null)?.testStatus === "unavailable";
-    } catch {
-      // Fail-open: an unresolved connection lookup should not mark a
-      // candidate unreachable — the panel is read-only transparency, not the
-      // dispatch path.
-      connectionCooldown = false;
-    }
+    const connection = connectionById.get(candidate.connectionId);
+    connectionCooldown =
+      hasFutureRateLimit(connection?.rateLimitedUntil) || connection?.testStatus === "unavailable";
   }
 
   // #9133 (latent alignment): every lock writer (accountFallback.ts) and the
@@ -116,8 +157,8 @@ async function decorateCandidate(candidate: {
     model: candidate.model,
     modelStr: candidate.modelStr,
     excluded: false,
-    reachable: breakerReachable && !connectionCooldown && !modelLocked,
-    breakerState: String(breakerStatus.state),
+    reachable: breaker.reachable && !connectionCooldown && !modelLocked,
+    breakerState: breaker.state,
     connectionCooldown,
     modelLocked,
     freeAccessExclusion: candidate.freeAccessExclusion ?? null,
@@ -131,7 +172,8 @@ async function decorateCandidate(candidate: {
  */
 export async function getAutoComboCandidates(
   channel: string,
-  apiKeyId: string | null
+  apiKeyId: string | null,
+  dependencies: AutoComboCandidateInspectionDependencies = {}
 ): Promise<AutoComboCandidatesResult> {
   const modelStr = channel === "auto" ? "auto" : `auto/${channel}`;
 
@@ -148,33 +190,35 @@ export async function getAutoComboCandidates(
   // path itself is unchanged — it keeps calling
   // `prepareVirtualAutoComboInputs()`/`createVirtualAutoCombo()` with the
   // default (filtered) behavior.
-  const { prepareVirtualAutoComboInputs, createVirtualAutoComboFromPrepared } =
+  const { prepareVirtualAutoComboInputs } =
     await import("@omniroute/open-sse/services/autoCombo/virtualFactory.ts");
+  const { projectVirtualAutoCandidatesFromPrepared } =
+    await import("@omniroute/open-sse/services/autoCombo/candidateProjection.ts");
   const prepared = await prepareVirtualAutoComboInputs({}, true);
 
-  let virtualCombo;
+  let models;
   if (channel === "auto") {
-    virtualCombo = await createVirtualAutoComboFromPrepared(prepared, undefined);
+    models = await projectVirtualAutoCandidatesFromPrepared(prepared, undefined);
   } else {
-    const { createBuiltinAutoCombo } =
+    const { projectBuiltinAutoCandidates } =
       await import("@omniroute/open-sse/services/autoCombo/builtinCatalog.ts");
-    virtualCombo = await createBuiltinAutoCombo(modelStr, channel, prepared);
+    models = await projectBuiltinAutoCandidates(modelStr, channel, prepared);
   }
 
   const excludedConnectionIds = apiKeyId
     ? await getExcludedConnectionIds(apiKeyId, modelStr).catch(() => new Set<string>())
     : new Set<string>();
 
-  const models: Array<{
+  const projectedModels: Array<{
     providerId: string;
     connectionId: string | null;
     allowedConnectionIds?: string[];
     model: string;
     freeAccessExclusion?: StrictZeroCostExclusionReason | null;
-  }> = Array.isArray(virtualCombo?.models) ? virtualCombo.models : [];
+  }> = Array.isArray(models) ? models : [];
   // Routing keeps one logical provider/model candidate, but the management API
   // remains account-oriented so operators can inspect and toggle each fallback.
-  const accountCandidates = models.flatMap((candidate) => {
+  const accountCandidates = projectedModels.flatMap((candidate) => {
     if (candidate.connectionId) return [{ ...candidate, connectionId: candidate.connectionId }];
     return (candidate.allowedConnectionIds ?? []).map((connectionId) => ({
       ...candidate,
@@ -182,18 +226,50 @@ export async function getAutoComboCandidates(
     }));
   });
 
-  const candidates = await Promise.all(
-    accountCandidates.map(async (candidate) => {
-      const decorated = await decorateCandidate({
+  // One fresh, narrow, uncached state read for the entire request. A failed or
+  // missing lookup is intentionally fail-open, matching the previous per-row
+  // behavior without the SELECT * + credential decrypt amplification.
+  const connectionIds = [
+    ...new Set(
+      accountCandidates
+        .map((candidate) => candidate.connectionId)
+        .filter((id) => id && id !== "noauth")
+    ),
+  ];
+  let connectionStates: ProviderConnectionReachabilityMetadata[] = [];
+  try {
+    connectionStates = await (dependencies.loadConnectionStates ?? loadLiveConnectionStates)(
+      connectionIds
+    );
+  } catch {
+    connectionStates = [];
+  }
+  const connectionById = new Map(connectionStates.map((connection) => [connection.id, connection]));
+
+  // Circuit breakers are provider-scoped, so inspecting them once per candidate
+  // was redundant and could also observe inconsistent lazy transitions mid-list.
+  const breakerByProvider = new Map<string, BreakerInspectionState>();
+  const readBreaker = dependencies.readBreakerState ?? readLiveBreakerState;
+  for (const candidate of accountCandidates) {
+    if (!breakerByProvider.has(candidate.providerId)) {
+      breakerByProvider.set(candidate.providerId, readBreaker(candidate.providerId));
+    }
+  }
+
+  const candidates = accountCandidates.map((candidate) => {
+    const decorated = decorateCandidate(
+      {
         provider: candidate.providerId,
         connectionId: candidate.connectionId,
         model: candidate.model,
         modelStr: candidate.model,
         freeAccessExclusion: candidate.freeAccessExclusion,
-      });
-      return { ...decorated, excluded: excludedConnectionIds.has(candidate.connectionId) };
-    })
-  );
+      },
+      connectionById,
+      breakerByProvider
+    );
+    return { ...decorated, excluded: excludedConnectionIds.has(candidate.connectionId) };
+  });
 
   return { channel: modelStr, candidates };
 }

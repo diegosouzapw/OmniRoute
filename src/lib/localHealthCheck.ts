@@ -11,7 +11,9 @@
  * Uses Promise.allSettled so one slow/down node doesn't block others.
  */
 
-import { getCachedProviderNodes } from "@/lib/db/readCache";
+import { getCachedProviderNodes, getCachedRawProviderConnections } from "@/lib/db/readCache";
+import { getAllCustomModels, getAllSyncedAvailableModels } from "@/lib/db/models";
+import { nodeTypeFromId } from "@/lib/db/providerNodeSelect";
 import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
@@ -66,6 +68,17 @@ function getLHCState() {
 
 const healthCache = getLHCState().healthCache;
 
+type LocalProviderNode = {
+  id: string;
+  prefix: string;
+  baseUrl: string;
+};
+
+type ProviderConnectionRef = {
+  provider?: unknown;
+  isActive?: unknown;
+};
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 function isEnvFlagEnabled(name: string): boolean {
@@ -87,6 +100,88 @@ const isLocalhostUrl = isLoopbackNodeHost;
 
 function getNextInterval(failures: number): number {
   return BACKOFF_SCHEDULE[Math.min(failures, BACKOFF_SCHEDULE.length - 1)];
+}
+
+/**
+ * Restrict local health probes to provider nodes that can participate in normal
+ * request routing. A provider-node row alone is only a definition: authenticated
+ * routing needs an active provider_connection. Local no-auth media/embedding
+ * routes are also valid without one, so a visible configured/discovered model
+ * keeps those nodes observable.
+ *
+ * Connections can be stored under either the node's concrete UUID id or its
+ * derived generic type. The generic form is routable only when exactly one node
+ * has that type, matching selectProviderNodeForConnection/getProviderSearchPool.
+ * Deliberately do not inspect testStatus, cooldowns, or the previous health
+ * result here: a temporarily unhealthy but still-active local provider must
+ * continue to be probed so recovery remains observable.
+ */
+export function selectRoutableLocalNodes(
+  rawNodes: unknown[],
+  rawConnections: unknown[],
+  modelProviderIds: ReadonlySet<string> = new Set()
+): LocalProviderNode[] {
+  const nodes = rawNodes.filter((value): value is LocalProviderNode => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const node = value as Record<string, unknown>;
+    return (
+      typeof node.id === "string" &&
+      node.id.length > 0 &&
+      typeof node.prefix === "string" &&
+      typeof node.baseUrl === "string" &&
+      isLocalhostUrl(node.baseUrl)
+    );
+  });
+
+  const activeProviderIds = new Set<string>();
+  for (const value of rawConnections) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+    const connection = value as ProviderConnectionRef;
+    // The production query already requests isActive:true. Keep the explicit
+    // guard so the pure helper stays safe when reused or tested with raw rows.
+    if (connection.isActive === false || connection.isActive === 0) continue;
+    if (typeof connection.provider !== "string") continue;
+    const provider = connection.provider.trim();
+    if (provider) activeProviderIds.add(provider);
+  }
+
+  const typeCounts = new Map<string, number>();
+  const prefixCounts = new Map<string, number>();
+  for (const node of nodes) {
+    const type = nodeTypeFromId(node.id);
+    typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1);
+    prefixCounts.set(node.prefix, (prefixCounts.get(node.prefix) ?? 0) + 1);
+  }
+
+  return nodes.filter((node) => {
+    if (activeProviderIds.has(node.id) || modelProviderIds.has(node.id)) return true;
+    if (prefixCounts.get(node.prefix) === 1 && modelProviderIds.has(node.prefix)) return true;
+    const type = nodeTypeFromId(node.id);
+    return (
+      typeCounts.get(type) === 1 && (activeProviderIds.has(type) || modelProviderIds.has(type))
+    );
+  });
+}
+
+/** Provider ids with at least one visible configured/discovered model. */
+export function collectModelBackedProviderIds(...catalogs: unknown[]): Set<string> {
+  const providerIds = new Set<string>();
+  for (const catalog of catalogs) {
+    if (!catalog || typeof catalog !== "object" || Array.isArray(catalog)) continue;
+    for (const [providerId, rawModels] of Object.entries(catalog)) {
+      if (!Array.isArray(rawModels)) continue;
+      const hasVisibleModel = rawModels.some(
+        (model) =>
+          typeof model === "string" ||
+          (!!model &&
+            typeof model === "object" &&
+            !Array.isArray(model) &&
+            (model as { isHidden?: unknown }).isHidden !== true)
+      );
+      if (hasVisibleModel) providerIds.add(providerId);
+    }
+  }
+  return providerIds;
 }
 
 // ── Core ─────────────────────────────────────────────────────────────────
@@ -135,15 +230,21 @@ export async function sweep(): Promise<void> {
   state.sweepInProgress = true;
 
   try {
-    let nodes: Array<{ id: string; prefix: string; baseUrl: string }>;
+    let nodes: LocalProviderNode[];
     try {
-      const raw = await getCachedProviderNodes();
-      nodes = (Array.isArray(raw) ? raw : []).filter(
-        (n: Record<string, unknown>) =>
-          typeof n.baseUrl === "string" && isLocalhostUrl(n.baseUrl as string)
-      ) as Array<{ id: string; prefix: string; baseUrl: string }>;
+      const [rawNodes, rawConnections, customModels, syncedModels] = await Promise.all([
+        getCachedProviderNodes(),
+        getCachedRawProviderConnections({ isActive: true }),
+        getAllCustomModels(),
+        getAllSyncedAvailableModels(),
+      ]);
+      nodes = selectRoutableLocalNodes(
+        Array.isArray(rawNodes) ? rawNodes : [],
+        Array.isArray(rawConnections) ? rawConnections : [],
+        collectModelBackedProviderIds(customModels, syncedModels)
+      );
     } catch (err) {
-      console.error(LOG_PREFIX, "Failed to load provider_nodes:", err);
+      console.error(LOG_PREFIX, "Failed to load local provider routing state:", err);
       return;
     }
 

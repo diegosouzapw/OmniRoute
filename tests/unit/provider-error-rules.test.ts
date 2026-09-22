@@ -134,3 +134,32 @@ test("S4: End-to-end — checkFallbackError forwards provider+headers to classif
     "quota_exhausted must trigger fallback to the next provider"
   );
 });
+
+test("Cursor named-model entitlement is a long model-scoped lock and leaves Auto available", async () => {
+  const { getProviderErrorRuleMatch, honorsRuleLockScope, resolveRuleMatchBody } =
+    await import("../../open-sse/config/providerErrorRules.ts");
+  const body =
+    "Cursor named model unavailable for this account: Resource limit exceeded — Named models unavailable. Free plans can only use Auto.";
+
+  for (const provider of ["cursor", "cursor-api"]) {
+    const match = getProviderErrorRuleMatch(provider, 404, {}, body);
+    assert.ok(match, provider);
+    assert.equal(match.reason, "model_capacity");
+    assert.equal(match.scope, "model");
+    assert.equal(match.cooldownMs, 24 * 60 * 60 * 1000);
+    assert.equal(honorsRuleLockScope(provider), true);
+    assert.equal(resolveRuleMatchBody(provider, { code: "not_found" }, body), body);
+
+    const fallback = checkFallbackError(404, body, 0, "gpt-5.6-sol-low", provider);
+    assert.equal(fallback.shouldFallback, true);
+    assert.equal(fallback.reason, "model_capacity");
+    assert.equal(fallback.ruleScope, "model");
+    assert.equal(fallback.cooldownMs, 24 * 60 * 60 * 1000);
+  }
+
+  assert.equal(
+    getProviderErrorRuleMatch("cursor", 404, {}, "Auto temporarily unavailable"),
+    null,
+    "Auto must not inherit the named-model entitlement lock"
+  );
+});

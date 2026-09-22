@@ -4,7 +4,7 @@ import {
   clearRecoveredProviderState,
 } from "@/sse/services/auth";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { parseRerankModel, getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
+import { parseRerankModel } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
@@ -25,6 +25,10 @@ import { generateRequestId } from "@/shared/utils/requestId";
 import { CORS_HEADERS } from "@omniroute/open-sse/utils/cors.ts";
 import { deriveRerankProviderForChatProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { resolveAlibabaQwen3RerankUrl } from "@/shared/constants/alibabaProviderRegions";
+import { getComboByName, getCombos } from "@/lib/db/combos";
+import { getDatabaseSettings } from "@/lib/db/databaseSettings";
+import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import * as log from "@/sse/utils/logger";
 
 /**
  * Handle CORS preflight
@@ -47,7 +51,7 @@ export async function OPTIONS() {
  * `RERANK_REMOTE_PROVIDER_NODES` opt-in and must pass the provider outbound URL policy
  * (see `_shared/rerankProviderNodes.ts`).
  */
-async function postHandler(request, context) {
+async function postHandler(request, _context) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -64,6 +68,90 @@ async function postHandler(request, context) {
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
+
+  return handleValidatedRerankRequestBody(
+    {
+      ...body,
+      documents: body.documents,
+      top_n: typeof body.top_n === "number" ? body.top_n : undefined,
+      return_documents:
+        typeof body.return_documents === "boolean" ? body.return_documents : undefined,
+    },
+    {
+      apiKeyId: policy.apiKeyInfo?.id || null,
+      apiKeyName: policy.apiKeyInfo?.name || null,
+    }
+  );
+}
+
+type ValidatedRerankBody = {
+  model: string;
+  query: string;
+  documents: unknown[];
+  top_n?: number;
+  return_documents?: boolean;
+};
+
+type RerankRequestMeta = {
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+  requestedModel?: string | null;
+  comboName?: string | null;
+};
+
+/**
+ * Dispatch a validated rerank request, including named-combo expansion.
+ *
+ * `/v1/models` advertises stored combos and chat, embeddings, and audio already resolve
+ * those names. Keeping rerank on the same contract lets a memory client use one stable
+ * route while the combo fails over between a local reranker and hosted providers.
+ */
+export async function handleValidatedRerankRequestBody(
+  body: ValidatedRerankBody,
+  meta: RerankRequestMeta = {}
+): Promise<Response> {
+  const modelStr = body.model;
+  const requestedModel = meta.requestedModel ?? modelStr;
+
+  if (!modelStr.includes("/")) {
+    try {
+      const combo = await getComboByName(modelStr);
+      if (combo) {
+        let allCombos: Awaited<ReturnType<typeof getCombos>> = [];
+        try {
+          allCombos = await getCombos();
+        } catch {}
+
+        let settings = {};
+        try {
+          settings = getDatabaseSettings();
+        } catch {}
+
+        return handleComboChat({
+          body: body as any,
+          combo: combo as any,
+          handleSingleModel: async (reqBody: any, targetModelStr: string) =>
+            handleValidatedRerankRequestBody(
+              { ...reqBody, model: targetModelStr } as ValidatedRerankBody,
+              {
+                ...meta,
+                requestedModel,
+                comboName:
+                  meta.comboName || (typeof combo.name === "string" ? combo.name : modelStr),
+              }
+            ),
+          isModelAvailable: undefined,
+          log,
+          settings,
+          allCombos: allCombos as any,
+          relayOptions: undefined,
+          signal: undefined,
+        });
+      }
+    } catch (err) {
+      log.error("RERANK", `Combo resolution failed for ${modelStr}: ${err}`);
+    }
+  }
 
   // Load eligible provider_nodes for rerank routing (loopback always; remote when
   // RERANK_REMOTE_PROVIDER_NODES is on and the URL passes the outbound policy).
@@ -155,8 +243,10 @@ async function postHandler(request, context) {
       resolvedProvider: runtimeProvider,
       resolvedModel: resolvedModelId,
       connectionId: (credentials as { connectionId?: string } | null)?.connectionId || null,
-      apiKeyId: policy.apiKeyInfo?.id || null,
-      apiKeyName: policy.apiKeyInfo?.name || null,
+      apiKeyId: meta.apiKeyId || null,
+      apiKeyName: meta.apiKeyName || null,
+      requestedModel,
+      comboName: meta.comboName || null,
     });
     if (response?.ok) {
       await clearRecoveredProviderState(credentials);
@@ -243,8 +333,10 @@ async function postHandler(request, context) {
             },
             responseBody: errData,
             error: errorMessage,
-            apiKeyId: policy.apiKeyInfo?.id || undefined,
-            apiKeyName: policy.apiKeyInfo?.name || undefined,
+            apiKeyId: meta.apiKeyId || undefined,
+            apiKeyName: meta.apiKeyName || undefined,
+            requestedModel,
+            comboName: meta.comboName || undefined,
           }).catch(() => {});
           return errorResponse(res.status, errorMessage);
         }
@@ -275,8 +367,10 @@ async function postHandler(request, context) {
             return_documents: body.return_documents,
           },
           responseBody: data,
-          apiKeyId: policy.apiKeyInfo?.id || undefined,
-          apiKeyName: policy.apiKeyInfo?.name || undefined,
+          apiKeyId: meta.apiKeyId || undefined,
+          apiKeyName: meta.apiKeyName || undefined,
+          requestedModel,
+          comboName: meta.comboName || undefined,
         }).catch(() => {});
 
         const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
@@ -302,8 +396,10 @@ async function postHandler(request, context) {
             (credentials as { connectionId?: string } | null)?.connectionId || undefined,
           duration: Date.now() - startTime,
           error: err.message,
-          apiKeyId: policy.apiKeyInfo?.id || undefined,
-          apiKeyName: policy.apiKeyInfo?.name || undefined,
+          apiKeyId: meta.apiKeyId || undefined,
+          apiKeyName: meta.apiKeyName || undefined,
+          requestedModel,
+          comboName: meta.comboName || undefined,
         }).catch(() => {});
         return errorResponse(500, `Rerank request failed: ${err.message}`);
       }

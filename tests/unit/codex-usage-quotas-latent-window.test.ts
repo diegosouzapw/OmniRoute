@@ -12,8 +12,8 @@
  * Separately, the window display label must follow the real window duration
  * (`limit_window_seconds`) rather than assuming primary=session / secondary=
  * weekly by position — so a 7-day primary_window is labeled "Weekly", not
- * "Session". The internal `session`/`weekly` keys (routing semantics) are
- * unchanged; only the display label is corrected.
+ * "Session". The internal routing key follows the same duration signal so a
+ * weekly-only account is evaluated by the weekly quota policy.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -48,7 +48,8 @@ test("omits a latent, never-used spark window (used 0% + full-window reset)", ()
     ],
   });
   assert.equal(quotas[CODEX_SPARK_QUOTA_SESSION], undefined, "latent spark window must be hidden");
-  assert.ok(quotas.session, "the main session window is still present");
+  assert.ok(quotas.weekly, "the main weekly window is still present");
+  assert.equal(quotas.session, undefined, "a missing session window is not synthesized");
 });
 
 test("includes the spark window once it has actually been used", () => {
@@ -102,15 +103,16 @@ test("spark display name comes from the payload limit_name, falling back to the 
   assert.equal(withoutName?.displayName, CODEX_SPARK_DISPLAY_NAME, "falls back to constant");
 });
 
-test("labels a 7-day primary_window as Weekly, not Session", () => {
+test("keys a 7-day primary_window as Weekly, not Session", () => {
   const { quotas } = buildCodexUsageQuotas({
     rate_limit: {
       primary_window: { used_percent: 4, limit_window_seconds: WEEK, reset_after_seconds: 590624 },
       secondary_window: null,
     },
   });
-  assert.ok(quotas.session, "primary window is keyed 'session' (routing semantics unchanged)");
-  assert.equal(quotas.session.displayName, "Weekly", "but displayed as Weekly by real duration");
+  assert.equal(quotas.session, undefined, "a seven-day primary is not a session quota");
+  assert.ok(quotas.weekly, "the routing key follows the real weekly duration");
+  assert.equal(quotas.weekly.displayName, "Weekly");
 });
 
 test("leaves a genuine 5h session window with the default label", () => {

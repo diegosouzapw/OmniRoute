@@ -16,6 +16,7 @@
 import { createConnection } from "node:net";
 import { spawn } from "node:child_process";
 import os from "node:os";
+import { getOriginalFetch } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /** Result of probing the service before spawning. */
 export interface PreSpawnProbe {
@@ -111,7 +112,10 @@ async function isHealthy(healthUrl: string, timeoutMs: number): Promise<boolean>
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(healthUrl, { signal: controller.signal });
+    // Embedded-service loopback probes are control-plane I/O. They must never
+    // enter the public provider proxy/TLS pipeline: an expected ECONNREFUSED
+    // on a free port is normal pre-spawn state, not a ProxyFetch warning.
+    const res = await getOriginalFetch()(healthUrl, { signal: controller.signal });
     return res.ok;
   } catch {
     return false;

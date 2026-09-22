@@ -78,7 +78,7 @@ function waitForStartup(
 }
 
 test(
-  "LiveWS startup script boots on current Node and accepts API-key WebSocket clients",
+  "LiveWS independently rejects unauthenticated clients and accepts valid auth when REQUIRE_API_KEY=false",
   { timeout: 45_000 },
   async () => {
     const port = await getFreePort();
@@ -94,6 +94,7 @@ test(
         ...process.env,
         NODE_ENV: "test",
         OMNIROUTE_API_KEY: apiKey,
+        REQUIRE_API_KEY: "false",
         JWT_SECRET: jwtSecret,
         LIVE_WS_HOST: "127.0.0.1",
         LIVE_WS_PORT: String(port),
@@ -136,6 +137,33 @@ test(
           });
         });
       }
+
+      async function expectLiveWsRejected(headers: Record<string, string>): Promise<void> {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error(`Timed out waiting for LiveWS rejection. Output:\n${output}`));
+          }, 4_000);
+          const ws = new WebSocket(`ws://127.0.0.1:${port}/live-ws`, { headers });
+
+          ws.once("close", (code) => {
+            clearTimeout(timeout);
+            try {
+              assert.equal(code, 4001, "unauthenticated LiveWS must close as unauthorized");
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          });
+          ws.once("error", (error) => {
+            clearTimeout(timeout);
+            reject(
+              new Error(`LiveWS rejection probe failed: ${error.message}. Output:\n${output}`)
+            );
+          });
+        });
+      }
+
+      await expectLiveWsRejected({ Origin: origin });
 
       await expectLiveWsOpen({
         Authorization: `Bearer ${apiKey}`,

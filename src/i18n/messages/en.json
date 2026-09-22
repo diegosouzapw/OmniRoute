@@ -7500,6 +7500,8 @@
     "compressionDesc": "Reduce token usage by compressing prompts before sending to providers",
     "autoCombosTitle": "Auto Combos",
     "autoCombosDesc": "Allow this key to use the built-in auto/* combos, which pick a model automatically from every configured provider",
+    "ccDiscoveryAliasesTitle": "Claude Code discovery aliases",
+    "ccDiscoveryAliasesDesc": "Advertise claude/... compatibility mirrors for models and combos this key can already access",
     "compressionGuidanceFullGuideLink": "Full compression guide",
     "compressionGuidanceShow": "Details",
     "compressionGuidanceHide": "Hide details",

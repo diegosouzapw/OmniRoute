@@ -1,0 +1,1 @@
+- **fix(api):** apply per-key `allowAutoCombos=false` to the built-in bare `auto` route as well as `auto/*`, while preserving ordinary permissions for a persisted combo literally named `auto`.
