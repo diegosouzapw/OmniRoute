@@ -1,6 +1,6 @@
 # Security Policy (日本語)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -222,29 +222,34 @@ docker run -d \
 
 ## サプライチェーンスキャナーの検出結果（Socket.dev / Snyk / 類似ツール）
 
+> **スコープに関する注記:** リポジトリルートの `socket.yml` は、公開された npm アーティファクトに対して Socket.dev がレジストリ側で行う公開後スキャンの `projectIgnorePaths` を設定するだけのものであり、強制される CI/PR マージゲートではありません。`.github/workflows` 内のワークフロー、`package.json` のスクリプト、`Makefile` のターゲットのいずれも Socket.dev を呼び出しません。
+
 公開されている `omniroute` npm アーティファクトには、Next.js の `output: "standalone"`
-ビルドが同梱されています。これは、文書化されている特権機能（MITM、Zed インポート、Cloud Sync、組み込みサービススーパーバイザー）を含むすべてのルートハンドラーが、
-`.next/server/*.js` のミニファイ済みチャンクに含まれることを意味します。ヒューリスティック型のサプライチェーンスキャナーは、
-これらのチャンクをマルウェアシグネチャとパターンマッチングして検出することがよくあります。
+ビルドがバンドルされています。これは、文書化されている特権機能
+（MITM、Zed インポート、Cloud Sync、組み込みサービススーパーバイザー）を含むすべてのルートハンドラーが、
+`.next/server/*.js` の圧縮済みチャンクに含まれることを意味します。ヒューリスティックなサプライチェーンスキャナーは、
+これらのチャンクをマルウェアシグネチャとパターンマッチングすることがよくあります。
 
-使用しているスキャナー設定は、リポジトリルートの [`socket.yml`](socket.yml) にあります
-（Socket.dev GitHub App 形式 v2 —
-<https://docs.socket.dev/docs/socket-yml> を参照）。この設定では、配布されないディレクトリ
-（`tests/`、`_tasks/`、`_references/`、`_ideia/`、
-`_mono_repo/`、`docs/` など）を明示的に除外しているため、スキャナーは実際に公開版のユーザーへ届くコードパスのみを報告します。スキャン自体は、このリポジトリ内のワークフローではなく、
-当該ファイルを読み取る Socket GitHub App によって実行されます。
+使用しているスキャナー設定は、リポジトリルートの
+[`socket.yml`](socket.yml) にあります（Socket.dev GitHub App 形式 v2 —
+<https://docs.socket.dev/docs/socket-yml> を参照）。この設定では、
+配布されないディレクトリ（`tests/`、`_tasks/`、`_references/`、`_ideia/`、
+`_mono_repo/`、`docs/` など）を明示的に除外しているため、スキャナーは実際に
+公開版のユーザーへ到達するコードパスのみを報告します。スキャン自体は、このリポジトリ内の
+ワークフローではなく、そのファイルを読み取る Socket GitHub App によって実行されます。
 
-検出カテゴリごとに、個々の検出結果に対するメンテナー証明を管理しています。
+検出カテゴリごとに、検出項目単位のメンテナーによる証明を管理しています。
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  検出結果ごとの対応表：ソースファイル ↔ フラグ付けされたチャンク ↔ 動作 ↔
+  検出項目ごとの対応表: ソースファイル ↔ フラグが付けられたチャンク ↔ 動作 ↔
   v3.8.6 で適用された緩和策。
-- フラグ付けされた各関数にあるソース内の `SECURITY-AUDITOR-NOTE:` ブロックは、
-  同じドキュメントを参照しています。
+- フラグが付けられた各関数には、同じ文書を参照する
+  `SECURITY-AUDITOR-NOTE:` ブロックがソース内にあります。
 
-パイプライン側でアラートを緩和できない場合は、
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` を使用してビルドしてください。これにより、4 つの機密性の高いモジュールが、実行時に HTTP 503 `feature-disabled` を返すスタブへ置き換えられるため、
-特権コードパスはバンドル内から物理的に除外されます。
+パイプラインでこのアラートを緩和できないユーザーは、
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` を使用してビルドしてください。これにより、4 つの
+機密性の高いモジュールが、実行時に HTTP 503 `feature-disabled` を返すスタブへ
+置き換えられるため、特権コードパスはバンドルから物理的に除外されます。
 公開手順については、[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 を参照してください。
 

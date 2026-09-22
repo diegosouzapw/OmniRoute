@@ -15,7 +15,7 @@ test("parseMoonshotOrigin accepts cn and ai hosts only", () => {
   assert.equal(parseMoonshotOrigin(CN), "https://api.moonshot.cn");
   assert.equal(
     parseMoonshotOrigin("https://api.moonshot.cn/v1/chat/completions"),
-    "https://api.moonshot.cn",
+    "https://api.moonshot.cn"
   );
   assert.equal(parseMoonshotOrigin(AI), "https://api.moonshot.ai");
   assert.equal(parseMoonshotOrigin("https://api.openai.com/v1"), null);
@@ -27,11 +27,11 @@ test("parseMoonshotOrigin accepts cn and ai hosts only", () => {
 test("moonshotBalanceUrl stays on the connection origin", () => {
   assert.equal(
     moonshotBalanceUrl("https://api.moonshot.cn"),
-    "https://api.moonshot.cn/v1/users/me/balance",
+    "https://api.moonshot.cn/v1/users/me/balance"
   );
   assert.equal(
     moonshotBalanceUrl("https://api.moonshot.ai"),
-    "https://api.moonshot.ai/v1/users/me/balance",
+    "https://api.moonshot.ai/v1/users/me/balance"
   );
 });
 
@@ -41,7 +41,7 @@ test("resolveMoonshotOrigin prefers psd.baseUrl over node", () => {
       provider: COMPAT,
       providerSpecificData: { baseUrl: CN },
     },
-    "https://api.moonshot.ai/v1",
+    "https://api.moonshot.ai/v1"
   );
   assert.equal(origin, "https://api.moonshot.cn");
 });
@@ -62,11 +62,36 @@ test("isMoonshotOpenPlatformConnection is true for mnative-shaped rows", () => {
       provider: COMPAT,
       providerSpecificData: { baseUrl: CN, prefix: "mnative" },
     }),
-    true,
+    true
   );
   assert.equal(
     isMoonshotOpenPlatformConnection({ provider: "deepseek", providerSpecificData: {} }),
-    false,
+    false
   );
   assert.equal(isMoonshotOpenPlatformConnection({ provider: "moonshot" }), true);
+});
+
+test("explicit api.kimi.com/coding baseUrl is not an Open Platform origin", () => {
+  const coding = "https://api.kimi.com/coding/v1";
+  assert.equal(
+    resolveMoonshotOrigin({
+      provider: "moonshot",
+      providerSpecificData: { baseUrl: coding },
+    }),
+    null
+  );
+  assert.equal(
+    isMoonshotOpenPlatformConnection({
+      provider: "moonshot",
+      providerSpecificData: { baseUrl: coding },
+    }),
+    false
+  );
+  assert.equal(
+    resolveMoonshotOrigin({
+      provider: "kimi",
+      providerSpecificData: { baseUrl: coding },
+    }),
+    null
+  );
 });

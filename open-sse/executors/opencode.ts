@@ -47,14 +47,15 @@ import {
   isOpencodeUserBlocked,
 } from "./opencodeGeoBlock.ts";
 import {
+  attemptFor,
   isGatedFreeTierRequest,
   isPremiumOpencodeModel,
   noteFreeTierOutcome,
   prepareFreeTierRequest,
   rebuildJsonFromForcedStream,
   surfaceFromBaseUrl,
-  type FreeTierContractAttempt,
 } from "./opencodeFreeTierContract.ts";
+import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
 
 // Re-exported: the free-model catalog moved to the contract module (it decides whether the
 // contract applies), and existing importers keep resolving it from the executor.
@@ -288,7 +289,6 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   _requestFormat: string | null = null;
-  private _contractAttempt: FreeTierContractAttempt | null = null;
   /** Set in buildHeaders, which execute() runs before transformRequest. */
   private _clientSession: string | undefined;
   private _surface = () => surfaceFromBaseUrl(this.config?.baseUrl);
@@ -358,12 +358,12 @@ export class OpencodeExecutor extends BaseExecutor {
     input: ExecuteInput,
     result: ExecutorExecuteResult
   ): ExecutorExecuteResult {
-    noteFreeTierOutcome(this._contractAttempt, "response" in result && !!result.response?.ok);
+    noteFreeTierOutcome(attemptFor(input.body), "response" in result && !!result.response?.ok);
     if (input.stream) return result;
     if (!("response" in result) || !result.response) return result;
     // Non-null exactly when the contract applied: stands in for the old surface/model guard.
-    if (!this._contractAttempt) return result;
-    const model = this._contractAttempt.model;
+    const model = attemptFor(input.body)?.model;
+    if (!model) return result;
     const response = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
     return response === result.response ? result : { ...result, response };
   }
@@ -482,13 +482,13 @@ export class OpencodeExecutor extends BaseExecutor {
 
   async execute(input: ExecuteInput) {
     try {
-      return await this.executeInner(input);
+      return await withRequestShapeRetry(input, (i) => this.executeOnce(i));
     } finally {
       releaseRequestList(input.body, this.accountHealth);
     }
   }
 
-  private async executeInner(input: ExecuteInput) {
+  private async executeOnce(input: ExecuteInput) {
     this._requestFormat = resolveOpencodeTargetFormat(this.provider, input.model);
 
     // #8681: Gate premium opencode models behind a usable API key.
@@ -1188,10 +1188,10 @@ export class OpencodeExecutor extends BaseExecutor {
       this._surface(),
       this.provider,
       model,
-      this._clientSession
+      this._clientSession,
+      body
     );
     modifiedBody = prepared.body;
-    this._contractAttempt = prepared.attempt;
     // 9router#1442: OpenCode upstreams (e.g. kimi-k2.6 via opencode-go) return
     // 400 "Extra inputs are not permitted, field: 'client_metadata'" — an
     // OpenAI-Codex/Claude-CLI passthrough field with no equivalent here. The

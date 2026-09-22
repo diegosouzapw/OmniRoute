@@ -291,6 +291,11 @@ test("getCliRuntimeStatus resolves known binaries from npm global prefix discove
   };
   syncBuiltinESMExports();
 
+  // #12565 moved npm-prefix detection (and its process-lifetime success cache) into
+  // cliRuntimeNpmPrefix.ts. importFresh() only re-evaluates cliRuntime.ts; that module
+  // is shared, so an earlier case's cached prefix would bypass this case's mock.
+  const npmPrefixModule = await import("../../src/shared/services/cliRuntimeNpmPrefix.ts");
+  npmPrefixModule.__resetNpmGlobalPrefixCacheForTests();
   const cliRuntime = await importFresh("npm-prefix-known-path");
   const status = await cliRuntime.getCliRuntimeStatus("qoder");
 

@@ -1,1 +1,0 @@
-- **fix(open-sse):** `reasoning_details[].text` is now promoted to `reasoning_content` even when `reasoning` is also present, so OpenRouter thinking models (GLM-5.3-Flash, DeepSeek-V4-Flash, Kimi K3) no longer lose their thinking traces in clients that only read `reasoning_content` ([#12688](https://github.com/diegosouzapw/OmniRoute/pull/12688) — thanks @thomasmaerz)
