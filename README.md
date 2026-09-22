@@ -1067,7 +1067,9 @@ stores durable deduplication state in `/app/data`. The image contains no `.env`
 file or secret. Its install uses `npm ci --legacy-peer-deps` because the
 committed application lockfile contains existing peer-range conflicts (including
 `marked@18`/`marked-terminal@7` and ESLint 10 plugin ranges); this avoids changing
-application dependencies solely for the isolated alert runtime.
+application dependencies solely for the isolated alert runtime. Optional
+dependencies are intentionally retained because `tsx` needs the platform
+`@esbuild/linux-x64` binary at runtime.
 
 For Render, create the service from `render.yaml` (the Telegram token,
 destination chat id, and optional Rugcheck key are marked `sync: false` and

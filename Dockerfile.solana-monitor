@@ -14,7 +14,9 @@ COPY open-sse/package.json ./open-sse/package.json
 # marked@18 with marked-terminal@7 and ESLint 10 plugin ranges). This image only
 # runs the monitor and does not alter those dependencies; legacy peer resolution
 # makes the committed lockfile installable without changing application manifests.
-RUN npm ci --legacy-peer-deps --include=dev --omit=optional --ignore-scripts --no-audit --no-fund \
+# Optional platform packages must remain installed: tsx/esbuild needs the
+# Linux-native @esbuild/linux-x64 binary at runtime.
+RUN npm ci --legacy-peer-deps --include=dev --ignore-scripts --no-audit --no-fund \
   && npm cache clean --force
 
 COPY scripts/solana ./scripts/solana
