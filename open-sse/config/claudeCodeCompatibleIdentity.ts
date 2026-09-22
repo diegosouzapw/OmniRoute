@@ -15,7 +15,7 @@ export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = getClaudeCodeUserAgent("sdk-cli
 export { getClaudeCodeUserAgent };
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = CLAUDE_CODE_RUNTIME_VERSION;
-const CONTEXT_1M_NATIVE_MODELS = ["claude-fable-5-1", "claude-opus-5"];
+const CONTEXT_1M_NATIVE_MODELS = ["claude-fable-5-1", "claude-opus-5-5", "claude-opus-5"];
 
 export function modelHasNativeContext1m(model: string | null | undefined): boolean {
   const normalizedModel = String(model || "")

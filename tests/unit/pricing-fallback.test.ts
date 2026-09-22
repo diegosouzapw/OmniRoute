@@ -27,7 +27,7 @@ test("off-table paid model keeps the conservative fallback", () => {
 });
 
 test("table hits are untouched", () => {
-  assert.equal(Object.keys(KNOWN_MODEL_PRICING).length, 21);
+  assert.equal(Object.keys(KNOWN_MODEL_PRICING).length, 22);
   assert.deepEqual(getModelPricing("openai", "gpt-4o"), KNOWN_MODEL_PRICING["gpt-4o"]);
   assert.deepEqual(getModelPricing("longcat", "LongCat-2.0"), KNOWN_MODEL_PRICING["longcat-2.0"]);
 });
