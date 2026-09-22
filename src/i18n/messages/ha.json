@@ -11020,6 +11020,9 @@
     "poolEgressObservation": "An yi amfani da {exits, plural, one {hanyar fita #} other {hanyoyin fita #}} ta hanyar {connections, plural, one {haɗi #} other {haɗe-haɗe #}} · har zuwa {max} a kan hanyar fita guda · sa'o'i {hours} da suka gabata",
     "poolEgressObservationEmpty": "Ba a ga zirga-zirga ba cikin sa'o'i {hours} da suka gabata",
     "poolEgressObservationHint": "An ƙidaya daga rajistar proxy a tsawon wannan lokacin: adiresoshin IP na fita daban-daban da aka gani ga mambobin wannan rukuni, da kuma haɗe-haɗen OmniRoute da suka yi amfani da su. \"A kan hanyar fita guda\" yana nufin a tsawon wannan lokacin, ba a lokaci guda ba. Kullewar 429 ta kowane IP tana dakatar da haɗe-haɗen iyalin mai samarwa iri ɗaya ne kawai.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Cire",
     "poolRemoveFailed": "An kasa cire proxy daga pool",
     "poolAddLabel": "Ƙara proxy",
@@ -11423,6 +11426,7 @@
         "clientResponse": "Amsar Abokin Ciniki",
         "pipelineError": "Kuskuren Bututun Aiki"
       },
+      "payloadSizeLimitOmitted": "An bar abin da aka aika — wannan sashe ya wuce iyakar girman rajistar kira (CALL_LOG_PIPELINE_MAX_SIZE_KB) kuma ba a adana shi ba; wannan ba ainihin kuskuren mai bayarwa ba ne.",
       "payloadMissing": "Cikakken artefaktin payload ya daina samuwa ga wannan shigarwar rajista.",
       "payloadCorrupt": "Ba a iya tantance cikakken artefaktin payload ba.",
       "notAvailable": "Bai Shafa ba",
@@ -11476,8 +11480,7 @@
       "correlationIdValue": "ID na Alaƙa: {id}",
       "detailedPayloadInfo": "Da farko, kunna yin cikakken log idan kana son ganin payload na matakai huɗu na abokin ciniki/mai bayarwa don sabbin buƙatu.",
       "copyAll": "Kwafi duka",
-      "copiedAll": "An kwafi duka",
-      "payloadSizeLimitOmitted": "An bar abin da aka aika — wannan sashe ya wuce iyakar girman rajistar kira (CALL_LOG_PIPELINE_MAX_SIZE_KB) kuma ba a adana shi ba; wannan ba ainihin kuskuren mai bayarwa ba ne."
+      "copiedAll": "An kwafi duka"
     }
   },
   "proxyLogger": {
