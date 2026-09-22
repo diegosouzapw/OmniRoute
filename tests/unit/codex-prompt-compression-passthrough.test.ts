@@ -6,7 +6,15 @@ import {
   normalizeCompressionExclusions,
 } from "../../open-sse/services/compression/exclusions.ts";
 
+// The compression block moved out of chatCore.ts into its own leaf; the guard
+// follows the code it guards.
 const chatCoreSource = readFileSync(
+  new URL("../../open-sse/handlers/chatCore/contextCompression.ts", import.meta.url),
+  "utf8"
+);
+
+// The overflow fail-fast gate stayed behind in the barrel.
+const barrelSource = readFileSync(
   new URL("../../open-sse/handlers/chatCore.ts", import.meta.url),
   "utf8"
 );
@@ -48,12 +56,14 @@ test("codex target is compressible by default; operators can still opt out via e
 test("prompt-only scope: reactive compaction still bypasses native passthrough", () => {
   // Deliberately left for follow-up (overflow fail-fast + history-rewriting safety).
   // If these gates are ever lifted, update the PR body notes, not just this test.
+  // The two gates now live in different files: the threshold gate moved out with
+  // the compression block, the overflow fail-fast stayed in the barrel.
   assert.match(
     chatCoreSource,
     /reactiveContextCompactionEnabled\s*&&\s*!nativeCodexPassthrough\s*&&\s*estimatedTokens\s*>\s*threshold/
   );
   assert.match(
-    chatCoreSource,
+    barrelSource,
     /reactiveContextCompactionEnabled\s*&&\s*!nativeCodexPassthrough\s*&&\s*finalEstimatedInputTokens\s*>=\s*finalContextLimit/
   );
 });

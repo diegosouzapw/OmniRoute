@@ -531,7 +531,13 @@ export async function runProviderExecutionPipeline(
           target.provider
         );
         if (nextModel) {
-          wire.setBodyAndModel({ ...wire.body, model: nextModel }, nextModel);
+          const nextBody = { ...wire.body, model: nextModel };
+          wire.setBodyAndModel(nextBody, nextModel);
+          // Barrel's setBodyAndModel only mutates outer locals. Keep the
+          // pipeline's own wire snapshot in lockstep so the next send uses
+          // the sibling model even when the callback does not write back.
+          wire.body = nextBody;
+          wire.currentModel = nextModel;
           modelFallbackPending = true;
           continue;
         }

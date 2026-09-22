@@ -3,7 +3,22 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const source = readFileSync(
+  new URL("../../open-sse/handlers/chatCore/executeProviderRequest.ts", import.meta.url),
+  "utf8"
+);
+
+const barrel = readFileSync(
   new URL("../../open-sse/handlers/chatCore.ts", import.meta.url),
+  "utf8"
+);
+
+const nonStreamingLeg = readFileSync(
+  new URL("../../open-sse/handlers/chatCore/nonStreamingLeg.ts", import.meta.url),
+  "utf8"
+);
+
+const streamingLeg = readFileSync(
+  new URL("../../open-sse/handlers/chatCore/streamingLeg.ts", import.meta.url),
   "utf8"
 );
 
@@ -35,7 +50,7 @@ test("chatCore acquires cumulative gates immediately before withRateLimit", () =
 // single index check covered it; the loop is now split across two files, so the
 // guard checks both halves of the same invariant.
 test("each rotated account attempt acquires and releases a fresh composite slot", () => {
-  const sendFn = source.indexOf("const executeProviderRequest = async (");
+  const sendFn = source.indexOf("export async function executeProviderRequest(");
   const attemptLoop = source.indexOf("while (attempts < maxAttempts)", sendFn);
   const acquire = source.indexOf("await acquireConcurrencyGates(", attemptLoop);
   const release = source.indexOf("releaseAccountSemaphore();", acquire);
@@ -52,11 +67,36 @@ test("each rotated account attempt acquires and releases a fresh composite slot"
     "a throwing attempt must release the composite slot"
   );
 
-  const sendWirings =
-    source.match(
-      /sendProviderAttempt: \(modelToCall, allowDedup\) =>\s*executeProviderRequest\(modelToCall, allowDedup\)/g
-    ) ?? [];
+  const sendWirings = [
+    ...(nonStreamingLeg.match(
+      /sendProviderAttempt:\s*\(modelToCall,\s*allowDedup\)\s*=>\s*executeProviderRequest\(modelToCall,\s*allowDedup\)/g
+    ) ?? []),
+    ...(streamingLeg.match(
+      /sendProviderAttempt:\s*\(modelToCall,\s*allowDedup\)\s*=>\s*executeProviderRequest\(modelToCall,\s*allowDedup\)/g
+    ) ?? []),
+  ];
   assert.equal(sendWirings.length, 2, "both legs send every pipeline attempt through the gate");
+  const streamIdx = barrel.indexOf("await runStreamingLeg({");
+  assert.ok(streamIdx >= 0, "runStreamingLeg call must exist in barrel");
+  const streamEnd = barrel.indexOf("});", streamIdx);
+  assert.ok(streamEnd > streamIdx, "runStreamingLeg invocation bounds");
+  const streamBlock = barrel.slice(streamIdx, streamEnd);
+  assert.match(
+    streamBlock,
+    /\bexecuteProviderRequest\b/,
+    "barrel passes wire-send function to streaming leg"
+  );
+
+  const nonStreamIdx = barrel.indexOf("await runNonStreamingLeg({");
+  assert.ok(nonStreamIdx >= 0, "runNonStreamingLeg call must exist in barrel");
+  const nonStreamEnd = barrel.indexOf("});", nonStreamIdx);
+  assert.ok(nonStreamEnd > nonStreamIdx, "runNonStreamingLeg invocation bounds");
+  const nonStreamBlock = barrel.slice(nonStreamIdx, nonStreamEnd);
+  assert.match(
+    nonStreamBlock,
+    /\bexecuteProviderRequest\b/,
+    "barrel passes wire-send function to non-streaming leg"
+  );
 
   const rotationLoop = pipeline.search(/while \(\s*attempts < maxAttempts\b/);
   assert.ok(rotationLoop >= 0, "the account/model recovery loop must exist");

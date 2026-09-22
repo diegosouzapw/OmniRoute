@@ -450,6 +450,44 @@ test("initial model-unavailable falls back to sibling model", async () => {
   }
 });
 
+test("family fallback still switches when setBodyAndModel does not write currentModel", async () => {
+  const { runProviderExecutionPipeline } =
+    await import("../../open-sse/handlers/chatCore/providerExecutionPipeline.ts");
+  const sentModels: string[] = [];
+  const input = makeInput({
+    policy: { allowAccountRotation: true, allowModelFallback: true },
+    provider: "claude",
+    model: "claude-sonnet-5",
+    connectionId: "conn-t5",
+    send: async (model) => {
+      sentModels.push(model);
+      assert.ok(sentModels.length <= 4, "family fallback must not resend the failed model");
+      if (model === "claude-sonnet-5") {
+        return makeAttempt(
+          { error: { message: "model is not available", type: "invalid_request_error" } },
+          404
+        );
+      }
+      return makeAttempt({ id: "ok", content: [{ type: "text", text: "ok" }] }, 200);
+    },
+    getNextFamilyFallback: (current) =>
+      current === "claude-sonnet-5" ? "claude-sonnet-4-6" : null,
+  });
+  // chatCore barrel captures currentModel as a string snapshot and only
+  // mutates its outer local. Pipeline must not rely on that write-back.
+  input.wire.setBodyAndModel = (body, nextModel) => {
+    input.wire.body = body;
+    input.wire.triedModels.add(nextModel);
+  };
+
+  const outcome = await runProviderExecutionPipeline(input);
+  assert.deepEqual(sentModels, ["claude-sonnet-5", "claude-sonnet-4-6"]);
+  assert.equal(outcome.kind, "response");
+  if (outcome.kind === "response") {
+    assert.equal(outcome.model, "claude-sonnet-4-6");
+  }
+});
+
 test("follow-up allowModelFallback=false blocks model-unavailable fallback", async () => {
   const { runProviderExecutionPipeline } =
     await import("../../open-sse/handlers/chatCore/providerExecutionPipeline.ts");

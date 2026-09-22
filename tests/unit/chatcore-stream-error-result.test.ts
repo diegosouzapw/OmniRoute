@@ -6,6 +6,8 @@
 // the string-code extraction.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import ts from "typescript";
 import {
   createSafeAbortError,
   formatStreamRecoveryRetryWarning,
@@ -154,25 +156,54 @@ test("getUpstreamErrorIdentifier returns a non-empty string code or undefined", 
   assert.equal(safeAbort.message, "Request aborted");
 });
 
-test("non-streaming runNonStreamingProviderLeg is inside a try that maps semaphore errors", async () => {
-  const fs = await import("node:fs");
-  const src = fs.readFileSync("open-sse/handlers/chatCore.ts", "utf8");
-  // `let`, not `const`, since 6077b9dd (#12867) made the finalization step reassign
-  // legResult. The guard is about the try/catch that wraps the call, not the keyword.
-  const idx = src.search(/(?:const|let) legResult = await runNonStreamingProviderLeg/);
-  assert.ok(idx >= 0, "non-streaming branch must exist");
-  const start = src.lastIndexOf("if (!stream)", idx);
-  const end = src.indexOf("// Streaming response", idx);
-  assert.ok(start >= 0 && end > start, "non-stream block bounds");
-  const block = src.slice(start, end);
-  assert.match(
-    block,
-    /try\s*\{[\s\S]*runNonStreamingProviderLeg/,
-    "non-stream leg must sit in a try so SEMAPHORE_TIMEOUT cannot escape handleChatCore"
+test("non-streaming runNonStreamingProviderLeg is inside a try that maps semaphore errors", () => {
+  const barrel = readFileSync(
+    new URL("../../open-sse/handlers/chatCore.ts", import.meta.url),
+    "utf8"
   );
   assert.match(
-    block,
-    /isSemaphoreCapacityError/,
-    "same catch that maps stream semaphore errors must cover the non-stream leg"
+    barrel,
+    /if\s*\(!stream\)\s*\{\s*return await runNonStreamingLeg\(/,
+    "barrel must delegate non-streaming requests to runNonStreamingLeg"
   );
+
+  const src = readFileSync(
+    new URL("../../open-sse/handlers/chatCore/nonStreamingLeg.ts", import.meta.url),
+    "utf8"
+  );
+  const sf = ts.createSourceFile("nonStreamingLeg.ts", src, ts.ScriptTarget.ESNext, true);
+
+  const calls: ts.CallExpression[] = [];
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === "runNonStreamingProviderLeg"
+    ) {
+      calls.push(node);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  assert.ok(calls.length >= 1, "at least one runNonStreamingProviderLeg call must exist");
+
+  for (const callNode of calls) {
+    let tryNode: ts.TryStatement | null = null;
+    let curr: ts.Node = callNode;
+    while (curr && curr !== sf) {
+      if (ts.isTryStatement(curr)) {
+        tryNode = curr;
+        break;
+      }
+      curr = curr.parent;
+    }
+    assert.ok(tryNode, "each runNonStreamingProviderLeg call must sit in a try statement");
+    assert.ok(tryNode.catchClause, "enclosing try must have a catch clause");
+    const catchText = tryNode.catchClause.getText(sf);
+    assert.match(
+      catchText,
+      /isSemaphoreCapacityError/,
+      "same catch that maps stream semaphore errors must cover the non-stream leg"
+    );
+  }
 });
