@@ -53,6 +53,10 @@ import {
   rebuildJsonFromForcedStream,
   surfaceFromBaseUrl,
 } from "./opencodeFreeTierContract.ts";
+import {
+  handleLoopFreeTierRefusal,
+  retryFreeTierRefusalWithObservedTools,
+} from "./opencodeFreeTierRetry.ts";
 import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
 
 // Re-exported: the free-model catalog moved to the contract module (it decides whether the
@@ -295,6 +299,21 @@ export class OpencodeExecutor extends BaseExecutor {
   /** Set in buildHeaders, which execute() runs before transformRequest. */
   private _clientSession: string | undefined;
   private _surface = () => surfaceFromBaseUrl(this.config?.baseUrl);
+
+  /** Free-tier retry context: the request-scoped contract state the retry helper needs. */
+  private freeTierRetryCtx(input: ExecuteInput) {
+    // #14148 moved the contract attempt off the executor: it is keyed by the
+    // request body, so read it back from there instead of a shared field.
+    const attempt = attemptFor(input.body);
+    return {
+      surface: this._surface(),
+      provider: this.provider,
+      requestFormat: this._requestFormat,
+      clientSession: this._clientSession,
+      borrowed: attempt?.borrowed,
+      clientToolNames: attempt?.clientToolNames ?? [],
+    };
+  }
 
   /**
    * Per-account rotation state, rebuilt from credentials on each request. The
@@ -601,6 +620,25 @@ export class OpencodeExecutor extends BaseExecutor {
         const single = (await guardStall(
           await (hasAmbientProxyContext() ? dispatch() : runWithDirectFetchContext(dispatch))
         )) as HttpExecuteResult;
+        const retryAfterRefusal = await retryFreeTierRefusalWithObservedTools(
+          this.freeTierRetryCtx(input),
+          input,
+          single,
+          log,
+          cid,
+          (retryInput) =>
+            guardStall(
+              hasAmbientProxyContext()
+                ? super.execute(retryInput)
+                : runWithDirectFetchContext(() => super.execute(retryInput))
+            ) as unknown as Promise<HttpExecuteResult>
+        );
+        if (retryAfterRefusal) {
+          return this.finalizeForcedStream(
+            input,
+            this.normalizeMuseSparkResponse(input, retryAfterRefusal)
+          );
+        }
         if (single.response.status === 400) {
           let bodyText: string | null = null;
           try {
@@ -984,20 +1022,29 @@ export class OpencodeExecutor extends BaseExecutor {
               continue;
             }
             // Free-tier refusal: upstream rejected the REQUEST (client identity or
-            // request shape), not this account. Every sibling account gets the same
-            // verdict from the same request, so rotating only adds latency; and the
-            // refusal must not touch account health — markSuccess would revive an
-            // evicted account. Return it untouched, health and cooldown unchanged.
+            // request shape), not this account. Handled in opencodeFreeTierRetry.ts
+            // (one bounded retry with observed tools appended, then unchanged return).
             if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
-              log?.warn?.(
-                "OPENCODE",
-                `${cid}free-tier refusal ${status} on account ${masked} (proxy ${proxyKeyOf(account.proxy) ?? "direct"}), returning it unchanged (request-scoped, no rotation)`
-              );
-              noteResponseServed(account);
               if (attributionOn && skippedCooldown.size > 0) {
                 this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
               }
-              return result;
+              return await handleLoopFreeTierRefusal(
+                (retried) =>
+                  this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, retried)),
+                input,
+                result,
+                this.freeTierRetryCtx(input),
+                { account, masked, proxyKey: proxyKeyOf(account.proxy) ?? "direct" },
+                log,
+                cid,
+                {
+                  dispatch: (retryInput) =>
+                    runWithProxyContext(account.proxy, () =>
+                      super.execute({ ...retryInput, skipUpstreamRetry: true })
+                    ) as Promise<HttpExecuteResult>,
+                  noteServed: (a) => noteResponseServed(a as typeof account),
+                }
+              );
             }
           }
 

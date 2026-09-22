@@ -48,7 +48,10 @@ function looksLikeHost(s: string): boolean {
   if (!s) return false;
   // IPv4: four dot-separated octets, each 0–255
   const ipParts = s.split(".");
-  if (ipParts.length === 4 && ipParts.every((o) => /^\d+$/.test(o) && Number(o) >= 0 && Number(o) <= 255)) {
+  if (
+    ipParts.length === 4 &&
+    ipParts.every((o) => /^\d+$/.test(o) && Number(o) >= 0 && Number(o) <= 255)
+  ) {
     return true;
   }
   // Hostname: alphanumeric + dots/hyphens, at least one char
@@ -67,7 +70,7 @@ function pushShorthandEntry(
   portStr: string,
   username: string,
   password: string,
-  type: string,
+  type: string
 ): boolean {
   if (!host) {
     errors.push({ line: lineNum, reason: "bulkImportErrorMissingHost" });
@@ -112,7 +115,7 @@ function parseShorthandLine(
   lineNum: number,
   defaultType: string,
   entries: ParsedProxyEntry[],
-  errors: ParseError[],
+  errors: ParseError[]
 ): boolean {
   let type = defaultType;
   let working = raw;
@@ -161,8 +164,10 @@ function parseShorthandLine(
   if (colonParts.length === 4) {
     // Two possibilities: ip:port:user:pass OR user:pass:ip:port
     // Require the "host" slot to look like an IP/hostname AND the "port" slot to be a valid port.
-    const isPort1 = /^\d+$/.test(colonParts[1]) && Number(colonParts[1]) >= 1 && Number(colonParts[1]) <= 65535;
-    const isPort3 = /^\d+$/.test(colonParts[3]) && Number(colonParts[3]) >= 1 && Number(colonParts[3]) <= 65535;
+    const isPort1 =
+      /^\d+$/.test(colonParts[1]) && Number(colonParts[1]) >= 1 && Number(colonParts[1]) <= 65535;
+    const isPort3 =
+      /^\d+$/.test(colonParts[3]) && Number(colonParts[3]) >= 1 && Number(colonParts[3]) <= 65535;
     const hostLooksLikePart0 = looksLikeHost(colonParts[0]);
     const hostLooksLikePart2 = looksLikeHost(colonParts[2]);
 

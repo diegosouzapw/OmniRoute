@@ -11020,6 +11020,9 @@
     "poolEgressObservation": "D’úsáid {connections, plural, one {# nasc} other {# nasc}} {exits, plural, one {# bhealach amach} other {# bealach amach}} · suas le {max} ar bhealach amach amháin · le {hours} uair an chloig anuas",
     "poolEgressObservationEmpty": "Níor breathnaíodh aon trácht le {hours} uair an chloig anuas",
     "poolEgressObservationHint": "Áiríodh ó loga an tseachfhreastalaí thar an tréimhse iad: na seoltaí IP amach ar leith a breathnaíodh do bhaill na linne seo, agus naisc OmniRoute a d’úsáid iad. Is éard atá i gceist le \"Ar bhealach amach amháin\" ná thar an tréimhse, seachas ag an am céanna. Ní chuireann an frithdhúnadh 429 de réir IP ar sos ach naisc a bhaineann leis an teaghlach soláthraí céanna.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Bain",
     "poolRemoveFailed": "Theip ar bhaint an seachfhreastalaí as an linn",
     "poolAddLabel": "Cuir seachfhreastalaí leis",
@@ -11423,6 +11426,7 @@
         "clientResponse": "Freagra an Chliaint",
         "pipelineError": "Earráid Phíblíne"
       },
+      "payloadSizeLimitOmitted": "Fágadh an pálasta ar lár — sháraigh an rannán seo teorainn mhéid an logchomhaid glaonna (CALL_LOG_PIPELINE_MAX_SIZE_KB) agus níor stóráladh é; ní fíorearráid ón soláthraí é seo.",
       "payloadMissing": "Níl déantán mionsonraithe an phálasta ar fáil don iontráil logála seo a thuilleadh.",
       "payloadCorrupt": "Níorbh fhéidir déantán mionsonraithe an phálasta a pharsáil.",
       "notAvailable": "Neamhbhainteach",
@@ -11476,8 +11480,7 @@
       "correlationIdValue": "Aitheantas Comhghaoil: {id}",
       "detailedPayloadInfo": "Cumasaigh logáil mhionsonraithe ar dtús más mian leat an t-amharc ceithre chéim ar ualaí cliaint/soláthraí le haghaidh iarratais nua.",
       "copyAll": "Cóipeáil go léir",
-      "copiedAll": "Cóipeáilte go léir",
-      "payloadSizeLimitOmitted": "Fágadh an pálasta ar lár — sháraigh an rannán seo teorainn mhéid an logchomhaid glaonna (CALL_LOG_PIPELINE_MAX_SIZE_KB) agus níor stóráladh é; ní fíorearráid ón soláthraí é seo."
+      "copiedAll": "Cóipeáilte go léir"
     }
   },
   "proxyLogger": {

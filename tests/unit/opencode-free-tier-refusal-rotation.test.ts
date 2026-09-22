@@ -5,6 +5,11 @@ import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/base.ts";
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
 import { resetDbInstance } from "../../src/lib/db/core.ts";
+import {
+  _resetToolObservationForTests,
+  getObservedToolNames,
+  recordAcceptedToolNames,
+} from "../../open-sse/executors/opencodeToolObservation.ts";
 
 // Upstream free-tier refusal: the request identity/shape is rejected, the account
 // is not. Rotating cannot help (every account gets the same verdict from the same
@@ -203,7 +208,140 @@ describe("OpencodeExecutor free-tier refusal", () => {
 
     assert.strictEqual(response.status, 200);
     await response.body?.cancel();
+
     const served = accountsOf(exec).filter((a) => a.consecutiveFails === 0);
     assert.strictEqual(served.length, 1, "the account that served is reset");
+  });
+});
+
+describe("OpencodeExecutor free-tier refusal retry with observed tools", () => {
+  let originalFetch: typeof globalThis.fetch;
+  let seenTools: Array<readonly string[] | null>;
+
+  beforeEach(() => {
+    originalFetch = globalThis.fetch;
+    seenTools = [];
+    _resetToolObservationForTests();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  function toolNameOf(entry: unknown): string | null {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+    const rec = entry as { name?: unknown; function?: { name?: unknown } };
+    const name = typeof rec.name === "string" ? rec.name : rec.function?.name;
+    return typeof name === "string" ? name : null;
+  }
+
+  async function runWithBody(exec: OpencodeExecutor, body: unknown) {
+    return (await exec.execute({
+      model: "muse-spark-1.3-contributor-free",
+      body,
+      stream: true,
+      signal: null,
+      credentials: {
+        apiKey: null,
+        accessToken: null,
+        connectionId: "noauth",
+        providerSpecificData: {},
+      },
+      log,
+    })) as { response: Response };
+  }
+
+  // Single direct account (fast path): first dispatch 403 FreeTier, retry carries
+  // the union and succeeds — one extra fetch, original tools intact first.
+  it("retries once with observed names appended and returns the retry success", async () => {
+    const exec = new OpencodeExecutor("opencode");
+    recordAcceptedToolNames("opencode", "muse-spark-1.3-contributor-free", undefined, [
+      "edit",
+      "write",
+    ]);
+    const calls: Array<{ status: number; body?: string }> = [
+      { status: 403, body: REFUSAL_BODY },
+      { status: 200, body: JSON.stringify({ ok: true }) },
+    ];
+    let call = 0;
+    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const parsed = JSON.parse(String((init as Record<string, unknown>)?.body ?? "{}")) as {
+        tools?: unknown[];
+      };
+      seenTools.push(Array.isArray(parsed.tools) ? parsed.tools.map(toolNameOf) : null);
+      const step = calls[Math.min(call, calls.length - 1)];
+      call++;
+      return new Response(step.body ?? "{}", {
+        status: step.status,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof globalThis.fetch;
+
+    const clientBody = {
+      model: "muse-spark-1.3-contributor-free",
+      messages: [{ role: "user", content: "hi" }],
+      stream: true,
+      tools: [
+        { type: "function", function: { name: "glob", parameters: { type: "object" } } },
+        { type: "function", function: { name: "read", parameters: { type: "object" } } },
+      ],
+    };
+    const result = await runWithBody(exec, clientBody);
+
+    assert.strictEqual(result.response.status, 200);
+    assert.strictEqual(seenTools.length, 2, "exactly one retry dispatch");
+    assert.deepEqual(seenTools[0], ["glob", "read"], "first dispatch keeps client tools");
+    assert.deepEqual(
+      seenTools[1],
+      ["glob", "read", "edit", "write"],
+      "retry appends observed names after client tools"
+    );
+    await result.response.body?.cancel();
+  });
+
+  // Retry refusal: the ORIGINAL 403 is propagated and the store is untouched.
+  it("propagates the original refusal when the retry is refused, store untouched", async () => {
+    const exec = new OpencodeExecutor("opencode");
+    recordAcceptedToolNames("opencode", "muse-spark-1.3-contributor-free", undefined, ["edit"]);
+    globalThis.fetch = (async () => {
+      return new Response(REFUSAL_BODY, {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof globalThis.fetch;
+
+    const result = await runWithBody(exec, {
+      model: "muse-spark-1.3-contributor-free",
+      messages: [{ role: "user", content: "hi" }],
+      stream: true,
+      tools: [{ type: "function", function: { name: "glob", parameters: { type: "object" } } }],
+    });
+
+    assert.strictEqual(result.response.status, 403);
+    assert.strictEqual(await result.response.text(), REFUSAL_BODY);
+    assert.deepEqual(getObservedToolNames("opencode", "muse-spark-1.3-contributor-free"), ["edit"]);
+  });
+
+  // Nothing observed to add: no second fetch.
+  it("skips the retry when the store holds nothing new", async () => {
+    const exec = new OpencodeExecutor("opencode");
+    let fetches = 0;
+    globalThis.fetch = (async () => {
+      fetches++;
+      return new Response(REFUSAL_BODY, {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof globalThis.fetch;
+
+    const result = await runWithBody(exec, {
+      model: "muse-spark-1.3-contributor-free",
+      messages: [{ role: "user", content: "hi" }],
+      stream: true,
+      tools: [{ type: "function", function: { name: "glob", parameters: { type: "object" } } }],
+    });
+
+    assert.strictEqual(result.response.status, 403);
+    assert.strictEqual(fetches, 1, "no retry without observed names");
   });
 });
