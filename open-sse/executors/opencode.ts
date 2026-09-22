@@ -872,9 +872,17 @@ export class OpencodeExecutor extends BaseExecutor {
                   log,
                   cid
                 );
-                if (p && p !== result) return this.normalizeMuseSparkResponse(input, p);
+                if (p && p !== result) {
+                  if (attributionOn && skippedCooldown.size > 0) {
+                    this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+                  }
+                  return this.normalizeMuseSparkResponse(input, p);
+                }
                 if (p) {
                   discardResponseBody(abandonedResponse);
+                  if (attributionOn && skippedCooldown.size > 0) {
+                    this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+                  }
                   return this.normalizeMuseSparkResponse(input, result);
                 }
               }
