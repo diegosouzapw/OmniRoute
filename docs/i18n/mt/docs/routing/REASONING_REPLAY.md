@@ -22,22 +22,24 @@ Iżda klijenti tipiċi (Cursor, Cline, Roo Code, OpenAI SDK) ineħħu r-`reasoni
 ## Arkitettura
 
 ```
-Rawnd N (l-assistent jiġġenera):
+Dawra N (l-assistent jiġġenera):
   → ir-risposta fiha reasoning_content + tool_calls
   → jekk requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      jikteb (memorja + DB), b’kull tool_call.id bħala kjavi
-  → jgħaddi r-risposta lill-klijent (li jista’ jżomm ir-raġunament jew le)
+      jikteb (memorja + DB), indiċjat minn kull tool_call.id
+  → jgħaddi r-risposta lill-klijent (li jista’ jżomm jew ma jżommx ir-raġunament)
 
-Rawnd N+1 (il-klijent jibgħat talba ta’ segwitu):
-  → it-traduttur jidentifika: requiresReasoningReplay(provider, model) === true
+Dawra N+1 (il-klijent jibgħat talba ta’ segwitu):
+  → it-traduttur jinduna li: requiresReasoningReplay(provider, model) === true
   → għal kull messaġġ tal-assistent b’tool_calls u mingħajr reasoning_content:
       lookupReasoning(toolCalls[0].id) → memorja → DB
       suċċess  → msg.reasoning_content = cached; recordReplay()
-      falliment → msg.reasoning_content = "" (soluzzjoni alternattiva storika għal DeepSeek eqdem)
-  → l-upstream jara storja konsistenti → ebda 400
+      falliment → msg.reasoning_content = "" (soluzzjoni ta’ riżerva legacy għal verżjonijiet eqdem ta’ DeepSeek)
+  → is-sistema upstream tara storja konsistenti → l-ebda 400
 ```
 
-Il-qbid iseħħ f’`open-sse/handlers/chatCore.ts` (f’żewġ postijiet, fiż-żewġ postijiet fejn tissejjaħ `cacheReasoningFromAssistantMessage`). Ir-riproduzzjoni sseħħ f’`open-sse/translator/index.ts` wara l-koerċizzjoni tal-iskema iżda qabel id-dispaċċ.
+Il-qbid iseħħ f’`open-sse/handlers/chatCore.ts` (f’żewġ postijiet, fiż-żewġ postijiet fejn tissejjaħ `cacheReasoningFromAssistantMessage`). Ir-riproduzzjoni mill-ġdid isseħħ f’`open-sse/translator/index.ts` wara l-koerċizzjoni tal-iskema iżda qabel id-dispaċċ.
+
+Id-dawriet sempliċi tal-assistent (mingħajr sejħa ta’ għodda) jiġu indiċjati b’mod differenti: `buildAssistantMessageCacheKey()` joħloq diġest tal-ambitu tas-sessjoni flimkien mat-traskrizzjoni normalizzata fil-format OpenAI sa dik id-dawra, għax DeepSeek jirrikjedi r-raġunament ta’ _kull_ dawra preċedenti ladarba jkun preżenti `tools`. Għal miri tal-API Responses (pereżempju `opencode-go/deepseek-v4-flash`, dirett lejn `/responses`) il-korp upstream iġorr `input`, mhux `messages`, għalhekk `translateRequest()` (`open-sse/translator/index.ts`) jirrapporta t-traskrizzjoni pivot li tagħha ħoloq diġest permezz ta’ għażla ta’ callback, u l-postijiet tal-qbid joħolqu diġest tal-istess traskrizzjoni. Il-pass tar-riproduzzjoni mill-ġdid ta’ Responses jaħdem fuq il-pivot OpenAI għal kull format tas-sors, għalhekk il-klijenti ta’ Anthropic Messages (Claude → OpenAI → Responses) jiġu riprodotti mill-ġdid ukoll.
 
 ## Ħażna — Memorja Ibrida + SQLite
 

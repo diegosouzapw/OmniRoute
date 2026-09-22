@@ -149,33 +149,36 @@ RRF(d) = Σ  1 / (k + rank_i(d))      যেখানে k = 60 (MEMORY_RRF_K-�
 
 ## সেটিংস এক্সটেনশন
 
-`src/shared/schemas/memory.ts`-এর `MemorySettingsExtended`-এ নয়টি embedding এবং vector field উপলভ্য রয়েছে, যা `src/lib/db/settings.ts`-এর মাধ্যমে সংরক্ষিত হয়:
+`src/shared/schemas/memory.ts`-এর `MemorySettingsExtended`-এ নয়টি এম্বেডিং ও ভেক্টর ফিল্ড উপলভ্য রয়েছে,
+যেগুলো `src/lib/db/settings.ts`-এর মাধ্যমে সংরক্ষিত হয়:
 
-| ফিল্ড                    | টাইপ                                               | ডিফল্ট   | বিবরণ                                                                   |
-| ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | কোন embedding source ব্যবহার করা হবে                                    |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ফরম্যাটে provider/model                                |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | শুধু Memory-এর জন্য OpenAI-সামঞ্জস্যপূর্ণ endpoint-এর base URL          |
-| `customModelId`          | `string \| null`                                   | `null`   | কাস্টম endpoint-এ পাঠানো model ID                                       |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js-এর জন্য অপ্ট-ইন (MiniLM, ~400MB)                        |
-| `staticEnabled`          | `boolean`                                          | `false`  | স্ট্যাটিক potion-base-8M লোকাল model-এর জন্য অপ্ট-ইন                    |
-| `rerankEnabled`          | `boolean`                                          | `false`  | পুনরায় র্যাঙ্কিং ধাপ সক্রিয় করুন (প্রতি request-এ +200-500ms যোগ করে) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ফরম্যাটে পুনরায় র্যাঙ্ক করার provider/model           |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | কোন vector backend ব্যবহার করা হবে                                      |
+| ফিল্ড                    | ধরন                                                | ডিফল্ট   | বিবরণ                                                             |
+| ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | কোন এম্বেডিং উৎস ব্যবহার করা হবে                                  |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ফরম্যাটে প্রোভাইডার/মডেল                         |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | শুধু মেমরির জন্য OpenAI-সামঞ্জস্যপূর্ণ এন্ডপয়েন্টের বেস URL      |
+| `customModelId`          | `string \| null`                                   | `null`   | কাস্টম এন্ডপয়েন্টে পাঠানো মডেল ID                                |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js-এর জন্য অপ্ট-ইন (MiniLM, ~400MB)                  |
+| `staticEnabled`          | `boolean`                                          | `false`  | স্থানীয় static potion-base-8M মডেলের জন্য অপ্ট-ইন                |
+| `rerankEnabled`          | `boolean`                                          | `false`  | পুনঃর্যাঙ্কিং ধাপ সক্রিয় করুন (প্রতি অনুরোধে +200-500ms যোগ করে) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ফরম্যাটে পুনঃর্যাঙ্ক প্রোভাইডার/মডেল             |
 
-এগুলো `GET /PUT /api/settings/memory`-এর মাধ্যমে উন্মুক্ত করা হয়েছে (schema `MemorySettingsExtendedSchema`)।
+`rerankProviderModel`-কে `POST /v1/rerank` দ্বারা সমাধান করা হয় (লুপব্যাকের মাধ্যমে কল করা হয়), তাই ওই রুট যা কিছু গ্রহণ করে, এটিও সেগুলো গ্রহণ করে: একটি নির্বাচিত ক্লাউড পুনঃর্যাঙ্ক মডেল (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) অথবা `<node-prefix>/<model>` হিসেবে একটি OpenAI-সামঞ্জস্যপূর্ণ প্রোভাইডার নোড (যেমন, একটি TEI/Infinity বক্সের জন্য `skilled-mini/bge-reranker-v2-m3`)। লুপব্যাক নোডগুলো সর্বদা উপযুক্ত; অন্য কোনো হোস্টে থাকা একটি নোডের (LAN, Tailscale) জন্য অতিরিক্তভাবে `RERANK_REMOTE_PROVIDER_NODES` ফিচার ফ্ল্যাগ প্রয়োজন এবং সেটিকে প্রোভাইডারের আউটবাউন্ড URL নীতি পাস করতে হবে—[ফিচার ফ্ল্যাগ](../reference/FEATURE_FLAGS.md) দেখুন। ড্যাশবোর্ড নির্বাচকে নির্বাচিত প্রোভাইডারগুলোর পাশাপাশি স্থানীয় নোডগুলোও তালিকাভুক্ত থাকে; যেকোনো বৈধ `provider/model` স্ট্রিং `PUT /api/settings/memory`-এর মাধ্যমে সরাসরি সেট করা যায়।
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | কোন ভেক্টর ব্যাকএন্ড ব্যবহার করা হবে |
 
-`remote` source-এর ক্ষেত্রে, Memory ঐচ্ছিক `customBaseUrl` এবং
-`customModelId` সেটিংসও গ্রহণ করে। একসঙ্গে এগুলো গ্লোবাল embedding registry পরিবর্তন না করেই একটি OpenAI-সামঞ্জস্যপূর্ণ `/embeddings`
-endpoint এবং model নির্বাচন করে। ব্যবহারের আগে endpoint-টি
-normalize করা হয় এবং provider-এর outbound URL policy দ্বারা যাচাই করা হয়: HTTP(S)
-আবশ্যক, এম্বেড করা credentials এবং query string প্রত্যাখ্যান করা হয়, এবং cloud-metadata
-address ব্লক করা থাকে। খালি মানগুলো নির্বাচিত registry provider অপরিবর্তিত রাখে। dashboard-এ
-ফেরত দেওয়া error sanitize করা হয় এবং endpoint credentials কখনোই log করা হয় না।
+এগুলো `GET /PUT /api/settings/memory`-এর মাধ্যমে উন্মুক্ত করা হয় (স্কিমা `MemorySettingsExtendedSchema`)।
 
-> **TODO (D20):** `global` scope (সব API key জুড়ে memory শেয়ার করা) এই
-> release-এ বাস্তবায়িত হয়নি। এর জন্য schema পরিবর্তন এবং একটি global retrieval
-> path প্রয়োজন। আলাদাভাবে track করুন।
+`remote` উৎসের জন্য, Memory ঐচ্ছিক `customBaseUrl` এবং
+`customModelId` সেটিংসও গ্রহণ করে। একসঙ্গে এগুলো গ্লোবাল এম্বেডিং রেজিস্ট্রি পরিবর্তন না করেই একটি OpenAI-সামঞ্জস্যপূর্ণ `/embeddings`
+এন্ডপয়েন্ট ও মডেল নির্বাচন করে। ব্যবহারের আগে এন্ডপয়েন্টটি
+স্বাভাবিকীকরণ করা হয় এবং প্রোভাইডারের আউটবাউন্ড URL নীতি দ্বারা যাচাই করা হয়: HTTP(S)
+আবশ্যক, এম্বেড করা পরিচয়পত্র এবং কোয়েরি স্ট্রিং প্রত্যাখ্যান করা হয় এবং ক্লাউড-মেটাডেটা
+ঠিকানাগুলো অবরুদ্ধ থাকে। খালি মানগুলো নির্বাচিত রেজিস্ট্রি প্রোভাইডার অপরিবর্তিত রাখে। ড্যাশবোর্ডে
+ফেরত দেওয়া ত্রুটিগুলো পরিশোধিত হয় এবং এন্ডপয়েন্টের পরিচয়পত্র কখনোই লগ করা হয় না।
+
+> **TODO (D20):** `global` স্কোপ (সব API কী-এর মধ্যে মেমরি শেয়ার করা) এই রিলিজে
+> বাস্তবায়িত হয়নি। এর জন্য স্কিমা পরিবর্তন এবং একটি গ্লোবাল পুনরুদ্ধার
+> পাথ প্রয়োজন। আলাদাভাবে ট্র্যাক করুন।
 
 ## স্টোরেজ স্তরসমূহ
 

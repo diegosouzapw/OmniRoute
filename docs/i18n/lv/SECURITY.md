@@ -220,36 +220,38 @@ docker run -d \
 10. **`exec()` / `spawn()` izpildlaika vērtības nododiet, izmantojot `env` opciju** — nekad neievietojiet ārējus ceļus vai neuzticamas vērtības čaulas skriptos, izmantojot virkņu interpolāciju. Atsauce: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Dodiet priekšroku pēc noklusējuma drošām bibliotēkām** — skatiet [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Izmantojiet tās, pirms izstrādāt pašiem savu risinājumu.
 
-## Piegādes ķēdes skenera atradumi (Socket.dev / Snyk / līdzīgi rīki)
+## Piegādes ķēdes skenera konstatējumi (Socket.dev / Snyk / līdzīgi rīki)
+
+> **Tvēruma piezīme:** repozitorija saknē esošais `socket.yml` tikai definē `projectIgnorePaths` Socket.dev reģistra puses skenēšanai pēc publicētā npm artefakta publicēšanas — tas nav obligāts CI/PR sapludināšanas kontroles posms. Neviena darbplūsma direktorijā `.github/workflows`, neviens `package.json` skripts un neviens `Makefile` mērķis neizsauc Socket.dev.
 
 Publicētais `omniroute` npm artefakts ietver Next.js `output: "standalone"`
 būvējumu, kas nozīmē, ka katrs maršruta apstrādātājs — tostarp dokumentētās
-priviliģētās funkcijas (MITM, Zed importēšana, Cloud Sync, iegultā pakalpojuma
-pārraugs) — nonāk `.next/server/*.js` minificētajos fragmentos. Heiristiskie
-piegādes ķēdes skeneri bieži salīdzina šo fragmentu paraugus ar ļaunprogrammatūras
+priviliģētās funkcijas (MITM, Zed importēšana, Cloud Sync, iegultā pakalpojumu
+pārraudzība) — nonāk minificētos `.next/server/*.js` fragmentos. Heiristiskie
+piegādes ķēdes skeneri bieži salīdzina šo fragmentu modeļus ar ļaunprogrammatūras
 signatūrām.
 
-Mūsu izmantotā skenera konfigurācija atrodas repozitorija saknes failā
-[`socket.yml`](socket.yml) (Socket.dev GitHub App formāts v2 — skatiet
-<https://docs.socket.dev/docs/socket-yml>). Tā nepārprotami izslēdz nepiegādātās
-direktorijas (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`,
-`docs/` utt.), lai skeneris ziņotu tikai par koda ceļiem, kas faktiski sasniedz
-publicētās versijas lietotājus — pašu skenēšanu veic Socket GitHub App, nolasot
-šo failu, nevis darbplūsma šajā repozitorijā.
+Mūsu izmantotā skenera konfigurācija atrodas failā [`socket.yml`](socket.yml)
+repozitorija saknē (Socket.dev GitHub App formāts v2 — skatiet
+<https://docs.socket.dev/docs/socket-yml>). Tā nepārprotami izslēdz
+nepiegādātos direktorijus (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` u.c.), lai skeneris ziņotu tikai par koda ceļiem, kas
+faktiski sasniedz publicētās versijas lietotājus — pašu skenēšanu veic Socket
+GitHub App, nolasot šo failu, nevis šajā repozitorijā esoša darbplūsma.
 
-Katrai atradumu kategorijai mēs uzturam atsevišķu uzturētāja apliecinājumu:
+Katrai konstatējumu kategorijai mēs uzturam atsevišķu uzturētāja apliecinājumu:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  katra atraduma kartējums: avota fails ↔ atzīmētais fragments ↔ darbība ↔
-  versijā v3.8.6 ieviestais riska mazināšanas pasākums.
-- Avota kodā esošie `SECURITY-AUDITOR-NOTE:` bloki pie katras atzīmētās
-  funkcijas norāda uz to pašu dokumentu.
+  katra konstatējuma kartējums: avota fails ↔ atzīmētais fragments ↔ darbība ↔
+  v3.8.6 lietotie riska mazināšanas pasākumi.
+- Avota kodā esošie `SECURITY-AUDITOR-NOTE:` bloki pie katras atzīmētās funkcijas
+  norāda uz to pašu dokumentu.
 
-Lietotājiem, kuru konveijerā brīdinājumu nevar mīkstināt: veidojiet būvējumu ar
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tādējādi četri sensitīvie
-moduļi tiek aizstāti ar aizstājējiem, kas izpildlaikā atgriež HTTP 503
-`feature-disabled`, tāpēc priviliģētie koda ceļi fiziski nav iekļauti komplektā.
-Publicēšanas norādījumus skatiet
+Lietotājiem, kuru konveijerā šo brīdinājumu nevar mīkstināt: veidojiet būvējumu ar
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tas aizstāj četrus sensitīvos
+moduļus ar aizvietotājiem, kas izpildlaikā atgriež HTTP 503 `feature-disabled`,
+tādēļ priviliģētie koda ceļi fiziski nav iekļauti komplektā.
+Publicēšanas norādījumus skatiet failā
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Atsauces

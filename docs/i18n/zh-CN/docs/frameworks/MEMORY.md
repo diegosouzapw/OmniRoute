@@ -155,23 +155,30 @@ RRF(d) = Σ  1 / (k + rank_i(d))      其中 k = 60（可通过 MEMORY_RRF_K 配
 
 `src/shared/schemas/memory.ts` 中的 `MemorySettingsExtended` 提供了九个嵌入和向量字段，并通过 `src/lib/db/settings.ts` 持久化：
 
-| 字段                     | 类型                                               | 默认值   | 说明                                         |
+| 字段                     | 类型                                               | 默认值   | 描述                                         |
 | ------------------------ | -------------------------------------------------- | -------- | -------------------------------------------- |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | 要使用的嵌入源                               |
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` 格式的提供者/模型           |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | 仅用于记忆的 OpenAI 兼容端点基础 URL         |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | 仅用于 Memory 的 OpenAI 兼容端点基础 URL     |
 | `customModelId`          | `string \| null`                                   | `null`   | 发送到自定义端点的模型 ID                    |
 | `transformersEnabled`    | `boolean`                                          | `false`  | 选择启用 Transformers.js（MiniLM，约 400MB） |
 | `staticEnabled`          | `boolean`                                          | `false`  | 选择启用本地静态 potion-base-8M 模型         |
 | `rerankEnabled`          | `boolean`                                          | `false`  | 启用重排序步骤（每个请求增加 200-500ms）     |
 | `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` 格式的重排序提供者/模型     |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | 要使用的向量后端                             |
 
-这些设置通过 `GET /PUT /api/settings/memory` 公开（模式为 `MemorySettingsExtendedSchema`）。
+`rerankProviderModel` 由 `POST /v1/rerank` 解析（通过环回地址调用），因此它接受该路由所接受的任何值：精选的云端重排序模型（`cohere/rerank-v3.5`、`jina-ai/jina-reranker-v3.5` 等），或格式为 `<node-prefix>/<model>` 的 OpenAI 兼容提供者节点（例如，用于 TEI/Infinity 服务器的 `skilled-mini/bge-reranker-v2-m3`）。环回节点始终可用；位于其他主机（LAN、Tailscale）上的节点还需要启用 `RERANK_REMOTE_PROVIDER_NODES` 功能标志，并且必须通过提供者出站 URL 策略检查——请参阅[功能标志](../reference/FEATURE_FLAGS.md)。仪表板选择器会列出精选提供者和本地节点；任何有效的 `provider/model` 字符串都可以通过 `PUT /api/settings/memory` 直接设置。
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | 要使用的向量后端 |
 
-对于 `remote` 源，Memory 还接受可选的 `customBaseUrl` 和 `customModelId` 设置。两者结合使用，可以在不更改全局嵌入注册表的情况下选择兼容 OpenAI 的 `/embeddings` 端点和模型。端点在使用前会进行规范化，并由提供者的出站 URL 策略进行检查：要求使用 HTTP(S)，拒绝嵌入式凭据和查询字符串，同时仍会阻止云元数据地址。空值会保留所选的注册表提供者。返回到仪表板的错误会经过脱敏处理，并且端点凭据绝不会被记录到日志中。
+这些设置通过 `GET /PUT /api/settings/memory` 公开（schema 为 `MemorySettingsExtendedSchema`）。
 
-> **TODO (D20)：** `global` 作用域（在所有 API 密钥之间共享记忆）未在此版本中实现。它需要更改模式并添加全局检索路径。请单独跟踪。
+对于 `remote` 源，Memory 还接受可选的 `customBaseUrl` 和
+`customModelId` 设置。两者结合使用，可以在不更改全局嵌入注册表的情况下选择与 OpenAI 兼容的 `/embeddings`
+端点和模型。端点在使用前会进行规范化，并由提供者出站 URL 策略检查：要求使用 HTTP(S)，
+拒绝嵌入的凭据和查询字符串，并继续阻止云元数据地址。空值会保留选定的注册表提供者。返回到
+仪表板的错误会经过净化处理，并且端点凭据绝不会被记录到日志中。
+
+> **TODO (D20)：** 本版本尚未实现 `global` 作用域（在所有 API 密钥之间共享记忆）。
+> 该功能需要更改 schema 并增加全局检索路径。请单独跟踪。
 
 ## 存储层
 

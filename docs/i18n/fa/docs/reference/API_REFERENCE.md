@@ -428,45 +428,45 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## Endpointهای سازگاری
+## نقاط پایانی سازگاری
 
-| متد  | مسیر                                      | قالب                                |
-| ---- | ----------------------------------------- | ----------------------------------- |
-| POST | `/v1/chat/completions`                    | OpenAI                              |
-| POST | `/v1/messages`                            | Anthropic                           |
-| POST | `/v1/responses`                           | OpenAI Responses                    |
-| POST | `/v1/embeddings`                          | OpenAI                              |
-| POST | `/v1/images/generations`                  | OpenAI Images                       |
-| POST | `/v1/images/edits`                        | OpenAI Images (ویرایش/inpaint)      |
-| POST | `/v1/videos/generations`                  | تولید ویدئو به سبک OpenAI           |
-| POST | `/v1/music/generations`                   | تولید موسیقی به سبک OpenAI          |
-| POST | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                  |
-| POST | `/v1/audio/speech`                        | OpenAI TTS (بدنه صوتی برمیگرداند)   |
-| POST | `/v1/rerank`                              | بازرتبهبندی به سبک Cohere/Voyage    |
-| POST | `/v1/classify`                            | دستهبندی Jina (`api.jina.ai`)       |
-| POST | `/v1/segment`                             | قطعهبند Jina (`segment.jina.ai`)    |
-| POST | `/v1/moderations`                         | OpenAI Moderations                  |
-| GET  | `/v1/models`                              | OpenAI                              |
-| POST | `/v1/messages/count_tokens`               | Anthropic                           |
-| GET  | `/v1beta/models`                          | Gemini                              |
-| POST | `/v1beta/models/{...path}`                | Gemini generateContent              |
-| POST | `/v1/api/chat`                            | Ollama                              |
-| GET  | `/api/v1/vscode/{token}/`                 | نام مستعار کاتالوگ OpenAI           |
-| GET  | `/api/v1/vscode/{token}/models`           | نام مستعار مدلهای OpenAI            |
-| POST | `/api/v1/vscode/{token}/chat/completions` | نام مستعار توکندار OpenAI           |
-| POST | `/api/v1/vscode/{token}/responses`        | نام مستعار توکندار OpenAI Responses |
-| POST | `/api/v1/vscode/{token}/api/chat`         | نام مستعار توکندار Ollama           |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | نام مستعار توکندار تگهای Ollama     |
+| متد  | مسیر                                      | قالب                                                 |
+| ---- | ----------------------------------------- | ---------------------------------------------------- |
+| POST | `/v1/chat/completions`                    | OpenAI                                               |
+| POST | `/v1/messages`                            | Anthropic                                            |
+| POST | `/v1/responses`                           | پاسخهای OpenAI                                       |
+| POST | `/v1/embeddings`                          | OpenAI                                               |
+| POST | `/v1/images/generations`                  | تصاویر OpenAI                                        |
+| POST | `/v1/images/edits`                        | تصاویر OpenAI (ویرایش/دروننگاری)                     |
+| POST | `/v1/videos/generations`                  | تولید ویدئو به سبک OpenAI                            |
+| POST | `/v1/music/generations`                   | تولید موسیقی به سبک OpenAI                           |
+| POST | `/v1/audio/transcriptions`                | صدای OpenAI (تبدیل گفتار به متن)                     |
+| POST | `/v1/audio/speech`                        | تبدیل متن به گفتار OpenAI (بدنهٔ صوتی را برمیگرداند) |
+| POST | `/v1/rerank`                              | بازرتبهبندی به سبک Cohere/Voyage                     |
+| POST | `/v1/classify`                            | طبقهبندی Jina (`api.jina.ai`)                        |
+| POST | `/v1/segment`                             | قطعهبند Jina (`segment.jina.ai`)                     |
+| POST | `/v1/moderations`                         | تعدیلهای OpenAI                                      |
+| GET  | `/v1/models`                              | OpenAI                                               |
+| POST | `/v1/messages/count_tokens`               | Anthropic                                            |
+| GET  | `/v1beta/models`                          | Gemini                                               |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent                               |
+| POST | `/v1/api/chat`                            | Ollama                                               |
+| GET  | `/api/v1/vscode/{token}/`                 | نام مستعار کاتالوگ OpenAI                            |
+| GET  | `/api/v1/vscode/{token}/models`           | نام مستعار مدلهای OpenAI                             |
+| POST | `/api/v1/vscode/{token}/chat/completions` | نام مستعار توکندار OpenAI                            |
+| POST | `/api/v1/vscode/{token}/responses`        | نام مستعار توکندار پاسخهای OpenAI                    |
+| POST | `/api/v1/vscode/{token}/api/chat`         | نام مستعار توکندار Ollama                            |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | نام مستعار توکندار برچسبهای Ollama                   |
 
-تمام مسیرهای POST از ساختار یکسانی پیروی میکنند: `Bearer your-api-key` بههمراه بدنه JSON اعتبارسنجیشده با Zod (`v1RerankSchema`، `v1ModerationSchema`، `v1AudioSpeechSchema` و غیره؛ به `src/shared/validation/schemas.ts` مراجعه کنید). در صورت شکست اعتبارسنجی schema، پاسخ 4xx برگردانده میشود.
+تمام مسیرهای POST از ساختار یکسانی پیروی میکنند: `Bearer your-api-key` بههمراه بدنهٔ JSON اعتبارسنجیشده توسط Zod (`v1RerankSchema`، `v1ModerationSchema`، `v1AudioSpeechSchema` و غیره؛ `src/shared/validation/schemas.ts` را ببینید). در صورت شکست اعتبارسنجی طرحواره، پاسخ 4xx برگردانده میشود.
 
-برای کلاینتهایی که نمیتوانند `Authorization: Bearer ...` را ضمیمه کنند، OmniRoute کلیدهای API را در URL نیز میپذیرد؛ یا از طریق سازگاری query string (`?token=...`، `?apiKey=...`، `?api_key=...`، `?key=...`) یا با استفاده از endpointهای اختصاصی `/api/v1/vscode/{token}/...` که در ادامه مستند شدهاند.
+برای کلاینتهایی که نمیتوانند `Authorization: Bearer ...` را پیوست کنند، OmniRoute همچنین کلیدهای API را در URL، چه از طریق سازگاری رشتهٔ پرسوجو (`?token=...`، `?apiKey=...`، `?api_key=...`، `?key=...`) و چه از طریق نقاط پایانی اختصاصی `/api/v1/vscode/{token}/...` که در ادامه مستند شدهاند، میپذیرد.
 
 ```bash
-# بازرتبهبندی
+# بازرتبهبندی (ارائهدهندهٔ رجیستری ابری، یا گرهٔ ارائهدهندهٔ سازگار با OpenAI بهشکل "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# دستهبندی Jina (اعتبارنامههای Foundation API)
+# طبقهبندی Jina (اعتبارنامههای Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # قطعهبند Jina
@@ -475,19 +475,41 @@ POST /v1/segment     { "content": "...", "return_chunks": true }
 # جستوجوی Jina (s.jina.ai؛ نامهای مستعار ارائهدهنده: jina-search، jina-ai، jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# تعدیل محتوا
+# تعدیلها
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — بدنه audio/mpeg (یا قالب درخواستی) را برمیگرداند
+# تبدیل متن به گفتار — بدنهٔ audio/mpeg (یا قالب درخواستی) را برمیگرداند
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # ویرایش تصویر (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# تولید ویدئو / موسیقی (شناسه مدل با پیشوند ارائهدهنده)
+# تولید ویدئو / موسیقی (شناسهٔ مدل با پیشوند ارائهدهنده)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **گرههای ارائهدهندهٔ بازرتبهبندی:** `POST /v1/rerank` همچنین درخواستها را به گرههای ارائهدهندهٔ سازگار با OpenAI
+> (oMLX، vLLM، Infinity، TEI در پشت یک دروازه و غیره) که بهشکل `<node-prefix>/<model>` آدرسدهی شدهاند، هدایت میکند. گرههای
+> loopback (`localhost`، `127.0.0.1`، `172.16.0.0/12`) همیشه واجد شرایط هستند. گرههای روی هر میزبان دیگری
+> — یک دستگاه LAN یا همتای Tailscale — تنها زمانی واجد شرایط هستند که اپراتور پرچم قابلیت
+> `RERANK_REMOTE_PROVIDER_NODES` را فعال کند **و** URL پایهٔ گره از سیاست URL خروجی ارائهدهنده
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) عبور کند؛
+> درخواستها هرگز به میزبانهای فرادادهٔ ابری هدایت نمیشوند. مرحلهٔ بازرتبهبندی موتور حافظه این مسیر را از طریق
+> loopback فراخوانی میکند، بنابراین همین قاعده بر `rerankProviderModel` در تنظیمات حافظه حاکم است.
+>
+> **ساختارهای سرور محلی:** گره ابتدا در `<base>/v1/rerank` و در صورت دریافت 404، در `<base>/rerank`
+> (Infinity، TEI) فراخوانی میشود. بدنهٔ بالادستی هم املای Cohere/OpenAI (`documents`،
+> `return_documents`) و هم املای TEI (`texts`، `return_text`) را حمل میکند و پاسخ بالادستی
+> به پوشش Cohere نرمالسازی میشود: آرایهٔ سادهٔ `[{index, score, text}]` متعلق به TEI، ساختار `{results: [{index, score}]}`
+> از دروازههای سبک، و ساختار به سبک Voyage یعنی `{data: [...]}`، همگی بهشکل
+> `{results: [{index, relevance_score, document?}]}`، مرتبشده بر اساس امتیاز و محدودشده به `top_n`، به کلاینت بازگردانده میشوند.
+
+> **کشف گرهٔ ارائهدهنده:** مدلهای روی یک گرهٔ ارائهدهندهٔ سازگار با OpenAI در `GET /v1/models`
+> زیر پیشوند گره ظاهر میشوند. ردیفهایی که فاقد فرادادهٔ نقطهٔ پایانی هستند (که برای فهرستهای محلی `/v1/models` معمول است)
+> مقدار `apiType` گره را به ارث میبرند؛ بنابراین مدلهای یک گرهٔ `embeddings` دارای `type: "embedding"` و مدلهای
+> یک گرهٔ `rerank` دارای `type: "rerank"` هستند، بهجای اینکه بهطور پیشفرض به چت تبدیل شوند؛ یک
+> `supportedEndpoints` صریح در ردیفی همگامسازیشده یا افزودهشده بهصورت دستی همچنان اولویت دارد.
 
 ### مسیرهای اختصاصی ارائهدهنده
 
@@ -497,7 +519,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-اگر پیشوند ارائهدهنده وجود نداشته باشد، بهطور خودکار افزوده میشود. مدلهای ناسازگار پاسخ `400` برمیگردانند.
+اگر پیشوند ارائهدهنده وجود نداشته باشد، بهطور خودکار اضافه میشود. مدلهای ناسازگار خطای `400` برمیگردانند.
 
 ---
 

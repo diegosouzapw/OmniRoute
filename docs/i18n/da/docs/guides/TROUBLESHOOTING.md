@@ -66,18 +66,26 @@ Angiv disse i OmniRoute-processens miljø (daemonen, f.eks. via LaunchAgent-plis
 
 ---
 
-## Advarsler ved npm install (ERESOLVE / peer / deprecated)
+## npm install-advarsler (ERESOLVE / peer / deprecated)
 
-Når du kører `npm install -g omniroute`, ser du muligvis en mur af advarsler såsom `npm warn ERESOLVE`, meddelelser om peer-afhængigheder og `deprecated`-meddelelser. **Disse er forventede og harmløse.** Installationen lykkedes, hvis du ser `added <N> packages` i outputtet.
+Når du kører `npm install -g omniroute`, kan du se en lang række advarsler såsom `npm warn ERESOLVE`, meddelelser om peer-afhængigheder og `deprecated`-meddelelser. **Disse er forventede og harmløse.** Installationen lykkedes, hvis du ser `added <N> packages` i outputtet.
 
-Advarslerne skyldes forældede intervaller for peer-afhængigheder i tredjepartspakker, som OmniRoute ikke har kontrol over:
+Brug OmniRoutes understøttede installationsform for at undertrykke advarsler om løsning af peer-afhængigheder:
 
-1. **`marked-terminal` kræver `marked >=1 <16`, men fandt `marked@18`** — fungerer fint i praksis; upstream-intervallet for peer-afhængigheden er blot forældet.
-2. **`deprecated prebuild-install@7.1.3`** — et transitivt hjælpeværktøj til hentning af platformspecifikke binære filer. Det bruges ikke
-   til at installere den fastlåste `wreq-js`-transportbinding og betyder ikke, at opsætningen af transporten
-   for webcookie-udbyderen mislykkedes.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Ingen handling nødvendig** — advarslerne kan ikke fjernes helt uden at forke upstream-pakkerne.
+`--legacy-peer-deps` undertrykker kun `ERESOLVE` og meddelelser om peer-afhængigheder. Meddelelser om udfasede pakker forbliver synlige, fordi de kommer fra transitive tredjepartspakker. De betyder ikke, at installationen mislykkedes.
+
+Advarslerne skyldes forældede versionsintervaller for peer-afhængigheder i tredjepartspakker, som OmniRoute ikke har kontrol over:
+
+1. **`marked-terminal` kræver `marked >=1 <16`, men fandt `marked@18`** — fungerer fint i praksis; upstream-projektets peer-versionsinterval er blot forældet.
+2. **`deprecated prebuild-install@7.1.3`** — et transitivt hjælpeværktøj til hentning af platformsafhængige binære filer. Det bruges ikke
+   til at installere den fastlåste `wreq-js`-transportbinding og betyder ikke, at konfigurationen af
+   web-cookie-udbyderens transport mislykkedes.
+
+**Ingen handling er nødvendig** — advarslerne kan ikke undertrykkes fuldstændigt uden at forke upstream-pakkerne.
 
 ---
 

@@ -176,31 +176,33 @@ Die Tabelle `memory_vec_meta` (Migration `083_memory_vec.sql`) speichert:
 Neun Einbettungs- und Vektorfelder sind in `MemorySettingsExtended` in
 `src/shared/schemas/memory.ts` verfügbar und werden über `src/lib/db/settings.ts` persistiert:
 
-| Feld                     | Typ                                                | Standardwert | Beschreibung                                                 |
-| ------------------------ | -------------------------------------------------- | ------------ | ------------------------------------------------------------ |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`     | Zu verwendende Einbettungsquelle                             |
-| `embeddingProviderModel` | `string \| null`                                   | `null`       | Anbieter/Modell im Format `provider/model`                   |
-| `customBaseUrl`          | `string \| null`                                   | `null`       | OpenAI-kompatible Basis-URL des Endpunkts nur für Memory     |
-| `customModelId`          | `string \| null`                                   | `null`       | An den benutzerdefinierten Endpunkt gesendete Modell-ID      |
-| `transformersEnabled`    | `boolean`                                          | `false`      | Opt-in für Transformers.js (MiniLM, ~400MB)                  |
-| `staticEnabled`          | `boolean`                                          | `false`      | Opt-in für das lokale statische Modell potion-base-8M        |
-| `rerankEnabled`          | `boolean`                                          | `false`      | Neusortierungsschritt aktivieren (+200–500 ms/Anfrage)       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`       | Anbieter/Modell für Neusortierung im Format `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`     | Zu verwendendes Vektor-Backend                               |
+| Feld                     | Typ                                                | Standard | Beschreibung                                                         |
+| ------------------------ | -------------------------------------------------- | -------- | -------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Zu verwendende Einbettungsquelle                                     |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Anbieter/Modell im Format `provider/model`                           |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | Nur für Memory verwendete, OpenAI-kompatible Basis-URL des Endpunkts |
+| `customModelId`          | `string \| null`                                   | `null`   | An den benutzerdefinierten Endpunkt gesendete Modell-ID              |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Opt-in für Transformers.js (MiniLM, ~400MB)                          |
+| `staticEnabled`          | `boolean`                                          | `false`  | Opt-in für das lokale statische Modell potion-base-8M                |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Reranking-Schritt aktivieren (zusätzlich +200-500ms/Anfrage)         |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Reranking-Anbieter/Modell im Format `provider/model`                 |
+
+`rerankProviderModel` wird durch `POST /v1/rerank` aufgelöst (Aufruf über Loopback) und akzeptiert daher alles, was diese Route akzeptiert: ein kuratiertes Cloud-Reranking-Modell (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) oder einen OpenAI-kompatiblen Anbieterknoten als `<node-prefix>/<model>` (z. B. `skilled-mini/bge-reranker-v2-m3` für eine TEI/Infinity-Instanz). Loopback-Knoten sind immer zulässig; ein Knoten auf einem anderen Host (LAN, Tailscale) erfordert zusätzlich den Feature-Flag `RERANK_REMOTE_PROVIDER_NODES` und muss die Richtlinie für ausgehende Anbieter-URLs erfüllen — siehe [Feature-Flags](../reference/FEATURE_FLAGS.md). Der Dashboard-Selektor listet kuratierte Anbieter sowie lokale Knoten auf; jede gültige Zeichenfolge im Format `provider/model` kann direkt über `PUT /api/settings/memory` festgelegt werden.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Zu verwendendes Vektor-Backend |
 
 Diese werden über `GET /PUT /api/settings/memory` bereitgestellt (Schema `MemorySettingsExtendedSchema`).
 
 Für die Quelle `remote` akzeptiert Memory außerdem die optionalen Einstellungen `customBaseUrl` und
-`customModelId`. Gemeinsam wählen sie einen OpenAI-kompatiblen `/embeddings`-Endpunkt
+`customModelId`. Zusammen wählen sie einen OpenAI-kompatiblen `/embeddings`-Endpunkt
 und ein Modell aus, ohne die globale Einbettungsregistrierung zu ändern. Der Endpunkt wird
 vor der Verwendung normalisiert und anhand der Richtlinie für ausgehende Anbieter-URLs geprüft: HTTP(S) ist
-erforderlich, eingebettete Zugangsdaten und Abfragezeichenfolgen werden abgelehnt und Adressen
-für Cloud-Metadaten bleiben gesperrt. Leere Werte behalten den ausgewählten registrierten Anbieter bei. An das
-Dashboard zurückgegebene Fehler werden bereinigt, und Endpunkt-Zugangsdaten werden niemals protokolliert.
+erforderlich, eingebettete Anmeldedaten und Abfragezeichenfolgen werden abgelehnt und Cloud-Metadaten-
+Adressen bleiben blockiert. Leere Werte behalten den ausgewählten Registrierungsanbieter bei. An
+das Dashboard zurückgegebene Fehler werden bereinigt, und Endpunkt-Anmeldedaten werden niemals protokolliert.
 
-> **TODO (D20):** Der Gültigkeitsbereich `global` (gemeinsame Nutzung von Erinnerungen über alle API-Schlüssel hinweg) ist in dieser Version
-> nicht implementiert. Dafür sind Schemaänderungen und ein globaler Abrufpfad
-> erforderlich. Separat nachverfolgen.
+> **TODO (D20):** Der Geltungsbereich `global` (Freigabe von Erinnerungen für alle API-Schlüssel) ist in
+> dieser Version nicht implementiert. Er erfordert Schemaänderungen und einen globalen Abruf-
+> pfad. Separat nachverfolgen.
 
 ## Speicherschichten
 

@@ -22,22 +22,24 @@
 ## Αρχιτεκτονική
 
 ```
-Γύρος N (ο βοηθός παράγει):
+Γύρος N (το assistant δημιουργεί):
   → η απόκριση περιέχει reasoning_content + tool_calls
   → εάν requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
       εγγράφει (μνήμη + DB), με κλειδί κάθε tool_call.id
-  → προωθεί την απόκριση στον πελάτη (ο οποίος μπορεί να διατηρεί ή να μη διατηρεί τον συλλογισμό)
+  → προώθηση της απόκρισης στον client (ο οποίος μπορεί να διατηρήσει ή να μη διατηρήσει το reasoning)
 
-Γύρος N+1 (ο πελάτης στέλνει επόμενο αίτημα):
-  → ο μεταφραστής εντοπίζει: requiresReasoningReplay(provider, model) === true
-  → για κάθε μήνυμα βοηθού με tool_calls και χωρίς reasoning_content:
+Γύρος N+1 (ο client στέλνει συνέχεια):
+  → ο translator ανιχνεύει: requiresReasoningReplay(provider, model) === true
+  → για κάθε μήνυμα assistant με tool_calls και χωρίς reasoning_content:
       lookupReasoning(toolCalls[0].id) → μνήμη → DB
       επιτυχία  → msg.reasoning_content = cached; recordReplay()
-      αποτυχία → msg.reasoning_content = "" (παλαιός εναλλακτικός μηχανισμός για παλαιότερο DeepSeek)
-  → ο ανάντη πάροχος βλέπει συνεπές ιστορικό → κανένα 400
+      αποτυχία → msg.reasoning_content = "" (εφεδρική συμπεριφορά παλαιού τύπου για παλαιότερο DeepSeek)
+  → το upstream βλέπει συνεπές ιστορικό → χωρίς 400
 ```
 
-Η καταγραφή πραγματοποιείται στο `open-sse/handlers/chatCore.ts` (σε δύο σημεία, στις δύο θέσεις κλήσης του `cacheReasoningFromAssistantMessage`). Η αναπαραγωγή πραγματοποιείται στο `open-sse/translator/index.ts` μετά την προσαρμογή στο σχήμα, αλλά πριν από την αποστολή.
+Η καταγραφή πραγματοποιείται στο `open-sse/handlers/chatCore.ts` (σε δύο σημεία, στις δύο θέσεις κλήσης του `cacheReasoningFromAssistantMessage`). Η επανάληψη πραγματοποιείται στο `open-sse/translator/index.ts` μετά την προσαρμογή του σχήματος, αλλά πριν από την αποστολή.
+
+Οι απλοί γύροι του assistant (χωρίς κλήση εργαλείου) χρησιμοποιούν διαφορετικό κλειδί: το `buildAssistantMessageCacheKey()` δημιουργεί μια σύνοψη του εύρους της συνεδρίας μαζί με το κανονικοποιημένο transcript σε μορφή OpenAI έως εκείνον τον γύρο, επειδή το DeepSeek απαιτεί το reasoning _κάθε_ προηγούμενου γύρου μόλις υπάρχει το `tools`. Για προορισμούς Responses-API (για παράδειγμα `opencode-go/deepseek-v4-flash`, που δρομολογείται στο `/responses`), το σώμα του upstream περιέχει `input` και όχι `messages`, επομένως το `translateRequest()` (`open-sse/translator/index.ts`) αναφέρει μέσω μιας επιλογής callback το ενδιάμεσο transcript που συνόψισε και τα σημεία καταγραφής συνοψίζουν το ίδιο transcript. Το πέρασμα επανάληψης του Responses εκτελείται στο ενδιάμεσο OpenAI για κάθε μορφή προέλευσης, επομένως επαναλαμβάνονται και οι clients Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Αποθήκευση — Υβριδική μνήμη + SQLite
 

@@ -27,6 +27,12 @@
 
 ## Γρήγορη εκτέλεση
 
+> **Αυτοφιλοξενία με μία εντολή;** Δείτε τον
+> [Οδηγό αυτοφιλοξενίας](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (δημοσιευμένη εικόνα +
+> Redis, μόνο μέσω loopback, χωρίς επιλογή προφίλ). Η παρακάτω Γρήγορη εκτέλεση είναι η
+> διαδρομή ενός container για χρήστες που εκτελούν ήδη το Redis αλλού.
+
 ```bash
 docker run -d \
   --name omniroute \

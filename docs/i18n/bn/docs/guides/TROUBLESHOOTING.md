@@ -68,15 +68,23 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # তাৎক্ষণিক retr
 
 ## npm install সতর্কতা (ERESOLVE / peer / deprecated)
 
-আপনি `npm install -g omniroute` চালালে `npm warn ERESOLVE`, peer-dependency বিজ্ঞপ্তি এবং `deprecated` বার্তার মতো অসংখ্য সতর্কতা দেখতে পারেন। **এগুলো প্রত্যাশিত এবং ক্ষতিকর নয়।** আউটপুটে `added <N> packages` দেখলে বুঝবেন আপনার ইনস্টলেশন সফল হয়েছে।
+আপনি যখন `npm install -g omniroute` চালান, তখন `npm warn ERESOLVE`, peer-dependency বিজ্ঞপ্তি এবং `deprecated` বার্তার মতো অসংখ্য সতর্কতা দেখতে পারেন। **এগুলো প্রত্যাশিত এবং ক্ষতিকর নয়।** আউটপুটে `added <N> packages` দেখলে বুঝবেন আপনার ইনস্টলেশন সফল হয়েছে।
 
-OmniRoute-এর নিয়ন্ত্রণের বাইরে থাকা তৃতীয়-পক্ষের প্যাকেজগুলোর পুরোনো peer-dependency range থেকে এই সতর্কতাগুলো আসে:
+peer-dependency resolution সংক্রান্ত সতর্কতাগুলো বন্ধ করতে OmniRoute-এর সমর্থিত ইনস্টল পদ্ধতি ব্যবহার করুন:
 
-1. **`marked-terminal`-এর প্রয়োজন `marked >=1 <16`, কিন্তু পাওয়া গেছে `marked@18`** — বাস্তবে এটি ঠিকভাবেই কাজ করে; upstream peer range-টি শুধু পুরোনো।
-2. **`deprecated prebuild-install@7.1.3`** — এটি একটি transitive native-binary fetch helper। এটি pinned `wreq-js` transport binding ইনস্টল করতে
-   ব্যবহৃত হয় না এবং web-cookie provider transport সেটআপ ব্যর্থ হয়েছে—এমনটিও নির্দেশ করে না।
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**কোনো পদক্ষেপের প্রয়োজন নেই** — upstream প্যাকেজগুলো fork না করে সতর্কতাগুলো সম্পূর্ণভাবে বন্ধ করা সম্ভব নয়।
+`--legacy-peer-deps` শুধু `ERESOLVE` এবং peer-dependency বিজ্ঞপ্তিগুলো বন্ধ করে। Deprecation বিজ্ঞপ্তিগুলো দৃশ্যমান থাকে, কারণ সেগুলো পরোক্ষ third-party package থেকে আসে; এগুলো ইনস্টলেশন ব্যর্থ হওয়ার ইঙ্গিত দেয় না।
+
+সতর্কতাগুলো এমন third-party package-এর পুরোনো peer-dependency range থেকে আসে, যেগুলোর ওপর OmniRoute-এর নিয়ন্ত্রণ নেই:
+
+1. **`marked-terminal`-এর জন্য `marked >=1 <16` প্রয়োজন, কিন্তু `marked@18` পাওয়া গেছে** — বাস্তবে এটি ঠিকভাবেই কাজ করে; upstream peer range-টিই শুধু পুরোনো।
+2. **`deprecated prebuild-install@7.1.3`** — একটি পরোক্ষ native-binary fetch helper। এটি pinned `wreq-js` transport binding ইনস্টল করতে
+   ব্যবহৃত হয় না এবং web-cookie provider transport setup ব্যর্থ হয়েছে—এমন ইঙ্গিতও দেয় না।
+
+**কোনো পদক্ষেপের প্রয়োজন নেই** — upstream package-গুলো fork না করে সতর্কতাগুলো সম্পূর্ণভাবে বন্ধ করা সম্ভব নয়।
 
 ---
 

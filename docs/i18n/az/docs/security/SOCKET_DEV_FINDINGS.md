@@ -4,20 +4,23 @@
 
 ---
 
-Bu sənəd `omniroute@3.8.5` paketinə qarşı irəli sürülmüş altı
-`AI-detected potential malware` aşkarlaması və `omniroute@3.8.6` versiyasında
-tətbiq edilmiş qarşı tədbirlər üçün baxımçı tərəfindən hazırlanmış təsdiqdir. Bu sənədin məqsədləri:
+> **Əhatə dairəsi qeydi:** `socket.yml` Socket.dev xidmətinin npm artefaktı üçün reyestr tərəfində, dərcdən sonra apardığı skanı konfiqurasiya edir (`tests/`, `docs/` və yığım hesabatları kimi paketə daxil edilməyən məzmun üçün nəzərə alınmayan yollar). O, CI/PR birləşdirmə nəzarətini qoşmur — `.github/workflows` daxilində heç bir iş axını, heç bir `package.json` skripti və heç bir `Makefile` hədəfi Socket.dev xidmətini çağırmır.
 
-1. Təhlükəsizlik konveyeri operatorlarının aşkarlamaları faktiki mənbə kodu ilə
-   müqayisə edərək qiymətləndirməli olduqları zaman istinad edə biləcəkləri vahid mənbəyə malik olması.
-2. Gələcək süni intellekt skanerlərinin işarələnmiş hər bir yolun məqsədli,
-   seçim əsasında aktivləşdirilən və sənədləşdirilmiş olduğuna dair baxımçı tərəfindən imzalanmış bəyanatı aşkarlaya bilməsi.
-3. Hər bir çağırış nöqtəsinin _niyə_ məhz bu formada qurulduğuna dair yazılı qeydin olması —
-   beləliklə, gələcək refaktorinq qəsdən aradan qaldırılmış izi təsadüfən yenidən yaratmasın.
+Bu sənəd `omniroute@3.8.5` üçün bildirilmiş altı
+`Süni intellekt tərəfindən aşkarlanmış potensial zərərli proqram` tapıntısı və
+`omniroute@3.8.6` versiyasında tətbiq edilmiş yumşaltma tədbirləri barədə müşayiətçi tərəfindən hazırlanmış təsdiq bəyanatıdır. Bu sənəd aşağıdakı məqsədlər üçün mövcuddur:
 
-Əgər v3.8.6 qarşı tədbirləri yayımlandıqdan sonra aşağıdakı çağırış nöqtələrindən
-hər hansı birini yenidən işarələyən skaner işlədirsinizsə, skan izi ilə birlikdə məsələ açın və
-biz buradakı təsdiqi genişləndirəcəyik.
+1. Təhlükəsizlik konveyerinin operatorları tapıntıları faktiki mənbə kodu ilə
+   müqayisəli şəkildə qiymətləndirməli olduqda istinad edə biləcəkləri vahid mənbəyə malik olsunlar.
+2. Gələcək süni intellekt skanerləri işarələnmiş hər bir yolun məqsədli,
+   seçim əsasında aktivləşdirilən və sənədləşdirilmiş olduğuna dair müşayiətçi tərəfindən imzalanmış bəyanatı aşkarlaya bilsinlər.
+3. Hər bir çağırış nöqtəsinin _niyə_ məhz bu şəkildə qurulduğuna dair yazılı qeydimiz olsun —
+   beləliklə, gələcək refaktorinq qəsdən aradan qaldırılmış bir barmaq izini
+   təsadüfən yenidən təqdim etməsin.
+
+v3.8.6 üçün yumşaltma tədbirləri yayımlandıqdan sonra aşağıdakı çağırış
+nöqtələrindən hər hansı birini yenidən işarələyən skaner işlədirsinizsə, skan izi ilə birlikdə problem bildirişi açın və
+biz buradakı təsdiq bəyanatını genişləndirəcəyik.
 
 ---
 

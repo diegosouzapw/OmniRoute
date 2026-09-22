@@ -387,57 +387,57 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## Endpoints Συμβατότητας
+## Τελικά σημεία συμβατότητας
 
-| Μέθοδος | Διαδρομή                                  | Μορφή                                |
-| ------- | ----------------------------------------- | ------------------------------------ |
-| POST    | `/v1/chat/completions`                    | OpenAI                               |
-| POST    | `/v1/messages`                            | Anthropic                            |
-| POST    | `/v1/responses`                           | OpenAI Responses                     |
-| POST    | `/v1/embeddings`                          | OpenAI                               |
-| POST    | `/v1/images/generations`                  | OpenAI Images                        |
-| POST    | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)         |
-| POST    | `/v1/videos/generations`                  | Δημιουργία βίντεο τύπου OpenAI       |
-| POST    | `/v1/music/generations`                   | Δημιουργία μουσικής τύπου OpenAI     |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (επιστρέφει σώμα ήχου)    |
-| POST    | `/v1/rerank`                              | Rerank τύπου Cohere/Voyage           |
-| POST    | `/v1/classify`                            | Jina classify (`api.jina.ai`)        |
-| POST    | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)   |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                   |
-| GET     | `/v1/models`                              | OpenAI                               |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                            |
-| GET     | `/v1beta/models`                          | Gemini                               |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent               |
-| POST    | `/v1/api/chat`                            | Ollama                               |
-| GET     | `/api/v1/vscode/{token}/`                 | Ψευδώνυμο καταλόγου OpenAI           |
-| GET     | `/api/v1/vscode/{token}/models`           | Ψευδώνυμο μοντέλων OpenAI            |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | Tokenized ψευδώνυμο OpenAI           |
-| POST    | `/api/v1/vscode/{token}/responses`        | Tokenized ψευδώνυμο OpenAI Responses |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Tokenized ψευδώνυμο Ollama           |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Tokenized ψευδώνυμο ετικετών Ollama  |
+| Μέθοδος | Διαδρομή                                  | Μορφή                                    |
+| ------- | ----------------------------------------- | ---------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                   |
+| POST    | `/v1/messages`                            | Anthropic                                |
+| POST    | `/v1/responses`                           | OpenAI Responses                         |
+| POST    | `/v1/embeddings`                          | OpenAI                                   |
+| POST    | `/v1/images/generations`                  | OpenAI Images                            |
+| POST    | `/v1/images/edits`                        | OpenAI Images (επεξεργασία/inpaint)      |
+| POST    | `/v1/videos/generations`                  | Δημιουργία βίντεο τύπου OpenAI           |
+| POST    | `/v1/music/generations`                   | Δημιουργία μουσικής τύπου OpenAI         |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (επιστρέφει σώμα ήχου)        |
+| POST    | `/v1/rerank`                              | Επανακατάταξη τύπου Cohere/Voyage        |
+| POST    | `/v1/classify`                            | Ταξινόμηση Jina (`api.jina.ai`)          |
+| POST    | `/v1/segment`                             | Τμηματοποιητής Jina (`segment.jina.ai`)  |
+| POST    | `/v1/moderations`                         | OpenAI Moderations                       |
+| GET     | `/v1/models`                              | OpenAI                                   |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                                |
+| GET     | `/v1beta/models`                          | Gemini                                   |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                   |
+| POST    | `/v1/api/chat`                            | Ollama                                   |
+| GET     | `/api/v1/vscode/{token}/`                 | Ψευδώνυμο καταλόγου OpenAI               |
+| GET     | `/api/v1/vscode/{token}/models`           | Ψευδώνυμο μοντέλων OpenAI                |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | Ψευδώνυμο OpenAI με διακριτικό           |
+| POST    | `/api/v1/vscode/{token}/responses`        | Ψευδώνυμο OpenAI Responses με διακριτικό |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ψευδώνυμο Ollama με διακριτικό           |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ψευδώνυμο ετικετών Ollama με διακριτικό  |
 
-Όλες οι διαδρομές POST ακολουθούν το ίδιο σχήμα: `Bearer your-api-key` + σώμα JSON επικυρωμένο από Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, κ.λπ., βλ. `src/shared/validation/schemas.ts`). Επιστρέφεται 4xx σε αποτυχία σχήματος.
+Όλες οι διαδρομές POST ακολουθούν την ίδια δομή: `Bearer your-api-key` + σώμα JSON επικυρωμένο μέσω Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` κ.λπ., δείτε το `src/shared/validation/schemas.ts`). Σε αποτυχία του σχήματος επιστρέφεται 4xx.
 
-Για clients που δεν μπορούν να επισυνάψουν `Authorization: Bearer ...`, το OmniRoute δέχεται επίσης κλειδιά API στο URL είτε μέσω συμβατότητας query-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) είτε μέσω των αφιερωμένων endpoints `/api/v1/vscode/{token}/...` που τεκμηριώνονται παρακάτω.
+Για προγράμματα-πελάτες που δεν μπορούν να επισυνάψουν `Authorization: Bearer ...`, το OmniRoute δέχεται επίσης κλειδιά API στη διεύθυνση URL είτε μέσω συμβατότητας με συμβολοσειρά ερωτήματος (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) είτε μέσω των αποκλειστικών τελικών σημείων `/api/v1/vscode/{token}/...` που τεκμηριώνονται παρακάτω.
 
 ```bash
-# Rerank
+# Επανακατάταξη (πάροχος μητρώου cloud ή κόμβος παρόχου συμβατού με OpenAI ως "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (διαπιστευτήρια Foundation API)
+# Ταξινόμηση Jina (διαπιστευτήρια Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Τμηματοποιητής Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; ψευδώνυμα παρόχου: jina-search, jina-ai, jina)
+# Αναζήτηση Jina (s.jina.ai· ψευδώνυμα παρόχου: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderations
+# Έλεγχοι περιεχομένου
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — επιστρέφει σώμα audio/mpeg (ή ζητούμενη μορφή)
+# TTS — επιστρέφει σώμα audio/mpeg (ή σώμα στην αιτούμενη μορφή)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Επεξεργασία εικόνας (multipart)
@@ -448,7 +448,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Αφιερωμένες Διαδρομές Παρόχου
+> **Κόμβοι παρόχων επανακατάταξης:** Το `POST /v1/rerank` δρομολογεί επίσης σε κόμβους παρόχων συμβατούς με OpenAI
+> (oMLX, vLLM, Infinity, TEI πίσω από πύλη, …), οι οποίοι προσδιορίζονται ως `<node-prefix>/<model>`. Οι κόμβοι
+> loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) είναι πάντοτε επιλέξιμοι. Οι κόμβοι σε οποιονδήποτε άλλο
+> κεντρικό υπολογιστή —ένα μηχάνημα LAN ή ένας ομότιμος κόμβος Tailscale— είναι επιλέξιμοι μόνο όταν ο διαχειριστής ενεργοποιήσει τη
+> σημαία δυνατότητας `RERANK_REMOTE_PROVIDER_NODES` **και** η βασική διεύθυνση URL του κόμβου συμμορφώνεται με την πολιτική εξερχόμενων
+> URL παρόχου (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)·
+> οι κεντρικοί υπολογιστές μεταδεδομένων cloud δεν αποτελούν ποτέ προορισμό δρομολόγησης. Το βήμα επανακατάταξης της μηχανής μνήμης καλεί αυτήν τη διαδρομή μέσω
+> loopback, επομένως ο ίδιος κανόνας διέπει το `rerankProviderModel` στις ρυθμίσεις Μνήμης.
+>
+> **Δομές τοπικού διακομιστή:** Ο κόμβος καλείται στο `<base>/v1/rerank` και, σε περίπτωση 404, στο `<base>/rerank`
+> (Infinity, TEI). Το σώμα που αποστέλλεται προς τα ανάντη περιλαμβάνει τόσο την ορθογραφία Cohere/OpenAI (`documents`,
+> `return_documents`) όσο και την ορθογραφία TEI (`texts`, `return_text`), ενώ η απόκριση από τα ανάντη
+> κανονικοποιείται στο περίβλημα Cohere: ο γυμνός πίνακας `[{index, score, text}]` του TEI, το `{results: [{index, score}]}`
+> από ελαφριές πύλες και το τύπου Voyage `{data: [...]}` επιστρέφονται όλα στον πελάτη ως
+> `{results: [{index, relevance_score, document?}]}`, ταξινομημένα κατά βαθμολογία και περιορισμένα στο `top_n`.
+
+> **Εντοπισμός κόμβων παρόχων:** Τα μοντέλα σε έναν κόμβο παρόχου συμβατό με OpenAI εμφανίζονται στο `GET /v1/models`
+> κάτω από το πρόθεμα του κόμβου. Οι γραμμές που δεν περιέχουν μεταδεδομένα τελικού σημείου (σύνηθες για τοπικές καταχωρίσεις `/v1/models`)
+> κληρονομούν το `apiType` του κόμβου, επομένως τα μοντέλα ενός κόμβου `embeddings` έχουν `type: "embedding"` και τα
+> μοντέλα ενός κόμβου `rerank` έχουν `type: "rerank"` αντί να χρησιμοποιούν από προεπιλογή τη συνομιλία· ένα ρητό
+> `supportedEndpoints` σε μια συγχρονισμένη ή μη αυτόματα προστεθειμένη γραμμή εξακολουθεί να έχει προτεραιότητα.
+
+### Αποκλειστικές διαδρομές παρόχων
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -456,7 +478,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Το πρόθεμα παρόχου προστίθεται αυτόματα αν λείπει. Μη αντιστοιχισμένα μοντέλα επιστρέφουν `400`.
+Το πρόθεμα του παρόχου προστίθεται αυτόματα εάν λείπει. Τα μη αντιστοιχισμένα μοντέλα επιστρέφουν `400`.
 
 ---
 

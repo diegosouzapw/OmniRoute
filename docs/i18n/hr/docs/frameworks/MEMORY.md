@@ -168,7 +168,7 @@ Tablica `memory_vec_meta` (migracija `083_memory_vec.sql`) pohranjuje:
 ## Proširenje postavki
 
 Devet polja za ugrađivanje i vektore dostupno je u `MemorySettingsExtended` u
-`src/shared/schemas/memory.ts`, a trajno se pohranjuju putem `src/lib/db/settings.ts`:
+`src/shared/schemas/memory.ts`, a pohranjuju se putem `src/lib/db/settings.ts`:
 
 | Polje                    | Vrsta                                              | Zadano   | Opis                                                                  |
 | ------------------------ | -------------------------------------------------- | -------- | --------------------------------------------------------------------- |
@@ -176,18 +176,20 @@ Devet polja za ugrađivanje i vektore dostupno je u `MemorySettingsExtended` u
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | Pružatelj/model u formatu `provider/model`                            |
 | `customBaseUrl`          | `string \| null`                                   | `null`   | Osnovni URL krajnje točke kompatibilne s OpenAI-jem, samo za memoriju |
 | `customModelId`          | `string \| null`                                   | `null`   | ID modela koji se šalje prilagođenoj krajnjoj točki                   |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Dobrovoljno uključivanje Transformers.js-a (MiniLM, ~400 MB)          |
-| `staticEnabled`          | `boolean`                                          | `false`  | Dobrovoljno uključivanje lokalnog statičkog modela potion-base-8M     |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Omogućuje korak ponovnog rangiranja (dodaje +200–500 ms/zahtjev)      |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Izričito uključivanje za Transformers.js (MiniLM, ~400 MB)            |
+| `staticEnabled`          | `boolean`                                          | `false`  | Izričito uključivanje lokalnog statičkog modela potion-base-8M        |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Omogućivanje koraka ponovnog rangiranja (dodaje +200–500 ms/zahtjev)  |
 | `rerankProviderModel`    | `string \| null`                                   | `null`   | Pružatelj/model za ponovno rangiranje u formatu `provider/model`      |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Koju vektorsku pozadinu koristiti                                     |
 
-Dostupna su putem `GET /PUT /api/settings/memory` (shema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` razrješava se putem `POST /v1/rerank` (poziva se preko povratne petlje), pa prihvaća sve što prihvaća ta ruta: odabrani model u oblaku za ponovno rangiranje (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ili čvor pružatelja kompatibilnog s OpenAI-jem u obliku `<node-prefix>/<model>` (npr. `skilled-mini/bge-reranker-v2-m3` za TEI/Infinity poslužitelj). Čvorovi povratne petlje uvijek su prihvatljivi; čvor na drugom računalu (LAN, Tailscale) dodatno zahtijeva zastavicu značajke `RERANK_REMOTE_PROVIDER_NODES` i mora proći pravila za izlazne URL-ove pružatelja — pogledajte [Zastavice značajki](../reference/FEATURE_FLAGS.md). Selektor na nadzornoj ploči prikazuje odabrane pružatelje i lokalne čvorove; bilo koji valjani niz `provider/model` može se postaviti izravno putem `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Koju vektorsku pozadinu koristiti |
 
-Za izvor `remote`, Memory prihvaća i neobavezne postavke `customBaseUrl` i
+Dostupni su putem `GET /PUT /api/settings/memory` (shema `MemorySettingsExtendedSchema`).
+
+Za izvor `remote`, Memory također prihvaća neobavezne postavke `customBaseUrl` i
 `customModelId`. Zajedno odabiru krajnju točku `/embeddings` kompatibilnu s OpenAI-jem
 i model bez promjene globalnog registra ugrađivanja. Krajnja točka normalizira se
-prije upotrebe i provjerava prema pravilima pružatelja za izlazne URL-ove: potreban je
+prije uporabe i provjerava prema pravilima za izlazne URL-ove pružatelja: potreban je
 HTTP(S), ugrađene vjerodajnice i nizovi upita odbijaju se, a adrese metapodataka u
 oblaku ostaju blokirane. Prazne vrijednosti zadržavaju odabranog pružatelja iz registra.
 Pogreške vraćene nadzornoj ploči sanitiziraju se, a vjerodajnice krajnje točke nikada

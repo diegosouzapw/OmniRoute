@@ -25,19 +25,21 @@
 టర్న్ N (అసిస్టెంట్ రూపొందిస్తుంది):
   → ప్రతిస్పందనలో reasoning_content + tool_calls ఉంటాయి
   → requiresReasoningReplay(provider, model) అయితే: cacheReasoningFromAssistantMessage()
-      ప్రతి tool_call.idను కీగా ఉపయోగించి (మెమరీ + DB)లో వ్రాస్తుంది
-  → ప్రతిస్పందనను క్లయింట్కు ఫార్వర్డ్ చేస్తుంది (అది రీజనింగ్ను ఉంచవచ్చు లేదా ఉంచకపోవచ్చు)
+      ప్రతి tool_call.id ఆధారంగా కీ చేయబడి, (మెమరీ + DB)లో రాస్తుంది
+  → ప్రతిస్పందనను క్లయింట్కు ఫార్వర్డ్ చేస్తుంది (అది రీజనింగ్ను నిల్వ ఉంచవచ్చు లేదా ఉంచకపోవచ్చు)
 
-టర్న్ N+1 (క్లయింట్ తదుపరి అభ్యర్థనను పంపుతుంది):
+టర్న్ N+1 (క్లయింట్ తదుపరి సందేశాన్ని పంపుతుంది):
   → ట్రాన్స్లేటర్ గుర్తిస్తుంది: requiresReasoningReplay(provider, model) === true
-  → tool_calls ఉండి reasoning_content లేని ప్రతి అసిస్టెంట్ సందేశం కోసం:
+  → tool_calls ఉండి reasoning_content లేని ప్రతి అసిస్టెంట్ సందేశానికి:
       lookupReasoning(toolCalls[0].id) → మెమరీ → DB
       హిట్  → msg.reasoning_content = cached; recordReplay()
       మిస్ → msg.reasoning_content = "" (పాత DeepSeek కోసం లెగసీ ఫాల్బ్యాక్)
-  → అప్స్ట్రీమ్కు స్థిరమైన చరిత్ర కనిపిస్తుంది → 400 ఉండదు
+  → అప్స్ట్రీమ్కు స్థిరమైన హిస్టరీ కనిపిస్తుంది → 400 లేదు
 ```
 
-క్యాప్చర్ `open-sse/handlers/chatCore.ts`లో జరుగుతుంది (`cacheReasoningFromAssistantMessage`ను కాల్ చేసే రెండు స్థానాలలో). స్కీమా కోర్షన్ తర్వాత, కానీ డిస్పాచ్కు ముందు, రీప్లే `open-sse/translator/index.ts`లో జరుగుతుంది.
+క్యాప్చర్ `open-sse/handlers/chatCore.ts`లో జరుగుతుంది (రెండు చోట్ల, రెండు `cacheReasoningFromAssistantMessage` కాల్ సైట్ల వద్ద). స్కీమా కోర్షన్ తర్వాత, కానీ డిస్పాచ్కు ముందు `open-sse/translator/index.ts`లో రీప్లే జరుగుతుంది.
+
+సాధారణ (టూల్-కాల్ కాని) అసిస్టెంట్ టర్న్లకు కీలు వేరుగా రూపొందించబడతాయి: `buildAssistantMessageCacheKey()` సెషన్ స్కోప్తో పాటు ఆ టర్న్ వరకు ఉన్న సాధారణీకరించిన OpenAI-ఫార్మాట్ ట్రాన్స్క్రిప్ట్ను డైజెస్ట్ చేస్తుంది, ఎందుకంటే `tools` ఉన్నప్పుడు ప్రతి మునుపటి టర్న్ యొక్క రీజనింగ్ను DeepSeek కోరుతుంది. Responses-API లక్ష్యాల కోసం (ఉదాహరణకు `/responses`కు రూట్ చేయబడే `opencode-go/deepseek-v4-flash`) అప్స్ట్రీమ్ బాడీలో `messages` కాకుండా `input` ఉంటుంది, కాబట్టి `translateRequest()` (`open-sse/translator/index.ts`) తాను డైజెస్ట్ చేసిన పివట్ ట్రాన్స్క్రిప్ట్ను కాల్బ్యాక్ ఆప్షన్ ద్వారా నివేదిస్తుంది, అలాగే క్యాప్చర్ సైట్లు కూడా అదే ట్రాన్స్క్రిప్ట్ను డైజెస్ట్ చేస్తాయి. ప్రతి సోర్స్ ఫార్మాట్ కోసం Responses రీప్లే పాస్ OpenAI పివట్పై నడుస్తుంది, అందువల్ల Anthropic Messages క్లయింట్లు (Claude → OpenAI → Responses) కూడా రీప్లే చేయబడతాయి.
 
 ## నిల్వ — హైబ్రిడ్ మెమరీ + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-ఇండెక్స్లు: `expires_at`, `provider`, `model`, `created_at`. `expires_at` Unix epoch సెకన్లుగా నిల్వ చేయబడుతుంది; SELECT లేయర్ `EXPIRES_AT_EPOCH_SQL` ద్వారా లెగసీ టెక్స్ట్ విలువలను సాధారణీకరిస్తుంది.
+ఇండెక్స్లు: `expires_at`, `provider`, `model`, `created_at`. `expires_at` Unix ఎపోక్ సెకన్ల రూపంలో నిల్వ చేయబడుతుంది; SELECT లేయర్ లెగసీ టెక్స్ట్ విలువలను `EXPIRES_AT_EPOCH_SQL` ద్వారా సాధారణీకరిస్తుంది.
 
 ## ప్రొవైడర్ / మోడల్ గుర్తింపు
 

@@ -25,7 +25,13 @@
 
 ---
 
-## Menjalankan dengan Cepat
+## Menjalankan Cepat
+
+> **Host sendiri dengan satu perintah?** Lihat
+> [Panduan Host Sendiri](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (image yang telah dipublikasikan +
+> Redis, hanya loopback, tanpa pilihan profil). Menjalankan Cepat di bawah ini adalah
+> cara dengan satu container bagi pengguna yang sudah menjalankan Redis di tempat lain.
 
 ```bash
 docker run -d \

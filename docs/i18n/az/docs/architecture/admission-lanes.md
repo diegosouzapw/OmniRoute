@@ -7,53 +7,55 @@
 OmniRoute müxtəlif əhatə dairələrinə malik **iki** proses-lokal zolaq sisteminə malikdir. Onlar
 bir-birini tamamlayır; operatorlar hansına baxdıqlarını bilməlidirlər.
 
-## 1. Bayt səviyyəsində, bütün proses üzrə qəbul (`chatBodyAdmission.ts`)
+## 1. Bayt səviyyəsində proses miqyaslı qəbul (`chatBodyAdmission.ts`)
 
-- **Əhatə dairəsi:** `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` və digər çat formalı marşrutlar üçün
-  buferlənmiş sorğu gövdəsi/heap yolu. Böyük kodlaşdırma agenti gövdələrinin
-  yaratdığı heap amplifikasiyasından qoruyur (#4380).
-- **Hər açar üçün ayrıca zolaqlar deyil, proses üzrə bir qlobal kontroller (#10110).** Hər API açarı
-  (heşlənmiş) və ya `anonymous` sessiyası **eyni** ortaq büdcə üzrə qəbul edilir —
-  heşlənmiş sessiya ID-si YALNIZ ədalətli planlaşdırma açarı kimi (gözləyənlər
-  arasında dairəvi növbə ilə yönləndirmə) istifadə olunur, heç vaxt tutum şardı
-  kimi istifadə edilmir. Bu sənədin əvvəlki versiyasında müstəqil tutuma malik
-  hər açar üçün ayrıca zolaqlar təsvir edilirdi; autentifikasiya olunmamış saxta
-  etimadnamələrin proses üzrə limiti çoxaltmasına imkan verdiyi üçün həmin model
-  #10110 çərçivəsində ləğv edildi.
+- **Əhatə dairəsi:** `POST /v1/chat/completions`, `/v1/messages`,
+  `/v1/responses` və digər çat tipli marşrutlar üçün buferlənmiş gövdə/heap yolu.
+  Böyük kodlaşdırma agenti gövdələrinin yaratdığı heap amplifikasiyasından qoruyur (#4380).
+- **Hər açar üçün ayrıca zolaqlar deyil, proses üzrə vahid qlobal kontroller (#10110).** Hər API açarı
+  (heşlənmiş) və ya `anonymous` sessiya **eyni** ortaq büdcə əsasında qəbul edilir —
+  heşlənmiş sessiya id-si YALNIZ ədalətli planlaşdırma açarı kimi (gözləyənlər arasında
+  növbəli göndəriş) istifadə olunur, heç vaxt tutum seqmenti kimi istifadə edilmir. Bu
+  sənədin əvvəlki versiyasında müstəqil tutuma malik, hər açar üçün ayrıca zolaqlar
+  təsvir edilmişdi; həmin model #10110-da silindi, çünki autentifikasiyadan keçməmiş
+  saxta giriş məlumatları proses miqyaslı həddi dəfələrlə artırmağa imkan verirdi.
 - **Keçid (#503-fanout): sabit sorğu sayı deyil, avtomatik hesablanan qəbul BAYT
   büdcəsi.** Köhnə `CHAT_MAX_HEAVY_IN_FLIGHT` sorğu sayı limiti (bu düzəlişdən
-  əvvəl standart olaraq `1`) kodlaşdırma agentlərinin genişlənməsini (çoxsaylı
-  subagentlər/CLI-lər, müntəzəm olaraq > 256 KB olan gövdələr) effektiv olaraq
-  ~1 paralellik səviyyəsinə endirirdi və tamamilə normal yük altında 503 xətasına
-  səbəb olurdu. İndi bu limit yalnız operator `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`
-  parametrini açıq şəkildə təyin etdikdə tətbiq olunur. Təyin edilmədikdə qəbul
-  əvəzində `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ilə — prosesin real yaddaş
-  tavanından avtomatik hesablanan büdcə ilə
-  (`src/shared/middleware/admissionBudget.ts`) məhdudlaşdırılır:
-  V8 heap limitindən və hər hansı cgroup/konteyner limitindən daha sərt olanın
-  25%-i götürülür, 8x keçici amplifikasiya əmsalına bölünür və 8 MiB ilə
-  2 GiB arasında məhdudlaşdırılır. Açıq şəkildə verilən əvəzləyici dəyərlərə də
-  eyni məhdudiyyətlər tətbiq olunur. Bu, heç bir env sazlaması olmadan
-  512 MB-lıq konteynerdən 32 GB-lıq masaüstü sistemə qədər özünü miqyaslandırır.
-  Effektiv büdcəyə sığmayan gövdə dərhal `413 body_exceeds_budget` xətası ilə
-  rədd edilir; yalnız ayrı-ayrılıqda emal edilə bilən gövdələr arasındakı
-  rəqabət məhdudlaşdırılmış ədalət növbəsinə daxil olur. Canlı, çoxsiqnallı
-  resurs təzyiqi izləyicisi (V8 heap nisbəti, cgroup, PSI, OOM hadisələri —
-  `open-sse/utils/resourcePressurePolicy.ts`) `high` təzyiq altında
-  məhdudlaşdırılmış gözləmə müddətini qısaldır və hər hansı bayt qəbul edilməzdən
-  əvvəl `critical` təzyiq altında yükü dərhal `503 resource_pressure` ilə rədd edir.
+  əvvəl standart olaraq `1`) kodlaşdırma agentlərinin şaxələnməsini (çoxsaylı
+  subagentlər/CLI-lər, adətən > 256 KB olan gövdələr) faktiki olaraq ~1 paralellik
+  səviyyəsinə endirirdi və tamamilə normal yük altında 503 xətasına səbəb olurdu.
+  İndi bu limit yalnız operator `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` parametrini
+  açıq şəkildə təyin etdikdə tətbiq olunur. Təyin edilmədikdə qəbul əvəzinə
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ilə — prosesin real yaddaş həddindən
+  (`src/shared/middleware/admissionBudget.ts`) avtomatik hesablanan büdcə ilə
+  idarə olunur: V8 heap limiti ilə istənilən cgroup/konteyner limitindən daha sərt
+  olanın 25%-i götürülür, 8x müvəqqəti amplifikasiya əmsalına bölünür və 8 MiB ilə
+  2 GiB arasında məhdudlaşdırılır. Açıq şəkildə verilən əvəzləmələrə də eyni
+  məhdudiyyətlər tətbiq olunur. Bu, mühit dəyişənlərini sazlamadan 512 MB-lıq
+  konteynerdən 32 GB-lıq masaüstü kompüterədək avtomatik miqyaslanır. Effektiv
+  büdcəyə sığmayan gövdə dərhal `413 body_exceeds_budget` xətası ilə rədd edilir;
+  yalnız ayrı-ayrılıqda emal edilə bilən gövdələr arasındakı rəqabət məhdud
+  ədalət növbəsinə daxil olur. Canlı, çoxsiqnallı resurs təzyiqi izləyicisi
+  (V8 heap nisbəti, cgroup, PSI, OOM hadisələri —
+  `open-sse/utils/resourcePressurePolicy.ts`) `high` təzyiq zamanı məhdud gözləmə
+  müddətini qısaldır və hələ heç bir bayt qəbul edilməzdən əvvəl `critical`
+  təzyiq zamanı dərhal `503 resource_pressure` xətası ilə yükü azaldır. Mövcud
+  olduqda PSI bu vahidin cgroup `memory.pressure` faylından oxunur
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` bütün
+  host miqyasındadır və yalnız fiziki serverdə / cgroup v1-də ehtiyat variant
+  kimi istifadə olunur, beləliklə svopinq edən host boşdayanan konteynerin 503
+  xətası qaytarmasına səbəb ola bilməz.
 - **Sazlama:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — avtomatik hesablanan bayt büdcəsi üçün əvəzləyici dəyər
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — köhnə sorğu sayı limiti, yalnız açıq seçimlə aktivdir
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — avtomatik hesablanan bayt büdcəsinin əvəzlənməsi
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — köhnə sorğu sayı limiti, yalnız seçim əsasında
   - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503-dən əvvəl növbədə gözləmə müddəti (standart 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — növbəyə alınmış baytlar üçün heap klapanı (standart 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110-dan etibarən köhnəlmiş
-    və heç bir əməliyyat yerinə yetirmir (konfiqurasiya uyğunluğu üçün qəbul edilir, nəzərə alınmır)
-- **Hesabatlar:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — o cümlədən
-  #503-fanout əlavələri: `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — növbədəki baytlar üçün heap qoruyucu klapanı (standart 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110-dan
+    bəri köhnəlmiş və heç bir əməliyyat yerinə yetirməyən parametrlərdir (konfiqurasiya uyğunluğu üçün qəbul edilir, nəzərə alınmır)
+- **Hesabatlar:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — həmçinin
+  #503-fanout əlavələri olan `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` və `countCapEnabled`
-  (standart yerləşdirmədə false — faktiki məhdudlaşdırıcının köhnə say limiti
+  (standart yerləşdirmədə false — faktiki məhdudlaşdırıcı amilin köhnə say limiti
   deyil, bayt büdcəsi olduğunu təsdiqləyir).
 
 ## 2. Adaptiv icra zamanı virtual zolaqları (`open-sse/services/admission`)

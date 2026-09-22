@@ -161,36 +161,39 @@ Tabellen `memory_vec_meta` (migrering `083_memory_vec.sql`) gemmer:
 - `last_reset_at` — tidsstempel for seneste fulde nulstilling.
 - `vec_loaded` — 0/1-flag, der angiver, om sqlite-vec blev indlæst korrekt.
 
-## Indstillingsudvidelse
+## Udvidelse af indstillinger
 
-Ni felter til embeddings og vektorer er tilgængelige i `MemorySettingsExtended` i
-`src/shared/schemas/memory.ts` og persisteres via `src/lib/db/settings.ts`:
+Ni integrerings- og vektorfelter er tilgængelige i `MemorySettingsExtended` i
+`src/shared/schemas/memory.ts` og gemmes via `src/lib/db/settings.ts`:
 
-| Felt                     | Type                                               | Standardværdi | Beskrivelse                                                   |
-| ------------------------ | -------------------------------------------------- | ------------- | ------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Hvilken embedding-kilde der skal bruges                       |
-| `embeddingProviderModel` | `string \| null`                                   | `null`        | Udbyder/model i formatet `provider/model`                     |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | OpenAI-kompatibel base-URL kun til hukommelse                 |
-| `customModelId`          | `string \| null`                                   | `null`        | Model-id, der sendes til det brugerdefinerede endpoint        |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Aktivér Transformers.js (MiniLM, ~400 MB)                     |
-| `staticEnabled`          | `boolean`                                          | `false`       | Aktivér den lokale statiske potion-base-8M-model              |
-| `rerankEnabled`          | `boolean`                                          | `false`       | Aktivér genrangeringstrinnet (tilføjer +200-500 ms/anmodning) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`        | Udbyder/model til genrangering i formatet `provider/model`    |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`      | Hvilken vektorbackend der skal bruges                         |
+| Felt                     | Type                                               | Standard | Beskrivelse                                                             |
+| ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Hvilken integreringskilde der skal bruges                               |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Udbyder/model i formatet `provider/model`                               |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | Basis-URL til et OpenAI-kompatibelt slutpunkt, som kun bruges af Memory |
+| `customModelId`          | `string \| null`                                   | `null`   | Model-id, der sendes til det brugerdefinerede slutpunkt                 |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Aktivt tilvalg af Transformers.js (MiniLM, ~400MB)                      |
+| `staticEnabled`          | `boolean`                                          | `false`  | Aktivt tilvalg af den lokale statiske potion-base-8M-model              |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Aktivér genrangeringstrinnet (tilføjer +200-500ms/anmodning)            |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Genrangeringsudbyder/model i formatet `provider/model`                  |
+
+`rerankProviderModel` fortolkes af `POST /v1/rerank` (kaldt via loopback), så det accepterer alt, som denne rute accepterer: en kurateret cloudbaseret genrangeringsmodel (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) eller en OpenAI-kompatibel udbydernode som `<node-prefix>/<model>` (f.eks. `skilled-mini/bge-reranker-v2-m3` for en TEI/Infinity-maskine). Loopback-noder er altid kvalificerede; en node på en anden vært (LAN, Tailscale) kræver desuden funktionsflaget `RERANK_REMOTE_PROVIDER_NODES` og skal overholde udbyderens politik for udgående URL'er — se [Funktionsflag](../reference/FEATURE_FLAGS.md). Dashboardvælgeren viser kuraterede udbydere samt lokale noder; enhver gyldig `provider/model`-streng kan angives direkte via `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Hvilken vektorbackend der skal bruges |
 
 Disse eksponeres via `GET /PUT /api/settings/memory` (skemaet `MemorySettingsExtendedSchema`).
 
 For kilden `remote` accepterer Memory også de valgfrie indstillinger `customBaseUrl` og
-`customModelId`. Sammen vælger de et OpenAI-kompatibelt `/embeddings`-endpoint og en
-model uden at ændre det globale embedding-register. Endpointet normaliseres før brug og
-kontrolleres af udbyderens politik for udgående URL'er: HTTP(S) er påkrævet, indlejrede
-legitimationsoplysninger og forespørgselsstrenge afvises, og cloudmetadataadresser forbliver
-blokeret. Tomme værdier bevarer den valgte registerudbyder. Fejl, der returneres til
-dashboardet, renses, og endpointets legitimationsoplysninger logges aldrig.
+`customModelId`. Sammen vælger de et OpenAI-kompatibelt `/embeddings`-slutpunkt og en
+model uden at ændre det globale integreringsregister. Slutpunktet normaliseres før brug
+og kontrolleres af udbyderens politik for udgående URL'er: HTTP(S) er påkrævet,
+indlejrede legitimationsoplysninger og forespørgselsstrenge afvises, og adresser til
+cloudmetadata forbliver blokeret. Tomme værdier bevarer den valgte registerudbyder. Fejl,
+der returneres til dashboardet, renses, og legitimationsoplysninger til slutpunkter
+logføres aldrig.
 
-> **TODO (D20):** Omfanget `global` (deling af hukommelser på tværs af alle API-nøgler) er ikke
-> implementeret i denne udgivelse. Det kræver skemaændringer og en global hentningssti.
-> Spor dette separat.
+> **TODO (D20):** Omfanget `global` (deling af hukommelser på tværs af alle API-nøgler) er
+> ikke implementeret i denne version. Det kræver skemaændringer og en global
+> hentningssti. Spor dette separat.
 
 ## Lagerlag
 

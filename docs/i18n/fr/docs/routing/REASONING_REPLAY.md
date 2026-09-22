@@ -25,19 +25,21 @@ Cependant, les clients habituels (Cursor, Cline, Roo Code, OpenAI SDK) supprimen
 Tour N (génération par l’assistant) :
   → la réponse contient reasoning_content + tool_calls
   → si requiresReasoningReplay(provider, model) : cacheReasoningFromAssistantMessage()
-      écrit (mémoire + BDD), avec chaque tool_call.id comme clé
+      écrit (mémoire + DB), avec chaque tool_call.id comme clé
   → transmet la réponse au client (qui peut conserver ou non le raisonnement)
 
 Tour N+1 (le client envoie une requête de suivi) :
   → le traducteur détecte : requiresReasoningReplay(provider, model) === true
   → pour chaque message de l’assistant avec tool_calls et sans reasoning_content :
-      lookupReasoning(toolCalls[0].id) → mémoire → BDD
+      lookupReasoning(toolCalls[0].id) → mémoire → DB
       succès → msg.reasoning_content = cached; recordReplay()
       échec  → msg.reasoning_content = "" (solution de repli historique pour les anciennes versions de DeepSeek)
-  → le fournisseur en amont reçoit un historique cohérent → aucune erreur 400
+  → le service en amont reçoit un historique cohérent → aucune erreur 400
 ```
 
-La capture s’effectue dans `open-sse/handlers/chatCore.ts` (à deux emplacements, correspondant aux deux sites d’appel de `cacheReasoningFromAssistantMessage`). La réinjection s’effectue dans `open-sse/translator/index.ts` après la coercition du schéma, mais avant l’envoi.
+La capture s’effectue dans `open-sse/handlers/chatCore.ts` (à deux endroits, aux deux sites d’appel de `cacheReasoningFromAssistantMessage`). La réinjection s’effectue dans `open-sse/translator/index.ts`, après la coercition du schéma, mais avant la répartition.
+
+Les tours de l’assistant ordinaires (sans appel d’outil) utilisent un autre type de clé : `buildAssistantMessageCacheKey()` calcule l’empreinte du périmètre de la session ainsi que de la transcription normalisée au format OpenAI jusqu’à ce tour, car DeepSeek exige le raisonnement de _chaque_ tour précédent dès que `tools` est présent. Pour les cibles de l’API Responses (par exemple `opencode-go/deepseek-v4-flash`, acheminé vers `/responses`), le corps de la requête en amont contient `input`, et non `messages`. Ainsi, `translateRequest()` (`open-sse/translator/index.ts`) transmet, via une option de rappel, la transcription pivot dont il a calculé l’empreinte, et les sites de capture calculent l’empreinte de cette même transcription. La passe de réinjection Responses s’exécute sur le pivot OpenAI pour chaque format source, de sorte que les clients Anthropic Messages (Claude → OpenAI → Responses) bénéficient eux aussi de la réinjection.
 
 ## Stockage — Mémoire hybride + SQLite
 

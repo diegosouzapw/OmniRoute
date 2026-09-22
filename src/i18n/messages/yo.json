@@ -1293,6 +1293,9 @@
     "mainNavigation": "Ìlọ kiri àkọ́kọ́",
     "unpinSection": "Yọ apá náà kúrò ní dídì mọ́",
     "pinSectionOpen": "Di apá náà mọ́ ní ṣíṣí sílẹ̀",
+    "pinItem": "Lẹ ohun kan mọ́lẹ̀",
+    "unpinItem": "Yọ ohun kan tí a lẹ̀ mọ́lẹ̀",
+    "pinnedSection": "Ti lẹ̀ mọ́lẹ̀",
     "reloadPage": "Tun ojú-ìwé náà ṣí",
     "dragReorderSection": "Fa láti tún apá náà tò",
     "dragReorderItem": "Fa láti tún tò",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Àwọn olùpèsè",
     "Account Deactivated": "A ti mú àkọọ́lẹ̀ náà kúrò ní ṣiṣiṣẹ́",
     "allProviders": "Gbogbo Àwọn Olùpèsè",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "Ìtọ́kasí Kúkì Wẹ́ẹ̀bù Grok",
     "blockClaudeExtraUsageDescription": "Nígbà tí a bá mú un ṣiṣẹ́, OmniRoute máa sàmì sí ìsopọ̀ Claude yìí gẹ́gẹ́ bí èyí tí kò sí ní kété tí API lílo bá fi tó wa létí pé lílo àfikún ti wà ní ìlà, kí ìpadà-sẹ́yìn lè yí sí ìsopọ̀ mìíràn dípò títẹ̀síwájú pẹ̀lú ìdíyelé àfikún pay-as-you-go.",
     "blockClaudeExtraUsageLabel": "Dènà lílo àfikún Claude",
+    "claudeLowPriorityModeLabel": "Tẹ̀síwájú pẹ̀lú ààyò kékeré lẹ́yìn ààlà wákàtí márùn-ún",
+    "claudeLowPriorityModeDescription": "Nígbà tí àkáǹtì yìí bá dé ààlà lílò wákàtí márùn-ún rẹ̀ tí Anthropic sì pèsè ọ̀nà ààyò kékeré, OmniRoute yóò gbà á, yóò sì máa fi àwọn ìbéèrè ránṣẹ́ pẹ̀lú anthropic-usage-limit: slow títí fèrèsé náà yóò fi tún bẹ̀rẹ̀, dípò kí ó dín ìsopọ̀ náà kù. Ààlà ọ̀sọ̀ọ̀sẹ̀ ṣì wà ní àmúlò, àwọn ìdáhùn sì lè dúró de ààyè tó bá ṣókùnfà.",
+    "claudeAutoLimitResetLabel": "Tún ààlà sáà náà tò láìfọwọ́yí (lẹ́ẹ̀kan lọ́sẹ̀)",
+    "claudeAutoLimitResetDescription": "Nígbà tí àkáǹtì yìí bá dé ààlà lílò wákàtí márùn-ún rẹ̀ tí àtúntò ààlà sáà bá wà, OmniRoute yóò gbà á láìfọwọ́yí, yóò sì tún gbìyànjú ní ẹ̀kúnrẹ́rẹ́ iyára. Èyí ń lo àtúntò lẹ́ẹ̀kan lọ́sẹ̀ ti àkáǹtì náà, ó sì tún jẹ́ apá kan ààlà ọ̀sọ̀ọ̀sẹ̀.",
     "disableCoolingDescription": "Fò àkókò ìsinmi fún ìgbà díẹ̀ náà kọjá, kí ìsopọ̀ yìí lè ṣì yẹ fún lílo lẹ́yìn àwọn àṣìṣe tí a lè ṣàtúnṣe (àwọn ipò ìparí bíi banned/expired ṣì kan án).",
     "disableCoolingLabel": "Pa àkókò ìsinmi fún ìsopọ̀ yìí",
     "bulkPasteAdded": "{count, plural, one {A ṣàfikún kọ́kọ́rọ́ 1} other {A ṣàfikún àwọn kọ́kọ́rọ́ #}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "ID Ìbámu: {id}",
       "detailedPayloadInfo": "Kọ́kọ́ mú ìforúkọsílẹ̀ alálàyé ṣiṣẹ́ bí o bá fẹ́ àfihàn àkóónú client/provider onípele mẹ́rin fún àwọn ìbéèrè tuntun.",
       "copyAll": "Ṣe àdàkọ gbogbo rẹ̀",
-      "copiedAll": "A ti ṣe àdàkọ gbogbo rẹ̀"
+      "copiedAll": "A ti ṣe àdàkọ gbogbo rẹ̀",
+      "payloadSizeLimitOmitted": "A fo ẹrù-ìsọfúnni sílẹ̀ — apá yìí kọjá ààlà ìwọ̀n àkọsílẹ̀ ìpè (CALL_LOG_PIPELINE_MAX_SIZE_KB), a kò sì tọ́jú rẹ̀; kì í ṣe àṣìṣe gidi láti ọ̀dọ̀ olùpèsè."
     }
   },
   "proxyLogger": {

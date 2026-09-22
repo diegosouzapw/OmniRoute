@@ -167,34 +167,29 @@ Tabulka `memory_vec_meta` (migrace `083_memory_vec.sql`) ukládá:
 
 ## Rozšíření nastavení
 
-V `MemorySettingsExtended` v souboru `src/shared/schemas/memory.ts` je k dispozici devět polí pro embeddingy a vektory, která jsou ukládána prostřednictvím `src/lib/db/settings.ts`:
+V `MemorySettingsExtended` v `src/shared/schemas/memory.ts` je k dispozici devět polí pro embeddingy a vektory, která se uchovávají prostřednictvím `src/lib/db/settings.ts`:
 
-| Pole                     | Typ                                                | Výchozí  | Popis                                                           |
-| ------------------------ | -------------------------------------------------- | -------- | --------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Který zdroj embeddingů se má použít                             |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Poskytovatel/model ve formátu `provider/model`                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | Základní URL endpointu kompatibilního s OpenAI pouze pro Memory |
-| `customModelId`          | `string \| null`                                   | `null`   | ID modelu odesílané vlastnímu endpointu                         |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Výslovné povolení Transformers.js (MiniLM, ~400MB)              |
-| `staticEnabled`          | `boolean`                                          | `false`  | Výslovné povolení lokálního statického modelu potion-base-8M    |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Povolení kroku přerazení (přidá +200–500 ms/požadavek)          |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Poskytovatel/model přerazení ve formátu `provider/model`        |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Které vektorové úložiště se má použít                           |
+| Pole                     | Typ                                                | Výchozí hodnota | Popis                                                                    |
+| ------------------------ | -------------------------------------------------- | --------------- | ------------------------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`        | Který zdroj embeddingů použít                                            |
+| `embeddingProviderModel` | `string \| null`                                   | `null`          | Poskytovatel/model ve formátu `provider/model`                           |
+| `customBaseUrl`          | `string \| null`                                   | `null`          | Základní URL endpointu kompatibilního s OpenAI, určeného pouze pro paměť |
+| `customModelId`          | `string \| null`                                   | `null`          | ID modelu odesílané vlastnímu endpointu                                  |
+| `transformersEnabled`    | `boolean`                                          | `false`         | Výslovné povolení Transformers.js (MiniLM, ~400 MB)                      |
+| `staticEnabled`          | `boolean`                                          | `false`         | Výslovné povolení lokálního statického modelu potion-base-8M             |
+| `rerankEnabled`          | `boolean`                                          | `false`         | Povolit krok přehodnocení pořadí (přidá +200–500 ms/požadavek)           |
+| `rerankProviderModel`    | `string \| null`                                   | `null`          | Poskytovatel/model pro přehodnocení pořadí ve formátu `provider/model`   |
 
-Tato pole jsou dostupná prostřednictvím `GET /PUT /api/settings/memory` (schéma `MemorySettingsExtendedSchema`).
+`rerankProviderModel` je vyhodnocován prostřednictvím `POST /v1/rerank` (volaného přes loopback), takže přijímá cokoli, co přijímá tato trasa: vybraný cloudový model pro přehodnocení pořadí (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) nebo uzel poskytovatele kompatibilního s OpenAI ve formátu `<node-prefix>/<model>` (např. `skilled-mini/bge-reranker-v2-m3` pro server TEI/Infinity). Uzly na loopbacku jsou vždy způsobilé; uzel na jiném hostiteli (LAN, Tailscale) navíc vyžaduje příznak funkce `RERANK_REMOTE_PROVIDER_NODES` a musí splňovat zásady odchozích URL poskytovatele — viz [Příznaky funkcí](../reference/FEATURE_FLAGS.md). Selektor na řídicím panelu uvádí vybrané poskytovatele a místní uzly; jakýkoli platný řetězec `provider/model` lze nastavit přímo prostřednictvím `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Který vektorový backend použít |
 
-Pro zdroj `remote` přijímá Memory také volitelná nastavení `customBaseUrl` a
-`customModelId`. Společně vybírají endpoint `/embeddings` kompatibilní s OpenAI
-a model, aniž by měnily globální registr embeddingů. Endpoint je před použitím
-normalizován a kontrolován zásadami poskytovatele pro odchozí URL: je vyžadován
-protokol HTTP(S), vložené přihlašovací údaje a řetězce dotazu jsou odmítnuty
-a adresy cloudových metadat zůstávají blokované. Prázdné hodnoty zachovají
-vybraného poskytovatele z registru. Chyby vrácené do řídicího panelu jsou
-sanitizovány a přihlašovací údaje endpointu se nikdy nezaznamenávají do protokolu.
+Tato nastavení jsou zpřístupněna prostřednictvím `GET /PUT /api/settings/memory` (schéma `MemorySettingsExtendedSchema`).
+
+Pro zdroj `remote` přijímá Memory také volitelná nastavení `customBaseUrl` a `customModelId`. Společně vybírají endpoint `/embeddings` kompatibilní s OpenAI a model, aniž by měnily globální registr embeddingů. Endpoint se před použitím normalizuje a kontroluje podle zásad odchozích URL poskytovatele: je vyžadováno HTTP(S), vložené přihlašovací údaje a řetězce dotazu jsou odmítnuty a adresy metadat cloudových služeb zůstávají blokovány. Prázdné hodnoty zachovají vybraného poskytovatele z registru. Chyby vrácené řídicímu panelu jsou očištěny a přihlašovací údaje endpointu se nikdy nezaznamenávají do protokolů.
 
 > **TODO (D20):** Rozsah `global` (sdílení pamětí napříč všemi klíči API) není
-> v této verzi implementován. Vyžaduje změny schématu a globální cestu načítání.
-> Sledujte jej samostatně.
+> v této verzi implementován. Vyžaduje změny schématu a globální cestu
+> načítání. Evidujte jej samostatně.
 
 ## Vrstvy úložiště
 

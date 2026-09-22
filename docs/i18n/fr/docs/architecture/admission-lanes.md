@@ -7,48 +7,62 @@
 OmniRoute dispose de **deux** systèmes locaux au processus pour les files, avec des portées différentes. Ils sont
 complémentaires ; les opérateurs doivent savoir lequel ils consultent.
 
-## 1. Admission à l’échelle du processus au niveau des octets (`chatBodyAdmission.ts`)
+## 1. Admission globale au processus au niveau des octets (`chatBodyAdmission.ts`)
 
-- **Portée :** le chemin du corps mis en mémoire tampon/tas pour `POST /v1/chat/completions`,
+- **Portée :** le chemin corps mis en mémoire tampon/tas pour `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` et les autres routes de type chat. Protège
-  contre l’amplification du tas provoquée par les corps volumineux des agents de programmation (#4380).
-- **Un seul contrôleur global au processus, et non des files par clé (#10110).** Chaque clé d’API
-  (hachée) ou session `anonymous` est admise selon le **même** budget partagé —
-  l’identifiant de session haché est utilisé UNIQUEMENT comme clé de planification équitable (distribution
-  à tour de rôle entre les requêtes en attente), jamais comme partition de capacité. Une version antérieure de ce
-  document décrivait des files par clé avec une capacité indépendante ; ce modèle a été
-  supprimé dans #10110, car il permettait à de faux identifiants non authentifiés de multiplier
-  la limite à l’échelle du processus.
-- **Barrière (#503-fanout) : un budget d’ingestion en OCTETS dérivé automatiquement, et non un nombre fixe de
-  requêtes.** La limite historique `CHAT_MAX_HEAVY_IN_FLIGHT` fondée sur le nombre de requêtes (valeur par défaut `1`
-  avant ce correctif) réduisait la dispersion des agents de programmation (plusieurs sous-agents/CLI,
-  avec des corps dépassant régulièrement 256 Ko) à une concurrence effective d’environ 1, ce qui provoquait
-  des erreurs 503 sous une charge tout à fait normale. Elle ne s’applique désormais que lorsqu’un opérateur définit explicitement
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Lorsqu’elle n’est pas définie, l’admission est à la place
-  contrôlée par `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — un budget dérivé automatiquement de la
-  limite mémoire réelle du processus (`src/shared/middleware/admissionBudget.ts`) :
-  25 % de la plus stricte entre la limite du tas V8 et toute limite de cgroup/conteneur,
-  divisés par un facteur d’amplification transitoire de 8x, puis bornés entre 8 Mio et
-  2 Gio. Les remplacements explicites utilisent les mêmes bornes. Ce mécanisme s’adapte automatiquement d’un
-  conteneur de 512 Mo à un poste de travail de 32 Go, sans réglage des variables d’environnement. Un corps qui ne peut pas
-  tenir dans le budget effectif échoue immédiatement avec `413 body_exceeds_budget` ;
-  seule la contention entre des corps pouvant être traités individuellement entre dans la file d’attente
-  équitable bornée. Un dispositif actif de suivi de la pression sur les ressources basé sur plusieurs signaux (ratio du tas V8,
-  cgroup, PSI, événements OOM — `open-sse/utils/resourcePressurePolicy.ts`) réduit
-  l’attente bornée sous une pression `high` et déleste immédiatement avec
-  `503 resource_pressure` sous une pression `critical`, avant même l’ingestion du moindre octet.
+  contre l'amplification du tas provoquée par les corps volumineux des agents de
+  programmation (#4380).
+- **Un contrôleur global unique par processus, et non des files par clé (#10110).**
+  Chaque clé API (hachée) ou session `anonymous` est admise selon le **même**
+  budget partagé — l'identifiant de session haché sert UNIQUEMENT de clé de
+  planification équitable (distribution à tour de rôle entre les requêtes en
+  attente), jamais de partition de capacité. Une version antérieure de ce
+  document décrivait des files par clé dotées de capacités indépendantes ; ce
+  modèle a été supprimé dans #10110, car il permettait à de faux identifiants
+  non authentifiés de multiplier la limite globale du processus.
+- **Barrière (#503-fanout) : un budget d'ingestion en OCTETS calculé
+  automatiquement, et non un nombre fixe de requêtes.** L'ancienne limite du
+  nombre de requêtes `CHAT_MAX_HEAVY_IN_FLIGHT` (valeur par défaut `1` avant ce
+  correctif) réduisait le fan-out des agents de programmation (plusieurs
+  sous-agents/CLI, avec des corps dépassant couramment 256 KB) à une concurrence
+  effective d'environ 1, ce qui provoquait des erreurs 503 sous une charge tout
+  à fait normale. Elle n'est désormais contraignante que lorsqu'un opérateur
+  définit explicitement `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Lorsqu'elle n'est
+  pas définie, l'admission est plutôt contrôlée par
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — un budget calculé automatiquement à
+  partir de la limite mémoire réelle du processus
+  (`src/shared/middleware/admissionBudget.ts`) : 25 % de la plus restrictive
+  entre la limite du tas V8 et toute limite de cgroup/conteneur, divisés par un
+  facteur d'amplification transitoire de 8x, puis bornés entre 8 MiB et 2 GiB.
+  Les remplacements explicites utilisent les mêmes bornes. Ce budget s'adapte
+  automatiquement d'un conteneur de 512 MB à un ordinateur de bureau de 32 GB,
+  sans ajustement des variables d'environnement. Un corps qui ne peut pas tenir
+  dans le budget effectif échoue immédiatement avec `413 body_exceeds_budget` ;
+  seule la contention entre des corps individuellement admissibles entre dans
+  la file d'attente bornée et équitable. Un système actif de suivi de la
+  pression sur les ressources à signaux multiples (ratio du tas V8, cgroup,
+  PSI, événements OOM — `open-sse/utils/resourcePressurePolicy.ts`) réduit
+  l'attente bornée sous une pression `high` et déleste immédiatement avec
+  `503 resource_pressure` sous une pression `critical`, avant même l'ingestion
+  du moindre octet. PSI est lu depuis `memory.pressure` du cgroup de cette unité
+  lorsqu'il est disponible (`open-sse/utils/resourcePressureSampler.ts`) ;
+  `/proc/pressure/memory` concerne l'ensemble de l'hôte et n'est utilisé qu'en
+  secours sur une machine physique / avec cgroup v1, afin qu'un hôte utilisant
+  l'espace d'échange ne puisse pas provoquer une erreur 503 dans un conteneur
+  inactif.
 - **Réglage :**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — remplacement du budget en octets dérivé automatiquement
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — limite historique fondée sur le nombre de requêtes, uniquement sur activation explicite
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — remplacement du budget en octets calculé automatiquement
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — ancienne limite du nombre de requêtes, activée uniquement sur demande
   - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — attente dans la file avant une erreur 503 (valeur par défaut : 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — soupape du tas fondée sur les octets en file d’attente (valeur par défaut : 4 Mo)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — obsolètes et
-    sans effet depuis #10110 (acceptées pour la compatibilité de la configuration, ignorées)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — soupape du tas pour les octets en file d'attente (valeur par défaut : 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — obsolètes
+    et sans effet depuis #10110 (acceptées pour la compatibilité de la configuration, ignorées)
 - **Rapports :** `GET /api/monitoring/health` → `chatAdmission` (#11244) — notamment
   les ajouts de #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` et `countCapEnabled`
-  (`false` dans un déploiement par défaut — confirme que c’est le budget en octets, et non la
-  limite historique fondée sur le nombre de requêtes, qui constitue réellement la contrainte).
+  (false sur un déploiement par défaut — confirme que le budget en octets, et
+  non l'ancienne limite du nombre de requêtes, est effectivement contraignant).
 
 ## 2. Voies virtuelles adaptatives à l’exécution (`open-sse/services/admission`)
 

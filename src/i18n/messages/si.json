@@ -1293,6 +1293,9 @@
     "mainNavigation": "ප්රධාන සංචාලනය",
     "unpinSection": "කොටසේ ඇමුණුම ඉවත් කරන්න",
     "pinSectionOpen": "කොටස විවෘතව තබා අමුණන්න",
+    "pinItem": "අයිතමය ඇමිණන්න",
+    "unpinItem": "අයිතමය ගලවන්න",
+    "pinnedSection": "ඇමිණූ",
     "reloadPage": "පිටුව නැවත පූරණය කරන්න",
     "dragReorderSection": "කොටස නැවත අනුපිළිවෙළට සැකසීමට ඇදගෙන යන්න",
     "dragReorderItem": "නැවත අනුපිළිවෙළට සැකසීමට ඇදගෙන යන්න",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "සේවා සපයන්නන්",
     "Account Deactivated": "ගිණුම අක්රිය කර ඇත",
     "allProviders": "සියලුම සේවා සපයන්නන්",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "Grok Web කුකී ඉඟිය",
     "blockClaudeExtraUsageDescription": "මෙය සබල කළ විට, භාවිත API එක පෝලිම්ගත අමතර භාවිතයක් වාර්තා කළ වහාම OmniRoute මෙම Claude සම්බන්ධතාව ලබාගත නොහැකි ලෙස සලකයි. එවිට භාවිතය අනුව ගෙවන අමතර බිල්කරණය දිගටම කරගෙන යාම වෙනුවට, පසුබැසීම වෙනත් සම්බන්ධතාවකට මාරු වේ.",
     "blockClaudeExtraUsageLabel": "අමතර Claude භාවිතය අවහිර කරන්න",
+    "claudeLowPriorityModeLabel": "පැය 5 සීමාවෙන් පසු අඩු ප්රමුඛතාවකින් ඉදිරියට යන්න",
+    "claudeLowPriorityModeDescription": "මෙම ගිණුම එහි පැය 5ක භාවිත සීමාවට ළඟා වූ විට සහ Anthropic අඩු ප්රමුඛතා මාර්ගය ලබා දෙන විට, OmniRoute එය පිළිගෙන කාල කවුළුව යළි සැකසෙන තෙක් සම්බන්ධතාව සිසිල් කිරීම වෙනුවට anthropic-usage-limit: slow සමඟ ඉල්ලීම් යවමින් සිටියි. සතිපතා සීමාව තවමත් අදාළ වන අතර, අමතර ධාරිතාව ලැබෙන තෙක් ප්රතිචාර ප්රමාද විය හැකිය.",
+    "claudeAutoLimitResetLabel": "සැසි සීමාව ස්වයංක්රීයව යළි සකසන්න (සතියකට වරක්)",
+    "claudeAutoLimitResetDescription": "මෙම ගිණුම එහි පැය 5ක භාවිත සීමාවට ළඟා වූ විට සහ සැසි සීමාව යළි සැකසීමක් ලබා ගත හැකි නම්, OmniRoute එය ස්වයංක්රීයව ලබාගෙන පූර්ණ වේගයෙන් නැවත උත්සාහ කරයි. මෙය ගිණුමේ සතියකට වරක් ලැබෙන යළි සැකසීම භාවිත කරන අතර, සතිපතා සීමාවටද තවමත් ගණනය වේ.",
     "disableCoolingDescription": "තාවකාලික විරාම කාලය මඟ හරින්න, එවිට ප්රතිසාධනය කළ හැකි දෝෂවලින් පසුවත් මෙම සම්බන්ධතාව සුදුසු තත්ත්වයේ පවතී (තහනම් කළ/කල් ඉකුත් වූ වැනි අවසාන තත්ත්වයන් තවමත් අදාළ වේ).",
     "disableCoolingLabel": "මෙම සම්බන්ධතාව සඳහා විරාම කාලය අක්රිය කරන්න",
     "bulkPasteAdded": "{count, plural, one {යතුර 1ක් එක් කරන ලදී} other {යතුරු #ක් එක් කරන ලදී}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "සහසම්බන්ධතා හැඳුනුම්කාරකය: {id}",
       "detailedPayloadInfo": "නව ඉල්ලීම් සඳහා අදියර හතරක සේවාලාභී/සපයන්නා දත්ත කොටස් දසුන අවශ්ය නම්, පළමුව සවිස්තරාත්මක ලොග් කිරීම සබල කරන්න.",
       "copyAll": "සියල්ල පිටපත් කරන්න",
-      "copiedAll": "සියල්ල පිටපත් කරන ලදී"
+      "copiedAll": "සියල්ල පිටපත් කරන ලදී",
+      "payloadSizeLimitOmitted": "අන්තර්ගතය මඟ හැරිණි — මෙම කොටස ඇමතුම් ලොග් ප්‍රමාණ සීමාව (CALL_LOG_PIPELINE_MAX_SIZE_KB) ඉක්මවා ගිය අතර ගබඩා නොකෙරිණි; මෙය සැබෑ සැපයුම්කරු දෝෂයක් නොවේ."
     }
   },
   "proxyLogger": {

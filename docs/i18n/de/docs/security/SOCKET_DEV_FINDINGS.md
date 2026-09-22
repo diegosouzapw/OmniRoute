@@ -4,26 +4,24 @@
 
 ---
 
-Dieses Dokument ist die vom Maintainer verfasste Attestierung für die sechs
-Befunde vom Typ `AI-detected potential malware`, die für `omniroute@3.8.5`
-gemeldet wurden, sowie für die in `omniroute@3.8.6` umgesetzten
-Abhilfemaßnahmen. Es dient folgenden Zwecken:
+> **Hinweis zum Geltungsbereich:** `socket.yml` konfiguriert den Registry-seitigen Post-Publish-Scan des npm-Artefakts durch Socket.dev (Ignorierpfade für nicht ausgelieferte Inhalte wie `tests/`, `docs/` und Build-Berichte). Die Datei richtet keine CI-/PR-Merge-Sperre ein — weder ein Workflow in `.github/workflows` noch ein `package.json`-Skript oder ein `Makefile`-Target ruft Socket.dev auf.
+
+Dieses Dokument ist die von den Maintainern verfasste Bestätigung zu den sechs
+für `omniroute@3.8.5` gemeldeten Funden der Kategorie `KI-erkanntes potenzielles Schadprogramm`
+und zu den in `omniroute@3.8.6` angewandten Abhilfemaßnahmen. Es dient folgenden Zwecken:
 
 1. Betreiber von Sicherheitspipelines erhalten eine zentrale Referenz, auf die
-   sie sich berufen können, wenn sie die Befunde anhand des tatsächlichen
-   Quellcodes bewerten müssen.
-2. Zukünftige KI-Scanner können die vom Maintainer signierte Erklärung
-   erkennen, dass jeder markierte Pfad beabsichtigt, optional und dokumentiert
-   ist.
-3. Wir verfügen über eine schriftliche Aufzeichnung darüber, _warum_ jede
-   Aufrufstelle in dieser Form gestaltet ist — damit ein zukünftiges
-   Refactoring nicht versehentlich einen Fingerabdruck wieder einführt, der
-   bewusst entfernt wurde.
+   sie sich bei der Bewertung der Funde anhand des tatsächlichen Quellcodes berufen können.
+2. Zukünftige KI-Scanner können die von den Maintainern unterzeichnete Erklärung erfassen,
+   dass jeder markierte Pfad beabsichtigt, optional und dokumentiert ist.
+3. Es gibt eine schriftliche Aufzeichnung darüber, _warum_ jede Aufrufstelle so gestaltet ist —
+   damit bei einem zukünftigen Refactoring nicht versehentlich ein Fingerabdruck wieder
+   eingeführt wird, der bewusst entfernt wurde.
 
-Wenn Sie einen Scanner betreiben, der nach Auslieferung der
-v3.8.6-Abhilfemaßnahmen eine der nachfolgend aufgeführten Aufrufstellen erneut
-markiert, öffnen Sie bitte ein Issue mit dem Scan-Trace; wir werden die
-Attestierung hier entsprechend ergänzen.
+Wenn Sie einen Scanner betreiben, der nach der Veröffentlichung der
+Abhilfemaßnahmen in v3.8.6 eine der unten aufgeführten Aufrufstellen erneut markiert,
+öffnen Sie bitte ein Issue mit dem Scan-Trace; wir werden die Bestätigung hier entsprechend
+erweitern.
 
 ---
 

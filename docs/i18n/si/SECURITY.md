@@ -220,34 +220,36 @@ docker run -d \
 10. **`env` option එක හරහා `exec()` / `spawn()` runtime අගයන් ලබාදෙන්න** — බාහිර paths හෝ විශ්වාස නොකළ අගයන් shell වෙත යවන scripts තුළට කිසිවිටෙක string-interpolate නොකරන්න. යොමුව: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **පෙරනිමියෙන් ආරක්ෂිත පුස්තකාලවලට ප්රමුඛතාව දෙන්න** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) බලන්න (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). ඔබේම විසඳුමක් සෑදීමට පෙර ඒවා භාවිත කරන්න.
 
-## සැපයුම් දාම ස්කෑනර් සොයාගැනීම් (Socket.dev / Snyk / සමාන)
+## සැපයුම් දාම ස්කෑනර් සොයාගැනීම් (Socket.dev / Snyk / සමාන මෙවලම්)
 
-ප්රකාශිත `omniroute` npm ආටිෆැක්ට් එක Next.js `output: "standalone"`
-බිල්ඩ් එක බණ්ඩල් කරයි. එයින් අදහස් වන්නේ ලේඛනගත කර ඇති වරප්රසාදිත
-විශේෂාංග (MITM, Zed ආයාත කිරීම, Cloud Sync, කාවැද්දූ සේවා අධීක්ෂකය) ඇතුළුව සෑම route handler එකක්ම
-`.next/server/*.js` කුඩා කළ chunks තුළට ඇතුළත් වන බවයි. හියුරිස්ටික් සැපයුම් දාම ස්කෑනර්
-නිතරම එම chunks අනිෂ්ට මෘදුකාංග අත්සන්වලට ගැළපෙන රටා සඳහා පරීක්ෂා කරයි.
+> **විෂය පථ සටහන:** repository root හි ඇති `socket.yml` මඟින් හැඩගස්වන්නේ ප්රකාශිත npm artifact එක පිළිබඳ Socket.dev හි registry-side post-publish scan සඳහා වන `projectIgnorePaths` පමණි — එය බලාත්මක කළ CI/PR merge gate එකක් නොවේ. `.github/workflows` තුළ ඇති කිසිදු workflow එකක්, `package.json` script එකක් හෝ `Makefile` target එකක් Socket.dev ක්රියාත්මක නොකරයි.
 
-අප භාවිත කරන ස්කෑනර් වින්යාසය repo මූලයේ ඇති
-[`socket.yml`](socket.yml) තුළ පවතී (Socket.dev GitHub App ආකෘතිය v2 — බලන්න
-<https://docs.socket.dev/docs/socket-yml>). එය බෙදාහැරීමට ඇතුළත් නොවන
-නාමාවලි (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/`, ආදිය) පැහැදිලිව බැහැර කරයි. එමඟින් ස්කෑනරය වාර්තා කරන්නේ
-සැබැවින්ම ප්රකාශිත පරිශීලකයන් වෙත ළඟා වන කේත මාර්ග පමණි — ස්කෑන් කිරීම ක්රියාත්මක වන්නේ
-මෙම ගොනුව කියවන Socket GitHub App එක මඟින් මිස, මෙම ගබඩාවේ workflow එකක් මඟින් නොවේ.
+ප්රකාශිත `omniroute` npm artifact එක Next.js `output: "standalone"`
+build එක bundle කරයි; එයින් අදහස් වන්නේ ලේඛනගත කර ඇති වරප්රසාදිත
+විශේෂාංග (MITM, Zed import, Cloud Sync, embedded service supervisor) ඇතුළුව සෑම
+route handler එකක්ම `.next/server/*.js` minified chunks තුළට ඇතුළත් වන බවයි. Heuristic සැපයුම් දාම ස්කෑනර්
+එම chunks malware signatures සමඟ නිතර pattern-match කරයි.
 
-සෑම සොයාගැනීම් කාණ්ඩයක් සඳහාම අපි එක් එක් සොයාගැනීමට අදාළ නඩත්තුකරු සහතිකයක් පවත්වාගෙන යමු:
+අප භාවිත කරන ස්කෑනර් වින්යාසය repo root හි ඇති [`socket.yml`](socket.yml) තුළ
+පවතී (Socket.dev GitHub App format v2 — බලන්න
+<https://docs.socket.dev/docs/socket-yml>). එය පැහැදිලිවම
+බෙදාහැරීමට ඇතුළත් නොවන directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, ආදිය) බැහැර කරයි, එවිට ස්කෑනර් වාර්තා කරන්නේ
+සැබවින්ම ප්රකාශිත පරිශීලකයන් වෙත ළඟා වන code paths පමණි — scan එක ක්රියාත්මක වන්නේ මෙම ගොනුව කියවන Socket
+GitHub App එක මඟින් මිස මෙම repository එකේ workflow එකක් මඟින් නොවේ.
+
+එක් එක් සොයාගැනීම් ප්රවර්ගය සඳහා අපි සොයාගැනීමකට වෙන් වූ maintainer attestation එකක් පවත්වාගෙන යන්නෙමු:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  එක් එක් සොයාගැනීමේ සිතියම: මූලාශ්ර ගොනුව ↔ සලකුණු කළ chunk එක ↔ හැසිරීම ↔ v3.8.6 තුළ
-  යෙදූ අවම කිරීම.
-- සලකුණු කළ සෑම function ස්ථානයකම ඇති මූලාශ්ර-තුළ `SECURITY-AUDITOR-NOTE:` blocks
-  එම ලේඛනයටම නැවත යොමු කරයි.
+  සොයාගැනීමකට වෙන් වූ සිතියම: source file ↔ flagged chunk ↔ හැසිරීම ↔ v3.8.6 හි යෙදූ
+  අවම කිරීම.
+- flag කරන ලද එක් එක් function ස්ථානයේ ඇති source තුළම පිහිටි `SECURITY-AUDITOR-NOTE:` blocks,
+  එම ලේඛනයම නැවත යොමු කරයි.
 
-තම pipeline එකට අනතුරු ඇඟවීම ලිහිල් කළ නොහැකි පරිශීලකයන් සඳහා:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` භාවිතයෙන් build කරන්න. එය සංවේදී
-modules හතර වෙනුවට runtime අවස්ථාවේදී HTTP 503 `feature-disabled` ලබාදෙන stubs
-යොදයි. එම නිසා වරප්රසාදිත කේත මාර්ග bundle එකෙන් භෞතිකවම ඉවත් වේ.
+තම pipeline එකට alert එක ලිහිල් කළ නොහැකි පරිශීලකයන් සඳහා:
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` භාවිතයෙන් build කරන්න. මෙය සංවේදී
+modules හතර runtime හි HTTP 503 `feature-disabled` ලබාදෙන stubs සමඟ
+ප්රතිස්ථාපනය කරයි; එබැවින් වරප්රසාදිත code paths bundle එකෙන් භෞතිකවම ඉවත් වේ.
 ප්රකාශන ක්රමවේදය සඳහා [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 බලන්න.
 

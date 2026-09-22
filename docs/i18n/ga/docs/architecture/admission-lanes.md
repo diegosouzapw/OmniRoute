@@ -7,48 +7,52 @@
 Tá **dhá** chóras lána atá áitiúil don phróiseas ag OmniRoute, agus scóip dhifriúla acu. Tá siad
 comhlántach; ba cheart d’oibreoirí a bheith ar an eolas cé acu ceann a bhfuil siad ag féachaint air.
 
-## 1. Iontráil ar leibhéal beart ar fud an phróisis (`chatBodyAdmission.ts`)
+## 1. Cead isteach ar fud an phróisis ag leibhéal beart (`chatBodyAdmission.ts`)
 
-- **Scóip:** cosán an choirp mhaolánaithe/na carnchuimhne le haghaidh `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses`, agus na bealaí eile ar chruth comhrá. Cosnaíonn sé
-  ar aimpliú carnchuimhne de bharr coirp mhóra ó ghníomhairí códúcháin (#4380).
-- **Rialaitheoir domhanda amháin don phróiseas, ní lánaí in aghaidh na heochrach (#10110).** Glacann gach eochair API
-  (haiste) nó seisiún `anonymous` le hiarrataí faoi réir an bhuiséid chomhroinnte **chéanna** —
-  úsáidtear aitheantas haistithe an tseisiúin MAR eochair sceidealaithe cothroime AMHÁIN (seoladh
-  spideogach thar iarrataí atá ar feitheamh), agus ní úsáidtear riamh é mar dheighilt acmhainne. Rinne leagan roimhe seo den
-  doiciméad seo cur síos ar lánaí in aghaidh na heochrach a raibh acmhainn neamhspleách acu; baineadh an tsamhail sin
+- **Raon feidhme:** cosán an choirp mhaolánaithe/na carnchuimhne do `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses`, agus na bealaí eile atá múnlaithe mar chomhrá. Cosnaíonn
+  sé ar aimpliú carnchuimhne de bharr coirp mhóra ó ghníomhairí códaithe (#4380).
+- **Rialaitheoir domhanda amháin don phróiseas, ní lánaí in aghaidh na heochrach (#10110).** Faigheann gach eochair API
+  (haiseáilte) nó seisiún `anonymous` cead isteach i gcoinne an bhuiséid chomhroinnte
+  **chéanna** — úsáidtear aitheantas haiseáilte an tseisiúin MAR eochair sceidealaithe cothroime AMHÁIN
+  (seoladh timthriallach i measc iarrthóirí feithimh), agus ní mar dheighilt acmhainne riamh. Rinne leagan roimhe seo den
+  cháipéis seo cur síos ar lánaí in aghaidh na heochrach a raibh acmhainn neamhspleách acu; baineadh an tsamhail sin
   in #10110 toisc gur lig sí do dhintiúir bhréige gan fíordheimhniú
-  an teorainn uile-phróisis a iolrú.
-- **Geata (#503-fanout): buiséad BEART ionghabhála a dhíorthaítear go huathoibríoch, ní líon seasta
-  iarrataí.** Laghdaigh an uasteorainn oidhreachta `CHAT_MAX_HEAVY_IN_FLIGHT` ar líon na n-iarratas (`1` mar réamhshocrú
-  roimh an gceartúchán seo) scaipeadh amach gníomhairí códúcháin (fogníomhairí/CLIanna iolracha,
-  coirp > 256 KB go rialta) go comhthreomhaireacht éifeachtach de ~1, rud a thug freagra 503
-  faoi ghnáthualach ar fad. Ní bhíonn sí ceangailteach anois ach amháin nuair a shocraíonn oibreoir
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` go sainráite. Má fhágtar gan socrú é, déantar iontráil a
-  gheataíocht ina ionad sin le `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — buiséad a dhíorthaítear go huathoibríoch ó
-  fhíoruasteorainn chuimhne an phróisis (`src/shared/middleware/admissionBudget.ts`):
-  25% den luach is sriantaí idir teorainn charnchuimhne V8 agus aon teorainn cgroup/coimeádáin,
-  roinnte ar fhachtóir aimplithe neamhbhuan 8x, agus é clampáilte idir 8 MiB agus
+  an teorainn ar fud an phróisis a iolrú.
+- **Geata (#503-fanout): buiséad ionghabhála BEART a dhíorthaítear go huathoibríoch, ní líon seasta
+  iarratas.** Chrap teorainn chomhairimh iarratas oidhreachta `CHAT_MAX_HEAVY_IN_FLIGHT` (`1`
+  mar réamhshocrú roimh an gceartúchán seo) eisréimneacht gníomhairí códaithe (il-fhoghníomhairí/CLIanna,
+  coirp > 256 KB go rialta) go comhthreomhaireacht éifeachtach de ~1, rud a d'fhág
+  gur tugadh 503 faoi ualach iomlán gnáth. Ní bhíonn sí ceangailteach anois ach amháin nuair a shocraíonn oibreoir
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` go sainráite. Má fhágtar gan socrú é, rialaítear cead isteach ina ionad sin
+  le `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — buiséad a dhíorthaítear go huathoibríoch ó
+  fhíor-uasteorainn chuimhne an phróisis (`src/shared/middleware/admissionBudget.ts`):
+  25% den cheann is sriantaí idir teorainn charn V8 agus aon teorainn cgroup/coimeádáin,
+  roinnte ar fhachtóir aimplithe neamhbhuan 8x, agus clampáilte idir 8 MiB agus
   2 GiB. Úsáideann sáruithe sainráite na clampálacha céanna. Scálaíonn sé seo é féin ó
-  choimeádán 512 MB go deasc 32 GB gan aon mhionchoigeartú athróige timpeallachta. Teipeann láithreach ar chorp nach féidir
-  a chur laistigh den bhuiséad éifeachtach le `413 body_exceeds_budget`;
-  ní théann ach iomaíocht idir coirp ar féidir freastal orthu astu féin isteach sa scuaine cothroime
-  theoranta. Giorraíonn rianaire beo brú acmhainní ilchomhartha (cóimheas charnchuimhne V8,
+  choimeádán 512 MB go deasc 32 GB gan aon tiúnadh timpeallachta. Teipeann láithreach ar chorp nach féidir
+  leis luí laistigh den bhuiséad éifeachtach le `413 body_exceeds_budget`;
+  ní théann ach coinbhleacht i measc corp ar féidir freastal orthu astu féin isteach sa scuaine cothroime
+  faoi theorainn. Giorraíonn rianaire beo brú acmhainní ilchomhartha (cóimheas charn V8,
   cgroup, PSI, teagmhais OOM — `open-sse/utils/resourcePressurePolicy.ts`)
-  an fanacht teoranta faoi bhrú `high` agus diúltaíonn sé d’iarrataí láithreach le
-  `503 resource_pressure` faoi bhrú `critical`, sula n-ionghabhtar aon bheart fiú.
-- **Mionchoigeartú:**
+  an fanacht teoranta faoi bhrú `high` agus díbríonn sé láithreach le
+  `503 resource_pressure` faoi bhrú `critical`, sula n-ionghabhtar fiú aon bheart.
+  Léitear PSI ó `memory.pressure` de chuid cgroup an aonaid seo nuair atá sé ar fáil
+  (`open-sse/utils/resourcePressureSampler.ts`); baineann `/proc/pressure/memory`
+  leis an óstríomhaire ar fad agus ní úsáidtear é ach mar chúltaca ar mhiotal lom / cgroup v1, ionas nach féidir le
+  hóstríomhaire atá ag babhtáil 503 a thabhairt do choimeádán díomhaoin.
+- **Tiúnadh:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — sárú don bhuiséad beart a dhíorthaítear go huathoibríoch
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — uasteorainn oidhreachta ar líon na n-iarratas, roghnach amháin
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — teorainn chomhairimh iarratas oidhreachta, roghnach amháin
   - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — fanacht sa scuaine roimh 503 (réamhshocrú 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — comhla carnchuimhne do bhearta sa scuaine (réamhshocrú 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — dímholta
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — comhla charnchuimhne do bhearta sa scuaine (réamhshocrú 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — dulta i léig
     agus gan éifeacht ó #10110 (glactar leo ar mhaithe le comhoiriúnacht cumraíochta, ach déantar neamhaird díobh)
 - **Tuairiscí:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — lena n-áirítear
-  na breiseanna #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  na breiseanna ó #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, agus `countCapEnabled`
-  (bréagach ar imscaradh réamhshocraithe — deimhníonn sé gurb é an buiséad beart, seachas an uasteorainn oidhreachta
-  ar líon na n-iarratas, atá ceangailteach i ndáiríre).
+  (false ar imscaradh réamhshocraithe — deimhníonn sé gurb é an buiséad beart, agus ní an teorainn chomhairimh
+  oidhreachta, atá ceangailteach i ndáiríre).
 
 ## 2. Lánaí fíorúla oiriúnaitheacha ag am rite (`open-sse/services/admission`)
 

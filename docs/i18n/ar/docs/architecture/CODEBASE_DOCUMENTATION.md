@@ -436,7 +436,7 @@ server/
 
 ## 4. `open-sse/` — مساحة عمل محرك البث
 
-مساحة عمل npm منفصلة تُنشر باسم `@omniroute/open-sse`. تتولى معالجة
+مساحة عمل npm منفصلة، منشورة باسم `@omniroute/open-sse`. تتولى معالجة
 الطلبات، والمنفّذات، والمترجمات، والخدمات، والمحوّل، وخادم MCP.
 
 ```
@@ -457,27 +457,27 @@ open-sse/
 
 ### 4.1 `open-sse/handlers/`
 
-| المعالج                 | الغرض                                                                                               |
-| ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `chatCore.ts`           | مسار معالجة الدردشة الرئيسي (ذاكرة التخزين المؤقت، وتحديد المعدل، وتوجيه التركيبات، وإرسال المنفّذ) |
-| `responsesHandler.ts`   | نقطة دخول OpenAI Responses API                                                                      |
-| `embeddings.ts`         | التضمينات                                                                                           |
-| `imageGeneration.ts`    | توليد الصور                                                                                         |
-| `audioSpeech.ts`        | تحويل النص إلى كلام                                                                                 |
-| `audioTranscription.ts` | تحويل الكلام إلى نص                                                                                 |
-| `videoGeneration.ts`    | توليد الفيديو                                                                                       |
-| `musicGeneration.ts`    | توليد الموسيقى                                                                                      |
-| `rerank.ts`             | إعادة الترتيب                                                                                       |
-| `moderations.ts`        | الإشراف على المحتوى                                                                                 |
-| `search.ts`             | البحث على الويب                                                                                     |
-| `sseParser.ts`          | محلل أحداث SSE                                                                                      |
-| `usageExtractor.ts`     | استخراج أعداد الرموز المميّزة من التدفقات الواردة                                                   |
-| `responseSanitizer.ts`  | إزالة الضوضاء الخاصة بالمزوّد                                                                       |
-| `responseTranslator.ts` | طبقة الربط بين استجابة المزوّد وطبقة الترجمة                                                        |
+| المعالج                 | الغرض                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| `chatCore.ts`           | مسار معالجة الدردشة الرئيسي (التخزين المؤقت، وتحديد المعدل، وتوجيه التركيبات، وتوزيع التنفيذ) |
+| `responsesHandler.ts`   | نقطة دخول OpenAI Responses API                                                                |
+| `embeddings.ts`         | التضمينات                                                                                     |
+| `imageGeneration.ts`    | توليد الصور                                                                                   |
+| `audioSpeech.ts`        | تحويل النص إلى كلام                                                                           |
+| `audioTranscription.ts` | تحويل الكلام إلى نص                                                                           |
+| `videoGeneration.ts`    | توليد الفيديو                                                                                 |
+| `musicGeneration.ts`    | توليد الموسيقى                                                                                |
+| `rerank.ts`             | إعادة الترتيب                                                                                 |
+| `moderations.ts`        | الإشراف على المحتوى                                                                           |
+| `search.ts`             | البحث على الويب                                                                               |
+| `sseParser.ts`          | محلل أحداث SSE                                                                                |
+| `usageExtractor.ts`     | استخراج أعداد الرموز من التدفقات الواردة                                                      |
+| `responseSanitizer.ts`  | إزالة الضوضاء الخاصة بالمزوّد                                                                 |
+| `responseTranslator.ts` | طبقة الربط بين استجابة المزوّد وطبقة الترجمة                                                  |
 
 ### 4.2 `open-sse/executors/`
 
-108 منفّذات للمزوّدين، يرث كل منها `BaseExecutor` ‏(`base.ts`):
+108 منفّذات للمزوّدين، يمتد كل منها من `BaseExecutor` (`base.ts`):
 
 `antigravity`، `azure-openai`، `blackbox-web`، `cliproxyapi`،
 `chatgpt-web-codex`، `cloudflare-ai`، `codex`، `commandCode`، `cursor`، `default`، `devin-cli`،
@@ -485,13 +485,13 @@ open-sse/
 `pollinations`، `qoder`، `vertex`، `devin-desktop`، بالإضافة إلى `claudeIdentity.ts`
 (أداة مساعدة مشتركة للهوية) و`index.ts` (السجل).
 
-> ملاحظة: تُخدَم المزوّدات غير المدرجة هنا بواسطة `default.ts` باستخدام المنفّذ العام
+> ملاحظة: تُخدَّم المزوّدات غير المدرجة هنا بواسطة `default.ts` باستخدام المنفّذ العام
 > المتوافق مع OpenAI. يوجد كتالوج المزوّدين الكامل (355 مزوّدًا) في
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-ترجمة بنمط المحور والأطراف (OpenAI هو المحور).
+ترجمة بنمط المحور والأفرع (OpenAI هو المحور).
 
 - **9 مترجمات للطلبات** (`translator/request/`):
   `antigravity-to-openai`، `claude-to-gemini`، `claude-to-openai`،
@@ -515,37 +515,37 @@ open-sse/
 
 ### 4.5 `open-sse/services/`
 
-أبرز العناصر (القائمة الكاملة ضمن `open-sse/services/`):
+أبرز المكوّنات (القائمة الكاملة ضمن `open-sse/services/`):
 
-| مجال الاهتمام           | الملفات                                                                                                                                                                                                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| توجيه Combo             | `combo.ts` (19 استراتيجية)، `comboConfig.ts`، `comboMetrics.ts`، `comboManifestMetrics.ts`، `comboAgentMiddleware.ts`                                                                                                                             |
-| محرك Auto Combo         | `autoCombo/` — `engine.ts`، `scoring.ts`، `taskFitness.ts`، `virtualFactory.ts`، `modePacks.ts`، `autoPrefix.ts`، `persistence.ts`، `providerDiversity.ts`، `providerRegistryAccessor.ts`، `routerStrategy.ts`، `selfHealing.ts`، `index.ts`      |
-| المرونة                 | `accountFallback.ts` (فترة تهدئة + قفل)، `errorClassifier.ts`، `requestRejectedStreak.ts`، `emergencyFallback.ts`، `rateLimitManager.ts`، `rateLimitSemaphore.ts`، `accountSemaphore.ts`، `accountSelector.ts`                                    |
-| الحصص                   | `quotaMonitor.ts`، `quotaPreflight.ts`، `bailianQuotaFetcher.ts`، `codexQuotaFetcher.ts`، `deepseekQuotaFetcher.ts`، `openrouterQuotaFetcher.ts`، `openrouterFreeWindow.ts`، `crofUsageFetcher.ts`، `antigravityCredits.ts`                       |
-| التخزين المؤقت          | `reasoningCache.ts`، `searchCache.ts`، `signatureCache.ts`، `requestDedup.ts`                                                                                                                                                                     |
-| ذكاء التوجيه            | `intentClassifier.ts`، `taskAwareRouter.ts`، `backgroundTaskDetector.ts`، `volumeDetector.ts`، `wildcardRouter.ts`، `workflowFSM.ts`، `specificityDetector.ts`، `specificityRules.ts`، `specificityTypes.ts`                                      |
-| معالجة النماذج          | `modelCapabilities.ts`، `modelDeprecation.ts`، `modelFamilyFallback.ts`، `modelStrip.ts`، `model.ts`، `provider.ts`، `providerRequestDefaults.ts`، `providerCostData.ts`، `payloadRules.ts`                                                       |
-| الضغط                   | `compression/` — توصيل محرك الضغط بالكامل                                                                                                                                                                                                         |
-| الرموز المميزة + الجلسة | `tokenRefresh.ts`، `sessionManager.ts`، `apiKeyRotator.ts`، `contextManager.ts`، `contextHandoff.ts`، `systemPrompt.ts`، `roleNormalizer.ts`، `responsesInputSanitizer.ts`، `toolSchemaSanitizer.ts`، `toolLimitDetector.ts`، `thinkingBudget.ts` |
-| المستوى / البيان        | `tierResolver.ts`، `tierConfig.ts`، `tierDefaults.json`، `tierTypes.ts`، `manifestAdapter.ts`                                                                                                                                                     |
-| عنوان IP / الشبكة       | `ipFilter.ts`، `webSearchFallback.ts`                                                                                                                                                                                                             |
-| الدفعات                 | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| الاستخدام               | `usage.ts`                                                                                                                                                                                                                                        |
+| مجال الاهتمام           | الملفات                                                                                                                                                                                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| توجيه Combo             | `combo.ts` (19 استراتيجية)، `comboConfig.ts`، `comboMetrics.ts`، `comboManifestMetrics.ts`، `comboAgentMiddleware.ts`                                                                                                                                    |
+| محرك Auto Combo         | `autoCombo/` — `engine.ts`، `scoring.ts`، `taskFitness.ts`، `virtualFactory.ts`، `modePacks.ts`، `autoPrefix.ts`، `persistence.ts`، `providerDiversity.ts`، `providerRegistryAccessor.ts`، `routerStrategy.ts`، `selfHealing.ts`، `index.ts`             |
+| المرونة                 | `accountFallback.ts` (فترة تهدئة + حظر)، `errorClassifier.ts`، `requestRejectedStreak.ts`، `emergencyFallback.ts`، `rateLimitManager.ts`، `rateLimitSemaphore.ts`، `accountSemaphore.ts`، `accountSelector.ts`                                           |
+| الحصص                   | `quotaMonitor.ts`، `quotaPreflight.ts`، `bailianQuotaFetcher.ts`، `codexQuotaFetcher.ts`، `deepseekQuotaFetcher.ts`، `openrouterQuotaFetcher.ts`، `openrouterFreeWindow.ts`، `llmgatewayQuotaFetcher.ts`، `crofUsageFetcher.ts`، `antigravityCredits.ts` |
+| التخزين المؤقت          | `reasoningCache.ts`، `searchCache.ts`، `signatureCache.ts`، `requestDedup.ts`                                                                                                                                                                            |
+| ذكاء التوجيه            | `intentClassifier.ts`، `taskAwareRouter.ts`، `backgroundTaskDetector.ts`، `volumeDetector.ts`، `wildcardRouter.ts`، `workflowFSM.ts`، `specificityDetector.ts`، `specificityRules.ts`، `specificityTypes.ts`                                             |
+| معالجة النماذج          | `modelCapabilities.ts`، `modelDeprecation.ts`، `modelFamilyFallback.ts`، `modelStrip.ts`، `model.ts`، `provider.ts`، `providerRequestDefaults.ts`، `providerCostData.ts`، `payloadRules.ts`                                                              |
+| الضغط                   | `compression/` — الربط الكامل لمحرك الضغط                                                                                                                                                                                                                |
+| الرموز المميزة + الجلسة | `tokenRefresh.ts`، `sessionManager.ts`، `apiKeyRotator.ts`، `contextManager.ts`، `contextHandoff.ts`، `systemPrompt.ts`، `roleNormalizer.ts`، `responsesInputSanitizer.ts`، `toolSchemaSanitizer.ts`، `toolLimitDetector.ts`، `thinkingBudget.ts`        |
+| المستوى / البيان        | `tierResolver.ts`، `tierConfig.ts`، `tierDefaults.json`، `tierTypes.ts`، `manifestAdapter.ts`                                                                                                                                                            |
+| عنوان IP / الشبكة       | `ipFilter.ts`، `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| الدُفعات                | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| الاستخدام               | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
 - **110 أدوات فريدة** موصولة في `server.ts` (45 أداة أساسية في `schemas/tools.ts` +
-  وحدات الذاكرة والمهارات ومهارات GitHub والمجمّع والتلعيب والملحق وNotion وObsidian
-  والمجموعة المحلية والضغط — يُحتسب اتحادها بواسطة `countUniqueMcpTools`).
-- **3 وسائل نقل**: stdio وHTTP Streamable وSSE.
-- **33 نطاقًا** تُفرض في وقت التشغيل — القائمة الأساسية في `src/shared/constants/mcpScopes.ts`، والمجموعة الكاملة هي اتحاد النطاقات المعلنة بواسطة كل وحدة أدوات.
+  وحدات الذاكرة والمهارات ومهارات GitHub والمجموعة والتلعيب والإضافات وNotion وObsidian
+  والمجموعة المحلية والضغط — يُحتسب الاتحاد بواسطة `countUniqueMcpTools`).
+- **3 وسائل نقل**: stdio، وHTTP Streamable، وSSE.
+- **33 نطاقًا** تُفرض في وقت التشغيل — القائمة الأساسية موجودة في `src/shared/constants/mcpScopes.ts`، والمجموعة الكاملة هي اتحاد النطاقات التي تصرّح بها كل وحدة أدوات.
 - جدول التدقيق: `mcp_tool_audit` (تتم تعبئته بواسطة `audit.ts`).
 - الملفات: `server.ts`، `index.ts`، `httpTransport.ts`، `audit.ts`، `scopeEnforcement.ts`،
   `runtimeHeartbeat.ts`، `descriptionCompressor.ts`، `schemas/{tools, a2a, audit, index}.ts`،
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`،
   بالإضافة إلى الاختبارات ضمن `__tests__/`.
-- راجع [MCP-SERVER.md](../frameworks/MCP-SERVER.md) للاطلاع على كتالوج الأدوات الكامل.
+- راجع [MCP-SERVER.md](../frameworks/MCP-SERVER.md) للاطلاع على فهرس الأدوات الكامل.
 
 ### 4.7 `open-sse/config/`
 
@@ -553,17 +553,17 @@ open-sse/
 `providerHeaderProfiles.ts`)، وسجلات النماذج الخاصة بكل تنسيق (`audioRegistry.ts`،
 `embeddingRegistry.ts`، `imageRegistry.ts`، `moderationRegistry.ts`،
 `musicRegistry.ts`، `rerankRegistry.ts`، `searchRegistry.ts`، `videoRegistry.ts`)،
-وأدوات الهوية المساعدة (`codexIdentity.ts`، `codexInstructions.ts`،
+ومساعدات الهوية (`codexIdentity.ts`، `codexInstructions.ts`،
 `anthropicHeaders.ts`، `antigravityUpstream.ts`، `antigravityModelAliases.ts`،
 `cliFingerprints.ts`، `toolCloaking.ts`، `defaultThinkingSignature.ts`)،
-وأدوات بيانات الاعتماد المساعدة (`credentialLoader.ts`، `codexClient.ts`)، ومهايئات
-الخدمات السحابية (`azureAi.ts`، `bedrock.ts`، `datarobot.ts`، `glmProvider.ts`،
+ومساعدات بيانات الاعتماد (`credentialLoader.ts`، `codexClient.ts`)، ومهايئات
+السحابة (`azureAi.ts`، `bedrock.ts`، `datarobot.ts`، `glmProvider.ts`،
 `maritalk.ts`، `oci.ts`، `petals.ts`، `runway.ts`، `sap.ts`، `watsonx.ts`،
 `ollamaModels.ts`، `errorConfig.ts`، `constants.ts`، `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-أساسيات البث والأدوات المساعدة لموفّدي الخدمة: `stream.ts`، `streamHandler.ts`،
+أساسيات البث وأدوات موفّري الخدمة المساعدة: `stream.ts`، `streamHandler.ts`،
 `streamHelpers.ts`، `streamPayloadCollector.ts`، `streamReadiness.ts`،
 `sseHeartbeat.ts`، `proxyFetch.ts`، `proxyDispatcher.ts`، `tlsClient.ts`،
 `networkProxy.ts`، `awsSigV4.ts`، `cacheControlPolicy.ts`،

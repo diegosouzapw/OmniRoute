@@ -66,18 +66,26 @@ Socraigh iad seo i dtimpeallacht phróiseas OmniRoute (an deamhan, m.sh. tríd a
 
 ---
 
-## Rabhaidh npm install (ERESOLVE / piara / dímholta)
+## Rabhaidh `npm install` (ERESOLVE / piara / dímholta)
 
 Nuair a ritheann tú `npm install -g omniroute`, seans go bhfeicfidh tú lear mór rabhaidh amhail `npm warn ERESOLVE`, fógraí faoi spleáchais phiara, agus teachtaireachtaí `deprecated`. **Tá siad seo ionchais agus neamhdhíobhálach.** D’éirigh le do shuiteáil má fheiceann tú `added <N> packages` san aschur.
 
-Tagann na rabhaidh ó raonta spleáchais phiara atá as dáta i bpacáistí tríú páirtí nach bhfuil faoi rialú OmniRoute:
+Chun na rabhaidh faoi réiteach spleáchas piara a cheilt, úsáid an fhoirm shuiteála a dtacaíonn OmniRoute léi:
 
-1. **Teastaíonn `marked >=1 <16` ó `marked-terminal`, ach aimsíodh `marked@18`** — oibríonn sé gan fadhb go praiticiúil; níl ach an raon piara réamhtheachtach as dáta.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+Ní cheileann `--legacy-peer-deps` ach `ERESOLVE` agus fógraí faoi spleáchais phiara. Fanann fógraí dímholtachta infheicthe toisc go dtagann siad ó phacáistí trasdultacha tríú páirtí; ní thugann siad le fios gur theip ar an tsuiteáil.
+
+Tagann na rabhaidh ó raonta spleáchas piara atá as dáta i bpacáistí tríú páirtí nach bhfuil faoi smacht OmniRoute:
+
+1. **Teastaíonn `marked >=1 <16` ó `marked-terminal`, ach aimsíodh `marked@18`** — oibríonn sé go breá sa chleachtas; níl ach an raon piara réamhtheachtach as dáta.
 2. **`deprecated prebuild-install@7.1.3`** — uirlis chúnta thrasdultach chun dénártha dúchasacha a fháil. Ní úsáidtear í
-   chun an ceangal iompair `wreq-js` pionnáilte a shuiteáil agus ní thugann sí le fios gur theip ar
-   shocrú iompair sholáthraí na bhfianán gréasáin.
+   chun an ceangal iompair pionnáilte `wreq-js` a shuiteáil agus ní thugann sí le fios gur theip ar chumraíocht iompair
+   sholáthraí na bhfianán gréasáin.
 
-**Ní gá aon ghníomh a dhéanamh** — ní féidir na rabhaidh a chur faoi chois go hiomlán gan gabhlacha a chruthú de na pacáistí réamhtheachtacha.
+**Ní gá aon ghníomh a dhéanamh** — ní féidir na rabhaidh a cheilt go hiomlán gan forc a dhéanamh de na pacáistí réamhtheachtacha.
 
 ---
 

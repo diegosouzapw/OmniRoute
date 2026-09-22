@@ -27,6 +27,12 @@
 
 ## Pikakäynnistys
 
+> **Itse ylläpidetty yhdellä komennolla?** Katso
+> [itseylläpito-opas](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (julkaistu levykuva +
+> Redis, vain loopback-yhteydet, ei profiilin valintaa). Alla oleva pikakäynnistys on
+> yhden säilön vaihtoehto käyttäjille, joilla Redis on jo käytössä muualla.
+
 ```bash
 docker run -d \
   --name omniroute \

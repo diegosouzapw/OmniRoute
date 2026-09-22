@@ -1,0 +1,1 @@
+- **fix(proxies):** stop re-serving a pool member that just failed at the head of the pool: candidates are ordered by crossed short-memory health signals (opt-in, off by default), so a request lands on the first useful try instead of paying the failed head first ([#14221](https://github.com/diegosouzapw/OmniRoute/pull/14221)) — thanks @maxmad64bis

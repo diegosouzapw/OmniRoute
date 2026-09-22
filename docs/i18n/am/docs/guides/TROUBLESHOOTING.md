@@ -70,12 +70,22 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ወዲያውኑ እንደገና 
 
 `npm install -g omniroute` ሲያስኬዱ፣ እንደ `npm warn ERESOLVE`፣ የ peer-dependency ማሳወቂያዎች እና `deprecated` መልዕክቶች ያሉ ብዙ ማስጠንቀቂያዎችን ሊያዩ ይችላሉ። **እነዚህ የሚጠበቁ እና ጉዳት የሌላቸው ናቸው።** በውጤቱ ውስጥ `added <N> packages` ካዩ፣ ጭነቱ በተሳካ ሁኔታ ተጠናቋል።
 
-ማስጠንቀቂያዎቹ OmniRoute ሊቆጣጠራቸው በማይችላቸው የሶስተኛ ወገን ፓኬጆች ውስጥ ካሉ ጊዜ ያለፈባቸው የ peer-dependency ክልሎች የሚመጡ ናቸው፦
+የ peer-dependency መፍቻ ማስጠንቀቂያዎችን ለማፈን፣ በ OmniRoute የሚደገፈውን የጭነት ቅርጽ ይጠቀሙ፦
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` የሚያፍነው `ERESOLVE` እና የ peer-dependency ማሳወቂያዎችን ብቻ ነው። የተቋረጠ ድጋፍ ማሳወቂያዎች ከተዘዋዋሪ የሦስተኛ ወገን packages ስለሚመጡ እንደታዩ ይቆያሉ፤ እነዚህም ጭነቱ እንዳልተሳካ አያመለክቱም።
+
+ማስጠንቀቂያዎቹ የሚመጡት OmniRoute በማይቆጣጠራቸው የሦስተኛ ወገን packages ውስጥ ካሉ ጊዜ ያለፈባቸው የ peer-dependency ክልሎች ነው፦
 
 1. **`marked-terminal` `marked >=1 <16` ይፈልጋል፣ `marked@18` ግን ተገኝቷል** — በተግባር በትክክል ይሠራል፤ የ upstream peer ክልሉ ጊዜ ያለፈበት ብቻ ነው።
-2. **`deprecated prebuild-install@7.1.3`** — በተዘዋዋሪ የሚጠቀም የ native-binary ማውረጃ ረዳት ነው። የተወሰነውን `wreq-js` transport binding ለመጫን ጥቅም ላይ አይውልም፣ እንዲሁም የ web-cookie provider transport ዝግጅት አለመሳካቱን አያመለክትም።
+2. **`deprecated prebuild-install@7.1.3`** — ተዘዋዋሪ የ native-binary ማውረጃ አጋዥ ነው። የተወሰነውን `wreq-js` transport binding ለመጫን
+   ጥቅም ላይ አይውልም፣ እንዲሁም የ web-cookie provider transport ዝግጅት
+   አልተሳካም ማለት አይደለም።
 
-**ምንም እርምጃ አያስፈልግም** — upstream ፓኬጆችን fork ሳያደርጉ ማስጠንቀቂያዎቹን ሙሉ በሙሉ ማጥፋት አይቻልም።
+**ምንም እርምጃ አያስፈልግም** — upstream packagesን fork ሳያደርጉ ማስጠንቀቂያዎቹን ሙሉ በሙሉ ማፈን አይቻልም።
 
 ---
 

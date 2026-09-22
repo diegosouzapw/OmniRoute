@@ -1293,6 +1293,9 @@
     "mainNavigation": "ዋና አሰሳ",
     "unpinSection": "ክፍሉን ከተሰካበት አላቅቅ",
     "pinSectionOpen": "ክፍሉ ክፍት እንዲቆይ ሰካ",
+    "pinItem": "ንጥል ሰካ",
+    "unpinItem": "ንጥል ንቀል",
+    "pinnedSection": "ተሰክቷል",
     "reloadPage": "ገጹን እንደገና ጫን",
     "dragReorderSection": "ክፍሉን እንደገና ለማደራጀት ጎትት",
     "dragReorderItem": "እንደገና ለማደራጀት ጎትት",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "አቅራቢዎች",
     "Account Deactivated": "መለያው ተሰናክሏል",
     "allProviders": "ሁሉም አቅራቢዎች",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "የGrok ድር ኩኪ ፍንጭ",
     "blockClaudeExtraUsageDescription": "ይህ ሲነቃ፣ የአጠቃቀም API ተራ የያዘ ተጨማሪ አጠቃቀም እንዳለ እንደዘገበ OmniRoute ይህን Claude ግንኙነት ወዲያውኑ እንደማይገኝ ምልክት ያደርገዋል፤ በዚህም በተጠቀሙት መጠን የሚከፈል ተጨማሪ ክፍያ ከመቀጠል ይልቅ የመጠባበቂያ ስርዓቱ ወደ ሌላ ግንኙነት ይቀየራል።",
     "blockClaudeExtraUsageLabel": "የClaude ተጨማሪ አጠቃቀምን አግድ",
+    "claudeLowPriorityModeLabel": "ከ5-ሰዓት ገደብ በኋላ በዝቅተኛ ቅድሚያ ይቀጥሉ",
+    "claudeLowPriorityModeDescription": "ይህ መለያ የ5-ሰዓት የአጠቃቀም ገደቡን ሲደርስ እና Anthropic ዝቅተኛ ቅድሚያ ያለውን መስመር ሲያቀርብ፣ OmniRoute ይቀበለውና መስኮቱ እስኪታደስ ድረስ ጥያቄዎችን በ anthropic-usage-limit: slow መላኩን ይቀጥላል፣ ግንኙነቱን ከማቀዝቀዝ ይልቅ። የሳምንቱ ገደብ አሁንም ይተገበራል እና ምላሾች ተጨማሪ አቅምን ሊጠብቁ ይችላሉ።",
+    "claudeAutoLimitResetLabel": "የክፍለ ጊዜ ገደብን በራስ-ሰር ዳግም አስጀምር (በሳምንት አንድ ጊዜ)",
+    "claudeAutoLimitResetDescription": "ይህ መለያ የ5-ሰዓት የአጠቃቀም ገደቡን ሲደርስ እና የክፍለ ጊዜ ገደብ ዳግም ማስጀመር ሲገኝ፣ OmniRoute በራስ-ሰር ይወስደዋል እና በሙሉ ፍጥነት እንደገና ይሞክራል። የመለያውን በሳምንት አንድ ጊዜ ዳግም ማስጀመር ይጠቀማል እና አሁንም ለሳምንቱ ገደብ ይቆጠራል።",
     "disableCoolingDescription": "ይህ ግንኙነት ሊታረሙ ከሚችሉ ስህተቶች በኋላም ብቁ ሆኖ እንዲቆይ ጊዜያዊውን የማቀዝቀዝ ጊዜ ይዝለሉ (እንደ የታገደ/ጊዜው ያለፈ ያሉ የመጨረሻ ሁኔታዎች አሁንም ተፈጻሚ ናቸው)።",
     "disableCoolingLabel": "ለዚህ ግንኙነት የማቀዝቀዝ ጊዜን አሰናክል",
     "bulkPasteAdded": "{count, plural, one {1 ቁልፍ ታክሏል} other {# ቁልፎች ታክለዋል}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "የትስስር መታወቂያ፦ {id}",
       "detailedPayloadInfo": "ለአዳዲስ ጥያቄዎች ባለአራት-ደረጃ የደንበኛ/አቅራቢ ውሂብ እይታን ከፈለጉ፣ መጀመሪያ ዝርዝር ምዝገባን ያንቁ።",
       "copyAll": "ሁሉንም ቅዳ",
-      "copiedAll": "ሁሉም ተቀድቷል"
+      "copiedAll": "ሁሉም ተቀድቷል",
+      "payloadSizeLimitOmitted": "ጭነት ተትቷል — ይህ ክፍል የጥሪ ምዝግብ መጠን ገደብን (CALL_LOG_PIPELINE_MAX_SIZE_KB) አልፏል እና አልተቀመጠም፤ እውነተኛ የላይኛው ስህተት አይደለም።"
     }
   },
   "proxyLogger": {

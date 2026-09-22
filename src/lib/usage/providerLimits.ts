@@ -1,3 +1,4 @@
+import { syncCodexQuotaObservation } from "@/lib/db/providers/codexAccountRecovery";
 import {
   getProviderConnectionById,
   getProviderConnections,
@@ -93,6 +94,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "openrouter",
   // LLM Gateway API key (llmgtwy_…) → GET /v1/key DevPass allowance
   "llmgateway",
+  // Lyceum API key (lk_…) → GET /api/v2/external/billing/credits balance
+  "lyceum",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -871,6 +874,14 @@ async function fetchLiveProviderLimitsWithOptions(
     result = await fetchUsageWithContext(null);
   }
 
+  if (connection.provider === "codex") {
+    const data = await syncCodexQuotaObservation(
+      connection.id,
+      result.usage,
+      connection.providerSpecificData
+    );
+    if (data) connection = { ...connection, providerSpecificData: data };
+  }
   if (isRecord(result.usage.quotas)) {
     setQuotaCache(
       connectionId,

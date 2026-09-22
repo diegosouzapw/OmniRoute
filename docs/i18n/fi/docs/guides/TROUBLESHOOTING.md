@@ -66,18 +66,26 @@ Aseta nämä OmniRoute-prosessin ympäristöön (taustapalveluun, esimerkiksi La
 
 ---
 
-## npm install -varoitukset (ERESOLVE / vertaisriippuvuudet / vanhentuneet paketit)
+## `npm install` -varoitukset (ERESOLVE / vertaisriippuvuudet / vanhentuneet paketit)
 
-Kun suoritat komennon `npm install -g omniroute`, saatat nähdä suuren määrän varoituksia, kuten `npm warn ERESOLVE`, ilmoituksia vertaisriippuvuuksista ja `deprecated`-viestejä. **Nämä ovat odotettuja ja harmittomia.** Asennus onnistui, jos tulosteessa näkyy `added <N> packages`.
+Kun suoritat komennon `npm install -g omniroute`, saatat nähdä suuren määrän varoituksia, kuten `npm warn ERESOLVE`, vertaisriippuvuuksia koskevia ilmoituksia ja `deprecated`-viestejä. **Nämä ovat odotettuja ja harmittomia.** Asennus onnistui, jos tulosteessa näkyy `added <N> packages`.
+
+Voit estää vertaisriippuvuuksien ratkaisuvaroitukset käyttämällä OmniRouten tukemaa asennusmuotoa:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` estää vain `ERESOLVE`-varoitukset ja vertaisriippuvuuksia koskevat ilmoitukset. Vanhentumisilmoitukset jäävät näkyviin, koska ne tulevat epäsuorista kolmannen osapuolen paketeista. Ne eivät tarkoita, että asennus epäonnistui.
 
 Varoitukset johtuvat sellaisten kolmannen osapuolen pakettien vanhentuneista vertaisriippuvuuksien versioalueista, joita OmniRoute ei hallitse:
 
-1. **`marked-terminal` vaatii version `marked >=1 <16`, mutta löytyi `marked@18`** — toimii käytännössä hyvin; upstream-paketin vertaisriippuvuuden versioalue on vain vanhentunut.
-2. **`deprecated prebuild-install@7.1.3`** — transitiivinen apuohjelma natiivibinäärien noutamiseen. Sitä ei
-   käytetä lukitun `wreq-js`-siirtosidoksen asentamiseen, eikä se tarkoita, että verkkoevästeiden
-   tarjoajan siirtoasetusten määritys olisi epäonnistunut.
+1. **`marked-terminal` edellyttää versiota `marked >=1 <16`, mutta löytyi `marked@18`** — toimii käytännössä hyvin; upstream-paketin vertaisriippuvuuden versioalue on vain vanhentunut.
+2. **`deprecated prebuild-install@7.1.3`** — epäsuora natiivibinäärien noutamiseen tarkoitettu apuohjelma. Sitä ei
+   käytetä kiinnitetyn `wreq-js`-siirtosidoksen asentamiseen, eikä se tarkoita, että web-cookie-palveluntarjoajan
+   siirron määritys epäonnistui.
 
-**Toimenpiteitä ei tarvita** — varoituksia ei voi poistaa kokonaan käytöstä ilman upstream-pakettien haarauttamista.
+**Toimia ei tarvita** — varoituksia ei voi poistaa kokonaan näkyvistä haarauttamatta upstream-paketteja.
 
 ---
 

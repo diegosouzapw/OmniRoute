@@ -68,16 +68,24 @@ Tetapkan variabel tersebut di lingkungan proses OmniRoute (daemon, misalnya mela
 
 ## Peringatan npm install (ERESOLVE / peer / deprecated)
 
-Saat menjalankan `npm install -g omniroute`, Anda mungkin melihat banyak peringatan seperti `npm warn ERESOLVE`, pemberitahuan dependensi peer, dan pesan `deprecated`. **Hal ini sudah diperkirakan dan tidak berbahaya.** Instalasi Anda berhasil jika output menampilkan `added <N> packages`.
+Saat menjalankan `npm install -g omniroute`, Anda mungkin melihat banyak peringatan seperti `npm warn ERESOLVE`, pemberitahuan dependensi peer, dan pesan `deprecated`. **Hal ini wajar dan tidak berbahaya.** Instalasi berhasil jika Anda melihat `added <N> packages` dalam output.
 
-Peringatan tersebut berasal dari rentang dependensi peer yang sudah usang dalam paket pihak ketiga yang tidak dikendalikan oleh OmniRoute:
+Untuk menyembunyikan peringatan resolusi dependensi peer, gunakan format instalasi yang didukung OmniRoute:
 
-1. **`marked-terminal` menginginkan `marked >=1 <16`, tetapi menemukan `marked@18`** — dalam praktiknya berfungsi dengan baik; rentang peer dari upstream hanya sudah usang.
-2. **`deprecated prebuild-install@7.1.3`** — helper pengambilan biner native yang bersifat transitif. Helper ini tidak
-   digunakan untuk menginstal binding transport `wreq-js` yang versinya telah ditetapkan dan tidak menunjukkan bahwa
-   penyiapan transport penyedia web-cookie gagal.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Tidak perlu melakukan apa pun** — peringatan tersebut tidak dapat sepenuhnya disembunyikan tanpa melakukan fork pada paket upstream.
+`--legacy-peer-deps` hanya menyembunyikan `ERESOLVE` dan pemberitahuan dependensi peer. Pemberitahuan penghentian dukungan tetap terlihat karena berasal dari paket pihak ketiga transitif; pemberitahuan tersebut tidak menunjukkan bahwa instalasi gagal.
+
+Peringatan tersebut berasal dari rentang dependensi peer usang dalam paket pihak ketiga yang tidak dikendalikan OmniRoute:
+
+1. **`marked-terminal` memerlukan `marked >=1 <16`, tetapi menemukan `marked@18`** — dalam praktiknya tetap berfungsi dengan baik; rentang peer upstream tersebut hanya sudah usang.
+2. **`deprecated prebuild-install@7.1.3`** — pembantu pengambilan biner native transitif. Paket ini tidak
+   digunakan untuk menginstal binding transport `wreq-js` yang versinya dikunci dan tidak menunjukkan bahwa penyiapan transport
+   penyedia web-cookie gagal.
+
+**Tidak diperlukan tindakan apa pun** — peringatan tersebut tidak dapat disembunyikan sepenuhnya tanpa melakukan fork pada paket upstream.
 
 ---
 

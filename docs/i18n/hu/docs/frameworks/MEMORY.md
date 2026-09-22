@@ -143,34 +143,36 @@ A `memory_vec_meta` tábla (migráció: `083_memory_vec.sql`) a következőket t
 
 ## Beállítások bővítése
 
-Kilenc beágyazási és vektormező érhető el a `MemorySettingsExtended` típusban a
-`src/shared/schemas/memory.ts` fájlban, amelyeket a `src/lib/db/settings.ts` tartósít:
+Kilenc beágyazási és vektormező érhető el a `MemorySettingsExtended` típusban, a
+`src/shared/schemas/memory.ts` fájlban, és ezek a `src/lib/db/settings.ts` segítségével maradnak tartósan tárolva:
 
-| Mező                     | Típus                                              | Alapérték | Leírás                                                               |
-| ------------------------ | -------------------------------------------------- | --------- | -------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`  | A használandó beágyazási forrás                                      |
-| `embeddingProviderModel` | `string \| null`                                   | `null`    | Szolgáltató/modell `provider/model` formátumban                      |
-| `customBaseUrl`          | `string \| null`                                   | `null`    | Csak a Memory által használt OpenAI-kompatibilis végpont alap-URL-je |
-| `customModelId`          | `string \| null`                                   | `null`    | Az egyéni végpontnak küldött modellazonosító                         |
-| `transformersEnabled`    | `boolean`                                          | `false`   | Transformers.js engedélyezése (MiniLM, ~400 MB)                      |
-| `staticEnabled`          | `boolean`                                          | `false`   | A helyi statikus potion-base-8M modell engedélyezése                 |
-| `rerankEnabled`          | `boolean`                                          | `false`   | Újrarangsorolási lépés engedélyezése (+200–500 ms/kérés)             |
-| `rerankProviderModel`    | `string \| null`                                   | `null`    | Újrarangsorolási szolgáltató/modell `provider/model` formátumban     |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`  | A használandó vektoros háttérrendszer                                |
+| Mező                     | Típus                                              | Alapérték | Leírás                                                                   |
+| ------------------------ | -------------------------------------------------- | --------- | ------------------------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`  | A használandó beágyazási forrás                                          |
+| `embeddingProviderModel` | `string \| null`                                   | `null`    | Szolgáltató/modell `provider/model` formátumban                          |
+| `customBaseUrl`          | `string \| null`                                   | `null`    | Kizárólag a memóriához használt, OpenAI-kompatibilis végpont alap-URL-je |
+| `customModelId`          | `string \| null`                                   | `null`    | Az egyéni végpontnak küldött modellazonosító                             |
+| `transformersEnabled`    | `boolean`                                          | `false`   | A Transformers.js használatának engedélyezése (MiniLM, ~400MB)           |
+| `staticEnabled`          | `boolean`                                          | `false`   | A statikus, helyi potion-base-8M modell használatának engedélyezése      |
+| `rerankEnabled`          | `boolean`                                          | `false`   | Az újrarangsorolási lépés engedélyezése (+200-500ms/kérés)               |
+| `rerankProviderModel`    | `string \| null`                                   | `null`    | Újrarangsorolási szolgáltató/modell `provider/model` formátumban         |
 
-Ezek a `GET /PUT /api/settings/memory` útvonalon érhetők el (`MemorySettingsExtendedSchema` séma).
+A `rerankProviderModel` feloldását a `POST /v1/rerank` végzi (loopback kapcsolaton keresztül meghívva), ezért bármit elfogad, amit ez az útvonal is: egy válogatott felhőalapú újrarangsorolási modellt (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …), vagy egy OpenAI-kompatibilis szolgáltatói csomópontot `<node-prefix>/<model>` formában (például `skilled-mini/bge-reranker-v2-m3` egy TEI/Infinity gép esetén). A loopback csomópontok mindig használhatók; egy másik gazdagépen lévő csomóponthoz (LAN, Tailscale) ezenfelül szükséges a `RERANK_REMOTE_PROVIDER_NODES` funkciójelző, és meg kell felelnie a szolgáltatói kimenő URL-ekre vonatkozó szabályzatnak — lásd: [Funkciójelzők](../reference/FEATURE_FLAGS.md). Az irányítópult választója a válogatott szolgáltatókat és a helyi csomópontokat sorolja fel; bármely érvényes `provider/model` karakterlánc közvetlenül is beállítható a `PUT /api/settings/memory` használatával.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | A használandó vektoros háttérrendszer |
 
-A `remote` forrás esetében a Memory az opcionális `customBaseUrl` és
+Ezek a `GET /PUT /api/settings/memory` útvonalon keresztül érhetők el (`MemorySettingsExtendedSchema` séma).
+
+A `remote` forrás esetén a Memory az opcionális `customBaseUrl` és
 `customModelId` beállításokat is elfogadja. Ezek együtt egy OpenAI-kompatibilis `/embeddings`
 végpontot és modellt választanak ki a globális beágyazási nyilvántartás módosítása nélkül. A végpont
-használat előtt normalizálásra kerül, és a szolgáltató kimenő URL-ekre vonatkozó szabályzata ellenőrzi: HTTP(S)
-szükséges, a beágyazott hitelesítő adatok és lekérdezési karakterláncok nem engedélyezettek, a felhőalapú metaadat-
-címek pedig továbbra is blokkolva maradnak. Az üres értékek megőrzik a nyilvántartásban kiválasztott szolgáltatót. Az irányítópultnak
-visszaadott hibák meg vannak tisztítva, és a végpont hitelesítő adatai soha nem kerülnek naplózásra.
+használat előtt normalizálásra kerül, és a szolgáltatói kimenő URL-ekre vonatkozó szabályzat ellenőrzi: HTTP(S)
+szükséges, a beágyazott hitelesítési adatok és a lekérdezési karakterláncok nem engedélyezettek, a felhős metaadat-
+címek pedig továbbra is blokkolva maradnak. Az üres értékek megtartják a nyilvántartásban kiválasztott szolgáltatót. Az irányítópultnak
+visszaküldött hibák megtisztításra kerülnek, és a végpont hitelesítési adatai soha nem kerülnek naplózásra.
 
 > **TODO (D20):** A `global` hatókör (a memóriák megosztása az összes API-kulcs között)
-> nincs megvalósítva ebben a kiadásban. Ehhez sémamódosítások és egy globális lekérési
-> útvonal szükséges. Külön követendő.
+> ebben a kiadásban nincs megvalósítva. Sémamódosításokat és globális lekérési
+> útvonalat igényel. Külön követendő.
 
 ## Tárolási rétegek
 

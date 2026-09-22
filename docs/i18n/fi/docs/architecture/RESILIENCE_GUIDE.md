@@ -67,80 +67,156 @@ eksponentiaalista `minRetryCooldownMs → maxRetryCooldownMs`-viivettä. Ohituks
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
 Regressiosuojaus: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
-## 2. Yhteyden jäähyaika
+## 2. Yhteyden jäähdytysaika
 
-**Soveltamisala:** yksittäinen palveluntarjoajan yhteys/tili/avain.
+**Laajuus:** yksittäinen palveluntarjoajan yhteys/tili/avain.
 
-**Tarkoitus:** ohittaa yksi viallinen avain muiden saman palveluntarjoajan yhteyksien jatkaessa pyyntöjen käsittelyä.
+**Tarkoitus:** ohittaa yksi viallinen avain samalla, kun muut saman palveluntarjoajan yhteydet jatkavat palvelemista.
 
 **Toteutus:**
 
 - Merkitse ei-käytettäväksi: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Valinta: `getProviderCredentials*` samassa tiedostossa
-- Jäähyajan laskenta: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Jäähdytysajan laskenta: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Asetukset: `src/lib/resilience/settings.ts`
 
 **Yhteyskohtaiset kentät:**
 
-- `rateLimitedUntil` — aikaleima, johon asti jäähyaika kestää
+- `rateLimitedUntil` — aikaleima, johon asti jäähdytysaika kestää
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — eksponentiaalisen viiveen laskuri
 
-**Oletusarvoiset jäähyajat:**
+**Oletusjäähdytysajat:**
 
 - OAuth-perusaika: 5 s
 - API-avaimen perusaika: 3 s
-- API-avaimen 429: käyttää ensisijaisesti ylävirran `Retry-After`-otsaketta, nollausotsakkeita tai jäsennettävissä olevaa nollausaikatekstiä
+- API-avaimen 429: käyttää ensisijaisesti ylävirran `Retry-After`-/nollausotsakkeita tai jäsennettävissä olevaa nollausaikatekstiä
 - Viive: `baseCooldownMs * 2 ** failureIndex`
 
-**Samanaikaisten pyyntöryöppyjen esto:** estää samanaikaisia virheitä pidentämästä jäähyaikaa liikaa tai kasvattamasta `backoffLevel`-arvoa kahdesti.
+**Samanaikaisten pyyntöryöppyjen esto:** estää samanaikaisia virheitä pidentämästä jäähdytysaikaa liikaa tai kasvattamasta `backoffLevel`-arvoa kahdesti.
 
-**Päättävät tilat (EIVÄT jäähyaikoja):**
+**Lopulliset tilat (EIVÄT jäähdytysaikoja):**
 
-- `banned` — asetetaan kielletyn avainsanan tai tilin eston tunnistuksen perusteella (katso [BAN_DETECTION](../security/BAN_DETECTION.md)) sekä kolmen peräkkäisen ylävirran pyyntökohtaisen hylkäyksen jälkeen (`request_rejected`, esimerkiksi Anthropic OAuth 403 "Pyyntöä ei sallita" — `open-sse/services/requestRejectedStreak.ts`); yksittäinen hylkäys asettaa yhteydelle vain jäähyajan
-- `expired` (siirtyy päättävään tilaan rajatun uudelleenyritysmäärän jälkeen — `EXPIRED_RETRY_MAX = 3` eksponentiaalisella viiveellä — jotta tilapäiset OAuth-virheet voivat korjaantua itsestään ennen tilin pysyvää deaktivointia)
+- `banned` — asetetaan kielletyn avainsanan / tilin eston tunnistuksen perusteella (katso [BAN_DETECTION](../security/BAN_DETECTION.md)) sekä kolmen peräkkäisen ylävirran pyyntökohtaisen hylkäyksen jälkeen (`request_rejected`, esim. Anthropic OAuth 403 "Pyyntöä ei sallita" — `open-sse/services/requestRejectedStreak.ts`); yksittäinen hylkäys vain asettaa yhteyden jäähdytystilaan
+- `expired` (siirtyy lopulliseen tilaan rajatun määrän uudelleenyrityksiä jälkeen — `EXPIRED_RETRY_MAX = 3` eksponentiaalisella viiveellä — jotta tilapäiset OAuth-virheet voivat korjaantua itsestään ennen tilin pysyvää deaktivointia)
 - `credits_exhausted`
 
-Nämä säilyvät, kunnes tunnistetiedot muuttuvat tai operaattori nollaa ne. Älä korvaa päättäviä tiloja tilapäisellä jäähyajan tilalla.
+Nämä säilyvät, kunnes tunnistetiedot muuttuvat tai operaattori nollaa ne. Älä korvaa lopullisia tiloja tilapäisellä jäähdytystilalla.
 
-**Laiska palautuminen:** kun `rateLimitedUntil` on menneisyydessä, yhteys voidaan jälleen valita. Onnistuneen käytön jälkeen `clearAccountError()` tyhjentää kaikki virhekentät.
+**Laiska palautuminen:** kun `rateLimitedUntil` on menneisyydessä, yhteys voidaan jälleen valita. Onnistuneen käytön yhteydessä `clearAccountError()` tyhjentää kaikki virhekentät.
 
-### Istuntoaffiniteetti (#7274)
+### Claude OAuthin käyttöraja: alemman prioriteetin kaista + istuntorajan nollaus
 
-**Soveltamisala:** yksi asiakasistunto (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`-otsake), joka on kiinnitetty yhteen yhteyteen **millä tahansa** palveluntarjoajalla.
-
-**Tarkoitus:** pitää monivaiheinen agentti (Claude Code, aider, mukautetut agentit) samalla tilillä pyyntöjen välillä, mikä vähentää kontekstin katoamista tilien välillä ja toistuvia kylmäkäynnistyksen 429-virheitä palveluntarjoajilla, joilla on tilikohtainen istuntotila.
+**Laajuus:** yksi Claude-tilauksen (OAuth) yhteys. Molemmat ominaisuudet ovat **yhteyskohtaisesti valinnaisia**
+(Muokkaa yhteyttä → Claude-osio → `lowPriorityMode` / `autoLimitReset` kohteessa
+`providerSpecificData`, molemmat oletusarvoisesti poissa käytöstä), ja ne vastaavat Claude Coden `/low-priority`- ja
+`/limit-reset`-komentoja (siirtosopimus tallennettu Claude Code 2.1.263:sta).
 
 **Toteutus:**
 
-- TTL:n ratkaisu: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Tilakone + vastausten luokittelu: `open-sse/services/claudeLowPriority.ts`
+- Nollaustilan/-varauksen asiakasohjelma: `open-sse/services/claudeLimitReset.ts`
+- Suorittimen kytkentäkohta (otsakkeen lisäys + uudelleenyritys samalla tilillä): `open-sse/executors/base.ts::execute()`
+- Valinnan pysyvä tallennus: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Laukaisin:** viiden tunnin käyttöraja — `429`, jonka otsakkeissa on
+`anthropic-ratelimit-unified-status: rejected` ja, kun tili on kelvollinen,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Mitään ei lähetetä ennen ensimmäistä käyttörajan
+429-vastausta; 429-ryöppy ilman yhtenäisiä otsakkeita käsitellään normaalin jäähdytyspolun kautta.
+
+**Alemman prioriteetin kaista** (`lowPriorityMode`):
+
+- Käyttörajan 429-vastauksen yhteydessä suoritin hyväksyy tarjouksen ja yrittää välittömästi uudelleen **samalla**
+  tilillä käyttäen otsaketta `anthropic-usage-limit: slow`; kaista pysyy aktiivisena ilmoitettuun
+  `anthropic-ratelimit-unified-reset`-ajankohtaan saakka (+60 s lisäaika), ja jokainen tämän aikaikkunan pyyntö sisältää
+  otsakkeen. Siepattu 429-vastaus ei koskaan saavuta `handleChatCore`-käsittelijää, joten yhteyttä
+  **ei** aseteta jäähdytystilaan eikä vaihdeta pois.
+- Myöhempien vastausten `anthropic-ratelimit-unified-slow-status`: `active` / `not_needed`
+  säilyttävät kaistan; `slot_busy` (429) tai `529` odottavat palvelimen
+  `anthropic-ratelimit-unified-slow-retry-after`-ajan (oletus 20 s, rajaus 5–600 s, ±30 % satunnaisvaihtelu)
+  ja yrittävät uudelleen `anthropic-ratelimit-unified-slow-max-wait`-arvon rajoissa (oletus 20 min, rajaus
+  1 min–6 h) — tämän jälkeen kaista päättyy ja 10 minuutin odotusaika estää tarjouksen hyväksymisen uudelleen. Odotus
+  rajataan lisäksi pyynnön oman ylävirran aloituksen aikakatkaisun jäljellä olevaan aikaan
+  (`resolveFetchStartTimeout`, oletuksena 10 min), josta vähennetään 5 s:n marginaali: ilman tätä rajausta
+  20 minuutin oletusenimmäisodotus jatkuisi pyyntöä pidempään ja lepo keskeytyisi
+  odotuksen aikana, jolloin näkyviin tulisi `TimeoutError` hallitun `max_wait`-päättymisen ja odotusajan sijaan.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, viiden tunnin aikaikkunan vaihtuminen tai
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (joka päättää kaistan tilaan
+  `extra_usage` missä tahansa tilassa, koska maksullinen ylitys kattaa nyt käyttörajan) päättävät kaistan;
+  vastaus siirtyy tämän jälkeen normaaliin jäähdytyspolkuun. `budget_exhausted` muistetaan ilmoitettuun
+  budjetin nollaukseen asti (≤ 8 päivää).
+- Käyttörajan tarkistus suoritetaan suorittimen omien 400-vastauksesta käynnistyvien yrityksen sisäisten uudelleenyritysten jälkeen (kontekstin
+  muokkaus, ajattelun/ponnistuksen rajaukset, parametrien automaattinen oppiminen), joten vain yhden tällaisen uudelleenyrityksen aikana
+  ilmenevä käyttörajan 429-vastaus siepataan edelleen sen sijaan, että se päätyisi jäähdytyspolkuun.
+- Tila säilytetään muistissa yhteyskohtaisesti (uudelleenkäynnistys aiheuttaa yhden ylimääräisen käyttörajan 429-vastauksen ennen uutta hyväksyntää).
+
+**Istuntorajan nollaus** (`autoLimitReset`, kokeillaan ennen kaistaa, kun molemmat ovat käytössä):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`-
+  lohko; kun `arm: "reset"` ja `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` käyttäen
+  `{ "program": "juniper_tide" }` (organisaation UUID kentästä
+  `providerSpecificData.organizationUUID`, alustuksen varavaihtoehto).
+- `result: reset|not_limited` → pyyntöä yritetään uudelleen täydellä nopeudella (ei hidastusotsaketta).
+  `already_used` / `not_offered` tallentavat `next_available_at`-arvon (oletus yksi viikko);
+  mikä tahansa virhe aiheuttaa 15 minuutin viiveen. Nollaus voidaan tehdä kerran viikossa, ja se lasketaan edelleen
+  mukaan viikkorajaan.
+
+Regressiosuojaukset: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### Istuntokohtainen affiniteetti (#7274)
+
+**Laajuus:** yksi asiakasistunto (`X-Session-Id`- / `x-codex-session-id`- / `x-omniroute-session`-otsake), joka on sidottu yhteen yhteyteen **millä tahansa** palveluntarjoajalla.
+
+**Tarkoitus:** pitää monivaiheinen agentti (Claude Code, aider, mukautetut agentit) samalla tilillä pyyntöjen välillä, mikä vähentää tilien välisestä kontekstin menetyksestä aiheutuvia ongelmia ja toistuvia kylmäkäynnistyksen 429-virheitä palveluntarjoajilla, joilla istunnon tila on tilikohtainen.
+
+**Toteutus:**
+
+- TTL:n määritys: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Kiinnityksen valinta/luonti: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - Otsakkeen poiminta (yleinen, mikä tahansa palveluntarjoaja): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Pysyvästi tallennettu kiinnitystaulu: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Asetus: `sessionAffinityTtlMs` (yleinen TTL millisekunteina, `0` poistaa käytöstä) — `src/lib/db/settings.ts`. Nimetty uudelleen vain Codexia koskeneesta `codexSessionAffinityTtlMs`-asetuksesta migraatiossa `124_generic_session_affinity_ttl.sql`, joka siirtää aiemmin määritetyn Codexin TTL-arvon uudeksi oletusarvoksi.
+- Pysyvä kiinnitystaulu: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Asetus: `sessionAffinityTtlMs` (yleinen TTL millisekunteina, `0` poistaa käytöstä) — `src/lib/db/settings.ts`. Nimi muutettiin vain Codexia koskeneesta asetuksesta `codexSessionAffinityTtlMs` migraatiolla `124_generic_session_affinity_ttl.sql`, joka siirtää aiemmin määritetyn Codexin TTL-arvon uudeksi oletusarvoksi.
 
-Ennen muutosta #7274 `resolveSessionAffinityTtlMs()` palautti välittömästi arvon `0` kaikille muille palveluntarjoajille paitsi `codex`, joten TTL-asetuksella (ja istunto-otsakkeilla) ei ollut vaikutusta muualla, vaikka kiinnitysmekanismi ja otsakkeiden poiminta olivat jo palveluntarjoajasta riippumattomia. Korjaus poisti tämän aikaisen palautuksen; TTL koskee nyt yhdenmukaisesti kaikkia palveluntarjoajia, kun sen yleiseksi arvoksi on asetettu yli `0`.
+Ennen muutosta #7274 `resolveSessionAffinityTtlMs()` palautti välittömästi arvon `0` kaikille muille palveluntarjoajille paitsi `codex`, joten TTL-asetuksella (ja istunto-otsakkeilla) ei ollut vaikutusta muualla, vaikka kiinnitysmekanismi ja otsakkeiden poiminta olivat jo palveluntarjoajasta riippumattomia. Korjaus poisti tämän aikaisen palautuksen; TTL koskee nyt yhdenmukaisesti kaikkia palveluntarjoajia, kun sen yleiseksi arvoksi on asetettu enemmän kuin `0`.
 
-Kolmea istuntoaffiniteetin otsaketta ei koskaan välitetä ylävirtaan — suorittimet muodostavat omat ylävirran otsakkeensa alusta alkaen sen sijaan, että ne välittäisivät asiakkaan otsakkeet, joten arvo säilyy vain sisäisenä korrelaatiotunnisteena.
+Kolmea istunnon affiniteettiotsaketta ei koskaan välitetä eteenpäin ylävirtaan — suorittimet muodostavat omat ylävirran otsakkeensa alusta alkaen sen sijaan, että ne välittäisivät asiakkaan otsakkeet, joten tunniste säilyy vain sisäisenä korrelaatiotunnuksena.
 
-### Hallittujen istuntoyhteyksien yksinomaiset vuokrasopimukset
+### Hallittujen istuntoyhteyksien yksinomaiset vuokraukset
 
-**Soveltamisala:** yksi aktiivinen hallittu HTTP-asiakasohjelma/-istunto omistaa yhden valintakelpoisen OmniRoute-yhteyden.
+**Soveltamisala:** yksi aktiivinen hallittu HTTP-asiakas tai -istunto omistaa yhden kelvollisen OmniRoute-yhteyden.
 
-**Tarkoitus:** tarjota pysyvä yksinomainen yhteyden omistajuus asiakkaille, jotka tarvitsevat pyyntöjen välille ehdottoman reititysrajan. Tämä eroaa istuntoaffiniteetista, joka on pehmeä jatkuvuuspreferenssi: yksinomainen vuokrasopimus säilyttää elinkaaren tilan SQLitessä, valvoo aktiivisen omistajan ja aktiivisen yhteyden yleistä yksikäsitteisyyttä sekä hylkää vanhentuneen sukupolven ennen pyynnön välittämistä palveluntarjoajalle.
+**Tarkoitus:** tarjota pysyvä ja yksinomainen yhteyden omistajuus asiakkaille, jotka tarvitsevat tiukan reititysrajan
+pyyntöjen välillä. Tämä eroaa istunnon affiniteetista, joka on pehmeä jatkuvuuspreferenssi:
+yksinomainen vuokraus säilyttää elinkaaren tilan SQLitessä, varmistaa aktiivisen omistajan ja
+aktiivisen yhteyden maailmanlaajuisen yksilöllisyyden sekä hylkää vanhentuneen sukupolven ennen palveluntarjoajalle välittämistä.
 
-Ominaisuus otetaan käyttöön erikseen kullekin API-avaimelle. Hallitulla avaimella on oltava käyttöalue `lease:exclusive` ja eksplisiittinen, ei-tyhjä `allowedConnections`-luettelo. Mikä tahansa HTTP-asiakasohjelma voi käyttää elinkaaripäätepistettä; asiakkaan nimeä, user-agentia, palveluntarjoajaa, OAuth-menetelmää tai mallia ei vaadita. Vuokrasopimus omistaa yhteyden, ei mallia, joten mallin vaihtaminen säilyttää sidoksen niin kauan kuin yhteys on tavanomaisten sääntöjen mukaan valintakelpoinen. Tavalliset mallia, kiintiötä, kuntoa, jäähyaikaa ja sallittujen kohteiden luetteloa koskevat säännöt pysyvät määräävinä ja voivat siirtää saman sukupolven toiseen vapaaseen, valintakelpoiseen yhteyteen.
+Ominaisuus otetaan käyttöön erikseen kullekin API-avaimelle. Hallitulla avaimella on oltava `lease:exclusive`-käyttöalue ja
+eksplisiittinen, ei-tyhjä `allowedConnections`-luettelo. Mikä tahansa HTTP-asiakas voi käyttää elinkaaripäätepistettä;
+asiakkaan nimeä, user-agent-arvoa, palveluntarjoajaa, OAuth-menetelmää tai mallia ei vaadita. Vuokraus omistaa yhteyden,
+ei mallia, joten mallin vaihtaminen säilyttää sidoksen niin kauan kuin yhteys pysyy tavanomaisesti
+kelvollisena. Tavanomaiset mallia, kiintiötä, toimintakuntoa, jäähtymisaikaa ja sallittujen kohteiden luetteloa koskevat säännöt pysyvät määräävinä ja voivat
+siirtää saman sukupolven toiseen vapaaseen, kelvolliseen yhteyteen.
 
-Elinkaaripäätepiste on `POST /api/v1/session-leases`, ja sen JSON-toiminnot ovat `acquire`, `renew` ja `release`. Hallitut päättelypyynnöt esittävät läpinäkymättömän `X-OmniRoute-Lease-Owner`-arvon ja täsmällisen `X-OmniRoute-Lease-Generation`-arvon. Omistaja käyttää etuliitettä `vlo_`, jota seuraa 43 base64url-merkkiä; vain sen SHA-256-tiiviste tallennetaan. Jokainen lopullinen välitysraja sitoo myös todennetun API-avaimen tunnuksen ja aktiivisen yhteyden tunnuksen. Vuokrasopimuksen hallintaotsakkeet poistetaan lokeista, säilytetyistä pyyntötilannevedoksista ja ylävirran suorittimien otsakkeista.
+Elinkaaripäätepiste on `POST /api/v1/session-leases`, ja sen JSON-toiminnot ovat `acquire`, `renew` ja `release`.
+Hallitut päättelypyynnöt välittävät läpinäkymättömän `X-OmniRoute-Lease-Owner`-arvon ja täsmällisen
+`X-OmniRoute-Lease-Generation`-arvon. Omistajatunnus alkaa merkkijonolla `vlo_`, jota seuraa 43 base64url-merkkiä; vain
+sen SHA-256-tiiviste tallennetaan. Jokainen lopullinen välitysraja sitoo myös todennetun API-avaimen tunnuksen ja
+aktiivisen yhteyden tunnuksen. Vuokrauksen hallintaotsakkeet poistetaan lokeista, säilytetyistä pyyntövedoksista ja
+ylävirran suorittimien otsakkeista.
 
-Jos tavallisessa reitityksessä on valintakelpoisia hallittuja ehdokkaita, mutta jokainen vapaa ehdokas on ulkopuolisen aktiivisen vuokrasopimuksen varaama, OmniRoute palauttaa HTTP-tilan `429`, koodin lease-capacity-unavailable, kapasiteetin odotustilan sekä rajatun `Retry-After`-arvon, joka johdetaan aikaisimmasta asiaankuuluvasta vanhenemisajasta. Tavallinen tyhjä valintakelpoisten yhteyksien joukko ei ole vuokrasopimusristiriita, joten se säilyttää nykyisen reititysvirhesemantiikkansa.
+Jos tavallisessa reitityksessä on kelvollisia hallittuja ehdokkaita mutta jokainen vapaa ehdokas on
+vieraan aktiivisen vuokrauksen varaama, OmniRoute palauttaa HTTP-tilan `429`, koodin lease-capacity-unavailable,
+kapasiteetin odotustilan ja rajatun `Retry-After`-arvon, joka johdetaan aikaisimmasta asiaankuuluvasta vanhentumisajasta.
+Tavallinen tyhjä kelpoisuusjoukko ei ole vuokrauskiista, vaan säilyttää nykyisen reititysvirhesemantiikkansa.
 
-Liittyvät mekanismit pysyvät erillisinä:
+Aiheeseen liittyvät mekanismit pysyvät erillisinä:
 
-- OAuth-istuntojen varaus on prosessikohtaista pehmeää kuormanjakoa OAuth-tileille.
-- Tilisemaforit myöntävät pyyntöjen rinnakkaisuuslupia, jotka päättyvät pyynnön valmistuessa.
-- Hallittujen istuntojen yksinomaiset vuokrasopimukset tarjoavat pysyvän elinkaaren aikaisen omistajuuden sukupolvirajalla.
+- OAuth-istunnon käyttöaste on prosessikohtaista pehmeää kuormanjakoa OAuth-tileille.
+- Tilikohtaiset semaforit myöntävät pyyntöjen samanaikaisuusluvat ja päättyvät pyynnön valmistuessa.
+- Hallittujen istuntoyhteyksien yksinomaiset vuokraukset tarjoavat pysyvän elinkaaren omistajuuden sukupolvirajalla.
 
 ---
 
@@ -270,47 +346,81 @@ nopeusrajoituksen. Toimintaa rajoittaa **Asetukset → Häiriönsietokyky** -koh
 
 ---
 
-## 5. Pyyntöjonon sisäänoton hallinta (v3.8.49 · ongelma #6593)
+## 5. Pyyntöjonon sisäänpääsyn hallinta (v3.8.49 · issue #6593)
 
-**Soveltamisala**: paikallinen palveluntarjoaja- ja yhteyskohtainen nopeusrajoitusjono (`open-sse/services/rateLimitManager.ts`,
-jonka taustalla toimii Bottleneck), yhtä tasoa alempana kuin edellä kuvatut kolme mekanismia.
+**Laajuus**: paikallinen palveluntarjoaja- ja yhteyskohtainen nopeusrajoitusjono (`open-sse/services/rateLimitManager.ts`,
+jonka taustalla toimii Bottleneck), yksi taso yllä mainittujen kolmen mekanismin alapuolella.
 
-**`maxWaitMs` on vanha pysyvästi tallennettu nimi suorituksen vanhenemiselle.**
-`resilienceSettings.requestQueue.maxWaitMs` välitetään Bottleneckille työn
-`expiration`-arvona, jonka ajastin käynnistyy vasta välityksen jälkeen. Näin ollen se rajoittaa
-rajoittimen hallitsemaa suoritusta, ei paikallisessa jonossa vietettyä aikaa. Vanheneminen
-ilmoitetaan luotettuna paikallisena `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` -virheenä (HTTP 504);
-aiempi jonon aikakatkaisun koodinimi hyväksytään vain luotetun sisäisen
-taaksepäin yhteensopivuuden vuoksi. Oletusarvo on 15000ms; sen voi ohittaa
-`RATE_LIMIT_MAX_WAIT_MS`-ympäristömuuttujalla tai hallintapaneelissa (**Asetukset → Häiriönsietokyky**,
-käyttöliittymän raja 1–30000ms). Jonossa oloajalla ei ole aikarajaa; rajoita
-jonossa olevien kutsujien määrää alla kuvatulla `maxQueueDepth`-asetuksella.
+**`maxWaitMs` rajaa jonotusajan; `executionMaxWaitMs` rajaa suorituksen.**
+Nämä kaksi on tarkoituksella erotettu toisistaan, eikä kumpikaan vaikuta toiseen.
 
-**`maxQueueDepth` — erikseen käyttöön otettava sisäänoton yläraja (uusi).** `resilienceSettings.requestQueue.maxQueueDepth`
-rajoittaa, kuinka monta pyyntöä voi odottaa jonossa (ei vielä välitettynä) yhtä
-palveluntarjoaja- ja yhteysyhdistelmää kohden samanaikaisesti. Kun jonossa on jo `maxQueueDepth`
-pyyntöä, uusi pyyntö hylätään välittömästi tyypitetyllä
-`code: "RATE_LIMIT_QUEUE_FULL"` -virheellä **ennen** kuin se koskaan saavuttaa `limiter.schedule()`-kutsun
-— hylkäys on siten kevyt ja tapahtuu ennen pyynnön myöhempää
-kehotteen pakkaus- tai käännöstyötä. Oletusarvo `0` =
-pois käytöstä, mikä säilyttää nykyisen rajoittamattoman jonon toiminnan; sallittu alue on 0–100000.
-Arvon voi ohittaa `RATE_LIMIT_MAX_QUEUE_DEPTH`-ympäristömuuttujalla tai
-`resilienceSettings.requestQueue.maxQueueDepth`-asetuksella (hallintapaneeli/API-päivitys).
+`resilienceSettings.requestQueue.maxWaitMs` on **jonotusajan budjetti**: se
+kattaa palveluntarjoajan vapaan paikan odottamisen ja sen jälkeisen QUEUED-tilassa
+olemisen, ja sen ajastin tyhjennetään heti, kun työ poistuu QUEUED-tilasta ja
+alkaa suorittua (`rateLimitManager.ts`, `wrappedFn`). Sen ylittävä pyyntö ei
+koskaan saavuta ylävirran palvelua. Oletusarvo on 30000ms, ja sen antaa
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` tiedostossa
+`src/lib/resilience/settings.ts`. Arvo on lukittu testillä
+`tests/unit/ratelimit-admission-control-6593.test.ts`, joten sen muuttaminen
+rikkoo testin sen sijaan, että tämä kappale jäisi huomaamatta vanhentuneeksi.
 
-Sisäänottotarkistus itsessään on puhdas funktio
+`resilienceSettings.requestQueue.executionMaxWaitMs` on arvo, jonka Bottleneck
+saa työn `expiration`-arvoksi ja jonka ajastin käynnistyy vasta lähettämisen
+jälkeen. Se toimii varmistuksena suorittajille, joilla ei ole omaa ylävirran
+aikakatkaisua, ja se nostetaan suorittajan oman noudon aloituksen aikakatkaisun
+tasolle, jos tämä on pidempi, joten se ei voi katkaista toimivaa, parhaillaan
+käsiteltävää vastausta. Oletusarvo on 600000ms (10 min).
+
+Jonotusbudjetin syöttäminen `expiration`-arvoksi aiheutti aiemmin sen, että
+ei-inkrementaaliset yhdyskäytävät keskeytyivät kesken suorituksen — ne voivat
+perustellusti toimia useita minuutteja ennen ensimmäisiä tavuja — ja tämän
+vuoksi vanheneminen ilmoitetaan muodossa `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), kun taas jonotusbudjetti käyttää
+jonon aikakatkaisukoodia. Ohita kumpi tahansa ympäristömuuttujalla
+`RATE_LIMIT_MAX_WAIT_MS` / `RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) tai
+hallintapaneelista (**Settings → Resilience**). Molemmat rajataan välille
+1ms–24h normalisoinnin yhteydessä.
+
+**Prioriteettijärjestys kummallekin:** ympäristömuuttuja määrittää vain
+_oletusarvon_. Kohteeseen `resilienceSettings.requestQueue` tallennettu arvo
+(hallintapaneelin / API-korjauksen kautta, tallennettuna kohteeseen `key_value`)
+ohittaa sen, ja yhteyskohtainen `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` ohittaa tämänkin. Ympäristömuuttujan asettaminen
+käyttöönotossa, jossa on jo tallennettu arvo, ei siis muuta mitään — tyhjennä
+tai päivitä tallennettu asetus sen sijaan.
+
+Jonossa oloa rajaa `maxWaitMs`; alla kuvattu `maxQueueDepth` rajaa sen, kuinka
+monta kutsujaa voi olla jonossa samanaikaisesti.
+
+**`maxQueueDepth` — valinnainen sisäänpääsyraja (uusi).** `resilienceSettings.requestQueue.maxQueueDepth`
+rajaa, kuinka monta pyyntöä voi olla samanaikaisesti jonossa (ei vielä
+lähetettynä) yhdelle palveluntarjoaja- ja yhteysyhdistelmälle. Kun jonossa on
+jo `maxQueueDepth` pyyntöä, uusi pyyntö hylätään välittömästi tyypitetyllä
+`code: "RATE_LIMIT_QUEUE_FULL"` -virheellä **ennen** kuin se koskaan saavuttaa
+kutsun `limiter.schedule()` — hylkäys on siis kevyt ja tapahtuu ennen pyynnölle
+tehtävää myöhempää kehotteen pakkaus- tai käännöstyötä. Oletusarvo `0` =
+pois käytöstä, mikä säilyttää nykyisen rajoittamattoman jonon toiminnan;
+sallittu väli on 0–100000. Ohita ympäristömuuttujalla
+`RATE_LIMIT_MAX_QUEUE_DEPTH` (env) tai asetuksella
+`resilienceSettings.requestQueue.maxQueueDepth` (hallintapaneeli/API-korjaus).
+
+Sisäänpääsyn tarkistus on itsessään puhdas funktio
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), joten
 sitä voidaan yksikkötestata ilman todellista Bottleneck-rajoitinta.
 
-> Ongelman #6593 avannut RFC ehdotti myös `bypassCompressionOnRateLimit`-asetusta.
-> Tämän repositorion `open-sse/services/compression/`-putki suorittaa
-> kehotteen/kontekstin pakkauksen ulospäin lähtevälle LLM-pyynnölle (`chatCore.ts`,
+> RFC, jolla #6593 avattiin, ehdotti myös `bypassCompressionOnRateLimit`-
+> lippua. Tämän repositorion `open-sse/services/compression/`-putki tekee
+> lähtevän LLM-pyynnön kehotteen/kontekstin pakkausta (`chatCore.ts`,
 > `resolveCompressionSettings`/`selectCompressionStrategy`-lohkon ympärillä),
-> eikä HTTP-vastauksen pakkausta muodostetuille 429-vastausrungoille — kirjaimellista ohitusasetusta vastaavaa
-> koodipolkua ei ole. Tämä kehotteen pakkausvaihe suoritetaan lisäksi tällä hetkellä
-> _ennen_ `withRateLimit()`-kutsua pyyntöputkessa, joten toimintojen uudelleenjärjestely sen ohittamiseksi
-> jonon täyttymisestä johtuvan hylkäyksen yhteydessä on erillinen ja tätä ongelmaa laajempi
-> muutos; sitä **ei** tarkoituksellisesti toteutettu tässä, vaan se jätettiin jatkotoimeksi, mikäli
-> suorittimen käytön vähenemisestä saatava hyöty on uudelleenjärjestelyn riskin arvoinen.
+> ei syntetisoitujen 429-vastausten HTTP-vastauspakkausta — kirjaimelliselle
+> ohituslipulle ei ole vastaavaa koodipolkua. Tämä kehotteen pakkausvaihe
+> suoritetaan myös tällä hetkellä _ennen_ `withRateLimit()`-kutsua
+> pyyntöputkessa, joten sen järjestyksen muuttaminen siten, että vaihe
+> ohitettaisiin jonon täyttymisestä johtuvan hylkäyksen yhteydessä, on tämän
+> issuen laajuutta erillinen ja suurempi muutos; sitä **ei** tarkoituksella
+> toteutettu tässä, vaan se jätettiin jatkotoimeksi siltä varalta, että
+> suorittimen käytön säästö on järjestyksen muuttamiseen liittyvän riskin
+> arvoinen.
 
 ---
 

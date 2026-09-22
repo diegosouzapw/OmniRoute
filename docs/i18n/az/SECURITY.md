@@ -222,34 +222,38 @@ Bu qaydaların icrası alətlər və yoxlayan şəxslər tərəfindən təmin ed
 
 ## Təchizat zənciri skanerinin aşkarlamaları (Socket.dev / Snyk / oxşarları)
 
+> **Əhatə dairəsi qeydi:** Repozitoriyanın kökündəki `socket.yml` yalnız dərc edilmiş npm artefaktının Socket.dev registri tərəfində dərcdən sonra skan edilməsi üçün `projectIgnorePaths` parametrini formalaşdırır — bu, məcburi CI/PR birləşdirmə keçidi deyil. `.github/workflows` daxilində heç bir iş axını, heç bir `package.json` skripti və heç bir `Makefile` hədəfi Socket.dev-i çağırmır.
+
 Dərc edilmiş `omniroute` npm artefaktı Next.js `output: "standalone"`
-yığımını paketə daxil edir; bu isə sənədləşdirilmiş imtiyazlı
-funksiyalar (MITM, Zed idxalı, Cloud Sync, daxili xidmət nəzarətçisi) daxil olmaqla hər bir marşrut emalçısının
-`.next/server/*.js` daxilindəki minifikasiya edilmiş hissələrə düşməsi deməkdir. Evristik təchizat zənciri skanerləri
-tez-tez həmin hissələri zərərli proqram imzaları ilə nümunə uyğunlaşdırması vasitəsilə müqayisə edir.
+quruluşunu paketləyir; bu isə sənədləşdirilmiş imtiyazlı
+funksiyalar (MITM, Zed idxalı, Cloud Sync, daxili xidmət nəzarətçisi) daxil olmaqla
+hər bir marşrut emalçısının `.next/server/*.js` minimallaşdırılmış fraqmentlərinə
+düşməsi deməkdir. Evristik təchizat zənciri skanerləri tez-tez həmin fraqmentləri
+zərərli proqram imzaları ilə nümunə uyğunlaşdırması vasitəsilə müqayisə edir.
 
 İstifadə etdiyimiz skaner konfiqurasiyası repozitoriyanın kökündəki
 [`socket.yml`](socket.yml) faylında yerləşir (Socket.dev GitHub App formatı v2 — baxın:
-<https://docs.socket.dev/docs/socket-yml>). O, göndərilməyən
-qovluqları (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` və s.) açıq şəkildə istisna edir ki, skaner yalnız
-faktiki olaraq dərc edilmiş istifadəçilərə çatan kod yolları barədə məlumat versin — skanın özü bu repozitoriyadakı
-iş axını ilə deyil, həmin faylı oxuyan Socket
-GitHub App tərəfindən həyata keçirilir.
+<https://docs.socket.dev/docs/socket-yml>). O, skanerin yalnız faktiki olaraq
+dərc edilmiş istifadəçilərə çatan kod yolları barədə hesabat verməsi üçün
+göndərilməyən qovluqları (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` və s.) açıq şəkildə istisna edir — skanın özü bu
+repozitoriyadakı iş axını tərəfindən deyil, həmin faylı oxuyan Socket
+GitHub App tərəfindən başladılır.
 
-Hər bir aşkarlama kateqoriyası üçün ayrı-ayrı aşkarlamalara dair müşayiətçi təsdiqini saxlayırıq:
+Hər bir aşkarlama kateqoriyası üçün ayrıca texniki xidmətçi təsdiqi saxlayırıq:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  ayrı-ayrı aşkarlamaların xəritəsi: mənbə faylı ↔ işarələnmiş hissə ↔ davranış ↔ v3.8.6 versiyasında
-  tətbiq edilmiş risk azaltma tədbiri.
-- Hər bir işarələnmiş funksiyadakı mənbədaxili `SECURITY-AUDITOR-NOTE:` blokları
+  hər aşkarlama üzrə xəritə: mənbə faylı ↔ işarələnmiş fraqment ↔ davranış ↔ v3.8.6-da
+  tətbiq edilmiş zəiflətmə tədbiri.
+- Hər işarələnmiş funksiyadakı mənbədaxili `SECURITY-AUDITOR-NOTE:` blokları
   eyni sənədə istinad edir.
 
 Konveyeri xəbərdarlığı yumşalda bilməyən istifadəçilər üçün:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ilə yığın. Bu, dörd
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ilə qurun. Bu, dörd
 həssas modulu icra zamanı HTTP 503 `feature-disabled` qaytaran
-stub-larla əvəz edir; beləliklə, imtiyazlı kod yolları paketdə fiziki olaraq mövcud olmur.
-Dərcetmə təlimatları üçün [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+stub-larla əvəz edir, beləliklə imtiyazlı kod yolları paketdə fiziki olaraq mövcud olmur.
+Dərcetmə təlimatı üçün
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 sənədinə baxın.
 
 ## İstinadlar

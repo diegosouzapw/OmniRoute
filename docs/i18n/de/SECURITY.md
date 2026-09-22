@@ -222,34 +222,19 @@ Diese Regeln werden durch Werkzeuge und Reviewer durchgesetzt:
 
 ## Ergebnisse von Supply-Chain-Scannern (Socket.dev / Snyk / ähnliche)
 
-Das veröffentlichte npm-Artefakt `omniroute` enthält den Next.js-Build mit `output: "standalone"`.
-Das bedeutet, dass jeder Route-Handler — einschließlich dokumentierter privilegierter
-Funktionen (MITM, Zed-Import, Cloud Sync, eingebetteter Service-Supervisor) — in
-minifizierten Chunks unter `.next/server/*.js` landet. Heuristische Supply-Chain-Scanner
-gleichen diese Chunks häufig mit Malware-Signaturen ab.
+> **Hinweis zum Geltungsbereich:** `socket.yml` im Repository-Stammverzeichnis legt lediglich `projectIgnorePaths` für den Registry-seitigen Post-Publish-Scan des veröffentlichten npm-Artefakts durch Socket.dev fest — sie ist kein erzwungenes CI-/PR-Merge-Gate. Weder ein Workflow in `.github/workflows` noch ein `package.json`-Skript oder ein `Makefile`-Target ruft Socket.dev auf.
 
-Die von uns verwendete Scanner-Konfiguration befindet sich in [`socket.yml`](socket.yml) im
-Root-Verzeichnis des Repositorys (Socket.dev-GitHub-App-Format v2 — siehe
-<https://docs.socket.dev/docs/socket-yml>). Sie schließt
-nicht ausgelieferte Verzeichnisse (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` usw.) ausdrücklich aus, sodass der Scanner nur Codepfade meldet, die
-tatsächlich veröffentlichte Benutzer erreichen — der Scan selbst wird dadurch ausgelöst,
-dass die Socket-GitHub-App diese Datei liest, und nicht durch einen Workflow in diesem Repository.
+Das veröffentlichte npm-Artefakt `omniroute` enthält den Next.js-Build mit `output: "standalone"`. Das bedeutet, dass jeder Route-Handler — einschließlich dokumentierter privilegierter Funktionen (MITM, Zed-Import, Cloud Sync, eingebetteter Service-Supervisor) — in minimierten Chunks unter `.next/server/*.js` landet. Heuristische Supply-Chain-Scanner gleichen diese Chunks häufig anhand von Mustern mit Malware-Signaturen ab.
 
-Für jede Ergebniskategorie pflegen wir eine Maintainer-Bestätigung pro Einzelfund:
+Die von uns verwendete Scanner-Konfiguration befindet sich in [`socket.yml`](socket.yml) im Repository-Stammverzeichnis (Socket.dev-GitHub-App-Format v2 — siehe <https://docs.socket.dev/docs/socket-yml>). Sie schließt nicht ausgelieferte Verzeichnisse (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` usw.) explizit aus, sodass der Scanner nur Codepfade meldet, die tatsächlich veröffentlichte Benutzer erreichen — der Scan selbst wird dadurch angestoßen, dass die Socket-GitHub-App diese Datei liest, und nicht durch einen Workflow in diesem Repository.
+
+Für jede Ergebniskategorie pflegen wir eine individuelle Bestätigung durch die Maintainer:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  Zuordnung pro Einzelfund: Quelldatei ↔ markierter Chunk ↔ Verhalten ↔ in v3.8.6
-  angewandte Abhilfemaßnahme.
-- `SECURITY-AUDITOR-NOTE:`-Blöcke im Quellcode verweisen an jeder markierten Funktion
-  auf dasselbe Dokument.
+  Zuordnung pro Ergebnis: Quelldatei ↔ markierter Chunk ↔ Verhalten ↔ in v3.8.6 angewandte Abhilfemaßnahme.
+- `SECURITY-AUDITOR-NOTE:`-Blöcke im Quellcode an jeder markierten Funktion verweisen auf dasselbe Dokument.
 
-Für Benutzer, deren Pipeline die Warnung nicht lockern kann: Erstellen Sie den Build mit
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dadurch werden die vier
-sensiblen Module durch Stubs ersetzt, die zur Laufzeit HTTP 503 `feature-disabled`
-zurückgeben, sodass die privilegierten Codepfade physisch nicht im Bundle enthalten sind.
-Das Veröffentlichungsverfahren finden Sie unter
-[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+Benutzer, deren Pipeline die Warnmeldung nicht lockern kann, können den Build mit `OMNIROUTE_BUILD_PROFILE=minimal npm run build` erstellen. Dadurch werden die vier sensiblen Module durch Stubs ersetzt, die zur Laufzeit HTTP 503 `feature-disabled` zurückgeben, sodass die privilegierten Codepfade physisch nicht im Bundle enthalten sind. Das Veröffentlichungsrezept finden Sie unter [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Referenzen
 

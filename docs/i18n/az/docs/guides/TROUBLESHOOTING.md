@@ -68,16 +68,24 @@ Bunları OmniRoute prosesinin mühitində (demon prosesində, məsələn, Launch
 
 ## npm install Xəbərdarlıqları (ERESOLVE / peer / deprecated)
 
-`npm install -g omniroute` əmrini işlətdikdə `npm warn ERESOLVE`, peer-asılılıq bildirişləri və `deprecated` mesajlarından ibarət çoxlu sayda xəbərdarlıq görə bilərsiniz. **Bunlar gözləniləndir və zərərsizdir.** Çıxışda `added <N> packages` görürsünüzsə, quraşdırma uğurla tamamlanıb.
+`npm install -g omniroute` əmrini icra etdikdə `npm warn ERESOLVE`, peer-asılılıq bildirişləri və `deprecated` mesajları kimi çoxsaylı xəbərdarlıqlar görə bilərsiniz. **Bunlar gözləniləndir və zərərsizdir.** Çıxışda `added <N> packages` görürsünüzsə, quraşdırma uğurla başa çatıb.
+
+Peer-asılılıqların həlli ilə bağlı xəbərdarlıqları gizlətmək üçün OmniRoute tərəfindən dəstəklənən aşağıdakı quraşdırma formasından istifadə edin:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` yalnız `ERESOLVE` və peer-asılılıq bildirişlərini gizlədir. Köhnəlmə bildirişləri tranzitiv üçüncü tərəf paketlərindən gəldiyi üçün görünməyə davam edir; onlar quraşdırmanın uğursuz olduğunu göstərmir.
 
 Xəbərdarlıqlar OmniRoute-un nəzarət etmədiyi üçüncü tərəf paketlərindəki köhnəlmiş peer-asılılıq diapazonlarından qaynaqlanır:
 
-1. **`marked-terminal` paketi `marked >=1 <16` tələb edir, lakin `marked@18` tapılıb** — praktikada problemsiz işləyir; upstream peer diapazonu sadəcə köhnəlib.
-2. **`deprecated prebuild-install@7.1.3`** — tranzitiv yerli binar fayl əldəetmə köməkçisidir. O, sabitlənmiş `wreq-js` nəqliyyat bağlantısını quraşdırmaq üçün
-   istifadə edilmir və veb kuki provayderinin nəqliyyat konfiqurasiyasının uğursuz olduğunu
-   göstərmir.
+1. **`marked-terminal` üçün `marked >=1 <16` tələb olunur, lakin `marked@18` tapılıb** — praktikada problemsiz işləyir; upstream peer diapazonu sadəcə köhnəlib.
+2. **`deprecated prebuild-install@7.1.3`** — tranzitiv yerli binar fayl əldəetmə köməkçisidir. O,
+   sabitlənmiş `wreq-js` nəqliyyat bağlantısını quraşdırmaq üçün istifadə edilmir və web-cookie
+   provayderinin nəqliyyat konfiqurasiyasının uğursuz olduğunu göstərmir.
 
-**Heç bir tədbir tələb olunmur** — upstream paketləri fork etmədən xəbərdarlıqları tamamilə susdurmaq mümkün deyil.
+**Heç bir tədbir tələb olunmur** — upstream paketləri fork etmədən xəbərdarlıqları tamamilə gizlətmək mümkün deyil.
 
 ---
 

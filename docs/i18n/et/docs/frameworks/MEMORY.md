@@ -166,29 +166,33 @@ Tabel `memory_vec_meta` (migratsioon `083_memory_vec.sql`) talletab:
 
 ## Seadete laiendus
 
-Failis `src/shared/schemas/memory.ts` oleva `MemorySettingsExtended` jaoks on saadaval üheksa manustus- ja vektorvälja, mis salvestatakse faili `src/lib/db/settings.ts` kaudu:
+Üheksa põimendus- ja vektorvälja on saadaval liideses `MemorySettingsExtended` failis
+`src/shared/schemas/memory.ts` ning need salvestatakse faili `src/lib/db/settings.ts` kaudu:
 
-| Väli                     | Tüüp                                               | Vaikeväärtus | Kirjeldus                                                       |
-| ------------------------ | -------------------------------------------------- | ------------ | --------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`     | Kasutatav manustamisallikas                                     |
-| `embeddingProviderModel` | `string \| null`                                   | `null`       | Pakkuja/mudel vormingus `provider/model`                        |
-| `customBaseUrl`          | `string \| null`                                   | `null`       | Ainult mälu jaoks mõeldud OpenAI-ga ühilduva otspunkti baas-URL |
-| `customModelId`          | `string \| null`                                   | `null`       | Kohandatud otspunktile saadetav mudeli ID                       |
-| `transformersEnabled`    | `boolean`                                          | `false`      | Transformers.js-i lubamine (MiniLM, ~400MB)                     |
-| `staticEnabled`          | `boolean`                                          | `false`      | Staatilise kohaliku mudeli potion-base-8M lubamine              |
-| `rerankEnabled`          | `boolean`                                          | `false`      | Ümberjärjestamise etapi lubamine (lisab +200-500ms/päring)      |
-| `rerankProviderModel`    | `string \| null`                                   | `null`       | Ümberjärjestamise pakkuja/mudel vormingus `provider/model`      |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`     | Kasutatav vektortaustsüsteem                                    |
+| Väli                     | Tüüp                                               | Vaikeväärtus | Kirjeldus                                                         |
+| ------------------------ | -------------------------------------------------- | ------------ | ----------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`     | Kasutatav põimendusallikas                                        |
+| `embeddingProviderModel` | `string \| null`                                   | `null`       | Pakkuja/mudel vormingus `provider/model`                          |
+| `customBaseUrl`          | `string \| null`                                   | `null`       | Ainult Memory jaoks mõeldud OpenAI-ga ühilduva otspunkti baas-URL |
+| `customModelId`          | `string \| null`                                   | `null`       | Kohandatud otspunktile saadetav mudeli ID                         |
+| `transformersEnabled`    | `boolean`                                          | `false`      | Transformers.js-i kasutamise lubamine (MiniLM, ~400MB)            |
+| `staticEnabled`          | `boolean`                                          | `false`      | Staatilise kohaliku mudeli potion-base-8M kasutamise lubamine     |
+| `rerankEnabled`          | `boolean`                                          | `false`      | Ümberjärjestamise etapi lubamine (lisab +200-500ms/päring)        |
+| `rerankProviderModel`    | `string \| null`                                   | `null`       | Ümberjärjestamise pakkuja/mudel vormingus `provider/model`        |
 
-Need on saadaval `GET /PUT /api/settings/memory` kaudu (skeem `MemorySettingsExtendedSchema`).
+`rerankProviderModel` lahendatakse marsruudi `POST /v1/rerank` kaudu (kutsutakse loopback-liidese kaudu), seega aktsepteerib see kõike, mida vastav marsruut aktsepteerib: kureeritud pilvepõhist ümberjärjestusmudelit (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) või OpenAI-ga ühilduva pakkuja sõlme kujul `<node-prefix>/<model>` (nt `skilled-mini/bge-reranker-v2-m3` TEI/Infinity serveri puhul). Loopback-sõlmed on alati sobilikud; teises hostis (LAN, Tailscale) asuv sõlm nõuab lisaks funktsioonilippu `RERANK_REMOTE_PROVIDER_NODES` ja peab vastama pakkuja väljaminevate URL-ide poliitikale — vt [Funktsioonilipud](../reference/FEATURE_FLAGS.md). Töölaua valik kuvab kureeritud pakkujad ja kohalikud sõlmed; mis tahes kehtiva `provider/model` stringi saab määrata otse marsruudi `PUT /api/settings/memory` kaudu.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Kasutatav vektorsalvestuse taustsüsteem |
+
+Need väljad on kättesaadavad marsruudi `GET /PUT /api/settings/memory` kaudu (skeem `MemorySettingsExtendedSchema`).
 
 Allika `remote` puhul aktsepteerib Memory ka valikulisi seadeid `customBaseUrl` ja
-`customModelId`. Koos valivad need OpenAI-ga ühilduva `/embeddings`
-otspunkti ja mudeli ilma globaalset manustusregistrit muutmata. Otspunkt
-normaliseeritakse enne kasutamist ja seda kontrollitakse pakkuja väljaminevate URL-ide reeglistiku alusel: nõutav on
-HTTP(S), manustatud identimisteave ja päringustringid lükatakse tagasi ning pilve metaandmete
-aadressid jäävad blokeerituks. Tühjad väärtused säilitavad valitud registripakkuja. Töölauale
-tagastatavad vead puhastatakse ning otspunkti identimisteavet ei logita kunagi.
+`customModelId`. Koos valivad need OpenAI-ga ühilduva `/embeddings`-otspunkti ja
+mudeli ilma globaalset põimendusregistrit muutmata. Otspunkt normaliseeritakse enne
+kasutamist ja seda kontrollitakse pakkuja väljaminevate URL-ide poliitika alusel: nõutav
+on HTTP(S), manustatud autentimisandmed ja päringustringid lükatakse tagasi ning
+pilvkeskkonna metaandmete aadressid jäävad blokeerituks. Tühjad väärtused säilitavad
+valitud registripakkuja. Töölauale tagastatavad vead puhastatakse ja otspunkti
+autentimisandmeid ei logita kunagi.
 
 > **TODO (D20):** Ulatus `global` (mälestuste jagamine kõigi API-võtmete vahel) ei ole
 > selles versioonis rakendatud. See nõuab skeemimuudatusi ja globaalset otsinguteed.

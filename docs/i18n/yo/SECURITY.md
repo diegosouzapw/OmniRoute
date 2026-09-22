@@ -220,37 +220,38 @@ docker run -d \
 10. **Àwọn iye runtime `exec()` / `spawn()` nípasẹ̀ option `env`** — má ṣe fi àwọn path ìta tàbí iye tí a kò fọkàn tán sínú àwọn script tí a fi ránṣẹ́ sí shell pẹ̀lú string interpolation láé. Ìtọ́kasí: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Yan àwọn library tó ní ààbò láti ìbẹ̀rẹ̀** — wo [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Lo wọ́n ṣáájú kí o tó kọ tìrẹ láti ìbẹ̀rẹ̀.
 
-## Àwọn àbájáde aṣàyẹ̀wò pq-ìpèsè (Socket.dev / Snyk / irú rẹ̀)
+## Àwọn àbájáde ẹ̀rọ àyẹ̀wò supply-chain (Socket.dev / Snyk / irú rẹ̀)
 
-Àkójọpọ̀ npm `omniroute` tí a tẹ̀ jáde ní ìkọ́lé Next.js `output: "standalone"`
-nínú, èyí túmọ̀ sí pé gbogbo olùṣàkóso ipa-ọ̀nà — pẹ̀lú àwọn ẹ̀ya aláṣẹ tí a ti
-ṣàkọsílẹ̀ (MITM, ìgbéwọlé Zed, Cloud Sync, olùbojútó iṣẹ́ tí a fi sínú rẹ̀) — máa
-parí sínú àwọn àjákù `.next/server/*.js` tí a ti dín kù. Àwọn aṣàyẹ̀wò pq-ìpèsè
-tó ń lo ìlànà àfojúsùn sábà máa ń fi àwọn àjákù wọ̀nyẹn wé àwọn àmì ìdánimọ̀ malware.
+> **Àkíyèsí ààlà:** `socket.yml` tó wà ní gbòǹgbò ibi ìpamọ́ náà ń ṣètò `projectIgnorePaths` nìkan fún àyẹ̀wò Socket.dev lẹ́yìn ìtẹ̀jáde lórí registry ti artifact npm tí a tẹ̀ jáde — kì í ṣe ìdènà àkópọ̀ CI/PR tí a ń fipá mú lò. Kò sí workflow kankan nínú `.github/workflows`, kò sí script `package.json` kankan, bẹ́ẹ̀ ni kò sí target `Makefile` kankan tó ń pe Socket.dev.
 
-Àtòpọ̀ aṣàyẹ̀wò tí a ń lò wà ní [`socket.yml`](socket.yml) ní gbòǹgbò
-ibi ìpamọ́ náà (ọ̀nà-kíkọ Socket.dev GitHub App v2 — wo
-<https://docs.socket.dev/docs/socket-yml>). Ó yọ àwọn àkójọpọ̀ fáìlì tí a kò fi
-ránṣẹ́ jáde (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/`, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ) ní pàtó, kí aṣàyẹ̀wò náà lè jẹ́ ká mọ̀
-nípa àwọn ipa-ọ̀nà kóòdù tí ó dé ọ̀dọ̀ àwọn olùlò tí a tẹ̀jáde fún nìkan — Socket
-GitHub App tí ń ka fáìlì yẹn ló ń darí aṣàyẹ̀wò náà fúnra rẹ̀, kì í ṣe workflow
-kan nínú ibi ìpamọ́ yìí.
+Artifact npm `omniroute` tí a tẹ̀ jáde ní build Next.js `output: "standalone"`
+nínú, èyí túmọ̀ sí pé gbogbo route handler — pẹ̀lú àwọn iṣẹ́ ànfàní-gíga
+tí a ṣàkọsílẹ̀ (MITM, ìkó wọlé Zed, Cloud Sync, olùbojútó service tó wà nínú rẹ̀) — máa ń
+parí sínú àwọn chunk `.next/server/*.js` tí a ti dín kù. Àwọn ẹ̀rọ àyẹ̀wò supply-chain tó
+dá lórí heuristic sábà máa ń fi àpẹẹrẹ àwọn chunk wọ̀nyẹn wé àwọn ìbuwọ́lu malware.
 
-Fún ẹ̀ka àbájáde kọ̀ọ̀kan, a ń tọ́jú ìjẹ́rìísí olùtọ́jú kan fún àbájáde kọ̀ọ̀kan:
+Ètò scanner tí a ń lò wà ní [`socket.yml`](socket.yml) ní
+gbòǹgbò repo (ọ̀nà kika Socket.dev GitHub App v2 — wo
+<https://docs.socket.dev/docs/socket-yml>). Ó yọ àwọn directory tí a kò fi ránṣẹ́ jáde ní kedere
+(`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ) kí scanner náà lè jabo lórí àwọn ipa-ọ̀nà code tí
+ó dé ọ̀dọ̀ àwọn olumulo tí a tẹ̀jáde fún ní ti gidi nìkan — Socket
+GitHub App tó ń ka fáìlì yẹn ló ń darí àyẹ̀wò náà fúnra rẹ̀, kì í ṣe workflow kan nínú ibi ìpamọ́ yìí.
+
+Fún ẹ̀ka àbájáde kọ̀ọ̀kan, a ń tọ́jú ìjẹ́rìí olùtọ́jú kan fún àbájáde kọ̀ọ̀kan:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  àwòrán ìbáṣepọ̀ fún àbájáde kọ̀ọ̀kan: fáìlì orísun ↔ àjákù tí a sàmì sí ↔ ìhùwàsí ↔ ìdínkù-ewu
+  àwòrán ìbáṣepọ̀ fún àbájáde kọ̀ọ̀kan: fáìlì orísun ↔ chunk tí a sàmì sí ↔ ìhùwàsí ↔ ìdínkù ewu
   tí a lò nínú v3.8.6.
-- Àwọn ìdípọ̀ `SECURITY-AUDITOR-NOTE:` inú orísun ní ibi iṣẹ́ kọ̀ọ̀kan tí a sàmì sí
-  ń tọ́ka padà sí ìwé kan náà.
+- Àwọn block `SECURITY-AUDITOR-NOTE:` inú orísun ní ibi function kọ̀ọ̀kan tí a sàmì sí
+  ń tọ́ka padà sí document kan náà.
 
-Fún àwọn olùlò tí pipeline wọn kò lè mú ìkìlọ̀ náà rọrùn: kọ́ ọ pẹ̀lú
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Èyí máa ń fi àwọn stub tí ń
-dá HTTP 503 `feature-disabled` padà ní àkókò ìṣiṣẹ́ rọ́pò àwọn module onífura
-mẹ́rin náà, nítorí náà àwọn ipa-ọ̀nà kóòdù aláṣẹ kò sí nínú àkójọpọ̀ náà ní ti
-ara. Wo [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-fún ìlànà ìtẹ̀jáde.
+Fún àwọn olumulo tí pipeline wọn kò lè dín ìkìlọ̀ náà kù: kọ́ build pẹ̀lú
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Èyí rọ́pò àwọn module
+mẹ́rin tó ní ìfarabalẹ̀ pẹ̀lú stubs tí ń dá HTTP 503 `feature-disabled` padà ní
+runtime, kí àwọn ipa-ọ̀nà code tó ní ànfàní-gíga má bàa sí nínú bundle náà ní ti ara.
+Wo [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+fún ìlànà ìtẹ̀jáde náà.
 
 ## Àwọn ìtọ́kasí
 

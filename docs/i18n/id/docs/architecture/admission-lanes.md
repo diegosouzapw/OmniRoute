@@ -9,48 +9,53 @@ saling melengkapi; operator harus mengetahui sistem mana yang sedang mereka liha
 
 ## 1. Penerimaan tingkat byte di seluruh proses (`chatBodyAdmission.ts`)
 
-- **Cakupan:** jalur buffered-body/heap untuk `POST /v1/chat/completions`,
+- **Cakupan:** jalur isi yang di-buffer/heap untuk `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses`, dan rute lain yang berbentuk chat. Melindungi
-  dari amplifikasi heap akibat body agen coding berukuran besar (#4380).
-- **Satu pengontrol global proses, bukan jalur per kunci (#10110).** Setiap kunci API
+  dari amplifikasi heap akibat isi agen pengodean berukuran besar (#4380).
+- **Satu pengontrol global per proses, bukan jalur per kunci (#10110).** Setiap kunci API
   (yang di-hash) atau sesi `anonymous` diterima berdasarkan anggaran bersama yang
   **sama** — id sesi yang di-hash digunakan HANYA sebagai kunci penjadwalan yang adil
-  (dispatch round-robin di antara permintaan yang menunggu), tidak pernah sebagai
-  shard kapasitas. Versi terdahulu dokumen ini menjelaskan jalur per kunci dengan
+  (pengiriman round-robin di antara pihak yang menunggu), tidak pernah sebagai shard
+  kapasitas. Versi sebelumnya dari dokumen ini menjelaskan jalur per kunci dengan
   kapasitas independen; model tersebut dihapus dalam #10110 karena memungkinkan
-  kredensial palsu tanpa autentikasi melipatgandakan batas seluruh proses.
-- **Gate (#503-fanout): anggaran BYTE masuk yang diturunkan secara otomatis, bukan
-  jumlah permintaan tetap.** Batas berbasis jumlah permintaan lama
-  `CHAT_MAX_HEAVY_IN_FLIGHT` (default `1` sebelum perbaikan ini) menurunkan fan-out
-  agen coding (beberapa subagen/CLI, body biasanya > 256 KB) menjadi konkurensi efektif
-  ~1, yang mengakibatkan respons 503 pada beban yang sepenuhnya normal. Sekarang batas
-  tersebut hanya berlaku ketika operator secara eksplisit menetapkan
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Jika tidak ditetapkan, penerimaan akan dibatasi
-  oleh `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — anggaran yang diturunkan secara otomatis
-  dari batas memori aktual proses (`src/shared/middleware/admissionBudget.ts`):
-  25% dari nilai yang lebih ketat antara batas heap V8 dan batas cgroup/container,
-  dibagi dengan faktor amplifikasi sementara 8x, lalu dibatasi antara 8 MiB dan
-  2 GiB. Override eksplisit menggunakan batas minimum dan maksimum yang sama. Anggaran
-  ini menyesuaikan sendiri dari container 512 MB hingga desktop 32 GB tanpa penyetelan
-  env. Body yang tidak dapat dimuat dalam anggaran efektif akan langsung gagal dengan
-  `413 body_exceeds_budget`; hanya persaingan di antara body yang masing-masing dapat
-  dilayani yang akan masuk ke antrean keadilan terbatas. Pelacak tekanan sumber daya
-  multi-sinyal secara langsung (rasio heap V8, cgroup, PSI, peristiwa OOM —
-  `open-sse/utils/resourcePressurePolicy.ts`) mempersingkat waktu tunggu terbatas saat
-  tekanan `high` dan langsung melepaskan beban dengan `503 resource_pressure` saat
-  tekanan `critical`, bahkan sebelum byte apa pun diterima.
+  kredensial palsu yang tidak diautentikasi melipatgandakan batas seluruh proses.
+- **Gerbang (#503-fanout): anggaran BYTE penyerapan yang diturunkan secara otomatis,
+  bukan jumlah permintaan tetap.** Batas jumlah permintaan lama
+  `CHAT_MAX_HEAVY_IN_FLIGHT` (default `1` sebelum perbaikan ini) membuat fan-out agen
+  pengodean (beberapa subagen/CLI, isi biasanya > 256 KB) runtuh menjadi konkurensi
+  efektif ~1, sehingga menghasilkan 503 dalam beban yang sepenuhnya normal. Kini,
+  batas tersebut hanya berlaku ketika operator menetapkan
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` secara eksplisit. Jika tidak ditetapkan,
+  penerimaan sebagai gantinya dibatasi oleh `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` —
+  anggaran yang diturunkan secara otomatis dari batas memori nyata proses
+  (`src/shared/middleware/admissionBudget.ts`): 25% dari nilai yang lebih ketat antara
+  batas heap V8 dan batas cgroup/container apa pun, dibagi dengan faktor amplifikasi
+  sementara 8x, lalu dibatasi antara 8 MiB dan 2 GiB. Penimpaan eksplisit menggunakan
+  batas yang sama. Anggaran ini menyesuaikan diri dari container 512 MB hingga desktop
+  32 GB tanpa penyetelan env. Isi yang tidak dapat dimuat dalam anggaran efektif akan
+  langsung gagal dengan `413 body_exceeds_budget`; hanya persaingan di antara isi yang
+  masing-masing dapat dilayani yang masuk ke antrean keadilan terbatas. Pelacak
+  tekanan sumber daya multi-sinyal secara langsung (rasio heap V8, cgroup, PSI,
+  peristiwa OOM — `open-sse/utils/resourcePressurePolicy.ts`) memperpendek waktu
+  tunggu terbatas saat tekanan `high` dan langsung mengurangi beban dengan
+  `503 resource_pressure` saat tekanan `critical`, bahkan sebelum byte apa pun
+  diserap. PSI dibaca dari `memory.pressure` cgroup milik unit ini jika tersedia
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` berlaku
+  untuk seluruh host dan hanya menjadi fallback pada bare metal / cgroup v1, sehingga
+  host yang melakukan swapping tidak dapat menghasilkan 503 pada container yang
+  menganggur.
 - **Penyetelan:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override untuk anggaran byte yang diturunkan secara otomatis
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — batas jumlah permintaan lama, hanya berlaku jika diaktifkan
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — penimpaan untuk anggaran byte yang diturunkan secara otomatis
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — batas jumlah permintaan lama, hanya ikut serta secara eksplisit
   - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — waktu tunggu antrean sebelum 503 (default 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — katup heap untuk byte yang diantrekan (default 4 MB)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — katup heap untuk byte yang mengantre (default 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — tidak digunakan lagi
-    sejak #10110 (diterima untuk kompatibilitas konfigurasi, tetapi diabaikan)
+    dan tidak melakukan apa pun sejak #10110 (diterima untuk kompatibilitas konfigurasi, diabaikan)
 - **Laporan:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — termasuk
-  penambahan #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  tambahan #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, dan `countCapEnabled`
   (false pada deployment default — mengonfirmasi bahwa anggaran byte, bukan batas
-  jumlah lama, adalah pembatas yang benar-benar berlaku).
+  jumlah lama, adalah batas yang benar-benar berlaku).
 
 ## 2. Lane virtual runtime adaptif (`open-sse/services/admission`)
 

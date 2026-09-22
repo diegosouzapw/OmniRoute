@@ -149,35 +149,36 @@ RRF በልዩ ልዩ retrieval systems መካከል የውጤት መደበኛነ
 
 ## የቅንብሮች ቅጥያ
 
-ዘጠኝ የembedding እና vector መስኮች በ`MemorySettingsExtended` ውስጥ፣
-በ`src/shared/schemas/memory.ts` ይገኛሉ፤ በ`src/lib/db/settings.ts` በኩል ዘላቂ ሆነው ይቀመጣሉ፦
+ዘጠኝ የመክተቻና የቬክተር መስኮች በ`MemorySettingsExtended` ውስጥ
+በ`src/shared/schemas/memory.ts` ይገኛሉ፣ በ`src/lib/db/settings.ts` በኩልም በቋሚነት ይቀመጣሉ፦
 
-| መስክ                      | ዓይነት                                               | ነባሪ      | መግለጫ                                                 |
-| ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | የትኛውን የembedding ምንጭ መጠቀም እንዳለበት                     |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | አቅራቢ/ሞዴል በ`provider/model` ቅርጸት                      |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | ለማህደረ ትውስታ ብቻ የሚያገለግል OpenAI-ተኳኋኝ endpoint መሠረታዊ URL |
-| `customModelId`          | `string \| null`                                   | `null`   | ወደብጁ endpoint የሚላክ የሞዴል ID                           |
-| `transformersEnabled`    | `boolean`                                          | `false`  | ለTransformers.js በፈቃደኝነት ማንቃት (MiniLM፣ ~400MB)       |
-| `staticEnabled`          | `boolean`                                          | `false`  | ለአካባቢያዊው ቋሚ potion-base-8M ሞዴል በፈቃደኝነት ማንቃት          |
-| `rerankEnabled`          | `boolean`                                          | `false`  | እንደገና የደረጃ አሰጣጥ ደረጃን ማንቃት (+200-500ms/req ይጨምራል)     |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | የእንደገና ደረጃ አሰጣጥ አቅራቢ/ሞዴል በ`provider/model` ቅርጸት      |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | የትኛውን የvector backend መጠቀም እንዳለበት                    |
+| መስክ                      | ዓይነት                                               | ነባሪ      | መግለጫ                                                   |
+| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | የትኛውን የመክተቻ ምንጭ መጠቀም እንዳለበት                            |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | አቅራቢ/ሞዴል በ`provider/model` ቅርጸት                        |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | ለMemory ብቻ የሚያገለግል OpenAI-ተኳሃኝ የመዳረሻ ነጥብ መሠረታዊ URL     |
+| `customModelId`          | `string \| null`                                   | `null`   | ወደ ብጁ የመዳረሻ ነጥቡ የሚላክ የሞዴል ID                           |
+| `transformersEnabled`    | `boolean`                                          | `false`  | ለTransformers.js የፈቃድ መርጦ መግባት (MiniLM፣ ~400MB)        |
+| `staticEnabled`          | `boolean`                                          | `false`  | ለስታቲክ potion-base-8M አካባቢያዊ ሞዴል የፈቃድ መርጦ መግባት          |
+| `rerankEnabled`          | `boolean`                                          | `false`  | የዳግም ደረጃ ማውጣት ደረጃን ማንቃት (በእያንዳንዱ ጥያቄ +200-500ms ይጨምራል) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | የዳግም ደረጃ ማውጣት አቅራቢ/ሞዴል በ`provider/model` ቅርጸት          |
 
-እነዚህ በ`GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`) በኩል ተደራሽ ተደርገዋል።
+`rerankProviderModel` በ`POST /v1/rerank` (በloopback በኩል የሚጠራ) ይፈታል፤ ስለዚህ ያ መንገድ የሚቀበለውን ማንኛውንም ነገር ይቀበላል፦ የተመረጠ የደመና ዳግም-ደረጃ ማውጫ ሞዴል (`cohere/rerank-v3.5`፣ `jina-ai/jina-reranker-v3.5`፣ …) ወይም OpenAI-ተኳሃኝ የአቅራቢ ኖድ እንደ `<node-prefix>/<model>` (ለምሳሌ፣ ለTEI/Infinity ሳጥን `skilled-mini/bge-reranker-v2-m3`)። Loopback ኖዶች ሁልጊዜ ብቁ ናቸው፤ በሌላ አስተናጋጅ (LAN፣ Tailscale) ላይ ያለ ኖድ በተጨማሪ የ`RERANK_REMOTE_PROVIDER_NODES` ባህሪ ሰንደቅን ይፈልጋል፣ እንዲሁም የአቅራቢውን ወጪ URL ፖሊሲ ማለፍ አለበት — [የባህሪ ሰንደቆች](../reference/FEATURE_FLAGS.md)ን ይመልከቱ። የዳሽቦርዱ መራጭ የተመረጡ አቅራቢዎችንና አካባቢያዊ ኖዶችን ይዘረዝራል፤ ማንኛውም ትክክለኛ `provider/model` ሕብረቁምፊ በ`PUT /api/settings/memory` በኩል በቀጥታ ሊዋቀር ይችላል።
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | የትኛውን የቬክተር ጀርባ አገልግሎት መጠቀም እንዳለበት |
+
+እነዚህ በ`GET /PUT /api/settings/memory` (ስኪማ `MemorySettingsExtendedSchema`) በኩል ይቀርባሉ።
 
 ለ`remote` ምንጭ፣ Memory አማራጭ የሆኑትን `customBaseUrl` እና
-`customModelId` ቅንብሮችም ይቀበላል። እነዚህ በአንድነት ዓለም አቀፉን የembedding registry
-ሳይቀይሩ OpenAI-ተኳኋኝ የ`/embeddings` endpoint እና ሞዴል ይመርጣሉ። endpoint ጥቅም ላይ
-ከመዋሉ በፊት መደበኛ ቅርጽ ይሰጠዋል፣ እና በአቅራቢው የወጪ URL ፖሊሲ ይፈተሻል፦ HTTP(S)
-ያስፈልጋል፣ የተካተቱ የመግቢያ ማረጋገጫዎች እና query strings ውድቅ ይደረጋሉ፣ እንዲሁም
-የcloud-metadata አድራሻዎች እንደታገዱ ይቆያሉ። ባዶ እሴቶች የተመረጠውን የregistry አቅራቢ
-እንዳለ ያቆዩታል። ወደ dashboard የሚመለሱ ስህተቶች ሚስጥራዊ መረጃ እንዳያካትቱ
-ይጣራሉ፣ እና የendpoint የመግቢያ ማረጋገጫዎች ፈጽሞ አይመዘገቡም።
+`customModelId` ቅንብሮችም ይቀበላል። ሁለቱ በአንድነት፣ ዓለም አቀፉን የመክተቻ መዝገብ ሳይቀይሩ OpenAI-ተኳሃኝ የ`/embeddings`
+መዳረሻ ነጥብና ሞዴል ይመርጣሉ። የመዳረሻ ነጥቡ ከመጠቀሙ በፊት
+መደበኛ ይደረጋል፣ እንዲሁም በአቅራቢው ወጪ URL ፖሊሲ ይፈተሻል፦ HTTP(S)
+ያስፈልጋል፣ የተካተቱ ማረጋገጫዎችና የጥያቄ ሕብረቁምፊዎች ውድቅ ይደረጋሉ፣ እንዲሁም የደመና-ሜታዳታ
+አድራሻዎች እንደታገዱ ይቆያሉ። ባዶ እሴቶች የተመረጠውን የመዝገብ አቅራቢ እንዳለ ያቆያሉ። ወደ
+ዳሽቦርዱ የሚመለሱ ስህተቶች ከስሱ መረጃ ይጸዳሉ፣ የመዳረሻ ነጥብ ማረጋገጫዎችም በፍጹም አይመዘገቡም።
 
-> **TODO (D20):** የ`global` scope (በሁሉም API keys መካከል ማህደረ ትውስታዎችን መጋራት)
-> በዚህ ልቀት ውስጥ አልተተገበረም። የschema ለውጦችን እና ዓለም አቀፍ የretrieval
-> መንገድን ይፈልጋል። ለብቻው ይከታተሉት።
+> **TODO (D20)፦** `global` ወሰን (በሁሉም API ቁልፎች መካከል ትውስታዎችን ማጋራት)
+> በዚህ ልቀት ውስጥ አልተተገበረም። የስኪማ ለውጦችንና ዓለም አቀፍ የመልሶ ማግኛ
+> መንገድን ይፈልጋል። በተናጠል ይከታተሉት።
 
 ## የማከማቻ ንብርብሮች
 

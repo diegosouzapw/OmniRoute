@@ -22,22 +22,24 @@ A tipikus kliensek (Cursor, Cline, Roo Code, OpenAI SDK) azonban eltávolítják
 ## Architektúra
 
 ```
-N. forduló (az asszisztens választ állít elő):
-  → a válasz reasoning_content + tool_calls tartalmat tartalmaz
+N. forduló (az asszisztens generál):
+  → a válasz reasoning_content + tool_calls mezőket tartalmaz
   → ha requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      írás (memória + DB), minden tool_call.id alapján kulcsolva
-  → a válasz továbbítása a kliensnek (amely megtarthatja vagy eldobhatja az érvelést)
+      ír (memóriába + DB-be), minden tool_call.id alapján kulcsolva
+  → továbbítja a választ a kliensnek (amely megőrizheti vagy eldobhatja az indoklást)
 
-N+1. forduló (a kliens követő kérést küld):
+N+1. forduló (a kliens utánkövető üzenetet küld):
   → a fordító észleli: requiresReasoningReplay(provider, model) === true
-  → minden tool_calls értékkel rendelkező, reasoning_content nélküli asszisztensi üzenetnél:
+  → minden olyan asszisztensüzenetnél, amely rendelkezik tool_calls mezővel, de reasoning_content mezővel nem:
       lookupReasoning(toolCalls[0].id) → memória → DB
       találat  → msg.reasoning_content = cached; recordReplay()
-      nincs találat → msg.reasoning_content = "" (örökölt tartalékmegoldás a régebbi DeepSeek-verziókhoz)
-  → a felsőbb szintű szolgáltató konzisztens előzményeket lát → nincs 400-as hiba
+      nincs találat → msg.reasoning_content = "" (örökölt tartalékmegoldás a régebbi DeepSeekhez)
+  → a felsőbb réteg konzisztens előzményeket lát → nincs 400-as hiba
 ```
 
-A rögzítés az `open-sse/handlers/chatCore.ts` fájlban történik (két helyen, a két `cacheReasoningFromAssistantMessage` hívási pontnál). Az újrajátszás az `open-sse/translator/index.ts` fájlban, a séma kényszerített átalakítása után, de a továbbítás előtt történik.
+A rögzítés az `open-sse/handlers/chatCore.ts` fájlban történik (két helyen, a két `cacheReasoningFromAssistantMessage` hívási helyén). A visszajátszás az `open-sse/translator/index.ts` fájlban történik, a séma kényszerített átalakítása után, de a továbbítás előtt.
+
+Az egyszerű (eszközhívás nélküli) asszisztensi fordulók kulcsa eltérően készül: a `buildAssistantMessageCacheKey()` a munkamenet hatóköréből és az adott fordulóig terjedő, normalizált OpenAI-formátumú átiratból képez kivonatot, mivel a DeepSeek minden korábbi forduló indoklását megköveteli, amint a `tools` jelen van. A Responses API-t használó céloknál (például az `/responses` végpontra irányított `opencode-go/deepseek-v4-flash` esetében) a felsőbb rétegnek küldött törzs `input` mezőt tartalmaz, nem pedig `messages` mezőt, ezért a `translateRequest()` (`open-sse/translator/index.ts`) egy visszahívási opción keresztül jelenti az általa kivonatolt köztes átiratot, a rögzítési helyek pedig ugyanebből az átiratból képeznek kivonatot. A Responses visszajátszási menete minden forrásformátum esetén az OpenAI köztes reprezentációján fut, így az Anthropic Messages kliensek (Claude → OpenAI → Responses) esetében is megtörténik a visszajátszás.
 
 ## Tárolás — hibrid memória + SQLite
 
@@ -56,7 +58,7 @@ Az írás mindkét rétegbe megtörténik. Az olvasás először a memóriát vi
 - Memóriabejegyzések maximális száma: `200` (`MAX_MEMORY_ENTRIES`)
 - Kiürítés: először a legrégebbi `createdAt` értékű bejegyzés
 
-## Adatbázisséma
+## Adatbázis séma
 
 Migráció: `src/lib/db/migrations/033_create_reasoning_cache.sql`
 
@@ -64,7 +66,6 @@ Migráció: `src/lib/db/migrations/033_create_reasoning_cache.sql`
 CREATE TABLE IF NOT EXISTS reasoning_cache (
   tool_call_id   TEXT PRIMARY KEY,
   provider       TEXT NOT NULL,
-  model          TEXT NOT NULL,
   reasoning      TEXT NOT NULL,
   char_count     INTEGER NOT NULL DEFAULT 0,
   created_at     TEXT NOT NULL DEFAULT (datetime('now')),
@@ -72,7 +73,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indexek: `expires_at`, `provider`, `model`, `created_at`. Az `expires_at` Unix-epoch másodpercekben van tárolva; a SELECT-réteg az örökölt szöveges értékeket az `EXPIRES_AT_EPOCH_SQL` segítségével normalizálja.
+Indexek: `expires_at`, `provider`, `model`, `created_at`. Az `expires_at` Unix epoch másodpercként van tárolva; a SELECT réteg normalizálja az örökölt szöveges értékeket az `EXPIRES_AT_EPOCH_SQL` segítségével.
 
 ## Szolgáltató-/modellészlelés
 

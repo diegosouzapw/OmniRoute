@@ -9,46 +9,50 @@ doplňují; provozovatelé by měli vědět, na který z nich se dívají.
 
 ## 1. Přijímání na úrovni bajtů pro celý proces (`chatBodyAdmission.ts`)
 
-- **Rozsah působnosti:** cesta zpracování těla ukládaného do vyrovnávací paměti / haldy pro `POST /v1/chat/completions`,
+- **Rozsah:** cesta využívající tělo požadavku uložené ve vyrovnávací paměti / haldu pro `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` a další trasy ve formátu chatu. Chrání
-  před znásobením využití haldy způsobeným velkými těly požadavků kódovacích agentů (#4380).
-- **Jeden globální řadič pro celý proces, nikoli dráhy pro jednotlivé klíče (#10110).** Každý API klíč
-  (hashovaný) nebo relace `anonymous` se přijímá v rámci **stejného** sdíleného rozpočtu —
-  hashované ID relace se používá POUZE jako plánovací klíč pro spravedlivé rozdělování (odesílání
-  čekajících metodou round-robin), nikdy jako oddíl kapacity. Předchozí verze této
-  dokumentace popisovala dráhy pro jednotlivé klíče s nezávislou kapacitou; tento model byl
-  v #10110 odstraněn, protože umožňoval neověřeným falešným přihlašovacím údajům násobit
-  limit platný pro celý proces.
+  před nadměrným zatížením haldy způsobeným velkými těly požadavků programovacích agentů (#4380).
+- **Jeden globální řadič pro celý proces, nikoli fronty pro jednotlivé klíče (#10110).** Každý klíč API
+  (hashovaný) nebo relace `anonymous` je přijímána v rámci **stejného** sdíleného rozpočtu —
+  hashované ID relace se používá POUZE jako klíč pro spravedlivé plánování (obsluha čekajících
+  metodou round-robin), nikdy jako oddělená kapacitní část. Předchozí verze tohoto
+  dokumentu popisovala fronty pro jednotlivé klíče s nezávislou kapacitou; tento model byl
+  v #10110 odstraněn, protože neověřené falešné přihlašovací údaje umožňovaly
+  znásobit limit pro celý proces.
 - **Brána (#503-fanout): automaticky odvozený BAJTOVÝ rozpočet pro příjem, nikoli pevný počet
-  požadavků.** Starší limit počtu požadavků `CHAT_MAX_HEAVY_IN_FLIGHT` (před touto opravou
-  ve výchozím nastavení `1`) omezoval větvení kódovacích agentů (více podřízených agentů / CLI,
-  těla běžně > 256 KB) na efektivní souběžnost ~1, což při zcela běžném zatížení
-  vedlo k odpovědím 503. Nyní se uplatní pouze tehdy, když provozovatel explicitně nastaví
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Pokud není nastavena, je přijímání místo toho
-  řízeno pomocí `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — rozpočtu automaticky odvozeného od
+  požadavků.** Původní limit počtu požadavků `CHAT_MAX_HEAVY_IN_FLIGHT` (před
+  touto opravou byla výchozí hodnota `1`) omezoval fan-out programovacích agentů (více subagentů/CLI,
+  těla běžně > 256 KB) na efektivní souběžnost ~1, což při zcela
+  běžném zatížení vedlo k odpovědím 503. Nyní se uplatní pouze tehdy, když operátor explicitně
+  nastaví `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Pokud není nastavena, řídí se přijímání
+  místo toho pomocí `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — rozpočtu automaticky odvozeného ze
   skutečného paměťového limitu procesu (`src/shared/middleware/admissionBudget.ts`):
   25 % z přísnějšího limitu mezi limitem haldy V8 a případným limitem cgroup/kontejneru,
-  vydělených osminásobným faktorem přechodného znásobení, s omezením na rozsah od 8 MiB do
-  2 GiB. Explicitní přepsání používají stejná omezení. Tím se rozpočet bez ladění
-  proměnných prostředí sám škáluje od kontejneru s 512 MB až po stolní počítač s 32 GB. Tělo, které se
+  vydělených faktorem 8 pro přechodné navýšení využití paměti, s omezením do rozsahu 8 MiB až
+  2 GiB. Explicitní přepsání používají stejná omezení. Rozpočet se automaticky škáluje od
+  kontejneru s 512 MB až po stolní počítač s 32 GB bez nutnosti ladění proměnných prostředí. Tělo, které se
   nevejde do efektivního rozpočtu, okamžitě selže s `413 body_exceeds_budget`;
-  do omezené spravedlivé fronty vstupuje pouze soupeření mezi těly, z nichž každé lze samostatně
-  obsloužit. Průběžný nástroj pro sledování tlaku na prostředky pomocí více signálů (poměr haldy V8,
+  pouze soupeření mezi těly, která lze samostatně obsloužit, vstupuje do omezené
+  spravedlivé fronty. Živý nástroj pro sledování tlaku na prostředky využívající více signálů (poměr využití haldy V8,
   cgroup, PSI, události OOM — `open-sse/utils/resourcePressurePolicy.ts`) zkracuje
-  omezenou dobu čekání při tlaku `high` a při tlaku `critical` okamžitě odmítá požadavky pomocí
-  `503 resource_pressure`, ještě před přijetím jakýchkoli bajtů.
+  omezenou dobu čekání při `high` tlaku a při `critical` tlaku požadavky okamžitě odmítá
+  pomocí `503 resource_pressure`, ještě před přijetím jakýchkoli bajtů.
+  PSI se čte z `memory.pressure` cgroup této jednotky, pokud je k dispozici
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` platí
+  pro celý hostitelský systém a používá se pouze jako záložní zdroj na fyzickém serveru / cgroup v1, takže hostitelský
+  systém využívající swap nemůže způsobit odpověď 503 u nečinného kontejneru.
 - **Ladění:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — přepsání automaticky odvozeného bajtového rozpočtu
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — starší limit počtu požadavků, pouze po explicitním zapnutí
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — čekání ve frontě před odpovědí 503 (výchozí hodnota 2000)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — původní limit počtu požadavků, pouze volitelný
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — doba čekání ve frontě před odpovědí 503 (výchozí hodnota 2000)
   - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — pojistka haldy podle počtu bajtů ve frontě (výchozí hodnota 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zastaralé
-    volby bez účinku od #10110 (přijímané kvůli kompatibilitě konfigurace, ale ignorované)
+    volby bez účinku od #10110 (přijímají se kvůli kompatibilitě konfigurace, ale ignorují se)
 - **Hlášení:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — včetně
   doplnění z #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` a `countCapEnabled`
-  (ve výchozím nasazení false — potvrzuje, že se skutečně uplatňuje bajtový rozpočet,
-  nikoli starší limit počtu požadavků).
+  (ve výchozím nasazení false — potvrzuje, že skutečně omezujícím prvkem je bajtový rozpočet,
+  nikoli původní limit počtu požadavků).
 
 ## 2. Adaptivní virtuální pruhy za běhu (`open-sse/services/admission`)
 

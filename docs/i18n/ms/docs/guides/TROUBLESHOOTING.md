@@ -68,14 +68,22 @@ Tetapkan pemboleh ubah ini dalam persekitaran proses OmniRoute (daemon, contohny
 
 ## Amaran npm install (ERESOLVE / peer / deprecated)
 
-Apabila anda menjalankan `npm install -g omniroute`, anda mungkin melihat banyak amaran seperti `npm warn ERESOLVE`, notis kebergantungan peer dan mesej `deprecated`. **Ini dijangka dan tidak berbahaya.** Pemasangan anda berjaya jika anda melihat `added <N> packages` dalam output.
+Apabila anda menjalankan `npm install -g omniroute`, anda mungkin melihat banyak amaran seperti `npm warn ERESOLVE`, notis kebergantungan setara, dan mesej `deprecated`. **Perkara ini dijangka dan tidak memudaratkan.** Pemasangan anda berjaya jika anda melihat `added <N> packages` dalam output.
 
-Amaran tersebut berpunca daripada julat kebergantungan peer yang lapuk dalam pakej pihak ketiga yang tidak dikawal oleh OmniRoute:
+Untuk menyekat amaran penyelesaian kebergantungan setara, gunakan bentuk pemasangan yang disokong oleh OmniRoute:
 
-1. **`marked-terminal` memerlukan `marked >=1 <16`, tetapi `marked@18` ditemui** — berfungsi dengan baik dalam penggunaan sebenar; julat peer huluan itu hanya lapuk.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` hanya menyekat `ERESOLVE` dan notis kebergantungan setara. Notis penyahgunaan kekal kelihatan kerana notis tersebut berasal daripada pakej pihak ketiga transitif; notis ini tidak menunjukkan bahawa pemasangan telah gagal.
+
+Amaran tersebut berpunca daripada julat kebergantungan setara yang lapuk dalam pakej pihak ketiga yang tidak dikawal oleh OmniRoute:
+
+1. **`marked-terminal` memerlukan `marked >=1 <16`, tetapi `marked@18` ditemui** — berfungsi dengan baik dalam penggunaan sebenar; julat setara huluan tersebut hanya lapuk.
 2. **`deprecated prebuild-install@7.1.3`** — pembantu pengambilan binari natif transitif. Ia tidak
-   digunakan untuk memasang pengikatan pengangkutan `wreq-js` yang disematkan dan tidak menunjukkan bahawa
-   persediaan pengangkutan penyedia kuki web gagal.
+   digunakan untuk memasang pengikatan pengangkutan `wreq-js` yang disematkan dan tidak menunjukkan bahawa persediaan pengangkutan
+   penyedia kuki web telah gagal.
 
 **Tiada tindakan diperlukan** — amaran tersebut tidak boleh disenyapkan sepenuhnya tanpa mencabang pakej huluan.
 

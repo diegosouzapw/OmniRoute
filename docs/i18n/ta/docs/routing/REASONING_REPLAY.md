@@ -22,22 +22,24 @@
 ## கட்டமைப்பு
 
 ```
-முறை N (உதவியாளர் உருவாக்குகிறது):
+சுற்று N (உதவியாளர் உருவாக்குகிறது):
   → பதிலில் reasoning_content + tool_calls உள்ளன
   → requiresReasoningReplay(provider, model) எனில்: cacheReasoningFromAssistantMessage()
-      ஒவ்வொரு tool_call.id-ஐயும் சாவியாகக் கொண்டு (நினைவகம் + DB)-இல் எழுதுகிறது
-  → பதிலை கிளையன்ட்டுக்கு அனுப்புகிறது (அது பகுத்தறிவைத் தக்கவைத்திருக்கலாம் அல்லது வைத்திருக்காமலும் இருக்கலாம்)
+      ஒவ்வொரு tool_call.id-ஐயும் விசையாகக் கொண்டு (நினைவகம் + DB)-இல் எழுதுகிறது
+  → பதிலை கிளையண்டுக்கு அனுப்புகிறது (அது reasoning-ஐத் தக்கவைக்கலாம் அல்லது தக்கவைக்காமலும் இருக்கலாம்)
 
-முறை N+1 (கிளையன்ட் தொடர்ச்சிக் கோரிக்கையை அனுப்புகிறது):
-  → மொழிமாற்றி கண்டறிகிறது: requiresReasoningReplay(provider, model) === true
+சுற்று N+1 (கிளையண்ட் தொடர் கோரிக்கையை அனுப்புகிறது):
+  → மொழிபெயர்ப்பி கண்டறிகிறது: requiresReasoningReplay(provider, model) === true
   → tool_calls உள்ளதும் reasoning_content இல்லாததுமான ஒவ்வொரு உதவியாளர் செய்திக்கும்:
       lookupReasoning(toolCalls[0].id) → நினைவகம் → DB
-      கிடைத்தால்  → msg.reasoning_content = cached; recordReplay()
-      கிடைக்காவிட்டால் → msg.reasoning_content = "" (பழைய DeepSeek-க்கான மரபு மாற்றுவழி)
-  → அப்ஸ்ட்ரீம் சீரான வரலாற்றைக் காண்கிறது → 400 இல்லை
+      கிடைத்தது  → msg.reasoning_content = cached; recordReplay()
+      கிடைக்கவில்லை → msg.reasoning_content = "" (பழைய DeepSeek பதிப்புகளுக்கான மரபுவழிப் பின்னிருப்பு)
+  → மேல்நிலைச் சேவை சீரான வரலாற்றைக் காண்கிறது → 400 பிழை இல்லை
 ```
 
-சேகரிப்பு `open-sse/handlers/chatCore.ts`-இல் (`cacheReasoningFromAssistantMessage` அழைக்கப்படும் இரண்டு இடங்களில்) நிகழ்கிறது. மறுவழங்கல், திட்டவடிவக் கட்டாய மாற்றத்திற்குப் பிறகும் அனுப்புதலுக்கு முன்பும் `open-sse/translator/index.ts`-இல் நிகழ்கிறது.
+பதிவுசெய்தல் `open-sse/handlers/chatCore.ts`-இல் நிகழ்கிறது (`cacheReasoningFromAssistantMessage` அழைக்கப்படும் இரண்டு இடங்களில்). மறுஇயக்கம், schema coercion-க்குப் பிறகும் dispatch-க்கு முன்பும் `open-sse/translator/index.ts`-இல் நிகழ்கிறது.
+
+சாதாரண (tool-call அல்லாத) உதவியாளர் சுற்றுகளுக்கு விசைகள் வேறுவிதமாக அமைக்கப்படுகின்றன: `buildAssistantMessageCacheKey()` அமர்வு வரம்புடன், அந்தச் சுற்று வரையிலான இயல்பாக்கப்பட்ட OpenAI-வடிவ உரையாடல் பதிவையும் சுருக்கமாக்குகிறது; ஏனெனில் `tools` இடம்பெற்றவுடன் முந்தைய _ஒவ்வொரு_ சுற்றின் reasoning-ஐயும் DeepSeek கோருகிறது. Responses-API இலக்குகளுக்கு (எடுத்துக்காட்டாக, `/responses`-க்கு வழிநடத்தப்படும் `opencode-go/deepseek-v4-flash`) மேல்நிலை request body-இல் `messages` அல்லாமல் `input` இடம்பெறும். எனவே, `translateRequest()` (`open-sse/translator/index.ts`) தான் சுருக்கமாக்கிய pivot உரையாடல் பதிவை callback விருப்பத்தின் மூலம் தெரிவிக்கிறது; பதிவுசெய்யும் இடங்களும் அதே உரையாடல் பதிவைச் சுருக்கமாக்குகின்றன. Responses மறுஇயக்கச் சுற்று ஒவ்வொரு மூல வடிவத்திற்கும் OpenAI pivot மீது இயங்குவதால், Anthropic Messages கிளையண்டுகளும் (Claude → OpenAI → Responses) மறுஇயக்கப்படுகின்றன.
 
 ## சேமிப்பகம் — கலப்பின நினைவகம் + SQLite
 

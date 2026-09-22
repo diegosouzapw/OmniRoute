@@ -1293,6 +1293,9 @@
     "mainNavigation": "Հիմնական նավարկում",
     "unpinSection": "Ապամրացնել բաժինը",
     "pinSectionOpen": "Ամրացնել բաժինը բաց վիճակում",
+    "pinItem": "Ամրացնել տարրը",
+    "unpinItem": "Ապամրացնել տարրը",
+    "pinnedSection": "Ամրացված",
     "reloadPage": "Վերաբեռնել էջը",
     "dragReorderSection": "Քաշեք՝ բաժինը վերադասավորելու համար",
     "dragReorderItem": "Քաշեք՝ վերադասավորելու համար",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Մատակարարներ",
     "Account Deactivated": "Հաշիվն ապաակտիվացված է",
     "allProviders": "Բոլոր մատակարարները",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "Grok վեբ քուքիի հուշում",
     "blockClaudeExtraUsageDescription": "Միացված լինելու դեպքում OmniRoute-ն այս Claude կապը նշում է որպես անհասանելի, հենց որ օգտագործման API-ն հաղորդում է հերթագրված լրացուցիչ օգտագործման մասին, որպեսզի պահուստային անցումը կատարվի մեկ այլ կապի՝ օգտագործման դիմաց լրացուցիչ վճարումը շարունակելու փոխարեն։",
     "blockClaudeExtraUsageLabel": "Արգելափակել Claude-ի լրացուցիչ օգտագործումը",
+    "claudeLowPriorityModeLabel": "Շարունակել ավելի ցածր առաջնահերթությամբ՝ 5-ժամյա սահմանաչափից հետո",
+    "claudeLowPriorityModeDescription": "Երբ այս հաշիվը հասնում է իր 5-ժամյա օգտագործման սահմանաչափին, և Anthropic-ն առաջարկում է ավելի ցածր առաջնահերթությամբ ուղին, OmniRoute-ն ընդունում է այն ու շարունակում հարցումներ ուղարկել anthropic-usage-limit: slow-ով՝ մինչև ժամանակային պատուհանի զրոյացումը՝ կապը ժամանակավորապես դադարեցնելու փոխարեն։ Շաբաթական սահմանաչափը շարունակում է գործել, իսկ պատասխանները կարող են սպասել ազատ հզորության։",
+    "claudeAutoLimitResetLabel": "Աշխատաշրջանի սահմանաչափն ավտոմատ զրոյացնել (շաբաթը մեկ անգամ)",
+    "claudeAutoLimitResetDescription": "Երբ այս հաշիվը հասնում է իր 5-ժամյա օգտագործման սահմանաչափին, և հասանելի է աշխատաշրջանի սահմանաչափի զրոյացում, OmniRoute-ն ավտոմատ ակտիվացնում է այն և ամբողջ արագությամբ կրկնում հարցումները։ Օգտագործում է հաշվի՝ շաբաթը մեկ անգամ հասանելի զրոյացումը և շարունակում է հաշվառվել շաբաթական սահմանաչափում։",
     "disableCoolingDescription": "Բաց թողնել ժամանակավոր սպասման ժամանակահատվածը, որպեսզի այս կապը հասանելի մնա նույնիսկ վերականգնելի սխալներից հետո (վերջնական վիճակները, օրինակ՝ արգելափակված/ժամկետանց, շարունակում են կիրառվել)։",
     "disableCoolingLabel": "Անջատել այս կապի սպասման ժամանակահատվածը",
     "bulkPasteAdded": "{count, plural, one {Ավելացվել է 1 բանալի} other {Ավելացվել է # բանալի}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "Կապակցման ID՝ {id}",
       "detailedPayloadInfo": "Նոր հարցումների համար հաճախորդի/մատակարարի օգտակար բեռների քառափուլ տեսքը դիտելու նպատակով նախ միացրեք մանրամասն գրանցումը։",
       "copyAll": "Պատճենել ամբողջը",
-      "copiedAll": "Ամբողջը պատճենված է"
+      "copiedAll": "Ամբողջը պատճենված է",
+      "payloadSizeLimitOmitted": "Բովանդակությունը բաց է թողնվել — այս բաժինը գերազանցել է կանչերի մատյանի չափի սահմանը (CALL_LOG_PIPELINE_MAX_SIZE_KB) և չի պահպանվել. սա իրական վերին հոսքի սխալ չէ։"
     }
   },
   "proxyLogger": {

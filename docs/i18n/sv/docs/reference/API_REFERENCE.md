@@ -445,42 +445,42 @@ Använd den här slutpunkten när en sidovagn körs utanför processen och inte 
 
 ---
 
-## Kompatibilitetsslutpunkter
+## Kompatibilitetsendpoints
 
-| Metod | Sökväg                                    | Format                                 |
-| ----- | ----------------------------------------- | -------------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                                 |
-| POST  | `/v1/messages`                            | Anthropic                              |
-| POST  | `/v1/responses`                           | OpenAI Responses                       |
-| POST  | `/v1/embeddings`                          | OpenAI                                 |
-| POST  | `/v1/images/generations`                  | OpenAI Images                          |
-| POST  | `/v1/images/edits`                        | OpenAI Images (redigering/inpainting)  |
-| POST  | `/v1/videos/generations`                  | Videogenerering i OpenAI-stil          |
-| POST  | `/v1/music/generations`                   | Musikgenerering i OpenAI-stil          |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (tal till text)           |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (returnerar ljudinnehåll)   |
-| POST  | `/v1/rerank`                              | Omrankning i Cohere/Voyage-stil        |
-| POST  | `/v1/classify`                            | Jina-klassificering (`api.jina.ai`)    |
-| POST  | `/v1/segment`                             | Jina-segmenterare (`segment.jina.ai`)  |
-| POST  | `/v1/moderations`                         | OpenAI Moderations                     |
-| GET   | `/v1/models`                              | OpenAI                                 |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                              |
-| GET   | `/v1beta/models`                          | Gemini                                 |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                 |
-| POST  | `/v1/api/chat`                            | Ollama                                 |
-| GET   | `/api/v1/vscode/{token}/`                 | Alias för OpenAI-katalog               |
-| GET   | `/api/v1/vscode/{token}/models`           | Alias för OpenAI-modeller              |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | Tokeniserad OpenAI-alias               |
-| POST  | `/api/v1/vscode/{token}/responses`        | Tokeniserad alias för OpenAI Responses |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Tokeniserad Ollama-alias               |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Tokeniserad alias för Ollama-taggar    |
+| Metod | Sökväg                                    | Format                                |
+| ----- | ----------------------------------------- | ------------------------------------- |
+| POST  | `/v1/chat/completions`                    | OpenAI                                |
+| POST  | `/v1/messages`                            | Anthropic                             |
+| POST  | `/v1/responses`                           | OpenAI Responses                      |
+| POST  | `/v1/embeddings`                          | OpenAI                                |
+| POST  | `/v1/images/generations`                  | OpenAI Images                         |
+| POST  | `/v1/images/edits`                        | OpenAI Images (redigering/inpainting) |
+| POST  | `/v1/videos/generations`                  | Videogenerering i OpenAI-stil         |
+| POST  | `/v1/music/generations`                   | Musikgenerering i OpenAI-stil         |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (tal till text)          |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (returnerar ljuddata)      |
+| POST  | `/v1/rerank`                              | Omrangordning i Cohere/Voyage-stil    |
+| POST  | `/v1/classify`                            | Jina-klassificering (`api.jina.ai`)   |
+| POST  | `/v1/segment`                             | Jina-segmenterare (`segment.jina.ai`) |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                    |
+| GET   | `/v1/models`                              | OpenAI                                |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                             |
+| GET   | `/v1beta/models`                          | Gemini                                |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                |
+| POST  | `/v1/api/chat`                            | Ollama                                |
+| GET   | `/api/v1/vscode/{token}/`                 | Alias för OpenAI-katalog              |
+| GET   | `/api/v1/vscode/{token}/models`           | Alias för OpenAI-modeller             |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | Tokeniserad OpenAI-alias              |
+| POST  | `/api/v1/vscode/{token}/responses`        | Tokeniserad OpenAI Responses-alias    |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Tokeniserad Ollama-alias              |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Tokeniserad alias för Ollama-taggar   |
 
-Alla POST-rutter följer samma struktur: `Bearer your-api-key` + Zod-validerad JSON-brödtext (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` osv., se `src/shared/validation/schemas.ts`). 4xx returneras vid schemafel.
+Alla POST-rutter följer samma struktur: `Bearer your-api-key` + Zod-validerad JSON-kropp (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` osv., se `src/shared/validation/schemas.ts`). 4xx returneras vid schemafel.
 
-För klienter som inte kan bifoga `Authorization: Bearer ...` accepterar OmniRoute även API-nycklar i URL:en, antingen via kompatibla frågesträngar (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller via de särskilda slutpunkterna `/api/v1/vscode/{token}/...` som dokumenteras nedan.
+För klienter som inte kan bifoga `Authorization: Bearer ...` accepterar OmniRoute även API-nycklar i URL:en, antingen via kompatibla frågesträngar (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller via de dedikerade `/api/v1/vscode/{token}/...`-endpoints som dokumenteras nedan.
 
 ```bash
-# Omrankning
+# Omrangordning (leverantör från molnregistret eller en OpenAI-kompatibel leverantörsnod som "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina-klassificering (autentiseringsuppgifter för Foundation API)
@@ -495,7 +495,7 @@ POST /v1/search      { "query": "...", "provider": "jina-search" }
 # Modereringar
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — returnerar audio/mpeg-innehåll (eller begärt format)
+# TTS — returnerar en audio/mpeg-kropp (eller begärt format)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Bildredigering (multipart)
@@ -506,7 +506,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Särskilda leverantörsrutter
+> **Noder för omrangordningsleverantörer:** `POST /v1/rerank` dirigerar även till OpenAI-kompatibla leverantörsnoder
+> (oMLX, vLLM, Infinity, TEI bakom en gateway, …) som adresseras som `<node-prefix>/<model>`. Loopback-
+> noder (`localhost`, `127.0.0.1`, `172.16.0.0/12`) är alltid tillåtna. Noder på andra
+> värdar — en dator i det lokala nätverket eller en Tailscale-peer — är endast tillåtna när operatören aktiverar
+> funktionsflaggan `RERANK_REMOTE_PROVIDER_NODES` **och** nodens bas-URL godkänns av leverantörens
+> policy för utgående URL:er (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> värdar för molnmetadata dirigeras aldrig till. Minnesmotorns omrangordningssteg anropar denna rutt via
+> loopback, så samma regel styr `rerankProviderModel` i minnesinställningarna.
+>
+> **Lokala serverstrukturer:** noden anropas på `<base>/v1/rerank` och, vid 404, på `<base>/rerank`
+> (Infinity, TEI). Den uppströms skickade kroppen innehåller både Cohere/OpenAI-benämningarna (`documents`,
+> `return_documents`) och TEI-benämningarna (`texts`, `return_text`), och svaret från uppströms normaliseras
+> till Cohere-formatet: TEI:s rena `[{index, score, text}]`, `{results: [{index, score}]}`
+> från tunna gateway-tjänster och Voyage-formatet `{data: [...]}` returneras alla till klienten som
+> `{results: [{index, relevance_score, document?}]}`, sorterade efter poäng och begränsade till `top_n`.
+
+> **Identifiering av leverantörsnoder:** modeller på en OpenAI-kompatibel leverantörsnod visas i `GET /v1/models`
+> under nodprefixet. Rader som saknar endpointmetadata (vanligt för lokala `/v1/models`-listningar)
+> ärver nodens `apiType`, så modellerna för en `embeddings`-nod får `type: "embedding"` och modellerna för en
+> `rerank`-nod får `type: "rerank"` i stället för att som standard behandlas som chatt; ett uttryckligt
+> `supportedEndpoints` på en synkroniserad eller manuellt tillagd rad har fortfarande företräde.
+
+### Dedikerade leverantörsrutter
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -514,7 +536,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Leverantörsprefixet läggs till automatiskt om det saknas. Modeller som inte matchar returnerar `400`.
+Leverantörsprefixet läggs till automatiskt om det saknas. Modeller som inte överensstämmer returnerar `400`.
 
 ---
 

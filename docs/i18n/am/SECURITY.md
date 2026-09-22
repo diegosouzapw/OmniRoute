@@ -220,19 +220,38 @@ docker run -d \
 10. **የ`exec()` / `spawn()` runtime እሴቶችን በ`env` option በኩል ያስተላልፉ** — ውጫዊ pathsን ወይም የማይታመኑ እሴቶችን ወደ shell በሚላኩ scripts ውስጥ በstring-interpolation በፍጹም አያስገቡ። ማጣቀሻ፦ `src/mitm/cert/install.ts::updateNssDatabases`።
 11. **በነባሪነት ደህንነታቸው የተጠበቀ ላይብረሪዎችን ይምረጡ** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)ን ይመልከቱ (Helmet.js፣ DOMPurify፣ ssrf-req-filter፣ safe-regex፣ Google Tink)። የራስዎን ከመፍጠርዎ በፊት እነዚህን ይጠቀሙ።
 
-## የአቅርቦት ሰንሰለት ስካነር ግኝቶች (Socket.dev / Snyk / ተመሳሳይ)
+## የሶፍትዌር አቅርቦት ሰንሰለት ስካነር ግኝቶች (Socket.dev / Snyk / ተመሳሳይ)
 
-የታተመው `omniroute` npm አርቲፋክት የNext.js `output: "standalone"` ግንባታን በውስጡ ይዟል፤ ይህም ማለት እያንዳንዱ የመስመር ተቆጣጣሪ — በሰነድ የተገለጹ ልዩ መብት ያላቸውን ባህሪያት (MITM፣ Zed import፣ Cloud Sync፣ የተካተተ የአገልግሎት ተቆጣጣሪ) ጨምሮ — በ`.next/server/*.js` ውስጥ ባሉ የተጨመቁ ቁርጥራጮች ውስጥ እንዲካተት ያደርጋል። በግምታዊ ዘዴ የሚሰሩ የአቅርቦት ሰንሰለት ስካነሮች እነዚያን ቁርጥራጮች ከተንኮል አዘል ሶፍትዌር ፊርማዎች ጋር በተደጋጋሚ በስርዓተ-ጥለት ያዛምዳሉ።
+> **የወሰን ማስታወሻ፦** በማከማቻው ሥር ያለው `socket.yml`፣ ለታተመው npm አርቲፋክት በSocket.dev ሬጂስትሪ በኩል ከህትመት በኋላ በሚደረገው ቅኝት ውስጥ `projectIgnorePaths`ን ብቻ ይቀርጻል — በCI/PR ውህደት ላይ ተፈጻሚ የሆነ መግቢያ በር አይደለም። በ`.github/workflows` ውስጥ ያለ ምንም የሥራ ፍሰት፣ ምንም የ`package.json` ስክሪፕት፣ እና ምንም የ`Makefile` ዒላማ Socket.devን አይጠራም።
 
-የምንጠቀምበት የስካነር ውቅር በማከማቻው ስር በሚገኘው [`socket.yml`](socket.yml) ውስጥ ነው (የSocket.dev GitHub App ቅርጸት v2 — <https://docs.socket.dev/docs/socket-yml>ን ይመልከቱ)። ስካነሩ በእውነቱ ወደ ታተሙ ተጠቃሚዎች ስለሚደርሱ የኮድ መንገዶች ብቻ ሪፖርት እንዲያደርግ፣ የማይላኩ ማውጫዎችን (`tests/`፣ `_tasks/`፣ `_references/`፣ `_ideia/`፣ `_mono_repo/`፣ `docs/`፣ ወዘተ) በግልጽ ሁኔታ አያካትትም — ስካኑ ራሱ የሚካሄደው ያንን ፋይል በሚያነበው Socket GitHub App ነው፤ በዚህ ማከማቻ ውስጥ ባለ የሥራ ፍሰት አይደለም።
+የታተመው `omniroute` npm አርቲፋክት የNext.js `output: "standalone"`
+ግንባታን አቅፎ ይዟል፤ ይህም እያንዳንዱ የመንገድ መቆጣጠሪያ — በሰነድ የተገለጹ ልዩ ፈቃድ የሚጠይቁ
+ባህሪያትን (MITM፣ Zed import፣ Cloud Sync፣ የተካተተ የአገልግሎት ተቆጣጣሪ) ጨምሮ — በመጨረሻ
+በ`.next/server/*.js` ውስጥ ወደሚገኙ የተጨመቁ ቁርጥራጮች ይገባል ማለት ነው። በሂዩሪስቲክ ላይ የተመሠረቱ የሶፍትዌር አቅርቦት ሰንሰለት ስካነሮች
+እነዚያን ቁርጥራጮች ከማልዌር ፊርማዎች ጋር በተደጋጋሚ በስርዓተ-ጥለት ያዛምዳሉ።
 
-ለእያንዳንዱ የግኝት ምድብ፣ በግኝት ደረጃ የተዘጋጀ የአስተዳዳሪ ማረጋገጫ እንይዛለን፦
+የምንጠቀመው የስካነር ውቅር በማከማቻው ሥር ባለው
+[`socket.yml`](socket.yml) ውስጥ ይገኛል (የSocket.dev GitHub App ቅርጸት v2 — ይመልከቱ
+<https://docs.socket.dev/docs/socket-yml>)። ስካነሩ በትክክል ወደታተሙ ተጠቃሚዎች
+የሚደርሱ የኮድ መንገዶችን ብቻ እንዲዘግብ፣ ያልተላኩ ማውጫዎችን (`tests/`፣ `_tasks/`፣ `_references/`፣ `_ideia/`፣
+`_mono_repo/`፣ `docs/`፣ ወዘተ) በግልጽ ያገላል — ቅኝቱ ራሱ በዚህ ማከማቻ ውስጥ ባለ
+የሥራ ፍሰት ሳይሆን ፋይሉን በሚያነበው Socket
+GitHub App ይከናወናል።
+
+ለእያንዳንዱ የግኝት ምድብ፣ በግኝት ደረጃ የተዘጋጀ የጥገና ኃላፊ ማረጋገጫ እናቆያለን፦
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  የእያንዳንዱ ግኝት ካርታ፦ የምንጭ ፋይል ↔ ምልክት የተደረገበት ቁርጥራጭ ↔ ባህሪ ↔ በv3.8.6 ውስጥ የተተገበረ ማቃለያ።
-- በምንጭ ውስጥ ያሉ `SECURITY-AUDITOR-NOTE:` ብሎኮች በእያንዳንዱ ምልክት በተደረገበት የፈንክሽን ነጥብ ወደዚያው ሰነድ ይጠቁማሉ።
+  የእያንዳንዱ ግኝት ካርታ፦ ምንጭ ፋይል ↔ ምልክት የተደረገበት ቁርጥራጭ ↔ ባህሪ ↔ በv3.8.6 ውስጥ
+  የተተገበረ የአደጋ ቅነሳ።
+- በምንጭ ኮዱ ውስጥ በእያንዳንዱ ምልክት በተደረገበት ፈንክሽን ላይ ያሉ `SECURITY-AUDITOR-NOTE:` ብሎኮች
+  ወደዚያው ሰነድ ይጠቁማሉ።
 
-የሥራ ፍሰታቸው ማንቂያውን ማላላት ለማይችል ተጠቃሚዎች፦ በ`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ይገንቡ። ይህ አራቱን ስሱ ሞጁሎች በአሂድ ጊዜ HTTP 503 `feature-disabled` በሚመልሱ ተተኪዎች ይቀይራቸዋል፤ በዚህም ልዩ መብት ያላቸው የኮድ መንገዶች በቁልፉ ውስጥ በአካል እንዳይኖሩ ያደርጋል። ለህትመት አሰራሩ [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)ን ይመልከቱ።
+የሥራ ፍሰታቸው ማንቂያውን ማላላት ለማይችል ተጠቃሚዎች፦
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`ን በመጠቀም ይገንቡ። ይህም አራቱን
+ስሱ ሞጁሎች በአሂድ ጊዜ HTTP 503 `feature-disabled`ን በሚመልሱ
+ተተኪዎች ይተካቸዋል፤ በዚህም ልዩ ፈቃድ የሚጠይቁ የኮድ መንገዶች በቁሳዊ ሁኔታ ከጥቅሉ ውስጥ አይኖሩም።
+የህትመት አሠራሩን ለማየት [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)ን
+ይመልከቱ።
 
 ## ማጣቀሻዎች
 

@@ -27,6 +27,12 @@
 
 ## Schnellstart
 
+> **Selbst hosten mit einem einzigen Befehl?** Siehe
+> [Anleitung zum Selbsthosten](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (veröffentlichtes Image +
+> Redis, nur Loopback, keine Profilauswahl). Der folgende Schnellstart beschreibt
+> die Ausführung als einzelnen Container für Benutzer, die Redis bereits an anderer Stelle betreiben.
+
 ```bash
 docker run -d \
   --name omniroute \

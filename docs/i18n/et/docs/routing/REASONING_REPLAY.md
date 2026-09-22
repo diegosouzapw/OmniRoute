@@ -23,21 +23,23 @@ Kuid tavapärased kliendid (Cursor, Cline, Roo Code, OpenAI SDK) eemaldavad `rea
 
 ```
 Voor N (assistent genereerib):
-  → vastus sisaldab reasoning_content-i + tool_calls-i
+  → vastus sisaldab reasoning_content + tool_calls
   → kui requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      kirjutab (mällu + DB-sse), võtmeks iga tool_call.id
-  → edastab vastuse kliendile (kes võib arutluskäigu säilitada või mitte)
+      kirjutab (mälu + DB), võtmena kasutatakse iga tool_call.id väärtust
+  → edasta vastus kliendile (kes võib reasoning'u säilitada või mitte)
 
 Voor N+1 (klient saadab jätkupäringu):
   → tõlkija tuvastab: requiresReasoningReplay(provider, model) === true
   → iga assistendi sõnumi puhul, millel on tool_calls, kuid puudub reasoning_content:
       lookupReasoning(toolCalls[0].id) → mälu → DB
-      tabamus  → msg.reasoning_content = cached; recordReplay()
-      puudumine → msg.reasoning_content = "" (pärandvaruvariant vanema DeepSeeki jaoks)
-  → ülesvoolu teenus näeb järjepidevat ajalugu → 400 viga ei teki
+      leidub   → msg.reasoning_content = cached; recordReplay()
+      ei leidu → msg.reasoning_content = "" (pärandvaruvariant vanema DeepSeeki jaoks)
+  → ülesvool näeb ühtset ajalugu → viga 400 ei teki
 ```
 
-Salvestamine toimub failis `open-sse/handlers/chatCore.ts` (kahes kohas, kahe `cacheReasoningFromAssistantMessage` väljakutse juures). Taasesitamine toimub failis `open-sse/translator/index.ts` pärast skeemi sundteisendamist, kuid enne edastamist.
+Hõivamine toimub failis `open-sse/handlers/chatCore.ts` (kahes kohas, kahe `cacheReasoningFromAssistantMessage` väljakutse juures). Taasesitus toimub failis `open-sse/translator/index.ts` pärast skeemi koertsiooni, kuid enne edastamist.
+
+Tavaliste (ilma tööriistakutseta) assistendi voorude võtmed luuakse teisiti: `buildAssistantMessageCacheKey()` räsib seansi ulatuse koos normaliseeritud OpenAI-vormingus transkriptiga kuni vastava vooruni, sest DeepSeek nõuab pärast `tools` olemasolu _iga_ varasema vooru arutluskäiku. Responses API sihtmärkide puhul (näiteks `opencode-go/deepseek-v4-flash`, mis suunatakse marsruudile `/responses`) sisaldab ülesvoolu päringu keha välja `input`, mitte `messages`, seega edastab `translateRequest()` (`open-sse/translator/index.ts`) tagasikutse suvandi kaudu kasutatud vahetranskripti ning hõivamiskohad räsivad sama transkripti. Responsesi taasesitusetapp töötab OpenAI vahevormingu põhjal iga lähtevormingu puhul, seega taasesitatakse ka Anthropic Messagesi klientide päringud (Claude → OpenAI → Responses).
 
 ## Salvestus — hübriidne mälu + SQLite
 
@@ -56,7 +58,7 @@ Kirjed kirjutatakse mõlemasse. Lugemisel kontrollitakse esmalt mälu ja seejär
 - Maksimaalne kirjete arv mälus: `200` (`MAX_MEMORY_ENTRIES`)
 - Eemaldamine: kõige vanem `createdAt` esimesena
 
-## Andmebaasiskeem
+## Andmebaasi skeem
 
 Migratsioon: `src/lib/db/migrations/033_create_reasoning_cache.sql`
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indeksid: `expires_at`, `provider`, `model`, `created_at`. `expires_at` salvestatakse Unixi epohhi sekunditena; SELECT-kiht normaliseerib pärandteksti väärtused `EXPIRES_AT_EPOCH_SQL`-i kaudu.
+Indeksid: `expires_at`, `provider`, `model`, `created_at`. `expires_at` salvestatakse Unixi epohhi sekunditena; SELECT-kiht normaliseerib pärandtekstiväärtused `EXPIRES_AT_EPOCH_SQL` kaudu.
 
 ## Pakkuja / mudeli tuvastamine
 

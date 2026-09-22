@@ -66,18 +66,26 @@ Définissez ces variables dans l’environnement du processus OmniRoute (le dém
 
 ---
 
-## Avertissements de npm install (ERESOLVE / pair / obsolète)
+## Avertissements lors de npm install (ERESOLVE / dépendances pair / obsolète)
 
-Lorsque vous exécutez `npm install -g omniroute`, vous pouvez voir une multitude d’avertissements tels que `npm warn ERESOLVE`, des notifications concernant les dépendances pair et des messages `deprecated`. **Ils sont attendus et sans conséquence.** L’installation a réussi si la sortie contient `added <N> packages`.
+Lorsque vous exécutez `npm install -g omniroute`, vous pouvez voir une multitude d’avertissements tels que `npm warn ERESOLVE`, des notifications concernant les dépendances pair et des messages `deprecated`. **Ces avertissements sont attendus et sans conséquence.** L’installation a réussi si la sortie contient `added <N> packages`.
 
-Ces avertissements proviennent de plages de versions obsolètes pour les dépendances pair de paquets tiers qu’OmniRoute ne contrôle pas :
+Pour masquer les avertissements liés à la résolution des dépendances pair, utilisez la forme d’installation prise en charge par OmniRoute :
 
-1. **`marked-terminal` demande `marked >=1 <16`, mais `marked@18` a été trouvé** — cela fonctionne correctement en pratique ; seule la plage de dépendances pair en amont est obsolète.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` masque uniquement les notifications `ERESOLVE` et celles concernant les dépendances pair. Les avis d’obsolescence restent visibles, car ils proviennent de paquets tiers transitifs ; ils n’indiquent pas que l’installation a échoué.
+
+Ces avertissements proviennent de plages de versions de dépendances pair obsolètes dans des paquets tiers qu’OmniRoute ne contrôle pas :
+
+1. **`marked-terminal` requiert `marked >=1 <16`, mais `marked@18` a été trouvé** — cela fonctionne correctement en pratique ; seule la plage de versions de la dépendance pair en amont est obsolète.
 2. **`deprecated prebuild-install@7.1.3`** — un utilitaire transitif de récupération de binaires natifs. Il n’est pas
    utilisé pour installer la liaison de transport `wreq-js` épinglée et n’indique pas que la configuration
-   du transport du fournisseur de cookies web a échoué.
+   du transport du fournisseur web-cookie a échoué.
 
-**Aucune action nécessaire** — ces avertissements ne peuvent pas être entièrement supprimés sans créer de fork des paquets en amont.
+**Aucune action n’est nécessaire** — les avertissements ne peuvent pas être entièrement masqués sans créer de dérivations des paquets en amont.
 
 ---
 

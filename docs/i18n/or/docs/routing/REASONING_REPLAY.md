@@ -19,25 +19,27 @@ OmniRoute, thinking-mode ମଡେଲ୍ଗୁଡ଼ିକ ଦ୍ୱାରା �
 
 କିନ୍ତୁ ସାଧାରଣ କ୍ଲାଏଣ୍ଟଗୁଡ଼ିକ (Cursor, Cline, Roo Code, OpenAI SDK) ସେମାନେ ପୁନଃଚାଳନ କରୁଥିବା ଇତିହାସରୁ `reasoning_content` ହଟାଇ ଦିଅନ୍ତି। OmniRoute ଏହାକୁ ସର୍ଭର୍-ସାଇଡ୍ କ୍ୟାଶ୍ରୁ ପୁନରୁଦ୍ଧାର କରେ, ଯାହାଫଳରେ ଅପ୍ଷ୍ଟ୍ରିମ୍ ଦେଖୁଥିବା ଅନୁରୋଧ ସୁସଙ୍ଗତ ରହେ। Issue #1628 ହାଇବ୍ରିଡ୍ ମେମୋରି/SQLite ସ୍ଥାୟୀକରଣ ପ୍ରଚଳନ କରିଥିଲା, ଯାହାଫଳରେ ପ୍ରକ୍ରିୟା ପୁନଃପ୍ରାରମ୍ଭ ପରେ ମଧ୍ୟ କ୍ୟାଶ୍ ଅକ୍ଷୁଣ୍ଣ ରହେ।
 
-## ସଂରଚନା
+## ଆର୍କିଟେକ୍ଚର୍
 
 ```
-ଟର୍ଣ୍ଣ N (ସହାୟକ ଉତ୍ପାଦନ କରେ):
-  → ପ୍ରତିକ୍ରିୟାରେ reasoning_content + tool_calls ଥାଏ
+ପର୍ଯ୍ୟାୟ N (assistant ଉତ୍ପାଦନ କରେ):
+  → ପ୍ରତିକ୍ରିୟାରେ reasoning_content + tool_calls ରହିଥାଏ
   → ଯଦି requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      ପ୍ରତ୍ୟେକ tool_call.id ଦ୍ୱାରା କୀ କରି (ମେମୋରି + DB)ରେ ଲେଖେ
-  → ପ୍ରତିକ୍ରିୟାକୁ କ୍ଲାଏଣ୍ଟକୁ ଫର୍ୱାର୍ଡ୍ କରେ (ଯିଏ reasoning ରଖିପାରେ କିମ୍ବା ନ ରଖିପାରେ)
+      ପ୍ରତ୍ୟେକ tool_call.id ଦ୍ୱାରା କୀ କରି (ମେମୋରି + DB)-ରେ ଲେଖେ
+  → ପ୍ରତିକ୍ରିୟାକୁ କ୍ଲାଏଣ୍ଟ ନିକଟକୁ ପଠାଏ (ଯିଏ reasoning ରଖିପାରେ କିମ୍ବା ନ ରଖିପାରେ)
 
-ଟର୍ଣ୍ଣ N+1 (କ୍ଲାଏଣ୍ଟ follow-up ପଠାଏ):
+ପର୍ଯ୍ୟାୟ N+1 (କ୍ଲାଏଣ୍ଟ ଫଲୋ-ଅପ୍ ପଠାଏ):
   → ଅନୁବାଦକ ଚିହ୍ନଟ କରେ: requiresReasoningReplay(provider, model) === true
-  → tool_calls ଥିବା ଏବଂ reasoning_content ନଥିବା ପ୍ରତ୍ୟେକ ସହାୟକ ବାର୍ତ୍ତା ପାଇଁ:
+  → tool_calls ଥିବା ଏବଂ reasoning_content ନ ଥିବା ପ୍ରତ୍ୟେକ assistant ବାର୍ତ୍ତା ପାଇଁ:
       lookupReasoning(toolCalls[0].id) → ମେମୋରି → DB
       ମିଳିଲେ  → msg.reasoning_content = cached; recordReplay()
-      ନ ମିଳିଲେ → msg.reasoning_content = "" (ପୁରୁଣା DeepSeek ପାଇଁ ପାରମ୍ପରିକ fallback)
-  → ଅପ୍ଷ୍ଟ୍ରିମ୍ ସୁସଙ୍ଗତ ଇତିହାସ ଦେଖେ → 400 ତ୍ରୁଟି ହୁଏ ନାହିଁ
+      ନ ମିଳିଲେ → msg.reasoning_content = "" (ପୁରୁଣା DeepSeek ପାଇଁ ଲିଗାସି ଫଲ୍ବ୍ୟାକ୍)
+  → ଅପ୍ଷ୍ଟ୍ରିମ୍ ସୁସଙ୍ଗତ ଇତିହାସ ଦେଖେ → 400 ହୁଏ ନାହିଁ
 ```
 
-କ୍ୟାପ୍ଚର୍ `open-sse/handlers/chatCore.ts`ରେ ହୁଏ (ଦୁଇଟି ସ୍ଥାନରେ, ଦୁଇଟି `cacheReasoningFromAssistantMessage` call siteରେ)। ସ୍କିମା coercion ପରେ କିନ୍ତୁ dispatch ପୂର୍ବରୁ `open-sse/translator/index.ts`ରେ ପୁନଃଚାଳନ ହୁଏ।
+କ୍ୟାପ୍ଚର୍ `open-sse/handlers/chatCore.ts`-ରେ (`cacheReasoningFromAssistantMessage` କଲ୍ ହେଉଥିବା ଦୁଇଟି ସ୍ଥାନରେ) ଘଟେ। ସ୍କିମା କୋଅର୍ସନ୍ ପରେ, କିନ୍ତୁ ଡିସ୍ପ୍ୟାଚ୍ ପୂର୍ବରୁ `open-sse/translator/index.ts`-ରେ ରିପ୍ଲେ ଘଟେ।
+
+ସାଧାରଣ (ଟୁଲ୍-କଲ୍ ନଥିବା) assistant ପର୍ଯ୍ୟାୟଗୁଡ଼ିକୁ ଭିନ୍ନ ଭାବରେ କୀ କରାଯାଏ: `buildAssistantMessageCacheKey()` ସେସନ୍ ସ୍କୋପ୍ ସହିତ ସେହି ପର୍ଯ୍ୟାୟ ପର୍ଯ୍ୟନ୍ତ ଥିବା ସାମାନ୍ୟୀକୃତ OpenAI-ଫର୍ମାଟ୍ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟର ଡାଇଜେଷ୍ଟ ପ୍ରସ୍ତୁତ କରେ, କାରଣ `tools` ଉପସ୍ଥିତ ଥିଲେ DeepSeek ପାଇଁ _ପ୍ରତ୍ୟେକ_ ପୂର୍ବ ପର୍ଯ୍ୟାୟର reasoning ଆବଶ୍ୟକ ହୁଏ। Responses-API ଟାର୍ଗେଟ୍ଗୁଡ଼ିକ ପାଇଁ (ଉଦାହରଣ ସ୍ୱରୂପ `opencode-go/deepseek-v4-flash`, ଯାହାକୁ `/responses`-କୁ ରାଉଟ୍ କରାଯାଏ) ଅପ୍ଷ୍ଟ୍ରିମ୍ ବଡିରେ `messages` ନୁହେଁ, `input` ରହିଥାଏ; ତେଣୁ `translateRequest()` (`open-sse/translator/index.ts`) ଏକ କଲ୍ବ୍ୟାକ୍ ବିକଳ୍ପ ମାଧ୍ୟମରେ ନିଜେ ଡାଇଜେଷ୍ଟ କରିଥିବା ପିଭଟ୍ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ବିଷୟରେ ଜଣାଏ ଏବଂ କ୍ୟାପ୍ଚର୍ ସ୍ଥାନଗୁଡ଼ିକ ସେହି ଟ୍ରାନ୍ସକ୍ରିପ୍ଟକୁ ହିଁ ଡାଇଜେଷ୍ଟ କରନ୍ତି। ପ୍ରତ୍ୟେକ ସୋର୍ସ ଫର୍ମାଟ୍ ପାଇଁ Responses ରିପ୍ଲେ ପାସ୍ OpenAI ପିଭଟ୍ ଉପରେ ଚାଲେ, ତେଣୁ Anthropic Messages କ୍ଲାଏଣ୍ଟଗୁଡ଼ିକୁ (Claude → OpenAI → Responses) ମଧ୍ୟ ରିପ୍ଲେ କରାଯାଏ।
 
 ## ସଂରକ୍ଷଣ — ହାଇବ୍ରିଡ୍ ମେମୋରି + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-ଇଣ୍ଡେକ୍ସଗୁଡ଼ିକ: `expires_at`, `provider`, `model`, `created_at`। `expires_at`କୁ Unix epoch ସେକେଣ୍ଡ୍ ଭାବରେ ସଂରକ୍ଷଣ କରାଯାଏ; SELECT ସ୍ତର `EXPIRES_AT_EPOCH_SQL` ମାଧ୍ୟମରେ ପୁରୁଣା ଟେକ୍ସଟ୍ ମୂଲ୍ୟଗୁଡ଼ିକୁ ସାମାନ୍ୟୀକୃତ କରେ।
+ଇଣ୍ଡେକ୍ସଗୁଡ଼ିକ: `expires_at`, `provider`, `model`, `created_at`। `expires_at` Unix epoch ସେକେଣ୍ଡ ଭାବରେ ସଂରକ୍ଷିତ ହୁଏ; SELECT ସ୍ତର `EXPIRES_AT_EPOCH_SQL` ମାଧ୍ୟମରେ ପୁରୁଣା ଟେକ୍ସଟ୍ ମୂଲ୍ୟଗୁଡ଼ିକୁ ସ୍ୱାଭାବିକ କରେ।
 
 ## ପ୍ରଦାତା / ମଡେଲ୍ ଚିହ୍ନଟ
 

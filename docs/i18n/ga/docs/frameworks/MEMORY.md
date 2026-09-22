@@ -169,31 +169,33 @@ Stórálann an tábla `memory_vec_meta` (aistriú `083_memory_vec.sql`):
 Tá naoi réimse leabaithe agus veicteora ar fáil in `MemorySettingsExtended` in
 `src/shared/schemas/memory.ts`, agus déantar iad a bhuanú trí `src/lib/db/settings.ts`:
 
-| Réimse                   | Cineál                                             | Réamhshocrú | Cur síos                                                                   |
-| ------------------------ | -------------------------------------------------- | ----------- | -------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | Cén fhoinse leabaithe atá le húsáid                                        |
-| `embeddingProviderModel` | `string \| null`                                   | `null`      | Soláthraí/samhail i bhformáid `provider/model`                             |
-| `customBaseUrl`          | `string \| null`                                   | `null`      | Bun-URL críochphointe atá comhoiriúnach le OpenAI agus don Chuimhne amháin |
-| `customModelId`          | `string \| null`                                   | `null`      | Aitheantas na samhla a sheoltar chuig an gcríochphointe saincheaptha       |
-| `transformersEnabled`    | `boolean`                                          | `false`     | Rogha ghlactha isteach do Transformers.js (MiniLM, ~400MB)                 |
-| `staticEnabled`          | `boolean`                                          | `false`     | Rogha ghlactha isteach don tsamhail áitiúil statach potion-base-8M         |
-| `rerankEnabled`          | `boolean`                                          | `false`     | Cumasaigh an chéim athrangaithe (cuireann sí +200-500ms/iarratas leis)     |
-| `rerankProviderModel`    | `string \| null`                                   | `null`      | Soláthraí/samhail athrangaithe i bhformáid `provider/model`                |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`    | Cén inneall stórála veicteora atá le húsáid                                |
+| Réimse                   | Cineál                                             | Réamhshocrú | Cur síos                                                             |
+| ------------------------ | -------------------------------------------------- | ----------- | -------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | An fhoinse leabaithe atá le húsáid                                   |
+| `embeddingProviderModel` | `string \| null`                                   | `null`      | Soláthraí/samhail i bhformáid `provider/model`                       |
+| `customBaseUrl`          | `string \| null`                                   | `null`      | Bun-URL críochphointe comhoiriúnach le OpenAI, don chuimhne amháin   |
+| `customModelId`          | `string \| null`                                   | `null`      | Aitheantas na samhla a sheoltar chuig an gcríochphointe saincheaptha |
+| `transformersEnabled`    | `boolean`                                          | `false`     | Rogha chun Transformers.js a úsáid (MiniLM, ~400MB)                  |
+| `staticEnabled`          | `boolean`                                          | `false`     | Rogha chun samhail áitiúil statach potion-base-8M a úsáid            |
+| `rerankEnabled`          | `boolean`                                          | `false`     | Cumasaigh céim athrangaithe (cuireann sé +200-500ms/req leis)        |
+| `rerankProviderModel`    | `string \| null`                                   | `null`      | Soláthraí/samhail athrangaithe i bhformáid `provider/model`          |
+
+Déantar `rerankProviderModel` a réiteach le `POST /v1/rerank` (a ghlaoitear thar loopback), mar sin glacann sé le haon rud a nglacann an bealach sin leis: samhail athrangaithe néil roghnaithe (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) nó nód soláthraí atá comhoiriúnach le OpenAI mar `<node-prefix>/<model>` (m.sh. `skilled-mini/bge-reranker-v2-m3` do bhosca TEI/Infinity). Bíonn nóid loopback incháilithe i gcónaí; i gcás nód ar óstach eile (LAN, Tailscale), teastaíonn an bhratach ghné `RERANK_REMOTE_PROVIDER_NODES` freisin agus ní mór dó polasaí URL amach an tsoláthraí a chomhlíonadh — féach [Bratacha Gné](../reference/FEATURE_FLAGS.md). Liostaíonn roghnóir an deais soláthraithe roghnaithe chomh maith le nóid áitiúla; is féidir aon teaghrán bailí `provider/model` a shocrú go díreach trí `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | An t-inneall veicteora atá le húsáid |
 
 Nochtar iad seo trí `GET /PUT /api/settings/memory` (scéimre `MemorySettingsExtendedSchema`).
 
 Maidir leis an bhfoinse `remote`, glacann Memory leis na socruithe roghnacha `customBaseUrl` agus
 `customModelId` freisin. Le chéile, roghnaíonn siad críochphointe `/embeddings`
-agus samhail atá comhoiriúnach le OpenAI gan an chlárlann leabaithe dhomhanda a athrú. Déantar an críochphointe a
-normalú sula n-úsáidtear é agus déantar é a sheiceáil de réir bheartas URLanna amach an tsoláthraí: tá HTTP(S)
-riachtanach, diúltaítear do dhintiúir leabaithe agus do theaghráin iarratais, agus fanann seoltaí
-meiteashonraí néil bactha. Caomhnaíonn luachanna folmha soláthraí roghnaithe na clárlainne. Déantar earráidí
-a chuirtear ar ais chuig an deais a shláintiú agus ní logáiltear dintiúir an chríochphointe riamh.
+atá comhoiriúnach le OpenAI agus samhail gan an chlárlann leabaithe dhomhanda a athrú. Déantar an críochphointe a
+normalú sula n-úsáidtear é agus seiceálann polasaí URL amach an tsoláthraí é: tá HTTP(S)
+riachtanach, diúltaítear do dhintiúir leabaithe agus do theaghráin iarratais, agus fanann
+seoltaí meiteashonraí néil blocáilte. Caomhnaíonn luachanna folmha an soláthraí clárlainne roghnaithe. Déantar earráidí
+a chuirtear ar ais chuig an deais a shláintiú agus ní logáiltear dintiúir críochphointe riamh.
 
-> **TODO (D20):** Níl an scóip `global` (cuimhní a chomhroinnt thar gach eochair API)
+> **LE DÉANAMH (D20):** Níl an scóip `global` (cuimhní a chomhroinnt thar gach eochair API)
 > curtha i bhfeidhm san eisiúint seo. Teastaíonn athruithe scéimre agus conair aisghabhála
-> dhomhanda chuige. Rianaigh ar leithligh é.
+> dhomhanda uaithi. Rianaigh ar leithligh í.
 
 ## Sraitheanna Stórála
 

@@ -4,20 +4,22 @@
 
 ---
 
-See dokument on hooldaja koostatud kinnitus kuue
-`AI-detected potential malware` leiu kohta, mis tuvastati paketis `omniroute@3.8.5`, ja
-paketis `omniroute@3.8.6` rakendatud leevendusmeetmete kohta. Selle eesmärgid on järgmised:
+> **Käsitlusala märkus:** `socket.yml` konfigureerib Socket.dev-i registripoolse npm-i artefakti avaldamisjärgse kontrolli (eiratud teed paketti mittekuuluva sisu jaoks, näiteks `tests/`, `docs/` ja koostearuanded). See ei seadista CI/PR-i ühendamise kontrollväravat — ükski töövoog kataloogis `.github/workflows`, ükski `package.json`-i skript ega ükski `Makefile`-i sihtmärk ei käivita Socket.dev-i.
 
-1. Turbekonveieri operaatoritel on üks viide, millele toetuda, kui neil on vaja
+See dokument on hooldaja koostatud kinnitus kuue
+`AI tuvastatud potentsiaalse pahavara` leiu kohta, mis tuvastati versioonis `omniroute@3.8.5`, ning
+versioonis `omniroute@3.8.6` rakendatud leevendusmeetmete kohta. Selle eesmärgid on järgmised:
+
+1. Turbekonveieri haldajatel on üks viiteallikas, millele osutada, kui neil on vaja
    hinnata leide tegeliku lähtekoodi põhjal.
 2. Tulevased tehisintellektil põhinevad skannerid saavad tuvastada hooldaja allkirjastatud kinnituse, et iga
-   märgistatud tee on tahtlik, valikuline ja dokumenteeritud.
+   märgistatud tee on tahtlik, vabatahtlikult kasutatav ja dokumenteeritud.
 3. Meil on kirjalik ülevaade sellest, _miks_ iga väljakutsekoht on just sellise kujuga —
-   et tulevane refaktoreerimine ei tooks kogemata tagasi signatuuri, mis
-   eemaldati teadlikult.
+   et tulevane refaktoreerimine ei tooks kogemata uuesti sisse tunnusmustrit, mis
+   teadlikult eemaldati.
 
-Kui haldate skannerit, mis märgistab pärast v3.8.6
-leevendusmeetmete avaldamist uuesti mõne alltoodud väljakutsekoha, avage skannimisjäljega probleemiaruanne ja
+Kui haldate skannerit, mis märgistab pärast v3.8.6 leevendusmeetmete avaldamist mõne
+alltoodud väljakutsekoha uuesti, avage palun probleem koos kontrollijäljega ja
 me täiendame siinset kinnitust.
 
 ---

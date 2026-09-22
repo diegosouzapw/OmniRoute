@@ -27,6 +27,12 @@
 
 ## اجرای سریع
 
+> **میزبانی شخصی تنها با یک دستور؟** به
+> [راهنمای میزبانی شخصی](../getting-started/SELF_HOST_GUIDE.md) مراجعه کنید —
+> `docker compose -f docker-compose.selfhost.yml up -d` (ایمیج منتشرشده +
+> Redis، فقط روی loopback، بدون انتخاب پروفایل). روش اجرای سریع زیر،
+> مسیر تککانتینری برای کاربرانی است که Redis را از قبل در جای دیگری اجرا میکنند.
+
 ```bash
 docker run -d \
   --name omniroute \

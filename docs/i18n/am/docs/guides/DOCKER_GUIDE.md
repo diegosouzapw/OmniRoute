@@ -27,6 +27,12 @@
 
 ## ፈጣን ማስኬድ
 
+> **በአንድ ትዕዛዝ በራስዎ ማስተናገድ ይፈልጋሉ?**
+> [በራስዎ የማስተናገድ መመሪያን](../getting-started/SELF_HOST_GUIDE.md) ይመልከቱ —
+> `docker compose -f docker-compose.selfhost.yml up -d` (የታተመ image +
+> Redis፣ loopback ብቻ፣ የprofile ምርጫ የለም)። ከታች ያለው ፈጣን ማስኬድ Redisን በሌላ ቦታ
+> አስቀድመው ለሚያስኬዱ ተጠቃሚዎች የታሰበ የአንድ-container መንገድ ነው።
+
 ```bash
 docker run -d \
   --name omniroute \

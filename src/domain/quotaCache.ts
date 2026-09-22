@@ -140,12 +140,11 @@ const MAX_CONCURRENT_REFRESHES = 5;
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function isExhausted(quotas: Record<string, QuotaInfo>): boolean {
-  const entries = Object.values(quotas);
+  const entries = Object.values(quotas).filter((q) => q.fractionReported !== false);
   if (entries.length === 0) return false;
-  // #10095 — a window whose fraction was never reported by upstream must
-  // never single-handedly flip the whole connection to exhausted; treat it
-  // as available (mirrors the guard in genericQuotaFetcher.ts).
-  return entries.every((q) => q.fractionReported !== false && q.remainingPercentage <= 0);
+  // Informational/unknown windows neither exhaust an account nor override a
+  // real exhausted window. In particular, spend telemetry is not a quota.
+  return entries.every((q) => q.remainingPercentage <= 0);
 }
 
 /**
@@ -260,16 +259,6 @@ export function quotaSnapshotChanged(
   );
 }
 
-function remainingPercentageFromQuota(quota: Record<string, unknown>): number {
-  const direct = safePercentage(quota.remainingPercentage);
-  if (direct !== undefined) return direct;
-  const total = Number(quota.total);
-  const used = Number(quota.used ?? 0);
-  return total > 0 && Number.isFinite(total) && Number.isFinite(used)
-    ? Math.round(((total - used) / total) * 100)
-    : 0;
-}
-
 function normalizeQuotas(rawQuotas: Record<string, unknown>): Record<string, QuotaInfo> {
   const result: Record<string, QuotaInfo> = {};
   for (const [key, q] of Object.entries(rawQuotas)) {
@@ -281,12 +270,23 @@ function normalizeQuotas(rawQuotas: Record<string, unknown>): Record<string, Quo
           : typeof quota.window_seconds === "number" && Number.isFinite(quota.window_seconds)
             ? quota.window_seconds
             : null;
+      const percentage = safePercentage(quota.remainingPercentage);
+      const total = safePercentage(quota.total);
+      const used = quota.used == null ? 0 : safePercentage(quota.used);
+      const boundedPercentage =
+        total !== undefined && total > 0 && used !== undefined
+          ? Math.round(((total - used) / total) * 100)
+          : undefined;
+      const fractionReported =
+        quota.fractionReported !== false &&
+        quota.unlimited !== true &&
+        (percentage !== undefined || boundedPercentage !== undefined);
       result[key] = {
-        remainingPercentage: remainingPercentageFromQuota(quota),
-        resetAt: typeof quota.resetAt === "string" ? quota.resetAt : null,
         // #10095 — thread through the "did upstream actually report this
         // window's fraction" signal (see UsageQuota in usage/quota.ts).
-        fractionReported: quota.fractionReported === false ? false : undefined,
+        remainingPercentage: fractionReported ? (percentage ?? boundedPercentage!) : 0,
+        resetAt: typeof quota.resetAt === "string" ? quota.resetAt : null,
+        fractionReported: fractionReported ? undefined : false,
         ...(typeof quota.displayName === "string" && quota.displayName.trim()
           ? { displayName: quota.displayName.trim() }
           : {}),
@@ -634,6 +634,9 @@ export function isQuotaExhaustedForRequest(
   }
 
   if (provider === "antigravity" || provider === "agy") {
+    if (Object.keys(entry.quotas || {}).length === 0) {
+      return isStandardQuotaExhausted(entry, now);
+    }
     return isAntigravityQuotaExhausted(connectionId, entry, requestedModel);
   }
 
@@ -664,6 +667,17 @@ export function setQuotaCache(
   // #4438 — capture the prior entry BEFORE overwriting the cache so we can skip
   // redundant snapshot writes for idle connections whose quota didn't change.
   const prior = getState().cache.get(connectionId);
+  // A telemetry-only refresh is not evidence that a real upstream 429 has
+  // recovered. Keep its original timestamp so it can still expire normally.
+  if (
+    prior?.exhausted &&
+    Object.keys(prior.quotas).length === 0 &&
+    isStandardQuotaExhausted(prior, Date.now()) &&
+    Object.keys(modelQuotas).length === 0 &&
+    Object.values(quotas).every((q) => q.fractionReported === false)
+  ) {
+    return;
+  }
   const entry: QuotaCacheEntry = {
     connectionId,
     provider,
@@ -678,28 +692,36 @@ export function setQuotaCache(
   if (entry && rawQuotas) {
     for (const [windowKey, quotaInfo] of Object.entries(rawQuotas)) {
       if (!quotaInfo || typeof quotaInfo !== "object") continue;
-      const quota = quotaInfo as Record<string, unknown>;
-      const remainingPercentage = remainingPercentageFromQuota(quota);
-      recordProviderQuotaResetEventIfChanged({
-        provider,
-        connectionId,
-        windowKey,
-        currentResetAt: typeof quota.resetAt === "string" ? quota.resetAt : null,
-        currentRemainingPercentage: remainingPercentage,
-        previousObservation: prior?.quotas?.[windowKey]
-          ? {
-              resetAt: prior.quotas[windowKey].resetAt,
-              remainingPercentage: prior.quotas[windowKey].remainingPercentage,
-            }
-          : null,
-      });
+      const normalized = quotas[windowKey];
+      if (!normalized) continue;
+      const { remainingPercentage } = normalized;
+      const fractionReported = normalized.fractionReported !== false;
+      if (fractionReported) {
+        recordProviderQuotaResetEventIfChanged({
+          provider,
+          connectionId,
+          windowKey,
+          currentResetAt: normalized.resetAt,
+          currentRemainingPercentage: remainingPercentage,
+          previousObservation: prior?.quotas?.[windowKey]
+            ? {
+                resetAt: prior.quotas[windowKey].resetAt,
+                remainingPercentage: prior.quotas[windowKey].remainingPercentage,
+              }
+            : null,
+        });
+      }
       // #5923 (Finding #5) — is_exhausted must reflect THIS window's own remaining
       // percentage, not the connection-wide AND-across-all-windows aggregate
       // (`entry.exhausted`). A connection with one 0% window and other non-zero
       // windows previously never flagged that window's row as exhausted.
-      const windowExhausted = remainingPercentage <= 0;
+      const windowExhausted = fractionReported && remainingPercentage <= 0;
       // #4438 — only persist on the first observation or a real change.
-      if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, windowExhausted)) continue;
+      if (
+        !quotaSnapshotChanged(prior, windowKey, remainingPercentage, windowExhausted) &&
+        prior?.quotas?.[windowKey]?.fractionReported === normalized.fractionReported
+      )
+        continue;
       try {
         saveQuotaSnapshot({
           provider,
@@ -707,9 +729,10 @@ export function setQuotaCache(
           window_key: windowKey,
           remaining_percentage: remainingPercentage,
           is_exhausted: windowExhausted ? 1 : 0,
-          next_reset_at: typeof quota.resetAt === "string" ? quota.resetAt : null,
+          next_reset_at: normalized.resetAt,
           window_duration_ms: entry.windowDurationMs ?? null,
-          raw_data: null,
+          // Persist only the interpretation, never the raw provider payload.
+          raw_data: fractionReported ? null : JSON.stringify({ fractionReported: false }),
         });
       } catch (error) {
         console.error("[quotaCache] Failed to save snapshot:", error);
@@ -750,15 +773,31 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
       nextResetAt?: string | null;
       windowDurationMs?: number | null;
       createdAt?: string;
+      rawData?: string | { fractionReported?: boolean } | null;
     };
     const windowKey = camelSnapshot.windowKey ?? snapshot.window_key;
     if (!windowKey) continue;
     provider = provider || snapshot.provider || "";
+    let fractionReported: false | undefined;
+    const rawData = camelSnapshot.rawData ?? snapshot.raw_data;
+    try {
+      const metadata = typeof rawData === "string" ? JSON.parse(rawData) : rawData;
+      if (metadata?.fractionReported === false) fractionReported = false;
+    } catch {
+      // Legacy snapshots need not contain JSON metadata.
+    }
+    // Older builds persisted Vertex's local spend counter as 0% remaining.
+    // It never represented a provider limit. Ignore its old exhaustion flag
+    // without deleting history or weakening genuine Vertex quota windows.
+    if ((provider === "vertex" || provider === "vertex-partner") && windowKey === "spend") {
+      fractionReported = false;
+    }
     quotas[windowKey] = {
       remainingPercentage: clampPercent(
         Number(camelSnapshot.remainingPercentage ?? snapshot.remaining_percentage ?? 0)
       ),
       resetAt: camelSnapshot.nextResetAt ?? snapshot.next_reset_at ?? null,
+      fractionReported,
     };
     const snapshotWindowDurationMs =
       camelSnapshot.windowDurationMs ?? snapshot.window_duration_ms ?? null;

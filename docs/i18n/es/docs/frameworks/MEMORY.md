@@ -168,30 +168,31 @@ La tabla `memory_vec_meta` (migración `083_memory_vec.sql`) almacena:
 Hay nueve campos de embeddings y vectores disponibles en `MemorySettingsExtended` en
 `src/shared/schemas/memory.ts`, que se persisten mediante `src/lib/db/settings.ts`:
 
-| Campo                    | Tipo                                               | Valor predeterminado | Descripción                                                   |
-| ------------------------ | -------------------------------------------------- | -------------------- | ------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`             | Fuente de embeddings que se utilizará                         |
-| `embeddingProviderModel` | `string \| null`                                   | `null`               | Proveedor/modelo en formato `provider/model`                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`               | URL base de endpoint compatible con OpenAI solo para Memory   |
-| `customModelId`          | `string \| null`                                   | `null`               | ID del modelo enviado al endpoint personalizado               |
-| `transformersEnabled`    | `boolean`                                          | `false`              | Activación opcional de Transformers.js (MiniLM, ~400MB)       |
-| `staticEnabled`          | `boolean`                                          | `false`              | Activación opcional del modelo local estático potion-base-8M  |
-| `rerankEnabled`          | `boolean`                                          | `false`              | Habilita el paso de reordenación (añade +200-500ms/solicitud) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`               | Proveedor/modelo de reordenación en formato `provider/model`  |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`             | Backend vectorial que se utilizará                            |
+| Campo                    | Tipo                                               | Valor predeterminado | Descripción                                                      |
+| ------------------------ | -------------------------------------------------- | -------------------- | ---------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`             | Fuente de embeddings que se utilizará                            |
+| `embeddingProviderModel` | `string \| null`                                   | `null`               | Proveedor/modelo con el formato `provider/model`                 |
+| `customBaseUrl`          | `string \| null`                                   | `null`               | URL base del endpoint compatible con OpenAI solo para Memory     |
+| `customModelId`          | `string \| null`                                   | `null`               | ID de modelo enviado al endpoint personalizado                   |
+| `transformersEnabled`    | `boolean`                                          | `false`              | Habilitación voluntaria de Transformers.js (MiniLM, ~400MB)      |
+| `staticEnabled`          | `boolean`                                          | `false`              | Habilitación voluntaria del modelo local estático potion-base-8M |
+| `rerankEnabled`          | `boolean`                                          | `false`              | Habilitar el paso de reranking (añade +200-500ms/solicitud)      |
+| `rerankProviderModel`    | `string \| null`                                   | `null`               | Proveedor/modelo de reranking con el formato `provider/model`    |
 
-Estos se exponen mediante `GET /PUT /api/settings/memory` (esquema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` se resuelve mediante `POST /v1/rerank` (invocado a través de loopback), por lo que acepta cualquier valor admitido por esa ruta: un modelo de reranking seleccionado para la nube (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) o un nodo proveedor compatible con OpenAI con el formato `<node-prefix>/<model>` (p. ej., `skilled-mini/bge-reranker-v2-m3` para una instancia de TEI/Infinity). Los nodos de loopback siempre son aptos; un nodo ubicado en otro host (LAN, Tailscale) requiere además la marca de funcionalidad `RERANK_REMOTE_PROVIDER_NODES` y debe cumplir la política de URL salientes del proveedor; consulte [Marcas de funcionalidad](../reference/FEATURE_FLAGS.md). El selector del panel muestra los proveedores seleccionados y los nodos locales; cualquier cadena `provider/model` válida puede configurarse directamente mediante `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend vectorial que se utilizará |
 
-Para la fuente `remote`, Memory también acepta las opciones `customBaseUrl` y
-`customModelId`. Juntas, seleccionan un endpoint `/embeddings` compatible con OpenAI
-y un modelo sin cambiar el registro global de embeddings. El endpoint se
+Estos campos se exponen mediante `GET /PUT /api/settings/memory` (esquema `MemorySettingsExtendedSchema`).
+
+Para la fuente `remote`, Memory también acepta las opciones de configuración `customBaseUrl` y
+`customModelId`. Juntas permiten seleccionar un endpoint `/embeddings`
+compatible con OpenAI y un modelo sin modificar el registro global de embeddings. El endpoint se
 normaliza antes de usarlo y se comprueba mediante la política de URL salientes del proveedor: se
-requiere HTTP(S), se rechazan las credenciales incrustadas y las cadenas de consulta,
-y las direcciones de metadatos de la nube permanecen bloqueadas. Los valores vacíos
-conservan el proveedor del registro seleccionado. Los errores devueltos al panel
-se depuran y las credenciales del endpoint nunca se registran.
+requiere HTTP(S), se rechazan las credenciales incrustadas y las cadenas de consulta, y las direcciones
+de metadatos de la nube siguen bloqueadas. Los valores vacíos conservan el proveedor seleccionado en el registro. Los errores
+devueltos al panel se sanean y las credenciales del endpoint nunca se registran.
 
-> **PENDIENTE (D20):** El ámbito `global` (compartir memorias entre todas las claves de API) no está
+> **TODO (D20):** El ámbito `global` (compartir memorias entre todas las claves de API) no está
 > implementado en esta versión. Requiere cambios en el esquema y una ruta de recuperación
 > global. Realizar su seguimiento por separado.
 

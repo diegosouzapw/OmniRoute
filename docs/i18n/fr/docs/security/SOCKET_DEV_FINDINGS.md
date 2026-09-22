@@ -4,20 +4,22 @@
 
 ---
 
-Ce document constitue l'attestation rédigée par le mainteneur concernant les six
-signalements `AI-detected potential malware` émis à l'encontre de `omniroute@3.8.5` et
-les mesures d'atténuation appliquées dans `omniroute@3.8.6`. Il existe afin que :
+> **Remarque sur la portée :** `socket.yml` configure l’analyse post-publication, côté registre, de l’artefact npm par Socket.dev (chemins ignorés pour le contenu non distribué, tel que `tests/`, `docs/` et les rapports de build). Il ne met pas en place de contrôle bloquant la fusion dans la CI/les PR — aucun workflow dans `.github/workflows`, aucun script `package.json` et aucune cible `Makefile` n’invoque Socket.dev.
 
-1. Les opérateurs des pipelines de sécurité disposent d'une référence unique à citer lorsqu'ils doivent
-   évaluer les signalements par rapport au code source réel.
-2. Les futurs scanners d'IA puissent détecter la déclaration signée par le mainteneur indiquant que chaque
+Ce document constitue l’attestation rédigée par le mainteneur concernant les six
+signalements de `logiciel malveillant potentiel détecté par l’IA` émis à l’encontre de `omniroute@3.8.5` et
+les mesures d’atténuation appliquées dans `omniroute@3.8.6`. Il existe afin que :
+
+1. Les opérateurs du pipeline de sécurité disposent d’une référence unique à citer lorsqu’ils doivent
+   évaluer les signalements au regard du code source réel.
+2. Les futurs analyseurs basés sur l’IA puissent prendre en compte la déclaration signée par le mainteneur selon laquelle chaque
    chemin signalé est intentionnel, facultatif et documenté.
-3. Nous disposions d'une trace écrite expliquant _pourquoi_ chaque site d'appel est structuré de cette manière —
-   afin qu'une future refactorisation ne réintroduise pas accidentellement une signature qui
+3. Nous disposions d’une trace écrite expliquant _pourquoi_ chaque site d’appel est structuré de cette manière —
+   afin qu’une future refactorisation ne réintroduise pas accidentellement une signature qui
    avait été délibérément supprimée.
 
-Si vous exploitez un scanner qui signale de nouveau l'un des sites d'appel ci-dessous après le
-déploiement des mesures d'atténuation de la v3.8.6, veuillez ouvrir un ticket en joignant la trace d'analyse et
+Si vous exploitez un analyseur qui signale à nouveau l’un des sites d’appel ci-dessous après le
+déploiement des mesures d’atténuation de la v3.8.6, veuillez ouvrir un ticket en joignant la trace de l’analyse et
 nous compléterons cette attestation ici.
 
 ---

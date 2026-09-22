@@ -1293,6 +1293,9 @@
     "mainNavigation": "Príomhnascleanúint",
     "unpinSection": "Díphionnáil an chuid",
     "pinSectionOpen": "Pionnáil an chuid agus coinnigh ar oscailt í",
+    "pinItem": "Pionnáil mír",
+    "unpinItem": "Díphionnáil mír",
+    "pinnedSection": "Pionnáilte",
     "reloadPage": "Athlódáil an leathanach",
     "dragReorderSection": "Tarraing chun ord an rannáin a athrú",
     "dragReorderItem": "Tarraing chun an t-ord a athrú",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Soláthraithe",
     "Account Deactivated": "Cuntas Díghníomhachtaithe",
     "allProviders": "Gach Soláthraí",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "Leid Fianán Gréasáin Grok",
     "blockClaudeExtraUsageDescription": "Nuair a chuirtear ar siúl é, marcálann OmniRoute an ceangal Claude seo mar neamh-infhaighte a luaithe a thuairiscíonn an API úsáide úsáid bhreise sa scuaine, ionas go n-aistríonn an mheicníocht chúltaca go ceangal eile seachas leanúint ar aghaidh le billeáil bhreise íoc-mar-a-úsáidtear.",
     "blockClaudeExtraUsageLabel": "Cuir bac ar úsáid bhreise Claude",
+    "claudeLowPriorityModeLabel": "Lean ar aghaidh ar thosaíocht níos ísle tar éis na teorann 5 uair an chloig",
+    "claudeLowPriorityModeDescription": "Nuair a shroicheann an cuntas seo a theorainn úsáide 5 uair an chloig agus a thairgeann Anthropic an lána tosaíochta níos ísle, glacann OmniRoute leis agus leanann sé d’iarratais a sheoladh le anthropic-usage-limit: slow go dtí go n-athshocraítear an fhuinneog, in ionad ligean don nasc fuarú. Tá feidhm fós ag an teorainn sheachtainiúil agus d’fhéadfadh freagraí fanacht go dtí go mbeidh acmhainn bhreise ar fáil.",
+    "claudeAutoLimitResetLabel": "Athshocraigh teorainn an tseisiúin go huathoibríoch (uair sa tseachtain)",
+    "claudeAutoLimitResetDescription": "Nuair a shroicheann an cuntas seo a theorainn úsáide 5 uair an chloig agus a bhíonn athshocrú theorainn an tseisiúin ar fáil, éilíonn OmniRoute é go huathoibríoch agus baineann sé triail eile as ar lánluas. Úsáideann sé athshocrú uair sa tseachtain an chuntais agus áirítear é fós sa teorainn sheachtainiúil.",
     "disableCoolingDescription": "Scipeáil an tréimhse fhuaraithe neamhbhuan ionas go bhfanann an ceangal seo incháilithe fiú tar éis earráidí in-aisghabhála (tá feidhm fós ag stáit chríochacha amhail toirmiscthe/éagtha).",
     "disableCoolingLabel": "Díchumasaigh an tréimhse fhuaraithe don cheangal seo",
     "bulkPasteAdded": "{count, plural, one {1 eochair curtha leis} other {# eochracha curtha leis}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "Aitheantas Comhghaoil: {id}",
       "detailedPayloadInfo": "Cumasaigh logáil mhionsonraithe ar dtús más mian leat an t-amharc ceithre chéim ar ualaí cliaint/soláthraí le haghaidh iarratais nua.",
       "copyAll": "Cóipeáil go léir",
-      "copiedAll": "Cóipeáilte go léir"
+      "copiedAll": "Cóipeáilte go léir",
+      "payloadSizeLimitOmitted": "Fágadh an pálasta ar lár — sháraigh an rannán seo teorainn mhéid an logchomhaid glaonna (CALL_LOG_PIPELINE_MAX_SIZE_KB) agus níor stóráladh é; ní fíorearráid ón soláthraí é seo."
     }
   },
   "proxyLogger": {

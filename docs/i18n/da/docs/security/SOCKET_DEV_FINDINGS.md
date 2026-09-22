@@ -4,21 +4,23 @@
 
 ---
 
-Dette dokument er den vedligeholderforfattede attestering for de seks
-`AI-detected potential malware`-fund, der blev rejst mod `omniroute@3.8.5`, og
-de afhjælpninger, der blev implementeret i `omniroute@3.8.6`. Det findes, så:
+> **Bemærkning om omfang:** `socket.yml` konfigurerer Socket.devs scanning af npm-artefaktet i registreringsdatabasen efter udgivelse (ignorerede stier for indhold, der ikke udgives, såsom `tests/`, `docs/` og buildrapporter). Den opsætter ikke en CI-/PR-fletningskontrol — ingen workflowfil i `.github/workflows`, intet script i `package.json` og intet mål i `Makefile` kalder Socket.dev.
+
+Dette dokument er vedligeholderens attestering af de seks
+`AI-detected potential malware`-fund, der blev rapporteret for `omniroute@3.8.5`, og
+de afhjælpninger, der er implementeret i `omniroute@3.8.6`. Det findes, så:
 
 1. Operatører af sikkerhedspipelines har én samlet reference at henvise til, når de skal
-   evaluere fundene i forhold til den faktiske kildekode.
-2. Fremtidige AI-scannere kan registrere den vedligeholderunderskrevne erklæring om, at hver
-   markeret sti er tilsigtet, tilvalgsbaseret og dokumenteret.
-3. Vi har en skriftlig registrering af, _hvorfor_ hvert kaldested er udformet, som det er —
+   vurdere fundene i forhold til den faktiske kildekode.
+2. Fremtidige AI-scannere kan opfange vedligeholderens underskrevne erklæring om, at hver
+   markeret sti er tilsigtet, kræver aktivt tilvalg og er dokumenteret.
+3. Vi har en skriftlig dokumentation for, _hvorfor_ hvert kaldested er udformet, som det er —
    så en fremtidig refaktorering ikke ved et uheld genindfører et fingeraftryk, der
    bevidst blev fjernet.
 
 Hvis du driver en scanner, der igen markerer et af kaldestederne nedenfor, efter at
-v3.8.6-afhjælpningerne er blevet udgivet, bedes du oprette en issue med scanningssporet, så
-udvider vi attesteringen her.
+afhjælpningerne i v3.8.6 er blevet udgivet, bedes du oprette en issue med scanningsloggen,
+så udvider vi attesteringen her.
 
 ---
 

@@ -22,22 +22,24 @@ Běžní klienti (Cursor, Cline, Roo Code, OpenAI SDK) však `reasoning_content`
 ## Architektura
 
 ```
-Kolo N (asistent generuje):
+Tah N (asistent generuje):
   → odpověď obsahuje reasoning_content + tool_calls
   → pokud requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      zapíše (paměť + DB), s klíčem podle každého tool_call.id
-  → předá odpověď klientovi (který může, ale nemusí uvažování zachovat)
+      zapíše (do paměti + DB), s klíčem podle každého tool_call.id
+  → předá odpověď klientovi (který může, ale nemusí zachovat reasoning)
 
-Kolo N+1 (klient odešle navazující požadavek):
+Tah N+1 (klient odešle navazující požadavek):
   → překladač zjistí: requiresReasoningReplay(provider, model) === true
   → pro každou zprávu asistenta s tool_calls a bez reasoning_content:
       lookupReasoning(toolCalls[0].id) → paměť → DB
-      shoda  → msg.reasoning_content = cached; recordReplay()
-      bez shody → msg.reasoning_content = "" (zpětně kompatibilní náhradní řešení pro starší DeepSeek)
-  → upstream obdrží konzistentní historii → žádná chyba 400
+      nalezeno   → msg.reasoning_content = cached; recordReplay()
+      nenalezeno → msg.reasoning_content = "" (zpětně kompatibilní náhradní řešení pro starší DeepSeek)
+  → nadřazená služba obdrží konzistentní historii → žádná chyba 400
 ```
 
-K zachycení dochází v `open-sse/handlers/chatCore.ts` (na dvou místech, ve dvou místech volání `cacheReasoningFromAssistantMessage`). K přehrání dochází v `open-sse/translator/index.ts` po převodu schématu, ale před odesláním.
+Zachycení probíhá v `open-sse/handlers/chatCore.ts` (na dvou místech, ve dvou místech volání `cacheReasoningFromAssistantMessage`). Opětovné vložení probíhá v `open-sse/translator/index.ts` po vynucení schématu, ale před odesláním.
+
+Běžné tahy asistenta (bez volání nástrojů) používají odlišné klíče: `buildAssistantMessageCacheKey()` vytvoří otisk rozsahu relace spolu s normalizovaným přepisem ve formátu OpenAI až po daný tah, protože DeepSeek po přítomnosti `tools` vyžaduje reasoning z _každého_ předchozího tahu. U cílů rozhraní Responses API (například `opencode-go/deepseek-v4-flash`, směrovaného na `/responses`) obsahuje tělo nadřazeného požadavku `input`, nikoli `messages`, takže `translateRequest()` (`open-sse/translator/index.ts`) prostřednictvím možnosti zpětného volání předá pivotní přepis, z něhož vytvořil otisk, a místa zachycení vytvoří otisk téhož přepisu. Průchod pro opětovné vložení Responses se spouští nad pivotním formátem OpenAI pro každý zdrojový formát, takže se opětovné vložení provádí i pro klienty Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Úložiště — hybridní paměť + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indexy: `expires_at`, `provider`, `model`, `created_at`. Hodnota `expires_at` je uložena v sekundách unixového času; vrstva SELECT normalizuje starší textové hodnoty prostřednictvím `EXPIRES_AT_EPOCH_SQL`.
+Indexy: `expires_at`, `provider`, `model`, `created_at`. `expires_at` je uloženo jako počet sekund unixového času; vrstva SELECT normalizuje starší textové hodnoty prostřednictvím `EXPIRES_AT_EPOCH_SQL`.
 
 ## Detekce poskytovatele / modelu
 

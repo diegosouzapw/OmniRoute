@@ -222,34 +222,26 @@ Disse regler håndhæves af værktøjer og reviewere:
 
 ## Resultater fra forsyningskædescannere (Socket.dev / Snyk / lignende)
 
-Den publicerede `omniroute`-npm-artefakt inkluderer Next.js-buildet med `output: "standalone"`,
-hvilket betyder, at hver route-handler — inklusive dokumenterede privilegerede
-funktioner (MITM, Zed-import, Cloud Sync, indlejret tjenesteovervågning) — ender
-i minificerede chunks under `.next/server/*.js`. Heuristiske forsyningskædescannere
-matcher ofte mønstre i disse chunks med malwaresignaturer.
+> **Bemærkning om omfang:** `socket.yml` i repositoryets rod konfigurerer kun `projectIgnorePaths` for Socket.devs post-publish-scanning på registreringssiden af den publicerede npm-artefakt — den fungerer ikke som en obligatorisk CI/PR-fletningskontrol. Ingen workflow i `.github/workflows`, intet `package.json`-script og intet `Makefile`-target kalder Socket.dev.
 
-Den scannerkonfiguration, vi bruger, findes i [`socket.yml`](socket.yml) i
-repositoryets rod (Socket.dev GitHub App-format v2 — se
-<https://docs.socket.dev/docs/socket-yml>). Den udelukker eksplicit
-mapper, der ikke distribueres (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` osv.), så scanneren kun rapporterer om kodestier, der
-rent faktisk når ud til brugerne af den publicerede pakke — selve scanningen udføres ved, at Socket
-GitHub App læser denne fil, ikke af et workflow i dette repository.
+Den publicerede `omniroute`-npm-artefakt indeholder Next.js-buildet med `output: "standalone"`, hvilket betyder, at alle route handlers — herunder dokumenterede privilegerede funktioner (MITM, Zed-import, Cloud Sync og integreret tjeneste-supervisor) — ender i minificerede chunks i `.next/server/*.js`. Heuristiske forsyningskædescannere matcher ofte mønstre i disse chunks med malwaresignaturer.
 
-For hver kategori af fund vedligeholder vi en attestering fra vedligeholderne for hvert enkelt fund:
+Den scannerkonfiguration, vi bruger, findes i [`socket.yml`](socket.yml) i repositoryets rod (Socket.dev GitHub App-format v2 — se <https://docs.socket.dev/docs/socket-yml>). Den udelukker eksplicit mapper, som ikke distribueres (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` osv.), så scanneren kun rapporterer kodeveje, der rent faktisk når ud til brugere af den publicerede pakke — selve scanningen udføres af Socket GitHub App, som læser denne fil, ikke af et workflow i dette repository.
+
+For hver resultatkategori vedligeholder vi en attestering fra vedligeholderne for hvert enkelt resultat:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  oversigt pr. fund: kildefil ↔ markeret chunk ↔ adfærd ↔ afhjælpning
+  kortlægning pr. resultat: kildefil ↔ markeret chunk ↔ adfærd ↔ afhjælpning
   anvendt i v3.8.6.
 - `SECURITY-AUDITOR-NOTE:`-blokke i kildekoden ved hver markeret funktion
   henviser til det samme dokument.
 
-For brugere, hvis pipeline ikke kan lempe advarslen: byg med
+Brugere, hvis pipeline ikke kan lempe advarslen, kan bygge med
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dette erstatter de fire
 følsomme moduler med stubs, der returnerer HTTP 503 `feature-disabled` under
-kørsel, så de privilegerede kodestier fysisk ikke findes i bundtet.
+kørsel, så de privilegerede kodeveje fysisk ikke findes i bundtet.
 Se [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-for publiceringsproceduren.
+for publiceringsopskriften.
 
 ## Referencer
 

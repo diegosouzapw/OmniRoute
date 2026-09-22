@@ -1293,6 +1293,9 @@
     "mainNavigation": "Κύρια πλοήγηση",
     "unpinSection": "Κατάργηση καρφιτσώματος ενότητας",
     "pinSectionOpen": "Καρφίτσωμα ενότητας σε ανοιχτή θέση",
+    "pinItem": "Καρφίτσωμα στοιχείου",
+    "unpinItem": "Ξεκαρφίτσωμα στοιχείου",
+    "pinnedSection": "Καρφιτσωμένο",
     "reloadPage": "Επαναφόρτωση σελίδας",
     "dragReorderSection": "Σύρετε για αναδιάταξη ενότητας",
     "dragReorderItem": "Σύρετε για αναδιάταξη",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Πάροχοι",
     "Account Deactivated": "Ο λογαριασμός απενεργοποιήθηκε",
     "allProviders": "Όλοι οι πάροχοι",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "Υπόδειξη cookie Grok Web",
     "blockClaudeExtraUsageDescription": "Όταν είναι ενεργοποιημένο, το OmniRoute επισημαίνει αυτή τη σύνδεση Claude ως μη διαθέσιμη μόλις το API χρήσης αναφέρει επιπλέον χρήση σε αναμονή, ώστε ο μηχανισμός εφεδρείας να μεταβαίνει σε άλλη σύνδεση αντί να συνεχίζει με επιπλέον χρέωση ανά χρήση.",
     "blockClaudeExtraUsageLabel": "Αποκλεισμός επιπλέον χρήσης Claude",
+    "claudeLowPriorityModeLabel": "Συνέχεια με χαμηλότερη προτεραιότητα μετά το όριο των 5 ωρών",
+    "claudeLowPriorityModeDescription": "Όταν αυτός ο λογαριασμός φτάνει στο όριο χρήσης των 5 ωρών και η Anthropic προσφέρει τη λωρίδα χαμηλότερης προτεραιότητας, το OmniRoute την αποδέχεται και συνεχίζει να στέλνει αιτήματα με anthropic-usage-limit: slow μέχρι να επαναφερθεί το παράθυρο, αντί να θέσει τη σύνδεση σε παύση. Το εβδομαδιαίο όριο εξακολουθεί να ισχύει και οι απαντήσεις ενδέχεται να περιμένουν μέχρι να υπάρξει διαθέσιμη χωρητικότητα.",
+    "claudeAutoLimitResetLabel": "Αυτόματη επαναφορά του ορίου συνεδρίας (μία φορά την εβδομάδα)",
+    "claudeAutoLimitResetDescription": "Όταν αυτός ο λογαριασμός φτάνει στο όριο χρήσης των 5 ωρών και είναι διαθέσιμη επαναφορά του ορίου συνεδρίας, το OmniRoute την αξιοποιεί αυτόματα και επαναλαμβάνει τις προσπάθειες με πλήρη ταχύτητα. Χρησιμοποιεί την επαναφορά του λογαριασμού που είναι διαθέσιμη μία φορά την εβδομάδα και εξακολουθεί να μετράει στο εβδομαδιαίο όριο.",
     "disableCoolingDescription": "Παραλείπει την προσωρινή περίοδο αναμονής, ώστε αυτή η σύνδεση να παραμένει διαθέσιμη προς επιλογή ακόμα και μετά από σφάλματα από τα οποία μπορεί να ανακάμψει (οι τελικές καταστάσεις, όπως η απαγόρευση ή η λήξη, εξακολουθούν να ισχύουν).",
     "disableCoolingLabel": "Απενεργοποίηση περιόδου αναμονής για αυτή τη σύνδεση",
     "bulkPasteAdded": "{count, plural, one {Προστέθηκε 1 κλειδί} other {Προστέθηκαν # κλειδιά}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "Αναγνωριστικό συσχέτισης: {id}",
       "detailedPayloadInfo": "Ενεργοποιήστε πρώτα τη λεπτομερή καταγραφή εάν θέλετε την προβολή ωφέλιμου φορτίου τεσσάρων σταδίων πελάτη/παρόχου για νέα αιτήματα.",
       "copyAll": "Αντιγραφή όλων",
-      "copiedAll": "Αντιγράφηκαν όλα"
+      "copiedAll": "Αντιγράφηκαν όλα",
+      "payloadSizeLimitOmitted": "Το φορτίο παραλείφθηκε — αυτή η ενότητα υπέρβη το όριο μεγέθους του αρχείου κλήσεων (CALL_LOG_PIPELINE_MAX_SIZE_KB) και δεν αποθηκεύτηκε· δεν πρόκειται για πραγματικό σφάλμα του παρόχου."
     }
   },
   "proxyLogger": {

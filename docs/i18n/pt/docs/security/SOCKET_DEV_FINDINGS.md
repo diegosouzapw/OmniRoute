@@ -4,21 +4,23 @@
 
 ---
 
-Este documento constitui a declaração, redigida pelo responsável pela manutenção, relativa às seis deteções de
-`AI-detected potential malware` assinaladas em `omniroute@3.8.5` e às
-mitigações aplicadas em `omniroute@3.8.6`. Existe para que:
+> **Nota de âmbito:** `socket.yml` configura a análise pós-publicação, no lado do registo, efetuada pelo Socket.dev ao artefacto npm (caminhos ignorados para conteúdo não distribuído, como `tests/`, `docs/` e relatórios de compilação). Não configura qualquer bloqueio de integração de CI/PR — nenhum fluxo de trabalho em `.github/workflows`, nenhum script de `package.json` e nenhum alvo de `Makefile` invoca o Socket.dev.
 
-1. Os operadores de pipelines de segurança disponham de uma única referência para citar quando necessitarem
-   de avaliar as deteções face ao código-fonte real.
-2. Os futuros scanners de IA possam identificar a declaração assinada pelo responsável pela manutenção de que cada
-   caminho assinalado é intencional, opcional e documentado.
-3. Tenhamos um registo escrito do _motivo_ pelo qual cada local de chamada tem a forma que tem —
-   para que uma futura refatoração não reintroduza acidentalmente uma assinatura que
-   tenha sido deliberadamente removida.
+Este documento constitui a declaração, redigida pelos responsáveis pela manutenção, relativa às seis
+deteções de `potencial malware detetado por IA` assinaladas em `omniroute@3.8.5` e
+às medidas de mitigação aplicadas em `omniroute@3.8.6`. Existe para que:
 
-Se operar um scanner que volte a assinalar qualquer um dos locais de chamada abaixo depois de as
-mitigações da v3.8.6 terem sido disponibilizadas, abra um issue com o rastreio da análise e
-alargaremos aqui a declaração.
+1. Os operadores do pipeline de segurança tenham uma referência única que possam citar quando precisarem
+   de avaliar as deteções face ao código-fonte efetivo.
+2. Os futuros analisadores de IA possam identificar a declaração assinada pelos responsáveis pela manutenção de que cada
+   caminho assinalado é intencional, opcional e está documentado.
+3. Tenhamos um registo escrito do _motivo_ pelo qual cada local de chamada está estruturado dessa forma —
+   para que uma futura refatoração não volte a introduzir acidentalmente uma assinatura que
+   foi deliberadamente removida.
+
+Se utiliza um analisador que volte a assinalar qualquer um dos locais de chamada abaixo após a
+disponibilização das medidas de mitigação da v3.8.6, abra um problema com o rastreio da análise e
+alargaremos esta declaração aqui.
 
 ---
 

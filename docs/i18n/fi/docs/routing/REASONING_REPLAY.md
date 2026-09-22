@@ -22,22 +22,24 @@ Tavalliset asiakkaat (Cursor, Cline, Roo Code, OpenAI SDK) kuitenkin poistavat `
 ## Arkkitehtuuri
 
 ```
-Vuoro N (avustaja generoi):
-  → vastaus sisältää reasoning_content-sisällön ja tool_calls-kutsut
+Kierros N (avustaja generoi):
+  → vastaus sisältää reasoning_content- ja tool_calls-kentät
   → jos requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
       kirjoittaa (muistiin + tietokantaan), avaimena jokainen tool_call.id
-  → välitä vastaus asiakkaalle (joka saattaa säilyttää päättelyn tai jättää sen säilyttämättä)
+  → välitä vastaus asiakkaalle (joka voi säilyttää päättelyn tai olla säilyttämättä sitä)
 
-Vuoro N+1 (asiakas lähettää jatkopyynnön):
+Kierros N+1 (asiakas lähettää jatkopyynnön):
   → muunnin havaitsee: requiresReasoningReplay(provider, model) === true
-  → jokaiselle avustajan viestille, jossa on tool_calls mutta ei reasoning_content-sisältöä:
+  → jokaiselle avustajaviestille, jolla on tool_calls mutta ei reasoning_content-kenttää:
       lookupReasoning(toolCalls[0].id) → muisti → tietokanta
-      osuma     → msg.reasoning_content = cached; recordReplay()
-      ei osumaa → msg.reasoning_content = "" (vanha varamenettely aiemmille DeepSeek-versioille)
-  → ylävirta näkee johdonmukaisen historian → ei 400-virhettä
+      osuma → msg.reasoning_content = cached; recordReplay()
+      huti  → msg.reasoning_content = "" (yhteensopivuusvararatkaisu vanhemmalle DeepSeekille)
+  → ylävirta saa johdonmukaisen historian → ei 400-virhettä
 ```
 
-Tallennus tapahtuu tiedostossa `open-sse/handlers/chatCore.ts` (kahdessa kohdassa, joissa kutsutaan `cacheReasoningFromAssistantMessage`-funktiota). Toisto tapahtuu tiedostossa `open-sse/translator/index.ts` skeeman tyyppimuunnoksen jälkeen mutta ennen välitystä.
+Tallennus tapahtuu tiedostossa `open-sse/handlers/chatCore.ts` (kahdessa kohdassa, joissa kutsutaan `cacheReasoningFromAssistantMessage`-funktiota). Toisto tapahtuu tiedostossa `open-sse/translator/index.ts` skeeman pakotetun muunnoksen jälkeen mutta ennen välitystä.
+
+Tavallisten (ilman työkalukutsua olevien) avustajakierrosten avaimet muodostetaan eri tavalla: `buildAssistantMessageCacheKey()` muodostaa tiivisteen istunnon laajuudesta sekä normalisoidusta OpenAI-muotoisesta keskusteluhistoriasta kyseiseen kierrokseen asti, koska DeepSeek vaatii _jokaisen_ aiemman kierroksen päättelyn, kun `tools` on mukana. Responses-API-kohteissa (esimerkiksi `opencode-go/deepseek-v4-flash`, joka reititetään polkuun `/responses`) ylävirran pyyntörunko sisältää `input`-kentän eikä `messages`-kenttää, joten `translateRequest()` (`open-sse/translator/index.ts`) ilmoittaa takaisinsoittovaihtoehdon kautta pivot-keskusteluhistorian, josta se muodosti tiivisteen, ja tallennuskohdat muodostavat tiivisteen samasta keskusteluhistoriasta. Responses-toistovaihe suoritetaan OpenAI-pivotille kaikissa lähdemuodoissa, joten myös Anthropic Messages -asiakkaiden (Claude → OpenAI → Responses) historia toistetaan.
 
 ## Tallennus — muistin ja SQLiten hybridi
 

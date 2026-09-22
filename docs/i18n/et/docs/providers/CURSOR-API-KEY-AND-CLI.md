@@ -4,30 +4,31 @@
 
 ---
 
-Kaks võimalust Cursori paigutamiseks OmniRoute'i taha ilma IDE-seansita:
+Kaks võimalust Cursori kasutamiseks OmniRoute’i kaudu ilma IDE-seansita:
 
-1. **`cursor-api` pakkuja** (kaart „Cursor API“, alias `cua`): API-võtme
-   pakkuja, mis hoiab Cursori kasutaja API-võtit (`crsr_…`, loodud aadressil
-   `https://cursor.com/dashboard/api`). Seejärel pääseb iga OmniRoute'i klient
-   Cursori mudelitele ligi `/v1/chat/completions` kaudu mudelina
+1. **`cursor-api` pakkuja** (kaart „Cursor API“, alias `cua`): API-võtmel
+   põhinev pakkuja, mis talletab Cursori kasutaja API-võtme (`crsr_…`, loodud
+   aadressil `https://cursor.com/dashboard/api`). Seejärel pääseb iga OmniRoute’i klient
+   Cursori mudelitele ligi lõpp-punkti `/v1/chat/completions` kaudu mudelinimega
    `cursor-api/<model>` või `cua/<model>`, kasutades tavapäraseid kvoodi-,
-   varuvariandi- ja logimiskihte. IDE-pakkuja (`cursor`, OAuth/IDE-seanss) jääb
+   varuvaliku- ja logimiskihte. IDE-pakkuja (`cursor`, OAuth/IDE-seanss) jääb
    muutmata.
-2. **Cursor CLI läbipääs**: suuna Cursor CLI (`agent`) OmniRoute'i, et
-   iga CLI tehtud RPC autentitaks OmniRoute'i API-võtmega, edastataks
-   Cursorile `cursor-api` ühenduse mandaadiga ning salvestataks lehel
-   Logid.
+2. **Cursor CLI läbipääs**: suunake Cursor CLI (`agent`) OmniRoute’i, et
+   iga CLI tehtud RPC autenditaks OmniRoute’i API-võtmega, edastataks
+   Cursorile `cursor-api` ühenduse mandaadiga ja salvestataks
+   logide lehel.
 
 ## Miks võti vahetatakse
 
-`api2.cursor.sh` lükkab töötlemata `crsr_…` võtme Bearer-loana tagasi (401). Cursor
-CLI saadab võtme esmalt POST-päringuga lõpp-punkti `/auth/exchange_user_api_key` ja saab
-vastuseks seansi JWT, mis aegub ühe tunni pärast; tagastatud `refreshToken` sisaldab sama
+`api2.cursor.sh` lükkab toore `crsr_…` võtme Bearer-loana tagasi (401). Cursor
+CLI saadab esmalt võtme POST-päringuga lõpp-punkti `/auth/exchange_user_api_key` ja saab
+seansi JWT, mis aegub ühe tunni pärast; tagastatud `refreshToken` sisaldab sama
 `exp` väärtust, seega tähendab värskendamine võtme uuesti vahetamist.
-`open-sse/services/cursorApiKeyAuth.ts` teeb selle vahetuse, salvestab vahemällu ühe seansi
-loa võtme kohta, vahetab selle uuesti viis minutit enne aegumist ja eemaldab vahemällu
-salvestatud loa, kui Cursor vastab koodiga 401. `CursorExecutor` kutsub seda vahetult enne
-ülesvoolu voo avamist `cursor-api` ühenduste jaoks.
+`open-sse/services/cursorApiKeyAuth.ts` teeb selle vahetuse, salvestab vahemällu
+ühe seansitõendi iga võtme kohta, vahetab selle uuesti viis minutit enne aegumist
+ja eemaldab vahemällu salvestatud tõendi, kui Cursor vastab olekukoodiga 401.
+`CursorExecutor` kutsub selle välja vahetult enne `cursor-api` ühenduste
+ülesvooluvoo avamist.
 
 ## `cursor-api` pakkuja
 
@@ -38,7 +39,7 @@ Register: `open-sse/config/providers/registry/cursor/index.ts`
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
 
-Juhtpaneel: Pakkujad → Cursor API → Lisa API-võti.
+Töölaud: Pakkujad → Cursor API → Lisa API-võti.
 
 REST:
 
@@ -59,11 +60,23 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Märkused:
 
-- `cursor-api` mudelite loend pärineb staatilisest Cursori registrist (samast
-  loendist, mida IDE-pakkuja kasutab varuvariandina); `cursor-agent` paigaldamine
-  OmniRoute'i hosti pole vajalik.
-- `POST /api/providers/{id}/refresh-cursor` on mõeldud ainult `cursor` IDE-pakkujale;
-  `cursor-api` ühendustel pole uuendamist vajavat IDE-seanssi.
+- `cursor-api` mudelite loend pärineb Cursori staatilisest registrist (sama
+  loend, mida IDE-pakkuja kasutab varuvariandina); OmniRoute’i hosti pole vaja
+  installida paketti `cursor-agent`.
+- `POST /api/providers/{id}/refresh-cursor` on mõeldud ainult `cursor`
+  IDE-pakkujale; `cursor-api` ühendustel pole uuendatavat IDE-seanssi.
+
+## Natiivsed mudeli-ID-d ja pingutustase
+
+`cursor` / `cu` ja `cursor-api` / `cua` puhul jätab ühine Claude’i pingutustaseme
+normaliseerija taotletud mudeli-ID muutmata. Cursor võib reklaamida sufiksit,
+näiteks `-low`, tegeliku mudeli-ID osana, mitte OmniRoute’i pingutustaseme
+aliasena. Cursori täitur säilitab täpse vaste aktiivses kataloogis; kui vastet
+pole, haldab selle olemasolev mudelilahendaja sufiksi teisendamist parameetriks.
+
+See ei muuda pingutustaseme normaliseerimist Claude’i otseühenduste,
+Claude’iga ühilduvate ega Vertexi marsruutide puhul. Saadavus sõltub endiselt
+valitud Cursori konto kataloogist ja kasutusõigusest.
 
 ## Cursor CLI läbipääs
 
@@ -72,31 +85,31 @@ Marsruut: `src/app/api/cursor-cli/[...path]/route.ts` →
 registreeritud failis `src/shared/constants/publicApiRoutes.ts`, sest töötleja
 jõustab oma autentimise:
 
-| Tee                                                                                                                        | CLI-lt oodatav autentimine   | Mida OmniRoute teeb                                                                                                                                                |
-| -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `POST /auth/exchange_user_api_key`                                                                                         | `Bearer <OmniRoute API key>` | Valideerib võtme, loob 1-tunnise HS256 JWT (allkirjastatud võtmega `JWT_SECRET`) ja tagastab selle                                                                 |
-| kõik muud teed (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`          | Kontrollib väljaandjat/sihtrühma/aegumist, valib aktiivse `cursor-api` ühenduse, asendab Authorization-päise vahetatud Cursori loaga ja voogedastab vastuse tagasi |
+| Tee                                                                                                                        | CLI-lt oodatav autentimine   | Mida OmniRoute teeb                                                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                         | `Bearer <OmniRoute API key>` | Valideerib võtme, väljastab 1-tunnise HS256 JWT (allkirjastatud muutujaga `JWT_SECRET`) ja tagastab selle                                                                     |
+| kõik muud teed (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <see JWT>`           | Kontrollib väljastajat, sihtrühma ja aegumisaega, valib aktiivse `cursor-api` ühenduse, asendab Authorization-päise vahetatud Cursor tokeniga ning voogedastab vastuse tagasi |
 
-CLI dekodeerib `exp` väärtuse igast saadud loast, seega põhjustab läbipaistmatu
-loa andmine selle uuesti vahetamise peaaegu enne iga päringut; loodud JWT väldib
-seda. OmniRoute'i vastus 401 paneb CLI loa uuesti vahetama.
+CLI dekodeerib välja `exp` mis tahes saadud tokenist, seega läbipaistmatu tokeni
+andmisel vahetab see tokeni uuesti enne peaaegu iga päringut; väljastatud JWT
+väldib seda. OmniRoute'i vastus 401 paneb CLI tokenit uuesti vahetama.
 
 ### Seadistamine
 
-1. Loo OmniRoute'i API-võti (Juhtpaneel → API-võtmed) ja `cursor-api`
+1. Looge OmniRoute API-võti (Dashboard → API keys) ja `cursor-api`
    ühendus.
-2. Määra CLI kasutama agendivoo jaoks HTTP/1.1. Failis
+2. Määrake CLI kasutama agendi voo jaoks HTTP/1.1. Failis
    `~/.cursor/cli-config.json`:
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Ilma selleta avab CLI agendi suhtluse HTTP/2 kaudu eraldi
-   seadistatud agendihostiga ja lõpp-punkti kaudu liiguvad ainult
+   Ilma selleta avab CLI agendi pöörde HTTP/2 kaudu eraldi
+   seadistatud agendi hosti suunas ning lõpp-punkti kaudu liiguvad ainult
    juhtimistasandi RPC-d.
 
-3. Käivita CLI OmniRoute'i suhtes:
+3. Käivitage CLI OmniRoute'i vastu:
 
    ```bash
    export CURSOR_API_ENDPOINT=http://localhost:20128/api/cursor-cli
@@ -104,19 +117,19 @@ seda. OmniRoute'i vastus 401 paneb CLI loa uuesti vahetama.
    agent -p --trust "Reply with exactly OK"
    ```
 
-Iga etapp jõuab logidesse pakkujana `cursor-api`, päringu tüübina `cursor-cli`,
-teega `/api/cursor-cli/<rpc>` ning seostatakse OmniRoute'i API-võtme ja päringut
-teenindanud ühendusega.
+Iga etapp jõuab logidesse teenusepakkujana `cursor-api`, päringutüübiga `cursor-cli`
+ja teega `/api/cursor-cli/<rpc>` ning seostatakse OmniRoute API-võtme ja
+seda teenindanud ühendusega.
 
 ### Tõrkerežiimid
 
 | Olukord                                             | Vastus CLI-le                                          |
 | --------------------------------------------------- | ------------------------------------------------------ |
 | Tundmatu OmniRoute'i võti ja `REQUIRE_API_KEY=true` | 401 `unauthenticated` vahetamisel                      |
-| `REQUIRE_API_KEY=false`                             | anonüümne seanss (vastab `/v1/*` käitumisele)          |
-| Aegunud / võõras / muudetud seansi JWT              | 401, CLI vahetab selle uuesti                          |
-| OmniRoute'i API-võti tühistati pärast vahetamist    | 401 järgmisel RPC-l                                    |
+| `REQUIRE_API_KEY=false`                             | anonüümne seanss (järgib `/v1/*` käitumist)            |
+| Aegunud / võõras / muudetud seansi JWT              | 401, CLI vahetab tokeni uuesti                         |
+| OmniRoute API-võti tühistati pärast vahetamist      | 401 järgmisel RPC-l                                    |
 | Aktiivne `cursor-api` ühendus puudub                | 503 `unavailable`                                      |
-| Cursor lükkab ühenduse võtme tagasi                 | 401 `unauthenticated`, puhverdatud seanss eemaldatakse |
+| Cursor lükkab ühenduse võtme tagasi                 | 401 `unauthenticated`, puhverdatud seanss kustutatakse |
 | Ülemteenus pole kättesaadav                         | 502 `unavailable` (puhastatud sõnum)                   |
-| `JWT_SECRET` pole määratud                          | 503 vahetamisel                                        |
+| `JWT_SECRET` on määramata                           | 503 vahetamisel                                        |

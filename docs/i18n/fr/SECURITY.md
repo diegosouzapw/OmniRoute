@@ -222,10 +222,12 @@ Ces règles sont appliquées par les outils et les réviseurs :
 
 ## Résultats des scanners de chaîne d’approvisionnement (Socket.dev / Snyk / similaires)
 
+> **Note sur le périmètre :** `socket.yml`, à la racine du dépôt, définit uniquement les `projectIgnorePaths` pour l’analyse post-publication, côté registre, par Socket.dev de l’artefact npm publié — il ne constitue pas un contrôle bloquant imposé pour la CI ou la fusion des PR. Aucun workflow dans `.github/workflows`, aucun script de `package.json` et aucune cible de `Makefile` n’invoquent Socket.dev.
+
 L’artefact npm `omniroute` publié inclut le build Next.js `output: "standalone"`,
 ce qui signifie que chaque gestionnaire de route — y compris les
 fonctionnalités privilégiées documentées (MITM, importation Zed, Cloud Sync,
-superviseur de services intégré) — se retrouve dans des fragments minifiés
+superviseur de service intégré) — se retrouve dans des fragments minifiés
 `.next/server/*.js`. Les scanners heuristiques de chaîne d’approvisionnement
 comparent fréquemment ces fragments à des signatures de logiciels malveillants.
 
@@ -233,25 +235,25 @@ La configuration du scanner que nous utilisons se trouve dans
 [`socket.yml`](socket.yml), à la racine du dépôt (format v2 de l’application
 GitHub Socket.dev — voir <https://docs.socket.dev/docs/socket-yml>). Elle exclut
 explicitement les répertoires non distribués (`tests/`, `_tasks/`,
-`_references/`, `_ideia/`, `_mono_repo/`, `docs/`, etc.) afin que le scanner
-ne signale que les chemins de code qui parviennent réellement aux utilisateurs
+`_references/`, `_ideia/`, `_mono_repo/`, `docs/`, etc.), afin que le scanner
+ne signale que les chemins de code qui atteignent réellement les utilisateurs
 de la version publiée — l’analyse elle-même est déclenchée par l’application
 GitHub Socket qui lit ce fichier, et non par un workflow de ce dépôt.
 
-Pour chaque catégorie de résultat, nous conservons une attestation du
-mainteneur propre à chaque résultat :
+Pour chaque catégorie de résultat, nous conservons une attestation des
+mainteneurs propre à chaque résultat :
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  correspondance par résultat : fichier source ↔ fragment signalé ↔ comportement
-  ↔ mesure d’atténuation appliquée dans la v3.8.6.
-- Les blocs `SECURITY-AUDITOR-NOTE:` dans le code source, placés à chaque
-  fonction signalée, renvoient vers ce même document.
+  correspondance par résultat : fichier source ↔ fragment signalé ↔
+  comportement ↔ mesure d’atténuation appliquée dans v3.8.6.
+- Les blocs `SECURITY-AUDITOR-NOTE:` dans le code source, placés au niveau de
+  chaque fonction signalée, renvoient vers le même document.
 
 Pour les utilisateurs dont le pipeline ne permet pas d’assouplir l’alerte :
-compilez avec `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Cela remplace les
-quatre modules sensibles par des stubs qui renvoient une réponse HTTP 503
-`feature-disabled` lors de l’exécution, de sorte que les chemins de code
-privilégiés sont physiquement absents du bundle. Consultez
+construisez avec `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Cela remplace
+les quatre modules sensibles par des stubs qui renvoient HTTP 503
+`feature-disabled` à l’exécution, de sorte que les chemins de code privilégiés
+sont physiquement absents du bundle. Consultez
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 pour la procédure de publication.
 

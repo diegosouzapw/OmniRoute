@@ -8,54 +8,50 @@ OmniRoute verfügt über **zwei** prozesslokale Lane-Systeme mit unterschiedlich
 
 ## 1. Prozessweite Zulassungssteuerung auf Byte-Ebene (`chatBodyAdmission.ts`)
 
-- **Geltungsbereich:** der Pfad für gepufferte Bodys/Heap bei `POST /v1/chat/completions`,
+- **Geltungsbereich:** der Pfad für gepufferte Bodies/Heap bei `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` und den anderen Chat-ähnlichen Routen. Schützt
-  vor einer Heap-Vervielfachung durch große Bodys von Coding-Agents (#4380).
+  vor Heap-Verstärkung durch große Bodies von Coding-Agenten (#4380).
 - **Ein einziger prozessglobaler Controller, keine Lanes pro Schlüssel (#10110).** Jeder API-Schlüssel
   (gehasht) bzw. jede `anonymous`-Sitzung wird gegen dasselbe gemeinsame Budget
-  zugelassen — die gehashte Sitzungs-ID wird NUR als Scheduling-Schlüssel für
-  Fairness verwendet (Round-Robin-Zuteilung unter Wartenden), niemals als
-  Kapazitäts-Shard. Eine frühere Version dieser Dokumentation beschrieb Lanes
-  pro Schlüssel mit unabhängiger Kapazität; dieses Modell wurde in #10110
-  entfernt, weil nicht authentifizierte gefälschte Anmeldedaten damit die
-  prozessweite Grenze vervielfachen konnten.
-- **Gate (#503-fanout): ein automatisch abgeleitetes BYTE-Budget für die Aufnahme,
-  keine feste Anzahl von Anfragen.** Die bisherige Begrenzung der Anfrageanzahl
-  durch `CHAT_MAX_HEAVY_IN_FLIGHT` (vor dieser Korrektur standardmäßig `1`)
-  reduzierte den Fan-out von Coding-Agents (mehrere Sub-Agents/CLIs, Bodys
-  routinemäßig > 256 KB) auf eine effektive Nebenläufigkeit von ~1, was selbst
-  unter völlig normaler Last zu 503-Antworten führte. Sie greift jetzt nur noch,
-  wenn ein Betreiber `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` explizit festlegt.
-  Bleibt die Variable ungesetzt, wird die Zulassung stattdessen durch
-  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` gesteuert — ein Budget, das automatisch
-  aus der tatsächlichen Speicherobergrenze des Prozesses abgeleitet wird
-  (`src/shared/middleware/admissionBudget.ts`): 25 % des niedrigeren Werts aus
-  dem V8-Heap-Limit und einem etwaigen cgroup-/Container-Limit, geteilt durch
-  einen Faktor von 8 für die vorübergehende Vervielfachung, begrenzt auf
-  mindestens 8 MiB und höchstens 2 GiB. Explizite Überschreibungen verwenden
-  dieselben Grenzwerte. Dadurch skaliert es sich ohne Anpassung der
-  Umgebungsvariablen selbstständig von einem 512-MB-Container bis zu einem
-  32-GB-Desktop. Ein Body, der nicht in das effektive Budget passt, schlägt
-  sofort mit `413 body_exceeds_budget` fehl; nur bei Konkurrenz zwischen
-  einzeln verarbeitbaren Bodys wird die begrenzte Fairness-Warteschlange
-  verwendet. Ein aktiver Multi-Signal-Tracker für Ressourcendruck
-  (V8-Heap-Verhältnis, cgroup, PSI, OOM-Ereignisse —
-  `open-sse/utils/resourcePressurePolicy.ts`) verkürzt bei `high`-Druck die
-  begrenzte Wartezeit und weist Anfragen bei `critical`-Druck sofort mit
-  `503 resource_pressure` ab, noch bevor irgendwelche Bytes aufgenommen werden.
+  zugelassen — die gehashte Sitzungs-ID wird AUSSCHLIESSLICH als Fairness-Schlüssel für die Planung verwendet
+  (Round-Robin-Verteilung unter den Wartenden), niemals als Kapazitäts-Shard. Eine frühere Version dieser
+  Dokumentation beschrieb Lanes pro Schlüssel mit unabhängiger Kapazität; dieses Modell wurde
+  in #10110 entfernt, weil nicht authentifizierte, gefälschte Anmeldedaten damit
+  die prozessweite Grenze vervielfachen konnten.
+- **Gate (#503-fanout): ein automatisch abgeleitetes BYTE-Budget für die Aufnahme, keine feste Anzahl von
+  Anfragen.** Die veraltete Begrenzung `CHAT_MAX_HEAVY_IN_FLIGHT` für die Anzahl von Anfragen (vor
+  dieser Korrektur standardmäßig `1`) reduzierte den Fan-out von Coding-Agenten (mehrere Subagenten/CLIs,
+  Bodies regelmäßig > 256 KB) auf eine effektive Parallelität von ~1, was
+  unter völlig normaler Last zu 503-Fehlern führte. Sie greift jetzt nur, wenn ein Betreiber
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ausdrücklich festlegt. Bleibt die Variable ungesetzt, wird die Zulassung stattdessen
+  durch `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` gesteuert — ein Budget, das automatisch aus der
+  tatsächlichen Speicherobergrenze des Prozesses abgeleitet wird (`src/shared/middleware/admissionBudget.ts`):
+  25 % des kleineren Werts aus dem V8-Heap-Limit und einem etwaigen cgroup-/Container-Limit,
+  geteilt durch einen Faktor von 8 für die vorübergehende Verstärkung und begrenzt auf einen Bereich zwischen 8 MiB und
+  2 GiB. Explizite Überschreibungen verwenden dieselben Grenzen. Dadurch skaliert es sich ohne
+  Anpassung von Umgebungsvariablen selbstständig von einem 512-MB-Container bis zu einem 32-GB-Desktop. Ein Body, der nicht
+  in das effektive Budget passt, wird sofort mit `413 body_exceeds_budget` abgelehnt;
+  nur Konkurrenz zwischen einzeln verarbeitbaren Bodies gelangt in die begrenzte
+  Fairness-Warteschlange. Ein aktiver, mehrere Signale auswertender Ressourcenbelastungs-Tracker (V8-Heap-Verhältnis,
+  cgroup, PSI, OOM-Ereignisse — `open-sse/utils/resourcePressurePolicy.ts`) verkürzt
+  unter `high`-Belastung die begrenzte Wartezeit und verwirft unter
+  `critical`-Belastung Anfragen sofort mit `503 resource_pressure`, noch bevor überhaupt Bytes
+  aufgenommen werden. PSI wird, sofern vorhanden, aus `memory.pressure` der cgroup dieser Einheit gelesen
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` gilt
+  hostweit und dient nur auf Bare-Metal-Systemen bzw. unter cgroup v1 als Rückfalloption, sodass ein auslagernder
+  Host nicht zu 503-Fehlern in einem inaktiven Container führen kann.
 - **Konfiguration:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — Überschreibung für das automatisch abgeleitete Byte-Budget
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — bisherige Begrenzung der Anfrageanzahl, nur bei expliziter Aktivierung
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — Wartezeit in der Warteschlange vor einer 503-Antwort (Standardwert 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — Heap-Sicherheitsventil für Bytes in der Warteschlange (Standardwert 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — seit
-    #10110 veraltet und ohne Funktion (werden zur Konfigurationskompatibilität akzeptiert, aber ignoriert)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — veraltete Begrenzung der Anfrageanzahl, nur bei expliziter Aktivierung
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — Wartezeit in der Warteschlange vor einem 503-Fehler (Standardwert: 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — Heap-Ventil für Bytes in der Warteschlange (Standardwert: 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — seit #10110 veraltete
+    No-ops (aus Gründen der Konfigurationskompatibilität akzeptiert, aber ignoriert)
 - **Berichte:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — einschließlich
-  der durch #503-fanout hinzugefügten Felder `inflightBytes`, `maxInflightBytes`,
-  `budgetSource` (`v8_heap` | `cgroup` | `override`), `pressureSeverity` und
-  `countCapEnabled` (bei einer Standardbereitstellung false — bestätigt, dass
-  tatsächlich das Byte-Budget und nicht die bisherige Begrenzung der
-  Anfrageanzahl greift).
+  der Ergänzungen aus #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  (`v8_heap` | `cgroup` | `override`), `pressureSeverity` und `countCapEnabled`
+  (bei einer Standardbereitstellung false — bestätigt, dass tatsächlich das Byte-Budget und nicht die veraltete
+  Anzahlbegrenzung greift).
 
 ## 2. Adaptive virtuelle Laufzeit-Lanes (`open-sse/services/admission`)
 

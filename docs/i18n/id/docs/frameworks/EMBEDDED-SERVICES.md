@@ -5,8 +5,8 @@
 ---
 
 > **Versi:** v3.8.44
-> **Terakhir diperbarui:** 2026-07-03
-> **Audiens:** Engineer yang menambahkan, memelihara, atau men-debug layanan tersemat (9Router, CLIProxyAPI, Mux, Bifrost).
+> **Terakhir diperbarui:** 2026-09-09
+> **Audiens:** Engineer yang menambahkan, memelihara, atau melakukan debug pada layanan tersemat (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
 
 Layanan tersemat adalah alat sidecar proses yang diinstal secara lokal, yang diinstal, diawasi, dan
 diekspos oleh OmniRoute sebagai target perutean kelas utama. Tidak seperti penyedia eksternal (yang diakses melalui internet
@@ -29,35 +29,36 @@ menggunakan kunci API), layanan tersemat berjalan pada mesin yang sama dengan Om
 
 ## 1. Ikhtisar
 
-### Mengapa menggunakan layanan tersemat?
+### Mengapa layanan tersemat?
 
-Terdapat lima layanan tersemat:
+Enam layanan disematkan:
 
-| Layanan         | Paket npm                                   | Port default | Tujuan                                                                                                                                                                                                             |
-| --------------- | ------------------------------------------- | :----------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **9Router**     | `9router`                                   |    20130     | Router AI yang dapat digunakan OmniRoute sebagai subpenyedia. Model diekspos sebagai `9router/{sub}/{model}`                                                                                                       |
-| **CLIProxyAPI** | Biner rilis GitHub (`cliproxy`)             |     8317     | Adaptor proksi lokal untuk alur autentikasi Anthropic CLI. Menyediakan perutean fallback ketika token OAuth kedaluwarsa                                                                                            |
-| **Mux**         | `mux` (`mux server` tanpa antarmuka grafis) |     8322     | Daemon orkestrasi agen lokal (coder/mux). Hanya dikelola siklus hidupnya — bukan target perutean (tanpa proksi LLM).                                                                                               |
-| **Bifrost**     | `@maximhq/bifrost`                          |     8080     | Backend relai gateway AI berbasis Go. Saat berjalan, dipilih secara otomatis oleh rute relai (`/v1/relay/`)                                                                                                        |
-| **Dario**       | `@askalf/dario`                             |     3456     | Proksi langganan Claude — alternatif/failover untuk CLIProxyAPI bagi lalu lintas berbentuk Claude Code; kunci yang disuntikkan menjadi `DARIO_ADMIN_TOKEN` yang membatasi bidang kontrol OAuth `/admin/*` miliknya |
+| Layanan         | Paket npm                       | Port bawaan | Tujuan                                                                                                                                                                                                            |
+| --------------- | ------------------------------- | :---------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                       |    20130    | Router AI yang dapat digunakan OmniRoute sebagai subpenyedia. Model diekspos sebagai `9router/{sub}/{model}`                                                                                                      |
+| **CLIProxyAPI** | Biner rilis GitHub (`cliproxy`) |    8317     | Adaptor proksi lokal untuk alur autentikasi CLI Anthropic. Menyediakan perutean cadangan saat token OAuth kedaluwarsa                                                                                             |
+| **Mux**         | `mux` (`mux server` tanpa UI)   |    8322     | Daemon orkestrasi agen lokal (coder/mux). Hanya dikelola siklus hidupnya — bukan target perutean (tanpa pemroksian LLM).                                                                                          |
+| **Bifrost**     | `@maximhq/bifrost`              |    8080     | Backend relai gateway AI berbasis Go. Saat berjalan, dipilih secara otomatis oleh rute relai (`/v1/relay/`)                                                                                                       |
+| **Dario**       | `@askalf/dario`                 |    3456     | Proksi langganan Claude — alternatif/failover untuk CLIProxyAPI bagi lalu lintas berformat Claude Code; kunci yang disuntikkan menjadi `DARIO_ADMIN_TOKEN` yang membatasi akses ke control plane OAuth `/admin/*` |
+| **open-wa**     | `@open-wa/wa-automate`          |    8323     | Otomatisasi WhatsApp Web (Chromium tanpa UI melalui Puppeteer). Hanya dikelola siklus hidupnya — bukan target perutean.                                                                                           |
 
-Kelima layanan mengikuti model pengawasan yang sama:
+Keenamnya mengikuti model supervisi yang sama:
 
 - OmniRoute menginstalnya di bawah `DATA_DIR/services/{name}/` (terisolasi dari `package.json` milik OmniRoute)
-- OmniRoute menjalankan dan memantaunya sebagai proses turunan
-- OmniRoute menyuntikkan kunci API sementara ke lingkungan proses turunan dan merotasinya tanpa waktu henti (jika berlaku)
-- Semua rute pengelolaan (`/api/services/*`) bersifat **HANYA_LOKAL** — hanya dapat diakses dari loopback (aturan tegas #17)
+- OmniRoute menjalankan dan memantaunya sebagai proses anak
+- OmniRoute menyuntikkan kunci API sementara ke lingkungan proses anak dan merotasinya tanpa waktu henti (jika berlaku)
+- Semua rute pengelolaan (`/api/services/*`) bersifat **LOCAL_ONLY** — hanya dapat diakses dari loopback (aturan mutlak #17)
 
 ### Keputusan utama (dari rencana desain)
 
 | Keputusan                         | Nilai                                                                                        |
 | --------------------------------- | -------------------------------------------------------------------------------------------- |
-| Akses dasbor ke UI native 9Router | Proksi terbalik di `/dashboard/providers/services/9router/embed/*`                           |
+| Akses dasbor ke UI native 9Router | Proksi balik di `/dashboard/providers/services/9router/embed/*`                              |
 | Mekanisme instalasi               | `npm install {package}` melalui `execFile` (tanpa interpolasi shell)                         |
 | Mode penggunaan                   | Penyedia didaftarkan sebagai `9router/{sub}/{model}` di mesin perutean                       |
 | Pengelolaan kunci API             | OmniRoute membuat, mengenkripsi saat disimpan (AES-256-GCM), dan menyuntikkannya melalui env |
 | Lokasi dasbor                     | `/dashboard/providers/services` (tiga tab)                                                   |
-| Mulai otomatis                    | Tombol alih per layanan, default NONAKTIF                                                    |
+| Mulai otomatis                    | Sakelar per layanan, bawaan NONAKTIF                                                         |
 
 ---
 
@@ -68,10 +69,10 @@ Kelima layanan mengikuti model pengawasan yang sama:
 │  Lapisan 1 — UI                                                    │
 │  /dashboard/providers/services  (tab: CLIProxyAPI | 9Router | Mux) │
 │  Log langsung (SSE), Mulai/Hentikan/Mulai Ulang/Perbarui,          │
-│  Pengaturan, Instal                                                │
+│  Pengaturan, Instalasi                                             │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               Kerangka + perutean tab via ?tab=    │
+│    ├── page.tsx               Shell + perutean tab berdasarkan ?tab=│
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -98,13 +99,13 @@ Kelima layanan mengikuti model pengawasan yang sama:
 │  Lapisan 3 — ServiceSupervisor (src/lib/services/)                 │
 │                                                                    │
 │  ServiceSupervisor.ts   Supervisor generik (child_process.spawn)   │
-│    ├── install:    execFile('npm', ['install', pkg, '--prefix'])    │
-│    ├── start:      spawn(node, [entrypoint], {env, cwd})           │
+│    ├── instalasi:  execFile('npm', ['install', pkg, '--prefix'])    │
+│    ├── mulai:      spawn(node, [entrypoint], {env, cwd})           │
 │    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
 │    ├── port:       20130 untuk 9Router (dapat dikonfigurasi)       │
-│    ├── logs:       buffer cincin stdio 5 MB → peristiwa SSE        │
-│    ├── health:     HTTP GET /health setiap 2–5 dtk, pemulihan malas│
-│    └── lifecycle:  SIGTERM 15 dtk → SIGKILL                        │
+│    ├── log:        buffer cincin stdio 5 MB → peristiwa SSE        │
+│    ├── kesehatan:  HTTP GET /health tiap 2–5 dtk, pemulihan malas  │
+│    └── siklus hidup: SIGTERM 15 dtk → SIGKILL                      │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
 │  bootstrap.ts       Melakukan bootstrap semua SERVICES[] saat      │
@@ -113,7 +114,7 @@ Kelima layanan mengikuti model pengawasan yang sama:
 │  modelSync.ts       GET /v1/models berkala → tabel service_models  │
 │  ringBuffer.ts      Buffer log melingkar (5 MB per layanan)        │
 │  healthCheck.ts     Probe kesehatan HTTP dengan polling            │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (adaptor penginstal)                          │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ HTTP kompatibel OpenAI (loopback)
@@ -124,14 +125,14 @@ Kelima layanan mengikuti model pengawasan yang sama:
 │    Mencari ulang port dan kunci API per permintaan (tanpa cache).  │
 │    Menghapus prefiks "9router/" dari ID model sebelum meneruskan.  │
 │    Mengembalikan 503 service_not_running jika supervisor tidak     │
-│    berada dalam status "running".                                  │
+│    dalam status "running".                                         │
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    Entri untuk "9router": isEmbeddedService: true                  │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
 │    Model disimpan sebagai "9router/{sub}/{model}" (berprefiks).    │
-│    Disinkronkan setiap 5 menit oleh modelSync.ts.                   │
+│    Disinkronkan setiap 5 menit oleh modelSync.ts.                  │
 │                                                                    │
 │  Mux HANYA dikelola siklus hidupnya (Lapisan 1-3) — Mux adalah     │
 │  daemon orkestrasi agen, bukan proksi LLM, sehingga tidak memiliki │
@@ -149,11 +150,12 @@ Kelima layanan mengikuti model pengawasan yang sama:
 | `src/lib/services/registry.ts`              | Peta singleton `tool → supervisor`                           |
 | `src/lib/services/apiKey.ts`                | Pembuatan kunci, enkripsi AES-256-GCM saat disimpan          |
 | `src/lib/services/modelSync.ts`             | Sinkronisasi model berkala (5 menit) + sesuai permintaan     |
-| `src/lib/services/ringBuffer.ts`            | Buffer log melingkar 5 MB dengan langganan SSE               |
-| `src/lib/services/healthCheck.ts`           | Pemeriksaan kesehatan HTTP (interval dapat dikonfigurasi)    |
-| `src/lib/services/installers/ninerouter.ts` | Instalasi/pembaruan/penghapusan 9Router melalui npm          |
-| `src/lib/services/installers/cliproxy.ts`   | Instalasi/pembaruan/penghapusan CLIProxyAPI melalui npm      |
-| `src/lib/services/installers/mux.ts`        | Instalasi/pembaruan/penghapusan Mux melalui npm              |
+| `src/lib/services/ringBuffer.ts`            | Buffer log sirkular 5 MB dengan langganan SSE                |
+| `src/lib/services/healthCheck.ts`           | Probe kesehatan HTTP (interval dapat dikonfigurasi)          |
+| `src/lib/services/installers/ninerouter.ts` | npm install/update/uninstall untuk 9Router                   |
+| `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall untuk CLIProxyAPI               |
+| `src/lib/services/installers/mux.ts`        | npm install/update/uninstall untuk Mux                       |
+| `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall untuk open-wa                   |
 | `src/app/api/services/9router/_lib.ts`      | Pembantu `getOrInitSupervisor()`                             |
 | `src/app/api/services/[name]/logs/route.ts` | Endpoint log SSE bersama                                     |
 | `open-sse/executors/ninerouter.ts`          | Eksekutor penyedia (Lapisan 4)                               |
@@ -219,8 +221,8 @@ Permintaan non-loopback menerima `403 LOCAL_ONLY` terlepas dari token autentikas
 
 #### `POST /api/services/9router/install`
 
-Instal 9Router dari npm. Membuat `DATA_DIR/services/9router/` dengan
-`package.json` dan `node_modules/` miliknya sendiri. Tidak bertentangan dengan dependensi OmniRoute sendiri.
+Menginstal 9Router dari npm. Membuat `DATA_DIR/services/9router/` dengan
+`package.json` dan `node_modules/` tersendiri. Tidak berkonflik dengan dependensi OmniRoute sendiri.
 
 **Isi permintaan** (semuanya opsional):
 
@@ -228,9 +230,9 @@ Instal 9Router dari npm. Membuat `DATA_DIR/services/9router/` dengan
 { "version": "latest" }
 ```
 
-| Bidang    | Tipe     | Bawaan     | Deskripsi                                |
-| --------- | -------- | ---------- | ---------------------------------------- |
-| `version` | `string` | `"latest"` | tag versi npm atau semver untuk diinstal |
+| Bidang    | Tipe     | Default    | Deskripsi                               |
+| --------- | -------- | ---------- | --------------------------------------- |
+| `version` | `string` | `"latest"` | Tag versi npm atau semver yang diinstal |
 
 **Respons:**
 
@@ -238,7 +240,7 @@ Instal 9Router dari npm. Membuat `DATA_DIR/services/9router/` dengan
 | ------ | --------------------------------------------------------------------- |
 | `200`  | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                |
 | `400`  | Isi permintaan tidak valid (kegagalan validasi Zod)                   |
-| `409`  | Sedang melakukan instalasi (kunci sedang dipegang)                    |
+| `409`  | Sedang diinstal (kunci ditahan)                                       |
 | `500`  | Instalasi npm gagal — lihat `message` untuk pesan yang mudah dipahami |
 
 **Catatan:** Menggunakan `execFile('npm', [...])` — tanpa shell, tanpa interpolasi (aturan mutlak #13).
@@ -248,8 +250,8 @@ Kesalahan EACCES ditampilkan sebagai pesan yang mudah dipahami.
 
 #### `POST /api/services/9router/start`
 
-Mulai 9Router. Mendaftarkan supervisor jika belum terdaftar, lalu memanggil
-`supervisor.start()`. Bersifat idempoten ketika sudah berjalan.
+Memulai 9Router. Mendaftarkan supervisor jika belum terdaftar, lalu memanggil
+`supervisor.start()`. Bersifat idempoten jika sudah berjalan.
 
 **Isi permintaan:** tidak ada
 
@@ -279,8 +281,8 @@ Mulai 9Router. Mendaftarkan supervisor jika belum terdaftar, lalu memanggil
 
 #### `POST /api/services/9router/stop`
 
-Hentikan 9Router dengan baik. Mengirim SIGTERM, menunggu 15 dtk, lalu mengirim SIGKILL jika masih aktif.
-Bersifat idempoten ketika sudah berhenti.
+Menghentikan 9Router dengan aman. Mengirim SIGTERM, menunggu 15 detik, lalu mengirim SIGKILL jika masih aktif.
+Bersifat idempoten jika sudah berhenti.
 
 **Isi permintaan:** tidak ada
 
@@ -295,7 +297,7 @@ Bersifat idempoten ketika sudah berhenti.
 
 #### `POST /api/services/9router/restart`
 
-Setara dengan `stop()` lalu `start()` di bawah kunci operasi.
+Setara dengan `stop()` lalu `start()` dalam kunci operasi.
 
 **Isi permintaan:** tidak ada
 
@@ -305,7 +307,7 @@ Setara dengan `stop()` lalu `start()` di bawah kunci operasi.
 
 #### `POST /api/services/9router/update`
 
-Memperbarui 9Router ke versi npm yang lebih baru. Jika layanan sedang berjalan, layanan tersebut dihentikan
+Memperbarui 9Router ke versi npm yang lebih baru. Jika layanan sedang berjalan, layanan akan dihentikan
 terlebih dahulu, instalasi npm dijalankan (menginstal versi yang lebih baru di lokasi yang sama), lalu
 layanan dimulai ulang.
 
@@ -327,8 +329,8 @@ layanan dimulai ulang.
 
 #### `POST /api/services/9router/rotate-key`
 
-Menghasilkan kunci API baru untuk 9Router, mengenkripsinya saat tersimpan, dan memulai ulang layanan
-(jika sedang berjalan) agar layanan mengambil kunci baru dari lingkungannya. Kunci lama
+Menghasilkan kunci API baru untuk 9Router, mengenkripsinya saat disimpan, dan memulai ulang layanan
+(jika sedang berjalan) agar menggunakan kunci baru dari lingkungannya. Kunci lama
 segera dibatalkan.
 
 **Isi permintaan:** tidak ada
@@ -341,7 +343,7 @@ segera dibatalkan.
 | `500`  | Rotasi gagal                               |
 
 **Keamanan:** Kunci baru tidak pernah dikembalikan dalam respons (tidak ada kebocoran kredensial).
-Kunci disimpan dalam keadaan terenkripsi (AES-256-GCM) di tabel `version_manager`.
+Kunci disimpan secara terenkripsi (AES-256-GCM) dalam tabel `version_manager`.
 
 ---
 
@@ -380,8 +382,8 @@ Mengembalikan gabungan status langsung + DB, termasuk metadata versi dan pratinj
 
 #### `POST /api/services/9router/auto-start`
 
-Mengalihkan flag mulai otomatis. Saat `enabled: true`, layanan dimulai secara otomatis
-ketika OmniRoute melakukan boot berikutnya (jika layanan sudah diinstal).
+Mengaktifkan atau menonaktifkan flag mulai otomatis. Saat `enabled: true`, layanan dimulai secara otomatis
+ketika OmniRoute melakukan boot berikutnya (jika layanan telah diinstal).
 
 **Isi permintaan:**
 
@@ -400,11 +402,11 @@ ketika OmniRoute melakukan boot berikutnya (jika layanan sudah diinstal).
 
 #### `GET /api/services/9router/logs`
 
-Stream SSE log langsung dari buffer cincin stdout/stderr milik 9Router.
+Stream SSE log langsung dari buffer cincin stdout/stderr 9Router.
 
 **Parameter kueri:**
 
-| Parameter | Tipe      | Bawaan    | Deskripsi                                                                           |
+| Parameter | Tipe      | Default   | Deskripsi                                                                           |
 | --------- | --------- | --------- | ----------------------------------------------------------------------------------- |
 | `tail`    | `integer` | 200       | Jumlah baris historis yang dikirim terlebih dahulu (maks. 1000)                     |
 | `filter`  | `string`  | tidak ada | Filter substring tanpa membedakan huruf besar-kecil (tanpa regex — aman dari ReDoS) |
@@ -413,7 +415,7 @@ Stream SSE log langsung dari buffer cincin stdout/stderr milik 9Router.
 
 | Peristiwa   | Data        | Deskripsi                  |
 | ----------- | ----------- | -------------------------- |
-| `snapshot`  | `LogLine[]` | Bagian akhir historis awal |
+| `snapshot`  | `LogLine[]` | Bagian akhir riwayat awal  |
 | `log`       | `LogLine`   | Baris log langsung         |
 | `heartbeat` | `{}`        | Keep-alive setiap 15 detik |
 
@@ -433,15 +435,15 @@ Stream SSE log langsung dari buffer cincin stdout/stderr milik 9Router.
 | ------ | ---------------------------------------------------- |
 | `200`  | `text/event-stream`                                  |
 | `400`  | Parameter `filter` terlalu panjang (> 200 karakter)  |
-| `404`  | Layanan tidak ditemukan (supervisor belum terdaftar) |
+| `404`  | Layanan tidak ditemukan (supervisor tidak terdaftar) |
 
 ---
 
 ### 4.2 Endpoint CLIProxyAPI (10 rute)
 
-CLIProxyAPI memiliki struktur endpoint yang sama seperti 9Router tanpa `rotate-key`, ditambah
+CLIProxyAPI memiliki bentuk endpoint yang sama dengan 9Router tanpa `rotate-key`, ditambah
 `accounts`, `provider-expose`, dan `auto-restart-adopted`. Kini layanan ini menerima
-kunci API data-plane khusus yang disuntikkan saat proses dijalankan (`needsApiKey: true` di
+kunci API bidang data khusus yang disuntikkan saat proses dimunculkan (`needsApiKey: true` di
 `bootstrap.ts`, digunakan untuk sinkronisasi model); `status` mencakup lebih sedikit kolom.
 
 | Metode | Jalur                               | Deskripsi                                   |
@@ -452,7 +454,7 @@ kunci API data-plane khusus yang disuntikkan saat proses dijalankan (`needsApiKe
 | `POST` | `/api/services/cliproxy/restart`    | Mulai ulang CLIProxyAPI                     |
 | `POST` | `/api/services/cliproxy/update`     | Perbarui ke versi yang lebih baru           |
 | `GET`  | `/api/services/cliproxy/status`     | Status langsung + DB (tanpa `apiKeyMasked`) |
-| `POST` | `/api/services/cliproxy/auto-start` | Alihkan mulai otomatis                      |
+| `POST` | `/api/services/cliproxy/auto-start` | Aktifkan/nonaktifkan mulai otomatis         |
 
 Endpoint bersama `GET /api/services/{name}/logs` (lihat §4.1) berfungsi untuk keempat
 layanan menggunakan segmen dinamis `[name]`.
@@ -461,11 +463,11 @@ layanan menggunakan segmen dinamis `[name]`.
 
 ### 4.3 Endpoint Mux (8 rute)
 
-Mux memiliki struktur endpoint yang sama seperti CLIProxyAPI — tidak ada rute `rotate-key` pada
-permukaan API (token bearer dihasilkan dengan cara yang sama seperti milik 9Router melalui
+Mux memiliki bentuk endpoint yang sama dengan CLIProxyAPI — tidak ada rute `rotate-key` pada
+permukaan API (token bearer dibuat dengan cara yang sama seperti milik 9Router melalui
 `getOrCreateApiKey("mux")` dan disuntikkan melalui variabel lingkungan `MUX_SERVER_AUTH_TOKEN`, tetapi
 belum ada endpoint rotasi khusus). Mux hanya dikelola siklus hidupnya: tidak seperti
-9Router, Mux tidak memiliki eksekutor Lapisan 4 dan tidak pernah didaftarkan sebagai penyedia perutean.
+9Router, Mux tidak memiliki eksekutor Layer 4 dan tidak pernah didaftarkan sebagai penyedia perutean.
 
 | Metode | Jalur                          | Deskripsi                             |
 | ------ | ------------------------------ | ------------------------------------- |
@@ -475,44 +477,79 @@ belum ada endpoint rotasi khusus). Mux hanya dikelola siklus hidupnya: tidak sep
 | `POST` | `/api/services/mux/restart`    | Mulai ulang Mux                       |
 | `POST` | `/api/services/mux/update`     | Perbarui ke versi npm yang lebih baru |
 | `GET`  | `/api/services/mux/status`     | Status langsung + DB                  |
-| `POST` | `/api/services/mux/auto-start` | Alihkan mulai otomatis                |
+| `POST` | `/api/services/mux/auto-start` | Aktifkan/nonaktifkan mulai otomatis   |
 
 ---
 
 ### 4.4 Endpoint Bifrost (8 rute)
 
 Bifrost adalah backend relai gateway AI berbasis Go (`@maximhq/bifrost`). Layanan ini menggunakan
-struktur endpoint yang sama seperti CLIProxyAPI (tanpa `rotate-key` — Bifrost mengelola sendiri kunci
-penyedianya di `config.json` di bawah `-app-dir`).
+bentuk endpoint yang sama dengan CLIProxyAPI (tanpa `rotate-key` — Bifrost mengelola sendiri kunci
+penyedianya di `config.json` dalam `-app-dir`).
 
 | Metode | Jalur                              | Deskripsi                                                 |
 | ------ | ---------------------------------- | --------------------------------------------------------- |
 | `POST` | `/api/services/bifrost/install`    | Instal Bifrost dari npm (`@maximhq/bifrost`)              |
-| `POST` | `/api/services/bifrost/start`      | Mulai Bifrost pada port 8080 (default)                    |
+| `POST` | `/api/services/bifrost/start`      | Mulai Bifrost pada port 8080 (bawaan)                     |
 | `POST` | `/api/services/bifrost/stop`       | Hentikan Bifrost                                          |
 | `POST` | `/api/services/bifrost/restart`    | Mulai ulang Bifrost                                       |
 | `POST` | `/api/services/bifrost/update`     | Perbarui ke versi yang lebih baru                         |
 | `GET`  | `/api/services/bifrost/status`     | Status langsung + DB                                      |
 | `POST` | `/api/services/bifrost/auto-start` | Aktifkan/nonaktifkan mulai otomatis                       |
-| `GET`  | `/api/services/bifrost/logs`       | Tail log SSE (melalui rute dinamis `[name]/logs` bersama) |
+| `GET`  | `/api/services/bifrost/logs`       | Ekor log SSE (melalui rute dinamis bersama `[name]/logs`) |
 
-**Pengaturan perutean:** Ketika `BIFROST_BASE_URL` tidak ditetapkan dan instans Bifrost
+**Pengkabelan perutean:** Saat `BIFROST_BASE_URL` tidak ditetapkan dan instans Bifrost
 yang diawasi sedang berjalan, `getBifrostRoutingConfig()` (di `routingBackend.ts`) secara otomatis
-menggunakan `http://127.0.0.1:{port}` sebagai URL dasar relai. Variabel lingkungan `BIFROST_BASE_URL` yang eksplisit
-selalu diutamakan.
+menggunakan `http://127.0.0.1:{port}` sebagai URL dasar relai. Variabel lingkungan `BIFROST_BASE_URL`
+yang ditetapkan secara eksplisit selalu diprioritaskan.
 
 ---
 
 ### 4.5 Endpoint Dario (12 rute)
 
-Memiliki pola siklus hidup yang sama seperti layanan lainnya (`install`, `start`, `stop`, `restart`,
+Bentuk siklus hidup yang sama dengan layanan lainnya (`install`, `start`, `stop`, `restart`,
 `update`, `status`, `auto-start`, `auto-restart-adopted`) ditambah bidang kontrol OAuth
-yang dibatasi token di bawah `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
+yang dilindungi token di bawah `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
 `admin/login-start`, `admin/login-complete` (semuanya dilindungi oleh `DARIO_ADMIN_TOKEN`).
 
-### 4.6 Proksi terbalik (sematan dasbor 9Router)
+### 4.6 Endpoint open-wa (7 rute)
 
-Dasbor menyematkan UI web 9Router di dalam iframe melalui proksi terbalik internal
+open-wa (`@open-wa/wa-automate`) menjalankan instans Chromium tanpa antarmuka grafis (melalui
+Puppeteer) untuk mengotomatiskan WhatsApp Web. Layanan ini menggunakan bentuk endpoint yang sama dengan Mux (belum
+ada rute `rotate-key`). Layanan ini hanya dikelola siklus hidupnya — bukan target perutean,
+tanpa entri eksekutor/penyedia Layer 4.
+
+| Metode | Jalur                             | Deskripsi                                                 |
+| ------ | --------------------------------- | --------------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Menginstal open-wa dari npm (`@open-wa/wa-automate`)      |
+| `POST` | `/api/services/openwa/start`      | Menjalankan open-wa pada port 8323 (default)              |
+| `POST` | `/api/services/openwa/stop`       | Menghentikan open-wa                                      |
+| `POST` | `/api/services/openwa/restart`    | Memulai ulang open-wa                                     |
+| `POST` | `/api/services/openwa/update`     | Memperbarui ke versi yang lebih baru                      |
+| `GET`  | `/api/services/openwa/status`     | Status langsung + DB                                      |
+| `POST` | `/api/services/openwa/auto-start` | Mengaktifkan/menonaktifkan mulai otomatis                 |
+| `GET`  | `/api/services/openwa/logs`       | Tail log SSE (melalui rute dinamis `[name]/logs` bersama) |
+
+**Kunci API:** diinjeksikan sebagai `WA_KEY` — override env generik open-wa
+dengan prefiks `WA_*` memetakannya ke opsi CLI `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, diverifikasi terhadap package 4.76.0 yang
+terinstal). Diberi prefiks `ow_` saat dibuat oleh `generateServiceApiKey()`.
+open-wa membaca kembali kunci dari header HTTP `key`/`api_key` (bukan
+`Authorization: Bearer`); `/api-docs*` secara eksplisit dikecualikan dari
+pemeriksaan (`setupAuthenticationLayer` di `dist/cli/server.js`), sehingga
+probe kesehatan tidak memerlukan header autentikasi.
+
+**Penyandingan:** open-wa bersifat tidak resmi dan tidak berafiliasi dengan WhatsApp —
+nomor yang terhubung berisiko diblokir oleh deteksi otomatisasi milik WhatsApp.
+Saat pertama kali dijalankan, kode QR penyandingan dicetak ke stdout dan ditampilkan
+melalui panel Log/aliran SSE yang sudah ada — belum ada endpoint gambar QR khusus
+dalam integrasi ini.
+
+---
+
+### 4.7 Proksi balik (sematan dasbor 9Router)
+
+Dasbor menyematkan UI web 9Router di dalam iframe melalui proksi balik internal
 di:
 
 ```
@@ -521,18 +558,19 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 
 Proksi ini:
 
-- Meneruskan permintaan ke `http://127.0.0.1:{port}/{path}` (hanya loopback)
+- Meneruskan permintaan ke `http://127.0.0.1:{port}/{path}` (khusus loopback)
 - Menghapus header `cookie` dan `authorization` yang masuk (tidak ada kebocoran sesi OmniRoute)
-- Menyisipkan `Authorization: Bearer {apiKey}` untuk autentikasi 9Router
+- Menginjeksikan `Authorization: Bearer {apiKey}` untuk autentikasi 9Router
 - Menghapus `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` dari respons
-- Menulis ulang respons HTML untuk menyisipkan `<base href>` dan menormalkan jalur absolut (`/foo` → `/dashboard/.../embed/foo`)
+- Menulis ulang respons HTML untuk menginjeksikan `<base href>` dan menormalkan jalur absolut (`/foo` → `/dashboard/.../embed/foo`)
 
-Peningkatan WebSocket untuk dasbor yang disematkan ditangani oleh server pendamping pada
+Upgrade WebSocket untuk dasbor yang disematkan ditangani oleh server pendamping pada
 port khusus (lihat `src/lib/services/embedWsProxy.ts`).
 
 **Keamanan:** Rute proksi sematan diklasifikasikan di bawah `LOCAL_ONLY_API_PREFIXES`
 dan hanya dapat diakses dari loopback. Penyerang yang memperoleh JWT melalui
-tunnel Cloudflare/Ngrok tidak dapat menggunakan proksi untuk mengakses layanan yang disematkan.
+tunnel Cloudflare/Ngrok tidak dapat menggunakan proksi untuk mengakses layanan
+yang disematkan.
 
 ---
 

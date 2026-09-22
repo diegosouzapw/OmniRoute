@@ -25,7 +25,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { execSync } from "node:child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -100,6 +100,8 @@ const IGNORE_FROM_CODE = new Set([
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // check-ai-attribution.mjs reads the PR of the Actions event payload when run without args (#14436)
+  "GITHUB_EVENT_PATH",
   // Set by the Actions runner; the ts7 ratchet appends its job summary there
   // (scripts/check/check-ts7-diagnostics-ratchet.mjs) — never OmniRoute runtime config (#9985).
   "GITHUB_STEP_SUMMARY",
@@ -217,6 +219,12 @@ const IGNORE_FROM_CODE = new Set([
   // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
   "NVIDIA_BASE_URL",
   "NVIDIA_MODEL",
+  // Lemonade embedding-provider integration test (tests/integration/semantic-cache-lemonade.test.ts)
+  // — points the gated live test at an operator's local Lemonade server; the test skips itself
+  // when the endpoint is unreachable, never OmniRoute runtime config.
+  "LEMONADE_URL",
+  "LEMONADE_KEY",
+  "LEMONADE_MODEL",
   // Discord integration ad-hoc script (scripts/ad-hoc/mesh-send.mjs) —
   // operator-supplied bot credentials, not user-facing OmniRoute config.
   "BOT_TOKEN",
@@ -448,6 +456,24 @@ function main() {
   process.exit(1);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+/**
+ * True when this module was launched directly as the Node entry point.
+ *
+ * `process.argv[1]` is an absolute filesystem path while `import.meta.url` is a
+ * file URL, so the two only match when encoded through `pathToFileURL`. A raw
+ * `file://${argv[1]}` comparison silently never matches when the checkout path
+ * contains characters the URL form percent-encodes (e.g. a space), which made
+ * the CLI exit 0 without running anything.
+ */
+export function isMainEntry(argv1, moduleUrl) {
+  if (!argv1) return false;
+  try {
+    return pathToFileURL(argv1).href === moduleUrl;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainEntry(process.argv[1], import.meta.url)) {
   main();
 }

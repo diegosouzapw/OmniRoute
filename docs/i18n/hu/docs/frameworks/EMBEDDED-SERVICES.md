@@ -5,12 +5,12 @@
 ---
 
 > **Verzió:** v3.8.44
-> **Utolsó frissítés:** 2026-07-03
-> **Célközönség:** Beágyazott szolgáltatásokat (9Router, CLIProxyAPI, Mux, Bifrost) hozzáadó, karbantartó vagy hibakeresést végző mérnökök.
+> **Utolsó frissítés:** 2026-09-09
+> **Célközönség:** Beágyazott szolgáltatásokat (9Router, CLIProxyAPI, Mux, Bifrost, open-wa) hozzáadó, karbantartó vagy hibakereső mérnökök.
 
-A beágyazott szolgáltatások helyileg telepített, kiegészítő folyamatként működő eszközök, amelyeket az OmniRoute telepít, felügyel,
-és teljes értékű útválasztási célpontként tesz elérhetővé. A külső szolgáltatókkal ellentétben (amelyek API-kulcsokon keresztül,
-az interneten érhetők el) a beágyazott szolgáltatások ugyanazon a gépen futnak, mint az OmniRoute, és loopback kapcsolaton keresztül kommunikálnak.
+A beágyazott szolgáltatások helyileg telepített, kiegészítő folyamatként működő eszközök, amelyeket az OmniRoute telepít, felügyel és
+teljes értékű útválasztási célként tesz elérhetővé. A külső szolgáltatókkal ellentétben (amelyek API-kulcsok használatával,
+az interneten keresztül érhetők el) a beágyazott szolgáltatások az OmniRoute-tal azonos gépen futnak, és a visszacsatolási interfészen keresztül kommunikálnak.
 
 ---
 
@@ -29,35 +29,36 @@ az interneten érhetők el) a beágyazott szolgáltatások ugyanazon a gépen fu
 
 ## 1. Áttekintés
 
-### Miért használjunk beágyazott szolgáltatásokat?
+### Miért beágyazott szolgáltatások?
 
-Öt szolgáltatás van beágyazva:
+Hat szolgáltatás van beágyazva:
 
-| Szolgáltatás    | npm-csomag                                    | Alapértelmezett port | Rendeltetés                                                                                                                                                                                                 |
-| --------------- | --------------------------------------------- | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                                     |        20130         | AI-útválasztó, amelyet az OmniRoute alszolgáltatóként használhat. A modellek `9router/{sub}/{model}` formában érhetők el                                                                                    |
-| **CLIProxyAPI** | GitHub-kiadási bináris (`cliproxy`)           |         8317         | Helyi proxyadapter az Anthropic CLI-hitelesítési folyamatokhoz. Tartalék útválasztást biztosít az OAuth-tokenek lejáratakor                                                                                 |
-| **Mux**         | `mux` (grafikus felület nélküli `mux server`) |         8322         | Helyi ügynök-vezénylési démon (coder/mux). Csak az életciklusa felügyelt — nem útválasztási célpont (nincs LLM-proxyzás).                                                                                   |
-| **Bifrost**     | `@maximhq/bifrost`                            |         8080         | Go-alapú AI-átjáró továbbító háttérrendszer. Futás közben a továbbítási útvonal (`/v1/relay/`) automatikusan ezt választja                                                                                  |
-| **Dario**       | `@askalf/dario`                               |         3456         | Claude-előfizetési proxy — a CLIProxyAPI alternatívája/tartalékmegoldása Claude-Code-formátumú forgalomhoz; a beinjektált kulcsból `DARIO_ADMIN_TOKEN` lesz, amely védi az `/admin/*` OAuth-vezérlési síkot |
+| Szolgáltatás    | npm-csomag                                    | Alapértelmezett port | Cél                                                                                                                                                                                                   |
+| --------------- | --------------------------------------------- | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                                     |        20130         | AI-útválasztó, amelyet az OmniRoute alszolgáltatóként használhat. A modellek `9router/{sub}/{model}` formában érhetők el                                                                              |
+| **CLIProxyAPI** | GitHub-kiadási bináris (`cliproxy`)           |         8317         | Helyi proxyadapter az Anthropic CLI hitelesítési folyamataihoz. Tartalék útválasztást biztosít az OAuth-tokenek lejáratakor                                                                           |
+| **Mux**         | `mux` (grafikus felület nélküli `mux server`) |         8322         | Helyi ügynök-vezénylési démon (coder/mux). Csak az életciklusa felügyelt — nem útválasztási cél (nincs LLM-proxyzás).                                                                                 |
+| **Bifrost**     | `@maximhq/bifrost`                            |         8080         | Go-alapú AI-átjáró továbbító háttérrendszer. Futás közben a továbbítási útvonal (`/v1/relay/`) automatikusan ezt választja                                                                            |
+| **Dario**       | `@askalf/dario`                               |         3456         | Claude-előfizetési proxy — a CLIProxyAPI alternatívája vagy tartaléka a Claude Code formátumú forgalomhoz; a beinjektált kulcs `DARIO_ADMIN_TOKEN` lesz, amely védi az `/admin/*` OAuth-vezérlősíkját |
+| **open-wa**     | `@open-wa/wa-automate`                        |         8323         | WhatsApp Web-automatizálás (grafikus felület nélküli Chromium a Puppeteer segítségével). Csak az életciklusa felügyelt — nem útválasztási cél.                                                        |
 
-Mind az öt ugyanazt a felügyeleti modellt követi:
+Mind a hat ugyanazt a felügyeleti modellt követi:
 
 - Az OmniRoute a `DATA_DIR/services/{name}/` könyvtárba telepíti őket (az OmniRoute saját `package.json` fájljától elkülönítve)
-- Az OmniRoute gyermekfolyamatokként indítja el és figyeli őket
-- Az OmniRoute egy ideiglenes API-kulcsot injektál a gyermekfolyamat környezeti változói közé, és állásidő nélkül cseréli azt (ahol alkalmazható)
-- Minden felügyeleti útvonal (`/api/services/*`) **LOCAL_ONLY** — csak loopback kapcsolaton keresztül érhető el (17. szigorú szabály)
+- Az OmniRoute gyermekfolyamatként indítja és felügyeli őket
+- Az OmniRoute egy ideiglenes API-kulcsot injektál a gyermekfolyamat környezetébe, és ahol alkalmazható, leállás nélkül cseréli azt
+- Minden felügyeleti útvonal (`/api/services/*`) **LOCAL_ONLY** — kizárólag a visszacsatolási címről érhető el (a 17. megváltoztathatatlan szabály)
 
-### Fő döntések (a tervezési dokumentumból)
+### Fő döntések (a tervezési tervből)
 
-| Döntés                                                   | Érték                                                                                                      |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Hozzáférés a 9Router natív felületéhez az irányítópulton | Fordított proxy a `/dashboard/providers/services/9router/embed/*` útvonalon                                |
-| Telepítési mechanizmus                                   | `npm install {package}` az `execFile` használatával (parancsértelmező-interpoláció nélkül)                 |
-| Felhasználási mód                                        | A szolgáltató `9router/{sub}/{model}` formában van regisztrálva az útválasztási motorban                   |
-| API-kulcsok kezelése                                     | Az OmniRoute generálja, nyugalmi állapotban titkosítja (AES-256-GCM), és környezeti változóként injektálja |
-| Irányítópult helye                                       | `/dashboard/providers/services` (három lap)                                                                |
-| Automatikus indítás                                      | Szolgáltatásonként kapcsolható, alapértelmezés szerint KIKAPCSOLVA                                         |
+| Döntés                                                 | Érték                                                                                                             |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| A 9Router natív felületének elérése az irányítópultról | Fordított proxy a `/dashboard/providers/services/9router/embed/*` útvonalon                                       |
+| Telepítési mechanizmus                                 | `npm install {package}` az `execFile` használatával (parancsértelmező-behelyettesítés nélkül)                     |
+| Használati mód                                         | A szolgáltató `9router/{sub}/{model}` formában van regisztrálva az útválasztási motorban                          |
+| API-kulcsok kezelése                                   | Az OmniRoute generálja, nyugalmi állapotban titkosítja (AES-256-GCM), és környezeti változón keresztül injektálja |
+| Az irányítópult helye                                  | `/dashboard/providers/services` (három lap)                                                                       |
+| Automatikus indítás                                    | Szolgáltatásonként kapcsolható, alapértelmezés szerint KIKAPCSOLVA                                                |
 
 ---
 
@@ -71,7 +72,7 @@ Mind az öt ugyanazt a felügyeleti modellt követi:
 │  Beállítások, Telepítés                                            │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               Keret + lapútválasztás a ?tab= alapján│
+│    ├── page.tsx               Keret + lapválasztás a ?tab= alapján │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -79,7 +80,7 @@ Mind az öt ugyanazt a felügyeleti modellt követi:
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ HTTP (Next.js fetch)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  2. réteg — API (LOCAL_ONLY — csak visszacsatolási interfészen)    │
+│  2. réteg — API (LOCAL_ONLY — csak visszacsatolási interfész)      │
 │                                                                    │
 │  /api/services/9router/{install|start|stop|restart|update|         │
 │                          rotate-key|status|auto-start|logs}        │
@@ -90,9 +91,9 @@ Mind az öt ugyanazt a felügyeleti modellt követi:
 │  /dashboard/providers/services/9router/embed/[...path]             │
 │    (fordított HTTP- és WebSocket-proxy → 9Router upstream)         │
 │                                                                    │
-│  Védelem: a LOCAL_ONLY_API_PREFIXES tartalmazza a következőket:    │
+│  Védelem: a LOCAL_ONLY_API_PREFIXES tartalmazza az                 │
 │        "/api/services/" és                                        │
-│        "/dashboard/providers/services/*/embed/"                    │
+│        "/dashboard/providers/services/*/embed/" útvonalakat       │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ folyamaton belüli hívások
 ┌──────────────────────▼─────────────────────────────────────────────┐
@@ -102,18 +103,18 @@ Mind az öt ugyanazt a felügyeleti modellt követi:
 │    ├── telepítés:  execFile('npm', ['install', pkg, '--prefix'])    │
 │    ├── indítás:    spawn(node, [entrypoint], {env, cwd})           │
 │    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── port:       20130 a 9Routerhez (konfigurálható)             │
-│    ├── naplók:     stdio körkörös puffer, 5 MB → SSE-események     │
+│    ├── port:       20130 a 9Router számára (konfigurálható)        │
+│    ├── naplók:     5 MB-os stdio körkörös puffer → SSE-események   │
 │    ├── állapot:    HTTP GET /health 2–5 mp-enként, lusta helyreállítás│
 │    └── életciklus: SIGTERM 15 mp → SIGKILL                         │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
-│  bootstrap.ts       Az összes SERVICES[] inicializálása indításkor │
+│  bootstrap.ts       Az összes SERVICES[] indítása a folyamat kezdetén│
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
 │  modelSync.ts       Időszakos GET /v1/models → service_models tábla│
 │  ringBuffer.ts      Körkörös naplópuffer (szolgáltatásonként 5 MB) │
 │  healthCheck.ts     Lekérdezéses HTTP-állapotvizsgálat             │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (telepítőadapterek)                           │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ OpenAI-kompatibilis HTTP (visszacsatolás)
@@ -121,41 +122,41 @@ Mind az öt ugyanazt a felügyeleti modellt követi:
 │  4. réteg — Szolgáltató / Útválasztás                              │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    Kérésenként újra lekéri a portot és az API-kulcsot (gyorsítótárazás nélkül).│
+│    Kérésenként újra lekéri a portot és az API-kulcsot (nincs gyorsítótárazás).│
 │    Proxyzás előtt eltávolítja a "9router/" előtagot a modellazonosítóból.│
 │    503 service_not_running választ ad, ha a felügyelő nem "running" állapotú.│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
-│    Bejegyzés a "9router" számára: isEmbeddedService: true          │
+│    A "9router" bejegyzése: isEmbeddedService: true                 │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
 │    A modellek "9router/{sub}/{model}" formában tárolódnak (előtaggal).│
 │    A modelSync.ts 5 percenként szinkronizálja őket.                │
 │                                                                    │
-│  A Mux CSAK életciklus-felügyelettel rendelkezik (1–3. réteg) —   │
-│  ez egy ügynök-összehangoló démon, nem LLM-proxy, ezért nincs      │
-│  4. rétegbeli végrehajtó-/szolgáltatóbejegyzése, és soha nem       │
-│  útválasztási cél.                                                 │
+│  A Mux CSAK életciklus-kezelést kap (1–3. réteg) — ez egy ügynök-  │
+│  vezénylési démon, nem LLM-proxy, ezért nincs 4. rétegbeli         │
+│  végrehajtó-/szolgáltatóbejegyzése, és soha nem útválasztási cél.  │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Fő forrásfájlok
 
-| Fájl                                        | Szerep                                                        |
-| ------------------------------------------- | ------------------------------------------------------------- |
-| `src/lib/services/ServiceSupervisor.ts`     | Alaposztály: életciklus, zárolás, állapot, körkörös puffer    |
-| `src/lib/services/bootstrap.ts`             | Folyamatszintű regisztráció és automatikus indítás            |
-| `src/lib/services/registry.ts`              | Egykezelős leképezés: `tool → supervisor`                     |
-| `src/lib/services/apiKey.ts`                | Kulcsgenerálás, tárolt adatok AES-256-GCM-titkosítása         |
-| `src/lib/services/modelSync.ts`             | Időszakos modellszinkronizálás (5 percenként) + igény szerint |
-| `src/lib/services/ringBuffer.ts`            | 5 MB-os körkörös naplópuffer SSE-előfizetéssel                |
-| `src/lib/services/healthCheck.ts`           | HTTP-állapotellenőrzés (konfigurálható időközzel)             |
-| `src/lib/services/installers/ninerouter.ts` | npm-telepítés/-frissítés/-eltávolítás a 9Routerhez            |
-| `src/lib/services/installers/cliproxy.ts`   | npm-telepítés/-frissítés/-eltávolítás a CLIProxyAPI-hoz       |
-| `src/lib/services/installers/mux.ts`        | npm-telepítés/-frissítés/-eltávolítás a Muxhoz                |
-| `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` segédfüggvény                         |
-| `src/app/api/services/[name]/logs/route.ts` | Megosztott SSE-naplóvégpont                                   |
-| `open-sse/executors/ninerouter.ts`          | Szolgáltatói végrehajtó (4. réteg)                            |
+| Fájl                                        | Szerep                                                     |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| `src/lib/services/ServiceSupervisor.ts`     | Alaposztály: életciklus, zárolás, állapot, körkörös puffer |
+| `src/lib/services/bootstrap.ts`             | Folyamatszintű regisztráció és automatikus indítás         |
+| `src/lib/services/registry.ts`              | Egyke példánytárkép: `eszköz → felügyelő`                  |
+| `src/lib/services/apiKey.ts`                | Kulcsgenerálás, nyugalmi AES-256-GCM-titkosítás            |
+| `src/lib/services/modelSync.ts`             | Időszakos modellszinkronizálás (5 perc) + igény szerint    |
+| `src/lib/services/ringBuffer.ts`            | 5 MB-os körkörös naplópuffer SSE-feliratkozással           |
+| `src/lib/services/healthCheck.ts`           | HTTP-állapotellenőrzés (konfigurálható időközzel)          |
+| `src/lib/services/installers/ninerouter.ts` | npm-telepítés/-frissítés/-eltávolítás a 9Routerhez         |
+| `src/lib/services/installers/cliproxy.ts`   | npm-telepítés/-frissítés/-eltávolítás a CLIProxyAPI-hoz    |
+| `src/lib/services/installers/mux.ts`        | npm-telepítés/-frissítés/-eltávolítás a Muxhoz             |
+| `src/lib/services/installers/openwa.ts`     | npm-telepítés/-frissítés/-eltávolítás az open-wa-hoz       |
+| `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` segédfüggvény                      |
+| `src/app/api/services/[name]/logs/route.ts` | Megosztott SSE-naplózási végpont                           |
+| `open-sse/executors/ninerouter.ts`          | Szolgáltatói végrehajtó (4. réteg)                         |
 
 ---
 
@@ -212,17 +213,15 @@ akkor, amikor az automatikus indítás és egy felhasználói felületi gomb egy
 
 ## 4. API-referencia
 
-A `/api/services/` alatti összes útvonal **LOCAL_ONLY** (csak visszacsatolási
-interfész, 17. szigorú szabály). A nem visszacsatolási interfészről érkező kérések
-a hitelesítési tokentől függetlenül `403 LOCAL_ONLY` választ kapnak.
+A `/api/services/` alatti összes útvonal **LOCAL_ONLY** (csak visszacsatolási címről érhető el, kötelező szabály #17).
+A nem visszacsatolási címről érkező kérések a hitelesítési tokentől függetlenül `403 LOCAL_ONLY` választ kapnak.
 
 ### 4.1 9Router-végpontok (11 útvonal)
 
 #### `POST /api/services/9router/install`
 
-Telepíti a 9Routert az npm rendszerből. Létrehozza a `DATA_DIR/services/9router/`
-könyvtárat saját `package.json` fájllal és `node_modules/` könyvtárral. Nem ütközik
-az OmniRoute saját függőségeivel.
+Telepíti a 9Routert az npm használatával. Létrehozza a `DATA_DIR/services/9router/` könyvtárat saját
+`package.json` és `node_modules/` tartalommal. Nem ütközik az OmniRoute saját függőségeivel.
 
 **Kérés törzse** (minden mező opcionális):
 
@@ -230,29 +229,28 @@ az OmniRoute saját függőségeivel.
 { "version": "latest" }
 ```
 
-| Mező      | Típus    | Alapértelmezés | Leírás                                    |
-| --------- | -------- | -------------- | ----------------------------------------- |
-| `version` | `string` | `"latest"`     | a telepítendő npm-verziócímke vagy semver |
+| Mező      | Típus    | Alapértelmezett | Leírás                                    |
+| --------- | -------- | --------------- | ----------------------------------------- |
+| `version` | `string` | `"latest"`      | A telepítendő npm-verziócímke vagy semver |
 
 **Válaszok:**
 
-| Állapot | Leírás                                                                              |
-| ------- | ----------------------------------------------------------------------------------- |
-| `200`   | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                              |
-| `400`   | Érvénytelen kéréstörzs (sikertelen Zod-validáció)                                   |
-| `409`   | Már folyamatban van telepítés (a zár foglalt)                                       |
-| `500`   | Az npm-telepítés sikertelen — a felhasználóbarát hiba a `message` mezőben található |
+| Állapot | Leírás                                                                        |
+| ------- | ----------------------------------------------------------------------------- |
+| `200`   | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                        |
+| `400`   | Érvénytelen kéréstörzs (sikertelen Zod-validáció)                             |
+| `409`   | A telepítés már folyamatban van (a zárolás aktív)                             |
+| `500`   | Az npm-telepítés sikertelen — a közérthető hiba a `message` mezőben található |
 
-**Megjegyzések:** Az `execFile('npm', [...])` függvényt használja — parancsértelmező
-és interpoláció nélkül (13. szigorú szabály). Az EACCES hibák felhasználóbarát
-üzenetekként jelennek meg.
+**Megjegyzések:** Az `execFile('npm', [...])` használatával működik — parancsértelmező és interpoláció nélkül (kötelező szabály #13).
+Az EACCES-hibák közérthető üzenetekként jelennek meg.
 
 ---
 
 #### `POST /api/services/9router/start`
 
-Elindítja a 9Routert. Regisztrál egy felügyelőt, ha még nincs regisztrálva, majd
-meghívja a `supervisor.start()` függvényt. Már futó állapotban idempotens.
+Elindítja a 9Routert. Regisztrál egy felügyelőt, ha még nincs regisztrálva, majd meghívja a
+`supervisor.start()` metódust. Ha már fut, a művelet idempotens.
 
 **Kérés törzse:** nincs
 
@@ -282,8 +280,8 @@ meghívja a `supervisor.start()` függvényt. Már futó állapotban idempotens.
 
 #### `POST /api/services/9router/stop`
 
-Szabályosan leállítja a 9Routert. SIGTERM jelet küld, 15 másodpercet vár, majd
-SIGKILL jelet küld, ha a folyamat még mindig fut. Már leállított állapotban idempotens.
+Szabályosan leállítja a 9Routert. SIGTERM jelet küld, 15 másodpercet vár, majd SIGKILL jelet küld, ha a folyamat még mindig fut.
+Ha már leállt, a művelet idempotens.
 
 **Kérés törzse:** nincs
 
@@ -298,20 +296,19 @@ SIGKILL jelet küld, ha a folyamat még mindig fut. Már leállított állapotba
 
 #### `POST /api/services/9router/restart`
 
-Egyenértékű a `stop()`, majd a `start()` művelet műveleti záron belüli
-végrehajtásával.
+Egyenértékű a `stop()`, majd a `start()` meghívásával a műveleti zároláson belül.
 
 **Kérés törzse:** nincs
 
-**Válaszok:** ugyanazok, mint a `start` esetén (a végső `ServiceStatus` értéket adja vissza).
+**Válaszok:** megegyeznek a `start` válaszaival (a végleges `ServiceStatus` objektumot adja vissza).
 
 ---
 
 #### `POST /api/services/9router/update`
 
 Frissíti a 9Routert egy újabb npm-verzióra. Ha a szolgáltatás fut, először
-leállítja, majd futtatja az npm-telepítést (az újabb verziót helyben telepítve),
-végül újraindítja a szolgáltatást.
+leállítja, majd futtatja az npm-telepítést (helyben telepítve az újabb verziót), végül
+újraindítja a szolgáltatást.
 
 **Kérés törzse** (minden mező opcionális):
 
@@ -331,8 +328,8 @@ végül újraindítja a szolgáltatást.
 
 #### `POST /api/services/9router/rotate-key`
 
-Új API-kulcsot hoz létre a 9Router számára, titkosítja a tárolás során, és újraindítja a szolgáltatást
-(ha fut), hogy az felvegye az új kulcsot a környezetéből. A régi kulcs
+Új API-kulcsot hoz létre a 9Routerhez, titkosítja azt tároláskor, és újraindítja a szolgáltatást
+(ha fut), hogy az új kulcsot betöltse a környezetéből. A régi kulcs
 azonnal érvénytelenné válik.
 
 **Kérés törzse:** nincs
@@ -342,16 +339,16 @@ azonnal érvénytelenné válik.
 | Állapot | Leírás                                     |
 | ------- | ------------------------------------------ |
 | `200`   | `{ keyRotated: true, restarted: boolean }` |
-| `500`   | A kulcsrotáció sikertelen                  |
+| `500`   | A kulcscsere sikertelen                    |
 
-**Biztonság:** Az új kulcs soha nem kerül visszaadásra a válaszban (nincs hitelesítőadat-szivárgás).
-Titkosítva (AES-256-GCM) tárolódik a `version_manager` táblában.
+**Biztonság:** Az új kulcs soha nem szerepel a válaszban (nincs hitelesítőadat-szivárgás).
+AES-256-GCM algoritmussal titkosítva tárolódik a `version_manager` táblában.
 
 ---
 
 #### `GET /api/services/9router/status`
 
-Visszaadja az egyesített élő + adatbázisbeli állapotot, beleértve a verzió metaadatait és az API-kulcs előnézetét.
+Visszaadja az egyesített élő és adatbázisbeli állapotot, beleértve a verzió metaadatait és az API-kulcs előnézetét.
 
 **Válaszok:**
 
@@ -360,7 +357,7 @@ Visszaadja az egyesített élő + adatbázisbeli állapotot, beleértve a verzi�
 | `200`   | Lásd az alábbi sémát             |
 | `500`   | Az állapot beolvasása sikertelen |
 
-**Válasz sémája:**
+**Válaszséma:**
 
 ```json
 {
@@ -384,8 +381,8 @@ Visszaadja az egyesített élő + adatbázisbeli állapotot, beleértve a verzi�
 
 #### `POST /api/services/9router/auto-start`
 
-Átváltja az automatikus indítás jelzőjét. Ha `enabled: true`, a szolgáltatás automatikusan elindul
-az OmniRoute következő rendszerindításakor (ha a szolgáltatás telepítve van).
+Be- vagy kikapcsolja az automatikus indítás jelzőjét. Ha `enabled: true`, a szolgáltatás automatikusan
+elindul az OmniRoute következő rendszerindításakor (ha a szolgáltatás telepítve van).
 
 **Kérés törzse:**
 
@@ -404,22 +401,22 @@ az OmniRoute következő rendszerindításakor (ha a szolgáltatás telepítve v
 
 #### `GET /api/services/9router/logs`
 
-A 9Router stdout/stderr körkörös pufferéből származó élő naplók SSE-adatfolyama.
+A 9Router stdout/stderr gyűrűs pufferéből származó élő naplók SSE-adatfolyama.
 
 **Lekérdezési paraméterek:**
 
-| Paraméter | Típus     | Alapértelmezett | Leírás                                                                          |
-| --------- | --------- | --------------- | ------------------------------------------------------------------------------- |
-| `tail`    | `integer` | 200             | Az először elküldendő korábbi sorok száma (legfeljebb 1000)                     |
-| `filter`  | `string`  | nincs           | Kis- és nagybetűket nem megkülönböztető részszűrő (regex nélkül — ReDoS-biztos) |
+| Paraméter | Típus     | Alapértelmezett | Leírás                                                                                       |
+| --------- | --------- | --------------- | -------------------------------------------------------------------------------------------- |
+| `tail`    | `integer` | 200             | Az először elküldendő korábbi sorok száma (legfeljebb 1000)                                  |
+| `filter`  | `string`  | nincs           | Kis- és nagybetűket figyelmen kívül hagyó részszűrő (nem reguláris kifejezés — ReDoS-biztos) |
 
 **SSE-események:**
 
-| Esemény     | Adat        | Leírás                            |
-| ----------- | ----------- | --------------------------------- |
-| `snapshot`  | `LogLine[]` | Kezdeti korábbi naplórészlet      |
-| `log`       | `LogLine`   | Élő naplósor                      |
-| `heartbeat` | `{}`        | Életben tartás 15 másodpercenként |
+| Esemény     | Adatok      | Leírás                               |
+| ----------- | ----------- | ------------------------------------ |
+| `snapshot`  | `LogLine[]` | Kezdeti korábbi naplórészlet         |
+| `log`       | `LogLine`   | Élő naplósor                         |
+| `heartbeat` | `{}`        | Életben tartó jel 15 másodpercenként |
 
 **LogLine séma:**
 
@@ -433,60 +430,60 @@ A 9Router stdout/stderr körkörös pufferéből származó élő naplók SSE-ad
 
 **Válaszok:**
 
-| Állapot | Leírás                                                           |
-| ------- | ---------------------------------------------------------------- |
-| `200`   | `text/event-stream`                                              |
-| `400`   | A `filter` paraméter túl hosszú (> 200 karakter)                 |
-| `404`   | A szolgáltatás nem található (nincs regisztrálva a felügyelőben) |
+| Állapot | Leírás                                                         |
+| ------- | -------------------------------------------------------------- |
+| `200`   | `text/event-stream`                                            |
+| `400`   | A `filter` paraméter túl hosszú (> 200 karakter)               |
+| `404`   | A szolgáltatás nem található (a supervisor nincs regisztrálva) |
 
 ---
 
 ### 4.2 CLIProxyAPI-végpontok (10 útvonal)
 
-A CLIProxyAPI végpontstruktúrája megegyezik a 9Routerével a `rotate-key` kivételével, továbbá
-tartalmazza az `accounts`, `provider-expose` és `auto-restart-adopted` végpontokat. Mostantól egy
-dedikált adatsíkbeli API-kulcsot kap a folyamat indításakor (`needsApiKey: true` a
-`bootstrap.ts` fájlban, amelyet a modellek szinkronizálásához használ); a `status` kevesebb mezőt tartalmaz.
+A CLIProxyAPI végpontstruktúrája megegyezik a 9Routerével, a `rotate-key` kivételével, továbbá az
+`accounts`, `provider-expose` és `auto-restart-adopted` végpontokkal egészül ki. Mostantól egy
+dedikált, az indításkor beinjektált adatsíkbeli API-kulcsot kap (`needsApiKey: true` a
+`bootstrap.ts` fájlban, amelyet a modellszinkronizáláshoz használ); a `status` kevesebb mezőt tartalmaz.
 
-| Metódus | Útvonal                             | Leírás                                              |
-| ------- | ----------------------------------- | --------------------------------------------------- |
-| `POST`  | `/api/services/cliproxy/install`    | A CLIProxyAPI telepítése npm-ből                    |
-| `POST`  | `/api/services/cliproxy/start`      | A CLIProxyAPI elindítása                            |
-| `POST`  | `/api/services/cliproxy/stop`       | A CLIProxyAPI leállítása                            |
-| `POST`  | `/api/services/cliproxy/restart`    | A CLIProxyAPI újraindítása                          |
-| `POST`  | `/api/services/cliproxy/update`     | Frissítés újabb verzióra                            |
-| `GET`   | `/api/services/cliproxy/status`     | Élő + adatbázisbeli állapot (`apiKeyMasked` nélkül) |
-| `POST`  | `/api/services/cliproxy/auto-start` | Automatikus indítás átváltása                       |
+| Metódus | Útvonal                             | Leírás                                     |
+| ------- | ----------------------------------- | ------------------------------------------ |
+| `POST`  | `/api/services/cliproxy/install`    | A CLIProxyAPI telepítése npm-ből           |
+| `POST`  | `/api/services/cliproxy/start`      | A CLIProxyAPI elindítása                   |
+| `POST`  | `/api/services/cliproxy/stop`       | A CLIProxyAPI leállítása                   |
+| `POST`  | `/api/services/cliproxy/restart`    | A CLIProxyAPI újraindítása                 |
+| `POST`  | `/api/services/cliproxy/update`     | Frissítés újabb verzióra                   |
+| `GET`   | `/api/services/cliproxy/status`     | Élő + DB-állapot (`apiKeyMasked` nélkül)   |
+| `POST`  | `/api/services/cliproxy/auto-start` | Az automatikus indítás be- és kikapcsolása |
 
-A megosztott `GET /api/services/{name}/logs` végpont (lásd a §4.1 szakaszt) mind a
-négy szolgáltatással működik a dinamikus `[name]` szegmens használatával.
+A megosztott `GET /api/services/{name}/logs` végpont (lásd: §4.1) mind a
+négy szolgáltatáshoz használható a dinamikus `[name]` szegmenssel.
 
 ---
 
 ### 4.3 Mux-végpontok (8 útvonal)
 
-A Mux végpontstruktúrája megegyezik a CLIProxyAPI-éval — az API-felületen nincs `rotate-key`
-útvonal (a bearer token a 9Routeréhez hasonlóan, a `getOrCreateApiKey("mux")`
-segítségével jön létre, és a `MUX_SERVER_AUTH_TOKEN` környezeti változón keresztül kerül beinjektálásra, de
-egyelőre nincs hozzá külön rotációs végpont). A Mux kizárólag életciklus-kezelést kap: a
-9Routerrel ellentétben nincs 4. rétegbeli végrehajtója, és soha nem regisztrálják útválasztási szolgáltatóként.
+A Mux végpontstruktúrája megegyezik a CLIProxyAPI-éval — az API-felületen nincs
+`rotate-key` útvonal (a bearer token a 9Routeréhez hasonlóan, a
+`getOrCreateApiKey("mux")` használatával jön létre, és a `MUX_SERVER_AUTH_TOKEN`
+környezeti változón keresztül kerül beinjektálásra, de külön rotációs végpont még
+nincs). A Mux csak életciklus-kezelést kap: a 9Routerrel ellentétben nem rendelkezik 4. rétegbeli végrehajtóval, és soha nincs útválasztási szolgáltatóként regisztrálva.
 
-| Metódus | Útvonal                        | Leírás                                 |
-| ------- | ------------------------------ | -------------------------------------- |
-| `POST`  | `/api/services/mux/install`    | A Mux telepítése npm-ből (`npm i mux`) |
-| `POST`  | `/api/services/mux/start`      | A Mux elindítása (`mux server`)        |
-| `POST`  | `/api/services/mux/stop`       | A Mux leállítása                       |
-| `POST`  | `/api/services/mux/restart`    | A Mux újraindítása                     |
-| `POST`  | `/api/services/mux/update`     | Frissítés újabb npm-verzióra           |
-| `GET`   | `/api/services/mux/status`     | Élő + adatbázisbeli állapot            |
-| `POST`  | `/api/services/mux/auto-start` | Automatikus indítás átváltása          |
+| Metódus | Útvonal                        | Leírás                                     |
+| ------- | ------------------------------ | ------------------------------------------ |
+| `POST`  | `/api/services/mux/install`    | A Mux telepítése npm-ből (`npm i mux`)     |
+| `POST`  | `/api/services/mux/start`      | A Mux elindítása (`mux server`)            |
+| `POST`  | `/api/services/mux/stop`       | A Mux leállítása                           |
+| `POST`  | `/api/services/mux/restart`    | A Mux újraindítása                         |
+| `POST`  | `/api/services/mux/update`     | Frissítés újabb npm-verzióra               |
+| `GET`   | `/api/services/mux/status`     | Élő + DB-állapot                           |
+| `POST`  | `/api/services/mux/auto-start` | Az automatikus indítás be- és kikapcsolása |
 
 ---
 
 ### 4.4 Bifrost-végpontok (8 útvonal)
 
-A Bifrost egy Go-alapú AI-átjáró továbbító háttérszolgáltatás (`@maximhq/bifrost`). Ugyanazt a
-végpontstruktúrát használja, mint a CLIProxyAPI (nincs `rotate-key` — a Bifrost a saját szolgáltatói
+A Bifrost egy Go nyelven készült AI-átjáró továbbító háttérrendszer (`@maximhq/bifrost`). Ugyanazt a
+végpontstruktúrát használja, mint a CLIProxyAPI (`rotate-key` nélkül — a Bifrost a saját szolgáltatói
 kulcsait a `config.json` fájlban, a `-app-dir` alatt kezeli).
 
 | Metódus | Útvonal                            | Leírás                                                                      |
@@ -497,27 +494,61 @@ kulcsait a `config.json` fájlban, a `-app-dir` alatt kezeli).
 | `POST`  | `/api/services/bifrost/restart`    | A Bifrost újraindítása                                                      |
 | `POST`  | `/api/services/bifrost/update`     | Frissítés újabb verzióra                                                    |
 | `GET`   | `/api/services/bifrost/status`     | Élő + DB-állapot                                                            |
-| `POST`  | `/api/services/bifrost/auto-start` | Az automatikus indítás be-/kikapcsolása                                     |
-| `GET`   | `/api/services/bifrost/logs`       | SSE-naplókövetés (a megosztott `[name]/logs` dinamikus útvonalon keresztül) |
+| `POST`  | `/api/services/bifrost/auto-start` | Az automatikus indítás be- és kikapcsolása                                  |
+| `GET`   | `/api/services/bifrost/logs`       | SSE-naplókövetés (a megosztott dinamikus `[name]/logs` útvonalon keresztül) |
 
-**Útválasztás bekötése:** Ha a `BIFROST_BASE_URL` nincs beállítva, és a felügyelt Bifrost
-példány fut, a `getBifrostRoutingConfig()` (a `routingBackend.ts` fájlban) automatikusan
-a `http://127.0.0.1:{port}` címet használja a továbbító alap-URL-jeként. A kifejezetten beállított
+**Útválasztási összekapcsolás:** Ha a `BIFROST_BASE_URL` nincs beállítva, és a felügyelt Bifrost-példány
+fut, a `getBifrostRoutingConfig()` (a `routingBackend.ts` fájlban) automatikusan a
+`http://127.0.0.1:{port}` címet használja a továbbító alap-URL-jeként. Az explicit módon beállított
 `BIFROST_BASE_URL` környezeti változó mindig elsőbbséget élvez.
 
 ---
 
 ### 4.5 Dario-végpontok (12 útvonal)
 
-Életciklusuk megegyezik a többi szolgáltatáséval (`install`, `start`, `stop`, `restart`,
-`update`, `status`, `auto-start`, `auto-restart-adopted`), továbbá az `admin/` alatt egy tokennel
-védett OAuth-vezérlősík található: `admin/accounts`, `admin/import-from-omniroute`,
+Az életciklus-struktúra megegyezik a többi szolgáltatáséval (`install`, `start`, `stop`, `restart`,
+`update`, `status`, `auto-start`, `auto-restart-adopted`), és kiegészül egy tokennel védett OAuth
+vezérlősíkkal az `admin/` alatt: `admin/accounts`, `admin/import-from-omniroute`,
 `admin/login-start`, `admin/login-complete` (mindegyiket a `DARIO_ADMIN_TOKEN` védi).
 
-### 4.6 Fordított proxy (a 9Router vezérlőpult beágyazása)
+### 4.6 open-wa-végpontok (7 útvonal)
 
-A vezérlőpult a 9Router webes felhasználói felületét iframe-ben ágyazza be egy belső fordított
-proxyn keresztül, a következő címen:
+Az open-wa (`@open-wa/wa-automate`) egy headless Chromium-példányt vezérel (a
+Puppeteer segítségével) a WhatsApp Web automatizálásához. Ugyanazt a végpontstruktúrát
+használja, mint a Mux (`rotate-key` útvonal még nincs). Csak életciklus-kezelést kap —
+nem útválasztási cél, és nincs 4. rétegbeli végrehajtó-/szolgáltatóbejegyzése.
+
+| Metódus | Útvonal                           | Leírás                                                                     |
+| ------- | --------------------------------- | -------------------------------------------------------------------------- |
+| `POST`  | `/api/services/openwa/install`    | Az open-wa telepítése npm-ből (`@open-wa/wa-automate`)                     |
+| `POST`  | `/api/services/openwa/start`      | Az open-wa elindítása a 8323-as porton (alapértelmezett)                   |
+| `POST`  | `/api/services/openwa/stop`       | Az open-wa leállítása                                                      |
+| `POST`  | `/api/services/openwa/restart`    | Az open-wa újraindítása                                                    |
+| `POST`  | `/api/services/openwa/update`     | Frissítés újabb verzióra                                                   |
+| `GET`   | `/api/services/openwa/status`     | Élő + adatbázisbeli állapot                                                |
+| `POST`  | `/api/services/openwa/auto-start` | Automatikus indítás be- vagy kikapcsolása                                  |
+| `GET`   | `/api/services/openwa/logs`       | SSE-naplófolyam (a megosztott `[name]/logs` dinamikus útvonalon keresztül) |
+
+**API-kulcs:** `WA_KEY` értékként kerül átadásra — az open-wa általános, `WA_*` előtaggal ellátott környezetiváltozó-felülbírálása ezt a `--key`/`-k` CLI-beállításhoz rendeli
+(`dist/cli/setup.js::envArgs()`, ellenőrizve a telepített 4.76.0
+csomaggal). A `generateServiceApiKey()` általi létrehozáskor `ow_` előtagot kap. Az open-wa
+a kulcsot egy `key`/`api_key` HTTP-fejlécből olvassa vissza (nem az `Authorization:
+Bearer` fejlécből); a `/api-docs*` kifejezetten mentesül az ellenőrzés alól
+(`setupAuthenticationLayer` a `dist/cli/server.js` fájlban), így az állapotellenőrzéshez
+nincs szükség hitelesítési fejlécre.
+
+**Párosítás:** az open-wa nem hivatalos, és nem áll kapcsolatban a WhatsApp-pal — a
+csatlakoztatott számot kitiltási kockázatnak teszi ki a WhatsApp saját automatizálásészlelése.
+Az első indításkor a párosításhoz szükséges QR-kód a szabványos kimenetre kerül, és a
+meglévő Naplók panelen/SSE-adatfolyamon keresztül jelenik meg — ebben az integrációban
+egyelőre nincs külön QR-kép-végpont.
+
+---
+
+### 4.7 Fordított proxy (a 9Router irányítópult beágyazása)
+
+Az irányítópult egy belső fordított proxyn keresztül iframe-be ágyazza a 9Router webes
+felhasználói felületét a következő címen:
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -525,18 +556,19 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 
 Ez a proxy:
 
-- Továbbítja a kérést a `http://127.0.0.1:{port}/{path}` címre (kizárólag loopbacken)
-- Eltávolítja a bejövő `cookie` és `authorization` fejléceket (az OmniRoute-munkamenet nem szivárog ki)
+- Továbbítja a kérést a `http://127.0.0.1:{port}/{path}` címre (csak visszacsatolási interfész)
+- Eltávolítja a bejövő `cookie` és `authorization` fejléceket (így az OmniRoute-munkamenet nem szivárog ki)
 - Beilleszti az `Authorization: Bearer {apiKey}` fejlécet a 9Router-hitelesítéshez
-- Eltávolítja a válaszból a `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` fejléceket
-- Átírja a HTML-válaszokat a `<base href>` beillesztéséhez és az abszolút útvonalak normalizálásához (`/foo` → `/dashboard/.../embed/foo`)
+- Eltávolítja a válaszból a `set-cookie`, `content-security-policy`, `x-frame-options` és `cross-origin-*` fejléceket
+- Átírja a HTML-válaszokat egy `<base href>` elem beillesztéséhez és az abszolút útvonalak normalizálásához (`/foo` → `/dashboard/.../embed/foo`)
 
-A beágyazott vezérlőpulthoz tartozó WebSocket-frissítéseket egy dedikált porton futó
-kísérőszerver kezeli (lásd: `src/lib/services/embedWsProxy.ts`).
+A beágyazott irányítópult WebSocket-frissítéseit egy külön porton működő kiegészítő
+kiszolgáló kezeli (lásd: `src/lib/services/embedWsProxy.ts`).
 
 **Biztonság:** A beágyazási proxy útvonalai a `LOCAL_ONLY_API_PREFIXES` alá vannak besorolva,
-és csak loopbackről érhetők el. Egy támadó, aki Cloudflare-/Ngrok-alagúton keresztül JWT-t
-szerez, nem tud a beágyazott szolgáltatásokhoz proxyn keresztül hozzáférni.
+és csak a visszacsatolási interfészről érhetők el. Az a támadó, aki egy
+Cloudflare-/Ngrok-alagúton keresztül JWT-t szerez, nem tud hozzáférni a beágyazott
+szolgáltatásokhoz a proxyn keresztül.
 
 ---
 

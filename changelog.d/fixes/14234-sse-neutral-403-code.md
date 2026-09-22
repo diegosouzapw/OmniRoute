@@ -1,0 +1,1 @@
+- **fix(sse):** a 403 without a quota signal now reports a neutral permission code while preserving the upstream message, so non-quota refusals no longer look like billing exhaustion. ([#14234](https://github.com/diegosouzapw/OmniRoute/pull/14234)) — thanks @maxmad64bis

@@ -4,22 +4,23 @@
 
 ---
 
-Tento dokument je správcem vytvořené potvrzení k šesti nálezům
-`AI-detected potential malware` nahlášeným u `omniroute@3.8.5` a k nápravným
-opatřením použitým v `omniroute@3.8.6`. Existuje proto, aby:
+> **Poznámka k rozsahu:** `socket.yml` konfiguruje kontrolu npm artefaktu po publikování na straně registru Socket.dev (ignorované cesty pro obsah, který není součástí distribuovaného balíčku, například `tests/`, `docs/` a sestavy z buildu). Nenastavuje kontrolní bránu pro sloučení v CI/PR — Socket.dev není volán žádným workflow v `.github/workflows`, žádným skriptem v `package.json` ani žádným cílem v `Makefile`.
 
-1. Provozovatelé bezpečnostních kontrol měli jediný referenční dokument, který
-   mohou citovat, když potřebují vyhodnotit nálezy ve vztahu ke skutečnému
-   zdrojovému kódu.
-2. Budoucí AI skenery mohly zohlednit správcem podepsané prohlášení, že každá
+Tento dokument je potvrzení vytvořené správci projektu pro šest
+nálezů `AI-detected potential malware` nahlášených u `omniroute@3.8.5` a
+zmírňující opatření použitá v `omniroute@3.8.6`. Existuje proto, aby:
+
+1. Provozovatelé bezpečnostních procesů měli jediný referenční dokument, na který mohou odkazovat, když potřebují
+   vyhodnotit nálezy ve vztahu ke skutečnému zdrojovému kódu.
+2. Budoucí AI skenery mohly zohlednit správci podepsané prohlášení, že každá
    označená cesta je záměrná, volitelná a zdokumentovaná.
-3. Existoval písemný záznam o tom, _proč_ má každé místo volání právě tuto
-   podobu — aby budoucí refaktorizace omylem znovu nezavedla vzorec, který byl
-   záměrně odstraněn.
+3. Existoval písemný záznam o tom, _proč_ má každé místo volání právě takovou podobu —
+   aby budoucí refaktoring nechtěně znovu nezavedl vzor, který
+   byl záměrně odstraněn.
 
-Pokud provozujete skener, který po vydání nápravných opatření ve v3.8.6 znovu
-označí kterékoli z níže uvedených míst volání, založte prosím issue se záznamem
-kontroly a my zde toto potvrzení rozšíříme.
+Pokud provozujete skener, který po vydání zmírňujících opatření ve
+v3.8.6 znovu označí některé z níže uvedených míst volání, otevřete prosím hlášení problému se záznamem kontroly a
+my zde toto potvrzení rozšíříme.
 
 ---
 

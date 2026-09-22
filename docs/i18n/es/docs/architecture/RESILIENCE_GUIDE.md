@@ -67,96 +67,140 @@ retroceso exponencial `minRetryCooldownMs → maxRetryCooldownMs`. Anulaciones:
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
 Protección contra regresiones: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
-## 2. Enfriamiento de conexión
+## 2. Tiempo de espera de la conexión
 
-**Ámbito:** una sola conexión/cuenta/clave de proveedor.
+**Ámbito:** una única conexión/cuenta/clave del proveedor.
 
-**Propósito:** omitir una clave defectuosa mientras las demás conexiones del mismo proveedor siguen prestando servicio.
+**Propósito:** omitir una clave defectuosa mientras otras conexiones del mismo proveedor siguen atendiendo solicitudes.
 
 **Implementación:**
 
 - Marcar como no disponible: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Selección: `getProviderCredentials*` en el mismo archivo
-- Cálculo del enfriamiento: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Cálculo del tiempo de espera: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Configuración: `src/lib/resilience/settings.ts`
 
 **Campos por conexión:**
 
-- `rateLimitedUntil` — marca de tiempo hasta que vence el enfriamiento
+- `rateLimitedUntil` — marca de tiempo hasta que finaliza el tiempo de espera
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — contador de espera exponencial
+- `backoffLevel` — contador de retroceso exponencial
 
-**Enfriamientos predeterminados:**
+**Tiempos de espera predeterminados:**
 
-- Base de OAuth: 5s
-- Base de clave de API: 3s
-- 429 de clave de API: prioriza los encabezados `Retry-After`/de restablecimiento del servicio ascendente o el texto de restablecimiento que pueda analizarse
-- Espera: `baseCooldownMs * 2 ** failureIndex`
+- Base de OAuth: 5 s
+- Base de clave de API: 3 s
+- 429 de clave de API: da preferencia a `Retry-After`, a las cabeceras de restablecimiento del servicio ascendente o al texto de restablecimiento que se pueda analizar
+- Retroceso: `baseCooldownMs * 2 ** failureIndex`
 
-**Protección contra avalanchas:** evita que los fallos simultáneos prolonguen excesivamente el enfriamiento o incrementen dos veces `backoffLevel`.
+**Protección contra avalanchas de solicitudes:** evita que los fallos simultáneos prolonguen en exceso el tiempo de espera o incrementen dos veces `backoffLevel`.
 
-**Estados terminales (NO son enfriamientos):**
+**Estados terminales (NO son tiempos de espera):**
 
-- `banned` — establecido por la detección de palabras clave de prohibición/bloqueo de cuenta (consulte [BAN_DETECTION](../security/BAN_DETECTION.md)) y por tres rechazos consecutivos del servicio ascendente por solicitud (`request_rejected`, p. ej., el error 403 de OAuth de Anthropic "Solicitud no permitida" — `open-sse/services/requestRejectedStreak.ts`); un solo rechazo únicamente pone la conexión en enfriamiento
-- `expired` (pasa al estado terminal después de un número limitado de reintentos — `EXPIRED_RETRY_MAX = 3` con espera exponencial —, de modo que los errores transitorios de OAuth puedan resolverse por sí solos antes de que la cuenta se desactive permanentemente)
+- `banned` — establecido por la detección de palabras clave de bloqueo o de cuentas bloqueadas (consulte [BAN_DETECTION](../security/BAN_DETECTION.md)), así como por tres rechazos consecutivos por solicitud del servicio ascendente (`request_rejected`, p. ej., el error 403 de OAuth de Anthropic «Request not allowed» — `open-sse/services/requestRejectedStreak.ts`); un único rechazo solo pone la conexión en tiempo de espera
+- `expired` (pasa al estado terminal tras una cantidad limitada de reintentos — `EXPIRED_RETRY_MAX = 3` con retroceso exponencial — para que los errores transitorios de OAuth puedan corregirse por sí solos antes de que la cuenta se desactive permanentemente)
 - `credits_exhausted`
 
-Estos persisten hasta que cambien las credenciales o un operador los restablezca. No sobrescriba los estados terminales con un estado de enfriamiento transitorio.
+Estos estados persisten hasta que cambien las credenciales o un operador los restablezca. No sobrescriba los estados terminales con un estado de tiempo de espera transitorio.
 
 **Recuperación diferida:** cuando `rateLimitedUntil` queda en el pasado, la conexión vuelve a ser apta. Tras un uso correcto, `clearAccountError()` borra todos los campos de error.
 
+### Límite de uso de OAuth de Claude: canal de menor prioridad + restablecimiento del límite de sesión
+
+**Ámbito:** una conexión de suscripción de Claude (OAuth). Ambas funciones son de **activación opcional por
+conexión** (Editar conexión → sección de Claude → `lowPriorityMode` / `autoLimitReset` en
+`providerSpecificData`, ambas desactivadas de forma predeterminada) y replican los comandos `/low-priority` y
+`/limit-reset` de Claude Code (contrato de protocolo capturado de Claude Code 2.1.263).
+
+**Implementación:**
+
+- Máquina de estados + clasificación de respuestas: `open-sse/services/claudeLowPriority.ts`
+- Cliente de estado/solicitud de restablecimiento: `open-sse/services/claudeLimitReset.ts`
+- Enlace del ejecutor (inyección de cabecera + reintento en la misma cuenta): `open-sse/executors/base.ts::execute()`
+- Persistencia de la activación opcional: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Activador:** el límite de uso de 5 horas — un `429` cuyas cabeceras contienen
+`anthropic-ratelimit-unified-status: rejected` y, cuando la cuenta es apta,
+`anthropic-ratelimit-unified-slow-offer: treatment`. No se envía nada antes de ese primer
+429 del límite; un 429 en ráfaga sin cabeceras unificadas sigue la ruta normal de tiempo de espera.
+
+**Canal de menor prioridad** (`lowPriorityMode`):
+
+- Al recibir el 429 del límite, el ejecutor acepta la oferta y reintenta inmediatamente con la **misma**
+  cuenta y `anthropic-usage-limit: slow`; el canal permanece activo hasta el
+  `anthropic-ratelimit-unified-reset` anunciado (+60 s de margen), y todas las solicitudes dentro de ese período incluyen
+  la cabecera. El 429 interceptado nunca llega a `handleChatCore`, por lo que la conexión
+  **no** entra en tiempo de espera ni se sustituye por otra.
+- `anthropic-ratelimit-unified-slow-status` en respuestas posteriores: `active` / `not_needed`
+  mantienen el canal; `slot_busy` (429) o un `529` esperan durante el valor de
+  `anthropic-ratelimit-unified-slow-retry-after` del servidor (20 s de forma predeterminada, limitado a 5–600 s, con una variación aleatoria de ±30 %)
+  y reintentan, con el límite de `anthropic-ratelimit-unified-slow-max-wait` (20 min de forma predeterminada, limitado a
+  1 min–6 h); una vez superado, el canal finaliza y un período de espera de 10 minutos impide volver a aceptarlo. La
+  espera también queda limitada por el tiempo restante del propio tiempo de espera de inicio de comunicación con el servicio ascendente
+  de la solicitud (`resolveFetchStartTimeout`, 10 min de forma predeterminada), menos un margen de 5 s: sin ese límite, el
+  máximo de espera predeterminado de 20 minutos sobreviviría a la solicitud y la espera se cancelaría
+  a mitad de camino, mostrando un `TimeoutError` en lugar de la finalización controlada por `max_wait` y el período de espera.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, el reinicio de una ventana de 5 h o
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (que lo finaliza como
+  `extra_usage` con cualquier estado, ya que el exceso de uso de pago pasa a cubrir el límite) finalizan el canal; la
+  respuesta sigue entonces la ruta normal de tiempo de espera. `budget_exhausted` se recuerda hasta
+  el restablecimiento de presupuesto anunciado (≤ 8 días).
+- La comprobación del límite se ejecuta después de los reintentos internos del propio ejecutor provocados por errores 400 (edición de
+  contexto, límites de razonamiento/esfuerzo, aprendizaje automático de parámetros), de modo que un 429 del límite que solo aparezca en
+  uno de esos reintentos siga interceptándose en lugar de llegar a la ruta de tiempo de espera.
+- El estado se conserva en memoria por conexión (un reinicio implica un 429 del límite adicional para volver a aceptar).
+
+**Restablecimiento del límite de sesión** (`autoLimitReset`, se intenta antes que el canal cuando ambos están activados):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → bloque `juniper_tide`;
+  cuando `arm: "reset"` y `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` con
+  `{ "program": "juniper_tide" }` (UUID de la organización obtenido de
+  `providerSpecificData.organizationUUID`, con alternativa de inicialización).
+- `result: reset|not_limited` → la solicitud se reintenta a velocidad completa (sin cabecera de baja velocidad).
+  `already_used` / `not_offered` memorizan `next_available_at` (una semana de forma predeterminada); cualquier
+  fallo aplica un retroceso de 15 minutos. El restablecimiento solo puede realizarse una vez por semana y sigue contando para el
+  límite semanal.
+
+Pruebas de regresión: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
 ### Afinidad de sesión (#7274)
 
-**Ámbito:** una sesión de cliente (`X-Session-Id` / `x-codex-session-id` / encabezado `x-omniroute-session`) fijada a una conexión para **cualquier** proveedor.
+**Ámbito:** una sesión de cliente (`X-Session-Id` / `x-codex-session-id` / cabecera `x-omniroute-session`) fijada a una conexión, para **cualquier** proveedor.
 
-**Propósito:** mantener un agente de varios turnos (Claude Code, aider, agentes personalizados) en la misma cuenta entre solicitudes, lo que reduce la pérdida de contexto entre cuentas y los errores 429 repetidos de arranque en frío en proveedores con estado de sesión por cuenta.
+**Propósito:** mantener un agente multiturно (Claude Code, aider, agentes personalizados) en la misma cuenta entre solicitudes, reduciendo la pérdida de contexto entre cuentas y los repetidos errores 429 de arranque en frío en proveedores con estado de sesión por cuenta.
 
 **Implementación:**
 
 - Resolución del TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Selección/creación de la fijación: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Extracción del encabezado (genérica, para cualquier proveedor): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Tabla de fijaciones persistentes: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Configuración: `sessionAffinityTtlMs` (TTL global en ms, `0` lo desactiva) — `src/lib/db/settings.ts`. Se cambió el nombre del parámetro exclusivo de Codex `codexSessionAffinityTtlMs` mediante la migración `124_generic_session_affinity_ttl.sql`, que conserva cualquier TTL de Codex configurado previamente como nuevo valor predeterminado.
+- Selección/creación del anclaje: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Extracción de cabeceras (genérica, para cualquier proveedor): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Tabla de anclajes persistentes: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Configuración: `sessionAffinityTtlMs` (TTL global en ms, `0` lo desactiva) — `src/lib/db/settings.ts`. Se cambió el nombre del anterior `codexSessionAffinityTtlMs`, exclusivo de Codex, mediante la migración `124_generic_session_affinity_ttl.sql`, que transfiere cualquier TTL de Codex configurado previamente como el nuevo valor predeterminado.
 
-Antes de #7274, `resolveSessionAffinityTtlMs()` devolvía inmediatamente `0` para todos los proveedores excepto `codex`, por lo que la configuración del TTL (y los encabezados de sesión) no tenía efecto en ningún otro lugar, aunque el mecanismo de fijación y la extracción de encabezados ya eran independientes del proveedor. La corrección eliminó ese retorno anticipado; ahora el TTL se aplica uniformemente a todos los proveedores una vez establecido globalmente por encima de `0`.
+Antes de #7274, `resolveSessionAffinityTtlMs()` devolvía inmediatamente `0` para todos los proveedores excepto `codex`, por lo que la configuración del TTL (y las cabeceras de sesión) no tenía efecto en ningún otro proveedor, aunque el mecanismo de anclaje y la extracción de cabeceras ya eran independientes del proveedor. La corrección eliminó ese retorno anticipado; ahora el TTL se aplica uniformemente a todos los proveedores una vez que se configura globalmente con un valor superior a `0`.
 
-Los tres encabezados de afinidad de sesión nunca se reenvían al servicio ascendente: los ejecutores construyen desde cero sus propios encabezados para el servicio ascendente en lugar de transmitir los encabezados del cliente, por lo que esto sigue siendo únicamente un identificador interno de correlación.
+Las tres cabeceras de afinidad de sesión nunca se reenvían al servidor ascendente: los ejecutores construyen sus propias cabeceras ascendentes desde cero en lugar de transmitir las cabeceras del cliente, por lo que esto sigue siendo únicamente un identificador de correlación interno.
 
-### Arrendamientos exclusivos de conexiones para sesiones administradas
+### Arrendamientos exclusivos de conexiones de sesión administradas
 
-**Ámbito:** un cliente/sesión HTTP administrado activo posee una conexión apta de OmniRoute.
+**Ámbito:** un cliente/sesión HTTP administrado activo posee una conexión elegible de OmniRoute.
 
-**Propósito:** proporcionar la propiedad exclusiva y duradera de una conexión a los clientes que necesiten una barrera estricta de enrutamiento
-entre solicitudes. Esto difiere de la afinidad de sesión, que es una preferencia flexible de continuidad:
-un arrendamiento exclusivo conserva el estado del ciclo de vida en SQLite, exige la unicidad global del propietario activo y de la
-conexión activa, y rechaza una generación obsoleta antes de despachar al proveedor.
+**Propósito:** proporcionar la propiedad exclusiva y duradera de una conexión a los clientes que necesitan una barrera de enrutamiento estricta entre solicitudes. Esto difiere de la afinidad de sesión, que es una preferencia de continuidad flexible: un arrendamiento exclusivo conserva el estado del ciclo de vida en SQLite, impone la unicidad global del propietario activo y de la conexión activa, y rechaza una generación obsoleta antes del envío al proveedor.
 
-La función es opcional para cada clave de API. Una clave administrada debe tener el ámbito `lease:exclusive` y una
-lista `allowedConnections` explícita y no vacía. Cualquier cliente HTTP puede usar el extremo del ciclo de vida; no se
-requiere ningún nombre de cliente, agente de usuario, proveedor, método OAuth ni modelo. El arrendamiento posee una conexión,
-no un modelo, por lo que un cambio de modelo conserva la vinculación mientras la conexión siga siendo
-apta según los criterios habituales. Las reglas normales de modelo, cuota, estado, enfriamiento y lista de permitidos siguen siendo vinculantes y pueden
-transferir la misma generación a otra conexión apta que esté libre.
+La función es opcional para cada clave de API. Una clave administrada debe tener el ámbito `lease:exclusive` y una lista `allowedConnections` explícita y no vacía. Cualquier cliente HTTP puede utilizar el endpoint del ciclo de vida; no se requiere ningún nombre de cliente, agente de usuario, proveedor, método OAuth ni modelo. El arrendamiento posee una conexión, no un modelo, por lo que un cambio de modelo conserva la vinculación mientras la conexión siga siendo normalmente elegible. Las reglas normales de modelo, cuota, estado, período de enfriamiento y lista de permitidos siguen teniendo autoridad y pueden trasladar la misma generación a otra conexión elegible y libre.
 
-El ciclo de vida es `POST /api/v1/session-leases` con las acciones JSON `acquire`, `renew` y `release`.
-Las solicitudes de inferencia administradas presentan el valor opaco `X-OmniRoute-Lease-Owner` y el valor exacto
-`X-OmniRoute-Lease-Generation`. El propietario usa `vlo_` seguido de 43 caracteres base64url; solo
-se almacena su hash SHA-256. Cada barrera final de despacho también vincula el ID de la clave de API autenticada y
-el ID de la conexión activa. Los encabezados de control del arrendamiento se eliminan de los registros, de las instantáneas conservadas de las solicitudes y de
-los encabezados de los ejecutores del servicio ascendente.
+El ciclo de vida utiliza `POST /api/v1/session-leases` con las acciones JSON `acquire`, `renew` y `release`. Las solicitudes de inferencia administradas presentan el valor opaco `X-OmniRoute-Lease-Owner` y el valor exacto `X-OmniRoute-Lease-Generation`. El propietario utiliza `vlo_` seguido de 43 caracteres base64url; solo se almacena su hash SHA-256. Cada barrera final de envío también vincula el ID de la clave de API autenticada y el ID de la conexión activa. Las cabeceras de control del arrendamiento se eliminan de los registros, de las instantáneas de solicitudes conservadas y de las cabeceras de los ejecutores ascendentes.
 
-Si el enrutamiento ordinario tiene candidatos administrados aptos, pero todos los candidatos libres están ocupados por un
-arrendamiento activo ajeno, OmniRoute devuelve el estado HTTP `429`, un código de capacidad de arrendamiento no disponible, un
-estado de espera de capacidad y un valor `Retry-After` acotado y derivado del vencimiento pertinente más próximo.
-La ausencia ordinaria de conexiones aptas no constituye una contención de arrendamientos y conserva la semántica existente de los errores de enrutamiento.
+Si el enrutamiento ordinario tiene candidatos administrados elegibles, pero todos los candidatos libres están ocupados por un arrendamiento activo ajeno, OmniRoute devuelve HTTP `429`, el código de capacidad de arrendamiento no disponible, un estado de espera de capacidad y un `Retry-After` acotado, derivado del vencimiento relevante más próximo. La ausencia ordinaria de elegibilidad no constituye una contención de arrendamiento y conserva la semántica de errores de enrutamiento existente.
 
-Los mecanismos relacionados siguen siendo independientes:
+Los mecanismos relacionados permanecen separados:
 
-- La ocupación de sesiones OAuth es una distribución flexible de cuentas OAuth local al proceso.
-- Los semáforos de cuenta conceden permisos de concurrencia de solicitudes y terminan cuando finaliza una solicitud.
-- Los arrendamientos exclusivos de conexiones para sesiones administradas constituyen una propiedad duradera durante el ciclo de vida con una barrera de generación.
+- La ocupación de sesiones OAuth es una distribución flexible y local al proceso para las cuentas OAuth.
+- Los semáforos de cuenta conceden permisos de concurrencia de solicitudes y finalizan cuando se completa una solicitud.
+- Los arrendamientos exclusivos de sesiones administradas proporcionan una propiedad duradera durante el ciclo de vida con una barrera de generación.
 
 ---
 
@@ -286,48 +330,73 @@ de frecuencia por modelo. Está acotado por `comboCooldownWait` (`enabled`, `max
 
 ---
 
-## 5. Control de admisión de la cola de solicitudes (v3.8.49 · incidencia #6593)
+## 5. Control de admisión de la cola de solicitudes (v3.8.49 · issue #6593)
 
-**Ámbito**: la cola local de límites de frecuencia por proveedor+conexión (`open-sse/services/rateLimitManager.ts`,
-respaldada por Bottleneck), una capa por debajo de los tres mecanismos anteriores.
+**Ámbito**: la cola local de limitación de tasa por proveedor+conexión (`open-sse/services/rateLimitManager.ts`,
+respaldada por Bottleneck), un nivel por debajo de los tres mecanismos anteriores.
 
-**`maxWaitMs` es un nombre persistente heredado para la expiración de la ejecución.**
-`resilienceSettings.requestQueue.maxWaitMs` se pasa a Bottleneck como la propiedad
-`expiration` de un trabajo, cuyo temporizador solo se inicia después del envío. Por lo tanto, limita
-la ejecución administrada por el limitador, no el tiempo empleado en la cola local. La expiración se
-expone como el `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` local de confianza (HTTP 504);
-el nombre anterior del código de tiempo de espera de la cola solo se acepta para mantener la compatibilidad
-interna retroactiva de confianza. El valor predeterminado es 15000ms; puede sobrescribirse mediante
-`RATE_LIMIT_MAX_WAIT_MS` (variable de entorno) o el panel (**Configuración → Resiliencia**,
-límite de la interfaz de usuario de 1–30000ms). La permanencia en la cola no tiene un límite de tiempo; utilice
-`maxQueueDepth` a continuación para limitar las solicitudes en cola.
+**`maxWaitMs` limita la espera en cola; `executionMaxWaitMs` limita la ejecución.**
+Ambos límites están separados deliberadamente y ninguno influye en el otro.
 
-**`maxQueueDepth`: límite de admisión opcional (nuevo).** `resilienceSettings.requestQueue.maxQueueDepth`
-limita cuántas solicitudes pueden permanecer en cola (todavía sin enviar) simultáneamente para una
+`resilienceSettings.requestQueue.maxWaitMs` es el **presupuesto de espera en cola**:
+abarca la espera de una ranura del proveedor y la posterior permanencia en estado QUEUED, y su temporizador se
+cancela en el momento en que el trabajo deja el estado QUEUED y comienza a ejecutarse
+(`rateLimitManager.ts`, `wrappedFn`). Una solicitud que lo supere nunca llega
+al servicio upstream. El valor predeterminado es 30000ms, proporcionado por `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+en `src/lib/resilience/settings.ts` y fijado por
+`tests/unit/ratelimit-admission-control-6593.test.ts`, de modo que cualquier cambio
+hará que esa prueba falle, en lugar de dejar que este párrafo quede silenciosamente desactualizado.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` es lo que Bottleneck
+recibe como `expiration` del trabajo, cuyo temporizador comienza solo después del despacho. Sirve
+como protección de último recurso para ejecutores que no tienen su propio tiempo de espera del upstream y se
+aumenta hasta el tiempo de espera de inicio de fetch del propio ejecutor cuando este es mayor, por lo que
+no puede interrumpir una respuesta en curso que funciona correctamente. El valor predeterminado es 600000ms (10 min).
+
+Usar el presupuesto de cola como `expiration` era lo que antes interrumpía en mitad de la ejecución
+las puertas de enlace no incrementales — legítimamente pueden ejecutarse durante minutos antes de enviar los primeros bytes —,
+y por eso una expiración se expone como `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), mientras que el presupuesto de cola utiliza el
+código de tiempo de espera de la cola. Sobrescriba cualquiera de ellos mediante `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (variable de entorno) o desde el panel
+(**Configuración → Resiliencia**). Ambos se limitan al intervalo de 1ms–24h al normalizarse.
+
+**Precedencia, para ambos:** la variable de entorno solo proporciona el valor _predeterminado_. Un valor
+persistido en `resilienceSettings.requestQueue` (panel / parche de API, almacenado
+en `key_value`) tiene prioridad, y un valor por conexión de
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` tiene prioridad sobre este último. Por tanto, establecer
+la variable de entorno en un despliegue que ya tenga un valor persistido
+no cambia nada; en su lugar, borre o actualice el ajuste persistido.
+
+La permanencia en la cola está limitada por `maxWaitMs`; `maxQueueDepth`, descrito a continuación, limita cuántos
+solicitantes pueden estar en cola simultáneamente.
+
+**`maxQueueDepth` — límite de admisión opcional (nuevo).** `resilienceSettings.requestQueue.maxQueueDepth`
+limita cuántas solicitudes pueden permanecer en cola (aún sin despachar) simultáneamente para una
 combinación de proveedor+conexión. Cuando la cola ya contiene `maxQueueDepth`
 solicitudes, una nueva solicitud se rechaza inmediatamente con un error tipado
-`code: "RATE_LIMIT_QUEUE_FULL"` **antes** de que llegue a `limiter.schedule()`;
-por lo tanto, el rechazo tiene un coste bajo y ocurre antes de cualquier trabajo posterior de
-compresión o traducción del prompt para esa solicitud. El valor predeterminado `0` =
-desactivado, lo que conserva el comportamiento existente de cola sin límites; intervalo permitido: 0–100000.
-Puede sobrescribirse mediante `RATE_LIMIT_MAX_QUEUE_DEPTH` (variable de entorno) o
-`resilienceSettings.requestQueue.maxQueueDepth` (parche del panel o la API).
+`code: "RATE_LIMIT_QUEUE_FULL"` **antes** de llegar a `limiter.schedule()`
+— por lo que el rechazo es barato y ocurre antes de cualquier trabajo posterior de
+compresión / traducción del prompt para esa solicitud. El valor predeterminado es `0` =
+desactivado, lo que conserva el comportamiento existente de cola sin límites; limitado a 0–100000.
+Sobrescríbalo mediante `RATE_LIMIT_MAX_QUEUE_DEPTH` (variable de entorno) o
+`resilienceSettings.requestQueue.maxQueueDepth` (panel/parche de API).
 
 La propia comprobación de admisión es una función pura
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), por lo que
 puede someterse a pruebas unitarias sin un limitador Bottleneck real.
 
-> El RFC que abrió la incidencia #6593 también propuso una marca `bypassCompressionOnRateLimit`.
+> El RFC que dio origen a #6593 también propuso un indicador `bypassCompressionOnRateLimit`.
 > La canalización `open-sse/services/compression/` de este repositorio realiza
-> la compresión del prompt/contexto en la solicitud saliente al LLM (`chatCore.ts`,
+> compresión del prompt/contexto en la solicitud saliente al LLM (`chatCore.ts`,
 > alrededor del bloque `resolveCompressionSettings`/`selectCompressionStrategy`),
-> no la compresión de respuestas HTTP en cuerpos 429 sintetizados; no existe una
-> ruta de código correspondiente para una marca de omisión literal. Ese paso de compresión del prompt
+> no compresión de respuestas HTTP en cuerpos 429 sintetizados; no existe una
+> ruta de código correspondiente para un indicador de omisión literal. Ese paso de compresión del prompt
 > también se ejecuta actualmente _antes_ de `withRateLimit()` en la canalización de solicitudes, por lo que
-> cambiar el orden para omitirlo ante un rechazo por cola llena constituye un cambio independiente y de mayor
-> alcance que el de esta incidencia; **no** se implementó aquí intencionadamente
-> y se dejó como tarea posterior por si el ahorro de CPU compensa el
-> riesgo de cambiar el orden.
+> reordenarlo para omitirlo ante un rechazo por cola llena constituye un cambio independiente y de mayor
+> alcance que el de este issue; intencionadamente **no** se implementó
+> aquí y se deja como tarea de seguimiento si el ahorro de CPU compensa el
+> riesgo de reordenación.
 
 ---
 

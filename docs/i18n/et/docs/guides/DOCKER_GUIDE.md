@@ -27,6 +27,12 @@
 
 ## Kiirkäivitus
 
+> **Isemajuta ühe käsuga?** Vaata
+> [isemajutuse juhendit](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (avaldatud tõmmis +
+> Redis, ainult loopback-liidesel, profiili pole vaja valida). Allolev kiirkäivitus on
+> ühe konteineriga lahendus kasutajatele, kes käitavad Redist juba mujal.
+
 ```bash
 docker run -d \
   --name omniroute \

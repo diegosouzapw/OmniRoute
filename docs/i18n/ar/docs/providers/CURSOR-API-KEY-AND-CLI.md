@@ -4,40 +4,40 @@
 
 ---
 
-طريقتان لوضع Cursor خلف OmniRoute من دون جلسة IDE:
+طريقتان لوضع Cursor خلف OmniRoute دون جلسة IDE:
 
-1. **موفّر `cursor-api`** (البطاقة "Cursor API"، والاسم المستعار `cua`): موفّر يعتمد على مفتاح API
-   ويحتفظ بمفتاح API لمستخدم Cursor‏ (`crsr_…`، يُنشأ من
-   `https://cursor.com/dashboard/api`). يمكن بعد ذلك لأي عميل OmniRoute الوصول إلى
-   نماذج Cursor عبر `/v1/chat/completions` بصيغة `cursor-api/<model>` أو
+1. موفّر **`cursor-api`** (البطاقة "Cursor API"، والاسم المستعار `cua`): موفّر
+   يعتمد على مفتاح API ويحتفظ بمفتاح API لمستخدم Cursor (`crsr_…`، يتم إنشاؤه من
+   `https://cursor.com/dashboard/api`). يمكن لأي عميل OmniRoute بعد ذلك الوصول
+   إلى نماذج Cursor عبر `/v1/chat/completions` بصيغة `cursor-api/<model>` أو
    `cua/<model>`، مع طبقات الحصة والرجوع الاحتياطي والتسجيل المعتادة. يظل موفّر IDE
-   (`cursor`، جلسة OAuth/IDE) من دون تغيير.
-2. **التمرير المباشر لـ Cursor CLI**: وجّه Cursor CLI‏ (`agent`) إلى OmniRoute بحيث
-   تتم مصادقة كل RPC يجريه CLI باستخدام مفتاح API خاص بـ OmniRoute، ثم يُمرَّر
-   إلى Cursor باستخدام بيانات اعتماد اتصال `cursor-api`، ويُسجَّل في
-   صفحة السجلات.
+   (`cursor`، جلسة OAuth/IDE) دون تغيير.
+2. **التمرير المباشر لـ Cursor CLI**: وجّه Cursor CLI (`agent`) إلى OmniRoute بحيث
+   تتم مصادقة كل RPC يجريه CLI باستخدام مفتاح API لـ OmniRoute، ثم يُعاد توجيهه
+   إلى Cursor باستخدام بيانات اعتماد اتصال `cursor-api`، ويُسجّل في صفحة
+   السجلات.
 
-## لماذا يتم تبديل المفتاح
+## سبب استبدال المفتاح
 
-يرفض `api2.cursor.sh` مفتاح `crsr_…` خامًا باعتباره رمز Bearer‏ (401). يرسل Cursor
-CLI المفتاح أولًا عبر POST إلى `/auth/exchange_user_api_key` ويتلقى JWT للجلسة
-تنتهي صلاحيته بعد ساعة واحدة؛ ويحمل `refreshToken` المُعاد قيمة `exp`
-نفسها، لذا يعني التحديث إعادة تبديل المفتاح.
-ينفّذ `open-sse/services/cursorApiKeyAuth.ts` عملية التبديل هذه، ويخزّن مؤقتًا رمز
-جلسة واحدًا لكل مفتاح، ويعيد التبديل قبل انتهاء الصلاحية بخمس دقائق، ويحذف الرمز
-المخزّن مؤقتًا عندما يستجيب Cursor بالحالة 401. يستدعيه `CursorExecutor` مباشرةً قبل فتح
-تدفق المنبع لاتصالات `cursor-api`.
+يرفض `api2.cursor.sh` مفتاح `crsr_…` خامًا بوصفه رمز Bearer مميزًا (401). يرسل Cursor
+CLI المفتاح أولًا عبر POST إلى `/auth/exchange_user_api_key` ويتلقى JWT لجلسة
+تنتهي صلاحيته بعد ساعة واحدة؛ ويحمل `refreshToken` المُعاد قيمة `exp` نفسها،
+لذلك يعني التحديث إعادة استبدال المفتاح.
+يتولى `open-sse/services/cursorApiKeyAuth.ts` عملية الاستبدال، ويخزّن مؤقتًا رمز
+جلسة واحدًا لكل مفتاح، ويعيد الاستبدال قبل انتهاء الصلاحية بخمس دقائق، ويحذف
+الرمز المخزّن مؤقتًا عندما يرد Cursor بالحالة 401. يستدعيه `CursorExecutor`
+مباشرةً قبل فتح التدفق الصاعد لاتصالات `cursor-api`.
 
 ## موفّر `cursor-api`
 
 السجل: `open-sse/config/providers/registry/cursor/index.ts`
-(`cursor_apiProvider`، و`authType: "apikey"`، ونفس `format` و`baseUrl`
-و`models` الخاصة بـ `cursor`). بطاقة الكتالوج:
+(`cursor_apiProvider`، و`authType: "apikey"`، وبقيم `format` و`baseUrl` و
+`models` نفسها الخاصة بـ `cursor`). بطاقة الكتالوج:
 `src/shared/constants/providers/apikey/specialty-media.ts`. خريطة المنفّذات:
-`open-sse/executors/index.ts`‏ (`"cursor-api"` / `cua` ←
+`open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
 
-لوحة التحكم: الموفّرون → Cursor API → إضافة مفتاح API.
+لوحة المعلومات: الموفّرون → Cursor API → إضافة مفتاح API.
 
 REST:
 
@@ -58,31 +58,44 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ملاحظات:
 
-- تأتي قائمة النماذج لـ `cursor-api` من سجل Cursor الثابت (وهي
-  القائمة نفسها التي يرجع إليها موفّر IDE احتياطيًا)؛ ولا يلزم تثبيت `cursor-agent`
-  على مضيف OmniRoute.
-- إن `POST /api/providers/{id}/refresh-cursor` مخصص لموفّر `cursor` الخاص بـ IDE
+- تأتي قائمة النماذج الخاصة بـ `cursor-api` من سجل Cursor الثابت (وهي
+  القائمة نفسها التي يرجع إليها موفّر IDE احتياطيًا)؛ ولا يلزم تثبيت
+  `cursor-agent` على مضيف OmniRoute.
+- المسار `POST /api/providers/{id}/refresh-cursor` مخصص لموفّر `cursor` الخاص بـ IDE
   فقط؛ إذ لا تحتوي اتصالات `cursor-api` على جلسة IDE لتجديدها.
 
-## التمرير المباشر لـ Cursor CLI
+## معرّفات النماذج الأصلية ومستوى الجهد
+
+بالنسبة إلى `cursor` / `cu` و`cursor-api` / `cua`، يترك موحّد جهد Claude المشترك
+معرّف النموذج المطلوب دون تغيير. يمكن لـ Cursor الإعلان عن لاحقة مثل
+`-low` بوصفها جزءًا من معرّف نموذج فعلي، بدلًا من كونها اسمًا مستعارًا للجهد في OmniRoute.
+يحافظ منفّذ Cursor على التطابق التام مع الكتالوج المباشر؛ وعند عدم وجود
+تطابق، يتولى محلّل النماذج الحالي لديه الرجوع من اللاحقة إلى المَعلمة.
+
+لا يغيّر هذا تسوية الجهد لمسارات Claude المباشرة، أو المسارات المتوافقة مع
+Claude، أو مسارات Vertex. ويظل التوفر معتمدًا على كتالوج حساب Cursor المحدد
+واستحقاقاته.
+
+## تمرير Cursor CLI
 
 المسار: `src/app/api/cursor-cli/[...path]/route.ts` ←
-`open-sse/handlers/cursorCliProxy.ts`. تُسجَّل البادئة `/api/cursor-cli/` في
-`src/shared/constants/publicApiRoutes.ts` لأن المعالج
+`open-sse/handlers/cursorCliProxy.ts`. البادئة `/api/cursor-cli/`
+مسجّلة في `src/shared/constants/publicApiRoutes.ts` لأن المعالج
 يفرض المصادقة الخاصة به:
 
-| المسار                                                                                                                  | المصادقة المتوقعة من CLI     | ما يفعله OmniRoute                                                                                                                                   |
-| ----------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                      | `Bearer <OmniRoute API key>` | يتحقق من المفتاح، ويُصدر JWT بصيغة HS256 لمدة ساعة واحدة (موقّعًا باستخدام `JWT_SECRET`) ويعيده                                                      |
-| كل مسار آخر (`/aiserver.v1.*`، `/agent.v1.AgentService/RunSSE`، `/aiserver.v1.BidiService/BidiAppend`، `/v1/traces`، …) | `Bearer <that JWT>`          | يتحقق من جهة الإصدار والجمهور وانتهاء الصلاحية، ويختار اتصال `cursor-api` نشطًا، ويستبدل ترويسة Authorization برمز Cursor المُبدَّل، ثم يعيد بث الرد |
+| المسار                                                                                                                     | المصادقة المتوقعة من CLI     | ما يفعله OmniRoute                                                                                                                                                     |
+| -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                         | `Bearer <OmniRoute API key>` | يتحقق من المفتاح، ويُصدر JWT صالحًا لمدة ساعة باستخدام HS256 (وموقّعًا بواسطة `JWT_SECRET`)، ثم يعيده                                                                  |
+| كل مسار آخر (`/aiserver.v1.*`، و`/agent.v1.AgentService/RunSSE`، و`/aiserver.v1.BidiService/BidiAppend`، و`/v1/traces`، …) | `Bearer <that JWT>`          | يتحقق من المُصدِر والجمهور وتاريخ انتهاء الصلاحية، ويختار اتصال `cursor-api` نشطًا، ويستبدل ترويسة Authorization برمز Cursor المستبدل، ثم يعيد بث الاستجابة إلى العميل |
 
-يفك CLI ترميز `exp` من أي رمز يتلقاه، لذا فإن تزويده برمز
-مبهم يجعله يعيد التبديل قبل كل طلب تقريبًا؛ ويتجنب JWT المُصدَر
-ذلك. تؤدي استجابة 401 من OmniRoute إلى إعادة CLI لعملية التبديل.
+يفك CLI ترميز `exp` من أي رمز يتلقاه، لذا فإن تزويده برمز مبهم
+يجعله يعيد الاستبدال قبل كل طلب تقريبًا؛ ويتجنب JWT المُصدر
+ذلك. تؤدي استجابة 401 من OmniRoute إلى إعادة CLI لعملية الاستبدال.
 
 ### الإعداد
 
-1. أنشئ مفتاح API لـ OmniRoute (لوحة التحكم → مفاتيح API) واتصالًا من نوع `cursor-api`.
+1. أنشئ مفتاح OmniRoute API (لوحة التحكم ← مفاتيح API) واتصال
+   `cursor-api`.
 2. وجّه CLI إلى استخدام HTTP/1.1 لتدفق الوكيل. في
    `~/.cursor/cli-config.json`:
 
@@ -91,10 +104,10 @@ curl -sS http://localhost:20128/v1/chat/completions \
    ```
 
    من دون ذلك، يفتح CLI دورة الوكيل عبر HTTP/2 إلى مضيف وكيل
-   مُعدّ بصورة منفصلة، ولا تمر عبر نقطة النهاية سوى استدعاءات RPC الخاصة بمستوى
-   التحكم.
+   مهيأ بشكل منفصل، ولا تمر عبر نقطة النهاية سوى استدعاءات RPC الخاصة
+   بمستوى التحكم.
 
-3. شغّل CLI مقابل OmniRoute:
+3. شغّل CLI عبر OmniRoute:
 
    ```bash
    export CURSOR_API_ENDPOINT=http://localhost:20128/api/cursor-cli
@@ -102,19 +115,19 @@ curl -sS http://localhost:20128/v1/chat/completions \
    agent -p --trust "Reply with exactly OK"
    ```
 
-تصل كل قفزة إلى السجلات بالموفّر `cursor-api`، ونوع الطلب `cursor-cli`،
-والمسار `/api/cursor-cli/<rpc>`، وتُنسب إلى مفتاح API الخاص بـ OmniRoute وإلى
-الاتصال الذي خدمها.
+تظهر كل مرحلة في السجلات مع المزوّد `cursor-api`، ونوع الطلب `cursor-cli`،
+والمسار `/api/cursor-cli/<rpc>`، وتُنسب إلى مفتاح OmniRoute API والاتصال
+الذي خدمها.
 
 ### حالات الفشل
 
-| الحالة                                              | الاستجابة إلى CLI                                   |
-| --------------------------------------------------- | --------------------------------------------------- |
-| مفتاح OmniRoute غير معروف و`REQUIRE_API_KEY=true`   | 401 `unauthenticated` عند التبادل                   |
-| `REQUIRE_API_KEY=false`                             | جلسة مجهولة الهوية (تعكس سلوك `/v1/*`)              |
-| رمز JWT للجلسة منتهي الصلاحية / أجنبي / تم العبث به | 401، يعيد CLI إجراء التبادل                         |
-| تم إلغاء مفتاح OmniRoute API بعد التبادل            | 401 عند استدعاء RPC التالي                          |
-| لا يوجد اتصال `cursor-api` نشط                      | 503 `unavailable`                                   |
-| يرفض Cursor مفتاح الاتصال                           | 401 `unauthenticated`، وتُحذف الجلسة المخزنة مؤقتًا |
-| يتعذر الوصول إلى المنبع                             | 502 `unavailable` (رسالة منقّحة)                    |
-| لم يتم تعيين `JWT_SECRET`                           | 503 عند التبادل                                     |
+| الحالة                                            | الاستجابة إلى CLI                                   |
+| ------------------------------------------------- | --------------------------------------------------- |
+| مفتاح OmniRoute غير معروف و`REQUIRE_API_KEY=true` | 401 `unauthenticated` عند الاستبدال                 |
+| `REQUIRE_API_KEY=false`                           | جلسة مجهولة (تماثل سلوك `/v1/*`)                    |
+| JWT للجلسة منتهي الصلاحية أو أجنبي أو عُبث به     | 401، ويعيد CLI عملية الاستبدال                      |
+| إلغاء مفتاح OmniRoute API بعد الاستبدال           | 401 عند استدعاء RPC التالي                          |
+| لا يوجد اتصال `cursor-api` نشط                    | 503 `unavailable`                                   |
+| رفض Cursor لمفتاح الاتصال                         | 401 `unauthenticated`، وتُحذف الجلسة المخزنة مؤقتًا |
+| تعذّر الوصول إلى الخدمة الأصلية                   | 502 `unavailable` (رسالة منقّحة)                    |
+| عدم تعيين `JWT_SECRET`                            | 503 عند الاستبدال                                   |

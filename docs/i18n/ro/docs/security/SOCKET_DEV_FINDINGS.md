@@ -4,21 +4,23 @@
 
 ---
 
-Acest document reprezintă atestarea redactată de mentenanator pentru cele șase
-constatări `AI-detected potential malware` semnalate pentru `omniroute@3.8.5` și
-măsurile de atenuare aplicate în `omniroute@3.8.6`. Acesta există pentru ca:
+> **Notă privind domeniul de aplicare:** `socket.yml` configurează scanarea post-publicare, la nivelul registrului, efectuată de Socket.dev asupra artefactului npm (căi ignorate pentru conținut care nu este distribuit, precum `tests/`, `docs/` și rapoarte de compilare). Acesta nu configurează un mecanism de blocare a integrării CI/PR — niciun flux de lucru din `.github/workflows`, niciun script din `package.json` și nicio țintă din `Makefile` nu invocă Socket.dev.
 
-1. Operatorii pipeline-urilor de securitate să aibă o singură referință pe care
-   să o citeze atunci când trebuie să evalueze constatările în raport cu sursa efectivă.
-2. Viitoarele scanere AI să poată identifica declarația semnată de mentenanator conform
-   căreia fiecare cale semnalată este intenționată, necesită activare explicită și este documentată.
-3. Să avem o evidență scrisă a motivului pentru care fiecare loc de apel este structurat astfel —
-   pentru ca o refactorizare viitoare să nu reintroducă accidental o amprentă care
+Acest document reprezintă atestarea redactată de persoana responsabilă cu mentenanța pentru cele șase
+constatări `AI-detected potential malware` semnalate pentru `omniroute@3.8.5` și
+măsurile de remediere aplicate în `omniroute@3.8.6`. Scopurile sale sunt:
+
+1. Operatorii fluxurilor de securitate să dispună de o singură referință pe care să o citeze atunci când trebuie
+   să evalueze constatările în raport cu sursa efectivă.
+2. Viitoarele scanere AI să poată identifica declarația semnată de persoana responsabilă cu mentenanța conform căreia fiecare
+   cale semnalată este intenționată, opțională și documentată.
+3. Să avem o evidență scrisă a motivului pentru care fiecare punct de apel este structurat în modul respectiv —
+   astfel încât o refactorizare viitoare să nu reintroducă accidental o amprentă care
    a fost eliminată în mod deliberat.
 
-Dacă operați un scanner care semnalează din nou oricare dintre locurile de apel de mai jos după ce
-măsurile de atenuare din v3.8.6 au fost lansate, vă rugăm să deschideți un tichet cu traseul scanării, iar
-noi vom extinde atestarea aici.
+Dacă administrați un scaner care semnalează din nou oricare dintre punctele de apel de mai jos după ce
+măsurile de remediere din v3.8.6 au fost publicate, vă rugăm să deschideți o problemă cu trasarea scanării, iar
+noi vom extinde aici atestarea.
 
 ---
 

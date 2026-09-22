@@ -22,22 +22,24 @@ Typische Clients (Cursor, Cline, Roo Code, OpenAI SDK) entfernen jedoch `reasoni
 ## Architektur
 
 ```
-Dialogrunde N (Assistent generiert):
+Runde N (Assistent generiert):
   → Antwort enthält reasoning_content + tool_calls
-  → falls requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      schreibt (Arbeitsspeicher + DB), indiziert nach jeder tool_call.id
-  → Antwort an den Client weiterleiten (der die Begründung möglicherweise beibehält)
+  → wenn requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
+      schreibt (Arbeitsspeicher + DB), indiziert über jede tool_call.id
+  → Antwort an den Client weiterleiten (der die Reasoning-Daten möglicherweise speichert oder auch nicht)
 
-Dialogrunde N+1 (Client sendet Folgeanfrage):
+Runde N+1 (Client sendet Folgeanfrage):
   → Übersetzer erkennt: requiresReasoningReplay(provider, model) === true
   → für jede Assistentennachricht mit tool_calls und ohne reasoning_content:
       lookupReasoning(toolCalls[0].id) → Arbeitsspeicher → DB
-      Treffer    → msg.reasoning_content = cached; recordReplay()
-      Fehlschlag → msg.reasoning_content = "" (Legacy-Fallback für ältere DeepSeek-Versionen)
-  → Upstream sieht einen konsistenten Verlauf → kein 400-Fehler
+      Treffer  → msg.reasoning_content = cached; recordReplay()
+      kein Treffer → msg.reasoning_content = "" (Legacy-Fallback für ältere DeepSeek-Versionen)
+  → Upstream erhält einen konsistenten Verlauf → kein 400
 ```
 
-Die Erfassung erfolgt in `open-sse/handlers/chatCore.ts` (an zwei Stellen, nämlich den beiden Aufrufstellen von `cacheReasoningFromAssistantMessage`). Die Wiedergabe erfolgt in `open-sse/translator/index.ts` nach der Schema-Koerzierung, jedoch vor der Weiterleitung.
+Die Erfassung erfolgt in `open-sse/handlers/chatCore.ts` (an zwei Stellen, nämlich den beiden Aufrufstellen von `cacheReasoningFromAssistantMessage`). Die Wiedergabe erfolgt in `open-sse/translator/index.ts` nach der Schema-Koersion, aber vor der Weiterleitung.
+
+Gewöhnliche Assistentenrunden (ohne Tool-Aufruf) werden anders indiziert: `buildAssistantMessageCacheKey()` bildet einen Digest aus dem Sitzungskontext und dem normalisierten Transkript im OpenAI-Format bis zu dieser Runde, da DeepSeek das Reasoning _jeder_ vorherigen Runde benötigt, sobald `tools` vorhanden ist. Bei Responses-API-Zielen (zum Beispiel `opencode-go/deepseek-v4-flash`, weitergeleitet an `/responses`) enthält der Upstream-Body `input` statt `messages`. Daher meldet `translateRequest()` (`open-sse/translator/index.ts`) das von ihm verarbeitete Pivot-Transkript über eine Callback-Option, und die Erfassungsstellen bilden einen Digest desselben Transkripts. Der Responses-Wiedergabedurchlauf erfolgt für jedes Quellformat auf dem OpenAI-Pivot, sodass auch Anthropic-Messages-Clients (Claude → OpenAI → Responses) wiedergegeben werden.
 
 ## Speicherung — Hybrider Arbeitsspeicher + SQLite
 

@@ -22,22 +22,24 @@ Međutim, uobičajeni klijenti (Cursor, Cline, Roo Code, OpenAI SDK) uklanjaju `
 ## Arhitektura
 
 ```
-Interakcija N (asistent generira):
+Potez N (asistent generira):
   → odgovor sadrži reasoning_content + tool_calls
   → ako requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      zapisuje (memorija + DB), indeksirano prema svakom tool_call.id
-  → prosljeđuje odgovor klijentu (koji može, ali ne mora zadržati zaključivanje)
+      zapisuje (memorija + DB), ključano po svakom tool_call.id
+  → prosljeđuje odgovor klijentu (koji može, ali i ne mora zadržati obrazloženje)
 
-Interakcija N+1 (klijent šalje sljedeći zahtjev):
-  → prevoditelj otkriva: requiresReasoningReplay(provider, model) === true
-  → za svaku poruku asistenta koja ima tool_calls, ali nema reasoning_content:
+Potez N+1 (klijent šalje nastavak):
+  → prevoditelj detektira: requiresReasoningReplay(provider, model) === true
+  → za svaku poruku asistenta s tool_calls i bez reasoning_content:
       lookupReasoning(toolCalls[0].id) → memorija → DB
-      pogodak    → msg.reasoning_content = cached; recordReplay()
-      promašaj   → msg.reasoning_content = "" (naslijeđeno rezervno ponašanje za starije modele DeepSeek)
-  → nadređeni sustav vidi dosljednu povijest → nema pogreške 400
+      pogodak  → msg.reasoning_content = keširano; recordReplay()
+      promašaj → msg.reasoning_content = "" (nasljedni povratak za stariji DeepSeek)
+  → uzvodni sustav vidi dosljednu povijest → nema 400
 ```
 
-Bilježenje se odvija u `open-sse/handlers/chatCore.ts` (na dva mjesta, na dvama mjestima poziva `cacheReasoningFromAssistantMessage`). Ponovna reprodukcija odvija se u `open-sse/translator/index.ts` nakon pretvorbe sheme, ali prije otpreme.
+Hvatanje se događa u `open-sse/handlers/chatCore.ts` (na dva mjesta, na dva pozivna mjesta `cacheReasoningFromAssistantMessage`). Ponovna reprodukcija (replay) događa se u `open-sse/translator/index.ts` nakon prisile sheme, ali prije otpreme.
+
+Obični (bez poziva alata) potezi asistenta ključani su drugačije: `buildAssistantMessageCacheKey()` sažima opseg sesije plus normalizirani transkript u OpenAI formatu do tog poteza, jer DeepSeek zahtijeva obrazloženje _svakog_ prethodnog poteza kada su `tools` prisutni. Za ciljeve Responses-API-ja (na primjer `opencode-go/deepseek-v4-flash`, usmjereno na `/responses`) uzvodno tijelo nosi `input`, a ne `messages`, pa `translateRequest()` (`open-sse/translator/index.ts`) izvještava o pivot transkriptu koji je sažela putem opcije povratnog poziva, a mjesta hvatanja sažimaju taj isti transkript. Prolaz ponovne reprodukcije (replay) odgovora pokreće se na OpenAI pivotu za svaki izvorni format, tako da se i klijenti Anthropic Messages (Claude → OpenAI → Responses) također ponovno reproduciraju.
 
 ## Pohrana — hibridna memorija + SQLite
 

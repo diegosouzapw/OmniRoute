@@ -6,18 +6,21 @@
 
 OmniRoute には、スコープが異なるプロセスローカルなレーンシステムが **2つ** あります。これらは相互補完的であり、運用担当者はどちらを確認しているのかを把握しておく必要があります。
 
-## 1. バイト単位のプロセス全体アドミッション制御（`chatBodyAdmission.ts`）
+## 1. バイト単位のプロセス全体アドミッション制御 (`chatBodyAdmission.ts`)
 
-- **スコープ:** `POST /v1/chat/completions`、`/v1/messages`、`/v1/responses`、およびその他のチャット形式ルートにおける、バッファリングされたボディ／ヒープの処理経路。大きなコーディングエージェントのボディによるヒープ増幅を防止します（#4380）。
-- **キーごとのレーンではなく、プロセス全体で1つのコントローラー（#10110）。** すべての API キー（ハッシュ化済み）または `anonymous` セッションは、**同じ**共有予算に対してアドミッション判定されます。ハッシュ化されたセッション ID は、公平性を確保するためのスケジューリングキー（待機リクエスト間のラウンドロビンディスパッチ）としてのみ使用され、容量を分割するシャードとして使用されることはありません。このドキュメントの以前のバージョンでは、独立した容量を持つキーごとのレーンについて説明していましたが、そのモデルでは未認証の偽の認証情報によってプロセス全体の上限を増大させることが可能だったため、#10110 で削除されました。
-- **ゲート（#503-fanout）: 固定リクエスト数ではなく、自動導出される取り込み BYTE 予算。** 従来の `CHAT_MAX_HEAVY_IN_FLIGHT` リクエスト数上限（この修正前のデフォルトは `1`）では、コーディングエージェントのファンアウト（複数のサブエージェント／CLI、通常 256 KB を超えるボディ）の実効同時実行数が約1まで低下し、完全に通常の負荷でも 503 が発生していました。現在、この上限は運用担当者が `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` を明示的に設定した場合にのみ適用されます。未設定の場合、アドミッションは代わりに `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` によって制御されます。これは、プロセスの実際のメモリ上限から自動導出される予算です（`src/shared/middleware/admissionBudget.ts`）。V8 ヒープ上限と cgroup／コンテナ上限のうち厳しい方の25%を、8倍の一時的増幅係数で割り、8 MiB から 2 GiB の範囲に制限します。明示的なオーバーライドにも同じ制限が適用されます。これにより、環境変数を調整しなくても、512 MB のコンテナから 32 GB のデスクトップまで自動的にスケーリングします。有効な予算内に収まらないボディは、`413 body_exceeds_budget` で即座に失敗します。個別には処理可能なボディ同士の競合のみが、上限付きの公平性キューに入ります。複数のシグナルを使用するライブのリソース圧力トラッカー（V8 ヒープ比率、cgroup、PSI、OOM イベント — `open-sse/utils/resourcePressurePolicy.ts`）は、`high` 圧力下では上限付き待機時間を短縮し、`critical` 圧力下ではバイトを一切取り込む前に `503 resource_pressure` で即座に負荷を遮断します。
-- **チューニング:**
+- **対象範囲:** `POST /v1/chat/completions`、`/v1/messages`、`/v1/responses`、およびその他のチャット形式ルートにおける、バッファリングされたボディ／ヒープ処理パス。大きなコーディングエージェントのボディによるヒープ増幅を防止します (#4380)。
+- **キーごとのレーンではなく、プロセス全体で単一のコントローラー (#10110)。** すべての API キー（ハッシュ化済み）または `anonymous` セッションは、**同一の**共有予算に対してアドミッション判定されます。ハッシュ化されたセッション ID は、公平なスケジューリングキー（待機リクエスト間のラウンドロビンディスパッチ）としてのみ使用され、キャパシティのシャードとして使用されることはありません。このドキュメントの以前のバージョンでは、独立したキャパシティを持つキーごとのレーンについて説明していましたが、未認証の偽の認証情報によってプロセス全体の上限を実質的に増やせてしまうため、このモデルは #10110 で削除されました。
+- **ゲート (#503-fanout): 固定のリクエスト数ではなく、自動導出される取り込み BYTE 予算。** 従来の `CHAT_MAX_HEAVY_IN_FLIGHT` リクエスト数上限（この修正前のデフォルトは `1`）は、コーディングエージェントのファンアウト（複数のサブエージェント／CLI、通常 256 KB を超えるボディ）を実効同時実行数約 1 にまで低下させ、完全に通常の負荷でも 503 を発生させていました。現在、この上限が適用されるのは、オペレーターが `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` を明示的に設定した場合のみです。未設定の場合、アドミッションは代わりに `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` によって制御されます。これは、プロセスの実際のメモリ上限から自動導出される予算です (`src/shared/middleware/admissionBudget.ts`)。V8 ヒープ上限と cgroup／コンテナ上限のうち、より厳しい方の 25% を 8 倍の一時的増幅係数で割り、8 MiB から 2 GiB の範囲に制限します。明示的なオーバーライドにも同じ制限が適用されます。これにより、環境変数を調整することなく、512 MB のコンテナから 32 GB のデスクトップまで自動的にスケールします。実効予算内に収まらないボディは、`413 body_exceeds_budget` で即座に失敗します。個別には処理可能なボディ同士が競合する場合にのみ、上限付きの公平性キューに入ります。複数シグナルを使用するライブのリソース圧迫トラッカー（V8 ヒープ比率、cgroup、PSI、OOM イベント — `open-sse/utils/resourcePressurePolicy.ts`）は、`high` 圧迫下では上限付き待機時間を短縮し、`critical` 圧迫下ではバイトを一切取り込む前に `503 resource_pressure` で即座に負荷を遮断します。PSI は、存在する場合、このユニットの cgroup にある `memory.pressure` から読み取られます (`open-sse/utils/resourcePressureSampler.ts`)。`/proc/pressure/memory` はホスト全体の値であり、ベアメタル／cgroup v1 でのみフォールバックとして使用されるため、スワップが発生しているホストによってアイドル状態のコンテナが 503 を返すことはありません。
+- **調整:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — 自動導出されるバイト予算のオーバーライド
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — 従来のリクエスト数上限。明示的に有効化した場合のみ適用
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — 従来のリクエスト数上限（明示的な有効化が必要）
   - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 を返すまでのキュー待機時間（デフォルト 2000）
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — キュー内バイト数に対するヒープ保護弁（デフォルト 4 MB）
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 以降は非推奨の no-op（設定互換性のため受け付けますが、無視されます）
-- **レポート:** `GET /api/monitoring/health` → `chatAdmission`（#11244）— #503-fanout で追加された `inflightBytes`、`maxInflightBytes`、`budgetSource`（`v8_heap` | `cgroup` | `override`）、`pressureSeverity`、および `countCapEnabled` を含みます（デフォルトのデプロイでは false。従来のリクエスト数上限ではなく、バイト予算が実際に制約要因となっていることを示します）。
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — キュー内バイト数に対するヒープ安全弁（デフォルト 4 MB）
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 以降は非推奨の
+    no-op（設定の互換性のため受け付けますが、無視されます）
+- **レポート:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — #503-fanout で追加された `inflightBytes`、`maxInflightBytes`、`budgetSource`
+  (`v8_heap` | `cgroup` | `override`)、`pressureSeverity`、`countCapEnabled`
+  を含みます（デフォルトのデプロイでは false。実際に制約となっているのが従来のリクエスト数上限ではなく、バイト予算であることを示します）。
 
 ## 2. 適応型ランタイム仮想レーン (`open-sse/services/admission`)
 

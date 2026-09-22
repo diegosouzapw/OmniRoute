@@ -22,22 +22,24 @@ OmniRoute مقدار `reasoning_content` تولیدشده توسط مدلهای 
 ## معماری
 
 ```
-مرحله N (دستیار تولید میکند):
-  → پاسخ شامل reasoning_content و tool_calls است
+نوبت N (دستیار تولید میکند):
+  → پاسخ شامل reasoning_content + tool_calls است
   → اگر requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      در حافظه و DB مینویسد و از هر tool_call.id بهعنوان کلید استفاده میکند
-  → پاسخ را به کلاینت ارسال میکند (که ممکن است استدلال را حفظ کند یا نکند)
+      مینویسد (حافظه + پایگاه داده)، با کلیدی مبتنی بر هر tool_call.id
+  → پاسخ را به کلاینت ارسال میکند (که ممکن است reasoning را نگه دارد یا ندارد)
 
-مرحله N+1 (کلاینت درخواست بعدی را ارسال میکند):
+نوبت N+1 (کلاینت پیام پیگیری را ارسال میکند):
   → مترجم تشخیص میدهد: requiresReasoningReplay(provider, model) === true
   → برای هر پیام دستیار که دارای tool_calls و فاقد reasoning_content است:
-      lookupReasoning(toolCalls[0].id) → حافظه → DB
+      lookupReasoning(toolCalls[0].id) → حافظه → پایگاه داده
       یافت شد  → msg.reasoning_content = cached; recordReplay()
-      یافت نشد → msg.reasoning_content = "" (راهکار جایگزین قدیمی برای نسخههای قدیمیتر DeepSeek)
+      یافت نشد → msg.reasoning_content = "" (راهکار بازگشت قدیمی برای نسخههای قدیمیتر DeepSeek)
   → سرویس بالادستی تاریخچهای سازگار میبیند → بدون خطای 400
 ```
 
-ثبت در `open-sse/handlers/chatCore.ts` انجام میشود (در دو محل، یعنی دو محل فراخوانی `cacheReasoningFromAssistantMessage`). بازپخش در `open-sse/translator/index.ts`، پس از تبدیل اجباری طرحواره اما پیش از ارسال، انجام میشود.
+ثبت در `open-sse/handlers/chatCore.ts` انجام میشود (در دو محل، یعنی دو محل فراخوانی `cacheReasoningFromAssistantMessage`). بازپخش در `open-sse/translator/index.ts`، پس از اجبار به انطباق با طرحواره اما پیش از ارسال، انجام میشود.
+
+نوبتهای معمولی دستیار (بدون فراخوانی ابزار) بهشکل متفاوتی کلیدگذاری میشوند: `buildAssistantMessageCacheKey()` از محدودهٔ نشست بههمراه رونوشت نرمالشده با قالب OpenAI تا آن نوبت، چکیدهای تولید میکند، زیرا DeepSeek پس از وجود `tools` به reasoning مربوط به _تمام_ نوبتهای قبلی نیاز دارد. برای مقصدهای Responses-API (برای مثال `opencode-go/deepseek-v4-flash` که به `/responses` هدایت میشود)، بدنهٔ ارسالی به سرویس بالادستی بهجای `messages` دارای `input` است؛ بنابراین `translateRequest()` (`open-sse/translator/index.ts`) رونوشت محوریای را که چکیده کرده است از طریق یک گزینهٔ callback گزارش میدهد و محلهای ثبت نیز از همان رونوشت چکیده تولید میکنند. مرحلهٔ بازپخش Responses برای تمام قالبهای مبدأ روی محور OpenAI اجرا میشود؛ بنابراین بازپخش برای کلاینتهای Anthropic Messages (Claude → OpenAI → Responses) نیز انجام میشود.
 
 ## ذخیرهسازی — ترکیب حافظه + SQLite
 

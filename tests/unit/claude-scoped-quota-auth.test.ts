@@ -280,6 +280,42 @@ test("verified current Claude payload flows from parser through live cache to mo
   );
 });
 
+test("scoped-only Claude refresh replaces an explicit 429 placeholder", () => {
+  const connectionId = "claude-scoped-only-refresh";
+  const now = Date.now();
+  const resetAt = new Date(now + 120_000).toISOString();
+
+  quotaCache.markAccountExhaustedFrom429(connectionId, "claude");
+  const { quotas, modelQuotas } = normalizeClaudeUsageQuotas({
+    limits: [
+      {
+        kind: "weekly_scoped",
+        resetsAt: resetAt,
+        isActive: true,
+        severity: "critical",
+        scope: { model: { displayName: "Fable" } },
+      },
+    ],
+  });
+  quotaCache.setQuotaCache(connectionId, "claude", quotas, modelQuotas);
+
+  assert.deepEqual(
+    quotaCache.getCachedClaudeQuotaScopeDecision({
+      connectionId,
+      provider: "claude",
+      status: 429,
+      errorText: EXPLICIT_QUOTA_ERROR,
+      model: "claude-fable-5-1",
+      nowMs: now,
+    }),
+    { scope: "model", evidence: "blocking", resetAt, cooldownMs: 120_000 }
+  );
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(connectionId, "claude", "claude-opus-5"),
+    false
+  );
+});
+
 test("Claude session preflight allows upstream recovery opt-ins without bypassing weekly limits", () => {
   const connectionId = "claude-session-recovery-preflight";
   const futureReset = new Date(Date.now() + 120_000).toISOString();

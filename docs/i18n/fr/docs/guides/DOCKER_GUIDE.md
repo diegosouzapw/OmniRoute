@@ -25,7 +25,13 @@
 
 ---
 
-## Exécution rapide
+## Démarrage rapide
+
+> **Auto-héberger en une seule commande ?** Consultez le
+> [guide d’auto-hébergement](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (image publiée +
+> Redis, accessible uniquement via l’interface de bouclage, sans choix de profil). Le démarrage rapide ci-dessous correspond à
+> l’utilisation d’un conteneur unique pour les utilisateurs qui exécutent déjà Redis ailleurs.
 
 ```bash
 docker run -d \

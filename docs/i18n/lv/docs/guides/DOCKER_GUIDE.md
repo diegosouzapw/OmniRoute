@@ -27,6 +27,12 @@
 
 ## Ātrā palaišana
 
+> **Pašmitināšana ar vienu komandu?** Skatiet
+> [pašmitināšanas ceļvedi](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (publicēts attēls +
+> Redis, pieejams tikai no lokālās saskarnes, bez profila izvēles). Tālāk aprakstītā ātrā palaišana ir
+> viena konteinera risinājums lietotājiem, kuri jau izmanto Redis citur.
+
 ```bash
 docker run -d \
   --name omniroute \

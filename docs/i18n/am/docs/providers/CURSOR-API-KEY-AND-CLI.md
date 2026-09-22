@@ -4,28 +4,29 @@
 
 ---
 
-ያለ IDE ክፍለ ጊዜ Cursorን ከOmniRoute ጀርባ ለማድረግ ሁለት መንገዶች፦
+ያለ IDE ክፍለ-ጊዜ Cursorን ከOmniRoute ጀርባ ለማስቀመጥ ሁለት መንገዶች፦
 
 1. **`cursor-api` አቅራቢ** (ካርድ "Cursor API"፣ ተለዋጭ ስም `cua`)፦ የCursor ተጠቃሚ API ቁልፍን (`crsr_…`፣ በ
    `https://cursor.com/dashboard/api` የሚፈጠር) የሚይዝ API-ቁልፍ
-   አቅራቢ። ማንኛውም የOmniRoute ደንበኛ ከዚያ በኋላ በመደበኛዎቹ የኮታ፣ የምትክ እና የምዝግብ ንብርብሮች
-   Cursor ሞዴሎችን በ`/v1/chat/completions` በኩል እንደ `cursor-api/<model>` ወይም
-   `cua/<model>` ይደርስባቸዋል። የIDE
-   አቅራቢው (`cursor`፣ OAuth/IDE ክፍለ ጊዜ) ሳይቀየር ይቆያል።
-2. **የCursor CLI ቀጥታ ማስተላለፊያ**፦ CLIው የሚያደርገው እያንዳንዱ RPC በOmniRoute API ቁልፍ እንዲረጋገጥ፣
-   የ`cursor-api` ግንኙነት ማረጋገጫን በመጠቀም ወደ Cursor እንዲተላለፍ እና
-   በLogs ገጽ ላይ እንዲመዘገብ Cursor CLIን (`agent`) ወደ OmniRoute ያመልክቱ።
+   አቅራቢ ነው። ከዚያ ማንኛውም የOmniRoute ደንበኛ
+   በ`/v1/chat/completions` በኩል Cursor ሞዴሎችን እንደ `cursor-api/<model>` ወይም
+   `cua/<model>` በተለመዱት የኮታ፣ የመጠባበቂያ እና የምዝግብ ንብርብሮች ያገኛል። የIDE
+   አቅራቢው (`cursor`፣ OAuth/IDE ክፍለ-ጊዜ) ሳይለወጥ ይቆያል።
+2. **የCursor CLI ቀጥታ ማስተላለፊያ**፦ የCursor CLI (`agent`) ወደ OmniRoute እንዲጠቁም ያድርጉ፤ ይህም
+   CLIው የሚያደርገው እያንዳንዱ RPC በOmniRoute API ቁልፍ እንዲረጋገጥ፣ በ
+   `cursor-api` ግንኙነት ማረጋገጫ መረጃ ወደ Cursor እንዲተላለፍ እና በ
+   ምዝግቦች ገጽ ላይ እንዲመዘገብ ያደርጋል።
 
 ## ቁልፉ ለምን እንደሚለዋወጥ
 
 `api2.cursor.sh` ጥሬ `crsr_…` ቁልፍን እንደ Bearer ቶከን አይቀበልም (401)። Cursor
-CLI በመጀመሪያ ቁልፉን ወደ `/auth/exchange_user_api_key` POST በማድረግ ከአንድ ሰዓት በኋላ የሚያልቅ
-የክፍለ ጊዜ JWT ይቀበላል፤ የተመለሰው `refreshToken` ተመሳሳይ
+CLI መጀመሪያ ቁልፉን ወደ `/auth/exchange_user_api_key` POST ያደርግና ከአንድ ሰዓት በኋላ
+የሚያበቃ የክፍለ-ጊዜ JWT ይቀበላል፤ የተመለሰው `refreshToken` ተመሳሳይ
 `exp` ስላለው፣ ማደስ ማለት ቁልፉን እንደገና መለዋወጥ ማለት ነው።
-`open-sse/services/cursorApiKeyAuth.ts` ያንን ልውውጥ ያከናውናል፣ ለእያንዳንዱ ቁልፍ አንድ የክፍለ ጊዜ
-ቶከን በመሸጎጫ ያስቀምጣል፣ ከማለቁ አምስት ደቂቃ በፊት እንደገና ይለዋወጣል እና Cursor 401
-ሲመልስ የተሸጎጠውን ቶከን ይሰርዛል። `CursorExecutor` ለ`cursor-api` ግንኙነቶች
-የላይኛውን ዥረት ከመክፈቱ በፊት ወዲያውኑ ይጠራዋል።
+`open-sse/services/cursorApiKeyAuth.ts` ያንን ልውውጥ ያከናውናል፣ ለእያንዳንዱ ቁልፍ አንድ የክፍለ-ጊዜ
+ቶከን በመሸጎጫ ያስቀምጣል፣ ከማብቂያው አምስት ደቂቃ በፊት እንደገና ይለዋወጣል እና Cursor 401 ሲመልስ በመሸጎጫ የተቀመጠውን
+ቶከን ያስወግዳል። `CursorExecutor` ለ`cursor-api` ግንኙነቶች ወደላይኛው
+ዥረት ከመክፈቱ በፊት ወዲያውኑ ይጠራዋል።
 
 ## የ`cursor-api` አቅራቢ
 
@@ -36,7 +37,7 @@ CLI በመጀመሪያ ቁልፉን ወደ `/auth/exchange_user_api_key` POST �
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`)።
 
-ዳሽቦርድ፦ Providers → Cursor API → Add API key።
+ዳሽቦርድ፦ አቅራቢዎች → Cursor API → API ቁልፍ አክል።
 
 REST፦
 
@@ -57,43 +58,55 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ማስታወሻዎች፦
 
-- የ`cursor-api` ሞዴል ዝርዝር ከማይለዋወጠው የCursor መዝገብ ይመጣል (የIDE
-  አቅራቢው በአማራጭነት የሚጠቀመው ተመሳሳይ ዝርዝር)፤ በOmniRoute አስተናጋጅ ላይ `cursor-agent` መጫን
+- የ`cursor-api` ሞዴል ዝርዝር ከቋሚው የCursor መዝገብ (የIDE አቅራቢው እንደ መጠባበቂያ
+  የሚጠቀምበት ተመሳሳይ ዝርዝር) ይመጣል፤ በOmniRoute አስተናጋጅ ላይ `cursor-agent` መጫን
   አያስፈልግም።
 - `POST /api/providers/{id}/refresh-cursor` ለ`cursor` IDE አቅራቢ
-  ብቻ ነው፤ የ`cursor-api` ግንኙነቶች የሚታደስ IDE ክፍለ ጊዜ የላቸውም።
+  ብቻ ነው፤ የ`cursor-api` ግንኙነቶች ለማደስ የIDE ክፍለ-ጊዜ የላቸውም።
 
-## የCursor CLI ቀጥታ ማስተላለፊያ
+## የመነሻ ሞዴል መታወቂያዎች እና የጥረት ደረጃ
+
+ለ`cursor` / `cu` እና `cursor-api` / `cua`፣ የጋራው የClaude ጥረት ደረጃ መደበኛ አድራጊ
+የተጠየቀውን የሞዴል መታወቂያ ሳይለውጥ ይተወዋል። Cursor እንደ `-low` ያለ ቅጥያን
+እንደ እውነተኛ የሞዴል መታወቂያ አካል ሊያሳይ ይችላል፣ እንደ OmniRoute የጥረት ደረጃ ተለዋጭ ስም አይደለም።
+የCursor አስፈጻሚ ከቀጥታ ካታሎጉ ጋር ትክክለኛ የሆነ ግጥሚያን ይጠብቃል፤ ግጥሚያ
+በሌለበት ጊዜ፣ ነባሩ የሞዴል መፍቻው የቅጥያ-ወደ-መለኪያ መጠባበቂያውን ይቆጣጠራል።
+
+ይህ ለቀጥታ Claude፣ Claude-ተኳሃኝ ወይም Vertex መስመሮች የጥረት ደረጃ መደበኛ ማድረግን አይለውጥም።
+ተገኝነት አሁንም በተመረጠው የCursor መለያ ካታሎግ እና ፈቃድ ላይ ይመሰረታል።
+
+## Cursor CLI ማስተላለፊያ
 
 መስመር፦ `src/app/api/cursor-cli/[...path]/route.ts` →
-`open-sse/handlers/cursorCliProxy.ts`። መያዣው `/api/cursor-cli/` በ
-`src/shared/constants/publicApiRoutes.ts` ውስጥ ተመዝግቧል፣ ምክንያቱም አስተናጋጁ
+`open-sse/handlers/cursorCliProxy.ts`። ቅድመ ቅጥያው `/api/cursor-cli/`
+በ`src/shared/constants/publicApiRoutes.ts` ውስጥ ተመዝግቧል፤ ምክንያቱም ማስተናገጃው
 የራሱን ማረጋገጫ ያስፈጽማል፦
 
-| ዱካ                                                                                                                       | ከCLIው የሚጠበቅ ማረጋገጫ            | OmniRoute የሚያደርገው                                                                                                            |
-| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                       | `Bearer <OmniRoute API key>` | ቁልፉን ያረጋግጣል፣ ለ1 ሰዓት የሚያገለግል HS256 JWT (`JWT_SECRET` በመጠቀም የተፈረመ) ይፈጥርና ይመልሰዋል                                                |
-| ሌሎች ሁሉም ዱካዎች (`/aiserver.v1.*`፣ `/agent.v1.AgentService/RunSSE`፣ `/aiserver.v1.BidiService/BidiAppend`፣ `/v1/traces`፣ …) | `Bearer <that JWT>`          | ሰጪውን/ተቀባዩን/የማብቂያ ጊዜውን ያረጋግጣል፣ ንቁ የ`cursor-api` ግንኙነት ይመርጣል፣ የAuthorization ራስጌውን በተለዋወጠው የCursor ቶከን ይተካል እና ምላሹን በዥረት ይመልሳል |
+| ዱካ                                                                                                                       | CLIው የሚጠብቀው ማረጋገጫ            | OmniRoute የሚያደርገው                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                       | `Bearer <OmniRoute API key>` | ቁልፉን ያረጋግጣል፣ ለ1 ሰዓት የሚያገለግል HS256 JWT (`JWT_SECRET` በመጠቀም የተፈረመ) ያመነጫል እና ይመልሰዋል                                                      |
+| ሌሎች ዱካዎች በሙሉ (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`          | አውጪውን/ተቀባዩን/የማብቂያ ጊዜውን ያረጋግጣል፣ ንቁ የሆነ `cursor-api` ግንኙነት ይመርጣል፣ የAuthorization ራስጌውን በተለወጠው የCursor ቶከን ይተካል እና ምላሹን መልሶ በዥረት ያስተላልፋል |
 
-CLIው ከሚቀበለው ማንኛውም ቶከን `exp`ን ዲኮድ ያደርጋል፣ ስለዚህ ግልጽ ያልሆነ
-ቶከን መስጠት ከሞላ ጎደል ከእያንዳንዱ ጥያቄ በፊት እንደገና እንዲለዋወጥ ያደርገዋል፤ የተፈጠረው JWT ይህንን
-ያስወግዳል። ከOmniRoute የሚመጣ 401 CLIው እንደገና ልውውጥ እንዲያደርግ ያደርገዋል።
+CLIው ከሚቀበለው ማንኛውም ቶከን `exp`ን ዲኮድ ያደርጋል፤ ስለዚህ ግልጽ ያልሆነ
+ቶከን መስጠት ከእያንዳንዱ ጥያቄ በፊት እንደገና እንዲለዋወጥ ያደርገዋል፤ የሚመነጨው JWT ይህንን
+ያስወግዳል። ከOmniRoute የሚመጣ 401 CLIው እንደገና እንዲለዋወጥ ያደርገዋል።
 
 ### ማዋቀር
 
-1. የOmniRoute API ቁልፍ (Dashboard → API keys) እና የ`cursor-api`
+1. የOmniRoute API ቁልፍ (ዳሽቦርድ → API ቁልፎች) እና የ`cursor-api`
    ግንኙነት ይፍጠሩ።
-2. CLIው ለagent ዥረት HTTP/1.1 እንዲጠቀም ያድርጉ። በ
-   `~/.cursor/cli-config.json`፦
+2. CLIው ለወኪሉ ዥረት HTTP/1.1 እንዲጠቀም ያድርጉ። በ
+   `~/.cursor/cli-config.json` ውስጥ፦
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   ያለዚህ CLIው የagent ተራውን በHTTP/2 በተለየ ሁኔታ
-   ወደተዋቀረ agent አስተናጋጅ ይከፍታል፣ እና በendpoint በኩል የሚያልፉት የcontrol-plane RPCዎች ብቻ ይሆናሉ።
+   ያለዚህ፣ CLIው የወኪሉን ዙር በHTTP/2 በተለየ ሁኔታ
+   ወደተዋቀረ የወኪል አስተናጋጅ ይከፍታል፤ በመጨረሻ ነጥቡ በኩል የሚያልፉትም
+   የቁጥጥር አውታሩ RPCዎች ብቻ ናቸው።
 
-3. CLIውን OmniRouteን በመጠቀም ያስኪዱ፦
+3. CLIውን ከOmniRoute ጋር ያስኪዱ፦
 
    ```bash
    export CURSOR_API_ENDPOINT=http://localhost:20128/api/cursor-cli
@@ -101,19 +114,19 @@ CLIው ከሚቀበለው ማንኛውም ቶከን `exp`ን ዲኮድ ያደር
    agent -p --trust "Reply with exactly OK"
    ```
 
-እያንዳንዱ ሽግግር በLogs ውስጥ እንደ አቅራቢ `cursor-api`፣ የጥያቄ ዓይነት `cursor-cli`፣
-ዱካ `/api/cursor-cli/<rpc>` ሆኖ፣ ለOmniRoute API ቁልፉ እና ለአገለገለው
-ግንኙነት ተመድቦ ይመዘገባል።
+እያንዳንዱ የማስተላለፊያ ደረጃ በLogs ውስጥ በአቅራቢ `cursor-api`፣ በጥያቄ ዓይነት `cursor-cli`፣
+በዱካ `/api/cursor-cli/<rpc>` ይመዘገባል፤ እንዲሁም ጥያቄው ለOmniRoute API ቁልፍ እና
+ላገለገለው ግንኙነት ይመደባል።
 
 ### የውድቀት ሁኔታዎች
 
-| ሁኔታ                                            | ለCLI የሚሰጥ ምላሽ                                    |
-| ---------------------------------------------- | ------------------------------------------------ |
-| ያልታወቀ የOmniRoute ቁልፍ እና `REQUIRE_API_KEY=true` | በልውውጥ ጊዜ 401 `unauthenticated`                   |
-| `REQUIRE_API_KEY=false`                        | ስም-አልባ ክፍለ-ጊዜ (የ`/v1/*` ባህሪን ያንጸባርቃል)            |
-| ጊዜው ያለፈ / የውጭ / የተቀየረ የክፍለ-ጊዜ JWT              | 401፣ CLIው እንደገና ይለዋወጣል                           |
-| ከልውውጡ በኋላ የተሻረ የOmniRoute API ቁልፍ              | በሚቀጥለው RPC ላይ 401                                |
-| ንቁ የ`cursor-api` ግንኙነት የለም                     | 503 `unavailable`                                |
-| Cursor የግንኙነቱን ቁልፍ ውድቅ ያደርጋል                   | 401 `unauthenticated`፣ በመሸጎጫ የተቀመጠው ክፍለ-ጊዜ ይወገዳል |
-| የላይኛው አገልግሎት ላይ መድረስ አይቻልም                     | 502 `unavailable` (የተጣራ መልዕክት)                   |
-| `JWT_SECRET` አልተዋቀረም                           | በልውውጥ ጊዜ 503                                     |
+| ሁኔታ                                            | ለCLIው የሚሰጥ ምላሽ                             |
+| ---------------------------------------------- | ------------------------------------------ |
+| ያልታወቀ የOmniRoute ቁልፍ እና `REQUIRE_API_KEY=true` | በልውውጥ ወቅት 401 `unauthenticated`            |
+| `REQUIRE_API_KEY=false`                        | ስም-አልባ ክፍለ ጊዜ (የ`/v1/*`ን ባህሪ ያንጸባርቃል)      |
+| ጊዜው ያለፈ / የሌላ ምንጭ / የተነካካ የክፍለ ጊዜ JWT          | 401፣ CLIው እንደገና ይለዋወጣል                     |
+| ከልውውጡ በኋላ የOmniRoute API ቁልፉ ተሰርዟል             | በሚቀጥለው RPC ላይ 401                          |
+| ንቁ የ`cursor-api` ግንኙነት የለም                     | 503 `unavailable`                          |
+| Cursor የግንኙነቱን ቁልፍ ውድቅ ያደርጋል                   | 401 `unauthenticated`፣ የተሸጎጠው ክፍለ ጊዜ ይሰረዛል |
+| ወደላይ ያለው አገልግሎት ሊደረስበት አይችልም                   | 502 `unavailable` (የተጣራ መልዕክት)             |
+| `JWT_SECRET` አልተዋቀረም                           | በልውውጥ ወቅት 503                              |

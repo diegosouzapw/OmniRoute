@@ -68,16 +68,24 @@ Legen Sie diese Variablen in der Prozessumgebung von OmniRoute fest (für den Da
 
 ## Warnungen bei npm install (ERESOLVE / Peer-Abhängigkeiten / veraltet)
 
-Wenn Sie `npm install -g omniroute` ausführen, sehen Sie möglicherweise eine Vielzahl von Warnungen wie `npm warn ERESOLVE`, Hinweise zu Peer-Abhängigkeiten und `deprecated`-Meldungen. **Diese sind zu erwarten und harmlos.** Ihre Installation war erfolgreich, wenn in der Ausgabe `added <N> packages` angezeigt wird.
+Wenn Sie `npm install -g omniroute` ausführen, sehen Sie möglicherweise eine Vielzahl von Warnungen wie `npm warn ERESOLVE`, Hinweise zu Peer-Abhängigkeiten und `deprecated`-Meldungen. **Diese sind zu erwarten und unbedenklich.** Ihre Installation war erfolgreich, wenn in der Ausgabe `added <N> packages` angezeigt wird.
+
+Um die Warnungen zur Auflösung von Peer-Abhängigkeiten zu unterdrücken, verwenden Sie die von OmniRoute unterstützte Installationsform:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` unterdrückt nur `ERESOLVE`- und Peer-Abhängigkeitshinweise. Hinweise zu veralteten Paketen bleiben sichtbar, da sie von transitiven Drittanbieterpaketen stammen; sie bedeuten nicht, dass die Installation fehlgeschlagen ist.
 
 Die Warnungen stammen von veralteten Peer-Abhängigkeitsbereichen in Drittanbieterpaketen, auf die OmniRoute keinen Einfluss hat:
 
-1. **`marked-terminal` erwartet `marked >=1 <16`, gefunden wurde `marked@18`** — funktioniert in der Praxis problemlos; der Peer-Abhängigkeitsbereich des Upstream-Pakets ist lediglich veraltet.
+1. **`marked-terminal` erfordert `marked >=1 <16`, gefunden wurde `marked@18`** — funktioniert in der Praxis problemlos; der Peer-Abhängigkeitsbereich des Upstream-Pakets ist lediglich veraltet.
 2. **`deprecated prebuild-install@7.1.3`** — ein transitives Hilfsprogramm zum Abrufen nativer Binärdateien. Es wird nicht
-   zur Installation der fest vorgegebenen `wreq-js`-Transportanbindung verwendet und bedeutet nicht, dass die Einrichtung
-   des Transports für den Web-Cookie-Anbieter fehlgeschlagen ist.
+   zur Installation der festgelegten `wreq-js`-Transportanbindung verwendet und bedeutet nicht, dass die Einrichtung des Transports
+   für den Web-Cookie-Anbieter fehlgeschlagen ist.
 
-**Keine Maßnahme erforderlich** — die Warnungen können nicht vollständig unterdrückt werden, ohne die Upstream-Pakete zu forken.
+**Keine Maßnahmen erforderlich** — die Warnungen können nicht vollständig unterdrückt werden, ohne die Upstream-Pakete zu forken.
 
 ---
 

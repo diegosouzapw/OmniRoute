@@ -1293,6 +1293,9 @@
     "mainNavigation": "Babban kewayawa",
     "unpinSection": "Cire fil ɗin sashe",
     "pinSectionOpen": "Tsare sashen a buɗe",
+    "pinItem": "Saka fil a abu",
+    "unpinItem": "Cire fil daga abu",
+    "pinnedSection": "An saka fil",
     "reloadPage": "Sake loda shafi",
     "dragReorderSection": "Ja don sake tsara sashe",
     "dragReorderItem": "Ja don sake tsarawa",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Masu Samar da Sabis",
     "Account Deactivated": "An Kashe Asusun",
     "allProviders": "Duk Masu Samar da Sabis",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "Bayani kan Cookie na Grok Web",
     "blockClaudeExtraUsageDescription": "Idan an kunna, OmniRoute zai sanya wannan haɗin Claude a matsayin wanda ba ya samuwa da zarar API na amfani ya bayar da rahoton ƙarin amfani da ke jiran aiwatarwa, domin tsarin madadin ya koma wani haɗi maimakon ci gaba da ƙarin cajin biya-gwadon-amfani.",
     "blockClaudeExtraUsageLabel": "Toshe ƙarin amfani da Claude",
+    "claudeLowPriorityModeLabel": "Ci gaba da ƙaramin fifiko bayan kai iyakar awa 5",
+    "claudeLowPriorityModeDescription": "Lokacin da wannan asusun ya kai iyakar amfaninsa ta awa 5 kuma Anthropic ya samar da layin mai ƙarancin fifiko, OmniRoute zai karɓe shi kuma ya ci gaba da aika buƙatu tare da anthropic-usage-limit: slow har sai lokacin ya sake farawa, maimakon rage aikin haɗin. Har yanzu iyakar mako-mako tana aiki, kuma martani na iya jira har sai an sami sarari.",
+    "claudeAutoLimitResetLabel": "Sake saita iyakar zaman ta atomatik (sau ɗaya a mako)",
+    "claudeAutoLimitResetDescription": "Lokacin da wannan asusun ya kai iyakar amfaninsa ta awa 5 kuma akwai damar sake saita iyakar zaman, OmniRoute zai karɓe ta atomatik sannan ya sake gwadawa da cikakken sauri. Wannan yana amfani da damar sake saita asusun ta sau ɗaya a mako, kuma har yanzu ana ƙirga amfanin cikin iyakar mako-mako.",
     "disableCoolingDescription": "Tsallake lokacin dakatawa na wucin gadi domin wannan haɗin ya ci gaba da cancanta ko bayan kurakuran da za a iya gyarawa (har yanzu yanayin ƙarshe kamar an hana/an ƙare suna aiki).",
     "disableCoolingLabel": "Kashe lokacin dakatawa na wannan haɗin",
     "bulkPasteAdded": "{count, plural, one {An ƙara maɓalli 1} other {An ƙara maɓallai #}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "ID na Alaƙa: {id}",
       "detailedPayloadInfo": "Da farko, kunna yin cikakken log idan kana son ganin payload na matakai huɗu na abokin ciniki/mai bayarwa don sabbin buƙatu.",
       "copyAll": "Kwafi duka",
-      "copiedAll": "An kwafi duka"
+      "copiedAll": "An kwafi duka",
+      "payloadSizeLimitOmitted": "An bar abin da aka aika — wannan sashe ya wuce iyakar girman rajistar kira (CALL_LOG_PIPELINE_MAX_SIZE_KB) kuma ba a adana shi ba; wannan ba ainihin kuskuren mai bayarwa ba ne."
     }
   },
   "proxyLogger": {

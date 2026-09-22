@@ -66,18 +66,26 @@ Määrake need OmniRoute'i protsessi keskkonnas (deemonis, näiteks LaunchAgenti
 
 ---
 
-## `npm install` hoiatused (ERESOLVE / partnerpaketid / aegunud paketid)
+## `npm install` hoiatused (ERESOLVE / võrdväärsõltuvused / aegunud paketid)
 
-Kui käivitate käsu `npm install -g omniroute`, võite näha hulgaliselt hoiatusi, nagu `npm warn ERESOLVE`, partnerpakettide sõltuvuste teateid ja `deprecated`-teateid. **Need on ootuspärased ja ohutud.** Installimine õnnestus, kui väljundis kuvatakse `added <N> packages`.
+Kui käivitate käsu `npm install -g omniroute`, võite näha hulgaliselt hoiatusi, nagu `npm warn ERESOLVE`, võrdväärsõltuvuste teated ja `deprecated`-teated. **Need on ootuspärased ja kahjutud.** Installimine õnnestus, kui väljundis kuvatakse `added <N> packages`.
 
-Hoiatused tulenevad aegunud partnerpakettide sõltuvusvahemikest kolmandate osapoolte pakettides, mida OmniRoute ei halda:
+Võrdväärsõltuvuste lahendamise hoiatuste peitmiseks kasutage OmniRoute'i toetatud installimisviisi:
 
-1. **`marked-terminal` nõuab versiooni `marked >=1 <16`, kuid leiti `marked@18`** — praktikas töötab see korralikult; ülesvoolu partnerpaketi vahemik on lihtsalt aegunud.
-2. **`deprecated prebuild-install@7.1.3`** — transitiivne natiivse binaarfaili hankimise abitööriist. Seda ei
-   kasutata fikseeritud versiooniga `wreq-js` transpordisidumise installimiseks ning see ei näita, et veebiküpsiste
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` peidab ainult `ERESOLVE`- ja võrdväärsõltuvuste teated. Aegumise teated jäävad nähtavaks, sest need pärinevad transitiivsetest kolmanda osapoole pakettidest; need ei tähenda, et installimine ebaõnnestus.
+
+Hoiatused tulenevad aegunud võrdväärsõltuvuste versioonivahemikest kolmanda osapoole pakettides, mida OmniRoute ei halda:
+
+1. **`marked-terminal` nõuab versiooni `marked >=1 <16`, kuid leiti `marked@18`** — praktikas töötab see probleemideta; ülesvoolu võrdväärsõltuvuse versioonivahemik on lihtsalt aegunud.
+2. **`deprecated prebuild-install@7.1.3`** — transitiivne abivahend natiivbinaarfailide hankimiseks. Seda ei
+   kasutata fikseeritud versiooniga `wreq-js` transpordisideme installimiseks ning see ei tähenda, et veebiküpsiste
    pakkuja transpordi seadistamine ebaõnnestus.
 
-**Midagi pole vaja teha** — hoiatusi ei saa täielikult vaigistada ilma ülesvoolu pakette kahveldamata.
+**Midagi pole vaja teha** — hoiatusi ei saa täielikult peita ilma ülesvoolu pakette hargnemata.
 
 ---
 

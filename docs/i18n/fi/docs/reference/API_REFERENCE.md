@@ -416,10 +416,10 @@ Käytä tätä päätepistettä, kun rinnakkaisprosessi suoritetaan pääprosess
 | POST      | `/v1/embeddings`                          | OpenAI                                    |
 | POST      | `/v1/images/generations`                  | OpenAI Images                             |
 | POST      | `/v1/images/edits`                        | OpenAI Images (muokkaus/täyttö)           |
-| POST      | `/v1/videos/generations`                  | OpenAI-tyylinen videon luonti             |
-| POST      | `/v1/music/generations`                   | OpenAI-tyylinen musiikin luonti           |
-| POST      | `/v1/audio/transcriptions`                | OpenAI Audio (puhe tekstiksi)             |
-| POST      | `/v1/audio/speech`                        | OpenAI TTS (palauttaa äänirungon)         |
+| POST      | `/v1/videos/generations`                  | OpenAI-tyylinen videon generointi         |
+| POST      | `/v1/music/generations`                   | OpenAI-tyylinen musiikin generointi       |
+| POST      | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                        |
+| POST      | `/v1/audio/speech`                        | OpenAI TTS (palauttaa äänisisällön)       |
 | POST      | `/v1/rerank`                              | Cohere/Voyage-tyylinen uudelleenjärjestys |
 | POST      | `/v1/classify`                            | Jina-luokittelu (`api.jina.ai`)           |
 | POST      | `/v1/segment`                             | Jina-segmentoija (`segment.jina.ai`)      |
@@ -429,19 +429,19 @@ Käytä tätä päätepistettä, kun rinnakkaisprosessi suoritetaan pääprosess
 | GET       | `/v1beta/models`                          | Gemini                                    |
 | POST      | `/v1beta/models/{...path}`                | Gemini generateContent                    |
 | POST      | `/v1/api/chat`                            | Ollama                                    |
-| GET       | `/api/v1/vscode/{token}/`                 | OpenAI-luettelon alias                    |
-| GET       | `/api/v1/vscode/{token}/models`           | OpenAI-mallien alias                      |
-| POST      | `/api/v1/vscode/{token}/chat/completions` | OpenAI:n tunnisteellinen alias            |
-| POST      | `/api/v1/vscode/{token}/responses`        | OpenAI Responses -tunnistealias           |
-| POST      | `/api/v1/vscode/{token}/api/chat`         | Ollama-tunnistealias                      |
-| GET       | `/api/v1/vscode/{token}/api/tags`         | Ollama-tunnisteiden alias                 |
+| GET       | `/api/v1/vscode/{token}/`                 | OpenAI-luetteloalias                      |
+| GET       | `/api/v1/vscode/{token}/models`           | OpenAI-mallialias                         |
+| POST      | `/api/v1/vscode/{token}/chat/completions` | OpenAI:n tunnuksellinen alias             |
+| POST      | `/api/v1/vscode/{token}/responses`        | OpenAI Responses -tunnuksellinen alias    |
+| POST      | `/api/v1/vscode/{token}/api/chat`         | Ollaman tunnuksellinen alias              |
+| GET       | `/api/v1/vscode/{token}/api/tags`         | Ollama-tunnisteiden tunnuksellinen alias  |
 
-Kaikki POST-reitit noudattavat samaa rakennetta: `Bearer your-api-key` + Zod-validoitu JSON-runko (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` jne.; katso `src/shared/validation/schemas.ts`). Skeeman epäonnistuessa palautetaan 4xx.
+Kaikki POST-reitit noudattavat samaa rakennetta: `Bearer your-api-key` + Zod-validoitu JSON-runko (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` jne., katso `src/shared/validation/schemas.ts`). Rakenteen validoinnin epäonnistuessa palautetaan 4xx.
 
-Asiakasohjelmille, jotka eivät voi liittää `Authorization: Bearer ...` -otsaketta, OmniRoute hyväksyy API-avaimet myös URL-osoitteessa joko kyselymerkkijonoyhteensopivuuden (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) tai alla dokumentoitujen erillisten `/api/v1/vscode/{token}/...`-päätepisteiden kautta.
+Asiakkaille, jotka eivät voi liittää `Authorization: Bearer ...` -otsaketta, OmniRoute hyväksyy API-avaimet myös URL-osoitteessa joko kyselymerkkijonoyhteensopivuuden (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) tai alla dokumentoitujen erillisten `/api/v1/vscode/{token}/...`-päätepisteiden kautta.
 
 ```bash
-# Uudelleenjärjestys
+# Uudelleenjärjestys (pilvirekisterin tarjoaja tai OpenAI-yhteensopiva tarjoajasolmu muodossa "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina-luokittelu (Foundation API -tunnistetiedot)
@@ -450,7 +450,7 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Jina-segmentoija
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina-haku (s.jina.ai; palveluntarjoajan aliakset: jina-search, jina-ai, jina)
+# Jina-haku (s.jina.ai; tarjoaja-aliakset: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderointi
@@ -462,12 +462,34 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # Kuvan muokkaus (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Videon / musiikin luonti (palveluntarjoajan etuliitteellä varustettu mallitunnus)
+# Videon/musiikin generointi (tarjoajan etuliitteellä varustettu mallitunnus)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Palveluntarjoajakohtaiset reitit
+> **Uudelleenjärjestyksen tarjoajasolmut:** `POST /v1/rerank` reitittää myös OpenAI-yhteensopiviin tarjoajasolmuihin
+> (oMLX, vLLM, Infinity, yhdyskäytävän takana oleva TEI, …), joihin viitataan muodossa `<node-prefix>/<model>`. Takaisinkytkentäosoitteiden
+> solmut (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ovat aina kelvollisia. Kaikissa muissa
+> isännissä olevat solmut — lähiverkon kone tai Tailscale-vertaislaite — ovat kelvollisia vain, kun operaattori ottaa käyttöön
+> `RERANK_REMOTE_PROVIDER_NODES`-ominaisuuslipun **ja** solmun perus-URL läpäisee tarjoajan
+> lähtevien URL-osoitteiden käytännön (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> pilvimetatietojen isäntiin ei koskaan reititetä. Muistimoottorin uudelleenjärjestysvaihe kutsuu tätä reittiä
+> takaisinkytkennän kautta, joten sama sääntö koskee Muisti-asetusten `rerankProviderModel`-arvoa.
+>
+> **Paikallisten palvelinten muodot:** solmua kutsutaan osoitteessa `<base>/v1/rerank` ja 404-vastauksen tapauksessa osoitteessa `<base>/rerank`
+> (Infinity, TEI). Ylävirtaan lähetettävä runko sisältää sekä Cohere/OpenAI-kirjoitusasun (`documents`,
+> `return_documents`) että TEI-kirjoitusasun (`texts`, `return_text`), ja ylävirran vastaus
+> normalisoidaan Cohere-kuoreen: TEI:n pelkkä `[{index, score, text}]`, kevyiden yhdyskäytävien
+> `{results: [{index, score}]}` ja Voyage-tyylinen `{data: [...]}` palautetaan kaikki asiakkaalle muodossa
+> `{results: [{index, relevance_score, document?}]}`, pistemäärän mukaan lajiteltuina ja enintään `top_n`-määrään rajattuina.
+
+> **Tarjoajasolmujen löytäminen:** OpenAI-yhteensopivan tarjoajasolmun mallit näkyvät kohdassa `GET /v1/models`
+> solmun etuliitteen alla. Rivit, joissa ei ole päätepisteiden metatietoja (tyypillistä paikallisille `/v1/models`-luetteloille),
+> perivät solmun `apiType`-arvon, joten `embeddings`-solmun mallien tyyppi on `type: "embedding"` ja
+> `rerank`-solmun mallien tyyppi on `type: "rerank"` sen sijaan, että oletusarvoksi tulisi keskustelu; synkronoidulla
+> tai manuaalisesti lisätyllä rivillä eksplisiittinen `supportedEndpoints` on edelleen etusijalla.
+
+### Erilliset tarjoajareitit
 
 ```bash
 POST /v1/providers/{provider}/chat/completions

@@ -19,25 +19,27 @@ Tham số không chính xác: reasoning_content trong chế độ suy luận ph�
 
 Tuy nhiên, các máy khách phổ biến (Cursor, Cline, Roo Code, OpenAI SDK) loại bỏ `reasoning_content` khỏi lịch sử mà chúng gửi lại. OmniRoute khôi phục nội dung này từ bộ nhớ đệm phía máy chủ để yêu cầu mà dịch vụ thượng nguồn nhận được luôn nhất quán. Issue #1628 đã giới thiệu cơ chế lưu trữ kết hợp giữa bộ nhớ và SQLite để bộ nhớ đệm vẫn tồn tại sau khi tiến trình khởi động lại.
 
-## Kiến Trúc
+## Kiến trúc
 
 ```
-Lượt N (trợ lý tạo phản hồi):
+Lượt N (assistant tạo phản hồi):
   → phản hồi chứa reasoning_content + tool_calls
   → nếu requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      ghi vào (bộ nhớ + DB), với khóa là từng tool_call.id
-  → chuyển tiếp phản hồi đến máy khách (có thể giữ lại hoặc không giữ lại phần suy luận)
+      ghi vào (bộ nhớ + DB), được định khóa theo từng tool_call.id
+  → chuyển tiếp phản hồi tới client (client có thể lưu hoặc không lưu phần suy luận)
 
-Lượt N+1 (máy khách gửi lượt tiếp theo):
-  → trình chuyển đổi phát hiện: requiresReasoningReplay(provider, model) === true
-  → với mỗi tin nhắn của trợ lý có tool_calls nhưng không có reasoning_content:
+Lượt N+1 (client gửi yêu cầu tiếp theo):
+  → translator phát hiện: requiresReasoningReplay(provider, model) === true
+  → với mỗi message của assistant có tool_calls nhưng không có reasoning_content:
       lookupReasoning(toolCalls[0].id) → bộ nhớ → DB
-      trúng  → msg.reasoning_content = cached; recordReplay()
-      trượt → msg.reasoning_content = "" (phương án dự phòng cũ dành cho DeepSeek phiên bản cũ)
-  → dịch vụ thượng nguồn nhận được lịch sử nhất quán → không còn lỗi 400
+      khớp      → msg.reasoning_content = cached; recordReplay()
+      không khớp → msg.reasoning_content = "" (cơ chế dự phòng cũ cho các phiên bản DeepSeek cũ hơn)
+  → phía upstream nhận được lịch sử nhất quán → không có lỗi 400
 ```
 
-Việc ghi nhận diễn ra trong `open-sse/handlers/chatCore.ts` (tại hai vị trí gọi `cacheReasoningFromAssistantMessage`). Việc phát lại diễn ra trong `open-sse/translator/index.ts` sau khi ép kiểu schema nhưng trước khi điều phối.
+Việc thu thập diễn ra trong `open-sse/handlers/chatCore.ts` (tại hai vị trí gọi `cacheReasoningFromAssistantMessage`). Việc phát lại diễn ra trong `open-sse/translator/index.ts`, sau bước ép kiểu theo schema nhưng trước khi điều phối.
+
+Các lượt của assistant dạng thuần túy (không có tool call) được định khóa theo cách khác: `buildAssistantMessageCacheKey()` tạo giá trị băm từ phạm vi phiên cùng với bản ghi hội thoại ở định dạng OpenAI đã được chuẩn hóa cho đến lượt đó, vì DeepSeek yêu cầu phần suy luận của _mọi_ lượt trước đó khi có `tools`. Đối với các đích Responses-API (ví dụ: `opencode-go/deepseek-v4-flash`, được định tuyến tới `/responses`), phần thân upstream chứa `input` thay vì `messages`, vì vậy `translateRequest()` (`open-sse/translator/index.ts`) báo cáo bản ghi hội thoại trung gian mà hàm này đã tạo giá trị băm thông qua một tùy chọn callback, và các vị trí thu thập sẽ tạo giá trị băm từ chính bản ghi hội thoại đó. Bước phát lại Responses chạy trên bản trung gian OpenAI đối với mọi định dạng nguồn, vì vậy các client sử dụng Anthropic Messages (Claude → OpenAI → Responses) cũng được phát lại.
 
 ## Lưu Trữ — Kết Hợp Bộ Nhớ + SQLite
 

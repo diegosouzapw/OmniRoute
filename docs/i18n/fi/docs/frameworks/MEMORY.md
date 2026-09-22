@@ -169,32 +169,34 @@ pyyntöä kohden. Edistymistä voidaan seurata kyselyllä
 
 ## Asetusten laajennus
 
-Yhdeksän upotus- ja vektorikenttää ovat käytettävissä `MemorySettingsExtended`-tyypissä tiedostossa
+`MemorySettingsExtended` sisältää yhdeksän upotus- ja vektorikenttää tiedostossa
 `src/shared/schemas/memory.ts`, ja ne tallennetaan tiedoston `src/lib/db/settings.ts` kautta:
 
-| Kenttä                   | Tyyppi                                             | Oletus   | Kuvaus                                                                 |
-| ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Käytettävä upotuslähde                                                 |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Palveluntarjoaja/malli muodossa `provider/model`                       |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | Vain Memorylle tarkoitettu OpenAI-yhteensopivan päätepisteen perus-URL |
-| `customModelId`          | `string \| null`                                   | `null`   | Mukautettuun päätepisteeseen lähetettävä mallitunnus                   |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js:n käyttöönotto (MiniLM, ~400 Mt)                       |
-| `staticEnabled`          | `boolean`                                          | `false`  | Paikallisen staattisen potion-base-8M-mallin käyttöönotto              |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Ota uudelleenjärjestelyvaihe käyttöön (lisää +200–500 ms/pyyntö)       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Uudelleenjärjestelyn palveluntarjoaja/malli muodossa `provider/model`  |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Käytettävä vektoritaustajärjestelmä                                    |
+| Kenttä                   | Tyyppi                                             | Oletusarvo | Kuvaus                                                                |
+| ------------------------ | -------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | Käytettävä upotuslähde                                                |
+| `embeddingProviderModel` | `string \| null`                                   | `null`     | Palveluntarjoaja/malli muodossa `provider/model`                      |
+| `customBaseUrl`          | `string \| null`                                   | `null`     | Vain Memoryn käyttämän OpenAI-yhteensopivan päätepisteen perus-URL    |
+| `customModelId`          | `string \| null`                                   | `null`     | Mukautettuun päätepisteeseen lähetettävä mallitunnus                  |
+| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js:n käyttöönotto (MiniLM, ~400MB)                       |
+| `staticEnabled`          | `boolean`                                          | `false`    | Paikallisen staattisen potion-base-8M-mallin käyttöönotto             |
+| `rerankEnabled`          | `boolean`                                          | `false`    | Ota uudelleenjärjestelyvaihe käyttöön (lisää +200-500ms/pyyntö)       |
+| `rerankProviderModel`    | `string \| null`                                   | `null`     | Uudelleenjärjestelyn palveluntarjoaja/malli muodossa `provider/model` |
+
+`rerankProviderModel` ratkaistaan kutsulla `POST /v1/rerank` (joka tehdään takaisinkytkentäyhteyden kautta), joten se hyväksyy kaiken, minkä kyseinen reitti hyväksyy: kuratoidun pilvipohjaisen uudelleenjärjestelymallin (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) tai OpenAI-yhteensopivan palveluntarjoajasolmun muodossa `<node-prefix>/<model>` (esim. `skilled-mini/bge-reranker-v2-m3` TEI/Infinity-palvelimelle). Takaisinkytkentäsolmut ovat aina kelvollisia; toisella isäntäkoneella (LAN, Tailscale) sijaitseva solmu edellyttää lisäksi `RERANK_REMOTE_PROVIDER_NODES`-ominaisuuslippua, ja sen on läpäistävä palveluntarjoajan lähtevien URL-osoitteiden käytäntö — katso [Ominaisuusliput](../reference/FEATURE_FLAGS.md). Hallintapaneelin valitsin luettelee kuratoidut palveluntarjoajat sekä paikalliset solmut; mikä tahansa kelvollinen `provider/model`-merkkijono voidaan asettaa suoraan kutsulla `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Käytettävä vektoritaustajärjestelmä |
 
 Nämä ovat käytettävissä rajapinnan `GET /PUT /api/settings/memory` kautta (skeema `MemorySettingsExtendedSchema`).
 
-`remote`-lähdettä varten Memory hyväksyy myös valinnaiset `customBaseUrl`- ja
+`remote`-lähdettä käytettäessä Memory hyväksyy myös valinnaiset `customBaseUrl`- ja
 `customModelId`-asetukset. Yhdessä ne valitsevat OpenAI-yhteensopivan `/embeddings`-
-päätepisteen ja mallin muuttamatta yleistä upotusrekisteriä. Päätepiste
-normalisoidaan ennen käyttöä ja tarkistetaan palveluntarjoajan lähtevien URL-osoitteiden käytännön mukaisesti: HTTP(S)
-vaaditaan, upotetut tunnistetiedot ja kyselymerkkijonot hylätään ja pilven metatieto-
-osoitteet pysyvät estettyinä. Tyhjät arvot säilyttävät valitun rekisteripalveluntarjoajan. Hallintapaneelille
+päätepisteen ja mallin muuttamatta yleistä upotusrekisteriä. Päätepiste normalisoidaan
+ennen käyttöä ja tarkistetaan palveluntarjoajan lähtevien URL-osoitteiden käytännön mukaisesti: HTTP(S)
+vaaditaan, upotetut tunnistetiedot ja kyselymerkkijonot hylätään, ja pilvipalvelujen metatieto-
+osoitteet pysyvät estettyinä. Tyhjät arvot säilyttävät valitun rekisterin palveluntarjoajan. Hallintapaneelille
 palautettavat virheet puhdistetaan, eikä päätepisteen tunnistetietoja koskaan kirjata lokiin.
 
-> **TODO (D20):** Laajuutta `global` (muistojen jakaminen kaikkien API-avainten kesken) ei ole
+> **TODO (D20):** `global`-laajuutta (muistojen jakaminen kaikkien API-avainten kesken) ei ole
 > toteutettu tässä julkaisussa. Se edellyttää skeemamuutoksia ja yleistä hakupolkua.
 > Seurattava erikseen.
 

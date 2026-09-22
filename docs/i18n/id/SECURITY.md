@@ -220,26 +220,38 @@ Aturan berikut diberlakukan oleh perangkat otomatis dan peninjau:
 10. **Teruskan nilai runtime `exec()` / `spawn()` melalui opsi `env`** — jangan pernah melakukan interpolasi string terhadap path eksternal atau nilai yang tidak tepercaya ke dalam skrip yang diteruskan ke shell. Referensi: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Utamakan pustaka yang aman secara default** — lihat [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Gunakan pustaka tersebut sebelum membuat implementasi sendiri.
 
-## Temuan pemindai rantai pasok (Socket.dev / Snyk / sejenisnya)
+## Temuan pemindai rantai pasok (Socket.dev / Snyk / serupa)
 
-Artefak npm `omniroute` yang dipublikasikan menyertakan build Next.js `output: "standalone"`, yang berarti setiap penangan rute — termasuk fitur berhak istimewa yang terdokumentasi (MITM, impor Zed, Cloud Sync, supervisor layanan tertanam) — dimasukkan ke dalam chunk `.next/server/*.js` yang telah diminifikasi. Pemindai rantai pasok berbasis heuristik sering mencocokkan pola chunk tersebut dengan signature malware.
+> **Catatan cakupan:** `socket.yml` di root repositori hanya mengatur `projectIgnorePaths` untuk pemindaian pascapublikasi sisi registry oleh Socket.dev terhadap artefak npm yang telah dipublikasikan — ini bukan gerbang penggabungan CI/PR yang diberlakukan. Tidak ada workflow di `.github/workflows`, skrip `package.json`, maupun target `Makefile` yang menjalankan Socket.dev.
 
-Konfigurasi pemindai yang kami gunakan berada di [`socket.yml`](socket.yml) pada root repositori (format Socket.dev GitHub App v2 — lihat <https://docs.socket.dev/docs/socket-yml>). Konfigurasi tersebut secara eksplisit mengecualikan direktori yang tidak didistribusikan (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/`, dan sebagainya) sehingga pemindai hanya melaporkan jalur kode yang benar-benar menjangkau pengguna artefak yang dipublikasikan — pemindaian itu sendiri dijalankan oleh Socket GitHub App yang membaca file tersebut, bukan oleh workflow dalam repositori ini.
+Artefak npm `omniroute` yang dipublikasikan membundel build Next.js dengan `output: "standalone"`,
+yang berarti setiap route handler — termasuk fitur berprivilese yang terdokumentasi
+(MITM, impor Zed, Cloud Sync, supervisor layanan tertanam) — berakhir
+di chunk `.next/server/*.js` yang diminifikasi. Pemindai rantai pasok heuristik
+sering kali mencocokkan pola chunk tersebut dengan signature malware.
 
-Untuk setiap kategori temuan, kami memelihara pernyataan pengelola per temuan:
+Konfigurasi pemindai yang kami gunakan berada di [`socket.yml`](socket.yml) pada
+root repositori (format v2 GitHub App Socket.dev — lihat
+<https://docs.socket.dev/docs/socket-yml>). Konfigurasi tersebut secara eksplisit mengecualikan
+direktori yang tidak didistribusikan (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, dll.) sehingga pemindai hanya melaporkan jalur kode yang
+benar-benar sampai kepada pengguna paket yang dipublikasikan — pemindaian itu sendiri dijalankan oleh GitHub App
+Socket yang membaca file tersebut, bukan oleh workflow dalam repositori ini.
+
+Untuk setiap kategori temuan, kami memelihara pengesahan pengelola per temuan:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  peta per temuan: file sumber ↔ chunk yang ditandai ↔ perilaku ↔ mitigasi
-  yang diterapkan pada v3.8.6.
-- Blok `SECURITY-AUDITOR-NOTE:` dalam kode sumber pada setiap fungsi yang ditandai
+  pemetaan per temuan: file sumber ↔ chunk yang ditandai ↔ perilaku ↔ mitigasi
+  yang diterapkan di v3.8.6.
+- Blok `SECURITY-AUDITOR-NOTE:` di dalam sumber pada setiap fungsi yang ditandai
   merujuk kembali ke dokumen yang sama.
 
-Bagi pengguna yang pipeline-nya tidak dapat melonggarkan peringatan: lakukan build dengan
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tindakan ini mengganti keempat
+Bagi pengguna yang pipeline-nya tidak dapat melonggarkan peringatan tersebut: lakukan build dengan
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Perintah ini mengganti empat
 modul sensitif dengan stub yang mengembalikan HTTP 503 `feature-disabled` saat
-runtime, sehingga jalur kode berhak istimewa secara fisik tidak ada dalam bundle.
+runtime, sehingga jalur kode berprivilese secara fisik tidak ada dalam bundle.
 Lihat [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-untuk prosedur publikasi.
+untuk prosedur publikasinya.
 
 ## Referensi
 

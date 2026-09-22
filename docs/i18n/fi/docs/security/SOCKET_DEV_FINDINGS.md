@@ -4,21 +4,23 @@
 
 ---
 
+> **Laajuushuomautus:** `socket.yml` määrittää Socket.dev-palvelun rekisteripuolella julkaisun jälkeen suoritettavan npm-artefaktin tarkistuksen (ohitettavat polut pakettiin kuulumattomalle sisällölle, kuten `tests/`, `docs/` ja koontiraportit). Se ei määritä CI-/PR-yhdistämisporttia — mikään `.github/workflows`-hakemiston työnkulku, `package.json`-komentosarja tai `Makefile`-kohde ei kutsu Socket.dev-palvelua.
+
 Tämä asiakirja on ylläpitäjän laatima vakuutus kuudesta
 `AI-detected potential malware` -havainnosta, jotka tehtiin paketista `omniroute@3.8.5`, sekä
 versiossa `omniroute@3.8.6` toteutetuista lievennyksistä. Sen tarkoituksena on, että:
 
-1. Tietoturvaputkien operaattoreilla on yksi viite, johon he voivat vedota
-   arvioidessaan havaintoja suhteessa varsinaiseen lähdekoodiin.
+1. Tietoturvaputkien ylläpitäjillä on yksi viite, johon vedota, kun heidän on
+   arvioitava havaintoja suhteessa todelliseen lähdekoodiin.
 2. Tulevat tekoälyskannerit voivat tunnistaa ylläpitäjän allekirjoittaman vakuutuksen siitä, että jokainen
    merkitty polku on tarkoituksellinen, erikseen käyttöön otettava ja dokumentoitu.
-3. Meillä on kirjallinen dokumentaatio siitä, _miksi_ kukin kutsukohta on toteutettu juuri kyseisellä tavalla —
-   jotta tuleva refaktorointi ei vahingossa palauta sormenjälkeä, joka
+3. Meillä on kirjallinen tieto siitä, _miksi_ kukin kutsukohta on toteutettu juuri kyseisellä tavalla —
+   jotta tuleva refaktorointi ei vahingossa palauta tunnusjälkeä, joka
    poistettiin tarkoituksella.
 
-Jos ylläpidät skanneria, joka merkitsee jonkin alla olevista kutsukohdista uudelleen sen jälkeen, kun
-version v3.8.6 lievennykset on julkaistu, avaa ongelmaraportti ja liitä siihen skannauksen jäljitys,
-niin laajennamme tätä vakuutusta.
+Jos ylläpidätte skanneria, joka merkitsee jonkin alla olevista kutsukohdista uudelleen sen jälkeen, kun
+v3.8.6-version lievennykset on julkaistu, avatkaa ongelmaraportti ja liittäkää mukaan tarkistuksen jäljitystiedot,
+niin täydennämme tätä vakuutusta.
 
 ---
 

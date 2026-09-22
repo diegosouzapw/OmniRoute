@@ -66,18 +66,26 @@ Postavite ih u okruženju procesa OmniRoute (demona, primjerice putem LaunchAgen
 
 ---
 
-## Upozorenja pri npm install (ERESOLVE / peer / deprecated)
+## Upozorenja naredbe npm install (ERESOLVE / ravnopravne ovisnosti / zastarjelo)
 
-Kada pokrenete `npm install -g omniroute`, možete vidjeti mnoštvo upozorenja poput `npm warn ERESOLVE`, obavijesti o ravnopravnim ovisnostima i poruke `deprecated`. **Ona su očekivana i bezopasna.** Instalacija je uspjela ako u izlazu vidite `added <N> packages`.
+Kada pokrenete `npm install -g omniroute`, može se prikazati velik broj upozorenja kao što su `npm warn ERESOLVE`, obavijesti o ravnopravnim ovisnostima i poruke `deprecated`. **To je očekivano i bezopasno.** Instalacija je uspjela ako se u izlazu prikaže `added <N> packages`.
 
-Upozorenja dolaze od zastarjelih raspona ravnopravnih ovisnosti u paketima trećih strana koje OmniRoute ne kontrolira:
+Za suzbijanje upozorenja o razrješavanju ravnopravnih ovisnosti upotrijebite podržani način instalacije za OmniRoute:
 
-1. **`marked-terminal` zahtijeva `marked >=1 <16`, pronađen je `marked@18`** — u praksi radi bez problema; raspon ravnopravne ovisnosti uzvodnog projekta samo je zastario.
-2. **`deprecated prebuild-install@7.1.3`** — prijelazni pomoćni alat za dohvaćanje nativnih binarnih datoteka. Ne
-   koristi se za instalaciju fiksirane transportne poveznice `wreq-js` i ne znači da postavljanje transporta
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` suzbija samo `ERESOLVE` i obavijesti o ravnopravnim ovisnostima. Obavijesti o zastarjelosti ostaju vidljive jer dolaze iz prijelaznih paketa trećih strana; one ne znače da instalacija nije uspjela.
+
+Upozorenja dolaze iz zastarjelih raspona ravnopravnih ovisnosti u paketima trećih strana nad kojima OmniRoute nema kontrolu:
+
+1. **`marked-terminal` zahtijeva `marked >=1 <16`, pronađen je `marked@18`** — u praksi radi bez problema; uzvodni raspon ravnopravne ovisnosti samo je zastario.
+2. **`deprecated prebuild-install@7.1.3`** — prijelazni pomoćni alat za dohvaćanje izvorne binarne datoteke. Ne
+   upotrebljava se za instalaciju prikvačene transportne poveznice `wreq-js` i ne znači da postavljanje transporta
    pružatelja web-kolačića nije uspjelo.
 
-**Nije potrebna nikakva radnja** — upozorenja se ne mogu potpuno utišati bez stvaranja vlastitih izvedenica uzvodnih paketa.
+**Nije potrebna nikakva radnja** — upozorenja nije moguće potpuno utišati bez račvanja uzvodnih paketa.
 
 ---
 

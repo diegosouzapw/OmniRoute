@@ -24,20 +24,22 @@ Ach baineann gnáthchliaint (Cursor, Cline, Roo Code, OpenAI SDK) `reasoning_con
 ```
 Seal N (gineann an cúntóir):
   → tá reasoning_content + tool_calls sa fhreagra
-  → más requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      scríobhann sé (cuimhne + DB), eochraithe de réir gach tool_call.id
-  → cuirtear an freagra ar aghaidh chuig an gcliant (a d'fhéadfadh an réasúnaíocht a choinneáil nó gan í a choinneáil)
+  → má tá requiresReasoningReplay(provider, model) i bhfeidhm: cacheReasoningFromAssistantMessage()
+      scríobhann sé (cuimhne + DB), agus gach tool_call.id mar eochair
+  → cuirtear an freagra ar aghaidh chuig an gcliant (agus d’fhéadfadh sé an réasúnú a choinneáil nó gan é a choinneáil)
 
-Seal N+1 (seolann an cliant iarratas leantach):
+Seal N+1 (seolann an cliant teachtaireacht leantach):
   → braitheann an t-aistritheoir: requiresReasoningReplay(provider, model) === true
-  → do gach teachtaireacht cúntóra ina bhfuil tool_calls agus nach bhfuil reasoning_content inti:
+  → do gach teachtaireacht ón gcúntóir ina bhfuil tool_calls ach nach bhfuil reasoning_content:
       lookupReasoning(toolCalls[0].id) → cuimhne → DB
       aimsiú  → msg.reasoning_content = cached; recordReplay()
-      easnamh → msg.reasoning_content = "" (cúltaca oidhreachta do DeepSeek níos sine)
+      teip    → msg.reasoning_content = "" (cúltaca oidhreachta do leaganacha níos sine de DeepSeek)
   → feiceann an córas réamhtheachtach stair chomhsheasmhach → gan 400
 ```
 
-Tarlaíonn an ghabháil in `open-sse/handlers/chatCore.ts` (in dhá áit, ag an dá shuíomh glao `cacheReasoningFromAssistantMessage`). Tarlaíonn an t-athsheinm in `open-sse/translator/index.ts` tar éis comhéigean scéimre ach roimh sheoladh.
+Déantar an ghabháil in `open-sse/handlers/chatCore.ts` (in dhá áit, ag an dá shuíomh glao ar `cacheReasoningFromAssistantMessage`). Déantar an t-athsheinm in `open-sse/translator/index.ts` tar éis comhéigean na scéime ach roimh an seoladh.
+
+Úsáidtear eochracha éagsúla do shealanna simplí ón gcúntóir (gan ghlao uirlise): déanann `buildAssistantMessageCacheKey()` achoimre den scóip seisiúin mar aon leis an tras-scríbhinn normalaithe i bhformáid OpenAI suas go dtí an seal sin, mar éilíonn DeepSeek réasúnú _gach_ seala roimhe sin a luaithe a bhíonn `tools` ann. I gcás spriocanna Responses-API (mar shampla `opencode-go/deepseek-v4-flash`, a sheoltar chuig `/responses`), iompraíonn an corp réamhtheachtach `input`, seachas `messages`, agus mar sin tuairiscíonn `translateRequest()` (`open-sse/translator/index.ts`) an tras-scríbhinn mhaighdeogach a ndearna sé achoimre di trí rogha aisghlao, agus déanann na suíomhanna gabhála achoimre den tras-scríbhinn chéanna. Ritheann pas athsheinm Responses ar mhaighdeog OpenAI i gcás gach formáide foinse, agus mar sin déantar athsheinm freisin do chliaint Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Stóráil — Cuimhne Hibrideach + SQLite
 

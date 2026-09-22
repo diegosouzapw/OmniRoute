@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import dns from "node:dns";
 
 import { handleImageGeneration } from "../../open-sse/handlers/imageGeneration.ts";
+import { setPinnedFetchTestOverride } from "../../src/shared/network/remoteImageFetch.ts";
 
 // Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx DNS-rebinding guard
 // (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts).
@@ -93,7 +94,7 @@ test("handleImageGeneration(nanobanana): async submit+poll returns URL payload",
 test("handleImageGeneration(nanobanana): response_format=b64_json converts URL to b64", async () => {
   const originalFetch = globalThis.fetch;
 
-  globalThis.fetch = async (url) => {
+  const mockFetchImpl = async (url) => {
     const u = String(url);
 
     if (u.includes("/generate")) {
@@ -123,6 +124,12 @@ test("handleImageGeneration(nanobanana): response_format=b64_json converts URL t
 
     throw new Error(`Unexpected URL: ${u}`);
   };
+  // #13883: resolveImageSource (used for the URL result → base64 conversion) now sets
+  // `pinDns: true`, which pins the connection via a real undici socket and would bypass
+  // this mocked globalThis.fetch — route it through the test-only pinned-fetch override
+  // instead (src/shared/network/remoteImageFetch.ts).
+  globalThis.fetch = mockFetchImpl;
+  setPinnedFetchTestOverride(mockFetchImpl);
 
   try {
     const result = await handleImageGeneration({
@@ -140,6 +147,7 @@ test("handleImageGeneration(nanobanana): response_format=b64_json converts URL t
     assert.equal(result.data.data[0].b64_json, "iVBORw==");
   } finally {
     globalThis.fetch = originalFetch;
+    setPinnedFetchTestOverride(undefined);
   }
 });
 

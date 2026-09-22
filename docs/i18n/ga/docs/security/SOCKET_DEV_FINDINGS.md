@@ -4,20 +4,22 @@
 
 ---
 
-Is é an doiciméad seo an fianú a scríobh an cothabhálaí maidir leis na sé
-thoradh `AI-detected potential malware` a tuairiscíodh i gcoinne `omniroute@3.8.5` agus
+> **Nóta scóipe:** Cumraíonn `socket.yml` scanadh iar-fhoilsithe Socket.dev ar thaobh na clárlainne ar an déantán npm (cosáin le neamhaird a dhéanamh orthu d’ábhar nach seoltar, amhail `tests/`, `docs/`, agus tuarascálacha tógála). Ní chumraíonn sé geata cumaisc CI/PR — ní agraíonn aon sreabhadh oibre in `.github/workflows`, aon script `package.json`, ná aon sprioc `Makefile` Socket.dev.
+
+Is é an doiciméad seo an fianú arna scríobh ag an gcothabhálaí maidir leis na sé thoradh
+`AI-detected potential malware` a tuairiscíodh i gcoinne `omniroute@3.8.5` agus
 na maoluithe a cuireadh i bhfeidhm in `omniroute@3.8.6`. Tá sé ann ionas:
 
-1. Go mbeidh tagairt aonair ag oibreoirí píblínte slándála le lua nuair is gá
-   dóibh na torthaí a mheas i gcomparáid leis an gcód foinse iarbhír.
-2. Gur féidir le scanóirí IS amach anseo an dearbhú sínithe ag an gcothabhálaí a aithint go bhfuil gach
-   cosán a bratachaíodh d'aon ghnó, roghnach, agus doiciméadaithe.
-3. Go mbeidh taifead scríofa againn ar an gcúis a bhfuil gach suíomh glao ceaptha mar atá sé —
-   ionas nach dtabharfaidh athfhachtóiriú amach anseo méarlorg ar ais de thaisme a
-   baineadh d'aon ghnó.
+1. Go mbeidh tagairt aonair ag oibreoirí na píblíne slándála lena lua nuair is gá dóibh
+   na torthaí a mheas i gcomparáid leis an gcód foinse iarbhír.
+2. Go mbeidh scanóirí IS amach anseo in ann an dearbhú sínithe ag an gcothabhálaí a aithint go bhfuil gach
+   cosán a marcáladh d’aon ghnó, roghnach, agus doiciméadaithe.
+3. Go mbeidh taifead scríofa againn ar an gcúis a bhfuil gach suíomh glao cumtha mar atá sé —
+   ionas nach dtabharfaidh athfhachtóiriú amach anseo lorg méire isteach arís de thaisme
+   a baineadh d’aon ghnó.
 
-Má oibríonn tú scanóir a chuireann bratach arís ar aon cheann de na suíomhanna glao thíos tar éis do
-mhaoluithe v3.8.6 a bheith eisithe, oscail saincheist le rian an scanta agus
+Má oibríonn tú scanóir a mharcálann aon cheann de na suíomhanna glao thíos arís tar éis
+na maoluithe in v3.8.6 a bheith seolta, oscail saincheist le rian an scanta agus
 leathnóimid an fianú anseo.
 
 ---

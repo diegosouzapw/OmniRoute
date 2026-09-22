@@ -19,25 +19,27 @@
 
 لكن العملاء المعتادين (Cursor وCline وRoo Code وOpenAI SDK) يزيلون `reasoning_content` من السجل الذي يعيدون تمريره. يستعيده OmniRoute من ذاكرة تخزين مؤقت من جانب الخادم بحيث يكون الطلب الذي يراه المنبع متسقًا. قدّمت المشكلة #1628 آلية التخزين الهجينة في الذاكرة/SQLite لكي تظل ذاكرة التخزين المؤقت محفوظة بعد إعادة تشغيل العملية.
 
-## البنية
+## البنية المعمارية
 
 ```
-الدور N (ينشئ المساعد الاستجابة):
+الدور N (ينشئ المساعد):
   → تحتوي الاستجابة على reasoning_content + tool_calls
   → إذا كانت requiresReasoningReplay(provider, model): استدعاء cacheReasoningFromAssistantMessage()
-      يكتب (في الذاكرة + قاعدة البيانات)، باستخدام كل tool_call.id كمفتاح
+      يكتب في (الذاكرة + قاعدة البيانات)، مع الفهرسة حسب كل tool_call.id
   → تمرير الاستجابة إلى العميل (الذي قد يحتفظ بالاستدلال أو لا يحتفظ به)
 
-الدور N+1 (يرسل العميل طلب متابعة):
+الدور N+1 (يرسل العميل متابعة):
   → يكتشف المترجم أن: requiresReasoningReplay(provider, model) === true
   → لكل رسالة مساعد تحتوي على tool_calls ولا تحتوي على reasoning_content:
       lookupReasoning(toolCalls[0].id) → الذاكرة → قاعدة البيانات
-      إصابة  → msg.reasoning_content = cached; recordReplay()
-      إخفاق → msg.reasoning_content = "" (حل احتياطي قديم للإصدارات الأقدم من DeepSeek)
+      إصابة  → msg.reasoning_content = cached; استدعاء recordReplay()
+      إخفاق → msg.reasoning_content = "" (خيار رجوع قديم لإصدارات DeepSeek الأقدم)
   → يرى المنبع سجلًا متسقًا → لا يوجد خطأ 400
 ```
 
-تتم عملية الالتقاط في `open-sse/handlers/chatCore.ts` (في موضعين، عند موضعي استدعاء `cacheReasoningFromAssistantMessage`). وتتم إعادة التمرير في `open-sse/translator/index.ts` بعد مواءمة المخطط، ولكن قبل الإرسال.
+تحدث عملية الالتقاط في `open-sse/handlers/chatCore.ts` (في موضعين، عند موضعي استدعاء `cacheReasoningFromAssistantMessage`). وتحدث إعادة التشغيل في `open-sse/translator/index.ts` بعد تحويل المخطط، ولكن قبل الإرسال.
+
+تُفهرس أدوار المساعد العادية (التي لا تتضمن استدعاءات أدوات) بطريقة مختلفة: تحسب `buildAssistantMessageCacheKey()` ملخصًا لنطاق الجلسة بالإضافة إلى نص المحادثة الموحّد بتنسيق OpenAI حتى ذلك الدور، لأن DeepSeek يتطلب استدلال _كل_ دور سابق بمجرد وجود `tools`. بالنسبة إلى الوجهات التي تستخدم Responses API (مثل `opencode-go/deepseek-v4-flash`، الموجّه إلى `/responses`)، يحمل نص الطلب المرسل إلى المنبع الحقل `input` بدلًا من `messages`، ولذلك تُبلغ `translateRequest()`‏ (`open-sse/translator/index.ts`) عبر خيار رد نداء عن نص المحادثة المحوري الذي حسبت ملخصه، ثم تحسب مواضع الالتقاط ملخص ذلك النص نفسه. تعمل مرحلة إعادة تشغيل Responses على المحور المتوافق مع OpenAI لكل تنسيق مصدر، ولذلك تُعاد أيضًا رسائل عملاء Anthropic Messages ‏(Claude → OpenAI → Responses).
 
 ## التخزين — الذاكرة الهجينة + SQLite
 

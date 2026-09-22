@@ -66,15 +66,23 @@ Establezca estas variables en el entorno del proceso de OmniRoute (el demonio, p
 
 ---
 
-## Advertencias de npm install (ERESOLVE / peer / deprecated)
+## Advertencias de npm install (ERESOLVE / dependencias peer / paquetes obsoletos)
 
-Cuando ejecutas `npm install -g omniroute`, puede aparecer una gran cantidad de advertencias como `npm warn ERESOLVE`, avisos sobre dependencias entre pares y mensajes `deprecated`. **Son esperados e inofensivos.** La instalación se completó correctamente si ves `added <N> packages` en la salida.
+Cuando ejecutas `npm install -g omniroute`, es posible que veas una gran cantidad de advertencias como `npm warn ERESOLVE`, avisos sobre dependencias peer y mensajes de paquetes `deprecated`. **Estas advertencias son esperadas e inofensivas.** La instalación se realizó correctamente si ves `added <N> packages` en la salida.
 
-Las advertencias provienen de intervalos obsoletos de dependencias entre pares en paquetes de terceros que OmniRoute no controla:
+Para suprimir las advertencias de resolución de dependencias peer, utiliza la forma de instalación compatible con OmniRoute:
 
-1. **`marked-terminal` requiere `marked >=1 <16`, pero se encontró `marked@18`** — en la práctica funciona correctamente; el intervalo de pares del proyecto original simplemente está obsoleto.
-2. **`deprecated prebuild-install@7.1.3`** — un asistente transitivo para obtener binarios nativos. No se
-   utiliza para instalar el enlace de transporte `wreq-js` fijado y no indica que haya fallado la
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` solo suprime los avisos de `ERESOLVE` y de dependencias peer. Los avisos de obsolescencia siguen siendo visibles porque provienen de paquetes transitivos de terceros; no indican que la instalación haya fallado.
+
+Las advertencias proceden de rangos de dependencias peer desactualizados en paquetes de terceros que OmniRoute no controla:
+
+1. **`marked-terminal` requiere `marked >=1 <16`, pero se encontró `marked@18`** — en la práctica funciona correctamente; el rango peer del proyecto original simplemente está desactualizado.
+2. **`deprecated prebuild-install@7.1.3`** — una utilidad transitiva para obtener binarios nativos. No se
+   utiliza para instalar el binding de transporte fijado de `wreq-js` y no indica que haya fallado la
    configuración del transporte del proveedor de cookies web.
 
 **No es necesario realizar ninguna acción** — las advertencias no pueden silenciarse por completo sin crear bifurcaciones de los paquetes originales.

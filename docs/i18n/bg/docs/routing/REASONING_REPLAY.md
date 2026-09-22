@@ -25,19 +25,21 @@ OmniRoute прихваща `reasoning_content`, генерирано от аси
 Ход N (асистентът генерира):
   → отговорът съдържа reasoning_content + tool_calls
   → ако requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      записва (в паметта + БД), с ключ всяко tool_call.id
-  → препраща отговора към клиента (който може да запази или да не запази разсъжденията)
+      записва (в паметта + БД), индексирано по всеки tool_call.id
+  → препраща отговора към клиента (който може да запази или да не запази reasoning)
 
 Ход N+1 (клиентът изпраща последваща заявка):
-  → транслаторът открива: requiresReasoningReplay(provider, model) === true
-  → за всяко съобщение на асистента с tool_calls и без reasoning_content:
+  → преобразувателят открива: requiresReasoningReplay(provider, model) === true
+  → за всяко съобщение от асистента с tool_calls и без reasoning_content:
       lookupReasoning(toolCalls[0].id) → памет → БД
-      попадение  → msg.reasoning_content = cached; recordReplay()
-      пропуск → msg.reasoning_content = "" (наследен резервен вариант за по-стари версии на DeepSeek)
-  → услугата нагоре по веригата получава съгласувана история → без 400
+      намерено     → msg.reasoning_content = cached; recordReplay()
+      не е намерено → msg.reasoning_content = "" (резервен вариант за съвместимост с по-стари версии на DeepSeek)
+  → услугата нагоре по веригата получава съгласувана хронология → няма грешка 400
 ```
 
-Прихващането се извършва в `open-sse/handlers/chatCore.ts` (на две места, при двете извиквания на `cacheReasoningFromAssistantMessage`). Възпроизвеждането се извършва в `open-sse/translator/index.ts` след привеждането към схемата, но преди изпращането.
+Прихващането се извършва в `open-sse/handlers/chatCore.ts` (на две места — при двете извиквания на `cacheReasoningFromAssistantMessage`). Повторното подаване се извършва в `open-sse/translator/index.ts` след привеждането към схемата, но преди изпращането.
+
+Обикновените ходове на асистента (без извиквания на инструменти) се индексират по различен начин: `buildAssistantMessageCacheKey()` изчислява дайджест от обхвата на сесията и нормализирания препис във формат OpenAI до съответния ход включително, тъй като DeepSeek изисква разсъжденията от _всеки_ предходен ход, щом присъства `tools`. При цели на Responses API (например `opencode-go/deepseek-v4-flash`, маршрутизирани към `/responses`) тялото на заявката към услугата нагоре по веригата съдържа `input`, а не `messages`, затова `translateRequest()` (`open-sse/translator/index.ts`) подава чрез опция за обратно извикване основния препис, от който е изчислил дайджест, а местата за прихващане изчисляват дайджест от същия препис. Етапът за повторно подаване на Responses се изпълнява върху основното представяне на OpenAI за всеки формат на източника, така че повторно се подават и клиентите на Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Съхранение — хибридно в паметта + SQLite
 

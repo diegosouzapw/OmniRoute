@@ -6,26 +6,26 @@
 
 To måder at placere Cursor bag OmniRoute uden en IDE-session:
 
-1. **`cursor-api`-udbyder** (kortet "Cursor API", alias `cua`): en API-nøglebaseret
-   udbyder, der indeholder en Cursor-bruger-API-nøgle (`crsr_…`, genereret på
+1. **`cursor-api`-udbyder** (kortet "Cursor API", alias `cua`): en API-nøgleudbyder,
+   der indeholder en Cursor-bruger-API-nøgle (`crsr_…`, genereret på
    `https://cursor.com/dashboard/api`). Enhver OmniRoute-klient kan derefter tilgå
-   Cursor-modeller via `/v1/chat/completions` som `cursor-api/<model>` eller
-   `cua/<model>` med de sædvanlige lag til kvoter, fallback og logning. IDE-
-   udbyderen (`cursor`, OAuth/IDE-session) er uændret.
-2. **Videresendelse af Cursor CLI**: konfigurer Cursor CLI (`agent`) til at bruge OmniRoute, så
-   hvert RPC-kald fra CLI'en godkendes med en OmniRoute API-nøgle, videresendes
+   Cursor-modeller gennem `/v1/chat/completions` som `cursor-api/<model>` eller
+   `cua/<model>` med de sædvanlige lag til kvoter, fallback og logning. IDE-udbyderen
+   (`cursor`, OAuth/IDE-session) er uændret.
+2. **Cursor CLI-videresendelse**: Peg Cursor CLI (`agent`) mod OmniRoute, så
+   hvert RPC-kald, som CLI'en foretager, godkendes med en OmniRoute-API-nøgle, videresendes
    til Cursor med legitimationsoplysningerne fra en `cursor-api`-forbindelse og registreres på
    siden Logs.
 
 ## Hvorfor nøglen udveksles
 
 `api2.cursor.sh` afviser en rå `crsr_…`-nøgle som Bearer-token (401). Cursor
-CLI sender først nøglen via POST til `/auth/exchange_user_api_key` og modtager et sessions-
-JWT, der udløber efter én time; den returnerede `refreshToken` har samme
+CLI sender først nøglen via POST til `/auth/exchange_user_api_key` og modtager en sessions-JWT,
+der udløber efter en time; den returnerede `refreshToken` har samme
 `exp`, så en opdatering kræver, at nøglen udveksles igen.
-`open-sse/services/cursorApiKeyAuth.ts` udfører denne udveksling, cacher ét sessions-
-token pr. nøgle, udveksler igen fem minutter før udløb og fjerner det cachede
-token, når Cursor svarer med 401. `CursorExecutor` kalder det umiddelbart før åbning
+`open-sse/services/cursorApiKeyAuth.ts` udfører denne udveksling, cacher ét sessionstoken
+pr. nøgle, udveksler igen fem minutter før udløb og fjerner det cachede
+token, når Cursor svarer med 401. `CursorExecutor` kalder den umiddelbart før åbning
 af upstream-streamen for `cursor-api`-forbindelser.
 
 ## `cursor-api`-udbyderen
@@ -37,7 +37,7 @@ Register: `open-sse/config/providers/registry/cursor/index.ts`
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
 
-Kontrolpanel: Providers → Cursor API → Add API key.
+Dashboard: Providers → Cursor API → Add API key.
 
 REST:
 
@@ -59,40 +59,52 @@ curl -sS http://localhost:20128/v1/chat/completions \
 Bemærkninger:
 
 - Modellisten for `cursor-api` kommer fra det statiske Cursor-register (den
-  samme liste, som IDE-udbyderen falder tilbage til); det er ikke nødvendigt at
-  installere `cursor-agent` på OmniRoute-værten.
-- `POST /api/providers/{id}/refresh-cursor` er kun beregnet til `cursor`-IDE-udbyderen;
-  `cursor-api`-forbindelser har ingen IDE-session, der skal fornyes.
+  samme liste, som IDE-udbyderen falder tilbage til); ingen installation af `cursor-agent`
+  er nødvendig på OmniRoute-værten.
+- `POST /api/providers/{id}/refresh-cursor` er kun til `cursor`-IDE-udbyderen;
+  `cursor-api`-forbindelser har ingen IDE-session, der skal fornys.
 
-## Videresendelse af Cursor CLI
+## Oprindelige model-id'er og indsats
+
+For `cursor` / `cu` og `cursor-api` / `cua` lader den fælles normalisering af Claude-indsats
+det anmodede model-id forblive intakt. Cursor kan annoncere et suffiks som
+`-low` som en del af et reelt model-id i stedet for som et OmniRoute-indsatsalias.
+Cursor-executoren bevarer et nøjagtigt match i livekataloget; når der ikke findes
+et match, håndterer dens eksisterende modelresolver fallback fra suffiks til parameter.
+
+Dette ændrer ikke normaliseringen af indsats for direkte Claude-, Claude-kompatible
+eller Vertex-ruter. Tilgængeligheden afhænger stadig af den valgte Cursor-kontos
+katalog og rettigheder.
+
+## Videresendelse for Cursor CLI
 
 Rute: `src/app/api/cursor-cli/[...path]/route.ts` →
 `open-sse/handlers/cursorCliProxy.ts`. Præfikset `/api/cursor-cli/` er
 registreret i `src/shared/constants/publicApiRoutes.ts`, fordi handleren
 håndhæver sin egen godkendelse:
 
-| Sti                                                                                                                          | Godkendelse forventet fra CLI'en | Hvad OmniRoute gør                                                                                                                                                          |
-| ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                           | `Bearer <OmniRoute API key>`     | Validerer nøglen, genererer et 1-times HS256-JWT (signeret med `JWT_SECRET`) og returnerer det                                                                              |
-| alle andre stier (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`              | Verificerer udsteder/målgruppe/udløb, vælger en aktiv `cursor-api`-forbindelse, erstatter Authorization-headeren med det udvekslede Cursor-token og streamer svaret tilbage |
+| Sti                                                                                                                          | Godkendelse forventet fra CLI'en | Hvad OmniRoute gør                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                           | `Bearer <OmniRoute API-nøgle>`   | Validerer nøglen, udsteder en HS256-JWT med 1 times gyldighed (signeret med `JWT_SECRET`) og returnerer den                                                                         |
+| alle andre stier (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <den pågældende JWT>`    | Verificerer udsteder, målgruppe og udløbstid, vælger en aktiv `cursor-api`-forbindelse, erstatter Authorization-headeren med det udvekslede Cursor-token og streamer svaret tilbage |
 
-CLI'en afkoder `exp` fra det token, den modtager, så hvis den får udleveret et uigennemsigtigt
-token, får det den til at udveksle igen før næsten hver anmodning; det genererede JWT undgår
+CLI'en afkoder `exp` fra det token, den modtager, så hvis den får et uigennemsigtigt
+token, udveksler den igen før næsten hver anmodning; den udstedte JWT undgår
 dette. Et 401-svar fra OmniRoute får CLI'en til at udveksle igen.
 
 ### Opsætning
 
-1. Opret en OmniRoute API-nøgle (Dashboard → API keys) og en `cursor-api`-
+1. Opret en OmniRoute API-nøgle (Dashboard → API-nøgler) og en `cursor-api`-
    forbindelse.
-2. Bed CLI'en om at bruge HTTP/1.1 til agent-streamen. I
+2. Indstil CLI'en til at bruge HTTP/1.1 til agentstreamen. I
    `~/.cursor/cli-config.json`:
 
    ```json
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Uden dette åbner CLI'en agent-interaktionen via HTTP/2 mod en separat
-   konfigureret agentvært, og kun RPC-kaldene på kontrolplanet går gennem
+   Uden dette åbner CLI'en agentkørslen over HTTP/2 til en separat
+   konfigureret agentvært, og kun kontrolplans-RPC'erne går gennem
    slutpunktet.
 
 3. Kør CLI'en mod OmniRoute:
@@ -103,19 +115,19 @@ dette. Et 401-svar fra OmniRoute får CLI'en til at udveksle igen.
    agent -p --trust "Reply with exactly OK"
    ```
 
-Hvert trin registreres i Logs med udbyderen `cursor-api`, anmodningstypen `cursor-cli`,
-stien `/api/cursor-cli/<rpc>` og tilskrives den OmniRoute API-nøgle og den
-forbindelse, der håndterede det.
+Hvert hop vises i logfilerne med udbyderen `cursor-api`, anmodningstypen `cursor-cli`
+og stien `/api/cursor-cli/<rpc>`, tilskrevet den OmniRoute API-nøgle og den
+forbindelse, der betjente anmodningen.
 
 ### Fejltilstande
 
-| Situation                                         | Svar til CLI'en                                    |
-| ------------------------------------------------- | -------------------------------------------------- |
-| Ukendt OmniRoute-nøgle og `REQUIRE_API_KEY=true`  | 401 `unauthenticated` ved udveksling               |
-| `REQUIRE_API_KEY=false`                           | anonym session (afspejler `/v1/*`-adfærd)          |
-| Udløbet / fremmed / manipuleret sessions-JWT      | 401, CLI'en foretager udveksling igen              |
-| OmniRoute-API-nøgle tilbagekaldt efter udveksling | 401 ved næste RPC                                  |
-| Ingen aktiv `cursor-api`-forbindelse              | 503 `unavailable`                                  |
-| Cursor afviser forbindelsens nøgle                | 401 `unauthenticated`, cachelagret session slettes |
-| Upstream kan ikke nås                             | 502 `unavailable` (renset meddelelse)              |
-| `JWT_SECRET` ikke angivet                         | 503 ved udveksling                                 |
+| Situation                                         | Svar til CLI'en                               |
+| ------------------------------------------------- | --------------------------------------------- |
+| Ukendt OmniRoute-nøgle og `REQUIRE_API_KEY=true`  | 401 `unauthenticated` ved udveksling          |
+| `REQUIRE_API_KEY=false`                           | anonym session (afspejler `/v1/*`-adfærd)     |
+| Udløbet / fremmed / manipuleret sessions-JWT      | 401, CLI'en udveksler igen                    |
+| OmniRoute API-nøgle tilbagekaldt efter udveksling | 401 ved næste RPC                             |
+| Ingen aktiv `cursor-api`-forbindelse              | 503 `unavailable`                             |
+| Cursor afviser forbindelsens nøgle                | 401 `unauthenticated`, cachet session fjernes |
+| Upstream kan ikke nås                             | 502 `unavailable` (renset meddelelse)         |
+| `JWT_SECRET` er ikke angivet                      | 503 ved udveksling                            |

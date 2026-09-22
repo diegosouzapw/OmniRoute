@@ -27,6 +27,12 @@
 
 ## Sürətli işə salma
 
+> **Bir əmrlə öz serverinizdə yerləşdirmək istəyirsiniz?** Baxın:
+> [Öz serverinizdə yerləşdirmə təlimatı](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (dərc edilmiş image +
+> Redis, yalnız loopback, profil seçimi olmadan). Aşağıdakı sürətli işə salma
+> bölməsi Redis-i artıq başqa yerdə işlədən istifadəçilər üçün tək konteynerli üsuldur.
+
 ```bash
 docker run -d \
   --name omniroute \

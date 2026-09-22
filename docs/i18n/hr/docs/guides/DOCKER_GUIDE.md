@@ -27,6 +27,12 @@
 
 ## Brzo pokretanje
 
+> **Samostalno hostiranje jednom naredbom?** Pogledajte
+> [Vodič za samostalno hostiranje](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (objavljena slika +
+> Redis, dostupan samo putem povratne petlje, bez odabira profila). Brzo pokretanje u nastavku
+> predstavlja način pokretanja u jednom spremniku za korisnike koji već pokreću Redis drugdje.
+
 ```bash
 docker run -d \
   --name omniroute \

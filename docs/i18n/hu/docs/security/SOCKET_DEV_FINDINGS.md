@@ -4,23 +4,27 @@
 
 ---
 
-Ez a dokumentum a karbantartó által készített tanúsítvány az `omniroute@3.8.5`
-csomaggal kapcsolatban jelzett hat `AI-detected potential malware` megállapításról,
-valamint az `omniroute@3.8.6` verzióban alkalmazott kockázatcsökkentő
-intézkedésekről. Céljai:
+> **Hatókörre vonatkozó megjegyzés:** A `socket.yml` a Socket.dev rendszerleíró adatbázis oldalán végzett, közzététel utáni npm-összetevővizsgálatát konfigurálja (figyelmen kívül hagyandó elérési utak a nem szállított tartalmakhoz, például a `tests/`, `docs/` könyvtárakhoz és az összeállítási jelentésekhez). Nem állít be CI/PR-egyesítési kaput — sem a `.github/workflows` egyik munkafolyamata, sem `package.json`-szkript, sem `Makefile`-cél nem hívja meg a Socket.dev szolgáltatást.
 
-1. A biztonsági folyamatok üzemeltetői egyetlen hivatkozási alappal rendelkezzenek,
-   amikor a megállapításokat a tényleges forráskód alapján kell értékelniük.
+Ez a dokumentum a karbantartó által készített tanúsítás az `omniroute@3.8.5`
+verzióval kapcsolatban jelzett hat
+`AI által észlelt potenciális rosszindulatú program` megállapításról, valamint
+az `omniroute@3.8.6` verzióban alkalmazott enyhítő intézkedésekről. Célja, hogy:
+
+1. A biztonsági folyamatok üzemeltetői egyetlen hivatkozható forrással
+   rendelkezzenek, amikor a megállapításokat a tényleges forráskód alapján
+   kell értékelniük.
 2. A jövőbeli MI-alapú ellenőrzők felismerhessék a karbantartó által aláírt
-   nyilatkozatot arról, hogy minden megjelölt útvonal szándékos, külön
-   engedélyezést igényel, és dokumentálva van.
-3. Írásos nyilvántartásunk legyen arról, _miért_ olyan az egyes hívási helyek
-   kialakítása, amilyen — így egy jövőbeli refaktorálás nem vezet véletlenül
-   egy szándékosan eltávolított ujjlenyomat újbóli bevezetéséhez.
+   állítást, miszerint minden megjelölt elérési út szándékos, külön
+   engedélyezendő és dokumentált.
+3. Írásos feljegyzésünk legyen arról, hogy az egyes hívási helyek _miért_
+   olyan kialakításúak, amilyenek — hogy egy jövőbeli refaktorálás véletlenül
+   se vezessen vissza egy szándékosan eltávolított ujjlenyomatot.
 
-Ha olyan ellenőrzőt üzemeltet, amely a v3.8.6 kockázatcsökkentő intézkedéseinek
-kiadása után ismét megjelöli az alábbi hívási helyek bármelyikét, kérjük, nyisson
-egy hibajegyet az ellenőrzési nyomvonallal, és itt kibővítjük a tanúsítványt.
+Ha olyan ellenőrzőt üzemeltet, amely a v3.8.6 enyhítő intézkedéseinek
+kiadása után ismét megjelöli az alábbi hívási helyek bármelyikét, kérjük,
+nyisson egy hibajegyet az ellenőrzési nyomvonallal, és itt kibővítjük a
+tanúsítást.
 
 ---
 

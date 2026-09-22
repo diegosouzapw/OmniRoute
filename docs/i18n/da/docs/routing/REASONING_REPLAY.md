@@ -25,19 +25,21 @@ Men typiske klienter (Cursor, Cline, Roo Code, OpenAI SDK) fjerner `reasoning_co
 Tur N (assistenten genererer):
   → svaret indeholder reasoning_content + tool_calls
   → hvis requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      skriver (hukommelse + DB), med hver tool_call.id som nøgle
-  → videresend svaret til klienten (som muligvis bevarer ræsonnementet)
+      skriver (hukommelse + DB), nøglebaseret på hvert tool_call.id
+  → videresend svaret til klienten (som muligvis gemmer reasoning eller ej)
 
-Tur N+1 (klienten sender en opfølgning):
+Tur N+1 (klienten sender opfølgning):
   → oversætteren registrerer: requiresReasoningReplay(provider, model) === true
-  → for hver assistentbesked med tool_calls og uden reasoning_content:
+  → for hver assistentmeddelelse med tool_calls og uden reasoning_content:
       lookupReasoning(toolCalls[0].id) → hukommelse → DB
       fundet    → msg.reasoning_content = cached; recordReplay()
-      ikke fundet → msg.reasoning_content = "" (ældre reserveadfærd for ældre DeepSeek)
-  → upstream-tjenesten modtager konsistent historik → ingen 400
+      ikke fundet → msg.reasoning_content = "" (ældre fallback for tidligere DeepSeek)
+  → upstream ser konsistent historik → ingen 400
 ```
 
-Registrering sker i `open-sse/handlers/chatCore.ts` (to steder ved de to kald til `cacheReasoningFromAssistantMessage`). Afspilning sker i `open-sse/translator/index.ts` efter skemakonvertering, men før videresendelse.
+Registrering sker i `open-sse/handlers/chatCore.ts` (to steder, ved de to kald til `cacheReasoningFromAssistantMessage`). Genafspilning sker i `open-sse/translator/index.ts` efter skemakonvertering, men før videresendelse.
+
+Almindelige assistentture (uden værktøjskald) nøglebaseres anderledes: `buildAssistantMessageCacheKey()` beregner et digest af sessionskonteksten samt transskriptionen i normaliseret OpenAI-format frem til den pågældende tur, fordi DeepSeek kræver reasoning fra _hver_ tidligere tur, når `tools` er til stede. For Responses-API-mål (for eksempel `opencode-go/deepseek-v4-flash`, dirigeret til `/responses`) indeholder upstream-brødteksten `input`, ikke `messages`, så rapporterer `translateRequest()` (`open-sse/translator/index.ts`) den pivottransskription, som den beregnede et digest af, via en callback-indstilling, og registreringsstederne beregner et digest af den samme transskription. Responses-genafspilningspasset kører på OpenAI-pivoten for alle kildeformater, så Anthropic Messages-klienter (Claude → OpenAI → Responses) genafspilles også.
 
 ## Lagring — hybrid hukommelse + SQLite
 
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indekser: `expires_at`, `provider`, `model`, `created_at`. `expires_at` gemmes som Unix-epokesekunder; SELECT-laget normaliserer ældre tekstværdier via `EXPIRES_AT_EPOCH_SQL`.
+Indekser: `expires_at`, `provider`, `model`, `created_at`. `expires_at` gemmes som sekunder siden Unix-epoken; SELECT-laget normaliserer ældre tekstværdier via `EXPIRES_AT_EPOCH_SQL`.
 
 ## Registrering af udbyder/model
 

@@ -150,6 +150,9 @@ export async function POST(request) {
       // #9820: optional video-generation job preset (job/poll path).
       generationConfig,
       isFree,
+      dimensions,
+      supportedInputTypes,
+      modelType,
     } = validation.data;
 
     const model = await addCustomModel(
@@ -166,7 +169,12 @@ export async function POST(request) {
       },
       typeof supportsVision === "boolean" ? supportsVision : undefined,
       generationConfig,
-      typeof isFree === "boolean" ? isFree : undefined
+      typeof isFree === "boolean" ? isFree : undefined,
+      {
+        ...(typeof dimensions === "number" && dimensions > 0 ? { dimensions } : {}),
+        ...(Array.isArray(supportedInputTypes) ? { supportedInputTypes } : {}),
+        ...(typeof modelType === "string" ? { modelType } : {}),
+      }
     );
     return Response.json({ model });
   } catch (error) {

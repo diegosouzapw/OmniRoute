@@ -7,38 +7,37 @@
 Dhá bhealach chun Cursor a chur taobh thiar de OmniRoute gan seisiún IDE:
 
 1. **Soláthraí `cursor-api`** (cárta "Cursor API", ailias `cua`): soláthraí eochrach API
-   ina gcoinnítear eochair API úsáideora Cursor (`crsr_…`, arna giniúint ag
-   `https://cursor.com/dashboard/api`). Is féidir le cliant OmniRoute ar bith ansin
-   samhlacha Cursor a rochtain trí `/v1/chat/completions` mar `cursor-api/<model>` nó
-   `cua/<model>`, leis na gnáthshraitheanna cuóta, cúltaca agus logála. Níl aon athrú
-   ar an soláthraí IDE (`cursor`, seisiún OAuth/IDE).
-2. **Tréchur Cursor CLI**: dírigh Cursor CLI (`agent`) ar OmniRoute ionas go
-   bhfíordheimhnítear gach RPC a dhéanann an CLI le heochair API OmniRoute, go gcuirtear
-   ar aghaidh chuig Cursor é le dintiúr naisc `cursor-api`, agus go dtaifeadtar é ar an
-   leathanach Logaí.
+   a choinníonn eochair API úsáideora Cursor (`crsr_…`, a ghintear ag
+   `https://cursor.com/dashboard/api`). Is féidir le cliant OmniRoute ar bith ansin samhlacha
+   Cursor a rochtain trí `/v1/chat/completions` mar `cursor-api/<model>` nó
+   `cua/<model>`, leis na gnáthshraitheanna cuóta, cúltaca agus logála. Níl aon athrú ar an soláthraí
+   IDE (`cursor`, seisiún OAuth/IDE).
+2. **Pas-trí Cursor CLI**: treoraigh Cursor CLI (`agent`) chuig OmniRoute ionas
+   go bhfíordheimhnítear gach RPC a dhéanann an CLI le heochair API OmniRoute, go gcuirtear ar aghaidh
+   chuig Cursor é le dintiúr naisc `cursor-api`, agus go dtaifeadtar é ar an
+   leathanach Logs.
 
 ## Cén fáth a malartaítear an eochair
 
-Diúltaíonn `api2.cursor.sh` d'eochair amh `crsr_…` mar chomhartha Bearer (401). Déanann
-Cursor CLI POST den eochair chuig `/auth/exchange_user_api_key` ar dtús agus faigheann
-sé JWT seisiúin a théann in éag tar éis uair an chloig; tá an `exp` céanna ag an
-`refreshToken` a chuirtear ar ais, mar sin is gá an eochair a athmhalartú chun é a athnuachan.
-Déanann `open-sse/services/cursorApiKeyAuth.ts` an malartú sin, taisceann sé comhartha
-seisiúin amháin in aghaidh na heochrach, athmhalartaíonn sé cúig nóiméad roimh dhul in éag
-agus scriosann sé an comhartha taiscthe nuair a fhreagraíonn Cursor le 401. Glaonn
-`CursorExecutor` air díreach sula n-osclaítear an sruth réamhtheachtach do naisc
-`cursor-api`.
+Diúltaíonn `api2.cursor.sh` d’eochair amh `crsr_…` mar chomhartha Bearer (401). Déanann Cursor
+CLI POST den eochair chuig `/auth/exchange_user_api_key` ar dtús agus faigheann sé JWT seisiúin
+a théann in éag tar éis uair an chloig; bíonn an `exp` céanna ag an `refreshToken`
+a chuirtear ar ais, mar sin is gá an eochair a mhalartú arís chun athnuachan a dhéanamh.
+Déanann `open-sse/services/cursorApiKeyAuth.ts` an malartú sin, taisceann sé comhartha seisiúin
+amháin in aghaidh na heochrach, déanann sé athmhalartú cúig nóiméad roimh dhul in éag agus scriosann sé an
+comhartha taiscthe nuair a fhreagraíonn Cursor le 401. Glaonn `CursorExecutor` air díreach sula n-osclaítear
+an sruth réamhtheachtach do naisc `cursor-api`.
 
 ## An soláthraí `cursor-api`
 
 Clárlann: `open-sse/config/providers/registry/cursor/index.ts`
-(`cursor_apiProvider`, `authType: "apikey"`, an `format`, `baseUrl` agus
+(`cursor_apiProvider`, `authType: "apikey"`, na `format`, `baseUrl` agus
 `models` céanna le `cursor`). Cárta catalóige:
-`src/shared/constants/providers/apikey/specialty-media.ts`. Léarscáil seiceadóirí:
+`src/shared/constants/providers/apikey/specialty-media.ts`. Léarscáil riteora:
 `open-sse/executors/index.ts` (`"cursor-api"` / `cua` →
 `new CursorExecutor("cursor-api")`).
 
-Painéal: Soláthraithe → Cursor API → Cuir eochair API leis.
+Painéal: Providers → Cursor API → Add API key.
 
 REST:
 
@@ -59,31 +58,45 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Nótaí:
 
-- Tagann liostú na samhlacha do `cursor-api` ó chlárlann statach Cursor (an
-  liosta céanna a úsáideann an soláthraí IDE mar chúltaca); ní gá `cursor-agent`
-  a shuiteáil ar óstach OmniRoute.
-- Is don soláthraí IDE `cursor` amháin atá `POST /api/providers/{id}/refresh-cursor`;
+- Tagann liostú samhlacha do `cursor-api` ó chlárlann statach Cursor (an
+  liosta céanna a úsáideann an soláthraí IDE mar chúltaca); ní gá `cursor-agent` a shuiteáil
+  ar óstach OmniRoute.
+- Is don soláthraí IDE `cursor` amháin é `POST /api/providers/{id}/refresh-cursor`;
   níl aon seisiún IDE le hathnuachan ag naisc `cursor-api`.
 
-## Tréchur Cursor CLI
+## Aitheantais dhúchasacha samhlacha agus leibhéal iarrachta
+
+I gcás `cursor` / `cu` agus `cursor-api` / `cua`, fágann comhnormalaitheoir iarrachta Claude
+aitheantas iarrtha na samhla gan athrú. Is féidir le Cursor iarmhír amhail
+`-low` a fhógairt mar chuid d’aitheantas fíor samhla, seachas mar ailias iarrachta OmniRoute.
+Caomhnaíonn riteoir Cursor meaitseáil bheacht leis an gcatalóg bheo; nuair nach bhfuil aon
+mheaitseáil ann, láimhseálann a réiteoir samhla reatha an tiontú cúltaca ó iarmhír go paraiméadar.
+
+Ní athraíonn sé seo normalú iarrachta do bhealaí díreacha Claude, do bhealaí atá
+comhoiriúnach le Claude, ná do bhealaí Vertex. Braitheann infhaighteacht fós ar chatalóg agus
+ar theidlíocht an chuntais Cursor roghnaithe.
+
+## Seoladh tríd Cursor CLI
 
 Bealach: `src/app/api/cursor-cli/[...path]/route.ts` →
 `open-sse/handlers/cursorCliProxy.ts`. Tá an réimír `/api/cursor-cli/`
-cláraithe in `src/shared/constants/publicApiRoutes.ts` toisc go bhforfheidhmíonn an láimhseálaí
-a fhíordheimhniú féin:
+cláraithe in `src/shared/constants/publicApiRoutes.ts` toisc go
+bhforfheidhmíonn an láimhseálaí a fhíordheimhniú féin:
 
-| Conair                                                                                                                       | Fíordheimhniú a bhfuil an CLI ag súil leis | Cad a dhéanann OmniRoute                                                                                                                                                                                         |
-| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/exchange_user_api_key`                                                                                           | `Bearer <OmniRoute API key>`               | Bailíochtaíonn sé an eochair, gineann sé JWT HS256 1u (sínithe le `JWT_SECRET`) agus cuireann sé ar ais é                                                                                                        |
-| gach conair eile (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                        | Fíoraíonn sé eisitheoir/lucht éisteachta/dul in éag, roghnaíonn sé nasc gníomhach `cursor-api`, malartaíonn sé an ceanntásc Authorization don chomhartha Cursor malartaithe agus sruthaíonn sé an freagra ar ais |
+| Conair                                                                                                                       | Fíordheimhniú a bhfuiltear ag súil leis ón CLI | An méid a dhéanann OmniRoute                                                                                                                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/exchange_user_api_key`                                                                                           | `Bearer <OmniRoute API key>`                   | Bailíochtaíonn sé an eochair, eisíonn sé JWT HS256 a mhaireann 1u (sínithe le `JWT_SECRET`) agus seolann sé ar ais é                                                                                                  |
+| gach conair eile (`/aiserver.v1.*`, `/agent.v1.AgentService/RunSSE`, `/aiserver.v1.BidiService/BidiAppend`, `/v1/traces`, …) | `Bearer <that JWT>`                            | Fíoraíonn sé an t-eisitheoir/an spriocphobal/an dáta éaga, roghnaíonn sé ceangal gníomhach `cursor-api`, cuireann sé an comhartha Cursor malartaithe sa cheanntásc Authorization agus sruthaíonn sé an freagra ar ais |
 
-Díchódaíonn an CLI `exp` ó cibé comhartha a fhaigheann sé, mar sin má thugtar comhartha
-teimhneach dó, athmhalartóidh sé é roimh bheagnach gach iarratas; seachnaíonn an JWT
-ginithe é sin. Má fhaigheann an CLI 401 ó OmniRoute, déanann sé malartú arís.
+Díchódaíonn an CLI `exp` as cibé comhartha a fhaigheann sé, mar sin má thugtar
+comhartha teimhneach dó, déanann sé malartú arís roimh bheagnach gach iarratas;
+seachnaíonn an JWT eisithe é sin. Má fhaigheann sé 401 ó OmniRoute, déanann an
+CLI malartú arís.
 
-### Cumraíocht
+### Socrú
 
-1. Cruthaigh eochair API OmniRoute (Painéal → Eochracha API) agus nasc `cursor-api`.
+1. Cruthaigh eochair API OmniRoute (Painéal → Eochracha API) agus ceangal
+   `cursor-api`.
 2. Abair leis an CLI HTTP/1.1 a úsáid do shruth an ghníomhaire. In
    `~/.cursor/cli-config.json`:
 
@@ -91,9 +104,9 @@ ginithe é sin. Má fhaigheann an CLI 401 ó OmniRoute, déanann sé malartú ar
    { "network": { "useHttp1ForAgent": true } }
    ```
 
-   Gan é seo, osclaíonn an CLI seal an ghníomhaire thar HTTP/2 chuig óstach gníomhaire
-   atá cumraithe ar leithligh agus ní théann ach RPCanna an phlána rialaithe tríd an
-   gcríochphointe.
+   Gan é seo, osclaíonn an CLI seal an ghníomhaire thar HTTP/2 chuig óstach
+   gníomhaire atá cumraithe ar leithligh agus ní théann ach RPCanna an phlána
+   rialaithe tríd an gcríochphointe.
 
 3. Rith an CLI in aghaidh OmniRoute:
 
@@ -103,19 +116,19 @@ ginithe é sin. Má fhaigheann an CLI 401 ó OmniRoute, déanann sé malartú ar
    agent -p --trust "Reply with exactly OK"
    ```
 
-Téann gach céim isteach sna Logaí mar sholáthraí `cursor-api`, cineál iarratais `cursor-cli`,
-conair `/api/cursor-cli/<rpc>`, agus cuirtear i leith eochair API OmniRoute agus an
-naisc a d'fhreastail air é.
+Taispeántar gach céim sna Logaí leis an soláthraí `cursor-api`, leis an gcineál
+iarratais `cursor-cli`, agus leis an gconair `/api/cursor-cli/<rpc>`, agus í
+curtha i leith eochair API OmniRoute agus an cheangail a rinne freastal uirthi.
 
-### Modhanna teipe
+### Módanna teipe
 
-| Cás                                                       | Freagra don CLI                                       |
-| --------------------------------------------------------- | ----------------------------------------------------- |
-| Eochair OmniRoute anaithnid agus `REQUIRE_API_KEY=true`   | 401 `unauthenticated` le linn an mhalartaithe         |
-| `REQUIRE_API_KEY=false`                                   | seisiún anaithnid (a léiríonn iompar `/v1/*`)         |
-| JWT seisiúin atá imithe in éag / eachtrach / cúbláilte    | 401, déanann an CLI athmhalartú                       |
-| Eochair API OmniRoute cúlghairthe tar éis an mhalartaithe | 401 ar an gcéad RPC eile                              |
-| Gan aon cheangal gníomhach `cursor-api`                   | 503 `unavailable`                                     |
-| Diúltaíonn Cursor d'eochair an cheangail                  | 401 `unauthenticated`, scriostar an seisiún i dtaisce |
-| Ní féidir an córas réamhtheachtach a bhaint amach         | 502 `unavailable` (teachtaireacht sláintithe)         |
-| `JWT_SECRET` gan socrú                                    | 503 le linn an mhalartaithe                           |
+| Cás                                                     | Freagra don CLI                                      |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| Eochair anaithnid OmniRoute agus `REQUIRE_API_KEY=true` | 401 `unauthenticated` le linn an mhalartaithe        |
+| `REQUIRE_API_KEY=false`                                 | seisiún gan ainm (ar aon dul le hiompar `/v1/*`)     |
+| JWT seisiúin atá imithe in éag / eachtrach / cúbláilte  | 401, déanann an CLI malartú arís                     |
+| Eochair API OmniRoute cúlghairthe tar éis malartaithe   | 401 ar an gcéad RPC eile                             |
+| Gan aon cheangal gníomhach `cursor-api`                 | 503 `unavailable`                                    |
+| Diúltaíonn Cursor d’eochair an cheangail                | 401 `unauthenticated`, baintear an seisiún ón taisce |
+| Ní féidir an córas réamhtheachtach a bhaint amach       | 502 `unavailable` (teachtaireacht slánaithe)         |
+| `JWT_SECRET` gan socrú                                  | 503 le linn an mhalartaithe                          |

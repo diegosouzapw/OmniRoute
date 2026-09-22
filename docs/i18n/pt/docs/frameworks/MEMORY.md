@@ -167,31 +167,33 @@ A tabela `memory_vec_meta` (migração `083_memory_vec.sql`) armazena:
 Estão disponíveis nove campos de embeddings e vetores em `MemorySettingsExtended`, em
 `src/shared/schemas/memory.ts`, persistidos através de `src/lib/db/settings.ts`:
 
-| Campo                    | Tipo                                               | Predefinição | Descrição                                                    |
-| ------------------------ | -------------------------------------------------- | ------------ | ------------------------------------------------------------ |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`     | Fonte de embeddings a utilizar                               |
-| `embeddingProviderModel` | `string \| null`                                   | `null`       | Fornecedor/modelo no formato `provider/model`                |
-| `customBaseUrl`          | `string \| null`                                   | `null`       | URL base de endpoint compatível com OpenAI só para Memory    |
-| `customModelId`          | `string \| null`                                   | `null`       | ID do modelo enviado para o endpoint personalizado           |
-| `transformersEnabled`    | `boolean`                                          | `false`      | Ativação explícita do Transformers.js (MiniLM, ~400 MB)      |
-| `staticEnabled`          | `boolean`                                          | `false`      | Ativação explícita do modelo local estático potion-base-8M   |
-| `rerankEnabled`          | `boolean`                                          | `false`      | Ativar a etapa de reordenação (adiciona +200–500 ms/pedido)  |
-| `rerankProviderModel`    | `string \| null`                                   | `null`       | Fornecedor/modelo de reordenação no formato `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`     | Backend vetorial a utilizar                                  |
+| Campo                    | Tipo                                               | Predefinição | Descrição                                                        |
+| ------------------------ | -------------------------------------------------- | ------------ | ---------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`     | Fonte de embeddings a utilizar                                   |
+| `embeddingProviderModel` | `string \| null`                                   | `null`       | Fornecedor/modelo no formato `provider/model`                    |
+| `customBaseUrl`          | `string \| null`                                   | `null`       | URL base de endpoint compatível com OpenAI apenas para a memória |
+| `customModelId`          | `string \| null`                                   | `null`       | ID do modelo enviado para o endpoint personalizado               |
+| `transformersEnabled`    | `boolean`                                          | `false`      | Adesão ao Transformers.js (MiniLM, ~400MB)                       |
+| `staticEnabled`          | `boolean`                                          | `false`      | Adesão ao modelo local estático potion-base-8M                   |
+| `rerankEnabled`          | `boolean`                                          | `false`      | Ativar a etapa de reordenação (adiciona +200-500ms/pedido)       |
+| `rerankProviderModel`    | `string \| null`                                   | `null`       | Fornecedor/modelo de reordenação no formato `provider/model`     |
 
-Estes campos são disponibilizados através de `GET /PUT /api/settings/memory` (esquema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` é resolvido por `POST /v1/rerank` (invocado através de loopback), pelo que aceita tudo o que essa rota aceita: um modelo de reordenação na nuvem selecionado (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ou um nó de fornecedor compatível com OpenAI no formato `<node-prefix>/<model>` (por exemplo, `skilled-mini/bge-reranker-v2-m3` para uma instância TEI/Infinity). Os nós de loopback são sempre elegíveis; um nó noutro anfitrião (LAN, Tailscale) requer adicionalmente o sinalizador de funcionalidade `RERANK_REMOTE_PROVIDER_NODES` e tem de cumprir a política de URLs de saída do fornecedor — consulte [Sinalizadores de funcionalidade](../reference/FEATURE_FLAGS.md). O seletor do painel apresenta os fornecedores selecionados e os nós locais; qualquer cadeia `provider/model` válida pode ser definida diretamente através de `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend vetorial a utilizar |
+
+Estes campos são expostos através de `GET /PUT /api/settings/memory` (esquema `MemorySettingsExtendedSchema`).
 
 Para a origem `remote`, o Memory também aceita as definições opcionais `customBaseUrl` e
-`customModelId`. Em conjunto, estas selecionam um endpoint `/embeddings` compatível
-com OpenAI e um modelo, sem alterar o registo global de embeddings. O endpoint é
+`customModelId`. Em conjunto, estas selecionam um endpoint `/embeddings` compatível com
+OpenAI e um modelo sem alterar o registo global de embeddings. O endpoint é
 normalizado antes da utilização e verificado pela política de URLs de saída do fornecedor:
-é necessário HTTP(S), as credenciais incorporadas e as cadeias de consulta são rejeitadas,
-e os endereços de metadados da cloud continuam bloqueados. Os valores vazios preservam
-o fornecedor selecionado no registo. Os erros devolvidos ao painel são sanitizados e as
-credenciais do endpoint nunca são registadas nos logs.
+é obrigatório usar HTTP(S), as credenciais incorporadas e as cadeias de consulta são
+rejeitadas, e os endereços de metadados da nuvem permanecem bloqueados. Os valores vazios
+preservam o fornecedor selecionado no registo. Os erros devolvidos ao painel são
+sanitizados e as credenciais do endpoint nunca são registadas.
 
-> **TODO (D20):** O âmbito `global` (partilha de memórias entre todas as chaves de API) não está
-> implementado nesta versão. Requer alterações ao esquema e um caminho de recuperação
+> **TODO (D20):** O âmbito `global` (partilha de memórias entre todas as chaves de API) não
+> está implementado nesta versão. Requer alterações ao esquema e um caminho de recuperação
 > global. Acompanhar separadamente.
 
 ## Camadas de armazenamento

@@ -22,22 +22,24 @@ Lakin tipik müştərilər (Cursor, Cline, Roo Code, OpenAI SDK) təkrar göndə
 ## Arxitektura
 
 ```
-N-ci gediş (köməkçi yaradır):
+N-ci gediş (assistant yaradır):
   → cavab reasoning_content + tool_calls ehtiva edir
   → əgər requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      hər tool_call.id əsasında açarlanaraq (yaddaşa + DB-yə) yazır
-  → cavabı müştəriyə ötürür (müştəri əsaslandırmanı saxlaya da bilər, saxlamaya da bilər)
+      hər bir tool_call.id ilə açarlanaraq yazır (yaddaş + DB)
+  → cavabı müştəriyə yönləndirir (müştəri əsaslandırmanı saxlaya da bilər, saxlamaya da bilər)
 
 N+1-ci gediş (müştəri növbəti sorğunu göndərir):
-  → tərcüməçi müəyyən edir: requiresReasoningReplay(provider, model) === true
-  → tool_calls ehtiva edən və reasoning_content ehtiva etməyən hər köməkçi mesajı üçün:
+  → tərcüməçi aşkarlayır: requiresReasoningReplay(provider, model) === true
+  → tool_calls olan və reasoning_content olmayan hər bir assistant mesajı üçün:
       lookupReasoning(toolCalls[0].id) → yaddaş → DB
-      uyğunluq var  → msg.reasoning_content = cached; recordReplay()
-      uyğunluq yoxdur → msg.reasoning_content = "" (köhnə DeepSeek üçün əvvəlki ehtiyat davranış)
+      tapıldı   → msg.reasoning_content = cached; recordReplay()
+      tapılmadı → msg.reasoning_content = "" (köhnə DeepSeek üçün əvvəlki davranışa keçid)
   → yuxarı axın ardıcıl tarixçə görür → 400 xətası yoxdur
 ```
 
-Qeydəalma `open-sse/handlers/chatCore.ts` faylında (iki yerdə, iki `cacheReasoningFromAssistantMessage` çağırış nöqtəsində) baş verir. Təkrar istifadə sxem uyğunlaşdırmasından sonra, lakin göndərişdən əvvəl `open-sse/translator/index.ts` faylında baş verir.
+Qeydəalma `open-sse/handlers/chatCore.ts` daxilində (iki yerdə, iki `cacheReasoningFromAssistantMessage` çağırış nöqtəsində) baş verir. Təkrar oynatma `open-sse/translator/index.ts` daxilində, sxemə uyğunlaşdırmadan sonra, lakin göndərişdən əvvəl baş verir.
+
+Adi (alət çağırışı olmayan) assistant gedişləri fərqli şəkildə açarlanır: `buildAssistantMessageCacheKey()` sessiya əhatəsini və həmin gedişə qədər normallaşdırılmış OpenAI formatlı transkripti həzm edir, çünki `tools` mövcud olduqda DeepSeek _hər bir_ əvvəlki gedişin əsaslandırmasını tələb edir. Responses API hədəfləri üçün (məsələn, `/responses` ünvanına yönləndirilən `opencode-go/deepseek-v4-flash`) yuxarı axın gövdəsi `messages` deyil, `input` daşıyır; buna görə də `translateRequest()` (`open-sse/translator/index.ts`) həzm etdiyi aralıq transkripti callback seçimi vasitəsilə bildirir və qeydəalma nöqtələri həmin transkripti eyni qaydada həzm edir. Responses təkrar oynatma mərhələsi hər bir mənbə formatı üçün OpenAI aralıq təqdimatı üzərində işləyir, buna görə Anthropic Messages müştəriləri (Claude → OpenAI → Responses) üçün də təkrar oynatma həyata keçirilir.
 
 ## Saxlama — Hibrid yaddaş + SQLite
 

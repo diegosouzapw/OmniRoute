@@ -220,35 +220,40 @@ Neid reegleid jõustavad tööriistad ja ülevaatajad:
 10. **`exec()` / `spawn()` käitusväärtused läbi `env` valiku** — ära kunagi stringi-interpoleeri väliseid teid või ebausaldusväärseid väärtusi shelli kaudu käivitatavatesse skriptidesse. Viide: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Eelista vaikimisi turvalisi teeke** — vaata [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Kasuta neid enne oma lahenduse kirjutamist.
 
-## Tarneahela skanneri leiud (Socket.dev / Snyk / sarnased)
+## Tarneahela skanneri tuvastused (Socket.dev / Snyk / sarnased)
 
-Avaldatud `omniroute` npm-i artefakt sisaldab Next.js-i `output: "standalone"`
-järku, mis tähendab, et iga marsruudikäitleja — sealhulgas dokumenteeritud privilegeeritud
-funktsioonid (MITM, Zedi import, Cloud Sync, manustatud teenuste järelevaataja) — jõuab
-minimeeritud fragmentidena kataloogi `.next/server/*.js`. Heuristilised tarneahela skannerid
-võrdlevad neid fragmente sageli pahavara signatuuride mustritega.
+> **Ulatusmärkus:** hoidla juurkaustas olev `socket.yml` määrab üksnes Socket.dev registripoolse avaldamisjärgse skanni `projectIgnorePaths` sätted avaldatud npm-artefakti jaoks — see ei ole jõustatud CI/PR-i liitmise kontrollpunkt. Ükski `.github/workflows` töövoog, `package.json` skript ega `Makefile` sihtmärk ei käivita Socket.dev-i.
 
-Meie kasutatav skanneri konfiguratsioon asub repositooriumi juurkataloogis failis
+Avaldatud `omniroute` npm-artefakt sisaldab Next.js-i `output: "standalone"`
+järku, mis tähendab, et iga marsruudikäitleja — sealhulgas dokumenteeritud
+privilegeeritud funktsioonid (MITM, Zedi import, Cloud Sync, manustatud teenuste
+järelevaataja) — jõuab `.next/server/*.js` minimeeritud tükkidesse. Heuristilised
+tarneahela skannerid võrdlevad neid tükke sageli mustripõhiselt pahavara
+signatuuridega.
+
+Meie kasutatav skanneri konfiguratsioon asub hoidla juurkaustas failis
 [`socket.yml`](socket.yml) (Socket.dev GitHub Appi vorming v2 — vt
 <https://docs.socket.dev/docs/socket-yml>). See välistab sõnaselgelt
-mittelisatavad kataloogid (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` jne), et skanner raporteeriks ainult kooditeedest, mis
-tegelikult avaldatud versiooni kasutajateni jõuavad — skannimist ennast käitab seda faili lugev Socketi
-GitHub App, mitte selle repositooriumi töövoog.
+mittetarnitavad kataloogid (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` jne), et skanner esitaks teateid ainult nende
+kooditeede kohta, mis tegelikult avaldatud versiooni kasutajateni jõuavad —
+skanni ennast käitab seda faili lugev Socket GitHub App, mitte selle hoidla
+töövoog.
 
-Iga leiukategooria kohta haldame iga leiu jaoks hooldaja kinnitust:
+Iga tuvastuskategooria kohta hoiame haldaja kinnitust:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  leiupõhine vastendus: lähtefail ↔ märgistatud fragment ↔ käitumine ↔ versioonis v3.8.6
-  rakendatud leevendus.
-- Lähtekoodis olevad `SECURITY-AUDITOR-NOTE:` plokid iga märgistatud funktsiooni juures
-  viitavad samale dokumendile.
+  tuvastuspõhine vastavuskaart: lähtefail ↔ märgistatud tükk ↔ käitumine ↔
+  versioonis v3.8.6 rakendatud leevendus.
+- Lähtekoodis olevad `SECURITY-AUDITOR-NOTE:` plokid iga märgistatud funktsiooni
+  juures viitavad samale dokumendile.
 
-Kasutajad, kelle konveier ei saa hoiatust leevendada, peaksid järgu looma käsuga
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. See asendab neli
-tundlikku moodulit stubidega, mis tagastavad käitusajal HTTP 503 `feature-disabled`,
-nii et privilegeeritud kooditeed puuduvad paketist füüsiliselt.
-Avaldamisjuhised leiate failist [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+Kasutajad, kelle konveier ei võimalda hoiatust leevendada, saavad järgu luua
+käsuga `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. See asendab neli
+tundlikku moodulit stubidega, mis tagastavad käitusajal HTTP 503
+`feature-disabled`, mistõttu privilegeeritud kooditeed paketis füüsiliselt
+puuduvad. Avaldamisjuhiseid vt failist
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Viited
 

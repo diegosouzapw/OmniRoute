@@ -68,16 +68,24 @@ Weka hivi katika mazingira ya mchakato wa OmniRoute (daemon, k.m. kupitia Launch
 
 ## Maonyo ya npm install (ERESOLVE / peer / deprecated)
 
-Unapoendesha `npm install -g omniroute`, unaweza kuona maonyo mengi kama `npm warn ERESOLVE`, arifa za utegemezi-rika, na ujumbe wa `deprecated`. **Haya yanatarajiwa na hayana madhara.** Usakinishaji wako umefaulu ikiwa unaona `added <N> packages` kwenye matokeo.
+Unapoendesha `npm install -g omniroute`, unaweza kuona maonyo mengi kama vile `npm warn ERESOLVE`, arifa za vitegemezi-rika, na ujumbe wa `deprecated`. **Haya yanatarajiwa na hayana madhara.** Usakinishaji wako umefaulu ikiwa unaona `added <N> packages` kwenye matokeo.
 
-Maonyo hayo yanatokana na masafa yaliyopitwa na wakati ya utegemezi-rika katika vifurushi vya wahusika wengine ambavyo OmniRoute haidhibiti:
+Ili kuzuia maonyo ya utatuzi wa vitegemezi-rika, tumia njia ya usakinishaji inayotumika rasmi na OmniRoute:
 
-1. **`marked-terminal` inahitaji `marked >=1 <16`, lakini `marked@18` imepatikana** — hufanya kazi vizuri kwa vitendo; masafa ya utegemezi-rika ya upstream yamepitwa na wakati tu.
-2. **`deprecated prebuild-install@7.1.3`** — zana saidizi tegemezi ya kupakua faili jozi asilia. Haitumiki
-   kusakinisha uunganishaji wa usafirishaji wa `wreq-js` uliowekwa kwenye toleo mahususi na haimaanishi kuwa usanidi wa usafirishaji
-   wa mtoa huduma wa vidakuzi vya wavuti umeshindwa.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Hakuna hatua inayohitajika** — maonyo hayawezi kunyamazishwa kikamilifu bila kuunda matoleo mbadala ya vifurushi vya upstream.
+`--legacy-peer-deps` huzuia `ERESOLVE` na arifa za vitegemezi-rika pekee. Arifa za kutotumika tena huendelea kuonekana kwa sababu zinatoka kwenye vifurushi vya wahusika wengine vinavyotegemewa kwa njia isiyo ya moja kwa moja; hazimaanishi kuwa usakinishaji umeshindwa.
+
+Maonyo hutokana na masafa yaliyopitwa na wakati ya vitegemezi-rika katika vifurushi vya wahusika wengine ambavyo OmniRoute haidhibiti:
+
+1. **`marked-terminal` inahitaji `marked >=1 <16`, lakini `marked@18` imepatikana** — hufanya kazi vizuri kwa vitendo; masafa ya rika ya chanzo cha juu yamepitwa na wakati tu.
+2. **`deprecated prebuild-install@7.1.3`** — zana saidizi ya kupata faili asili za jozi inayotegemewa kwa njia isiyo ya moja kwa moja. Haitumiki
+   kusakinisha kiunganishi cha usafirishaji cha `wreq-js` kilichobainishwa toleo na haimaanishi kuwa usanidi wa usafirishaji wa mtoa huduma wa web-cookie
+   umeshindwa.
+
+**Hakuna hatua inayohitajika** — maonyo hayawezi kunyamazishwa kikamilifu bila kugawanya vifurushi vya chanzo cha juu.
 
 ---
 

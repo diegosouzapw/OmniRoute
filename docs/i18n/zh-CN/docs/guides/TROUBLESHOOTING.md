@@ -68,16 +68,24 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # 延长等待重量级请求容�
 
 ## npm install 警告（ERESOLVE / peer / deprecated）
 
-运行 `npm install -g omniroute` 时，你可能会看到大量警告，例如 `npm warn ERESOLVE`、peer 依赖通知和 `deprecated` 消息。**这些是预期行为，不会造成影响。** 如果输出中出现 `added <N> packages`，则表示安装已成功。
+运行 `npm install -g omniroute` 时，你可能会看到大量警告，例如 `npm warn ERESOLVE`、对等依赖通知以及 `deprecated` 消息。**这些都是预期内且无害的。** 如果输出中出现 `added <N> packages`，则表示安装已成功。
 
-这些警告来自 OmniRoute 无法控制的第三方软件包中过时的 peer 依赖版本范围：
+要抑制对等依赖解析警告，请使用 OmniRoute 支持的安装方式：
 
-1. **`marked-terminal` 要求 `marked >=1 <16`，但检测到 `marked@18`** — 实际使用中运行正常；只是上游的 peer 依赖版本范围已过时。
-2. **`deprecated prebuild-install@7.1.3`** — 一个用于获取原生二进制文件的传递依赖辅助工具。它并不
-   用于安装已固定版本的 `wreq-js` 传输绑定，也不表示 Web Cookie
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` 仅抑制 `ERESOLVE` 和对等依赖通知。弃用通知仍会显示，因为它们来自传递依赖中的第三方软件包；这些通知并不表示安装失败。
+
+这些警告源自 OmniRoute 无法控制的第三方软件包中过时的对等依赖版本范围：
+
+1. **`marked-terminal` 要求 `marked >=1 <16`，但发现的是 `marked@18`** — 实际使用中运行正常；只是上游的对等依赖版本范围已过时。
+2. **`deprecated prebuild-install@7.1.3`** — 一个用于获取原生二进制文件的传递依赖辅助工具。它不会
+   用于安装已固定版本的 `wreq-js` 传输绑定，也不表示 web-cookie
    提供程序的传输设置失败。
 
-**无需执行任何操作** — 如果不 fork 上游软件包，就无法完全消除这些警告。
+**无需采取任何操作** — 如果不复刻上游软件包，就无法完全消除这些警告。
 
 ---
 

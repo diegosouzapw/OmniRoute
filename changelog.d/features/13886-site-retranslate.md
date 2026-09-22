@@ -1,1 +1,0 @@
-- **feat(i18n):** `retranslate-site` rewrites the site catalogs' verbatim-English leaves (2,059 across 63 catalogs; mean English residue 10.3 % → 6.3 %, the rest being brand names kept on purpose). (#13886)

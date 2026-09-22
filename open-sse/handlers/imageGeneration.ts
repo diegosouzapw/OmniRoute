@@ -2226,7 +2226,7 @@ function extractImageInputs(body) {
   };
 }
 
-async function resolveImageSource(source) {
+export async function resolveImageSource(source) {
   if (typeof source !== "string" || source.trim().length === 0) {
     throw new Error("Invalid image source");
   }
@@ -2243,15 +2243,11 @@ async function resolveImageSource(source) {
   }
 
   if (isHttpUrl(trimmed)) {
-    // GHSA-34rg-3pqj-35g9: this URL is caller input (`image_url` / `mask_url` / message
-    // parts) — pin `public-only` explicitly (string check + DNS validation of every
-    // resolved answer). Never let it fall back to the operator outbound policy
-    // (`getProviderOutboundGuard()`), which is `block-metadata` on a local-first default
-    // install and would let a request body make the server fetch loopback/LAN URLs and
-    // forward the bytes upstream. `pinDns` stays off on purpose: this handler's only
-    // transport is `globalThis.fetch` (no `fetchImpl` seam) and connection pinning
-    // replaces it with a raw undici fetch — same shape as the AI Horde result download.
-    const remoteImage = await fetchRemoteImage(trimmed, { guard: "public-only" });
+    // GHSA-34rg-3pqj-35g9 / #13883: caller-input URL — pin `public-only` (never the operator
+    // outbound policy, which would let a request body reach loopback/LAN) and `pinDns: true`
+    // to close the DNS-rebinding TOCTOU where a second, un-pinned resolution at connect time
+    // could answer differently than the validated lookup and bypass the guard.
+    const remoteImage = await fetchRemoteImage(trimmed, { guard: "public-only", pinDns: true });
     return {
       buffer: remoteImage.buffer,
       base64: remoteImage.buffer.toString("base64"),
@@ -3242,7 +3238,7 @@ function normalizeNanoBananaSyncPayload(data, prompt) {
   return { data: images.filter(Boolean) };
 }
 
-async function normalizeNanoBananaTaskResult(taskData, body, log) {
+export async function normalizeNanoBananaTaskResult(taskData, body, log) {
   const response = taskData?.response || {};
 
   const urlCandidates = [
@@ -3280,10 +3276,10 @@ async function normalizeNanoBananaTaskResult(taskData, body, log) {
 
     if (urlCandidates.length > 0) {
       const firstUrl = urlCandidates[0];
-      // GHSA-34rg-3pqj-35g9: upstream-supplied result URL, not an OmniRoute-controlled
-      // host — pin `public-only` exactly like the AI Horde result download does, never
-      // the operator outbound policy (see `resolveImageSource` for why `pinDns` is off).
-      const remoteImage = await fetchRemoteImage(firstUrl, { guard: "public-only" });
+      // GHSA-34rg-3pqj-35g9 / #13883: upstream-supplied result URL, not an OmniRoute-
+      // controlled host — pin `public-only`, never the operator outbound policy, and
+      // `pinDns: true` to close the DNS-rebinding TOCTOU (see `resolveImageSource`).
+      const remoteImage = await fetchRemoteImage(firstUrl, { guard: "public-only", pinDns: true });
       const base64 = remoteImage.buffer.toString("base64");
       return [{ b64_json: base64, revised_prompt: body.prompt }];
     }

@@ -449,8 +449,8 @@ open-sse/
 ├── translator/             형식 변환(OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions 스트림 트랜스포머
 ├── services/               80개 이상의 서비스 모듈(조합, 폴백, 할당량, ID, …)
-├── utils/                  스트리밍 헬퍼, TLS 클라이언트, AWS SigV4, 프록시 가져오기, …
-└── mcp-server/             MCP 서버(전송 방식 3개, 범위 33개, 도구 110개)
+├── utils/                  스트리밍 헬퍼, TLS 클라이언트, AWS SigV4, 프록시 페치, …
+└── mcp-server/             MCP 서버(전송 방식 3개, 스코프 33개, 도구 110개)
 ```
 
 ### 4.1 `open-sse/handlers/`
@@ -475,70 +475,70 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-각각 `BaseExecutor`(`base.ts`)를 확장하는 108개의 제공자 실행기:
+108개의 제공자 실행기가 있으며, 각각 `BaseExecutor`(`base.ts`)를 확장합니다.
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, 그리고 `claudeIdentity.ts`
-(공유 ID 헬퍼)와 `index.ts`(레지스트리).
+(공유 ID 헬퍼)와 `index.ts`(레지스트리)가 있습니다.
 
 > 참고: 여기에 나열되지 않은 제공자는 범용 OpenAI 호환 실행기를 사용하는
-> `default.ts`를 통해 서비스됩니다. 전체 제공자 카탈로그(355개 제공자)는
+> `default.ts`에서 처리합니다. 전체 제공자 카탈로그(355개 제공자)는
 > `src/shared/constants/providers.ts`에 있습니다.
 
 ### 4.3 `open-sse/translator/`
 
-허브 앤드 스포크 방식의 변환(OpenAI가 허브).
+허브-앤-스포크 방식의 변환 구조이며, OpenAI가 허브입니다.
 
-- **요청 변환기 9개** (`translator/request/`):
+- **요청 변환기 9개**(`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
-- **응답 변환기 9개** (`translator/response/`):
+- **응답 변환기 9개**(`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **헬퍼 9개** (`translator/helpers/`):
+- **헬퍼 9개**(`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, 그리고
   헬퍼 테스트.
-- **이미지 헬퍼** (`translator/image/sizeMapper.ts`).
+- **이미지 헬퍼**(`translator/image/sizeMapper.ts`).
 - 최상위: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
 - `responsesTransformer.ts` — `TransformStream` 기반 Responses API ↔ Chat
-  Completions 변환기(`responses/` 라우트의 포괄 처리에서 사용).
+  Completions 변환기(`responses/` 라우트의 포괄 처리에 사용).
 
 ### 4.5 `open-sse/services/`
 
-주요 항목(전체 목록은 `open-sse/services/` 아래에 있음):
+주요 항목(전체 목록은 `open-sse/services/`에 있음):
 
-| 관심 영역         | 파일                                                                                                                                                                                                                                              |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 콤보 라우팅       | `combo.ts` (19개 전략), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                 |
-| 자동 콤보 엔진    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| 복원력            | `accountFallback.ts` (쿨다운 + 잠금), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                       |
-| 할당량            | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| 캐싱              | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
-| 라우팅 인텔리전스 | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| 모델 처리         | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| 압축              | `compression/` — 전체 압축 엔진 연결 구성                                                                                                                                                                                                         |
-| 토큰 + 세션       | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| 티어 / 매니페스트 | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP / 네트워크     | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| 배치              | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| 사용량            | `usage.ts`                                                                                                                                                                                                                                        |
+| 관심 영역         | 파일                                                                                                                                                                                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 콤보 라우팅       | `combo.ts`(19개 전략), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                         |
+| 자동 콤보 엔진    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| 복원력            | `accountFallback.ts`(쿨다운 + 잠금), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                               |
+| 할당량            | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| 캐싱              | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| 라우팅 인텔리전스 | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| 모델 처리         | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| 압축              | `compression/` — 전체 압축 엔진 배선                                                                                                                                                                                                                     |
+| 토큰 + 세션       | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| 티어 / 매니페스트 | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / 네트워크     | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| 배치              | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| 사용량            | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- `server.ts`에 연결된 **110개의 고유 도구** (`schemas/tools.ts`의 표준 도구 45개 +
-  메모리, 스킬, GitHub 스킬, 풀, 게이미피케이션, 플러그인, Notion, Obsidian,
-  로컬 코퍼스 및 압축 모듈 — `countUniqueMcpTools`로 합집합을 계산).
+- `server.ts`에 연결된 **110개의 고유 도구**(`schemas/tools.ts`에 정의된 45개의 표준 도구 +
+  메모리, 스킬, GitHub 스킬, 풀, 게임화, 플러그인, Notion, Obsidian,
+  로컬 코퍼스 및 압축 모듈 — `countUniqueMcpTools`로 합집합 계산).
 - **3가지 전송 방식**: stdio, HTTP Streamable, SSE.
 - 런타임에 적용되는 **33개 스코프** — 기본 목록은 `src/shared/constants/mcpScopes.ts`에 있으며, 전체 집합은 각 도구 모듈에서 선언한 스코프의 합집합입니다.
-- 감사 테이블: `mcp_tool_audit` (`audit.ts`에서 데이터 저장).
+- 감사 테이블: `mcp_tool_audit`(`audit.ts`로 채워짐).
 - 파일: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
@@ -561,7 +561,7 @@ ID 헬퍼(`codexIdentity.ts`, `codexInstructions.ts`,
 
 ### 4.8 `open-sse/utils/`
 
-스트리밍 프리미티브 및 제공자 헬퍼: `stream.ts`, `streamHandler.ts`,
+스트리밍 기본 요소 및 제공자 헬퍼: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,

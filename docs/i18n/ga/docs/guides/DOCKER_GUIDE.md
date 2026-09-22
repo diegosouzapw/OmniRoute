@@ -27,6 +27,12 @@
 
 ## Rith Thapa
 
+> **Féinóstáil le hordú amháin?** Féach ar an
+> [Treoir Féinóstála](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (íomhá fhoilsithe +
+> Redis, aischúb amháin, gan rogha próifíle). Is é an Rith Thapa thíos an
+> chonair aon-choimeádáin d’úsáideoirí a ritheann Redis in áit eile cheana féin.
+
 ```bash
 docker run -d \
   --name omniroute \

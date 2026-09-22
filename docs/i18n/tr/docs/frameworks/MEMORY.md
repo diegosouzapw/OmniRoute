@@ -161,32 +161,34 @@ girdiyi işler. İlerleme, `GET /api/memory/engine-status`
 ## Ayarlar uzantısı
 
 Dokuz gömme ve vektör alanı, `src/shared/schemas/memory.ts` içindeki
-`MemorySettingsExtended` kapsamında kullanılabilir ve `src/lib/db/settings.ts` aracılığıyla kalıcı hâle getirilir:
+`MemorySettingsExtended` kapsamında kullanılabilir ve `src/lib/db/settings.ts` aracılığıyla kalıcı olarak saklanır:
 
-| Alan                     | Tür                                                | Varsayılan | Açıklama                                                                |
-| ------------------------ | -------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | Kullanılacak gömme kaynağı                                              |
-| `embeddingProviderModel` | `string \| null`                                   | `null`     | `provider/model` biçiminde sağlayıcı/model                              |
-| `customBaseUrl`          | `string \| null`                                   | `null`     | Yalnızca belleğe özel OpenAI uyumlu uç nokta temel URL'si               |
-| `customModelId`          | `string \| null`                                   | `null`     | Özel uç noktaya gönderilen model kimliği                                |
-| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js için katılım (MiniLM, ~400 MB)                          |
-| `staticEnabled`          | `boolean`                                          | `false`    | Yerel statik potion-base-8M modeli için katılım                         |
-| `rerankEnabled`          | `boolean`                                          | `false`    | Yeniden sıralama adımını etkinleştirir (istek başına +200-500 ms ekler) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`     | `provider/model` biçiminde yeniden sıralama sağlayıcısı/modeli          |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`   | Kullanılacak vektör arka ucu                                            |
+| Alan                     | Tür                                                | Varsayılan | Açıklama                                                               |
+| ------------------------ | -------------------------------------------------- | ---------- | ---------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | Kullanılacak gömme kaynağı                                             |
+| `embeddingProviderModel` | `string \| null`                                   | `null`     | `provider/model` biçimindeki sağlayıcı/model                           |
+| `customBaseUrl`          | `string \| null`                                   | `null`     | Yalnızca Memory için OpenAI uyumlu uç nokta temel URL'si               |
+| `customModelId`          | `string \| null`                                   | `null`     | Özel uç noktaya gönderilen model kimliği                               |
+| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js için isteğe bağlı etkinleştirme (MiniLM, ~400MB)       |
+| `staticEnabled`          | `boolean`                                          | `false`    | Yerel statik potion-base-8M modeli için isteğe bağlı etkinleştirme     |
+| `rerankEnabled`          | `boolean`                                          | `false`    | Yeniden sıralama adımını etkinleştirir (istek başına +200-500ms ekler) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`     | `provider/model` biçimindeki yeniden sıralama sağlayıcısı/modeli       |
 
-Bunlar `GET /PUT /api/settings/memory` üzerinden sunulur (`MemorySettingsExtendedSchema` şeması).
+`rerankProviderModel`, `POST /v1/rerank` tarafından çözümlenir (geri döngü üzerinden çağrılır); bu nedenle söz konusu rotanın kabul ettiği her şeyi kabul eder: seçilmiş bir bulut yeniden sıralama modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) veya `<node-prefix>/<model>` biçiminde OpenAI uyumlu bir sağlayıcı düğümü (ör. bir TEI/Infinity kutusu için `skilled-mini/bge-reranker-v2-m3`). Geri döngü düğümleri her zaman uygundur; başka bir ana makinedeki (LAN, Tailscale) bir düğüm ayrıca `RERANK_REMOTE_PROVIDER_NODES` özellik bayrağını gerektirir ve sağlayıcı giden URL politikasını geçmelidir — bkz. [Özellik Bayrakları](../reference/FEATURE_FLAGS.md). Pano seçicisi, seçilmiş sağlayıcıların yanı sıra yerel düğümleri de listeler; geçerli herhangi bir `provider/model` dizesi, `PUT /api/settings/memory` aracılığıyla doğrudan ayarlanabilir.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Kullanılacak vektör arka ucu |
+
+Bunlar, `GET /PUT /api/settings/memory` aracılığıyla kullanıma sunulur (`MemorySettingsExtendedSchema` şeması).
 
 `remote` kaynağı için Memory, isteğe bağlı `customBaseUrl` ve
-`customModelId` ayarlarını da kabul eder. Bunlar birlikte, genel gömme kayıt defterini değiştirmeden OpenAI uyumlu bir `/embeddings`
+`customModelId` ayarlarını da kabul eder. Bu ayarlar birlikte, genel gömme kayıt defterini değiştirmeden OpenAI uyumlu bir `/embeddings`
 uç noktası ve modeli seçer. Uç nokta kullanılmadan önce
-normalleştirilir ve sağlayıcının giden URL ilkesi tarafından denetlenir: HTTP(S)
-zorunludur, gömülü kimlik bilgileri ile sorgu dizeleri reddedilir ve bulut meta veri
-adresleri engellenmeye devam eder. Boş değerler, seçilen kayıt defteri sağlayıcısını korur. Kontrol paneline
+normalleştirilir ve sağlayıcı giden URL politikası tarafından denetlenir: HTTP(S)
+gereklidir; gömülü kimlik bilgileri ve sorgu dizeleri reddedilir, bulut meta veri
+adresleri ise engellenmeye devam eder. Boş değerler, seçili kayıt defteri sağlayıcısını korur. Panoya
 döndürülen hatalar hassas bilgilerden arındırılır ve uç nokta kimlik bilgileri hiçbir zaman günlüğe kaydedilmez.
 
-> **YAPILACAK (D20):** `global` kapsamı (belleklerin tüm API anahtarları arasında paylaşılması) bu sürümde
-> uygulanmamıştır. Şema değişiklikleri ve genel bir getirme
+> **YAPILACAK (D20):** `global` kapsamı (belleklerin tüm API anahtarları arasında paylaşılması) bu
+> sürümde uygulanmamıştır. Şema değişiklikleri ve genel bir getirme
 > yolu gerektirir. Ayrı olarak takip edin.
 
 ## Depolama Katmanları

@@ -66,18 +66,26 @@ Nustatykite juos „OmniRoute“ proceso aplinkoje (demone, pvz., naudodami „L
 
 ---
 
-## `npm install` įspėjimai (ERESOLVE / lygiavertės priklausomybės / nebepalaikomi paketai)
+## `npm install` įspėjimai (ERESOLVE / lygiavertės priklausomybės / nebenaudojama)
 
-Paleidę `npm install -g omniroute`, galite pamatyti daugybę įspėjimų, pvz., `npm warn ERESOLVE`, pranešimų apie lygiavertes priklausomybes ir `deprecated` pranešimų. **Tai normalu ir nepavojinga.** Diegimas pavyko, jei išvestyje matote `added <N> packages`.
+Kai vykdote `npm install -g omniroute`, galite pamatyti daugybę įspėjimų, pvz., `npm warn ERESOLVE`, pranešimų apie lygiavertes priklausomybes ir `deprecated` pranešimų. **Tai tikėtina ir nepavojinga.** Diegimas pavyko, jei išvestyje matote `added <N> packages`.
 
-Įspėjimus sukelia pasenę trečiųjų šalių paketų, kurių „OmniRoute“ nekontroliuoja, lygiaverčių priklausomybių versijų intervalai:
+Norėdami išjungti įspėjimus apie lygiaverčių priklausomybių nustatymą, naudokite „OmniRoute“ palaikomą diegimo komandą:
 
-1. **`marked-terminal` reikalauja `marked >=1 <16`, tačiau rasta `marked@18`** — praktiškai veikia tinkamai; tiesiog pirminio paketo lygiavertės priklausomybės intervalas yra pasenęs.
-2. **`deprecated prebuild-install@7.1.3`** — tranzityvusis pagalbinis įrankis, skirtas saviesiems dvejetainiams failams atsisiųsti. Jis nėra
-   naudojamas fiksuotos versijos `wreq-js` transporto sąsajai įdiegti ir nereiškia, kad žiniatinklio slapukų
-   teikėjo transporto sąranka nepavyko.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Nieko daryti nereikia** — šių įspėjimų neįmanoma visiškai nutildyti neatsiskyrus nuo pirminių paketų.
+`--legacy-peer-deps` išjungia tik `ERESOLVE` ir pranešimus apie lygiavertes priklausomybes. Pranešimai apie nebenaudojamus komponentus lieka matomi, nes juos generuoja tranzityviniai trečiųjų šalių paketai; jie nereiškia, kad diegimas nepavyko.
+
+Įspėjimus sukelia pasenę lygiaverčių priklausomybių versijų intervalai trečiųjų šalių paketuose, kurių „OmniRoute“ nevaldo:
+
+1. **`marked-terminal` reikalauja `marked >=1 <16`, tačiau rasta `marked@18`** — praktiškai veikia tinkamai; pirminio paketo lygiavertės priklausomybės versijų intervalas tiesiog yra pasenęs.
+2. **`deprecated prebuild-install@7.1.3`** — tranzityvinė pagalbinė priemonė vietiniams dvejetainiams failams gauti. Ji
+   nenaudojama fiksuotos versijos `wreq-js` transporto susiejimui įdiegti ir nereiškia, kad žiniatinklio slapukų
+   teikėjo transporto konfigūravimas nepavyko.
+
+**Jokių veiksmų imtis nereikia** — šių įspėjimų negalima visiškai išjungti nesukūrus pirminių paketų atšakų.
 
 ---
 

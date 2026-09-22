@@ -1293,6 +1293,9 @@
     "mainNavigation": "Galvenā navigācija",
     "unpinSection": "Atspraust sadaļu",
     "pinSectionOpen": "Piespraust sadaļu atvērtu",
+    "pinItem": "Piespraust vienumu",
+    "unpinItem": "Atspraust vienumu",
+    "pinnedSection": "Piesprausts",
     "reloadPage": "Pārlādēt lapu",
     "dragReorderSection": "Velciet, lai mainītu sadaļas secību",
     "dragReorderItem": "Velciet, lai mainītu secību",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Nodrošinātāji",
     "Account Deactivated": "Konts deaktivizēts",
     "allProviders": "Visi nodrošinātāji",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "Grok Web sīkfaila norāde",
     "blockClaudeExtraUsageDescription": "Kad šī opcija ir iespējota, OmniRoute atzīmē šo Claude savienojumu kā nepieejamu, tiklīdz lietojuma API ziņo par rindā ievietotu papildu lietojumu, tāpēc atkāpšanās mehānisms pārslēdzas uz citu savienojumu, nevis turpina izmantot papildu lietojumu ar maksu pēc faktiskā patēriņa.",
     "blockClaudeExtraUsageLabel": "Bloķēt Claude papildu lietojumu",
+    "claudeLowPriorityModeLabel": "Turpināt ar zemāku prioritāti pēc 5 stundu ierobežojuma sasniegšanas",
+    "claudeLowPriorityModeDescription": "Kad šis konts sasniedz 5 stundu lietojuma ierobežojumu un Anthropic piedāvā zemākas prioritātes režīmu, OmniRoute to pieņem un turpina sūtīt pieprasījumus ar anthropic-usage-limit: slow, līdz laika periods tiek atiestatīts, nevis īslaicīgi aptur savienojumu. Nedēļas ierobežojums joprojām ir spēkā, un atbildes var gaidīt, līdz būs pieejama brīva jauda.",
+    "claudeAutoLimitResetLabel": "Automātiski atiestatīt sesijas ierobežojumu (reizi nedēļā)",
+    "claudeAutoLimitResetDescription": "Kad šis konts sasniedz 5 stundu lietojuma ierobežojumu un ir pieejama sesijas ierobežojuma atiestatīšana, OmniRoute to automātiski izmanto un atkārto pieprasījumu pilnā ātrumā. Tiek izmantota kontam pieejamā atiestatīšana reizi nedēļā, un lietojums joprojām tiek ieskaitīts nedēļas ierobežojumā.",
     "disableCoolingDescription": "Izlaist pārejošo nogaidīšanas periodu, lai šo savienojumu varētu izmantot arī pēc novēršamām kļūdām (galīgie stāvokļi, piemēram, bloķēts savienojums vai beidzies derīguma termiņš, joprojām ir spēkā).",
     "disableCoolingLabel": "Atspējot nogaidīšanas periodu šim savienojumam",
     "bulkPasteAdded": "{count, plural, one {Pievienota 1 atslēga} other {Pievienotas # atslēgas}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "Korelācijas ID: {id}",
       "detailedPayloadInfo": "Vispirms iespējojiet detalizētu žurnalēšanu, ja vēlaties četru posmu klienta/nodrošinātāja derīgās slodzes skatu jauniem pieprasījumiem.",
       "copyAll": "Kopēt visu",
-      "copiedAll": "Viss nokopēts"
+      "copiedAll": "Viss nokopēts",
+      "payloadSizeLimitOmitted": "Saturs izlaists — šī sadaļa pārsniedza izsaukumu žurnāla izmēra ierobežojumu (CALL_LOG_PIPELINE_MAX_SIZE_KB) un netika saglabāta; tā nav īsta pakalpojumu sniedzēja kļūda."
     }
   },
   "proxyLogger": {

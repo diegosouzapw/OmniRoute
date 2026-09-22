@@ -68,15 +68,24 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # त्वरित पुन्�
 
 ## npm install चेतावण्या (ERESOLVE / peer / deprecated)
 
-तुम्ही `npm install -g omniroute` चालवता तेव्हा तुम्हाला `npm warn ERESOLVE`, peer-dependency सूचना आणि `deprecated` संदेश अशा अनेक चेतावण्या दिसू शकतात. **या अपेक्षित आणि निरुपद्रवी आहेत.** आउटपुटमध्ये `added <N> packages` दिसल्यास तुमचे इंस्टॉलेशन यशस्वी झाले आहे.
+तुम्ही `npm install -g omniroute` चालवता तेव्हा तुम्हाला `npm warn ERESOLVE`, peer-dependency सूचना आणि `deprecated` संदेशांसारख्या असंख्य चेतावण्या दिसू शकतात. **या अपेक्षित आणि निरुपद्रवी आहेत.** आउटपुटमध्ये `added <N> packages` दिसल्यास तुमचे इन्स्टॉलेशन यशस्वी झाले आहे.
 
-या चेतावण्या OmniRoute च्या नियंत्रणाबाहेरील तृतीय-पक्ष पॅकेजेसमधील कालबाह्य peer-dependency श्रेणींमुळे येतात:
+peer-dependency रिझोल्यूशनच्या चेतावण्या दडपण्यासाठी, OmniRoute चे समर्थित इन्स्टॉलेशन स्वरूप वापरा:
 
-1. **`marked-terminal` ला `marked >=1 <16` हवे आहे, पण `marked@18` आढळले** — प्रत्यक्ष वापरात ते व्यवस्थित कार्य करते; upstream peer श्रेणी फक्त कालबाह्य आहे.
-2. **`deprecated prebuild-install@7.1.3`** — हे एक transitive native-binary fetch helper आहे. पिन केलेले `wreq-js` transport binding इंस्टॉल करण्यासाठी ते
-   वापरले जात नाही आणि web-cookie provider transport सेटअप अयशस्वी झाल्याचे ते दर्शवत नाही.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**कोणतीही कृती आवश्यक नाही** — upstream पॅकेजेस fork केल्याशिवाय या चेतावण्या पूर्णपणे बंद करता येत नाहीत.
+`--legacy-peer-deps` केवळ `ERESOLVE` आणि peer-dependency सूचना दडपते. कालबाह्यता सूचना दृश्यमान राहतात, कारण त्या अप्रत्यक्ष तृतीय-पक्ष पॅकेजमधून येतात; इन्स्टॉलेशन अयशस्वी झाल्याचे त्या दर्शवत नाहीत.
+
+OmniRoute चे नियंत्रण नसलेल्या तृतीय-पक्ष पॅकेजमधील जुन्या peer-dependency श्रेणींमुळे या चेतावण्या येतात:
+
+1. **`marked-terminal` ला `marked >=1 <16` हवे आहे, परंतु `marked@18` आढळले** — प्रत्यक्ष वापरात ते व्यवस्थित कार्य करते; upstream peer श्रेणी फक्त जुनी आहे.
+2. **`deprecated prebuild-install@7.1.3`** — अप्रत्यक्ष native-binary प्राप्ती सहाय्यक. पिन केलेले `wreq-js` ट्रान्सपोर्ट बाइंडिंग इन्स्टॉल करण्यासाठी ते
+   वापरले जात नाही आणि web-cookie प्रोव्हायडर ट्रान्सपोर्ट सेटअप अयशस्वी झाल्याचे ते दर्शवत
+   नाही.
+
+**कोणतीही कृती आवश्यक नाही** — upstream पॅकेज फोर्क केल्याशिवाय या चेतावण्या पूर्णपणे दडपता येत नाहीत.
 
 ---
 

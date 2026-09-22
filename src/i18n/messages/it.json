@@ -1293,6 +1293,9 @@
     "mainNavigation": "Navigazione principale",
     "unpinSection": "Sblocca sezione",
     "pinSectionOpen": "Fissa sezione aperta",
+    "pinItem": "Fissa elemento",
+    "unpinItem": "Rimuovi elemento fissato",
+    "pinnedSection": "Fissato",
     "reloadPage": "Ricarica pagina",
     "dragReorderSection": "Trascina per riordinare la sezione",
     "dragReorderItem": "Trascina per riordinare",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Fornitori",
     "Account Deactivated": "Account disattivato",
     "allProviders": "Tutti i fornitori",
@@ -11415,6 +11423,7 @@
         "clientResponse": "Risposta del Cliente",
         "pipelineError": "Errore della Pipeline"
       },
+      "payloadSizeLimitOmitted": "Contenuto omesso — questa sezione ha superato il limite di dimensione del registro delle chiamate (CALL_LOG_PIPELINE_MAX_SIZE_KB) e non è stata salvata; non si tratta di un vero errore del provider.",
       "payloadMissing": "L'articolo del payload dettagliato non è più disponibile per questa voce di log.",
       "payloadCorrupt": "L'artifact del payload dettagliato non può essere analizzato.",
       "notAvailable": "N/D",

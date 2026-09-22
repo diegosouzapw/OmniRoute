@@ -1293,6 +1293,9 @@
     "mainNavigation": "ការរុករកចម្បង",
     "unpinSection": "ដកការខ្ទាស់ផ្នែក",
     "pinSectionOpen": "ខ្ទាស់ផ្នែកឱ្យនៅបើក",
+    "pinItem": "ខ្ទាស់ធាតុ",
+    "unpinItem": "ដោះខ្ទាស់ធាតុ",
+    "pinnedSection": "បានខ្ទាស់",
     "reloadPage": "ផ្ទុកទំព័រឡើងវិញ",
     "dragReorderSection": "អូសដើម្បីតម្រៀបផ្នែកឡើងវិញ",
     "dragReorderItem": "អូសដើម្បីតម្រៀបឡើងវិញ",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "អ្នកផ្តល់សេវា",
     "Account Deactivated": "គណនីត្រូវបានបិទដំណើរការ",
     "allProviders": "អ្នកផ្តល់សេវាទាំងអស់",
@@ -5795,6 +5803,10 @@
     "grokWebCookieHint": "ការណែនាំអំពី Cookie របស់ Grok Web",
     "blockClaudeExtraUsageDescription": "នៅពេលបើកដំណើរការ OmniRoute នឹងសម្គាល់ការតភ្ជាប់ Claude នេះថាមិនអាចប្រើបានភ្លាមៗ នៅពេល usage API រាយការណ៍ថាមានការប្រើប្រាស់បន្ថែមក្នុងជួររង់ចាំ ដូច្នេះ fallback នឹងប្តូរទៅការតភ្ជាប់ផ្សេង ជំនួសឱ្យការបន្តគិតថ្លៃបន្ថែមតាមការប្រើប្រាស់។",
     "blockClaudeExtraUsageLabel": "ទប់ស្កាត់ការប្រើប្រាស់ Claude បន្ថែម",
+    "claudeLowPriorityModeLabel": "បន្តដោយអាទិភាពទាបជាង បន្ទាប់ពីដល់ដែនកំណត់ 5 ម៉ោង",
+    "claudeLowPriorityModeDescription": "នៅពេលគណនីនេះដល់ដែនកំណត់ការប្រើប្រាស់ 5 ម៉ោង ហើយ Anthropic ផ្តល់ជម្រើសអាទិភាពទាបជាង OmniRoute នឹងទទួលយកជម្រើសនោះ ហើយបន្តផ្ញើសំណើជាមួយ anthropic-usage-limit: slow រហូតដល់រយៈពេលកំណត់ត្រូវបានកំណត់ឡើងវិញ ជំនួសឱ្យការផ្អាកការតភ្ជាប់។ ដែនកំណត់ប្រចាំសប្តាហ៍នៅតែអនុវត្ត ហើយការឆ្លើយតបអាចត្រូវរង់ចាំសមត្ថភាពដែលនៅសល់។",
+    "claudeAutoLimitResetLabel": "កំណត់ដែនកំណត់សម័យឡើងវិញដោយស្វ័យប្រវត្តិ (ម្តងក្នុងមួយសប្តាហ៍)",
+    "claudeAutoLimitResetDescription": "នៅពេលគណនីនេះដល់ដែនកំណត់ការប្រើប្រាស់ 5 ម៉ោង ហើយអាចកំណត់ដែនកំណត់សម័យឡើងវិញបាន OmniRoute នឹងប្រើសិទ្ធិកំណត់ឡើងវិញនោះដោយស្វ័យប្រវត្តិ ហើយព្យាយាមម្តងទៀតក្នុងល្បឿនពេញ។ វាប្រើសិទ្ធិកំណត់ឡើងវិញម្តងក្នុងមួយសប្តាហ៍របស់គណនី ហើយនៅតែរាប់បញ្ចូលក្នុងដែនកំណត់ប្រចាំសប្តាហ៍។",
     "disableCoolingDescription": "រំលងរយៈពេលរង់ចាំបណ្តោះអាសន្ន ដើម្បីឱ្យការតភ្ជាប់នេះនៅតែអាចប្រើបាន សូម្បីតែបន្ទាប់ពីមានកំហុសដែលអាចស្ដារឡើងវិញបានក៏ដោយ (ស្ថានភាពបញ្ចប់ដូចជា ត្រូវបានហាមឃាត់/ផុតកំណត់ នៅតែអនុវត្ត)។",
     "disableCoolingLabel": "បិទរយៈពេលរង់ចាំសម្រាប់ការតភ្ជាប់នេះ",
     "bulkPasteAdded": "{count, plural, one {បានបន្ថែមសោ 1} other {បានបន្ថែមសោ #}}",
@@ -11464,7 +11476,8 @@
       "correlationIdValue": "លេខសម្គាល់ទំនាក់ទំនង៖ {id}",
       "detailedPayloadInfo": "សូមបើកការកត់ត្រាលម្អិតជាមុនសិន ប្រសិនបើអ្នកចង់មើល payload បួនដំណាក់កាលរបស់កម្មវិធីអតិថិជន/អ្នកផ្តល់សេវា សម្រាប់សំណើថ្មីៗ។",
       "copyAll": "ចម្លងទាំងអស់",
-      "copiedAll": "បានចម្លងទាំងអស់"
+      "copiedAll": "បានចម្លងទាំងអស់",
+      "payloadSizeLimitOmitted": "បានលុបខ្លឹមសារ — ផ្នែកនេះលើសដែនកំណត់ទំហំកំណត់ហេតុការហៅ (CALL_LOG_PIPELINE_MAX_SIZE_KB) ហើយមិនត្រូវបានរក្សាទុកទេ។ នេះមិនមែនជាកំហុសពិតពីអ្នកផ្តល់សេវាទេ។"
     }
   },
   "proxyLogger": {

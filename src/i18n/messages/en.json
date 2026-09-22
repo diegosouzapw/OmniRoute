@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Providers",
     "Account Deactivated": "Account Deactivated",
     "allProviders": "All Providers",
@@ -11418,6 +11423,7 @@
         "clientResponse": "Client Response",
         "pipelineError": "Pipeline Error"
       },
+      "payloadSizeLimitOmitted": "Payload omitted — this section exceeded the call log size limit (CALL_LOG_PIPELINE_MAX_SIZE_KB) and was not stored, not a real upstream error.",
       "payloadMissing": "Detailed payload artifact is no longer available for this log entry.",
       "payloadCorrupt": "Detailed payload artifact could not be parsed.",
       "notAvailable": "N/A",

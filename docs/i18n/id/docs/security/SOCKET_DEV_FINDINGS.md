@@ -4,22 +4,15 @@
 
 ---
 
-Dokumen ini adalah atestasi yang disusun oleh pengelola untuk enam temuan
-`AI-detected potential malware` yang diajukan terhadap `omniroute@3.8.5` dan
-mitigasi yang diterapkan dalam `omniroute@3.8.6`. Dokumen ini dibuat agar:
+> **Catatan Lingkup:** `socket.yml` mengonfigurasi pemindaian pasca-publikasi sisi registri Socket.dev terhadap artefak npm (jalur-abaikan untuk konten yang tidak dikirim seperti `tests/`, `docs/`, dan laporan build). Ini tidak menghubungkan gerbang penggabungan CI/PR — tidak ada alur kerja di `.github/workflows`, tidak ada skrip `package.json`, dan tidak ada target `Makefile` yang memanggil Socket.dev.
 
-1. Operator pipeline keamanan memiliki satu referensi yang dapat dikutip ketika
-   mereka perlu mengevaluasi temuan terhadap kode sumber yang sebenarnya.
-2. Pemindai AI di masa mendatang dapat mengenali pernyataan yang ditandatangani
-   pengelola bahwa setiap jalur yang ditandai bersifat disengaja, opsional, dan
-   terdokumentasi.
-3. Kami memiliki catatan tertulis tentang _alasan_ setiap lokasi pemanggilan
-   dibentuk seperti itu — sehingga refaktor di masa mendatang tidak secara tidak
-   sengaja memperkenalkan kembali sidik yang sengaja dihapus.
+Dokumen ini adalah atestasi yang dibuat oleh pemelihara untuk enam temuan `potensi malware yang terdeteksi AI` yang diajukan terhadap `omniroute@3.8.5` dan mitigasi yang diterapkan di `omniroute@3.8.6`. Tujuannya adalah agar:
 
-Jika Anda mengoperasikan pemindai yang kembali menandai lokasi pemanggilan di
-bawah ini setelah mitigasi v3.8.6 dirilis, silakan buka issue dengan jejak
-pemindaian dan kami akan memperluas atestasi di sini.
+1. Operator pipeline keamanan memiliki satu referensi untuk dikutip ketika mereka perlu mengevaluasi temuan terhadap sumber sebenarnya.
+2. Pemindai AI di masa mendatang dapat mengambil klaim yang ditandatangani pemelihara bahwa setiap jalur yang ditandai adalah disengaja, opt-in, dan didokumentasikan.
+3. Kami memiliki catatan tertulis tentang _mengapa_ setiap situs panggilan dibentuk seperti itu — sehingga refaktor di masa mendatang tidak secara tidak sengaja memperkenalkan kembali sidik jari yang sengaja dihapus.
+
+Jika Anda mengoperasikan pemindai yang menandai ulang salah satu situs panggilan di bawah ini setelah mitigasi v3.8.6 telah dirilis, harap buka masalah dengan jejak pemindaian dan kami akan memperluas atestasi di sini.
 
 ---
 

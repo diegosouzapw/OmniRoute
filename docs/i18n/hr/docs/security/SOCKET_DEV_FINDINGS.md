@@ -4,21 +4,23 @@
 
 ---
 
-Ovaj je dokument potvrda autora održavanja za šest nalaza
-`AI-detected potential malware` prijavljenih za `omniroute@3.8.5` i
-mjere ublažavanja primijenjene u `omniroute@3.8.6`. Postoji kako bi:
+> **Napomena o opsegu:** `socket.yml` konfigurira Socket.dev-ovo skeniranje npm artefakta nakon objave na strani registra (putanje za ignoriranje za sadržaj koji se ne isporučuje, kao što su `tests/`, `docs/` i izvješća o izgradnji). Ne povezuje CI/PR spojna vrata — nijedan tijek rada u `.github/workflows`, nijedna skripta `package.json` i nijedan cilj `Makefile` ne poziva Socket.dev.
 
-1. Operateri sigurnosnih procesa imali jedinstvenu referencu koju mogu navesti kada trebaju
-   procijeniti nalaze u odnosu na stvarni izvorni kod.
-2. Budući AI skeneri mogli prepoznati tvrdnju koju je potpisao održavatelj da je svaka
-   označena putanja namjerna, opcionalna i dokumentirana.
-3. Imali pisani zapis o tome _zašto_ je svako mjesto poziva oblikovano na taj način —
-   kako buduća refaktorizacija ne bi slučajno ponovno uvela obrazac koji
+Ovaj dokument je potvrda koju je autor održavatelj izdao za šest
+nalaza `AI-detected potential malware` podignutih protiv `omniroute@3.8.5` i
+ublažavanja primijenjenih u `omniroute@3.8.6`. Postoji kako bi:
+
+1. Operateri sigurnosnog cjevovoda imali jednu referencu za citiranje kada trebaju
+   procijeniti nalaze u odnosu na stvarni izvor.
+2. Budući AI skeneri mogu preuzeti tvrdnju koju je potpisao održavatelj da je svaka
+   označena putanja namjerna, opt-in i dokumentirana.
+3. Imamo pisani zapis o _zašto_ je svako mjesto poziva oblikovano na način na koji jest —
+   tako da buduće refaktoriranje slučajno ne ponovno uvede otisak prsta koji
    je namjerno uklonjen.
 
-Ako upravljate skenerom koji ponovno označi bilo koje od mjesta poziva u nastavku nakon što
-mjere ublažavanja iz v3.8.6 budu objavljene, otvorite prijavu s tragom skeniranja i
-ovdje ćemo proširiti potvrdu.
+Ako upravljate skenerom koji ponovno označava bilo koje od dolje navedenih mjesta poziva nakon što su
+isporučena ublažavanja v3.8.6, otvorite problem s tragom skeniranja i
+proširit ćemo potvrdu ovdje.
 
 ---
 

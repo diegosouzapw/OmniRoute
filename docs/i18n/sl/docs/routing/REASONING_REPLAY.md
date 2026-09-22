@@ -22,22 +22,24 @@ Vendar običajni odjemalci (Cursor, Cline, Roo Code, OpenAI SDK) odstranijo `rea
 ## Arhitektura
 
 ```
-Krog N (pomočnik ustvari odgovor):
+Obrat N (pomočnik ustvari):
   → odgovor vsebuje reasoning_content + tool_calls
   → če requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      zapiše (pomnilnik + DB), indeksirano po vsakem tool_call.id
-  → posreduje odgovor odjemalcu (ki lahko sklepanje ohrani ali pa tudi ne)
+      zapiše (pomnilnik + podatkovna zbirka), indeksirano po vsakem tool_call.id
+  → posreduje odgovor odjemalcu (ki lahko reasoning ohrani ali pa ne)
 
-Krog N+1 (odjemalec pošlje nadaljevalno zahtevo):
+Obrat N+1 (odjemalec pošlje nadaljevanje):
   → prevajalnik zazna: requiresReasoningReplay(provider, model) === true
   → za vsako sporočilo pomočnika s tool_calls in brez reasoning_content:
-      lookupReasoning(toolCalls[0].id) → pomnilnik → DB
+      lookupReasoning(toolCalls[0].id) → pomnilnik → podatkovna zbirka
       zadetek  → msg.reasoning_content = cached; recordReplay()
-      zgrešitev → msg.reasoning_content = "" (združljivostna rešitev za starejši DeepSeek)
-  → nadrejeni ponudnik prejme skladno zgodovino → brez napake 400
+      zgrešeno → msg.reasoning_content = "" (stari nadomestni način za starejši DeepSeek)
+  → nadrejena storitev prejme dosledno zgodovino → brez napake 400
 ```
 
-Zajem poteka v `open-sse/handlers/chatCore.ts` (na dveh mestih, kjer se kliče `cacheReasoningFromAssistantMessage`). Ponovno predvajanje poteka v `open-sse/translator/index.ts` po pretvorbi sheme, vendar pred pošiljanjem.
+Zajem poteka v `open-sse/handlers/chatCore.ts` (na dveh mestih, kjer se kliče `cacheReasoningFromAssistantMessage`). Ponovno predvajanje poteka v `open-sse/translator/index.ts` po uskladitvi s shemo, vendar pred posredovanjem.
+
+Običajni obrati pomočnika (brez klica orodja) so indeksirani drugače: `buildAssistantMessageCacheKey()` izračuna izvleček obsega seje skupaj z normaliziranim prepisom v obliki OpenAI do tega obrata, ker DeepSeek zahteva reasoning za _vsak_ predhodni obrat, ko je prisoten `tools`. Pri ciljih Responses API (na primer `opencode-go/deepseek-v4-flash`, preusmerjenem na `/responses`) telo nadrejene zahteve vsebuje `input` in ne `messages`, zato `translateRequest()` (`open-sse/translator/index.ts`) prek možnosti povratnega klica sporoči vmesni prepis, iz katerega je izračunal izvleček, mesta zajema pa izračunajo izvleček istega prepisa. Prehod za ponovno predvajanje Responses se za vsako izvorno obliko izvede na vmesni predstavitvi OpenAI, zato se ponovno predvajajo tudi odjemalci Anthropic Messages (Claude → OpenAI → Responses).
 
 ## Shranjevanje — hibrid pomnilnika in SQLite
 

@@ -4,21 +4,23 @@
 
 ---
 
-Este documento es la atestación redactada por el mantenedor para los seis
-hallazgos de `AI-detected potential malware` detectados en `omniroute@3.8.5` y
-las mitigaciones aplicadas en `omniroute@3.8.6`. Existe para que:
+> **Nota sobre el alcance:** `socket.yml` configura el análisis posterior a la publicación de Socket.dev, del lado del registro, sobre el artefacto npm (rutas ignoradas para contenido no distribuido, como `tests/`, `docs/` e informes de compilación). No configura una comprobación de bloqueo para la integración de CI/PR: ningún flujo de trabajo de `.github/workflows`, ningún script de `package.json` ni ningún objetivo de `Makefile` invoca Socket.dev.
 
-1. Los operadores de canalizaciones de seguridad dispongan de una única referencia que citar cuando necesiten
-   evaluar los hallazgos frente al código fuente real.
-2. Los futuros escáneres de IA puedan detectar la declaración firmada por el mantenedor de que cada
+Este documento es la declaración redactada por los mantenedores para los seis
+hallazgos de `AI-detected potential malware` detectados en `omniroute@3.8.5` y
+las medidas de mitigación aplicadas en `omniroute@3.8.6`. Existe para que:
+
+1. Los operadores de canalizaciones de seguridad tengan una única referencia que citar cuando necesiten
+   evaluar los hallazgos comparándolos con el código fuente real.
+2. Los futuros escáneres de IA puedan detectar la declaración firmada por los mantenedores de que cada
    ruta marcada es intencional, opcional y está documentada.
-3. Tengamos un registro escrito de _por qué_ cada sitio de llamada tiene la forma que tiene —
-   para que una futura refactorización no reintroduzca accidentalmente una huella que
+3. Tengamos un registro escrito de _por qué_ cada lugar de llamada tiene la forma que tiene —
+   para que una refactorización futura no reintroduzca accidentalmente una huella que
    se eliminó deliberadamente.
 
-Si opera un escáner que vuelve a marcar cualquiera de los sitios de llamada que aparecen a continuación después de que
+Si opera un escáner que vuelve a marcar cualquiera de los lugares de llamada indicados a continuación después de que
 se hayan publicado las mitigaciones de v3.8.6, abra una incidencia con la traza del análisis y
-ampliaremos aquí la atestación.
+ampliaremos aquí la declaración.
 
 ---
 

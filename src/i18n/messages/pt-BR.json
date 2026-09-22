@@ -1293,6 +1293,9 @@
     "mainNavigation": "Navegação principal",
     "unpinSection": "Desafixar seção",
     "pinSectionOpen": "Fixar seção aberta",
+    "pinItem": "Fixar item",
+    "unpinItem": "Desafixar item",
+    "pinnedSection": "Fixado",
     "reloadPage": "Recarregar Página",
     "dragReorderSection": "Arraste para reorganizar a seção",
     "dragReorderItem": "Arraste para reordenar",
@@ -5058,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Provedores",
     "Account Deactivated": "Conta Desativada",
     "allProviders": "Todos os provedores",
@@ -11415,6 +11423,7 @@
         "clientResponse": "Resposta do Cliente",
         "pipelineError": "Erro de Pipeline"
       },
+      "payloadSizeLimitOmitted": "Payload omitido — esta seção excedeu o limite de tamanho do log de chamadas (CALL_LOG_PIPELINE_MAX_SIZE_KB) e não foi armazenada; não é um erro real do upstream.",
       "payloadMissing": "O artefato de carga detalhada não está mais disponível para esta entrada de log.",
       "payloadCorrupt": "O artefato de carga detalhada não pôde ser analisado.",
       "notAvailable": "N/D",

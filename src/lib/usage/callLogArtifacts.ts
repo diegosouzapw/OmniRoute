@@ -3,6 +3,12 @@ import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { resolveDataDir } from "../dataPaths";
 import { getCallLogPipelineMaxSizeBytes, isChatDebugFileEnabled } from "../logEnv";
+import {
+  CALL_LOG_SIZE_LIMIT_REASON as SIZE_LIMIT_EXCEEDED_REASON,
+  CALL_LOG_BODY_OMITTED_FOR_SIZE_LIMIT as OMITTED_FOR_SIZE_LIMIT,
+  CALL_LOG_STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT as STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT,
+  isSizeLimitOmissionMarker,
+} from "@/shared/constants/callLogSizeLimitMarkers";
 
 const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 const isBuildPhase =
@@ -12,21 +18,11 @@ const DATA_DIR = resolveDataDir({ isCloud });
 export const CALL_LOGS_DIR = isCloud ? null : path.join(DATA_DIR, "call_logs");
 export const MAX_CALL_LOG_ARTIFACT_BYTES = 512 * 1024;
 
-const SIZE_LIMIT_EXCEEDED_REASON = "call_log_artifact_size_limit_exceeded";
-const OMITTED_FOR_SIZE_LIMIT = "[omitted: call log artifact size limit exceeded]";
-const STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT =
-  "[stream chunks omitted: call log artifact size limit exceeded]";
-
-/**
- * True for a placeholder a size-limit fallback wrote in place of a real
- * payload. Consumers that fall back from one artifact field to another
- * (`maybeEnrichCompletedDetail`) must treat a marker as absent: it is a
- * non-empty string, so a bare truthiness check happily "recovers" it and
- * overwrites the real value it was meant to stand in for.
- */
-export function isSizeLimitOmissionMarker(value: unknown): boolean {
-  return value === OMITTED_FOR_SIZE_LIMIT || value === STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT;
-}
+// Re-exported for backward compatibility: consumers (completedRequestDetails.ts)
+// import this marker check from here. Definition now lives in the shared
+// constants module so the client-side detail view can use the exact same check
+// without importing this fs/path-dependent, server-only module (see #13894).
+export { isSizeLimitOmissionMarker };
 
 // The error is the only field that says *why* a request failed, and it is
 // typically ~90 bytes next to the multi-hundred-KB bodies that trip the cap.
@@ -54,7 +50,7 @@ function preserveErrorForSizeLimit(error: unknown): unknown {
   if (error === null || error === undefined) return null;
   let serialized: string;
   try {
-    serialized = typeof error === "string" ? error : JSON.stringify(error) ?? String(error);
+    serialized = typeof error === "string" ? error : (JSON.stringify(error) ?? String(error));
   } catch {
     // A circular or unserializable error must not take the whole artifact down.
     serialized = String(error);

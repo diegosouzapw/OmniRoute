@@ -66,18 +66,26 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # hosszabb, korlátozott várakoz�
 
 ---
 
-## Az npm install figyelmeztetései (ERESOLVE / peer / deprecated)
+## `npm install` figyelmeztetések (ERESOLVE / peer / deprecated)
 
-Az `npm install -g omniroute` futtatásakor számos figyelmeztetés jelenhet meg, például `npm warn ERESOLVE`, tárfüggőségekkel kapcsolatos értesítések és `deprecated` üzenetek. **Ezek várhatóak és ártalmatlanok.** A telepítés sikeres volt, ha a kimenetben az `added <N> packages` üzenet látható.
+Az `npm install -g omniroute` futtatásakor számos figyelmeztetés jelenhet meg, például `npm warn ERESOLVE`, peer-függőségekkel kapcsolatos értesítések és `deprecated` üzenetek. **Ezek várhatóak és ártalmatlanok.** A telepítés sikeres volt, ha a kimenetben az `added <N> packages` üzenet látható.
 
-A figyelmeztetéseket olyan külső csomagok elavult tárfüggőségi verziótartományai okozzák, amelyekre az OmniRoute-nak nincs befolyása:
+A peer-függőségek feloldásával kapcsolatos figyelmeztetések elrejtéséhez használja az OmniRoute támogatott telepítési módját:
 
-1. **A `marked-terminal` által igényelt verzió: `marked >=1 <16`, de a megtalált verzió: `marked@18`** — a gyakorlatban megfelelően működik; csupán a felsőbb szintű tárfüggőségi tartomány elavult.
-2. **`deprecated prebuild-install@7.1.3`** — egy tranzitív segédprogram natív binárisok letöltéséhez. Nem ezt használja
-   a rendszer a rögzített verziójú `wreq-js` átviteli kötés telepítéséhez, és nem jelenti azt, hogy a webes sütik
-   szolgáltatójának átviteli beállítása sikertelen volt.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Nincs szükség beavatkozásra** — a figyelmeztetések nem némíthatók el teljesen a felsőbb szintű csomagok forkolása nélkül.
+A `--legacy-peer-deps` csak az `ERESOLVE` és a peer-függőségekkel kapcsolatos értesítéseket rejti el. Az elavulásra vonatkozó értesítések továbbra is láthatók maradnak, mert tranzitív, harmadik féltől származó csomagokból erednek; nem jelzik a telepítés sikertelenségét.
+
+A figyelmeztetéseket olyan, harmadik féltől származó csomagok elavult peer-függőségi tartományai okozzák, amelyekre az OmniRoute-nak nincs befolyása:
+
+1. **A `marked-terminal` a `marked >=1 <16` verziót igényli, de a talált verzió `marked@18`** — a gyakorlatban megfelelően működik; csupán az upstream peer-tartomány elavult.
+2. **`deprecated prebuild-install@7.1.3`** — egy tranzitív segédprogram natív binárisok letöltéséhez. Nem használatos
+   a rögzített verziójú `wreq-js` átviteli kötés telepítéséhez, és nem jelzi, hogy a web-cookie
+   szolgáltató átviteli beállítása sikertelen volt.
+
+**Nincs szükség beavatkozásra** — a figyelmeztetések nem némíthatók el teljesen az upstream csomagok forkolása nélkül.
 
 ---
 

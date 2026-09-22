@@ -23,21 +23,23 @@ OmniRoute በማሰብ ሁነታ ሞዴሎች የሚመነጨውን የረዳት
 
 ```
 ዙር N (ረዳቱ ያመነጫል):
-  → ምላሹ reasoning_content + tool_calls ይይዛል
-  → requiresReasoningReplay(provider, model) እውነት ከሆነ፦ cacheReasoningFromAssistantMessage()
-      በእያንዳንዱ tool_call.id ቁልፍነት (ማህደረ ትውስታ + DB) ላይ ይጽፋል
-  → ምላሹን ወደ ደንበኛው ያስተላልፋል (ደንበኛው ማመዛዘኑን ሊያቆየው ወይም ላያቆየው ይችላል)
+  → ምላሹ reasoning_content + tool_calls ይዟል
+  → requiresReasoningReplay(provider, model) ከሆነ፦ cacheReasoningFromAssistantMessage()
+      በእያንዳንዱ tool_call.id ቁልፍ ተደርጎ (memory + DB) ላይ ይጽፋል
+  → ምላሹን ምክንያታዊ ይዘቱን ሊያቆይም ላያቆይም ወደሚችለው ደንበኛ ያስተላልፋል
 
 ዙር N+1 (ደንበኛው ተከታይ ጥያቄ ይልካል):
-  → ተርጓሚው ያገኛል፦ requiresReasoningReplay(provider, model) === true
+  → ተርጓሚው ይህን ይለያል፦ requiresReasoningReplay(provider, model) === true
   → tool_calls ላለው እና reasoning_content ለሌለው ለእያንዳንዱ የረዳት መልዕክት፦
-      lookupReasoning(toolCalls[0].id) → ማህደረ ትውስታ → DB
-      ከተገኘ → msg.reasoning_content = cached; recordReplay()
-      ካልተገኘ → msg.reasoning_content = "" (ለቆዩ የDeepSeek ስሪቶች ተኳሃኝነት የቆየ አማራጭ)
-  → የላይኛው አገልግሎት ወጥ ታሪክ ያያል → 400 አይኖርም
+      lookupReasoning(toolCalls[0].id) → memory → DB
+      ከተገኘ  → msg.reasoning_content = cached; recordReplay()
+      ካልተገኘ → msg.reasoning_content = "" (ለቆዩ DeepSeek ስሪቶች የተተወ አማራጭ)
+  → ወደላይ ያለው አገልግሎት ወጥ የሆነ ታሪክ ያያል → 400 አይከሰትም
 ```
 
-ይዘት መያዝ በ`open-sse/handlers/chatCore.ts` ውስጥ ይከናወናል (በሁለት ቦታዎች፣ በሁለቱ የ`cacheReasoningFromAssistantMessage` ጥሪ ቦታዎች)። እንደገና ማጫወት በ`open-sse/translator/index.ts` ውስጥ ከመርሃግብር ማስማማት በኋላ፣ ነገር ግን ከማሰራጨት በፊት ይከናወናል።
+ቀረጻው በ`open-sse/handlers/chatCore.ts` ውስጥ (በሁለት ቦታዎች፣ በሁለቱ የ`cacheReasoningFromAssistantMessage` ጥሪ ቦታዎች) ይከናወናል። ድጋሚ ማጫወቱ ከስኬማ ማስማማት በኋላ፣ ነገር ግን ከማሰራጨት በፊት በ`open-sse/translator/index.ts` ውስጥ ይከናወናል።
+
+ተራ (የመሣሪያ ጥሪ የሌላቸው) የረዳት ዙሮች በተለየ መንገድ ቁልፍ ይሰጣቸዋል፦ `buildAssistantMessageCacheKey()` የክፍለ-ጊዜውን ወሰን እና እስከዚያ ዙር ድረስ ያለውን መደበኛ የተደረገ የOpenAI-ቅርጸት ውይይት ዲጄስት ያደርጋል፤ ምክንያቱም `tools` ከተካተተ በኋላ DeepSeek የ_እያንዳንዱን_ ቀዳሚ ዙር ምክንያታዊ ይዘት ይፈልጋል። ለResponses-API ዒላማዎች (ለምሳሌ `opencode-go/deepseek-v4-flash`፣ ወደ `/responses` የሚመራ) ወደላይ የሚላከው የጥያቄ አካል `messages` ሳይሆን `input` ይይዛል፤ ስለዚህ `translateRequest()` (`open-sse/translator/index.ts`) በመልሶ ጥሪ አማራጭ በኩል ዲጄስት ያደረገውን የሽግግር ውይይት ሪፖርት ያደርጋል፣ የቀረጻ ቦታዎቹም ያንኑ ውይይት ዲጄስት ያደርጋሉ። የResponses ድጋሚ ማጫወት ሂደት ለእያንዳንዱ የምንጭ ቅርጸት በOpenAI የሽግግር ቅርጽ ላይ ይሠራል፤ ስለዚህ የAnthropic Messages ደንበኞችም (Claude → OpenAI → Responses) እንደገና ይጫወታሉ።
 
 ## ማከማቻ — ድብልቅ ማህደረ ትውስታ + SQLite
 
@@ -56,9 +58,9 @@ OmniRoute በማሰብ ሁነታ ሞዴሎች የሚመነጨውን የረዳት
 - ከፍተኛው የማህደረ ትውስታ ግቤቶች ብዛት፦ `200` (`MAX_MEMORY_ENTRIES`)
 - ማስወገድ፦ አሮጌው `createdAt` መጀመሪያ
 
-## የውሂብ ጎታ መርሃግብር
+## የውሂብ ጎታ መዋቅር
 
-ፍልሰት፦ `src/lib/db/migrations/033_create_reasoning_cache.sql`
+ማይግሬሽን፦ `src/lib/db/migrations/033_create_reasoning_cache.sql`
 
 ```sql
 CREATE TABLE IF NOT EXISTS reasoning_cache (
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-ማውጫዎች፦ `expires_at`፣ `provider`፣ `model`፣ `created_at`። `expires_at` እንደ Unix epoch ሰከንዶች ይከማቻል፤ የSELECT ንብርብር የቆዩ የጽሑፍ እሴቶችን በ`EXPIRES_AT_EPOCH_SQL` በኩል ወደ መደበኛ ቅርጽ ይቀይራል።
+ኢንዴክሶች፦ `expires_at`፣ `provider`፣ `model`፣ `created_at`። `expires_at` እንደ Unix epoch ሰከንዶች ይከማቻል፤ የSELECT ንብርብር የቆዩ የጽሑፍ እሴቶችን በ`EXPIRES_AT_EPOCH_SQL` በኩል ደረጃቸውን ያስተካክላል።
 
 ## አቅራቢ / ሞዴል ማወቂያ
 

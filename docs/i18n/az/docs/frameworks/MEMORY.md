@@ -156,27 +156,37 @@ hər sorğu üzrə maksimum `limit` qədər gözləyən qeydi emal edir. Gedişa
 - `last_reset_at` — son tam sıfırlamanın zaman damğası.
 - `vec_loaded` — sqlite-vec-in uğurla yüklənib-yüklənmədiyini göstərən 0/1 bayrağı.
 
-## Parametrlər genişləndirilməsi
+## Parametrlərin genişləndirilməsi
 
-Doqquz embedding və vektor sahəsi `src/shared/schemas/memory.ts` faylındakı `MemorySettingsExtended` daxilində mövcuddur və `src/lib/db/settings.ts` vasitəsilə saxlanılır:
+Doqquz embedding və vektor sahəsi `src/shared/schemas/memory.ts` faylındakı `MemorySettingsExtended` daxilində mövcuddur və `src/lib/db/settings.ts` vasitəsilə davamlı saxlanılır:
 
-| Sahə                     | Növ                                                | İlkin dəyər | Təsvir                                                                         |
-| ------------------------ | -------------------------------------------------- | ----------- | ------------------------------------------------------------------------------ |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | İstifadə ediləcək embedding mənbəyi                                            |
-| `embeddingProviderModel` | `string \| null`                                   | `null`      | `provider/model` formatında provayder/model                                    |
-| `customBaseUrl`          | `string \| null`                                   | `null`      | Yalnız yaddaş üçün OpenAI-uyğun endpoint baza URL-i                            |
-| `customModelId`          | `string \| null`                                   | `null`      | Fərdi endpoint-ə göndərilən model ID-si                                        |
-| `transformersEnabled`    | `boolean`                                          | `false`     | Transformers.js üçün seçimlə aktivləşdirmə (MiniLM, ~400MB)                    |
-| `staticEnabled`          | `boolean`                                          | `false`     | Lokal statik potion-base-8M modeli üçün seçimlə aktivləşdirmə                  |
-| `rerankEnabled`          | `boolean`                                          | `false`     | Yenidən sıralama mərhələsini aktivləşdirir (hər sorğuya +200-500ms əlavə edir) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`      | `provider/model` formatında yenidən sıralama provayderi/modeli                 |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"`    | İstifadə ediləcək vektor backend-i                                             |
+| Sahə                     | Tip                                                | Standart dəyər | Təsvir                                                                         |
+| ------------------------ | -------------------------------------------------- | -------------- | ------------------------------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`       | İstifadə ediləcək embedding mənbəyi                                            |
+| `embeddingProviderModel` | `string \| null`                                   | `null`         | `provider/model` formatında provayder/model                                    |
+| `customBaseUrl`          | `string \| null`                                   | `null`         | Yalnız Memory üçün OpenAI-uyğun son nöqtənin baza URL-i                        |
+| `customModelId`          | `string \| null`                                   | `null`         | Fərdi son nöqtəyə göndərilən model ID-si                                       |
+| `transformersEnabled`    | `boolean`                                          | `false`        | Transformers.js üçün seçimlə aktivləşdirmə (MiniLM, ~400MB)                    |
+| `staticEnabled`          | `boolean`                                          | `false`        | Statik potion-base-8M lokal modeli üçün seçimlə aktivləşdirmə                  |
+| `rerankEnabled`          | `boolean`                                          | `false`        | Yenidən sıralama mərhələsini aktivləşdirir (hər sorğuya +200-500ms əlavə edir) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`         | `provider/model` formatında yenidən sıralama provayderi/modeli                 |
 
-Bunlar `GET /PUT /api/settings/memory` vasitəsilə əlçatandır (`MemorySettingsExtendedSchema` sxemi).
+`rerankProviderModel`, `POST /v1/rerank` tərəfindən müəyyən edilir (loopback üzərindən çağırılır), buna görə həmin marşrutun qəbul etdiyi hər şeyi qəbul edir: seçilmiş bulud yenidən sıralama modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) və ya `<node-prefix>/<model>` formatında OpenAI-uyğun provayder qovşağı (məsələn, TEI/Infinity sistemi üçün `skilled-mini/bge-reranker-v2-m3`). Loopback qovşaqları həmişə uyğundur; başqa hostdakı qovşaq (LAN, Tailscale) əlavə olaraq `RERANK_REMOTE_PROVIDER_NODES` funksiya bayrağını tələb edir və provayderin xarici URL siyasətindən keçməlidir — baxın: [Funksiya bayraqları](../reference/FEATURE_FLAGS.md). İdarə panelindəki seçim siyahısı seçilmiş provayderləri və lokal qovşaqları göstərir; istənilən etibarlı `provider/model` sətri birbaşa `PUT /api/settings/memory` vasitəsilə təyin edilə bilər.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | İstifadə ediləcək vektor backend-i |
 
-`remote` mənbəyi üçün Memory, həmçinin ixtiyari `customBaseUrl` və `customModelId` parametrlərini qəbul edir. Onlar birlikdə qlobal embedding reyestrini dəyişdirmədən OpenAI-uyğun `/embeddings` endpoint-ini və modelini seçir. Endpoint istifadə edilməzdən əvvəl normallaşdırılır və provayderin xarici URL siyasətinə uyğun yoxlanılır: HTTP(S) tələb olunur, daxil edilmiş autentifikasiya məlumatları və sorğu sətirləri rədd edilir, bulud metadatası ünvanları isə bloklanmış olaraq qalır. Boş dəyərlər seçilmiş reyestr provayderini qoruyur. İdarəetmə panelinə qaytarılan xətalar təmizlənir və endpoint autentifikasiya məlumatları heç vaxt jurnala yazılmır.
+Bunlar `GET /PUT /api/settings/memory` vasitəsilə əlçatandır (sxem: `MemorySettingsExtendedSchema`).
 
-> **TODO (D20):** Bütün API açarları arasında yaddaşların paylaşılması üçün `global` əhatə dairəsi bu buraxılışda tətbiq edilməyib. Bunun üçün sxem dəyişiklikləri və qlobal axtarış yolu tələb olunur. Ayrı şəkildə izləyin.
+`remote` mənbəyi üçün Memory həmçinin ixtiyari `customBaseUrl` və
+`customModelId` parametrlərini qəbul edir. Onlar birlikdə qlobal embedding reyestrini
+dəyişdirmədən OpenAI-uyğun `/embeddings` son nöqtəsini və modeli seçirlər. Son nöqtə
+istifadədən əvvəl normallaşdırılır və provayderin xarici URL siyasəti ilə yoxlanılır: HTTP(S)
+tələb olunur, daxil edilmiş giriş məlumatları və sorğu sətirləri rədd edilir, bulud metadatası
+ünvanları isə bloklanmış qalır. Boş dəyərlər seçilmiş reyestr provayderini qoruyur. İdarə
+panelinə qaytarılan xətalar təmizlənir və son nöqtənin giriş məlumatları heç vaxt jurnala yazılmır.
+
+> **TODO (D20):** `global` əhatə dairəsi (yaddaşların bütün API açarları arasında paylaşılması)
+> bu buraxılışda həyata keçirilməyib. Bunun üçün sxem dəyişiklikləri və qlobal əldəetmə
+> yolu tələb olunur. Ayrı şəkildə izləyin.
 
 ## Saxlama qatları
 

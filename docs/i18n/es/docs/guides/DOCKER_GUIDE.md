@@ -27,6 +27,12 @@
 
 ## Ejecución rápida
 
+> **¿Autoalojar con un solo comando?** Consulta la
+> [Guía de autoalojamiento](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (imagen publicada +
+> Redis, solo en la interfaz de bucle invertido, sin elección de perfil). La ejecución rápida que aparece a continuación es la
+> opción de contenedor único para usuarios que ya ejecutan Redis en otro lugar.
+
 ```bash
 docker run -d \
   --name omniroute \

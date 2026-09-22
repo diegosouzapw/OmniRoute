@@ -408,18 +408,18 @@ Utilisez ce point de terminaison lorsqu’un side-car s’exécute dans un proce
 | ------- | ----------------------------------------- | ------------------------------------ |
 | POST    | `/v1/chat/completions`                    | OpenAI                               |
 | POST    | `/v1/messages`                            | Anthropic                            |
-| POST    | `/v1/responses`                           | OpenAI Responses                     |
+| POST    | `/v1/responses`                           | Réponses OpenAI                      |
 | POST    | `/v1/embeddings`                          | OpenAI                               |
-| POST    | `/v1/images/generations`                  | OpenAI Images                        |
-| POST    | `/v1/images/edits`                        | OpenAI Images (édition/inpainting)   |
+| POST    | `/v1/images/generations`                  | Images OpenAI                        |
+| POST    | `/v1/images/edits`                        | Images OpenAI (édition/inpainting)   |
 | POST    | `/v1/videos/generations`                  | Génération vidéo de style OpenAI     |
 | POST    | `/v1/music/generations`                   | Génération musicale de style OpenAI  |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (reconnaissance vocale) |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (renvoie un corps audio)  |
+| POST    | `/v1/audio/transcriptions`                | Audio OpenAI (STT)                   |
+| POST    | `/v1/audio/speech`                        | TTS OpenAI (renvoie le corps audio)  |
 | POST    | `/v1/rerank`                              | Reclassement de style Cohere/Voyage  |
 | POST    | `/v1/classify`                            | Classification Jina (`api.jina.ai`)  |
 | POST    | `/v1/segment`                             | Segmenteur Jina (`segment.jina.ai`)  |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                   |
+| POST    | `/v1/moderations`                         | Modérations OpenAI                   |
 | GET     | `/v1/models`                              | OpenAI                               |
 | POST    | `/v1/messages/count_tokens`               | Anthropic                            |
 | GET     | `/v1beta/models`                          | Gemini                               |
@@ -428,16 +428,16 @@ Utilisez ce point de terminaison lorsqu’un side-car s’exécute dans un proce
 | GET     | `/api/v1/vscode/{token}/`                 | Alias du catalogue OpenAI            |
 | GET     | `/api/v1/vscode/{token}/models`           | Alias des modèles OpenAI             |
 | POST    | `/api/v1/vscode/{token}/chat/completions` | Alias OpenAI avec jeton              |
-| POST    | `/api/v1/vscode/{token}/responses`        | Alias OpenAI Responses avec jeton    |
+| POST    | `/api/v1/vscode/{token}/responses`        | Alias des réponses OpenAI avec jeton |
 | POST    | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama avec jeton              |
 | GET     | `/api/v1/vscode/{token}/api/tags`         | Alias des balises Ollama avec jeton  |
 
-Toutes les routes POST suivent la même structure : `Bearer your-api-key` + corps JSON validé par Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, etc., voir `src/shared/validation/schemas.ts`). Une erreur 4xx est renvoyée en cas d’échec de validation du schéma.
+Toutes les routes POST suivent la même structure : `Bearer your-api-key` + un corps JSON validé par Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, etc., voir `src/shared/validation/schemas.ts`). Une réponse 4xx est renvoyée en cas d’échec de validation du schéma.
 
-Pour les clients qui ne peuvent pas joindre `Authorization: Bearer ...`, OmniRoute accepte également les clés API dans l’URL, soit via les paramètres de requête compatibles (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), soit via les points de terminaison dédiés `/api/v1/vscode/{token}/...` documentés ci-dessous.
+Pour les clients qui ne peuvent pas joindre `Authorization: Bearer ...`, OmniRoute accepte également les clés d’API dans l’URL, soit via des paramètres de requête de compatibilité (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), soit via les points de terminaison dédiés `/api/v1/vscode/{token}/...` documentés ci-dessous.
 
 ```bash
-# Reclassement
+# Reclassement (fournisseur du registre cloud ou nœud fournisseur compatible OpenAI sous la forme "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Classification Jina (identifiants de l’API Foundation)
@@ -452,7 +452,7 @@ POST /v1/search      { "query": "...", "provider": "jina-search" }
 # Modérations
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — renvoie un corps audio/mpeg (ou dans le format demandé)
+# TTS — renvoie un corps audio/mpeg (ou au format demandé)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Édition d’image (multipart)
@@ -463,6 +463,28 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
+> **Nœuds fournisseurs de reclassement :** `POST /v1/rerank` achemine également les requêtes vers des nœuds fournisseurs compatibles OpenAI
+> (oMLX, vLLM, Infinity, TEI derrière une passerelle, …) désignés sous la forme `<node-prefix>/<model>`. Les nœuds
+> de bouclage (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sont toujours admissibles. Les nœuds situés sur tout autre
+> hôte — une machine du réseau local ou un pair Tailscale — ne sont admissibles que lorsque l’opérateur active
+> l’indicateur de fonctionnalité `RERANK_REMOTE_PROVIDER_NODES` **et** que l’URL de base du nœud satisfait à la politique
+> relative aux URL sortantes du fournisseur (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ;
+> les hôtes de métadonnées cloud ne sont jamais utilisés pour le routage. L’étape de reclassement du moteur de mémoire appelle cette route via
+> l’interface de bouclage ; la même règle régit donc `rerankProviderModel` dans les paramètres de mémoire.
+>
+> **Structures des serveurs locaux :** le nœud est appelé à l’adresse `<base>/v1/rerank` et, en cas de réponse 404, à l’adresse `<base>/rerank`
+> (Infinity, TEI). Le corps envoyé en amont contient à la fois la nomenclature Cohere/OpenAI (`documents`,
+> `return_documents`) et la nomenclature TEI (`texts`, `return_text`), et la réponse en amont est
+> normalisée dans l’enveloppe Cohere : le tableau brut de TEI `[{index, score, text}]`, la structure `{results: [{index, score}]}`
+> provenant de passerelles légères et la structure de style Voyage `{data: [...]}` sont tous renvoyés au client sous la forme
+> `{results: [{index, relevance_score, document?}]}`, triés par score et limités à `top_n`.
+
+> **Découverte des nœuds fournisseurs :** les modèles d’un nœud fournisseur compatible OpenAI apparaissent dans `GET /v1/models`
+> sous le préfixe du nœud. Les lignes dépourvues de métadonnées de point de terminaison (cas typique des listes locales `/v1/models`)
+> héritent de l’`apiType` du nœud, de sorte que les modèles d’un nœud `embeddings` ont `type: "embedding"` et ceux d’un
+> nœud `rerank` ont `type: "rerank"` au lieu d’utiliser le chat par défaut ; un champ
+> `supportedEndpoints` explicite sur une ligne synchronisée ou ajoutée manuellement reste prioritaire.
+
 ### Routes dédiées aux fournisseurs
 
 ```bash
@@ -471,7 +493,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Le préfixe du fournisseur est ajouté automatiquement s’il est absent. Les modèles incompatibles renvoient `400`.
+Le préfixe du fournisseur est ajouté automatiquement s’il est absent. Les modèles incompatibles renvoient une erreur `400`.
 
 ---
 

@@ -27,6 +27,12 @@
 
 ## Gyors futtatás
 
+> **Saját üzemeltetés egyetlen paranccsal?** Lásd az
+> [Saját üzemeltetési útmutatót](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (közzétett lemezkép +
+> Redis, csak visszacsatolási interfészen, profilválasztás nélkül). Az alábbi gyors futtatás az
+> egykonténeres megoldás azoknak a felhasználóknak, akik már máshol futtatják a Redist.
+
 ```bash
 docker run -d \
   --name omniroute \
