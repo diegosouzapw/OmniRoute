@@ -31,6 +31,16 @@ export interface ConnectionResilienceView {
   testStatus?: string | null;
 }
 
+export type ResilienceFilterTraceEvent<T> = {
+  candidate: T;
+  outcome: "rejected" | "narrowed";
+  detail:
+    | "model_lockout"
+    | "connection_unavailable"
+    | "all_connections_unavailable"
+    | "connections_narrowed";
+};
+
 /** Index connection resilience views by id, for the O(1) lookups this filter needs. */
 export function buildConnectionResilienceMap(
   connections: Iterable<ConnectionResilienceView>
@@ -73,7 +83,8 @@ function isConnectionEligibleForModel(
 export function filterResilienceBlockedCandidates<T extends ResilienceFilterCandidate>(
   pool: T[],
   connectionsById: Map<string, ConnectionResilienceView>,
-  skip = false
+  skip = false,
+  onTrace?: (event: ResilienceFilterTraceEvent<T>) => void
 ): T[] {
   if (skip || !Array.isArray(pool) || pool.length === 0) return pool;
 
@@ -82,6 +93,7 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
     if (candidate.connectionId === SYNTHETIC_NOAUTH_CONNECTION_ID) {
       if (isModelLocked(candidate.provider, SYNTHETIC_NOAUTH_CONNECTION_ID, candidate.model)) {
         changed = true;
+        onTrace?.({ candidate, outcome: "rejected", detail: "model_lockout" });
         return [];
       }
       return [candidate];
@@ -98,12 +110,14 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
       );
       if (allowedConnectionIds.length === 0) {
         changed = true;
+        onTrace?.({ candidate, outcome: "rejected", detail: "all_connections_unavailable" });
         return [];
       }
       if (allowedConnectionIds.length === candidate.allowedConnectionIds.length) {
         return [candidate];
       }
       changed = true;
+      onTrace?.({ candidate, outcome: "narrowed", detail: "connections_narrowed" });
       return [{ ...candidate, allowedConnectionIds }];
     }
 
@@ -117,6 +131,7 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
         )
       ) {
         changed = true;
+        onTrace?.({ candidate, outcome: "rejected", detail: "connection_unavailable" });
         return [];
       }
     }
