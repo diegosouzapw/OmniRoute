@@ -1,0 +1,1 @@
+- **feat(providers):** add Kimi (Moonshot) as a web search provider via `POST /v1/tools/search`, joining the search gateway's failover ring ([#14292](https://github.com/diegosouzapw/OmniRoute/pull/14292)) — thanks @yourspraveen
