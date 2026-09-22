@@ -126,7 +126,8 @@ export async function resolveAutoRoutingState(model: string): Promise<AutoRoutin
 export async function createVirtualAutoCombo(
   state: AutoRoutingState,
   combo: any,
-  apiKeyId?: string
+  apiKeyId?: string,
+  requestInvocationId?: string
 ): Promise<any | Response> {
   if (!state.isAutoRouting || combo !== null) return combo;
   if (!state.recognizedBuiltInAuto) {
@@ -142,7 +143,7 @@ export async function createVirtualAutoCombo(
     // #7819 (Level 2): scope candidate exclusions to this API key + the
     // requested auto channel (e.g. "auto/best-coding"). Omitted for any
     // caller that doesn't pass apiKeyId — routing stays unfiltered.
-    const invocationId = createInvocationId();
+    const invocationId = requestInvocationId ?? createInvocationId();
     startComboTrace(invocationId, { strategy: "auto", comboName: state.model });
     startAutoEvaluationTrace(invocationId);
     const virtualCombo = await createVirtual(
