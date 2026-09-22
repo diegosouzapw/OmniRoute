@@ -12,7 +12,7 @@
 > // opencode.json
 > {
 >   "$schema": "https://opencode.ai/config.json",
->   "plugin": ["@omniroute/opencode-plugin"]
+>   "plugin": ["@omniroute/opencode-plugin"],
 > }
 > ```
 >
@@ -100,7 +100,7 @@ Returns the value to place under `provider.omniroute` inside `opencode.json`.
 | `baseURL`     | `string`                | Yes      | OmniRoute base URL. Accepts `http://host:port` **or** `http://host:port/v1`. Trailing slashes are tolerated. |
 | `apiKey`      | `string`                | Yes      | OmniRoute API key. Use `sk_omniroute` for local installs that have `REQUIRE_API_KEY=false`.                  |
 | `displayName` | `string`                | No       | Custom name shown in the OpenCode UI. Default: `"OmniRoute"`.                                                |
-| `models`      | `string[]`              | No       | Override the surfaced model catalog. Default: 4 curated models — see `OMNIROUTE_DEFAULT_OPENCODE_MODELS`.    |
+| `models`      | `string[]`              | No       | Override the surfaced model catalog. Default: 8 curated models — see `OMNIROUTE_DEFAULT_OPENCODE_MODELS`.    |
 | `modelLabels` | `Record<string,string>` | No       | Human-readable labels keyed by model id.                                                                     |
 
 Throws on empty/invalid input — `baseURL` must be a real URL, `apiKey` must be a non-empty string.
@@ -143,7 +143,7 @@ Duplicates and empty strings are dropped automatically, and order is preserved.
 
 - **Requests 404 with `/v1/v1/...`** — you're on an old version (≤1.0.0). Update to `≥0.1.0` of this re-released package. The new build normalises `baseURL` automatically.
 - **`401 Invalid API key`** — your OmniRoute instance has `REQUIRE_API_KEY=true` but the key you supplied doesn't exist there. Create one via the dashboard or set `REQUIRE_API_KEY=false` and use `sk_omniroute`.
-- **OpenCode complains the provider has no models** — supply an explicit `models` list; the default 4 may be hidden by your provider visibility settings.
+- **OpenCode complains the provider has no models** — supply an explicit `models` list; the default 8 may be hidden by your provider visibility settings.
 
 ## Related
 

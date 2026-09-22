@@ -1,1 +1,0 @@
-- **test(coverage):** clean stale `coverage/` output before `test:coverage` runs, stopping unbounded accumulation of c8 raw snapshots and reports ([#13408](https://github.com/diegosouzapw/OmniRoute/pull/13408)) — thanks @MumuTW

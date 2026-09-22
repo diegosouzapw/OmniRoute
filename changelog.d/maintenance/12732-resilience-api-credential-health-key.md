@@ -1,1 +1,0 @@
-- **test(resilience):** the `/api/resilience` configuration-only key-set assertion now lists `credentialHealthCheck`, the sweep-interval setting #12043 added to the projection, so the integration suite stops reading a documented configuration key as leaked runtime state ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

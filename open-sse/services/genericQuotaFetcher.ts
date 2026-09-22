@@ -335,11 +335,11 @@ function normalizeQuotaWindows(
       : null;
 
   // Explicit time windows (canonical and legacy aliases).
-  const fiveHourWindow = windows["session (5h)"] || windows["session"];
+  const fiveHourWindow = windows["session (5h)"] || windows["session"] || windows.code_5h;
   if (fiveHourWindow && !normalized.window5h) {
     normalized.window5h = fiveHourWindow;
   }
-  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"];
+  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"] || windows.code_7d;
   if (sevenDayWindow && !normalized.window7d) {
     normalized.window7d = sevenDayWindow;
   }

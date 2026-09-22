@@ -1150,56 +1150,10 @@ export async function admitChatRequest(
   return { admit: true, request: rebuildRequest(request, body), lease };
 }
 
-/** Release a lease if a handler rejects; otherwise bind it to the returned response lifecycle. */
-export async function releaseChatAdmissionAfterHandler(
-  responsePromise: Promise<Response>,
-  lease: ChatAdmissionLease | null
-): Promise<Response> {
-  try {
-    return releaseChatAdmissionWhenDone(await responsePromise, lease);
-  } catch (error) {
-    lease?.release();
-    throw error;
-  }
-}
-
-/** Hold a heavyweight lease through an SSE response without buffering the response body. */
-export function releaseChatAdmissionWhenDone(
-  response: Response,
-  lease: ChatAdmissionLease | null
-): Response {
-  if (!lease) return response;
-  const isStreaming = response.headers.get("content-type")?.includes("text/event-stream");
-  if (!isStreaming || !response.body) {
-    lease.release();
-    return response;
-  }
-
-  const reader = response.body.getReader();
-  const body = new ReadableStream<Uint8Array>({
-    async pull(controller) {
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          lease.release();
-          controller.close();
-        } else {
-          controller.enqueue(value);
-        }
-      } catch (error) {
-        lease.release();
-        controller.error(error);
-      }
-    },
-    async cancel(reason) {
-      lease.release();
-      await reader.cancel(reason).catch(() => undefined);
-    },
-  });
-
-  return new Response(body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
-  });
-}
+// Lease release binding lives in ./chatAdmissionRelease. Re-exported here so
+// existing import sites keep working.
+export {
+  releaseChatAdmissionAfterHandler,
+  releaseChatAdmissionWhenDone,
+  type ReleaseChatAdmissionOptions,
+} from "./chatAdmissionRelease";

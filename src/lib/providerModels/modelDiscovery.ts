@@ -634,6 +634,9 @@ export function normalizeDiscoveredModels(
     // window as `max_model_len`, the value the engine was actually started with.
     // Without it a vLLM model syncs with no window at all and the resolver hands
     // out the 128K default, understating a 250K deployment by half. #12858
+    // Anthropic Models API reports the window as `max_input_tokens` and the output
+    // cap as `max_tokens`. #14159 briefly treated `max_tokens` as a window candidate;
+    // that mapped Claude Opus 5 to 128K instead of 1M. Do not put `max_tokens` here.
     const contextWindow = firstPositiveNumber(
       record.context_length,
       record.contextLength,
@@ -641,7 +644,8 @@ export function normalizeDiscoveredModels(
       record.max_model_len,
       record.maxModelLen,
       record.max_context_window,
-      record.max_tokens,
+      record.max_input_tokens,
+      record.maxInputTokens,
       topProvider.context_length
     );
     const isVertexProvider = providerId === "vertex" || providerId === "vertex-partner";
@@ -651,6 +655,9 @@ export function normalizeDiscoveredModels(
     );
     const outputTokenLimit = firstPositiveNumber(
       record.outputTokenLimit,
+      record.max_output_tokens,
+      record.maxOutputTokens,
+      record.max_tokens,
       topProvider.max_completion_tokens
     );
 

@@ -718,7 +718,7 @@ These assume a running OmniRoute server, unless noted otherwise:
 ```bash
 omniroute status                       # Comprehensive runtime status
 omniroute logs                         # Stream request logs (--json, --search, --follow)
-omniroute config show                  # Display current configuration
+omniroute config list                  # Display configured CLI tools
 
 omniroute provider list                # List available providers (alias of providers list)
 omniroute provider add                 # Register OmniRoute as a provider on a tool

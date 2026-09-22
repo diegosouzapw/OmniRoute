@@ -366,7 +366,7 @@ test("modelSyncScheduler starts once, honors env interval and syncs only active 
     scheduler.startModelSyncScheduler("http://127.0.0.1:8888", 9999);
 
     assert.equal(timers.timeouts.length, 1);
-    assert.equal(timers.timeouts[0].ms, 5000);
+    assert.equal(timers.timeouts[0].ms, scheduler.MODEL_SYNC_STARTUP_DELAY_MS);
     assert.equal(timers.timeouts[0].unrefCalled, true);
     assert.equal(timers.intervals.length, 1);
     assert.equal(timers.intervals[0].ms, 6 * 60 * 60 * 1000);
@@ -461,4 +461,75 @@ test("test 12: MODEL_SYNC_INTERVAL_HOURS still wins over default", () => {
   );
   assert.match(source, /MODEL_SYNC_INTERVAL_HOURS/);
   assert.match(source, /envHours \* 60 \* 60 \* 1000/);
+});
+
+async function flushMicrotasks(times = 20) {
+  for (let i = 0; i < times; i++) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+}
+
+test("runSyncCycle keeps in-flight catalog fetches at or below the cycle concurrency cap", async () => {
+  const connectionCount = 12;
+  const cycleCap = 4;
+
+  for (let i = 0; i < connectionCount; i++) {
+    await providersDb.createProviderConnection({
+      provider: "openai",
+      authType: "apikey",
+      name: `Auto Sync ${i}`,
+      apiKey: `gw-auth-placeholder-${i}`,
+      providerSpecificData: { autoSync: true },
+    });
+  }
+
+  const timers = installTimerStubs();
+  const originalFetch = globalThis.fetch;
+  let inFlight = 0;
+  let peak = 0;
+  let releaseGate;
+  const gate = new Promise((resolve) => {
+    releaseGate = resolve;
+  });
+
+  globalThis.fetch = async () => {
+    inFlight += 1;
+    peak = Math.max(peak, inFlight);
+    await gate;
+    inFlight -= 1;
+    return new Response(JSON.stringify({ syncedModels: 1 }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const scheduler = await loadScheduler("bounded-cycle-concurrency");
+    assert.equal(scheduler.MODEL_SYNC_CYCLE_CONCURRENCY, cycleCap);
+    scheduler.startModelSyncScheduler("http://127.0.0.1:7777", 1000);
+    const cycle = timers.timeouts[0].fn();
+    await flushMicrotasks();
+
+    assert.equal(peak, cycleCap);
+    assert.equal(inFlight, cycleCap);
+
+    releaseGate();
+    await cycle;
+    assert.equal(peak, cycleCap);
+    scheduler.stopModelSyncScheduler();
+  } finally {
+    globalThis.fetch = originalFetch;
+    timers.restore();
+  }
+});
+
+test("first model-sync cycle waits until after the 30s startup cleanup window", async () => {
+  const source = fs.readFileSync(
+    path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
+    "utf8"
+  );
+  const { MODEL_SYNC_STARTUP_DELAY_MS } = await loadScheduler("startup-delay-constant");
+  assert.equal(MODEL_SYNC_STARTUP_DELAY_MS, 90_000);
+  assert.match(source, /MODEL_SYNC_STARTUP_DELAY_MS/);
+  assert.doesNotMatch(source, /setTimeout\(\(\) => runSyncCycle\(trustedApiBaseUrl\), 5_000\)/);
 });
