@@ -26,26 +26,37 @@ function isolateDisk(): { dir: string; restore: () => void } {
 }
 
 function setupCtx(providerId: string): {
-  callbacks: Array<(draft: unknown) => Promise<void>>;
+  added: unknown[];
   ctx: Record<string, unknown>;
 } {
-  const callbacks: Array<(draft: unknown) => Promise<void>> = [];
+  const added: unknown[] = [];
   const ctx = {
     options: {
       providerId,
       baseURL: "https://gw.example.com",
       apiKey: "k-snapfix",
     },
-    catalog: {
-      transform: (cb: (draft: unknown) => Promise<void>) => {
-        callbacks.push(cb);
+    provider: {
+      transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+        cb({ add: (input: unknown) => added.push(input) });
         return Promise.resolve({ dispose: async () => {} });
       },
       reload: async () => {},
     },
+    model: {
+      transform: () => Promise.resolve({ dispose: async () => {} }),
+    },
     integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
   };
-  return { callbacks, ctx };
+  return { added, ctx };
+}
+
+function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
+  const published = new Map<string, Record<string, unknown>>();
+  for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+    for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
+  }
+  return published;
 }
 
 function stubDraft(): { draft: unknown; published: Map<string, Record<string, unknown>> } {
@@ -130,11 +141,10 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
     const origFetch = globalThis.fetch;
     globalThis.fetch = downFetch();
     try {
-      const { callbacks, ctx } = setupCtx(providerId);
+      const { added, ctx } = setupCtx(providerId);
       const { warns } = await silenceConsole(async () => {
         await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        const { draft, published } = stubDraft();
-        await callbacks[0](draft);
+        const published = publishedOf(added);
         assert.ok(
           published.has(`${providerId}/good-1`),
           `valid entry must be published, got: ${JSON.stringify([...published.keys()])}`
@@ -187,11 +197,10 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
       };
     }) as typeof fetch;
     try {
-      const { callbacks, ctx } = setupCtx(providerId);
+      const { added, ctx } = setupCtx(providerId);
       await silenceConsole(async () => {
         await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        const { draft, published } = stubDraft();
-        await callbacks[0](draft);
+        const published = publishedOf(added);
         assert.ok(
           published.has(`${providerId}/fresh-1`),
           `fresh fetch must win over unversioned snapshot, got: ${JSON.stringify([...published.keys()])}`

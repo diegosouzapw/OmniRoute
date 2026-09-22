@@ -1,8 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { createReadStream } from "node:fs";
-import type { CatalogDraft } from "@opencode-ai/plugin/v2/promise";
-import type { ModelV2Info, ProviderV2Info } from "@opencode-ai/sdk/v2/types";
 import { publishCatalog } from "../src/catalog.js";
 import {
   mapComboToModelV2 as sharedMapCombo,
@@ -12,6 +10,20 @@ import {
   type OmniRouteRawCombo,
   type OmniRouteRawModelEntry,
 } from "../src/shared/index.js";
+type BetaDraft = {
+  provider: {
+    list?: () => unknown[];
+    get?: (id: string) => unknown;
+    update: (id: string, fn: (p: Record<string, any>) => void) => void;
+    remove?: () => void;
+  };
+  model: {
+    get?: (...a: string[]) => unknown;
+    update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => void;
+    remove?: () => void;
+    default?: { get: () => undefined; set: () => void };
+  };
+};
 
 interface Fixture {
   models: OmniRouteRawModelEntry[];
@@ -56,16 +68,16 @@ async function loadV1Parity(): Promise<V1Parity> {
 type ApiAuth = { type: "api"; key: string };
 
 function fakeDraft() {
-  const providers = new Map<string, ProviderV2Info>();
-  const models = new Map<string, ModelV2Info>();
+  const providers = new Map<string, Record<string, any>>();
+  const models = new Map<string, Record<string, any>>();
   return {
     providers,
     models,
     provider: {
       list: () => [],
       get: (id: string) => providers.get(id) as never,
-      update: (id: string, fn: (p: ProviderV2Info) => void) => {
-        const p = (providers.get(id) ?? { id }) as ProviderV2Info;
+      update: (id: string, fn: (p: Record<string, any>) => void) => {
+        const p = (providers.get(id) ?? { id }) as Record<string, any>;
         fn(p);
         providers.set(id, p);
       },
@@ -73,9 +85,9 @@ function fakeDraft() {
     },
     model: {
       get: () => undefined,
-      update: (pid: string, mid: string, fn: (m: ModelV2Info) => void) => {
+      update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => {
         const k = pid + "/" + mid;
-        const m = (models.get(k) ?? { id: mid, providerID: pid }) as ModelV2Info;
+        const m = (models.get(k) ?? { id: mid, providerID: pid }) as Record<string, any>;
         fn(m);
         models.set(k, m);
       },
@@ -116,7 +128,7 @@ describe("v1-vs-v2 catalog parity", () => {
     assert.equal(counts.combos, 2);
     assert.equal(counts.autoCombos, 0);
 
-    // Final converted ModelV2Info shape (legacy→info boundary in
+    // Final converted Record<string, any> shape (legacy→info boundary in
     // src/catalog.ts assignModelFields): api resolves to the
     // openai-compatible AISDK block, capabilities fold tool_calling into
     // tools, cost is zeroed (pricing lives server-side).
@@ -221,4 +233,4 @@ describe("v1-vs-v2 catalog parity", () => {
 });
 
 void (0 as unknown as ApiAuth);
-void (0 as unknown as CatalogDraft);
+void (0 as unknown as BetaDraft);
