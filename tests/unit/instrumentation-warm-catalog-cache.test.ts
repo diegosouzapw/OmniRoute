@@ -10,12 +10,12 @@
  * and which typically DOES send an Authorization header — a different cache
  * key) starts flowing.
  *
- * The one genuinely durable, apiKey-independent cost in the catalog build is
- * getOpenRouterCatalog()'s 24h disk-cached network fetch — buildUnifiedModelsResponseCore()
- * calls it unconditionally whenever an OpenRouter connection is configured,
- * decoupled entirely from the per-key Response cache. warmModelCatalogCache()
- * now warms that explicitly. These tests prove:
- *   1. warmup fetches the OpenRouter catalog exactly once when a connection exists,
+ * The genuinely durable, apiKey-independent costs in the catalog build are
+ * the general and video OpenRouter catalogs' 24h disk-cached network fetches —
+ * buildUnifiedModelsResponseCore() calls both whenever an OpenRouter connection
+ * is configured, decoupled entirely from the per-key Response cache.
+ * warmModelCatalogCache() now warms both. These tests prove:
+ *   1. warmup fetches each OpenRouter catalog exactly once when a connection exists,
  *   2. a REAL request using a DIFFERENT apiKey than the warmup afterwards reuses
  *      that warmed cache instead of re-fetching (the actual claimed benefit),
  *   3. warmup makes no OpenRouter network call at all when no connection is configured,
@@ -68,17 +68,27 @@ test.after(async () => {
 });
 
 const REAL_FETCH = globalThis.fetch;
-let fetchCallCount = 0;
+let modelCatalogFetchCallCount = 0;
+let videoCatalogFetchCallCount = 0;
 
-function isOpenRouterCatalogUrl(input: RequestInfo | URL): boolean {
+function getOpenRouterCatalogKind(input: RequestInfo | URL): "models" | "videos" | null {
   const url = String(input instanceof Request ? input.url : input);
-  return url.includes("openrouter.ai");
+  if (url === "https://openrouter.ai/api/v1/models") return "models";
+  if (url === "https://openrouter.ai/api/v1/videos/models") return "videos";
+  return null;
+}
+
+function recordOpenRouterCatalogFetch(input: RequestInfo | URL): void {
+  const kind = getOpenRouterCatalogKind(input);
+  if (kind === "models") modelCatalogFetchCallCount++;
+  if (kind === "videos") videoCatalogFetchCallCount++;
 }
 
 function installFakeOpenRouterFetch(): void {
-  fetchCallCount = 0;
+  modelCatalogFetchCallCount = 0;
+  videoCatalogFetchCallCount = 0;
   globalThis.fetch = (async (input: RequestInfo | URL) => {
-    if (isOpenRouterCatalogUrl(input)) fetchCallCount++;
+    recordOpenRouterCatalogFetch(input);
     return new Response(JSON.stringify({ data: [{ id: "test/fake-model", architecture: {} }] }), {
       status: 200,
       headers: { "content-type": "application/json" },
@@ -87,9 +97,10 @@ function installFakeOpenRouterFetch(): void {
 }
 
 function installFailingOpenRouterFetch(): void {
-  fetchCallCount = 0;
+  modelCatalogFetchCallCount = 0;
+  videoCatalogFetchCallCount = 0;
   globalThis.fetch = (async (input: RequestInfo | URL) => {
-    if (isOpenRouterCatalogUrl(input)) fetchCallCount++;
+    recordOpenRouterCatalogFetch(input);
     throw new Error("simulated OpenRouter network failure");
   }) as typeof fetch;
 }
@@ -98,7 +109,7 @@ function restoreRealFetch(): void {
   globalThis.fetch = REAL_FETCH;
 }
 
-test("warmModelCatalogCache warms the OpenRouter catalog once, and a real request with a different apiKey reuses it", async () => {
+test("warmModelCatalogCache warms both OpenRouter catalogs once, and a real request with a different apiKey reuses them", async () => {
   await resetStorage();
   installFakeOpenRouterFetch();
   try {
@@ -111,7 +122,16 @@ test("warmModelCatalogCache warms the OpenRouter catalog once, and a real reques
     });
 
     await warmModelCatalogCache();
-    assert.equal(fetchCallCount, 1, "warmup should fetch the OpenRouter catalog exactly once");
+    assert.equal(
+      modelCatalogFetchCallCount,
+      1,
+      "warmup should fetch the general OpenRouter catalog exactly once"
+    );
+    assert.equal(
+      videoCatalogFetchCallCount,
+      1,
+      "warmup should fetch the OpenRouter video catalog exactly once"
+    );
 
     // A real client authenticating with a DIFFERENT apiKey than the warmup's
     // anonymous request must NOT re-trigger the network fetch — this is the
@@ -122,9 +142,14 @@ test("warmModelCatalogCache warms the OpenRouter catalog once, and a real reques
     });
     await (await getUnifiedModelsResponse(realReq)).text();
     assert.equal(
-      fetchCallCount,
+      modelCatalogFetchCallCount,
       1,
-      "a real request with a different apiKey should reuse the warmed OpenRouter cache, not re-fetch"
+      "a real request with a different apiKey should reuse the warmed general OpenRouter cache"
+    );
+    assert.equal(
+      videoCatalogFetchCallCount,
+      1,
+      "a real request with a different apiKey should reuse the warmed OpenRouter video cache"
     );
   } finally {
     restoreRealFetch();
@@ -138,11 +163,8 @@ test("warmModelCatalogCache makes no OpenRouter network call when no OpenRouter 
     // No openrouter connection created — warmup must not make an
     // unconditional third-party network call for deployments that never use it.
     await warmModelCatalogCache();
-    assert.equal(
-      fetchCallCount,
-      0,
-      "warmup should not call the OpenRouter API without a configured connection"
-    );
+    assert.equal(modelCatalogFetchCallCount, 0);
+    assert.equal(videoCatalogFetchCallCount, 0);
   } finally {
     restoreRealFetch();
   }
@@ -160,7 +182,10 @@ test("warmModelCatalogCache never rejects, even when the OpenRouter fetch fails"
   installFailingOpenRouterFetch();
   try {
     await assert.doesNotReject(() => warmModelCatalogCache());
-    assert.ok(fetchCallCount > 0, "precondition: the fetch was actually attempted and failed");
+    assert.ok(
+      modelCatalogFetchCallCount + videoCatalogFetchCallCount > 0,
+      "precondition: an OpenRouter catalog fetch was actually attempted and failed"
+    );
   } finally {
     restoreRealFetch();
   }

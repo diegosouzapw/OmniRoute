@@ -60,6 +60,7 @@ import {
   groupConnectionsByProvider,
   normalizeAutoConnectionScope,
   permittedActiveConnections,
+  type ActiveConnectionRecord,
 } from "./autoConnectionScope.ts";
 
 // Quota Share soft-policy deprioritization factor (B17).
@@ -553,119 +554,162 @@ export async function expandAutoComboCandidatePool(
   return eligibleTargets;
 }
 
-async function expandRestrictedAutoComboCandidatePool(
-  eligibleTargets: ResolvedComboTarget[],
-  combo: { autoConfig?: unknown; config?: unknown } | null | undefined,
-  connectionScope: ReadonlySet<string>
-): Promise<ResolvedComboTarget[]> {
-  let allConnections: Array<Record<string, unknown>>;
+type AutoComboPoolConfig = { autoConfig?: unknown; config?: unknown } | null | undefined;
+
+function isRetiredAutoProvider(providerId: string): boolean {
+  return (
+    isMicrosoftDesignerWebRetiredProviderId(providerId) ||
+    isRuntimeRetiredProviderId(providerId) ||
+    isCommonChatGptWebRetiredProviderId(providerId)
+  );
+}
+
+async function loadActiveConnectionsForRestrictedPool(): Promise<Array<
+  Record<string, unknown>
+> | null> {
   try {
-    allConnections = (await getCachedProviderConnections({
+    return (await getCachedProviderConnections({
       isActive: true,
     })) as Array<Record<string, unknown>>;
   } catch {
-    // Authorization scope is not a best-effort optimization. If the permitted
-    // active rows cannot be established, return no candidates instead of
-    // falling back to an unscoped catalog target.
-    return [];
+    return null;
   }
+}
+
+function comboHasExplicitCandidatePool(combo: AutoComboPoolConfig): boolean {
+  const config = combo?.config as Record<string, unknown> | undefined;
+  const localAutoConfig =
+    (combo?.autoConfig as Record<string, unknown> | undefined) ||
+    (isRecord(config?.auto) ? (config.auto as Record<string, unknown>) : null) ||
+    config ||
+    {};
+  const candidatePool = localAutoConfig.candidatePool;
+  if (Array.isArray(candidatePool) && candidatePool.length > 0) return true;
+  const explicitModels = (combo as Record<string, unknown> | null | undefined)?.models;
+  return Array.isArray(explicitModels) && explicitModels.length > 0;
+}
+
+function isCustomChatModel(model: unknown): model is { id: string; supportedEndpoints?: string[] } {
+  return isRecord(model) && typeof model.id === "string" && model.id.length > 0;
+}
+
+function visibleModelIds(
+  models: readonly { id?: string }[],
+  hiddenModels?: ReadonlySet<string>
+): Set<string> {
+  const ids = new Set<string>();
+  for (const model of models) {
+    if (model.id && !hiddenModels?.has(model.id)) ids.add(model.id);
+  }
+  return ids;
+}
+
+async function getRestrictedProviderModelIds(
+  providerId: string,
+  hiddenModels?: ReadonlySet<string>
+): Promise<string[]> {
+  const [syncedModelsRaw, customModelsRaw] = await Promise.all([
+    getSyncedAvailableModels(providerId),
+    getCustomModels(providerId),
+  ]);
+  const syncedModels = filterChatSelectableModels(providerId, syncedModelsRaw);
+  const customModels = filterChatSelectableModels(
+    providerId,
+    Array.isArray(customModelsRaw) ? customModelsRaw.filter(isCustomChatModel) : []
+  );
+  const userVisibleIds = visibleModelIds([...syncedModels, ...customModels], hiddenModels);
+  if (userVisibleIds.size > 0) return Array.from(userVisibleIds);
+  return filterChatSelectableModels(providerId, getProviderModels(providerId))
+    .map((model) => model.id)
+    .filter((modelId) => !hiddenModels?.has(modelId));
+}
+
+function appendRestrictedProviderTargets(
+  targets: ResolvedComboTarget[],
+  seenTargets: Set<string>,
+  providerId: string,
+  providerConnections: readonly ActiveConnectionRecord[],
+  modelIds: readonly string[]
+): void {
+  for (const modelId of modelIds) {
+    const modelStr = `${providerId}/${modelId}`;
+    for (const connection of providerConnections) {
+      const identity = `${modelStr}\0${connection.id}`;
+      if (seenTargets.has(identity)) continue;
+      seenTargets.add(identity);
+      targets.push({
+        kind: "model",
+        stepId: modelStr,
+        executionKey: `${modelStr}@${connection.id}`,
+        provider: providerId,
+        providerId,
+        modelStr,
+        weight: 1,
+        connectionId: connection.id,
+        allowedConnectionIds: [connection.id],
+        authType: typeof connection.authType === "string" ? connection.authType : null,
+        label: null,
+      });
+    }
+  }
+}
+
+async function expandRestrictedProviderInventory(
+  targets: ResolvedComboTarget[],
+  seenTargets: Set<string>,
+  providerId: string,
+  providerConnections: readonly ActiveConnectionRecord[],
+  hiddenModels?: ReadonlySet<string>
+): Promise<void> {
+  try {
+    const modelIds = await getRestrictedProviderModelIds(providerId, hiddenModels);
+    appendRestrictedProviderTargets(
+      targets,
+      seenTargets,
+      providerId,
+      providerConnections,
+      modelIds
+    );
+  } catch {
+    // One provider's inventory is best-effort; other scoped providers remain usable.
+  }
+}
+
+async function expandRestrictedAutoComboCandidatePool(
+  eligibleTargets: ResolvedComboTarget[],
+  combo: AutoComboPoolConfig,
+  connectionScope: ReadonlySet<string>
+): Promise<ResolvedComboTarget[]> {
+  const allConnections = await loadActiveConnectionsForRestrictedPool();
+  // Authorization scope is fail-closed when active permitted rows are unavailable.
+  if (!allConnections) return [];
 
   const permittedConnections = permittedActiveConnections(allConnections, connectionScope).filter(
-    (connection) =>
-      !isMicrosoftDesignerWebRetiredProviderId(connection.provider) &&
-      !isRuntimeRetiredProviderId(connection.provider) &&
-      !isCommonChatGptWebRetiredProviderId(connection.provider)
+    (connection) => !isRetiredAutoProvider(connection.provider)
   );
   const connectionsByProvider = groupConnectionsByProvider(permittedConnections);
-  const nonRetiredTargets = eligibleTargets.filter((target) => {
-    const providerId = target.providerId || target.provider;
-    return (
-      !isMicrosoftDesignerWebRetiredProviderId(providerId) &&
-      !isRuntimeRetiredProviderId(providerId) &&
-      !isCommonChatGptWebRetiredProviderId(providerId)
-    );
-  });
+  const nonRetiredTargets = eligibleTargets.filter(
+    (target) => !isRetiredAutoProvider(target.providerId || target.provider)
+  );
   const scopedTargets = expandTargetsWithinConnectionScope(
     nonRetiredTargets,
     connectionsByProvider,
     connectionScope
   );
-
-  const localAutoConfig =
-    (combo?.autoConfig as Record<string, unknown> | undefined) ||
-    (isRecord((combo?.config as Record<string, unknown>)?.auto)
-      ? ((combo?.config as Record<string, unknown>).auto as Record<string, unknown>)
-      : null) ||
-    (combo?.config as Record<string, unknown> | undefined) ||
-    {};
-  if (Array.isArray(localAutoConfig.candidatePool) && localAutoConfig.candidatePool.length > 0) {
-    return scopedTargets;
-  }
-
-  const explicitModels = (combo as Record<string, unknown> | null | undefined)?.models;
-  if (Array.isArray(explicitModels) && explicitModels.length > 0) return scopedTargets;
+  if (comboHasExplicitCandidatePool(combo)) return scopedTargets;
 
   const seenTargets = new Set(
     scopedTargets.map((target) => `${target.modelStr}\0${target.connectionId ?? ""}`)
   );
   const hiddenModelsMap = getHiddenModelsByProvider();
   for (const [providerId, providerConnections] of connectionsByProvider) {
-    try {
-      const [syncedModelsRaw, customModelsRaw] = await Promise.all([
-        getSyncedAvailableModels(providerId),
-        getCustomModels(providerId),
-      ]);
-      const syncedModels = filterChatSelectableModels(providerId, syncedModelsRaw);
-      const customModels = filterChatSelectableModels(
-        providerId,
-        Array.isArray(customModelsRaw)
-          ? customModelsRaw.filter(
-              (model): model is { id: string; supportedEndpoints?: string[] } =>
-                isRecord(model) && typeof model.id === "string" && model.id.length > 0
-            )
-          : []
-      );
-      const hiddenModels = hiddenModelsMap.get(providerId);
-      const userVisibleIds = new Set<string>();
-      for (const model of syncedModels) {
-        if (model.id && !hiddenModels?.has(model.id)) userVisibleIds.add(model.id);
-      }
-      for (const model of customModels) {
-        if (model.id && !hiddenModels?.has(model.id)) userVisibleIds.add(model.id);
-      }
-      const expandIds =
-        userVisibleIds.size > 0
-          ? Array.from(userVisibleIds)
-          : filterChatSelectableModels(providerId, getProviderModels(providerId))
-              .map((model) => model.id)
-              .filter((modelId) => !hiddenModels?.has(modelId));
-
-      for (const modelId of expandIds) {
-        const modelStr = `${providerId}/${modelId}`;
-        for (const connection of providerConnections) {
-          const identity = `${modelStr}\0${connection.id}`;
-          if (seenTargets.has(identity)) continue;
-          seenTargets.add(identity);
-          scopedTargets.push({
-            kind: "model",
-            stepId: modelStr,
-            executionKey: `${modelStr}@${connection.id}`,
-            provider: providerId,
-            providerId,
-            modelStr,
-            weight: 1,
-            connectionId: connection.id,
-            allowedConnectionIds: [connection.id],
-            authType: typeof connection.authType === "string" ? connection.authType : null,
-            label: null,
-          });
-        }
-      }
-    } catch {
-      // One provider's model inventory is best-effort. The already-scoped
-      // explicit targets and every other permitted provider remain available.
-      continue;
-    }
+    await expandRestrictedProviderInventory(
+      scopedTargets,
+      seenTargets,
+      providerId,
+      providerConnections,
+      hiddenModelsMap.get(providerId)
+    );
   }
   return scopedTargets;
 }

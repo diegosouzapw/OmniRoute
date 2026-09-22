@@ -90,6 +90,105 @@ export interface RunImageComboTargetsOptions<T extends ImageComboTarget> {
   failureLabel?: string;
 }
 
+type TargetAttemptResult =
+  | { outcome: "success"; provider: string; model: string; data: unknown }
+  | { outcome: "terminal"; provider: string; status: number; error: string }
+  | { outcome: "continue"; lastError: { status: number; error: string } };
+
+async function resolveTargetCredentials<T extends ImageComboTarget>(
+  provider: string,
+  target: T,
+  resolver: RunImageComboTargetsOptions<T>["resolveCredentials"]
+): Promise<{ credentials: unknown; error?: never } | { credentials?: never; error: string }> {
+  try {
+    return { credentials: await resolver(provider, target) };
+  } catch {
+    return { error: `Failed to resolve credentials for ${provider}` };
+  }
+}
+
+function getCredentialConnectionId(credentials: unknown): string | null {
+  if (!credentials || typeof credentials !== "object" || !("connectionId" in credentials)) {
+    return null;
+  }
+  return String((credentials as { connectionId?: unknown }).connectionId || "") || null;
+}
+
+function hasLaterDistinctTarget<T extends ImageComboTarget>(
+  targets: T[],
+  targetIndex: number,
+  target: T,
+  provider: string,
+  credentials: unknown,
+  resolveProvider: RunImageComboTargetsOptions<T>["resolveProvider"]
+): boolean {
+  return hasDistinctMediaFallback({
+    currentProvider: provider,
+    currentConnectionId: getCredentialConnectionId(credentials) || target.connectionId || null,
+    remaining: targets.slice(targetIndex + 1).map((candidate) => ({
+      target: candidate,
+      provider: resolveProvider(candidate).provider,
+    })),
+  });
+}
+
+async function attemptImageComboTarget<T extends ImageComboTarget>(
+  targets: T[],
+  targetIndex: number,
+  opts: RunImageComboTargetsOptions<T>,
+  isRateLimited: (credentials: unknown) => boolean,
+  failureLabel: string
+): Promise<TargetAttemptResult> {
+  const target = targets[targetIndex];
+  const { provider, model } = opts.resolveProvider(target);
+  if (!provider) {
+    return {
+      outcome: "continue",
+      lastError: { status: 400, error: `Invalid image model: ${target.modelStr}` },
+    };
+  }
+
+  const resolved = await resolveTargetCredentials(provider, target, opts.resolveCredentials);
+  if (resolved.error) {
+    return { outcome: "continue", lastError: { status: 502, error: resolved.error } };
+  }
+  const { credentials } = resolved;
+  if (!credentials) {
+    return {
+      outcome: "continue",
+      lastError: { status: 400, error: `No credentials for image provider: ${provider}` },
+    };
+  }
+  if (isRateLimited(credentials)) {
+    return {
+      outcome: "continue",
+      lastError: { status: 429, error: `[${provider}] All accounts rate limited` },
+    };
+  }
+
+  const result = await opts.dispatch({ target, provider, model: model ?? "", credentials });
+  if (result.success) {
+    if (opts.onSuccess) await opts.onSuccess(credentials);
+    return { outcome: "success", provider, model: model ?? "", data: result.data };
+  }
+
+  const status = result.status || 500;
+  const error = typeof result.error === "string" ? result.error : failureLabel;
+  const terminal =
+    isTargetLocalMediaStatus(status) &&
+    !hasLaterDistinctTarget(
+      targets,
+      targetIndex,
+      target,
+      provider,
+      credentials,
+      opts.resolveProvider
+    );
+  return terminal
+    ? { outcome: "terminal", provider, status, error }
+    : { outcome: "continue", lastError: { status, error: `[${provider}] ${error}` } };
+}
+
 /**
  * Iterate combo targets in priority order, applying the shared skip / terminal
  * classification that both /v1/images/generations and /v1/images/edits rely on:
@@ -114,84 +213,121 @@ export async function runImageComboTargets<T extends ImageComboTarget>(
   let fallbackCount = 0;
 
   for (let targetIndex = 0; targetIndex < targets.length; targetIndex += 1) {
-    const target = targets[targetIndex];
-    const { provider, model } = opts.resolveProvider(target);
-    if (!provider) {
-      lastError = { status: 400, error: `Invalid image model: ${target.modelStr}` };
-      fallbackCount += 1;
-      continue;
-    }
-
-    // Resolve provider credentials
-    let credentials: unknown = null;
-    try {
-      credentials = await opts.resolveCredentials(provider, target);
-    } catch {
-      // DB unavailable — skip this target
-      lastError = { status: 502, error: `Failed to resolve credentials for ${provider}` };
-      fallbackCount += 1;
-      continue;
-    }
-
-    if (!credentials) {
-      lastError = { status: 400, error: `No credentials for image provider: ${provider}` };
-      fallbackCount += 1;
-      continue;
-    }
-
-    if (isRateLimited(credentials)) {
-      lastError = {
-        status: 429,
-        error: `[${provider}] All accounts rate limited`,
-      };
-      fallbackCount += 1;
-      continue;
-    }
-
-    const result = await opts.dispatch({ target, provider, model: model ?? "", credentials });
-
-    if (result.success) {
-      if (opts.onSuccess) await opts.onSuccess(credentials);
+    const attempt = await attemptImageComboTarget(
+      targets,
+      targetIndex,
+      opts,
+      isRateLimited,
+      failureLabel
+    );
+    if (attempt.outcome === "success") {
       return {
         outcome: "success",
-        provider,
-        model: model ?? "",
-        data: result.data,
+        provider: attempt.provider,
+        model: attempt.model,
+        data: attempt.data,
         fallbackCount,
       };
     }
-
-    // Classify the failure
-    const status = result.status || 500;
-    const error = typeof result.error === "string" ? result.error : failureLabel;
-
-    // Bad-model/auth failures are local to the provider account that handled
-    // the attempt. A genuinely different provider/account may still succeed;
-    // retrying the same unpinned account would only duplicate the failure.
-    if (isTargetLocalMediaStatus(status)) {
-      const credentialConnectionId =
-        credentials && typeof credentials === "object" && "connectionId" in credentials
-          ? String((credentials as { connectionId?: unknown }).connectionId || "") || null
-          : null;
-      const connectionId = credentialConnectionId || target.connectionId || null;
-      const hasDistinctFallback = hasDistinctMediaFallback({
-        currentProvider: provider,
-        currentConnectionId: connectionId,
-        remaining: targets.slice(targetIndex + 1).map((candidate) => ({
-          target: candidate,
-          provider: opts.resolveProvider(candidate).provider,
-        })),
-      });
-      if (!hasDistinctFallback) {
-        return { outcome: "terminal", provider, status, error, fallbackCount };
-      }
+    if (attempt.outcome === "terminal") {
+      return { ...attempt, fallbackCount };
     }
-
-    lastError = { status, error: `[${provider}] ${error}` };
+    lastError = attempt.lastError;
     fallbackCount += 1;
   }
 
   return { outcome: "exhausted", fallbackCount, lastError };
+}
+
+async function resolveImageComboTargets(
+  comboName: string
+): Promise<{ targets: ImageComboTarget[] } | { error: Response }> {
+  const combo = await getComboByName(comboName);
+  if (!combo) {
+    return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo not found: ${comboName}`) };
+  }
+  const targets = resolveComboTargets(combo as never, (await getCombos()) as never);
+  if (!targets?.length) {
+    return {
+      error: errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo "${comboName}" has no usable targets`),
+    };
+  }
+  const imageTargets = targets.filter(
+    (target) => Boolean(target.modelStr) && getImageModelEntry(target.modelStr) !== null
+  );
+  return imageTargets.length > 0
+    ? { targets: imageTargets }
+    : {
+        error: errorResponse(
+          HTTP_STATUS.BAD_REQUEST,
+          `No images-capable targets in combo "${comboName}"`
+        ),
+      };
+}
+
+async function runImageGenerationTargets(
+  targets: ImageComboTarget[],
+  body: Record<string, unknown>,
+  auth: { request: Request },
+  log: typeof logger
+): Promise<RunImageComboTargetsResult> {
+  return runImageComboTargets(targets, {
+    resolveProvider: (target) => parseImageModel(target.modelStr),
+    resolveCredentials: (provider, target) =>
+      getProviderCredentialsWithQuotaPreflight(
+        provider,
+        null,
+        pinnedConnectionIds(target),
+        parseImageModel(target.modelStr).model
+      ),
+    dispatch: async ({ target, credentials }) =>
+      (await handleImageGeneration({
+        body: { ...body, model: target.modelStr },
+        credentials,
+        log,
+        signal: auth.request?.signal || null,
+      })) as ImageGenerationResult,
+    onSuccess: async (credentials) => clearRecoveredProviderState(credentials as never),
+    failureLabel: "Image generation failed",
+  });
+}
+
+async function buildImageSuccessResponse(
+  run: Extract<RunImageComboTargetsResult, { outcome: "success" }>,
+  body: Record<string, unknown>,
+  startTime: number
+): Promise<Response> {
+  const payload = run.data as { created?: number; data?: unknown[] } | unknown[];
+  const images = Array.isArray(payload) ? payload : payload?.data;
+  const n = Math.max(Number(body.n) || 1, images?.length || 0);
+  const costUsd = await calculateModalCost("image", run.provider, run.model, { n });
+  const headers = new Headers({ "Content-Type": "application/json" });
+  attachOmniRouteMetaHeaders(headers, {
+    provider: run.provider,
+    model: run.model,
+    costUsd,
+    latencyMs: Date.now() - startTime,
+    requestId: generateRequestId(),
+    strategy: "priority",
+    fallbackAttempts: run.fallbackCount,
+  });
+  const responseBody = Array.isArray(payload)
+    ? { created: Math.floor(Date.now() / 1000), data: payload }
+    : payload;
+  return new Response(JSON.stringify(responseBody), { status: 200, headers });
+}
+
+function buildImageExhaustedResponse(
+  run: Extract<RunImageComboTargetsResult, { outcome: "exhausted" }>
+): Response {
+  const errorPayload = toJsonErrorPayload(
+    run.lastError?.error || "All combo targets failed",
+    "Image combo targets all failed"
+  );
+  return new Response(JSON.stringify(errorPayload), {
+    status: run.lastError?.status || 502,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 /**
@@ -213,102 +349,13 @@ export async function executeImageCombo(
   startTime: number,
   log: typeof logger
 ): Promise<Response> {
-  // 1. Resolve combo targets
-  const combo = await getComboByName(comboName);
-  if (!combo) {
-    // Model name is not a combo; the caller should handle this as a direct model
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo not found: ${comboName}`);
-  }
-
-  const allCombos = await getCombos();
-  const targets = resolveComboTargets(combo as never, allCombos as never);
-  if (!targets || targets.length === 0) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo "${comboName}" has no usable targets`);
-  }
-
-  // 2. Filter to images-capable targets
-  const imageTargets = targets.filter((t) => {
-    if (!t.modelStr) return false;
-    const entry = getImageModelEntry(t.modelStr);
-    return entry !== null;
-  });
-
-  if (imageTargets.length === 0) {
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `No images-capable targets in combo "${comboName}"`
-    );
-  }
-
-  // 3. Iterate targets in priority order (first healthy target wins).
-  //    The skip / terminal classification lives in the shared runImageComboTargets
-  //    loop; generation only injects its own dispatch (handleImageGeneration) so
-  //    /v1/images/edits can reuse the exact same iteration semantics (#12547).
-  const run = await runImageComboTargets(imageTargets, {
-    resolveProvider: (target) => parseImageModel(target.modelStr),
-    resolveCredentials: (provider, target) =>
-      getProviderCredentialsWithQuotaPreflight(
-        provider,
-        null,
-        pinnedConnectionIds(target),
-        parseImageModel(target.modelStr).model
-      ),
-    dispatch: async ({ target, credentials }) =>
-      (await handleImageGeneration({
-        body: { ...body, model: target.modelStr },
-        credentials,
-        log,
-        signal: auth.request?.signal || null,
-      })) as ImageGenerationResult,
-    onSuccess: async (credentials) => {
-      await clearRecoveredProviderState(credentials as never);
-    },
-    failureLabel: "Image generation failed",
-  });
-
-  // Terminal failure (400 bad model, 401/403 banned, etc.) — surface as a hard error.
+  const resolved = await resolveImageComboTargets(comboName);
+  if ("error" in resolved) return resolved.error;
+  const run = await runImageGenerationTargets(resolved.targets, body, auth, log);
   if (run.outcome === "terminal") {
     return errorResponse(run.status, `[${run.provider}] ${run.error}`);
   }
-
-  // 4. Build response
-  if (run.outcome === "success") {
-    const selectedProvider = run.provider;
-    const selectedModel = run.model;
-    // handleImageGeneration() already returns the public OpenAI images payload
-    // ({ created, data: [...] }); count the images at that level (#12268).
-    const payload = run.data as { created?: number; data?: unknown[] } | unknown[];
-    const images = Array.isArray(payload) ? payload : payload?.data;
-    const n = Math.max(Number(body.n) || 1, images?.length || 0);
-    const costUsd = await calculateModalCost("image", selectedProvider, selectedModel, { n });
-
-    const headers = new Headers({ "Content-Type": "application/json" });
-    attachOmniRouteMetaHeaders(headers, {
-      provider: selectedProvider,
-      model: selectedModel,
-      costUsd,
-      latencyMs: Date.now() - startTime,
-      requestId: generateRequestId(),
-      strategy: "priority",
-      fallbackAttempts: run.fallbackCount,
-    });
-
-    // Return the handler payload unchanged so the combo path matches the
-    // direct-model path byte-for-byte; re-wrap only if a handler ever yields
-    // a bare array (#12268).
-    const responseBody = Array.isArray(payload)
-      ? { created: Math.floor(Date.now() / 1000), data: payload }
-      : payload;
-    return new Response(JSON.stringify(responseBody), { status: 200, headers });
-  }
-
-  // All targets failed — return the last error
-  const errorPayload = toJsonErrorPayload(
-    run.lastError?.error || "All combo targets failed",
-    "Image combo targets all failed"
-  );
-  return new Response(JSON.stringify(errorPayload), {
-    status: run.lastError?.status || 502,
-    headers: { "Content-Type": "application/json" },
-  });
+  return run.outcome === "success"
+    ? buildImageSuccessResponse(run, body, startTime)
+    : buildImageExhaustedResponse(run);
 }

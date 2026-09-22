@@ -615,8 +615,7 @@ export async function prepareVirtualAutoComboInputs(
 ): Promise<PreparedVirtualAutoComboInputs> {
   const [rawConnections, rawDisabledNoAuthConnections, settings] = await Promise.all([
     getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
-    // #6557: synthetic no-auth credentials bypass active filtering, but a real Add Account
-    // row may exist; its isActive=false must also gate auto-combo.
+    // #6557: a disabled real account must also gate synthetic no-auth credentials.
     getCachedProviderConnections({ isActive: false }) as Promise<VirtualFactoryConn[]>,
     getSettings().catch(() => ({}) as Record<string, unknown>),
   ]);
@@ -638,10 +637,7 @@ export async function prepareVirtualAutoComboInputs(
       !isRuntimeRetiredProviderId(connection.provider)
   );
   const hiddenModelsMap = getHiddenModelsByProvider();
-  // #7622: a no-auth provider's own provider_connections row (#6557) can carry
-  // `providerSpecificData.excludedModels` regardless of its isActive state (the
-  // dispatch-time enforcement in auth.ts does not gate on isActive either), so
-  // gather it from BOTH the active and disabled connection lists.
+  // #7622: gather excluded models from both active and disabled no-auth rows.
   const noAuthProviderSpecificData = new Map<string, Record<string, unknown> | null | undefined>();
   for (const conn of [...runtimeConnections, ...disabledNoAuthConnections]) {
     if (conn.provider in NOAUTH_PROVIDERS) {
@@ -660,9 +656,7 @@ export async function prepareVirtualAutoComboInputs(
     connectionsByProvider.set(conn.provider, providerConnections);
   }
 
-  // Build one logical candidate per provider/model and keep account fallback as an
-  // allowlist on that candidate. This avoids both the old "first registry model per
-  // connection" blind spot and a connections × models Cartesian candidate pool.
+  // Build one logical provider/model candidate with an account-fallback allowlist.
   const candidateBuildYield = createCooperativeYieldBudget();
   for (const [providerId, providerConnections] of connectionsByProvider) {
     const providerInfo = registry[providerId];
@@ -677,16 +671,11 @@ export async function prepareVirtualAutoComboInputs(
       .filter(Boolean);
     const hiddenModels = hiddenModelsMap.get(providerId);
 
-    // #auto-pool-visible-only: build the credentialed pool from the models the user
-    // actually has available (synced + custom non-hidden) when any exist, falling
-    // back to the static catalog only when the user has none. This keeps catalog-only
-    // models (e.g. openrouter/auto) out of every auto/* pool when the operator only
-    // synced a subset (e.g. OpenRouter with importFreeModelsOnly).
+    // Prefer synced/custom visible models; use the static catalog only when none exist.
     const [syncedByConnection, rawCustomModels] = await Promise.all([
       getSyncedAvailableModelsByConnection(providerId),
       getCustomModels(providerId),
     ]);
-    // Operator-writable custom-model JSON may contain null/non-object rows.
     const customModels: Array<{ id?: string }> = (
       Array.isArray(rawCustomModels) ? rawCustomModels : []
     ).filter(
@@ -720,14 +709,12 @@ export async function prepareVirtualAutoComboInputs(
         .filter((conn) => {
           if (isModelExcludedByConnection(modelId, conn.providerSpecificData)) return false;
           if (hasUserModels) {
-            // User-synced models are scoped to the connections that carry them;
-            // custom models are provider-wide like registry models.
+            // Synced models are account-scoped; custom models are provider-wide.
             const isSyncedForConn = syncedModelIdsByConnection.get(conn.id)?.has(modelId) === true;
             const isCustomForProvider = customModelIds.has(modelId);
             return isSyncedForConn || isCustomForProvider || conn.defaultModel?.trim() === modelId;
           }
-          // Registry models are provider-wide. A non-registry default (for a custom
-          // or passthrough model) is scoped only to connections that selected it.
+          // Non-registry defaults remain scoped to the accounts that selected them.
           return registryModelIdSet.has(modelId) || conn.defaultModel?.trim() === modelId;
         })
         .map((conn) => conn.id);
@@ -744,8 +731,7 @@ export async function prepareVirtualAutoComboInputs(
     }
   }
 
-  // #7623: honor existing model lockouts + connection cooldown/terminal state so
-  // auto/* never advertises models the dispatch path would immediately skip.
+  // #7623: exclude models the dispatch path would immediately skip.
   const connectionsById = buildConnectionResilienceMap([
     ...runtimeConnections,
     ...disabledNoAuthConnections,
@@ -768,8 +754,7 @@ export async function prepareVirtualAutoComboInputs(
     const resilienceFilteredPool = filterResilienceBlockedCandidates(pool, connectionsById, skip);
     if (resilienceFilteredPool !== pool) pool = resilienceFilteredPool;
 
-    // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
-    // exclude paid-only backends from EVERY `auto/*` candidate pool.
+    // #6512: hide paid-only backends from every auto pool when configured.
     const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
     warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
     pool = paid.pool;
@@ -778,8 +763,7 @@ export async function prepareVirtualAutoComboInputs(
     warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
     if (lockout) pool = lockout.pool;
 
-    // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
-    // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
+    // #11481: mirror the /v1/models exposure allow/deny list.
     const exposureFilteredPool = filterModelExposureCandidates(pool, settings);
     if (exposureFilteredPool !== pool) pool = exposureFilteredPool;
 
@@ -941,6 +925,89 @@ function clonePreparedCandidates(
   }));
 }
 
+async function loadAutoCandidateExclusions(
+  apiKeyId?: string,
+  autoChannel?: string
+): Promise<Set<string>> {
+  if (!apiKeyId || !autoChannel) return new Set();
+  try {
+    return await getExcludedConnectionIds(apiKeyId, autoChannel);
+  } catch (err) {
+    log.warn("AUTO", "Failed to load auto-candidate overrides; routing unfiltered", { err });
+    return new Set();
+  }
+}
+
+function applyAutoCandidateExclusions(
+  candidates: VirtualAutoComboCandidate[],
+  excludedConnectionIds: ReadonlySet<string>
+): VirtualAutoComboCandidate[] {
+  const filtered = filterExcludedCandidates(candidates, excludedConnectionIds);
+  if (filtered === candidates) return candidates;
+  candidates.length = 0;
+  candidates.push(...filtered);
+  return candidates;
+}
+
+function autoPoolLabel(spec: AutoComboSpec): string {
+  if (spec.family) return `auto/${spec.family}`;
+  return `auto/${spec.category ?? ""}${spec.tier ? `:${spec.tier}` : ""}`;
+}
+
+function legacyFullPoolFallbackEnabled(): boolean {
+  const setting = process.env.OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL;
+  return setting === "true" || setting === "1";
+}
+
+function narrowAutoCandidatePool(
+  candidatePool: VirtualAutoComboCandidate[],
+  spec?: AutoComboSpec
+): VirtualAutoComboCandidate[] {
+  if (!spec) return candidatePool;
+  const candidateFilter = spec.family
+    ? buildFamilyCandidateFilter(spec.family)
+    : buildAutoCandidateFilter(spec.category, spec.tier);
+  if (!candidateFilter) return candidatePool;
+  const narrowed = candidatePool.filter((candidate) => candidateFilter(candidate));
+  if (narrowed.length > 0) return narrowed;
+
+  const label = autoPoolLabel(spec);
+  if (!spec.family && legacyFullPoolFallbackEnabled()) {
+    log.warn(
+      "AUTO",
+      `${label} matched no connected models; falling back to the full pool (OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true)`
+    );
+    return candidatePool;
+  }
+
+  warnEmptyAutoPoolOnce(
+    label,
+    `${label} matched no connected models; returning an empty pool.${spec.family ? "" : ' Set OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true to restore the legacy "use full pool" behavior.'}`
+  );
+  return [];
+}
+
+function applySubscriptionPoolPolicy(
+  candidatePool: VirtualAutoComboCandidate[],
+  prepared: PreparedVirtualAutoComboInputs,
+  tier?: AutoTier
+): VirtualAutoComboCandidate[] {
+  if (tier !== "subscription" && tier !== "thrifty") return candidatePool;
+  const ladderOptions = buildLadderOptions(prepared, tier);
+  const narrowed =
+    tier === "subscription"
+      ? filterSubscriptionOnlyCandidates(candidatePool, ladderOptions)
+      : orderPoolByRung(candidatePool, ladderOptions);
+  if (tier === "subscription" && narrowed.length === 0 && candidatePool.length > 0) {
+    warnEmptyAutoPoolOnce(
+      "auto/subscription",
+      "auto/subscription: no plan-included connection has verified quota headroom; " +
+        "returning an empty pool rather than falling back to paid capacity."
+    );
+  }
+  return narrowed;
+}
+
 export async function selectVirtualAutoCandidatePool(
   prepared: PreparedVirtualAutoComboInputs,
   spec?: AutoComboSpec,
@@ -950,80 +1017,20 @@ export async function selectVirtualAutoCandidatePool(
   candidatePool: VirtualAutoComboCandidate[];
   effectivePool: VirtualAutoComboCandidate[];
 }> {
-  let candidatePool = clonePreparedCandidates(
+  const candidatePool = clonePreparedCandidates(
     spec?.family ? prepared.familyCandidates : prepared.regularCandidates
   );
 
-  // #7819 (Level 2): per-API-key candidate exclusions. Fail-open — an absent
-  // apiKeyId/autoChannel (every caller before #7819) or a DB lookup failure
-  // both leave the pool untouched, so default (unconfigured) routing stays
-  // byte-identical to pre-#7819 behavior.
-  let excludedConnectionIds: Set<string> = new Set();
-  if (apiKeyId && autoChannel) {
-    try {
-      excludedConnectionIds = await getExcludedConnectionIds(apiKeyId, autoChannel);
-    } catch (err) {
-      log.warn("AUTO", "Failed to load auto-candidate overrides; routing unfiltered", { err });
-    }
-  }
-  const overrideFilteredPool = filterExcludedCandidates(candidatePool, excludedConnectionIds);
-  if (overrideFilteredPool !== candidatePool) {
-    candidatePool.length = 0;
-    candidatePool.push(...overrideFilteredPool);
-  }
+  // #7819: per-key exclusions fail open when lookup context or storage is unavailable.
+  applyAutoCandidateExclusions(
+    candidatePool,
+    await loadAutoCandidateExclusions(apiKeyId, autoChannel)
+  );
 
   if (candidatePool.length === 0) return { candidatePool, effectivePool: candidatePool };
 
-  // Category/family/tier narrowing fails closed unless the legacy fallback is explicit.
-  let effectivePool = candidatePool;
-  const candidateFilter = spec?.family
-    ? buildFamilyCandidateFilter(spec.family)
-    : spec
-      ? buildAutoCandidateFilter(spec.category, spec.tier)
-      : null;
-  if (candidateFilter) {
-    const narrowed = candidatePool.filter((candidate) => candidateFilter(candidate));
-    const label = spec?.family
-      ? `auto/${spec.family}`
-      : `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""}`;
-    if (narrowed.length > 0) {
-      effectivePool = narrowed;
-    } else if (
-      !spec?.family &&
-      (process.env.OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL === "true" ||
-        process.env.OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL === "1")
-    ) {
-      // Opt-in legacy behavior (category/tier only): warn loudly, then keep the full pool.
-      log.warn(
-        "AUTO",
-        `${label} matched no connected models; falling back to the full pool (OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true)`
-      );
-    } else {
-      // A family is a hard identity constraint and always degrades to an empty pool.
-      warnEmptyAutoPoolOnce(
-        label,
-        `${label} matched no connected models; returning an empty pool.${spec?.family ? "" : ' Set OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true to restore the legacy "use full pool" behavior.'}`
-      );
-      effectivePool = [];
-    }
-  }
-
-  // Subscription tiers narrow/order after category selection using live quota state.
-  if (spec?.tier === "subscription" || spec?.tier === "thrifty") {
-    const ladderOptions = buildLadderOptions(prepared, spec.tier);
-    const beforeCount = effectivePool.length;
-    effectivePool =
-      spec.tier === "subscription"
-        ? filterSubscriptionOnlyCandidates(effectivePool, ladderOptions)
-        : orderPoolByRung(effectivePool, ladderOptions);
-    if (spec.tier === "subscription" && effectivePool.length === 0 && beforeCount > 0) {
-      warnEmptyAutoPoolOnce(
-        "auto/subscription",
-        "auto/subscription: no plan-included connection has verified quota headroom; " +
-          "returning an empty pool rather than falling back to paid capacity."
-      );
-    }
-  }
+  const narrowedPool = narrowAutoCandidatePool(candidatePool, spec);
+  const effectivePool = applySubscriptionPoolPolicy(narrowedPool, prepared, spec?.tier);
 
   return { candidatePool, effectivePool };
 }

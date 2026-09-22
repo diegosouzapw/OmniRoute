@@ -26,6 +26,13 @@ function realConnectionId(connectionId: string): string {
   return splitFingerprintPin(connectionId)?.realConnectionId ?? connectionId;
 }
 
+function connectionAuthType(
+  connection: ActiveConnectionRecord,
+  fallback: string | null = null
+): string | null {
+  return typeof connection.authType === "string" ? connection.authType : fallback;
+}
+
 export function targetProvider(target: ResolvedComboTarget): string {
   const parsed = parseModel(target.modelStr);
   return (
@@ -56,6 +63,53 @@ export function groupConnectionsByProvider(
   return grouped;
 }
 
+function expandPinnedTarget(
+  target: ResolvedComboTarget,
+  providerConnections: readonly ActiveConnectionRecord[],
+  scope: ReadonlySet<string>
+): ResolvedComboTarget[] {
+  if (!target.connectionId) return [];
+  const resolvedConnectionId = realConnectionId(target.connectionId);
+  if (!scope.has(resolvedConnectionId)) return [];
+  const connection = providerConnections.find((candidate) => candidate.id === resolvedConnectionId);
+  if (!connection) return [];
+  return [
+    {
+      ...target,
+      allowedConnectionIds: [resolvedConnectionId],
+      authType: connectionAuthType(connection, target.authType ?? null),
+    },
+  ];
+}
+
+function expandUnpinnedTarget(
+  target: ResolvedComboTarget,
+  providerConnections: readonly ActiveConnectionRecord[]
+): ResolvedComboTarget[] {
+  const stepScope = normalizeAutoConnectionScope(target.allowedConnectionIds);
+  const eligibleConnections = stepScope
+    ? providerConnections.filter((connection) => stepScope.has(connection.id))
+    : providerConnections;
+  return eligibleConnections.map((connection) => ({
+    ...target,
+    connectionId: connection.id,
+    allowedConnectionIds: [connection.id],
+    authType: connectionAuthType(connection),
+    executionKey: `${target.executionKey}@${connection.id}`,
+  }));
+}
+
+function expandTargetWithinConnectionScope(
+  target: ResolvedComboTarget,
+  connectionsByProvider: ReadonlyMap<string, readonly ActiveConnectionRecord[]>,
+  scope: ReadonlySet<string>
+): ResolvedComboTarget[] {
+  const providerConnections = connectionsByProvider.get(targetProvider(target)) ?? [];
+  return target.connectionId
+    ? expandPinnedTarget(target, providerConnections, scope)
+    : expandUnpinnedTarget(target, providerConnections);
+}
+
 /**
  * Bind every restricted auto target to a concrete, active, permitted account.
  * This is deliberately fail-closed: an unknown/inactive pin or an empty
@@ -67,41 +121,7 @@ export function expandTargetsWithinConnectionScope(
   connectionsByProvider: ReadonlyMap<string, readonly ActiveConnectionRecord[]>,
   scope: ReadonlySet<string>
 ): ResolvedComboTarget[] {
-  const expanded: ResolvedComboTarget[] = [];
-
-  for (const target of targets) {
-    const provider = targetProvider(target);
-    const providerConnections = connectionsByProvider.get(provider) ?? [];
-    if (target.connectionId) {
-      const resolvedConnectionId = realConnectionId(target.connectionId);
-      if (!scope.has(resolvedConnectionId)) continue;
-      const connection = providerConnections.find(
-        (candidate) => candidate.id === resolvedConnectionId
-      );
-      if (!connection) continue;
-      expanded.push({
-        ...target,
-        allowedConnectionIds: [resolvedConnectionId],
-        authType:
-          typeof connection.authType === "string" ? connection.authType : (target.authType ?? null),
-      });
-      continue;
-    }
-
-    const stepScope = normalizeAutoConnectionScope(target.allowedConnectionIds);
-    const eligibleConnections = stepScope
-      ? providerConnections.filter((connection) => stepScope.has(connection.id))
-      : providerConnections;
-    for (const connection of eligibleConnections) {
-      expanded.push({
-        ...target,
-        connectionId: connection.id,
-        allowedConnectionIds: [connection.id],
-        authType: typeof connection.authType === "string" ? connection.authType : null,
-        executionKey: `${target.executionKey}@${connection.id}`,
-      });
-    }
-  }
-
-  return expanded;
+  return targets.flatMap((target) =>
+    expandTargetWithinConnectionScope(target, connectionsByProvider, scope)
+  );
 }

@@ -88,6 +88,39 @@ function toNonEmptyString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function supportedEndpoints(item: RawRecord, capabilities: RawRecord): unknown[] {
+  if (Array.isArray(item.supported_endpoints)) return item.supported_endpoints;
+  return Array.isArray(capabilities.supported_endpoints)
+    ? (capabilities.supported_endpoints as unknown[])
+    : [];
+}
+
+function isChatEndpoint(value: unknown): boolean {
+  const endpoint = toNonEmptyString(value) || "";
+  return ["/chat/completions", "/responses", "/v1/messages"].some((path) =>
+    endpoint.includes(path)
+  );
+}
+
+function isPositiveFiniteNumber(value: unknown): boolean {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function hasUsableChatShape(capabilities: RawRecord): boolean {
+  const limits = asRecord(capabilities.limits);
+  const supports = asRecord(capabilities.supports);
+  return (
+    isPositiveFiniteNumber(limits.max_output_tokens) &&
+    isPositiveFiniteNumber(limits.max_prompt_tokens) &&
+    typeof supports.tool_calls === "boolean"
+  );
+}
+
+function isLegacyChatModel(item: RawRecord): boolean {
+  const id = (toNonEmptyString(item.id) || toNonEmptyString(item.model) || "").toLowerCase();
+  return Boolean(id) && !id.includes("embedding") && id !== "gpt-41-copilot";
+}
+
 // Decide whether a live /models row is a routable chat model. Capability-driven
 // (rename-robust) rather than an id allowlist: any model the account is entitled
 // to whose capabilities.type is "chat" (or that carries a chat-shaped
@@ -106,38 +139,15 @@ function isRoutableChatModel(item: RawRecord): boolean {
 
   // No capabilities.type present — fall back to supported_endpoints shape. A
   // chat model exposes /chat/completions, /responses, or /v1/messages.
-  const endpoints = Array.isArray(item.supported_endpoints)
-    ? (item.supported_endpoints as unknown[])
-    : Array.isArray((asRecord(item.capabilities) as RawRecord).supported_endpoints)
-      ? ((asRecord(item.capabilities) as RawRecord).supported_endpoints as unknown[])
-      : [];
-  if (endpoints.length > 0) {
-    return endpoints.some((e) => {
-      const s = toNonEmptyString(e) || "";
-      return (
-        s.includes("/chat/completions") || s.includes("/responses") || s.includes("/v1/messages")
-      );
-    });
-  }
+  const endpoints = supportedEndpoints(item, capabilities);
+  if (endpoints.length > 0) return endpoints.some(isChatEndpoint);
 
   // Current Copilot catalogs do not always provide capabilities.type or an
   // endpoint list. In that shape, the same signals required by Copilot clients
   // establish that the row is a usable chat model: bounded prompt/output
   // limits and an explicit tool-calling capability (true OR false). Requiring
   // the full shape keeps internal/utility rows with partial metadata out.
-  const limits = asRecord(capabilities.limits);
-  const supports = asRecord(capabilities.supports);
-  const maxOutputTokens = limits.max_output_tokens;
-  const maxPromptTokens = limits.max_prompt_tokens;
-  const hasUsableChatShape =
-    typeof maxOutputTokens === "number" &&
-    Number.isFinite(maxOutputTokens) &&
-    maxOutputTokens > 0 &&
-    typeof maxPromptTokens === "number" &&
-    Number.isFinite(maxPromptTokens) &&
-    maxPromptTokens > 0 &&
-    typeof supports.tool_calls === "boolean";
-  if (hasUsableChatShape) return true;
+  if (hasUsableChatShape(capabilities)) return true;
 
   // A row with structured capability metadata that did not match any chat
   // signal is not safe to route as chat. This rejects utility rows without
@@ -146,9 +156,7 @@ function isRoutableChatModel(item: RawRecord): boolean {
 
   // Legacy/sparse catalogs may omit capabilities entirely. Preserve the prior
   // compatibility fallback unless the id is a known non-chat utility.
-  const id = (toNonEmptyString(item.id) || toNonEmptyString(item.model) || "").toLowerCase();
-  if (!id) return false;
-  return !(id.includes("embedding") || id === "gpt-41-copilot");
+  return isLegacyChatModel(item);
 }
 
 /**

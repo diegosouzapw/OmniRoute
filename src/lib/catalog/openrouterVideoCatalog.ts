@@ -142,6 +142,77 @@ interface MergeOpenRouterVideoCatalogOptions {
   yieldAfterModel: () => Promise<void>;
 }
 
+function copyArrayField(target: Record<string, unknown>, field: string, value: unknown): void {
+  if (Array.isArray(value)) target[field] = value;
+}
+
+function videoMediaCapabilities(videoModel: OpenRouterVideoCatalogEntry): Record<string, unknown> {
+  const capabilities: Record<string, unknown> = {};
+  copyArrayField(capabilities, "supported_resolutions", videoModel.supported_resolutions);
+  copyArrayField(capabilities, "supported_aspect_ratios", videoModel.supported_aspect_ratios);
+  copyArrayField(capabilities, "supported_durations", videoModel.supported_durations);
+  copyArrayField(capabilities, "supported_frame_images", videoModel.supported_frame_images);
+  copyArrayField(
+    capabilities,
+    "allowed_passthrough_parameters",
+    videoModel.allowed_passthrough_parameters
+  );
+  if (typeof videoModel.generate_audio === "boolean") {
+    capabilities.generate_audio = videoModel.generate_audio;
+  }
+  return capabilities;
+}
+
+function videoCatalogFields(videoModel: OpenRouterVideoCatalogEntry): Record<string, unknown> {
+  const fields: Record<string, unknown> = {
+    type: "video",
+    input_modalities: ["text"],
+    output_modalities: ["video"],
+    media_capabilities: videoMediaCapabilities(videoModel),
+  };
+  copyArrayField(fields, "supported_sizes", videoModel.supported_sizes);
+  return fields;
+}
+
+function newUnifiedVideoModel(
+  videoModel: OpenRouterVideoCatalogEntry,
+  qualifiedId: string,
+  timestamp: number,
+  videoFields: Record<string, unknown>
+): UnifiedCatalogModel {
+  const model: UnifiedCatalogModel = {
+    id: qualifiedId,
+    object: "model",
+    created: videoModel.created || timestamp,
+    owned_by: "openrouter",
+    permission: [],
+    root: videoModel.canonical_slug || videoModel.id,
+    parent: null,
+    name: videoModel.name || videoModel.id,
+    ...videoFields,
+  };
+  if (videoModel.description) model.description = videoModel.description;
+  return model;
+}
+
+async function mergeOpenRouterVideoModel(
+  videoModel: OpenRouterVideoCatalogEntry,
+  options: Omit<MergeOpenRouterVideoCatalogOptions, "videoModels">
+): Promise<void> {
+  const { models, timestamp, isHidden, shouldHideByExposure, qualifyModelId, yieldAfterModel } =
+    options;
+  if (typeof videoModel?.id !== "string" || !videoModel.id) return;
+  if (isHidden("openrouter", videoModel.id, "openrouter", "videos")) return;
+  if (shouldHideByExposure("openrouter", videoModel.id)) return;
+
+  const qualifiedId = qualifyModelId(videoModel.id);
+  const videoFields = videoCatalogFields(videoModel);
+  const existing = models.find((entry) => entry.id === qualifiedId);
+  if (existing) Object.assign(existing, videoFields);
+  else models.push(newUnifiedVideoModel(videoModel, qualifiedId, timestamp, videoFields));
+  await yieldAfterModel();
+}
+
 /** Merge the dedicated OpenRouter video feed into the unified model catalog. */
 export async function mergeOpenRouterVideoCatalogModels({
   models,
@@ -152,57 +223,15 @@ export async function mergeOpenRouterVideoCatalogModels({
   qualifyModelId,
   yieldAfterModel,
 }: MergeOpenRouterVideoCatalogOptions): Promise<void> {
+  const mergeOptions = {
+    models,
+    timestamp,
+    isHidden,
+    shouldHideByExposure,
+    qualifyModelId,
+    yieldAfterModel,
+  };
   for (const videoModel of videoModels) {
-    if (!videoModel?.id || typeof videoModel.id !== "string") continue;
-    if (isHidden("openrouter", videoModel.id, "openrouter", "videos")) continue;
-    if (shouldHideByExposure("openrouter", videoModel.id)) continue;
-
-    const qualifiedId = qualifyModelId(videoModel.id);
-    const videoFields = {
-      type: "video",
-      input_modalities: ["text"],
-      output_modalities: ["video"],
-      ...(Array.isArray(videoModel.supported_sizes)
-        ? { supported_sizes: videoModel.supported_sizes }
-        : {}),
-      media_capabilities: {
-        ...(Array.isArray(videoModel.supported_resolutions)
-          ? { supported_resolutions: videoModel.supported_resolutions }
-          : {}),
-        ...(Array.isArray(videoModel.supported_aspect_ratios)
-          ? { supported_aspect_ratios: videoModel.supported_aspect_ratios }
-          : {}),
-        ...(Array.isArray(videoModel.supported_durations)
-          ? { supported_durations: videoModel.supported_durations }
-          : {}),
-        ...(Array.isArray(videoModel.supported_frame_images)
-          ? { supported_frame_images: videoModel.supported_frame_images }
-          : {}),
-        ...(typeof videoModel.generate_audio === "boolean"
-          ? { generate_audio: videoModel.generate_audio }
-          : {}),
-        ...(Array.isArray(videoModel.allowed_passthrough_parameters)
-          ? { allowed_passthrough_parameters: videoModel.allowed_passthrough_parameters }
-          : {}),
-      },
-    };
-    const existing = models.find((entry) => entry.id === qualifiedId);
-    if (existing) {
-      Object.assign(existing, videoFields);
-    } else {
-      models.push({
-        id: qualifiedId,
-        object: "model",
-        created: videoModel.created || timestamp,
-        owned_by: "openrouter",
-        permission: [],
-        root: videoModel.canonical_slug || videoModel.id,
-        parent: null,
-        name: videoModel.name || videoModel.id,
-        ...(videoModel.description ? { description: videoModel.description } : {}),
-        ...videoFields,
-      });
-    }
-    await yieldAfterModel();
+    await mergeOpenRouterVideoModel(videoModel, mergeOptions);
   }
 }

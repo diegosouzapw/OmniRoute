@@ -473,7 +473,7 @@ function validateKeyStatus(context: PolicyContext): Response | null {
 }
 
 async function validateKeyScheduleAndUsage(context: PolicyContext): Promise<Response | null> {
-  const { request, apiKey, apiKeyInfo } = context;
+  const { request, apiKeyInfo } = context;
   if (apiKeyInfo.accessSchedule?.enabled && !isWithinSchedule(apiKeyInfo.accessSchedule)) {
     const { from, until, tz } = apiKeyInfo.accessSchedule;
     return errorResponse(
@@ -522,7 +522,7 @@ function validateEndpointAccess(context: PolicyContext): Response | null {
 }
 
 async function validateQuotaAccess(context: PolicyContext): Promise<Response | null> {
-  const { apiKey, apiKeyInfo, modelStr } = context;
+  const { apiKeyInfo, modelStr } = context;
   if (!modelStr) return null;
   const allowedQuotas = Array.isArray(apiKeyInfo.allowedQuotas) ? apiKeyInfo.allowedQuotas : [];
   if (isQuotaModelName(modelStr) && allowedQuotas.length === 0) {
@@ -571,6 +571,51 @@ export function isAutoComboDeniedForKey(
   return apiKeyInfo?.allowAutoCombos === false;
 }
 
+function autoComboPolicyRejection(request: Request, modelStr: string): Response {
+  return policyErrorResponse(
+    request,
+    HTTP_STATUS.FORBIDDEN,
+    `Auto combo "${modelStr}" is not allowed for this API key`,
+    `Auto combos are not enabled for this API key. Choose an explicit model or combo.`,
+    "invalid_request_error",
+    HTTP_STATUS.BAD_REQUEST
+  );
+}
+
+async function resolveBareAutoComboName(
+  modelStr: string,
+  shouldResolve: boolean
+): Promise<{ comboName: string | null; rejection: Response | null }> {
+  if (!shouldResolve) return { comboName: null, rejection: null };
+  try {
+    return { comboName: await resolveRequestedComboName(modelStr), rejection: null };
+  } catch (error) {
+    log.error("API_POLICY", "Bare auto combo resolution failed. Request blocked.", { error });
+    return {
+      comboName: null,
+      rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key combo policy unavailable"),
+    };
+  }
+}
+
+function hasModelAccessRestrictions(apiKeyInfo: ApiKeyMetadata): boolean {
+  return (
+    apiKeyInfo.modelAccessMode === "restricted" ||
+    Boolean(apiKeyInfo.allowedModels?.length) ||
+    Boolean(apiKeyInfo.blockedModels?.length) ||
+    apiKeyInfo.disableNonPublicModels === true
+  );
+}
+
+async function resolveRestrictedModelComboName(modelStr: string): Promise<string | null> {
+  if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) return modelStr;
+  try {
+    return await resolveRequestedComboName(modelStr);
+  } catch {
+    return null;
+  }
+}
+
 async function validateModelAccess(context: PolicyContext): Promise<Response | null> {
   const { request, apiKey, apiKeyInfo, modelStr } = context;
   if (!modelStr || apiKeyInfo.allowedQuotas?.length) return null;
@@ -580,53 +625,25 @@ async function validateModelAccess(context: PolicyContext): Promise<Response | n
   // resolve ordinary combo access before deciding whether it fell through to
   // the built-in route.
   if (autoComboDenied && modelStr !== "auto") {
-    return policyErrorResponse(
-      request,
-      HTTP_STATUS.FORBIDDEN,
-      `Auto combo "${modelStr}" is not allowed for this API key`,
-      `Auto combos are not enabled for this API key. Choose an explicit model or combo.`,
-      "invalid_request_error",
-      HTTP_STATUS.BAD_REQUEST
-    );
+    return autoComboPolicyRejection(request, modelStr);
   }
   const comboAccess = await validateComboAccess(apiKeyInfo.allowedCombos, modelStr);
   if (comboAccess.rejection) return comboAccess.rejection;
   let requestedComboName = comboAccess.comboName;
 
-  if (autoComboDenied && !requestedComboName) {
-    try {
-      requestedComboName = await resolveRequestedComboName(modelStr);
-    } catch (error) {
-      log.error("API_POLICY", "Bare auto combo resolution failed. Request blocked.", { error });
-      return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key combo policy unavailable");
-    }
-  }
+  const bareAutoResolution = await resolveBareAutoComboName(
+    modelStr,
+    autoComboDenied && !requestedComboName
+  );
+  if (bareAutoResolution.rejection) return bareAutoResolution.rejection;
+  requestedComboName ??= bareAutoResolution.comboName;
   if (isAutoComboDeniedForKey(apiKeyInfo, modelStr, requestedComboName)) {
-    return policyErrorResponse(
-      request,
-      HTTP_STATUS.FORBIDDEN,
-      `Auto combo "${modelStr}" is not allowed for this API key`,
-      `Auto combos are not enabled for this API key. Choose an explicit model or combo.`,
-      "invalid_request_error",
-      HTTP_STATUS.BAD_REQUEST
-    );
+    return autoComboPolicyRejection(request, modelStr);
   }
 
-  const hasModelRestrictions =
-    apiKeyInfo.modelAccessMode === "restricted" ||
-    Boolean(apiKeyInfo.allowedModels?.length) ||
-    Boolean(apiKeyInfo.blockedModels?.length) ||
-    apiKeyInfo.disableNonPublicModels === true;
+  const hasModelRestrictions = hasModelAccessRestrictions(apiKeyInfo);
   if (!requestedComboName && hasModelRestrictions) {
-    if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
-      requestedComboName = modelStr;
-    } else {
-      try {
-        requestedComboName = await resolveRequestedComboName(modelStr);
-      } catch {
-        requestedComboName = null;
-      }
-    }
+    requestedComboName = await resolveRestrictedModelComboName(modelStr);
   }
   if (requestedComboName || !hasModelRestrictions) return null;
   if (await isModelAllowedForKey(apiKey, modelStr)) return null;

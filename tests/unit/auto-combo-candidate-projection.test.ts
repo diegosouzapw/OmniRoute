@@ -95,11 +95,23 @@ async function assertProjectionParity(variant: AutoVariant | undefined, spec?: A
 
 test("candidate-only projection preserves base/category/family/subscription identity and order", async () => {
   await assertProjectionParity(undefined);
+  await assertProjectionParity(undefined, { category: "coding" });
   await assertProjectionParity(undefined, { category: "vision" });
   await assertProjectionParity(undefined, { category: "reasoning" });
   await assertProjectionParity(undefined, { family: "qwen" });
   await assertProjectionParity(undefined, { tier: "subscription" });
   await assertProjectionParity("cheap", { tier: "thrifty" });
+});
+
+test("category-only specs without a narrowing predicate keep the prepared pool", async () => {
+  const combo = await createVirtualAutoComboFromPrepared(prepared, undefined, {
+    category: "coding",
+  });
+
+  assert.deepEqual(
+    combo.models.map((model) => model.model),
+    regularCandidates.map((candidate) => candidate.modelStr)
+  );
 });
 
 test("candidate-only projection preserves the exact chaos visible set and order", async () => {

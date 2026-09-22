@@ -176,43 +176,8 @@ async function* decodeSseData(
   control.reader = reader;
   const decoder = new TextDecoder();
   let buffer = "";
-  let dataLines: string[] = [];
-  let dataChars = 0;
+  const frame = { dataLines: [] as string[], dataChars: 0 };
   let reachedEof = false;
-
-  const consumeLine = (rawLine: string): string | null => {
-    if (rawLine.length > MAX_CLAUDE_WEB_SSE_PENDING_CHARS) {
-      throw new ClaudeWebProtocolError("SSE line exceeded the size limit", {
-        category: "size_limit",
-        phase: "sse_decode",
-      });
-    }
-    const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
-    if (line === "") {
-      if (dataLines.length === 0) return null;
-      const data = dataLines.join("\n");
-      dataLines = [];
-      dataChars = 0;
-      return data;
-    }
-    if (line.startsWith(":")) return null;
-
-    const separatorIndex = line.indexOf(":");
-    const field = separatorIndex < 0 ? line : line.slice(0, separatorIndex);
-    let value = separatorIndex < 0 ? "" : line.slice(separatorIndex + 1);
-    if (value.startsWith(" ")) value = value.slice(1);
-    if (field === "data") {
-      dataChars += value.length + (dataLines.length > 0 ? 1 : 0);
-      if (dataChars > MAX_CLAUDE_WEB_SSE_PENDING_CHARS) {
-        throw new ClaudeWebProtocolError("SSE event exceeded the size limit", {
-          category: "size_limit",
-          phase: "sse_decode",
-        });
-      }
-      dataLines.push(value);
-    }
-    return null;
-  };
 
   try {
     while (true) {
@@ -227,24 +192,19 @@ async function* decodeSseData(
       while (newlineIndex >= 0) {
         const line = buffer.slice(0, newlineIndex);
         buffer = buffer.slice(newlineIndex + 1);
-        const frame = consumeLine(line);
-        if (frame !== null) yield frame;
+        const completedFrame = consumeSseLine(frame, line);
+        if (completedFrame !== null) yield completedFrame;
         newlineIndex = buffer.indexOf("\n");
       }
-      if (buffer.length > MAX_CLAUDE_WEB_SSE_PENDING_CHARS) {
-        throw new ClaudeWebProtocolError("SSE line exceeded the size limit", {
-          category: "size_limit",
-          phase: "sse_decode",
-        });
-      }
+      assertSseSize(buffer.length, "SSE line exceeded the size limit");
     }
 
     buffer += decoder.decode();
     if (buffer) {
-      const frame = consumeLine(buffer);
-      if (frame !== null) yield frame;
+      const completedFrame = consumeSseLine(frame, buffer);
+      if (completedFrame !== null) yield completedFrame;
     }
-    const finalFrame = consumeLine("");
+    const finalFrame = consumeSseLine(frame, "");
     if (finalFrame !== null) yield finalFrame;
   } finally {
     if (!reachedEof) await reader.cancel().catch(() => {});
@@ -255,6 +215,45 @@ async function* decodeSseData(
       // The source may already have released its reader after an abort.
     }
   }
+}
+
+interface SseFrameState {
+  dataLines: string[];
+  dataChars: number;
+}
+
+function assertSseSize(size: number, message: string): void {
+  if (size <= MAX_CLAUDE_WEB_SSE_PENDING_CHARS) return;
+  throw new ClaudeWebProtocolError(message, {
+    category: "size_limit",
+    phase: "sse_decode",
+  });
+}
+
+function completeSseFrame(frame: SseFrameState): string | null {
+  if (frame.dataLines.length === 0) return null;
+  const data = frame.dataLines.join("\n");
+  frame.dataLines = [];
+  frame.dataChars = 0;
+  return data;
+}
+
+function consumeSseLine(frame: SseFrameState, rawLine: string): string | null {
+  assertSseSize(rawLine.length, "SSE line exceeded the size limit");
+  const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
+  if (line === "") return completeSseFrame(frame);
+  if (line.startsWith(":")) return null;
+
+  const separatorIndex = line.indexOf(":");
+  const field = separatorIndex < 0 ? line : line.slice(0, separatorIndex);
+  let value = separatorIndex < 0 ? "" : line.slice(separatorIndex + 1);
+  if (value.startsWith(" ")) value = value.slice(1);
+  if (field !== "data") return null;
+
+  frame.dataChars += value.length + (frame.dataLines.length > 0 ? 1 : 0);
+  assertSseSize(frame.dataChars, "SSE event exceeded the size limit");
+  frame.dataLines.push(value);
+  return null;
 }
 
 function safeMetadataValue(value: unknown): string | number | boolean | null | undefined {
@@ -397,6 +396,49 @@ function blockKind(block: Record<string, unknown>): BlockKind | null {
   return null;
 }
 
+function requireBlockKind(
+  contentBlock: Record<string, unknown>,
+  state: ProtocolState,
+  index: number
+): BlockKind {
+  const kind = blockKind(contentBlock);
+  if (kind) return kind;
+  const rawKind = typeof contentBlock.type === "string" ? contentBlock.type : "";
+  return protocolFailure(state, "Unsupported Claude Web content block", {
+    category: "unsupported_block",
+    phase: "protocol_dispatch",
+    eventKind: "content_block_start",
+    blockKind: "unrecognized",
+    index,
+    ...(rawKind ? { blockKindHash: stableDiagnosticHash(rawKind) } : {}),
+  });
+}
+
+function initialToolInput(contentBlock: Record<string, unknown>): string {
+  if (contentBlock.input === undefined) return "";
+  try {
+    return JSON.stringify(contentBlock.input);
+  } catch {
+    return "";
+  }
+}
+
+function startToolBlock(
+  contentBlock: Record<string, unknown>,
+  state: ProtocolState,
+  index: number
+): null {
+  const id = typeof contentBlock.id === "string" ? contentBlock.id : "";
+  const name = typeof contentBlock.name === "string" ? contentBlock.name : "";
+  state.toolBlocks.set(index, {
+    id,
+    name,
+    inputParts: [],
+    initialInput: initialToolInput(contentBlock),
+  });
+  return null;
+}
+
 function handleContentBlockStart(
   event: Record<string, unknown>,
   state: ProtocolState
@@ -413,36 +455,82 @@ function handleContentBlockStart(
   }
 
   const contentBlock = requireRecord(event.content_block, "content_block");
-  const kind = blockKind(contentBlock);
-  if (!kind) {
-    const rawKind = typeof contentBlock.type === "string" ? contentBlock.type : "";
-    protocolFailure(state, "Unsupported Claude Web content block", {
-      category: "unsupported_block",
-      phase: "protocol_dispatch",
-      eventKind: "content_block_start",
-      blockKind: "unrecognized",
-      index,
-      ...(rawKind ? { blockKindHash: stableDiagnosticHash(rawKind) } : {}),
-    });
-  }
+  const kind = requireBlockKind(contentBlock, state, index);
   state.openBlocks.set(index, kind);
 
-  if (kind === "tool_use") {
-    const id = typeof contentBlock.id === "string" ? contentBlock.id : "";
-    const name = typeof contentBlock.name === "string" ? contentBlock.name : "";
-    let initialInput = "";
-    if (contentBlock.input !== undefined) {
-      try {
-        initialInput = JSON.stringify(contentBlock.input);
-      } catch {
-        initialInput = "";
-      }
-    }
-    state.toolBlocks.set(index, { id, name, inputParts: [], initialInput });
-    return null;
-  }
+  if (kind === "tool_use") return startToolBlock(contentBlock, state, index);
 
   return kind === "thinking" ? { kind: "reasoning", text: "" } : null;
+}
+
+interface DeltaContext {
+  delta: Record<string, unknown>;
+  state: ProtocolState;
+  index: number;
+}
+
+type DeltaHandler = (context: DeltaContext) => SemanticEvent | null;
+
+function contentDelta({ delta }: DeltaContext): SemanticEvent {
+  return { kind: "content", text: deltaText(delta, ["text"]) };
+}
+
+function thinkingDelta({ delta }: DeltaContext): SemanticEvent {
+  return { kind: "reasoning", text: deltaText(delta, ["thinking", "text"]) };
+}
+
+function thinkingSummaryDelta({ delta }: DeltaContext): SemanticEvent {
+  return { kind: "reasoning", text: thinkingSummaryText(delta) };
+}
+
+function signatureDelta({ delta }: DeltaContext): null {
+  // Signatures are opaque replay metadata. Validate their shape, but never emit or log them.
+  deltaText(delta, ["signature"]);
+  return null;
+}
+
+function toolInputDelta({ delta, state, index }: DeltaContext): null {
+  const toolBlock = state.toolBlocks.get(index);
+  if (!toolBlock) {
+    protocolFailure(state, "input_json_delta has no tool block state", {
+      category: "invalid_order",
+      phase: "protocol_dispatch",
+      eventKind: "content_block_delta",
+      blockKind: "tool_use",
+      deltaKind: "input_json_delta",
+      index,
+    });
+  }
+  if (typeof delta.partial_json === "string") toolBlock.inputParts.push(delta.partial_json);
+  return null;
+}
+
+const DELTA_HANDLERS: Readonly<Record<string, DeltaHandler>> = {
+  "text:text_delta": contentDelta,
+  "thinking:thinking_delta": thinkingDelta,
+  "thinking:thinking_summary_delta": thinkingSummaryDelta,
+  "thinking:signature_delta": signatureDelta,
+  "tool_use:input_json_delta": toolInputDelta,
+};
+
+function unsupportedDelta(
+  delta: Record<string, unknown>,
+  block: BlockKind,
+  state: ProtocolState,
+  index: number
+): never {
+  const rawDeltaKind = typeof delta.type === "string" ? delta.type : "";
+  return protocolFailure(state, "Content delta type does not match its block", {
+    category: "unsupported_delta",
+    phase: "protocol_dispatch",
+    eventKind: "content_block_delta",
+    blockKind: block,
+    deltaKind: safeKnownKind(rawDeltaKind, ALLOWED_DELTA_KINDS) ?? "unrecognized",
+    ...(rawDeltaKind && !ALLOWED_DELTA_KINDS.has(rawDeltaKind)
+      ? { deltaKindHash: stableDiagnosticHash(rawDeltaKind) }
+      : {}),
+    index,
+  });
 }
 
 function handleContentBlockDelta(
@@ -462,49 +550,8 @@ function handleContentBlockDelta(
   }
 
   const delta = requireRecord(event.delta, "delta");
-  if (delta.type === "text_delta" && block === "text") {
-    return { kind: "content", text: deltaText(delta, ["text"]) };
-  }
-  if (delta.type === "thinking_delta" && block === "thinking") {
-    return { kind: "reasoning", text: deltaText(delta, ["thinking", "text"]) };
-  }
-  if (delta.type === "thinking_summary_delta" && block === "thinking") {
-    return { kind: "reasoning", text: thinkingSummaryText(delta) };
-  }
-  if (delta.type === "signature_delta" && block === "thinking") {
-    // Signatures are opaque replay metadata. Validate their shape, but never emit or log them.
-    deltaText(delta, ["signature"]);
-    return null;
-  }
-  if (delta.type === "input_json_delta" && block === "tool_use") {
-    const toolBlock = state.toolBlocks.get(index);
-    if (!toolBlock) {
-      protocolFailure(state, "input_json_delta has no tool block state", {
-        category: "invalid_order",
-        phase: "protocol_dispatch",
-        eventKind: "content_block_delta",
-        blockKind: block,
-        deltaKind: "input_json_delta",
-        index,
-      });
-    }
-    if (typeof delta.partial_json === "string") {
-      toolBlock.inputParts.push(delta.partial_json);
-    }
-    return null;
-  }
-  const rawDeltaKind = typeof delta.type === "string" ? delta.type : "";
-  return protocolFailure(state, "Content delta type does not match its block", {
-    category: "unsupported_delta",
-    phase: "protocol_dispatch",
-    eventKind: "content_block_delta",
-    blockKind: block,
-    deltaKind: safeKnownKind(rawDeltaKind, ALLOWED_DELTA_KINDS) ?? "unrecognized",
-    ...(rawDeltaKind && !ALLOWED_DELTA_KINDS.has(rawDeltaKind)
-      ? { deltaKindHash: stableDiagnosticHash(rawDeltaKind) }
-      : {}),
-    index,
-  });
+  const handler = DELTA_HANDLERS[`${block}:${String(delta.type)}`];
+  return handler ? handler({ delta, state, index }) : unsupportedDelta(delta, block, state, index);
 }
 
 function handleContentBlockStop(

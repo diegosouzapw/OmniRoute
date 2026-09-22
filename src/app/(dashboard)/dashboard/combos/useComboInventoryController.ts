@@ -49,28 +49,20 @@ function moveArrayItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
   return nextItems;
 }
 
-export function useComboInventoryController<T extends ComboInventoryItem>({
-  combos,
-  setCombos,
-  notify,
-  t,
-}: {
+type ControllerOptions<T extends ComboInventoryItem> = {
   combos: T[];
   setCombos: Dispatch<SetStateAction<T[]>>;
   notify: InventoryNotification;
   t: Translator;
-}) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const activeFilter = normalizeIntelligentRoutingFilter(searchParams.get("filter"));
-  const [comboDragIndex, setComboDragIndex] = useState<number | null>(null);
-  const [comboDragOverIndex, setComboDragOverIndex] = useState<number | null>(null);
-  const [savingComboOrder, setSavingComboOrder] = useState(false);
+};
+
+function useComboPagination<T extends ComboInventoryItem>(
+  combos: T[],
+  activeFilter: ReturnType<typeof normalizeIntelligentRoutingFilter>
+) {
   const [comboPage, setComboPage] = useState(1);
   const [comboPaginationFilter, setComboPaginationFilter] = useState(activeFilter);
   const [reorderingAllCombos, setReorderingAllCombos] = useState(false);
-  const comboDragIndexRef = useRef<number | null>(null);
-
   const filteredCombos = useMemo(
     () => filterCombosByStrategyCategory(combos, activeFilter),
     [combos, activeFilter]
@@ -96,62 +88,115 @@ export function useComboInventoryController<T extends ComboInventoryItem>({
     setComboPage(visibleComboPage);
   }
 
-  const resetComboDragState = () => {
-    comboDragIndexRef.current = null;
-    setComboDragIndex(null);
-    setComboDragOverIndex(null);
+  return {
+    filteredCombos,
+    visibleCombos,
+    visibleComboPage,
+    comboPageCount,
+    comboPageStart,
+    comboPageEnd,
+    reorderingAllCombos,
+    setReorderingAllCombos,
+    setComboPage,
   };
+}
+
+function scrollToComboWhenRendered(comboId: string): void {
+  let remainingFrames = 12;
+  const scrollWhenRendered = () => {
+    const element = document.querySelector(`[data-testid="combo-card-${comboId}"]`);
+    if (element) {
+      element.scrollIntoView({ behavior: "auto", block: "center" });
+      return;
+    }
+    remainingFrames -= 1;
+    if (remainingFrames > 0) requestAnimationFrame(scrollWhenRendered);
+  };
+  requestAnimationFrame(scrollWhenRendered);
+}
+
+function replaceComboFilter(
+  filter: string,
+  searchParams: ReturnType<typeof useSearchParams>,
+  replace: ReturnType<typeof useRouter>["replace"]
+): void {
+  const params = new URLSearchParams(searchParams.toString());
+  if (filter === "all") params.delete("filter");
+  else params.set("filter", filter);
+  const queryString = params.toString();
+  replace(`/dashboard/combos${queryString ? `?${queryString}` : ""}`, { scroll: false });
+}
+
+function useInventoryNavigation<T extends ComboInventoryItem>(
+  activeFilter: ReturnType<typeof normalizeIntelligentRoutingFilter>,
+  setComboPage: Dispatch<SetStateAction<number>>,
+  setReorderingAllCombos: Dispatch<SetStateAction<boolean>>,
+  resetComboDragState: () => void
+) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleFilterChange = (nextFilter: string) => {
     setComboPage(1);
     setReorderingAllCombos(false);
     resetComboDragState();
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (nextFilter === "all") params.delete("filter");
-    else params.set("filter", nextFilter);
-
-    const queryString = params.toString();
-    router.replace(`/dashboard/combos${queryString ? `?${queryString}` : ""}`, { scroll: false });
+    replaceComboFilter(nextFilter, searchParams, router.replace);
   };
 
   const revealCreatedCombo = (nextCombos: T[] | null, comboId: string) => {
     if (!Array.isArray(nextCombos) || !nextCombos.some((combo) => String(combo.id) === comboId)) {
       return;
     }
-
-    // Creation can happen under a strategy filter. Return to the complete inventory,
-    // select the containing page, then wait for React to render before scrolling.
-    if (activeFilter !== "all") {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("filter");
-      const queryString = params.toString();
-      router.replace(`/dashboard/combos${queryString ? `?${queryString}` : ""}`, {
-        scroll: false,
-      });
-    }
+    if (activeFilter !== "all") replaceComboFilter("all", searchParams, router.replace);
     setReorderingAllCombos(false);
     setComboPage(findComboPage(nextCombos, comboId));
-
-    let remainingFrames = 12;
-    const scrollWhenRendered = () => {
-      const element = document.querySelector(`[data-testid="combo-card-${comboId}"]`);
-      if (element) {
-        element.scrollIntoView({ behavior: "auto", block: "center" });
-        return;
-      }
-      remainingFrames -= 1;
-      if (remainingFrames > 0) requestAnimationFrame(scrollWhenRendered);
-    };
-    requestAnimationFrame(scrollWhenRendered);
+    scrollToComboWhenRendered(comboId);
   };
 
-  const handleReorderAllToggle = () => {
-    resetComboDragState();
-    setReorderingAllCombos((enabled) => !enabled);
+  return { handleFilterChange, revealCreatedCombo };
+}
+
+async function persistComboOrder<T extends ComboInventoryItem>(
+  nextCombos: T[],
+  previousCombos: T[],
+  setCombos: Dispatch<SetStateAction<T[]>>,
+  notify: InventoryNotification,
+  t: Translator
+): Promise<void> {
+  try {
+    const response = await fetch("/api/combos/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comboIds: nextCombos.map((combo) => combo.id) }),
+    });
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.error?.message || data.error || "Failed to reorder combos");
+    if (Array.isArray(data.combos)) setCombos(data.combos);
+  } catch {
+    setCombos(previousCombos);
+    notify.error(getI18nOrFallback(t, "failedReorder", "Failed to save combo order"));
+  }
+}
+
+function useComboDragController<T extends ComboInventoryItem>(options: ControllerOptions<T>) {
+  const { combos, setCombos, notify, t } = options;
+  const [comboDragIndex, setComboDragIndex] = useState<number | null>(null);
+  const [comboDragOverIndex, setComboDragOverIndex] = useState<number | null>(null);
+  const [savingComboOrder, setSavingComboOrder] = useState(false);
+  const comboDragIndexRef = useRef<number | null>(null);
+
+  const resetComboDragState = () => {
+    comboDragIndexRef.current = null;
+    setComboDragIndex(null);
+    setComboDragOverIndex(null);
   };
 
-  const handleComboDragStart = (event: DragEvent<HTMLElement>, index: number) => {
+  const handleComboDragStart = (
+    event: DragEvent<HTMLElement>,
+    index: number,
+    reorderingAllCombos: boolean
+  ) => {
     if (savingComboOrder || !reorderingAllCombos || combos.length < 2) {
       event.preventDefault();
       return;
@@ -189,45 +234,49 @@ export function useComboInventoryController<T extends ComboInventoryItem>({
     const nextCombos = moveArrayItem(combos, fromIndex, dropIndex);
     setCombos(nextCombos);
     setSavingComboOrder(true);
-
     try {
-      const response = await fetch("/api/combos/reorder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comboIds: nextCombos.map((combo) => combo.id) }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error?.message || data.error || "Failed to reorder combos");
-      }
-      if (Array.isArray(data.combos)) setCombos(data.combos);
-    } catch {
-      setCombos(previousCombos);
-      notify.error(getI18nOrFallback(t, "failedReorder", "Failed to save combo order"));
+      await persistComboOrder(nextCombos, previousCombos, setCombos, notify, t);
     } finally {
       setSavingComboOrder(false);
     }
   };
 
   return {
-    activeFilter,
-    filteredCombos,
-    visibleCombos,
-    visibleComboPage,
-    comboPageCount,
-    comboPageStart,
-    comboPageEnd,
     comboDragIndex,
     comboDragOverIndex,
     savingComboOrder,
-    reorderingAllCombos,
-    setComboPage,
-    handleFilterChange,
-    revealCreatedCombo,
-    handleReorderAllToggle,
+    resetComboDragState,
     handleComboDragStart,
     handleComboDragEnd,
     handleComboDragOver,
     handleComboDrop,
+  };
+}
+
+export function useComboInventoryController<T extends ComboInventoryItem>(
+  options: ControllerOptions<T>
+) {
+  const searchParams = useSearchParams();
+  const activeFilter = normalizeIntelligentRoutingFilter(searchParams.get("filter"));
+  const pagination = useComboPagination(options.combos, activeFilter);
+  const drag = useComboDragController(options);
+  const navigation = useInventoryNavigation<T>(
+    activeFilter,
+    pagination.setComboPage,
+    pagination.setReorderingAllCombos,
+    drag.resetComboDragState
+  );
+  const handleReorderAllToggle = () => {
+    drag.resetComboDragState();
+    pagination.setReorderingAllCombos((enabled) => !enabled);
+  };
+  return {
+    activeFilter,
+    ...pagination,
+    ...drag,
+    ...navigation,
+    handleReorderAllToggle,
+    handleComboDragStart: (event: DragEvent<HTMLElement>, index: number) =>
+      drag.handleComboDragStart(event, index, pagination.reorderingAllCombos),
   };
 }
