@@ -1,1 +1,0 @@
-- **fix(usage):** preserve nested prompt cache-read counters before cost calculation ([#13760](https://github.com/diegosouzapw/OmniRoute/pull/13760)) — fixes [#13746](https://github.com/diegosouzapw/OmniRoute/issues/13746)

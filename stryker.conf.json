@@ -39,9 +39,7 @@
   "incremental": true,
   "incrementalFile": "reports/mutation/stryker-incremental.json",
   "testRunner": "tap",
-  "plugins": [
-    "@stryker-mutator/tap-runner"
-  ],
+  "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
       "tests/unit/10085-compatible-generic-vs-uuid-credential.test.ts",
@@ -334,6 +332,7 @@
       "tests/unit/mcp-restart-route-13012.test.ts",
       "tests/unit/antigravityUpstreamError.test.ts",
       "tests/unit/issue-13089-roundrobin-live-ws-events.test.ts",
+      "tests/unit/issue-14110-unknown-root-path-exposed.test.ts",
       "tests/unit/ollama-404-model-lockout-11071.test.ts",
       "tests/unit/noauth-model-lockout.test.ts",
       "tests/unit/non-streaming-client-translate.test.ts",
@@ -485,7 +484,18 @@
       "tests/unit/provider-401-ambiguous-runtime.test.ts",
       "tests/unit/13601-header-drop-count-surfaced.test.ts",
       "tests/unit/combo-identical-error-streak.test.ts",
-      "tests/unit/semantic-cache-no-truncated-writes.test.ts"
+      "tests/unit/semantic-cache-no-truncated-writes.test.ts",
+      "tests/unit/12307-semantic-cache-output-contract.test.ts",
+      "tests/unit/antigravity-account-lease-flag.test.ts",
+      "tests/unit/circuit-breaker-half-open-probe-lease-13836.test.ts",
+      "tests/unit/grok-cli-free-usage-429.test.ts",
+      "tests/unit/opencode-free-tier-refusal-no-model-lockout.test.ts",
+      "tests/unit/prompt194-astra-vision-compat.test.ts",
+      "tests/unit/quota-signal-errortext-threading.test.ts",
+      "tests/unit/rate-limit-learned-cap-13594.test.ts",
+      "tests/unit/native-codex-auto-resume.test.ts",
+      "tests/unit/translator-openai-to-gemini-turn-pairing-13848.test.ts",
+      "tests/unit/obsidian-ssrf-guard.test.ts"
     ],
     "nodeArgs": [
       "--import",
@@ -594,11 +604,7 @@
     ".worktrees",
     ".stryker-tmp"
   ],
-  "reporters": [
-    "progress",
-    "html",
-    "json"
-  ],
+  "reporters": ["progress", "html", "json"],
   "htmlReporter": {
     "fileName": "reports/mutation/mutation.html"
   },

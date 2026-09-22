@@ -1,1 +1,0 @@
-- **compression:** add Hungarian Caveman language pack with Hungarian-specific rules, language detection, localized output instructions, and language-pack tests. (#12825 - thanks @botii16)

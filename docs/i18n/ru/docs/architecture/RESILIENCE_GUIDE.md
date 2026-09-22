@@ -1,6 +1,6 @@
 # Resilience Guide (Русский)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -68,9 +68,9 @@ OmniRoute имеет три отдельных, но взаимосвязанн�
 
 ## 2. Период ожидания подключения
 
-**Область действия:** одно подключение/учётная запись/ключ провайдера.
+**Область действия:** одно подключение / одна учётная запись / один ключ провайдера.
 
-**Назначение:** пропускать один неисправный ключ, пока другие подключения того же провайдера продолжают обслуживать запросы.
+**Назначение:** пропускать один неработающий ключ, пока другие подключения того же провайдера продолжают обслуживать запросы.
 
 **Реализация:**
 
@@ -90,72 +90,116 @@ OmniRoute имеет три отдельных, но взаимосвязанн�
 
 - Базовый для OAuth: 5 с
 - Базовый для API-ключа: 3 с
-- Для ответа 429 при использовании API-ключа: предпочтительно используются вышестоящие заголовки `Retry-After`/сброса или поддающийся разбору текст времени сброса
+- Для ответа 429 при использовании API-ключа: предпочтительно используются переданные вышестоящим сервисом заголовки `Retry-After`/сброса или текст с разбираемым временем сброса
 - Задержка: `baseCooldownMs * 2 ** failureIndex`
 
-**Защита от лавинообразной нагрузки:** предотвращает чрезмерное продление периода ожидания или двойное увеличение `backoffLevel` при одновременных сбоях.
+**Защита от лавины запросов:** не позволяет одновременным сбоям чрезмерно продлевать период ожидания или дважды увеличивать `backoffLevel`.
 
 **Терминальные состояния (НЕ периоды ожидания):**
 
-- `banned` — устанавливается при обнаружении запрещённого ключевого слова / блокировки учётной записи (см. [BAN_DETECTION](../security/BAN_DETECTION.md)), а также после трёх последовательных отказов вышестоящего сервиса для отдельных запросов (`request_rejected`, например Anthropic OAuth 403 "Запрос не разрешён" — `open-sse/services/requestRejectedStreak.ts`); единичный отказ лишь переводит подключение в режим ожидания
+- `banned` — устанавливается при обнаружении ключевого слова блокировки / блокировки учётной записи (см. [BAN_DETECTION](../security/BAN_DETECTION.md)), а также после трёх последовательных отказов вышестоящего сервиса на отдельные запросы (`request_rejected`, например Anthropic OAuth 403 "Запрос не разрешён" — `open-sse/services/requestRejectedStreak.ts`); одиночный отказ лишь переводит подключение в режим ожидания
 - `expired` (переходит в терминальное состояние после ограниченного числа повторных попыток — `EXPIRED_RETRY_MAX = 3` с экспоненциальной задержкой, — поэтому временные ошибки OAuth могут устраниться самостоятельно до окончательной деактивации учётной записи)
 - `credits_exhausted`
 
 Эти состояния сохраняются до изменения учётных данных или их сброса оператором. Не перезаписывайте терминальные состояния временным состоянием ожидания.
 
-**Ленивое восстановление:** когда время `rateLimitedUntil` прошло, подключение снова становится доступным для выбора. После успешного использования `clearAccountError()` очищает все поля ошибок.
+**Отложенное восстановление:** когда время `rateLimitedUntil` проходит, подключение снова становится доступным для выбора. После успешного использования `clearAccountError()` очищает все поля ошибок.
+
+### Ограничение использования Claude OAuth: низкоприоритетный режим + сброс лимита сеанса
+
+**Область действия:** одно подключение по подписке Claude (OAuth). Обе функции **включаются отдельно для каждого
+подключения** (Изменить подключение → раздел Claude → `lowPriorityMode` / `autoLimitReset` в
+`providerSpecificData`, обе по умолчанию отключены) и соответствуют командам Claude Code `/low-priority` и
+`/limit-reset` (сетевой контракт зафиксирован на основе Claude Code 2.1.263).
+
+**Реализация:**
+
+- Конечный автомат + классификация ответов: `open-sse/services/claudeLowPriority.ts`
+- Клиент проверки статуса/запроса сброса: `open-sse/services/claudeLimitReset.ts`
+- Перехватчик исполнителя (добавление заголовка + повторная попытка с той же учётной записью): `open-sse/executors/base.ts::execute()`
+- Сохранение настроек явного включения: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Условие срабатывания:** достижение 5-часового лимита использования — ответ `429`, заголовки которого содержат
+`anthropic-ratelimit-unified-status: rejected` и, если учётная запись соответствует требованиям,
+`anthropic-ratelimit-unified-slow-offer: treatment`. До первого ответа 429 при достижении лимита ничего не отправляется;
+пакетный ответ 429 без унифицированных заголовков обрабатывается обычным механизмом периода ожидания.
+
+**Низкоприоритетный режим** (`lowPriorityMode`):
+
+- При ответе 429 из-за достижения лимита исполнитель принимает предложение и немедленно повторяет запрос с **той же**
+  учётной записью, добавляя `anthropic-usage-limit: slow`; режим остаётся активным до объявленного времени
+  `anthropic-ratelimit-unified-reset` (+60 с дополнительного времени), и каждый запрос в этом временном окне содержит
+  этот заголовок. Перехваченный ответ 429 никогда не достигает `handleChatCore`, поэтому подключение
+  **не** переводится в режим ожидания и не заменяется другим.
+- `anthropic-ratelimit-unified-slow-status` в последующих ответах: `active` / `not_needed`
+  сохраняют режим; при `slot_busy` (429) или `529` ожидается указанное сервером время
+  `anthropic-ratelimit-unified-slow-retry-after` (по умолчанию 20 с, ограничение 5–600 с, случайное отклонение ±30%),
+  после чего запрос повторяется с учётом ограничения `anthropic-ratelimit-unified-slow-max-wait` (по умолчанию 20 мин, ограничение
+  1 мин–6 ч) — по истечении этого срока режим завершается, а повторное принятие блокируется на 10 минут. Время
+  ожидания также ограничивается оставшимся временем собственного тайм-аута начала запроса к вышестоящему сервису
+  (`resolveFetchStartTimeout`, по умолчанию 10 мин) за вычетом 5 с: без этого ограничения
+  максимальное время ожидания по умолчанию, равное 20 минутам, пережило бы сам запрос, а ожидание было бы прервано
+  на полпути, что привело бы к `TimeoutError` вместо штатного завершения по `max_wait` с последующим периодом блокировки.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, переход к новому 5-часовому окну или
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (что завершает режим как
+  `extra_usage` при любом статусе, поскольку платное сверхлимитное использование теперь покрывает ограничение) завершают режим;
+  после этого ответ передаётся обычному механизму периода ожидания. Состояние `budget_exhausted` запоминается до
+  объявленного сброса бюджета (≤ 8 дней).
+- Проверка лимита выполняется после внутренних повторных попыток исполнителя в рамках одной попытки, вызванных ответом 400 (редактирование
+  контекста, ограничение параметров мышления/усилий, автоматическое обучение параметров), поэтому ответ 429 из-за лимита, появившийся только при
+  одной из этих повторных попыток, всё равно перехватывается и не попадает в механизм периода ожидания.
+- Состояние хранится в памяти отдельно для каждого подключения (после перезапуска для повторного принятия потребуется один дополнительный ответ 429 из-за лимита).
+
+**Сброс лимита сеанса** (`autoLimitReset`, при включении обеих функций выполняется до перехода в низкоприоритетный режим):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → блок `juniper_tide`;
+  когда `arm: "reset"` и `available: true`, выполняется
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` с
+  `{ "program": "juniper_tide" }` (UUID организации берётся из
+  `providerSpecificData.organizationUUID`, с резервной загрузкой при инициализации).
+- При `result: reset|not_limited` запрос повторяется на полной скорости (без заголовка низкой скорости).
+  Для `already_used` / `not_offered` запоминается `next_available_at` (по умолчанию одна неделя); при любой
+  ошибке применяется 15-минутная задержка. Сброс доступен один раз в неделю и по-прежнему учитывается
+  в недельном лимите.
+
+Защита от регрессий: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Привязка сеанса (#7274)
 
-**Область действия:** один клиентский сеанс (заголовок `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`), закреплённый за одним подключением, для **любого** провайдера.
+**Область действия:** один клиентский сеанс (заголовок `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`), привязанный к одному подключению для **любого** провайдера.
 
-**Назначение:** сохранять привязку многошагового агента (Claude Code, aider, пользовательские агенты) к одной учётной записи между запросами, уменьшая потерю контекста при переключении между учётными записями и количество повторных ошибок 429 при холодном старте у провайдеров с состоянием сеанса на уровне учётной записи.
+**Назначение:** удерживать многоходового агента (Claude Code, aider, пользовательские агенты) на одной и той же учетной записи между запросами, уменьшая потерю контекста при переключении между учетными записями и количество повторных ошибок 429 при холодном запуске у провайдеров, хранящих состояние сеанса на уровне учетной записи.
 
 **Реализация:**
 
 - Определение TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Выбор/создание привязки: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - Извлечение заголовка (универсальное, для любого провайдера): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Сохраняемая таблица привязок: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Настройка: `sessionAffinityTtlMs` (глобальный TTL в мс, `0` отключает функцию) — `src/lib/db/settings.ts`. Переименована из предназначенной только для Codex настройки `codexSessionAffinityTtlMs` миграцией `124_generic_session_affinity_ttl.sql`, которая переносит любое ранее настроенное значение TTL Codex в качестве нового значения по умолчанию.
+- Таблица сохраняемых привязок: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Настройка: `sessionAffinityTtlMs` (глобальный TTL в мс, `0` отключает) — `src/lib/db/settings.ts`. Переименована из предназначенной только для Codex настройки `codexSessionAffinityTtlMs` миграцией `124_generic_session_affinity_ttl.sql`, которая переносит ранее настроенный TTL Codex в качестве нового значения по умолчанию.
 
-До #7274 функция `resolveSessionAffinityTtlMs()` немедленно возвращала `0` для всех провайдеров, кроме `codex`, поэтому настройка TTL (и заголовки сеанса) нигде больше не действовали, хотя механизм привязки и извлечение заголовков уже не зависели от провайдера. В исправлении этот ранний возврат был удалён; теперь TTL применяется единообразно ко всем провайдерам после установки глобального значения выше `0`.
+До #7274 `resolveSessionAffinityTtlMs()` немедленно возвращала `0` для всех провайдеров, кроме `codex`, поэтому настройка TTL (и заголовки сеанса) не действовала нигде больше, хотя механизм привязки и извлечение заголовков уже не зависели от провайдера. Исправление удалило этот досрочный выход; теперь TTL применяется одинаково ко всем провайдерам, если его глобальное значение задано выше `0`.
 
-Три заголовка привязки сеанса никогда не передаются вышестоящему сервису — исполнители формируют собственные вышестоящие заголовки с нуля, а не передают клиентские заголовки, поэтому они остаются исключительно внутренними идентификаторами корреляции.
+Три заголовка привязки сеанса никогда не пересылаются вышестоящему сервису — исполнители формируют собственные вышестоящие заголовки с нуля, а не передают клиентские заголовки напрямую, поэтому они остаются исключительно внутренними идентификаторами корреляции.
 
 ### Эксклюзивные аренды подключений управляемых сеансов
 
 **Область действия:** один активный управляемый HTTP-клиент/сеанс владеет одним подходящим подключением OmniRoute.
 
-**Назначение:** обеспечить долговременное эксклюзивное владение подключением для клиентов, которым необходима жёсткая
-граница маршрутизации между запросами. Это отличается от привязки сеанса, которая представляет собой мягкое предпочтение непрерывности:
-эксклюзивная аренда сохраняет состояние жизненного цикла в SQLite, обеспечивает глобальную уникальность активного владельца и
-активного подключения и отклоняет устаревшее поколение до отправки запроса провайдеру.
+**Назначение:** обеспечить устойчивое эксклюзивное владение подключением для клиентов, которым требуется жесткая маршрутизационная граница между запросами. Это отличается от привязки сеанса, которая является мягким предпочтением непрерывности: эксклюзивная аренда сохраняет состояние жизненного цикла в SQLite, обеспечивает глобальную уникальность активного владельца и активного подключения и отклоняет устаревшее поколение до передачи запроса провайдеру.
 
-Функция включается отдельно для каждого API-ключа. Управляемый ключ должен иметь область действия `lease:exclusive` и
-явный непустой список `allowedConnections`. Использовать конечную точку жизненного цикла может любой HTTP-клиент; имя
-клиента, пользовательский агент, провайдер, метод OAuth или модель не требуются. Аренда закрепляет подключение,
-а не модель, поэтому при смене модели привязка сохраняется, пока подключение остаётся в обычном порядке
-доступным. Стандартные правила модели, квоты, работоспособности, периода ожидания и списка разрешений сохраняют приоритет и могут
-перевести то же поколение на другое свободное подходящее подключение.
+Функция включается отдельно для каждого ключа API. Управляемый ключ должен иметь область действия `lease:exclusive` и явно заданный непустой список `allowedConnections`. Конечную точку управления жизненным циклом может использовать любой HTTP-клиент; имя клиента, user-agent, провайдер, метод OAuth или модель не требуются. Аренда закрепляет подключение, а не модель, поэтому при смене модели привязка сохраняется, пока подключение остается подходящим по обычным критериям. Стандартные правила модели, квоты, работоспособности, периода ожидания и списка разрешений остаются приоритетными и могут перевести то же поколение на другое свободное подходящее подключение.
 
-Жизненный цикл реализуется через `POST /api/v1/session-leases` с действиями JSON `acquire`, `renew` и `release`.
-Управляемые запросы логического вывода передают непрозрачное значение `X-OmniRoute-Lease-Owner` и точное значение
-`X-OmniRoute-Lease-Generation`. Идентификатор владельца состоит из `vlo_` и следующих за ним 43 символов base64url; сохраняется только
-его хеш SHA-256. Каждая окончательная проверка перед отправкой также привязывает идентификатор аутентифицированного API-ключа и
-идентификатор активного подключения. Заголовки управления арендой удаляются из журналов, сохранённых снимков запросов и
-заголовков вышестоящих исполнителей.
+Управление жизненным циклом выполняется через `POST /api/v1/session-leases` с JSON-действиями `acquire`, `renew` и `release`. Управляемые запросы логического вывода передают непрозрачное значение `X-OmniRoute-Lease-Owner` и точное значение `X-OmniRoute-Lease-Generation`. Идентификатор владельца состоит из префикса `vlo_`, за которым следуют 43 символа base64url; хранится только его SHA-256-хеш. Каждая окончательная проверка перед отправкой также связывает идентификатор аутентифицированного ключа API и идентификатор активного подключения. Управляющие заголовки аренды удаляются из журналов, сохраняемых снимков запросов и заголовков вышестоящих исполнителей.
 
-Если при обычной маршрутизации имеются подходящие управляемые кандидаты, но каждый свободный кандидат занят
-чужой активной арендой, OmniRoute возвращает HTTP `429`, код lease-capacity-unavailable,
-состояние ожидания доступной ёмкости и ограниченное значение `Retry-After`, рассчитанное на основе ближайшего релевантного срока окончания.
-Обычное отсутствие подходящих кандидатов не является конфликтом аренды и сохраняет существующую семантику ошибок маршрутизации.
+Если обычная маршрутизация находит подходящие управляемые подключения-кандидаты, но каждый свободный кандидат занят чужой активной арендой, OmniRoute возвращает HTTP `429`, код недоступности емкости аренды, состояние ожидания доступной емкости и ограниченное значение `Retry-After`, вычисленное на основе ближайшего соответствующего срока истечения. Обычное отсутствие подходящих подключений не считается конфликтом аренд и сохраняет существующую семантику ошибок маршрутизации.
 
 Связанные механизмы остаются отдельными:
 
-- Занятость сеанса OAuth — это локальное для процесса мягкое распределение учётных записей OAuth.
-- Семафоры учётных записей предоставляют разрешения на параллельные запросы и завершаются после выполнения запроса.
-- Эксклюзивные аренды подключений управляемых сеансов обеспечивают долговременное владение в течение жизненного цикла с проверкой поколения.
+- Занятость сеансов OAuth — это локальное для процесса мягкое распределение учетных записей OAuth.
+- Семафоры учетных записей предоставляют разрешения на параллельное выполнение запросов и освобождаются после завершения запроса.
+- Эксклюзивные аренды подключений управляемых сеансов обеспечивают устойчивое владение на протяжении жизненного цикла с проверкой поколения.
 
 ---
 
@@ -287,46 +331,71 @@ quota-share для каждого подключения** (`resilienceSettings.
 
 ## 5. Управление допуском в очередь запросов (v3.8.49 · issue #6593)
 
-**Область действия**: локальная очередь ограничения частоты для каждой пары «провайдер+подключение» (`open-sse/services/rateLimitManager.ts`,
-реализованная на базе Bottleneck), расположенная на один уровень ниже трёх описанных выше механизмов.
+**Область действия**: локальная очередь ограничения частоты запросов для каждой пары «провайдер+подключение» (`open-sse/services/rateLimitManager.ts`,
+работающая на базе Bottleneck), расположенная на один уровень ниже трёх описанных выше механизмов.
 
-**`maxWaitMs` — это устаревшее сохраняемое имя параметра истечения времени выполнения.**
-`resilienceSettings.requestQueue.maxWaitMs` передаётся в Bottleneck как параметр задания
-`expiration`, таймер которого запускается только после диспетчеризации. Поэтому он ограничивает
-время выполнения под управлением ограничителя, а не время нахождения в локальной очереди. Истечение времени
-возвращается как доверенная локальная ошибка `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-прежнее имя кода тайм-аута очереди принимается только для обратной совместимости с доверенными внутренними
-компонентами. Значение по умолчанию — 15000ms; его можно переопределить с помощью
-`RATE_LIMIT_MAX_WAIT_MS` (переменная окружения) или на панели управления (**Настройки → Устойчивость**,
-максимальное значение в интерфейсе — 1–30000ms). Для времени нахождения в очереди крайний срок не установлен; используйте
-описанный ниже параметр `maxQueueDepth`, чтобы ограничить количество ожидающих запросов.
+**`maxWaitMs` ограничивает ожидание в очереди; `executionMaxWaitMs` ограничивает выполнение.**
+Эти параметры намеренно разделены, и ни один из них не влияет на другой.
 
-**`maxQueueDepth` — включаемое ограничение допуска (новое).** `resilienceSettings.requestQueue.maxQueueDepth`
+`resilienceSettings.requestQueue.maxWaitMs` — это **бюджет ожидания в очереди**:
+он охватывает ожидание свободного слота провайдера и последующее нахождение в состоянии QUEUED, а его таймер
+сбрасывается в тот момент, когда задание покидает состояние QUEUED и начинает выполняться
+(`rateLimitManager.ts`, `wrappedFn`). Запрос, превысивший этот бюджет, никогда
+не отправляется вышестоящему сервису. Значение по умолчанию — 30000ms, оно задаётся через `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+в `src/lib/resilience/settings.ts` и зафиксировано тестом
+`tests/unit/ratelimit-admission-control-6593.test.ts`, поэтому при его изменении
+тест завершится с ошибкой, а этот абзац не останется незаметно устаревшим.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` — это значение, которое Bottleneck
+получает в качестве параметра задания `expiration`; его таймер запускается только после диспетчеризации. Это
+страховочный механизм для исполнителей, у которых нет собственного тайм-аута вышестоящего сервиса, и его значение
+увеличивается до собственного тайм-аута исполнителя с момента начала fetch, если тот больше, поэтому он
+не может прервать исправно выполняющийся запрос. Значение по умолчанию — 600000ms (10 мин).
+
+Передача бюджета очереди в `expiration` раньше приводила к прерыванию неинкрементальных
+шлюзов прямо во время выполнения — они обоснованно могут работать несколько минут до получения первых байтов, —
+поэтому истечение срока выполнения возвращается как `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), тогда как превышение бюджета очереди возвращает
+код тайм-аута очереди. Любой из параметров можно переопределить через `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (переменные окружения) или на панели управления
+(**Настройки → Отказоустойчивость**). При нормализации оба значения ограничиваются диапазоном 1ms–24h.
+
+**Приоритет для обоих параметров:** переменная окружения задаёт только _значение по умолчанию_. Значение,
+сохранённое в `resilienceSettings.requestQueue` (через панель управления / API patch и хранящееся
+в `key_value`), имеет приоритет над ним, а заданные для отдельного подключения
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` имеют приоритет и над сохранённым значением. Поэтому задание
+переменной окружения в развёртывании, где значение уже сохранено,
+ничего не изменит — вместо этого очистите или обновите сохранённую настройку.
+
+Время нахождения в очереди ограничивается `maxWaitMs`; описанный ниже `maxQueueDepth` ограничивает количество
+запросов, которые могут одновременно находиться в очереди.
+
+**`maxQueueDepth` — необязательное ограничение допуска (новое).** `resilienceSettings.requestQueue.maxQueueDepth`
 ограничивает количество запросов, которые могут одновременно находиться в очереди (ещё не будучи диспетчеризованными)
 для одной пары «провайдер+подключение». Если в очереди уже находится `maxQueueDepth`
-запросов, новый запрос быстро отклоняется с типизированной ошибкой
-`code: "RATE_LIMIT_QUEUE_FULL"` **до** того, как он достигнет `limiter.schedule()`,
-— поэтому отклонение обходится дёшево и происходит до любой последующей
-работы по сжатию промпта / переводу для этого запроса. Значение по умолчанию `0` =
+запросов, новый запрос немедленно отклоняется типизированной ошибкой
+`code: "RATE_LIMIT_QUEUE_FULL"` **до** того, как попадёт в `limiter.schedule()`,
+поэтому отклонение обходится дёшево и происходит до любой последующей
+работы по сжатию / переводу промпта для этого запроса. Значение по умолчанию `0` =
 отключено, что сохраняет существующее поведение с неограниченной очередью; допустимый диапазон — 0–100000.
-Значение можно переопределить с помощью `RATE_LIMIT_MAX_QUEUE_DEPTH` (переменная окружения) или
-`resilienceSettings.requestQueue.maxQueueDepth` (панель управления / исправление через API).
+Переопределить значение можно через `RATE_LIMIT_MAX_QUEUE_DEPTH` (переменную окружения) или
+`resilienceSettings.requestQueue.maxQueueDepth` (панель управления/API patch).
 
-Сама проверка допуска является чистой функцией
+Сама проверка допуска представляет собой чистую функцию
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), поэтому
 её можно модульно тестировать без реального ограничителя Bottleneck.
 
-> В RFC, в котором была создана задача #6593, также предлагался флаг `bypassCompressionOnRateLimit`.
-> Конвейер `open-sse/services/compression/` в этом репозитории выполняет
+> В RFC, с которого начался #6593, также предлагался флаг `bypassCompressionOnRateLimit`.
+> В этом репозитории конвейер `open-sse/services/compression/` выполняет
 > сжатие промпта/контекста исходящего запроса к LLM (`chatCore.ts`,
-> рядом с блоком `resolveCompressionSettings`/`selectCompressionStrategy`),
-> а не сжатие HTTP-ответов для сгенерированных тел 429 — соответствующего
-> пути выполнения для буквальной реализации флага обхода не существует. Кроме того, этот шаг сжатия промпта
-> сейчас выполняется _до_ `withRateLimit()` в конвейере обработки запросов, поэтому
-> изменение порядка операций для его пропуска при отклонении из-за переполненной очереди представляет собой отдельное, более масштабное
-> изменение, выходящее за рамки этой задачи; оно намеренно **не** было реализовано
-> здесь и оставлено на будущее, если выигрыш в загрузке ЦП оправдает
-> риск изменения порядка операций.
+> в районе блока `resolveCompressionSettings`/`selectCompressionStrategy`),
+> а не HTTP-сжатие тел синтезированных ответов 429 — соответствующего
+> пути выполнения для буквального флага обхода не существует. Кроме того, этот шаг сжатия промпта
+> сейчас выполняется _до_ `withRateLimit()` в конвейере обработки запроса, поэтому
+> изменение порядка для его пропуска при отклонении из-за заполненной очереди — это отдельное и более
+> масштабное изменение, выходящее за рамки этой задачи; оно намеренно **не** было реализовано
+> здесь и оставлено для последующей работы, если выигрыш в использовании CPU оправдает
+> риск изменения порядка выполнения.
 
 ---
 

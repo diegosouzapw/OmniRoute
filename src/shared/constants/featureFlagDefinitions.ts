@@ -252,7 +252,8 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "OPENCODE_TRANSIENT_FAILOVER_BACKOFF",    label: "OpenCode Transient Failover Backoff",
+    key: "OPENCODE_TRANSIENT_FAILOVER_BACKOFF",
+    label: "OpenCode Transient Failover Backoff",
     description:
       "For the OpenCode multi-account rotation, pause before dispatching to the next account once two consecutive attempts failed with a transient upstream error (5xx or an empty 400 rejection). The pause starts at 1.5s, doubles per further consecutive failure, is capped at 6s per pause and 10s per request, is skipped when the client disconnects, and the failed response body is released before waiting. Off by default: failover stays immediate.",
     descriptionI18nKey: "featureFlagOpencodeTransientFailoverBackoffDescription",
@@ -280,6 +281,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description:
       "For the OpenCode multi-account rotation, stop the account wave at the first 429 classified as a real rate limit (a parseable Retry-After header, or a body naming a rate/usage limit) and return that upstream 429 unchanged (status, body, Retry-After and quota headers), instead of trying every remaining account. Unclassified 429s keep rotating. Off by default: the free tier is limited per egress IP (#9611), so every 429 rotates to the next account, and an exhausted wave returns the last upstream 429.",
     descriptionI18nKey: "featureFlagOpencodeRateLimited429EarlyStopDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "OPENCODE_PARK_AND_RESUME",
+    label: "OpenCode 429 Park And Resume",
+    description:
+      "For the OpenCode multi-account rotation, park the request after repeated transient 429s (or a fresh pool-strain marker) with a heartbeat, then replay one capped leg of up to 3 sequential accounts instead of fanning out the whole fleet. Off by default: every 429 rotates to the next account exactly as before.",
+    descriptionI18nKey: "featureFlagOpencodeParkAndResumeDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",

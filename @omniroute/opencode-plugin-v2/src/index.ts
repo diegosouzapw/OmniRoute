@@ -1,4 +1,4 @@
-import { define, type PluginContext } from "@opencode-ai/plugin/v2/promise";
+import { Plugin } from "@opencode/plugin";
 import {
   optionalTierFingerprint,
   catalogContentFingerprint,
@@ -17,7 +17,7 @@ import type {
   OmniRouteRawModelEntry,
 } from "./shared/index.js";
 import type { ResolvedOptions } from "./catalog.js";
-import { publishCatalog } from "./catalog.js";
+import { buildProviderPayload, collectCatalog } from "./catalog.js";
 import {
   DEFAULT_MODEL_CACHE_TTL_MS,
   UNREACHABLE_COOLDOWN_MS,
@@ -87,9 +87,9 @@ function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
   };
 }
 
-export default define({
+export default Plugin.define({
   id: PLUGIN_ID,
-  setup: async (ctx: PluginContext) => {
+  setup: async (ctx) => {
     assertContext(ctx);
     const parsed = parsePluginOptions(ctx.options);
     const X = parsed.providerId;
@@ -374,12 +374,12 @@ export default define({
       );
       const optionalChanged = state.optionalFingerprint !== optionalFingerprint;
       state.optionalFingerprint = optionalFingerprint;
-      if (optionalChanged && typeof ctx.catalog.reload === "function") {
+      if (optionalChanged) {
         try {
-          await ctx.catalog.reload();
+          await ctx.provider.reload();
         } catch (err) {
           log.warn(
-            `[omniroute-v2] catalog reload after late sources failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
+            `[omniroute-v2] provider reload after late sources failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
           );
         }
       }
@@ -430,8 +430,16 @@ export default define({
     // the memory entry on failure, so `entries` stays the last-known-good
     // source — including cross-setup via the disk snapshot.
     // Fail-open one level down, in the wrappers (never reject) and the
-    // `publishCatalog` catches — so no try/catch here.
-    const catalogRegistration = ctx.catalog.transform(async (draft) => {
+    // `collectCatalog` catches — so no try/catch here.
+    //
+    // The stable host replays the registered transform to rebuild its
+    // registry, so the callback only reads the latest collected snapshot;
+    // the refresh below keeps that snapshot current and reloads the host.
+    // The transform callback is synchronous, so it cannot await the fetch:
+    // setup publishes first, then the host replays the callback (during
+    // registration and on every reload) and reads the published snapshot.
+    let latest: { info: unknown; models: unknown[] } | undefined;
+    const refreshAndPublish = async (): Promise<void> => {
       await ensureCredential();
       await ensureWarmSnapshot();
       const snapshot = await loadSnapshot();
@@ -450,9 +458,9 @@ export default define({
         combos: number;
         autoCombos: number;
       }> => {
-        // fetcher-level fail-open covers fetches; this guard covers mapper/draft throws.
+        // fetcher-level fail-open covers fetches; this guard covers mapper throws.
         try {
-          return await publishCatalog(draft, resolved, {
+          const collected = await collectCatalog(resolved, {
             onSourceError: reportSourceError,
             models: async () => effective.models,
             combos: async () => effective.combos,
@@ -460,6 +468,9 @@ export default define({
             providers: async () => effective.providers ?? [],
             enrichment: async () => effective.enrichment ?? new Map(),
           });
+          const payload = buildProviderPayload(collected, resolved);
+          latest = payload as unknown as { info: unknown; models: unknown[] };
+          return collected.counts;
         } catch (err) {
           log.warn(
             `[omniroute-v2] catalog publish failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
@@ -475,19 +486,36 @@ export default define({
       );
       const changed = state.fingerprint !== undefined && state.fingerprint !== fingerprint;
       state.fingerprint = fingerprint;
-      if (changed && typeof ctx.catalog.reload === "function") {
+      if (changed) {
         await Promise.resolve();
         try {
-          await ctx.catalog.reload();
+          await ctx.provider.reload();
         } catch (err) {
           log.warn(
-            `[omniroute-v2] catalog reload failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
+            `[omniroute-v2] provider reload failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
+          );
+        }
+      }
+    };
+    // Publish before returning so the first transform replay already has
+    // data; without a key this degrades to an empty provider, not a crash.
+    // A host throw in `editor.add` must not reject setup: the catalog is
+    // the job, and a failed publish keeps the previous one.
+    await refreshAndPublish();
+    const providerRegistration = ctx.provider.transform((editor) => {
+      if (latest !== undefined) {
+        try {
+          editor.add(latest as never);
+        } catch (err) {
+          log.warn(
+            `[omniroute-v2] catalog publish failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
           );
         }
       }
     });
-    const integrationHook = (ctx.integration as Partial<PluginContext["integration"]> | undefined)
-      ?.transform;
+    const integrationHook = (
+      ctx.integration as unknown as { transform?: unknown } | undefined
+    )?.transform;
     // A host that exposes the hook but throws while registering it must cost
     // the plugin nothing but the connect action: the throw happens OUTSIDE
     // any await, so only a call-site guard catches it (an await-guard alone
@@ -495,7 +523,14 @@ export default define({
     let integrationRegistration: unknown;
     if (typeof integrationHook === "function") {
       try {
-        integrationRegistration = integrationHook((draft) => {
+        integrationRegistration = (
+          integrationHook as (
+            cb: (draft: {
+              update: (id: string, fn: (i: { name: string }) => void) => void;
+              method: { update: (input: unknown) => void };
+            }) => void
+          ) => unknown
+        )((draft) => {
           draft.update(X, (integration) => {
             integration.name = parsed.displayName ?? "OmniRoute";
           });
@@ -513,18 +548,31 @@ export default define({
       }
     }
     /**
-     * `aisdk.language` is newer than the catalog domain, so a host may not
-     * expose it; the plugin must stay loadable there, minus the sanitising.
+     * `aisdk.hook("language")` cleans Gemini tool schemas where the model is
+     * still structured data. A host without the domain stays loadable,
+     * minus the sanitising.
      */
-    const languageHook = (ctx.aisdk as Partial<PluginContext["aisdk"]> | undefined)?.language;
+    const languageHook = (ctx.aisdk as unknown as { hook?: unknown } | undefined)?.hook;
     // A host that rejects this registration must cost the catalog nothing: the
     // plugin is a catalog first, and tool-schema cleaning is an extra.
     let languageRegistration: Promise<{ dispose: () => Promise<void> }> | undefined;
     if (parsed.geminiSanitization !== false && typeof languageHook === "function") {
       try {
-        languageRegistration = languageHook((input) => {
+        languageRegistration = (
+          languageHook as (
+            name: string,
+            cb: (input: {
+              model: { providerID: string; id: string };
+              language?: unknown;
+            }) => void
+          ) => Promise<{ dispose: () => Promise<void> }>
+        )("language", (input) => {
           if (input.model.providerID !== X) return;
-          input.language = sanitizeToolSchemasFor(input.language, input.model.id, log);
+          input.language = sanitizeToolSchemasFor(
+            input.language as never,
+            input.model.id,
+            log
+          ) as unknown as undefined;
         });
       } catch (err) {
         log.warn(
@@ -533,7 +581,7 @@ export default define({
       }
     }
 
-    await catalogRegistration;
+    await providerRegistration;
     if (integrationRegistration !== undefined) {
       try {
         await integrationRegistration;

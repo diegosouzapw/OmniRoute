@@ -548,7 +548,16 @@ function removeUnsupportedKeywords(obj: unknown, keywords: Set<string>): void {
   const record = obj as JsonRecord;
   // Delete unsupported *constraint* keywords at the current schema level.
   for (const key of Object.keys(record)) {
-    if (keywords.has(key) || key.startsWith("x-")) {
+    // `~`-prefixed keys are the Standard Schema convention (Zod 4+, Valibot,
+    // ArkType) for internal/vendor metadata namespaced to avoid colliding
+    // with real schema property names -- e.g. a tool built from one of those
+    // libraries can leak a literal `~optional` key into a property's
+    // subschema. The plain `"optional"` entry in the denylist above doesn't
+    // match the tilde-prefixed form, and Gemini 400s the entire tool list on
+    // the unrecognized field ("Unknown name \"~optional\" ... Cannot find
+    // field"), taking down every model behind it. Strip the whole class the
+    // same way `x-` vendor extensions are already stripped below.
+    if (keywords.has(key) || key.startsWith("x-") || key.startsWith("~")) {
       delete record[key];
     }
   }

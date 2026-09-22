@@ -1,1 +1,0 @@
-- **fix(runtime):** eliminate hardcoded 20128 port remnants and make loopback URLs dynamic ([#13533](https://github.com/diegosouzapw/OmniRoute/pull/13533)) — thanks @ggdayup

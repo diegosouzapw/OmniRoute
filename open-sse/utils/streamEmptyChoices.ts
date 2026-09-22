@@ -44,21 +44,25 @@ type EmptyChoicesRejectContext = {
   targetFormat?: string;
   model?: string | null;
   usage?: unknown;
-  onFailure?: ((payload: {
-    status: number;
-    message: string;
-    code?: string;
-    type?: string;
-  }) => boolean | void | Promise<void>) | null;
-  onComplete?: ((payload: {
-    status: number;
-    usage: unknown;
-    responseBody?: unknown;
-    providerPayload?: unknown;
-    clientPayload?: unknown;
-    error?: string | null;
-    errorCode?: string | null;
-  }) => void) | null;
+  onFailure?:
+    | ((payload: {
+        status: number;
+        message: string;
+        code?: string;
+        type?: string;
+      }) => boolean | void | Promise<void>)
+    | null;
+  onComplete?:
+    | ((payload: {
+        status: number;
+        usage: unknown;
+        responseBody?: unknown;
+        providerPayload?: unknown;
+        clientPayload?: unknown;
+        error?: string | null;
+        errorCode?: string | null;
+      }) => void)
+    | null;
   clearPendingRequestFromStream?: () => void;
 };
 
@@ -68,10 +72,7 @@ type EmptyChoicesRejectContext = {
  * was accumulated. Imported by the flush-empty-retry classifier so both
  * sites share one implementation.
  */
-export function isEmptyTurnCore(
-  forwardedValuableChunk: boolean,
-  hasValidUsage: boolean
-): boolean {
+export function isEmptyTurnCore(forwardedValuableChunk: boolean, hasValidUsage: boolean): boolean {
   return !forwardedValuableChunk && !hasValidUsage;
 }
 

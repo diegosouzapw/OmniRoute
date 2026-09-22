@@ -1,1 +1,0 @@
-- **fix(db):** give `conversation_turn_nodes` its own independent retention knob (`retention.conversationTurnNodes`, default 30 days — matching `callLogs` so upgrading changes nothing until an operator overrides it) instead of sharing `callLogs`, and sweep orphaned `agentic_conversations` after the nodes expire (#12453).
