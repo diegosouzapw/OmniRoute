@@ -59,6 +59,11 @@ import {
   SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID,
 } from "./resilienceCandidateFilter";
 import type { ChaosTuning } from "./chaosEngine";
+import {
+  recordAutoEvaluationCandidate,
+  recordAutoEvaluationTransition,
+  type AutoEvaluationStage,
+} from "../combo/decisionTrace.ts";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -613,6 +618,7 @@ export async function prepareVirtualAutoComboInputs(
   options: {
     includeResolvedCapabilities?: boolean;
     resolutionSnapshot?: ModelCapabilityResolutionSnapshot;
+    traceInvocationId?: string;
   } = {},
   skip = false // #9133 — inspector opt-out, see filterResilienceBlockedCandidates
 ): Promise<PreparedVirtualAutoComboInputs> {
@@ -768,23 +774,87 @@ export async function prepareVirtualAutoComboInputs(
       ),
     ];
 
-    const resilienceFilteredPool = filterResilienceBlockedCandidates(pool, connectionsById, skip);
+    const traceInvocationId = options.traceInvocationId;
+    if (traceInvocationId) {
+      for (const candidate of pool) {
+        recordAutoEvaluationCandidate(traceInvocationId, {
+          target: candidate.modelStr,
+          provider: candidate.provider,
+          model: candidate.model,
+          connectionId: candidate.connectionId,
+          ...(candidate.allowedConnectionIds
+            ? { allowedConnectionIds: candidate.allowedConnectionIds }
+            : {}),
+        });
+      }
+    }
+
+    const recordDropped = (
+      before: readonly VirtualAutoComboCandidate[],
+      after: readonly VirtualAutoComboCandidate[],
+      stage: AutoEvaluationStage,
+      detail: string
+    ) => {
+      if (!traceInvocationId || before === after) return;
+      const surviving = new Set(
+        after.map(
+          (candidate) =>
+            `${candidate.modelStr}\u0000${candidate.connectionId ?? ""}\u0000${(
+              candidate.allowedConnectionIds ?? []
+            )
+              .slice()
+              .sort()
+              .join(",")}`
+        )
+      );
+      for (const candidate of before) {
+        const key = `${candidate.modelStr}\u0000${candidate.connectionId ?? ""}\u0000${(
+          candidate.allowedConnectionIds ?? []
+        )
+          .slice()
+          .sort()
+          .join(",")}`;
+        if (!surviving.has(key)) {
+          recordAutoEvaluationTransition(traceInvocationId, {
+            target: candidate.modelStr,
+            stage,
+            outcome: "excluded",
+            reason: "auto_constraint_filter",
+            detail,
+          });
+        }
+      }
+    };
+
+    const resilienceFilteredPool = filterResilienceBlockedCandidates(
+      pool,
+      connectionsById,
+      skip,
+      traceInvocationId
+    );
     if (resilienceFilteredPool !== pool) pool = resilienceFilteredPool;
 
     // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
     // exclude paid-only backends from EVERY `auto/*` candidate pool.
     const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
     warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
+    recordDropped(pool, paid.pool, "paid_only", "hidePaidModels");
     pool = paid.pool;
 
     const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
     warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
-    if (lockout) pool = lockout.pool;
+    if (lockout) {
+      recordDropped(pool, lockout.pool, "model_lockout", "model-lockout");
+      pool = lockout.pool;
+    }
 
     // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
     const exposureFilteredPool = filterModelExposureCandidates(pool, settings);
-    if (exposureFilteredPool !== pool) pool = exposureFilteredPool;
+    if (exposureFilteredPool !== pool) {
+      recordDropped(pool, exposureFilteredPool, "model_exposure", "model-exposure");
+      pool = exposureFilteredPool;
+    }
 
     // STRICT_ZERO_COST: opt-in, off by default (`settings.freeAccessPolicy !== "strict"`
     // leaves `pool` byte-identical, same contract as `hidePaidModels`). See
@@ -809,7 +879,11 @@ export async function prepareVirtualAutoComboInputs(
       resolveFreeAccessState,
       ...strictZeroCostThresholds,
     };
-    const strictFilteredPool = filterStrictZeroCostCandidates(pool, strictOptions);
+    const strictFilteredPool = filterStrictZeroCostCandidates(
+      pool,
+      strictOptions,
+      traceInvocationId
+    );
     if (strictFilteredPool !== pool) {
       const s = countStrictExclusions(pool, strictOptions);
       warnPoolDrop(log, "STRICT", s.excluded, pool.length, ` (no-hard-stop ${s.noHardStop})`);
@@ -836,7 +910,10 @@ export async function prepareVirtualAutoComboInputs(
 
     // Separate, optional ToS guard — independent of economic safety on purpose.
     const tosFilteredPool = filterTosAvoidCandidates(pool, settings.excludeTosAvoid === true);
-    if (tosFilteredPool !== pool) pool = tosFilteredPool;
+    if (tosFilteredPool !== pool) {
+      recordDropped(pool, tosFilteredPool, "tos", "tos-avoid");
+      pool = tosFilteredPool;
+    }
 
     return pool;
   };
@@ -949,7 +1026,8 @@ export async function createVirtualAutoComboFromPrepared(
   variant: AutoVariant | undefined,
   spec?: AutoComboSpec,
   apiKeyId?: string,
-  autoChannel?: string
+  autoChannel?: string,
+  traceInvocationId?: string
 ): Promise<VirtualAutoCombo> {
   let candidatePool = clonePreparedCandidates(
     spec?.family ? prepared.familyCandidates : prepared.regularCandidates
@@ -969,6 +1047,20 @@ export async function createVirtualAutoComboFromPrepared(
   }
   const overrideFilteredPool = filterExcludedCandidates(candidatePool, excludedConnectionIds);
   if (overrideFilteredPool !== candidatePool) {
+    if (traceInvocationId) {
+      const surviving = new Set(overrideFilteredPool.map((candidate) => candidate.modelStr));
+      for (const candidate of candidatePool) {
+        if (!surviving.has(candidate.modelStr)) {
+          recordAutoEvaluationTransition(traceInvocationId, {
+            target: candidate.modelStr,
+            stage: "candidate_override",
+            outcome: "excluded",
+            reason: "auto_constraint_filter",
+            detail: "candidate-override",
+          });
+        }
+      }
+    }
     candidatePool.length = 0;
     candidatePool.push(...overrideFilteredPool);
   }
@@ -1019,6 +1111,20 @@ export async function createVirtualAutoComboFromPrepared(
       : null;
   if (candidateFilter) {
     const narrowed = candidatePool.filter((candidate) => candidateFilter(candidate));
+    if (traceInvocationId && narrowed.length !== candidatePool.length) {
+      const surviving = new Set(narrowed.map((candidate) => candidate.modelStr));
+      for (const candidate of candidatePool) {
+        if (!surviving.has(candidate.modelStr)) {
+          recordAutoEvaluationTransition(traceInvocationId, {
+            target: candidate.modelStr,
+            stage: "category_tier",
+            outcome: "excluded",
+            reason: "auto_constraint_filter",
+            detail: "category-tier",
+          });
+        }
+      }
+    }
     const label = spec?.family
       ? `auto/${spec.family}`
       : `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""}`;
@@ -1053,11 +1159,26 @@ export async function createVirtualAutoComboFromPrepared(
   // `subscriptionLadder.ts` and `docs/routing/SUBSCRIPTION_LADDER.md`.
   if (spec?.tier === "subscription" || spec?.tier === "thrifty") {
     const ladderOptions = buildLadderOptions(prepared, spec.tier);
+    const beforePool = effectivePool;
     const beforeCount = effectivePool.length;
     effectivePool =
       spec.tier === "subscription"
         ? filterSubscriptionOnlyCandidates(effectivePool, ladderOptions)
         : orderPoolByRung(effectivePool, ladderOptions);
+    if (traceInvocationId && spec.tier === "subscription" && effectivePool !== beforePool) {
+      const surviving = new Set(effectivePool.map((candidate) => candidate.modelStr));
+      for (const candidate of beforePool) {
+        if (!surviving.has(candidate.modelStr)) {
+          recordAutoEvaluationTransition(traceInvocationId, {
+            target: candidate.modelStr,
+            stage: "subscription_ladder",
+            outcome: "excluded",
+            reason: "auto_constraint_filter",
+            detail: "subscription-ladder",
+          });
+        }
+      }
+    }
     if (spec.tier === "subscription" && effectivePool.length === 0 && beforeCount > 0) {
       // Intended, not a defect: the operator asked for plan-included capacity
       // only, and right now there is none with verified headroom. Failing
@@ -1181,6 +1302,16 @@ export async function createVirtualAutoComboFromPrepared(
     chaosModels = models;
   }
 
+  if (traceInvocationId) {
+    for (const candidate of effectivePool) {
+      recordAutoEvaluationTransition(traceInvocationId, {
+        target: candidate.modelStr,
+        stage: "category_tier",
+        outcome: "survived",
+      });
+    }
+  }
+
   const advertisedLimits = computeAdvertisedLimits(effectivePool);
 
   return {
@@ -1222,8 +1353,16 @@ export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined,
   spec?: AutoComboSpec,
   apiKeyId?: string,
-  autoChannel?: string
+  autoChannel?: string,
+  traceInvocationId?: string
 ): Promise<VirtualAutoCombo> {
-  const prepared = await prepareVirtualAutoComboInputs();
-  return createVirtualAutoComboFromPrepared(prepared, variant, spec, apiKeyId, autoChannel);
+  const prepared = await prepareVirtualAutoComboInputs({ traceInvocationId });
+  return createVirtualAutoComboFromPrepared(
+    prepared,
+    variant,
+    spec,
+    apiKeyId,
+    autoChannel,
+    traceInvocationId
+  );
 }
