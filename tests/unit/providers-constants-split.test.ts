@@ -37,12 +37,13 @@
 // GreenPT (#13024, 2b9e7fb3e) and EURouter (#13025, 22473dee5) each add one gateways entry — 240.
 // Agnes AI China (#13399, cdcde97c7) adds one apikey/regional entry — 241.
 // xKiro (#12648, 83fa4328f) adds one apikey entry — 242.
+// BigModel.cn (Zhipu, #12343) adds one regional API-key provider — 243.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
 
-const APIKEY_PROVIDER_COUNT = 242;
+const APIKEY_PROVIDER_COUNT = 243;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [
@@ -71,6 +72,8 @@ test(`APIKEY_PROVIDERS merges the 6 family files into ${APIKEY_PROVIDER_COUNT} e
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
   assert.equal(keys.length, APIKEY_PROVIDER_COUNT);
   assert.equal(new Set(keys).size, APIKEY_PROVIDER_COUNT, "duplicate keys after spread-merge");
+  assert.ok(keys.includes("bigmodel"), "BigModel.cn must remain in the merged catalog");
+  assert.ok(keys.includes("seekai"), "SeekAi must remain in the merged catalog");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
   // strict partition (every provider in exactly one), so the sum must be exactly APIKEY_PROVIDER_COUNT.
   const families: [string, string][] = [

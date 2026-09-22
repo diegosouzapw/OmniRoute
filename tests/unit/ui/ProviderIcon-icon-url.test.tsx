@@ -230,6 +230,7 @@ describe("ProviderIcon — local SVG dimensions", () => {
     ["cline", "/providers/cline.svg"],
     ["kimi-coding", "/providers/kimi-logomark-light.svg"],
     ["opper", "/providers/opper.svg"],
+    ["bigmodel", "/providers/zhipu.svg"],
   ])("gives %s a definite square layout size", (providerId, expectedSrc) => {
     const container = renderIcon({ providerId, size: 24 });
     const img = container.querySelector(`img[src="${expectedSrc}"]`);

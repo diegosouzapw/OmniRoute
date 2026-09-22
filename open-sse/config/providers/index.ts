@@ -162,6 +162,7 @@ import { nanogptProvider } from "./registry/nanogpt/index.ts";
 import { scalewayProvider } from "./registry/scaleway/index.ts";
 import { agentrouterProvider } from "./registry/agentrouter/index.ts";
 import { zaiProvider } from "./registry/zai/index.ts";
+import { bigmodelProvider } from "./registry/bigmodel/index.ts";
 import { waferProvider } from "./registry/wafer/index.ts";
 import { huggingchatProvider } from "./registry/huggingchat/index.ts";
 import { yuanbao_webProvider } from "./registry/yuanbao-web/index.ts";
@@ -438,6 +439,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   scaleway: scalewayProvider,
   agentrouter: agentrouterProvider,
   zai: zaiProvider,
+  bigmodel: bigmodelProvider,
   huggingchat: huggingchatProvider,
   "yuanbao-web": yuanbao_webProvider,
   "tencent-aistudio-web": tencent_aistudio_webProvider,

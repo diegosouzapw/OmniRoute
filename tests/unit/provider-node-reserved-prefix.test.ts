@@ -189,7 +189,12 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // alias "pepper" from the REGISTRY walk (414 -> 412) — the two land back on the same total.
   // #12648 registers xKiro: id "xkiro" with no separate alias — a single REGISTRY
   // member (412 -> 413).
-  assert.equal(RESERVED_PREFIX_COUNT, 413);
+  // #12343: BigModel.cn (Zhipu) adds registry id "bigmodel"; its alias is the same string,
+  // so the unique reserved-prefix set grows by 1 (413 → 414).
+  assert.equal(RESERVED_PREFIX_COUNT, 414);
+  assert.equal(isReservedProviderPrefix("bigmodel"), true);
+  assert.equal(RESERVED_PROVIDER_PREFIXES.has("seekai"), true);
+  assert.equal(RESERVED_PROVIDER_PREFIXES.has("ska"), true);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {

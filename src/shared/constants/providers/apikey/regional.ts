@@ -35,6 +35,19 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     textIcon: "GC",
     website: "https://open.bigmodel.cn",
   },
+  bigmodel: {
+    id: "bigmodel",
+    serviceKinds: ["llm"],
+    alias: "bigmodel",
+    name: "BigModel.cn (Zhipu)",
+    icon: "psychology",
+    color: "#2563EB",
+    textIcon: "BM",
+    website: "https://open.bigmodel.cn",
+    apiHint:
+      "Create an API key at https://bigmodel.cn/usercenter/proj-mgmt/apikeys. OmniRoute uses BigModel.cn's OpenAI-compatible chat API.",
+    passthroughModels: true,
+  },
   glmt: {
     id: "glmt",
     serviceKinds: ["llm"],
@@ -147,8 +160,8 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "psychology",
     color: "#2563EB",
     textIcon: "ZA",
-    website: "https://open.bigmodel.cn",
-    apiHint: "API key from https://open.bigmodel.cn/usercenter/apikeys",
+    website: "https://z.ai/model-api",
+    apiHint: "Create an API key at https://z.ai/manage-apikey/apikey-list.",
   },
   alibaba: {
     id: "alibaba",
