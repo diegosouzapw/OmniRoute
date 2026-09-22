@@ -10,12 +10,23 @@ export interface AutoTraceCandidate {
   provider: string;
   model: string;
   modelStr?: string;
+  connectionId?: string | null;
+  allowedConnectionIds?: string[];
 }
 
 type TraceDetail = string | (() => string);
 
 function candidateTarget(candidate: AutoTraceCandidate): string {
   return candidate.modelStr ?? `${candidate.provider}/${candidate.model}`;
+}
+
+function candidateConnectionScope(
+  candidate: AutoTraceCandidate
+): "none" | "noauth" | "single" | "multiple" {
+  if (candidate.connectionId === "noauth") return "noauth";
+  if (candidate.connectionId) return "single";
+  const count = candidate.allowedConnectionIds?.length ?? 0;
+  return count > 1 ? "multiple" : count === 1 ? "single" : "none";
 }
 
 function bestEffortTrace(
@@ -40,6 +51,7 @@ export function recordAutoCandidatePool(
         target: candidateTarget(candidate),
         provider: candidate.provider,
         model: candidate.model,
+        connectionScope: candidateConnectionScope(candidate),
       });
     }
   });
@@ -71,6 +83,25 @@ export function recordAutoExclusion(
       ...(detail === undefined
         ? {}
         : { detail: typeof detail === "function" ? detail() : detail }),
+    });
+  });
+}
+
+export function recordAutoNarrowing(
+  invocationId: string | undefined,
+  candidate: AutoTraceCandidate,
+  stage: AutoEvaluationStage,
+  reason: ComboSkipReason,
+  detail?: string
+): void {
+  bestEffortTrace(invocationId, (traceInvocationId) => {
+    recordAutoEvaluationStage(traceInvocationId, stage);
+    recordAutoEvaluationTransition(traceInvocationId, {
+      target: candidateTarget(candidate),
+      stage,
+      outcome: "narrowed",
+      reason,
+      ...(detail === undefined ? {} : { detail }),
     });
   });
 }

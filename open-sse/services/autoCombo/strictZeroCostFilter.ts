@@ -55,7 +55,11 @@ import {
   type FreeModelBudget,
 } from "@omniroute/open-sse/config/freeModelCatalog.ts";
 import { SYNTHETIC_NOAUTH_CONNECTION_ID } from "./resilienceCandidateFilter";
-import { recordAutoExclusion, recordAutoStage } from "./autoEvaluationTrace";
+import {
+  recordAutoExclusion,
+  recordAutoNarrowing,
+  recordAutoStage,
+} from "./autoEvaluationTrace";
 
 export type FreeAccessStatus = "SAFE" | "EXHAUSTED" | "UNKNOWN";
 
@@ -293,22 +297,24 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
   let changed = false;
   for (const candidate of pool) {
     const budgetEntry = findBudgetEntry(candidate, options.catalog);
-    const safeConnectionIds = evaluateCandidateConnections(
+    const verdict = classifyStrictZeroCostCandidate(
       candidate,
       budgetEntry,
       options.resolveFreeAccessState,
       options
     );
-    if (safeConnectionIds.length === 0) {
+    if (verdict.outcome !== "safe") {
       changed = true;
       recordAutoExclusion(
         traceInvocationId,
         candidate,
         "strict_zero_cost",
-        "auto_strict_zero_cost"
+        "auto_strict_zero_cost",
+        verdict.outcome
       );
       continue;
     }
+    const safeConnectionIds = verdict.safeConnectionIds;
 
     const isGenuineNoAuthCandidate = candidate.connectionId === SYNTHETIC_NOAUTH_CONNECTION_ID;
     const isSingleConnectionCandidate = candidate.connectionId !== null;
@@ -330,6 +336,13 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
       kept.push(candidate);
     } else {
       changed = true;
+      recordAutoNarrowing(
+        traceInvocationId,
+        candidate,
+        "strict_zero_cost",
+        "auto_strict_zero_cost",
+        `connections-narrowed:${original.length}->${safeConnectionIds.length}`
+      );
       kept.push({ ...candidate, allowedConnectionIds: safeConnectionIds });
     }
   }

@@ -73,12 +73,13 @@ export interface AutoEvaluationCandidate {
   target: string;
   provider: string;
   model: string;
+  connectionScope: "none" | "noauth" | "single" | "multiple";
 }
 
 export interface AutoEvaluationTransition {
   target: string;
   stage: AutoEvaluationStage | "dispatch";
-  outcome: "excluded" | "retained";
+  outcome: "excluded" | "narrowed" | "retained";
   reason?: ComboSkipReason;
   detail?: string;
   ts: number;
@@ -161,7 +162,12 @@ export function recordAutoEvaluationStage(
 }
 
 function autoCandidateKey(candidate: AutoEvaluationCandidate): string {
-  return [candidate.target, candidate.provider, candidate.model].join("\u0000");
+  return [
+    candidate.target,
+    candidate.provider,
+    candidate.model,
+    candidate.connectionScope,
+  ].join("\u0000");
 }
 
 export function recordAutoEvaluationCandidate(

@@ -8,7 +8,11 @@
  * `paidModelFilter.ts` and `candidateOverrides.ts` in this directory.
  */
 import { isAccountUnavailable, isModelLocked } from "../accountFallback.ts";
-import { recordAutoExclusion, recordAutoStage } from "./autoEvaluationTrace.ts";
+import {
+  recordAutoExclusion,
+  recordAutoNarrowing,
+  recordAutoStage,
+} from "./autoEvaluationTrace.ts";
 
 export const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
@@ -121,6 +125,13 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
         return [candidate];
       }
       changed = true;
+      recordAutoNarrowing(
+        traceInvocationId,
+        candidate,
+        "resilience",
+        "auto_resilience_filter",
+        `connections-narrowed:${candidate.allowedConnectionIds.length}->${allowedConnectionIds.length}`
+      );
       return [{ ...candidate, allowedConnectionIds }];
     }
 

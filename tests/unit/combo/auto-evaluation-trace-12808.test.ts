@@ -161,10 +161,61 @@ test("candidate records keep routing identity but omit connection/account metada
   ]);
 
   assert.deepEqual(getComboTrace(invocationId)?.autoEvaluation?.candidates, [
-    { target: "example/model-a", provider: "example", model: "model-a" },
+    {
+      target: "example/model-a",
+      provider: "example",
+      model: "model-a",
+      connectionScope: "single",
+    },
   ]);
   assert.equal(
     JSON.stringify(getComboTrace(invocationId)?.autoEvaluation).includes("secret-account-id"),
     false
   );
+});
+
+test("resilience narrowing records cardinality without connection ids", () => {
+  const invocationId = "combo-auto-eval-resilience-narrowing";
+  startTrace(invocationId);
+
+  const pool = [
+    {
+      provider: "example",
+      model: "model-a",
+      modelStr: "example/model-a",
+      connectionId: null,
+      allowedConnectionIds: ["blocked-account-id", "healthy-account-id"],
+    },
+  ];
+  const connections = new Map([
+    ["blocked-account-id", { id: "blocked-account-id", testStatus: "unavailable" }],
+    ["healthy-account-id", { id: "healthy-account-id", testStatus: "success" }],
+  ]);
+
+  const filtered = filterResilienceBlockedCandidates(pool, connections, false, invocationId);
+  assert.deepEqual(filtered[0]?.allowedConnectionIds, ["healthy-account-id"]);
+
+  const evaluation = getComboTrace(invocationId)?.autoEvaluation;
+  assert.ok(evaluation);
+  assert.deepEqual(
+    evaluation.transitions.map(({ target, stage, outcome, reason, detail }) => ({
+      target,
+      stage,
+      outcome,
+      reason,
+      detail,
+    })),
+    [
+      {
+        target: "example/model-a",
+        stage: "resilience",
+        outcome: "narrowed",
+        reason: "auto_resilience_filter",
+        detail: "connections-narrowed:2->1",
+      },
+    ]
+  );
+  const serialized = JSON.stringify(evaluation);
+  assert.equal(serialized.includes("blocked-account-id"), false);
+  assert.equal(serialized.includes("healthy-account-id"), false);
 });
