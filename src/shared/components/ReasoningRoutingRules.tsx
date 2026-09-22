@@ -95,7 +95,7 @@ function supportsExtendedCodexEffort(model: string, effort: "max" | "ultra"): bo
   const normalized = model
     .trim()
     .toLowerCase()
-    .replace(/^(?:codex|cx)\//, "");
+    .replace(/^[^/]+\//, "");
   return effort === "ultra"
     ? /^gpt-5\.6-(?:sol|terra)(?:-|$)/.test(normalized)
     : /^gpt-5\.6-(?:sol|terra|luna)(?:-|$)/.test(normalized);
@@ -212,31 +212,45 @@ export default function ReasoningRoutingRules({
 
   const targetModelForCapability =
     form.targetKind === "model" ? form.targetModel : form.modelPattern;
+  const isLunaTarget = useMemo(() => {
+    const normalized = targetModelForCapability
+      .trim()
+      .toLowerCase()
+      .replace(/^[^/]+\//, "");
+    return /^gpt-5\.6-luna(?:-|$)/.test(normalized);
+  }, [targetModelForCapability]);
+
+  const currentTargetEffort =
+    isLunaTarget && form.targetEffort === "ultra" ? "max" : form.targetEffort;
+
   const effortOptions = useMemo(() => {
     const values = [...STANDARD_EFFORTS];
     for (const effort of EXTENDED_EFFORTS) {
+      if (effort === "ultra" && isLunaTarget) {
+        continue;
+      }
       if (
         supportsExtendedCodexEffort(targetModelForCapability, effort as "max" | "ultra") ||
-        form.targetEffort === effort
+        currentTargetEffort === effort
       ) {
         values.push(effort);
       }
     }
     return values.map((value) => ({ value, label: value }));
-  }, [form.targetEffort, targetModelForCapability]);
+  }, [currentTargetEffort, isLunaTarget, targetModelForCapability]);
 
   const capabilityWarning = useMemo(() => {
     if (form.effortMode === "inherit") return "";
-    if (!EXTENDED_EFFORTS.includes(form.targetEffort)) return "";
+    if (!EXTENDED_EFFORTS.includes(currentTargetEffort)) return "";
     if (form.targetKind === "combo") return t("extendedComboWarning");
     if (!targetModelForCapability.trim()) return t("extendedUnknownWarning");
     return supportsExtendedCodexEffort(
       targetModelForCapability,
-      form.targetEffort as "max" | "ultra"
+      currentTargetEffort as "max" | "ultra"
     )
       ? ""
       : t("extendedUnsupportedWarning");
-  }, [form.effortMode, form.targetEffort, form.targetKind, t, targetModelForCapability]);
+  }, [currentTargetEffort, form.effortMode, form.targetKind, t, targetModelForCapability]);
 
   const dirty = editorOpen && JSON.stringify(form) !== baseline;
   const confirmDiscard = (action: () => void) => {
@@ -322,7 +336,7 @@ export default function ReasoningRoutingRules({
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
-      targetEffort: form.effortMode === "inherit" ? null : form.targetEffort,
+      targetEffort: form.effortMode === "inherit" ? null : currentTargetEffort,
       targetKind,
       targetModel: targetKind === "model" ? form.targetModel || null : null,
       targetComboId: targetKind === "combo" ? form.targetComboId || null : null,
@@ -835,7 +849,7 @@ export default function ReasoningRoutingRules({
                     <div className={grid}>
                       <Select
                         label={t("targetEffort")}
-                        value={form.targetEffort}
+                        value={currentTargetEffort}
                         onChange={(event) => setForm({ ...form, targetEffort: event.target.value })}
                         options={effortOptions}
                       />
@@ -919,7 +933,7 @@ export default function ReasoningRoutingRules({
                   </p>
                   <p className="mt-1 text-text-muted">
                     {e("effort." + form.effortMode)}
-                    {form.effortMode !== "inherit" ? ": " + form.targetEffort : ""}
+                    {form.effortMode !== "inherit" ? ": " + currentTargetEffort : ""}
                   </p>
                   <p className="mt-2 text-xs text-text-muted">{e("draftNotice")}</p>
                 </div>

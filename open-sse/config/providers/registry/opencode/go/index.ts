@@ -336,6 +336,7 @@ export const opencode_goProvider: RegistryEntry = {
       id: "gpt-5.6-luna",
       name: "GPT-5.6 Luna",
       supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
       targetFormat: "openai-responses",
       maxOutputTokens: 128000,
     },

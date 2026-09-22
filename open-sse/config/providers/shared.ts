@@ -317,6 +317,7 @@ export const GPT_5_6_API_CAPABILITIES = {
   supportsReasoning: true,
   supportsVision: true,
   supportsXHighEffort: true,
+  supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
   contextLength: 1050000,
   maxInputTokens: 922000,
   maxOutputTokens: 128000,

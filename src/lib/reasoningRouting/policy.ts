@@ -312,7 +312,7 @@ function capabilityFor(
     if (capabilities.reasoningEffortsOverride && Array.isArray(declaredEfforts)) {
       return "unsupported" as const;
     }
-    const normalized = model.toLowerCase().replace(/^(?:codex|cx)\//, "");
+    const normalized = modelIdForRegistry.toLowerCase();
     const supported =
       targetEffort === "ultra"
         ? /^gpt-5\.6-(?:sol|terra)(?:-|$)/.test(normalized)

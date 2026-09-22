@@ -30,9 +30,30 @@ export const opencode_zenProvider: RegistryEntry = {
     ...OPENCODE_ZEN_GO_SHARED_MODELS,
     // models[0] (big-pickle) is the dashboard default; SHARED spread kept after it.
 
-    { id: "gpt-5.6-sol", name: "GPT 5.6 Sol" },
-    { id: "gpt-5.6-terra", name: "GPT 5.6 Terra" },
-    { id: "gpt-5.6-luna", name: "GPT 5.6 Luna" },
+    {
+      id: "gpt-5.6-sol",
+      name: "GPT 5.6 Sol",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.6-terra",
+      name: "GPT 5.6 Terra",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.6-luna",
+      name: "GPT 5.6 Luna",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
     { id: "gpt-5.4", name: "GPT 5.4" },
     { id: "gpt-5.4-mini", name: "GPT 5.4 Mini" },
     { id: "gpt-5.4-nano", name: "GPT 5.4 Nano" },
