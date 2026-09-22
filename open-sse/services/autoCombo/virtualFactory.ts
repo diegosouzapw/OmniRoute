@@ -138,6 +138,8 @@ export interface VirtualAutoComboCandidate {
 }
 
 type VirtualAutoCombo = AutoComboConfig & {
+  /** Existing request/combo correlation id when request-scoped tracing is active. */
+  traceInvocationId?: string;
   strategy: "auto";
   models: Array<{
     id: string;
