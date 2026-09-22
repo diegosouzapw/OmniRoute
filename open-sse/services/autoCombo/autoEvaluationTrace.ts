@@ -45,6 +45,15 @@ export function recordAutoCandidatePool(
   });
 }
 
+export function recordAutoStage(
+  invocationId: string | undefined,
+  stage: AutoEvaluationStage
+): void {
+  bestEffortTrace(invocationId, (traceInvocationId) => {
+    recordAutoEvaluationStage(traceInvocationId, stage);
+  });
+}
+
 export function recordAutoExclusion(
   invocationId: string | undefined,
   candidate: AutoTraceCandidate,
