@@ -8,6 +8,11 @@ const CONTRACTS = [
   "quality-scan/SKILL.md",
   "validate-release-green/SKILL.md",
   "_shared/base-green.md",
+  "green-prs/SKILL.md",
+  "sweep-reds/SKILL.md",
+  "merge-prs/SKILL.md",
+  "_shared/merge-gates.md",
+  "_shared/validation-gate.md",
 ];
 
 export function inspectSkillContracts(root, templates = TEMPLATES) {
