@@ -8,11 +8,10 @@
 //   zizmor      — 24+ security audits (unpinned actions, script injection,
 //                 pull_request_target misuse, cache poisoning, …)
 //
-// Graceful-SKIP contract:
-//   If EITHER binary is absent from PATH, the script prints a SKIP notice and
-//   exits 0. This allows the gate to run in environments that have the tools
-//   installed (CI with setup steps, developer machines with actionlint/zizmor)
-//   while being inert elsewhere.
+// Execution contract:
+//   Both scanners must complete and produce valid output. Missing tools, tool
+//   failures, invalid reports or missing ratchet baselines are INCOMPLETE and
+//   exit non-zero. They are not measured regressions or zero findings.
 //
 // Output (stdout, one line each):
 //   workflowFindings=<n>   — total findings from both tools combined
@@ -20,20 +19,19 @@
 //   zizmorFindings=<n>     — findings from zizmor alone
 //
 // Exit codes:
-//   0  — SKIP (binary absent) or all tools passed / no ratchet regression
+//   0  — completed measurement; no blocking finding / no ratchet regression
 //   1  — gate failure: --strict + any finding, OR --ratchet + zizmorFindings
-//        regression (measured > baseline)
+//        regression (measured > baseline), or incomplete execution
 //
 // Ratchet mode (--ratchet): reads metrics.zizmorFindings.value from
-// config/quality/quality-baseline.json and exits 1 IF — AND ONLY IF — the MEASURED
-// zizmor count is GREATER than the baseline (real regression, direction:down).
+// config/quality/quality-baseline.json and rejects a MEASURED zizmor count that
+// is GREATER than the baseline (real regression, direction:down).
 // ONLY zizmorFindings is ratcheted; actionlint findings are REPORTED but NOT
-// ratcheted (use the separate --strict all-or-nothing flag for those). Any graceful
-// SKIP (binary absent, no workflows) exits 0 even with --ratchet — missing infra
-// never blocks, only a measured regression does.
+// ratcheted (use the separate --strict all-or-nothing flag for those). Missing
+// measurement blocks acceptance without being attributed to contributor code.
 //
 // Usage:
-//   node scripts/check/check-workflows.mjs               # advisory (exit 0 always)
+//   node scripts/check/check-workflows.mjs               # findings advisory; execution required
 //   node scripts/check/check-workflows.mjs --strict      # fail on any finding
 //   node scripts/check/check-workflows.mjs --ratchet     # fail on zizmor regression
 //   node scripts/check/check-workflows.mjs --quiet       # suppress progress logs
@@ -68,7 +66,7 @@ export function isBinaryAvailable(name) {
   // Use `command -v` on Unix; `where` on Windows (via cmd).
   // We shell through `sh -c` because execFileSync needs the actual path
   // and we want cross-platform behaviour.
-  const result = spawnSync("sh", ["-c", `command -v ${name}`], {
+  const result = spawnSync("sh", ["-c", 'command -v "$1"', "check-workflows", name], {
     encoding: "utf8",
     timeout: 5_000,
     windowsHide: true,
@@ -96,6 +94,9 @@ export function parseActionlintOutput(stdout) {
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
+  if (lines.some((line) => !/^.+:\d+:\d+: .+\[[^\]]+\]$/.test(line))) {
+    throw new Error("invalid actionlint one-line report");
+  }
   return { count: lines.length, lines };
 }
 
@@ -110,36 +111,28 @@ export function parseActionlintOutput(stdout) {
  *   { diagnostics: Array<{ ...finding fields }> }
  * or an array directly in older versions.
  *
- * If JSON parsing fails, falls back to line counting (graceful degradation).
+ * The command requests JSON. Empty, malformed or unknown output is not a report.
  *
  * @param {string} stdout - Raw stdout from zizmor --format json (or text)
  * @returns {{ count: number, diagnostics: unknown[] }}
  */
 export function parseZizmorOutput(stdout) {
-  const trimmed = stdout.trim();
-  if (!trimmed) {
-    return { count: 0, diagnostics: [] };
-  }
-
+  let parsed;
   try {
-    const parsed = JSON.parse(trimmed);
-    // zizmor ≥0.8 emits { diagnostics: [...] }
-    if (parsed && typeof parsed === "object" && Array.isArray(parsed.diagnostics)) {
-      return { count: parsed.diagnostics.length, diagnostics: parsed.diagnostics };
-    }
-    // Older versions may emit a bare array
-    if (Array.isArray(parsed)) {
-      return { count: parsed.length, diagnostics: parsed };
-    }
-    // Unexpected JSON shape — treat whole object as 0 findings if it has no
-    // obvious error marker; this is a best-effort parse.
-    return { count: 0, diagnostics: [] };
+    parsed = JSON.parse(stdout);
   } catch {
-    // Not JSON (e.g. text output or error message) — count non-empty lines as
-    // a conservative fallback.
-    const lines = trimmed.split("\n").filter(Boolean);
-    return { count: lines.length, diagnostics: [] };
+    throw new Error("invalid zizmor JSON report");
   }
+  const diagnostics = Array.isArray(parsed) ? parsed : parsed?.diagnostics;
+  if (
+    !Array.isArray(diagnostics) ||
+    diagnostics.some(
+      (entry) =>
+        !entry || typeof entry !== "object" || typeof (entry.ident ?? entry.id) !== "string"
+    )
+  )
+    throw new Error("unknown zizmor report schema");
+  return { count: diagnostics.length, diagnostics };
 }
 
 // ---------------------------------------------------------------------------
@@ -164,7 +157,7 @@ export function evaluateZizmorRatchet(current, baseline) {
 /**
  * Reads metrics.zizmorFindings.value from quality-baseline.json.
  * Returns null when the file or metric is missing (no baseline → no ratchet
- * possible; the caller treats this as a graceful SKIP, exit 0).
+ * possible; the caller must block acceptance).
  *
  * @param {string} baselinePath
  * @returns {number|null}
@@ -178,7 +171,7 @@ export function readBaselineZizmorValue(baselinePath = BASELINE_PATH) {
     return null;
   }
   const metric = baselineJson?.metrics?.zizmorFindings;
-  if (!metric || typeof metric.value !== "number") return null;
+  if (!metric || !Number.isInteger(metric.value) || metric.value < 0) return null;
   return metric.value;
 }
 
@@ -204,34 +197,37 @@ export function collectWorkflowFiles(workflowsDir) {
 
 /**
  * Runs actionlint over the given workflow files.
- * Returns parsed result. Never throws — returns count=0 on any exec error so
- * that one broken binary does not abort the whole check.
+ * Exit 1 with findings is actionlint's documented lint result. Other execution
+ * errors, or exit 1 without findings, cannot establish a measurement.
  *
  * @param {string[]} files - Absolute paths to workflow YAMLs
  * @returns {{ count: number, lines: string[], skipped: boolean }}
  */
 export function runActionlint(files) {
   if (files.length === 0) {
-    return { count: 0, lines: [], skipped: false };
+    throw new Error("no workflow files to audit");
   }
   try {
-    const stdout = execFileSync("actionlint", files, {
+    const stdout = execFileSync("actionlint", ["-oneline", ...files], {
       encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 120_000,
       // actionlint exits non-zero when it finds issues; capture output anyway
       // by catching the thrown error.
     });
     return { ...parseActionlintOutput(stdout), skipped: false };
   } catch (err) {
-    // execFileSync throws when exit code != 0.
-    // stdout still contains the finding lines.
-    const stdout = (err && typeof err === "object" && "stdout" in err ? err.stdout : "") || "";
-    return { ...parseActionlintOutput(String(stdout)), skipped: false };
+    const result = parseActionlintOutput(String(err?.stdout || ""));
+    if (err?.status !== 1 || err?.signal || result.count === 0) {
+      throw new Error("actionlint execution failed; no complete measurement");
+    }
+    return { ...result, skipped: false };
   }
 }
 
 /**
  * Runs zizmor over the workflows directory.
- * Returns parsed result. Never throws.
+ * Tool failure remains distinct from security findings.
  *
  * @param {string} workflowsDir - Path to .github/workflows
  * @returns {{ count: number, diagnostics: unknown[], skipped: boolean }}
@@ -247,29 +243,39 @@ export function runActionlint(files) {
  */
 export function zizmorVersion() {
   try {
-    return execFileSync("zizmor", ["--version"], { encoding: "utf8" }).trim() || "unknown";
+    const version = execFileSync("zizmor", ["--version"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 5_000,
+    }).trim();
+    if (!/^zizmor \d+\.\d+\.\d+/.test(version)) throw new Error("unknown version");
+    return version;
   } catch {
-    return "unknown";
+    throw new Error("cannot identify zizmor version");
   }
 }
 
 export function runZizmor(workflowsDir) {
-  const args = ["--format", "json"];
+  // Findings use exit 0; operational failures still use non-zero. The ratchet
+  // below evaluates the parsed finding count, not the scanner's severity code.
+  const args = ["--format", "json", "--no-exit-codes"];
   if (fs.existsSync(ZIZMOR_CONFIG)) {
     args.push("--config", ZIZMOR_CONFIG);
   }
   args.push(workflowsDir);
 
+  let stdout;
   try {
-    const stdout = execFileSync("zizmor", args, {
+    stdout = execFileSync("zizmor", args, {
       encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 120_000,
       maxBuffer: 4 * 1024 * 1024,
     });
-    return { ...parseZizmorOutput(stdout), skipped: false };
-  } catch (err) {
-    const stdout = (err && typeof err === "object" && "stdout" in err ? err.stdout : "") || "";
-    return { ...parseZizmorOutput(String(stdout)), skipped: false };
+  } catch {
+    throw new Error("zizmor execution failed; no complete measurement");
   }
+  return { ...parseZizmorOutput(stdout), skipped: false };
 }
 
 // ---------------------------------------------------------------------------
@@ -297,28 +303,18 @@ function main() {
   const hasActionlint = isBinaryAvailable("actionlint");
   const hasZizmor = isBinaryAvailable("zizmor");
 
-  if (!hasActionlint && !hasZizmor) {
-    console.log(
-      "[check-workflows] SKIP — actionlint and zizmor not found in PATH.\n" +
-        "  Install them to enable workflow linting and security audit:\n" +
-        "  • actionlint: https://github.com/rhysd/actionlint\n" +
-        "  • zizmor:     https://github.com/woodruffw/zizmor\n" +
-        "  Graceful SKIP — exits 0 even with --ratchet (missing binaries never block)."
-    );
-    process.stdout.write("workflowFindings=SKIP\n");
-    process.exit(0);
+  if (!hasActionlint || !hasZizmor) {
+    throw new Error("both actionlint and zizmor must be installed before auditing workflows");
   }
+
+  const baselineValue = RATCHET ? readBaselineZizmorValue(BASELINE_PATH) : null;
+  if (RATCHET && baselineValue === null) throw new Error("ratchet baseline absent or invalid");
+  const scannerVersion = zizmorVersion();
 
   const workflowFiles = collectWorkflowFiles(WORKFLOWS_DIR);
 
   if (workflowFiles.length === 0) {
-    if (!QUIET) {
-      console.log(
-        `[check-workflows] No workflow files found in ${WORKFLOWS_DIR} — nothing to check.`
-      );
-    }
-    process.stdout.write("workflowFindings=0\nactionlintFindings=0\nzizmorFindings=0\n");
-    process.exit(0);
+    throw new Error("no workflow files discovered; measurement incomplete");
   }
 
   if (!QUIET) {
@@ -379,12 +375,13 @@ function main() {
   }
 
   const total = actionlintCount + zizmorCount;
+  process.stdout.write("workflowAuditState=MEASURED\n");
   process.stdout.write(`workflowFindings=${total}\n`);
   process.stdout.write(`actionlintFindings=${actionlintCount}\n`);
   process.stdout.write(`zizmorFindings=${zizmorCount}\n`);
   // Read this line with the count above: a finding total is only reproducible against the
   // version that produced it. See zizmorVersion().
-  process.stdout.write(`zizmorVersion=${hasZizmor ? zizmorVersion() : "absent"}\n`);
+  process.stdout.write(`zizmorVersion=${scannerVersion}\n`);
   process.stdout.write(`provenanceRunnerFindings=${provenanceFindings.length}\n`);
   if ((STRICT || RATCHET) && provenanceFindings.length > 0) {
     console.error(
@@ -401,29 +398,8 @@ function main() {
   }
 
   // ── ratchet (zizmorFindings only, direction:down) ──────────────────────────
-  // We can only ratchet zizmor when zizmor actually RAN (binary present). If
-  // zizmor is absent we have no comparable measurement → graceful SKIP (exit 0):
-  // a missing binary must never block, only a measured regression does.
+  // Prerequisites and report validity were verified before emitting metrics.
   if (RATCHET) {
-    if (!hasZizmor) {
-      if (!QUIET) {
-        process.stderr.write(
-          "[check-workflows] --ratchet: zizmor absent — SKIP (no measurement, never blocks).\n"
-        );
-      }
-      process.exit(0);
-    }
-
-    const baselineValue = readBaselineZizmorValue(BASELINE_PATH);
-    if (baselineValue === null) {
-      if (!QUIET) {
-        process.stderr.write(
-          "[check-workflows] --ratchet: baseline absent (metrics.zizmorFindings) — SKIP, exit 0.\n"
-        );
-      }
-      process.exit(0);
-    }
-
     const { regressed } = evaluateZizmorRatchet(zizmorCount, baselineValue);
     if (regressed) {
       console.error(
@@ -452,4 +428,12 @@ function main() {
   process.exit(0);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();
+if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
+  try {
+    main();
+  } catch (error) {
+    console.error(`[check-workflows] INCOMPLETE — ${error.message}`);
+    process.stdout.write("workflowAuditState=INCOMPLETE\nworkflowFindings=INCOMPLETE\n");
+    process.exitCode = 1;
+  }
+}

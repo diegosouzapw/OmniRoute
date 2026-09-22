@@ -143,10 +143,8 @@ test("parseActionlintOutput: preserves finding text exactly (trimmed)", () => {
 // parseZizmorOutput
 // ─────────────────────────────────────────────────────────────────────────────
 
-test("parseZizmorOutput: empty string returns count=0", () => {
-  const result = parseZizmorOutput("");
-  assert.equal(result.count, 0);
-  assert.deepEqual(result.diagnostics, []);
+test("parseZizmorOutput: empty output is not a measured zero", () => {
+  assert.throws(() => parseZizmorOutput(""), /invalid.*JSON/);
 });
 
 test("parseZizmorOutput: JSON with empty diagnostics array returns count=0", () => {
@@ -180,24 +178,17 @@ test("parseZizmorOutput: bare JSON array (older zizmor format) counts correctly"
   assert.equal(result.diagnostics.length, 3);
 });
 
-test("parseZizmorOutput: invalid JSON falls back to line counting", () => {
-  // Non-JSON output (e.g. text format or error message) — each non-empty line = 1
+test("parseZizmorOutput: invalid JSON cannot be interpreted as frozen findings", () => {
   const textOutput = "warning: unpinned action\nerror: script injection risk\n";
-  const result = parseZizmorOutput(textOutput);
-  assert.equal(result.count, 2);
-  // diagnostics is empty array in fallback mode
-  assert.deepEqual(result.diagnostics, []);
+  assert.throws(() => parseZizmorOutput(textOutput), /invalid.*JSON/);
 });
 
-test("parseZizmorOutput: JSON with unknown shape returns count=0 (graceful)", () => {
-  // Unexpected but valid JSON — neither array nor { diagnostics }
-  const result = parseZizmorOutput(JSON.stringify({ errors: [], warnings: [] }));
-  assert.equal(result.count, 0);
+test("parseZizmorOutput: unknown schema is incomplete, not zero findings", () => {
+  assert.throws(() => parseZizmorOutput(JSON.stringify({ errors: [], warnings: [] })), /schema/);
 });
 
-test("parseZizmorOutput: whitespace-only returns count=0", () => {
-  const result = parseZizmorOutput("   \n\t\n   ");
-  assert.equal(result.count, 0);
+test("parseZizmorOutput: whitespace-only is not a measured zero", () => {
+  assert.throws(() => parseZizmorOutput("   \n\t\n   "), /invalid.*JSON/);
 });
 
 test("parseZizmorOutput: large diagnostics array counted correctly", () => {
@@ -344,7 +335,7 @@ test("readBaselineZizmorValue: reads metrics.zizmorFindings.value", () => {
   });
 });
 
-test("readBaselineZizmorValue: missing file returns null (graceful SKIP)", () => {
+test("readBaselineZizmorValue: missing file returns null (caller must reject incomplete ratchet)", () => {
   assert.equal(readZizmorBaseline("/tmp/does-not-exist-88888/quality-baseline.json"), null);
 });
 

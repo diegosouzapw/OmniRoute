@@ -425,8 +425,8 @@ jobs:
         run: npm run check:vuln-ratchet -- --ratchet
       # BLOCKING ratchet (Etapa 2): zizmorFindings must not regress vs the baseline.
       # ONLY zizmor is ratcheted — actionlint findings are reported, not blocking.
-      # --ratchet exits 1 on a measured zizmor regression; it SKIPs (exit 0) when
-      # zizmor is absent (a missing binary never blocks).
+      # Both tools must complete with valid reports. Missing/broken scanners or
+      # an absent baseline are INCOMPLETE, never zero findings or acceptance.
       - name: Workflow lint (actionlint+zizmor, ratchet, blocking)
         run: npm run check:workflows -- --ratchet
       # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API

@@ -176,7 +176,7 @@ jobs:
           gh release download "$OSV_SCANNER_VERSION" --repo google/osv-scanner --pattern '*linux_amd64' --dir /tmp/osv
           install -m 0755 /tmp/osv/*linux_amd64 "$HOME/.local/bin/osv-scanner"
           # actionlint — official installer from a pinned release tag (never main)
-          bash <(curl -fsSL "https://raw.githubusercontent.com/rhysd/actionlint/${ACTIONLINT_VERSION}/scripts/download-actionlint.bash") "$ACTIONLINT_VERSION" "$HOME/.local/bin"
+          bash <(curl -fsSL "https://raw.githubusercontent.com/rhysd/actionlint/${ACTIONLINT_VERSION}/scripts/download-actionlint.bash") "${ACTIONLINT_VERSION#v}" "$HOME/.local/bin"
           # zizmor — pinned PyPI package (same version as ci.yml quality-extended)
           pipx install "zizmor==$ZIZMOR_VERSION" || pip install --user "zizmor==$ZIZMOR_VERSION"
           # oasdiff — pinned linux amd64 tarball via gh (authed), extract binary
