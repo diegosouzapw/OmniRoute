@@ -25,6 +25,7 @@ import assert from "node:assert/strict";
 import {
   applyFreeTierRequestContract,
   configuredPlaceholderToolNames,
+  mergeClientToolsWithObserved,
   noteFreeTierOutcome,
   prepareFreeTierRequest,
   isGatedFreeTierRequest,
@@ -749,4 +750,40 @@ test("a client session id is read case-insensitively, a synthesized one is not b
   assert.equal(clientSuppliedOpencodeSession({ "x-opencode-session": "   " }), undefined);
   assert.equal(clientSuppliedOpencodeSession({}), undefined);
   assert.equal(clientSuppliedOpencodeSession(undefined), undefined);
+});
+
+test("mergeClientToolsWithObserved: keeps client tools first and appends missing observed names with empty schemas [free-tier-observed-tools]", () => {
+  _resetToolObservationForTests();
+  const body = {
+    ...CHAT_BODY(),
+    tools: [
+      { type: "function", function: { name: "glob", parameters: { type: "object" } } },
+      { type: "function", function: { name: "read", parameters: { type: "object" } } },
+    ],
+  };
+  const merged = mergeClientToolsWithObserved(body, "openai", "opencode", "big-pickle", undefined, [
+    "read",
+    "edit",
+  ]);
+  const tools = (merged as Record<string, unknown>).tools as Array<{
+    function: { name: string; parameters: object };
+  }>;
+  assert.deepEqual(
+    tools.map((t) => t.function.name),
+    ["glob", "read", "edit"]
+  );
+  // Appended entries are list entries, not callable tools.
+  assert.deepEqual(tools[2].function.parameters, { type: "object", properties: {} });
+});
+
+test("mergeClientToolsWithObserved: leaves the body untouched when nothing observed [free-tier-observed-tools]", () => {
+  _resetToolObservationForTests();
+  const body = {
+    ...CHAT_BODY(),
+    tools: [{ type: "function", function: { name: "glob", parameters: { type: "object" } } }],
+  };
+  assert.equal(
+    mergeClientToolsWithObserved(body, "openai", "opencode", "big-pickle", undefined, []),
+    body
+  );
 });

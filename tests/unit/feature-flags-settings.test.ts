@@ -40,7 +40,9 @@ const {
 // the dead ONEPROXY_ENABLED (readerless since the 1proxy purge, #12091)
 // brought it back to 53. UNIVERSAL_CONTEXT_HANDOFF_ENABLED bumped it to 54.
 // #13641 added SEARCH_STATS_HIDE_DELETED_CONNECTIONS, bumping the count to 56.
-const EXPECTED_FEATURE_FLAG_COUNT = 75;
+// 893fef9c added OPENCODE_PARK_AND_RESUME (74 -> 75); FLUSH_EMPTY_RETRY_ENABLED
+// (flush empty-turn retry, default off) bumps it to 76.
+const EXPECTED_FEATURE_FLAG_COUNT = 76;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry

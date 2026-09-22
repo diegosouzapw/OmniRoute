@@ -23,6 +23,7 @@
  */
 import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "../handlers/sseParser.ts";
 import {
+  getObservedToolNames,
   noteRefusedBorrowedToolNames,
   recordAcceptedToolNames,
   resolvePlaceholderNames,
@@ -247,6 +248,70 @@ export function applyFreeTierRequestContract<T>(
   }
 
   return next as T;
+}
+
+/**
+ * Merge a gated request's own tools with the names the store last saw accepted.
+ *
+ * A client that declares tools is left alone by `applyFreeTierRequestContract` — but the
+ * upstream inspects WHICH names are declared, and a subset it never saw pass (measured
+ * 2026-09-21: the 5 explore-agent tools `[glob, grep, read, webfetch, websearch]` on
+ * `muse-spark-1.3-contributor-free`, 11 refusals, zero passes) is answered 403
+ * FreeTierError. When such a refusal comes back, this rebuilds the same body with the
+ * observed names appended after the client's own entries: the client tools keep their
+ * full shape (description, parameters) so the model can still call them, while the
+ * appended names are list entries with an empty parameter object — the same shape the
+ * placeholder path uses, never a callable tool.
+ *
+ * Pure: returns the input body unchanged when no observed names are missing, so the
+ * caller can skip the retry on identity alone. Resolution order is the store's own:
+ * this conversation first, then any conversation on the model, then the operator's
+ * configured names.
+ */
+export function mergeClientToolsWithObserved<T>(
+  body: T,
+  requestFormat: string | null,
+  provider: string,
+  model: string,
+  session: string | undefined,
+  configured: readonly string[]
+): T {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+  const record = body as Record<string, unknown>;
+  if (!Array.isArray(record.tools) || record.tools.length === 0) return body;
+  const own = session ? getObservedToolNames(provider, model, session) : null;
+  const observed = own ?? getObservedToolNames(provider, model) ?? configured;
+  const have = new Set(clientToolNamesOf(body));
+  const missing = observed.filter((name) => !have.has(name));
+  if (missing.length === 0) return body;
+  const next: Record<string, unknown> = { ...(record as Record<string, unknown>) };
+  if (requestFormat === "openai-responses") {
+    next.tools = [
+      ...(record.tools as unknown[]),
+      ...missing.map((name) => ({
+        type: "function",
+        name,
+        description: PLACEHOLDER_TOOL_DESCRIPTION,
+        parameters: PLACEHOLDER_TOOL_PARAMETERS,
+      })),
+    ];
+    return next as T;
+  }
+  if (requestFormat === "openai" || requestFormat === null) {
+    next.tools = [
+      ...(record.tools as unknown[]),
+      ...missing.map((name) => ({
+        type: "function",
+        function: {
+          name,
+          description: PLACEHOLDER_TOOL_DESCRIPTION,
+          parameters: PLACEHOLDER_TOOL_PARAMETERS,
+        },
+      })),
+    ];
+    return next as T;
+  }
+  return body;
 }
 
 function clientToolNamesOf(body: unknown): string[] {

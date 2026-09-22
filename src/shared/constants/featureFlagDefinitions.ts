@@ -264,6 +264,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "FLUSH_EMPTY_RETRY_ENABLED",
+    label: "Flush Empty Turn Retry",
+    description:
+      "On translated streaming turns, when the upstream turn carries no usable content (reasoning-only completion or zero valuable chunks), issue bounded retries through the normal credential path (up to `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX`) before anything is exposed to the client. Off by default: empty turns keep the current behavior (empty 200 or empty-content 502).",
+    descriptionI18nKey: "featureFlagFlushEmptyRetryEnabledDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "OPENCODE_RATE_LIMITED_429_EARLY_STOP",
     label: "OpenCode Rate-Limited 429 Early Stop",
     description:
