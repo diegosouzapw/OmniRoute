@@ -14,6 +14,7 @@ import {
   hasAmbientProxyContext,
   runWithDirectFetchContext,
   runWithProxyContext,
+  noteRotationAccount,
 } from "../utils/proxyFetch.ts";
 import {
   clientSuppliedOpencodeSession,
@@ -21,13 +22,20 @@ import {
   resolveOpencodeCliDefaults,
 } from "../utils/opencodeHeaders.ts";
 import {
+  listForRequest,
+  releaseRequestList,
+  type ScopedAccount,
+  type ScopedAccountHealth,
+} from "./opencodeAccountScope.ts";
+import {
   type AccountProxyConfig,
-  type RotatableAccount,
+  type RotationAccountSnapshot,
   pickAccount as pickRotatableAccount,
   maskAccountId,
   isNetworkErrorRotatable,
   isEmptyUpstreamRejection,
   extractChatcmplId,
+  recordRotationSnapshot,
 } from "./accountRotation.ts";
 import {
   markCooldown,
@@ -83,6 +91,7 @@ import * as egressPacing from "./opencodeEgressThrottle.ts";
 import {
   isNetworkRotationSharedEgressGuardEnabled,
   isProxySkipRecentlyFailedEnabled,
+  isRotationAttributionEnabled,
   isOpencodeUserBlockedRotationEnabled,
   isOpencodeTransientFailoverBackoffEnabled,
   isOpencodeRateLimited429EarlyStopEnabled,
@@ -109,11 +118,7 @@ const ZEN_BASE_URL = "https://opencode.ai/zen/v1";
  */
 export type OpencodeAccountProxyConfig = AccountProxyConfig;
 
-/** Runtime rotation/cooldown state for one "OpenCode Free" account. */
-interface OpencodeAccountState extends RotatableAccount {
-  /** Account id (UI: providerSpecificData.fingerprints[i]); "" for the default direct account. */
-  fingerprint: string;
-}
+export type { ScopedAccount as OpencodeAccountState };
 
 const EFFORT_LEVELS = ["none", "low", "high", "max"] as const;
 
@@ -241,19 +246,39 @@ export class OpencodeExecutor extends BaseExecutor {
     };
   }
 
-  /**
-   * Per-account rotation state, rebuilt from credentials on each request. The
-   * default entry (fingerprint "") represents the single anonymous account with
-   * no configured proxy — preserves the historical direct pass-through when the
-   * user has not configured any per-account proxy.
-   */
-  private accounts: OpencodeAccountState[] = [
-    { fingerprint: "", cooldownUntil: 0, consecutiveFails: 0, proxy: null },
-  ];
-  // Not `private`: passed as the mutable rotation cursor to
+  // Not `private`: passed as the shared pick cursor to
   // pickRotatableAccount(), which needs a plain `{ nextAccountIdx }` shape —
   // TS's private-member nominal check rejects `this` there otherwise.
   nextAccountIdx = 0;
+  // Member health shared across requests on this alias, keyed by member id.
+  // Each request still walks its own list (see `opencodeAccountScope.ts`).
+  accountHealth = new Map<string, ScopedAccountHealth>();
+  get accounts(): ScopedAccount[] {
+    const store = this.accountHealth;
+    // Cold parity with the historical default direct member (read-only).
+    if (store.size === 0) {
+      return [{ fingerprint: "", cooldownUntil: 0, consecutiveFails: 0, proxy: null }];
+    }
+    const live = [...store.entries()].map(([fingerprint]) => ({
+      fingerprint,
+      get cooldownUntil() {
+        return store.get(fingerprint)?.cooldownUntil ?? 0;
+      },
+      set cooldownUntil(value: number) {
+        const current = store.get(fingerprint) ?? { cooldownUntil: 0, consecutiveFails: 0 };
+        store.set(fingerprint, { ...current, cooldownUntil: value });
+      },
+      get consecutiveFails() {
+        return store.get(fingerprint)?.consecutiveFails ?? 0;
+      },
+      set consecutiveFails(value: number) {
+        const current = store.get(fingerprint) ?? { cooldownUntil: 0, consecutiveFails: 0 };
+        store.set(fingerprint, { ...current, consecutiveFails: value });
+      },
+      proxy: null as ScopedAccount["proxy"],
+    }));
+    return live;
+  }
   // Sleep used by the opt-in transient failover pause (#13615). Not `private`:
   // tests swap in a recording fake instead of waiting on real timers.
   transientPauseSleep: (ms: number, signal?: AbortSignal | null) => Promise<boolean> =
@@ -264,48 +289,40 @@ export class OpencodeExecutor extends BaseExecutor {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
   }
 
-  /**
-   * Rebuild `accounts` from `providerSpecificData.fingerprints` +
-   * `providerSpecificData.accountProxies`. Each configured account id becomes a
-   * rotation slot carrying its own proxy. When the user configured no accounts
-   * at all, the single default direct account is kept (backward compatible).
-   */
-  private syncAccountsFromCredentials(credentials: ProviderCredentials): void {
-    const psd = credentials?.providerSpecificData;
-    const fingerprints = Array.isArray(psd?.fingerprints)
-      ? (psd!.fingerprints as unknown[]).filter((f): f is string => typeof f === "string")
-      : [];
-
-    const accountProxies = psd?.accountProxies as OpencodeAccountProxyConfig[] | undefined;
-    const proxyMap = Array.isArray(accountProxies)
-      ? new Map(accountProxies.map((ap) => [ap.fingerprint, ap.proxy ?? null] as const))
-      : null;
-
-    if (fingerprints.length === 0) {
-      // No configured accounts — keep a single direct account.
-      this.accounts = [{ fingerprint: "", cooldownUntil: 0, consecutiveFails: 0, proxy: null }];
-      this.nextAccountIdx = 0;
-      return;
-    }
-
-    const previous = new Map(this.accounts.map((a) => [a.fingerprint, a] as const));
-    this.accounts = fingerprints.map((fp) => {
-      const prior = previous.get(fp);
-      return {
-        fingerprint: fp,
-        cooldownUntil: prior?.cooldownUntil ?? 0,
-        consecutiveFails: prior?.consecutiveFails ?? 0,
-        proxy: proxyMap ? (proxyMap.get(fp) ?? null) : null,
-      };
-    });
-    if (this.nextAccountIdx >= this.accounts.length) this.nextAccountIdx = 0;
+  /** Round-robin pick from this request's list, skipping members not ready. */
+  private pickAccountWith(
+    accounts: ScopedAccount[],
+    isReady: (account: ScopedAccount) => boolean
+  ): ScopedAccount {
+    return pickRotatableAccount(accounts, this, isReady);
   }
 
-  /** Round-robin pick, skipping non-candidates; falls back to the next index. */
-  private pickAccountWith(
-    isReady: (account: OpencodeAccountState) => boolean
-  ): OpencodeAccountState {
-    return pickRotatableAccount(this.accounts, this, isReady);
+  /** Snapshot entries for the attribution registry — ids already masked. */
+  private snapshotEntries(
+    accounts: ScopedAccount[],
+    nowMs: number = Date.now()
+  ): RotationAccountSnapshot[] {
+    return accounts.map((a) => ({
+      masked: maskAccountId(a.fingerprint),
+      ready: a.cooldownUntil <= nowMs,
+      cooldownUntilMs: a.cooldownUntil > nowMs ? a.cooldownUntil : null,
+      consecutiveFails: a.consecutiveFails,
+    }));
+  }
+
+  /** Emit one info line per cooldown-skipped account seen this request. */
+  private logSkippedCooldownAccounts(
+    log: { info?: (...args: unknown[]) => void } | undefined,
+    cid: string,
+    skippedCooldown: Map<string, number>
+  ): void {
+    for (const [fp, until] of skippedCooldown) {
+      const remainingS = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+      log?.info?.(
+        "OPENCODE",
+        `${cid}skipped account ${maskAccountId(fp)} (cooling down, ${remainingS}s remaining)`
+      );
+    }
   }
 
   /**
@@ -445,7 +462,13 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    return runInRequestContext(() => withRequestShapeRetry(input, (i) => this.executeOnce(i)));
+    try {
+      return await runInRequestContext(() =>
+        withRequestShapeRetry(input, (i) => this.executeOnce(i))
+      );
+    } finally {
+      releaseRequestList(input.body, this.accountHealth);
+    }
   }
 
   private async executeOnce(input: ExecuteInput) {
@@ -489,14 +512,22 @@ export class OpencodeExecutor extends BaseExecutor {
         );
       }
 
-      this.syncAccountsFromCredentials(input.credentials);
+      const accounts = listForRequest(input.body, this.accountHealth, input.credentials);
+      if (accounts.length === 1 && accounts[0]?.fingerprint === "") this.nextAccountIdx = 0;
+      else if (this.nextAccountIdx >= accounts.length) this.nextAccountIdx = 0;
       const { log } = input;
       // Request-scoped attribution prefix for rotation logs: message head,
       // empty when absent (never n/a/none/fabricated). The existing motif
       // stays byte-identical after the prefix.
       const cid = input.correlationId ? `correlationId=${input.correlationId} ` : "";
+      // Rotation attribution diagnostics (single flag read per request — the DB
+      // override lookup is synchronous SQLite, never in the attempt loop).
+      const attributionOn = isRotationAttributionEnabled();
+      // Cooldown-skipped accounts seen this request, keyed by fingerprint (a
+      // mask prefix could theoretically collide; masking happens at write).
+      const skippedCooldown = new Map<string, number>();
 
-      const hasProxies = this.accounts.some((a) => a.proxy !== null);
+      const hasProxies = accounts.some((a) => a.proxy !== null);
       // Opt-in Responses first-byte stall guard (#13484); a no-op when the window is 0.
       const stallWindowMs = resolveResponsesStallWindowMs(input.stream, this._requestFormat);
       const guardStall = <T>(r: T) => guardResponsesStall(r, stallWindowMs, input.signal);
@@ -505,7 +536,7 @@ export class OpencodeExecutor extends BaseExecutor {
       // rejection (same predicate and logging as the rotation loop). Everything
       // else passes untouched: this path deliberately preserves BaseExecutor's
       // intra-URL 429 retries (no skipUpstreamRetry here).
-      if (this.accounts.length === 1 && !hasProxies) {
+      if (accounts.length === 1 && !hasProxies) {
         // #11894: a connection-level proxy assignment (proxy_assignments) reaches
         // the executor as the AMBIENT proxy context — the chat handler wraps
         // execute() in runWithProxyContext(proxyInfo.proxy, ...) before we run.
@@ -582,7 +613,7 @@ export class OpencodeExecutor extends BaseExecutor {
       // account (retry the same one), none for a multi-account fleet (rotation
       // through the accounts is the retry). Avoids an unbounded loop on a
       // persistently malformed upstream.
-      const emptyRejectionBudget = this.accounts.length === 1 ? 1 : 0;
+      const emptyRejectionBudget = accounts.length === 1 ? 1 : 0;
       // Tried set: proxy keys already proven unusable for this request's
       // model (geo-blocked, or transient 5xx). Request-local only — nothing
       // persists past execute().
@@ -606,8 +637,8 @@ export class OpencodeExecutor extends BaseExecutor {
         parked = false;
       const requestPacing = egressPacing.initEgressPacingForRequest(); // Off by default.
 
-      for (let attempt = 0; attempt < this.accounts.length + emptyRejectionBudget; attempt++) {
-        const isProxiedCandidate = (a: OpencodeAccountState): boolean => {
+      for (let attempt = 0; attempt < accounts.length + emptyRejectionBudget; attempt++) {
+        const isProxiedCandidate = (a: ScopedAccount): boolean => {
           if (a.cooldownUntil > Date.now()) return false;
           // Without any geo evidence this pass, every cooldown-ready account
           // stays eligible (preserves the plain round-robin first pick).
@@ -616,13 +647,26 @@ export class OpencodeExecutor extends BaseExecutor {
           const k = proxyKeyOf(a.proxy);
           return k !== null && !geoTriedProxyKeys.has(k);
         };
-        let account = this.pickAccountWith(isProxiedCandidate);
+        let account = this.pickAccountWith(accounts, isProxiedCandidate);
+        if (attributionOn) {
+          const nowMs = Date.now();
+          for (const a of accounts) {
+            if (a.cooldownUntil > nowMs) {
+              const prev = skippedCooldown.get(a.fingerprint);
+              if (prev === undefined || a.cooldownUntil > prev) {
+                skippedCooldown.set(a.fingerprint, a.cooldownUntil);
+              }
+            }
+          }
+          recordRotationSnapshot(
+            String(input.credentials?.connectionId ?? ""),
+            this.snapshotEntries(accounts, nowMs)
+          );
+        }
         // Last resort: a single direct attempt (distinct egress that may
         // succeed) once no proxied account is a candidate — never before.
         if (!isProxiedCandidate(account) && !directTried && geoTriedProxyKeys.size > 0) {
-          const direct = this.accounts.find(
-            (a) => a.proxy === null && a.cooldownUntil <= Date.now()
-          );
+          const direct = accounts.find((a) => a.proxy === null && a.cooldownUntil <= Date.now());
           if (direct) {
             account = direct;
           }
@@ -630,7 +674,7 @@ export class OpencodeExecutor extends BaseExecutor {
         const lastStatus = lastResult !== null ? lastResult.response.status : null;
         const lastWasGeo = lastStatus === 403 || lastStatus === 451;
         const lastWasTransient = lastStatus !== null && lastStatus >= 500 && lastStatus < 600;
-        const isMonoRetryOwed = this.accounts.length === 1 && lastWasTransient;
+        const isMonoRetryOwed = accounts.length === 1 && lastWasTransient;
         if (
           !isMonoRetryOwed &&
           lastResult !== null &&
@@ -677,11 +721,17 @@ export class OpencodeExecutor extends BaseExecutor {
         // Token stays masked — never log the full account id.
         log?.info?.(
           "OPENCODE",
-          `${cid}dispatch via account ${masked} (idx ${attempt + 1}/${this.accounts.length})` +
+          `${cid}dispatch via account ${masked} (idx ${attempt + 1}/${accounts.length})` +
             (account.proxy
               ? ` through proxy ${account.proxy.host}:${account.proxy.port}`
               : " direct")
         );
+        // Rotation attribution: publish the masked serving id for the proxy log
+        // (multi-account anonymous rotation only — a lone direct account stays
+        // silent so the configured connection id keeps its meaning).
+        if (attributionOn && (accounts.length > 1 || account.fingerprint !== "")) {
+          noteRotationAccount(masked);
+        }
 
         // Pin egress to this account's proxy for the whole BaseExecutor dispatch
         // (incl. its intra-URL 429 retries). skipUpstreamRetry lets THIS loop own
@@ -690,7 +740,7 @@ export class OpencodeExecutor extends BaseExecutor {
           requestPacing,
           account,
           isProxiedCandidate,
-          () => this.pickAccountWith(isProxiedCandidate),
+          () => this.pickAccountWith(accounts, isProxiedCandidate),
           input.signal
         );
         const egressRelease = paced.release;
@@ -779,7 +829,12 @@ export class OpencodeExecutor extends BaseExecutor {
               isOpencodeRateLimited429EarlyStopEnabled
             );
             egressPacing.log429Outcome(log, cid, arm, masked, setAsideMs);
-            if (arm === "stop") return result;
+            if (arm === "stop") {
+              if (attributionOn && skippedCooldown.size > 0) {
+                this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+              }
+              return result;
+            }
             if (arm === "park") {
               // Slot budget spent: join the park-and-replay path below
               // instead of surfacing the last 429. The park flag can still
@@ -801,9 +856,9 @@ export class OpencodeExecutor extends BaseExecutor {
                   {
                     execute: (i: ExecuteInput) =>
                       super.execute(i) as Promise<ExecutorExecuteResult & { response: Response }>,
-                    markSuccess: (a: OpencodeAccountState) => markSuccess(a),
+                    markSuccess: (a: ScopedAccount) => markSuccess(a),
                     sleep: this.parkSleep,
-                    accounts: this.accounts,
+                    accounts,
                   },
                   input,
                   parkWaitMs(marker.fresh ? marker.ttlLeftMs : null),
@@ -811,9 +866,17 @@ export class OpencodeExecutor extends BaseExecutor {
                   log,
                   cid
                 );
-                if (p && p !== result) return this.normalizeMuseSparkResponse(input, p);
+                if (p && p !== result) {
+                  if (attributionOn && skippedCooldown.size > 0) {
+                    this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+                  }
+                  return this.normalizeMuseSparkResponse(input, p);
+                }
                 if (p) {
                   discardResponseBody(abandonedResponse);
+                  if (attributionOn && skippedCooldown.size > 0) {
+                    this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+                  }
                   return this.normalizeMuseSparkResponse(input, result);
                 }
               }
@@ -854,7 +917,12 @@ export class OpencodeExecutor extends BaseExecutor {
               log?.warn?.("OPENCODE", `${cid}geo-blocked on account ${masked}, rotating…`);
               // Single account with a proxy: 0 retries (same egress = dead latency).
               // (The fast path above already covers single-without-proxy; here length===1 WITH proxy.)
-              if (this.accounts.length === 1) return result;
+              if (accounts.length === 1) {
+                if (attributionOn && skippedCooldown.size > 0) {
+                  this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+                }
+                return result;
+              }
               continue;
             }
             // Opt-in (#13498): an upstream user_blocked refusal (403 or 451, same
@@ -870,12 +938,17 @@ export class OpencodeExecutor extends BaseExecutor {
               if (key !== null) geoTriedProxyKeys.add(key);
               else directTried = true;
               markCooldown(account);
-              const rotate = userBlockedRotations === 0 && this.accounts.length > 1;
+              const rotate = userBlockedRotations === 0 && accounts.length > 1;
               log?.warn?.(
                 "OPENCODE",
                 `${cid}user_blocked ${status} on account ${masked} (proxy ${key ?? "direct"}), ${rotate ? "rotating to next account once…" : "returning the refusal"}`
               );
-              if (!rotate) return result;
+              if (!rotate) {
+                if (attributionOn && skippedCooldown.size > 0) {
+                  this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+                }
+                return result;
+              }
               userBlockedRotations++;
               abandonedResponse = result.response;
               continue;
@@ -884,6 +957,9 @@ export class OpencodeExecutor extends BaseExecutor {
             // request shape), not this account. Handled in opencodeFreeTierRetry.ts
             // (one bounded retry with observed tools appended, then unchanged return).
             if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
+              if (attributionOn && skippedCooldown.size > 0) {
+                this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+              }
               return await handleLoopFreeTierRefusal(
                 (retried) =>
                   this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, retried)),
@@ -930,11 +1006,17 @@ export class OpencodeExecutor extends BaseExecutor {
             // A 400 carrying a real error (or non-empty content): propagate
             // immediately, untouched — same as before this change.
             markOutcome(account, result.response);
+            if (attributionOn && skippedCooldown.size > 0) {
+              this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+            }
             return result;
           }
 
           egressPacing.observePacingSuccess(requestPacing, result.response.ok);
           markOutcome(account, result.response);
+          if (attributionOn && skippedCooldown.size > 0) {
+            this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+          }
           return this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, result));
         } finally {
           // Single release point for every post-dispatch arm (5xx, 403/451,
@@ -955,6 +1037,9 @@ export class OpencodeExecutor extends BaseExecutor {
       }
 
       // All accounts returned 429 (or errored) — surface the last response.
+      if (attributionOn && skippedCooldown.size > 0) {
+        this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
+      }
       return this.finalizeForcedStream(
         input,
         this.normalizeMuseSparkResponse(
