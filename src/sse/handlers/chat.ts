@@ -1437,8 +1437,7 @@ async function handleSingleModelChat(
     modelStr,
     body,
     clientRawRequest?.endpoint,
-    clientRawRequest?.headers,
-    runtimeOptions.correlationId ?? undefined
+    clientRawRequest?.headers
   );
   if (resolved.error) return resolved.error;
 
@@ -1461,7 +1460,6 @@ async function handleSingleModelChat(
     // from chatCore's own native-codex-passthrough decision.
     const sNetSourceFormat = detectFormatFromEndpoint(body, clientRawRequest?.endpoint || "");
     return handleComboChat({
-      invocationId: runtimeOptions.correlationId ?? undefined,
       body,
       combo: redirectCombo,
       deferContextOverflowWhenCompressible: sNetDefer,

@@ -55,6 +55,7 @@ import {
   type FreeModelBudget,
 } from "@omniroute/open-sse/config/freeModelCatalog.ts";
 import { SYNTHETIC_NOAUTH_CONNECTION_ID } from "./resilienceCandidateFilter";
+import { recordAutoExclusion, recordAutoStage } from "./autoEvaluationTrace";
 
 export type FreeAccessStatus = "SAFE" | "EXHAUSTED" | "UNKNOWN";
 
@@ -280,35 +281,34 @@ export function classifyStrictZeroCostCandidate(
  * `autoStrategy.ts` already enforces `allowedConnectionIds` as a hard
  * allowlist downstream (see the module docstring above).
  */
-export type StrictZeroCostTraceEvent<T> = {
-  candidate: T;
-  outcome: "rejected" | "narrowed";
-  detail: StrictZeroCostExclusionReason | "connections_narrowed";
-};
-
 export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate>(
   pool: T[],
   options: StrictZeroCostOptions,
-  onTrace?: (event: StrictZeroCostTraceEvent<T>) => void
+  traceInvocationId?: string
 ): T[] {
   if (!options.enabled) return pool;
+  recordAutoStage(traceInvocationId, "strict_zero_cost");
 
   const kept: T[] = [];
   let changed = false;
   for (const candidate of pool) {
     const budgetEntry = findBudgetEntry(candidate, options.catalog);
-    const verdict = classifyStrictZeroCostCandidate(
+    const safeConnectionIds = evaluateCandidateConnections(
       candidate,
       budgetEntry,
       options.resolveFreeAccessState,
       options
     );
-    if (verdict.outcome !== "safe") {
+    if (safeConnectionIds.length === 0) {
       changed = true;
-      onTrace?.({ candidate, outcome: "rejected", detail: verdict.outcome });
+      recordAutoExclusion(
+        traceInvocationId,
+        candidate,
+        "strict_zero_cost",
+        "auto_strict_zero_cost"
+      );
       continue;
     }
-    const safeConnectionIds = verdict.safeConnectionIds;
 
     const isGenuineNoAuthCandidate = candidate.connectionId === SYNTHETIC_NOAUTH_CONNECTION_ID;
     const isSingleConnectionCandidate = candidate.connectionId !== null;
@@ -330,7 +330,6 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
       kept.push(candidate);
     } else {
       changed = true;
-      onTrace?.({ candidate, outcome: "narrowed", detail: "connections_narrowed" });
       kept.push({ ...candidate, allowedConnectionIds: safeConnectionIds });
     }
   }

@@ -132,8 +132,7 @@ export async function resolveModelOrError(
   modelStr: string,
   body: any,
   endpointPath: string = "",
-  requestHeaders: Record<string, unknown> | null | undefined = null,
-  traceInvocationId?: string
+  requestHeaders: Record<string, unknown> | null | undefined = null
 ) {
   const modelInfo = await getModelInfoOrRetirementResponse(modelStr);
   if ("error" in modelInfo) return modelInfo;
@@ -222,12 +221,7 @@ export async function resolveModelOrError(
     }
 
     try {
-      const virtualCombo = await createBuiltinAutoCombo(
-        modelStr,
-        suffix,
-        undefined,
-        traceInvocationId
-      );
+      const virtualCombo = await createBuiltinAutoCombo(modelStr, suffix);
       const poolSize = virtualCombo.candidatePool?.length || 0;
       log.info(
         "AUTO",
@@ -252,9 +246,7 @@ export async function resolveModelOrError(
       try {
         const virtualCombo = await createBuiltinAutoCombo(
           candidate,
-          candidate.replace(/^auto\/?/, ""),
-          undefined,
-          traceInvocationId
+          candidate.replace(/^auto\/?/, "")
         );
         log.info(
           "AUTO",

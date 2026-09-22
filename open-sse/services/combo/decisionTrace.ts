@@ -30,9 +30,9 @@ export const COMBO_SKIP_REASONS = [
   "concurrency_cap",
   "admission_lane",
   "predictive_ttft",
+  "auto_resilience_filter",
+  "auto_strict_zero_cost",
   "auto_candidate_filter",
-  "auto_resilience",
-  "strict_zero_cost",
 ] as const;
 
 export type ComboSkipReason = (typeof COMBO_SKIP_REASONS)[number];
@@ -56,10 +56,9 @@ export interface ComboTraceEntry {
 }
 
 export const AUTO_EVALUATION_STAGES = [
-  "candidate_construction",
   "resilience",
-  "paid_model",
-  "lockout",
+  "paid_only",
+  "model_lockout",
   "model_exposure",
   "strict_zero_cost",
   "tos",
@@ -71,18 +70,16 @@ export const AUTO_EVALUATION_STAGES = [
 export type AutoEvaluationStage = (typeof AUTO_EVALUATION_STAGES)[number];
 
 export interface AutoEvaluationCandidate {
-  /** Safe routing identity only; never credentials or request content. */
   target: string;
-  /** Cardinality/synthetic kind only — never a raw account/connection id. */
-  connectionScope: "none" | "noauth" | "single" | "multiple";
+  provider: string;
+  model: string;
 }
 
 export interface AutoEvaluationTransition {
   target: string;
-  stage: AutoEvaluationStage;
-  outcome: "rejected" | "narrowed";
-  reason: ComboSkipReason;
-  /** Allowlisted/synthetic metadata only. Never raw errors or secrets. */
+  stage: AutoEvaluationStage | "dispatch";
+  outcome: "excluded" | "retained";
+  reason?: ComboSkipReason;
   detail?: string;
   ts: number;
 }
@@ -100,14 +97,14 @@ export interface ComboTrace {
   strategy: string | null;
   comboName: string | null;
   decisions: ComboTraceEntry[];
+  autoEvaluation: AutoEvaluationTrace | null;
   terminal: { status: number | null; errorClass: string | null } | null;
-  /** #12808: request-scoped Auto funnel correlated by this same invocation id. */
-  autoEvaluation?: AutoEvaluationTrace;
 }
 
 const TRACE_TTL_MS = 30 * 60 * 1000;
 const MAX_TRACES = 2000;
 const traces = new Map<string, ComboTrace>();
+let forceAutoEvaluationWriteFailureForTests = false;
 
 export function createInvocationId(): string {
   return `combo-${randomUUID()}`;
@@ -118,16 +115,88 @@ function isComboSkipReason(value: unknown): value is ComboSkipReason {
 }
 
 /** Test hook: clear the in-memory store. */
-let forceAutoEvaluationWriteFailureForTests = false;
-
 export function resetComboTraceStore(): void {
   traces.clear();
   forceAutoEvaluationWriteFailureForTests = false;
 }
 
-/** Test hook for the best-effort invariant: trace failures must never break routing. */
+/** Test hook: force Auto-evaluation trace writes to fail without affecting routing. */
 export function setAutoEvaluationWriteFailureForTests(enabled: boolean): void {
   forceAutoEvaluationWriteFailureForTests = enabled;
+}
+
+function bestEffortAutoEvaluationWrite(write: () => void): void {
+  try {
+    if (forceAutoEvaluationWriteFailureForTests) {
+      throw new Error("forced Auto evaluation trace write failure");
+    }
+    write();
+  } catch {
+    // Diagnostic tracing is fail-open by contract.
+  }
+}
+
+export function startAutoEvaluationTrace(invocationId: string): void {
+  bestEffortAutoEvaluationWrite(() => {
+    const trace = traces.get(invocationId);
+    if (!trace || trace.autoEvaluation) return;
+    trace.autoEvaluation = {
+      schemaVersion: 1,
+      stages: [],
+      candidates: [],
+      transitions: [],
+    };
+  });
+}
+
+export function recordAutoEvaluationStage(
+  invocationId: string,
+  stage: AutoEvaluationStage
+): void {
+  bestEffortAutoEvaluationWrite(() => {
+    const evaluation = traces.get(invocationId)?.autoEvaluation;
+    if (!evaluation || evaluation.stages.includes(stage)) return;
+    evaluation.stages.push(stage);
+  });
+}
+
+function autoCandidateKey(candidate: AutoEvaluationCandidate): string {
+  return [candidate.target, candidate.provider, candidate.model].join("\u0000");
+}
+
+export function recordAutoEvaluationCandidate(
+  invocationId: string,
+  candidate: AutoEvaluationCandidate
+): void {
+  bestEffortAutoEvaluationWrite(() => {
+    const evaluation = traces.get(invocationId)?.autoEvaluation;
+    if (!evaluation) return;
+    const key = autoCandidateKey(candidate);
+    if (evaluation.candidates.some((existing) => autoCandidateKey(existing) === key)) return;
+    evaluation.candidates.push({ ...candidate });
+  });
+}
+
+export function recordAutoEvaluationTransition(
+  invocationId: string,
+  transition: Omit<AutoEvaluationTransition, "ts">
+): void {
+  bestEffortAutoEvaluationWrite(() => {
+    const evaluation = traces.get(invocationId)?.autoEvaluation;
+    if (!evaluation) return;
+    if (transition.reason !== undefined && !isComboSkipReason(transition.reason)) return;
+    if (
+      evaluation.transitions.some(
+        (existing) =>
+          existing.target === transition.target &&
+          existing.stage === transition.stage &&
+          existing.outcome === transition.outcome
+      )
+    ) {
+      return;
+    }
+    evaluation.transitions.push({ ...transition, ts: Date.now() });
+  });
 }
 
 export function startComboTrace(
@@ -151,64 +220,16 @@ export function startComboTrace(
     }
     if (victim) traces.delete(victim.invocationId);
   }
-  const existing = traces.get(invocationId);
-  if (existing) {
-    // Auto evaluation can begin before combo dispatch. Fill in dispatch metadata
-    // later without replacing the already-captured request funnel.
-    if (existing.strategy === null) existing.strategy = meta.strategy ?? null;
-    if (existing.comboName === null) existing.comboName = meta.comboName ?? null;
-    return;
-  }
-  traces.set(invocationId, {
-    invocationId,
-    createdAt: Date.now(),
-    strategy: meta.strategy ?? null,
-    comboName: meta.comboName ?? null,
-    decisions: [],
-    terminal: null,
-  });
-}
-
-/**
- * Begin the request-scoped Auto evaluation on the same bounded trace record
- * later used by combo dispatch. Best-effort by contract: instrumentation can
- * never create a new routing failure.
- */
-export function startAutoEvaluationTrace(
-  invocationId: string,
-  input: { stages: AutoEvaluationStage[]; candidates: AutoEvaluationCandidate[] }
-): void {
-  try {
-    if (forceAutoEvaluationWriteFailureForTests) throw new Error("forced auto trace failure");
-    pruneExpired();
-    if (!traces.has(invocationId)) {
-      startComboTrace(invocationId, { strategy: null, comboName: null });
-    }
-    const trace = traces.get(invocationId);
-    if (!trace) return;
-    trace.autoEvaluation = {
-      schemaVersion: 1,
-      stages: [...input.stages],
-      candidates: input.candidates.map((candidate) => ({ ...candidate })),
-      transitions: [],
-    };
-  } catch {
-    // Diagnostic-only. Routing behavior must remain unchanged if tracing fails.
-  }
-}
-
-export function recordAutoEvaluationTransition(
-  invocationId: string,
-  transition: Omit<AutoEvaluationTransition, "ts">
-): void {
-  try {
-    if (forceAutoEvaluationWriteFailureForTests) throw new Error("forced auto trace failure");
-    const trace = traces.get(invocationId);
-    if (!trace?.autoEvaluation) return;
-    if (!isComboSkipReason(transition.reason)) return;
-    trace.autoEvaluation.transitions.push({ ...transition, ts: Date.now() });
-  } catch {
-    // Diagnostic-only. Routing behavior must remain unchanged if tracing fails.
+  if (!traces.has(invocationId)) {
+    traces.set(invocationId, {
+      invocationId,
+      createdAt: Date.now(),
+      strategy: meta.strategy ?? null,
+      comboName: meta.comboName ?? null,
+      decisions: [],
+      autoEvaluation: null,
+      terminal: null,
+    });
   }
 }
 

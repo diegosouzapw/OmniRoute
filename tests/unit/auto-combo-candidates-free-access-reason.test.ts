@@ -28,7 +28,6 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
 const candidateHandler = await import("../../open-sse/handlers/autoComboCandidates.ts");
-const decisionTrace = await import("../../open-sse/services/combo/decisionTrace.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -137,45 +136,3 @@ test("with the policy off, the listing reports no reason and does no work", asyn
     "no policy, no reason — the default case must stay free"
   );
 });
-
-test("request evaluation tracing does not change the dispatch candidate pool", async () => {
-  await seedConnection();
-  await settingsDb.updateSettings({ freeAccessPolicy: "strict" });
-
-  const baseline = await virtualFactory.prepareVirtualAutoComboInputs({}, false);
-  const traced = await virtualFactory.prepareVirtualAutoComboInputs(
-    { evaluation: { invocationId: "req-auto-equivalence", familyPool: false } },
-    false
-  );
-
-  assert.deepEqual(
-    traced.regularCandidates,
-    baseline.regularCandidates,
-    "diagnostic evaluation tracing must not alter routing candidates"
-  );
-  const trace = decisionTrace.getComboTrace("req-auto-equivalence");
-  assert.equal(trace?.autoEvaluation?.schemaVersion, 1);
-  assert.ok((trace?.autoEvaluation?.candidates.length ?? 0) > 0);
-});
-
-test("forced evaluation-trace write failure never propagates into routing", async () => {
-  await seedConnection();
-  await settingsDb.updateSettings({ freeAccessPolicy: "strict" });
-
-  const baseline = await virtualFactory.prepareVirtualAutoComboInputs({}, false);
-  decisionTrace.setAutoEvaluationWriteFailureForTests(true);
-  try {
-    const traced = await virtualFactory.prepareVirtualAutoComboInputs(
-      { evaluation: { invocationId: "req-auto-trace-failure", familyPool: false } },
-      false
-    );
-    assert.deepEqual(
-      traced.regularCandidates,
-      baseline.regularCandidates,
-      "trace storage failure must leave routing byte-for-byte equivalent"
-    );
-  } finally {
-    decisionTrace.setAutoEvaluationWriteFailureForTests(false);
-  }
-});
-

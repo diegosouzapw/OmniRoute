@@ -8,6 +8,7 @@
  * `paidModelFilter.ts` and `candidateOverrides.ts` in this directory.
  */
 import { isAccountUnavailable, isModelLocked } from "../accountFallback.ts";
+import { recordAutoExclusion, recordAutoStage } from "./autoEvaluationTrace.ts";
 
 export const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
@@ -30,16 +31,6 @@ export interface ConnectionResilienceView {
   rateLimitedUntil?: string | null;
   testStatus?: string | null;
 }
-
-export type ResilienceFilterTraceEvent<T> = {
-  candidate: T;
-  outcome: "rejected" | "narrowed";
-  detail:
-    | "model_lockout"
-    | "connection_unavailable"
-    | "all_connections_unavailable"
-    | "connections_narrowed";
-};
 
 /** Index connection resilience views by id, for the O(1) lookups this filter needs. */
 export function buildConnectionResilienceMap(
@@ -84,16 +75,23 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
   pool: T[],
   connectionsById: Map<string, ConnectionResilienceView>,
   skip = false,
-  onTrace?: (event: ResilienceFilterTraceEvent<T>) => void
+  traceInvocationId?: string
 ): T[] {
   if (skip || !Array.isArray(pool) || pool.length === 0) return pool;
+  recordAutoStage(traceInvocationId, "resilience");
 
   let changed = false;
   const filtered = pool.flatMap((candidate) => {
     if (candidate.connectionId === SYNTHETIC_NOAUTH_CONNECTION_ID) {
       if (isModelLocked(candidate.provider, SYNTHETIC_NOAUTH_CONNECTION_ID, candidate.model)) {
         changed = true;
-        onTrace?.({ candidate, outcome: "rejected", detail: "model_lockout" });
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "model-lockout"
+        );
         return [];
       }
       return [candidate];
@@ -110,14 +108,19 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
       );
       if (allowedConnectionIds.length === 0) {
         changed = true;
-        onTrace?.({ candidate, outcome: "rejected", detail: "all_connections_unavailable" });
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "all-connections-blocked"
+        );
         return [];
       }
       if (allowedConnectionIds.length === candidate.allowedConnectionIds.length) {
         return [candidate];
       }
       changed = true;
-      onTrace?.({ candidate, outcome: "narrowed", detail: "connections_narrowed" });
       return [{ ...candidate, allowedConnectionIds }];
     }
 
@@ -131,7 +134,13 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
         )
       ) {
         changed = true;
-        onTrace?.({ candidate, outcome: "rejected", detail: "connection_unavailable" });
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "connection-blocked"
+        );
         return [];
       }
     }
