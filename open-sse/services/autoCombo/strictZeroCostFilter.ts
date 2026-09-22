@@ -280,9 +280,16 @@ export function classifyStrictZeroCostCandidate(
  * `autoStrategy.ts` already enforces `allowedConnectionIds` as a hard
  * allowlist downstream (see the module docstring above).
  */
+export type StrictZeroCostTraceEvent<T> = {
+  candidate: T;
+  outcome: "rejected" | "narrowed";
+  detail: StrictZeroCostExclusionReason | "connections_narrowed";
+};
+
 export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate>(
   pool: T[],
-  options: StrictZeroCostOptions
+  options: StrictZeroCostOptions,
+  onTrace?: (event: StrictZeroCostTraceEvent<T>) => void
 ): T[] {
   if (!options.enabled) return pool;
 
@@ -290,16 +297,18 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
   let changed = false;
   for (const candidate of pool) {
     const budgetEntry = findBudgetEntry(candidate, options.catalog);
-    const safeConnectionIds = evaluateCandidateConnections(
+    const verdict = classifyStrictZeroCostCandidate(
       candidate,
       budgetEntry,
       options.resolveFreeAccessState,
       options
     );
-    if (safeConnectionIds.length === 0) {
+    if (verdict.outcome !== "safe") {
       changed = true;
+      onTrace?.({ candidate, outcome: "rejected", detail: verdict.outcome });
       continue;
     }
+    const safeConnectionIds = verdict.safeConnectionIds;
 
     const isGenuineNoAuthCandidate = candidate.connectionId === SYNTHETIC_NOAUTH_CONNECTION_ID;
     const isSingleConnectionCandidate = candidate.connectionId !== null;
@@ -321,6 +330,7 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
       kept.push(candidate);
     } else {
       changed = true;
+      onTrace?.({ candidate, outcome: "narrowed", detail: "connections_narrowed" });
       kept.push({ ...candidate, allowedConnectionIds: safeConnectionIds });
     }
   }
