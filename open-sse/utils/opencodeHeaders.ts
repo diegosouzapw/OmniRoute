@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "crypto";
 import { setUserAgentHeader } from "../executors/base.ts";
 import { generateSessionId } from "../services/sessionManager.ts";
+import { getCachedOpencodeCliVersion, refreshOpencodeCliVersion } from "./opencodeCliVersion.ts";
 
 /**
  * Default synthesized User-Agent. The upstream only parses the version, so this literal
@@ -63,11 +64,14 @@ export function resolveOpencodeCliDefaults(
   }
   const envUAKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
   const configuredUA = process.env[envUAKey]?.trim() || process.env.OPENCODE_USER_AGENT?.trim();
+  // Auto-refresh the live CLI version in the background (coalesced, 6h TTL, never
+  // throws); the default below reads the cache synchronously so synthesis never blocks.
+  void refreshOpencodeCliVersion();
   return {
     userAgent:
       configuredUA && (!gated || satisfiesOpencodeUserAgentContract(configuredUA))
         ? configuredUA
-        : DEFAULT_OPENCODE_USER_AGENT,
+        : `opencode/${getCachedOpencodeCliVersion()}`,
     client: process.env.OPENCODE_CLIENT?.trim() || "desktop",
     project: process.env.OPENCODE_PROJECT?.trim() || "global",
   };
