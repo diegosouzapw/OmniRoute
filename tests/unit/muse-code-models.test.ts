@@ -1,7 +1,9 @@
 /**
  * Tests for Muse Code CLI model catalog endpoint.
  *
- * Verifies GET /v1/muse-code/models returns the proprietary Muse format.
+ * Verifies the static fallback matches the current Muse Spark family used by
+ * Meta's live Muse Code API. The live /v1/models catalog remains authoritative
+ * when available.
  */
 
 import test from "node:test";
@@ -21,61 +23,36 @@ test("muse-code models have unique ids", () => {
   assert.equal(unique.size, ids.length, "model IDs must be unique");
 });
 
-test("muse-code models include llama-4-maverick", () => {
+test("muse-code fallback includes Muse Spark 1.3", () => {
   const ids = muse_codeProvider.models.map((m) => m.id);
-  assert.ok(ids.includes("llama-4-maverick"), "must include llama-4-maverick");
+  assert.ok(ids.includes("muse-spark-1.3"));
 });
 
-test("muse-code models include llama-4-scout", () => {
+test("muse-code fallback includes Muse Spark contributor variant", () => {
   const ids = muse_codeProvider.models.map((m) => m.id);
-  assert.ok(ids.includes("llama-4-scout"), "must include llama-4-scout");
+  assert.ok(ids.includes("muse-spark-1.3-contributor"));
 });
 
-test("muse-code models include llama-3.3-70b", () => {
+test("muse-code fallback retains Muse Spark 1.2 for compatibility", () => {
   const ids = muse_codeProvider.models.map((m) => m.id);
-  assert.ok(ids.includes("llama-3.3-70b"), "must include llama-3.3-70b");
+  assert.ok(ids.includes("muse-spark-1.2"));
 });
 
-test("llama-4 models have supportsXHighEffort", () => {
-  const maverick = muse_codeProvider.models.find((m) => m.id === "llama-4-maverick");
-  assert.ok(maverick, "llama-4-maverick must exist");
-  assert.equal(maverick.supportsXHighEffort, true);
-
-  const scout = muse_codeProvider.models.find((m) => m.id === "llama-4-scout");
-  assert.ok(scout, "llama-4-scout must exist");
-  assert.equal(scout.supportsXHighEffort, true);
-});
-
-test("llama-3.3-70b does not support reasoning", () => {
-  const model = muse_codeProvider.models.find((m) => m.id === "llama-3.3-70b");
-  assert.ok(model, "llama-3.3-70b must exist");
-  assert.equal(model.supportsReasoning, false);
-});
-
-test("non-reasoning models do not declare supportsXHighEffort", () => {
+test("Muse Spark fallback models support reasoning and xhigh effort", () => {
   for (const model of muse_codeProvider.models) {
-    if (!model.supportsReasoning) {
-      assert.equal(
-        model.supportsXHighEffort,
-        undefined,
-        `${model.id} is not a reasoning model but has supportsXHighEffort`
-      );
-    }
+    assert.equal(model.supportsReasoning, true, `${model.id} should support reasoning`);
+    assert.equal(model.supportsXHighEffort, true, `${model.id} should support xhigh effort`);
   }
 });
 
-// ── Vision models ───────────────────────────────────────────────────────────
-
-test("vision models have supportsVision: true", () => {
-  const expectedVision = [
-    "llama-4-maverick",
-    "llama-4-scout",
-    "llama-3.2-90b-vision",
-    "llama-3.2-11b-vision",
-  ];
+test("Muse Spark fallback models support image input", () => {
   for (const model of muse_codeProvider.models) {
-    if (expectedVision.includes(model.id)) {
-      assert.equal(model.supportsVision, true, `${model.id} should have supportsVision`);
-    }
+    assert.equal(model.supportsVision, true, `${model.id} should support image input`);
+  }
+});
+
+test("Muse Spark fallback models use Responses format", () => {
+  for (const model of muse_codeProvider.models) {
+    assert.equal(model.targetFormat, "openai-responses", `${model.id} should use Responses`);
   }
 });

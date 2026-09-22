@@ -2,26 +2,30 @@ import type { RegistryEntry } from "../../shared.ts";
 import { buildOpenAiCompatibleRegistryEntry } from "../../shared.ts";
 
 /**
- * Muse Code CLI — Meta's agentic coding tool.
+ * Muse Code — Meta's agentic coding model API.
  *
  * Wire format: OpenAI Responses API (POST /responses).
- * Auth: Bearer token from META_API_KEY env var.
- * Reasoning efforts: xhigh/ultra -> high (handled generically).
+ * Auth: either a direct META_API_KEY or a Model API key minted from Meta OIDC
+ * device OAuth. OAuth connections keep the Meta identity token separately so
+ * the short-lived Model API key can be re-minted automatically.
  *
- * @see https://github.com/joymadhu49/muse-openrouter-shim
+ * The list below is a safe fallback for startup/offline operation. Meta's live
+ * catalog at GET https://api.meta.ai/v1/models remains the stronger source of
+ * truth and should replace/augment these entries when model sync is enabled.
  */
 export const muse_codeProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry({
   id: "muse-code",
   alias: "mc",
+  baseUrl: "https://api.meta.ai/v1/responses",
   passthroughModels: true,
   reasoningTransport: "opaque",
-  defaultContextLength: 200000,
+  defaultContextLength: 1048576,
   models: [
     {
-      id: "llama-4-maverick",
-      name: "Llama 4 Maverick",
+      id: "muse-spark-1.3",
+      name: "Muse Spark 1.3",
       contextLength: 1048576,
-      maxOutputTokens: 131072,
+      maxOutputTokens: 256000,
       supportsReasoning: true,
       supportsXHighEffort: true,
       toolCalling: true,
@@ -30,10 +34,10 @@ export const muse_codeProvider: RegistryEntry = buildOpenAiCompatibleRegistryEnt
       unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
     {
-      id: "llama-4-scout",
-      name: "Llama 4 Scout",
+      id: "muse-spark-1.3-contributor",
+      name: "Muse Spark 1.3 Contributor",
       contextLength: 1048576,
-      maxOutputTokens: 131072,
+      maxOutputTokens: 256000,
       supportsReasoning: true,
       supportsXHighEffort: true,
       toolCalling: true,
@@ -42,66 +46,40 @@ export const muse_codeProvider: RegistryEntry = buildOpenAiCompatibleRegistryEnt
       unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
     {
-      id: "llama-3.3-70b",
-      name: "Llama 3.3 70B",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
-      toolCalling: true,
-      targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
-    },
-    {
-      id: "llama-3.1-405b",
-      name: "Llama 3.1 405B",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
-      toolCalling: true,
-      targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
-    },
-    {
-      id: "llama-3.1-70b",
-      name: "Llama 3.1 70B",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
-      toolCalling: true,
-      targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
-    },
-    {
-      id: "llama-3.1-8b",
-      name: "Llama 3.1 8B",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
-      toolCalling: true,
-      targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
-    },
-    {
-      id: "llama-3.2-90b-vision",
-      name: "Llama 3.2 90B Vision",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
+      id: "muse-spark-1.2",
+      name: "Muse Spark 1.2",
+      contextLength: 1048576,
+      maxOutputTokens: 256000,
+      supportsReasoning: true,
+      supportsXHighEffort: true,
       toolCalling: true,
       supportsVision: true,
       targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
+      unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
     {
-      id: "llama-3.2-11b-vision",
-      name: "Llama 3.2 11B Vision",
-      contextLength: 131072,
-      maxOutputTokens: 32768,
-      supportsReasoning: false,
+      id: "muse-spark-1.2-contributor",
+      name: "Muse Spark 1.2 Contributor",
+      contextLength: 1048576,
+      maxOutputTokens: 256000,
+      supportsReasoning: true,
+      supportsXHighEffort: true,
       toolCalling: true,
       supportsVision: true,
       targetFormat: "openai-responses",
-      unsupportedParams: ["logprobs", "topLogprobs"],
+      unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
+    },
+    {
+      id: "muse-spark-1.1",
+      name: "Muse Spark 1.1",
+      contextLength: 1048576,
+      maxOutputTokens: 256000,
+      supportsReasoning: true,
+      supportsXHighEffort: true,
+      toolCalling: true,
+      supportsVision: true,
+      targetFormat: "openai-responses",
+      unsupportedParams: ["logprobs", "topLogprobs", "logitBias"],
     },
   ],
 });

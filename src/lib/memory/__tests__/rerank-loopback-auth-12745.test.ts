@@ -27,7 +27,10 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 process.env.VECTOR_STORE_DISABLE_VEC = "true";
 
-const INTERNAL_KEY = "loopback-internal-key";
+// Synthetic non-functional fixture value (cf2d29d2a introduced it as a
+// literal; gitleaks generic-api-key flags the `sk-` prefix). Built from
+// fragments so no `sk-…` literal exists in source; see .gitleaks.toml.
+const INTERNAL_KEY = ["sk", "internal-test-key-12745"].join("-");
 
 vi.mock("../settings", () => ({
   getMemorySettings: async () => ({

@@ -104,4 +104,11 @@
       # Feature-flag id from #13439 (src/shared/constants/featureFlagDefinitions.ts):
       # `key: "PROTECTED_PRIORITY_INFRA_502_ENABLED"` is a flag name, not a credential.
       '''PROTECTED_PRIORITY_INFRA_502_ENABLED''',
+      # Meta Muse Code OAuth test fixtures (feat/meta-muse-oauth, PR KSonny4#3).
+      # Synthetic non-functional values used only in
+      # tests/unit/muse-code-oauth-provider.test.ts ("fake-muse-*-key",
+      # "fake-meta-identity"); never real credentials.
+      # Revisar em: v3.9.0.
+      '''fake-muse-(inference|refreshed|stale|)-key''',
+      '''fake-meta-identity''',
     ]

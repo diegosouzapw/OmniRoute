@@ -350,8 +350,9 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     color: "#0866FF",
     textIcon: "MC",
     website: "https://github.com/meta-llama/llama-stack",
+    oauthProviderId: "muse-code",
     authHint:
-      "Use your META_API_KEY env var as a Bearer token. Muse Code CLI uses the OpenAI Responses API wire format (POST /responses).",
+      "Sign in with Meta OAuth or use a direct Muse API key. Muse Code uses the OpenAI Responses API wire format (POST /responses).",
     apiHint:
       "Muse Code is OpenAI-compatible. OmniRoute routes chat traffic through the Responses API and exposes the proprietary model catalog at /v1/muse-code/models.",
     passthroughModels: true,

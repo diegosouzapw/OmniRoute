@@ -203,8 +203,8 @@ export function resolveStaticProviderCatalogEntry(
     return {
       ...provider,
       category,
-      displayAuthType: group.displayAuthType,
-      toggleAuthType: group.toggleAuthType,
+      displayAuthType: provider.oauthProviderId === provider.id ? "oauth" : group.displayAuthType,
+      toggleAuthType: provider.oauthProviderId === provider.id ? "oauth" : group.toggleAuthType,
       isCompatible: false,
     };
   }

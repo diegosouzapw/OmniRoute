@@ -60,6 +60,12 @@ test("resolvePublicCred('openference_id') returns the public PKCE client id shap
   assert.equal(v.length, 9);
 });
 
+test("resolvePublicCred('muse_id') returns the Meta Muse numeric client id shape", () => {
+  const v = resolvePublicCred("muse_id");
+  assert.match(v, /^\d+$/);
+  assert.equal(v.length, 16);
+});
+
 test("encode/decode roundtrip is stable across arbitrary plaintexts", () => {
   for (const sample of [
     "hello world",

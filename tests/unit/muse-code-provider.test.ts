@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 
 import { muse_codeProvider } from "../../open-sse/config/providers/registry/muse-code/index.ts";
 import { getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
+import { MuseCodeExecutor } from "../../open-sse/executors/muse-code.ts";
 
 // ── Registry entry structure ────────────────────────────────────────────────
 
@@ -22,6 +23,15 @@ test("muse-code provider entry has alias", () => {
 
 test("muse-code provider uses openai format", () => {
   assert.equal(muse_codeProvider.format, "openai");
+});
+
+test("muse-code provider routes inference to Meta Responses API", () => {
+  assert.equal(muse_codeProvider.baseUrl, "https://api.meta.ai/v1/responses");
+  const executor = new MuseCodeExecutor();
+  assert.equal(
+    executor.buildUrl("muse-spark-1.3", true, 0, { accessToken: "fake-muse-key" }),
+    "https://api.meta.ai/v1/responses"
+  );
 });
 
 test("muse-code provider uses apikey auth", () => {

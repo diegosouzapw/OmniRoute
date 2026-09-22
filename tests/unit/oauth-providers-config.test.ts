@@ -28,6 +28,7 @@ const {
   CLINE_CONFIG,
   CODEX_CONFIG,
   CODEBUDDY_CN_CONFIG,
+  MUSE_CODE_CONFIG,
   DEVIN_DESKTOP_CONFIG,
   ZED_CONFIG,
   CURSOR_CONFIG,
@@ -73,6 +74,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "xai-oauth",
   "openference",
   "codebuddy-cn",
+  "muse-code",
   "zed",
   "zed-hosted",
 ];
@@ -107,6 +109,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   "xai-oauth": XAI_OAUTH_CONFIG,
   openference: OPENFERENCE_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
+  "muse-code": MUSE_CODE_CONFIG,
   zed: ZED_CONFIG,
   "zed-hosted": ZED_HOSTED_CONFIG,
 };
@@ -150,6 +153,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   "devin-desktop": ["apiServerUrl", "inferenceUrl", "ideName", "defaultVersion"],
   "devin-cli": ["apiServerUrl", "inferenceUrl", "ideName", "defaultVersion"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
+  "muse-code": ["clientId", "deviceAuthorizationUrl", "deviceTokenUrl"],
   // prettier-ignore
   "xai-oauth": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
   // prettier-ignore

@@ -1,4 +1,5 @@
 import { DefaultExecutor } from "./default.ts";
+import { MuseCodeExecutor } from "./muse-code.ts";
 
 const defaultExecutorCache = new Map<string, DefaultExecutor>();
 
@@ -6,7 +7,7 @@ const defaultExecutorCache = new Map<string, DefaultExecutor>();
 export function getDefaultExecutor(provider: string): DefaultExecutor {
   let executor = defaultExecutorCache.get(provider);
   if (!executor) {
-    executor = new DefaultExecutor(provider);
+    executor = provider === "muse-code" ? new MuseCodeExecutor() : new DefaultExecutor(provider);
     defaultExecutorCache.set(provider, executor);
   }
   return executor;
