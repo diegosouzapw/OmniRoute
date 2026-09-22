@@ -566,156 +566,158 @@ kiro-cli status
 
 ---
 
-## 10. OmniRoute CLI פנימי
+## 10. ממשק שורת הפקודה הפנימי של OmniRoute
 
-הבינארי `omniroute` מספק פקודות עבור מחזור חיי השרת, התקנה, אבחון, וניהול ספקים. נקודת כניסה: `bin/omniroute.mjs`.
+קובץ ההפעלה `omniroute` מספק פקודות לניהול מחזור חיי השרת, להגדרה, לאבחון ולניהול ספקים. נקודת כניסה: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # הפעל את השרת (פורט ברירת מחדל 20128)
-omniroute setup                        # אשף התקנה אינטראקטיבי
-omniroute doctor                       # בדוק קונפיגורציה, DB, פורטים, זמן ריצה
-omniroute providers list               # חיבורים לספקים שהוגדרו
-omniroute providers test-all           # בדוק כל חיבור פעיל
-omniroute reset-password               # אפס את סיסמת המנהל
-omniroute logs                         # זרם יומני בקשות
-omniroute health                       # בריאות מפורטת (מפסקי זרם, מטמון, זיכרון)
-omniroute --version                    # הדפס גרסה
-omniroute --help                       # הצג את כל הפקודות
+omniroute                              # הפעלת השרת (יציאה 20128 כברירת מחדל)
+omniroute setup                        # אשף הגדרה אינטראקטיבי
+omniroute doctor                       # בדיקת תצורה, מסד נתונים, יציאות וסביבת ריצה
+omniroute providers list               # חיבורי ספקים שהוגדרו
+omniroute providers test-all           # בדיקת כל חיבור פעיל
+omniroute reset-password               # איפוס סיסמת מנהל המערכת
+omniroute logs                         # הזרמת יומני בקשות
+omniroute health                       # מצב תקינות מפורט (מנתקי מעגל, מטמון, זיכרון)
+omniroute --version                    # הצגת הגרסה
+omniroute --help                       # הצגת כל הפקודות
 ```
 
-### התקנה והתחלה
+### הגדרה ואתחול
 
 ```bash
-omniroute setup                        # אשף התקנה אינטראקטיבי
+omniroute setup                        # אשף הגדרה אינטראקטיבי
 omniroute setup --non-interactive      # מצב CI/אוטומציה (קורא משתני סביבה + דגלים)
-omniroute setup --password '<value>'   # הגדר סיסמת מנהל ישירות
+omniroute setup --password '<value>'   # הגדרת סיסמת מנהל המערכת ישירות
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # הוסף ובדוק ספק במכה אחת
+  --test-provider                      # הוספה ובדיקה של ספק בפעולה אחת
 ```
 
-משתני סביבה מוכרים עבור התקנה לא אינטראקטיבית:
+משתני סביבה מזוהים להגדרה לא אינטראקטיבית:
 
-| Var                 | מטרה                                                         |
-| ------------------- | ------------------------------------------------------------ |
-| `OMNIROUTE_API_KEY` | מפתח API של הספק (מחובר ל`--api-key` דרך Commander `.env()`) |
-| `DATA_DIR`          | החלף את תיקיית הנתונים של OmniRoute                          |
+| משתנה               | מטרה                                                              |
+| ------------------- | ----------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | מפתח API של הספק (מקושר אל `--api-key` דרך `.env()` של Commander) |
+| `DATA_DIR`          | דריסת ספריית הנתונים של OmniRoute                                 |
 
-כל שאר הקלטים הלא אינטראקטיביים מועברים כדגלים, לא משתני סביבה:
+כל שאר הקלטים הלא אינטראקטיביים מועברים כדגלים, ולא כמשתני סביבה:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(ראה את אפשרויות `omniroute setup` למעלה).
+(ראו את אפשרויות `omniroute setup` לעיל).
 
 ### אבחון
 
 ```bash
-omniroute doctor                       # בדוק קונפיגורציה, DB, פורטים, זמן ריצה, זיכרון, חיות
+omniroute doctor                       # בדיקת תצורה, מסד נתונים, יציאות, סביבת ריצה, זיכרון וחיוניות
 omniroute doctor --json                # JSON קריא למכונה
-omniroute doctor --no-liveness         # דלג על בדיקת בריאות HTTP
-omniroute doctor --host 0.0.0.0        # החלף את מארח החיות
-omniroute doctor --liveness-url <url>  # החלף את כתובת ה-URL של נקודת הבריאות המלאה
+omniroute doctor --no-liveness         # דילוג על בדיקת תקינות HTTP
+omniroute doctor --host 0.0.0.0        # דריסת מארח בדיקת החיוניות
+omniroute doctor --liveness-url <url>  # דריסת כתובת ה-URL המלאה של נקודת הקצה לבדיקת תקינות
 ```
 
-הדוקטור מבצע את הבדיקות הללו: `קונפיגורציה`, `מסד נתונים`, `אחסון/הצפנה`,
-`זמינות פורטים`, `זמן ריצה של Node`, `בינארי מקורי` (better-sqlite3),
-`זיכרון`, ו`חיות השרת`. הוא יוצא עם קוד שגיאה אם כל בדיקה היא `נכשל`.
+פקודת doctor מריצה את הבדיקות הבאות: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary`‏ (better-sqlite3),
+`Memory` ו-`Server liveness`. היא מסתיימת עם קוד שאינו אפס אם בדיקה כלשהי היא `fail`.
 
 ### ניהול ספקים
 
 ```bash
-omniroute providers available                       # קטלוג ספקי OmniRoute
-omniroute providers available --search openai       # סנן קטלוג לפי id/name/alias/category
-omniroute providers available --category api-key    # סנן לפי קטגוריה (api-key, oauth, free, ...)
+omniroute providers available                       # קטלוג הספקים של OmniRoute
+omniroute providers available --search openai       # סינון הקטלוג לפי מזהה/שם/כינוי/קטגוריה
+omniroute providers available --category api-key    # סינון לפי קטגוריה (api-key, oauth, free, ...)
 omniroute providers available --json                # JSON קריא למכונה
 
-omniroute providers list                            # חיבורים לספקים שהוגדרו
+omniroute providers list                            # חיבורי ספקים שהוגדרו
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # בדוק חיבור אחד שהוגדר
-omniroute providers test-all                        # בדוק כל חיבור פעיל
+omniroute providers test <id|name>                  # בדיקת חיבור מוגדר אחד
+omniroute providers test-all                        # בדיקת כל חיבור פעיל
 omniroute providers validate                        # אימות מבני מקומי בלבד
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # זרימת OAuth קיימת
+omniroute providers auth <provider>                 # תהליך OAuth קיים
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` הם API-first ולכן פועלים נגד
-ההקשר המקומי או המרוחק הפעיל. קלט ההסמכה צריך להשתמש ב
-`--credential-stdin` או `--credential-env`; `--dry-run --json` מדווח רק על
-נוכחות/צורה מחוקה. `providers available` קורא את קטלוג OmniRoute;
-`providers list/test/test-all/validate` שומרים על ההתנהגות המקומית של SQLite שלהם ואינם דורשים שהשרת יהיה פועל.
+הפקודות `providers add/import/auth/edit/remove` פועלות בגישת API תחילה, ולכן פועלות מול
+ההקשר המקומי או המרוחק הפעיל. לצורך הזנת פרטי גישה יש להשתמש ב-
+`--credential-stdin` או ב-`--credential-env`; האפשרות `--dry-run --json` מדווחת רק על
+נוכחות/מבנה לאחר השחרה. `providers available` קוראת את קטלוג OmniRoute;
+הפקודות `providers list/test/test-all/validate` שומרות על התנהגות SQLite המקומית שלהן
+ואינן דורשות שהשרת יפעל.
 
 ### שחזור ואיפוס
 
 ```bash
-omniroute reset-password                # אפס את סיסמת המנהל (גם: omniroute-reset-password)
-omniroute reset-encrypted-columns       # הצג אזהרה + דלג עבור איפוס הסמכה מוצפנת
-omniroute reset-encrypted-columns --force  # באמת נעל את ההסמכות המוצפנות ב-SQLite
+omniroute reset-password                # איפוס סיסמת מנהל המערכת (זמין גם בשם: omniroute-reset-password)
+omniroute reset-encrypted-columns       # הצגת אזהרה + הרצה יבשה לאיפוס פרטי גישה מוצפנים
+omniroute reset-encrypted-columns --force  # איפוס בפועל של פרטי גישה מוצפנים ל-null ב-SQLite
 ```
 
-### ייצוא הסמכה (⚠ יש לטפל בזה בזהירות)
+### ייצוא פרטי גישה (⚠ יש לטפל בזהירות)
 
 ```bash
-omniroute auth export                                 # הצג אזהרה + שער אישור — אין גישה ל-DB
-omniroute auth export --force                          # ייצא את כל ההסמכות המפוענחות של כל החיבורים ל-stdout כ-JSON
-omniroute auth export --force --id <id>                 # ייצא רק את החיבור התואם
-omniroute auth export --force --format env               # פלט OMNIROUTE_<PROVIDER>_<FIELD>=<value> שורות
-omniroute auth export --force --out creds.json           # כתוב לקובץ (נוצר עם הרשאות 0600)
+omniroute auth export                                 # הצגת אזהרה + דרישת אישור — ללא גישה למסד הנתונים
+omniroute auth export --force                          # ייצוא פרטי הגישה המפוענחים של כל החיבורים ל-stdout כ-JSON
+omniroute auth export --force --id <id>                 # ייצוא החיבור התואם בלבד
+omniroute auth export --force --format env               # הפקת שורות OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # כתיבה לקובץ (שנוצר עם הרשאות 0600)
 ```
 
-`auth export` הוא **מקומי בלבד** (קריאה ישירה מ-SQLite, ללא נתיב HTTP) ומדפיס/כותב
-**טקסט ברור** של ערכי `apiKey`/`accessToken`/`refreshToken`/`idToken` — זו התכונה, לא
-באג. שום דבר לא נקרא מהמסד נתונים, ושום דבר לא מפוענח, ללא `--force`. תמיד מודפס דגל אזהרה ב-stderr לפני כל פלט טקסט ברור. נדרש להגדיר את `STORAGE_ENCRYPTION_KEY`.
-שדה שנכשל לפענח (מפתח ישן, טקסט מוצפן פגום) מדווח כ
-`<field>DecryptFailed: true` במקום להפסיק את כל הייצוא או לדלוף את השגיאה הבסיסית.
+`auth export` פועלת **באופן מקומי בלבד** (קריאה ישירה מ-SQLite, ללא נתיב HTTP) ומדפיסה/כותבת במכוון
+ערכי `apiKey`/`accessToken`/`refreshToken`/`idToken` ב**טקסט גלוי** — זו התכונה, ולא
+תקלה. ללא `--force`, דבר אינו נקרא ממסד הנתונים ודבר אינו מפוענח. כרזת אזהרה מודפסת תמיד אל stderr
+לפני הפקת טקסט גלוי כלשהו. נדרש להגדיר את `STORAGE_ENCRYPTION_KEY`.
+שדה שפענוחו נכשל (מפתח מיושן, טקסט מוצפן פגום) מדווח בתור
+`<field>DecryptFailed: true`, במקום לבטל את הייצוא כולו או לחשוף את השגיאה הבסיסית.
 
-### פקודות משנה אחרות
+### פקודות משנה נוספות
 
-אלו מניחות ששרת OmniRoute פועל, אלא אם כן צוין אחרת:
+אלה מניחות ששרת OmniRoute פועל, אלא אם צוין אחרת:
 
 ```bash
-omniroute status                       # מצב ריצה מקיף
-omniroute logs                         # זרם יומני בקשות (--json, --search, --follow)
-omniroute config show                  # הצג קונפיגורציה נוכחית
+omniroute status                       # מצב זמן ריצה מקיף
+omniroute logs                         # הזרמת יומני בקשות (--json, --search, --follow)
+omniroute config list                  # הצגת כלי CLI שהוגדרו
 
-omniroute provider list                # רשום ספקים זמינים (כינוי של providers list)
-omniroute provider add                 # רשם את OmniRoute כספק על כלי
+omniroute provider list                # הצגת ספקים זמינים (כינוי של providers list)
+omniroute provider add                 # רישום OmniRoute כספק בכלי
 omniroute keys add | list | remove     # ניהול מפתחות API
-omniroute models [provider]            # רשום מודלים (--json, --search)
+omniroute models [provider]            # הצגת מודלים (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # צלם קונפיגורציה + DB
-omniroute restore                      # שחזר מצילום קודם
+omniroute backup                       # יצירת תמונת מצב של התצורה ומסד הנתונים
+omniroute restore                      # שחזור מתמונת מצב קודמת
 
-omniroute health                       # בריאות מפורטת (מפסקי זרם, מטמון, זיכרון)
-omniroute quota                        # שימוש במכסה של הספק
+omniroute health                       # מידע מפורט על התקינות (מפסקים, מטמון, זיכרון)
+omniroute quota                        # ניצול מכסת הספק
 omniroute cache                        # מצב המטמון
-omniroute cache clear                  # נקה את המטמון הסמנטי + החתימות
+omniroute cache clear                  # ניקוי המטמונים הסמנטיים ומטמוני החתימות
 
 omniroute mcp status | restart         # מצב שרת MCP / הפעלה מחדש
 omniroute a2a status | card            # מצב שרת A2A / כרטיס סוכן
 
 omniroute tunnel list | create | stop  # ניהול מנהרות (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # בדוק / הגדר משתני סביבה (זמני)
+omniroute env show | get <k> | set <k> <v>  # הצגה / הגדרה של משתני סביבה (זמניים)
 
-omniroute test                         # בדיקת חיבוריות ספק
-omniroute update                       # בדוק אם יש עדכונים
-omniroute completion                   # צור השלמה של shell
+omniroute test                         # בדיקת עשן לקישוריות הספק
+omniroute update                       # בדיקת עדכונים
+omniroute completion                   # יצירת השלמה אוטומטית למעטפת
 ```
 
 ### דגלים נפוצים
 
-| דגל                 | תיאור                                          |
-| ------------------- | ---------------------------------------------- |
-| `--no-open`         | אל תפתח אוטומטית את הדפדפן בהפעלה              |
-| `--port <n>`        | החלף את פורט ה-API (ברירת מחדל 20128)          |
-| `--mcp`             | פעל כשרת MCP דרך stdio (עבור IDEs)             |
-| `--non-interactive` | מצב CI (ללא הנחיות; קורא ממשתני סביבה/דגלים)   |
-| `--json`            | פלט JSON קריא למכונה (doctor, providers, וכו') |
-| `--help`, `-h`      | הצג עזרה ספציפית לפקודה                        |
-| `--version`, `-v`   | הדפס את הגרסה המותקנת                          |
+| דגל                 | תיאור                                                |
+| ------------------- | ---------------------------------------------------- |
+| `--no-open`         | אין לפתוח אוטומטית את הדפדפן בעת ההפעלה              |
+| `--port <n>`        | דריסת יציאת ה-API (ברירת המחדל היא 20128)            |
+| `--mcp`             | הפעלה כשרת MCP דרך stdio (עבור סביבות פיתוח משולבות) |
+| `--non-interactive` | מצב CI (ללא הנחיות; קריאה מהסביבה/מהדגלים)           |
+| `--json`            | פלט JSON קריא למכונה (doctor, providers וכו׳)        |
+| `--help`, `-h`      | הצגת עזרה ספציפית לפקודה                             |
+| `--version`, `-v`   | הדפסת הגרסה המותקנת                                  |
 
 ---
 

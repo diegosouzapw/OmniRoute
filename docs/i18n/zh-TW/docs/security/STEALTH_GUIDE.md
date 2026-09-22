@@ -223,14 +223,14 @@ interface CliFingerprint {
 | 變數                     | 預設值                                                          |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-由 `open-sse/executors/base.ts::buildHeaders()` 透過動態查找使用。**當提供者發布新的 CLI 版本時，請更新這些值** — 過時的 UA 字串會因用戶端版本過舊而開始遭到拒絕。
+由 `open-sse/executors/base.ts::buildHeaders()` 透過動態查詢使用。**當提供者發布新的 CLI 版本時，請更新這些值** — 過時的 UA 字串會開始因用戶端版本過舊而遭到拒絕。
 
 ## CLI 相容模式切換選項（`.env.example` 第 13 節）
 

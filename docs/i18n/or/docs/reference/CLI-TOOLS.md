@@ -114,40 +114,41 @@ kilo, continue) — ଏକ `hostSetupCommand` (ଉଦାହରଣ `omniroute set
 
 ---
 
-## 1. CLI Code ର କାଟାଲଗ୍ (26 ଟି ଉପକରଣ)
+## 1. CLI Codeର କ୍ୟାଟାଲଗ୍ (26ଟି ଟୁଲ୍)
 
-ସମସ୍ତ ଉପକରଣ ଯାହା `/dashboard/cli-code` ରେ ଦେଖାଯାଏ। ଯେଉଁଗୁଡ଼ିକର `baseUrlSupport: none` ଅଛି, ସେଗୁଡ଼ିକ କଷ୍ଟମ ବେସ URL ପରିବର୍ତ୍ତେ MITM କିମ୍ବା ମାନୁଆଲ ଗାଇଡ୍ ମାଧ୍ୟମରେ ସଂଯୋଗ ହୋଇଥାଏ:
+`/dashboard/cli-code`ରେ ଦେଖାଯାଉଥିବା ସମସ୍ତ ଟୁଲ୍। `baseUrlSupport: none` ଥିବା ଟୁଲ୍ଗୁଡ଼ିକ କଷ୍ଟମ୍ ବେସ୍ URL ପରିବର୍ତ୍ତେ MITM କିମ୍ବା ଏକ ମାନୁଆଲ୍ ଗାଇଡ୍ ମାଧ୍ୟମରେ ସଂଯୋଜିତ ହୋଇଛି:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | ନାମ                     | ବିକ୍ରେତା                 | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | ------------------------ | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic                | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                   | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                     | none           | custom         | false        |
+| cline        | Cline                   | OSS (ପୂର୍ବତନ-Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org                 | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)                | full           | guide          | false        |
+| continue     | Continue                | continue.dev             | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)        | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ              | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)           | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)        | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)             | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (ପୂର୍ବତନ-SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI               | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS                | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere                | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)        | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)         | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                      | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)              | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba                  | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere                | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                   | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research            | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                   | none           | mitm           | false        |
+| custom       | କଷ୍ଟମ୍ CLI              | —                        | full           | custom-builder | false        |
 
-ଯେଉଁ ଉପକରଣଗୁଡ଼ିକର `baseUrlSupport: "partial"` ଅଛି ସେଗୁଡ଼ିକ ଡ୍ୟାସବୋର୍ଡ କାର୍ଡରେ "⚠ ବେସ URL ଆଂଶିକ" ବ୍ୟାଜ୍ ଦେଖାନ୍ତି।
+`baseUrlSupport: "partial"` ଥିବା ଟୁଲ୍ଗୁଡ଼ିକ ଡ୍ୟାସ୍ବୋର୍ଡ କାର୍ଡରେ "⚠ ଆଂଶିକ ବେସ୍ URL" ବ୍ୟାଜ୍ ଦେଖାଏ।
+---
 
 ## ୨. CLI ଏଜେଣ୍ଟ ସୂଚି (୧୦ଟି ଟୁଲ୍)
 
@@ -572,158 +573,158 @@ kiro-cli status
 
 ---
 
-## 10. ଆଭ୍ୟନ୍ତରିକ OmniRoute CLI
+## 10. ଆଭ୍ୟନ୍ତରୀଣ OmniRoute CLI
 
-`omniroute` ବାଇନାରୀ ସର୍ଭର ଜୀବନଚକ୍ର, ସେଟଅପ୍, ଡାଗ୍ନୋଷ୍ଟିକ୍ସ, ଏବଂ ପ୍ରୋଭାଇଡର୍ ପରିଚାଳନା ପାଇଁ କମାଣ୍ଡ ପ୍ରଦାନ କରେ। ଏଣ୍ଟ୍ରି ପଏଣ୍ଟ: `bin/omniroute.mjs`।
+`omniroute` ବାଇନାରି ସର୍ଭର ଜୀବନଚକ୍ର, ସେଟଅପ୍, ଡାଇଗ୍ନୋଷ୍ଟିକ୍ସ ଏବଂ ପ୍ରଦାତା ପରିଚାଳନା ପାଇଁ କମାଣ୍ଡ ପ୍ରଦାନ କରେ। ପ୍ରବେଶ ବିନ୍ଦୁ: `bin/omniroute.mjs`।
 
 ```bash
 omniroute                              # ସର୍ଭର ଆରମ୍ଭ କରନ୍ତୁ (ଡିଫଲ୍ଟ ପୋର୍ଟ 20128)
-omniroute setup                        # ଇଣ୍ଟରାକ୍ଟିଭ୍ ସେଟଅପ୍ ଉଇଜାର୍ଡ
-omniroute doctor                       # କନଫିଗ୍, ଡିବି, ପୋର୍ଟ, ରନଟାଇମ୍ ଯାଞ୍ଚ କରନ୍ତୁ
-omniroute providers list               # କନଫିଗର୍ କରାଯାଇଥିବା ପ୍ରୋଭାଇଡର୍ ସଂଯୋଗ
+omniroute setup                        # ଇଣ୍ଟରାକ୍ଟିଭ୍ ସେଟଅପ୍ ୱିଜାର୍ଡ
+omniroute doctor                       # କନଫିଗ୍, DB, ପୋର୍ଟ ଏବଂ ରନ୍ଟାଇମ୍ ଯାଞ୍ଚ କରନ୍ତୁ
+omniroute providers list               # କନଫିଗର୍ ହୋଇଥିବା ପ୍ରଦାତା ସଂଯୋଗଗୁଡ଼ିକ
 omniroute providers test-all           # ପ୍ରତ୍ୟେକ ସକ୍ରିୟ ସଂଯୋଗ ପରୀକ୍ଷା କରନ୍ତୁ
 omniroute reset-password               # ଆଡମିନ୍ ପାସୱାର୍ଡ ରିସେଟ୍ କରନ୍ତୁ
-omniroute logs                         # ଅନୁରୋଧ ଲଗ୍ ଷ୍ଟ୍ରିମ୍ କରନ୍ତୁ
-omniroute health                       # ବିସ୍ତୃତ ସ୍ୱାସ୍ଥ୍ୟ (ବ୍ରେକର୍ସ, କ୍ୟାଶ୍, ମେମୋରୀ)
+omniroute logs                         # ଅନୁରୋଧ ଲଗ୍ଗୁଡ଼ିକୁ ଷ୍ଟ୍ରିମ୍ କରନ୍ତୁ
+omniroute health                       # ବିସ୍ତୃତ ସ୍ୱାସ୍ଥ୍ୟ ସ୍ଥିତି (ବ୍ରେକର୍, କ୍ୟାଶ୍, ମେମୋରି)
 omniroute --version                    # ସଂସ୍କରଣ ପ୍ରିଣ୍ଟ କରନ୍ତୁ
 omniroute --help                       # ସମସ୍ତ କମାଣ୍ଡ ଦେଖାନ୍ତୁ
 ```
 
-### ସେଟଅପ୍ ଏବଂ ଇନିସିଆଲାଇଜେସନ୍
+### ସେଟଅପ୍ ଏବଂ ଆରମ୍ଭୀକରଣ
 
 ```bash
-omniroute setup                        # ଇଣ୍ଟରାକ୍ଟିଭ୍ ସେଟଅପ୍ ଉଇଜାର୍ଡ
-omniroute setup --non-interactive      # CI/ଅଟୋମେସନ୍ ମୋଡ୍ (ଏନଭାୟାର୍ଣ୍ଣମେଣ୍ଟ ଭେରିଆବଲ୍ସ + ଫ୍ଲାଗ୍ସ ପଢ଼େ)
-omniroute setup --password '<value>'   # ସିଧାସଳଖ ଆଡମିନ୍ ପାସୱାର୍ଡ ସେଟ୍ କରନ୍ତୁ
+omniroute setup                        # ଇଣ୍ଟରାକ୍ଟିଭ୍ ସେଟଅପ୍ ୱିଜାର୍ଡ
+omniroute setup --non-interactive      # CI/ସ୍ୱୟଂଚାଳନ ମୋଡ୍ (env vars + ଫ୍ଲାଗ୍ଗୁଡ଼ିକ ପଢ଼େ)
+omniroute setup --password '<value>'   # ଆଡମିନ୍ ପାସୱାର୍ଡ ସିଧାସଳଖ ସେଟ୍ କରନ୍ତୁ
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # ଏକ ସୁଟ୍ ରେ ଏକ ପ୍ରୋଭାଇଡର୍ ଯୋଗ ଏବଂ ପରୀକ୍ଷା କରନ୍ତୁ
+  --test-provider                      # ଗୋଟିଏ ପଦକ୍ଷେପରେ ପ୍ରଦାତା ଯୋଡ଼ନ୍ତୁ ଏବଂ ପରୀକ୍ଷା କରନ୍ତୁ
 ```
 
-ନନ୍-ଇଣ୍ଟରାକ୍ଟିଭ୍ ସେଟଅପ୍ ପାଇଁ ଚିହ୍ନିତ ଏନଭାୟାର୍ଣ୍ଣମେଣ୍ଟ ଭେରିଆବଲ୍ସ:
+ନନ୍-ଇଣ୍ଟରାକ୍ଟିଭ୍ ସେଟଅପ୍ ପାଇଁ ସ୍ୱୀକୃତ ପରିବେଶ ଭେରିଏବଲ୍ଗୁଡ଼ିକ:
 
-| ଭେରିଆବଲ୍            | ଉଦ୍ଦେଶ୍ୟ                                                                     |
-| ------------------- | ---------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | ପ୍ରୋଭାଇଡର୍ API କୀ (Commander `.env()` ଦ୍ୱାରା `--api-key` ସହ ବାଇଣ୍ଡ କରାଯାଇଛି) |
-| `DATA_DIR`          | OmniRoute ଡାଟା ଡାଇରେକ୍ଟୋରୀ ଓଭରରାଇଡ୍ କରନ୍ତୁ                                   |
+| ଭେରିଏବଲ୍            | ଉଦ୍ଦେଶ୍ୟ                                                             |
+| ------------------- | -------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | ପ୍ରଦାତା API କୀ (Commander `.env()` ମାଧ୍ୟମରେ `--api-key` ସହିତ ବନ୍ଧିତ) |
+| `DATA_DIR`          | OmniRoute ଡାଟା ଡିରେକ୍ଟୋରିକୁ ଓଭରରାଇଡ୍ କରେ                             |
 
-ଅନ୍ୟ ସମସ୍ତ ନନ୍-ଇଣ୍ଟରାକ୍ଟିଭ୍ ଇନପୁଟ୍ସ ଏନଭାୟାର୍ଣ୍ଣମେଣ୍ଟ ଭେରିଆବଲ୍ସ ନୁହେଁ, ଫ୍ଲାଗ୍ସ ରେ ପାରିତ ହୁଏ:
+ଅନ୍ୟ ସମସ୍ତ ନନ୍-ଇଣ୍ଟରାକ୍ଟିଭ୍ ଇନ୍ପୁଟ୍ ପରିବେଶ ଭେରିଏବଲ୍ ଭାବରେ ନୁହେଁ, ଫ୍ଲାଗ୍ ଭାବରେ ପାସ୍ କରାଯାଏ:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(ଉପରେ `omniroute setup` ବିକଳ୍ପ ଦେଖନ୍ତୁ)।
+(ଉପରେ ଥିବା `omniroute setup` ବିକଳ୍ପଗୁଡ଼ିକ ଦେଖନ୍ତୁ)।
 
-### ଡାଗ୍ନୋଷ୍ଟିକ୍ସ
+### ଡାଇଗ୍ନୋଷ୍ଟିକ୍ସ
 
 ```bash
-omniroute doctor                       # କନଫିଗ୍, ଡିବି, ପୋର୍ଟ, ରନଟାଇମ୍, ମେମୋରୀ, ଲାଇଭ୍ନେସ୍ ଯାଞ୍ଚ କରନ୍ତୁ
-omniroute doctor --json                # ମେସିନ୍-ରିଡେବଲ୍ JSON
-omniroute doctor --no-liveness         # HTTP ସ୍ୱାସ୍ଥ୍ୟ ପ୍ରୋବ୍ ସ୍କିପ୍ କରନ୍ତୁ
-omniroute doctor --host 0.0.0.0        # ଲାଇଭ୍ନେସ୍ ହୋଷ୍ଟ ଓଭରରାଇଡ୍ କରନ୍ତୁ
+omniroute doctor                       # କନଫିଗ୍, DB, ପୋର୍ଟ, ରନ୍ଟାଇମ୍, ମେମୋରି ଏବଂ ସକ୍ରିୟତା ଯାଞ୍ଚ କରନ୍ତୁ
+omniroute doctor --json                # ମେସିନ୍-ପଠନଯୋଗ୍ୟ JSON
+omniroute doctor --no-liveness         # HTTP ସ୍ୱାସ୍ଥ୍ୟ ପ୍ରୋବ୍ ଏଡ଼ାଇ ଯାଆନ୍ତୁ
+omniroute doctor --host 0.0.0.0        # ସକ୍ରିୟତା ହୋଷ୍ଟକୁ ଓଭରରାଇଡ୍ କରନ୍ତୁ
 omniroute doctor --liveness-url <url>  # ସମ୍ପୂର୍ଣ୍ଣ ସ୍ୱାସ୍ଥ୍ୟ ଏଣ୍ଡପଏଣ୍ଟ URL ଓଭରରାଇଡ୍
 ```
 
-ଡାକ୍ତର ଏହି ଯାଞ୍ଚଗୁଡ଼ିକ ଚଲାଏ: `Config`, `Database`, `Storage/encryption`,
+doctor ଏହି ଯାଞ୍ଚଗୁଡ଼ିକ ଚଲାଏ: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, ଏବଂ `Server liveness`। ଯଦି ଯେକୌଣସି ଯାଞ୍ଚ `fail` ହୁଏ, ତେବେ ଏହା ନନ୍-ଜିରୋ ସହ ବାହାରେ।
+`Memory`, ଏବଂ `Server liveness`। କୌଣସି ଯାଞ୍ଚ `fail` ହେଲେ ଏହା ଶୂନ୍ୟ ନୁହେଁ ଏପରି ଏକ୍ଜିଟ୍ କୋଡ୍ ସହିତ ବନ୍ଦ ହୁଏ।
 
-### ପ୍ରୋଭାଇଡର୍ ପରିଚାଳନା
+### ପ୍ରଦାତା ପରିଚାଳନା
 
 ```bash
-omniroute providers available                       # OmniRoute ପ୍ରୋଭାଇଡର୍ କ୍ୟାଟାଲଗ୍
-omniroute providers available --search openai       # id/name/alias/category ଦ୍ୱାରା କ୍ୟାଟାଲଗ୍ ଫିଲ୍ଟର୍ କରନ୍ତୁ
-omniroute providers available --category api-key    # କ୍ୟାଟାଗୋରୀ ଦ୍ୱାରା ଫିଲ୍ଟର୍ କରନ୍ତୁ (api-key, oauth, free, ...)
-omniroute providers available --json                # ମେସିନ୍-ରିଡେବଲ୍ JSON
+omniroute providers available                       # OmniRoute ପ୍ରଦାତା କ୍ୟାଟାଲଗ୍
+omniroute providers available --search openai       # id/ନାମ/ଉପନାମ/ବର୍ଗ ଦ୍ୱାରା କ୍ୟାଟାଲଗ୍ ଫିଲ୍ଟର୍ କରନ୍ତୁ
+omniroute providers available --category api-key    # ବର୍ଗ ଦ୍ୱାରା ଫିଲ୍ଟର୍ କରନ୍ତୁ (api-key, oauth, free, ...)
+omniroute providers available --json                # ମେସିନ୍-ପଠନଯୋଗ୍ୟ JSON
 
-omniroute providers list                            # କନଫିଗର୍ କରାଯାଇଥିବା ପ୍ରୋଭାଇଡର୍ ସଂଯୋଗ
+omniroute providers list                            # କନଫିଗର୍ ହୋଇଥିବା ପ୍ରଦାତା ସଂଯୋଗଗୁଡ଼ିକ
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # ଗୋଟିଏ କନଫିଗର୍ କରାଯାଇଥିବା ସଂଯୋଗ ପରୀକ୍ଷା କରନ୍ତୁ
+omniroute providers test <id|name>                  # ଗୋଟିଏ କନଫିଗର୍ ହୋଇଥିବା ସଂଯୋଗ ପରୀକ୍ଷା କରନ୍ତୁ
 omniroute providers test-all                        # ପ୍ରତ୍ୟେକ ସକ୍ରିୟ ସଂଯୋଗ ପରୀକ୍ଷା କରନ୍ତୁ
-omniroute providers validate                        # କେବଳ ଲୋକାଲ୍ ଷ୍ଟ୍ରକ୍ଚରାଲ୍ ଭାଲିଡେସନ୍
+omniroute providers validate                        # କେବଳ ସ୍ଥାନୀୟ ଗଠନାତ୍ମକ ବୈଧତା ଯାଞ୍ଚ
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # ସ୍ଥାପିତ OAuth ଫ୍ଲୋ
+omniroute providers auth <provider>                 # ବିଦ୍ୟମାନ OAuth ପ୍ରବାହ
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-ପ୍ରଥମ ଏବଂ ତେଣୁ ସକ୍ରିୟ ଲୋକାଲ୍ ବା ରିମୋଟ୍ କଣ୍ଟେକ୍ସ୍ଟ ବିରୁଦ୍ଧରେ କାମ କରେ।
-କ୍ରେଡେନ୍ସିଆଲ୍ ଇନପୁଟ୍ ବ୍ୟବହାର କରିବା ଉଚିତ୍
-`--credential-stdin` ବା `--credential-env`; `--dry-run --json` କେବଳ
-ରେଡାକ୍ଟେଡ୍ ଉପସ୍ଥିତି/ଆକୃତି ରିପୋର୍ଟ କରେ। `providers available` OmniRoute କ୍ୟାଟାଲଗ୍ ପଢ଼େ;
-`providers list/test/test-all/validate` ସେମାନଙ୍କ ସ୍ଥାନୀୟ SQLite ଆଚରଣ ବଜାୟ ରଖନ୍ତି ଏବଂ
+`providers add/import/auth/edit/remove` API-ପ୍ରଥମ ଅଟେ ଏବଂ ସେଥିପାଇଁ
+ସକ୍ରିୟ ସ୍ଥାନୀୟ କିମ୍ବା ଦୂରବର୍ତ୍ତୀ କଣ୍ଟେକ୍ସ୍ଟ ବିରୁଦ୍ଧରେ କାର୍ଯ୍ୟ କରେ। କ୍ରେଡେନ୍ସିଆଲ୍ ଇନ୍ପୁଟ୍ ପାଇଁ
+`--credential-stdin` କିମ୍ବା `--credential-env` ବ୍ୟବହାର କରିବା ଉଚିତ; `--dry-run --json` କେବଳ
+ସମ୍ପାଦିତ ଉପସ୍ଥିତି/ଆକୃତି ରିପୋର୍ଟ କରେ। `providers available` OmniRoute କ୍ୟାଟାଲଗ୍ ପଢ଼େ;
+`providers list/test/test-all/validate` ସେମାନଙ୍କର ସ୍ଥାନୀୟ SQLite ଆଚରଣ ବଜାୟ ରଖେ ଏବଂ
 ସର୍ଭର ଚାଲୁଥିବା ଆବଶ୍ୟକ କରେ ନାହିଁ।
 
-### ରିକଭରୀ ଏବଂ ରିସେଟ୍
+### ପୁନରୁଦ୍ଧାର ଏବଂ ରିସେଟ୍
 
 ```bash
-omniroute reset-password                # ଆଡମିନ୍ ପାସୱାର୍ଡ ରିସେଟ୍ କରନ୍ତୁ (ଏହି ସାଙ୍ଗରେ: omniroute-reset-password)
-omniroute reset-encrypted-columns       # ଏନ୍କ୍ରିପ୍ଟେଡ୍ କ୍ରେଡେନ୍ସିଆଲ୍ ରିସେଟ୍ ପାଇଁ ସତର୍କତା + ଡ୍ରାଏ-ରନ୍ ଦେଖାନ୍ତୁ
-omniroute reset-encrypted-columns --force  # SQLite ରେ ଏନ୍କ୍ରିପ୍ଟେଡ୍ କ୍ରେଡେନ୍ସିଆଲ୍ସ ପ୍ରକୃତରେ null କରନ୍ତୁ
+omniroute reset-password                # ଆଡମିନ୍ ପାସୱାର୍ଡ ରିସେଟ୍ କରନ୍ତୁ (ଏହା ମଧ୍ୟ: omniroute-reset-password)
+omniroute reset-encrypted-columns       # ଏନ୍କ୍ରିପ୍ଟେଡ୍ କ୍ରେଡେନ୍ସିଆଲ୍ ରିସେଟ୍ ପାଇଁ ଚେତାବନୀ + dry-run ଦେଖାନ୍ତୁ
+omniroute reset-encrypted-columns --force  # ପ୍ରକୃତରେ SQLite ଭିତରେ ଏନ୍କ୍ରିପ୍ଟେଡ୍ କ୍ରେଡେନ୍ସିଆଲ୍ଗୁଡ଼ିକୁ null କରନ୍ତୁ
 ```
 
-### କ୍ରେଡେନ୍ସିଆଲ୍ ଏକ୍ସପୋର୍ଟ (⚠ ସମ୍ଭାଳର ସହ ହ୍ୟାଣ୍ଡେଲ୍ କରନ୍ତୁ)
+### କ୍ରେଡେନ୍ସିଆଲ୍ ଏକ୍ସପୋର୍ଟ (⚠ ସତର୍କତାର ସହିତ ପରିଚାଳନା କରନ୍ତୁ)
 
 ```bash
-omniroute auth export                                 # ସତର୍କତା + ନିଶ୍ଚିତକରଣ ଗେଟ୍ ଦେଖାନ୍ତୁ — ଡିବି ପ୍ରବେଶ ନାହିଁ
-omniroute auth export --force                          # ସମସ୍ତ ସଂଯୋଗର DECRYPTED କ୍ରେଡେନ୍ସିଆଲ୍ସ stdout କୁ JSON ରେ ଏକ୍ସପୋର୍ଟ କରନ୍ତୁ
-omniroute auth export --force --id <id>                 # କେବଳ ମ୍ୟାଚିଂ ସଂଯୋଗ ଏକ୍ସପୋର୍ଟ କରନ୍ତୁ
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> ଲାଇନ୍ସ ଉତ୍ପାଦନ କରନ୍ତୁ
-omniroute auth export --force --out creds.json           # ଫାଇଲ୍ ରେ ଲେଖନ୍ତୁ (0600 ଅନୁମତି ସହ ସୃଷ୍ଟି)
+omniroute auth export                                 # ଚେତାବନୀ + ନିଶ୍ଚିତକରଣ ଗେଟ୍ ଦେଖାନ୍ତୁ — କୌଣସି DB ଆକ୍ସେସ୍ ନାହିଁ
+omniroute auth export --force                          # ସମସ୍ତ ସଂଯୋଗର ଡିକ୍ରିପ୍ଟ ହୋଇଥିବା କ୍ରେଡେନ୍ସିଆଲ୍ଗୁଡ଼ିକୁ JSON ଭାବରେ stdoutକୁ ଏକ୍ସପୋର୍ଟ କରନ୍ତୁ
+omniroute auth export --force --id <id>                 # କେବଳ ମେଳ ଖାଉଥିବା ସଂଯୋଗକୁ ଏକ୍ସପୋର୍ଟ କରନ୍ତୁ
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> ଧାଡ଼ିଗୁଡ଼ିକ ନିର୍ଗତ କରନ୍ତୁ
+omniroute auth export --force --out creds.json           # ଏକ ଫାଇଲ୍ରେ ଲେଖନ୍ତୁ (0600 ଅନୁମତି ସହିତ ସୃଷ୍ଟି ହୁଏ)
 ```
 
-`auth export` **କେବଳ ଲୋକାଲ୍** (ସିଧାସଳଖ SQLite ପଢ଼ା, HTTP ରୁଟ୍ ନାହିଁ) ଏବଂ ସଚେତନତାର ସହ
-**ପ୍ଲେନ୍ଟେକ୍ସ୍ଟ** `apiKey`/`accessToken`/`refreshToken`/`idToken` ମୂଲ୍ୟଗୁଡ଼ିକ ପ୍ରିଣ୍ଟ୍/ଲେଖେ — ଏହା ଫିଚର୍, ଦୋଷ ନୁହେଁ।
-`--force` ବିନା ଡାଟାବେସ୍ ରୁ କିଛି ପଢ଼ାଯାଏ ନାହିଁ, ଏବଂ କିଛି ଡିକ୍ରିପ୍ଟ୍ ହୁଏ ନାହିଁ।
-ପ୍ଲେନ୍ଟେକ୍ସ୍ଟ ଉତ୍ପାଦନ ହେବା ପୂର୍ବରୁ ସର୍ବଦା ଏକ stderr ସତର୍କତା ବ୍ୟାନର ପ୍ରିଣ୍ଟ୍ ହୁଏ।
-`STORAGE_ENCRYPTION_KEY` ସେଟ୍ ଥିବା ଆବଶ୍ୟକ। ଯେଉଁ ଫିଲ୍ଡ୍ ଡିକ୍ରିପ୍ଟ୍ ହେବାରେ ବିଫଳ ହୁଏ (ସ୍ଥାସ୍ଥ କୀ, ଦୂଷିତ ସାଇଫରଟେକ୍ସ୍ଟ), ତାହା
-ସମଗ୍ର ଏକ୍ସପୋର୍ଟ ବନ୍ଦ ନ କରି ବା ଅନ୍ତର୍ନିହିତ ତ୍ରୁଟି ଲିକ୍ ନ କରି `<field>DecryptFailed: true` ଭାବରେ ରିପୋର୍ଟ ହୁଏ।
+`auth export` **କେବଳ ସ୍ଥାନୀୟ** ଅଟେ (ସିଧାସଳଖ SQLite ପଠନ, କୌଣସି HTTP ରୁଟ୍ ନାହିଁ) ଏବଂ ଉଦ୍ଦେଶ୍ୟମୂଳକ ଭାବରେ
+**ସାଧା ପାଠ୍ୟ** `apiKey`/`accessToken`/`refreshToken`/`idToken` ମୂଲ୍ୟଗୁଡ଼ିକୁ ପ୍ରିଣ୍ଟ/ଲେଖେ — ଏହା ଏକ ବୈଶିଷ୍ଟ୍ୟ,
+ବଗ୍ ନୁହେଁ। `--force` ବିନା ଡାଟାବେସ୍ରୁ କିଛି ପଢ଼ାଯାଏ ନାହିଁ ଏବଂ କିଛି ଡିକ୍ରିପ୍ଟ କରାଯାଏ ନାହିଁ। କୌଣସି ସାଧା ପାଠ୍ୟ
+ନିର୍ଗତ ହେବା ପୂର୍ବରୁ stderrରେ ସର୍ବଦା ଏକ ଚେତାବନୀ ବ୍ୟାନର୍ ପ୍ରିଣ୍ଟ ହୁଏ। `STORAGE_ENCRYPTION_KEY` ସେଟ୍ ହୋଇଥିବା
+ଆବଶ୍ୟକ। ଡିକ୍ରିପ୍ଟ ହେବାରେ ବିଫଳ ହୋଇଥିବା ଫିଲ୍ଡ (ପୁରୁଣା କୀ, ଦୂଷିତ ସାଇଫର୍ଟେକ୍ସ୍ଟ) ସମ୍ପୂର୍ଣ୍ଣ ଏକ୍ସପୋର୍ଟକୁ
+ବାତିଲ କରିବା କିମ୍ବା ଅନ୍ତର୍ନିହିତ ତ୍ରୁଟିକୁ ପ୍ରକାଶ କରିବା ପରିବର୍ତ୍ତେ `<field>DecryptFailed: true` ଭାବରେ ରିପୋର୍ଟ କରାଯାଏ।
 
-### ଅନ୍ୟ ସବ୍କମାଣ୍ଡସ୍
+### ଅନ୍ୟାନ୍ୟ ସବ୍କମାଣ୍ଡ
 
-ଯେମ୍ ଯେମିତି ନୋଟ୍ କରାନାହିଁ, ଏହିଗୁଡ଼ିକ ଏକ ଚାଲୁଥିବା OmniRoute ସର୍ଭର ଅନୁମାନ କରେ:
+ଅନ୍ୟଥା ଉଲ୍ଲେଖ ନଥିଲେ, ଏଗୁଡ଼ିକ ଏକ ଚାଲୁଥିବା OmniRoute ସର୍ଭରକୁ ଧାରଣା କରେ:
 
 ```bash
-omniroute status                       # ବିସ୍ତୃତ ରନଟାଇମ୍ ସ୍ଥିତି
-omniroute logs                         # ଅନୁରୋଧ ଲଗ୍ ଷ୍ଟ୍ରିମ୍ କରନ୍ତୁ (--json, --search, --follow)
-omniroute config show                  # ବର୍ତ୍ତମାନ କନଫିଗୁରେସନ୍ ପ୍ରଦର୍ଶନ କରନ୍ତୁ
+omniroute status                       # ବିସ୍ତୃତ ରନ୍ଟାଇମ୍ ସ୍ଥିତି
+omniroute logs                         # ଅନୁରୋଧ ଲଗ୍ଗୁଡ଼ିକୁ ଷ୍ଟ୍ରିମ୍ କରନ୍ତୁ (--json, --search, --follow)
+omniroute config list                  # ବିନ୍ୟାସିତ CLI ଟୁଲ୍ଗୁଡ଼ିକ ପ୍ରଦର୍ଶନ କରନ୍ତୁ
 
-omniroute provider list                # ଉପलବ୍ଧ ପ୍ରୋଭାଇଡର୍ସ ତାଲିକା (providers list ର ଉପନାମ)
-omniroute provider add                 # ଏକ ଟୁଲ୍ ରେ OmniRoute କୁ ପ୍ରୋଭାଇଡର୍ ଭାବରେ ରେଜିଷ୍ଟର୍ କରନ୍ତୁ
-omniroute keys add | list | remove     # API କୀସ୍ ପରିଚାଳନା କରନ୍ତୁ
-omniroute models [provider]            # ମୋଡେଲ୍ସ ତାଲିକା (--json, --search)
+omniroute provider list                # ଉପଲବ୍ଧ ପ୍ରଦାନକାରୀମାନଙ୍କୁ ତାଲିକାଭୁକ୍ତ କରନ୍ତୁ (providers listର ଉପନାମ)
+omniroute provider add                 # ଏକ ଟୁଲ୍ରେ OmniRouteକୁ ପ୍ରଦାନକାରୀ ଭାବେ ପଞ୍ଜୀକୃତ କରନ୍ତୁ
+omniroute keys add | list | remove     # API କୀଗୁଡ଼ିକ ପରିଚାଳନା କରନ୍ତୁ
+omniroute models [provider]            # ମଡେଲ୍ଗୁଡ଼ିକୁ ତାଲିକାଭୁକ୍ତ କରନ୍ତୁ (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # କନଫିଗ୍ + ଡିବି ସ୍ନାପଶଟ୍
-omniroute restore                      # ପୂର୍ବବର୍ତ୍ତୀ ସ୍ନାପଶଟ୍ ରୁ ରିଷ୍ଟୋର୍ କରନ୍ତୁ
+omniroute backup                       # ବିନ୍ୟାସ + DBର ସ୍ନାପ୍ଶଟ୍ ନିଅନ୍ତୁ
+omniroute restore                      # ପୂର୍ବ ସ୍ନାପ୍ଶଟ୍ରୁ ପୁନଃସ୍ଥାପନ କରନ୍ତୁ
 
-omniroute health                       # ବିସ୍ତୃତ ସ୍ୱାସ୍ଥ୍ୟ (ବ୍ରେକର୍ସ, କ୍ୟାଶ୍, ମେମୋରୀ)
-omniroute quota                        # ପ୍ରୋଭାଇଡର୍ କ୍ୱୋଟା ବ୍ୟବହାର
+omniroute health                       # ବିସ୍ତୃତ ସ୍ୱାସ୍ଥ୍ୟ ସ୍ଥିତି (ବ୍ରେକର୍, କ୍ୟାଶ୍, ମେମୋରି)
+omniroute quota                        # ପ୍ରଦାନକାରୀ କୋଟା ବ୍ୟବହାର
 omniroute cache                        # କ୍ୟାଶ୍ ସ୍ଥିତି
-omniroute cache clear                  # ସିମାଣ୍ଟିକ୍ + ସିଗନେଚର୍ କ୍ୟାଶ୍ ପରିଷ୍କାର କରନ୍ତୁ
+omniroute cache clear                  # ସିମାଣ୍ଟିକ୍ + ସିଗ୍ନେଚର୍ କ୍ୟାଶ୍ଗୁଡ଼ିକ ସଫା କରନ୍ତୁ
 
-omniroute mcp status | restart         # MCP ସର୍ଭର ସ୍ଥିତି / ରିଷ୍ଟାର୍ଟ
-omniroute a2a status | card            # A2A ସର୍ଭର ସ୍ଥିତି / ଏଜେଣ୍ଟ କାର୍ଡ
+omniroute mcp status | restart         # MCP ସର୍ଭର୍ ସ୍ଥିତି / ପୁନଃଚାଳନ
+omniroute a2a status | card            # A2A ସର୍ଭର୍ ସ୍ଥିତି / ଏଜେଣ୍ଟ କାର୍ଡ
 
-omniroute tunnel list | create | stop  # ଟନେଲ୍ସ ପରିଚାଳନା କରନ୍ତୁ (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # env vars ନିରୀକ୍ଷଣ / ସେଟ୍ କରନ୍ତୁ (ଅସ୍ଥାୟୀ)
+omniroute tunnel list | create | stop  # ଟନେଲ୍ଗୁଡ଼ିକ ପରିଚାଳନା କରନ୍ତୁ (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # ପରିବେଶ ଭେରିଏବଲ୍ଗୁଡ଼ିକ ଯାଞ୍ଚ / ସେଟ୍ କରନ୍ତୁ (ଅସ୍ଥାୟୀ)
 
-omniroute test                         # ପ୍ରୋଭାଇଡର୍ ସଂଯୋଗକ୍ଷମତା ସ୍ମୋକ୍ ପରୀକ୍ଷା
-omniroute update                       # ଅପଡେଟ୍ସ ପାଇଁ ଯାଞ୍ଚ କରନ୍ତୁ
-omniroute completion                   # ଶେଲ୍ କମ୍ପ୍ଲେସନ୍ ସୃଷ୍ଟି କରନ୍ତୁ
+omniroute test                         # ପ୍ରଦାନକାରୀ ସଂଯୋଗର ସ୍ମୋକ୍ ପରୀକ୍ଷା
+omniroute update                       # ଅପଡେଟ୍ଗୁଡ଼ିକ ଯାଞ୍ଚ କରନ୍ତୁ
+omniroute completion                   # ଶେଲ୍ କମ୍ପ୍ଲିସନ୍ ସୃଷ୍ଟି କରନ୍ତୁ
 ```
 
-### ସାଧାରଣ ଫ୍ଲାଗ୍ସ
+### ସାଧାରଣ ଫ୍ଲାଗ୍ଗୁଡ଼ିକ
 
-| ଫ୍ଲାଗ୍                                              | ବର୍ଣ୍ଣନା                                                 |
-| --------------------------------------------------- | -------------------------------------------------------- |
-| `--no-open`                                         | ଆରମ୍ଭରେ ବ୍ରାଉଜର୍ ସ୍ୱୟଂଚାଳିତ ନ ଖୋଲନ୍ତୁ                    |
-| `--port <n>`                                        | API ପୋର୍ଟ ଓଭରରାଇଡ୍ କରନ୍ତୁ (ଡିଫଲ୍ଟ 20128)                 |
-| `--mcp`                                             | stdio ରେ MCP ସର୍ଭର ଭାବରେ ଚଲାନ୍ତୁ (IDEs ପାଇଁ)             |
-| `--non-interactive`                                 | CI ମୋଡ୍ (ପ୍ରମ୍ପ୍ଟ ନାହିଁ; env/flags ରୁ ପଢ଼େ)              |
-| `--json`                                            | ମେସିନ୍-ରିଡେବଲ୍ JSON ଆଉଟପୁଟ୍ (doctor, providers, ଇତ୍ୟାଦି) |
-| `--help`, `-h`                                      | କମାଣ୍ଡ-ନିର୍ଦ୍ଦିଷ୍ଟ ସାହାୟ୍ୟ ଦେଖାନ୍ତୁ                      |
-| `--version`, `-v` │ ସ୍ଥାପିତ ସଂସ୍କରଣ ପ୍ରିଣ୍ଟ୍ କରନ୍ତୁ |
+| ଫ୍ଲାଗ୍              | ବର୍ଣ୍ଣନା                                                |
+| ------------------- | ------------------------------------------------------- |
+| `--no-open`         | ଆରମ୍ଭ ସମୟରେ ବ୍ରାଉଜର୍କୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ଖୋଲନ୍ତୁ ନାହିଁ    |
+| `--port <n>`        | API ପୋର୍ଟକୁ ଓଭର୍ରାଇଡ୍ କରନ୍ତୁ (ଡିଫଲ୍ଟ 20128)             |
+| `--mcp`             | stdio ମାଧ୍ୟମରେ MCP ସର୍ଭର୍ ଭାବେ ଚଲାନ୍ତୁ (IDEଗୁଡ଼ିକ ପାଇଁ) |
+| `--non-interactive` | CI ମୋଡ୍ (କୌଣସି ପ୍ରମ୍ପ୍ଟ ନାହିଁ; env/ଫ୍ଲାଗ୍ରୁ ପଢ଼େ)       |
+| `--json`            | ମେସିନ୍-ପଠନୀୟ JSON ଆଉଟ୍ପୁଟ୍ (doctor, providers ଇତ୍ୟାଦି)  |
+| `--help`, `-h`      | କମାଣ୍ଡ-ନିର୍ଦ୍ଦିଷ୍ଟ ସହାୟତା ଦେଖାନ୍ତୁ                      |
+| `--version`, `-v`   | ଇନ୍ଷ୍ଟଲ୍ ହୋଇଥିବା ସଂସ୍କରଣ ପ୍ରିଣ୍ଟ କରନ୍ତୁ                 |
 
 ---
 

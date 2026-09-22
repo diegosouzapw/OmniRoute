@@ -442,4 +442,30 @@ describe("DELETE /api/v1/batches/delete-completed — caller scope (GHSA-wvxc-jp
       "a failed sweep rolls the file content back"
     );
   });
+
+  it("a key presented ONLY via x-api-key (no anthropic-version, plain UA) sweeps its own batches, not the instance or nothing (LEDGER-27, omni-code-sec round 3)", async () => {
+    const keyA = await createApiKey("wvxc-route-xkey-a", "machine-wvxc-xa", []);
+    const keyB = await createApiKey("wvxc-route-xkey-b", "machine-wvxc-xb", []);
+    const own = seedCompletedBatch(keyA.id, "wvxc-route-xkey-own");
+    const victim = seedCompletedBatch(keyB.id, "wvxc-route-xkey-victim");
+
+    // `getApiKeyRequestScope`/`extractApiKey()` ignore a bare x-api-key with no
+    // anthropic-version/claude UA, so scope.apiKeyId is null here — only
+    // enforceApiKeyPolicy() resolves keyA via extractUngatedClientApiKey().
+    const { res, body } = await callDelete({ "x-api-key": keyA.key });
+
+    assert.strictEqual(res.status, 200, `expected a scoped sweep, got ${JSON.stringify(body)}`);
+    assert.strictEqual(body.deletedBatches, 1, "only key A's own completed batch is swept");
+    assert.strictEqual(body.deletedFiles, 1);
+    assert.strictEqual(getBatch(own.batch.id), null, "key A's own batch was deleted");
+    assert.ok(
+      getBatch(victim.batch.id),
+      "key B's batch must survive — the sweep must not fall through to instance-wide"
+    );
+    assert.strictEqual(
+      getFileContent(victim.file.id)?.toString(),
+      "wvxc-route-xkey-victim",
+      "key B's file content must not be nulled by key A's x-api-key sweep"
+    );
+  });
 });

@@ -183,6 +183,31 @@ export function maskAccountId(fingerprint: string): string {
   return `${fingerprint.slice(0, 8)}…`;
 }
 
+/** One per-account rotation entry, keyed by connection id (never a fingerprint). */
+export interface RotationAccountSnapshot {
+  /** Already-masked id (`maskAccountId` output) — never the full fingerprint. */
+  masked: string;
+  ready: boolean;
+  cooldownUntilMs: number | null;
+  consecutiveFails: number;
+}
+
+const rotationSnapshots = new Map<string, RotationAccountSnapshot[]>();
+
+/** Record the current rotation state for a connection (sync, in-memory only). */
+export function recordRotationSnapshot(
+  connectionKey: string,
+  entries: RotationAccountSnapshot[]
+): void {
+  rotationSnapshots.set(connectionKey, [...entries]);
+}
+
+/** Read the last recorded rotation state (no side effects — never clears). */
+export function readRotationSnapshot(connectionKey: string): RotationAccountSnapshot[] | null {
+  const snap = rotationSnapshots.get(connectionKey);
+  return snap ? [...snap] : null;
+}
+
 /**
  * Whether a network exception (timeout, connection refused/reset) on this
  * account should trigger rotation to the next account, vs propagating.
