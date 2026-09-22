@@ -34,7 +34,8 @@ export interface ConnectionState {
   authType: string;
   priority: number;
   isActive: boolean;
-  connectionStatus: "healthy" | "cooling_down" | "circuit_open" | "terminal";  rateLimitedUntil: string | null;
+  connectionStatus: "healthy" | "cooling_down" | "circuit_open" | "terminal";
+  rateLimitedUntil: string | null;
   backoffLevel: number;
   testStatus: string | null;
   lastErrorType: string | null;

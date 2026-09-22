@@ -2069,9 +2069,7 @@ async function handleSingleModelChat(
         comboName,
         clientRawRequest,
         tlsFingerprintUsed,
-        rotationAccount: rotationAttributionOn
-          ? (appliedProxySink.rotationAccount ?? null)
-          : null,
+        rotationAccount: rotationAttributionOn ? (appliedProxySink.rotationAccount ?? null) : null,
         correlationId: rotationAttributionOn ? (runtimeOptions?.correlationId ?? null) : null,
       });
 

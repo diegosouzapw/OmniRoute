@@ -5,10 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createProviderConnection } from "../../src/lib/db/providers.ts";
-import {
-  recordRotationSnapshot,
-  maskAccountId,
-} from "../../open-sse/executors/accountRotation.ts";
+import { recordRotationSnapshot, maskAccountId } from "../../open-sse/executors/accountRotation.ts";
 
 process.env.ROTATION_ATTRIBUTION = "true";
 
