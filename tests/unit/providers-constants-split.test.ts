@@ -37,12 +37,13 @@
 // GreenPT (#13024, 2b9e7fb3e) and EURouter (#13025, 22473dee5) each add one gateways entry — 240.
 // Agnes AI China (#13399, cdcde97c7) adds one apikey/regional entry — 241.
 // xKiro (#12648, 83fa4328f) adds one apikey entry — 242.
+// Lyceum (pay-per-use OpenAI-compatible gateway, 2026-09-20) adds one apikey entry — 243.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
 
-const APIKEY_PROVIDER_COUNT = 242;
+const APIKEY_PROVIDER_COUNT = 243;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [
