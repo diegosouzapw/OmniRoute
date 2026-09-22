@@ -2723,7 +2723,7 @@
     "ccOnboardingTitle": "settings.json za gateway otkrivanje modela",
     "ccOnboardingCopy": "Kopiraj",
     "ccOnboardingCopied": "Kopirano",
-    "ccOnboardingKeyPlaceholder": "'vaš OmniRoute API ključ'",
+    "ccOnboardingKeyPlaceholder": "'<vaš OmniRoute API ključ>'",
     "ccOnboardingWindowNote": "Claude Code pretpostavlja kontekstni prozor od 200K za bilo koji ID modela koji ne prepoznaje. Za model sa drugačijim stvarnim prozorom, dodajte CLAUDE_CODE_AUTO_COMPACT_WINDOW odmah ispod njega kako auto-kompaktacija ne bi bila pokrenuta prerano.",
     "failedSave": "Greška pri spremanju",
     "profileSyncTitle": "Auto-sinhronizacija CLI profila",
