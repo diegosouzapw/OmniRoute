@@ -228,6 +228,27 @@ async function safeErrorBody(res) {
   return "";
 }
 
+// A poll response only keeps the loop alive when it carries pending /
+// slow_down semantics; the server also honours these on non-200 bodies, so
+// the check runs before any terminal-error exit.
+function isPendingPollBody(body) {
+  return (
+    body?.pending === true ||
+    body?.error === "slow_down" ||
+    body?.error === "authorization_pending"
+  );
+}
+
+// Render a failed poll response as "<status>: <error|message|raw body>" so
+// the real server-side reason is surfaced instead of a bare timeout.
+function describePollError(status, body) {
+  const detail =
+    typeof body?.error === "string"
+      ? body.error
+      : (body?.error?.message ?? body?.message ?? JSON.stringify(body ?? {}));
+  return `${status}${detail ? `: ${detail}` : ""}`;
+}
+
 async function runImportFlow(def, opts) {
   const endpoint = opts.importFromSystem
     ? `/api/oauth/${def.id}/auto-import`
@@ -292,7 +313,21 @@ async function runSocialFlow(def, opts) {
       method: "POST",
       body: { deviceCode, provider: social },
     });
-    if (!pollRes.ok) continue;
+    if (!pollRes.ok) {
+      // The real route returns terminal errors (expired_token,
+      // authorization_failed, 400/401 validation/auth failures) with a non-200
+      // status and pending:false; 200 bodies carry only pending or success.
+      // Fail fast with the status and body instead of looping to the timeout
+      // (PR #14350 review finding 1).
+      const errBody = await pollRes.json().catch(() => null);
+      if (!isPendingPollBody(errBody)) {
+        process.stderr.write(
+          `Social authorization failed: ${describePollError(pollRes.status, errBody)}\n`
+        );
+        process.exit(1);
+      }
+      continue;
+    }
     let poll;
     try {
       poll = await pollRes.json();
@@ -372,7 +407,22 @@ async function runCallbackFlow(def, opts) {
       method: "POST",
       body: {},
     });
-    if (!pollRes.ok) continue;
+    if (!pollRes.ok) {
+      // poll-callback returns terminal errors with non-200 statuses too —
+      // token-exchange failures come back as HTTP 500 with
+      // {success:false, error:"Internal server error"}. Only pending /
+      // slow_down semantics retry; everything else fails fast with the
+      // status and body instead of looping to the timeout
+      // (PR #14350 review finding 1).
+      const errBody = await pollRes.json().catch(() => null);
+      if (!isPendingPollBody(errBody)) {
+        process.stderr.write(
+          `Authorization failed: ${describePollError(pollRes.status, errBody)}\n`
+        );
+        process.exit(1);
+      }
+      continue;
+    }
     let poll;
     try {
       poll = await pollRes.json();

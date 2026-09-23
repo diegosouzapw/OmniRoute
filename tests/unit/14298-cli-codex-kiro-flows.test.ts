@@ -144,6 +144,218 @@ test("#14298: codex uses the server-hosted callback flow, not a device flow", as
   }
 });
 
+// Capture process.stderr writes for the duration of an async fn so the
+// failure-path messages can be asserted without polluting the test output.
+// Resolves to { result, stderr }.
+async function captureStderr(fn) {
+  const realWrite = process.stderr.write;
+  let out = "";
+  process.stderr.write = (chunk) => {
+    out += typeof chunk === "string" ? chunk : String(chunk);
+    return true;
+  };
+  try {
+    return { result: await fn(), stderr: out };
+  } finally {
+    process.stderr.write = realWrite;
+  }
+}
+
+function fakeKiroSocialStart(userCode) {
+  return {
+    authUrl: `https://kiro.test/device?user_code=${userCode}`,
+    deviceCode: `dc-${userCode}`,
+    userCode,
+    expiresIn: 60,
+    interval: 1,
+    provider: "google",
+  };
+}
+
+test("#14298 + review: kiro social-exchange non-200 terminal error fails fast", async () => {
+  const { server, requests, baseUrl } = await startFakeServer((req, res) => {
+    const url = req.url.split("?")[0];
+    if (url === "/api/oauth/kiro/social-authorize") {
+      if (req.method !== "GET") {
+        return respondJson(res, 405, { error: "Method Not Allowed" });
+      }
+      return respondJson(res, 200, fakeKiroSocialStart("UC-E"));
+    }
+    if (url === "/api/oauth/kiro/social-exchange") {
+      if (req.method !== "POST") {
+        return respondJson(res, 405, { error: "Method Not Allowed" });
+      }
+      // Mirror the real route's error branch (classifyKiroSocialPoll:
+      // { status: poll.status }): terminal errors come back with a non-200
+      // status and pending:false, never as HTTP 200.
+      return respondJson(res, 400, {
+        success: false,
+        pending: false,
+        error: "expired_token",
+      });
+    }
+    respondJson(res, 404, { error: "Unknown provider" });
+  });
+
+  try {
+    const { result: exitCode } = await captureStderr(() =>
+      runStartCatchingExit({
+        provider: "kiro",
+        social: "google",
+        browser: false,
+        baseUrl,
+        timeout: 15000,
+      })
+    );
+    assert.equal(
+      exitCode,
+      1,
+      `the terminal non-200 error must exit 1 immediately (got ${exitCode})`
+    );
+
+    const exchangeReqs = requests.filter((r) => r.url.includes("/social-exchange"));
+    assert.equal(
+      exchangeReqs.length,
+      1,
+      "a non-200 terminal error must stop the poll loop after the first exchange"
+    );
+  } finally {
+    server.close();
+  }
+});
+
+test("#14298 + review: the non-200 terminal error message carries status and error", async () => {
+  const { server, baseUrl } = await startFakeServer((req, res) => {
+    const url = req.url.split("?")[0];
+    if (url === "/api/oauth/kiro/social-authorize") {
+      return respondJson(res, 200, fakeKiroSocialStart("UC-M"));
+    }
+    if (url === "/api/oauth/kiro/social-exchange") {
+      return respondJson(res, 400, {
+        success: false,
+        pending: false,
+        error: "expired_token",
+      });
+    }
+    respondJson(res, 404, { error: "Unknown provider" });
+  });
+
+  try {
+    const { stderr } = await captureStderr(() =>
+      runStartCatchingExit({
+        provider: "kiro",
+        social: "google",
+        browser: false,
+        baseUrl,
+        timeout: 15000,
+      })
+    );
+    assert.ok(
+      stderr.includes("400") && stderr.includes("expired_token"),
+      `stderr must carry the HTTP status and the server error code, got: ${stderr}`
+    );
+    assert.ok(
+      !stderr.includes("Timeout"),
+      `the CLI must fail fast instead of timing out, got: ${stderr}`
+    );
+  } finally {
+    server.close();
+  }
+});
+
+test("#14298 + review: non-200 slow_down on social-exchange keeps polling", async () => {
+  let pollCount = 0;
+  const { server, requests, baseUrl } = await startFakeServer((req, res) => {
+    const url = req.url.split("?")[0];
+    if (url === "/api/oauth/kiro/social-authorize") {
+      return respondJson(res, 200, fakeKiroSocialStart("UC-S"));
+    }
+    if (url === "/api/oauth/kiro/social-exchange") {
+      pollCount += 1;
+      if (pollCount === 1) {
+        // slow_down semantics keep the loop alive even on a non-200 status.
+        return respondJson(res, 429, { success: false, pending: true, error: "slow_down" });
+      }
+      return respondJson(res, 200, {
+        success: true,
+        connection: { id: "conn-kiro", provider: "kiro", email: "dev@gmail.example" },
+      });
+    }
+    respondJson(res, 404, { error: "Unknown provider" });
+  });
+
+  try {
+    const exitCode = await runStartCatchingExit({
+      provider: "kiro",
+      social: "google",
+      browser: false,
+      baseUrl,
+      timeout: 15000,
+    });
+    assert.equal(exitCode, null, `slow_down must keep the poll loop alive (got ${exitCode})`);
+
+    const exchangeReqs = requests.filter((r) => r.url.includes("/social-exchange"));
+    assert.ok(exchangeReqs.length >= 2, "the loop must retry after slow_down");
+  } finally {
+    server.close();
+  }
+});
+
+test("#14298 + review: poll-callback 500 exchange failure fails fast", async () => {
+  const { server, requests, baseUrl } = await startFakeServer((req, res) => {
+    if (req.method === "GET" && req.url === "/api/oauth/codex/start-callback-server") {
+      return respondJson(res, 200, {
+        authUrl: "https://auth.openai.com/oauth/authorize?code_challenge=x",
+        codeVerifier: "verifier-1",
+        redirectUri: "http://localhost:1455/auth/callback",
+        serverPort: 1455,
+        remoteHost: false,
+      });
+    }
+    if (req.method === "POST" && req.url === "/api/oauth/codex/poll-callback") {
+      // Mirror the real route: the token-exchange failure path returns
+      // HTTP 500 with {success:false, error:"Internal server error"}.
+      return respondJson(res, 500, { success: false, error: "Internal server error" });
+    }
+    respondJson(res, 404, { error: "Unknown provider" });
+  });
+
+  try {
+    const { result: exitCode, stderr } = await captureStderr(() =>
+      runStartCatchingExit({
+        provider: "codex",
+        browser: false,
+        baseUrl,
+        timeout: 15000,
+      })
+    );
+    assert.equal(
+      exitCode,
+      1,
+      `the 500 exchange failure must exit 1 immediately (got ${exitCode})`
+    );
+
+    const pollReqs = requests.filter(
+      (r) => r.method === "POST" && r.url === "/api/oauth/codex/poll-callback"
+    );
+    assert.equal(
+      pollReqs.length,
+      1,
+      "a 500 exchange failure must stop the poll loop after the first poll"
+    );
+    assert.ok(
+      stderr.includes("500") && stderr.includes("Internal server error"),
+      `stderr must carry the HTTP status and the server error, got: ${stderr}`
+    );
+    assert.ok(
+      !stderr.includes("Timeout"),
+      `the CLI must fail fast instead of timing out, got: ${stderr}`
+    );
+  } finally {
+    server.close();
+  }
+});
+
 test("#14298: kiro social flow uses GET social-authorize and POST social-exchange", async () => {
   let pollCount = 0;
   const { server, requests, baseUrl } = await startFakeServer((req, res) => {
