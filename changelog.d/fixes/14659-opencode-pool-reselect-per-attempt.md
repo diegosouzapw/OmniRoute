@@ -1,0 +1,1 @@
+- **fix(sse):** the opencode rotation may serve the next attempt from another pool member after a 429 from an egress-bucketed provider, instead of retrying the refused egress address ([#14659](https://github.com/diegosouzapw/OmniRoute/pull/14659)) — thanks @maxmad64bis

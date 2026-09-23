@@ -473,8 +473,21 @@ export async function executeChatWithBreaker({
   // #5217: capture the proxy actually applied during execution so the caller can
   // merge it into proxyInfo before the egress log (executors pinning a per-account
   // proxy internally otherwise leave the egress log reading "direct").
-  const capture = <T>(fn: () => T): T =>
-    appliedProxySink ? runWithAppliedProxyCapture(appliedProxySink, fn) : fn();
+  // Pool re-selection: when the resolved egress came from a live connection pool
+  // (source "registry"), publish a resolver on the sink so the executor may ask
+  // the pool for another member after a per-address refusal (see
+  // publishPoolReselectResolver below). Anything else (direct, pinned
+  // assignment) leaves the sink without a resolver and the executor keeps its
+  // current behavior.
+  const capture = <T>(fn: () => T): T => {
+    if (!appliedProxySink) return fn();
+    publishPoolReselectResolver(appliedProxySink, proxyInfo, {
+      connectionId: credentials?.connectionId,
+      apiKeyId: (apiKeyInfo as { id?: unknown } | null)?.id,
+      provider,
+    });
+    return runWithAppliedProxyCapture(appliedProxySink, fn);
+  };
 
   const pressureGuard = checkResourcePressureBeforeProviderWork();
   if (pressureGuard) {
@@ -1058,6 +1071,38 @@ export function withUpstreamStatus<T extends object>(
 ) {
   if (typeof sink.upstreamStatus !== "number") return info;
   return { ...(info || {}), upstreamStatus: sink.upstreamStatus };
+}
+
+/**
+ * Publish a pool-member resolver on the applied-proxy capture sink when the
+ * resolved egress came from a live connection pool (source "registry"). The
+ * executor calls it after a per-address 429 to serve the next attempt from
+ * another member. The pool's own selection (round-robin advance, sticky hold,
+ * set-aside order) decides what comes back, including repeating the same
+ * member when the pool holds it — the executor treats a repeat as "nothing
+ * else to offer". Never throws, never overwrites an existing resolver.
+ */
+export function publishPoolReselectResolver(
+  sink: AppliedProxySink | null | undefined,
+  proxyInfo: { proxy?: unknown; source?: unknown } | null | undefined,
+  ids: { connectionId?: unknown; apiKeyId?: unknown; provider?: unknown }
+): void {
+  try {
+    if (!sink || proxyInfo?.source !== "registry" || proxyInfo?.proxy == null) return;
+    if (typeof (sink as { reselectPoolMember?: unknown }).reselectPoolMember === "function") {
+      return;
+    }
+    const connectionId = typeof ids.connectionId === "string" ? ids.connectionId : null;
+    if (!connectionId) return;
+    const apiKeyId = typeof ids.apiKeyId === "string" ? ids.apiKeyId : undefined;
+    const providerId = typeof ids.provider === "string" ? ids.provider : undefined;
+    (sink as { reselectPoolMember?: () => Promise<unknown> }).reselectPoolMember = async () => {
+      const next = await resolveProxyForConnection(connectionId, apiKeyId, providerId);
+      return (next as { proxy?: unknown } | null)?.proxy ?? null;
+    };
+  } catch {
+    /* resolver publication is best-effort; the executor falls back */
+  }
 }
 
 /** Merge both things the applied-proxy sink captured: the executor proxy, then the status. */
