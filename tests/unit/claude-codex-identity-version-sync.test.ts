@@ -40,6 +40,15 @@ test("Claude CLI version constants are in lockstep across all 4 sources", () => 
   );
 });
 
+test("Claude CLI pin clears Anthropic's Opus 5.5 model gate (>= 2.1.280)", () => {
+  const [major, minor, patch] = canonical.CLAUDE_CODE_CLIENT_VERSION.split(".").map(Number);
+  const meetsGate = major > 2 || (major === 2 && (minor > 1 || (minor === 1 && patch >= 280)));
+  assert.ok(
+    meetsGate,
+    `claude-cli pin ${canonical.CLAUDE_CODE_CLIENT_VERSION} < 2.1.280 — Anthropic rejects claude-opus-5-5 with 400 "Claude Code ${canonical.CLAUDE_CODE_CLIENT_VERSION} does not support this model"`
+  );
+});
+
 test("Claude CLI wire versions match the captured 2.1.280 binary", () => {
   assert.equal(canonical.CLAUDE_CODE_CLIENT_VERSION, "2.1.280");
   assert.equal(canonical.CLAUDE_CODE_CLIENT_BUILD_REVISION, "d7b");
