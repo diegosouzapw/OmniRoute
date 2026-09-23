@@ -188,6 +188,7 @@
     "check:provider-asset-provenance": "node scripts/check/check-provider-asset-provenance.mjs",
     "check:radar-sentinels": "node scripts/check/check-radar-sentinels.mjs",
     "check:nvidia-catalog-drift": "node --import tsx/esm scripts/check/check-nvidia-catalog-drift.ts",
+    "check:cli-fingerprint-drift": "node --import tsx/esm scripts/check/check-cli-fingerprint-drift.ts",
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",
     "check:api-docs-refs": "node scripts/check/check-api-docs-refs.mjs",
