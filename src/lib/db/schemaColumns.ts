@@ -276,6 +276,7 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
     );
     db.exec("CREATE INDEX IF NOT EXISTS idx_cl_correlation_id ON call_logs(correlation_id)");
     db.exec("CREATE INDEX IF NOT EXISTS idx_cl_session_tag ON call_logs(session_tag)");
+    db.exec("CREATE INDEX IF NOT EXISTS idx_cl_error_type ON call_logs(error_type)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify call_logs schema:", message);

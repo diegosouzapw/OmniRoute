@@ -1,0 +1,1 @@
+- **fix(db):** speed up the call-log failure breakdown with a dedicated error-type index ([#14662](https://github.com/diegosouzapw/OmniRoute/pull/14662))
