@@ -1,10 +1,10 @@
 # API Reference (Azərbaycan dili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 OmniRoute API üçün əsas istinad sənədi. Bu sənəd açıq `/v1` interfeysini və ən çox istifadə olunan idarəetmə son nöqtələrini əhatə edir; maşın tərəfindən oxuna bilən [`docs/openapi.yaml`](../openapi.yaml) faylı və `src/app/api/` altındakı marşrut ağacı tam mənbələrdir.
 
@@ -438,48 +438,48 @@ Sidecar prosesdən kənarda işlədikdə və `open-sse/config/providerPluginMani
 
 ---
 
-## Uyğunluq Son Nöqtələri
+## Uyğunluq endpoint-ləri
 
-| Metod | Yol                                       | Format                                     |
-| ----- | ----------------------------------------- | ------------------------------------------ |
-| POST  | `/v1/chat/completions`                    | OpenAI                                     |
-| POST  | `/v1/messages`                            | Anthropic                                  |
-| POST  | `/v1/responses`                           | OpenAI Responses                           |
-| POST  | `/v1/embeddings`                          | OpenAI                                     |
-| POST  | `/v1/images/generations`                  | OpenAI Images                              |
-| POST  | `/v1/images/edits`                        | OpenAI Images (redaktə/doldurma)           |
-| POST  | `/v1/videos/generations`                  | OpenAI üslubunda video generasiyası        |
-| POST  | `/v1/music/generations`                   | OpenAI üslubunda musiqi generasiyası       |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (nitqdən mətnə)               |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (audio gövdəsi qaytarır)        |
-| POST  | `/v1/rerank`                              | Cohere/Voyage üslubunda yenidən sıralama   |
-| POST  | `/v1/classify`                            | Jina təsnifatı (`api.jina.ai`)             |
-| POST  | `/v1/segment`                             | Jina seqmentatoru (`segment.jina.ai`)      |
-| POST  | `/v1/moderations`                         | OpenAI Moderations                         |
-| GET   | `/v1/models`                              | OpenAI                                     |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                                  |
-| GET   | `/v1beta/models`                          | Gemini                                     |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                     |
-| POST  | `/v1/api/chat`                            | Ollama                                     |
-| GET   | `/api/v1/vscode/{token}/`                 | OpenAI kataloq aliası                      |
-| GET   | `/api/v1/vscode/{token}/models`           | OpenAI modellər aliası                     |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenləşdirilmiş aliası             |
-| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenləşdirilmiş aliası   |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenləşdirilmiş aliası             |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama teqləri üçün tokenləşdirilmiş alias |
+| Metod | Yol                                       | Format                                      |
+| ----- | ----------------------------------------- | ------------------------------------------- |
+| POST  | `/v1/chat/completions`                    | OpenAI                                      |
+| POST  | `/v1/messages`                            | Anthropic                                   |
+| POST  | `/v1/responses`                           | OpenAI Responses                            |
+| POST  | `/v1/embeddings`                          | OpenAI                                      |
+| POST  | `/v1/images/generations`                  | OpenAI Images                               |
+| POST  | `/v1/images/edits`                        | OpenAI Images (redaktə/inpaint)             |
+| POST  | `/v1/videos/generations`                  | OpenAI üslubunda video generasiyası         |
+| POST  | `/v1/music/generations`                   | OpenAI üslubunda musiqi generasiyası        |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                          |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (audio gövdəsi qaytarır)         |
+| POST  | `/v1/rerank`                              | Cohere/Voyage üslubunda yenidən sıralama    |
+| POST  | `/v1/classify`                            | Jina təsnifatı (`api.jina.ai`)              |
+| POST  | `/v1/segment`                             | Jina seqmentləşdiricisi (`segment.jina.ai`) |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                          |
+| GET   | `/v1/models`                              | OpenAI                                      |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                                   |
+| GET   | `/v1beta/models`                          | Gemini                                      |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                      |
+| POST  | `/v1/api/chat`                            | Ollama                                      |
+| GET   | `/api/v1/vscode/{token}/`                 | OpenAI kataloq aliası                       |
+| GET   | `/api/v1/vscode/{token}/models`           | OpenAI modelləri aliası                     |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenləşdirilmiş aliası              |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenləşdirilmiş aliası    |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenləşdirilmiş aliası              |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama teqləri üçün tokenləşdirilmiş alias  |
 
-Bütün POST marşrutları eyni struktura uyğundur: `Bearer your-api-key` + Zod tərəfindən doğrulanan JSON gövdəsi (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` və s.; `src/shared/validation/schemas.ts` faylına baxın). Sxem doğrulaması uğursuz olduqda 4xx qaytarılır.
+Bütün POST marşrutları eyni quruluşa malikdir: `Bearer your-api-key` + Zod tərəfindən doğrulanan JSON gövdəsi (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` və s.; `src/shared/validation/schemas.ts` faylına baxın). Sxem doğrulaması uğursuz olduqda 4xx qaytarılır.
 
-`Authorization: Bearer ...` əlavə edə bilməyən müştərilər üçün OmniRoute API açarlarını URL daxilində də qəbul edir: ya sorğu sətri uyğunluğu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), ya da aşağıda sənədləşdirilmiş xüsusi `/api/v1/vscode/{token}/...` son nöqtələri vasitəsilə.
+`Authorization: Bearer ...` əlavə edə bilməyən klientlər üçün OmniRoute API açarlarını həm sorğu sətri uyğunluğu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), həm də aşağıda sənədləşdirilmiş xüsusi `/api/v1/vscode/{token}/...` endpoint-ləri vasitəsilə URL-də qəbul edir.
 
 ```bash
-# Yenidən sıralama
+# Yenidən sıralama (bulud reyestri provayderi və ya "<prefix>/<model>" şəklində OpenAI-uyğun provayder qovşağı)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina təsnifatı (Foundation API etimadnamələri)
+# Jina təsnifatı (Foundation API giriş məlumatları)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina seqmentatoru
+# Jina seqmentləşdiricisi
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
 # Jina axtarışı (s.jina.ai; provayder aliasları: jina-search, jina-ai, jina)
@@ -488,16 +488,38 @@ POST /v1/search      { "query": "...", "provider": "jina-search" }
 # Moderasiya
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (və ya tələb olunan formatda) gövdəsi qaytarır
+# TTS — audio/mpeg (və ya tələb olunan formatda) gövdə qaytarır
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Şəkil redaktəsi (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Video / musiqi generasiyası (provayder prefiksli model ID-si)
+# Video / musiqi generasiyası (provayder prefiksli model identifikatoru)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Yenidən sıralama provayder qovşaqları:** `POST /v1/rerank` sorğuları həmçinin `<node-prefix>/<model>` kimi ünvanlanan
+> OpenAI-uyğun provayder qovşaqlarına (oMLX, vLLM, Infinity, şlüz arxasındakı TEI, …) yönləndirir. Loopback
+> qovşaqları (`localhost`, `127.0.0.1`, `172.16.0.0/12`) həmişə uyğundur. İstənilən digər hostdakı
+> qovşaqlar — LAN-dakı cihaz və ya Tailscale tərəfi — yalnız operator `RERANK_REMOTE_PROVIDER_NODES`
+> funksiya bayrağını aktiv etdikdə **və** qovşağın baza URL-i provayderin çıxış URL siyasətindən
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) keçdikdə uyğundur;
+> bulud metadata hostlarına heç vaxt yönləndirmə aparılmır. Yaddaş mühərrikinin yenidən sıralama mərhələsi bu marşrutu
+> loopback üzərindən çağırır, buna görə də eyni qayda Yaddaş ayarlarındakı `rerankProviderModel` üçün də keçərlidir.
+>
+> **Lokal server strukturları:** qovşaq `<base>/v1/rerank` ünvanında, 404 halında isə `<base>/rerank`
+> ünvanında çağırılır (Infinity, TEI). Yuxarı axına göndərilən gövdə həm Cohere/OpenAI yazılışını (`documents`,
+> `return_documents`), həm də TEI yazılışını (`texts`, `return_text`) ehtiva edir və yuxarı axından gələn cavab
+> Cohere zərfinə normallaşdırılır: TEI-nin sadə `[{index, score, text}]` formatı, yüngül şlüzlərdən gələn
+> `{results: [{index, score}]}` və Voyage üslubundakı `{data: [...]}` cavablarının hamısı klientə
+> `{results: [{index, relevance_score, document?}]}` şəklində, xala görə sıralanmış və `top_n` ilə məhdudlaşdırılmış olaraq qaytarılır.
+
+> **Provayder qovşaqlarının aşkarlanması:** OpenAI-uyğun provayder qovşağındakı modellər `GET /v1/models`
+> daxilində qovşaq prefiksi altında görünür. Endpoint metadatası olmayan sətirlər (lokal `/v1/models` siyahıları üçün tipikdir)
+> qovşağın `apiType` dəyərini miras alır; beləliklə, susmaya görə çat kimi qəbul edilmək əvəzinə, `embeddings`
+> qovşağının modelləri `type: "embedding"`, `rerank` qovşağının modelləri isə `type: "rerank"` olur.
+> Sinxronlaşdırılmış və ya əl ilə əlavə edilmiş sətirdə açıq şəkildə göstərilən `supportedEndpoints` yenə də üstünlüyə malikdir.
 
 ### Xüsusi Provayder Marşrutları
 

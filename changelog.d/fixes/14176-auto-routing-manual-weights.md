@@ -1,0 +1,1 @@
+- **fix(combos):** Editing auto-routing factor sliders now selects custom scoring, so an existing mode pack no longer silently discards reset-window and other manual weights. Preserve additional combo settings when editing routing controls. Auto reset affinity combines weekly (65%) and session (35%) urgency, while retaining explicit window selections.

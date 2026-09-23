@@ -46,7 +46,13 @@ test("BUG #6906: live translator — response.completed carries usage when the u
   assert.ok(completedEvent, "response.completed event should be emitted");
   assert.deepEqual(
     completedEvent.data.response.usage,
-    { input_tokens: 2249, output_tokens: 123, total_tokens: 2372 },
+    {
+      input_tokens: 2249,
+      input_tokens_details: { cached_tokens: 0 },
+      output_tokens: 123,
+      output_tokens_details: { reasoning_tokens: 0 },
+      total_tokens: 2372,
+    },
     "response.completed must carry usage even when the usage-only chunk trails finish_reason"
   );
 });

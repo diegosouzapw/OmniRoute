@@ -71,10 +71,25 @@ export type HandleSingleModel = (
   target?: SingleModelTarget
 ) => Promise<Response>;
 
+/**
+ * `true` means the target may be dispatched.
+ * `false` is the generic availability bucket (credentials, key policy, hidden).
+ * `"model_not_in_catalog"` is the live-catalog miss, recorded separately.
+ */
+export type ModelAvailabilityResult = boolean | "model_not_in_catalog";
+
 export type IsModelAvailable = (
   modelStr: string,
   target?: ResolvedComboTarget & { allowRateLimitedConnection?: boolean }
-) => Promise<boolean> | boolean;
+) => Promise<ModelAvailabilityResult> | ModelAvailabilityResult;
+
+/** `null` when the target may be dispatched. */
+export function modelAvailabilitySkipReason(
+  result: ModelAvailabilityResult
+): "availability" | "model_not_in_catalog" | null {
+  if (result === true) return null;
+  return result === "model_not_in_catalog" ? "model_not_in_catalog" : "availability";
+}
 
 export type ComboRelayOptions = {
   sessionId?: string | null;

@@ -1,6 +1,6 @@
 # Resilience Guide (Հայերեն)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -66,96 +66,140 @@ OmniRoute-ն ունի խափանումների նկատմամբ կայունու
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`։
 Հետընթաց սխալներից պաշտպանիչ ստուգում՝ `tests/unit/provider-cooldown-window-gate.test.ts`։
 
-## 2. Կապի հովացման ժամանակահատված
+## 2. Կապի սառեցման ժամանակահատված
 
-**Շրջանակ․** մեկ մատակարարի կապ/հաշիվ/բանալի։
+**Շրջանակը՝** մեկ մատակարարի կապ/հաշիվ/բանալի։
 
-**Նպատակ․** բաց թողնել մեկ անսարք բանալի՝ միևնույն մատակարարի մյուս կապերին թույլ տալով շարունակել սպասարկումը։
+**Նպատակը՝** բաց թողնել մեկ անսարք բանալի, մինչ նույն մատակարարի մյուս կապերը շարունակում են սպասարկել։
 
-**Իրականացում․**
+**Իրականացումը՝**
 
 - Նշել որպես անհասանելի՝ `src/sse/services/auth.ts::markAccountUnavailable()`
-- Ընտրություն՝ նույն ֆայլի `getProviderCredentials*`
-- Հովացման հաշվարկ՝ `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Ընտրություն՝ նույն ֆայլում գտնվող `getProviderCredentials*`
+- Սառեցման հաշվարկ՝ `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Կարգավորումներ՝ `src/lib/resilience/settings.ts`
 
-**Դաշտերը՝ ըստ կապի․**
+**Դաշտերը յուրաքանչյուր կապի համար՝**
 
-- `rateLimitedUntil` — ժամանակային դրոշմ՝ մինչև հովացման ավարտը
+- `rateLimitedUntil` — ժամանակային դրոշմ՝ մինչև սառեցման ավարտը
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — էքսպոնենցիալ հետաձգման հաշվիչ
 
-**Լռելյայն հովացման ժամանակահատվածներ․**
+**Լռելյայն սառեցման ժամանակահատվածները՝**
 
 - OAuth-ի բազային արժեք՝ 5 վ
 - API բանալու բազային արժեք՝ 3 վ
-- API բանալու 429՝ նախապատվությունը տալիս է վերին հոսքից ստացված `Retry-After`/վերակայման վերնագրերին/վերլուծելի վերակայման տեքստին
+- API բանալու 429՝ նախապատվությունը տրվում է սկզբնաղբյուրի `Retry-After`/վերակայման վերնագրերին/վերլուծելի վերակայման տեքստին
 - Հետաձգում՝ `baseCooldownMs * 2 ** failureIndex`
 
-**Միաժամանակյա կուտակված հարցումներից պաշտպանություն․** կանխում է, որ միաժամանակյա ձախողումները չափից ավելի երկարացնեն հովացման ժամանակահատվածը կամ կրկնակի ավելացնեն `backoffLevel`-ը։
+**Միաժամանակյա հարցումների կուտակման դեմ պաշտպանություն՝** կանխում է, որ միաժամանակյա խափանումները չափազանց երկարացնեն սառեցումը կամ կրկնակի ավելացնեն `backoffLevel`-ը։
 
-**Վերջնական վիճակներ (ՈՉ հովացման ժամանակահատվածներ)․**
+**Վերջնական վիճակներ (սառեցումներ ՉԵՆ)՝**
 
-- `banned` — սահմանվում է արգելված հիմնաբառի / հաշվի արգելափակման հայտնաբերմամբ (տե՛ս [BAN_DETECTION](../security/BAN_DETECTION.md)), ինչպես նաև վերին հոսքի կողմից յուրաքանչյուր հարցման համար երեք հաջորդական մերժումից հետո (`request_rejected`, օրինակ՝ Anthropic OAuth 403 «Request not allowed» — `open-sse/services/requestRejectedStreak.ts`)․ մեկ մերժումը միայն ժամանակավորապես հովացնում է կապը
-- `expired` (սահմանափակ թվով կրկնափորձերից հետո անցնում է վերջնական վիճակի՝ `EXPIRED_RETRY_MAX = 3`, էքսպոնենցիալ հետաձգմամբ, որպեսզի OAuth-ի ժամանակավոր սխալները կարողանան ինքնուրույն վերականգնվել՝ նախքան հաշվի մշտական ապաակտիվացումը)
+- `banned` — սահմանվում է արգելված հիմնաբառի / հաշվի արգելափակման հայտնաբերմամբ (տե՛ս [BAN_DETECTION](../security/BAN_DETECTION.md)), ինչպես նաև սկզբնաղբյուրի՝ յուրաքանչյուր հարցման մակարդակում երեք հաջորդական մերժումներից հետո (`request_rejected`, օրինակ՝ Anthropic OAuth 403 "Հարցումը թույլատրված չէ" — `open-sse/services/requestRejectedStreak.ts`)․ մեկ մերժումը միայն ժամանակավորապես սառեցնում է կապը
+- `expired` (սահմանափակ թվով կրկնափորձերից հետո անցնում է վերջնական վիճակի՝ `EXPIRED_RETRY_MAX = 3`, էքսպոնենցիալ հետաձգմամբ, որպեսզի OAuth-ի անցողիկ սխալները կարողանան ինքնուրույն վերականգնվել՝ նախքան հաշվի մշտական ապաակտիվացումը)
 - `credits_exhausted`
 
-Այս վիճակները պահպանվում են, մինչև հավատարմագրերը փոխվեն կամ օպերատորը վերակայի դրանք։ Վերջնական վիճակները մի՛ վերագրեք ժամանակավոր հովացման վիճակով։
+Այս վիճակները պահպանվում են, մինչև մուտքային տվյալները փոխվեն կամ օպերատորը վերակայի դրանք։ Վերջնական վիճակները մի՛ վերագրեք անցողիկ սառեցման վիճակով։
 
-**Ծույլ վերականգնում․** երբ `rateLimitedUntil`-ն անցյալում է, կապը կրկին դառնում է ընտրելի։ Հաջող օգտագործման դեպքում `clearAccountError()`-ը մաքրում է սխալի բոլոր դաշտերը։
+**Ծույլ վերականգնում՝** երբ `rateLimitedUntil`-ն անցյալում է, կապը կրկին դառնում է կիրառելի։ Հաջող օգտագործման դեպքում `clearAccountError()`-ը մաքրում է սխալի բոլոր դաշտերը։
 
-### Սեսիայի կապակցվածություն (#7274)
+### Claude OAuth-ի օգտագործման սահմանափակում՝ ցածր առաջնահերթության ուղի + աշխատաշրջանի սահմանաչափի վերակայում
 
-**Շրջանակ․** հաճախորդի մեկ սեսիա (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` վերնագիր), որը ամրակցված է մեկ կապի՝ **ցանկացած** մատակարարի համար։
+**Շրջանակը՝** Claude-ի բաժանորդագրության մեկ (OAuth) կապ։ Երկու գործառույթն էլ **ակտիվացվում են առանձին՝ յուրաքանչյուր
+կապի համար** (Խմբագրել կապը → Claude բաժին → `lowPriorityMode` / `autoLimitReset`
+`providerSpecificData`-ում, երկուսն էլ լռելյայն անջատված են) և կրկնօրինակում են Claude Code-ի `/low-priority` և
+`/limit-reset` հրամանները (հաղորդալարային պայմանագիրը վերցված է Claude Code 2.1.263-ից)։
 
-**Նպատակ․** բազմաքայլ գործակալին (Claude Code, aider, հատուկ գործակալներ) հարցումների ընթացքում պահել նույն հաշվի վրա՝ նվազեցնելով հաշիվների միջև համատեքստի կորուստը և կրկնվող սառը մեկնարկի 429-ները՝ յուրաքանչյուր հաշվի համար առանձին սեսիոն վիճակ ունեցող մատակարարների դեպքում։
+**Իրականացումը՝**
+
+- Վիճակների ավտոմատ + պատասխանի դասակարգում՝ `open-sse/services/claudeLowPriority.ts`
+- Վերակայման վիճակի/պահանջի հաճախորդ՝ `open-sse/services/claudeLimitReset.ts`
+- Կատարողի կեռիկ (վերնագրի ներարկում + նույն հաշվի կրկնափորձ)՝ `open-sse/executors/base.ts::execute()`
+- Ակտիվացման ընտրության պահպանում՝ `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Գործարկիչը՝** 5-ժամյա օգտագործման սահմանափակումը՝ `429`, որի վերնագրերը պարունակում են
+`anthropic-ratelimit-unified-status: rejected`, իսկ երբ հաշիվը համապատասխան է՝
+`anthropic-ratelimit-unified-slow-offer: treatment`։ Մինչ այդ առաջին սահմանափակման
+429-ը ոչինչ չի ուղարկվում․ առանց միասնական վերնագրերի կտրուկ 429-ը մշակվում է սառեցման սովորական ուղով։
+
+**Ցածր առաջնահերթության ուղի** (`lowPriorityMode`)՝
+
+- Սահմանափակման 429-ի դեպքում կատարողն ընդունում է առաջարկը և անմիջապես կրկին փորձում է **նույն**
+  հաշիվը՝ `anthropic-usage-limit: slow`-ով․ ուղին ակտիվ է մնում մինչև հայտարարված
+  `anthropic-ratelimit-unified-reset`-ը (+60 վ արտոնյալ ժամանակահատված), և այդ ժամանակահատվածի յուրաքանչյուր հարցում
+  պարունակում է վերնագիրը։ Ընդհատված 429-ը երբեք չի հասնում `handleChatCore`-ին, ուստի կապը
+  **չի** դրվում սառեցման վիճակի և չի փոխարինվում մեկ այլ կապով։
+- Հետագա պատասխանների `anthropic-ratelimit-unified-slow-status`-ը՝ `active` / `not_needed`
+  պահպանում են ուղին․ `slot_busy` (429) կամ `529`-ը սպասում են սերվերի
+  `anthropic-ratelimit-unified-slow-retry-after`-ին (լռելյայն՝ 20 վ, սահմանափակվում է 5–600 վ միջակայքում, ±30% պատահական շեղումով)
+  և կատարում կրկնափորձ՝ սահմանափակված `anthropic-ratelimit-unified-slow-max-wait`-ով (լռելյայն՝ 20 րոպե, սահմանափակվում է
+  1 րոպե–6 ժ միջակայքում)․ դրանից հետո ուղին ավարտվում է, և 10-րոպեանոց դադարը արգելափակում է կրկնակի ընդունումը։
+  Սպասումը լրացուցիչ սահմանափակվում է հարցման՝ սկզբնաղբյուրի մեկնարկի սեփական ժամանակավրեպության
+  (`resolveFetchStartTimeout`, լռելյայն՝ 10 րոպե) մնացած ժամանակով՝ հանած 5 վ․ առանց այդ սահմանափակման
+  20-րոպեանոց լռելյայն առավելագույն սպասումը կգերազանցեր հարցման տևողությունը, և քունը կընդհատվեր
+  սպասման ընթացքում՝ պատշաճ `max_wait` ավարտի + դադարի փոխարեն առաջացնելով `TimeoutError`։
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5-ժամյա պատուհանի շրջափուլի ավարտը կամ
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (որը ցանկացած վիճակում այն ավարտում է որպես
+  `extra_usage`, քանի որ վճարովի գերօգտագործումն այժմ ծածկում է սահմանափակումը) ավարտում են ուղին․
+  պատասխանն այնուհետև անցնում է սառեցման սովորական ուղով։ `budget_exhausted`-ը հիշվում է մինչև
+  հայտարարված բյուջեի վերակայումը (≤ 8 օր)։
+- Սահմանափակման ստուգումը կատարվում է կատարողի՝ 400-ով պայմանավորված նույն փորձի շրջանակում կատարվող կրկնափորձերից հետո (համատեքստի
+  խմբագրում, մտածողության/ջանքի սահմանափակումներ, պարամետրերի ինքնաուսուցում), ուստի միայն այդ կրկնափորձերից
+  մեկում ի հայտ եկող սահմանափակման 429-ը նույնպես ընդհատվում է՝ սառեցման ուղուն հասնելու փոխարեն։
+- Վիճակը յուրաքանչյուր կապի համար պահվում է հիշողության մեջ (վերագործարկումը պահանջում է մեկ լրացուցիչ սահմանափակման 429՝ կրկին ընդունելու համար)։
+
+**Աշխատաշրջանի սահմանաչափի վերակայում** (`autoLimitReset`, երբ երկուսն էլ միացված են՝ փորձվում է ուղուց առաջ)՝
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  բլոկ․ երբ `arm: "reset"` և `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits`՝
+  `{ "program": "juniper_tide" }`-ով (կազմակերպության UUID-ը վերցվում է
+  `providerSpecificData.organizationUUID`-ից, սկզբնաբեռնման պահուստային տարբերակով)։
+- `result: reset|not_limited` → հարցումը կրկին փորձվում է ամբողջ արագությամբ (առանց դանդաղեցման վերնագրի)։
+  `already_used` / `not_offered`-ը հիշապահում են `next_available_at`-ը (լռելյայն՝ մեկ շաբաթ)․
+  ցանկացած խափանում առաջացնում է 15 րոպե հետաձգում։ Վերակայումը կատարվում է շաբաթը մեկ անգամ և, այնուամենայնիվ, հաշվարկվում է
+  շաբաթական սահմանաչափի մեջ։
+
+Հետընթացի դեմ պաշտպանիչ թեստեր՝ `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`։
+
+### Աշխատաշրջանի կապվածություն (#7274)
+
+**Շրջանակը՝** հաճախորդի մեկ աշխատաշրջան (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` վերնագիր), որը ամրակցված է մեկ կապի՝ **ցանկացած** մատակարարի համար։
+
+**Նպատակ․** բազմաքայլ գործակալը (Claude Code, aider, հատուկ գործակալներ) հարցումների միջև պահել նույն հաշվում՝ նվազեցնելով հաշիվների միջև համատեքստի կորուստը և կրկնվող սառը մեկնարկի 429 սխալները՝ յուրաքանչյուր հաշվի համար նստաշրջանի վիճակ ունեցող մատակարարների դեպքում։
 
 **Իրականացում․**
 
 - TTL-ի որոշում՝ `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Ամրակցման ընտրություն/ստեղծում՝ `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Վերնագրի արտահանում (ընդհանուր, ցանկացած մատակարարի համար)՝ `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Պահպանվող ամրակցումների աղյուսակ՝ `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Կարգավորում՝ `sessionAffinityTtlMs` (ընդհանուր TTL-ը՝ մվ-ով, `0`-ն անջատում է) — `src/lib/db/settings.ts`։ Codex-ին հատուկ `codexSessionAffinityTtlMs` անվանումից վերանվանվել է `124_generic_session_affinity_ttl.sql` միգրացիայի միջոցով, որը նախկինում կազմաձևված Codex TTL-ը փոխանցում է որպես նոր լռելյայն արժեք։
+- Կապակցման ընտրություն/ստեղծում՝ `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Վերնագրի դուրսբերում (ընդհանուր, ցանկացած մատակարարի համար)՝ `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Պահպանվող կապակցումների աղյուսակ՝ `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Կարգավորում՝ `sessionAffinityTtlMs` (գլոբալ TTL՝ մվ-ով, `0`-ն անջատում է) — `src/lib/db/settings.ts`։ Codex-ին հատուկ `codexSessionAffinityTtlMs` անվանումից վերանվանվել է `124_generic_session_affinity_ttl.sql` միգրացիայի միջոցով, որը նախկինում կազմաձևված Codex TTL-ը փոխանցում է որպես նոր լռելյայն արժեք։
 
-Մինչև #7274-ը `resolveSessionAffinityTtlMs()`-ը `codex`-ից բացի յուրաքանչյուր մատակարարի համար անմիջապես վերադարձնում էր `0`, ուստի TTL կարգավորումը (և սեսիայի վերնագրերը) որևէ այլ տեղ ազդեցություն չունեին, թեև ամրակցման մեխանիզմն ու վերնագրերի արտահանումն արդեն իսկ անկախ էին մատակարարից։ Ուղղումը հեռացրեց այդ վաղ վերադարձը․ այժմ TTL-ը միատեսակ կիրառվում է յուրաքանչյուր մատակարարի նկատմամբ, երբ այն գլոբալ կերպով սահմանված է `0`-ից բարձր։
+Մինչև #7274-ը, `resolveSessionAffinityTtlMs()`-ը `codex`-ից բացի յուրաքանչյուր մատակարարի համար անմիջապես վերադարձնում էր `0`, ուստի TTL կարգավորումը (և նստաշրջանի վերնագրերը) այլուր որևէ ազդեցություն չունեին, թեև կապակցման մեխանիզմը և վերնագրերի դուրսբերումն արդեն իսկ մատակարարից անկախ էին։ Ուղղումը հեռացրեց այդ վաղաժամ վերադարձը. այժմ TTL-ը միատեսակ կիրառվում է յուրաքանչյուր մատակարարի համար, երբ գլոբալ արժեքը սահմանված է `0`-ից բարձր։
 
-Սեսիայի կապակցվածության երեք վերնագրերը երբեք չեն փոխանցվում վերին հոսք․ կատարիչները զրոյից կազմում են վերին հոսքի իրենց սեփական վերնագրերը՝ հաճախորդի վերնագրերը փոխանցելու փոխարեն, ուստի սա մնում է միայն ներքին հարաբերակցման նույնացուցիչ։
+Նստաշրջանի կապակցման երեք վերնագրերը երբեք չեն փոխանցվում վերին հոսք․ կատարիչները զրոյից կառուցում են իրենց վերին հոսքի վերնագրերը՝ հաճախորդի վերնագրերը փոխանցելու փոխարեն, ուստի սա մնում է միայն ներքին համակցման նույնացուցիչ։
 
-### Կառավարվող սեսիայի կապերի բացառիկ վարձակալություններ
+### Կառավարվող նստաշրջանի կապակցումների բացառիկ վարձակալումներ
 
-**Շրջանակ․** մեկ ակտիվ կառավարվող HTTP հաճախորդ/սեսիա տիրապետում է OmniRoute-ի մեկ ընտրելի կապի։
+**Շրջանակ․** մեկ ակտիվ կառավարվող HTTP հաճախորդ/նստաշրջան տիրապետում է OmniRoute-ի մեկ համապատասխան կապակցման։
 
-**Նպատակ․** ապահովել կապի տևական բացառիկ տիրապետում այն հաճախորդների համար, որոնց հարցումների միջև անհրաժեշտ է երթուղավորման խիստ
-սահմանազատում։ Սա տարբերվում է սեսիայի կապակցվածությունից, որը շարունակականության մեղմ նախապատվություն է․
-բացառիկ վարձակալությունը SQLite-ում պահպանում է կենսացիկլի վիճակը, պարտադրում է ակտիվ տիրոջ և
-ակտիվ կապի գլոբալ եզակիությունը և մերժում է հնացած սերունդը՝ նախքան մատակարարին ուղարկելը։
+**Նպատակ․** ապահովել կապակցման երկարատև բացառիկ տիրապետում այն հաճախորդների համար, որոնց հարցումների միջև անհրաժեշտ է երթուղավորման կոշտ սահմանափակում։ Սա տարբերվում է նստաշրջանի կապակցումից, որը շարունակականության մեղմ նախընտրություն է․ բացառիկ վարձակալումը պահպանում է կենսացիկլի վիճակը SQLite-ում, գլոբալ մակարդակում ապահովում է ակտիվ սեփականատիրոջ և ակտիվ կապակցման եզակիությունը և մինչև մատակարարին ուղարկելը մերժում է հնացած սերունդը։
 
-Գործառույթը յուրաքանչյուր API բանալու համար ակտիվացվում է ըստ ցանկության։ Կառավարվող բանալին պետք է ունենա `lease:exclusive` շրջանակ և
-հստակ սահմանված, ոչ դատարկ `allowedConnections` ցանկ։ Ցանկացած HTTP հաճախորդ կարող է օգտագործել կենսացիկլի վերջնակետը․
-հաճախորդի անուն, օգտվողի գործակալ, մատակարար, OAuth մեթոդ կամ մոդել չի պահանջվում։ Վարձակալությունը տիրապետում է կապի,
-ոչ թե մոդելի, ուստի մոդելի փոփոխության դեպքում կապակցումը պահպանվում է, քանի դեռ կապը սովորական կարգով
-ընտրելի է։ Մոդելի, քվոտայի, առողջական վիճակի, հովացման և թույլատրելի ցանկի սովորական կանոնները շարունակում են գերակա մնալ և կարող են
-նույն սերունդը տեղափոխել մեկ այլ ազատ ու ընտրելի կապի։
+Գործառույթը յուրաքանչյուր API բանալու համար միացվում է առանձին։ Կառավարվող բանալին պետք է ունենա `lease:exclusive` շրջանակ և հստակ սահմանված ոչ դատարկ `allowedConnections` ցանկ։ Ցանկացած HTTP հաճախորդ կարող է օգտագործել կենսացիկլի վերջնակետը. հաճախորդի անուն, user-agent, մատակարար, OAuth մեթոդ կամ մոդել չի պահանջվում։ Վարձակալումը տիրապետում է կապակցման, ոչ թե մոդելի, ուստի մոդելի փոփոխության դեպքում կապակցումը պահպանվում է, քանի դեռ այն սովորական պայմաններով շարունակում է համապատասխան լինել։ Մոդելի, քվոտայի, վիճակի, սառեցման և թույլատրվածների ցանկի սովորական կանոնները շարունակում են գերակա լինել և կարող են նույն սերունդը տեղափոխել մեկ այլ ազատ համապատասխան կապակցման։
 
-Կենսացիկլն իրականացվում է `POST /api/v1/session-leases`-ով՝ JSON-ի `acquire`, `renew` և `release` գործողություններով։
-Կառավարվող ինֆերենսի հարցումները ներկայացնում են անթափանց `X-OmniRoute-Lease-Owner` արժեքը և ճշգրիտ
-`X-OmniRoute-Lease-Generation`-ը։ Տիրոջ արժեքը սկսվում է `vlo_`-ով, որին հաջորդում է base64url-ի 43 նիշ․ պահվում է միայն
-դրա SHA-256 հեշը։ Յուրաքանչյուր վերջնական ուղարկման սահմանափակում նաև կապում է նույնականացված API բանալու ID-ն և
-ակտիվ կապի ID-ն։ Վարձակալության կառավարման վերնագրերը հեռացվում են մատյաններից, պահպանված հարցումների պատկերներից և
-վերին հոսքի կատարիչների վերնագրերից։
+Կենսացիկլի համար օգտագործվում է `POST /api/v1/session-leases`՝ JSON գործողություններով՝ `acquire`, `renew` և `release`։ Կառավարվող եզրակացության հարցումները ներկայացնում են անթափանց `X-OmniRoute-Lease-Owner` արժեքը և ճշգրիտ `X-OmniRoute-Lease-Generation`-ը։ Սեփականատիրոջ արժեքը կազմված է `vlo_`-ից, որին հաջորդում են 43 base64url նիշեր. պահպանվում է միայն դրա SHA-256 հեշը։ Ուղարկման յուրաքանչյուր վերջնական սահմանափակում նաև կապակցում է նույնականացված API բանալու ID-ն և ակտիվ կապակցման ID-ն։ Վարձակալման կառավարման վերնագրերը հեռացվում են մատյաններից, պահպանված հարցումների պատկերներից և վերին հոսքի կատարիչների վերնագրերից։
 
-Եթե սովորական երթուղավորումն ունի ընտրելի կառավարվող թեկնածուներ, սակայն յուրաքանչյուր ազատ թեկնածու զբաղեցված է
-օտար ակտիվ վարձակալությամբ, OmniRoute-ը վերադարձնում է HTTP `429`, lease-capacity-unavailable կոդ,
-հզորության հասանելիությանը սպասելու վիճակ և սահմանափակ `Retry-After`, որը հաշվարկվում է համապատասխան ամենավաղ ժամկետի ավարտից։
-Ընտրելի թեկնածուների սովորական բացակայությունը վարձակալության մրցակցություն չէ և պահպանում է երթուղավորման սխալի իր գործող իմաստաբանությունը։
+Եթե սովորական երթուղավորումն ունի համապատասխան կառավարվող թեկնածուներ, բայց յուրաքանչյուր ազատ թեկնածու զբաղեցված է օտար ակտիվ վարձակալմամբ, OmniRoute-ը վերադարձնում է HTTP `429`, lease-capacity-unavailable կոդ, տարողության սպասման վիճակ և սահմանափակ `Retry-After`, որը հաշվարկվում է համապատասխան ամենավաղ ժամկետի ավարտից։ Համապատասխան տարբերակների սովորական բացակայությունը վարձակալման մրցակցություն չէ և պահպանում է երթուղավորման սխալների առկա իմաստաբանությունը։
 
 Հարակից մեխանիզմները մնում են առանձին․
 
-- OAuth սեսիայի զբաղվածությունը պրոցեսի ներսում OAuth հաշիվների մեղմ բաշխման մեխանիզմ է։
-- Հաշվի սեմաֆորները տրամադրում են հարցումների զուգահեռության թույլտվություններ և ավարտվում են հարցման ավարտին։
-- Կառավարվող սեսիայի կապերի բացառիկ վարձակալությունները տևական կենսացիկլային տիրապետում են՝ սերնդի սահմանափակմամբ։
+- OAuth նստաշրջանի զբաղվածությունը գործընթացի ներսում OAuth հաշիվների մեղմ բաշխման մեխանիզմ է։
+- Հաշիվների սեմաֆորները տրամադրում են հարցումների զուգահեռության թույլտվություններ և ավարտվում են հարցման ավարտին։
+- Կառավարվող նստաշրջանների բացառիկ վարձակալումները երկարատև կենսացիկլային տիրապետում են՝ սերնդի սահմանափակմամբ։
 
 ---
 
@@ -265,48 +309,73 @@ OmniRoute-ն ունի խափանումների նկատմամբ կայունու
 
 ---
 
-## 5. Հարցումների հերթի ընդունման կառավարում (v3.8.49 · խնդիր #6593)
+## 5. Հարցումների հերթի ընդունման վերահսկում (v3.8.49 · խնդիր #6593)
 
-**Կիրառման շրջանակ**․ տեղային՝ յուրաքանչյուր մատակարարի+կապի հարցումների հաճախականության սահմանափակման հերթը (`open-sse/services/rateLimitManager.ts`,
-որն աշխատում է Bottleneck-ի հիման վրա), որը վերոնշյալ երեք մեխանիզմներից մեկ շերտ ներքև է։
+**Կիրառման շրջանակը**․ յուրաքանչյուր մատակարարի և կապի համար տեղային արագության սահմանափակման հերթը (`open-sse/services/rateLimitManager.ts`,
+որը հիմնված է Bottleneck-ի վրա)՝ վերը նշված երեք մեխանիզմներից մեկ մակարդակ ներքև։
 
-**`maxWaitMs`-ը կատարման ժամկետի սպառման համար պահպանվող ժառանգական անվանում է։**
-`resilienceSettings.requestQueue.maxWaitMs`-ը փոխանցվում է Bottleneck-ին որպես առաջադրանքի
-`expiration`, որի ժամանակաչափը սկսվում է միայն ուղարկումից հետո։ Հետևաբար այն սահմանափակում է
-սահմանափակիչի կողմից կառավարվող կատարումը, ոչ թե տեղային հերթում անցկացրած ժամանակը։ Ժամկետի սպառումը
-ներկայացվում է որպես վստահելի տեղային `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504)․
-հերթի սպասման ժամանակի սպառման նախկին կոդային անվանումն ընդունվում է միայն վստահելի ներքին
-հետադարձ համատեղելիության համար։ Լռելյայն արժեքը 15000ms է․ այն կարելի է վերասահմանել
-`RATE_LIMIT_MAX_WAIT_MS`-ի (միջավայրի փոփոխական) կամ կառավարման վահանակի միջոցով (**Կարգավորումներ → Կայունություն**,
-UI-ի առավելագույն սահմանը՝ 1–30000ms)։ Հերթում գտնվելու ժամանակը վերջնաժամկետ չունի․ հերթագրված կանչողների
-քանակը սահմանափակելու համար օգտագործեք ստորև ներկայացված `maxQueueDepth`-ը։
+**`maxWaitMs`-ը սահմանափակում է հերթում սպասելը, իսկ `executionMaxWaitMs`-ը՝ կատարումը։**
+Այս երկուսը միտումնավոր առանձնացված են, և ոչ մեկը չի ազդում մյուսի վրա։
+
+`resilienceSettings.requestQueue.maxWaitMs`-ը **հերթում սպասելու բյուջեն** է․ այն
+ներառում է մատակարարի ազատ տեղի սպասումը և այնուհետև QUEUED վիճակում մնալը, իսկ դրա ժամանակաչափը
+մաքրվում է այն պահին, երբ առաջադրանքը դուրս է գալիս QUEUED վիճակից և սկսում է կատարվել
+(`rateLimitManager.ts`, `wrappedFn`)։ Այն գերազանցող հարցումը երբեք չի հասնում
+արտաքին մատակարարին։ Լռելյայն արժեքը 30000ms է, որը սահմանվում է `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`-ով՝
+`src/lib/resilience/settings.ts`-ում, և ամրագրված է
+`tests/unit/ratelimit-admission-control-6593.test.ts`-ով, որպեսզի դրա փոփոխության դեպքում
+այդ թեստը ձախողվի, այլ ոչ թե այս պարբերությունն աննկատ հնանա։
+
+`resilienceSettings.requestQueue.executionMaxWaitMs`-ն այն արժեքն է, որը Bottleneck-ը
+ստանում է որպես առաջադրանքի `expiration`, և որի ժամանակաչափը սկսվում է միայն ուղարկումից հետո։ Այն
+պահուստային սահմանափակում է այն կատարիչների համար, որոնք չունեն արտաքին հարցման սեփական ժամանակային սահմանափակում,
+և այն բարձրացվում է մինչև կատարիչի՝ fetch-ը սկսելու սեփական ժամանակային սահմանափակումը, երբ վերջինս ավելի երկար է, որպեսզի
+այն չկարողանա ընդհատել ընթացքի մեջ գտնվող բնականոն պատասխանը։ Լռելյայն արժեքը 600000ms է (10 րոպե)։
+
+Հերթի բյուջեն `expiration`-ին փոխանցելը նախկինում ընդհատում էր ոչ աստիճանական
+gateway-ները կատարման ընթացքում․ դրանք իրավաչափորեն կարող են աշխատել րոպեներ՝ մինչև առաջին բայթերի ստացումը,
+և հենց այդ պատճառով ժամկետի սպառումը ներկայացվում է որպես `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), մինչդեռ հերթի բյուջեն կրում է
+հերթի ժամանակային սահմանափակման կոդը։ Դրանցից յուրաքանչյուրը կարելի է վերասահմանել `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS`-ի (միջավայրի փոփոխական) կամ կառավարման վահանակի միջոցով
+(**Կարգավորումներ → Խափանումակայունություն**)։ Նորմալացման ժամանակ երկուսն էլ սահմանափակվում են 1ms–24h միջակայքով։
+
+**Առաջնահերթությունը երկուսի համար էլ․** միջավայրի փոփոխականը տրամադրում է միայն _լռելյայն_ արժեքը։
+`resilienceSettings.requestQueue`-ում պահպանված արժեքը (կառավարման վահանակի / API patch-ի միջոցով, պահված
+`key_value`-ում) գերակայում է դրան, իսկ յուրաքանչյուր կապի համար սահմանված
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` արժեքը գերակայում է նաև դրան։ Հետևաբար,
+միջավայրի փոփոխականը սահմանելը այն տեղակայման համար, որն արդեն ունի պահպանված արժեք,
+ոչինչ չի փոխում․ դրա փոխարեն մաքրեք կամ թարմացրեք պահպանված կարգավորումը։
+
+Հերթում մնալու ժամանակը սահմանափակվում է `maxWaitMs`-ով, իսկ ստորև ներկայացված `maxQueueDepth`-ը սահմանափակում է,
+թե միաժամանակ քանի կանչող կարող է գտնվել հերթում։
 
 **`maxQueueDepth` — ըստ ցանկության միացվող ընդունման սահմանաչափ (նոր)։** `resilienceSettings.requestQueue.maxQueueDepth`-ը
-սահմանափակում է, թե քանի հարցում կարող է միաժամանակ հերթում գտնվել (դեռ չուղարկված)
-մեկ մատակարարի+կապի համար։ Երբ հերթում արդեն կա `maxQueueDepth`
+սահմանափակում է, թե մեկ մատակարարի և կապի համար քանի հարցում կարող է միաժամանակ գտնվել հերթում
+(դեռևս չուղարկված)։ Երբ հերթում արդեն կա `maxQueueDepth`
 հարցում, նոր հարցումն արագ մերժվում է տիպավորված
-`code: "RATE_LIMIT_QUEUE_FULL"` սխալով՝ **նախքան** այն երբևէ կհասնի `limiter.schedule()`-ին
-․ այդպիսով մերժումը քիչ ռեսուրս է պահանջում և կատարվում է նախքան տվյալ հարցման հետագա
-հարցման տեքստի սեղմման / թարգմանության ցանկացած գործողություն։ Լռելյայն `0` =
-անջատված՝ պահպանելով առկա անսահմանափակ հերթի վարքագիծը․ թույլատրելի միջակայքը՝ 0–100000։
+`code: "RATE_LIMIT_QUEUE_FULL"` սխալով՝ **նախքան** `limiter.schedule()`-ին երբևէ հասնելը
+․ այսպիսով, մերժումը քիչ ռեսուրս է պահանջում և տեղի է ունենում տվյալ հարցման համար նախատեսված հետագա
+prompt-ի սեղմման / թարգմանության ցանկացած աշխատանքից առաջ։ Լռելյայն `0` =
+անջատված՝ պահպանելով հերթի անսահմանափակման առկա վարքագիծը։ Թույլատրելի միջակայքը 0–100000 է։
 Վերասահմանեք `RATE_LIMIT_MAX_QUEUE_DEPTH`-ի (միջավայրի փոփոխական) կամ
-`resilienceSettings.requestQueue.maxQueueDepth`-ի միջոցով (կառավարման վահանակ/API patch)։
+`resilienceSettings.requestQueue.maxQueueDepth`-ի միջոցով (կառավարման վահանակի/API patch)։
 
 Ընդունման ստուգումն ինքնին մաքուր ֆունկցիա է
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), ուստի
 այն կարող է միավորային թեստավորվել առանց իրական Bottleneck սահմանափակիչի։
 
-> #6593-ը բացած RFC-ն նաև առաջարկել էր `bypassCompressionOnRateLimit`
-> դրոշակ։ Այս ռեպոզիտորիայի `open-sse/services/compression/` խողովակաշարը
-> ելքային LLM հարցման հուշման/համատեքստի սեղմման համար է (`chatCore.ts`,
+> #6593-ը բացած RFC-ն նաև առաջարկում էր `bypassCompressionOnRateLimit`
+> դրոշակ։ Այս ռեպոզիտորիայի `open-sse/services/compression/` pipeline-ը
+> արտագնա LLM հարցման prompt-ի/համատեքստի սեղմման համար է (`chatCore.ts`,
 > `resolveCompressionSettings`/`selectCompressionStrategy` բլոկի շրջակայքում),
-> այլ ոչ թե սինթեզված 429 պատասխանների HTTP սեղմման համար․ բառացի շրջանցման դրոշակին
-> համապատասխանող կոդային ուղի չկա։ Բացի այդ, հարցման տեքստի սեղմման այդ քայլը
-> ներկայում հարցումների խողովակաշարում կատարվում է `withRateLimit()`-ից _առաջ_, ուստի
-> հերթի լցվածության պատճառով մերժման դեպքում այն բաց թողնելու համար գործողությունների վերադասավորումը առանձին և ավելի ծավալուն
-> փոփոխություն է, քան այս խնդրի շրջանակը․ այն միտումնավոր **չի** իրականացվել
-> այստեղ և թողնվել է հետագա աշխատանքի համար, եթե CPU-ի խնայողությունն արդարացնի
-> վերադասավորման ռիսկը։
+> այլ ոչ թե գեներացված 429 պատասխանների HTTP սեղմման․ բառացի շրջանցման դրոշակին
+> համապատասխանող կոդի ուղի գոյություն չունի։ Prompt-ի սեղմման այդ քայլը
+> ներկայումս նաև կատարվում է հարցումների pipeline-ում `withRateLimit()`-ից _առաջ_, ուստի
+> հերթի լցված լինելու պատճառով մերժման դեպքում այն բաց թողնելու համար քայլերի հերթականությունը փոխելը
+> առանձին և ավելի մեծ փոփոխություն է, քան այս խնդրի կիրառման շրջանակը։ Այն այստեղ միտումնավոր
+> **չի** իրականացվել և թողնվել է հետագա աշխատանքի համար, եթե CPU-ի ռեսուրսների խնայողությունն
+> արդարացնում է հերթականության փոփոխման ռիսկը։
 
 ---
 

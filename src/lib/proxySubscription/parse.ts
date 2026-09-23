@@ -310,6 +310,15 @@ export function parseSubscription(body: string): ParsedSubscription {
   return { nodes: [], needsCore: [], format: "unknown" };
 }
 
+/**
+ * Refuse unrecognized content before sync: `format: "unknown"` carries no
+ * usable node. Every recognized format (including `empty` and a
+ * valid-but-nodeless feed) passes and keeps the current path.
+ */
+export function isUsableSubscriptionContent(parsed: ParsedSubscription): boolean {
+  return parsed.format !== "unknown";
+}
+
 /** Redacted node summary for storage/display (no secrets). */
 export function redactedNodeSummary(parsed: ParsedSubscription): Array<Record<string, unknown>> {
   const direct = parsed.nodes.map((n) => ({

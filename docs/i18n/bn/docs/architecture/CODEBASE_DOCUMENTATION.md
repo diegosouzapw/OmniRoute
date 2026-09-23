@@ -1,6 +1,6 @@
 # OmniRoute Codebase Documentation (বাংলা)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
@@ -436,8 +436,8 @@ server/
 
 ## 4. `open-sse/` — স্ট্রিমিং ইঞ্জিন ওয়ার্কস্পেস
 
-`@omniroute/open-sse` নামে প্রকাশিত পৃথক npm ওয়ার্কস্পেস। এটি অনুরোধ
-প্রক্রিয়াকরণ, এক্সিকিউটর, অনুবাদক, সার্ভিস, ট্রান্সফর্মার এবং MCP সার্ভার পরিচালনা করে।
+`@omniroute/open-sse` হিসেবে প্রকাশিত পৃথক npm ওয়ার্কস্পেস। এটি রিকোয়েস্ট
+প্রসেসিং, এক্সিকিউটর, ট্রান্সলেটর, সার্ভিস, ট্রান্সফর্মার এবং MCP সার্ভার পরিচালনা করে।
 
 ```
 open-sse/
@@ -445,13 +445,13 @@ open-sse/
 ├── package.json            ওয়ার্কস্পেস ম্যানিফেস্ট
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 প্রোভাইডার রেজিস্ট্রি, হেডার প্রোফাইল, পরিচয়, …
-├── handlers/               অনুরোধ হ্যান্ডলার (চ্যাট, এমবেডিং, অডিও, ছবি, …)
+├── config/                 প্রোভাইডার রেজিস্ট্রি, হেডার প্রোফাইল, আইডেন্টিটি, …
+├── handlers/               রিকোয়েস্ট হ্যান্ডলার (চ্যাট, এমবেডিং, অডিও, ছবি, …)
 ├── executors/              108টি প্রোভাইডার-নির্দিষ্ট HTTP এক্সিকিউটর
 ├── translator/             ফরম্যাট রূপান্তর (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions স্ট্রিম ট্রান্সফর্মার
-├── services/               80টির বেশি সার্ভিস মডিউল (কম্বো, ফলব্যাক, কোটা, পরিচয়, …)
-├── utils/                  স্ট্রিমিং সহায়ক, TLS ক্লায়েন্ট, AWS SigV4, প্রক্সি ফেচ, …
+├── services/               80টির বেশি সার্ভিস মডিউল (কম্বো, ফলব্যাক, কোটা, আইডেন্টিটি, …)
+├── utils/                  স্ট্রিমিং হেল্পার, TLS ক্লায়েন্ট, AWS SigV4, প্রক্সি ফেচ, …
 └── mcp-server/             MCP সার্ভার (3টি ট্রান্সপোর্ট, 33টি স্কোপ, 110টি টুল)
 ```
 
@@ -471,9 +471,9 @@ open-sse/
 | `moderations.ts`        | মডারেশন                                                                     |
 | `search.ts`             | ওয়েব অনুসন্ধান                                                             |
 | `sseParser.ts`          | SSE ইভেন্ট পার্সার                                                          |
-| `usageExtractor.ts`     | আপস্ট্রিম স্ট্রিম থেকে টোকেনের সংখ্যা বের করে                               |
-| `responseSanitizer.ts`  | প্রোভাইডার-নির্দিষ্ট অপ্রয়োজনীয় উপাদান বাদ দেয়                           |
-| `responseTranslator.ts` | প্রোভাইডারের প্রতিক্রিয়া ও অনুবাদক স্তরের মধ্যকার সংযোগকারী                |
+| `usageExtractor.ts`     | আপস্ট্রিম স্ট্রিম থেকে টোকেনের সংখ্যা বের করে আনা                           |
+| `responseSanitizer.ts`  | প্রোভাইডার-নির্দিষ্ট অপ্রয়োজনীয় তথ্য বাদ দেওয়া                           |
+| `responseTranslator.ts` | প্রোভাইডার রেসপন্স ও ট্রান্সলেটর স্তরের মধ্যকার সংযোগ                       |
 
 ### 4.2 `open-sse/executors/`
 
@@ -483,80 +483,80 @@ open-sse/
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, পাশাপাশি `claudeIdentity.ts`
-(শেয়ার্ড পরিচয় সহায়ক) এবং `index.ts` (রেজিস্ট্রি)।
+(শেয়ার্ড আইডেন্টিটি হেল্পার) এবং `index.ts` (রেজিস্ট্রি)।
 
-> নোট: এখানে তালিকাভুক্ত নয় এমন প্রোভাইডারগুলোকে জেনেরিক
-> OpenAI-সামঞ্জস্যপূর্ণ এক্সিকিউটর ব্যবহার করে `default.ts` পরিবেশন করে। সম্পূর্ণ প্রোভাইডার ক্যাটালগটি (355টি প্রোভাইডার)
-> `src/shared/constants/providers.ts`-এ রয়েছে।
+> দ্রষ্টব্য: এখানে তালিকাভুক্ত নয় এমন প্রোভাইডারগুলোকে জেনেরিক
+> OpenAI-সামঞ্জস্যপূর্ণ এক্সিকিউটর ব্যবহার করে `default.ts` পরিবেশন করে। সম্পূর্ণ প্রোভাইডার ক্যাটালগে (355টি প্রোভাইডার)
+> রয়েছে `src/shared/constants/providers.ts`-এ।
 
 ### 4.3 `open-sse/translator/`
 
-হাব-অ্যান্ড-স্পোক অনুবাদ (OpenAI হলো হাব)।
+হাব-অ্যান্ড-স্পোক ট্রান্সলেশন (OpenAI হলো হাব)।
 
-- **9টি অনুরোধ অনুবাদক** (`translator/request/`):
+- **9টি রিকোয়েস্ট ট্রান্সলেটর** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`।
-- **9টি প্রতিক্রিয়া অনুবাদক** (`translator/response/`):
+- **9টি রেসপন্স ট্রান্সলেটর** (`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`।
-- **9টি সহায়ক** (`translator/helpers/`):
+- **9টি হেল্পার** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, এবং
-  সহায়ক টেস্ট।
-- **ছবি-সংক্রান্ত সহায়ক** (`translator/image/sizeMapper.ts`)।
+  হেল্পার টেস্ট।
+- **ইমেজ হেল্পার** (`translator/image/sizeMapper.ts`)।
 - শীর্ষ-স্তর: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`।
 
 ### 4.4 `open-sse/transformer/`
 
 - `responsesTransformer.ts` — `TransformStream`-ভিত্তিক Responses API ↔ Chat
-  Completions কনভার্টার (`responses/` রুটের ক্যাচ-অল দ্বারা ব্যবহৃত)।
+  Completions কনভার্টার (`responses/` রুট ক্যাচ-অল দ্বারা ব্যবহৃত)।
 
 ### 4.5 `open-sse/services/`
 
 উল্লেখযোগ্য অংশসমূহ (সম্পূর্ণ তালিকা `open-sse/services/`-এর অধীনে):
 
-| বিবেচ্য বিষয়        | ফাইলসমূহ                                                                                                                                                                                                                                          |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| কম্বো রাউটিং         | `combo.ts` (19টি কৌশল), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                 |
-| অটো কম্বো ইঞ্জিন     | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| স্থিতিস্থাপকতা       | `accountFallback.ts` (কুলডাউন + লকআউট), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                     |
-| কোটা                 | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| ক্যাশিং              | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
-| রাউটিং বুদ্ধিমত্তা   | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| মডেল পরিচালনা        | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| কম্প্রেশন            | `compression/` — সম্পূর্ণ কম্প্রেশন ইঞ্জিনের ওয়্যারিং                                                                                                                                                                                            |
-| টোকেন + সেশন         | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| টিয়ার / ম্যানিফেস্ট | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP / নেটওয়ার্ক      | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| ব্যাচ                | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| ব্যবহার              | `usage.ts`                                                                                                                                                                                                                                        |
+| বিবেচ্য বিষয়        | ফাইলসমূহ                                                                                                                                                                                                                                                 |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| কম্বো রাউটিং         | `combo.ts` (19টি কৌশল), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                        |
+| অটো কম্বো ইঞ্জিন     | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| স্থিতিস্থাপকতা       | `accountFallback.ts` (কুলডাউন + লকআউট), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                            |
+| কোটা                 | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| ক্যাশিং              | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| রাউটিং বুদ্ধিমত্তা   | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| মডেল ব্যবস্থাপনা     | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| কম্প্রেশন            | `compression/` — সম্পূর্ণ কম্প্রেশন ইঞ্জিনের ওয়্যারিং                                                                                                                                                                                                   |
+| টোকেন + সেশন         | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| টিয়ার / ম্যানিফেস্ট | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / নেটওয়ার্ক      | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| ব্যাচসমূহ            | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| ব্যবহার              | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- `server.ts`-এ **110টি অনন্য টুল** সংযুক্ত (`schemas/tools.ts`-এ 45টি ক্যানোনিক +
+- **110টি অনন্য টুল** `server.ts`-এ সংযুক্ত (`schemas/tools.ts`-এ 45টি ক্যানোনিক্যাল +
   মেমরি, স্কিল, GitHub-স্কিল, পুল, গেমিফিকেশন, প্লাগইন, Notion, Obsidian,
   লোকাল-কর্পাস এবং কম্প্রেশন মডিউল — ইউনিয়নটি `countUniqueMcpTools` দ্বারা গণনা করা হয়েছে)।
 - **3টি ট্রান্সপোর্ট**: stdio, HTTP Streamable, SSE।
-- রানটাইমে **33টি স্কোপ** বলবৎ করা হয় — মূল তালিকাটি `src/shared/constants/mcpScopes.ts`-এ রয়েছে, আর সম্পূর্ণ সেটটি হলো প্রতিটি টুল মডিউল দ্বারা ঘোষিত স্কোপগুলোর ইউনিয়ন।
+- রানটাইমে **33টি স্কোপ** প্রয়োগ করা হয় — মূল তালিকা `src/shared/constants/mcpScopes.ts`-এ রয়েছে, আর সম্পূর্ণ সেটটি হলো প্রতিটি টুল মডিউল দ্বারা ঘোষিত স্কোপগুলোর ইউনিয়ন।
 - অডিট টেবিল: `mcp_tool_audit` (`audit.ts` দ্বারা পূরণ করা হয়)।
 - ফাইলসমূহ: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
-  এবং `__tests__/`-এর অধীনে থাকা টেস্টসমূহ।
+  এবং `__tests__/`-এর অধীনস্থ টেস্টসমূহ।
 - সম্পূর্ণ টুল ক্যাটালগের জন্য [MCP-SERVER.md](../frameworks/MCP-SERVER.md) দেখুন।
 
 ### 4.7 `open-sse/config/`
 
 প্রোভাইডার রেজিস্ট্রিসমূহ (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), ফরম্যাটভিত্তিক মডেল রেজিস্ট্রিসমূহ (`audioRegistry.ts`,
+`providerHeaderProfiles.ts`), ফরম্যাট-ভিত্তিক মডেল রেজিস্ট্রিসমূহ (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-আইডেন্টিটি সহায়কসমূহ (`codexIdentity.ts`, `codexInstructions.ts`,
+আইডেন্টিটি হেল্পারসমূহ (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-ক্রেডেনশিয়াল সহায়কসমূহ (`credentialLoader.ts`, `codexClient.ts`), এবং ক্লাউড
+ক্রেডেনশিয়াল হেল্পারসমূহ (`credentialLoader.ts`, `codexClient.ts`), এবং ক্লাউড
 অ্যাডাপ্টারসমূহ (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`)।
@@ -571,7 +571,7 @@ open-sse/
 `comfyuiClient.ts`, `kieTask.ts`, `bypassHandler.ts`, `aiSdkCompat.ts`,
 `thinkTagParser.ts`, `urlSanitize.ts`, `usageTracking.ts`, `requestLogger.ts`,
 `progressTracker.ts`, `cors.ts`, `error.ts`, `logger.ts`, `sleep.ts`,
-`ollamaTransform.ts`।
+`ollamaTransform.ts`.
 
 ---
 

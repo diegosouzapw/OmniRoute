@@ -23,9 +23,11 @@ import { stripCodexPassthroughRejectedParams } from "./codex/stripPassthroughRej
 import {
   CODEX_CLI_RS_ORIGINATOR,
   getCodexClientVersion,
+  getCodexClientVersionFromHeaders,
   getCodexUserAgent,
   normalizeCodexSessionId,
 } from "../config/codexClient.ts";
+import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import {
   applyCodexClientIdentityHeaders,
   applyCodexClientMetadata,
@@ -1117,11 +1119,30 @@ export class CodexExecutor extends BaseExecutor {
    * Always request event-stream from upstream, even when client requested stream=false.
    * Includes chatgpt-account-id header for strict workspace binding.
    */
-  buildHeaders(credentials: ProviderCredentials, stream = true) {
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null,
+    model?: string,
+    health?: Record<string, KeyHealth>
+  ) {
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
-    const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
-    headers.Version = getCodexClientVersion();
-    setUserAgentHeader(headers, getCodexUserAgent());
+    const headers = super.buildHeaders(
+      credentials,
+      isCompactRequest ? false : true,
+      clientHeaders,
+      model,
+      health
+    );
+
+    // Forward the CALLER's own Codex client version upstream instead of a pinned
+    // default. The ChatGPT backend gates newer models on the reported client
+    // version (e.g. "The 'gpt-6-astra' model requires a newer version of Codex"),
+    // so a hardcoded value silently rots whenever the user upgrades their CLI.
+    // Falls back to the configured/default version when the caller sends none.
+    const clientVersion = getCodexClientVersionFromHeaders(clientHeaders);
+    headers.Version = clientVersion ?? getCodexClientVersion();
+    setUserAgentHeader(headers, getCodexUserAgent(clientVersion));
 
     // Add workspace binding header if workspaceId is persisted
     const workspaceId = credentials?.providerSpecificData?.workspaceId;

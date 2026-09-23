@@ -61,6 +61,7 @@ export const createKeySchema = z
     dailyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
     weeklyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
     chaosModeEnabled: z.boolean().optional(),
+    expiresAt: z.string().datetime().nullable().optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedConnections: z.array(z.string().uuid()).min(1).max(100).optional(),
   })
@@ -71,6 +72,15 @@ export const createKeySchema = z
 
 export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
+});
+
+export const setKeyQuotaSchema = z.object({
+  apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+  // 0/null means unlimited for the dimension (KISS: NULL stores unlimited).
+  // Negative values are rejected.
+  tpmLimit: z.coerce.number().min(0).optional().nullable(),
+  rpmLimit: z.coerce.number().min(0).optional().nullable(),
+  monthlyAmountUsd: z.coerce.number().min(0).optional().nullable(),
 });
 
 export const setBudgetSchema = z.object({

@@ -86,6 +86,7 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
     code: null,
     message: "Upstream stream failed before completion.",
     param: null,
+    sequence_number: 0,
   })}\n\n`
 );
 
@@ -124,7 +125,7 @@ function buildResponsesErrorDataLine(text: string): string {
     parsed && typeof parsed.diagnostics === "object" && parsed.diagnostics !== null
       ? { diagnostics: parsed.diagnostics }
       : {};
-  return JSON.stringify({ type: "error", code, message, param, ...extras });
+  return JSON.stringify({ type: "error", code, message, param, sequence_number: 0, ...extras });
 }
 
 export type EarlyStreamKeepaliveOptions = {
@@ -193,7 +194,12 @@ export async function withEarlyStreamKeepalive(
   options: EarlyStreamKeepaliveOptions = {}
 ): Promise<Response> {
   const thresholdMs = Math.max(0, options.thresholdMs ?? 2_000);
-  const intervalMs = Math.max(250, options.intervalMs ?? 2_500);
+  // Cadence must stay under the client idle timeout, per the option docs below.
+  // The old 2 500 ms default exceeded the ~2 s watchdog observed in practice, so
+  // a client that survived the first keepalive byte aborted on the gap before the
+  // next one. 1 500 ms keeps every inter-byte gap inside the same budget the
+  // threshold uses (see keepaliveThreshold.ts).
+  const intervalMs = Math.max(250, options.intervalMs ?? 1_500);
   const signal = options.signal ?? null;
   const keepaliveFrame = options.keepaliveFrame ?? KEEPALIVE_FRAME;
   const startupFrame = options.startupFrame ?? keepaliveFrame;

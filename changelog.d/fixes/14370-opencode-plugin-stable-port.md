@@ -1,0 +1,1 @@
+- **fix(opencode-plugin-v2):** publish the gateway catalog through the stable provider contract instead of the removed beta one ([#14370](https://github.com/diegosouzapw/OmniRoute/pull/14370)) — thanks @maxmad64bis

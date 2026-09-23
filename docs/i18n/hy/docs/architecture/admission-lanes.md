@@ -1,55 +1,70 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (Հայերեն)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
 OmniRoute-ն ունի գործընթացի ներսում գործող ուղիների **երկու** համակարգ՝ տարբեր ընդգրկույթներով։ Դրանք
 փոխլրացնող են․ օպերատորները պետք է իմանան, թե դրանցից որն են դիտարկում։
 
-## 1. Բայթային մակարդակով՝ ամբողջ գործընթացի ընդունման կառավարում (`chatBodyAdmission.ts`)
+## 1. Բայթային մակարդակով՝ ամբողջ գործընթացի ընդունում (`chatBodyAdmission.ts`)
 
-- **Ընդգրկույթ․** բուֆերացված մարմնի/heap-ի ուղին՝ `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` և չատի կառուցվածք ունեցող մյուս երթուղիների համար։ Պաշտպանում է
-  կոդավորման գործակալների մեծ մարմիններից առաջացող heap-ի բազմապատկումից (#4380)։
-- **Մեկ ընդհանուր կարգավորիչ ամբողջ գործընթացի համար, ոչ թե առանձին ուղիներ յուրաքանչյուր բանալու համար (#10110)։** Յուրաքանչյուր API բանալի
-  (հեշավորված) կամ `anonymous` աշխատաշրջան ընդունվում է միևնույն
-  ընդհանուր բյուջեի հաշվին․ հեշավորված աշխատաշրջանի ID-ն օգտագործվում է ՄԻԱՅՆ որպես արդար պլանավորման բանալի (սպասողների
-  հերթափոխային բաշխում), և երբեք՝ որպես թողունակության շարդ։ Այս
-  փաստաթղթի նախորդ տարբերակում նկարագրված էին յուրաքանչյուր բանալու համար անկախ թողունակությամբ առանձին ուղիներ․ այդ մոդելը
-  հեռացվել է #10110-ում, քանի որ այն թույլ էր տալիս չնույնականացված կեղծ հավատարմագրերով
-  բազմապատկել ամբողջ գործընթացի սահմանաչափը։
-- **Դարպաս (#503-fanout)․ ավտոմատ որոշվող մուտքային ԲԱՅԹԱՅԻՆ բյուջե, ոչ թե հարցումների ֆիքսված
-  քանակ։** Հին `CHAT_MAX_HEAVY_IN_FLIGHT` հարցումների քանակի սահմանաչափը (մինչ այս ուղղումը՝ լռելյայն `1`)
-  կոդավորման գործակալների զուգահեռ ճյուղավորումը (մի քանի ենթագործակալներ/CLI-ներ,
-  սովորաբար > 256 KB մարմիններով) հանգեցնում էր մոտավորապես 1 արդյունավետ զուգահեռության, ինչի պատճառով լիովին սովորական բեռնվածության
-  պայմաններում վերադարձվում էր 503։ Այժմ այն սահմանափակում է միայն այն դեպքում, երբ օպերատորը բացահայտորեն
-  սահմանում է `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`-ը։ Եթե այն սահմանված չէ, ընդունման կառավարումն իրականացվում է
+- **Շրջանակը՝** `POST /v1/chat/completions`, `/v1/messages`,
+  `/v1/responses` և չաթի կառուցվածք ունեցող մյուս երթուղիների բուֆերացված
+  մարմնի/heap ուղին։ Պաշտպանում է ծրագրավորման գործակալների մեծ մարմինների
+  պատճառով heap-ի ծավալի աճից (#4380)։
+- **Մեկ ընդհանուր՝ ամբողջ գործընթացի համար նախատեսված վերահսկիչ, այլ ոչ թե
+  առանձին ուղիներ յուրաքանչյուր բանալու համար (#10110)։** Յուրաքանչյուր API
+  բանալի (հեշավորված) կամ `anonymous` աշխատաշրջան ընդունման ժամանակ օգտագործում է
+  **նույն** ընդհանուր բյուջեն․ հեշավորված աշխատաշրջանի նույնացուցիչն օգտագործվում է
+  ՄԻԱՅՆ որպես արդար պլանավորման բանալի (սպասողների միջև շրջանաձև բաշխում), և ոչ
+  երբեք որպես տարողության բաժանման միջոց։ Այս փաստաթղթի նախորդ տարբերակը
+  նկարագրում էր յուրաքանչյուր բանալու համար անկախ տարողությամբ առանձին ուղիներ․
+  այդ մոդելը հեռացվեց #10110-ում, քանի որ այն թույլ էր տալիս չնույնականացված
+  կեղծ հավատարմագրերով բազմապատկել ամբողջ գործընթացի սահմանաչափը։
+- **Դարպաս (#503-fanout)՝ ավտոմատ հաշվարկվող ընդունման ԲԱՅԹԱՅԻՆ բյուջե, այլ ոչ
+  թե հարցումների ֆիքսված քանակ։** Հին `CHAT_MAX_HEAVY_IN_FLIGHT`
+  հարցումների քանակի սահմանաչափը (մինչ այս ուղղումը՝ լռելյայն `1`) ծրագրավորման
+  գործակալների զուգահեռ բաշխումը (մի քանի ենթագործակալներ/CLI-ներ, որոնց
+  մարմինները սովորաբար > 256 KB են) նվազեցնում էր մինչև մոտավորապես 1
+  արդյունավետ զուգահեռություն, ինչի պատճառով լիովին սովորական բեռնվածության
+  դեպքում վերադարձվում էր 503։ Այժմ այն կիրառվում է միայն այն դեպքում, երբ
+  օպերատորը հստակորեն սահմանում է `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`։
+  Եթե այն սահմանված չէ, ընդունումը փոխարենը վերահսկվում է
   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`-ով՝ գործընթացի իրական հիշողության
-  սահմանաչափից ավտոմատ որոշվող բյուջեով (`src/shared/middleware/admissionBudget.ts`)․
-  V8 heap-ի սահմանաչափից և ցանկացած cgroup/կոնտեյների սահմանաչափից ավելի խիստ արժեքի 25%-ը՝
-  բաժանված անցողիկ 8-ապատիկ բազմապատկման գործակցի վրա և սահմանափակված 8 MiB-ից
-  2 GiB միջակայքում։ Բացահայտ վերասահմանումների համար կիրառվում են նույն սահմանները։ Սա ինքնաբերաբար մասշտաբավորվում է
-  512 MB կոնտեյներից մինչև 32 GB աշխատասեղանային համակարգ՝ առանց միջավայրի փոփոխականների կարգաբերման։ Այն մարմինը, որը չի կարող
-  տեղավորվել արդյունավետ բյուջեի սահմաններում, անմիջապես ձախողվում է՝ վերադարձնելով `413 body_exceeds_budget`․
-  սահմանափակ արդարության հերթ է մտնում միայն առանձին-առանձին սպասարկելի մարմինների միջև
-  մրցակցությունը։ Ռեսուրսների ճնշման բազմաազդանշան իրական ժամանակի հետագծիչը (V8 heap-ի հարաբերակցություն,
-  cgroup, PSI, OOM իրադարձություններ՝ `open-sse/utils/resourcePressurePolicy.ts`) կրճատում է
-  սահմանափակ սպասման ժամանակը `high` ճնշման դեպքում և, նախքան որևէ բայթի
-  ընդունումը, `critical` ճնշման դեպքում անմիջապես մերժում է բեռը՝ վերադարձնելով
-  `503 resource_pressure`։
-- **Կարգաբերում․**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — ավտոմատ որոշվող բայթային բյուջեի վերասահմանում
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — հարցումների քանակի հին սահմանաչափ, միայն ըստ ընտրության
+  առավելագույն շեմից ավտոմատ հաշվարկվող բյուջեով
+  (`src/shared/middleware/admissionBudget.ts`)․ V8 heap-ի սահմանաչափից և
+  cgroup/կոնտեյների ցանկացած սահմանաչափից ավելի խիստի 25%-ը՝ բաժանված ժամանակավոր
+  8-ապատիկ աճի գործակցի վրա և սահմանափակված 8 MiB-ից մինչև 2 GiB միջակայքում։
+  Հստակորեն նշված վերասահմանումներն օգտագործում են նույն սահմանափակումները։
+  Սա առանց միջավայրի փոփոխականների կարգաբերման ինքնաբերաբար մասշտաբավորվում է
+  512 MB կոնտեյներից մինչև 32 GB աշխատասեղանային համակարգ։ Մարմինը, որը չի
+  տեղավորվում արդյունավետ բյուջեի սահմաններում, անմիջապես ձախողվում է
+  `413 body_exceeds_budget`-ով․ միայն առանձին-առանձին սպասարկելի մարմինների միջև
+  մրցակցությունն է մտնում սահմանափակ արդարության հերթ։ Ռեսուրսների ճնշման
+  բազմաազդանշան իրական ժամանակի հետագծիչը (V8 heap-ի հարաբերակցություն, cgroup,
+  PSI, OOM իրադարձություններ՝ `open-sse/utils/resourcePressurePolicy.ts`)
+  կրճատում է սահմանափակ սպասումը `high` ճնշման դեպքում և անմիջապես մերժում է
+  `503 resource_pressure`-ով `critical` ճնշման դեպքում՝ նախքան որևէ բայթի
+  ընդունումը։ Առկայության դեպքում PSI-ն ընթերցվում է այս միավորի cgroup-ի
+  `memory.pressure`-ից (`open-sse/utils/resourcePressureSampler.ts`)․
+  `/proc/pressure/memory`-ը վերաբերում է ամբողջ հոսթին և օգտագործվում է միայն
+  որպես պահուստային տարբերակ ֆիզիկական սերվերի / cgroup v1-ի դեպքում, որպեսզի
+  փոխանակման հիշողություն օգտագործող հոսթը չկարողանա պարապ կոնտեյների համար
+  վերադարձնել 503։
+- **Կարգաբերում՝**
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — ավտոմատ հաշվարկվող բայթային բյուջեի վերասահմանում
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — հարցումների քանակի հին սահմանաչափ, միայն հստակ միացմամբ
   - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — հերթում սպասելու ժամանակը մինչև 503 (լռելյայն՝ 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — հերթագրված բայթերի heap-ի փական (լռելյայն՝ 4 MB)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — հերթագրված բայթերի heap-ի կարգավորիչ (լռելյայն՝ 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110-ից ի վեր հնացած
-    և ոչինչ չանող կարգավորումներ (կազմաձևման համատեղելիության համար ընդունվում են, բայց անտեսվում)
-- **Հաշվետվություններ․** `GET /api/monitoring/health` → `chatAdmission` (#11244)՝ ներառյալ
-  #503-fanout-ի հավելումները՝ `inflightBytes`, `maxInflightBytes`, `budgetSource`
-  (`v8_heap` | `cgroup` | `override`), `pressureSeverity` և `countCapEnabled`
-  (լռելյայն տեղակայման դեպքում false է․ հաստատում է, որ իրականում սահմանափակողը բայթային բյուջեն է, ոչ թե հին
-  քանակային սահմանաչափը)։
+    և գործողություն չկատարող (ընդունվում են կազմաձևման համատեղելիության համար, սակայն անտեսվում են)
+- **Հաշվետվություններ՝** `GET /api/monitoring/health` → `chatAdmission` (#11244)՝
+  ներառյալ #503-fanout-ի հավելումները՝ `inflightBytes`, `maxInflightBytes`,
+  `budgetSource` (`v8_heap` | `cgroup` | `override`), `pressureSeverity` և
+  `countCapEnabled` (լռելյայն տեղակայման դեպքում՝ false․ հաստատում է, որ
+  իրականում սահմանափակողը բայթային բյուջեն է, ոչ թե հարցումների քանակի հին
+  սահմանաչափը)։
 
 ## 2. Հարմարվողական գործարկման ժամանակի վիրտուալ ուղիներ (`open-sse/services/admission`)
 

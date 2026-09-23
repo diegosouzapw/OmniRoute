@@ -1,1 +1,0 @@
-- **fix(skills):** repair nested malformed skill-tool schemas (bare property maps, boolean `required: true`) for OpenAI-compatible providers, not just the schema root (#13022) — thanks @ftevxk

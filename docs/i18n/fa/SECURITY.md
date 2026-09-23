@@ -1,6 +1,6 @@
 # Security Policy (فارسی)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -222,20 +222,26 @@ docker run -d \
 
 ## یافتههای اسکنر زنجیره تأمین (Socket.dev / Snyk / ابزارهای مشابه)
 
-آرتیفکت npm منتشرشدهٔ `omniroute`، بیلد Next.js با تنظیم `output: "standalone"` را در خود بستهبندی میکند؛ این یعنی تمام مدیریتکنندههای مسیر — از جمله قابلیتهای ممتاز مستندشده (MITM، وارد کردن Zed، Cloud Sync و ناظر سرویس تعبیهشده) — در نهایت در قطعههای کوچکسازیشدهٔ `.next/server/*.js` قرار میگیرند. اسکنرهای اکتشافی زنجیره تأمین اغلب این قطعهها را بر اساس الگو با امضاهای بدافزار تطبیق میدهند.
+> **یادداشت محدوده:** فایل `socket.yml` در ریشه مخزن فقط `projectIgnorePaths` را برای اسکن پس از انتشارِ سمت رجیستری Socket.dev روی آرتیفکت منتشرشده npm تنظیم میکند — این فایل یک گیت اجباری برای ادغام CI/PR نیست. هیچ گردش کاری در `.github/workflows`، هیچ اسکریپتی در `package.json` و هیچ هدفی در `Makefile`، Socket.dev را فراخوانی نمیکند.
 
-پیکربندی اسکنری که استفاده میکنیم در فایل [`socket.yml`](socket.yml) واقع در ریشهٔ مخزن قرار دارد (قالب v2 برنامهٔ GitHub متعلق به Socket.dev — بنگرید به
+آرتیفکت منتشرشده `omniroute` در npm، بیلد Next.js با `output: "standalone"` را در خود جای میدهد؛ این یعنی هر مدیریتکننده مسیر — از جمله قابلیتهای ممتاز مستندشده (MITM، واردسازی Zed، Cloud Sync و ناظر سرویس تعبیهشده) — در نهایت در چانکهای مینیفایشده `.next/server/*.js` قرار میگیرد. اسکنرهای اکتشافی زنجیره تأمین اغلب الگوهای موجود در این چانکها را با امضاهای بدافزار تطبیق میدهند.
+
+پیکربندی اسکنری که استفاده میکنیم در [`socket.yml`](socket.yml) در ریشه مخزن قرار دارد (قالب v2 برنامه GitHub مربوط به Socket.dev — بنگرید به
 <https://docs.socket.dev/docs/socket-yml>). این پیکربندی صراحتاً دایرکتوریهایی را که منتشر نمیشوند (`tests/`، `_tasks/`، `_references/`، `_ideia/`،
-`_mono_repo/`، `docs/` و غیره) مستثنا میکند تا اسکنر فقط مسیرهای کدی را گزارش کند که واقعاً به دست کاربران نسخهٔ منتشرشده میرسند — خود اسکن توسط برنامهٔ GitHub متعلق به Socket و با خواندن این فایل انجام میشود، نه توسط یک گردشکار در این مخزن.
+`_mono_repo/`، `docs/` و غیره) مستثنا میکند تا اسکنر فقط مسیرهای کدی را گزارش کند که واقعاً به دست کاربران نسخه منتشرشده میرسند — خود اسکن توسط برنامه GitHub مربوط به Socket و با خواندن این فایل انجام میشود، نه توسط یک گردش کاری در این مخزن.
 
-برای هر دسته از یافتهها، یک گواهی نگهدارنده بهازای هر یافته نگهداری میکنیم:
+برای هر دسته از یافتهها، یک تأییدیه نگهدارنده بهازای هر یافته نگهداری میکنیم:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  نگاشت هر یافته: فایل منبع ↔ قطعهٔ علامتگذاریشده ↔ رفتار ↔ راهکار کاهشی اعمالشده در v3.8.6.
-- بلوکهای درونمنبعی `SECURITY-AUDITOR-NOTE:` در محل هر تابع علامتگذاریشده، به همان سند ارجاع میدهند.
+  نگاشت بهازای هر یافته: فایل منبع ↔ چانک علامتگذاریشده ↔ رفتار ↔ اقدام کاهشی
+  اعمالشده در v3.8.6.
+- بلوکهای `SECURITY-AUDITOR-NOTE:` در کد منبع، در محل هر تابع علامتگذاریشده،
+  به همان سند ارجاع میدهند.
 
-برای کاربرانی که خط لولهٔ آنها امکان تعدیل هشدار را ندارد: با
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` بیلد کنید. این کار چهار ماژول حساس را با stubهایی جایگزین میکند که هنگام اجرا HTTP 503 با پاسخ `feature-disabled` برمیگردانند؛ بنابراین مسیرهای کد ممتاز از نظر فیزیکی در بسته وجود نخواهند داشت.
+برای کاربرانی که خط لوله آنها امکان تعدیل این هشدار را ندارد: با
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` بیلد کنید. این فرمان چهار
+ماژول حساس را با stubهایی جایگزین میکند که هنگام اجرا پاسخ HTTP 503 با
+`feature-disabled` برمیگردانند؛ بنابراین مسیرهای کد ممتاز بهصورت فیزیکی در باندل وجود نخواهند داشت.
 برای دستورالعمل انتشار، به [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 مراجعه کنید.
 

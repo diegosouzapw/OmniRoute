@@ -1,12 +1,12 @@
 # Troubleshooting (Български)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇧🇦 [bs](../../../bs/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 ---
 
-> **За потребители**: Търсите бързи решения? Вижте [Бърза справка](#quick-reference) по-долу.
+> **За потребители**: Търсите бързи решения? Вижте [Краткия справочник](#quick-reference) по-долу.
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇧🇦 [bs](../../../bs/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 Често срещани проблеми и решения за OmniRoute.
 
@@ -14,19 +14,20 @@
 
 ## Бърза справка
 
-**За първи път използвате OmniRoute?** Започнете оттук — тези решения покриват 90% от проблемите:
+**Използвате OmniRoute за първи път?** Започнете оттук — това решава 90% от проблемите:
 
-| Виждам това                    | Какво означава                               | Какво да направите                                                                                 |
-| ------------------------------ | -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| "Не може да се свърже"         | OmniRoute не работи                          | Изпълнете `omniroute` или `docker restart omniroute`                                               |
-| "Невалиден API ключ"           | Ключът ви е грешен или е изтекъл             | Копирайте отново ключа от уебсайта на доставчика                                                   |
-| "Лимитът е надвишен"           | Изпращате твърде много заявки                | Изчакайте 1 минута или използвайте `model: "auto"` за автоматично превключване                     |
-| "Квотата е надвишена"          | Изчерпали сте безплатната/платената си квота | Свържете още доставчици или използвайте безплатни доставчици (Kiro, Pollinations)                  |
-| "Бавни отговори"               | Доставчикът е натоварен или е твърде далеч   | Използвайте `model: "auto/fast"` или свържете по-бърз доставчик (Groq, Cerebras)                   |
-| "Използван е грешен доставчик" | `auto` е избрал друг доставчик               | Това е нормално! `auto` избира най-добрия. Наложете конкретен доставчик с `model: "openai/gpt-4o"` |
-| "502 Bad Gateway"              | Доставчикът не работи                        | Изчакайте и опитайте отново или използвайте `model: "auto"`, за да превключите към друг доставчик  |
-| "401 Unauthorized"             | Данните ви за удостоверяване са грешни       | Проверете своя API ключ или се удостоверете отново чрез OAuth                                      |
-| "429 Too Many Requests"        | Заявките са ограничени                       | Изчакайте 1 минута или свържете още доставчици                                                     |
+| Виждам това                      | Какво означава                                | Какво да направя                                                                                  |
+| -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| "Не може да се осъществи връзка" | OmniRoute не работи                           | Изпълнете `omniroute` или `docker restart omniroute`                                              |
+| "Невалиден API ключ"             | Ключът ви е грешен или е изтекъл              | Копирайте отново ключа от уебсайта на доставчика                                                  |
+| "Лимитът на заявките е надвишен" | Изпращате твърде много заявки                 | Изчакайте 1 минута или използвайте `model: "auto"` за автоматично превключване                    |
+| "Квотата е надвишена"            | Изчерпали сте безплатната/платената си квота  | Свържете още доставчици или използвайте безплатни доставчици (Kiro, Pollinations)                 |
+| "Бавни отговори"                 | Доставчикът е натоварен или се намира далеч   | Използвайте `model: "auto/fast"` или свържете по-бърз доставчик (Groq, Cerebras)                  |
+| "Използван е грешен доставчик"   | `auto` е избрал друг доставчик                | Това е нормално! `auto` избира най-добрия. Задайте конкретен доставчик с `model: "openai/gpt-4o"` |
+| "502 Bad Gateway"                | Доставчикът не работи                         | Изчакайте и опитайте отново или използвайте `model: "auto"`, за да превключите доставчика         |
+| "401 Unauthorized"               | Идентификационните ви данни са грешни         | Проверете своя API ключ или се удостоверете отново чрез OAuth                                     |
+| "omniroute не е разпознат"       | В Windows PATH липсват глобалните node модули | Добавете глобалния префикс на npm към Windows PATH. Намерете го с `npm config get prefix`.        |
+| "429 Too Many Requests"          | Ограничени сте по честота на заявките         | Изчакайте 1 минута или свържете още доставчици                                                    |
 
 **Все още имате проблем?** Вижте [подробното отстраняване на неизправности](#detailed-troubleshooting) по-долу или попитайте в [Discord](https://discord.gg/U47eFqAXCn).
 
@@ -36,66 +37,96 @@
 
 ---
 
-### Ограничаване на заявките при безплатни доставчици (429 / 400 / 401)
+### Ограничаване на честотата на заявките при безплатни доставчици (429 / 400 / 401)
 
-**Симптом**: Когато използвате `model: "auto"` с безплатни доставчици или такива без удостоверяване (opencode, auggie и др.), периодично получавате `HTTP 429`, `400` или `401` вместо отговори. Заявките се изпълняват успешно, когато опитате отново със същата подкана малко по-късно, но автоматизацията (cron задачи, агенти, скриптове) прекъсва още при първата грешка.
+**Симптом**: Когато използвате `model: "auto"` с безплатни доставчици/доставчици без удостоверяване (opencode, auggie и др.), периодично получавате `HTTP 429`, `400` или `401` вместо отговори. Заявките са успешни, когато опитате отново със същата подкана няколко минути по-късно, но автоматизацията (cron задачи, агенти, скриптове) прекъсва още при първата грешка.
 
 **Основна причина**: Наслагват се три независими режима на отказ:
 
-1. **Ограничение на заявките от доставчика (`429`)**: Безплатните планове могат да налагат квота за определен времеви прозорец. Поредица от паралелни извиквания я изчерпва, така че следващата заявка се отхвърля, докато прозорецът не се нулира.
-2. **Неработещ модел при директно препращане (`400`/`401`)**: Групите `auto/*` могат да включват модели за директно препращане от `opencode`, които са регистрирани в каталога, но нямат активни идентификационни данни (напр. `oc/north-mini-code-free` → `401`). Автоматичният маршрутизатор опитва един от тях, той се проваля и грешката се предава, преди да се задейства резервният вариант.
-3. **Усилване поради паралелност (`429` при натоварване)**: Когато няколко сесии на агенти или cron задачи използват `auto` едновременно, общата честота на заявките надвишава допустимото за безплатните доставчици и легитимните извиквания биват маркирани като злоупотреба.
+1. **Ограничение на честотата от доставчика (`429`)**: Безплатните нива могат да налагат квота за определен времеви прозорец. Поредица от паралелни извиквания я изчерпва, така че следващата заявка се отхвърля, докато прозорецът не се нулира.
+2. **Неработещ модел при директно препращане (`400`/`401`)**: Пуловете `auto/*` могат да включват модели с директно препращане от `opencode`, които са регистрирани в каталога, но нямат активни идентификационни данни (напр. `oc/north-mini-code-free` → `401`). Автоматичният маршрутизатор опитва един от тях, получава грешка и я предава, преди да се задейства резервният вариант.
+3. **Усилване поради конкурентност (`429` при натоварване)**: Когато няколко сесии на агенти/cron използват `auto` едновременно, общата честота на заявките надвишава поносимото за безплатните доставчици, поради което легитимните извиквания се маркират като злоупотреба.
 
-**Проверено решение (съобщено от общността, 2026-08-10)**: настройте три променливи на средата, така че ротацията, паралелността и резервното превключване да поемат нестабилността на безплатните планове, вместо процесът да прекъсва заради нея:
+**Потвърдено решение (съобщено от общността, 2026-08-10)**: настройте три променливи на средата, така че ротацията, конкурентността и резервното превключване да поемат нестабилността на безплатното ниво, вместо процесът да прекъсва:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # преминаване към друг модел/доставчик при 400/401 (пропуска неработещите модели за директно препращане)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # изрично максимално ограничение за допускане на тежки заявки (по подразбиране не е зададено: няма ограничение на броя заявки, вижте бележката по-долу)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # по-дълго ограничено изчакване за капацитет за тежки заявки вместо незабавна повторима грешка 503
+export OMNIROUTE_ROTATE_ON_400=true           # преминава към друг модел/доставчик при 400/401 (пропуска неработещите модели с директно препращане)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # изричен максимален праг за допускане на тежки заявки (по подразбиране не е зададен: няма ограничение на броя заявки, вижте бележката по-долу)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # по-дълго ограничено изчакване за капацитет за тежки заявки вместо незабавна грешка 503, позволяваща повторен опит
 ```
 
-Задайте ги в средата на процеса OmniRoute (демона, напр. чрез plist файла на LaunchAgent или `systemctl edit`), след което рестартирайте OmniRoute. Флагът за ротация има най-голям ефект: той преобразува твърдия отказ в прозрачен повторен опит чрез работещ доставчик от групата.
+Задайте ги в средата на процеса на OmniRoute (демона, напр. чрез LaunchAgent plist или `systemctl edit`), след което рестартирайте OmniRoute. Флагът за ротация има най-голям ефект: той превръща критична грешка в прозрачен повторен опит към работещ доставчик в пула.
 
-**Бележка**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ограничава броя на тежките заявки — с дълъг контекст — които се изпълняват едновременно; тази граница е механизъм за допускане, а не ограничител на заявките към доставчика. **Актуализация за #503-fanout:** тази променлива вече не се задава по подразбиране (сега се прилага само когато е изрично конфигурирана, както по-горе) — вместо това допускането на тежки заявки се управлява от автоматично изчислен бюджет в байтове (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), който се мащабира според реалния лимит на паметта на хоста. Поради това при ново внедряване би трябвало да има значително по-малко откази `503 chat_admission_busy`, без изобщо да се задава тази променлива; изричното ѝ задаване тук продължава да работи точно както е описано. Изрично зададените бюджети в байтове се ограничават до диапазона 8 MiB–2 GiB. Грешката `413 body_exceeds_budget` не е временна: увеличете този бюджет в байтове, намалете `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` или увеличете лимита на паметта за процеса. Отхвърлянето `inflight_bytes_budget` представлява временно съревнование за ресурси и заявката може да бъде повторена. Ограничаването на заявките за всеки доставчик (`open-sse/services/rateLimitManager.ts`) се управлява отделно чрез `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` и `RATE_LIMIT_AUTO_ENABLE` — вижте `.env.example`.
+**Бележка**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ограничава броя на тежките заявки — с дълъг контекст — които се изпълняват едновременно; ограничението е механизъм за допускане, а не ограничител на честотата от доставчика. **Актуализация за #503-fanout:** тази променлива вече не се задава по подразбиране (сега влиза в сила само когато е изрично конфигурирана, както по-горе) — вместо това допускането на тежки заявки се управлява от автоматично изчислен бюджет в байтове (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), който се мащабира спрямо действителното ограничение на паметта на хоста, така че при ново внедряване би трябвало да има значително по-малко откази `503 chat_admission_busy`, без изобщо да задавате тази променлива; изричното ѝ задаване тук продължава да работи точно както е документирано. Изрично зададените стойности на бюджета в байтове се ограничават до диапазона 8 MiB–2 GiB. Грешка `413 body_exceeds_budget` не е временна: увеличете този бюджет в байтове, намалете `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` или увеличете ограничението на паметта за процеса. Отхвърляне `inflight_bytes_budget` се дължи на временно недостигнал капацитет и при него може да се направи повторен опит. Ограничаването на честотата по доставчик (`open-sse/services/rateLimitManager.ts`) се управлява отделно чрез `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` и `RATE_LIMIT_AUTO_ENABLE` — вижте `.env.example`.
 
-**Как да проверите дали решението работи**: стартирайте своя агент или cron задача два пъти в бърза последователност и потвърдете, че и двете изпълнения са успешни. Преди корекцията второто изпълнение обикновено връща `429`/`401`. След корекцията грешките (ако има такива) се обработват прозрачно с повторни опити и извикването завършва. Можете също да изпълните `curl /monitoring/health` и да наблюдавате полето `rateLimitedUntil` при връзките с доставчиците, както и `circuitBreakers.providerBreakers[].state` за засегнатите доставчици — състоянието е едно от `CLOSED`, `DEGRADED`, `OPEN` или `HALF_OPEN` (вижте `src/shared/utils/circuitBreaker.ts`), а доставчик, който продължава да се проваля, ще премине през `CLOSED → DEGRADED → OPEN`, преди прозорецът за нулиране да позволи пробна заявка (`HALF_OPEN`).
+**Как да проверите дали корекцията работи**: стартирайте своя агент/cron два пъти в бърза последователност и потвърдете, че и двете изпълнения са успешни. Преди корекцията второто изпълнение обикновено връща грешка `429`/`401`. След корекцията неуспешните заявки (ако има такива) се повтарят прозрачно и извикването завършва успешно. Можете също да изпълните `curl /monitoring/health` и да наблюдавате полето `rateLimitedUntil` при връзките с доставчиците и `circuitBreakers.providerBreakers[].state` за засегнатите доставчици — състоянието е едно от `CLOSED`, `DEGRADED`, `OPEN` или `HALF_OPEN` (вижте `src/shared/utils/circuitBreaker.ts`), а доставчик, който продължава да връща грешки, ще премине през `CLOSED → DEGRADED → OPEN`, преди прозорецът за нулиране да позволи пробна заявка (`HALF_OPEN`).
 
-**Ако все още виждате 429**: активният акаунт за този доставчик действително е изчерпал своята _квота_ (а не просто лимита на заявките). Добавете втори акаунт за същия доставчик в таблото за управление на OmniRoute → Providers → Accounts или включете друг безплатен доставчик (напр. `routeway`, `auggie`). Ротацията помага само при временни ограничения на заявките/грешки 400/401; пълното изчерпване на квотата изисква втори набор от идентификационни данни или друг доставчик.
+**Ако все още виждате 429**: активният акаунт за този доставчик действително е изчерпал своята _квота_ (а не просто ограничението на честотата на заявките). Добавете втори акаунт за същия доставчик в таблото за управление на OmniRoute → Providers → Accounts или включете друг безплатен доставчик (напр. `routeway`, `auggie`). Ротацията помага само при временни грешки, свързани с ограничение на честотата/400/401; пълното изчерпване на квотата изисква втори набор от идентификационни данни или друг доставчик.
 
-**Ако виждате 403 при модели за компютърно зрение (`auto/vision`, `bazaarlink/*`)**: свързаният акаунт няма платен план, който включва компютърно зрение, или API ключът няма достатъчно разрешения. Проверете в таблото за управление на доставчика дали обхватът на ключа включва компютърно зрение/мултимодални функции или свържете акаунт с платен план и го задайте като цел за компютърно зрение.
+**Ако виждате 403 при модели за изображения (`auto/vision`, `bazaarlink/*`)**: свързаният акаунт няма платен план, който включва обработка на изображения, или API ключът няма достатъчно разрешения. Проверете в таблото за управление на доставчика дали обхватът на ключа включва обработка на изображения/мултимодални функции или свържете акаунт с платен план и го запазете като цел за обработка на изображения.
 
 ---
 
 ## Предупреждения при npm install (ERESOLVE / peer / deprecated)
 
-Когато изпълните `npm install -g omniroute`, може да видите множество предупреждения като `npm warn ERESOLVE`, известия за peer зависимости и съобщения `deprecated`. **Те са очаквани и безвредни.** Инсталацията е успешна, ако видите `added <N> packages` в изхода.
+Когато изпълните `npm install -g omniroute`, може да видите множество предупреждения, като `npm warn ERESOLVE`, известия за peer зависимости и съобщения `deprecated`. **Те са очаквани и безвредни.** Инсталацията е успешна, ако в изхода виждате `added <N> packages`.
 
-Предупрежденията идват от остарели диапазони за peer зависимости в пакети на трети страни, които OmniRoute не контролира:
+За да потиснете предупрежденията при разрешаване на peer зависимости, използвайте поддържания от OmniRoute начин за инсталиране:
 
-1. **`marked-terminal` изисква `marked >=1 <16`, но е намерен `marked@18`** — на практика работи без проблеми; диапазонът за peer зависимост в upstream пакета просто е остарял.
-2. **`deprecated prebuild-install@7.1.3`** — транзитивен помощен инструмент за изтегляне на нативни двоични файлове. Той не се
-   използва за инсталиране на фиксирания транспортен binding `wreq-js` и не означава, че настройването на транспорта
-   на доставчика за уеб бисквитки е неуспешно.
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
 
-**Не е необходимо действие** — предупрежденията не могат да бъдат напълно скрити без създаване на fork на upstream пакетите.
+`--legacy-peer-deps` потиска само `ERESOLVE` и известията за peer зависимости. Известията за оттеглени пакети остават видими, тъй като идват от транзитивни пакети на трети страни; те не означават, че инсталацията е неуспешна.
+
+Предупрежденията се дължат на остарели диапазони за peer зависимости в пакети на трети страни, които OmniRoute не контролира:
+
+1. **`marked-terminal` изисква `marked >=1 <16`, но е намерен `marked@18`** — на практика работи безпроблемно; диапазонът за peer зависимост в upstream пакета просто е остарял.
+2. **`deprecated prebuild-install@7.1.3`** — транзитивен помощен инструмент за изтегляне на собствени двоични файлове. Той не се
+   използва за инсталиране на фиксирания transport binding `wreq-js` и не означава, че настройването на транспорта
+   на доставчика за уеб бисквитки е било неуспешно.
+
+**Не е необходимо действие** — предупрежденията не могат да бъдат напълно потиснати без създаване на fork на upstream пакетите.
+
+---
+
+## Gemini Web и Playwright Chromium
+
+Ако заявка към Gemini Web върне `503` със съобщение, че Playwright Chromium
+не е инсталиран, npm пакетът е наличен, но двоичният файл на браузъра липсва.
+Playwright умишлено държи изтеглянията на браузъри отделно от инсталирането
+на npm пакета, така че този отговор е очакван, докато браузърът не бъде инсталиран.
+
+При глобална npm инсталация инсталирайте Chromium от директорията на пакета
+OmniRoute, така че кешът на браузъра да принадлежи на същата инсталация на Playwright:
+
+```bash
+cd "$(npm root -g)/omniroute"
+npx playwright install chromium
+```
+
+Рестартирайте OmniRoute след инсталацията, след което опитайте отново заявката към Gemini Web. Ако
+изпълнявате OmniRoute от Docker образ, използвайте образа `-web` (или целта за компилация `runner-web`),
+който включва Chromium и неговите зависимости; базовият образ не
+ги включва.
 
 ---
 
 ## Бързи решения
 
-| Проблем                                                    | Решение                                                                                                                                                                                       |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Първото влизане не работи                                  | Задайте `INITIAL_PASSWORD` в `.env` (няма твърдо зададена стойност по подразбиране)                                                                                                           |
-| Таблото се отваря на грешен порт                           | Задайте `PORT=20128` и `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                          |
-| На диска не се записват регистрационни файлове             | Задайте `APP_LOG_TO_FILE=true` и проверете дали записването на регистрите на извикванията е активирано                                                                                        |
-| EACCES: достъпът е отказан                                 | Задайте `DATA_DIR=/path/to/writable/dir`, за да замените `~/.omniroute`                                                                                                                       |
-| Стратегията за маршрутизиране не се запазва                | Актуализирайте до най-новата версия v3.x (корекцията на Zod схемата за запазване на настройките е включена в по-ранни версии)                                                                 |
-| Срив при влизане / празна страница                         | Проверете версията на Node.js — вижте [Съвместимост с Node.js](#nodejs-compatibility) по-долу                                                                                                 |
-| `dlopen` / `slice is not valid mach-o file` (macOS)        | Изпълнете `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — вижте [Повторно компилиране на нативен модул в macOS](#macos-native-module-rebuild) по-долу          |
-| „fetch failed“ на проксито                                 | Уверете се, че конфигурацията на проксито е зададена на правилното ниво — вижте [Проблеми с проксито](#proxy-issues) по-долу                                                                  |
-| Docker `curl: (56) Recv failure: Connection reset by peer` | Обвързването на Docker порта може да се извършва през IPv6. Използвайте `-p 127.0.0.1:20128:20128`, за да наложите IPv4, или тествайте с `curl -4`. Вижте [Docker IPv6](#docker-ipv6) по-долу |
-| Антивирусната програма поставя `README.md` под карантина   | Фалшиво положителен резултат — вижте [Фалшиви положителни резултати от антивирусни програми](#antivirus-false-positives) по-долу                                                              |
-| Kaspersky отчита настолното приложение като троянски кон   | Поведенчески фалшиво положителен резултат при неподписания инсталатор — вижте [Фалшиви положителни резултати от антивирусни програми](#antivirus-false-positives) по-долу                     |
+| Проблем                                                    | Решение                                                                                                                                                                                     |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Първоначалното влизане не работи                           | Задайте `INITIAL_PASSWORD` в `.env` (няма твърдо кодирана стойност по подразбиране)                                                                                                         |
+| Таблото се отваря на грешен порт                           | Задайте `PORT=20128` и `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                        |
+| На диска не се записват регистрационни файлове             | Задайте `APP_LOG_TO_FILE=true` и проверете дали записването на регистрационни данни за извикванията е активирано                                                                            |
+| EACCES: отказан достъп                                     | Задайте `DATA_DIR=/path/to/writable/dir`, за да замените `~/.omniroute`                                                                                                                     |
+| Стратегията за маршрутизиране не се запазва                | Актуализирайте до най-новото издание v3.x (корекцията на Zod схемата за запазване на настройките беше включена в по-ранни версии)                                                           |
+| Срив при влизане / празна страница                         | Проверете версията на Node.js — вижте [Съвместимост с Node.js](#nodejs-compatibility) по-долу                                                                                               |
+| `dlopen` / `slice is not valid mach-o file` (macOS)        | Изпълнете `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — вижте [повторно компилиране на собствен модул за macOS](#macos-native-module-rebuild) по-долу      |
+| „fetch failed“ при прокси                                  | Уверете се, че конфигурацията на проксито е зададена на правилното ниво — вижте [Проблеми с проксито](#proxy-issues) по-долу                                                                |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | Обвързването на Docker порта може да се насочва към IPv6. Използвайте `-p 127.0.0.1:20128:20128`, за да наложите IPv4, или тествайте с `curl -4`. Вижте [Docker IPv6](#docker-ipv6) по-долу |
+| Антивирусната програма поставя `README.md` под карантина   | Фалшиво положителен резултат — вижте [Фалшиви положителни резултати от антивирусни програми](#antivirus-false-positives) по-долу                                                            |
+| Kaspersky маркира настолното приложение като троянски кон  | Поведенчески фалшиво положителен резултат за неподписаната инсталационна програма — вижте [Фалшиви положителни резултати от антивирусни програми](#antivirus-false-positives) по-долу       |
 
 ---
 
@@ -105,63 +136,63 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # по-дълго ограниче
 
 ### Avast/AVG поставя `README.md` под карантина с `MD:HttpRequest-inf[Susp]`
 
-**Това е фалшив положителен резултат. Няма заразени файлове и не е необходимо да предприемате действия.**
+**Това е фалшив положителен резултат. Нищо не е заразено и не се изискват действия.**
 
-Avast и AVG използват евристичен анализ, който маркира обикновени текстови/Markdown файлове, съдържащи множество
+Avast и AVG използват евристичен анализ, който маркира обикновени текстови/Markdown файлове, съдържащи много
 връзки, наподобяващи HTTP заявки. `README.md` на OmniRoute се разпространява в npm пакета (той е
-посочен в `package.json` → `files`), така че при глобална инсталация попада в `node_modules/omniroute/README.md` — и
-съдържа около 15 примера с `http://localhost:20128/...` (HTTP/SSE крайните точки на MCP,
-A2A URL адреса `.well-known` и откъси с `curl`). Тази гъстота на връзките е
-достатъчна, за да задейства евристичния анализ.
+посочен в `package.json` → `files`), така че при глобална инсталация попада в `node_modules/omniroute/README.md` —
+и съдържа около 15 примера с `http://localhost:20128/...` (HTTP/SSE крайните точки на MCP, A2A URL адреса
+`.well-known` и фрагменти с `curl`). Тази концентрация на връзки е достатъчна, за да задейства
+евристиката.
 
-Ако това е започнало едва наскоро: видът на файла не се е променил. Таблицата с
-крайни точки в README е разширена (добавени са MCP HTTP + SSE + A2A), както и броят на примерите с `curl`, което е довело
-до преминаване на прага.
+Ако това е започнало едва наскоро: видът на файла не е променен. Таблицата с крайни точки в README е
+разширена (добавени са MCP HTTP + SSE + A2A), както и още примери с `curl`, което е довело до
+преминаване на прага.
 
-Файлът представлява неактивна документация без каквото и да е изпълнимо съдържание. Можете безопасно да го възстановите
+Файлът представлява неактивна документация без никакво изпълнимо съдържание. Можете безопасно да го възстановите
 от карантината.
 
 **Какво да направите:**
 
-1. **Спрете известията** — изключете директорията за инсталация от проверките на антивирусната си програма
+1. **Спрете известията** — изключете директорията за инсталиране от проверките на антивирусната си програма
    (Avast: Settings → Exceptions), като добавите пътя до глобалната си директория `node_modules` и/или
    директорията с данни на OmniRoute (`~/.omniroute/`).
 2. **Докладвайте фалшивия положителен резултат** — <https://www.avast.com/false-positive-file-form.php>,
    като прикачите поставения под карантина `README.md`. Това е решението, което помага на всички, тъй като
-   причината е прекомерната реакция на евристичния анализ на производителя спрямо текстов файл.
+   евристиката на доставчика реагира прекомерно на текстов файл.
 
 **Защо не „поправяме“ това от наша страна:** всички примери използват `http://localhost`, а
-localhost не може да използва `https` без неудобствата, свързани със самоподписан сертификат. Изопачаването на документацията с цел
-заобикаляне на евристичния анализ на един производител би навредило на всички читатели само за да се угоди на грешка в скенера.
+localhost не може да използва `https` без неудобствата, свързани със самоподписани сертификати. Изменянето на документацията с цел
+заобикаляне на евристиката на един доставчик би затруднило всички читатели само заради грешка в скенера.
 
 ### Kaspersky маркира настолното приложение като `PDM:Trojan.Win32.Generic`
 
-**Това е фалшив положителен резултат от поведенчески евристичен анализ. Няма заразени файлове.** Префиксът
+**Това е фалшив положителен резултат от поведенческа евристика. Нищо не е заразено.** Префиксът
 `PDM:` на Kaspersky означава, че заключението идва от неговия Proactive Defense Module (System Watcher),
 който оценява какво _прави_ инсталаторът, вместо да го сравнява с известен зловреден софтуер. Когато
-се задейства, Kaspersky „връща назад“ цялата инсталация — като изтрива файловете, които вече е
-записал — така че приложението накрая остава повредено или липсва.
+бъде задействан, Kaspersky „връща назад“ цялата инсталация — изтривайки вече
+записаните файлове — така че приложението остава повредено или липсва.
 
-Файловете, които маркира, са стандартни части от декларирани зависимости с отворен код, включени в
+Маркираните файлове са стандартни части от декларирани зависимости с отворен код, пакетирани с
 настолното приложение, например:
 
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` и
   `workerProcessEntry.js` — [Playwright](https://playwright.dev), библиотеката за автоматизация на браузъри,
-  използвана за влизане в доставчици от приложението и за чат чрез браузър.
+  използвана за влизане в доставчици през приложението и за чат, работещ чрез браузър.
 - `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
-  — фиксираната версия на нативния модул `wreq-js`, използван за HTTP със специфичен браузърен отпечатък при доставчици,
+  — фиксираната нативна обвързваща библиотека `wreq-js`, използвана за HTTP със снемане на браузъчен отпечатък при доставчици,
   използващи уеб бисквитки (`<arch>` е `x64` или `arm64`).
 
-**Защо се задейства:** инсталаторът за Windows **все още не е подписан с цифров сертификат**, така че неподписаният NSIS
-инсталатор няма никаква репутация и поведенческите евристични анализи работят с максимална агресивност. В съчетание
-с включена нативна DLL библиотека и стотици `.js` файлове, записвани в
+**Защо се задейства:** инсталаторът за Windows **все още не е подписан с кодов сертификат**, затова неподписаният NSIS
+инсталатор няма никаква репутация и поведенческите евристики работят с максимална агресивност. В комбинация
+с пакетирана нативна DLL библиотека и стотици `.js` файлове, записвани в
 `%LOCALAPPDATA%\Programs\OmniRoute` (включително директории на пакети със суфикси от хешове от
-самостоятелната компилация на Next.js), това е достатъчно, за да задейства евристичния анализ. Подписването на кода е планирано;
-докато не бъде реализирано, това може да се повтаря при новите версии.
+самостоятелната компилация на Next.js), това е достатъчно, за да задейства евристиката. Подписването на кода е планирано;
+дотогава това може да се повтаря при новите версии.
 
 **Какво да направите:**
 
-1. **Първо проверете изтегления файл** (това изключва възможността файлът да е бил подправен). Всяка версия публикува
+1. **Първо проверете изтегления файл** (това изключва вероятността файлът да е бил подправен). Всяка версия публикува
    `latest.yml`, чието поле `sha512` (base64) покрива инсталатора `OmniRoute.Setup.<version>.exe`.
    В PowerShell, от папката, съдържаща инсталатора:
    ```powershell
@@ -170,12 +201,12 @@ localhost не може да използва `https` без неудобств�
    [Convert]::ToBase64String($b)
    ```
    Резултатът трябва да съвпада с `latest.yml` → `sha512`. Ако не съвпада, изтрийте файла и
-   го изтеглете отново единствено от [страницата с версии в GitHub](https://github.com/diegosouzapw/OmniRoute/releases).
+   го изтеглете отново само от [страницата с версии в GitHub](https://github.com/diegosouzapw/OmniRoute/releases).
 2. **Възстановете + изключете** — възстановете премахнатите при връщането назад елементи от карантината и добавете изключение
    за `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Settings → Threats and Exclusions),
-   след което инсталирайте отново.
-3. **Докладвайте фалшивия положителен резултат** — <https://opentip.kaspersky.com/>. Подадените от потребители доклади за
-   фалшиви положителни резултати действително ускоряват добавянето към списъка с разрешени файлове.
+   след което преинсталирайте.
+3. **Докладвайте фалшивия положителен резултат** — <https://opentip.kaspersky.com/>. Подадените от потребители доклади
+   за фалшиви положителни резултати действително ускоряват добавянето към списъка с разрешени файлове.
 
 ---
 
@@ -189,13 +220,13 @@ localhost не може да използва `https` без неудобств�
 
 **Симптоми:**
 
-- Страницата за вход показва празен екран или сървърна грешка
+- Страницата за вход показва празен екран или грешка на сървъра
 - Конзолата показва `Error: Module did not self-register` или подобни грешки от нативни обвързвания
 - Страницата за вход показва **оранжев предупредителен банер** с вашата версия на Node, ако средата за изпълнение е извън поддържаната политика за сигурност
 
 **Решение:**
 
-1. Инсталирайте поддържано LTS издание на Node.js (препоръчително: Node.js 24.x):
+1. Инсталирайте поддържана LTS версия на Node.js (препоръчително: Node.js 24.x):
    ```bash
    nvm install 24
    nvm use 24
@@ -206,11 +237,11 @@ localhost не може да използва `https` без неудобств�
 
 > **Поддържани сигурни версии:** `>=22.22.2 <23` или `>=24.0.0 <27`. Node.js 24.x LTS (Krypton) и Node.js 26 се поддържат напълно.
 
-### npm v11+: `better-sqlite3` не е инсталиран (Cannot find module)
+### npm v11+: `better-sqlite3` не е инсталиран (модулът не може да бъде намерен)
 
 <a name="npm-v11-better-sqlite3-not-installed-cannot-find-module"></a>
 
-**Причина:** npm v11 (предоставян с Node.js 24+) блокира по подразбиране инсталационните скриптове за незадължителни
+**Причина:** npm v11 (включен в Node.js 24+) по подразбиране блокира инсталационните скриптове за незадължителни
 зависимости. Тъй като `better-sqlite3` е посочен в `optionalDependencies`
 и изисква нативна компилация (`node-gyp rebuild`), npm го пропуска без предупреждение.
 
@@ -240,11 +271,11 @@ localhost не може да използва `https` без неудобств�
 
 <a name="macos-native-module-rebuild"></a>
 
-**Причина:** След глобално изпълнение на `npm install -g omniroute` нативният двоичен файл на `better-sqlite3` в пакета може да е компилиран за различна архитектура или Node.js ABI от използваните локално. Това е често срещано в macOS (както при Apple Silicon, така и при Intel), когато предварително компилираният двоичен файл не съответства на вашата среда.
+**Причина:** След глобално изпълнение на `npm install -g omniroute` нативният двоичен файл на `better-sqlite3` в пакета може да е бил компилиран за архитектура или ABI на Node.js, различни от използваните локално. Това е често срещано при macOS (както с Apple Silicon, така и с Intel), когато предварително компилираният двоичен файл не съответства на вашата среда.
 
 **Симптоми:**
 
-- Сървърът се срива незабавно при стартиране с грешка от `dlopen`
+- Сървърът се срива незабавно при стартиране с грешка `dlopen`
 - Грешката съдържа `slice is not valid mach-o file`
 - Пълен пример:
 
@@ -252,7 +283,7 @@ localhost не може да използва `https` без неудобств�
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**Решение — компилирайте отново за локалната си среда (не е необходимо преминаване към по-стара версия на Node.js):**
+**Решение — компилирайте отново за локалната си среда (не е необходимо връщане към по-стара версия на Node.js):**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -260,7 +291,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Забележка:** Това компилира отново нативното обвързване спрямо локалната ви версия на Node.js и архитектурата на процесора, като отстранява несъответствието на двоичния файл. Официално поддържаният диапазон на средата за изпълнение е **`>=22.22.2 <23` или `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` в `src/shared/utils/nodeRuntimeSupport.ts`, съгласуван с полето `engines` в `package.json`). Node.js 24.x LTS (Krypton) и Node.js 26 се поддържат напълно с `better-sqlite3` v12.x.
+> **Забележка:** Това компилира повторно нативното обвързване спрямо локалната ви версия на Node.js и архитектурата на процесора, като отстранява несъответствието на двоичния файл. Официално поддържаният диапазон на средата за изпълнение е **`>=22.22.2 <23` или `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` в `src/shared/utils/nodeRuntimeSupport.ts`, съгласуван с полето `engines` в `package.json`). Node.js 24.x LTS (Krypton) и Node.js 26 се поддържат напълно с `better-sqlite3` v12.x.
 
 ---
 
@@ -268,35 +299,35 @@ omniroute
 
 <a name="proxy-issues"></a>
 
-### Валидирането на доставчика показва „fetch failed“
+### Валидирането на доставчика показва "fetch failed"
 
-**Причина:** Крайната точка за валидиране на API ключа (`POST /api/providers/validate`) преди заобикаляше конфигурацията на проксито, което причиняваше грешки в среди, изискващи маршрутизиране през прокси.
+**Причина:** Крайната точка за валидиране на API ключа (`POST /api/providers/validate`) преди заобикаляше конфигурацията на проксито, което водеше до грешки в среди, изискващи маршрутизиране през прокси.
 
-**Решение (v3.5.5+):** Това вече е поправено. Заявките за валидиране на доставчика преминават през `runWithProxyContext`, като автоматично спазват настройките на проксито на ниво доставчик и глобалните настройки.
+**Решение (v3.5.5+):** Това вече е коригирано. Валидирането на доставчика се извършва чрез `runWithProxyContext`, като автоматично се спазват настройките на проксито на ниво доставчик и глобалните настройки.
 
-### Проверката на състоянието на токена е неуспешна с „fetch failed“
+### Проверката на състоянието на токена завършва с "fetch failed"
 
 **Причина:** Фоновото опресняване на OAuth токени не определяше конфигурацията на проксито за всяка връзка.
 
 **Решение (v3.5.5+):** Планировчикът за проверка на състоянието на токените вече определя конфигурацията на проксито за всяка връзка, преди да опита опресняване. Актуализирайте до v3.5.5+.
 
-### SOCKS5 проксито връща „invalid onRequestStart method“
+### SOCKS5 проксито връща "invalid onRequestStart method"
 
-**Причина:** При Node.js 22 диспечерът на undici@8 е несъвместим с вградената във Node функция `fetch()`.
+**Причина:** При Node.js 22 диспечерът на undici@8 е несъвместим с вградената в Node функция `fetch()`.
 
-**Решение (v3.5.5+):** Когато е активен прокси диспечер, OmniRoute вече използва собствената функция `fetch()` на undici, което гарантира последователно поведение. Актуализирайте до v3.5.5+.
+**Решение (v3.5.5+):** OmniRoute вече използва собствената функция `fetch()` на undici, когато е активен прокси диспечер, осигурявайки последователно поведение. Актуализирайте до v3.5.5+.
 
 ### MITM прокси под WSL: настолните приложения на хоста с Windows не се прихващат
 
-**Причина:** MITM проксито и неговият CA сертификат се инсталират в средата, в която работи OmniRoute. Под WSL тази среда е гостуващата Linux система, докато настолните приложения с ИИ (Kiro, Trae, Copilot, Zed, …) работят на хоста с Windows. Приложенията на хоста нямат доверие на хранилището за сертификати на гостуващата система и не използват системното ѝ прокси, поради което прихващането на настолни приложения не се задейства там.
+**Причина:** MITM проксито и неговият CA сертификат се инсталират в средата, в която работи OmniRoute. Под WSL тази среда е Linux гостът, докато настолните AI приложения (Kiro, Trae, Copilot, Zed, …) работят на хоста с Windows. Приложенията на хоста нямат доверие на хранилището за сертификати на госта и не използват системното прокси на госта, затова прихващането на настолни приложения не се задейства там.
 
-**Препоръка:** Изпълнявайте OmniRoute директно на същата ОС като настолните приложения, които искате да прихващате (Windows за приложения под Windows; аналогично за macOS/Linux). Ако запазите OmniRoute във WSL, докато насочвате към приложения на хоста, трябва ръчно да добавите генерирания CA сертификат като доверен на хоста с Windows и да насочите мрежовите/прокси настройките на всяко приложение на хоста към крайната точка на WSL проксито — неподдържана и ненадеждна конфигурация.
+**Препоръка:** Стартирайте OmniRoute нативно на същата операционна система като настолните приложения, които искате да прихващате (Windows за приложения под Windows; аналогично за macOS/Linux). Използването на OmniRoute в WSL заедно с прихващане на приложения на хоста изисква ръчно да се добави доверие за генерирания CA сертификат на хоста с Windows и мрежовите/прокси настройките на всяко приложение на хоста да се насочат към прокси крайната точка в WSL — неподдържана и ненадеждна конфигурация.
 
 ---
 
 ## Проблеми с доставчиците
 
-### „Езиковият модел не предостави съобщения“
+### "Language model did not provide messages"
 
 **Причина:** Квотата на доставчика е изчерпана.
 
@@ -317,29 +348,29 @@ omniroute
 
 ### OAuth токенът е изтекъл
 
-OmniRoute автоматично опреснява токените. Ако проблемите продължават:
+OmniRoute автоматично опреснява токените. Ако проблемите продължат:
 
 1. Табло → Доставчик → Повторно свързване
 2. Изтрийте и добавете отново връзката с доставчика
 
 ### Няколко акаунта в Kiro: вторият акаунт прави първия невалиден
 
-**Причина:** Сървърната част на Kiro налага само една активна сесия за всяка OIDC клиентска регистрация.
+**Причина:** Бекендът на Kiro позволява само една активна сесия за всяка регистрация на OIDC клиент.
 Когато два акаунта споделят един и същ регистриран клиент (връзки, импортирани преди v3.8.0),
 опресняването на токена на единия акаунт прави невалиден токена за опресняване на другия.
 
 **Решение (v3.8.0+):** Импортирайте отново засегнатите връзки.
 От v3.8.0 нататък всяка нова връзка с Kiro, създадена чрез **Импортиране на токен**,
-**вход чрез Google/GitHub** или **Автоматично импортиране**, автоматично регистрира собствен
-специализиран OIDC клиент. По този начин връзката е напълно изолирана и опресняването на един
+**социално влизане с Google/GitHub** или **Автоматично импортиране**, автоматично регистрира свой
+собствен специализиран OIDC клиент. Така връзката е напълно изолирана и опресняването на един
 акаунт не засяга никой друг акаунт.
 
-Връзките, които са импортирани _преди_ v3.8.0, нямат отделна клиентска регистрация
-за всяка връзка. Тези връзки продължават да използват споделената крайна точка за опресняване
-при удостоверяване чрез външен акаунт. За да постигнете изолация, изтрийте старата връзка от
-Табло → Доставчици и я добавете отново чрез който и да е от трите начина за импортиране.
+Връзките, импортирани _преди_ v3.8.0, нямат клиентска регистрация за всяка отделна връзка.
+Тези връзки продължават да използват споделената крайна точка за опресняване при социално удостоверяване.
+За да осигурите изолация, изтрийте старата връзка от Табло → Доставчици и я добавете отново
+чрез който и да е от трите начина за импортиране.
 
-За пълни подробности и поетапни инструкции за добавяне на два акаунта в Kiro един до друг
+За пълни подробности и инструкции стъпка по стъпка за паралелно добавяне на два акаунта в Kiro
 вижте [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ---
@@ -349,21 +380,21 @@ OmniRoute автоматично опреснява токените. Ако п�
 ### Грешки при облачно синхронизиране
 
 1. Проверете дали `BASE_URL` сочи към работещата ви инстанция (напр. `http://localhost:20128`)
-2. Проверете дали `CLOUD_URL` сочи към крайната ви точка в облака (напр. `https://omniroute.dev`)
+2. Проверете дали `CLOUD_URL` сочи към вашата облачна крайна точка (напр. `https://omniroute.dev`)
 3. Поддържайте стойностите `NEXT_PUBLIC_*` съгласувани със стойностите от страна на сървъра
 
-### Облачното `stream=false` връща 500
+### Облачни заявки с `stream=false` връщат 500
 
-**Симптом:** `Unexpected token 'd'...` в облачната крайна точка при заявки без поточно предаване.
+**Симптом:** `Unexpected token 'd'...` на облачната крайна точка при заявки без поточно предаване.
 
-**Причина:** Системата нагоре по веригата връща SSE полезен товар, докато клиентът очаква JSON.
+**Причина:** Услугата нагоре по веригата връща SSE полезен товар, докато клиентът очаква JSON.
 
-**Заобиколно решение:** Използвайте `stream=true` за директни облачни заявки. Локалната среда за изпълнение включва резервно преобразуване от SSE към JSON.
+**Временно решение:** Използвайте `stream=true` за директни облачни заявки. Локалната среда за изпълнение включва резервно преобразуване от SSE към JSON.
 
-### Облакът показва, че е свързан, но съобщава „Невалиден API ключ“
+### Облакът показва, че е свързан, но връща „Invalid API key“
 
 1. Създайте нов ключ от локалното табло (`/api/keys`)
-2. Стартирайте облачното синхронизиране: Активиране на облака → Синхронизиране сега
+2. Стартирайте облачно синхронизиране: Enable Cloud → Sync Now
 3. Старите/несинхронизираните ключове все още могат да връщат `401` в облака
 
 ---
@@ -381,21 +412,21 @@ OmniRoute автоматично опреснява токените. Ако п�
 **Решение:**
 
 1. **Бърза диагностика:** Изпълнете `curl -4 http://localhost:20128/v1/models`. Ако работи с `-4`, но не и без него, имате несъответствие при обвързването с IPv6.
-2. **Трайно решение:** Обвържете изрично към IPv4, като използвате `-p 127.0.0.1:20128:20128` във вашата команда `docker run`:
+2. **Трайно решение:** Обвържете изрично с IPv4, като използвате `-p 127.0.0.1:20128:20128` във вашата команда `docker run`:
    ```bash
    docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
      -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
    ```
-   Това налага обвързването към IPv4 и също така предотвратява излагането на проксито на всички мрежови интерфейси на хоста.
+   Това налага обвързване с IPv4 и също така предотвратява излагането на прокси сървъра на всички мрежови интерфейси на хоста.
 
 ---
 
 ### CLI инструментът се показва като неинсталиран
 
 1. Проверете полетата на средата за изпълнение: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. За преносим режим: използвайте целта на образа `runner-cli` (с включени CLI инструменти)
+2. За преносим режим: използвайте целта за образ `runner-cli` (с включени CLI инструменти)
 3. За режим с монтиране от хоста: задайте `CLI_EXTRA_PATHS` и монтирайте директорията с изпълними файлове на хоста само за четене
-4. Ако `installed=true` и `runnable=false`: изпълнимият файл е намерен, но проверката за изправност е неуспешна
+4. Ако `installed=true` и `runnable=false`: двоичният файл е намерен, но проверката за изправност е неуспешна
 
 ### Бърза проверка на средата за изпълнение
 
@@ -411,22 +442,22 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### Високи разходи
 
-1. Проверете статистиката за използване в Табло → Използване
-2. Сменете основния модел с GLM/MiniMax
-3. Използвайте безплатното ниво (Qoder, Kiro) за некритични задачи
-4. Задайте бюджети за разходи за всеки API ключ: Табло → API ключове → Бюджет
+1. Проверете статистиката за използване в Dashboard → Usage
+2. Сменете основния модел на GLM/MiniMax
+3. Използвайте безплатния план (Qoder, Kiro) за некритични задачи
+4. Задайте бюджети за разходи за всеки API ключ: Dashboard → API Keys → Budget
 
 ---
 
 ## Отстраняване на грешки
 
-### Активиране на регистрационните файлове
+### Активиране на лог файлове
 
-Задайте `APP_LOG_TO_FILE=true` във вашия `.env` файл. Регистрационните файлове на приложението се записват в `logs/`.
-Артефактите от заявките се съхраняват в `${DATA_DIR}/call_logs/`, когато конвейерът за регистриране на заявки е
+Задайте `APP_LOG_TO_FILE=true` във вашия `.env` файл. Логовете на приложението се записват в `logs/`.
+Артефактите от заявките се съхраняват в `${DATA_DIR}/call_logs/`, когато конвейерът за логове на повикванията е
 активиран в настройките.
-Когато записването от конвейера е активирано, задайте `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false`, за да пропуснете
-полезните товари на поточните фрагменти, или настройте `CALL_LOG_PIPELINE_MAX_SIZE_KB`, за да промените ограничението за размера на артефактите в KB.
+Когато прихващането от конвейера е активирано, задайте `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false`, за да пропуснете
+полезните товари на поточните фрагменти, или настройте `CALL_LOG_PIPELINE_MAX_SIZE_KB`, за да промените ограничението за артефактите в KB.
 
 ### Проверка на състоянието на доставчика
 
@@ -442,73 +473,73 @@ curl http://localhost:20128/api/monitoring/health
 
 - Основно състояние: `${DATA_DIR}/storage.sqlite` (доставчици, комбинации, псевдоними, ключове, настройки)
 - Използване: SQLite таблици в `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + незадължително `${DATA_DIR}/call_logs/`
-- Регистрационни файлове на приложението: `<repo>/logs/...` (когато `APP_LOG_TO_FILE=true`)
-- Артефакти от регистрите на заявките: `${DATA_DIR}/call_logs/YYYY-MM-DD/...`, когато конвейерът за регистриране на заявки е активиран
+- Логове на приложението: `<repo>/logs/...` (когато `APP_LOG_TO_FILE=true`)
+- Артефакти от логовете на повикванията: `${DATA_DIR}/call_logs/YYYY-MM-DD/...`, когато конвейерът за логове на повикванията е активиран
 
-Действието **Изчистване на хронологията** в страницата с регистрите на заявките изчиства `call_logs`, наследените
+Действието **Clean history** на страницата Request Logs изчиства `call_logs`, наследените
 `request_detail_logs` и локалната директория с артефакти `${DATA_DIR}/call_logs/`.
 
 ---
 
-## Проблеми с Circuit Breaker
+## Проблеми с прекъсвача на веригата
 
 ### Доставчикът е блокирал в състояние OPEN
 
-Когато circuit breaker на даден доставчик е в състояние OPEN, заявките се блокират, докато периодът за изчакване не изтече.
+Когато прекъсвачът на веригата на даден доставчик е в състояние OPEN, заявките се блокират до изтичането на периода за изчакване.
 
 **Решение:**
 
-1. Отидете в **Табло → Настройки → Устойчивост**
-2. Проверете картата на circuit breaker за засегнатия доставчик
-3. Щракнете върху **Нулиране на всички**, за да изчистите всички circuit breaker-и, или изчакайте периодът за изчакване да изтече
+1. Отидете на **Табло → Настройки → Устойчивост**
+2. Проверете картата на прекъсвача на веригата за засегнатия доставчик
+3. Щракнете върху **Нулиране на всички**, за да изчистите всички прекъсвачи, или изчакайте да изтече периодът за изчакване
 4. Преди нулиране се уверете, че доставчикът действително е достъпен
 
-### Доставчикът продължава да задейства circuit breaker
+### Доставчикът продължава да задейства прекъсвача на веригата
 
-Ако даден доставчик многократно преминава в състояние OPEN:
+Ако даден доставчик многократно влиза в състояние OPEN:
 
-1. Проверете **Табло → Състояние → Състояние на доставчиците** за модела на неизправностите
-2. Отидете в **Настройки → Устойчивост → Профили на доставчици** и увеличете прага за неизправности
+1. Проверете **Табло → Състояние → Състояние на доставчиците** за закономерности при грешките
+2. Отидете на **Настройки → Устойчивост → Профили на доставчици** и увеличете прага за грешки
 3. Проверете дали доставчикът е променил ограниченията на API или изисква повторно удостоверяване
-4. Прегледайте телеметричните данни за латентността — високата латентност може да причини неизправности поради изтичане на времето за изчакване
+4. Прегледайте телеметричните данни за латентността — високата латентност може да причини грешки поради изтичане на времето за изчакване
 
 ---
 
-## Проблеми с аудиотранскрипцията
+## Проблеми с транскрипцията на аудио
 
 ### Грешка „Неподдържан модел“
 
-- Използвайте идентификатор на модел, чийто първи сегмент е доставчик, за който разполагате с идентификационни данни (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Самостоятелният `deepgram/nova-3` изисква нативен ключ за Deepgram.
+- Използвайте идентификатор на модел, чийто първи сегмент е доставчик, за когото имате идентификационни данни (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Самостоятелният `deepgram/nova-3` изисква собствен ключ за Deepgram.
 - Проверете дали доставчикът е свързан в **Табло → Доставчици**
 
-### Транскрипцията е празна или неуспешна
+### Транскрипцията е празна или е неуспешна
 
 - Проверете поддържаните аудиоформати: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Уверете се, че размерът на файла е в рамките на ограниченията на доставчика (обикновено < 25MB)
-- Проверете валидността на API ключа на доставчика в картата му
+- Уверете се, че размерът на файла е в ограниченията на доставчика (обикновено < 25MB)
+- Проверете валидността на API ключа в картата на доставчика
 
 ---
 
-## Отстраняване на грешки в Translator
+## Отстраняване на проблеми с Translator
 
-Използвайте **Табло → Translator**, за да отстранявате проблеми при преобразуването на формати:
+Използвайте **Табло → Translator**, за да отстранявате проблеми с преобразуването на формати:
 
-| Режим            | Кога да се използва                                                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Playground**   | Сравнявайте входните и изходните формати един до друг — поставете неуспешна заявка, за да видите как се преобразува |
-| **Chat Tester**  | Изпращайте съобщения в реално време и преглеждайте пълните данни на заявката/отговора, включително заглавките       |
-| **Test Bench**   | Изпълнявайте пакетни тестове с различни комбинации от формати, за да установите кои преобразувания не работят       |
-| **Live Monitor** | Наблюдавайте потока от заявки в реално време, за да откриете периодично възникващи проблеми при преобразуването     |
+| Режим            | Кога да се използва                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Playground**   | Сравнете входния и изходния формат един до друг — поставете неуспешна заявка, за да видите как се преобразува |
+| **Chat Tester**  | Изпращайте съобщения в реално време и преглеждайте пълните данни на заявката/отговора, включително заглавките |
+| **Test Bench**   | Изпълнявайте пакетни тестове с различни комбинации от формати, за да откриете кои преобразувания не работят   |
+| **Live Monitor** | Наблюдавайте потока от заявки в реално време, за да откривате периодични проблеми с преобразуването           |
 
 ### Често срещани проблеми с форматите
 
-- **Таговете за разсъждение не се показват** — Проверете дали целевият доставчик поддържа разсъждение и настройката за бюджет за разсъждение
+- **Таговете за разсъждение не се появяват** — Проверете дали целевият доставчик поддържа разсъждение и настройката за бюджет за разсъждение
 - **Извикванията на инструменти отпадат** — Някои преобразувания на формати може да премахват неподдържани полета; проверете в режим Playground
-- **Системната инструкция липсва** — Claude и Gemini обработват системните инструкции по различен начин; проверете резултата от преобразуването
-- **SDK връща необработен низ вместо обект** — Разрешено във v1.x; функцията за пречистване на отговорите премахва нестандартните полета (`x_groq`, `usage_breakdown` и т.н.), които причиняват неуспешно валидиране от Pydantic в OpenAI SDK. Ако все още наблюдавате това във v3.x+, моля, подайте сигнал за проблем.
-- **GLM/ERNIE отхвърля ролята `system`** — Разрешено във v1.x; функцията за нормализиране на роли автоматично обединява системните съобщения с потребителските съобщения за несъвместимите модели. Ако все още наблюдавате това във v3.x+, моля, подайте сигнал за проблем.
-- **Ролята `developer` не се разпознава** — Разрешено във v1.x; автоматично се преобразува в `system` за доставчици, различни от OpenAI. Ако все още наблюдавате това във v3.x+, моля, подайте сигнал за проблем.
-- **`json_schema` не работи с Gemini** — Разрешено във v1.x; `response_format` вече се преобразува в `responseMimeType` + `responseSchema` на Gemini. Ако все още наблюдавате това във v3.x+, моля, подайте сигнал за проблем.
+- **Системната подкана липсва** — Claude и Gemini обработват системните подкани по различен начин; проверете резултата от преобразуването
+- **SDK връща необработен низ вместо обект** — Разрешено във v1.x; модулът за нормализиране на отговорите премахва нестандартните полета (`x_groq`, `usage_breakdown` и т.н.), които причиняват грешки при валидирането с Pydantic в OpenAI SDK. Ако все още срещате това във v3.x+, моля, подайте сигнал за проблем.
+- **GLM/ERNIE отхвърля ролята `system`** — Разрешено във v1.x; модулът за нормализиране на роли автоматично обединява системните съобщения с потребителските съобщения за несъвместими модели. Ако все още срещате това във v3.x+, моля, подайте сигнал за проблем.
+- **Ролята `developer` не се разпознава** — Разрешено във v1.x; автоматично се преобразува в `system` за доставчици, различни от OpenAI. Ако все още срещате това във v3.x+, моля, подайте сигнал за проблем.
+- **`json_schema` не работи с Gemini** — Разрешено във v1.x; `response_format` вече се преобразува в `responseMimeType` + `responseSchema` на Gemini. Ако все още срещате това във v3.x+, моля, подайте сигнал за проблем.
 
 ---
 
@@ -516,33 +547,33 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Автоматичното ограничаване на честотата не се задейства
 
-- Автоматичното ограничаване на честотата се прилага само за доставчици с API ключове (не за OAuth/абонаменти)
-- Проверете дали в **Настройки → Устойчивост → Профили на доставчици** е активирано автоматичното ограничаване на честотата
+- Автоматичното ограничаване на честотата се прилага само за доставчици с API ключ (не за OAuth/абонамент)
+- Проверете дали в **Settings → Resilience → Provider Profiles** е активирано автоматичното ограничаване на честотата
 - Проверете дали доставчикът връща кодове за състояние `429` или заглавки `Retry-After`
 
 ### Настройване на експоненциалното изчакване
 
-Профилите на доставчици поддържат следните настройки:
+Профилите на доставчиците поддържат следните настройки:
 
-- **Базово забавяне** — Първоначално време за изчакване след първата неуспешна заявка (по подразбиране: 1s)
+- **Базово забавяне** — Първоначално време за изчакване след първата грешка (по подразбиране: 1s)
 - **Максимално забавяне** — Максимална горна граница на времето за изчакване (по подразбиране: 30s)
-- **Множител** — С колко да се увеличава забавянето при всяка поредна неуспешна заявка (по подразбиране: 2x)
+- **Множител** — С колко да се увеличава забавянето при всяка последователна грешка (по подразбиране: 2x)
 
 ### Предотвратяване на лавинообразни заявки
 
-Когато много едновременни заявки достигнат доставчик с ограничена честота, OmniRoute използва mutex + автоматично ограничаване на честотата, за да сериализира заявките и да предотврати каскадни откази. Това се извършва автоматично за доставчици с API ключове.
+Когато множество едновременни заявки достигнат до доставчик с ограничена честота, OmniRoute използва mutex + автоматично ограничаване на честотата, за да изпълнява заявките последователно и да предотвратява каскадни грешки. Това се извършва автоматично за доставчиците с API ключ.
 
-### Заявките за чат са неуспешни с 503 / chat_admission_busy
+### Заявките за чат се провалят с 503 / chat_admission_busy
 
 **Симптоми:**
 
-- Крайната точка за завършвания на чат връща повторяема `503` грешка с код
+- Крайната точка за завършвания на чат връща подлежащ на повторен опит отговор `503`, чийто код за грешка е
   `chat_admission_busy`.
-- Отговорът включва `Retry-After`. След #12135 стойността се извежда от наблюдаваната
-  заетост — по-голямата стойност измежду прозореца `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`, който заявката вече
-  е изчакала, и времето, през което текущите тежки резервации са били задържани — закръглена нагоре до цели
-  секунди и ограничена до 60. При незает ограничител се запазват досегашните минимални стойности: 2 секунди при
-  пътя, базиран на байтове, и 1 секунда при пътя, базиран на структура (който включва и
+- Отговорът включва `Retry-After`. От #12135 насам стойността се извежда от наблюдаваното
+  натоварване — по-голямата стойност между прозореца `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`, през който заявката вече
+  е изчаквала, и времето, през което текущите тежки резервирани слотове са били заети — закръглена нагоре до цели
+  секунди и ограничена до 60. При ненатоварен пропускателен механизъм се запазват историческите минимални стойности: 2 секунди за
+  пътя, базиран на байтове, и 1 секунда за пътя, базиран на структура (който включва също
   `reason: "structure_limit"`).
 - Това може да се случи, докато друг тежък чат или продължителен поточен отговор все още
   се изпълнява.
@@ -559,100 +590,100 @@ curl http://localhost:20128/api/monitoring/health
 }
 ```
 
-Отговорът, базиран на структура, използва същите тип и код, със съобщението
+Отговорът, базиран на структура, използва същите тип и код със съобщението
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 и `reason: "structure_limit"`.
 При праговете по подразбиране заявката се счита за структурно тежка, когато съдържа поне `200` съобщения,
-поне `64` инструмента или поне `32,000` прогнозни токена, или когато ограниченото оценяване на структурата
+поне `64` инструмента или поне `32,000` приблизително изчислени токена, или когато ограниченото оценяване на структурата
 изчерпи границите си от `10,000` посетени възела или дълбочина `12`.
 
-**Причина:** Това е умишлено ограничаване на натоварването в OmniRoute, а не неизправност на външен доставчик.
-Всеки процес използва локален за процеса механизъм за защита, за да резервира ограничен капацитет за тежки заявки, преди да задържи
-и анализира голямо тяло на заявка. Резервацията за тежка заявка остава задържана през целия жизнен цикъл на SSE
+**Причина:** Това е умишлено освобождаване от натоварване в OmniRoute, а не грешка на външен доставчик.
+Всеки процес използва локален за процеса защитен механизъм, за да резервира ограничен капацитет за тежки заявки, преди да задържи
+и анализира голямо тяло на заявка. Резервираният слот за тежка заявка остава зает през целия жизнен цикъл на SSE
 отговора.
 
-**#503-fanout:** преди тази корекция защитният механизъм ограничаваше едновременността до фиксиран БРОЙ заявки
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, по подразбиране `1`) независимо от паметта на хоста, така че
-разклоняването от агенти за програмиране (множество подагенти/CLI, тела обичайно > 256 KB) свеждаше ефективната
-едновременност до ~1 и водеше до грешки 503 при напълно нормално натоварване. Сега защитният механизъм се самонастройва: той се управлява
-от автоматично изведен БАЙТОВ бюджет за приемане (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), оразмерен спрямо
-реалния лимит на паметта на процеса, и също така отчита текущ сигнал за натиск върху ресурсите — така че
-отхвърля заявки само когато хостът действително е под натиск върху паметта, а не само защото повече от една
+**#503-fanout:** преди тази корекция защитният механизъм ограничаваше паралелизма до фиксиран БРОЙ заявки
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, по подразбиране `1`), независимо от паметта на хоста, така че
+паралелното разклоняване на агенти за програмиране (множество подагенти/CLI, тела обичайно > 256 KB) се свеждаше до ефективен
+паралелизъм от ~1 и водеше до грешки 503 при напълно нормално натоварване. Сега защитният механизъм се самонастройва: той се управлява
+от автоматично изведен БАЙТОВ бюджет за приемане (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), оразмерен според
+реалния лимит на паметта на процеса, и взема предвид сигнал в реално време за натоварването на ресурсите — така че
+освобождава натоварване само когато хостът действително изпитва недостиг на памет, а не просто защото повече от една
 тежка заявка е пристигнала едновременно. Старото ограничение по брой (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) все още
 се спазва, но само ако го зададете изрично.
 
 Когато капацитетът е зает, тежката заявка първо изчаква до
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (по подразбиране `2000`, `0` деактивира изчакването), за да се освободи място,
-преди да върне повторяемата грешка `503`. Ограниченото изчакване съществува, за да могат клиентите от агентен тип
-(OpenCode, Claude Code, Cursor), които едновременно разклоняват тежки подзаявки, да сериализират пиковото натоварване,
-вместо да изчерпват целия си бюджет за повторни опити с незабавни отхвърляния и да прекъсват по средата на задачата.
-Текущата заетост на резервациите за тежки заявки, определеният байтов бюджет и текущата степен на натиск
-са достъпни в `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — проверете ги, преди да променяте променлива на средата.
-Настройки → Устойчивост → Опашка от заявки → Едновременни заявки не управлява това; тази настройка
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (по подразбиране `2000`, `0` деактивира изчакването), за да се освободи слот,
+преди да върне допускащ повторен опит отговор `503`. Ограниченото изчакване съществува, за да могат клиентите от агентен тип
+(OpenCode, Claude Code, Cursor), които разклоняват едновременно тежки подзаявки, да обработят пиковото натоварване последователно,
+вместо да изразходват целия си бюджет за повторни опити при незабавни откази и да прекъснат по средата на задачата.
+Текущото заемане на резервираните слотове за тежки заявки, определеният байтов бюджет и текущата степен на натоварване са
+достъпни в `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — проверете ги, преди да променяте която и да е променлива на средата.
+Settings → Resilience → Request Queue → Concurrent Requests не управлява това; тази настройка
 управлява отделен механизъм за опашка от заявки към доставчика.
 
 **Решение:**
 
 1. Първо опитайте отново. Клиентите трябва да спазват `Retry-After` и да използват изчакване, вместо незабавно
    да повтарят заявката.
-2. Проверете `/api/monitoring/health` → `chatAdmission`, преди да настройвате каквото и да било. `countCapEnabled:
+2. Проверете `/api/monitoring/health` → `chatAdmission`, преди да настройвате каквото и да е. `countCapEnabled:
 false` и достатъчно голяма стойност на `maxInflightBytes` означават, че автоматично изведеният бюджет вече върши
-   работата си; стойност на `pressureSeverity` от `high`/`critical` означава, че хостът действително разполага с малко памет —
-   това не може да се коригира чрез променлива на средата за допускане, а изисква повече RAM или по-малко работно натоварване.
+   работата си; стойност `high`/`critical` на `pressureSeverity` означава, че хостът действително разполага с малко памет —
+   това не може да се коригира чрез променлива на средата за допускане, а изисква повече RAM или по-малко натоварване.
 3. Само ако `/api/monitoring/health` показва, че автоматично изведеният бюджет действително е твърде малък за
-   вашия хост (рядко — той вече се мащабира от контейнери до физически сървъри), заменете го директно чрез
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, вместо да се връщате към остарялото ограничение по брой заявки.
+   вашия хост (рядко — той вече се мащабира от контейнери до физически сървъри), задайте го директно чрез
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, вместо да се връщате към наследеното ограничение по брой заявки.
 
 Вижте [справочника за променливите на средата](../reference/ENVIRONMENT.md#4-security--authentication)
 за официалните настройки за допускане.
 
 ---
 
-## Незадължителна таксономия на грешките при RAG / LLM (16 проблема)
+## Незадължителна таксономия на проблемите при RAG / LLM (16 проблема)
 
-Някои потребители на OmniRoute поставят шлюза пред RAG или агентни стекове. При такива конфигурации често се наблюдава странен модел: OmniRoute изглежда изправен (доставчиците работят, профилите за маршрутизиране са наред, няма предупреждения за ограничения на честотата), но крайният отговор все пак е грешен.
+Някои потребители на OmniRoute поставят шлюза пред RAG системи или стекове с агенти. При такива конфигурации често се наблюдава странен модел: OmniRoute изглежда изправен (доставчиците работят, профилите за маршрутизиране са наред, няма предупреждения за ограничения на заявките), но крайният отговор все пак е грешен.
 
-На практика тези инциденти обикновено произтичат от последващия RAG конвейер, а не от самия шлюз.
+На практика тези инциденти обикновено произлизат от последващия RAG конвейер, а не от самия шлюз.
 
-Ако искате обща терминология за описване на тези грешки, можете да използвате WFGY ProblemMap — външен текстов ресурс с MIT лиценз, който дефинира шестнадесет повтарящи се модела на грешки при RAG / LLM. На високо ниво той обхваща:
+Ако искате общ речник за описване на тези неизправности, можете да използвате WFGY ProblemMap — външен текстов ресурс с MIT лиценз, който дефинира шестнадесет повтарящи се модела на неизправности при RAG / LLM. На високо ниво той обхваща:
 
 - отклонение при извличането и нарушени граници на контекста
 - празни или остарели индекси и векторни хранилища
-- несъответствие между векторните представяния и семантиката
-- проблеми при сглобяването на подкани и с контекстния прозорец
+- несъответствие между вгражданията и семантиката
+- проблеми със сглобяването на подканите и контекстния прозорец
 - срив на логиката и прекалено самоуверени отговори
-- грешки при дълги вериги и координацията на агенти
-- отклонение в паметта и ролите при множество агенти
-- проблеми с последователността при внедряване и първоначално стартиране
+- неизправности при дълги вериги и координацията на агенти
+- отклонение на паметта и ролите при множество агенти
+- проблеми с последователността при внедряване и първоначално зареждане
 
 Идеята е проста:
 
-1. Когато разследвате неправилен отговор, запишете:
+1. Когато проучвате лош отговор, запишете:
    - задачата и заявката на потребителя
    - маршрута или комбинацията от доставчици в OmniRoute
-   - всеки RAG контекст, използван на следващ етап (извлечени документи, извиквания на инструменти и т.н.)
+   - всеки RAG контекст, използван надолу по веригата (извлечени документи, извиквания на инструменти и т.н.)
 2. Съпоставете инцидента с един или два номера от WFGY ProblemMap (`No.1` … `No.16`).
-3. Запазете номера в собственото си табло, оперативно ръководство или система за проследяване на инциденти до регистрационните файлове на OmniRoute.
-4. Използвайте съответната страница на WFGY, за да решите дали трябва да промените своя RAG стек, механизма за извличане или стратегията за маршрутизиране.
+3. Съхранете номера в собственото си табло, оперативно ръководство или система за проследяване на инциденти до регистрационните файлове на OmniRoute.
+4. Използвайте съответната страница на WFGY, за да решите дали трябва да промените своя RAG стек, механизъм за извличане или стратегия за маршрутизиране.
 
-Пълният текст и конкретните инструкции са достъпни тук (MIT лиценз, само текст):
+Пълният текст и конкретните рецепти са достъпни тук (MIT лиценз, само текст):
 
 [README на WFGY ProblemMap](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Можете да пренебрегнете този раздел, ако не използвате RAG или агентни конвейери зад OmniRoute.
+Можете да пренебрегнете този раздел, ако не изпълнявате RAG или конвейери с агенти зад OmniRoute.
 
 ---
 
 ## Известни проблеми във v3.8.0
 
-Проблеми, специфични за версия v3.8.0, и текущите им временни решения. Ако в по-късна коригираща версия бъде включена поправка, съответният запис ще бъде актуализиран или премахнат.
+Проблеми, специфични за версия v3.8.0, и текущите им временни решения. Ако корекция бъде включена в по-късна версия с кръпка, записът ще бъде актуализиран или премахнат.
 
-### Грешки при удостоверяването на Devin CLI
+### Неуспешно удостоверяване в Devin CLI
 
 **Симптоми:**
 
-- „Devin CLI не е намерен“ или „неуспешно удостоверяване“ при извикване на инструменти, базирани на Devin
+- „Devin CLI не е намерен“ или „неуспешно удостоверяване“ при извикване на инструменти, използващи Devin
 - Проверката на средата за изпълнение на CLI отчита `installed=false`
 
 **Причини:**
@@ -660,48 +691,48 @@ false` и достатъчно голяма стойност на `maxInflightBy
 - `CLI_DEVIN_BIN` сочи към път, който не съществува
 - Devin CLI не е инсталиран на хоста
 
-**Решение:**
+**Корекция:**
 
 1. Инсталирайте Devin CLI за своята платформа
 2. Задайте `CLI_DEVIN_BIN=/usr/local/bin/devin` (или действителния път) в `.env`
 3. Рестартирайте OmniRoute и тествайте отново от **Табло → CLI инструменти**
 
-### Блокирано временно изключване на модел (ръчно нулиране)
+### Моделът остава блокиран в период на изчакване (ръчно нулиране)
 
 **Симптоми:**
 
-- Даден модел продължава да се показва като временно изключен дори след изтичането на срока
+- Моделът продължава да е посочен като намиращ се в период на изчакване дори след изтичане на срока
 - Заявките продължават да пропускат модела при комбинирано маршрутизиране, въпреки че времевият маркер е в миналото
 
 **Ръчно нулиране:**
 
-- **Табло:** **Настройки → Временно изключени модели** → щракнете върху **Активиране отново** в засегнатата карта
-- **API:** `DELETE /api/resilience/model-cooldowns` със заглавки за административно удостоверяване
+- **Табло:** **Настройки → Периоди на изчакване за модели** → щракнете върху **Повторно активиране** в засегнатата карта
+- **API:** `DELETE /api/resilience/model-cooldowns` със заглавки за удостоверяване за управление
 
-### Свързването с доставчика Command Code е неуспешно с 403
+### Връзката с доставчика Command Code е неуспешна с 403
 
 **Симптоми:**
 
-- Грешка 403 при тестване на връзката с доставчика Command Code
+- 403 при тестване на връзката с доставчика Command Code
 - Картата на доставчика показва „неупълномощен“ след ново добавяне
 
-**Причина:** OAuth процесът не е завършил (обратното извикване не е получено или токенът не е запазен).
+**Причина:** OAuth потокът не е завършил (обратното извикване не е получено или токенът не е запазен).
 
-**Решение:**
+**Корекция:**
 
-- Изпълнете `omniroute providers` от CLI, за да задействате отново OAuth процеса, или
-- Стартирайте OAuth отново от **Табло → Доставчици → Command Code → Повторно свързване**
+- Изпълнете `omniroute providers` от CLI, за да задействате отново OAuth потока, или
+- Изпълнете OAuth отново от **Табло → Доставчици → Command Code → Повторно свързване**
 
-### ModelScope връща агресивни временни изключвания при 429
+### ModelScope връща агресивни периоди на изчакване при 429
 
 **Симптоми:**
 
-- Много кратки или незабавни временни изключвания на ModelScope след малка поредица от заявки
+- Много кратки или незабавни периоди на изчакване в ModelScope след малък порой от заявки
 - Комбинираното маршрутизиране пропуска ModelScope по-рано от очакваното
 
-**Причина:** ModelScope изпраща специфични за доставчика заглавки `Retry-After`. v3.8.0 включва специална обработка за тези заглавки, поради което по-старите версии ги интерпретират погрешно като общи указания за ограничаване на честотата.
+**Причина:** ModelScope подава специфични за доставчика заглавки `Retry-After`. v3.8.0 включва специална обработка за тези заглавки, затова по-старите версии ги тълкуват погрешно като общи указания за ограничаване на заявките.
 
-**Решение:**
+**Корекция:**
 
 - Уверете се, че използвате v3.8.0 или по-нова версия
 - Проверете дали превключвателят `useUpstream429BreakerHints` е активиран в **Настройки → Устойчивост**
@@ -710,42 +741,42 @@ false` и достатъчно голяма стойност на `maxInflightBy
 
 **Симптоми:**
 
-- Грешка 401 при всяка заявка към WebSocket моста за Codex/Responses, когато системата работи на отдалечен продукционен хост
+- 401 при всяка заявка към WebSocket моста на Codex/Responses при работа на отдалечен продукционен хост
 - Установяването на връзка с WebSocket моста се прекратява веднага след свързването
 
 **Причина:** Променливата на средата `OMNIROUTE_WS_BRIDGE_SECRET` липсва в продукционната среда.
 
-**Решение:**
+**Корекция:**
 
-1. Генерирайте произволна тайна стойност: `openssl rand -hex 32`
+1. Генерирайте произволна тайна: `openssl rand -hex 32`
 2. Задайте `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` в средата на продукционния сървър (и във всеки клиент, който комуникира с моста)
 3. Рестартирайте OmniRoute
 
-### Responses API: фоновият режим преминава към синхронен
+### Responses API: фоновият режим е понижен до синхронен
 
 **Симптоми:**
 
-- Регистрира се предупреждение: `background mode degraded to synchronous`
+- Регистрирано е предупреждение: `background mode degraded to synchronous`
 - Заявка с `background: true` връща нормален синхронен отговор вместо манипулатор на фонова задача
 
-**Причина:** Във v3.8.0 `background: true` в Responses API умишлено преминава към синхронно изпълнение, като се извежда предупреждение. Пълното асинхронно фоново изпълнение е планирано за бъдеща версия.
+**Причина:** v3.8.0 умишлено понижава `background: true` в Responses API до синхронно изпълнение, като същевременно подава предупреждение. Пълното асинхронно фоново изпълнение е планирано за бъдеща версия.
 
-**Решение:**
+**Корекция:**
 
-- Променете клиента така, че да извиква API без `background`, или
+- Настройте клиента да извиква без `background`, или
 - Изчакайте по-късна версия, която включва пълен асинхронен фонов режим (следете регистъра на промените)
 
 ---
 
-## Бавно стартиране / изтичане на времето за готовност
+## Бавно стартиране / Изтичане на времето за готовност
 
 Ако CLI изведе `⚠ Server did not respond within 60s`, но сървърът всъщност
-работи, времевият лимит на проверката за готовност е твърде кратък за вашата среда.
+работи, времевият бюджет на проверката за готовност е твърде кратък за вашата среда.
 
-Това често се случва в Windows (антивирусен софтуер, наблюдение на файловата система) или в контейнери
+Това често се случва под Windows (антивирусен софтуер, наблюдатели на файловата система) или в контейнери
 с голямо натоварване при стартиране.
 
-**Решение — увеличете времевия лимит:**
+**Решение — увеличете бюджета:**
 
 ```bash
 # Чрез променлива на средата (запазва се между стартиранията):
@@ -756,8 +787,8 @@ omniroute serve
 omniroute serve --ready-timeout 180000
 ```
 
-Стойността по подразбиране е 60 000 ms (60 s). Предупреждението е само информативно; сървърът
-продължава да се стартира във фонов режим и ще бъде достъпен, след като стартирането приключи.
+Стойността по подразбиране е 60 000 ms (60 s). Предупреждението е само с информативна цел; сървърът
+продължава да стартира във фонов режим и ще бъде достъпен, след като стартирането завърши.
 
 Вижте [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) за пълни
 подробности относно `OMNIROUTE_READY_TIMEOUT_MS`.

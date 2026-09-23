@@ -1,6 +1,6 @@
 # Resilience Guide (Azərbaycan dili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -70,9 +70,9 @@ Reqressiyadan qorunma testi: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Əhatə dairəsi:** tək provayder bağlantısı/hesabı/açarı.
 
-**Məqsəd:** eyni provayderə aid digər bağlantılar xidmət göstərməyə davam edərkən bir problemli açarı ötürmək.
+**Məqsəd:** eyni provayderə aid digər bağlantılar xidmət göstərməyə davam edərkən nasaz bir açarı ötürmək.
 
-**Tətbiq:**
+**İcra:**
 
 - Əlçatmaz kimi işarələmə: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Seçim: eyni fayldakı `getProviderCredentials*`
@@ -81,64 +81,124 @@ Reqressiyadan qorunma testi: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Hər bağlantı üzrə sahələr:**
 
-- `rateLimitedUntil` — gözləmə müddəti bitənədək zaman damğası
+- `rateLimitedUntil` — gözləmə müddətinin bitdiyi vaxt damğası
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — eksponensial geri çəkilmə sayğacı
 
-**Standart gözləmə müddətləri:**
+**Defolt gözləmə müddətləri:**
 
-- OAuth bazası: 5s
-- API açarı bazası: 3s
-- API açarı üçün 429: yuxarı axından gələn `Retry-After`/sıfırlama başlıqlarına/təhlil edilə bilən sıfırlama mətninə üstünlük verir
+- OAuth bazası: 5 san.
+- API açarı bazası: 3 san.
+- API açarı üçün 429: yuxarı axının `Retry-After`/sıfırlama başlıqlarına/pars edilə bilən sıfırlama mətninə üstünlük verir
 - Geri çəkilmə: `baseCooldownMs * 2 ** failureIndex`
 
-**Kütləvi eyni vaxtlı sorğu qoruyucusu:** paralel xətaların gözləmə müddətini həddindən artıq uzatmasının və ya `backoffLevel` dəyərini iki dəfə artırmasının qarşısını alır.
+**Eyni anda sorğu axınının qarşısını alan qoruyucu mexanizm:** paralel xətaların gözləmə müddətini həddən artıq uzatmasının və ya `backoffLevel` dəyərini iki dəfə artırmasının qarşısını alır.
 
-**Terminal vəziyyətlər (gözləmə müddətləri DEYİL):**
+**Terminal vəziyyətlər (gözləmə müddəti DEYİL):**
 
-- `banned` — qadağan olunmuş açar söz / hesab qadağası aşkarlanması ilə (bax: [BAN_DETECTION](../security/BAN_DETECTION.md)) və hər sorğu üzrə yuxarı axından ardıcıl üç imtina ilə (`request_rejected`, məsələn, Anthropic OAuth 403 "Sorğuya icazə verilmir" — `open-sse/services/requestRejectedStreak.ts`) təyin edilir; tək bir imtina yalnız bağlantını gözləmə vəziyyətinə keçirir
-- `expired` (məhdud sayda təkrar cəhddən sonra terminal vəziyyətə keçir — eksponensial geri çəkilmə ilə `EXPIRED_RETRY_MAX = 3` — beləliklə, keçici OAuth xətaları hesab həmişəlik deaktiv edilməzdən əvvəl öz-özünə bərpa oluna bilər)
+- `banned` — qadağan edilmiş açar söz / hesab qadağası aşkarlanması ilə (baxın: [BAN_DETECTION](../security/BAN_DETECTION.md)), həmçinin yuxarı axından hər sorğu üzrə ardıcıl üç imtina ilə təyin edilir (`request_rejected`, məsələn, Anthropic OAuth 403 "Sorğuya icazə verilmir" — `open-sse/services/requestRejectedStreak.ts`); tək bir imtina yalnız bağlantını gözləmə rejiminə keçirir
+- `expired` (məhdud sayda təkrar cəhddən sonra terminal vəziyyətə keçir — eksponensial geri çəkilmə ilə `EXPIRED_RETRY_MAX = 3` — beləliklə, müvəqqəti OAuth xətaları hesab həmişəlik deaktiv edilməzdən əvvəl öz-özünə bərpa oluna bilər)
 - `credits_exhausted`
 
-Bu vəziyyətlər giriş məlumatları dəyişənədək və ya operator onları sıfırlayanadək qalır. Terminal vəziyyətləri keçici gözləmə vəziyyəti ilə əvəz etməyin.
+Bunlar giriş məlumatları dəyişənə və ya operator onları sıfırlayana qədər qalır. Terminal vəziyyətləri müvəqqəti gözləmə vəziyyəti ilə əvəz etməyin.
 
-**Tənbəl bərpa:** `rateLimitedUntil` keçdikdə bağlantı yenidən uyğun olur. Uğurlu istifadədən sonra `clearAccountError()` bütün xəta sahələrini təmizləyir.
+**Tənbəl bərpa:** `rateLimitedUntil` vaxtı keçdikdə bağlantı yenidən uyğun olur. Uğurlu istifadədən sonra `clearAccountError()` bütün xəta sahələrini təmizləyir.
 
-### Sessiya yaxınlığı (#7274)
+### Claude OAuth istifadə həddi: aşağı prioritetli kanal + sessiya limitinin sıfırlanması
 
-**Əhatə dairəsi:** **istənilən** provayder üçün bir bağlantıya bərkidilmiş bir müştəri sessiyası (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` başlığı).
+**Əhatə dairəsi:** bir Claude abunəliyi (OAuth) bağlantısı. Hər iki funksiya **hər bağlantı üçün ayrıca aktivləşdirilir**
+(Bağlantını redaktə et → Claude bölməsi → `providerSpecificData` daxilində `lowPriorityMode` / `autoLimitReset`,
+hər ikisi defolt olaraq söndürülüb) və Claude Code-un `/low-priority` və
+`/limit-reset` əmrlərini əks etdirir (protokol müqaviləsi Claude Code 2.1.263-dən götürülüb).
 
-**Məqsəd:** çoxgedişli agenti (Claude Code, aider, fərdi agentlər) sorğular arasında eyni hesabda saxlamaqla hesablararası kontekst itkisini və hesab üzrə sessiya vəziyyəti saxlayan provayderlərdə təkrarlanan soyuq başlanğıc 429 xətalarını azaltmaq.
+**İcra:**
 
-**Tətbiq:**
+- Vəziyyət maşını + cavab təsnifatı: `open-sse/services/claudeLowPriority.ts`
+- Sıfırlama statusu/iddia müştərisi: `open-sse/services/claudeLimitReset.ts`
+- İcra mexanizminin qarmağı (başlığın əlavə edilməsi + eyni hesabla təkrar cəhd): `open-sse/executors/base.ts::execute()`
+- Aktivləşdirmə seçiminin saxlanması: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-- TTL-in müəyyənləşdirilməsi: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Bərkitmənin seçilməsi/yaradılması: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+**Tətikləyici:** 5 saatlıq istifadə həddi — başlıqlarında
+`anthropic-ratelimit-unified-status: rejected` və hesab uyğun olduqda
+`anthropic-ratelimit-unified-slow-offer: treatment` olan `429`. Həmin ilk hədd
+429 cavabından əvvəl heç nə göndərilmir; vahid başlıqları olmayan intensiv 429 axını normal gözləmə müddəti yolu ilə emal olunur.
+
+**Aşağı prioritetli kanal** (`lowPriorityMode`):
+
+- Hədd üzrə 429 cavabında icra mexanizmi təklifi qəbul edir və dərhal **eyni**
+  hesabla `anthropic-usage-limit: slow` başlığından istifadə edərək yenidən cəhd edir; kanal elan edilmiş
+  `anthropic-ratelimit-unified-reset` vaxtına (+60 san. güzəşt müddəti) qədər aktiv qalır və həmin zaman
+  pəncərəsindəki hər sorğu bu başlığı daşıyır. Tutulmuş 429 cavabı heç vaxt `handleChatCore` funksiyasına
+  çatmır, buna görə də bağlantı gözləmə rejiminə keçirilmir və başqa bağlantı ilə əvəzlənmir.
+- Sonrakı cavablardakı `anthropic-ratelimit-unified-slow-status`: `active` / `not_needed`
+  kanalı saxlayır; `slot_busy` (429) və ya `529` serverin
+  `anthropic-ratelimit-unified-slow-retry-after` müddətini gözləyir (defolt 20 san., 5–600 san. həddində məhdudlaşdırılır, ±30% təsadüfi yayınma)
+  və `anthropic-ratelimit-unified-slow-max-wait` ilə məhdudlaşdırılmış şəkildə yenidən cəhd edir (defolt 20 dəq., 1 dəq.–6 saat
+  həddində məhdudlaşdırılır) — bu müddət keçdikdən sonra kanal bağlanır və 10 dəqiqəlik fasilə
+  yenidən qəbulu bloklayır. Gözləmə müddəti əlavə olaraq sorğunun öz yuxarı axın başlanğıcı üçün taymautundan
+  (`resolveFetchStartTimeout`, defolt olaraq 10 dəq.) qalan müddət minus 5 san. ilə məhdudlaşdırılır: bu məhdudiyyət olmasaydı,
+  20 dəqiqəlik defolt maksimum gözləmə sorğunun ömrünü aşar və gözləmə zamanı yuxu dayandırılaraq
+  səliqəli `max_wait` sonluğu + fasilə əvəzinə `TimeoutError` göstərilərdi.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5 saatlıq pəncərənin yenilənməsi və ya
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (ödənişli əlavə istifadə artıq həddi qarşıladığı üçün
+  istənilən statusda onu `extra_usage` kimi tamamlayır) kanalı bağlayır; bundan sonra
+  cavab normal gözləmə müddəti yolu ilə emal olunur. `budget_exhausted` elan edilmiş büdcə sıfırlanmasına qədər
+  (≤ 8 gün) yadda saxlanılır.
+- Hədd yoxlaması icra mexanizminin öz 400 cavabı ilə başladılan cəhdaxili təkrarlarından (kontekstin
+  redaktəsi, düşünmə/səy məhdudiyyətləri, parametrin avtomatik öyrənilməsi) sonra işləyir, beləliklə, yalnız
+  bu təkrarlardan birində üzə çıxan hədd üzrə 429 cavabı gözləmə müddəti yoluna çatmaq əvəzinə yenə də tutulur.
+- Vəziyyət hər bağlantı üzrə yaddaşda saxlanılır (yenidən başlatma təkrar qəbul üçün əlavə bir hədd üzrə 429 cavabına səbəb olur).
+
+**Sessiya limitinin sıfırlanması** (`autoLimitReset`, hər ikisi aktiv olduqda kanaldan əvvəl sınanır):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  bloku; `arm: "reset"` və `available: true` olduqda,
+  `{ "program": "juniper_tide" }` ilə
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits`
+  (`providerSpecificData.organizationUUID` daxilindəki təşkilat UUID-si, ilkin yükləmə ehtiyat variantı).
+- `result: reset|not_limited` → sorğu tam sürətlə yenidən sınanır (yavaş rejim başlığı olmadan).
+  `already_used` / `not_offered` dəyərləri `next_available_at` dəyərini yadda saxlayır (defolt olaraq bir həftə);
+  istənilən xəta 15 dəqiqəlik geri çəkilməyə səbəb olur. Sıfırlama həftədə bir dəfədir və yenə də
+  həftəlik limitə daxil edilir.
+
+Reqressiyadan qorunma testləri: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### Sessiya bağlılığı (#7274)
+
+**Əhatə dairəsi:** **istənilən** provayder üçün bir bağlantıya bağlanmış bir müştəri sessiyası (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` başlığı).
+
+**Məqsəd:** çoxturlu agenti (Claude Code, aider, xüsusi agentlər) sorğular arasında eyni hesabda saxlamaq, hesablararası kontekst itkisini və hesab üzrə sessiya vəziyyətinə malik provayderlərdə təkrarlanan soyuq başlanğıc `429` xətalarını azaltmaq.
+
+**İcra:**
+
+- TTL-in müəyyən edilməsi: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Pin seçimi/yaradılması: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - Başlığın çıxarılması (ümumi, istənilən provayder): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Daimi bərkitmə cədvəli: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Parametr: `sessionAffinityTtlMs` (ms ilə qlobal TTL, `0` deaktiv edir) — `src/lib/db/settings.ts`. Yalnız Codex üçün olan `codexSessionAffinityTtlMs` adından `124_generic_session_affinity_ttl.sql` miqrasiyası ilə dəyişdirilib; bu miqrasiya əvvəlcədən konfiqurasiya edilmiş istənilən Codex TTL-ni yeni standart dəyər kimi köçürür.
+- Daimi saxlanılan pin cədvəli: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Parametr: `sessionAffinityTtlMs` (ms ilə qlobal TTL, `0` deaktiv edir) — `src/lib/db/settings.ts`. Yalnız Codex üçün olan `codexSessionAffinityTtlMs` adından `124_generic_session_affinity_ttl.sql` miqrasiyası vasitəsilə dəyişdirilib; bu miqrasiya əvvəllər konfiqurasiya edilmiş istənilən Codex TTL dəyərini yeni standart dəyər kimi köçürür.
 
-#7274-dən əvvəl `resolveSessionAffinityTtlMs()`, `codex` istisna olmaqla, hər provayder üçün dərhal `0` qaytarırdı, buna görə də bərkitmə mexanizmi və başlıqların çıxarılması artıq provayderdən asılı olmasa da, TTL parametrinin (və sessiya başlıqlarının) başqa heç bir yerdə təsiri yox idi. Düzəliş həmin erkən qayıdışı aradan qaldırdı; TTL qlobal olaraq `0`-dan yuxarı təyin edildikdən sonra bütün provayderlərə eyni qaydada tətbiq olunur.
+#7274-dən əvvəl `resolveSessionAffinityTtlMs()` `codex` istisna olmaqla hər bir provayder üçün dərhal `0` qaytarırdı, buna görə də pinləmə mexanizmi və başlıq çıxarılması artıq provayderdən asılı olmasa da, TTL parametri (və sessiya başlıqları) başqa heç bir yerdə təsir göstərmirdi. Düzəliş həmin erkən çıxışı aradan qaldırdı; TTL qlobal olaraq `0`-dan yuxarı təyin edildikdən sonra bütün provayderlərə vahid şəkildə tətbiq olunur.
 
-Üç sessiya yaxınlığı başlığı heç vaxt yuxarı axına ötürülmür — icraedicilər müştəri başlıqlarını olduğu kimi ötürmək əvəzinə öz yuxarı axın başlıqlarını sıfırdan yaradırlar, buna görə də bu, yalnız daxili korrelyasiya identifikatoru olaraq qalır.
+Üç sessiya yaxınlığı başlığının heç biri yuxarı axına ötürülmür — icraedicilər müştəri başlıqlarını olduğu kimi ötürmək əvəzinə öz yuxarı axın başlıqlarını sıfırdan qururlar, buna görə də bu, yalnız daxili korrelyasiya identifikatoru olaraq qalır.
 
 ### Eksklüziv idarə olunan sessiya bağlantısı icarələri
 
 **Əhatə dairəsi:** bir aktiv idarə olunan HTTP müştərisi/sessiyası bir uyğun OmniRoute bağlantısına sahib olur.
 
-**Məqsəd:** sorğular arasında sərt marşrutlaşdırma sərhədinə ehtiyacı olan müştərilər üçün davamlı eksklüziv bağlantı sahibliyi təmin etmək. Bu, yumşaq davamlılıq üstünlüyü olan sessiya yaxınlığından fərqlənir: eksklüziv icarə həyat dövrü vəziyyətini SQLite-da saxlayır, qlobal aktiv sahib və aktiv bağlantı unikallığını tətbiq edir və provayderə göndərilməzdən əvvəl köhnəlmiş nəsli rədd edir.
+**Məqsəd:** sorğular arasında sərt marşrutlaşdırma sərhədinə ehtiyac duyan müştərilər üçün davamlı eksklüziv bağlantı sahibliyi təmin etmək. Bu, yumşaq davamlılıq üstünlüyü olan sessiya yaxınlığından fərqlənir: eksklüziv icarə həyat dövrü vəziyyətini SQLite-da saxlayır, qlobal aktiv sahib və aktiv bağlantı unikallığını təmin edir və provayderə göndərişdən əvvəl köhnəlmiş nəsli rədd edir.
 
-Bu funksiya hər API açarı üçün ayrıca aktivləşdirilir. İdarə olunan açar `lease:exclusive` əhatə dairəsinə və açıq şəkildə göstərilmiş boş olmayan `allowedConnections` siyahısına malik olmalıdır. İstənilən HTTP müştərisi həyat dövrü son nöqtəsindən istifadə edə bilər; müştəri adı, istifadəçi agenti, provayder, OAuth metodu və ya model tələb olunmur. İcarə modelə deyil, bağlantıya sahib olur, buna görə də bağlantı adi qaydada uyğun qaldığı müddətdə model dəyişikliyi bağlılığı qoruyur. Normal model, kvota, sağlamlıq, gözləmə müddəti və icazə siyahısı qaydaları əsas olaraq qalır və eyni nəsli başqa sərbəst uyğun bağlantıya keçirə bilər.
+Funksiya hər API açarı üçün ayrıca aktivləşdirilir. İdarə olunan açar `lease:exclusive` əhatə dairəsinə və açıq şəkildə göstərilmiş, boş olmayan `allowedConnections` siyahısına malik olmalıdır. İstənilən HTTP müştərisi həyat dövrü son nöqtəsindən istifadə edə bilər; müştəri adı, user-agent, provayder, OAuth metodu və ya model tələb olunmur. İcarə modelə deyil, bağlantıya sahib olur, buna görə də bağlantı adi qaydada uyğun qaldığı müddətdə model dəyişikliyi bağlanmanı qoruyur. Normal model, kvota, sağlamlıq, gözləmə müddəti və icazə siyahısı qaydaları qüvvədə qalır və eyni nəsli başqa sərbəst uyğun bağlantıya keçirə bilər.
 
-Həyat dövrü `acquire`, `renew` və `release` JSON əməliyyatları ilə `POST /api/v1/session-leases` şəklindədir. İdarə olunan nəticəçıxarma sorğuları qeyri-şəffaf `X-OmniRoute-Lease-Owner` dəyərini və dəqiq `X-OmniRoute-Lease-Generation` dəyərini təqdim edir. Sahib identifikatoru `vlo_` prefiksindən və ardınca gələn 43 base64url simvolundan ibarətdir; yalnız onun SHA-256 heşi saxlanılır. Hər yekun göndəriş sərhədi həmçinin autentifikasiya edilmiş API açarı ID-sini və aktiv bağlantı ID-sini əlaqələndirir. İcarə idarəetmə başlıqları jurnallardan, saxlanılan sorğu anlıq görüntülərindən və yuxarı axın icraedicisinin başlıqlarından silinir.
+Həyat dövrü `acquire`, `renew` və `release` JSON əməliyyatları ilə `POST /api/v1/session-leases` vasitəsilə idarə olunur. İdarə olunan çıxarış sorğuları qeyri-şəffaf `X-OmniRoute-Lease-Owner` dəyərini və dəqiq `X-OmniRoute-Lease-Generation` dəyərini təqdim edir. Sahib identifikatoru `vlo_` prefiksindən və ardınca gələn 43 base64url simvolundan ibarətdir; yalnız onun SHA-256 heşi saxlanılır. Hər yekun göndəriş sərhədi həmçinin autentifikasiya edilmiş API açarı ID-sini və aktiv bağlantı ID-sini bağlayır. İcarəyə nəzarət başlıqları jurnallardan, saxlanılan sorğu anlıq görüntülərindən və yuxarı axın icraedici başlıqlarından silinir.
 
-Adi marşrutlaşdırmanın uyğun idarə olunan namizədləri varsa, lakin hər sərbəst namizəd xarici aktiv icarə tərəfindən tutulubsa, OmniRoute HTTP `429`, icarə tutumunun əlçatmazlığı kodu, tutum gözləmə vəziyyəti və ən erkən uyğun bitmə vaxtından hesablanan məhdud `Retry-After` qaytarır. Uyğunluğun adi qaydada boş olması icarə mübahisəsi deyil və mövcud marşrutlaşdırma xətası semantikasını qoruyur.
+Adi marşrutlaşdırmada uyğun idarə olunan namizədlər mövcuddursa, lakin bütün sərbəst namizədlər başqa aktiv icarələr tərəfindən tutulubsa, OmniRoute HTTP `429`, lease-capacity-unavailable kodu, tutum gözləmə vəziyyəti və ən erkən müvafiq bitmə vaxtından hesablanan məhdud `Retry-After` qaytarır. Adi uyğunluq siyahısının boş olması icarə çəkişməsi deyil və mövcud marşrutlaşdırma xətası semantikasını qoruyur.
 
 Əlaqəli mexanizmlər ayrı qalır:
 
-- OAuth sessiya məşğulluğu OAuth hesabları üçün prosesdaxili yumşaq paylamadır.
-- Hesab semaforları sorğu paralelliyi icazələri verir və sorğu tamamlandıqda başa çatır.
+- OAuth sessiya məşğulluğu OAuth hesabları üçün proses daxilində yumşaq paylamadır.
+- Hesab semaforları sorğu paralelliyi icazələri verir və sorğu tamamlandıqda bitir.
 - Eksklüziv idarə olunan sessiya icarələri nəsil sərhədinə malik davamlı həyat dövrü sahibliyidir.
 
 ---
@@ -280,54 +340,80 @@ səbəbləri üçün heç vaxt gözləmir.
 
 ---
 
-## 5. Sorğu növbəsinə qəbul nəzarəti (v3.8.49 · issue #6593)
+## 5. Sorğu Növbəsinə Qəbul Nəzarəti (v3.8.49 · məsələ #6593)
 
-**Əhatə dairəsi**: yuxarıdakı üç mexanizmdən bir səviyyə aşağıda yerləşən,
-hər provayder+bağlantı üzrə lokal sürət məhdudiyyəti növbəsi
-(`open-sse/services/rateLimitManager.ts`, Bottleneck əsasında).
+**Əhatə dairəsi**: yuxarıdakı üç mexanizmdən bir səviyyə aşağıda yerləşən, hər provider+connection üçün lokal sürət məhdudiyyəti növbəsi (`open-sse/services/rateLimitManager.ts`,
+Bottleneck əsasında).
 
-**`maxWaitMs` icranın vaxt aşımı üçün saxlanılmış köhnə addır.**
-`resilienceSettings.requestQueue.maxWaitMs` Bottleneck-ə `expiration` tapşırıq
-parametri kimi ötürülür və onun taymeri yalnız yönləndirmədən sonra başlayır.
-Buna görə də bu parametr lokal növbədə sərf olunan vaxtı deyil, məhdudlaşdırıcı
-tərəfindən idarə olunan icranı məhdudlaşdırır. Vaxt aşımı etibarlı lokal
-`code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) kimi təqdim olunur;
-əvvəlki növbə vaxt aşımı kodunun adı yalnız etibarlı daxili geriyə uyğunluq
-üçün qəbul edilir. Standart dəyər 15000ms-dir; onu `RATE_LIMIT_MAX_WAIT_MS`
-(mühit dəyişəni) və ya idarəetmə paneli (**Settings → Resilience**,
-UI-də 1–30000ms yuxarı həddi) vasitəsilə dəyişdirin. Növbədə qalma vaxtı üçün
-son müddət yoxdur; növbədəki sorğuların sayını məhdudlaşdırmaq üçün aşağıdakı
-`maxQueueDepth` parametrindən istifadə edin.
+**`maxWaitMs` növbədə gözləmə müddətini, `executionMaxWaitMs` isə icra müddətini məhdudlaşdırır.**
+Bu ikisi qəsdən ayrıdır və heç biri digərinə təsir etmir.
 
-**`maxQueueDepth` — seçimlə aktivləşdirilən qəbul həddi (yeni).**
-`resilienceSettings.requestQueue.maxQueueDepth` eyni anda bir
-provayder+bağlantı üçün neçə sorğunun növbədə (hələ yönləndirilməmiş) qala
-biləcəyini məhdudlaşdırır. Növbədə artıq `maxQueueDepth` sayda sorğu olduqda,
-yeni sorğu `limiter.schedule()` mərhələsinə çatmamışdan **əvvəl**
-`code: "RATE_LIMIT_QUEUE_FULL"` tipli xəta ilə dərhal rədd edilir — beləliklə,
-rəddetmə az resurs tələb edir və həmin sorğu üçün sonrakı prompt sıxılması /
-tərcümə işlərindən əvvəl baş verir. Standart `0` = deaktivdir və mövcud
-məhdudiyyətsiz növbə davranışını qoruyur; icazə verilən diapazon 0–100000-dir.
-`RATE_LIMIT_MAX_QUEUE_DEPTH` (mühit dəyişəni) və ya
-`resilienceSettings.requestQueue.maxQueueDepth` (idarəetmə paneli/API yaması)
-vasitəsilə dəyişdirin.
+`resilienceSettings.requestQueue.maxWaitMs` **növbədə gözləmə büdcəsidir**: o,
+provider slotunun boşalmasını gözləməyi və sonra QUEUED vəziyyətində qalmağı
+əhatə edir; tapşırıq QUEUED vəziyyətindən çıxıb icraya başlayan kimi onun
+taymeri silinir (`rateLimitManager.ts`, `wrappedFn`). Bu müddəti aşan sorğu
+heç vaxt yuxarı axındakı xidmətə çatmır. Defolt dəyər 30000ms-dir,
+`src/lib/resilience/settings.ts` daxilindəki `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+tərəfindən təmin edilir və
+`tests/unit/ratelimit-admission-control-6593.test.ts` tərəfindən sabitlənir;
+beləliklə, onun dəyişdirilməsi bu paraqrafı səssizcə köhnəlmiş saxlamaq əvəzinə
+həmin testi uğursuz edir.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` Bottleneck-ə tapşırığın
+`expiration` dəyəri kimi ötürülür və onun taymeri yalnız yönləndirmədən sonra
+işə düşür. Bu, öz yuxarı axın taymautu olmayan icraçılar üçün ehtiyat
+mexanizmidir və icraçının öz fetch-start taymautu daha uzun olduqda həmin
+dəyərə yüksəldilir; beləliklə, normal şəkildə davam edən cavabı yarıda kəsə
+bilməz. Defolt dəyər 600000ms-dir (10 dəq).
+
+Növbə büdcəsinin `expiration` parametrinə ötürülməsi əvvəllər qeyri-inkremental
+şlüzləri icranın ortasında dayandırırdı — onlar ilk baytları göndərməzdən əvvəl
+haqlı olaraq bir neçə dəqiqə işləyə bilərlər — və buna görə də müddətin bitməsi
+`code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) kimi təqdim olunur, növbə
+büdcəsi isə növbə taymautu kodunu daşıyır. Hər iki dəyəri
+`RATE_LIMIT_MAX_WAIT_MS` / `RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (mühit dəyişəni)
+və ya idarə paneli (**Settings → Resilience**) vasitəsilə dəyişdirin.
+Normallaşdırılarkən hər ikisi 1ms–24h aralığı ilə məhdudlaşdırılır.
+
+**Hər ikisi üçün prioritet:** mühit dəyişəni yalnız _defolt_ dəyəri təmin edir.
+`resilienceSettings.requestQueue` daxilində saxlanılmış dəyər (idarə paneli /
+API patch, `key_value` daxilində saxlanılır) onu üstələyir, hər connection üçün
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` isə həmin dəyəri də
+üstələyir. Buna görə də artıq saxlanılmış dəyəri olan yerləşdirmədə mühit
+dəyişəninin təyin edilməsi heç nəyi dəyişmir — bunun əvəzinə saxlanılmış
+parametri silin və ya yeniləyin.
+
+Növbədə qalma müddəti `maxWaitMs` ilə məhdudlaşdırılır; aşağıdakı
+`maxQueueDepth` isə eyni vaxtda neçə çağırışçının növbədə ola biləcəyini
+məhdudlaşdırır.
+
+**`maxQueueDepth` — aktivləşdirilməsi seçimə bağlı qəbul limiti (yeni).** `resilienceSettings.requestQueue.maxQueueDepth`
+bir provider+connection üçün eyni vaxtda neçə sorğunun növbədə (hələ
+yönləndirilməmiş) qala biləcəyini məhdudlaşdırır. Növbədə artıq
+`maxQueueDepth` sayda sorğu olduqda yeni sorğu `limiter.schedule()` metoduna
+çatmamışdan **əvvəl** tipli `code: "RATE_LIMIT_QUEUE_FULL"` xətası ilə dərhal
+rədd edilir — beləliklə, rəddetmə az resurs tələb edir və həmin sorğu üçün hər
+hansı aşağı axın prompt sıxışdırması / tərcümə işi başlamazdan əvvəl baş verir.
+Defolt `0` = deaktivdir və mövcud məhdudiyyətsiz növbə davranışını qoruyur;
+0–100000 aralığı ilə məhdudlaşdırılır. Dəyəri `RATE_LIMIT_MAX_QUEUE_DEPTH`
+(mühit dəyişəni) və ya `resilienceSettings.requestQueue.maxQueueDepth`
+(idarə paneli/API patch) vasitəsilə dəyişdirin.
 
 Qəbul yoxlamasının özü saf funksiyadır
-(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), buna görə
-də real Bottleneck məhdudlaşdırıcısı olmadan vahid testlərlə yoxlana bilər.
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), buna
+görə də real Bottleneck məhdudlaşdırıcısı olmadan vahid testlərlə yoxlana bilər.
 
-> #6593-ü başladan RFC həmçinin `bypassCompressionOnRateLimit`
-> bayrağını təklif etmişdi. Bu repozitorinin `open-sse/services/compression/`
-> konveyeri sintez edilmiş 429 cavab gövdələrində HTTP cavab sıxılması deyil,
-> çıxan LLM sorğusunun prompt/kontekst sıxılmasıdır (`chatCore.ts`,
-> `resolveCompressionSettings`/`selectCompressionStrategy` blokunun ətrafı) —
-> literal keçid bayrağına uyğun gələn kod yolu yoxdur. Həmin prompt sıxılması
-> addımı hazırda sorğu konveyerində `withRateLimit()` çağırışından _əvvəl_
-> icra olunur; buna görə də növbənin dolu olması səbəbilə rəddetmə zamanı onu
-> ötürmək üçün ardıcıllığın dəyişdirilməsi bu məsələnin əhatə dairəsindən ayrı
-> və daha böyük dəyişiklikdir. Bu funksiya burada qəsdən **tətbiq edilməyib** və
-> CPU resurslarına qənaətin qazancı ardıcıllığın dəyişdirilməsi riskinə dəyərsə,
-> sonrakı iş kimi saxlanılıb.
+> #6593 məsələsini açan RFC həmçinin `bypassCompressionOnRateLimit`
+> bayrağını təklif edirdi. Bu repozitorinin `open-sse/services/compression/`
+> konveyeri sintez edilmiş 429 gövdələrində HTTP cavab sıxışdırması deyil,
+> çıxan LLM sorğusunun prompt/kontekst sıxışdırılmasıdır (`chatCore.ts`,
+> `resolveCompressionSettings`/`selectCompressionStrategy` bloku ətrafında)
+> — hərfi bypass bayrağına uyğun kod yolu yoxdur. Həmin prompt sıxışdırma
+> addımı hazırda sorğu konveyerində `withRateLimit()` çağırışından _əvvəl_ də
+> icra olunur; buna görə də növbə dolu olduqda rəddetmə zamanı onu ötürmək üçün
+> ardıcıllığın dəyişdirilməsi bu məsələnin əhatə dairəsindən ayrı və daha böyük
+> dəyişiklikdir. Bu, burada qəsdən **həyata keçirilməyib** və CPU qənaəti
+> ardıcıllığın dəyişdirilməsi riskinə dəyərsə, sonrakı iş kimi saxlanılıb.
 
 ---
 

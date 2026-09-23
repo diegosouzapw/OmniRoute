@@ -187,6 +187,7 @@ export const HTTP_STATUS = {
   UNPROCESSABLE_ENTITY: 422,
   REQUEST_TIMEOUT: 408,
   GONE: 410,
+  PAYLOAD_TOO_LARGE: 413,
   RATE_LIMITED: 429,
   PLAN_LIMIT_EXCEEDED: 432,
   SERVER_ERROR: 500,
@@ -364,11 +365,15 @@ export const CREDENTIAL_HEALTH_CACHE_TTL = (() => {
  *   as soon as this many bytes accumulate, regardless of the timer.
  * - EARLY_RETRY_MAX: max transparent re-opens of the upstream stream while the
  *   holdback is still uncommitted (free-claude-code uses 5 total attempts = 4 retries).
+ * - EMPTY_TURN_RETRY_MAX: max bounded retries of a translated stream turn that ends
+ *   with no usable content (same family: bounded retries of a failing stream
+ *   before anything is exposed to the client).
  */
 export const STREAM_RECOVERY = {
   HOLDBACK_MS: 750,
   BUFFER_MAX_BYTES: 65536,
   EARLY_RETRY_MAX: 4,
+  EMPTY_TURN_RETRY_MAX: 4,
   /**
    * Minimum character overlap `trimContinuationOverlap` must find between the
    * already-emitted text and a mid-stream continuation for the continuation to be

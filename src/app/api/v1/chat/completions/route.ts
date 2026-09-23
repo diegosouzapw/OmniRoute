@@ -37,6 +37,7 @@ import {
   assertCommonChatGptWebModelAvailable,
   isCommonChatGptWebRetirementError,
 } from "@/shared/constants/chatgptWebRetirement";
+import { ensureSemanticCacheDbBridge } from "@/lib/cache/semanticCacheDbBridge";
 
 let initPromise = null;
 
@@ -49,6 +50,7 @@ const injectionGuard = createInjectionGuard({ logger: null });
  */
 function ensureInitialized() {
   if (!initPromise) {
+    ensureSemanticCacheDbBridge();
     initPromise = Promise.resolve(initTranslators()).then(() => {
       console.log("[SSE] Translators initialized");
     });
@@ -122,7 +124,7 @@ export async function POST(request) {
   const admission = admissionResult;
   request = admission.request;
   const finishAdmission = (response: Response) =>
-    releaseChatAdmissionWhenDone(response, admission.lease);
+    releaseChatAdmissionWhenDone(response, admission.lease, { signal: request.signal });
 
   try {
     // One-line marker for diagnosing 413 / Server-Action interceptions.
@@ -268,7 +270,8 @@ export async function POST(request) {
       // eventual handler body; only that confirmed cleanup releases heavyweight capacity.
       const handlerResponse = releaseChatAdmissionAfterHandler(
         handleChat(request, null, parsedBody, reqId),
-        admission.lease
+        admission.lease,
+        { signal: request.signal }
       );
       const streamedResponse = await withEarlyStreamKeepalive(handlerResponse, {
         signal: request.signal,

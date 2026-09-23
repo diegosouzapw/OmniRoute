@@ -333,7 +333,9 @@ export async function sendAntigravityRequest(
   stream: boolean,
   signal: AbortSignal | null | undefined,
   log: SafeAntigravityLog,
-  retryAttempt: number
+  retryAttempt: number,
+  physicalSendCounter: { value: number },
+  correlationId: string | null
 ): Promise<{ response: Response; finalHeaders: Record<string, string> }> {
   const serializedRequest = serializeAntigravityRequest(provider, headers, transformedBody);
   let finalHeaders = serializedRequest.headers;
@@ -356,6 +358,11 @@ export async function sendAntigravityRequest(
   }
 
   await prl.captureCurrentProviderBody(url, finalHeaders, serializedRequest.bodyString, log);
+  const physicalSendOrdinal = ++physicalSendCounter.value;
+  log.debug(
+    "TELEMETRY",
+    `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${model}, PhysicalSend: ${physicalSendOrdinal}, RetryAttempt: ${retryAttempt}`
+  );
   let response = await fetchAntigravityWithReadinessTimeout(url, {
     method: "POST",
     headers: finalHeaders,
@@ -369,6 +376,11 @@ export async function sendAntigravityRequest(
     removeHeaderCaseInsensitive(retryHeaders, "x-goog-user-project");
     log.debug("RETRY", "403 with x-goog-user-project, retrying once without it");
     await prl.captureCurrentProviderBody(url, retryHeaders, serializedRequest.bodyString, log);
+    const retryPhysicalSendOrdinal = ++physicalSendCounter.value;
+    log.debug(
+      "TELEMETRY",
+      `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${model}, PhysicalSend: ${retryPhysicalSendOrdinal}, RetryAttempt: ${retryAttempt}, Cause: x-goog-user-project-403`
+    );
     response = await fetchAntigravityWithReadinessTimeout(url, {
       method: "POST",
       headers: retryHeaders,
@@ -416,7 +428,9 @@ export async function tryCreditsRetry(
   signal: AbortSignal | null | undefined,
   log: SafeAntigravityLog,
   accountId: string,
-  onCreditsUpdate: OnAntigravityCreditsUpdate
+  onCreditsUpdate: OnAntigravityCreditsUpdate,
+  physicalSendCounter: { value: number },
+  correlationId: string | null
 ): Promise<SsePassthroughResult | null> {
   log.info("AG_CREDITS", "Retrying with Google One AI credits");
   const creditsBody = attachToolNameMap(
@@ -432,6 +446,11 @@ export async function tryCreditsRetry(
       finalCreditsHeaders,
       serializedCreditsRequest.bodyString,
       log
+    );
+    const creditsPhysicalSendOrdinal = ++physicalSendCounter.value;
+    log.debug(
+      "TELEMETRY",
+      `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, PhysicalSend: ${creditsPhysicalSendOrdinal}, Cause: google-one-ai-credits-retry`
     );
     const creditsResp = await fetchAntigravityWithReadinessTimeout(url, {
       method: "POST",
