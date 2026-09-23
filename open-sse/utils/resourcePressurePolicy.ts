@@ -70,6 +70,12 @@ export type ResourcePressureThresholds = {
   heapAbsoluteThresholdMb: number | null;
 };
 
+/** #13124: host-wide PSI is not this process. Operators can ignore it. */
+export function psiPressureDisabled(): boolean {
+  const raw = process.env.OMNIROUTE_PRESSURE_PSI_DISABLED?.trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
 export const DEFAULT_RESOURCE_PRESSURE_THRESHOLDS: ResourcePressureThresholds = {
   highRatio: 0.85,
   criticalRatio: 0.92,
@@ -211,6 +217,7 @@ export function classifyAdaptiveResourcePressure(
     best,
     ratioLevel(signals.cgroup.currentBytes, signals.cgroup.highBytes, thresholds, "cgroup_high")
   );
+  if (psiPressureDisabled()) return best;
   best = maxLevel(best, psiLevel(signals.psi?.someAvg10 ?? null, thresholds, "psi_some"));
   return maxLevel(best, psiLevel(signals.psi?.fullAvg10 ?? null, thresholds, "psi_full"));
 }
@@ -247,6 +254,7 @@ function isRecovered(signals: ResourceSignals, thresholds: ResourcePressureThres
   ) {
     return false;
   }
+  if (psiPressureDisabled()) return true;
   return ![signals.psi?.someAvg10, signals.psi?.fullAvg10].some(
     (value) => value != null && value > thresholds.recoveryPsiAvg10
   );
