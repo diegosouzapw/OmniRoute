@@ -64,8 +64,8 @@ test("getKnownPlan('') returns null", () => {
   assert.equal(getKnownPlan(""), null);
 });
 
-test("knownProviders() returns exactly 12 entries", () => {
-  assert.equal(knownProviders().length, 12);
+test("knownProviders() returns exactly 13 entries", () => {
+  assert.equal(knownProviders().length, 13);
 });
 
 test("knownProviders() includes the full registry set", () => {
@@ -79,6 +79,7 @@ test("knownProviders() includes the full registry set", () => {
     "bailian",
     "kimi",
     "kimi-coding",
+    "muse-code",
     "xiaomi-mimo",
     "alibaba",
     "grok-cli",
