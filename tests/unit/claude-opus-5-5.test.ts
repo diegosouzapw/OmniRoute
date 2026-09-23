@@ -61,11 +61,19 @@ test("Claude Opus 5.5 is registered only on verified launch surfaces", () => {
     getStaticModelsForProvider("claude")?.some((entry) => entry.id === MODEL_ID),
     "Claude OAuth static discovery must expose Opus 5.5"
   );
-  assert.equal(getClaudeCodeDefaultModels().opus, MODEL_ID);
   assert.equal(
     getNextFamilyFallback(`claude/${MODEL_ID}`, new Set([`claude/${MODEL_ID}`])),
     "claude/claude-opus-5"
   );
+});
+
+test("Claude Code CLI keeps Opus 5 as the cc/ Opus default until live catalogs refresh", () => {
+  // Given a claude connection synced before the launch, whose live catalog lacks Opus 5.5 (#14612)
+  // When the Claude Code CLI defaults are derived from the registry
+  const { opus } = getClaudeCodeDefaultModels();
+
+  // Then ANTHROPIC_DEFAULT_OPUS_MODEL keeps pointing at a model that catalog still accepts
+  assert.equal(opus, "claude-opus-5");
 });
 
 test("Claude Opus 5.5 has native 1M context and always-on adaptive thinking", () => {
