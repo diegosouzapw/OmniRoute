@@ -3,11 +3,154 @@ import { PROVIDER_TIER } from "./tierTypes";
 import { getModelPricing } from "./providerCostData";
 import { isExplicitlyFree } from "./providerCostData";
 import { mergeTierConfig, DEFAULT_TIER_CONFIG } from "./tierConfig";
+import { createRequire } from "node:module";
+import { PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import { getDefaultPricing } from "@/shared/constants/pricing";
 
-let dbPersistenceChecked = false;
+const lazyRequire = createRequire(import.meta.url);
 
 const tierCache = new Map<string, TierAssignment>();
 let currentConfig: TierConfig = DEFAULT_TIER_CONFIG;
+
+type DbPrice = { input: number; output: number };
+const tierPricingSnapshot = new Map<string, DbPrice>();
+let snapshotPinned = false;
+let snapshotWarmed = false;
+
+function snapshotKey(provider: string, model: string): string {
+  return `${provider.toLowerCase()}::${model.toLowerCase()}`;
+}
+
+function refreshTierPricingSnapshot(): void {
+  // An injected snapshot (see setTierPricingSnapshot) is authoritative
+  // until released: never let a refresh clobber it.
+  if (snapshotPinned) return;
+  let getDbInstance: (() => unknown) | undefined;
+  try {
+    // Lazy require: mirrors setTierConfig below; no new static edge,
+    // no src/lib/db <-> open-sse/services cycle (settings/pricing already
+    // imports this module dynamically). The defaults layer comes from a
+    // static import (same module the hardcoded table already depends on).
+    // createRequire (not the bare require global) so this also resolves
+    // under native ESM, where require is undefined.
+    getDbInstance = lazyRequire("../../src/lib/db/core").getDbInstance;
+  } catch {
+    return; // fail-open: keep the previous snapshot
+  }
+  try {
+    const db = (
+      getDbInstance as () => {
+        prepare(s: string): { all(...a: unknown[]): Array<{ key: string; value: string }> };
+      }
+    )();
+    const merged: Record<string, Record<string, unknown>> = {
+      ...(getDefaultPricing() as Record<string, Record<string, unknown>>),
+    };
+    // Layer order mirrors getPricingLayers: user rows win over synced layers.
+    for (const ns of ["pricing_synced", "models_dev_pricing", "pricing"]) {
+      for (const row of db
+        .prepare("SELECT key, value FROM key_value WHERE namespace = ?")
+        .all(ns)) {
+        try {
+          const models = JSON.parse(row.value) as Record<string, unknown>;
+          merged[row.key] = { ...(merged[row.key] || {}), ...models };
+        } catch {
+          // Corrupted row: skip, lower layers survive.
+        }
+      }
+    }
+    const next = new Map<string, DbPrice>();
+    for (const [provider, models] of Object.entries(merged)) {
+      for (const [model, raw] of Object.entries(models)) {
+        const price = raw as { input?: unknown; output?: unknown };
+        const input = Number(price?.input);
+        const output = Number(price?.output);
+        // Output defaults to input, mirroring classifyTierAsync below.
+        if (Number.isFinite(input) && input >= 0) {
+          next.set(snapshotKey(provider, model), {
+            input,
+            output: Number.isFinite(output) && (output as number) >= 0 ? (output as number) : input,
+          });
+        }
+      }
+    }
+    tierPricingSnapshot.clear();
+    for (const [k, v] of next) tierPricingSnapshot.set(k, v);
+  } catch {
+    // Fail-open: the previous snapshot stays authoritative.
+  }
+  snapshotWarmed = true;
+}
+
+function lookupSnapshot(provider: string, model: string): DbPrice | null {
+  // Pure memory. Candidate-key order mirrors getPricingForModel
+  // (src/lib/db/settings/pricing.ts): direct, alias, reverse alias,
+  // "-cn" strip, hyphen/dot variant. No I/O on the routing hot path.
+  const pLower = (provider || "").toLowerCase();
+  const mLower = (model || "").toLowerCase();
+  const modelKeys = [mLower];
+  const hyphenModel = mLower.replace(/\./g, "-");
+  if (hyphenModel !== mLower) modelKeys.push(hyphenModel);
+  for (const p of providerKeysFor(pLower)) {
+    for (const m of modelKeys) {
+      const hit = tierPricingSnapshot.get(`${p}::${m}`);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
+function providerKeysFor(pLower: string): string[] {
+  // Exact key First: snapshot keys are lowercased at write time, so the
+  // common path is a pair of O(1) hits. Alias and variant keys follow the
+  // same order as getPricingForModel (alias reads scan case-insensitively
+  // like the async findKeyInsensitive).
+  const keys = [pLower];
+  for (const [aliasKey, aliasValue] of aliasEntries()) {
+    if (
+      aliasKey === pLower &&
+      typeof aliasValue === "string" &&
+      aliasValue.toLowerCase() !== pLower
+    ) {
+      keys.push(aliasValue.toLowerCase());
+    }
+  }
+  for (const [id, mappedAlias] of aliasEntries()) {
+    if (typeof mappedAlias === "string" && mappedAlias.toLowerCase() === pLower) {
+      const idLower = id.toLowerCase();
+      if (!keys.includes(idLower)) keys.push(idLower);
+      break;
+    }
+  }
+  const noCn = pLower.replace(/-cn$/, "");
+  if (noCn && noCn !== pLower) keys.push(noCn);
+  return keys;
+}
+
+let cachedAliasEntries: Array<[string, unknown]> | null = null;
+
+function aliasEntries(): Array<[string, unknown]> {
+  // Resolved once: the alias map builds lazily behind a Proxy, so enumerating
+  // it on every cache miss would rebuild the key list each time.
+  if (!cachedAliasEntries) {
+    cachedAliasEntries = Object.entries(PROVIDER_ID_TO_ALIAS).map(([k, v]) => [k.toLowerCase(), v]);
+  }
+  return cachedAliasEntries;
+}
+
+/** Test-only injection: fills the pricing snapshot without a database. */
+export function setTierPricingSnapshot(
+  entries: Record<string, Record<string, DbPrice>> | null
+): void {
+  tierPricingSnapshot.clear();
+  snapshotPinned = entries !== null;
+  if (!entries) return;
+  for (const [provider, models] of Object.entries(entries)) {
+    for (const [model, price] of Object.entries(models)) {
+      tierPricingSnapshot.set(snapshotKey(provider, model), price);
+    }
+  }
+}
 
 function cacheKey(provider: string, model: string): string {
   return `${provider}::${model}`;
@@ -77,13 +220,29 @@ export function classifyTier(provider: string, model: string): TierAssignment {
     return assignment;
   }
 
-  const pricing = getModelPricing(provider, model);
+  // Below the overrides: the DB snapshot wins over the hardcoded table,
+  // so a fresher stored price reclassifies without a restart. Warmed once
+  // per process on First use, so a fresh boot serves stored prices without
+  // waiting for the First pricing write.
+  if (!snapshotWarmed && !snapshotPinned) refreshTierPricingSnapshot();
+  const dbPrice = lookupSnapshot(provider, model);
+  const fallbackPricing = getModelPricing(provider, model);
+  const pricing = dbPrice
+    ? {
+        inputCostPer1M: dbPrice.input,
+        outputCostPer1M: dbPrice.output,
+        isFree: dbPrice.input === 0,
+        freeQuotaLimit: fallbackPricing.freeQuotaLimit,
+      }
+    : fallbackPricing;
   let tier: ProviderTier;
   let reason: string;
 
   if (pricing.isFree || pricing.inputCostPer1M <= currentConfig.defaults.freeThreshold) {
     tier = PROVIDER_TIER.FREE;
-    reason = `Cost-based: $${pricing.inputCostPer1M}/M input ≤ free threshold ($${currentConfig.defaults.freeThreshold}/M)`;
+    reason = dbPrice
+      ? `DB cost-based: $${pricing.inputCostPer1M}/M input`
+      : `Cost-based: $${pricing.inputCostPer1M}/M input ≤ free threshold ($${currentConfig.defaults.freeThreshold}/M)`;
   } else if (pricing.inputCostPer1M <= currentConfig.defaults.cheapThreshold) {
     tier = PROVIDER_TIER.CHEAP;
     reason = `Cost-based: $${pricing.inputCostPer1M}/M input ≤ cheap threshold ($${currentConfig.defaults.cheapThreshold}/M)`;
@@ -127,6 +286,9 @@ export function getTierConfig(): TierConfig {
 
 export function clearTierCache(): void {
   tierCache.clear();
+  // setTierConfig below clears the assignment cache on config edits without
+  // touching pricing: only this entry point refreshes the pricing snapshot.
+  refreshTierPricingSnapshot();
 }
 
 export function classifyTiers(
