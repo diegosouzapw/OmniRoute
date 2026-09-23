@@ -350,22 +350,34 @@ test("quotaCache covers empty quotas, invalid dates and fallback percentage norm
     daily: { total: 0, used: 25 },
     "###": { remainingPercentage: 50 },
   });
+  // total=0 leaves the used/total fraction unreported: per #10095 an unreported
+  // fraction is "unknown", never "0% remaining", so it cannot reach the threshold.
   assert.deepEqual(quotaCache.getQuotaWindowStatus("quota-zero-total", "daily", 10), {
     remainingPercentage: 0,
     usedPercentage: 100,
     resetAt: null,
-    reachedThreshold: true,
+    reachedThreshold: false,
   });
+  // A genuinely reported exhausted window does reach the threshold.
+  quotaCache.setQuotaCache("quota-reported-exhausted", "cursor", {
+    daily: { remainingPercentage: 0 },
+  });
+  assert.equal(
+    quotaCache.getQuotaWindowStatus("quota-reported-exhausted", "daily", 10)?.reachedThreshold,
+    true
+  );
   assert.equal(quotaCache.getQuotaWindowStatus("quota-zero-total", "unknown"), null);
 
   quotaCache.setQuotaCache("quota-invalid-reset", "cursor", {
     daily: { remainingPercentage: Number.POSITIVE_INFINITY, resetAt: "not-a-date" },
   });
+  // Infinity collapses to an unreported fraction (safePercentage), so per #10095
+  // the window is "unknown" and must not reach the exhaustion threshold.
   assert.deepEqual(quotaCache.getQuotaWindowStatus("quota-invalid-reset", "daily", 10), {
     remainingPercentage: 0,
     usedPercentage: 100,
     resetAt: "not-a-date",
-    reachedThreshold: true,
+    reachedThreshold: false,
   });
 
   quotaCache.setQuotaCache("quota-invalid-exhausted", "cursor", {

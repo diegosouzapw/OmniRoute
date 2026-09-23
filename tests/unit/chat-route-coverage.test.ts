@@ -216,22 +216,22 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
     const headers = toPlainHeaders(init.headers);
     seenAuthHeaders.push(headers.Authorization ?? headers.authorization);
     seenRequestBodies.push(JSON.parse(String(init.body)));
+    // deepseek's registry default is openai chat-completions (the registry
+    // restructure moved it off openai-responses), so the upstream sees and
+    // answers in Chat Completions shape.
     return new Response(
       JSON.stringify({
-        id: "resp_task_route",
-        object: "response",
-        status: "completed",
+        id: "chatcmpl_task_route",
+        object: "chat.completion",
         model: "deepseek-v4-flash",
-        output: [
+        choices: [
           {
-            id: "msg_task_route",
-            type: "message",
-            role: "assistant",
-            status: "completed",
-            content: [{ type: "output_text", text: "Task-routed response", annotations: [] }],
+            index: 0,
+            message: { role: "assistant", content: "Task-routed response" },
+            finish_reason: "stop",
           },
         ],
-        usage: { input_tokens: 4, output_tokens: 2, total_tokens: 6 },
+        usage: { prompt_tokens: 4, completion_tokens: 2, total_tokens: 6 },
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
@@ -250,8 +250,9 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
 
   assert.equal(response.status, 200);
   assert.deepEqual(seenAuthHeaders, ["Bearer sk-deepseek-task-route"]);
-  assert.equal(seenRequestBodies[0].messages, undefined);
-  assert.equal(seenRequestBodies[0].input[0].role, "user");
+  // Task-aware routing mapped the coding task onto the deepseek coding model.
+  assert.equal(seenRequestBodies[0].model, "deepseek-v4-flash");
+  assert.ok(Array.isArray(seenRequestBodies[0].messages));
   assert.equal(json.choices[0].message.content, "Task-routed response");
 });
 
@@ -328,30 +329,22 @@ test("handleChat defaults a Combo's incompatible reasoning fallback to drop", as
     models: ["deepseek/deepseek-v4-flash"],
   });
 
-  let upstreamBody: { input?: unknown } | null = null;
+  let upstreamBody: { messages?: Array<Record<string, unknown>> } | null = null;
   globalThis.fetch = async (_url, init = {}) => {
     upstreamBody = JSON.parse(String(init.body));
     return new Response(
       JSON.stringify({
-        id: "resp_reasoning_drop",
-        object: "response",
-        status: "completed",
+        id: "chatcmpl_reasoning_drop",
+        object: "chat.completion",
         model: "deepseek-v4-flash",
-        output: [
+        choices: [
           {
-            id: "msg_reasoning_drop",
-            type: "message",
-            role: "assistant",
-            content: [
-              {
-                type: "output_text",
-                text: "continued without prior reasoning",
-                annotations: [],
-              },
-            ],
+            index: 0,
+            message: { role: "assistant", content: "continued without prior reasoning" },
+            finish_reason: "stop",
           },
         ],
-        usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
@@ -379,20 +372,31 @@ test("handleChat defaults a Combo's incompatible reasoning fallback to drop", as
   );
 
   assert.equal(response.status, 200);
-  assert.ok(upstreamBody && Array.isArray(upstreamBody.input));
-  const upstreamInput = upstreamBody.input;
+  assert.ok(upstreamBody && Array.isArray(upstreamBody.messages));
+  const upstreamMessages = upstreamBody.messages;
+  // The opaque reasoning item must be dropped (the combo reasoning-transport
+  // default), while the function_call + its output survive translation into
+  // deepseek's chat-completions tool shape.
   assert.equal(
-    upstreamInput.some(
-      (item) =>
-        item !== null && typeof item === "object" && "type" in item && item.type === "reasoning"
-    ),
+    upstreamMessages.some((m) => m.role === "assistant" && Array.isArray(m.reasoning)),
     false
   );
   assert.equal(
-    upstreamInput.some(
-      (item) =>
-        item !== null && typeof item === "object" && "type" in item && item.type === "function_call"
+    upstreamMessages.some(
+      (m) =>
+        m.role === "assistant" &&
+        Array.isArray(m.tool_calls) &&
+        m.tool_calls.some(
+          (tc) =>
+            tc !== null &&
+            typeof tc === "object" &&
+            (tc as Record<string, unknown>).type === "function"
+        )
     ),
+    true
+  );
+  assert.equal(
+    upstreamMessages.some((m) => m.role === "tool" && m.tool_call_id === "call_1"),
     true
   );
 });
