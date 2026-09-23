@@ -137,6 +137,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "invalid_api_key",
   "invalid_authentication",
   "invalid_connection_id",
+  "invalid_encrypted_content",
   "invalid_grant",
   "invalid_json",
   "invalid_kiro_tool_call",

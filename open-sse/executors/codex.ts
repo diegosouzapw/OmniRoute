@@ -64,6 +64,10 @@ import {
   type CodexEffortLevel as EffortLevel,
 } from "./codex/reasoningSuffix.ts";
 import { repairMissingCodexToolCallOutputs } from "./codex/toolCallRepair.ts";
+import {
+  CODEX_REASONING_REPLAY_ERROR_CODE,
+  readCodexReasoningReplayRejection,
+} from "./codex/reasoningReplayRejection.ts";
 import { resolveAppServerConfig } from "./codex/appServerConfig.ts";
 import { CodexAppServerExecutor } from "./codex-app-server.ts";
 // Re-exported for external importers (tests + provider services).
@@ -858,6 +862,19 @@ export class CodexExecutor extends BaseExecutor {
         }
       }
       const resp = (httpResult as { response?: Response }).response;
+      if (resp && !resp.ok) {
+        const replayRejection = await readCodexReasoningReplayRejection(resp);
+        if (replayRejection) {
+          input.log?.warn?.("CODEX", "upstream rejected a replayed reasoning item");
+          await resp.body?.cancel().catch(() => undefined);
+          (httpResult as { response: Response }).response = errorResponse(
+            HTTP_STATUS.BAD_REQUEST,
+            replayRejection.message,
+            { type: "invalid_request_error", code: CODEX_REASONING_REPLAY_ERROR_CODE }
+          );
+          return httpResult;
+        }
+      }
       if (resp) {
         const peek = await peekCodexSseTransientError(resp);
         if (peek.matched) {
