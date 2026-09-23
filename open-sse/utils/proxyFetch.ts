@@ -17,6 +17,7 @@ import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
+import { isDirectBypassHost } from "./proxyDirectBypass.ts";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
   isFeatureFlagEnabled,
@@ -483,28 +484,6 @@ function noProxyMatch(targetUrl) {
   });
 }
 
-function isLocalAddress(hostname: string): boolean {
-  const host = hostname
-    .replace(/^\[/, "")
-    .replace(/\]$/, "")
-    .replace(/^::ffff:/i, "");
-  if (host === "localhost" || host === "0.0.0.0" || host === "127.0.0.1" || host === "::1") {
-    return true;
-  }
-  if (host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".internal")) return true;
-  // RFC1918 + loopback + link-local (169.254, incl. cloud metadata 169.254.169.254)
-  // + CGNAT (100.64/10). 127/8 covers all loopback, not just 127.0.0.1.
-  if (host.startsWith("192.168.")) return true;
-  if (host.startsWith("10.")) return true;
-  if (host.startsWith("127.")) return true;
-  if (host.startsWith("169.254.")) return true;
-  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return true;
-  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(host)) return true;
-  // IPv6 ULA (fc00::/7 → fc/fd prefix) and link-local (fe80::/10)
-  if (/^f[cd][0-9a-f]*:/i.test(host) || host.startsWith("fe80:")) return true;
-  return false;
-}
-
 function resolveEnvProxyUrl(targetUrl) {
   if (noProxyMatch(targetUrl)) return null;
 
@@ -538,8 +517,8 @@ export function resolveProxyForRequest(targetUrl) {
     target = null;
   }
 
-  // Always bypass proxy for local/LAN addresses
-  if (target && isLocalAddress(target.hostname.toLowerCase())) {
+  // Always bypass proxy for local/LAN addresses and operator-listed provider-node hosts
+  if (target && isDirectBypassHost(target.hostname)) {
     return { source: "direct", proxyUrl: null };
   }
 

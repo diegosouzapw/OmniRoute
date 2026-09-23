@@ -14,7 +14,8 @@
  *    type, or when it is a general `chat`/`responses` node (a multimodal gateway
  *    that serves audio on the same base URL).
  *
- * 2. **host** — loopback/private nodes are always eligible. Remote nodes are
+ * 2. **host** — loopback/private nodes, and hostnames the operator listed in
+ *    `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (#14635), are always eligible. Remote nodes are
  *    opt-in via `AUDIO_REMOTE_PROVIDER_NODES`, default OFF: routing audio to an
  *    arbitrary remote host changes egress identity, so it must be an explicit
  *    operator decision rather than a silent default (cf. #3963).
@@ -22,9 +23,9 @@
 
 import { getCachedProviderNodes } from "@/lib/db/readCache";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { isLocalProviderNodeHost } from "@/shared/network/localNodeHosts";
 import {
   buildDynamicAudioProvider,
-  isLoopbackNodeHost,
   type AudioProvider,
   type ProviderNodeRow,
 } from "@omniroute/open-sse/config/audioRegistry.ts";
@@ -33,10 +34,11 @@ import {
 export const AUDIO_REMOTE_NODES_FLAG = "AUDIO_REMOTE_PROVIDER_NODES";
 
 /**
- * Loopback / private-range hosts that never leave the operator's machine or
- * Docker network. `::1` stays excluded, matching the previous SSRF hardening.
+ * Hosts that never leave the operator's machine or Docker network: loopback, the Docker
+ * private range, and hostnames listed in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (#14635).
+ * `::1` stays excluded, matching the previous SSRF hardening.
  */
-export { isLoopbackNodeHost as isLocalAudioNodeHost };
+export { isLocalProviderNodeHost as isLocalAudioNodeHost };
 
 /**
  * Pure selection step — no DB, no flag lookup, so the policy is directly testable.
@@ -61,7 +63,7 @@ export function selectAudioProviderNodes(
       return false;
     }
     if (!node.baseUrl) return false;
-    return isLoopbackNodeHost(node.baseUrl) || allowRemote;
+    return isLocalProviderNodeHost(node.baseUrl) || allowRemote;
   });
 
   const providers: AudioProvider[] = [];

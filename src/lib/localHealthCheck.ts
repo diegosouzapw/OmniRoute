@@ -12,7 +12,7 @@
  */
 
 import { getCachedProviderNodes } from "@/lib/db/readCache";
-import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
+import { isLocalProviderNodeHost } from "@/shared/network/localNodeHosts";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -82,8 +82,11 @@ function isLocalHealthCheckDisabled(): boolean {
   );
 }
 
-/** Loopback/private-range hosts — shared definition (see `@/shared/network/loopbackNodeHost`). */
-const isLocalhostUrl = isLoopbackNodeHost;
+/**
+ * Loopback/private-range hosts plus operator-listed service names — shared definition
+ * (see `@/shared/network/localNodeHosts`).
+ */
+const isLocalhostUrl = isLocalProviderNodeHost;
 
 function getNextInterval(failures: number): number {
   return BACKOFF_SCHEDULE[Math.min(failures, BACKOFF_SCHEDULE.length - 1)];

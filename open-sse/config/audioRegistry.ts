@@ -645,16 +645,18 @@ export { isLoopbackNodeHost };
  * Build a dynamic AudioProvider from a provider_node DB entry.
  *
  * Loopback nodes keep `authType: "none"` — a local Ollama/LM Studio has no key and
- * must not be blocked on a missing credential. A remote node is the opposite: it is
- * only reachable when the operator opted in, and it must present the credential
- * stored on its connection, so it is built as an api-key provider keyed by the node
- * id (`credentialProviderId`) rather than by the caller-facing prefix.
+ * must not be blocked on a missing credential. Every other node — a remote node the
+ * operator opted into, or a hostname listed in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS`
+ * (#14635) — must present the credential stored on its connection, so it is built as an
+ * api-key provider keyed by the node id (`credentialProviderId`) rather than by the
+ * caller-facing prefix.
  */
 export function buildDynamicAudioProvider(node: ProviderNodeRow, audioPath: string): AudioProvider {
   if (!node.prefix || !node.baseUrl) {
     throw new Error(`Invalid provider_node: missing prefix or baseUrl`);
   }
   const baseUrl = node.baseUrl.replace(/\/+$/, "");
+  // Auth follows the built-in loopback class only (see above).
   const isLocal = isLoopbackNodeHost(node.baseUrl);
   return {
     id: node.prefix,
