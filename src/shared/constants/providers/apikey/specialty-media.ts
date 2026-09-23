@@ -3,6 +3,20 @@
  * Pure data; merged by apikey/index.ts via spread (god-file decomposition; semantic split).
  */
 export const APIKEY_PROVIDERS_SPECIALTY = {
+  typesafe: {
+    id: "typesafe",
+    serviceKinds: [],
+    alias: "typesafe",
+    name: "TypeSafe AI (Jev)",
+    icon: "fact_check",
+    color: "#0F766E",
+    textIcon: "TS",
+    website: "https://typesafe.ai",
+    authHint:
+      "Bearer API key for api.typesafe.ai — System One / Jev evaluation through POST /v1/systemone.",
+    apiHint:
+      "Jev returns typed decisions rather than generated text. OmniRoute preserves System One responses and accounts for input-token cost.",
+  },
   nlpcloud: {
     id: "nlpcloud",
     serviceKinds: ["llm"],

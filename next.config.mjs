@@ -730,6 +730,10 @@ const nextConfig = {
         destination: "/api/v1/models",
       },
       {
+        source: "/typesafe/:path*",
+        destination: "/api/typesafe/:path*",
+      },
+      {
         source: "/v1/v1/:path*",
         destination: "/api/v1/:path*",
       },

@@ -113,6 +113,9 @@ export function getModelEndpointDecision(
   supportedEndpoints?: readonly string[]
 ): ModelEndpointDecision {
   const explicit = classifyExplicitEndpoints(supportedEndpoints);
+  if (provider?.trim().toLowerCase() === "typesafe") {
+    return { kind: "non-chat", chatSelectable: false, reason: "provider-policy" };
+  }
   if (provider?.trim().toLowerCase() === "openrouter") {
     // Unconditional, unlike the OpenAI branch below: there is no "batch"
     // endpoint name an upstream could declare alongside a chat one, and the

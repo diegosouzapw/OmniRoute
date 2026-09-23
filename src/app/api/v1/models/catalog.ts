@@ -18,7 +18,7 @@ import {
   parseImageModel,
 } from "@omniroute/open-sse/config/imageRegistry";
 import { aiHordeImageCatalog } from "@omniroute/open-sse/services/aihordeImageCatalog";
-import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
+import { isChatSelectableModel } from "@omniroute/open-sse/services/modelEndpointPolicy";
 import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
 import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry";
@@ -137,6 +137,7 @@ import { decideHidePaid } from "./catalogPaidFilter";
 import { isModelExposureAllowed } from "@/shared/utils/modelExposureList";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildEvaluationCatalogModels } from "./catalogSystemOne";
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -1085,6 +1086,7 @@ async function buildUnifiedModelsResponseCore(
         )
           continue;
         if (!isModelSelectable(canonicalProviderId, model.id)) continue;
+        if (!isChatSelectableModel(canonicalProviderId, model)) continue;
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (isModelHiddenBulk(alias, model.id, canonicalProviderId)) continue;
@@ -1562,24 +1564,16 @@ async function buildUnifiedModelsResponseCore(
       });
     }
 
-    // Add rerank models (filtered by active providers)
-    for (const rerankModel of getAllRerankModels()) {
-      if (!isProviderActive(rerankModel.provider)) continue;
-      const rawModelId = getSpecialtyModelRelativeId(rerankModel.id, rerankModel.provider);
-      if (!providerSupportsModel(rerankModel.provider, rawModelId)) continue;
-      if (isModelHiddenBulk(rerankModel.provider, rawModelId, null, "rerank")) continue;
-      if (hasEquivalentSpecialtyModel(rerankModel.provider, rawModelId, "rerank", rerankModel.id)) {
-        continue;
-      }
-      models.push({
-        id: rerankModel.id,
-        object: "model",
-        created: timestamp,
-        owned_by: rerankModel.provider,
-        root: rawModelId,
-        type: "rerank",
-      });
-    }
+    models.push(
+      ...buildEvaluationCatalogModels({
+        timestamp,
+        isProviderActive,
+        providerSupportsModel,
+        isModelHidden: (providerId, modelId, modality) =>
+          isModelHiddenBulk(providerId, modelId, null, modality),
+        hasEquivalentModel: hasEquivalentSpecialtyModel,
+      })
+    );
 
     // Add audio models (filtered by active providers)
     for (const audioModel of getAllAudioModels()) {

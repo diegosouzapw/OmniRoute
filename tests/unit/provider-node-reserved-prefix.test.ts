@@ -191,7 +191,9 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // member (412 -> 413).
   // Lyceum (pay-per-use OpenAI-compatible gateway, 2026-09-20) registers id "lyceum"
   // with an identical alias — a single REGISTRY member (413 -> 414).
-  assert.equal(RESERVED_PREFIX_COUNT, 414);
+  // Muse Code device OAuth registers id "muse-code" with an identical alias (414 -> 415).
+  // TypeSafe registers id "typesafe" with an identical alias (415 -> 416).
+  assert.equal(RESERVED_PREFIX_COUNT, 416);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {

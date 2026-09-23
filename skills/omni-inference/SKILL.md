@@ -263,6 +263,19 @@ curl -X POST https://localhost:20128/api/v1/rerank \
   -d '{}'
 ```
 
+### POST /api/v1/systemone
+
+Evaluate state with TypeSafe Jev
+
+TypeSafe System One passthrough. OmniRoute accepts provider-scoped model ids such as `typesafe/jev-latest`, removes the `typesafe/` prefix before forwarding, and preserves TypeSafe's response and error wire formats. The same operation is available at the SDK-compatible public path `/typesafe/v1/systemone`; SDK model discovery is available at `/typesafe/v1/models`.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/systemone \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### GET /api/v1
 
 API v1 root endpoint

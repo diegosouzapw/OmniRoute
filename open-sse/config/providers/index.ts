@@ -138,6 +138,7 @@ import { gitlawbProvider } from "./registry/gitlawb/index.ts";
 import { liquidProvider } from "./registry/liquid/index.ts";
 import { arceeAiProvider } from "./registry/arcee-ai/index.ts";
 import { deepinfraProvider } from "./registry/deepinfra/index.ts";
+import { typesafeProvider } from "./registry/typesafe/index.ts";
 import { agyProvider } from "./registry/agy/index.ts";
 import { agnesProvider } from "./registry/agnes/index.ts";
 import { aihordeProvider } from "./registry/aihorde/index.ts";
@@ -278,6 +279,7 @@ import { logfareProvider } from "./registry/logfare/index.ts";
 import { seekaiProvider } from "./registry/seekai/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
+  typesafe: typesafeProvider,
   aimlapi: aimlapiProvider,
   "mlx-gemma": mlxGemmaProvider,
   "mlx-qwen": mlxQwenProvider,

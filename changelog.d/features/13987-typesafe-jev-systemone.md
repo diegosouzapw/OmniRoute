@@ -1,0 +1,1 @@
+- **feat(providers):** add full TypeSafe Jev System One support with provider-scoped model ids, native SDK-compatible routes, typed Noul/Choice/Score validation, model discovery, key validation, cost tracking, proxy-aware transport, and non-chat routing guards ([#13987](https://github.com/diegosouzapw/OmniRoute/issues/13987))

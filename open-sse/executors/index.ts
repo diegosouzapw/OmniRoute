@@ -1,4 +1,5 @@
 import { SEARCH_PROVIDERS } from "../config/searchRegistry.ts";
+import { SYSTEMONE_PROVIDERS } from "../config/systemoneRegistry.ts";
 import { assertMicrosoftDesignerWebProviderAvailable } from "@/shared/constants/designerWebRetirement";
 import { assertRuntimeProviderAvailable } from "@/shared/constants/providerRetirement";
 import { assertCommonChatGptWebProviderAvailable } from "@/shared/constants/chatgptWebRetirement";
@@ -215,6 +216,7 @@ const CHAT_UNSUPPORTED_CLOUD_AGENT_PROVIDERS = new Set(["jules"]);
 // provider without updating this guard fails the regression test automatically. Search
 // providers must be executed through /v1/search, never the chat-completions path.
 const CHAT_UNSUPPORTED_SEARCH_PROVIDERS = new Set(Object.keys(SEARCH_PROVIDERS));
+const CHAT_UNSUPPORTED_SYSTEMONE_PROVIDERS = new Set(Object.keys(SYSTEMONE_PROVIDERS));
 
 export async function getExecutor(provider: string): Promise<BaseExecutor> {
   assertMicrosoftDesignerWebProviderAvailable(provider);
@@ -232,6 +234,13 @@ export async function getExecutor(provider: string): Promise<BaseExecutor> {
   if (CHAT_UNSUPPORTED_SEARCH_PROVIDERS.has(provider)) {
     const err = new Error(
       `Provider "${provider}" is a search provider and does not support chat completions; use the /v1/search endpoint instead.`
+    );
+    (err as Error & { status?: number }).status = 400;
+    throw err;
+  }
+  if (CHAT_UNSUPPORTED_SYSTEMONE_PROVIDERS.has(provider)) {
+    const err = new Error(
+      `Provider "${provider}" is a System One provider and does not support chat completions; use the /v1/systemone endpoint instead.`
     );
     (err as Error & { status?: number }).status = 400;
     throw err;
