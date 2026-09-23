@@ -2,7 +2,12 @@ import {
   PROVIDER_ID_TO_ALIAS,
   PROVIDER_MODELS,
 } from "@omniroute/open-sse/config/providerModels.ts";
-import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
+import {
+  hasKnownProviderModel,
+  parseModel,
+  resolveCanonicalProviderModel,
+  resolveProviderAlias,
+} from "@omniroute/open-sse/services/model.ts";
 import {
   findModelSpecIdByExactOrAlias,
   getAuthoritativeContextWindow,
@@ -174,6 +179,27 @@ function getRegistryModel(providerIdOrAlias: string | null, modelId: string | nu
   return models.find((model) => model?.id === normalizedModelId) || null;
 }
 
+/**
+ * Combo steps carry the provider's own routing prefix in the model
+ * (`{ providerId: "codex", model: "cx/gpt-6-sol" }`). Strip that prefix so the
+ * object form keys every capability source by the provider-scoped id, like
+ * parseModel does for the string form. Keep the slash when the first segment
+ * names another provider (`openrouter` + `meta-llama/…`) or when the full id is
+ * the provider's own registry id (`nvidia` + `nvidia/nemotron-…`, #12112).
+ */
+function stripOwnProviderPrefix(provider: string, model: string | null): string | null {
+  const slash = model ? model.indexOf("/") : -1;
+  if (!model || slash <= 0) return model;
+  const scopedModel = model.slice(slash + 1).trim();
+  // `oc` stops at the registered `opencode` id (#2901) while `opencode` itself
+  // resolves further, so compare against both forms of the step provider.
+  const prefixProvider = resolveProviderAlias(model.slice(0, slash).trim());
+  const ownPrefix =
+    prefixProvider === provider || prefixProvider === resolveProviderAlias(provider);
+  if (!scopedModel || !ownPrefix || hasKnownProviderModel(provider, model)) return model;
+  return scopedModel;
+}
+
 function resolveCapabilityInput(input: CapabilityInput) {
   if (typeof input === "string") {
     const parsed = parseModel(input);
@@ -199,7 +225,10 @@ function resolveCapabilityInput(input: CapabilityInput) {
   const rawProvider = toNonEmptyString(input.provider);
   const rawModel = toNonEmptyString(input.model);
   if (rawProvider) {
-    const canonical = resolveCanonicalProviderModel(rawProvider, rawModel);
+    const canonical = resolveCanonicalProviderModel(
+      rawProvider,
+      stripOwnProviderPrefix(rawProvider, rawModel)
+    );
     return {
       provider: canonical.provider,
       model: toNonEmptyString(canonical.model),
