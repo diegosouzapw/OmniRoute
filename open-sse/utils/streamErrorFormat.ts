@@ -195,7 +195,15 @@ export function normalizeStreamFailurePayload(payload: unknown): StreamFailurePa
     toStreamFailureStatus(response.status) ??
     toStreamFailureStatus(record.status_code) ??
     toStreamFailureStatus(record.status) ??
-    (looksLikeStreamRateLimit(code, type || "", message) ? 429 : 502);
+    (type === "invalid_request_error" || code === "invalid_request_error"
+      ? 400
+      : type === "authentication_error" || code === "invalid_api_key"
+        ? 401
+        : type === "permission_error" || code === "permission_denied"
+          ? 403
+          : looksLikeStreamRateLimit(code, type || "", message)
+            ? 429
+            : 502);
 
   return {
     status,

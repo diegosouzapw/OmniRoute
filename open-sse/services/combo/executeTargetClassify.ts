@@ -11,6 +11,7 @@ import {
   isParamValidation400,
 } from "./comboPredicates.ts";
 import { errorResponse } from "../../utils/error.ts";
+import type { ResponseQualityResult } from "./validateQuality.ts";
 
 export function remainderIsHomogeneous(
   orderedTargets: { modelStr: string }[],
@@ -26,7 +27,7 @@ export function remainderIsHomogeneous(
  * returns true when the caller should retry, false to fall through.
  */
 export function handlePreContentStreamRetry(
-  quality: { reason?: string | null },
+  quality: ResponseQualityResult,
   retry: number,
   deps: {
     maxRetries: number;
@@ -35,11 +36,7 @@ export function handlePreContentStreamRetry(
   },
   modelStr: string
 ): boolean {
-  if (
-    quality.reason !== "streaming upstream error" ||
-    retry >= deps.maxRetries ||
-    deps.signal?.aborted
-  ) {
+  if (!quality.upstreamFailure?.retryable || retry >= deps.maxRetries || deps.signal?.aborted) {
     return false;
   }
   deps.log.info(
@@ -51,8 +48,16 @@ export function handlePreContentStreamRetry(
 }
 
 /** Protected-priority target whose upstream body failed quality validation. */
-export function qualityValidationFailure(): { ok: false; response: Response } {
-  return { ok: false, response: errorResponse(502, "Upstream response failed quality validation") };
+export function qualityValidationFailure(quality: ResponseQualityResult): {
+  ok: false;
+  response: Response;
+} {
+  return {
+    ok: false,
+    response: quality.upstreamFailure
+      ? errorResponse(quality.upstreamFailure.status, quality.reason || "Upstream request failed")
+      : errorResponse(502, "Upstream response failed quality validation"),
+  };
 }
 
 export function shouldAbortOnInputBoundFailure(opts: {

@@ -84,6 +84,7 @@ import {
 import {
   TRANSIENT_FOR_SEMAPHORE,
   MAX_FALLBACK_WAIT_MS,
+  classifyQualityFailure,
   COMBO_LOOP_SAFETY_TIMEOUT_MS,
   isAllAccountsRateLimitedResponse,
   clampComboDepth,
@@ -97,6 +98,7 @@ import {
   toRecordedTarget,
   getExhaustedTargetSkipReason,
 } from "./comboPredicates.ts";
+import { handlePreContentStreamRetry } from "./executeTargetClassify.ts";
 import { applyComboTargetExhaustion } from "./targetExhaustion.ts";
 import { isRetryAfterEligibleStatus } from "./unavailableRetryGate.ts";
 import { isRecord } from "./comboData.ts";
@@ -747,14 +749,19 @@ export async function handleRoundRobinCombo({
               recordedAttempts++;
               // Fix #1707: Set terminal state so the fallback doesn't emit
               // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
+              const qualityFailure = classifyQualityFailure(quality);
               lastError = `Upstream response failed quality validation: ${quality.reason}`;
-              lastStatus = 502;
+              lastStatus = qualityFailure.status;
               rrOutcomes.push({
                 model: modelStr,
-                status: 502,
+                status: qualityFailure.status,
                 error: quality.reason || "upstream response failed quality validation",
-                kind: "quality",
+                kind: qualityFailure.kind,
               });
+              if (
+                handlePreContentStreamRetry(quality, retry, { maxRetries, signal, log }, modelStr)
+              )
+                continue;
               if (offset > 0) fallbackCount++;
               break; // move to next model
             }

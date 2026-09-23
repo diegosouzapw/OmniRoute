@@ -24,6 +24,31 @@ function failResponse(): Response {
   });
 }
 
+function failedSseResponse(
+  error: Record<string, unknown> = {
+    type: "server_error",
+    code: "no_capacity",
+    message: "peak capacity",
+  }
+): Response {
+  const body = [
+    "event: response.failed",
+    `data: ${JSON.stringify({
+      type: "response.failed",
+      response: {
+        status: "failed",
+        error,
+      },
+    })}`,
+    "",
+    "",
+  ].join("\n");
+  return new Response(body, {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+}
+
 test(
   "#11462: nested runtime-unit combo's attempt-budget-exceeded 503 must carry " +
     "the combo diagnostics trace (poolSize/attemptOrder/terminalReason)",
@@ -89,6 +114,93 @@ test(
     assert.equal(body.diagnostics?.terminalReason, "max_attempts_exceeded");
   }
 );
+
+test("nested runtime-unit retries a classified transient SSE failure", async () => {
+  const model = "codex/gpt-6-astra-high";
+  const unit: ResolvedComboUnit = {
+    kind: "model",
+    stepId: "step-astra",
+    executionKey: "astra",
+    modelStr: model,
+    provider: "codex",
+    providerId: null,
+    connectionId: "conn-astra",
+    weight: 1,
+    label: null,
+  };
+  const calls: string[] = [];
+  const result = await executeRuntimeUnitCombo({
+    body: { stream: true, messages: [{ role: "user", content: "hi" }] },
+    combo: { name: "ru-transient-stream", strategy: "pipeline" },
+    strategy: "pipeline",
+    units: [unit],
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      return failedSseResponse();
+    },
+    log: noopLog() as never,
+    config: { maxRetries: 1, retryDelayMs: 0 },
+    allCombos: [],
+    nesting: {
+      depth: 0,
+      maxDepth: 5,
+      visitedComboNames: [],
+      rootComboName: "ru-transient-stream",
+      attemptBudget: { count: 0, limit: 4 },
+    },
+    baseOptions: {} as never,
+    runCombo: async () => failResponse(),
+  });
+
+  assert.equal(result.response.status, 502);
+  assert.deepEqual(calls, [model, model]);
+});
+
+test("nested runtime-unit does not retry a request-scoped SSE failure with an explicit 502", async () => {
+  const model = "codex/gpt-6-astra-high";
+  const unit: ResolvedComboUnit = {
+    kind: "model",
+    stepId: "step-astra-invalid",
+    executionKey: "astra-invalid",
+    modelStr: model,
+    provider: "codex",
+    providerId: null,
+    connectionId: "conn-astra",
+    weight: 1,
+    label: null,
+  };
+  const calls: string[] = [];
+  const result = await executeRuntimeUnitCombo({
+    body: { stream: true, messages: [{ role: "user", content: "hi" }] },
+    combo: { name: "ru-request-scoped-stream", strategy: "pipeline" },
+    strategy: "pipeline",
+    units: [unit],
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      return failedSseResponse({
+        type: "invalid_request_error",
+        code: "invalid_request_error",
+        message: "request is invalid",
+        status_code: 502,
+      });
+    },
+    log: noopLog() as never,
+    config: { maxRetries: 1, retryDelayMs: 0 },
+    allCombos: [],
+    nesting: {
+      depth: 0,
+      maxDepth: 5,
+      visitedComboNames: [],
+      rootComboName: "ru-request-scoped-stream",
+      attemptBudget: { count: 0, limit: 4 },
+    },
+    baseOptions: {} as never,
+    runCombo: async () => failResponse(),
+  });
+
+  assert.equal(result.response.status, 502);
+  assert.deepEqual(calls, [model]);
+});
 
 test("nested runtime-unit dispatch stamps fallbackAttempts from the unit index", async () => {
   const units: ResolvedComboUnit[] = [

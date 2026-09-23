@@ -47,6 +47,7 @@ export type AttemptLoopState = {
   /** Quota-trust accumulators; persist across set retries and cooldown re-dispatch. */
   observedFailure: boolean;
   allObservedFailuresQuota: boolean;
+  requestScopedFailureSeen: boolean;
   observeFailure(quotaExhausted: boolean, targetExecutionKey?: string): void;
 };
 

@@ -409,7 +409,13 @@ export async function dispatchWithCooldownRetry(opts: {
       // Retry the entire set if more attempts remain -- unless the identical-
       // error streak already proved the request itself is malformed, in which
       // case a fresh set-try would just reproduce the same streak.
-      if (setTry < extra.maxSetRetries && !comboRequestMalformed) continue;
+      if (
+        setTry < extra.maxSetRetries &&
+        !comboRequestMalformed &&
+        !state.requestScopedFailureSeen
+      ) {
+        continue;
+      }
 
       if (!state.lastStatus && state.recordedAttempts === 0 && extra.comboCooldownWaitEnabled) {
         const circuitOpenWait = resolveCircuitOpenWaitDecision({

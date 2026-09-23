@@ -1017,6 +1017,7 @@ async function handleComboChatInner({
     globalAttempts: 0,
     observedFailure: false,
     allObservedFailuresQuota: true,
+    requestScopedFailureSeen: false,
     observeFailure(quotaExhausted, targetExecutionKey) {
       this.observedFailure = true;
       this.allObservedFailuresQuota &&= quotaExhausted;

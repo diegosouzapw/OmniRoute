@@ -9,9 +9,14 @@ import { errorResponse, errorResponseWithComboDiagnostics } from "../../utils/er
 import type { ComboDiagnostics } from "../../utils/error.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { resolveDelayMs } from "./comboPredicates.ts";
+import { qualityValidationFailure } from "./executeTargetClassify.ts";
 import { isRuntimeUnitAtConcurrencyCap } from "./runtimeUnitCapacity.ts";
 import { isQuotaExhaustionResponse, withQuotaExhaustionClassification } from "./quotaExhaustion.ts";
-import { validateResponseQuality, releaseQualityClone } from "./validateQuality.ts";
+import {
+  validateResponseQuality,
+  releaseQualityClone,
+  releaseRejectedQualityResponse,
+} from "./validateQuality.ts";
 import type { ResponseValidationConfig } from "./responseValidation.ts";
 import type {
   ComboCollectionLike,
@@ -282,6 +287,7 @@ export async function executeRuntimeUnitCombo(args: {
         "COMBO",
         `Trying ${unit.kind} ${unitDisplayName(unit)}${retry > 0 ? ` (retry ${retry})` : ""}`
       );
+      let qualityRetryable: boolean | null = null;
       const response = await executeRuntimeUnit({
         body: args.body,
         unit,
@@ -330,7 +336,9 @@ export async function executeRuntimeUnitCombo(args: {
           });
           return { response, unit };
         }
-        lastResponse = errorResponse(502, "Upstream response failed quality validation");
+        releaseRejectedQualityResponse(unitClone, response);
+        qualityRetryable = quality.upstreamFailure?.retryable ?? false;
+        lastResponse = qualityValidationFailure(quality).response;
       }
       if (lastResponse) {
         const quotaExhausted = await observeFailure(lastResponse, unit);
@@ -344,7 +352,12 @@ export async function executeRuntimeUnitCombo(args: {
           targetFailureTrust.set(unit.executionKey, trust);
         }
       }
-      if (![408, 429, 500, 502, 503, 504].includes(response.status)) break;
+      if (
+        ![408, 429, 500, 502, 503, 504].includes(lastResponse.status) ||
+        qualityRetryable === false
+      ) {
+        break;
+      }
     }
     const protectedTargetTrust = targetFailureTrust.get(unit.executionKey);
     if (

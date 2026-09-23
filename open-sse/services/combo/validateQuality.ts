@@ -12,6 +12,8 @@ import {
   isKnownNonClaudeStreamPayload,
   isOpenAIChoicesPayload,
 } from "../../utils/streamHelpers.ts";
+import { sanitizeErrorMessage } from "../../utils/errorSanitization.ts";
+import { normalizeStreamFailurePayload } from "../../utils/streamErrorFormat.ts";
 import { evaluateResponseValidation, type ResponseValidationConfig } from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
 import { REASONING_BUFFER_MIN_TRIGGER } from "../reasoningTokenBuffer.ts";
@@ -270,6 +272,51 @@ function isStreamingUpstreamError(parsed: unknown, eventType: string): boolean {
   return nestedResponse?.status === "failed" && nestedResponse.error != null;
 }
 
+export interface StreamingUpstreamFailure {
+  status: number;
+  type?: string;
+  code?: string;
+  message?: string;
+  requestScoped: boolean;
+  retryable: boolean;
+}
+
+export interface ResponseQualityResult {
+  valid: boolean;
+  reason?: string;
+  clonedResponse?: Response;
+  upstreamFailure?: StreamingUpstreamFailure;
+}
+
+function classifyStreamingUpstreamFailure(parsed: unknown): StreamingUpstreamFailure | null {
+  const normalized = normalizeStreamFailurePayload(parsed);
+  if (!normalized) return null;
+  const type = normalized.type?.trim().toLowerCase() || "";
+  const code = normalized.code?.trim().toLowerCase() || "";
+  const requestScoped =
+    type === "invalid_request_error" ||
+    code === "invalid_request_error" ||
+    code === "context_length_exceeded" ||
+    code === "context_window_exceeded";
+  const message = sanitizeErrorMessage(normalized.message).slice(0, 300);
+  return {
+    status: normalized.status,
+    ...(type ? { type } : {}),
+    ...(code ? { code } : {}),
+    ...(message ? { message } : {}),
+    requestScoped,
+    retryable: !requestScoped && normalized.status >= 500,
+  };
+}
+
+function describeStreamingFailure(failure: StreamingUpstreamFailure | null): string {
+  if (!failure) return "streaming upstream error";
+  const identity = failure.type || failure.code || `HTTP ${failure.status}`;
+  return failure.message
+    ? `streaming upstream error: ${identity}: ${failure.message}`
+    : `streaming upstream error: ${identity}`;
+}
+
 type StreamingPeekOutcome = "content" | "error" | null;
 
 /**
@@ -296,7 +343,7 @@ export async function validateResponseQuality(
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void },
   responseValidation?: ResponseValidationConfig | null
-): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
+): Promise<ResponseQualityResult> {
   // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
   // detect the empty-content-block pattern (content_filter stop_reason with
   // no content_block_* events) WITHOUT de-streaming non-empty responses.
@@ -345,7 +392,6 @@ export async function validateResponseQuality(
       hasRealContent: false,
       hasLifecycleEnd: false,
     };
-    let anyContentFound = false;
     // #7285: OpenAI-shape lifecycle tracking, parallel to `sse` above.
     const openAi: OpenAiLifecycleFlags = { hasChoicePayload: false, hasTerminalMarker: false };
     // User log 1784230812441-bf3789: the previous `!sawAnyBytes` gate below let
@@ -362,6 +408,7 @@ export async function validateResponseQuality(
     //     Claude `message_stop`/`message_delta` with `stop_reason` (mirrors
     //     `sse.hasLifecycleEnd`), or a terminal `usage`-only chunk (new).
     let sawStructuredSSE = false;
+    let upstreamFailure: StreamingUpstreamFailure | null = null;
     let sawTerminator = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
@@ -442,6 +489,7 @@ export async function validateResponseQuality(
         pendingEventType = "";
 
         if (isStreamingUpstreamError(parsed, eventType)) {
+          upstreamFailure = classifyStreamingUpstreamFailure(parsed) ?? upstreamFailure;
           return "error";
         }
 
@@ -510,11 +558,16 @@ export async function validateResponseQuality(
           const terminalOutcome = parseAccumulatedSse();
 
           if (terminalOutcome === "error") {
+            const reason = describeStreamingFailure(upstreamFailure);
             log.warn?.(
               "COMBO",
-              "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+              `Streaming response reported an upstream error before content — marking as invalid for combo failover (${reason})`
             );
-            return { valid: false, reason: "streaming upstream error" };
+            return {
+              valid: false,
+              reason,
+              ...(upstreamFailure ? { upstreamFailure } : {}),
+            };
           }
 
           if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasRealContent) {
@@ -546,7 +599,7 @@ export async function validateResponseQuality(
           // `!sawAnyBytes` check let ANY byte — even unparseable garbage that
           // never produced a single structured SSE frame — pass through,
           // leaving the downstream SSE parser hung on a half-finished stream.
-          if (!anyContentFound && !sse.hasContentBlock && !sawTerminator && !sawStructuredSSE) {
+          if (!sse.hasContentBlock && !sawTerminator && !sawStructuredSSE) {
             log.warn?.(
               "COMBO",
               "Streaming response ended with no recognized content or SSE terminator — marking as invalid for combo failover"
@@ -563,7 +616,7 @@ export async function validateResponseQuality(
           // false for those) and does not regress the #3399/#3685
           // pass-through contract: a healthy stream exits the peek loop
           // early via the `foundContent` branch above and never reaches here.
-          if (openAi.hasChoicePayload && !openAi.hasTerminalMarker && !anyContentFound) {
+          if (openAi.hasChoicePayload && !openAi.hasTerminalMarker) {
             log.warn?.(
               "COMBO",
               "Streaming OpenAI-shape response ended with no finish_reason or [DONE] — marking as invalid for combo failover"
@@ -575,13 +628,13 @@ export async function validateResponseQuality(
           // marker (finish_reason / [DONE]) but never carried any real
           // content, reasoning, or tool_calls in any chunk — an upstream
           // that burns the whole generation budget and returns
-          // completion_tokens:0 with an HTTP 200. `anyContentFound` only
-          // flips true via `isKnownNonClaudeStreamPayload` detecting
-          // content/reasoning/tool_calls (`hasOpenAICompatibleStreamValue`),
+          // completion_tokens:0 with an HTTP 200. Real content exits early
+          // via `isKnownNonClaudeStreamPayload` detecting content/reasoning/
+          // tool_calls (`hasOpenAICompatibleStreamValue`),
           // so a tool_calls-only stream already exits early via the
           // `outcome === "content"` branch above and never reaches here —
           // this branch only fires on genuinely empty completions.
-          if (openAi.hasChoicePayload && openAi.hasTerminalMarker && !anyContentFound) {
+          if (openAi.hasChoicePayload && openAi.hasTerminalMarker) {
             log.warn?.(
               "COMBO",
               "Streaming OpenAI-shape response reached finish_reason/[DONE] with no content, reasoning, or tool_calls — marking as invalid for combo failover"
@@ -607,15 +660,19 @@ export async function validateResponseQuality(
           // Do not await cancellation of a Response.clone() tee branch: the
           // promise may remain pending until the client-facing branch drains.
           reader.cancel().catch(() => {});
+          const reason = describeStreamingFailure(upstreamFailure);
           log.warn?.(
             "COMBO",
-            "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+            `Streaming response reported an upstream error before content — marking as invalid for combo failover (${reason})`
           );
-          return { valid: false, reason: "streaming upstream error" };
+          return {
+            valid: false,
+            reason,
+            ...(upstreamFailure ? { upstreamFailure } : {}),
+          };
         }
 
         if (outcome === "content") {
-          anyContentFound = true;
           // A content_block_* event was found — stop peeking. Return a
           // clonedResponse that replays all buffered bytes (the current chunk
           // is already in bufferedChunks) and then forwards the remainder of

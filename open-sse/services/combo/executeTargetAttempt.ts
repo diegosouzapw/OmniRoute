@@ -57,6 +57,7 @@ import { parseModel } from "../model.ts";
 import type { ProviderProfile } from "../accountFallback.ts";
 import {
   MAX_FALLBACK_WAIT_MS,
+  classifyQualityFailure,
   clampGlobalAttempts,
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
@@ -425,27 +426,29 @@ export async function executeTargetAttempt(opts: {
         state.recordedAttempts++;
         // Fix #1707: Set terminal state so the fallback doesn't emit
         // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
+        const qualityFailure = classifyQualityFailure(quality);
         state.lastError = `Upstream response failed quality validation: ${quality.reason}`;
-        state.lastStatus = 502;
+        state.lastStatus = qualityFailure.status;
         // #10314: record quality failures as a FIRST-CLASS per-target outcome
         // so a quality reason is never silently dropped from the aggregated
         // terminal message when a later sibling overwrites lastError.
         state.comboErrors.push({
           model: modelStr,
-          status: 502,
+          status: qualityFailure.status,
           error: quality.reason || "upstream response failed quality validation",
-          kind: "quality",
+          kind: qualityFailure.kind,
         });
         if (i > 0) state.fallbackCount++;
-        if (provider && rawModel) {
+        state.requestScopedFailureSeen ||= qualityFailure.requestScoped;
+        if (provider && rawModel && !qualityFailure.requestScoped) {
           const mlSettings = resolveModelLockoutSettings(deps.settings);
-          if (mlSettings.enabled && mlSettings.errorCodes.includes(502)) {
+          if (mlSettings.enabled && mlSettings.errorCodes.includes(qualityFailure.status)) {
             recordModelLockoutFailure(
               provider,
               target.connectionId || "",
               rawModel,
               "quality_failure",
-              502,
+              qualityFailure.status,
               mlSettings.baseCooldownMs,
               profile,
               {
@@ -465,7 +468,7 @@ export async function executeTargetAttempt(opts: {
         });
         state.observeFailure(false, target.executionKey);
         if (handlePreContentStreamRetry(quality, retry, deps, modelStr)) continue;
-        return protectedPriorityTarget ? qualityValidationFailure() : null;
+        return protectedPriorityTarget ? qualityValidationFailure(quality) : null;
       }
 
       if (Boolean(deps.clientManagedResponsesContext) && effectiveConnectionId) {
