@@ -10,6 +10,7 @@ import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { buildBedrockNativeConverseUrl, resolveBedrockRegion } from "../config/bedrock.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
+import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 
 const encoder = new TextEncoder();
 
@@ -512,6 +513,10 @@ function statusFromStreamException(exception) {
 
 function createOpenAIStreamFromBedrock(stream, model) {
   const blockToolIndexes = new Map();
+  // Accumulated `function.arguments` per tool index. Bedrock may deliver
+  // toolUse.input as string deltas, full JSON objects, or repeated snapshots;
+  // the buffer normalizes all three shapes (see utils/toolCallArguments.ts).
+  const toolArgBuffers = new Map();
   let nextToolIndex = 0;
   let finishReason = "stop";
   let finalUsage = null;
@@ -568,15 +573,27 @@ function createOpenAIStreamFromBedrock(stream, model) {
                 sse(openAIChunk(model, { reasoning_content: delta.reasoningContent.text }))
               );
             }
-            if (typeof delta.toolUse?.input === "string") {
+            // Bedrock does not guarantee string deltas for toolUse.input: it may
+            // arrive as a parsed object or a re-sent snapshot. Dropping
+            // non-string fragments here left tool calls with empty arguments
+            // downstream (issue #14668). Buffer through
+            // appendToolCallArgumentDelta so every shape is normalized and only
+            // the incremental delta is forwarded.
+            if (delta.toolUse && delta.toolUse.input !== undefined && delta.toolUse.input !== null) {
               const index = blockToolIndexes.get(event.contentBlockDelta.contentBlockIndex) ?? 0;
-              controller.enqueue(
-                sse(
-                  openAIChunk(model, {
-                    tool_calls: [{ index, function: { arguments: delta.toolUse.input } }],
-                  })
-                )
-              );
+              const existing = toolArgBuffers.get(index) || "";
+              const next = appendToolCallArgumentDelta(existing, delta.toolUse.input);
+              const fragment = next.slice(existing.length);
+              toolArgBuffers.set(index, next);
+              if (fragment) {
+                controller.enqueue(
+                  sse(
+                    openAIChunk(model, {
+                      tool_calls: [{ index, function: { arguments: fragment } }],
+                    })
+                  )
+                );
+              }
             }
             continue;
           }
