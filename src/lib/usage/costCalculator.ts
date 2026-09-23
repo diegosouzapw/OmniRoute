@@ -186,6 +186,12 @@ export interface CostCalculationResult {
   costUsd: number;
   /** false when no pricing row (direct, normalized, or codex-effortless) was found. */
   priced: boolean;
+  /**
+   * true when the lookup or calculation itself threw (pricing store unreadable,
+   * malformed row). Distinct from a genuinely missing price: callers that relax
+   * enforcement for unpriced models must still fail closed on this.
+   */
+  failed?: boolean;
 }
 
 export async function calculateCostDetailed(
@@ -236,7 +242,7 @@ export async function calculateCostDetailed(
     return { costUsd, priced: true };
   } catch (error) {
     console.error("Error calculating cost:", error);
-    return { costUsd: 0, priced: false };
+    return { costUsd: 0, priced: false, failed: true };
   }
 }
 

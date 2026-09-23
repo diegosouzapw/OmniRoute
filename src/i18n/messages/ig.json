@@ -1902,7 +1902,14 @@
     "readinessStep3": "Detuo endpoint gị",
     "readinessStep4": "Zipụ arịrịọ nnwale",
     "readinessContinue": "Gaa n’ihu na nhazi",
-    "readinessDismiss": "Mechie maka ugbu a"
+    "readinessDismiss": "Mechie maka ugbu a",
+    "unpricedUsageTitle": "{count, plural, one {# nlereanya} other {# nlereanya}} nwere ojiji nso ma enweghị ọnụahịa edobere",
+    "unpricedUsageFailClosed": "{keys, plural, one {# igodo API nwere oke ojiji} other {# igodo API nwere oke ojiji}} ji nlereanya ndị a mee ihe n’ime ụbọchị 8 gara aga. Mgbe ojiji ahụ nọ n’ime oge kwa ụbọchị ma ọ bụ kwa izu nke igodo, a na-ewere igodo ahụ dịka gafere ókè, a na-egbochi arịrịọ ya (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "A na-atụle ojiji a dị ka $0 megide ókè ojiji nke igodo ọ bụla (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# arịrịọ} other {# arịrịọ}}, {keys, plural, one {# igodo nwere oke} other {# igodo nwere oke}}",
+    "unpricedUsageMore": "…na {count} ọzọ",
+    "unpricedUsageConfigure": "Tọọ ọnụahịa",
+    "unpricedUsageDismiss": "Mechie"
   },
   "analytics": {
     "title": "Nnyocha Data",
@@ -12949,7 +12956,9 @@
       "disabled": "Agbanyụrụ",
       "dual": "Abụọ",
       "alias": "Aha ọzọ",
-      "canonical": "Kanonikal"
+      "canonical": "Kanonikal",
+      "fail_closed": "Egbochi (fail_closed)",
+      "count_as_zero": "Tụlee dị ka $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Nkwụsị Akụrụngwa nke Prioriti Echedoro dịka 502",
         "description": "Zaghachi 502 kama 503 mgbe ebumnuche prioriti quota-only-fallback kwụsịrị combo n'ihi ihe e gosipụtara na ọ bụghị quota: provider circuit breaker mepere emepe ma ọ bụ predictive latency skip."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Atụgharị Mmefu Ojiji Na-enweghị Ọnụahịa",
+        "description": "Otu ókè USD kwa ụbọchị/kwa izu nke igodo si elee ojiji rụpụtara anya mgbe onye na-eweta ma ọ bụ nlereanya enweghị ahịrị ọnụahịa. fail_closed (ndabara) na-ama oge ahụ dịka gafere, yabụ na ọnụahịa amaghị agaghị agafe oke siri ike. count_as_zero na-atụle ojiji ahụ dị ka $0 ma na-aga n’ihu na-eme ka mmefu e nwere ọnụahịa ka na-arụ ọrụ. A na-edekọ nlereanya ndị enweghị ọnụahịa na ibe isi dashboard n’agbanyeghị."
       }
     }
   },

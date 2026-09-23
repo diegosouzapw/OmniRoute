@@ -1902,7 +1902,14 @@
     "readinessStep3": "ਆਪਣਾ ਐਂਡਪੌਇੰਟ ਕਾਪੀ ਕਰੋ",
     "readinessStep4": "ਇੱਕ ਟੈਸਟ ਬੇਨਤੀ ਭੇਜੋ",
     "readinessContinue": "ਸੈਟਅੱਪ ਜਾਰੀ ਰੱਖੋ",
-    "readinessDismiss": "ਫਿਲਹਾਲ ਬੰਦ ਕਰੋ"
+    "readinessDismiss": "ਫਿਲਹਾਲ ਬੰਦ ਕਰੋ",
+    "unpricedUsageTitle": "{count, plural, one {# ਮਾਡਲ} other {# ਮਾਡਲਾਂ}} ਜਿਨ੍ਹਾਂ ਦੀ ਹਾਲੀਆ ਵਰਤੋਂ ਹੈ ਪਰ ਕੋਈ ਸੈੱਟ ਕੀਤੀ ਕੀਮਤ ਨਹੀਂ ਹੈ",
+    "unpricedUsageFailClosed": "{keys, plural, one {# ਉਪਯੋਗ ਸੀਮਾ ਵਾਲੀ API ਕੁੰਜੀ} other {# ਉਪਯੋਗ ਸੀਮਾ ਵਾਲੀਆਂ API ਕੁੰਜੀਆਂ}} ਨੇ ਪਿਛਲੇ 8 ਦਿਨਾਂ ਵਿੱਚ ਇਹ ਮਾਡਲ ਵਰਤੇ। ਜਦੋਂ ਇਹ ਵਰਤੋਂ ਕਿਸੇ ਕੁੰਜੀ ਦੀ ਰੋਜ਼ਾਨਾ ਜਾਂ ਹਫਤਾਵਾਰੀ ਆਵਧੀ ਵਿੱਚ ਹੁੰਦੀ ਹੈ, ਤਾਂ ਉਸ ਕੁੰਜੀ ਨੂੰ ਕੋਟਾ ਤੋਂ ਵੱਧ ਮੰਨਿਆ ਜਾਂਦਾ ਹੈ ਅਤੇ ਇਸ ਦੀਆਂ ਬੇਨਤੀਆਂ ਰੋਕ ਦਿੱਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "ਇਹ ਵਰਤੋਂ ਪ੍ਰਤੀ-ਕੁੰਜੀ ਉਪਯੋਗ ਸੀਮਾਵਾਂ ਵੱਲ $0 ਵਜੋਂ ਗਿਣੀ ਜਾਂਦੀ ਹੈ (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# ਬੇਨਤੀ} other {# ਬੇਨਤੀਆਂ}}, {keys, plural, one {# ਸੀਮਿਤ ਕੁੰਜੀ} other {# ਸੀਮਿਤ ਕੁੰਜੀਆਂ}}",
+    "unpricedUsageMore": "…ਅਤੇ {count} ਹੋਰ",
+    "unpricedUsageConfigure": "ਕੀਮਤ ਸੰਰਚਨਾ ਕਰੋ",
+    "unpricedUsageDismiss": "ਬੰਦ ਕਰੋ"
   },
   "analytics": {
     "title": "ਵਿਸ਼ਲੇਸ਼ਣ",
@@ -12949,7 +12956,9 @@
       "disabled": "ਅਯੋਗ",
       "dual": "ਦੋਹਰਾ",
       "alias": "ਉਪਨਾਮ",
-      "canonical": "ਕੈਨੋਨਿਕਲ"
+      "canonical": "ਕੈਨੋਨਿਕਲ",
+      "fail_closed": "ਰੋਕੋ (fail_closed)",
+      "count_as_zero": "$0 ਵਜੋਂ ਗਿਣੋ (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "ਸੁਰੱਖਿਅਤ-ਤਰਜੀਹ ਵਾਲਾ ਬੁਨਿਆਦੀ ਢਾਂਚਾ 502 ਵਜੋਂ ਰੁਕ ਜਾਂਦਾ ਹੈ",
         "description": "ਜਦੋਂ ਸਿਰਫ਼-ਕੋਟਾ-ਫਾਲਬੈਕ ਤਰਜੀਹੀ ਟਾਰਗੇਟ ਕਿਸੇ ਅਜਿਹੇ ਕਾਰਨ ਕਰਕੇ ਕੌਂਬੋ ਨੂੰ ਰੋਕਦਾ ਹੈ ਜੋ ਸਾਬਤ ਤੌਰ 'ਤੇ ਕੋਟਾ ਨਹੀਂ ਹੈ, ਤਾਂ 503 ਦੀ ਬਜਾਏ 502 ਨਾਲ ਜਵਾਬ ਦਿਓ: ਇੱਕ ਖੁੱਲ੍ਹਾ ਪ੍ਰਦਾਤਾ ਸਰਕਿਟ ਬ੍ਰੇਕਰ ਜਾਂ ਪੂਰਵ-ਅਨੁਮਾਨਿਤ ਲੇਟੈਂਸੀ ਸਕਿਪ।"
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "ਬਿਨਾਂ ਕੀਮਤ ਵਾਲੀ ਵਰਤੋਂ ਬਜਟ ਨੀਤੀ",
+        "description": "ਕਿਸ ਤਰ੍ਹਾਂ ਪ੍ਰਤੀ-ਕੁੰਜੀ ਰੋਜ਼ਾਨਾ/ਹਫਤਾਵਾਰੀ USD ਸੀਮਾਵਾਂ ਉਹ ਸਫਲ ਵਰਤੋਂ ਸਲੂਕ ਕਰਦੀਆਂ ਹਨ ਜਿਨ੍ਹਾਂ ਦੇ ਪ੍ਰੋਵਾਇਡਰ/ਮਾਡਲ ਲਈ ਕੀਮਤ ਦਰਜ ਨਹੀਂ ਹੈ। fail_closed (ਡਿਫਾਲਟ) ਅਵਧੀ ਨੂੰ ਅਤਿਕ੍ਰਮਿਤ ਮੰਨਦਾ ਹੈ, ਇਸ ਲਈ ਅਣਜਾਣ ਲਾਗਤ ਕਿਸੇ ਹਾਰਡ ਕੈਪ ਤੋਂ ਪਾਰ ਨਹੀਂ ਹੋ ਸਕਦੀ। count_as_zero ਉਸ ਵਰਤੋਂ ਨੂੰ $0 ਵਜੋਂ ਗਿਣਦਾ ਹੈ ਅਤੇ ਕੀਮਤ-ਯੁਕਤ ਖਰਚ ਨੂੰ ਲਾਗੂ ਰੱਖਦਾ ਹੈ। ਬਿਨਾਂ ਕੀਮਤ ਵਾਲੇ ਮਾਡਲ ਕਿਸੇ ਵੀ ਹਾਲਤ ਵਿੱਚ ਡੈਸ਼ਬੋਰਡ ਮੁੱਖ ਪੰਨੇ ’ਤੇ ਦਰਸਾਏ ਜਾਂਦੇ ਹਨ।"
       }
     }
   },

@@ -1902,7 +1902,14 @@
     "readinessStep3": "엔드포인트 복사",
     "readinessStep4": "테스트 요청 보내기",
     "readinessContinue": "설정 계속하기",
-    "readinessDismiss": "지금은 닫기"
+    "readinessDismiss": "지금은 닫기",
+    "unpricedUsageTitle": "{count, plural, one {#개 모델} other {#개 모델}}에 최근 사용이 있으나 가격이 설정되어 있지 않습니다",
+    "unpricedUsageFailClosed": "{keys, plural, one {#개의 사용량 제한이 있는 API 키} other {#개의 사용량 제한이 있는 API 키}}가 지난 8일 동안 이 모델들을 사용했습니다. 해당 사용이 키의 일간 또는 주간 기간에 해당하면, 키는 할당량 초과로 간주되어 요청이 차단됩니다 (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "이 사용량은 키별 사용 한도에 대해 $0로 계산됩니다 (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {#건 요청} other {#건 요청}}, {keys, plural, one {#개의 제한된 키} other {#개의 제한된 키}}",
+    "unpricedUsageMore": "…그리고 {count}개 더",
+    "unpricedUsageConfigure": "가격 구성",
+    "unpricedUsageDismiss": "닫기"
   },
   "analytics": {
     "title": "분석",
@@ -12949,7 +12956,9 @@
       "disabled": "비활성화됨",
       "dual": "이중",
       "alias": "별칭",
-      "canonical": "정규"
+      "canonical": "정규",
+      "fail_closed": "차단 (fail_closed)",
+      "count_as_zero": "$0로 계산 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "보호된 우선순위 인프라 중단을 502로 처리",
         "description": "할당량 전용 폴백 우선순위 대상이 할당량 문제가 아님을 입증할 수 있는 원인, 즉 열린 공급자 회로 차단기 또는 예측적 지연 시간 건너뛰기로 인해 콤보를 중단하는 경우 503 대신 502로 응답합니다."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "가격 미설정 사용량 예산 정책",
+        "description": "공급자/모델에 가격 항목이 없는 성공적인 사용량을 키별 일간/주간 USD 한도가 어떻게 처리하는지 설명합니다. fail_closed (기본값)은 해당 기간을 초과한 것으로 표시하여 알 수 없는 비용이 하드 한도를 통과하지 못하게 합니다. count_as_zero는 해당 사용량을 $0으로 계산하고 가격이 설정된 지출을 계속 적용합니다. 가격 미설정 모델은 어떤 경우든 대시보드 홈 페이지에 나열됩니다."
       }
     }
   },

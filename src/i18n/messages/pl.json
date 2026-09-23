@@ -1902,7 +1902,14 @@
     "readinessStep3": "Skopiuj punkt końcowy",
     "readinessStep4": "Wyślij żądanie testowe",
     "readinessContinue": "Kontynuuj konfigurację",
-    "readinessDismiss": "Na razie pomiń"
+    "readinessDismiss": "Na razie pomiń",
+    "unpricedUsageTitle": "{count, plural, one {# model} few {# modele} many {# modeli} other {# modeli}} z niedawnym użyciem, ale bez skonfigurowanej ceny",
+    "unpricedUsageFailClosed": "{keys, plural, one {# klucz API z limitem użycia} few {# klucze API z limitem użycia} many {# kluczy API z limitem użycia} other {# kluczy API z limitem użycia}} użyto tych modeli w ciągu ostatnich 8 dni. Gdy to użycie mieści się w dziennym lub tygodniowym oknie klucza, klucz jest traktowany jako przekraczający limit i jego żądania są blokowane (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "To użycie jest liczone jako $0 względem limitów użycia na klucz (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# żądanie} few {# żądania} many {# żądań} other {# żądań}}, {keys, plural, one {# klucz z limitem} few {# klucze z limitem} many {# kluczy z limitem} other {# kluczy z limitem}}",
+    "unpricedUsageMore": "…i jeszcze {count} więcej",
+    "unpricedUsageConfigure": "Skonfiguruj ceny",
+    "unpricedUsageDismiss": "Zamknij"
   },
   "analytics": {
     "title": "Analityka",
@@ -12949,7 +12956,9 @@
       "disabled": "Wyłączone",
       "dual": "Podwójne",
       "alias": "Alias",
-      "canonical": "Kanoniczne"
+      "canonical": "Kanoniczne",
+      "fail_closed": "Zablokuj (fail_closed)",
+      "count_as_zero": "Liczyć jako $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Zatrzymania infrastruktury o chronionym priorytecie jako 502",
         "description": "Zwracaj 502 zamiast 503, gdy priorytetowy cel z mechanizmem rezerwowym wyłącznie na wypadek wyczerpania limitu zatrzymuje combo z przyczyny, która w sposób możliwy do udowodnienia nie jest związana z limitem: otwarty wyłącznik obwodu dostawcy lub predykcyjne pominięcie z powodu opóźnienia."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Polityka budżetu dla użycia bez ceny",
+        "description": "Jak dzienne/tygodniowe limity USD na klucz traktują udane użycie, dla którego dostawca/model nie ma wiersza cenowego. fail_closed (domyślnie) oznacza okno jako przekroczone, więc nieznany koszt nie może ominąć twardego limitu. count_as_zero liczy to użycie jako $0 i nadal egzekwuje wydatki wycenione. Modele bez ceny i tak są wymienione na stronie głównej panelu."
       }
     }
   },

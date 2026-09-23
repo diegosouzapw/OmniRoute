@@ -1902,7 +1902,14 @@
     "readinessStep3": "Zkopírujte svůj koncový bod",
     "readinessStep4": "Odešlete testovací požadavek",
     "readinessContinue": "Pokračovat v nastavení",
-    "readinessDismiss": "Prozatím skrýt"
+    "readinessDismiss": "Prozatím skrýt",
+    "unpricedUsageTitle": "{count, plural, one {# model} few {# modely} other {# modelů}} s nedávným použitím, ale bez nastavené ceny",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API klíč s limitem použití} few {# API klíče s limitem použití} other {# API klíčů s limitem použití}} použily tyto modely za posledních 8 dní. Pokud je toto použití v denním nebo týdenním okně klíče, je klíč považován za překročený a jeho požadavky jsou blokovány (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Toto použití se počítá jako $0 k limitům použití na klíč (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# požadavek} few {# požadavky} other {# požadavků}}, {keys, plural, one {# omezený klíč} few {# omezené klíče} other {# omezených klíčů}}",
+    "unpricedUsageMore": "…a dalších {count}",
+    "unpricedUsageConfigure": "Nastavit ceny",
+    "unpricedUsageDismiss": "Zavřít"
   },
   "analytics": {
     "title": "Analytika",
@@ -12949,7 +12956,9 @@
       "disabled": "Zakázáno",
       "dual": "Duální",
       "alias": "Alias",
-      "canonical": "Kanonický"
+      "canonical": "Kanonický",
+      "fail_closed": "Blokovat (fail_closed)",
+      "count_as_zero": "Započítat jako $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Zastavení kvůli infrastruktuře u chráněné priority jako 502",
         "description": "Odpovědět stavem 502 namísto 503, když prioritní cíl s náhradním řešením pouze při vyčerpání kvóty zastaví kombinaci z důvodu, který prokazatelně nesouvisí s kvótou: rozpojený jistič poskytovatele nebo prediktivní přeskočení kvůli latenci."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Zásada rozpočtu pro nepřiřazené ceny",
+        "description": "Jak denní/týdenní USD limity na klíč zacházejí s úspěšným použitím, pro které poskytovatel/model nemá záznam o ceně. fail_closed (výchozí) označí okno jako překročené, takže neznámý náklad nikdy neprojde tvrdým limitem. count_as_zero započítá toto použití jako $0 a zachová vynucování oceněných výdajů. Modely bez ceny jsou tak či tak uvedeny na domovské stránce dashboardu."
       }
     }
   },

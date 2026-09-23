@@ -112,6 +112,29 @@ export function getModelsCatalogPrefixMode(): ModelsCatalogPrefixMode {
   return "dual";
 }
 
+export type UnpricedUsageBudgetPolicy = "fail_closed" | "count_as_zero";
+
+/**
+ * How per-key USD limits treat usage that has no pricing row (#12341).
+ *
+ * Fail-safe closed: an unreadable flag store or an unknown value keeps the
+ * default `fail_closed` behavior, so a hard budget cap is never silently
+ * relaxed. Only an explicit `count_as_zero` override opts out.
+ */
+export function getUnpricedUsageBudgetPolicy(): UnpricedUsageBudgetPolicy {
+  try {
+    return resolveFeatureFlag("UNPRICED_USAGE_BUDGET_POLICY") === "count_as_zero"
+      ? "count_as_zero"
+      : "fail_closed";
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve UNPRICED_USAGE_BUDGET_POLICY, defaulting to fail_closed:",
+      error instanceof Error ? error.message : error
+    );
+    return "fail_closed";
+  }
+}
+
 /**
  * No-thinking gateway alias master switch (`no-think/<provider>/<model>`).
  *

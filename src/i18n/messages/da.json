@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kopiér dit endpoint",
     "readinessStep4": "Send en testanmodning",
     "readinessContinue": "Fortsæt opsætningen",
-    "readinessDismiss": "Skjul indtil videre"
+    "readinessDismiss": "Skjul indtil videre",
+    "unpricedUsageTitle": "{count, plural, one {# model} other {# modeller}} med nylig brug, men ingen konfigureret pris",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API-nøgle med en brugsgrænse} other {# API-nøgler med en brugsgrænse}} har brugt disse modeller de sidste 8 dage. Mens denne brug ligger inden for nøglens daglige eller ugentlige vindue, betragtes nøglen som over kvoten, og dens forespørgsler blokeres (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Denne brug tæller som $0 mod per-nøgle brugsgrænser (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# forespørgsel} other {# forespørgsler}}, {keys, plural, one {# begrænset nøgle} other {# begrænsede nøgler}}",
+    "unpricedUsageMore": "…og {count} mere",
+    "unpricedUsageConfigure": "Konfigurer priser",
+    "unpricedUsageDismiss": "Luk"
   },
   "analytics": {
     "title": "Analyse",
@@ -12949,7 +12956,9 @@
       "disabled": "Deaktiveret",
       "dual": "Dobbelt",
       "alias": "Alias",
-      "canonical": "Kanonisk"
+      "canonical": "Kanonisk",
+      "fail_closed": "Bloker (fail_closed)",
+      "count_as_zero": "Tæl som $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Infrastrukturstop med beskyttet prioritet som 502",
         "description": "Svar med 502 i stedet for 503, når et prioriteret mål med fallback kun ved kvoteproblemer stopper kombinationen af en årsag, der beviseligt ikke skyldes kvoten: en åben circuit breaker hos udbyderen eller en prædiktiv overspringning på grund af latenstid."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Politik for uprissat forbrugsbudget",
+        "description": "Hvordan per-nøgle daglige/ugentlige USD-grænser behandler vellykket brug, hvor leverandøren/modellen ikke har en prissætningspost. fail_closed (standard) markerer vinduet som overskredet, så en ukendt omkostning aldrig kan slippe forbi et hårdt loft. count_as_zero tæller den brug som $0 og fortsætter med at håndhæve det prissatte forbrug. Uprissatte modeller vises på dashboardets startside under alle omstændigheder."
       }
     }
   },

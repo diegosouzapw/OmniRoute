@@ -1902,7 +1902,14 @@
     "readinessStep3": "複製您的端點",
     "readinessStep4": "傳送測試請求",
     "readinessContinue": "繼續設定",
-    "readinessDismiss": "暫時略過"
+    "readinessDismiss": "暫時略過",
+    "unpricedUsageTitle": "{count, plural, other {# 個模型近期有用量，但尚未設定價格}}",
+    "unpricedUsageFailClosed": "{keys, plural, other {# 個設有用量限制的 API 金鑰}}在最近 8 天內使用過這些模型。只要這些用量仍在金鑰的每日或每週視窗內，該金鑰就會被視為超出配額，請求會被攔截（UNPRICED_USAGE_BUDGET_POLICY=fail_closed）。",
+    "unpricedUsageCountAsZero": "這些用量在計算各金鑰的用量限制時以 $0 計入（UNPRICED_USAGE_BUDGET_POLICY=count_as_zero）。",
+    "unpricedUsageModelStats": "{requests, plural, other {# 次請求}}，{keys, plural, other {# 個受限金鑰}}",
+    "unpricedUsageMore": "…另有 {count} 個",
+    "unpricedUsageConfigure": "設定定價",
+    "unpricedUsageDismiss": "關閉"
   },
   "analytics": {
     "title": "分析",
@@ -12949,7 +12956,9 @@
       "disabled": "已停用",
       "dual": "雙重",
       "alias": "別名",
-      "canonical": "標準"
+      "canonical": "標準",
+      "fail_closed": "攔截 (fail_closed)",
+      "count_as_zero": "以 $0 計 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "受保護優先級基礎設施停止時回傳 502",
         "description": "當僅限配額備援的優先目標因可證明並非配額的原因（提供者斷路器開啟或預測性延遲略過）而停止組合時，回應 502 而非 503。"
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "未定價用量的預算政策",
+        "description": "各金鑰的每日/每週 USD 限額，如何處理其提供者/模型沒有定價記錄的成功用量。fail_closed（預設）會將該視窗視為已超額，確保未知成本不會繞過硬性上限。count_as_zero 將這部分用量以 $0 計入，已定價的支出仍照常限制。無論採用哪種政策，未定價的模型都會顯示在儀表板首頁。"
       }
     }
   },

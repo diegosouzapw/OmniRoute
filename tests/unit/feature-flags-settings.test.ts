@@ -44,7 +44,9 @@ const {
 // (flush empty-turn retry, default off) bumps it to 76. ROTATION_ATTRIBUTION
 // (rotation skipped/served masked ids + proxy-log request correlation, all
 // read-only diagnostics) is this PR's flag, taking the registry to 77.
-const EXPECTED_FEATURE_FLAG_COUNT = 77;
+// UNPRICED_USAGE_BUDGET_POLICY (per-key USD limit handling of unpriced usage,
+// default fail_closed = #12341 behavior) takes it to 78.
+const EXPECTED_FEATURE_FLAG_COUNT = 78;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry

@@ -1902,7 +1902,14 @@
     "readinessStep3": "复制端点",
     "readinessStep4": "发送测试请求",
     "readinessContinue": "继续设置",
-    "readinessDismiss": "暂时忽略"
+    "readinessDismiss": "暂时忽略",
+    "unpricedUsageTitle": "{count, plural, other {# 个模型最近有用量，但未配置价格}}",
+    "unpricedUsageFailClosed": "{keys, plural, other {# 个设置了用量限制的 API 密钥}}在最近 8 天内使用过这些模型。只要这些用量仍在密钥的每日或每周窗口内，该密钥就会被视为超出配额，请求会被拦截（UNPRICED_USAGE_BUDGET_POLICY=fail_closed）。",
+    "unpricedUsageCountAsZero": "这些用量在计算按密钥设置的用量限制时按 $0 计入（UNPRICED_USAGE_BUDGET_POLICY=count_as_zero）。",
+    "unpricedUsageModelStats": "{requests, plural, other {# 次请求}}，{keys, plural, other {# 个受限密钥}}",
+    "unpricedUsageMore": "…另有 {count} 个",
+    "unpricedUsageConfigure": "配置定价",
+    "unpricedUsageDismiss": "关闭"
   },
   "analytics": {
     "title": "分析",
@@ -12949,7 +12956,9 @@
       "disabled": "已禁用",
       "dual": "双重",
       "alias": "别名",
-      "canonical": "规范"
+      "canonical": "规范",
+      "fail_closed": "拦截 (fail_closed)",
+      "count_as_zero": "按 $0 计 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "受保护优先级基础设施中止时返回 502",
         "description": "当仅配额回退的优先级目标因可证实并非配额的原因（提供者断路器处于打开状态或预测性延迟跳过）而停止组合时，返回 502 而不是 503。"
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "未定价用量的预算策略",
+        "description": "按密钥设置的每日/每周 USD 限额，如何处理其提供者/模型没有定价记录的成功用量。fail_closed（默认）会把该窗口视为已超额，确保未知成本不会绕过硬性上限。count_as_zero 把这部分用量按 $0 计入，已定价的消费仍照常限制。无论哪种策略，未定价的模型都会显示在仪表板首页。"
       }
     }
   },

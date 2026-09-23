@@ -3,6 +3,10 @@ import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import { getProviderQuotaWindowStartIso } from "@/lib/db/quotaResetEvents";
 import { calculateCostDetailed } from "./costCalculator";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import {
+  getUnpricedUsageBudgetPolicy,
+  type UnpricedUsageBudgetPolicy,
+} from "@/shared/utils/featureFlags";
 
 const FORTALEZA_UTC_OFFSET_MS = 3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -32,12 +36,25 @@ export interface ApiKeyUsageLimitStatus {
   /**
    * True when at least one usage_history row in the daily/weekly window could not
    * be priced at all (no pricing row for the provider+model — e.g. a routing
-   * alias such as `auto`, #12341). Enforcement fails closed on this: an unpriced
-   * row forces `*Exceeded = true` rather than silently contributing $0 to spend,
-   * since a real cost may be hiding behind the alias.
+   * alias such as `auto`, #12341). Under the default `fail_closed` policy an
+   * unpriced row forces `*Exceeded = true` rather than silently contributing $0
+   * to spend, since a real cost may be hiding behind it. Under `count_as_zero`
+   * the row counts as $0 and only the priced spend is enforced.
    */
   dailyHasUnpricedUsage?: boolean;
   weeklyHasUnpricedUsage?: boolean;
+  /** `provider/model` labels of the unpriced usage in each window (sorted, deduplicated). */
+  dailyUnpricedModels?: string[];
+  weeklyUnpricedModels?: string[];
+  /**
+   * True when a cost lookup threw in that window (pricing store unreadable,
+   * malformed row). The real spend is unknown, so the window blocks under every
+   * UNPRICED_USAGE_BUDGET_POLICY value.
+   */
+  dailyPricingFailure?: boolean;
+  weeklyPricingFailure?: boolean;
+  /** Effective UNPRICED_USAGE_BUDGET_POLICY used to compute `*Exceeded`. */
+  unpricedUsagePolicy?: UnpricedUsageBudgetPolicy;
 }
 
 export interface ApiKeyUsageLimitDeps {
@@ -46,6 +63,7 @@ export interface ApiKeyUsageLimitDeps {
   getProviderConnections?: (filter?: Record<string, unknown>) => Promise<unknown[]>;
   getProviderLimitsCache?: (connectionId: string) => ProviderLimitsCacheEntry | null;
   getAllProviderLimitsCache?: () => Record<string, ProviderLimitsCacheEntry>;
+  getUnpricedUsagePolicy?: () => UnpricedUsageBudgetPolicy;
 }
 
 interface UsageCostRow {
@@ -317,6 +335,7 @@ async function resolveDeps(deps: ApiKeyUsageLimitDeps): Promise<Required<ApiKeyU
     getProviderLimitsCache: deps.getProviderLimitsCache ?? providerLimits!.getProviderLimitsCache,
     getAllProviderLimitsCache:
       deps.getAllProviderLimitsCache ?? providerLimits!.getAllProviderLimitsCache,
+    getUnpricedUsagePolicy: deps.getUnpricedUsagePolicy ?? getUnpricedUsageBudgetPolicy,
   };
 }
 
@@ -386,10 +405,18 @@ interface ApiKeyUsdSpend {
   totalUsd: number;
   /** True when at least one (provider, model) group had no pricing row at all (#12341). */
   hasUnpricedUsage: boolean;
+  /** Sorted, deduplicated `provider/model` labels of those unpriced groups. */
+  unpricedModels: string[];
+  /**
+   * True when a cost lookup threw (pricing store unreadable, malformed row).
+   * Always blocks a limited window, independent of UNPRICED_USAGE_BUDGET_POLICY.
+   */
+  hasPricingFailure: boolean;
 }
 
 async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promise<ApiKeyUsdSpend> {
-  if (!apiKeyId) return { totalUsd: 0, hasUnpricedUsage: false };
+  if (!apiKeyId)
+    return { totalUsd: 0, hasUnpricedUsage: false, unpricedModels: [], hasPricingFailure: false };
   const db = getDbInstance();
   const rows = db
     .prepare(
@@ -413,13 +440,14 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
     .all({ apiKeyId, sinceIso }) as UsageCostRow[];
 
   let total = 0;
-  let hasUnpricedUsage = false;
+  const unpriced = new Set<string>();
+  let hasPricingFailure = false;
   for (const row of rows) {
     const provider = typeof row.provider === "string" ? row.provider : "";
     const model = typeof row.model === "string" ? row.model : "";
     if (!provider || !model) continue;
 
-    const { costUsd, priced } = await calculateCostDetailed(
+    const { costUsd, priced, failed } = await calculateCostDetailed(
       provider,
       model,
       {
@@ -435,17 +463,26 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
         serviceTier: row.serviceTier || "standard",
       }
     );
-    if (!priced) {
-      hasUnpricedUsage = true;
+    if (failed) {
+      hasPricingFailure = true;
       console.warn(
-        `[apiKeyUsageLimits] no pricing found for ${provider}/${model} — usage counted as $0 ` +
-          "and enforcement is failing closed for this window (#12341)"
+        `[apiKeyUsageLimits] cost lookup failed for ${provider}/${model} — failing closed (#12341)`
+      );
+    } else if (!priced) {
+      unpriced.add(`${provider}/${model}`);
+      console.warn(
+        `[apiKeyUsageLimits] no pricing found for ${provider}/${model} — usage counted as $0 (#12341)`
       );
     }
     total += costUsd;
   }
 
-  return { totalUsd: roundUsd(total), hasUnpricedUsage };
+  return {
+    totalUsd: roundUsd(total),
+    hasUnpricedUsage: unpriced.size > 0 || hasPricingFailure,
+    unpricedModels: [...unpriced].sort(),
+    hasPricingFailure,
+  };
 }
 
 export async function getApiKeyUsageLimitStatus(
@@ -474,20 +511,29 @@ export async function getApiKeyUsageLimitStatus(
   const dailySpentUsd = dailySpend.totalUsd;
   const weeklySpentUsd = weeklySpend.totalUsd;
 
-  // Fail closed (#12341): a window with a configured limit that also contains
-  // usage which could not be priced at all (e.g. a provider's `auto` routing
-  // alias with no catalog price) must not let that usage silently pass the cap
-  // as an invisible $0 — treat the limit as exceeded rather than trust an
-  // undercounted spend total. A window with no configured limit was never
-  // enforced, so unpriced usage there is only logged, not blocking.
+  // Unpriced usage (#12341) — e.g. a provider's `auto` routing alias or a newly
+  // added model with no catalog price. Under the default `fail_closed` policy a
+  // window with a configured limit that also contains such usage is treated as
+  // exceeded rather than trusting an undercounted spend total. Operators who
+  // prefer availability over a strict cap can set UNPRICED_USAGE_BUDGET_POLICY
+  // to `count_as_zero`: the usage then counts as $0 and only priced spend is
+  // enforced. A window with no configured limit was never enforced, so unpriced
+  // usage there is only logged, not blocking. A cost lookup that *threw* is not
+  // "unpriced" — the true spend is unknown — so it blocks under every policy.
+  const unpricedUsagePolicy = resolvedDeps.getUnpricedUsagePolicy();
+  const failClosed = unpricedUsagePolicy !== "count_as_zero";
+  const dailyBlocksOnUnknown = failClosed
+    ? dailySpend.hasUnpricedUsage
+    : dailySpend.hasPricingFailure;
+  const weeklyBlocksOnUnknown = failClosed
+    ? weeklySpend.hasUnpricedUsage
+    : weeklySpend.hasPricingFailure;
   const dailyExceeded =
-    enabled &&
-    dailyLimitUsd !== null &&
-    (dailySpentUsd >= dailyLimitUsd || dailySpend.hasUnpricedUsage);
+    enabled && dailyLimitUsd !== null && (dailySpentUsd >= dailyLimitUsd || dailyBlocksOnUnknown);
   const weeklyExceeded =
     enabled &&
     weeklyLimitUsd !== null &&
-    (weeklySpentUsd >= weeklyLimitUsd || weeklySpend.hasUnpricedUsage);
+    (weeklySpentUsd >= weeklyLimitUsd || weeklyBlocksOnUnknown);
 
   return {
     enabled,
@@ -503,6 +549,11 @@ export async function getApiKeyUsageLimitStatus(
     weeklyExceeded,
     dailyHasUnpricedUsage: dailySpend.hasUnpricedUsage,
     weeklyHasUnpricedUsage: weeklySpend.hasUnpricedUsage,
+    dailyUnpricedModels: dailySpend.unpricedModels,
+    weeklyUnpricedModels: weeklySpend.unpricedModels,
+    dailyPricingFailure: dailySpend.hasPricingFailure,
+    weeklyPricingFailure: weeklySpend.hasPricingFailure,
+    unpricedUsagePolicy,
   };
 }
 
@@ -544,13 +595,99 @@ export function buildApiKeyUsageLimitPercentText(
   ].join("\n");
 }
 
+const MAX_UNPRICED_MODELS_IN_MESSAGE = 3;
+
+function formatUnpricedModelList(models: string[] | undefined): string {
+  const list = Array.isArray(models) ? models : [];
+  if (list.length === 0) return "unknown models";
+  const shown = list.slice(0, MAX_UNPRICED_MODELS_IN_MESSAGE).join(", ");
+  const hidden = list.length - MAX_UNPRICED_MODELS_IN_MESSAGE;
+  return hidden > 0 ? `${shown} and ${hidden} more` : shown;
+}
+
+/**
+ * When the key is blocked only because its spend cannot be determined (no
+ * window is over its limit on priced spend alone), say why instead of reporting
+ * a low "quota reached" percentage the caller cannot act on (#12341):
+ *   - a cost lookup that threw is a transient pricing-store problem → retry;
+ *   - otherwise name the models that have no configured price.
+ * A genuine priced overage in any window always wins and keeps the regular
+ * quota message.
+ */
+function buildUnpricedUsageBlockedMessage(
+  status: ApiKeyUsageLimitStatus,
+  now: number
+): string | null {
+  const windows = [
+    {
+      label: "daily",
+      exceeded: status.dailyExceeded,
+      limit: status.dailyLimitUsd,
+      spent: status.dailySpentUsd,
+      models: status.dailyUnpricedModels,
+      failed: status.dailyPricingFailure === true,
+      resetAt: status.dailyResetAtIso,
+    },
+    {
+      label: "weekly",
+      exceeded: status.weeklyExceeded,
+      limit: status.weeklyLimitUsd,
+      spent: status.weeklySpentUsd,
+      models: status.weeklyUnpricedModels,
+      failed: status.weeklyPricingFailure === true,
+      resetAt: status.weeklyResetAtIso,
+    },
+  ];
+  const pricedOverage = windows.some((w) => w.exceeded && w.limit !== null && w.spent >= w.limit);
+  if (pricedOverage) return null;
+  const failedWindow = windows.find((w) => w.exceeded && w.limit !== null && w.failed);
+  if (failedWindow) {
+    return `This API key's ${failedWindow.label} usage cost could not be calculated right now, so its usage quota cannot be enforced. Try again shortly; if this persists, ask an administrator to check the pricing configuration.`;
+  }
+  const blocked = windows.find(
+    (w) => w.exceeded && w.limit !== null && (w.models?.length ?? 0) > 0
+  );
+  if (!blocked) return null;
+  const resetIn = formatResetIn(blocked.resetAt, now);
+  // A rolling weekly window (no provider quota reset) has no fixed reset time;
+  // "Resets in unknown" would read as a bug, so the clause is only added when known.
+  const resetClause = resetIn === "unknown" ? "" : ` Resets in ${resetIn}.`;
+  return `This API key's ${blocked.label} usage includes models with no configured price (${formatUnpricedModelList(blocked.models)}), so its usage quota cannot be enforced. Ask an administrator to add pricing for these models.${resetClause}`;
+}
+
+/**
+ * A window is over on priced spend when its spend alone reaches the limit, as
+ * opposed to being exceeded only because of unpriced or unknown usage.
+ */
+function isPricedOverLimit(exceeded: boolean, limit: number | null, spent: number): boolean {
+  return exceeded && limit !== null && spent >= limit;
+}
+
+/**
+ * Report the window that is genuinely over on priced spend first; a window that
+ * is exceeded only because of unpriced/unknown usage must not mask it.
+ */
+function shouldReportDailyWindow(status: ApiKeyUsageLimitStatus): boolean {
+  if (isPricedOverLimit(status.dailyExceeded, status.dailyLimitUsd, status.dailySpentUsd)) {
+    return true;
+  }
+  const weeklyOver = isPricedOverLimit(
+    status.weeklyExceeded,
+    status.weeklyLimitUsd,
+    status.weeklySpentUsd
+  );
+  return !weeklyOver && status.dailyExceeded;
+}
+
 function buildUsageLimitExceededMessage(
   status: ApiKeyUsageLimitStatus,
   now = Date.now(),
   options: { showUsd?: boolean } = {}
 ): string {
+  const unpricedMessage = buildUnpricedUsageBlockedMessage(status, now);
+  if (unpricedMessage) return unpricedMessage;
   const showUsd = options.showUsd !== false;
-  if (status.dailyExceeded && status.dailyLimitUsd !== null) {
+  if (shouldReportDailyWindow(status) && status.dailyLimitUsd !== null) {
     const percent = formatUsagePercent(getUsagePercent(status.dailySpentUsd, status.dailyLimitUsd));
     if (!showUsd) {
       return `This API key reached its daily usage quota (${percent}). Resets in ${formatResetIn(status.dailyResetAtIso, now)}. Choose another allowed model after reset.`;

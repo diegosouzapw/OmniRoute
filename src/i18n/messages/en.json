@@ -1902,7 +1902,14 @@
     "readinessStep3": "Copy your endpoint",
     "readinessStep4": "Send a test request",
     "readinessContinue": "Continue setup",
-    "readinessDismiss": "Dismiss for now"
+    "readinessDismiss": "Dismiss for now",
+    "unpricedUsageTitle": "{count, plural, one {# model} other {# models}} with recent usage but no configured price",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API key with a usage limit} other {# API keys with a usage limit}} used these models in the last 8 days. While that usage is inside a key's daily or weekly window, the key is treated as over quota and its requests are blocked (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "This usage counts as $0 toward per-key usage limits (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# request} other {# requests}}, {keys, plural, one {# limited key} other {# limited keys}}",
+    "unpricedUsageMore": "…and {count} more",
+    "unpricedUsageConfigure": "Configure pricing",
+    "unpricedUsageDismiss": "Dismiss"
   },
   "analytics": {
     "title": "Analytics",
@@ -12949,7 +12956,9 @@
       "disabled": "Disabled",
       "dual": "Dual",
       "alias": "Alias",
-      "canonical": "Canonical"
+      "canonical": "Canonical",
+      "fail_closed": "Block (fail_closed)",
+      "count_as_zero": "Count as $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Protected-Priority Infra Stops as 502",
         "description": "Answer 502 instead of 503 when a quota-only-fallback priority target stops the combo for a cause that is provably not quota: an open provider circuit breaker or a predictive latency skip."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Unpriced Usage Budget Policy",
+        "description": "How per-key daily/weekly USD limits treat successful usage whose provider/model has no pricing row. fail_closed (default) marks the window as exceeded, so an unknown cost can never slip past a hard cap. count_as_zero counts that usage as $0 and keeps enforcing the priced spend. Unpriced models are listed on the dashboard home page either way."
       }
     }
   },

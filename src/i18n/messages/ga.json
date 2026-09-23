@@ -1902,7 +1902,14 @@
     "readinessStep3": "Cóipeáil do chríochphointe",
     "readinessStep4": "Seol iarratas tástála",
     "readinessContinue": "Lean ar aghaidh leis an socrú",
-    "readinessDismiss": "Dún go fóill"
+    "readinessDismiss": "Dún go fóill",
+    "unpricedUsageTitle": "{count, plural, one {# múnla} other {# múnlaí}} le húsáid le déanaí ach gan praghas cumraithe",
+    "unpricedUsageFailClosed": "{keys, plural, one {# eochair API le teorainn úsáide} other {# eochracha API le teorainn úsáide}} d’úsáid na múnlaí seo le 8 lá anuas. Nuair a bhíonn an úsáid sin laistigh de fhuinneog laethúil nó seachtainiúil na heochrach, meastar go bhfuil an eochair thar an teorainn agus cuirtear bac ar a hiarratais (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Meastar an úsáid seo mar $0 i dtreo teorainneacha úsáide in aghaidh eochair (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# iarratas} other {# iarratais}}, {keys, plural, one {# eochair theoranta} other {# eochracha theoranta}}",
+    "unpricedUsageMore": "…agus {count} eile",
+    "unpricedUsageConfigure": "Cumraigh praghsáil",
+    "unpricedUsageDismiss": "Dún"
   },
   "analytics": {
     "title": "Anailísíocht",
@@ -12949,7 +12956,9 @@
       "disabled": "Díchumasaithe",
       "dual": "Déach",
       "alias": "Ailias",
-      "canonical": "Canónta"
+      "canonical": "Canónta",
+      "fail_closed": "Blocáil (fail_closed)",
+      "count_as_zero": "Cuir san áireamh mar $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13096,6 +13105,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Stadanna Bonneagair Tosaíochta Cosanta mar 502",
         "description": "Tabhair freagra 502 in ionad 503 nuair a stopann sprioc tosaíochta le cúltaca cuóta amháin an teaglama ar chúis ar féidir a chruthú nach mbaineann sí le cuóta: scoradán ciorcaid oscailte soláthraí nó scipeáil thuarthach de bharr aga folaigh."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Polasaí Buiséid Úsáide Gan Phraghas",
+        "description": "Conas a láimhseálann teorainneacha USD laethúla/seachtainiúla in aghaidh eochair úsáid rathúil nach bhfuil sraith phraghsála ag an soláthraí nó an múnla aige. fail_closed (réamhshocraithe) déanann sé an fhuinneog a mharcáil mar sroichte, mar sin ní rachaidh costas anaithnid riamh thart ar chaip dhian. count_as_zero cuireann an úsáid sin san áireamh mar $0 agus leanann sé ar aghaidh ag cur i bhfeidhm an chaitheamh phraghsáilte. Tá múnlaí gan phraghas liostaithe ar leathanach baile an phainéil i ngach cás."
       }
     }
   },
