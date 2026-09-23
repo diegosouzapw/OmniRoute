@@ -1,0 +1,1 @@
+- **fix(cost):** orphan health-check repair no longer deletes the spend policy of the deployment-time environment key — synthetic identities are excluded from the orphan count and delete ([#14661](https://github.com/diegosouzapw/OmniRoute/pull/14661)) — thanks @maxmad64bis (with thanks to @valimwiliam2020-art for the fix in #14367)
