@@ -3,12 +3,17 @@ import { AsyncLocalStorage } from "node:async_hooks";
 export interface CallLogApiKeyContext {
   apiKeyId: string | null;
   apiKeyName: string | null;
+  /**
+   * Provider connection selected for this attempt. Optional: modal handlers
+   * that already pass `connectionId` on the entry keep precedence.
+   */
+  connectionId?: string | null;
 }
 
 const callLogApiKeyContext = new AsyncLocalStorage<CallLogApiKeyContext>();
 
 /**
- * Bind API-key attribution to every call log emitted by one request.
+ * Bind API-key (and connection) attribution to every call log emitted by one request.
  *
  * Modal handlers fan out into provider-specific helpers that write their own
  * call logs. Request-scoped storage keeps that attribution available without

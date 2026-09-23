@@ -38,7 +38,7 @@ import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
 import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
-import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
+import { runImageRequestWithAccounting } from "@/lib/usage/imageRequestAccounting";
 import { executeImageWithCredentialFallback } from "@/sse/services/imageCredentialRetry";
 import { AUTHZ_HEADER_PEER_LOCALITY } from "@/server/authz/headers";
 import {
@@ -327,10 +327,14 @@ async function postHandler(request, context) {
       }
 
       const generateImage = () =>
-        runWithCallLogApiKeyContext(
+        runImageRequestWithAccounting(
           {
-            apiKeyId: policy.apiKeyInfo?.id ?? null,
-            apiKeyName: policy.apiKeyInfo?.name ?? null,
+            endpoint: "/v1/images/generations",
+            provider,
+            model: isCustomModel ? body.model : requestedModel,
+            apiKeyInfo: policy.apiKeyInfo,
+            credentials: attemptCredentials,
+            startTime,
           },
           () =>
             handleImageGeneration({
