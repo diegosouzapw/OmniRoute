@@ -841,17 +841,18 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 
 ### Provider Management
 
-| Endpoint                     | Method                | Description                                                                                               |
-| ---------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | List / create providers                                                                                   |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                                                                                         |
-| `/api/providers/[id]/test`   | POST                  | Test provider connection                                                                                  |
-| `/api/providers/[id]/models` | GET                   | List provider models                                                                                      |
-| `/api/providers/validate`    | POST                  | Validate provider config                                                                                  |
-| `/api/providers/bulk`        | POST                  | Bulk-add API keys for ONE provider                                                                        |
-| `/api/providers/import`      | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results |
-| `/api/provider-nodes*`       | Various               | Provider node management                                                                                  |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                            |
+| Endpoint                                | Method                | Description                                                                                                                                               |
+| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | List / create providers                                                                                                                                   |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Manage a provider                                                                                                                                         |
+| `/api/providers/[id]/test`              | POST                  | Test provider connection                                                                                                                                  |
+| `/api/providers/[id]/models`            | GET                   | List provider models                                                                                                                                      |
+| `/api/providers/validate`               | POST                  | Validate provider config                                                                                                                                  |
+| `/api/providers/bulk`                   | POST                  | Bulk-add API keys for ONE provider                                                                                                                        |
+| `/api/providers/import`                 | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
+| `/api/provider-nodes*`                  | Various               | Provider node management                                                                                                                                  |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                                                                            |
+| `/api/provider-models/validate-and-add` | POST                  | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
 
 ### OAuth Flows
 

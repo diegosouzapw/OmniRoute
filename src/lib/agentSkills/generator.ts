@@ -31,6 +31,12 @@ const GENERATED_COMMENT =
 const CUSTOM_START_MARKER = "<!-- skill:custom-start -->";
 const CUSTOM_END_MARKER = "<!-- skill:custom-end -->";
 
+// Runnable examples for commands whose syntax alone would omit safety-critical flags.
+const CLI_PREVIEW_EXAMPLES: Record<string, string> = {
+  "models test-add <model>":
+    "models test-add example-model --provider example-provider --connection example-connection --dry-run",
+};
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface BuildSources {
@@ -204,7 +210,7 @@ function buildCliBody(skill: AgentSkill, sources: BuildSources): string {
 
       lines.push("**Example:**\n");
       lines.push("```bash");
-      lines.push(`omniroute ${cmd.name}`);
+      lines.push(`omniroute ${CLI_PREVIEW_EXAMPLES[cmd.name] ?? cmd.name}`);
       lines.push("```");
       lines.push("");
     }

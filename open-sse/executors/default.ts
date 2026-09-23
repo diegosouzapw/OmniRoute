@@ -1141,6 +1141,9 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
+    // A pool may warm anonymous sessions or replace authentication headers.
+    // Strict validation must reject before creating/acquiring any such session.
+    if (input.validationDispatch && this.poolConfig) input.validationDispatch.reject();
     // #6846 Phase 1: per-connection concurrency cap for nvidia — no-op for every
     // other provider (returns null immediately, no semaphore key allocated).
     const releaseNvidiaSlot = await acquireNvidiaConcurrencySlot(

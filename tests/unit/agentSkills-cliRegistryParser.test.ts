@@ -130,6 +130,26 @@ export function registerKeys(program) {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+test("extension modules retain their parent command and required flags", () => {
+  const { cleanup } = withFixtureCli({
+    "model-validation.mjs": `models.command("test-add <model>")
+      .description("Validate then add")
+      .requiredOption("--provider <id>", "Provider")
+      .requiredOption("--connection <id>", "Connection")
+      .option("--dry-run", "Preview");`,
+  });
+  try {
+    const { commands, families } = parseCliRegistry();
+    const command = commands.get("models test-add <model>");
+    assert.ok(command);
+    assert.equal(command.isSubcommand, true);
+    assert.deepEqual(command.flags, ["--provider <id>", "--connection <id>", "--dry-run"]);
+    assert.equal(families.get("cli-models")?.length, 1);
+  } finally {
+    cleanup();
+  }
+});
+
 test("parseCliRegistry() returns commands Map and families Map", () => {
   const { cleanup } = withFixtureCli({
     "providers.mjs": FIXTURE_PROVIDERS_MJS,

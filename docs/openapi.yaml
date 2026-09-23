@@ -2352,6 +2352,131 @@ paths:
         "200":
           description: Provider model list
 
+  /api/provider-models/validate-and-add:
+    post:
+      tags: [Provider Nodes]
+      summary: Validate and add a custom chat model on one exact connection
+      description: >-
+        Always requires management authentication and explicit inference consent.
+        Runs bounded generation, streamed synthetic tool-call and continuation proofs
+        through the chat core; no real tool is executed. Configuration changes,
+        alternate connections, retries and proxy executor fallback fail closed.
+        Only after all proofs pass is a previously absent custom model inserted and
+        read back atomically. Every response is Cache-Control no-store. Requests can
+        incur upstream charges. The validation receipt is informational, not redeemable.
+        Initial strict support is limited to native Base/Default execution for OpenAI
+        and canonical OpenAI-compatible nodes using a single Bearer credential and an
+        exact JSON model field. Specialized executors and other providers are unsupported;
+        session pools, extra-key rotation, HTTP redirects and credential refresh are refused.
+        Active runtime plugins also fail closed; plugin policies are not silently skipped.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [provider, modelId, connectionId, allowInference]
+              properties:
+                provider:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                modelId:
+                  type: string
+                  minLength: 1
+                  maxLength: 240
+                connectionId:
+                  type: string
+                  minLength: 1
+                  maxLength: 160
+                allowInference:
+                  type: boolean
+                  enum: [true]
+                modelName:
+                  type: string
+                  minLength: 1
+                  maxLength: 240
+                max_input_tokens:
+                  type: integer
+                  minimum: 1
+                  maximum: 9007199254740991
+                max_output_tokens:
+                  type: integer
+                  minimum: 1
+                  maximum: 9007199254740991
+                apiFormat:
+                  type: string
+                  enum: [chat-completions, responses]
+                  default: chat-completions
+      responses:
+        "201":
+          description: All three proofs passed and custom model persistence was read back
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [schemaVersion, model, persistenceVerified, validation]
+                properties:
+                  schemaVersion:
+                    type: integer
+                    enum: [1]
+                  model:
+                    type: object
+                  persistenceVerified:
+                    type: boolean
+                    enum: [true]
+                  validation:
+                    type: object
+                    required: [id, status, provider, modelId, connectionId, validatedAt, stages]
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                        enum: [passed]
+                      provider:
+                        type: string
+                      modelId:
+                        type: string
+                      connectionId:
+                        type: string
+                      validatedAt:
+                        type: string
+                        format: date-time
+                      stages:
+                        type: object
+                        required: [generation, toolCall, continuation]
+                        properties:
+                          generation:
+                            type: string
+                            enum: [passed]
+                          toolCall:
+                            type: string
+                            enum: [passed]
+                          continuation:
+                            type: string
+                            enum: [passed]
+        "400":
+          description: Invalid input or missing explicit inference consent
+        "401":
+          description: Management authentication required
+        "403":
+          description: Insufficient management authorization
+        "408":
+          description: Validation cancelled or deadline exceeded
+        "409":
+          description: Existing model, busy or unavailable connection, or changed configuration
+        "413":
+          description: Request body exceeds 16 KiB
+        "422":
+          description: Required model proofs did not pass
+        "500":
+          description: Sanitized internal validation failure
+
   /api/keys:
     get:
       tags: [API Keys]

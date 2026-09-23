@@ -21,6 +21,7 @@ omniroute --version
 
 **Flags:**
 
+- `--task <description>`
 - `--max-cost <usd>`
 - `--max-latency-ms <ms>`
 - `--weights <json>`

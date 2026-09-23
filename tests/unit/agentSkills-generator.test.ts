@@ -48,6 +48,25 @@ function emptySources() {
 
 // ── Dry-run: no writes ────────────────────────────────────────────────────────
 
+test("Test & Add documentation example is an executable no-inference preview", () => {
+  const sources = emptySources();
+  sources.cliRegistry.families.set("cli-models", [
+    {
+      name: "models test-add <model>",
+      description: "Validate then add",
+      flags: [],
+      isSubcommand: true,
+    },
+  ]);
+  const { body: markdown } = buildSkillMarkdown("cli-models", sources);
+  assert.ok(
+    markdown.includes(
+      "omniroute models test-add example-model --provider example-provider --connection example-connection --dry-run"
+    )
+  );
+  assert.ok(!markdown.includes("```bash\nomniroute models test-add <model>"));
+});
+
 test("dry-run (default) returns report without writing any files", async () => {
   const tmpDir = mkTmpDir();
   try {

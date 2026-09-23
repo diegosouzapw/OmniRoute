@@ -55,6 +55,7 @@ const FILE_FAMILY_MAP: Record<string, SkillArea> = {
   keys: "cli-keys",
   oauth: "cli-keys",
   models: "cli-models",
+  "model-validation": "cli-models",
   chat: "cli-chat",
   stream: "cli-chat",
   repl: "cli-chat",
@@ -93,6 +94,9 @@ const FILE_FAMILY_MAP: Record<string, SkillArea> = {
   autostart: "cli-setup",
 };
 
+// Modules that extend an existing command instead of declaring a root command.
+const COMMAND_PARENT_MAP: Record<string, string> = { "model-validation": "models" };
+
 // ── Regex patterns ───────────────────────────────────────────────────────────
 
 // Matches: .command("name") or .command('name') — capture group 1 = name
@@ -102,7 +106,7 @@ const COMMAND_RE = /\.command\(\s*["']([^"']+)["']/g;
 const DESCRIPTION_RE = /\.description\(\s*["']([^"']+)["']/g;
 
 // Matches: .option("--flag ...", "desc") — capture group 1 = flag string
-const OPTION_RE = /\.option\(\s*["']([^"']+)["']/g;
+const OPTION_RE = /\.(?:option|requiredOption)\(\s*["']([^"']+)["']/g;
 
 // Matches: .addArgument(new Argument("<name>")) or ("[name]") — group 1 = the
 // token including its brackets, so it reads the same as an inline positional
@@ -117,6 +121,11 @@ interface RawCommand {
   flags: string[];
 }
 
+function qualifyCommand(rawName: string, parent: string, isFirst: boolean, extendsParent: boolean) {
+  const isRoot = rawName === parent || rawName.startsWith(parent + " ") || !rawName.includes(" ");
+  return !extendsParent && isRoot && isFirst ? rawName : `${parent} ${rawName}`;
+}
+
 /**
  * Extracts all commands (and their immediately following description + options)
  * from a single .mjs file content.
@@ -125,7 +134,11 @@ interface RawCommand {
  * constructed commands may be missed. This is acceptable for the catalog use-case
  * where we want a list of known subcommand names, not runtime-validated metadata.
  */
-function extractCommandsFromContent(content: string, topLevelName: string): RawCommand[] {
+function extractCommandsFromContent(
+  content: string,
+  topLevelName: string,
+  extendsParent = false
+): RawCommand[] {
   const commands: RawCommand[] = [];
 
   // Find all .command() call positions
@@ -146,8 +159,10 @@ function extractCommandsFromContent(content: string, topLevelName: string): RawC
 
     // If the slice itself contains a nested subcommand definition (e.g., `const auto = backup.command("auto")`),
     // restrict slice to end before the child `.command()` call so child options aren't attributed to parent.
-    const subCmdMatch = /[\s\S]+?(?=\b[a-zA-Z0-9_$]+\.command\()/g.exec(slice);
-    const effectiveSlice = subCmdMatch ? subCmdMatch[0] : slice;
+    // Find the boundary directly. A lazy catch-all before a lookahead repeatedly
+    // rescans long command bodies when no nested command exists.
+    const subCmdIndex = slice.search(/\b[a-zA-Z0-9_$]+\.command\(/);
+    const effectiveSlice = subCmdIndex > 0 ? slice.slice(0, subCmdIndex) : slice;
 
     // Extract description (first match in slice)
     DESCRIPTION_RE.lastIndex = 0;
@@ -175,13 +190,7 @@ function extractCommandsFromContent(content: string, topLevelName: string): RawC
     // Compose full command name:
     // - If rawName equals the top-level name (or is the isDefault pattern), use as-is
     // - Otherwise, qualify as "topLevel subname"
-    const isTopLevel =
-      rawName === topLevelName ||
-      rawName.startsWith(topLevelName + " ") ||
-      // Some files declare standalone root commands (e.g. serve, health)
-      !rawName.includes(" ");
-
-    const base = isTopLevel && i === 0 ? rawName : `${topLevelName} ${rawName}`;
+    const base = qualifyCommand(rawName, topLevelName, i === 0, extendsParent);
     const fullName = args.length > 0 ? `${base} ${args.join(" ")}` : base;
 
     commands.push({ name: fullName.trim(), description, flags });
@@ -228,7 +237,8 @@ export function parseCliRegistry(): ParsedCliRegistry {
       continue; // skip unreadable files
     }
 
-    const rawCmds = extractCommandsFromContent(content, basename);
+    const parent = COMMAND_PARENT_MAP[basename];
+    const rawCmds = extractCommandsFromContent(content, parent ?? basename, Boolean(parent));
     if (rawCmds.length === 0) continue;
 
     for (let i = 0; i < rawCmds.length; i++) {
@@ -237,7 +247,7 @@ export function parseCliRegistry(): ParsedCliRegistry {
         name: rc.name,
         description: rc.description,
         flags: rc.flags,
-        isSubcommand: i > 0,
+        isSubcommand: Boolean(parent) || i > 0,
       };
 
       commands.set(rc.name, cliCmd);

@@ -120,6 +120,8 @@ omniroute compression list
 
 **Flags:**
 
+- `--pattern <p>`
+- `--action <a>`
 - `--replacement <r>`
 
 **Example:**
@@ -149,6 +151,10 @@ omniroute compression language-packs
 ```
 
 ### `compression preview`
+
+**Flags:**
+
+- `--file <path>`
 
 **Example:**
 

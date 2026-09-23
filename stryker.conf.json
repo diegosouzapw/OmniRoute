@@ -42,6 +42,7 @@
   "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
+      "tests/unit/model-validation-runner.test.ts",
       "tests/unit/10085-compatible-generic-vs-uuid-credential.test.ts",
       "tests/unit/7993-noauth-proxy-routing.test.ts",
       "tests/unit/8200-perplexity-web-401-cooldown.test.ts",

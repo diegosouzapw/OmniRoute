@@ -189,6 +189,7 @@ omniroute oauth providers
 
 **Flags:**
 
+- `--provider <id>`
 - `--no-browser`
 - `--import-from-system`
 - `--social <s>`
@@ -216,6 +217,7 @@ omniroute oauth status
 
 **Flags:**
 
+- `--provider <id>`
 - `--connection-id <id>`
 - `--yes`
 

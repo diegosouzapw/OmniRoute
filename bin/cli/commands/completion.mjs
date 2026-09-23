@@ -82,7 +82,12 @@ function installPath(shell) {
   return join(home, ".bash_completion.d", "omniroute");
 }
 
-function generateZshScript() {
+function modelSubcommandWords(program) {
+  const models = program?.commands.find((command) => command.name() === "models");
+  return models?.commands.map((command) => command.name()).join(" ") || "";
+}
+
+function generateZshScript(modelCommands) {
   return `#compdef omniroute
 
 # OmniRoute zsh completion (dynamic)
@@ -179,6 +184,7 @@ _omniroute() {
           _arguments '1:resource:(combos providers api-manager cli-tools agents settings logs memory skills evals audit cost resilience)' ;;
         completion) _arguments '1:subcommand:(zsh bash fish install refresh)' ;;
         config) _arguments '1:subcommand:(list get set validate contexts)' ;;
+        models) _arguments '1:subcommand:(${modelCommands})' ;;
         contexts) _arguments '1:subcommand:(list add use current show remove rename export import migrate)' ;;
         configure) _arguments '1:target:(${CONFIGURE_TARGET_WORDS})' ;;
         run) _arguments '1:target:(${RUN_TARGET_WORDS})' ;;
@@ -204,7 +210,7 @@ compdef _omniroute omniroute
 `;
 }
 
-function generateBashScript() {
+function generateBashScript(modelCommands) {
   return `#!/bin/bash
 # OmniRoute CLI bash completion (dynamic)
 
@@ -235,6 +241,7 @@ _omniroute() {
     keys)        COMPREPLY=($(compgen -W "add list remove regenerate revoke reveal usage" -- "\${cur}")); return 0 ;;
     providers)   COMPREPLY=($(compgen -W "available list test test-all validate rotate status add import auth remove edit metrics metric" -- "\${cur}")); return 0 ;;
     config)      COMPREPLY=($(compgen -W "list get set validate contexts" -- "\${cur}")); return 0 ;;
+    models)      COMPREPLY=($(compgen -W "${modelCommands}" -- "\${cur}")); return 0 ;;
     completion)  COMPREPLY=($(compgen -W "zsh bash fish install refresh" -- "\${cur}")); return 0 ;;
     open)        COMPREPLY=($(compgen -W "combos providers api-manager cli-tools agents settings logs memory skills evals audit cost resilience" -- "\${cur}")); return 0 ;;
     contexts)    COMPREPLY=($(compgen -W "list add use current show remove rename export import migrate" -- "\${cur}")); return 0 ;;
@@ -262,7 +269,7 @@ complete -F _omniroute omniroute
 `;
 }
 
-function generateFishScript() {
+function generateFishScript(modelCommands) {
   return `# OmniRoute CLI fish completion (dynamic)
 complete -c omniroute -f
 
@@ -277,6 +284,7 @@ complete -c omniroute -n '__fish_seen_subcommand_from combo' -a 'list switch cre
 complete -c omniroute -n '__fish_seen_subcommand_from keys' -a 'add list remove regenerate revoke reveal usage'
 complete -c omniroute -n '__fish_seen_subcommand_from providers' -a 'available list test test-all validate rotate status add import auth remove edit metrics metric'
 complete -c omniroute -n '__fish_seen_subcommand_from config' -a 'list get set validate contexts'
+complete -c omniroute -n '__fish_seen_subcommand_from models' -a '${modelCommands}'
 complete -c omniroute -n '__fish_seen_subcommand_from completion' -a 'zsh bash fish install refresh'
 complete -c omniroute -n '__fish_seen_subcommand_from open' -a 'combos providers api-manager cli-tools agents settings logs memory skills evals audit cost resilience'
 complete -c omniroute -n '__fish_seen_subcommand_from contexts' -a 'list add use current show remove rename export import migrate'
@@ -315,17 +323,17 @@ export function registerCompletion(program) {
   comp
     .command("zsh")
     .description(t("completion.zsh") || "Print zsh completion script")
-    .action(async () => process.stdout.write(generateZshScript()));
+    .action(async () => process.stdout.write(generateZshScript(modelSubcommandWords(program))));
 
   comp
     .command("bash")
     .description(t("completion.bash") || "Print bash completion script")
-    .action(async () => process.stdout.write(generateBashScript()));
+    .action(async () => process.stdout.write(generateBashScript(modelSubcommandWords(program))));
 
   comp
     .command("fish")
     .description(t("completion.fish") || "Print fish completion script")
-    .action(async () => process.stdout.write(generateFishScript()));
+    .action(async () => process.stdout.write(generateFishScript(modelSubcommandWords(program))));
 
   comp
     .command("install [shell]")
@@ -339,7 +347,7 @@ export function registerCompletion(program) {
       }
       const dest = installPath(target);
       mkdirSync(dirname(dest), { recursive: true });
-      writeFileSync(dest, gen());
+      writeFileSync(dest, gen(modelSubcommandWords(program)));
       process.stdout.write(
         `Installed ${target} completion at ${dest}\nRestart your shell or source the file.\n`
       );
@@ -370,17 +378,17 @@ export function registerCompletion(program) {
         process.stderr.write(`Unknown shell: ${shell}. Valid: bash, zsh, fish\n`);
         process.exit(1);
       }
-      process.stdout.write(gen());
+      process.stdout.write(gen(modelSubcommandWords(program)));
     });
 }
 
 // Legacy export for backward compatibility
-export async function runCompletionCommand(shell) {
+export async function runCompletionCommand(shell, program) {
   const gen = generators[shell];
   if (!gen) {
     process.stderr.write(`Unknown shell: ${shell}. Valid: bash, zsh, fish\n`);
     return 1;
   }
-  process.stdout.write(gen());
+  process.stdout.write(gen(modelSubcommandWords(program)));
   return 0;
 }

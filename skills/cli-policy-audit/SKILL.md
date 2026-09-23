@@ -150,6 +150,10 @@ omniroute policy get <id>
 
 ### `policy create`
 
+**Flags:**
+
+- `--file <path>`
+
 **Example:**
 
 ```bash
@@ -157,6 +161,10 @@ omniroute policy create
 ```
 
 ### `policy update <id>`
+
+**Flags:**
+
+- `--file <path>`
 
 **Example:**
 
@@ -180,6 +188,8 @@ omniroute policy delete <id>
 
 **Flags:**
 
+- `--api-key <k>`
+- `--action <a>`
 - `--resource <r>`
 - `--context <json>`
 
