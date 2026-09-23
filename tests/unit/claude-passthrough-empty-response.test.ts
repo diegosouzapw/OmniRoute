@@ -8,31 +8,77 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { CLAUDE_CLIENT_ONLY_TOP_LEVEL_FIELDS } from "../../open-sse/handlers/chatCore/passthroughHelpers.ts";
-import { isSyntheticEmptyStreamFailure } from "../../src/sse/services/auth.ts";
+import {
+  stripClaudeRejectedTopLevelFields,
+  unpairedClaudeClientFields,
+} from "../../open-sse/handlers/chatCore/passthroughHelpers.ts";
+import { isSyntheticEmptyStreamFailure } from "../../src/sse/services/syntheticEmptyStream.ts";
 
-describe("Claude passthrough strips client-only top-level fields", () => {
-  // Live 400: `safeguards: Extra inputs are not permitted`. Anthropic rejects
-  // the WHOLE request for an unknown top-level field, so forwarding it verbatim
-  // guaranteed a 400 on every Claude Code request that sent it.
-  it("lists safeguards as a client-only field", () => {
-    assert.ok(CLAUDE_CLIENT_ONLY_TOP_LEVEL_FIELDS.includes("safeguards"));
-  });
+describe("Claude passthrough keeps safeguards only next to its paired beta", () => {
+  // Live 400 (2026-09-21): `safeguards: Extra inputs are not permitted`. Anthropic
+  // rejects the WHOLE request when the auto mode `safeguards` field arrives without
+  // the `dangerous-tool-use-2026-09-03` beta. Stripping it unconditionally fixed
+  // the 400 but made every gateway session ineligible for server-side auto mode
+  // (https://code.claude.com/docs/en/auto-mode-classifier-billing).
+  const cases: Array<[string, string | null, readonly string[]]> = [
+    ["no anthropic-beta header", null, ["safeguards"]],
+    [
+      "beta header without the paired beta",
+      "claude-code-20250219,oauth-2025-04-20",
+      ["safeguards"],
+    ],
+    [
+      "paired beta negotiated",
+      "claude-code-20250219,afk-mode-2026-01-31,dangerous-tool-use-2026-09-03",
+      [],
+    ],
+    ["paired beta with odd spacing and casing", " Dangerous-Tool-Use-2026-09-03 ", []],
+  ];
 
-  it("deleting the listed fields removes safeguards but preserves real payload", () => {
-    const body: Record<string, unknown> = {
-      model: "claude-opus-5",
+  for (const [scenario, clientBeta, expected] of cases) {
+    it(`${scenario} strips ${JSON.stringify(expected)}`, () => {
+      assert.deepEqual(unpairedClaudeClientFields(clientBeta), expected);
+    });
+  }
+});
+
+describe("stripClaudeRejectedTopLevelFields on the native claude passthrough", () => {
+  const AUTO_MODE_BETA = "claude-code-20250219,dangerous-tool-use-2026-09-03";
+
+  function claudeCodeBody(): Record<string, unknown> {
+    return {
+      model: "claude-sonnet-5",
       messages: [{ role: "user", content: "hi" }],
       temperature: 0.7,
-      safeguards: { mode: "strict" },
+      top_p: 0.9,
+      safeguards: [{ type: "dangerous_tool_use", classifier_context: "ctx" }],
     };
-    for (const field of CLAUDE_CLIENT_ONLY_TOP_LEVEL_FIELDS) {
-      if (body[field] !== undefined) delete body[field];
-    }
+  }
+
+  const headerShapes: Array<[string, Headers | Record<string, unknown>]> = [
+    ["a fetch Headers instance", new Headers({ "anthropic-beta": AUTO_MODE_BETA })],
+    ["a plain header record", { "Anthropic-Beta": AUTO_MODE_BETA }],
+  ];
+
+  for (const [shape, headers] of headerShapes) {
+    it(`keeps safeguards when ${shape} carries the paired beta`, () => {
+      const body = claudeCodeBody();
+
+      stripClaudeRejectedTopLevelFields(body, headers);
+
+      assert.deepEqual(body.safeguards, claudeCodeBody().safeguards);
+    });
+  }
+
+  it("strips safeguards and top_p but keeps the real payload without the paired beta", () => {
+    const body = claudeCodeBody();
+
+    stripClaudeRejectedTopLevelFields(body, { "anthropic-beta": "claude-code-20250219" });
+
     assert.equal(body.safeguards, undefined);
-    assert.equal(body.model, "claude-opus-5");
+    assert.equal(body.top_p, undefined);
     assert.equal(body.temperature, 0.7);
-    assert.ok(Array.isArray(body.messages));
+    assert.deepEqual(body.messages, claudeCodeBody().messages);
   });
 });
 
