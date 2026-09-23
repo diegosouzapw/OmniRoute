@@ -1,0 +1,1 @@
+- **fix(sse):** Judge stalled buffered turns by raw stream content and keep reading while reasoning is open ([#14679](https://github.com/diegosouzapw/OmniRoute/pull/14679)) — thanks @maxmad64bis
