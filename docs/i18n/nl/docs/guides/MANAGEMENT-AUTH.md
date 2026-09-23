@@ -4,56 +4,59 @@
 
 ---
 
-OmniRoute heeft **vier credentialfamilies** die toegang tot beheerroutes kunnen verlenen.
-Ze zijn niet onderling uitwisselbaar. Inferentie-API-sleutels (`sk-…`) beheren de
-server **niet**, tenzij hieraan expliciet de scope `manage` of `admin` is toegekend.
+OmniRoute heeft **vier credential families** die managementroutes kunnen autoriseren.
+Ze zijn niet uitwisselbaar. Inference API-sleutels (`sk-…`) beheren de
+server **niet** tenzij ze expliciet `manage` of `admin` scope hebben gekregen.
 
 Canonieke implementatie: `src/lib/api/requireManagementAuth.ts`.
 
-| Credential             | Gebruikelijke vorm                     | Waar aangemaakt                                     | Beoogd gebruik            | Beheermogelijkheden                                                                                                 |
-| ---------------------- | -------------------------------------- | --------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Dashboard-JWT-sessie   | `auth_token`-cookie                    | Aanmelding bij het dashboard                        | Browser-UI                | Volledig beheer via het dashboard, met inachtneming van CSRF-, lokaliteits- en regels voor altijd beveiligde routes |
-| CLI-machine-id-token   | intern / lokaal                        | CLI-bootstrap (`omniroute` op dezelfde machine)     | Lokale CLI                | Alleen lokaal beheer                                                                                                |
-| Access Token met scope | `oma_live_…`                           | **Settings → Access Tokens** of `omniroute connect` | Externe CLI en beheer-API | Moet voldoen aan de voor de route vereiste scope `read`, `write` of `admin`                                         |
-| Inferentie-API-sleutel | `sk-…` (en andere API-sleutelprefixen) | **API Manager / API Keys**                          | `/v1/*`-inferentie        | **Geen**, tenzij de metadata van de sleutel `manage` of `admin` bevat                                               |
+| Credential            | Typische vorm                          | Gemaakt waar                                             | Beoogd gebruik                | Managementmogelijkheid                                                                      |
+| --------------------- | -------------------------------------- | -------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------- |
+| Dashboard JWT-sessie  | `auth_token` cookie                    | Dashboard login                                          | Browser UI                    | Volledig dashboardbeheer, onderhevig aan CSRF, localiteit en altijd-beschermde-route regels |
+| CLI machine-id token  | intern / lokaal                        | CLI bootstrap (`omniroute` op dezelfde machine)          | Lokale CLI                    | Alleen lokaal beheer                                                                        |
+| Scoped Access Token   | `oma_live_…`                           | **Instellingen → Toegangstokens** of `omniroute connect` | Externe CLI en management API | Moet voldoen aan de vereiste `read`, `write` of `admin` scope van de route                  |
+| Inference API-sleutel | `sk-…` (en andere API-sleutelprefixes) | **API Manager / API-sleutels**                           | `/v1/*` inference             | **Geen** tenzij de sleutelmetadata `manage` of `admin` bevat                                |
 
-`oma_`-credentials zijn credentials voor beheer/de CLI. Het zijn **geen** inferentie-API-sleutels.
+`oma_` credentials zijn management/CLI credentials. Het zijn **geen** inference API-sleutels.
 
-Als aanmelding/API-sleutelauthenticatie voor de server is uitgeschakeld, kunnen sommige beheerroutes
-niet-geverifieerde aanroepen accepteren. Voor uitsluitend lokale en altijd beveiligde routes
-blijven de eigen regels van toepassing. Het aanbieden van een van deze credentials is daarom niet
-altijd verplicht, en het bezitten ervan is zonder de vereiste scope en routelokaliteit niet
-altijd voldoende.
+Als login/API-sleutelauthenticatie is uitgeschakeld voor de server, kunnen sommige managementroutes
+niet-geauthenticeerde oproepen accepteren. Lokaal-alleen en altijd-beschermde routes passen nog steeds
+hun eigen regels toe. Het presenteren van een van deze credentials is daarom niet universeel
+verplicht, en het bezit ervan is niet universeel voldoende zonder de vereiste
+scope en routelocaliteit.
 
-Gerelateerd: [Externe modus](./REMOTE-MODE.md) (hoe `oma_live_…` voor een externe CLI wordt aangemaakt).
+Gerelateerd: [Remote Mode](./REMOTE-MODE.md) (hoe `oma_live_…` wordt aangemaakt voor een externe CLI).
 
 ---
 
-## Scopematrices
+## Scope-matrices
 
-Deze twee scopevocabularies zijn **verschillend**. Gebruik ze niet door elkaar.
+API-sleutelbeheer-scopes en toegangstoken-scopes zijn verschillende vocabulaires.
+MCP-tool-scopes zijn een derde vocabulaire, gecontroleerd met `scopeMatches` in plaats van
+een van de functies in de onderstaande tabellen. Naast elkaar:
+[Drie scope-namespaces](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Access Token-scopes (`oma_live_…`)
+### Toegangstoken-scopes (`oma_live_…`)
 
-| Scope   | Gebruikelijke bewerkingen                                                                      |
-| ------- | ---------------------------------------------------------------------------------------------- |
-| `read`  | Lijst-/status-GET-aanvragen die het token mag bekijken                                         |
-| `write` | Mutaties (aanmaken/bijwerken/verwijderen) onder beheerdersniveau                               |
-| `admin` | Volledig token voor externe CLI / verbinding (bootstrap via wachtwoord gebruikt dit standaard) |
+| Scope   | Typische bewerkingen                                                             |
+| ------- | -------------------------------------------------------------------------------- |
+| `read`  | Lijst-/status-GETs die de token mag zien                                         |
+| `write` | Mutaties (aanmaken/bijwerken/verwijderen) onder admin                            |
+| `admin` | Volledige externe CLI / verbindingstoken (wachtwoord-bootstrap-standaarden hier) |
 
-Een token met `read` kan geen `write`-route aanroepen. Vorm van het runtimebericht:
+Een token met `read` kan geen `write`-route aanroepen. Vorm van runtime-bericht:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Beheerscopes voor API-sleutels
+### API-sleutelbeheer-scopes
 
-| Scope    | Betekenis                                                                                |
-| -------- | ---------------------------------------------------------------------------------------- |
-| (geen)   | Alleen inferentie. Beheerroutes retourneren 403.                                         |
-| `manage` | Beheer-API (dezelfde toegangscontrole als de API-sleuteltak van `requireManagementAuth`) |
-| `admin`  | Voldoet ook aan `hasManageScope` (wordt behandeld als geschikt voor beheer)              |
+| Scope    | Betekenis                                                               |
+| -------- | ----------------------------------------------------------------------- |
+| (geen)   | Alleen inferentie. Beheerroutes retourneren 403.                        |
+| `manage` | Beheer-API (zelfde poort als `requireManagementAuth` API-sleutelbranch) |
+| `admin`  | Voldoet ook aan `hasManageScope` (behandeld als beheer-capabel)         |
 
-Schakel `manage` voor de sleutel in via de UI van API Keys / API Manager. Gebruik een
-sleutel van een chatclient niet opnieuw voor automatisering, tenzij u die scope bewust hebt toegekend.
+Schakel `manage` in op de sleutel in de API Keys / API Manager UI. Hergebruik geen
+chatclient-sleutel voor automatisering, tenzij u die scope opzettelijk hebt toegekend.
 
 ---
 
@@ -129,29 +132,29 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Huidige runtimefouten (toon geen geheimen)
+## Huidige runtimefouten (geen geheimen weergeven)
 
-| Situatie                                        | Gebruikelijke status | Bericht (geanonimiseerd)                                             |
-| ----------------------------------------------- | -------------------- | -------------------------------------------------------------------- |
-| Geen referentie                                 | 401                  | `Authentication required`                                            |
-| Ongeldige/verlopen `oma_live_…`                 | 401                  | `Invalid or expired access token`                                    |
-| Geldige API-sleutel zonder `manage`/`admin`     | 403                  | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Ongeldige gewone API-sleutel op een beheerroute | 403                  | `Invalid management token`                                           |
-| Scope van toegangstoken te beperkt              | 403                  | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Situatie                                        | Typische status | Bericht (geschoond)                                                  |
+| :---------------------------------------------- | :-------------- | :------------------------------------------------------------------- |
+| Geen inloggegevens                              | 401             | `Authentication required`                                            |
+| Ongeldige/verlopen `oma_live_…`                 | 401             | `Invalid or expired access token`                                    |
+| Geldige API-sleutel zonder `manage`/`admin`     | 403             | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Ongeldige gewone API-sleutel op een beheerroute | 403             | `Invalid management token`                                           |
+| Toegangstoken scope te laag                     | 403             | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token" betekent dat de bearer **niet** als beheerreferentie
-is geaccepteerd. Het vertelt u **niet** welk type u moet aanmaken. Gebruik de bovenstaande tabel:
-inferentiesleutels hebben de `manage`-scope nodig; de externe CLI heeft `oma_live_…` nodig; het dashboard
-gebruikt de sessiecookie.
+"Invalid management token" betekent dat de bearer **niet** werd geaccepteerd als
+beheerinloggegeven. Het vertelt **niet** welke familie je moet aanmaken. Gebruik
+de bovenstaande tabel: inferentiesleutels hebben `manage` scope nodig; externe
+CLI heeft `oma_live_…` nodig; het dashboard gebruikt de sessiecookie.
 
 ---
 
-## Aanbevolen keuze volgens het principe van minimale rechten
+## Aanbevolen keuze met minimale privileges
 
-| Aanroeper                                                 | Gebruik                                          |
-| --------------------------------------------------------- | ------------------------------------------------ |
-| Browser                                                   | Dashboardsessie                                  |
-| CLI op de serverhost                                      | Machinetoken                                     |
-| CLI op een laptop die met een externe server communiceert | `oma_live_…` van `omniroute connect`             |
-| CI / scripts (alleen beheer)                              | `oma_live_…` met de kleinste scope die werkt     |
-| CI die zowel `/v1` als `/api` moet aanroepen              | API-sleutel met `manage` **of** twee referenties |
+| Aanroeper                                                 | Gebruik                                               |
+| :-------------------------------------------------------- | :---------------------------------------------------- |
+| Browser                                                   | Dashboard-sessie                                      |
+| CLI op de serverhost                                      | Machinetoken                                          |
+| CLI op een laptop die communiceert met een externe server | `oma_live_…` van `omniroute connect`                  |
+| CI / scripts (alleen beheer)                              | `oma_live_…` met de kleinst mogelijke scope die werkt |
+| CI die zowel `/v1` als `/api` moet aanroepen              | API-sleutel met `manage` **of** twee referenties      |

@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Tare da Goyon Bayan Abokanmu na Buɗaɗɗen Tushe
+## 🤝 Masu Tallafa Mana Masu Buɗaɗɗen Tushe
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Fasahar Basirar Matakin Gaba Mai Buɗewa · sigogi tiriliyan 2.8 · mahallin token miliyan 1"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **Kana son shiga a matsayin Abokin Buɗaɗɗen Tushe?** Waɗannan su ne kamfanonin da ke tallafa wa buɗaɗɗen tushe kuma suke taimakawa OmniRoute ya ci gaba — kuma muna bayyana a fili inda kowane token da suka ba mu yake zuwa. Tuntuɓe mu: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Kuna so ku shiga a matsayin Abokin Buɗaɗɗen Tushe?** Waɗannan su ne kamfanonin da ke tallafawa buɗaɗɗen tushe kuma suna taimakawa wajen ci gaba da OmniRoute — kuma muna faɗi a fili inda kowane kuɗin da suka ba mu yake zuwa. Tuntuɓi: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Abokin Kafa Buɗaɗɗen Tushe"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      Godiya ga <b>Kimi (Moonshot AI)</b>, Abokinmu na Kafa Buɗaɗɗen Tushe, saboda tallafa wa wannan aikin! Kimi shi ne dakin binciken AI da ya samar da iyalan samfuran K2 da K3 masu buɗaɗɗen nauyi — <b>Kimi K3</b> yana samar da taga mahallin token miliyan 1, hangen nesa na asali da rubuta lamba a matakin gaba kan ɗan ƙaramin kaso na farashin rufaffun samfura, kuma yana aiki kai tsaye tare da Claude Code, Codex da duk kayan aikin rubuta lamba da OmniRoute ke hidimtawa.
+      Godiya ga <b>Kimi (Moonshot AI)</b>, Abokinmu na Buɗaɗɗen Tushe na farko, don tallafawa wannan aikin! Kimi shine dakin gwaje-gwaje na AI a bayan iyalai na samfurin K2 da K3 masu buɗaɗɗen nauyi — <b>Kimi K3</b> yana ba da taga mahallin 1M-token, hangen nesa na asali da matakin gaba na coding a farashi mai rahusa fiye da samfuran rufaffiyar, kuma yana aiki kai tsaye tare da Claude Code, Codex da kowane kayan aikin coding da OmniRoute ke bayarwa.
       <br/><br/>
-      <b>Abin da tallafin Kimi ke ƙarfafawa:</b> Kiredit na API na Kimi suna ƙarfafa tsarin fitar da sabbin sigogin OmniRoute da AI ke tabbatarwa — matakin <i>tabbatar da haɗewa mai amfani da Kimi K3</i> wanda ke duba kowace buƙatar haɗewa kafin a fitar da ita — tare da bunƙasa fasaloli na yau da kullum. Cikakken tallafin Kimi yana samuwa ta hanyoyi biyu: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> kai tsaye (<code>kimi-k3</code>) da kuma <a href="https://www.kimi.com/code?aff=omniroute">tsarin rubuta lamba na Kimi Code</a> (OAuth da maɓallin API). OmniRoute kuma shi ne aikin buɗaɗɗen tushe na Brazil na farko a cikin shirin tallafin Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Sami maɓallin Kimi API tare da ƙarin kiredit 15% →</b></a>
+      <b>Abin da tallafin Kimi ke samarwa:</b> Kiredit na API na Kimi yana samar da bututun sakin OmniRoute mai inganci na AI — matakin <i>ingancin haɗawa wanda Kimi K3 ke samarwa</i> wanda ke duba kowane buƙatar ja kafin a tura shi — tare da haɓaka fasali na yau da kullun. Tallafin Kimi na farko yana aiki akan duka hanyoyin: kai tsaye <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) da <a href="https://www.kimi.ai/code?aff=omniroute">shirin coding na Kimi Code</a> (OAuth da maɓallin API). OmniRoute kuma shine aikin buɗaɗɗen tushe na Brazil na farko a cikin shirin tallafi na Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Samu maɓallin API na Kimi tare da ƙarin kiredit 15% →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Abokin Buɗaɗɗen Tushe"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      Godiya ga <b>Cheaper Inference</b>, Abokin Buɗaɗɗen Tushe na OmniRoute, saboda tallafa wa wannan aikin! Cheaper Inference wata ƙofa ce da aka jera bisa farashi wadda ke sake sayar da samfuran matakin gaba guda 42 — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok da MiniMax — a bayan maƙura guda ɗaya mai jituwa da OpenAI, tana tura kowace buƙata zuwa mai samarwa mafi arha da ya cancanta ba tare da taɓa cajin fiye da farashin jerin mai ƙera samfurin ba.
+      Godiya ga <b>Cheaper Inference</b>, Abokin Buɗaɗɗen Tushe na OmniRoute, don tallafawa wannan aikin! Cheaper Inference wata hanyar shiga ce mai tsada wacce ke sake siyar da samfuran gaba 42 — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok da MiniMax — a bayan wani wuri mai dacewa da OpenAI, yana tura kowane buƙata zuwa mai bayarwa mafi arha ba tare da cajin sama da farashin jerin mai yin samfurin ba.
       <br/><br/>
-      <b>Cikakken tallafi a cikin OmniRoute:</b> Kammalawar Taɗi, maƙurar asali ta <code>/v1/responses</code>, hangen nesa, kiran kayan aiki da samfuran hoto guda 3 (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, waɗanda za a iya isa gare su a matsayin <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Sami maɓallin API →</b></a>
+      <b>Tallafi na farko a OmniRoute:</b> Cikakkun Taɗi, asalin <code>/v1/responses</code> endpoint, hangen nesa, kiran kayan aiki da samfuran hoto 3 (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, ana iya isa gare su kamar <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Samu maɓallin API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Hanyoyin haɗin da aka yi wa alamar <code>aff=omniroute</code> hanyoyin haɗin abokan hulɗa ne. Suna ɗaukar nauyin aikin ba tare da wani ƙarin kuɗi a kanka ba.</sub>
+<sub>Hanyoyin haɗi masu alamar <code>aff=omniroute</code> hanyoyin haɗi ne na abokan tarayya. Suna tallafawa aikin ba tare da ƙarin farashi a gare ku ba.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Tallan Haɗin Gwiwar Kasuwanci</b> — takardun rangwamen rajista kyauta daga masu samarwa da ba mu tallafa wa (danna don faɗaɗawa)</sub></summary>
+<summary><sub><b>🎟️ Tallace-tallacen Abokan Hulɗa</b> — takardun shaidar rajista kyauta daga masu bayarwa waɗanda ba mu tallafawa (danna don faɗaɗawa)</sub></summary>
 
-<sub><i>Wannan sashen na lambobin turawa/takardun rangwame ne kawai. Haɗin gwiwar da aka ɗauki nauyinsu suna cikin <b>🤝 Tare da Goyon Bayan Abokanmu na Buɗaɗɗen Tushe</b> a sama. OmniRoute ba shi da wata alaƙar ɗaukar nauyi ko haɗin gwiwa da masu samarwar da aka lissafa a nan — waɗannan takardun rangwame ne na jama'a da kowa zai iya amfani da su.</i></sub>
+<sub><i>Wannan sashin don lambobin referral/coupon ne kawai. Haɗin gwiwar tallafi suna cikin <b>🤝 Masu Tallafa Mana Masu Buɗaɗɗen Tushe</b> a sama. OmniRoute ba shi da tallafi ko haɗin gwiwa tare da masu bayarwa da aka jera a nan — waɗannan takardun shaidar jama'a ne waɗanda kowa zai iya amfani da su.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — rajista ta hanyar haɗin gwiwar kasuwanci · <b>kiredit na $100 kyauta</b> lokacin rajista (uwar garken kyauta, ka sa ran jinkiri mafi yawa — ya fi dacewa da gwaji, ba samarwa ba). Cikakken tallafi a cikin OmniRoute tun daga <b>v3.8.50</b>: Kammalawar Taɗi, tsarin sadarwa mai jituwa da Anthropic da kuma hanyar mai jituwa da OpenAI. Samfuran da ake da su sun haɗa da <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> da sauransu. <b><a href="https://agentrouter.org/register?aff=70LM">Karɓi $100 naka →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — rajistar abokin tarayya · <b>$100 kiredit kyauta</b> akan rajista (sabar kyauta, sa ran jinkiri mafi girma — mafi kyau don gwaji, ba don samarwa ba). Tallafi na farko a OmniRoute tun <b>v3.8.50</b>: Cikakkun Taɗi, tsarin waya mai dacewa da Anthropic da hanyar da ta dace da OpenAI. Samfuran da ake da su sun haɗa da <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> da ƙari. <b><a href="https://agentrouter.org/register?aff=70LM">Ɗauki $100 ɗinku →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Hanyar haɗin gwiwar kasuwanci — OmniRoute ba shi da wata alaƙar ɗaukar nauyi ko haɗin gwiwa da wannan mai samarwa.</i></sub>
+      <sub>⚠️ <i>Hanyar haɗi ta abokin tarayya — OmniRoute ba shi da tallafi ko haɗin gwiwa tare da wannan mai bayarwa.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Ka san wani mai samarwa da ke da takardar rangwamen rajista kyauta mai yawa wadda za ta amfani masu amfani da OmniRoute? Buɗe wata matsala kuma za mu ƙara ta a nan.</sub>
+<sub>Kun san wani mai bayarwa tare da takardar shaidar rajista kyauta mai karimci wanda ke amfanar masu amfani da OmniRoute? Buɗe wani batu kuma za mu ƙara shi a nan.</sub>
 
 </details>
 
@@ -1256,29 +1256,29 @@ Ma'aunai na asali a 2026-08-24: **bidiyoyi na musamman 1.029** · **sanannun kal
 <br/>
 <div align="center">
 
-## 🛠️ Tarin Fasahohi
+## 🛠️ Tarin Fasaha
 
 </div>
 
 <table>
-  <tr><th align="left">Mataki</th><th align="left">Fasaha</th></tr>
-  <tr><td nowrap><b>Yanayin Gudanarwa</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Harshe</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> a duk faɗin <code>src/</code> da <code>open-sse/</code> (babu <code>any</code> a cikin ginshiƙin tun daga v2.0)</td></tr>
+  <tr><th align="left">Layer</th><th align="left">Fasaha</th></tr>
+  <tr><td nowrap><b>Lokacin Aiki</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Harshe</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> a cikin <code>src/</code> da <code>open-sse/</code> (babu <code>any</code> a cikin ainihin tun v2.0)</td></tr>
   <tr><td nowrap><b>Tsarin Aiki</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Rumbun Bayanai</b></td><td>better-sqlite3 (SQLite, ajiyar mujallar WAL) + LowDB (tsohon tsarin JSON) — modulolin yanki 122, ƙaura 178</td></tr>
-  <tr><td nowrap><b>Ƙwaƙwalwa</b></td><td>Cikakken binciken rubutu na SQLite FTS5 + wakilcin vector mai int8-quantized, raguwar ƙima mai nau'i</td></tr>
-  <tr><td nowrap><b>Tsare-tsaren Bayanai</b></td><td>Zod 4 — tantance shigarwa/fitarwar kayan aikin MCP + yarjejeniyoyin API</td></tr>
-  <tr><td nowrap><b>Ka'idojin Sadarwa</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Yaɗa Bayanai Kai-tsaye</b></td><td>Server-Sent Events (SSE) + gadar WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Matse Bayanai</b></td><td>Tsari mai injuna 12 — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Tantancewa &amp; tsaro</b></td><td>OAuth 2.0 (PKCE) + JWT + Maɓallan API + tantancewa mai iyakokin MCP · AES-256-GCM yayin ajiya · DOMPurify</td></tr>
-  <tr><td nowrap><b>Ɓoyewa</b></td><td>wreq-js — kwaikwayon sawun yatsa na JA3 / JA4 TLS, proxy mai matakai 3</td></tr>
-  <tr><td nowrap><b>Juriya</b></td><td>Mai katse da'ira, jinkirin sake gwadawa mai ƙaruwa, hana cunkoson buƙatu lokaci guda, warkar da kai ta auto-combo</td></tr>
-  <tr><td nowrap><b>Rikodin Ayyuka</b></td><td>pino — rikodin JSON masu tsari tare da mahallin buƙata</td></tr>
-  <tr><td nowrap><b>Gwaji</b></td><td>Mai gudanar da gwajin Node.js + Vitest — <b>sanarwar gwaje-gwaje tsayayyu 39,000+</b> a cikin fayilolin gwaji 5,100+ da ake bibiyarsu (na ɓangare, haɗin kai, E2E, tsaro, muhalli)</td></tr>
-  <tr><td nowrap><b>Dandamali</b></td><td>Kwamfutar tebur (Electron) · Android (Termux) · PWA (kowace burauza)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — wallafa npm ta atomatik + Docker Hub yayin fitar da sabon salo</td></tr>
-  <tr><td nowrap><b>Hanyoyin Haɗi</b></td><td><a href="https://omniroute.online">Shafin Yanar Gizo</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>Ma'ajiyar Bayanai</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 na'urorin yanki, 182 ƙaura</td></tr>
+  <tr><td nowrap><b>Ƙwaƙwalwa</b></td><td>SQLite FTS5 cikakken rubutu + int8-quantized vector embeddings, raguwar nau'i</td></tr>
+  <tr><td nowrap><b>Tsare-tsare</b></td><td>Zod 4 — MCP ingancin shigarwa/fitarwa na kayan aiki + kwangilolin API</td></tr>
+  <tr><td nowrap><b>Ka'idoji</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>Yawo</b></td><td>Server-Sent Events (SSE) + gada ta WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Matsawa</b></td><td>bututun inji 12 — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Tabbatarwa &amp; tsaro</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP tabbatarwa mai iyaka · AES-256-GCM a hutawa · DOMPurify</td></tr>
+  <tr><td nowrap><b>Boye</b></td><td>wreq-js — kwafin sawun yatsa na JA3 / JA4 TLS, wakili mai matakai 3</td></tr>
+  <tr><td nowrap><b>Juriya</b></td><td>mai karya kewaye, jinkiri mai yawa, anti-garken-tsawa, gyaran kai na auto-combo</td></tr>
+  <tr><td nowrap><b>Rubutawa</b></td><td>pino — rubutattun log na JSON tare da yanayin buƙata</td></tr>
+  <tr><td nowrap><b>Gwaji</b></td><td>Node.js test runner + Vitest — <b>39,000+ sanarwar gwaji na tsaye</b> a cikin 5,100+ fayilolin gwaji da aka bi diddigi (naúrar, haɗin kai, E2E, tsaro, yanayin muhalli)</td></tr>
+  <tr><td nowrap><b>Fasahar Aiki</b></td><td>Desktop (Electron) · Android (Termux) · PWA (kowane mai bincike)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — buga npm ta atomatik + Docker Hub akan saki</td></tr>
+  <tr><td nowrap><b>Hanyoyi</b></td><td><a href="https://omniroute.online">Gidan Yanar Gizo</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

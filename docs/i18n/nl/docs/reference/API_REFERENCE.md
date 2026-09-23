@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Kostensemantiek bij cachetreffers:** bij een HIT in de semantische cache (`X-OmniRoute-Cache-Hit: true`) wordt geen upstream-aanroep gedaan. Daarom is `X-OmniRoute-Response-Cost` gelijk aan `0.0000000000` (de **incrementele** kosten voor het afhandelen van de treffer). De oorspronkelijke kosten/kosten die anders zouden zijn gemaakt, worden afzonderlijk gerapporteerd in `X-OmniRoute-Cost-Saved`. Facturatieprocessen moeten `X-OmniRoute-Response-Cost` optellen (treffers kosten niets); voor cacheanalyses kan `X-OmniRoute-Cost-Saved` worden geaggregeerd.
 
-## Exclusieve beheerde sessieleases
+## Exclusieve Beheerde Sessieleases
 
-Exclusieve leasing van beheerde sessies is een optioneel, clientneutraal routeringscontract: één actieve eigenaar
-houdt één geschikte OmniRoute-verbinding bezet. Hiermee wordt geen model geleaset, OAuth is niet vereist, er wordt geen
-specifieke client geïdentificeerd en er is geen specifieke provider vereist.
+Exclusieve beheerde sessieleasing is een opt-in, client-neutraal routeringscontract: één actieve eigenaar bezit één in aanmerking komende OmniRoute-verbinding. Het leaset geen model, vereist geen OAuth, identificeert geen specifieke client en vereist geen specifieke provider.
 
-De API-sleutel die voor authenticatie wordt gebruikt, moet het bereik `lease:exclusive` en een expliciete, niet-lege
-`allowedConnections`-lijst hebben. De mutatiegrens van de database dwingt beide velden gezamenlijk af bij het
-aanmaken en gedeeltelijk bijwerken van sleutels.
+De authenticerende API-sleutel moet de scope `lease:exclusive` en een expliciete niet-lege `allowedConnections`-lijst hebben. De database-mutatiegrens handhaaft beide velden samen bij het aanmaken van sleutels en gedeeltelijke updates.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Geslaagde antwoorden voor verwerving, verlenging en vrijgave bevatten tijdstempels, `state` en de exacte positieve
-`generation`, maar nooit de geselecteerde verbinding of referenties. Voor verlenging en vrijgave wordt de
-generatie in de JSON-body opgegeven:
+Succesvolle acquire-, renew- en release-antwoorden tonen tijdstempels, `state` en de exacte positieve `generation`, maar nooit de geselecteerde verbinding of inloggegevens. Renew en release leveren de generation in de JSON-body:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generatie in de JSON-body opgegeven:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Een actieve lease-eigenaar kan expliciet privacyveilige weergavemetadata opvragen voor de huidige koppeling:
+Een actieve lease-eigenaar kan expliciet privacyveilige weergavemetadata opvragen voor zijn huidige binding:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Een actieve lease-eigenaar kan expliciet privacyveilige weergavemetadata opvrage
 }
 ```
 
-Deze optionele statusactie wordt binnen één databasetransactie afgeschermd door de ondoorzichtige eigenaar, de geauthenticeerde beheerde API-sleutel en de exacte
-actieve generatie. `displayName` is uitsluitend de bijgesneden, geconfigureerde
-verbindingsnaam; deze is `null` wanneer er geen veilige geconfigureerde naam bestaat. OmniRoute gebruikt nooit ter vervanging een
-e-mailadres of gegenereerde accountidentiteit. De providerwaarde is een niet-gevoelig weergavelabel en nooit
-een gegenereerde identificatie voor een compatibele provider. Referenties, tokens, cookies, onbewerkte verbindings- of API-
-sleutel-id's, eigenaarshashes, afschermingsgeheimen en interne routeringsgegevens worden uitgesloten.
+Deze opt-in statusactie wordt afgeschermd door de ondoorzichtige eigenaar, geauthenticeerde beheerde API-sleutel en exacte actieve generatie in één databasetransactie. `displayName` is alleen de ingekorte geconfigureerde verbindingsnaam; het is `null` wanneer er geen veilige geconfigureerde naam bestaat. OmniRoute vervangt nooit een e-mailadres of gegenereerde accountidentiteit. De providerwaarde is een niet-gevoelig weergavelabel en nooit een gegenereerde compatibele-provider-identificatie. Inloggegevens, tokens, cookies, ruwe verbinding- of API-sleutel-ID's, eigenaar-hashes, afschermingsgeheimen en interne routeringsgegevens zijn uitgesloten.
 
-Opzoekacties met een verkeerde sleutel, verkeerde eigenaar, verouderde generatie, ontbrekende, verlopen, vrijgegeven of ongeldig gemaakte lease
-retourneren allemaal dezelfde fout `409 LEASE_FENCE_STALE`, zonder verbindingsmetadata. Een client die het antwoord voor wachten op capaciteit heeft ontvangen, heeft geen actieve koppeling die kan worden geïnspecteerd. Wanneer bij het routeren een actieve lease naar een andere verbinding overgaat,
-blijft dezelfde generatie geldig en retourneert de status atomair de nieuwe koppeling, nooit de oude.
-Bestaande clients blijven ongewijzigd, omdat antwoorden voor verwerving, verlenging, vrijgave en wachten
-hun eerdere structuur behouden.
+Zoekopdrachten met een verkeerde sleutel, verkeerde eigenaar, verouderde generatie, ontbrekende, verlopen, vrijgegeven en ongeldige opzoekingen retourneren allemaal dezelfde `409 LEASE_FENCE_STALE` fout zonder verbindingsmetadata. Een client die de capaciteitswachtreactie heeft ontvangen, heeft geen actieve binding om te inspecteren. Wanneer routering een actieve lease overdraagt, blijft dezelfde generatie geldig en retourneert de status atomisch de nieuwe binding, nooit de oude. Bestaande clients blijven ongewijzigd omdat acquire-, renew-, release- en wachtende reacties hun eerdere vormen behouden.
 
-Dit servercontract wijzigt `/status` van de standaardversie van OpenAI Codex niet. De standaardversie van Codex rapporteert momenteel zijn
-modelprovider en ingebouwde authenticatie-/accountstatus, maar geeft geen willekeurige aangepaste
-provideraccountmetadata weer; een latere clientintegratie moet deze actie aanroepen en bepalen hoe
-`connection.displayName` wordt weergegeven.
+Dit servercontract wijzigt de standaard OpenAI Codex `/status` niet. Standaard Codex rapporteert momenteel zijn modelprovider en ingebouwde authenticatie-/accountstatus, maar rendert geen willekeurige aangepaste provideraccountmetadata; een latere clientintegratie moet deze actie aanroepen en beslissen hoe `connection.displayName` moet worden weergegeven.
 
-Elk beheerd inferentieverzoek levert vervolgens beide besturingsheaders aan:
+Elke beheerde inferentieaanvraag levert dan beide controleheaders:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-De exacte eigenaar, generatie, actieve verbinding en geauthenticeerde API-sleutel worden onmiddellijk
-vóór elke ondersteunde upstream-poging afgeschermd. Het opnieuw gebruiken van de eigenaar en generatie met een andere sleutel mislukt, zelfs
-wanneer die sleutel dezelfde verbinding toestaat. Onbewerkte eigenaren worden niet persistent opgeslagen, gelogd, in de
-verzoeksnapshot bewaard of upstream doorgestuurd.
+De exacte eigenaar, generatie, actieve verbinding en geauthenticeerde API-sleutel worden onmiddellijk afgeschermd vóór elke ondersteunde upstream-poging. Het opnieuw afspelen van eigenaar en generatie met een andere sleutel mislukt, zelfs wanneer die sleutel dezelfde verbinding toestaat. Ruwe eigenaren worden niet opgeslagen, gelogd, bewaard in de aanvraagsnapshot of doorgestuurd naar upstream.
 
-Tijdelijke capaciteitsconcurrentie retourneert HTTP `429` met `Retry-After` en:
+Tijdelijke concurrentie retourneert HTTP `429` met `Retry-After` en:
 
 ```json
 {
@@ -178,36 +157,35 @@ Tijdelijke capaciteitsconcurrentie retourneert HTTP `429` met `Retry-After` en:
 }
 ```
 
-Dit antwoord betekent alleen dat de normale verzameling geschikte verbindingen niet leeg was en elke beschikbare kandidaat
-door een externe actieve lease bezet was. Niet-ondersteunde modellen/providers, niet-overeenkomend beleid, afkoelperiode, quota,
-status en andere normale geschiktheidsfouten behouden hun bestaande OmniRoute-antwoorden.
+Deze reactie betekent alleen dat de gewone in aanmerking komende set niet leeg was en dat elke vrije kandidaat in bezit was van een externe actieve lease. Niet-ondersteunde modellen/providers, beleidsconflicten, cooldown, quota, gezondheid en andere gewone geschiktheidsfouten behouden hun bestaande OmniRoute-reacties.
 
 ### `x-omniroute-compression`
 
-Overschrijving per verzoek van het compressieplan. Hoogste prioriteit — heeft voorrang op de overschrijving van de routeringscombinatie,
-het actieve profiel, de automatische trigger en de standaardinstelling van het paneel. Waarden:
+Per-aanvraag overschrijving van het compressieplan. Hoogste prioriteit — overtreft de routing-combo overschrijving, het actieve profiel, auto-trigger en het paneel Standaard. Waarden:
 
-| Waarde        | Effect                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| `off`         | Geen compressie voor dit verzoek.                                                              |
-| `default`     | Het uit het paneel afgeleide standaardprofiel (negeert het actieve profiel).                   |
-| `engine:<id>` | Eén engine wanneer deze is ingeschakeld, bijvoorbeeld `engine:rtk`.                            |
-| `<combo>`     | Een benoemde combinatie, eerst op naam vergeleken (hoofdletterongevoelig) en vervolgens op id. |
+| Value         | Effect                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------- |
+| `off`         | Geen compressie voor deze aanvraag.                                                                        |
+| `default`     | Het paneel-afgeleide Standaard profiel (negeert het actieve profiel). Lossy engines blijven uitgeschakeld. |
+| `safe`        | Alleen deduplicatie en witruimte-vouwing.                                                                  |
+| `allow-lossy` | Behoud het operatorplan voor deze aanvraag, inclusief samenvattingen en stijlherschrijvingen.              |
+| `engine:<id>` | Eén enkele engine indien ingeschakeld, bijv. `engine:rtk`. Per-aanvraag opt-in voor die engine.            |
+| `<combo>`     | Een benoemde combo, eerst gematcht op naam (hoofdletterongevoelig), daarna op id.                          |
 
-Opmerkingen:
+Notities:
 
-- Onbekende waarden worden genegeerd (het verzoek wordt nooit afgewezen); de bepaling valt terug op de normale prioriteitsvolgorde voor operatoren.
-- Als meerdere combinaties dezelfde naam hebben, geeft u de **id** van de combinatie door voor een deterministische overeenkomst.
-- Een combinatie met de naam `off` of `default` kan niet op naam worden geselecteerd (die trefwoorden worden eerst geïnterpreteerd); verwijs naar een dergelijke combinatie via de id.
-- De hoofdschakelaar voor compressie vormt een harde blokkade: wanneer compressie globaal is uitgeschakeld, kan deze header deze niet inschakelen.
+- Onbekende waarden worden genegeerd (de aanvraag wordt nooit afgewezen); de resolutie valt terug op de normale operatorprioriteit.
+- Als meerdere combo's een naam delen, geef dan de combo **id** door voor een deterministische match.
+- Een combo waarvan de naam `off` of `default` is, kan niet op naam worden geselecteerd (deze trefwoorden worden eerst geïnterpreteerd); verwijs naar zo'n combo via zijn id.
+- De hoofdcompressieschakelaar is een harde poort: wanneer compressie wereldwijd is uitgeschakeld, kan deze header deze niet inschakelen.
 
-Het toegepaste plan wordt teruggestuurd in de responsheader:
+Het toegepaste plan wordt teruggestuurd in de response header:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-waarbij `<source>` een van `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` of `off` is.
+waarbij `<source>` één van `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, of `off` is.
 
 ---
 
