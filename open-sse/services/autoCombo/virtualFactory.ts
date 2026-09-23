@@ -812,7 +812,13 @@ export async function prepareVirtualAutoComboInputs(
     const strictFilteredPool = filterStrictZeroCostCandidates(pool, strictOptions);
     if (strictFilteredPool !== pool) {
       const s = countStrictExclusions(pool, strictOptions);
-      warnPoolDrop(log, "STRICT", s.excluded, pool.length, ` (no-hard-stop ${s.noHardStop})`);
+      warnPoolDrop(
+        log,
+        "STRICT",
+        s.excluded,
+        pool.length,
+        ` (no-hard-stop ${s.noHardStop}, exhausted ${s.exhausted}, state-unknown ${s.stateUnknown})`
+      );
       pool = strictFilteredPool;
     }
 

@@ -334,9 +334,11 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
 export function countStrictExclusions<T extends StrictZeroCostCandidate>(
   pool: T[],
   options: StrictZeroCostOptions
-): { excluded: number; noHardStop: number } {
+): { excluded: number; noHardStop: number; exhausted: number; stateUnknown: number } {
   let excluded = 0;
   let noHardStop = 0;
+  let exhausted = 0;
+  let stateUnknown = 0;
   for (const candidate of pool) {
     const budgetEntry = findBudgetEntry(candidate, options.catalog);
     const verdict = classifyStrictZeroCostCandidate(
@@ -348,8 +350,10 @@ export function countStrictExclusions<T extends StrictZeroCostCandidate>(
     if (verdict.outcome === "safe") continue;
     excluded++;
     if (verdict.outcome === "no-hard-stop") noHardStop++;
+    if (verdict.outcome === "exhausted") exhausted++;
+    if (verdict.outcome === "state-unknown") stateUnknown++;
   }
-  return { excluded, noHardStop };
+  return { excluded, noHardStop, exhausted, stateUnknown };
 }
 
 /**
