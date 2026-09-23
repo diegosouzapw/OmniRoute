@@ -256,6 +256,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "session_pool_exhausted",
   "spawn_failed",
   "storage_encryption_stale",
+  "stream_content_stall",
   "stream_disconnected",
   "stream_early_eof",
   "stream_error",
