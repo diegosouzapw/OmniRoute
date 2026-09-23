@@ -6,6 +6,19 @@ import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts
 import { getProviderById, getProviderByAlias } from "@/shared/constants/providers";
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 
+export function providerScopedModelsResponseHeaders(sourceHeaders: Headers) {
+  const headers = new Headers(sourceHeaders);
+
+  // This route derives a smaller JSON body from the unified model catalog.
+  // Reusing representation-specific headers from the source response can make
+  // clients wait for bytes that will never arrive (notably stale content-length).
+  headers.delete("content-length");
+  headers.delete("content-encoding");
+  headers.delete("etag");
+
+  return headers;
+}
+
 /**
  * Handle CORS preflight
  */
@@ -127,7 +140,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     },
     {
       status: response.status,
-      headers: response.headers,
+      headers: providerScopedModelsResponseHeaders(response.headers),
     }
   );
 }

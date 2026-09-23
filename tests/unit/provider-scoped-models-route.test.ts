@@ -236,3 +236,19 @@ test("provider models route resolves another local provider by ID (lm-studio)", 
     "lm-studio must not be rejected as unknown provider"
   );
 });
+
+test("provider models route strips representation headers from filtered catalog response", () => {
+  const headers = new Headers({
+    "content-length": "686983",
+    "content-encoding": "br",
+    etag: '"catalog-etag"',
+    "cache-control": "no-store",
+  });
+
+  const sanitized = providerModelsRoute.providerScopedModelsResponseHeaders(headers);
+
+  assert.equal(sanitized.get("content-length"), null);
+  assert.equal(sanitized.get("content-encoding"), null);
+  assert.equal(sanitized.get("etag"), null);
+  assert.equal(sanitized.get("cache-control"), "no-store");
+});
