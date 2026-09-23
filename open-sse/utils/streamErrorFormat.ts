@@ -188,6 +188,13 @@ export function normalizeStreamFailurePayload(payload: unknown): StreamFailurePa
             : typeof record.message === "string" && record.message.trim()
               ? record.message
               : "Upstream failure";
+  const requestScopedInputFailure =
+    type === "invalid_request_error" ||
+    code === "invalid_request_error" ||
+    type === "context_length_exceeded" ||
+    code === "context_length_exceeded" ||
+    type === "context_window_exceeded" ||
+    code === "context_window_exceeded";
   const status =
     toStreamFailureStatus(error.status_code) ??
     toStreamFailureStatus(error.status) ??
@@ -195,7 +202,7 @@ export function normalizeStreamFailurePayload(payload: unknown): StreamFailurePa
     toStreamFailureStatus(response.status) ??
     toStreamFailureStatus(record.status_code) ??
     toStreamFailureStatus(record.status) ??
-    (type === "invalid_request_error" || code === "invalid_request_error"
+    (requestScopedInputFailure
       ? 400
       : type === "authentication_error" || code === "invalid_api_key"
         ? 401

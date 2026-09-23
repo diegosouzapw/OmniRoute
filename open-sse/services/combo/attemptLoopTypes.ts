@@ -48,6 +48,8 @@ export type AttemptLoopState = {
   observedFailure: boolean;
   allObservedFailuresQuota: boolean;
   requestScopedFailureSeen: boolean;
+  /** Normalized provider/model keys already refused request-scoped this dispatch. */
+  requestScopedRejectedModelKeys?: Set<string>;
   observeFailure(quotaExhausted: boolean, targetExecutionKey?: string): void;
 };
 

@@ -10,10 +10,8 @@ import {
   errorResponseWithComboDiagnostics,
   unavailableResponse,
 } from "../../utils/error.ts";
-import type { ComboDiagnostics } from "../../utils/error.ts";
 import { COMBO_FAILURE_THRESHOLD, recordComboFailure } from "./failureTracker.ts";
-import { buildNoUpstreamResponseDiagnostics, buildRecoveryHint } from "./pinRecovery.ts";
-import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
+import { buildNoUpstreamResponseDiagnostics } from "./pinRecovery.ts";
 import { collectQuotaWindowExclusions, formatQuotaSkipMessage } from "./quotaSkipDiagnostics.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { notifyWebhookEvent } from "../../../src/lib/webhookDispatcher.ts";
@@ -33,12 +31,7 @@ import {
   waitForCooldownAwareRetry,
 } from "../../../src/sse/services/cooldownAwareRetry.ts";
 import { toRetryAfterDisplayValue } from "./validateQuality.ts";
-import {
-  finalizeComboTrace,
-  finishComboTrace,
-  getComboTrace,
-  summarizeSkippedTargets,
-} from "./decisionTrace.ts";
+import { finalizeComboTrace, finishComboTrace } from "./decisionTrace.ts";
 import { isRetryAfterEligibleStatus } from "./unavailableRetryGate.ts";
 import { withQuotaExhaustionClassification } from "./quotaExhaustion.ts";
 import {
@@ -47,9 +40,11 @@ import {
   IDENTICAL_MODEL_ERROR_STREAK,
   hasIdenticalModelErrorStreak,
   resolveDelayMs,
+  requestScopedReplayKey,
 } from "./comboPredicates.ts";
 import { evaluateExecuteTargetGates } from "./executeTargetGates.ts";
 import { executeTargetAttempt } from "./executeTargetAttempt.ts";
+import { buildComboDiag } from "./executeTargetClassify.ts";
 import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./attemptLoopTypes.ts";
 
 export type DispatchWithCooldownRetryExtra = {
@@ -118,39 +113,9 @@ export async function dispatchWithCooldownRetry(opts: {
       state.recordedAttempts = 0;
       state.comboErrors = [];
 
-      // QA P0: assemble a sanitized diagnostic trace from the state already in scope
-      // (pool size + this set-try's exhausted providers/connections + attempt order +
-      // a terminal-reason code). Never touches keys/tokens — provider/model ids only.
-      // Silent-stop fix: include a `recovery` hint (action verb + human next-step) so the
-      // OC plugin + non-header-aware clients can render an actionable error instead of an
-      // opaque 5xx. The optional `retryAfterSeconds` carries the upstream Retry-After hint.
-      const buildComboDiag = (
-        terminalReason: string,
-        retryAfterSeconds?: number
-      ): ComboDiagnostics => ({
-        poolSize: state.orderedTargets.length,
-        attempted: state.recordedAttempts,
-        excluded: [
-          ...[...state.exhaustedProviders].map((p) => ({ provider: p, reason: "exhausted" })),
-          ...[...state.exhaustedConnections].map((c) => formatExhaustedConnectionKey(String(c))),
-          ...(terminalReason === "all_targets_skipped"
-            ? collectQuotaWindowExclusions(state.orderedTargets)
-            : []),
-        ],
-        attemptOrder: state.comboAttemptOrder,
-        terminalReason,
-        recovery: buildRecoveryHint(terminalReason, retryAfterSeconds),
-        // #12659: surface per-target skip reasons (e.g. persisted_cooldown)
-        // that `excluded` above never captures — only worth the trace lookup
-        // on the diagnostic-heavy terminal reason.
-        skippedTargets:
-          terminalReason === "all_targets_skipped"
-            ? summarizeSkippedTargets(getComboTrace(deps.traceInvocationId)).map((g) => ({
-                reason: g.reason,
-                targets: g.targets,
-              }))
-            : undefined,
-      });
+      // QA P0: the sanitized diagnostic trace (pool size + this set-try's exhausted
+      // providers/connections + attempt order + terminal reason + recovery hint) is
+      // assembled by the shared `buildComboDiag` helper — see executeTargetClassify.ts.
 
       let globalResolve: ((res: Response) => void) | null = null;
       const globalPromise = new Promise<Response>((res) => {
@@ -182,7 +147,7 @@ export async function dispatchWithCooldownRetry(opts: {
             errorResponseWithComboDiagnostics(
               504,
               `Combo global timeout (${loopSafetyMs}ms) without a terminal response`,
-              buildComboDiag("combo_timeout"),
+              buildComboDiag(state, deps.traceInvocationId, "combo_timeout"),
               { code: "COMBO_TIMEOUT", type: "server_error" }
             )
           );
@@ -212,6 +177,7 @@ export async function dispatchWithCooldownRetry(opts: {
         }
       };
       state.abortControllers = new Map<number, AbortController>();
+      const rejectedModelKeys = (state.requestScopedRejectedModelKeys ??= new Set<string>());
       const zeroLatencyOptimizationsEnabled = deps.config.zeroLatencyOptimizationsEnabled === true;
       const hasProtectedPriorityTarget =
         deps.strategy === "priority" &&
@@ -232,6 +198,15 @@ export async function dispatchWithCooldownRetry(opts: {
 
       for (let i = 0; i < state.orderedTargets.length; i++) {
         if (anySuccess || state.comboExpired || comboRequestMalformed) break;
+        // Another connection of the SAME model rejects the request identically:
+        // a request-scoped refusal is not fixable by another account.
+        if (rejectedModelKeys.has(requestScopedReplayKey(state.orderedTargets[i].modelStr))) {
+          deps.log.info(
+            "COMBO",
+            `Skipping ${state.orderedTargets[i].modelStr} — same request already refused as request-scoped`
+          );
+          continue;
+        }
 
         const abortController = new AbortController();
         state.abortControllers.set(i, abortController);
@@ -346,10 +321,15 @@ export async function dispatchWithCooldownRetry(opts: {
             ? ` | tried: ${summary}${state.comboErrors.length > 5 ? `... (+${state.comboErrors.length - 5})` : ""}`
             : "") +
           " without a terminal response";
-        return errorResponseWithComboDiagnostics(504, msg, buildComboDiag("combo_timeout"), {
-          code: "COMBO_TIMEOUT",
-          type: "server_error",
-        });
+        return errorResponseWithComboDiagnostics(
+          504,
+          msg,
+          buildComboDiag(state, deps.traceInvocationId, "combo_timeout"),
+          {
+            code: "COMBO_TIMEOUT",
+            type: "server_error",
+          }
+        );
       }
 
       // #10681: finalize the decision trace (success).
@@ -389,10 +369,15 @@ export async function dispatchWithCooldownRetry(opts: {
           latencyMs,
           fallbackCount: state.fallbackCount,
         });
-        return errorResponseWithComboDiagnostics(504, msg, buildComboDiag("combo_timeout"), {
-          code: "COMBO_TIMEOUT",
-          type: "server_error",
-        });
+        return errorResponseWithComboDiagnostics(
+          504,
+          msg,
+          buildComboDiag(state, deps.traceInvocationId, "combo_timeout"),
+          {
+            code: "COMBO_TIMEOUT",
+            type: "server_error",
+          }
+        );
       }
 
       // All models failed in this set try
@@ -464,7 +449,7 @@ export async function dispatchWithCooldownRetry(opts: {
               quotaSkip
                 ? `Service temporarily unavailable: all targets were skipped by pre-dispatch filters (${quotaSkip})`
                 : "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
-              buildComboDiag("all_targets_skipped"),
+              buildComboDiag(state, deps.traceInvocationId, "all_targets_skipped"),
               { code: "ALL_TARGETS_SKIPPED", type: "service_unavailable" }
             ),
             state.observedFailure ? state.allObservedFailuresQuota : null
@@ -480,7 +465,7 @@ export async function dispatchWithCooldownRetry(opts: {
         return errorResponseWithComboDiagnostics(
           503,
           "Service temporarily unavailable: all upstream accounts are inactive",
-          buildComboDiag("all_accounts_inactive"),
+          buildComboDiag(state, deps.traceInvocationId, "all_accounts_inactive"),
           { code: "ALL_ACCOUNTS_INACTIVE", type: "service_unavailable" }
         );
       }
@@ -600,7 +585,7 @@ export async function dispatchWithCooldownRetry(opts: {
         errorResponseWithComboDiagnostics(
           status,
           msg,
-          buildComboDiag(terminalReason, retryAfterSeconds)
+          buildComboDiag(state, deps.traceInvocationId, terminalReason, retryAfterSeconds)
         ),
         state.observedFailure ? state.allObservedFailuresQuota : null
       );

@@ -112,6 +112,28 @@ test("streaming quality preserves request-scoped upstream failure metadata", asy
   });
 });
 
+test("context input errors map to HTTP 400 without an explicit status", async () => {
+  for (const code of ["context_length_exceeded", "context_window_exceeded"]) {
+    const body = [
+      "event: response.failed",
+      `data: ${JSON.stringify({
+        type: "response.failed",
+        response: {
+          status: "failed",
+          error: { code, type: code, message: "request exceeds the model context" },
+        },
+      })}`,
+      "",
+      "",
+    ].join("\n");
+
+    const result = await validateResponseQuality(sseResponse(body), true, silentLog());
+    assert.equal(result.upstreamFailure?.status, 400);
+    assert.equal(result.upstreamFailure?.requestScoped, true);
+    assert.equal(result.upstreamFailure?.retryable, false);
+  }
+});
+
 test("invalid_request_error code maps to HTTP 400 without a type field", async () => {
   const body = [
     "event: response.failed",
@@ -201,6 +223,45 @@ test("single-target request-scoped streaming refusal preserves HTTP 400", async 
 
   assert.equal(result.status, 400);
   assert.deepEqual(calls, ["codex/gpt-6-astra-high"]);
+});
+
+test("request-scoped refusal is not replayed against the same model on another account", async () => {
+  const calls: string[] = [];
+  const healthy = [
+    "event: response.output_text.delta",
+    `data: ${JSON.stringify({ type: "response.output_text.delta", delta: "fallback ok" })}`,
+    "",
+    "",
+  ].join("\n");
+
+  const result = await handleComboChat({
+    body: { stream: true, messages: [{ role: "user", content: "hello" }] },
+    combo: {
+      name: "request-scoped-same-model-skip",
+      strategy: "priority",
+      models: [
+        { model: "codex/gpt-6-astra-high", connectionId: "conn-astra-1", weight: 0 },
+        { model: "codex/gpt-6-astra-high", connectionId: "conn-astra-2", weight: 0 },
+        { model: "codex/gpt-5.6-sol", connectionId: "conn-sol", weight: 0 },
+      ],
+      config: { maxRetries: 0, maxSetRetries: 1, retryDelayMs: 0, setRetryDelayMs: 0 },
+    },
+    handleSingleModel: async (_body: unknown, model: string, target) => {
+      const connectionId = (target as { connectionId?: string } | undefined)?.connectionId;
+      calls.push(`${model}@${connectionId ?? "none"}`);
+      return model.endsWith("/gpt-6-astra-high")
+        ? sseResponse(invalidRequestSse())
+        : sseResponse(healthy);
+    },
+    isModelAvailable: async () => true,
+    log: silentLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null as never,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["codex/gpt-6-astra-high@conn-astra-1", "codex/gpt-5.6-sol@conn-sol"]);
 });
 
 test("combo advances to the next target after a pre-content Responses SSE failure", async () => {
@@ -298,6 +359,53 @@ test("round-robin does not retry a request-scoped streaming refusal", async () =
 
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["codex/gpt-6-astra-high", "codex/gpt-5.6-sol"]);
+});
+
+test("round-robin skips the same model on another account after a request-scoped refusal", async () => {
+  const calls: string[] = [];
+  const healthy = [
+    "event: response.output_text.delta",
+    `data: ${JSON.stringify({ type: "response.output_text.delta", delta: "fallback ok" })}`,
+    "",
+    "",
+  ].join("\n");
+
+  const result = await handleComboChat({
+    body: { stream: true, messages: [{ role: "user", content: "hello" }] },
+    combo: {
+      name: "round-robin-same-model-skip",
+      strategy: "round-robin",
+      models: [
+        { model: "codex/gpt-6-astra-high", connectionId: "conn-astra-1", weight: 0 },
+        { model: "codex/gpt-6-astra-high", connectionId: "conn-astra-2", weight: 0 },
+        { model: "codex/gpt-5.6-sol", connectionId: "conn-sol", weight: 0 },
+      ],
+      config: { maxRetries: 0, retryDelayMs: 0 },
+    },
+    handleSingleModel: async (_body: unknown, model: string, target) => {
+      const connectionId = (target as { connectionId?: string } | undefined)?.connectionId;
+      calls.push(`${model}@${connectionId ?? "none"}`);
+      return model.endsWith("/gpt-6-astra-high")
+        ? sseResponse(invalidRequestSse())
+        : sseResponse(healthy);
+    },
+    isModelAvailable: async () => true,
+    log: silentLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null as never,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(
+    calls.filter((call) => call.startsWith("codex/gpt-6-astra-high")).length,
+    1,
+    `the refused model must be dispatched once, saw: ${calls.join(", ")}`
+  );
+  assert.ok(
+    calls.some((call) => call.endsWith("@conn-sol")),
+    `the different model must still be attempted, saw: ${calls.join(", ")}`
+  );
 });
 
 test("transient streaming failure still records a configured model lockout", async () => {

@@ -8,7 +8,7 @@
 import { errorResponse, errorResponseWithComboDiagnostics } from "../../utils/error.ts";
 import type { ComboDiagnostics } from "../../utils/error.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
-import { resolveDelayMs } from "./comboPredicates.ts";
+import { resolveDelayMs, requestScopedReplayKey } from "./comboPredicates.ts";
 import { qualityValidationFailure } from "./executeTargetClassify.ts";
 import { isRuntimeUnitAtConcurrencyCap } from "./runtimeUnitCapacity.ts";
 import { isQuotaExhaustionResponse, withQuotaExhaustionClassification } from "./quotaExhaustion.ts";
@@ -203,6 +203,9 @@ export async function executeRuntimeUnitCombo(args: {
   const maxRetries = Number(args.config.maxRetries ?? 1);
   const retryDelayMs = resolveDelayMs(args.config.retryDelayMs, 2000);
   const orderedUnits = orderUnitsForStrategy(args.strategy, args.units);
+  // A request-scoped refusal repeats identically for every account of the same
+  // model, so later units of that model are skipped rather than replayed.
+  const rejectedModelKeys = new Set<string>();
   const clientRequestedStream = args.body?.stream === true;
   const startTime = Date.now();
   const effectiveStrategy = args.effectiveComboStrategy ?? args.strategy;
@@ -241,6 +244,14 @@ export async function executeRuntimeUnitCombo(args: {
   for (const unit of orderedUnits) {
     const protectedPriorityUnit =
       effectiveStrategy === "priority" && unit.fallbackOnlyOnQuotaExhaustion === true;
+    if (unit.kind === "model" && rejectedModelKeys.has(requestScopedReplayKey(unit.modelStr))) {
+      args.log.info(
+        "COMBO",
+        `Skipping model ${unit.modelStr} — same request already refused as request-scoped`
+      );
+      fallbackCount += 1;
+      continue;
+    }
     if (
       await isRuntimeUnitAtConcurrencyCap(
         unit,
@@ -338,6 +349,8 @@ export async function executeRuntimeUnitCombo(args: {
         }
         releaseRejectedQualityResponse(unitClone, response);
         qualityRetryable = quality.upstreamFailure?.retryable ?? false;
+        if (quality.upstreamFailure?.requestScoped)
+          rejectedModelKeys.add(requestScopedReplayKey(unit.modelStr));
         lastResponse = qualityValidationFailure(quality).response;
       }
       if (lastResponse) {

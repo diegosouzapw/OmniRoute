@@ -11,7 +11,71 @@ import {
   isParamValidation400,
 } from "./comboPredicates.ts";
 import { errorResponse } from "../../utils/error.ts";
+import type { ComboDiagnostics } from "../../utils/error.ts";
+import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
+import { collectQuotaWindowExclusions } from "./quotaSkipDiagnostics.ts";
+import { getComboTrace, summarizeSkippedTargets } from "./decisionTrace.ts";
+import { buildRecoveryHint } from "./pinRecovery.ts";
+import type { AttemptLoopState } from "./attemptLoopTypes.ts";
+import {
+  protectedPriorityStopStatus,
+  type ProtectedPriorityStopCause,
+} from "./protectedPriorityStopStatus.ts";
 import type { ResponseQualityResult } from "./validateQuality.ts";
+
+/**
+ * Terminal diagnostics attached to combo-level errors. Shared by the priority
+ * target loop and the set-retry loop so both emit the same trace shape.
+ */
+export function buildComboDiag(
+  state: AttemptLoopState,
+  traceInvocationId: string,
+  terminalReason: string,
+  retryAfterSeconds?: number
+): ComboDiagnostics {
+  return {
+    poolSize: state.orderedTargets.length,
+    attempted: state.recordedAttempts,
+    excluded: [
+      ...[...state.exhaustedProviders].map((p) => ({ provider: p, reason: "exhausted" })),
+      ...[...state.exhaustedConnections].map((c) => formatExhaustedConnectionKey(String(c))),
+      ...(terminalReason === "all_targets_skipped"
+        ? collectQuotaWindowExclusions(state.orderedTargets)
+        : []),
+    ],
+    attemptOrder: state.comboAttemptOrder,
+    terminalReason,
+    recovery: buildRecoveryHint(terminalReason, retryAfterSeconds),
+    // #12659: surface per-target skip reasons (e.g. persisted_cooldown) that
+    // `excluded` never captures — only worth the trace lookup on the
+    // diagnostic-heavy terminal reason.
+    skippedTargets:
+      terminalReason === "all_targets_skipped"
+        ? summarizeSkippedTargets(getComboTrace(traceInvocationId)).map((g) => ({
+            reason: g.reason,
+            targets: g.targets,
+          }))
+        : undefined,
+  };
+}
+
+/** Fatal stop for a protected-priority target: terminal only when it is protected. */
+export function stopProtectedPriorityTarget(opts: {
+  protectedPriorityTarget: boolean;
+  message: string;
+  cause?: ProtectedPriorityStopCause;
+  onStop: () => void;
+  clearStale: () => void;
+}): { ok: false; response: Response } | null {
+  opts.onStop();
+  opts.clearStale();
+  return opts.protectedPriorityTarget
+    ? {
+        ok: false as const,
+        response: errorResponse(protectedPriorityStopStatus(opts.cause), opts.message),
+      }
+    : null;
+}
 
 export function remainderIsHomogeneous(
   orderedTargets: { modelStr: string }[],
