@@ -9,7 +9,10 @@ const { GrokCliExecutor } = await import("@omniroute/open-sse/executors/grok-cli
 // `content` key is accepted. transformRequest() must drop the null `content` and leave the
 // encrypted blob untouched.
 
-const ENCRYPTED = "gAAAAB-opaque-grok-blob";
+// Fixtures use Grok Build's own reasoning id format (`rs_<uuid>`), so a replay filter that
+// drops blobs other providers encrypted leaves them alone.
+const GROK_ID = "rs_d50f4f10-bb85-4c1e-9a53-0e6f2d1c7b21";
+const ENCRYPTED = "U16FEQIOxM-opaque-grok-blob";
 
 function transform(input: unknown[]) {
   const executor = new GrokCliExecutor();
@@ -22,7 +25,7 @@ function transform(input: unknown[]) {
 test("grok-cli transformRequest drops null content from replayed reasoning items", () => {
   const reasoning = {
     type: "reasoning",
-    id: "rs_1",
+    id: GROK_ID,
     summary: [],
     content: null,
     encrypted_content: ENCRYPTED,
@@ -33,7 +36,7 @@ test("grok-cli transformRequest drops null content from replayed reasoning items
 
   assert.deepEqual((out.input as unknown[])[1], {
     type: "reasoning",
-    id: "rs_1",
+    id: GROK_ID,
     summary: [],
     encrypted_content: ENCRYPTED,
   });
@@ -41,9 +44,28 @@ test("grok-cli transformRequest drops null content from replayed reasoning items
   assert.equal(reasoning.content, null);
 });
 
+test("grok-cli transformRequest drops null content from Grok's id-less tco_ tool reasoning", () => {
+  // Grok's server-side tool reasoning (`tco_…` id and blob) loses its id in the base sanitizer.
+  const reasoning = {
+    type: "reasoning",
+    summary: [],
+    content: null,
+    encrypted_content: "tco_7b-a",
+  };
+
+  const out = transform([reasoning]);
+
+  assert.deepEqual((out.input as unknown[])[0], {
+    type: "reasoning",
+    summary: [],
+    encrypted_content: "tco_7b-a",
+  });
+});
+
 test("grok-cli transformRequest keeps reasoning content that is present", () => {
   const reasoning = {
     type: "reasoning",
+    id: GROK_ID,
     summary: [],
     content: [{ type: "reasoning_text", text: "step" }],
     encrypted_content: ENCRYPTED,
