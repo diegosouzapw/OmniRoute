@@ -100,6 +100,22 @@ test("Claude Opus 5.5 has native 1M context and always-on adaptive thinking", ()
   assert.equal(supportsClaudeMaxEffort(MODEL_ID), true);
 });
 
+test("Claude Opus 5.5 defaults reasoning effort to medium without overriding the client", async () => {
+  const { applyDefaultReasoningEffort } =
+    await import("../../open-sse/services/defaultReasoningEffort.ts");
+  assert.equal(getModelSpec(MODEL_ID)?.defaultReasoningEffort, "medium");
+
+  const bare: Record<string, unknown> = { model: MODEL_ID, messages: [] };
+  assert.equal(applyDefaultReasoningEffort(bare, MODEL_ID).reasoning_effort, "medium");
+
+  const chosen: Record<string, unknown> = {
+    model: MODEL_ID,
+    messages: [],
+    reasoning_effort: "max",
+  };
+  assert.equal(applyDefaultReasoningEffort(chosen, MODEL_ID).reasoning_effort, "max");
+});
+
 test("Claude Opus 5.5 strips unsupported sampling parameters", () => {
   for (const [providerId, modelId] of [
     ["anthropic", MODEL_ID],
