@@ -120,6 +120,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     });
   }
 
+  // #14092: the filtered body is re-serialized and much smaller than the full
+  // catalog — forwarding the upstream headers verbatim keeps a stale
+  // `content-length`, so the body never completes on the wire. Strip
+  // length-describing headers and let the runtime recompute them.
+  const headers = new Headers(response.headers);
+  headers.delete("content-length");
+  headers.delete("transfer-encoding");
   return Response.json(
     {
       object: payload.object || "list",
@@ -127,7 +134,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     },
     {
       status: response.status,
-      headers: response.headers,
+      headers,
     }
   );
 }

@@ -1,0 +1,1 @@
+- **fix(api):** strip length-describing headers when re-serializing filtered provider models — the stale upstream `content-length` kept the body from ever completing ([#14092](https://github.com/diegosouzapw/OmniRoute/issues/14092))
