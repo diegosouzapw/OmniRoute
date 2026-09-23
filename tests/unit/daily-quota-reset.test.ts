@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  calendarWeekWindowMs,
   isValidIanaTimeZone,
   isValidResetHour,
   nodeDailyResetConfigured,
@@ -47,8 +48,37 @@ test("nextDailyResetAtMs at exact reset instant returns the following cycle", ()
 });
 
 test("parseTpdLimitFromText reads limit: from live body", () => {
-  const body =
-    "request reached organization TPD rate limit, current: 1537190, limit: 1500000";
+  const body = "request reached organization TPD rate limit, current: 1537190, limit: 1500000";
   assert.equal(parseTpdLimitFromText(body), 1_500_000);
   assert.equal(parseTpdLimitFromText("no numbers"), null);
+});
+
+test("calendarWeekWindowMs: Monday 00:00 local, across the UTC day boundary", () => {
+  const iso = (w: { startMs: number; resetMs: number }) => [
+    new Date(w.startMs).toISOString(),
+    new Date(w.resetMs).toISOString(),
+  ];
+  // Sunday 23:59 in Shanghai is still the previous week.
+  assert.deepEqual(iso(calendarWeekWindowMs("Asia/Shanghai", Date.parse("2026-09-20T15:59:00Z"))), [
+    "2026-09-13T16:00:00.000Z",
+    "2026-09-20T16:00:00.000Z",
+  ]);
+  // Monday 00:00 in Shanghai (Sunday 16:00 UTC) starts the new week.
+  assert.deepEqual(iso(calendarWeekWindowMs("Asia/Shanghai", Date.parse("2026-09-20T16:00:00Z"))), [
+    "2026-09-20T16:00:00.000Z",
+    "2026-09-27T16:00:00.000Z",
+  ]);
+  // Same instant in UTC is still Sunday, so the week started a week earlier.
+  assert.deepEqual(iso(calendarWeekWindowMs("UTC", Date.parse("2026-09-20T16:00:00Z"))), [
+    "2026-09-14T00:00:00.000Z",
+    "2026-09-21T00:00:00.000Z",
+  ]);
+});
+
+test("calendarWeekWindowMs follows DST: the spring-forward week is 167 hours", () => {
+  // US DST starts Sunday 2026-03-08; Monday 03-02 is EST (-5), Monday 03-09 is EDT (-4).
+  const week = calendarWeekWindowMs("America/New_York", Date.parse("2026-03-06T12:00:00Z"));
+  assert.equal(new Date(week.startMs).toISOString(), "2026-03-02T05:00:00.000Z");
+  assert.equal(new Date(week.resetMs).toISOString(), "2026-03-09T04:00:00.000Z");
+  assert.equal((week.resetMs - week.startMs) / 3_600_000, 167);
 });

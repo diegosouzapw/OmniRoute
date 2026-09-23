@@ -167,6 +167,33 @@ export function nextDailyResetAtMs(timezone: string, hour: number, nowMs: number
   return next;
 }
 
+/**
+ * Local calendar week (Monday 00:00 → next Monday 00:00) in `timezone` that
+ * contains `nowMs`. Both edges go through the same DST-aware wall-clock
+ * conversion, so a week that crosses a DST change is 167 h or 169 h long.
+ */
+export function calendarWeekWindowMs(
+  timezone: string,
+  nowMs: number
+): { startMs: number; resetMs: number } {
+  const now = zonedParts(nowMs, timezone);
+  const weekday = new Date(Date.UTC(now.year, now.month - 1, now.day)).getUTCDay();
+  const daysSinceMonday = (weekday + 6) % 7;
+  const toUtc = (dayOffset: number) => {
+    const date = new Date(Date.UTC(now.year, now.month - 1, now.day + dayOffset));
+    return zonedLocalToUtc(
+      date.getUTCFullYear(),
+      date.getUTCMonth() + 1,
+      date.getUTCDate(),
+      0,
+      0,
+      0,
+      timezone
+    );
+  };
+  return { startMs: toUtc(-daysSinceMonday), resetMs: toUtc(7 - daysSinceMonday) };
+}
+
 export function parseTpdLimitFromText(text: string): number | null {
   const m = /limit:\s*(\d+)/i.exec(text);
   if (!m) return null;
