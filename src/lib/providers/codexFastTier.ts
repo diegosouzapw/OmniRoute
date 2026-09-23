@@ -14,6 +14,8 @@ export type CodexFastTierValue = CodexServiceTier;
 export type CodexGlobalServiceMode = "none" | CodexServiceTier;
 
 export const CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS: readonly string[] = [
+  "gpt-6-sol",
+  "gpt-6-luna",
   "gpt-5.6-sol",
   "gpt-5.6-terra",
   "gpt-5.6-luna",

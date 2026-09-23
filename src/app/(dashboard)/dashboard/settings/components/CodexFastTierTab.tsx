@@ -13,12 +13,7 @@ type TierValue = "default" | "priority" | "flex";
 // Fast-eligible Codex models per OpenAI ~/.codex/models_cache.json (service_tiers: priority).
 // Other future Fast-eligible slugs can be added here without code changes once the user
 // opts them in via the checkbox UI.
-const CODEX_FAST_TIER_CATALOG: readonly string[] = [
-  "gpt-5.6-sol",
-  "gpt-5.6-terra",
-  "gpt-5.6-luna",
-  "gpt-5.5",
-];
+const CODEX_FAST_TIER_CATALOG: readonly string[] = CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS;
 
 export default function CodexFastTierTab() {
   const [enabled, setEnabled] = useState(false);

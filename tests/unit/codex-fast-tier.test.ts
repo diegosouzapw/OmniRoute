@@ -41,7 +41,14 @@ test("Codex global service mode distinguishes no setting from explicit tiers", (
     {
       enabled: true,
       tier: "default",
-      supportedModels: ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5"],
+      supportedModels: [
+        "gpt-6-sol",
+        "gpt-6-luna",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
+        "gpt-5.5",
+      ],
     }
   );
 });

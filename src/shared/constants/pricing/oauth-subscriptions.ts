@@ -4,6 +4,8 @@
  */
 import {
   GPT_6_ASTRA_PRICING,
+  GPT_6_SOL_PRICING,
+  GPT_6_LUNA_PRICING,
   CLAUDE_FABLE_5_1_PRICING,
   CLAUDE_OPUS_5_PRICING,
   GEMINI_3_7_FLASH_PROMO_PRICING,
@@ -93,6 +95,19 @@ export const DEFAULT_PRICING_OAUTH = {
     },
   },
   cx: {
+    "gpt-6-sol": GPT_6_SOL_PRICING,
+    "gpt-6-sol-ultra": GPT_6_SOL_PRICING,
+    "gpt-6-sol-max": GPT_6_SOL_PRICING,
+    "gpt-6-sol-xhigh": GPT_6_SOL_PRICING,
+    "gpt-6-sol-high": GPT_6_SOL_PRICING,
+    "gpt-6-sol-medium": GPT_6_SOL_PRICING,
+    "gpt-6-sol-low": GPT_6_SOL_PRICING,
+    "gpt-6-luna": GPT_6_LUNA_PRICING,
+    "gpt-6-luna-max": GPT_6_LUNA_PRICING,
+    "gpt-6-luna-xhigh": GPT_6_LUNA_PRICING,
+    "gpt-6-luna-high": GPT_6_LUNA_PRICING,
+    "gpt-6-luna-medium": GPT_6_LUNA_PRICING,
+    "gpt-6-luna-low": GPT_6_LUNA_PRICING,
     "gpt-6-astra": GPT_6_ASTRA_CODEX_PRICING,
     "gpt-6-astra-ultra": GPT_6_ASTRA_CODEX_PRICING,
     "gpt-6-astra-max": GPT_6_ASTRA_CODEX_PRICING,

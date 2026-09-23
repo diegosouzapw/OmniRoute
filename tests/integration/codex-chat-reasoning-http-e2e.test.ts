@@ -19,6 +19,7 @@ process.env.OMNIROUTE_LOG_REQUEST_SHAPE = "0";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
 const chatRoute = await import("../../src/app/api/v1/chat/completions/route.ts");
 
 const originalFetch = globalThis.fetch;
@@ -301,6 +302,28 @@ test("chat completions streams Codex Responses reasoning through real route HTTP
     assert(!raw.includes("response.reasoning_summary_text.delta"), raw);
     assert(!raw.includes('"type":"error"'), raw);
     assert(!raw.includes('"error"'), raw);
+
+    // Exercise the reported chat/completions paths, including a combo whose
+    // display name overlaps the existing GPT-5.6 Luna model ID.
+    await combosDb.createCombo({
+      name: "gpt-5.6-luna",
+      strategy: "priority",
+      models: ["codex/gpt-6-luna"],
+    });
+    for (const requestedModel of ["codex/gpt-6-luna", "gpt-5.6-luna"]) {
+      const routed = await originalFetch(routeHarness.url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          model: requestedModel,
+          stream: true,
+          messages: [{ role: "user", content: "Reply OK." }],
+        }),
+      });
+      const routedBody = await routed.text();
+      assert.equal(routed.status, 200, `${requestedModel}: ${routedBody}`);
+      assert.equal(recorded.at(-1)?.body.model, "gpt-6-luna", requestedModel);
+    }
   } finally {
     globalThis.fetch = originalFetch;
     if (routeServer) await closeServer(routeServer);

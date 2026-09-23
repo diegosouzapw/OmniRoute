@@ -191,6 +191,21 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
+test("CodexExecutor.buildHeaders uses the token account when a saved workspace is stale", () => {
+  const payload = Buffer.from(
+    JSON.stringify({
+      "https://api.openai.com/auth": { chatgpt_account_id: "selected-account" },
+    })
+  ).toString("base64url");
+  const accessToken = `header.${payload}.signature`;
+  const headers = new CodexExecutor().buildHeaders({
+    accessToken,
+    providerSpecificData: { workspaceId: "different-team-organization" },
+  });
+
+  assert.equal(headers["chatgpt-account-id"], "selected-account");
+});
+
 test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-Agent", async () => {
   const executor = new CodexExecutor();
 

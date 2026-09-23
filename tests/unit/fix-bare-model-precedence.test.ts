@@ -73,6 +73,16 @@ test("bare gpt-5.6-sol resolves to codex (provider native prefix wins)", async (
   assert.equal(info.model, "gpt-5.6-sol");
 });
 
+test("bare GPT-6 Sol and Luna resolve to the active Codex OAuth provider", async () => {
+  await seedActiveCodexConnection();
+  for (const model of ["gpt-6-sol", "gpt-6-luna"]) {
+    assert.equal(CODEX_NATIVE_UNPREFIXED_MODELS.has(model), true, model);
+    const info = await getModelInfoCore(model, null);
+    assert.equal(info.provider, "codex", model);
+    assert.equal(info.model, model);
+  }
+});
+
 test("bare gpt-5.5 resolves to codex", async () => {
   const info = await getModelInfoCore("gpt-5.5", null);
   assert.equal(info.provider, "codex");

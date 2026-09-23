@@ -7,6 +7,7 @@ import { openaiToOpenAIResponsesRequest } from "../../open-sse/translator/reques
 import { getModelSpec } from "../../src/shared/constants/modelSpecs.ts";
 import { getPricingForModel } from "../../src/shared/constants/pricing.ts";
 import { getCodexFastCostMultiplier } from "../../src/lib/usage/costCalculator.ts";
+import { splitCodexReasoningSuffix } from "../../open-sse/executors/codex/reasoningSuffix.ts";
 
 const MODEL = "gpt-6-astra";
 const EFFORTS = ["ultra", "max", "xhigh", "high", "medium", "low"] as const;
@@ -40,6 +41,68 @@ test("Codex exposes Astra and its effort variants with live OAuth limits", () =>
       models.slice(0, ids.length).map((model) => model.id),
       ids
     );
+  }
+});
+
+test("Codex catalogs GPT-6 Sol and Luna with their supported effort aliases", () => {
+  const modelsWithEfforts = [
+    { model: "gpt-6-sol", efforts: ["ultra", "max", "xhigh", "high", "medium", "low"] },
+    { model: "gpt-6-luna", efforts: ["max", "xhigh", "high", "medium", "low"] },
+  ];
+  for (const provider of ["codex", "codex-app-server"]) {
+    const ids = new Set(getModelsByProviderId(provider).map((entry) => entry.id));
+    for (const { model, efforts } of modelsWithEfforts) {
+      for (const id of [model, ...efforts.map((effort) => `${model}-${effort}`)]) {
+        assert.equal(ids.has(id), true, `${provider}/${id}`);
+      }
+    }
+  }
+});
+
+test("GPT-6 Sol and Luna effort aliases send the base Codex model and supported effort", () => {
+  const executor = new CodexExecutor();
+  for (const [model, effort] of [
+    ["gpt-6-sol-ultra", "ultra"],
+    ["gpt-6-sol-max", "max"],
+    ["gpt-6-luna-max", "max"],
+  ]) {
+    const split = splitCodexReasoningSuffix(model);
+    assert.equal(split.effort, effort, model);
+    const result = executor.transformRequest(model, { model, input: [] }, false, {
+      requestEndpointPath: "/responses",
+    });
+    assert.equal(result.model, split.baseModel, model);
+    assert.equal(result.reasoning.effort, effort === "ultra" ? "max" : effort, model);
+  }
+});
+
+test("Chat-to-Codex translation preserves GPT-6 Luna max reasoning", () => {
+  const model = "gpt-6-luna";
+  const translated = openaiToOpenAIResponsesRequest(
+    model,
+    { model, messages: [{ role: "user", content: "test" }], reasoning_effort: "max" },
+    true,
+    {}
+  );
+  const result = new CodexExecutor().transformRequest(model, translated, true, {
+    requestEndpointPath: "/chat/completions",
+  });
+  assert.equal(result.model, model);
+  assert.equal(result.reasoning.effort, "max");
+});
+
+test("GPT-6 Sol and Luna specs, pricing, and Codex Fast rates are available", () => {
+  for (const [model, input, cached, output] of [
+    ["gpt-6-sol", 2, 0.2, 10],
+    ["gpt-6-luna", 0.1, 0.01, 0.5],
+  ] as const) {
+    assert.equal(getModelSpec(model)?.contextWindow, 1050000, model);
+    assert.equal(getModelSpec(model)?.maxOutputTokens, 128000, model);
+    assert.equal(getPricingForModel("openai", model)?.input, input, model);
+    assert.equal(getPricingForModel("cx", model)?.input, input, model);
+    assert.equal(getPricingForModel("cx", model)?.cached, cached, model);
+    assert.equal(getPricingForModel("cx", model)?.output, output, model);
+    assert.equal(getCodexFastCostMultiplier("codex", model, "priority"), 2.5, model);
   }
 });
 
