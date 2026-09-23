@@ -43,8 +43,7 @@ import {
 } from "./subscriptionLadder";
 import {
   classifyStrictZeroCostCandidate,
-  countStrictExclusions,
-  filterStrictZeroCostCandidates,
+  filterStrictZeroCostCandidatesWithDiagnosis,
   filterTosAvoidCandidates,
   findBudgetEntry,
 } from "./strictZeroCostFilter";
@@ -809,12 +808,9 @@ export async function prepareVirtualAutoComboInputs(
       resolveFreeAccessState,
       ...strictZeroCostThresholds,
     };
-    const strictFilteredPool = filterStrictZeroCostCandidates(pool, strictOptions);
-    if (strictFilteredPool !== pool) {
-      const s = countStrictExclusions(pool, strictOptions);
-      warnPoolDrop(log, "STRICT", s.excluded, pool.length, ` (no-hard-stop ${s.noHardStop})`);
-      pool = strictFilteredPool;
-    }
+    const strict = filterStrictZeroCostCandidatesWithDiagnosis(pool, strictOptions);
+    warnPoolDrop(log, "STRICT", strict.diagnosis?.excluded, pool.length, ` (no-hard-stop ${strict.diagnosis?.noHardStop})`);
+    pool = strict.pool;
 
     // Annotate here rather than in the handler: this is where the thresholds and
     // `resolveFreeAccessState` already live. Doing it downstream would mean a second
