@@ -85,6 +85,13 @@ function sanitizeGrokBuildResponsesBody(body: Record<string, unknown>): Record<s
   const nextInput = input.map((item) => {
     if (!item || typeof item !== "object") return item;
     const rec = item as Record<string, unknown>;
+    // Codex CLI replays reasoning items with `content: null`; Grok Build then fails to decode
+    // the (unmodified) encrypted blob. Omitting the key is accepted.
+    if (rec.type === "reasoning" && rec.content === null) {
+      changed = true;
+      const { content: _content, ...rest } = rec;
+      return rest;
+    }
     if (rec.type !== "function_call_output") return item;
     const sanitized = sanitizeGrokBuildFunctionCallOutput(rec.output);
     if (sanitized === rec.output) return item;
@@ -313,7 +320,8 @@ export class GrokCliExecutor extends BaseExecutor {
       transformed.tools = transformed.tools.slice(0, GROK_BUILD_MAX_TOOLS);
     }
 
-    // Repair tool-result payloads that would fail Grok's strict JSON body parser (#7611).
+    // Repair tool-result payloads that would fail Grok's strict JSON body parser (#7611)
+    // and drop null reasoning content Grok cannot decode.
     return sanitizeGrokBuildResponsesBody(transformed);
   }
 }
