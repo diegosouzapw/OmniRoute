@@ -16,7 +16,16 @@ import {
   GROK_BUILD_TOKEN_URL,
 } from "../config/grokBuild.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
-import { BaseExecutor, type ExecutorLog, type ProviderCredentials } from "./base.ts";
+import {
+  BaseExecutor,
+  type ExecuteInput,
+  type ExecutorLog,
+  type ProviderCredentials,
+} from "./base.ts";
+import {
+  flattenGrokBuildNamespaceTools,
+  restoreGrokBuildNamespaceToolCalls,
+} from "./grokCliNamespaceTools.ts";
 
 const GROK_BUILD_MAX_TOOLS = 200;
 const GROK_BUILD_REASONING_EFFORT_SET = new Set(GROK_BUILD_SUPPORTED_REASONING_EFFORTS);
@@ -214,6 +223,26 @@ export class GrokCliExecutor extends BaseExecutor {
     _credentials: ProviderCredentials | null = null
   ) {
     return GROK_BUILD_RESPONSES_URL;
+  }
+
+  async execute(input: ExecuteInput) {
+    // Grok Build rejects Responses `namespace` tool groups (Codex CLI MCP tools).
+    const { body, identityMap } = flattenGrokBuildNamespaceTools(input.body);
+    const tools = (body as { tools?: unknown } | null)?.tools;
+    if (identityMap && Array.isArray(tools) && tools.length > GROK_BUILD_MAX_TOOLS) {
+      input.log?.warn?.(
+        "GROK_CLI",
+        `Flattened namespace tools exceed the Grok Build limit: sending ${GROK_BUILD_MAX_TOOLS} ` +
+          `of ${tools.length} tools`
+      );
+    }
+    const result = await super.execute(body === input.body ? input : { ...input, body });
+    if (!identityMap) return result;
+    if (result instanceof Response) return restoreGrokBuildNamespaceToolCalls(result, identityMap);
+    return {
+      ...result,
+      response: await restoreGrokBuildNamespaceToolCalls(result.response, identityMap),
+    };
   }
 
   async refreshCredentials(
