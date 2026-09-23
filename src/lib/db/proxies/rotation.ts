@@ -261,7 +261,7 @@ function pickFromCandidates<T>(
     }
   }
 
-  // Order by crossed short-memory health signals (opt-in, PROXY_SKIP_RECENTLY_FAILED):
+  // Order by crossed short-memory health signals (PROXY_SKIP_RECENTLY_FAILED, default on):
   // stops re-serving at the head a proxy that just failed, without removing anyone.
   // Sticky past its window and every other strategy rank normally; a held sticky
   // member returns above, untouched. The eligible-skip below still applies on the

@@ -618,8 +618,8 @@ export class OpencodeExecutor extends BaseExecutor {
       // model (geo-blocked, or transient 5xx). Request-local only — nothing
       // persists past execute().
       const geoTriedProxyKeys = new Set<string>();
-      // Opt-in (PROXY_SKIP_RECENTLY_FAILED, default off): members the provider just refused
-      // (received refusal or refused TCP probe) are skipped. Off = plain rotation.
+      // (PROXY_SKIP_RECENTLY_FAILED, default on): members the provider just refused
+      // (received refusal or refused TCP probe) are skipped. =false = plain rotation.
       const skipRecentlyFailed = isProxySkipRecentlyFailedEnabled();
       let directTried = false;
       // Stalls before the first Responses byte: one rotation, then fail fast.

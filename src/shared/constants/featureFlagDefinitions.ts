@@ -207,10 +207,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "PROXY_SKIP_RECENTLY_FAILED",
     label: "Skip Recently Failed Proxies",
     description:
-      "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. Off by default: selection order is exactly the plain rotation.",
+      "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. On by default: selection order is exactly the plain rotation only with PROXY_SKIP_RECENTLY_FAILED=false.",
     descriptionI18nKey: "featureFlagProxySkipRecentlyFailedDescription",
     category: "network",
-    defaultValue: "false",
+    defaultValue: "true",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",

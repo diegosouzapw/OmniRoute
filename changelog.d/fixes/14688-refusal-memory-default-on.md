@@ -1,0 +1,1 @@
+- **fix(proxies):** skip recently failed proxies by default, opt out with `PROXY_SKIP_RECENTLY_FAILED=false` ([#14688](https://github.com/diegosouzapw/OmniRoute/pull/14688)) — thanks @maxmad64bis

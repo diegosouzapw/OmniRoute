@@ -123,8 +123,8 @@ describe("OpencodeExecutor proxy refusal memory", () => {
     assert.deepStrictEqual((await run(exec, proxied(), [200])).observed, [port(1)]);
   });
 
-  it("with the flag at its default (off) the refused proxy is tried again in turn", async () => {
-    delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  it("with the flag opted out the refused proxy is tried again in turn", async () => {
+    process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
     const exec = new OpencodeExecutor("opencode-zen");
     await run(exec, proxied(), [429, 200]);
     assert.strictEqual(memory.__proxyRefusalMemorySizeForTesting(), 0);
@@ -147,9 +147,9 @@ describe("OpencodeExecutor proxy refusal memory", () => {
     assert.deepStrictEqual((await run(exec, proxied(), [200])).observed, [port(0)]);
   });
 
-  it("with the flag off a member set aside earlier is not skipped", async () => {
+  it("with the flag opted out a member set aside earlier is not skipped", async () => {
     memory.noteProxyRefusal(keyFor(0), "ip_quota_429");
-    delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+    process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
     const exec = new OpencodeExecutor("opencode-zen");
     assert.deepStrictEqual((await run(exec, proxied(), [200])).observed, [port(0)]);
   });
