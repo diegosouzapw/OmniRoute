@@ -39,7 +39,7 @@ import { isModelImageable } from "omniglyph/applicability";
 /**
  * Teto de modelos do OmniRoute — sempre o escopo mais restrito do pacote.
  *
- * O upstream `omniglyph` resolve o escopo lendo `OMNIGLYPH_PROFILE` do
+ * `isOmniGlyphSupportedModel()` resolve o escopo lendo `OMNIGLYPH_PROFILE` do
  * processo, e a lista base sai de `OMNIGLYPH_MODELS`. Duas variáveis do HOST
  * decidiriam, em silêncio, o gate de todo request do OmniRoute: `passthrough`
  * desligaria a engine inteira e `OMNIGLYPH_MODELS` ADMITIRIA modelos sem

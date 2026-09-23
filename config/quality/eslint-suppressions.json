@@ -131,7 +131,7 @@
   },
   "open-sse/executors/glm.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 2
+      "count": 1
     }
   },
   "open-sse/executors/grok-web/tool-bridge.ts": {
@@ -214,7 +214,7 @@
   },
   "open-sse/handlers/imageGeneration.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 6
+      "count": 5
     }
   },
   "open-sse/handlers/musicGeneration.ts": {
@@ -299,7 +299,7 @@
       "count": 3
     },
     "@typescript-eslint/no-unused-vars": {
-      "count": 2
+      "count": 1
     },
     "no-restricted-syntax": {
       "count": 1
@@ -449,11 +449,6 @@
       "count": 1
     }
   },
-  "open-sse/services/combo.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/combo/providerWildcard.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -505,11 +500,6 @@
   "open-sse/services/compression/stats.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
-    }
-  },
-  "open-sse/services/conversationTracker.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "open-sse/services/credentialGate.ts": {
