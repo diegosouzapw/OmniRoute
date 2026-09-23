@@ -60,6 +60,7 @@ import { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
 import {
   CODEX_EFFORT_ORDER as EFFORT_ORDER,
   CODEX_ULTRA_ALIAS_MODELS,
+  getCodexAliasEffortCap,
   splitCodexReasoningSuffix,
   type CodexEffortLevel as EffortLevel,
 } from "./codex/reasoningSuffix.ts";
@@ -329,12 +330,11 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
   return normalized;
 }
 
-/** Maximum reasoning effort per Codex model; unlisted models keep the xhigh cap. */
+/**
+ * Maximum reasoning effort per Codex model. Max/ultra-tier models come from the alias
+ * sets in reasoningSuffix.ts; everything else unlisted keeps the xhigh cap.
+ */
 const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
-  "gpt-6-astra": "ultra",
-  "gpt-5.6-sol": "ultra",
-  "gpt-5.6-terra": "ultra",
-  "gpt-5.6-luna": "max",
   "gpt-5.3-codex": "xhigh",
   "gpt-5.1-codex-max": "xhigh",
   "gpt-5-mini": "high",
@@ -347,7 +347,7 @@ const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
  * Returns the original value if within limits, or the cap if it exceeds it.
  */
 function clampEffort(model: string, requested: string): string {
-  const max: EffortLevel = MAX_EFFORT_BY_MODEL[model] ?? "xhigh";
+  const max: EffortLevel = MAX_EFFORT_BY_MODEL[model] ?? getCodexAliasEffortCap(model) ?? "xhigh";
   const reqIdx = EFFORT_ORDER.indexOf(requested as EffortLevel);
   const maxIdx = EFFORT_ORDER.indexOf(max);
   if (reqIdx > maxIdx) {
