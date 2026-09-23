@@ -33,6 +33,9 @@ const GROK_BUILD_UNSUPPORTED_PARAMS = [
   "top_logprobs",
   "reasoning_effort",
 ];
+// OpenAI-only `web_search` tool arguments that Grok Build rejects with
+// `400 Argument not supported: <name>`. Codex CLI sends `external_web_access` on every turn.
+const GROK_BUILD_UNSUPPORTED_WEB_SEARCH_ARGS = ["external_web_access", "search_context_size"];
 
 /**
  * Grok Build's cli-chat-proxy is stricter about Responses `function_call_output.output`
@@ -148,6 +151,21 @@ function stripUnsupportedGrokBuildParams(request: Record<string, unknown>): void
   for (const param of GROK_BUILD_UNSUPPORTED_PARAMS) {
     delete request[param];
   }
+}
+
+function stripUnsupportedGrokBuildWebSearchArgs(tools: unknown[]): unknown[] {
+  return tools.map((tool) => {
+    if (!tool || typeof tool !== "object") return tool;
+    const rec = tool as Record<string, unknown>;
+    // Exact match on purpose: only the Responses `web_search` shape carries these args.
+    if (rec.type !== "web_search") return tool;
+    if (!GROK_BUILD_UNSUPPORTED_WEB_SEARCH_ARGS.some((arg) => arg in rec)) return tool;
+    const next = { ...rec };
+    for (const arg of GROK_BUILD_UNSUPPORTED_WEB_SEARCH_ARGS) {
+      delete next[arg];
+    }
+    return next;
+  });
 }
 
 async function refreshGrokBuildCredentialsOnce(
@@ -306,6 +324,10 @@ export class GrokCliExecutor extends BaseExecutor {
       transformed.reasoning = reasoning;
     } else {
       delete transformed.reasoning;
+    }
+
+    if (Array.isArray(transformed.tools)) {
+      transformed.tools = stripUnsupportedGrokBuildWebSearchArgs(transformed.tools);
     }
 
     // xAI's cli-chat-proxy rejects requests containing more than 200 tools.
