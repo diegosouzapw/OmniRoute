@@ -67,6 +67,27 @@ export function isPidRunning(pid) {
 // healthy running one (supervisor/.pid left pointing at the dead starter,
 // server/.pid deleted outright).
 //
+// Bind-probe fallback for hosts without lsof/netstat (#14518): ask the kernel
+// directly whether the port answers. Returns true when something is listening,
+// false when the bind succeeds, and false on EACCES-style probe errors that do
+// not indicate an existing listener (probe on loopback, IPv4-first).
+export async function isPortInUse(port, deps = {}) {
+  const net = deps.netModule || (await import("node:net")).default;
+  return new Promise((resolve) => {
+    const probe = net.createServer();
+    probe.once("error", (err) => {
+      // EADDRINUSE = someone owns it. Anything else (EACCES, EADDRNOTAVAIL on
+      // odd loopback configs) must NOT read as busy — a false "busy" blocks a
+      // legitimate start, the worse failure of the two.
+      resolve(err.code === "EADDRINUSE");
+    });
+    probe.once("listening", () => {
+      probe.close(() => resolve(false));
+    });
+    probe.listen(port, "127.0.0.1");
+  });
+}
+
 // Discovery mirrors killByPort() in bin/cli/commands/stop.mjs (netstat on
 // win32, lsof elsewhere); the two are worth consolidating next time stop.mjs
 // is touched.

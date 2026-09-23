@@ -9,6 +9,7 @@ import {
   cleanupPidFile,
   waitForServer,
   findListeningPids,
+  isPortInUse,
   resolveReadyTimeoutMs,
 } from "../utils/pid.mjs";
 import {
@@ -246,7 +247,13 @@ export async function runServe(opts = {}) {
   // doomed child's EADDRINUSE arrives only after this process has rewritten
   // the pid files of the healthy instance that actually owns the port.
   const busyPids = await findListeningPids(dashboardPort);
-  if (busyPids.length > 0) {
+  // #14518: on hosts without lsof/netstat (Termux, slim images) the PID lookup
+  // cannot distinguish "no listener" from "no tool" and reports both as free.
+  // When it comes back empty, ask the kernel directly with a bind probe before
+  // declaring the port free — the EADDRINUSE crash loop this guard exists to
+  // prevent must not depend on an external binary being installed.
+  const busy = busyPids.length > 0 || (await isPortInUse(dashboardPort));
+  if (busy) {
     reportPortInUse(dashboardPort, busyPids);
     process.exit(1);
   }
@@ -334,7 +341,10 @@ export async function runServe(opts = {}) {
  * and the two ways out. Exported for unit tests.
  */
 export function reportPortInUse(port, pids = []) {
-  const owner = pids.length === 1 ? `PID ${pids[0]}` : `PIDs ${pids.join(", ")}`;
+  // #14518: with no lsof/netstat the owner PIDs may be unresolvable while the
+  // port is still provably busy (bind probe) — say so instead of printing a
+  // broken "in use by PIDs " line.
+  const owner = pids.length === 1 ? `PID ${pids[0]}` : pids.length > 1 ? `PIDs ${pids.join(", ")}` : `something this host cannot identify (no lsof/netstat)`;
   console.error(`\n\x1b[31m✖ Port ${port} is already in use by ${owner}.\x1b[0m`);
   console.error(
     `  Another OmniRoute is most likely already serving there, so open` +
