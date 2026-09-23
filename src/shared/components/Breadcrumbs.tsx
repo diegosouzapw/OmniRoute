@@ -11,6 +11,7 @@
  *   <Breadcrumbs />
  */
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -122,7 +123,12 @@ function getLabel(segment, t) {
 export default function Breadcrumbs() {
   const pathname = usePathname();
   const t = useTranslations("breadcrumbs");
-  if (!pathname || pathname === "/dashboard") return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  if (!mounted || !pathname || pathname === "/dashboard") return null;
 
   const segments = pathname.split("/").filter(Boolean);
   const crumbs = segments.map((seg, idx) => ({
