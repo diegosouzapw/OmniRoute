@@ -1,0 +1,1 @@
+- **fix(mitm):** honor socket backpressure in `pipeSSE` (wait for `drain`, raced against `close`) and slice the `server.cjs` capture append so one oversized chunk can't overshoot `INGEST_MAX_BODY` ([#14528](https://github.com/diegosouzapw/OmniRoute/issues/14528))

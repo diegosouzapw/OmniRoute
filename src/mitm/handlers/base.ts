@@ -242,7 +242,28 @@ export abstract class MitmHandlerBase {
           }
         }
         if (downstreamClosed || res.closed || res.destroyed) break;
-        res.write(buf);
+        // #14528: honor socket backpressure — a slow downstream + fast upstream
+        // otherwise buffers unbounded in the socket write queue. The waiter
+        // self-cleans both listeners so repeated backpressure can't leak them.
+        if (!res.write(buf)) {
+          await new Promise<void>((resolve) => {
+            const cleanup = () => {
+              res.off("drain", onDrain);
+              res.off("close", onClosed);
+            };
+            const onDrain = () => {
+              cleanup();
+              resolve();
+            };
+            const onClosed = () => {
+              cleanup();
+              resolve();
+            };
+            res.once("drain", onDrain);
+            res.once("close", onClosed);
+          });
+          if (downstreamClosed || res.closed || res.destroyed) break;
+        }
       }
     } finally {
       res.off("close", onClose);
