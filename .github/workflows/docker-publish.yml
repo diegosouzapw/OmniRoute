@@ -14,6 +14,10 @@ on:
   # release publication (and pre-release → release transition).
   release:
     types: [released]
+  # #14560: nightly re-run exists only to drive the omni-build runner alert below
+  # (open/close the tracking issue). Publish jobs skip themselves on this event.
+  schedule:
+    - cron: "41 4 * * *"
   workflow_dispatch:
     inputs:
       version:
@@ -42,6 +46,7 @@ permissions:
 jobs:
   prepare:
     name: Resolve Docker release metadata
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -122,10 +127,39 @@ jobs:
 
           echo "Publishing diegosouzapw/omniroute:$VERSION (promote_latest=$PROMOTE, skip=$SKIP)"
 
+  # #14560: when USE_VPS_RUNNER is on, the amd64 leg can ONLY run on the single
+  # `omni-build` self-hosted listener. If that box is offline, GitHub queues the
+  # job forever — no error, no timeout (timeout-minutes only starts once a
+  # runner picks the job up, so it cannot bound queue time) — and the publish
+  # silently stalls until a human cancels the run. This preflight turns that
+  # silent queue into a red run within minutes, with the verdict in the job name.
+  runner-preflight:
+    name: Preflight — amd64 runner availability
+    needs: prepare
+    if: github.event_name != 'schedule' && needs.prepare.outputs.skip != 'true' && vars.USE_VPS_RUNNER == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check an online runner carries the omni-build label
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ONLINE=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runners" \
+            --paginate --jq '[.runners[] | select(.status == "online") | select(any(.labels[]; .name == "omni-build"))] | length')
+          echo "online omni-build runners: ${ONLINE}"
+          if [ "${ONLINE}" -eq 0 ]; then
+            echo "::error::No ONLINE runner carries the omni-build label. The amd64 build would queue forever (silent publish stall, #14560)."
+            echo "Check the self-hosted runner pool, or set USE_VPS_RUNNER=false to fall back to hosted (note: hosted ~7GB dies ResourceExhausted on this build, #11976)."
+            exit 1
+          fi
+
   build:
     name: Build Docker (${{ matrix.platform }})
-    needs: prepare
-    if: needs.prepare.outputs.skip != 'true'
+    needs: [prepare, runner-preflight]
+    if: github.event_name != 'schedule' && needs.prepare.outputs.skip != 'true'
     # amd64: the .113 omni-build pool (31 GB / 32 cores, ONE listener since
     # #12048). Hosted ubuntu-24.04 is ~7 GB and dies ResourceExhausted (#11976).
     # Falls back to hosted when USE_VPS_RUNNER is off. arm64: no ARM box — stay
@@ -143,6 +177,12 @@ jobs:
     concurrency:
       group: ${{ matrix.arch == 'amd64' && 'heavy-build-main' || format('docker-publish-arm-{0}', github.ref) }}
       cancel-in-progress: ${{ matrix.arch != 'amd64' }}
+    # Backstop for a hung BUILD step only — it cannot and must not bound the
+    # queue wait (that is runner-preflight's job): the clock starts when a
+    # runner accepts the job. 350 min = the ~2h50m observed webpack build plus
+    # headroom, so a wedged Docker/BuildKit step fails loudly instead of
+    # holding the single omni-build slot until someone notices.
+    timeout-minutes: 350
     permissions:
       contents: read
       packages: write
@@ -346,7 +386,7 @@ jobs:
     needs:
       - prepare
       - build
-    if: needs.prepare.outputs.skip != 'true'
+    if: github.event_name != 'schedule' && needs.prepare.outputs.skip != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -600,3 +640,56 @@ jobs:
           repository: diegosouzapw/omniroute
           short-description: "OmniRoute — Unified AI proxy. Route any LLM through one endpoint."
           readme-filepath: ./README.md
+
+  # #14560: alert when the only omni-build runner goes offline. Mirrors the
+  # nightly-release-green issue loop: open a deduplicated tracking issue when
+  # no online runner carries the label, comment with fresh evidence while it
+  # persists, and auto-close it when the pool recovers. Without this, an
+  # offline box is only discovered the next time a publish silently stalls.
+  runner-alert:
+    name: omni-build runner offline alert
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Open/update/close the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TITLE="Docker publish runner offline: no online omni-build runner"
+          ONLINE=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runners" \
+            --paginate --jq '[.runners[] | select(.status == "online") | select(any(.labels[]; .name == "omni-build"))] | length')
+          echo "online omni-build runners: ${ONLINE}"
+
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title ${TITLE}" --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ "${ONLINE}" -eq 0 ]; then
+            {
+              echo "No **online** runner carries the \`omni-build\` label (\`GET /repos/{owner}/{repo}/actions/runners\`)."
+              echo ""
+              echo "While this persists, every Docker publish with \`USE_VPS_RUNNER=true\` queues the amd64 build forever - the silent stall from #14560 (the runner-preflight job turns it into a red run at publish time; this issue is the standing signal between publishes)."
+              echo ""
+              echo "**Checked:** ${RUN_URL} at \`$(date -u +%Y-%m-%dT%H:%M:%SZ)\`"
+              echo ""
+              echo "_Auto-managed by the Publish to Docker Hub schedule - closes itself when a runner comes back online._"
+            } > issue-body.md
+            if [ -n "$EXISTING" ]; then
+              gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file issue-body.md
+              echo "Updated existing issue #$EXISTING"
+            else
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file issue-body.md
+              echo "Created tracking issue"
+            fi
+          elif [ -n "$EXISTING" ]; then
+            gh issue close "$EXISTING" --repo "$GITHUB_REPOSITORY" --reason completed \
+              --comment "OK: ${ONLINE} online \`omni-build\` runner(s) - pool recovered. Auto-closed."
+            echo "Closed issue #$EXISTING"
+          else
+            echo "Pool healthy (${ONLINE} online), nothing to do"
+          fi
