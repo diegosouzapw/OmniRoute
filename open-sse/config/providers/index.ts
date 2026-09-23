@@ -1,4 +1,5 @@
 import type { RegistryEntry } from "./shared.ts";
+import { museCodeSubscriptionProvider } from "./registry/muse-code-subscription/index.ts";
 import { unorouterProvider } from "./registry/unorouter/index.ts";
 
 import { aimlapiProvider } from "./registry/aimlapi/index.ts";
@@ -278,6 +279,7 @@ import { logfareProvider } from "./registry/logfare/index.ts";
 import { seekaiProvider } from "./registry/seekai/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
+  "muse-code-subscription": museCodeSubscriptionProvider,
   aimlapi: aimlapiProvider,
   "mlx-gemma": mlxGemmaProvider,
   "mlx-qwen": mlxQwenProvider,

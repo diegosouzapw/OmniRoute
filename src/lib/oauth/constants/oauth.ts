@@ -36,6 +36,11 @@ import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitla
  * header profile module so OAuth, usage fetchers and executors stay aligned.
  */
 
+// Muse Code subscription login (public device-flow client, no client secret).
+export const MUSE_CODE_SUBSCRIPTION_CONFIG = {
+  clientId: resolvePublicCred("muse_code_id"),
+};
+
 // Claude OAuth Configuration (Authorization Code Flow with PKCE)
 export const CLAUDE_CONFIG = {
   clientId: resolvePublicCred("claude_id", "CLAUDE_OAUTH_CLIENT_ID"),

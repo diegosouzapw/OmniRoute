@@ -125,6 +125,8 @@ export function decodePublicCredBytes(bytes: readonly number[]): string {
  * Or use the helper below `embeddedBytesFor()`.
  */
 const EMBEDDED_DEFAULTS = {
+  // Muse Code CLI — Meta public OAuth device-flow client identifier.
+  muse_code_id: [94, 93, 93, 88, 68, 93, 64, 77, 80, 31, 71, 65, 90, 85, 93, 85],
   // Gemini / Code Assist — google oauth client (public, PKCE)
   gemini_id: [
     89, 85, 95, 91, 71, 90, 77, 68, 92, 30, 73, 64, 79, 3, 6, 91, 75, 2, 3, 0, 29, 28, 13, 0, 1, 5,

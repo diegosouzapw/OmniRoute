@@ -5,6 +5,22 @@
 import { GITLAB_DUO_OAUTH_SETUP_MESSAGE } from "@/shared/constants/gitlabDuoSetupMessage";
 
 export const OAUTH_PROVIDERS = {
+  "muse-code-subscription": {
+    id: "muse-code-subscription",
+    serviceKinds: ["llm"],
+    alias: "mcs",
+    name: "Muse Code Subscription (experimental)",
+    icon: "code",
+    color: "#0866FF",
+    textIcon: "MCS",
+    website: "https://dev.meta.ai/products/muse-code",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Unofficial device-login integration. Requires an active Muse Code subscription. " +
+      "Meta documents this credential for Muse Code only. Generic API keys are billed " +
+      "separately and are not accepted here. Contributor models have different data terms.",
+  },
   "ghe-copilot": {
     id: "ghe-copilot",
     serviceKinds: ["llm"],

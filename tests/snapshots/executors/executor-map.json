@@ -430,6 +430,11 @@
       "configSource": "maxai",
       "provider": "maxai"
     },
+    "mcs": {
+      "className": "MuseCodeSubscriptionExecutor",
+      "configSource": "muse-code-subscription",
+      "provider": "muse-code-subscription"
+    },
     "moonshot": {
       "className": "MoonshotExecutor",
       "configSource": "moonshot",
@@ -439,6 +444,11 @@
       "className": "MuseSparkWebExecutor",
       "configSource": "<custom-config>",
       "provider": "muse-spark-web"
+    },
+    "muse-code-subscription": {
+      "className": "MuseCodeSubscriptionExecutor",
+      "configSource": "muse-code-subscription",
+      "provider": "muse-code-subscription"
     },
     "muse-spark-web": {
       "className": "MuseSparkWebExecutor",
@@ -666,6 +676,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 133,
+  "keyCount": 135,
   "sharedInstances": []
 }

@@ -63,6 +63,7 @@ const BROWSER_DEVICE_FLOW_PROVIDERS = new Set(["codex"]);
 
 /** Device Code providers whose token grant does not use a PKCE verifier. */
 const NO_PKCE_DEVICE_CODE_PROVIDERS = new Set([
+  "muse-code-subscription",
   "github",
   "kimi-coding",
   "kilocode",

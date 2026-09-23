@@ -41,6 +41,7 @@ const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "xai-oauth", "grok-cli"
 // down. See the grokBrowserMode state and handleDeviceCodeMode/handleBrowserMode
 // below for how the method choice is threaded into startOAuthFlow.
 const DEVICE_CODE_PROVIDERS = new Set([
+  "muse-code-subscription",
   "github",
   "kiro",
   "amazon-q",
