@@ -560,11 +560,11 @@ export function getPersistedConnectionCooldownSkipReason(
   connection: Record<string, unknown> | null | undefined,
   allowRateLimitedConnection = false
 ): string | null {
-  if (allowRateLimitedConnection) return null;
   if (!target.connectionId || !connection) return null;
   if (hasFutureRateLimitUntil(connection.rateLimitedUntil)) {
     return `Skipping ${target.modelStr} — connection ${target.connectionId} has persisted cooldown until ${String(connection.rateLimitedUntil)}`;
   }
+  if (allowRateLimitedConnection) return null;
   const status = normalizeConnectionStatus(connection.testStatus);
   if (QUOTA_BLOCKING_CONNECTION_STATUSES.has(status)) {
     return `Skipping ${target.modelStr} — connection ${target.connectionId} status=${status}`;
@@ -615,7 +615,6 @@ export async function resolvePersistedConnectionCooldownSkipReason(
   fetchConnection: (id: string) => Promise<Record<string, unknown> | null | undefined>,
   allowRateLimitedConnection = false
 ): Promise<string | null> {
-  if (allowRateLimitedConnection) return null;
   if (!target.connectionId) return null;
   let connection: Record<string, unknown> | null | undefined;
   try {
