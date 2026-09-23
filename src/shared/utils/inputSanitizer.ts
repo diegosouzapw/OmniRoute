@@ -214,6 +214,17 @@ function extractMessageContents(body) {
       else if (d && typeof d.text === "string") contents.push(d.text);
     }
 
+  // System One (/v1/systemone) carries user text in `state` (string or JSON)
+  // and in each question's `instructions`; without these the guard scans nothing.
+  if (body.state !== undefined && body.questions && typeof body.questions === "object") {
+    contents.push(typeof body.state === "string" ? body.state : JSON.stringify(body.state));
+    for (const q of Object.values(body.questions as Record<string, { instructions?: unknown }>)) {
+      const instructions = q?.instructions;
+      if (typeof instructions === "string") contents.push(instructions);
+      else if (instructions !== undefined) contents.push(JSON.stringify(instructions));
+    }
+  }
+
   return contents;
 }
 

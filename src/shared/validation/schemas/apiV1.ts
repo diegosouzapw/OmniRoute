@@ -514,6 +514,15 @@ export const v1ClassifySchema = z
   })
   .catchall(z.unknown());
 
+// POST /v1/systemone — System One models (TypeSafe Jev) via OpenRouter.
+export const v1SystemOneSchema = z
+  .object({
+    model: modelIdSchema,
+    state: z.union([nonEmptyStringSchema, z.record(z.string(), z.unknown()), z.array(z.unknown())]),
+    questions: z.record(z.string(), z.unknown()),
+  })
+  .catchall(z.unknown());
+
 // POST /v1/segment — Jina segmenter (segment.jina.ai).
 export const v1SegmentSchema = z
   .object({

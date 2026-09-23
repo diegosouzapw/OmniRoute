@@ -53,6 +53,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/v1/search/route.ts": 2,
     "src/app/api/v1/segment/route.ts": 1,
     "src/app/api/v1/session-leases/route.ts": 1,
+    "src/app/api/v1/systemone/route.ts": 1,
     "src/app/api/v1/videos/generations/route.ts": 2,
     "src/app/api/v1/web/fetch/route.ts": 1,
     // #11088/#11271: third site is the synced local-endpoint route — it resolves
