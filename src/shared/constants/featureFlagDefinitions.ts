@@ -216,6 +216,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "PROXY_POOL_SHARED_EGRESS_ORDER",
+    label: "Shared Egress Pool Order",
+    description:
+      "For providers whose quota is bucketed by egress address, rank a pool member sharing a recently refused member's observed egress address just below healthy members. Order only, never excluded. Needs PROXY_SKIP_RECENTLY_FAILED, which produces the refusal signal it reads. Off by default: selection order is exactly the plain rotation.",
+    descriptionI18nKey: "featureFlagProxyPoolSharedEgressOrderDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "ROTATION_ATTRIBUTION",
     label: "Rotation Attribution Logging",
     description:

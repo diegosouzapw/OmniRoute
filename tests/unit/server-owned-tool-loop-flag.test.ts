@@ -70,7 +70,9 @@ describe("feature-flags-settings count update", () => {
   it("flag count matches updated expected value", () => {
     // 893fef9c added OPENCODE_PARK_AND_RESUME (74 -> 75); FLUSH_EMPTY_RETRY_ENABLED
     // (flush empty-turn retry, default off) bumps it to 76.
-    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 76);
+    // PROXY_POOL_SHARED_EGRESS_ORDER (this PR) bumps it to 78 with the
+    // sibling ROTATION_ATTRIBUTION flag already on this branch's base.
+    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 78);
   });
 });
 
