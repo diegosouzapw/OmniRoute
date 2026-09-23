@@ -15,6 +15,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   ChatAdmissionController,
+  releaseChatAdmissionAfterHandler,
   releaseChatAdmissionWhenDone,
 } from "../../src/shared/middleware/chatBodyAdmission.ts";
 
@@ -117,5 +118,49 @@ test("explicit cancel still releases the slot", async () => {
   await reader.read();
   await reader.cancel("client gone");
 
+  assert.equal(controller.activeHeavy, 0);
+});
+
+test("#14456: abort while the handler is still pending returns the slot immediately", async () => {
+  const controller = new ChatAdmissionController(1);
+  const lease = controller.tryAcquireHeavy();
+  assert.ok(lease, "precondition: a slot is available");
+  assert.equal(controller.activeHeavy, 1);
+
+  const abort = new AbortController();
+  let resolveHandler!: (r: Response) => void;
+  const handlerPromise = new Promise<Response>((resolve) => {
+    resolveHandler = resolve;
+  });
+  const settled = releaseChatAdmissionAfterHandler(handlerPromise, lease, {
+    signal: abort.signal,
+  });
+
+  // Client disconnects while the handler is still pending.
+  abort.abort();
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(controller.activeHeavy, 0, "pending-handler abort must free the slot at once");
+  assert.equal(lease.released, true);
+
+  // The handler settles late — must not crash, double-release, or re-take.
+  resolveHandler(openSseResponse());
+  const wrapped = await settled;
+  await wrapped.body?.cancel();
+  assert.equal(controller.activeHeavy, 0);
+});
+
+test("#14456: a handler that settles before any abort keeps the normal lifecycle", async () => {
+  const controller = new ChatAdmissionController(1);
+  const lease = controller.tryAcquireHeavy();
+  assert.ok(lease);
+
+  const abort = new AbortController();
+  const wrapped = await releaseChatAdmissionAfterHandler(
+    Promise.resolve(openSseResponse()),
+    lease,
+    { signal: abort.signal }
+  );
+  assert.equal(controller.activeHeavy, 1, "settled handler still holds the slot");
+  await wrapped.body?.cancel();
   assert.equal(controller.activeHeavy, 0);
 });

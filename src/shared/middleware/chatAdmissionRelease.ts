@@ -81,11 +81,41 @@ export function releaseChatAdmissionWhenDone(
   });
 }
 
-/** Release a lease if a handler rejects; otherwise bind it to the returned response lifecycle. */
+/**
+ * Release a lease if a handler rejects; otherwise bind it to the returned
+ * response lifecycle.
+ *
+ * Abort during the pending-handler phase (#14456): `await responsePromise`
+ * below only installs the abort-aware response wrapper AFTER the handler
+ * settles, so a client that disconnects while the handler is still pending
+ * released nothing. A pre-settlement abort listener returns the slot
+ * immediately; the later wrapper sees `lease.released` and stays a no-op, so
+ * double release is impossible (the lease's own `release()` is idempotent).
+ */
 export async function releaseChatAdmissionAfterHandler(
   responsePromise: Promise<Response>,
   lease: ChatAdmissionLease | null,
   options: ReleaseChatAdmissionOptions = {}
+): Promise<Response> {
+  const { signal } = options;
+  if (lease && signal && !signal.aborted) {
+    const pendingRelease = (): void => {
+      if (!lease.released) lease.release();
+    };
+    signal.addEventListener("abort", pendingRelease, { once: true });
+    try {
+      return await bindAfterSettle(responsePromise, lease, options);
+    } finally {
+      signal.removeEventListener("abort", pendingRelease);
+    }
+  }
+  return bindAfterSettle(responsePromise, lease, options);
+}
+
+async function bindAfterSettle(
+  responsePromise: Promise<Response>,
+  lease: ChatAdmissionLease | null,
+  options: ReleaseChatAdmissionOptions
 ): Promise<Response> {
   try {
     return releaseChatAdmissionWhenDone(await responsePromise, lease, options);

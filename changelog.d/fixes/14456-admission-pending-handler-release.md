@@ -1,0 +1,1 @@
+- **fix(resilience):** return the admission slot when the client aborts while the handler is still pending — the abort-aware wrapper was only installed after the handler settled, so a disconnect during the pending phase leaked the slot ([#14456](https://github.com/diegosouzapw/OmniRoute/issues/14456))
