@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "ಪೂರೈಕೆದಾರರು",
     "Account Deactivated": "ಖಾತೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ",
     "allProviders": "ಎಲ್ಲಾ ಪೂರೈಕೆದಾರರು",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# ನಿರ್ಗಮನ} other {# ನಿರ್ಗಮನಗಳು}} ಅನ್ನು {connections, plural, one {# ಸಂಪರ್ಕ} other {# ಸಂಪರ್ಕಗಳು}} ಬಳಸಿವೆ · ಒಂದು ನಿರ್ಗಮನದಲ್ಲಿ ಗರಿಷ್ಠ {max} · ಕಳೆದ {hours} ಗಂ.",
     "poolEgressObservationEmpty": "ಕಳೆದ {hours} ಗಂ. ಅವಧಿಯಲ್ಲಿ ಯಾವುದೇ ಟ್ರಾಫಿಕ್ ಕಂಡುಬಂದಿಲ್ಲ",
     "poolEgressObservationHint": "ಈ ಸಮಯಾವಧಿಯ ಪ್ರಾಕ್ಸಿ ಲಾಗ್ನಿಂದ ಲೆಕ್ಕಿಸಲಾಗಿದೆ: ಈ ಪೂಲ್ನ ಸದಸ್ಯರಿಗಾಗಿ ಗಮನಿಸಲಾದ ವಿಭಿನ್ನ ಎಗ್ರೆಸ್ IPಗಳು ಮತ್ತು ಅವುಗಳನ್ನು ಬಳಸಿದ OmniRoute ಸಂಪರ್ಕಗಳು. \"ಒಂದು ನಿರ್ಗಮನದಲ್ಲಿ\" ಎಂದರೆ ಈ ಸಮಯಾವಧಿಯುದ್ದಕ್ಕೂ ಎಂದರ್ಥ, ಒಂದೇ ಸಮಯದಲ್ಲಿ ಎಂದಲ್ಲ. ಪ್ರತಿ-IP 429 ಲಾಕ್ಔಟ್ ಅದೇ ಪೂರೈಕೆದಾರ ಕುಟುಂಬದ ಸಂಪರ್ಕಗಳನ್ನು ಮಾತ್ರ ತಾತ್ಕಾಲಿಕವಾಗಿ ನಿಲ್ಲಿಸುತ್ತದೆ.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "ತೆಗೆದುಹಾಕಿ",
     "poolRemoveFailed": "ಪೂಲ್ನಿಂದ ಪ್ರಾಕ್ಸಿಯನ್ನು ತೆಗೆದುಹಾಕಲು ವಿಫಲವಾಗಿದೆ",
     "poolAddLabel": "ಪ್ರಾಕ್ಸಿಯನ್ನು ಸೇರಿಸಿ",

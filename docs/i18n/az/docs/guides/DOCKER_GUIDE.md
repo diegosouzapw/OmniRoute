@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Azərbaycan dili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -65,11 +65,14 @@ docker run -d \
 # Əsas profil (CLI alətləri olmadan)
 docker compose --profile base up -d
 
-# CLI profili (Claude Code, Codex və OpenClaw daxildir)
+# CLI profili (Claude Code, Codex, OpenClaw daxildir)
 docker compose --profile cli up -d
 
-# Host profili (əsasən Linux üçün; host CLI binar fayllarını yalnız oxuma rejimində qoşur)
+# Host profili (ilk növbədə Linux üçün; host CLI binar fayllarını yalnız oxuma rejimində qoşur)
 docker compose --profile host up -d
+
+# Veb profili (veb sessiya provayderləri üçün Chromium/Playwright)
+docker compose --profile web up -d
 
 # CLI + CLIProxyAPI yan konteynerini birləşdirin
 docker compose --profile cli --profile cliproxyapi up -d
@@ -77,14 +80,15 @@ docker compose --profile cli --profile cliproxyapi up -d
 
 ## Mövcud profillər
 
-OmniRoute dörd Compose profili ilə təqdim olunur. Mühitinizə uyğun olanı seçin.
+OmniRoute əsas yerləşdirmə formaları üçün Compose profilləri ilə təmin edilir. Mühitinizə uyğun olanı seçin.
 
-| Profil            | Xidmət           | Nə zaman istifadə edilməlidir                                                                                                                             | Əmr                                          |
-| ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (standart) | `omniroute-base` | İnterfeyssiz server / minimal icra mühiti; provayder CLI-ləri daxil deyil                                                                                 | `docker compose --profile base up -d`        |
-| `cli`             | `omniroute-cli`  | `omniroute providers/setup/doctor` və daxili CLI-ləri (Codex, Claude Code, Droid, OpenClaw) çağıran agent əsaslı iş axınları                              | `docker compose --profile cli up -d`         |
-| `host`            | `omniroute-host` | `~/.local/bin`, `~/.codex`, `~/.claude` və s. qovluqları yalnız oxuma rejimində qoşaraq host CLI-lərinə `network_mode` tipli giriş istəyən Linux hostları | `docker compose --profile host up -d`        |
-| `cliproxyapi`     | `cliproxyapi`    | Yuxarı axın CLI proksiləməsi üçün [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) yan konteynerini `8317` portunda işə salmaq                 | `docker compose --profile cliproxyapi up -d` |
+| Profil            | Xidmət           | Nə zaman istifadə etməli                                                                                                                                     | Əmr                                          |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| `base` (standart) | `omniroute-base` | İnterfeyssiz server / minimal icra mühiti; provayder CLI-ləri daxil deyil                                                                                    | `docker compose --profile base up -d`        |
+| `cli`             | `omniroute-cli`  | `omniroute providers/setup/doctor` və paketə daxil edilmiş CLI-ləri (Codex, Claude Code, Droid, OpenClaw) çağıran agent əsaslı iş axınları                   | `docker compose --profile cli up -d`         |
+| `host`            | `omniroute-host` | `~/.local/bin`, `~/.codex`, `~/.claude` və s. qovluqları yalnız oxuma rejimində qoşaraq host CLI-lərinə `network_mode`-a bənzər giriş istəyən Linux hostları | `docker compose --profile host up -d`        |
+| `cliproxyapi`     | `cliproxyapi`    | Yuxarı axın CLI proksiləməsi üçün `8317` portunda [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) yan konteynerini işə salmaq                    | `docker compose --profile cliproxyapi up -d` |
+| `web`             | `omniroute-web`  | Brauzer tələb edən veb-sessiya provayderləri: `gemini-web`, `claude-web`, `claude-turnstile` (`runner-web` yığılır, Chromium daxildir)                       | `docker compose --profile web up -d`         |
 
 > Bir neçə profil birləşdirilə bilər: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -233,54 +237,51 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile mərhələləri
 
-Repozitoriya çoxmərhələli Dockerfile (`Dockerfile`) ilə təqdim olunur. Üç mərhələ əlçatandır; istifadə ssenarinizə uyğun `target` seçin.
+Repozitoriya çoxmərhələli Dockerfile (`Dockerfile`) ilə təqdim olunur. Dörd mərhələ əlçatandır; istifadə ssenariniz üçün uyğun `target` seçin.
 
-| Mərhələ       | Baza təsviri          | Məqsəd                                                                                                                                                                               |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `builder`     | `node:26-trixie-slim` | Asılılıqları quraşdırır (`npm ci --legacy-peer-deps`) və `npm run build` işlədir (standart olaraq Turbopack — aşağıdakı Yığım zamanı resurslar bölməsinə baxın)                      |
-| `runner-base` | `node:26-trixie-slim` | Next.js-in müstəqil çıxışı ilə istehsal mühiti. **Provayder CLI-ləri daxil edilməyib.**                                                                                              |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` və qlobal CLI-ləri əlavə edir: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agent əsaslı iş axınları üçün bunu seçin.** |
+| Mərhələ       | Baza obrazı           | Məqsəd                                                                                                                                                                                                                                                                                                  |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Asılılıqları quraşdırır (`npm ci --legacy-peer-deps`) və `npm run build` əmrini işlədir (standart olaraq Turbopack — aşağıdakı Yığım zamanı resurslar bölməsinə baxın)                                                                                                                                  |
+| `runner-base` | `node:26-trixie-slim` | Next.js-in müstəqil çıxışı ilə istehsal mühiti. **Heç bir provayder CLI-ı daxil edilməyib.**                                                                                                                                                                                                            |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` və qlobal CLI-ları əlavə edir: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agent əsaslı iş axınları üçün bunu seçin.**                                                                                                                    |
+| `runner-web`  | `runner-base`         | Veb sessiya provayderləri üçün Playwright və Chromium brauzeri (`--with-deps`) əlavə edir: `gemini-web`, `claude-web`, `claude-turnstile`. **Bu provayderlərdən istifadə etdikdə bunu seçin** — adi obraz bu olmadan sorğu zamanı uğursuz olur (Buraxılış kanalları bölməsindəki `-web` qeydinə baxın). |
 
-Konkret hədəfi əl ilə yığın:
+Konkret `target`-i əl ilə yığın:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Yığım zamanı resurslar
 
-Üç yığım arqumenti `builder` mərhələsinin resurs sərfiyyatını idarə edir. Bunlar yalnız yığım zamanı üçündür —
+Üç yığım arqumenti `builder` mərhələsinin resurs sərfiyyatını idarə edir. Onlar yalnız yığım zamanı istifadə olunur —
 `OMNIROUTE_MEMORY_MB` (aşağıda) ayrıca icra zamanı parametridir.
 
 | Yığım arqumenti             | Standart | Təsir                                                                                                          |
 | --------------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` olduqda webpack ilə yığır. Maksimum yaddaş istifadəsi daha az, sürəti daha aşağıdır.                       |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | İşə salınan `next build` üçün V8 heap həddi (`--max-old-space-size`).                                          |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` olduqda yığım əvəzinə webpack ilə aparılır. Pik yaddaş istifadəsi daha az, sürət daha aşağıdır.            |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | İşə salınan `next build` üçün V8 hip yaddaşı həddi (`--max-old-space-size`).                                   |
 | `OMNIROUTE_BUILD_WORKERS`   | `2`      | `CIRCLE_NODE_TOTAL` üçün dəyər verir; Next səhifə məlumatlarının toplanması üçün `workers = N - 1` hesablayır. |
 
-`OMNIROUTE_BUILD_WORKERS` güclü yığım sistemində artırılmalı, məhdud resurslu
-yığım **`✓ Compiled successfully` mesajından sonra** dayanarsa isə şübhə edilməli
-olan parametrdir. Hər bir səhifə məlumatı worker-i ayrıca prosesdir və əsas
-`next build` prosesinin özü də belədir; real VPS-də aparılmış təkrar sınaqda
-(issue #7518) hər prosesin maksimum RSS göstəricisi `NODE_OPTIONS` heap
-parametrindən asılı olmayaraq ~4.5 GB ölçülüb (Turbopack V8 heap-dən kənarda,
-yerli/Rust yaddaşında kompilyasiya edir). Standart `2` dəyəri (→ 1 worker,
-cəmi 2 proses) dərcetmə konveyerinin istifadə etdiyi 16 GB / 4 vCPU-lu GitHub
-runner-ləri üçün hesablanıb. `8` dəyərində (→ 7 worker) həmin runner-in yaddaşı
-tükənib və buildkit mərhələni `ResourceExhausted: ... cannot allocate memory`
-xətası ilə dayandırıb; proses başına RSS dolayı yolla hesablanmaq əvəzinə
-birbaşa ölçüldükdə `3` (→ 2 worker) dəyəri də mövcud yaddaşa sığmayıb.
-`tests/unit/docker-build-memory-budget.test.ts` ölçülmüş göstərici əsasında
-hesablamanı aparır və parametrlərdən hər hansı biri runner-in imkanlarını
-aşarsa, test uğursuz olur.
+`OMNIROUTE_BUILD_WORKERS` böyük yığım serverində artırılmalı olan və məhdud resurslu yığım **`✓ Compiled successfully` mesajından sonra** dayandıqda şübhələnməli olduğunuz parametrdir. Hər bir səhifə məlumatı işçi prosesi ayrıca prosesdir və əsas `next build` prosesinin özü də belədir;
+işlək VPS-də aparılmış təkrar sınaq (məsələ #7518) hər prosesin pik RSS göstəricisini
+`NODE_OPTIONS` hip parametrindən asılı olmayaraq ~4.5 GB ölçüb (Turbopack kompilyasiyanı
+V8 hipindən kənardakı yerli/Rust yaddaşında həyata keçirir). Standart `2` dəyəri (→ 1 işçi, ümumilikdə 2
+proses) nəşr konveyerinin istifadə etdiyi 16 GB / 4 vCPU-luq GitHub tərəfindən təmin edilən icra mühitləri üçün
+hesablanıb. `8` dəyərində (→ 7 işçi) həmin icra mühitinin yaddaşı tükəndi və
+buildkit addımı `ResourceExhausted: ... cannot allocate memory` xətası ilə uğursuz oldu;
+hər prosesin RSS göstəricisi təxmin edilmək əvəzinə birbaşa ölçüldükdə `3` (→ 2 işçi) dəyəri də uyğun gəlmədi.
+`tests/unit/docker-build-memory-budget.test.ts`
+ölçülmüş göstəriciyə əsasən hesablamaları aparır və parametrlərdən hər hansı biri
+icra mühitinin imkanlarını aşdıqda uğursuz olur.
 
-Turbopack V8 heap-dən **kənarda** yerləşən yerli Rust yaddaşında kompilyasiya
-edir, buna görə də `OMNIROUTE_BUILD_MEMORY_MB` onu məhdudlaşdırmır. Yaddaş
-həddi olan hostda yığım OOM killer tərəfindən heç bir xəta mətni olmadan
-SIGKILL ilə dayandırılır — proses sadəcə `Creating an optimized production build`
-mərhələsinin ortasında dayanır və bu, yaddaş çatışmazlığından daha çox donma kimi
-görünür. Yığım hostunun resursları məhduddursa, bundler-i dəyişin:
+Turbopack kompilyasiyanı V8 hipindən **kənarda** yerləşən yerli Rust yaddaşında həyata keçirir, buna görə də
+`OMNIROUTE_BUILD_MEMORY_MB` onu məhdudlaşdırmır. Yaddaş həddi olan hostda
+yığım OOM sonlandırıcısı tərəfindən heç bir xəta mətni olmadan SIGKILL ilə dayandırılır — proses sadəcə
+`Creating an optimized production build` mərhələsinin ortasında dayanır və bu, yaddaş çatışmazlığından
+daha çox donma kimi görünür. Yığım hostunun resursları məhduddursa, yığım alətini dəyişin:
 
 ```bash
 docker build --target runner-base \
@@ -288,44 +289,43 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` aktivdir, buna görə `next build` əsas prosesi **və** worker
-prosesini işə salır və hər biri `OMNIROUTE_BUILD_MEMORY_MB` parametrinə ayrıca
-riayət edir. Konteyner həddini bu dəyərin bir qatı deyil, təxminən iki qatından
-yuxarı təyin edin.
+`webpackBuildWorker` aktivdir, buna görə `next build` əsas **və** işçi
+prosesi işə salır və onların hər biri ayrıca `OMNIROUTE_BUILD_MEMORY_MB` dəyərinə əməl edir. Konteyner
+həddini bu dəyərin bir qatı deyil, təxminən iki qatından yuxarı təyin edin.
 
-Bu kod ağacında ölçülüb (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Bu ağacda ölçülüb (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Konteyner həddi | Nəticə                                  |
-| --------- | --------------- | --------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB  | hər iki həddə səssizcə OOM ilə dayandı  |
-| webpack   | 8 GiB           | yığım worker-i SIGKILL ilə dayandırıldı |
-| webpack   | 12 GiB          | uğurlu oldu, maksimum 11.1 GiB-a çatdı  |
+| Yığım aləti | Konteyner həddi | Nəticə                                      |
+| ----------- | --------------- | ------------------------------------------- |
+| Turbopack   | 8 GiB / 16 GiB  | hər ikisində səssizcə OOM ilə sonlandırıldı |
+| webpack     | 8 GiB           | yığım işçisi SIGKILL ilə sonlandırıldı      |
+| webpack     | 12 GiB          | uğurlu oldu, pik istifadə 11.1 GiB idi      |
 
-### İcra zamanı standartları
+### İcra zamanı standart dəyərlər
 
 `runner-base` tərəfindən ixrac edilən standart dəyərlər: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Docker-də yaddaş davranışı:
 
-- Təsvir `OMNIROUTE_MEMORY_MB=1024` təyin edir və bundan `NODE_OPTIONS=--max-old-space-size=1024` dəyərini yaradır.
-- Faktiki server prosesi `OMNIROUTE_MEMORY_MB` dəyərini oxuyan və `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` əlavə edən müstəqil işəsalıcı tərəfindən başladılır.
-- Node təkrarlanan `--max-old-space-size` dəyərlərindən sonuncusunu istifadə edir, buna görə `OMNIROUTE_MEMORY_MB` parametrinin təyin edilməsi Docker-də effektiv heap həddini idarə edir.
-- Təsvir bu dəyəri həmişə təyin etdiyindən, işəsalıcının RAM həcminə uyğunlaşdırılmış ehtiyat dəyəri Docker altında heç vaxt tətbiq edilmir. İş yükü üçün onu açıq şəkildə artırın (aşağıdakı cədvələ baxın). Kodlaşdırma agentlərinin `/v1/responses` sorğuları üçün `2048` hələ də çox azdır.
+- Təsvir `OMNIROUTE_MEMORY_MB=1024` təyin edir və bundan `NODE_OPTIONS=--max-old-space-size=1024` dəyərini formalaşdırır.
+- Faktiki server prosesi `OMNIROUTE_MEMORY_MB` dəyərini oxuyan və `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` əlavə edən müstəqil işəsalma vasitəsi tərəfindən başladılır.
+- Node təkrarlanan `--max-old-space-size` dəyərlərindən sonuncusunu istifadə edir, buna görə də `OMNIROUTE_MEMORY_MB` parametrinin təyin edilməsi Docker üçün effektiv heap limitini idarə edir.
+- Təsvir bu parametri həmişə təyin etdiyinə görə işəsalma vasitəsinin RAM əsasında kalibrlənən ehtiyat dəyəri Docker altında heç vaxt tətbiq edilmir. İş yükünə uyğun olaraq onu açıq şəkildə artırın (aşağıdakı cədvələ baxın). `2048` kodlaşdırma agentinin `/v1/responses` sorğuları üçün hələ də çox azdır.
 
 ### Kodlaşdırma agentləri üçün icra zamanı RAM
 
-Docker-in standart 1 GiB dəyəri istehsal mühiti üçün ölçü deyil, idarəetmə paneli/yüngül söhbət üçün minimum həddir. Uzun `POST /v1/responses` gövdələri (yüzlərlə mesaj, onlarla alət) sıxılma zamanı yaddaşda bir neçə qraf saxlayır. Üst-üstə düşən təxminən 3 MiB / 750k tokenlik iki sorğu **12 GiB** old-space həddində V8-i dayandırıb (`FATAL ERROR: Reached heap limit`) və həmçinin 16 GiB cgroup OOM həddinə çatıb. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) bölməsinə baxın.
+Docker üçün standart 1 GiB istehsal ölçüsü deyil, idarəetmə paneli/yüngül söhbət üçün minimum həddir. Uzun `POST /v1/responses` gövdələri (yüzlərlə mesaj, onlarla alət) sıxışdırma zamanı yaddaşda bir neçə qrafı saxlayır. Üst-üstə düşən təxminən 3 MiB / təxminən 750k tokenlik iki sorğu **12 GiB** old-space ilə V8-in işini dayandırıb (`FATAL ERROR: Reached heap limit`) və həmçinin 16 GiB cgroup OOM həddinə çatıb. Baxın: [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-**cgroup `--memory` dəyərini heap-dən yuxarı** təyin edin — yerli buferlər, SQLite və sıxılmanın aralıq məlumatları V8-dən kənarda yerləşir.
+**cgroup `--memory` dəyərini heap həddindən yüksək təyin edin** — yerli buferlər, SQLite və sıxışdırmanın aralıq nəticələri V8-dən kənarda yerləşir.
 
-| İş yükü                                    | `OMNIROUTE_MEMORY_MB`         | Konteyner / cgroup          | Qeydlər                                                                                                                                                 |
-| ------------------------------------------ | ----------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| İdarə paneli, bir yüngül söhbət            | `1024` (image standartı)      | ≥2 GiB                      |                                                                                                                                                         |
-| Bir kodlaşdırma agenti (Claude/Codex/Grok) | `8192`                        | ≥10 GiB                     | Tipik tək sessiyalı `/v1/responses`                                                                                                                     |
-| İki paralel uzun `/v1/responses`           | `10240`–`12288`               | ≥12–16 GiB                  | V8-in dayandırılması təxminən 12 GiB heap həcmində ölçülüb                                                                                              |
-| Üç və ya daha çox paralel uzun kontekst    | bir prosesdə istifadə etməyin | ardıcıl icra / daha çox RAM | Standart ağır iş qəbulu eyni anda icra olunan 1 sorğu ilə məhdudlaşır; RAM artırılmadan bu həddin yüksəldilməsi dayandırılma problemini yenidən yaradır |
+| İş yükü                                    | `OMNIROUTE_MEMORY_MB`             | Konteyner / cgroup          | Qeydlər                                                                                                                           |
+| ------------------------------------------ | --------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| İdarəetmə paneli, bir yüngül söhbət        | `1024` (təsvirin standart dəyəri) | ≥2 GiB                      |                                                                                                                                   |
+| Bir kodlaşdırma agenti (Claude/Codex/Grok) | `8192`                            | ≥10 GiB                     | Tipik tək sessiyalı `/v1/responses`                                                                                               |
+| İki paralel uzun `/v1/responses`           | `10240`–`12288`                   | ≥12–16 GiB                  | Təxminən 12 GiB heap ilə V8-in işinin dayanması ölçülüb                                                                           |
+| Üç və ya daha çox paralel uzun kontekst    | bir prosesdə istifadə etməyin     | ardıcıl icra / daha çox RAM | Standart ağır iş yükü qəbulu eyni anda 1 icra ilə məhdudlaşır; RAM artırılmadan bu həddin yüksəldilməsi dayanmanı yenidən yaradır |
 
-`OMNIROUTE_MEMORY_MB` **təyin edilmədikdə**, fiziki serverdə `omniroute serve` RAM-ın təxminən 35%-ni (`[512, 4096]` aralığı ilə məhdudlaşdırılaraq) kalibrləyir. Docker həmişə `1024` təyin etdiyinə görə rəsmi image-də bu kalibrləmə heç vaxt işə düşmür.
+`OMNIROUTE_MEMORY_MB` **təyin edilmədikdə**, fiziki serverdə `omniroute serve` RAM-ın təxminən 35%-ni (`[512, 4096]` aralığı ilə məhdudlaşdırılmaqla) kalibrləyir. Docker həmişə `1024` təyin etdiyinə görə rəsmi təsvirdə bu kalibrləmə heç vaxt işə düşmür.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -335,24 +335,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Kritik Mühit Dəyişənləri
 
-[ENVIRONMENT.md](../reference/ENVIRONMENT.md) sənədində qeyd olunan standart dəyərlərdən əlavə, Docker altında işləyərkən aşağıdakı dəyişənlər daha vacibdir:
+[ENVIRONMENT.md](../reference/ENVIRONMENT.md) sənədində təsvir edilən standartlardan əlavə, Docker altında işləyərkən aşağıdakı dəyişənlər ən böyük əhəmiyyət daşıyır:
 
-| Dəyişən                       | Məqsəd                                                                                                                                                                                                                                                                                                     | Standart dəyər                       |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket körpüsü üçün ortaq məxfi açar. **İstehsal mühitində tələb olunur** — güclü təsadüfi sətir təyin edin.                                                                                                                                                                                            | təyin edilməyib (təqdim edilməlidir) |
-| `REDIS_URL`                   | Sorğu tezliyi məhdudlaşdırıcısı / keş arxa tərəfi üçün bağlantı sətri                                                                                                                                                                                                                                      | `redis://redis:6379`                 |
-| `REDIS_PORT`                  | Daxil edilmiş Redis konteyneri üçün host tərəfindəki port                                                                                                                                                                                                                                                  | `6379`                               |
-| `REDIS_BIND_HOST`             | Daxil edilmiş Redis portunun yayımlandığı host interfeysi (AUTH əlavə etmədiyiniz halda geriyə döngə interfeysi)                                                                                                                                                                                           | `127.0.0.1`                          |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Özünü yeniləmə iş axınları üçün `cli` profilində `/workspace/omniroute` ünvanına qoşulan host yolu                                                                                                                                                                                                         | `.` (cari kataloq)                   |
-| `OMNIROUTE_MEMORY_MB`         | Docker müstəqil serveri üçün Node icra mühitinin heap yaddaşı həddi; yuxarıdakı obrazın standart dəyərini əvəz edir. Kodlaşdırma agentləri: `8192`+ ([icra mühitinin RAM yaddaşı](#runtime-ram-for-coding-agents) bölməsinə baxın).                                                                        | `1024`                               |
-| `DASHBOARD_PORT` / `API_PORT` | İdarəetmə paneli (20128) və API (20129) üçün açıq portları əvəz edir                                                                                                                                                                                                                                       | `20128` / `20129`                    |
-| `APP_BIND_HOST`               | docker-compose-un idarəetmə paneli/API/canlı-WS portlarını yayımladığı host interfeysi. `REQUIRE_API_KEY=false` olduqda (standart), `0.0.0.0` anonim `/v1` proksisini LAN üçün əlçatan edir — yalnız `REQUIRE_API_KEY=true` olduqda və ya qarşısında əks proksi yerləşdikdə əhatə dairəsini genişləndirin. | `127.0.0.1`                          |
-| `CLIPROXY_BIND_HOST`          | docker-compose-un `cliproxyapi` yan konteynerini yayımladığı host interfeysi — onun məlumat cildində provayder giriş məlumatları saxlanılır.                                                                                                                                                               | `127.0.0.1`                          |
-| `OMNIROUTE_PLUGINS_DIR`       | İcra mühiti plagin skanerinin oxuduğu və quraşdırma apardığı kataloq. Plaginlər bind-mount vasitəsilə qoşulduqda bunu təyin edin: standart dəyər `HOME` dəyişənini izləyir, lakin obrazın onu ixrac etməsi məcburi deyil.                                                                                  | `~/.omniroute/plugins`               |
-| `OMNIROUTE_BASE_PATH`         | Tətbiq əks proksinin arxasında dərc edildikdə istifadə olunan URL alt yolu (məsələn, `/omniroute`)                                                                                                                                                                                                         | _(boş = kök)_                        |
-| `NEXT_PUBLIC_BASE_URL`        | Alt yol daxil olmaqla ictimai brauzer mənşəyi (məsələn, `https://host/omniroute`)                                                                                                                                                                                                                          | təyin edilməyib                      |
-| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml` üçün host tərəfindəki idarəetmə paneli portu                                                                                                                                                                                                                                     | `20130`                              |
-| `CLIPROXYAPI_PORT`            | `cliproxyapi` yan konteyneri üçün host tərəfindəki port                                                                                                                                                                                                                                                    | `8317`                               |
+| Dəyişən                       | Məqsəd                                                                                                                                                                                                                                                                                                 | Standart dəyər                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket körpüsü üçün ortaq məxfi açar. **İstehsal mühitində tələb olunur** — güclü, təsadüfi sətir təyin edin.                                                                                                                                                                                       | təyin edilməyib (təqdim olunmalıdır) |
+| `REDIS_URL`                   | Sorğu tezliyi məhdudlaşdırıcısı / keş arxa sistemi üçün bağlantı sətri                                                                                                                                                                                                                                 | `redis://redis:6379`                 |
+| `REDIS_PORT`                  | Daxil edilmiş Redis konteyneri üçün host tərəfindəki port                                                                                                                                                                                                                                              | `6379`                               |
+| `REDIS_BIND_HOST`             | Daxil edilmiş Redis portunun yayımlandığı host interfeysi (AUTH əlavə etmədiyiniz halda geri döngə interfeysi)                                                                                                                                                                                         | `127.0.0.1`                          |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Özünü yeniləmə iş axınları üçün `cli` profilində `/workspace/omniroute` ünvanına qoşulan host yolu                                                                                                                                                                                                     | `.` (cari qovluq)                    |
+| `OMNIROUTE_MEMORY_MB`         | Docker müstəqil serveri üçün icra zamanı Node hip yaddaşının yuxarı həddi; yuxarıdakı obrazın standart dəyərini əvəz edir. Proqramlaşdırma agentləri: `8192`+ ([icra zamanı RAM](#runtime-ram-for-coding-agents) bölməsinə baxın).                                                                     | `1024`                               |
+| `DASHBOARD_PORT` / `API_PORT` | İdarə paneli (20128) və API (20129) üçün açıq portları dəyişdirir                                                                                                                                                                                                                                      | `20128` / `20129`                    |
+| `APP_BIND_HOST`               | docker-compose tərəfindən idarə paneli/API/canlı-WS portlarının yayımlandığı host interfeysi. `REQUIRE_API_KEY=false` olduqda (standart dəyər), `0.0.0.0` anonim `/v1` proksisini LAN üçün əlçatan edir — yalnız `REQUIRE_API_KEY=true` ilə və ya ön tərəfdə əks proksi olduqda əhatəni genişləndirin. | `127.0.0.1`                          |
+| `CLIPROXY_BIND_HOST`          | docker-compose tərəfindən `cliproxyapi` yan konteynerinin yayımlandığı host interfeysi — onun məlumat həcmi provayder giriş məlumatlarını saxlayır.                                                                                                                                                    | `127.0.0.1`                          |
+| `OMNIROUTE_PLUGINS_DIR`       | İcra zamanı plagin skanerinin oxuduğu və plaginləri quraşdırdığı qovluq. Plaginlər bind-mount vasitəsilə qoşulduqda bunu təyin edin: standart dəyər `HOME` dəyişənini izləyir, lakin obrazın onu ixrac etməsi məcburi deyil.                                                                           | `~/.omniroute/plugins`               |
+| `OMNIROUTE_BASE_PATH`         | Tətbiq əks proksinin arxasında yayımlandıqda istifadə olunan URL alt yolu (məsələn, `/omniroute`)                                                                                                                                                                                                      | _(boş = kök)_                        |
+| `NEXT_PUBLIC_BASE_URL`        | Alt yol daxil olmaqla brauzer üçün ictimai mənbə ünvanı (məsələn, `https://host/omniroute`)                                                                                                                                                                                                            | təyin edilməyib                      |
+| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml` üçün host tərəfindəki idarə paneli portu                                                                                                                                                                                                                                     | `20130`                              |
+| `CLIPROXYAPI_PORT`            | `cliproxyapi` yan konteyneri üçün host tərəfindəki port                                                                                                                                                                                                                                                | `8317`                               |
 
 ## Alt yolda əks proksi (Traefik / nginx)
 
@@ -483,36 +483,49 @@ Son nöqtə tuneli panelləri (Cloudflare, Tailscale, ngrok) aktiv tunelin vəzi
 - Docker obrazları sistem CA kök sertifikatlarını özündə birləşdirir və onları idarə olunan `cloudflared` prosesinə ötürür; bu, tunel konteyner daxilində başladılarkən TLS etibar xətalarının qarşısını alır.
 - OmniRoute-un endirmək əvəzinə mövcud binar fayldan istifadə etməsini istəyirsinizsə, `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` təyin edin.
 
-## Obraz teqləri
+## İmaj Teqləri
 
-| Obraz                    | Teq      | Ölçü   | Təsvir                                                      |
+| İmaj                     | Teq      | Ölçü   | Təsvir                                                      |
 | ------------------------ | -------- | ------ | ----------------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Ən yüksək **dərc edilmiş** stabil SemVer (git `main` deyil) |
 | `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps üçün bu teq sinfini sabitləyin                       |
 
-Çoxplatformalı manifest: yerli `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker uyğun arxitekturanı avtomatik seçir; ARM hostlarında AMD64 emulyasiyasını məcbur etmək lazımdırsa, `--platform linux/amd64` parametrini ötürün.
+Çoxplatformalı manifest: yerli `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker uyğun arxitekturanı avtomatik seçir; ARM hostlarında AMD64 emulyasiyasını məcburi etmək lazımdırsa, `--platform linux/amd64` parametrini ötürün.
 
-### Buraxılış kanalları
+### Buraxılış Kanalları
 
-OmniRoute stabil buraxılışlar, aktiv buraxılış budağının sınaqları və inkişaf versiyaları üçün ayrı-ayrı Docker kanalları dərc edir.
+OmniRoute stabil buraxılışlar, aktiv buraxılış budağının sınaqdan keçirilməsi və inkişaf yığımları üçün ayrıca Docker kanalları dərc edir.
 
-| Kanal                           | Mənbə                                    | Dəyişkənlik                          | Tövsiyə olunan istifadə                                                                                                        |
-| ------------------------------- | ---------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `:<version>` / `:<version>-web` | İmzalanmış/versiyalaşdırılmış buraxılış  | Dəyişməz                             | Dəqiq buraxılışa sabitlənən istehsal quraşdırmaları                                                                            |
-| `:latest` / `:latest-web`       | Ən yüksək **dərc edilmiş** stabil SemVer | Dəyişkən stabil göstərici            | SemVer dərc tapşırığından **sonra** stabil buraxılışları izləyir — `main` və ya buraxılmamış `release/v*` kommitlərini izləmir |
-| `:next` / `:next-web`           | Cari defolt `release/v*` budağı          | Dəyişkən ilkin buraxılış göstəricisi | Aktiv buraxılış budağına daxil edilmiş, lakin hələ stabil buraxılışa daxil olmayan düzəlişlərin sınaqdan keçirilməsi           |
-| `:main` / `:main-web`           | `main` budağı                            | Dəyişkən inkişaf göstəricisi         | Yalnız inkişaf və inteqrasiya sınaqları                                                                                        |
+| Kanal                           | Mənbə                                    | Dəyişkənlik                          | Tövsiyə edilən istifadə                                                                                                             |
+| ------------------------------- | ---------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | İmzalanmış/versiyalanmış buraxılış       | Dəyişməz                             | Dəqiq buraxılışa sabitlənən istehsal yerləşdirmələri                                                                                |
+| `:latest` / `:latest-web`       | Ən yüksək **dərc edilmiş** stabil SemVer | Dəyişkən stabil göstərici            | SemVer dərcetmə tapşırığından **sonra** stabil buraxılışları izləyir — `main` və ya buraxılmamış `release/v*` commit-lərini izləmir |
+| `:next` / `:next-web`           | Cari standart `release/v*` budağı        | Dəyişkən ilkin buraxılış göstəricisi | Aktiv buraxılış budağına daxil edilmiş, lakin hələ stabil buraxılışda olmayan düzəlişlərin sınaqdan keçirilməsi                     |
+| `:main` / `:main-web`           | `main` budağı                            | Dəyişkən inkişaf göstəricisi         | Yalnız inkişaf və inteqrasiya sınaqları                                                                                             |
+
+#### Veb sessiya provayderləri: `-web` imajları
+
+Yuxarıdakı hər bir kanal `runner-web` mərhələsindən yığılmış `-web` teqi (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`) kimi də təqdim olunur — bu, eyni imaja Playwright və Chromium brauzerinin əlavə edilmiş variantıdır. Adi imaj Chromium **olmadan** təqdim edilir; `gemini-web`, `claude-web` və `claude-turnstile` üçün Chromium tələb olunur.
+
+Xəta başlanğıc zamanı deyil, daha sonra baş verir: həmin provayderlər modellərini siyahıya alır və idarəetmə panelində qoşulmuş kimi görünür, yalnız ilk sorğu aşağıdakı xəta ilə uğursuz olur:
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Bu provayderlərdən istifadə edirsinizsə, artıq istifadə etdiyiniz kanalın `-web` teqini çəkin — başqa heç nə dəyişmir. npm/CLI quraşdırmasında (Docker imajı olmadan) çatışmayan ekvivalent komponent brauzer binar faylıdır: hostda `npx playwright install chromium` əmrini icra edin.
 
 #### İlkin buraxılış kanalından istifadə
 
-`next` kanalı cari defolt `release/v*` budağına edilən hər göndərişdə yenidən yığılır və həm AMD64, həm də ARM64 üçün dərc edilir. Köhnə texniki xidmət budaqları onun üzərinə yaza bilməz. Kanal növbəti stabil teq yaradılmazdan əvvəl aktiv buraxılış budağına birləşdirilmiş düzəlişlər üçün endirilə bilən obraz təqdim edir.
+`next` kanalı cari standart `release/v*` budağına hər push zamanı yenidən yığılır və həm AMD64, həm də ARM64 üçün dərc edilir. Köhnə texniki xidmət budaqları onun üzərinə yaza bilməz. Bu kanal növbəti stabil teq yaradılmazdan əvvəl aktiv buraxılış budağına birləşdirilmiş düzəlişlər üçün çəkilə bilən imaj təqdim edir.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Docker Compose üçün seçilmiş profilin istifadə etdiyi obraz teqini əvəzləyin, sonra xidməti endirib yenidən yaradın:
+Docker Compose üçün seçilmiş profilin istifadə etdiyi imaj teqini dəyişdirin, sonra xidməti çəkin və yenidən yaradın:
 
 ```yaml
 services:
@@ -527,30 +540,30 @@ docker compose up -d
 
 #### Təhlükəsizlik və geri qaytarma
 
-`next` dəyişkən ilkin buraxılış kanalıdır. Aktiv buraxılış budağına edilən istənilən göndərişdə dəyişə bilər və **istehsalda istifadə üçün dəstəklənmir**. Konkret yığımı qiymətləndirərkən obraz daycestini sabitləyin:
+`next` dəyişkən ilkin buraxılış kanalıdır. O, aktiv buraxılış budağına hər push zamanı dəyişə bilər və **istehsalda istifadə üçün dəstəklənmir**. Konkret yığımı qiymətləndirərkən imaj daycestini sabitləyin:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Sınaqdan əvvəl OmniRoute məlumat həcminin və ya bind-mount edilmiş məlumat qovluğunun ehtiyat nüsxəsini yaradın. Əvvəlki vəziyyətə qayıtmaq üçün daha əvvəl istifadə edilmiş stabil versiyanı və ya digest-i bərpa edin və konteyneri yenidən yaradın:
+Sınaqdan əvvəl OmniRoute məlumat həcminin və ya bind mount ilə qoşulmuş məlumat kataloqunun ehtiyat nüsxəsini yaradın. Geri qaytarmaq üçün əvvəllər istifadə edilmiş stabil versiyanı və ya daycesti bərpa edin və konteyneri yenidən yaradın:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Release branch-dən olan build heç vaxt `latest` teqini dəyişə bilməz; stabil göstəricini yalnız uyğun stabil semantik versiya irəli çəkə bilər. `next` image-ləri release image yoxlamasını və CRITICAL səviyyəli zəifliklər üçün bloklayıcı yoxlama mərhələsini saxlayır.
+Buraxılış budağının yığımı heç vaxt `latest` teqini dəyişə bilməz; stabil göstəricini yalnız uyğun stabil semantik versiya irəli çəkə bilər. `next` imajlarında buraxılış imajının yoxlanması və bloklayıcı CRITICAL zəiflik nəzarəti saxlanılır.
 
-**`latest` git üçün aktuallıq zəmanəti deyil.** `main` və ya aktiv `release/v*` branch-ində birləşdirilmiş düzəlişlər stabil SemVer image-i dərc edilənə və dərcetmə job-u `:latest` teqini həmin versiyaya (o SemVer ilə eyni digest) yönəldənə qədər `:latest` daxilində **olmur**. GitHub-da düzəliş artıq göründüyü halda `latest` dəyişməz görünürsə, release branch-ini sınaqdan keçirmək üçün `:next` image-ini çəkin və ya SemVer teqini gözləyin.
+**`latest` git üçün aktuallıq zəmanəti deyil.** `main` və ya aktiv `release/v*` budağına birləşdirilmiş düzəlişlər stabil SemVer imajı dərc edilənə və dərcetmə tapşırığı `:latest` teqini irəli çəkənə qədər `:latest` daxilində olmur (həmin SemVer ilə eyni daycest). GitHub artıq düzəlişi göstərdiyi halda `latest` donmuş görünürsə, buraxılış budağını sınaqdan keçirmək üçün `:next` teqini çəkin və ya SemVer teqini gözləyin.
 
-| İstəyiniz                                                                                   | İstifadə edin                                   |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Dəyişməməli olan GitOps / production                                                        | `:X.Y.Z` teqini (və ya image digest-i) pinləyin |
-| Dərc edilmiş stabil versiyaları izləmək və hər release zamanı yenidən yaratmanı qəbul etmək | `:latest`                                       |
-| Dərc edilməmiş `release/v*` commit-lərini sınaqdan keçirmək                                 | `:next` (production üçün deyil)                 |
-| `main` branch-ini sınaqdan keçirmək                                                         | `:main` (production üçün deyil)                 |
+| İstədiyiniz                                                                                | İstifadə edin                                      |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| Dəyişməməli olan GitOps / istehsal                                                         | `:X.Y.Z` teqini (və ya imaj daycestini) sabitləyin |
+| Dərc edilmiş stabil buraxılışları izləmək və hər buraxılışda yenidən yaratmanı qəbul etmək | `:latest`                                          |
+| Buraxılmamış `release/v*` commit-lərini sınaqdan keçirmək                                  | `:next` (istehsal üçün deyil)                      |
+| `main` budağını sınaqdan keçirmək                                                          | `:main` (istehsal üçün deyil)                      |
 
 ## Əlçatanlıq: standart SQLite tək replikalıdır
 

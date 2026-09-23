@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "ദാതാക്കൾ",
     "Account Deactivated": "അക്കൗണ്ട് നിർജ്ജീവമാക്കി",
     "allProviders": "എല്ലാ ദാതാക്കളും",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{connections, plural, one {# കണക്ഷൻ} other {# കണക്ഷനുകൾ}} ഉപയോഗിച്ച {exits, plural, one {# എക്സിറ്റ്} other {# എക്സിറ്റുകൾ}} · ഒരു എക്സിറ്റിൽ പരമാവധി {max} · കഴിഞ്ഞ {hours} മണിക്കൂർ",
     "poolEgressObservationEmpty": "കഴിഞ്ഞ {hours} മണിക്കൂറിൽ ട്രാഫിക്കൊന്നും നിരീക്ഷിച്ചിട്ടില്ല",
     "poolEgressObservationHint": "നിശ്ചിത സമയപരിധിയിലെ പ്രോക്സി ലോഗിൽ നിന്ന് കണക്കാക്കിയത്: ഈ പൂളിലെ അംഗങ്ങൾക്കായി നിരീക്ഷിച്ച വ്യത്യസ്ത എഗ്രസ് IP-കളും അവ ഉപയോഗിച്ച OmniRoute കണക്ഷനുകളും. \"ഒരു എക്സിറ്റിൽ\" എന്നത് ഒരേ സമയത്തെയല്ല, നിശ്ചിത സമയപരിധിയെയാണ് സൂചിപ്പിക്കുന്നത്. ഓരോ IP-യ്ക്കുമുള്ള 429 ലോക്കൗട്ട് ഒരേ പ്രൊവൈഡർ ഫാമിലിയിലെ കണക്ഷനുകൾ മാത്രമേ താൽക്കാലികമായി നിർത്തൂ.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "നീക്കം ചെയ്യുക",
     "poolRemoveFailed": "പൂളിൽ നിന്ന് പ്രോക്സി നീക്കം ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു",
     "poolAddLabel": "ഒരു പ്രോക്സി ചേർക്കുക",

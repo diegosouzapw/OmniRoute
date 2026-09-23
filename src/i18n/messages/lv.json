@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Nodrošinātāji",
     "Account Deactivated": "Konts deaktivizēts",
     "allProviders": "Visi nodrošinātāji",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# izeja izmantota} other {# izejas izmantotas}} {connections, plural, one {# savienojumā} other {# savienojumos}} · līdz {max} vienā izejā · pēdējo {hours} h laikā",
     "poolEgressObservationEmpty": "Pēdējo {hours} h laikā datplūsma nav novērota",
     "poolEgressObservationHint": "Aprēķināts no starpniekservera žurnāla attiecīgajā laika posmā: atšķirīgās izejošās IP adreses, kas novērotas šīs kopas dalībniekiem, un OmniRoute savienojumi, kuri tās izmantoja. “Vienā izejā” nozīmē visā laika posmā, nevis vienlaikus. Katras IP adreses 429 bloķēšana aptur tikai tās pašas pakalpojumu sniedzēju saimes savienojumus.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Noņemt",
     "poolRemoveFailed": "Neizdevās noņemt starpniekserveri no kopas",
     "poolAddLabel": "Pievienot starpniekserveri",
@@ -11418,6 +11426,7 @@
         "clientResponse": "Klienta atbilde",
         "pipelineError": "Konveijera kļūda"
       },
+      "payloadSizeLimitOmitted": "Saturs izlaists — šī sadaļa pārsniedza izsaukumu žurnāla izmēra ierobežojumu (CALL_LOG_PIPELINE_MAX_SIZE_KB) un netika saglabāta; tā nav īsta pakalpojumu sniedzēja kļūda.",
       "payloadMissing": "Detalizētais datu artefakts šim žurnāla ierakstam vairs nav pieejams.",
       "payloadCorrupt": "Detalizēto datu artefaktu neizdevās parsēt.",
       "notAvailable": "N/P",
@@ -11471,8 +11480,7 @@
       "correlationIdValue": "Korelācijas ID: {id}",
       "detailedPayloadInfo": "Vispirms iespējojiet detalizētu žurnalēšanu, ja vēlaties četru posmu klienta/nodrošinātāja derīgās slodzes skatu jauniem pieprasījumiem.",
       "copyAll": "Kopēt visu",
-      "copiedAll": "Viss nokopēts",
-      "payloadSizeLimitOmitted": "Saturs izlaists — šī sadaļa pārsniedza izsaukumu žurnāla izmēra ierobežojumu (CALL_LOG_PIPELINE_MAX_SIZE_KB) un netika saglabāta; tā nav īsta pakalpojumu sniedzēja kļūda."
+      "copiedAll": "Viss nokopēts"
     }
   },
   "proxyLogger": {

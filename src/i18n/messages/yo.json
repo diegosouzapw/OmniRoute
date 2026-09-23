@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Àwọn olùpèsè",
     "Account Deactivated": "A ti mú àkọọ́lẹ̀ náà kúrò ní ṣiṣiṣẹ́",
     "allProviders": "Gbogbo Àwọn Olùpèsè",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# àbájáde} other {# àwọn àbájáde}} ni {connections, plural, one {# àsopọ̀} other {# àwọn àsopọ̀}} lò · tó {max} lórí àbájáde kan · láàárín wákàtí {hours} tó kọjá",
     "poolEgressObservationEmpty": "A kò rí ìrìnàjò dátà kankan láàárín wákàtí {hours} tó kọjá",
     "poolEgressObservationHint": "A kà á láti inú àkọsílẹ̀ prọ́ṣì láàárín àkókò náà: àwọn IP àbájáde ọ̀tọ̀ọ̀tọ̀ tí a rí fún àwọn ọmọ ẹgbẹ́ àkójọpọ̀ yìí, àti àwọn àsopọ̀ OmniRoute tí ó lò wọ́n. \"Lórí àbájáde kan\" túmọ̀ sí láàárín àkókò náà, kì í ṣe ní àkókò kan náà. Ìdènà 429 fún IP kọ̀ọ̀kan máa ń dá àwọn àsopọ̀ ti ìdílé olùpèsè kan náà dúró fún ìgbà díẹ̀ nìkan.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Yọ kúrò",
     "poolRemoveFailed": "Kò ṣeé ṣe láti yọ prọ́ṣì náà kúrò nínú àkójọpọ̀",
     "poolAddLabel": "Ṣàfikún prọ́ṣì kan",
@@ -11418,6 +11426,7 @@
         "clientResponse": "Ìdáhùn Oníbàárà",
         "pipelineError": "Àṣìṣe Pipeline"
       },
+      "payloadSizeLimitOmitted": "A fo ẹrù-ìsọfúnni sílẹ̀ — apá yìí kọjá ààlà ìwọ̀n àkọsílẹ̀ ìpè (CALL_LOG_PIPELINE_MAX_SIZE_KB), a kò sì tọ́jú rẹ̀; kì í ṣe àṣìṣe gidi láti ọ̀dọ̀ olùpèsè.",
       "payloadMissing": "Ohun èlò payload alálàyé kò sí mọ́ fún àkọsílẹ̀ yìí.",
       "payloadCorrupt": "A kò lè ṣe ìtúpalẹ̀ ohun èlò payload alálàyé náà.",
       "notAvailable": "Kò kan án",
@@ -11471,8 +11480,7 @@
       "correlationIdValue": "ID Ìbámu: {id}",
       "detailedPayloadInfo": "Kọ́kọ́ mú ìforúkọsílẹ̀ alálàyé ṣiṣẹ́ bí o bá fẹ́ àfihàn àkóónú client/provider onípele mẹ́rin fún àwọn ìbéèrè tuntun.",
       "copyAll": "Ṣe àdàkọ gbogbo rẹ̀",
-      "copiedAll": "A ti ṣe àdàkọ gbogbo rẹ̀",
-      "payloadSizeLimitOmitted": "A fo ẹrù-ìsọfúnni sílẹ̀ — apá yìí kọjá ààlà ìwọ̀n àkọsílẹ̀ ìpè (CALL_LOG_PIPELINE_MAX_SIZE_KB), a kò sì tọ́jú rẹ̀; kì í ṣe àṣìṣe gidi láti ọ̀dọ̀ olùpèsè."
+      "copiedAll": "A ti ṣe àdàkọ gbogbo rẹ̀"
     }
   },
   "proxyLogger": {

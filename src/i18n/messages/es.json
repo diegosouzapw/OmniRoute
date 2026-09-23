@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Proveedores",
     "Account Deactivated": "Cuenta desactivada",
     "allProviders": "Todos los proveedores",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# salida usada} other {# salidas usadas}} por {connections, plural, one {# conexión} other {# conexiones}} · hasta {max} en una salida · últimas {hours} h",
     "poolEgressObservationEmpty": "No se observó tráfico en las últimas {hours} h",
     "poolEgressObservationHint": "Calculado a partir del registro del proxy durante el intervalo: las direcciones IP de salida distintas observadas para los miembros de este grupo y las conexiones de OmniRoute que las utilizaron. «En una salida» se refiere al intervalo, no al mismo tiempo. El bloqueo 429 por IP solo pausa las conexiones de la misma familia de proveedores.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Eliminar",
     "poolRemoveFailed": "No se pudo eliminar el proxy del grupo",
     "poolAddLabel": "Añadir un proxy",

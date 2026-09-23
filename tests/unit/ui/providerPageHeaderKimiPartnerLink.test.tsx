@@ -48,7 +48,7 @@ describe("ProviderPageHeader — Kimi partner-link note", () => {
 
   it.each([
     ["moonshot", "Kimi", "https://platform.kimi.ai?aff=omniroute"],
-    ["kimi-coding", "Kimi Code CLI", "https://www.kimi.com/code?aff=omniroute"],
+    ["kimi-coding", "Kimi Code CLI", "https://www.kimi.ai/code?aff=omniroute"],
     ["kimi-web", "Kimi Web", "https://www.kimi.ai"],
   ])("flags the %s header link as a partner link", (id, name, website) => {
     const el = renderHeader(id, name, website);

@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Lokale Sperre aufheben",
+    "codexReleaseCooldownHint": "Diesen Codex-Account erneut zulassen. Verbraucht keinen Reset-Credit und ändert keine Limits beim Anbieter.",
+    "codexReleasingCooldown": "Wird aufgehoben…",
+    "codexCooldownReleased": "Lokale Sperre aufgehoben.",
+    "codexCooldownReleaseFailed": "Die Sperre konnte nicht aufgehoben werden. Bitte erneut versuchen.",
     "title": "Anbieter",
     "Account Deactivated": "Konto deaktiviert",
     "allProviders": "Alle Anbieter",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# Ausgang} other {# Ausgänge}} verwendet von {connections, plural, one {# Verbindung} other {# Verbindungen}} · bis zu {max} an einem Ausgang · letzte {hours} Std.",
     "poolEgressObservationEmpty": "In den letzten {hours} Std. wurde kein Datenverkehr beobachtet",
     "poolEgressObservationHint": "Ermittelt aus dem Proxy-Protokoll innerhalb des Zeitfensters: unterschiedliche ausgehende IP-Adressen, die für die Mitglieder dieses Pools beobachtet wurden, sowie die OmniRoute-Verbindungen, die sie verwendet haben. „An einem Ausgang“ bezieht sich auf das Zeitfenster, nicht auf eine gleichzeitige Nutzung. Die 429-Sperre pro IP pausiert nur Verbindungen derselben Anbieterfamilie.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Entfernen",
     "poolRemoveFailed": "Fehler beim Entfernen des Proxys aus dem Pool",
     "poolAddLabel": "Proxy hinzufügen",

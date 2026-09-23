@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Провайдеры",
     "Account Deactivated": "Аккаунт деактивирован",
     "allProviders": "Все провайдеры",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "Использованных выходов: {exits, plural, one {#} few {#} many {#} other {#}} · использовавших их подключений: {connections, plural, one {#} few {#} many {#} other {#}} · до {max} на одном выходе · за последние {hours} ч",
     "poolEgressObservationEmpty": "За последние {hours} ч трафик не наблюдался",
     "poolEgressObservationHint": "Рассчитано по журналу прокси за выбранный период: уникальные исходящие IP-адреса, обнаруженные у прокси из этого пула, и подключения OmniRoute, которые их использовали. «На одном выходе» означает за весь период, а не одновременно. Блокировка 429 для отдельного IP-адреса приостанавливает только подключения того же семейства провайдеров.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Удалить",
     "poolRemoveFailed": "Не удалось удалить прокси из пула",
     "poolAddLabel": "Добавить прокси",

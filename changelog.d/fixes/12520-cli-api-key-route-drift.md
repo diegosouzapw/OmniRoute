@@ -1,1 +1,0 @@
-- Fix `keys regenerate`/`keys reveal` in the CLI to fall back to the dashboard `/api/keys` route when an ID from `keys list` does not exist in the registered-keys store, closing an ID-namespace drift between the two API key families.

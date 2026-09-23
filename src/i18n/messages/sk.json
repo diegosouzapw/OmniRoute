@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Poskytovatelia",
     "Account Deactivated": "Účet deaktivovaný",
     "allProviders": "Všetci poskytovatelia",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "Výstupy: {exits, plural, one {# výstup} few {# výstupy} other {# výstupov}} · pripojenia: {connections, plural, one {# pripojenie} few {# pripojenia} other {# pripojení}} · najviac {max} na jednom výstupe · za posledných {hours} h",
     "poolEgressObservationEmpty": "Za posledných {hours} h nebola zaznamenaná žiadna prevádzka",
     "poolEgressObservationHint": "Počítané z denníka proxy za sledované obdobie: jedinečné výstupné IP adresy zaznamenané pre členov tohto fondu a pripojenia OmniRoute, ktoré ich použili. „Na jednom výstupe“ znamená počas sledovaného obdobia, nie súčasne. Blokovanie 429 pre jednotlivé IP adresy pozastaví iba pripojenia rovnakej rodiny poskytovateľov.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Odstrániť",
     "poolRemoveFailed": "Nepodarilo sa odstrániť proxy z poolu",
     "poolAddLabel": "Pridať proxy",

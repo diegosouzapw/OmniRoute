@@ -82,6 +82,8 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "openrouter",
   // LLM Gateway DevPass allowance (GET /v1/key → monthly + weekly premium)
   "llmgateway",
+  // Lyceum credit balance (GET /api/v2/external/billing/credits)
+  "lyceum",
   // Devin CLI agentic quota (Codeium seat-management GetUserStatus, protobuf)
   "devin-cli",
 ];

@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "प्रदाते",
     "Account Deactivated": "खाते निष्क्रिय केले",
     "allProviders": "सर्व प्रदाते",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "निर्गमने: {exits, plural, one {# निर्गमन} other {# निर्गमने}} · त्यांचा वापर करणारी कनेक्शने: {connections, plural, one {# कनेक्शन} other {# कनेक्शने}} · एका निर्गमनावर कमाल {max} · मागील {hours} तास",
     "poolEgressObservationEmpty": "मागील {hours} तासांत कोणतीही वाहतूक आढळली नाही",
     "poolEgressObservationHint": "या कालावधीतील प्रॉक्सी लॉगवरून मोजलेले: या पूलच्या सदस्यांसाठी आढळलेले वेगवेगळे निर्गमन IP आणि त्यांचा वापर करणारी OmniRoute कनेक्शने. \"एका निर्गमनावर\" याचा अर्थ संपूर्ण कालावधीत असा आहे, एकाच वेळी नाही. प्रति-IP 429 लॉकआउट केवळ त्याच प्रदाता कुटुंबातील कनेक्शने तात्पुरती थांबवते.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "काढून टाका",
     "poolRemoveFailed": "पूलमधून प्रॉक्सी काढून टाकण्यात अयशस्वी",
     "poolAddLabel": "प्रॉक्सी जोडा",

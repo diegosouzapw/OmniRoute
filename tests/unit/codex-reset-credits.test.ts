@@ -111,6 +111,11 @@ function mockResetThenUsage(opts: {
 
 test("consumeCodexResetCredit fetches a credit id, posts it, then refreshes usage", async () => {
   const connection = (await createCodexConnection()) as { id: string };
+  await providersDb.updateCodexScopeCooldown(
+    connection.id,
+    "codex",
+    new Date(Date.now() + 3600000).toISOString()
+  );
   const calls: Array<{ url: string; init: RequestInit }> = [];
 
   globalThis.fetch = async (url, init = {}) => {
@@ -160,6 +165,9 @@ test("consumeCodexResetCredit fetches a credit id, posts it, then refreshes usag
   const result = await resetCredits.consumeCodexResetCredit(connection.id, "redeem-1");
   const refreshedQuotas = result.usage.quotas as QuotaUsageRecord;
 
+  const recovered = await providersDb.getProviderConnectionById(connection.id);
+  assert.equal(recovered.providerSpecificData.codexScopeRateLimitedUntil?.codex, undefined);
+  assert.equal(recovered.providerSpecificData.codexQuotaStateByScope.codex.usage5h, 0);
   assert.equal(result.outcome, "reset");
   assert.equal(result.usage.plan, "plus");
   assert.equal(refreshedQuotas.weekly?.used, 40);

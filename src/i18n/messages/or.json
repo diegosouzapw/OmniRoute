@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "ପ୍ରଦାନକାରୀମାନେ",
     "Account Deactivated": "ଆକାଉଣ୍ଟ ନିଷ୍କ୍ରିୟ କରାଯାଇଛି",
     "allProviders": "ସମସ୍ତ ପ୍ରଦାନକାରୀ",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{connections, plural, one {#ଟି ସଂଯୋଗ} other {#ଟି ସଂଯୋଗ}} ଦ୍ୱାରା {exits, plural, one {#ଟି ନିର୍ଗମ} other {#ଟି ନିର୍ଗମ}} ବ୍ୟବହୃତ · ଗୋଟିଏ ନିର୍ଗମରେ ସର୍ବାଧିକ {max} · ଗତ {hours} ଘଣ୍ଟା",
     "poolEgressObservationEmpty": "ଗତ {hours} ଘଣ୍ଟାରେ କୌଣସି ଟ୍ରାଫିକ୍ ଦେଖାଯାଇନାହିଁ",
     "poolEgressObservationHint": "ଏହି ସମୟସୀମାର ପ୍ରକ୍ସି ଲଗ୍ରୁ ଗଣନା କରାଯାଇଛି: ଏହି ପୁଲ୍ର ସଦସ୍ୟମାନଙ୍କ ପାଇଁ ଦେଖାଯାଇଥିବା ପୃଥକ ନିର୍ଗମ IPଗୁଡ଼ିକ ଏବଂ ସେଗୁଡ଼ିକୁ ବ୍ୟବହାର କରିଥିବା OmniRoute ସଂଯୋଗଗୁଡ଼ିକ। \"ଗୋଟିଏ ନିର୍ଗମରେ\"ର ଅର୍ଥ ଏହି ସମୟସୀମା ମଧ୍ୟରେ, ଏକା ସମୟରେ ନୁହେଁ। ପ୍ରତି-IP 429 ଲକ୍ଆଉଟ୍ କେବଳ ସମାନ ପ୍ରଦାନକାରୀ ପରିବାରର ସଂଯୋଗଗୁଡ଼ିକୁ ବିରତ କରେ।",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "ହଟାନ୍ତୁ",
     "poolRemoveFailed": "ପୁଲ୍ରୁ ପ୍ରକ୍ସିକୁ ହଟାଇବାରେ ବିଫଳ",
     "poolAddLabel": "ଏକ ପ୍ରକ୍ସି ଯୋଡ଼ନ୍ତୁ",

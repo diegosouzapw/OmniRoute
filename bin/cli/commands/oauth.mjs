@@ -23,8 +23,13 @@ const PROVIDERS_WITH_OAUTH = [
 // the device-flow request to /api/providers/command-code/auth/start, which is
 // gated by requireManagementAuth and returned 401 for a fresh CLI context
 // (issue #9474). Map the alias to the real backend key instead.
+//
+// `copilot` has the same mismatch (#14298): the GitHub Copilot device flow is
+// registered under the backend key `github`, so posting to
+// /api/oauth/copilot/device-code failed for an unknown provider.
 const BACKEND_OAUTH_KEY = {
   "claude-code": "claude",
+  copilot: "github",
 };
 
 function resolveBackendKey(id) {
@@ -70,7 +75,7 @@ function printLoopbackRedirectWarning(providerId, redirectUri) {
   process.stdout.write(
     `Note: the authorize URL below advertises ${redirectUri}, but this CLI does not\n` +
       "listen on that port. Right after you approve, the browser is expected to\n" +
-      "show a connection error (e.g. \"This site can't be reached\" / \n" +
+      'show a connection error (e.g. "This site can\'t be reached" / \n' +
       "ERR_CONNECTION_REFUSED) — that is normal, not a failure. Copy the full URL\n" +
       "from the address bar anyway and paste it below.\n"
   );
@@ -292,27 +297,51 @@ async function runDeviceFlow(def, opts) {
 
   if (opts.browser !== false && verificationUri) await openBrowser(verificationUri);
   process.stderr.write("Waiting for device authorization...\n");
+  // Poll the real device-flow route: POST /api/oauth/{key}/poll with the device
+  // code (#14298). The previous implementation polled
+  // GET /api/providers/{key}/auth/status?state=… and then POST …/auth/apply,
+  // but neither route exists on the server, and the device-code response has no
+  // `state` field at all — so the CLI looped until its timeout even after the
+  // user authorized. /api/oauth/{key}/poll is the same route the dashboard
+  // polls (src/shared/components/OAuthModal.tsx::pollDeviceCodeOnce) and it
+  // persists the connection server-side on success, so no separate apply step
+  // is needed.
+  const deviceCode = start.deviceCode ?? start.device_code ?? "";
+  if (!deviceCode) {
+    process.stderr.write("Server did not return a device code; cannot poll for authorization.\n");
+    process.exit(1);
+  }
+  const codeVerifier = start.codeVerifier ?? undefined;
   const deadline = Date.now() + (opts.timeout ?? 300000);
-  const intervalMs = (start.intervalMs ?? start.interval ?? 5) * 1000;
+  let intervalMs = (start.intervalMs ?? start.interval ?? 5) * 1000;
   while (Date.now() < deadline) {
     await sleep(intervalMs);
-    const statusRes = await apiFetch(
-      `/api/providers/${providerKey}/auth/status?state=${encodeURIComponent(start.state ?? "")}`,
-      targetApiOptions(opts)
-    );
-    if (!statusRes.ok) continue;
-    const status = await statusRes.json();
-    if (status.status === "complete" || status.status === "authorized") {
-      await apiFetch(`/api/providers/${providerKey}/auth/apply`, {
-        ...targetApiOptions(opts),
-        method: "POST",
-        body: { state: start.state },
-      });
-      process.stdout.write(`Authorized: ${status.account ?? status.email ?? "connected"}\n`);
+    const pollRes = await apiFetch(`/api/oauth/${providerKey}/poll`, {
+      ...targetApiOptions(opts),
+      method: "POST",
+      body: { deviceCode, ...(codeVerifier ? { codeVerifier } : {}) },
+    });
+    if (!pollRes.ok) continue;
+    let poll;
+    try {
+      poll = await pollRes.json();
+    } catch {
+      continue;
+    }
+    if (poll.success) {
+      const conn = poll.connection ?? {};
+      process.stdout.write(
+        `Authorized: ${conn.email ?? conn.displayName ?? conn.id ?? "connected"}\n`
+      );
       return;
     }
-    if (status.status === "error") {
-      process.stderr.write(`Device auth failed: ${status.error}\n`);
+    if (poll.error === "slow_down") {
+      // OAuth device-flow spec: back off by 5s on slow_down.
+      intervalMs += 5000;
+      continue;
+    }
+    if (poll.error && !poll.pending) {
+      process.stderr.write(`Device auth failed: ${poll.errorDescription ?? poll.error}\n`);
       process.exit(1);
     }
   }

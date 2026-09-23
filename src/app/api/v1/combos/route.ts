@@ -45,7 +45,15 @@ export async function GET(request: Request) {
     const combos = await getCombos();
     const data = (Array.isArray(combos) ? combos : [])
       // #3979: advertise resolved capabilities so importing clients enable them
-      .map((c) => projectCombo(c as Record<string, unknown>, { includeCapabilities: true }))
+      // #14232: pass the collection so combo-ref steps expand the same way the
+      // routing runtime and /v1/models resolve them, keeping the two catalogs
+      // in agreement for nested combos.
+      .map((c) =>
+        projectCombo(c as Record<string, unknown>, {
+          includeCapabilities: true,
+          allCombos: Array.isArray(combos) ? combos : [],
+        })
+      )
       .filter((c): c is PublicCombo => c !== null);
 
     return NextResponse.json(

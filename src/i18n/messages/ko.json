@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "공급자",
     "Account Deactivated": "계정 비활성화됨",
     "allProviders": "모든 제공자",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {출구 #개} other {출구 #개}}를 {connections, plural, one {연결 #개} other {연결 #개}}에서 사용 · 출구 한 곳에서 최대 {max}개 · 최근 {hours}시간",
     "poolEgressObservationEmpty": "최근 {hours}시간 동안 트래픽이 관찰되지 않았습니다",
     "poolEgressObservationHint": "해당 기간의 프록시 로그를 기준으로 집계됩니다. 이 풀의 구성원에 대해 관찰된 고유 송신 IP와 이를 사용한 OmniRoute 연결을 나타냅니다. \"출구 한 곳에서\"는 동일한 시점이 아니라 해당 기간 전체를 의미합니다. IP별 429 잠금은 동일한 제공업체 계열의 연결만 일시 중지합니다.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "제거",
     "poolRemoveFailed": "풀에서 프록시를 제거하지 못했습니다",
     "poolAddLabel": "프록시 추가",

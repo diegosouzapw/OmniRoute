@@ -4,7 +4,8 @@
  * Priority combos can be impossible to audit after a mixed fallback: dispatched
  * attempts are persisted in call_logs, but candidates excluded before dispatch
  * (circuit open, provider cooldown, model lockout, quota cutoff, availability,
- * credential gate, concurrency cap, admission lane, predictive TTFT) leave no
+ * model not in the live catalog, credential gate, concurrency cap, admission
+ * lane, predictive TTFT) leave no
  * correlated decision record. This module records one ordered, allowlisted
  * decision per target per invocation so operators can reconstruct what the
  * chain actually did.
@@ -26,6 +27,7 @@ export const COMBO_SKIP_REASONS = [
   "model_lockout",
   "quota_cutoff",
   "availability",
+  "model_not_in_catalog",
   "credential_gate",
   "concurrency_cap",
   "admission_lane",

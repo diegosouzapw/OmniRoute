@@ -37,8 +37,12 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   bedrock: () => import("./bedrock.ts").then((m) => new m.BedrockExecutor()),
   codex: () => import("./codex.ts").then((m) => new m.CodexExecutor()),
   "codex-app-server": () =>
-    import("./codex-app-server.ts").then(
-      (m) => new m.CodexAppServerExecutor({}, "codex-app-server")
+    Promise.all([import("./codex-app-server.ts"), import("./codex.ts")]).then(
+      ([appServer, codex]) =>
+        new appServer.CodexAppServerExecutor(
+          { websocketFn: codex.getCodexAppServerWebsocketTransport() },
+          "codex-app-server"
+        )
     ),
   maxai: () => import("./maxai.ts").then((m) => new m.MaxAiExecutor()),
   uc: () => import("./uc.ts").then((m) => new m.UcExecutor()),

@@ -62,6 +62,20 @@ test("convertUsageToQuotaInfo maps remainingPercentage into per-window percentUs
   assert.equal(result!.resetAt, "2026-05-21T00:00:00Z");
 });
 
+test("convertUsageToQuotaInfo maps Kimi Coding code_5h/code_7d onto structural windows", () => {
+  const result = convertUsageToQuotaInfo({
+    quotas: {
+      code_5h: { remainingPercentage: 81.2298, resetAt: "2099-09-19T14:24:04.000Z" },
+      code_7d: { remainingPercentage: 85.2949, resetAt: "2099-09-25T02:24:04.000Z" },
+    },
+  });
+  assert.ok(result);
+  assert.equal(Number(result!.window5h?.percentUsed.toFixed(6)), 0.187702);
+  assert.equal(Number(result!.window7d?.percentUsed.toFixed(6)), 0.147051);
+  assert.equal(result!.window5h?.resetAt, "2099-09-19T14:24:04.000Z");
+  assert.equal(result!.window7d?.resetAt, "2099-09-25T02:24:04.000Z");
+});
+
 test("convertUsageToQuotaInfo falls back to used/total when remainingPercentage is absent", () => {
   const result = convertUsageToQuotaInfo({
     quotas: { session: { used: 45, total: 100, resetAt: null } },

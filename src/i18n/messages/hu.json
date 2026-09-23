@@ -5061,6 +5061,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Szolgáltatók",
     "Account Deactivated": "Fiók deaktiválva",
     "allProviders": "Minden szolgáltató",
@@ -11015,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# kilépési pontot} other {# kilépési pontot}} használt {connections, plural, one {# kapcsolat} other {# kapcsolat}} · egy kilépési ponton legfeljebb {max} · az elmúlt {hours} órában",
     "poolEgressObservationEmpty": "Nem észlelhető forgalom az elmúlt {hours} órában",
     "poolEgressObservationHint": "A proxynapló alapján, az időablakban számítva: a készlet tagjainál megfigyelt különböző kimenő IP-címek, valamint az ezeket használó OmniRoute-kapcsolatok. Az „egy kilépési ponton” az időablak egészére vonatkozik, nem egyidejű használatra. Az IP-címenkénti 429-es zárolás csak az azonos szolgáltatócsalád kapcsolatait szünetelteti.",
+    "poolMemberEgress": "__MISSING__:{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "__MISSING__:{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "__MISSING__:Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Eltávolítás",
     "poolRemoveFailed": "Nem sikerült eltávolítani a proxyt a készletből",
     "poolAddLabel": "Proxy hozzáadása",

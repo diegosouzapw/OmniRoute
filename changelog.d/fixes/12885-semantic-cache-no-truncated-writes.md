@@ -1,1 +1,0 @@
-- fix(cache): never write a truncated completion (`finish_reason: "length"`/`max_tokens`) into the semantic cache — a partial answer cached under a temperature:0 signature was served to every later identical request, permanently returning a mid-sentence reply that no retry cleared (#12885)

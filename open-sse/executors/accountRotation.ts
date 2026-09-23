@@ -16,6 +16,13 @@
 // of inventing a separate constant — same magnitude the codebase already
 // applies whether the failure is a 429 or a network-level throw.
 import { TRANSIENT_COOLDOWN_MS, COOLDOWN_MS } from "../config/errorConfig.ts";
+// M1 gate (default-off): the sticky/drain head only acts when the operator opted
+// into skipping recently failed proxies; flag-off keeps the plain rotation
+// byte-identical (R4). Same reader module as the opencode executor caller.
+import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
+// M2 single authority: the shared refusal store (pure: errorConfig + proxyFamily
+// + node:net only). The head never derives its own window.
+import { isProxyAvoided, proxyEgressKey } from "../utils/proxyRefusalMemory.ts";
 
 /** Per-account proxy configuration, persisted by NoAuthAccountCard under
  * `providerSpecificData.accountProxies` (keyed by the account id, which the UI
@@ -63,13 +70,36 @@ export function isAccountReady(account: RotatableAccount): boolean {
  * hanging when every account is unavailable. Mutates `state.nextAccountIdx`.
  *
  * `isReady` defaults to the plain cooldown check (`isAccountReady`); pass a
- * custom predicate when readiness depends on more than cooldown (e.g.
- * mimocode's JWT-freshness-aware variant). */
+ * custom predicate when readiness depends on more than cooldown.
+ *
+ * Sticky/drain head (opt-in via PROXY_SKIP_RECENTLY_FAILED, default off): when
+ * the flag is on, the last served member (`state.lastHealthyFingerprint`) is
+ * preferred while still `isReady`, and store-refused members (`isProxyAvoided`,
+ * direct/null-key never) are skipped when a healthy member exists. Flag off =
+ * the plain rotation below, byte-identical. Precedence: `isReady` false is
+ * never served, never overridden.
+ *
+ * `isReady` defaults to the plain cooldown check (`isAccountReady`); pass a
+ * custom predicate when readiness depends on more than cooldown. */
 export function pickAccount<T extends RotatableAccount>(
   accounts: T[],
-  state: { nextAccountIdx: number },
+  state: { nextAccountIdx: number; lastHealthyFingerprint?: string },
   isReady: (account: T) => boolean = isAccountReady
 ): T {
+  const serve = (idx: number): T => {
+    const acct = accounts[idx];
+    state.nextAccountIdx = (idx + 1) % accounts.length;
+    if (isStickyDrainEnabled()) state.lastHealthyFingerprint = acct.fingerprint;
+    return acct;
+  };
+  const stickyIdx = stickyServeIndex(accounts, state, isReady);
+  if (stickyIdx !== null) return serve(stickyIdx);
+  for (let i = 0; i < accounts.length; i++) {
+    const idx = (state.nextAccountIdx + i) % accounts.length;
+    if (isReady(accounts[idx]) && !isStoreDrained(accounts[idx])) {
+      return serve(idx);
+    }
+  }
   for (let i = 0; i < accounts.length; i++) {
     const idx = (state.nextAccountIdx + i) % accounts.length;
     const acct = accounts[idx];
@@ -81,6 +111,53 @@ export function pickAccount<T extends RotatableAccount>(
   const fallbackIdx = state.nextAccountIdx % accounts.length;
   state.nextAccountIdx = (state.nextAccountIdx + 1) % accounts.length;
   return accounts[fallbackIdx];
+}
+
+/** Flag gate, isolated for tests: default-off keeps the plain rotation. */
+function isStickyDrainEnabled(): boolean {
+  try {
+    return isProxySkipRecentlyFailedEnabled();
+  } catch {
+    return false;
+  }
+}
+
+// Sticky is the within-wave fallback: only when the store holds a set-aside for
+// this fleet (a refusal just happened) AND the cursor already advanced past the
+// memorized serve (a next pick follows a completed attempt in the same wave)
+// does the memorized healthy member win over a blind re-scan. Fresh requests
+// (cursor at-or-behind the memorized serve) always start at the shared cursor,
+// keeping the existing cross-request set-aside rhythm identical.
+function stickyServeIndex<T extends RotatableAccount>(
+  accounts: T[],
+  state: { nextAccountIdx: number; lastHealthyFingerprint?: string },
+  isReady: (account: T) => boolean
+): number | null {
+  if (!isStickyDrainEnabled() || !hasStoreHistory(accounts)) return null;
+  const wanted = state.lastHealthyFingerprint;
+  if (!wanted) return null;
+  const sticky = accounts.findIndex((a) => a.fingerprint === wanted);
+  if (sticky === -1 || !isReady(accounts[sticky]) || isStoreDrained(accounts[sticky])) {
+    return null;
+  }
+  if (state.nextAccountIdx <= sticky) return null;
+  const cursorIdx = state.nextAccountIdx % accounts.length;
+  if (isReady(accounts[cursorIdx]) && !isStoreDrained(accounts[cursorIdx])) return null;
+  return sticky;
+}
+
+/** True when the shared store holds this member aside (direct never). */
+function isStoreDrained(account: RotatableAccount): boolean {
+  if (!isStickyDrainEnabled()) return false;
+  return isProxyAvoided(proxyEgressKey(account.proxy));
+}
+
+/** True when the store holds any candidate of this fleet aside. */
+function hasStoreHistory(accounts: RotatableAccount[]): boolean {
+  for (const a of accounts) {
+    if (isProxyAvoided(proxyEgressKey(a.proxy))) return true;
+  }
+  return false;
 }
 
 export function markCooldown(account: RotatableAccount, kind: CooldownKind = "transient"): void {
@@ -104,6 +181,31 @@ export function markSuccess(account: RotatableAccount): void {
 export function maskAccountId(fingerprint: string): string {
   if (!fingerprint) return "direct";
   return `${fingerprint.slice(0, 8)}…`;
+}
+
+/** One per-account rotation entry, keyed by connection id (never a fingerprint). */
+export interface RotationAccountSnapshot {
+  /** Already-masked id (`maskAccountId` output) — never the full fingerprint. */
+  masked: string;
+  ready: boolean;
+  cooldownUntilMs: number | null;
+  consecutiveFails: number;
+}
+
+const rotationSnapshots = new Map<string, RotationAccountSnapshot[]>();
+
+/** Record the current rotation state for a connection (sync, in-memory only). */
+export function recordRotationSnapshot(
+  connectionKey: string,
+  entries: RotationAccountSnapshot[]
+): void {
+  rotationSnapshots.set(connectionKey, [...entries]);
+}
+
+/** Read the last recorded rotation state (no side effects — never clears). */
+export function readRotationSnapshot(connectionKey: string): RotationAccountSnapshot[] | null {
+  const snap = rotationSnapshots.get(connectionKey);
+  return snap ? [...snap] : null;
 }
 
 /**
