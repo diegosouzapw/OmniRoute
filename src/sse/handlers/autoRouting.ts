@@ -70,14 +70,13 @@ async function applyAutoPrefix(
     const { parseAutoPrefix } =
       await import("@omniroute/open-sse/services/autoCombo/autoPrefix.ts");
     const parsed = parseAutoPrefix(model);
-    if (!parsed.valid) {
+    const recognizedBuiltIn = Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, model);
+    if (!parsed.valid && !recognizedBuiltIn) {
       if (!state.spec) log.warn("AUTO", `Invalid auto prefix format: ${model}`);
       return state;
     }
 
-    const variant = Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, model)
-      ? state.variant
-      : parsed.variant;
+    const variant = recognizedBuiltIn ? state.variant : parsed.variant;
     const defaultVariant =
       model === "auto" && variant === undefined
         ? (settings.autoRoutingDefaultVariant as AutoVariant | undefined)

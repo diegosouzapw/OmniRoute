@@ -77,3 +77,50 @@ test("#12886: unrestricted key skips the gate", async () => {
   assert.equal(ok, true);
   assert.equal(called, 0);
 });
+
+test("blockedModels still filters combo targets in all-access mode", async () => {
+  let called = 0;
+  const ok = await comboTargetPassesKeyModelPolicy({
+    apiKey: KEY,
+    apiKeyInfo: {
+      modelAccessMode: "all",
+      allowedModels: [],
+      blockedModels: ["deepseek/*"],
+    },
+    requestedModelStr: COMBO,
+    targetModelStr: INNER,
+    isModelAllowedForKey: async () => {
+      called += 1;
+      return false;
+    },
+  });
+  assert.equal(ok, false);
+  assert.equal(called, 0);
+});
+
+test("blockedModels takes precedence without disabling allowed combo targets", async () => {
+  const apiKeyInfo = {
+    modelAccessMode: "restricted",
+    allowedModels: [COMBO],
+    blockedModels: ["anthropic/*"],
+  };
+  const checker = allowListChecker([COMBO]);
+
+  const allowed = await comboTargetPassesKeyModelPolicy({
+    apiKey: KEY,
+    apiKeyInfo,
+    requestedModelStr: COMBO,
+    targetModelStr: INNER,
+    isModelAllowedForKey: checker,
+  });
+  const blocked = await comboTargetPassesKeyModelPolicy({
+    apiKey: KEY,
+    apiKeyInfo,
+    requestedModelStr: COMBO,
+    targetModelStr: OTHER,
+    isModelAllowedForKey: checker,
+  });
+
+  assert.equal(allowed, true);
+  assert.equal(blocked, false);
+});

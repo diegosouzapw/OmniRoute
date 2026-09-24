@@ -67,3 +67,11 @@ test("validateVertexProvider: malformed Service Account JSON is rejected", async
   assert.equal(result.valid, false);
   assert.match(result.error || "", /Invalid Service Account JSON/i);
 });
+
+test("validateVertexProvider: OAuth client JSON explains the required credential type", async () => {
+  const result = await M.validateVertexProvider({
+    apiKey: JSON.stringify({ web: { client_id: "example.apps.googleusercontent.com" } }),
+  });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /OAuth client JSON is not a Service Account key/i);
+});

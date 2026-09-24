@@ -1,27 +1,18 @@
-# CLI-TOOLS (മലയാളം)
+# CLI Tools — OmniRoute (മലയാളം)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
-title: "CLI ടൂളുകൾ — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-23
----
+അവസാനം പുതുക്കിയത്: 2026-08-23
 
-# CLI ടൂളുകൾ — OmniRoute
+മൂന്ന് സമർപ്പിത ഡാഷ്ബോർഡ് പേജുകളിലായി ക്രമീകരിച്ചിരിക്കുന്ന മൂന്ന് വിഭാഗം CLI ടൂളുകളുമായി OmniRoute സംയോജിക്കുന്നു:
 
-അവസാനം അപ്ഡേറ്റ് ചെയ്തത്: 2026-08-23
-
-മൂന്ന് പ്രത്യേക ഡാഷ്ബോർഡ് പേജുകളിലായി വ്യാപിച്ചുകിടക്കുന്ന മൂന്ന് വിഭാഗം CLI ടൂളുകളുമായി OmniRoute സംയോജിക്കുന്നു:
-
-| പേജ്           | റൂട്ട്                  | ആശയം                                                                                               | എണ്ണം           |
-| -------------- | ----------------------- | -------------------------------------------------------------------------------------------------- | --------------- |
-| **CLI Code's** | `/dashboard/cli-code`   | OmniRoute-ലേക്ക് നിങ്ങൾ ചൂണ്ടിക്കാണിക്കുന്ന കോഡിങ് ടൂളുകൾ (ക്ലയന്റ് → CLI → OmniRoute → പ്രൊവൈഡർ)  | 26              |
-| **CLI Agents** | `/dashboard/cli-agents` | OmniRoute-ലേക്ക് നിങ്ങൾ ചൂണ്ടിക്കാണിക്കുന്ന സ്വയംഭരണ ഏജന്റുകൾ (അതേ പ്രവാഹം, കൂടുതൽ വിപുലമായ പരിധി) | 10              |
-| **ACP Agents** | `/dashboard/acp-agents` | stdio/ACP വഴി OmniRoute ബാക്കെൻഡായി ആരംഭിക്കുന്ന CLI-കൾ (വിപരീത പ്രവാഹം)                           | രജിസ്ട്രി കാണുക |
+| പേജ്             | റൂട്ട്                  | ആശയം                                                                                        | എണ്ണം           |
+| ---------------- | ----------------------- | ------------------------------------------------------------------------------------------- | --------------- |
+| **CLI കോഡുകൾ**   | `/dashboard/cli-code`   | നിങ്ങൾ OmniRoute-ലേക്ക് ചൂണ്ടുന്ന കോഡിംഗ് ടൂളുകൾ (ക്ലയന്റ് → CLI → OmniRoute → പ്രൊവൈഡർ)    | 26              |
+| **CLI ഏജന്റുകൾ** | `/dashboard/cli-agents` | നിങ്ങൾ OmniRoute-ലേക്ക് ചൂണ്ടുന്ന സ്വയംഭരണ ഏജന്റുകൾ (അതേ പ്രവാഹം, കൂടുതൽ വിപുലമായ വ്യാപ്തി) | 10              |
+| **ACP ഏജന്റുകൾ** | `/dashboard/acp-agents` | stdio/ACP വഴി OmniRoute ബാക്കെൻഡായി പ്രവർത്തിപ്പിക്കുന്ന CLI-കൾ (വിപരീത പ്രവാഹം)            | രജിസ്ട്രി കാണുക |
 
 പഴയ റൂട്ടുകൾ 308 വഴി റീഡയറക്ട് ചെയ്യുന്നു: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
@@ -165,34 +156,34 @@ CLI കമാൻഡ് ഇന്റർഫേസുകൾക്കുള്ള �
 
 `/dashboard/cli-code`-ൽ ദൃശ്യമാകുന്ന എല്ലാ ടൂളുകളും. `baseUrlSupport: none` ഉള്ളവ ഒരു ഇഷ്ടാനുസൃത base URL-ന് പകരം MITM വഴിയോ മാനുവൽ ഗൈഡ് വഴിയോ ബന്ധിപ്പിച്ചിരിക്കുന്നു:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | name                    | vendor                 | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | ---------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic              | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                 | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                   | none           | custom         | false        |
+| cline        | Cline                   | OSS (മുൻപ് Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org               | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)              | full           | guide          | false        |
+| continue     | Continue                | continue.dev           | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)      | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ            | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)         | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)      | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)           | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (മുൻപ് SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI             | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS              | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere              | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)      | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)       | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                    | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)            | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba                | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere              | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                 | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research          | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                 | none           | mitm           | false        |
+| custom       | Custom CLI              | —                      | full           | custom-builder | false        |
 
 `baseUrlSupport: "partial"` ഉള്ള ടൂളുകളുടെ ഡാഷ്ബോർഡ് കാർഡിൽ "⚠ ഭാഗിക Base URL" എന്ന ബാഡ്ജ് ദൃശ്യമാകും.
 ---
@@ -201,18 +192,18 @@ CLI കമാൻഡ് ഇന്റർഫേസുകൾക്കുള്ള �
 
 `/dashboard/cli-agents`-ൽ ദൃശ്യമാകുന്ന സ്വയംഭരണ ഏജന്റുകൾ:
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
+| id           | പേര്             | വെൻഡർ                    | baseUrlSupport | acpSpawnable |
 | ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| hermes-agent | Hermes Agent     | Nous Research            | പൂർണ്ണം        | false        |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | പൂർണ്ണം        | true         |
+| goose        | Goose            | Block / Linux Foundation | പൂർണ്ണം        | true         |
+| interpreter  | Open Interpreter | OSS                      | പൂർണ്ണം        | true         |
+| warp         | Warp AI          | Warp Inc.                | ഭാഗികം         | true         |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | പൂർണ്ണം        | false        |
+| omp          | Oh My Pi         | OSS                      | പൂർണ്ണം        | true         |
+| letta        | Letta CLI        | Letta                    | പൂർണ്ണം        | false        |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | പൂർണ്ണം        | false        |
+| 5dive        | 5dive            | OSS (5dive-ai)           | പൂർണ്ണം        | false        |
 
 ---
 
@@ -621,7 +612,7 @@ kiro-cli status
 
 ---
 
-## 10. ആന്തരിക OmniRoute CLI
+## 10. ആഭ്യന്തര OmniRoute CLI
 
 സെർവർ ലൈഫ്സൈക്കിൾ, സജ്ജീകരണം, ഡയഗ്നോസ്റ്റിക്സ്, പ്രൊവൈഡർ മാനേജ്മെന്റ് എന്നിവയ്ക്കുള്ള കമാൻഡുകൾ `omniroute` ബൈനറി നൽകുന്നു. എൻട്രി പോയിന്റ്: `bin/omniroute.mjs`.
 
@@ -631,23 +622,23 @@ omniroute setup                        # ഇന്ററാക്ടീവ് �
 omniroute doctor                       # കോൺഫിഗ്, DB, പോർട്ടുകൾ, റൺടൈം എന്നിവ പരിശോധിക്കുക
 omniroute providers list               # കോൺഫിഗർ ചെയ്ത പ്രൊവൈഡർ കണക്ഷനുകൾ
 omniroute providers test-all           # സജീവമായ എല്ലാ കണക്ഷനുകളും പരിശോധിക്കുക
-omniroute reset-password               # അഡ്മിൻ പാസ്വേഡ് പുനഃസജ്ജമാക്കുക
-omniroute logs                         # അഭ്യർത്ഥനാ ലോഗുകൾ സ്ട്രീം ചെയ്യുക
+omniroute reset-password               # അഡ്മിൻ പാസ്വേഡ് റീസെറ്റ് ചെയ്യുക
+omniroute logs                         # റിക്വസ്റ്റ് ലോഗുകൾ സ്ട്രീം ചെയ്യുക
 omniroute health                       # വിശദമായ ആരോഗ്യനില (ബ്രേക്കറുകൾ, കാഷ്, മെമ്മറി)
 omniroute --version                    # പതിപ്പ് പ്രിന്റ് ചെയ്യുക
 omniroute --help                       # എല്ലാ കമാൻഡുകളും കാണിക്കുക
 ```
 
-### സജ്ജീകരണവും ആരംഭിക്കലും
+### സജ്ജീകരണവും ഇനിഷ്യലൈസേഷനും
 
 ```bash
 omniroute setup                        # ഇന്ററാക്ടീവ് സജ്ജീകരണ വിസാർഡ്
-omniroute setup --non-interactive      # CI/ഓട്ടോമേഷൻ മോഡ് (env വേരിയബിളുകളും ഫ്ലാഗുകളും വായിക്കുന്നു)
+omniroute setup --non-interactive      # CI/ഓട്ടോമേഷൻ മോഡ് (എൻവയോൺമെന്റ് വേരിയബിളുകളും ഫ്ലാഗുകളും വായിക്കുന്നു)
 omniroute setup --password '<value>'   # അഡ്മിൻ പാസ്വേഡ് നേരിട്ട് സജ്ജമാക്കുക
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # ഒറ്റയടിക്ക് ഒരു പ്രൊവൈഡറെ ചേർത്ത് പരിശോധിക്കുക
+  --test-provider                      # ഒരൊറ്റ ഘട്ടത്തിൽ ഒരു പ്രൊവൈഡറെ ചേർത്ത് പരിശോധിക്കുക
 ```
 
 നോൺ-ഇന്ററാക്ടീവ് സജ്ജീകരണത്തിനായി തിരിച്ചറിയുന്ന എൻവയോൺമെന്റ് വേരിയബിളുകൾ:
@@ -655,7 +646,7 @@ omniroute setup --add-provider \
 | വേരിയബിൾ            | ഉദ്ദേശ്യം                                                                           |
 | ------------------- | ----------------------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | പ്രൊവൈഡർ API കീ (Commander `.env()` വഴി `--api-key`-യുമായി ബന്ധിപ്പിച്ചിരിക്കുന്നു) |
-| `DATA_DIR`          | OmniRoute ഡാറ്റാ ഡയറക്ടറിയെ അസാധുവാക്കി മറ്റൊന്ന് ഉപയോഗിക്കുക                       |
+| `DATA_DIR`          | OmniRoute ഡാറ്റ ഡയറക്ടറി ഓവർറൈഡ് ചെയ്യുക                                            |
 
 മറ്റെല്ലാ നോൺ-ഇന്ററാക്ടീവ് ഇൻപുട്ടുകളും എൻവയോൺമെന്റ് വേരിയബിളുകളായല്ല, ഫ്ലാഗുകളായാണ് നൽകുന്നത്:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
@@ -665,15 +656,15 @@ omniroute setup --add-provider \
 
 ```bash
 omniroute doctor                       # കോൺഫിഗ്, DB, പോർട്ടുകൾ, റൺടൈം, മെമ്മറി, ലൈവ്നസ് എന്നിവ പരിശോധിക്കുക
-omniroute doctor --json                # മെഷീൻ-റീഡബിൾ JSON
+omniroute doctor --json                # മെഷീൻ വായിക്കാവുന്ന JSON
 omniroute doctor --no-liveness         # HTTP ആരോഗ്യനില പ്രോബ് ഒഴിവാക്കുക
-omniroute doctor --host 0.0.0.0        # ലൈവ്നസ് ഹോസ്റ്റ് അസാധുവാക്കി മറ്റൊന്ന് ഉപയോഗിക്കുക
-omniroute doctor --liveness-url <url>  # ആരോഗ്യനില എൻഡ്പോയിന്റിന്റെ പൂർണ്ണ URL അസാധുവാക്കി മറ്റൊന്ന് ഉപയോഗിക്കുക
+omniroute doctor --host 0.0.0.0        # ലൈവ്നസ് ഹോസ്റ്റ് ഓവർറൈഡ് ചെയ്യുക
+omniroute doctor --liveness-url <url>  # പൂർണ്ണ ആരോഗ്യനില എൻഡ്പോയിന്റ് URL ഓവർറൈഡ്
 ```
 
 ഡോക്ടർ ഈ പരിശോധനകൾ നടത്തുന്നു: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, `Server liveness`. ഏതെങ്കിലും പരിശോധന `fail` ആയാൽ ഇത് പൂജ്യമല്ലാത്ത കോഡോടെ പുറത്തുകടക്കും.
+`Memory`, `Server liveness`. ഏതെങ്കിലും പരിശോധന `fail` ആണെങ്കിൽ ഇത് പൂജ്യമല്ലാത്ത എക്സിറ്റ് കോഡോടെ അവസാനിക്കും.
 
 ### പ്രൊവൈഡർ മാനേജ്മെന്റ്
 
@@ -681,14 +672,14 @@ omniroute doctor --liveness-url <url>  # ആരോഗ്യനില എൻഡ�
 omniroute providers available                       # OmniRoute പ്രൊവൈഡർ കാറ്റലോഗ്
 omniroute providers available --search openai       # id/പേര്/അപരനാമം/വിഭാഗം അനുസരിച്ച് കാറ്റലോഗ് ഫിൽട്ടർ ചെയ്യുക
 omniroute providers available --category api-key    # വിഭാഗം അനുസരിച്ച് ഫിൽട്ടർ ചെയ്യുക (api-key, oauth, free, ...)
-omniroute providers available --json                # മെഷീൻ-റീഡബിൾ JSON
+omniroute providers available --json                # മെഷീൻ വായിക്കാവുന്ന JSON
 
 omniroute providers list                            # കോൺഫിഗർ ചെയ്ത പ്രൊവൈഡർ കണക്ഷനുകൾ
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # കോൺഫിഗർ ചെയ്ത ഒരു കണക്ഷൻ പരിശോധിക്കുക
 omniroute providers test-all                        # സജീവമായ എല്ലാ കണക്ഷനുകളും പരിശോധിക്കുക
-omniroute providers validate                        # ലോക്കൽ മാത്രമുള്ള ഘടനാപരമായ സാധൂകരണം
+omniroute providers validate                        # ലോക്കൽ-മാത്രമുള്ള ഘടനാപരമായ സാധൂകരണം
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # നിലവിലുള്ള OAuth ഫ്ലോ
@@ -696,18 +687,18 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-ഫസ്റ്റ് ആയതിനാൽ സജീവമായ ലോക്കൽ അല്ലെങ്കിൽ റിമോട്ട് കോൺടെക്സ്റ്റിനെതിരെ പ്രവർത്തിക്കുന്നു. ക്രെഡൻഷ്യൽ ഇൻപുട്ടിന്
-`--credential-stdin` അല്ലെങ്കിൽ `--credential-env` ഉപയോഗിക്കണം; `--dry-run --json` റെഡാക്ട് ചെയ്ത
-സാന്നിധ്യം/ഘടന മാത്രം റിപ്പോർട്ട് ചെയ്യുന്നു. `providers available` OmniRoute കാറ്റലോഗ് വായിക്കുന്നു;
-`providers list/test/test-all/validate` അവയുടെ ലോക്കൽ SQLite സ്വഭാവം നിലനിർത്തുകയും
+`providers add/import/auth/edit/remove` API-ഫസ്റ്റ് ആയതിനാൽ, സജീവമായ ലോക്കൽ അല്ലെങ്കിൽ റിമോട്ട് കോൺടെക്സ്റ്റിൽ അവ പ്രവർത്തിക്കുന്നു. ക്രെഡൻഷ്യൽ ഇൻപുട്ടിന്
+`--credential-stdin` അല്ലെങ്കിൽ `--credential-env` ഉപയോഗിക്കണം; `--dry-run --json`
+മറച്ചുവെച്ച സാന്നിധ്യം/ഘടന മാത്രമാണ് റിപ്പോർട്ട് ചെയ്യുന്നത്. `providers available` OmniRoute കാറ്റലോഗ് വായിക്കുന്നു;
+`providers list/test/test-all/validate` അവയുടെ ലോക്കൽ SQLite പ്രവർത്തനരീതി നിലനിർത്തുകയും
 സെർവർ പ്രവർത്തിച്ചുകൊണ്ടിരിക്കണമെന്ന് ആവശ്യപ്പെടാതിരിക്കുകയും ചെയ്യുന്നു.
 
-### വീണ്ടെടുക്കലും പുനഃസജ്ജീകരണവും
+### വീണ്ടെടുക്കലും റീസെറ്റും
 
 ```bash
-omniroute reset-password                # അഡ്മിൻ പാസ്വേഡ് പുനഃസജ്ജമാക്കുക (ഇതും ഉപയോഗിക്കാം: omniroute-reset-password)
-omniroute reset-encrypted-columns       # എൻക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യൽ പുനഃസജ്ജീകരണത്തിനുള്ള മുന്നറിയിപ്പും ഡ്രൈ-റണ്ണും കാണിക്കുക
-omniroute reset-encrypted-columns --force  # SQLite-ലെ എൻക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യലുകൾ യഥാർത്ഥത്തിൽ null ആക്കുക
+omniroute reset-password                # അഡ്മിൻ പാസ്വേഡ് റീസെറ്റ് ചെയ്യുക (ഇങ്ങനെയും: omniroute-reset-password)
+omniroute reset-encrypted-columns       # എൻക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യൽ റീസെറ്റിനുള്ള മുന്നറിയിപ്പും ഡ്രൈ-റണ്ണും കാണിക്കുക
+omniroute reset-encrypted-columns --force  # SQLite-ൽ എൻക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യലുകൾ യഥാർത്ഥത്തിൽ null ആക്കുക
 ```
 
 ### ക്രെഡൻഷ്യൽ എക്സ്പോർട്ട് (⚠ ശ്രദ്ധയോടെ കൈകാര്യം ചെയ്യുക)
@@ -720,30 +711,30 @@ omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_
 omniroute auth export --force --out creds.json           # ഒരു ഫയലിലേക്ക് എഴുതുക (0600 അനുമതികളോടെ സൃഷ്ടിക്കുന്നു)
 ```
 
-`auth export` **ലോക്കൽ-മാത്രമുള്ളതാണ്** (നേരിട്ടുള്ള SQLite റീഡ്, HTTP റൂട്ട് ഇല്ല) കൂടാതെ മനഃപൂർവം
-**പ്ലെയിൻടെക്സ്റ്റ്** `apiKey`/`accessToken`/`refreshToken`/`idToken` മൂല്യങ്ങൾ പ്രിന്റ് ചെയ്യുന്നു/എഴുതുന്നു — അതാണ് ഫീച്ചർ, ഒരു
-ബഗ് അല്ല. `--force` ഇല്ലാതെ ഡാറ്റാബേസിൽനിന്ന് ഒന്നും വായിക്കുകയോ ഒന്നും ഡീക്രിപ്റ്റ് ചെയ്യുകയോ ഇല്ല. ഏതെങ്കിലും പ്ലെയിൻടെക്സ്റ്റ് ഔട്ട്പുട്ട് ചെയ്യുന്നതിന് മുമ്പ് stderr-ൽ
-ഒരു മുന്നറിയിപ്പ് ബാനർ എപ്പോഴും പ്രിന്റ് ചെയ്യും. `STORAGE_ENCRYPTION_KEY` സജ്ജമാക്കിയിരിക്കണം.
-ഡീക്രിപ്റ്റ് ചെയ്യുന്നതിൽ പരാജയപ്പെടുന്ന ഒരു ഫീൽഡ് (കാലഹരണപ്പെട്ട കീ, കേടായ സൈഫർടെക്സ്റ്റ്), മുഴുവൻ എക്സ്പോർട്ടും നിർത്തുകയോ അടിസ്ഥാന പിശക് പുറത്തുവിടുകയോ ചെയ്യുന്നതിനുപകരം
-`<field>DecryptFailed: true` ആയി റിപ്പോർട്ട് ചെയ്യപ്പെടുന്നു.
+`auth export` **ലോക്കൽ-മാത്രമാണ്** (നേരിട്ടുള്ള SQLite റീഡ്, HTTP റൂട്ട് ഇല്ല), കൂടാതെ മനഃപൂർവം
+**പ്ലെയിൻടെക്സ്റ്റ്** `apiKey`/`accessToken`/`refreshToken`/`idToken` മൂല്യങ്ങൾ പ്രിന്റ്/റൈറ്റ് ചെയ്യുന്നു — അതൊരു സവിശേഷതയാണ്, ബഗ് അല്ല.
+`--force` ഇല്ലാതെ ഡാറ്റാബേസിൽ നിന്ന് ഒന്നും വായിക്കുകയോ ഒന്നും ഡീക്രിപ്റ്റ് ചെയ്യുകയോ ചെയ്യില്ല. ഏതെങ്കിലും പ്ലെയിൻടെക്സ്റ്റ് ഔട്ട്പുട്ട് ചെയ്യുന്നതിന് മുമ്പ് stderr-ൽ
+ഒരു മുന്നറിയിപ്പ് ബാനർ എല്ലായ്പ്പോഴും പ്രിന്റ് ചെയ്യും. `STORAGE_ENCRYPTION_KEY` സജ്ജമാക്കിയിരിക്കണം.
+ഡീക്രിപ്റ്റ് ചെയ്യുന്നതിൽ പരാജയപ്പെടുന്ന ഒരു ഫീൽഡ് (കാലഹരണപ്പെട്ട കീ, കേടായ സൈഫർടെക്സ്റ്റ്), മുഴുവൻ എക്സ്പോർട്ടും നിർത്തുകയോ അടിസ്ഥാന പിശക് വെളിപ്പെടുത്തുകയോ ചെയ്യുന്നതിനുപകരം
+`<field>DecryptFailed: true` ആയി റിപ്പോർട്ട് ചെയ്യും.
 
 ### മറ്റ് സബ്കമാൻഡുകൾ
 
-മറ്റുവിധത്തിൽ സൂചിപ്പിച്ചിട്ടില്ലെങ്കിൽ, ഇവ പ്രവർത്തിക്കുന്ന ഒരു OmniRoute സെർവർ ഉണ്ടെന്ന് കരുതുന്നു:
+വേറിട്ട് സൂചിപ്പിച്ചിട്ടില്ലെങ്കിൽ, ഇവ പ്രവർത്തിച്ചുകൊണ്ടിരിക്കുന്ന ഒരു OmniRoute സെർവർ ഉണ്ടെന്ന് കരുതുന്നു:
 
 ```bash
 omniroute status                       # സമഗ്രമായ റൺടൈം നില
-omniroute logs                         # അഭ്യർത്ഥനാ ലോഗുകൾ സ്ട്രീം ചെയ്യുക (--json, --search, --follow)
-omniroute config show                  # നിലവിലെ കോൺഫിഗറേഷൻ പ്രദർശിപ്പിക്കുക
+omniroute logs                         # അഭ്യർത്ഥന ലോഗുകൾ സ്ട്രീം ചെയ്യുക (--json, --search, --follow)
+omniroute config list                  # കോൺഫിഗർ ചെയ്ത CLI ടൂളുകൾ പ്രദർശിപ്പിക്കുക
 
-omniroute provider list                # ലഭ്യമായ പ്രൊവൈഡറുകൾ ലിസ്റ്റ് ചെയ്യുക (providers list-ന്റെ അപരനാമം)
+omniroute provider list                # ലഭ്യമായ പ്രൊവൈഡറുകൾ പട്ടികപ്പെടുത്തുക (providers list-ന്റെ അപരനാമം)
 omniroute provider add                 # ഒരു ടൂളിൽ OmniRoute-നെ പ്രൊവൈഡറായി രജിസ്റ്റർ ചെയ്യുക
 omniroute keys add | list | remove     # API കീകൾ കൈകാര്യം ചെയ്യുക
-omniroute models [provider]            # മോഡലുകൾ ലിസ്റ്റ് ചെയ്യുക (--json, --search)
+omniroute models [provider]            # മോഡലുകൾ പട്ടികപ്പെടുത്തുക (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # കോൺഫിഗ് + DB സ്നാപ്പ്ഷോട്ട് എടുക്കുക
-omniroute restore                      # മുമ്പത്തെ സ്നാപ്പ്ഷോട്ടിൽനിന്ന് പുനഃസ്ഥാപിക്കുക
+omniroute backup                       # കോൺഫിഗറേഷന്റെയും DB-യുടെയും സ്നാപ്പ്ഷോട്ട് എടുക്കുക
+omniroute restore                      # മുമ്പത്തെ സ്നാപ്പ്ഷോട്ടിൽ നിന്ന് പുനഃസ്ഥാപിക്കുക
 
 omniroute health                       # വിശദമായ ആരോഗ്യനില (ബ്രേക്കറുകൾ, കാഷ്, മെമ്മറി)
 omniroute quota                        # പ്രൊവൈഡർ ക്വോട്ട ഉപയോഗം
@@ -754,24 +745,24 @@ omniroute mcp status | restart         # MCP സെർവർ നില / പു�
 omniroute a2a status | card            # A2A സെർവർ നില / ഏജന്റ് കാർഡ്
 
 omniroute tunnel list | create | stop  # ടണലുകൾ കൈകാര്യം ചെയ്യുക (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # env വേരിയബിളുകൾ പരിശോധിക്കുക / സജ്ജമാക്കുക (താൽക്കാലികം)
+omniroute env show | get <k> | set <k> <v>  # പരിസ്ഥിതി വേരിയബിളുകൾ പരിശോധിക്കുക / സജ്ജമാക്കുക (താൽക്കാലികം)
 
-omniroute test                         # പ്രൊവൈഡർ കണക്റ്റിവിറ്റി സ്മോക്ക് ടെസ്റ്റ്
-omniroute update                       # അപ്ഡേറ്റുകൾ പരിശോധിക്കുക
+omniroute test                         # പ്രൊവൈഡർ കണക്റ്റിവിറ്റിക്കായുള്ള സ്മോക്ക് ടെസ്റ്റ്
+omniroute update                       # അപ്ഡേറ്റുകൾക്കായി പരിശോധിക്കുക
 omniroute completion                   # ഷെൽ കംപ്ലീഷൻ സൃഷ്ടിക്കുക
 ```
 
-### പൊതുവായ ഫ്ലാഗുകൾ
+### സാധാരണ ഫ്ലാഗുകൾ
 
-| ഫ്ലാഗ്              | വിവരണം                                                          |
-| ------------------- | --------------------------------------------------------------- |
-| `--no-open`         | ആരംഭിക്കുമ്പോൾ ബ്രൗസർ സ്വയമേവ തുറക്കരുത്                        |
-| `--port <n>`        | API പോർട്ട് അസാധുവാക്കി മറ്റൊന്ന് ഉപയോഗിക്കുക (ഡിഫോൾട്ട് 20128) |
-| `--mcp`             | stdio വഴി MCP സെർവറായി പ്രവർത്തിക്കുക (IDE-കൾക്കായി)            |
-| `--non-interactive` | CI മോഡ് (പ്രോംപ്റ്റുകളില്ല; env/ഫ്ലാഗുകളിൽനിന്ന് വായിക്കുന്നു)  |
-| `--json`            | മെഷീൻ-റീഡബിൾ JSON ഔട്ട്പുട്ട് (doctor, providers മുതലായവ)       |
-| `--help`, `-h`      | കമാൻഡ്-നിർദ്ദിഷ്ട സഹായം കാണിക്കുക                               |
-| `--version`, `-v`   | ഇൻസ്റ്റാൾ ചെയ്ത പതിപ്പ് പ്രിന്റ് ചെയ്യുക                        |
+| ഫ്ലാഗ്              | വിവരണം                                                           |
+| ------------------- | ---------------------------------------------------------------- |
+| `--no-open`         | ആരംഭിക്കുമ്പോൾ ബ്രൗസർ സ്വയമേവ തുറക്കരുത്                         |
+| `--port <n>`        | API പോർട്ട് അസാധുവാക്കുക (സ്ഥിരസ്ഥിതി 20128)                     |
+| `--mcp`             | stdio വഴി MCP സെർവറായി പ്രവർത്തിപ്പിക്കുക (IDE-കൾക്കായി)         |
+| `--non-interactive` | CI മോഡ് (പ്രോംപ്റ്റുകളില്ല; env/ഫ്ലാഗുകളിൽ നിന്ന് വായിക്കുന്നു)  |
+| `--json`            | മെഷീൻ വായനാസൗഹൃദമായ JSON ഔട്ട്പുട്ട് (doctor, providers മുതലായവ) |
+| `--help`, `-h`      | കമാൻഡ്-നിർദ്ദിഷ്ട സഹായം കാണിക്കുക                                |
+| `--version`, `-v`   | ഇൻസ്റ്റാൾ ചെയ്ത പതിപ്പ് പ്രിന്റ് ചെയ്യുക                         |
 
 ---
 

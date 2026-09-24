@@ -41,6 +41,12 @@ is retained for controlled local use. `providers remove` requires `--yes` on a
 non-interactive terminal, and all five commands honor the active context or the
 global `--base-url`/`--api-key` options.
 
+Provider selectors reject ambiguous ID prefixes, names or provider names; use a
+full connection ID when several connections match. Create and edit commands read
+the saved connection back, and removal verifies that it is no longer readable.
+An import skips an existing provider/name pair. Imported entries cannot override
+the management endpoint, context or management credentials supplied to the CLI.
+
 For the one-time, hand-written base setup of the two richest integrations, see the
 per-tool deep dives:
 

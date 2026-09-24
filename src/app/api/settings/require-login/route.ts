@@ -6,7 +6,9 @@ import {
   hasManagementPasswordConfigured,
   hashManagementPassword,
 } from "@/lib/auth/managementPassword";
+import { consumeBootstrapToken } from "@/lib/auth/bootstrapToken";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { BOOTSTRAP_TOKEN_HEADER } from "@/server/authz/headers";
 import {
   getDashboardJwtSecret,
   verifyDashboardSessionToken,
@@ -125,6 +127,10 @@ export async function POST(request: Request) {
     }
 
     await updateSettings(updates);
+    // #14296: one-shot — a Docker/NAT-forwarded operator that authenticated
+    // this write via the bootstrap token cannot replay it for a second write.
+    // A no-op when the header is absent or stale (never matches).
+    consumeBootstrapToken(request.headers.get(BOOTSTRAP_TOKEN_HEADER));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[API] Error updating require-login settings:", error);

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 // R0.3 GOLDEN LOCK (characterization BEFORE the ExecutorRegistry refactor):
 // freeze the full provider-id → executor mapping of open-sse/executors/index.ts —
@@ -24,8 +25,8 @@ const { PROVIDERS } = await import("../../open-sse/config/constants.ts");
 const { SEARCH_PROVIDERS } = await import("../../open-sse/config/searchRegistry.ts");
 const { goldenSnapshot } = await import("../helpers/goldenSnapshot.ts");
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 // The specialized keys are not exported; enumerate them through the public

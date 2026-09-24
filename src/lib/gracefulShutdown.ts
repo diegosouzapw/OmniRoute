@@ -107,7 +107,7 @@ async function cleanup(): Promise<void> {
   try {
     const [
       { closeAuditDb },
-      { closeDbInstance },
+      { shutdownDbInstance },
       { flushSpendBatchWriter },
       { closeLogRotation },
       { closeSharedLoggerResource },
@@ -130,8 +130,12 @@ async function cleanup(): Promise<void> {
     if (closeAuditDb()) {
       console.log("[Shutdown] MCP audit database checkpointed and closed.");
     }
-    if (closeDbInstance()) {
-      console.log("[Shutdown] SQLite database checkpointed and closed.");
+    try {
+      if (await shutdownDbInstance()) {
+        console.log("[Shutdown] SQLite database checkpointed and closed.");
+      }
+    } catch (error) {
+      console.error("[Shutdown] Database cleanup failed:", (error as Error).message);
     }
     // Tear down any persistent VNC login browser containers so they don't leak
     // past the server process. Best-effort; no-op if the feature was never used

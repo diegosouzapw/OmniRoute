@@ -1,4 +1,8 @@
-import type { ComboDiagnostics, ComboRecoveryHint } from "../../utils/error.ts";
+import {
+  errorResponseWithComboDiagnostics,
+  type ComboDiagnostics,
+  type ComboRecoveryHint,
+} from "../../utils/error.ts";
 
 /**
  * Build the recovery hint that travels with a terminal combo failure. Lives
@@ -43,6 +47,15 @@ export function buildRecoveryHint(
         action: "try-auto",
         next_step:
           "Every model in this combo failed. Switch to model: auto to let OmniRoute pick a working provider, or wait a few seconds for rate limits to recover.",
+        ...(typeof retryAfterSeconds === "number" && retryAfterSeconds > 0
+          ? { retry_after_seconds: retryAfterSeconds }
+          : {}),
+      };
+    case "all_targets_cooling_down":
+      return {
+        action: "wait",
+        next_step:
+          "Every target is temporarily excluded by resilience state (model lockout, circuit breaker or provider cooldown); the pool itself is configured and connected. Wait for the cooldown and retry, or switch combo.",
         ...(typeof retryAfterSeconds === "number" && retryAfterSeconds > 0
           ? { retry_after_seconds: retryAfterSeconds }
           : {}),
@@ -132,4 +145,81 @@ export function buildEmptyComboTargetsPayload(
       recovery: buildRecoveryHint("no_executable_targets"),
     },
   };
+}
+
+/** Which weighted-selection gate dropped a target before dispatch. */
+export type PreDispatchExclusionReason =
+  "circuit_open" | "provider_cooldown" | "model_lockout" | "free_tier_drained" | "unavailable";
+
+export interface PreDispatchExclusion {
+  provider: string;
+  /** Bare model id (no provider prefix) — the diagnostics header joins provider/model. */
+  model: string;
+  reason: PreDispatchExclusionReason;
+  /** Remaining exclusion time when the gate knows it (resilience gates), else null. */
+  retryAfterMs: number | null;
+}
+
+/**
+ * Gates whose exclusion is a timer on a configured, connected target — the pool
+ * is intact, it is just cooling down. `unavailable` (the host's account probe)
+ * and `free_tier_drained` are not timers the combo layer can vouch for.
+ */
+const TEMPORARY_EXCLUSION_REASONS: ReadonlySet<PreDispatchExclusionReason> = new Set([
+  "circuit_open",
+  "provider_cooldown",
+  "model_lockout",
+]);
+
+/** One-line operator summary: `openai/a: model_lockout (57s), claude/b: circuit_open`. */
+export function formatPreDispatchExclusions(exclusions: readonly PreDispatchExclusion[]): string {
+  return exclusions
+    .map((e) => {
+      const wait =
+        typeof e.retryAfterMs === "number" && e.retryAfterMs > 0
+          ? ` (${Math.ceil(e.retryAfterMs / 1000)}s)`
+          : "";
+      return `${e.provider}/${e.model}: ${e.reason}${wait}`;
+    })
+    .join(", ");
+}
+
+/**
+ * The weighted strategy filters targets before dispatch (breaker, provider
+ * cooldown, model lockout, availability probe). When that leaves nothing, the
+ * host used to answer 404 `no_executable_targets` — "switch combo / reconnect
+ * the missing providers" — for a pool that is configured, connected and merely
+ * cooling down, and clients such as Claude Code render a 404 as "this model may
+ * not exist". When at least one target was excluded by a resilience timer this
+ * builds the 503 the in-loop skip path already uses, with `Retry-After` set to
+ * the earliest exclusion to lapse and every excluded target in the diagnostics.
+ * Returns null when no resilience gate was involved (caller keeps its 404).
+ */
+export function buildAllTargetsCoolingDownResponse(
+  exclusions: readonly PreDispatchExclusion[]
+): Response | null {
+  const cooling = exclusions.filter((e) => TEMPORARY_EXCLUSION_REASONS.has(e.reason));
+  if (cooling.length === 0) return null;
+  const known = cooling
+    .map((e) => e.retryAfterMs)
+    .filter((ms): ms is number => typeof ms === "number" && ms > 0);
+  const retryAfterSeconds =
+    known.length > 0 ? Math.max(1, Math.ceil(Math.min(...known) / 1000)) : undefined;
+  const response = errorResponseWithComboDiagnostics(
+    503,
+    "Service temporarily unavailable: every target in this combo is cooling down (model lockout, circuit breaker or provider cooldown)",
+    {
+      poolSize: exclusions.length,
+      attempted: 0,
+      excluded: exclusions.map(({ provider, model, reason }) => ({ provider, model, reason })),
+      attemptOrder: [],
+      terminalReason: "all_targets_cooling_down",
+      recovery: buildRecoveryHint("all_targets_cooling_down", retryAfterSeconds),
+    },
+    { code: "all_targets_cooling_down", type: "service_unavailable" }
+  );
+  if (retryAfterSeconds !== undefined) {
+    response.headers.set("Retry-After", String(retryAfterSeconds));
+  }
+  return response;
 }

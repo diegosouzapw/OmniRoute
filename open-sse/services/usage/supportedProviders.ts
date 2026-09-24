@@ -80,6 +80,10 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "kilocode",
   // OpenRouter key limits + account credits (GET /api/v1/key + /api/v1/credits)
   "openrouter",
+  // LLM Gateway DevPass allowance (GET /v1/key → monthly + weekly premium)
+  "llmgateway",
+  // Lyceum credit balance (GET /api/v2/external/billing/credits)
+  "lyceum",
   // Devin CLI agentic quota (Codeium seat-management GetUserStatus, protobuf)
   "devin-cli",
 ];

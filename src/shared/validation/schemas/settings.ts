@@ -42,7 +42,9 @@ export const requestQueueSettingsSchema = z
     requestsPerMinute: z.number().int().min(1).optional(),
     minTimeBetweenRequestsMs: z.number().int().min(0).optional(),
     concurrentRequests: z.number().int().min(1).optional(),
-    maxWaitMs: z.number().int().min(1).optional(),
+    // 0 is an explicit "disable the queue-wait budget" sentinel (see
+    // src/lib/resilience/settings/normalize.ts maxWaitMs) — do not clamp it up to 1.
+    maxWaitMs: z.number().int().min(0).optional(),
     executionMaxWaitMs: z.number().int().min(1).optional(),
     maxQueueDepth: z.number().int().min(0).max(100_000).optional(),
   })
@@ -122,10 +124,7 @@ export const quotaPreflightSettingsSchema = z
     defaultThresholdPercent: z.number().int().min(0).max(99).optional(),
     warnThresholdPercent: z.number().int().min(0).max(100).optional(),
     providerWindowDefaults: z
-      .record(
-        z.string().min(1),
-        z.record(z.string().min(1), z.number().int().min(0).max(100))
-      )
+      .record(z.string().min(1), z.record(z.string().min(1), z.number().int().min(0).max(100)))
       .optional(),
   })
   .strict();

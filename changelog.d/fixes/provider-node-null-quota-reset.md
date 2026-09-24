@@ -1,1 +1,0 @@
-- **fix(validation):** Provider node edits no longer fail with a generic "Invalid request" when the optional daily-quota reset fields are left blank. The dashboard sends `dailyQuotaResetTimezone` and `dailyQuotaResetHour` as `null`, and only the hour accepted it. ([#13066](https://github.com/diegosouzapw/OmniRoute/issues/13066))

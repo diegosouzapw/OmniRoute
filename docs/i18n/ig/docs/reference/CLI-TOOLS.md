@@ -1,27 +1,18 @@
-# CLI-TOOLS (Igbo)
+# CLI Tools — OmniRoute (Igbo)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
-
-title: "Ngwaọrụ CLI — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-23
----
-
-# Ngwaọrụ CLI — OmniRoute
 
 Emelitere ikpeazụ: 2026-08-23
 
-OmniRoute na-ejikọta ya na ngalaba atọ nke ngwaọrụ CLI ndị e kewara n'ime ibe dashboard atọ pụrụ iche:
+OmniRoute na-ejikọta na ụdị ngwaọrụ CLI atọ e kewara n'ofe ibe dashboard atọ pụrụ iche:
 
-| Ibe                     | Route                   | Echiche                                                                                                | Ọnụọgụ    |
-| ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------ | --------- |
-| **Koodu CLI**           | `/dashboard/cli-code`   | Ngwaọrụ ide koodu ị na-atụ aka na OmniRoute (Client → CLI → OmniRoute → Provider)                      | 26        |
-| **Ndị nnọchi anya CLI** | `/dashboard/cli-agents` | Ndị nnọchi anya na-arụ ọrụ n'onwe ha ị na-atụ aka na OmniRoute (otu usoro ahụ, ma nwee oke sara mbara) | 10        |
-| **Ndị nnọchi anya ACP** | `/dashboard/acp-agents` | CLI ndị OmniRoute na-ebido dịka backend site na stdio/ACP (usoro na-aga azụ)                           | lee ndekọ |
+| Ibe                | Route                   | Echiche                                                                             | Ọnụọgụ       |
+| ------------------ | ----------------------- | ----------------------------------------------------------------------------------- | ------------ |
+| **Koodu CLI**      | `/dashboard/cli-code`   | Ngwaọrụ ide koodu ị na-atụ aka na OmniRoute (Client → CLI → OmniRoute → Provider)   | 26           |
+| **Ndị nnọchi CLI** | `/dashboard/cli-agents` | Ndị nnọchi kwụụrụ onwe ha ị na-atụ aka na OmniRoute (otu usoro ahụ, oke sara mbara) | 10           |
+| **Ndị nnọchi ACP** | `/dashboard/acp-agents` | CLI ndị OmniRoute na-ebido dị ka backend site na stdio/ACP (usoro nke azụ)          | lee registry |
 
 Route ochie na-eme redirect site na 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
@@ -153,9 +144,9 @@ akụkụ na-enweghị ndị ọzọ na-eme ka suite daa kama ikwe ka drift mee 
 
 ---
 
-## 1. Katalọgụ Koodu CLI (ngwaọrụ 26)
+## 1. Katalọgụ CLI Code (ngwaọrụ 26)
 
-Ngwaọrụ niile na-apụta na `/dashboard/cli-code`. A na-ejikọta ndị nwere `baseUrlSupport: none` site na MITM ma ọ bụ ntuziaka e ji aka eme kama iji URL ntọala ahaziri iche:
+Ngwaọrụ niile na-apụta na `/dashboard/cli-code`. A na-ejikọ ndị nwere `baseUrlSupport: none` site na MITM ma ọ bụ ntuziaka aka kama iji URL ntọala ahaziri iche:
 
 | id           | aha                     | onye nrụpụta        | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -186,7 +177,7 @@ Ngwaọrụ niile na-apụta na `/dashboard/cli-code`. A na-ejikọta ndị nwer
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Ngwaọrụ nwere `baseUrlSupport: "partial"` na-egosi baajị "⚠ URL ntọala ezughị ezu" na kaadị dashboard.
+Ngwaọrụ nwere `baseUrlSupport: "partial"` na-egosi baajị "⚠ URL ntọala ezughị ezu" na kaadị dashboard ahụ.
 ---
 
 ## 2. Katalọgụ Ndị nnọchi anya CLI (ngwaọrụ 10)
@@ -613,19 +604,19 @@ n'okpuru `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. OmniRoute CLI nke Ime
+## 10. OmniRoute CLI nke ime
 
-Faịlụ binary `omniroute` na-enye iwu maka usoro ndụ sava, nhazi, nchọpụta nsogbu, na njikwa ndị na-eweta ọrụ. Ebe mbata: `bin/omniroute.mjs`.
+Faịlụ binary `omniroute` na-enye iwu maka usoro ndụ sava, nhazi, nchọpụta nsogbu, na njikwa ndị na-eweta ọrụ. Ebe mbido: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Malite sava (ọdụ ụgbọ mmiri ndabara bụ 20128)
-omniroute setup                        # Ọkachamara nhazi mmekọrịta
-omniroute doctor                       # Lelee nhazi, DB, ọdụ ụgbọ mmiri, na runtime
+omniroute                              # Bido sava (ọdụ ụgbọ mmiri ndabara bụ 20128)
+omniroute setup                        # Ọkachamara nhazi na-emekọrịta ihe
+omniroute doctor                       # Nyochaa nhazi, DB, ọdụ ụgbọ mmiri, na gburugburu oge nrụọrụ
 omniroute providers list               # Njikọ ndị na-eweta ọrụ ahaziri
 omniroute providers test-all           # Nwalee njikọ ọ bụla na-arụ ọrụ
 omniroute reset-password               # Tọgharịa okwuntughe onye nchịkwa
-omniroute logs                         # Nyefee ndekọ arịrịọ ozugbo
-omniroute health                       # Ọnọdụ ahụike zuru ezu (breakers, cache, ebe nchekwa)
+omniroute logs                         # Gbasaa ndekọ arịrịọ ozugbo
+omniroute health                       # Ọnọdụ ahụike zuru ezu (ndị nkwụsị, cache, ebe nchekwa)
 omniroute --version                    # Bipụta ụdị
 omniroute --help                       # Gosi iwu niile
 ```
@@ -633,7 +624,7 @@ omniroute --help                       # Gosi iwu niile
 ### Nhazi & Mbido
 
 ```bash
-omniroute setup                        # Ọkachamara nhazi mmekọrịta
+omniroute setup                        # Ọkachamara nhazi na-emekọrịta ihe
 omniroute setup --non-interactive      # Ọnọdụ CI/akpaaka (na-agụ env vars + flags)
 omniroute setup --password '<value>'   # Tọọ okwuntughe onye nchịkwa ozugbo
 omniroute setup --add-provider \
@@ -642,21 +633,21 @@ omniroute setup --add-provider \
   --test-provider                      # Tinye ma nwalee onye na-eweta ọrụ n'otu oge
 ```
 
-Mgbanwe gburugburu ebe a na-amata maka nhazi na-enweghị mmekọrịta:
+Mgbanwe gburugburu ebe a na-amata maka nhazi anaghị emekọrịta ihe:
 
-| Var                 | Ebumnuche                                                                       |
-| ------------------- | ------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Igodo API onye na-eweta ọrụ (ejikọrọ na `--api-key` site na Commander `.env()`) |
-| `DATA_DIR`          | Dochie ndekọ data OmniRoute                                                     |
+| Var                 | Ebumnuche                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Igodo API nke onye na-eweta ọrụ (ejikọtara na `--api-key` site na Commander `.env()`) |
+| `DATA_DIR`          | Dochie ndekọ data OmniRoute                                                           |
 
-A na-ebufe ntinye ndị ọzọ niile na-enweghị mmekọrịta dịka flags, ọ bụghị mgbanwe gburugburu:
+A na-ebufe ntinye ndị ọzọ niile anaghị emekọrịta ihe dịka flags, ọ bụghị mgbanwe gburugburu:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(lee nhọrọ `omniroute setup` ndị dị n’elu).
+(lee nhọrọ `omniroute setup` ndị dị n'elu).
 
-### Nchọpụta Nsogbu
+### Nchọpụta nsogbu
 
 ```bash
-omniroute doctor                       # Lelee nhazi, DB, ọdụ ụgbọ mmiri, runtime, ebe nchekwa, na ịdị ndụ
+omniroute doctor                       # Nyochaa nhazi, DB, ọdụ ụgbọ mmiri, oge nrụọrụ, ebe nchekwa, na ịdị ndụ
 omniroute doctor --json                # JSON igwe nwere ike ịgụ
 omniroute doctor --no-liveness         # Mafere nyocha ahụike HTTP
 omniroute doctor --host 0.0.0.0        # Dochie host maka nyocha ịdị ndụ
@@ -667,12 +658,12 @@ Doctor na-eme nyocha ndị a: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
 `Memory`, na `Server liveness`. Ọ na-eji koodu na-abụghị efu kwụsị ma ọ bụrụ na nyocha ọ bụla bụ `fail`.
 
-### Njikwa Ndị Na-eweta Ọrụ
+### Njikwa ndị na-eweta ọrụ
 
 ```bash
 omniroute providers available                       # Katalọgụ ndị na-eweta ọrụ OmniRoute
-omniroute providers available --search openai       # Nyochaa katalọgụ site na id/aha/aha ọzọ/ụdị
-omniroute providers available --category api-key    # Nyochaa site na ụdị (api-key, oauth, free, ...)
+omniroute providers available --search openai       # Nzacha katalọgụ site na id/name/alias/category
+omniroute providers available --category api-key    # Nzacha site na category (api-key, oauth, free, ...)
 omniroute providers available --json                # JSON igwe nwere ike ịgụ
 
 omniroute providers list                            # Njikọ ndị na-eweta ọrụ ahaziri
@@ -688,12 +679,12 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` na-eji API ebido, ya mere ha na-arụ ọrụ megide
-ọnọdụ mpaghara ma ọ bụ nke dịpụrụ adịpụ na-arụ ọrụ. Ntinye nzere kwesịrị iji
+`providers add/import/auth/edit/remove` na-ebu API ụzọ, ya mere ha na-arụ ọrụ megide
+ọnọdụ mpaghara ma ọ bụ nke ime obodo dị anya na-arụ ọrụ. Ntinye nzere kwesịrị iji
 `--credential-stdin` ma ọ bụ `--credential-env`; `--dry-run --json` na-akọ naanị
-ọnụnọ/usoro e zochiri. `providers available` na-agụ katalọgụ OmniRoute;
+ọnụnọ/ọdịdị ezoro ezo. `providers available` na-agụ katalọgụ OmniRoute;
 `providers list/test/test-all/validate` na-ejigide omume SQLite mpaghara ha ma
-ha achọghị ka sava na-agba ọsọ.
+ha anaghị achọ ka sava na-arụ ọrụ.
 
 ### Mweghachi & Ntọgharị
 
@@ -706,65 +697,65 @@ omniroute reset-encrypted-columns --force  # Wepụ nzere ezoro ezo n'ezie site 
 ### Mbupụ Nzere (⚠ jiri nlezianya mee ya)
 
 ```bash
-omniroute auth export                                 # Gosi ịdọ aka ná ntị + ọnụ ụzọ nkwenye — enweghị nnweta DB
-omniroute auth export --force                          # Bupụ nzere ndị AGBAPỤRỤ EZORO EZO nke njikọ NIILE gaa stdout dịka JSON
-omniroute auth export --force --id <id>                 # Bupụ naanị njikọ dakọtara
+omniroute auth export                                 # Gosi ịdọ aka ná ntị + ọnụ ụzọ nkwenye — enweghị ohere DB
+omniroute auth export --force                          # Bupụ nzere E WEPUOLA NZOCHI nke njikọ NIILE gaa na stdout dịka JSON
+omniroute auth export --force --id <id>                 # Bupụ naanị njikọ dabara adaba
 omniroute auth export --force --format env               # Wepụta ahịrị OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Dee ya na faịlụ (e ji ikikere 0600 mepụta)
+omniroute auth export --force --out creds.json           # Dee ya na faịlụ (e ji ikike 0600 kee ya)
 ```
 
-`auth export` bụ nke **mpaghara naanị** (ọ na-agụ SQLite ozugbo, enweghị ụzọ HTTP) ma kpachaara anya na-ebipụta/ede
-ụkpụrụ **ederede nkịtị** `apiKey`/`accessToken`/`refreshToken`/`idToken` — nke ahụ bụ njirimara ahụ, ọ bụghị
-njehie. A naghị agụ ihe ọ bụla site na database, a naghịkwa agbapụ izo ya ezo, ma ọ bụrụ na enweghị `--force`. A na-ebipụta
-ọkọlọtọ ịdọ aka ná ntị na stderr mgbe niile tupu ewepụta ederede nkịtị ọ bụla. Ọ chọrọ ka atọọ `STORAGE_ENCRYPTION_KEY`.
-A na-akọ mpaghara na-enweghị ike ịgbapụ izo ya ezo (igodo ochie, ciphertext mebiri emebi) dịka
-`<field>DecryptFailed: true` kama ịkwụsị mbupụ niile ma ọ bụ ikpughe njehie dị n'ime.
+`auth export` bụ nke **mpaghara naanị** (ịgụ SQLite ozugbo, enweghị ụzọ HTTP), ma a kpachapụrụ anya mee ka ọ bipụta/dee
+ụkpụrụ `apiKey`/`accessToken`/`refreshToken`/`idToken` dịka **ederede doro anya** — nke ahụ bụ njirimara ahụ, ọ bụghị
+ntụpọ. A naghị agụ ihe ọ bụla site na database, a naghịkwa ewepụ nzuzo ihe ọ bụla, ma e wezụga mgbe e nyere `--force`. Akara
+ịdọ aka ná ntị stderr na-apụta mgbe niile tupu ewepụta ederede doro anya ọ bụla. Ọ chọrọ ka edobe `STORAGE_ENCRYPTION_KEY`.
+A na-akọ ubi nke mwepụ nzuzo ya dara (igodo ochie, ciphertext mebiri emebi) dịka
+`<field>DecryptFailed: true` kama ịkwụsị mbupụ ahụ niile ma ọ bụ ikpughe njehie kpatara ya.
 
-### Iwu nta Ndị Ọzọ
+### Iwu nta ndị ọzọ
 
-Ndị a na-eche na sava OmniRoute na-agba ọsọ, ma e wezụga ebe e kwuru ihe ọzọ:
+Ndị a na-eche na sava OmniRoute na-arụ ọrụ, ma e wezụga ebe e kwuru ihe ọzọ:
 
 ```bash
-omniroute status                       # Ọnọdụ oge-arụmọrụ zuru ezu
+omniroute status                       # Ọnọdụ oge-ngagharị zuru ezu
 omniroute logs                         # Gosi ndekọ arịrịọ na-aga n'ihu (--json, --search, --follow)
-omniroute config show                  # Gosi nhazi dị ugbu a
+omniroute config list                  # Gosi ngwa CLI ahaziri
 
-omniroute provider list                # Depụta ndị na-eweta ọrụ dị (aha ọzọ nke providers list)
-omniroute provider add                 # Debanye OmniRoute dịka onye na-eweta ọrụ n’otu ngwaọrụ
+omniroute provider list                # Depụta ndị na-eweta dị (aha ọzọ maka providers list)
+omniroute provider add                 # Debanye OmniRoute dịka onye na-eweta na ngwa
 omniroute keys add | list | remove     # Jikwaa igodo API
-omniroute models [provider]            # Depụta ụdịdị (--json, --search)
+omniroute models [provider]            # Depụta ụdị (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Mepụta foto-oyiri nhazi + DB
-omniroute restore                      # Weghachite site na foto-oyiri gara aga
+omniroute backup                       # Mepụta foto-ọnọdụ nke nhazi + DB
+omniroute restore                      # Weghachite site na foto-ọnọdụ gara aga
 
-omniroute health                       # Nkọwa ahụike zuru ezu (breakers, cache, memory)
-omniroute quota                        # Ojiji oke onye na-eweta ọrụ
+omniroute health                       # Nkọwa ahụike zuru ezu (ndị nkwụsị, cache, ebe nchekwa)
+omniroute quota                        # Ojiji oke onye na-eweta
 omniroute cache                        # Ọnọdụ cache
 omniroute cache clear                  # Hichapụ cache semantic + signature
 
-omniroute mcp status | restart         # Ọnọdụ sava MCP / malitegharịa
+omniroute mcp status | restart         # Ọnọdụ / ịmalitegharị sava MCP
 omniroute a2a status | card            # Ọnọdụ sava A2A / kaadị agent
 
-omniroute tunnel list | create | stop  # Jikwaa tunnel (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Lelee / tọọ mgbanwe env (nwa oge)
+omniroute tunnel list | create | stop  # Jikwaa ọwara (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Nyochaa / tọọ mgbanwe gburugburu (nwa oge)
 
-omniroute test                         # Nnwale ngwa ngwa nke njikọ onye na-eweta ọrụ
-omniroute update                       # Lelee ma mmelite dị
+omniroute test                         # Nnwale ngwa ngwa nke njikọ onye na-eweta
+omniroute update                       # Lelee mmelite
 omniroute completion                   # Mepụta mmecha shell
 ```
 
-### Flags ndị a na-ejikarị
+### Ọkọlọtọ ndị a na-ejikarị
 
-| Flag                | Nkọwa                                                      |
-| ------------------- | ---------------------------------------------------------- |
-| `--no-open`         | Emeghela ihe nchọgharị na-akpaghị aka mgbe amalitere       |
-| `--port <n>`        | Dochie port API (ndabara 20128)                            |
-| `--mcp`             | Gbaa dịka sava MCP site na stdio (maka IDEs)               |
-| `--non-interactive` | Ọnọdụ CI (enweghị ajụjụ; na-agụ site na env/flags)         |
-| `--json`            | Nsonaazụ JSON igwe nwere ike ịgụ (doctor, providers, wdg.) |
-| `--help`, `-h`      | Gosi enyemaka metụtara iwu ahụ                             |
-| `--version`, `-v`   | Bipụta ụdị arụnyere                                        |
+| Ọkọlọtọ             | Nkọwa                                                     |
+| ------------------- | --------------------------------------------------------- |
+| `--no-open`         | Emeghela ihe nchọgharị n'onwe ya mgbe a malitere          |
+| `--port <n>`        | Dochie ọdụ API (ndabara 20128)                            |
+| `--mcp`             | Gbaa dịka sava MCP site na stdio (maka IDE)               |
+| `--non-interactive` | Ọnọdụ CI (enweghị ajụjụ; na-agụ site na env/ọkọlọtọ)      |
+| `--json`            | Mmepụta JSON igwe nwere ike ịgụ (doctor, providers, wdg.) |
+| `--help`, `-h`      | Gosi enyemaka metụtara iwu ahụ kpọmkwem                   |
+| `--version`, `-v`   | Bipụta ụdị arụnyere                                       |
 
 ---
 

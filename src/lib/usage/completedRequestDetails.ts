@@ -1,139 +1,66 @@
-import { Buffer } from "node:buffer";
 import { getDbInstance } from "../db/core";
 import type { PendingRequestDetail } from "./usageHistory";
-import { MAX_PREVIEW_STRING, truncatePendingPreview } from "./usageHistory/helpers";
 
 const COMPLETED_DETAIL_TTL_MS = 120_000;
 const MAX_COMPLETED_DETAILS = 256;
-const MAX_COMPLETED_DETAILS_BYTES = 4 * 1024 * 1024;
+/**
+ * JON-562: completed details are a short-lived dashboard bridge, not a second payload store.
+ * The 16 MiB estimated cache payload budget keeps room for normal bridge entries while bounding
+ * the strings and object fields this module accounts for. It is not a process-memory ceiling.
+ */
+export const MAX_COMPLETED_DETAILS_BYTES = 16 * 1024 * 1024;
+
+/** #13621: stream diagnostics are a dashboard preview, so each stage keeps a bounded chunk count. */
 const MAX_COMPLETED_STREAM_CHUNKS_PER_STAGE = 64;
-const OVERSIZED_DETAIL_MARKER = "[omitted: completed detail exceeded cache byte budget]";
 
 const completedDetails = new Map<string, PendingRequestDetail>();
 const completedDetailTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const completedDetailBytes = new Map<string, number>();
 let totalCompletedDetailBytes = 0;
 
-/**
- * Force a diagnostic string onto its own backing store before it enters the
- * completed-request cache. V8 can otherwise keep a multi-megabyte parent string
- * alive for a tiny `slice()` preview. A UTF-8 round-trip is intentionally used
- * here because the cached values are already bounded diagnostics, not request
- * payloads on the hot provider path.
- */
-function materializeString(value: string): string {
-  return Buffer.from(value, "utf8").toString("utf8");
-}
+function estimateRetainedBytes(value: unknown, seen = new WeakSet<object>()): number {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "string") return Buffer.byteLength(value, "utf8");
+  if (typeof value === "number" || typeof value === "bigint") return 8;
+  if (typeof value === "boolean") return 4;
+  if (typeof value !== "object" || seen.has(value)) return 0;
+  seen.add(value);
 
-function materializeNullableString(value: string | null | undefined): string | null | undefined {
-  return typeof value === "string" ? materializeString(value) : value;
-}
-
-function prepareDiagnosticString(
-  value: string | null | undefined
-): string | null | undefined {
-  if (typeof value !== "string") return value;
-  const preview =
-    value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
-  return materializeString(preview);
-}
-
-function materializePreview(value: unknown): unknown {
-  if (typeof value === "string") return materializeString(value);
-  if (Array.isArray(value)) return value.map((entry) => materializePreview(entry));
-  if (!value || typeof value !== "object") return value;
-
-  return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).map(([key, entryValue]) => [
-      materializeString(key),
-      materializePreview(entryValue),
-    ])
-  );
-}
-
-function preparePayloadPreview(value: unknown): unknown {
-  return materializePreview(truncatePendingPreview(value));
-}
-
-function prepareStreamChunk(value: string): string {
-  const preview =
-    value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
-  return materializeString(preview);
-}
-
-function prepareStreamChunkList(values?: string[]): string[] | undefined {
-  if (!values) return undefined;
-  const kept = values
-    .slice(0, MAX_COMPLETED_STREAM_CHUNKS_PER_STAGE)
-    .map((value) => prepareStreamChunk(value));
-  if (values.length > MAX_COMPLETED_STREAM_CHUNKS_PER_STAGE) {
-    kept.push(`[TRUNCATED_STREAM_CHUNKS: ${values.length - MAX_COMPLETED_STREAM_CHUNKS_PER_STAGE}]`);
+  if (Array.isArray(value)) {
+    return 32 + value.reduce((total, entry) => total + estimateRetainedBytes(entry, seen), 0);
   }
+
+  let bytes = 64;
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    bytes += Buffer.byteLength(key, "utf8") + estimateRetainedBytes(entry, seen);
+  }
+  return bytes;
+}
+
+function capStreamChunkList(values?: string[]): string[] | undefined {
+  if (!values || values.length <= MAX_COMPLETED_STREAM_CHUNKS_PER_STAGE) return values;
+  const kept = values.slice(0, MAX_COMPLETED_STREAM_CHUNKS_PER_STAGE);
+  kept.push(`[TRUNCATED_STREAM_CHUNKS: ${values.length - MAX_COMPLETED_STREAM_CHUNKS_PER_STAGE}]`);
   return kept;
 }
 
-function prepareCompletedDetail(detail: PendingRequestDetail): PendingRequestDetail {
-  return {
-    ...detail,
-    id: materializeString(detail.id),
-    model: materializeString(detail.model),
-    provider: materializeString(detail.provider),
-    connectionId: materializeNullableString(detail.connectionId) ?? null,
-    clientEndpoint: prepareDiagnosticString(detail.clientEndpoint),
-    providerUrl: prepareDiagnosticString(detail.providerUrl),
-    error: prepareDiagnosticString(detail.error),
-    errorCode: prepareDiagnosticString(detail.errorCode),
-    stage: prepareDiagnosticString(detail.stage),
-    correlationId: materializeNullableString(detail.correlationId),
-    sessionTag: prepareDiagnosticString(detail.sessionTag),
-    clientRequest:
-      detail.clientRequest === undefined ? undefined : preparePayloadPreview(detail.clientRequest),
-    providerRequest:
-      detail.providerRequest === undefined ? undefined : preparePayloadPreview(detail.providerRequest),
-    providerResponse:
-      detail.providerResponse === undefined ? undefined : preparePayloadPreview(detail.providerResponse),
-    clientResponse:
-      detail.clientResponse === undefined ? undefined : preparePayloadPreview(detail.clientResponse),
-    streamChunks: detail.streamChunks
-      ? {
-          provider: prepareStreamChunkList(detail.streamChunks.provider),
-          openai: prepareStreamChunkList(detail.streamChunks.openai),
-          client: prepareStreamChunkList(detail.streamChunks.client),
-        }
-      : detail.streamChunks,
-  };
-}
-
-function estimateCompletedDetailBytes(detail: PendingRequestDetail): number {
-  try {
-    const serialized = JSON.stringify(detail);
-    return Buffer.byteLength(serialized ?? "", "utf8");
-  } catch {
-    return Number.MAX_SAFE_INTEGER;
+function capStreamChunks(detail: PendingRequestDetail): PendingRequestDetail {
+  const chunks = detail.streamChunks;
+  if (!chunks) return detail;
+  const capped = { ...chunks };
+  for (const stage of ["provider", "openai", "client"] as const) {
+    if (capped[stage]) capped[stage] = capStreamChunkList(capped[stage]);
   }
-}
-
-function compactOversizedDetail(detail: PendingRequestDetail): PendingRequestDetail {
-  return {
-    ...detail,
-    clientRequest: detail.clientRequest === undefined ? undefined : OVERSIZED_DETAIL_MARKER,
-    providerRequest: detail.providerRequest === undefined ? undefined : OVERSIZED_DETAIL_MARKER,
-    providerResponse: detail.providerResponse === undefined ? undefined : OVERSIZED_DETAIL_MARKER,
-    clientResponse: detail.clientResponse === undefined ? undefined : OVERSIZED_DETAIL_MARKER,
-    streamChunks: null,
-  };
-}
-
-function removeCompletedDetailEntry(id: string) {
-  if (!completedDetails.has(id)) return;
-  completedDetails.delete(id);
-  const bytes = completedDetailBytes.get(id) ?? 0;
-  completedDetailBytes.delete(id);
-  totalCompletedDetailBytes = Math.max(0, totalCompletedDetailBytes - bytes);
+  return { ...detail, streamChunks: capped };
 }
 
 function deleteCompletedDetail(id: string) {
-  removeCompletedDetailEntry(id);
+  completedDetails.delete(id);
+  totalCompletedDetailBytes = Math.max(
+    0,
+    totalCompletedDetailBytes - (completedDetailBytes.get(id) ?? 0)
+  );
+  completedDetailBytes.delete(id);
   const existingTimer = completedDetailTimers.get(id);
   if (existingTimer) {
     clearTimeout(existingTimer);
@@ -156,45 +83,62 @@ export function getCompletedDetails(): Map<string, PendingRequestDetail> {
   return completedDetails;
 }
 
-export function getCompletedDetailCacheStats() {
+/**
+ * Read the estimated payload bytes currently accounted to the completed-detail cache.
+ * @returns The cache's estimated payload-byte total.
+ */
+export function getCompletedDetailsByteSize(): number {
+  return totalCompletedDetailBytes;
+}
+
+/**
+ * Read the completed-detail cache counters.
+ * @returns Entry, cleanup-timer and estimated payload-byte counts.
+ */
+export function getCompletedDetailsCacheStats(): {
+  entries: number;
+  cleanupTimers: number;
+  bytes: number;
+} {
   return {
     entries: completedDetails.size,
+    cleanupTimers: completedDetailTimers.size,
     bytes: totalCompletedDetailBytes,
-    maxEntries: MAX_COMPLETED_DETAILS,
-    maxBytes: MAX_COMPLETED_DETAILS_BYTES,
   };
 }
 
-export function storeCompletedDetail(detail: PendingRequestDetail) {
-  let stored = prepareCompletedDetail(detail);
-  let bytes = estimateCompletedDetailBytes(stored);
-
-  // A pathological diagnostic object must not defeat the global byte cap by
-  // being larger than the cache all by itself. Preserve metadata needed for
-  // correlation and replace only payload-heavy fields.
-  if (bytes > MAX_COMPLETED_DETAILS_BYTES) {
-    stored = compactOversizedDetail(stored);
-    bytes = estimateCompletedDetailBytes(stored);
+/**
+ * Store a detached completed-request preview.
+ * @param input - Completed request detail to cap, detach and cache.
+ * @returns `true` only when the entry remains cached after count and byte-budget eviction.
+ * @throws If `detail` contains a value that `structuredClone` cannot copy.
+ */
+export function storeCompletedDetail(input: PendingRequestDetail): boolean {
+  const detail = capStreamChunks(input);
+  const inputBytes = estimateRetainedBytes(detail);
+  if (inputBytes > MAX_COMPLETED_DETAILS_BYTES) {
+    deleteCompletedDetail(detail.id);
+    return false;
   }
 
-  const previousBytes = completedDetailBytes.get(stored.id) ?? 0;
-  totalCompletedDetailBytes = Math.max(0, totalCompletedDetailBytes - previousBytes);
-  completedDetails.set(stored.id, stored);
-  completedDetailBytes.set(stored.id, bytes);
-  totalCompletedDetailBytes += bytes;
+  // `truncatePendingPreview()` uses String#slice. V8 may represent that short preview as a
+  // sliced string whose hidden parent is the full multi-megabyte request. A structured clone
+  // materializes the visible preview into cache-owned storage and drops the pending graph.
+  const detached = structuredClone(detail);
+  const detachedBytes = estimateRetainedBytes(detached);
+  totalCompletedDetailBytes -= completedDetailBytes.get(detail.id) ?? 0;
+  completedDetails.set(detail.id, detached);
+  completedDetailBytes.set(detail.id, detachedBytes);
+  totalCompletedDetailBytes += detachedBytes;
   trimCompletedDetails();
+  return completedDetails.has(detail.id);
 }
 
 export function scheduleCompletedDetailCleanup(id: string) {
-  // If byte/count trimming rejected or already evicted this entry, do not leave
-  // behind a timer for an object the cache no longer owns.
-  if (!completedDetails.has(id)) return;
-
   const existingTimer = completedDetailTimers.get(id);
   if (existingTimer) clearTimeout(existingTimer);
   const timer = setTimeout(() => {
-    completedDetailTimers.delete(id);
-    removeCompletedDetailEntry(id);
+    deleteCompletedDetail(id);
   }, COMPLETED_DETAIL_TTL_MS);
   timer.unref?.();
   completedDetailTimers.set(id, timer);
@@ -213,14 +157,6 @@ function isUnset(value: unknown): boolean {
 }
 
 export function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connectionId: string) {
-  // Operate on the already-truncated/materialized cached copy, not the original
-  // completion object. Besides avoiding work for an entry evicted by the byte
-  // budget, this prevents the async enrichment closure from prolonging the
-  // lifetime of a large sliced-string backing store after finalize returns.
-  const cached = completedDetails.get(updated.id);
-  if (!cached) return;
-  updated = cached;
-
   void (async () => {
     try {
       if (!isUnset(updated.providerResponse) && !isUnset(updated.clientResponse)) return;
@@ -238,8 +174,7 @@ export function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connec
         const art = readCallArtifact(row.artifact_relpath);
         if (art.state !== "ready" || !art.artifact) continue;
         const pipeline = art.artifact.pipeline as
-          | { providerResponse?: unknown; clientResponse?: unknown }
-          | undefined;
+          { providerResponse?: unknown; clientResponse?: unknown } | undefined;
         // pipeline.* first: it is the translated payload of one specific side.
         // `responseBody` is a single coarse value handed to both sides, so it
         // may only fill a side still empty AFTER the pipeline had its turn --

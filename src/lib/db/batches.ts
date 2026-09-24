@@ -418,7 +418,7 @@ export function deleteBatch(id: string): boolean {
 }
 
 /**
- * Scope of a `deleteCompletedBatches` sweep. The intent is explicit on purpose:
+ * Scope of a `deleteBatchesMatching` sweep. The intent is explicit on purpose:
  * a caller either names the API key whose batches it may sweep, or states
  * `allTenants: true` — there is no default that widens to the whole instance.
  */
@@ -469,16 +469,25 @@ export function isFileReferencedByOtherBatch(fileId: string, excludeBatchIds: st
 }
 
 /**
- * Delete completed batches and the files they reference.
+ * Delete the batches matching `whereSql`/`params` and the files they
+ * reference. Shared by `deleteCompletedBatches()` (the operator-triggered
+ * DELETE /api/v1/batches/delete-completed route -- exact contract preserved:
+ * only `status = 'completed'`, no age filter) and
+ * `deleteTerminalBatchesOlderThan()` (the automatic cleanup sweep -- every
+ * terminal status, gated by age). Keeping the
+ * collect-ids / soft-delete-files / delete-checkpoints / delete-batches
+ * sequence in one place means both call sites stay in sync with the batches
+ * schema and with the ownership rules below.
  *
- * `{ apiKeyId }` scopes the sweep to that key's own batches, exactly like
- * `listBatches`/`countBatches`. `{ allTenants: true }` sweeps the whole instance
- * and is reserved for an authenticated dashboard session — an ordinary inference
- * key that reached this without its own id would otherwise delete every tenant's
- * completed batches and null out their file contents (GHSA-wvxc-jp3v-5mg5). A
- * missing/empty `apiKeyId` without `allTenants` throws instead of silently
- * widening the sweep, and a scope carrying BOTH `apiKeyId` and `allTenants` is
- * rejected rather than widened.
+ * `{ apiKeyId }` additionally restricts the match to that key's own batches,
+ * exactly like `listBatches`/`countBatches`. `{ allTenants: true }` covers
+ * every matching row regardless of owner and is reserved for an authenticated
+ * dashboard session or an internal cron sweep with no untrusted caller — an
+ * ordinary inference key that reached this without its own id would otherwise
+ * delete every tenant's batches and null out their file contents
+ * (GHSA-wvxc-jp3v-5mg5). A missing/empty `apiKeyId` without `allTenants`
+ * throws instead of silently widening the sweep, and a scope carrying BOTH
+ * `apiKeyId` and `allTenants` is rejected rather than widened.
  *
  * Batches whose `api_key_id` IS NULL are intentionally OUT of a key-scoped sweep:
  * a bulk destructive sweep must never reach records the key does not own, so
@@ -487,15 +496,15 @@ export function isFileReferencedByOtherBatch(fileId: string, excludeBatchIds: st
  * `src/app/api/v1/_helpers/apiKeyScope.ts` (a null owner is denied to every
  * non-session caller — GHSA-2jm2-mpx8-6523).
  *
- * In key mode the file half is owner-scoped too: only files whose api_key_id is
- * the caller's are soft-deleted; a referenced file another tenant owns (or an
- * unowned one) is left intact and is not counted in deletedFiles.
+ * In key mode the file half is owner-scoped too: only files whose api_key_id
+ * is the caller's are soft-deleted; a referenced file another tenant owns (or
+ * an unowned one) is left intact and is not counted in deletedFiles.
  *
- * The file soft-deletes, the checkpoint DELETE and the batches DELETE for a set
- * of batch ids run in one transaction, so a mid-sweep failure rolls that set back
- * — within a chunk, no batch row is left pointing at a file whose content was
- * already nulled. BOTH modes walk the key's/instance's completed batches in
- * chunks of `INSTANCE_SWEEP_CHUNK` ids and commit that unit once per chunk
+ * The file soft-deletes, the checkpoint DELETE and the batches DELETE for a
+ * set of batch ids run in one transaction, so a mid-sweep failure rolls that
+ * set back — within a chunk, no batch row is left pointing at a file whose
+ * content was already nulled. BOTH modes walk the matching batches in chunks
+ * of `INSTANCE_SWEEP_CHUNK` ids and commit that unit once per chunk
  * (SEC-D; key mode since the omni-code-sec proof run, LEDGER-4/20/21): the
  * SQLite write lock is held for one chunk at a time and never across chunks,
  * so the lowest-privilege caller — any valid API key — cannot hold the
@@ -516,8 +525,9 @@ export function isFileReferencedByOtherBatch(fileId: string, excludeBatchIds: st
  * `better-sqlite3` is synchronous, so an unbounded loop would hold the event
  * loop for as long as it takes to sweep the whole key's/instance's backlog.
  * When the cap is hit with more rows still pending, the call returns
- * `hasMore: true` instead of continuing; the caller (the DELETE route) simply
- * calls again. Resumption needs no cursor: swept rows are gone, `rowid` only
+ * `hasMore: true` instead of continuing; the caller simply calls again (the
+ * DELETE route on its next request, the cleanup job on its next scheduled
+ * run). Resumption needs no cursor: swept rows are gone, `rowid` only
  * increases, so the next call's `ORDER BY rowid LIMIT ?` picks up exactly
  * where the previous call left off.
  *
@@ -528,11 +538,15 @@ export function isFileReferencedByOtherBatch(fileId: string, excludeBatchIds: st
  * the next chunk then starts with a different id or is empty.
  *
  * The ids of a unit are bound as `IN (?, …)` placeholders. No statement ever
- * binds more than `INSTANCE_SWEEP_CHUNK` ids in either mode, so a tenant with
- * tens of thousands of completed batches never hits SQLite's default
- * SQLITE_MAX_VARIABLE_NUMBER (32766 since 3.32).
+ * binds more than `INSTANCE_SWEEP_CHUNK` ids in either mode, so a tenant or
+ * instance with tens of thousands of matching batches never hits SQLite's
+ * default SQLITE_MAX_VARIABLE_NUMBER (32766 since 3.32).
  */
-export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
+function deleteBatchesMatching(
+  whereSql: string,
+  params: unknown[],
+  scope: DeleteCompletedBatchesScope
+): {
   deletedBatches: number;
   deletedFiles: number;
   hasMore: boolean;
@@ -541,12 +555,12 @@ export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
   const allTenants = "allTenants" in scopeObj && scopeObj.allTenants === true;
   const apiKeyId = "apiKeyId" in scopeObj ? scopeObj.apiKeyId : undefined;
   if (!allTenants && (typeof apiKeyId !== "string" || apiKeyId.trim() === "")) {
-    throw new Error("deleteCompletedBatches: apiKeyId required unless allTenants");
+    throw new Error("deleteBatchesMatching: apiKeyId required unless allTenants");
   }
   // Presence, not truthiness: `{ allTenants: true, apiKeyId: "" }` (or null) is a
   // caller that named both fields and must be refused, not widened (LEDGER-18).
   if (allTenants && "apiKeyId" in scopeObj) {
-    throw new Error("deleteCompletedBatches: apiKeyId and allTenants are mutually exclusive");
+    throw new Error("deleteBatchesMatching: apiKeyId and allTenants are mutually exclusive");
   }
 
   const db = getDbInstance();
@@ -577,10 +591,11 @@ export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
 
     let deletedFiles = 0;
     for (const fid of fileIds) {
-      // #13681: a file referenced by a batch outside this chunk (a different
-      // chunk not yet processed, or any non-completed batch — completed
-      // batches outside `ids` cannot exist since the SELECT above IS the
-      // chunk) must survive this chunk's sweep.
+      // #13681: a file referenced by a batch outside this chunk (a matching
+      // batch a later chunk has not reached yet, or any batch the WHERE does
+      // not match — non-terminal, or too young for the age-gated sweep) must
+      // survive this chunk's sweep. Applies to BOTH callers of
+      // deleteBatchesMatching: the DELETE route and the automatic cleanup.
       if (isFileReferencedByOtherBatch(fid, ids)) continue;
       try {
         // Key mode: only the key's OWN files. A batch may reference a file
@@ -625,7 +640,7 @@ export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
       // DELETE removed nothing and the loop would spin forever. A concurrent
       // deleter only makes rows vanish, which yields a different first id.
       if (ids[0] === previousFirstId) {
-        throw new Error(`deleteCompletedBatches: no progress — chunk repeated (id ${ids[0]})`);
+        throw new Error(`deleteBatchesMatching: no progress — chunk repeated (id ${ids[0]})`);
       }
       previousFirstId = ids[0];
       const part = sweepIds(ids);
@@ -640,13 +655,50 @@ export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
 
   if (!allTenants) {
     const keyChunk = db.prepare(
-      "SELECT id FROM batches WHERE status = 'completed' AND api_key_id = ? ORDER BY rowid LIMIT ?"
+      `SELECT id FROM batches WHERE ${whereSql} AND api_key_id = ? ORDER BY rowid LIMIT ?`
     );
-    return sweepLoop(() => toIds(keyChunk.all(apiKeyId, INSTANCE_SWEEP_CHUNK)));
+    return sweepLoop(() => toIds(keyChunk.all(...params, apiKeyId, INSTANCE_SWEEP_CHUNK)));
   }
 
-  const nextChunk = db.prepare(
-    "SELECT id FROM batches WHERE status = 'completed' ORDER BY rowid LIMIT ?"
+  const nextChunk = db.prepare(`SELECT id FROM batches WHERE ${whereSql} ORDER BY rowid LIMIT ?`);
+  return sweepLoop(() => toIds(nextChunk.all(...params, INSTANCE_SWEEP_CHUNK)));
+}
+
+export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
+  deletedBatches: number;
+  deletedFiles: number;
+  hasMore: boolean;
+} {
+  return deleteBatchesMatching("status = 'completed'", [], scope);
+}
+
+/**
+ * Automatic sweep for the daily cleanup job (see lib/db/cleanup.ts): unlike
+ * deleteCompletedBatches() above, this covers every terminal status -- a
+ * failed, cancelled, or expired batch's checkpoints are just as done as a
+ * completed one's, but had no cleanup path at all before this. Gated by age
+ * so a batch's results stay retrievable for a while after finishing, matching
+ * OpenAI's own Batch API retention behavior.
+ *
+ * Observed live: batch_item_checkpoints had grown to 182K rows / 5.25 GB with
+ * no batch ever explicitly deleted by an operator -- the manual
+ * delete-completed route existed, but nothing ever called it automatically,
+ * and it does not cover failed/cancelled/expired batches either.
+ *
+ * Always instance-wide: called only by the internal cron sweep, never by an
+ * untrusted API-key-authenticated caller, so it always uses the allTenants
+ * path rather than taking a scope of its own.
+ */
+export function deleteTerminalBatchesOlderThan(days: number): {
+  deletedBatches: number;
+  deletedFiles: number;
+  hasMore: boolean;
+} {
+  const cutoffEpochSeconds = Math.floor(Date.now() / 1000) - days * 24 * 60 * 60;
+  return deleteBatchesMatching(
+    `status IN ('completed', 'failed', 'cancelled', 'expired')
+       AND COALESCE(completed_at, failed_at, cancelled_at, expired_at, created_at) < ?`,
+    [cutoffEpochSeconds],
+    { allTenants: true }
   );
-  return sweepLoop(() => toIds(nextChunk.all(INSTANCE_SWEEP_CHUNK)));
 }

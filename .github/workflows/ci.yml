@@ -144,6 +144,16 @@ jobs:
       - run: npm run check:test-discovery
       - run: npm run check:radar-sentinels
       - run: npm run check:tracked-artifacts
+      - name: AI attribution in commit / PR metadata (Hard Rule #16)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.md"
+          npm run check:ai-attribution -- --range "$PR_BASE_SHA..$PR_HEAD_SHA" --pr-title "$PR_TITLE" --pr-body-file "$RUNNER_TEMP/pr-body.md"
       # A test parked in vitest.config.ts's exclude list does not run, and looks like
       # coverage to whoever reads the tree. 62 files accumulated behind a comment pointing
       # at #8618 — closed in August while the list grew to 62; 51 of them passed when
@@ -453,8 +463,11 @@ jobs:
       # One FS inventory of src/app/api for both anti-hallucination directions.
       - name: API docs refs (openapi + prose → routes)
         run: npm run check:api-docs-refs
-      - name: i18n translation drift (warn)
-        run: node scripts/i18n/check-translation-drift.mjs --warn
+      # Blocking since the 2026-09 docs re-sync: a core doc edited without `npm run i18n:run
+      # --files=<doc>` (or `--adopt` for a mechanical edit) leaves 65 stale mirrors behind;
+      # the run only retranslates the `## ` sections whose text changed, so it is cheap.
+      - name: i18n docs drift (sources changed since their translation)
+        run: node scripts/i18n/check-translation-drift.mjs
 
   docs-lint:
     name: Docs Lint (prose — advisory)
@@ -542,6 +555,11 @@ jobs:
       # in eight. Fix is `sync-ui-keys --locale=<codes> --translate-markers`.
       - name: i18n key completeness (every locale carries every en.json key)
         run: node scripts/i18n/check-key-completeness.mjs
+      # Same gate for the CLI catalogs (bin/cli/locales). check:cli-i18n only compares
+      # pt-BR / zh-CN / zh-TW; 38 locales shipped with 1–24 of 830 keys for months
+      # (audit 2026-09-16) and the CLI silently fell back to English for them.
+      - name: i18n key completeness (CLI catalogs)
+        run: node scripts/i18n/check-key-completeness.mjs --catalog=cli
 
   # #8038: cheap glossary/protected-terms consistency gate —
   # complements i18n-ui-coverage (key parity) and the ICU `i18n` job below
@@ -1105,7 +1123,7 @@ jobs:
         # stalled upload can neither eat the job's budget nor turn a green job cancelled.
         timeout-minutes: 5
         continue-on-error: true
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4 # v7.1.0
         with:
           files: coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}

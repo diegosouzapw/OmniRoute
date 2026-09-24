@@ -1,6 +1,10 @@
-# Przewodnik po darmowych planach: darmowe AI bez karty kredytowej
+# Free Tiers Guide: Understand and Combine Free AI Access (Polski)
 
-> **TL;DR**: OmniRoute ma 153 wpisy katalogu oznaczone free/no-auth. Ściśle kwantyfikowany budżet obejmuje 39 pul / 452 wpisy modeli. Podłącz wielu providerów, aby rozszerzyć pokrycie fallbacku; dostępność, limity i warunki zależą od upstreamu.
+🌐 **Languages:** 🇺🇸 [English](../../../../getting-started/FREE-TIERS-GUIDE.md) · 🇪🇹 [am](../../../am/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇦🇿 [az](../../../az/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇩🇰 [da](../../../da/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇩🇪 [de](../../../de/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇬🇷 [el](../../../el/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇪🇸 [es](../../../es/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇪🇪 [et](../../../et/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇱 [he](../../../he/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇩 [id](../../../id/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇹 [it](../../../it/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇰🇭 [km](../../../km/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇲🇲 [my](../../../my/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇳🇴 [no](../../../no/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [or](../../../or/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇱🇰 [si](../../../si/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇮🇳 [te](../../../te/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇹🇭 [th](../../../th/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/getting-started/FREE-TIERS-GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/getting-started/FREE-TIERS-GUIDE.md)
+
+---
+
+> **TL;DR**: OmniRoute rejestruje 357 identyfikatorów dostawców, z czego **152 wpisy w katalogu dostawców są oznaczone jako `hasFree`**. Bardziej rygorystyczny, audytowany katalog bezpłatnych modeli obejmuje **35 cyklicznych kluczy puli / 482 wpisy** (475 aktywnych + 7 wycofanych). Połącz kilku odpowiednich dostawców, aby zwiększyć możliwości przełączania awaryjnego; nadal obowiązują wszystkie limity, zasady zatwierdzania, polityki prywatności i warunki dotyczące płatnego przekroczenia limitu.
 
 ---
 
@@ -12,45 +16,43 @@ OmniRoute **agreguje** te darmowe plany w jeden endpoint. Zamiast rejestrować s
 
 ---
 
-## Najlepsi darmowi providerzy (bez karty kredytowej)
+## Reprezentatywni dostawcy bezpłatnego dostępu
 
-### Poziom 1: bieżący dostęp bez opublikowanego limitu tokenów
+### Dostęp odnawialny, bez klucza lub bez limitu
 
-Ci providerzy nie publikują stałego limitu tokenów w katalogu, lecz nadal mogą stosować limity szybkości, współbieżności, konta, regionu, modeli, KYC i ToS:
+Ci dostawcy oferują w zweryfikowanym katalogu odnawialną, niewymagającą klucza lub nielimitowaną ścieżkę bezpłatnego dostępu. „Bez limitu” oznacza brak opublikowanego limitu tokenów; nadal mogą obowiązywać ograniczenia dotyczące częstotliwości, współbieżności, konta, regionu i zasad:
 
-| Provider          | Modele                                   | Limit                     | Jak podłączyć   |
-| ----------------- | ---------------------------------------- | ------------------------- | --------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | 50 kredytów/miesiąc       | Bez autoryzacji |
-| **OpenCode Free** | GPT-4o, Claude, Gemini                   | Brak opublikowanego capu; limity obowiązują | Bez autoryzacji |
-| **Pollinations**  | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Bez klucza                | Bez autoryzacji |
-| **LongCat**       | LongCat-2.0                              | 10M tokenów (jednorazowo) | Klucz API + KYC |
-| **Cloudflare AI** | 50+ modeli                               | 10K neuronów/dzień        | Bez autoryzacji |
-| **Qoder**         | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Brak opublikowanego capu; limity obowiązują | Bez autoryzacji |
+| Dostawca          | Modele                                                                                      | Limit                                                                                                                                                          | Jak się połączyć                                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 i inne                                          | Zweryfikowany katalog szacuje wspólną miesięczną pulę na 25K tokenów                                                                                           | Przepływ OAuth/konta; warunki korzystania oznaczone w katalogu jako `avoid`                                                       |
+| **OpenCode Free** | Bieżący zestaw modeli `*-free` w rejestrze dostawcy                                         | Bez klucza; brak opublikowanego limitu tokenów                                                                                                                 | Brak danych uwierzytelniających dostawcy; warunki korzystania oznaczone jako `avoid`                                              |
+| **Pollinations**  | Bieżący zestaw modeli bez klucza; niektóre wcześniejsze modele wycofano lub wymagają klucza | Bez klucza; brak opublikowanego limitu tokenów                                                                                                                 | Brak danych uwierzytelniających dostawcy dla modeli niewymagających klucza                                                        |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 i inne                          | Bezpłatny klucz API (bez limitów częstotliwości, bez karty); **każde żądanie jest rejestrowane** do celów badawczych (można zrezygnować na logfare.ai/consent) | Natychmiastowy klucz na logfare.ai/register; warunki korzystania i polityka prywatności na logfare.ai/tos oraz logfare.ai/privacy |
+| **Cloudflare AI** | Katalog Workers AI                                                                          | Zweryfikowana pula jest szacowana na ~30M tokenów/miesiąc na podstawie opublikowanych jednostek użycia                                                         | Konto Cloudflare i dane uwierzytelniające API                                                                                     |
+| **Gemini**        | Rodzina Gemini Flash                                                                        | Zweryfikowana pula jest szacowana na ~60M tokenów/miesiąc                                                                                                      | Klucz API Google AI Studio; obowiązują limity częstotliwości                                                                      |
+| **Groq**          | Modele Llama, GPT-OSS i Qwen                                                                | Zweryfikowana pula jest szacowana na ~15M tokenów/miesiąc                                                                                                      | Klucz API Groq; obowiązują limity częstotliwości                                                                                  |
+| **Cerebras**      | GLM 4.7 i GPT-OSS 120B                                                                      | Zweryfikowana pula jest szacowana na ~30M tokenów/miesiąc                                                                                                      | Klucz API Cerebras; obowiązują limity częstotliwości                                                                              |
 
-### Poziom 2: darmowi po rejestracji (hojni)
+### Bonusy za rejestrację i środki oferowane przez poszczególnych dostawców
 
-Ci providerzy dają **darmowe kredyty** przy rejestracji:
+Ci dostawcy przyznają **bezpłatne środki** po rejestracji:
 
-| Provider       | Darmowe kredyty       | Modele                      | Jak uzyskać                          |
-| -------------- | --------------------- | --------------------------- | ------------------------------------ |
-| **NVIDIA NIM** | ~40 RPM               | 129 modeli                  | Rejestracja na build.nvidia.com      |
-| **Cerebras**   | 1M tokenów/dzień      | Qwen3 235B, GPT-OSS 120B    | Rejestracja na cerebras.ai           |
-| **DeepSeek**   | 5M darmowych tokenów  | DeepSeek V4                 | Rejestracja na platform.deepseek.com |
-| **Groq**       | 30 RPM za darmo       | Llama 4, Mixtral            | Rejestracja na console.groq.com      |
-| **OpenAI**     | $5 darmowych kredytów | GPT-5, GPT-4o               | Rejestracja na platform.openai.com   |
-| **Anthropic**  | $5 darmowych kredytów | Claude Opus 4.6, Sonnet 4.6 | Rejestracja na console.anthropic.com |
-| **Google**     | 1500 żądań/dzień      | Gemini 2.5 Pro, Flash       | Rejestracja na aistudio.google.com   |
+| Dostawca      | Bezpłatne środki                                                                           | Modele                    | Jak je uzyskać                                                      |
+| ------------- | ------------------------------------------------------------------------------------------ | ------------------------- | ------------------------------------------------------------------- |
+| **DeepSeek**  | 5M bezpłatnych tokenów                                                                     | DeepSeek V4               | Zarejestruj się na platform.deepseek.com                            |
+| **LongCat**   | Jednorazowy bonus w wysokości 10M tokenów                                                  | LongCat 2.0               | Klucz API + KYC; po wykorzystaniu bonusu płatność według użycia     |
+| **Vertex AI** | Bonus rejestracyjny w wysokości $300, przedstawiony w modelu budżetowym jako ~300M tokenów | Gemini i modele partnerów | Konto Google Cloud; obowiązują zasady rozliczeń i kwalifikowalności |
 
-### Poziom 3: darmowi z limitami (konkretne zastosowania)
+### Inne formy ograniczonego dostępu
 
-Ci providerzy mają **darmowe plany** z określonymi limitami:
+Ci dostawcy oferują **bezpłatne poziomy** z określonymi limitami:
 
-| Provider          | Darmowy limit      | Modele           | Najlepsze do      |
-| ----------------- | ------------------ | ---------------- | ----------------- |
-| **Cerebras**      | 1M tokenów/dzień   | Qwen3 235B       | Szybka inferencja |
-| **NVIDIA NIM**    | ~40 RPM            | 129 modeli       | Różnorodność      |
-| **Groq**          | 30 RPM             | Llama 4, Mixtral | Szybkość          |
-| **Cloudflare AI** | 10K neuronów/dzień | 50+ modeli       | Różnorodność      |
+| Dostawca                   | Bezpłatny limit                                                                                | Modele                               | Najlepsze zastosowanie |
+| -------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------ | ---------------------- |
+| **GitHub Models**          | Zweryfikowana wspólna pula jest szacowana na ~18M tokenów/miesiąc                              | Szeroka ocena modeli                 |
+| **Hugging Face**           | Niewielka, odnawiana co miesiąc pula                                                           | Eksperymenty i różnorodność modeli   |
+| **OpenRouter free models** | Wspólna pula z limitem żądań; opcjonalne jednorazowe doładowanie zwiększa odnawialny przydział | Szeroki katalog modeli zapasowych    |
+| **AI Horde**               | Społecznościowa pula zasobów bez klucza; dostępność jest zmienna                               | Okazjonalne wnioskowanie rozproszone |
 
 ---
 
@@ -201,33 +203,21 @@ Jeśli masz wiele kont u tego samego providera, OmniRoute traktuje każde jako o
 
 ---
 
-## Matematyka darmowych planów
+## Obliczenia bezpłatnego planu
 
-Policzmy, ile darmowego AI możesz uzyskać:
+Aktualny katalog z deduplikacją pul podaje obecnie:
 
-### Konserwatywne oszacowanie (3 providerów)
+| Metryka                                                                     |                        Bieżąca zweryfikowana wartość | Interpretacja                                                                                                                                                                                |
+| --------------------------------------------------------------------------- | ---------------------------------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cykliczny, określony ilościowo przydział                                    |                           **~1.62B tokenów/miesiąc** | Współdzielone pule liczone jednokrotnie; dostawcy bez limitu wyłączeni z sumy                                                                                                                |
+| Pierwszy miesiąc z przydziałami za rejestrację                              |                                   **~2.22B tokenów** | Cykliczna suma powiększona o jednorazowe i cykliczne środki                                                                                                                                  |
+| Zweryfikowany wykaz bezpłatnych modeli                                      | **35 kluczy cyklicznych pul / 482 wpisy katalogowe** | 475 aktywnych + 7 wycofanych; niezależnie od katalogu 357 dostawców                                                                                                                          |
+| Uwzględnieni dostawcy cyklicznych/bezkluczowych usług bezpłatnych na zawsze |                                               **53** | Unikalni dostawcy we wszystkich typach katalogowych: cyklicznych dziennych/miesięcznych, opartych na środkach, bez limitu i bez klucza; wiersze zależne od kryteriów kwalifikacji wykluczono |
+| Wpisy katalogu dostawców oznaczone jako `hasFree`                           |                                        **152 / 357** | Szersze metadane dostawców; nie wszyscy mają wymierny cykliczny limit                                                                                                                        |
 
-| Provider      | Limit dzienny | Limit miesięczny |
-| ------------- | ------------- | ---------------- |
-| Kiro AI       | ~1,7 kredytu  | 50 kredytów      |
-| OpenCode Free | Limity obowiązują | Brak opublikowanego capu |
-| Pollinations  | Limity obowiązują | Brak opublikowanego capu |
-
-**Suma**: brak wiarygodnego stałego tokenowego maksimum; dostęp podlega limitom providerów
-
-### Agresywne oszacowanie (7 providerów)
-
-| Provider      | Limit dzienny   | Limit miesięczny               |
-| ------------- | --------------- | ------------------------------ |
-| Kiro AI       | ~1,7 kredytu    | 50 kredytów                    |
-| OpenCode Free | Limity obowiązują | Brak opublikowanego capu       |
-| Pollinations  | Limity obowiązują | Brak opublikowanego capu       |
-| LongCat       | — (jednorazowo) | 10M tokenów (jednorazowo, KYC) |
-| Cloudflare AI | 10K neuronów    | 300K neuronów                  |
-| NVIDIA NIM    | ~40 RPM         | ~1,7M żądań                    |
-| Cerebras      | 1M tokenów      | 30M tokenów                    |
-
-**Suma**: ~1,53B udokumentowanych tokenów cyklicznych/miesiąc — do ~2,15B w pierwszym miesiącu z jednorazowymi kredytami za rejestrację. Dostawcy bez opublikowanego capu są raportowani osobno.
+Wartości te są obliczane na podstawie pliku `open-sse/config/freeModelCatalog.ts`; informacje o deduplikacji pul, flagach ToS,
+wycofanych wpisach i metodologii środków za rejestrację zawiera
+[Dokumentacja bezpłatnych planów](../reference/FREE_TIERS.md).
 
 ---
 

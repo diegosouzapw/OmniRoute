@@ -173,6 +173,40 @@ test("reasoning replay: no-tool history comes from historyMessages, not requestB
   );
 });
 
+test("transcript-observed non-streaming replies bypass reasoning cache without changing the client reply", () => {
+  clearReasoningCacheAll();
+  const sentinel = "PRIVATE_NONSTREAM_REASONING_TRANSCRIPT_SENTINEL";
+  const observed = { videoTranscriptSensitive: true };
+  const input = baseInput({
+    provider: "deepseek",
+    model: "deepseek-v4-pro",
+    responseBody: {
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: "visible client reply",
+            reasoning_content: sentinel,
+            tool_calls: [
+              {
+                id: "call_video_nonstream",
+                type: "function",
+                function: { name: "f", arguments: "{}" },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+    },
+    ...observed,
+  });
+  const result = translateNonStreamingClientResponse(input);
+  assert.equal(result.response.choices[0].message.reasoning_content, sentinel);
+  assert.equal(lookupReasoning("call_video_nonstream"), null);
+});
+
 test("phase=final applies client usage buffer", () => {
   // Gemini format skips OpenAI/Responses sanitize, so extra usage fields
   // only disappear if applyClientUsageBuffer → filterUsageForFormat runs.
@@ -268,6 +302,94 @@ test("Responses API format: sanitizeResponsesApiResponse is applied", () => {
   assert.equal(output[0]?.type, "function_call");
   assert.equal(output[0]?.namespace, "ns", "#7936 restore namespace");
   assert.equal(output[0]?.name, "get_weather", "#7936 restore original name");
+});
+
+test("Responses API format: restores non-stream custom tool calls before namespace identity", () => {
+  const input = baseInput({
+    responsePayloadFormat: FORMATS.OPENAI_RESPONSES,
+    clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    responseBody: {
+      id: "resp_custom",
+      object: "response",
+      status: "completed",
+      output: [
+        {
+          id: "fc_call_1",
+          type: "function_call",
+          call_id: "call_1",
+          name: "functions__exec",
+          arguments: '{"input":"printf \'nonstream-ok\\\\n\'"}',
+        },
+      ],
+      usage: { input_tokens: 10, output_tokens: 5, total_tokens: 15 },
+    },
+    customToolNames: new Set(["functions__exec"]),
+    requestToolIdentityMap: new Map([
+      ["functions__exec", { namespace: "functions", name: "exec" }],
+    ]),
+  });
+
+  const result = translateNonStreamingClientResponse(input);
+  const output = result.response.output as Array<Record<string, unknown>>;
+  assert.deepEqual(output[0], {
+    id: "fc_call_1",
+    type: "custom_tool_call",
+    call_id: "call_1",
+    name: "exec",
+    input: "printf 'nonstream-ok\\n'",
+    status: "completed",
+    namespace: "functions",
+  });
+});
+
+test("Responses API format: classifies custom calls synthesized from Kiro chat output", () => {
+  const input = baseInput({
+    responsePayloadFormat: "kiro",
+    clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    responseBody: {
+      id: "chatcmpl_custom",
+      object: "chat.completion",
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: null,
+            tool_calls: [
+              {
+                id: "call_kiro_1",
+                type: "function",
+                function: {
+                  name: "functions__exec",
+                  arguments: '{"input":"printf \'kiro-nonstream-ok\\\\n\'"}',
+                },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    },
+    customToolNames: new Set(["functions__exec"]),
+    requestToolIdentityMap: new Map([
+      ["functions__exec", { namespace: "functions", name: "exec" }],
+    ]),
+  });
+
+  const result = translateNonStreamingClientResponse(input);
+  const output = result.response.output as Array<Record<string, unknown>>;
+  assert.deepEqual(output[0], {
+    id: "fc_call_kiro_1",
+    type: "custom_tool_call",
+    call_id: "call_kiro_1",
+    name: "exec",
+    input: "printf 'kiro-nonstream-ok\\n'",
+    status: "completed",
+    namespace: "functions",
+  });
 });
 
 test("#12370: alias-shaped requestToolIdentityMap must not blank out function_call name", () => {

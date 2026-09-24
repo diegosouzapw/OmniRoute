@@ -1,29 +1,20 @@
-# CODEBASE_DOCUMENTATION (አማርኛ)
+# OmniRoute Codebase Documentation (አማርኛ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
-title: "የOmniRoute ኮድቤዝ ሰነድ"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# የOmniRoute ኮድቤዝ ሰነድ
-
-> **ስሪት:** v3.8.51
-> **ለመጨረሻ ጊዜ የተዘመነው:** 2026-06-28
-> **ታዳሚዎች:** ለOmniRoute አስተዋጽኦ የሚያደርጉ ወይም በእሱ ላይ ውህደቶችን የሚገነቡ መሐንዲሶች።
+> **ስሪት፦** v3.8.51
+> **ለመጨረሻ ጊዜ የተዘመነው፦** 2026-06-28
+> **ታዳሚዎች፦** ለOmniRoute አስተዋጽኦ የሚያደርጉ ወይም በእሱ ላይ ውህደቶችን የሚገነቡ መሐንዲሶች።
 >
-> የከፍተኛ ደረጃ የሥነ ሕንፃ ንድፎችን እና ከእያንዳንዱ ንዑስ ስርዓት ጀርባ ያለውን ምክንያታዊ አስተሳሰብ ለማወቅ
-> [ARCHITECTURE.md](./ARCHITECTURE.md)ን ያንብቡ። ስለ እያንዳንዱ ንዑስ ስርዓት ዝርዝር ማብራሪያ
-> (Auto Combo፣ MCP server፣ A2A server፣ Skills፣ Memory፣ Cloud Agents፣ Resilience፣
+> ከፍተኛ ደረጃ የአርክቴክቸር ንድፎችን እና ከእያንዳንዱ ንዑስ ስርዓት በስተጀርባ ያለውን አመክንዮ ለማንበብ፣
+> [ARCHITECTURE.md](./ARCHITECTURE.md)ን ይመልከቱ። ስለ እያንዳንዱ ንዑስ ስርዓት ጥልቅ መረጃ
+> (Auto Combo፣ MCP አገልጋይ፣ A2A አገልጋይ፣ Skills፣ Memory፣ Cloud Agents፣ Resilience፣
 > Compression፣ ወዘተ) ለማግኘት በዚህ `docs/` ማውጫ ውስጥ ያሉትን ለእያንዳንዳቸው የተዘጋጁ ፋይሎች ይመልከቱ።
 
 ይህ ፋይል **በአሁኑ ጊዜ በማከማቻው ውስጥ ያለውን** ይገልጻል፤ ይህም አዲስ መሐንዲስ
-የማውጫውን መዋቅር እንዲዳስስ፣ የአሂድ ጊዜ ንብርብሮችን እንዲረዳ እና አዲስ ሞጁሎችን
+የማውጫውን መዋቅር እንዲዳስስ፣ የአሂድ ጊዜ ንብርብሮችን እንዲረዳ እና አዳዲስ ሞጁሎችን
 ሳይፈጥር ኮድ የት መጨመር እንዳለበት እንዲያውቅ ያስችለዋል።
 
 ---
@@ -442,50 +433,50 @@ server/
 
 ---
 
-## 4. `open-sse/` — የዥረት ሞተር የሥራ ቦታ
+## 4. `open-sse/` — የዥረት ማስኬጃ የሥራ ቦታ
 
 እንደ `@omniroute/open-sse` የሚታተም የተለየ npm የሥራ ቦታ። የጥያቄ
-ሂደት፣ አስፈጻሚዎች፣ ተርጓሚዎች፣ አገልግሎቶች፣ ቀያሪው እና MCP አገልጋዩን ይይዛል።
+ማስኬድን፣ አስፈጻሚዎችን፣ ተርጓሚዎችን፣ አገልግሎቶችን፣ ቀያሪውን እና MCP አገልጋዩን ይይዛል።
 
 ```
 open-sse/
-├── index.ts                ይፋዊ ወደ ውጭ የሚቀርቡ ነገሮች
+├── index.ts                ይፋዊ ወደ ውጭ ማጋለጫዎች
 ├── package.json            የሥራ ቦታ ማኒፌስት
 ├── tsconfig.json
 ├── types.d.ts
 ├── config/                 የአቅራቢ መዝገቦች፣ የራስጌ መገለጫዎች፣ ማንነት፣ …
-├── handlers/               የጥያቄ አስተናጋጆች (ውይይት፣ ኢምቤዲንጎች፣ ድምፅ፣ ምስል፣ …)
-├── executors/              108 ለአቅራቢ-ተኮር የHTTP አስፈጻሚዎች
-├── translator/             የቅርጸት ልወጣ (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
+├── handlers/               የጥያቄ ተቆጣጣሪዎች (ውይይት፣ ኢምቤዲንጎች፣ ድምፅ፣ ምስል፣ …)
+├── executors/              108 ለአቅራቢዎች የተለዩ HTTP አስፈጻሚዎች
+├── translator/             የቅርጸት መቀየር (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions የዥረት ቀያሪ
-├── services/               80+ የአገልግሎት ሞጁሎች (ጥምረቶች፣ አማራጭ መመለሻ፣ ኮታዎች፣ ማንነት፣ …)
+├── services/               80+ የአገልግሎት ሞጁሎች (ጥምረቶች፣ ተተኪ አማራጭ፣ ኮታዎች፣ ማንነት፣ …)
 ├── utils/                  የዥረት ረዳቶች፣ TLS ደንበኛ፣ AWS SigV4፣ የፕሮክሲ ሰርስሮ ማምጣት፣ …
 └── mcp-server/             MCP አገልጋይ (3 ማጓጓዣዎች፣ 33 ወሰኖች፣ 110 መሣሪያዎች)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| አስተናጋጅ                  | ዓላማ                                                           |
-| ----------------------- | ------------------------------------------------------------- |
-| `chatCore.ts`           | ዋና የውይይት ቧንቧ መስመር (መሸጎጫ፣ የመጠን ገደብ፣ የጥምረት ማዘዋወር፣ ወደ አስፈጻሚ መላክ) |
-| `responsesHandler.ts`   | የOpenAI Responses API መግቢያ ነጥብ                                |
-| `embeddings.ts`         | ኢምቤዲንጎች                                                       |
-| `imageGeneration.ts`    | ምስል ማመንጨት                                                     |
-| `audioSpeech.ts`        | ጽሑፍን ወደ ንግግር መቀየር                                             |
-| `audioTranscription.ts` | ንግግርን ወደ ጽሑፍ መቀየር                                             |
-| `videoGeneration.ts`    | ቪዲዮ ማመንጨት                                                     |
-| `musicGeneration.ts`    | ሙዚቃ ማመንጨት                                                     |
-| `rerank.ts`             | ደረጃን እንደገና ማስተካከል                                             |
-| `moderations.ts`        | ይዘት ማስተካከያ                                                    |
-| `search.ts`             | የድር ፍለጋ                                                       |
-| `sseParser.ts`          | የSSE ክስተት ተንታኝ                                                |
-| `usageExtractor.ts`     | ከላይኛው የውሂብ ዥረት የቶከን ብዛቶችን ማውጣት                                |
-| `responseSanitizer.ts`  | ለአቅራቢ-ተኮር የሆነ አላስፈላጊ መረጃን ማስወገድ                               |
-| `responseTranslator.ts` | በአቅራቢው ምላሽ እና በትርጉም ንብርብሩ መካከል ያለ ማገናኛ                        |
+| ተቆጣጣሪ                   | ዓላማ                                                            |
+| ----------------------- | -------------------------------------------------------------- |
+| `chatCore.ts`           | ዋና የውይይት የማስኬጃ መስመር (መሸጎጫ፣ የፍጥነት ገደብ፣ የጥምረት ማዘዋወር፣ የአስፈጻሚ መላክ) |
+| `responsesHandler.ts`   | የOpenAI Responses API መግቢያ ነጥብ                                 |
+| `embeddings.ts`         | ኢምቤዲንጎች                                                        |
+| `imageGeneration.ts`    | ምስል ማመንጨት                                                      |
+| `audioSpeech.ts`        | ጽሑፍን ወደ ንግግር መቀየር                                              |
+| `audioTranscription.ts` | ንግግርን ወደ ጽሑፍ መቀየር                                              |
+| `videoGeneration.ts`    | ቪዲዮ ማመንጨት                                                      |
+| `musicGeneration.ts`    | ሙዚቃ ማመንጨት                                                      |
+| `rerank.ts`             | ዳግም ደረጃ ማውጣት                                                   |
+| `moderations.ts`        | የይዘት ቁጥጥር                                                      |
+| `search.ts`             | የድር ፍለጋ                                                        |
+| `sseParser.ts`          | የSSE ክስተት ተንታኝ                                                 |
+| `usageExtractor.ts`     | ከላይኛው ምንጭ ዥረቶች የቶከን ብዛቶችን ማውጣት                                 |
+| `responseSanitizer.ts`  | ለአቅራቢው የተለየ አላስፈላጊ ይዘትን ማስወገድ                                  |
+| `responseTranslator.ts` | በአቅራቢው ምላሽ እና በትርጉም ንብርብሩ መካከል ያለ አገናኝ                         |
 
 ### 4.2 `open-sse/executors/`
 
-108 የአቅራቢ አስፈጻሚዎች፣ እያንዳንዳቸው `BaseExecutor` (`base.ts`)ን የሚያስፋፉ፦
+108 የአቅራቢ አስፈጻሚዎች፣ እያንዳንዳቸው `BaseExecutor` (`base.ts`)ን ያስፋፋሉ፦
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
@@ -493,13 +484,13 @@ open-sse/
 `pollinations`, `qoder`, `vertex`, `devin-desktop`፣ በተጨማሪም `claudeIdentity.ts`
 (የጋራ የማንነት ረዳት) እና `index.ts` (መዝገብ)።
 
-> ማስታወሻ፦ እዚህ ያልተዘረዘሩ አቅራቢዎች ከOpenAI ጋር ተኳሃኙን አጠቃላይ
-> አስፈጻሚ በመጠቀም በ`default.ts` ይስተናገዳሉ። ሙሉው የአቅራቢዎች ካታሎግ (355 አቅራቢዎች) በ
+> ማስታወሻ፦ እዚህ ያልተዘረዘሩ አቅራቢዎች አጠቃላዩን
+> ከOpenAI ጋር ተኳሃኝ የሆነ አስፈጻሚ በመጠቀም በ`default.ts` ይቀርባሉ። ሙሉው የአቅራቢዎች ካታሎግ (355 አቅራቢዎች) በ
 > `src/shared/constants/providers.ts` ውስጥ ይገኛል።
 
 ### 4.3 `open-sse/translator/`
 
-የማዕከል-እና-ቅርንጫፍ ትርጉም (OpenAI ማዕከሉ ነው)።
+ማዕከል-እና-ቅርንጫፍ ትርጉም (OpenAI ማዕከሉ ነው)።
 
 - **9 የጥያቄ ተርጓሚዎች** (`translator/request/`)፦
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
@@ -514,72 +505,72 @@ open-sse/
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`፣ በተጨማሪም
   የረዳት ሙከራዎች።
 - **የምስል ረዳቶች** (`translator/image/sizeMapper.ts`)።
-- ከፍተኛ ደረጃ፦ `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`።
+- ከፍተኛ ደረጃ፦ `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
 - `responsesTransformer.ts` — በ`TransformStream` ላይ የተመሠረተ Responses API ↔ Chat
-  Completions ቀያሪ (በ`responses/` መስመር ሁሉን-ያዥ የሚጠቀምበት)።
+  Completions ቀያሪ (በ`responses/` መስመር ሁሉን-አካታች ተቆጣጣሪ የሚጠቀምበት)።
 
 ### 4.5 `open-sse/services/`
 
-ዋና ዋና ነጥቦች (ሙሉው ዝርዝር በ`open-sse/services/` ሥር ይገኛል)፦
+ዋና ዋና ክፍሎች (ሙሉው ዝርዝር በ`open-sse/services/` ስር ይገኛል)፦
 
-| ጉዳይ             | ፋይሎች                                                                                                                                                                                                                                              |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| የCombo ማዘዋወር    | `combo.ts` (19 ስልቶች)፣ `comboConfig.ts`፣ `comboMetrics.ts`፣ `comboManifestMetrics.ts`፣ `comboAgentMiddleware.ts`                                                                                                                                   |
-| ራስ-ሰር Combo ሞተር | `autoCombo/` — `engine.ts`፣ `scoring.ts`፣ `taskFitness.ts`፣ `virtualFactory.ts`፣ `modePacks.ts`፣ `autoPrefix.ts`፣ `persistence.ts`፣ `providerDiversity.ts`፣ `providerRegistryAccessor.ts`፣ `routerStrategy.ts`፣ `selfHealing.ts`፣ `index.ts`      |
-| የመቋቋም አቅም       | `accountFallback.ts` (የማቀዝቀዣ ጊዜ + መቆለፍ)፣ `errorClassifier.ts`፣ `emergencyFallback.ts`፣ `rateLimitManager.ts`፣ `rateLimitSemaphore.ts`፣ `accountSemaphore.ts`፣ `accountSelector.ts`                                                                |
-| ኮታዎች            | `quotaMonitor.ts`፣ `quotaPreflight.ts`፣ `bailianQuotaFetcher.ts`፣ `codexQuotaFetcher.ts`፣ `deepseekQuotaFetcher.ts`፣ `openrouterQuotaFetcher.ts`፣ `openrouterFreeWindow.ts`፣ `crofUsageFetcher.ts`፣ `antigravityCredits.ts`                       |
-| መሸጎጫ            | `reasoningCache.ts`፣ `searchCache.ts`፣ `signatureCache.ts`፣ `requestDedup.ts`                                                                                                                                                                     |
-| የማዘዋወር ብልህነት    | `intentClassifier.ts`፣ `taskAwareRouter.ts`፣ `backgroundTaskDetector.ts`፣ `volumeDetector.ts`፣ `wildcardRouter.ts`፣ `workflowFSM.ts`፣ `specificityDetector.ts`፣ `specificityRules.ts`፣ `specificityTypes.ts`                                      |
-| የሞዴል አያያዝ       | `modelCapabilities.ts`፣ `modelDeprecation.ts`፣ `modelFamilyFallback.ts`፣ `modelStrip.ts`፣ `model.ts`፣ `provider.ts`፣ `providerRequestDefaults.ts`፣ `providerCostData.ts`፣ `payloadRules.ts`                                                       |
-| መጭመቅ            | `compression/` — የሙሉ የመጭመቂያ ሞተር ሽቦ አገናኘት                                                                                                                                                                                                          |
-| ቶከን + ክፍለ-ጊዜ    | `tokenRefresh.ts`፣ `sessionManager.ts`፣ `apiKeyRotator.ts`፣ `contextManager.ts`፣ `contextHandoff.ts`፣ `systemPrompt.ts`፣ `roleNormalizer.ts`፣ `responsesInputSanitizer.ts`፣ `toolSchemaSanitizer.ts`፣ `toolLimitDetector.ts`፣ `thinkingBudget.ts` |
-| ደረጃ / ማኒፌስት     | `tierResolver.ts`፣ `tierConfig.ts`፣ `tierDefaults.json`፣ `tierTypes.ts`፣ `manifestAdapter.ts`                                                                                                                                                     |
-| IP / አውታረ መረብ   | `ipFilter.ts`፣ `webSearchFallback.ts`                                                                                                                                                                                                             |
-| ባችዎች            | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| አጠቃቀም           | `usage.ts`                                                                                                                                                                                                                                        |
+| ጉዳይ            | ፋይሎች                                                                                                                                                                                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Combo ማዘዋወር    | `combo.ts` (19 ስልቶች), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                          |
+| Auto Combo ሞተር | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| ጽናት            | `accountFallback.ts` (የማቀዝቀዣ ጊዜ + መቆለፍ), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                           |
+| ኮታዎች           | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| መሸጎጫ           | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| የማዘዋወር ብልህነት   | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| የሞዴል አያያዝ      | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| መጭመቅ           | `compression/` — የተሟላ የመጭመቂያ ሞተር ማገናኛ                                                                                                                                                                                                                    |
+| ቶከን + ክፍለ ጊዜ   | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| ደረጃ / manifest | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / አውታረ መረብ  | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| ባችዎች           | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| አጠቃቀም          | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 ልዩ መሳሪያዎች** በ`server.ts` ውስጥ ተገናኝተዋል (45 መደበኛ መሳሪያዎች በ`schemas/tools.ts` +
-  የማህደረ ትውስታ፣ ክህሎቶች፣ GitHub-ክህሎቶች፣ ፑል፣ የጨዋታ አቀራረብ፣ ተሰኪ፣ Notion፣ Obsidian፣
-  የአካባቢ-ኮርፐስ እና የመጭመቂያ ሞጁሎች — ህብረቱ በ`countUniqueMcpTools` ተቆጥሯል)።
+- **110 ልዩ መሣሪያዎች** በ`server.ts` ውስጥ ተገናኝተዋል (45 መደበኛ መሣሪያዎች በ`schemas/tools.ts` +
+  የማስታወሻ፣ ክህሎቶች፣ GitHub-skills፣ ጥምር፣ gamification፣ plugin፣ Notion፣ Obsidian፣
+  local-corpus እና compression ሞጁሎች — ድምሩ በ`countUniqueMcpTools` የተቆጠረ)።
 - **3 ማጓጓዣዎች**፦ stdio፣ HTTP Streamable፣ SSE።
-- **33 ወሰኖች** በአሂድ ጊዜ ተፈጻሚ ይሆናሉ — መሠረታዊ ዝርዝሩ በ`src/shared/constants/mcpScopes.ts` ውስጥ ሲሆን፣ ሙሉው ስብስብ በእያንዳንዱ የመሳሪያ ሞጁል የታወጁት ወሰኖች ህብረት ነው።
+- **33 scopes** በአሂድ ጊዜ ተፈጻሚ ይሆናሉ — መሠረታዊ ዝርዝሩ በ`src/shared/constants/mcpScopes.ts` ውስጥ ሲሆን፣ ሙሉው ስብስብ በእያንዳንዱ የመሣሪያ ሞጁል የተገለጹ scopes ድምር ነው።
 - የኦዲት ሰንጠረዥ፦ `mcp_tool_audit` (በ`audit.ts` የሚሞላ)።
-- ፋይሎች፦ `server.ts`፣ `index.ts`፣ `httpTransport.ts`፣ `audit.ts`፣ `scopeEnforcement.ts`፣
-  `runtimeHeartbeat.ts`፣ `descriptionCompressor.ts`፣ `schemas/{tools, a2a, audit, index}.ts`፣
-  `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`፣
-  እንዲሁም በ`__tests__/` ስር ያሉ ሙከራዎች።
-- ሙሉውን የመሳሪያዎች ካታሎግ ለማየት [MCP-SERVER.md](../frameworks/MCP-SERVER.md)ን ይመልከቱ።
+- ፋይሎች፦ `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
+  `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
+  `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
+  እንዲሁም በ`__tests__/` ሥር ያሉ ሙከራዎች።
+- ሙሉውን የመሣሪያ ካታሎግ ለማየት [MCP-SERVER.md](../frameworks/MCP-SERVER.md)ን ይመልከቱ።
 
 ### 4.7 `open-sse/config/`
 
-የአቅራቢ መዝገቦች (`providerRegistry.ts`፣ `providerModels.ts`፣
-`providerHeaderProfiles.ts`)፣ በቅርጸት የተለዩ የሞዴል መዝገቦች (`audioRegistry.ts`፣
-`embeddingRegistry.ts`፣ `imageRegistry.ts`፣ `moderationRegistry.ts`፣
-`musicRegistry.ts`፣ `rerankRegistry.ts`፣ `searchRegistry.ts`፣ `videoRegistry.ts`)፣
-የማንነት ረዳቶች (`codexIdentity.ts`፣ `codexInstructions.ts`፣
-`anthropicHeaders.ts`፣ `antigravityUpstream.ts`፣ `antigravityModelAliases.ts`፣
-`cliFingerprints.ts`፣ `toolCloaking.ts`፣ `defaultThinkingSignature.ts`)፣
-የማረጋገጫ መረጃ ረዳቶች (`credentialLoader.ts`፣ `codexClient.ts`)፣ እና የደመና
-አስማሚዎች (`azureAi.ts`፣ `bedrock.ts`፣ `datarobot.ts`፣ `glmProvider.ts`፣
-`maritalk.ts`፣ `oci.ts`፣ `petals.ts`፣ `runway.ts`፣ `sap.ts`፣ `watsonx.ts`፣
-`ollamaModels.ts`፣ `errorConfig.ts`፣ `constants.ts`፣ `registryUtils.ts`)።
+የአቅራቢ መዝገቦች (`providerRegistry.ts`, `providerModels.ts`,
+`providerHeaderProfiles.ts`)፣ በእያንዳንዱ ቅርጸት የሞዴል መዝገቦች (`audioRegistry.ts`,
+`embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
+`musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`)፣
+የማንነት ረዳቶች (`codexIdentity.ts`, `codexInstructions.ts`,
+`anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
+`cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`)፣
+የማረጋገጫ መረጃ ረዳቶች (`credentialLoader.ts`, `codexClient.ts`) እና የደመና
+አስማሚዎች (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+`maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
+`ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`)።
 
 ### 4.8 `open-sse/utils/`
 
-የዥረት መሠረታዊ አካላት እና የአቅራቢ አጋዥ መሣሪያዎች፦ `stream.ts`, `streamHandler.ts`,
-`streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
-`sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
-`networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,
-`cursorChecksum.ts`, `cursorAgentProtobuf.ts`, `cursorVersionDetector.ts`,
-`comfyuiClient.ts`, `kieTask.ts`, `bypassHandler.ts`, `aiSdkCompat.ts`,
-`thinkTagParser.ts`, `urlSanitize.ts`, `usageTracking.ts`, `requestLogger.ts`,
-`progressTracker.ts`, `cors.ts`, `error.ts`, `logger.ts`, `sleep.ts`,
-`ollamaTransform.ts`.
+የዥረት መሠረታዊ ክፍሎች እና የአቅራቢ ረዳቶች፦ `stream.ts`፣ `streamHandler.ts`፣
+`streamHelpers.ts`፣ `streamPayloadCollector.ts`፣ `streamReadiness.ts`፣
+`sseHeartbeat.ts`፣ `proxyFetch.ts`፣ `proxyDispatcher.ts`፣ `tlsClient.ts`፣
+`networkProxy.ts`፣ `awsSigV4.ts`፣ `cacheControlPolicy.ts`፣
+`cursorChecksum.ts`፣ `cursorAgentProtobuf.ts`፣ `cursorVersionDetector.ts`፣
+`comfyuiClient.ts`፣ `kieTask.ts`፣ `bypassHandler.ts`፣ `aiSdkCompat.ts`፣
+`thinkTagParser.ts`፣ `urlSanitize.ts`፣ `usageTracking.ts`፣ `requestLogger.ts`፣
+`progressTracker.ts`፣ `cors.ts`፣ `error.ts`፣ `logger.ts`፣ `sleep.ts`፣
+`ollamaTransform.ts`።
 
 ---
 
@@ -664,7 +655,7 @@ bin/
 
 ## 8. `scripts/`
 
-በዓላማ መሠረት በ6 ንዑስ አቃፊዎች ተደራጅቷል።
+በዓላማቸው መሠረት በ6 ንዑስ አቃፊዎች ተደራጅተዋል።
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
   `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,

@@ -15,6 +15,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 type Row = Record<string, unknown>;
 
@@ -129,4 +130,8 @@ test("re-import enables autoSync when the existing row never had it", async () =
   );
 
   assert.equal(asRecord((await findRowByEmail(email))?.providerSpecificData).autoSync, true);
+});
+
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });

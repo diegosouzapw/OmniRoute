@@ -1,1 +1,0 @@
-- Strip a trailing text-only assistant turn before official Claude OAuth dispatch. Claude returns 400 `This model does not support assistant message prefill` for that shape; the shared strip only covered Mistral.

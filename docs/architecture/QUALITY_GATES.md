@@ -71,6 +71,7 @@ Runs on every PR to `main`. Blocks merge on failure.
 | `check:lockfile`                  | `package-lock.json` integrity — https registry, integrity hashes, no host overrides                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Yes                                      |
 | `check:licenses`                  | SPDX license allowlist for production dependencies                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Yes                                      |
 | `check:tracked-artifacts`         | No build artifacts / committed `node_modules` symlinks (also runs in husky pre-commit; pre-push is intentionally light — #6716)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Yes                                      |
+| `check:ai-attribution`            | No AI/bot `Co-Authored-By` trailer or AI-generation footer in PR commits, title or body — Hard Rule #16 (in the `quality.yml` fast-gates loop for PR→`release/**` — reads the event payload, no-op off PRs — and a PR-only step in `ci.yml` lint for PR→`main`; also the husky `commit-msg` hook; human co-authors allowed; #14436)                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `check:vitest-exclusions`         | Every Vitest exclusion names a tracking issue and appears in `config/quality/vitest-exclusions.json` (#13204)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Yes                                      |
 | `check:file-size`                 | No source file exceeds the per-extension cap (ratchet: frozen large files in `frozen` list)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Yes                                      |
 | `check:error-helper`              | Error responses in executors/handlers use `buildErrorBody()` / `sanitizeErrorMessage()` (Hard Rule #12)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Yes                                      |
@@ -144,8 +145,7 @@ Runs on every PR to `main`. Blocks merge on failure.
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | `check-ui-keys-coverage` (inline) | UI i18n key coverage is ≥ 65%                                                                                                                                                         | Yes          |
 | `check-ui-value-drift` (inline)   | A rewritten English **value** leaves no stale translation behind                                                                                                                      | Yes          |
-| `check-new-key-coverage` (inline) | A **new** English key reaches every locale                                                                                                                                            | Yes          |
-| `check-key-completeness` (inline) | Every locale carries exactly the key set of `en.json` (absent key = defect, whatever its age; `__MISSING__` counts as present)                                                        | Yes          |
+| `check-new-key-coverage` (inline) | A **new** English key is translated in every locale — a `__MISSING__:` marker is rejected                                                                                             | Yes          |
 | `check-translation-ratio`         | Real-translation ratio per locale (identical-to-English / placeholder / missing leaves outside the allowlist) must not exceed `config/quality/i18n-translation-baseline.json` + slack | **Advisory** |
 
 Needs `fetch-depth: 0` — the value-drift gate diffs `en.json` against the merge base.
@@ -164,7 +164,8 @@ unnoticed until #8463 because:
 - `sync-ui-keys` only backfills keys that are **absent**, never ones that are **stale**;
 - `check-ui-keys-coverage` counts key _presence_, so a stale translation scores as covered;
 - `check-translation-drift` tracks the `docs/i18n/<locale>/**.md` documentation mirrors —
-  it never reads `src/i18n/messages/*.json`.
+  it never reads `src/i18n/messages/*.json`. Blocking in job `docs-sync-strict` since the
+  2026-09 re-sync: edit a core doc → `npm run i18n:run -- --files=<doc>` (section-level, cheap).
 
 **Diff-aware, not baseline-backed.** It compares `en.json` at the merge base against the
 working tree; for every key whose English value changed, any locale still holding an
@@ -551,6 +552,8 @@ key itself, so both siblings stayed silent when batch 1 (#13044) landed 43 keys 
 locales and batch 2 (#13660) 10 keys short in eight (2026-09-15). Fix a red with
 `node scripts/i18n/sync-ui-keys.mjs --locale=<codes> --translate-markers`; an `extra` leaf
 means the source dropped it — delete it from the locale. `--warn` reports without failing.
+`--catalog=cli` runs the same comparison over `bin/cli/locales` (`npm run i18n:check-keys:cli`);
+both steps live in job `i18n-ui-coverage`.
 
 #### `check-new-key-coverage` — new-key i18n gate
 
@@ -570,9 +573,19 @@ received them. `deepMergeFallback` substitutes English for an absent key, so the
 untranslated UI rather than blank UI — real, and silent by construction.
 
 Like its sibling it is **diff-aware**, comparing English at the merge base against the working
-tree, so pre-existing gaps stay frozen and the gate needed no migration to turn on. Escape hatch:
-`__MISSING__:<english>` defers a translation while keeping the runtime correct. `vi` bans
-placeholders (`tests/unit/i18n-vi-completeness.test.ts`) and needs a real translation.
+tree, so pre-existing gaps stay frozen and the gate needed no migration to turn on.
+
+**A `__MISSING__:<english>` marker does not satisfy it (since 2026-09-17).** It used to be the
+documented deferral — the runtime falls back to correct English — until eight feature PRs on
+2026-09-16 added 61 keys and stamped the marker into all 65 locales instead of translating: this
+gate accepted every one, nothing blocked the PRs, and the blocking real-translation ratio gate
+then failed on the release tip for everybody (pt-BR 3.2 % > 2.5 % + 0.5). A marker is now judged
+as an absent translation. Fix a red with
+`node scripts/i18n/sync-ui-keys.mjs --locale=<codes> --translate-markers --batch-size=40`, or
+all locales in parallel with `npm run i18n:translate-new-keys` (`scripts/i18n/translate-new-keys.sh`,
+detached-safe, refuses to start without the `OMNIROUTE_TRANSLATION_*` env). A key that must stay
+English (a pinned product/engine/flag name) belongs in `scripts/i18n/untranslatable-keys.json`,
+never behind a marker. `vi` bans markers outright (`tests/unit/i18n-vi-completeness.test.ts`).
 
 #### `check-vitest-exclusions` — parked-test gate
 

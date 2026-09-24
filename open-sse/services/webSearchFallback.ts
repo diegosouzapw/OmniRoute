@@ -166,7 +166,15 @@ export function supportsNativeWebSearchFallbackBypass({
   // Native Codex (OpenAI Responses) passthrough: the upstream runs web search itself.
   if (nativeCodexPassthrough) return true;
   // Gemini target: the Gemini translator maps built-in web search to googleSearch natively.
-  if (targetFormat === FORMATS.GEMINI) return true;
+  // Antigravity (#13447) executes through the same Gemini lane — its executor
+  // sanitizes tools via buildGeminiTools(), which maps web_search natively —
+  // so it takes the same bypass instead of being rewritten to omniroute_web_search.
+  if (
+    targetFormat === FORMATS.GEMINI ||
+    targetFormat === FORMATS.ANTIGRAVITY ||
+    provider === "antigravity"
+  )
+    return true;
   // Claude -> Claude passthrough: the Anthropic Messages upstream (e.g. a Claude
   // subscription driven by Claude Code) natively runs web_search_20250305. Forward the
   // native tool untouched instead of rewriting it to omniroute_web_search. Mirrors the

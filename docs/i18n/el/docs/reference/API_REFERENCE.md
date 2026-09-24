@@ -1,21 +1,12 @@
-# API_REFERENCE (Ελληνικά)
+# API Reference (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-title: "API Reference"
-version: 3.8.51
-lastUpdated: 2026-08-31
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
-# Αναφορά API
-
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
-
-Βασική αναφορά για το OmniRoute API. Καλύπτει την δημόσια επιφάνεια `/v1` και τα πιο χρησιμοποιούμενα endpoints διαχείρισης· το αναγνώσιμο από μηχανές [`docs/openapi.yaml`](../openapi.yaml) και το δέντρο διαδρομών κάτω από `src/app/api/` αποτελούν τις εξαντλητικές πηγές.
+Βασική τεκμηρίωση αναφοράς για το OmniRoute API. Καλύπτει τη δημόσια επιφάνεια `/v1` και τα συχνότερα χρησιμοποιούμενα τελικά σημεία διαχείρισης· το μηχανικώς αναγνώσιμο [`docs/openapi.yaml`](../openapi.yaml) και το δέντρο διαδρομών στο `src/app/api/` αποτελούν τις πλήρεις πηγές αναφοράς.
 
 ---
 
@@ -95,11 +86,15 @@ Content-Type: application/json
 
 > **Σημασιολογία κόστους επιτυχίας κρυφής μνήμης:** σε σημασιολογική HIT κρυφής μνήμης (`X-OmniRoute-Cache-Hit: true`) δεν πραγματοποιείται upstream κλήση, οπότε το `X-OmniRoute-Response-Cost` είναι `0.0000000000` (το **επιπλέον** κόστος εξυπηρέτησης της επιτυχίας). Το αρχικό/υποθετικό κόστος αναφέρεται ξεχωριστά στο `X-OmniRoute-Cost-Saved`. Οι καταναλωτές χρέωσης θα πρέπει να αθροίζουν το `X-OmniRoute-Response-Cost` (οι επιτυχίες δεν έχουν κόστος)· η ανάλυση κρυφής μνήμης μπορεί να συγκεντρώνει το `X-OmniRoute-Cost-Saved`.
 
-## Αποκλειστικές Μισθώσεις Διαχειριζόμενης Συνεδρίας
+## Αποκλειστικές μισθώσεις διαχειριζόμενων συνεδριών
 
-Η αποκλειστική μίσθωση διαχειριζόμενης συνεδρίας είναι ένα προαιρετικό, ουδέτερο ως προς τον πελάτη συμβόλαιο δρομολόγησης: ένας ενεργός κάτοχος διατηρεί μία επιλέξιμη σύνδεση OmniRoute. Δεν μισθώνει μοντέλο, δεν απαιτεί OAuth, δεν αναγνωρίζει συγκεκριμένο πελάτη και δεν απαιτεί συγκεκριμένο πάροχο.
+Η αποκλειστική μίσθωση διαχειριζόμενων συνεδριών είναι μια προαιρετική, ανεξάρτητη από τον πελάτη σύμβαση δρομολόγησης: ένας ενεργός κάτοχος
+δεσμεύει μία επιλέξιμη σύνδεση OmniRoute. Δεν μισθώνει κάποιο μοντέλο, δεν απαιτεί OAuth, δεν προσδιορίζει
+συγκεκριμένο πελάτη και δεν απαιτεί συγκεκριμένο πάροχο.
 
-Το κλειδί API που χρησιμοποιείται για την πιστοποίηση πρέπει να έχει εμβέλεια `lease:exclusive` και μια ρητή μη κενή λίστα `allowedConnections`. Το όριο μετάλλαξης της βάσης δεδομένων επιβάλλει και τα δύο πεδία μαζί κατά τη δημιουργία κλειδιού και τις μερικές ενημερώσεις.
+Το API key που χρησιμοποιείται για τον έλεγχο ταυτότητας πρέπει να διαθέτει το scope `lease:exclusive` και μια ρητή, μη κενή
+λίστα `allowedConnections`. Το όριο μεταβολής της βάσης δεδομένων επιβάλλει την ταυτόχρονη παρουσία και των δύο πεδίων κατά τη
+δημιουργία κλειδιού και τις μερικές ενημερώσεις.
 
 ```http
 POST /api/v1/session-leases
@@ -110,7 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Οι επιτυχείς αποκρίσεις απόκτησης, ανανέωσης και αποδέσμευσης εκθέτουν χρονικές σφραγίδες, `state` και την ακριβή θετική `generation`, αλλά ποτέ την επιλεγμένη σύνδεση ή τα διαπιστευτήρια. Η ανανέωση και η αποδέσμευση παρέχουν την generation στο σώμα JSON:
+Οι επιτυχείς αποκρίσεις απόκτησης, ανανέωσης και αποδέσμευσης εκθέτουν χρονικές σημάνσεις, το `state` και την ακριβή θετική
+`generation`, αλλά ποτέ την επιλεγμένη σύνδεση ή τα διαπιστευτήρια. Η ανανέωση και η αποδέσμευση παρέχουν τη
+γενιά στο σώμα JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -120,7 +117,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Ένας ενεργός κάτοχος μίσθωσης μπορεί να ζητήσει ρητά μεταδεδομένα εμφάνισης που διασφαλίζουν την ιδιωτικότητα για την τρέχουσα δέσμευσή του:
+Ένας ενεργός κάτοχος μίσθωσης μπορεί να ζητήσει ρητά μεταδεδομένα εμφάνισης που προστατεύουν το απόρρητο για την τρέχουσα δέσμευσή του:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -140,11 +137,23 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-Αυτή η προαιρετική ενέργεια κατάστασης φράσσεται από τον αδιαφανή κάτοχο, το πιστοποιημένο διαχειριζόμενο κλειδί API και την ακριβή ενεργή generation σε μία συναλλαγή βάσης δεδομένων. Το `displayName` είναι μόνο το διαμορφωμένο όνομα σύνδεσης μετά από περικοπή κενών· είναι `null` όταν δεν υπάρχει ασφαλές διαμορφωμένο όνομα. Το OmniRoute δεν υποκαθιστά ποτέ μια διεύθυνση email ή μια δημιουργημένη ταυτότητα λογαριασμού. Η τιμή του παρόχου είναι μια μη ευαίσθητη ετικέτα εμφάνισης και ποτέ ένα δημιουργημένο αναγνωριστικό συμβατού παρόχου. Διαπιστευτήρια, tokens, cookies, ακατέργαστα αναγνωριστικά σύνδεσης ή κλειδιού API, κατακερματισμοί κατόχου, μυστικά φράγματος και εσωτερικά δεδομένα δρομολόγησης εξαιρούνται.
+Αυτή η προαιρετική ενέργεια κατάστασης περιφράσσεται από τον αδιαφανή κάτοχο, το διαχειριζόμενο API key με επαληθευμένη ταυτότητα και την ακριβή
+ενεργή γενιά σε μία συναλλαγή βάσης δεδομένων. Το `displayName` είναι μόνο το διαμορφωμένο όνομα
+σύνδεσης με αφαιρεμένα τα περιττά κενά· είναι `null` όταν δεν υπάρχει ασφαλές διαμορφωμένο όνομα. Το OmniRoute δεν υποκαθιστά ποτέ ένα
+email ή μια δημιουργημένη ταυτότητα λογαριασμού. Η τιμή παρόχου είναι μια μη ευαίσθητη ετικέτα εμφάνισης και ποτέ
+ένα δημιουργημένο αναγνωριστικό συμβατού παρόχου. Εξαιρούνται τα διαπιστευτήρια, τα token, τα cookie, τα ανεπεξέργαστα αναγνωριστικά σύνδεσης ή
+API key, τα hash κατόχων, τα μυστικά περίφραξης και τα εσωτερικά δεδομένα δρομολόγησης.
 
-Οι αναζητήσεις με λάθος κλειδί, λάθος κάτοχο, παρωχημένη generation, ανύπαρκτη, ληγμένη, αποδεσμευμένη ή ακυρωμένη μίσθωση επιστρέφουν όλες το ίδιο σφάλμα `409 LEASE_FENCE_STALE` χωρίς μεταδεδομένα σύνδεσης. Ένας πελάτης που έλαβε την απόκριση αναμονής χωρητικότητας δεν έχει ενεργή δέσμευση για επιθεώρηση. Όταν η δρομολόγηση μεταβαίνει μια ενεργή μίσθωση, η ίδια generation παραμένει έγκυρη και η κατάσταση επιστρέφει ατομικά τη νέα δέσμευση, ποτέ την παλιά. Οι υπάρχοντες πελάτες παραμένουν αμετάβλητοι, καθώς οι αποκρίσεις απόκτησης, ανανέωσης, αποδέσμευσης και αναμονής διατηρούν τα προηγούμενα σχήματά τους.
+Οι αναζητήσεις με λάθος κλειδί, λάθος κάτοχο, παρωχημένη γενιά, καθώς και οι ελλιπείς, ληγμένες, αποδεσμευμένες και ακυρωμένες αναζητήσεις,
+επιστρέφουν όλες το ίδιο σφάλμα `409 LEASE_FENCE_STALE` χωρίς μεταδεδομένα σύνδεσης. Ένας πελάτης που έλαβε την απόκριση αναμονής χωρητικότητας δεν έχει ενεργή δέσμευση προς επιθεώρηση. Όταν η δρομολόγηση μεταφέρει μια ενεργή μίσθωση,
+η ίδια γενιά παραμένει έγκυρη και η κατάσταση επιστρέφει ατομικά τη νέα δέσμευση, ποτέ την παλιά.
+Οι υφιστάμενοι πελάτες παραμένουν αμετάβλητοι, επειδή οι αποκρίσεις απόκτησης, ανανέωσης, αποδέσμευσης και αναμονής διατηρούν
+τις προηγούμενες δομές τους.
 
-Αυτό το συμβόλαιο διακομιστή δεν αλλάζει το stock OpenAI Codex `/status`. Το stock Codex αναφέρει αυτήν τη στιγμή τον πάροχο μοντέλου και την ενσωματωμένη κατάσταση πιστοποίησης/λογαριασμού, αλλά δεν αποδίδει αυθαίρετα μεταδεδομένα λογαριασμού προσαρμοσμένου παρόχου· μια μεταγενέστερη ενσωμάτωση πελάτη πρέπει να καλέσει αυτήν την ενέργεια και να αποφασίσει πώς θα εμφανίσει το `connection.displayName`.
+Αυτή η σύμβαση διακομιστή δεν αλλάζει το τυπικό `/status` του OpenAI Codex. Το τυπικό Codex αναφέρει επί του παρόντος τον
+πάροχο μοντέλου του και την ενσωματωμένη κατάσταση ελέγχου ταυτότητας/λογαριασμού, αλλά δεν εμφανίζει αυθαίρετα προσαρμοσμένα
+μεταδεδομένα λογαριασμού παρόχου· μια μελλοντική ενσωμάτωση πελάτη πρέπει να καλέσει αυτή την ενέργεια και να αποφασίσει πώς θα
+εμφανίσει το `connection.displayName`.
 
 Κάθε διαχειριζόμενο αίτημα συμπερασμού παρέχει έπειτα και τις δύο κεφαλίδες ελέγχου:
 
@@ -153,9 +162,12 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Ο ακριβής κάτοχος, η generation, η ενεργή σύνδεση και το πιστοποιημένο κλειδί API φράσσονται αμέσως πριν από κάθε υποστηριζόμενη απόπειρα upstream. Η αναπαραγωγή κατόχου και generation με άλλο κλειδί αποτυγχάνει ακόμη και όταν αυτό το κλειδί επιτρέπει την ίδια σύνδεση. Οι ακατέργαστοι κάτοχοι δεν διατηρούνται, δεν καταγράφονται, δεν αποθηκεύονται στο στιγμιότυπο αιτήματος και δεν προωθούνται upstream.
+Ο ακριβής κάτοχος, η γενιά, η ενεργή σύνδεση και το API key με επαληθευμένη ταυτότητα περιφράσσονται αμέσως
+πριν από κάθε υποστηριζόμενη προσπάθεια προς τα ανάντη. Η επανάληψη χρήσης του κατόχου και της γενιάς με άλλο κλειδί αποτυγχάνει, ακόμη
+και όταν το συγκεκριμένο κλειδί επιτρέπει την ίδια σύνδεση. Οι ανεπεξέργαστες τιμές κατόχου δεν αποθηκεύονται μόνιμα, δεν καταγράφονται, δεν διατηρούνται στο
+στιγμιότυπο του αιτήματος και δεν προωθούνται προς τα ανάντη.
 
-Η προσωρινή διαμάχη επιστρέφει HTTP `429` με `Retry-After` και:
+Η προσωρινή διεκδίκηση πόρων επιστρέφει HTTP `429` με `Retry-After` και:
 
 ```json
 {
@@ -166,33 +178,38 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-Αυτή η απόκριση σημαίνει μόνο ότι το κανονικό επιλέξιμο σύνολο ήταν μη κενό και κάθε ελεύθερος υποψήφιος κατεχόταν από μια ξένη ενεργή μίσθωση. Μη υποστηριζόμενα μοντέλα/πάροχοι, αναντιστοιχία πολιτικής, περίοδος ψύξης, ποσόστωση, υγεία και άλλες συνήθεις αποτυχίες επιλεξιμότητας διατηρούν τις υπάρχουσες αποκρίσεις OmniRoute.
+Αυτή η απόκριση σημαίνει μόνο ότι το κανονικό σύνολο επιλέξιμων συνδέσεων δεν ήταν κενό και κάθε ελεύθερος υποψήφιος
+δεσμευόταν από ξένη ενεργή μίσθωση. Τα μη υποστηριζόμενα μοντέλα/οι μη υποστηριζόμενοι πάροχοι, η ασυμφωνία πολιτικής, η περίοδος αναμονής, το όριο χρήσης,
+η εύρυθμη λειτουργία και άλλες συνήθεις αποτυχίες επιλεξιμότητας διατηρούν τις υπάρχουσες αποκρίσεις OmniRoute.
 
 ### `x-omniroute-compression`
 
-Παράκαμψη ανά αίτημα του πλάνου συμπίεσης. Υψηλότερη προτεραιότητα — υπερισχύει της παράκαμψης combo δρομολόγησης, του ενεργού προφίλ, της αυτόματης ενεργοποίησης και της Προεπιλογής πίνακα. Τιμές:
+Παράκαμψη του πλάνου συμπίεσης ανά αίτημα. Έχει την υψηλότερη προτεραιότητα — υπερισχύει της παράκαμψης συνδυασμού δρομολόγησης,
+του ενεργού προφίλ, της αυτόματης ενεργοποίησης και της προεπιλογής του πίνακα. Τιμές:
 
-| Τιμή          | Αποτέλεσμα                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
-| `off`         | Καμία συμπίεση για αυτό το αίτημα.                                                                     |
-| `default`     | Το προεπιλεγμένο προφίλ που προκύπτει από τον πίνακα (αγνοεί το ενεργό προφίλ).                        |
-| `engine:<id>` | Μεμονωμένη μηχανή όταν είναι ενεργοποιημένη, π.χ. `engine:rtk`.                                        |
-| `<combo>`     | Ένα ονομαστό combo, αντιστοιχισμένο κατ' όνομα (χωρίς διάκριση πεζών/κεφαλαίων) πρώτα, έπειτα κατά id. |
+| Τιμή          | Αποτέλεσμα                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Καμία συμπίεση για αυτό το αίτημα.                                                                                                       |
+| `default`     | Το προεπιλεγμένο προφίλ που προκύπτει από τον πίνακα (αγνοεί το ενεργό προφίλ). Οι μη αντιστρεπτές μηχανές παραμένουν απενεργοποιημένες. |
+| `safe`        | Μόνο αποδιπλοποίηση και σύμπτυξη κενών διαστημάτων.                                                                                      |
+| `allow-lossy` | Διατήρηση του πλάνου του διαχειριστή για αυτό το αίτημα, συμπεριλαμβανομένων περιλήψεων και αναδιατυπώσεων ύφους.                        |
+| `engine:<id>` | Μία μεμονωμένη μηχανή όταν είναι ενεργοποιημένη, π.χ. `engine:rtk`. Προαιρετική ενεργοποίηση ανά αίτημα για αυτή τη μηχανή.              |
+| `<combo>`     | Ένας επώνυμος συνδυασμός, με αντιστοίχιση πρώτα βάσει ονόματος (χωρίς διάκριση πεζών-κεφαλαίων) και έπειτα βάσει id.                     |
 
 Σημειώσεις:
 
-- Άγνωστες τιμές αγνοούνται (το αίτημα δεν απορρίπτεται ποτέ)· η επίλυση διαπερνά στην κανονική προτεραιότητα χειριστή.
-- Αν πολλά combo μοιράζονται ένα όνομα, περάστε το **id** του combo για ντετερμινιστική αντιστοίχιση.
-- Ένα combo με όνομα `off` ή `default` δεν μπορεί να επιλεγεί κατ' όνομα (αυτές οι λέξεις-κλειδιά ερμηνεύονται πρώτα)· αναφερθείτε σε τέτοιο combo μέσω του id του.
-- Ο κεντρικός διακόπτης συμπίεσης είναι αυστηρή πύλη: όταν η συμπίεση είναι απενεργοποιημένη καθολικά, αυτή η κεφαλίδα δεν μπορεί να την ενεργοποιήσει.
+- Οι άγνωστες τιμές αγνοούνται (το αίτημα δεν απορρίπτεται ποτέ)· η επίλυση συνεχίζει σύμφωνα με την κανονική σειρά προτεραιότητας του διαχειριστή.
+- Αν πολλοί συνδυασμοί έχουν το ίδιο όνομα, περάστε το **id** του συνδυασμού για ντετερμινιστική αντιστοίχιση.
+- Ένας συνδυασμός του οποίου το όνομα είναι `off` ή `default` δεν μπορεί να επιλεγεί βάσει ονόματος (αυτές οι λέξεις-κλειδιά ερμηνεύονται πρώτες)· αναφερθείτε σε έναν τέτοιο συνδυασμό μέσω του id του.
+- Ο κύριος διακόπτης συμπίεσης αποτελεί απόλυτη δικλείδα: όταν η συμπίεση είναι απενεργοποιημένη καθολικά, αυτή η κεφαλίδα δεν μπορεί να την ενεργοποιήσει.
 
-Το εφαρμοσμένο πλάνο αντηχείται πίσω στην κεφαλίδα απόκρισης:
+Το εφαρμοζόμενο πλάνο επιστρέφεται στην κεφαλίδα απόκρισης:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-όπου `<source>` είναι ένα από τα εξής: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ή `off`.
+όπου το `<source>` είναι ένα από τα `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ή `off`.
 
 ---
 
@@ -396,57 +413,57 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## Endpoints Συμβατότητας
+## Τελικά σημεία συμβατότητας
 
-| Μέθοδος | Διαδρομή                                  | Μορφή                                |
-| ------- | ----------------------------------------- | ------------------------------------ |
-| POST    | `/v1/chat/completions`                    | OpenAI                               |
-| POST    | `/v1/messages`                            | Anthropic                            |
-| POST    | `/v1/responses`                           | OpenAI Responses                     |
-| POST    | `/v1/embeddings`                          | OpenAI                               |
-| POST    | `/v1/images/generations`                  | OpenAI Images                        |
-| POST    | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)         |
-| POST    | `/v1/videos/generations`                  | Δημιουργία βίντεο τύπου OpenAI       |
-| POST    | `/v1/music/generations`                   | Δημιουργία μουσικής τύπου OpenAI     |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (επιστρέφει σώμα ήχου)    |
-| POST    | `/v1/rerank`                              | Rerank τύπου Cohere/Voyage           |
-| POST    | `/v1/classify`                            | Jina classify (`api.jina.ai`)        |
-| POST    | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)   |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                   |
-| GET     | `/v1/models`                              | OpenAI                               |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                            |
-| GET     | `/v1beta/models`                          | Gemini                               |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent               |
-| POST    | `/v1/api/chat`                            | Ollama                               |
-| GET     | `/api/v1/vscode/{token}/`                 | Ψευδώνυμο καταλόγου OpenAI           |
-| GET     | `/api/v1/vscode/{token}/models`           | Ψευδώνυμο μοντέλων OpenAI            |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | Tokenized ψευδώνυμο OpenAI           |
-| POST    | `/api/v1/vscode/{token}/responses`        | Tokenized ψευδώνυμο OpenAI Responses |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Tokenized ψευδώνυμο Ollama           |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Tokenized ψευδώνυμο ετικετών Ollama  |
+| Μέθοδος | Διαδρομή                                  | Μορφή                                    |
+| ------- | ----------------------------------------- | ---------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                   |
+| POST    | `/v1/messages`                            | Anthropic                                |
+| POST    | `/v1/responses`                           | OpenAI Responses                         |
+| POST    | `/v1/embeddings`                          | OpenAI                                   |
+| POST    | `/v1/images/generations`                  | OpenAI Images                            |
+| POST    | `/v1/images/edits`                        | OpenAI Images (επεξεργασία/inpaint)      |
+| POST    | `/v1/videos/generations`                  | Δημιουργία βίντεο τύπου OpenAI           |
+| POST    | `/v1/music/generations`                   | Δημιουργία μουσικής τύπου OpenAI         |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (επιστρέφει σώμα ήχου)        |
+| POST    | `/v1/rerank`                              | Επανακατάταξη τύπου Cohere/Voyage        |
+| POST    | `/v1/classify`                            | Ταξινόμηση Jina (`api.jina.ai`)          |
+| POST    | `/v1/segment`                             | Τμηματοποιητής Jina (`segment.jina.ai`)  |
+| POST    | `/v1/moderations`                         | OpenAI Moderations                       |
+| GET     | `/v1/models`                              | OpenAI                                   |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                                |
+| GET     | `/v1beta/models`                          | Gemini                                   |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                   |
+| POST    | `/v1/api/chat`                            | Ollama                                   |
+| GET     | `/api/v1/vscode/{token}/`                 | Ψευδώνυμο καταλόγου OpenAI               |
+| GET     | `/api/v1/vscode/{token}/models`           | Ψευδώνυμο μοντέλων OpenAI                |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | Ψευδώνυμο OpenAI με διακριτικό           |
+| POST    | `/api/v1/vscode/{token}/responses`        | Ψευδώνυμο OpenAI Responses με διακριτικό |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ψευδώνυμο Ollama με διακριτικό           |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ψευδώνυμο ετικετών Ollama με διακριτικό  |
 
-Όλες οι διαδρομές POST ακολουθούν το ίδιο σχήμα: `Bearer your-api-key` + σώμα JSON επικυρωμένο από Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, κ.λπ., βλ. `src/shared/validation/schemas.ts`). Επιστρέφεται 4xx σε αποτυχία σχήματος.
+Όλες οι διαδρομές POST ακολουθούν την ίδια δομή: `Bearer your-api-key` + σώμα JSON επικυρωμένο μέσω Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` κ.λπ., δείτε το `src/shared/validation/schemas.ts`). Σε αποτυχία του σχήματος επιστρέφεται 4xx.
 
-Για clients που δεν μπορούν να επισυνάψουν `Authorization: Bearer ...`, το OmniRoute δέχεται επίσης κλειδιά API στο URL είτε μέσω συμβατότητας query-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) είτε μέσω των αφιερωμένων endpoints `/api/v1/vscode/{token}/...` που τεκμηριώνονται παρακάτω.
+Για προγράμματα-πελάτες που δεν μπορούν να επισυνάψουν `Authorization: Bearer ...`, το OmniRoute δέχεται επίσης κλειδιά API στη διεύθυνση URL είτε μέσω συμβατότητας με συμβολοσειρά ερωτήματος (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) είτε μέσω των αποκλειστικών τελικών σημείων `/api/v1/vscode/{token}/...` που τεκμηριώνονται παρακάτω.
 
 ```bash
-# Rerank
+# Επανακατάταξη (πάροχος μητρώου cloud ή κόμβος παρόχου συμβατού με OpenAI ως "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (διαπιστευτήρια Foundation API)
+# Ταξινόμηση Jina (διαπιστευτήρια Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Τμηματοποιητής Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; ψευδώνυμα παρόχου: jina-search, jina-ai, jina)
+# Αναζήτηση Jina (s.jina.ai· ψευδώνυμα παρόχου: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderations
+# Έλεγχοι περιεχομένου
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — επιστρέφει σώμα audio/mpeg (ή ζητούμενη μορφή)
+# TTS — επιστρέφει σώμα audio/mpeg (ή σώμα στην αιτούμενη μορφή)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Επεξεργασία εικόνας (multipart)
@@ -457,7 +474,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Αφιερωμένες Διαδρομές Παρόχου
+> **Κόμβοι παρόχων επανακατάταξης:** Το `POST /v1/rerank` δρομολογεί επίσης σε κόμβους παρόχων συμβατούς με OpenAI
+> (oMLX, vLLM, Infinity, TEI πίσω από πύλη, …), οι οποίοι προσδιορίζονται ως `<node-prefix>/<model>`. Οι κόμβοι
+> loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) είναι πάντοτε επιλέξιμοι. Οι κόμβοι σε οποιονδήποτε άλλο
+> κεντρικό υπολογιστή —ένα μηχάνημα LAN ή ένας ομότιμος κόμβος Tailscale— είναι επιλέξιμοι μόνο όταν ο διαχειριστής ενεργοποιήσει τη
+> σημαία δυνατότητας `RERANK_REMOTE_PROVIDER_NODES` **και** η βασική διεύθυνση URL του κόμβου συμμορφώνεται με την πολιτική εξερχόμενων
+> URL παρόχου (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)·
+> οι κεντρικοί υπολογιστές μεταδεδομένων cloud δεν αποτελούν ποτέ προορισμό δρομολόγησης. Το βήμα επανακατάταξης της μηχανής μνήμης καλεί αυτήν τη διαδρομή μέσω
+> loopback, επομένως ο ίδιος κανόνας διέπει το `rerankProviderModel` στις ρυθμίσεις Μνήμης.
+>
+> **Δομές τοπικού διακομιστή:** Ο κόμβος καλείται στο `<base>/v1/rerank` και, σε περίπτωση 404, στο `<base>/rerank`
+> (Infinity, TEI). Το σώμα που αποστέλλεται προς τα ανάντη περιλαμβάνει τόσο την ορθογραφία Cohere/OpenAI (`documents`,
+> `return_documents`) όσο και την ορθογραφία TEI (`texts`, `return_text`), ενώ η απόκριση από τα ανάντη
+> κανονικοποιείται στο περίβλημα Cohere: ο γυμνός πίνακας `[{index, score, text}]` του TEI, το `{results: [{index, score}]}`
+> από ελαφριές πύλες και το τύπου Voyage `{data: [...]}` επιστρέφονται όλα στον πελάτη ως
+> `{results: [{index, relevance_score, document?}]}`, ταξινομημένα κατά βαθμολογία και περιορισμένα στο `top_n`.
+
+> **Εντοπισμός κόμβων παρόχων:** Τα μοντέλα σε έναν κόμβο παρόχου συμβατό με OpenAI εμφανίζονται στο `GET /v1/models`
+> κάτω από το πρόθεμα του κόμβου. Οι γραμμές που δεν περιέχουν μεταδεδομένα τελικού σημείου (σύνηθες για τοπικές καταχωρίσεις `/v1/models`)
+> κληρονομούν το `apiType` του κόμβου, επομένως τα μοντέλα ενός κόμβου `embeddings` έχουν `type: "embedding"` και τα
+> μοντέλα ενός κόμβου `rerank` έχουν `type: "rerank"` αντί να χρησιμοποιούν από προεπιλογή τη συνομιλία· ένα ρητό
+> `supportedEndpoints` σε μια συγχρονισμένη ή μη αυτόματα προστεθειμένη γραμμή εξακολουθεί να έχει προτεραιότητα.
+
+### Αποκλειστικές διαδρομές παρόχων
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -465,39 +504,47 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Το πρόθεμα παρόχου προστίθεται αυτόματα αν λείπει. Μη αντιστοιχισμένα μοντέλα επιστρέφουν `400`.
+Το πρόθεμα του παρόχου προστίθεται αυτόματα εάν λείπει. Τα μη αντιστοιχισμένα μοντέλα επιστρέφουν `400`.
 
 ---
 
-## Files API
+## API αρχείων
 
-Endpoint αρχείων συμβατό με OpenAI για μαζική εισαγωγή/εξαγωγή δεδομένων και μεταφορτώσεις αρχείων ανά σκοπό.
+Συμβατό με το OpenAI endpoint αρχείων για μαζική είσοδο/έξοδο και μεταφορτώσεις αρχείων βάσει σκοπού.
 
-| Μέθοδος | Διαδρομή                 | Περιγραφή                                                                                                               |
-| ------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| POST    | `/v1/files`              | Μεταφόρτωση αρχείου (multipart: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — μέγιστο 512 MiB |
-| GET     | `/v1/files`              | Λίστα αρχείων για το εκάστοτε κλειδί API                                                                                |
-| GET     | `/v1/files/[id]`         | Ανάκτηση μεταδεδομένων αρχείου                                                                                          |
-| DELETE  | `/v1/files/[id]`         | Διαγραφή αρχείου                                                                                                        |
-| GET     | `/v1/files/[id]/content` | Ροή επιστροφής του ακατέργαστου περιεχομένου αρχείου                                                                    |
+| Μέθοδος | Διαδρομή                 | Περιγραφή                                                                                                                       |
+| ------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| POST    | `/v1/files`              | Μεταφόρτωση αρχείου (multipart: `file`, `purpose`, `expires_after[anchor]`, `expires_after[seconds]`) — μέγιστο μέγεθος 512 MiB |
+| GET     | `/v1/files`              | Παράθεση αρχείων για το επαληθευμένο κλειδί API                                                                                 |
+| GET     | `/v1/files/[id]`         | Ανάκτηση των μεταδεδομένων ενός αρχείου                                                                                         |
+| DELETE  | `/v1/files/[id]`         | Διαγραφή αρχείου                                                                                                                |
+| GET     | `/v1/files/[id]/content` | Ροή του ανεπεξέργαστου σώματος του αρχείου προς τον καλούντα                                                                    |
 
-**Πιστοποίηση:** Bearer API key — τα αρχεία έχουν εμβέλεια ανά κλειδί API μέσω `getApiKeyRequestScope`.
+**Έλεγχος ταυτότητας:** Κλειδί API τύπου Bearer — η εμβέλεια των αρχείων καθορίζεται ανά κλειδί API μέσω του `getApiKeyRequestScope`. Ένα κλειδί
+βλέπει, πραγματοποιεί λήψη και διαγράφει μόνο τα δικά του αρχεία· μια συνεδρία πίνακα ελέγχου χωρίς κλειδί διαβάζει ολόκληρη την
+παρουσία· η πρόσβαση σε ένα αρχείο χωρίς κάτοχο (μεταφόρτωση από ανώνυμο χρήστη ή από συνεδρία πίνακα ελέγχου) απορρίπτεται για κάθε
+καλούντα χωρίς συνεδρία. Το `GET /v1/files` απορρίπτει έναν ανώνυμο καλούντα — καθώς και ένα παρεχόμενο κλειδί που δεν
+επιλύεται — με `401`, ακόμη και όταν `REQUIRE_API_KEY=false`, αντί να παραθέτει τα αρχεία όλων των μισθωτών
+(GHSA-m3hp-hq9g-fpmv, GHSA-2jm2-mpx8-6523).
 
 ---
 
 ## Batches API
 
-Μαζική επεξεργασία συμβατή με OpenAI.
+Επεξεργασία παρτίδων συμβατή με το OpenAI.
 
 | Μέθοδος | Διαδρομή                  | Περιγραφή                                                                                                                  |
 | ------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | POST    | `/v1/batches`             | Δημιουργία παρτίδας — το σώμα επικυρώνεται από το `v1BatchCreateSchema` (`input_file_id`, `endpoint`, `completion_window`) |
-| GET     | `/v1/batches`             | Λίστα παρτίδων                                                                                                             |
+| GET     | `/v1/batches`             | Παράθεση παρτίδων                                                                                                          |
 | GET     | `/v1/batches/[id]`        | Ανάκτηση κατάστασης παρτίδας + `request_counts`                                                                            |
 | DELETE  | `/v1/batches/[id]`        | Διαγραφή ολοκληρωμένης/αποτυχημένης παρτίδας                                                                               |
 | POST    | `/v1/batches/[id]/cancel` | Ακύρωση παρτίδας που βρίσκεται σε εξέλιξη                                                                                  |
 
-**Πιστοποίηση:** Bearer API key. Οι παρτίδες έχουν εμβέλεια ανά κλειδί API.
+**Έλεγχος ταυτότητας:** Κλειδί API τύπου Bearer. Οι παρτίδες περιορίζονται ανά κλειδί API σύμφωνα με τον ίδιο τριμερή κανόνα που ισχύει για τα
+αρχεία: πρόσβαση μόνο μέσω του ιδιόκτητου κλειδιού, πρόσβαση σε επίπεδο παρουσίας μέσω συνεδρίας του πίνακα ελέγχου, ενώ οι εγγραφές χωρίς κάτοχο απορρίπτονται για κάθε
+καλούντα χωρίς συνεδρία (ανάκτηση, διαγραφή, ακύρωση και ο έλεγχος του `input_file_id` κατά τη δημιουργία).
+Το `GET /v1/batches` απορρίπτει έναν ανώνυμο καλούντα με `401`, ακόμη και όταν `REQUIRE_API_KEY=false`.
 
 ---
 
@@ -741,43 +788,43 @@ X-OmniRoute-No-Cache: true
 
 ---
 
-## Πίνακας Ελέγχου & Διαχείριση
+## Πίνακας ελέγχου & Διαχείριση
 
-Οι διαδρομές διαχείρισης (`/api/*` εκτός από δημόσια auth/login) **δεν** εξουσιοδοτούνται από
-κανονικά κλειδιά API συμπέρασης. Οικογένειες διαπιστευτηρίων, εμβέλειες και παραδείγματα curl:
-[Αυθεντικοποίηση Διαχείρισης](../guides/MANAGEMENT-AUTH.md).
+Οι διαδρομές διαχείρισης (`/api/*` εκτός από τον δημόσιο έλεγχο ταυτότητας/τη σύνδεση) **δεν** εξουσιοδοτούνται από
+συνηθισμένα κλειδιά API εξαγωγής συμπερασμάτων. Οικογένειες διαπιστευτηρίων, πεδία εφαρμογής και παραδείγματα curl:
+[Έλεγχος ταυτότητας διαχείρισης](../guides/MANAGEMENT-AUTH.md).
 
-### Αυθεντικοποίηση
+### Έλεγχος ταυτότητας
 
-| Τελικό Σημείο                 | Μέθοδος | Περιγραφή                   |
+| Τελικό σημείο                 | Μέθοδος | Περιγραφή                   |
 | ----------------------------- | ------- | --------------------------- |
 | `/api/auth/login`             | POST    | Σύνδεση                     |
 | `/api/auth/logout`            | POST    | Αποσύνδεση                  |
 | `/api/settings/require-login` | GET/PUT | Εναλλαγή απαίτησης σύνδεσης |
 
-### Διαχείριση Παρόχων
+### Διαχείριση παρόχων
 
-| Τελικό Σημείο                | Μέθοδος               | Περιγραφή                                                                                                            |
+| Τελικό σημείο                | Μέθοδος               | Περιγραφή                                                                                                            |
 | ---------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Λίστα / δημιουργία παρόχων                                                                                           |
+| `/api/providers`             | GET/POST              | Παράθεση / δημιουργία παρόχων                                                                                        |
 | `/api/providers/[id]`        | GET/PUT/DELETE        | Διαχείριση παρόχου                                                                                                   |
 | `/api/providers/[id]/test`   | POST                  | Δοκιμή σύνδεσης παρόχου                                                                                              |
-| `/api/providers/[id]/models` | GET                   | Λίστα μοντέλων παρόχου                                                                                               |
-| `/api/providers/validate`    | POST                  | Επικύρωση διαμόρφωσης παρόχου                                                                                        |
+| `/api/providers/[id]/models` | GET                   | Παράθεση μοντέλων παρόχου                                                                                            |
+| `/api/providers/validate`    | POST                  | Επικύρωση ρυθμίσεων παρόχου                                                                                          |
 | `/api/providers/bulk`        | POST                  | Μαζική προσθήκη κλειδιών API για ΕΝΑΝ πάροχο                                                                         |
 | `/api/providers/import`      | POST                  | Εισαγωγή ετερογενούς ΛΙΣΤΑΣ παρόχων από αναλυμένο αρχείο CSV/JSON (#6836)· αποτελέσματα μερικής αποτυχίας ανά γραμμή |
-| `/api/provider-nodes*`       | Διάφορες              | Διαχείριση κόμβων παρόχου                                                                                            |
+| `/api/provider-nodes*`       | Διάφορες              | Διαχείριση κόμβων παρόχων                                                                                            |
 | `/api/provider-models`       | GET/POST/PATCH/DELETE | Προσαρμοσμένα μοντέλα (προσθήκη, ενημέρωση, απόκρυψη/εμφάνιση, διαγραφή)                                             |
 
 ### Ροές OAuth
 
-| Τελικό Σημείο                    | Μέθοδος  | Περιγραφή                    |
-| -------------------------------- | -------- | ---------------------------- |
-| `/api/oauth/[provider]/[action]` | Διάφορες | OAuth ειδικό για κάθε πάροχο |
+| Τελικό σημείο                    | Μέθοδος  | Περιγραφή                   |
+| -------------------------------- | -------- | --------------------------- |
+| `/api/oauth/[provider]/[action]` | Διάφορες | OAuth ειδικό για τον πάροχο |
 
-### Δρομολόγηση & Διαμόρφωση
+### Δρομολόγηση & Ρυθμίσεις
 
-| Τελικό Σημείο         | Μέθοδος  | Περιγραφή                        |
+| Τελικό σημείο         | Μέθοδος  | Περιγραφή                        |
 | --------------------- | -------- | -------------------------------- |
 | `/api/models/alias`   | GET/POST | Ψευδώνυμα μοντέλων               |
 | `/api/models/catalog` | GET      | Όλα τα μοντέλα ανά πάροχο + τύπο |
@@ -785,163 +832,163 @@ X-OmniRoute-No-Cache: true
 | `/api/keys*`          | Διάφορες | Διαχείριση κλειδιών API          |
 | `/api/pricing`        | GET      | Τιμολόγηση μοντέλων              |
 
-### Χρήση & Αναλυτικά
+### Χρήση & Αναλυτικά στοιχεία
 
-| Τελικό Σημείο                    | Μέθοδος         | Περιγραφή                                                                                                                                                                                                                                                                                                                                 |
-| -------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Ιστορικό χρήσης                                                                                                                                                                                                                                                                                                                           |
-| `/api/usage/logs`                | GET             | Αρχεία καταγραφής χρήσης                                                                                                                                                                                                                                                                                                                  |
-| `/api/usage/request-logs`        | GET             | Αρχεία καταγραφής σε επίπεδο αιτήματος                                                                                                                                                                                                                                                                                                    |
-| `/api/usage/[connectionId]`      | GET             | Χρήση ανά σύνδεση                                                                                                                                                                                                                                                                                                                         |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Προϋπολογισμοί ορίου token ανά κλειδί API                                                                                                                                                                                                                                                                                                 |
-| `/api/usage/model-latency-stats` | GET             | Κυλιόμενο συνολικό στατιστικό καθυστέρησης ανά πάροχο/μοντέλο (avg/p50/p95/p99, ποσοστό επιτυχίας)· φίλτρα: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                               |
-| `/api/usage/cache-health`        | GET             | Σύνοψη υγείας cache ερωτημάτων σε `call_logs` — αναλογία εγγραφής/ανάγνωσης, κατανομή μεγέθους εγγραφής p50/p90/p99, συγκέντρωση μεγάλων εγγραφών, ανάλυση ανά μοντέλο και ετυμηγορία `healthy`/`degraded`/`thrash`/`no-data`· παράμετροι ερωτήματος `range` (`1h`\|`24h`\|`7d`\|`30d`, προεπιλογή `24h`) και προαιρετικό `model` (#8827) |
+| Τελικό σημείο                    | Μέθοδος         | Περιγραφή                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Ιστορικό χρήσης                                                                                                                                                                                                                                                                                                                                                            |
+| `/api/usage/logs`                | GET             | Αρχεία καταγραφής χρήσης                                                                                                                                                                                                                                                                                                                                                   |
+| `/api/usage/request-logs`        | GET             | Αρχεία καταγραφής σε επίπεδο αιτήματος                                                                                                                                                                                                                                                                                                                                     |
+| `/api/usage/[connectionId]`      | GET             | Χρήση ανά σύνδεση                                                                                                                                                                                                                                                                                                                                                          |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Προϋπολογισμοί ορίων διακριτικών ανά κλειδί API                                                                                                                                                                                                                                                                                                                            |
+| `/api/usage/model-latency-stats` | GET             | Κυλιόμενα συγκεντρωτικά στοιχεία καθυστέρησης ανά πάροχο/μοντέλο (μ.ό./p50/p95/p99, ποσοστό επιτυχίας)· φίλτρα: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                            |
+| `/api/usage/cache-health`        | GET             | Σύνοψη εύρυθμης λειτουργίας της κρυφής μνήμης προτροπών βάσει των `call_logs` — αναλογία εγγραφών/αναγνώσεων, κατανομή μεγέθους εγγραφών p50/p90/p99, συγκέντρωση μεγάλων εγγραφών, ανάλυση ανά μοντέλο και ετυμηγορία `healthy`/`degraded`/`thrash`/`no-data`· παράμετροι ερωτήματος `range` (`1h`\|`24h`\|`7d`\|`30d`, προεπιλογή `24h`) και προαιρετικά `model` (#8827) |
 
 ### Ρυθμίσεις
 
-| Τελικό Σημείο                         | Μέθοδος       | Περιγραφή                                                                                                                                                                                    |
-| ------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | Γενικές ρυθμίσεις                                                                                                                                                                            |
-| `/api/settings/proxy`                 | GET/PUT       | Διαμόρφωση διακομιστή μεσολάβησης δικτύου                                                                                                                                                    |
-| `/api/settings/proxy/test`            | POST          | Δοκιμή σύνδεσης διακομιστή μεσολάβησης                                                                                                                                                       |
-| `/api/settings/ip-filter`             | GET/PUT       | Λίστα επιτρεπόμενων/αποκλεισμένων IP                                                                                                                                                         |
-| `/api/settings/thinking-budget`       | GET/PUT       | Λειτουργία επανεγγραφής **αιτήματος** σκέψης/συλλογισμού (passthrough / auto-strip / custom / adaptive). Ανεξάρτητο από τη συμπίεση. Βλ. [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Καθολική προτροπή συστήματος                                                                                                                                                                 |
-| `/api/settings/compression`           | GET/PUT       | Καθολική διαμόρφωση συμπίεσης                                                                                                                                                                |
-| `/api/settings/purge-request-history` | POST          | Εκκαθάριση γραμμών αρχείου αιτημάτων και τοπικών τεχνουργημάτων αρχείου κλήσεων                                                                                                              |
+| Τελικό σημείο                         | Μέθοδος       | Περιγραφή                                                                                                                                                                                                                           |
+| ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Γενικές ρυθμίσεις                                                                                                                                                                                                                   |
+| `/api/settings/proxy`                 | GET/PUT       | Διαμόρφωση διακομιστή μεσολάβησης δικτύου                                                                                                                                                                                           |
+| `/api/settings/proxy/test`            | POST          | Δοκιμή σύνδεσης διακομιστή μεσολάβησης                                                                                                                                                                                              |
+| `/api/settings/ip-filter`             | GET/PUT       | Λίστα επιτρεπόμενων/αποκλεισμένων IP                                                                                                                                                                                                |
+| `/api/settings/thinking-budget`       | GET/PUT       | Λειτουργία επανεγγραφής **αιτημάτων** προϋπολογισμού σκέψης/συλλογισμού (μεταβίβαση / αυτόματη αφαίρεση / προσαρμοσμένη / προσαρμοζόμενη). Ανεξάρτητη από τη συμπίεση. Δείτε το [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Καθολική προτροπή συστήματος                                                                                                                                                                                                        |
+| `/api/settings/compression`           | GET/PUT       | Καθολική διαμόρφωση συμπίεσης                                                                                                                                                                                                       |
+| `/api/settings/purge-request-history` | POST          | Εκκαθάριση των γραμμών του αρχείου καταγραφής αιτημάτων και των τοπικών τεχνουργημάτων καταγραφής κλήσεων                                                                                                                           |
 
 ### Πλαίσιο & Συμπίεση
 
-| Τελικό Σημείο                          | Μέθοδος        | Περιγραφή                                                                                                |
-| -------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | Προεπισκόπηση συμπίεσης off/lite/standard/aggressive/ultra/RTK/stacked                                   |
-| `/api/compression/language-packs`      | GET            | Λίστα διαθέσιμων πακέτων γλώσσας Caveman                                                                 |
-| `/api/compression/rules`               | GET            | Λίστα μεταδεδομένων κανόνων Caveman                                                                      |
-| `/api/context/caveman/config`          | GET/PUT        | Ψευδώνυμο ρυθμίσεων ειδικών για Caveman                                                                  |
-| `/api/context/rtk/config`              | GET/PUT        | Ρυθμίσεις ειδικές για RTK, συμπεριλαμβανομένων προσαρμοσμένων φίλτρων και διατήρησης ακατέργαστης εξόδου |
-| `/api/context/rtk/filters`             | GET            | Κατάλογος φίλτρων RTK και διαγνωστικά προσαρμοσμένων φίλτρων                                             |
-| `/api/context/rtk/test`                | POST           | Εκτέλεση προεπισκόπησης/δοκιμής RTK σε ωφέλιμο φορτίο κειμένου                                           |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Ανάγνωση διατηρημένης επεξεργασμένης ακατέργαστης εξόδου με αναγνωριστικό δείκτη                         |
-| `/api/context/combos`                  | GET/POST       | Λίστα/δημιουργία συνδυασμών συμπίεσης                                                                    |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Λεπτομέρεια/ενημέρωση/διαγραφή συνδυασμού συμπίεσης                                                      |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Ανάθεση συνδυασμών συμπίεσης σε συνδυασμούς δρομολόγησης                                                 |
-| `/api/context/analytics`               | GET            | Ψευδώνυμο αναλυτικών συμπίεσης                                                                           |
+| Τελικό σημείο                          | Μέθοδος        | Περιγραφή                                                                                                    |
+| -------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------ |
+| `/api/compression/preview`             | POST           | Προεπισκόπηση συμπίεσης off/lite/standard/aggressive/ultra/RTK/stacked                                       |
+| `/api/compression/language-packs`      | GET            | Λίστα διαθέσιμων πακέτων γλώσσας Caveman                                                                     |
+| `/api/compression/rules`               | GET            | Λίστα μεταδεδομένων κανόνων Caveman                                                                          |
+| `/api/context/caveman/config`          | GET/PUT        | Ψευδώνυμο ρυθμίσεων ειδικά για το Caveman                                                                    |
+| `/api/context/rtk/config`              | GET/PUT        | Ρυθμίσεις ειδικά για το RTK, συμπεριλαμβανομένων προσαρμοσμένων φίλτρων και διατήρησης ανεπεξέργαστης εξόδου |
+| `/api/context/rtk/filters`             | GET            | Κατάλογος φίλτρων RTK και διαγνωστικά προσαρμοσμένων φίλτρων                                                 |
+| `/api/context/rtk/test`                | POST           | Εκτέλεση προεπισκόπησης/δοκιμής RTK σε ωφέλιμο φορτίο κειμένου                                               |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Ανάγνωση διατηρημένης, απαλειμμένης ανεπεξέργαστης εξόδου μέσω αναγνωριστικού δείκτη                         |
+| `/api/context/combos`                  | GET/POST       | Λίστα/δημιουργία συνδυασμών συμπίεσης                                                                        |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Λεπτομέρειες/ενημέρωση/διαγραφή συνδυασμού συμπίεσης                                                         |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Αντιστοίχιση συνδυασμών συμπίεσης σε συνδυασμούς δρομολόγησης                                                |
+| `/api/context/analytics`               | GET            | Ψευδώνυμο αναλυτικών στοιχείων συμπίεσης                                                                     |
 
 ### Παρακολούθηση
 
-| Τελικό Σημείο                        | Μέθοδος    | Περιγραφή                                                                                                                                                                                                                     |
-| ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Παρακολούθηση ενεργών συνεδριών                                                                                                                                                                                               |
-| `/api/rate-limits`                   | GET        | Όρια ρυθμού ανά λογαριασμό                                                                                                                                                                                                    |
-| `/api/monitoring/health`             | GET        | Έλεγχος υγείας + σύνοψη παρόχου (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`)                                                                                                                          |
-| `/api/cache/stats`                   | GET/DELETE | Στατιστικά cache / εκκαθάριση                                                                                                                                                                                                 |
-| `/api/modality-bridge/stats`         | GET        | Στη μνήμη `attempts`, επιτυχίες/`bridged`, αποτυχίες, επιτυχίες cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` με αριθμητή δείγμα, και χρόνος τελευταίας χρήσης (επαναφορά κατά επανεκκίνηση· διαχείριση auth) |
-| `/api/modality-bridge/video/runtime` | GET        | Αυστηρός έλεγχος αξιόπιστου loopback πριν από διαχείριση auth/probe· εκκαθαρισμένη διαθεσιμότητα και εκδόσεις FFmpeg/ffprobe (no-store)                                                                                       |
-| `/api/modality-bridge/video/extract` | POST       | Εσωτερικός αυθεντικοποιημένος αξιόπιστος μεσίτης byte loopback· είσοδος 50 MiB, ουρά με όριο/έξοδος 32 MiB, `503` χωρητικότητα, `499` αποσύνδεση, `504` προθεσμία· δεν είναι δημόσιο API μεταφόρτωσης                         |
+| Τελικό σημείο                        | Μέθοδος    | Περιγραφή                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Παρακολούθηση ενεργών συνεδριών                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `/api/rate-limits`                   | GET        | Όρια ρυθμού ανά λογαριασμό                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `/api/monitoring/health`             | GET        | Έλεγχος εύρυθμης λειτουργίας + σύνοψη παρόχων (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Η προβολή διαχείρισης περιλαμβάνει το `credentialHealth`: βαθμωτές τιμές της κρυφής μνήμης ανιχνεύσεων, `failedConnections` όταν `failed>0` και `staleDbNonOkCount` (μόνιμο `test_status` του SQLite, όχι ο μετρητής). Ανατρέξτε στο [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Στατιστικά κρυφής μνήμης / εκκαθάριση                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `/api/modality-bridge/stats`         | GET        | `attempts` στη μνήμη, επιτυχίες/`bridged`, αποτυχίες, επιτυχίες κρυφής μνήμης, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` με παρονομαστή τα δείγματα και χρόνος τελευταίας χρήσης (μηδενίζεται κατά την επανεκκίνηση· έλεγχος ταυτότητας διαχείρισης)                                                                                                                                                                                              |
+| `/api/modality-bridge/video/runtime` | GET        | Αυστηρός έλεγχος αξιόπιστου loopback πριν από τον έλεγχο ταυτότητας/την ανίχνευση διαχείρισης· απολυμασμένη διαθεσιμότητα και εκδόσεις FFmpeg/ffprobe (χωρίς αποθήκευση)                                                                                                                                                                                                                                                                                       |
+| `/api/modality-bridge/video/extract` | POST       | Εσωτερικός μεσολαβητής byte με έλεγχο ταυτότητας και αξιόπιστο loopback· είσοδος 50 MiB, οριοθετημένη ουρά/έξοδος 32 MiB, `503` για εξάντληση χωρητικότητας, `499` για αποσύνδεση, `504` για λήξη προθεσμίας· δεν αποτελεί δημόσιο API μεταφόρτωσης                                                                                                                                                                                                            |
 
-### Αντίγραφα Ασφαλείας & Εξαγωγή/Εισαγωγή
+### Αντίγραφα ασφαλείας & Εξαγωγή/Εισαγωγή
 
-| Τελικό Σημείο               | Μέθοδος | Περιγραφή                                                     |
-| --------------------------- | ------- | ------------------------------------------------------------- |
-| `/api/db-backups`           | GET     | Λίστα διαθέσιμων αντιγράφων ασφαλείας                         |
-| `/api/db-backups`           | PUT     | Δημιουργία χειροκίνητου αντιγράφου ασφαλείας                  |
-| `/api/db-backups`           | POST    | Επαναφορά από συγκεκριμένο αντίγραφο ασφαλείας                |
-| `/api/db-backups/export`    | GET     | Λήψη βάσης δεδομένων ως αρχείο .sqlite                        |
-| `/api/db-backups/import`    | POST    | Μεταφόρτωση αρχείου .sqlite για αντικατάσταση βάσης δεδομένων |
-| `/api/db-backups/exportAll` | GET     | Λήψη πλήρους αντιγράφου ασφαλείας ως αρχείο .tar.gz           |
+| Endpoint                    | Μέθοδος | Περιγραφή                                                         |
+| --------------------------- | ------- | ----------------------------------------------------------------- |
+| `/api/db-backups`           | GET     | Παραθέτει τα διαθέσιμα αντίγραφα ασφαλείας                        |
+| `/api/db-backups`           | PUT     | Δημιουργεί ένα μη αυτόματο αντίγραφο ασφαλείας                    |
+| `/api/db-backups`           | POST    | Επαναφέρει από συγκεκριμένο αντίγραφο ασφαλείας                   |
+| `/api/db-backups/export`    | GET     | Λαμβάνει τη βάση δεδομένων ως αρχείο .sqlite                      |
+| `/api/db-backups/import`    | POST    | Μεταφορτώνει αρχείο .sqlite για αντικατάσταση της βάσης δεδομένων |
+| `/api/db-backups/exportAll` | GET     | Λαμβάνει πλήρες αντίγραφο ασφαλείας ως αρχείο .tar.gz             |
 
-### Συγχρονισμός Cloud
+### Συγχρονισμός με το cloud
 
-| Τελικό Σημείο          | Μέθοδος  | Περιγραφή                      |
-| ---------------------- | -------- | ------------------------------ |
-| `/api/sync/cloud`      | Διάφορες | Λειτουργίες συγχρονισμού cloud |
-| `/api/sync/initialize` | POST     | Αρχικοποίηση συγχρονισμού      |
-| `/api/cloud/*`         | Διάφορες | Διαχείριση cloud               |
+| Endpoint               | Μέθοδος  | Περιγραφή                            |
+| ---------------------- | -------- | ------------------------------------ |
+| `/api/sync/cloud`      | Διάφορες | Λειτουργίες συγχρονισμού με το cloud |
+| `/api/sync/initialize` | POST     | Αρχικοποιεί τον συγχρονισμό          |
+| `/api/cloud/*`         | Διάφορες | Διαχείριση cloud                     |
 
-### Τούνελ
+### Σήραγγες
 
-| Τελικό Σημείο              | Μέθοδος | Περιγραφή                                                                                 |
-| -------------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET     | Ανάγνωση κατάστασης εγκατάστασης/εκτέλεσης Cloudflare Quick Tunnel για τον πίνακα ελέγχου |
-| `/api/tunnels/cloudflared` | POST    | Ενεργοποίηση ή απενεργοποίηση του Cloudflare Quick Tunnel (`action=enable/disable`)       |
-| `/api/tunnels/ngrok`       | GET     | Ανάγνωση κατάστασης εκτέλεσης ngrok Tunnel για τον πίνακα ελέγχου                         |
-| `/api/tunnels/ngrok`       | POST    | Ενεργοποίηση ή απενεργοποίηση του ngrok Tunnel (`action=enable/disable`)                  |
+| Endpoint                   | Μέθοδος | Περιγραφή                                                                                        |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `/api/tunnels/cloudflared` | GET     | Διαβάζει την κατάσταση εγκατάστασης/εκτέλεσης του Cloudflare Quick Tunnel για τον πίνακα ελέγχου |
+| `/api/tunnels/cloudflared` | POST    | Ενεργοποιεί ή απενεργοποιεί το Cloudflare Quick Tunnel (`action=enable/disable`)                 |
+| `/api/tunnels/ngrok`       | GET     | Διαβάζει την κατάσταση εκτέλεσης του ngrok Tunnel για τον πίνακα ελέγχου                         |
+| `/api/tunnels/ngrok`       | POST    | Ενεργοποιεί ή απενεργοποιεί το ngrok Tunnel (`action=enable/disable`)                            |
 
 ### Εργαλεία CLI
 
-| Τελικό Σημείο                      | Μέθοδος | Περιγραφή                   |
-| ---------------------------------- | ------- | --------------------------- |
-| `/api/cli-tools/claude-settings`   | GET     | Κατάσταση Claude CLI        |
-| `/api/cli-tools/codex-settings`    | GET     | Κατάσταση Codex CLI         |
-| `/api/cli-tools/droid-settings`    | GET     | Κατάσταση Droid CLI         |
-| `/api/cli-tools/openclaw-settings` | GET     | Κατάσταση OpenClaw CLI      |
-| `/api/cli-tools/runtime/[toolId]`  | GET     | Γενικό χρόνος εκτέλεσης CLI |
+| Endpoint                           | Μέθοδος | Περιγραφή                       |
+| ---------------------------------- | ------- | ------------------------------- |
+| `/api/cli-tools/claude-settings`   | GET     | Κατάσταση Claude CLI            |
+| `/api/cli-tools/codex-settings`    | GET     | Κατάσταση Codex CLI             |
+| `/api/cli-tools/droid-settings`    | GET     | Κατάσταση Droid CLI             |
+| `/api/cli-tools/openclaw-settings` | GET     | Κατάσταση OpenClaw CLI          |
+| `/api/cli-tools/runtime/[toolId]`  | GET     | Γενικό περιβάλλον εκτέλεσης CLI |
 
 Οι αποκρίσεις CLI περιλαμβάνουν: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### Πράκτορες ACP
 
-| Τελικό Σημείο     | Μέθοδος | Περιγραφή                                                                           |
-| ----------------- | ------- | ----------------------------------------------------------------------------------- |
-| `/api/acp/agents` | GET     | Λίστα όλων των εντοπισμένων πρακτόρων (ενσωματωμένοι + προσαρμοσμένοι) με κατάσταση |
-| `/api/acp/agents` | POST    | Προσθήκη προσαρμοσμένου πράκτορα ή ανανέωση cache εντοπισμού                        |
-| `/api/acp/agents` | DELETE  | Αφαίρεση προσαρμοσμένου πράκτορα με παράμετρο ερωτήματος `id`                       |
+| Endpoint          | Μέθοδος | Περιγραφή                                                                                                  |
+| ----------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `/api/acp/agents` | GET     | Παραθέτει όλους τους εντοπισμένους πράκτορες (ενσωματωμένους + προσαρμοσμένους) μαζί με την κατάστασή τους |
+| `/api/acp/agents` | POST    | Προσθέτει προσαρμοσμένο πράκτορα ή ανανεώνει την προσωρινή μνήμη εντοπισμού                                |
+| `/api/acp/agents` | DELETE  | Καταργεί έναν προσαρμοσμένο πράκτορα μέσω της παραμέτρου ερωτήματος `id`                                   |
 
 Η απόκριση GET περιλαμβάνει `agents[]` (id, name, binary, version, installed, protocol, isCustom) και `summary` (total, installed, notFound, builtIn, custom).
 
-### Ανθεκτικότητα & Όρια Ρυθμού
+### Ανθεκτικότητα και όρια ρυθμού
 
-| Τελικό Σημείο                     | Μέθοδος   | Περιγραφή                                                                                      |
-| --------------------------------- | --------- | ---------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Λήψη/ενημέρωση ουράς αιτημάτων, ψύξη σύνδεσης, διακόπτη παρόχου και ρυθμίσεων αναμονής         |
-| `/api/resilience/reset`           | POST      | Επαναφορά διακοπτών κυκλώματος παρόχου                                                         |
-| `/api/resilience/model-cooldowns` | GET       | Λίστα ενεργών κλειδαριών ανά (πάροχο, σύνδεση, μοντέλο), ταξινομημένων κατά υπολειπόμενο χρόνο |
-| `/api/resilience/model-cooldowns` | DELETE    | Εκκαθάριση κλειδαριάς μοντέλου — σώμα `{provider, model}` ή `{all: true}` για διαγραφή όλων    |
-| `/api/rate-limits`                | GET       | Κατάσταση ορίου ρυθμού ανά λογαριασμό                                                          |
-| `/api/rate-limit`                 | GET       | Καθολική διαμόρφωση ορίου ρυθμού                                                               |
+| Endpoint                          | Μέθοδος   | Περιγραφή                                                                                                            |
+| --------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Λαμβάνει/ενημερώνει την ουρά αιτημάτων, τον χρόνο αναμονής σύνδεσης, τον διακόπτη παρόχου και τις ρυθμίσεις αναμονής |
+| `/api/resilience/reset`           | POST      | Επαναφέρει τους διακόπτες κυκλώματος παρόχων                                                                         |
+| `/api/resilience/model-cooldowns` | GET       | Παραθέτει τους ενεργούς αποκλεισμούς ανά (πάροχο, σύνδεση, μοντέλο), ταξινομημένους κατά τον χρόνο που απομένει      |
+| `/api/resilience/model-cooldowns` | DELETE    | Καταργεί έναν αποκλεισμό μοντέλου — σώμα `{provider, model}` ή `{all: true}` για διαγραφή όλων                       |
+| `/api/rate-limits`                | GET       | Κατάσταση ορίου ρυθμού ανά λογαριασμό                                                                                |
+| `/api/rate-limit`                 | GET       | Καθολική διαμόρφωση ορίου ρυθμού                                                                                     |
 
-> Και οι τέσσερις διαδρομές `/api/resilience/*` απαιτούν **διαχείριση auth** (`requireManagementAuth`). Βλ. [Ανθεκτικότητα (εκτεταμένη)](#resilience-extended) για πλήρη ανάλυση του διακόπτη κυκλώματος παρόχου έναντι ψύξης σύνδεσης έναντι κλειδαριάς μοντέλου.
+> Και οι τέσσερις διαδρομές `/api/resilience/*` απαιτούν **έλεγχο ταυτότητας διαχείρισης** (`requireManagementAuth`). Ανατρέξτε στην ενότητα [Ανθεκτικότητα (εκτεταμένη)](#resilience-extended) για πλήρη ανάλυση του διακόπτη παρόχου έναντι του χρόνου αναμονής σύνδεσης και του αποκλεισμού μοντέλου.
 
 ### Αξιολογήσεις
 
-| Τελικό Σημείο | Μέθοδος  | Περιγραφή                                    |
-| ------------- | -------- | -------------------------------------------- |
-| `/api/evals`  | GET/POST | Λίστα σετ αξιολόγησης / εκτέλεση αξιολόγησης |
+| Endpoint     | Μέθοδος  | Περιγραφή                                          |
+| ------------ | -------- | -------------------------------------------------- |
+| `/api/evals` | GET/POST | Παραθέτει σουίτες αξιολόγησης / εκτελεί αξιολόγηση |
 
 ### Πολιτικές
 
-| Τελικό Σημείο   | Μέθοδος         | Περιγραφή                         |
-| --------------- | --------------- | --------------------------------- |
-| `/api/policies` | GET/POST/DELETE | Διαχείριση πολιτικών δρομολόγησης |
+| Endpoint        | Μέθοδος         | Περιγραφή                            |
+| --------------- | --------------- | ------------------------------------ |
+| `/api/policies` | GET/POST/DELETE | Διαχειρίζεται πολιτικές δρομολόγησης |
 
 ### Συμμόρφωση
 
-| Τελικό Σημείο               | Μέθοδος | Περιγραφή                                         |
-| --------------------------- | ------- | ------------------------------------------------- |
-| `/api/compliance/audit-log` | GET     | Αρχείο ελέγχου συμμόρφωσης (τελευταία N εγγραφές) |
+| Endpoint                    | Μέθοδος | Περιγραφή                                                     |
+| --------------------------- | ------- | ------------------------------------------------------------- |
+| `/api/compliance/audit-log` | GET     | Αρχείο καταγραφής ελέγχου συμμόρφωσης (τελευταίες N εγγραφές) |
 
-### v1beta (Συμβατό με Gemini)
+### v1beta (συμβατό με Gemini)
 
-| Τελικό Σημείο              | Μέθοδος | Περιγραφή                              |
-| -------------------------- | ------- | -------------------------------------- |
-| `/v1beta/models`           | GET     | Λίστα μοντέλων σε μορφή Gemini         |
-| `/v1beta/models/{...path}` | POST    | Τελικό σημείο `generateContent` Gemini |
+| Endpoint                   | Μέθοδος | Περιγραφή                             |
+| -------------------------- | ------- | ------------------------------------- |
+| `/v1beta/models`           | GET     | Παραθέτει μοντέλα σε μορφή Gemini     |
+| `/v1beta/models/{...path}` | POST    | Endpoint `generateContent` του Gemini |
 
-Αυτά τα τελικά σημεία αντικατοπτρίζουν τη μορφή API του Gemini για πελάτες που αναμένουν εγγενή συμβατότητα SDK Gemini.
+Αυτά τα endpoint αντικατοπτρίζουν τη μορφή API του Gemini για πελάτες που απαιτούν εγγενή συμβατότητα με το Gemini SDK.
 
-### Εσωτερικά / APIs Συστήματος
+### Εσωτερικά API / API συστήματος
 
-| Τελικό Σημείο            | Μέθοδος | Περιγραφή                                                                 |
-| ------------------------ | ------- | ------------------------------------------------------------------------- |
-| `/api/init`              | GET     | Έλεγχος αρχικοποίησης εφαρμογής (χρησιμοποιείται κατά την πρώτη εκτέλεση) |
-| `/api/tags`              | GET     | Ετικέτες μοντέλων συμβατές με Ollama (για πελάτες Ollama)                 |
-| `/api/restart`           | POST    | Εκκίνηση ομαλής επανεκκίνησης διακομιστή                                  |
-| `/api/shutdown`          | POST    | Εκκίνηση ομαλής τερματισμού διακομιστή                                    |
-| `/api/system/env/repair` | POST    | Επιδιόρθωση μεταβλητών περιβάλλοντος παρόχου OAuth                        |
+| Τελικό σημείο            | Μέθοδος | Περιγραφή                                                             |
+| ------------------------ | ------- | --------------------------------------------------------------------- |
+| `/api/init`              | GET     | Έλεγχος αρχικοποίησης εφαρμογής (χρησιμοποιείται στην πρώτη εκτέλεση) |
+| `/api/tags`              | GET     | Ετικέτες μοντέλων συμβατές με το Ollama (για πελάτες Ollama)          |
+| `/api/restart`           | POST    | Ενεργοποίηση ομαλής επανεκκίνησης του διακομιστή                      |
+| `/api/shutdown`          | POST    | Ενεργοποίηση ομαλού τερματισμού λειτουργίας του διακομιστή            |
+| `/api/system/env/repair` | POST    | Επιδιόρθωση μεταβλητών περιβάλλοντος παρόχου OAuth                    |
 
 > **Σημείωση:** Αυτά τα τελικά σημεία χρησιμοποιούνται εσωτερικά από το σύστημα ή για συμβατότητα με πελάτες Ollama. Συνήθως δεν καλούνται από τελικούς χρήστες.
 
-### Επιδιόρθωση Περιβάλλοντος OAuth _(v3.6.1+)_
+### Επιδιόρθωση περιβάλλοντος OAuth _(v3.6.1+)_
 
 ```bash
 POST /api/system/env/repair
@@ -952,7 +999,7 @@ Content-Type: application/json
 }
 ```
 
-Επιδιορθώνει ελλείπουσες ή κατεστραμμένες μεταβλητές περιβάλλοντος OAuth για έναν συγκεκριμένο πάροχο. Επιστρέφει:
+Επιδιορθώνει μεταβλητές περιβάλλοντος OAuth που λείπουν ή έχουν καταστραφεί για έναν συγκεκριμένο πάροχο. Επιστρέφει:
 
 ```json
 {
@@ -1544,23 +1591,23 @@ Endpoints αναλυτικών σε πραγματικό χρόνο για τη�
 
 ---
 
-## Διαχείριση Εργαλείων CLI
+## Διαχείριση εργαλείων CLI
 
-Διαχείριση εργαλείων CLI που ενσωματώνονται με το OmniRoute (antigravity, chipotle, commandCode,
-devin-cli, κ.λπ.). Δείτε την [Αναφορά Παρόχου](./PROVIDER_REFERENCE.md) για την πλήρη λίστα.
+Διαχειριστείτε εργαλεία CLI που ενσωματώνονται με το OmniRoute (antigravity, commandCode,
+devin-cli κ.λπ.). Ανατρέξτε στην [Αναφορά παρόχων](./PROVIDER_REFERENCE.md) για την πλήρη λίστα.
 
-| Μέθοδος | Διαδρομή                                | Περιγραφή                                                                                                                                                                         |
-| ------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET     | `/api/cli-tools/all-statuses`           | Κατάσταση όλων των εργαλείων CLI (εγκατεστημένα, έκδοση, τελευταία εμφάνιση)                                                                                                      |
-| GET     | `/api/cli-tools/status`                 | Λεπτομέρειες κατάστασης για ένα εργαλείο CLI (ερώτημα `?tool=`)                                                                                                                   |
-| POST    | `/api/cli-tools/apply`                  | Εγγραφή της παραγόμενης ρύθμισης ενός εργαλείου (`dryRun` για προεπισκόπηση· `422` + `containerEphemeralTarget` όταν είναι σε container· `migration` σημειώνει παλαιό Codex YAML) |
-| GET     | `/api/cli-tools/backups`                | Λίστα αντιγράφων ασφαλείας ρυθμίσεων εργαλείων CLI                                                                                                                                |
-| POST    | `/api/cli-tools/backups`                | Δημιουργία αντιγράφου ασφαλείας όλων των ρυθμίσεων εργαλείων CLI                                                                                                                  |
-| POST    | `/api/cli-tools/backups`                | Επαναφορά: το ίδιο τερματικό με `{tool, backupId}` στο σώμα επαναφέρει το συγκεκριμένο αντίγραφο ασφαλείας                                                                        |
-| GET     | `/api/cli-tools/antigravity-mitm`       | Κατάσταση proxy MITM του Antigravity (το εργαλείο CLI "antigravity-mitm")                                                                                                         |
-| POST    | `/api/cli-tools/antigravity-mitm/alias` | Ρύθμιση ψευδωνύμων antigravity-mitm                                                                                                                                               |
+| Μέθοδος | Διαδρομή                                | Περιγραφή                                                                                                                                                                                                      |
+| ------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET     | `/api/cli-tools/all-statuses`           | Κατάσταση όλων των εργαλείων CLI (εγκατάσταση, έκδοση, τελευταία εμφάνιση)                                                                                                                                     |
+| GET     | `/api/cli-tools/status`                 | Λεπτομέρειες κατάστασης για ένα εργαλείο CLI (παράμετρος ερωτήματος `?tool=`)                                                                                                                                  |
+| POST    | `/api/cli-tools/apply`                  | Εγγραφή της δημιουργημένης διαμόρφωσης ενός εργαλείου (το `dryRun` παρέχει προεπισκόπηση· `422` + `containerEphemeralTarget` σε περιβάλλον container· το `migration` επισημαίνει ένα παλαιού τύπου Codex YAML) |
+| GET     | `/api/cli-tools/backups`                | Παράθεση αντιγράφων ασφαλείας των διαμορφώσεων εργαλείων CLI                                                                                                                                                   |
+| POST    | `/api/cli-tools/backups`                | Δημιουργία αντιγράφου ασφαλείας όλων των διαμορφώσεων εργαλείων CLI                                                                                                                                            |
+| POST    | `/api/cli-tools/backups`                | Επαναφορά: το ίδιο endpoint με `{tool, backupId}` στο σώμα επαναφέρει το συγκεκριμένο αντίγραφο ασφαλείας                                                                                                      |
+| GET     | `/api/cli-tools/antigravity-mitm`       | Κατάσταση του διακομιστή μεσολάβησης MITM του Antigravity (το εργαλείο CLI "antigravity-mitm")                                                                                                                 |
+| POST    | `/api/cli-tools/antigravity-mitm/alias` | Διαμόρφωση ψευδωνύμων του antigravity-mitm                                                                                                                                                                     |
 
-**Πιστοποίηση:** Απαιτεί διαχειριστική συνεδρία.
+**Έλεγχος ταυτότητας:** Απαιτείται συνεδρία διαχείρισης.
 
 ---
 

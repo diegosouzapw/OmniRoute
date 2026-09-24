@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { findIncompleteLocales, leafPaths } from "../../scripts/i18n/check-key-completeness.mjs";
+import {
+  catalogDir,
+  findIncompleteLocales,
+  leafPaths,
+} from "../../scripts/i18n/check-key-completeness.mjs";
 
 // Absolute key-set parity between en.json and every locale catalog. Unlike the new-key gate
 // (diff-based) and the coverage gate (80 % floor), this one names an ABSENT key regardless of
@@ -60,4 +64,10 @@ test("leaves the source dropped are reported as extra, and a wrong shape counts 
   assert.deepEqual(gaps, [
     { locale: "fr", missing: ["home.legend.active"], extra: ["common.cancel", "home.legend"] },
   ]);
+});
+
+test("catalogDir resolves the dashboard and CLI catalog directories", () => {
+  assert.ok(catalogDir("ui").endsWith("src/i18n/messages"));
+  assert.ok(catalogDir("cli").endsWith("bin/cli/locales"));
+  assert.throws(() => catalogDir("nope"), /unknown catalog/);
 });

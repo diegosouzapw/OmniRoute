@@ -1,7 +1,7 @@
 ---
 title: "Management Authentication"
 version: 3.8.50
-lastUpdated: 2026-08-20
+lastUpdated: 2026-09-22
 ---
 
 # Management Authentication
@@ -12,12 +12,12 @@ server unless they were explicitly granted `manage` or `admin` scope.
 
 Canonical implementation: `src/lib/api/requireManagementAuth.ts`.
 
-| Credential | Typical form | Created where | Intended use | Management capability |
-|---|---|---|---|---|
-| Dashboard JWT session | `auth_token` cookie | Dashboard login | Browser UI | Full dashboard management, subject to CSRF, locality, and always-protected-route rules |
-| CLI machine-id token | internal / local | CLI bootstrap (`omniroute` on the same machine) | Local CLI | Local management only |
-| Scoped Access Token | `oma_live_…` | **Settings → Access Tokens** or `omniroute connect` | Remote CLI and management API | Must satisfy the route's required `read`, `write`, or `admin` scope |
-| Inference API key | `sk-…` (and other API-key prefixes) | **API Manager / API Keys** | `/v1/*` inference | **None** unless the key metadata includes `manage` or `admin` |
+| Credential            | Typical form                        | Created where                                       | Intended use                  | Management capability                                                                  |
+| --------------------- | ----------------------------------- | --------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
+| Dashboard JWT session | `auth_token` cookie                 | Dashboard login                                     | Browser UI                    | Full dashboard management, subject to CSRF, locality, and always-protected-route rules |
+| CLI machine-id token  | internal / local                    | CLI bootstrap (`omniroute` on the same machine)     | Local CLI                     | Local management only                                                                  |
+| Scoped Access Token   | `oma_live_…`                        | **Settings → Access Tokens** or `omniroute connect` | Remote CLI and management API | Must satisfy the route's required `read`, `write`, or `admin` scope                    |
+| Inference API key     | `sk-…` (and other API-key prefixes) | **API Manager / API Keys**                          | `/v1/*` inference             | **None** unless the key metadata includes `manage` or `admin`                          |
 
 `oma_` credentials are management/CLI credentials. They are **not** inference API keys.
 
@@ -33,14 +33,17 @@ Related: [Remote Mode](./REMOTE-MODE.md) (how `oma_live_…` is minted for a rem
 
 ## Scope matrices
 
-These two scope vocabularies are **different**. Do not mix them.
+API-key management scopes and access-token scopes are different vocabularies.
+MCP tool scopes are a third vocabulary, checked with `scopeMatches` rather than
+either function in the tables below. Side-by-side:
+[Three scope namespaces](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
 ### Access Token scopes (`oma_live_…`)
 
-| Scope | Typical operations |
-|---|---|
-| `read` | List/status GETs that the token is allowed to see |
-| `write` | Mutations (create/update/delete) below admin |
+| Scope   | Typical operations                                                 |
+| ------- | ------------------------------------------------------------------ |
+| `read`  | List/status GETs that the token is allowed to see                  |
+| `write` | Mutations (create/update/delete) below admin                       |
 | `admin` | Full remote CLI / connect token (password bootstrap defaults here) |
 
 A token with `read` cannot call a `write` route. Runtime message shape:
@@ -48,11 +51,11 @@ A token with `read` cannot call a `write` route. Runtime message shape:
 
 ### API-key management scopes
 
-| Scope | Meaning |
-|---|---|
-| (none) | Inference only. Management routes return 403. |
+| Scope    | Meaning                                                              |
+| -------- | -------------------------------------------------------------------- |
+| (none)   | Inference only. Management routes return 403.                        |
 | `manage` | Management API (same gate as `requireManagementAuth` API-key branch) |
-| `admin` | Also satisfies `hasManageScope` (treated as management-capable) |
+| `admin`  | Also satisfies `hasManageScope` (treated as management-capable)      |
 
 Enable `manage` on the key in the API Keys / API Manager UI. Do not reuse a
 chat client key for automation unless you deliberately granted that scope.
@@ -133,13 +136,13 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ## Current runtime errors (do not echo secrets)
 
-| Situation | Typical status | Message (sanitized) |
-|---|---|---|
-| No credential | 401 | `Authentication required` |
-| Invalid/expired `oma_live_…` | 401 | `Invalid or expired access token` |
-| Valid API key without `manage`/`admin` | 403 | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Invalid ordinary API key on a management route | 403 | `Invalid management token` |
-| Access Token scope too low | 403 | `Access token scope '<have>' is insufficient; '<need>' required.` |
+| Situation                                      | Typical status | Message (sanitized)                                                  |
+| ---------------------------------------------- | -------------- | -------------------------------------------------------------------- |
+| No credential                                  | 401            | `Authentication required`                                            |
+| Invalid/expired `oma_live_…`                   | 401            | `Invalid or expired access token`                                    |
+| Valid API key without `manage`/`admin`         | 403            | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Invalid ordinary API key on a management route | 403            | `Invalid management token`                                           |
+| Access Token scope too low                     | 403            | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
 "Invalid management token" means the bearer was **not** accepted as a management
 credential. It does **not** tell you which family to mint. Use the table above:
@@ -150,10 +153,10 @@ uses the session cookie.
 
 ## Recommended least-privilege choice
 
-| Caller | Use |
-|---|---|
-| Browser | Dashboard session |
-| CLI on the server host | Machine token |
-| CLI on a laptop talking to a remote server | `oma_live_…` from `omniroute connect` |
-| CI / scripts (management only) | `oma_live_…` with the smallest scope that works |
-| CI that must call both `/v1` and `/api` | API key with `manage` **or** two credentials |
+| Caller                                     | Use                                             |
+| ------------------------------------------ | ----------------------------------------------- |
+| Browser                                    | Dashboard session                               |
+| CLI on the server host                     | Machine token                                   |
+| CLI on a laptop talking to a remote server | `oma_live_…` from `omniroute connect`           |
+| CI / scripts (management only)             | `oma_live_…` with the smallest scope that works |
+| CI that must call both `/v1` and `/api`    | API key with `manage` **or** two credentials    |

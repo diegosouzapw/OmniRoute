@@ -54,6 +54,10 @@ test("isLocalOnlyPath: spawn-capable system/db-backups routes are local-only (6A
   assert.equal(isLocalOnlyPath("/api/db-backups/import"), false);
 });
 
+test("isLocalOnlyPath: /api/db/health is local-only (forks native diagnostics, #13717)", () => {
+  assert.equal(isLocalOnlyPath("/api/db/health"), true);
+});
+
 test("isLocalOnlyBypassableByManageScope: /api/mcp/ prefix is bypassable", () => {
   assert.equal(isLocalOnlyBypassableByManageScope("/api/mcp/"), true);
   assert.equal(isLocalOnlyBypassableByManageScope("/api/mcp/stream"), true);

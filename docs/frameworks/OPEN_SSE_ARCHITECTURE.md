@@ -252,7 +252,7 @@ Supports **19 routing strategies** (see `src/shared/constants/routingStrategies.
 
 ### base.ts (1170 LOC)
 
-The **abstract executor** that all 101 executors extend. It contains:
+The **abstract executor** that all 107 executors extend. It contains:
 
 - `buildUrl()` — default URL construction (subclasses override for custom)
 - `buildHeaders()` — default headers (auth, content-type)

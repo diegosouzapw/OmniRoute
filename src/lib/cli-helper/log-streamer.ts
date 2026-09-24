@@ -12,7 +12,12 @@ export interface LogStream {
 }
 
 export function createLogStream(options: LogStreamOptions = {}): LogStream {
-  const baseUrl = options.baseUrl || "http://localhost:20128";
+  const port = process.env.PORT || process.env.DASHBOARD_PORT || 20128;
+  const baseUrl =
+    options.baseUrl ||
+    process.env.OMNIROUTE_BASE_URL ||
+    process.env.BASE_URL ||
+    `http://localhost:${port}`;
   const filters = options.filters || [];
   const follow = options.follow ?? false;
   const timeout = options.timeout || 30000;

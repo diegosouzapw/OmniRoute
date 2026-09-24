@@ -209,7 +209,11 @@ export function resolveDisplayBaseUrl(
     return joinOriginAndBasePath(configuredUrl, basePath);
   }
 
-  const fallback = currentOrigin ?? configuredUrl ?? DEFAULT_DISPLAY_BASE_URL;
+  const portFallback =
+    typeof process !== "undefined" && (process.env.NEXT_PUBLIC_PORT || process.env.PORT)
+      ? `http://localhost:${process.env.NEXT_PUBLIC_PORT || process.env.PORT}`
+      : DEFAULT_DISPLAY_BASE_URL;
+  const fallback = currentOrigin ?? configuredUrl ?? portFallback;
   return joinOriginAndBasePath(fallback, basePath);
 }
 

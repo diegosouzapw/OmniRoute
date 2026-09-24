@@ -1,0 +1,1 @@
+- **fix(api):** every `/v1/files` and `/v1/batches` handler now applies the caller's API-key policy (endpoint allowlist, schedule, usage cap, rate limit) like `delete-completed` and the other `/v1` routes ([#14481](https://github.com/diegosouzapw/OmniRoute/issues/14481))

@@ -14,18 +14,6 @@
     "jsonOpt": "以 JSON 格式输出",
     "yesOpt": "跳过确认"
   },
-  "program": {
-    "description": "OmniRoute — 具有自动故障转移的智能 AI 路由器",
-    "version": "打印版本并退出",
-    "output": "输出格式（table, json, jsonl, csv）",
-    "quiet": "禁止非必要输出",
-    "no_color": "禁用彩色输出",
-    "timeout": "HTTP 请求超时（毫秒）",
-    "api_key": "OmniRoute 服务器的 API 密钥",
-    "base_url": "OmniRoute 服务器的基础 URL",
-    "context": "此命令使用的服务器上下文/配置文件",
-    "lang": "设置 CLI 显示语言（覆盖 OMNIROUTE_LANG）"
-  },
   "setup": {
     "title": "OmniRoute 设置",
     "passwordPrompt": "管理员密码",
@@ -144,6 +132,20 @@
       "none": "{days} 天内没有密钥过期。",
       "listTitle": "{days} 天内过期的密钥："
     }
+  },
+  "authExport": {
+    "description": "导出已解密的提供者凭据（仅限本地，明文输出）",
+    "idOpt": "仅导出与此 id/名称/提供者匹配的连接",
+    "formatOpt": "输出格式：json 或 env",
+    "outOpt": "将输出写入文件而非标准输出（以 0600 权限写入）",
+    "forceOpt": "确认你了解此操作会打印/写入明文密钥",
+    "warning": "⚠ 此操作会打印/写入已解密的明文 API 密钥和 OAuth 令牌。请确保你的屏幕、shell 历史记录以及任何输出文件保持私密。",
+    "confirmHeading": "⚠ 警告：此操作会以明文导出已解密的提供者凭据",
+    "confirmBody": "此命令会为所选连接解密并打印/写入 apiKey、accessToken、refreshToken 和\nidToken。请将输出视为机密。",
+    "confirmFooter": "如需确认，请运行：\n  omniroute auth export --force",
+    "missingKey": "导出凭据需要 STORAGE_ENCRYPTION_KEY。",
+    "notFound": "未找到连接：{id}",
+    "invalidFormat": "无效格式：{format}。请使用 json 或 env。"
   },
   "stream": {
     "description": "使用 SSE 检查模式流式传输聊天响应",
@@ -302,7 +304,7 @@
     "status": "状态：{status}",
     "uptime": "运行时间：{uptime}",
     "requests": "请求数（24h）：{count}",
-    "cost": "成本（24h）："
+    "cost": "成本（24h）：${cost}"
   },
   "quota": {
     "description": "显示提供者配额使用情况",
@@ -818,6 +820,18 @@
       "event": "要模拟的事件类型（默认：request.completed）"
     }
   },
+  "program": {
+    "description": "OmniRoute — 具有自动故障转移的智能 AI 路由器",
+    "version": "打印版本并退出",
+    "output": "输出格式（table, json, jsonl, csv）",
+    "quiet": "禁止非必要输出",
+    "no_color": "禁用彩色输出",
+    "timeout": "HTTP 请求超时（毫秒）",
+    "api_key": "OmniRoute 服务器的 API 密钥",
+    "base_url": "OmniRoute 服务器的基础 URL",
+    "context": "此命令使用的服务器上下文/配置文件",
+    "lang": "设置 CLI 显示语言（覆盖 OMNIROUTE_LANG）"
+  },
   "files": {
     "description": "管理文件（上传、列出、获取、下载、删除）",
     "list": {
@@ -917,6 +931,11 @@
       "description": "显示与上游价格的差异",
       "model": "按模型筛选"
     }
+  },
+  "radar": {
+    "description": "检查并同步本地 Radar 目录订阅源",
+    "status": "显示本地 Radar 设置和订阅源缓存状态",
+    "sync": "通过本地服务器同步目录、推荐、优惠和 Intel"
   },
   "resilience": {
     "description": "检查和管理弹性机制",
@@ -1245,8 +1264,8 @@
     "description": "管理 OmniRoute 开机自启（Linux：systemd 用户服务）",
     "enable": "启用开机自启",
     "disable": "禁用开机自启",
-    "status": "显示自启状态",
-    "toggle": "切换开机自启"
+    "toggle": "切换开机自启",
+    "status": "显示自启状态"
   },
   "runtime": {
     "description": "管理本地运行时依赖",
@@ -1272,25 +1291,6 @@
     "search": "搜索 npm 注册表中的可用插件",
     "update": "更新已安装的插件",
     "scaffold": "搭建新的插件模板"
-  },
-  "authExport": {
-    "description": "导出已解密的提供者凭据（仅限本地，明文输出）",
-    "idOpt": "仅导出与此 id/名称/提供者匹配的连接",
-    "formatOpt": "输出格式：json 或 env",
-    "outOpt": "将输出写入文件而非标准输出（以 0600 权限写入）",
-    "forceOpt": "确认你了解此操作会打印/写入明文密钥",
-    "warning": "⚠ 此操作会打印/写入已解密的明文 API 密钥和 OAuth 令牌。请确保你的屏幕、shell 历史记录以及任何输出文件保持私密。",
-    "confirmHeading": "⚠ 警告：此操作会以明文导出已解密的提供者凭据",
-    "confirmBody": "此命令会为所选连接解密并打印/写入 apiKey、accessToken、refreshToken 和\nidToken。请将输出视为机密。",
-    "confirmFooter": "如需确认，请运行：\n  omniroute auth export --force",
-    "missingKey": "导出凭据需要 STORAGE_ENCRYPTION_KEY。",
-    "notFound": "未找到连接：{id}",
-    "invalidFormat": "无效格式：{format}。请使用 json 或 env。"
-  },
-  "radar": {
-    "description": "检查并同步本地 Radar 目录订阅源",
-    "status": "显示本地 Radar 设置和订阅源缓存状态",
-    "sync": "通过本地服务器同步目录、推荐、优惠和 Intel"
   },
   "launch": {
     "description": "启动指向 OmniRoute 的 Claude Code（本地或远程，使用 --profile）",

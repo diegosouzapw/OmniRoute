@@ -156,6 +156,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "danger",
   },
   {
+    key: "RERANK_REMOTE_PROVIDER_NODES",
+    label: "Remote Rerank Provider Nodes",
+    description:
+      "Allow POST /v1/rerank (and the memory engine's rerank step, which calls it over loopback) to use OpenAI-compatible provider nodes hosted outside localhost — a LAN box or Tailscale peer running TEI, Infinity, vLLM, etc. Off by default — routing to a remote host changes egress identity and must be an explicit operator decision. Loopback nodes are always allowed and unaffected. Remote nodes must also pass the provider outbound URL policy (cloud-metadata hosts are never routed to).",
+    descriptionI18nKey: "settings.featureFlags.rerankRemoteProviderNodes",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "danger",
+  },
+  {
     key: "PROXY_AUTO_SELECT_ENABLED",
     label: "Proxy Auto-Selection Fallback",
     description:
@@ -202,6 +214,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
+  },
+  {
+    key: "ROTATION_ATTRIBUTION",
+    label: "Rotation Attribution Logging",
+    description:
+      "Opencode rotation records which account served or was skipped (masked ids only, never full account ids) and links proxy log entries to their request, so the operator can tell skipped accounts apart from unused ones. Off by default: no extra log lines, no extra columns written.",
+    descriptionI18nKey: "featureFlagRotationAttributionDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
   },
   {
     key: "PROXY_POOL_EGRESS_OBSERVATION",
@@ -252,11 +276,35 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "FLUSH_EMPTY_RETRY_ENABLED",
+    label: "Flush Empty Turn Retry",
+    description:
+      "On translated streaming turns, when the upstream turn carries no usable content (reasoning-only completion or zero valuable chunks), issue bounded retries through the normal credential path (up to `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX`) before anything is exposed to the client. Off by default: empty turns keep the current behavior (empty 200 or empty-content 502).",
+    descriptionI18nKey: "featureFlagFlushEmptyRetryEnabledDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "OPENCODE_RATE_LIMITED_429_EARLY_STOP",
     label: "OpenCode Rate-Limited 429 Early Stop",
     description:
       "For the OpenCode multi-account rotation, stop the account wave at the first 429 classified as a real rate limit (a parseable Retry-After header, or a body naming a rate/usage limit) and return that upstream 429 unchanged (status, body, Retry-After and quota headers), instead of trying every remaining account. Unclassified 429s keep rotating. Off by default: the free tier is limited per egress IP (#9611), so every 429 rotates to the next account, and an exhausted wave returns the last upstream 429.",
     descriptionI18nKey: "featureFlagOpencodeRateLimited429EarlyStopDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "OPENCODE_PARK_AND_RESUME",
+    label: "OpenCode 429 Park And Resume",
+    description:
+      "For the OpenCode multi-account rotation, park the request after repeated transient 429s (or a fresh pool-strain marker) with a heartbeat, then replay one capped leg of up to 3 sequential accounts instead of fanning out the whole fleet. Off by default: every 429 rotates to the next account exactly as before.",
+    descriptionI18nKey: "featureFlagOpencodeParkAndResumeDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
@@ -726,6 +774,30 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: false,
     warningLevel: "caution",
   },
+  {
+    key: "BATCH_AND_FILE_AUTO_CLEANUP_ENABLED",
+    label: "Batch & File Auto-Cleanup",
+    description:
+      "Let the automatic cleanup sweep delete terminal (completed/failed/cancelled/expired) Batch API jobs older than OMNIROUTE_BATCH_RETENTION_DAYS, along with their per-line checkpoints, and clear the BLOB content of uploaded files past their own expires_at. Off by default: every existing install keeps this data exactly as before until an operator opts in. The operator-triggered DELETE /api/v1/batches/delete-completed route is unaffected either way -- it is a separate, unconditional public API contract.",
+    descriptionI18nKey: "featureFlagBatchAndFileAutoCleanupEnabledDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "danger",
+  },
+  {
+    key: "ANTIGRAVITY_ACCOUNT_LEASE_ENABLED",
+    label: "Antigravity Account Lease",
+    description:
+      "Reserve the selected Antigravity account for the streaming lifecycle of the request that picked it, so a concurrent retry or the credential handoff cannot re-pick an account already committed to an in-flight stream. The reservation is scoped to (connection, callable upstream model), so one account can still serve two different models at once. When every eligible account is already leased for that model, the request returns a structured 503 POOL_BUSY with a bounded Retry-After instead of piling onto a busy account. Off by default: account selection stays exactly as before, and no reservation is taken.",
+    descriptionI18nKey: "featureFlagAntigravityAccountLeaseEnabledDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
 
   // ──────────────── CLI (5) ────────────────
   {
@@ -840,6 +912,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
       "Fetch the live xAI model catalog for xai-oauth connections from https://api.x.ai/v1/models using the OAuth bearer token, instead of the frozen static seed. Off by default: xai-oauth keeps serving the static seed unchanged. On any resolution error, discovery falls back to the seed (unverified whether x.ai accepts an OAuth bearer at this endpoint).",
     descriptionI18nKey: "featureFlagXaiOauthLiveModelDiscoveryDescription",
     category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED",
+    label: "DB Health Check: Defer Startup Scan",
+    description:
+      "Run the startup DB integrity/health check after the server starts accepting requests (via setImmediate) instead of blocking startup until it completes. Off by default: startup blocks on the check exactly like before #13717, so a corrupt database is still caught before the first request is served. On: startup returns immediately and the check (now bounded/paged and, for a real file-backed DB, isolated in a cancellable child process) runs right after.",
+    descriptionI18nKey: "featureFlagDbHealthcheckStartupDeferredEnabledDescription",
+    category: "health",
     defaultValue: "false",
     type: "boolean",
     requiresRestart: false,

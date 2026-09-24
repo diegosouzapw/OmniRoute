@@ -29,7 +29,7 @@ import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
 import { resolveComboTargetModelStr } from "./opencodeTargetAlias.ts";
 import { isComboModelVisible } from "./comboVisibility.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
-import { evaluateContextLimit } from "./contextOverrideGate.ts";
+import { evaluateContextLimit, getModelContextOverrideValue } from "./contextOverrideGate.ts";
 import {
   normalizeModelEntry,
   orderTargetsForWeightedFallback,
@@ -146,9 +146,7 @@ function normalizeRuntimeStep(
     // to a subset of the provider's connections. This is the second writer of
     // `allowedConnectionIds` (tag routing is the first); both feed the existing
     // credential-selection filter in auth.ts.
-    ...(allowedConnectionIds && allowedConnectionIds.length > 0
-      ? { allowedConnectionIds }
-      : {}),
+    ...(allowedConnectionIds && allowedConnectionIds.length > 0 ? { allowedConnectionIds } : {}),
     weight,
     label,
     // `prompt` is a per-step pipeline input and only exists on a model step —
@@ -549,6 +547,36 @@ function hasKnownCompatibleContextLimit(
   return evaluateContextLimit(capabilities, requirements, target.modelStr) === true;
 }
 
+/**
+ * #13870: how far the required-token estimate exceeds an operator-set
+ * `model_context_override` before that override is no longer trusted as
+ * "probably a chars/4 overestimate, not a real overflow." The issue's own
+ * reproduction measured chars/4 overstating real tokenizer usage ~3.7x on a
+ * repetitive agent-session body; this margin covers that plus headroom while
+ * still bounding how far off an override-rejected target can be trusted.
+ */
+const OVERRIDE_REJECT_TRUST_MARGIN = 5;
+
+/**
+ * A target with an explicit `model_context_override` that fails the context
+ * check, but only because the required-token estimate is within
+ * `OVERRIDE_REJECT_TRUST_MARGIN`x of the override. This is the #13870 case:
+ * the override is operator-verified real capacity, while the chars/4 estimate
+ * that rejected it is a heuristic known to overstate repetitive content by a
+ * similar multiple — so a near-boundary override rejection is more likely
+ * estimate noise than a genuine overflow.
+ */
+function isNearBoundaryOverrideReject(
+  target: ResolvedComboTarget,
+  requirements: RequestCompatibilityRequirements
+): boolean {
+  if (requirements.requiredContextTokens <= 0) return false;
+  const override = getModelContextOverrideValue(target.modelStr);
+  if (override == null || override <= 0) return false;
+  if (override >= requirements.requiredContextTokens) return false;
+  return requirements.requiredContextTokens <= override * OVERRIDE_REJECT_TRUST_MARGIN;
+}
+
 const HARD_COMPAT_REASONS = new Set(["tools", "vision", "structured_output", "output_tokens"]);
 
 /**
@@ -761,9 +789,45 @@ export function filterTargetsByRequestCompatibility(
     const knownContextCompatible = compatible.filter((target) =>
       hasKnownCompatibleContextLimit(target, requirements)
     );
-    if (knownContextCompatible.length > 0 && knownContextCompatible.length < compatible.length) {
-      const knownSet = new Set(knownContextCompatible);
-      return [...knownContextCompatible, ...compatible.filter((target) => !knownSet.has(target))];
+    // #13870: an operator-verified override must not be outranked by a
+    // catalog-only "known compatible" target (e.g. a large but unconfirmed
+    // emergency fallback) purely because the chars/4 estimate that rejected
+    // the override is itself known to overstate repetitive content several
+    // -fold. Split the known-compatible tier by override vs. catalog-only —
+    // only the catalog-only subset can be leapfrogged by a near-boundary
+    // override rejection; a target that is ALREADY known-compatible via its
+    // own override (evaluateContextLimit resolves overrides first) keeps its
+    // earned place ahead of every override-rejected target.
+    const overrideVerifiedCompatible = knownContextCompatible.filter(
+      (target) => getModelContextOverrideValue(target.modelStr) != null
+    );
+    const catalogOnlyCompatible = knownContextCompatible.filter(
+      (target) => getModelContextOverrideValue(target.modelStr) == null
+    );
+    const overrideTrustedRejects = compatible.filter(
+      (target) =>
+        !knownContextCompatible.includes(target) &&
+        (targetReasons.get(target) || []).includes("context_window") &&
+        isNearBoundaryOverrideReject(target, requirements)
+    );
+    const preferredTier = [
+      ...overrideVerifiedCompatible,
+      ...overrideTrustedRejects,
+      ...catalogOnlyCompatible,
+    ];
+    if (preferredTier.length > 0) {
+      const preferredSet = new Set(preferredTier);
+      const reordered = [
+        ...preferredTier,
+        ...compatible.filter((target) => !preferredSet.has(target)),
+      ];
+      // Only return when this tiering actually changes the order — e.g. when
+      // every compatible target already lands in `preferredTier` in the same
+      // relative order it started in, `compatible` (built by a single stable
+      // filter over `targets`) is already correct and re-wrapping it would be
+      // a no-op.
+      const changedOrder = reordered.some((target, index) => target !== compatible[index]);
+      if (changedOrder) return reordered;
     }
   }
 

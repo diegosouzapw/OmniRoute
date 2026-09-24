@@ -22,11 +22,20 @@ import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import {
   checkGeminiWebUnsupportedControls,
   GEMINI_WEB_UNSUPPORTED_CONTROL_CODE,
+  isForcingToolChoice,
+  requestsThinkingBudget,
 } from "./gemini-web/capabilities.ts";
+import {
+  describeModeSelectionFailure,
+  selectGeminiExtendedThinking,
+  selectGeminiModel,
+} from "./gemini-web/modeSelection.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const GEMINI_URL = "https://gemini.google.com/app";
+/** Response-label fallback when no `model` was requested at all (unchanged since pre-#13381). */
+const DEFAULT_MODEL_ID = "gemini-2.5-pro";
 
 // Re-exported for backward compatibility: some tests/callers import this classification helper
 // from gemini-web.ts, its original home (#3516). The implementation now lives in
@@ -416,21 +425,28 @@ export class GeminiWebExecutor extends BaseExecutor {
     const { model, body, stream, credentials, signal, log, onCredentialsRefreshed } = input;
     const requestBody = body as GeminiRequestBody;
 
-    // #9356: fail fast on controls this provider cannot honor (reasoning_effort
-    // above "minimal", forced tool_choice). Runs before the credential check and
-    // before Playwright launches — the request is unservable no matter which
-    // cookie is used, and answering 200 with ordinary prose made agents believe
-    // their reasoning/tool requirements had been met. See ./gemini-web/capabilities.ts.
-    const violation = checkGeminiWebUnsupportedControls(body as Record<string, unknown>);
-    if (violation) {
+    // #9356: forced tool_choice is a guarantee gemini-web's prompt-emulation shim can
+    // never make — no UI control for it exists at all, on any account, so this still
+    // fails fast before the credential check and before Playwright launches. See
+    // ./gemini-web/capabilities.ts.
+    //
+    // `reasoning_effort` (Extended Thinking) is different (#13381 follow-up comment,
+    // 2026-09-11): eligible Gemini accounts DO expose a real Extended Thinking toggle
+    // in the UI, so a blanket "we can never do this" would be the same dishonesty this
+    // fix exists to remove. It is no longer rejected here — it is attempted, verified
+    // via read-back, and only THEN rejected if it cannot be confirmed. See the in-browser
+    // step below and ./gemini-web/modeSelection.ts.
+    const rawBody = body as Record<string, unknown>;
+    if (isForcingToolChoice(rawBody.tool_choice)) {
+      const violation = checkGeminiWebUnsupportedControls({ tool_choice: rawBody.tool_choice });
       log?.warn?.(
         "GEMINI-WEB",
-        `Rejected request: "${violation.param}" is not supported by this provider`
+        `Rejected request: "${violation!.param}" is not supported by this provider`
       );
       return {
         response: new Response(
           JSON.stringify(
-            buildErrorBody(400, violation.message, null, {
+            buildErrorBody(400, violation!.message, null, {
               type: "invalid_request_error",
               code: GEMINI_WEB_UNSUPPORTED_CONTROL_CODE,
             })
@@ -442,6 +458,7 @@ export class GeminiWebExecutor extends BaseExecutor {
         transformedBody: body,
       };
     }
+    const wantsExtendedThinking = requestsThinkingBudget(rawBody.reasoning_effort);
 
     const cookie = resolveGeminiWebCookie(credentials);
     if (!cookie) {
@@ -492,6 +509,11 @@ export class GeminiWebExecutor extends BaseExecutor {
         transformedBody: body,
       };
     }
+
+    // Resolved up front (#13381) — the pre-fix code only read `model` AFTER the
+    // response was already captured, purely to stamp it on the reply. It now also
+    // drives the in-browser mode-selection step below, before anything is typed.
+    const modelId = model || DEFAULT_MODEL_ID;
 
     let browser: any = null;
     let abortBrowser: (() => void) | null = null;
@@ -549,6 +571,70 @@ export class GeminiWebExecutor extends BaseExecutor {
       }
       await page.waitForTimeout(3000);
 
+      // #13381 (Option B): verify the requested Gemini UI mode is actually active
+      // BEFORE anything is typed. `gemini-3.1-pro` is the mode gemini.google.com/app
+      // already opens to (no interaction attempted); every other advertised model is
+      // switched to and its active-mode indicator is read back — a confirmed match is
+      // required, or the request is rejected instead of silently running the account
+      // default under the requested model's label. See ./gemini-web/modeSelection.ts
+      // for why the selectors involved are UNVALIDATED and why that is safe here.
+      if (model) {
+        const modelSelection = await selectGeminiModel(page, modelId);
+        if (!modelSelection.confirmed) {
+          log?.warn?.(
+            "GEMINI-WEB",
+            `Rejected request: could not confirm Gemini UI mode for "${modelId}" ` +
+              `(${modelSelection.reason})`
+          );
+          return {
+            response: new Response(
+              JSON.stringify(
+                buildErrorBody(
+                  400,
+                  describeModeSelectionFailure(modelId, modelSelection.reason),
+                  null,
+                  { type: "invalid_request_error", code: GEMINI_WEB_UNSUPPORTED_CONTROL_CODE }
+                )
+              ),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            ),
+            url: GEMINI_URL,
+            headers: {},
+            transformedBody: body,
+          };
+        }
+      }
+
+      // Extended Thinking (#13381 follow-up, 2026-09-11): same detect-and-verify,
+      // fail-closed pattern as model selection above — attempted only when requested
+      // (`reasoning_effort` above "minimal"), never assumed available.
+      if (wantsExtendedThinking) {
+        const thinkingSelection = await selectGeminiExtendedThinking(page);
+        if (!thinkingSelection.confirmed) {
+          log?.warn?.(
+            "GEMINI-WEB",
+            `Rejected request: could not confirm Extended Thinking is available ` +
+              `(${thinkingSelection.reason})`
+          );
+          return {
+            response: new Response(
+              JSON.stringify(
+                buildErrorBody(
+                  400,
+                  describeModeSelectionFailure("Extended Thinking", thinkingSelection.reason),
+                  null,
+                  { type: "invalid_request_error", code: GEMINI_WEB_UNSUPPORTED_CONTROL_CODE }
+                )
+              ),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            ),
+            url: GEMINI_URL,
+            headers: {},
+            transformedBody: body,
+          };
+        }
+      }
+
       // Type and send message
       const inputEl = await page.waitForSelector(".ql-editor, [contenteditable='true']", {
         timeout: 10000,
@@ -583,8 +669,6 @@ export class GeminiWebExecutor extends BaseExecutor {
       }
 
       await this.persistRotatedCookies(context, cookie, credentials, onCredentialsRefreshed, log);
-
-      const modelId = model || "gemini-2.5-pro";
 
       if (hasTools) {
         const cid = `chatcmpl-gwe-${crypto.randomUUID().slice(0, 12)}`;

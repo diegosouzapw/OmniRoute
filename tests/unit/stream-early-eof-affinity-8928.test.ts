@@ -8,20 +8,17 @@ const chatSource = fs.readFileSync(
 );
 
 function getNonAntigravityStreamFailureBranch(): string {
-  const startMarker = [
-    "      if (",
-    '        (result.errorType === "stream_timeout" || result.errorType === "stream_early_eof") &&',
-    "        !isAntigravityStreamReadinessFailure",
-    "      ) {",
-  ].join("\n");
+  // Locate the branch by what it TESTS, not by how it is formatted: #12906 added
+  // `|| result.errorCode === "empty_response"` to the same condition and Prettier
+  // rewrapped it, which a literal marker could not survive. What must not regress
+  // is that a non-Antigravity stream failure still reaches the eviction below.
+  const branchRe =
+    /if \(\s*\([\s\S]{0,400}?stream_early_eof[\s\S]{0,240}?\)\s*&&\s*!isAntigravityStreamReadinessFailure\s*\)\s*\{/;
+  const match = branchRe.exec(chatSource);
+  assert.ok(match, "non-Antigravity stream-failure branch must exist");
 
-  const start = chatSource.indexOf(startMarker);
-  assert.notEqual(start, -1, "non-Antigravity stream-failure branch must exist");
-
-  const end = chatSource.indexOf(
-    "\n      if (isAntigravityStreamReadinessFailure)",
-    start
-  );
+  const start = match.index;
+  const end = chatSource.indexOf("\n      if (isAntigravityStreamReadinessFailure)", start);
   assert.notEqual(end, -1, "stream-failure branch end marker must exist");
 
   return chatSource.slice(start, end);
@@ -31,12 +28,8 @@ test("terminal STREAM_EARLY_EOF evicts affinity after the bounded retry (#8928)"
   const branch = getNonAntigravityStreamFailureBranch();
 
   const retryContinue = branch.indexOf("continue;");
-  const eviction = branch.indexOf(
-    "evictSessionAccountAffinityForConnection("
-  );
-  const terminalReturn = branch.indexOf(
-    "return withSelectedConnectionHeader("
-  );
+  const eviction = branch.indexOf("evictSessionAccountAffinityForConnection(");
+  const terminalReturn = branch.indexOf("return withSelectedConnectionHeader(");
 
   assert.ok(retryContinue >= 0, "the existing bounded retry must remain");
   assert.ok(eviction > retryContinue, "eviction must happen only after retry is exhausted");

@@ -1,4 +1,5 @@
 import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
+import { getProviderNodeById } from "@/lib/db/providers/nodes";
 import { getServiceModels } from "@/lib/db/serviceModels";
 import { isServiceBackendPluginId } from "@/lib/services/serviceBackends";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
@@ -40,6 +41,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
   const providerEntry = getRegistryEntry(rawProvider);
   let providerId = rawProvider;
   let providerAlias = rawProvider;
+  let compatiblePrefix: string | null = null;
 
   if (providerEntry) {
     providerId = providerEntry.id;
@@ -65,6 +67,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
           { status: 400 }
         );
       }
+
+      const compatibleNode = (await getProviderNodeById(rawProvider)) as {
+        prefix?: unknown;
+      } | null;
+      compatiblePrefix =
+        typeof compatibleNode?.prefix === "string" && compatibleNode.prefix.trim().length > 0
+          ? compatibleNode.prefix.trim()
+          : null;
     }
   }
 
@@ -86,10 +96,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     if (!id) return id;
     if (id.startsWith(`${providerAlias}/`)) return id.slice(providerAlias.length + 1);
     if (id.startsWith(`${providerId}/`)) return id.slice(providerId.length + 1);
+    if (compatiblePrefix && id.startsWith(`${compatiblePrefix}/`)) {
+      return id.slice(compatiblePrefix.length + 1);
+    }
     return id;
   };
 
-  const filtered = payload.data.filter((model) => model?.owned_by === providerId);
+  const acceptedOwners = new Set([providerId, providerAlias]);
+  if (compatiblePrefix) acceptedOwners.add(compatiblePrefix);
+  const filtered = payload.data.filter(
+    (model) => typeof model?.owned_by === "string" && acceptedOwners.has(model.owned_by)
+  );
   const deduped = new Map<string, Record<string, any>>();
 
   for (const model of filtered) {

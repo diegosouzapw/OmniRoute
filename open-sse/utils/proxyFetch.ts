@@ -15,6 +15,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
+import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
@@ -85,33 +86,12 @@ function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
 }
 
-function isGroqTlsFingerprintHost(url: string | null | undefined): boolean {
-  if (!url) return false;
-  try {
-    const host = new URL(url).hostname.toLowerCase();
-    return host === "api.groq.com" || host.endsWith(".groq.com");
-  } catch {
-    return /(?:^|[./])api\.groq\.com(?:[:/?]|$)/i.test(String(url));
-  }
-}
-
-function isGroqTlsFingerprintProvider(
-  provider: string | null | undefined
-): boolean {
-  const normalized = provider?.trim().toLowerCase();
-  return normalized === "groq";
-}
-
 function tlsFingerprintProviderAllowed(
   provider: string | null | undefined,
-  proxied: boolean,
-  url?: string | null
+  proxied: boolean
 ): boolean {
-  if (isGroqTlsFingerprintProvider(provider) || isGroqTlsFingerprintHost(url)) {
-    return false;
-  }
   const configured = process.env.TLS_FINGERPRINT_PROVIDERS?.trim();
-  // Preserve legacy direct-only opt-in. The new proxied transport requires
+  // Preserve the legacy direct-only opt-in. The new proxied transport requires
   // an explicit allowlist so enabling TLS cannot silently change proxy traffic.
   if (!configured) return !proxied;
   if (!provider) return false;
@@ -131,9 +111,8 @@ const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
   maxai: { browser: "firefox_150", os: "windows" },
 };
 
-function tlsProfileForProvider(
-  provider: string | null | undefined
-): { browserProfile?: string; os?: string } {
+type TlsProfileResult = { browserProfile?: string; os?: string };
+function tlsProfileForProvider(provider: string | null | undefined): TlsProfileResult {
   if (!provider) return {};
   const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
   return p ? { browserProfile: p.browser, os: p.os } : {};
@@ -210,7 +189,12 @@ type TlsFingerprintStore = {
  * the egress logger read the innermost applied proxy (the last writer wins, which
  * is the executor's per-account proxy).
  */
-export type AppliedProxySink = { proxy: unknown; upstreamStatus?: number };
+export type AppliedProxySink = {
+  proxy: unknown;
+  upstreamStatus?: number;
+  /** Masked serving-account id (N112) — set by the rotation executor at dispatch. */
+  rotationAccount?: string | null;
+};
 const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
 
 /**
@@ -222,6 +206,20 @@ const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
  */
 export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
   return appliedProxyContext.run(sink, fn);
+}
+
+/**
+ * Record the masked id of the rotation account serving this request on the
+ * current capture sink (no-op outside a capture — the sink stays null and the
+ * call-site forwards null). Only an already-masked id may be passed in.
+ */
+export function noteRotationAccount(masked: string): void {
+  try {
+    const sink = appliedProxyContext.getStore();
+    if (sink) sink.rotationAccount = masked;
+  } catch {
+    /* attribution is best-effort; never break the request path */
+  }
 }
 
 type FetchWithDispatcherOptions = RequestInit & { dispatcher?: unknown };
@@ -360,20 +358,6 @@ function isWreqProxySupported(proxyUrl: string): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Redact proxy URLs (and any bare `user:pass@host` credential tokens) from an
- * upstream transport-error message before it is surfaced. #10032 keeps the
- * underlying failure reason in the propagated error for diagnosability, but
- * the raw message can embed the full proxy URL — including userinfo
- * credentials — which must never bubble into response bodies (#9837, Hard
- * Rule #12).
- */
-function redactProxyDetailsInMessage(message: string): string {
-  return message
-    .replace(/\b(?:https?|socks[45][ah]?|socks):\/\/\S+/gi, "[redacted-proxy]")
-    .replace(/\b[^\s:@/]+:[^\s@/]*@\S+/g, "[redacted-proxy]");
 }
 
 function sanitizeTransportError(
@@ -650,7 +634,7 @@ export async function runWithProxyContext(
         );
         return runDirect();
       }
-    } else {
+    } else if (new URL(resolvedProxyUrl).protocol !== "socks5:") {
       // Fire the probe WITHOUT awaiting; dispatch optimistically below.
       unreachableProbe = isProxyReachable(resolvedProxyUrl);
     }
@@ -814,7 +798,7 @@ async function patchedFetchUnrecorded(
     if (
       isTlsFingerprintEnabled() &&
       activeTlsClient.available &&
-      tlsFingerprintProviderAllowed(tlsStore?.provider, false, targetUrl) &&
+      tlsFingerprintProviderAllowed(tlsStore?.provider, false) &&
       isTlsRequestEligible(input, options)
     ) {
       try {
@@ -869,7 +853,8 @@ async function patchedFetchUnrecorded(
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
     let lastDispatcherError: unknown = null;
-    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs();
+    const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
+    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;
@@ -885,7 +870,7 @@ async function patchedFetchUnrecorded(
             dispatcher: attempt === 0 ? getDefaultDispatcher() : getRetryDispatcher(),
           },
           _undiciDirect,
-          directHeadersTimeoutMs
+          resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout, attempt, !!options.signal)
         );
       } catch (dispatcherError) {
         if (isDirectResponseStartTimeout(dispatcherError)) {
@@ -929,7 +914,10 @@ async function patchedFetchUnrecorded(
             continue;
           }
           if (hasNonReplayableBody) {
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[skipped: non-replayable request body]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              "skipped: non-replayable request body"
+            );
             console.warn(
               `[ProxyFetch] skipping native fetch fallback for non-replayable body: ${detail}`
             );
@@ -973,7 +961,10 @@ async function patchedFetchUnrecorded(
             return await _nativeFallback(input, options);
           } catch (nativeError) {
             // Surface both dispatcher and native causes immediately.
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[${describeFetchCause(nativeError)}]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              describeFetchCause(nativeError)
+            );
             console.warn(`[ProxyFetch] native fetch fallback ALSO failed: ${detail}`);
             if (nativeError instanceof Error) {
               (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
@@ -1106,7 +1097,7 @@ async function patchedFetchUnrecorded(
     typeof tlsStore?.sessionScope === "string" &&
     tlsStore.sessionScope.trim().length > 0 &&
     activeTlsClient.available &&
-    tlsFingerprintProviderAllowed(tlsStore?.provider, true, targetUrl) &&
+    tlsFingerprintProviderAllowed(tlsStore?.provider, true) &&
     isTlsRequestEligible(input, options) &&
     isWreqProxySupported(proxyUrl)
   ) {

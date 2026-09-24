@@ -1,12 +1,12 @@
----
-title: "用户指南"
-version: 3.8.40
-lastUpdated: 2026-06-28
+# User Guide (中文 (简体))
+
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+
 ---
 
-# 用户指南
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
-配置服务商、创建 Combo、集成 CLI 工具和部署 OmniRoute 的完整指南。
+关于配置提供者、创建组合、集成 CLI 工具以及部署 OmniRoute 的完整指南。
 
 ---
 
@@ -33,26 +33,26 @@ lastUpdated: 2026-06-28
 
 ## 💰 定价概览
 
-| 级别           | 服务商            | 费用       | 配额重置       | 最佳用途           |
-| -------------- | ----------------- | ---------- | -------------- | ------------------ |
-| **💳 订阅制**  | Claude Code (Pro) | $20/月     | 5 小时 + 每周  | 已有订阅           |
-|                | Codex (Plus/Pro)  | $20-200/月 | 5 小时 + 每周  | OpenAI 用户        |
-|                | GitHub Copilot    | $10-19/月  | 每月           | GitHub 用户        |
-| **🔑 API Key** | DeepSeek          | 按量付费   | 无             | 低成本推理         |
-|                | Groq              | 按量付费   | 无             | 超高速推理         |
-|                | xAI (Grok)        | 按量付费   | 无             | Grok 4 推理        |
-|                | Mistral           | 按量付费   | 无             | 欧盟托管模型       |
-|                | Perplexity        | 按量付费   | 无             | 搜索增强           |
-|                | Together AI       | 按量付费   | 无             | 开源模型           |
-|                | Fireworks AI      | 按量付费   | 无             | 快速 FLUX 图像生成 |
-|                | Cerebras          | 按量付费   | 无             | 晶圆级速度         |
-|                | Cohere            | 按量付费   | 无             | Command R+ RAG     |
-|                | NVIDIA NIM        | 按量付费   | 无             | 企业级模型         |
-| **💰 经济型**  | GLM-4.7           | $0.6/1M    | 每日 10:00     | 预算备用           |
-|                | MiniMax M2.1      | $0.2/1M    | 5 小时滑动窗口 | 最便宜选项         |
-|                | Kimi K2           | $9/月 固定 | 10M Token/月   | 费用可预测         |
-| **🆓 免费**    | Qoder             | $0         | 未公布 Token 上限；仍有服务商限制 | 8 个模型免费 |
-|                | Kiro              | $0         | ~50 积分/月    | Claude 免费        |
+| 级别           | 服务商            | 费用       | 配额重置                          | 最佳用途           |
+| -------------- | ----------------- | ---------- | --------------------------------- | ------------------ |
+| **💳 订阅制**  | Claude Code (Pro) | $20/月     | 5 小时 + 每周                     | 已有订阅           |
+|                | Codex (Plus/Pro)  | $20-200/月 | 5 小时 + 每周                     | OpenAI 用户        |
+|                | GitHub Copilot    | $10-19/月  | 每月                              | GitHub 用户        |
+| **🔑 API Key** | DeepSeek          | 按量付费   | 无                                | 低成本推理         |
+|                | Groq              | 按量付费   | 无                                | 超高速推理         |
+|                | xAI (Grok)        | 按量付费   | 无                                | Grok 4 推理        |
+|                | Mistral           | 按量付费   | 无                                | 欧盟托管模型       |
+|                | Perplexity        | 按量付费   | 无                                | 搜索增强           |
+|                | Together AI       | 按量付费   | 无                                | 开源模型           |
+|                | Fireworks AI      | 按量付费   | 无                                | 快速 FLUX 图像生成 |
+|                | Cerebras          | 按量付费   | 无                                | 晶圆级速度         |
+|                | Cohere            | 按量付费   | 无                                | Command R+ RAG     |
+|                | NVIDIA NIM        | 按量付费   | 无                                | 企业级模型         |
+| **💰 经济型**  | GLM-4.7           | $0.6/1M    | 每日 10:00                        | 预算备用           |
+|                | MiniMax M2.1      | $0.2/1M    | 5 小时滑动窗口                    | 最便宜选项         |
+|                | Kimi K2           | $9/月 固定 | 10M Token/月                      | 费用可预测         |
+| **🆓 免费**    | Qoder             | $0         | 未公布 Token 上限；仍有服务商限制 | 8 个模型免费       |
+|                | Kiro              | $0         | ~50 积分/月                       | Claude 免费        |
 
 ---
 
@@ -117,35 +117,39 @@ Combo: "openclaw-free"
 
 ---
 
-## 📖 服务商配置
+## 📖 提供者设置
 
-### 🔐 订阅制服务商
+要从 CSV 或 JSON 文件批量添加 API 密钥连接，请使用 **控制面板 → 提供者 → 从文件导入**。列按位置对应（`provider,name,apiKey,baseUrl,priority`）；`provider` 必须已作为托管提供者或兼容节点存在。请参阅[从 CSV 或 JSON 文件导入提供者](../providers/CSV-IMPORT.md)。
 
-#### Claude Code (Pro/Max)
+### 🔐 订阅提供者
+
+#### Claude Code（Pro/Max）
 
 ```bash
-Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
+控制面板 → 提供者 → 连接 Claude Code
+→ OAuth 登录 → 自动刷新令牌
+→ 5 小时 + 每周配额跟踪
 
-Models:
+模型：
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**技巧：** 复杂任务用 Opus，追求速度用 Sonnet。OmniRoute 为每个模型单独追踪配额！
+**专业提示：** 复杂任务使用 Opus，追求速度则使用 Sonnet。OmniRoute 会按模型跟踪配额！
 
-Claude 和 Claude Code 兼容路由对 Opus 和 Sonnet 模型保留 `max` 思考级别。Haiku 模型不接受 `max` 级别，OmniRoute 会在发送到上游之前将该请求降级为较高的思考预算。
+Claude 和 Claude Code 兼容路由会为 Opus 和 Sonnet
+模型保留 `max` 思考强度。Haiku 模型不接受 `max` 强度级别，因此 OmniRoute 会在将
+请求发送到上游之前，将其降级为较高的思考预算。
 
-#### OpenAI Codex (Plus/Pro)
+#### OpenAI Codex（Plus/Pro）
 
 ```bash
-Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
+控制面板 → 提供者 → 连接 Codex
+→ OAuth 登录（端口 1455）
+→ 5 小时 + 每周重置
 
-Models:
+模型：
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -155,11 +159,11 @@ Models:
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Monthly reset (1st of month)
+控制面板 → 提供者 → 连接 GitHub
+→ 通过 GitHub 进行 OAuth
+→ 每月重置（每月 1 日）
 
-Models:
+模型：
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -167,55 +171,57 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 经济型服务商
+### 💰 低价提供者
 
 #### GLM-4.7（每日重置，$0.6/1M）
 
-1. 注册：[智谱 AI](https://open.bigmodel.cn)
-2. 从 Coding Plan 获取 API Key
-3. Dashboard → Add API Key：Provider: `glm`，API Key: `your-key`
+1. 注册：[Zhipu AI](https://open.bigmodel.cn)
+2. 从 Coding Plan 获取 API 密钥
+3. 控制面板 → 添加 API 密钥：提供者：`glm`，API 密钥：`your-key`
 
-**使用：** `glm/glm-4.7` — **技巧：** Coding Plan 提供 3 倍配额，仅需 1/7 成本！每日 10:00 重置。
+**使用：** `glm/glm-4.7` — **专业提示：** Coding Plan 以 1/7 的成本提供 3 倍配额！每天上午 10:00 重置。
 
-#### MiniMax M2.1（5 小时重置，$0.20/1M）
+#### MiniMax M2.1（每 5 小时重置，$0.20/1M）
 
 1. 注册：[MiniMax](https://www.minimax.io)
-2. 获取 API Key → Dashboard → Add API Key
+2. 获取 API 密钥 → 控制面板 → 添加 API 密钥
 
-**使用：** `minimax/MiniMax-M2.1` — **技巧：** 长上下文（1M Token）场景下最经济的选择！
+**使用：** `minimax/MiniMax-M2.1` — **专业提示：** 这是长上下文（1M 令牌）最便宜的选择！
 
-#### Kimi K2（$9/月 固定费用）
+#### Kimi K2（固定 $9/月）
 
-1. 订阅：[月之暗面](https://platform.moonshot.ai)
-2. 获取 API Key → Dashboard → Add API Key
+1. 订阅：[Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. 获取 API 密钥 → 控制面板 → 添加 API 密钥
 
-**使用：** `kimi/kimi-k2.5` — **技巧：** 固定 $9/月享受 10M Token，相当于 $0.90/1M！
+**使用：** `kimi/kimi-k2.5` — **专业提示：** 每月固定 $9，可获得 10M 令牌 = 有效成本为 $0.90/1M！
 
-#### Baidu Qianfan / ERNIE
+#### 百度千帆 / ERNIE
 
 1. 注册：[百度智能云千帆](https://cloud.baidu.com/product/wenxinworkshop)
-2. 创建千帆 API Key → Dashboard → Add API Key：Provider: `qianfan`
+2. 创建千帆 API 密钥 → 控制面板 → 添加 API 密钥：提供者：`qianfan`
 
-**使用：** `qianfan/ernie-5.1`、`qianfan/ernie-x1.1` 或其他千帆 OpenAI 兼容模型 ID。
+**使用：** `qianfan/ernie-5.1`、`qianfan/ernie-x1.1` 或其他兼容 OpenAI 的千帆模型 ID。
 
-### 🆓 免费服务商
+### 🆓 免费提供者
 
-无需认证的免费服务商在其服务商页面上有一个「No authentication required」开关。关闭该开关将禁用该服务商，从已配置/紧凑视图中移除，并从 `/v1/models` 中移除其模型。
+无需身份验证的免费提供者，其提供者页面上会在 **无需身份验证** 旁显示一个开关。
+关闭该开关将禁用该提供者，将其从“提供者”的已配置/紧凑视图中移除，并
+从 `/v1/models` 中移除其模型。
 
-#### Qoder（8 个免费模型）
+#### Qoder（9 个免费模型）
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
+控制面板 → 连接 Qoder → OAuth 登录 → 访问权限受当前提供者限制约束
 
-Models: if/kimi-k2, if/qwen3-coder-plus, if/qwen3-max, if/qwen3-235b, if/deepseek-r1, if/deepseek-v3.2
+模型：if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro（免费 Claude）
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
+控制面板 → 连接 Kiro → AWS Builder ID 或 Google/GitHub → 每月约 50 个积分
 
-Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+模型：kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---
@@ -566,7 +572,6 @@ post_install() {
 **Kiro (`kr/`)** — 免费 OAuth：请使用 **控制面板 → 提供商 → Kiro → 可用模型** 中显示的实时目录。可用模型取决于账户和套餐。
 
 **Qoder (`if/`)** — FREE OAuth: `if/kimi-k2-0905`, `if/kimi-k2`, `if/qwen3-coder-plus`, `if/qwen3-max`, `if/qwen3-max-preview`, `if/qwen3-vl-plus`, `if/qwen3-32b`, `if/qwen3-235b-a22b-thinking-2507`, `if/qwen3-235b-a22b-instruct`, `if/qwen3-235b`, `if/deepseek-v3.2`, `if/deepseek-v3`, `if/deepseek-r1`, `if/qoder-rome-30ba3b`
-
 
 **GLM (`glm/`、`glm-cn/`、`zai/`、`glmt/`)** — $0.2–0.6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
 

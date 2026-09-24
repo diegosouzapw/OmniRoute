@@ -1,5 +1,5 @@
 # ── Multi-stage Dockerfile for Native Bun Runtime (web-latest-bun) ───────────
-FROM oven/bun:1.4.0-slim AS base
+FROM oven/bun:1.4.2-slim AS base
 WORKDIR /app
 
 RUN apt-get update \
@@ -56,7 +56,7 @@ ENV NODE_ENV=production
 RUN bun run --quiet build
 
 # ── Runner Base stage (100% Bun Native Production Runtime) ──────────────────
-FROM oven/bun:1.4.0-slim AS runner-base
+FROM oven/bun:1.4.2-slim AS runner-base
 
 LABEL org.opencontainers.image.title="omniroute" \
   org.opencontainers.image.description="Unified AI proxy — route any LLM through one endpoint (Bun Native)" \

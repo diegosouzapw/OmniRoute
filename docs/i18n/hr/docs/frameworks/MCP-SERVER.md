@@ -1,36 +1,44 @@
-# MCP-SERVER (Hrvatski)
+# OmniRoute MCP Server Documentation (Hrvatski)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
-title: "OmniRoute MCP Server Dokumentacija"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# OmniRoute MCP Server Dokumentacija
-
-> Model Context Protocol server s 110 alata za usmjeravanje, predmemoriju, kompresiju, memoriju, vještine, proxy, pool, Radar i operacije kontekstnih izvora.
+> Poslužitelj Model Context Protocola sa 110 alata za operacije usmjeravanja, predmemorije, kompresije, memorije, vještina, proxyja, skupa, Radara i izvora konteksta.
 >
-> Izvor istine: `open-sse/mcp-server/server.ts` izračunava **110 jedinstvenih alata** pomoću `countUniqueMcpTools()`: 45 kanonskih definicija (uključujući šest CCR lifecycle alata, trio agent-skills, `omniroute_radar_catalog` i `omniroute_x_search`), plus memorija (3), vještine (4), GitHub vještine (3), pool (6), gamifikacija (8), dodaci (8), Notion (6), Obsidian (22), lokalni korpus (3) i dva RTK-ekskluzivna alata za kompresiju.
+> Izvor istine: `open-sse/mcp-server/server.ts` izračunava **110 jedinstvenih alata** pomoću funkcije `countUniqueMcpTools()`: 45 kanonskih definicija (uključujući šest CCR alata za životni ciklus, trio agent-skills, `omniroute_radar_catalog` i `omniroute_x_search`), uz alate za memoriju (3), vještine (4), GitHub vještine (3), skup (6), gamifikaciju (8), dodatke (8), Notion (6), Obsidian (22), lokalni korpus (3) i dva alata za kompresiju namijenjena isključivo RTK-u.
 
 ## Instalacija
 
-OmniRoute MCP je ugrađen. Pokrenite ga s:
+OmniRoute MCP je ugrađen. Pokrenite ga pomoću:
 
 ```bash
 omniroute --mcp
 ```
 
-Ili putem open-sse transporta:
+Ili putem transporta open-sse:
 
 ```bash
-# HTTP streamable transport (port 20130)
-omniroute --dev  # MCP se automatski pokreće na /mcp endpointu
+# HTTP transport sa strujanjem (port 20130)
+omniroute --dev  # MCP se automatski pokreće na krajnjoj točki /mcp
 ```
+
+HTTP transporti (`sse` / `streamable-http`, koje unutar procesa poslužuje poslužitelj nadzorne ploče)
+prema zadanim su postavkama isključeni, a prethodno su se mogli uključivati i isključivati samo na stranici `/dashboard/mcp`. Od verzije v3.8.51
+CLI nudi iste mogućnosti:
+
+```bash
+omniroute mcp status                                  # omogućeno/na mreži, transport, broj alata
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # ponovno postavlja aktivne sse/streamable-http sesije
+```
+
+`mcp enable`/`mcp disable` putem metode PATCH mijenjaju istu postavku `mcpEnabled` (i opcionalno `mcpTransport`)
+koju nadzorna ploča uključuje i isključuje putem `/api/settings`. `mcp restart` poziva `POST /api/mcp/restart`: prekida
+aktivne `sse`/`streamable-http` sesije kako bi se sljedeći zahtjev ponovno ispravno inicijalizirao, vraća
+`409` ako je MCP onemogućen i `501` za transport `stdio` (stdio klijenti upravljaju vlastitim
+podprocesom — ne postoji ručka unutar procesa koja bi se mogla ponovno pokrenuti).
 
 ## Transporti
 
@@ -282,8 +290,76 @@ I SSE i Streamable HTTP transporti su blokirani dok MCP poslužitelj nije omogu�
 
 ## Autentifikacija i opsezi
 
-MCP alati se autentificiraju putem opsega API ključeva. Primjena opsega centralizirana je u
-`open-sse/mcp-server/scopeEnforcement.ts`. Svaki alat zahtijeva određene opsege:
+MCP alat poziva nizove opsega za čitanje od pozivatelja. Ta provjera je jedan od tri neovisna imenska prostora. Prolazak jednog provjerivača ne znači prolazak ostalih. Pravila su [Tri imenska prostora opsega](#three-scope-namespaces). Katalog alata je [MCP opsezi alata](#mcp-tool-scopes).
+
+### Tri imenska prostora opsega
+
+`manage` na API ključu, `read:compression` na MCP alatu i `read` na `oma_live_…` pristupnom tokenu su tri različita odobrenja. Pozivatelji koji pošalju `read` pristupni token mutirajućoj ruti za upravljanje dobivaju HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Taj rang je `scopeSatisfies`. On ne konzultira MCP tablicu, a MCP uspoređivač ga ne konzultira.
+
+| Imenski prostor         | Vjerodajnica                                              | Provjerivač                     | Prolazak dopušta                                           |
+| :---------------------- | :-------------------------------------------------------- | :------------------------------ | :--------------------------------------------------------- |
+| Upravljanje API ključem | `api_keys.scopes`                                         | `hasManageScope`                | Upravljački REST za taj Bearer ključ                       |
+| Aditivni API ključ      | isti niz, jedan točan niz                                 | pomoćna funkcija navedena dolje | Samo tu jednu mogućnost                                    |
+| MCP opsezi alata        | isti niz, inače MCP `_meta`, inače `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                  | Taj alat, nakon što se provede prisila                     |
+| Pristupni token         | `oma_live_…`                                              | `scopeSatisfies`                | Ruta za upravljanje čija metoda i put zahtijevaju taj rang |
+
+Izrada svake vjerodajnice pokrivena je u [Upravljačka autentifikacija](../guides/MANAGEMENT-AUTH.md).
+
+#### API-ključ opsezi
+
+Jedan `api_keys.scopes` niz hrani dva posla. Koriste različite funkcije.
+
+**Upravljački REST.** `manage` i `admin` su članovi `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). `hasManageScope` je ono što autorizira upravljačke rute za taj ključ. `admin` je sposoban za upravljanje na tim rutama. Riječ `admin` ovdje nije rang pristupnog tokena i ne širi se na MCP opsege alata.
+
+**Aditivni nizovi.** Svaki je točan test članstva, i svaki ostaje izvan `MANAGEMENT_API_KEY_SCOPES`.
+
+| Opseg                          | Prolazak dopušta                                                                                                                                                       |
+| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Samo ne-loopback `/api/mcp/` LOCAL_ONLY izrez (`hasMcpConnectOrManageScope`). Ključ s `manage` ili `admin` i dalje prolazi taj izrez.                                  |
+| `self:usage`                   | `GET /api/v1/me/status` za ovaj ključ (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` dodaje ovaj opseg pri stvaranju (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Uzvodne kvote računa unutar tog statusnog paketa (`src/lib/usage/apiKeySelfService.ts`). Ruta statusa i dalje zahtijeva `self:usage`.                                  |
+| `policy:bypass-provider-quota` | Pozivi za inferenciju ovog ključa preskaču politiku kvote pružatelja (`hasProviderQuotaBypassScope` u `src/sse/handlers/chat.ts`).                                     |
+
+#### Uspoređivanje
+
+Katalog je tablica pod [MCP opsezi alata](#mcp-tool-scopes). Ne tretirajte `MCP_SCOPE_LIST` u `src/shared/constants/mcpScopes.ts` kao taj katalog: to je izvorni tipizirani podskup. Kasniji alati deklariraju dodatne opsege pored njega (`read:notion`, `read:skills`, `read:local-corpus` i ostatak tablice).
+
+`evaluateToolScopes` u `open-sse/mcp-server/scopeEnforcement.ts` dopušta poziv kada se svaki potrebni opseg podudara s nekim dodijeljenim opsegom:
+
+- `*` se podudara sa svakim potrebnim opsegom.
+- Dodijeljeni opseg koji završava s `*` podudara se s potrebnim opsegom koji počinje prefiksom prije zvjezdice. `read:*` se podudara s `read:compression`.
+- Svaki drugi dodijeljeni opseg podudara se samo s identičnim potrebnim nizom.
+
+Ključ čiji su opsezi `["manage"]` ne uspijeva `scopeMatches` za `read:compression`. Isti poziv ne uspijeva za `admin`, `mcp:connect`, `read` i `write` kada su to jedini dodijeljeni nizovi. Ne postoji hijerarhija među MCP opsezima alata izvan završne `*`.
+
+Provedba je isključena osim ako `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (zadano `false`). Dok je isključena, `evaluateToolScopes` dopušta poziv i preskače katalog. Dok je uključena, HTTP koristi `api_keys.scopes` Bearer ključa kao `authInfo` (pogledajte [Povezivanje HTTP opsega po ključu](#per-key-http-scope-binding-7895)). Kada se opsezi ključa ne riješe, dodijeljeni skup pada na MCP `_meta`, a zatim na `OMNIROUTE_MCP_SCOPES`.
+
+#### Opsezi pristupnog tokena
+
+`oma_live_…` tokeni (`src/lib/accessTokens/scopes.ts`) nose `read`, `write` ili `admin`. `scopeSatisfies` je rang: `admin` pokriva `write` i `read`, a `write` pokriva `read`. Nepoznati opsezi ne pokrivaju ništa.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) uspoređuje taj rang s `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD` i `OPTIONS` zahtijevaju `read`.
+- Svaka druga metoda zahtijeva `write`.
+- Putevi u `ADMIN_SCOPE_PREFIXES` zahtijevaju `admin` za svaku metodu. `/api/mcp` je na tom popisu, tako da `write` pristupni token i dalje ne može pozvati MCP HTTP sučelje.
+- Putevi u `ADMIN_MUTATION_PREFIXES` zahtijevaju `admin` samo za mutacije.
+
+`PATCH /api/keys/{id}` je mutacija i nije na tim administratorskim popisima, pa
+`read` token prima 403
+`Opseg pristupnog tokena 'read' je nedovoljan; potreban je 'write'.`
+`write` ili `admin` pristupni token zadovoljava tu rutu. Nadzorna ploča JWT,
+`loopback CLI machine-id token`, i API ključ s `manage` ili `admin` uzimaju
+druge grane i nisu suženi ovim rangom.
+
+Pristupni token koji prolazi `scopeSatisfies` za `/api/mcp` je prošao
+samo upravljačku barijeru. Pozivi alata i dalje pokreću `scopeMatches`
+protiv opsega API ključa. Rang pristupnog tokena nije ulaz za `scopeMatches`.
+
+### Opsezi MCP alata
+
+Provođenje opsega centralizirano je u `open-sse/mcp-server/scopeEnforcement.ts`.
+Svaki alat zahtijeva specifične opsege:
 
 | Opseg                 | Alati                                                                                                                                                                              |
 | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -321,36 +397,15 @@ MCP alati se autentificiraju putem opsega API ključeva. Primjena opsega central
 | `write:obsidian`      | 9 alata za pisanje — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                  |
 
-Podržani su i zamjenski opsezi: `read:*` dodjeljuje sve opsege za čitanje, `*` dodjeljuje potpuni pristup.
+Podržani su zamjenski opsezi: `read:*` dodjeljuje sve opsege za čitanje, `*` dodjeljuje puni pristup.
 
-### `mcp:connect` — usko usmjerivačko ovlaštenje (#7895)
+### `mcp:connect` — mogućnost uske rute (#7895)
 
-Pristup HTTP/SSE MCP transportu (`/api/mcp/*`) s ne-povratnih adresa zahtijeva
-izuzeće `LOCAL_ONLY` za `/api/mcp/` (vidi `docs/security/ROUTE_GUARD_TIERS.md`). Povijesno
-gledano, to izuzeće prihvaćalo je samo API ključ s punim opsegom `manage`/`admin` — preširo za
-pozivatelja kojemu je jedina potreba razgovarati s MCP-om. `src/shared/constants/managementScopes.ts` sada
-izvozi `MCP_CONNECT_SCOPE = "mcp:connect"`: dodatan, uzan opseg (isti presedan kao
-`SELF_USAGE_SCOPE`) koji ovlašćuje ISKLJUČIVO zaobilazak `/api/mcp/` u
-`src/server/authz/policies/management.ts` — ne dodjeljuje nikakav drugi pristup upravljačkim rutama
-i namjerno je izostavljen iz `MANAGEMENT_API_KEY_SCOPES`. Ključ koji posjeduje `manage`/`admin`
-i dalje prolazi izuzećem nepromijenjeno; `mcp:connect` je alternativa s nižim ovlastima za
-udaljene pozivatelje koji koriste samo MCP, a provjerava se putem `hasMcpConnectOrManageScope()`.
+Dosezanje HTTP/SSE MCP transporta (`/api/mcp/*`) izvan loopbacka zahtijeva `LOCAL_ONLY` iznimku za `/api/mcp/` (pogledajte `docs/security/ROUTE_GUARD_TIERS.md`). Povijesno gledano, ta je iznimka prihvaćala samo potpuni `manage`/`admin` API ključ s opsegom — preširoko za pozivatelja koji treba samo komunicirati s MCP-om. `src/shared/constants/managementScopes.ts` sada izvozi `MCP_CONNECT_SCOPE = "mcp:connect"`: aditivni, uski opseg (isti presedan kao `SELF_USAGE_SCOPE`) koji autorizira SAMO zaobilaženje `/api/mcp/` u `src/server/authz/policies/management.ts` — ne dodjeljuje nikakav drugi pristup rutama upravljanja i namjerno je izostavljen iz `MANAGEMENT_API_KEY_SCOPES`. Ključ koji posjeduje `manage`/`admin` i dalje prolazi iznimku nepromijenjen; `mcp:connect` je alternativa s nižim privilegijama za udaljene pozivatelje samo za MCP, provjerena putem `hasMcpConnectOrManageScope()`.
 
 ### Vezivanje HTTP opsega po ključu (#7895)
 
-Putem HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` sada razrješava stvarne
-`api_keys.scopes` pozivatelja putem `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-i prosljeđuje ih MCP SDK-ovom `transport.handleRequest(req, { authInfo })`, tako da
-`extra.authInfo.scopes` koji pristiže svakom pozivu alata odražava vlastite opsege Bearer ključa.
-`resolveCallerScopeContext()` iz `scopeEnforcement.ts` već je davao prioritet `authInfo` ispred
-`_meta` i rezervnog rješenja s env varijablom `OMNIROUTE_MCP_SCOPES` — ova promjena samo popunjava
-taj prvi, prioritetni izvor koji je prethodno bio nenapunjen putem HTTP-a. Kada se nijedan API ključ
-ne može razriješiti (nema zaglavlja, nevažeći ključ), `authInfo` ostaje `undefined` i razrješavanje
-pada natrag na postojani lanac `meta`/env nepromijenjen. Ova promjena NE mijenja zadanu vrijednost
-`OMNIROUTE_MCP_ENFORCE_SCOPES` — primjena opsega i dalje mora biti eksplicitno omogućena; ova
-promjena samo osigurava prednost puta po ključu jednom kada je primjena aktivirana. stdio nema
-identitet po pozivatelju (vidi `mcpCallerIdentity.ts`) i nije zahvaćen — ostaje na rezervnom lancu
-`_meta`/env.
+Preko HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` sada razrješava stvarne `api_keys.scopes` pozivatelja putem `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) i prosljeđuje ih MCP SDK-ovom `transport.handleRequest(req, { authInfo })`, tako da `extra.authInfo.scopes` koji doseže svaki poziv alata odražava vlastite opsege Bearer ključa. `scopeEnforcement.ts`'s `resolveCallerScopeContext()` već je davao prednost `authInfo` nad `_meta` i `OMNIROUTE_MCP_SCOPES` rezervnim mehanizmom okoline — ovo samo popunjava taj prvi, najviši prioritetni izvor, koji prethodno nije bio hranjen preko HTTP-a. Kada se API ključ ne razriješi (nema zaglavlja, nevažeći ključ), `authInfo` ostaje `undefined` i razrješenje se nastavlja kroz postojeći `meta`/env lanac nepromijenjeno. Ovo NE mijenja zadanu vrijednost `OMNIROUTE_MCP_ENFORCE_SCOPES` — provedba se i dalje mora eksplicitno omogućiti; ova promjena samo čini da putanja po ključu preuzme prioritet kada je omogućena. Stdio nema identitet po pozivatelju (pogledajte `mcpCallerIdentity.ts`) i neizmijenjen je — ostaje na `_meta`/env rezervnom lancu.
 
 ---
 

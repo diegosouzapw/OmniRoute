@@ -250,6 +250,46 @@ test("RedactTransform: streams input chunks to output, redacting as it goes", as
   assert.equal(t.counts.IPV4 ?? 0, 1);
 });
 
+test("RedactTransform: redacts every sensitive pattern across every chunk boundary", async () => {
+  const samples = [
+    ["ANTHROPIC_KEY", `sk-ant-${"a".repeat(24)}`, "[REDACTED_API_KEY]"],
+    ["GOOGLE_KEY", `AIza${"A".repeat(35)}`, "[REDACTED_API_KEY]"],
+    ["GITHUB_TOKEN", `ghp_${"A".repeat(36)}`, "[REDACTED_API_KEY]"],
+    ["OPENAI_KEY", `sk-proj-${"A".repeat(24)}`, "[REDACTED_API_KEY]"],
+    ["AWS_KEY", `AKIA${"A".repeat(16)}`, "[REDACTED_AWS_KEY]"],
+    ["BEARER", `Bearer ${"A".repeat(20)}`, "[REDACTED_BEARER]"],
+    ["EMAIL", "alice@example.com", "[REDACTED_EMAIL]"],
+    ["GENERIC_KEY", `password=${"x".repeat(16)}`, "[REDACTED_API_KEY]"],
+    ["IPV4", "192.168.1.42", "[REDACTED_IPV4]"],
+    ["IPV6", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "[REDACTED_IPV6]"],
+  ];
+
+  for (const [name, sensitive, marker] of samples) {
+    for (let offset = 1; offset < sensitive.length; offset += 1) {
+      const transform = new RedactTransform();
+      const output = [];
+      const source = new ReadableStream({
+        start(controller) {
+          controller.enqueue(sensitive.slice(0, offset));
+          controller.enqueue(`${sensitive.slice(offset)}\n`);
+          controller.close();
+        },
+      });
+
+      await source.pipeThrough(transform).pipeTo(
+        new WritableStream({
+          write(chunk) {
+            output.push(new TextDecoder().decode(chunk));
+          },
+        })
+      );
+
+      assert.equal(output.join(""), `${marker}\n`, `${name} split at ${offset}`);
+      assert.equal(transform.counts[name], 1, `${name} count split at ${offset}`);
+    }
+  }
+});
+
 // ─── 13. Counts are independent between calls ───────────────────────────────
 
 test("redactString: counts do not bleed across calls", () => {

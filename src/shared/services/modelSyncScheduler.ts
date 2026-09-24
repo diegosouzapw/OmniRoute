@@ -15,6 +15,19 @@ import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLease
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
 export const DEFAULT_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+/** Cycle-wide in-flight cap. Heap cost is total catalog JSON, not one upstream. */
+export const MODEL_SYNC_CYCLE_CONCURRENCY = 4;
+/** First cycle after boot. Past cleanup's 30s so the two jobs do not overlap. */
+export const MODEL_SYNC_STARTUP_DELAY_MS = 90_000;
+/**
+ * Phase offset (not a period change) between this scheduler's recurring tick
+ * and cleanup.ts's own 6h scheduler (#13973 — both are started back-to-back
+ * in the same boot sequence, so with the same period they collide every 6h
+ * for the process lifetime). The recurring `setInterval` is armed only after
+ * this delay, so every periodic tick lands at boot + offset + k * interval
+ * while the configured interval itself stays exactly as configured.
+ */
+export const MODEL_SYNC_STAGGER_OFFSET_MS = 45 * 60 * 1000; // 45 minutes
 const MODEL_SYNC_SETTING_KEY = "model_sync_last_run";
 const MODEL_SYNC_INTERNAL_AUTH_HEADER = "x-model-sync-internal-auth";
 
@@ -117,6 +130,8 @@ const globalState = globalThis as typeof globalThis & {
 };
 
 let schedulerTimer: NodeJS.Timeout | null = null;
+/** Pending one-shot that arms `schedulerTimer` after the phase offset. */
+let phaseTimer: NodeJS.Timeout | null = null;
 let isRunning = false;
 let internalAuthToken: string | null = null;
 
@@ -224,6 +239,29 @@ export async function syncConnectionModels(
   }
 }
 
+async function mapWithConcurrencySettled<T, R>(
+  values: T[],
+  concurrency: number,
+  mapper: (value: T) => Promise<R>
+): Promise<PromiseSettledResult<R>[]> {
+  const results = new Array<PromiseSettledResult<R>>(values.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, concurrency), values.length);
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (nextIndex < values.length) {
+      const index = nextIndex++;
+      try {
+        const value = await mapper(values[index]);
+        results[index] = { status: "fulfilled", value };
+      } catch (reason) {
+        results[index] = { status: "rejected", reason };
+      }
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
 /**
  * Run one full model-sync cycle across all auto-sync connections.
  */
@@ -245,10 +283,10 @@ async function runSyncCycle(apiBaseUrl: string): Promise<void> {
 
     console.log(`[ModelSync] Starting model sync cycle — ${connections.length} connection(s)`);
 
-    const results = await Promise.allSettled(
-      connections.map((conn) =>
-        syncConnectionModels(conn.id, conn.name || conn.provider, apiBaseUrl)
-      )
+    const results = await mapWithConcurrencySettled(
+      connections,
+      MODEL_SYNC_CYCLE_CONCURRENCY,
+      (conn) => syncConnectionModels(conn.id, conn.name || conn.provider, apiBaseUrl)
     );
 
     const succeeded = results.filter((r) => r.status === "fulfilled" && r.value === true).length;
@@ -276,7 +314,7 @@ export function startModelSyncScheduler(
   apiBaseUrl = getModelSyncInternalBaseUrl(),
   intervalMs = DEFAULT_INTERVAL_MS
 ): void {
-  if (schedulerTimer) {
+  if (schedulerTimer || phaseTimer) {
     console.log("[ModelSync] Scheduler already running — skipping start");
     return;
   }
@@ -287,10 +325,16 @@ export function startModelSyncScheduler(
     !isNaN(envHours) && envHours > 0 ? envHours * 60 * 60 * 1000 : intervalMs;
   const trustedApiBaseUrl = resolveModelSyncInternalBaseUrl(apiBaseUrl);
 
-  console.log(`[ModelSync] Scheduler started — interval: ${effectiveIntervalMs / 3_600_000}h`);
+  console.log(
+    `[ModelSync] Scheduler started — interval: ${effectiveIntervalMs / 3_600_000}h ` +
+      `(phase offset +${MODEL_SYNC_STAGGER_OFFSET_MS / 60_000}m)`
+  );
 
-  // Run immediately on startup (staggered by 5s to avoid startup congestion)
-  const startupDelay = setTimeout(() => runSyncCycle(trustedApiBaseUrl), 5_000);
+  // Serve traffic first; cleanup's first pass is +30s, so stay past that window.
+  const startupDelay = setTimeout(
+    () => runSyncCycle(trustedApiBaseUrl),
+    MODEL_SYNC_STARTUP_DELAY_MS
+  );
   startupDelay.unref?.();
 
   // Codex-only: revalidate catalog only on first-start or app upgrade (not every boot).
@@ -302,15 +346,26 @@ export function startModelSyncScheduler(
       // silent
     });
 
-  // Then run on the regular interval
-  schedulerTimer = setInterval(() => runSyncCycle(trustedApiBaseUrl), effectiveIntervalMs);
-  schedulerTimer.unref?.();
+  // Then run on the regular interval, phase-shifted against cleanup.ts's
+  // own 6h scheduler (#13973). The period stays `effectiveIntervalMs`; only
+  // the moment the interval is armed moves.
+  phaseTimer = setTimeout(() => {
+    phaseTimer = null;
+    schedulerTimer = setInterval(() => runSyncCycle(trustedApiBaseUrl), effectiveIntervalMs);
+    schedulerTimer.unref?.();
+  }, MODEL_SYNC_STAGGER_OFFSET_MS);
+  phaseTimer.unref?.();
 }
 
 /**
  * Stop the model sync scheduler.
  */
 export function stopModelSyncScheduler(): void {
+  if (phaseTimer) {
+    clearTimeout(phaseTimer);
+    phaseTimer = null;
+    console.log("[ModelSync] Scheduler stopped");
+  }
   if (schedulerTimer) {
     clearInterval(schedulerTimer);
     schedulerTimer = null;

@@ -119,7 +119,8 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     textIcon: "VA",
     website: "https://cloud.google.com/vertex-ai",
     hasFree: true,
-    authHint: "Provide Service Account JSON or OAuth access_token",
+    authHint:
+      "Provide Service Account JSON, an OAuth access token, a Vertex Express API key, or a service-account-bound authorization key. Express mode supports Gemini only; partner models require project-scoped credentials.",
   },
   "vertex-partner": {
     id: "vertex-partner",
@@ -130,7 +131,8 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     color: "#34A853",
     textIcon: "VP",
     website: "https://cloud.google.com/vertex-ai",
-    authHint: "Provide the same Service Account JSON used for Vertex AI partner models.",
+    authHint:
+      "Provide Service Account JSON or OAuth credentials. A service-account-bound authorization key also supports discovery, but partner inference additionally requires its Google Cloud project ID. Standard Express keys support Gemini only.",
   },
   "cloudflare-ai": {
     id: "cloudflare-ai",

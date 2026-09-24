@@ -75,7 +75,7 @@ export const LOCAL_PROVIDERS = {
   },
   lemonade: {
     id: "lemonade",
-    serviceKinds: ["llm"],
+    serviceKinds: ["llm", "embedding"],
     alias: "lemonade",
     name: "Lemonade Server",
     icon: "bolt",
@@ -103,7 +103,7 @@ export const LOCAL_PROVIDERS = {
   },
   "llama-cpp": {
     id: "llama-cpp",
-    serviceKinds: ["llm"],
+    serviceKinds: ["llm", "embedding"],
     alias: "llamacpp",
     name: "llama.cpp",
     icon: "memory",

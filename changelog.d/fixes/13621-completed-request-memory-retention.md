@@ -1,1 +1,1 @@
-- **fix(resilience):** Bound the completed-request diagnostics cache by retained bytes as well as entry count, re-truncate and materialize cached request/response previews so tiny diagnostics cannot retain multi-megabyte sliced-string backing stores, and cap cached stream diagnostics (#13621).
+- **fix(resilience):** Cap cached completed-request stream diagnostics at 64 chunks per stage (with a truncation marker) so long streams cannot bloat the completed-details bridge; byte budget and preview detachment come from the JON-562 cache (#13621).

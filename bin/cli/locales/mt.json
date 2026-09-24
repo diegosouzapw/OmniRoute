@@ -256,6 +256,7 @@
     "max_restarts": "L-ogħla numru ta' restarts wara crash fi żmien 30s qabel ma jċedi (default: 2)",
     "tray": "Bda' fil-caffettar tal-pajjiż (biss desktop, għażla)",
     "no_tray": "Iddiżattiva l-ikona tal-caffettar tal-pajjiż",
+    "ready_timeout": "Limitu taż-żmien tal-verifika tat-tħejjija f'ms (ukoll OMNIROUTE_READY_TIMEOUT_MS, valur predefinit 60000)",
     "tls_cert": "Triq għal ċertifikat TLS (PEM) biex isservi HTTPS (ukoll OMNIROUTE_TLS_CERT)",
     "tls_key": "Triq għas-sieqa privata tal-TLS (PEM) biex isservi HTTPS (ukoll OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "Servier MCP qed jaħdem ({transport})",
     "stopped": "Servier MCP waqaf.",
     "restarted": "Servier MCP restartat.",
+    "stoppedHint": "Ħaddem `omniroute mcp enable` biex tattivah.",
+    "enabled": "Is-server MCP huwa attivat.",
+    "disabled": "Is-server MCP huwa diżattivat.",
+    "enable": {
+      "description": "Attiva s-server MCP",
+      "transport": "Trasport li għandu jintuża: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Iddiżattiva s-server MCP"
+    },
     "call": {
       "description": "Sejjaħ għodda MCP direttament",
       "args": "Oġġett argomenti JSON (internament)",
