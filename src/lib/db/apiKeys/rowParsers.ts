@@ -134,9 +134,10 @@ export function parseRateLimits(value: unknown): RateLimitRule[] | null {
  * Helper function to safely parse allowed_connections JSON
  */
 export function parseAllowedConnections(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === "string");
   }
+  if (!value || typeof value !== "string" || value.trim() === "") return [];
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed)

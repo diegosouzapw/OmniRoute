@@ -242,6 +242,8 @@ import {
   isStreamRecoveryExplicitlyConfigured,
 } from "@/lib/resilience/settings";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
+import { isOpencodeFreeTierRefusalForProvider } from "../executors/opencodeGeoBlock.ts";
+import { noteOpencodeFreeTierSkip } from "../services/opencodeFreeTierSkip.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
@@ -3427,7 +3429,7 @@ export async function handleChatCore({
 
                   // Mid-stream continuation (Fase 4.4): re-request with the partial text as an
                   // assistant prefill. Gated by its own setting and only for OpenAI-compatible
-                  // bodies (makeContinuationBody returns null otherwise).
+                  // request bodies, chat or Responses (makeContinuationBody returns null otherwise).
                   const continueStream = continueMidStreamEnabled
                     ? (assistantSoFar: string) => {
                         const continuationBody = makeContinuationBody(
@@ -4014,6 +4016,14 @@ export async function handleChatCore({
           console.warn(
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) -- not banning`
           );
+          // #14313: free-tier refusal on the keyless path — record a short TTL
+          // skip so auto-combo / noauth fallback stop re-picking it immediately.
+          if (
+            errorConnectionId === "noauth" &&
+            isOpencodeFreeTierRefusalForProvider(provider, statusCode, message)
+          ) {
+            noteOpencodeFreeTierSkip(provider);
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
           // Google regional refusal: account-independent, non-terminal; park the connection
           // until egress uses a supported region; probes skip the day-long cooldown (#9817).

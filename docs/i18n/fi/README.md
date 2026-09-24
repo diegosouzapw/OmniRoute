@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute-hallintapaneeli" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRouten hallintapaneeli" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Ilmainen tekoäly-yhdyskäytävä
+# 🚀 OmniRoute — Ilmainen tekoälyportti
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Älä koskaan lopeta koodaamista. Jokainen tekoälytyökalu → 359 palveluntarjoajaa — yli 150 ilmaista — yhden päätepisteen kautta. Claude Code, Codex, Cursor, Cline, Copilot ja Antigravity ILMAISEEN Claudeen / GPT:hen / Geminiin automaattisella varajärjestelmään siirtymisellä. RTK:n ja Cavemanin yhdistetty pakkaus säästää 15–95 % tokeneista (keskimäärin noin 89 %) — rajat eivät koskaan tule vastaan. 359 tekoälypalveluntarjoajaa · yli 150 ilmaistasoa · noin 1,62 mrd. ilmaista tokenia/kk · 19 reititysstrategiaa · aloitusmaksu 0 $."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Älä koskaan lopeta koodaamista. Jokainen tekoälytyökalu → 358 palveluntarjoajaa — yli 150 ilmaista — yhden päätepisteen kautta. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity ILMAISEKSI Claude / GPT / Gemini -palveluihin automaattisella varajärjestelmällä. RTK + Caveman pinottu pakkaus säästää 15–95 % tokeneista (~89 % keskimäärin) — ei koskaan rajoituksia. 358 tekoälypalveluntarjoajaa · yli 150 ilmaista tasoa · ~1,62 miljardia ilmaista tokenia/kk · 19 reititysstrategiaa · 0 $ aloittamiseen."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 Toimii heti asennuksen jälkeen — ei avaimia, ei määrityksiä
+## 🆓 Toimii heti asennuksen jälkeen – ei avaimia, ei asetuksia
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Toimii heti asennuksen jälkeen — ilman määrityksiä. Kolme vaihetta: 1. Asenna — npm i -g omniroute, palvelin käynnistyy osoitteessa localhost:20128. 2. Ohjaa työkalusi osoitteeseen http://localhost:20128/v1 — mikä tahansa OpenAI-yhteensopiva työkalu (Claude Code, Cursor, Cline). 3. Se vastaa — kutsu auto-mallia saadaksesi vastauksen välittömästi ilman API-avainta, rekisteröitymistä tai määrityksiä. Avaimeton OpenCode Free -palveluntarjoaja on valmiiksi yhdistetty auto-yhdistelmään, joten tuore asennus vastaa heti käyttövalmiina."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Toimii heti asennuksen jälkeen – ei asetuksia. Kolme vaihetta: 1. Asenna – npm i -g omniroute, palvelin käynnistyy osoitteessa localhost:20128. 2. Osoita työkalusi osoitteeseen http://localhost:20128/v1 – mikä tahansa OpenAI-yhteensopiva työkalu (Claude Code, Cursor, Cline). 3. Se vastaa – kutsu mallia auto saadaksesi välittömän vastauksen, ilman API-avainta, rekisteröitymistä tai asetuksia. Avaimeton palveluntarjoaja OpenCode Free on valmiiksi kytketty auto-yhdistelmään, joten tuore asennus vastaa heti käyttövalmiina."/>
 
 ```bash
-# Tuore asennus ilman tunnistetietoja — `auto` toimii jo:
+# Tuore asennus, ei tunnuksia – `auto` toimii jo:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Haluatko käyttää tiettyä ilmaista taustapalvelua? Kutsu suoraan `oc/…`-mallia (OpenCode Free). Siirry sitten käyttämään `auto`-mallia ja anna OmniRouten valita.</sub>
+<sub>Haluatko mieluummin tietyn ilmaisen taustaohjelman? Kutsu `oc/…` (OpenCode Free) suoraan. Siirry sitten `auto`-tilaan ja anna OmniRouten valita.</sub>
 
-<sub>📦 Kopioitavat pika-aloitusskriptit **Pythonille, Node.js:lle, PHP:lle ja cURLille** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Kopioi ja liitä pika-aloitusskriptit **Pythonille, Node.js:lle, PHP:lle ja cURLille** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Lupaus — yksi päätepiste ja 359 palveluntarjoajaa. Automaattinen varajärjestelmä jatkaa reititystä niin kauan kuin toinen toimintakuntoinen kohde on käytettävissä. Kuusi pilaria: vikasietoinen varajärjestelmä 359 palveluntarjoajan välillä · jopa 95 %:n säästö tunnisteissa soveltuvissa työkuormissa · käytön voi aloittaa 0 dollarilla yli 150 ilmaistason sekä 54 toistuvasti ilmaisen tai avaimettoman, ikuisesti ilmaisen palveluntarjoajan ansiosta · 36 CLI- ja agentti-integraatiota yhdellä määrityksellä · OpenAI-, Claude-, Gemini- ja Responses API -yhteensopivuus osoitteessa /v1 · tuotantokäytön hallintaominaisuudet, kuten circuit breaker -mekanismit, TLS-häivytys, MCP:n 110 työkalua, A2A, muisti, suojakaiteet, arvioinnit ja yli 39 000 staattista testimääritystä yli 5 100 seuratussa testitiedostossa."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Lupaus – Yksi päätepiste ja 358 palveluntarjoajaa. Automaattinen varajärjestelmä pitää reitityksen käynnissä, kun toinen toimiva kohde on saatavilla. Kuusi pilaria: joustava varajärjestelmä 358 palveluntarjoajan yli · jopa 95 % tokenisäästöt kelvollisissa työkuormissa · 0 $ aloittaa yli 150 ilmaisella tasolla ja 54 toistuvalla/avaimettomalla ikuisesti ilmaisella palveluntarjoajalla · 36 CLI/agentti-integraatiota yhden konfiguraation kautta · OpenAI, Claude, Gemini ja Responses API -yhteensopivuus osoitteessa /v1 · tuotannon hallintalaitteet, mukaan lukien katkaisijat, TLS-varkain, MCP 110 -työkalut, A2A, muisti, suojakaiteet, arvioinnit ja yli 39 000 staattista testilausumaa yli 5 100 seurattavassa testitiedostossa."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Miksi OmniRoute — lopeta tasapainoilu 10 hallintapaneelin, toimimattomien API-avainten ja yllättävien laskujen välillä. Kymmenen päivittäistä ongelmaa ja niiden ratkaisut: kiintiö vanhenee käyttämättömänä → hyödynnä tilaukset täysimääräisesti; nopeusrajoitukset kesken ohjelmoinnin → 4-tasoinen automaattinen varajärjestelmä (Tilaus → API → Edullinen → Ilmainen); työkalujen tulosteet kuluttavat tunnisteita → RTK- ja Caveman-pakkaus (15–95 %); kalliit API:t → kustannusoptimoitu reititys; jokainen työkalu vaatii oman määrityksensä → yksi päätepiste, yksi hallintapaneeli; tekoäly on estetty → 3-tasoinen välityspalvelin + TLS-häivytys; toimimattomat avaimet → 3-kerroksinen vikasietoisuus (circuit breaker -mekanismit, avainten jäähdytys, mallien lukitus); tiimi jakaa yhden tilauksen → avainvarannot oikeudenmukaisesti jaetuilla kiintiöillä; kehotteet kulkevat jonkun muun pilven kautta → ensisijaisesti paikallinen toteutus AES-256-GCM-salatuilla avaimilla; ei näkyvyyttä kuluihin → reaaliaikainen analytiikka (käyttö, kiintiö, säästöt, p95-viive)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Miksi OmniRoute – lopeta 10 hallintapaneelin, kuolleiden API-avaimien ja yllätyslaskujen jongleeraus. Kymmenen päivittäistä ongelmaa vs. ratkaisut: kiintiö vanhenee käyttämättömänä → maksimoi tilaukset; nopeusrajoitukset koodauksen aikana → 4-tasoinen automaattinen varajärjestelmä (Tilaus → API → Halpa → Ilmainen); työkalujen tulosteet kuluttavat tokeneita → RTK + Caveman-pakkaus (15–95 %); kalliit API:t → kustannusoptimoitu reititys; jokaisella työkalulla oma asennus → yksi päätepiste, yksi hallintapaneeli; tekoäly estetty → 3-tason välityspalvelin + TLS-varkain; kuolleet avaimet → 3-kerroksinen joustavuus (katkaisijat, avaimen jäähtyminen, mallin lukitus); tiimi jakaa yhden tilauksen → avainpoolit oikeudenmukaisilla kiintiöillä; kehotteet jonkun pilven kautta → paikallinen ensin AES-256-GCM-salatuilla avaimilla; ei kulutusnäkyvyyttä → reaaliaikainen analytiikka (käyttö, kiintiö, säästöt, p95-viive)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute-pyynnön kulku: IDE:si tai CLI:si (Claude Code, Cursor, Cline…) kutsuu yhtä paikallista päätepistettä (http://localhost:20128/v1); OmniRoute Smart Router (RTK- ja Caveman-pakkaus, 19 reititysstrategiaa, circuit breaker -mekanismit, TLS-häivytys, MCP, A2A, suojakaiteet) voi siirtyä varajärjestelmään 4 palveluntarjoajatason välillä niin kauan kuin soveltuva toimintakuntoinen kohde on käytettävissä — taso 1: Tilaus, taso 2: API-avain, taso 3: Edullinen ja taso 4: Ilmainen."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRouten pyyntövirta: IDE tai CLI (Claude Code, Cursor, Cline…) kutsuu yhtä paikallista päätepistettä (http://localhost:20128/v1); OmniRouten älykäs reititin (RTK + Caveman-pakkaus, 19 reititysstrategiaa, katkaisijat, TLS-varkain, MCP, A2A, suojakaiteet) voi palata 4 palveluntarjoajatason yli, kun kelvollinen toimiva kohde on jäljellä – Taso 1 Tilaus, Taso 2 API-avain, Taso 3 Halpa ja Taso 4 Ilmainen."/>
 
 </div>
 
@@ -492,9 +492,9 @@ Kaikki **19** strategiaa — yhdistele vapaasti yhdistelmän eri vaiheissa:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Mikä erottaa OmniRouten muista — tiettyyn ajankohtaan perustuva ominaisuusvertailu 9routeriin, OpenRouteriin, CLIProxyAPIin ja LiteLLM:ään 13 ominaisuuden osalta. OmniRoute: 359 palveluntarjoajaa, yli 150 sisäänrakennettua ilmaistasoa, 19 reititysstrategiaa, 12 moottorin token-pakkaus, sisäänrakennettu MCP-palvelin 110 työkalulla, A2A-agenttiprotokolla, pysyvä muisti, suojaukset, pilviagentit, TLS-sormenjäljen häivytys, Desktop/Termux/PWA ja käyttöliittymä 42 kielellä. OmniRoute on MIT-lisensoitu ja sitä voi ylläpitää itse. Kilpailijoiden ominaisuudet ja määrät voivat muuttua; katso linkitetty menetelmäkuvaus."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Mikä erottaa OmniRouten muista – päivitetty ominaisuuskuvaus verrattuna 9routeriin, OpenRouteriin, CLIProxyAPI:iin ja LiteLLM:ään 13 ominaisuuden osalta. OmniRoute: 358 palveluntarjoajaa, yli 150 sisäänrakennettua ilmaista tasoa, 19 reititysstrategiaa, 12-moottorinen token-pakkaus, sisäänrakennettu MCP-palvelin 110 työkalulla, A2A-agenttiprotokolla, pysyvä muisti, suojakaiteet, pilviagentit, TLS-sormenjälkien piilotus, työpöytä/Termux/PWA ja 42 i18n-käyttöliittymäkieltä. OmniRoute on MIT-lisensoitu ja itsehostattavissa. Kilpailijoiden ominaisuudet ja määrät voivat muuttua; katso linkitetty metodologia."/>
 
-<sub>📊 Täydellinen menetelmäkuvaus ja ominaisuuskohtaiset tiedot verrattuna 9routeriin, OpenRouteriin, CLIProxyAPIin ja LiteLLM:ään → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Täydellinen metodologia &amp; ominaisuuskohtaiset yksityiskohdat verrattuna 9routeriin, OpenRouteriin, CLIProxyAPI:iin &amp; LiteLLM:ään → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1272,19 +1272,19 @@ Kanoniset mittarit 2026-08-24: **1.029 yksilöllistä videota** · **11.132.922 
 <table>
   <tr><th align="left">Kerros</th><th align="left">Teknologia</th></tr>
   <tr><td nowrap><b>Suoritusympäristö</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Kieli</b></td><td>TypeScript 6.0 — <b>100 % TypeScriptiä</b> <code>src/</code>- ja <code>open-sse/</code>-kansioissa (ei yhtään <code>any</code>-tyyppiä ytimessä versiosta v2.0 lähtien)</td></tr>
+  <tr><td nowrap><b>Kieli</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> kautta <code>src/</code> ja <code>open-sse/</code> (nolla <code>any</code> ytimessä versiosta v2.0 lähtien)</td></tr>
   <tr><td nowrap><b>Viitekehys</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Tietokanta</b></td><td>better-sqlite3 (SQLite, WAL-kirjaus) + LowDB (JSON-perintö) — 122 toimialamoduulia, 182 migraatiota</td></tr>
-  <tr><td nowrap><b>Muisti</b></td><td>SQLite FTS5 kokoteksti + int8-kvantisoidut vektorisijoitukset, tyypitetty heikkeneminen</td></tr>
+  <tr><td nowrap><b>Tietokanta</b></td><td>better-sqlite3 (SQLite, WAL-kirjaus) + LowDB (JSON-perintö) — 122 verkkotunnusmoduulia, 183 migraatiota</td></tr>
+  <tr><td nowrap><b>Muisti</b></td><td>SQLite FTS5 täysteksti + int8-kvantisoidut vektorisijoitukset, tyypitetty hajoaminen</td></tr>
   <tr><td nowrap><b>Skeemat</b></td><td>Zod 4 — MCP-työkalun I/O-validointi + API-sopimukset</td></tr>
   <tr><td nowrap><b>Protokollat</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Suoratoisto</b></td><td>Server-Sent Events (SSE) + WebSocket-silta (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Pakkaus</b></td><td>12-moottorinen putki — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Todennus ja turvallisuus</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP rajattu todennus · AES-256-GCM levossa · DOMPurify</td></tr>
-  <tr><td nowrap><b>Piiloutuminen</b></td><td>wreq-js — JA3 / JA4 TLS-sormenjäljen jäljittely, 3-tasoinen välityspalvelin</td></tr>
-  <tr><td nowrap><b>Joustavuus</b></td><td>Katkaisija, eksponentiaalinen viive, anti-thundering-herd, automaattinen yhdistelmä-itsensä korjaaminen</td></tr>
-  <tr><td nowrap><b>Lokitus</b></td><td>pino — strukturoituja JSON-lokeja pyynnön kontekstilla</td></tr>
-  <tr><td nowrap><b>Testaus</b></td><td>Node.js test runner + Vitest — <b>39 000+ staattista testideklaraatiota</b> yli 5 100 seuratussa testitiedostossa (yksikkö-, integraatio-, E2E-, tietoturva-, ekosysteemitesterit)</td></tr>
+  <tr><td nowrap><b>Todennus &amp; turvallisuus</b></td><td>OAuth 2.0 (PKCE) + JWT + API-avaimet + MCP-alueellinen todennus · AES-256-GCM levossa · DOMPurify</td></tr>
+  <tr><td nowrap><b>Salakäyttö</b></td><td>wreq-js — JA3 / JA4 TLS-sormenjäljen jäljittely, 3-tason välityspalvelin</td></tr>
+  <tr><td nowrap><b>Resilienssi</b></td><td>Katkaisija, eksponentiaalinen viive, anti-thundering-herd, automaattinen yhdistelmä-itsekorjaus</td></tr>
+  <tr><td nowrap><b>Lokitus</b></td><td>pino — strukturoidut JSON-lokit pyyntökontekstilla</td></tr>
+  <tr><td nowrap><b>Testaus</b></td><td>Node.js test runner + Vitest — <b>yli 39 000 staattista testideklaraatiota</b> yli 5 100 seurattavassa testitiedostossa (yksikkö-, integraatio-, E2E-, tietoturva-, ekosysteemitesterit)</td></tr>
   <tr><td nowrap><b>Alustat</b></td><td>Työpöytä (Electron) · Android (Termux) · PWA (mikä tahansa selain)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automaattinen npm-julkaisu + Docker Hub julkaisun yhteydessä</td></tr>
   <tr><td nowrap><b>Linkit</b></td><td><a href="https://omniroute.online">Verkkosivusto</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>

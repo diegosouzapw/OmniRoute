@@ -4,11 +4,11 @@
 
 ---
 
-OmniRoute는 코딩 CLI(Codex, Claude Code, OpenCode, Cline, …)가 OmniRoute를 백엔드로 사용하도록 구성하는 `setup-*` 명령 제품군을 제공합니다. 따라서 도구는 **하나의** 엔드포인트와 통신하고, OmniRoute는 자동 폴백을 통해 적절한 공급자로 라우팅합니다. 각 명령은 실행 중인 OmniRoute(로컬 또는 원격)에서 **실시간** 모델 카탈로그를 읽고 **사용자** 머신에 있는 해당 도구의 구성 파일에 기록합니다. 도구가 지원하는 경우 API 키는 환경 변수를 통해 참조됩니다. 도구 로컬 환경 파일을 영구 저장하는 명령은 아래에 별도로 명시되어 있습니다.
+OmniRoute는 코딩 CLI(Codex, Claude Code, OpenCode, Cline 등)가 OmniRoute를 백엔드로 사용하도록 구성하는 `setup-*` 명령군을 제공합니다. 따라서 도구는 **하나의** 엔드포인트와 통신하고 OmniRoute는 자동 대체 기능을 통해 올바른 공급자로 라우팅합니다. 각 명령은 실행 중인 OmniRoute(로컬 또는 원격)에서 **실시간** 모델 카탈로그를 읽고 **사용자** 시스템에 도구의 자체 구성 파일을 작성합니다. API 키는 도구가 지원하는 경우 환경 변수로 참조됩니다. 도구 로컬 환경 파일을 유지하는 명령은 아래에 설명되어 있습니다.
 
-구성 파일을 전혀 작성하지 않고 올바른 환경 변수를 주입하여 `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` 또는 `gemini`를 실행하는 범용 런처인 `omniroute run <target>`도 있습니다. 대상과 해당 별칭은 정식 매니페스트 `bin/cli/cli-manifest.mjs`에서 가져오며(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), `omniroute completion`도 동일하게 매니페스트에서 파생된 대상 단어를 제공합니다. 기존 도구별 런처인 `omniroute launch`(Claude Code)와 `omniroute launch-codex`(Codex)도 계속 사용할 수 있습니다.
+또한 `omniroute run <target>`이라는 일반 런처가 있습니다. 이 런처는 `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` 또는 `gemini`를 올바른 환경이 주입된 상태로 실행하며, 구성 파일을 전혀 작성하지 않습니다. 대상과 해당 별칭은 정식 매니페스트 `bin/cli/cli-manifest.mjs`(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`)에서 가져오며, `omniroute completion`은 동일한 매니페스트에서 파생된 대상 단어를 제공합니다. 레거시 도구별 런처인 `omniroute launch` (Claude Code) 및 `omniroute launch-codex` (Codex)는 계속 사용할 수 있습니다.
 
-동일한 로컬/원격 컨텍스트에서 공급자 온보딩도 사용할 수 있습니다. 아래의 API 우선 명령은 관리 인증을 공급자 자격 증명과 분리하며, 구조화된 출력에 자격 증명을 절대 표시하지 않습니다.
+공급자 온보딩은 동일한 로컬/원격 컨텍스트에서 사용할 수 있습니다. 아래의 API 우선 명령은 관리 인증을 공급자 자격 증명과 분리하고 구조화된 출력에 자격 증명을 인쇄하지 않습니다.
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,15 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-스크립트에서는 `--credential-stdin` 또는 `--credential-env`를 사용하는 것이 좋습니다. `--credential`은 통제된 로컬 사용을 위해 유지됩니다. 비대화형 터미널에서 `providers remove`를 사용하려면 `--yes`가 필요하며, 다섯 명령 모두 활성 컨텍스트 또는 전역 `--base-url`/`--api-key` 옵션을 따릅니다.
+스크립트의 경우 `--credential-stdin` 또는 `--credential-env`를 선호하십시오. `--credential`은 제어된 로컬 사용을 위해 유지됩니다. `providers remove`는 비대화형 터미널에서 `--yes`를 요구하며, 다섯 가지 명령 모두 활성 컨텍스트 또는 전역 `--base-url`/`--api-key` 옵션을 따릅니다.
 
-가장 풍부한 두 통합을 한 번 직접 설정하는 방법은 도구별 상세 가이드를 참조하세요.
+공급자 선택기는 모호한 ID 접두사, 이름 또는 공급자 이름을 거부합니다. 여러 연결이 일치하는 경우 전체 연결 ID를 사용하십시오. 생성 및 편집 명령은 저장된 연결을 다시 읽고, 제거는 더 이상 읽을 수 없는지 확인합니다. 가져오기는 기존 공급자/이름 쌍을 건너뜁니다. 가져온 항목은 CLI에 제공된 관리 엔드포인트, 컨텍스트 또는 관리 자격 증명을 재정의할 수 없습니다.
+
+가장 풍부한 두 가지 통합에 대한 일회성 수동 기본 설정은 도구별 심층 분석을 참조하십시오.
 
 - [Claude Code 구성](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI 구성](./CODEX-CLI-CONFIGURATION.md)
 - [원격 모드](./REMOTE-MODE.md) — 노트북에서 원격 OmniRoute(VPS / Tailnet) 제어
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot 확장 프로그램이며, 편집기 내에서 이러한
-  `setup-*` 명령을 대신 실행할 수도 있습니다
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot 확장; 편집기 내에서 이러한 `setup-*` 명령을 실행할 수도 있습니다.
 
 ---
 

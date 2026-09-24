@@ -451,88 +451,72 @@ Naudokite šį galinį tašką, kai pagalbinis procesas vykdomas atskirai ir neg
 
 ## Suderinamumo galiniai taškai
 
-| Metodas | Kelias                                    | Formatas                                                  |
-| ------- | ----------------------------------------- | --------------------------------------------------------- |
-| POST    | `/v1/chat/completions`                    | OpenAI                                                    |
-| POST    | `/v1/messages`                            | Anthropic                                                 |
-| POST    | `/v1/responses`                           | OpenAI Responses                                          |
-| POST    | `/v1/embeddings`                          | OpenAI                                                    |
-| POST    | `/v1/images/generations`                  | OpenAI Images                                             |
-| POST    | `/v1/images/edits`                        | OpenAI Images (redagavimas / atkūrimas)                   |
-| POST    | `/v1/videos/generations`                  | OpenAI stiliaus vaizdo įrašų generavimas                  |
-| POST    | `/v1/music/generations`                   | OpenAI stiliaus muzikos generavimas                       |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                                        |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (grąžina garso turinį)                         |
-| POST    | `/v1/rerank`                              | Cohere/Voyage stiliaus perrikiavimas                      |
-| POST    | `/v1/classify`                            | Jina klasifikavimas (`api.jina.ai`)                       |
-| POST    | `/v1/segment`                             | Jina segmentavimo priemonė (`segment.jina.ai`)            |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                                        |
-| GET     | `/v1/models`                              | OpenAI                                                    |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                                                 |
-| GET     | `/v1beta/models`                          | Gemini                                                    |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                                    |
-| POST    | `/v1/api/chat`                            | Ollama                                                    |
-| GET     | `/api/v1/vscode/{token}/`                 | OpenAI katalogo alternatyvusis adresas                    |
-| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modelių alternatyvusis adresas                     |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI alternatyvusis adresas su prieigos raktu           |
-| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Responses alternatyvusis adresas su prieigos raktu |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama alternatyvusis adresas su prieigos raktu           |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama žymų alternatyvusis adresas su prieigos raktu      |
+| Metodas | Kelias                                    | Formatas                                      |
+| ------- | ----------------------------------------- | --------------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                        |
+| POST    | `/v1/messages`                            | Anthropic                                     |
+| POST    | `/v1/responses`                           | OpenAI Atsakymai                              |
+| POST    | `/v1/embeddings`                          | OpenAI                                        |
+| POST    | `/v1/images/generations`                  | OpenAI Paveikslėliai                          |
+| POST    | `/v1/images/edits`                        | OpenAI Paveikslėliai (redagavimas/užpildymas) |
+| POST    | `/v1/videos/generations`                  | OpenAI stiliaus vaizdo įrašų generavimas      |
+| POST    | `/v1/music/generations`                   | OpenAI stiliaus muzikos generavimas           |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Garso įrašai (STT)                     |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (grąžina garso įrašo turinį)       |
+| POST    | `/v1/rerank`                              | Cohere/Voyage stiliaus perrūšiavimas          |
+| POST    | `/v1/classify`                            | Jina klasifikavimas (`api.jina.ai`)           |
+| POST    | `/v1/segment`                             | Jina segmentavimo įrankis (`segment.jina.ai`) |
+| POST    | `/v1/moderations`                         | OpenAI Moderavimas                            |
+| GET     | `/v1/models`                              | OpenAI                                        |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                                     |
+| GET     | `/v1beta/models`                          | Gemini                                        |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                        |
+| POST    | `/v1/api/chat`                            | Ollama                                        |
+| GET     | `/api/v1/vscode/{token}/`                 | OpenAI katalogo pseudonimas                   |
+| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modelių pseudonimas                    |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizuotas pseudonimas               |
+| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Atsakymų tokenizuotas pseudonimas      |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizuotas pseudonimas               |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama žymų tokenizuotas pseudonimas          |
 
-Visi POST maršrutai naudoja tą pačią struktūrą: `Bearer your-api-key` ir Zod patikrintas JSON turinys (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ir kt.; žr. `src/shared/validation/schemas.ts`). Nepavykus schemos patikrai grąžinamas 4xx.
+Visi POST maršrutai atitinka tą pačią formą: `Bearer your-api-key` + Zod patvirtintas JSON turinys (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ir t.t., žr. `src/shared/validation/schemas.ts`). 4xx grąžinamas, jei schema nepavyksta.
 
-Klientams, kurie negali pridėti `Authorization: Bearer ...`, OmniRoute taip pat leidžia pateikti API raktus URL, naudojant užklausos eilutės suderinamumą (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) arba toliau aprašytus specialiuosius `/api/v1/vscode/{token}/...` galinius taškus.
+Klientams, kurie negali pridėti `Authorization: Bearer ...`, OmniRoute taip pat priima API raktus URL per užklausos eilutės suderinamumą (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) arba per tam skirtus `/api/v1/vscode/{token}/...` galinius taškus, aprašytus žemiau.
 
 ```bash
-# Perrikiavimas (debesijos registro teikėjas arba su OpenAI suderinamas teikėjo mazgas kaip „<prefix>/<model>“)
+# Perrūšiavimas (debesies registro teikėjas arba su OpenAI suderinamas teikėjo mazgas kaip "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina klasifikavimas (Foundation API prisijungimo duomenys)
+# Jina klasifikavimas (Foundation API kredencialai)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmentavimo priemonė
+# Jina segmentavimo įrankis
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina paieška (s.jina.ai; teikėjo alternatyvieji pavadinimai: jina-search, jina-ai, jina)
+# Jina paieška (s.jina.ai; teikėjo pseudonimai: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderavimas
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — grąžina audio/mpeg (arba prašomo formato) turinį
+# TTS – grąžina audio/mpeg (arba prašomo formato) turinį
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Vaizdo redagavimas (multipart)
+# Paveikslėlio redagavimas (daugiašalis)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Vaizdo įrašų / muzikos generavimas (modelio ID su teikėjo priešdėliu)
+# Vaizdo įrašų / muzikos generavimas (teikėjo priešdėliu pažymėtas modelio ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Perrikiavimo teikėjo mazgai:** `POST /v1/rerank` taip pat nukreipia užklausas į su OpenAI suderinamus teikėjo mazgus
-> (oMLX, vLLM, Infinity, TEI už šliuzo, …), nurodomus kaip `<node-prefix>/<model>`. Grįžtamojo ryšio
-> mazgai (`localhost`, `127.0.0.1`, `172.16.0.0/12`) visada yra tinkami. Mazgai bet kuriame kitame
-> pagrindiniame kompiuteryje — LAN įrenginyje arba Tailscale lygiaverčiame mazge — tinkami tik tada, kai operatorius įjungia
-> `RERANK_REMOTE_PROVIDER_NODES` funkcijos žymą **ir** mazgo bazinis URL atitinka teikėjo
-> išeinančių URL politiką (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> užklausos niekada nenukreipiamos į debesijos metaduomenų pagrindinius kompiuterius. Atminties variklio perrikiavimo veiksmas iškviečia šį maršrutą per
-> grįžtamojo ryšio sąsają, todėl ta pati taisyklė taikoma `rerankProviderModel` Atminties nuostatose.
+> **Perrūšiavimo teikėjo mazgai:** `POST /v1/rerank` taip pat nukreipia į su OpenAI suderinamus teikėjo mazgus (oMLX, vLLM, Infinity, TEI už šliuzo, …), adresuojamus kaip `<node-prefix>/<model>`. Grįžtamojo ryšio mazgai (`localhost`, `127.0.0.1`, `172.16.0.0/12`) visada yra tinkami. Mazgai bet kuriame kitame serveryje – LAN dėžutėje ar Tailscale lygiaverčiame įrenginyje – yra tinkami tik tada, kai operatorius įjungia `RERANK_REMOTE_PROVIDER_NODES` funkcijos žymę **ir** mazgo bazinis URL atitinka teikėjo išeinančiojo URL politiką (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); debesies metaduomenų serveriai niekada nenukreipiami. Atminties variklio perrūšiavimo žingsnis iškviečia šį maršrutą per grįžtamąjį ryšį, todėl ta pati taisyklė taikoma `rerankProviderModel` atminties nustatymuose.
 >
-> **Vietinių serverių struktūros:** mazgas iškviečiamas adresu `<base>/v1/rerank`, o gavus 404 — adresu `<base>/rerank`
-> (Infinity, TEI). Aukštyn siunčiamame turinyje pateikiami ir Cohere/OpenAI rašybos variantai (`documents`,
-> `return_documents`), ir TEI variantai (`texts`, `return_text`), o atsakymas iš aukštyn esančio serverio
-> normalizuojamas į Cohere apvalkalą: TEI grynasis `[{index, score, text}]`, `{results: [{index, score}]}`
-> iš supaprastintų šliuzų ir Voyage stiliaus `{data: [...]}` klientui grąžinami kaip
-> `{results: [{index, relevance_score, document?}]}`, surikiuoti pagal įvertį ir apriboti iki `top_n`.
+> **Vietinio serverio formos:** mazgas iškviečiamas adresu `<base>/v1/rerank` ir, esant 404 klaidai, adresu `<base>/rerank` (Infinity, TEI). Aukštesniojo lygio užklausa apima tiek Cohere/OpenAI rašybą (`documents`, `return_documents`), tiek TEI rašybą (`texts`, `return_text`), o aukštesniojo lygio atsakymas normalizuojamas į Cohere formatą: TEI paprastas `[{index, score, text}]`, `{results: [{index, score}]}` iš plonų šliuzų ir Voyage stiliaus `{data: [...]}` visi grįžta klientui kaip `{results: [{index, relevance_score, document?}]}`, surūšiuoti pagal balą ir apriboti iki `top_n`.
 
-> **Teikėjo mazgų aptikimas:** su OpenAI suderinamo teikėjo mazgo modeliai rodomi `GET /v1/models`
-> po mazgo priešdėliu. Eilutės, kuriose nėra galinio taško metaduomenų (tai įprasta vietiniams `/v1/models` sąrašams),
-> paveldi mazgo `apiType`, todėl `embeddings` mazgo modelių tipas yra `type: "embedding"`, o
-> `rerank` mazgo modelių — `type: "rerank"`, užuot numatytai naudojus pokalbių tipą; sinchronizuotoje arba rankiniu būdu pridėtoje eilutėje aiškiai nurodytas
-> `supportedEndpoints` vis tiek turi pirmenybę.
+> **Teikėjo mazgo aptikimas:** modeliai su OpenAI suderinamame teikėjo mazge rodomi `GET /v1/models` po mazgo priešdėliu. Eilutės, kuriose nėra galinio taško metaduomenų (įprasta vietiniams `/v1/models` sąrašams), paveldi mazgo `apiType`, todėl įterpimų mazgo modeliai yra `type: "embedding"`, o perrūšiavimo mazgo modeliai yra `type: "rerank"`, užuot numatytųjų pokalbių; aiškiai nurodytas `supportedEndpoints` sinchronizuotoje arba rankiniu būdu pridėtoje eilutėje vis tiek turi pirmenybę.
 
-### Specialieji teikėjų maršrutai
+### Skirti teikėjo maršrutai
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -540,7 +524,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Teikėjo prefiksas automatiškai pridedamas, jei jo nėra. Neatitinkantys modeliai grąžina `400`.
+Tiekėjas automatiškai pridedamas, jei trūksta. Nesuderinami modeliai grąžina `400`.
 
 ---
 
