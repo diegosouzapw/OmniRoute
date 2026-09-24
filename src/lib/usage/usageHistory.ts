@@ -24,7 +24,8 @@ import {
   resolvePositiveOption,
   toNumber,
   toStringOrNull,
-  truncatePendingPreview,
+  prunePendingPreview,
+  truncatePendingPreviewStrings,
 } from "./usageHistory/helpers";
 import type { ModelLatencyStatsEntry } from "./usageHistory/helpers";
 import {
@@ -91,11 +92,15 @@ export type PendingRequestDetail = {
 // The preview is bounded (MAX_PREVIEW_*), the payload is not: chatCore pushes
 // the full provider body through here at every stage of a request, and
 // protecting a multi-megabyte agentic body four times per request was a large
-// synchronous cost on the event loop. Truncate first, then protect the preview,
-// the same order the call log uses for its own bounded copies. Normalizing
-// first keeps a JSON string payload parsed the way it was before.
+// synchronous cost on the event loop. So the structure is pruned to the preview
+// shape first, then protected, and only then are strings cut. The regex-based
+// stages (error message sanitizing, opt-in PII sanitizing) must see whole
+// strings: a secret straddling the cut would otherwise survive as a fragment
+// no pattern matches. Normalizing first keeps a JSON string payload parsed.
 function protectPendingPreview(payload: unknown): unknown {
-  return protectPayloadForLog(truncatePendingPreview(normalizePayloadForLog(payload)));
+  return truncatePendingPreviewStrings(
+    protectPayloadForLog(prunePendingPreview(normalizePayloadForLog(payload)))
+  );
 }
 
 function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingRequestMetadata {

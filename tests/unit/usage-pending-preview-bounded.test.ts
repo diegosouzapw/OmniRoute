@@ -12,8 +12,28 @@ process.env.DATA_DIR = tmpDir;
 
 const { trackPendingRequest, updatePendingRequestById, getPendingById, clearPendingRequests } =
   await import("../../src/lib/usage/usageHistory.ts");
-const { MAX_PREVIEW_STRING, MAX_PREVIEW_ARRAY_ITEMS } =
+const { MAX_PREVIEW_STRING, MAX_PREVIEW_ARRAY_ITEMS, truncatePendingPreview } =
   await import("../../src/lib/usage/usageHistory/helpers.ts");
+const { protectPayloadForLog } = await import("../../src/lib/logPayloads.ts");
+
+const straddle = (secret: string) => `${"x".repeat(MAX_PREVIEW_STRING - 10)} ${secret} tail`;
+const githubToken = `ghp_${"A".repeat(36)}`;
+
+function previewOf(id: string, field: "providerRequest" | "providerResponse", payload: unknown) {
+  updatePendingRequestById(id, { [field]: payload });
+  return getPendingById().get(id)?.[field];
+}
+
+async function withPiiSanitization(run: () => void | Promise<void>) {
+  process.env.PII_RESPONSE_SANITIZATION = "true";
+  process.env.PII_RESPONSE_SANITIZATION_MODE = "redact";
+  try {
+    await run();
+  } finally {
+    delete process.env.PII_RESPONSE_SANITIZATION;
+    delete process.env.PII_RESPONSE_SANITIZATION_MODE;
+  }
+}
 
 test("pending request previews are bounded before protection", async (t) => {
   clearPendingRequests();
@@ -56,6 +76,75 @@ test("pending request previews are bounded before protection", async (t) => {
       prompt: "hello",
     });
   });
+
+  await t.test("a credential straddling the preview cut in an error message is redacted", () => {
+    const preview = previewOf(id!, "providerResponse", {
+      error: { message: straddle(githubToken) },
+    });
+    const serialised = JSON.stringify(preview);
+    assert.ok(!serialised.includes("ghp_"), `token fragment leaked: ${serialised.slice(-60)}`);
+    assert.ok(serialised.includes("[REDACTED"), serialised.slice(-60));
+  });
+
+  await t.test("a binary value is described, never expanded into its bytes", () => {
+    const preview = previewOf(id!, "providerRequest", {
+      audio: new Uint8Array(64).fill(7),
+    }) as Record<string, unknown>;
+    assert.equal(preview.audio, "[binary 64 bytes]");
+  });
+
+  await t.test("PII straddling the preview cut is redacted when sanitization is on", async () => {
+    await withPiiSanitization(() => {
+      const preview = previewOf(id!, "providerRequest", {
+        prompt: straddle("jane.doe@example.com"),
+      }) as Record<string, string>;
+      assert.ok(!preview.prompt.includes("jane.doe"), preview.prompt.slice(-60));
+      assert.ok(preview.prompt.includes("[EMAIL_RE"), preview.prompt.slice(-60));
+      assert.equal(preview.prompt.length, MAX_PREVIEW_STRING + 3);
+    });
+  });
+
+  await t.test("PII is left alone when sanitization is off", () => {
+    const preview = previewOf(id!, "providerRequest", {
+      prompt: "mail jane.doe@example.com",
+    }) as Record<string, string>;
+    assert.equal(preview.prompt, "mail jane.doe@example.com");
+  });
+
+  const oversized = {
+    model: "model-x",
+    authorization: "Bearer secret-token",
+    api_key: "sk-secret",
+    messages: Array.from({ length: MAX_PREVIEW_ARRAY_ITEMS * 3 }, (_, i) => ({
+      role: "user",
+      content: [{ type: "text", text: straddle(`jane.doe${i}@example.com`) }],
+    })),
+    metadata: Object.fromEntries(
+      Array.from({ length: 40 }, (_, i) => [`k${i}`, i % 5 === 0 ? githubToken : `v${i}`])
+    ),
+    deep: { a: { b: { c: { d: { e: { f: { g: "too deep" } } } } } } },
+    error: { message: straddle(githubToken), type: "invalid_request_error" },
+    output: [{ encrypted_content: "e".repeat(5000) }],
+  };
+
+  for (const pii of [false, true]) {
+    await t.test(
+      `matches protect-then-truncate exactly for an oversized payload (PII ${pii ? "on" : "off"})`,
+      async () => {
+        const check = () => {
+          const expected = truncatePendingPreview(protectPayloadForLog(oversized));
+          assert.deepEqual(previewOf(id!, "providerRequest", oversized), expected);
+          assert.deepEqual(
+            previewOf(id!, "providerRequest", JSON.stringify(oversized)),
+            expected,
+            "a JSON string payload previews the same as the parsed object"
+          );
+        };
+        if (pii) await withPiiSanitization(check);
+        else check();
+      }
+    );
+  }
 
   clearPendingRequests();
 });
