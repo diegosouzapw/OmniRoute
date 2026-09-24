@@ -181,10 +181,7 @@ describe("resource pressure policy", () => {
     // page cache on top of 1.62 GiB anon, tripping cgroup_ratio critical at
     // 95% while the real working set was 33% and memory.events stayed zero.
     const tracker = createResourcePressureTracker(fastThresholds);
-    const cgroup = (
-      currentBytes: number,
-      fileBytes: number | null
-    ): ResourceSignals["cgroup"] => ({
+    const cgroup = (currentBytes: number, fileBytes: number | null): ResourceSignals["cgroup"] => ({
       currentBytes,
       maxBytes: 5 * 1024 ** 3,
       highBytes: null,
@@ -344,5 +341,41 @@ describe("resource pressure policy", () => {
       "recoveryStreak",
       "severity",
     ]);
+  });
+
+  it("#13124 OMNIROUTE_PRESSURE_PSI_DISABLED ignores host PSI and keeps cgroup", () => {
+    const previous = process.env.OMNIROUTE_PRESSURE_PSI_DISABLED;
+    process.env.OMNIROUTE_PRESSURE_PSI_DISABLED = "1";
+    try {
+      const tracker = createResourcePressureTracker(fastThresholds);
+      const psiCritical = baseSignals({
+        psi: {
+          someAvg10: 90,
+          someAvg60: null,
+          someAvg300: null,
+          fullAvg10: 90,
+          fullAvg60: null,
+          fullAvg300: null,
+        },
+      });
+      assert.equal(tracker.observe(psiCritical).severity, "normal");
+      assert.equal(tracker.observe(psiCritical).severity, "normal");
+
+      const cgroupCritical = baseSignals({
+        cgroup: {
+          currentBytes: 950,
+          maxBytes: 1000,
+          highBytes: null,
+          fileBytes: null,
+          events: null,
+        },
+      });
+      tracker.observe(cgroupCritical);
+      assert.equal(tracker.observe(cgroupCritical).severity, "critical");
+      assert.equal(tracker.getState().reason, "cgroup_ratio");
+    } finally {
+      if (previous === undefined) delete process.env.OMNIROUTE_PRESSURE_PSI_DISABLED;
+      else process.env.OMNIROUTE_PRESSURE_PSI_DISABLED = previous;
+    }
   });
 });

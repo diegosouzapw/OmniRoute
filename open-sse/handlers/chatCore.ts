@@ -297,6 +297,7 @@ import {
   updatePendingScope,
 } from "@/lib/usage/pendingRequestScope";
 import { recordCost, recordChatCallCost, buildCostCtx } from "@/domain/costRules";
+import { meteredBudgetCost } from "@/lib/usage/meteredBudgetPolicy";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import {
   buildClaudePassthroughToolNameMap,
@@ -5492,7 +5493,7 @@ export async function handleChatCore({
           claudeCacheUsageMeta: cacheUsageLogMeta,
           cacheSource: "upstream",
         });
-        recordChatCallCost(apiKeyInfo, estimatedCost, chatCostCtx, false);
+        recordChatCallCost(apiKeyInfo, meteredBudgetCost(provider, estimatedCost), chatCostCtx, false);
         log?.warn?.(
           "GUARDRAIL",
           `Response blocked by ${postCallGuardrails.guardrail || "guardrail"}: ${guardrailMessage}`
@@ -5631,7 +5632,7 @@ export async function handleChatCore({
         claudeCacheUsageMeta: cacheUsageLogMeta,
         cacheSource: "upstream",
       });
-      recordChatCallCost(apiKeyInfo, estimatedCost, chatCostCtx, true);
+      recordChatCallCost(apiKeyInfo, meteredBudgetCost(provider, estimatedCost), chatCostCtx, true);
 
       // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
       await scheduleQuotaShareConsumption({
@@ -6179,7 +6180,11 @@ export async function handleChatCore({
       streamUsage,
       serviceTier: effectiveServiceTier,
       calculateCost,
-      recordCost,
+      // Only the budget-consumable share may draw down the allowance.
+      recordCost: (apiKeyId, cost, details) => {
+        const budgetCost = meteredBudgetCost(provider, cost);
+        if (budgetCost > 0) recordCost(apiKeyId, budgetCost, details);
+      },
       ledger: buildStreamLedgerDetails(effectiveServiceTier, normalizedStreamStatus < 400, traceId),
     });
 

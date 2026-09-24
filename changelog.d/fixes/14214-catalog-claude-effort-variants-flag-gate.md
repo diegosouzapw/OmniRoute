@@ -1,0 +1,1 @@
+- **fix(catalog):** gate the Claude effort-variant catalog entries (`-low`/`-medium`/`-high`/`-xhigh`) behind `OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS`, mirroring the existing synced-effort-variant gate — with the flag on, these synthetic model ids no longer leak into `/v1/models` for catalog-only clients.
