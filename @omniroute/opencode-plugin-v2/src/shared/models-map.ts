@@ -1,4 +1,4 @@
-import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
+import type { LegacyModel as ModelV2 } from "../legacy-model.js";
 import { normaliseFreeLabel } from "./naming.js";
 
 export interface OmniRouteRawModelEntry {

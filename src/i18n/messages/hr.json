@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Postavljanje lozinke nije uspjelo. Pokušajte ponovo.",
     "failedAddProvider": "Dodavanje pružatelja nije uspjelo. Pokušajte ponovo.",
     "connectionError": "Pogreška pri povezivanju. Pokušajte ponovo.",
+    "bootstrapTokenLabel": "Token za pokretanje",
+    "bootstrapTokenHelp": "Ova veza nije prepoznata kao lokalna (uobičajeno kod prosljeđivanja portova putem Dockera). U zapisniku poslužitelja/spremnika potražite jednokratni token za pokretanje i zalijepite ga iznad kako biste nastavili.",
     "provider": "Pružatelj",
     "apiKeyHelp": "API ključ je lozinka za AI usluge. Nabavite ga na web stranici vašeg pružatelja usluga (npr. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Povežite Stability AI s API ključem.",
       "stepfun": "Dohvatite API ključ na platform.stepfun.com",
       "sumopod": "SumoPod izlaže OpenAI-kompatibilnu krajnju točku za dovršavanje chata na https://ai.sumopod.com/v1/chat/completions, uz katalog /v1/models uživo. OmniRoute koristi OpenAI protokol i navodi modele putem prosljeđivanja.",
-      "suno": "Zalijepite kolačić sesije s web-mjesta suno.ai (Clerk autentifikacija)",
       "synthetic": "Povežite Synthetic s API ključem.",
       "tencent": "Dohvatite API ključ na console.cloud.tencent.com",
       "thebai": "Bearer API ključ za pristupnik TheB.AI kompatibilan s OpenAI-jem.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# izlaz} few {# izlaza} other {# izlaza}} za {connections, plural, one {# vezu} few {# veze} other {# veza}} · do {max} na jednom izlazu · posljednjih {hours} h",
     "poolEgressObservationEmpty": "U posljednjih {hours} h nije zabilježen promet",
     "poolEgressObservationHint": "Izračunato iz zapisnika proxyja tijekom razdoblja: različite izlazne IP adrese zabilježene za članove ovog skupa i OmniRoute veze koje su ih koristile. „Na jednom izlazu” odnosi se na cijelo razdoblje, a ne na isti trenutak. Blokada 429 po IP adresi pauzira samo veze iz iste obitelji pružatelja.",
+    "poolMemberEgress": "{host}:{port} izlazio je putem {egressIp} · posljednjih {hours} h",
+    "poolMemberEgressEmpty": "{host}:{port}: u posljednjih {hours} h nije zabilježen promet",
+    "poolMemberEgressHint": "Posljednja izlazna IP adresa zabilježena putem ovog člana skupa tijekom tog razdoblja, očitana iz zapisnika proxyja. Za člana bez prometa u tom razdoblju prikazuje se redak o nepostojanju prometa.",
     "poolRemove": "Ukloni",
     "poolRemoveFailed": "Uklanjanje proxyja iz skupa nije uspjelo",
     "poolAddLabel": "Dodaj proxy",
@@ -12222,6 +12226,29 @@
     "raw": "Neobrađeno"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI pomoćnik",
+      "intro": "Kopirajte naredbe i pokrenite ih na računalu na kojem je instaliran vaš CLI. Ova ploča ne izvršava naredbe niti kopira vjerodajnice.",
+      "hostNotice": "Otkrivanje opisuje računalo na kojem radi poslužitelj OmniRoute, a ne računalo ovog preglednika. Konfigurirano ne znači da je zaključivanje testirano.",
+      "target": "CLI alat",
+      "context": "Naziv postojećeg konteksta (neobavezno)",
+      "contextHint": "Ostavite prazno za upotrebu aktivnog konteksta CLI-ja. Imenovani konteksti mogu upućivati na lokalni ili udaljeni poslužitelj; prvo ih ispišite u terminalu.",
+      "contextInvalid": "Upotrijebite 1–64 slova, znamenke, točke, spojnice ili podvlake, počevši slovom ili znamenkom.",
+      "modelHint": "Ovaj CLI zahtijeva model. Unesite stvarni identifikator pružatelja/modela prije kopiranja pretpregleda pokretanja.",
+      "modelInvalid": "Upotrijebite identifikator modela bez razmaka ili znakova ljuske, počevši slovom ili znamenkom.",
+      "runtime": "Izvršavanje",
+      "runnable": "Može se pokrenuti",
+      "notRunnable": "Ne može se pokrenuti",
+      "unknown": "Nepoznato",
+      "detectionError": "Otkrivanje poslužitelja nije dostupno. Osvježite otkrivanje da biste pokušali ponovno; naredbe terminala i dalje su dostupne.",
+      "contextsStep": "Provjerite kontekste u terminalu",
+      "configureStep": "Odaberite model i konfigurirajte",
+      "runStep": "Pretpregled pokretanja",
+      "configureHint": "Ova interaktivna naredba zapisuje konfiguraciju CLI-ja na računalu na kojem je pokrenete.",
+      "runHint": "Probno pokretanje prikazuje plan pokretanja bez pokretanja CLI-ja. To nije test zaključivanja.",
+      "copyFailed": "Kopiranje nije uspjelo. Ručno odaberite i kopirajte naredbu.",
+      "empty": "U ovoj verziji nema dostupnih izvršivih CLI ciljeva. Upotrijebite vodiče za alate u nastavku."
+    },
     "concept": {
       "code": {
         "title": "CLI alati za programiranje",

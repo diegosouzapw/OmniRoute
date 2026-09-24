@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -182,65 +182,69 @@ Stackediga:         10K-2.5K tokenit saadetud     (78-95% sobiva RTK+Cavemani va
 
 ## Konfiguratsioon
 
-### Töölaud
+### Armatuurlaud
 
-Liikuge jaotisse `Töölaud → Kontekst ja vahemälu`:
+Navigeerige jaotisesse `Dashboard → Context & Cache`:
 
-- **Caveman** — režiimi valik, keelepaketid, eelvaade ja globaalsed vaikesätted
-- **RTK** — käsufiltri eelvaade, RTK turvasätted ja filtrikataloog
-- **Tihenduskombod** — nimega mootorikonveierid, mis on määratud marsruutimiskombodele
-- **Automaatse käivitamise lävi** — käivitab tihendamise automaatselt, kui tokenite arv ületab läve
+- **Caveman** — režiimi valik, keelepaketid, eelvaade ja globaalsed vaikeseaded
+- **RTK** — käskude filtri eelvaade, RTK ohutusseaded ja filtrikataloog
+- **Compression Combos** — nimetatud mootorite torujuhtmed, mis on määratud marsruutimis-kombodele
+- **Auto-Trigger Threshold** — automaatselt käivitab tihendamise, kui märkide arv ületab läve
 
-### Kombopõhine alistus
+### Kombopõhine alistamine
 
-Jaotises `Töölaud → Kontekst ja vahemälu → Tihenduskombod` määrake marsruutimiskombole tihenduskombinatsioon:
+Jaotises `Dashboard → Context & Cache → Compression Combos` määrake tihenduskombinatsioon marsruutimis-kombinatsioonile:
 
 ```txt
-Kombo: "free-tier-fallback"
-  Tihenduskombo: "coding-agent-stack"
-  Konveier: RTK -> Caveman
-  Sihtmärgid:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-See võimaldab kasutada tasuta/kodeerimisteenuse pakkujate puhul mitmeastmelist tihendamist, säilitades tasuliste tellimuste puhul lihtrežiimi.
+See võimaldab teil kasutada virnastatud tihendamist tasuta/kodeerimispakkujatel, hoides samal ajal tasulistel tellimustel lite-režiimi.
 
-See „kombopõhine alistus” on **marsruutimiskombo tihendusrežiimi** alistusest (Vaikimisi/Väljas/Lihtne/Standardne/Agressiivne/Ultra) erinev juhtelement — see alistus ei vali nimega tihenduskombinatsiooni konveierit, vaid määrab üksnes välja `compressionMode`, mida `resolveCompressionPlan` kasutab. Seda saab määrata kas kombokaardil (`Töölaud → Kombod`) või alates versioonist #6760 iga marsruutimiskombo jaoks loendis „Määra marsruutimisele” jaotises `Töölaud → Kontekst ja vahemälu → Tihenduskombod`, otse eespool kirjeldatud konveieri määramise märkeruudu kõrval. Mõlemal juhul salvestatakse muudatused sama lõpp-punkti `PUT /api/combos/{id}` kaudu.
+See "Per-Combo Override" määramine on erinev juhtelement **marsruutimis-kombo tihendusrežiimi** alistamisest (Default/Off/Lite/Standard/Aggressive/Ultra) – see alistamine ei vali nimetatud tihendus-kombo torujuhet; see lihtsalt määrab `compressionMode` välja, mida `resolveCompressionPlan` konsulteerib. Seda saab seadistada kas kombo kaardil (`Dashboard → Combos`) või, alates #6760, marsruutimis-kombo kohta jaotises "Assign to routing" loendis `Dashboard → Context & Cache → Compression Combos`, otse ülalpool dokumenteeritud torujuhtme määramise märkeruudu kõrval. Mõlemad liidesed püsivad sama `PUT /api/combos/{id}` lõpp-punkti kaudu.
 
-### Päringupõhine alistus
+### Päringupõhine alistamine
 
-Ühe päringu tihendusplaani alistamiseks saatke päringupäis `x-omniroute-compression`. Sellel on kõrgeim prioriteet — see alistab marsruutimiskombo alistuse, aktiivse profiili, automaatse käivitamise ja paneeli vaikesätte. Tundmatuid väärtusi eiratakse (päringut ei lükata kunagi tagasi) ning globaalne pealüliti piirab endiselt kõike: kui tihendamine on globaalselt välja lülitatud, ei saa seda päisega sisse lülitada. Väärtused:
+Saatke päringupäis `x-omniroute-compression`, et alistada tihendusplaan ühe päringu jaoks. Sellel on kõrgeim prioriteet – see alistab marsruutimis-kombo alistamise, aktiivse profiili, automaatse käivituse ja paneeli vaikesätte. Tundmatud väärtused ignoreeritakse (päringut ei lükata kunagi tagasi) ja globaalne pealüliti reguleerib endiselt kõike: kui tihendamine on globaalselt välja lülitatud, ei saa päis seda sisse lülitada. Väärtused:
 
-| Väärtus       | Mõju                                                                            |
-| ------------- | ------------------------------------------------------------------------------- |
-| `off`         | Selle päringu puhul tihendamist ei kasutata.                                    |
-| `default`     | Paneelist tuletatud vaikeprofiil (eirab aktiivset profiili).                    |
-| `engine:<id>` | Üks mootor, kui see on lubatud, nt `engine:rtk`.                                |
-| `<combo>`     | Nimega kombo, mida võrreldakse esmalt nime (tõstutundetult), seejärel ID järgi. |
+| Väärtus       | Mõju                                                                                                            |
+| :------------ | :-------------------------------------------------------------------------------------------------------------- |
+| `off`         | Selle päringu jaoks tihendamist ei toimu.                                                                       |
+| `default`     | Paneelist tuletatud vaike-profiil (ignoreerib aktiivset profiili). Kadudega mootorid jäävad välja.              |
+| `safe`        | Sama, mis päise ära jätmine: ainult dublikaatide eemaldamine ja tühikute kokkuvoltimine.                        |
+| `allow-lossy` | Hoidke selle päringu operaatoriplaani, sealhulgas kokkuvõtteid, asjakohasuse filtreid ja stiili ümberkirjutusi. |
+| `engine:<id>` | Üks mootor, kui see on lubatud, nt `engine:rtk`. See on selle mootori päringupõhine valik.                      |
+| `<combo>`     | Nimetatud kombo, mis sobitatakse esmalt nime (tõstutundetu) ja seejärel ID järgi.                               |
 
-Rakendatud plaan tagastatakse vastusepäises `X-OmniRoute-Compression: <mode>; source=<source>`, kus `<source>` on üks järgmistest: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` või `off`.
+Ilma `allow-lossy`, `engine:<id>` või nimetatud kombota ei rakendata kadudega mootoreid. Päring saab endiselt seansi dublikaatide eemaldamise ja tühikute kokkuvoltimise, kui tihendamine on sisse lülitatud.
+
+Rakendatud plaan kajastatakse vastuse päises `X-OmniRoute-Compression: <mode>; source=<source>`, kus `<source>` on üks järgmistest: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` või `off`.
 
 ### API
 
 ```bash
-# Tihendussätete hankimine
+# Hangi tihendusseaded
 curl http://localhost:20128/api/settings/compression
 
-# Tihendussätete uuendamine
+# Uuenda tihendusseadeid
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Konkreetse RTK/mitmeastmelise kasuliku koormuse eelvaade
+# Eelvaata spetsiifilist RTK/virnastatud andmepaketti
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# RTK filtripakettide loetlemine
+# Loetle RTK filtripaketid
 curl http://localhost:20128/api/context/rtk/filters
 
-# RTK vahetu testimine valikuliste käsu metaandmetega
+# Testi RTK-d otse valikulise käsu metaandmetega
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -284,15 +288,15 @@ Iga tihendatud päringu statistika lisatakse serveri logidesse:
 
 ---
 
-## Etappide tegevuskava
+## Faasi teekaart
 
-| Etapp    | Režiimid                                                                                                                                                            | Olek           |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| 1. etapp | Off, Lite                                                                                                                                                           | ✅ Välja antud |
-| 2. etapp | Standard, Aggressive, Ultra                                                                                                                                         | ✅ Välja antud |
-| 3. etapp | RTK, Stacked, Compression Combos                                                                                                                                    | ✅ Välja antud |
-| 4. etapp | Output Styles, SLM-tier Ultra, hindamisraamistik                                                                                                                    | ✅ Välja antud |
-| Etapp 4C | Kohanduv kontekstieelarve („regulaator“) — arvutusmootor + API (`contextBudget` päringul `PUT /api/settings/compression`) + töölaua režiimi-/poliitikajuhtelemendid | ✅ Välja antud |
+| Faas    | Režiimid                                                                                                                                                    | Olek        |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Faas 1  | Väljas, Lite                                                                                                                                                | ✅ Tarnitud |
+| Faas 2  | Standard, Agressiivne, Ultra                                                                                                                                | ✅ Tarnitud |
+| Faas 3  | RTK, Virnastatud, Kompressioonikombinatsioonid                                                                                                              | ✅ Tarnitud |
+| Faas 4  | Väljundstiilid, SLM-taseme Ultra, hindamisrakendus                                                                                                          | ✅ Tarnitud |
+| Faas 4C | Adaptiivne kontekstieelarve ("ketas") — arvutusmootor + API (`contextBudget` PUT /api/settings/compression peal) + armatuurlaua režiimi/poliitika juhtnupud | ✅ Tarnitud |
 
 ---
 
@@ -306,26 +310,21 @@ RTK-režiim on inspireeritud projektist **[RTK - Rust Token Killer](https://gith
 
 ## Täiustatud tihendussüsteemid
 
-Lisaks seitsmele standardrežiimile sisaldab OmniRoute mitut täiustatud tihendussüsteemi,
-mis töötavad konteksti põhjal automaatselt.
+Lisaks 7 standardrežiimile sisaldab OmniRoute mitmeid täiustatud tihendussüsteeme, mis töötavad automaatselt konteksti alusel.
 
 ### Vahemäluteadlik tihendamine
 
-Mõned teenusepakkujad (näiteks Anthropic viipade vahemällu salvestamisega) toetavad **viipade vahemällu salvestamist**,
-mis võimaldab neil kulude ja latentsuse vähendamiseks viiba osi vahemällu salvestada. Kui
-vahemällu salvestamine on lubatud, võib agressiivne tihendamine jõudlust hoopis **halvendada**,
-sest see muudab vahemällu salvestatud sõnesid ja muudab vahemälu kehtetuks.
+Mõned pakkujad (nagu Anthropic koos viipade vahemällu salvestamisega) toetavad **viipade vahemällu salvestamist**, mis võimaldab neil vahemällu salvestada viipade osi kulude ja latentsuse vähendamiseks. Kui vahemällu salvestamine on lubatud, võib agressiivne tihendamine tegelikult **kahjustada** jõudlust, sest see muudab vahemällu salvestatud märke, muutes vahemälu kehtetuks.
 
-Moodul `cachingAware.ts` lahendab selle, **tuvastades vahemällu salvestamise konteksti** ja
-**kohandades tihendusstrateegiat** vastavalt.
+Moodul `cachingAware.ts` lahendab selle probleemi, **tuvastades vahemällu salvestamise konteksti** ja **kohandades tihendusstrateegiat** vastavalt.
 
 #### Kuidas see töötab
 
-1. **Vahemällu salvestamise konteksti tuvastamine** — otsib päringu kehast `cache_control`-markereid
-2. **Vahemällu salvestamist toetavate teenusepakkujate tuvastamine** — kontrollib, kas sihtteenuse pakkuja toetab vahemällu salvestamist
-3. **Strateegia kohandamine** — viib `aggressive`/`ultra` režiimi vahemällu salvestamist toetavate teenusepakkujate puhul üle režiimile `standard`
-4. **Süsteemiviiba vahelejätmine** — süsteemiviibad salvestatakse tavaliselt vahemällu, seega neid ei tihendata
-5. **Deterministlike teisenduste kasutamine** — kasutatakse ainult järjepidevat väljundit andvaid teisendusi
+1. **Tuvastab vahemällu salvestamise konteksti** – skaneerib päringu keha `cache_control` markerite osas
+2. **Tuvastab vahemällu salvestavad pakkujad** – kontrollib, kas sihtpakkuja toetab vahemällu salvestamist
+3. **Kohandab strateegiat** – alandab `aggressive`/`ultra` tasemele `standard` vahemällu salvestavate pakkujate jaoks
+4. **Jätab süsteemiviiba vahele** – süsteemiviibad on tavaliselt vahemällu salvestatud, seega ärge neid tihendage
+5. **Kasutab deterministlikke teisendusi** – kasutab ainult teisendusi, mis annavad järjepideva väljundi
 
 #### Koodinäide
 
@@ -338,7 +337,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Vahemälumarker
+  cache_control: { type: "ephemeral" }, // ← Vahemälu marker
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -350,21 +349,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Millal kasutada
 
-Vahemäluteadlik tihendamine on **alati sisse lülitatud** — seadistamine pole vajalik. See aktiveerub ainult
-järgmistel juhtudel:
+Vahemäluteadlik tihendamine on **alati sisse lülitatud** – konfiguratsiooni pole vaja. See käivitub ainult siis, kui:
 
-- Päring sisaldab `cache_control`-markereid
-- Sihtteenuse pakkuja toetab viipade vahemällu salvestamist (Anthropic, OpenAI jne)
+- Päringul on `cache_control` markerid
+- Sihtpakkuja toetab viipade vahemällu salvestamist (Anthropic, OpenAI jne)
 
-### Järk-järguline vanandamine
+### Progressiivne vananemine
 
-Pikkadesse vestlustesse koguneb palju sõnumivoore, kuid vanemad voorud muutuvad järjest vähem
-asjakohaseks. Moodul `progressiveAging.ts` **vähendab sõnumite detailsust vastavalt vooru kaugusele**:
+Pikad vestlused koguvad palju sõnumivahetusi, kuid vanemad vahetused muutuvad vähem asjakohaseks. Moodul `progressiveAging.ts` **halvendab sõnumeid vahetuste kauguse järgi**:
 
-- **Hiljutised voorud (0-3)**: säilitatakse sõna-sõnalt (täielik detailsus)
-- **Keskmise vanusega voorud (4-8)**: Lite-tihendus (tühimärkide ja vorminduse korrastamine)
-- **Vanad voorud (9+)**: Caveman-tihendus (täitesõnade eemaldamine, kokkuvõtete tegemine)
-- **Väga vanad voorud (20+)**: tehakse põhjalik kokkuvõte või eemaldatakse
+- **Hiljutised vahetused (0-3)**: Säilitatakse sõna-sõnalt (täielik detail)
+- **Keskmised vahetused (4-8)**: Kerge tihendamine (tühikud, vorminduse puhastamine)
+- **Vanad vahetused (9+)**: Koopainimese tihendamine (täiteainete eemaldamine, kokkuvõte)
+- **Väga vanad vahetused (20+)**: Tugevalt kokkuvõtlikud või eemaldatud
 
 #### Koodinäide
 
@@ -375,46 +372,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... Veel 50 vooru ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Esimesed 3 vooru: sõna-sõnalt
-  light: 8, // Voorud 4–8: Lite-tihendus
-  moderate: 20, // Voorud 9–20: Caveman-tihendus
-  // Voorud 21+: põhjalik kokkuvõte
+  verbatim: 3, // Esimesed 3 vahetust: sõna-sõnalt
+  light: 8, // Vahetused 4-8: kerge tihendamine
+  moderate: 20, // Vahetused 9-20: koopainimese tihendamine
+  // Vahetused 21+: tugev kokkuvõte
 });
 
-// saved = säästetud sõnede arv
+// saved = salvestatud märkide arv
 ```
 
 #### Millal kasutada
 
-Progressiivne vanandamine on režiimides `aggressive` ja `ultra` **alati sisse lülitatud**. See on eriti tõhus järgmiste kasutusjuhtude puhul:
+Progressiivne vananemine on **alati sisse lülitatud** režiimide `aggressive` ja `ultra` puhul. See on eriti tõhus:
 
-- Pikad programmeerimisseansid
-- Mitmepäevased vestlused
-- Paljude tööriistakutsetega agenttöövood
+- Pikaajaliste kodeerimissessioonide puhul
+- Mitmepäevaste vestluste puhul
+- Agentlike töövoogude puhul paljude tööriistakutsetega
 
-### Koopainimese väljundirežiim
+### Koopainimese väljundrežiim
 
-Moodul `outputMode.ts` lisab **süsteemiviiba juhised**, et mudel ise genereeriks tihendatud ja napi väljundi („koopainimese“ stiilis).
+Moodul `outputMode.ts` süstib **süsteemiviiba juhiseid**, et mudel ise toodaks tihendatud, lühikest väljundit ("koopainimese" stiilis).
 
 #### Kuidas see töötab
 
-Sisendi tihendamise asemel lisab see režiim järgmise süsteemiviiba:
+Selle asemel, et sisendit tihendada, lisab see režiim süsteemiviiba, näiteks:
 
-> „Vasta võimalikult väheste sõnadega. Jäta viisakusvormelid vahele. Kasuta lühikesi lauseid.“
+> "Vasta minimaalsete sõnadega. Jäta viisakused vahele. Kasuta lühikesi lauseid."
 
-See toimib eriti hästi järgmiste kasutusjuhtude puhul:
+See töötab eriti hästi:
 
-- Koodi genereerimine (napim väljund = vähem sõnesid)
-- Kiired küsimused ja vastused (põhjalikke selgitusi pole vaja)
-- Pakktöötlus (maksimaalse läbilaskevõime saavutamiseks)
+- Koodi genereerimisel (lühike väljund = vähem märke)
+- Kiirete küsimuste ja vastuste puhul (pole vaja keerulisi selgitusi)
+- Partii töötlemisel (maksimeerida läbilaskevõimet)
 
-#### Millal seda kasutada
+#### Millal kasutada
 
-Koopainimese väljundirežiim on **valikuline** — määrake see kombineeritud konfiguratsioonis:
+Koopainimese väljundrežiim on **valikuline** – seadistage see kombineeritud konfiguratsiooni kaudu:
 
 ```json
 {
@@ -429,25 +426,35 @@ Koopainimese väljundirežiim on **valikuline** — määrake see kombineeritud 
 
 ### Väljundstiilid (kataloog)
 
-Eespool kirjeldatud koopainimese väljundirežiim on **pärandvariant, mis toetab ainult üht stiili**. 4. etapis üldistati see kombineeritavate väljundstiilide kataloogiks: `OUTPUT_STYLE_CATALOG` failis `open-sse/services/compression/outputStyles/catalog.ts`. Iga stiil on süsteemiviiba juhis, mis paneb mudeli enda genereerima ressursisäästlikumat väljundit; stiile saab lubada korraga ning need lisatakse kataloogi järjekorras.
+Ülaltoodud koopainimese väljundrežiim on **pärand ühe stiili tee**. Faas 4 üldistas selle kompositsiooniliste väljundstiilide kataloogiks: `OUTPUT_STYLE_CATALOG` failis `open-sse/services/compression/outputStyles/catalog.ts`. Iga stiil on süsteemiviiba juhis, mis paneb mudeli ise tootma odavamat väljundit; stiile saab koos lubada ja need süstitakse kataloogi järjekorras.
 
-| Stiil                            | `id`          | Mida see teeb                                                                                                                                                                                                                                            | Juhiste keeled                                                              |
-| -------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Napp proosa                      | `terse-prose` | Eemaldab täitesõnad, artiklid ja ebalevuse; säilitab tehnilise sisu täpsuse. Sama tekst mis pärandvariandi koopainimese väljundirežiimis (sellele viidatakse, mitte ei kirjutata seda uuesti).                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Vähem koodi                      | `less-code`   | YAGNI-redel: väikseim toimiv muudatus, ei mingeid soovimata abstraktsioone.                                                                                                                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Hobusesaba (laisk vanemarendaja) | `ponytail`    | „Parim kood on kood, mida kunagi ei kirjutatud“: taaskasutus > ümberkirjutamine, algpõhjus > sümptom, lühim toimiv muudatuste kogum.                                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Mul on ATH (tegevus ennekõike)   | `i-have-adhd` | Esmalt tegevus (käsk/tee/koodilõik enne proosat), nummerdatud ja piiritletud sammud, ÜKS konkreetne järgmine samm, ei mingit sissejuhatust/kokkuvõtet/lõpusõnu. Kohandatud projektist [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Napp CJK (文言)                  | `terse-cjk`   | Ülinapp klassikalise hiina keele stiil.                                                                                                                                                                                                                  | zh (piiratud lokaadiga: pakutakse ainult siis, kui tuvastatud keel on `zh`) |
+| Stiil                            | `id`          | Mida see teeb                                                                                                                                                                                                                | Juhendkeeled                                                                |
+| -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Lühike proosa                    | `terse-prose` | Jätab välja täitesõnad/artiklid/kahtlused; hoiab tehnilise sisu täpsena. Sama tekst nagu pärand-koopainimese väljundrežiimis (viidatud, mitte uuesti trükitud).                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
+| Vähem koodi                      | `less-code`   | YAGNI redel: väikseim töötav muudatus, pole soovimatuid abstraktsioone.                                                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
+| Hobusesaba (laisk vanemarendaja) | `ponytail`    | "Parim kood on kood, mida pole kunagi kirjutatud": taaskasutus > ümberkirjutamine, algpõhjus > sümptom, lühim töötav diff.                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
+| Mul on ADHD (tegevus-esimene)    | `i-have-adhd` | Tegevus esimesena (käsk/tee/lõik enne proosat), nummerdatud piiratud sammud, ÜKS konkreetne järgmine samm, pole eessõna/kokkuvõtet/lõpetajaid. Kohandatud [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
+| Lühike CJK (文言)                | `terse-cjk`   | Klassikaline hiina üli-lühike stiil.                                                                                                                                                                                         | zh (lokaaliga piiratud: pakutakse ainult siis, kui lahendatud keel on `zh`) |
 
-Igal stiilil on kolm intensiivsustaset — `lite`, `full`, `ultra` — ning iga tase lõpeb ühise piiranguklausliga, mis säilitab koodiplokid, failiteed, käsud, veateated, URL-id ja identifikaatorid muutmata kujul.
+Igal stiilil on kolm intensiivsuse taset — `lite`, `full`, `ultra` — ja iga tase
+lõpeb jagatud piiride klausliga, mis hoiab koodiplokid, failiteed, käsud,
+veateated, URL-id ja identifikaatorid muutumatuna.
 
-#### Kuidas lisamine töötab
+#### Kuidas süstimine töötab
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) sobitab valiku kataloogiga (tundmatud ID-d ja lokaadile mittevastavad stiilid jäetakse kõrvale ning need ei põhjusta kunagi viga), ühendab valitud juhised kataloogi järjekorras, lisab piiranguklausli **ühe korra** ning paigutab tulemuse süsteemiviiba algusse ühe idempotentsusmarkeri (`[OmniRoute Output Styles]`) järele — uuesti rakendamine ei tee midagi. Kui tuvastatud päringukeele jaoks on tõlge olemas, lisatakse ingliskeelse juhise asemel lokaliseeritud juhis.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) lahendab
+valiku kataloogi vastu (tundmatud id-d ja lokaaliga mittesobivad stiilid
+jäetakse välja, see pole kunagi viga), liidab valitud juhised kataloogi järjekorras,
+lisab piiride klausli **üks kord** ja laadib tulemuse süsteemi
+viipa ette ühe idempotentsuse märgise (`[OmniRoute Output Styles]`) taha — uuesti rakendamine
+ei tee midagi. Kui tuvastatud päringu keelel on tõlge, süstitakse
+lokaliseeritud juhis inglise keele asemel.
 
 #### Kuidas lubada
 
-Juhtpaneelil: **Kontekst → Seaded → Tihendamine** — iga stiili jaoks üks rida koos sisse-/väljalülitamise lüliti ja tasemevalijaga. Programmiliselt salvestab tihenduskonfiguratsioon valiku järgmisel kujul:
+Armatuurlaual: **Context → Settings → Compression** — iga stiili kohta üks rida
+sisse/välja lülitiga ja taseme valijaga. Programmilises mõttes säilitab tihenduskonfiguratsioon
+valiku järgmiselt:
 
 ```json
 {
@@ -458,48 +465,59 @@ Juhtpaneelil: **Kontekst → Seaded → Tihendamine** — iga stiili jaoks üks 
 }
 ```
 
-Tagasiühilduvus: pärandvariandi kombineeritud säte `outputMode: "caveman"` töötab endiselt ja vastendatakse stiilile `terse-prose`; tulemus on igas pärandkeeles vana lisamisega baiditäpsusega identne.
+Tagasiühilduvus: pärand `outputMode: "caveman"` kombineeritud seade töötab endiselt ja vastab
+`terse-prose`-le, olles bait-identne vana süstimisega igas pärandkeeles.
 
-Keele valimine: kui `languageConfig.enabled` on sisse lülitatud, valib `autoDetect` viimase kasutajasõnumi keele (sama tuvastaja, mida kasutavad sisendimootorid); `autoDetect` väljalülitamisel kinnistatakse `defaultLanguage`. Väljas → inglise keel.
+Keelevalik: kui `languageConfig.enabled` on sisse lülitatud, valib `autoDetect`
+viimase kasutaja sõnumi keele (sama detektor nagu sisendmootoritel);
+`autoDetect` väljalülitamine fikseerib `defaultLanguage`. Väljas → inglise keel.
 
-Stiili × keele maatriks on fikseeritud testiga `tests/unit/compression/output-styles-i18n-matrix.test.ts`: uut stiili ei saa avaldada ilma vähemalt pt-BR tõlketa (või selgesõnaliselt jälgitava erandita) ning olemasolev stiil ei saa lokaati märkamatult kaotada. Stiili lisamise kohta vaadake faili [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Stiili × keele maatriks on fikseeritud
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` abil: uus stiil ei saa ilmuda
+ilma vähemalt pt-BR tõlketa (või selgesõnalise jälgitava erandita) ja
+olemasolev stiil ei saa vaikselt kaotada lokaali. Stiili lisamiseks vaadake
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Tööriistatulemuste tihendamine
+### Tööriista tulemuste tihendamine
 
-Moodul `toolResultCompressor.ts` pakub tööriistatulemuste (funktsioonikutsed, agentide väljundid, otsingutulemused jne) jaoks **viit spetsiaalset tihendusstrateegiat**:
+Moodul `toolResultCompressor.ts` pakub **5 spetsialiseeritud tihendusstrateegiat**
+tööriista tulemuste jaoks (funktsioonikutsed, agendi väljundid, otsingutulemused jne):
 
-1. **Otsingutulemuste tihendamine** — eemaldab üleliigsed tulemused, säilitab N parimat
-2. **Faili lugemistulemuse tihendamine** — kärbib suuri faile, säilitab päised ja impordid
-3. **Koodikäivituse tulemuse tihendamine** — säilitab ainult olulise stdout/stderr-väljundi
-4. **Andmebaasipäringu tulemuse tihendamine** — piirab ridu, eemaldab paljusõnalised metaandmed
-5. **API vastuse tihendamine** — eemaldab null-väljad, tihendab massiive
+1. **Otsingutulemuste tihendamine** — Eemaldab üleliigsed tulemused, säilitab top-N
+2. **Faili lugemise tihendamine** — Kärbib suuri faile, säilitab päised/impordid
+3. **Koodi täitmise tihendamine** — Säilitab ainult olulise stdout/stderr
+4. **Andmebaasi päringu tihendamine** — Piirab ridu, eemaldab verbaalse metaandmed
+5. **API vastuse tihendamine** — Eemaldab nullväärtusega väljad, tihendab massiive
 
-#### Millal seda kasutada
+#### Millal kasutada
 
-Tööriistatulemuste tihendamine on tööriistakutsete olemasolul **alati sisse lülitatud**. Konfigureerimine pole vajalik.
+Tööriista tulemuste tihendamine on **alati sisse lülitatud**, kui tööriistakutsed on olemas.
+Konfiguratsiooni pole vaja.
 
-### Virnastatud konveier
+### Virnastatud torujuhe
 
-Virnastatud režiim käitab **mitut mootorit järjestikku** — tavaliselt esmalt RTK (60–90% sääst tööriistaväljundis), seejärel Caveman (30% lisasääst ülejäänud tekstis). Nii saavutatakse **78–95% kogusääst**.
+Virnastatud režiim käivitab **mitu mootorit järjest** — tavaliselt esmalt RTK
+(60-90% kokkuhoidu tööriista väljundil), seejärel Caveman (30% täiendavat kokkuhoidu
+ülejäänud tekstil). See saavutab **78-95% kogu kokkuhoiu**.
 
 #### Kuidas see töötab
 
 ```
-Sisend (1000 sõnet)
-  → RTK (käsuteadlik filter) → 200 sõnet
-    → Caveman (täitesõnade eemaldamine) → 140 sõnet
-  → Väljund (140 sõnet, 86% sääst)
+Sisend (1000 märki)
+  → RTK (käsu-teadlik filter) → 200 märki
+    → Caveman (täitesõnade eemaldamine) → 140 märki
+  → Väljund (140 märki, 86% kokkuhoidu)
 ```
 
-#### Millal seda kasutada
+#### Millal kasutada
 
-Kasutage virnastatud režiimi järgmiste kasutusjuhtude puhul:
+Kasutage virnastatud režiimi järgmistel juhtudel:
 
-- Tööriistamahukad töövood (agentprogrammeerimine, uurimistöö)
-- Kulutundlik pakktöötlus
-- Kui vajate maksimaalset sõnede kokkuhoidu
+- Tööriistamahukad töövoogud (agendiline kodeerimine, uurimistöö)
+- Kulutundlik partii töötlemine
+- Kui vajate maksimaalset märgi kokkuhoidu
 
-Konfigureerige kombineeritud konfiguratsiooni kaudu:
+Konfigureerige kombineeritult:
 
 ```json
 {

@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Igbo)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -182,58 +182,48 @@ Site na Stacked:      token 10K-2.5K ezigara    (oke RTK+Caveman tozuru oke nke 
 
 ## Nhazi
 
-### Ogwe njikwa
+### Dashbọọdụ
 
-Gaa na `Ogwe njikwa → Kọntekst & Cache`:
+Gaa na `Dashboard → Context & Cache`:
 
-- **Caveman** — nhọrọ ọnọdụ, ngwugwu asụsụ, nlele tupu oge eruo, na ndabara zuru ụwa ọnụ
-- **RTK** — nlele tupu oge eruo nke nzacha iwu, ntọala nchekwa RTK, na katalọgụ nzacha
-- **Ngwakọta Mkpakọ** — usoro injin ndị e nyere aha ma kenyekwa ha na ngwakọta ntụgharị ụzọ
-- **Oke Mmalite Akpaaka** — na-amalite mkpakọ na-akpaghị aka mgbe ọnụọgụ token gafere oke
+- **Caveman** — nhọrọ ọnọdụ, ngwugwu asụsụ, nlele, na ndabara zuru ụwa ọnụ
+- **RTK** — nlele nzacha iwu, ntọala nchekwa RTK, na katalọgụ nzacha
+- **Nchikota Mkpakọ** — aha pipelines injin e kenyere combos ụzọ
+- **Oke Nkwụsị Akpaaka** — na-etinye mkpakọ na-akpaghị aka mgbe ọnụọgụ akara gafere oke
 
-### Mgbanwe Maka Ngwakọta Ọ Bụla
+### Nkwụsị Kwa-Combo
 
-Na `Ogwe njikwa → Kọntekst & Cache → Ngwakọta Mkpakọ`, kenye ngwakọta mkpakọ na ngwakọta
-ntụgharị ụzọ:
+Na `Dashboard → Context & Cache → Compression Combos`, kenye combo mkpakọ na combo ụzọ:
 
 ```txt
-Ngwakọta: "free-tier-fallback"
-  Ngwakọta Mkpakọ: "coding-agent-stack"
-  Usoro: RTK -> Caveman
-  Ebe Ezubere:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Nke a na-enye gị ohere iji mkpakọ e jikọtara ọnụ n'elu ndị na-eweta ọrụ efu/ide koodu, ma na-edobe
-ọnọdụ lite maka ndebanye aha a na-akwụ ụgwọ.
+Nke a na-enye gị ohere iji mkpakọ agbakọtara na ndị na-enye ọrụ n'efu/coding mgbe ị na-edebe ọnọdụ lite na ndenye aha akwụ ụgwọ.
 
-Ntọala "Mgbanwe Maka Ngwakọta Ọ Bụla" a bụ njikwa dị iche na mgbanwe **ọnọdụ mkpakọ nke ngwakọta
-ntụgharị ụzọ** (Default/Off/Lite/Standard/Aggressive/Ultra) — mgbanwe ahụ anaghị ahọrọ usoro
-ngwakọta-mkpakọ e nyere aha; naanị ihe ọ na-eme bụ ịtọ mpaghara `compressionMode` nke
-`resolveCompressionPlan` na-enyocha. Enwere ike ịtọ ya na kaadị ngwakọta (`Ogwe njikwa → Ngwakọta`)
-ma ọ bụ, malite na #6760, maka ngwakọta ntụgharị ụzọ ọ bụla na ndepụta "Kenye na ntụgharị ụzọ" dị na
-`Ogwe njikwa → Kọntekst & Cache → Ngwakọta Mkpakọ`, n'akụkụ igbe nhọrọ maka ikenye usoro
-akọwara n'elu. Ebe abụọ ahụ na-echekwa mgbanwe site n'otu endpoint `PUT /api/combos/{id}`.
+Nke a "Nkwụsị Kwa-Combo" bụ njikwa dị iche na **routing-combo compression mode** nkwụsị (Default/Off/Lite/Standard/Aggressive/Ultra) — nkwụsị ahụ anaghị ahọrọ pipeline mkpakọ akpọrọ aha; ọ na-edozi naanị mpaghara `compressionMode` nke `resolveCompressionPlan` na-agbakọ. Enwere ike ịtọ ya ma ọ bụ na kaadị combo (`Dashboard → Combos`) ma ọ bụ, kemgbe #6760, kwa combo ụzọ na ndepụta "Kenye na ụzọ" na `Dashboard → Context & Cache → Compression Combos`, n'akụkụ igbe nlele pipeline-assignment akọwara n'elu. Ebe abụọ ahụ na-aga n'ihu site na otu njedebe `PUT /api/combos/{id}`.
 
-### Mgbanwe maka arịrịọ ọ bụla
+### Nkwụsị kwa-arịrịọ
 
-Zipụ isi arịrịọ `x-omniroute-compression` iji gbanwee atụmatụ mkpakọ maka otu arịrịọ. Ọ nwere
-ikike kachasị elu — ọ na-emeri mgbanwe ngwakọta ntụgharị ụzọ, profaịlụ nọ n'ọrụ, mmalite akpaaka,
-na Default nke panel ahụ. A na-eleghara ụkpụrụ ndị a na-amaghị anya (a naghị ajụ arịrịọ ahụ ma ọlị),
-mgbanwe ukwu zuru ụwa ọnụ ka na-achịkwa ihe niile: mgbe agbanyụrụ mkpakọ n'ụwa niile, isi arịrịọ ahụ
-enweghị ike ịgbanye ya. Ụkpụrụ:
+Zipu isiokwu arịrịọ `x-omniroute-compression` iji kwụsị atụmatụ mkpakọ maka otu arịrịọ. O nwere ihe kachasị elu — ọ na-emeri nkwụsị routing-combo, profaịlụ na-arụ ọrụ, nkwụsị akpaaka, na Default panel. A na-eleghara ụkpụrụ amaghị ama anya (anaghị ajụ arịrịọ ahụ) na isi mgba ọkụ zuru ụwa ọnụ ka na-eche ihe niile: mgbe mkpakọ gbanyụrụ n'ụwa niile, isiokwu ahụ enweghị ike ịgbanwuo ya. Ụkpụrụ:
 
-| Ụkpụrụ        | Mmetụta                                                                                                                      |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Enweghị mkpakọ maka arịrịọ a.                                                                                                |
-| `default`     | Profaịlụ Default sitere na panel (na-eleghara profaịlụ nọ n'ọrụ anya).                                                       |
-| `engine:<id>` | Otu injin mgbe agbanyere ya, dịka ọmụmaatụ `engine:rtk`.                                                                     |
-| `<combo>`     | Ngwakọta e nyere aha, nke a ga-ebu ụzọ dakọtara site n'aha (n'agbanyeghị mkpụrụedemede ukwu ma ọ bụ nta), emesịa site na id. |
+| Ụkpụrụ        | Mmetụta                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `off`         | Enweghị mkpakọ maka arịrịọ a.                                                                                 |
+| `default`     | Profaịlụ Default sitere na panel (na-eleghara profaịlụ na-arụ ọrụ anya). A na-ahapụ injin ndị na-efunahụ ihe. |
+| `safe`        | Otu ihe ahụ dị ka ịhapụ isiokwu ahụ: dedup na mpịakọta oghere ọcha naanị.                                     |
+| `allow-lossy` | Debe atụmatụ onye ọrụ arịrịọ a, gụnyere nchịkọta, nzacha mkpa, na idegharị ụdị.                               |
+| `engine:<id>` | Otu injin mgbe agbanyere ya, dịka ọmụmaatụ `engine:rtk`. Nke a bụ nhọrọ kwa-arịrịọ maka injin ahụ.            |
+| `<combo>`     | Combo akpọrọ aha, dakọtara site na aha (na-enweghị nlebara anya ikpe) mbụ, mgbe ahụ site na id.               |
 
-A na-eweghachi atụmatụ etinyere na isi nzaghachi `X-OmniRoute-Compression: <mode>; source=<source>`,
-ebe `<source>` bụ otu n'ime `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default`, ma ọ bụ `off`.
+Na-enweghị `allow-lossy`, `engine:<id>`, ma ọ bụ combo akpọrọ aha, anaghị etinye injin ndị na-efunahụ ihe. Arịrịọ ahụ ka na-enweta dedup nnọkọ na mpịakọta oghere ọcha mgbe mkpakọ dị.
+
+A na-ekwughachi atụmatụ etinyere na isiokwu nzaghachi `X-OmniRoute-Compression: <mode>; source=<source>`, ebe `<source>` bụ otu n'ime `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ma ọ bụ `off`.
 
 ### API
 
@@ -246,7 +236,7 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Lelee payload RTK/stacked akọwapụtara tupu oge eruo
+# Lelee ibu RTK/stacked akọwapụtara
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
@@ -254,7 +244,7 @@ curl -X POST http://localhost:20128/api/compression/preview \
 # Depụta ngwugwu nzacha RTK
 curl http://localhost:20128/api/context/rtk/filters
 
-# Jiri metadata iwu nhọrọ nwalee RTK ozugbo
+# Nwalee RTK ozugbo na metadata iwu nhọrọ
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -281,7 +271,7 @@ okwuntughe, token, na ihe nzuzo tupu e debe ihe ọ bụla.
 
 ## Ọnụọgụ Mkpakọ
 
-Arịrịọ ọ bụla a kwakọtara na-agụnye ọnụọgụ na ndekọ sava:
+Arịrịọ ọ bụla e mere mkpakọ na-agụnye ọnụọgụ n'ime ndekọ ihe nkesa:
 
 ```json
 {
@@ -299,15 +289,15 @@ Arịrịọ ọ bụla a kwakọtara na-agụnye ọnụọgụ na ndekọ sava
 
 ---
 
-## Atụmatụ Usoro Nkebi
+## Atụmatụ Nzọụkwụ
 
-| Nkebi    | Ọnọdụ                                                                                                                                  | Ọkwa            |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| Nkebi 1  | Gbanyụọ, Lite                                                                                                                          | ✅ Ewepụtala ya |
-| Nkebi 2  | Standard, Aggressive, Ultra                                                                                                            | ✅ Ewepụtala ya |
-| Nkebi 3  | RTK, Stacked, Ngwakọta Mkpakọ                                                                                                          | ✅ Ewepụtala ya |
-| Nkebi 4  | Ụdị Mpụta, Ultra nke ọkwa SLM, usoro nnwale eval                                                                                       | ✅ Ewepụtala ya |
-| Nkebi 4C | Mmegharị mmefu-context ("dial") — injin mgbakọ + API (`contextBudget` na `PUT /api/settings/compression`) + njikwa ọnọdụ/iwu dashboard | ✅ Ewepụtala ya |
+| Nzọụkwụ    | Ụdịdị                                                                                                                                              | Ọnọdụ      |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Nzọụkwụ 1  | Gbanyụọ, Lite                                                                                                                                      | ✅ Ebugoro |
+| Nzọụkwụ 2  | Standard, Aggressive, Ultra                                                                                                                        | ✅ Ebugoro |
+| Nzọụkwụ 3  | RTK, Stacked, Compression Combos                                                                                                                   | ✅ Ebugoro |
+| Nzọụkwụ 4  | Ụdịdị Nsonaazụ, SLM-tier Ultra, eval harness                                                                                                       | ✅ Ebugoro |
+| Nzọụkwụ 4C | Mgbakọta ọnọdụ na-agbanwe agbanwe ("dial") — igwe mgbakọ + API (`contextBudget` na `PUT /api/settings/compression`) + njikwa ụdịdị/amụma dashboard | ✅ Ebugoro |
 
 ---
 
@@ -319,30 +309,30 @@ Iwu mkpakọ ọnọdụ Standard sitere n'ike mmụọ nsọ nke **[Caveman](ht
 
 ---
 
-## Sistemụ Mkpakọ Dị Elu
+## Usoro Mkpakọ Dị Elu
 
-E wezụga ọnọdụ ọkọlọtọ 7 ahụ, OmniRoute gụnyere ọtụtụ sistemụ mkpakọ dị elu
-ndị na-arụ ọrụ na-akpaghị aka dabere na context.
+Na mgbakwunye na ụdị ọkọlọtọ 7, OmniRoute gụnyere ọtụtụ usoro mkpakọ dị elu
+nke na-arụ ọrụ na-akpaghị aka dabere na ọnọdụ.
 
-### Mkpakọ Na-eburu Cache n'Uche
+### Mkpakọ Na-amata Cache
 
-Ụfọdụ ndị na-eweta ọrụ (dị ka Anthropic nwere prompt caching) na-akwado **prompt caching**,
-nke na-enye ha ohere idobe akụkụ prompt na cache iji belata ọnụ ahịa na oge nchere. Mgbe
-agbanyere caching, mkpakọ siri ike nwere ike **imebi** arụmọrụ
-n'ihi na ọ na-agbanwe token ndị dị na cache, si otú ahụ mee ka cache ghara ịdị irè.
+Ụfọdụ ndị na-enye ọrụ (dị ka Anthropic na nchekwa nchekwa ngwa ngwa) na-akwado **nchekwa nchekwa ngwa ngwa**,
+nke na-enye ha ohere ịchekwa akụkụ nke ngwa ngwa iji belata ọnụ ahịa na oge nkwụsị. Mgbe
+agbanyere nchekwa nchekwa, mkpakọ siri ike nwere ike **imerụ** arụmọrụ n'ihi na ọ na-agbanwe
+akara ndị echekwara, na-eme ka nchekwa nchekwa ghara ịdị irè.
 
-Modul `cachingAware.ts` na-edozi nke a site na **ịchọpụta context caching** na
-**ịhazigharị atụmatụ mkpakọ** n'ụzọ kwekọrọ.
+Modul `cachingAware.ts` na-edozi nke a site na **ịchọpụta ọnọdụ nchekwa nchekwa** na
+**ịhazigharị atụmatụ mkpakọ** n'ụzọ kwesịrị ekwesị.
 
 #### Otu o si arụ ọrụ
 
-1. **Chọpụta context caching** — Na-enyocha body arịrịọ maka akara `cache_control`
-2. **Chọpụta ndị na-eweta caching** — Na-enyocha ma onye na-eweta ọrụ ezubere iche ọ na-akwado caching
-3. **Hazigharịa atụmatụ** — Na-agbadata `aggressive`/`ultra` gaa `standard` maka ndị na-eweta caching
-4. **Mafee system prompt** — A na-etinyekarị system prompt na cache, ya mere akwakọla ha
-5. **Jiri mgbanwe na-enye otu nsonaazụ mgbe niile** — Jiri naanị mgbanwe ndị na-emepụta mpụta na-agbanweghi agbanwe
+1. **Chọpụta ọnọdụ nchekwa nchekwa** — Na-enyocha ahụ arịrịọ maka akara `cache_control`
+2. **Chọpụta ndị na-enye ọrụ nchekwa nchekwa** — Na-enyocha ma onye na-enye ọrụ ebumnuche na-akwado nchekwa nchekwa
+3. **Hazigharịa atụmatụ** — Na-agbada `aggressive`/`ultra` gaa `standard` maka ndị na-enye ọrụ nchekwa nchekwa
+4. **Wepụ ngwa ngwa sistemụ** — A na-echekwa ngwa ngwa sistemụ mgbe niile, yabụ emela ka ha kpọkọta
+5. **Jiri mgbanwe ndị a na-ekpebi** — Naanị jiri mgbanwe ndị na-emepụta mmepụta na-agbanwe agbanwe
 
-#### Ọmụmaatụ koodu
+#### Ihe atụ koodu
 
 ```ts
 import {
@@ -353,7 +343,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Akara cache
+  cache_control: { type: "ephemeral" }, // ← Akara nchekwa nchekwa
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -363,75 +353,75 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Mgbe a ga-eji ya
+#### Mgbe ị ga-eji
 
-Mkpakọ na-eburu cache n'uche **na-arụ ọrụ mgbe niile** — nhazi adịghị mkpa. Ọ na-amalite ọrụ naanị
-mgbe:
+Mkpakọ na-amata cache **na-arụ ọrụ mgbe niile** — ọ dịghị nhazi achọrọ. Ọ na-amalite
+naanị mgbe:
 
 - Arịrịọ ahụ nwere akara `cache_control`
-- Onye na-eweta ọrụ ezubere iche na-akwado prompt caching (Anthropic, OpenAI, wdg.)
+- Onye na-enye ọrụ ebumnuche na-akwado nchekwa nchekwa ngwa ngwa (Anthropic, OpenAI, wdg.)
 
-### Ịka Nka Nwayọọ Nwayọọ
+### Ịka nká na-aga n'ihu
 
-Mkparịta ụka toro ogologo na-achịkọta ọtụtụ ntụgharị ozi, mana ntụgharị ndị ochie na-aghọwanye ndị
-na-adịchaghị mkpa. Modul `progressiveAging.ts` **na-ebelata nkọwa ozi dịka ebe ntụgharị ya dị anya**:
+Mkparịta ụka ogologo na-agbakọta ọtụtụ ntụgharị ozi, mana ntụgharị ochie na-adị
+obere mkpa. Modul `progressiveAging.ts` **na-emebi ozi site na anya ntụgharị**:
 
-- **Ntụgharị nso nso a (0-3)**: Edebere ya otu ọ dị (nkọwa zuru ezu)
-- **Ntụgharị etiti (4-8)**: Mkpakọ Lite (oghere, nhicha nhazi)
-- **Ntụgharị ochie (9+)**: Mkpakọ Caveman (iwepụ okwu mmeju, nchịkọta)
-- **Ntụgharị kara ezigbo nka (20+)**: A na-achịkọta ha nke ukwuu ma ọ bụ wepụ ha
+- **Ntụgharị na nso nso (0-3)**: Edebere ya n'ụzọ zuru ezu (nkọwa zuru ezu)
+- **Ntụgharị etiti (4-8)**: Mkpakọ dị nro (ozi oghere, nhicha nhazi)
+- **Ntụgharị ochie (9+)**: Mkpakọ ọgba (iwepụ ihe ndochi, nchịkọta)
+- **Ntụgharị ochie nke ukwuu (20+)**: Nchịkọta dị ukwuu ma ọ bụ tụfuo
 
-#### Ọmụmaatụ koodu
+#### Ihe atụ koodu
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
 
 const messages = [
-  { role: "system", content: "You are a helpful assistant" },
-  { role: "user", content: "What is 2+2?" },
+  { role: "system", content: "Ị bụ onye enyemaka bara uru" },
+  { role: "user", content: "Gịnị bụ 2+2?" },
   { role: "assistant", content: "4" },
   // ... ntụgharị 50 ọzọ ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Ntụgharị 3 mbụ: otu ha dị
-  light: 8, // Ntụgharị 4-8: mkpakọ lite
-  moderate: 20, // Ntụgharị 9-20: mkpakọ caveman
-  // Ntụgharị 21+: nchịkọta siri ike
+  verbatim: 3, // Ntụgharị 3 mbụ: n'ụzọ zuru ezu
+  light: 8, // Ntụgharị 4-8: mkpakọ dị nro
+  moderate: 20, // Ntụgharị 9-20: mkpakọ ọgba
+  // Ntụgharị 21+: nchịkọta dị ukwuu
 });
 
-// saved = ọnụọgụ token echekwara
+// saved = ọnụọgụ akara echekwara
 ```
 
-#### Mgbe a ga-eji ya
+#### Mgbe ị ga-eji
 
-Ịka nká na-aga n'ihu na-arụ ọrụ **mgbe niile** maka ọnọdụ `aggressive` na `ultra`. Ọ
-na-arụ ọrụ nke ọma karịsịa maka:
+Ịka nká na-aga n'ihu **na-arụ ọrụ mgbe niile** maka ụdị `aggressive` na `ultra`. Ọ dị
+bara uru karịsịa maka:
 
-- Oge ide koodu na-adị ogologo
-- Mkparịta ụka na-ewe ọtụtụ ụbọchị
-- Usoro ọrụ ndị nnọchi anya nwere ọtụtụ oku ngwaọrụ
+- Nzukọ koodu na-adịte aka
+- Mkparịta ụka ụbọchị dị iche iche
+- Usoro ọrụ ndị ọrụ nwere ọtụtụ oku ngwaọrụ
 
-### Ọnọdụ Mmepụta Caveman
+### Ụdị Mmepụta Ọgba
 
-Modul `outputMode.ts` na-etinye **ntụziaka system prompt** iji mee ka
-model ahụ n'onwe ya wepụta mmepụta mkpirikpi, na-enweghị ọtụtụ okwu (ụdị "caveman").
+Modul `outputMode.ts` na-agbakwunye **ntụziaka ngwa ngwa sistemụ** iji mee ka
+ụdị ahụ n'onwe ya mepụta mmepụta mkpakọ, dị mkpụmkpụ (ụdị "ọgba").
 
 #### Otu o si arụ ọrụ
 
-Kama ịpịkọta ntinye, ọnọdụ a na-agbakwunye system prompt dị ka:
+Kama ịkpọkọta ntinye, ụdị a na-agbakwunye ngwa ngwa sistemụ dị ka:
 
-> "Zaghachi n'okwu ole na ole. Wepụ okwu ekele. Jiri ahịrịokwu dị mkpirikpi."
+> "Zaa n'okwu ole na ole. Wepụ ihe ụtọ. Jiri ahịrịokwu dị mkpụmkpụ."
 
 Nke a na-arụ ọrụ nke ọma karịsịa maka:
 
-- Mmepụta koodu (mmepụta dị mkpirikpi = token ole na ole)
-- Ajụjụ na azịza ngwa ngwa (nkọwa sara mbara adịghị mkpa)
-- Nhazi n'ìgwè (mee ka throughput kacha elu)
+- Ọgbọ koodu (mmepụta dị mkpụmkpụ = akara ole na ole)
+- Ajụjụ & Azịza ngwa ngwa (ọ dịghị mkpa maka nkọwa zuru ezu)
+- Nhazi batch (ịbawanye mmepụta)
 
-#### Mgbe a ga-eji ya
+#### Mgbe ị ga-eji
 
-Ọnọdụ mmepụta Caveman bụ **opt-in** — tọọ ya site na nhazi combo:
+Ụdị mmepụta ọgba bụ **nhọrọ** — tọọ ya site na nhazi combo:
 
 ```json
 {
@@ -444,41 +434,41 @@ Nke a na-arụ ọrụ nke ọma karịsịa maka:
 }
 ```
 
-### Ụdị Mmepụta (katalọgụ)
+### Ụdị Mmepụta (ndepụta)
 
-Ọnọdụ mmepụta Caveman dị n'elu bụ **ụzọ otu ụdị ochie**. Phase 4 mere ka ọ
-ghọọ katalọgụ nke ụdị mmepụta a pụrụ ijikọ ọnụ: `OUTPUT_STYLE_CATALOG` dị na
-`open-sse/services/compression/outputStyles/catalog.ts`. Ụdị ọ bụla bụ ntụziaka system-prompt
-nke na-eme ka model ahụ n'onwe ya wepụta mmepụta dị ọnụ ala karị; enwere ike ịgbanye
-ụdị ndị ahụ ọnụ, a na-etinyekwa ha dịka usoro katalọgụ si dị.
+Ụdị mmepụta ọgba dị n'elu bụ **ụzọ otu ụdị ochie**. Nzọụkwụ 4 mere ka ọ
+ghọọ ndepụta nke ụdị mmepụta nwere ike ijikọta: `OUTPUT_STYLE_CATALOG` na
+`open-sse/services/compression/outputStyles/catalog.ts`. Ụdị ọ bụla bụ ntụziaka ngwa ngwa sistemụ
+nke na-eme ka ụdị ahụ n'onwe ya mepụta mmepụta dị ọnụ ala; enwere ike ịgbanwuo ụdị
+ọnụ ma tinye ya n'usoro ndepụta.
 
-| Ụdị                                    | `id`          | Ihe ọ na-eme                                                                                                                                                                                                                           | Asụsụ ntụziaka                                                      |
-| -------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Nkọwa dị mkpirikpi                     | `terse-prose` | Wepụ okwu ndochi/articles/okwu mgbagwoju anya; debe ihe teknụzụ kpọmkwem. Ọ bụ otu ederede ahụ dị na ọnọdụ mmepụta caveman ochie (e zoro aka na ya, edeghị ya ọzọ).                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| Koodu pere mpe                         | `less-code`   | Usoro YAGNI: mgbanwe kacha nta na-arụ ọrụ, enweghị abstraction a na-arịọghị.                                                                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| Ponytail (onye nrụpụta senior umengwụ) | `ponytail`    | "Koodu kacha mma bụ koodu a na-edeghị": jiri ihe dị adị ọzọ > degharịa, isi ihe kpatara nsogbu > mgbaàmà, diff kacha mkpirikpi na-arụ ọrụ.                                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| Enwere m ADHD (omume-ebu-ụzọ)          | `i-have-adhd` | Omume buru ụzọ (command/path/snippet tupu nkọwa), nzọụkwụ nwere nọmba na oke, OTU nzọụkwụ ọzọ doro anya, enweghị okwu mmeghe/nchịkọta/okwu mmechi. E si na [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) hazie ya. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| CJK dị mkpirikpi (文言)                | `terse-cjk`   | Ụdị Classical-Chinese dị nnọọ mkpirikpi.                                                                                                                                                                                               | zh (locale-gated: a na-enye ya naanị mgbe asụsụ a họpụtara bụ `zh`) |
+| Ụdị | `id` | Ihe ọ na-eme | Asụsụ ntụziaka |
+| -------------------------- | ------------- | Ọdịmma | ---------------------------------------------------------- |
+| Okwu nkenke | `terse-prose` | Wepụ ihe ndochi/edemede/ịgba ọsọ; debe ihe teknụzụ kpọmkwem. Otu ederede dị ka usoro mmepụta caveman ochie (ezo aka, edeghị ya ọzọ). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Koodu dị obere | `less-code` | YAGNI ladder: mgbanwe kacha nta na-arụ ọrụ, enweghị nkwupụta anaghị arịọ. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Ponytail (onye mmepe agadi umengwụ) | `ponytail` | "Koodu kacha mma bụ koodu a na-edeghị ede": iji ya eme ihe ọzọ > idegharị, isi ihe kpatara ya > ihe mgbaàmà, obere ọdịiche na-arụ ọrụ. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Enwere m ADHD (omume-mbụ) | `i-have-adhd` | Omume mbụ (iwu/ụzọ/snippet tupu okwu), usoro nwere oke nọmba, otu nzọụkwụ ọzọ doro anya, enweghị okwu mmalite/nchịkọta/mmechi. Emegharịrị site na [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Terse CJK (文言) | `terse-cjk` | Ụdị Classical-Chinese ultra-terse. | zh (locale-gated: naanị a na-enye ya mgbe asụsụ edoziri bụ `zh`) |
 
-Ụdị ọ bụla nwere ọkwa ike atọ — `lite`, `full`, `ultra` — ọkwa ọ bụla
-na-ejedebekwa na nkebi oke a na-ekekọrịta, nke na-edobe code blocks, file paths, commands,
-error strings, URLs na identifiers ka ha dị kpọmkwem.
+Ụdị ọ bụla na-ebufe ọkwa ike atọ — `lite`, `full`, `ultra` — na ọkwa ọ bụla
+na-ejedebe na nkebiokwu oke nkekọrịta, nke na-edebe ngọngọ koodu, ụzọ faịlụ, iwu,
+eriri njehie, URL na ihe nchọpụta n'ụzọ zuru ezu.
 
-#### Otu ntinye si arụ ọrụ
+#### Otu injection si arụ ọrụ
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) na-enyocha
-nhọrọ ahụ megide katalọgụ (a na-ewepụ ids ndị amaghị na ụdị ndị locale ha adabaghị,
-ọ dịghị mgbe ọ bụ njehie), na-ejikọta ntụziaka ndị ahọpụtara dịka usoro katalọgụ si dị,
-na-agbakwunye nkebi oke ahụ **otu ugboro**, ma na-etinye nsonaazụ ahụ n'ihu system
-prompt n'azụ otu akara idempotency (`[OmniRoute Output Styles]`) — itinye ya ọzọ
-agaghị eme ihe ọ bụla. Mgbe asụsụ arịrịọ achọpụtara nwere ntụgharị, a na-etinye
-ntụziaka a sụgharịrị kama nke Bekee.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) na-edozi
+nhọrọ ahụ megide katalọgụ (a na-atụfu id ndị amaghị na ụdị ndị na-adabaghị na mpaghara,
+ọ dịghị mgbe njehie), na-ejikọta ntụziaka ndị ahọpụtara n'usoro katalọgụ,
+na-agbakwunye nkebiokwu oke **otu ugboro**, ma na-ebute nsonaazụ ahụ n'ime sistemụ
+ngwa ngwa n'azụ otu ihe nchọpụta idempotency (`[OmniRoute Output Styles]`) — imegharị
+ya abụghị ihe ọ bụla. Mgbe asụsụ arịrịọ achọpụtara nwere ntụgharị asụsụ,
+a na-agbanye ntụziaka mpaghara kama ịbụ Bekee.
 
-#### Otu esi gbanye ya
+#### Otu esi eme ka ọ rụọ ọrụ
 
-Na dashboard: **Context → Settings → Compression** — otu ahịrị maka ụdị ọ bụla nwere
-toggle ịgbanye/ịgbanyụ na ihe nhọpụta ọkwa. Site na mmemme, nhazi compression na-echekwa
-nhọrọ ahụ dịka:
+Na dashboard: **Context → Settings → Compression** — otu ahịrị kwa ụdị nwere
+ngbanwe gbanye/gbanyụọ na ihe nhọpụta ọkwa. N'ụzọ mmemme, nhazi mkpakọ na-edebe
+nhọrọ ahụ dị ka:
 
 ```json
 {
@@ -489,59 +479,59 @@ nhọrọ ahụ dịka:
 }
 ```
 
-Ndakọrịta azụ: ntọala combo ochie `outputMode: "caveman"` ka na-arụ ọrụ ma na-map gaa
-`terse-prose`, byte-identical na ntinye ochie n'asụsụ ochie ọ bụla.
+Back-compat: ntọala ngwakọta `outputMode: "caveman"` ochie ka na-arụ ọrụ ma na-edekọ na
+`terse-prose`, byte-otu na injection ochie n'asụsụ ochie ọ bụla.
 
-Nhọrọ asụsụ: mgbe `languageConfig.enabled` dị on, `autoDetect` na-ahọrọ
-asụsụ nke ozi onye ọrụ kacha ọhụrụ (otu detector ahụ nke input engines na-eji);
-ịgbanyụ `autoDetect` na-akpọgide `defaultLanguage`. Off → Bekee.
+Nhọrọ asụsụ: na `languageConfig.enabled` na-arụ ọrụ, `autoDetect` na-ahọrọ
+asụsụ nke ozi onye ọrụ kacha ọhụrụ (otu ihe nchọpụta dị ka injin ntinye);
+ịgbanyụ `autoDetect` na-eme ka `defaultLanguage` kwụsie ike. Gbanyụọ → Bekee.
 
-A na-akpọgide matriks ụdị × asụsụ site na
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: ụdị ọhụrụ enweghị ike ịpụta
-na-enweghị ma ọ dịkarịa ala ntụgharị pt-BR (ma ọ bụ exception doro anya a na-esochi), ụdị
-dị adị enweghịkwa ike tufuo locale na nzuzo. Iji tinye ụdị, lee
+A na-atụnye ụdị × asụsụ matrix site na
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: ụdị ọhụrụ enweghị ike ibuga
+na-enweghị ma ọ dịkarịa ala ntụgharị asụsụ pt-BR (ma ọ bụ ihe pụrụ iche a na-achọpụta),
+na ụdị dị adị enweghị ike ịlafu mpaghara n'ụzọ dị jụụ. Iji tinye ụdị, lee
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Mkpakọ Nsonaazụ Ngwaọrụ
 
-Modul `toolResultCompressor.ts` na-enye **usoro mkpakọ pụrụ iche 5**
-maka nsonaazụ ngwaọrụ (function calls, agent outputs, search results, wdg.):
+Modul `toolResultCompressor.ts` na-enye **atụmatụ mkpakọ pụrụ iche 5**
+maka nsonaazụ ngwaọrụ (oku ọrụ, mmepụta onye nnọchi anya, nsonaazụ ọchụchọ, wdg.):
 
-1. **Mkpakọ nsonaazụ ọchụchọ** — Na-ewepụ nsonaazụ ndị na-emegharị onwe ha, na-edobe top-N
-2. **Mkpakọ ọgụgụ faịlụ** — Na-ebiri faịlụ buru ibu, na-echekwa headers/imports
-3. **Mkpakọ mmezu koodu** — Na-edobe naanị stdout/stderr ndị dị mkpa
-4. **Mkpakọ ajụjụ database** — Na-amachi rows, na-ewepụ metadata nwere ọtụtụ okwu
-5. **Mkpakọ nzaghachi API** — Na-ewepụ null fields, na-achịkọta arrays
+1. **Mkpakọ nsonaazụ ọchụchọ** — Na-ewepụ nsonaazụ na-enweghị isi, na-edebe top-N
+2. **Mkpakọ ọgụgụ faịlụ** — Na-ebipụ faịlụ buru ibu, na-echekwa isi/mbubata
+3. **Mkpakọ mmezu koodu** — Na-edebe naanị stdout/stderr dị mkpa
+4. **Mkpakọ ajụjụ nchekwa data** — Na-egbochi ahịrị, na-ewepụ metadata na-agbagwoju anya
+5. **Mkpakọ nzaghachi API** — Na-ewepụ mpaghara efu, na-agbakọta arrays
 
-#### Mgbe a ga-eji ya
+#### Mgbe ị ga-eji
 
-Mkpakọ nsonaazụ ngwaọrụ na-arụ ọrụ **mgbe niile** mgbe tool calls dị. Ọ dịghị
+Mkpakọ nsonaazụ ngwaọrụ **na-arụ ọrụ mgbe niile** mgbe oku ngwaọrụ dị. Enweghị
 nhazi achọrọ.
 
-### Pipeline A Tụkọtara Ọnụ
+### Pipeline A Kpọkọtara
 
-Ọnọdụ stacked na-agba **ọtụtụ engines n'usoro** — ọ na-abụkarị RTK mbụ
-(nchekwa 60-90% na tool output), Caveman esochie ya (nchekwa 30% ọzọ na
-ederede fọdụrụ). Nke a na-eweta **nchekwa mkpokọta 78-95%**.
+Ụdị akpọkọtara na-agba **ọtụtụ injin n'usoro** — na-abụkarị RTK mbụ
+(nchekwa 60-90% na mmepụta ngwaọrụ), mgbe ahụ Caveman (nchekwa 30% ọzọ na
+ederede fọdụrụ). Nke a na-enweta **nchekwa 78-95% ngụkọta**.
 
 #### Otu o si arụ ọrụ
 
 ```
 Ntinye (1000 tokens)
-  → RTK (command-aware filter) → 200 tokens
-    → Caveman (iwepụ okwu ndochi) → 140 tokens
+  → RTK (nzacha maara iwu) → 200 tokens
+    → Caveman (iwepụ ihe ndochi) → 140 tokens
   → Mmepụta (140 tokens, nchekwa 86%)
 ```
 
-#### Mgbe a ga-eji ya
+#### Mgbe ị ga-eji
 
-Jiri ọnọdụ stacked maka:
+Jiri ụdị akpọkọtara maka:
 
-- Usoro ọrụ jupụtara na ngwaọrụ (agentic coding, nyocha)
-- Nhazi n'ìgwè ebe ọnụ ahịa dị mkpa
-- Mgbe ịchọrọ nchekwa token kachasị elu
+- Ọrụ dị arọ na ngwaọrụ (ịkoodu onye nnọchi anya, nyocha)
+- Nhazi batch na-emetụta ọnụ ahịa
+- Mgbe ịchọrọ nchekwa token kacha
 
-Hazie ya site na combo:
+Hazie site na ngwakọta:
 
 ```json
 {

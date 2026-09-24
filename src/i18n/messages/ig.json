@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Ịtọ okwuntughe dara. Nwaa ọzọ.",
     "failedAddProvider": "Ịgbakwunye onye na-eweta ọrụ dara. Nwaa ọzọ.",
     "connectionError": "Njehie njikọ. Biko nwaa ọzọ.",
+    "bootstrapTokenLabel": "Token bootstrap",
+    "bootstrapTokenHelp": "A naghị amata njikọ a dị ka nke mpaghara (nke a na-emekarị n'azụ Docker port-forwarding). Lelee ndekọ server/container maka token bootstrap a na-eji naanị otu ugboro, mado ya n'elu ka ị gaa n'ihu.",
     "provider": "Onye na-eweta ọrụ",
     "apiKeyHelp": "Igodo API bụ okwuntughe maka ọrụ AI. Nweta otu na webụsaịtị onye na-eweta ọrụ gị (dịka platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Jikọọ Stability AI site na API key.",
       "stepfun": "Nweta API key na platform.stepfun.com",
       "sumopod": "SumoPod na-enye ebe njedebe mmezu nkata dakọtara na OpenAI na https://ai.sumopod.com/v1/chat/completions, tinyere katalọgụ /v1/models dị ndụ. OmniRoute na-eji protokol OpenAI ma depụta ụdị site na passthrough.",
-      "suno": "Mado kuki nnọkọ sitere na suno.ai (Clerk auth)",
       "synthetic": "Jikọọ Synthetic site na API key.",
       "tencent": "Nweta API key na console.cloud.tencent.com",
       "thebai": "Bearer API key maka ọnụ ụzọ TheB.AI dakọtara na OpenAI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# ụzọ ọpụpụ} other {# ụzọ ọpụpụ}} nke {connections, plural, one {# njikọ} other {# njikọ}} jiri · ruo {max} n'otu ụzọ ọpụpụ · n'ime awa {hours} gara aga",
     "poolEgressObservationEmpty": "Ahụghị ngagharị data ọ bụla n'ime awa {hours} gara aga",
     "poolEgressObservationHint": "A gụrụ ya site na ndekọ proxy n'ime oge ahụ: IP ọpụpụ dị iche iche a hụrụ maka ndị otu pool a, yana njikọ OmniRoute ndị jiri ha. \"N'otu ụzọ ọpụpụ\" pụtara n'ime oge ahụ, ọ bụghị n'otu oge. Mkpọchi 429 nke IP ọ bụla na-akwụsịtụ naanị njikọ ndị sitere n'otu ezinụlọ provider.",
+    "poolMemberEgress": "{host}:{port} si na {egressIp} pụọ · awa {hours} gara aga",
+    "poolMemberEgressEmpty": "{host}:{port}: ahụghị okporo ụzọ n’ime awa {hours} gara aga",
+    "poolMemberEgressHint": "Adreesị IP egress ikpeazụ a hụrụ site n’aka onye otu pool a n’ime oge ahụ, nke e si na ndekọ proxy gụọ. Onye otu na-enweghị okporo ụzọ n’ime oge ahụ ga-egosi ahịrị enweghị-okporo-ụzọ.",
     "poolRemove": "Wepụ",
     "poolRemoveFailed": "Enweghị ike iwepụ proksi na pool",
     "poolAddLabel": "Tinye proksi",
@@ -12222,6 +12226,29 @@
     "raw": "Nke a na-ahazighị"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Onye enyemaka CLI",
+      "intro": "Detuo iwu ị ga-agba na kọmputa e tinyere CLI gị. Ogwe a anaghị agba iwu ma ọ bụ detuo ozi nzere nbanye.",
+      "hostNotice": "Nchọpụta na-akọwa kọmputa na-akwado sava OmniRoute, ọ bụghị kọmputa ihe nchọgharị a. Ịhazila ya apụtaghị na a nwalere nzaghachi ụdị ahụ.",
+      "target": "Ngwaọrụ CLI",
+      "context": "Aha ọnọdụ dị adị (nhọrọ)",
+      "contextHint": "Hapụ ya oghere ka o jiri ọnọdụ CLI na-arụ ọrụ ugbu a. Ọnọdụ ndị nwere aha nwere ike ịtụ aka na sava mpaghara ma ọ bụ nke dị anya; buru ụzọ depụta ha na ọdụ iwu.",
+      "contextInvalid": "Jiri mkpụrụedemede, ọnụọgụgụ, ntụpọ, akara njikọ ma ọ bụ akara okpuru 1–64, malite na mkpụrụedemede ma ọ bụ ọnụọgụgụ.",
+      "modelHint": "CLI a chọrọ ụdị. Tinye ezigbo njirimara onye-na-eweta/ụdị tupu ịdetuo nhụchalụ mbido.",
+      "modelInvalid": "Jiri njirimara ụdị na-enweghị oghere ma ọ bụ akara shei, nke na-amalite na mkpụrụedemede ma ọ bụ ọnụọgụgụ.",
+      "runtime": "Ebe mmezu",
+      "runnable": "Enwere ike ịgba ya",
+      "notRunnable": "Enweghị ike ịgba ya",
+      "unknown": "Amaghị",
+      "detectionError": "Nchọpụta sava adịghị ugbu a. Mee nchọpụta ọhụrụ ka ịnwale ọzọ; iwu ọdụ ka dị.",
+      "contextsStep": "Lelee ọnọdụ ọdụ iwu",
+      "configureStep": "Họrọ ụdị ma hazie",
+      "runStep": "Hụ atụmatụ mbido",
+      "configureHint": "Iwu mkparịta ụka a na-ede nhazi CLI na kọmputa ị na-agba ya.",
+      "runHint": "Nnwale mbido na-egosi atụmatụ mbido n'ebughị CLI. Ọ bụghị nnwale nzaghachi ụdị.",
+      "copyFailed": "Enweghị ike idetuo. Họrọ iwu ahụ ma detuo ya n'onwe gị.",
+      "empty": "Enweghị ngwa CLI a pụrụ ịgba na ụdị mbipụta a. Jiri ntuziaka ngwaọrụ dị n'okpuru."
+    },
     "concept": {
       "code": {
         "title": "Ngwa Koodu CLI",

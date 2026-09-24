@@ -1,59 +1,56 @@
 # Management Authentication (Malti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute għandu **erba' familji ta' kredenzjali** li jistgħu jawtorizzaw ir-rotot ta' ġestjoni.
-Dawn ma jistgħux jintużaw minflok xulxin. Iċ-ċwievet tal-API għall-inferenza (`sk-…`) **ma**
-jiġġestixxux is-server sakemm ma jkunux ingħataw espliċitament l-ambitu `manage` jew `admin`.
+OmniRoute għandu **erba' familji ta' kredenzjali** li jistgħu jawtorizzaw rotot ta' ġestjoni.
+Mhumiex interkambjabbli. Iċ-ċwievet tal-API tal-Inferenzjar (`sk-…`) **ma** jimmaniġġjawx is-server sakemm ma jkunux ingħataw espliċitament skop `manage` jew `admin`.
 
 Implimentazzjoni kanonika: `src/lib/api/requireManagementAuth.ts`.
 
-| Kredenzjali                     | Forma tipika                                 | Fejn jinħolqu                                              | Użu maħsub                   | Kapaċità ta' ġestjoni                                                                                  |
-| ------------------------------- | -------------------------------------------- | ---------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Sessjoni JWT tad-dashboard      | cookie `auth_token`                          | Login tad-dashboard                                        | UI tal-browser               | Ġestjoni sħiħa tad-dashboard, soġġetta għar-regoli tas-CSRF, tal-lokalità, u tar-rotot dejjem protetti |
-| Token machine-id tas-CLI        | intern / lokali                              | Inizjalizzazzjoni tas-CLI (`omniroute` fuq l-istess magna) | CLI lokali                   | Ġestjoni lokali biss                                                                                   |
-| Token ta' Aċċess b'Ambitu       | `oma_live_…`                                 | **Settings → Access Tokens** jew `omniroute connect`       | CLI remot u API ta' ġestjoni | Għandu jissodisfa l-ambitu `read`, `write`, jew `admin` meħtieġ mir-rotta                              |
-| Ċavetta tal-API għall-inferenza | `sk-…` (u prefissi oħra taċ-ċwievet tal-API) | **API Manager / API Keys**                                 | Inferenza `/v1/*`            | **Ebda** sakemm il-metadata taċ-ċavetta ma tinkludix `manage` jew `admin`                              |
+| Kredenzjali                     | Forma tipika                                 | Maħluqa fejn                                         | Użu maħsub                    | Kapaċità ta' ġestjoni                                                                          |
+| ------------------------------- | -------------------------------------------- | ---------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| Sessjoni JWT tad-Dashboard      | `auth_token` cookie                          | Login tad-Dashboard                                  | UI tal-Browser                | Ġestjoni sħiħa tad-dashboard, soġġetta għal regoli ta' CSRF, lokalità, u rotot dejjem protetti |
+| Token tal-ID tal-magna CLI      | interna / lokali                             | Bootstrap tal-CLI (`omniroute` fuq l-istess magna)   | CLI Lokali                    | Ġestjoni lokali biss                                                                           |
+| Token ta' Aċċess Skopat         | `oma_live_…`                                 | **Settings → Access Tokens** jew `omniroute connect` | CLI Remota u API ta' ġestjoni | Għandha tissodisfa l-iskop meħtieġ tar-rotta `read`, `write`, jew `admin`                      |
+| Ċavetta tal-API tal-Inferenzjar | `sk-…` (u prefissi oħra taċ-ċavetta tal-API) | **API Manager / API Keys**                           | `/v1/*` inferenzjar           | **Xejn** sakemm il-metadata taċ-ċavetta ma tinkludix `manage` jew `admin`                      |
 
-Il-kredenzjali `oma_` huma kredenzjali ta' ġestjoni/CLI. Dawn **mhumiex** ċwievet tal-API għall-inferenza.
+Il-kredenzjali `oma_` huma kredenzjali ta' ġestjoni/CLI. Mhumiex **ċwievet tal-API tal-inferenzjar**.
 
-Jekk l-awtentikazzjoni permezz tal-login/ċavetta tal-API tkun diżattivata għas-server, xi rotot ta'
-ġestjoni jistgħu jaċċettaw sejħiet mhux awtentikati. Ir-rotot lokali biss u dawk dejjem protetti xorta
-japplikaw ir-regoli tagħhom stess. Għalhekk, il-preżentazzjoni ta' waħda minn dawn il-kredenzjali mhijiex
-dejjem obbligatorja, u l-pussess ta' waħda mhuwiex dejjem biżżejjed mingħajr l-ambitu u l-lokalità tar-rotta
-meħtieġa.
+Jekk l-awtentikazzjoni tal-login/API-key hija diżattivata għas-server, xi rotot ta' ġestjoni jistgħu jaċċettaw sejħiet mhux awtentikati. Rotot lokali biss u dejjem protetti xorta japplikaw ir-regoli tagħhom stess. Għalhekk, il-preżentazzjoni ta' waħda minn dawn il-kredenzjali mhijiex universalment obbligatorja, u l-pussess ta' waħda mhuwiex universalment suffiċjenti mingħajr l-iskop meħtieġ u l-lokalità tar-rotta.
 
-Relatat: [Modalità Remota](./REMOTE-MODE.md) (kif jinħoloq `oma_live_…` għal CLI remot).
+Relatat: [Modalità Remota](./REMOTE-MODE.md) (kif `oma_live_…` tinħoloq għal CLI remota).
 
 ---
 
-## Matriċijiet tal-ambiti
+## Matriċi tal-iskopijiet
 
-Dawn iż-żewġ vokabularji tal-ambiti huma **differenti**. Tħallathomx.
+L-iskopijiet tal-ġestjoni tal-API-key u l-iskopijiet tal-access-token huma vokabularji differenti.
+L-iskopijiet tal-għodda MCP huma t-tielet vokabularju, iċċekkjati b'`scopeMatches` aktar milli
+b'xi waħda mill-funzjonijiet fit-tabelli t'hawn taħt. Maġenb xulxin:
+[Tliet spazji tal-ismijiet tal-iskopijiet](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Ambiti tat-Token ta' Aċċess (`oma_live_…`)
+### Skopijiet tal-Access Token (`oma_live_…`)
 
-| Ambitu  | Operazzjonijiet tipiċi                                                                              |
-| ------- | --------------------------------------------------------------------------------------------------- |
-| `read`  | Talbiet GET għal listi/status li t-token huwa awtorizzat jara                                       |
-| `write` | Bidliet (ħolqien/aġġornament/tħassir) taħt il-livell ta' amministratur                              |
-| `admin` | CLI remot sħiħ / token ta' konnessjoni (l-inizjalizzazzjoni bil-password tuża dan b'mod awtomatiku) |
+| Skop    | Operazzjonijiet tipiċi                                                    |
+| ------- | ------------------------------------------------------------------------- |
+| `read`  | Listi/status GETs li t-token huwa permess jara                            |
+| `write` | Mutazzjonijiet (ħolqien/aġġornament/tħassir) taħt l-amministratur         |
+| `admin` | CLI remot sħiħ / token ta' konnessjoni (password bootstrap defaults hawn) |
 
-Token b'`read` ma jistax isejjaħ rotta `write`. Format tal-messaġġ waqt it-tħaddim:
+Token b'`read` ma jistax isejjaħ rotta b'`write`. Forma tal-messaġġ waqt l-eżekuzzjoni:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Ambiti ta' ġestjoni taċ-ċwievet tal-API
+### Skopijiet tal-ġestjoni tal-API-key
 
-| Ambitu   | Tifsira                                                                                           |
-| -------- | ------------------------------------------------------------------------------------------------- |
-| (ebda)   | Inferenza biss. Ir-rotot ta' ġestjoni jirritornaw 403.                                            |
-| `manage` | API ta' ġestjoni (l-istess kontroll bħall-fergħa taċ-ċavetta tal-API ta' `requireManagementAuth`) |
-| `admin`  | Jissodisfa wkoll `hasManageScope` (jitqies li għandu kapaċità ta' ġestjoni)                       |
+| Skop     | Tifsira                                                                           |
+| -------- | --------------------------------------------------------------------------------- |
+| (xejn)   | Inferenza biss. Ir-rotot tal-ġestjoni jirritornaw 403.                            |
+| `manage` | API tal-Ġestjoni (l-istess bieb bħall-fergħa tal-API-key `requireManagementAuth`) |
+| `admin`  | Jissodisfa wkoll `hasManageScope` (ittrattat bħala kapaċi għall-ġestjoni)         |
 
-Attiva `manage` fuq iċ-ċavetta fl-UI ta' API Keys / API Manager. Terġax tuża
-ċavetta ta' klijent taċ-chat għall-awtomatizzazzjoni sakemm ma tkunx tajtha dak l-ambitu apposta.
+Ippermetti `manage` fuq iċ-ċavetta fl-UI tal-API Keys / API Manager. Tużax mill-ġdid ċavetta tal-klijent taċ-chat għall-awtomazzjoni sakemm ma tkunx tajt dak l-iskop apposta.
 
 ---
 
@@ -127,26 +124,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Żbalji attwali waqt it-tħaddim (turix sigrieti)
+## Żbalji ta' runtime kurrenti (turi l-ebda sigriet)
 
 | Sitwazzjoni                                       | Status tipiku | Messaġġ (sanitizzat)                                                 |
-| ------------------------------------------------- | ------------- | -------------------------------------------------------------------- |
+| :------------------------------------------------ | :------------ | :------------------------------------------------------------------- |
 | Ebda kredenzjali                                  | 401           | `Authentication required`                                            |
-| `oma_live_…` invalidu/skadut                      | 401           | `Invalid or expired access token`                                    |
+| Invalidu/skadut `oma_live_…`                      | 401           | `Invalid or expired access token`                                    |
 | API key valida mingħajr `manage`/`admin`          | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| API key ordinarja invalida fuq rotta ta’ ġestjoni | 403           | `Invalid management token`                                           |
-| Scope tal-Access Token baxx wisq                  | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| API key ordinarja invalida fuq rotta ta' ġestjoni | 403           | `Invalid management token`                                           |
+| L-iskop tat-Token ta' Aċċess baxx wisq            | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-“Invalid management token” ifisser li l-bearer **ma ġiex** aċċettat bħala kredenzjali ta’ ġestjoni. Dan **ma jgħidlekx** liema familja għandek toħloq. Uża t-tabella ta’ hawn fuq: iċ-ċwievet tal-inferenza jeħtieġu l-scope `manage`; is-CLI remot jeħtieġ `oma_live_…`; id-dashboard juża l-cookie tas-sessjoni.
+"Token ta' ġestjoni invalidu" tfisser li l-bearer **ma** ġiex aċċettat bħala kredenzjali ta' ġestjoni. **Ma** tgħidlekx liema familja għandek toħloq. Uża t-tabella ta' hawn fuq: iċ-ċwievet tal-inferenza jeħtieġu l-iskop `manage`; il-CLI remot jeħtieġ `oma_live_…`; id-dashboard juża l-cookie tas-sessjoni.
 
 ---
 
-## Għażla rakkomandata bl-inqas privileġġi
+## Għażla rakkomandata ta' privileġġ minimu
 
-| Min qed jagħmel it-talba                       | Uża                                         |
-| ---------------------------------------------- | ------------------------------------------- |
-| Browser                                        | Sessjoni tad-dashboard                      |
-| CLI fuq il-host tas-server                     | Machine token                               |
-| CLI fuq laptop li jikkomunika ma’ server remot | `oma_live_…` minn `omniroute connect`       |
-| CI / scripts (ġestjoni biss)                   | `oma_live_…` bl-iżgħar scope li jaħdem      |
-| CI li jrid isejjaħ kemm `/v1` kif ukoll `/api` | API key b’`manage` **jew** żewġ kredenzjali |
+| Min iċempel                                     | Użu                                         |
+| ----------------------------------------------- | ------------------------------------------- |
+| Browser                                         | Sessjoni tad-Dashboard                      |
+| CLI fuq il-host tas-server                      | Token tal-magna                             |
+| CLI fuq laptop li jikkomunika ma' server remot  | `oma_live_…` minn `omniroute connect`       |
+| CI / skripts (ġestjoni biss)                    | `oma_live_…` bl-iżgħar ambitu li jaħdem     |
+| CI li trid iċċempel kemm `/v1` kif ukoll `/api` | API key b'`manage` **jew** żewġ kredenzjali |

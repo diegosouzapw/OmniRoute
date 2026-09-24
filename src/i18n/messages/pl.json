@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Nie udało się ustawić hasła. Spróbuj ponownie.",
     "failedAddProvider": "Nie udało się dodać provider. Spróbuj ponownie.",
     "connectionError": "Błąd połączenia. Spróbuj ponownie.",
+    "bootstrapTokenLabel": "Token inicjalizacyjny",
+    "bootstrapTokenHelp": "To połączenie nie zostało rozpoznane jako lokalne (częste w przypadku przekierowywania portów przez Docker). Sprawdź dziennik serwera/kontenera pod kątem jednorazowego tokenu inicjalizacyjnego i wklej go powyżej, aby kontynuować.",
     "provider": "Dostawca",
     "apiKeyHelp": "Klucz API to hasło do usług AI. Można go uzyskać na stronie internetowej provider (np. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Połącz ze Stability AI za pomocą klucza API.",
       "stepfun": "Pobierz klucz API na platform.stepfun.com",
       "sumopod": "SumoPod udostępnia zgodny z OpenAI punkt końcowy chat completions pod adresem https://ai.sumopod.com/v1/chat/completions oraz aktywny katalog /v1/models. OmniRoute korzysta z protokołu OpenAI i listuje modele w trybie passthrough.",
-      "suno": "Wklej plik cookie sesji z suno.ai (uwierzytelnianie Clerk)",
       "synthetic": "Połącz z Synthetic za pomocą klucza API.",
       "tencent": "Pobierz klucz API na console.cloud.tencent.com",
       "thebai": "Klucz API Bearer dla bramy TheB.AI zgodnej z OpenAI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "Liczba wyjść: {exits, plural, one {# wyjście} few {# wyjścia} many {# wyjść} other {# wyjścia}} · liczba korzystających połączeń: {connections, plural, one {# połączenie} few {# połączenia} many {# połączeń} other {# połączenia}} · maksymalnie {max} na jednym wyjściu · ostatnie {hours} godz.",
     "poolEgressObservationEmpty": "Nie zaobserwowano ruchu w ciągu ostatnich {hours} godz.",
     "poolEgressObservationHint": "Dane zliczone z dziennika serwera proxy w tym przedziale czasu: unikalne adresy IP wyjścia zaobserwowane dla członków tej puli oraz połączenia OmniRoute, które z nich korzystały. „Na jednym wyjściu” oznacza wartość w całym przedziale czasu, a nie jednocześnie. Blokada 429 dla danego adresu IP wstrzymuje tylko połączenia z tej samej rodziny dostawcy.",
+    "poolMemberEgress": "{host}:{port} wychodził przez {egressIp} · ostatnie {hours} godz.",
+    "poolMemberEgressEmpty": "{host}:{port}: nie zaobserwowano ruchu w ciągu ostatnich {hours} godz.",
+    "poolMemberEgressHint": "Ostatni wychodzący adres IP zaobserwowany dla tego elementu puli w danym okresie, odczytany z dziennika serwera proxy. Dla elementu, który nie obsługiwał ruchu w tym okresie, wyświetlany jest komunikat o braku ruchu.",
     "poolRemove": "Usuń",
     "poolRemoveFailed": "Nie udało się usunąć proxy z puli",
     "poolAddLabel": "Dodaj proxy",
@@ -12222,6 +12226,29 @@
     "raw": "Surowy"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Asystent CLI",
+      "intro": "Skopiuj polecenia i uruchom je na komputerze, na którym zainstalowano CLI. Ten panel nie wykonuje poleceń ani nie kopiuje danych uwierzytelniających.",
+      "hostNotice": "Wykrywanie opisuje host serwera OmniRoute, a nie komputer tej przeglądarki. Konfiguracja nie oznacza, że przetestowano inferencję.",
+      "target": "Narzędzie CLI",
+      "context": "Nazwa istniejącego kontekstu (opcjonalnie)",
+      "contextHint": "Pozostaw puste, aby użyć aktywnego kontekstu CLI. Nazwane konteksty mogą wskazywać serwer lokalny lub zdalny; najpierw wyświetl ich listę w terminalu.",
+      "contextInvalid": "Użyj 1–64 liter, cyfr, kropek, łączników lub podkreśleń, zaczynając od litery lub cyfry.",
+      "modelHint": "To CLI wymaga modelu. Wpisz rzeczywisty identyfikator dostawcy/modelu przed skopiowaniem podglądu uruchomienia.",
+      "modelInvalid": "Użyj identyfikatora modelu bez spacji i znaków powłoki, zaczynając od litery lub cyfry.",
+      "runtime": "Wykonanie",
+      "runnable": "Można uruchomić",
+      "notRunnable": "Nie można uruchomić",
+      "unknown": "Nieznany",
+      "detectionError": "Wykrywanie serwera niedostępne. Odśwież wykrywanie, aby spróbować ponownie; polecenia terminala pozostają dostępne.",
+      "contextsStep": "Sprawdź konteksty w terminalu",
+      "configureStep": "Wybierz model i skonfiguruj",
+      "runStep": "Podejrzyj uruchomienie",
+      "configureHint": "To interaktywne polecenie zapisuje konfigurację CLI na komputerze, na którym je wykonasz.",
+      "runHint": "Próba na sucho pokazuje plan uruchomienia bez uruchamiania CLI. Nie jest to test inferencji.",
+      "copyFailed": "Nie udało się skopiować. Zaznacz i skopiuj polecenie ręcznie.",
+      "empty": "W tej wersji nie ma dostępnych wykonywalnych celów CLI. Skorzystaj z poniższych przewodników po narzędziach."
+    },
     "concept": {
       "code": {
         "title": "Kod CLI",

@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Kan wachtwoord niet instellen. Probeer het opnieuw.",
     "failedAddProvider": "Kan provider niet toevoegen. Probeer het opnieuw.",
     "connectionError": "Verbindingsfout. Probeer het opnieuw.",
+    "bootstrapTokenLabel": "Bootstrap-token",
+    "bootstrapTokenHelp": "Deze verbinding wordt niet als lokaal herkend (vaak voorkomend bij Docker-poortdoorschakeling). Controleer het server-/containerlogboek op een eenmalig bootstrap-token en plak dit hierboven om door te gaan.",
     "provider": "Aanbieder",
     "apiKeyHelp": "Een API-sleutel is een wachtwoord voor AI-diensten. Haal er een op via de website van uw provider (bijvoorbeeld platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Verbind Stability AI met een API-sleutel.",
       "stepfun": "Haal API-sleutel op via platform.stepfun.com",
       "sumopod": "SumoPod stelt een OpenAI-compatibel chat-completions-eindpunt beschikbaar op https://ai.sumopod.com/v1/chat/completions, plus een live /v1/models-catalogus. OmniRoute gebruikt het OpenAI-protocol en vermeldt modellen via passthrough.",
-      "suno": "Plak sessiecookie van suno.ai (Clerk-authenticatie)",
       "synthetic": "Verbind Synthetic met een API-sleutel.",
       "tencent": "Haal API-sleutel op via console.cloud.tencent.com",
       "thebai": "Bearer API-sleutel voor de OpenAI-compatibele gateway van TheB.AI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# uitgang} other {# uitgangen}} gebruikt door {connections, plural, one {# verbinding} other {# verbindingen}} · maximaal {max} op één uitgang · laatste {hours} u",
     "poolEgressObservationEmpty": "Geen verkeer waargenomen in de afgelopen {hours} u",
     "poolEgressObservationHint": "Geteld op basis van het proxylogboek binnen dit tijdsvenster: afzonderlijke uitgaande IP-adressen die zijn waargenomen voor de leden van deze pool, en de OmniRoute-verbindingen die deze hebben gebruikt. ‘Op één uitgang’ heeft betrekking op het tijdsvenster, niet op hetzelfde moment. De 429-blokkering per IP pauzeert alleen verbindingen van dezelfde providerfamilie.",
+    "poolMemberEgress": "{host}:{port} verliet via {egressIp} · afgelopen {hours} u",
+    "poolMemberEgressEmpty": "{host}:{port}: geen verkeer waargenomen in de afgelopen {hours} u",
+    "poolMemberEgressHint": "Het laatste uitgaande IP-adres dat binnen dit tijdsvenster via dit poollid is waargenomen, afgelezen uit het proxylogboek. Voor een lid zonder verkeer binnen het tijdsvenster wordt de regel voor geen verkeer weergegeven.",
     "poolRemove": "Verwijderen",
     "poolRemoveFailed": "Kan de proxy niet uit de pool verwijderen",
     "poolAddLabel": "Een proxy toevoegen",
@@ -12222,6 +12226,29 @@
     "raw": "Ruw"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI-assistent",
+      "intro": "Kopieer opdrachten om ze uit te voeren op de computer waarop je CLI is geïnstalleerd. Dit paneel voert geen opdrachten uit en kopieert geen inloggegevens.",
+      "hostNotice": "De detectie beschrijft de host van de OmniRoute-server, niet de computer van deze browser. Geconfigureerd betekent niet dat inferentie is getest.",
+      "target": "CLI-hulpmiddel",
+      "context": "Naam van een bestaande context (optioneel)",
+      "contextHint": "Laat leeg om de actieve context van je CLI te gebruiken. Benoemde contexten kunnen naar een lokale of externe server verwijzen; toon ze eerst in je terminal.",
+      "contextInvalid": "Gebruik 1–64 letters, cijfers, punten, koppeltekens of onderstrepingstekens, beginnend met een letter of cijfer.",
+      "modelHint": "Deze CLI vereist een model. Voer een bestaande provider/model-identificatie in voordat je het startvoorbeeld kopieert.",
+      "modelInvalid": "Gebruik een modelidentificatie zonder spaties of shelltekens, beginnend met een letter of cijfer.",
+      "runtime": "Uitvoering",
+      "runnable": "Uitvoerbaar",
+      "notRunnable": "Niet uitvoerbaar",
+      "unknown": "Onbekend",
+      "detectionError": "Serverdetectie niet beschikbaar. Vernieuw de detectie om het opnieuw te proberen; terminalopdrachten blijven beschikbaar.",
+      "contextsStep": "Contexten in de terminal controleren",
+      "configureStep": "Een model kiezen en configureren",
+      "runStep": "Startvoorbeeld bekijken",
+      "configureHint": "Deze interactieve opdracht schrijft de CLI-configuratie op de computer waarop je de opdracht uitvoert.",
+      "runHint": "De proefuitvoering toont het startplan zonder de CLI te starten. Dit is geen inferentietest.",
+      "copyFailed": "Kopiëren mislukt. Selecteer en kopieer de opdracht handmatig.",
+      "empty": "In deze versie zijn geen uitvoerbare CLI-doelen beschikbaar. Gebruik de handleidingen hieronder."
+    },
     "concept": {
       "code": {
         "title": "CLI-code",

@@ -1,0 +1,1 @@
+- **style(proxy-registry):** bring frozen proxy-registry files back to prettier format with no behavior change; ratchet the inherited `proxyFetch.ts` size ceiling to its measured size ([#14218](https://github.com/diegosouzapw/OmniRoute/pull/14218)) — thanks @maxmad64bis

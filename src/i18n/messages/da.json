@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Kunne ikke indstille adgangskoden. Prøv igen.",
     "failedAddProvider": "Kunne ikke tilføje udbyder. Prøv igen.",
     "connectionError": "Forbindelsesfejl. Prøv venligst igen.",
+    "bootstrapTokenLabel": "Bootstrap-token",
+    "bootstrapTokenHelp": "Denne forbindelse genkendes ikke som lokal (almindeligt ved Docker-portvideresendelse). Find en engangs-bootstrap-token i server-/containerloggen, og indsæt den ovenfor for at fortsætte.",
     "provider": "Udbyder",
     "apiKeyHelp": "En API-nøgle er en adgangskode til AI-tjenester. Få en fra din udbyders websted (f.eks. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Forbind Stability AI med en API-nøgle.",
       "stepfun": "Hent API-nøgle på platform.stepfun.com",
       "sumopod": "SumoPod eksponerer et OpenAI-kompatibelt chat completions-slutpunkt på https://ai.sumopod.com/v1/chat/completions plus et live /v1/models-katalog. OmniRoute bruger OpenAI-protokollen og viser modeller via passthrough.",
-      "suno": "Indsæt sessionscookie fra suno.ai (Clerk-godkendelse)",
       "synthetic": "Forbind Synthetic med en API-nøgle.",
       "tencent": "Hent API-nøgle på console.cloud.tencent.com",
       "thebai": "Bearer API-nøgle til den OpenAI-kompatible TheB.AI-gateway.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# udgang} other {# udgange}} brugt af {connections, plural, one {# forbindelse} other {# forbindelser}} · op til {max} på én udgang · seneste {hours} t.",
     "poolEgressObservationEmpty": "Ingen trafik observeret inden for de seneste {hours} t.",
     "poolEgressObservationHint": "Optalt fra proxyloggen i tidsrummet: særskilte udgående IP-adresser observeret for medlemmerne af denne pulje samt de OmniRoute-forbindelser, der brugte dem. \"På én udgang\" betyder i løbet af tidsrummet, ikke på samme tid. 429-spærringen pr. IP sætter kun forbindelser fra samme udbyderfamilie på pause.",
+    "poolMemberEgress": "{host}:{port} gik ud via {egressIp} · seneste {hours} t",
+    "poolMemberEgressEmpty": "{host}:{port}: ingen trafik observeret inden for de seneste {hours} t",
+    "poolMemberEgressHint": "Seneste udgående IP observeret via dette poolmedlem i perioden, aflæst fra proxyloggen. Et medlem uden trafik i perioden viser linjen om ingen trafik.",
     "poolRemove": "Fjern",
     "poolRemoveFailed": "Kunne ikke fjerne proxyen fra poolen",
     "poolAddLabel": "Tilføj en proxy",
@@ -12222,6 +12226,29 @@
     "raw": "Rå"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI-assistent",
+      "intro": "Kopiér kommandoer, som skal køres på computeren, hvor din CLI er installeret. Dette panel kører ikke kommandoer og kopierer ikke legitimationsoplysninger.",
+      "hostNotice": "Registreringen beskriver OmniRoute-serverens vært, ikke computeren med denne browser. Konfigureret betyder ikke, at inferens er blevet testet.",
+      "target": "CLI-værktøj",
+      "context": "Navn på eksisterende kontekst (valgfrit)",
+      "contextHint": "Lad feltet være tomt for at bruge din CLI’s aktive kontekst. Navngivne kontekster kan pege på en lokal eller ekstern server; vis dem først i terminalen.",
+      "contextInvalid": "Brug 1–64 bogstaver, cifre, punktummer, bindestreger eller understregninger, og start med et bogstav eller ciffer.",
+      "modelHint": "Denne CLI kræver en model. Indtast et eksisterende udbyder/model-id, før du kopierer forhåndsvisningen af starten.",
+      "modelInvalid": "Brug et model-id uden mellemrum eller shell-tegn, og start med et bogstav eller ciffer.",
+      "runtime": "Kørsel",
+      "runnable": "Kan køres",
+      "notRunnable": "Kan ikke køres",
+      "unknown": "Ukendt",
+      "detectionError": "Serverregistrering er ikke tilgængelig. Opdater registreringen for at prøve igen; terminalkommandoer er stadig tilgængelige.",
+      "contextsStep": "Kontrollér kontekster i terminalen",
+      "configureStep": "Vælg en model og konfigurer",
+      "runStep": "Forhåndsvis starten",
+      "configureHint": "Denne interaktive kommando skriver CLI-konfigurationen på den computer, hvor du kører den.",
+      "runHint": "Prøvekørslen viser startplanen uden at starte CLI’en. Det er ikke en inferenstest.",
+      "copyFailed": "Kunne ikke kopiere. Markér og kopiér kommandoen manuelt.",
+      "empty": "Ingen eksekverbare CLI-mål er tilgængelige i denne version. Brug værktøjsvejledningerne nedenfor."
+    },
     "concept": {
       "code": {
         "title": "CLI-kode",

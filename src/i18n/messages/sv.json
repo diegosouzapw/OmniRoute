@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Det gick inte att ange lösenord. Försök igen.",
     "failedAddProvider": "Det gick inte att lägga till leverantör. Försök igen.",
     "connectionError": "Anslutningsfel. Försök igen.",
+    "bootstrapTokenLabel": "Bootstrap-token",
+    "bootstrapTokenHelp": "Den här anslutningen identifieras inte som lokal (vanligt vid portvidarebefordran med Docker). Kontrollera server-/containerloggen efter en Bootstrap-token för engångsbruk och klistra in den ovan för att fortsätta.",
     "provider": "Leverantör",
     "apiKeyHelp": "En API-nyckel är ett lösenord för AI-tjänster. Skaffa en från din leverantörs webbplats (t.ex. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Anslut Stability AI med en API-nyckel.",
       "stepfun": "Hämta API-nyckel på platform.stepfun.com",
       "sumopod": "SumoPod exponerar en OpenAI-kompatibel slutpunkt för chattsvar på https://ai.sumopod.com/v1/chat/completions, plus en live /v1/models-katalog. OmniRoute använder OpenAI-protokollet och listar modeller via vidarebefordran.",
-      "suno": "Klistra in sessionscookie från suno.ai (Clerk-autentisering)",
       "synthetic": "Anslut Synthetic med en API-nyckel.",
       "tencent": "Hämta API-nyckel på console.cloud.tencent.com",
       "thebai": "Bearer API-nyckel för TheB.AI:s OpenAI-kompatibla gateway.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# utgång} other {# utgångar}} används av {connections, plural, one {# anslutning} other {# anslutningar}} · upp till {max} på en utgång · senaste {hours} h",
     "poolEgressObservationEmpty": "Ingen trafik observerades under de senaste {hours} h",
     "poolEgressObservationHint": "Räknat från proxyloggen under tidsfönstret: unika utgående IP-adresser som observerats för medlemmarna i denna pool samt de OmniRoute-anslutningar som använde dem. ”På en utgång” avser hela tidsfönstret, inte samma tidpunkt. 429-spärren per IP pausar endast anslutningar inom samma leverantörsfamilj.",
+    "poolMemberEgress": "{host}:{port} gick ut via {egressIp} · senaste {hours} h",
+    "poolMemberEgressEmpty": "{host}:{port}: ingen trafik observerad under de senaste {hours} h",
+    "poolMemberEgressHint": "Senaste utgående IP-adress som observerats via den här poolmedlemmen under tidsintervallet, hämtad från proxyloggen. En medlem utan trafik under tidsintervallet visar raden för ingen trafik.",
     "poolRemove": "Ta bort",
     "poolRemoveFailed": "Misslyckades med att ta bort proxyn från poolen",
     "poolAddLabel": "Lägg till en proxy",
@@ -12222,6 +12226,29 @@
     "raw": "Rå"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI-assistent",
+      "intro": "Kopiera kommandon för att köra dem på datorn där din CLI är installerad. Den här panelen kör inga kommandon och kopierar inga inloggningsuppgifter.",
+      "hostNotice": "Identifieringen beskriver OmniRoute-serverns värddator, inte datorn med den här webbläsaren. Konfigurerad betyder inte att inferens har testats.",
+      "target": "CLI-verktyg",
+      "context": "Namn på befintlig kontext (valfritt)",
+      "contextHint": "Lämna tomt för att använda din CLI:s aktiva kontext. Namngivna kontexter kan peka på en lokal eller fjärransluten server; lista dem först i terminalen.",
+      "contextInvalid": "Använd 1–64 bokstäver, siffror, punkter, bindestreck eller understreck, med en bokstav eller siffra först.",
+      "modelHint": "Den här CLI:n kräver en modell. Ange en befintlig leverantör/modell-identifierare innan du kopierar förhandsvisningen av starten.",
+      "modelInvalid": "Använd en modellidentifierare utan blanksteg eller skaltecken, med en bokstav eller siffra först.",
+      "runtime": "Körning",
+      "runnable": "Körbar",
+      "notRunnable": "Inte körbar",
+      "unknown": "Okänd",
+      "detectionError": "Serveridentifiering är inte tillgänglig. Uppdatera identifieringen för att försöka igen; terminalkommandon är fortfarande tillgängliga.",
+      "contextsStep": "Kontrollera kontexter i terminalen",
+      "configureStep": "Välj en modell och konfigurera",
+      "runStep": "Förhandsvisa starten",
+      "configureHint": "Det här interaktiva kommandot skriver CLI-konfigurationen på datorn där du kör det.",
+      "runHint": "Provkörningen visar startplanen utan att starta CLI:n. Det är inte ett inferenstest.",
+      "copyFailed": "Det gick inte att kopiera. Markera och kopiera kommandot manuellt.",
+      "empty": "Inga körbara CLI-mål är tillgängliga i den här versionen. Använd verktygsguiderna nedan."
+    },
     "concept": {
       "code": {
         "title": "CLI-kod",

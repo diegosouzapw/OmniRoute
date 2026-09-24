@@ -5,7 +5,6 @@ import { createComboRoutingHarness } from "../_comboRoutingHarness.ts";
 
 const h = await createComboRoutingHarness("combo-weighted");
 const { BaseExecutor, combosDb, handleChat, buildRequest, seedConnection, resetStorage } = h;
-const rateLimitManager = await import("../../../open-sse/services/rateLimitManager.ts");
 
 function body(model: string) {
   return { model, stream: false, messages: [{ role: "user", content: "w" }] };
@@ -17,7 +16,6 @@ test.beforeEach(async () => {
 });
 test.afterEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = h.originalRetryDelayMs;
-  await rateLimitManager.__resetRateLimitManagerForTests();
   await resetStorage();
 });
 test.after(async () => {
@@ -25,11 +23,25 @@ test.after(async () => {
 });
 
 test("weighted: 70/30 weights produce roughly proportional distribution", async () => {
-  const openaiConnection = await seedConnection("openai", { apiKey: "sk-openai-w" });
-  const claudeConnection = await seedConnection("claude", { apiKey: "sk-claude-w" });
-  await rateLimitManager.initializeRateLimits();
-  rateLimitManager.disableRateLimitProtection(openaiConnection.id);
-  rateLimitManager.disableRateLimitProtection(claudeConnection.id);
+  const N = 200;
+  // This measures selection, not throughput. The default 60 RPM reservoir can
+  // exhaust mid-sample on fast CI runners and make one target unavailable.
+  // Keep protection active, but budget for all samples choosing either target.
+  await h.settingsDb.updateSettings({
+    resilienceSettings: {
+      requestQueue: { requestsPerMinute: N, minTimeBetweenRequestsMs: 0 },
+    },
+  });
+  const { resolveResilienceSettings } = await import("../../../src/lib/resilience/settings.ts");
+  const queue = resolveResilienceSettings(await h.settingsDb.getSettings()).requestQueue;
+  assert.equal(
+    queue.autoEnableApiKeyProviders,
+    true,
+    "fixture keeps rate-limit protection enabled"
+  );
+  assert.ok(queue.requestsPerMinute >= N, "fixture budget must fit the entire distribution sample");
+  await seedConnection("openai", { apiKey: "sk-openai-w" });
+  await seedConnection("claude", { apiKey: "sk-claude-w" });
   await combosDb.createCombo({
     name: "m-weighted",
     strategy: "weighted",
@@ -47,10 +59,10 @@ test("weighted: 70/30 weights produce roughly proportional distribution", async 
   });
   h.installRecordingFetch();
 
-  const N = 200;
   for (let i = 0; i < N; i++) {
     const r = await handleChat(buildRequest({ body: body("m-weighted") }));
     assert.equal(r.status, 200);
+    assert.equal((await r.json()).choices[0].message.content, "ok");
   }
   const seen = h.providersSeen();
   const openaiShare = seen.filter((p) => p === "openai").length / N;

@@ -137,7 +137,7 @@ import { getComboFailureLogError } from "./comboFailureLogging";
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
 import { isSubscriptionQuotaText } from "@omniroute/open-sse/services/quotaTextCooldowns.ts";
 import { resolveUseUpstream429BreakerHints } from "@/shared/utils/providerHints";
-import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { isFeatureFlagEnabled, isRotationAttributionEnabled } from "@/shared/utils/featureFlags";
 import * as agyLease from "../services/antigravityLeaseLifecycle";
 import { shouldIsolateProbeFailures } from "@/shared/utils/probeOrigin";
 import { getCircuitBreaker, isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
@@ -1062,6 +1062,7 @@ async function handleChatImplementation(
         if (isCommonChatGptWebRetirementError(error)) return false;
         throw error;
       }
+      if (modelInfo?.errorType === "model_not_found") return "model_not_in_catalog";
       const provider = comboCheckProvider(modelString, modelInfo, target?.providerId);
       const resolvedModel = modelInfo.model || modelString;
       const githubGate = await ghComboGate(comboPreselectedCredentials, provider, resolvedModel);
@@ -1966,7 +1967,12 @@ async function handleSingleModelChat(
       }
       // #5217: sink for the proxy the executor pins internally (e.g. OpencodeExecutor
       // rotation) so the egress log below reflects the real egress, not "direct".
-      const appliedProxySink: { proxy: unknown; upstreamStatus?: number } = { proxy: null };
+      // Also carries the masked rotation-account id (rotation attribution).
+      const appliedProxySink: {
+        proxy: unknown;
+        upstreamStatus?: number;
+        rotationAccount?: string | null;
+      } = { proxy: null };
       const proxyStartTime = Date.now();
       // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
       if (telemetry) telemetry.startPhase("connect");
@@ -2013,6 +2019,7 @@ async function handleSingleModelChat(
             managedLease: runtimeOptions.managedLease ?? null,
             videoBridgeLog: runtimeOptions.videoBridgeLog,
             fallbackAttempts: runtimeOptions.fallbackAttempts,
+            forcedConnectionId: hasForcedConnection ? forcedConnectionId : null, // #14116
           },
           runtimeOptions
         );
@@ -2046,6 +2053,11 @@ async function handleSingleModelChat(
 
       // 5. Log proxy + translation events (fire-and-forget; never blocks the response)
       // #5217: reflect the proxy the executor actually applied (per-account rotation).
+      // Rotation attribution (single flag read per request — the DB override
+      // lookup is synchronous SQLite): forward the masked serving-account id
+      // and the request correlation id, or null when the flag is off so the
+      // new columns stay NULL on legacy-behavior requests.
+      const rotationAttributionOn = isRotationAttributionEnabled();
       void safeLogEvents({
         result,
         proxyInfo: mergeAppliedProxySink(proxyInfo, appliedProxySink),
@@ -2058,6 +2070,8 @@ async function handleSingleModelChat(
         comboName,
         clientRawRequest,
         tlsFingerprintUsed,
+        rotationAccount: rotationAttributionOn ? (appliedProxySink.rotationAccount ?? null) : null,
+        correlationId: rotationAttributionOn ? (runtimeOptions?.correlationId ?? null) : null,
       });
 
       if (result.success) {

@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (한국어)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -99,9 +99,9 @@ OmniRoute 컨테이너 내에서 실행된 `setup-*` 명령은 컨테이너의 �
 
 ---
 
-## 1. CLI 코드 카탈로그 (26 도구)
+## 1. CLI Code 카탈로그(26개 도구)
 
-`/dashboard/cli-code`에 나타나는 모든 도구. `baseUrlSupport: none`인 도구는 사용자 정의 기본 URL 대신 MITM 또는 수동 가이드를 통해 연결됩니다:
+`/dashboard/cli-code`에 표시되는 모든 도구입니다. `baseUrlSupport: none`인 도구는 사용자 지정 기본 URL 대신 MITM 또는 수동 가이드를 통해 연결됩니다.
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -132,23 +132,25 @@ OmniRoute 컨테이너 내에서 실행된 `setup-*` 명령은 컨테이너의 �
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-`baseUrlSupport: "partial"`인 도구는 대시보드 카드에 "⚠ Base URL parcial" 배지를 표시합니다.
+`baseUrlSupport: "partial"`인 도구의 대시보드 카드에는 "⚠ 부분적 기본 URL" 배지가 표시됩니다.
 ---
 
-## 2. CLI 에이전트 카탈로그 (8 도구)
+## 2. CLI 에이전트 카탈로그(도구 10개)
 
-`/dashboard/cli-agents`에 나타나는 자율 에이전트:
+`/dashboard/cli-agents`에 표시되는 자율 에이전트:
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
-| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
+| id           | 이름             | 공급업체                 | baseUrl 지원 | acp 실행 가능 |
+| ------------ | ---------------- | ------------------------ | ------------ | ------------- |
+| hermes-agent | Hermes Agent     | Nous Research            | 전체         | false         |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | 전체         | true          |
+| goose        | Goose            | Block / Linux Foundation | 전체         | true          |
+| interpreter  | Open Interpreter | OSS                      | 전체         | true          |
+| warp         | Warp AI          | Warp Inc.                | 부분         | true          |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | 전체         | false         |
+| omp          | Oh My Pi         | OSS                      | 전체         | true          |
+| letta        | Letta CLI        | Letta                    | 전체         | false         |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | 전체         | false         |
+| 5dive        | 5dive            | OSS (5dive-ai)           | 전체         | false         |
 
 ---
 
@@ -555,67 +557,67 @@ kiro-cli status
 
 ## 10. 내부 OmniRoute CLI
 
-`omniroute` 바이너리는 서버 생명 주기, 설정, 진단 및 공급자 관리를 위한 명령을 제공합니다. 진입점: `bin/omniroute.mjs`.
+`omniroute` 바이너리는 서버 수명 주기, 설정, 진단 및 프로바이더 관리를 위한 명령을 제공합니다. 진입점: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # 서버 시작 (기본 포트 20128)
+omniroute                              # 서버 시작(기본 포트 20128)
 omniroute setup                        # 대화형 설정 마법사
 omniroute doctor                       # 구성, DB, 포트, 런타임 확인
-omniroute providers list               # 구성된 공급자 연결
+omniroute providers list               # 구성된 프로바이더 연결
 omniroute providers test-all           # 모든 활성 연결 테스트
 omniroute reset-password               # 관리자 비밀번호 재설정
 omniroute logs                         # 요청 로그 스트리밍
-omniroute health                       # 상세 건강 상태 (회로 차단기, 캐시, 메모리)
+omniroute health                       # 상세 상태(차단기, 캐시, 메모리)
 omniroute --version                    # 버전 출력
-omniroute --help                       # 모든 명령 보기
+omniroute --help                       # 모든 명령 표시
 ```
 
 ### 설정 및 초기화
 
 ```bash
 omniroute setup                        # 대화형 설정 마법사
-omniroute setup --non-interactive      # CI/자동화 모드 (환경 변수 + 플래그 읽기)
+omniroute setup --non-interactive      # CI/자동화 모드(환경 변수 + 플래그 읽기)
 omniroute setup --password '<value>'   # 관리자 비밀번호 직접 설정
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # 공급자를 한 번에 추가하고 테스트
+  --test-provider                      # 프로바이더 추가 및 테스트를 한 번에 수행
 ```
 
-비대화형 설정을 위한 인식된 환경 변수:
+비대화형 설정에서 인식되는 환경 변수:
 
-| Var                 | Purpose                                                          |
-| ------------------- | ---------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | 공급자 API 키 (`--api-key`에 Commander `.env()`를 통해 바인딩됨) |
-| `DATA_DIR`          | OmniRoute 데이터 디렉토리 재정의                                 |
+| 변수                | 용도                                                            |
+| ------------------- | --------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | 프로바이더 API 키(Commander `.env()`를 통해 `--api-key`에 연결) |
+| `DATA_DIR`          | OmniRoute 데이터 디렉터리 재정의                                |
 
-모든 다른 비대화형 입력은 환경 변수가 아닌 플래그로 전달됩니다:
+그 밖의 모든 비대화형 입력은 환경 변수가 아닌 플래그로 전달됩니다:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (위의 `omniroute setup` 옵션 참조).
 
 ### 진단
 
 ```bash
-omniroute doctor                       # 구성, DB, 포트, 런타임, 메모리, 생존 확인
-omniroute doctor --json                # 기계 판독 가능한 JSON
-omniroute doctor --no-liveness         # HTTP 건강 프로브 건너뛰기
-omniroute doctor --host 0.0.0.0        # 생존 호스트 재정의
-omniroute doctor --liveness-url <url>  # 전체 건강 엔드포인트 URL 재정의
+omniroute doctor                       # 구성, DB, 포트, 런타임, 메모리, 활성 상태 확인
+omniroute doctor --json                # 머신 판독 가능 JSON
+omniroute doctor --no-liveness         # HTTP 상태 프로브 건너뛰기
+omniroute doctor --host 0.0.0.0        # 활성 상태 확인 호스트 재정의
+omniroute doctor --liveness-url <url>  # 전체 상태 엔드포인트 URL 재정의
 ```
 
-의사는 다음 검사를 수행합니다: `구성`, `데이터베이스`, `저장소/암호화`,
-`포트 가용성`, `노드 런타임`, `네이티브 바이너리` (better-sqlite3),
-`메모리`, 및 `서버 생존`. 어떤 검사가 `실패`하면 비제로로 종료됩니다.
+doctor는 다음 검사를 실행합니다: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary`(better-sqlite3),
+`Memory`, `Server liveness`. 검사 중 하나라도 `fail`이면 0이 아닌 종료 코드로 종료됩니다.
 
-### 공급자 관리
+### 프로바이더 관리
 
 ```bash
-omniroute providers available                       # OmniRoute 공급자 카탈로그
+omniroute providers available                       # OmniRoute 프로바이더 카탈로그
 omniroute providers available --search openai       # ID/이름/별칭/카테고리로 카탈로그 필터링
-omniroute providers available --category api-key    # 카테고리로 필터링 (api-key, oauth, free, ...)
-omniroute providers available --json                # 기계 판독 가능한 JSON
+omniroute providers available --category api-key    # 카테고리로 필터링(api-key, oauth, free, ...)
+omniroute providers available --json                # 머신 판독 가능 JSON
 
-omniroute providers list                            # 구성된 공급자 연결
+omniroute providers list                            # 구성된 프로바이더 연결
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # 구성된 연결 하나 테스트
@@ -628,80 +630,82 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove`는 API 우선이며 따라서
-활성 로컬 또는 원격 컨텍스트에 대해 작동합니다. 자격 증명 입력은
-`--credential-stdin` 또는 `--credential-env`를 사용해야 합니다; `--dry-run --json`은
-단지 수정된 존재/형태를 보고합니다. `providers available`은 OmniRoute 카탈로그를 읽습니다;
-`providers list/test/test-all/validate`는 로컬 SQLite 동작을 유지하며
+`providers add/import/auth/edit/remove`는 API 우선 방식이므로 활성
+로컬 또는 원격 컨텍스트를 대상으로 작동합니다. 자격 증명 입력에는
+`--credential-stdin` 또는 `--credential-env`를 사용해야 하며, `--dry-run --json`은
+마스킹된 존재 여부/형태만 보고합니다. `providers available`은 OmniRoute 카탈로그를 읽습니다.
+`providers list/test/test-all/validate`는 기존 로컬 SQLite 동작을 유지하며
 서버가 실행 중일 필요가 없습니다.
 
 ### 복구 및 재설정
 
 ```bash
-omniroute reset-password                # 관리자 비밀번호 재설정 (또한: omniroute-reset-password)
-omniroute reset-encrypted-columns       # 경고 표시 + 암호화된 자격 증명 재설정에 대한 드라이 런
+omniroute reset-password                # 관리자 비밀번호 재설정(별칭: omniroute-reset-password)
+omniroute reset-encrypted-columns       # 암호화된 자격 증명 재설정에 대한 경고 + 시험 실행 표시
 omniroute reset-encrypted-columns --force  # SQLite에서 암호화된 자격 증명을 실제로 null로 설정
 ```
 
-### 자격 증명 내보내기 (⚠ 주의해서 다루기)
+### 자격 증명 내보내기(⚠ 취급 주의)
 
 ```bash
-omniroute auth export                                 # 경고 표시 + 확인 게이트 — DB 접근 없음
-omniroute auth export --force                          # 모든 연결의 복호화된 자격 증명을 stdout에 JSON으로 내보내기
+omniroute auth export                                 # 경고 + 확인 단계 표시 — DB 접근 없음
+omniroute auth export --force                          # 모든 연결의 복호화된 자격 증명을 JSON으로 stdout에 내보내기
 omniroute auth export --force --id <id>                 # 일치하는 연결만 내보내기
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> 형식으로 출력
-omniroute auth export --force --out creds.json           # 파일에 쓰기 (0600 권한으로 생성)
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> 형식의 줄 출력
+omniroute auth export --force --out creds.json           # 파일에 쓰기(0600 권한으로 생성)
 ```
 
-`auth export`는 **로컬 전용** (직접 SQLite 읽기, HTTP 경로 없음)이며 의도적으로
-**평문** `apiKey`/`accessToken`/`refreshToken`/`idToken` 값을 출력/쓰기 — 이것이 기능이며,
-버그가 아닙니다. `--force` 없이 데이터베이스에서 아무것도 읽지 않으며, 아무것도 복호화되지 않습니다. 평문이 출력되기 전에 항상 stderr 경고 배너가 출력됩니다. `STORAGE_ENCRYPTION_KEY`가 설정되어 있어야 합니다. 복호화에 실패한 필드(오래된 키, 손상된 암호문)는
-`<field>DecryptFailed: true`로 보고되며 전체 내보내기를 중단하거나 기본 오류를 유출하지 않습니다.
+`auth export`는 **로컬 전용**이며(HTTP 경로 없이 SQLite를 직접 읽음), 의도적으로
+**평문** `apiKey`/`accessToken`/`refreshToken`/`idToken` 값을 출력하거나 기록합니다. 이는 기능이며
+버그가 아닙니다. `--force` 없이는 데이터베이스에서 아무것도 읽지 않으며 아무것도 복호화하지 않습니다. 평문이
+출력되기 전에 항상 stderr에 경고 배너가 표시됩니다. `STORAGE_ENCRYPTION_KEY`가
+설정되어 있어야 합니다. 복호화에 실패한 필드(오래된 키, 손상된 암호문)는 전체 내보내기를 중단하거나
+내부 오류를 노출하는 대신 `<field>DecryptFailed: true`로 보고됩니다.
 
 ### 기타 하위 명령
 
-이들은 다른 경우가 명시되지 않는 한 실행 중인 OmniRoute 서버를 가정합니다:
+별도로 명시하지 않는 한, 다음 명령은 실행 중인 OmniRoute 서버가 있다고 가정합니다:
 
 ```bash
-omniroute status                       # 종합적인 런타임 상태
-omniroute logs                         # 요청 로그 스트리밍 (--json, --search, --follow)
-omniroute config show                  # 현재 구성 표시
+omniroute status                       # 종합 런타임 상태
+omniroute logs                         # 요청 로그 스트리밍(--json, --search, --follow)
+omniroute config list                  # 구성된 CLI 도구 표시
 
-omniroute provider list                # 사용 가능한 공급자 목록 (providers list의 별칭)
-omniroute provider add                 # 도구에 OmniRoute를 공급자로 등록
+omniroute provider list                # 사용 가능한 제공자 목록 표시(providers list의 별칭)
+omniroute provider add                 # 도구에 OmniRoute를 제공자로 등록
 omniroute keys add | list | remove     # API 키 관리
-omniroute models [provider]            # 모델 목록 (--json, --search)
+omniroute models [provider]            # 모델 목록 표시(--json, --search)
 omniroute combo list | switch | create | delete
 
 omniroute backup                       # 구성 + DB 스냅샷
 omniroute restore                      # 이전 스냅샷에서 복원
 
-omniroute health                       # 상세 건강 상태 (회로 차단기, 캐시, 메모리)
-omniroute quota                        # 공급자 쿼타 사용량
+omniroute health                       # 상세 상태(차단기, 캐시, 메모리)
+omniroute quota                        # 제공자 할당량 사용 현황
 omniroute cache                        # 캐시 상태
-omniroute cache clear                  # 의미론적 + 서명 캐시 지우기
+omniroute cache clear                  # 의미론적 + 시그니처 캐시 지우기
 
 omniroute mcp status | restart         # MCP 서버 상태 / 재시작
 omniroute a2a status | card            # A2A 서버 상태 / 에이전트 카드
 
-omniroute tunnel list | create | stop  # 터널 관리 (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # 환경 변수 검사 / 설정 (임시)
+omniroute tunnel list | create | stop  # 터널 관리(cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # 환경 변수 확인 / 설정(임시)
 
-omniroute test                         # 공급자 연결성 스모크 테스트
+omniroute test                         # 제공자 연결 스모크 테스트
 omniroute update                       # 업데이트 확인
-omniroute completion                   # 셸 완성 생성
+omniroute completion                   # 셸 자동 완성 생성
 ```
 
-### 일반 플래그
+### 공통 플래그
 
-| Flag                | Description                                       |
+| 플래그              | 설명                                              |
 | ------------------- | ------------------------------------------------- |
-| `--no-open`         | 시작 시 브라우저 자동 열기 안 함                  |
-| `--port <n>`        | API 포트 재정의 (기본 20128)                      |
-| `--mcp`             | IDE용으로 stdio를 통해 MCP 서버로 실행            |
-| `--non-interactive` | CI 모드 (프롬프트 없음; env/flags에서 읽기)       |
-| `--json`            | 기계 판독 가능한 JSON 출력 (doctor, providers 등) |
-| `--help`, `-h`      | 명령별 도움말 표시                                |
+| `--no-open`         | 시작 시 브라우저를 자동으로 열지 않음             |
+| `--port <n>`        | API 포트 재정의(기본값 20128)                     |
+| `--mcp`             | stdio를 통해 MCP 서버로 실행(IDE용)               |
+| `--non-interactive` | CI 모드(프롬프트 없음, 환경 변수/플래그에서 읽음) |
+| `--json`            | 머신 판독 가능 JSON 출력(doctor, providers 등)    |
+| `--help`, `-h`      | 명령어별 도움말 표시                              |
 | `--version`, `-v`   | 설치된 버전 출력                                  |
 
 ---

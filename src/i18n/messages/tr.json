@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Şifre ayarlanamadı. Tekrar dene.",
     "failedAddProvider": "Sağlayıcı eklenemedi. Tekrar dene.",
     "connectionError": "Bağlantı hatası. Lütfen tekrar dene.",
+    "bootstrapTokenLabel": "Önyükleme belirteci",
+    "bootstrapTokenHelp": "Bu bağlantı yerel olarak tanınmıyor (Docker bağlantı noktası yönlendirmesinin arkasında sık görülür). Devam etmek için sunucu/kapsayıcı günlüğündeki tek kullanımlık önyükleme belirtecini bulup yukarıya yapıştırın.",
     "provider": "Sağlayıcı",
     "apiKeyHelp": "API anahtarı, AI hizmetleri için bir paroladır. Sağlayıcınızın web sitesinden bir tane alın (ör. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Stability AI'ı bir API anahtarı ile bağlayın.",
       "stepfun": "API anahtarını platform.stepfun.com adresinden alın",
       "sumopod": "SumoPod, https://ai.sumopod.com/v1/chat/completions adresinde OpenAI uyumlu bir sohbet tamamlama uç noktası ve canlı bir /v1/models kataloğu sunar. OmniRoute, OpenAI protokolünü kullanır ve modelleri passthrough aracılığıyla listeler.",
-      "suno": "suno.ai'dan oturum çerezini (session cookie) yapıştırın (Clerk kimlik doğrulaması)",
       "synthetic": "Synthetic'i bir API anahtarı ile bağlayın.",
       "tencent": "API anahtarını console.cloud.tencent.com adresinden alın",
       "thebai": "TheB.AI OpenAI uyumlu geçidi için Bearer API anahtarı.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{connections, plural, one {# bağlantı} other {# bağlantı}} tarafından kullanılan {exits, plural, one {# çıkış} other {# çıkış}} · tek bir çıkışta en fazla {max} · son {hours} sa.",
     "poolEgressObservationEmpty": "Son {hours} sa. içinde trafik gözlemlenmedi",
     "poolEgressObservationHint": "Pencere boyunca proxy günlüğünden hesaplanır: Bu havuzun üyeleri için gözlemlenen farklı çıkış IP'leri ve bunları kullanan OmniRoute bağlantıları. \"Tek bir çıkışta\", aynı anda değil, pencere boyunca anlamına gelir. IP başına 429 kilitlemesi yalnızca aynı sağlayıcı ailesinin bağlantılarını duraklatır.",
+    "poolMemberEgress": "{host}:{port}, {egressIp} üzerinden çıktı · son {hours} sa",
+    "poolMemberEgressEmpty": "{host}:{port}: son {hours} sa içinde trafik gözlemlenmedi",
+    "poolMemberEgressHint": "Bu havuz üyesi üzerinden ilgili zaman aralığında gözlemlenen ve proxy günlüğünden okunan son çıkış IP'si. Zaman aralığında trafik olmayan bir üye, trafik yok satırını gösterir.",
     "poolRemove": "Kaldır",
     "poolRemoveFailed": "Proxy havuzdan kaldırılamadı",
     "poolAddLabel": "Proxy ekle",
@@ -12222,6 +12226,29 @@
     "raw": "Ham"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI yardımcısı",
+      "intro": "Komutları kopyalayıp CLI’nizin kurulu olduğu bilgisayarda çalıştırın. Bu panel komut çalıştırmaz veya kimlik bilgilerini kopyalamaz.",
+      "hostNotice": "Algılama, bu tarayıcının çalıştığı bilgisayarı değil, OmniRoute sunucusunun ana makinesini tanımlar. Yapılandırılmış olması, çıkarımın test edildiği anlamına gelmez.",
+      "target": "CLI aracı",
+      "context": "Mevcut bağlam adı (isteğe bağlı)",
+      "contextHint": "CLI’nizin etkin bağlamını kullanmak için boş bırakın. Adlandırılmış bağlamlar yerel veya uzak bir sunucuya işaret edebilir; önce terminalinizde bunları listeleyin.",
+      "contextInvalid": "Harf veya rakamla başlayan, 1–64 harf, rakam, nokta, kısa çizgi ya da alt çizgi kullanın.",
+      "modelHint": "Bu CLI bir model gerektirir. Başlatma önizlemesini kopyalamadan önce gerçek bir sağlayıcı/model tanımlayıcısı girin.",
+      "modelInvalid": "Boşluk veya kabuk karakterleri içermeyen, harf ya da rakamla başlayan bir model tanımlayıcısı kullanın.",
+      "runtime": "Çalıştırma",
+      "runnable": "Çalıştırılabilir",
+      "notRunnable": "Çalıştırılamaz",
+      "unknown": "Bilinmiyor",
+      "detectionError": "Sunucu algılama kullanılamıyor. Yeniden denemek için algılamayı yenileyin; terminal komutları kullanılabilir durumda kalır.",
+      "contextsStep": "Terminaldeki bağlamları kontrol edin",
+      "configureStep": "Bir model seçip yapılandırın",
+      "runStep": "Başlatmayı önizleyin",
+      "configureHint": "Bu etkileşimli komut, çalıştırdığınız bilgisayara CLI yapılandırmasını yazar.",
+      "runHint": "Deneme çalıştırması, CLI’yi başlatmadan başlatma planını gösterir. Bu bir çıkarım testi değildir.",
+      "copyFailed": "Kopyalanamadı. Komutu seçip elle kopyalayın.",
+      "empty": "Bu sürümde çalıştırılabilir CLI hedefi yok. Aşağıdaki araç kılavuzlarını kullanın."
+    },
     "concept": {
       "code": {
         "title": "CLI Kodu",

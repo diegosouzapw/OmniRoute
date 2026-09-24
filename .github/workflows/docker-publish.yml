@@ -193,6 +193,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           build-args: |
             OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           tags: |
             ${{ env.IMAGE_NAME }}
@@ -212,6 +213,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           build-args: |
             OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           tags: |
             ${{ env.IMAGE_NAME }}
@@ -239,6 +241,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           build-args: |
             OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           tags: |
             ${{ env.IMAGE_NAME }}
@@ -266,6 +269,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           build-args: |
             OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           tags: |
             ${{ env.IMAGE_NAME }}

@@ -8796,6 +8796,11 @@ paths:
       tags:
         - Cli tools
       summary: "POST cli tools › apply"
+      description: >-
+        Submit the original toolId, apiKey, optional baseUrl/model and optional
+        dryRun in the JSON body. Returned content is a redacted, non-cacheable
+        preview, not an importable configuration. A non-dry-run request writes
+        the original generated configuration; the container write guard remains active.
       responses:
         "200":
           description: OK
@@ -8804,6 +8809,25 @@ paths:
       tags:
         - Cli tools
       summary: "GET cli tools › config"
+      description: >-
+        Returns redacted, non-cacheable previews. Send the configuration API key
+        in x-omniroute-config-api-key, separate from management authentication.
+        API keys in query strings are rejected. Preview content must not be
+        copied into a credential-bearing configuration or submitted as an apply payload.
+      parameters:
+        - in: header
+          name: x-omniroute-config-api-key
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - in: query
+          name: baseUrl
+          required: false
+          schema:
+            type: string
+            format: uri
+          description: Absolute HTTP(S) URL without embedded username/password credentials.
       responses:
         "200":
           description: OK
@@ -8811,6 +8835,11 @@ paths:
       tags:
         - Cli tools
       summary: "POST cli tools › config"
+      description: >-
+        Submit toolId, apiKey and optional baseUrl/model as JSON. Unknown fields
+        are rejected. Returned content is a redacted, non-cacheable preview,
+        not an importable configuration. To apply, submit the original inputs
+        to POST /api/cli-tools/apply instead of replaying the preview content.
       responses:
         "200":
           description: OK

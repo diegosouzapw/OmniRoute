@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (한국어)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -170,52 +170,43 @@ Stacked 사용:   10K-2.5K 토큰 전송     (적용 가능한 RTK+Caveman 범�
 `Dashboard → Context & Cache`로 이동합니다:
 
 - **Caveman** — 모드 선택, 언어 팩, 미리보기 및 전역 기본값
-- **RTK** — 명령 필터 미리보기, RTK 안전 설정 및 필터 카탈로그
-- **Compression Combos** — 라우팅 콤보에 할당되는 명명된 엔진 파이프라인
-- **Auto-Trigger Threshold** — 토큰 수가 임계값을 초과하면 자동으로 압축 활성화
+- **RTK** — 명령-필터 미리보기, RTK 안전 설정 및 필터 카탈로그
+- **Compression Combos** — 라우팅 콤보에 할당된 명명된 엔진 파이프라인
+- **Auto-Trigger Threshold** — 토큰 수가 임계값을 초과할 때 자동으로 압축을 시작
 
 ### 콤보별 재정의
 
-`Dashboard → Context & Cache → Compression Combos`에서 압축 콤보를 라우팅
-콤보에 할당합니다:
+`Dashboard → Context & Cache → Compression Combos`에서 라우팅 콤보에 압축 콤보를 할당합니다:
 
 ```txt
-콤보: "free-tier-fallback"
-  압축 콤보: "coding-agent-stack"
-  파이프라인: RTK -> Caveman
-  대상:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-이를 통해 유료 구독에서는 라이트 모드를 유지하면서 무료/코딩 제공자에는 스택형 압축을 사용할 수 있습니다.
+이를 통해 유료 구독에서는 라이트 모드를 유지하면서 무료/코딩 제공업체에서 스택형 압축을 사용할 수 있습니다.
 
-이 "콤보별 재정의" 할당은 **라우팅 콤보 압축
-모드** 재정의(Default/Off/Lite/Standard/Aggressive/Ultra)와는 다른 제어 항목입니다. 해당 재정의는 명명된
-압축 콤보 파이프라인을 선택하지 않으며, `resolveCompressionPlan`에서 참조하는
-`compressionMode` 필드만 설정합니다. 콤보 카드(`Dashboard → Combos`)에서 설정하거나, #6760부터는
-`Dashboard → Context & Cache → Compression Combos`의 "Assign to routing" 목록에서 라우팅 콤보별로
-설정할 수 있으며, 이 옵션은 위에서 설명한 파이프라인 할당 체크박스 바로 옆에 있습니다. 두 화면의 설정은 모두 동일한
-`PUT /api/combos/{id}` 엔드포인트를 통해 저장됩니다.
+이 "콤보별 재정의" 할당은 **라우팅 콤보 압축 모드** 재정의(Default/Off/Lite/Standard/Aggressive/Ultra)와는 다른 제어 방식입니다. 해당 재정의는 명명된 압축 콤보 파이프라인을 선택하지 않고, `resolveCompressionPlan`이 참조하는 `compressionMode` 필드만 설정합니다. 이는 콤보 카드(`Dashboard → Combos`) 또는 #6760 이후 `Dashboard → Context & Cache → Compression Combos`의 "Assign to routing" 목록에서 파이프라인 할당 체크박스 바로 옆에 있는 라우팅 콤보별로 설정할 수 있습니다. 두 인터페이스 모두 동일한 `PUT /api/combos/{id}` 엔드포인트를 통해 유지됩니다.
 
 ### 요청별 재정의
 
-단일 요청의 압축 계획을 재정의하려면 `x-omniroute-compression` 요청 헤더를 전송합니다.
-이 헤더는 우선순위가 가장 높으며 라우팅 콤보 재정의, 활성 프로필,
-자동 트리거 및 패널의 Default보다 우선합니다. 알 수 없는 값은 무시되며(요청이 거부되는 일은 없음),
-전역 마스터 스위치는 여전히 모든 동작을 제어합니다. 전역적으로 압축이 꺼져 있으면 이 헤더로
-압축을 켤 수 없습니다. 값은 다음과 같습니다:
+단일 요청에 대한 압축 계획을 재정의하려면 `x-omniroute-compression` 요청 헤더를 보냅니다. 이는 가장 높은 우선순위를 가지며, 라우팅 콤보 재정의, 활성 프로필, 자동 트리거 및 패널 기본값을 능가합니다. 알 수 없는 값은 무시되며(요청이 거부되지 않음) 전역 마스터 스위치는 여전히 모든 것을 제어합니다. 즉, 전역적으로 압축이 꺼져 있으면 헤더가 압축을 켤 수 없습니다. 값:
 
-| 값            | 효과                                                                                                      |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| `off`         | 이 요청에 압축을 적용하지 않습니다.                                                                       |
-| `default`     | 패널에서 파생된 Default 프로필입니다(활성 프로필은 무시함).                                               |
-| `engine:<id>` | 활성화된 경우 단일 엔진을 사용합니다(예: `engine:rtk`).                                                   |
-| `<combo>`     | 명명된 콤보입니다. 먼저 이름을 기준으로 대소문자 구분 없이 일치시키고, 그다음 id를 기준으로 일치시킵니다. |
+| 값            | 효과                                                                                  |
+| :------------ | :------------------------------------------------------------------------------------ |
+| `off`         | 이 요청에 대한 압축 없음.                                                             |
+| `default`     | 패널에서 파생된 기본 프로필(활성 프로필 무시). 손실 엔진은 꺼진 상태로 유지됩니다.    |
+| `safe`        | 헤더를 생략하는 것과 동일: 중복 제거 및 공백 접기만 적용.                             |
+| `allow-lossy` | 요약, 관련성 필터 및 스타일 재작성을 포함하여 이 요청의 연산자 계획을 유지합니다.     |
+| `engine:<id>` | 활성화된 경우 단일 엔진, 예: `engine:rtk`. 이는 해당 엔진에 대한 요청별 옵트인입니다. |
+| `<combo>`     | 명명된 콤보로, 먼저 이름(대소문자 구분 없음)으로 일치시킨 다음 ID로 일치시킵니다.     |
 
-적용된 계획은 `X-OmniRoute-Compression: <mode>; source=<source>` 응답
-헤더로 반환되며, `<source>`는 `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` 또는 `off` 중 하나입니다.
+`allow-lossy`, `engine:<id>` 또는 명명된 콤보가 없으면 손실 엔진은 적용되지 않습니다. 압축이 켜져 있을 때 요청은 여전히 세션 중복 제거 및 공백 접기를 받습니다.
+
+적용된 계획은 `X-OmniRoute-Compression: <mode>; source=<source>` 응답 헤더에 반영되며, 여기서 `<source>`는 `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` 또는 `off` 중 하나입니다.
 
 ### API
 
@@ -233,10 +224,10 @@ curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# RTK 필터 팩 목록 조회
+# RTK 필터 팩 목록
 curl http://localhost:20128/api/context/rtk/filters
 
-# 선택적 명령 메타데이터를 사용하여 RTK 직접 테스트
+# 선택적 명령 메타데이터로 RTK 직접 테스트
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -263,7 +254,7 @@ RTK 원시 출력 복구 기능은 데이터가 저장되기 전에 일반적인
 
 ## 압축 통계
 
-압축된 모든 요청의 통계는 서버 로그에 포함됩니다:
+압축된 모든 요청에는 서버 로그에 통계가 포함됩니다:
 
 ```json
 {
@@ -283,13 +274,13 @@ RTK 원시 출력 복구 기능은 데이터가 저장되기 전에 일반적인
 
 ## 단계별 로드맵
 
-| 단계   | 모드                                                                                                                          | 상태      |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1단계  | Off, Lite                                                                                                                     | ✅ 출시됨 |
-| 2단계  | Standard, Aggressive, Ultra                                                                                                   | ✅ 출시됨 |
-| 3단계  | RTK, Stacked, Compression Combos                                                                                              | ✅ 출시됨 |
-| 4단계  | Output Styles, SLM-tier Ultra, eval harness                                                                                   | ✅ 출시됨 |
-| 4C단계 | 적응형 컨텍스트 예산("다이얼") — 계산 엔진 + API(`PUT /api/settings/compression`의 `contextBudget`) + 대시보드 모드/정책 제어 | ✅ 출시됨 |
+| 단계   | 모드                                                                                                                               | 상태      |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1단계  | Off, Lite                                                                                                                          | ✅ 출시됨 |
+| 2단계  | Standard, Aggressive, Ultra                                                                                                        | ✅ 출시됨 |
+| 3단계  | RTK, Stacked, Compression Combos                                                                                                   | ✅ 출시됨 |
+| 4단계  | Output Styles, SLM-tier Ultra, eval harness                                                                                        | ✅ 출시됨 |
+| 4C단계 | 적응형 컨텍스트 예산 ("다이얼") — 컴퓨팅 엔진 + API (`contextBudget` on `PUT /api/settings/compression`) + 대시보드 모드/정책 제어 | ✅ 출시됨 |
 
 ---
 
@@ -303,26 +294,21 @@ RTK 모드는 **[RTK AI](https://github.com/rtk-ai)**의 **[RTK - Rust Token Kil
 
 ## 고급 압축 시스템
 
-7가지 표준 모드 외에도 OmniRoute에는 컨텍스트에 따라 자동으로 작동하는 여러 고급 압축
-시스템이 포함되어 있습니다.
+7가지 표준 모드 외에도 OmniRoute는 컨텍스트에 따라 자동으로 작동하는 여러 고급 압축 시스템을 포함합니다.
 
 ### 캐시 인식 압축
 
-일부 제공업체(예: 프롬프트 캐싱을 지원하는 Anthropic)는 **프롬프트 캐싱**을 지원합니다.
-이를 통해 프롬프트의 일부를 캐시하여 비용과 지연 시간을 줄일 수 있습니다. 캐싱이
-활성화된 경우 공격적인 압축은 캐시된 토큰을 변경하여 캐시를 무효화하므로 오히려
-성능을 **저하시킬** 수 있습니다.
+일부 공급자(프롬프트 캐싱을 사용하는 Anthropic 등)는 **프롬프트 캐싱**을 지원하여 프롬프트의 일부를 캐시하여 비용과 지연 시간을 줄일 수 있습니다. 캐싱이 활성화되면 공격적인 압축은 캐시된 토큰을 변경하여 캐시를 무효화하기 때문에 실제로 성능을 **저해**할 수 있습니다.
 
-`cachingAware.ts` 모듈은 **캐싱 컨텍스트를 감지**하고 그에 따라
-**압축 전략을 조정**하여 이 문제를 해결합니다.
+`cachingAware.ts` 모듈은 **캐싱 컨텍스트를 감지**하고 그에 따라 **압축 전략을 조정**하여 이 문제를 해결합니다.
 
 #### 작동 방식
 
-1. **캐싱 컨텍스트 감지** — 요청 본문에서 `cache_control` 마커를 검색합니다
-2. **캐싱 제공업체 식별** — 대상 제공업체가 캐싱을 지원하는지 확인합니다
-3. **전략 조정** — 캐싱 제공업체에서는 `aggressive`/`ultra`를 `standard`로 낮춥니다
-4. **시스템 프롬프트 건너뛰기** — 시스템 프롬프트는 일반적으로 캐시되므로 압축하지 않습니다
-5. **결정론적 변환 사용** — 일관된 출력을 생성하는 변환만 사용합니다
+1.  **캐싱 컨텍스트 감지** — 요청 본문에서 `cache_control` 마커를 스캔합니다.
+2.  **캐싱 공급자 식별** — 대상 공급자가 캐싱을 지원하는지 확인합니다.
+3.  **전략 조정** — 캐싱 공급자의 경우 `aggressive`/`ultra`를 `standard`로 다운그레이드합니다.
+4.  **시스템 프롬프트 건너뛰기** — 시스템 프롬프트는 일반적으로 캐시되므로 압축하지 않습니다.
+5.  **결정론적 변환 사용** — 일관된 출력을 생성하는 변환만 사용합니다.
 
 #### 코드 예시
 
@@ -347,21 +333,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### 사용 시점
 
-캐시 인식 압축은 **항상 활성화되어 있으며** 별도의 구성이 필요하지 않습니다. 다음과 같은
-경우에만 작동합니다:
+캐시 인식 압축은 **항상 켜져 있습니다** — 별도의 구성이 필요 없습니다. 다음 경우에만 작동합니다.
 
 - 요청에 `cache_control` 마커가 있는 경우
-- 대상 제공업체가 프롬프트 캐싱을 지원하는 경우(Anthropic, OpenAI 등)
+- 대상 공급자가 프롬프트 캐싱을 지원하는 경우 (Anthropic, OpenAI 등)
 
-### 점진적 에이징
+### 점진적 노화 (Progressive Aging)
 
-긴 대화에는 많은 메시지 턴이 누적되지만, 오래된 턴일수록 관련성이
-낮아집니다. `progressiveAging.ts` 모듈은 **턴 거리에 따라 메시지를 축약합니다**:
+긴 대화는 많은 메시지 턴을 축적하지만, 오래된 턴은 관련성이 떨어집니다. `progressiveAging.ts` 모듈은 **턴 거리에 따라 메시지를 저하시킵니다**:
 
-- **최근 턴(0-3)**: 원문 그대로 유지(전체 세부 정보)
-- **중간 턴(4-8)**: Lite 압축(공백 및 서식 정리)
-- **오래된 턴(9+)**: Caveman 압축(불필요한 표현 제거 및 요약)
-- **매우 오래된 턴(20+)**: 대폭 요약하거나 삭제
+- **최근 턴 (0-3)**: 그대로 유지 (전체 세부 정보)
+- **중간 턴 (4-8)**: 가벼운 압축 (공백, 서식 정리)
+- **오래된 턴 (9+)**: 원시인 압축 (불필요한 내용 제거, 요약)
+- **매우 오래된 턴 (20+)**: 심하게 요약되거나 삭제됨
 
 #### 코드 예시
 
@@ -372,48 +356,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50개 이상의 추가 턴 ...
+  // ... 50개 이상의 턴 ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // 처음 3개 턴: 원문 그대로
-  light: 8, // 4-8번째 턴: Lite 압축
-  moderate: 20, // 9-20번째 턴: Caveman 압축
-  // 21번째 이후 턴: 대폭 요약
+  verbatim: 3, // 첫 3개 턴: 그대로
+  light: 8, // 4-8 턴: 가벼운 압축
+  moderate: 20, // 9-20 턴: 원시인 압축
+  // 21+ 턴: 심한 요약
 });
 
-// saved = 절감된 토큰 수
+// saved = 절약된 토큰 수
 ```
 
 #### 사용 시점
 
-점진적 에이징은 `aggressive` 및 `ultra` 모드에서 **항상 활성화**됩니다. 특히
-다음과 같은 경우에 효과적입니다:
+점진적 노화는 `aggressive` 및 `ultra` 모드에서 **항상 켜져 있습니다**. 특히 다음 경우에 효과적입니다.
 
-- 장시간 진행되는 코딩 세션
+- 장시간 코딩 세션
 - 여러 날에 걸친 대화
-- 도구 호출이 많은 에이전트형 워크플로
+- 많은 도구 호출이 있는 에이전트 워크플로우
 
-### 원시인 출력 모드
+### 원시인 출력 모드 (Caveman Output Mode)
 
-`outputMode.ts` 모듈은 모델 자체가 압축되고 간결한 출력("원시인" 스타일)을
-생성하도록 **시스템 프롬프트 지침**을 삽입합니다.
+`outputMode.ts` 모듈은 모델 자체가 압축되고 간결한 출력("원시인" 스타일)을 생성하도록 **시스템 프롬프트 지침**을 주입합니다.
 
 #### 작동 방식
 
-입력을 압축하는 대신, 이 모드는 다음과 같은 시스템 프롬프트를 추가합니다:
+입력을 압축하는 대신, 이 모드는 다음과 같은 시스템 프롬프트를 추가합니다.
 
-> "최소한의 단어로 답하세요. 인사말은 생략하세요. 짧은 문장을 사용하세요."
+> "최소한의 단어로 답하세요. 불필요한 인사는 건너뛰세요. 짧은 문장을 사용하세요."
 
-이 방식은 특히 다음과 같은 경우에 효과적입니다:
+이것은 다음 경우에 특히 잘 작동합니다.
 
-- 코드 생성(더 간결한 출력 = 더 적은 토큰)
-- 빠른 질의응답(장황한 설명이 필요 없음)
-- 배치 처리(처리량 극대화)
+- 코드 생성 (간결한 출력 = 적은 토큰)
+- 빠른 Q&A (정교한 설명 불필요)
+- 일괄 처리 (처리량 극대화)
 
-#### 사용 시기
+#### 사용 시점
 
-원시인 출력 모드는 **옵트인 방식**입니다. 콤보 구성을 통해 설정하세요:
+원시인 출력 모드는 **선택 사항**입니다 — 콤보 구성을 통해 설정합니다.
 
 ```json
 {
@@ -426,40 +408,37 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-### 출력 스타일(카탈로그)
+### 출력 스타일 (카탈로그)
 
-위의 원시인 출력 모드는 **레거시 단일 스타일 경로**입니다. Phase 4에서는 이를
-조합 가능한 출력 스타일 카탈로그인
-`open-sse/services/compression/outputStyles/catalog.ts`의 `OUTPUT_STYLE_CATALOG`로
-일반화했습니다. 각 스타일은 모델 자체가 더 저렴한 출력을 생성하도록 하는 시스템 프롬프트
-지침입니다. 여러 스타일을 함께 활성화할 수 있으며 카탈로그 순서대로 삽입됩니다.
+위의 원시인 출력 모드는 **레거시 단일 스타일 경로**입니다. Phase 4에서는 이를 구성 가능한 출력 스타일 카탈로그로 일반화했습니다: `open-sse/services/compression/outputStyles/catalog.ts`의 `OUTPUT_STYLE_CATALOG`. 각 스타일은 모델 자체가 더 저렴한 출력을 생성하도록 하는 시스템 프롬프트 지침이며, 스타일은 함께 활성화될 수 있고 카탈로그 순서대로 주입됩니다.
 
-| 스타일                         | `id`          | 기능                                                                                                                                                                                                                                                                | 지침 언어                                         |
-| ------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| 간결한 산문                    | `terse-prose` | 군더더기/관사/완곡한 표현을 제거하고 기술적 내용은 정확하게 유지합니다. 레거시 원시인 출력 모드와 동일한 텍스트입니다(다시 작성하지 않고 참조함).                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi     |
-| 더 적은 코드                   | `less-code`   | YAGNI 단계: 작동하는 최소한의 변경만 적용하고, 요청하지 않은 추상화는 만들지 않습니다.                                                                                                                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi     |
-| 포니테일(게으른 시니어 개발자) | `ponytail`    | "최고의 코드는 작성하지 않은 코드다": 재사용 > 재작성, 근본 원인 > 증상, 작동하는 가장 짧은 diff.                                                                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi     |
-| ADHD가 있습니다(행동 우선)     | `i-have-adhd` | 행동을 먼저 제시하고(설명보다 명령어/경로/스니펫을 먼저 제시), 번호가 매겨진 제한된 단계를 사용하며, 구체적인 다음 단계는 하나만 제시하고, 서문/요약/맺음말은 사용하지 않습니다. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd)에서 변형했습니다(MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi     |
-| 간결한 CJK(文言)               | `terse-cjk`   | 고전 중국어 기반의 극도로 간결한 스타일입니다.                                                                                                                                                                                                                      | zh(로케일 제한: 확인된 언어가 `zh`일 때만 제공됨) |
+| 스타일                        | `id`          | 기능                                                                                                                                                                                               | 지시어 언어                                      |
+| ----------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| 간결한 산문                   | `terse-prose` | 불필요한 단어/관사/완곡어법을 제거하고 기술적 내용은 정확하게 유지합니다. 레거시 caveman 출력 모드와 동일한 텍스트입니다(참조되었으며 다시 입력되지 않음).                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi    |
+| 코드 줄이기                   | `less-code`   | YAGNI 원칙: 최소한의 작동 변경, 요청하지 않은 추상화 없음.                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi    |
+| 포니테일 (게으른 선임 개발자) | `ponytail`    | "최고의 코드는 작성되지 않은 코드": 재사용 > 재작성, 근본 원인 > 증상, 가장 짧은 작동 차이.                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi    |
+| ADHD가 있습니다 (행동 우선)   | `i-have-adhd` | 행동 우선 (산문보다 명령/경로/코드 조각), 번호가 매겨진 제한된 단계, 하나의 구체적인 다음 단계, 서문/요약/마무리 없음. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT)에서 채택. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi    |
+| 간결한 CJK (文言)             | `terse-cjk`   | 고전 중국어의 초간결 스타일.                                                                                                                                                                       | zh (로케일 제한: 해결된 언어가 `zh`일 때만 제공) |
 
-모든 스타일은 `lite`, `full`, `ultra`의 세 가지 강도 수준을 제공하며, 모든 수준은
-공유 경계 조항으로 끝납니다. 이 조항은 코드 블록, 파일 경로, 명령어,
-오류 문자열, URL 및 식별자를 그대로 유지합니다.
+모든 스타일은 `lite`, `full`, `ultra` 세 가지 강도 수준을 제공하며, 모든 수준은
+코드 블록, 파일 경로, 명령, 오류 문자열, URL 및 식별자를 그대로 유지하는
+공통 경계 절로 끝납니다.
 
-#### 삽입 방식
+#### 주입 작동 방식
 
-`applyOutputStyles()`(`open-sse/services/compression/outputStyles/apply.ts`)는
-선택 항목을 카탈로그와 대조하여 확인하고(알 수 없는 id 및 로케일이 일치하지 않는 스타일은
-오류 없이 제외됨), 선택한 지침을 카탈로그 순서대로 연결하고,
-경계 조항을 **한 번만** 추가한 다음, 단일 멱등성 마커(`[OmniRoute Output Styles]`) 뒤에
-그 결과를 배치하여 시스템 프롬프트의 앞부분에 삽입합니다. 다시 적용해도 아무 작업도 하지 않습니다.
-감지된 요청 언어의 번역이 있으면 영어 대신 현지화된 지침이 삽입됩니다.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`)는
+카탈로그에 대해 선택 사항을 해결하고 (알 수 없는 ID 및 로케일 불일치 스타일은
+삭제되며 오류가 발생하지 않음), 카탈로그 순서대로 선택된 지침을 연결하고,
+경계 절을 **한 번** 추가한 다음, 단일 멱등성 마커 (`[OmniRoute Output Styles]`)
+뒤에 시스템 프롬프트에 결과를 미리 로드합니다. 다시 적용하는 것은 아무런
+작용도 하지 않습니다. 감지된 요청 언어에 번역이 있는 경우, 영어 대신 현지화된
+지침이 주입됩니다.
 
 #### 활성화 방법
 
-대시보드에서 **컨텍스트 → 설정 → 압축**으로 이동합니다. 스타일마다
-켜기/끄기 토글과 수준 선택기가 한 행씩 제공됩니다. 프로그래밍 방식에서는 압축 구성이
-선택 항목을 다음과 같이 유지합니다:
+대시보드에서: **Context → Settings → Compression** — 각 스타일에 대해 켜기/끄기
+토글과 수준 선택기가 있는 한 줄. 프로그래밍 방식으로 압축 구성은 선택 사항을
+다음과 같이 유지합니다.
 
 ```json
 {
@@ -470,59 +449,60 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-하위 호환성: 레거시 `outputMode: "caveman"` 콤보 설정도 계속 작동하며
-`terse-prose`에 매핑됩니다. 모든 레거시 언어에서 이전 삽입 내용과 바이트 단위로 동일합니다.
+하위 호환성: 레거시 `outputMode: "caveman"` 콤보 설정은 여전히 작동하며
+`terse-prose`에 매핑되며, 모든 레거시 언어에서 이전 주입과 바이트 단위로
+동일합니다.
 
-언어 선택: `languageConfig.enabled`가 켜져 있으면 `autoDetect`가
-최신 사용자 메시지의 언어를 선택합니다(입력 엔진과 동일한 감지기 사용).
-`autoDetect`를 끄면 `defaultLanguage`로 고정됩니다. 끄면 영어를 사용합니다.
+언어 선택: `languageConfig.enabled`가 켜져 있으면 `autoDetect`가 최신 사용자
+메시지의 언어를 선택합니다 (입력 엔진과 동일한 감지기). `autoDetect`를 끄면
+`defaultLanguage`가 고정됩니다. 끄면 → 영어.
 
 스타일 × 언어 매트릭스는
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`로 고정됩니다. 새 스타일은
-최소한 pt-BR 번역(또는 명시적으로 추적되는 예외) 없이는 출시할 수 없으며,
-기존 스타일에서 로케일이 조용히 제거될 수 없습니다. 스타일을 추가하려면
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style)를 참조하세요.
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`에 의해 고정됩니다.
+새로운 스타일은 최소한 pt-BR 번역 (또는 명시적으로 추적된 예외) 없이는
+제공될 수 없으며, 기존 스타일은 로케일을 조용히 잃을 수 없습니다. 스타일을
+추가하려면 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style)를
+참조하십시오.
 
 ### 도구 결과 압축
 
-`toolResultCompressor.ts` 모듈은 도구 결과(함수 호출, 에이전트 출력, 검색 결과 등)를 위한
-**5가지 특화된 압축 전략**을 제공합니다:
+`toolResultCompressor.ts` 모듈은 도구 결과 (함수 호출, 에이전트 출력, 검색 결과 등)에
+대한 **5가지 특수 압축 전략**을 제공합니다.
 
-1. **검색 결과 압축** — 중복 결과를 제거하고 상위 N개를 유지
-2. **파일 읽기 압축** — 큰 파일을 잘라내고 헤더/임포트를 보존
-3. **코드 실행 압축** — 필수적인 stdout/stderr만 유지
-4. **데이터베이스 쿼리 압축** — 행 수를 제한하고 장황한 메타데이터를 제거
-5. **API 응답 압축** — null 필드를 제거하고 배열을 축약
+1. **검색 결과 압축** — 중복 결과를 제거하고 상위 N개를 유지합니다.
+2. **파일 읽기 압축** — 큰 파일을 자르고 헤더/가져오기를 보존합니다.
+3. **코드 실행 압축** — 필수 stdout/stderr만 유지합니다.
+4. **데이터베이스 쿼리 압축** — 행을 제한하고 자세한 메타데이터를 제거합니다.
+5. **API 응답 압축** — null 필드를 제거하고 배열을 압축합니다.
 
 #### 사용 시기
 
-도구 호출이 있으면 도구 결과 압축은 **항상 활성화**됩니다. 별도의
-구성이 필요하지 않습니다.
+도구 결과 압축은 도구 호출이 있을 때 **항상 켜져 있습니다**. 구성이 필요하지 않습니다.
 
 ### 스택형 파이프라인
 
-스택형 모드는 **여러 엔진을 순차적으로** 실행합니다. 일반적으로 RTK를 먼저 실행하여
-도구 출력에서 60~90%를 절감한 다음, 원시인 모드로 나머지 텍스트에서 추가로 30%를
-절감합니다. 이를 통해 **총 78~95% 절감**을 달성합니다.
+스택형 모드는 **여러 엔진을 순서대로 실행**합니다. 일반적으로 RTK가 먼저 실행되고
+(도구 출력에서 60-90% 절약), 그 다음 Caveman이 실행됩니다 (나머지 텍스트에서
+추가 30% 절약). 이를 통해 **총 78-95%의 절약**을 달성합니다.
 
 #### 작동 방식
 
 ```
-입력(1000토큰)
-  → RTK(명령어 인식 필터) → 200토큰
-    → 원시인 모드(군더더기 제거) → 140토큰
-  → 출력(140토큰, 86% 절감)
+입력 (1000 토큰)
+  → RTK (명령 인식 필터) → 200 토큰
+    → Caveman (필러 제거) → 140 토큰
+  → 출력 (140 토큰, 86% 절약)
 ```
 
 #### 사용 시기
 
-다음과 같은 경우 스택형 모드를 사용하세요:
+다음과 같은 경우 스택형 모드를 사용하십시오.
 
-- 도구 사용량이 많은 워크플로(에이전트형 코딩, 연구)
+- 도구 중심 워크플로우 (에이전트 코딩, 연구)
 - 비용에 민감한 배치 처리
-- 토큰을 최대한 절감해야 하는 경우
+- 최대 토큰 절약이 필요할 때
 
-콤보를 통해 구성하세요:
+콤보를 통해 구성:
 
 ```json
 {

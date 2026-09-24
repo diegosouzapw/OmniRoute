@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Nastavení hesla selhalo. Zkuste to znovu.",
     "failedAddProvider": "Přidání poskytovatele selhalo. Zkuste to znovu.",
     "connectionError": "Chyba připojení. Zkuste to prosím znovu.",
+    "bootstrapTokenLabel": "Zaváděcí token",
+    "bootstrapTokenHelp": "Toto připojení nebylo rozpoznáno jako místní (běžné při přesměrování portů v Dockeru). Chcete-li pokračovat, vyhledejte v protokolu serveru/kontejneru jednorázový zaváděcí token a vložte jej výše.",
     "provider": "Poskytovatel",
     "apiKeyHelp": "Klíč API je heslo pro služby AI. Získejte jej z webu svého poskytovatele (např. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Připojte Stability AI pomocí API klíče.",
       "stepfun": "Získejte API klíč na platform.stepfun.com",
       "sumopod": "SumoPod poskytuje koncový bod pro doplňování chatu kompatibilní s OpenAI na adrese https://ai.sumopod.com/v1/chat/completions a také živý katalog /v1/models. OmniRoute používá protokol OpenAI a vypisuje modely prostřednictvím passthrough.",
-      "suno": "Vložte session cookie ze suno.ai (ověření Clerk)",
       "synthetic": "Připojte Synthetic pomocí API klíče.",
       "tencent": "Získejte API klíč na console.cloud.tencent.com",
       "thebai": "Bearer API klíč pro bránu TheB.AI kompatibilní s OpenAI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "Použito {exits, plural, one {# výstup} other {# výstupů}} prostřednictvím {connections, plural, one {# připojení} other {# připojení}} · až {max} na jednom výstupu · za posledních {hours} h",
     "poolEgressObservationEmpty": "Za posledních {hours} h nebyl zaznamenán žádný provoz",
     "poolEgressObservationHint": "Počítáno z protokolu proxy za dané období: jedinečné odchozí IP adresy zaznamenané u členů tohoto fondu a připojení OmniRoute, která je použila. „Na jednom výstupu“ znamená za celé období, nikoli současně. Blokace 429 pro jednotlivé IP adresy pozastaví pouze připojení stejné rodiny poskytovatelů.",
+    "poolMemberEgress": "{host}:{port} odchozí přes {egressIp} · posledních {hours} h",
+    "poolMemberEgressEmpty": "{host}:{port}: za posledních {hours} h nebyl zaznamenán žádný provoz",
+    "poolMemberEgressHint": "Poslední odchozí IP adresa zaznamenaná přes tohoto člena fondu během daného období, načtená z protokolu proxy. U člena bez provozu v tomto období se zobrazí řádek informující o nulovém provozu.",
     "poolRemove": "Odebrat",
     "poolRemoveFailed": "Nepodařilo se odebrat proxy z poolu",
     "poolAddLabel": "Přidat proxy",
@@ -12222,6 +12226,29 @@
     "raw": "Nezpracované"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Průvodce CLI",
+      "intro": "Zkopírujte příkazy a spusťte je na počítači, kde je nainstalované vaše CLI. Tento panel nespouští příkazy ani nekopíruje přihlašovací údaje.",
+      "hostNotice": "Detekce popisuje hostitele serveru OmniRoute, nikoli počítač tohoto prohlížeče. Nakonfigurováno neznamená, že byla otestována inference.",
+      "target": "Nástroj CLI",
+      "context": "Název existujícího kontextu (nepovinné)",
+      "contextHint": "Ponechte prázdné, chcete-li použít aktivní kontext CLI. Pojmenované kontexty mohou odkazovat na místní nebo vzdálený server; nejprve je vypište v terminálu.",
+      "contextInvalid": "Použijte 1–64 písmen, číslic, teček, spojovníků nebo podtržítek, počínaje písmenem nebo číslicí.",
+      "modelHint": "Toto CLI vyžaduje model. Před zkopírováním náhledu spuštění zadejte skutečný identifikátor poskytovatele/modelu.",
+      "modelInvalid": "Použijte identifikátor modelu bez mezer a znaků shellu, počínaje písmenem nebo číslicí.",
+      "runtime": "Spouštění",
+      "runnable": "Spustitelné",
+      "notRunnable": "Nelze spustit",
+      "unknown": "Neznámé",
+      "detectionError": "Detekce serveru není dostupná. Obnovte detekci a zkuste to znovu; příkazy pro terminál zůstávají dostupné.",
+      "contextsStep": "Zkontrolovat kontexty v terminálu",
+      "configureStep": "Vybrat model a nakonfigurovat",
+      "runStep": "Zobrazit náhled spuštění",
+      "configureHint": "Tento interaktivní příkaz zapíše konfiguraci CLI na počítači, na kterém ho spustíte.",
+      "runHint": "Zkušební běh zobrazí plán spuštění, aniž by spustil CLI. Nejde o test inference.",
+      "copyFailed": "Kopírování se nezdařilo. Označte a zkopírujte příkaz ručně.",
+      "empty": "V této verzi nejsou dostupné žádné spustitelné cíle CLI. Použijte průvodce nástroji níže."
+    },
     "concept": {
       "code": {
         "title": "Kód CLI",

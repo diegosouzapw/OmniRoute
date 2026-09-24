@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Ma rnexxilniex nissettjaw il-password. Erġa' pprova.",
     "failedAddProvider": "Ma rnexxilniex inżidu l-fornitur. Erġa' pprova.",
     "connectionError": "Żball fil-konnessjoni. Jekk jogħġbok erġa' pprova.",
+    "bootstrapTokenLabel": "Token tal-bootstrap",
+    "bootstrapTokenHelp": "Din il-konnessjoni mhijiex rikonoxxuta bħala lokali (ħaġa komuni meta jintuża l-port-forwarding ta’ Docker). Iċċekkja l-log tas-server/container għal token tal-bootstrap li jintuża darba biss u waħħlu hawn fuq biex tkompli.",
     "provider": "Fornitur",
     "apiKeyHelp": "Ċavetta API hija password għas-servizzi tal-IA. Ikseb waħda mis-sit web tal-fornitur tiegħek (eż., platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Qabbad Stability AI b’ċavetta API.",
       "stepfun": "Ikseb ċavetta API fuq platform.stepfun.com",
       "sumopod": "SumoPod joffri endpoint għat-tlestijiet taċ-chat kompatibbli ma’ OpenAI fuq https://ai.sumopod.com/v1/chat/completions, flimkien ma’ katalogu attiv fuq /v1/models. OmniRoute juża l-protokoll OpenAI u jelenka l-mudelli permezz ta’ passthrough.",
-      "suno": "Waħħal il-cookie tas-sessjoni minn suno.ai (awtentikazzjoni Clerk)",
       "synthetic": "Qabbad Synthetic b’ċavetta API.",
       "tencent": "Ikseb ċavetta API fuq console.cloud.tencent.com",
       "thebai": "Ċavetta API Bearer għall-gateway ta’ TheB.AI kompatibbli ma’ OpenAI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# ħruġ użat} other {# ħruġ użati}} minn {connections, plural, one {# konnessjoni} other {# konnessjonijiet}} · sa {max} fuq ħruġ wieħed · fl-aħħar {hours} h",
     "poolEgressObservationEmpty": "Ma ġie osservat l-ebda traffiku fl-aħħar {hours} h",
     "poolEgressObservationHint": "Magħduda mir-reġistru tal-proxy tul il-perjodu: l-indirizzi IP distinti tal-ħruġ osservati għall-membri ta’ dan il-pool, u l-konnessjonijiet OmniRoute li użawhom. \"Fuq ħruġ wieħed\" tfisser tul il-perjodu, mhux fl-istess ħin. L-imblukkar 429 għal kull indirizz IP iwaqqaf temporanjament biss il-konnessjonijiet tal-istess familja ta’ fornituri.",
+    "poolMemberEgress": "{host}:{port} ħareġ permezz ta’ {egressIp} · l-aħħar {hours} sigħat",
+    "poolMemberEgressEmpty": "{host}:{port}: ma ġie osservat ebda traffiku fl-aħħar {hours} sigħat",
+    "poolMemberEgressHint": "L-aħħar indirizz IP tal-ħruġ osservat permezz ta’ dan il-membru tal-pool matul il-perjodu, moqri mir-reġistru tal-proxy. Membru mingħajr traffiku matul il-perjodu juri l-linja ta’ ebda traffiku.",
     "poolRemove": "Neħħi",
     "poolRemoveFailed": "Ma rnexxiex it-tneħħija tal-proxy mill-pool",
     "poolAddLabel": "Żid proxy",
@@ -12222,6 +12226,29 @@
     "raw": "Mhux ipproċessat"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Assistent CLI",
+      "intro": "Ikkopja l-kmandi biex tħaddimhom fuq il-kompjuter fejn huwa installat is-CLI tiegħek. Dan il-pannell ma jeżegwixxix kmandi u ma jikkopjax kredenzjali.",
+      "hostNotice": "Is-sejbien jiddeskrivi l-kompjuter li jospita s-server OmniRoute, mhux il-kompjuter ta’ dan il-brawżer. Konfigurat ma jfissirx li l-inferenza ġiet ittestjata.",
+      "target": "Għodda CLI",
+      "context": "Isem ta’ kuntest eżistenti (mhux obbligatorju)",
+      "contextHint": "Ħalli vojt biex tuża l-kuntest attiv tas-CLI tiegħek. Kuntesti b’isem jistgħu jirreferu għal server lokali jew remot; elenkahom fit-terminal tiegħek l-ewwel.",
+      "contextInvalid": "Uża 1–64 ittra, ċifra, punt, sing jew linja ta’ taħt, billi tibda b’ittra jew ċifra.",
+      "modelHint": "Dan is-CLI jeħtieġ mudell. Daħħal identifikatur reali ta’ fornitur/mudell qabel tikkopja l-previżjoni tat-tnedija.",
+      "modelInvalid": "Uża identifikatur tal-mudell mingħajr spazji jew karattri tas-shell, billi tibda b’ittra jew ċifra.",
+      "runtime": "Eżekuzzjoni",
+      "runnable": "Jista’ jitħaddem",
+      "notRunnable": "Ma jistax jitħaddem",
+      "unknown": "Mhux magħruf",
+      "detectionError": "Is-sejbien tas-server mhuwiex disponibbli. Aġġorna s-sejbien biex terġa’ tipprova; il-kmandi tat-terminal jibqgħu disponibbli.",
+      "contextsStep": "Iċċekkja l-kuntesti fit-terminal",
+      "configureStep": "Agħżel mudell u kkonfigura",
+      "runStep": "Ara l-previżjoni tat-tnedija",
+      "configureHint": "Dan il-kmand interattiv jikteb il-konfigurazzjoni tas-CLI fuq il-kompjuter fejn tħaddmu.",
+      "runHint": "Il-prova turi l-pjan tat-tnedija mingħajr ma tibda s-CLI. Din mhijiex prova tal-inferenza.",
+      "copyFailed": "Ma setax jiġi kkupjat. Agħżel u kkopja l-kmand manwalment.",
+      "empty": "F’din il-verżjoni m’hemmx miri CLI eżegwibbli disponibbli. Uża l-gwidi tal-għodod hawn taħt."
+    },
     "concept": {
       "code": {
         "title": "Għodod tal-Kodiċi CLI",

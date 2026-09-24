@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (Čeština)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -288,12 +288,111 @@ Přenosy SSE i Streamable HTTP jsou blokovány, dokud není server MCP povolen v
 
 ---
 
-## Autentizace a rozsahy
+## Ověřování a rozsahy oprávnění
 
-Nástroje MCP jsou autentizovány prostřednictvím rozsahů API klíčů. Vynucování rozsahů je centralizováno v souboru
-`open-sse/mcp-server/scopeEnforcement.ts`. Každý nástroj vyžaduje konkrétní rozsahy:
+Volání nástrojů MCP čtou řetězce rozsahů od volajícího. Tato kontrola je jedním ze tří
+nezávislých jmenných prostorů. Úspěch v jedné kontrole neznamená úspěch v ostatních.
+Pravidla jsou popsána v části [Tři jmenné prostory rozsahů](#three-scope-namespaces).
+Katalog nástrojů je uveden v části [Rozsahy nástrojů MCP](#mcp-tool-scopes).
 
-| Rozsah                | Nástroje                                                                                                                                                                             |
+### Tři jmenné prostory rozsahů
+
+`manage` na klíči API, `read:compression` na nástroji MCP a `read` na
+přístupovém tokenu `oma_live_…` představují tři různá oprávnění. Volající, kteří odešlou přístupový
+token `read` do měnící trasy správy, obdrží HTTP 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Toto pořadí vyhodnocuje `scopeSatisfies`. Tabulku MCP nekonzultuje a porovnávání MCP
+nekonzultuje toto pořadí.
+
+| Jmenný prostor              | Přihlašovací údaj                                            | Kontrola                    | Úspěch povoluje                                          |
+| :-------------------------- | :----------------------------------------------------------- | :-------------------------- | :------------------------------------------------------- |
+| Správa pomocí klíče API     | `api_keys.scopes`                                            | `hasManageScope`            | Správcovské REST API pro daný klíč Bearer                |
+| Doplňkové rozsahy klíče API | stejné pole, jeden přesný řetězec                            | pomocná funkce uvedená níže | Pouze danou konkrétní schopnost                          |
+| Rozsahy nástrojů MCP        | stejné pole, jinak `_meta` MCP, jinak `OMNIROUTE_MCP_SCOPES` | `scopeMatches`              | Daný nástroj, jakmile je vynucování zapnuto              |
+| Přístupový token            | `oma_live_…`                                                 | `scopeSatisfies`            | Trasu správy, jejíž metoda a cesta vyžadují danou úroveň |
+
+Vytváření jednotlivých přihlašovacích údajů je popsáno v části
+[Ověřování správy](../guides/MANAGEMENT-AUTH.md).
+
+#### Rozsahy klíčů API
+
+Jedno pole `api_keys.scopes` slouží ke dvěma účelům. Pro každý se používají jiné funkce.
+
+**Správcovské REST API.** `manage` a `admin` jsou položkami
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+Správcovské trasy pro daný klíč autorizuje `hasManageScope`. `admin` na těchto
+trasách umožňuje správu. Slovo `admin` zde neoznačuje úroveň
+přístupového tokenu a nerozšiřuje se na rozsahy nástrojů MCP.
+
+**Doplňkové řetězce.** Každý z nich se ověřuje přesným testem členství a všechny zůstávají
+mimo `MANAGEMENT_API_KEY_SCOPES`.
+
+| Rozsah                         | Úspěch povoluje                                                                                                                                                          |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Pouze výjimku LOCAL_ONLY pro `/api/mcp/` mimo loopback (`hasMcpConnectOrManageScope`). Touto výjimkou stále projde i klíč s `manage` nebo `admin`.                       |
+| `self:usage`                   | `GET /api/v1/me/status` pro tento klíč (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` přidá tento rozsah při vytvoření (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Kvóty upstream účtů v datové části této odpovědi (`src/lib/usage/apiKeySelfService.ts`). Stavová trasa stále vyžaduje `self:usage`.                                      |
+| `policy:bypass-provider-quota` | Inferenční volání tohoto klíče přeskočí zásadu kvót poskytovatele (`hasProviderQuotaBypassScope` v `src/sse/handlers/chat.ts`).                                          |
+
+#### Porovnávání
+
+Katalogem je tabulka v části [Rozsahy nástrojů MCP](#mcp-tool-scopes). Za tento katalog
+nepovažujte `MCP_SCOPE_LIST` v `src/shared/constants/mcpScopes.ts`:
+jde o původní typovanou podmnožinu. Později přidané nástroje deklarují vedle ní další rozsahy
+(`read:notion`, `read:skills`, `read:local-corpus` a zbytek tabulky).
+
+`evaluateToolScopes` v `open-sse/mcp-server/scopeEnforcement.ts` povolí volání,
+pokud každý požadovaný rozsah odpovídá některému udělenému rozsahu:
+
+- `*` odpovídá každému požadovanému rozsahu.
+- Udělený rozsah končící na `*` odpovídá požadovanému rozsahu, který začíná
+  prefixem před hvězdičkou. `read:*` odpovídá `read:compression`.
+- Každý jiný udělený rozsah odpovídá pouze totožnému řetězci požadovaného rozsahu.
+
+Klíč s rozsahy `["manage"]` neprojde kontrolou `scopeMatches` pro `read:compression`.
+Stejné volání neprojde ani pro `admin`, `mcp:connect`, `read` a `write`, pokud jsou
+jedinými udělenými řetězci. Mezi rozsahy nástrojů MCP neexistuje žádná hierarchie
+kromě koncového `*`.
+
+Vynucování je vypnuto, pokud není nastaveno `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (výchozí hodnota
+je `false`). Dokud je vypnuto, `evaluateToolScopes` volání povolí a katalog
+přeskočí. Když je zapnuto, HTTP používá `api_keys.scopes` klíče Bearer jako
+`authInfo` (viz [Navázání rozsahů HTTP na jednotlivé klíče](#per-key-http-scope-binding-7895)).
+Pokud se nepodaří určit žádné rozsahy klíče, sada udělených rozsahů přejde na `_meta` MCP a poté
+na `OMNIROUTE_MCP_SCOPES`.
+
+#### Rozsahy přístupových tokenů
+
+Tokeny `oma_live_…` (`src/lib/accessTokens/scopes.ts`) nesou `read`, `write`
+nebo `admin`. `scopeSatisfies` pracuje s pořadím úrovní: `admin` zahrnuje `write` a `read`
+a `write` zahrnuje `read`. Neznámé rozsahy nezahrnují nic.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) porovnává tuto
+úroveň s výsledkem `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD` a `OPTIONS` vyžadují `read`.
+- Každá jiná metoda vyžaduje `write`.
+- Cesty v `ADMIN_SCOPE_PREFIXES` vyžadují `admin` pro každou metodu. `/api/mcp`
+  je na tomto seznamu, takže přístupový token `write` stále nemůže volat rozhraní MCP přes HTTP.
+- Cesty v `ADMIN_MUTATION_PREFIXES` vyžadují `admin` pouze pro mutace.
+
+`PATCH /api/keys/{id}` je mutace a není na těchto seznamech pro správce, takže token
+s oprávněním `read` obdrží odpověď 403:
+`Access token scope 'read' is insufficient; 'write' required.`
+Přístupový token s oprávněním `write` nebo `admin` požadavky této trasy splňuje. JWT ovládacího panelu,
+token ID zařízení rozhraní CLI pro loopback a klíč API s oprávněním `manage` nebo `admin`
+procházejí jinými větvemi a toto pořadí je neomezuje.
+
+Přístupový token, který projde kontrolou `scopeSatisfies` pro `/api/mcp`, překonal
+pouze bránu pro správu. Volání nástrojů nadále spouštějí kontrolu `scopeMatches` vůči rozsahům
+klíče API. Pořadí přístupového tokenu není vstupem funkce `scopeMatches`.
+
+### Rozsahy nástrojů MCP
+
+Vynucování rozsahů je centralizováno v `open-sse/mcp-server/scopeEnforcement.ts`.
+Každý nástroj vyžaduje konkrétní rozsahy:
+
+| Rozsah oprávnění      | Nástroje                                                                                                                                                                             |
 | :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                    |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                            |
@@ -329,41 +428,35 @@ Nástroje MCP jsou autentizovány prostřednictvím rozsahů API klíčů. Vynuc
 | `write:obsidian`      | 9 nástrojů pro zápis — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                    |
 
-Jsou podporovány zástupné rozsahy: `read:*` uděluje všechny rozsahy pro čtení, `*` uděluje plný přístup.
+Jsou podporovány rozsahy se zástupnými znaky: `read:*` uděluje všechny rozsahy pro čtení, `*` uděluje plný přístup.
 
-### `mcp:connect` — úzce vymezené oprávnění pro trasu (#7895)
+### `mcp:connect` — úzce vymezená schopnost přístupu k trase (#7895)
 
-Přístup k transportu HTTP/SSE MCP (`/api/mcp/*`) z adres mimo loopback vyžaduje výjimku
-LOCAL_ONLY pro `/api/mcp/` (viz `docs/security/ROUTE_GUARD_TIERS.md`). Historicky tato
-výjimka přijímala pouze klíč API s úplným rozsahem `manage`/`admin` — což je příliš široké
-oprávnění pro volajícího, který potřebuje pouze komunikovat s MCP. Soubor
-`src/shared/constants/managementScopes.ts` nyní exportuje
-`MCP_CONNECT_SCOPE = "mcp:connect"`: doplňkový, úzce vymezený rozsah (podle stejného
-precedentu jako `SELF_USAGE_SCOPE`), který autorizuje POUZE obejití ochrany `/api/mcp/`
-v `src/server/authz/policies/management.ts` — neuděluje přístup k žádným dalším trasám
-správy a záměrně NENÍ zahrnut v `MANAGEMENT_API_KEY_SCOPES`. Klíč s rozsahem
-`manage`/`admin` nadále touto výjimkou projde beze změny; `mcp:connect` představuje
-alternativu s nižšími oprávněními pro vzdálené volající, kteří používají pouze MCP,
-ověřovanou pomocí `hasMcpConnectOrManageScope()`.
+Přístup k transportu HTTP/SSE MCP (`/api/mcp/*`) z adres mimo loopback vyžaduje
+výjimku LOCAL_ONLY pro `/api/mcp/` (viz `docs/security/ROUTE_GUARD_TIERS.md`). Historicky
+tato výjimka přijímala pouze klíč API s plným rozsahem `manage`/`admin` — což bylo příliš široké pro
+volajícího, který potřebuje komunikovat pouze s MCP. `src/shared/constants/managementScopes.ts` nyní
+exportuje `MCP_CONNECT_SCOPE = "mcp:connect"`: doplňkový, úzce vymezený rozsah (podle stejného precedentu jako
+`SELF_USAGE_SCOPE`), který autorizuje POUZE obejití ochrany `/api/mcp/` v
+`src/server/authz/policies/management.ts` — neuděluje přístup k žádným jiným trasám pro správu
+a záměrně NENÍ zahrnut v `MANAGEMENT_API_KEY_SCOPES`. Klíč s rozsahem `manage`/`admin`
+nadále touto výjimkou projde beze změny; `mcp:connect` je alternativou s nižšími oprávněními pro
+vzdálené volající používající pouze MCP a ověřuje se pomocí `hasMcpConnectOrManageScope()`.
 
 ### Vazba rozsahů HTTP na jednotlivé klíče (#7895)
 
 Přes HTTP/SSE nyní `open-sse/mcp-server/httpTransport.ts` zjišťuje skutečné
-`api_keys.scopes` volajícího pomocí `resolveMcpCallerAuthInfo()`
-(`open-sse/mcp-server/httpAuthContext.ts`) a předává je sadě SDK MCP prostřednictvím
-`transport.handleRequest(req, { authInfo })`, takže `extra.authInfo.scopes`, které se
-dostanou ke každému volání nástroje, odpovídají vlastním rozsahům klíče Bearer.
-Funkce `resolveCallerScopeContext()` ze souboru `scopeEnforcement.ts` již upřednostňovala
-`authInfo` před `_meta` a záložní hodnotou z proměnné prostředí
-`OMNIROUTE_MCP_SCOPES` — tato změna pouze naplňuje tento první zdroj s nejvyšší prioritou,
-který dříve přes HTTP nebyl poskytován. Pokud se nepodaří získat žádný klíč API
-(chybějící hlavička, neplatný klíč), `authInfo` zůstane `undefined` a vyhodnocování
-pokračuje beze změny přes stávající řetězec `meta`/proměnná prostředí. Tato změna
-NEPŘEPÍNÁ výchozí hodnotu `OMNIROUTE_MCP_ENFORCE_SCOPES` — vynucování musí být stále
-výslovně povoleno; změna pouze zajistí, že cesta specifická pro jednotlivé klíče bude mít
-po povolení vynucování přednost. stdio nemá identitu jednotlivých volajících (viz
-`mcpCallerIdentity.ts`) a změna se jej netýká — nadále používá záložní řetězec
-`_meta`/proměnná prostředí.
+`api_keys.scopes` volajícího pomocí `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+a předává je SDK MCP prostřednictvím `transport.handleRequest(req, { authInfo })`, takže
+`extra.authInfo.scopes`, které se dostanou ke každému volání nástroje, odpovídají vlastním rozsahům klíče Bearer.
+Funkce `resolveCallerScopeContext()` v `scopeEnforcement.ts` již upřednostňovala `authInfo` před
+záložními hodnotami `_meta` a proměnné prostředí `OMNIROUTE_MCP_SCOPES` — tato změna pouze naplňuje tento první
+zdroj s nejvyšší prioritou, který dříve při použití HTTP nebyl naplňován. Když se nepodaří určit žádný klíč API
+(chybějící hlavička, neplatný klíč), `authInfo` zůstane `undefined` a vyhodnocení pokračuje beze změny
+stávajícím řetězcem `meta`/proměnná prostředí. Tato změna NEMĚNÍ výchozí hodnotu `OMNIROUTE_MCP_ENFORCE_SCOPES` —
+vynucování musí být stále explicitně povoleno; změna pouze zajistí, že cesta specifická pro daný klíč
+získá po povolení přednost. stdio nemá identitu jednotlivých volajících (viz
+`mcpCallerIdentity.ts`) a změna se ho netýká — nadále používá záložní řetězec `_meta`/proměnná prostředí.
 
 ---
 
