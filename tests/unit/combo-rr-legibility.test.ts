@@ -51,14 +51,14 @@ test("describeStickyRoundRobinLimit uses documented global 3 when the settings k
 });
 
 test("describeStickyRoundRobinLimit treats a null or empty global sticky as default 3", () => {
-  assert.deepEqual(
-    describeStickyRoundRobinLimit(undefined, { stickyRoundRobinLimit: null }),
-    { value: 3, source: "global" }
-  );
-  assert.deepEqual(
-    describeStickyRoundRobinLimit(undefined, { stickyRoundRobinLimit: "" }),
-    { value: 3, source: "global" }
-  );
+  assert.deepEqual(describeStickyRoundRobinLimit(undefined, { stickyRoundRobinLimit: null }), {
+    value: 3,
+    source: "global",
+  });
+  assert.deepEqual(describeStickyRoundRobinLimit(undefined, { stickyRoundRobinLimit: "" }), {
+    value: 3,
+    source: "global",
+  });
 });
 
 test("stickyLimitInputValue maps a stored 0 to the clamped 1", () => {
@@ -140,10 +140,19 @@ test("persistConnectionAwareExpansion copies inherit/on/off from the form payloa
   assert.equal(onSave.connectionAwareExpansion, true);
 });
 
+test("switching strategy away from the gating one keeps stickyRoundRobinLimit and connectionAwareExpansion", () => {
+  const form = { stickyRoundRobinLimit: 4, connectionAwareExpansion: false, timeoutMs: 1 };
+  for (const strategy of ["auto", "reset-aware"]) {
+    const saved = { ...form };
+    persistStickyRoundRobinLimit(strategy, saved);
+    persistConnectionAwareExpansion(strategy, saved);
+    assert.deepEqual(saved, form, strategy);
+  }
+});
+
 test("editor group-B set matches the expander list", async () => {
-  const { CONNECTION_AWARE_EXPANSION_GROUP_B } = await import(
-    "../../open-sse/services/combo/connectionAwareExpansion.ts"
-  );
+  const { CONNECTION_AWARE_EXPANSION_GROUP_B } =
+    await import("../../open-sse/services/combo/connectionAwareExpansion.ts");
   for (const strategy of CONNECTION_AWARE_EXPANSION_GROUP_B) {
     assert.equal(isConnectionAwareExpansionStrategy(strategy), true, strategy);
   }
