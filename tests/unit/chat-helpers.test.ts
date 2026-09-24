@@ -84,7 +84,7 @@ test("resolveModelOrError rejects unknown built-in auto catalog ids", async () =
   );
 
   assert.ok(result.error);
-  assert.equal(result.error.status, 400);
+  assert.equal(result.error.status, 404);
   const json = (await result.error.json()) as any;
   assert.match(json.error.message, /Unknown built-in auto combo/i);
 });
@@ -692,7 +692,7 @@ test("resolveModelOrError returns model_not_found error for unrecognised bare mo
   );
 
   assert.ok(result.error);
-  assert.equal(result.error.status, 400);
+  assert.equal(result.error.status, 404);
   const json = (await result.error.json()) as any;
   assert.match(json.error.message, /Unable to determine provider/i);
   assert.match(json.error.message, /completely-unknown-model-xyz/i);

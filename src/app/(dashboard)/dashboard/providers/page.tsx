@@ -222,6 +222,7 @@ export default function ProvidersPage() {
   const [openRouterProviderStats, setOpenRouterProviderStats] = useState<
     OpenRouterProviderStatsEntry[]
   >([]);
+  const [cdpConfigured, setCdpConfigured] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   // #4240: media-category (serviceKind) filter — composes with activeCategory,
   // search and configured-only. null = no serviceKind filter.
@@ -278,6 +279,7 @@ export default function ProvidersPage() {
         if (data.blockedProviders) setBlockedProviders(data.blockedProviders);
         setCodexGlobalServiceMode(getCodexGlobalServiceMode(data.settings));
         setOpenRouterProviderStats(data.openRouterProviderStats);
+        setCdpConfigured(data.cdpConfigured);
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {
@@ -1197,7 +1199,7 @@ export default function ProvidersPage() {
             )}
 
             {/* Web / Cookie Providers */}
-            {showSection("web") && webCookieProviderEntries.length > 0 && (
+            {showSection("web") && cdpConfigured && webCookieProviderEntries.length > 0 && (
               <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">

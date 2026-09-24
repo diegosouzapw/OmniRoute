@@ -417,6 +417,39 @@ export async function runSingleModelTest(
   if (!fullModelStr.includes("/")) {
     fullModelStr = `${providerId}/${modelId}`;
   }
+
+  if (providerId.endsWith("-web")) {
+    let persistSession = false;
+    if (connectionId) {
+      const { getCachedProviderConnectionById } = await import("@/lib/localDb");
+      const conn = (await getCachedProviderConnectionById(connectionId)) as Record<string, any> | null;
+      if (conn?.providerSpecificData?.persistSession === true) {
+        persistSession = true;
+      }
+    }
+
+    if (!persistSession) {
+      if (connectionId) {
+        const { testSingleConnection } = await import("@/app/api/providers/[id]/test/route");
+        const result = await testSingleConnection(connectionId, fullModelStr);
+        return {
+          modelId: fullModelStr,
+          status: result.valid ? "success" : "error",
+          latencyMs: result.latencyMs || 0,
+          httpStatus: result.valid ? 200 : (result.statusCode || 400),
+          error: result.error || undefined,
+        };
+      } else {
+        return {
+          modelId: fullModelStr,
+          status: "success",
+          latencyMs: 0,
+          httpStatus: 200,
+        };
+      }
+    }
+  }
+
   const effectiveTimeoutMs = resolveModelTestTimeoutMs(providerId, fullModelStr, timeoutMs);
 
   const startTime = Date.now();

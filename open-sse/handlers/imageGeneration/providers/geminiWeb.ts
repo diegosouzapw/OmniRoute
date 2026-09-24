@@ -146,6 +146,7 @@ export async function handleGeminiWebImageGeneration({
       body: {
         messages: [{ role: "user", content: buildGeminiWebImagePrompt(body) }],
         x_gemini_web_image_mode: true,
+        x_gemini_web_image_b64: wantsBase64,
       },
       stream: false,
       credentials,
@@ -169,6 +170,7 @@ export async function handleGeminiWebImageGeneration({
 
     let content = "";
     let urls: string[] = [];
+    let b64s: string[] = [];
     try {
       const json = JSON.parse(responseText);
       content = String(json?.choices?.[0]?.message?.content || "");
@@ -176,6 +178,9 @@ export async function handleGeminiWebImageGeneration({
         ? (json.x_gemini_web_image_urls as unknown[]).filter(
             (u): u is string => typeof u === "string" && /^https?:\/\//.test(u)
           )
+        : [];
+      b64s = Array.isArray(json?.x_gemini_web_image_b64)
+        ? (json.x_gemini_web_image_b64 as string[])
         : [];
     } catch {
       content = responseText;
@@ -197,11 +202,18 @@ export async function handleGeminiWebImageGeneration({
       });
     }
 
-    for (const url of urls) {
+    for (let j = 0; j < urls.length; j++) {
+      const url = urls[j];
       if (!wantsBase64) {
         images.push({ url });
         continue;
       }
+      
+      if (b64s[j]) {
+        images.push({ b64_json: b64s[j] });
+        continue;
+      }
+      
       try {
         const fetched = await imageFetcher(url);
         images.push({ b64_json: fetched.buffer.toString("base64") });

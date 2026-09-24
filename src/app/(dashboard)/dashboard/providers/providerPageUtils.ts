@@ -593,6 +593,7 @@ export interface ProviderPageData {
   expirations: any | null;
   blockedProviders: string[] | null;
   settings: any | null;
+  cdpConfigured: boolean;
   /** OpenRouter-sourced popularity/identity enrichment, keyed by provider slug. Empty if the sync hasn't run yet or the fetch failed. */
   openRouterProviderStats: OpenRouterProviderStatsEntry[];
 }
@@ -670,6 +671,7 @@ export async function loadProviderPageData(
       ? settingsData.blockedProviders
       : null,
     settings: settingsData ?? null,
+    cdpConfigured: settingsData?.cdpConfigured === true,
     openRouterProviderStats: Array.isArray(openRouterStatsData?.data)
       ? openRouterStatsData.data
       : [],

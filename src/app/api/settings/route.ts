@@ -250,6 +250,12 @@ export async function GET(request: Request) {
         hasPassword: hasManagementPasswordConfigured(settings),
         runtimePorts,
         apiPort: runtimePorts.apiPort,
+        cdpConfigured: !!(
+          process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
+          process.env.CHATGPT_WEB_CODEX_CDP_URL ||
+          process.env.PLAYWRIGHT_CDP_ENDPOINT ||
+          process.env.OMNIROUTE_VNC_CONTAINER_CDP_PORT
+        ),
         dashboardPort: runtimePorts.dashboardPort,
         cloudConfigured: Boolean(cloudUrl),
         cloudUrl,

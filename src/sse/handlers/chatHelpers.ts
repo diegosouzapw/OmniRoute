@@ -245,7 +245,7 @@ export async function resolveModelOrError(
 
     const message = `Model '${modelStr}' is not a valid combo or provider. Unknown built-in auto combo.`;
     log.warn("CHAT", message, { model: modelStr });
-    return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
+    return { error: errorResponse(HTTP_STATUS.NOT_FOUND, message) };
   }
 
   if (!modelInfo.provider) {
@@ -257,7 +257,7 @@ export async function resolveModelOrError(
         (modelInfo as any).errorMessage ||
         `Model '${modelStr}' could not be resolved to a known provider.`;
       log.warn("CHAT", message, { model: modelStr });
-      return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
+      return { error: errorResponse(HTTP_STATUS.NOT_FOUND, message) };
     }
 
     if ((modelInfo as any).errorType === "ambiguous_model") {
