@@ -11047,7 +11047,12 @@
     "poolAddMember": "Qo‘shish",
     "poolAddFailed": "Proksini pulga qo‘shib bo‘lmadi",
     "poolSelectProxy": "Proksini tanlang…",
-    "poolSaveFailed": "Pulga biriktirishni saqlab bo‘lmadi"
+    "poolSaveFailed": "Pulga biriktirishni saqlab bo‘lmadi",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Oldin {rate}% muvaffaqiyat",
+    "upstreamRefusals": "{count} ta yuqori rad etish",
+    "connectionTestsCount": "{count} ulanish testi",
+    "notMeasured": "O‘lchanmagan"
   },
   "playground": {
     "title": "Model sinov maydoni",

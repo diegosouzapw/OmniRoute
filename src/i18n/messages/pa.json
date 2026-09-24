@@ -11047,7 +11047,12 @@
     "poolAddMember": "ਜੋੜੋ",
     "poolAddFailed": "ਪੂਲ ਵਿੱਚ ਪ੍ਰੌਕਸੀ ਜੋੜਨ ਵਿੱਚ ਅਸਫਲ",
     "poolSelectProxy": "ਇੱਕ ਪ੍ਰੌਕਸੀ ਚੁਣੋ…",
-    "poolSaveFailed": "ਪੂਲ ਅਸਾਈਨਮੈਂਟ ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ"
+    "poolSaveFailed": "ਪੂਲ ਅਸਾਈਨਮੈਂਟ ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ",
+    "transportRate": "{rate}% ਟਰਾਂਸਪੋਰਟ",
+    "previousSuccessRate": "ਪਹਿਲਾਂ {rate}% ਸਫਲਤਾ",
+    "upstreamRefusals": "{count} ਅੱਪਸਟ੍ਰੀਮ ਅਸਵੀਕਾਰ",
+    "connectionTestsCount": "{count} ਕਨੈਕਸ਼ਨ ਜਾਂਚਾਂ",
+    "notMeasured": "ਮਾਪਿਆ ਨਹੀਂ ਗਿਆ"
   },
   "playground": {
     "title": "ਮਾਡਲ ਪਲੇਗ੍ਰਾਊਂਡ",

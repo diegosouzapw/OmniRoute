@@ -11047,7 +11047,12 @@
     "poolAddMember": "ചേർക്കുക",
     "poolAddFailed": "പൂളിലേക്ക് പ്രോക്സി ചേർക്കുന്നതിൽ പരാജയപ്പെട്ടു",
     "poolSelectProxy": "ഒരു പ്രോക്സി തിരഞ്ഞെടുക്കുക…",
-    "poolSaveFailed": "പൂൾ അസൈൻമെന്റ് സംരക്ഷിക്കുന്നതിൽ പരാജയപ്പെട്ടു"
+    "poolSaveFailed": "പൂൾ അസൈൻമെന്റ് സംരക്ഷിക്കുന്നതിൽ പരാജയപ്പെട്ടു",
+    "transportRate": "{rate}% ഗതാഗതം",
+    "previousSuccessRate": "മുമ്പ് {rate}% വിജയം",
+    "upstreamRefusals": "{count} അപ്സ്ട്രീം നിരസിക്കലുകൾ",
+    "connectionTestsCount": "{count} കണക്ഷൻ പരിശോധനകൾ",
+    "notMeasured": "അളന്നിട്ടില്ല"
   },
   "playground": {
     "title": "മോഡൽ പ്ലേഗ്രൗണ്ട്",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "Thêm",
     "poolAddFailed": "Không thể thêm proxy vào nhóm",
     "poolSelectProxy": "Chọn một proxy…",
-    "poolSaveFailed": "Không thể lưu mục gán nhóm proxy"
+    "poolSaveFailed": "Không thể lưu mục gán nhóm proxy",
+    "transportRate": "{rate}% vận chuyển",
+    "previousSuccessRate": "Trước đây {rate}% thành công",
+    "upstreamRefusals": "{count} từ chối từ máy chủ",
+    "connectionTestsCount": "{count} kiểm tra kết nối",
+    "notMeasured": "Chưa đo"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",

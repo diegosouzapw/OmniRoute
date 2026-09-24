@@ -11047,7 +11047,12 @@
     "poolAddMember": "Ajouter",
     "poolAddFailed": "Échec de l'ajout du proxy au pool",
     "poolSelectProxy": "Sélectionner un proxy…",
-    "poolSaveFailed": "Échec de l'enregistrement de l'attribution du pool"
+    "poolSaveFailed": "Échec de l'enregistrement de l'attribution du pool",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Précédemment {rate} % de réussite",
+    "upstreamRefusals": "{count} refus en amont",
+    "connectionTestsCount": "{count} tests de connexion",
+    "notMeasured": "Non mesuré"
   },
   "playground": {
     "title": "Title",

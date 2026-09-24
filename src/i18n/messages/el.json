@@ -11047,7 +11047,12 @@
     "poolAddMember": "Προσθήκη",
     "poolAddFailed": "Αποτυχία προσθήκης του διακομιστή μεσολάβησης στην ομάδα",
     "poolSelectProxy": "Επιλογή διαμεσολαβητή…",
-    "poolSaveFailed": "Αποτυχία αποθήκευσης της αντιστοίχισης ομάδας"
+    "poolSaveFailed": "Αποτυχία αποθήκευσης της αντιστοίχισης ομάδας",
+    "transportRate": "{rate} % μεταφορά",
+    "previousSuccessRate": "Προηγουμένως {rate} % επιτυχία",
+    "upstreamRefusals": "{count} απορρίψεις upstream",
+    "connectionTestsCount": "{count} δοκιμές σύνδεσης",
+    "notMeasured": "Δεν μετρήθηκε"
   },
   "playground": {
     "title": "Περιβάλλον δοκιμών μοντέλων",

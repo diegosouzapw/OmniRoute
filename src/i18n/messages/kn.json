@@ -11047,7 +11047,12 @@
     "poolAddMember": "ಸೇರಿಸಿ",
     "poolAddFailed": "ಪೂಲ್ಗೆ ಪ್ರಾಕ್ಸಿಯನ್ನು ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ",
     "poolSelectProxy": "ಪ್ರಾಕ್ಸಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ…",
-    "poolSaveFailed": "ಪೂಲ್ ನಿಯೋಜನೆಯನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ"
+    "poolSaveFailed": "ಪೂಲ್ ನಿಯೋಜನೆಯನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
+    "transportRate": "{rate}% ಸಾರಿಗೆ",
+    "previousSuccessRate": "ಹಿಂದೆ {rate}% ಯಶಸ್ಸು",
+    "upstreamRefusals": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ನಿರಾಕರಣೆಗಳು",
+    "connectionTestsCount": "{count} ಸಂಪರ್ಕ ಪರೀಕ್ಷೆಗಳು",
+    "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ"
   },
   "playground": {
     "title": "ಮಾದರಿ ಪ್ರಯೋಗಾಂಗಣ",

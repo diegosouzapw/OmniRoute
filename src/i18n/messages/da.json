@@ -11047,7 +11047,12 @@
     "poolAddMember": "Tilføj",
     "poolAddFailed": "Kunne ikke føje proxyen til poolen",
     "poolSelectProxy": "Vælg en proxy…",
-    "poolSaveFailed": "Kunne ikke gemme pool-tildeling"
+    "poolSaveFailed": "Kunne ikke gemme pool-tildeling",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Tidligere {rate} % succes",
+    "upstreamRefusals": "{count} upstream-afvisninger",
+    "connectionTestsCount": "{count} forbindelsestests",
+    "notMeasured": "Ikke målt"
   },
   "playground": {
     "title": "Title",

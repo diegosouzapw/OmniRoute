@@ -11047,7 +11047,12 @@
     "poolAddMember": "Додати",
     "poolAddFailed": "Не вдалося додати проксі до пулу",
     "poolSelectProxy": "Виберіть проксі…",
-    "poolSaveFailed": "Не вдалося зберегти призначення пулу"
+    "poolSaveFailed": "Не вдалося зберегти призначення пулу",
+    "transportRate": "{rate}% транспорту",
+    "previousSuccessRate": "Раніше {rate}% успіху",
+    "upstreamRefusals": "{count} відмов апастріму",
+    "connectionTestsCount": "{count} перевірок зʼєднання",
+    "notMeasured": "Не виміряно"
   },
   "playground": {
     "title": "Title",

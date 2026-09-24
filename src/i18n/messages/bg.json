@@ -11047,7 +11047,12 @@
     "poolAddMember": "Добавяне",
     "poolAddFailed": "Неуспешно добавяне на проксито към пула",
     "poolSelectProxy": "Избор на прокси…",
-    "poolSaveFailed": "Неуспешно запазване на присвояването на пула"
+    "poolSaveFailed": "Неуспешно запазване на присвояването на пула",
+    "transportRate": "{rate}% транспорт",
+    "previousSuccessRate": "Преди {rate}% успех",
+    "upstreamRefusals": "{count} отказа от upstream",
+    "connectionTestsCount": "{count} теста на връзката",
+    "notMeasured": "Не е измерено"
   },
   "playground": {
     "title": "Title",

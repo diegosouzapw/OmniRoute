@@ -11047,7 +11047,12 @@
     "poolAddMember": "添加",
     "poolAddFailed": "向池中添加代理失败",
     "poolSelectProxy": "选择一个代理...",
-    "poolSaveFailed": "保存池分配失败"
+    "poolSaveFailed": "保存池分配失败",
+    "transportRate": "{rate}%传输",
+    "previousSuccessRate": "此前{rate}%成功",
+    "upstreamRefusals": "{count}次上游拒绝",
+    "connectionTestsCount": "{count}次连接测试",
+    "notMeasured": "未测量"
   },
   "playground": {
     "title": "模型演练场",

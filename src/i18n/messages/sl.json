@@ -11047,7 +11047,12 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Posredniškega strežnika ni bilo mogoče dodati v skupino",
     "poolSelectProxy": "Izberite posredniški strežnik…",
-    "poolSaveFailed": "Dodelitve skupini ni bilo mogoče shraniti"
+    "poolSaveFailed": "Dodelitve skupini ni bilo mogoče shraniti",
+    "transportRate": "{rate} % prenosa",
+    "previousSuccessRate": "Prej {rate} % uspešnosti",
+    "upstreamRefusals": "{count} zavrnitev upstream",
+    "connectionTestsCount": "{count} preskusov povezave",
+    "notMeasured": "Ni izmerjeno"
   },
   "playground": {
     "title": "Preizkusno okolje za modele",

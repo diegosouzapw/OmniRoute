@@ -11047,7 +11047,12 @@
     "poolAddMember": "Добавить",
     "poolAddFailed": "Не удалось добавить прокси в пул",
     "poolSelectProxy": "Выберите прокси…",
-    "poolSaveFailed": "Не удалось сохранить назначение пула"
+    "poolSaveFailed": "Не удалось сохранить назначение пула",
+    "transportRate": "{rate}% транспорта",
+    "previousSuccessRate": "Ранее {rate}% успеха",
+    "upstreamRefusals": "{count} отказов апстрима",
+    "connectionTestsCount": "{count} проверок соединения",
+    "notMeasured": "Не измерено"
   },
   "playground": {
     "title": "Title",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "Ekle",
     "poolAddFailed": "Proxy havuza eklenemedi",
     "poolSelectProxy": "Bir proxy seçin…",
-    "poolSaveFailed": "Havuz ataması kaydedilemedi"
+    "poolSaveFailed": "Havuz ataması kaydedilemedi",
+    "transportRate": "{rate}% taşıma",
+    "previousSuccessRate": "Önceden {rate}% başarı",
+    "upstreamRefusals": "{count} yukarı akış reddi",
+    "connectionTestsCount": "{count} bağlantı testi",
+    "notMeasured": "Ölçülmedi"
   },
   "playground": {
     "title": "Title",

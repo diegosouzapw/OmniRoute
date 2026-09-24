@@ -11047,7 +11047,12 @@
     "poolAddMember": "Əlavə et",
     "poolAddFailed": "Proksini hovuza əlavə etmək mümkün olmadı",
     "poolSelectProxy": "Proksi seçin…",
-    "poolSaveFailed": "Hovuz təyinatını yadda saxlamaq mümkün olmadı"
+    "poolSaveFailed": "Hovuz təyinatını yadda saxlamaq mümkün olmadı",
+    "transportRate": "{rate}% nəqliyyat",
+    "previousSuccessRate": "Əvvəlcə {rate}% uğur",
+    "upstreamRefusals": "{count} upstream rəddi",
+    "connectionTestsCount": "{count} bağlantı testi",
+    "notMeasured": "Ölçülməyib"
   },
   "playground": {
     "title": "Model sınaq meydanı",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "जोडा",
     "poolAddFailed": "पूलमध्ये प्रॉक्सी जोडण्यात अयशस्वी",
     "poolSelectProxy": "प्रॉक्सी निवडा…",
-    "poolSaveFailed": "पूल असाइनमेंट सेव्ह करण्यात अयशस्वी"
+    "poolSaveFailed": "पूल असाइनमेंट सेव्ह करण्यात अयशस्वी",
+    "transportRate": "{rate}% वाहतूक",
+    "previousSuccessRate": "यापूर्वी {rate}% यश",
+    "upstreamRefusals": "{count} अपस्ट्रीम नकार",
+    "connectionTestsCount": "{count} कनेक्शन चाचण्या",
+    "notMeasured": "मोजले नाही"
   },
   "playground": {
     "title": "मॉडेल प्लेग्राउंड",

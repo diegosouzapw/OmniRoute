@@ -11047,7 +11047,12 @@
     "poolAddMember": "Ƙara",
     "poolAddFailed": "An kasa ƙara proxy ɗin zuwa pool",
     "poolSelectProxy": "Zaɓi proxy…",
-    "poolSaveFailed": "An kasa adana rabon pool"
+    "poolSaveFailed": "An kasa adana rabon pool",
+    "transportRate": "{rate}% sufuri",
+    "previousSuccessRate": "A baya {rate}% nasara",
+    "upstreamRefusals": "{count} kin amincewa daga sama",
+    "connectionTestsCount": "{count} gwaje-gwajen haɗi",
+    "notMeasured": "Ba a auna ba"
   },
   "playground": {
     "title": "Filin Gwajin Model",

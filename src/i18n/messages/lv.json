@@ -11047,7 +11047,12 @@
     "poolAddMember": "Pievienot",
     "poolAddFailed": "Neizdevās pievienot starpniekserveri kopai",
     "poolSelectProxy": "Izvēlieties starpniekserveri…",
-    "poolSaveFailed": "Neizdevās saglabāt kopas piešķīrumu"
+    "poolSaveFailed": "Neizdevās saglabāt kopas piešķīrumu",
+    "transportRate": "{rate} % transporta",
+    "previousSuccessRate": "Iepriekš {rate} % sekmju",
+    "upstreamRefusals": "{count} augšupējos noraidījumus",
+    "connectionTestsCount": "{count} savienojuma testus",
+    "notMeasured": "Nav izmērīts"
   },
   "playground": {
     "title": "Modeļu testēšanas vide",

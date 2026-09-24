@@ -11047,7 +11047,12 @@
     "poolAddMember": "சேர்",
     "poolAddFailed": "தொகுப்பில் proxy-ஐச் சேர்ப்பது தோல்வியடைந்தது",
     "poolSelectProxy": "ஒரு proxy-ஐத் தேர்ந்தெடு…",
-    "poolSaveFailed": "தொகுப்பு ஒதுக்கீட்டைச் சேமிப்பது தோல்வியடைந்தது"
+    "poolSaveFailed": "தொகுப்பு ஒதுக்கீட்டைச் சேமிப்பது தோல்வியடைந்தது",
+    "transportRate": "{rate}% போக்குவரத்து",
+    "previousSuccessRate": "முன்பு {rate}% வெற்றி",
+    "upstreamRefusals": "{count} அப்ஸ்ட்ரீம் மறுப்புகள்",
+    "connectionTestsCount": "{count} இணைப்பு சோதனைகள்",
+    "notMeasured": "அளவிடப்படவில்லை"
   },
   "playground": {
     "title": "மாதிரி சோதனைக்களம்",

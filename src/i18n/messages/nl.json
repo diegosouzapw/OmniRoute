@@ -11047,7 +11047,12 @@
     "poolAddMember": "Toevoegen",
     "poolAddFailed": "Kan de proxy niet aan de pool toevoegen",
     "poolSelectProxy": "Selecteer een proxy…",
-    "poolSaveFailed": "Kan pooltoewijzing niet opslaan"
+    "poolSaveFailed": "Kan pooltoewijzing niet opslaan",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Eerder {rate} % succes",
+    "upstreamRefusals": "{count} upstream-weigeringen",
+    "connectionTestsCount": "{count} verbindingstests",
+    "notMeasured": "Niet gemeten"
   },
   "playground": {
     "title": "Title",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Nie udało się dodać proxy do puli",
     "poolSelectProxy": "Wybierz proxy…",
-    "poolSaveFailed": "Nie udało się zapisać przypisania puli"
+    "poolSaveFailed": "Nie udało się zapisać przypisania puli",
+    "transportRate": "{rate}% transportu",
+    "previousSuccessRate": "Wcześniej {rate}% skuteczności",
+    "upstreamRefusals": "{count} odmów upstream",
+    "connectionTestsCount": "{count} testów połączenia",
+    "notMeasured": "Nie zmierzono"
   },
   "playground": {
     "title": "Środowisko testowe modeli",

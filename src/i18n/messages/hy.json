@@ -11047,7 +11047,12 @@
     "poolAddMember": "Ավելացնել",
     "poolAddFailed": "Չհաջողվեց պրոքսին ավելացնել պուլին",
     "poolSelectProxy": "Ընտրեք պրոքսի…",
-    "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը"
+    "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը",
+    "transportRate": "{rate}% փոխադրում",
+    "previousSuccessRate": "Նախկինում {rate}% հաջողություն",
+    "upstreamRefusals": "{count} upstream մերժում",
+    "connectionTestsCount": "{count} կապի թեստ",
+    "notMeasured": "Չի չափվել"
   },
   "playground": {
     "title": "Մոդելների փորձարկման հարթակ",

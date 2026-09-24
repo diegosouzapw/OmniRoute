@@ -11047,7 +11047,12 @@
     "poolAddMember": "ጨምር",
     "poolAddFailed": "ፕሮክሲውን ወደ ፑሉ ማከል አልተሳካም",
     "poolSelectProxy": "ፕሮክሲ ይምረጡ…",
-    "poolSaveFailed": "የፑል ምደባውን ማስቀመጥ አልተሳካም"
+    "poolSaveFailed": "የፑል ምደባውን ማስቀመጥ አልተሳካም",
+    "transportRate": "{rate}% ትራንስፖርት",
+    "previousSuccessRate": "ከዚህ በፊት {rate}% ስኬት",
+    "upstreamRefusals": "{count} upstream ውድቅዎች",
+    "connectionTestsCount": "{count} የግንኙነት ሙከራዎች",
+    "notMeasured": "አልተለካም"
   },
   "playground": {
     "title": "የሞዴል መሞከሪያ",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "Idagdag",
     "poolAddFailed": "Hindi naidagdag ang proxy sa pool",
     "poolSelectProxy": "Pumili ng proxy…",
-    "poolSaveFailed": "Hindi na-save ang pool assignment"
+    "poolSaveFailed": "Hindi na-save ang pool assignment",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Dati {rate}% tagumpay",
+    "upstreamRefusals": "{count} pagtanggi ng upstream",
+    "connectionTestsCount": "{count} pagsubok ng koneksyon",
+    "notMeasured": "Hindi nasukat"
   },
   "playground": {
     "title": "Title",

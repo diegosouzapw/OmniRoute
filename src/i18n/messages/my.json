@@ -11047,7 +11047,12 @@
     "poolAddMember": "ထည့်ရန်",
     "poolAddFailed": "ပရောက်စီကို ပူးလ်ထဲသို့ ထည့်၍ မရပါ",
     "poolSelectProxy": "ပရောက်စီတစ်ခု ရွေးချယ်ပါ…",
-    "poolSaveFailed": "ပူးလ်သတ်မှတ်မှုကို သိမ်းဆည်း၍ မရပါ"
+    "poolSaveFailed": "ပူးလ်သတ်မှတ်မှုကို သိမ်းဆည်း၍ မရပါ",
+    "transportRate": "{rate}% သယ်ယူပို့ဆောင်မှု",
+    "previousSuccessRate": "အစက {rate}% အောင်မြင်မှု",
+    "upstreamRefusals": "{count} upstream ငြင်းပယ်မှုများ",
+    "connectionTestsCount": "{count} ချိတ်ဆက်မှု စမ်းသပ်မှုများ",
+    "notMeasured": "မတိုင်းတာရသေးပါ"
   },
   "playground": {
     "title": "မော်ဒယ် စမ်းသပ်ခန်း",

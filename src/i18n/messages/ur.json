@@ -11047,7 +11047,12 @@
     "poolAddMember": "شامل کریں",
     "poolAddFailed": "پول میں پروکسی شامل کرنے میں ناکامی",
     "poolSelectProxy": "ایک پروکسی منتخب کریں…",
-    "poolSaveFailed": "پول اسائنمنٹ کو محفوظ کرنے میں ناکامی"
+    "poolSaveFailed": "پول اسائنمنٹ کو محفوظ کرنے میں ناکامی",
+    "transportRate": "{rate}% ٹرانسپورٹ",
+    "previousSuccessRate": "پہلے {rate}% کامیابی",
+    "upstreamRefusals": "{count} اپ اسٹریم مسترد",
+    "connectionTestsCount": "{count} کنکشن ٹیسٹ",
+    "notMeasured": "پیمائش نہیں ہوئی"
   },
   "playground": {
     "title": "ماڈل پلے گراؤنڈ",

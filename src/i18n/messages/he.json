@@ -11047,7 +11047,12 @@
     "poolAddMember": "הוסף",
     "poolAddFailed": "הוספת הפרוקסי למאגר נכשלה",
     "poolSelectProxy": "בחר פרוקסי…",
-    "poolSaveFailed": "שמירת הקצאת המאגר נכשלה"
+    "poolSaveFailed": "שמירת הקצאת המאגר נכשלה",
+    "transportRate": "{rate}% תעבורה",
+    "previousSuccessRate": "בעבר {rate}% הצלחה",
+    "upstreamRefusals": "{count} דחיות upstream",
+    "connectionTestsCount": "{count} בדיקות חיבור",
+    "notMeasured": "לא נמדד"
   },
   "playground": {
     "title": "Title",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "Adaugă",
     "poolAddFailed": "Nu s-a putut adăuga proxy-ul în pool",
     "poolSelectProxy": "Selectează un proxy…",
-    "poolSaveFailed": "Nu s-a putut salva atribuirea pool-ului"
+    "poolSaveFailed": "Nu s-a putut salva atribuirea pool-ului",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Anterior {rate} % succes",
+    "upstreamRefusals": "{count} refuzuri upstream",
+    "connectionTestsCount": "{count} teste de conexiune",
+    "notMeasured": "Nemăsurat"
   },
   "playground": {
     "title": "Title",

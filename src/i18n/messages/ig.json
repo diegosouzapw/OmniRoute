@@ -11047,7 +11047,12 @@
     "poolAddMember": "Tinye",
     "poolAddFailed": "Enweghị ike ịtinye proksi ahụ na pool",
     "poolSelectProxy": "Họrọ proxy…",
-    "poolSaveFailed": "Enweghị ike ichekwa nkesa pool"
+    "poolSaveFailed": "Enweghị ike ichekwa nkesa pool",
+    "transportRate": "{rate}% mbugharị",
+    "previousSuccessRate": "Na mbụ {rate}% ịga nke ọma",
+    "upstreamRefusals": "{count} ọjụjụ upstream",
+    "connectionTestsCount": "{count} nnwale njikọ",
+    "notMeasured": "A tụghị"
   },
   "playground": {
     "title": "Ebe Nnwale Model",

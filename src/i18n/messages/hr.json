@@ -11047,7 +11047,12 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Dodavanje proxyja u skup nije uspjelo",
     "poolSelectProxy": "Odaberi proxy…",
-    "poolSaveFailed": "Spremanje dodjele skupa nije uspjelo"
+    "poolSaveFailed": "Spremanje dodjele skupa nije uspjelo",
+    "transportRate": "{rate} % prijenosa",
+    "previousSuccessRate": "Prije {rate} % uspjeha",
+    "upstreamRefusals": "{count} upstream odbijanja",
+    "connectionTestsCount": "{count} testova veze",
+    "notMeasured": "Nije mjereno"
   },
   "playground": {
     "title": "Okruženje za isprobavanje modela",

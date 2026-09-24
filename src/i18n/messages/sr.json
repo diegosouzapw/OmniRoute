@@ -11047,7 +11047,12 @@
     "poolAddMember": "Додај",
     "poolAddFailed": "Додавање проксија у групу није успело",
     "poolSelectProxy": "Изаберите прокси…",
-    "poolSaveFailed": "Чување припадности групи није успело"
+    "poolSaveFailed": "Чување припадности групи није успело",
+    "transportRate": "{rate} % преноса",
+    "previousSuccessRate": "Раније {rate} % успеха",
+    "upstreamRefusals": "{count} upstream одбијања",
+    "connectionTestsCount": "{count} тестова везе",
+    "notMeasured": "Није мерено"
   },
   "playground": {
     "title": "Окружење за тестирање модела",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "Lisää",
     "poolAddFailed": "Proxyn lisääminen pooliin epäonnistui",
     "poolSelectProxy": "Valitse proxy…",
-    "poolSaveFailed": "Poolimäärityksen tallentaminen epäonnistui"
+    "poolSaveFailed": "Poolimäärityksen tallentaminen epäonnistui",
+    "transportRate": "{rate} % siirtoa",
+    "previousSuccessRate": "Aiemmin {rate} % onnistumisia",
+    "upstreamRefusals": "{count} upstream-hylkäystä",
+    "connectionTestsCount": "{count} yhteystestiä",
+    "notMeasured": "Ei mitattu"
   },
   "playground": {
     "title": "Title",

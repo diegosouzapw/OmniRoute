@@ -11047,7 +11047,12 @@
     "poolAddMember": "افزودن",
     "poolAddFailed": "افزودن پروکسی به استخر ناموفق بود",
     "poolSelectProxy": "انتخاب یک پروکسی…",
-    "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود"
+    "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود",
+    "transportRate": "{rate}٪ انتقال",
+    "previousSuccessRate": "قبلاً {rate}٪ موفقیت",
+    "upstreamRefusals": "{count} رد بالادستی",
+    "connectionTestsCount": "{count} آزمون اتصال",
+    "notMeasured": "اندازه‌گیری نشده"
   },
   "playground": {
     "title": "محیط آزمایش مدل",

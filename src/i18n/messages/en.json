@@ -11047,7 +11047,12 @@
     "poolAddMember": "Add",
     "poolAddFailed": "Failed to add the proxy to the pool",
     "poolSelectProxy": "Select a proxy…",
-    "poolSaveFailed": "Failed to save pool assignment"
+    "poolSaveFailed": "Failed to save pool assignment",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Previously {rate}% success",
+    "upstreamRefusals": "{count} upstream refusals",
+    "connectionTestsCount": "{count} connection tests",
+    "notMeasured": "Not measured"
   },
   "playground": {
     "title": "Model Playground",

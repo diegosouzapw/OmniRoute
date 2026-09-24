@@ -11047,7 +11047,12 @@
     "poolAddMember": "เพิ่ม",
     "poolAddFailed": "เพิ่มพร็อกซีลงในพูลไม่สำเร็จ",
     "poolSelectProxy": "เลือกพร็อกซี…",
-    "poolSaveFailed": "บันทึกการกำหนดพูลไม่สำเร็จ"
+    "poolSaveFailed": "บันทึกการกำหนดพูลไม่สำเร็จ",
+    "transportRate": "{rate}% การขนส่ง",
+    "previousSuccessRate": "ก่อนหน้านี้ {rate}% สำเร็จ",
+    "upstreamRefusals": "{count} การปฏิเสธต้นน้ำ",
+    "connectionTestsCount": "{count} การทดสอบการเชื่อมต่อ",
+    "notMeasured": "ยังไม่ได้วัด"
   },
   "playground": {
     "title": "Title",

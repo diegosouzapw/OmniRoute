@@ -11047,7 +11047,12 @@
     "poolAddMember": "జోడించు",
     "poolAddFailed": "పూల్‌కు ప్రాక్సీని జోడించడం విఫలమైంది",
     "poolSelectProxy": "ప్రాక్సీని ఎంచుకోండి…",
-    "poolSaveFailed": "పూల్ అసైన్‌మెంట్‌ను సేవ్ చేయడం విఫలమైంది"
+    "poolSaveFailed": "పూల్ అసైన్‌మెంట్‌ను సేవ్ చేయడం విఫలమైంది",
+    "transportRate": "{rate}% రవాణా",
+    "previousSuccessRate": "గతంలో {rate}% విజയം",
+    "upstreamRefusals": "{count} అప్‌స్ట్రీమ్ నిరాకరణలు",
+    "connectionTestsCount": "{count} కనెక్షన్ పరీక్షలు",
+    "notMeasured": "కొలవబడలేదు"
   },
   "playground": {
     "title": "మోడల్ ప్లేగ్రౌండ్",

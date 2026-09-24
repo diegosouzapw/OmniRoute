@@ -11047,7 +11047,12 @@
     "poolAddMember": "Pridať",
     "poolAddFailed": "Nepodarilo sa pridať proxy do poolu",
     "poolSelectProxy": "Vyberte proxy…",
-    "poolSaveFailed": "Nepodarilo sa uložiť priradenie poolu"
+    "poolSaveFailed": "Nepodarilo sa uložiť priradenie poolu",
+    "transportRate": "{rate} % prenosu",
+    "previousSuccessRate": "Predtým {rate} % úspešnosť",
+    "upstreamRefusals": "{count} odmietnutí upstream",
+    "connectionTestsCount": "{count} testov pripojenia",
+    "notMeasured": "Nemerané"
   },
   "playground": {
     "title": "Title",

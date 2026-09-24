@@ -11047,7 +11047,12 @@
     "poolAddMember": "Tambah",
     "poolAddFailed": "Gagal menambah proksi ke dalam kolam",
     "poolSelectProxy": "Pilih proksi…",
-    "poolSaveFailed": "Gagal menyimpan tugasan kolam"
+    "poolSaveFailed": "Gagal menyimpan tugasan kolam",
+    "transportRate": "{rate}% pengangkutan",
+    "previousSuccessRate": "Sebelum ini {rate}% berjaya",
+    "upstreamRefusals": "{count} penolakan huluan",
+    "connectionTestsCount": "{count} ujian sambungan",
+    "notMeasured": "Belum diukur"
   },
   "playground": {
     "title": "Title",

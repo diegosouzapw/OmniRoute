@@ -11047,7 +11047,12 @@
     "poolAddMember": "Tambah",
     "poolAddFailed": "Gagal menambahkan proksi ke pool",
     "poolSelectProxy": "Pilih proksi…",
-    "poolSaveFailed": "Gagal menyimpan penetapan pool"
+    "poolSaveFailed": "Gagal menyimpan penetapan pool",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Sebelumnya {rate}% berhasil",
+    "upstreamRefusals": "{count} penolakan upstream",
+    "connectionTestsCount": "{count} uji koneksi",
+    "notMeasured": "Belum diukur"
   },
   "playground": {
     "title": "Title",

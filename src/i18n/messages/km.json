@@ -11047,7 +11047,12 @@
     "poolAddMember": "បន្ថែម",
     "poolAddFailed": "បានបរាជ័យក្នុងការបន្ថែមប្រូកស៊ីទៅក្រុម",
     "poolSelectProxy": "ជ្រើសរើសប្រូកស៊ី…",
-    "poolSaveFailed": "បានបរាជ័យក្នុងការរក្សាទុកការចាត់តាំងទៅក្រុម"
+    "poolSaveFailed": "បានបរាជ័យក្នុងការរក្សាទុកការចាត់តាំងទៅក្រុម",
+    "transportRate": "{rate}% ការដឹកជញ្ជូន",
+    "previousSuccessRate": "ពីមុន {rate}% ជោគជ័យ",
+    "upstreamRefusals": "{count} ការបដិសេធ upstream",
+    "connectionTestsCount": "{count} ការធ្វើតេស្តការតភ្ជាប់",
+    "notMeasured": "មិនបានវាស់"
   },
   "playground": {
     "title": "កន្លែងសាកល្បងម៉ូដែល",

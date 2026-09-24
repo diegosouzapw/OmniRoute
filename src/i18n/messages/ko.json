@@ -11047,7 +11047,12 @@
     "poolAddMember": "추가",
     "poolAddFailed": "풀에 프록시를 추가하지 못했습니다",
     "poolSelectProxy": "프록시 선택…",
-    "poolSaveFailed": "풀 할당을 저장하지 못했습니다"
+    "poolSaveFailed": "풀 할당을 저장하지 못했습니다",
+    "transportRate": "{rate}% 전송",
+    "previousSuccessRate": "이전에 {rate}% 성공",
+    "upstreamRefusals": "{count}개 업스트림 거부",
+    "connectionTestsCount": "{count}개 연결 테스트",
+    "notMeasured": "측정되지 않음"
   },
   "playground": {
     "title": "모델 플레이그라운드",

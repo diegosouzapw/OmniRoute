@@ -11047,7 +11047,12 @@
     "poolAddMember": "Ṣàfikún",
     "poolAddFailed": "Kùnà láti ṣàfikún prọ́ṣì náà sí àkójọpọ̀ náà",
     "poolSelectProxy": "Yan prọ́ṣì kan…",
-    "poolSaveFailed": "Kùnà láti fi ìpín àkójọpọ̀ pamọ́"
+    "poolSaveFailed": "Kùnà láti fi ìpín àkójọpọ̀ pamọ́",
+    "transportRate": "{rate}% gbigbe",
+    "previousSuccessRate": "Ni iṣaaju {rate}% aṣeyọri",
+    "upstreamRefusals": "{count} kikọ upstream",
+    "connectionTestsCount": "{count} idanwo asopọ",
+    "notMeasured": "A ko wọn"
   },
   "playground": {
     "title": "Pápá Ìdánwò Àwòṣe",

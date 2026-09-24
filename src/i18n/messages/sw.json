@@ -11047,7 +11047,12 @@
     "poolAddMember": "Ongeza",
     "poolAddFailed": "Imeshindwa kuongeza proksi kwenye dimbwi",
     "poolSelectProxy": "Chagua proksi…",
-    "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi"
+    "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi",
+    "transportRate": "{rate}% usafiri",
+    "previousSuccessRate": "Awali {rate}% mafanikio",
+    "upstreamRefusals": "{count} kukataliwa kwa upstream",
+    "connectionTestsCount": "{count} majaribio ya muunganisho",
+    "notMeasured": "Haijapimwa"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",

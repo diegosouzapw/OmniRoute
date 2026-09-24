@@ -11047,7 +11047,12 @@
     "poolAddMember": "追加",
     "poolAddFailed": "プールへのプロキシの追加に失敗しました",
     "poolSelectProxy": "プロキシを選択…",
-    "poolSaveFailed": "プールの割り当ての保存に失敗しました"
+    "poolSaveFailed": "プールの割り当ての保存に失敗しました",
+    "transportRate": "{rate}％トランスポート",
+    "previousSuccessRate": "以前は{rate}％成功",
+    "upstreamRefusals": "{count}件のアップストリーム拒否",
+    "connectionTestsCount": "{count}件の接続テスト",
+    "notMeasured": "未測定"
   },
   "playground": {
     "title": "Title",

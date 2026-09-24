@@ -11047,7 +11047,12 @@
     "poolAddMember": "थप्नुहोस्",
     "poolAddFailed": "पुलमा प्रोक्सी थप्न असफल भयो",
     "poolSelectProxy": "प्रोक्सी चयन गर्नुहोस्…",
-    "poolSaveFailed": "पुल असाइनमेन्ट सुरक्षित गर्न असफल भयो"
+    "poolSaveFailed": "पुल असाइनमेन्ट सुरक्षित गर्न असफल भयो",
+    "transportRate": "{rate}% ढुवानी",
+    "previousSuccessRate": "पहिले {rate}% सफलता",
+    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृति",
+    "connectionTestsCount": "{count} जडान परीक्षण",
+    "notMeasured": "मापन गरिएको छैन"
   },
   "playground": {
     "title": "मोडेल प्लेग्राउन्ड",

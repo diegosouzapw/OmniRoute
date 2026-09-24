@@ -11036,7 +11036,12 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Neuspješno dodavanje proxy-ja u pool",
     "poolSelectProxy": "Odaberite proxy…",
-    "poolSaveFailed": "Neuspješno spremanje dodjele pool-a"
+    "poolSaveFailed": "Neuspješno spremanje dodjele pool-a",
+    "transportRate": "{rate} % transporta",
+    "previousSuccessRate": "Ranije {rate} % uspjeha",
+    "upstreamRefusals": "{count} upstream odbijanja",
+    "connectionTestsCount": "{count} testova konekcije",
+    "notMeasured": "Nije mjereno"
   },
   "playground": {
     "title": "Testno okruženje za modele",

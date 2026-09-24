@@ -11047,7 +11047,12 @@
     "poolAddMember": "Añadir",
     "poolAddFailed": "No se pudo añadir el proxy al grupo",
     "poolSelectProxy": "Selecciona un proxy…",
-    "poolSaveFailed": "No se pudo guardar la asignación del grupo"
+    "poolSaveFailed": "No se pudo guardar la asignación del grupo",
+    "transportRate": "{rate} % transporte",
+    "previousSuccessRate": "Anteriormente {rate} % de éxito",
+    "upstreamRefusals": "{count} rechazos aguas arriba",
+    "connectionTestsCount": "{count} pruebas de conexión",
+    "notMeasured": "No medido"
   },
   "playground": {
     "title": "Title",

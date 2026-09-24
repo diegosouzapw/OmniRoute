@@ -11047,7 +11047,12 @@
     "poolAddMember": "Żid",
     "poolAddFailed": "Ma rnexxiex iż-żieda tal-proxy mal-pool",
     "poolSelectProxy": "Agħżel proxy…",
-    "poolSaveFailed": "Ma rnexxiex l-issejvjar tal-assenjazzjoni tal-pool"
+    "poolSaveFailed": "Ma rnexxiex l-issejvjar tal-assenjazzjoni tal-pool",
+    "transportRate": "{rate}% trasport",
+    "previousSuccessRate": "Qabel {rate}% suċċess",
+    "upstreamRefusals": "{count} rifjuti upstream",
+    "connectionTestsCount": "{count} testijiet tal-konnessjoni",
+    "notMeasured": "Mhux imkejjel"
   },
   "playground": {
     "title": "Żona tal-Ittestjar tal-Mudelli",

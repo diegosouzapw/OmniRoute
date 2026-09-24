@@ -11047,7 +11047,12 @@
     "poolAddMember": "Cuir",
     "poolAddFailed": "Theip ar an seachfhreastalaí a chur leis an linn",
     "poolSelectProxy": "Roghnaigh seachfhreastalaí…",
-    "poolSaveFailed": "Theip ar shannadh na linne a shábháil"
+    "poolSaveFailed": "Theip ar shannadh na linne a shábháil",
+    "transportRate": "{rate}% iompair",
+    "previousSuccessRate": "Roimhe seo {rate}% rath",
+    "upstreamRefusals": "{count} diúltú in aghaidh srutha",
+    "connectionTestsCount": "{count} tástáil nasctha",
+    "notMeasured": "Gan tomhas"
   },
   "playground": {
     "title": "Clós Súgartha Múnlaí",

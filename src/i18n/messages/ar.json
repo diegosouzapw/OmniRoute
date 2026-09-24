@@ -11047,7 +11047,12 @@
     "poolAddMember": "إضافة",
     "poolAddFailed": "فشل إضافة الوكيل إلى التجمع",
     "poolSelectProxy": "اختر وكيلاً…",
-    "poolSaveFailed": "فشل حفظ تعيين التجمع"
+    "poolSaveFailed": "فشل حفظ تعيين التجمع",
+    "transportRate": "{rate}% نقل",
+    "previousSuccessRate": "سابقًا {rate}% نجاح",
+    "upstreamRefusals": "{count} رفضًا من الخادم الأعلى",
+    "connectionTestsCount": "{count} اختبارات اتصال",
+    "notMeasured": "غير مقاس"
   },
   "playground": {
     "title": "العنوان",

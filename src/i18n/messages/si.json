@@ -11047,7 +11047,12 @@
     "poolAddMember": "එක් කරන්න",
     "poolAddFailed": "ප්රොක්සිය සංචිතයට එක් කිරීමට අසමත් විය",
     "poolSelectProxy": "ප්රොක්සියක් තෝරන්න…",
-    "poolSaveFailed": "සංචිත පැවරීම සුරැකීමට අසමත් විය"
+    "poolSaveFailed": "සංචිත පැවරීම සුරැකීමට අසමත් විය",
+    "transportRate": "{rate}% ප්‍රවාහනය",
+    "previousSuccessRate": "පෙර {rate}% සාර්ථකත්වය",
+    "upstreamRefusals": "{count} upstream ප්‍රතික්ෂේප",
+    "connectionTestsCount": "{count} සම්බන්ධතා පරීක්ෂණ",
+    "notMeasured": "මනින ලද්දේ නැත"
   },
   "playground": {
     "title": "ආකෘති අත්හදා බැලීමේ පරිසරය",

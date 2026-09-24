@@ -11047,7 +11047,12 @@
     "poolAddMember": "যোগ করুন",
     "poolAddFailed": "পুলে প্রক্সি যোগ করতে ব্যর্থ হয়েছে",
     "poolSelectProxy": "একটি প্রক্সি নির্বাচন করুন…",
-    "poolSaveFailed": "পুল অ্যাসাইনমেন্ট সংরক্ষণ করতে ব্যর্থ হয়েছে"
+    "poolSaveFailed": "পুল অ্যাসাইনমেন্ট সংরক্ষণ করতে ব্যর্থ হয়েছে",
+    "transportRate": "{rate}% ট্রান্সপোর্ট",
+    "previousSuccessRate": "পূর্বে {rate}% সাফল্য",
+    "upstreamRefusals": "{count} আপস্ট্রিম প্রত্যাখ্যান",
+    "connectionTestsCount": "{count} সংযোগ পরীক্ষা",
+    "notMeasured": "পরিমাপ করা হয়নি"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",

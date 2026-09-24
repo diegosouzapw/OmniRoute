@@ -11047,7 +11047,12 @@
     "poolAddMember": "Hozzáadás",
     "poolAddFailed": "Nem sikerült hozzáadni a proxyt a készlethez",
     "poolSelectProxy": "Válasszon egy proxyt…",
-    "poolSaveFailed": "Nem sikerült menteni a készlet-hozzárendelést"
+    "poolSaveFailed": "Nem sikerült menteni a készlet-hozzárendelést",
+    "transportRate": "{rate}% átvitel",
+    "previousSuccessRate": "Korábban {rate}% siker",
+    "upstreamRefusals": "{count} upstream-elutasítás",
+    "connectionTestsCount": "{count} kapcsolati teszt",
+    "notMeasured": "Nem mért"
   },
   "playground": {
     "title": "Title",

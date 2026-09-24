@@ -11047,7 +11047,12 @@
     "poolAddMember": "დამატება",
     "poolAddFailed": "პროქსის პულში დამატება ვერ მოხერხდა",
     "poolSelectProxy": "აირჩიეთ პროქსი…",
-    "poolSaveFailed": "პულზე მინიჭების შენახვა ვერ მოხერხდა"
+    "poolSaveFailed": "პულზე მინიჭების შენახვა ვერ მოხერხდა",
+    "transportRate": "{rate}% ტრანსპორტი",
+    "previousSuccessRate": "ადრე {rate}% წარმატება",
+    "upstreamRefusals": "{count} upstream უარყოფა",
+    "connectionTestsCount": "{count} კავშირის ტესტი",
+    "notMeasured": "არ არის გაზომილი"
   },
   "playground": {
     "title": "მოდელების სატესტო გარემო",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "Lägg till",
     "poolAddFailed": "Misslyckades med att lägga till proxyn i poolen",
     "poolSelectProxy": "Välj en proxy…",
-    "poolSaveFailed": "Misslyckades med att spara pooltilldelning"
+    "poolSaveFailed": "Misslyckades med att spara pooltilldelning",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Tidigare {rate} % lyckade",
+    "upstreamRefusals": "{count} upstream-avvisningar",
+    "connectionTestsCount": "{count} anslutningstester",
+    "notMeasured": "Inte mätt"
   },
   "playground": {
     "title": "Title",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "新增",
     "poolAddFailed": "將代理新增至池失敗",
     "poolSelectProxy": "選取代理…",
-    "poolSaveFailed": "儲存池指派失敗"
+    "poolSaveFailed": "儲存池指派失敗",
+    "transportRate": "{rate}%傳輸",
+    "previousSuccessRate": "此前{rate}%成功",
+    "upstreamRefusals": "{count}次上游拒絕",
+    "connectionTestsCount": "{count}次連線測試",
+    "notMeasured": "未測量"
   },
   "playground": {
     "title": "模型演練場",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "जोड़ें",
     "poolAddFailed": "पूल में प्रॉक्सी जोड़ने में विफल",
     "poolSelectProxy": "एक प्रॉक्सी चुनें…",
-    "poolSaveFailed": "पूल असाइनमेंट सहेजने में विफल"
+    "poolSaveFailed": "पूल असाइनमेंट सहेजने में विफल",
+    "transportRate": "{rate}% ट्रांसपोर्ट",
+    "previousSuccessRate": "पहले {rate}% सफलता",
+    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृतियाँ",
+    "connectionTestsCount": "{count} कनेक्शन परीक्षण",
+    "notMeasured": "मापा नहीं गया"
   },
   "playground": {
     "title": "Title",

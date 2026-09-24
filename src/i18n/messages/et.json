@@ -11047,7 +11047,12 @@
     "poolAddMember": "Lisa",
     "poolAddFailed": "Puhverserveri lisamine kogumisse ebaõnnestus",
     "poolSelectProxy": "Vali puhverserver…",
-    "poolSaveFailed": "Kogumi määrangu salvestamine ebaõnnestus"
+    "poolSaveFailed": "Kogumi määrangu salvestamine ebaõnnestus",
+    "transportRate": "{rate} % transporti",
+    "previousSuccessRate": "Varem {rate} % edukust",
+    "upstreamRefusals": "{count} upstream-keeldumist",
+    "connectionTestsCount": "{count} ühenduse testi",
+    "notMeasured": "Mõõtmata"
   },
   "playground": {
     "title": "Mudelite testkeskkond",

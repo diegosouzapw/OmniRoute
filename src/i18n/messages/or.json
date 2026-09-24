@@ -11047,7 +11047,12 @@
     "poolAddMember": "ଯୋଡ଼ନ୍ତୁ",
     "poolAddFailed": "ପୁଲ୍ରେ ପ୍ରକ୍ସି ଯୋଡ଼ିବାରେ ବିଫଳ",
     "poolSelectProxy": "ଏକ ପ୍ରକ୍ସି ବାଛନ୍ତୁ…",
-    "poolSaveFailed": "ପୁଲ୍ ନିୟୋଜନ ସଞ୍ଚୟ କରିବାରେ ବିଫଳ"
+    "poolSaveFailed": "ପୁଲ୍ ନିୟୋଜନ ସଞ୍ଚୟ କରିବାରେ ବିଫଳ",
+    "transportRate": "{rate}% ପରିବହନ",
+    "previousSuccessRate": "ପୂର୍ବରୁ {rate}% ସଫଳତା",
+    "upstreamRefusals": "{count} ଅପଷ୍ଟ୍ରିମ୍ ପ୍ରତ୍ୟାଖ୍ୟାନ",
+    "connectionTestsCount": "{count} ସଂଯୋଗ ପରୀକ୍ଷା",
+    "notMeasured": "ମାପ କରାଯାଇନାହିଁ"
   },
   "playground": {
     "title": "ମଡେଲ୍ ପ୍ଲେଗ୍ରାଉଣ୍ଡ",

@@ -11047,7 +11047,12 @@
     "poolAddMember": "ઉમેરો",
     "poolAddFailed": "પૂલમાં પ્રોક્સી ઉમેરવામાં નિષ્ફળ",
     "poolSelectProxy": "પ્રોક્સી પસંદ કરો…",
-    "poolSaveFailed": "પૂલ અસાઇનમેન્ટ સાચવવામાં નિષ્ફળ"
+    "poolSaveFailed": "પૂલ અસાઇનમેન્ટ સાચવવામાં નિષ્ફળ",
+    "transportRate": "{rate}% ટ્રાન્સપોર્ટ",
+    "previousSuccessRate": "અગાઉ {rate}% સફળતા",
+    "upstreamRefusals": "{count} અપસ્ટ્રીમ અસ્વીકાર",
+    "connectionTestsCount": "{count} કનેક્શન પરીક્ષણો",
+    "notMeasured": "માપેલ નથી"
   },
   "playground": {
     "title": "મોડેલ પ્લેગ્રાઉન્ડ",
