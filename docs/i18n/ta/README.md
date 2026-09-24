@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 எங்கள் திறந்த மூல நண்பர்களின் ஆதரவுடன்
+## 🤝 எங்கள் திறந்த மூல நண்பர்களால் ஆதரிக்கப்படுகிறது
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — திறந்த எல்லை நுண்ணறிவு · 2.8T அளவுருக்கள் · 1M-token சூழல்"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **திறந்த மூல நண்பராக இணைய விரும்புகிறீர்களா?** திறந்த மூலத்தை ஆதரித்து, OmniRoute தொடர்ந்து இயங்க உதவும் நிறுவனங்கள் இவை — மேலும் அவர்கள் எங்களுக்கு வழங்கும் ஒவ்வொரு token-உம் எங்கு செலவிடப்படுகிறது என்பதை நாங்கள் வெளிப்படையாகத் தெரிவிக்கிறோம். தொடர்புகொள்ள: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **திறந்த மூல நண்பராக சேர விரும்புகிறீர்களா?** இவை திறந்த மூலத்தை ஆதரிக்கும் நிறுவனங்கள் மற்றும் ஆம்னிரூட்டை தொடர்ந்து இயங்க உதவுகின்றன — மேலும் அவர்கள் எங்களுக்கு வழங்கும் ஒவ்வொரு டோக்கனும் எங்கு செல்கிறது என்பதை நாங்கள் பகிரங்கமாக கூறுகிறோம். தொடர்பு கொள்ளவும்: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="நிறுவனத் திறந்த மூல நண்பர்"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      இந்தத் திட்டத்தை ஆதரிக்கும் எங்கள் நிறுவனத் திறந்த மூல நண்பரான <b>Kimi (Moonshot AI)</b>-க்கு நன்றி! Kimi என்பது open-weight K2 மற்றும் K3 மாதிரிக் குடும்பங்களுக்குப் பின்னால் உள்ள AI ஆய்வகமாகும் — <b>Kimi K3</b> ஆனது 1M-token சூழல் சாளரம், இயல்பான பார்வைத் திறன் மற்றும் முன்னணி நிலைக் குறியீட்டுத் திறனை மூடிய மாதிரிகளின் விலையில் ஒரு சிறு பங்குக்கே வழங்குகிறது; மேலும் Claude Code, Codex மற்றும் OmniRoute சேவையளிக்கும் ஒவ்வொரு குறியீட்டுக் கருவியுடனும் உடனடியாகச் செயல்படுகிறது.
+      இந்த திட்டத்தை ஆதரித்த எங்கள் நிறுவன திறந்த மூல நண்பரான <b>Kimi (Moonshot AI)</b> க்கு நன்றி! Kimi என்பது திறந்த எடை K2 மற்றும் K3 மாதிரி குடும்பங்களுக்குப் பின்னால் உள்ள AI ஆய்வகம் ஆகும் — <b>Kimi K3</b> 1M-டோக்கன் சூழல் சாளரம், சொந்த பார்வை மற்றும் முன்னணி-நிலை குறியீட்டை மூடிய-மாதிரி விலையில் ஒரு பகுதியிலேயே வழங்குகிறது, மேலும் Claude Code, Codex மற்றும் OmniRoute வழங்கும் ஒவ்வொரு குறியீட்டு கருவியுடனும் பெட்டியிலிருந்து வேலை செய்கிறது.
       <br/><br/>
-      <b>Kimi-யின் ஆதரவு எவற்றை இயக்குகிறது:</b> Kimi-யின் API credits, OmniRoute-இன் AI-சரிபார்க்கப்பட்ட வெளியீட்டுச் செயல்தொடரை இயக்குகின்றன — ஒவ்வொரு pull request-ஐயும் வெளியிடுவதற்கு முன் மதிப்பாய்வு செய்யும் <i>Kimi K3 மூலம் இயக்கப்படும் merge சரிபார்ப்பு</i> கட்டம் — மேலும் அன்றாட அம்ச மேம்பாட்டையும் ஆதரிக்கின்றன. முதல் தர Kimi ஆதரவு இரண்டு வழிகளிலும் வழங்கப்படுகிறது: நேரடி <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) மற்றும் <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code குறியீட்டுத் திட்டம்</a> (OAuth மற்றும் API key). Kimi-யின் ஆதரவுத் திட்டத்தில் இடம்பெற்ற முதல் பிரேசிலிய திறந்த மூலத் திட்டமும் OmniRoute ஆகும். <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% கூடுதல் credits-உடன் Kimi API key-ஐப் பெறுங்கள் →</b></a>
+      <b>Kimi இன் ஆதரவு எதை இயக்குகிறது:</b> Kimi இன் API கிரெடிட்கள் OmniRoute இன் AI-சரிபார்க்கப்பட்ட வெளியீட்டு குழாயை இயக்குகின்றன — ஒவ்வொரு புல் கோரிக்கையையும் அனுப்பும் முன் மதிப்பாய்வு செய்யும் <i>Kimi K3 ஆல் இயக்கப்படும் இணைப்பு சரிபார்ப்பு</i> நிலை — மேலும் அன்றாட அம்ச மேம்பாடு. முதல்-வகுப்பு Kimi ஆதரவு இரண்டு தண்டவாளங்களிலும் அனுப்பப்படுகிறது: நேரடி <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) மற்றும் <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code குறியீட்டு திட்டம்</a> (OAuth மற்றும் API விசை). Kimi இன் ஆதரவு திட்டத்தில் முதல் பிரேசிலிய திறந்த மூல திட்டமும் OmniRoute ஆகும். <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% கூடுதல் கிரெடிட்களுடன் Kimi API விசையைப் பெறுங்கள் →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="திறந்த மூல நண்பர்"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      இந்தத் திட்டத்தை ஆதரிக்கும் OmniRoute திறந்த மூல நண்பரான <b>Cheaper Inference</b>-க்கு நன்றி! Cheaper Inference என்பது செலவின் அடிப்படையில் தரவரிசைப்படுத்தப்பட்ட ஒரு gateway ஆகும்; இது Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok மற்றும் MiniMax உள்ளிட்ட 42 முன்னணி மாதிரிகளை ஒரே OpenAI-இணக்கமான endpoint-க்குப் பின்னால் மறுவிற்பனை செய்கிறது. ஒவ்வொரு கோரிக்கையையும் தகுதியுள்ள மிக மலிவான provider-க்கு வழிமாற்றுகிறது; அதே நேரத்தில் மாதிரி உருவாக்குநரின் பட்டியல் விலையைவிட அதிகமாக ஒருபோதும் கட்டணம் வசூலிப்பதில்லை.
+      இந்த திட்டத்தை ஆதரித்த OmniRoute திறந்த மூல நண்பரான <b>Cheaper Inference</b> க்கு நன்றி! Cheaper Inference என்பது ஒரு செலவு-தரவரிசைப்படுத்தப்பட்ட நுழைவாயில் ஆகும், இது 42 முன்னணி மாடல்களை மறுவிற்பனை செய்கிறது — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok மற்றும் MiniMax — ஒரு OpenAI-இணக்கமான இறுதிப்புள்ளிக்கு பின்னால், ஒவ்வொரு கோரிக்கையையும் மலிவான தகுதியான வழங்குநருக்கு மாடலின் பட்டியல் விலைக்கு மேல் கட்டணம் வசூலிக்காமல் அனுப்புகிறது.
       <br/><br/>
-      <b>OmniRoute-இல் முதல் தர ஆதரவு:</b> Chat Completions, இயல்பான <code>/v1/responses</code> endpoint, பார்வை, கருவி அழைப்பு மற்றும் 3 பட மாதிரிகள் (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>; இவற்றை <code>cheaperinference/&lt;model&gt;</code> என அணுகலாம்). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API key-ஐப் பெறுங்கள் →</b></a>
+      <b>OmniRoute இல் முதல்-வகுப்பு ஆதரவு:</b> Chat Completions, சொந்த <code>/v1/responses</code> இறுதிப்புள்ளி, பார்வை, கருவி அழைப்பு மற்றும் 3 பட மாடல்கள் (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, <code>cheaperinference/&lt;model&gt;</code> என அடையலாம்). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API விசையைப் பெறுங்கள் →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> எனக் குறிக்கப்பட்ட இணைப்புகள் கூட்டாளர் இணைப்புகளாகும். உங்களுக்கு எந்தக் கூடுதல் செலவும் இல்லாமல் அவை திட்டத்திற்கு நிதியளிக்கின்றன.</sub>
+<sub><code>aff=omniroute</code> எனக் குறியிடப்பட்ட இணைப்புகள் கூட்டாளர் இணைப்புகள். அவை உங்களுக்கு கூடுதல் செலவின்றி திட்டத்திற்கு நிதியளிக்கின்றன.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ இணைப்பு விளம்பரம்</b> — நாங்கள் நிதியாதரவு வழங்காத providers-இடமிருந்து இலவசப் பதிவுக் கூப்பன்கள் (விரிவாக்கக் கிளிக் செய்யவும்)</sub></summary>
+<summary><sub><b>🎟️ துணை நிறுவனங்களின் விளம்பரம்</b> — நாங்கள் ஸ்பான்சர் செய்யாத வழங்குநர்களிடமிருந்து இலவச பதிவு கூப்பன்கள் (விரிவாக்க கிளிக் செய்யவும்)</sub></summary>
 
-<sub><i>இந்தப் பிரிவு referral/coupon codes-க்கு மட்டுமே. நிதியாதரவு கொண்ட கூட்டாண்மைகள் மேலே உள்ள <b>🤝 எங்கள் திறந்த மூல நண்பர்களின் ஆதரவுடன்</b> என்ற பிரிவில் இடம்பெற்றுள்ளன. இங்கே பட்டியலிடப்பட்டுள்ள providers-உடன் OmniRoute-க்கு நிதியாதரவோ கூட்டாண்மையோ இல்லை — இவை யார் வேண்டுமானாலும் பயன்படுத்தக்கூடிய பொதுக் கூப்பன்கள்.</i></sub>
+<sub><i>இந்த பகுதி பரிந்துரை/கூப்பன் குறியீடுகளுக்கு மட்டுமே. ஸ்பான்சர் செய்யப்பட்ட கூட்டாண்மைகள் மேலே உள்ள <b>🤝 எங்கள் திறந்த மூல நண்பர்களால் ஆதரிக்கப்படுகிறது</b> பிரிவில் உள்ளன. OmniRoute இங்கு பட்டியலிடப்பட்டுள்ள வழங்குநர்களுடன் எந்த ஸ்பான்சர்ஷிப் அல்லது கூட்டாண்மையையும் கொண்டிருக்கவில்லை — இவை எவரும் பயன்படுத்தக்கூடிய பொது கூப்பன்கள்.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — affiliate பதிவு · பதிவு செய்யும்போது <b>$100 இலவச credits</b> (இலவச server; அதிக latency-ஐ எதிர்பார்க்கலாம் — production-க்கு அல்ல, சோதனைக்கே சிறந்தது). <b>v3.8.50</b> முதல் OmniRoute-இல் முதல் தர ஆதரவு: Chat Completions, Anthropic-இணக்கமான wire format மற்றும் OpenAI-இணக்கமான path. கிடைக்கக்கூடிய மாதிரிகளில் <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> மற்றும் பலவும் அடங்கும். <b><a href="https://agentrouter.org/register?aff=70LM">உங்கள் $100-ஐப் பெறுங்கள் →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — துணை நிறுவன பதிவு · பதிவு செய்யும் போது <b>$100 இலவச கிரெடிட்கள்</b> (இலவச சர்வர், அதிக தாமதத்தை எதிர்பார்க்கலாம் — சோதனைக்கு சிறந்தது, உற்பத்திக்கு அல்ல). OmniRoute இல் <b>v3.8.50</b> முதல் முதல்-வகுப்பு ஆதரவு: Chat Completions, Anthropic-இணக்கமான கம்பி வடிவம் மற்றும் OpenAI-இணக்கமான பாதை. கிடைக்கும் மாடல்களில் <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> மற்றும் பல அடங்கும். <b><a href="https://agentrouter.org/register?aff=70LM">$100 ஐப் பெறுங்கள் →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Affiliate இணைப்பு — இந்த provider-உடன் OmniRoute-க்கு நிதியாதரவோ கூட்டாண்மையோ இல்லை.</i></sub>
+      <sub>⚠️ <i>துணை இணைப்பு — OmniRoute இந்த வழங்குநருடன் எந்த ஸ்பான்சர்ஷிப் அல்லது கூட்டாண்மையையும் கொண்டிருக்கவில்லை.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>OmniRoute பயனர்களுக்குப் பயனளிக்கும் தாராளமான இலவசப் பதிவுக் கூப்பனை வழங்கும் வேறொரு provider உங்களுக்குத் தெரியுமா? ஓர் issue-ஐத் திறக்கவும்; அதை இங்கே சேர்ப்போம்.</sub>
+<sub>OmniRoute பயனர்களுக்கு பயனளிக்கும் ஒரு தாராளமான இலவச பதிவு கூப்பனுடன் மற்றொரு வழங்குநரைத் தெரியுமா? ஒரு சிக்கலைத் திறந்து, அதை இங்கே சேர்ப்போம்.</sub>
 
 </details>
 
@@ -1264,29 +1264,29 @@ Dashboard இல்லாத headless runtime-க்கு Docker `base` profile
 <br/>
 <div align="center">
 
-## 🛠️ தொழில்நுட்பத் தொகுப்பு
+## 🛠️ தொழில்நுட்ப அடுக்கு
 
 </div>
 
 <table>
   <tr><th align="left">அடுக்கு</th><th align="left">தொழில்நுட்பம்</th></tr>
-  <tr><td nowrap><b>இயக்கச் சூழல்</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>மொழி</b></td><td>TypeScript 6.0 — <code>src/</code> மற்றும் <code>open-sse/</code> முழுவதும் <b>100% TypeScript</b> (v2.0 முதல் மையத்தில் <code>any</code> முற்றிலும் இல்லை)</td></tr>
+  <tr><td nowrap><b>இயங்குதளம்</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>மொழி</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> <code>src/</code> மற்றும் <code>open-sse/</code> முழுவதும் (v2.0 முதல் மையத்தில் பூஜ்ஜியம் <code>any</code>)</td></tr>
   <tr><td nowrap><b>கட்டமைப்பு</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>தரவுத்தளம்</b></td><td>better-sqlite3 (SQLite, WAL பதிவேடு) + LowDB (JSON மரபு முறை) — 122 டொமைன் தொகுதிகள், 178 இடமாற்றங்கள்</td></tr>
-  <tr><td nowrap><b>நினைவகம்</b></td><td>SQLite FTS5 முழு-உரை + int8-அளவீடாக்கப்பட்ட திசையன் உட்பொதிவுகள், வகைப்படுத்தப்பட்ட தேய்வு</td></tr>
-  <tr><td nowrap><b>திட்டவடிவங்கள்</b></td><td>Zod 4 — MCP கருவி உள்ளீடு/வெளியீட்டுச் சரிபார்ப்பு + API ஒப்பந்தங்கள்</td></tr>
+  <tr><td nowrap><b>தரவுத்தளம்</b></td><td>better-sqlite3 (SQLite, WAL ஜர்னலிங்) + LowDB (JSON மரபு) — 122 டொமைன் தொகுதிகள், 182 இடம்பெயர்வுகள்</td></tr>
+  <tr><td nowrap><b>நினைவகம்</b></td><td>SQLite FTS5 முழு உரை + int8-குவாண்டிஸ் செய்யப்பட்ட வெக்டர் உட்பொதிப்புகள், தட்டச்சு செய்யப்பட்ட சிதைவு</td></tr>
+  <tr><td nowrap><b>திட்டங்கள்</b></td><td>Zod 4 — MCP கருவி I/O சரிபார்ப்பு + API ஒப்பந்தங்கள்</td></tr>
   <tr><td nowrap><b>நெறிமுறைகள்</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>தொடரோட்டம்</b></td><td>Server-Sent Events (SSE) + WebSocket இணைப்புப் பாலம் (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>சுருக்கம்</b></td><td>12-எஞ்சின் செயலாக்கத் தொடர் — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>அங்கீகாரம் &amp; பாதுகாப்பு</b></td><td>OAuth 2.0 (PKCE) + JWT + API விசைகள் + MCP வரம்பிடப்பட்ட அங்கீகாரம் · சேமிப்பு நிலையில் AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>ஸ்ட்ரீமிங்</b></td><td>சர்வர்-சென்ட் நிகழ்வுகள் (SSE) + WebSocket பாலம் (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>சுருக்கம்</b></td><td>12-என்ஜின் பைப்லைன் — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>அங்கீகாரம் &amp; பாதுகாப்பு</b></td><td>OAuth 2.0 (PKCE) + JWT + API விசைகள் + MCP ஸ்கோப் செய்யப்பட்ட அங்கீகாரம் · AES-256-GCM ஓய்வில் · DOMPurify</td></tr>
   <tr><td nowrap><b>மறைநிலை</b></td><td>wreq-js — JA3 / JA4 TLS கைரேகை ஆள்மாறாட்டம், 3-நிலை ப்ராக்ஸி</td></tr>
-  <tr><td nowrap><b>மீள்திறன்</b></td><td>சுற்று முறிப்பான், அடுக்குக்குறி பின்னடைவு, ஒரேநேரக் கோரிக்கைப் பெருக்கத் தடுப்பு, தானியங்குச் சேர்க்கை சுய-சீரமைப்பு</td></tr>
-  <tr><td nowrap><b>பதிவிடுதல்</b></td><td>pino — கோரிக்கைச் சூழலுடன் கட்டமைக்கப்பட்ட JSON பதிவுகள்</td></tr>
-  <tr><td nowrap><b>சோதனை</b></td><td>Node.js சோதனை இயக்கி + Vitest — கண்காணிக்கப்படும் 5,100+ சோதனைக் கோப்புகளில் <b>39,000+ நிலையான சோதனை அறிவிப்புகள்</b> (அலகு, ஒருங்கிணைப்பு, E2E, பாதுகாப்பு, சூழலமைப்பு)</td></tr>
-  <tr><td nowrap><b>தளங்கள்</b></td><td>மேசைக்கணினி (Electron) · Android (Termux) · PWA (எந்த உலாவியிலும்)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — வெளியீட்டின்போது தானியங்கு npm வெளியீடு + Docker Hub</td></tr>
-  <tr><td nowrap><b>இணைப்புகள்</b></td><td><a href="https://omniroute.online">இணையதளம்</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>மீள்தன்மை</b></td><td>சர்க்யூட் பிரேக்கர், எக்ஸ்போனென்ஷியல் பேக்ஆஃப், ஆன்டி-தண்டரிங்-ஹெர்ட், ஆட்டோ-கம்போ சுய-குணப்படுத்துதல்</td></tr>
+  <tr><td nowrap><b>பதிவு செய்தல்</b></td><td>pino — கோரிக்கை சூழலுடன் கட்டமைக்கப்பட்ட JSON பதிவுகள்</td></tr>
+  <tr><td nowrap><b>சோதனை</b></td><td>Node.js சோதனை ரன்னர் + Vitest — <b>39,000+ நிலையான சோதனை அறிவிப்புகள்</b> 5,100+ கண்காணிக்கப்பட்ட சோதனை கோப்புகள் முழுவதும் (யூனிட், ஒருங்கிணைப்பு, E2E, பாதுகாப்பு, சுற்றுச்சூழல் அமைப்பு)</td></tr>
+  <tr><td nowrap><b>தளங்கள்</b></td><td>டெஸ்க்டாப் (எலக்ட்ரான்) · ஆண்ட்ராய்டு (டெர்முக்ஸ்) · PWA (எந்த உலாவி)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — வெளியீட்டில் ஆட்டோ npm வெளியீடு + Docker Hub</td></tr>
+  <tr><td nowrap><b>இணைப்புகள்</b></td><td><a href="https://omniroute.online">வலைத்தளம்</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

@@ -1,0 +1,1 @@
+- fix(providers): devin-cli-agentic no longer forwards a bare `<summary>` envelope as the final answer (SWE-2 models emit it heavily) (#13691)

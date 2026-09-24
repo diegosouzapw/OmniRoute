@@ -9,43 +9,43 @@ Kompresi OmniRoute dibangun berdasarkan kontrak mesin. Sebuah mode dapat menjala
 
 ## Mode
 
-| Mode         | Jalur mesin                        | Input yang ditujukan                              |
-| ------------ | ---------------------------------- | ------------------------------------------------- |
-| `off`        | tidak ada                          | Mempertahankan prompt secara persis               |
-| `lite`       | Pembantu ringan Caveman            | Pembersihan selalu aktif berisiko rendah          |
-| `standard`   | Caveman                            | Pemadatan prompt bahasa alami                     |
-| `aggressive` | Caveman + peringkas riwayat/alat   | Sesi obrolan panjang                              |
-| `ultra`      | Caveman + pembantu pemangkasan     | Pemulihan batas konteks                           |
-| `rtk`        | RTK                                | Output terminal, shell, build, pengujian, dan git |
-| `omniglyph`  | OmniGlyph                          | Konteks sebagai gambar pada jalur native penyedia |
-| `stacked`    | Pipeline, default `rtk -> caveman` | Campuran log alat dan prosa, penghematan maksimum |
+| Mode         | Jalur mesin                                                                                    | Input yang dimaksudkan                            |
+| ------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `off`        | tidak ada                                                                                      | Preservasi prompt yang tepat                      |
+| `lite`       | Pembantu Caveman lite                                                                          | Pembersihan berisiko rendah yang selalu aktif     |
+| `standard`   | Caveman                                                                                        | Kondensasi prompt bahasa alami                    |
+| `aggressive` | Caveman + perangkum riwayat/alat                                                               | Sesi obrolan panjang                              |
+| `ultra`      | Caveman + pembantu pemangkasan                                                                 | Pemulihan batas konteks                           |
+| `rtk`        | RTK                                                                                            | Output terminal, shell, build, test, dan git      |
+| `omniglyph`  | OmniGlyph                                                                                      | Konteks sebagai gambar pada jalur penyedia asli   |
+| `stacked`    | Pipeline. Default permintaan adalah `session-dedup -> lite`. `rtk -> caveman` adalah opsional. | Log alat dan prosa campuran, penghematan maksimal |
 
 ### Profil kompresi OmniGlyph
 
-Mesin `omniglyph` (paket `omniglyph`, 1.4.0+) menerima profil semantik bernama, yang ditetapkan
+Mesin `omniglyph` (paket `omniglyph`, 1.4.0+) menerima profil semantik bernama, yang diatur
 secara global melalui `omniglyph.profile` dalam pengaturan kompresi atau per langkah melalui
 konfigurasi langkah pipeline bertumpuk:
 
-| Profil        | Batasan                                                                                                                             |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Default. Kebijakan yang diukur oleh bukti yang dipublikasikan — mengubah sistem, dokumentasi alat, dan riwayat padat menjadi gambar |
-| `balanced`    | Mempertahankan status aktif secara native, melindungi 8 giliran terakhir, menciutkan riwayat lama yang telah ditutup                |
-| `coding-safe` | Mempertahankan otoritas, skema alat, dan output alat aktif secara native, melindungi 12 giliran terakhir                            |
-| `passthrough` | Merutekan tanpa transformasi; mesin dilewati                                                                                        |
+| Profil        | Batasan                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Default. Kebijakan yang diukur oleh tanda terima yang diterbitkan — sistem gambar, dokumen alat, dan riwayat padat |
+| `balanced`    | Menjaga status langsung tetap asli, melindungi 8 giliran terakhir, mengempiskan riwayat tertutup yang lebih lama   |
+| `coding-safe` | Menjaga otoritas, skema alat, dan output alat langsung tetap asli, melindungi 12 giliran terakhir                  |
+| `passthrough` | Merutekan tanpa transformasi; mesin dilewati                                                                       |
 
 Profil adalah **batas atas, bukan batas bawah**: `mergeCompressionProfileOptions` dalam paket
-menolak mengizinkan penggantian oleh pemanggil membuka kembali jalur lossy yang telah ditutup profil, sehingga
-`preserveSystemPrompt: false` per langkah tidak dapat mengaktifkan kembali kompresi sistem di bawah `coding-safe`.
+menolak untuk membiarkan pemanggil menimpa membuka kembali jalur yang hilang yang ditutup oleh profil,
+sehingga `preserveSystemPrompt: false` per langkah tidak dapat mengaktifkan kembali kompresi sistem di bawah `coding-safe`.
 
-Diukur pada basis kode ini: `coding-safe` dan `balanced` menaikkan `minCompressChars` ke nilai
-maksimumnya dan mempertahankan sistem, skema alat, serta hasil alat secara native, sehingga sesi yang belum
-mengakumulasi riwayat akan berhenti pada `below_min_chars` dan mesin tidak mentransformasi apa pun. Itulah
-sebabnya default-nya adalah `aggressive`, bukan profil yang paling aman.
+Diukur pada basis kode ini: `coding-safe` dan `balanced` menaikkan `minCompressChars` ke
+maksimumnya dan menjaga sistem, skema alat, dan hasil alat tetap asli, sehingga sesi yang
+belum mengumpulkan riwayat berhenti pada `below_min_chars` dan mesin tidak mengubah apa pun.
+Itulah mengapa defaultnya adalah `aggressive` daripada profil teraman.
 
-Paket ini menentukan cakupan model dan profilnya sendiri dari konfigurasi lingkungannya.
-OmniRoute tidak pernah mendelegasikan keputusan tersebut: adapter menetapkan gerbang model ke cakupan paling
-ketat milik paket, sehingga pengaturan lingkungan host hanya dapat mempersempit daftar izin, tidak pernah
-memperluasnya melampaui bukti terukur OmniRoute.
+Paket menyelesaikan cakupan model dan profilnya sendiri dari konfigurasi lingkungannya.
+OmniRoute tidak pernah mendelegasikan keputusan: adaptor mengunci gerbang model ke cakupan
+paket yang paling ketat, sehingga pengaturan lingkungan host hanya dapat mempersempit daftar
+izin, tidak pernah memperluasnya melewati tanda terima yang diukur OmniRoute.
 
 ## Registri Engine
 
@@ -388,7 +388,7 @@ yang sensitif terhadap cache, dan sebagainya).
 
 ## Validasi
 
-Gate terfokus untuk area ini adalah:
+Gerbang fokus untuk area ini adalah:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Remia mūsų atvirojo kodo draugai
+## 🤝 Remiami mūsų atvirojo kodo draugai
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — atviroji pažangiausio lygio dirbtinio intelekto sistema · 2.8T parametrų · 1M žetonų kontekstas"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Atvirojo fronto intelektas · 2.8T parametrai · 1M žetonų kontekstas"/>
   </a>
 </p>
 
-> **Norite tapti atvirojo kodo draugu?** Tai įmonės, kurios remia atvirąjį kodą ir padeda „OmniRoute“ judėti pirmyn — o mes viešai nurodome, kur panaudojamas kiekvienas jų suteiktas žetonas. Susisiekite: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Norite prisijungti kaip atvirojo kodo draugas?** Tai yra įmonės, kurios remia atvirąjį kodą ir padeda OmniRoute veikti – ir mes viešai sakome, kur keliauja kiekvienas jų duotas žetonas. Susisiekite: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,38 +284,38 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Atvirojo kodo draugas steigėjas"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Įkūrėjas atvirojo kodo draugas"/>
     </td>
     <td>
-      Dėkojame <b>Kimi (Moonshot AI)</b>, mūsų atvirojo kodo draugui steigėjui, už šio projekto rėmimą! „Kimi“ yra DI laboratorija, sukūrusi atvirų svorių K2 ir K3 modelių šeimas — <b>Kimi K3</b> suteikia 1M žetonų konteksto langą, integruotą vaizdų apdorojimą ir pažangiausio lygio programavimo galimybes už gerokai mažesnę kainą nei uždarieji modeliai, taip pat iš karto veikia su „Claude Code“, „Codex“ ir visais programavimo įrankiais, kuriuos palaiko „OmniRoute“.
+      Dėkojame <b>Kimi (Moonshot AI)</b>, mūsų įkūrėjui atvirojo kodo draugui, už šio projekto palaikymą! Kimi yra AI laboratorija, kurianti atvirojo svorio K2 ir K3 modelių šeimas – <b>Kimi K3</b> siūlo 1M žetonų konteksto langą, natūralų matymą ir pažangaus lygio kodavimą už dalį uždarų modelių kainos, ir veikia iš karto su Claude Code, Codex ir visais kodavimo įrankiais, kuriuos aptarnauja OmniRoute.
       <br/><br/>
-      <b>Ką užtikrina „Kimi“ parama:</b> „Kimi“ API kreditai naudojami „OmniRoute“ DI patvirtinamo leidimų proceso etapui — <i>suliejimo patvirtinimui, kurį vykdo Kimi K3</i> ir kuris peržiūri kiekvieną pakeitimų užklausą prieš ją išleidžiant — bei kasdieniam funkcijų kūrimui. Visavertis „Kimi“ palaikymas teikiamas abiem kanalais: per tiesioginę <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) ir <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code programavimo planą</a> (OAuth ir API raktas). „OmniRoute“ taip pat yra pirmasis Brazilijos atvirojo kodo projektas „Kimi“ paramos programoje. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Gaukite „Kimi“ API raktą su 15 % papildomų kreditų →</b></a>
+      <b>Ką palaiko Kimi parama:</b> Kimi API kreditai palaiko OmniRoute AI patvirtintą išleidimo procesą – <i>sujungimo patvirtinimo etapą, kurį atlieka Kimi K3</i>, peržiūrintį kiekvieną „pull request“ prieš jį išleidžiant – plius kasdienį funkcijų kūrimą. Pirmos klasės Kimi palaikymas veikia abiem būdais: tiesioginiu <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) ir <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code kodavimo planu</a> (OAuth ir API raktas). OmniRoute taip pat yra pirmasis Brazilijos atvirojo kodo projektas Kimi palaikymo programoje. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Gaukite Kimi API raktą su 15% papildomų kreditų →</b></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="150">
       <a href="https://cheaperinference.com/?utm_source=omniroute">
-        <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
+        <img src="./public/providers/cli-generic.svg" width="64" alt="Pigesnis išvados darymas"/>
       </a>
-      <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
+      <br/><b>Pigesnis išvados darymas</b><br/><sub>cheaperinference.com</sub><br/><br/>
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Atvirojo kodo draugas"/>
     </td>
     <td>
-      Dėkojame <b>Cheaper Inference</b>, „OmniRoute“ atvirojo kodo draugui, už šio projekto rėmimą! „Cheaper Inference“ yra pagal kainą optimizuotas šliuzas, per vieną su „OpenAI“ suderinamą galinį tašką perparduodantis 42 pažangiausius modelius — „Claude“, GPT-5.x, „Gemini“, Kimi K3, GLM, „DeepSeek“, „Grok“ ir „MiniMax“ — bei nukreipiantis kiekvieną užklausą pigiausiam tinkamam teikėjui, niekada netaikant didesnės kainos už modelio kūrėjo kataloginę kainą.
+      Dėkojame <b>Cheaper Inference</b>, OmniRoute atvirojo kodo draugui, už šio projekto palaikymą! Cheaper Inference yra kainų reitingavimo vartai, kurie perparduoda 42 pažangiausius modelius – Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok ir MiniMax – už vieno OpenAI suderinamo galinio taško, nukreipdami kiekvieną užklausą į pigiausią tinkamą teikėją, niekada neapmokestindami daugiau nei modelio kūrėjo nustatyta kaina.
       <br/><br/>
-      <b>Visavertis palaikymas „OmniRoute“:</b> „Chat Completions“, savasis <code>/v1/responses</code> galinis taškas, vaizdų apdorojimas, įrankių iškvietimas ir 3 vaizdų modeliai (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, pasiekiami kaip <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Gaukite API raktą →</b></a>
+      <b>Pirmos klasės palaikymas OmniRoute:</b> Pokalbių užbaigimai, natūralus <code>/v1/responses</code> galinis taškas, vizija, įrankių iškvietimas ir 3 vaizdo modeliai (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, pasiekiami kaip <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Gaukite API raktą →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Nuorodos, pažymėtos <code>aff=omniroute</code>, yra partnerių nuorodos. Jos padeda finansuoti projektą jums nepatiriant jokių papildomų išlaidų.</sub>
+<sub>Nuorodos, pažymėtos <code>aff=omniroute</code>, yra partnerių nuorodos. Jos finansuoja projektą be jokių papildomų išlaidų jums.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Partnerių akcijos</b> — nemokami registracijos kuponai iš mūsų neremiamų teikėjų (spustelėkite, kad išskleistumėte)</sub></summary>
+<summary><sub><b>🎟️ Partnerių akcija</b> — nemokami registracijos kuponai iš teikėjų, kurių neremiame (spauskite, kad išskleistumėte)</sub></summary>
 
-<sub><i>Ši skiltis skirta tik rekomendacijų ir kuponų kodams. Remiamos partnerystės pateiktos pirmiau esančioje skiltyje <b>🤝 Remia mūsų atvirojo kodo draugai</b>. „OmniRoute“ nesieja jokie rėmimo ar partnerystės ryšiai su čia išvardytais teikėjais — tai vieši kuponai, kuriais gali pasinaudoti visi.</i></sub>
+<sub><i>Šiame skyriuje pateikiami tik persiuntimo/kuponų kodai. Remiamos partnerystės yra aukščiau esančiame skyriuje <b>🤝 Remiami mūsų atvirojo kodo draugai</b>. OmniRoute neturi rėmimo ar partnerystės su čia išvardytais teikėjais – tai yra vieši kuponai, kuriuos gali naudoti bet kas.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partnerių registracija · užsiregistravę gausite <b>$100 nemokamų kreditų</b> (nemokamas serveris, todėl tikėtina didesnė delsa — geriausiai tinka testavimui, o ne gamybinei aplinkai). Visavertis palaikymas „OmniRoute“ nuo <b>v3.8.50</b>: „Chat Completions“, su „Anthropic“ suderinamas duomenų perdavimo formatas ir su „OpenAI“ suderinamas kelias. Tarp galimų modelių yra <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ir kiti. <b><a href="https://agentrouter.org/register?aff=70LM">Pasiimkite savo $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partnerių registracija · <b>$100 nemokamų kreditų</b> užsiregistravus (nemokamas serveris, tikėtina didesnė delsa – geriausiai tinka testavimui, ne gamybai). Pirmos klasės palaikymas OmniRoute nuo <b>v3.8.50</b>: pokalbių užbaigimai, Anthropic suderinamas duomenų formatas ir OpenAI suderinamas kelias. Galimi modeliai: <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ir kiti. <b><a href="https://agentrouter.org/register?aff=70LM">Pasiimkite savo $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Partnerio nuoroda — „OmniRoute“ nesieja jokie rėmimo ar partnerystės ryšiai su šiuo teikėju.</i></sub>
+      <sub>⚠️ <i>Partnerių nuoroda – OmniRoute neturi rėmimo ar partnerystės su šiuo teikėju.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Žinote kitą teikėją, siūlantį dosnų nemokamą registracijos kuponą, kuris būtų naudingas „OmniRoute“ naudotojams? Sukurkite problemos įrašą, ir mes jį čia pridėsime.</sub>
+<sub>Žinote kitą teikėją, turintį dosnų nemokamos registracijos kuponą, kuris būtų naudingas OmniRoute vartotojams? Atidarykite problemą ir mes jį čia pridėsime.</sub>
 
 </details>
 
@@ -1226,21 +1226,21 @@ Kanoniniai rodikliai 2026-08-24: **1.029 unikalūs vaizdo įrašai** · **11.132
 <table>
   <tr><th align="left">Sluoksnis</th><th align="left">Technologija</th></tr>
   <tr><td nowrap><b>Vykdymo aplinka</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Kalba</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> kataloguose <code>src/</code> ir <code>open-sse/</code> (branduolyje nėra nė vieno <code>any</code> nuo v2.0)</td></tr>
+  <tr><td nowrap><b>Kalba</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> visame <code>src/</code> ir <code>open-sse/</code> (nulis <code>any</code> pagrindinėje dalyje nuo v2.0)</td></tr>
   <tr><td nowrap><b>Karkasas</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Duomenų bazė</b></td><td>better-sqlite3 (SQLite, WAL žurnalinimas) + LowDB (senasis JSON formatas) — 122 domeno moduliai, 178 migracijos</td></tr>
-  <tr><td nowrap><b>Atmintis</b></td><td>SQLite FTS5 viso teksto paieška + int8 kvantuoti vektoriniai įterpiniai, tipizuotas nykimas</td></tr>
-  <tr><td nowrap><b>Schemos</b></td><td>Zod 4 — MCP įrankių įvesties ir išvesties validavimas + API kontraktai</td></tr>
+  <tr><td nowrap><b>Duomenų bazė</b></td><td>better-sqlite3 (SQLite, WAL žurnalavimas) + LowDB (JSON paveldas) — 122 domenų moduliai, 182 migracijos</td></tr>
+  <tr><td nowrap><b>Atmintis</b></td><td>SQLite FTS5 pilno teksto + int8-kvantuoti vektoriniai įterpimai, tipizuotas skilimas</td></tr>
+  <tr><td nowrap><b>Schemos</b></td><td>Zod 4 — MCP įrankio I/O validavimas + API sutartys</td></tr>
   <tr><td nowrap><b>Protokolai</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Srautinis perdavimas</b></td><td>Server-Sent Events (SSE) + WebSocket tiltas (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Glaudinimas</b></td><td>12 variklių konvejeris — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentifikavimas ir saugumas</b></td><td>OAuth 2.0 (PKCE) + JWT + API raktai + ribotų teisių MCP autentifikavimas · AES-256-GCM saugomiems duomenims · DOMPurify</td></tr>
-  <tr><td nowrap><b>Maskavimas</b></td><td>wreq-js — JA3 / JA4 TLS kontrolinio atspaudo imitavimas, 3 lygių įgaliotasis serveris</td></tr>
-  <tr><td nowrap><b>Atsparumas</b></td><td>Grandinės pertraukiklis, eksponentinis delsos didinimas, apsauga nuo vienalaikių užklausų antplūdžio, automatinis kombinuotas savaiminis atkūrimas</td></tr>
-  <tr><td nowrap><b>Žurnalų registravimas</b></td><td>pino — struktūrizuoti JSON žurnalai su užklausos kontekstu</td></tr>
-  <tr><td nowrap><b>Testavimas</b></td><td>Node.js testų vykdyklė + Vitest — <b>daugiau nei 39 000 statinių testų deklaracijų</b> daugiau nei 5 100 sekamų testų failų (vienetinių, integracinių, E2E, saugumo, ekosistemos)</td></tr>
-  <tr><td nowrap><b>Platformos</b></td><td>Darbalaukis (Electron) · Android (Termux) · PWA (bet kuri naršyklė)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatinis publikavimas į npm ir Docker Hub išleidžiant versiją</td></tr>
+  <tr><td nowrap><b>Srautinis perdavimas</b></td><td>Serverio siunčiami įvykiai (SSE) + WebSocket tiltas (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Suspaudimas</b></td><td>12 variklių konvejeris — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentifikavimas ir saugumas</b></td><td>OAuth 2.0 (PKCE) + JWT + API raktai + MCP apribotas autentifikavimas · AES-256-GCM ramybės būsenoje · DOMPurify</td></tr>
+  <tr><td nowrap><b>Slaptumas</b></td><td>wreq-js — JA3 / JA4 TLS pirštų atspaudų apsimetinėjimas, 3 lygių tarpinis serveris</td></tr>
+  <tr><td nowrap><b>Atsparumas</b></td><td>Grandinės pertraukiklis, eksponentinis atsitraukimas, apsauga nuo perkrovos, automatinis kombinuotas savarankiškas atstatymas</td></tr>
+  <tr><td nowrap><b>Registravimas</b></td><td>pino — struktūrizuoti JSON žurnalai su užklausos kontekstu</td></tr>
+  <tr><td nowrap><b>Testavimas</b></td><td>Node.js testavimo vykdyklė + Vitest — <b>39 000+ statinių testų deklaracijų</b> per 5 100+ stebimų testų failų (vienetų, integracijos, E2E, saugumo, ekosistemos)</td></tr>
+  <tr><td nowrap><b>Platformos</b></td><td>Stalinis kompiuteris (Electron) · Android (Termux) · PWA (bet kuri naršyklė)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatinis npm publikavimas + Docker Hub išleidžiant</td></tr>
   <tr><td nowrap><b>Nuorodos</b></td><td><a href="https://omniroute.online">Svetainė</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

@@ -365,10 +365,17 @@ test("modelSyncScheduler starts once, honors env interval and syncs only active 
     scheduler.startModelSyncScheduler("http://127.0.0.1:7777", 1000);
     scheduler.startModelSyncScheduler("http://127.0.0.1:8888", 9999);
 
-    assert.equal(timers.timeouts.length, 1);
+    assert.equal(timers.timeouts.length, 2);
     assert.equal(timers.timeouts[0].ms, scheduler.MODEL_SYNC_STARTUP_DELAY_MS);
     assert.equal(timers.timeouts[0].unrefCalled, true);
+    // #13973: the recurring interval is phase-shifted against cleanup.ts's
+    // own 6h scheduler — armed only after the offset, never at boot.
+    assert.equal(timers.timeouts[1].ms, scheduler.MODEL_SYNC_STAGGER_OFFSET_MS);
+    assert.equal(timers.timeouts[1].unrefCalled, true);
+    assert.equal(timers.intervals.length, 0);
+    timers.timeouts[1].fn();
     assert.equal(timers.intervals.length, 1);
+    // The period itself is exactly the configured interval (no stagger added).
     assert.equal(timers.intervals[0].ms, 6 * 60 * 60 * 1000);
     assert.equal(timers.intervals[0].unrefCalled, true);
 
@@ -392,6 +399,50 @@ test("modelSyncScheduler starts once, honors env interval and syncs only active 
     assert.equal(timers.intervals[0].cleared, true);
   } finally {
     globalThis.fetch = originalFetch;
+    timers.restore();
+  }
+});
+
+test("#13973: phase offset delays the first periodic tick but never changes the configured period", async () => {
+  const timers = installTimerStubs();
+  const previousHours = process.env.MODEL_SYNC_INTERVAL_HOURS;
+  process.env.MODEL_SYNC_INTERVAL_HOURS = "4";
+
+  try {
+    const scheduler = await loadScheduler("phase-offset-period");
+    scheduler.startModelSyncScheduler("http://127.0.0.1:7777");
+    // Let the fire-and-forget codex revalidation import settle while the timer
+    // stubs are still installed, so its setTimeout(0) is captured here instead
+    // of arming a real loopback poll that leaks fetches into later tests.
+    await flushMicrotasks();
+
+    // No recurring timer exists at boot: arming it at boot is what made it
+    // collide with cleanup.ts's boot-anchored 6h interval.
+    assert.equal(timers.intervals.length, 0);
+    const phase = timers.timeouts.find((t) => t.ms === scheduler.MODEL_SYNC_STAGGER_OFFSET_MS);
+    assert.ok(phase, "expected a one-shot phase timer of MODEL_SYNC_STAGGER_OFFSET_MS");
+    assert.ok(scheduler.MODEL_SYNC_STAGGER_OFFSET_MS > 0);
+
+    phase.fn();
+    assert.equal(timers.intervals.length, 1);
+    // The operator-configured MODEL_SYNC_INTERVAL_HOURS=4 must be honored exactly.
+    assert.equal(timers.intervals[0].ms, 4 * 60 * 60 * 1000);
+
+    // Stopping before the phase fires must cancel the pending arm too.
+    scheduler.stopModelSyncScheduler();
+    assert.equal(timers.intervals[0].cleared, true);
+
+    timers.timeouts.length = 0;
+    timers.intervals.length = 0;
+    scheduler.startModelSyncScheduler("http://127.0.0.1:7777");
+    await flushMicrotasks();
+    const pending = timers.timeouts.find((t) => t.ms === scheduler.MODEL_SYNC_STAGGER_OFFSET_MS);
+    scheduler.stopModelSyncScheduler();
+    assert.equal(pending.cleared, true);
+    assert.equal(timers.intervals.length, 0);
+  } finally {
+    if (previousHours === undefined) delete process.env.MODEL_SYNC_INTERVAL_HOURS;
+    else process.env.MODEL_SYNC_INTERVAL_HOURS = previousHours;
     timers.restore();
   }
 });
@@ -445,7 +496,7 @@ test("modelSyncScheduler skips empty cycles and tolerates failing sync requests"
 test("test 12: default interval is 6h; env hours override; no-arg uses default", async () => {
   const source = fs.readFileSync(
     path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
-    "utf8",
+    "utf8"
   );
   assert.match(source, /DEFAULT_INTERVAL_MS\s*=\s*6\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
   assert.doesNotMatch(source, /DEFAULT_INTERVAL_MS\s*=\s*24\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
@@ -457,7 +508,7 @@ test("test 12: default interval is 6h; env hours override; no-arg uses default",
 test("test 12: MODEL_SYNC_INTERVAL_HOURS still wins over default", () => {
   const source = fs.readFileSync(
     path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
-    "utf8",
+    "utf8"
   );
   assert.match(source, /MODEL_SYNC_INTERVAL_HOURS/);
   assert.match(source, /envHours \* 60 \* 60 \* 1000/);

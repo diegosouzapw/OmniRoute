@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **Semantika ng gastos sa cache hit:** sa isang HIT ng semantic cache (`X-OmniRoute-Cache-Hit: true`), walang ginagawang upstream call, kaya ang `X-OmniRoute-Response-Cost` ay `0.0000000000` (ang **karagdagang** gastos sa paghahatid ng hit). Hiwalay na iniuulat sa `X-OmniRoute-Cost-Saved` ang orihinal/gastos na sana ay natamo. Dapat pagsamahin ng mga consumer ng billing ang `X-OmniRoute-Response-Cost` (walang gastos ang mga hit); maaaring pagsama-samahin ng cache analytics ang `X-OmniRoute-Cost-Saved`.
 
-## Mga Eksklusibong Pinamamahalaang Lease ng Session
+## Eksklusibong Pinamamahalaang Pagpapaupa ng Session
 
-Ang eksklusibong pinamamahalaang pag-lease ng session ay isang opt-in at client-neutral na kontrata sa pagruruta: isang aktibong may-ari ang humahawak sa isang kwalipikadong koneksyon ng OmniRoute. Hindi ito nagle-lease ng modelo, nangangailangan ng OAuth, tumutukoy sa partikular na client, o nangangailangan ng partikular na provider.
+Ang eksklusibong pinamamahalaang pagpapaupa ng session ay isang opt-in, client-neutral na kontrata sa pagruruta: isang aktibong may-ari ang humahawak ng isang karapat-dapat na koneksyon ng OmniRoute. Hindi ito nagpapaupa ng modelo, nangangailangan ng OAuth, nagpapakilala ng partikular na kliyente, o nangangailangan ng partikular na provider.
 
-Ang API key na ginagamit sa pagpapatotoo ay dapat may scope na `lease:exclusive` at tahasang hindi bakanteng listahan ng `allowedConnections`. Magkasamang ipinapatupad ng hangganan ng mutation sa database ang dalawang field kapag gumagawa ng key at nagsasagawa ng mga bahagyang update.
+Ang API key na nagpapatunay ay dapat may saklaw na `lease:exclusive` at isang tahasang hindi-walang laman na listahan ng `allowedConnections`. Ipinapatupad ng hangganan ng mutasyon ng database ang parehong field nang magkasama sa paggawa ng key at bahagyang pag-update.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Inilalantad ng matagumpay na mga tugon sa pagkuha, pag-renew, at pag-release ang mga timestamp, `state`, at ang eksaktong positibong `generation`, ngunit hindi kailanman ang napiling koneksyon o mga kredensyal. Ibinibigay ng pag-renew at pag-release ang generation sa JSON body:
+Ang matagumpay na pagkuha, pag-renew, at paglabas ng mga tugon ay naglalantad ng mga timestamp, `state`, at ang eksaktong positibong `generation`, ngunit hindi kailanman ang napiling koneksyon o mga kredensyal. Ang pag-renew at paglabas ay nagbibigay ng henerasyon sa JSON body:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ Inilalantad ng matagumpay na mga tugon sa pagkuha, pag-renew, at pag-release ang
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Maaaring tahasang humiling ang aktibong may-ari ng lease ng metadata sa pagpapakita na ligtas sa privacy para sa kasalukuyan nitong binding:
+Ang isang aktibong may-ari ng lease ay maaaring tahasang humiling ng privacy-safe na display metadata para sa kasalukuyang pagbubuklod nito:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ Maaaring tahasang humiling ang aktibong may-ari ng lease ng metadata sa pagpapak
 }
 ```
 
-Ang opt-in na status action na ito ay nililimitahan ng opaque na may-ari, napatotohanang pinamamahalaang API key, at eksaktong aktibong generation sa iisang transaksyon sa database. Ang `displayName` ay ang naka-trim na naka-configure na pangalan lamang ng koneksyon; ito ay `null` kapag walang umiiral na ligtas at naka-configure na pangalan. Hindi kailanman ipinapalit ng OmniRoute ang isang email o nabuong pagkakakilanlan ng account. Ang value ng provider ay isang hindi sensitibong label sa pagpapakita at hindi kailanman isang nabuong identifier ng compatible provider. Hindi kasama ang mga kredensyal, token, cookie, raw na koneksyon o mga API key id, mga hash ng may-ari, mga fencing secret, at panloob na data sa pagruruta.
+Ang opt-in na aksyon ng status na ito ay binabakuran ng opaque na may-ari, authenticated na pinamamahalaang API key, at eksaktong aktibong henerasyon sa isang transaksyon ng database. Ang `displayName` ay ang trimmed na configured na pangalan ng koneksyon lamang; ito ay `null` kapag walang ligtas na configured na pangalan. Hindi kailanman pinapalitan ng OmniRoute ang isang email o nabuong pagkakakilanlan ng account. Ang halaga ng provider ay isang hindi-sensitibong display label at hindi kailanman isang nabuong compatible-provider identifier. Ang mga kredensyal, token, cookies, raw na koneksyon o API key id, owner hashes, fencing secrets, at internal routing data ay hindi kasama.
 
-Ang mga lookup na may maling key, maling may-ari, lipas na generation, nawawala, nag-expire, na-release, at napawalang-bisa ay pawang nagbabalik ng parehong error na `409 LEASE_FENCE_STALE` nang walang metadata ng koneksyon. Ang client na nakatanggap ng tugon para sa paghihintay ng kapasidad ay walang aktibong binding na maaaring siyasatin. Kapag inililipat ng pagruruta ang isang aktibong lease, nananatiling valid ang parehong generation at atomikong ibinabalik ng status ang bagong binding, at hindi kailanman ang luma. Nananatiling hindi nagbabago ang mga umiiral na client dahil pinananatili ng mga tugon sa pagkuha, pag-renew, pag-release, at paghihintay ang dati nilang mga anyo.
+Ang maling key, maling may-ari, lumang henerasyon, nawawala, nag-expire, inilabas, at hindi wastong paghahanap ay lahat ay nagbabalik ng parehong `409 LEASE_FENCE_STALE` error nang walang metadata ng koneksyon. Ang isang kliyente na nakatanggap ng tugon sa paghihintay ng kapasidad ay walang aktibong pagbubuklod na susuriin. Kapag ang pagruruta ay naglilipat ng isang aktibong lease, ang parehong henerasyon ay nananatiling balido at ang status ay atomikong nagbabalik ng bagong pagbubuklod, hindi kailanman ang luma. Ang mga umiiral na kliyente ay nananatiling hindi nagbabago dahil ang pagkuha, pag-renew, paglabas, at paghihintay na mga tugon ay nagpapanatili ng kanilang mga nakaraang hugis.
 
-Hindi binabago ng kontratang ito ng server ang stock na OpenAI Codex `/status`. Kasalukuyang iniuulat ng stock na Codex ang model provider nito at built-in na estado ng pagpapatotoo/account ngunit hindi nito nire-render ang arbitraryong metadata ng account ng custom provider; dapat tawagin ng isang integrasyon ng client sa hinaharap ang action na ito at magpasya kung paano ipapakita ang `connection.displayName`.
+Ang kontrata ng server na ito ay hindi nagbabago ng stock OpenAI Codex `/status`. Ang stock Codex ay kasalukuyang nag-uulat ng provider ng modelo nito at built-in na authentication/account state ngunit hindi nagre-render ng arbitraryong custom na provider account metadata; ang isang mas huling integrasyon ng kliyente ay dapat tawagan ang aksyon na ito at magpasya kung paano ipakita ang `connection.displayName`.
 
-Pagkatapos, ibinibigay ng bawat pinamamahalaang kahilingan sa inference ang parehong control header:
+Ang bawat pinamamahalaang kahilingan sa inference ay nagbibigay ng parehong control header:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Kaagad na nililimitahan ang eksaktong may-ari, generation, aktibong koneksyon, at napatotohanang API key bago ang bawat sinusuportahang upstream na pagtatangka. Nabibigo ang muling paggamit sa may-ari at generation gamit ang ibang key kahit pinapahintulutan ng key na iyon ang parehong koneksyon. Hindi pine-persist, nila-log, pinananatili sa snapshot ng kahilingan, o ipinapasa upstream ang mga raw na may-ari.
+Ang eksaktong may-ari, henerasyon, aktibong koneksyon, at authenticated na API key ay binabakuran kaagad bago ang bawat suportadong upstream na pagtatangka. Ang pag-replay ng may-ari at henerasyon gamit ang isa pang key ay nabibigo kahit na pinapayagan ng key na iyon ang parehong koneksyon. Ang mga raw na may-ari ay hindi pinapanatili, inilalagay sa log, pinapanatili sa snapshot ng kahilingan, o ipinapasa sa upstream.
 
-Ang pansamantalang kompetisyon sa kapasidad ay nagbabalik ng HTTP `429` na may `Retry-After` at:
+Ang pansamantalang pagtatalo ay nagbabalik ng HTTP `429` na may `Retry-After` at:
 
 ```json
 {
@@ -157,27 +157,29 @@ Ang pansamantalang kompetisyon sa kapasidad ay nagbabalik ng HTTP `429` na may `
 }
 ```
 
-Nangangahulugan lamang ang tugon na ito na hindi bakante ang karaniwang hanay ng mga kwalipikadong koneksyon at ang bawat libreng kandidato ay hawak ng aktibong lease ng ibang may-ari. Pinananatili ng mga hindi sinusuportahang modelo/provider, hindi pagtutugma ng patakaran, cooldown, quota, kalagayan, at iba pang karaniwang pagkabigo sa pagiging kwalipikado ang kanilang mga umiiral na tugon ng OmniRoute.
+Ang tugon na ito ay nangangahulugan lamang na ang ordinaryong karapat-dapat na set ay hindi walang laman at ang bawat libreng kandidato ay hawak ng isang dayuhang aktibong lease. Ang mga hindi suportadong modelo/provider, hindi pagtutugma ng patakaran, cooldown, quota, kalusugan, at iba pang ordinaryong pagkabigo sa pagiging karapat-dapat ay nagpapanatili ng kanilang umiiral na mga tugon ng OmniRoute.
 
 ### `x-omniroute-compression`
 
-Override ng compression plan sa bawat kahilingan. Ito ang may pinakamataas na precedence—nangingibabaw sa override ng routing-combo, aktibong profile, auto-trigger, at Default ng panel. Mga value:
+Per-request na override ng compression plan. Pinakamataas na priyoridad — tinalo ang routing-combo override, ang aktibong profile, auto-trigger, at ang panel Default. Mga Halaga:
 
-| Value         | Epekto                                                                                                     |
-| ------------- | ---------------------------------------------------------------------------------------------------------- |
-| `off`         | Walang compression para sa kahilingang ito.                                                                |
-| `default`     | Ang Default profile na nagmula sa panel (binabalewala ang aktibong profile).                               |
-| `engine:<id>` | Isang engine kapag naka-enable, hal. `engine:rtk`.                                                         |
-| `<combo>`     | Isang pinangalanang combo, unang itinutugma ayon sa pangalan (case-insensitive), pagkatapos ay ayon sa id. |
+| Halaga        | Epekto                                                                                                                       |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Walang compression para sa kahilingang ito.                                                                                  |
+| `default`     | Ang panel-derived na Default profile (hindi pinapansin ang aktibong profile). Ang mga lossy engine ay nananatiling naka-off. |
+| `safe`        | Dedup at whitespace folding lamang.                                                                                          |
+| `allow-lossy` | Panatilihin ang operator plan para sa kahilingang ito, kabilang ang mga buod at style rewrites.                              |
+| `engine:<id>` | Isang solong engine kapag pinagana, hal. `engine:rtk`. Per-request na opt-in para sa engine na iyon.                         |
+| `<combo>`     | Isang pinangalanang combo, tinutugma muna sa pangalan (case-insensitive), pagkatapos ay sa id.                               |
 
-Mga tala:
+Mga Tala:
 
-- Binabalewala ang mga hindi kilalang value (hindi kailanman tinatanggihan ang kahilingan); babalik ang resolution sa normal na precedence ng operator.
-- Kung magkakapareho ang pangalan ng maraming combo, ipasa ang **id** ng combo para sa deterministikong pagtutugma.
-- Hindi maaaring piliin ayon sa pangalan ang isang combo na may pangalang `off` o `default` (unang binibigyang-kahulugan ang mga keyword na iyon); tukuyin ang ganitong combo gamit ang id nito.
-- Ang pangunahing switch ng compression ay isang mahigpit na gate: kapag naka-disable ang compression sa pangkalahatan, hindi ito maaaring i-enable ng header na ito.
+- Ang mga hindi kilalang halaga ay hindi pinapansin (hindi kailanman tinatanggihan ang kahilingan); ang resolusyon ay bumabagsak sa normal na priyoridad ng operator.
+- Kung maraming combo ang nagbabahagi ng pangalan, ipasa ang combo **id** para sa isang deterministic na tugma.
+- Ang isang combo na ang pangalan ay `off` o `default` ay hindi maaaring piliin sa pangalan (ang mga keyword na iyon ay binibigyang-kahulugan muna); i-reference ang naturang combo sa pamamagitan ng id nito.
+- Ang master compression switch ay isang matigas na gate: kapag ang compression ay hindi pinagana sa buong mundo, hindi ito maaaring paganahin ng header na ito.
 
-Ibinabalik sa response header ang inilapat na plan:
+Ang inilapat na plano ay inuulit pabalik sa header ng tugon:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>

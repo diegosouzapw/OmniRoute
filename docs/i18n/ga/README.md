@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Tacaíochtaí ó chairde an Fhoinse Oscailte
+## 🤝 Tacaíonn ár gCairde Foinse Oscailte linn
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Intleacht Réabhlóideach Oscailte · 2.8T paraiméadar · Comhthéacs de 1M comhartha"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Faisnéis Teorann Oscailte · 2.8T paraiméadair · Comhthéacs 1M-comhartha"/>
   </a>
 </p>
 
-> **Ar mhaith leat bheith linn mar Charde an Fhoinse Oscailte?** Is iad na cuideachtaí seo a thacaíonn le foinse oscailte agus a chuidíonn le OmniRoute teacht ar aghaidh — agus deimhnímid go poibli cá dteastaíonn gach comhartha a thugann siad dúinn. Déan teagmháil: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Ar mhaith leat a bheith páirteach mar Chara Foinse Oscailte?** Is iad seo na cuideachtaí a thacaíonn le foinse oscailte agus a chabhraíonn le OmniRoute a choinneáil ag gluaiseacht — agus deirimid go poiblí cá dtéann gach comhartha a thugann siad dúinn. Déan teagmháil: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,38 +284,38 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Carde Bunaitheach na Foinse Oscailte"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Cara Bunaithe Foinse Oscailte"/>
     </td>
     <td>
-      Buíochas le <b>Kimi (Moonshot AI)</b>, ár gCara Bunaitheach Foinse Oscailte, as an tionscadal seo a thacaíú! Is é Kimi an tsaotharlann intleachta artificial atá taobh thiar de na teaghlaigh samhlacha K2 agus K3 le meáchan oscailte — cuireann <b>Kimi K3</b> ar fáil comhthéacs de 1M comhartha, radharc dúchasach agus códú ar an leibhéal teorann ar bhlas an tsraithphraghsanna de mhodhanna dúnta, agus oibríonn sé as an mbosca le Claude Code, Codex agus gach uirlis códaithe a sheirbheálann OmniRoute.
+      Buíochas le <b>Kimi (Moonshot AI)</b>, ár gCara Bunaithe Foinse Oscailte, as tacú leis an tionscadal seo! Is é Kimi an tsaotharlann AI taobh thiar de theaghlaigh mhúnla K2 agus K3 le meáchan oscailte — seachadann <b>Kimi K3</b> fuinneog comhthéacs 1M-comhartha, fís dhúchasach agus códú ar leibhéal teorann ar chodán de phraghsanna múnlaí dúnta, agus oibríonn sé as an mbosca le Claude Code, Codex agus gach uirlis códaithe a fhreastalaíonn OmniRoute.
       <br/><br/>
-      <b>Ag cur cumhachta le tacaíochta Kimi:</b> Cumhachtaíonn creidmheasanna API Kimi feadhphíobáin nuashonrú a fhíoraítear le AI de OmniRoute — an chéim <i> Validation comhtháthaithe ag Kimi K3</i> a thaiscíonn gach iarratas tarraing roimh é a sheoladh — mar aon le forbairt gnéithe laethúil. Tacaíocht Kimi den chéad scoth seoltar ar an dá rille: an <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">API Kimi</a> díreach (<code>kimi-k3</code>) agus an <a href="https://www.kimi.com/code?aff=omniroute">plean códaithe Kimi Code</a> (OAuth agus eochair API). Is é OmniRoute an chéad tionscadal foinse oscailte Brasaíle chomh maith i gclár tacaíochta Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Faigh eochair API Kimi le 15% creidmheas breise →</b></a>
+      <b>Cad a chumhachtaíonn tacaíocht Kimi:</b> Cumhachtaíonn creidmheasanna API Kimi píblíne scaoilte AI-bhailíochtaithe OmniRoute — an chéim <i>bailíochtaithe cumaisc faoi thiomáint ag Kimi K3</i> a athbhreithníonn gach iarratas tarraingthe sula seoltar é — móide forbairt gnéithe laethúla. Seoltar tacaíocht Kimi den chéad scoth ar an dá iarnród: an <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> díreach (<code>kimi-k3</code>) agus an <a href="https://www.kimi.ai/code?aff=omniroute">plean códaithe Kimi Code</a> (OAuth agus eochair API). Is é OmniRoute an chéad tionscadal foinse oscailte Brasaíleach i gclár tacaíochta Kimi freisin. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Faigh eochair API Kimi le 15% creidmheasanna breise →</b></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="150">
       <a href="https://cheaperinference.com/?utm_source=omniroute">
-        <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
+        <img src="./public/providers/cli-generic.svg" width="64" alt="Inneall Inneall Níos Saoire"/>
       </a>
-      <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Cara na Foinse Oscailte"/>
+      <br/><b>Inneall Inneall Níos Saoire</b><br/><sub>cheaperinference.com</sub><br/><br/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Cara Foinse Oscailte"/>
     </td>
     <td>
-      Buíochas le <b>Cheaper Inference</b>, Cara Foinse Oscailte de OmniRoute, as an tionscadal seo a thacaíú! Is geata ráitíoch é Cheaper Inference a dhíolaíonn 42 samhail teorann — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok agus MiniMax — taobh thiar de chríochphointe amháin atá comhoiriúnach le OpenAI, ag ródáil gach iarratais chuig an soláthraí inchuírite is saoire gan riamh a ghearradh os cionn an phraghs liosta Déantóra an tsamhail.
+      Buíochas le <b>Cheaper Inference</b>, Cara Foinse Oscailte OmniRoute, as tacú leis an tionscadal seo! Is geata rangaithe ó thaobh costais é Cheaper Inference a athdhíolann 42 múnla teorann — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok agus MiniMax — taobh thiar de phointe deiridh amháin atá comhoiriúnach le OpenAI, ag ródú gach iarratais chuig an soláthraí incháilithe is saoire gan táille a ghearradh riamh os cionn praghas liosta an déantóra múnla.
       <br/><br/>
-      <b>Tacaíocht den chéad scoth i OmniRoute:</b> Comhlánaíochtaí Comhrá, an chríochphointe dúchasach <code>/v1/responses</code>, radharc, glao gairme agus 3 mhodh íomhá (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, inrochtana mar <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Faigh eochair API →</b></a>
+      <b>Tacaíocht den chéad scoth in OmniRoute:</b> Comhlánuithe Comhrá, an pointe deiridh dúchasach <code>/v1/responses</code>, fís, glaoch uirlisí agus 3 mhúnla íomhá (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, inrochtana mar <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Faigh eochair API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Ceangailte le <code>aff=omniroute</code> iad na naisc. Maoiníonn siad an tionscadal gan aon chostas breise ort.</sub>
+<sub>Is naisc chomhpháirtíochta iad naisc a bhfuil clib <code>aff=omniroute</code> orthu. Maoiníonn siad an tionscadal gan aon chostas breise ort.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Práchomhshóraigh Chairde</b> — cóipeanna saor in aisce ó sholáthraithe nach dtacaímid leo (cliceáil le leathnú)</sub></summary>
+<summary><sub><b>🎟️ Cur Chun Cinn Cleamhnaithe</b> — cúpóin clárúcháin saor in aisce ó sholáthraithe nach ndéanaimid urraíocht orthu (cliceáil chun leathnú)</sub></summary>
 
-<sub><i>Tá an rannán seo do chóipeanna tagartha/práchomhshóraigh amháin. Tá comhpháirtíochtaí urraíochta sa rannán <b>🤝 Tacaíochtaí ó chairde an Fhoinse Oscailte</b> thuas. Níl aon urraíocht nó comhpháirtíocht ag OmniRoute leis na soláthraithe liostaithe anseo — is cóipeanna poiblí iad seo is féidir le duine ar bith a úsáid.</i></sub>
+<sub><i>Tá an chuid seo le haghaidh cóid atreoraithe/cúpóin amháin. Tá comhpháirtíochtaí urraithe le fáil in <b>🤝 Tacaíonn ár gCairde Foinse Oscailte linn</b> thuas. Níl aon urraíocht ná comhpháirtíocht ag OmniRoute leis na soláthraithe atá liostaithe anseo — is cúpóin phoiblí iad seo is féidir le duine ar bith a úsáid.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — clárú comhfhreagrach · <b>$100 creidmheas saor in aisce</b> ar chlárú (freastalaí saor in aisce, bí ag súil le moill níos airde — is fearr le haghaidh tástála, ná táirgeadh). Tacaíocht den chéad scoth i OmniRoute ó <b>v3.8.50</b>: Comhlánaíochtaí Comhrá, an formáid sreanga comhoiriúnach le Anthropic agus an cosán comhoiriúnach le OpenAI. I measc na samhlacha atá ar fáil tá <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> agus tuilleadh. <b><a href="https://agentrouter.org/register?aff=70LM">Faigh do $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — clárú cleamhnaithe · <b>$100 creidmheasanna saor in aisce</b> ar chlárú (freastalaí saor in aisce, bí ag súil le moill níos airde — is fearr le haghaidh tástála, ní le haghaidh táirgeachta). Tacaíocht den chéad scoth in OmniRoute ó <b>v3.8.50</b>: Comhlánuithe Comhrá, an fhormáid sreinge atá comhoiriúnach le Anthropic agus an cosán atá comhoiriúnach le OpenAI. I measc na múnlaí atá ar fáil tá <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> agus níos mó. <b><a href="https://agentrouter.org/register?aff=70LM">Faigh do $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Nasc comhfhreagrach — níl aon urraíocht nó comhpháirtíocht ag OmniRoute leis an soláthraí seo.</i></sub>
+      <sub>⚠️ <i>Nasc cleamhnaithe — Níl aon urraíocht ná comhpháirtíocht ag OmniRoute leis an soláthraí seo.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>An bhfuil a fhios agat faoin soláthraí eile le cóip práchomhshóraigh saor in aisce flaithiúil ar fhabhrúsoirí úsáideoirí OmniRoute? Oscail ábhar agus cuirfimid é anseo.</sub>
+<sub>An bhfuil aithne agat ar sholáthraí eile le cúpón clárúcháin saor in aisce flaithiúil a théann chun tairbhe d'úsáideoirí OmniRoute? Oscail saincheist agus cuirfimid leis anseo é.</sub>
 
 </details>
 
@@ -1232,23 +1232,23 @@ Métrics canónacha ar 2026-08-24: **1,029 físeán uathúil** · **11,132,922 a
 </div>
 
 <table>
-  <tr><th align="left">Sraith</th><th align="left">Teicneolaíocht</th></tr>
-  <tr><td nowrap><b>Timpeallacht rite</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Teanga</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> ar fud <code>src/</code> agus <code>open-sse/</code> (gan aon <code>any</code> sa chroílár ó v2.0)</td></tr>
-  <tr><td nowrap><b>Creat</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Bunachar sonraí</b></td><td>better-sqlite3 (SQLite, iriseoireacht WAL) + LowDB (oidhreacht JSON) — 122 modúl fearainn, 178 aistriú</td></tr>
-  <tr><td nowrap><b>Cuimhne</b></td><td>Lántéacs SQLite FTS5 + leabuithe veicteora cainníochtaithe go int8, meath clóscríofa</td></tr>
-  <tr><td nowrap><b>Scéimeanna</b></td><td>Zod 4 — bailíochtú I/O uirlisí MCP + conarthaí API</td></tr>
+  <tr><th align="left">Ciseal</th><th align="left">Teicneolaíocht</th></tr>
+  <tr><td nowrap><b>Am Rith</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Teanga</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> ar fud <code>src/</code> agus <code>open-sse/</code> (gan aon <code>any</code> sa chroí ó v2.0)</td></tr>
+  <tr><td nowrap><b>Creatlach</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Bunachar Sonraí</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 modúl fearainn, 182 imirce</td></tr>
+  <tr><td nowrap><b>Cuimhne</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>Scéimí</b></td><td>Zod 4 — bailíochtú I/O uirlis MCP + conarthaí API</td></tr>
   <tr><td nowrap><b>Prótacail</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Sruthú</b></td><td>Server-Sent Events (SSE) + droichead WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Comhbhrú</b></td><td>Píblíne 12 inneall — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Fíordheimhniú &amp; slándáil</b></td><td>OAuth 2.0 (PKCE) + JWT + Eochracha API + fíordheimhniú MCP de réir raoin · AES-256-GCM ar fos · DOMPurify</td></tr>
-  <tr><td nowrap><b>Ceilt</b></td><td>wreq-js — aithris méarloirg TLS JA3 / JA4, seachfhreastalaí 3 leibhéal</td></tr>
-  <tr><td nowrap><b>Athléimneacht</b></td><td>Scoradán ciorcaid, cúlú easpónantúil, cosaint ar thréad toirní, féinleigheas teaglama uathoibríoch</td></tr>
-  <tr><td nowrap><b>Logáil</b></td><td>pino — logaí struchtúrtha JSON le comhthéacs iarratais</td></tr>
-  <tr><td nowrap><b>Tástáil</b></td><td>Reathaí tástála Node.js + Vitest — <b>39,000+ dearbhú tástála statach</b> thar 5,100+ comhad tástála rianaithe (aonadach, comhtháthaithe, E2E, slándála, éiceachórais)</td></tr>
-  <tr><td nowrap><b>Ardáin</b></td><td>Deasc (Electron) · Android (Termux) · PWA (brabhsálaí ar bith)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — foilsiú uathoibríoch chuig npm + Docker Hub tráth eisiúna</td></tr>
+  <tr><td nowrap><b>Sruthú</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Comhbhrú</b></td><td>Píblíne 12-inneall — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Fíordheimhniú &amp; slándáil</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM ar fos · DOMPurify</td></tr>
+  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-level proxy</td></tr>
+  <tr><td nowrap><b>Athléimneacht</b></td><td>Briseadh ciorcad, cúlú easpónantúil, frith-tréad-toirní, féin-leighis uath-chomhcheangail</td></tr>
+  <tr><td nowrap><b>Logáil</b></td><td>pino — loganna JSON struchtúrtha le comhthéacs iarratais</td></tr>
+  <tr><td nowrap><b>Tástáil</b></td><td>Node.js test runner + Vitest — <b>39,000+ dearbhú tástála statach</b> ar fud 5,100+ comhad tástála rianaithe (aonad, comhtháthú, E2E, slándáil, éiceachóras)</td></tr>
+  <tr><td nowrap><b>Ardáin</b></td><td>Deasc (Electron) · Android (Termux) · PWA (aon bhrabhsálaí)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — foilsiú uathoibríoch npm + Docker Hub ar scaoileadh</td></tr>
   <tr><td nowrap><b>Naisc</b></td><td><a href="https://omniroute.online">Suíomh Gréasáin</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

@@ -88,13 +88,13 @@ Content-Type: application/json
 
 ## Ekskluzīvas pārvaldītas sesijas nomas
 
-Ekskluzīva pārvaldīta sesijas noma ir piedalīšanās, klienta neitrāls maršrutēšanas līgums: viens aktīvs īpašnieks
-tur vienu derīgu OmniRoute savienojumu. Tas nenomā modeli, neprasa OAuth, neidentificē
-konkrētu klientu un neprasa konkrētu pakalpojumu sniedzēju.
+Ekskluzīva pārvaldīta sesijas noma ir izvēles, klientam neitrāls maršrutēšanas līgums: viens aktīvs īpašnieks
+tur vienu piemērotu OmniRoute savienojumu. Tas nenomā modeli, neprasa OAuth, neidentificē
+konkrētu klientu, vai neprasa konkrētu pakalpojumu sniedzēju.
 
-Autentificētajai API atslēgai ir jābūt ar scope `lease:exclusive` un skaidru nepukstu
-`allowedConnections` sarakstu. Datubāzes mutācijas robeža abus laukus piemēro kopā atslēgas
-izveidošanas un daļēju atjauninājumu laikā.
+Autentifikācijas API atslēgai jābūt ar darbības jomu `lease:exclusive` un skaidru, ne tukšu
+`allowedConnections` sarakstu. Datu bāzes mutācijas robeža nodrošina abus laukus kopā atslēgas
+izveides un daļēju atjauninājumu laikā.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Veiksmīgas iegūšanas, atjaunošanas un izlaišanas atbildes parāda laika zīmogus, `state` un precīzu pozitīvu
-`generation`, bet nekad izvēlēto savienojumu vai akreditācijas datus. Atjaunošana un izlaišana nodrošina
-generāciju JSON ķermenī:
+Veiksmīgas iegūšanas, atjaunošanas un atbrīvošanas atbildes atklāj laika zīmogus, `state` un precīzu pozitīvu
+`generation`, bet nekad izvēlēto savienojumu vai akreditācijas datus. Atjaunošana un atbrīvošana nodrošina
+ģenerāciju JSON pamattekstā:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ generāciju JSON ķermenī:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktīvās nomas īpašnieks var skaidri pieprasīt privātumu drošu displeja metadatus savai pašreizējai saitei:
+Aktīvs nomas īpašnieks var skaidri pieprasīt privātumu saglabājošus displeja metadatus savai pašreizējai saitei:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,38 +137,37 @@ Aktīvās nomas īpašnieks var skaidri pieprasīt privātumu drošu displeja me
 }
 ```
 
-Šo piedalīšanās statusa darbību ierobežo neredzamais īpašnieks, autentificētā pārvaldītā API atslēga un precīza
-aktīvā generācija vienā datubāzes transakcijā. `displayName` ir tikai iztīrīts konfigurēts
-savienojuma nosaukums; tas ir `null`, kad nav droša konfigurēta nosaukuma. OmniRoute nekad neaizstāj
-e-pastu vai ģenerētu konta identitāti. Pakalpojumu sniedzēja vērtība ir nejutīgs displeja iezīme un nekad
-nav ģenerēts saderīgs pakalpojumu sniedzēja identifikators. Akreditācijas dati, marķieri, sīkfaili, izejas savienojuma vai API
-atslēgu id, īpašnieka haši, aizsardzības noslēpumi un iekšējie maršrutēšanas dati tiek izslēgti.
+Šī izvēles statusa darbība tiek ierobežota ar necaurspīdīgu īpašnieku, autentificētu pārvaldītu API atslēgu un precīzu
+aktīvo ģenerāciju vienā datu bāzes transakcijā. `displayName` ir tikai apgriezts konfigurētais
+savienojuma nosaukums; tas ir `null`, ja nav droša konfigurēta nosaukuma. OmniRoute nekad neaizstāj
+e-pastu vai ģenerētu konta identitāti. Pakalpojumu sniedzēja vērtība ir nejutīga displeja etiķete un nekad
+nav ģenerēts saderīga pakalpojumu sniedzēja identifikators. Akreditācijas dati, marķieri, sīkfaili, neapstrādāti savienojuma vai API
+atslēgu ID, īpašnieku jaucējvērtības, ierobežojošie noslēpumi un iekšējie maršrutēšanas dati tiek izslēgti.
 
-Nepareizas atslēgas, nepareiza īpašnieka, novecojušas generācijas, trūkstošas, beigušās, izlaistas un anulētas meklēšanas visas
-atgriež to pašu `409 LEASE_FENCE_STALE` kļūdu bez savienojuma metadatiem. Klients, kas saņēma capacities-gaida atbildi, nav
-aktīva saite, kas jāpārbauda. Kad maršrutēšana pārejina aktīvu nomu,
-tā pati generācija paliek derīga un statuss atomiski atgriež jauno saiti, nekad veco.
-Esošie klienti paliek nemainīti, jo iegūšanas, atjaunošanas, izlaišanas un gaida atbildes saglabā
-to iepriekšējos formātus.
+Nepareiza atslēga, nepareizs īpašnieks, novecojusi ģenerācija, trūkstoši, beigušies, atbrīvoti un nederīgi meklējumi visi
+atgriež to pašu `409 LEASE_FENCE_STALE` kļūdu bez savienojuma metadatiem. Klients, kas saņēma jaudas gaidīšanas atbildi, nav aktīvi saistīts, lai to pārbaudītu. Kad maršrutēšana pāriet uz aktīvu nomu,
+tā pati ģenerācija paliek derīga, un statuss atomiski atgriež jauno saiti, nekad veco.
+Esošie klienti paliek nemainīgi, jo iegūšanas, atjaunošanas, atbrīvošanas un gaidīšanas atbildes saglabā
+savu iepriekšējo formu.
 
-Šis servera līgums nemaina parasto OpenAI Codex `/status`. Parastais Codex pašlaik ziņo savu
-pakalpojumu sniedzēja modeli un iebūvēto autentifikācijas/konta stāvokli, bet neizveido patvaļīgus pielāgotus
-pakalpojumu sniedzēja konta metadatus; vēlākai klienta integrācijai jāizsauc šī darbība un jāizlemj, kā
+Šis servera līgums nemaina standarta OpenAI Codex `/status`. Standarta Codex pašlaik ziņo par savu
+modeļa pakalpojumu sniedzēju un iebūvēto autentifikācijas/konta stāvokli, bet neatveido patvaļīgus pielāgotus
+pakalpojumu sniedzēja konta metadatus; vēlākai klienta integrācijai ir jāizsauc šī darbība un jāizlemj, kā
 parādīt `connection.displayName`.
 
-Katra pārvaldītā inference pieprasījuma piegādā abus kontrolparametru galvenes:
+Katrs pārvaldītais secinājumu pieprasījums pēc tam nodrošina abas kontroles galvenes:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Precīzs īpašnieks, generācija, aktīvais savienojums un autentificētā API atslēga tiek aizsargāti nekavējoties
-pirms katra atbalstītā augšupējā mēģinājuma. Atkārtojot īpašnieku un generāciju ar citu atslēgu, tas neizdodas pat tad, kad
-atī slēpj atļauj to pašu savienojumu. Neapstrādāti īpašnieki netiek saglabāti, reģistrēti, saglabāti pieprasījuma
-momentuzņēmumā vai nosūtīti augšupējā līmenī.
+Precīzs īpašnieks, ģenerācija, aktīvais savienojums un autentificētā API atslēga tiek ierobežoti nekavējoties
+pirms katra atbalstītā augšupielādes mēģinājuma. Īpašnieka un ģenerācijas atkārtota atskaņošana ar citu atslēgu neizdodas pat
+tad, ja šī atslēga atļauj to pašu savienojumu. Neapstrādāti īpašnieki netiek saglabāti, reģistrēti, saglabāti
+pieprasījuma momentuzņēmumā vai pārsūtīti augšup.
 
-Īslaicīga konkurence atgriež HTTP `429` ar `Retry-After` un:
+Pagaidu strīds atgriež HTTP `429` ar `Retry-After` un:
 
 ```json
 {
@@ -179,30 +178,32 @@ momentuzņēmumā vai nosūtīti augšupējā līmenī.
 }
 ```
 
-Šī atilde nozīmē tikai to, ka parastais derīgo kopa bija nepuksta un ikviens brīvais kandidāts bija
-turēts ar ārēju aktīvu nomu. neatbalstīti modeļi/pakalpojumu sniedzēji, politikas neatbilstība, atdzesēšana, kvota,
-veselība un citas parastās derīguma kļūdas saglabā to pašreizējās OmniRoute atbildes.
+Šī atbilde nozīmē tikai to, ka parastais piemēroto kopums nebija tukšs un katrs brīvais kandidāts bija
+aizņemts ar svešu aktīvu nomu. Neatbalstīti modeļi/pakalpojumu sniedzēji, politikas neatbilstība, atdzišana, kvota,
+veselība un citas parastās atbilstības kļūmes saglabā savas esošās OmniRoute atbildes.
 
 ### `x-omniroute-compression`
 
-Pieprasījuma līmeņa pārsniegums saspiešanas plānam. Augstākā priekšrocība — pārspēj maršrutēšanas-kombinācijas
-pārsniegumu, aktīvo profilu, automātisko aktivizēšanu un paneļa noklusējumu. Vērtības:
+Saspiešanas plāna pārrakstīšana katram pieprasījumam. Augstākā prioritāte — pārspēj maršrutēšanas kombinācijas
+pārrakstīšanu, aktīvo profilu, automātisko aktivizēšanu un paneļa noklusējumu. Vērtības:
 
-| Vērtība       | Efekts                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
-| `off`         | Nav saspiešanas šim pieprasījumam.                                                                      |
-| `default`     | No paneļa atvasinātais noklusējuma profils (ignorē aktīvo profilu).                                     |
-| `engine:<id>` | Vērtīga dzinēja, kad iespējots, piemēram, `engine:rtk`.                                                 |
-| `<combo>`     | Nosaukta kombinācija, vispirms atbilst pēc nosaukuma (bez lielo/mazo burtu atšķirības), pēc tam pēc id. |
+| Vērtība       | Efekts                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| `off`         | Šim pieprasījumam nav saspiešanas.                                                               |
+| `default`     | Paneļa atvasinātais noklusējuma profils (ignorē aktīvo profilu). Zaudējošie dzinēji ir izslēgti. |
+| `safe`        | Tikai dublikātu noņemšana un atstarpju salocīšana.                                               |
+| `allow-lossy` | Saglabājiet operatora plānu šim pieprasījumam, ieskaitot kopsavilkumus un stila pārrakstīšanu.   |
+| `engine:<id>` | Viens dzinējs, ja iespējots, piemēram, `engine:rtk`. Katra pieprasījuma izvēle šim dzinējam.     |
+| `<combo>`     | Nosaukta kombinācija, vispirms saskaņota pēc nosaukuma (nav reģistrjutīga), pēc tam pēc ID.      |
 
 Piezīmes:
 
-- Nezināmas vērtības tiek ignorētas (pieprasījums nekad netiek noraidīts); risinājums nonāk pie parastā operatora prioritātes.
-- Ja vairākas kombinācijas dala nosaukumu, izmantojiet kombinācijas **id** noteiktai atbilstībai.
-- Kombinācija, kuras nosaukums ir `off` vai `default`, nevar tikt izvēlēta pēc nosaukuma (šie atslēgvārdi tiek interpretēti vispirms); atsaucieties uz šādu kombināciju pēc tās id.
-- Galvenais saspiešanas slēdzis ir stingra vārti: kad saspiešana ir atspējota globāli, šī galvene to nevar iespējot.
+- Nezināmas vērtības tiek ignorētas (pieprasījums nekad netiek noraidīts); izšķirtspēja tiek nodota parastajai operatora prioritātei.
+- Ja vairākām kombinācijām ir viens nosaukums, nododiet kombinācijas **ID**, lai nodrošinātu deterministisku atbilstību.
+- Kombināciju, kuras nosaukums ir `off` vai `default`, nevar atlasīt pēc nosaukuma (šie atslēgvārdi tiek interpretēti pirmie); atsaucieties uz šādu kombināciju pēc tās ID.
+- Galvenais saspiešanas slēdzis ir stingrs vārti: ja saspiešana ir globāli atspējota, šī galvene to nevar iespējot.
 
-Lietotais plāns tiek atbildēts atpakaļ atbildes galvenē:
+Pielietotais plāns tiek atspoguļots atbildes galvenē:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>

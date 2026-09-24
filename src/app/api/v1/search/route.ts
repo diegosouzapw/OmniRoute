@@ -39,6 +39,7 @@ import {
 import { getSettings } from "@/lib/db/settings";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { saveCallLog } from "@/lib/usageDb";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -119,6 +120,7 @@ function buildDomainFilter(filters?: {
  * POST /v1/search — execute a web search
  */
 async function postHandler(request: Request, context: unknown) {
+  const requestStartTime = Date.now();
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -378,6 +380,32 @@ async function postHandler(request: Request, context: unknown) {
 
       return result.data!;
     });
+
+    // A cache hit short-circuits handleSearch() entirely, so none of its
+    // saveCallLog() calls (open-sse/handlers/search.ts) ever run — log this
+    // hit's own call_logs row here, or it never gets counted (#13928).
+    if (cached) {
+      saveCallLog({
+        method: "POST",
+        path: "/v1/search",
+        status: 200,
+        model: providerConfig.id,
+        provider: providerConfig.id,
+        duration: Date.now() - requestStartTime,
+        requestType: "search",
+        cacheSource: "semantic",
+        tokens: { prompt_tokens: 0, completion_tokens: 0 },
+        requestBody: {
+          query: body.query.slice(0, 200),
+          search_type: body.search_type,
+          max_results: clampedMaxResults,
+        },
+        responseBody: { results_count: searchResult.results?.length ?? 0, cached: true },
+        apiKeyId: policy.apiKeyInfo?.id || undefined,
+      }).catch(() => {
+        /* non-critical — logging must not block search response */
+      });
+    }
 
     // Record cost for budget tracking (skip cache hits — no provider cost)
     if (!cached && policy.apiKeyInfo?.id && searchResult.usage?.search_cost_usd > 0) {
