@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Հավաքածուի մակարդակով կրկնափորձերի միջև ուշացումը, որը ժամանակ է տալիս ժամանակավոր խնդիրների լուծման համար։",
       "targetTimeoutMs": "Թիրախի համար ոչ պարտադիր ժամանակի սահմանափակում։ Դատարկ թողնելու դեպքում ժառանգում է հարցման ընթացիկ ժամանակի սահմանափակումը, իսկ ավելի մեծ արժեքները սահմանափակվում են այդ արժեքով։",
       "comboTimeoutMs": "Ամբողջ կոմբոյի համար ոչ պարտադիր ժամանակային բյուջե՝ ըստ պատի ժամացույցի, բոլոր պահուստային թիրախների համար։ Դատարկ թողնելու դեպքում պահպանվում է կախվածությունը դադարեցնող 10-րոպեանոց սահմանափակումը, իսկ դրական արժեքը փոխարինում է այն։ Այս արժեքը պահեք Թիրախի ժամանակի սպառումից ավելի երկար, որպեսզի պահուստայինին անցնելու համար դեռ ժամանակ մնա։",
-      "disableSessionStickiness": "Յուրաքանչյուր հարցման դեպքում անցնել այլ կապի՝ ամբողջ զրույցն առաջին հաղորդագրության հեշով մեկ կապին ամրացնելու փոխարեն։ Գերակայում է համընդհանուր լռելյայն կարգավորման նկատմամբ։ Բազմափուլ զրույցներում հուշումների քեշի համընկնումները պահպանելու համար թողեք «Ժառանգել» տարբերակը։"
+      "disableSessionStickiness": "Յուրաքանչյուր հարցման դեպքում անցնել այլ կապի՝ ամբողջ զրույցն առաջին հաղորդագրության հեշով մեկ կապին ամրացնելու փոխարեն։ Գերակայում է համընդհանուր լռելյայն կարգավորման նկատմամբ։ Բազմափուլ զրույցներում հուշումների քեշի համընկնումները պահպանելու համար թողեք «Ժառանգել» տարբերակը։",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Արագ ձևանմուշներ",
     "templatesDescription": "Կիրառեք մեկնարկային պրոֆիլ, ապա կարգավորեք մոդելներն ու կազմաձևումը։",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Այս ձևանմուշին համապատասխանող՝ ներկայումս միացված մատակարարների/մոդելների պատճենը կպահվի որպես խմբագրվող կոմբինացիա։",
     "duplicateAutoComboFailedPrefix": "Չհաջողվեց կրկնօրինակել ավտոմատ կոմբինացիան՝",
     "duplicateAutoComboUnknownError": "Անհայտ սխալ",
-    "duplicateAutoComboTitle": "Ստեղծել ստատիկ կոմբինացիա {name}-ից"
+    "duplicateAutoComboTitle": "Ստեղծել ստատիկ կոմբինացիա {name}-ից",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Ծախսեր",

@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Kucheleweshwa kati ya majaribio ya kujaribu tena kiwango kilichowekwa, na kutoa muda wa kutatua masuala ya muda mfupi.",
       "targetTimeoutMs": "Muda wa mwisho wa hiari kwa kila lengo. Ikiwa ni tupu, hurithi muda wa mwisho wa ombi la sasa; thamani kubwa zaidi huwekewa kikomo cha muda huo.",
       "comboTimeoutMs": "Kikomo cha hiari cha muda halisi kwa mchanganyiko mzima katika malengo yote ya ubadilishaji baada ya hitilafu. Ikiwa ni tupu, husalia na kikomo cha kusimamisha kukwama cha dakika 10; thamani chanya hukibadilisha. Weka muda huu kuwa mrefu kuliko Muda wa mwisho wa lengo ili ubadilishaji baada ya hitilafu bado uwe na muda.",
-      "disableSessionStickiness": "Zungusha hadi kwenye muunganisho tofauti kwenye kila ombi badala ya kubandika mazungumzo yote kwenye muunganisho mmoja kwa kutumia hashi ya ujumbe wa kwanza. Hubatilisha chaguo-msingi la kimataifa. Acha kwenye Inherit ili kuhifadhi prompt-cache hits kwa soga za zamu nyingi."
+      "disableSessionStickiness": "Zungusha hadi kwenye muunganisho tofauti kwenye kila ombi badala ya kubandika mazungumzo yote kwenye muunganisho mmoja kwa kutumia hashi ya ujumbe wa kwanza. Hubatilisha chaguo-msingi la kimataifa. Acha kwenye Inherit ili kuhifadhi prompt-cache hits kwa soga za zamu nyingi.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Violezo vya haraka",
     "templatesDescription": "Tumia wasifu wa kuanzia, kisha rekebisha modeli na usanidi.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Hii itachukua picha ya watoa huduma/watolei sambazwa sasa yanayolingana na kioo hiki katika combo inayoedit.",
     "duplicateAutoComboFailedPrefix": "Imeshindwa kuiga combo ya otomatiki:",
     "duplicateAutoComboUnknownError": "Hitilafai isiyojulikana",
-    "duplicateAutoComboTitle": "Tengeneza combo thabiti kutoka {name}"
+    "duplicateAutoComboTitle": "Tengeneza combo thabiti kutoka {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Gharama",

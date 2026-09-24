@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Id-dewmien bejn tentattivi mill-ġdid fil-livell tas-sett, biex il-problemi temporanji jingħataw ħin biex jissolvew.",
       "targetTimeoutMs": "Limitu taż-żmien fakultattiv għal kull mira. Jekk jitħalla vojt, jiret il-limitu taż-żmien tat-talba attwali; valuri akbar jiġu limitati għal dak il-limitu.",
       "comboTimeoutMs": "Baġit fakultattiv ta’ ħin reali għall-combo kollu, għall-miri alternattivi kollha. Jekk jitħalla vojt, jinżamm il-limitu ta’ sikurezza ta’ 10 minuti; valur pożittiv jissostitwih. Żomm dan itwal mil-limitu taż-żmien għall-mira sabiex il-qlib għal mira alternattiva xorta jkollu biżżejjed ħin.",
-      "disableSessionStickiness": "Aqleb għal konnessjoni differenti ma' kull talba minflok torbot konverżazzjoni sħiħa ma' konnessjoni waħda permezz tal-hash tal-ewwel messaġġ. Dan jieħu post il-konfigurazzjoni prestabbilita globali. Ħallih fuq Inherit biex tippreserva l-hits fil-cache tal-prompt għal chats b'diversi skambji."
+      "disableSessionStickiness": "Aqleb għal konnessjoni differenti ma' kull talba minflok torbot konverżazzjoni sħiħa ma' konnessjoni waħda permezz tal-hash tal-ewwel messaġġ. Dan jieħu post il-konfigurazzjoni prestabbilita globali. Ħallih fuq Inherit biex tippreserva l-hits fil-cache tal-prompt għal chats b'diversi skambji.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Mudelli ta' malajr",
     "templatesDescription": "Applika profil inizjali, imbagħad aġġusta l-mudelli u l-konfigurazzjoni.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Dan se joħloq snapshot tal-fornituri/mudelli konnessi bħalissa li jaqblu ma’ din is-sagoma, f’kombinazzjoni li tista’ tiġi editjata.",
     "duplicateAutoComboFailedPrefix": "Ma rnexxilniex nidduplikaw il-kombinazzjoni awtomatika:",
     "duplicateAutoComboUnknownError": "Żball mhux magħruf",
-    "duplicateAutoComboTitle": "Oħloq kombinazzjoni statika minn {name}"
+    "duplicateAutoComboTitle": "Oħloq kombinazzjoni statika minn {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Spejjeż",

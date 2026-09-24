@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "ਸੈੱਟ-ਪੱਧਰੀ ਮੁੜ-ਕੋਸ਼ਿਸ਼ਾਂ ਵਿਚਕਾਰ ਦੇਰੀ, ਤਾਂ ਜੋ ਅਸਥਾਈ ਸਮੱਸਿਆਵਾਂ ਨੂੰ ਹੱਲ ਹੋਣ ਲਈ ਸਮਾਂ ਮਿਲ ਸਕੇ।",
       "targetTimeoutMs": "ਹਰੇਕ ਟੀਚੇ ਲਈ ਵਿਕਲਪਿਕ ਸਮਾਂ-ਸੀਮਾ। ਖਾਲੀ ਹੋਣ 'ਤੇ ਮੌਜੂਦਾ ਬੇਨਤੀ ਸਮਾਂ-ਸੀਮਾ ਵਿਰਾਸਤ ਵਿੱਚ ਮਿਲਦੀ ਹੈ; ਵੱਡੇ ਮੁੱਲ ਉਸ ਸਮਾਂ-ਸੀਮਾ ਤੱਕ ਸੀਮਿਤ ਕੀਤੇ ਜਾਂਦੇ ਹਨ।",
       "comboTimeoutMs": "ਸਾਰੇ ਫੇਲਓਵਰ ਟੀਚਿਆਂ ਲਈ ਵਿਕਲਪਿਕ ਪੂਰੇ ਕੌਂਬੋ ਦਾ ਅਸਲ-ਸਮਾਂ ਬਜਟ। ਖਾਲੀ ਹੋਣ 'ਤੇ 10-ਮਿੰਟ ਦਾ ਹੈਂਗ-ਸਟਾਪ ਬਰਕਰਾਰ ਰਹਿੰਦਾ ਹੈ; ਇੱਕ ਧਨਾਤਮਕ ਮੁੱਲ ਇਸਨੂੰ ਬਦਲ ਦਿੰਦਾ ਹੈ। ਇਸਨੂੰ ਟੀਚਾ ਸਮਾਂ-ਸੀਮਾ ਨਾਲੋਂ ਵੱਧ ਰੱਖੋ, ਤਾਂ ਜੋ ਫੇਲਓਵਰ ਲਈ ਹਾਲੇ ਵੀ ਸਮਾਂ ਰਹੇ।",
-      "disableSessionStickiness": "ਪਹਿਲੇ ਸੁਨੇਹੇ ਦੇ ਹੈਸ਼ ਰਾਹੀਂ ਪੂਰੀ ਗੱਲਬਾਤ ਨੂੰ ਇੱਕ ਕਨੈਕਸ਼ਨ ਨਾਲ ਜੋੜ ਕੇ ਰੱਖਣ ਦੀ ਬਜਾਏ, ਹਰ ਬੇਨਤੀ ਲਈ ਕਿਸੇ ਵੱਖਰੇ ਕਨੈਕਸ਼ਨ 'ਤੇ ਬਦਲੋ। ਇਹ ਗਲੋਬਲ ਡਿਫੌਲਟ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰਦਾ ਹੈ। ਬਹੁ-ਵਾਰੀ ਚੈਟਾਂ ਲਈ ਪ੍ਰੌਮਪਟ-ਕੈਸ਼ ਹਿੱਟਾਂ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਣ ਵਾਸਤੇ Inherit 'ਤੇ ਛੱਡੋ।"
+      "disableSessionStickiness": "ਪਹਿਲੇ ਸੁਨੇਹੇ ਦੇ ਹੈਸ਼ ਰਾਹੀਂ ਪੂਰੀ ਗੱਲਬਾਤ ਨੂੰ ਇੱਕ ਕਨੈਕਸ਼ਨ ਨਾਲ ਜੋੜ ਕੇ ਰੱਖਣ ਦੀ ਬਜਾਏ, ਹਰ ਬੇਨਤੀ ਲਈ ਕਿਸੇ ਵੱਖਰੇ ਕਨੈਕਸ਼ਨ 'ਤੇ ਬਦਲੋ। ਇਹ ਗਲੋਬਲ ਡਿਫੌਲਟ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰਦਾ ਹੈ। ਬਹੁ-ਵਾਰੀ ਚੈਟਾਂ ਲਈ ਪ੍ਰੌਮਪਟ-ਕੈਸ਼ ਹਿੱਟਾਂ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਣ ਵਾਸਤੇ Inherit 'ਤੇ ਛੱਡੋ।",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "ਤੁਰੰਤ ਟੈਂਪਲੇਟ",
     "templatesDescription": "ਇੱਕ ਸ਼ੁਰੂਆਤੀ ਪ੍ਰੋਫਾਈਲ ਲਾਗੂ ਕਰੋ, ਫਿਰ ਮਾਡਲਾਂ ਅਤੇ ਸੰਰਚਨਾ ਨੂੰ ਵਿਵਸਥਿਤ ਕਰੋ।",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "ਇਹ ਇਸ ਟੈਂਪਲੇਟ ਨਾਲ ਮੇਲ ਖਾਂਦੇ ਮੌਜੂਦਾ ਕਨੈਕਟ ਕੀਤੇ ਪ੍ਰਦਾਤਾਵਾਂ/ਮਾਡਲਾਂ ਦਾ ਸਨੈਪਸ਼ਾਟ ਲੈ ਕੇ ਇੱਕ ਸੰਪਾਦਨਯੋਗ ਕੌਂਬੋ ਬਣਾਏਗਾ।",
     "duplicateAutoComboFailedPrefix": "ਆਟੋ-ਕੌਂਬੋ ਦੀ ਨਕਲ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ:",
     "duplicateAutoComboUnknownError": "ਅਣਜਾਣ ਗਲਤੀ",
-    "duplicateAutoComboTitle": "{name} ਤੋਂ ਇੱਕ ਸਥਿਰ ਕੌਂਬੋ ਬਣਾਓ"
+    "duplicateAutoComboTitle": "{name} ਤੋਂ ਇੱਕ ਸਥਿਰ ਕੌਂਬੋ ਬਣਾਓ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "ਲਾਗਤਾਂ",

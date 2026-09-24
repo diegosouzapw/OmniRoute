@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "सेट-लेव्हल पुन्हा प्रयत्न करण्याच्या प्रयत्नांमध्ये विलंब, क्षणिक समस्यांचे निराकरण करण्यासाठी वेळ देते.",
       "targetTimeoutMs": "प्रत्येक लक्ष्यासाठी पर्यायी कालबाह्यता. रिक्त ठेवल्यास सध्याच्या विनंतीची कालबाह्यता वारशाने घेतली जाते; मोठी मूल्ये त्या कालबाह्यतेपर्यंत मर्यादित केली जातात.",
       "comboTimeoutMs": "सर्व फेलओव्हर लक्ष्यांसाठी संपूर्ण कॉम्बोचे पर्यायी वास्तविक-वेळ बजेट. रिक्त ठेवल्यास 10 मिनिटांचा हँग-स्टॉप कायम राहतो; धन मूल्याने तो बदलला जातो. फेलओव्हरसाठी पुरेसा वेळ मिळावा म्हणून हे लक्ष्य कालबाह्यतेपेक्षा जास्त ठेवा.",
-      "disableSessionStickiness": "पहिल्या-संदेश हॅशद्वारे संपूर्ण संभाषण एकाच कनेक्शनवर पिन करण्याऐवजी प्रत्येक विनंतीवर वेगळ्या कनेक्शनवर रोटेट करा. ग्लोबल डीफॉल्ट ओव्हरराइड करते. मल्टी-टर्न चॅट्ससाठी प्रॉम्प्ट-कॅशे हिट्स जतन करण्यासाठी Inherit वर ठेवा."
+      "disableSessionStickiness": "पहिल्या-संदेश हॅशद्वारे संपूर्ण संभाषण एकाच कनेक्शनवर पिन करण्याऐवजी प्रत्येक विनंतीवर वेगळ्या कनेक्शनवर रोटेट करा. ग्लोबल डीफॉल्ट ओव्हरराइड करते. मल्टी-टर्न चॅट्ससाठी प्रॉम्प्ट-कॅशे हिट्स जतन करण्यासाठी Inherit वर ठेवा.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "द्रुत टेम्पलेट्स",
     "templatesDescription": "प्रारंभिक प्रोफाइल लागू करा, त्यानंतर मॉडेल्स आणि कॉन्फिग समायोजित करा.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "या टेम्पलेटशी जुळणारे सध्या कनेक्ट केलेले प्रदाता/मॉडेल्स संपादनयोग्य कॉम्बोमध्ये स्नॅपशॉट घेईल.",
     "duplicateAutoComboFailedPrefix": "ऑटोकॉम्बो डुप्लिकेट करण्यात अपयश:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटी",
-    "duplicateAutoComboTitle": "{name} मधून स्थिर कॉम्बो तयार करा"
+    "duplicateAutoComboTitle": "{name} मधून स्थिर कॉम्बो तयार करा",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "खर्च",

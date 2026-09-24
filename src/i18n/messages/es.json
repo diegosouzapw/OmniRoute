@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Retraso entre reintentos de nivel establecido, lo que da tiempo a los problemas transitorios para resolverse.",
       "targetTimeoutMs": "Tiempo de espera opcional por destino. Si se deja vacío, hereda el tiempo de espera actual de la solicitud; los valores superiores se limitan a ese tiempo de espera.",
       "comboTimeoutMs": "Presupuesto opcional de tiempo total para toda la combinación en todos los destinos de conmutación por error. Si se deja vacío, se mantiene el límite de seguridad de 10 minutos para bloqueos; un valor positivo lo sustituye. Debe ser mayor que el tiempo de espera del destino para que la conmutación por error siga teniendo tiempo.",
-      "disableSessionStickiness": "Cambia a una conexión diferente en cada solicitud, en lugar de fijar toda una conversación a una sola conexión mediante el hash del primer mensaje. Anula el valor predeterminado global. Déjalo en Heredar para conservar los aciertos de la caché de prompts en chats con varios turnos."
+      "disableSessionStickiness": "Cambia a una conexión diferente en cada solicitud, en lugar de fijar toda una conversación a una sola conexión mediante el hash del primer mensaje. Anula el valor predeterminado global. Déjalo en Heredar para conservar los aciertos de la caché de prompts en chats con varios turnos.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Plantillas rápidas",
     "templatesDescription": "Aplica un perfil inicial y luego ajusta los modelos y la configuración.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Esto capturará los proveedores/modelos conectados actualmente que coincidan con esta plantilla en una combinación editable.",
     "duplicateAutoComboFailedPrefix": "Error al duplicar la combinación automática:",
     "duplicateAutoComboUnknownError": "Error desconocido",
-    "duplicateAutoComboTitle": "Crear una combinación estática de {name}"
+    "duplicateAutoComboTitle": "Crear una combinación estática de {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Costos",

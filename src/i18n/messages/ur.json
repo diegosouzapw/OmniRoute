@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "سیٹ لیول کی دوبارہ کوشش کی کوششوں کے درمیان تاخیر، عارضی مسائل کو حل کرنے کا وقت دیتا ہے۔",
       "targetTimeoutMs": "ہر ہدف کے لیے اختیاری ٹائم آؤٹ۔ خالی چھوڑنے پر موجودہ درخواست کا ٹائم آؤٹ وراثت میں ملتا ہے؛ بڑی اقدار اسی ٹائم آؤٹ تک محدود کر دی جاتی ہیں۔",
       "comboTimeoutMs": "تمام فیل اوور اہداف کے لیے پورے کومبو کا اختیاری مجموعی دورانیہ۔ خالی چھوڑنے پر 10 منٹ کا ہینگ-اسٹاپ برقرار رہتا ہے؛ مثبت قدر اسے بدل دیتی ہے۔ اسے ہدف کے ٹائم آؤٹ سے زیادہ رکھیں تاکہ فیل اوور کے لیے وقت باقی رہے۔",
-      "disableSessionStickiness": "پہلے پیغام کے ہیش کے ذریعے پوری گفتگو کو ایک کنکشن پر پن کرنے کے بجائے ہر درخواست پر ایک مختلف کنکشن پر روٹیٹ کریں۔ یہ گلوبل ڈیفالٹ کو اوور رائیڈ کرتا ہے۔ ملٹی ٹرن چیٹس کے لیے پرامپٹ کیش ہٹس کو برقرار رکھنے کے لیے اسے Inherit پر چھوڑیں۔"
+      "disableSessionStickiness": "پہلے پیغام کے ہیش کے ذریعے پوری گفتگو کو ایک کنکشن پر پن کرنے کے بجائے ہر درخواست پر ایک مختلف کنکشن پر روٹیٹ کریں۔ یہ گلوبل ڈیفالٹ کو اوور رائیڈ کرتا ہے۔ ملٹی ٹرن چیٹس کے لیے پرامپٹ کیش ہٹس کو برقرار رکھنے کے لیے اسے Inherit پر چھوڑیں۔",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "فوری ٹیمپلیٹس",
     "templatesDescription": "ابتدائی پروفائل لاگو کریں، پھر ماڈلز اور کنفیگریشن کو ایڈجسٹ کریں۔",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "یہ اس ٹیمپلیٹ سے ملنے والے موجودہ منسلک فراہم کنندگان/ماڈلز کو ایڈیٹ ایبل کمبو میں اسنیپ شاট لے گا۔",
     "duplicateAutoComboFailedPrefix": "آٹو کمبو ڈپلیکیٹ کرنے میں ناکام:",
     "duplicateAutoComboUnknownError": "نامعلوم خرابی",
-    "duplicateAutoComboTitle": "{name} سے ایک جامد کمبو بنائیں"
+    "duplicateAutoComboTitle": "{name} سے ایک جامد کمبو بنائیں",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "اخراجات",

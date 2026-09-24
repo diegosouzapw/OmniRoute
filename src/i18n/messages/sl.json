@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Zamik med ponovnimi poskusi na ravni nabora, ki začasnim težavam omogoči dovolj časa za razrešitev.",
       "targetTimeoutMs": "Izbirna časovna omejitev za posamezen cilj. Če je polje prazno, se podeduje trenutna časovna omejitev zahteve; večje vrednosti so omejene na to časovno omejitev.",
       "comboTimeoutMs": "Izbirni skupni časovni okvir kombinacije za vse cilje ob preklopu. Če je polje prazno, ostane 10-minutna varovalka pred zastojem; pozitivna vrednost jo nadomesti. Ta vrednost naj bo daljša od časovne omejitve cilja, da ostane dovolj časa za preklop.",
-      "disableSessionStickiness": "Ob vsaki zahtevi preklopite na drugo povezavo, namesto da bi celoten pogovor pripeli na eno povezavo z zgoščeno vrednostjo prvega sporočila. Preglasi globalno privzeto nastavitev. Pustite nastavljeno na Podeduj, da ohranite zadetke predpomnilnika pozivov pri večkrožnih klepetih."
+      "disableSessionStickiness": "Ob vsaki zahtevi preklopite na drugo povezavo, namesto da bi celoten pogovor pripeli na eno povezavo z zgoščeno vrednostjo prvega sporočila. Preglasi globalno privzeto nastavitev. Pustite nastavljeno na Podeduj, da ohranite zadetke predpomnilnika pozivov pri večkrožnih klepetih.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Hitre predloge",
     "templatesDescription": "Uporabite začetni profil, nato prilagodite modele in konfiguracijo.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "S tem boste trenutno povezane ponudnike/modele, ki se ujemajo s to predlogo, zajeli v kombinacijo, ki jo je mogoče urejati.",
     "duplicateAutoComboFailedPrefix": "Podvajanje samodejne kombinacije ni uspelo:",
     "duplicateAutoComboUnknownError": "Neznana napaka",
-    "duplicateAutoComboTitle": "Ustvari statično kombinacijo iz {name}"
+    "duplicateAutoComboTitle": "Ustvari statično kombinacijo iz {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Stroški",

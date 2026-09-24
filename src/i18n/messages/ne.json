@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "सेट-स्तरीय पुनःप्रयासहरूबीचको ढिलाइ, जसले अस्थायी समस्याहरू समाधान हुन समय दिन्छ।",
       "targetTimeoutMs": "प्रत्येक लक्ष्यका लागि वैकल्पिक टाइमआउट। खाली छोड्दा हालको अनुरोध टाइमआउट इनहेरिट हुन्छ; ठूला मानहरू उक्त टाइमआउटसम्म सीमित गरिन्छन्।",
       "comboTimeoutMs": "सबै फेलओभर लक्ष्यहरूमा लागू हुने सम्पूर्ण कम्बोको वैकल्पिक वास्तविक-समय बजेट। खाली छोड्दा १०-मिनेटको ह्याङ-स्टप कायम रहन्छ; धनात्मक मानले यसलाई प्रतिस्थापन गर्छ। फेलओभरका लागि अझै समय रहोस् भनेर यसलाई लक्ष्य टाइमआउटभन्दा लामो राख्नुहोस्।",
-      "disableSessionStickiness": "पहिलो सन्देशको ह्यासका आधारमा सम्पूर्ण कुराकानीलाई एउटै कनेक्सनमा बाँध्नुको सट्टा प्रत्येक अनुरोधमा फरक कनेक्सन प्रयोग गर्नुहोस्। यसले ग्लोबल पूर्वनिर्धारित सेटिङलाई ओभरराइड गर्छ। बहु-चरणीय च्याटहरूमा प्रम्प्ट-क्यास हिटहरू कायम राख्न Inherit मै छोड्नुहोस्।"
+      "disableSessionStickiness": "पहिलो सन्देशको ह्यासका आधारमा सम्पूर्ण कुराकानीलाई एउटै कनेक्सनमा बाँध्नुको सट्टा प्रत्येक अनुरोधमा फरक कनेक्सन प्रयोग गर्नुहोस्। यसले ग्लोबल पूर्वनिर्धारित सेटिङलाई ओभरराइड गर्छ। बहु-चरणीय च्याटहरूमा प्रम्प्ट-क्यास हिटहरू कायम राख्न Inherit मै छोड्नुहोस्।",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "द्रुत टेम्प्लेटहरू",
     "templatesDescription": "सुरुवाती प्रोफाइल लागू गर्नुहोस्, त्यसपछि मोडेल र कन्फिग समायोजन गर्नुहोस्।",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "यसले यो टेम्प्लेटसँग मेल खाने हाल जडान भएका प्रदायक/मोडेलहरूको स्न्यापसट लिएर सम्पादनयोग्य कम्बो बनाउनेछ।",
     "duplicateAutoComboFailedPrefix": "स्वचालित कम्बो डुप्लिकेट गर्न असफल भयो:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटि",
-    "duplicateAutoComboTitle": "{name} बाट स्थिर कम्बो सिर्जना गर्नुहोस्"
+    "duplicateAutoComboTitle": "{name} बाट स्थिर कम्बो सिर्जना गर्नुहोस्",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "लागत",

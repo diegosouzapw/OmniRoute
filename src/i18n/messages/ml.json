@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "സെറ്റ്-തലത്തിലുള്ള പുനഃശ്രമങ്ങൾക്കിടയിലെ കാലതാമസം; താൽക്കാലിക പ്രശ്നങ്ങൾ പരിഹരിക്കപ്പെടാൻ ഇത് സമയം നൽകുന്നു.",
       "targetTimeoutMs": "ഓരോ ടാർഗെറ്റിനുമുള്ള ഐച്ഛിക ടൈംഔട്ട്. ശൂന്യമായി വിട്ടാൽ നിലവിലെ റിക്വസ്റ്റ് ടൈംഔട്ട് പാരമ്പര്യമായി സ്വീകരിക്കും; അതിലും വലിയ മൂല്യങ്ങൾ ആ ടൈംഔട്ടിലേക്ക് പരിമിതപ്പെടുത്തും.",
       "comboTimeoutMs": "എല്ലാ ഫെയിൽഓവർ ടാർഗെറ്റുകളിലുമുള്ള മുഴുവൻ കോംബോയ്ക്കുമുള്ള ഐച്ഛിക വാൾ-ക്ലോക്ക് സമയപരിധി. ശൂന്യമായി വിട്ടാൽ 10 മിനിറ്റ് ഹാങ്-സ്റ്റോപ്പ് നിലനിർത്തും; പോസിറ്റീവ് മൂല്യം അതിന് പകരമാകും. ഫെയിൽഓവറിന് തുടർന്നും സമയം ലഭിക്കുന്നതിന് ഇത് ടാർഗെറ്റ് ടൈംഔട്ടിനേക്കാൾ ദൈർഘ്യമുള്ളതാക്കുക.",
-      "disableSessionStickiness": "ആദ്യ സന്ദേശത്തിന്റെ ഹാഷ് അടിസ്ഥാനമാക്കി ഒരു സംഭാഷണം മുഴുവൻ ഒരേ കണക്ഷനിൽ നിലനിർത്തുന്നതിനുപകരം, ഓരോ അഭ്യർത്ഥനയിലും മറ്റൊരു കണക്ഷനിലേക്ക് മാറുക. ഇത് ആഗോള ഡിഫോൾട്ടിനെ അസാധുവാക്കുന്നു. ഒന്നിലധികം ഘട്ടങ്ങളുള്ള ചാറ്റുകളിൽ പ്രോംപ്റ്റ്-കാഷ് ഹിറ്റുകൾ നിലനിർത്താൻ Inherit എന്നതിൽ തുടരുക."
+      "disableSessionStickiness": "ആദ്യ സന്ദേശത്തിന്റെ ഹാഷ് അടിസ്ഥാനമാക്കി ഒരു സംഭാഷണം മുഴുവൻ ഒരേ കണക്ഷനിൽ നിലനിർത്തുന്നതിനുപകരം, ഓരോ അഭ്യർത്ഥനയിലും മറ്റൊരു കണക്ഷനിലേക്ക് മാറുക. ഇത് ആഗോള ഡിഫോൾട്ടിനെ അസാധുവാക്കുന്നു. ഒന്നിലധികം ഘട്ടങ്ങളുള്ള ചാറ്റുകളിൽ പ്രോംപ്റ്റ്-കാഷ് ഹിറ്റുകൾ നിലനിർത്താൻ Inherit എന്നതിൽ തുടരുക.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "ദ്രുത ടെംപ്ലേറ്റുകൾ",
     "templatesDescription": "ഒരു ആരംഭ പ്രൊഫൈൽ പ്രയോഗിച്ച ശേഷം മോഡലുകളും കോൺഫിഗറേഷനും ക്രമീകരിക്കുക.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "ഈ ടെംപ്ലേറ്റുമായി പൊരുത്തപ്പെടുന്ന, നിലവിൽ കണക്റ്റ് ചെയ്തിരിക്കുന്ന പ്രൊവൈഡർമാരുടെയും മോഡലുകളുടെയും ഒരു സ്നാപ്പ്ഷോട്ട് എഡിറ്റ് ചെയ്യാവുന്ന കോംബോയാക്കി മാറ്റും.",
     "duplicateAutoComboFailedPrefix": "ഓട്ടോ-കോംബോ പകർത്തുന്നതിൽ പരാജയപ്പെട്ടു:",
     "duplicateAutoComboUnknownError": "അജ്ഞാത പിശക്",
-    "duplicateAutoComboTitle": "{name}-ൽ നിന്ന് ഒരു സ്റ്റാറ്റിക് കോംബോ സൃഷ്ടിക്കുക"
+    "duplicateAutoComboTitle": "{name}-ൽ നിന്ന് ഒരു സ്റ്റാറ്റിക് കോംബോ സൃഷ്ടിക്കുക",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "ചെലവുകൾ",

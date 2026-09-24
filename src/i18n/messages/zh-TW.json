@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "設定級別重試嘗試之間的延遲，為暫時性問題提供解決時間。",
       "targetTimeoutMs": "選用的個別目標逾時。留空會沿用目前的請求逾時；較大的值將以該逾時為上限。",
       "comboTimeoutMs": "選用的整個組合執行時間上限，涵蓋所有容錯移轉目標。留空會保留 10 分鐘的防卡死限制；正值則會取代此限制。請將此值設為長於目標逾時，讓容錯移轉仍有足夠時間。",
-      "disableSessionStickiness": "在每次請求時輪換到不同的連線，而不是根據首則訊息雜湊將整個對話固定到單一連線。覆寫全域預設值。保留為「繼承」以保留多輪對話的提示快取命中效果。"
+      "disableSessionStickiness": "在每次請求時輪換到不同的連線，而不是根據首則訊息雜湊將整個對話固定到單一連線。覆寫全域預設值。保留為「繼承」以保留多輪對話的提示快取命中效果。",
+      "connectionAwareExpansion": "開啟後，本組合會在輪轉前把每個供應商步驟展開成依帳號的目標。繼承使用全域預設（關）。關閉則保持依供應商輪轉。",
+      "stickyLimit": "輪詢黏滯批大小：連續成功請求發給同一目標後再切到下一個。留空繼承全域黏滯限制；填 1 即每次請求都輪轉。"
     },
     "templatesTitle": "快捷模板",
     "templatesDescription": "先套用一個初始模板，再按需調整模型和設定。",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "這將把與此模板匹配的目前連線提供者/模型快照到可編輯的組合中。",
     "duplicateAutoComboFailedPrefix": "複製自動組合失敗：",
     "duplicateAutoComboUnknownError": "未知錯誤",
-    "duplicateAutoComboTitle": "從{name}建立靜態組合"
+    "duplicateAutoComboTitle": "從{name}建立靜態組合",
+    "stickyLimitEffective": "生效 {value}（{source}）",
+    "stickyLimitSourceCombo": "本組合",
+    "stickyLimitSourceComboDefaults": "組合預設",
+    "stickyLimitSourceGlobal": "全域預設",
+    "connectionAwareExpansion": "依帳號展開",
+    "triStateInherit": "繼承",
+    "connectionAwareExpansionOn": "開",
+    "connectionAwareExpansionOff": "關",
+    "promptCacheAffinityHint": "提示快取親和會優先於輪詢/加權在已釘帳號之間的輪轉。若需要嚴格輪轉，請到設定 → 組合預設關閉該選項。"
   },
   "costs": {
     "title": "成本",

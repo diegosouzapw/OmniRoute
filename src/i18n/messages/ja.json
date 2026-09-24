@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "設定レベルの再試行間の遅延により、一時的な問題を解決する時間が与えられます。",
       "targetTimeoutMs": "ターゲットごとのタイムアウト（任意）。空欄の場合は現在のリクエストタイムアウトを継承し、それより大きい値はそのタイムアウトを上限として制限されます。",
       "comboTimeoutMs": "すべてのフェイルオーバーターゲットにまたがる、コンボ全体の実時間上限（任意）。空欄の場合は10分間のハング停止制限が維持され、正の値を指定するとその値に置き換わります。フェイルオーバーの時間を確保するため、ターゲットのタイムアウトより長く設定してください。",
-      "disableSessionStickiness": "最初のメッセージのハッシュによって会話全体を1つの接続に固定する代わりに、リクエストごとに異なる接続にローテーションします。グローバルデフォルトを上書きします。マルチターンチャットのプロンプトキャッシュヒットを維持するには、Inheritのままにしてください。"
+      "disableSessionStickiness": "最初のメッセージのハッシュによって会話全体を1つの接続に固定する代わりに、リクエストごとに異なる接続にローテーションします。グローバルデフォルトを上書きします。マルチターンチャットのプロンプトキャッシュヒットを維持するには、Inheritのままにしてください。",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "クイックテンプレート",
     "templatesDescription": "初期プロファイルを適用してから、モデルと設定を調整します。",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "このテンプレートに一致する現在接続されているプロバイダー/モデルを編集可能なコンボとしてスナップショットします。",
     "duplicateAutoComboFailedPrefix": "オートコンボの複製に失敗しました：",
     "duplicateAutoComboUnknownError": "不明なエラー",
-    "duplicateAutoComboTitle": "{name}から静的コンボを作成"
+    "duplicateAutoComboTitle": "{name}から静的コンボを作成",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "コスト",

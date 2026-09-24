@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Opóźnienie między próbami ponowienia na poziomie zestawu, dające czas na rozwiązanie problemów przejściowych.",
       "targetTimeoutMs": "Opcjonalny limit czasu dla każdego celu. Puste pole powoduje odziedziczenie bieżącego limitu czasu żądania; większe wartości są ograniczane do tego limitu.",
       "comboTimeoutMs": "Opcjonalny całkowity budżet czasu zegarowego kombinacji dla wszystkich celów przełączania awaryjnego. Puste pole zachowuje 10-minutowe zabezpieczenie przed zawieszeniem; wartość dodatnia je zastępuje. Ustaw wartość dłuższą niż limit czasu celu, aby pozostał czas na przełączenie awaryjne.",
-      "disableSessionStickiness": "Rotuj do innego połączenia przy każdym żądaniu zamiast przypinać całą konwersację do jednego połączenia na podstawie skrótu (hash) pierwszej wiadomości. Nadpisuje globalną wartość domyślną. Pozostaw jako Inherit, aby zachować trafienia prompt-cache dla czatów wieloturowych."
+      "disableSessionStickiness": "Rotuj do innego połączenia przy każdym żądaniu zamiast przypinać całą konwersację do jednego połączenia na podstawie skrótu (hash) pierwszej wiadomości. Nadpisuje globalną wartość domyślną. Pozostaw jako Inherit, aby zachować trafienia prompt-cache dla czatów wieloturowych.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Szybkie szablony",
     "templatesDescription": "Zastosuj profil startowy, a następnie dostosuj models i konfigurację.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Spowoduje to przechwycenie aktualnie połączonych dostawców/modeli pasujących do tego szablonu w edytowalnej kombinacji.",
     "duplicateAutoComboFailedPrefix": "Nie udało się skopiować automatycznej kombinacji:",
     "duplicateAutoComboUnknownError": "Nieznany błąd",
-    "duplicateAutoComboTitle": "Utwórz statyczną kombinację z {name}"
+    "duplicateAutoComboTitle": "Utwórz statyczną kombinację z {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Koszty",

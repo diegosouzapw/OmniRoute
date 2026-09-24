@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "ସେଟ୍-ସ୍ତରୀୟ ପୁନଃଚେଷ୍ଟାଗୁଡ଼ିକ ମଧ୍ୟରେ ବିଳମ୍ବ, ଯାହା ଅସ୍ଥାୟୀ ସମସ୍ୟାଗୁଡ଼ିକୁ ସମାଧାନ ହେବା ପାଇଁ ସମୟ ଦିଏ।",
       "targetTimeoutMs": "ପ୍ରତ୍ୟେକ ଟାର୍ଗେଟ୍ ପାଇଁ ଇଚ୍ଛାଧୀନ ସମୟସୀମା। ଖାଲି ରଖିଲେ ବର୍ତ୍ତମାନର ଅନୁରୋଧ ସମୟସୀମା ଉତ୍ତରାଧିକାର ହୁଏ; ଅଧିକ ମୂଲ୍ୟଗୁଡ଼ିକୁ ସେହି ସମୟସୀମାରେ ସୀମିତ କରାଯାଏ।",
       "comboTimeoutMs": "ସମସ୍ତ ଫେଲଓଭର୍ ଟାର୍ଗେଟ୍ ପାଇଁ ଇଚ୍ଛାଧୀନ ସମ୍ପୂର୍ଣ୍ଣ-କମ୍ବୋ ୱାଲ୍-କ୍ଲକ୍ ସମୟ ବଜେଟ୍। ଖାଲି ରଖିଲେ 10-ମିନିଟ୍ର ହ୍ୟାଙ୍ଗ୍-ଷ୍ଟପ୍ ବଜାୟ ରହେ; ଏକ ଧନାତ୍ମକ ମୂଲ୍ୟ ଏହାକୁ ବଦଳାଏ। ଫେଲଓଭର୍ ପାଇଁ ଯଥେଷ୍ଟ ସମୟ ରହିବାକୁ ଏହାକୁ ଟାର୍ଗେଟ୍ ସମୟସୀମାଠାରୁ ଅଧିକ ରଖନ୍ତୁ।",
-      "disableSessionStickiness": "ପ୍ରଥମ ସନ୍ଦେଶର ହ୍ୟାଶ୍ ଆଧାରରେ ସମ୍ପୂର୍ଣ୍ଣ କଥୋପକଥନକୁ ଗୋଟିଏ ସଂଯୋଗରେ ସ୍ଥିର ରଖିବା ପରିବର୍ତ୍ତେ, ପ୍ରତ୍ୟେକ ଅନୁରୋଧରେ ଏକ ଭିନ୍ନ ସଂଯୋଗକୁ ପରିବର୍ତ୍ତନ କରନ୍ତୁ। ଏହା ଗ୍ଲୋବାଲ୍ ଡିଫଲ୍ଟକୁ ଓଭରରାଇଡ୍ କରେ। ବହୁ-ପର୍ଯ୍ୟାୟ ଚାଟ୍ଗୁଡ଼ିକ ପାଇଁ ପ୍ରମ୍ପ୍ଟ-କ୍ୟାଶ୍ ହିଟ୍ ବଜାୟ ରଖିବାକୁ ଏହାକୁ Inheritରେ ରଖନ୍ତୁ।"
+      "disableSessionStickiness": "ପ୍ରଥମ ସନ୍ଦେଶର ହ୍ୟାଶ୍ ଆଧାରରେ ସମ୍ପୂର୍ଣ୍ଣ କଥୋପକଥନକୁ ଗୋଟିଏ ସଂଯୋଗରେ ସ୍ଥିର ରଖିବା ପରିବର୍ତ୍ତେ, ପ୍ରତ୍ୟେକ ଅନୁରୋଧରେ ଏକ ଭିନ୍ନ ସଂଯୋଗକୁ ପରିବର୍ତ୍ତନ କରନ୍ତୁ। ଏହା ଗ୍ଲୋବାଲ୍ ଡିଫଲ୍ଟକୁ ଓଭରରାଇଡ୍ କରେ। ବହୁ-ପର୍ଯ୍ୟାୟ ଚାଟ୍ଗୁଡ଼ିକ ପାଇଁ ପ୍ରମ୍ପ୍ଟ-କ୍ୟାଶ୍ ହିଟ୍ ବଜାୟ ରଖିବାକୁ ଏହାକୁ Inheritରେ ରଖନ୍ତୁ।",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "ଦ୍ରୁତ ଟେମ୍ପଲେଟ୍ଗୁଡ଼ିକ",
     "templatesDescription": "ଏକ ପ୍ରାରମ୍ଭିକ ପ୍ରୋଫାଇଲ୍ ପ୍ରୟୋଗ କରନ୍ତୁ, ତା’ପରେ ମଡେଲ୍ ଏବଂ କନଫିଗ୍ ସମାୟୋଜନ କରନ୍ତୁ।",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "ଏହା ଏହି ଟେମ୍ପ୍ଲେଟ୍ ସହ ମେଳ ଖାଉଥିବା ବର୍ତ୍ତମାନ ସଂଯୁକ୍ତ ପ୍ରଦାନକାରୀ/ମଡେଲ୍ଗୁଡ଼ିକର ଏକ ସ୍ନାପ୍ସଟ୍ ନେଇ ତାହାକୁ ଏକ ସମ୍ପାଦନଯୋଗ୍ୟ କମ୍ବୋରେ ପରିଣତ କରିବ।",
     "duplicateAutoComboFailedPrefix": "ସ୍ୱୟଂଚାଳିତ କମ୍ବୋର ନକଲ କରିବାରେ ବିଫଳ:",
     "duplicateAutoComboUnknownError": "ଅଜଣା ତ୍ରୁଟି",
-    "duplicateAutoComboTitle": "{name} ରୁ ଏକ ସ୍ଥିର କମ୍ବୋ ସୃଷ୍ଟି କରନ୍ତୁ"
+    "duplicateAutoComboTitle": "{name} ରୁ ଏକ ସ୍ଥିର କମ୍ବୋ ସୃଷ୍ଟି କରନ୍ତୁ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "ଖର୍ଚ୍ଚ",

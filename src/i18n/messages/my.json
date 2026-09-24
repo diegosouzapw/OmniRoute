@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "ယာယီပြဿနာများ ပြေလည်ရန် အချိန်ပေးသည့် set-level ပြန်လည်ကြိုးစားမှုများအကြား စောင့်ဆိုင်းချိန်။",
       "targetTimeoutMs": "ပစ်မှတ်တစ်ခုချင်းစီအတွက် ရွေးချယ်သတ်မှတ်နိုင်သော အချိန်ကုန်ဆုံးမှု။ ဗလာထားပါက လက်ရှိ တောင်းဆိုမှု အချိန်ကုန်ဆုံးမှုကို ဆက်ခံမည်ဖြစ်ပြီး ပိုကြီးသောတန်ဖိုးများကို ထိုအချိန်ကုန်ဆုံးမှုအထိ ကန့်သတ်မည်။",
       "comboTimeoutMs": "Failover ပစ်မှတ်အားလုံးအတွက် Combo တစ်ခုလုံး၏ ရွေးချယ်သတ်မှတ်နိုင်သော အမှန်တကယ်ကြာချိန် ကန့်သတ်ချက်။ ဗလာထားပါက 10 မိနစ်ကြာ ရပ်တန့်ခြင်းမရှိမှု ကာကွယ်ချက်ကို ဆက်လက်အသုံးပြုမည်ဖြစ်ပြီး အပေါင်းတန်ဖိုးတစ်ခု သတ်မှတ်ပါက ၎င်းကို အစားထိုးမည်။ Failover အတွက် အချိန်ကျန်ရှိစေရန် ဤတန်ဖိုးကို ပစ်မှတ် အချိန်ကုန်ဆုံးမှုထက် ပိုကြာအောင်ထားပါ။",
-      "disableSessionStickiness": "စကားဝိုင်းတစ်ခုလုံးကို ပထမမက်ဆေ့ချ် hash ဖြင့် ချိတ်ဆက်မှုတစ်ခုတည်းတွင် ပုံသေထားမည့်အစား တောင်းဆိုမှုတိုင်းတွင် မတူညီသော ချိတ်ဆက်မှုတစ်ခုသို့ ပြောင်းသုံးပါ။ Global မူလသတ်မှတ်ချက်ကို အစားထိုးပါမည်။ အလှည့်များစွာပါသော ချတ်များအတွက် prompt-cache hit များကို ထိန်းသိမ်းရန် Inherit အဖြစ်ထားပါ။"
+      "disableSessionStickiness": "စကားဝိုင်းတစ်ခုလုံးကို ပထမမက်ဆေ့ချ် hash ဖြင့် ချိတ်ဆက်မှုတစ်ခုတည်းတွင် ပုံသေထားမည့်အစား တောင်းဆိုမှုတိုင်းတွင် မတူညီသော ချိတ်ဆက်မှုတစ်ခုသို့ ပြောင်းသုံးပါ။ Global မူလသတ်မှတ်ချက်ကို အစားထိုးပါမည်။ အလှည့်များစွာပါသော ချတ်များအတွက် prompt-cache hit များကို ထိန်းသိမ်းရန် Inherit အဖြစ်ထားပါ။",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "အမြန်သုံး တမ်းပလိတ်များ",
     "templatesDescription": "အစပြုပရိုဖိုင်တစ်ခုကို အသုံးချပြီးနောက် မော်ဒယ်များနှင့် config ကို ချိန်ညှိပါ။",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "ဤလုပ်ဆောင်ချက်သည် လက်ရှိချိတ်ဆက်ထားပြီး ဤတမ်းပလိတ်နှင့် ကိုက်ညီသော ဝန်ဆောင်မှုပေးသူများ/မော်ဒယ်များကို တည်းဖြတ်နိုင်သည့် ပေါင်းစပ်မှုတစ်ခုအဖြစ် လက်ရှိအခြေအနေအတိုင်း မှတ်တမ်းတင်မည်။",
     "duplicateAutoComboFailedPrefix": "အလိုအလျောက်ပေါင်းစပ်မှုကို မိတ္တူပွား၍မရပါ:",
     "duplicateAutoComboUnknownError": "မသိသော အမှား",
-    "duplicateAutoComboTitle": "{name} မှ တည်ငြိမ်သော ပေါင်းစပ်မှုတစ်ခု ဖန်တီးရန်"
+    "duplicateAutoComboTitle": "{name} မှ တည်ငြိမ်သော ပေါင်းစပ်မှုတစ်ခု ဖန်တီးရန်",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "ကုန်ကျစရိတ်များ",
