@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — නොමිලේ AI ගේට්වේ
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — කේතීකරණය කිසිදා නවත්වන්න එපා. සෑම AI මෙවලමක්ම → සපයන්නන් 359ක් — 150+ නොමිලේ — එක් endpoint එකක් හරහා. Claude Code, Codex, Cursor, Cline, Copilot සහ Antigravity නොමිලේ Claude / GPT / Gemini වෙත auto-fallback සමඟින්. RTK + Caveman stacked compression මගින් 15–95% tokens (~89% සාමාන්යයෙන්) ඉතිරි කරයි — කිසිදා සීමාවන් ඉක්මවා නොයයි. AI සපයන්නන් 359ක් · නොමිලේ tiers 150+ක් · මසකට නොමිලේ tokens ~1.62Bක් · routing strategies 19ක් · ආරම්භ කිරීමට $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — කේතකරණය කිසිදා නවත්වන්න එපා. සෑම AI මෙවලමක්ම → සපයන්නන් 358ක් — 150+ නොමිලේ — එක් අවසාන ලක්ෂ්යයක් හරහා. Claude Code, Codex, Cursor, Cline, Copilot සහ Antigravity නොමිලේ Claude / GPT / Gemini වෙත ස්වයංක්රීය පසුබෑමක් සමඟින්. RTK + Caveman ස්ථර සම්පීඩනය 15–95% ටෝකන ඉතිරි කරයි (~89% සාමාන්ය) — කිසිදා සීමාවන් ඉක්මවා නොයයි. AI සපයන්නන් 358ක් · නොමිලේ ස්ථර 150+ · මසකට නොමිලේ ටෝකන ~1.62B · මාර්ගගත කිරීමේ උපාය මාර්ග 19ක් · ආරම්භ කිරීමට $0."/>
 
 </div>
 
@@ -214,20 +214,20 @@
 
 <div align="center">
 
-## 🆓 ස්ථාපනය කළ විගස ක්රියා කරයි — යතුරු නැත, වින්යාස කිරීමක් නැත
+## 🆓 ඔබ ස්ථාපනය කළ විගස ක්රියා කරයි — යතුරු නැත, වින්යාස කිරීමක් නැත
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ස්ථාපනය කළ විගස ක්රියා කරයි — ශුන්ය වින්යාසය. පියවර තුනක්: 1. ස්ථාපනය කරන්න — npm i -g omniroute, සර්වර් එක localhost:20128 හි ආරම්භ වේ. 2. ඔබගේ මෙවලම http://localhost:20128/v1 වෙත යොමු කරන්න — ඕනෑම OpenAI-අනුකූල මෙවලමක් (Claude Code, Cursor, Cline). 3. එය පිළිතුරු දෙයි — ක්ෂණික පිළිතුරක් සඳහා model auto අමතන්න, API යතුරක්, ලියාපදිංචියක් හෝ වින්යාස කිරීමක් නොමැතිව. යතුරු රහිත සපයන්නා වන OpenCode Free ස්වයංක්රීය සංයෝජනයට පෙර-සම්බන්ධ කර ඇත, එබැවින් නව ස්ථාපනයක් පෙට්ටියෙන් පිටතින්ම ප්රතිචාර දක්වයි."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ඔබ ස්ථාපනය කළ විගස ක්රියා කරයි — වින්යාස කිරීමක් නැත. පියවර තුනක්: 1. ස්ථාපනය කරන්න — npm i -g omniroute, සර්වර් එක localhost:20128 හි ආරම්භ වේ. 2. ඔබේ මෙවලම http://localhost:20128/v1 වෙත යොමු කරන්න — ඕනෑම OpenAI-අනුකූල මෙවලමක් (Claude Code, Cursor, Cline). 3. එය පිළිතුරු දෙයි — ක්ෂණික පිළිතුරක් සඳහා auto මොඩලය අමතන්න, API යතුරක්, ලියාපදිංචියක් හෝ වින්යාස කිරීමක් අවශ්ය නොවේ. යතුරු රහිත සපයන්නා වන OpenCode Free, auto කොම්බෝවට පෙර-සම්බන්ධ කර ඇත, එබැවින් අලුතින් ස්ථාපනය කිරීමෙන් වහාම ප්රතිචාර ලැබේ."/>
 
 ```bash
-# නව ස්ථාපනය, ශුන්ය අක්තපත්ර — auto දැනටමත් ක්රියා කරයි:
+# අලුත් ස්ථාපනයක්, කිසිදු අක්තපත්රයක් නැත — `auto` දැනටමත් ක්රියා කරයි:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>විශේෂිත නොමිලේ බැක්එන්ඩ් එකකට කැමතිද? `oc/…` (OpenCode Free) සෘජුවම අමතන්න. ඉන්පසු `auto` වෙත යොමු වී OmniRoute තෝරා ගැනීමට ඉඩ දෙන්න.</sub>
+<sub>විශේෂිත නොමිලේ බැක්එන්ඩ් එකකට කැමතිද? `oc/…` (OpenCode Free) සෘජුවම අමතන්න. ඉන්පසු `auto` වෙත මාරු වී OmniRoute තෝරා ගැනීමට ඉඩ දෙන්න.</sub>
 
 <sub>📦 **Python, Node.js, PHP, සහ cURL** සඳහා ඉක්මන් ආරම්භක ස්ක්රිප්ට් පිටපත් කර අලවන්න → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="පොරොන්දුව — එක් අවසාන ලක්ෂ්යයක් සහ සපයන්නන් 359ක්. තවත් නිරෝගී ඉලක්කයක් පවතින විට ස්වයංක්රීය පසුබෑම මාර්ගගත කිරීම පවත්වා ගනී. කුළුණු හයක්: සපයන්නන් 359ක් හරහා ඔරොත්තු දෙන පසුබෑම · සුදුසුකම් ලත් වැඩ බර සඳහා 95% දක්වා ටෝකන් ඉතිරිකිරීම් · 150+ නොමිලේ ස්ථර සහ 54 පුනරාවර්තන/යතුරු රහිත සදාකාලික නොමිලේ සපයන්නන් සමඟ ආරම්භ කිරීමට $0 · එක් වින්යාසයක් හරහා CLI/නියෝජිත ඒකාබ්රහ්මිකරණයන් 36ක් · OpenAI, Claude, Gemini සහ /v1 හි ප්රතිචාර API අනුකූලතාව · පරිපථ කඩන යන්ත්ර, TLS ස්ටෙල්ත්, MCP 110 මෙවලම්, A2A, මතකය, ආරක්ෂක වැටවල්, ඇගයීම් සහ 5,100+ නිරීක්ෂණය කරන ලද පරීක්ෂණ ගොනු හරහා 39,000+ ස්ථිතික පරීක්ෂණ ප්රකාශන ඇතුළුව නිෂ්පාදන පාලන."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="පොරොන්දුව — එක් එන්ඩ්පොයින්ට් එකක් සහ සපයන්නන් 358ක්. තවත් නිරෝගී ඉලක්කයක් පවතින විට ස්වයංක්රීය පසුබැසීම මාර්ගගත කිරීම දිගටම කරගෙන යයි. ප්රධාන කුළුණු හයක්: සපයන්නන් 358ක් හරහා ඔරොත්තු දෙන පසුබැසීම · සුදුසු වැඩ බර සඳහා 95% දක්වා ටෝකන් ඉතිරිකිරීම් · නොමිලේ ස්ථර 150+ සහ නැවත නැවත ලැබෙන/යතුරු රහිත සදාකාලික නොමිලේ සපයන්නන් 54ක් සමඟින් $0 සිට ආරම්භ කරන්න · එක් වින්යාසයක් හරහා CLI/ඒජන්ට් ඒකාබද්ධ කිරීම් 36ක් · /v1 හි OpenAI, Claude, Gemini සහ Responses API අනුකූලතාව · සර්කිට් බ්රේකර්, TLS ස්ටෙල්ත්, MCP 110 මෙවලම්, A2A, මතකය, ගාඩ් රේල්, ඇගයීම් සහ නිරීක්ෂණය කරන ලද පරීක්ෂණ ගොනු 5,100+ හරහා ස්ථිතික පරීක්ෂණ ප්රකාශන 39,000+ ඇතුළු නිෂ්පාදන පාලන."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute ඇයි — ඩෑෂ්බෝඩ් 10ක්, මිය ගිය API යතුරු සහ අනපේක්ෂිත බිල්පත් සමඟ පොරබදීම නවත්වන්න. දෛනික ගැටලු දහයක් එදිරිව විසඳුම්: භාවිතයට නොගත් කෝටා කල් ඉකුත් වීම → දායකත්වයන් උපරිම කිරීම; කේතීකරණය අතරතුර අනුපාත සීමා → 4-ස්ථර ස්වයංක්රීය පසුබෑම (දායකත්වය → API → ලාභ → නොමිලේ); මෙවලම් ප්රතිදාන ටෝකන දහනය කිරීම → RTK + Caveman සම්පීඩනය (15–95%); මිල අධික API → පිරිවැය-ප්රශස්ත මාර්ගගත කිරීම; සෑම මෙවලමකටම තමන්ගේම සැකසුම → එක් අවසාන ලක්ෂ්යයක්, එක් ඩෑෂ්බෝඩ් එකක්; AI අවහිර වීම → 3-මට්ටමේ ප්රොක්සි + TLS ස්ටෙල්ත්; මිය ගිය යතුරු → 3-ස්ථර ඔරොත්තු දීමේ හැකියාව (පරිපථ කඩන යන්ත්ර, යතුරු සිසිලනය, මාදිලි අගුලු දැමීම); කණ්ඩායමක් එක් දායකත්වයක් බෙදා ගැනීම → සාධාරණ-බෙදාගැනීමේ කෝටා සහිත යතුරු තටාක; යමෙකුගේ ක්ලවුඩ් හරහා විමසීම් → AES-256-GCM සංකේතනය කළ යතුරු සහිත දේශීය-ප්රථම; වියදම් දෘශ්යතාවක් නොමැති වීම → සජීවී විශ්ලේෂණ (භාවිතය, කෝටා, ඉතිරිකිරීම්, p95 ප්රමාදය)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute ඇයි — ඩෑෂ්බෝඩ් 10ක්, අක්රිය API යතුරු සහ අනපේක්ෂිත බිල්පත් සමඟ පොරබදීම නවත්වන්න. දෛනික ගැටලු දහයක් සහ විසඳුම්: භාවිතයට නොගත් කෝටා කල් ඉකුත් වීම → දායකත්වයන් උපරිම කිරීම; කේතීකරණය අතරතුර අනුපාත සීමා → ස්ථර 4ක ස්වයංක්රීය පසුබැසීම (දායකත්වය → API → ලාභ → නොමිලේ); මෙවලම් ප්රතිදාන ටෝකන් දහනය කිරීම → RTK + Caveman සම්පීඩනය (15–95%); මිල අධික API → පිරිවැය-ප්රශස්ත මාර්ගගත කිරීම; සෑම මෙවලමකටම තමන්ගේම සැකසුමක් → එක් එන්ඩ්පොයින්ට් එකක්, එක් ඩෑෂ්බෝඩ් එකක්; AI අවහිර වීම → ස්ථර 3ක ප්රොක්සි + TLS ස්ටෙල්ත්; අක්රිය යතුරු → ස්ථර 3ක ඔරොත්තු දීමේ හැකියාව (සර්කිට් බ්රේකර්, යතුරු සිසිලනය, මොඩල් අගුලු දැමීම); කණ්ඩායමක් එක් දායකත්වයක් බෙදා ගැනීම → සාධාරණ-බෙදාහැරීමේ කෝටා සහිත යතුරු සංචිත; යමෙකුගේ ක්ලවුඩ් හරහා විමසීම් → AES-256-GCM සංකේතනය කළ යතුරු සහිත දේශීය-ප්රමුඛතාවය; වියදම් දෘශ්යතාවක් නැත → සජීවී විශ්ලේෂණ (භාවිතය, කෝටා, ඉතිරිකිරීම්, p95 ප්රමාදය)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute ඉල්ලීම් ප්රවාහය: ඔබගේ IDE හෝ CLI (Claude Code, Cursor, Cline…) එක් දේශීය අවසාන ලක්ෂ්යයක් (http://localhost:20128/v1) අමතයි; OmniRoute Smart Router (RTK + Caveman සම්පීඩනය, මාර්ගගත කිරීමේ උපාය මාර්ග 19ක්, පරිපථ කඩන යන්ත්ර, TLS ස්ටෙල්ත්, MCP, A2A, ආරක්ෂක වැටවල්) සුදුසුකම් ලත් නිරෝගී ඉලක්කයක් පවතින තාක් කල් සපයන්නන්ගේ ස්ථර 4ක් හරහා පසුබසින්නට පුළුවන — ස්ථර 1 දායකත්වය, ස්ථර 2 API යතුර, ස්ථර 3 ලාභ සහ ස්ථර 4 නොමිලේ."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute ඉල්ලීම් ප්රවාහය: ඔබේ IDE හෝ CLI (Claude Code, Cursor, Cline…) එක් දේශීය එන්ඩ්පොයින්ට් එකක් (http://localhost:20128/v1) අමතයි; OmniRoute ස්මාර්ට් රවුටරය (RTK + Caveman සම්පීඩනය, මාර්ගගත කිරීමේ උපාය මාර්ග 19ක්, සර්කිට් බ්රේකර්, TLS ස්ටෙල්ත්, MCP, A2A, ගාඩ් රේල්) සුදුසු නිරෝගී ඉලක්කයක් පවතින තාක් කල් සපයන්නන්ගේ ස්ථර 4ක් හරහා පසුබැසිය හැක — ස්ථර 1 දායකත්වය, ස්ථර 2 API යතුර, ස්ථර 3 ලාභ සහ ස්ථර 4 නොමිලේ."/>
 
 </div>
 
@@ -492,9 +492,9 @@ combo එකක් සෑදීමට අවශ්ය නැත. ඔබේ model
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute කැපී පෙනෙන්නේ කුමක් නිසාද — 9router, OpenRouter, CLIProxyAPI සහ LiteLLM හා සසඳන විට හැකියාවන් 13ක් හරහා යල් පැන ගිය විශේෂාංග ස්නැප්ෂොට් එකක්. OmniRoute: සපයන්නන් 359ක්, ගොඩනඟන ලද නොමිලේ ස්ථර 150කට අධික ප්රමාණයක්, රවුටින් උපාය මාර්ග 19ක්, එන්ජින් 12ක ටෝකන් සම්පීඩනය, මෙවලම් 110ක් සහිත ගොඩනඟන ලද MCP සේවාදායකයක්, A2A නියෝජිත ප්රොටෝකෝලය, ස්ථිර මතකය, ආරක්ෂක වැටවල්, ක්ලවුඩ් නියෝජිතයන්, TLS ඇඟිලි සලකුණු රහස්යභාවය, Desktop/Termux/PWA සහ i18n UI භාෂා 42ක්. OmniRoute යනු MIT-බලපත්රලත් සහ ස්වයං-සත්කාරක කළ හැකි එකකි. තරඟකරුවන්ගේ හැකියාවන් සහ ගණන් වෙනස් විය හැක; සම්බන්ධිත ක්රමවේදය බලන්න."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute කැපී පෙනෙන්නේ කුමක් නිසාද — 9router, OpenRouter, CLIProxyAPI සහ LiteLLM හා සසඳන විට හැකියාවන් 13ක් හරහා යල් පැන ගිය විශේෂාංග ස්නැප්ෂොට් එකක්. OmniRoute: සපයන්නන් 358ක්, ගොඩනඟන ලද නොමිලේ ස්ථර 150කට අධික ප්රමාණයක්, රවුටින් උපාය මාර්ග 19ක්, එන්ජින් 12ක ටෝකන් සම්පීඩනය, මෙවලම් 110ක් සහිත ගොඩනඟන ලද MCP සේවාදායකයක්, A2A නියෝජිත ප්රොටෝකෝලය, ස්ථීර මතකය, ආරක්ෂක වැටවල්, ක්ලවුඩ් නියෝජිතයන්, TLS ෆින්ගර්ප්රින්ට් ස්ටෙල්ත්, ඩෙස්ක්ටොප්/ටර්මක්ස්/PWA සහ i18n UI භාෂා 42ක්. OmniRoute යනු MIT-බලපත්රලත් සහ ස්වයං-සත්කාරක කළ හැකි එකකි. තරඟකරුවන්ගේ හැකියාවන් සහ ගණන් වෙනස් විය හැක; සම්බන්ධිත ක්රමවේදය බලන්න."/>
 
-<sub>📊 සම්පූර්ණ ක්රමවේදය සහ විශේෂාංග අනුව විස්තර 9router, OpenRouter, CLIProxyAPI සහ LiteLLM හා සසඳන විට → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 9router, OpenRouter, CLIProxyAPI සහ LiteLLM හා සසඳන විට සම්පූර්ණ ක්රමවේදය සහ විශේෂාංග අනුව විස්තර → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1256,28 +1256,28 @@ Dashboard රහිත, headless runtime එකක් සඳහා Docker `base`
 <br/>
 <div align="center">
 
-## 🛠️ තාක්ෂණික තොගය
+## 🛠️ තාක්ෂණික ගොඩ
 
 </div>
 
 <table>
   <tr><th align="left">ස්ථරය</th><th align="left">තාක්ෂණය</th></tr>
   <tr><td nowrap><b>ධාවන කාලය</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>භාෂාව</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> හරහා <code>src/</code> සහ <code>open-sse/</code> (v2.0 සිට මූලික කේතයේ <code>any</code> නැත)</td></tr>
+  <tr><td nowrap><b>භාෂාව</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> across <code>src/</code> and <code>open-sse/</code> (zero <code>any</code> in core since v2.0)</td></tr>
   <tr><td nowrap><b>රාමුව</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>දත්ත සමුදාය</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 වසම් මොඩියුල, 182 සංක්රමණ</td></tr>
+  <tr><td nowrap><b>දත්ත සමුදාය</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domain modules, 183 migrations</td></tr>
   <tr><td nowrap><b>මතකය</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
-  <tr><td nowrap><b>යෝජනා ක්රම</b></td><td>Zod 4 — MCP මෙවලම් I/O වලංගුකරණය + API කොන්ත්රාත්තු</td></tr>
+  <tr><td nowrap><b>ස්කීමා</b></td><td>Zod 4 — MCP tool I/O validation + API contracts</td></tr>
   <tr><td nowrap><b>ප්රොටෝකෝල</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>ප්රවාහය</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>සම්පීඩනය</b></td><td>12-එන්ජින් නල මාර්ගය — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>සම්පීඩනය</b></td><td>12-engine pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
   <tr><td nowrap><b>සත්යාපනය සහ ආරක්ෂාව</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
-  <tr><td nowrap><b>රහසිගත බව</b></td><td>wreq-js — JA3 / JA4 TLS ඇඟිලි සලකුණු අනුකරණය, 3-මට්ටමේ ප්රොක්සි</td></tr>
-  <tr><td nowrap><b>ප්රත්යස්ථතාව</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
-  <tr><td nowrap><b>ලොග් කිරීම</b></td><td>pino — ඉල්ලීම් සන්දර්භය සහිත ව්යුහගත JSON ලොග්</td></tr>
-  <tr><td nowrap><b>පරීක්ෂා කිරීම</b></td><td>Node.js test runner + Vitest — <b>39,000+ ස්ථිතික පරීක්ෂණ ප්රකාශන</b> 5,100+ නිරීක්ෂණය කරන ලද පරීක්ෂණ ගොනු හරහා (ඒකක, ඒකාබද්ධ කිරීම, E2E, ආරක්ෂාව, පරිසර පද්ධතිය)</td></tr>
-  <tr><td nowrap><b>වේදිකා</b></td><td>Desktop (Electron) · Android (Termux) · PWA (ඕනෑම බ්රවුසරයක්)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ස්වයංක්රීය npm ප්රකාශනය + නිකුත් කිරීමේදී Docker Hub</td></tr>
+  <tr><td nowrap><b>සැඟවුණු ක්රියාකාරිත්වය</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-level proxy</td></tr>
+  <tr><td nowrap><b>නම්යශීලී බව</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>ලොග් කිරීම</b></td><td>pino — structured JSON logs with request context</td></tr>
+  <tr><td nowrap><b>පරීක්ෂා කිරීම</b></td><td>Node.js test runner + Vitest — <b>39,000+ static test declarations</b> across 5,100+ tracked test files (unit, integration, E2E, security, ecosystem)</td></tr>
+  <tr><td nowrap><b>වේදිකා</b></td><td>Desktop (Electron) · Android (Termux) · PWA (any browser)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — auto npm publish + Docker Hub on release</td></tr>
   <tr><td nowrap><b>සබැඳි</b></td><td><a href="https://omniroute.online">වෙබ් අඩවිය</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

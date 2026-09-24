@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — De Gratis AI Gateway
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Blijf altijd coderen. Elke AI-tool → 359 providers — 150+ gratis — via één eindpunt. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity in GRATIS Claude / GPT / Gemini met automatische terugval. RTK + Caveman gestapelde compressie bespaart 15–95% tokens (~89% gemiddeld) — bereik nooit limieten. 359 AI-providers · 150+ gratis lagen · ~1,62 miljard gratis tokens/maand · 19 routeringsstrategieën · $0 om te beginnen."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Blijf altijd coderen. Elke AI-tool → 358 providers — 150+ gratis — via één eindpunt. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity naar GRATIS Claude / GPT / Gemini met automatische terugval. RTK + Caveman gestapelde compressie bespaart 15–95% tokens (~89% gemiddeld) — bereik nooit limieten. 358 AI-providers · 150+ gratis lagen · ~1,62 miljard gratis tokens/maand · 19 routeringsstrategieën · $0 om te beginnen."/>
 
 </div>
 
@@ -218,18 +218,18 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Werkt zodra je het installeert — nul configuratie. Drie stappen: 1. Installeren — npm i -g omniroute, server start op localhost:20128. 2. Richt je tool op http://localhost:20128/v1 — elke OpenAI-compatibele tool (Claude Code, Cursor, Cline). 3. Het antwoordt — roep model auto aan voor een direct antwoord, zonder API-sleutel, geen aanmelding, geen configuratie. De sleutelloze provider OpenCode Free is vooraf bedraad in de auto-combinatie, dus een verse installatie reageert direct."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Werkt zodra je het installeert — nul configuratie. Drie stappen: 1. Installeren — npm i -g omniroute, server start op localhost:20128. 2. Richt je tool op http://localhost:20128/v1 — elke OpenAI-compatibele tool (Claude Code, Cursor, Cline). 3. Het antwoordt — roep model auto aan voor een direct antwoord, zonder API-sleutel, zonder aanmelding, zonder configuratie. Sleutelloze provider OpenCode Free is vooraf bedraad in de auto-combinatie, dus een verse installatie reageert direct."/>
 
 ```bash
-# Frisse installatie, nul inloggegevens — `auto` werkt al:
+# Verse installatie, nul referenties — `auto` werkt al:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Geef je de voorkeur aan een specifieke gratis backend? Roep `oc/…` (OpenCode Free) direct aan. Stap dan over op `auto` en laat OmniRoute kiezen.</sub>
+<sub>Liever een specifieke gratis backend? Roep `oc/…` (OpenCode Free) direct aan. Stap dan over op `auto` en laat OmniRoute kiezen.</sub>
 
-<sub>📦 Kopiëren-plakken quickstart scripts voor **Python, Node.js, PHP, en cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Kopieer-plak quickstart scripts voor **Python, Node.js, PHP, en cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="De Belofte — Eén eindpunt en 359 providers. Automatische fallback blijft routeren zolang er een ander gezond doel beschikbaar is. Zes pijlers: veerkrachtige fallback over 359 providers · tot 95% tokenbesparing op in aanmerking komende workloads · $0 om te beginnen met 150+ gratis lagen en 54 terugkerende/sleutelloze gratis-voor-altijd providers · 36 CLI/agent integraties via één configuratie · OpenAI, Claude, Gemini en Responses API compatibiliteit op /v1 · productiecontroles inclusief circuit breakers, TLS stealth, MCP 110 tools, A2A, geheugen, guardrails, evals en 39.000+ statische testdeclaraties over 5.100+ gevolgde testbestanden."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="De Belofte — Eén endpoint en 358 providers. Automatische fallback houdt de routering in stand zolang er een ander gezond doel beschikbaar is. Zes pijlers: veerkrachtige fallback over 358 providers · tot 95% tokenbesparing op geschikte workloads · $0 om te beginnen met 150+ gratis lagen en 54 terugkerende/sleutelloze gratis-voor-altijd providers · 36 CLI/agent-integraties via één configuratie · OpenAI, Claude, Gemini en Responses API-compatibiliteit op /v1 · productiecontroles inclusief circuit breakers, TLS stealth, MCP 110 tools, A2A, geheugen, guardrails, evals en 39.000+ statische testdeclaraties over 5.100+ bijgehouden testbestanden."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Waarom OmniRoute — stop met jongleren met 10 dashboards, dode API-sleutels en verrassingsrekeningen. Tien dagelijkse pijnpunten versus oplossingen: quotum ongebruikt verlopen → maximaliseer abonnementen; snelheidslimieten tijdens het coderen → 4-laags auto-fallback (Abonnement → API → Goedkoop → Gratis); tool-outputs die tokens verbruiken → RTK + Caveman compressie (15–95%); dure API's → kosten-geoptimaliseerde routering; elke tool zijn eigen setup → één eindpunt, één dashboard; AI geblokkeerd → 3-niveau proxy + TLS stealth; dode sleutels → 3-laags veerkracht (circuit breakers, key cooldown, model lockout); team deelt één abonnement → sleutelpools met eerlijke quota; prompts via iemands cloud → lokaal-eerst met AES-256-GCM versleutelde sleutels; geen inzicht in uitgaven → live analyses (gebruik, quotum, besparingen, p95 latentie)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Waarom OmniRoute — stop met het jongleren met 10 dashboards, dode API-sleutels en verrassingsrekeningen. Tien dagelijkse pijnpunten vs. oplossingen: quotum verloopt ongebruikt → maximaliseer abonnementen; rate limits tijdens het coderen → 4-laags auto-fallback (Abonnement → API → Goedkoop → Gratis); tool-outputs verbruiken tokens → RTK + Caveman compressie (15–95%); dure API's → kosten-geoptimaliseerde routering; elke tool zijn eigen setup → één endpoint, één dashboard; AI geblokkeerd → 3-laags proxy + TLS stealth; dode sleutels → 3-laags veerkracht (circuit breakers, key cooldown, model lockout); team deelt één abonnement → sleutelpools met eerlijke quotums; prompts via iemands cloud → local-first met AES-256-GCM versleutelde sleutels; geen inzicht in uitgaven → live analytics (gebruik, quotum, besparingen, p95 latency)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute aanvraagstroom: je IDE of CLI (Claude Code, Cursor, Cline…) roept één lokaal eindpunt aan (http://localhost:20128/v1); de OmniRoute Smart Router (RTK + Caveman compressie, 19 routeringsstrategieën, circuit breakers, TLS stealth, MCP, A2A, guardrails) kan terugvallen over 4 providerlagen zolang er een in aanmerking komend gezond doel overblijft — Laag 1 Abonnement, Laag 2 API-sleutel, Laag 3 Goedkoop en Laag 4 Gratis."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute verzoekstroom: je IDE of CLI (Claude Code, Cursor, Cline…) roept één lokaal endpoint aan (http://localhost:20128/v1); de OmniRoute Smart Router (RTK + Caveman compressie, 19 routeringsstrategieën, circuit breakers, TLS stealth, MCP, A2A, guardrails) kan terugvallen over 4 providerlagen zolang er een geschikt gezond doel overblijft — Laag 1 Abonnement, Laag 2 API-sleutel, Laag 3 Goedkoop en Laag 4 Gratis."/>
 
 </div>
 
@@ -492,7 +492,7 @@ Alle **19** strategieën — per combostap naar wens te combineren:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Wat OmniRoute onderscheidt — een verouderde momentopname van functies versus 9router, OpenRouter, CLIProxyAPI en LiteLLM over 13 mogelijkheden. OmniRoute: 359 providers, 150+ ingebouwde gratis lagen, 19 routeringsstrategieën, 12-engine tokencompressie, ingebouwde MCP-server met 110 tools, A2A agentprotocol, persistent geheugen, guardrails, cloud-agents, TLS fingerprint stealth, Desktop/Termux/PWA en 42 i18n UI-talen. OmniRoute heeft een MIT-licentie en is zelf-hostbaar. Mogelijkheden en aantallen van concurrenten kunnen veranderen; zie de gelinkte methodologie."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Wat OmniRoute onderscheidt — een gedateerde momentopname van functies versus 9router, OpenRouter, CLIProxyAPI en LiteLLM over 13 mogelijkheden. OmniRoute: 358 providers, 150+ ingebouwde gratis lagen, 19 routeringsstrategieën, 12-engine tokencompressie, ingebouwde MCP-server met 110 tools, A2A-agentprotocol, persistent geheugen, vangrails, cloud-agents, TLS-vingerafdrukstealth, Desktop/Termux/PWA en 42 i18n UI-talen. OmniRoute is MIT-gelicentieerd en zelf-hostbaar. Mogelijkheden en aantallen van concurrenten kunnen veranderen; zie de gekoppelde methodologie."/>
 
 <sub>📊 Volledige methodologie &amp; detail per functie versus 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
@@ -1263,21 +1263,21 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
 <table>
   <tr><th align="left">Laag</th><th align="left">Technologie</th></tr>
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Taal</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> in <code>src/</code> en <code>open-sse/</code> (nul <code>any</code> in de kern sinds v2.0)</td></tr>
+  <tr><td nowrap><b>Taal</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> over <code>src/</code> en <code>open-sse/</code> (geen <code>any</code> in de kern sinds v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domeinmodules, 182 migraties</td></tr>
-  <tr><td nowrap><b>Geheugen</b></td><td>SQLite FTS5 full-text + int8-gekwantiseerde vector embeddings, getypeerd verval</td></tr>
-  <tr><td nowrap><b>Schema's</b></td><td>Zod 4 — MCP tool I/O validatie + API contracten</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domeinmodules, 183 migraties</td></tr>
+  <tr><td nowrap><b>Geheugen</b></td><td>SQLite FTS5 volledige tekst + int8-gekwantiseerde vector embeddings, getypeerd verval</td></tr>
+  <tr><td nowrap><b>Schema's</b></td><td>Zod 4 — MCP tool I/O-validatie + API-contracten</td></tr>
   <tr><td nowrap><b>Protocollen</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-brug (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Compressie</b></td><td>12-engine pijplijn — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Auth &amp; beveiliging</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
-  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-level proxy</td></tr>
-  <tr><td nowrap><b>Veerkracht</b></td><td>Circuit breaker, exponentiële backoff, anti-thundering-herd, auto-combo zelfherstel</td></tr>
-  <tr><td nowrap><b>Logging</b></td><td>pino — gestructureerde JSON logs met request context</td></tr>
-  <tr><td nowrap><b>Testen</b></td><td>Node.js test runner + Vitest — <b>39.000+ statische testdeclaraties</b> verspreid over 5.100+ getraceerde testbestanden (unit, integratie, E2E, beveiliging, ecosysteem)</td></tr>
+  <tr><td nowrap><b>Authenticatie &amp; beveiliging</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped authenticatie · AES-256-GCM in rust · DOMPurify</td></tr>
+  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS vingerafdruk-imitatie, 3-laags proxy</td></tr>
+  <tr><td nowrap><b>Veerkracht</b></td><td>Circuitonderbreker, exponentiële terugval, anti-thundering-herd, auto-combo zelfherstel</td></tr>
+  <tr><td nowrap><b>Logging</b></td><td>pino — gestructureerde JSON-logs met verzoekcontext</td></tr>
+  <tr><td nowrap><b>Testen</b></td><td>Node.js test runner + Vitest — <b>39.000+ statische testdeclaraties</b> over 5.100+ bijgehouden testbestanden (unit, integratie, E2E, beveiliging, ecosysteem)</td></tr>
   <tr><td nowrap><b>Platformen</b></td><td>Desktop (Electron) · Android (Termux) · PWA (elke browser)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — auto npm publish + Docker Hub bij release</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatische npm-publicatie + Docker Hub bij release</td></tr>
   <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Website</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

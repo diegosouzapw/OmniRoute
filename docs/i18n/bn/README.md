@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="অমনিরাউট ড্যাশবোর্ড" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute ড্যাশবোর্ড" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — বিনামূল্যে এআই গেটওয়ে
+# 🚀 OmniRoute — ফ্রি এআই গেটওয়ে (The Free AI Gateway)
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="অমনিরাউট — কোডিং বন্ধ করবেন না। প্রতিটি এআই টুল → ৩৫৯টি প্রদানকারী — ১৫০+ বিনামূল্যে — একটি এন্ডপয়েন্টের মাধ্যমে। Claude Code, Codex, Cursor, Cline, Copilot এবং Antigravity বিনামূল্যে Claude / GPT / Gemini-তে স্বয়ংক্রিয় ফলব্যাক সহ। RTK + Caveman স্ট্যাকড কম্প্রেশন ১৫-৯৫% টোকেন বাঁচায় (~৮৯% গড়) — কখনও সীমা অতিক্রম করে না। ৩৫৯টি এআই প্রদানকারী · ১৫০+ বিনামূল্যে স্তর · ~১.৬২ বিলিয়ন বিনামূল্যে টোকেন/মাস · ১৯টি রাউটিং কৌশল · শুরু করতে $০।"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Never stop coding. Every AI tool → 358 providers — 150+ free — through one endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini with auto-fallback. RTK + Caveman stacked compression saves 15–95% tokens (~89% avg) — never hit limits. 358 AI providers · 150+ free tiers · ~1.62B free tokens/mo · 19 routing strategies · $0 to start."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 ইনস্টল করার সাথে সাথেই কাজ করে — কোনো কী নেই, কোনো কনফিগারেশন নেই
+## 🆓 ইনস্টॉल করার সাথে সাথেই কাজ করে — কোনো কী লাগবে না, কোনো কনফিগারেশন নেই
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ইনস্টল করার সাথে সাথেই কাজ করে — জিরো কনফিগারেশন। তিনটি ধাপ: ১. ইনস্টল করুন — npm i -g omniroute, সার্ভার localhost:20128 এ বুট হয়। ২. আপনার টুলটি http://localhost:20128/v1 এ নির্দেশ করুন — যেকোনো OpenAI-সামঞ্জস্যপূর্ণ টুল (Claude Code, Cursor, Cline)। ৩. এটি উত্তর দেয় — কোনো API কী, কোনো সাইনআপ, কোনো কনফিগারেশন ছাড়াই তাৎক্ষণিক উত্তরের জন্য মডেল auto কল করুন। কীলেস প্রোভাইডার OpenCode Free auto কম্বোতে আগে থেকেই সংযুক্ত, তাই একটি নতুন ইনস্টল বক্সের বাইরেই সাড়া দেয়।"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Works the second you install it — zero config. Three steps: 1. Install — npm i -g omniroute, server boots on localhost:20128. 2. Point your tool at http://localhost:20128/v1 — any OpenAI-compatible tool (Claude Code, Cursor, Cline). 3. It answers — call model auto for an instant reply, with no API key, no signup, no configuration. Keyless provider OpenCode Free is pre-wired into the auto combo, so a fresh install responds out of the box."/>
 
 ```bash
-# নতুন ইনস্টল, জিরো ক্রেডেনশিয়াল — `auto` ইতিমধ্যেই কাজ করে:
+# Fresh install, zero credentials — `auto` already works:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>একটি নির্দিষ্ট ফ্রি ব্যাকএন্ড পছন্দ করেন? সরাসরি `oc/…` (OpenCode Free) কল করুন। তারপর `auto` তে আপগ্রেড করুন এবং OmniRoute কে বেছে নিতে দিন।</sub>
+<sub>নির্দিষ্ট কোনো ফ্রি ব্যাকএন্ড পছন্দ করেন? সরাসরি `oc/…` (OpenCode Free) কল করুন। এরপর `auto`-তে রূপান্তর করুন এবং OmniRoute-কে বেছে নিতে দিন।</sub>
 
-<sub>📦 **Python, Node.js, PHP, এবং cURL** এর জন্য কুইকস্টার্ট স্ক্রিপ্ট কপি-পেস্ট করুন → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 **Python, Node.js, PHP এবং cURL**-এর জন্য কপি-পেস্ট কুইকস্টার্ট স্ক্রিপ্টসমূহ → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="প্রতিশ্রুতি — একটি এন্ডপয়েন্ট এবং ৩৫৯টি প্রোভাইডার। স্বয়ংক্রিয় ফলব্যাক রাউটিং চালু রাখে যতক্ষণ অন্য একটি সুস্থ টার্গেট উপলব্ধ থাকে। ছয়টি স্তম্ভ: ৩৫৯টি প্রোভাইডার জুড়ে স্থিতিস্থাপক ফলব্যাক · যোগ্য ওয়ার্কলোডে ৯৫% পর্যন্ত টোকেন সাশ্রয় · ১৫০+ ফ্রি টিয়ার এবং ৫৪টি পুনরাবৃত্ত/কীলেস ফ্রি-ফরএভার প্রোভাইডার সহ শুরু করতে $০ · একটি কনফিগের মাধ্যমে ৩৬টি CLI/এজেন্ট ইন্টিগ্রেশন · /v1 এ OpenAI, Claude, Gemini এবং Responses API সামঞ্জস্যতা · সার্কিট ব্রেকার, TLS স্টিলথ, MCP ১১০ টুল, A2A, মেমরি, গার্ডরেল, ইভাল এবং ৫,১০০+ ট্র্যাক করা টেস্ট ফাইল জুড়ে ৩৯,০০০+ স্ট্যাটিক টেস্ট ডিক্লারেশন সহ প্রোডাকশন নিয়ন্ত্রণ।"/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="The Promise — One endpoint and 358 providers. Automatic fallback keeps routing while another healthy target is available. Six pillars: resilient fallback across 358 providers · up to 95% token savings on eligible workloads · $0 to start with 150+ free tiers and 54 recurring/keyless free-forever providers · 36 CLI/agent integrations through one config · OpenAI, Claude, Gemini and Responses API compatibility at /v1 · production controls including circuit breakers, TLS stealth, MCP 110 tools, A2A, memory, guardrails, evals and 39,000+ static test declarations across 5,100+ tracked test files."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="কেন OmniRoute — ১০টি ড্যাশবোর্ড, ডেড API কী এবং অপ্রত্যাশিত বিলের সাথে লড়াই করা বন্ধ করুন। দশটি দৈনন্দিন সমস্যা বনাম সমাধান: অব্যবহৃত কোটা শেষ হচ্ছে → সাবস্ক্রিপশন সর্বাধিক করুন; কোডিংয়ের মাঝখানে রেট লিমিট → ৪-টিয়ার অটো-ফলব্যাক (Subscription → API → Cheap → Free); টুল আউটপুট টোকেন খরচ করছে → RTK + Caveman কম্প্রেশন (১৫–৯৫%); ব্যয়বহুল API → খরচ-অপ্টিমাইজড রাউটিং; প্রতিটি টুলের নিজস্ব সেটআপ → একটি এন্ডপয়েন্ট, একটি ড্যাশবোর্ড; AI ব্লকড → ৩-লেভেল প্রক্সি + TLS স্টিলথ; ডেড কী → ৩-স্তর স্থিতিস্থাপকতা (সার্কিট ব্রেকার, কী কুলডাউন, মডেল লকআউট); দল একটি সাবস্ক্রিপশন শেয়ার করছে → ফেয়ার-শেয়ার কোটা সহ কী পুল; কারো ক্লাউডের মাধ্যমে প্রম্পট → AES-256-GCM এনক্রিপ্ট করা কী সহ লোকাল-ফার্স্ট; ব্যয়ের দৃশ্যমানতা নেই → লাইভ অ্যানালিটিক্স (ব্যবহার, কোটা, সঞ্চয়, p95 ল্যাটেন্সি)।"/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Why OmniRoute — stop juggling 10 dashboards, dead API keys and surprise bills. Ten daily pains vs fixes: quota expiring unused → maximize subscriptions; rate limits mid-coding → 4-tier auto-fallback (Subscription → API → Cheap → Free); tool outputs burning tokens → RTK + Caveman compression (15–95%); expensive APIs → cost-optimized routing; every tool its own setup → one endpoint, one dashboard; AI blocked → 3-level proxy + TLS stealth; dead keys → 3-layer resilience (circuit breakers, key cooldown, model lockout); team sharing one subscription → key pools with fair-share quotas; prompts through someone's cloud → local-first with AES-256-GCM encrypted keys; no spend visibility → live analytics (usage, quota, savings, p95 latency)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute অনুরোধ প্রবাহ: আপনার IDE বা CLI (Claude Code, Cursor, Cline…) একটি স্থানীয় এন্ডপয়েন্ট (http://localhost:20128/v1) কল করে; OmniRoute স্মার্ট রাউটার (RTK + Caveman কম্প্রেশন, ১৯টি রাউটিং কৌশল, সার্কিট ব্রেকার, TLS স্টিলথ, MCP, A2A, গার্ডরেল) ৪টি প্রোভাইডার টিয়ার জুড়ে ফলব্যাক করতে পারে যতক্ষণ একটি যোগ্য সুস্থ টার্গেট থাকে — টিয়ার ১ সাবস্ক্রিপশন, টিয়ার ২ API কী, টিয়ার ৩ চিপ এবং টিয়ার ৪ ফ্রি।"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute request flow: your IDE or CLI (Claude Code, Cursor, Cline…) calls one local endpoint (http://localhost:20128/v1); the OmniRoute Smart Router (RTK + Caveman compression, 19 routing strategies, circuit breakers, TLS stealth, MCP, A2A, guardrails) can fall back across 4 provider tiers while an eligible healthy target remains — Tier 1 Subscription, Tier 2 API Key, Tier 3 Cheap and Tier 4 Free."/>
 
 </div>
 
@@ -488,13 +488,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 OmniRoute-কে কী আলাদা করে তোলে
+## 🏆 OmniRoute-কে যা আলাদা করে তোলে
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute-কে কী আলাদা করে তোলে — 9router, OpenRouter, CLIProxyAPI এবং LiteLLM-এর সাথে 13টি ক্ষমতার উপর ভিত্তি করে একটি পুরানো ফিচার স্ন্যাপশট। OmniRoute: 359 প্রোভাইডার, 150+ বিল্ট-ইন ফ্রি টিয়ার, 19টি রাউটিং কৌশল, 12-ইঞ্জিন টোকেন কম্প্রেশন, 110টি টুল সহ বিল্ট-ইন MCP সার্ভার, A2A এজেন্ট প্রোটোকল, পার্সিস্টেন্ট মেমরি, গার্ডরেল, ক্লাউড এজেন্ট, TLS ফিঙ্গারপ্রিন্ট স্টিলথ, ডেস্কটপ/টার্মাক্স/PWA এবং 42টি i18n UI লোকেল। OmniRoute MIT-লাইসেন্সপ্রাপ্ত এবং স্ব-হোস্টযোগ্য। প্রতিযোগীদের ক্ষমতা এবং সংখ্যা পরিবর্তন হতে পারে; লিঙ্ক করা পদ্ধতি দেখুন।"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute-কে যা আলাদা করে তোলে — 9router, OpenRouter, CLIProxyAPI এবং LiteLLM-এর সাথে 13টি ক্ষমতার উপর একটি পুরনো ফিচার স্ন্যাপশট। OmniRoute: 358টি প্রোভাইডার, 150+ বিল্ট-ইন ফ্রি টিয়ার, 19টি রাউটিং কৌশল, 12-ইঞ্জিন টোকেন কম্প্রেশন, 110টি টুল সহ বিল্ট-ইন MCP সার্ভার, A2A এজেন্ট প্রোটোকল, পার্সিস্টেন্ট মেমরি, গার্ডরেল, ক্লাউড এজেন্ট, TLS ফিঙ্গারপ্রিন্ট স্টিলথ, Desktop/Termux/PWA এবং 42টি i18n UI লোকাল। OmniRoute হল MIT-লাইসেন্সপ্রাপ্ত এবং স্ব-হোস্টযোগ্য। প্রতিযোগীদের ক্ষমতা এবং সংখ্যা পরিবর্তিত হতে পারে; লিঙ্ক করা পদ্ধতি দেখুন।"/>
 
-<sub>📊 সম্পূর্ণ পদ্ধতি এবং প্রতি-ফিচার বিবরণ বনাম 9router, OpenRouter, CLIProxyAPI এবং LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 সম্পূর্ণ পদ্ধতি এবং 9router, OpenRouter, CLIProxyAPI ও LiteLLM-এর সাথে প্রতি-ফিচার বিবরণ → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1256,29 +1256,29 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1-ও এটি এ
 <br/>
 <div align="center">
 
-## 🛠️ প্রযুক্তি স্ট্যাক
+## 🛠️ প্রযুক্তিগত স্ট্যাক
 
 </div>
 
 <table>
   <tr><th align="left">স্তর</th><th align="left">প্রযুক্তি</th></tr>
   <tr><td nowrap><b>রানটাইম</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ভাষা</b></td><td>TypeScript 6.0 — <code>src/</code> এবং <code>open-sse/</code> জুড়ে <b>100% TypeScript</b> (v2.0 থেকে কোরে একটিও <code>any</code> নেই)</td></tr>
+  <tr><td nowrap><b>ভাষা</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> <code>src/</code> এবং <code>open-sse/</code> জুড়ে (v2.0 থেকে কোরে কোনো <code>any</code> নেই)</td></tr>
   <tr><td nowrap><b>ফ্রেমওয়ার্ক</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ডেটাবেস</b></td><td>better-sqlite3 (SQLite, WAL জার্নালিং) + LowDB (লিগ্যাসি JSON) — 122টি ডোমেইন মডিউল, 182টি মাইগ্রেশন</td></tr>
-  <tr><td nowrap><b>মেমরি</b></td><td>SQLite FTS5 পূর্ণ-পাঠ অনুসন্ধান + int8-কোয়ান্টাইজড ভেক্টর এম্বেডিং, টাইপড ডিকে</td></tr>
-  <tr><td nowrap><b>স্কিমা</b></td><td>Zod 4 — MCP টুলের ইনপুট/আউটপুট যাচাইকরণ + API চুক্তি</td></tr>
+  <tr><td nowrap><b>ডাটাবেস</b></td><td>better-sqlite3 (SQLite, WAL জার্নালিং) + LowDB (JSON লিগ্যাসি) — 122 ডোমেইন মডিউল, 183 মাইগ্রেশন</td></tr>
+  <tr><td nowrap><b>মেমরি</b></td><td>SQLite FTS5 ফুল-টেক্সট + int8-কোয়ান্টাইজড ভেক্টর এম্বেডিং, টাইপড ক্ষয়</td></tr>
+  <tr><td nowrap><b>স্কিমা</b></td><td>Zod 4 — MCP টুল I/O বৈধতা + API চুক্তি</td></tr>
   <tr><td nowrap><b>প্রোটোকল</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>স্ট্রিমিং</b></td><td>Server-Sent Events (SSE) + WebSocket ব্রিজ (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>কম্প্রেশন</b></td><td>12-ইঞ্জিনের পাইপলাইন — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>প্রমাণীকরণ ও নিরাপত্তা</b></td><td>OAuth 2.0 (PKCE) + JWT + API কী + MCP স্কোপড প্রমাণীকরণ · সংরক্ষিত অবস্থায় AES-256-GCM এনক্রিপশন · DOMPurify</td></tr>
-  <tr><td nowrap><b>স্টেলথ</b></td><td>wreq-js — JA3 / JA4 TLS ফিঙ্গারপ্রিন্ট ছদ্মবেশ, 3-স্তরের প্রক্সি</td></tr>
-  <tr><td nowrap><b>স্থিতিস্থাপকতা</b></td><td>সার্কিট ব্রেকার, এক্সপোনেনশিয়াল ব্যাকঅফ, অ্যান্টি-থান্ডারিং-হার্ড, স্বয়ংক্রিয়-কম্বো স্ব-নিরাময়</td></tr>
-  <tr><td nowrap><b>লগিং</b></td><td>pino — রিকোয়েস্ট কনটেক্সটসহ কাঠামোবদ্ধ JSON লগ</td></tr>
-  <tr><td nowrap><b>পরীক্ষণ</b></td><td>Node.js টেস্ট রানার + Vitest — 5,100টির বেশি ট্র্যাক করা টেস্ট ফাইলজুড়ে <b>39,000টির বেশি স্ট্যাটিক টেস্ট ঘোষণা</b> (ইউনিট, ইন্টিগ্রেশন, E2E, নিরাপত্তা, ইকোসিস্টেম)</td></tr>
-  <tr><td nowrap><b>প্ল্যাটফর্ম</b></td><td>ডেস্কটপ (Electron) · Android (Termux) · PWA (যেকোনো ব্রাউজার)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — রিলিজের সময় স্বয়ংক্রিয় npm প্রকাশনা + Docker Hub</td></tr>
-  <tr><td nowrap><b>লিংক</b></td><td><a href="https://omniroute.online">ওয়েবসাইট</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>স্ট্রিমিং</b></td><td>সার্ভার-সেন্ট ইভেন্টস (SSE) + WebSocket ব্রিজ (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>কম্প্রেশন</b></td><td>12-ইঞ্জিন পাইপলাইন — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>অথেন্টিকেশন ও নিরাপত্তা</b></td><td>OAuth 2.0 (PKCE) + JWT + API কীস + MCP স্কোপড অথেন্টিকেশন · AES-256-GCM অ্যাট রেস্ট · DOMPurify</td></tr>
+  <tr><td nowrap><b>স্টিলথ</b></td><td>wreq-js — JA3 / JA4 TLS ফিঙ্গারপ্রিন্ট ইম্পারসনেশন, 3-লেভেল প্রক্সি</td></tr>
+  <tr><td nowrap><b>স্থিতিস্থাপকতা</b></td><td>সার্কিট ব্রেকার, এক্সপোনেনশিয়াল ব্যাকঅফ, অ্যান্টি-থান্ডারিং-হার্ড, অটো-কম্বো সেলফ-হিলিং</td></tr>
+  <tr><td nowrap><b>লগিং</b></td><td>pino — অনুরোধের প্রেক্ষাপট সহ কাঠামোগত JSON লগ</td></tr>
+  <tr><td nowrap><b>পরীক্ষা</b></td><td>Node.js টেস্ট রানার + Vitest — 5,100+ ট্র্যাক করা টেস্ট ফাইল জুড়ে <b>39,000+ স্ট্যাটিক টেস্ট ডিক্লারেশন</b> (ইউনিট, ইন্টিগ্রেশন, E2E, নিরাপত্তা, ইকোসিস্টেম)</td></tr>
+  <tr><td nowrap><b>প্ল্যাটফর্ম</b></td><td>ডেস্কটপ (ইলেকট্রন) · অ্যান্ড্রয়েড (টার্মাক্স) · PWA (যেকোনো ব্রাউজার)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — রিলিজের উপর অটো npm পাবলিশ + ডকার হাব</td></tr>
+  <tr><td nowrap><b>লিঙ্ক</b></td><td><a href="https://omniroute.online">ওয়েবসাইট</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">ডকার হাব</a></td></tr>
 </table>
 
 <div align="center">

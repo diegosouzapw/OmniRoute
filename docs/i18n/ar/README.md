@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="لوحة تحكم OmniRoute" width="820"/>
 
 <br/>
 <br/>
 
 # 🚀 OmniRoute — بوابة الذكاء الاصطناعي المجانية
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — لا تتوقف عن البرمجة أبدًا. كل أداة ذكاء اصطناعي ← 359 مزودًا — 150+ مجانية — عبر نقطة نهاية واحدة. Claude Code, Codex, Cursor, Cline, Copilot و Antigravity إلى Claude / GPT / Gemini مجانًا مع التراجع التلقائي. ضغط RTK + Caveman المكدس يوفر 15-95% من الرموز (~89% في المتوسط) — لا تصل إلى الحدود أبدًا. 359 مزود ذكاء اصطناعي · 150+ طبقة مجانية · ~1.62 مليار رمز مجاني شهريًا · 19 استراتيجية توجيه · 0 دولار للبدء."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — لا تتوقف عن البرمجة أبدًا. كل أداة ذكاء اصطناعي ← 358 مزودًا — أكثر من 150 مجانيًا — عبر نقطة نهاية واحدة. Claude Code، Codex، Cursor، Cline، Copilot و Antigravity إلى Claude / GPT / Gemini المجاني مع التراجع التلقائي. ضغط RTK + Caveman المكدس يوفر 15-95% من الرموز (~89% في المتوسط) — لا تصل إلى الحدود أبدًا. 358 مزود ذكاء اصطناعي · أكثر من 150 طبقة مجانية · ~1.62 مليار رمز مجاني شهريًا · 19 استراتيجية توجيه · $0 للبدء."/>
 
 </div>
 
@@ -214,14 +214,14 @@
 
 <div align="center">
 
-## 🆓 يعمل فور تثبيته — بدون مفاتيح، بدون إعدادات
+## 🆓 يعمل بمجرد تثبيته — بلا مفاتيح، بلا إعدادات
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="يعمل فور تثبيته — بدون إعدادات. ثلاث خطوات: 1. التثبيت — npm i -g omniroute، يبدأ تشغيل الخادم على localhost:20128. 2. وجه أداتك إلى http://localhost:20128/v1 — أي أداة متوافقة مع OpenAI (Claude Code, Cursor, Cline). 3. يجيب — استدعِ النموذج التلقائي للحصول على رد فوري، بدون مفتاح API، بدون تسجيل، بدون إعدادات. مزود OpenCode Free بدون مفتاح مدمج مسبقًا في المجموعة التلقائية، لذا يستجيب التثبيت الجديد فورًا."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="يعمل بمجرد تثبيته — بلا إعدادات. ثلاث خطوات: 1. التثبيت — npm i -g omniroute، يبدأ الخادم على localhost:20128. 2. وجه أداتك إلى http://localhost:20128/v1 — أي أداة متوافقة مع OpenAI (Claude Code, Cursor, Cline). 3. يجيب — استدعِ النموذج التلقائي للحصول على رد فوري، بدون مفتاح API، بدون تسجيل، بدون إعدادات. مزود OpenCode Free بلا مفتاح مدمج مسبقًا في التوليفة التلقائية، لذا يستجيب التثبيت الجديد فورًا."/>
 
 ```bash
-# تثبيت جديد، بدون بيانات اعتماد — `auto` يعمل بالفعل:
+# تثبيت جديد، بلا بيانات اعتماد — `auto` يعمل بالفعل:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="الوعد — نقطة نهاية واحدة و 359 مزودًا. يواصل التراجع التلقائي التوجيه بينما يتوفر هدف صحي آخر. ستة ركائز: تراجع مرن عبر 359 مزودًا · توفير يصل إلى 95% من الرموز المميزة على أعباء العمل المؤهلة · 0 دولار للبدء مع أكثر من 150 طبقة مجانية و 54 مزودًا مجانيًا دائمًا/بدون مفتاح · 36 تكامل CLI/وكيل من خلال إعداد واحد · توافق OpenAI و Claude و Gemini و Responses API على /v1 · ضوابط الإنتاج بما في ذلك قواطع الدائرة، وتخفي TLS، وأدوات MCP 110، و A2A، والذاكرة، وحواجز الحماية، والتقييمات، وأكثر من 39,000 إعلان اختبار ثابت عبر أكثر من 5,100 ملف اختبار متعقب."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="الوعد — نقطة نهاية واحدة و358 مزودًا. يواصل التراجع التلقائي التوجيه طالما توفر هدف صحي آخر. ستة ركائز: تراجع مرن عبر 358 مزودًا · توفير يصل إلى 95% من الرموز المميزة لأعباء العمل المؤهلة · 0 دولار للبدء مع أكثر من 150 طبقة مجانية و54 مزودًا مجانيًا دائمًا متكررًا/بلا مفتاح · 36 تكامل CLI/وكيل عبر إعداد واحد · توافق OpenAI و Claude و Gemini و Responses API على /v1 · ضوابط الإنتاج بما في ذلك قواطع الدائرة، التخفي عبر TLS، أدوات MCP 110، A2A، الذاكرة، الحواجز، التقييمات، وأكثر من 39,000 إعلان اختبار ثابت عبر أكثر من 5,100 ملف اختبار متتبع."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="لماذا OmniRoute — توقف عن التوفيق بين 10 لوحات تحكم، ومفاتيح API الميتة، والفواتير المفاجئة. عشرة آلام يومية مقابل الإصلاحات: انتهاء صلاحية الحصة غير المستخدمة ← تعظيم الاشتراكات؛ حدود المعدل أثناء الترميز ← تراجع تلقائي من 4 مستويات (اشتراك ← API ← رخيص ← مجاني)؛ مخرجات الأداة تحرق الرموز المميزة ← ضغط RTK + Caveman (15-95%)؛ واجهات برمجة التطبيقات باهظة الثمن ← توجيه محسّن التكلفة؛ كل أداة لها إعدادها الخاص ← نقطة نهاية واحدة، لوحة تحكم واحدة؛ الذكاء الاصطناعي محظور ← وكيل من 3 مستويات + تخفي TLS؛ مفاتيح ميتة ← مرونة من 3 طبقات (قواطع الدائرة، تبريد المفتاح، قفل النموذج)؛ مشاركة الفريق لاشتراك واحد ← مجموعات مفاتيح مع حصص عادلة؛ مطالبات عبر سحابة شخص ما ← محلي أولاً مع مفاتيح مشفرة AES-256-GCM؛ عدم وضوح الإنفاق ← تحليلات مباشرة (الاستخدام، الحصة، التوفير، زمن الاستجابة p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="لماذا OmniRoute — توقف عن التوفيق بين 10 لوحات تحكم، ومفاتيح API منتهية الصلاحية، وفواتير مفاجئة. عشرة آلام يومية مقابل الحلول: انتهاء الحصة غير المستخدمة ← تعظيم الاشتراكات؛ حدود المعدل أثناء البرمجة ← تراجع تلقائي من 4 مستويات (اشتراك ← API ← رخيص ← مجاني)؛ مخرجات الأدوات تستهلك الرموز المميزة ← ضغط RTK + Caveman (15-95%)؛ واجهات برمجة التطبيقات باهظة الثمن ← توجيه محسّن التكلفة؛ كل أداة لها إعدادها الخاص ← نقطة نهاية واحدة، لوحة تحكم واحدة؛ الذكاء الاصطناعي محظور ← وكيل من 3 مستويات + تخفي TLS؛ مفاتيح منتهية الصلاحية ← مرونة من 3 طبقات (قواطع الدائرة، تبريد المفتاح، قفل النموذج)؛ مشاركة الفريق لاشتراك واحد ← مجمعات مفاتيح بحصص عادلة؛ المطالبات عبر سحابة شخص ما ← محلي أولاً بمفاتيح مشفرة AES-256-GCM؛ عدم وضوح الإنفاق ← تحليلات مباشرة (الاستخدام، الحصة، التوفير، زمن الاستجابة p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="تدفق طلب OmniRoute: يستدعي IDE أو CLI الخاص بك (Claude Code, Cursor, Cline…) نقطة نهاية محلية واحدة (http://localhost:20128/v1)؛ يمكن للموجه الذكي OmniRoute (ضغط RTK + Caveman، 19 استراتيجية توجيه، قواطع الدائرة، تخفي TLS، MCP، A2A، حواجز الحماية) التراجع عبر 4 مستويات من المزودين بينما يظل هدف صحي مؤهل متاحًا — المستوى 1 الاشتراك، المستوى 2 مفتاح API، المستوى 3 رخيص، والمستوى 4 مجاني."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="تدفق طلب OmniRoute: يستدعي IDE أو CLI الخاص بك (Claude Code, Cursor, Cline…) نقطة نهاية محلية واحدة (http://localhost:20128/v1)؛ يمكن لجهاز التوجيه الذكي OmniRoute (ضغط RTK + Caveman، 19 استراتيجية توجيه، قواطع الدائرة، تخفي TLS، MCP، A2A، حواجز) التراجع عبر 4 مستويات من المزودين طالما بقي هدف صحي مؤهل — المستوى 1 اشتراك، المستوى 2 مفتاح API، المستوى 3 رخيص، والمستوى 4 مجاني."/>
 
 </div>
 
@@ -492,9 +492,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="ما الذي يميز OmniRoute — لقطة ميزات قديمة مقارنة بـ 9router و OpenRouter و CLIProxyAPI و LiteLLM عبر 13 قدرة. OmniRoute: 359 مزودًا، أكثر من 150 طبقة مجانية مدمجة، 19 استراتيجية توجيه، ضغط الرموز بـ 12 محركًا، خادم MCP مدمج بـ 110 أدوات، بروتوكول وكيل A2A، ذاكرة دائمة، حواجز حماية، وكلاء سحابيون، إخفاء بصمة TLS، دعم لسطح المكتب/Termux/PWA و 42 لغة واجهة مستخدم عالمية. OmniRoute مرخص بترخيص MIT وقابل للاستضافة الذاتية. قد تتغير قدرات المنافسين وأعدادهم؛ راجع المنهجية المرتبطة."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="ما الذي يميز OmniRoute - لقطة ميزات قديمة مقارنة بـ 9router و OpenRouter و CLIProxyAPI و LiteLLM عبر 13 قدرة. OmniRoute: 358 مزودًا، أكثر من 150 طبقة مجانية مدمجة، 19 استراتيجية توجيه، ضغط الرمز المميز بـ 12 محركًا، خادم MCP مدمج مع 110 أدوات، بروتوكول وكيل A2A، ذاكرة دائمة، حواجز حماية، وكلاء سحابيون، إخفاء بصمة TLS، Desktop/Termux/PWA و 42 لغة واجهة مستخدم عالمية. OmniRoute مرخص بموجب MIT وقابل للاستضافة الذاتية. قد تتغير قدرات المنافسين وأعدادهم؛ راجع المنهجية المرتبطة."/>
 
-<sub>📊 المنهجية الكاملة وتفاصيل كل ميزة مقارنة بـ 9router و OpenRouter و CLIProxyAPI و LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 المنهجية الكاملة والتفاصيل لكل ميزة مقارنة بـ 9router و OpenRouter و CLIProxyAPI و LiteLLM ← [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1262,22 +1262,22 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # يؤدي CI=1 أيضً
 
 <table>
   <tr><th align="left">الطبقة</th><th align="left">التقنية</th></tr>
-  <tr><td nowrap><b>بيئة التشغيل</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>اللغة</b></td><td>TypeScript 6.0 — <b>TypeScript بنسبة 100%</b> عبر <code>src/</code> و<code>open-sse/</code> (من دون أي <code>any</code> في النواة منذ v2.0)</td></tr>
-  <tr><td nowrap><b>إطار العمل</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>قاعدة البيانات</b></td><td>better-sqlite3 ‏(SQLite، تسجيل WAL) + LowDB (إرث JSON) — 122 وحدة نطاق، و182 عملية ترحيل</td></tr>
-  <tr><td nowrap><b>الذاكرة</b></td><td>بحث نصي كامل باستخدام SQLite FTS5 + تضمينات متجهية مُكمَّمة بصيغة int8، مع اضمحلال محدد النوع</td></tr>
-  <tr><td nowrap><b>المخططات</b></td><td>Zod 4 — التحقق من مدخلات ومخرجات أدوات MCP + عقود API</td></tr>
-  <tr><td nowrap><b>البروتوكولات</b></td><td>MCP ‏(stdio / HTTP / SSE) + A2A v0.3 ‏(JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>البث</b></td><td>الأحداث المرسلة من الخادم (SSE) + جسر WebSocket ‏(<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>الضغط</b></td><td>خط معالجة يضم 12 محركًا — RTK، وCaveman، وLLMLingua-2 ‏(MobileBERT ONNX)، وGCF، وOmniGlyph</td></tr>
-  <tr><td nowrap><b>المصادقة والأمان</b></td><td>OAuth 2.0 ‏(PKCE) + JWT + مفاتيح API + مصادقة MCP محددة النطاق · AES-256-GCM للبيانات المخزنة · DOMPurify</td></tr>
-  <tr><td nowrap><b>التخفي</b></td><td>wreq-js — انتحال بصمة TLS من نوع JA3 / JA4، ووكيل ثلاثي المستويات</td></tr>
-  <tr><td nowrap><b>المرونة</b></td><td>قاطع الدائرة، وتراجع أُسّي، ومنع التدافع المتزامن، وتعافٍ ذاتي تلقائي للتركيبات</td></tr>
-  <tr><td nowrap><b>التسجيل</b></td><td>pino — سجلات JSON منظمة تتضمن سياق الطلب</td></tr>
-  <tr><td nowrap><b>الاختبار</b></td><td>مشغّل اختبارات Node.js + Vitest — <b>أكثر من 39,000 تصريح اختبار ثابت</b> عبر أكثر من 5,100 ملف اختبار متتبَّع (اختبارات الوحدات، والتكامل، وE2E، والأمان، والمنظومة)</td></tr>
-  <tr><td nowrap><b>المنصات</b></td><td>سطح المكتب (Electron) · Android ‏(Termux) · PWA (أي متصفح)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — نشر تلقائي إلى npm وDocker Hub عند الإصدار</td></tr>
+  <tr><td nowrap><b>وقت التشغيل</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>اللغة</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> عبر <code>src/</code> و <code>open-sse/</code> (صفر <code>any</code> في النواة منذ الإصدار 2.0)</td></tr>
+  <tr><td nowrap><b>الإطار</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>قاعدة البيانات</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 وحدة نطاق، 183 ترحيل</td></tr>
+  <tr><td nowrap><b>الذاكرة</b></td><td>SQLite FTS5 نص كامل + تضمينات متجهية كمية int8، اضمحلال مُحدد النوع</td></tr>
+  <tr><td nowrap><b>المخططات</b></td><td>Zod 4 — التحقق من صحة إدخال/إخراج أداة MCP + عقود API</td></tr>
+  <tr><td nowrap><b>البروتوكولات</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>التدفق</b></td><td>أحداث مرسلة من الخادم (SSE) + جسر WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>الضغط</b></td><td>خط أنابيب بـ 12 محركًا — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>المصادقة والأمان</b></td><td>OAuth 2.0 (PKCE) + JWT + مفاتيح API + مصادقة MCP ذات النطاق · AES-256-GCM في حالة السكون · DOMPurify</td></tr>
+  <tr><td nowrap><b>التخفي</b></td><td>wreq-js — انتحال بصمة JA3 / JA4 TLS، وكيل ثلاثي المستويات</td></tr>
+  <tr><td nowrap><b>المرونة</b></td><td>قاطع الدائرة، التراجع الأسي، مكافحة تدافع القطيع، الشفاء الذاتي التلقائي</td></tr>
+  <tr><td nowrap><b>التسجيل</b></td><td>pino — سجلات JSON منظمة مع سياق الطلب</td></tr>
+  <tr><td nowrap><b>الاختبار</b></td><td>Node.js test runner + Vitest — <b>أكثر من 39,000 إعلان اختبار ثابت</b> عبر أكثر من 5,100 ملف اختبار متعقب (وحدة، تكامل، E2E، أمان، نظام بيئي)</td></tr>
+  <tr><td nowrap><b>المنصات</b></td><td>سطح المكتب (Electron) · أندرويد (Termux) · PWA (أي متصفح)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — نشر npm تلقائي + Docker Hub عند الإصدار</td></tr>
   <tr><td nowrap><b>الروابط</b></td><td><a href="https://omniroute.online">الموقع الإلكتروني</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

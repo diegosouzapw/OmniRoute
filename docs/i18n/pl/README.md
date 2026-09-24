@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — Darmowa Brama AI
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Nigdy nie przestawaj kodować. Każde narzędzie AI → 359 dostawców — 150+ darmowych — przez jeden punkt końcowy. Claude Code, Codex, Cursor, Cline, Copilot i Antigravity w DARMOWE Claude / GPT / Gemini z automatycznym przełączaniem awaryjnym. Złożona kompresja RTK + Caveman oszczędza 15–95% tokenów (średnio ~89%) — nigdy nie przekraczaj limitów. 359 dostawców AI · 150+ darmowych planów · ~1.62B darmowych tokenów/miesiąc · 19 strategii routingu · $0 na start."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Nigdy nie przestawaj kodować. Każde narzędzie AI → 358 dostawców — 150+ darmowych — przez jeden punkt końcowy. Claude Code, Codex, Cursor, Cline, Copilot i Antigravity w DARMOWE Claude / GPT / Gemini z automatycznym przełączaniem awaryjnym. Skompresowana kompresja RTK + Caveman oszczędza 15–95% tokenów (średnio ~89%) — nigdy nie przekraczaj limitów. 358 dostawców AI · 150+ darmowych planów · ~1.62B darmowych tokenów/miesiąc · 19 strategii routingu · $0 na start."/>
 
 </div>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Obietnica — Jeden punkt końcowy i 359 dostawców. Automatyczne przełączanie awaryjne utrzymuje routing, gdy dostępny jest inny zdrowy cel. Sześć filarów: odporne przełączanie awaryjne między 359 dostawcami · do 95% oszczędności tokenów na kwalifikujących się obciążeniach · 0 USD na start ze 150+ darmowymi poziomami i 54 stałymi/bezkluczowymi dostawcami darmowymi na zawsze · 36 integracji CLI/agentów za pomocą jednej konfiguracji · kompatybilność z OpenAI, Claude, Gemini i Responses API pod /v1 · kontrola produkcji, w tym wyłączniki obwodów, ukrywanie TLS, narzędzia MCP 110, A2A, pamięć, bariery ochronne, oceny i ponad 39 000 statycznych deklaracji testowych w ponad 5 100 śledzonych plikach testowych."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Obietnica — Jeden punkt końcowy i 358 dostawców. Automatyczne przełączanie awaryjne utrzymuje routing, dopóki dostępny jest inny zdrowy cel. Sześć filarów: odporne przełączanie awaryjne między 358 dostawcami · do 95% oszczędności tokenów na kwalifikujących się obciążeniach · 0 USD na start z ponad 150 darmowymi poziomami i 54 cyklicznymi/bezkluczowymi dostawcami darmowymi na zawsze · 36 integracji CLI/agentów za pomocą jednej konfiguracji · kompatybilność z OpenAI, Claude, Gemini i Responses API na /v1 · kontrola produkcji, w tym wyłączniki obwodów, TLS stealth, narzędzia MCP 110, A2A, pamięć, guardrails, ewaluacje i ponad 39 000 statycznych deklaracji testowych w ponad 5 100 śledzonych plikach testowych."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Dlaczego OmniRoute — przestań żonglować 10 pulpitami nawigacyjnymi, martwymi kluczami API i niespodziewanymi rachunkami. Dziesięć codziennych problemów kontra rozwiązania: niewykorzystana wygasająca kwota → maksymalizacja subskrypcji; limity szybkości w trakcie kodowania → 4-poziomowe automatyczne przełączanie awaryjne (Subskrypcja → API → Tanie → Darmowe); wyjścia narzędzi spalające tokeny → kompresja RTK + Caveman (15–95%); drogie API → routing zoptymalizowany pod kątem kosztów; każde narzędzie ma własną konfigurację → jeden punkt końcowy, jeden pulpit nawigacyjny; AI zablokowane → 3-poziomowe proxy + ukrywanie TLS; martwe klucze → 3-warstwowa odporność (wyłączniki obwodów, chłodzenie kluczy, blokada modelu); zespół współdzielący jedną subskrypcję → pule kluczy z kwotami sprawiedliwego podziału; monity przez czyjąś chmurę → lokalne pierwszeństwo z kluczami szyfrowanymi AES-256-GCM; brak widoczności wydatków → analityka na żywo (użycie, kwota, oszczędności, opóźnienie p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Dlaczego OmniRoute — przestań żonglować 10 pulpitami nawigacyjnymi, martwymi kluczami API i niespodziewanymi rachunkami. Dziesięć codziennych problemów kontra rozwiązania: niewykorzystana wygasająca kwota → maksymalizacja subskrypcji; limity szybkości w trakcie kodowania → 4-poziomowe automatyczne przełączanie awaryjne (Subskrypcja → API → Tanie → Darmowe); wyjścia narzędzi spalające tokeny → kompresja RTK + Caveman (15–95%); drogie API → routing zoptymalizowany pod kątem kosztów; każde narzędzie ma własną konfigurację → jeden punkt końcowy, jeden pulpit nawigacyjny; AI zablokowane → 3-poziomowy proxy + TLS stealth; martwe klucze → 3-warstwowa odporność (wyłączniki obwodów, ochłodzenie klucza, blokada modelu); zespół współdzielący jedną subskrypcję → pule kluczy z kwotami sprawiedliwego podziału; promptowanie przez czyjąś chmurę → lokalne pierwszeństwo z kluczami szyfrowanymi AES-256-GCM; brak widoczności wydatków → analityka na żywo (użycie, kwota, oszczędności, opóźnienie p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Przepływ żądań OmniRoute: Twoje IDE lub CLI (Claude Code, Cursor, Cline…) wywołuje jeden lokalny punkt końcowy (http://localhost:20128/v1); Inteligentny Router OmniRoute (kompresja RTK + Caveman, 19 strategii routingu, wyłączniki obwodów, ukrywanie TLS, MCP, A2A, bariery ochronne) może przełączać się awaryjnie między 4 poziomami dostawców, dopóki dostępny jest kwalifikujący się, zdrowy cel — Poziom 1 Subskrypcja, Poziom 2 Klucz API, Poziom 3 Tanie i Poziom 4 Darmowe."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Przepływ żądań OmniRoute: Twoje IDE lub CLI (Claude Code, Cursor, Cline…) wywołuje jeden lokalny punkt końcowy (http://localhost:20128/v1); Inteligentny Router OmniRoute (kompresja RTK + Caveman, 19 strategii routingu, wyłączniki obwodów, TLS stealth, MCP, A2A, guardrails) może przełączać się awaryjnie między 4 poziomami dostawców, dopóki dostępny jest kwalifikujący się, zdrowy cel — Poziom 1 Subskrypcja, Poziom 2 Klucz API, Poziom 3 Tanie i Poziom 4 Darmowe."/>
 
 </div>
 
@@ -488,13 +488,13 @@ Wszystkie **19** strategii — dowolnie łącz je w poszczególnych krokach komb
 
 <div align="center">
 
-## 🏆 Co Wyróżnia OmniRoute
+## 🏆 Co wyróżnia OmniRoute
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Co wyróżnia OmniRoute — aktualna migawka funkcji w porównaniu do 9router, OpenRouter, CLIProxyAPI i LiteLLM w 13 kategoriach. OmniRoute: 359 dostawców, ponad 150 wbudowanych darmowych planów, 19 strategii routingu, 12-silnikowa kompresja tokenów, wbudowany serwer MCP ze 110 narzędziami, protokół agenta A2A, pamięć trwała, zabezpieczenia (guardrails), agenci chmurowi, ukrywanie odcisków palców TLS, Desktop/Termux/PWA i 42 lokalizacje interfejsu użytkownika. OmniRoute jest licencjonowany na licencji MIT i można go hostować samodzielnie. Możliwości i liczba funkcji konkurentów mogą ulec zmianie; zobacz podlinkowaną metodologię."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Co wyróżnia OmniRoute — aktualny przegląd funkcji w porównaniu do 9router, OpenRouter, CLIProxyAPI i LiteLLM w 13 kategoriach. OmniRoute: 358 dostawców, ponad 150 wbudowanych darmowych planów, 19 strategii routingu, kompresja tokenów z 12 silnikami, wbudowany serwer MCP ze 110 narzędziami, protokół agenta A2A, pamięć trwała, zabezpieczenia, agenci chmurowi, ukrywanie odcisków palców TLS, Desktop/Termux/PWA i 42 lokalizacje interfejsu użytkownika (i18n). OmniRoute jest na licencji MIT i można go hostować samodzielnie. Możliwości i liczby konkurentów mogą ulec zmianie; zobacz powiązaną metodologię."/>
 
-<sub>📊 Pełna metodologia &amp; szczegóły poszczególnych funkcji w porównaniu do 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Pełna metodologia &amp; szczegóły funkcji w porównaniu do 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1265,26 +1265,26 @@ Metryki kanoniczne na dzień 2026-08-24: **1.029 unikalnych filmów** · **11.13
 <br/>
 <div align="center">
 
-## 🛠️ Stos technologiczny
+## 🛠️ Stos Technologiczny
 
 </div>
 
 <table>
   <tr><th align="left">Warstwa</th><th align="left">Technologia</th></tr>
   <tr><td nowrap><b>Środowisko uruchomieniowe</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Język</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> w <code>src/</code> i <code>open-sse/</code> (zero <code>any</code> w rdzeniu od v2.0)</td></tr>
+  <tr><td nowrap><b>Język</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> w `src/` i `open-sse/` (zero `any` w rdzeniu od v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Baza danych</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 moduły domenowe, 182 migracje</td></tr>
-  <tr><td nowrap><b>Pamięć</b></td><td>SQLite FTS5 full-text + int8-kwantyzowane osadzenia wektorowe, typed decay</td></tr>
+  <tr><td nowrap><b>Baza danych</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 moduły domenowe, 183 migracje</td></tr>
+  <tr><td nowrap><b>Pamięć</b></td><td>SQLite FTS5 full-text + int8-kwantyzowane osadzanie wektorowe, typowane zanikanie</td></tr>
   <tr><td nowrap><b>Schematy</b></td><td>Zod 4 — walidacja wejścia/wyjścia narzędzia MCP + kontrakty API</td></tr>
   <tr><td nowrap><b>Protokoły</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Strumieniowanie</b></td><td>Server-Sent Events (SSE) + most WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Kompresja</b></td><td>Potok 12 silników — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Uwierzytelnianie i bezpieczeństwo</b></td><td>OAuth 2.0 (PKCE) + JWT + Klucze API + autoryzacja MCP z zakresem · AES-256-GCM w spoczynku · DOMPurify</td></tr>
-  <tr><td nowrap><b>Ukrywanie</b></td><td>wreq-js — podszywanie się pod odcisk palca TLS JA3 / JA4, 3-poziomowe proxy</td></tr>
-  <tr><td nowrap><b>Odporność</b></td><td>Wyłącznik obwodu, wykładnicze wycofywanie, ochrona przed efektem thundering herd, samonaprawianie auto-combo</td></tr>
+  <tr><td nowrap><b>Strumieniowanie</b></td><td>Server-Sent Events (SSE) + most WebSocket (`/v1/ws`)</td></tr>
+  <tr><td nowrap><b>Kompresja</b></td><td>Potok 12-silnikowy — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autoryzacja i bezpieczeństwo</b></td><td>OAuth 2.0 (PKCE) + JWT + Klucze API + autoryzacja MCP z zakresem · AES-256-GCM w spoczynku · DOMPurify</td></tr>
+  <tr><td nowrap><b>Ukrycie</b></td><td>wreq-js — podszywanie się pod odcisk palca JA3 / JA4 TLS, proxy 3-poziomowe</td></tr>
+  <tr><td nowrap><b>Odporność</b></td><td>Wyłącznik obwodu, wykładnicze wycofywanie, ochrona przed efektem thundering-herd, auto-kombinowane samonaprawianie</td></tr>
   <tr><td nowrap><b>Logowanie</b></td><td>pino — ustrukturyzowane logi JSON z kontekstem żądania</td></tr>
-  <tr><td nowrap><b>Testowanie</b></td><td>Node.js test runner + Vitest — <b>ponad 39 000 statycznych deklaracji testowych</b> w ponad 5 100 śledzonych plikach testowych (jednostkowe, integracyjne, E2E, bezpieczeństwa, ekosystemu)</td></tr>
+  <tr><td nowrap><b>Testowanie</b></td><td>Node.js test runner + Vitest — <b>ponad 39 000 statycznych deklaracji testowych</b> w ponad 5100 śledzonych plikach testowych (jednostkowe, integracyjne, E2E, bezpieczeństwa, ekosystemu)</td></tr>
   <tr><td nowrap><b>Platformy</b></td><td>Desktop (Electron) · Android (Termux) · PWA (dowolna przeglądarka)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatyczne publikowanie npm + Docker Hub przy wydaniu</td></tr>
   <tr><td nowrap><b>Linki</b></td><td><a href="https://omniroute.online">Strona internetowa</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>

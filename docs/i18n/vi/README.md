@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — Cổng AI miễn phí
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Không ngừng viết mã. Mọi công cụ AI → 359 nhà cung cấp — 150+ miễn phí — thông qua một điểm cuối. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity vào Claude / GPT / Gemini MIỄN PHÍ với tính năng tự động dự phòng. Nén xếp chồng RTK + Caveman giúp tiết kiệm 15–95% token (trung bình ~89%) — không bao giờ vượt giới hạn. 359 nhà cung cấp AI · 150+ gói miễn phí · ~1.62B token miễn phí/tháng · 19 chiến lược định tuyến · $0 để bắt đầu."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Không ngừng viết mã. Mọi công cụ AI → 358 nhà cung cấp — 150+ miễn phí — thông qua một điểm cuối. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity vào Claude / GPT / Gemini MIỄN PHÍ với tính năng tự động dự phòng. Nén xếp chồng RTK + Caveman tiết kiệm 15–95% token (trung bình ~89%) — không bao giờ đạt giới hạn. 358 nhà cung cấp AI · 150+ gói miễn phí · ~1.62 tỷ token miễn phí/tháng · 19 chiến lược định tuyến · $0 để bắt đầu."/>
 
 </div>
 
@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hoạt động ngay khi bạn cài đặt — không cần cấu hình. Ba bước: 1. Cài đặt — npm i -g omniroute, máy chủ khởi động trên localhost:20128. 2. Trỏ công cụ của bạn đến http://localhost:20128/v1 — bất kỳ công cụ tương thích OpenAI nào (Claude Code, Cursor, Cline). 3. Nó trả lời — gọi model auto để nhận phản hồi tức thì, không cần khóa API, không cần đăng ký, không cần cấu hình. Nhà cung cấp không khóa OpenCode Free được tích hợp sẵn vào combo auto, vì vậy một bản cài đặt mới sẽ phản hồi ngay lập tức."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hoạt động ngay khi bạn cài đặt — không cần cấu hình. Ba bước: 1. Cài đặt — npm i -g omniroute, máy chủ khởi động trên localhost:20128. 2. Trỏ công cụ của bạn đến http://localhost:20128/v1 — bất kỳ công cụ nào tương thích với OpenAI (Claude Code, Cursor, Cline). 3. Nó trả lời — gọi model auto để nhận phản hồi tức thì, không cần khóa API, không cần đăng ký, không cần cấu hình. Nhà cung cấp không khóa OpenCode Free được tích hợp sẵn vào combo auto, vì vậy một bản cài đặt mới sẽ phản hồi ngay lập tức."/>
 
 ```bash
 # Cài đặt mới, không cần thông tin đăng nhập — `auto` đã hoạt động:
@@ -229,7 +229,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <sub>Bạn muốn một backend miễn phí cụ thể? Gọi `oc/…` (OpenCode Free) trực tiếp. Sau đó chuyển sang `auto` và để OmniRoute chọn.</sub>
 
-<sub>📦 Các tập lệnh khởi động nhanh copy-paste cho **Python, Node.js, PHP và cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Các script khởi động nhanh copy-paste cho **Python, Node.js, PHP và cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Lời hứa — Một điểm cuối và 359 nhà cung cấp. Tự động dự phòng tiếp tục định tuyến trong khi có một mục tiêu lành mạnh khác. Sáu trụ cột: dự phòng linh hoạt trên 359 nhà cung cấp · tiết kiệm token lên đến 95% trên các khối lượng công việc đủ điều kiện · $0 để bắt đầu với hơn 150 gói miễn phí và 54 nhà cung cấp miễn phí vĩnh vi viễn/không khóa định kỳ · 36 tích hợp CLI/agent thông qua một cấu hình · tương thích OpenAI, Claude, Gemini và Responses API tại /v1 · kiểm soát sản xuất bao gồm bộ ngắt mạch, ẩn TLS, 110 công cụ MCP, A2A, bộ nhớ, rào chắn, đánh giá và hơn 39.000 khai báo kiểm tra tĩnh trên hơn 5.100 tệp kiểm tra được theo dõi."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Lời hứa — Một điểm cuối và 358 nhà cung cấp. Tự động dự phòng giúp định tuyến trong khi có mục tiêu khỏe mạnh khác. Sáu trụ cột: dự phòng linh hoạt trên 358 nhà cung cấp · tiết kiệm tới 95% token cho các khối lượng công việc đủ điều kiện · $0 để bắt đầu với hơn 150 gói miễn phí và 54 nhà cung cấp miễn phí vĩnh viễn/không khóa định kỳ · 36 tích hợp CLI/agent thông qua một cấu hình · tương thích API OpenAI, Claude, Gemini và Responses tại /v1 · kiểm soát sản xuất bao gồm bộ ngắt mạch, ẩn TLS, công cụ MCP 110, A2A, bộ nhớ, guardrails, đánh giá và hơn 39.000 khai báo kiểm tra tĩnh trên hơn 5.100 tệp kiểm tra được theo dõi."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Tại sao OmniRoute — ngừng phải xử lý 10 bảng điều khiển, khóa API chết và các hóa đơn bất ngờ. Mười vấn đề hàng ngày so với các giải pháp: hạn ngạch hết hạn không sử dụng → tối đa hóa đăng ký; giới hạn tốc độ giữa chừng khi viết mã → tự động dự phòng 4 cấp (Đăng ký → API → Rẻ → Miễn phí); đầu ra công cụ đốt token → nén RTK + Caveman (15–95%); API đắt tiền → định tuyến tối ưu hóa chi phí; mỗi công cụ có thiết lập riêng → một điểm cuối, một bảng điều khiển; AI bị chặn → proxy 3 cấp + ẩn TLS; khóa chết → khả năng phục hồi 3 lớp (bộ ngắt mạch, thời gian chờ khóa, khóa mô hình); nhóm chia sẻ một đăng ký → nhóm khóa với hạn ngạch chia sẻ công bằng; lời nhắc thông qua đám mây của ai đó → ưu tiên cục bộ với khóa được mã hóa AES-256-GCM; không có khả năng hiển thị chi tiêu → phân tích trực tiếp (sử dụng, hạn ngạch, tiết kiệm, độ trễ p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Tại sao lại là OmniRoute — ngừng phải quản lý 10 bảng điều khiển, các khóa API chết và các hóa đơn bất ngờ. Mười vấn đề hàng ngày so với các giải pháp: hạn ngạch hết hạn chưa sử dụng → tối đa hóa các gói đăng ký; giới hạn tốc độ khi đang viết mã → tự động dự phòng 4 cấp (Đăng ký → API → Rẻ → Miễn phí); đầu ra công cụ đốt token → nén RTK + Caveman (15–95%); API đắt tiền → định tuyến tối ưu chi phí; mỗi công cụ một thiết lập riêng → một điểm cuối, một bảng điều khiển; AI bị chặn → proxy 3 cấp + ẩn TLS; khóa chết → khả năng phục hồi 3 lớp (bộ ngắt mạch, thời gian chờ khóa, khóa mô hình); nhóm chia sẻ một gói đăng ký → nhóm khóa với hạn ngạch chia sẻ công bằng; lời nhắc thông qua đám mây của ai đó → ưu tiên cục bộ với khóa được mã hóa AES-256-GCM; không có khả năng hiển thị chi tiêu → phân tích trực tiếp (sử dụng, hạn ngạch, tiết kiệm, độ trễ p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Luồng yêu cầu OmniRoute: IDE hoặc CLI của bạn (Claude Code, Cursor, Cline…) gọi một điểm cuối cục bộ (http://localhost:20128/v1); Bộ định tuyến thông minh OmniRoute (nén RTK + Caveman, 19 chiến lược định tuyến, bộ ngắt mạch, ẩn TLS, MCP, A2A, rào chắn) có thể dự phòng trên 4 cấp nhà cung cấp trong khi vẫn còn một mục tiêu lành mạnh đủ điều kiện — Đăng ký Cấp 1, Khóa API Cấp 2, Rẻ Cấp 3 và Miễn phí Cấp 4."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Luồng yêu cầu của OmniRoute: IDE hoặc CLI của bạn (Claude Code, Cursor, Cline…) gọi một điểm cuối cục bộ (http://localhost:20128/v1); OmniRoute Smart Router (nén RTK + Caveman, 19 chiến lược định tuyến, bộ ngắt mạch, ẩn TLS, MCP, A2A, guardrails) có thể dự phòng trên 4 cấp nhà cung cấp trong khi vẫn còn một mục tiêu khỏe mạnh đủ điều kiện — Cấp 1 Đăng ký, Cấp 2 Khóa API, Cấp 3 Rẻ và Cấp 4 Miễn phí."/>
 
 </div>
 
@@ -488,11 +488,11 @@ Toàn bộ **19** chiến lược — kết hợp linh hoạt ở từng bước
 
 <div align="center">
 
-## 🏆 Điều gì làm nên sự khác biệt của OmniRoute
+## 🏆 Điều gì làm OmniRoute trở nên khác biệt
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Điều gì làm nên sự khác biệt của OmniRoute — một ảnh chụp nhanh tính năng đã lỗi thời so với 9router, OpenRouter, CLIProxyAPI và LiteLLM trên 13 khả năng. OmniRoute: 359 nhà cung cấp, hơn 150 gói miễn phí tích hợp sẵn, 19 chiến lược định tuyến, nén token 12 công cụ, máy chủ MCP tích hợp với 110 công cụ, giao thức tác nhân A2A, bộ nhớ liên tục, hàng rào bảo vệ, tác nhân đám mây, ẩn danh dấu vân tay TLS, Desktop/Termux/PWA và 42 ngôn ngữ giao diện người dùng i18n. OmniRoute được cấp phép MIT và có thể tự lưu trữ. Khả năng và số lượng của đối thủ cạnh tranh có thể thay đổi; xem phương pháp luận được liên kết."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Điều gì làm OmniRoute trở nên khác biệt — một ảnh chụp nhanh tính năng đã lỗi thời so với 9router, OpenRouter, CLIProxyAPI và LiteLLM trên 13 khả năng. OmniRoute: 358 nhà cung cấp, hơn 150 gói miễn phí tích hợp sẵn, 19 chiến lược định tuyến, nén token 12-engine, máy chủ MCP tích hợp với 110 công cụ, giao thức tác nhân A2A, bộ nhớ bền vững, hàng rào bảo vệ, tác nhân đám mây, ẩn danh dấu vân tay TLS, Desktop/Termux/PWA và 42 ngôn ngữ giao diện người dùng i18n. OmniRoute được cấp phép MIT và có thể tự lưu trữ. Khả năng và số lượng của đối thủ cạnh tranh có thể thay đổi; xem phương pháp luận được liên kết."/>
 
 <sub>📊 Phương pháp luận đầy đủ &amp; chi tiết từng tính năng so với 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
@@ -1263,19 +1263,19 @@ Số liệu chuẩn vào 2026-08-24: **1.029 video duy nhất** · **11.132.922 
 <table>
   <tr><th align="left">Lớp</th><th align="left">Công nghệ</th></tr>
   <tr><td nowrap><b>Môi trường chạy</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Ngôn ngữ</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> trên <code>src/</code> và <code>open-sse/</code> (không có <code>any</code> trong lõi kể từ v2.0)</td></tr>
-  <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Cơ sở dữ liệu</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 module miền, 182 migrations</td></tr>
-  <tr><td nowrap><b>Bộ nhớ</b></td><td>SQLite FTS5 full-text + nhúng vector lượng tử hóa int8, phân rã có kiểu</td></tr>
+  <tr><td nowrap><b>Ngôn ngữ</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> trên toàn bộ <code>src/</code> và <code>open-sse/</code> (không có <code>any</code> trong lõi kể từ v2.0)</td></tr>
+  <tr><td nowrap><b>Khung làm việc</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Cơ sở dữ liệu</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 module miền, 183 migration</td></tr>
+  <tr><td nowrap><b>Bộ nhớ</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
   <tr><td nowrap><b>Lược đồ</b></td><td>Zod 4 — Xác thực I/O công cụ MCP + hợp đồng API</td></tr>
   <tr><td nowrap><b>Giao thức</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Truyền phát</b></td><td>Server-Sent Events (SSE) + Cầu nối WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Nén</b></td><td>Hệ thống 12-engine — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Xác thực & bảo mật</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + xác thực phạm vi MCP · AES-256-GCM khi lưu trữ · DOMPurify</td></tr>
+  <tr><td nowrap><b>Truyền phát</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Nén</b></td><td>Hệ thống 12 công cụ — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Xác thực &amp; bảo mật</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM khi nghỉ · DOMPurify</td></tr>
   <tr><td nowrap><b>Ẩn danh</b></td><td>wreq-js — Giả mạo dấu vân tay JA3 / JA4 TLS, proxy 3 cấp</td></tr>
-  <tr><td nowrap><b>Khả năng phục hồi</b></td><td>Bộ ngắt mạch, lùi lũy thừa, chống thundering-herd, tự phục hồi tự động kết hợp</td></tr>
+  <tr><td nowrap><b>Khả năng phục hồi</b></td><td>Bộ ngắt mạch, lùi lũy thừa, chống hiệu ứng bầy đàn, tự phục hồi kết hợp tự động</td></tr>
   <tr><td nowrap><b>Ghi nhật ký</b></td><td>pino — nhật ký JSON có cấu trúc với ngữ cảnh yêu cầu</td></tr>
-  <tr><td nowrap><b>Kiểm thử</b></td><td>Node.js test runner + Vitest — <b>Hơn 39.000 khai báo kiểm thử tĩnh</b> trên hơn 5.100 tệp kiểm thử được theo dõi (unit, integration, E2E, security, ecosystem)</td></tr>
+  <tr><td nowrap><b>Kiểm thử</b></td><td>Node.js test runner + Vitest — <b>Hơn 39.000 khai báo kiểm thử tĩnh</b> trên hơn 5.100 tệp kiểm thử được theo dõi (đơn vị, tích hợp, E2E, bảo mật, hệ sinh thái)</td></tr>
   <tr><td nowrap><b>Nền tảng</b></td><td>Máy tính để bàn (Electron) · Android (Termux) · PWA (mọi trình duyệt)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — tự động xuất bản npm + Docker Hub khi phát hành</td></tr>
   <tr><td nowrap><b>Liên kết</b></td><td><a href="https://omniroute.online">Trang web</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
