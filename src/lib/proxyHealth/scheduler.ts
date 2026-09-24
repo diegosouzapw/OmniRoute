@@ -55,6 +55,7 @@ import {
   proxyEgressKey,
   type ProxyRefusalKind,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory";
+import { deleteSweepVerdict, recordSweepVerdict, toSweepVerdict } from "./sweepVerdict.ts";
 import { isProxyHealthBlockedResetsStreakEnabled } from "@/shared/utils/featureFlags";
 
 // #6246: a HEAD to the public probe target through a legit (often loaded) proxy
@@ -352,13 +353,13 @@ async function sweep(): Promise<void> {
         if (outcome === "blocked" && status === 429) {
           noteSweepRefusal(proxyEgressKey(proxy), status);
         }
-        return { id: proxy.id, outcome };
+        return { id: proxy.id, outcome, status };
       })
     );
 
     for (const result of results) {
       if (result.status !== "fulfilled") continue;
-      const { id, outcome } = result.value;
+      const { id, outcome, status } = result.value;
       tested++;
       if (outcome === "ok") alive++;
       else if (outcome === "inconclusive") inconclusive++;
@@ -373,6 +374,12 @@ async function sweep(): Promise<void> {
         removeAfter,
         blockedResetsStreak,
       });
+
+      // Last sweep verdict (memory only, display): recorded for every probe
+      // after the decision so the screen explains dead/blocked proxies without
+      // triggering probes. Anchors: decideProxyHealthAction above, updateProxy
+      // below. The cause stays a sidecar: never branched on here.
+      recordSweepVerdict(id, toSweepVerdict(outcome, status, Date.now()));
 
       if (decision.clearFailures) failureMap.delete(id);
       else failureMap.set(id, decision.failures);
@@ -389,6 +396,7 @@ async function sweep(): Promise<void> {
       if (decision.remove) {
         if (await deleteProxyById(id, { force: true }).catch(() => false)) {
           failureMap.delete(id);
+          deleteSweepVerdict(id);
           removed++;
           try {
             clearDispatcherCache();
