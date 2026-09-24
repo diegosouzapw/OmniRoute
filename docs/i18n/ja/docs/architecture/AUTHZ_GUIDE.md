@@ -4,14 +4,14 @@
 
 ---
 
-> **信頼できる唯一の情報源:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **最終更新:** 2026-06-28 — v3.8.40
+> **信頼できる情報源:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **最終更新日:** 2026-09-22 — スコープの名前空間はMCP-SERVER.mdを参照
 
-OmniRoute には、すべての API リクエストを制御する、ルートを認識する認可パイプラインがあります。分類は**決定論的**かつ**フェイルクローズ**です。つまり、分類できないものはすべて `MANAGEMENT` として扱われ、セッションまたは管理レベルのトークンが必要になります。このページでは、ルートを保守するエンジニアや新しいエンドポイントを設計するエンジニア向けに、このモデルについて説明します。
+OmniRouteには、すべてのAPIリクエストをゲートするルート認識型認可パイプラインがあります。分類は**決定論的**であり、**フェイルクローズ**です。分類できないものはすべて`MANAGEMENT`として扱われ、セッションまたは管理グレードのトークンを要求します。このページでは、ルートを保守するエンジニアや新しいエンドポイントを設計するエンジニア向けにモデルを説明します。
 
-![AuthZ パイプライン（3 つのルートクラス + ポリシー評価）](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
-> 出典: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> ソース: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## 2 つの認証モード
 
@@ -200,24 +200,22 @@ export async function POST(request: Request) {
 
 ## スコープ
 
-API キーは `scopes` 配列を持ちます（`api_keys.scopes` に JSON として保存されます。`src/lib/db/apiKeys.ts` を参照）。
+3つの名前空間があります。各チェッカーは自身の文字列のみを読み取ります。`manage`が`read:compression`に対して`scopeMatches`で失敗する理由や、`read`アクセストークンが`PATCH /api/keys/{id}`を実行できない理由を含む、並列の比較については、[3つのスコープ名前空間](../frameworks/MCP-SERVER.md#three-scope-namespaces)を参照してください。
+
+APIキーには`scopes`配列が含まれています（`api_keys.scopes`にJSONとして保存されます。`src/lib/db/apiKeys.ts`を参照）。
 
 ### 管理スコープ
 
-- `manage` / `admin` — Bearer として送信された場合、キーに管理 API エンドポイントへのアクセス権を付与します。
+- `manage` / `admin` — `hasManageScope`。管理APIルートへのベアラーアクセス。
+- `mcp:connect`、`self:usage`、`self:account-quota`、および`policy:bypass-provider-quota`は、追加的な完全一致スコープです。これらは`MANAGEMENT_API_KEY_SCOPES`の範囲外にあります。`mcp:connect`は、`/api/mcp/`の非ループバックの切り出しのみを開放します。
 
-### MCP スコープ（`src/shared/constants/mcpScopes.ts`）
+### MCPツールスコープ
 
-各 MCP ツールには、`MCP_TOOL_SCOPES` を介して特定のスコープが必要です。完全なリスト（`MCP_SCOPE_LIST`）：
+カタログとマッチングルール（同一文字列、または`*`で終わる付与されたスコープ）：[MCPツールスコープ](../frameworks/MCP-SERVER.md#mcp-tool-scopes)。`src/shared/constants/mcpScopes.ts`にある`MCP_SCOPE_LIST`は、完全なカタログではなく、元の型付きサブセットです。`resolveCallerScopeContext()`がMCP認証情報、リクエストメタデータ、または`OMNIROUTE_MCP_SCOPES`からスコープを解決した後、`open-sse/mcp-server/scopeEnforcement.ts`で強制が実行されます。`OMNIROUTE_MCP_ENFORCE_SCOPES=true`でない限り、これは無効のままです。
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### アクセストークンスコープ
 
-`open-sse/mcp-server/server.ts` でのスコープ適用では、`resolveCallerScopeContext()` が MCP 認証情報、リクエストメタデータ、または `OMNIROUTE_MCP_SCOPES` からスコープを解決した後、各ツールのスコープリストを `evaluateToolScopes()` に渡します。
+`oma_live_…`トークンに対する`read` / `write` / `admin`は、`scopeSatisfies`（`src/lib/accessTokens/scopes.ts`）によってランク付けされます。このランクはアクセストークン資格情報にのみ適用されます。[管理認証](../guides/MANAGEMENT-AUTH.md)を参照してください。
 
 ## 認証必須の切り替え
 
@@ -267,5 +265,5 @@ x-omniroute-auth-scopes:    カンマ区切りのリスト
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — エンドポイントごとの認証マーカー
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — 認証イベントの監査ログ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP スコープ適用の詳細
-- ソース: `src/server/authz/`、`src/lib/api/requireManagementAuth.ts`
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — 3つのスコープ名前空間とMCPツールスコープカタログ
+- ソース: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

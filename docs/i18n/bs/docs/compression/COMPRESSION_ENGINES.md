@@ -8,35 +8,45 @@
 
 OmniRoute kompresija je izgrađena oko ugovora o mehanizmima. Režim može pokrenuti jedan mehanizam direktno (`caveman` ili `rtk`) ili deterministički složeni cjevovod koji izvršava više mehanizama redom.
 
-## Režimi
+## Načini rada
 
-| Režim        | Putanja mehanizma                  | Namijenjeni unos                                  |
-| ------------ | ---------------------------------- | ------------------------------------------------- |
-| `off`        | nijedan                            | Precizno očuvanje upita                           |
-| `lite`       | Caveman lite pomoćnici             | Čišćenje niskog rizika koje je uvijek uključeno   |
-| `standard`   | Caveman                            | Kondenzacija upita prirodnog jezika               |
-| `aggressive` | Caveman + sažimači historije/alata | Duge sesije razgovora                             |
-| `ultra`      | Caveman + pomoćnici za obrezivanje | Oporavak od ograničenja konteksta                 |
-| `rtk`        | RTK                                | Izlaz terminala, shell-a, build-a, testa i git-a  |
-| `omniglyph`  | OmniGlyph                          | Kontekst-kao-slika na kanalu izvornog provajdera  |
-| `stacked`    | Cjevovod, zadano `rtk -> caveman`  | Mješoviti zapisi alata i proza, maksimalne uštede |
+| Način rada   | Putanja mehanizma                                                                                        | Namijenjeni ulaz                                      |
+| ------------ | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `off`        | nema                                                                                                     | Potpuno očuvanje upita                                |
+| `lite`       | Caveman lite pomoćni alati                                                                               | Stalno aktivno čišćenje niskog rizika                 |
+| `standard`   | Caveman                                                                                                  | Sažimanje upita na prirodnom jeziku                   |
+| `aggressive` | Caveman + sažimači historije/alata                                                                       | Duge sesije razgovora                                 |
+| `ultra`      | Caveman + pomoćni alati za skraćivanje                                                                   | Oporavak nakon dostizanja ograničenja konteksta       |
+| `rtk`        | RTK                                                                                                      | Izlaz terminala, ljuske, izgradnje, testiranja i gita |
+| `omniglyph`  | OmniGlyph                                                                                                | Kontekst kao slika na izvornoj vezi pružaoca usluge   |
+| `stacked`    | Cjevovod. Zadana vrijednost zahtjeva je `session-dedup -> lite`. `rtk -> caveman` se uključuje po želji. | Mješoviti zapisnici alata i proza, maksimalna ušteda  |
 
-### OmniGlyph profili kompresije
+### Profili kompresije OmniGlyph
 
-`omniglyph` mehanizam (paket `omniglyph`, 1.4.0+) prihvata imenovani semantički profil, koji se globalno postavlja putem `omniglyph.profile` u postavkama kompresije ili po koraku kroz konfiguraciju koraka složenog cjevovoda:
+Mehanizam `omniglyph` (paket `omniglyph`, 1.4.0+) prihvata imenovani semantički profil, postavljen
+globalno putem `omniglyph.profile` u postavkama kompresije ili po koraku putem konfiguracije
+koraka složenog cjevovoda:
 
-| Profil        | Granica                                                                                                     |
-| ------------- | ----------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Zadano. Politika koju su mjerili objavljeni rezultati — sistem slika, dokumentacija alata i gusta historija |
-| `balanced`    | Zadržava stanje uživo izvornim, štiti posljednjih 8 razmjena, sažima stariju zatvorenu historiju            |
-| `coding-safe` | Zadržava autoritet, sheme alata i izlaz alata uživo izvornim, štiti posljednjih 12 razmjena                 |
-| `passthrough` | Usmjerava bez transformacije; mehanizam se preskače                                                         |
+| Profil        | Granica                                                                                                                      |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Zadano. Pravilo prema kojem su mjerene objavljene potvrde — pretvara sistem, dokumentaciju alata i opsežnu historiju u slike |
+| `balanced`    | Zadržava aktivno stanje u izvornom obliku, štiti posljednjih 8 interakcija, sažima stariju završenu historiju                |
+| `coding-safe` | Zadržava ovlaštenja, sheme alata i aktivni izlaz alata u izvornom obliku, štiti posljednjih 12 interakcija                   |
+| `passthrough` | Usmjerava bez transformacije; mehanizam se preskače                                                                          |
 
-Profil je **gornja granica, a ne donja**: `mergeCompressionProfileOptions` u paketu odbija dozvoliti pozivaocu da nadjača ponovno otvaranje trake sa gubitkom koju je profil zatvorio, tako da `preserveSystemPrompt: false` po koraku ne može ponovo omogućiti sistemsku kompresiju pod `coding-safe`.
+Profil je **gornja, a ne donja granica**: `mergeCompressionProfileOptions` u paketu
+ne dozvoljava da prepisivanje pozivaoca ponovo otvori kanal s gubicima koji je profil zatvorio, pa postavka
+`preserveSystemPrompt: false` po koraku ne može ponovo omogućiti kompresiju sistema pod profilom `coding-safe`.
 
-Mjereno na ovoj bazi koda: `coding-safe` i `balanced` podižu `minCompressChars` na maksimum i zadržavaju sistem, sheme alata i rezultate alata izvornim, tako da sesija koja još nije akumulirala historiju staje na `below_min_chars` i mehanizam ne transformiše ništa. Zato je zadana vrijednost `aggressive` umjesto najsigurnijeg profila.
+Izmjereno na ovoj bazi koda: `coding-safe` i `balanced` podižu `minCompressChars` na njegovu
+maksimalnu vrijednost te zadržavaju sistem, sheme alata i rezultate alata u izvornom obliku, pa se sesija koja još nije
+akumulirala historiju zaustavlja na `below_min_chars` i mehanizam ništa ne transformiše. Zbog toga
+je zadana vrijednost `aggressive`, a ne najsigurniji profil.
 
-Paket rješava vlastiti opseg modela i profil iz svoje konfiguracije okruženja. OmniRoute nikada ne delegira odluku: adapter fiksira kapiju modela na najrestriktivniji opseg paketa, tako da postavke okruženja domaćina mogu samo suziti listu dozvoljenih, nikada je proširiti izvan OmniRoute-ovih mjerenih rezultata.
+Paket određuje vlastiti opseg modela i profil iz svoje konfiguracije okruženja.
+OmniRoute nikada ne delegira odluku: adapter fiksira ograničenje modela na najrestriktivniji
+opseg paketa, pa postavke okruženja domaćina mogu samo suziti listu dozvoljenih, ali je nikada
+ne mogu proširiti izvan izmjerenih potvrda OmniRoutea.
 
 ## Registar mehanizama
 

@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — 開放前沿智慧 · 2.8T 參數 · 1M-token 上下文"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **想成為開源夥伴嗎？** 這些公司支持開源並協助 OmniRoute 持續發展，而我們也會公開說明他們提供的每一份資源都用在何處。聯絡我們：[diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **想加入成為開源夥伴嗎？** 這些公司支持開源並幫助 OmniRoute 持續發展 — 我們公開說明他們提供的每一筆資金的用途。請聯繫：[diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="創始開源夥伴"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      感謝我們的創始開源夥伴 <b>Kimi (Moonshot AI)</b> 支持本專案！Kimi 是推出開放權重 K2 與 K3 模型系列的 AI 實驗室——<b>Kimi K3</b> 提供 1M-token 上下文視窗、原生視覺能力及前沿等級的程式設計能力，而價格僅為封閉模型的一小部分，並可直接搭配 Claude Code、Codex，以及 OmniRoute 支援的所有程式設計工具使用。
+      感謝我們的創始開源夥伴 <b>Kimi (月之暗面)</b> 對本專案的支持！Kimi 是開源權重 K2 和 K3 模型系列背後的 AI 實驗室 — <b>Kimi K3</b> 提供 1M-token 的上下文視窗、原生視覺和前沿級別的編碼能力，價格僅為閉源模型的一小部分，並且與 Claude Code、Codex 以及 OmniRoute 支援的所有編碼工具開箱即用。
       <br/><br/>
-      <b>Kimi 的支持為哪些工作提供動力：</b>Kimi 的 API 額度為 OmniRoute 經 AI 驗證的發布管線提供支援，包括在每個拉取請求發布前進行審查的<i>由 Kimi K3 驅動的合併驗證</i>階段，以及日常功能開發。兩種管道皆提供對 Kimi 的一級支援：直接使用 <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a>（<code>kimi-k3</code>），以及使用 <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code 程式設計方案</a>（OAuth 與 API 金鑰）。OmniRoute 也是首個加入 Kimi 支援計畫的巴西開源專案。<a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>取得 Kimi API 金鑰並獲得額外 15% 額度 →</b></a>
+      <b>Kimi 的支持用途：</b> Kimi 的 API 積分為 OmniRoute 的 AI 驗證發布流程提供動力 — 即在每個拉取請求發布前進行審查的 <i>由 Kimi K3 提供支援的合併驗證</i> 階段 — 以及日常功能開發。一流的 Kimi 支援透過兩種方式提供：直接的 <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) 和 <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code 編碼方案</a> (OAuth 和 API 金鑰)。OmniRoute 也是 Kimi 支援計畫中第一個巴西開源專案。<a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>獲取 Kimi API 金鑰，額外獲得 15% 積分 →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="開源夥伴"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      感謝 OmniRoute 的開源夥伴 <b>Cheaper Inference</b> 支持本專案！Cheaper Inference 是依成本排序的閘道，透過單一 OpenAI 相容端點轉售 42 款前沿模型——包括 Claude、GPT-5.x、Gemini、Kimi K3、GLM、DeepSeek、Grok 和 MiniMax——並將每個請求路由至符合條件且價格最低的提供者，收費絕不高於模型開發商的定價。
+      感謝 OmniRoute 的開源夥伴 <b>Cheaper Inference</b> 對本專案的支持！Cheaper Inference 是一個按成本排名的閘道，透過一個與 OpenAI 相容的端點轉售 42 個前沿模型 — Claude、GPT-5.x、Gemini、Kimi K3、GLM、DeepSeek、Grok 和 MiniMax — 將每個請求路由到最便宜的合格提供者，且絕不收取高於模型製造商標價的費用。
       <br/><br/>
-      <b>OmniRoute 的一級支援：</b>Chat Completions、原生 <code>/v1/responses</code> 端點、視覺、工具呼叫，以及 3 款影像模型（<code>grok-imagine</code>、<code>nano-banana-pro</code>、<code>nano-banana-2</code>，可透過 <code>cheaperinference/&lt;model&gt;</code> 存取）。<a href="https://cheaperinference.com/?utm_source=omniroute"><b>取得 API 金鑰 →</b></a>
+      <b>OmniRoute 中的一流支援：</b> 聊天補全、原生 <code>/v1/responses</code> 端點、視覺、工具呼叫以及 3 個圖像模型 (<code>grok-imagine</code>、<code>nano-banana-pro</code>、<code>nano-banana-2</code>，可透過 <code>cheaperinference/&lt;model&gt;</code> 訪問)。<a href="https://cheaperinference.com/?utm_source=omniroute"><b>獲取 API 金鑰 →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>帶有 <code>aff=omniroute</code> 標記的連結是合作夥伴連結。它們能為本專案提供資金，而您無需支付任何額外費用。</sub>
+<sub>標記為 <code>aff=omniroute</code> 的連結是合作夥伴連結。它們在不增加您費用的情況下資助本專案。</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ 聯盟優惠</b> — 由非贊助合作提供者提供的免費註冊優惠券（點擊展開）</sub></summary>
+<summary><sub><b>🎟️ 聯盟推廣</b> — 我們未贊助的提供者提供的免費註冊優惠券（點擊展開）</sub></summary>
 
-<sub><i>本節僅用於推薦碼／優惠碼。贊助合作關係列於上方的 <b>🤝 由我們的開源夥伴支持</b>。OmniRoute 與此處列出的提供者不存在任何贊助或合作關係——這些是任何人皆可使用的公開優惠券。</i></sub>
+<sub><i>本節僅適用於推薦/優惠券代碼。贊助合作夥伴關係位於上方的 **🤝 由我們的開源夥伴支持** 中。OmniRoute 與此處列出的提供者沒有任何贊助或合作關係 — 這些是任何人都可以使用的公開優惠券。</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — 聯盟註冊 · 註冊即可獲得 <b>$100 免費額度</b>（免費伺服器，延遲可能較高——最適合測試，不建議用於正式環境）。自 <b>v3.8.50</b> 起，OmniRoute 提供一級支援：Chat Completions、Anthropic 相容的線路格式，以及 OpenAI 相容路徑。可用模型包括 <code>claude-opus-4-8</code>、<code>claude-opus-5</code>、<code>gpt-5.6-sol</code> 等。<b><a href="https://agentrouter.org/register?aff=70LM">領取您的 $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — 聯盟註冊 · 註冊即送 <b>$100 免費積分</b>（免費伺服器，預計延遲較高 — 最適合測試，不適合生產）。自 <b>v3.8.50</b> 起在 OmniRoute 中提供一流支援：聊天補全、與 Anthropic 相容的線路格式和與 OpenAI 相容的路徑。可用模型包括 <code>claude-opus-4-8</code>、<code>claude-opus-5</code>、<code>gpt-5.6-sol</code> 等。<a href="https://agentrouter.org/register?aff=70LM"><b>領取您的 $100 →</b></a></sub>
       <br/><br/>
-      <sub>⚠️ <i>聯盟連結——OmniRoute 與此提供者不存在任何贊助或合作關係。</i></sub>
+      <sub>⚠️ <i>聯盟連結 — OmniRoute 與此提供者沒有任何贊助或合作關係。</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>知道其他提供慷慨免費註冊優惠、且能讓 OmniRoute 使用者受益的提供者嗎？請建立 issue，我們會將其加入此處。</sub>
+<sub>知道還有其他提供慷慨免費註冊優惠券且對 OmniRoute 用戶有益的提供者嗎？請提出一個 issue，我們會將其添加到這裡。</sub>
 
 </details>
 
@@ -1255,28 +1255,28 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 也會略過
 <br/>
 <div align="center">
 
-## 🛠️ 技術堆疊
+## 🛠️ 技術棧
 
 </div>
 
 <table>
   <tr><th align="left">層級</th><th align="left">技術</th></tr>
   <tr><td nowrap><b>執行環境</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>語言</b></td><td>TypeScript 6.0 — <code>src/</code> 與 <code>open-sse/</code> 全面採用 <b>100% TypeScript</b>（自 v2.0 起核心程式碼中零 <code>any</code>）</td></tr>
+  <tr><td nowrap><b>語言</b></td><td>TypeScript 6.0 — <code>src/</code> 和 <code>open-sse/</code> 中<b>100% 使用 TypeScript</b>（自 v2.0 起核心代碼中無 <code>any</code>）</td></tr>
   <tr><td nowrap><b>框架</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>資料庫</b></td><td>better-sqlite3（SQLite、WAL 日誌記錄）+ LowDB（舊版 JSON）— 122 個領域模組、178 次遷移</td></tr>
-  <tr><td nowrap><b>記憶體</b></td><td>SQLite FTS5 全文搜尋 + int8 量化向量嵌入、類型化衰減</td></tr>
-  <tr><td nowrap><b>結構描述</b></td><td>Zod 4 — MCP 工具輸入／輸出驗證 + API 契約</td></tr>
-  <tr><td nowrap><b>通訊協定</b></td><td>MCP（stdio / HTTP / SSE）+ A2A v0.3（JSON-RPC 2.0 + SSE）</td></tr>
-  <tr><td nowrap><b>串流</b></td><td>伺服器傳送事件（SSE）+ WebSocket 橋接器（<code>/v1/ws</code>）</td></tr>
-  <tr><td nowrap><b>壓縮</b></td><td>12 引擎管線 — RTK、Caveman、LLMLingua-2（MobileBERT ONNX）、GCF、OmniGlyph</td></tr>
-  <tr><td nowrap><b>驗證與安全性</b></td><td>OAuth 2.0（PKCE）+ JWT + API 金鑰 + MCP 範圍式驗證 · 靜態資料採用 AES-256-GCM 加密 · DOMPurify</td></tr>
-  <tr><td nowrap><b>隱匿性</b></td><td>wreq-js — JA3 / JA4 TLS 指紋模擬、3 級代理</td></tr>
-  <tr><td nowrap><b>韌性</b></td><td>斷路器、指數退避、防驚群效應、自動組合自我修復</td></tr>
-  <tr><td nowrap><b>日誌記錄</b></td><td>pino — 包含請求上下文的結構化 JSON 日誌</td></tr>
-  <tr><td nowrap><b>測試</b></td><td>Node.js 測試執行器 + Vitest — 在 5,100+ 個追蹤的測試檔案中包含 <b>39,000+ 個靜態測試宣告</b>（單元、整合、端對端、安全性、生態系統）</td></tr>
-  <tr><td nowrap><b>平台</b></td><td>桌面版（Electron）· Android（Termux）· PWA（任何瀏覽器）</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — 發佈版本時自動發佈至 npm + Docker Hub</td></tr>
+  <tr><td nowrap><b>資料庫</b></td><td>better-sqlite3 (SQLite, WAL 日誌) + LowDB (JSON 舊版) — 122 個領域模組，182 次遷移</td></tr>
+  <tr><td nowrap><b>記憶體</b></td><td>SQLite FTS5 全文檢索 + int8 量化向量嵌入，類型衰減</td></tr>
+  <tr><td nowrap><b>架構</b></td><td>Zod 4 — MCP 工具 I/O 驗證 + API 契約</td></tr>
+  <tr><td nowrap><b>協定</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>串流</b></td><td>Server-Sent Events (SSE) + WebSocket 橋接 (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>壓縮</b></td><td>12 引擎管線 — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>認證與安全</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP 範圍認證 · 靜態 AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>隱匿</b></td><td>wreq-js — JA3 / JA4 TLS 指紋偽裝，3 層代理</td></tr>
+  <tr><td nowrap><b>彈性</b></td><td>斷路器、指數退避、防雷鳴群集、自動組合自我修復</td></tr>
+  <tr><td nowrap><b>日誌</b></td><td>pino — 帶有請求上下文的結構化 JSON 日誌</td></tr>
+  <tr><td nowrap><b>測試</b></td><td>Node.js 測試執行器 + Vitest — 跨 5,100+ 個追蹤測試檔案（單元、整合、E2E、安全、生態系統）<b>39,000+ 靜態測試宣告</b></td></tr>
+  <tr><td nowrap><b>平台</b></td><td>桌面 (Electron) · Android (Termux) · PWA (任何瀏覽器)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — 發布時自動 npm 發布 + Docker Hub</td></tr>
   <tr><td nowrap><b>連結</b></td><td><a href="https://omniroute.online">網站</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
